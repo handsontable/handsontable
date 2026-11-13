@@ -30,6 +30,25 @@ describe('IndexMapper', () => {
     expect(indexMapper.getNotTrimmedIndexesLength()).toBe(10);
   });
 
+  it('should count the indexes without materializing an identity sequence', () => {
+    const indexMapper = new IndexMapper();
+
+    indexMapper.initToLength(100000);
+
+    const getValues = jest.spyOn(indexMapper.indexesSequence, 'getValues');
+
+    expect(indexMapper.getNumberOfIndexes()).toBe(100000);
+    expect(getValues).not.toHaveBeenCalled();
+
+    indexMapper.moveIndexes([0], 5);
+
+    expect(indexMapper.getNumberOfIndexes()).toBe(100000);
+
+    indexMapper.removeIndexes([1, 2]);
+
+    expect(indexMapper.getNumberOfIndexes()).toBe(99998);
+  });
+
   it('should reset values in registered maps properly after calling `initToLength` method', () => {
     const indexMapper = new IndexMapper();
     const trimmingMap = new TrimmingMap();
@@ -116,6 +135,33 @@ describe('IndexMapper', () => {
     indexMapper.unregisterMap('uniqueName');
     indexMapper.unregisterMap('uniqueName2');
     indexMapper.unregisterMap('uniqueName3');
+  });
+
+  it('should default keepsRowsInFilterScope to false', () => {
+    const indexMapper = new IndexMapper();
+    const trimmingMap = indexMapper.createAndRegisterIndexMap('uniqueName', 'trimming');
+
+    expect(trimmingMap.keepsRowsInFilterScope).toBe(false);
+    expect(new TrimmingMap().keepsRowsInFilterScope).toBe(false);
+  });
+
+  it('should store keepsRowsInFilterScope for a trimming map', () => {
+    const indexMapper = new IndexMapper();
+    const inScopeMap = indexMapper.createAndRegisterIndexMap('inScope', 'trimming', false, {
+      keepsRowsInFilterScope: true,
+    });
+    const outOfScopeMap = indexMapper.createAndRegisterIndexMap('outOfScope', 'trimming', false, {
+      keepsRowsInFilterScope: false,
+    });
+
+    expect(inScopeMap).toBeInstanceOf(TrimmingMap);
+    expect(inScopeMap.keepsRowsInFilterScope).toBe(true);
+    expect(outOfScopeMap.keepsRowsInFilterScope).toBe(false);
+    // The option changes nothing about what the map trims.
+    indexMapper.initToLength(3);
+    inScopeMap.setValueAtIndex(1, true);
+
+    expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 2]);
   });
 
   it('should create and register map to proper collection when it is possible', () => {
@@ -299,6 +345,41 @@ describe('IndexMapper', () => {
     expect(changeCallback.calls.count()).toEqual(5);
 
     indexMapper.unregisterMap('uniqueName');
+  });
+
+  it('should return a new array from `getNotTrimmedIndexes` after the trimmed indexes change', () => {
+    const indexMapper = new IndexMapper();
+    const trimmingMap = indexMapper.createAndRegisterIndexMap('uniqueName', 'trimming') as TrimmingMap;
+
+    indexMapper.initToLength(10);
+
+    const untrimmed = indexMapper.getNotTrimmedIndexes();
+
+    trimmingMap.setValueAtIndex(0, true);
+
+    const trimmedFirstRow = indexMapper.getNotTrimmedIndexes();
+
+    expect(trimmedFirstRow).not.toBe(untrimmed);
+    expect(trimmedFirstRow).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+    // The same number of trimmed indexes, other indexes: the array keeps its length.
+    indexMapper.suspendOperations();
+    trimmingMap.setValueAtIndex(0, false);
+    trimmingMap.setValueAtIndex(3, true);
+    indexMapper.resumeOperations();
+
+    const trimmedFourthRow = indexMapper.getNotTrimmedIndexes();
+
+    expect(trimmedFourthRow).not.toBe(trimmedFirstRow);
+    expect(trimmedFourthRow.length).toBe(trimmedFirstRow.length);
+    expect(trimmedFourthRow).toEqual([0, 1, 2, 4, 5, 6, 7, 8, 9]);
+    // The array handed out earlier is not rewritten in place.
+    expect(trimmedFirstRow).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+    indexMapper.unregisterMap('uniqueName');
+
+    expect(indexMapper.getNotTrimmedIndexes()).not.toBe(trimmedFourthRow);
+    expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
 
   it('should handle `Hiding` map properly', () => {
@@ -731,6 +812,68 @@ describe('IndexMapper', () => {
 
       expect(indexesSequenceChangeCallback.calls.count()).toEqual(1);
       expect(indexesSequenceChangeCallback).toHaveBeenCalledWith('remove');
+    });
+
+    it('should trigger `indexesInserted` hook with the inserted physical indexes', () => {
+      const indexMapper = new IndexMapper();
+      const indexesInsertedCallback = jasmine.createSpy('indexesInserted');
+
+      indexMapper.initToLength(4);
+      indexMapper.setIndexesSequence([3, 2, 1, 0]);
+      indexMapper.addLocalHook('indexesInserted', indexesInsertedCallback);
+
+      indexMapper.insertIndexes(1, 2);
+
+      expect(indexesInsertedCallback.calls.count()).toEqual(1);
+      expect(indexesInsertedCallback).toHaveBeenCalledWith([2, 3], 'start');
+      expect(indexMapper.getIndexesSequence()).toEqual([5, 2, 3, 4, 1, 0]);
+    });
+
+    it('should pass the `end` mode to the `indexesInserted` hook', () => {
+      const indexMapper = new IndexMapper();
+      const indexesInsertedCallback = jasmine.createSpy('indexesInserted');
+
+      indexMapper.initToLength(4);
+      indexMapper.addLocalHook('indexesInserted', indexesInsertedCallback);
+
+      indexMapper.insertIndexes(1, 1, 'end');
+
+      expect(indexesInsertedCallback).toHaveBeenCalledWith([1], 'end');
+    });
+
+    it('should place the slot of a value map after the passed index and a sequence map\'s index after it, ' +
+      'for the `end` mode', () => {
+      const indexMapper = new IndexMapper();
+      const valueMap = indexMapper.createAndRegisterIndexMap('values', 'physicalIndexToValue', null);
+      const sequenceMap = indexMapper.createAndRegisterIndexMap('order', 'indexesSequence');
+
+      indexMapper.initToLength(4);
+      valueMap.setValues(['a', 'b', 'c', 'd']);
+      // the order the sequence map holds is the one the mapper shows, as ColumnSorting's pre-sort order starts
+      sequenceMap.setValues([0, 1, 2, 3]);
+
+      // inserted below the row at visual index 2 (physical 2): the new row takes physical index 3
+      indexMapper.insertIndexes(2, 1, 'end');
+
+      expect(valueMap.getValues()).toEqual(['a', 'b', 'c', null, 'd']);
+      // physical 2 keeps its place, and the new row (3) comes after it, as in the mapper's own sequence
+      expect(sequenceMap.getValues()).toEqual([0, 1, 2, 3, 4]);
+      expect(indexMapper.getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
+    });
+
+    it('should trigger `indexesRemoved` hook with the removed physical indexes', () => {
+      const indexMapper = new IndexMapper();
+      const indexesRemovedCallback = jasmine.createSpy('indexesRemoved');
+
+      indexMapper.initToLength(4);
+      indexMapper.setIndexesSequence([3, 2, 1, 0]);
+      indexMapper.addLocalHook('indexesRemoved', indexesRemovedCallback);
+
+      indexMapper.removeIndexes([2, 0]);
+
+      expect(indexesRemovedCallback.calls.count()).toEqual(1);
+      expect(indexesRemovedCallback).toHaveBeenCalledWith([2, 0]);
+      expect(indexMapper.getIndexesSequence()).toEqual([1, 0]);
     });
 
     it('should trigger `indexesSequenceChange` hook after moving elements', () => {

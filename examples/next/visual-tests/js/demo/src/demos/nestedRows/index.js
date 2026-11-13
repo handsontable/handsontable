@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 import { scenarioDataBottom } from './data';
 import { getThemeNameFromURL } from '../../utils';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   const mergeCells = [];
@@ -84,7 +85,7 @@ export function init() {
     autoWrapRow: true,
     nestedRows: true,
     bindRowsWithHeaders: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     mergeCells: mergeCells,
     cells(row, col, prop) {
       const cellProperties = {};

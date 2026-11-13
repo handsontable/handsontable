@@ -11,6 +11,10 @@ import { formatCellValue } from '../../renderers/renderCell';
 import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import type { CellChange } from '../../settings';
+import type CellRange from '../../3rdparty/walkontable/src/cell/range';
+import { MergedCellsWidths, isMultiColumnMerge } from './mergedCellsWidths';
+import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
@@ -208,6 +212,14 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns `true` so the plugin updates on every `updateSettings` call, regardless of config object contents.
    */
   static get SETTING_KEYS(): string[] | boolean {
@@ -284,7 +296,10 @@ export class AutoColumnSize extends BasePlugin {
       return false;
     }
 
-    if (!cellMeta.spanned) {
+    // A merged cell that spans one column is that column's own content. One that spans several
+    // columns would make its first column as wide as the whole text, so it is left out here and
+    // `MergedCellsWidths` widens the column it is drawn from by what the spanned columns lack instead.
+    if (!cellMeta.spanned || !isMultiColumnMerge(cellMeta.colspan)) {
       // Format through the same precedence as the render path (cell-level `valueFormatter`, then
       // the renderer's own static), so the measured string matches what the renderer produces.
       cellValue = formatCellValue(
@@ -309,6 +324,50 @@ export class AutoColumnSize extends BasePlugin {
    * @type {boolean}
    */
   inProgress: boolean = false;
+  /**
+   * The idle task that runs the next chunk of the sweep `calculateAllColumnsWidth()` started, or
+   * `null` when no sweep is waiting for one.
+   *
+   * @type {number|null}
+   */
+  #sweepTask: number | null = null;
+  /**
+   * The visual columns a sweep that re-measures every column from its cached samples (a web font load) has
+   * not measured yet, or `null` when no such sweep runs. The sweep's own draws leave these columns to it
+   * (see `#sweepDrawPending`).
+   *
+   * @type {Set<number>|null}
+   */
+  #sweepPendingColumns: Set<number> | null = null;
+  /**
+   * `true` while a draw of the re-measure sweep is due: the render that follows the start of the sweep (the
+   * one after the `afterFontsLoad` hook, or the render that starts an owed sweep) and the sweep's draws from
+   * idle tasks. Such a render measures again only the on-screen columns the sweep already measured, from
+   * their cached samples, and leaves the pending ones to it: its own re-walk would sample every column
+   * without cached samples over the whole row range, which held the page for 0.7 s on a 100k × 20 grid.
+   * Any other forced render (an application's `render()` after a write, a theme switch) measures every
+   * on-screen column as it would with no sweep, so a change made during the sweep reaches the screen at
+   * once, even while the page is too busy for the sweep's idle tasks to run.
+   *
+   * @type {boolean}
+   */
+  #sweepDrawPending = false;
+  /**
+   * The visual columns whose values or meta changed while a sweep sampled them. The sweep drops what it
+   * sampled of such a column and samples it again from the first row.
+   *
+   * @type {Set<number>}
+   */
+  #sweepStaleColumns = new Set<number>();
+  /**
+   * `true` when a re-measure sweep was cancelled before its end: by a change that made its samples or queue
+   * stale (a cell meta change, a changed row or column set, a merge change), by the grid being hidden, by a
+   * sweep that fills in missing widths, or by the plugin being turned off. The next render of a visible grid
+   * starts it over. Held, not consumed, while the grid cannot be measured (see `#cancelSweep()`).
+   *
+   * @type {boolean}
+   */
+  #reMeasureOwed: boolean = false;
   /**
    * Number of already measured columns (we already know their sizes).
    *
@@ -357,6 +416,75 @@ export class AutoColumnSize extends BasePlugin {
    */
   #columnSamplesCache: Map<number, ColumnSamples> = new Map();
   /**
+   * The widths that merged cells spanning several columns need from the column they are drawn in.
+   * They are kept apart from `columnWidthsMap`, which holds what a column's own cells need, so the
+   * width-determiner probe keeps comparing against that, and a demand can shrink again when a
+   * spanned column grows or the merge goes away.
+   *
+   * @type {MergedCellsWidths}
+   */
+  #mergedCellsWidths = new MergedCellsWidths({
+    getMergedAreas: () => {
+      const mergeCells = this.hot.getPlugin('mergeCells');
+
+      return mergeCells?.enabled ? mergeCells.getVisibleMergedAreas() : [];
+    },
+    isRowHidden: row => this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row)),
+    isColumnHidden: column => this.hot.columnIndexMapper.isHidden(this.hot.toPhysicalColumn(column)),
+    toPhysicalRow: row => this.hot.toPhysicalRow(row),
+    toPhysicalColumn: column => this.hot.toPhysicalColumn(column),
+    toVisualColumn: column => this.hot.toVisualColumn(column),
+    // The width before the stretch, which StretchColumns computes from these widths afterwards. Read with
+    // the stretch, a fit that follows a stretched render left the merge short of its text.
+    getColumnWidth: column => this.hot.getColWidth(column, 'StretchColumns'),
+    formatCellText: (row, column) => this.#formatProbeValue(row, column, this.hot.getDataAtCell(row, column)),
+    measureTexts: groups => this.#measureMergedCellsTexts(groups),
+  });
+  /**
+   * The visual columns sampled over the whole row range since the last render began. A full rescan
+   * queued for one of them in the same render would sample the same rows again.
+   *
+   * @type {Set<number>}
+   */
+  #scannedColumns: Set<number> = new Set();
+  /**
+   * When a merge or unmerge queued a full rescan of a visual column, the value `#refreshQueueSequence`
+   * had then. The asynchronous sweep drops such an entry once it has scanned the column from a start
+   * at or after that value, since the scan already saw the settled merge.
+   *
+   * @type {Map<number, number>}
+   */
+  #mergeRescanQueuedAt: Map<number, number> = new Map();
+  /**
+   * A counter raised by every merge or unmerge that queues a rescan.
+   *
+   * @type {number}
+   */
+  #refreshQueueSequence = 0;
+  /**
+   * `true` while an idle chunk of the asynchronous sweep runs. Its width writes then leave the merged
+   * cells fit pending, and the sweep fits once when it ends instead of after every chunk.
+   *
+   * @type {boolean}
+   */
+  #deferMergedCellsFit = false;
+  /**
+   * The visual columns the current ghost table re-renders from their cached samples. A width change
+   * for one of them can only come from a style change, which the merges' kept widths need to follow.
+   *
+   * @type {Set<number>}
+   */
+  #replayedColumns: Set<number> = new Set();
+  /**
+   * `true` from a sweep that dropped its samples until the next full render re-walks the visible columns.
+   * That re-walk scans every column from scratch, so it cannot tell a style change from a data change, and
+   * a width it changes counts as both. The grid is first drawn after the `init` sweep, so the render that
+   * re-walks the columns first can be one that follows a style change.
+   *
+   * @type {boolean}
+   */
+  #rewalkAfterSweepPending = false;
+  /**
    * The `useHeaders` option value as this plugin last applied it.
    *
    * Kept separately from the ghost table's own copy of the setting, which `#measureCellsWidth()`
@@ -400,6 +528,19 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
+   * Whether the sampling settings have been applied once, so a later `enablePlugin()` can tell a real
+   * change from the first read.
+   */
+  #samplingApplied = false;
+  /**
+   * Set by an `enablePlugin()` that applied changed sampling settings to a plugin that measured before.
+   * `BasePlugin` hands the new settings to `enablePlugin()`, so the `updatePlugin()` of the same
+   * `updateSettings()` call no longer sees the change, and the sizes measured under the previous settings
+   * stay cached (the map survives a disable). `updatePlugin()` consumes it.
+   */
+  #samplingChangedOnEnable = false;
+
+  /**
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin(): void {
@@ -407,19 +548,33 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    this.#applySamplingSettings();
+    this.#samplingChangedOnEnable = this.#applySamplingSettings() && this.#samplingApplied;
+    this.#samplingApplied = true;
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('afterFontsLoad', this.#onAfterFontsLoad, FONT_REMEASURE_ORDER_INDEX);
+    this.addHook('beforeLoadData', this.#onBeforeDataReplace);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
+    this.addHook('beforeMergeCells', this.#onBeforeMergeChange);
+    this.addHook('beforeUnmergeCells', this.#onBeforeMergeChange);
+    this.addHook('afterMergeCells', this.#onAfterMergeCells);
+    this.addHook('afterUnmergeCells', this.#onAfterUnmergeCells);
+    this.addHook('afterUpdateData', this.#onAfterUpdateData);
+    this.addHook('beforeUndo', this.#onBeforeUndoRedo);
+    this.addHook('beforeRedo', this.#onBeforeUndoRedo);
     this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width), -10);
     this.addHook('init', this.#onInit);
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexMapperCacheUpdate);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdate);
+    this.hot.columnIndexMapper.addLocalHook('change', this.#onColumnIndexMapChange);
+    // Nothing reached the merged cell widths while the plugin was off, and the measured widths that
+    // survive a disable would not change on the next render, so no other input would fit them.
+    this.#mergedCellsWidths.markStale();
 
     this.#disposeMapObserver = this.hot.columnIndexMapper
       .observeMapChange(this.columnWidthsMap, () => {
@@ -435,16 +590,6 @@ export class AutoColumnSize extends BasePlugin {
    * @param {object} [newSettings] The settings passed to `updateSettings`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    // `SETTING_KEYS` is `true`, so an update that never mentions this plugin still arrives here -
-    // and `BasePlugin#onUpdateSettings` has already fed `updatePluginSettings()` the missing key as
-    // `undefined`, wiping the stored settings. Restore them from the merged settings before reading
-    // them, or an unrelated `updateSettings({ readOnly: true })` would read the defaults, reset the
-    // user's `samplingRatio`, and re-measure every column. The Vue wrapper makes this the common
-    // case, not the rare one: it omits every key whose value is unchanged.
-    if (newSettings !== undefined && newSettings[PLUGIN_KEY] === undefined) {
-      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
-    }
-
     this.findColumnsWhereHeaderWasChanged().forEach((visualColumn) => {
       this.#columnWidthsToRefresh.set(visualColumn, null);
     });
@@ -464,13 +609,24 @@ export class AutoColumnSize extends BasePlugin {
     // view. This mirrors `#onAfterLoadData`, the other "everything is stale" path. On a grid that
     // is not visible it is a no-op, which leaves the previous widths in place - the same
     // limitation that path already has, and a smaller wrong than a grid of default widths.
-    if (this.#applySamplingSettings()) {
+    if (this.#applySamplingSettings() || this.#samplingChangedOnEnable) {
       this.recalculateAllColumnsWidth();
     }
 
+    this.#samplingChangedOnEnable = false;
+
+    // Settings can restyle a merge's text (a `className` through `cells`, a renderer), which no other
+    // input reports. Plain columns re-measure through the samples cache dropped below; the merges read
+    // their texts again on the next render.
+    this.#markMergedCellsChanged();
+
     // Settings may remap the data that feeds the samples (e.g. a new `columns` definition), so
     // the cached samples cannot be trusted — the next re-measure falls back to a full scan.
+    // A re-measure sweep goes on and samples the columns it has not reached afresh: ending it restarted it
+    // on every `updateSettings()` call, which a wrapper can make on each re-render, so the columns past its
+    // first chunk were never measured. A changed column set ends it through the index mapper listener.
     this.#columnSamplesCache.clear();
+    this.#markPendingSweepColumnsStale();
     super.updatePlugin();
   }
 
@@ -510,6 +666,9 @@ export class AutoColumnSize extends BasePlugin {
 
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexMapperCacheUpdate);
     this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdate);
+    this.hot.columnIndexMapper.removeLocalHook('change', this.#onColumnIndexMapChange);
+    this.#cancelSweep();
+    this.#mergedCellsWidths.clear();
 
     super.disablePlugin();
 
@@ -534,9 +693,24 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
+    const pendingColumns = this.#sweepPendingColumns;
+
     const overwriteCache = this.hot.forceFullRender;
 
-    this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, undefined, overwriteCache);
+    const columnsRange = { from: firstVisibleColumn, to: lastVisibleColumn };
+    const rowsRange = { from: 0, to: this.hot.countRows() - 1 };
+
+    if (pendingColumns === null || !overwriteCache || !this.#sweepDrawPending) {
+      this.#calculateColumnsWidth(columnsRange, rowsRange, () => overwriteCache);
+    } else {
+      // The sweep's own draw: the sweep measures the columns it has not reached yet (see `#sweepDrawPending`).
+      // One ghost table measures the others, so the draw lays out one table and fits the merges once.
+      this.#calculateColumnsWidth(columnsRange, rowsRange, visualColumn => !pendingColumns.has(visualColumn));
+    }
+
+    if (overwriteCache) {
+      this.#rewalkAfterSweepPending = false;
+    }
   }
 
   /**
@@ -551,8 +725,29 @@ export class AutoColumnSize extends BasePlugin {
     rowRange: number | { from: number, to: number } = { from: 0, to: this.hot.countRows() - 1 },
     overwriteCache: boolean = false
   ): void {
-    const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
-    const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
+    this.#calculateColumnsWidth(
+      typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange,
+      typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange,
+      () => overwriteCache,
+    );
+  }
+
+  /**
+   * Measures the columns of a range in one ghost table. A column is measured when `shouldOverwrite` answers
+   * `true` for it, or when it has no width yet.
+   *
+   * @param {object} columnsRange The visual column range, with `from` and `to` indexes.
+   * @param {object} rowsRange The visual row range to sample, with `from` and `to` indexes.
+   * @param {Function} shouldOverwrite Tells, for a visual column, whether its width is measured again.
+   */
+  #calculateColumnsWidth(
+    columnsRange: { from: number, to: number },
+    rowsRange: { from: number, to: number },
+    shouldOverwrite: (visualColumn: number) => boolean,
+  ) {
+    // The columns an overwrite measures from scratch, with no cached samples. Kept to this one measure, so no
+    // column is left in it for a later one.
+    const rescannedColumns = new Set<number>();
 
     rangeEach(columnsRange.from, columnsRange.to, (visualColumn) => {
       let physicalColumn = this.hot.toPhysicalColumn(visualColumn);
@@ -561,25 +756,31 @@ export class AutoColumnSize extends BasePlugin {
         physicalColumn = visualColumn;
       }
 
+      const overwriteCache = shouldOverwrite(visualColumn);
+
       if (overwriteCache || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
-          !this.hot._getColWidthFromSettings(physicalColumn))) {
+          !this.hot._getColWidthFromSettings(visualColumn))) {
         const cachedSamples = overwriteCache ? this.#columnSamplesCache.get(physicalColumn) : undefined;
 
         // A re-measure (cache overwrite) with an intact samples cache re-renders the previously
         // sampled values — picking up CSS or renderer changes — without re-walking the row range.
         // Data changes refresh or drop the cached samples, so a full scan runs only when needed.
         if (cachedSamples !== undefined) {
+          this.#replayedColumns.add(visualColumn);
           this.#addGhostTableColumn(visualColumn, cachedSamples);
         } else {
+          if (overwriteCache) {
+            rescannedColumns.add(visualColumn);
+          }
+
           this.#fillGhostTableWithSamples(visualColumn, rowsRange);
         }
       }
     });
 
     if (this.ghostTable.columns.length) {
-      this.#updateColumnWidthsMapBasedOnGhostTable();
+      this.#updateColumnWidthsMapBasedOnGhostTable(rescannedColumns);
       this.measuredColumns = columnsRange.to + 1;
-      this.ghostTable.clean();
     }
   }
 
@@ -594,31 +795,76 @@ export class AutoColumnSize extends BasePlugin {
     rowRange: number | { from: number, to: number } = { from: 0, to: this.hot.countRows() - 1 },
     overwriteCache: boolean = false
   ): void {
-    const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
-    const lastColumn = this.hot.countCols() - 1;
-    let currentColumn = 0;
-    let currentRowCursor = rowsRange.from;
-    let columnSamples: ReturnType<SamplesGenerator['generateSample']> | null = null;
-    let timer = 0;
+    this.#sweepColumns({
+      rowsRange: typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange,
+      overwriteCache,
+      syncColumns: this.getSyncCalculationLimit() + 1,
+      reuseSamples: false,
+      viewportFirst: false,
+    });
+  }
 
+  /**
+   * Sweeps every column and measures the ones that need it. The first `syncColumns` columns are measured
+   * exactly, over the whole row range, before this method returns. The rest go in chunks bounded by
+   * {@link AutoColumnSize.CALCULATION_STEP} and {@link AutoColumnSize.CALCULATION_CELLS_BUDGET}: the first
+   * chunk runs now, the others in idle tasks.
+   *
+   * With `viewportFirst`, the rendered columns come first in the sweep, so the first chunk measures what is on
+   * screen. With `reuseSamples`, a column that has cached samples is measured from them instead of being
+   * sampled again. That fits a re-measure after a change to how the values render, not to which values are
+   * sampled (a web font). The sweeps that follow a data change leave it off: their cached samples describe
+   * the previous data.
+   *
+   * @param {object} options The sweep options.
+   * @param {object} options.rowsRange The visual row range to sample, with `from` and `to` indexes.
+   * @param {boolean} options.overwriteCache If `true`, every column is measured, whether or not it has a width.
+   * @param {number} options.syncColumns How many columns, in sweep order, are measured exactly before this method returns.
+   * @param {boolean} options.reuseSamples If `true`, a column with cached samples is measured from them.
+   * @param {boolean} options.viewportFirst If `true`, the rendered columns are swept first.
+   */
+  #sweepColumns({ rowsRange, overwriteCache, syncColumns, reuseSamples, viewportFirst }: {
+    rowsRange: { from: number, to: number },
+    overwriteCache: boolean,
+    syncColumns: number,
+    reuseSamples: boolean,
+    viewportFirst: boolean,
+  }) {
+    const columnQueue = this.#columnSweepOrder(viewportFirst);
+    let queueIndex = 0;
+    let currentRowCursor = rowsRange.from;
+    let columnSamples: ColumnSamples | null = null;
+    let columnStartSequence = 0;
+
+    this.#cancelSweep();
     this.inProgress = true;
+    this.#sweepPendingColumns = reuseSamples ? new Set(columnQueue) : null;
+    this.#sweepStaleColumns.clear();
+
+    // A sweep that skips the columns that have a width cannot pay an owed re-measure.
+    if (overwriteCache) {
+      this.#reMeasureOwed = false;
+    }
 
     const shouldMeasureColumn = (visualColumn: number) => {
-      let physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-      if (physicalColumn === null) {
-        physicalColumn = visualColumn;
-      }
-
-      return overwriteCache || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
-          !this.hot._getColWidthFromSettings(physicalColumn));
+      return overwriteCache || (this.columnWidthsMap.getValueAtIndex(this.#toPhysicalColumn(visualColumn)) === null &&
+          !this.hot._getColWidthFromSettings(visualColumn));
     };
 
+    // Moves the sweep past the column it is on, which the sweep has measured, replayed, or skipped.
+    const nextColumn = () => {
+      this.#sweepPendingColumns?.delete(columnQueue[queueIndex]);
+      queueIndex += 1;
+    };
     /**
      * Sweeps up to `columnsBudget` columns, sampling at most `cellsBudget` cells. A column whose
      * remaining row range exceeds the cells budget is left mid-sweep (its samples accumulate in
      * `columnSamples`) and is continued by the next call. Returns `true` when every column has
      * been processed.
+     *
+     * The row and column bounds are clamped to the grid on every call: an `updateData()` between two
+     * idle tasks (a wrapper re-render) can shrink the data, and sampling a column the grid no longer
+     * has left the ghost table with a column it never built.
      *
      * @param {number} columnsBudget The maximum number of columns to process in this chunk.
      * @param {number} cellsBudget The maximum number of cells to sample in this chunk.
@@ -627,25 +873,58 @@ export class AutoColumnSize extends BasePlugin {
     const processChunk = (columnsBudget: number, cellsBudget: number) => {
       let remainingColumns = columnsBudget;
       let remainingCells = cellsBudget;
+      const lastLiveColumn = this.hot.countCols() - 1;
+      const lastLiveRow = Math.min(rowsRange.to, this.hot.countRows() - 1);
 
-      while (remainingColumns > 0 && currentColumn <= lastColumn) {
+      while (remainingColumns > 0 && queueIndex < columnQueue.length) {
+        const currentColumn = columnQueue[queueIndex];
+
+        if (currentColumn > lastLiveColumn) {
+          // The grid lost this column, together with the samples of one left mid-sweep. Skipping it costs
+          // nothing, so it takes nothing from the budget.
+          columnSamples = null;
+          nextColumn();
+          continue;
+        }
+
+        if (columnSamples !== null && this.#sweepStaleColumns.has(currentColumn)) {
+          // A source write or a meta change reached the cells sampled so far.
+          columnSamples = null;
+        }
+
+        this.#sweepStaleColumns.delete(currentColumn);
+
         if (columnSamples === null) {
           if (!shouldMeasureColumn(currentColumn)) {
-            currentColumn += 1;
+            nextColumn();
+            remainingColumns -= 1;
+            continue;
+          }
+
+          // A column with a queued edit is sampled again: its cached samples predate the edit, and the
+          // queue holds a column the sweep has not measured until the sweep ends.
+          const cachedSamples = reuseSamples && !this.#columnWidthsToRefresh.has(currentColumn) ?
+            this.#columnSamplesCache.get(this.#toPhysicalColumn(currentColumn)) : undefined;
+
+          if (cachedSamples !== undefined) {
+            this.#replayedColumns.add(currentColumn);
+            this.#addGhostTableColumn(currentColumn, cachedSamples);
+            nextColumn();
             remainingColumns -= 1;
             continue;
           }
 
           columnSamples = new Map();
+          columnStartSequence = this.#refreshQueueSequence;
           currentRowCursor = rowsRange.from;
         }
 
-        if (currentRowCursor <= rowsRange.to) {
+        if (currentRowCursor <= lastLiveRow) {
           if (remainingCells <= 0) {
             return false;
           }
 
-          const sliceTo = Math.min(rowsRange.to, currentRowCursor + remainingCells - 1);
+          const sliceTo = Math.min(lastLiveRow, currentRowCursor + remainingCells - 1);
 
           this.samplesGenerator
             .generateSample('col', { from: currentRowCursor, to: sliceTo }, currentColumn, columnSamples);
@@ -654,81 +933,223 @@ export class AutoColumnSize extends BasePlugin {
           currentRowCursor = sliceTo + 1;
         }
 
-        if (currentRowCursor > rowsRange.to) {
-          const physicalColumn = this.hot.toPhysicalColumn(currentColumn);
-
+        if (currentRowCursor > lastLiveRow) {
           this.#addGhostTableColumn(currentColumn, columnSamples);
-          this.#columnSamplesCache.set(physicalColumn === null ? currentColumn : physicalColumn, columnSamples);
+          this.#columnSamplesCache.set(this.#toPhysicalColumn(currentColumn), columnSamples);
+          this.#dropRescanCoveredBySweep(currentColumn, columnStartSequence);
           columnSamples = null;
-          currentColumn += 1;
+          nextColumn();
           remainingColumns -= 1;
         }
       }
 
-      return currentColumn > lastColumn;
+      return queueIndex >= columnQueue.length;
     };
+    /**
+     * Writes the measured widths and, for a re-measure, tells whether any of them changed the width of a
+     * column on screen. Measuring an on-screen column whose width stays (the hook fires for every font the
+     * page loads, an icon font too) is not a reason to draw.
+     *
+     * @returns {boolean}
+     */
     const flushGhostTable = () => {
-      if (this.ghostTable.columns.length) {
-        this.#updateColumnWidthsMapBasedOnGhostTable();
-        this.measuredColumns = currentColumn;
-        this.ghostTable.clean();
+      if (!this.ghostTable.columns.length) {
+        return false;
       }
+
+      const changedColumns = this.#updateColumnWidthsMapBasedOnGhostTable();
+      let changedOnScreen = false;
+
+      if (reuseSamples && changedColumns.length > 0) {
+        const onScreenColumns = this.#onScreenColumns();
+
+        changedOnScreen = changedColumns.some(visualColumn => onScreenColumns.has(visualColumn));
+      }
+
+      // `measuredColumns` counts a prefix of the visual columns, which a sweep in another order does not extend.
+      if (!viewportFirst) {
+        this.measuredColumns = queueIndex;
+      }
+
+      return changedOnScreen;
     };
 
-    const loop = () => {
+    /**
+     * Runs one chunk of the sweep.
+     *
+     * @param {boolean} fromIdleTask `true` when an idle task runs the chunk, `false` for the chunk run by the
+     * caller of the sweep.
+     */
+    const loop = (fromIdleTask: boolean) => {
+      this.#sweepTask = null;
+
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
-        cancelIdleTask(timer);
-        this.inProgress = false;
+        this.#finishSweep();
 
         return;
       }
 
-      const isDone = processChunk(
-        AutoColumnSize.CALCULATION_STEP + 1,
-        AutoColumnSize.CALCULATION_CELLS_BUDGET,
-      );
+      // The ghost table measures inside the root element, so a grid hidden since the sweep started reads a
+      // width of 0 for every column, which draws them at the minimum width once the grid is shown again.
+      // The cancel owes a re-measure to the first render of the visible grid, and so does the cancel of a
+      // sweep that overwrites every width (`recalculateAllColumnsWidth()` after `loadData()`): the columns it
+      // had not reached would keep the previous data's widths, since a draw measures only the widths it
+      // lacks. Their cached samples can describe that data, so they are dropped and the owed sweep samples
+      // them afresh. A sweep that fills in missing widths leaves them missing, and a draw measures the
+      // on-screen ones as it would any width it lacks.
+      if (!this.hot.view.isVisible()) {
+        if (overwriteCache && !reuseSamples) {
+          columnQueue.slice(queueIndex).forEach((visualColumn) => {
+            this.#columnSamplesCache.delete(this.#toPhysicalColumn(visualColumn));
+          });
+          this.#reMeasureOwed = true;
+        }
 
-      flushGhostTable();
+        this.#cancelSweep();
 
-      if (!isDone) {
-        timer = requestIdleTask(loop);
+        return;
+      }
 
+      let isDone = false;
+      let changedOnScreen = false;
+
+      this.#deferMergedCellsFit = true;
+
+      try {
+        isDone = processChunk(
+          AutoColumnSize.CALCULATION_STEP + 1,
+          AutoColumnSize.CALCULATION_CELLS_BUDGET,
+        );
+        changedOnScreen = flushGhostTable();
+      } finally {
+        this.#deferMergedCellsFit = false;
+      }
+
+      if (isDone) {
+        this.#finishSweep();
+        this.#fitMergedCells();
       } else {
-        cancelIdleTask(timer);
-        this.inProgress = false;
+        this.#sweepTask = requestIdleTask(() => loop(true));
+      }
+
+      // A width written from an idle task reaches the screen only through a draw: the width map's observer
+      // drops the engine's cache and nothing else. A re-measure draws when an idle chunk changed the width
+      // of a column on screen, and once more when it ends, for the columns scrolled into view while it ran
+      // and for the edits queued meanwhile (`#refreshQueuedColumnsWidth()` holds the ones the sweep had not
+      // measured yet until it ends).
+      // The chunk run by the caller gets no draw of its own: the caller draws after it (the font re-measure
+      // runs inside the `afterFontsLoad` hook, which a render follows), and a draw from inside the hook
+      // would run before the other plugins and the user's listeners re-measured.
+      if (reuseSamples && fromIdleTask && (changedOnScreen || isDone)) {
+        this.#sweepDrawPending = true;
+        this.hot.render();
       }
     };
 
-    const syncLimit = this.getSyncCalculationLimit();
-
-    // sync — the `syncLimit` columns are calculated exactly (whole row range) before the first
+    // sync — the `syncColumns` columns are calculated exactly (whole row range) before the first
     // paint, preserving the `syncLimit` contract.
-    if (syncLimit >= 0) {
-      processChunk(syncLimit + 1, Infinity);
+    if (syncColumns > 0) {
+      processChunk(syncColumns, Infinity);
       flushGhostTable();
     }
     // async
-    if (currentColumn <= lastColumn) {
-      loop();
+    if (queueIndex < columnQueue.length) {
+      loop(false);
     } else {
-      this.inProgress = false;
+      this.#finishSweep();
     }
+  }
+
+  /**
+   * Lists the visual columns in the order a sweep measures them: ascending, or with the columns on screen
+   * first so that the first chunk measures what the user sees.
+   *
+   * @param {boolean} viewportFirst If `true`, the columns on screen come first.
+   * @returns {number[]}
+   */
+  #columnSweepOrder(viewportFirst: boolean): number[] {
+    const columns = Array.from({ length: this.hot.countCols() }, (_, column) => column);
+
+    if (!viewportFirst) {
+      return columns;
+    }
+
+    const onScreenColumns = this.#onScreenColumns();
+
+    return [...onScreenColumns, ...columns.filter(column => !onScreenColumns.has(column))];
+  }
+
+  /**
+   * Collects the visual columns on screen: the frozen ones at both edges and the rendered range of the
+   * scrollable part. The rendered range alone misses the frozen columns once the grid is scrolled
+   * sideways, since the master table then starts past them.
+   *
+   * @returns {Set<number>}
+   */
+  #onScreenColumns(): Set<number> {
+    const countCols = this.hot.countCols();
+    const onScreenColumns = new Set<number>();
+
+    const fixedColumnsStart = Math.min(this.hot.view.countFixedColumnsStart(), countCols);
+    const firstFixedColumnEnd = Math.max(countCols - this.hot.view.countFixedColumnsEnd(), 0);
+
+    rangeEach(0, fixedColumnsStart - 1, column => onScreenColumns.add(column));
+
+    const firstVisibleColumn = this.getFirstVisibleColumn();
+    const lastVisibleColumn = this.getLastVisibleColumn();
+
+    if (firstVisibleColumn !== -1 && lastVisibleColumn !== -1) {
+      rangeEach(firstVisibleColumn, Math.min(lastVisibleColumn, countCols - 1), column => onScreenColumns.add(column));
+    }
+
+    rangeEach(firstFixedColumnEnd, countCols - 1, column => onScreenColumns.add(column));
+
+    return onScreenColumns;
+  }
+
+  /**
+   * Translates a visual column index to its physical index, and keeps the visual index for a column the
+   * index mapper does not know.
+   *
+   * @param {number} visualColumn Visual column index.
+   * @returns {number}
+   */
+  #toPhysicalColumn(visualColumn: number): number {
+    return this.hot.toPhysicalColumn(visualColumn) ?? visualColumn;
   }
 
   /**
    * Consumes the width refresh queue. Columns queued with change details go through the
    * width-determiner probe first; columns queued for a full refresh (and columns whose probe
    * was inconclusive) are rescanned over the whole row range, like before.
+   *
+   * While a re-measure sweep runs, only the queued columns it already measured are consumed: the sweep
+   * samples the others afresh when it reaches them, and the rest of the queue waits for it to end. Waiting
+   * with the whole queue kept an edited on-screen column at its pre-edit width until the sweep ended,
+   * because the draw replays the column's cached samples, which predate the edit.
    */
   #refreshQueuedColumnsWidth() {
     if (this.#columnWidthsToRefresh.size === 0) {
       return;
     }
 
-    const queue = this.#columnWidthsToRefresh;
+    let queue = this.#columnWidthsToRefresh;
+    const pendingColumns = this.#sweepPendingColumns;
 
-    this.#columnWidthsToRefresh = new Map();
+    if (this.inProgress && pendingColumns !== null) {
+      queue = new Map();
+      this.#columnWidthsToRefresh.forEach((cells, visualColumn) => {
+        if (!pendingColumns.has(visualColumn)) {
+          queue.set(visualColumn, cells);
+          this.#columnWidthsToRefresh.delete(visualColumn);
+          this.#mergeRescanQueuedAt.delete(visualColumn);
+        }
+      });
+    } else {
+      this.#columnWidthsToRefresh = new Map();
+      this.#mergeRescanQueuedAt.clear();
+    }
 
     const totalRows = this.hot.countRows();
     const fullRescanColumns: number[] = [];
@@ -737,7 +1158,7 @@ export class AutoColumnSize extends BasePlugin {
     queue.forEach((cells, visualColumn) => {
       const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-      if (physicalColumn === null || this.hot._getColWidthFromSettings(physicalColumn)) {
+      if (physicalColumn === null || this.hot._getColWidthFromSettings(visualColumn)) {
         return;
       }
 
@@ -760,13 +1181,16 @@ export class AutoColumnSize extends BasePlugin {
       const rowsRange = { from: 0, to: totalRows - 1 };
 
       fullRescanColumns.forEach((visualColumn) => {
-        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
+        // A merge queues its columns for a rescan, and a full render may have sampled them
+        // already with the settled meta, earlier in the same `beforeRender`.
+        if (!this.#scannedColumns.has(visualColumn)) {
+          this.#fillGhostTableWithSamples(visualColumn, rowsRange);
+        }
       });
     }
 
     if (this.ghostTable.columns.length) {
       this.#updateColumnWidthsMapBasedOnGhostTable();
-      this.ghostTable.clean();
     }
   }
 
@@ -839,6 +1263,8 @@ export class AutoColumnSize extends BasePlugin {
           this.columnWidthsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), width);
         });
       }, true);
+      this.#mergedCellsWidths.markWidthsChanged();
+      this.#fitMergedCells();
     }
   }
 
@@ -968,6 +1394,7 @@ export class AutoColumnSize extends BasePlugin {
     samples.forEach((sample, column) => {
       const physicalColumn = this.hot.toPhysicalColumn(column);
 
+      this.#scannedColumns.add(column);
       this.#addGhostTableColumn(column, sample);
       this.#columnSamplesCache.set(physicalColumn === null ? column : physicalColumn, sample);
     });
@@ -986,17 +1413,114 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Updates the column widths map with calculated widths from the ghost table.
+   * Updates the column widths map with calculated widths from the ghost table, empties the ghost
+   * table, and then fits the merged cells again when a width changed. The fit measures through the
+   * ghost table too, so it has to run after the clean.
    *
+   * @param {Set<number>} [rescannedColumns] The columns a full render's re-walk measured from scratch.
+   * @returns {number[]} The visual columns whose width changed.
    */
-  #updateColumnWidthsMapBasedOnGhostTable() {
+  #updateColumnWidthsMapBasedOnGhostTable(rescannedColumns: ReadonlySet<number> = new Set()): number[] {
+    let stylesChanged = false;
+    const changedColumns: number[] = [];
+
     this.hot.batchExecution(() => {
       this.ghostTable.getWidths((visualColumn: number, width: number) => {
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
+        if (this.columnWidthsMap.getValueAtIndex(physicalColumn) !== width) {
+          changedColumns.push(visualColumn);
+          this.#mergedCellsWidths.markWidthsChanged();
+          stylesChanged ||= this.#replayedColumns.has(visualColumn) ||
+            (this.#rewalkAfterSweepPending && rescannedColumns.has(visualColumn));
+        }
+
         this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
       });
     }, true);
+    this.ghostTable.clean();
+    this.#replayedColumns.clear();
+
+    // The same samples rendered to another width (or a column the first re-walk after a sweep measured from
+    // scratch did): the styles changed, so the merges' widths, kept from the same texts, are measured again too.
+    if (stylesChanged) {
+      this.#mergedCellsWidths.markStylesChanged();
+    }
+
+    if (!this.#deferMergedCellsFit) {
+      this.#fitMergedCells();
+    }
+
+    return changedColumns;
+  }
+
+  /**
+   * Fits the widths that merged cells spanning several columns need, when anything they depend on
+   * changed since the last fit. A column that a merge appeared in or left without a merge hook (an
+   * undo of an unmerge restores the merge through MergeCells' state, silently) is queued for a full
+   * rescan, since its samples were taken under the previous merges.
+   */
+  #fitMergedCells() {
+    const { changed, mergesChangedIn } = this.#mergedCellsWidths.fit();
+
+    mergesChangedIn.forEach((visualColumn) => {
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+      if (physicalColumn !== null) {
+        this.#columnSamplesCache.delete(physicalColumn);
+      }
+
+      this.#columnWidthsToRefresh.set(visualColumn, null);
+    });
+
+    if (changed) {
+      this.hot.view?.invalidateColumnWidthCache();
+    }
+  }
+
+  /**
+   * Drops the full rescan a merge queued for a column the asynchronous sweep has just scanned, when
+   * the scan started after the merge. Merges declared in the settings arrive while the sweep runs, so
+   * without this every merged column past `syncLimit` was scanned twice.
+   *
+   * @param {number} visualColumn The visual column the sweep finished.
+   * @param {number} startSequence The value of `#refreshQueueSequence` when the scan started.
+   */
+  #dropRescanCoveredBySweep(visualColumn: number, startSequence: number) {
+    const queuedAt = this.#mergeRescanQueuedAt.get(visualColumn);
+
+    if (queuedAt !== undefined && queuedAt <= startSequence && this.#columnWidthsToRefresh.get(visualColumn) === null) {
+      this.#columnWidthsToRefresh.delete(visualColumn);
+      this.#mergeRescanQueuedAt.delete(visualColumn);
+    }
+  }
+
+  /**
+   * Measures the widest of the given formatted texts per column, the way the samples are measured.
+   * It feeds `MergedCellsWidths` with the text of merged cells.
+   *
+   * @param {object[]} groups The visual `column` and the `texts` (`row` and `value`) to measure.
+   * @returns {Map<number, number>} The widths keyed by visual column index.
+   */
+  #measureMergedCellsTexts(groups: Array<{ column: number, texts: Array<{ row: number, value: unknown }> }>) {
+    return this.#measureCellsWidth(groups.map(({ column, texts }) => ({
+      visualColumn: column,
+      samples: this.samplesGenerator.generateSampleFromValues('col', texts.map(({ row, value }) => ({
+        index: row,
+        value,
+      }))),
+    })));
+  }
+
+  /**
+   * Checks whether the plugin is measuring columns in idle tasks, or owes a re-measure of every column to
+   * the next render. AutoRowSize waits for it before it measures the rows again after a font load.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isReMeasurePending(): boolean {
+    return this.inProgress || this.#reMeasureOwed;
   }
 
   /**
@@ -1008,6 +1532,9 @@ export class AutoColumnSize extends BasePlugin {
       // queued after this point (e.g. edits made while the asynchronous part is running)
       // accumulate again and are consumed as usual.
       this.#columnWidthsToRefresh.clear();
+      this.#mergeRescanQueuedAt.clear();
+      // An overwrite sweep follows a theme or style change too, which changes the merges' text width.
+      this.#mergedCellsWidths.markStale();
       this.calculateAllColumnsWidth({ from: 0, to: this.hot.countRows() - 1 }, true);
       // The synchronous part of the sweep runs inside `init`/`afterLoadData` hook cascades,
       // before other plugins re-apply their cell meta (e.g. MergeCells' `spanned`/`hidden`
@@ -1016,6 +1543,7 @@ export class AutoColumnSize extends BasePlugin {
       // like it always did. Samples stored by the asynchronous part run after the cascade
       // and stay.
       this.#columnSamplesCache.clear();
+      this.#rewalkAfterSweepPending = true;
     }
   }
 
@@ -1050,6 +1578,10 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * Gets the calculated column width.
    *
+   * The width fits the column's own cells and, with the {@link MergeCells} plugin enabled, the merged
+   * cells drawn from the column: a merged cell that spans several columns makes this column wide
+   * enough for its content together with the other columns it spans.
+   *
    * @param {number} column Visual column index.
    * @param {number} [defaultWidth] Default column width. It will be picked up if no calculated width found.
    * @param {boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
@@ -1059,7 +1591,14 @@ export class AutoColumnSize extends BasePlugin {
     let width = defaultWidth;
 
     if (width === undefined) {
-      width = this.columnWidthsMap.getValueAtIndex<number>(this.hot.toPhysicalColumn(column));
+      const physicalColumn = this.hot.toPhysicalColumn(column);
+      const mergedCellWidth = this.#mergedCellsWidths.getWidth(physicalColumn);
+
+      width = this.columnWidthsMap.getValueAtIndex<number>(physicalColumn);
+
+      if (mergedCellWidth !== undefined) {
+        width = Math.max(width ?? 0, mergedCellWidth);
+      }
 
       if (keepMinimum && typeof width === 'number') {
         width = Math.max(width, DEFAULT_COLUMN_WIDTH);
@@ -1141,12 +1680,14 @@ export class AutoColumnSize extends BasePlugin {
         physicalColumns.forEach((physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
           this.#columnSamplesCache.delete(physicalIndex);
+          this.#mergedCellsWidths.clearColumn(physicalIndex);
         });
       }, true);
 
     } else {
       this.columnWidthsMap.clear();
       this.#columnSamplesCache.clear();
+      this.#mergedCellsWidths.clear();
     }
   }
 
@@ -1162,15 +1703,213 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Recalculates widths for currently visible columns (cache misses only) and consumes the
-   * width refresh queue populated by data, header, or row-set changes.
+   * width refresh queue populated by data, header, or row-set changes. Starts an owed re-measure sweep
+   * first, so this render draws the on-screen columns from it.
    */
   #onBeforeRender = () => {
-    this.calculateVisibleColumnsWidth();
+    this.#scannedColumns.clear();
 
-    if (!this.inProgress) {
+    if (this.#reMeasureOwed && this.hot.view.isVisible() && this.hot.countRows() > 0 && this.hot.countCols() > 0) {
+      this.#startReMeasureSweep();
+    }
+
+    this.calculateVisibleColumnsWidth();
+    this.#sweepDrawPending = false;
+
+    if (!this.inProgress || this.#sweepPendingColumns !== null) {
+      this.#refreshQueuedColumnsWidth();
+    }
+
+    // A merge's text that changed without a width change (an edit of its first cell) is fitted here.
+    this.#fitMergedCells();
+
+    // The fit can queue the columns of a merge that changed with no hook; they are rescanned in the
+    // same render, which fits again with the settled samples.
+    if (!this.inProgress && this.#columnWidthsToRefresh.size > 0) {
       this.#refreshQueuedColumnsWidth();
     }
   };
+
+  /**
+   * Re-measures every column after the document loaded a web font. The sweep takes the columns on screen
+   * first and measures one chunk now, so the render that follows the hook draws them in the new font; the
+   * rest wait for idle tasks, and the sweep draws the grid again as they reach the screen. Measuring every
+   * column at once held the page for 0.7–0.9 s on the first load after init on a 100k × 20 grid, because the
+   * init sweep drops its samples. The font changes how the
+   * sampled values render, not which values are sampled, so a column with cached samples is measured from
+   * them: `recalculateAllColumnsWidth()` would drop that cache, and the next render would sample every
+   * column again. Core fires the hook only on a visible grid.
+   */
+  #onAfterFontsLoad = () => {
+    // With no rows the widths stay (see `calculateVisibleColumnsWidth()`): they can come from rows the grid
+    // had before, which a measure of the headers alone would shrink. The re-measure is owed to the first
+    // render with rows.
+    if (!this.hot.countRows()) {
+      this.#reMeasureOwed = true;
+
+      return;
+    }
+
+    // The font changes the merges' text widths too. A column sampled afresh (the first load after init, whose
+    // samples the init sweep dropped) does not report a style change, so the merges would keep the widths
+    // measured in the fallback font.
+    this.#mergedCellsWidths.markStylesChanged();
+    this.#startReMeasureSweep();
+  };
+
+  /**
+   * Starts the sweep that re-measures every column from its cached samples, on-screen columns first, with
+   * the first chunk run now (see `#onAfterFontsLoad`).
+   */
+  #startReMeasureSweep() {
+    this.#sweepColumns({
+      rowsRange: { from: 0, to: this.hot.countRows() - 1 },
+      overwriteCache: true,
+      syncColumns: 0,
+      reuseSamples: true,
+      viewportFirst: true,
+    });
+    this.#sweepDrawPending = this.#sweepPendingColumns !== null;
+  }
+
+  /**
+   * Queues the rescans a merge needs. A merge made by the user clears the cells it covers, and its
+   * first cell stops contributing a sample, so every column it spans is rescanned. A merge applied
+   * from the settings (`auto`: at init, on `updateSettings`, on a sheet switch) keeps the covered
+   * values, which the grid never drew in those columns, so only its first column is rescanned: the
+   * sweep measured that column's text before the merge existed. The visible columns are re-walked on
+   * the next full render either way.
+   */
+  #onAfterMergeCells = (cellRange: CellRange, _mergeParent: unknown, auto: boolean) => {
+    this.#queueMergeRescan(cellRange, auto);
+  };
+
+  /**
+   * Marks the drawn merges as changed before a merge or unmerge writes anything: MergeCells renders
+   * inside the call (clearing the covered cells), before its `after*` hook, and that render's fit must
+   * read the merges rather than reuse the groups of the previous fit.
+   */
+  #onBeforeMergeChange = () => {
+    this.#mergedCellsWidths.markLayoutChanged();
+  };
+
+  /**
+   * Queues a full rescan of every column an unmerged area covers: its cells contribute samples again.
+   */
+  #onAfterUnmergeCells = (cellRange: CellRange) => {
+    this.#queueMergeRescan(cellRange, false);
+  };
+
+  /**
+   * Queues a full rescan of the columns of a merged area, or of its first column only, and asks for a
+   * fit of the merges drawn from them. The cached samples of every spanned column are dropped, so the
+   * next full render re-walks the visible ones with the settled meta.
+   *
+   * @param {CellRange} cellRange The merged or unmerged area.
+   * @param {boolean} firstColumnOnly `true` to rescan only the area's first column.
+   */
+  #queueMergeRescan(cellRange: CellRange, firstColumnOnly: boolean) {
+    const from = cellRange.getTopStartCorner().col;
+    const to = cellRange.getBottomEndCorner().col;
+
+    if (from === null || to === null) {
+      return;
+    }
+
+    rangeEach(from, to, (visualColumn) => {
+      const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+      if (physicalColumn !== null) {
+        this.#columnSamplesCache.delete(physicalColumn);
+      }
+
+      if (!firstColumnOnly || visualColumn === from) {
+        this.#columnWidthsToRefresh.set(visualColumn, null);
+        this.#refreshQueueSequence += 1;
+        this.#mergeRescanQueuedAt.set(visualColumn, this.#refreshQueueSequence);
+        this.#mergedCellsWidths.markMergesChanged(visualColumn);
+      }
+    });
+    this.#invalidateReMeasureSweep();
+  }
+
+  /**
+   * Ends a re-measure sweep whose samples or queue a change made stale, and owes a new one to the next
+   * render. A changed row or column set leaves the sweep's queue of visual columns describing other columns,
+   * a cell meta change can restyle a column the sweep measured, and a merge change queues rescans that wait
+   * for the sweep to end. The sweep that starts over measures the on-screen columns before that render
+   * draws them, from cached samples where they survived. A source write and new settings do not end it:
+   * they drop the samples of what they changed, and the sweep samples those columns afresh when it reaches
+   * them (`#markSweepColumnStale()`). New settings drop every sample, so a restart on each
+   * `updateSettings()` call made no progress.
+   */
+  #invalidateReMeasureSweep() {
+    if (this.#sweepPendingColumns === null) {
+      return;
+    }
+
+    this.#cancelSweep();
+  }
+
+  /**
+   * Makes a re-measure sweep sample a column again when its values or meta changed while the sweep was
+   * sampling it: the rows it sampled before the change would otherwise feed the column's width.
+   *
+   * @param {number} visualColumn The visual column index.
+   */
+  #markSweepColumnStale(visualColumn: number) {
+    if (this.#sweepPendingColumns?.has(visualColumn)) {
+      this.#sweepStaleColumns.add(visualColumn);
+    }
+  }
+
+  /**
+   * Makes a re-measure sweep sample again every column it has not finished, the one it is sampling
+   * included (see `#markSweepColumnStale()`).
+   */
+  #markPendingSweepColumnsStale() {
+    this.#sweepPendingColumns?.forEach(visualColumn => this.#sweepStaleColumns.add(visualColumn));
+  }
+
+  /**
+   * Stops a sweep still measuring the data that is being replaced (`loadData()`, a sheet
+   * switch). Its row range and its last column describe that data, so its next chunk sampled cells the new
+   * data does not have, and left the ghost table broken for every later render.
+   */
+  #onBeforeDataReplace = () => {
+    this.#cancelSweep();
+  };
+
+  /**
+   * Cancels the idle task of a sweep in progress. Called when a new sweep starts, when the data is replaced,
+   * and when the plugin is turned off or destroyed. A re-measure sweep cancelled before its end owes a new
+   * one to the next render: a sweep that fills in missing widths (`calculateAllColumnsWidth()`) skips the
+   * columns it had not reached, and so does a plugin turned on again, which keeps its widths. A sweep that
+   * overwrites every width pays the debt when it starts, and a data load drops it.
+   */
+  #cancelSweep() {
+    if (this.#sweepTask !== null) {
+      cancelIdleTask(this.#sweepTask);
+      this.#sweepTask = null;
+    }
+
+    if (this.#sweepPendingColumns !== null) {
+      this.#reMeasureOwed = true;
+    }
+
+    this.#finishSweep();
+  }
+
+  /**
+   * Marks the sweep as over. The next forced render measures every on-screen column again, from the samples
+   * a re-measure sweep cached.
+   */
+  #finishSweep() {
+    this.inProgress = false;
+    this.#sweepPendingColumns = null;
+    this.#sweepDrawPending = false;
+    this.#sweepStaleColumns.clear();
+  }
 
   /**
    * Triggers a full column width recalculation after new data is loaded, skipping the initial
@@ -1185,6 +1924,10 @@ export class AutoColumnSize extends BasePlugin {
     // not visible and no sweep runs), so a pending entry that survived a suspended render
     // can never feed the width-determiner probe with stale coordinates.
     this.#columnWidthsToRefresh.clear();
+    // An owed re-measure would sweep the new data from samples of the previous one.
+    this.#reMeasureOwed = false;
+    this.#mergeRescanQueuedAt.clear();
+    this.#mergedCellsWidths.markRenumbered();
 
     if (!isFirstLoad) {
       this.recalculateAllColumnsWidth();
@@ -1208,6 +1951,10 @@ export class AutoColumnSize extends BasePlugin {
         return;
       }
 
+      if (this.#invalidateMergedCellText(row, visualColumn)) {
+        return;
+      }
+
       const entry = this.#columnWidthsToRefresh.get(visualColumn);
 
       // The column is already queued for a full rescan.
@@ -1226,26 +1973,85 @@ export class AutoColumnSize extends BasePlugin {
   };
 
   /**
-   * Drops the cached samples after a source-data write. Source-level changes bypass
-   * `beforeChangeRender`, so there is no per-cell change information to refresh the samples
-   * with — the render that follows falls back to full scans for the visible columns.
+   * Drops the cached samples of the written columns after a source-data write. Source-level changes bypass
+   * `beforeChangeRender`, so there is no per-cell change information to refresh the samples with — the
+   * render that follows falls back to full scans for those columns. A write to a column the plugin cannot
+   * resolve (a `data` function) drops every cached sample.
    */
-  #onAfterSetSourceDataAtCell = () => {
-    this.#columnSamplesCache.clear();
+  #onAfterSetSourceDataAtCell = (changes: CellChange[]) => {
+    // A re-measure sweep goes on: the forced render after the write measures the on-screen columns, and the
+    // sweep samples the others itself. Ending it on every write restarted it from its first column on the
+    // next draw, so the on-screen columns past its first chunk stayed unmeasured for as long as writes kept
+    // coming (a stream every 200 ms). Only the written columns lose their samples, so the rest of the sweep
+    // still measures from the cache.
+    changes.forEach(([, columnProperty]) => {
+      const visualColumn = typeof columnProperty === 'function' ? null : this.hot.propToCol(columnProperty);
+
+      if (!Number.isInteger(visualColumn)) {
+        this.#columnSamplesCache.clear();
+
+        return;
+      }
+
+      this.#columnSamplesCache.delete(this.#toPhysicalColumn(Number(visualColumn)));
+      this.#markSweepColumnStale(Number(visualColumn));
+    });
+
+    // UndoRedo writes its values back through this path, so an undone edit of a merge's first cell
+    // arrives here and not through `beforeChangeRender`.
+    if (this.#mergedCellsWidths.mayHaveMultiColumnMerges()) {
+      changes.forEach(([physicalRow, columnProperty]) => {
+        const visualRow = this.hot.toVisualRow(physicalRow);
+        const visualColumn = typeof columnProperty === 'function' ? null : this.hot.propToCol(columnProperty);
+
+        if (visualRow !== null && Number.isInteger(visualColumn)) {
+          this.#invalidateMergedCellText(visualRow, Number(visualColumn));
+        }
+      });
+    }
   };
+
+  /**
+   * Asks for a fit when the cell is the first cell of a merge that spans several columns. That cell
+   * contributes no sample, so neither the probe nor a rescan can see its text.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {boolean} `true` when the cell is such a first cell.
+   */
+  #invalidateMergedCellText(row: number, column: number) {
+    if (!this.#mergedCellsWidths.mayHaveMultiColumnMerges()) {
+      return false;
+    }
+
+    const cellMeta = this.hot.getCellMetaTransient(row, column);
+
+    if (cellMeta.spanned && isMultiColumnMerge(cellMeta.colspan)) {
+      this.#mergedCellsWidths.invalidateCell(row, column);
+
+      return true;
+    }
+
+    return false;
+  }
 
   /**
    * Drops the cached samples of a column whose cell meta changed. Meta keys like
    * `valueFormatter`, `renderer`, `className`, or `type` affect the rendered width, and the
    * cached sample strings (formatted when they were sampled) would replay the previous meta
-   * on the next re-measure — the next full render re-walks the column instead.
+   * on the next re-measure — the next full render re-walks the column instead. A re-measure sweep starts
+   * over: the restart replays every other column from its cached samples, so a stream of meta writes still
+   * lets it finish.
    */
-  #onAfterSetCellMeta = (_row: number, column: number) => {
+  #onAfterSetCellMeta = (row: number, column: number) => {
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
     if (physicalColumn !== null) {
       this.#columnSamplesCache.delete(physicalColumn);
+      this.#invalidateReMeasureSweep();
     }
+
+    this.#invalidateMergedCellText(row, column);
   };
 
   /**
@@ -1261,6 +2067,13 @@ export class AutoColumnSize extends BasePlugin {
 
     if (indexesSequenceChanged || trimmedIndexesChanged || hiddenIndexesChanged) {
       this.#columnSamplesCache.clear();
+      this.#invalidateReMeasureSweep();
+
+      // A removed, trimmed, or hidden row can take a merge out of the drawn grid or bring one back,
+      // and MergeCells fires no merge hook for either. A changed sequence can renumber the physical
+      // rows the kept texts are keyed by, so it forgets them; hiding and trimming only change which
+      // merges are drawn, and the fit re-measures the groups that changed from the kept texts.
+      this.#markMergedCellsChanged(indexesSequenceChanged ? 'numbering' : 'refit');
     }
   };
 
@@ -1269,9 +2082,81 @@ export class AutoColumnSize extends BasePlugin {
    * moved) — the cache is keyed by physical column index, and a structural change would leave
    * the samples associated with the wrong columns.
    */
-  #onColumnIndexMapperCacheUpdate = (indexesChangesState: { indexesSequenceChanged: boolean }) => {
-    if (indexesChangesState.indexesSequenceChanged) {
+  #onColumnIndexMapperCacheUpdate = (indexesChangesState: {
+    indexesSequenceChanged: boolean, trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean
+  }) => {
+    const { indexesSequenceChanged, trimmedIndexesChanged, hiddenIndexesChanged } = indexesChangesState;
+
+    if (indexesSequenceChanged) {
       this.#columnSamplesCache.clear();
+      this.#invalidateReMeasureSweep();
+    }
+
+    // The demands are keyed by physical column, read the widths of the other spanned columns, and land
+    // on the first visible column of the span, so a moved, inserted, removed, hidden, or trimmed column
+    // invalidates them. They are fitted again on the next render, after MergeCells has moved its merges.
+    if (indexesSequenceChanged || trimmedIndexesChanged || hiddenIndexesChanged) {
+      this.#markMergedCellsChanged(indexesSequenceChanged ? 'numbering' : 'refit');
+    }
+  };
+
+  /**
+   * Asks for a fit of the merged cells while MergeCells is enabled. It does not ask whether merges
+   * exist, because a change that brings rows or columns back can bring back merges the last fit did
+   * not see.
+   *
+   * @param {'refit' | 'texts' | 'numbering'} [scope='texts'] What may have changed: only which merges
+   * are drawn (`refit`), the texts as well (`texts`), or the physical numbering too (`numbering`).
+   */
+  #markMergedCellsChanged(scope: 'refit' | 'texts' | 'numbering' = 'texts') {
+    if (!this.hot.getPlugin('mergeCells')?.enabled) {
+      return;
+    }
+
+    if (scope === 'numbering') {
+      this.#mergedCellsWidths.markRenumbered();
+    } else if (scope === 'texts') {
+      this.#mergedCellsWidths.markStale();
+    } else {
+      this.#mergedCellsWidths.markLayoutChanged();
+    }
+  }
+
+  /**
+   * Asks for a fit when a width map of the column axis changed (a manual size through a drag, the API,
+   * or the settings, the stretched widths, or this plugin's own widths), since a merge's demand reads
+   * the widths of the columns it spans. The fit itself reuses the measured texts.
+   */
+  #onColumnIndexMapChange = () => {
+    if (this.#mergedCellsWidths.mayHaveMultiColumnMerges()) {
+      this.#mergedCellsWidths.markWidthsChanged();
+    }
+  };
+
+  /**
+   * Fits every merged cell again after `updateData()` replaced the data, which keeps the merges
+   * but may change their text. A re-measure sweep that runs or is owed measures from cached samples, and
+   * an update that keeps the row and column count changes no index map, so the samples survive it and
+   * describe the previous data: they are dropped, and the sweep samples the columns it has not reached
+   * afresh. The sweep goes on, since a wrapper sends `data` on every re-render.
+   */
+  #onAfterUpdateData = () => {
+    this.#markMergedCellsChanged('numbering');
+
+    if (this.#sweepPendingColumns !== null || this.#reMeasureOwed) {
+      this.#columnSamplesCache.clear();
+      this.#markPendingSweepColumnsStale();
+    }
+  };
+
+  /**
+   * Takes a snapshot of the merges right before an undo or a redo, which can restore merges through
+   * MergeCells' state with no merge hook. The undo renders before its `after*` hook fires, so the
+   * snapshot is taken before it, and the fit of that render reports and rescans what changed.
+   */
+  #onBeforeUndoRedo = () => {
+    if (this.hot.getPlugin('mergeCells')?.enabled) {
+      this.#mergedCellsWidths.snapshotMerges();
     }
   };
 
@@ -1336,14 +2221,18 @@ export class AutoColumnSize extends BasePlugin {
         return;
       }
 
+      const visualRow = Number.isInteger(physicalRow) ? this.hot.toVisualRow(physicalRow) : null;
+
+      if (visualRow !== null && this.#invalidateMergedCellText(visualRow, visualColumn)) {
+        return;
+      }
+
       const entry = this.#columnWidthsToRefresh.get(visualColumn);
 
       // The column is already queued for a full rescan.
       if (entry === null) {
         return;
       }
-
-      const visualRow = Number.isInteger(physicalRow) ? this.hot.toVisualRow(physicalRow) : null;
 
       // Without an addressable row the probe cannot measure the changed cell — fall back to
       // a full column rescan.
@@ -1369,6 +2258,8 @@ export class AutoColumnSize extends BasePlugin {
   destroy(): void {
     this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexMapperCacheUpdate);
     this.hot?.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdate);
+    this.hot?.columnIndexMapper.removeLocalHook('change', this.#onColumnIndexMapChange);
+    this.#cancelSweep();
     this.ghostTable.clean();
     super.destroy();
   }

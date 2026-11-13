@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed errors thrown by `updateSettings()`, header rendering, and `destroy()` after a plugin was destroyed on its own with `getPlugin(name).destroy()`, and made the fill handle hide and reappear right away when the Autofill plugin is disabled, re-enabled, or destroyed.",
+  "type": "fixed",
+  "issueOrPR": 13879,
+  "breaking": false,
+  "framework": "none"
+}

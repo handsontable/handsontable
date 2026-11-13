@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { NumericGridPage } from '../fixtures/pages/NumericGridPage';
 
 /**
@@ -9,11 +9,11 @@ import { NumericGridPage } from '../fixtures/pages/NumericGridPage';
  * The stored literal itself is untouched by the round-trip: the editor keeps
  * showing exactly what the user typed.
  */
-test.describe('numeric preserved literal with formulas', () => {
+test.describe('numeric preserved literal with formulas', { tag: BUNDLES_TAG }, () => {
   let grid: NumericGridPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new NumericGridPage(page, theme, 'numeric-formulas');
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new NumericGridPage(page, theme, bundle, 'numeric-formulas');
     await grid.goto();
   });
 

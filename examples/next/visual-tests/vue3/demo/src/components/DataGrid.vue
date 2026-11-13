@@ -8,12 +8,7 @@ import { getData } from "../utils/constants";
 import { getThemeName } from "../utils/utils";
 import { progressBarRenderer } from "../renderers/progressBar";
 import { starsRenderer } from "../renderers/stars";
-
-import {
-  drawCheckboxInRowHeaders,
-  addClassesToRows,
-  changeCheckboxCell
-} from "../utils/hooks-callbacks";
+import { TEST_LICENSE_KEY } from '../test-license-key';
 
 export default {
   name: 'DataGrid',
@@ -38,10 +33,7 @@ export default {
         manualColumnMove: true,
         comments: true,
         customBorders: true,
-        afterOnCellMouseDown: changeCheckboxCell,
         headerClassName: isRtl ? "htRight" : "htLeft",
-        afterGetRowHeader: drawCheckboxInRowHeaders,
-        beforeRenderer: addClassesToRows,
         colWidths: [140, 210, 135, 100, 90, 110, 120, 115, 140],
         colHeaders: [
           "Company name",
@@ -91,7 +83,7 @@ export default {
           { data: 5, type: "text" },
           { data: 2, type: "text" }
         ],
-        licenseKey: "non-commercial-and-evaluation",
+        licenseKey: TEST_LICENSE_KEY,
       },
       data: getData()
     }
@@ -111,10 +103,6 @@ export default {
   .handsontable .star,
   .handsontable .htDimmed.star {
     color: #fcb515 !important;
-  }
-
-  .ht-wrapper .handsontable .htCore tr.selected td {
-    background: #edf3fd !important;
   }
 
   .handsontable .ht_nestingParent,

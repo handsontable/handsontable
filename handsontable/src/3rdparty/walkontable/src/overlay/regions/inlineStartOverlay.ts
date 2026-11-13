@@ -81,12 +81,11 @@ export class InlineStartOverlay extends Overlay {
       return false;
     }
 
-    const { rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const rail = this.getRail();
     let overlayPosition = 0;
 
-    if (this.trimmingContainer === rootWindow) {
+    if (this.deps.getWtViewport().isHorizontallyScrollableByWindow()) {
       overlayPosition = this.getOverlayOffset() * (this.isRtl() ? -1 : 1);
       // Held at the viewport's inline-start edge by the browser, never by this listener (DEV-127).
       // The block axis is the page's: this clone mirrors the master's rows and scrolls with them.
@@ -389,7 +388,10 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Gets table parent left position.
+   * Gets the distance between the page's inline-start edge and the table's: the table's left edge in LTR, and
+   * its right edge, measured from the page's right edge, in RTL. The RTL value is the page margin on the right
+   * and does not depend on how far the page is scrolled. It is `0` while the holder, not the window, scrolls
+   * the columns: the page offset is not part of the holder's scroll position.
    *
    * @returns {number}
    */
@@ -397,8 +399,23 @@ export class InlineStartOverlay extends Overlay {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let offset = 0;
 
-    if (!preventOverflow && this.trimmingContainer === this.deps.rootWindow) {
-      offset = (this.deps.getWtTable().holderOffset as { top: number; left: number }).left;
+    if (
+      !preventOverflow &&
+      this.trimmingContainer === this.deps.rootWindow &&
+      this.isScrolledByWindow()
+    ) {
+      const wtTable = this.deps.getWtTable();
+
+      if (!this.isRtl()) {
+        offset = (wtTable.holderOffset as { top: number; left: number }).left;
+
+      } else {
+        // The holder's left edge is not where the table starts in RTL: a grid in a shrink-to-fit wrapper
+        // reaches far past the page's left edge, and a grid with a margin on the right does not start
+        // at the page's right edge. Take the margin measured with the draw's `holderOffset`, so a draw
+        // that widens the table does not leave the two out of step.
+        offset = wtTable.holderInlineStartMargin;
+      }
     }
 
     return offset;
@@ -422,6 +439,8 @@ export class InlineStartOverlay extends Overlay {
     const { rootWindow } = this.deps;
     let overlayOffset = 0;
 
+    // Gated on the axis owner alone, not on `isScrolledByWindow()`: in the reverse split the page offset is 0
+    // (`getTableParentOffset()`), so this is the raw holder scroll position, which the column-move backlight reads.
     if (this.trimmingContainer === rootWindow) {
       if (this.isRtl()) {
         overlayOffset = Math.abs(Math.min(this.getTableParentOffset() - this.getScrollPosition(), 0));
@@ -438,6 +457,17 @@ export class InlineStartOverlay extends Overlay {
     }
 
     return overlayOffset;
+  }
+
+  /**
+   * The part of the overlay offset that the layout does not already carry. While the holder scrolls the columns
+   * (the reverse split), the clone sits in the holder's own box and nothing moves it, so there is nothing to add,
+   * whereas {@link InlineStartOverlay#getOverlayOffset} stays the raw holder scroll position.
+   *
+   * @returns {number}
+   */
+  getOverlayTransformOffset(): number {
+    return this.isScrolledByWindow() ? super.getOverlayTransformOffset() : 0;
   }
 
   /**

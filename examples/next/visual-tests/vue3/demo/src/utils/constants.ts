@@ -1201,8 +1201,6 @@ const data = [
   ]
 ];
 
-export const SELECTED_CLASS = "selected";
-
 export function getData() {
   return data;
 }

@@ -1,4 +1,10 @@
-import { mapFormulaReferences, shiftFormulaReferences } from '../formulaRefs';
+import {
+  closedReferenceArea,
+  rebaseImportedFormula,
+  mapFormulaReferences,
+  shiftFormulaReferences,
+  translateSharedFormula,
+} from '../formulaRefs';
 import { normalizeFormula } from '../../../plugins/exportFile/types/xlsx/formula-utils';
 
 describe('shiftFormulaReferences', () => {
@@ -75,6 +81,49 @@ describe('shiftFormulaReferences', () => {
     expect(shiftFormulaReferences('Data!A1+B2', -1, -1)).toBe('Data!A1+A1');
   });
 
+  it('should leave a bare qualifier longer than 255 characters untouched, like a shorter one', () => {
+    // The bare-qualifier run may only start where a run of name characters starts, so a long run
+    // of letters with no `!` after it is scanned once, not once per starting position - which was
+    // quadratic over the file's own formula text. A longer-than-real name still reads as a
+    // qualifier, as it did when the run was bounded at 255 and matched the name's tail.
+    const long = 'a'.repeat(300);
+
+    expect(shiftFormulaReferences(`${long}!A1+B2`, 1, 1)).toBe(`${long}!A1+C3`);
+    expect(shiftFormulaReferences('a'.repeat(20000), 1, 1)).toBe('a'.repeat(20000));
+  });
+
+  it('should classify a long run of apostrophes in linear time', () => {
+    // The quoted-qualifier body `(?:[^']|'')` used to be unbounded, so a run of apostrophes with
+    // no `'!` after it backtracked once per starting position - quadratic in the formula's length
+    // (32 768 apostrophes cost about 470 ms). It is bounded at `MAX_QUALIFIER_LENGTH` units now.
+    const apostrophes = '\''.repeat(32768);
+    const startedAt = performance.now();
+
+    expect(shiftFormulaReferences(apostrophes, 1, 1)).toBe(apostrophes);
+    expect(performance.now() - startedAt).toBeLessThan(200);
+  });
+
+  it('should classify a long run of non-Latin letters in linear time', () => {
+    // The bare-qualifier run, bounded at 255 but tried from every position, scanned 255 letters
+    // per character: about 6.4 us per character on Cyrillic (32 768 cost about 210 ms).
+    const letters = '\u0416'.repeat(32768);
+    const startedAt = performance.now();
+
+    expect(shiftFormulaReferences(letters, 1, 1)).toBe(letters);
+    expect(performance.now() - startedAt).toBeLessThan(100);
+  });
+
+  it('should keep leaving a real quoted qualifier untouched after the quoted body was bounded', () => {
+    const longest = `'${'N'.repeat(31)}'`;
+    const doubled = `'${'\'\''.repeat(31)}'`;
+
+    expect(shiftFormulaReferences('\'My Rates\'!$A$1+B2', 1, 1)).toBe('\'My Rates\'!$A$1+C3');
+    expect(shiftFormulaReferences('\'O\'\'Brien\'!A1+A1', 1, 1)).toBe('\'O\'\'Brien\'!A1+B2');
+    expect(shiftFormulaReferences(`${longest}!A1:B2+A1`, 1, 1)).toBe(`${longest}!A1:B2+B2`);
+    expect(shiftFormulaReferences(`${doubled}!A1+A1`, 1, 1)).toBe(`${doubled}!A1+B2`);
+    expect(translateSharedFormula('\'My Rates\'!A1*A1', 1, 0)).toBe('\'My Rates\'!A2*A2');
+  });
+
   it('should not touch a reference-shaped string literal', () => {
     expect(shiftFormulaReferences('"A1"', 1, 1)).toBe('"A1"');
     expect(shiftFormulaReferences('CONCAT("A1",A1)', 1, 1)).toBe('CONCAT("A1",B2)');
@@ -83,6 +132,21 @@ describe('shiftFormulaReferences', () => {
   it('should shift the arguments of a function call without touching its name', () => {
     expect(shiftFormulaReferences('SUM(A1:A3)', 1, 1)).toBe('SUM(B2:B4)');
     expect(shiftFormulaReferences('LOG10(A1)', 1, 1)).toBe('LOG10(B2)');
+  });
+
+  it('should not read a function or a name that starts like a cell as a reference', () => {
+    // `HEX2` is a valid cell (column HEX, row 2), and the letter after it used to be allowed, so a
+    // header shift rewrote `HEX2DEC(` to `HEX1DEC(` and the grid showed `#NAME?`.
+    expect(shiftFormulaReferences('HEX2DEC(A2)', -1, 0)).toBe('HEX2DEC(A1)');
+    expect(shiftFormulaReferences('DEC2BIN(A2)+BIN2DEC(A3)', -1, 0)).toBe('DEC2BIN(A1)+BIN2DEC(A2)');
+    expect(shiftFormulaReferences('OCT2HEX(C3,4)+D4', -1, 0)).toBe('OCT2HEX(C2,4)+D3');
+    expect(shiftFormulaReferences('Q1Sales*A2', -1, 0)).toBe('Q1Sales*A1');
+    expect(shiftFormulaReferences('FY2024Total+A2', -1, 0)).toBe('FY2024Total+A1');
+    expect(shiftFormulaReferences('A1Rate*A2', -1, 0)).toBe('A1Rate*A1');
+    expect(shiftFormulaReferences('A1_x+A2.y+A2', -1, 0)).toBe('A1_x+A2.y+A1');
+    // Real references keep shifting.
+    expect(shiftFormulaReferences('LOG10(A2)+SUM(A2:B3)+$A$2+Sheet1!A2', -1, 0))
+      .toBe('LOG10(A1)+SUM(A1:B2)+$A$1+Sheet1!A2');
   });
 
   it('should return null when a shifted reference falls above row 1 or left of column A', () => {
@@ -164,5 +228,263 @@ describe('mapFormulaReferences', () => {
 
   it('should return null as soon as the mapper rejects a reference', () => {
     expect(mapFormulaReferences('A1+B2', reference => (reference.col === 2 ? null : reference))).toBeNull();
+  });
+
+  describe('the `requalify` option', () => {
+    const down = reference => ({ row: reference.row === null ? null : reference.row + 1, col: reference.col });
+
+    it('should map a reference whose sheet the callback renames and write the new name', () => {
+      const names = [];
+      const result = mapFormulaReferences('Data!$A$1:$A$3+\'my sheet\'!B2+Other!C3', down, {
+        requalify: (name) => {
+          names.push(name);
+
+          return name.toLowerCase() === 'data' || name === 'my sheet' ? { sheetName: 'Sheet1' } : null;
+        },
+      });
+
+      expect(names).toEqual(['Data', 'my sheet', 'Other']);
+      expect(result).toBe('Sheet1!$A$2:$A$4+Sheet1!B3+Other!C3');
+    });
+
+    it('should quote a new sheet name that needs quotes, doubling an apostrophe', () => {
+      const renamedTo = name => mapFormulaReferences('Data!A1', down, { requalify: () => ({ sheetName: name }) });
+
+      expect(renamedTo('Q1 Sales')).toBe('\'Q1 Sales\'!A2');
+      expect(renamedTo('Bob\'s')).toBe('\'Bob\'\'s\'!A2');
+      expect(renamedTo('A1')).toBe('\'A1\'!A2');
+      expect(renamedTo('R1C1')).toBe('\'R1C1\'!A2');
+      expect(renamedTo('Sales_2024')).toBe('Sales_2024!A2');
+    });
+
+    it('should quote a new sheet name holding a dot, which HyperFormula cannot read bare', () => {
+      // HyperFormula's unquoted sheet grammar is letters, digits and `_` only: `=Data.2024!$A$1`
+      // is a parsing error, the quoted form works.
+      const renamedTo = name => mapFormulaReferences('Data!A1', down, { requalify: () => ({ sheetName: name }) });
+
+      expect(renamedTo('Data.2024')).toBe('\'Data.2024\'!A2');
+      expect(renamedTo('v1.2')).toBe('\'v1.2\'!A2');
+    });
+
+    it('should quote a new sheet name Excel reads as a boolean, in any case', () => {
+      // Excel writes `'TRUE'!A1`: a bare `TRUE!A1` is the boolean, not a sheet.
+      const renamedTo = name => mapFormulaReferences('Data!A1', down, { requalify: () => ({ sheetName: name }) });
+
+      expect(renamedTo('TRUE')).toBe('\'TRUE\'!A2');
+      expect(renamedTo('false')).toBe('\'false\'!A2');
+      expect(renamedTo('True')).toBe('\'True\'!A2');
+      expect(renamedTo('TRUEX')).toBe('TRUEX!A2');
+    });
+
+    it('should map a requalified reference through the map the callback answers with', () => {
+      const right = reference => ({ row: reference.row, col: reference.col + 2 });
+      const result = mapFormulaReferences('A!A1+B!A1', down, {
+        requalify: name => (name === 'A' ? { sheetName: 'X', map: right } : { sheetName: 'Y' }),
+      });
+
+      expect(result).toBe('X!C1+Y!A2');
+    });
+
+    it('should return null when the mapper rejects a requalified reference', () => {
+      const toSheet1 = { requalify: () => ({ sheetName: 'Sheet1' }) };
+
+      expect(mapFormulaReferences('Data!A1', () => null, toSheet1)).toBeNull();
+    });
+
+    it('should leave a qualifier of another workbook untouched', () => {
+      const toSheet1 = { requalify: () => ({ sheetName: 'Sheet1' }) };
+
+      expect(mapFormulaReferences('[1]Data!A1', down, toSheet1)).toBe('[1]Data!A1');
+    });
+  });
+});
+
+describe('translateSharedFormula', () => {
+  it('should shift relative references by the slave offset and pin absolute components', () => {
+    expect(translateSharedFormula('A1*2', 1, 0)).toBe('A2*2');
+    expect(translateSharedFormula('SUM($A$1:A1)', 2, 1)).toBe('SUM($A$1:B3)');
+    expect(translateSharedFormula('$A1+A$1', 1, 1)).toBe('$A2+B$1');
+    expect(translateSharedFormula('Rates!A1+"A1"', 1, 1)).toBe('Rates!B2+"A1"');
+  });
+
+  it('should slide a qualified reference like an unqualified one, the way Excel fills a shared formula', () => {
+    // A shared formula is one formula copied over a range, and Excel (like ExcelJS's `slideFormula`)
+    // moves every relative component of the copy, whatever sheet it names: `=Data!B2` filled down
+    // reads `=Data!B3`, `=Data!B4`. Only a `$` component stays.
+    expect(translateSharedFormula('Data!B2', 1, 0)).toBe('Data!B3');
+    expect(translateSharedFormula('Data!B2*2', 2, 0)).toBe('Data!B4*2');
+    expect(translateSharedFormula('\'My Rates\'!A1', 0, 1)).toBe('\'My Rates\'!B1');
+    expect(translateSharedFormula('\'O\'\'Brien\'!$A1+A1', 1, 1)).toBe('\'O\'\'Brien\'!$A2+B2');
+    expect(translateSharedFormula('SUM(Data!$A$1:B2)', 1, 1)).toBe('SUM(Data!$A$1:C3)');
+    expect(translateSharedFormula('SUM(Data!A:A)', 3, 1)).toBe('SUM(Data!B:B)');
+    expect(translateSharedFormula('SUM(Data!2:3)', 1, 4)).toBe('SUM(Data!3:4)');
+    expect(translateSharedFormula('\u041b\u0438\u0441\u04421!A1', 1, 0)).toBe('\u041b\u0438\u0441\u04421!A2');
+  });
+
+  it('should keep a qualified reference inside a string literal untouched while sliding the real one', () => {
+    expect(translateSharedFormula('"Data!A1"&Data!A1', 1, 0)).toBe('"Data!A1"&Data!A2');
+  });
+
+  it('should return null when a qualified reference would slide off the sheet', () => {
+    expect(translateSharedFormula('Data!A1', -1, 0)).toBeNull();
+    expect(translateSharedFormula('Data!XFD1', 0, 1)).toBeNull();
+  });
+
+  it('should return null when a shifted reference would leave the sheet', () => {
+    expect(translateSharedFormula('A1', -1, 0)).toBeNull();
+  });
+
+  it('should return the formula unchanged for a zero offset', () => {
+    expect(translateSharedFormula('A1', 0, 0)).toBe('A1');
+  });
+
+  it('should not move a function or a name that starts like a cell', () => {
+    // A shared `HEX2DEC(A2)` copied down used to read `HEX3DEC(A3)`, `HEX4DEC(A4)`.
+    expect(translateSharedFormula('HEX2DEC(A2)', 1, 0)).toBe('HEX2DEC(A3)');
+    expect(translateSharedFormula('BIN2OCT(A1)*2', 2, 0)).toBe('BIN2OCT(A3)*2');
+    expect(translateSharedFormula('Q1Sales*A2', 1, 0)).toBe('Q1Sales*A3');
+    expect(translateSharedFormula('Data!A2+HEX2DEC(Data!B2)', 1, 0)).toBe('Data!A3+HEX2DEC(Data!B3)');
+  });
+});
+
+describe('rebaseImportedFormula', () => {
+  /**
+   * Rebases a formula imported from the sheet `Sheet1` with the given known sheets, recording the
+   * names the check was asked about.
+   *
+   * @param {string} formula The formula.
+   * @param {number} rowDelta The row shift.
+   * @param {number} colDelta The column shift.
+   * @param {string[]} [known] The sheets the engine holds, lower-cased.
+   * @param {string} [self] The imported sheet's name.
+   * @returns {object}
+   */
+  function rebase(formula, rowDelta, colDelta, known = ['sheet1', 'rates'], self = 'Sheet1') {
+    const asked = [];
+    const result = rebaseImportedFormula(formula, rowDelta, colDelta, {
+      self,
+      isKnown: (name) => {
+        asked.push(name);
+
+        return known.includes(name.toLowerCase());
+      },
+    });
+
+    return { ...result, asked };
+  }
+
+  it('should shift the unqualified references and keep a known sheet\'s reference where it is', () => {
+    expect(rebase('B2*Rates!A1', -1, 0)).toEqual({ formula: 'B1*Rates!A1', unknownSheet: false, asked: ['Rates'] });
+  });
+
+  it('should ask about every qualifier, unquoted, skipping string literals', () => {
+    const { asked } = rebase('SUM(\'My Rates\'!$A$1:$B$2)+\'O\'\'Brien\'!A1+LEN("X!A1")+Лист1!A1', 0, 0);
+
+    expect(asked).toEqual(['My Rates', 'O\'Brien', 'Лист1']);
+  });
+
+  it('should report a sheet the engine does not hold', () => {
+    expect(rebase('Missing!A1*2', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('\'My Rates\'!A1*2', -1, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('LEN("Missing!A1")', 0, 0)).toMatchObject({ formula: 'LEN("Missing!A1")', unknownSheet: false });
+  });
+
+  it('should drop the qualifier naming the imported sheet itself and shift the reference', () => {
+    // The header band is dropped from this very sheet, so its own qualified references move with it.
+    expect(rebase('Sheet1!B2*2', -1, 0)).toEqual({ formula: 'B1*2', unknownSheet: false, asked: [] });
+    expect(rebase('SUM(sheet1!$B$2:B3)+\'Sheet1\'!C:C', -1, -1)).toMatchObject({ formula: 'SUM($A$1:A2)+B:B' });
+    expect(rebase('Data!A1*2', 0, 0, ['sheet1'], 'Data')).toEqual({ formula: 'A1*2', unknownSheet: false, asked: [] });
+  });
+
+  it('should write the qualifier naming the imported sheet as `selfAs` when one is given', () => {
+    // A named expression in HyperFormula refuses an unqualified reference as relative, so a defined
+    // name over the imported sheet keeps a qualifier: the grid's own sheet name.
+    const rebaseAs = (formula, selfAs) => rebaseImportedFormula(formula, -1, -1, {
+      self: 'Data', selfAs, isKnown: () => false,
+    });
+
+    expect(rebaseAs('Data!$G$2:$G$4', 'Sheet1')).toEqual({ formula: 'Sheet1!$F$1:$F$3', unknownSheet: false });
+    expect(rebaseAs('SUM(data!$B$2,\'Data\'!C:C)', 'My Sheet')).toEqual({
+      formula: 'SUM(\'My Sheet\'!$A$1,\'My Sheet\'!B:B)', unknownSheet: false,
+    });
+    expect(rebaseAs('Data!$A$1', 'Sheet1')).toEqual({ formula: null, unknownSheet: false });
+    expect(rebaseAs('B2+1', 'Sheet1')).toEqual({ formula: 'A1+1', unknownSheet: false });
+    expect(rebaseAs('Data!$B$2:$B$4', 'Data.2024')).toEqual({
+      formula: '\'Data.2024\'!$A$1:$A$3', unknownSheet: false,
+    });
+  });
+
+  it('should reject a self-qualified reference the shift pushes into the dropped band', () => {
+    expect(rebase('Sheet1!B1*2', -1, 0)).toMatchObject({ formula: null, unknownSheet: false });
+  });
+
+  it('should treat a bare qualifier after an external-workbook index or a 3D range colon as unknown', () => {
+    // `[1]Sheet1!A1` points at another workbook and `Sheet1:Sheet3!A1` at a stack of sheets; the
+    // match starts after `]` or `:`, so the name alone would read as a sheet the engine holds.
+    expect(rebase('[1]Sheet1!A1', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('SUM(Rates:Sheet1!A1)', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('SUM(Sheet1:Rates!A1)', -1, 0)).toMatchObject({ unknownSheet: true });
+  });
+
+  it('should read a range that repeats its own qualifier after the colon as a range on that sheet', () => {
+    // `Sheet1!A1:Sheet1!A3` is not a 3D reference: both ends name one sheet, and HyperFormula
+    // evaluates the shape.
+    expect(rebase('SUM(Sheet1!A2:Sheet1!A4)', -1, 0))
+      .toEqual({ formula: 'SUM(A1:A3)', unknownSheet: false, asked: [] });
+    expect(rebase('SUM(Rates!A1:rates!A3)', -1, 0))
+      .toEqual({ formula: 'SUM(Rates!A1:rates!A3)', unknownSheet: false, asked: ['Rates', 'rates'] });
+    expect(rebase('SUM(\'My Rates\'!A1:\'My Rates\'!A3)', 0, 0, ['my rates'])).toMatchObject({ unknownSheet: false });
+    expect(rebase('SUM(Missing!A1:Missing!A3)', 0, 0)).toMatchObject({ unknownSheet: true });
+    // Two different sheets around the colon are still a 3D reference, and so is an unqualified start.
+    expect(rebase('SUM(Sheet1!A1:Rates!A3)', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('SUM(Rates!A1:Sheet1!A3)', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('SUM(A1:Sheet1!A3)', 0, 0)).toMatchObject({ unknownSheet: true });
+    expect(rebase('SUM(Rates!A1+B1:Rates!A3)', 0, 0)).toMatchObject({ unknownSheet: true });
+  });
+
+  it('should return the formula unchanged without a walk when nothing can change it', () => {
+    expect(rebase('SUM(A1:B2)', 0, 0)).toEqual({ formula: 'SUM(A1:B2)', unknownSheet: false, asked: [] });
+  });
+});
+
+describe('closedReferenceArea', () => {
+  it('should count every cell a closed reference covers, however the range is spelled', () => {
+    const extent = { rows: 10, cols: 4 };
+
+    expect(closedReferenceArea('SUM(Data!$A$1:$B$3)', extent)).toBe(6);
+    expect(closedReferenceArea('A1+B2', extent)).toBe(2);
+    expect(closedReferenceArea('SUM(A1:B3)', extent)).toBe(6);
+    expect(closedReferenceArea('SUM(Data!$B$3:Data!A1)', extent)).toBe(6);
+    expect(closedReferenceArea('\'My Data\'!$A$1:$A$10+Data!C5', extent)).toBe(11);
+    expect(closedReferenceArea('SUM(Sheet1!$A$1:$ZZ$10000)', extent)).toBe(7020000);
+  });
+
+  it('should count nothing for a string or a name', () => {
+    expect(closedReferenceArea('LEN("A1:B9")&Sales', { rows: 10, cols: 4 })).toBe(0);
+  });
+
+  it('should count a whole column by the sheet\'s rows and a whole row by its columns', () => {
+    // HyperFormula sizes an open span to the sheet's other axis: `$1:$1048576` on a 3x3 sheet took
+    // 1.9 s and 1.3 GB, and `$A:$XFD` on 1,000 rows ran out of memory.
+    const extent = { rows: 10, cols: 4 };
+
+    expect(closedReferenceArea('SUM(Data!$A:$C)+SUM(2:3)', extent)).toBe((3 * 10) + (2 * 4));
+    expect(closedReferenceArea('SUM($C:a)+SUM(Data!$3:1)', extent)).toBe((3 * 10) + (3 * 4));
+    expect(closedReferenceArea('SUM(Sheet1!$1:$1048576)', { rows: 3, cols: 3 })).toBe(1048576 * 3);
+    expect(closedReferenceArea('SUM(Sheet1!$A:$XFD)', { rows: 1000, cols: 3 })).toBe(16384 * 1000);
+    expect(closedReferenceArea('Data!$B:$B+A1', extent)).toBe(11);
+  });
+
+  it('should size each open span by the sheet its qualifier names when given a function', () => {
+    const extents = { data: { rows: 10, cols: 4 }, 'my data': { rows: 100, cols: 2 } };
+    const extent = sheet => (sheet === null ? { rows: 3, cols: 3 } : extents[sheet.toLowerCase()]);
+
+    expect(closedReferenceArea('SUM(Data!$A:$B)+SUM(\'My Data\'!$A:$A)+SUM(C:C)', extent))
+      .toBe((2 * 10) + 100 + 3);
+    expect(closedReferenceArea('SUM(Data!$1:$2)+SUM(\'My Data\'!1:1)+A1:B2', extent)).toBe((2 * 4) + 2 + 4);
+  });
+
+  it('should count an open span as one line when the sheet is empty', () => {
+    expect(closedReferenceArea('SUM(A:B)+SUM(1:3)', { rows: 0, cols: 0 })).toBe(5);
   });
 });

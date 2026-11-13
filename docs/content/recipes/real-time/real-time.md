@@ -1,7 +1,7 @@
 ---
 title: Real-time and Integration Recipes
-metaTitle: Real-time and Integration Recipes - JavaScript Data Grid | Handsontable
-description: Practical recipes for real-time data updates and third-party integrations with Handsontable grids.
+metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for JavaScript
+description: Practical recipes for real-time data updates and third-party integrations with Handsontable DataGrid.
 permalink: /recipes/real-time
 canonicalUrl: /recipes/real-time
 searchCategory: Recipes
@@ -9,17 +9,17 @@ hotPlugin: false
 editLink: false
 type: how-to
 react:
-  metaTitle: Real-time and Integration Recipes - React Data Grid | Handsontable
+  metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Real-time and Integration Recipes - Angular Data Grid | Handsontable
+  metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Real-time and Integration Recipes - Vue Data Grid | Handsontable
+  metaTitle: Real-time and Integration Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 
 ## Overview
 
-This section provides practical recipes for pushing live data into Handsontable and connecting it to external services and visualization libraries. Each recipe includes a working example you can copy into your app.
+This section provides practical recipes for pushing live data into Handsontable DataGrid and connecting it to external services and visualization libraries. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
 
@@ -34,3 +34,25 @@ Current recipes:
 - [Agent-driven grid with A2UI](@/recipes/real-time/a2ui-agent-grid/a2ui-agent-grid.md)
 
 </div>
+
+::: only-for react
+
+<div class="boxes-list">
+
+- [Agent-driven grid with CopilotKit](@/recipes/real-time/copilotkit-agent-grid/copilotkit-agent-grid.md)
+
+</div>
+
+:::
+
+::: only-for javascript
+
+<div class="boxes-list">
+
+- [Add AI-classified columns with Jev](@/recipes/real-time/ai-columns-jev/ai-columns-jev.md)
+- [Stream Kafka topics into the grid](@/recipes/real-time/kafka-stream/kafka-stream.md)
+- [Two-way sync with Google Sheets](@/recipes/real-time/google-sheets-sync/google-sheets-sync.md)
+
+</div>
+
+:::

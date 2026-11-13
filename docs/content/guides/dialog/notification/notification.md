@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Notification
-metaTitle: Notification - JavaScript Data Grid | Handsontable
+metaTitle: Notification | Handsontable DataGrid for JavaScript
 description: Show non-blocking toast notifications anchored to the grid with the Notification plugin.
 permalink: /notification
 canonicalUrl: /notification
@@ -11,17 +11,18 @@ tags:
   - dialog
   - accessibility
 react:
-  metaTitle: Notification - React Data Grid | Handsontable
+  metaTitle: Notification | Handsontable DataGrid for React
 angular:
-  metaTitle: Notification - Angular Data Grid | Handsontable
+  metaTitle: Notification | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Notification - Vue Data Grid | Handsontable
+  metaTitle: Notification | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Dialog
+menuTag: updated
 addedIn: "17.1.0"
 ---
 
-Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the Handsontable root, support stacking per corner, and work with the design system themes.
+Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the grid's root element, support stacking per corner, and work with the design system themes.
 
 [[toc]]
 
@@ -79,6 +80,8 @@ Enable the plugin with [`notification: true`](@/api/options.md#notification), th
 :::
 
 :::
+
+A `message` string does not keep line breaks on its own: the toast does not set `white-space`, so a `\n` collapses like other whitespace. To show several lines, add `.ht-notification__message { white-space: pre-line; }` to your styles, or use `<br>` tags in the `message` string. A string with `<br>` tags is written as HTML, so it goes through the [`sanitizer`](@/api/options.md#sanitizer) option. If no `sanitizer` is set, the grid logs a one-time warning in the console.
 
 ## Toolbar actions (inventory-style)
 

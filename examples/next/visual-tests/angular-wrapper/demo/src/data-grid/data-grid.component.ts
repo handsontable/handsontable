@@ -4,12 +4,7 @@ import { HotTableModule } from "@handsontable/angular-wrapper";
 import { getData } from "./utils/constants";
 import { starsRenderer } from "./renderers/stars";
 import { progressBarRenderer } from "./renderers/progressBar";
-
-import {
-  drawCheckboxInRowHeaders,
-  addClassesToRows,
-  changeCheckboxCell
-} from "./utils/hooks-callbacks";
+import { TEST_LICENSE_KEY } from "../test-license-key";
 
 @Component({
   standalone: true,
@@ -22,9 +17,6 @@ import {
 })
 export class DataGridComponent {
   dataset = getData();
-  drawCheckboxInRowHeaders = drawCheckboxInRowHeaders;
-  addClassesToRows = addClassesToRows;
-  changeCheckboxCell = changeCheckboxCell;
   progressBarRenderer = progressBarRenderer;
   starsRenderer = starsRenderer;
   colHeaders = [
@@ -42,7 +34,7 @@ export class DataGridComponent {
     indicators: true
   };
   headerClassNameValue = document.documentElement.getAttribute("dir") === "rtl" ? "htRight" : "htLeft";
-  licenseKey = "non-commercial-and-evaluation";
+  licenseKey = TEST_LICENSE_KEY;
   themeName: string | undefined = undefined;
   htSettings = {
     columns: [
@@ -77,10 +69,7 @@ export class DataGridComponent {
     mergeCells: true,
     multiColumnSorting: true,
     filters: true,
-    afterOnCellMouseDown: this.changeCheckboxCell,
     headerClassName: this.headerClassNameValue,
-    afterGetRowHeader: this.drawCheckboxInRowHeaders,
-    beforeRenderer: this.addClassesToRows,
     manualRowMove: true,
     navigableHeaders: true,
     comments: true,

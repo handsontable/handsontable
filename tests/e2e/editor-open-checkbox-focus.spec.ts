@@ -22,6 +22,7 @@ import { EditorOpenCheckboxFocusPage } from '../fixtures/pages/EditorOpenCheckbo
  * Both cases would go red if an editor ever survived that selection change, which is exactly when
  * the widening would start to matter and someone should look at it again.
  */
+// leg-declarations: ignore pointer-offset -- openEditor() presses 4 px inside the cell's leading padding, clear of anything a renderer floats to the trailing edge on every theme; the spec asserts focus and listening state
 test.describe('A checkbox taking the focus while a cell is being edited', () => {
   test('has no open editor left by the time the mouseup verdict runs', async({ page, theme, bundle }) => {
     const grid = new EditorOpenCheckboxFocusPage(page, theme, bundle);

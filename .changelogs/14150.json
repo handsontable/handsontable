@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the multiselect chip remove button changing the value of a read-only cell or a cell with `editor: false`. Such cells now draw their chips without the remove button, unless `readOnlyStyling` is `false`.",
+  "type": "fixed",
+  "issueOrPR": 14150,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { AmdLoaderGridPage } from '../fixtures/pages/AmdLoaderGridPage';
 
 /**
@@ -14,7 +14,7 @@ import { AmdLoaderGridPage } from '../fixtures/pages/AmdLoaderGridPage';
  * pins down; the `-min` legs of the matrix cover the full bundle where the
  * vendored dependency lives.
  */
-test.describe('bundle on a page with an AMD loader', () => {
+test.describe('bundle on a page with an AMD loader', { tag: BUNDLES_TAG }, () => {
   test('loads and renders while a global define.amd is present', async ({ page, theme, bundle }) => {
     const pageErrors: Error[] = [];
 

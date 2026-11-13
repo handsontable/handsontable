@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - rowHeights physical indexes</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back: a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Fixture for `rowHeights` addressed by the physical row index (DEV-508). Every row has its own
+    height, so a height that lands on another row is visible. ?mode= picks what reorders or trims the
+    rows: `nested` (NestedRows collapse), `trim` (TrimRows), `sort` (ColumnSorting), `move`
+    (ManualRowMove), or `function` (the function form of `rowHeights`, with ManualRowMove). Cells
+    carry data-testid="cell-<name>-<col>" by the row's name, so a height is read off the row it
+    belongs to, wherever that row is on the screen.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Fail loud like ?theme= and ?bundle=: a mistyped mode must not quietly test another layout.
+    const mode = htPick({ nested: 'nested', trim: 'trim', sort: 'sort', move: 'move', function: 'function' },
+      new URLSearchParams(location.search).get('mode'), 'trim', 'mode');
+    // Physical rows: P (0), C1 (1), C2 (2), Q (3).
+    const heights = [100, 50, 40, 70];
+    const rows = [['P', 1], ['C1', 2], ['C2', 3], ['Q', 4]];
+    const nestedData = [
+      { name: 'P', order: 1, __children: [{ name: 'C1', order: 2 }, { name: 'C2', order: 3 }] },
+      { name: 'Q', order: 4 },
+    ];
+
+    const testIdRenderer = function(instance, td, row, col, prop, value) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${instance.getDataAtCell(row, 0)}-${col}`);
+    };
+
+    window.hot = new Handsontable(container, {
+      data: mode === 'nested' ? nestedData : rows,
+      columns: mode === 'nested' ? [{ data: 'name' }, { data: 'order' }] : [{ data: 0 }, { data: 1 }],
+      rowHeights: mode === 'function' ? physicalRow => heights[physicalRow] : heights,
+      autoRowSize: false,
+      rowHeaders: true,
+      colHeaders: true,
+      nestedRows: mode === 'nested',
+      trimRows: mode === 'trim' ? [] : false,
+      columnSorting: mode === 'sort',
+      manualRowMove: mode === 'move' || mode === 'function',
+      renderer: testIdRenderer,
+      licenseKey: window.htTestLicenseKey,
+    });
+  </script>
+</body>
+</html>

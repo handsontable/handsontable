@@ -17,7 +17,7 @@ export const command = {
       !selection.isSelectedByCorner() &&
       highlight.isCell()
     ) {
-      const fixedColumns = Number(hot.getSettings().fixedColumnsStart) || 0;
+      const fixedColumns = hot.view.countFixedColumnsStart();
       const column = columnIndexMapper.getNearestNotHiddenIndex(fixedColumns, 1);
       const newFrom = from.clone();
 

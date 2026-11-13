@@ -19,17 +19,25 @@ import { QUARANTINE_CAP, evaluateRun } from '../lib/quarantine-policy.mjs';
  * and per expired tag, and sets the step output `quarantined-flaky=true` so
  * `e2e.yml` uploads the report (and the ledger records the test) even though
  * the leg stays green.
+ *
+ * A run that saw no test fails here, whatever Playwright said: under `--shard`
+ * (one job per shard of a long leg, `e2e.yml`) Playwright skips its own "No
+ * tests found" error, and a shard that tested nothing must be red like an
+ * empty leg. The shard, when there is one, is named in the message.
  */
 export default class QuarantineReporter implements Reporter {
   #suite: Suite | undefined;
 
   #rootDir = '';
 
+  #shard: string | null = null;
+
   #hadErrors = false;
 
   onBegin(config: FullConfig, suite: Suite): void {
     this.#suite = suite;
     this.#rootDir = config.rootDir;
+    this.#shard = config.shard ? `${config.shard.current}/${config.shard.total}` : null;
   }
 
   onError(_error: TestError): void {
@@ -54,6 +62,7 @@ export default class QuarantineReporter implements Reporter {
       runStatus: result.status,
       hadErrors: this.#hadErrors,
       cap: QUARANTINE_CAP,
+      shard: this.#shard,
     });
     const lines: string[] = [];
 

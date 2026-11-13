@@ -54,6 +54,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         colHeaders={['ID', 'Task', 'Status', 'Owner']}
@@ -62,7 +63,7 @@ const ExampleComponent = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        undoRedo={true}
+        undo={true}
         columns={[
           { data: 'id', type: 'numeric', width: 60, readOnly: true },
           { data: 'task', type: 'text', width: 220 },
@@ -76,7 +77,6 @@ const ExampleComponent = () => {
         }}
         afterUndo={updateButtonsState}
         afterRedo={updateButtonsState}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

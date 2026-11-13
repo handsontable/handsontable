@@ -11,6 +11,7 @@ import {
   EditorComponent,
   mountComponent
 } from './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 const initialReduxStoreState = {
   hexColor: '#fff'
@@ -51,12 +52,12 @@ describe('Using Redux store within HotTable renderers and editors', () => {
 
     mountComponent((
       <Provider store={reduxStore}>
-        <HotTable licenseKey="non-commercial-and-evaluation"
+        <HotTable licenseKey={TEST_LICENSE_KEY}
           id="test-hot"
           data={createSpreadsheetData(3, 3)}
           width={300}
           height={300}
-          rowHeights={23}
+          minRowHeights={23}
           colWidths={50}
           autoRowSize={false}
           autoColumnSize={false}
@@ -105,12 +106,12 @@ describe('Using Redux store within HotTable renderers and editors', () => {
 
     mountComponent((
       <Provider store={reduxStore}>
-        <HotTable licenseKey="non-commercial-and-evaluation"
+        <HotTable licenseKey={TEST_LICENSE_KEY}
           id="test-hot"
           data={createSpreadsheetData(3, 3)}
           width={300}
           height={300}
-          rowHeights={23}
+          minRowHeights={23}
           colWidths={50}
           init={function() {
             mockElementDimensions(this.rootElement, 300, 300);

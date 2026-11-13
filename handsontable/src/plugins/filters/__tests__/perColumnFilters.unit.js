@@ -12,6 +12,7 @@ import { FILTERS_CONDITIONS_NONE } from 'handsontable/i18n/constants';
 import { AutoColumnSize } from 'handsontable/plugins/autoColumnSize';
 import { DropdownMenu } from 'handsontable/plugins/dropdownMenu';
 import { HiddenRows } from 'handsontable/plugins/hiddenRows';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(CheckboxCellType);
 registerCellType(DropdownCellType);
@@ -69,7 +70,7 @@ describe('Filters -> per-column filters switch', () => {
       colHeaders: ['Fruit', 'Amount', 'Color'],
       dropdownMenu: true,
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...overrides,
     });
 
@@ -213,6 +214,20 @@ describe('Filters -> per-column filters switch', () => {
         columns: [{}, {}, { filters: { searchMode: 'apply' } }],
       });
 
+      expect(perColumnWarnings().length).toBe(1);
+    });
+
+    it('should warn in the ready step, before the init hook and the first render', () => {
+      const warningsAtInit = [];
+
+      buildGrid({
+        columns: [{ filters: { searchMode: 'apply' } }, {}, {}],
+        init() {
+          warningsAtInit.push(perColumnWarnings().length);
+        },
+      });
+
+      expect(warningsAtInit).toEqual([1]);
       expect(perColumnWarnings().length).toBe(1);
     });
 
@@ -469,8 +484,8 @@ describe('Filters -> per-column filters switch', () => {
     });
 
     it('should scan when the plugin is switched on through enablePlugin() after init', () => {
-      // `afterInit` has already fired by then, so an enable that only deferred the scan to it would
-      // never run it.
+      // The init hooks have already fired by then, so an enable that only deferred the scan to them
+      // would never run it.
       buildTypedGrid(false, [{}, { filters: { availableConditions: ['eqq'] } }, {}]);
 
       hot.getPlugin('filters').enablePlugin();

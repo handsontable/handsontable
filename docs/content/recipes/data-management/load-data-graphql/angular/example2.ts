@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild, AfterViewInit } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, AfterViewInit, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 type ApiUser = {
@@ -61,6 +61,8 @@ const USERS_QUERY = `
 export class AppComponent implements AfterViewInit {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
+  private readonly cdr = inject(ChangeDetectorRef);
+
   status = 'Loading users...';
   hasError = false;
   showRefresh = false;
@@ -106,6 +108,9 @@ export class AppComponent implements AfterViewInit {
       this.hotTable.hotInstance?.loadData([]);
       this.hasError = true;
       this.status = 'Failed to load users. Try again.';
+    } finally {
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 
@@ -126,6 +131,9 @@ export class AppComponent implements AfterViewInit {
       // On error, do not clear the grid -- the existing data is still valid.
       this.hasError = true;
       this.status = 'Failed to load users. Try again.';
+    } finally {
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 
@@ -169,7 +177,7 @@ export class AppComponent implements AfterViewInit {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
@@ -178,7 +186,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

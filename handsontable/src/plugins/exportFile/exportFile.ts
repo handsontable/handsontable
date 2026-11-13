@@ -3,17 +3,27 @@ import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
 import { EXPORT_FILE_DIALOG_TITLE } from '../../i18n/constants';
-import DataProvider from './dataProvider';
+import { resolveEngineOverride, tryDetectXlsxEngine } from '../../utils/xlsxEngine/detect';
+import { EXPORT_FILE_CAPABILITY_IDS } from '../../utils/xlsxEngine/licenseCapabilities';
+import { getXlsxEntitlement } from '../../core/license';
+import ExportDataProvider from './dataProvider';
 import typeFactory, { EXPORT_TYPES } from './typeFactory';
 import exportItem from './contextMenuItem/exportItem';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import { buildExportDialogContent } from './utils';
 import type { HotInstance } from '../../core/types';
 import type BaseType from './types/_base';
+import { LICENSE } from './feature.generated';
+import { assertLicensedCall } from '../../utils/licenseNotification';
+import { hasLicenseCapability } from '../../utils/licenseCapabilities';
 
 export const PLUGIN_KEY = 'exportFile';
 
 /**
  * Options for a single worksheet in a multi-sheet export (XLSX only).
+ *
+ * `headerStyle` and `conditionalFormatting` also work per sheet, although this type does not declare
+ * them yet.
  */
 export interface SheetOptions {
   /**
@@ -28,13 +38,6 @@ export interface SheetOptions {
    * Include column headers.
    */
   colHeaders?: boolean;
-  /**
-   * Include column headers.
-   *
-   * @deprecated Since 17.1.0, renamed to `colHeaders`. Still accepted as an alias; it will be
-   * removed in 19.0.0. Use `colHeaders` instead.
-   */
-  columnHeaders?: boolean;
   /**
    * Include row headers.
    */
@@ -66,7 +69,13 @@ export interface HeaderStyleBorder {
    */
   style?: string;
   /**
-   * Border color in hex (e.g. `'#000000'`).
+   * Border color, as a CSS color: hex (`'#000000'` or `'#000'`), `rgb()`, `hsl()`, or a named color
+   * (`'black'`). The alpha component is dropped. An eight-digit hex value is read as Excel ARGB
+   * (`AARRGGBB`), not as CSS `#RRGGBBAA`. A value the exporter cannot read writes a black border.
+   */
+  color?: string;
+  /**
+   * Not read by the exporter. Set the border color with `color` instead.
    */
   argb?: string;
 }
@@ -76,11 +85,14 @@ export interface HeaderStyleBorder {
  */
 export interface HeaderStyle {
   /**
-   * Background fill color in hex (e.g. `'#f2f2f2'`).
+   * Background fill color, as a CSS color: hex (`'#f2f2f2'` or `'#eee'`), `rgb()`, `hsl()`, or a named
+   * color (`'whitesmoke'`). The alpha component is dropped. An eight-digit hex value is read as Excel
+   * ARGB (`AARRGGBB`), not as CSS `#RRGGBBAA`. A value the exporter cannot read, `'transparent'`
+   * included, writes a black fill; leave `backgroundColor` out for no fill.
    */
   backgroundColor?: string;
   /**
-   * Font color in hex.
+   * Not applied: header cells are written with the default font.
    */
   fontColor?: string;
   /**
@@ -94,7 +106,9 @@ export interface HeaderStyle {
  */
 export interface ConditionalFormattingRule {
   /**
-   * Rule type (e.g. `'cellIs'`, `'colorScale'`, `'dataBar'`, `'iconSet'`).
+   * Rule type: `'cellIs'`, `'expression'`, `'containsText'`, `'top10'`, `'aboveAverage'`, or
+   * `'timePeriod'`. Other ExcelJS kinds, such as `'colorScale'`, are written only by the ExcelJS
+   * engine; the built-in engine reports them as dropped.
    */
   type: string;
   /**
@@ -106,7 +120,8 @@ export interface ConditionalFormattingRule {
    */
   formulae?: Array<string | number>;
   /**
-   * ExcelJS format descriptor (color, icon set, etc.) applied when the rule matches.
+   * Ignored by both engines. They read the rule's `style` key instead (an ExcelJS style: font, fill,
+   * border, number format).
    */
   format?: Record<string, unknown>;
   /**
@@ -120,11 +135,13 @@ export interface ConditionalFormattingRule {
  */
 export interface ConditionalFormattingDescriptor {
   /**
-   * Row range `[startRow, endRow]` (visual indexes). Defaults to the full exported range.
+   * Row range `[startRow, endRow]`, as 0-based offsets into the exported data: after `range` is
+   * applied and excluded hidden rows are left out. Defaults to the full exported range.
    */
   rows?: [number, number];
   /**
-   * Column range `[startCol, endCol]` (visual indexes). Defaults to the full exported range.
+   * Column range `[startCol, endCol]`, as 0-based offsets into the exported data: after `range` is
+   * applied and excluded hidden columns are left out. Defaults to the full exported range.
    */
   cols?: [number, number];
   /**
@@ -174,13 +191,6 @@ export interface ExportOptions {
    */
   colHeaders?: boolean;
   /**
-   * Include column headers.
-   *
-   * @deprecated Since 17.1.0, renamed to `colHeaders`. Still accepted as an alias; it will be
-   * removed in 19.0.0. Use `colHeaders` instead.
-   */
-  columnHeaders?: boolean;
-  /**
    * Include row headers.
    */
   rowHeaders?: boolean;
@@ -205,7 +215,9 @@ export interface ExportOptions {
    */
   sanitizeValues?: boolean | RegExp | ((val: string) => string);
   /**
-   * Apply DEFLATE compression. `true` uses level 6; a number 1–9 sets a specific level (XLSX only).
+   * DEFLATE compression (XLSX only). Unset, `null`, or `true` compresses at level 6; `false` stores the
+   * entries uncompressed. A number 1–9 sets the level on the ExcelJS engine; the built-in engine uses
+   * the platform's default level and reports any other level as `compressionLevel`.
    */
   compression?: boolean | number;
   /**
@@ -221,9 +233,37 @@ export interface ExportOptions {
    */
   headerStyle?: HeaderStyle | null;
   /**
-   * ExcelJS engine instance. Overrides the engine from plugin settings for this call.
+   * Sheet protection of read-only cells (XLSX only). A sheet that has a read-only cell is protected,
+   * and its read-only cells are locked, so Excel does not let users edit them.
+   *
+   * - Unset (`undefined`, the default): such a sheet is protected with no password, so anyone can
+   *   unprotect it.
+   * - `{ password: '...' }`: such a sheet is protected with this password. The file keeps only a salted
+   *   SHA-512 hash of it, never the password itself. An empty or missing `password` sets no password.
+   *   Excel accepts at most 255 characters, so a longer password is refused.
+   * - `null`: no sheet is protected and no cell is locked.
+   *
+   * Any other value is refused: the export rejects when `protection` is not an object or `null`, or
+   * when `password` is set to something other than a string or is longer than 255 characters. The
+   * error names the option, never its value. A `protection` key on a `sheets` entry is ignored, with a
+   * console warning.
+   *
+   * A sheet with no read-only cell, or with a ColumnSummary, is never protected. With the `sheets`
+   * option, every protected sheet gets the same password. This is a guard against accidental edits,
+   * not encryption: the cell values stay readable in the file.
+   *
+   * The built-in engine hashes the password with `crypto.subtle`, which browsers expose only in a
+   * secure context (https or localhost). On a plain `http://` page an export that protects a sheet
+   * with a password rejects with `Sheet password hashing needs crypto.subtle, which is only
+   * available in a secure context (https or localhost).` The hash runs 100,000 SHA-512 rounds for
+   * every protected sheet, so a multi-sheet export with a password takes noticeably longer.
    */
-  engine?: object;
+  protection?: { password?: string } | null;
+  /**
+   * An xlsx engine module for this export only. `null`/absent uses the plugin's `engines` entry, or
+   * the built-in engine.
+   */
+  engine?: object | null;
 }
 
 /**
@@ -231,16 +271,13 @@ export interface ExportOptions {
  */
 export interface ExportFileSettings {
   /**
-   * Map of export engines keyed by format name (e.g. `{ xlsx: ExcelJS }`).
+   * Optional map of export engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). Without it the
+   * built-in engine writes `.xlsx`. An entry that is absent or `null` selects the built-in engine
+   * too; an entry that holds any other value must be a supported engine module.
    */
-  engines?: Record<string, object>;
+  engines?: Record<string, object | null | undefined>;
 }
 
-/**
- * @deprecated Since 18.0.0, renamed to `ExportFileSettings`. This alias will be removed in 19.0.0.
- * Use {@link ExportFileSettings} instead.
- */
-export type Settings = ExportFileSettings;
 export const PLUGIN_PRIORITY = 240;
 
 /**
@@ -265,6 +302,13 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
 }
 
 /**
+ * Whether a value is a thenable, whatever realm or `Promise` implementation built it.
+ */
+function isThenable(value: unknown): value is PromiseLike<unknown> {
+  return typeof (value as { then?: unknown } | null)?.then === 'function';
+}
+
+/**
  * @plugin ExportFile
  * @class ExportFile
  *
@@ -273,12 +317,9 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *
  * Supported formats:
  * - **CSV** (`'csv'`) — synchronous, no additional setup required.
- * - **XLSX** (`'xlsx'`) — asynchronous (returns a `Promise`). Needs an xlsx engine injected and
- *   detected through the `engines` option, e.g. [ExcelJS](https://github.com/exceljs/exceljs)
- *   (the only engine supported today). Features the engine cannot write are reported in one
- *   console warning per export.
- *
- * See [the export file demo](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md) for examples.
+ * - **XLSX** (`'xlsx'`) — asynchronous (returns a `Promise`). Uses the built-in xlsx engine unless
+ *   one is passed through the `engines` option, e.g. [ExcelJS](https://github.com/exceljs/exceljs).
+ *   Features the engine cannot write are reported in one console warning per export.
  *
  * @example
  * ::: only-for javascript
@@ -328,8 +369,6 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *
  * ::: only-for react
  * ```jsx
- * import ExcelJS from 'exceljs';
- *
  * const hotRef = useRef(null);
  *
  * ...
@@ -337,7 +376,7 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  * <HotTable
  *   ref={hotRef}
  *   data={getData()}
- *   exportFile={{ engines: { xlsx: ExcelJS } }}
+ *   exportFile={true}
  * />
  *
  * const hot = hotRef.current.hotInstance;
@@ -355,15 +394,13 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  *
  * ::: only-for angular
  * ```ts
- * import ExcelJS from 'exceljs';
- *
  * @Component({
  *   template: `<hot-table [settings]="settings"></hot-table>`,
  * })
  * export class AppComponent {
  *   settings = {
  *     data: getData(),
- *     exportFile: { engines: { xlsx: ExcelJS } },
+ *     exportFile: true,
  *   };
  *
  *   @ViewChild(HotTableComponent) hotTableComponent!: HotTableComponent;
@@ -385,6 +422,17 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  */
 export class ExportFile extends BasePlugin {
   /**
+   * Object URLs of downloads whose revoke timeout has not run yet, revoked by `destroy()`.
+   */
+  #pendingObjectUrls = new Set<string>();
+
+  /**
+   * The number of `loadData()` calls the grid has made, read by `downloadFileAsync()` to notice data
+   * that replaced the grid's while it waited for the progress overlay to paint.
+   */
+  #dataLoads = 0;
+
+  /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
    */
   static get PLUGIN_KEY() {
@@ -396,6 +444,24 @@ export class ExportFile extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the ids of the license capability tokens this plugin gates.
+   *
+   * @private
+   * @returns {string[]}
+   */
+  static get CAPABILITIES(): readonly string[] {
+    return EXPORT_FILE_CAPABILITY_IDS;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -423,7 +489,8 @@ export class ExportFile extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    registerMenuEntries(this, () => [exportItem(this)], { contextMenu: {} });
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
     super.enablePlugin();
   }
@@ -436,22 +503,23 @@ export class ExportFile extends BasePlugin {
   }
 
   /**
-   * Add export options to the Context Menu.
-   *
-   * @param {object} options Contains default added options of the Context Menu.
+   * Revokes the object URL of every download whose revoke timeout has not run yet, then runs the
+   * base plugin teardown. `Core#destroy` clears every `_registerTimeout` before the plugins are
+   * destroyed, so a grid torn down within the timeout would otherwise keep each blob alive until the
+   * page unloads.
    */
-  #onAfterContextMenuDefaultOptions = (rawOptions: unknown) => {
-    if (typeof rawOptions !== 'object' || rawOptions === null) {
-      return;
+  destroy() {
+    // `BasePlugin#destroy` deletes `hot`; a second direct call must not throw.
+    if (this.hot) {
+      const { rootWindow } = this.hot;
+      const URL = rootWindow.URL || rootWindow.webkitURL;
+
+      this.#pendingObjectUrls.forEach(url => URL.revokeObjectURL(url));
     }
 
-    const options = rawOptions as { items: unknown[] };
-
-    options.items.push(
-      { name: '---------' },
-      exportItem(this),
-    );
-  };
+    this.#pendingObjectUrls.clear();
+    super.destroy();
+  }
 
   /**
    * Exports table data as a string.
@@ -464,19 +532,22 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.mimeType] MIME type (e.g. `'text/csv'` for CSV). Default depends on format.
    * @param {string} [options.fileExtension] File extension (e.g. `'csv'`). Default depends on format.
    * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name. Placeholders `[YYYY]`, `[MM]`, `[DD]` are replaced with the current date.
-   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {string} [options.encoding='utf-8'] Charset label of the Blob; the content is always UTF-8.
    * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
    * @param {boolean} [options.colHeaders=false] Include column headers in the exported file.
    * @param {boolean} [options.rowHeaders=false] Include row headers in the exported file.
-   * @param {boolean|string} [options.exportHiddenColumns=false] Controls how hidden columns are handled. `true` exports them as normal visible columns. `false` omits them entirely. `'hide'` exports them and marks them as hidden in Excel (XLSX only).
-   * @param {boolean|string} [options.exportHiddenRows=false] Controls how hidden rows are handled. `true` exports them as normal visible rows. `false` omits them entirely. `'hide'` exports them and marks them as hidden in Excel (XLSX only).
+   * @param {boolean|string} [options.exportHiddenColumns=false] Controls how hidden columns are handled. `true` or `'hide'` exports them as normal columns, `false` omits them.
+   * @param {boolean|string} [options.exportHiddenRows=false] Controls how hidden rows are handled. `true` or `'hide'` exports them as normal rows, `false` omits them.
    * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (CSV only).
    * @returns {string}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
-  exportAsString(format: string, options: Record<string, unknown> = {}): string {
+  exportAsString(format: string, options: ExportOptions | Record<string, unknown> = {}): string {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -498,7 +569,7 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.mimeType] MIME type. Default depends on format.
    * @param {string} [options.fileExtension] File extension. Default depends on format.
    * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name.
-   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {string} [options.encoding='utf-8'] Charset label of the Blob; the content is always UTF-8.
    * @param {boolean} [options.bom] Include BOM signature. Default depends on format (e.g. `true` for CSV).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
@@ -509,8 +580,11 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {Blob}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
-  exportAsBlob(format: string, options: Record<string, unknown> = {}): Blob {
+  exportAsBlob(format: string, options: ExportOptions | Record<string, unknown> = {}): Blob {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -535,24 +609,31 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.mimeType] MIME type. Default depends on format.
    * @param {string} [options.fileExtension] File extension. Default depends on format.
    * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name.
-   * @param {string} [options.encoding='utf-8'] Character encoding (text formats only).
+   * @param {string} [options.encoding='utf-8'] Charset label of the Blob and the download; the content is always UTF-8 (text formats only).
    * @param {boolean} [options.bom] Include BOM signature (text formats only).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
    * @param {boolean} [options.colHeaders=false] Include column headers.
    * @param {boolean} [options.rowHeaders=false] Include row headers.
-   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns.
-   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
+   * @param {boolean|string} [options.exportHiddenColumns=false] Hidden columns: `true` exports them visible, `false` leaves them out, `'hide'` writes them hidden in the sheet (XLSX only).
+   * @param {boolean|string} [options.exportHiddenRows=false] Hidden rows: `true` exports them visible, `false` leaves them out, `'hide'` writes them hidden in the sheet (XLSX only).
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @param {boolean} [options.exportFormulas=false] Export cell formulas instead of their computed values (XLSX only).
-   * @param {boolean|number} [options.compression] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets a specific level. Omit or pass a falsy value to use no compression (XLSX only).
+   * @param {boolean|number} [options.compression] DEFLATE compression (XLSX only). Omitted, `null`, `true` or any value other than `false` and a number 1–9 compresses at level 6. A number 1–9 sets the level on the ExcelJS engine; the built-in engine always uses the platform's default level. `false` stores the entries uncompressed.
    * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
+   * @param {HeaderStyle|null} [options.headerStyle] Fill and border of the header cells (XLSX only). Defaults to a light-gray fill with a thin border; an object replaces the whole default, `null` writes unstyled headers.
+   * @param {object|null} [options.engine] Engine for this call only (XLSX only). `null` or an absent key keeps the engine from the `engines` setting, or the built-in one.
+   * @param {object|null} [options.protection] Sheet protection of read-only cells (XLSX only). Unset protects a sheet that has a read-only cell with no password, and `null` protects no sheet. With the built-in engine, an export that protects a sheet with a password needs a secure context (https or localhost), or it rejects.
+   * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<Blob>}
    * @since 17.1.0
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Export to file.
    */
-  async exportAsBlobAsync(format: string, options: Record<string, unknown> = {}): Promise<Blob> {
+  async exportAsBlobAsync(format: string, options: ExportOptions | Record<string, unknown> = {}): Promise<Blob> {
+    assertLicensedCall(this.hot, LICENSE);
+
     return this._createBlob(this._createTypeFormatter(format, options));
   }
 
@@ -567,7 +648,7 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.mimeType] MIME type. Default depends on format.
    * @param {string} [options.fileExtension] File extension. Default depends on format.
    * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name.
-   * @param {string} [options.encoding='utf-8'] Character encoding.
+   * @param {string} [options.encoding='utf-8'] Charset label of the Blob; the content is always UTF-8.
    * @param {boolean} [options.bom] Include BOM signature. Default depends on format.
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
@@ -578,8 +659,11 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {void}
+   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
    */
-  downloadFile(format: string, options: Record<string, unknown> = {}): void {
+  downloadFile(format: string, options: ExportOptions | Record<string, unknown> = {}): void {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
 
     if (formatter.binary) {
@@ -600,44 +684,56 @@ export class ExportFile extends BasePlugin {
    * For text-based formats (e.g. `'csv'`), the download is triggered immediately
    * and the returned `Promise` resolves right away.
    * For binary formats (e.g. `'xlsx'`), the export runs asynchronously. When the
-   * `dialog` plugin is enabled, a progress overlay is shown for the duration of the export.
+   * `dialog` plugin is enabled, a progress overlay is shown for the duration of the export. The
+   * export reads the data after the overlay is painted, so a {@link Core#loadData} call made before
+   * that, for example a sheets bar switch, rejects the returned `Promise` and downloads nothing.
    *
    * @param {string} format Export format type e.g. `'csv'` or `'xlsx'`.
    * @param {object} options Export options.
    * @param {string} [options.mimeType] MIME type. Default depends on format.
    * @param {string} [options.fileExtension] File extension. Default depends on format.
    * @param {string} [options.filename='Handsontable [YYYY]-[MM]-[DD]'] File name.
-   * @param {string} [options.encoding='utf-8'] Character encoding (text formats only).
+   * @param {string} [options.encoding='utf-8'] Charset label of the Blob and the download; the content is always UTF-8 (text formats only).
    * @param {boolean} [options.bom] Include BOM signature (text formats only).
    * @param {string} [options.columnDelimiter=','] Column delimiter (CSV only).
    * @param {string} [options.rowDelimiter='\r\n'] Row delimiter (CSV only).
    * @param {boolean} [options.colHeaders=false] Include column headers.
    * @param {boolean} [options.rowHeaders=false] Include row headers.
-   * @param {boolean} [options.exportHiddenColumns=false] Include hidden columns.
-   * @param {boolean} [options.exportHiddenRows=false] Include hidden rows.
+   * @param {boolean|string} [options.exportHiddenColumns=false] Hidden columns: `true` exports them visible, `false` leaves them out, `'hide'` writes them hidden in the sheet (XLSX only).
+   * @param {boolean|string} [options.exportHiddenRows=false] Hidden rows: `true` exports them visible, `false` leaves them out, `'hide'` writes them hidden in the sheet (XLSX only).
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @param {boolean} [options.exportFormulas=false] Export cell formulas instead of their computed values (XLSX only).
-   * @param {boolean|number} [options.compression] Enable DEFLATE compression: `true` uses level 6; a number 1–9 sets a specific level. Omit or pass a falsy value to use no compression (XLSX only).
+   * @param {boolean|number} [options.compression] DEFLATE compression (XLSX only). Omitted, `null`, `true` or any value other than `false` and a number 1–9 compresses at level 6. A number 1–9 sets the level on the ExcelJS engine; the built-in engine always uses the platform's default level. `false` stores the entries uncompressed.
    * @param {ConditionalFormattingDescriptor[]} [options.conditionalFormatting=[]] Conditional formatting rules to apply to the exported file (XLSX only).
    * @param {SheetOptions[]} [options.sheets=[]] Configuration for multi-sheet export. Each entry defines one worksheet (XLSX only).
+   * @param {HeaderStyle|null} [options.headerStyle] Fill and border of the header cells (XLSX only). Defaults to a light-gray fill with a thin border; an object replaces the whole default, `null` writes unstyled headers.
+   * @param {object|null} [options.engine] Engine for this call only (XLSX only). `null` or an absent key keeps the engine from the `engines` setting, or the built-in one.
+   * @param {object|null} [options.protection] Sheet protection of read-only cells (XLSX only). Unset protects a sheet that has a read-only cell with no password, and `null` protects no sheet. With the built-in engine, an export that protects a sheet with a password needs a secure context (https or localhost), or it rejects.
+   * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<void>}
    * @since 17.1.0
+   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Export to file.
    */
-  async downloadFileAsync(format: string, options: Record<string, unknown> = {}) {
+  async downloadFileAsync(format: string, options: ExportOptions | Record<string, unknown> = {}) {
+    assertLicensedCall(this.hot, LICENSE);
+
     const formatter = this._createTypeFormatter(format, options);
     const dialogPlugin = this.hot.getPlugin('dialog');
-    const hasDialog = dialogPlugin?.isEnabled();
+    const hasDialog = dialogPlugin?.enabled;
     const { rootWindow } = this.hot;
     const name = `${formatter.options.filename}.${formatter.options.fileExtension}`;
 
     const runExport = async() => {
       const blob = await Promise.resolve(this._createBlob(formatter));
 
+      this.#assertAlive();
       this.#triggerDownload(blob, name);
     };
 
     if (hasDialog && formatter.binary) {
+      const loadsAtStart = this.#dataLoads;
+
       dialogPlugin.show({
         content: buildExportDialogContent(
           this.hot.getTranslatedPhrase(EXPORT_FILE_DIALOG_TITLE), this.hot.rootDocument
@@ -658,9 +754,14 @@ export class ExportFile extends BasePlugin {
       });
 
       try {
+        this.#assertAlive();
+        this.#assertDataKept(loadsAtStart);
         await runExport();
       } finally {
-        dialogPlugin.hide();
+        // A destroyed grid has already torn the dialog down with it.
+        if (this.hot) {
+          dialogPlugin.hide();
+        }
       }
 
       return;
@@ -688,18 +789,54 @@ export class ExportFile extends BasePlugin {
     a.dispatchEvent(new MouseEvent('click'));
     rootDocument.body.removeChild(a);
 
+    this.#pendingObjectUrls.add(url);
     this.hot._registerTimeout(() => {
+      this.#pendingObjectUrls.delete(url);
       URL.revokeObjectURL(url);
     }, 100);
   }
 
   /**
-   * Returns `true` when the plugin can produce an export in the given format.
+   * Rejects a download whose grid was destroyed while the file was being built. `BasePlugin#destroy`
+   * deletes `hot`, so continuing would surface as a raw `TypeError`.
+   */
+  #assertAlive() {
+    if (!this.hot) {
+      throwWithCause('ExportFile: the Handsontable instance was destroyed while the file was being exported.');
+    }
+  }
+
+  /**
+   * Rejects a download whose grid loaded other data while the progress overlay was being painted. The
+   * export was asked for the data shown when it was called, and with a sheets bar the data loaded since
+   * is another sheet's.
    *
-   * For text-based formats such as `'csv'`, no extra setup is required and the
-   * method always returns `true`.
-   * For binary formats such as `'xlsx'`, the method returns `true` only when the
-   * corresponding engine has been provided in the plugin's `engines` map.
+   * @param {number} loadsAtStart The number of data loads when the export was called.
+   */
+  #assertDataKept(loadsAtStart: number) {
+    if (this.#dataLoads !== loadsAtStart) {
+      throwWithCause('ExportFile: the grid\'s data was replaced while the file was being exported, so nothing was '
+        + 'downloaded.');
+    }
+  }
+
+  /**
+   * Counts the grid's data loads, for `#assertDataKept()`.
+   */
+  #onBeforeLoadData = () => {
+    this.#dataLoads += 1;
+  };
+
+  /**
+   * Returns `true` when the plugin can produce an export in the given format. `'csv'` always can,
+   * because it needs no engine. `'xlsx'` can through the built-in xlsx engine or through the one
+   * configured in `engines`; an engine of unknown shape writes nothing and answers `false`, which
+   * is the same answer `ImportFile#supportsImportFormat` gives for that configuration. `'xlsx'` also
+   * answers `false` whenever an xlsx export would throw for the license: when the license key lists
+   * its features without `feat:export_file`, the plugin's own token, and when it carries the
+   * `listed-capabilities` flag without listing `xlsx:export`. A key without that flag is not
+   * restricted. `'csv'` does not read the license here, although the export methods still need
+   * `feat:export_file` for it.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}
@@ -709,38 +846,57 @@ export class ExportFile extends BasePlugin {
       return false;
     }
 
-    if (format === 'xlsx') {
-      const settings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
-
-      return settings !== undefined && isObject(settings.engines) && Boolean(settings.engines?.xlsx);
+    if (format !== 'xlsx') {
+      return true;
     }
 
-    return true;
+    if (!hasLicenseCapability(this.hot, LICENSE.capability) || !getXlsxEntitlement(this.hot).export) {
+      return false;
+    }
+
+    const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
+    const engines = pluginSettings && isObject(pluginSettings.engines) ? pluginSettings.engines : undefined;
+
+    return tryDetectXlsxEngine(resolveEngineOverride(undefined, engines?.[format]), PLUGIN_KEY) !== null;
   }
 
   /**
    * Creates and returns a class formatter for the specified export type.
    *
-   * The engine for the requested format is looked up from the plugin's `engines`
-   * map and merged as a default so that per-call options can override it if needed.
+   * The engine for the requested format is the per-call `engine` option when the caller passed one,
+   * and the plugin's `engines` entry for that format otherwise. A per-call `null` or `undefined`
+   * means "no override", so it never bypasses a configured engine; with neither, the format's
+   * exporter falls back to the built-in engine.
    *
    * @private
    * @param {string} format Export format type eq. `'csv'` or `'xlsx'`.
    * @param {object} options Export options.
    * @returns {BaseType}
    */
-  _createTypeFormatter(format: string, options: Record<string, unknown> = {}): BaseType {
+  _createTypeFormatter(format: string, options: ExportOptions | Record<string, unknown> = {}): BaseType {
+    // Every public export method builds its formatter first, so this is the one place that turns a call
+    // on a destroyed grid into a clear error instead of a TypeError on `this.hot.getSettings()`.
+    if (!this.hot) {
+      throwWithCause('ExportFile: the Handsontable instance is destroyed, so nothing can be exported.');
+    }
+
     if (!EXPORT_TYPES[format]) {
       throwWithCause(`Export format type "${format}" is not supported.`);
     }
 
+    if (format === 'xlsx' && !getXlsxEntitlement(this.hot).export) {
+      throwWithCause('ExportFile: the license does not unlock "xlsx:export".');
+    }
+
     const pluginSettings = getPluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
     const engines = pluginSettings && isObject(pluginSettings.engines) ? pluginSettings.engines : undefined;
-    const engineFromSettings = engines?.[format];
-    const mergedOptions = engineFromSettings !== undefined
-      ? { engine: engineFromSettings, ...options }
-      : options;
-    const formatter = typeFactory(format, new DataProvider(this.hot), mergedOptions);
+    const engine = resolveEngineOverride(options.engine, engines?.[format]);
+    // `ExportOptions` declares no index signature, so it is widened here for the formatter, which
+    // reads the options by key.
+    const mergedOptions: Record<string, unknown> = engine !== undefined
+      ? { ...options, engine }
+      : options as Record<string, unknown>;
+    const formatter = typeFactory(format, new ExportDataProvider(this.hot), mergedOptions);
 
     if (formatter === null) {
       throwWithCause(`Export format type "${format}" is not supported.`);
@@ -767,8 +923,12 @@ export class ExportFile extends BasePlugin {
     const exported = typeFormatter.export();
     const { mimeType, encoding } = typeFormatter.options as { mimeType?: string; encoding?: string };
 
-    if (exported instanceof Promise) {
-      return exported.then(buffer => new Blob([buffer as BlobPart], { type: mimeType }));
+    // A thenable, not `instanceof Promise`: Zone.js (loaded by every Angular app) replaces the
+    // global `Promise`, while the xlsx formatter's `async export()` still returns a native one, so
+    // the check failed and the promise itself went into the blob - a 16-byte `[object Promise]`
+    // file.
+    if (isThenable(exported)) {
+      return Promise.resolve(exported).then(buffer => new Blob([buffer as BlobPart], { type: mimeType }));
     }
 
     return new Blob([exported], { type: `${mimeType};charset=${encoding}` });

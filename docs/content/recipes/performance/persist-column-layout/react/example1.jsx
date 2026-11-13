@@ -4,7 +4,7 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
-const STORAGE_KEY = 'ht-column-layout-v1';
+const STORAGE_KEY = 'ht-column-layout-v2';
 
 /* start:skip-in-preview */
 const data = [
@@ -83,7 +83,7 @@ const ExampleComponent = () => {
     const widths = [];
 
     for (let i = 0; i < count; i++) {
-      widths.push(hot.getColWidth(i));
+      widths.push(hot.getColWidth(hot.toVisualColumn(i)));
     }
 
     return widths;
@@ -93,7 +93,7 @@ const ExampleComponent = () => {
     const hot = hotRef.current?.hotInstance;
 
     if (!hot) return;
-    const widths = hot.getColHeader().map((_, visualIndex) => hot.getColWidth(visualIndex));
+    const widths = hot.getColHeader().map((_, physicalIndex) => hot.getColWidth(hot.toVisualColumn(physicalIndex)));
 
     saveLayout(widths, getCurrentOrder());
   }, [getCurrentOrder]);
@@ -128,6 +128,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         colHeaders={['SKU', 'Name', 'Category', 'Price ($)', 'Stock', 'Status']}
@@ -139,7 +140,6 @@ const ExampleComponent = () => {
         height={320}
         width="100%"
         autoWrapRow={true}
-        licenseKey="non-commercial-and-evaluation"
         afterColumnResize={handleAfterColumnResize}
         afterColumnMove={handleAfterColumnMove}
       />

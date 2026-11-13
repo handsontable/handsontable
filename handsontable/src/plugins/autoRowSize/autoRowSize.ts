@@ -2,13 +2,17 @@ import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { cancelIdleTask, requestIdleTask } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
-import { isObject } from '../../helpers/object';
+import { isObject, hasOwnProperty } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
 import { formatCellValue } from '../../renderers/renderCell';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { addClass, removeClass } from '../../helpers/dom/element';
+import { FONT_REMEASURE_ROWS_ORDER_INDEX } from '../../core/fontLoad';
+import { isAutoRowSizeOn } from '../../core/rowHeightSetting';
+import { LICENSE } from './feature.generated';
+import { toStoredRowHeight } from './helpers/measuredRowHeight';
 
 export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
@@ -192,6 +196,14 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns `true` so the plugin updates on every `updateSettings` call, regardless of config object contents.
    */
   static get SETTING_KEYS(): string[] | boolean {
@@ -257,6 +269,9 @@ export class AutoRowSize extends BasePlugin {
     }
 
     let cellMeta;
+    let sourceRow = row;
+    let sourceColumn = column;
+    let block: { row: number, col: number, colspan: number } | null = null;
 
     if (row >= 0 && column >= 0) {
       // The transient read resolves the full dynamic meta (hooks + `cells`, so `hidden` from
@@ -265,15 +280,25 @@ export class AutoRowSize extends BasePlugin {
       cellMeta = this.hot.getCellMetaTransient(row, column);
 
       if (cellMeta.hidden) {
-        // do not generate samples for cells that are covered by merged cell (null values)
-        return false;
+        // A covered cell holds no value of its own (null values), so it is not sampled - unless a merged
+        // block whose first row or column is hidden is drawn on it. That block has no other cell to be
+        // measured on, so its text is sampled here, at the width of the block.
+        block = this.#getBlockDrawnOn(row, column);
+
+        if (block === null) {
+          return false;
+        }
+
+        sourceRow = block.row;
+        sourceColumn = block.col;
+        cellMeta = this.hot.getCellMetaTransient(sourceRow, sourceColumn);
       }
     }
 
     let cellValue;
 
     if (row >= 0) {
-      cellValue = this.hot.getDataAtCell(row, column);
+      cellValue = this.hot.getDataAtCell(sourceRow, sourceColumn);
 
       if (cellMeta) {
         // Format through the same precedence as the render path (cell-level `valueFormatter`, then
@@ -284,7 +309,13 @@ export class AutoRowSize extends BasePlugin {
       cellValue = this.hot.getColHeader(column);
     }
 
-    return { value: cellValue };
+    if (block === null) {
+      return { value: cellValue };
+    }
+
+    // Its own bucket, so the block's text is sampled whatever else the row holds: the usual buckets keep
+    // a few strings of each length and skip a value that was already sampled.
+    return { value: cellValue, block, bundleSeed: `mergedBlock:${sourceRow}:${sourceColumn}` };
   });
   /**
    * `true` if the size calculation is in progress.
@@ -350,9 +381,20 @@ export class AutoRowSize extends BasePlugin {
    * the engine's scroll draw, so a caller that clears the cache and then only scrolls gets nothing.
    * Every documented use of `clearCache()` pairs it with a redraw.
    *
+   * A font re-measure (`#onAfterFontsLoad`) that finds no columns owes its work the same way.
+   *
    * @type {boolean}
    */
   #fullRecalculationScheduled = false;
+  /**
+   * `true` when a font re-measure measured the rows while AutoColumnSize was still re-measuring the columns
+   * in idle tasks. The columns it had not reached kept their fallback-font widths, so the text wrapped more
+   * in them, and the rows outside the rendered band kept the extra height. The first render of a visible
+   * grid after that sweep ends schedules a full recalculation.
+   *
+   * @type {boolean}
+   */
+  #rowsOwedToColumnSweep = false;
   /**
    * Handle of the idle task driving the in-flight full sweep, or `0` when none is running.
    *
@@ -362,6 +404,39 @@ export class AutoRowSize extends BasePlugin {
    * @type {number}
    */
   #idleSweepTimer = 0;
+
+  /**
+   * `true` when something that moves the cell a merged block is drawn on may have changed since the last
+   * render: rows or columns hidden, shown, trimmed or moved, or a merge added or removed. The next render
+   * compares the cells again (`#remeasureMovedBlocks()`).
+   *
+   * @type {boolean}
+   */
+  #mergedBlocksChanged = false;
+  /**
+   * The covered cells that merged blocks were drawn on at the last comparison, with the width of the block
+   * from each. The key holds the physical row and column and that width, and the value the physical row.
+   * A block whose top-left cell is hidden is measured on the cell it is drawn on, so a height cached for
+   * a row stays valid only while the row is, or is not, such a cell. Empty without such a block.
+   *
+   * @type {Map<string, number>}
+   */
+  #blockCarriers = new Map<string, number>();
+  /**
+   * The physical row a block is drawn on, by the physical top-left cell of that block, as of the last
+   * comparison. A change of that cell's text changes what the block's row is measured to, so
+   * `#onBeforeChange` finds the row here. Empty without a block drawn on a covered cell.
+   *
+   * @type {Map<string, number>}
+   */
+  #blockOrigins = new Map<string, number>();
+  /**
+   * The rows whose cached height was dropped while they were hidden, and not measured then: a hidden row
+   * takes the default height, so a measurement would be wasted. They are measured once they are shown.
+   *
+   * @type {Set<number>}
+   */
+  #hiddenRowsToRemeasure = new Set<number>();
 
   /**
    * Initializes the plugin, registers the row heights map, and sets up the row resize hook.
@@ -386,10 +461,21 @@ export class AutoRowSize extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    const settings = this.hot.getSettings()[PLUGIN_KEY];
-
-    return settings === true || isObject(settings);
+    return isAutoRowSizeOn(this.hot.getSettings()[PLUGIN_KEY]);
   }
+
+  /**
+   * Whether the sampling settings have been applied once, so a later `enablePlugin()` can tell a real
+   * change from the first read.
+   */
+  #samplingApplied = false;
+  /**
+   * Set by an `enablePlugin()` that applied changed sampling settings to a plugin that measured before.
+   * `BasePlugin` hands the new settings to `enablePlugin()`, so the `updatePlugin()` of the same
+   * `updateSettings()` call no longer sees the change, and the sizes measured under the previous settings
+   * stay cached (the map survives a disable). `updatePlugin()` consumes it.
+   */
+  #samplingChangedOnEnable = false;
 
   /**
    * Enables the plugin functionality for this Handsontable instance.
@@ -399,9 +485,11 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.#applySamplingSettings();
+    this.#samplingChangedOnEnable = this.#applySamplingSettings() && this.#samplingApplied;
+    this.#samplingApplied = true;
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('afterFontsLoad', this.#onAfterFontsLoad, FONT_REMEASURE_ROWS_ORDER_INDEX);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
     this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
@@ -415,6 +503,16 @@ export class AutoRowSize extends BasePlugin {
       .observeMapChange(this.rowHeightsMap, () => {
         this.hot.view?.invalidateRowHeightCache();
       });
+
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexMapperCacheUpdated);
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onIndexMapperCacheUpdated);
+    this.addHook('afterMergeCells', this.#onMergedBlocksChanged);
+    this.addHook('afterUnmergeCells', this.#onMergedBlocksChanged);
+    this.addHook('afterUndo', this.#onMergesRestored);
+    this.addHook('afterRedo', this.#onMergesRestored);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    // Blocks may be drawn on covered cells already, which no earlier comparison has recorded.
+    this.#mergedBlocksChanged = true;
 
     addClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
@@ -436,18 +534,11 @@ export class AutoRowSize extends BasePlugin {
    * @param {object} [newSettings] The settings passed to `updateSettings`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    // `SETTING_KEYS` is `true`, so an update that never mentions this plugin still arrives here -
-    // and `BasePlugin#onUpdateSettings` has already fed `updatePluginSettings()` the missing key as
-    // `undefined`, wiping the stored settings. Restore them from the merged settings before reading
-    // them, or an unrelated `updateSettings({ colHeaders: true })` would read the defaults, reset
-    // the user's `samplingRatio`, and drop every measured height.
-    if (newSettings !== undefined && newSettings[PLUGIN_KEY] === undefined) {
-      this.updatePluginSettings(this.hot.getSettings()[PLUGIN_KEY]);
-    }
-
-    if (this.#applySamplingSettings()) {
+    if (this.#applySamplingSettings() || this.#samplingChangedOnEnable) {
       this.clearCache();
     }
+
+    this.#samplingChangedOnEnable = false;
 
     super.updatePlugin();
   }
@@ -473,7 +564,13 @@ export class AutoRowSize extends BasePlugin {
       this.#disposeMapObserver = null;
     }
 
+    this.#unbindIndexMapperListeners();
     this.headerHeight = null;
+    this.#rowsOwedToColumnSweep = false;
+    this.#mergedBlocksChanged = false;
+    this.#blockCarriers.clear();
+    this.#blockOrigins.clear();
+    this.#hiddenRowsToRemeasure.clear();
 
     removeClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
@@ -553,9 +650,9 @@ export class AutoRowSize extends BasePlugin {
       this.hot.batchExecution(() => {
         this.ghostTable.getHeights((row: number, height: number) => {
           if (row < 0) {
-            this.headerHeight = height;
+            this.headerHeight = Math.round(height);
           } else {
-            this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), height);
+            this.rowHeightsMap.setValueAtIndex(this.hot.toPhysicalRow(row), this.#toStoredHeight(height));
           }
         });
       }, true);
@@ -679,6 +776,204 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
+   * Asks MergeCells which merged block is drawn on a covered cell. A block whose first row or column is
+   * hidden is drawn on the covered cell at its first row and column that are shown, which no other cell
+   * stands in for, so the sampler measures the block there.
+   *
+   * @param {number} row Visual row index of the cell.
+   * @param {number} column Visual column index of the cell.
+   * @returns {object|null} The block's top-left cell and its width in columns from `column` on, or `null`.
+   */
+  #getBlockDrawnOn(row: number, column: number): { row: number, col: number, colspan: number } | null {
+    const mergeCells = this.hot.getPlugin('mergeCells');
+
+    return mergeCells?.enabled ? mergeCells.getBlockDrawnOn(row, column) : null;
+  }
+
+  /**
+   * Marks the merged blocks for a new comparison when the index mappers changed what is hidden, trimmed or
+   * where the rows and columns sit: any of that can move the cell a block is drawn on.
+   *
+   * @param {object} changes The flags of the index mapper's cache update: what is hidden, what is trimmed, and
+   * the order of the indexes.
+   */
+  #onIndexMapperCacheUpdated = (
+    { hiddenIndexesChanged, trimmedIndexesChanged, indexesSequenceChanged }:
+    { hiddenIndexesChanged: boolean, trimmedIndexesChanged: boolean, indexesSequenceChanged: boolean }
+  ) => {
+    if (hiddenIndexesChanged || trimmedIndexesChanged || indexesSequenceChanged) {
+      this.#mergedBlocksChanged = true;
+    }
+  };
+
+  /**
+   * Marks the merged blocks for a new comparison after a merge was added or removed.
+   */
+  #onMergedBlocksChanged = () => {
+    this.#mergedBlocksChanged = true;
+  };
+
+  /**
+   * Compares the merged blocks right away after an undo or a redo. They restore merges without a hook of their
+   * own, and the render of the step has run by then, so the heights of rows below the fold are corrected here
+   * instead of at a render that may not come.
+   */
+  #onMergesRestored = () => {
+    this.#mergedBlocksChanged = true;
+    this.#remeasureMovedBlocks(true);
+    this.#drainRowRefreshQueue();
+  };
+
+  /**
+   * Marks the merged blocks for a new comparison when a settings update brought `mergeCells`: replacing the
+   * merges raises no merge hook. The update renders after this hook.
+   *
+   * @param {object} newSettings The settings passed to `updateSettings`.
+   */
+  #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
+    if (isObject(newSettings) && hasOwnProperty(newSettings, 'mergeCells')) {
+      this.#mergedBlocksChanged = true;
+    }
+  };
+
+  /**
+   * Removes the listeners of the two index mappers. The plugin may be destroyed before it was initialized,
+   * and has no instance then.
+   */
+  #unbindIndexMapperListeners(): void {
+    this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexMapperCacheUpdated);
+    this.hot?.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onIndexMapperCacheUpdated);
+  }
+
+  /**
+   * Drops the cached heights of the rows that a merged block started or stopped being drawn on. Heights are
+   * keyed by the physical row, while the row a block's text is measured on follows what is hidden, trimmed
+   * and sorted, so a height measured before the block moved is for the wrong row. Runs once a change that
+   * can move a block was reported, and compares the covered cells the blocks are drawn on with those of the
+   * last comparison: a grid whose blocks did not move (a settings update that hides nothing new) drops
+   * nothing.
+   *
+   * @param {boolean} [queueRowsInView=false] Whether the rows in view are queued for a measurement as well.
+   * A render measures them anyway, so only a caller that is not about to render needs it.
+   */
+  #remeasureMovedBlocks(queueRowsInView: boolean = false): void {
+    if (!this.#mergedBlocksChanged) {
+      return;
+    }
+
+    this.#mergedBlocksChanged = false;
+
+    const mergeCells = this.hot.getPlugin('mergeCells');
+    const carriers = new Map<string, number>();
+    const origins = new Map<string, number>();
+
+    if (mergeCells?.enabled) {
+      mergeCells.getCellsBlocksAreDrawnOn().forEach(({ row, col, colspan, originRow, originCol }) => {
+        const physicalRow = this.hot.toPhysicalRow(row);
+        const physicalColumn = this.hot.toPhysicalColumn(col);
+        const physicalOriginRow = this.hot.toPhysicalRow(originRow);
+        const physicalOriginColumn = this.hot.toPhysicalColumn(originCol);
+
+        if (physicalRow !== null && physicalColumn !== null) {
+          carriers.set(`${physicalRow}:${physicalColumn}:${colspan}`, physicalRow);
+
+          if (physicalOriginRow !== null && physicalOriginColumn !== null) {
+            origins.set(`${physicalOriginRow}:${physicalOriginColumn}`, physicalRow);
+          }
+        }
+      });
+    }
+
+    const movedRows = new Set<number>();
+
+    carriers.forEach((physicalRow, key) => {
+      if (!this.#blockCarriers.has(key)) {
+        movedRows.add(physicalRow);
+      }
+    });
+    this.#blockCarriers.forEach((physicalRow, key) => {
+      if (!carriers.has(key)) {
+        movedRows.add(physicalRow);
+      }
+    });
+    this.#hiddenRowsToRemeasure.forEach((physicalRow) => {
+      if (!this.hot.rowIndexMapper.isHidden(physicalRow)) {
+        this.#hiddenRowsToRemeasure.delete(physicalRow);
+        movedRows.add(physicalRow);
+      }
+    });
+
+    this.#blockCarriers = carriers;
+    this.#blockOrigins = origins;
+    this.#clearRowHeights(Array.from(movedRows), queueRowsInView);
+  }
+
+  /**
+   * Drops the cached heights of rows, and queues the ones that need a measurement of their own. A hidden row
+   * is not measured until it is shown. A row in view is measured by the render that follows, which measures
+   * every row without a height, so queueing it would measure it twice.
+   *
+   * @param {number[]} physicalRows The physical rows.
+   * @param {boolean} queueRowsInView Whether the rows in view are queued as well.
+   */
+  #clearRowHeights(physicalRows: number[], queueRowsInView: boolean): void {
+    if (physicalRows.length === 0) {
+      return;
+    }
+
+    const firstVisibleRow = this.getFirstVisibleRow();
+    const lastVisibleRow = this.getLastVisibleRow();
+    const rowsToQueue: number[] = [];
+
+    this.hot.batchExecution(() => {
+      physicalRows.forEach((physicalRow) => {
+        this.rowHeightsMap.setValueAtIndex(physicalRow, null);
+      });
+    }, true);
+
+    physicalRows.forEach((physicalRow) => {
+      if (this.hot.rowIndexMapper.isHidden(physicalRow)) {
+        this.#hiddenRowsToRemeasure.add(physicalRow);
+
+        return;
+      }
+
+      const visualRow = this.hot.toVisualRow(physicalRow);
+      const isInView = visualRow !== null && visualRow >= firstVisibleRow && visualRow <= lastVisibleRow;
+
+      if (visualRow !== null && (queueRowsInView || !isInView)) {
+        rowsToQueue.push(physicalRow);
+      }
+    });
+
+    this.#queueClearedRowsForRefresh(rowsToQueue);
+  }
+
+  /**
+   * The height to store for a sampled row, from the height the ghost table measured for it.
+   *
+   * Compared with the default height WITHOUT the first-row border compensation: the ghost table
+   * measures every row without that border, so the compensated default would count a row up to a
+   * pixel taller than the real default as a default-height row and round it down.
+   *
+   * The margin also takes in what the border inflation adds at the zoom of now: the default height
+   * keeps the value read when the grid was built, so a grid zoomed out afterwards would otherwise read
+   * every default row as a taller one and round it up.
+   *
+   * @param {number} measuredHeight The measured height, snapped to the layout grid.
+   * @returns {number}
+   */
+  #toStoredHeight(measuredHeight: number): number {
+    const { stylesHandler } = this.hot;
+
+    return toStoredRowHeight(
+      measuredHeight,
+      stylesHandler.getDefaultRowHeight() ?? 0,
+      stylesHandler.getMaxDefaultRowOvergrowth(),
+    );
+  }
+
+  /**
    * Measures the rows waiting in the refresh queue, if this moment can measure them at all.
    *
    * Two moments cannot, and both KEEP the queue rather than dropping it, so the rows are measured
@@ -728,7 +1023,7 @@ export class AutoRowSize extends BasePlugin {
         this.ghostTable.getHeights((visualRow: number, height: number) => {
           const physicalRow = this.hot.toPhysicalRow(visualRow);
 
-          this.rowHeightsMap.setValueAtIndex(physicalRow, height);
+          this.rowHeightsMap.setValueAtIndex(physicalRow, this.#toStoredHeight(height));
         });
       }, true);
 
@@ -984,8 +1279,16 @@ export class AutoRowSize extends BasePlugin {
    * changes before the next render.
    */
   #onBeforeRender = () => {
+    this.#remeasureMovedBlocks();
     this.calculateVisibleRowsHeight();
     this.#drainRowRefreshQueue();
+
+    // A column re-measure owed to this render counts as running, whichever of the two listeners runs
+    // first, and the last chunk of the sweep renders once it ends.
+    if (this.#rowsOwedToColumnSweep && this.hot.view.isVisible() && !this.#isColumnSweepRunning()) {
+      this.#rowsOwedToColumnSweep = false;
+      this.#fullRecalculationScheduled = true;
+    }
 
     // A wiped cache is restored in full, so the rows below the fold are measured too and not just
     // the visible band - see `#fullRecalculationScheduled`. It runs AFTER the visible band above,
@@ -1055,6 +1358,38 @@ export class AutoRowSize extends BasePlugin {
   };
 
   /**
+   * Re-measures every row after the document loaded a web font. The heights are overwritten in place:
+   * `clearCache()` would draw every row past the synchronous limit at the default height until the idle
+   * sweep reaches it, which moves a grid scrolled far down to other rows. Core fires the hook only on a
+   * visible grid. With no columns (a wrapper between two renders) the work is owed to a later render
+   * instead, as `#onBeforeRender` does: measured from no cells, every row would get a near-empty height
+   * that nothing corrects once the columns are back. When AutoColumnSize is still widening columns in idle
+   * tasks, the rows are measured again once it ends (`#rowsOwedToColumnSweep`).
+   */
+  #onAfterFontsLoad = () => {
+    if (this.hot.countCols() === 0) {
+      this.#fullRecalculationScheduled = true;
+
+      return;
+    }
+
+    this.recalculateAllRowsHeight();
+    this.#rowsOwedToColumnSweep = this.#isColumnSweepRunning();
+  };
+
+  /**
+   * Checks whether AutoColumnSize is still measuring columns in idle tasks, or owes a re-measure of every
+   * column to the next render.
+   *
+   * @returns {boolean}
+   */
+  #isColumnSweepRunning(): boolean {
+    const autoColumnSize = this.hot.getPlugin('autoColumnSize');
+
+    return autoColumnSize?.enabled === true && autoColumnSize.isReMeasurePending();
+  }
+
+  /**
    * Triggers a full row height recalculation after new data is loaded, skipping the initial
    * load since `#onInit` already handles it.
    */
@@ -1071,14 +1406,61 @@ export class AutoRowSize extends BasePlugin {
   #onBeforeChange = (changes: unknown[][]) => {
     const changedRows = new Set<number>();
 
-    changes.forEach(([row]: unknown[]) => {
+    changes.forEach(([row, prop]: unknown[]) => {
       changedRows.add(Number(row));
+
+      // A block drawn on a covered cell takes its text from its top-left cell, so a change there is a change
+      // of the row the block is measured on.
+      this.#getRowsOfBlocksStartingAt(Number(row), prop).forEach(blockRow => changedRows.add(blockRow));
     });
 
     changedRows.forEach((rowIndex) => {
       this.#visualRowsToRefresh.push(rowIndex);
     });
   };
+
+  /**
+   * The visual rows that merged blocks are drawn on, for the blocks whose top-left cell is the given cell and
+   * that are drawn on another cell.
+   *
+   * @param {number} row The visual row of the cell.
+   * @param {*} prop The property or the visual column of the cell, as a change carries it. It is a function for
+   * a column read through a data accessor.
+   * @returns {number[]}
+   */
+  #getRowsOfBlocksStartingAt(row: number, prop: unknown): number[] {
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    if (this.#blockOrigins.size === 0 || physicalRow === null) {
+      return [];
+    }
+
+    const column = typeof prop === 'string' || typeof prop === 'number' ? this.hot.propToCol(prop) : null;
+    const physicalColumn = typeof column === 'number' ? this.hot.toPhysicalColumn(column) : null;
+    const carrierRows: number[] = [];
+
+    if (physicalColumn === null) {
+      // A data accessor function does not name a column here, so every block that starts in the row counts.
+      this.#blockOrigins.forEach((carrierRow, key) => {
+        if (key.startsWith(`${physicalRow}:`)) {
+          carrierRows.push(carrierRow);
+        }
+      });
+
+    } else {
+      const carrierRow = this.#blockOrigins.get(`${physicalRow}:${physicalColumn}`);
+
+      if (carrierRow !== undefined) {
+        carrierRows.push(carrierRow);
+      }
+    }
+
+    return carrierRows.flatMap((carrierRow) => {
+      const visualRow = this.hot.toVisualRow(carrierRow);
+
+      return visualRow === null ? [] : [visualRow];
+    });
+  }
 
   /**
    * Triggers the first full row height recalculation after Handsontable has finished initializing.
@@ -1128,6 +1510,7 @@ export class AutoRowSize extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy(): void {
+    this.#unbindIndexMapperListeners();
     this.ghostTable.clean();
     super.destroy();
   }

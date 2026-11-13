@@ -51,6 +51,7 @@ const tokensKeys = [
   // Cell Selection Variables
   'cell-selection-border-color',
   'cell-selection-background-color',
+  'row-selection-background-color',
 
   // Cell State Variables
   'cell-success-background-color',
@@ -65,6 +66,9 @@ const tokensKeys = [
   'cell-autofill-border-color',
   'cell-autofill-background-color',
   'cell-autofill-fill-border-color',
+
+  // Custom Borders Variables
+  'custom-borders-default-color',
 
   // Cell Editor Variables
   'cell-editor-border-width',
@@ -324,6 +328,16 @@ const tokensKeys = [
   // Resize Indicator Variables
   'resize-indicator-color',
 
+  // Freeze Bar Variables
+  'freeze-bar-color',
+  'freeze-bar-hover-color',
+  'freeze-bar-highlight-color',
+
+  // Async Values Variables
+  'async-indicator-color',
+  'async-error-background-color',
+  'async-error-marker-color',
+
   // Hidden Indicator Variables
   'hidden-indicator-color',
 
@@ -392,11 +406,6 @@ const tokensKeys = [
   'pagination-button-focus-background-color',
 
   // Sheets Bar Variables
-  // The design-system file currently exports these under `component/tabs/tab-*` and
-  // `component/sheets/sheets-bar-*`; the export must carry the `sheets-bar-tab-*` names below
-  // (matching the shipped CSS API) for the generator to pick them up — flag the rename to the
-  // design side before the next tokens.json export. The bar-level keys already match the
-  // `component/sheets/sheets-bar-*` export names.
   'sheets-bar-horizontal-padding',
   'sheets-bar-background-color',
   'sheets-bar-tab-horizontal-padding',
@@ -404,7 +413,6 @@ const tokensKeys = [
   'sheets-bar-tab-foreground-color',
   'sheets-bar-tab-background-color',
   'sheets-bar-tab-hover-foreground-color',
-  'sheets-bar-tab-hover-background-color',
   'sheets-bar-tab-active-foreground-color',
   'sheets-bar-tab-active-background-color',
   'sheets-bar-tab-active-border-width',

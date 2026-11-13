@@ -12,10 +12,9 @@ import {
  * left). Where the submenu opens is asserted from DOM rects in `tests/e2e/submenu-position.spec.ts`,
  * on all six theme and bundle legs; these captures are a check of how it looks. `main` only:
  * `Positioner` has no theme-specific branch, and the e2e spec asserts its result on all three themes.
- * The dropdown menu itself is photographed on all five js variants by
- * `js-only/complex-demo/open-dropdown-and-context-menu` and the `js-only/filters` specs, with no
- * submenu open, and `js-only/context-menu/menus-position` photographs an open submenu, whose rules
- * the two menus share, on every js variant. Owned by DEV-3136.
+ * The dropdown menu itself is photographed on all five js variants by the `js-only/filters` specs,
+ * with no submenu open, and `js-only/context-menu/menus-position` photographs an open submenu, whose
+ * rules the two menus share, on every js variant. Owned by DEV-3136.
  */
 visualTest(__filename, {
   themes: ['main'],

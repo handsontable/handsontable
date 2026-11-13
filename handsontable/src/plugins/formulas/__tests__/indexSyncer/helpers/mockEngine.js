@@ -10,7 +10,7 @@
  * @returns {object} The stub, carrying the recorded calls and its mutable `dimensions`.
  */
 export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
-  const calls = { setRowOrder: [], setColumnOrder: [] };
+  const calls = { setRowOrder: [], setColumnOrder: [], moveRows: [], moveColumns: [] };
   const dimensions = { ...initialDimensions };
 
   const validate = (order, size, axisLabel, sizeLabel) => {
@@ -36,9 +36,20 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
     }
   };
 
+  const canTakeOrder = (order, size, axisLabel) => {
+    try {
+      validate(order, size, axisLabel, axisLabel === 'rows' ? 'height' : 'width');
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
   // What the sheet holds, as labels the tests choose — so a test can assert where the engine's own rows
   // and columns ended up, not only which array was handed over.
   const held = { rows: [], columns: [] };
+  const occupied = new Set();
 
   const apply = (axis, transformation) => {
     const current = held[axis];
@@ -56,10 +67,30 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
     held[axis] = reordered;
   };
 
+  // Like `moveRows()`/`moveColumns()`: the block of `count` lines from `start` goes in front of the line at
+  // `target` (a position in the sheet before the move), and every position must be inside the sheet.
+  const move = (axis, size, start, count, target) => {
+    if (start < 0 || count < 1 || start + count > size || target < 0 || target > size
+      || (target >= start && target <= start + count)) {
+      throw new Error(`Invalid arguments, the ${axis} move from ${start} (${count}) to ${target} is not possible.`);
+    }
+
+    const current = held[axis];
+
+    if (current.length === size) {
+      const block = current.slice(start, start + count);
+      const rest = current.slice(0, start).concat(current.slice(start + count));
+      const insertAt = target > start ? target - count : target;
+
+      held[axis] = rest.slice(0, insertAt).concat(block, rest.slice(insertAt));
+    }
+  };
+
   return {
     calls,
     dimensions,
     held,
+    occupied,
     setRowOrder: (sheetId, transformation) => {
       validate(transformation, dimensions.height, 'rows', 'height');
       apply('rows', transformation);
@@ -72,9 +103,36 @@ export function createMockEngine(initialDimensions = { width: 4, height: 4 }) {
 
       calls.setColumnOrder.push({ sheetId, transformation });
     },
+    moveRows: (sheetId, start, count, target) => {
+      move('rows', dimensions.height, start, count, target);
+      calls.moveRows.push({ sheetId, start, count, target });
+    },
+    moveColumns: (sheetId, start, count, target) => {
+      move('columns', dimensions.width, start, count, target);
+      calls.moveColumns.push({ sheetId, start, count, target });
+    },
+    // Like the engine, a write past the sheet's content widens the sheet, and an empty write does not.
+    setCellContents: ({ row, col }, value) => {
+      if (value !== null) {
+        dimensions.height = Math.max(dimensions.height, row + 1);
+        dimensions.width = Math.max(dimensions.width, col + 1);
+      }
+    },
+    isItPossibleToSetRowOrder: (sheetId, transformation) => canTakeOrder(transformation, dimensions.height, 'rows'),
+    isItPossibleToSetColumnOrder: (sheetId, transformation) => {
+      return canTakeOrder(transformation, dimensions.width, 'columns');
+    },
+    isCellPartOfArray: () => false,
+    isItPossibleToSetCellContents: () => true,
+    // The stub holds no cells, so a line is empty unless a test lists it in `occupied` as `row:col`.
+    isCellEmpty: ({ row, col }) => !occupied.has(`${row}:${col}`),
+    isEvaluationSuspended: () => false,
     getSheetDimensions: () => ({ ...dimensions }),
     // The syncer asks for the name to tell a sheet the host removed from the engine; this one exists.
     getSheetName: () => 'Sheet1',
+    getSheetNames: () => ['Sheet1'],
+    listNamedExpressions: () => [],
+    getConfig: () => ({ maxRows: Infinity, maxColumns: Infinity }),
     batch: callback => callback(),
   };
 }

@@ -19,7 +19,7 @@ Package: `wrappers/angular-wrapper/`; library source in `projects/hot-table/src/
 
 Services: **HotSettingsResolver** merges component inputs with the aggregate settings object (priority between them); **HotGlobalConfig** supplies global defaults for all instances. `HotTableModule` declares and exports the component.
 
-Build: ng-packagr 16. Tests: Jest with `jest-preset-angular` and `NODE_OPTIONS=--openssl-legacy-provider` (already in the script). Wrappers consume `handsontable/tmp/`, not `dist/`; run `npm run test --prefix wrappers/angular-wrapper` after `npm run build --prefix handsontable`.
+Build: ng-packagr 22. Tests: Jest with `jest-preset-angular` and `NODE_OPTIONS=--openssl-legacy-provider` (already in the script). Wrappers consume `handsontable/tmp/`, not `dist/`; run `npm run test --prefix wrappers/angular-wrapper` after `npm run build --prefix handsontable`.
 
 | File | Purpose |
 |---|---|
@@ -54,7 +54,7 @@ Use an `ApplicationConfig` in `app.config.ts` in place of `AppModule` (`@NgModul
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
@@ -63,13 +63,16 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };
 ```
 
 - `provideZoneChangeDetection({ eventCoalescing: true })` goes in every `app.config.ts`.
+- The license key is a placeholder, never a key value. Never use `NON_COMMERCIAL_LICENSE`: it is deprecated since 19.0 (removed in 20.0), and the key it holds reads as invalid.
 - The global `HOT_GLOBAL_CONFIG` license replaces per-table `licenseKey` on every `<hot-table>`; set `licenseKey` nowhere in component settings.
 - Standalone components need no `CommonModule` or `BrowserModule`.
 

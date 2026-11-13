@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the double-click fill (copy-down) to stop above the first value already in the filled column and at the first gap in the neighboring column, as spreadsheet applications do, instead of filling across gaps or not filling at all.",
+  "type": "changed",
+  "issueOrPR": 13906,
+  "breaking": false,
+  "framework": "none"
+}

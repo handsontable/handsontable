@@ -4,7 +4,7 @@ import { shallow } from "@liveblocks/client";
 import { HotTable } from "@handsontable/react-wrapper";
 import { registerAllModules } from "handsontable/registry";
 import { textRenderer } from "handsontable/renderers";
-import type { CellChange, ChangeSource } from "handsontable/common";
+import type { CellChange, ChangeSource } from "handsontable";
 import {
   useMutation,
   useOthersListener,
@@ -111,6 +111,7 @@ export function Table() {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       ref={hotRef}
       data={data}
       hotRenderer={renderDataCell}
@@ -121,7 +122,6 @@ export function Table() {
       rowHeaders={true}
       height={400}
       width={600}
-      licenseKey="non-commercial-and-evaluation"
       autoWrapRow={true}
       autoWrapCol={true}
     />

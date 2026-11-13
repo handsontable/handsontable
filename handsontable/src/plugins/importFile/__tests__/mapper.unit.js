@@ -1,6 +1,12 @@
+import Handsontable from 'handsontable';
 import { mapWorkbook, registerStyleRule, resolveImportOptions, selectSheet } from '../mapper';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
+import { isLimitError, MAX_TRANSLATED_FORMULA_CHARS } from '../../../utils/xlsxEngine/limits';
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
+import { EMPTY_STYLES } from '../../../utils/xlsxEngine/adapters/native/parts/styles';
+import { parseWorksheet } from '../../../utils/xlsxEngine/adapters/native/parts/worksheetReader';
+import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 function cell(overrides) {
   return { ...createCellSnapshot(), ...overrides };
@@ -22,7 +28,9 @@ function map(
   wb, options = {}, context = { formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false }
 ) {
   const dropped = new DroppedFeatures();
-  const result = mapWorkbook(wb, resolveImportOptions(options), context, dropped);
+  const result = mapWorkbook(
+    wb, resolveImportOptions(options), { entitlement: UNRESTRICTED_XLSX_ENTITLEMENT, ...context }, dropped
+  );
 
   return { result, dropped };
 }
@@ -70,6 +78,28 @@ describe('selectSheet', () => {
 
     expect(() => selectSheet(wb, 'Missing')).toThrow(/Missing.*Data/);
     expect(() => selectSheet(wb, 3)).toThrow(/Data/);
+  });
+
+  it('should say the workbook has no worksheets instead of listing none', () => {
+    // An empty `<sheets>` used to be refused with "Available sheets: ." and no reason.
+    expect(() => map(workbook())).toThrow('The workbook has no worksheets.');
+    expect(() => map(workbook())).not.toThrow(/Available sheets/);
+    expect(() => map(workbook(), { sheet: 'Chart1' })).toThrow('The workbook has no worksheets.');
+  });
+
+  it('should say a chart-only workbook holds only chart sheets, which the import skips', () => {
+    // The built-in reader skips every chart sheet and records `chartSheets`, so the workbook it
+    // hands over is empty.
+    const dropped = new DroppedFeatures();
+
+    dropped.record('chartSheets');
+
+    expect(() => mapWorkbook(workbook(), resolveImportOptions({}), {
+      formulasEnabled: false,
+      commentsEnabled: false,
+      customBordersEnabled: false,
+      entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+    }, dropped)).toThrow('The workbook has no worksheets. It holds only chart sheets, which the import skips.');
   });
 });
 
@@ -397,12 +427,482 @@ describe('mapWorkbook', () => {
     const { result, dropped } = map(
       workbook(sheet, rates),
       { colHeaders: 'firstRow' },
-      { formulasEnabled: true, commentsEnabled: false }
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['rates']) }
     );
 
     expect(result.data[0][2]).toBe('=B1*Rates!A1');
     expect(result.formulas).toBeUndefined();
     expect(dropped.list()).not.toContain('formula:outOfRange');
+  });
+
+  it('should import the cached value of a formula naming a sheet the Formulas engine does not hold', () => {
+    // HyperFormula has no `Rates` sheet, so the live formula showed `#REF!` - and so did every
+    // formula depending on it - while the file carried the value it evaluated to.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [cell({ value: null, formula: { text: 'Rates!A1*2', result: 10 } }),
+        cell({ value: null, formula: { text: 'A1+1', result: 11 } }),
+        cell({ value: null, formula: { text: '\'My Rates\'!$A$1+1', result: 6 } }),
+        cell({ value: null, formula: { text: 'LEN("Rates!A1")', result: 8 } })],
+    ];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) }
+    );
+
+    expect(result.data[0]).toEqual([10, '=A1+1', 6, '=LEN("Rates!A1")']);
+    expect(result.formulas).toEqual([
+      { row: 0, col: 0, formula: 'Rates!A1*2' },
+      { row: 0, col: 2, formula: '\'My Rates\'!$A$1+1' },
+    ]);
+    expect(dropped.list()).toContain('formula:otherSheet');
+    expect(dropped.list()).not.toContain('formula:outOfRange');
+  });
+
+  it('should keep a formula live when the Formulas engine holds the sheet it names, in any case', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: null, formula: { text: '\'My Rates\'!A1*2', result: 10 } })]];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['my rates']) }
+    );
+
+    expect(result.data[0][0]).toBe('=\'My Rates\'!A1*2');
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should drop the qualifier naming the imported sheet and shift it with the header row', () => {
+    // `Sheet1!B2` in `Sheet1` is a reference into this very sheet, so the dropped header moves it
+    // like `B2`. Kept qualified and unshifted, it read the formula cell below instead of the 10.
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [text('A'), text('B')],
+      [cell({ value: 1 }), cell({ value: 10 })],
+      [cell({ value: null, formula: { text: 'Sheet1!B2*2', result: 20 } }),
+        cell({ value: null, formula: { text: 'B2*2', result: 20 } })],
+    ];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      { colHeaders: 'firstRow' },
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) }
+    );
+
+    expect(result.data[1]).toEqual(['=B1*2', '=B1*2']);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should keep a formula naming the imported sheet live when the engine calls its sheet otherwise', () => {
+    // The grid holds the imported sheet as the engine's `Sheet1`, so `Data!A1` in `Data` is `A1`,
+    // not a reference to a sheet the engine lacks.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 5 })], [cell({ value: null, formula: { text: 'Data!A1*2', result: 10 } })]];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) }
+    );
+
+    expect(result.data[1][0]).toBe('=A1*2');
+    expect(result.formulas).toBeUndefined();
+    expect(dropped.list()).not.toContain('formula:otherSheet');
+  });
+
+  describe('a qualifier spelled like the grid\'s own engine sheet', () => {
+    /**
+     * Maps the second sheet of a workbook whose first sheet is `firstName`, into a grid whose
+     * Formulas engine holds `engineSheets` and calls the grid's own sheet `ownSheet`.
+     *
+     * @param {string} firstName The name of the workbook's first sheet.
+     * @param {string} formula The formula on the imported sheet's B1.
+     * @param {object} engine What the Formulas engine holds.
+     * @param {string[]} engine.engineSheets The engine's sheet names, lower-cased.
+     * @param {string} engine.ownSheet The engine's name for the grid's own sheet.
+     * @returns {object}
+     */
+    function mapSecondSheet(firstName, formula, { engineSheets, ownSheet }) {
+      const first = createSheetSnapshot(firstName);
+      const second = createSheetSnapshot('Sheet2');
+
+      first.rows = [[cell({ value: 100 })]];
+      second.rows = [[cell({ value: 7 }), cell({ value: null, formula: { text: formula, result: 200 } })]];
+
+      return map(workbook(first, second), { sheet: 'Sheet2' }, {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        formulaSheetNames: new Set(engineSheets),
+        formulaSheetName: ownSheet,
+      });
+    }
+
+    it('should import the cached value when it names another sheet of the workbook (default Sheet1)', () => {
+      // The import replaces the engine's `Sheet1` with `Sheet2`'s cells, so a live `Sheet1!A1*2`
+      // read the grid's own A1 (7) and showed 14 where the file says 200.
+      const { result, dropped } = mapSecondSheet('Sheet1', 'Sheet1!A1*2', {
+        engineSheets: ['sheet1'], ownSheet: 'Sheet1',
+      });
+
+      expect(result.data[0]).toEqual([7, 200]);
+      expect(result.formulas).toEqual([{ row: 0, col: 1, formula: 'Sheet1!A1*2' }]);
+      expect(dropped.list()).toContain('formula:otherSheet');
+    });
+
+    it('should import the cached value when it names another sheet of the workbook (custom sheetName)', () => {
+      const { result, dropped } = mapSecondSheet('Data', 'data!A1*2', {
+        engineSheets: ['data'], ownSheet: 'Data',
+      });
+
+      expect(result.data[0]).toEqual([7, 200]);
+      expect(dropped.list()).toContain('formula:otherSheet');
+    });
+
+    it('should keep live a sheet another grid holds in a shared engine', () => {
+      // This grid is the engine's `Sheet2`; `Data` belongs to another grid, so it really is the
+      // sheet the formula reads.
+      const { result, dropped } = mapSecondSheet('Data', 'Data!A1*2', {
+        engineSheets: ['data', 'sheet2'], ownSheet: 'Sheet2',
+      });
+
+      expect(result.data[0]).toEqual([7, '=Data!A1*2']);
+      expect(dropped.list()).not.toContain('formula:otherSheet');
+    });
+
+    it('should keep live a reference to the grid\'s own sheet the workbook does not hold', () => {
+      // No sheet of the workbook carries the name, so it cannot mean one of them.
+      const { result, dropped } = mapSecondSheet('Rates', 'Sheet1!A1*2', {
+        engineSheets: ['sheet1'], ownSheet: 'Sheet1',
+      });
+
+      expect(result.data[0]).toEqual([7, '=Sheet1!A1*2']);
+      expect(dropped.list()).not.toContain('formula:otherSheet');
+    });
+  });
+
+  it('should import the cached value of an external-workbook or unquoted 3D reference', () => {
+    // The match for the qualifier starts after `[1]` and after `Sheet1:`, so `Sheet1` and `Sheet3`
+    // read as sheets the engine holds; live, HyperFormula showed `#ERROR!` and `#NAME?`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[
+      cell({ value: null, formula: { text: '[1]Sheet1!A1', result: 42 } }),
+      cell({ value: null, formula: { text: 'SUM(Sheet1:Sheet3!A1)', result: 8 } }),
+    ]];
+
+    const { result, dropped } = map(
+      workbook(sheet),
+      {},
+      { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1', 'sheet2', 'sheet3']) }
+    );
+
+    expect(result.data[0]).toEqual([42, 8]);
+    expect(result.formulas).toEqual([
+      { row: 0, col: 0, formula: '[1]Sheet1!A1' },
+      { row: 0, col: 1, formula: 'SUM(Sheet1:Sheet3!A1)' },
+    ]);
+    expect(dropped.list()).toContain('formula:otherSheet');
+  });
+
+  describe('defined-name and unknown-sheet guards', () => {
+    const context = {
+      formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['calc', 'data']),
+    };
+
+    /**
+     * Maps one row of cells on a sheet named `Calc`, in a workbook that defines `names`.
+     *
+     * @param {object[]} row The cells.
+     * @param {object} [settings] The workbook's names and the import options.
+     * @param {string[]} [settings.names] The names the workbook defines.
+     * @param {object} [settings.options] The import options.
+     * @returns {object}
+     */
+    function mapRow(row, { names = [], options = {} } = {}) {
+      const sheet = createSheetSnapshot('Calc');
+      const wb = workbook(sheet);
+
+      sheet.rows = [row];
+      wb.definedNames = names.map(name => ({ name, formula: '1', sheetName: null }));
+
+      return map(wb, options, context);
+    }
+
+    it('should keep a function call live when the workbook defines a name spelled like it', () => {
+      const { result, dropped } = mapRow([cell({ formula: { text: 'RATE(12,-100,1000)', result: 1 } })], {
+        names: ['Rate'],
+      });
+
+      expect(result.data[0][0]).toBe('=RATE(12,-100,1000)');
+      expect(dropped.list()).not.toContain('formula:definedName');
+    });
+
+    it('should keep a sheet reference live when the workbook defines a name spelled like the sheet', () => {
+      const { result } = mapRow([cell({ formula: { text: 'SUM(Data!A1:A3)', result: 6 } })], { names: ['Data'] });
+
+      expect(result.data[0][0]).toBe('=SUM(Data!A1:A3)');
+    });
+
+    it('should not report another-sheet loss when live formulas are off', () => {
+      const { dropped } = mapRow([cell({ formula: { text: 'Rates!A1', result: 1 } })], {
+        options: { importFormulas: false },
+      });
+
+      expect(dropped.list()).not.toContain('formula:otherSheet');
+    });
+  });
+
+  it('should report a formula imported as a value that carries no cached value', () => {
+    // openpyxl writes formulas without `<v>`. With the Formulas plugin off the cell imports empty,
+    // so the warning has to say why.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [cell({ value: 5 }), cell({ value: null, formula: { text: 'A1>3' } })],
+      [cell({ value: null, formula: { text: 'A1+1', result: 6 } }), null],
+    ];
+
+    const off = map(workbook(sheet));
+
+    expect(off.result.data).toEqual([[5, null], [6, null]]);
+    expect(off.result.formulas).toEqual([{ row: 0, col: 1, formula: 'A1>3' }, { row: 1, col: 0, formula: 'A1+1' }]);
+    expect(off.dropped.list()).toEqual(['formula:noCachedValue']);
+
+    const values = map(workbook(sheet), { importFormulas: false }, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(values.dropped.list()).toEqual(['formula:noCachedValue']);
+
+    const live = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(live.result.data[0][1]).toBe('=A1>3');
+    expect(live.dropped.list()).toEqual([]);
+  });
+
+  it('should not report a formula with a cached value imported as a value', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: null, formula: { text: 'A1+1', result: 0 } })]];
+
+    expect(map(workbook(sheet)).dropped.list()).toEqual([]);
+  });
+
+  it('should strip the _xlfn., _xlws. and _xlpm. prefixes Excel stores, from live and recorded formulas', () => {
+    // Excel stores every post-2007 function with a prefix the formula bar never shows; handed to
+    // HyperFormula verbatim, `_xlfn.STDEV.S(...)` is an unknown name and the cell shows `#NAME?`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [text('Value'), text('Spread')],
+      [cell({ value: 1 }), cell({ value: null, formula: { text: '_xlfn.STDEV.S(A2:A4)', result: 1 } })],
+      [cell({ value: 2 }), cell({ value: null, formula: { text: '_xlfn._xlws.SORT(A2:A4)', result: 1 } })],
+      [cell({ value: 3 }), cell({ value: null, formula: { text: '_xlfn.LET(_xlpm.x,A4,_xlpm.x*2)', result: 6 } })],
+    ];
+
+    const live = map(workbook(sheet), { colHeaders: 'firstRow' }, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(live.result.data.map(row => row[1])).toEqual(['=STDEV.S(A1:A3)', '=SORT(A1:A3)', '=LET(x,A3,x*2)']);
+
+    const recorded = map(workbook(sheet), { colHeaders: 'firstRow' }).result;
+
+    expect(recorded.formulas.map(entry => entry.formula))
+      .toEqual(['STDEV.S(A2:A4)', 'SORT(A2:A4)', 'LET(x,A4,x*2)']);
+  });
+
+  describe('bare TRUE and FALSE', () => {
+    /**
+     * Imports one formula live into a one-cell sheet and answers the grid's text.
+     *
+     * @param {string} formulaText The formula as the file stores it, without `=`.
+     * @returns {string}
+     */
+    function importedFormula(formulaText) {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: formulaText, result: 1 } })]];
+
+      // The engine holds a sheet named `TRUE`, so a qualifier spelled like it stays live.
+      return map(workbook(sheet), {}, {
+        formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['true', 'sheet1']),
+      }).result.data[0][1];
+    }
+
+    it('should rewrite a bare boolean literal to a call, whatever its case', () => {
+      expect(importedFormula('IF(TRUE,1,2)')).toBe('=IF(TRUE(),1,2)');
+      expect(importedFormula('IFS(A1>1,"a",true,"b")')).toBe('=IFS(A1>1,"a",TRUE(),"b")');
+      expect(importedFormula('AND(A1,False)')).toBe('=AND(A1,FALSE())');
+      expect(importedFormula('IF(TRUE,FALSE,TRUE)')).toBe('=IF(TRUE(),FALSE(),TRUE())');
+    });
+
+    it('should leave a call, a string, a longer name, a sheet and a qualified name alone', () => {
+      expect(importedFormula('TRUE()')).toBe('=TRUE()');
+      expect(importedFormula('"TRUE"&A1')).toBe('="TRUE"&A1');
+      expect(importedFormula('"say ""true"""&A1')).toBe('="say ""true"""&A1');
+      expect(importedFormula('TRUEVALUE')).toBe('=TRUEVALUE');
+      expect(importedFormula('MYTRUE+A1')).toBe('=MYTRUE+A1');
+      expect(importedFormula('TRUE!A1')).toBe('=TRUE!A1');
+      expect(importedFormula('\'TRUE\'!A1')).toBe('=\'TRUE\'!A1');
+      expect(importedFormula('Sheet1!TRUE')).toBe('=Sheet1!TRUE');
+      expect(importedFormula('Tbl[TRUE]')).toBe('=Tbl[TRUE]');
+      expect(importedFormula('Tbl[@TRUE]')).toBe('=Tbl[@TRUE]');
+      // Only the `]` after it tells this one apart: the space before it is no name character.
+      expect(importedFormula('Tbl[ TRUE]')).toBe('=Tbl[ TRUE]');
+      expect(importedFormula('1TRUE')).toBe('=1TRUE');
+      expect(importedFormula('A.TRUE+1')).toBe('=A.TRUE+1');
+    });
+
+    it('should rewrite after the prefix strip and record the formula as the file holds it', () => {
+      expect(importedFormula('_xlfn.IFS(TRUE,1)')).toBe('=IFS(TRUE(),1)');
+
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: 'IF(TRUE,A1,2)', result: 1 } })]];
+
+      const { result } = map(workbook(sheet), {});
+
+      expect(result.formulas.map(entry => entry.formula)).toEqual(['IF(TRUE,A1,2)']);
+      expect(result.data[0][1]).toBe(1);
+    });
+
+    it('should record the file\'s text of a live-formula cell that imports its cached value', () => {
+      // `ImportResult.formulas` keeps the bare `TRUE` the file holds; only the engine's text is
+      // rewritten. The two differ only with live formulas on and the formula imported cached.
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: 'IF(TRUE,Other!A1,2)', result: 3 } })]];
+
+      const { result } = map(workbook(sheet), {}, {
+        formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']),
+      });
+
+      expect(result.data[0][1]).toBe(3);
+      expect(result.formulas).toEqual([{ row: 0, col: 1, formula: 'IF(TRUE,Other!A1,2)' }]);
+      expect(result.dropped).toContain('formula:otherSheet');
+    });
+
+    it('should rewrite a defined name\'s definition', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: 'IF(Flag,1,2)', result: 1 } })]];
+
+      const wb = workbook(sheet);
+
+      wb.definedNames = [{ name: 'Flag', formula: 'TRUE', sheetName: null }];
+
+      const { result } = map(wb, {}, {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        formulaSheetName: 'Data',
+        formulaSheetNames: new Set(['data']),
+        formulaNamedExpressions: new Set(),
+        canAddNamedExpression: () => true,
+      });
+
+      expect(result.namedExpressions).toEqual([{ name: 'Flag', formula: 'TRUE()' }]);
+    });
+
+    it('should hand over no defined name when the license does not unlock xlsx:formulas', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: 'IF(Flag,1,2)', result: 1 } })]];
+
+      const wb = workbook(sheet);
+
+      wb.definedNames = [{ name: 'Flag', formula: 'TRUE', sheetName: null }];
+
+      const { result } = map(wb, {}, {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        formulaSheetName: 'Data',
+        formulaSheetNames: new Set(['data']),
+        formulaNamedExpressions: new Set(),
+        canAddNamedExpression: () => true,
+        entitlement: { ...UNRESTRICTED_XLSX_ENTITLEMENT, formulas: false },
+      });
+
+      expect(result.namedExpressions).toBeUndefined();
+      expect(result.data[0][1]).toBe(1);
+    });
+  });
+
+  it('should strip the prefixes on a formula that needs no shift', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 1 }), cell({ value: null, formula: { text: '_xlfn.IFS(A1>0,"y")', result: 'y' } })]];
+
+    const { result } = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(result.data[0][1]).toBe('=IFS(A1>0,"y")');
+  });
+
+  it('should refuse a workbook whose formulas would cost more shift work than the reader\'s budget', () => {
+    // A shift runs a regex over every formula's whole text once the window origin is not (0, 0), so
+    // N cells at the 32 768-character formula cap cost N x 32 768 characters of regex work with no
+    // other bound. The import charges the same budget the native reader charges a shared formula's
+    // translation and refuses past it, before the work it bounds.
+    const formula = '1+'.repeat(16384);
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('Header')]];
+
+    for (let row = 0; row < formulas; row++) {
+      sheet.rows.push([cell({ value: null, formula: { text: formula, result: 1 } })]);
+    }
+
+    let refusal = null;
+
+    try {
+      map(workbook(sheet), { colHeaders: 'firstRow' }, { formulasEnabled: true, commentsEnabled: false });
+    } catch (error) {
+      refusal = error;
+    }
+
+    expect(refusal?.message).toMatch(/above the limit this reader accepts/);
+    expect(isLimitError(refusal)).toBe(true);
+  });
+
+  it('should refuse a workbook whose prefixed formulas would cost more strip work than the budget', () => {
+    // With no shift, the `_xlfn.` strip still walks each formula's whole text, so it is charged
+    // against the same budget as the shift.
+    const formula = `_xlfn.ABS(${'1+'.repeat(16378)}1)`;
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = Array.from({ length: formulas }, () => [cell({ value: null, formula: { text: formula, result: 1 } })]);
+
+    let refusal = null;
+
+    try {
+      map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+    } catch (error) {
+      refusal = error;
+    }
+
+    expect(refusal?.message).toMatch(/above the limit this reader accepts/);
+    expect(isLimitError(refusal)).toBe(true);
+  });
+
+  it('should not charge the shift budget for formulas that need no shift', () => {
+    const formula = '1+'.repeat(16384);
+    const formulas = Math.floor(MAX_TRANSLATED_FORMULA_CHARS / formula.length) + 1;
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [];
+
+    for (let row = 0; row < formulas; row++) {
+      sheet.rows.push([cell({ value: null, formula: { text: formula, result: 1 } })]);
+    }
+
+    const { result } = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false });
+
+    expect(result.data).toHaveLength(formulas);
   });
 
   it('should fall back to the cached value for a formula pointing into the removed header band', () => {
@@ -422,6 +922,45 @@ describe('mapWorkbook', () => {
     expect(result.data[0][1]).toBe('Rate rate');
     expect(result.formulas).toEqual([{ row: 0, col: 1, formula: 'B1&" rate"' }]);
     expect(dropped.list()).toContain('formula:outOfRange');
+  });
+
+  it('should escape a text value that starts with = when the formulas plugin is enabled', () => {
+    // The cell is a STRING in the file, inert in Excel. The grid hands every `=`-leading string to
+    // HyperFormula, so importing it verbatim turns the file's text into a formula it never had.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('=HYPERLINK("http://evil","x")')], [text('plain')]];
+
+    const withFormulas = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false }).result;
+    const withoutFormulas = map(workbook(sheet)).result;
+
+    // The leading apostrophe is the Formulas plugin's own text escape and is unescaped on read, so
+    // the cell renders the text the file carried.
+    expect(withFormulas.data[0][0]).toBe('\'=HYPERLINK("http://evil","x")');
+    expect(withFormulas.data[1][0]).toBe('plain');
+    // Without the plugin nothing evaluates the string, and an apostrophe would be part of the value.
+    expect(withoutFormulas.data[0][0]).toBe('=HYPERLINK("http://evil","x")');
+  });
+
+  it('should escape a text value the grid would read as its own escape marker', () => {
+    // The other half of the escape. `'=1+1` is the FILE's text — the apostrophe is a character of
+    // the cell, not a marker — and `isEscapedFormulaExpression` (an apostrophe followed by `=`) is
+    // exactly the shape the Formulas plugin strips on read, so importing it verbatim hands the
+    // grid the file's own apostrophe to eat. A value whose apostrophe is NOT followed by `=` is
+    // left alone, because the plugin leaves it alone too: the marker is `'=`, never a bare `'`.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[text('\'=1+1')], [text('\'hello')], [text('it\'s fine')]];
+
+    const withFormulas = map(workbook(sheet), {}, { formulasEnabled: true, commentsEnabled: false }).result;
+    const withoutFormulas = map(workbook(sheet)).result;
+
+    expect(withFormulas.data[0][0]).toBe('\'\'=1+1');
+    expect(withFormulas.data[1][0]).toBe('\'hello');
+    expect(withFormulas.data[2][0]).toBe('it\'s fine');
+    // With no plugin to unescape anything, every value keeps exactly what the file carried.
+    expect(withoutFormulas.data[0][0]).toBe('\'=1+1');
+    expect(withoutFormulas.data[1][0]).toBe('\'hello');
   });
 
   it('should keep cached values when importFormulas is false', () => {
@@ -457,6 +996,73 @@ describe('mapWorkbook', () => {
     expect(result.columns[1]).toEqual({ type: 'text' });
     expect(dropped.list()).toEqual(['dataValidation:unresolvedList']);
     expect(result.sheetNames).toEqual(['Data', '_HotValidation']);
+  });
+
+  it('should keep a validation over a sparse sheet to the columns the sheet uses', () => {
+    // A ~1 kB part: values in A1 and A1000 under a five-column dimension, and one list validation
+    // over the whole rectangle. Clamped to the dimension, the reader filled every slot of it and
+    // the mapper kept one meta entry per slot, which at A1:E1000000 is a GB-class heap.
+    const ns = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+    const sheet = parseWorksheet(`<worksheet ${ns}><dimension ref="A1:E1000"/><sheetData>`
+      + '<row r="1"><c r="A1"><v>1</v></c></row><row r="1000"><c r="A1000"><v>2</v></c></row></sheetData>'
+      + '<dataValidations count="1"><dataValidation type="list" sqref="A1:E1000">'
+      + '<formula1>"a,b"</formula1></dataValidation></dataValidations></worksheet>', {
+      name: 'Data',
+      state: 'visible',
+      styles: EMPTY_STYLES,
+      sharedStrings: { strings: [], rich: [] },
+      comments: new Map(),
+      date1904: false,
+      dropped: new DroppedFeatures(),
+      budget: { declaredCells: 0 },
+    });
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.data.length).toBe(1000);
+    expect(result.data.every(row => row.length === 1)).toBe(true);
+    expect(result.columns.length).toBe(1);
+    expect(result.columns[0]).toEqual(expect.objectContaining({ type: 'dropdown', source: ['a', 'b'] }));
+    expect(result.cellsMeta ?? []).toEqual([]);
+  });
+
+  it('should keep a function or a name that starts like a cell intact in a shared formula read by the built-in engine', () => {
+    // `HEX2` is a cell, so the copies of a shared `HEX2DEC(A2)` read `HEX3DEC(A3)` and
+    // `HEX4DEC(A4)`, and the header shift turned the master into `HEX1DEC(A1)`.
+    const ns = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"';
+    const shared = (formula, cached) => `<c r="B2"><f t="shared" ref="B2:B4" si="0">${formula}</f><v>${cached}</v></c>`;
+    const copy = (ref, cached) => `<c r="${ref}"><f t="shared" si="0"/><v>${cached}</v></c>`;
+    const label = (ref, value) => `<c r="${ref}" t="inlineStr"><is><t>${value}</t></is></c>`;
+    const read = master => parseWorksheet(`<worksheet ${ns}><sheetData>`
+      + `<row r="1">${label('A1', 'Hex')}${label('B1', 'Dec')}</row>`
+      + `<row r="2"><c r="A2"><v>12</v></c>${shared(master, 18)}</row>`
+      + `<row r="3"><c r="A3"><v>13</v></c>${copy('B3', 19)}</row>`
+      + `<row r="4"><c r="A4"><v>14</v></c>${copy('B4', 20)}</row>`
+      + '</sheetData></worksheet>', {
+      name: 'Sheet1',
+      state: 'visible',
+      styles: EMPTY_STYLES,
+      sharedStrings: { strings: [], rich: [] },
+      comments: new Map(),
+      date1904: false,
+      dropped: new DroppedFeatures(),
+      budget: { declaredCells: 0 },
+    });
+    const context = { formulasEnabled: true, commentsEnabled: false, formulaSheetNames: new Set(['sheet1']) };
+
+    const hex = map(workbook(read('HEX2DEC(A2)')), { colHeaders: 'firstRow' }, context);
+
+    expect(hex.result.data.map(row => row[1])).toEqual(['=HEX2DEC(A1)', '=HEX2DEC(A2)', '=HEX2DEC(A3)']);
+
+    const namedWorkbook = workbook(read('Q1Sales*A2'));
+
+    namedWorkbook.definedNames = [{ name: 'Q1Sales', formula: 'Data!$A$1', sheetName: null }];
+
+    const named = map(namedWorkbook, { colHeaders: 'firstRow' }, context);
+
+    expect(named.result.data.map(row => row[1])).toEqual([18, 19, 20]);
+    expect(named.result.formulas.map(({ formula }) => formula)).toEqual(['Q1Sales*A2', 'Q1Sales*A3', 'Q1Sales*A4']);
+    expect(named.dropped.list()).toContain('formula:definedName');
   });
 
   it('should resolve one list formula once per pass and share the dropdown meta across its cells', () => {
@@ -509,6 +1115,77 @@ describe('mapWorkbook', () => {
     expect(dropped.list()).toEqual(['cellStyles']);
     expect(result.cellsMeta).toBeUndefined();
     expect(result.conditionalFormatting).toEqual([{ rows: [0, 0], cols: [0, 0], rules: [] }]);
+  });
+
+  describe('a note on the promoted header band', () => {
+    const commentsOn = { formulasEnabled: false, commentsEnabled: true, customBordersEnabled: false };
+
+    it('should report a note on a promoted header cell, which a column header cannot hold', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [
+        [cell({ value: 'Name', comment: 'header note' }), text('Qty')],
+        [text('x'), cell({ value: 1, comment: 'data note' })],
+      ];
+
+      const { result, dropped } = map(workbook(sheet), { colHeaders: 'firstRow' }, commentsOn);
+
+      expect(result.colHeaders).toEqual(['Name', 'Qty']);
+      expect(result.comments).toEqual([{ row: 0, col: 1, value: 'data note' }]);
+      expect(dropped.list()).toEqual(['comment:header']);
+    });
+
+    it('should report a note on any row of a nested header band, with the Comments plugin off too', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [
+        [text('Group'), text('')],
+        [text('Name'), cell({ value: 'Qty', comment: 'second header row' })],
+        [text('x'), cell({ value: 1 })],
+      ];
+
+      const on = map(workbook(sheet), { colHeaders: 'firstRow', headerRows: 2 }, commentsOn);
+      const off = map(workbook(sheet), { colHeaders: 'firstRow', headerRows: 2 });
+
+      expect(on.dropped.list()).toEqual(['comment:header']);
+      expect(off.dropped.list()).toEqual(['comment:header']);
+    });
+
+    it('should not report a note outside the band: on the first data row, or on row 0 without promotion', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [
+        [text('Name'), text('Qty')],
+        [cell({ value: 'x', comment: 'data note' }), cell({ value: 1 })],
+      ];
+
+      const promoted = map(workbook(sheet), { colHeaders: 'firstRow' }, commentsOn);
+
+      expect(promoted.result.comments).toEqual([{ row: 0, col: 0, value: 'data note' }]);
+      expect(promoted.dropped.list()).toEqual([]);
+
+      const headerNote = createSheetSnapshot('Data');
+
+      headerNote.rows = [[cell({ value: 'Name', comment: 'row 0 note' })], [text('x')]];
+
+      const plain = map(workbook(headerNote), {}, commentsOn);
+
+      expect(plain.result.comments).toEqual([{ row: 0, col: 0, value: 'row 0 note' }]);
+      expect(plain.dropped.list()).toEqual([]);
+    });
+
+    it('should not report a header note outside the imported columns', () => {
+      const sheet = createSheetSnapshot('Data');
+
+      sheet.rows = [
+        [cell({ value: '#', comment: 'row-header column' }), text('Name')],
+        [text('1'), text('x')],
+      ];
+
+      const { dropped } = map(workbook(sheet), { colHeaders: 'firstRow', rowHeaders: true }, commentsOn);
+
+      expect(dropped.list()).toEqual([]);
+    });
   });
 
   it('should map locked cells to readOnly only under sheet protection, and comments when the plugin is on', () => {
@@ -577,6 +1254,24 @@ describe('mapWorkbook', () => {
     const { result, dropped } = map(workbook(sheet));
 
     expect(result.columns).toEqual([{ type: 'numeric' }]);
+    expect(dropped.list()).toEqual(['numFmt:0.00E+00']);
+  });
+
+  it('should report an unsupported number format once per distinct format, not once per cell', () => {
+    // `recordUnsupported` bounds and copies the whole format string on every call, so calling it
+    // per cell made a long format on many cells cost one string walk per cell.
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = Array.from({ length: 500 }, (_, row) => [cell({ value: row, numFmt: '0.00E+00' })]);
+
+    const dropped = new DroppedFeatures();
+    const recordUnsupported = jest.spyOn(dropped, 'recordUnsupported');
+
+    mapWorkbook(workbook(sheet), resolveImportOptions({}), {
+      formulasEnabled: false, commentsEnabled: false, entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+    }, dropped);
+
+    expect(recordUnsupported).toHaveBeenCalledTimes(1);
     expect(dropped.list()).toEqual(['numFmt:0.00E+00']);
   });
 
@@ -992,5 +1687,939 @@ describe('mapWorkbook – conditionalFormatting', () => {
     expect(map(workbook(sheet), { importLayout: false }).result.conditionalFormatting)
       .toEqual([{ rows: [1, 2], cols: [1, 1], rules: [rule] }]);
     expect(map(workbook(cfSheet())).result.conditionalFormatting).toBeUndefined();
+  });
+});
+
+describe('mapWorkbook - date-time cells', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    hot = null;
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    container.remove();
+  });
+
+  it('should map a date-time format to an intl-datetime column carrying dateTimeFormat and an ISO value', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [cell({ value: 45292.5, numFmt: 'yyyy-mm-dd hh:mm:ss' }), cell({ value: 45292.25, numFmt: 'm/d/yy h:mm' })],
+    ];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.data).toEqual([['2024-01-01 12:00:00', '2024-01-01 06:00:00']]);
+    expect(result.columns).toEqual([
+      {
+        type: 'intl-datetime',
+        dateTimeFormat: {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        },
+      },
+      {
+        type: 'intl-datetime',
+        dateTimeFormat: {
+          month: 'numeric', day: 'numeric', year: '2-digit', hour: 'numeric', minute: '2-digit', hour12: false,
+        },
+      },
+    ]);
+  });
+
+  it('should render and validate an imported date-time cell instead of showing #bad-value#', async() => {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [[cell({ value: 45292.5, numFmt: 'yyyy-mm-dd hh:mm:ss' })]];
+
+    const { result } = map(workbook(sheet));
+
+    hot = new Handsontable(container, {
+      licenseKey: TEST_LICENSE_KEY,
+      data: result.data,
+      columns: result.columns,
+      locale: 'en-US',
+    });
+
+    expect(hot.getCell(0, 0).textContent).toBe('01/01/2024, 12:00:00');
+
+    const valid = await new Promise(resolve => hot.validateCells(resolve));
+
+    expect(valid).toBe(true);
+  });
+});
+
+describe('mapLayout - file-controlled layout values', () => {
+  // The layout comes straight from the file, through whichever engine read it. Whatever the
+  // reader lets through, the grid must only ever be handed finite, positive sizes and
+  // non-negative integer counts and indexes.
+  function layoutSheet() {
+    const sheet = createSheetSnapshot('Data');
+
+    sheet.rows = [
+      [text('a'), text('b'), text('c'), text('d')],
+      [text('e'), text('f'), text('g'), text('h')],
+      [text('i'), text('j'), text('k'), text('l')],
+      [text('m'), text('n'), text('o'), text('p')],
+    ];
+
+    return sheet;
+  }
+
+  it('should omit a column width that is not finite and positive, or wider than Excel allows', () => {
+    const sheet = layoutSheet();
+
+    // A 255-character column, Excel's UI maximum, is stored with its 5 px of cell padding added
+    // (255.7109375 at a 7 px digit width); the cap is 260 width units.
+    // `0.05` passes the size check but rounds to 0 px, which the grid must not be handed either.
+    sheet.colWidths = [-50, 7e300, Infinity, 255.7109375, 260.5, NaN, 0, 10, 0.05];
+    sheet.rows.forEach(row => row.push(text('x'), text('y'), text('z'), text('w'), text('v')));
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.colWidths).toEqual([
+      undefined, undefined, undefined, Math.round(255.7109375 * 7), undefined, undefined, undefined, 70, undefined,
+    ]);
+  });
+
+  it('should omit a row height that is not finite and positive, or taller than Excel allows', () => {
+    const sheet = layoutSheet();
+
+    // 409.5 points is Excel's maximum row height.
+    sheet.rowHeights = [1.33e300, -15, 409.5, 410];
+
+    expect(map(workbook(sheet)).result.rowHeights).toEqual([undefined, undefined, 546, undefined]);
+
+    sheet.rowHeights = [NaN, Infinity, 0, -1];
+
+    expect(map(workbook(sheet)).result.rowHeights).toBeUndefined();
+  });
+
+  it('should hand the grid whole, non-negative freeze counts', () => {
+    const sheet = layoutSheet();
+
+    sheet.freeze = { rows: 2.7, cols: 1.5 };
+
+    let { result } = map(workbook(sheet));
+
+    expect(result.fixedRowsTop).toBe(2);
+    expect(result.fixedColumnsStart).toBe(1);
+
+    sheet.freeze = { rows: -3, cols: NaN };
+    ({ result } = map(workbook(sheet)));
+
+    expect(result.fixedRowsTop).toBeUndefined();
+    expect(result.fixedColumnsStart).toBeUndefined();
+
+    // A fractional freeze is floored before the promoted header row is taken off it.
+    sheet.freeze = { rows: 1.5, cols: Infinity };
+    ({ result } = map(workbook(sheet), { colHeaders: 'firstRow' }));
+
+    expect(result.fixedRowsTop).toBeUndefined();
+    expect(result.fixedColumnsStart).toBe(4);
+  });
+
+  it('should drop each hidden index that is not a whole number on its own, keeping the valid ones', () => {
+    const sheet = layoutSheet();
+
+    // HiddenRows rejects a whole list that holds one bad index, so one stray `0.5` used to make the
+    // legitimately hidden row 1 visible.
+    sheet.hiddenRows = [0.5, 1, -1, NaN, Infinity, 3];
+    sheet.hiddenCols = [2, 1.25, 0, '1'];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.hiddenRows).toEqual([1, 3]);
+    expect(result.hiddenColumns).toEqual([2, 0]);
+  });
+
+  it('should drop a hidden index just past the window end, keeping the ones inside', () => {
+    const sheet = createSheetSnapshot('Data');
+
+    // Row 3 sits one past the end of a 3-row window. `HiddenRows` rejects the whole list over that
+    // one index, which would make row 1, hidden by the file, visible again.
+    sheet.rows = Array.from({ length: 5 }, (_, r) => [text(`r${r}`), text('x')]);
+    sheet.hiddenRows = [1, 3];
+
+    expect(map(workbook(sheet), { range: [0, 0, 2, 1] }).result.hiddenRows).toEqual([1]);
+  });
+});
+
+describe('mapWorkbook on the slots one list validation covers', () => {
+  /**
+   * A sheet of `rowCount` rows by `colCount` columns where every slot is ONE shared cell carrying
+   * the same list validation, the shape the native reader hands over for a validation over empty
+   * rows, with real text cells in the first and last rows.
+   *
+   * @param {number} rowCount The number of rows.
+   * @param {number} colCount The number of columns.
+   * @returns {object} The workbook snapshot.
+   */
+  function validatedSheet(rowCount, colCount) {
+    const validation = { type: 'list', formulae: ['"a,b"'], allowBlank: true };
+    const shared = cell({ value: null, validation });
+    const sheet = createSheetSnapshot('S');
+
+    sheet.rows = Array.from({ length: rowCount }, (_, row) => Array.from({ length: colCount }, () => (
+      row === 0 || row === rowCount - 1 ? cell({ value: 'x', validation }) : shared
+    )));
+
+    return workbook(sheet);
+  }
+
+  it('should keep the meta of a covered column as runs, not one entry per cell', () => {
+    // Every slot between the first and last real row shares one dropdown meta. Keyed per cell it cost
+    // one `Map` entry per covered slot: a validation over `A1:E1000000` in a 2 kB file allocated five
+    // million entries, +1.2 GB and 11 s in `mapWorkbook`. Counting the writes keeps this
+    // deterministic where a wall-clock or a heap bound would flake.
+    const wb = validatedSheet(200000, 5);
+    const sets = jest.spyOn(Map.prototype, 'set');
+
+    try {
+      const { result } = map(wb);
+
+      expect(result.columns.map(column => column.type)).toEqual(Array(5).fill('dropdown'));
+      expect(result.cellsMeta).toBeUndefined();
+      expect(sets.mock.calls.length).toBeLessThan(1000);
+    } finally {
+      sets.mockRestore();
+    }
+  });
+
+  it('should still give every outlier row of a run its own cellsMeta entry', () => {
+    const sheet = createSheetSnapshot('S');
+
+    sheet.rows = [
+      [cell({ value: 1 })], [cell({ value: 2 })], [text('a')], [text('b')], [cell({ value: 3 })],
+    ];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].type).toBe('numeric');
+    expect(result.cellsMeta.map(({ row, meta }) => [row, meta.type])).toEqual([[2, 'text'], [3, 'text']]);
+  });
+
+  it('should mark a protected sheet\'s blank column read-only as a whole', () => {
+    // Under sheet protection every blank is locked. The mapper keeps those cells as runs per column
+    // (one `{ row, col }` per slot cost +1.3 GB on a protected sheet with cells in `A1:E1` and
+    // `A1000000:E1000000`); this pins the result that shape must still produce.
+    const sheet = createSheetSnapshot('S');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = Array.from({ length: 200000 }, (_, row) => (row === 0 || row === 199999 ? [text('x')] : []));
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].readOnly).toBe(true);
+    expect(result.cellsMeta).toBeUndefined();
+  });
+
+  it('should mark only the unlocked rows of a mostly locked column, as readOnly: false', () => {
+    // One unlocked cell used to send every OTHER cell of its column through `cellsMeta`.
+    const sheet = createSheetSnapshot('S');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = [[text('a')], [cell({ value: 'b', locked: false })], [text('c')], [text('d')]];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].readOnly).toBe(true);
+    expect(result.cellsMeta).toEqual([{ row: 1, col: 0, meta: { readOnly: false } }]);
+  });
+
+  it('should mark only the locked rows of a mostly unlocked column, as readOnly: true', () => {
+    const sheet = createSheetSnapshot('S');
+
+    sheet.protection = { enabled: true, password: null, options: {} };
+    sheet.rows = [[cell({ value: 'a', locked: false })], [text('b')], [cell({ value: 'c', locked: false })]];
+
+    const { result } = map(workbook(sheet));
+
+    expect(result.columns[0].readOnly).toBeUndefined();
+    expect(result.cellsMeta).toEqual([{ row: 1, col: 0, meta: { readOnly: true } }]);
+  });
+});
+
+describe('mapWorkbook – array formulas', () => {
+  const FORMULAS_ON = { formulasEnabled: true, commentsEnabled: false, customBordersEnabled: false };
+
+  /**
+   * A1:A3 hold 1, 2, 3. D1 is a dynamic array master `SEQUENCE(3)` spilling over D1:D3, E1 a legacy
+   * CSE master `A1:A2*2` over E1:E2. The covered cells carry their cached values with no formula,
+   * the way both readers hand them over.
+   *
+   * @param {string} [masterText] The formula text of the D1 master.
+   * @returns {object} The sheet snapshot.
+   */
+  function arraySheet(masterText = 'SEQUENCE(3)') {
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [cell({ value: 1 }), null, null,
+        cell({ formula: { text: masterText, result: 1, array: { ref: 'D1:D3', dynamic: true } } }),
+        cell({ formula: { text: 'A1:A2*2', result: 2, array: { ref: 'E1:E2', dynamic: false } } })],
+      [cell({ value: 2 }), null, null, cell({ value: 2 }), cell({ value: 4 })],
+      [cell({ value: 3 }), null, null, cell({ value: 3 }), null],
+    ];
+
+    return sheet;
+  }
+
+  it('should import a dynamic master bare, a CSE master wrapped in ARRAYFORMULA, and their spilled cells empty', () => {
+    // The spilled cells used to import their cached values, so HyperFormula's spill collided with
+    // those constants and D1 showed `#SPILL!`.
+    const { result } = map(workbook(arraySheet()), {}, FORMULAS_ON);
+
+    expect(result.data[0][3]).toBe('=SEQUENCE(3)');
+    expect(result.data[1][3]).toBe(null);
+    expect(result.data[2][3]).toBe(null);
+    expect(result.data[0][4]).toBe('=ARRAYFORMULA(A1:A2*2)');
+    expect(result.data[1][4]).toBe(null);
+    expect(result.data.map(row => row[0])).toEqual([1, 2, 3]);
+    expect(result.formulas).toBeUndefined();
+  });
+
+  it('should keep the column typed from the cached values a spilled cell no longer carries', () => {
+    const { result } = map(workbook(arraySheet()), {}, FORMULAS_ON);
+
+    expect(result.columns[3].type).toBe('numeric');
+    expect(result.columns[4].type).toBe('numeric');
+    expect(result.cellsMeta).toBeUndefined();
+  });
+
+  it('should import the cached values of the master and its spilled cells with the Formulas plugin off', () => {
+    const { result } = map(workbook(arraySheet()));
+
+    expect(result.data.map(row => row[3])).toEqual([1, 2, 3]);
+    expect(result.data.map(row => row[4])).toEqual([2, 4, null]);
+    expect(result.formulas).toEqual([
+      { row: 0, col: 3, formula: 'SEQUENCE(3)' },
+      { row: 0, col: 4, formula: 'A1:A2*2' },
+    ]);
+  });
+
+  it('should keep the spilled cells\' cached values when the master imports its cached value', () => {
+    // `Rates!A1` names a sheet the engine does not hold, so the master imports its cached 1, and
+    // nothing spills over D2:D3.
+    const { result, dropped } = map(workbook(arraySheet('SEQUENCE(Rates!A1)')), {}, FORMULAS_ON);
+
+    expect(result.data.map(row => row[3])).toEqual([1, 2, 3]);
+    expect(result.formulas).toEqual([{ row: 0, col: 3, formula: 'SEQUENCE(Rates!A1)' }]);
+    expect(dropped.list()).toContain('formula:otherSheet');
+    expect(result.data[1][4]).toBe(null);
+  });
+
+  it('should keep the spilled cells\' cached values when the engine lacks a function the master calls', () => {
+    // HyperFormula 3.3 has no UNIQUE: the live master shows `#NAME?` and spills nothing, so blanking
+    // B2 lost the value the file holds.
+    const sheet = createSheetSnapshot('Sheet1');
+    const registered = new Set(['SEQUENCE', 'SUM', 'ARRAYFORMULA']);
+    const asked = [];
+    const context = {
+      ...FORMULAS_ON,
+      registersFunction: (name) => {
+        asked.push(name);
+
+        return registered.has(name);
+      },
+    };
+
+    sheet.rows = [
+      [cell({ value: 1 }),
+        cell({ formula: { text: '_xlfn.UNIQUE(A1:A3)', result: 1, array: { ref: 'B1:B2', dynamic: true } } }),
+        cell({ formula: { text: 'SEQUENCE(2)', result: 1, array: { ref: 'C1:C2', dynamic: true } } }),
+        cell({ formula: { text: 'sum(_xlfn.UNIQUE(A1:A3))', result: 3, array: { ref: 'D1:D2', dynamic: false } } })],
+      [cell({ value: 1 }), cell({ value: 2 }), cell({ value: 2 }), cell({ value: 9 })],
+      [cell({ value: 2 }), null, null, null],
+    ];
+
+    const { result } = map(workbook(sheet), {}, context);
+
+    expect(result.data).toEqual([
+      [1, '=UNIQUE(A1:A3)', '=SEQUENCE(2)', '=ARRAYFORMULA(sum(UNIQUE(A1:A3)))'],
+      [1, 2, null, 9],
+      [2, null, null, null],
+    ]);
+    // Names are asked upper-cased; a reference or a name is never asked.
+    expect(asked).toEqual(expect.arrayContaining(['UNIQUE', 'SEQUENCE', 'SUM']));
+    expect(asked).not.toContain('A1');
+  });
+
+  it('should keep the spilled cells\' cached values when the window starts below the master', () => {
+    const { result } = map(workbook(arraySheet()), { range: [1, 0, 2, 5] }, FORMULAS_ON);
+
+    expect(result.data.map(row => row[3])).toEqual([2, 3]);
+    expect(result.data.map(row => row[4])).toEqual([4, null]);
+  });
+
+  it('should clip the spilled range to the window', () => {
+    // The window ends at row 2 and column D, so E1's array and D3 fall outside it; D2 stays empty.
+    const { result } = map(workbook(arraySheet()), { range: [0, 0, 1, 3] }, FORMULAS_ON);
+
+    expect(result.data).toEqual([[1, null, null, '=SEQUENCE(3)'], [2, null, null, null]]);
+  });
+
+  it('should rebase the spilled range by the window origin', () => {
+    // The promoted header row and the dropped row-header column move the master to the window's
+    // (0, 2); its spilled rows follow it.
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [text('id'), text('a'), text('b'), text('c')],
+      [text('r1'), cell({ value: 5 }), null,
+        cell({ formula: { text: 'SEQUENCE(2,2)', result: 1, array: { ref: 'D2:E3', dynamic: true } } }),
+        cell({ value: 2 })],
+      [text('r2'), cell({ value: 6 }), null, cell({ value: 3 }), cell({ value: 4 })],
+      [text('r3'), cell({ value: 7 }), null, cell({ value: 9 }), cell({ value: 9 })],
+    ];
+
+    const { result } = map(workbook(sheet), { colHeaders: 'firstRow', rowHeaders: true }, FORMULAS_ON);
+
+    expect(result.data).toEqual([
+      [5, null, '=SEQUENCE(2,2)', null],
+      [6, null, null, null],
+      [7, null, 9, 9],
+    ]);
+  });
+
+  it('should keep cells the ref names but the master does not start', () => {
+    // Excel always writes the master as the top-left corner of its ref. A ref that starts elsewhere
+    // is not trusted to empty any cell.
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [cell({ formula: { text: 'SEQUENCE(2)', result: 1, array: { ref: 'B2:B3', dynamic: true } } }), null],
+      [null, cell({ value: 7 })],
+      [null, cell({ value: 8 })],
+    ];
+
+    const { result } = map(workbook(sheet), {}, FORMULAS_ON);
+
+    expect(result.data).toEqual([['=SEQUENCE(2)', null], [null, 7], [null, 8]]);
+  });
+
+  it('should import a single-cell CSE master wrapped in ARRAYFORMULA', () => {
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [[cell({ value: 2 }), cell({ value: 3 }),
+      cell({ formula: { text: 'SUM(A1:B1*2)', result: 10, array: { ref: 'C1', dynamic: false } } })]];
+
+    const { result } = map(workbook(sheet), {}, FORMULAS_ON);
+
+    expect(result.data).toEqual([[2, 3, '=ARRAYFORMULA(SUM(A1:B1*2))']]);
+  });
+
+  it('should keep the spilled cells\' cached values with importFormulas off and the Formulas plugin on', () => {
+    const { result } = map(workbook(arraySheet()), { importFormulas: false }, FORMULAS_ON);
+
+    expect(result.data.map(row => row[3])).toEqual([1, 2, 3]);
+    expect(result.data.map(row => row[4])).toEqual([2, 4, null]);
+  });
+
+  it('should not wrap a CSE master the file already wraps in ARRAYFORMULA', () => {
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [
+      [cell({ value: 1 }),
+        cell({ formula: { text: 'ARRAYFORMULA(A1:A2*2)', result: 2, array: { ref: 'B1:B2', dynamic: false } } })],
+      [cell({ value: 2 }), cell({ value: 4 })],
+    ];
+
+    const { result } = map(workbook(sheet), {}, FORMULAS_ON);
+
+    expect(result.data).toEqual([[1, '=ARRAYFORMULA(A1:A2*2)'], [2, null]]);
+  });
+
+  it('should empty the spilled cells of many single-column masters on one row', () => {
+    // One span per master per row, scanned linearly per cell, cost W^2/2 comparisons per row:
+    // about a minute at W = 16384. The sweep looks each cell up in O(1) amortized.
+    const width = 2000;
+    const sheet = createSheetSnapshot('Sheet1');
+    const letters = (index) => {
+      let label = '';
+
+      for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) {
+        label = String.fromCharCode(65 + ((n - 1) % 26)) + label;
+      }
+
+      return label;
+    };
+
+    sheet.rows = [
+      Array.from({ length: width }, (_, col) => cell({
+        formula: { text: 'SEQUENCE(3)', result: 1, array: { ref: `${letters(col)}1:${letters(col)}3`, dynamic: true } },
+      })),
+      Array.from({ length: width }, () => cell({ value: 2 })),
+      Array.from({ length: width }, () => cell({ value: 3 })),
+      Array.from({ length: width }, () => cell({ value: 4 })),
+    ];
+
+    const startedAt = Date.now();
+    const { result } = map(workbook(sheet), {}, FORMULAS_ON);
+    const elapsed = Date.now() - startedAt;
+
+    expect(result.data[0].every(value => value === '=SEQUENCE(3)')).toBe(true);
+    expect(result.data[1].every(value => value === null)).toBe(true);
+    expect(result.data[2].every(value => value === null)).toBe(true);
+    expect(result.data[3].every(value => value === 4)).toBe(true);
+    expect(elapsed).toBeLessThan(5000);
+  });
+
+  it('should charge every rectangle the sweep looks at on every row it crosses', () => {
+    // Ten single-column masters in row 1, each spilling down the whole 100-row sheet: one charge per
+    // rectangle recorded plus one per rectangle per later row swept, 10 + 10 x 99 = 1000.
+    const masters = 10;
+    const rowCount = 100;
+    const build = () => {
+      const sheet = createSheetSnapshot('Sheet1');
+
+      sheet.rows = Array.from({ length: rowCount }, () => Array.from({ length: masters }, () => cell({ value: 0 })));
+      sheet.rows[0] = Array.from({ length: masters }, (_, col) => {
+        const letter = String.fromCharCode(65 + col);
+
+        return cell({
+          formula: {
+            text: 'SEQUENCE(100)', result: 1, array: { ref: `${letter}1:${letter}${rowCount}`, dynamic: true },
+          },
+        });
+      });
+
+      return workbook(sheet);
+    };
+    const charge = masters * rowCount;
+    const fits = build();
+    const refused = build();
+
+    fits.translatedFormulaChars = MAX_TRANSLATED_FORMULA_CHARS - charge;
+    refused.translatedFormulaChars = MAX_TRANSLATED_FORMULA_CHARS - charge + 1;
+
+    expect(map(fits, {}, FORMULAS_ON).result.data[rowCount - 1]).toEqual(Array(masters).fill(null));
+
+    let thrown = null;
+
+    try {
+      map(refused, {}, FORMULAS_ON);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(isLimitError(thrown)).toBe(true);
+  });
+
+  it('should charge the spilled rows to the formula budget, so a whole-sheet ref is refused', () => {
+    // `A1:XFD1048576` records one entry per row of the window it covers, so the rows it spills
+    // over are charged against the same budget as the formula walks.
+    const rowCount = 2000;
+    const build = () => {
+      const sheet = createSheetSnapshot('Sheet1');
+
+      sheet.rows = Array.from({ length: rowCount }, (_, row) => [cell({ value: row })]);
+      sheet.rows[0] = [
+        cell({ formula: { text: 'SEQUENCE(9)', result: 1, array: { ref: 'A1:XFD1048576', dynamic: true } } }),
+      ];
+
+      return workbook(sheet);
+    };
+    const fits = build();
+    const refused = build();
+
+    fits.translatedFormulaChars = MAX_TRANSLATED_FORMULA_CHARS - rowCount;
+    refused.translatedFormulaChars = MAX_TRANSLATED_FORMULA_CHARS - rowCount + 1;
+
+    const { result } = map(fits, {}, FORMULAS_ON);
+
+    expect(result.data[0][0]).toBe('=SEQUENCE(9)');
+    expect(result.data[rowCount - 1][0]).toBe(null);
+
+    let thrown = null;
+
+    try {
+      map(refused, {}, FORMULAS_ON);
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(isLimitError(thrown)).toBe(true);
+  });
+});
+
+describe('mapWorkbook – the workbook\'s defined names as named expressions', () => {
+  /**
+   * A `Data` sheet with a header row and a row-header column, so the window starts at sheet `B2`:
+   * `G2:G4` holds 10, 20, 30 (the grid's `F1:F3`), `C2` sums `Sales` and `C3` sums `Other`.
+   *
+   * @param {object[]} names The workbook's defined names.
+   * @param {object[]} [extraRow] Cells appended as one more data row.
+   * @returns {object} The workbook snapshot.
+   */
+  function salesWorkbook(names, extraRow = []) {
+    const data = createSheetSnapshot('Data');
+    const rates = createSheetSnapshot('Rates');
+    const row = (label, formula, amount) => [
+      text(label), text('x'), formula ? cell({ formula }) : null, null, null, null, cell({ value: amount }),
+    ];
+
+    data.rows = [
+      [null, text('Name'), text('Total'), null, null, null, text('Amount')],
+      row('r1', { text: 'SUM(Sales)', result: 60 }, 10),
+      row('r2', { text: 'SUM(Other)', result: 60 }, 20),
+      row('r3', null, 30),
+    ];
+
+    if (extraRow.length > 0) {
+      data.rows.push(extraRow);
+    }
+
+    rates.rows = [[cell({ value: 1 })]];
+
+    const wb = workbook(data, rates);
+
+    wb.definedNames = names;
+
+    return wb;
+  }
+
+  const NAMES = [
+    { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+    { name: 'TaxRate', formula: '0.07', sheetName: null },
+    { name: 'Other', formula: 'Rates!$A$1', sheetName: null },
+    { name: 'Bad', formula: 'B2:', sheetName: null },
+    { name: 'Local', formula: 'Rates!$A$1', sheetName: 'Rates' },
+  ];
+  const OPTIONS = { colHeaders: 'firstRow', rowHeaders: true };
+
+  /**
+   * The Formulas plugin's state, with an engine that refuses `Bad` and records every question.
+   *
+   * @param {object} [overrides] Context keys to replace.
+   * @returns {object}
+   */
+  function contextOf(overrides = {}) {
+    const asked = [];
+
+    return {
+      asked,
+      context: {
+        formulasEnabled: true,
+        commentsEnabled: false,
+        customBordersEnabled: false,
+        formulaSheetNames: new Set(['sheet1']),
+        formulaSheetName: 'Sheet1',
+        formulaNamedExpressions: new Set(),
+        canAddNamedExpression: (name, expression) => {
+          asked.push([name, expression]);
+
+          return name !== 'Bad';
+        },
+        ...overrides,
+      },
+    };
+  }
+
+  it('should register the names over the imported sheet and constants, shifted and qualified with the grid\'s sheet', () => {
+    const { context, asked } = contextOf();
+    const { result } = map(salesWorkbook(NAMES), OPTIONS, context);
+
+    // HyperFormula reads an unqualified `$F$1:$F$3` as relative and refuses it in a named expression,
+    // so the own-sheet reference is qualified with the engine's name for the grid's sheet.
+    expect(result.namedExpressions).toEqual([
+      { name: 'Sales', formula: 'Sheet1!$F$1:$F$3' },
+      { name: 'TaxRate', formula: '0.07' },
+    ]);
+    expect(asked).toEqual([['Sales', '=Sheet1!$F$1:$F$3'], ['TaxRate', '=0.07'], ['Bad', '=A1:']]);
+    expect(result.dropped).toContain('definedNames:unsupported');
+    expect(result.dropped.filter(name => name === 'definedNames:unsupported')).toHaveLength(1);
+  });
+
+  it('should never register a flagged name, and let it hide no valid name of its scope', () => {
+    const valid = { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null };
+    const flagged = sheetName => ({ name: 'Sales', formula: '', sheetName, unsupported: true });
+
+    // A flagged workbook-scope entry (a scope naming no sheet) listed first: the valid one is taken.
+    const beside = map(salesWorkbook([flagged(null), valid]), OPTIONS, contextOf().context).result;
+
+    expect(beside.namedExpressions).toEqual([{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }]);
+    expect(beside.data[0][1]).toBe('=SUM(Sales)');
+    expect(beside.dropped).not.toContain('formula:definedName');
+
+    // Flagged alone: nothing registered, the formula imports its cached value.
+    const alone = map(salesWorkbook([flagged(null)]), OPTIONS, contextOf().context).result;
+
+    expect(alone.namedExpressions).toBeUndefined();
+    expect(alone.data[0][1]).toBe(60);
+    expect(alone.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+
+    // Flagged and scoped to the imported sheet: Excel reads that one there, so the workbook-scoped
+    // `Sales` must not stand in for it.
+    const scoped = map(salesWorkbook([valid, flagged('Data')]), OPTIONS, contextOf().context).result;
+
+    expect(scoped.namedExpressions).toBeUndefined();
+    expect(scoped.data[0][1]).toBe(60);
+    expect(scoped.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should import a formula over a flagged name as its cached value, even when the engine defines the name alike', () => {
+    // The ExcelJS reader flags every name: it lost the scope, so a definition matching the engine's
+    // proves nothing (of a workbook and a sheet `Rate`, ExcelJS keeps one and calls it workbook-wide).
+    const flagged = { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null, unsupported: true };
+    const contexts = {
+      matching: contextOf({
+        formulaNamedExpressions: new Set(['sales']),
+        definesNamedExpression: () => true,
+      }).context,
+      unchecked: contextOf({ formulaNamedExpressions: new Set(['sales']) }).context,
+      cannotAdd: contextOf({ formulaNamedExpressions: new Set(['sales']), canAddNamedExpression: undefined }).context,
+    };
+
+    Object.values(contexts).forEach((context) => {
+      const { result } = map(salesWorkbook([flagged]), OPTIONS, context);
+
+      expect(result.namedExpressions).toBeUndefined();
+      expect(result.data[0][1]).toBe(60);
+      expect(result.dropped).toContain('formula:definedName');
+    });
+
+    expect(map(salesWorkbook([flagged]), OPTIONS, contexts.matching).result.dropped)
+      .toContain('definedNames:unsupported');
+  });
+
+  it('should keep a formula over absolute references and column spans live beside a flagged one-letter name', () => {
+    // The ExcelJS reader flags every name. `$G$2` and `G:G` hold no name, but the scan used to read
+    // their `G` as one and import the formula as its cached value.
+    const flagged = { name: 'G', formula: 'Data!$G$2', sheetName: null, unsupported: true };
+    const refs = [text('r4'), text('x'), cell({ formula: { text: 'SUM($G$2:$G$4)+G$2+COUNT(G:G)', result: 73 } })];
+    const named = [text('r5'), text('x'), cell({ formula: { text: 'G*2', result: 20 } })];
+    const wb = salesWorkbook([flagged], refs);
+
+    wb.sheets[0].rows.push(named);
+
+    const { result } = map(wb, OPTIONS, contextOf().context);
+
+    expect(result.data[3][1]).toBe('=SUM($F$1:$F$3)+F$1+COUNT(F:F)');
+    // A formula that reads the name itself still imports its cached value.
+    expect(result.data[4][1]).toBe(20);
+    expect(result.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should report a flagged name only when a formula uses it', () => {
+    // Every name the ExcelJS reader returns is flagged, so reporting the unused ones warned on every
+    // ExcelJS import of a workbook with names.
+    const sales = { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null };
+    const unused = { name: 'Unused', formula: 'Data!$G$2', sheetName: null, unsupported: true };
+    const quiet = map(salesWorkbook([sales, unused]), OPTIONS, contextOf().context).result;
+
+    expect(quiet.dropped).not.toContain('definedNames:unsupported');
+    expect(quiet.data[0][1]).toBe('=SUM(Sales)');
+
+    const used = map(salesWorkbook([{ ...sales, unsupported: true }, unused]), OPTIONS, contextOf().context).result;
+
+    expect(used.data[0][1]).toBe(60);
+    expect(used.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+
+    // Without the engine check (`canAddNamedExpression`), a used flagged name is reported the same way.
+    const unchecked = map(
+      salesWorkbook([{ ...sales, unsupported: true }]), OPTIONS, contextOf({ canAddNamedExpression: undefined }).context
+    ).result;
+
+    expect(unchecked.data[0][1]).toBe(60);
+    expect(unchecked.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should import a formula over a registered name live and one over a left-out name as its cached value', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook(NAMES), OPTIONS, context);
+
+    expect(result.data[0][1]).toBe('=SUM(Sales)');
+    expect(result.data[1][1]).toBe(60);
+    expect(result.formulas).toEqual([{ row: 1, col: 1, formula: 'SUM(Other)' }]);
+    expect(result.dropped).toContain('formula:definedName');
+  });
+
+  it('should leave out a name the engine already defines and keep the formulas over it live', () => {
+    const { context, asked } = contextOf({ formulaNamedExpressions: new Set(['sales']) });
+    const { result } = map(salesWorkbook(NAMES), OPTIONS, context);
+
+    expect(result.namedExpressions).toEqual([{ name: 'TaxRate', formula: '0.07' }]);
+    expect(asked.map(([name]) => name)).not.toContain('Sales');
+    expect(result.data[0][1]).toBe('=SUM(Sales)');
+  });
+
+  it('should register a name scoped to the imported sheet, ahead of a workbook name spelled like it', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook([
+      { name: 'Sales', formula: 'Data!$G$3', sheetName: null },
+      { name: 'SALES', formula: 'data!$G$2:$G$4', sheetName: 'DATA' },
+    ]), OPTIONS, context);
+
+    expect(result.namedExpressions).toEqual([{ name: 'SALES', formula: 'Sheet1!$F$1:$F$3' }]);
+    expect(result.dropped).not.toContain('definedNames:unsupported');
+  });
+
+  it('should ignore a name scoped to another sheet without reporting it', () => {
+    const { context, asked } = contextOf();
+    const names = [{ name: 'Local', formula: 'Data!$G$2', sheetName: 'Rates' }];
+    const { result } = map(salesWorkbook(names), OPTIONS, context);
+
+    expect(result.namedExpressions).toBeUndefined();
+    expect(asked).toEqual([]);
+    expect(result.dropped).not.toContain('definedNames:unsupported');
+  });
+
+  it('should read no name in an error literal', () => {
+    // `#N/A` read as the names `n` and `a`: a name `N` the import cannot take (here one scoped to
+    // another sheet) made every formula spelling `#N/A` import its cached value.
+    const { context } = contextOf();
+    const scoped = ['N', 'A', 'Div', 'Name', 'Getting_Data', 'Null', 'Field', 'Blocked', 'Unknown', 'Connect',
+      'Busy', 'External', 'Python']
+      .map(name => ({ name, formula: 'Rates!$A$1', sheetName: 'Rates' }));
+    const errors = 'IF(G2>0,#N/A,IF(G3>0,#div/0!,IFERROR(#NAME?,#GETTING_DATA)))';
+    // The errors newer Excel versions write (data types, blocked links, Python cells).
+    const newer = 'IFERROR(#FIELD!,IFERROR(#BLOCKED!,IFERROR(#UNKNOWN!,IFERROR(#connect!,'
+      + 'IFERROR(#BUSY!,IFERROR(#EXTERNAL!,#PYTHON!))))))';
+    const { result } = map(salesWorkbook([...scoped, NAMES[0]], [
+      text('r4'), text('x'), cell({ formula: { text: errors, result: '#N/A', resultIsError: true } }),
+      cell({ formula: { text: newer, result: '#FIELD!', resultIsError: true } }),
+      null, null, cell({ formula: { text: 'IF(G2>0,N,1)', result: 1 } }),
+    ]), OPTIONS, context);
+
+    expect(result.data[3][1]).toBe('=IF(F1>0,#N/A,IF(F2>0,#div/0!,IFERROR(#NAME?,#GETTING_DATA)))');
+    expect(result.data[3][2]).toBe(`=${newer}`);
+    // A name spelled outside an error literal is still read.
+    expect(result.data[3][5]).toBe(1);
+    expect(result.dropped).toContain('formula:definedName');
+  });
+
+  it('should leave out a name over the spill operator, even when the engine cannot list its functions', () => {
+    // `Sheet1!$B$1#` is stored as `_xlfn.ANCHORARRAY(Sheet1!$B$1)`. HyperFormula has no ANCHORARRAY,
+    // so the name would be `#NAME?` and `COUNTA(Spill)` would count that error as one value.
+    const { context, asked } = contextOf();
+    const names = [{ name: 'Spill', formula: '_xlfn.anchorarray(Data!$G$2)', sheetName: null }];
+    const { result } = map(salesWorkbook(names, [
+      text('r4'), text('x'), cell({ formula: { text: 'COUNTA(Spill)', result: 3 } }),
+    ]), OPTIONS, context);
+
+    expect(asked).toEqual([]);
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.data[3][1]).toBe(3);
+    expect(result.dropped).toContain('definedNames:unsupported');
+  });
+
+  it('should leave out a name the window shift pushes into the dropped header band', () => {
+    const { context } = contextOf();
+    const names = [{ name: 'Header', formula: 'Data!$A$1', sheetName: null }];
+    const { result } = map(salesWorkbook(names), OPTIONS, context);
+
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.dropped).toContain('definedNames:unsupported');
+  });
+
+  it('should leave out a name defined over a name that was left out, and import the formulas over it cached', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook([
+      { name: 'Doubled', formula: 'Total*2', sheetName: null },
+      { name: 'Total', formula: 'SUM(Bad)', sheetName: null },
+      { name: 'Bad', formula: 'B2:', sheetName: null },
+      { name: 'Sales', formula: 'Data!$G$2:$G$4', sheetName: null },
+    ], [text('r4'), text('x'), cell({ formula: { text: 'Doubled+1', result: 5 } })]), OPTIONS, context);
+
+    expect(result.namedExpressions).toEqual([{ name: 'Sales', formula: 'Sheet1!$F$1:$F$3' }]);
+    expect(result.data[3][1]).toBe(5);
+    expect(result.dropped).toContain('formula:definedName');
+  });
+
+  it('should strip the stored function prefixes from a definition', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook([
+      { name: 'Spread', formula: '_xlfn.STDEV.S(Data!$G$2:$G$4)', sheetName: null },
+    ]), OPTIONS, context);
+
+    expect(result.namedExpressions).toEqual([{ name: 'Spread', formula: 'STDEV.S(Sheet1!$F$1:$F$3)' }]);
+  });
+
+  it('should keep a formula live over a name the engine defines the same way, and import it cached when it differs', () => {
+    // A re-import of an updated file: the engine still holds the previous import's `Sales`.
+    const compared = [];
+    const engineHas = formula => contextOf({
+      formulaNamedExpressions: new Set(['sales']),
+      definesNamedExpression: (name, expression) => {
+        compared.push([name, expression]);
+
+        return expression === formula;
+      },
+    }).context;
+
+    const same = map(salesWorkbook(NAMES.slice(0, 2)), OPTIONS, engineHas('=Sheet1!$F$1:$F$3'));
+
+    expect(compared).toEqual([['Sales', '=Sheet1!$F$1:$F$3']]);
+    expect(same.result.namedExpressions).toEqual([{ name: 'TaxRate', formula: '0.07' }]);
+    expect(same.result.data[0][1]).toBe('=SUM(Sales)');
+    expect(same.result.dropped).not.toContain('definedNames:unsupported');
+
+    const changed = map(salesWorkbook(NAMES.slice(0, 2)), OPTIONS, engineHas('=Sheet1!$F$1:$F$2'));
+
+    expect(changed.result.namedExpressions).toEqual([{ name: 'TaxRate', formula: '0.07' }]);
+    expect(changed.result.data[0][1]).toBe(60);
+    expect(changed.result.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should treat a name the engine defines as changed when the file\'s definition cannot be expressed', () => {
+    const { context } = contextOf({
+      formulaNamedExpressions: new Set(['sales']),
+      definesNamedExpression: () => true,
+    });
+    const { result } = map(salesWorkbook([{ name: 'Sales', formula: 'Data!$A$1', sheetName: null }]), OPTIONS, context);
+
+    expect(result.data[0][1]).toBe(60);
+    expect(result.dropped).toEqual(expect.arrayContaining(['definedNames:unsupported', 'formula:definedName']));
+  });
+
+  it('should register both names of a cycle, and stop', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook([
+      { name: 'Ping', formula: 'Pong+1', sheetName: null },
+      { name: 'Pong', formula: 'Ping+1', sheetName: null },
+    ]), OPTIONS, context);
+
+    expect(result.namedExpressions).toEqual([{ name: 'Ping', formula: 'Pong+1' }, { name: 'Pong', formula: 'Ping+1' }]);
+  });
+
+  it('should leave out a name defined over a name scoped to another sheet', () => {
+    const { context } = contextOf();
+    const { result } = map(salesWorkbook([
+      { name: 'Local', formula: 'Rates!$A$1', sheetName: 'Rates' },
+      { name: 'Twice', formula: 'Local*2', sheetName: null },
+    ]), OPTIONS, context);
+
+    expect(result.namedExpressions).toBeUndefined();
+    expect(result.dropped).toContain('definedNames:unsupported');
+  });
+
+  it('should register nothing without the engine check, with the Formulas plugin off, or with importFormulas off', () => {
+    const noCheck = map(salesWorkbook(NAMES), OPTIONS, contextOf({ canAddNamedExpression: undefined }).context);
+
+    expect(noCheck.result.namedExpressions).toBeUndefined();
+    expect(noCheck.result.data[0][1]).toBe(60);
+    expect(noCheck.result.dropped).toContain('formula:definedName');
+
+    const { context, asked } = contextOf({ formulasEnabled: false });
+    const off = map(salesWorkbook(NAMES), OPTIONS, context);
+
+    expect(off.result.namedExpressions).toBeUndefined();
+    expect(asked).toEqual([]);
+
+    const cached = map(salesWorkbook(NAMES), { ...OPTIONS, importFormulas: false }, contextOf().context);
+
+    expect(cached.result.namedExpressions).toBeUndefined();
+    expect(cached.result.dropped).not.toContain('definedNames:unsupported');
   });
 });

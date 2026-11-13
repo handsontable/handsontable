@@ -8,6 +8,7 @@ import { warn } from '../../helpers/console';
 import { hasOwnProperty } from '../../helpers/object';
 import { clampMoveTarget } from './helpers';
 import { collectMovableMeta, MOVABLE_META_KEYS } from '../../utils/movableMeta';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'moveCells';
 export const PLUGIN_PRIORITY = 25;
@@ -49,6 +50,14 @@ export class MoveCells extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -112,6 +121,7 @@ export class MoveCells extends BasePlugin {
 
     this.addHook('afterOnSelectionEdgeMouseDown', this.#onSelectionEdgeMouseDown);
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('beforeLoadData', this.#onBeforeDataReplace);
     this.#registerShortcuts();
     super.enablePlugin();
   }
@@ -398,6 +408,15 @@ export class MoveCells extends BasePlugin {
   };
 
   /**
+   * Cancels a drag held while the grid's data is replaced (`loadData()`, a sheet
+   * switch). The drag names the cells of the data it started on, and its release would move the cells
+   * of the data that replaced it.
+   */
+  #onBeforeDataReplace = (): void => {
+    this.#endDrag(false, null);
+  };
+
+  /**
    * Refreshes the preview after DragToScroll changes the rendered viewport.
    */
   #onAfterScroll = (): void => {
@@ -640,7 +659,7 @@ export class MoveCells extends BasePlugin {
     const targetBottom = targetRow + (toRow - fromRow);
     const targetRight = targetCol + (toCol - fromCol);
     const sourceMeta = collectMovableMeta(this.hot, fromRow, fromCol, toRow, toCol);
-    const targetMeta = collectMovableMeta(this.hot, targetRow, targetCol, targetBottom, targetRight);
+    const targetMeta = collectMovableMeta(this.hot, targetRow, targetCol, targetBottom, targetRight, true);
     const sourceByCoord = new Map(sourceMeta.map(({ row, col, meta }) => [`${row}:${col}`, meta]));
 
     sourceMeta.forEach(({ row, col, meta }) => {

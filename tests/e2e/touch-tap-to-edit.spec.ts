@@ -16,6 +16,7 @@ import { TouchTapToEditPage } from '../fixtures/pages/TouchTapToEditPage';
  * counters are then read with `grid.expectHookCountExactly()`, a plain (non-polling)
  * assertion, so an over-count fails instead of passing on a first match.
  */
+// leg-declarations: ignore geometry-helper -- dispatchTouchDrag() reads the cell box only to place a script touch. The compared value is touchend.defaultPrevented, which no theme changes.
 test.use({
   ...devices['Desktop Chrome'],
   hasTouch: true,
@@ -90,13 +91,14 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.openContextMenu(1, 1);
 
     await grid.tapContextMenuItem('Insert row above');
+    await grid.tapOutsideGrid();
 
     // Click trace with the document-wide counter: the first tap lands on an unselected cell and
     // is preventDefault-ed, synthesizing nothing (0); the right-click that opens the context menu
     // never fires a `click` event at all — Chromium fires `click` only for the primary button (0);
-    // the menu item's `.tap()` synthesizes one click on the ContextMenu's own Handsontable root,
-    // which the document-wide listener now covers (1). Total: 1 — the settle barrier for the
-    // duplicate-command guard this test exists for (#12803).
+    // the menu runs the tapped item on `touchend` and cancels it, so the item's tap synthesizes no
+    // mouse events and no click either (0); the tap on the page margin synthesizes one (1). That
+    // last click is the settle barrier for the duplicate-command guard this test exists for (#12803).
     await grid.settleOnClicks(1);
     await grid.expectHookCountExactly('afterCreateRow', 1);
     expect(await grid.rowCount()).toBe(6);
@@ -180,6 +182,17 @@ test.describe('touch tap-to-edit on a device with touch and mouse listeners', ()
     await grid.expectHookCountExactly('beforeOnCellMouseDown', 2);
     await grid.expectHookCountExactly('beforeOnCellMouseUp', 2);
     await grid.expectEditorClosed();
+  });
+
+  test('a drift past the move threshold over an unselected cell cancels touchend', async () => {
+    // 12 px is past the 10 px threshold, so the touch path never calls onMouseDown and the
+    // cell stays unselected. touchend must still be cancelled (#11659). A script touch does
+    // not synthesize a click, so the cancelled event itself is the signal.
+    const prevented = await grid.dispatchTouchDrag(1, 1, 12);
+
+    expect(prevented).toBe(true);
+    await grid.expectHookCountExactly('beforeOnCellMouseDown', 0);
+    expect(await grid.page.evaluate(() => window.hot.getSelectedLast() ?? null)).toBeNull();
   });
 
   test('a scroll gesture between two taps cancels the double-tap pairing', async ({ page }) => {

@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { NestedHeadersRowspanPage } from '../fixtures/pages/NestedHeadersRowspanPage';
 
 /**
@@ -10,7 +10,7 @@ import { NestedHeadersRowspanPage } from '../fixtures/pages/NestedHeadersRowspan
  * paints over, and expected a left border no header has. These are the checks as they should
  * have been written.
  */
-test.describe('nested headers with rowspan', () => {
+test.describe('nested headers with rowspan', { tag: THEMES_TAG }, () => {
   const { MENUS, SCROLL, ACTIVE_HEADER_CLASS } = NestedHeadersRowspanPage;
   // In the menus grid: "D/E" spans levels 1-2 over columns 3-4, "This is a very long header
   // title" spans levels 1-2 over column 0, and B2 and C2 sit on the bottom level.

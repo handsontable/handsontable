@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 
 /**
@@ -8,13 +8,13 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
  * the next time the handle is enabled the plugin still believes the pointer is pressed
  * (DEV-2782, the lifecycle twin of GitHub #13370).
  */
-test.describe('fill handle disabled mid-drag', () => {
+test.describe('fill handle disabled mid-drag', { tag: THEMES_TAG }, () => {
   let grid: SelectionFeaturesPage;
 
   const DATA = Array.from({ length: 8 }, (_, row) => [`A${row + 1}`, null, null, null]);
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new SelectionFeaturesPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new SelectionFeaturesPage(page, theme, bundle);
     await grid.goto();
     await grid.initGrid({ data: DATA });
   });

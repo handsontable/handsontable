@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a string `dataProvider.rowId` reading a nested property instead of the row's own property with a dot in its name, the value the cell shows. `dataProvider.rowId` now reads the source row itself, so a function key receives that row instead of a copy, and `modifySourceData` no longer changes the id.",
+  "type": "fixed",
+  "issueOrPR": 13923,
+  "breaking": false,
+  "framework": "none"
+}

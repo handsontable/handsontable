@@ -1,21 +1,21 @@
 ---
 type: explanation
 title: Cell type
-metaTitle: Cell type - JavaScript Data Grid | Handsontable
-description: Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
+metaTitle: Cell type | Handsontable DataGrid for JavaScript
+description: Use Handsontable DataGrid's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 permalink: /cell-type
 canonicalUrl: /cell-type
 react:
-  metaTitle: Cell type - React Data Grid | Handsontable
+  metaTitle: Cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Cell type - Angular Data Grid | Handsontable
+  metaTitle: Cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cell type - Vue Data Grid | Handsontable
+  metaTitle: Cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
 ---
-Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
+Use Handsontable DataGrid's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 
 [[toc]]
 
@@ -83,7 +83,7 @@ registerAllModules();
 
 const hotSettings = ref({
   columns: [{ type: 'password' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -152,7 +152,7 @@ const hotSettings = ref({
     renderer: Handsontable.renderers.PasswordRenderer,
     copyable: false,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -231,7 +231,7 @@ const hotSettings = ref({
     readOnly: true,
     myCustomProperty: 'foo',
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -379,7 +379,7 @@ registerAllModules();
 
 const hotSettings = ref({
   columns: [{ type: 'my.custom' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -458,7 +458,7 @@ const hotSettings = ref({
     // validator function defined elsewhere
     validator: customValidator,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -535,7 +535,7 @@ const hotSettings = ref({
     editor: Handsontable.editors.TextEditor,
     validator: customValidator,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -609,7 +609,7 @@ registerAllModules();
 const hotSettings = ref({
   validator: customValidator,
   columns: [{ type: 'my.custom' }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -729,7 +729,7 @@ const hotSettings = ref({
     editor: Handsontable.editors.TextEditor,
     validator: customValidator,
   }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -739,6 +739,28 @@ const hotSettings = ref({
 ```
 
 :::
+
+### Exception: `editor: false`
+
+The [`editor`](@/api/options.md#editor) option set to `false` is the one exception to this rule. `editor: false` doesn't name an editor. It switches editing off, so a [`type`](@/api/options.md#type) set on a more specific level doesn't re-enable editing. The type still applies its other functions, such as the [`renderer`](@/api/options.md#renderer) and the [`validator`](@/api/options.md#validator):
+
+```js
+editor: false,
+columns: [
+  // non-editable, but still rendered and validated as numeric
+  { type: 'numeric' },
+  // editable: an `editor` set on the same level as the `type` opts the column back in
+  { type: 'numeric', editor: 'numeric' }
+]
+```
+
+A named editor isn't an exception. For example, a grid-level `editor: 'password'` is still replaced by the editor of a column's `type`.
+
+### Change the grid-level type at runtime
+
+When you change the grid-level [`type`](@/api/options.md#type) with [`updateSettings()`](@/api/core.md#updatesettings), the grid applies the new type's editor, renderer, and validator, the same as a grid created with that `type`. The options of the previous type that the new type doesn't set go back to their defaults. Cells that were already drawn also lose what the previous type's renderer stored on them, such as the alignment class of the [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) type. The reset keeps the meta you set with [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cell`](@/api/options.md#cell) option. A `className` you set that way loses the classes the renderer added to it, such as `htRight` and `htNumeric`. It keeps the classes you chose. That includes an alignment you picked from the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) or set yourself. If you read the rendered `className` with [`getCellMeta()`](@/api/core.md#getcellmeta) and write it back, with or without an extra class, the renderer classes in it count as yours, and the cell keeps them. A property you write straight onto the object that [`getCellMeta()`](@/api/core.md#getcellmeta) returns doesn't survive the reset. The same goes for the [Search](@/guides/navigation/searching-values/searching-values.md) results, so call [`query()`](@/api/search.md#query) again after the type change.
+
+Any grid-level option you set earlier, or in the same call, keeps winning over the type. That includes an [`editor`](@/api/options.md#editor), a [`renderer`](@/api/options.md#renderer), and a [`validator`](@/api/options.md#validator). An `editor` set to `false` keeps editing switched off, while the new type still supplies its renderer and validator. To let the type supply an option again, pass `undefined` for it (an option the grid was created with as `undefined` stays unset), or pass `editor: true` next to the new `type`. A column or cell with its own `type` isn't affected. A `type` name that no cell type is registered under is ignored.
 
 ## Built-in cell types example
 
@@ -791,11 +813,9 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 It's worth to mention that values such as `''` (empty string), `null` and `undefined` are considered empty values. Cells with empty values are displayed in a similar way for most of the data types (see below).
 
-::: tip
+The value of a cleared cell depends on how you cleared it. For every case, see [Empty cell values](@/guides/getting-started/binding-to-data/binding-to-data.md#empty-cell-values).
 
-Please keep in mind that opening a cell with `undefined` and `null` values results in overwriting the original value with an empty string. Moreover, copying and pasting that values will result in pasting the empty string.
-
-:::
+A cell that you never filled in keeps the value it was loaded with, so it can differ from a cell you filled in and then cleared. To store one kind of empty value for every way of clearing a cell, set the [`emptyValue`](@/api/options.md#emptyvalue) option.
 
 ::: only-for javascript
 

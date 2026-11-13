@@ -6,6 +6,7 @@ import { isObject } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
 import { isUndefined } from '../../helpers/mixed';
 import { localeLowerCase } from '../../helpers/string';
+import { LICENSE } from './feature.generated';
 
 /**
  * Local type-guard narrowing `unknown` to `Record<string, unknown>`.
@@ -73,7 +74,7 @@ interface CellSearchMeta {
  * @class Search
  *
  * @description
- * The search plugin provides an easy interface to search data across Handsontable.
+ * The search plugin provides an interface to search data across the grid.
  *
  * In order to enable search mechanism, {@link Options#search} option must be set to `true`.
  *
@@ -115,6 +116,14 @@ export class Search extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Function called during querying for each cell from the {@link DataMap}.
    *
    * @private
@@ -135,6 +144,26 @@ export class Search extends BasePlugin {
    * @type {string}
    */
   searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
+  /**
+   * The last enabling value applied from the `search` setting, so that `true` replacing an object can
+   * be told apart from `true` sent again. Cleared when the `search` setting turns the plugin off.
+   */
+  #appliedSettings: unknown = null;
+
+  /**
+   * Returns the value each option an object setting sets takes when the object leaves it out: an object
+   * sets the options it names and keeps the others (see `BasePlugin`). Internal; not public API.
+   *
+   * @private
+   * @returns {object}
+   */
+  _getObjectSettingDefaults(): Record<string, unknown> {
+    return {
+      searchResultClass: DEFAULT_SEARCH_RESULT_CLASS,
+      queryMethod: DEFAULT_QUERY_METHOD,
+      callback: DEFAULT_CALLBACK,
+    };
+  }
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -174,6 +203,10 @@ export class Search extends BasePlugin {
     // always did. Every cell then repaints from the stripped meta, under any `renderMode`.
     this.#removeResultClassFromStoredMeta();
     this.hot.markAllCellsChanged();
+
+    if (!this.isEnabled()) {
+      this.#appliedSettings = null;
+    }
 
     super.disablePlugin();
   }
@@ -295,22 +328,45 @@ export class Search extends BasePlugin {
   /**
    * Updates the settings of the plugin.
    *
+   * An object sets the options it names and keeps the others. A value that is not an object (`true`)
+   * replacing an object puts the three options back to their defaults, the way a grid built with that
+   * value starts, including the values set at runtime through `setQueryMethod()`, `setCallback()` and
+   * `setSearchResultClass()`. The same value sent again changes nothing, so the values set through those
+   * setters survive it. A `search: false` forgets the object, so the `true` that turns the plugin back on
+   * keeps the options as they were.
+   *
    * @param {object} searchSettings The plugin settings, taken from Handsontable configuration.
    * @private
    */
   updatePluginSettings(searchSettings: Record<string, unknown>) {
-    if (isObject(searchSettings)) {
-      if (searchSettings.searchResultClass) {
-        this.setSearchResultClass(String(searchSettings.searchResultClass));
+    if (!searchSettings) {
+      return;
+    }
+
+    const previousSettings = this.#appliedSettings;
+
+    this.#appliedSettings = searchSettings;
+
+    if (!isObject(searchSettings)) {
+      if (isObject(previousSettings)) {
+        this.setSearchResultClass(DEFAULT_SEARCH_RESULT_CLASS);
+        this.setQueryMethod(DEFAULT_QUERY_METHOD);
+        this.setCallback(DEFAULT_CALLBACK);
       }
 
-      if (searchSettings.queryMethod) {
-        this.setQueryMethod(searchSettings.queryMethod as typeof DEFAULT_QUERY_METHOD);
-      }
+      return;
+    }
 
-      if (searchSettings.callback) {
-        this.setCallback(searchSettings.callback as typeof DEFAULT_CALLBACK);
-      }
+    if (searchSettings.searchResultClass) {
+      this.setSearchResultClass(String(searchSettings.searchResultClass));
+    }
+
+    if (searchSettings.queryMethod) {
+      this.setQueryMethod(searchSettings.queryMethod as typeof DEFAULT_QUERY_METHOD);
+    }
+
+    if (searchSettings.callback) {
+      this.setCallback(searchSettings.callback as typeof DEFAULT_CALLBACK);
     }
   }
 

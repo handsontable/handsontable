@@ -12,7 +12,9 @@ registerAllModules();
 // exists. Pre-build the engine once. `markRaw` keeps Vue from proxying the instance.
 const hfInstance = markRaw(
   HyperFormula.buildEmpty({
-    licenseKey: 'internal-use-in-handsontable',
+    // this demo uses the GPLv3 key,
+    // use your own HyperFormula license key in your app
+    licenseKey: 'gpl-v3',
   })
 );
 
@@ -38,7 +40,7 @@ const hotSettings = ref<GridSettings>({
   },
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 

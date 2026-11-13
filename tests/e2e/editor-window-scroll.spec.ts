@@ -13,6 +13,7 @@ import { EditorScrollPage } from '../fixtures/pages/EditorScrollPage';
  * while the page scrolls under it), and a regular cell moves with the page.
  * In both, the editor's offset from its cell must not change.
  */
+// leg-declarations: ignore geometry-helper -- compares the editor's and the cell's positions before and after one window scroll; a fixed offset a theme adds cancels in the difference
 test.describe('editor position on window scroll', () => {
   let grid: EditorScrollPage;
 

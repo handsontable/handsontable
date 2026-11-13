@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { AutoHeightScrollbarZoomPage } from '../fixtures/pages/AutoHeightScrollbarZoomPage';
 
 /**
@@ -33,7 +33,7 @@ import { AutoHeightScrollbarZoomPage } from '../fixtures/pages/AutoHeightScrollb
 
 const ZOOMS = [0.9, 0.8, 0.75, 0.67];
 
-test.describe('auto-height grid below 100% zoom', () => {
+test.describe('auto-height grid below 100% zoom', { tag: THEMES_TAG }, () => {
   let grid: AutoHeightScrollbarZoomPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {

@@ -8,16 +8,21 @@ import {
   hasClass,
   isChildOf,
   getParent,
+  isHTMLElement,
+  isHTMLInputElement,
 } from '../../../helpers/dom/element';
 import { partial } from '../../../helpers/function';
-import { getCellCoordsFromMousePosition } from './utils/pointerToCoords';
+import {
+  getCellCoordsFromMousePosition,
+  getTableViewportBounds,
+  isPointerOutsideBounds,
+  type TableViewportBounds,
+} from './utils/pointerToCoords';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
 import { getMouseEventTouchOrigin, TOUCH_SYNTHESIZED_MOUSE_WINDOW } from '../../../helpers/dom/inputOrigin';
-
-const LONG_PRESS_DELAY = 500;
-const LONG_PRESS_MOVE_THRESHOLD = 10;
+import { LongPressDetector, type LongPressTimers } from '../../../helpers/dom/longPress';
 
 /**
  * How long (ms) after a mousedown the double-click detector keeps waiting for the matching
@@ -70,6 +75,42 @@ export type EventDeps = ReturnType<typeof createEventDeps>;
  * when the event target maps to neither a cell nor a border affordance.
  */
 type ParentCell = ReturnType<Event['parentCell']>;
+
+/**
+ * Whether the finger is on a control the tap is allowed to activate.
+ *
+ * The event target is often nested markup, or the text of a label that owns a file input.
+ *
+ * @param {Element} target The element under the finger.
+ * @returns {boolean}
+ */
+function isTouchActivationTarget(target: Element): boolean {
+  const cell = target.closest('td, th');
+  const activation = target.closest('a, button, input, label');
+
+  if (cell === null || activation === null || !cell.contains(activation)) {
+    return false;
+  }
+
+  if (!isHtmlLabel(activation)) {
+    return true;
+  }
+
+  const labeled = activation.control;
+
+  return isHTMLElement(labeled) && isHTMLInputElement(labeled) && labeled.type === 'file';
+}
+
+/**
+ * Narrows a label so `HTMLLabelElement.control` is visible. That property is the
+ * labeled element for both a wrapping label and a `for` label.
+ *
+ * @param {Element} element A candidate activation control.
+ * @returns {boolean}
+ */
+function isHtmlLabel(element: Element): element is HTMLLabelElement {
+  return element.tagName === 'LABEL';
+}
 
 /**
  * @class Event
@@ -134,24 +175,19 @@ class Event {
    */
   #lastTapAt: number = 0;
   /**
-   * Timer ID for the long-press gesture detection.
+   * Times the current touch press, tells a long press (which opens the context menu) from a tap,
+   * and a press that drifted (a scroll) from both.
    *
-   * @type {number|null}
+   * @type {LongPressDetector}
    */
-  #longPressTimeout: ReturnType<typeof setTimeout> | null = null;
+  #longPress: LongPressDetector;
   /**
-   * Marks that the long-press contextmenu gesture has been triggered for the current touch.
+   * The `touchstart` of the press the detector is timing, which the long press selects the cell
+   * for and raises the `contextmenu` on.
    *
-   * @type {boolean}
+   * @type {TouchEvent|null}
    */
-  #longPressFired: boolean = false;
-  /**
-   * Starting coordinates of a touch gesture (used to detect movement that cancels long-press
-   * and to distinguish a tap from a scroll).
-   *
-   * @type {{ x: number, y: number }|null}
-   */
-  #touchStartCoords: { x: number; y: number } | null = null;
+  #longPressStart: TouchEvent | null = null;
   /**
    * Marks that the current touch gesture has moved beyond the threshold and should be treated
    * as a scroll rather than a tap.
@@ -210,6 +246,10 @@ class Event {
   constructor(deps: EventDeps, parent: Event | null = null) {
     this.#deps = deps;
     this.#parent = parent;
+    this.#longPress = new LongPressDetector({
+      timers: deps.rootWindow as unknown as LongPressTimers,
+      onLongPress: () => this.#onLongPress(),
+    });
 
     this.registerEvents();
   }
@@ -441,7 +481,7 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onContextMenu(event: MouseEvent) {
-    this.#cancelLongPressTimer();
+    this.#longPress.cancel();
 
     if (this.#deps.wtSettings.has('onCellContextMenu')) {
       const cell = this.parentCell(eventTargetEl(event));
@@ -489,37 +529,44 @@ class Event {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { coords, isOutside } = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY);
+    // The cell is looked up only for a pointer outside the table: the lookup walks the rendered cells, and
+    // every pointer move of a held drag comes through here, inside the table too.
+    const bounds = getTableViewportBounds(this.#deps);
 
-    if (isOutside) {
-      const lastCoords = this.#mouseOverOutsideLastCoords;
-
-      if (!lastCoords || lastCoords.row !== coords.row || lastCoords.col !== coords.col) {
-        const TD = this.#deps.wtTable.getCell(coords);
-
-        if (TD instanceof HTMLElement) {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          this.#mouseOverOutsideLastCoords = { row: coords.row, col: coords.col };
-          this.callListener('onCellMouseOverOutside', event, coords, TD);
-        }
-      }
-    } else {
+    if (!isPointerOutsideBounds(bounds, event.clientX, event.clientY)) {
       this.#mouseOverOutsideLastCoords = null;
+
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const coords = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY, bounds);
+    const lastCoords = this.#mouseOverOutsideLastCoords;
+
+    if (!lastCoords || lastCoords.row !== coords.row || lastCoords.col !== coords.col) {
+      const TD = this.#deps.wtTable.getCell(coords);
+
+      if (TD instanceof HTMLElement) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        this.#mouseOverOutsideLastCoords = { row: coords.row, col: coords.col };
+        this.callListener('onCellMouseOverOutside', event, coords, TD);
+      }
     }
   }
 
   /**
-   * Returns the cell coordinates for the given mouse position and whether the mouse is
-   * outside the visible viewport. When the mouse is outside, the nearest edge cell is returned.
+   * Returns the cell coordinates for the given mouse position. A pointer outside the viewport maps to the
+   * nearest edge cell.
    *
    * @private
    * @param {number} mouseX Client X coordinate of the mouse.
    * @param {number} mouseY Client Y coordinate of the mouse.
-   * @returns {{ coords: CellCoords, isOutside: boolean }}
+   * @param {TableViewportBounds} bounds The bounds of the viewport the caller has read already.
+   * @returns {CellCoords}
    */
-  #getCellCoordsFromMousePosition(mouseX: number, mouseY: number) {
-    return getCellCoordsFromMousePosition(this.#deps, mouseX, mouseY);
+  #getCellCoordsFromMousePosition(mouseX: number, mouseY: number, bounds: TableViewportBounds) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return getCellCoordsFromMousePosition(this.#deps, mouseX, mouseY, bounds);
   }
 
   /**
@@ -607,7 +654,7 @@ class Event {
    * @param {ParentCell} cell The tapped cell, as returned by `parentCell()`.
    */
   #handleTouchTap(event: MouseEvent | TouchEvent, cell: ParentCell): void {
-    if (this.#longPressFired || !cell.TD || !cell.coords) {
+    if (this.#longPress.hasFired() || !cell.TD || !cell.coords) {
       this.#lastTapCoords = null;
 
       return;
@@ -657,10 +704,15 @@ class Event {
     this.#selectedCellBeforeTouchEnd = this.#deps.selectionManager.getFocusSelection()?.cellRange ?? null;
     this.touchApplied = true;
     this.#touchWasMoved = false;
-    this.#longPressFired = false;
+    this.#longPress.reset();
     this.#deferredTouchStartEvent = event;
 
-    this.#startLongPressTimer(event);
+    const touch = event.touches[0];
+
+    if (touch) {
+      this.#longPressStart = event;
+      this.#longPress.start(touch.clientX, touch.clientY);
+    }
   }
 
   /**
@@ -673,10 +725,10 @@ class Event {
    */
   onTouchEnd(event: TouchEvent) {
     const wasScrolled = this.#touchWasMoved;
-    const isTap = !wasScrolled && !this.#longPressFired && this.#deferredTouchStartEvent !== null;
+    const isTap = !wasScrolled && !this.#longPress.hasFired() && this.#deferredTouchStartEvent !== null;
     const deferredTouchStartEvent = this.#deferredTouchStartEvent;
 
-    this.#cancelLongPressTimer();
+    this.#longPress.cancel();
     this.#deferredTouchStartEvent = null;
 
     if (isTap && deferredTouchStartEvent !== null) {
@@ -684,36 +736,34 @@ class Event {
     }
 
     const target = eventTargetEl(event);
-    const parentCellCoords = this.parentCell(target)?.coords;
-    const isCellsRange = parentCellCoords !== null && parentCellCoords !== undefined &&
-      ((parentCellCoords.row ?? -1) >= 0 && (parentCellCoords.col ?? -1) >= 0);
+    const parentCellCoords = this.parentCell(target).coords;
+    const isCellsRange = parentCellCoords?.isCell();
     const isEventCancelable = event.cancelable && isCellsRange &&
       this.#deps.wtSettings.getSetting('isDataViewInstance');
 
-    // To prevent accidental redirects or other actions that the interactive elements (e.q "A" link) do
-    // while the cell is highlighted, all touch events that are triggered on different cells are
-    // "preventDefault"'ed. The user can interact with the element (e.q. click on the link that opens
-    // a new page) only when the same cell was previously selected (see related PR #7980).
     if (isEventCancelable) {
-      const interactiveElements = ['A', 'BUTTON', 'INPUT'];
+      const cellWasSelected = this.selectedCellWasTouched(target);
+      const focusCellRange = this.#deps.selectionManager.getFocusSelection()?.cellRange ?? null;
+      // `isCellsRange` already proved these coords are a cell. A boolean does not narrow the type.
+      const focusOnTouchedCell = focusCellRange?.includes(parentCellCoords!);
+      const isCheckbox = target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox';
 
-      // For browsers that use the WebKit as an engine (excluding Safari), there is a bug. The prevent
-      // default has to be called all the time. Otherwise, the second tap won't be triggered (probably
-      // caused by the native ~300ms delay - https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
-      // To make the interactive elements work, the event target element has to be check. If the element
-      // matches the allow-list, the event is not prevented.
-      if (isIOS() &&
-          (isChromeWebKit() || isFirefoxWebKit()) &&
-          this.selectedCellWasTouched(target) &&
-          !interactiveElements.includes(target!.tagName)) {
-        event.preventDefault();
+      // iOS Chrome and iOS Firefox drop the second tap unless preventDefault runs on every
+      // non-interactive tap (https://webkit.org/blog/5610/more-responsive-tapping-on-ios/).
+      // With visual selection off the cell is never the focus, so this does not look at
+      // whether the cell was already selected.
+      const blocksWebKitSecondTap = isIOS() &&
+        (isChromeWebKit() || isFirefoxWebKit()) &&
+        !isTouchActivationTarget(target!);
+      // A tap that moved focus onto the cell must not also activate a control (#7980).
+      // A non-tap never ran the deferred mousedown, so a compatibility mousedown inside the
+      // browser's tap slop would otherwise select the unselected cell (#11659). A drift that
+      // ends on the already-selected cell is left alone (DEV-2687).
+      const blocksUnselectedGesture = !cellWasSelected &&
+        !isCheckbox &&
+        (focusOnTouchedCell || !isTap);
 
-      } else if (!this.selectedCellWasTouched(target) &&
-                 !(target!.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox')) {
-        // For other browsers, prevent default is fired only for the first tap and only when the previous
-        // highlighted cell was different. Checkbox inputs are excluded so that checkboxes with
-        // disableVisualSelection can still be toggled via touch (the focus cellRange is never populated
-        // when visual selection is disabled, so selectedCellWasTouched always returns false for them).
+      if (blocksWebKitSecondTap || blocksUnselectedGesture) {
         event.preventDefault();
       }
     }
@@ -724,7 +774,7 @@ class Event {
     // an unpaired mousedown and break plugins listening to onCellMouseUp /
     // before/after hooks (e.g. nestedHeaders, ContextMenu close logic).
     // Suppress only for pure scroll gestures, where onMouseDown was never fired.
-    if (!wasScrolled || this.#longPressFired) {
+    if (!wasScrolled || this.#longPress.hasFired()) {
       // The stamp is taken AFTER the tap is handled, so the selection/render work onMouseUp does
       // is not charged against the TOUCH_SYNTHESIZED_MOUSE_WINDOW ceiling. Everything onMouseUp
       // triggers is synchronous; the browser only dispatches the synthesized mousedown/mouseup
@@ -743,7 +793,8 @@ class Event {
 
     this.touchApplied = false;
     this.#touchWasMoved = false;
-    this.#longPressFired = false;
+    this.#longPress.reset();
+    this.#longPressStart = null;
   }
 
   /**
@@ -763,74 +814,64 @@ class Event {
    * @private
    */
   onTouchCancel() {
-    this.#cancelLongPressTimer();
+    this.#longPress.reset();
+    this.#longPressStart = null;
 
     this.touchApplied = false;
     this.#mouseDown = false;
     this.#touchWasMoved = false;
-    this.#longPressFired = false;
     this.#deferredTouchStartEvent = null;
     this.#lastTapCoords = null;
     this.#synthesizedPairPending = false;
   }
 
   /**
-   * Starts the long-press timer. When the timer fires, a synthetic `contextmenu` event is
-   * dispatched on the original touch target so that the existing contextmenu hook chain
-   * (and ContextMenu plugin) work without changes.
+   * Answers a long press: a synthetic `contextmenu` event is dispatched on the original touch
+   * target so that the existing contextmenu hook chain (and ContextMenu plugin) work without
+   * changes.
    *
    * @private
-   * @param {TouchEvent} event The original `touchstart` event.
    */
-  #startLongPressTimer(event: TouchEvent) {
-    this.#cancelLongPressTimer();
+  #onLongPress() {
+    const event = this.#longPressStart;
+    const touch = event?.touches[0];
 
-    const touch = event.touches[0];
-
-    if (!touch) {
+    if (!event || !touch) {
       return;
     }
 
-    this.#touchStartCoords = { x: touch.clientX, y: touch.clientY };
+    // Select the long-pressed cell so context-menu commands (e.g. "Insert row above")
+    // operate on it. With the deferred-mousedown flow, touchend skips onMouseDown
+    // when the long press fired, so we fire it here before opening the menu.
+    this.onMouseDown(event);
 
-    this.#longPressTimeout = setTimeout(() => {
-      this.#longPressTimeout = null;
-      this.#longPressFired = true;
-      this.#touchStartCoords = null;
+    this.#dblClickOrigin[0] = null;
+    this.#dblClickOrigin[1] = null;
+    this.#lastTapCoords = null;
 
-      // Select the long-pressed cell so context-menu commands (e.g. "Insert row above")
-      // operate on it. With the deferred-mousedown flow, touchend skips onMouseDown
-      // when #longPressFired is true, so we fire it here before opening the menu.
-      this.onMouseDown(event);
+    if (this.#dblClickTimeout[0] !== null) {
+      clearTimeout(this.#dblClickTimeout[0]);
+    }
+    if (this.#dblClickTimeout[1] !== null) {
+      clearTimeout(this.#dblClickTimeout[1]);
+    }
 
-      this.#dblClickOrigin[0] = null;
-      this.#dblClickOrigin[1] = null;
-      this.#lastTapCoords = null;
+    const target = event.target;
 
-      if (this.#dblClickTimeout[0] !== null) {
-        clearTimeout(this.#dblClickTimeout[0]);
-      }
-      if (this.#dblClickTimeout[1] !== null) {
-        clearTimeout(this.#dblClickTimeout[1]);
-      }
+    if (!target) {
+      return;
+    }
 
-      const target = event.target;
+    const contextMenuEvent = new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      screenX: touch.screenX,
+      screenY: touch.screenY,
+    });
 
-      if (!target) {
-        return;
-      }
-
-      const contextMenuEvent = new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
-        clientX: touch.clientX,
-        clientY: touch.clientY,
-        screenX: touch.screenX,
-        screenY: touch.screenY,
-      });
-
-      target.dispatchEvent(contextMenuEvent);
-    }, LONG_PRESS_DELAY);
+    target.dispatchEvent(contextMenuEvent);
   }
 
   /**
@@ -849,7 +890,7 @@ class Event {
     if (this.touchApplied) {
       this.#touchWasMoved = true;
     }
-    this.#cancelLongPressTimer();
+    this.#longPress.cancel();
     clearTimeout(this.momentumScrolling._timeout);
 
     if (!this.momentumScrolling.ongoing) {
@@ -867,19 +908,6 @@ class Event {
   }
 
   /**
-   * Cancels the pending long-press timer.
-   *
-   * @private
-   */
-  #cancelLongPressTimer() {
-    if (this.#longPressTimeout !== null) {
-      clearTimeout(this.#longPressTimeout);
-      this.#longPressTimeout = null;
-    }
-    this.#touchStartCoords = null;
-  }
-
-  /**
    * OnTouchMove callback. Once the finger moves beyond the threshold, marks the gesture as a
    * scroll so `touchend` skips firing the deferred mousedown, and cancels the long-press timer.
    *
@@ -887,7 +915,7 @@ class Event {
    * @param {TouchEvent} event The touch event object.
    */
   onTouchMove(event: TouchEvent) {
-    if (this.#touchStartCoords === null) {
+    if (!this.#longPress.isTracking()) {
       return;
     }
 
@@ -895,17 +923,13 @@ class Event {
 
     if (!touch) {
       this.#touchWasMoved = true;
-      this.#cancelLongPressTimer();
+      this.#longPress.cancel();
 
       return;
     }
 
-    const dx = Math.abs(touch.clientX - this.#touchStartCoords.x);
-    const dy = Math.abs(touch.clientY - this.#touchStartCoords.y);
-
-    if (dx > LONG_PRESS_MOVE_THRESHOLD || dy > LONG_PRESS_MOVE_THRESHOLD) {
+    if (this.#longPress.move(touch.clientX, touch.clientY)) {
       this.#touchWasMoved = true;
-      this.#cancelLongPressTimer();
     }
   }
 
@@ -938,7 +962,8 @@ class Event {
     if (this.#dblClickTimeout[1] !== null) {
       clearTimeout(this.#dblClickTimeout[1]);
     }
-    this.#cancelLongPressTimer();
+    this.#longPress.reset();
+    this.#longPressStart = null;
 
     if (this.momentumScrolling) {
       clearTimeout(this.momentumScrolling._timeout);

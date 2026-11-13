@@ -145,7 +145,7 @@ test('direct links to the legacy angular-data-grid path still collapse to the un
 // Keep in sync with VUE3_LEGACY_PAGES in _worker.js.
 // 'vue3-custom-id-class-style' is deliberately omitted here and exercised
 // separately below: its *unversioned* form is intercepted by the
-// crossFramework map (rule 6) ahead of this map, since the current docs
+// CROSS_FRAMEWORK_PAGES map (rule 6) ahead of this map, since the current docs
 // unified it into an all-framework 'custom-id-class-style' page. Its
 // *versioned* form still needs the entry in VUE3_LEGACY_PAGES, because frozen
 // historical doc versions never received that rename.
@@ -177,6 +177,33 @@ test('redirects legacy Vue 3 pages under every framework prefix', async() => {
   for (const framework of ['javascript', 'react', 'angular', 'vue']) {
     for (const [page, destination] of Object.entries(vue3LegacyPages)) {
       await assertRedirect(worker, `/docs/${framework}-data-grid/${page}/`, destination);
+    }
+  }
+});
+
+test('redirects the old Vue 2 page names to the Vue data grid pages (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue-installation/', '/docs/vue-data-grid/installation/');
+  await assertRedirect(worker, '/docs/angular-data-grid/vue-vuex-example/', '/docs/vue-data-grid/vue-vuex/');
+  await assertRedirect(worker, '/docs/angular-data-grid/vue-setting-up-a-translation/', '/docs/vue-data-grid/language/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue-hot-reference/', '/docs/vue-data-grid/vue-instance-reference/');
+  await assertRedirect(worker, '/docs/angular-data-grid/vue-modules/', '/docs/vue-data-grid/modules/');
+  await assertRedirect(worker, '/docs/react-data-grid/vue-basic-example/', '/docs/vue-data-grid/installation/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue-custom-editor-example', '/docs/vue-data-grid/cell-editor/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/vue3-simple-example/', '/docs/vue-data-grid/installation/');
+});
+
+test('the live vue- pages are not redirected by the Vue legacy rule', async() => {
+  const worker = loadWorker();
+
+  // These slugs are live pages under every framework prefix.
+  for (const page of ['vue-hot-column', 'vue-instance-reference', 'vue-nuxt', 'vue-pinia', 'vue-vuex']) {
+    for (const framework of ['javascript', 'react', 'angular', 'vue']) {
+      const response = await worker.fetch(request(`/docs/${framework}-data-grid/${page}/`), env);
+
+      assert.equal(response.status, 200, `${framework}/${page} must not redirect`);
+      assert.equal(await response.text(), 'static-asset-passthrough');
     }
   }
 });
@@ -287,6 +314,21 @@ test('Content-Security-Policy font-src allows the jsDelivr webfont loaded by the
   assert.ok(hasSource('https://fonts.gstatic.com'));
 });
 
+test('Content-Security-Policy connect-src allows the OData service called by the OData recipe', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/recipes/data-management/load-data-odata/'), env);
+  const csp = response.headers.get('Content-Security-Policy');
+  const connectSrc = csp.split(';').find((directive) => directive.trim().startsWith('connect-src'));
+
+  assert.ok(connectSrc, 'expected a connect-src directive in the Content-Security-Policy header');
+
+  const connectSrcSources = connectSrc.trim().split(/\s+/).slice(1); // drop the "connect-src" keyword
+  const hasSource = (source) => connectSrcSources.some((entry) => entry === source);
+
+  // The recipe's examples fetch rows and autocomplete suggestions from the public Northwind service.
+  assert.ok(hasSource('https://services.odata.org'));
+});
+
 test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
   const worker = loadWorker();
 
@@ -302,6 +344,144 @@ test('keeps versioned demo redirects on historical disabled cells slugs', async(
     '/docs/15.3/javascript-data-grid/disabled-cells',
     302,
   );
+});
+
+test('a flat legacy HTML page redirects to its current framework page (rule 15)', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/Hooks.html', '/docs/javascript-data-grid/api/hooks/', 302);
+  await assertRedirect(worker, '/docs/tutorial-introduction.html', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/tutorial-known-limitations.html', '/docs/javascript-data-grid/third-party-licenses/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/demo-date.html', 'react'),
+    'https://handsontable.com/docs/react-data-grid/date-cell-type/',
+  );
+});
+
+test('a page of a docs version older than 9.0 redirects to its current page (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  // Versions below 9.0 are not deployed, so rules 13 and 14 sent these
+  // URLs to a /docs/7.4/... path that answered 404.
+  await assertRedirect(worker, '/docs/7.4/Hooks.html', '/docs/javascript-data-grid/api/hooks/', 302);
+  await assertRedirect(worker, '/docs/7.4.2/Hooks.html', '/docs/javascript-data-grid/api/hooks/', 302);
+  await assertRedirect(worker, '/docs/7.2.2/tutorial-performance-tips.html', '/docs/javascript-data-grid/performance/', 302);
+  await assertRedirect(worker, '/docs/0.15.0-beta5/demo-date.html', '/docs/javascript-data-grid/date-cell-type/', 302);
+  await assertRedirect(worker, '/docs/8.0.0/tutorial-known-limitations.html', '/docs/javascript-data-grid/third-party-licenses/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/7.4.2/demo-numeric.html', 'react'),
+    'https://handsontable.com/docs/react-data-grid/numeric-cell-type/',
+  );
+  // A framework wrapper page keeps its own framework whatever the cookie says.
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/7.2.1/frameworks-wrapper-for-react-installation.html', 'angular'),
+    'https://handsontable.com/docs/react-data-grid/installation/',
+  );
+});
+
+test('every old page that rule 13 knew still has a current target (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  // These three were in VERSIONED_HTML_MAP_PRE12 only, so rule 12b sent
+  // them to the framework home instead of their page.
+  await assertRedirect(worker, '/docs/7.4/tutorial-changelog.html', '/docs/javascript-data-grid/changelog/', 302);
+  await assertRedirect(worker, '/docs/7.4.2/demo-using-callbacks.html', '/docs/javascript-data-grid/events-and-hooks/', 302);
+  await assertRedirect(worker, '/docs/7.4.2/demo-react-simple-examples.html', '/docs/react-data-grid/binding-to-data/', 302);
+  await assertRedirect(worker, '/docs/tutorial-changelog.html', '/docs/javascript-data-grid/changelog/', 302);
+});
+
+test('the root, or an unknown page, of a docs version older than 9.0 lands on the framework home', async() => {
+  const worker = loadWorker();
+
+  // A deliberate soft landing: the version no longer exists, and the
+  // framework home serves the reader better than a 404.
+  await assertRedirect(worker, '/docs/6.2.2/', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/8.4', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/7.0.0/CellRange.html', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/7.4/api/hooks', '/docs/javascript-data-grid/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/8.4.0/', 'react'),
+    'https://handsontable.com/docs/react-data-grid/',
+  );
+});
+
+test('a three-part version from 9.0 up redirects to its MAJOR.MINOR docs', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/9.0.1/tutorial-introduction.html', '/docs/9.0/tutorial-introduction.html');
+  await assertRedirect(worker, '/docs/12.4.0/', '/docs/12.4/');
+  await assertRedirect(worker, '/docs/16.1.0', '/docs/16.1');
+});
+
+test('deployed versions and look-alike paths are not caught by the old-version rule', async() => {
+  const worker = loadWorker();
+
+  // 9.0 to 12.0 are served from the assets as they are.
+  const response = await worker.fetch(request('/docs/9.0/'), env);
+
+  assert.equal(response.status, 200);
+  await assertRedirect(worker, '/docs/9.0/tutorial-introduction.html', '/docs/9.0/', 302);
+
+  const lookAlike = await worker.fetch(request('/docs/16.1javascript-data-grid/batch-operations/'), env);
+
+  assert.equal(lookAlike.status, 200);
+  assert.equal(await lookAlike.text(), 'static-asset-passthrough');
+});
+
+test('a flat page link with a sentence\'s punctuation glued to it still redirects (PRO-1371)', async() => {
+  const worker = loadWorker();
+  const language = '/docs/javascript-data-grid/language/#load-the-prepared-language-files';
+
+  // Older Handsontable versions print this link at the end of a console
+  // sentence, so a click carries the period into the URL.
+  await assertRedirect(worker, '/docs/i18n/missing-language-code', language, 302);
+  await assertRedirect(worker, '/docs/i18n/missing-language-code.', language, 302);
+  await assertRedirect(worker, '/docs/i18n/missing-language-code.\'', language, 302);
+  await assertRedirect(worker, '/docs/api/core.', '/docs/javascript-data-grid/api/core/', 302);
+});
+
+test('a page of the old Handsontable Pro docs redirects to its current page (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  // The Pro docs are not deployed, so every /docs/pro/ URL answered 404.
+  await assertRedirect(worker, '/docs/pro/Comments.html', '/docs/javascript-data-grid/api/comments/', 302);
+  await assertRedirect(worker, '/docs/pro/1.15.1/Hooks.html', '/docs/javascript-data-grid/api/hooks/', 302);
+  await assertRedirect(worker, '/docs/pro/6.0.1/ColumnSorting.html', '/docs/javascript-data-grid/api/column-sorting/', 302);
+  await assertRedirect(worker, '/docs/pro/2.0.0/demo-merged-cells.html', '/docs/javascript-data-grid/merge-cells/', 302);
+  await assertRedirect(worker, '/docs/pro/1.15.0/tutorial-internationalization.html', '/docs/javascript-data-grid/language/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/pro/demo-date.html', 'react'),
+    'https://handsontable.com/docs/react-data-grid/date-cell-type/',
+  );
+});
+
+test('the root, or an unknown page, of the old Pro docs lands on the framework home', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/pro', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/pro/', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/pro/react', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/pro/1.13.0/demo-paginating.html', '/docs/javascript-data-grid/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/pro/1.13.0/', 'react'),
+    'https://handsontable.com/docs/react-data-grid/',
+  );
+});
+
+test('a path that only starts with "pro" is not caught by the Pro docs rule', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/products/'), env);
+
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), 'static-asset-passthrough');
+});
+
+test('the old Pro docs on the legacy host take one 301 to the canonical host first', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(requestOn('docs.handsontable.com', '/docs/pro/Core.html'), env);
+
+  assert.equal(response.status, 301);
+  assert.equal(response.headers.get('location'), 'https://handsontable.com/docs/pro/Core.html');
 });
 
 test('answers POST to the saving-data demo\'s save.json mock instead of 405ing (regression for DEV-2034)', async() => {
@@ -480,8 +660,10 @@ test('the external HyperFormula redirect survives the legacy host untouched', as
   );
 });
 
-test('the cookie-reading rules 13-17 answer the legacy host with a 301, not their usual 302', async() => {
+test('the cookie-reading rules 12b-17 answer the legacy host with a 301, not their usual 302', async() => {
   const worker = loadWorker();
+
+  await assertLegacyCollapse(worker, '/docs/7.4.2/Hooks.html', 'https://handsontable.com/docs/7.4.2/Hooks.html');
 
   // Regression for the review finding on this PR's first commit: rules 13-17
   // deliberately use 302 (their destination depends on the docs_fw cookie),
@@ -1530,4 +1712,272 @@ test('other methods on the date endpoint fall through to assets (rule 18c)', asy
     assert.equal(await response.text(), 'static-asset-passthrough', method);
     assert.equal(env.calls.length, 0, `${method} must not reach Figma`);
   }
+});
+
+/**
+ * An `env` whose static assets hold only the given paths. Every other path
+ * answers 404, the way Cloudflare Pages does, and each lookup is recorded.
+ *
+ * @param {string[]} existing The asset paths that exist.
+ * @returns {{ASSETS: {fetch: Function}, lookups: string[]}}
+ */
+function envWithPages(existing) {
+  const lookups = [];
+
+  return {
+    lookups,
+    ASSETS: {
+      fetch: async(target) => {
+        const { pathname } = new URL(typeof target === 'string' ? target : target.url);
+
+        lookups.push(pathname);
+
+        return existing.includes(pathname)
+          ? new Response('static-asset-passthrough')
+          : new Response('not found', { status: 404 });
+      },
+    },
+  };
+}
+
+test('an unprefixed page that 404s redirects to the same page under the framework (PRO-1371)', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages([
+    '/docs/javascript-data-grid/long-term-support/',
+    '/docs/javascript-data-grid/migration-from-16.2-to-17.0/',
+    '/docs/javascript-data-grid/recipes/',
+  ]);
+
+  for (const [path, destination] of [
+    ['/docs/long-term-support/', '/docs/javascript-data-grid/long-term-support/'],
+    ['/docs/migration-from-16.2-to-17.0', '/docs/javascript-data-grid/migration-from-16.2-to-17.0/'],
+    ['/docs/recipes', '/docs/javascript-data-grid/recipes/'],
+  ]) {
+    const response = await worker.fetch(request(path), pagesEnv);
+
+    assert.equal(response.status, 302, path);
+    assert.equal(response.headers.get('location'), `https://handsontable.com${destination}`);
+  }
+});
+
+test('the unprefixed fallback prefers the cookie framework and falls back to JavaScript', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages([
+    '/docs/react-data-grid/long-term-support/',
+    '/docs/javascript-data-grid/long-term-support/',
+    '/docs/javascript-data-grid/javascript-only/',
+  ]);
+
+  const react = await worker.fetch(request('/docs/long-term-support/', 'react'), pagesEnv);
+
+  assert.equal(react.headers.get('location'), 'https://handsontable.com/docs/react-data-grid/long-term-support/');
+
+  const fallback = await worker.fetch(request('/docs/javascript-only/', 'react'), pagesEnv);
+
+  assert.equal(fallback.headers.get('location'), 'https://handsontable.com/docs/javascript-data-grid/javascript-only/');
+});
+
+test('the unprefixed fallback keeps the 404 when no framework has the page', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages([]);
+  const response = await worker.fetch(request('/docs/dHV0b3JpYW'), pagesEnv);
+
+  assert.equal(response.status, 404);
+  assert.deepEqual(pagesEnv.lookups, [
+    '/docs/dHV0b3JpYW',
+    '/docs/javascript-data-grid/dHV0b3JpYW/',
+  ]);
+});
+
+test('the unprefixed fallback leaves existing assets, prefixed paths, versions, and files alone', async() => {
+  const worker = loadWorker();
+  const pagesEnv = envWithPages(['/docs/sitemap-index.xml']);
+  const asset = await worker.fetch(request('/docs/sitemap-index.xml'), pagesEnv);
+
+  assert.equal(asset.status, 200);
+
+  for (const path of [
+    '/docs/react-data-grid/no-such-page/',
+    '/docs/16.2/javascript-data-grid/no-such-page/',
+    '/docs/img/missing.png',
+    '/docs/scripts/missing.js',
+  ]) {
+    pagesEnv.lookups.length = 0;
+
+    const response = await worker.fetch(request(path), pagesEnv);
+
+    assert.equal(response.status, 404, path);
+    assert.deepEqual(pagesEnv.lookups, [path], `${path} must not be retried`);
+  }
+});
+
+test('old flat pages that rule 15 did not know redirect to their current page (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/demo-merge-cells.html', '/docs/javascript-data-grid/merge-cells/', 302);
+  await assertRedirect(worker, '/docs/demo-search-for-values.html', '/docs/javascript-data-grid/searching-values/', 302);
+  await assertRedirect(worker, '/docs/demo-custom-borders.html', '/docs/javascript-data-grid/formatting-cells/', 302);
+  await assertRedirect(worker, '/docs/demo-sorting-data.html', '/docs/javascript-data-grid/rows-sorting/', 302);
+  await assertRedirect(worker, '/docs/demo-moving-rows-and-columns.html', '/docs/javascript-data-grid/row-moving/', 302);
+  await assertRedirect(worker, '/docs/tutorial-callbacks.html', '/docs/javascript-data-grid/events-and-hooks/', 302);
+  // No current page covers these, so they land on the framework home.
+  await assertRedirect(worker, '/docs/tutorial-features.html', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/tutorial-contributing.html', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/demo-mobiles-and-tablets.html', '/docs/javascript-data-grid/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/demo-merge-cells.html', 'react'),
+    'https://handsontable.com/docs/react-data-grid/merge-cells/',
+  );
+});
+
+test('a /docs/latest/ page redirects to its current page (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  // `latest` was an alias of the newest version in the old docs. It is not
+  // deployed, so these URLs answered 404.
+  await assertRedirect(worker, '/docs/latest/Hooks.html', '/docs/javascript-data-grid/api/hooks/', 302);
+  await assertRedirect(worker, '/docs/latest/demo-filtering.html', '/docs/javascript-data-grid/column-filter/', 302);
+  await assertRedirect(worker, '/docs/latest/tutorial-data-binding.html', '/docs/javascript-data-grid/binding-to-data/', 302);
+  await assertRedirect(worker, '/docs/latest', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/latest/', '/docs/javascript-data-grid/', 302);
+  await assertRedirect(worker, '/docs/latest/demo-paginating.html', '/docs/javascript-data-grid/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/latest/demo-filtering.html', 'react'),
+    'https://handsontable.com/docs/react-data-grid/column-filter/',
+  );
+
+  const lookAlike = await worker.fetch(request('/docs/latest-news/'), env);
+
+  assert.equal(lookAlike.status, 200);
+  assert.equal(await lookAlike.text(), 'static-asset-passthrough');
+});
+
+test('an old Vue page name without a framework prefix redirects to the Vue data grid page (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  // Rule 19 retries an unprefixed 404 only against deployed pages, and these
+  // slugs exist only as redirects, so they answered 404.
+  await assertRedirect(worker, '/docs/vue-installation/', '/docs/vue-data-grid/installation/');
+  await assertRedirect(worker, '/docs/vue-modules', '/docs/vue-data-grid/modules/');
+  await assertRedirect(worker, '/docs/vue-vuex-example/', '/docs/vue-data-grid/vue-vuex/');
+  await assertRedirect(worker, '/docs/vue3-installation/', '/docs/vue-data-grid/installation/');
+  await assertRedirect(worker, '/docs/vue3-simple-example/', '/docs/vue-data-grid/installation/');
+  // CROSS_FRAMEWORK_PAGES moves this one, so rule 16 answers it in one hop
+  // and keeps the reader's framework.
+  await assertRedirect(worker, '/docs/vue3-custom-id-class-style/', '/docs/javascript-data-grid/custom-id-class-style/', 302);
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/vue3-custom-id-class-style/', 'react'),
+    'https://handsontable.com/docs/react-data-grid/custom-id-class-style/',
+  );
+});
+
+test('an unprefixed live vue- page is not redirected by the Vue legacy rule', async() => {
+  const worker = loadWorker();
+
+  for (const page of ['vue-hot-column', 'vue-instance-reference', 'vue-nuxt', 'vue-pinia', 'vue-vuex', 'vue-data-grid']) {
+    const response = await worker.fetch(request(`/docs/${page}/`), env);
+
+    assert.equal(response.status, 200, `${page} must not redirect`);
+    assert.equal(await response.text(), 'static-asset-passthrough');
+  }
+});
+
+test('a renamed page without a framework prefix on the legacy host takes one 301 to the canonical host first', async() => {
+  const worker = loadWorker();
+
+  // The lookup reads the cookie, so it must stay below rule 12a.
+  const response = await worker.fetch(requestOn('docs.handsontable.com', '/docs/angular-installation/'), env);
+
+  assert.equal(response.status, 301);
+  assert.equal(response.headers.get('location'), 'https://handsontable.com/docs/angular-installation/');
+});
+
+test('a renamed page without a framework prefix redirects through the cross-framework map (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/angular-installation/', '/docs/angular-data-grid/installation/', 302);
+  await assertRedirect(worker, '/docs/angular-basic-example', '/docs/angular-data-grid/demo/', 302);
+  await assertRedirect(worker, '/docs/vue-custom-id-class-style/', '/docs/javascript-data-grid/custom-id-class-style/', 302);
+  // The cookie framework is tried first, JavaScript second.
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/vue-custom-id-class-style/', 'react'),
+    'https://handsontable.com/docs/react-data-grid/custom-id-class-style/',
+  );
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/angular-installation/', 'vue'),
+    'https://handsontable.com/docs/angular-data-grid/installation/',
+  );
+});
+
+test('the old name of the 13.1 to 14.0 migration guide redirects to the guide (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(
+    worker,
+    '/docs/migration-from-13.1.0-to-14.0/',
+    '/docs/javascript-data-grid/migration-from-13.1-to-14.0/',
+    302,
+  );
+});
+
+test('an invisible character at the end of a docs URL is dropped (PRO-1371)', async() => {
+  const worker = loadWorker();
+
+  // A link copied from a chat or a document can carry a zero-width space.
+  await assertRedirect(worker, '/docs/javascript-data-grid/software-license/\u200b', '/docs/javascript-data-grid/software-license/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/software-license/%e2%80%8b', '/docs/javascript-data-grid/software-license/');
+  await assertRedirect(worker, '/docs/javascript-data-grid/license-key\u200c\u200d\u2060\ufeff', '/docs/javascript-data-grid/license-key');
+  await assertRedirect(worker, '/docs/javascript-data-grid/api/core/\u200b?query=1', '/docs/javascript-data-grid/api/core/?query=1');
+  // Before the final slash too.
+  await assertRedirect(worker, '/docs/javascript-data-grid/merge-cells\u200b/', '/docs/javascript-data-grid/merge-cells/');
+
+  // Only the end of the path is cleaned.
+  const middle = await worker.fetch(request('/docs/javascript-data-grid/\u200bapi/core/'), env);
+
+  assert.equal(middle.status, 200);
+  assert.equal(await middle.text(), 'static-asset-passthrough');
+
+  // A path that only starts with "/docs" is left alone.
+  const lookAlike = await worker.fetch(request('/docsx\u200b'), env);
+
+  assert.equal(lookAlike.status, 200);
+  assert.equal(await lookAlike.text(), 'static-asset-passthrough');
+});
+
+test('an invisible character on a /docs/next/ or latest-version URL takes one redirect, not two', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/next/javascript-data-grid/merge-cells/\u200b', '/docs/javascript-data-grid/merge-cells/');
+  await assertRedirect(worker, '/docs/99.9/javascript-data-grid/merge-cells/\u200b', '/docs/javascript-data-grid/merge-cells/');
+});
+
+test('a /docs/latest/ URL that names a framework keeps its page', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/latest/react-data-grid/installation', '/docs/react-data-grid/installation');
+  await assertRedirect(worker, '/docs/latest/vue-data-grid', '/docs/vue-data-grid');
+
+  // The framework in the path wins over the cookie.
+  const response = await worker.fetch(request('/docs/latest/javascript-data-grid/merge-cells/', 'react'), env);
+
+  assert.equal(response.status, 301);
+  assert.equal(response.headers.get('location'), 'https://handsontable.com/docs/javascript-data-grid/merge-cells/');
+});
+
+test('an unprefixed renamed page keeps the reader\'s framework when only the JavaScript entry exists', async() => {
+  const worker = loadWorker();
+
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/angular-setting-up-a-translation', 'angular'),
+    'https://handsontable.com/docs/angular-data-grid/locale/',
+  );
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/angular-custom-context-menu-example', 'angular'),
+    'https://handsontable.com/docs/angular-data-grid/context-menu/',
+  );
+  // A destination under another framework stays where it is.
+  assert.equal(
+    await redirectLocationOf(worker, '/docs/angular-installation/', 'react'),
+    'https://handsontable.com/docs/angular-data-grid/installation/',
+  );
 });

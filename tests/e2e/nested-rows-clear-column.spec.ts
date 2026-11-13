@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { NestedRowsClearColumnPage, type SourceRow } from '../fixtures/pages/NestedRowsClearColumnPage';
 
 const INITIAL_ROWS: SourceRow[] = [
@@ -27,7 +27,8 @@ const CLEARED_ROWS: SourceRow[] = INITIAL_ROWS.map(row => ({
  * source data, by row object, in the same undo step - nothing is expanded, so validators, listeners,
  * and the selection only ever see the grid the user sees.
  */
-test.describe('Clear column with collapsed nested rows', () => {
+// leg-declarations: ignore pointer-offset -- selectColumnByHeader() presses 5 px inside the header's top-left corner, which selects the column on every theme; the cases assert the cleared values
+test.describe('Clear column with collapsed nested rows', { tag: BUNDLES_TAG }, () => {
   let grid: NestedRowsClearColumnPage;
 
   test.beforeEach(({ page, theme, bundle }) => {

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `Filters` plugin rendering text inputs instead of date inputs for the \"Is between\" condition on `date` columns, which made dates typed in the column's display format match no rows.",
+  "type": "fixed",
+  "issueOrPR": 13791,
+  "breaking": false,
+  "framework": "none"
+}

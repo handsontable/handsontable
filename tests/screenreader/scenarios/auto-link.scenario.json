@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "id": "auto-link",
+  "surface": "Links autoLink draws in cells: a URL beside an opted-out one, a link inside a sentence, an email link, a HYPERLINK formula's label, and opening a link with Alt+Enter.",
+  "group": "menus",
+  "page": "auto-link",
+  "criteria": ["1.3.1", "2.1.1", "2.4.4", "4.1.2"],
+  "setup": [{"selectCell": [1, 1]}],
+  "steps": [
+    {
+      "id": "arrow-up-plain-url",
+      "action": {"press": "ArrowUp"},
+      "expect": [["optout"]],
+      "note": "B1 holds a URL in a column that opts out of autoLink (`autoLink: false`): plain text, no link. A group cannot require an absence, so the goldens show whether a reader says `link` here (none does). The groups ask for one word of each URL (`optout`, `one`, `someone`), because NVDA spells the punctuation of a URL (`example dot com slash one`). Finding: VoiceOver says nothing on this first arrow key, on both browsers."
+    },
+    {
+      "id": "arrow-left-link",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["one"], ["link"]],
+      "note": "A1 holds `https://example.com/one`, which autoLink wraps in a link: the cell's text and the link role. Column D's custom link reads `user anchor`, not a text with the word link: VoiceOver with Chromium reads the whole row with a cell, so that text would satisfy the link group on its own. Finding: NVDA reads the URL but never says `link`, on both browsers and on every link step: the focus stays on the cell, whose name is its text, and the link inside it (tabindex -1) never takes the focus. VoiceOver says `link` on every link step."
+    },
+    {
+      "id": "arrow-down-inline-link",
+      "action": {"press": "ArrowDown"},
+      "expect": [["for details"], ["link"]],
+      "note": "A2 holds a sentence with a URL in the middle, `Visit https://example.com/two for details.`: the text around the link and the link role. Finding: NVDA says no `link`, as in arrow-left-link; VoiceOver says it after the URL."
+    },
+    {
+      "id": "arrow-down-mailto-link",
+      "action": {"press": "ArrowDown"},
+      "expect": [["someone"], ["link"]],
+      "note": "A3 holds `mailto:someone@example.com`. The grid hides the `mailto:` prefix, and every reader reads the link as the address (`someone at example dot com`). Finding: NVDA says no `link`, as in arrow-left-link."
+    },
+    {
+      "id": "select-formula-link",
+      "action": {"selectCell": [0, 5]},
+      "expect": [["hf label"], ["link"]],
+      "note": "F1 holds `=HYPERLINK(\"https://example.com/hf\", \"HF label\")`: a link whose name is its label, not its URL. Finding: NVDA says no `link`, as in arrow-left-link."
+    },
+    {
+      "id": "select-local-link",
+      "action": {"selectCell": [6, 0]},
+      "expect": [["fixtures"], ["link"]],
+      "note": "A7 holds a link to a page of the same server (`/tests/fixtures/demo/grid.html`), which the next step opens, so the run stays offline. Finding: NVDA says no `link`, as in arrow-left-link."
+    },
+    {
+      "id": "open-link",
+      "action": {"press": "Alt+Enter"},
+      "expect": [["handsontable e2e fixture", "handsontable e 2e fixture"]],
+      "note": "Alt+Enter opens the selected cell's first link in a new tab (autoLink's default target, `_blank`). Every reader follows the new tab and reads its title, `Handsontable e2e fixture`; NVDA spells `e2e` as `e 2e`, the same title in its words. The last step, because the focus stays on the new tab; the test's browser context closes it."
+    }
+  ]
+}

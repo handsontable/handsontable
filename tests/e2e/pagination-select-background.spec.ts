@@ -1,9 +1,9 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { PaginationSelectPage } from '../fixtures/pages/PaginationSelectPage';
 
 const TRANSPARENT = 'rgba(0, 0, 0, 0)';
 
-test.describe('pagination page-size select background', () => {
+test.describe('pagination page-size select background', { tag: THEMES_TAG }, () => {
   // A native <select> clips its own background-color to a corner radius smaller than its
   // border-radius, leaving the rounded corners unfilled (DEV-42). The fix moves the fill onto
   // the wrapper <div> (which fills its corners) and makes the select's own background

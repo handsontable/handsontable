@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Formula calculation
-metaTitle: Formula calculation - JavaScript Data Grid | Handsontable
-description: Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.
+metaTitle: Formula calculation | Handsontable DataGrid for JavaScript
+description: Perform calculations on cells' values, using a powerful calculation engine that handles about 400 functions, custom functions, named expressions, and more.
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
@@ -16,18 +16,22 @@ tags:
   - function
   - hyperformula
 react:
-  metaTitle: Formula calculation - React Data Grid | Handsontable
+  metaTitle: Formula calculation | Handsontable DataGrid for React
 angular:
-  metaTitle: Formula calculation - Angular Data Grid | Handsontable
+  metaTitle: Formula calculation | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Formula calculation - Vue Data Grid | Handsontable
+  metaTitle: Formula calculation | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Formulas
 menuTag: updated
 ---
-The `Formulas` plugin adds spreadsheet-style calculation to Handsontable, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://handsontable.com/hyperformula/). It supports about 400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+
+HyperFormula is a separate package that you install and license on its own. For steps, see [Formulas: Installation](@/guides/formulas/installation/installation.md).
 
 Filling formula cells with [autofill](@/guides/cell-features/autofill-values/autofill-values.md) adjusts relative references per target cell, the same way a spreadsheet application does. See [Autofill and formulas](@/guides/cell-features/autofill-values/autofill-values.md#autofill-and-formulas).
+
+For a spreadsheet-style formula editing UI - a formula bar, colored references, reference picking, and autocomplete - see the [Formula builder](@/guides/formulas/formula-builder/formula-builder.md) guide.
 
 [[toc]]
 
@@ -144,6 +148,15 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 The `formulas` option accepts either the `HyperFormula` class or an already-created HyperFormula
 instance. Choose the pattern that matches your use case.
 
+HyperFormula is licensed separately from Handsontable. For how to set a HyperFormula license key,
+see [License HyperFormula](@/guides/formulas/installation/installation.md#license-hyperformula).
+
+::: tip
+
+Since Handsontable 18.0, HyperFormula is no longer installed with the `handsontable` npm package. Install it separately, and pass it to the `formulas.engine` option. For details, see [Install HyperFormula separately](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#install-hyperformula-separately).
+
+:::
+
 All patterns require importing HyperFormula:
 
 ```js
@@ -153,18 +166,11 @@ import { HyperFormula } from 'hyperformula';
 See [HyperFormula's installation docs](https://handsontable.github.io/hyperformula/guide/client-side-installation.html)
 for alternative installation methods (CDN, UMD, etc.).
 
-::: tip HyperFormula instance
-
-To use the [`Formulas`](@/api/formulas.md) plugin with an external HyperFormula instance, initialize
-HyperFormula with the `'internal-use-in-handsontable'` license key:
-
-:::
-
 ```js
 // create an external HyperFormula instance
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 ```
 
@@ -222,7 +228,7 @@ const hotSettings = ref({
 
 :::
 
-Or pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
+Pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://handsontable.com/docs/hyperformula/api/interfaces/configparams.html).
 
 ::: only-for javascript
 
@@ -298,9 +304,8 @@ const hotSettings = ref({
 
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 {
@@ -317,9 +322,8 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```jsx
 const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   });
 
   return (
@@ -341,9 +345,8 @@ import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import {HyperFormula} from 'hyperformula';
 
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 const configurationOptions: GridSettings = {
@@ -364,9 +367,8 @@ const configurationOptions: GridSettings = {
 ```js
 const hyperformulaInstance = markRaw(
   HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   })
 );
 
@@ -513,9 +515,8 @@ const hotSettings2 = ref({
 
 ```js
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 // Instance 1
@@ -544,9 +545,8 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```jsx
 const ExampleComponent = () => {
   const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   });
 
   return (
@@ -576,9 +576,8 @@ const ExampleComponent = () => {
 
 ```ts
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // replace with your HyperFormula license key
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 // Instance 1
@@ -607,9 +606,8 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 ```js
 const hyperformulaInstance = markRaw(
   HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // replace with your HyperFormula license key
+    licenseKey: 'your-hyperformula-license-key',
   })
 );
 
@@ -638,6 +636,24 @@ const hotSettings2 = ref({
 ```
 
 :::
+
+### Write to an external HyperFormula instance
+
+When you write to an external engine directly, for example with `setCellContents()`, the grids
+that read the changed cells repaint right away. A grid repaints once for each write, and the write
+is not copied into the grid's source data.
+
+To repaint once after several writes, wrap them in `engine.batch()`:
+
+```js
+hyperformulaInstance.batch(() => {
+  hyperformulaInstance.setCellContents({ sheet: 0, row: 0, col: 0 }, 10);
+  hyperformulaInstance.setCellContents({ sheet: 0, row: 1, col: 0 }, 20);
+});
+```
+
+Don't write to the engine unconditionally from an `afterRender` hook. Each write repaints the grid,
+which runs the hook again. Check that the value differs first.
 
 ## Available options and methods
 
@@ -683,7 +699,7 @@ exist, or is a range whose `start` and `end` are on different sheets. Always set
 ## Available functions
 
 The plugin inherits all calculation capabilities from HyperFormula. The complete function reference
-(386 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
+(about 400 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
 in the
 [HyperFormula built-in functions docs](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 
@@ -703,6 +719,52 @@ formulas: {
 With `hyperlinks` enabled, `=HYPERLINK("https://handsontable.com", "Handsontable")` renders
 `Handsontable` as a link that points to `https://handsontable.com`. When you omit the second
 argument, the URL becomes the label.
+
+The example below renders a column of company websites as links. Click a link, or select its cell and press <kbd>**Alt**</kbd>/<kbd>⌥</kbd>+<kbd>**Enter**</kbd>, to open it in a new tab:
+
+::: only-for javascript
+
+::: example #example-hyperlinks --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-hyperlinks.html)
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-hyperlinks.js)
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-hyperlinks.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example-hyperlinks :react --js 1 --ts 2
+
+@[code](@/content/guides/formulas/formula-calculation/react/example-hyperlinks.jsx)
+@[code](@/content/guides/formulas/formula-calculation/react/example-hyperlinks.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example-hyperlinks :angular --ts 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example-hyperlinks.ts)
+@[code](@/content/guides/formulas/formula-calculation/angular/example-hyperlinks.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example-hyperlinks :vue3
+
+@[code](@/content/guides/formulas/formula-calculation/vue/example-hyperlinks.vue)
+
+:::
+
+:::
 
 The cell keeps its own renderer. Handsontable wraps whatever the renderer produced in a link element,
 so a custom renderer, a [cell type](@/guides/cell-types/cell-type/cell-type.md), and the cell's
@@ -734,7 +796,7 @@ the URL that the formula produces, so a URL that comes from cell data is checked
 ### Keyboard access
 
 A link inside a cell stays out of the tab order, so tabbing still moves between cells. To open the
-link of the selected cell, press <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
+link of the selected cell, press <kbd>**Alt**</kbd>/<kbd>⌥</kbd>+<kbd>**Enter**</kbd>. Links open where the `target` setting says, a new browser tab by default.
 
 ### Styling
 
@@ -876,6 +938,150 @@ const hotSettings = ref({
 
 :::
 
+## Batch formula recalculation
+
+By default, HyperFormula recalculates the formulas after each change you make through the grid's API.
+Ten `setDataAtCell()` calls mean ten recalculations, even inside [`batch()`](@/api/core.md#batch).
+
+To recalculate once for the whole batch, set the `batchEvaluation` setting of the
+[`formulas`](@/api/options.md#formulas) option to `true`. The setting is off by default.
+
+::: only-for javascript
+
+```js
+new Handsontable(element, {
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  formulas={{
+    engine: HyperFormula,
+    batchEvaluation: true,
+  }}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+const configurationOptions: GridSettings = {
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+Then wrap your changes in [`batch()`](@/api/core.md#batch), called on the Handsontable instance (`hot`).
+
+::: only-for react
+
+In React, get the instance from the `hotInstance` property of the `HotTable` ref.
+
+:::
+
+::: only-for angular
+
+In Angular, get the instance from the `hotInstance` property of the `HotTable` component.
+
+:::
+
+::: only-for vue
+
+In Vue, get the instance from the `hotInstance` property of the `HotTable` ref.
+
+:::
+
+```js
+// Update the stock of five products. HyperFormula recalculates once, after the callback.
+const updatedStock = [142, 0, 67, 25, 310];
+
+hot.batch(() => {
+  updatedStock.forEach((quantity, row) => {
+    hot.setDataAtCell(row, 1, quantity);
+  });
+});
+```
+
+With `batchEvaluation` on, Handsontable pauses HyperFormula's recalculation at the first change inside
+the batch. When the batch ends, HyperFormula recalculates once, the
+[`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook fires once, and Handsontable
+validates the dependent formula cells once.
+
+One `setDataAtCell()` call with an array of changes already recalculates once. The setting helps when
+your code makes many separate calls.
+
+Reads through the grid stay correct inside the batch. For example, `getDataAtCell()` returns the current
+value of a formula cell. To return it, Handsontable recalculates the changes made so far, so each such
+read after a change adds a recalculation.
+
+The setting has these limits:
+
+- Inside the batch, after a change through the grid, a direct HyperFormula read such as
+  `engine.getCellValue()` throws a "Computations are suspended" error. Read through the grid, for example
+  with `getDataAtCell()`, or read from the engine after the batch.
+- The pause covers the whole engine. When several grids share one HyperFormula instance, a grid that
+  doesn't use `batchEvaluation` gets the same error on its direct engine reads during another grid's
+  batch. Its reads through the grid still work. It also gets one
+  [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) call for the whole batch, and
+  Handsontable validates its dependent cells when the other grid's batch ends.
+- The saving needs changes with no render in between. [`batch()`](@/api/core.md#batch) suspends
+  rendering, so it gets the full saving.
+  [`batchExecution()`](@/api/core.md#batchexecution) and a
+  [`suspendExecution()`](@/api/core.md#suspendexecution) and
+  [`resumeExecution()`](@/api/core.md#resumeexecution) pair don't suspend rendering. Each render inside
+  them recalculates the formulas.
+- Writing formulas into a validated column (for example, a `numeric`, `date`, or `dropdown` column) saves
+  nothing. The validator checks each formula's result, so Handsontable reads it right after the change, and
+  that read recalculates the changes made before it.
+- Inserting, removing, moving, or sorting rows or columns inside the batch recalculates the changes made
+  before it. Handsontable validates their dependent cells before the structure changes, as it does without
+  the setting. A removal also recalculates before the next change.
+- A sort inside the batch takes effect when the batch ends. Handsontable validates a change made after the
+  sort, in the same batch, at the end of the batch, on the sorted rows, so it validates the cells that hold
+  the change. Without the setting, it validates them at the change, before the sort takes effect.
+- A direct `engine.undo()` after an array `setDataAtCell()` call inside the batch reverts only the last
+  change of the array, because the changes are separate engine writes. The grid's own undo is not affected.
+- Loading data with [`loadData()`](@/api/core.md#loaddata) or [`updateData()`](@/api/core.md#updatedata)
+  inside the batch replaces the data. Handsontable doesn't validate the cells of that grid that depend on the
+  changes made before the load. It still validates the dependent cells on other sheets.
+
+For more on batching, see [Batch operations](@/guides/optimization/batch-operations/batch-operations.md).
+
 ## Named expressions
 
 A named expression assigns a human-friendly label to a value or formula. Once defined, the name can
@@ -907,7 +1113,7 @@ initialization sequence:
 
 ```js
 const hfInstance = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  licenseKey: 'your-hyperformula-license-key',
 });
 
 hfInstance.addSheet('Sheet1');
@@ -925,7 +1131,7 @@ new Handsontable(container, {
 References inside named expressions must use **absolute notation** (`$A$1`). The sheet name (e.g.
 `Sheet1!`) must match the `sheetName` passed to both `addSheet` and the Handsontable `formulas`
 config. See the
-[HyperFormula named expressions guide](https://hyperformula.handsontable.com/guide/named-expressions.html)
+[HyperFormula named expressions guide](https://handsontable.com/docs/hyperformula/guide/named-expressions.html)
 for the full naming rules and supported expression types.
 
 :::
@@ -1034,7 +1240,7 @@ HyperFormula instance. The "Totals" row references those names directly as `=Q1_
 :::
 
 For more information about named expressions, refer to the
-[HyperFormula named expressions docs](https://hyperformula.handsontable.com/guide/named-expressions.html).
+[HyperFormula named expressions docs](https://handsontable.com/docs/hyperformula/guide/named-expressions.html).
 
 ## Custom functions
 
@@ -1131,7 +1337,7 @@ each sales representative's commission amount.
 
 For the full argument type reference, error handling patterns, and advanced options such as
 function aliases and async functions, see the
-[HyperFormula custom functions guide](https://hyperformula.handsontable.com/guide/custom-functions.html).
+[HyperFormula custom functions guide](https://handsontable.com/docs/hyperformula/guide/custom-functions.html).
 
 ## Change the formula language
 
@@ -1156,7 +1362,7 @@ const hot = new Handsontable(container, {
     sheetName: 'Sheet1',
     language: plPL,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1171,7 +1377,7 @@ hot.updateSettings({
 ```
 
 For the full list of available language packs, see the
-[HyperFormula localizing functions guide](https://hyperformula.handsontable.com/guide/localizing-functions.html).
+[HyperFormula localizing functions guide](https://handsontable.com/docs/hyperformula/guide/localizing-functions.html).
 
 ## Preserve text values
 
@@ -1200,7 +1406,7 @@ const hot = new Handsontable(container, {
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1212,6 +1418,7 @@ const hot = new Handsontable(container, {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={[
         ['0123456'],
         ['=LEN(A1)'],
@@ -1225,7 +1432,6 @@ const ExampleComponent = () => {
       formulas={{
         engine: HyperFormula,
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };
@@ -1253,7 +1459,7 @@ const configurationOptions: GridSettings = {
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -1280,7 +1486,7 @@ const hotSettings = ref({
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1303,6 +1509,10 @@ const hotSettings = ref({
 - Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects).
 - [`preserveTextValue`](@/api/options.md#preservetextvalue) works only with the built-in [`text`](@/guides/cell-types/cell-type/cell-type.md) cell type. Custom cell types are not supported, even when they reuse the text editor or renderer.
 - Sorting a column that contains formulas can produce `#REF!`. Handsontable does not rewrite formula references to follow sorted rows. See [Sorting formula cells](#sorting-formula-cells).
+- With HyperFormula older than 3.1.1, adding or removing a sheet in an engine that the [`Formulas`](@/api/formulas.md) plugin created turns spilled arrays into `#SPILL!`. This also happens when a second Handsontable instance connects to that engine. Use HyperFormula 3.1.1 or later.
+- `SHEET()` returns the sheet's number in the engine, not its position. After you remove a sheet from the middle, the sheets after it keep their numbers, so `SHEET()` can be greater than `SHEETS()`.
+- When you add, remove, or rename a sheet, Handsontable recalculates `SHEET()` and `SHEETS()` only in an engine that the [`Formulas`](@/api/formulas.md) plugin created. In an engine instance that you create and pass to the plugin, they keep their old values until the formula changes.
+- A formula that calls `SHEET()` or `SHEETS()` and also references a sheet that doesn't exist, for example inside `IFERROR()`, keeps its old value after you add, remove, or rename a sheet.
 
 ### Sorting formula cells
 
@@ -1331,17 +1541,6 @@ To find out which HyperFormula version to use, see the table below:
 | [`14.x.x`](https://github.com/handsontable/handsontable/releases/tag/14.0.0)            | [`^2.4.0`](https://github.com/handsontable/hyperformula/releases/tag/2.4.0) |
 | [`14.3.x - 15.0.x`](https://github.com/handsontable/handsontable/releases/tag/14.3.0)   | [`^2.6.2`](https://github.com/handsontable/hyperformula/releases/tag/2.6.2) |
 | [`15.1.x`](https://github.com/handsontable/handsontable/releases/tag/15.1.0) and higher | [`^3.0.0`](https://github.com/handsontable/hyperformula/releases/tag/3.0.0) |
-
-::: tip
-
-You can use the `'internal-use-in-handsontable'` license key only in those HyperFormula instances
-that are connected to a Handsontable instance.
-
-To use HyperFormula outside of a Handsontable instance (e.g., on a server), you need a dedicated
-[HyperFormula license key](https://hyperformula.handsontable.com/guide/license-key.html). For
-details, [contact our Sales Team](https://handsontable.com/get-a-quote).
-
-:::
 
 ## Result
 

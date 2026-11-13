@@ -1,0 +1,104 @@
+name: E2E nightly
+
+# The full E2E matrix on develop, every weeknight: every Playwright spec on all six Chromium legs, and
+# the frozen Jasmine suite on its six legs. A pull request runs each Playwright spec on the legs it
+# declares (tests/AGENTS.md, "Declaring the legs": no tag is `e2e-main` only, THEMES_TAG adds the
+# horizon and classic legs, BUNDLES_TAG adds `e2e-main-min`, both add the two `-min` theme legs),
+# because most specs assert DOM and API facts that cannot differ by theme or bundle, and the six legs
+# used to cost about a hundred runner-minutes per pull request; and it runs the Jasmine suite on ONE
+# leg, `UMD (theme: main)`, because that suite is frozen and retiring, and its six legs cost about
+# fifty-five more. This run is the safety net for both: `full-matrix: true` sets HOT_E2E_FULL_MATRIX=1
+# in e2e.yml, the config drops every project's grep, and all six Chromium legs run every spec;
+# `jasmine-full-matrix: true` (with both Jasmine scopes on) expands the puppeteer job to the three
+# themes × UMD / UMD.min, the minified bundle through test:production. The engines job runs too, as on
+# every e2e.yml call; a flake it finds is extra signal, nothing more.
+#
+# Triage. A Playwright test red here and green on pull requests runs on an axis its spec did not
+# declare: declare the axis (THEMES_TAG / BUNDLES_TAG on every top-level block of the spec), never
+# quarantine it. A Jasmine spec red here and green on pull requests fails on another theme or on the
+# minified bundle, and its record's isolation verdict says which answer: `passes alone` (order-dependent)
+# is a migration ticket, `fails alone` is fixed or migrated before the next RC cut, because the rc/stable
+# path runs the six legs and its publish needs them green (handsontable/.ai/TESTING.md, "The Jasmine
+# suite is frozen"); neither is a leg added back to pull requests. The flake ledger
+# (https://handsontable.github.io/handsontable/test-health/) records every flaky or failed test of this
+# run with `branch: develop` – the Playwright reports and the `puppeteer-failed-specs-*` records alike –
+# and `tests/scripts/leg-replay.mjs` replays the ledger against the declared Playwright tree and names
+# the declaration each off-main red asks for. The rc/stable publish path and a master push also run
+# both full matrices (test.yml forwards `full-matrix` and `jasmine-full-matrix`); the develop push keeps
+# the pull-request shape, because the durations and the budget measure that shape.
+#
+# handsontable.full.js and handsontable.min.js, the two bundles neither suite tests, stay out of this
+# run. This is the one E2E nightly: a suite that needs a full-matrix night extends it with e2e.yml's
+# inputs, as the Jasmine suite does, rather than adding a third nightly.
+on:
+  schedule:
+    # 03:30 UTC Tue–Sat: the night after each weekday's merges, clear of the visual nightly (02:00),
+    # the visual stability run (02:30), the code-quality baseline (03:00) and the readme (04:00).
+    - cron: '30 3 * * 2-6'
+  # From any ref, deliberately: a dispatch from a feature branch is the cheapest full-matrix proof run
+  # for a change to the declarations. visual-nightly.yml guards its ref because its compare needs a
+  # base branch; nothing here does, and Slack fires on develop only.
+  workflow_dispatch:
+  # Self-validation, as visual-nightly.yml does it: this file never runs on an ordinary pull request,
+  # so a broken workflow_call graph would first execute AFTER merging, on the next scheduled night.
+  # With this trigger a pull request that touches the file gets a startup-validated run whose jobs
+  # skip themselves — which also makes a temporary run-on-pull-request edit unmergeable through the
+  # pin in .github/scripts/__tests__/e2e-legs.test.mjs.
+  pull_request:
+    paths: [ '.github/workflows/e2e-nightly.yml' ]
+
+# NO permissions block — the parity rule of visual-nightly.yml and develop.yml: the called workflows
+# validate their nested job-level grants against the default token this caller hands down, the same
+# token the pull request path is proven against.
+
+concurrency:
+  # Static prefix (never the workflow-name expression, which a called workflow resolves to the
+  # caller's name). A dispatch during the scheduled run queues behind it rather than cancelling a
+  # matrix that is minutes from its verdict.
+  group: e2e-nightly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/build.yml
+    with:
+      run-umd: true
+    secrets: inherit
+
+  e2e:
+    name: E2E
+    needs: [ build ]
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/e2e.yml
+    with:
+      # Both Jasmine scopes on (they are one gate in e2e.yml) and the six-leg matrix.
+      run-e2e: true
+      run-e2e-min: true
+      jasmine-full-matrix: true
+      run-playwright: true
+      full-matrix: true
+    secrets: inherit
+
+  # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
+  # an empty string, so the step skips itself). The same webhook as the visual nightly, on purpose:
+  # the channel that triages one nightly triages the other.
+  notify:
+    name: Notify Slack
+    needs: [ e2e ]
+    if: ${{ failure() && github.event_name != 'pull_request' && github.ref_name == 'develop' }}
+    runs-on: ubuntu-26.04
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
+    steps:
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":red_circle: E2E nightly on ${{ github.ref_name }} failed: the full matrix (every Playwright spec on six legs, the frozen Jasmine suite on six) found what the pull-request legs did not.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nA Playwright spec green on pull requests: it runs on an axis it did not declare (tests/AGENTS.md, Declaring the legs): declare the axis, never quarantine it. A Jasmine spec green on pull requests (which run UMD × main alone) is red on another theme or the minified bundle: fails alone in its record = fix or migrate before the next RC cut (the rc path runs the six legs); passes alone = a migration ticket."
+            }

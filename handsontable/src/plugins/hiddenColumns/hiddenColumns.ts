@@ -2,13 +2,14 @@ import { BasePlugin } from '../base';
 import { addClass, isBottomMostColumnHeader, normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import { Hooks } from '../../core/hooks';
 import { createTrackedIconSync } from '../../themes/engine/icons';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
 import type { HidingMap } from '../../translations';
 import type { CellProperties } from '../../settings';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeHideColumns');
 Hooks.getSingleton().register('afterHideColumns');
@@ -17,6 +18,11 @@ Hooks.getSingleton().register('afterUnhideColumns');
 
 export const PLUGIN_KEY = 'hiddenColumns';
 export const PLUGIN_PRIORITY = 310;
+
+/**
+ * The width, in pixels, that a column next to a hidden one gains for the hidden-column indicator.
+ */
+const INDICATOR_EXTRA_WIDTH = 15;
 
 const SKIP_COLUMN_ON_PASTE_BY_PLUGIN = Symbol('skipColumnOnPasteByHiddenColumns');
 
@@ -217,6 +223,14 @@ export class HiddenColumns extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
    */
   static get DEFAULT_SETTINGS() {
@@ -271,7 +285,13 @@ export class HiddenColumns extends BasePlugin {
       this.#onMapInit();
     }
 
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    registerMenuEntries(this, () => [
+      hideColumnItem(this as unknown as Record<string, Function>),
+      showColumnItem(this as unknown as Record<string, Function>),
+    ], {
+      contextMenu: {},
+      dropdownMenu: { inDefaults: false },
+    });
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
     this.addHook('modifyColWidth', this.#onModifyColWidth, 2);
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
@@ -453,6 +473,29 @@ export class HiddenColumns extends BasePlugin {
   }
 
   /**
+   * Returns the width the plugin adds on top of a column's own width, to make room for the indicator of
+   * a hidden neighbor. It is `0` for a column with no hidden neighbor, with the indicators off, or on a
+   * grid that renders no column headers (which hold the indicator). The `modifyColWidth` hook and the
+   * `ManualColumnResize` drag read it, so the two agree on what the column renders.
+   *
+   * @private
+   * @param {number} column Visual column index.
+   * @returns {number}
+   */
+  getIndicatorExtraWidth(column: number): number {
+    if (!this.enabled || !this.getSetting('indicators')) {
+      return 0;
+    }
+
+    if (!this.isHidden(column + 1) && !this.isHidden(column - 1)) {
+      return 0;
+    }
+
+    // Checked last: with `colHeaders` left at its default, `hasColHeaders()` walks every column header.
+    return this.hot.hasColHeaders() ? INDICATOR_EXTRA_WIDTH : 0;
+  }
+
+  /**
    * Get if trim config is valid. Check whether all of the provided column indexes are within the bounds of the table.
    *
    * @param {Array} hiddenColumns List of hidden column indexes.
@@ -499,10 +542,12 @@ export class HiddenColumns extends BasePlugin {
       return 0;
     }
 
-    if (this.getSetting('indicators') && (this.isHidden(column + 1) || this.isHidden(column - 1))) {
-      // Add additional space for hidden column indicator.
-      if (typeof width === 'number' && this.hot.hasColHeaders()) {
-        return width + 15;
+    // Add additional space for hidden column indicator.
+    if (typeof width === 'number') {
+      const extraWidth = this.getIndicatorExtraWidth(column);
+
+      if (extraWidth > 0) {
+        return width + extraWidth;
       }
     }
   };
@@ -667,21 +712,6 @@ export class HiddenColumns extends BasePlugin {
       reachesCells && classList.includes('afterHiddenColumn') ? 'caretHiddenRight' : null);
     this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS,
       reachesCells && classList.includes('beforeHiddenColumn') ? 'caretHiddenLeft' : null);
-  };
-
-  /**
-   * Add Show-hide columns to context menu.
-   *
-   * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
-   */
-  #onAfterContextMenuDefaultOptions = (options: Record<string, unknown>) => {
-    (options.items as Record<string, unknown>[]).push(
-      {
-        name: SEPARATOR
-      },
-      hideColumnItem(this as unknown as Record<string, Function>),
-      showColumnItem(this as unknown as Record<string, Function>)
-    );
   };
 
   /**

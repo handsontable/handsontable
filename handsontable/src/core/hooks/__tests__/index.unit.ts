@@ -294,6 +294,66 @@ describe('Hooks', () => {
       expect(fn3).toHaveBeenCalledWith('Bar', 2, 'AB');
     });
 
+    it('should run the global callbacks before the instance callbacks, each in registration order', () => {
+      const hooks = new Hooks();
+      const context = {};
+      const calls: string[] = [];
+
+      hooks.add('test', () => { calls.push('instance 1'); }, context);
+      hooks.add('test', () => { calls.push('global 1'); });
+      hooks.add('test', () => { calls.push('instance 2'); }, context);
+      hooks.add('test', () => { calls.push('global 2'); });
+
+      hooks.run(context, 'test');
+
+      expect(calls).toEqual(['global 1', 'global 2', 'instance 1', 'instance 2']);
+    });
+
+    it('should return the instance callback value over the global one', () => {
+      const hooks = new Hooks();
+      const context = {};
+
+      hooks.add('test', () => 'instance', context);
+      hooks.add('test', () => 'global');
+
+      expect(hooks.run(context, 'test')).toBe('instance');
+    });
+
+    it('should return the value of the callback registered last within one bucket', () => {
+      const hooks = new Hooks();
+      const context = {};
+
+      hooks.add('test', () => 'registered first', context);
+      hooks.add('test', () => 'registered last', context);
+
+      expect(hooks.run(context, 'test')).toBe('registered last');
+    });
+
+    it('should not stop the later callbacks when an earlier one returns false', () => {
+      const hooks = new Hooks();
+      const context = {};
+      const later = jasmine.createSpy('later').and.returnValue([['USER']]);
+
+      hooks.add('test', () => false);
+      hooks.add('test', later, context);
+
+      const result = hooks.run(context, 'test');
+
+      expect(later).toHaveBeenCalledTimes(1);
+      expect(later).toHaveBeenCalledWith(false);
+      expect(result).toEqual([['USER']]);
+    });
+
+    it('should let a later callback return false over the earlier values', () => {
+      const hooks = new Hooks();
+      const context = {};
+
+      hooks.add('test', () => [['USER']]);
+      hooks.add('test', () => false, context);
+
+      expect(hooks.run(context, 'test')).toBe(false);
+    });
+
     it('should run hooks once', () => {
       const hooks = new Hooks();
       const fn1 = jasmine.createSpy('fn1').and.returnValue('Foo');

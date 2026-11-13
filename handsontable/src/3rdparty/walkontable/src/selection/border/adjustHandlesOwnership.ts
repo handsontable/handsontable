@@ -58,6 +58,14 @@ export interface AdjustHandlesAxisLayout {
 }
 
 /**
+ * What {@link ownsCornerCell} needs to know about the two axes: the segments, not the visible range.
+ */
+export interface CornerCellLayout {
+  row: Pick<AdjustHandlesAxisLayout, 'main' | 'overlaySegment'>;
+  column: Pick<AdjustHandlesAxisLayout, 'main' | 'overlaySegment'>;
+}
+
+/**
  * The per-axis layout.
  */
 export interface AdjustHandlesLayout {
@@ -104,7 +112,7 @@ export function getOverlaySegment(overlayName: string, axis: 'row' | 'column'): 
  * @param {number} index The renderable index.
  * @returns {AxisSegment}
  */
-export function getAxisSegment(axis: AdjustHandlesAxisLayout, index: number): AxisSegment {
+export function getAxisSegment(axis: Pick<AdjustHandlesAxisLayout, 'main'>, index: number): AxisSegment {
   if (index < axis.main[0]) {
     return 'start';
   }
@@ -121,6 +129,24 @@ export function getAxisSegment(axis: AdjustHandlesAxisLayout, index: number): Ax
  */
 function isInRange([from, to]: [number, number], index: number): boolean {
   return from >= 0 && index >= from && index <= to;
+}
+
+/**
+ * Tells whether the overlay owns a cell: the cell lies in the overlay's segment on both axes. Each
+ * mobile selection handle sits on one corner cell of the selection, and only the overlay owning that
+ * cell draws it. The master renders the frozen panes' cells too, under the clones, and a handle it
+ * drew there would hang out past the freeze line next to the clone's own (DEV-749). A header index
+ * (below 0) counts as the first track.
+ *
+ * @param {CornerCellLayout} layout The per-axis segments: where the scrollable part starts and ends,
+ * and which segment the overlay renders. No visible range is needed.
+ * @param {number} row The renderable row of the cell.
+ * @param {number} column The renderable column of the cell.
+ * @returns {boolean}
+ */
+export function ownsCornerCell(layout: CornerCellLayout, row: number, column: number): boolean {
+  return getAxisSegment(layout.row, Math.max(row, 0)) === layout.row.overlaySegment &&
+    getAxisSegment(layout.column, Math.max(column, 0)) === layout.column.overlaySegment;
 }
 
 /**

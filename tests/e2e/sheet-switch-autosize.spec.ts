@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { SheetSwitchAutosizePage } from '../fixtures/pages/SheetSwitchAutosizePage';
 
 /**
@@ -8,7 +8,7 @@ import { SheetSwitchAutosizePage } from '../fixtures/pages/SheetSwitchAutosizePa
  * cell for a second synchronous full rescan on the resume render. One switch measured every
  * column three times: the full sweep, the visible-columns walk, and the rescan.
  */
-test.describe('AutoColumnSize on a formula sheet switch', () => {
+test.describe('AutoColumnSize on a formula sheet switch', { tag: BUNDLES_TAG }, () => {
   let grid: SheetSwitchAutosizePage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

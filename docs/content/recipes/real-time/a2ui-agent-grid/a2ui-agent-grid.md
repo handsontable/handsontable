@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Agent-driven grid with A2UI
-metaTitle: Agent-driven grid with A2UI - React Data Grid | Handsontable
-description: Let an AI agent render and update a Handsontable grid through the A2UI protocol. Build a HotGrid catalog component that evaluates agent-authored formulas with HyperFormula and sends edits back to the agent.
+metaTitle: Agent-driven grid with A2UI | Handsontable DataGrid for JavaScript
+description: Let an AI agent render and update grids in Handsontable DataGrid through the A2UI protocol. Build a HotGrid catalog component that evaluates agent-authored formulas with HyperFormula and sends edits back to the agent.
 permalink: /recipes/real-time/a2ui-agent-grid
 canonicalUrl: /recipes/real-time/a2ui-agent-grid
 framework: react
@@ -16,13 +16,12 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Agent-driven grid with A2UI - React Data Grid | Handsontable
+  metaTitle: Agent-driven grid with A2UI | Handsontable DataGrid for React
 searchCategory: Recipes
 category: Real-time & Integrations
-menuTag: new
 ---
 
-In this tutorial, you will let an AI agent describe a grid in [A2UI](https://a2ui.org/) JSON and have Handsontable render it. You will build a custom A2UI component, `HotGrid`, that evaluates agent-authored formulas with HyperFormula in the browser, applies the agent's follow-up updates in place, and sends the user's edits back to the agent.
+In this tutorial, you will let an AI agent describe a grid in [A2UI](https://a2ui.org/) JSON and have Handsontable DataGrid render it. You will build a custom A2UI component, `HotGrid`, that evaluates agent-authored formulas with HyperFormula in the browser, applies the agent's follow-up updates in place, and sends the user's edits back to the agent.
 
 <iframe src="https://demos.handsontable.com/embed/34326g6e4v"
   style="width:100%; height: 820px; border:0; border-radius: 4px; overflow:hidden;"
@@ -31,7 +30,7 @@ In this tutorial, you will let an AI agent describe a grid in [A2UI](https://a2u
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**View the code**](https://demos.handsontable.com/share/34326g6e4v) · [**Open in the demo runner**](https://demos.handsontable.com/edit/34326g6e4v)
+[**Open in the demo runner**](https://demos.handsontable.com/share/34326g6e4v)
 
 The grid above is not hand-coded in the page. An agent described it in A2UI JSON: a `HotGrid` component from a custom catalog, bound to `/rows` in the surface data model. `HotGrid` renders it with Handsontable and evaluates the `=` cells with HyperFormula, in the browser. Edit a cell and click **Send to agent**: the action carries both the formulas (`rows`) and the computed numbers (`values`) back to the agent, and the agent answers with new messages. Here it adds a volume-discount line to the rows you sent, so your edits stay, and every reply is appended to the list under the grid. The two panels below the grid show the agent-to-client message stream and the client-to-agent actions.
 
@@ -222,7 +221,7 @@ It reads the rows from the action, so the user's edits survive, inserts a volume
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**View the code**](https://demos.handsontable.com/share/04w5t294ua) · [**Open in the demo runner**](https://demos.handsontable.com/edit/04w5t294ua)
+[**Open in the demo runner**](https://demos.handsontable.com/share/04w5t294ua)
 
 Here the agent renders a reorder plan, then keeps editing it. Watch the message stream under the grid: after the first three messages the agent sends only partial `updateDataModel` messages. One targets a single cell (`/rows/2/2`), one replaces the row list to add a SKU. The grid applies each one with `updateData()`, so it is never rebuilt, and HyperFormula recomputes the order quantities and totals. Edit any number and click **Approve plan** or **Ask for changes**: the action carries the formulas and the computed values to the agent, which appends its answer to the list.
 
@@ -281,6 +280,7 @@ An A2UI catalog is meant to reflect the host application's own components, so an
 
 <div class="boxes-list">
 
+- [Agent-driven grid with CopilotKit](@/recipes/real-time/copilotkit-agent-grid/copilotkit-agent-grid.md)
 - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md)
 - [Real-time updates via WebSocket](@/recipes/real-time/websocket-updates/websocket-updates.md)

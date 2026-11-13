@@ -175,3 +175,23 @@ export function offsetRelativeTo(event: Event, untilElement: HTMLElement | undef
 
   return offset;
 }
+
+/**
+ * The distance in pixels the pointer may move from a press and still count as a click, not a drag.
+ */
+export const POINTER_DRAG_TOLERANCE = 3;
+
+/**
+ * Checks if the pointer has moved farther than `POINTER_DRAG_TOLERANCE` from where it was pressed, on either axis.
+ *
+ * @param {{ x: number, y: number }} origin The pointer position at the press, in client coordinates.
+ * @param {{ clientX: number, clientY: number }} event The pointer event to compare with the press.
+ * @returns {boolean}
+ */
+export function hasPointerTraveled(
+  origin: { x: number, y: number },
+  event: { clientX: number, clientY: number }
+): boolean {
+  return Math.abs(event.clientX - origin.x) > POINTER_DRAG_TOLERANCE ||
+    Math.abs(event.clientY - origin.y) > POINTER_DRAG_TOLERANCE;
+}

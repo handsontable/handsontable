@@ -47,7 +47,10 @@ describe('MergeCells', () => {
         afterChange,
       });
 
-      expect(afterChange.calls.mostRecent().args[0]).toEqual([
+      // The merges are built in the plugin's ready step, before the init load's own `afterChange`, which
+      // core sends after the first render.
+      expect(afterChange.calls.allArgs().map(([, source]) => source)).toEqual(['MergeCells', 'loadData']);
+      expect(afterChange.calls.argsFor(0)[0]).toEqual([
         [0, 4, null, null],
         [1, 3, null, null],
         [1, 4, null, null],
@@ -87,7 +90,8 @@ describe('MergeCells', () => {
       });
 
       expect(beforeChange.calls.mostRecent().args[1]).toEqual('MergeCells');
-      expect(afterChange.calls.mostRecent().args[1]).toEqual('MergeCells');
+      // The init load's own `afterChange` comes after the merges' one, see the spec above.
+      expect(afterChange.calls.allArgs().map(([, source]) => source)).toEqual(['MergeCells', 'loadData']);
 
       getPlugin('mergeCells').merge(2, 2, 3, 3);
 
@@ -953,7 +957,8 @@ describe('MergeCells', () => {
       expect(getSelectedRangeLast().from.row).toEqual(6);
     });
 
-    // TODO: After some changes please take a look at #7010 (test for unspecified behavior)
+    // A range that touches a merge grows to cover it whole and keeps its direction: the corner the
+    // selection started from moves out to the edge of the grown rectangle (DEV-161, #7010).
     it('should select cells in the correct direction when changing selections around a merged range', async() => {
       handsontable({
         data: createSpreadsheetObjectData(10, 10),
@@ -968,12 +973,10 @@ describe('MergeCells', () => {
       // Rectangular area from the marginal cell to the cell on the opposite.
       expect(getSelected()).toEqual([[4, 5, 5, 2]]);
 
-      // What about, for example: selectCell(5, 4, 5, 2);
-      // Is it specified properly?
       await selectCell(4, 4, 2, 5);
 
       expect(getSelectedRangeLast().getDirection()).toEqual('SW-NE');
-      // It flips the selection direction vertically.
+      // The start corner moves from row 4 down to row 5, the merge's bottom edge.
       expect(getSelected()).toEqual([[5, 4, 2, 5]]);
 
       await selectCell(4, 4, 5, 7);
@@ -984,7 +987,7 @@ describe('MergeCells', () => {
       await selectCell(4, 5, 7, 5);
 
       expect(getSelectedRangeLast().getDirection()).toEqual('NW-SE');
-      // It flips the selection direction horizontally.
+      // The start corner moves from column 5 to column 4, the merge's start edge.
       expect(getSelected()).toEqual([[4, 4, 7, 5]]);
     });
 
@@ -2877,7 +2880,7 @@ describe('MergeCells', () => {
       expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
     });
 
-    it('should keep a merge whole (not clipped) when trimRows hides an interior row from the config', async() => {
+    it('should keep a merge whole (not clipped) and own the trimmed row when trimRows hides an interior row from the config', async() => {
       handsontable({
         data: createSpreadsheetData(10, 5),
         trimRows: [3], // physical row 3 trimmed from the start — inside the merge span
@@ -2891,7 +2894,8 @@ describe('MergeCells', () => {
 
       await render();
 
-      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
+      // the merge owns the row that was trimmed between its rows, so it spans physical rows 2 to 5
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 4, colspan: 3 }]);
     });
 
     it('should capture correct anchors at bootstrap when trimRows hides rows above the merge from the config', async() => {

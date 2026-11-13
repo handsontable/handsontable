@@ -8,6 +8,7 @@ import {
   setAttribute,
 } from '../../helpers/dom/element';
 import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
+import { applyUiContainerTheme } from '../../utils/uiContainerTheme';
 import type { IconKey } from '../../themes/types';
 import type { IconSlotSync } from '../../themes/engine/icons';
 
@@ -18,6 +19,21 @@ import type { IconSlotSync } from '../../themes/engine/icons';
  * @type {string}
  */
 const ICON_SLOT_CLASS = 'ht-page-icon';
+
+/**
+ * The class of the block that holds the body open while there are no rows to draw.
+ *
+ * @type {string}
+ */
+const EMPTY_BODY_RESERVE_CLASS_NAME = 'ht-pagination-placeholder';
+
+/**
+ * The height, in pixels, the body keeps while there are no rows. The same value the
+ * `emptyDataState` placeholder uses, so turning that plugin on does not move the pager.
+ *
+ * @type {number}
+ */
+const EMPTY_BODY_RESERVE_HEIGHT = 150;
 
 const TEMPLATE: TemplateSpec = {
   tag: 'div',
@@ -118,11 +134,28 @@ export class PaginationUI {
    */
   #refs: PaginationRefs | null = null;
   /**
+   * The empty block that keeps the body of a grid with no rows from collapsing.
+   *
+   * @type {HTMLElement | null}
+   */
+  #emptyBodyReserve: HTMLElement | null = null;
+  /**
+   * The table holder the last `syncEmptyBodyReserve()` call named, and whether it asked for the block.
+   * Kept so a change of the pager's visibility can re-apply the block without waiting for a render.
+   *
+   * @type {{ holder: HTMLElement | null, needed: boolean }}
+   */
+  #emptyBodyReserveRequest: { holder: HTMLElement | null; needed: boolean } = { holder: null, needed: false };
+  /**
    * The name of the current theme.
    *
    * @type {string | undefined}
    */
   #themeName: string | undefined;
+  /**
+   * The theme engine's scope class for the grid, `undefined` without the theme engine.
+   */
+  #themeScopeClassName: string | undefined;
   /**
    * A function to translate phrases used in the UI.
    *
@@ -151,6 +184,7 @@ export class PaginationUI {
     uiContainer,
     isRtl,
     themeName,
+    themeScopeClassName,
     phraseTranslator,
     a11yAnnouncer,
     syncIcon,
@@ -159,6 +193,7 @@ export class PaginationUI {
     this.#uiContainer = uiContainer as HTMLElement | null;
     this.#isRtl = isRtl as boolean;
     this.#themeName = themeName as string | undefined;
+    this.#themeScopeClassName = themeScopeClassName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
     this.#a11yAnnouncer = a11yAnnouncer as (message: unknown) => void;
     this.#syncIcon = syncIcon as IconSlotSync;
@@ -218,7 +253,8 @@ export class PaginationUI {
     if (this.#uiContainer) {
       this.#uiContainer.appendChild(elements.fragment);
 
-      addClass(container, [this.#themeName ?? '', 'handsontable']);
+      addClass(container, 'handsontable');
+      applyUiContainerTheme(container, this.#themeName, this.#themeScopeClassName);
     }
 
     // Without a custom `uiContainer`, the LayoutManager owns placement: it appends the container
@@ -290,22 +326,20 @@ export class PaginationUI {
   }
 
   /**
-   * Updates the theme of the pagination container.
+   * Updates the theme of the pagination container. In a custom `uiContainer` the container gets the theme
+   * engine's scope class beside the theme class, so it follows the grid's `colorScheme` and `density`
+   * (`applyUiContainerTheme()`).
    *
    * @param {string | false | undefined} themeName The name of the theme to use.
+   * @param {string} [scopeClassName] The theme engine's scope class for the grid.
    * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
-  updateTheme(themeName: string | undefined): PaginationUI {
+  updateTheme(themeName: string | undefined, scopeClassName?: string): PaginationUI {
     this.#themeName = themeName;
+    this.#themeScopeClassName = scopeClassName;
 
     if (this.#uiContainer) {
-      const { container } = this.#refs!;
-
-      removeClass(container, /ht-theme-.*/g);
-
-      if (this.#themeName) {
-        addClass(container, this.#themeName);
-      }
+      applyUiContainerTheme(this.#refs!.container, this.#themeName, scopeClassName);
     }
 
     return this;
@@ -549,14 +583,68 @@ export class PaginationUI {
     }
 
     container.style.display = isSectionVisible ? '' : 'none';
+    this.#applyEmptyBodyReserve();
   }
 
   /**
-   * Removes the pagination UI elements from the DOM and clears the refs.
+   * Removes the pagination UI elements from the DOM and clears the refs. Without a custom
+   * `uiContainer` it also takes the `htPagination` marker off the root wrapper, which
+   * `#updateContainerVisibility()` adds while a section is visible.
    */
   destroy() {
+    if (!this.#uiContainer) {
+      const wrapper = this.#rootElement.querySelector('.ht-wrapper');
+
+      if (wrapper) {
+        removeClass(wrapper as HTMLElement, 'htPagination');
+      }
+    }
+
+    this.#emptyBodyReserve?.remove();
+    this.#emptyBodyReserve = null;
+    this.#emptyBodyReserveRequest = { holder: null, needed: false };
     this.#refs?.container.remove();
     this.#refs = null;
+  }
+
+  /**
+   * Keeps an empty block in the table holder while the grid has no rows to draw, so a root whose
+   * height is free does not collapse to its column headers and leave the pager touching them.
+   * Removes the block as soon as it is not needed, and does not add it while every section of the
+   * pager is hidden, because then there is no pager to separate from the headers. A later change
+   * of the pager's visibility applies the same request again.
+   *
+   * @param {HTMLElement} holder The table holder.
+   * @param {boolean} needed Whether the grid should reserve the body space now.
+   */
+  syncEmptyBodyReserve(holder: HTMLElement, needed: boolean) {
+    this.#emptyBodyReserveRequest = { holder, needed };
+    this.#applyEmptyBodyReserve();
+  }
+
+  /**
+   * Adds or removes the empty block according to the last request and the pager's visibility.
+   */
+  #applyEmptyBodyReserve() {
+    const { holder, needed } = this.#emptyBodyReserveRequest;
+
+    if (!holder || !needed || this.#refs?.container.style.display === 'none') {
+      this.#emptyBodyReserve?.remove();
+      this.#emptyBodyReserve = null;
+
+      return;
+    }
+
+    if (!this.#emptyBodyReserve) {
+      this.#emptyBodyReserve = holder.ownerDocument.createElement('div');
+      this.#emptyBodyReserve.classList.add(EMPTY_BODY_RESERVE_CLASS_NAME);
+      this.#emptyBodyReserve.style.width = '100%';
+      this.#emptyBodyReserve.style.height = `${EMPTY_BODY_RESERVE_HEIGHT}px`;
+    }
+
+    if (this.#emptyBodyReserve.parentElement !== holder) {
+      holder.appendChild(this.#emptyBodyReserve);
+    }
   }
 }
 

@@ -16,6 +16,7 @@ import { DropdownStrictValidationPage } from '../fixtures/pages/DropdownStrictVa
  * dropdown. Every case that writes into column 1 does so without selecting that cell, because
  * selecting it is exactly what used to hide the bug.
  */
+// leg-declarations: ignore pointer-offset -- clickCell() presses 5 px inside the cell's top-left corner, clear of the dropdown arrow on every theme; the cases assert validity
 test.describe('dropdown validation with `strict: false` (DEV-2911)', () => {
   let grid: DropdownStrictValidationPage;
 

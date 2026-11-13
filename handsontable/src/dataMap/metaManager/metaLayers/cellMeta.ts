@@ -1,4 +1,4 @@
-import { extendByMetaType, assert, normalizeEditorSetting } from '../utils';
+import { extendByMetaType, assert, normalizeEditorSetting, TYPE_EDITOR_REQUESTED_KEY } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
 import { extend, hasOwnProperty, objectEach } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
@@ -6,6 +6,10 @@ import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
 import type { CellProperties } from '../../../settings';
 import { markCellMetaChanged } from '../../../core/incrementalRender/renderChangeTracker';
+import {
+  adoptWrittenClassNames,
+  stripRendererClassNames,
+} from '../../../helpers/rendererClassNames';
 
 /**
  * Tells whether the cell's own last validation failed. The validation flow writes `valid` straight
@@ -94,6 +98,22 @@ function getKeySet(
   const keys: unknown = meta[name];
 
   return keys instanceof Set ? keys : undefined;
+}
+
+/**
+ * Reads a stored meta value for a snapshot (the replay after a cache reset, the undo journal). A
+ * renderer appends its own class names to the stored `className` (`numericRenderer` adds
+ * `htRight htNumeric`). Handed back, they would count as the user's own and stay on a cell that
+ * stopped being numeric, so a `className` read leaves them out.
+ *
+ * @param {object} meta The cell meta object.
+ * @param {string} key The key.
+ * @returns {*} The stored value, without the class names a renderer appended.
+ */
+function readUserClassNames(meta: CellProperties, key: string): unknown {
+  const value: unknown = meta[key];
+
+  return key === 'className' ? stripRendererClassNames(meta, value) : value;
 }
 
 /**
@@ -239,6 +259,16 @@ export default class CellMeta {
   }
 
   /**
+   * Whether a `cell`-option recording scope is open, so the write being made comes from the declarative
+   * `cell` option rather than from a `setCellMeta` call.
+   *
+   * @returns {boolean}
+   */
+  isRecordingCellOptionMeta(): boolean {
+    return this.#cellOptionMetaRecordingCount > 0;
+  }
+
+  /**
    * Closes one `cell`-option recording scope opened by `startCellOptionMetaRecording`, and the user-defined
    * recording suspension that came with it.
    *
@@ -292,8 +322,17 @@ export default class CellMeta {
       }
     });
 
+    // An `editor: true` is gone from `normalizedSettings`, yet it can still change the editor: it asks
+    // the type expansion for the type's editor under a higher-level `editor: false`. A checkbox paints
+    // from it (disabled or not), so that change has to count as well.
+    const editorBefore = meta.editor;
+
     extend(meta, normalizedSettings);
-    extendByMetaType(meta, normalizedSettings);
+    extendByMetaType(meta, normalizedSettings, meta, settings.editor === true);
+
+    if (meta.editor !== editorBefore) {
+      changed = true;
+    }
 
     if (changed) {
       markCellMetaChanged(meta);
@@ -437,17 +476,34 @@ export default class CellMeta {
     // `getEditorInstance()` and, by clearing the key from `_automaticallyAssignedMetaProps`, would
     // also stop `extendByMetaType()` from supplying the type's editor. The bookkeeping entries are
     // cleared too, so an earlier real write does not keep the cell pinned against meta eviction.
+    //
+    // The request itself is kept, though, as a separate recorded key: it is what lets the cell's `type`
+    // supply its editor under a higher-level `editor: false`, and the type is expanded later from
+    // `{ type }` alone, after this `true` is gone. Written through `setMeta`, it lands in the same origin
+    // bucket as this write, so a cache reset replays it.
     if (key === 'editor' && value === true) {
       delete cellMeta[key];
       (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
       (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
       (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
+      this.setMeta(physicalRow, physicalColumn, TYPE_EDITOR_REQUESTED_KEY, true);
 
       return;
     }
 
+    // Any other `editor` value replaces an earlier `editor: true`, so its request goes with it.
+    if (key === 'editor') {
+      this.removeMeta(physicalRow, physicalColumn, TYPE_EDITOR_REQUESTED_KEY);
+    }
+
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
+
+    // Every class name the new `className` carries is the user's own. Without this the replay after a
+    // cache reset would strip it as a class a renderer added.
+    if (key === 'className') {
+      adoptWrittenClassNames(cellMeta, value);
+    }
 
     // Every `setMeta` write - imperative or declarative (`cell` option) - is non-reconstructable by
     // `getCellMeta`, so record it; the viewport-eviction pass keeps cells whose set is non-empty.
@@ -519,6 +575,24 @@ export default class CellMeta {
     (cellMeta._cellOptionMetaProps as Set<string> | undefined)?.delete(key);
     (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
     markCellMetaChanged(cellMeta);
+
+    // Removing `editor` removes an `editor: true` request too (see `setMeta`). The editor the `type`
+    // supplied because of it was deleted above, so the next read expands the type as if it was never
+    // requested.
+    if (key === 'editor') {
+      this.removeMeta(physicalRow, physicalColumn, TYPE_EDITOR_REQUESTED_KEY);
+    }
+
+    // Removing the request removes the editor the `type` supplied because of it (an undo of the
+    // `editor: true` write lands here). That editor was not stored, so the next read expands the type
+    // again and keeps a higher-level `editor: false`. An editor the user stored stays.
+    if (
+      key === TYPE_EDITOR_REQUESTED_KEY &&
+      hasOwnProperty(cellMeta, 'editor') &&
+      !getKeySet(cellMeta, '_persistedMetaProps')?.has('editor')
+    ) {
+      delete cellMeta.editor;
+    }
   }
 
   /**
@@ -545,7 +619,7 @@ export default class CellMeta {
 
     return {
       hadOwn: true,
-      value: cellMeta[key],
+      value: readUserClassNames(cellMeta, key),
       origin: getKeyOrigin(cellMeta, key),
     };
   }
@@ -734,7 +808,9 @@ export default class CellMeta {
       const origin = getKeyOrigin(meta, key);
 
       if (origin !== 'none' && hasOwnProperty(meta, key)) {
-        target.push({ physicalRow, physicalColumn, key, state: { hadOwn: true, value: meta[key], origin } });
+        const value = readUserClassNames(meta, key);
+
+        target.push({ physicalRow, physicalColumn, key, state: { hadOwn: true, value, origin } });
       }
     });
   }
@@ -760,7 +836,7 @@ export default class CellMeta {
 
         props.forEach((key) => {
           if (hasOwnProperty(meta, key)) {
-            result.push({ physicalRow, physicalColumn, key, value: meta[key] });
+            result.push({ physicalRow, physicalColumn, key, value: readUserClassNames(meta, key) });
           }
         });
       }

@@ -36,7 +36,7 @@ const localeOptions: { value: string; label: string }[] = [
   { value: 'pl-PL', label: 'Polish (Poland)' },
   { value: 'pt-BR', label: 'Portuguese (Brazil)' },
   { value: 'ru-RU', label: 'Russian (Russia)' },
-  { value: 'sr-SP', label: 'Serbian Latin (Serbia)' },
+  { value: 'sr-Latn-RS', label: 'Serbian Latin (Serbia)' },
   { value: 'zh-CN', label: 'Chinese (Simplified, China)' },
   { value: 'zh-TW', label: 'Chinese (Traditional, Taiwan)' },
 ];
@@ -164,6 +164,7 @@ const ExampleComponent = () => {
       </div>
 
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         colHeaders={['Car', 'Year', 'Price (USD)', 'Price (EUR)', 'Distance', 'Fuel', 'Discount', 'Quantity']}
@@ -239,7 +240,6 @@ const ExampleComponent = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

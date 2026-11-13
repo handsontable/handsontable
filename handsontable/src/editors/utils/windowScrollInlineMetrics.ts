@@ -23,8 +23,10 @@ export type WindowScrollInlineMetrics = {
  *
  * `getEditedCellRect()` measures the cell from the grid root's inline-start edge, which is its RIGHT edge in
  * RTL, so under RTL the offset runs from the viewport's right edge to the root's right edge. The left-based
- * offset LTR uses (`getTableOffset().left - scrollX`), applied under RTL, was off by the page's horizontal
- * scroll, so once the page was scrolled toward its inline end every list flipped.
+ * offset LTR once used (`getTableOffset().left - scrollX`), applied under RTL, was off by the page's horizontal
+ * scroll, so once the page was scrolled toward its inline end every list flipped. LTR reads the root's left
+ * edge as well: `getTableOffset()` follows the `offsetLeft` chain, which ignores the `translate` of an
+ * ancestor, so a grid inside one was placed by the wrong amount and its list overflowed the viewport.
  *
  * The room is the viewport's, never the containing block's that the lists write `right` against
  * (`getFixedContainingBlockRect()`): a transformed ancestor makes that block a box that scrolls with the
@@ -47,7 +49,7 @@ export function getWindowScrollInlineMetrics(hot: HotInstance): WindowScrollInli
   }
 
   return {
-    inlineStartOffset: hot.view.getTableOffset().left - hot.rootWindow.scrollX,
+    inlineStartOffset: hot.rootElement.getBoundingClientRect().left,
     viewportWidth,
   };
 }

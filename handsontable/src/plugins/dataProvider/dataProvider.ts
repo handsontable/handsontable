@@ -5,6 +5,9 @@ import { hasOwnProperty } from '../../helpers/object';
 import * as I18nC from '../../i18n/constants';
 import { BasePlugin } from '../base';
 import type { HotInstance } from '../../core/types';
+import type { RowIdKey } from '../../utils/rowId';
+import type { CellChange } from '../../settings';
+import { OvertakenEdits } from './overtakenEdits';
 import {
   PLUGIN_KEY,
   PLUGIN_PRIORITY,
@@ -15,6 +18,7 @@ import {
   DATA_PROVIDER_ERROR_REMOVE_ROWS_MISSING_ID,
   DATA_PROVIDER_ERROR_UPDATE_ROWS_MISSING_ID,
   INITIAL_QUERY_PARAMETERS,
+  QUERY_PLUGIN_SETTING_KEYS,
 } from './constants';
 import {
   buildManualUpdateRowPayloads,
@@ -60,6 +64,7 @@ import {
 } from './utils';
 import { registerConflict } from '../base/conflictRegistry';
 import type { NotificationMessageOptions } from '../notification/notification';
+import { LICENSE } from './feature.generated';
 
 registerConflict('dataProvider', [
   'manualRowMove',
@@ -184,12 +189,6 @@ export interface DataProviderFetchOptions {
   signal: AbortSignal;
 }
 
-/**
- * @deprecated Since 18.0.0, renamed to `DataProviderFetchOptions`. This alias will be removed in
- * 19.0.0. Use {@link DataProviderFetchOptions} instead.
- */
-export type DataProviderOptions = DataProviderFetchOptions;
-
 export interface RowsCreatePayload {
   position: 'above' | 'below';
   referenceRowId?: unknown;
@@ -217,7 +216,7 @@ export interface RowMutationRemovePayload {
 export type RowMutationPayload = RowMutationCreatePayload | RowMutationUpdatePayload | RowMutationRemovePayload;
 
 export interface DataProviderConfig {
-  rowId: string;
+  rowId: RowIdKey;
   fetchRows: (queryParameters: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
     Promise<DataProviderFetchResult>;
   onRowsCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
@@ -307,10 +306,21 @@ export class DataProvider extends BasePlugin {
   }
 
   /**
-   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
+   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`. Besides its own key,
+   * the settings of the plugins the query reads: re-applying one of them resets the page, sort, or filters, so the
+   * query has to be read again and the rows fetched for it. The framework wrappers pass only the settings that
+   * changed, so such a setting usually arrives without `dataProvider`.
    */
   static get SETTING_KEYS() {
-    return [PLUGIN_KEY];
+    return [PLUGIN_KEY, ...QUERY_PLUGIN_SETTING_KEYS];
   }
 
   /**
@@ -369,6 +379,31 @@ export class DataProvider extends BasePlugin {
    */
   #isPassive = false;
   /**
+   * `true` from an `enablePlugin()` made outside `_runWithoutFetching()` until the fetch of that enable
+   * starts. The ready step starts it (at init, and after a direct `enablePlugin()` call); `onDataReady()`
+   * starts it when core applies the settings ahead of their data, and a passive update owes none.
+   *
+   * @type {boolean}
+   */
+  #fetchOwed = false;
+  /**
+   * The `dataProvider` value whose rows the plugin fetched or owes, `null` while it is disabled. Recorded when
+   * the ready step or `onDataReady()` starts the fetch and after the full `updatePlugin()` cycle, never by
+   * `enablePlugin()` alone: an enable through `updateSettings()` runs `updatePlugin()` in the same pass, and that
+   * call must still re-apply the plugin. A settings update that sends the same object again leaves the plugin and
+   * its rows alone.
+   *
+   * @type {*}
+   */
+  #appliedConfig: unknown = null;
+  /**
+   * Whether `#appliedConfig` was a complete configuration when it was recorded. An object completed in place and
+   * sent again turns the grid server-backed, so it is not the same configuration.
+   *
+   * @type {boolean}
+   */
+  #appliedConfigComplete = false;
+  /**
    * `true` while {@link Hooks#afterDataProviderFetch} runs for a response the plugin loads or replays, so the page
    * size Pagination takes from that response is not read as a user's change.
    *
@@ -381,12 +416,26 @@ export class DataProvider extends BasePlugin {
    * @type {{ tail: Promise<void> }}
    */
   readonly #mutationQueue: { tail: Promise<void> } = { tail: Promise.resolve() };
+  /**
+   * Writes again the edits a refetch that follows a save dropped while they waited for their validators.
+   *
+   * @type {OvertakenEdits}
+   */
+  readonly #overtakenEdits: OvertakenEdits;
+  /**
+   * `true` from right before a refetch that follows a save calls `loadData()` until that load starts.
+   *
+   * @type {boolean}
+   */
+  #isLoadingAfterSave = false;
 
   /**
    * @param {object} hotInstance Handsontable instance.
    */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
+
+    this.#overtakenEdits = new OvertakenEdits(this.hot, () => this.#getRowIdOption());
 
     // Before `enablePlugin()` runs (`afterPluginsInitialized`), core may call `runHooks('hasExternalDataSource')`
     // (for example during `updateSettings`). `disablePlugin()` clears all `addHook` listeners, so `enablePlugin()`
@@ -415,7 +464,6 @@ export class DataProvider extends BasePlugin {
     this.#adoptPendingQuery();
 
     this.addHook('hasExternalDataSource', this.#onHasExternalDataSource);
-    this.addHook('afterInit', this.#onAfterInit);
     this.addHook('modifyRowHeader', this.#onModifyRowHeader);
     this.addHook('beforeColumnSort', this.#onBeforeColumnSort);
     this.addHook('beforeUndoStackChange', this.#onBeforeUndoStackChange);
@@ -425,33 +473,91 @@ export class DataProvider extends BasePlugin {
     this.addHook('afterPageSizeChange', this.#onAfterPageSizeChangeExternalPagination);
     this.addHook('beforeFilter', this.#onBeforeFilter);
     this.addHook('afterNotificationHide', this.#onAfterNotificationHide);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings, 1);
+    this.addHook('afterSetDataAtCell', this.#onAfterSetData);
+    this.addHook('afterSetDataAtRowProp', this.#onAfterSetData);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
+    this.hot._addDroppedChangesListener(this.#onDroppedChanges);
+
+    this.#fetchOwed = !this.#isPassive;
 
     super.enablePlugin();
   }
 
   /**
-   * Re-applies settings and refetches when the instance is already initialized. A payload whose `dataProvider`
-   * is no longer the grid's (an earlier `afterUpdateSettings` listener replaced it with a nested `updateSettings()`
-   * call, which already re-applied the plugin) changes nothing.
+   * Re-applies settings and refetches when the instance is already initialized. Two payloads leave the
+   * configuration in place: one whose `dataProvider` is no longer the grid's (an earlier `afterUpdateSettings`
+   * listener replaced it with a nested `updateSettings()` call, which already re-applied the plugin), and one that
+   * sends the `dataProvider` object whose rows the plugin already fetched, which would otherwise abort the running
+   * fetch and refetch the same rows. A payload that also re-applies a plugin the query reads (Pagination,
+   * ColumnSorting, Filters, or `columns`, which clears the sort) runs the full cycle, because that plugin's state
+   * was reset and the query has to be read from it again.
    *
    * @param {object} [newSettings] The settings passed to `updateSettings()`.
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-    if (newSettings && hasOwnProperty(newSettings, 'dataProvider')
-      && newSettings.dataProvider !== this.hot.getSettings().dataProvider) {
-      super.updatePlugin();
+    if (newSettings && hasOwnProperty(newSettings, PLUGIN_KEY)) {
+      const value = newSettings[PLUGIN_KEY];
 
+      if (value !== this.hot.getSettings()[PLUGIN_KEY]) {
+        super.updatePlugin();
+
+        return;
+      }
+
+      if (this.#runsAppliedConfig(value) && !QUERY_PLUGIN_SETTING_KEYS.some(key => hasOwnProperty(newSettings, key))) {
+        super.updatePlugin();
+
+        return;
+      }
+    }
+
+    this.#disable(false);
+    this.enablePlugin();
+
+    // The ready step starts the fetch once the call returns. While core applies the settings ahead of their
+    // data, `onDataReady()` starts it, on a grid already drawn; on one still being built the step does.
+    if (!this.#isPassive && this.isDataWorkDeferred() && this.deferDataWork()) {
+      this.#fetchOwed = false;
+    }
+
+    this.#recordAppliedConfig();
+    super.updatePlugin();
+  }
+
+  /**
+   * Starts the fetch an update left for this step. Core's `_applySettingsAndData()` applies settings
+   * ahead of their data, and `fetchRows` is called as soon as a fetch starts, so a fetch started then
+   * would run before the call has loaded its data.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (this.takeDeferredDataWork() && !this.#isPassive) {
+      this.#fetchOwed = false;
+      this.#recordAppliedConfig();
+      void this.#fetchDataSilently();
+    }
+  }
+
+  /**
+   * Starts the fetch of an enable or update. Core runs it once the call returns, when the grid exists: at init
+   * before the `init` hook, and on a live grid before the render that ends the call. An enable or update made
+   * inside `_runWithoutFetching()` owes no fetch, even when the step runs after that scope has ended.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#fetchOwed) {
       return;
     }
 
-    this.disablePlugin();
-    this.enablePlugin();
+    this.#fetchOwed = false;
 
-    if (!this.#isPassive && this.hot.view) {
+    if (!this.#isPassive) {
+      this.#recordAppliedConfig();
       void this.#fetchDataSilently();
     }
-
-    super.updatePlugin();
   }
 
   /**
@@ -462,13 +568,58 @@ export class DataProvider extends BasePlugin {
    * `enablePlugin()` registers it again so it survives each `updatePlugin()` cycle.
    */
   disablePlugin(): void {
+    this.#disable(true);
+  }
+
+  /**
+   * Disables the plugin. A real disable syncs EmptyDataState's loading overlay after the abort, because an
+   * aborted fetch fires no hook that would hide it. The disable and enable cycle of `updatePlugin()` skips the
+   * sync: its refetch takes the overlay over, and hiding it in between would restore the selection and show it
+   * again for the same fetch. A passive disable aborts nothing, and the owner's context change syncs the overlay
+   * itself.
+   *
+   * @param {boolean} syncsLoadingOverlay Whether to sync the loading overlay after the abort.
+   */
+  #disable(syncsLoadingOverlay: boolean): void {
     if (!this.#isPassive) {
-      this.#abortFetchesFor(this.#currentContext());
+      if (syncsLoadingOverlay) {
+        this.#abortFetchesAndSyncLoading(this.#currentContext());
+      } else {
+        this.#abortFetchesFor(this.#currentContext());
+      }
     }
 
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
+    this.#appliedConfig = null;
+    this.#appliedConfigComplete = false;
+    this.hot._removeDroppedChangesListener(this.#onDroppedChanges);
+    this.#overtakenEdits.reset();
 
     super.disablePlugin();
+  }
+
+  /**
+   * Records the `dataProvider` value whose rows the plugin fetched or owes, and whether it was complete.
+   */
+  #recordAppliedConfig(): void {
+    const config = this.hot.getSettings()[PLUGIN_KEY];
+
+    this.#appliedConfig = config;
+    this.#appliedConfigComplete = isCompleteDataProviderConfig(config);
+  }
+
+  /**
+   * Tells whether an update's `dataProvider` value is the configuration the plugin already runs with: the same
+   * object, as complete as when it was recorded. While passive, the owner's context change re-applies the plugin
+   * as before.
+   *
+   * @param {*} value The `dataProvider` value of the update.
+   * @returns {boolean}
+   */
+  #runsAppliedConfig(value: unknown): boolean {
+    return !this.#isPassive &&
+      value === this.#appliedConfig &&
+      isCompleteDataProviderConfig(value) === this.#appliedConfigComplete;
   }
 
   /**
@@ -520,7 +671,9 @@ export class DataProvider extends BasePlugin {
    * {@link Hooks#afterRowsMutation} fires in both cases. With the refetch off, a `fetchRows` request that is
    * still in flight when the create finishes (a sort or filter change made just before) would otherwise resolve
    * later and `loadData()` the rows `onRowsCreate` applied out of the grid, so that one case refetches anyway
-   * (superseding the pending request, which fires {@link Hooks#afterDataProviderFetchAbort}).
+   * (superseding the pending request, which fires {@link Hooks#afterDataProviderFetchAbort}). With the
+   * {@link SheetsBar} plugin, a create that finishes while its sheet is not shown refetches that sheet anyway too:
+   * the grid shows another sheet then, so `onRowsCreate` has no grid to apply the rows to.
    *
    * @param {object} [options] `position`, `referenceRowId`, `rowsAmount`.
    * @returns {Promise<void>}
@@ -547,8 +700,9 @@ export class DataProvider extends BasePlugin {
       () => Promise.resolve(onRowsCreate(rowsCreatePayload)),
       async() => {
         const target = this.#mutationTarget(binding);
+        const isShown = target === null || this.#isVisible(target);
 
-        if (!this.#shouldRefetchAfterCreate(target) && !this.#inFlight.has(target?.context ?? null)) {
+        if (!this.#shouldRefetchAfterCreate(target) && !this.#inFlight.has(target?.context ?? null) && isShown) {
           return;
         }
 
@@ -596,11 +750,13 @@ export class DataProvider extends BasePlugin {
 
       const offScreen = target !== null && !this.#isVisible(target);
       const latest = offScreen ? this.#latestResultFor(target) : null;
-      const pageBeforeFetch = target === null ? this.#queryParameters.page : this.#queryFor(target).page;
+      const shownPage = target === null ? this.#queryParameters.page : this.#queryFor(target).page;
+      const pendingPage = target === null ? undefined : this.#pendingQueryFor(target)?.page;
+      const pageBeforeFetch = pendingPage ?? shownPage;
       const rowsLoaded = offScreen ? latest?.rows.length ?? rowsLoadedAtQueue : this.hot.countRows();
       const removesEveryLoadedRow = ids.length >= rowsLoaded && rowsLoaded >= 1;
 
-      if (removesEveryLoadedRow && pageBeforeFetch > 1) {
+      if (removesEveryLoadedRow && pageBeforeFetch > 1 && pageBeforeFetch === shownPage) {
         await this.#refetchFor(target, { page: pageBeforeFetch - 1, skipLoading: true });
 
         return;
@@ -689,14 +845,12 @@ export class DataProvider extends BasePlugin {
    * @param {object|null} context The context to drop.
    */
   _releaseContext(context: object | null): void {
-    this.#abortFetchesFor(context);
-
     if (context !== null) {
       this.#releasedContexts.add(context);
       this.#hideErrorToastsFor(context);
     }
 
-    this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching());
+    this.#abortFetchesAndSyncLoading(context);
   }
 
   /**
@@ -757,11 +911,24 @@ export class DataProvider extends BasePlugin {
     try {
       return this._runWithoutFetching(callback);
     } finally {
-      this.#detachErrorToasts();
-      this.#rederiveQuery();
-      this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching(), true);
-      this.hot.getPlugin('filters')?._resetDataProviderRollback();
+      this.#syncAfterContextChange();
     }
+  }
+
+  /**
+   * Brings the driven plugins in line with the view a context change has just shown (the steps after `callback`
+   * in `_runContextChange()`). Does nothing once the grid is destroyed: a listener the owner fires inside the
+   * change can destroy it, and every step reads the instance.
+   */
+  #syncAfterContextChange() {
+    if (!this.hot) {
+      return;
+    }
+
+    this.#detachErrorToasts();
+    this.#rederiveQuery();
+    this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching(), true);
+    this.hot.getPlugin('filters')?._resetDataProviderRollback();
   }
 
   /**
@@ -910,7 +1077,23 @@ export class DataProvider extends BasePlugin {
       return Promise.resolve(null);
     }
 
-    return this.#fetchFor(binding, overrides);
+    return this.#fetchFor(binding, overrides, this.#pendingQueryFor(binding), true);
+  }
+
+  /**
+   * Returns the query of the running fetch of a binding's context, so a refetch that follows a save keeps the page,
+   * sort, and filters the user asked for and that have not landed yet. `#queryParameters` (or, for a context that is
+   * not shown, the owner's latest response) still holds the previous ones until that fetch succeeds, and the refetch
+   * aborts it. The query is a snapshot, so a key a `beforeDataProviderFetch` listener added to the params is not
+   * carried into the refetch.
+   *
+   * @param {object} binding The request binding.
+   * @returns {object|undefined} `undefined` when no fetch of the binding's context is running.
+   */
+  #pendingQueryFor(binding: RequestBinding): DataProviderQueryParameters | undefined {
+    const pending = this.#inFlight.get(binding.context);
+
+    return pending ? this.#snapshotQueryParameters(pending.params) : undefined;
   }
 
   /**
@@ -1022,12 +1205,15 @@ export class DataProvider extends BasePlugin {
    * @param {object} [baseQuery] The query the overrides apply to. Omitted, the current query is used for a
    * visible binding, and for one whose context is not shown the query of the latest response the owner keeps for
    * it, or the binding's own query when it keeps none.
+   * @param {boolean} [followsSave=false] Whether the fetch is the refetch that follows a save: an edit its load
+   * drops while it waits for its validator is written again (see `OvertakenEdits`).
    * @returns {Promise<{ rows: Array<*>, totalRows: number }|null>}
    */
   async #fetchFor(
     binding: RequestBinding,
     overrides: DataProviderFetchDataOverrides = {},
-    baseQuery?: DataProviderQueryParameters
+    baseQuery?: DataProviderQueryParameters,
+    followsSave = false
   ): Promise<{ rows: unknown[]; totalRows: number } | null> {
     if (this.#isDropped(binding)) {
       return null;
@@ -1043,19 +1229,20 @@ export class DataProvider extends BasePlugin {
 
     const base = baseQuery ?? this.#queryFor(binding);
     const params = this.#mergeAndNormalizeFetchParams(overrides, base);
-    const controller = new AbortController();
-
-    this.#abortFetchesFor(binding.context, this.#createAbortReason());
-    this.#inFlight.set(binding.context, { binding, controller, params, skipLoading: overrides.skipLoading === true });
-
     const hookParams = this.#isVisible(binding) ? params : { ...params, skipLoading: true };
 
     if (this.hot.runHooks('beforeDataProviderFetch', hookParams) === false) {
-      this.#releaseInFlight(binding.context, controller);
+      this.#syncLoadingIfShown(binding);
       this.hot.render();
 
       return null;
     }
+
+    const controller = new AbortController();
+    const skipLoading = this.#resolveSkipLoading(binding.context, overrides.skipLoading === true);
+
+    this.#abortFetchesFor(binding.context, this.#createAbortReason());
+    this.#inFlight.set(binding.context, { binding, controller, params, skipLoading });
 
     const { signal } = controller;
 
@@ -1065,6 +1252,7 @@ export class DataProvider extends BasePlugin {
       if (signal.aborted) {
         this.#releaseInFlight(binding.context, controller);
         this.#runAfterDataProviderFetchAbort(params, undefined);
+        this.#syncLoadingIfShown(binding);
 
         return null;
       }
@@ -1082,15 +1270,13 @@ export class DataProvider extends BasePlugin {
       );
 
       if (clampedPage !== persistedParams.page) {
-        return this.#fetchFor(
-          binding,
-          { page: clampedPage, skipLoading: overrides.skipLoading },
-          persistedParams
-        );
+        this.#releaseInFlight(binding.context, controller);
+
+        return this.#fetchFor(binding, { page: clampedPage, skipLoading }, persistedParams, followsSave);
       }
 
       this.#releaseInFlight(binding.context, controller);
-      this.#applyFetchResult(binding, result, rows, totalRows, persistedParams);
+      this.#applyFetchResult(binding, result, rows, totalRows, persistedParams, followsSave);
 
       return { rows, totalRows };
     } catch (err) {
@@ -1098,6 +1284,7 @@ export class DataProvider extends BasePlugin {
 
       if (signal.aborted || (err instanceof Error && err.name === 'AbortError')) {
         this.#runAfterDataProviderFetchAbort(params, err);
+        this.#syncLoadingIfShown(binding);
 
         return null;
       }
@@ -1135,17 +1322,31 @@ export class DataProvider extends BasePlugin {
    * @param {Array} rows The normalized rows.
    * @param {number} totalRows The normalized row total.
    * @param {object} persistedParams The query the rows answer.
+   * @param {boolean} [followsSave=false] Whether the response answers the refetch that follows a save.
    */
   #applyFetchResult(
     binding: RequestBinding,
     result: DataProviderFetchResult,
     rows: unknown[],
     totalRows: number,
-    persistedParams: DataProviderQueryParameters
+    persistedParams: DataProviderQueryParameters,
+    followsSave = false
   ): void {
     if (this.#isVisible(binding)) {
       this.#queryParameters = persistedParams;
-      this.hot.loadData(rows, PLUGIN_KEY);
+
+      if (followsSave) {
+        this.#overtakenEdits.overtakeWaitingSets((changes, source) => (
+          !shouldIgnoreAfterChangeForServerUpdate(isFunction(this.#getOnRowsUpdate()), changes, source)
+        ));
+        this.#isLoadingAfterSave = true;
+      }
+
+      try {
+        this.hot.loadData(rows, PLUGIN_KEY);
+      } finally {
+        this.#isLoadingAfterSave = false;
+      }
 
       if (binding.context !== null) {
         this.#hideErrorToastsFor(binding.context, true);
@@ -1234,6 +1435,56 @@ export class DataProvider extends BasePlugin {
       this.#inFlight.delete(context);
       entry.controller.abort(reason);
     }
+  }
+
+  /**
+   * Aborts the fetch in flight for one context, without a reason, and syncs EmptyDataState's loading overlay
+   * with what is still loading: an aborted fetch fires no hook that would hide the overlay.
+   *
+   * @param {object|null} context The context.
+   */
+  #abortFetchesAndSyncLoading(context: object | null): void {
+    this.#abortFetchesFor(context);
+    this.#syncLoading();
+  }
+
+  /**
+   * Syncs EmptyDataState's loading overlay with what is still loading for the context shown.
+   */
+  #syncLoading(): void {
+    this.hot.getPlugin('emptyDataState')?._syncDataProviderLoading(this.isFetching());
+  }
+
+  /**
+   * Syncs the loading overlay after a fetch for a binding ended without a response or an error: a listener canceled
+   * it, or it was aborted. Those endings fire no {@link Hooks#afterDataProviderFetch} and no
+   * {@link Hooks#afterDataProviderFetchError}, and the overlay its {@link Hooks#beforeDataProviderFetch} raised
+   * stayed up for good. A fetch whose context is not shown never raised it. A newer fetch that replaced this one
+   * keeps it up, because `isFetching()` answers for the newer one. Does nothing once the plugin was destroyed.
+   *
+   * @param {object} binding What the fetch was for.
+   */
+  #syncLoadingIfShown(binding: RequestBinding): void {
+    if (this.hot && this.#isVisible(binding)) {
+      this.#syncLoading();
+    }
+  }
+
+  /**
+   * Tells whether a fetch about to start for a context skips the loading state. A fetch asked to skip it
+   * still counts as loading when it supersedes a fetch of the same context that was loading: the overlay
+   * that fetch raised stays up until the successor lands, which is the only one left to clear it. Without
+   * that, the superseded fetch's abort synced the overlay with an `isFetching()` that ignored the silent
+   * successor, and a sort or a save made during a load uncovered the grid while its refetch still ran.
+   *
+   * @param {object|null} context The context of the fetch.
+   * @param {boolean} requested Whether the caller asked to skip the loading state.
+   * @returns {boolean}
+   */
+  #resolveSkipLoading(context: object | null, requested: boolean): boolean {
+    const previous = this.#inFlight.get(context);
+
+    return requested && (previous === undefined || previous.skipLoading);
   }
 
   /**
@@ -1533,18 +1784,31 @@ export class DataProvider extends BasePlugin {
 
   /**
    * Derives the query parameters again after the owner changed the view, from the Pagination, ColumnSorting, and
-   * Filters states the change left behind (the new view's own, since restoring its sort and filters runs passively),
-   * starting on page 1. A fetch still running for the new context keeps its own query. A replayed response sets
-   * its own query afterwards.
+   * Filters states the change left behind (the new view's own, since restoring its sort and filters runs passively).
+   * A view the owner keeps no response for puts Pagination back on the configured `initialPage` and `pageSize`
+   * first, and its query takes that `initialPage` even while the pager, which counts the rows the grid holds until
+   * a response gives a total, shows a lower page, so its first fetch asks for them, as the grid's own first fetch
+   * does. A fetch still running for the new
+   * context keeps its own query. A replayed response sets its own query afterwards.
    */
   #rederiveQuery(): void {
-    if (!this.enabled) {
+    const binding = this.#currentBinding();
+
+    if (!this.enabled || !binding) {
       return;
     }
 
+    const initialPage = this.#latestResultFor(binding) === null
+      ? this.hot.getPlugin('pagination')?._resetDataProviderPage()
+      : undefined;
+
     this.#queryParameters = { ...INITIAL_QUERY_PARAMETERS };
     this.#applyQueryParametersFromPlugins();
-    this.#queryParameters = { ...this.#queryParameters, page: 1 };
+
+    if (initialPage !== undefined) {
+      this.#queryParameters = { ...this.#queryParameters, page: initialPage };
+    }
+
     this.#adoptPendingQuery();
   }
 
@@ -1728,13 +1992,6 @@ export class DataProvider extends BasePlugin {
   readonly #onHasExternalDataSource = () => isCompleteDataProviderConfig(this.hot.getSettings().dataProvider);
 
   /**
-   * @returns {void}
-   */
-  readonly #onAfterInit = () => {
-    void this.#fetchDataSilently();
-  };
-
-  /**
    * Loads the requested page when Pagination runs in external paged mode.
    * Skips when `#queryParameters` already matches the Pagination UI (e.g. right after a successful fetch).
    *
@@ -1837,6 +2094,59 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
+   * Tells EmptyDataState about the fetch it missed when a settings update turned it on. The plugin raises its
+   * loading overlay from `beforeDataProviderFetch`, and an enable made while a fetch runs never saw that hook, so
+   * the overlay showed "No data" over an empty grid, or nothing over rows, until the fetch landed. Registered after
+   * the plugins' own settings listeners (`orderIndex` 1), so EmptyDataState is enabled by then; the sync does
+   * nothing when it is off. A passive update belongs to the owner's context change, which syncs the overlay after
+   * its callback, with the arriving view's selection.
+   *
+   * @param {object} newSettings The settings passed to `updateSettings()`.
+   */
+  readonly #onAfterUpdateSettings = (newSettings: Record<string, unknown>) => {
+    if (!this.#isPassive && hasOwnProperty(newSettings, 'emptyDataState')) {
+      this.#syncLoading();
+    }
+  };
+
+  /**
+   * Notes a change set for `OvertakenEdits`: a set made while an overtaken set waits to be written again marks the
+   * cells it shares with it as written later.
+   *
+   * @param {Array} changes The change set.
+   * @param {string} [source] The change source.
+   */
+  readonly #onAfterSetData = (changes: CellChange[], source?: string) => {
+    this.#overtakenEdits.trackSet(changes, source);
+  };
+
+  /**
+   * Forgets every set waiting for its validators when a load that is not a refetch that follows a save replaces
+   * the data: a sort, a filter, a page change, `fetchData()`, or a load DataProvider did not make brings other
+   * rows, and the edits it drops stay dropped.
+   */
+  readonly #onBeforeLoadData = () => {
+    if (this.#isLoadingAfterSave) {
+      this.#isLoadingAfterSave = false;
+    } else {
+      this.#overtakenEdits.reset();
+    }
+  };
+
+  /**
+   * Writes again a set core dropped, when a refetch that follows a save overtook it.
+   *
+   * @param {Array} changes The dropped set.
+   * @param {string} [source] The change source.
+   * @param {Array} rejectedChanges The changes a validator rejected under `allowInvalid: false`.
+   */
+  readonly #onDroppedChanges = (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => {
+    if (this.enabled && !this.hot.isDestroyed) {
+      this.#overtakenEdits.writeAgain(changes, source, rejectedChanges);
+    }
+  };
+
+  /**
    * Forgets a tracked error notification once it is hidden (dismissed, timed out, or hidden by its Refetch action).
    *
    * @param {string} id The hidden notification's id.
@@ -1935,6 +2245,8 @@ export class DataProvider extends BasePlugin {
    * Destroys the plugin.
    */
   destroy() {
+    this.hot._removeDroppedChangesListener(this.#onDroppedChanges);
+    this.#overtakenEdits.reset();
     this.#abortAllFetches();
 
     super.destroy();

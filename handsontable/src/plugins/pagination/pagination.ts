@@ -10,6 +10,7 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { isPlainObject } from '../../helpers/object';
 import { registerConflict } from '../base/conflictRegistry';
+import { LICENSE } from './feature.generated';
 
 // Hard conflicts: Pagination stays off while any of these top-level settings is truthy.
 registerConflict('pagination', [
@@ -26,6 +27,21 @@ const LAYOUT_WEIGHT = 100;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
+
+/**
+ * The keys the plugin reads from the `pagination` object. `settingsSchema` lists them as the only keys
+ * `validateSettings()` accepts there, so a key the plugin starts to read belongs here and in
+ * `DEFAULT_SETTINGS`.
+ */
+export interface PaginationSettings {
+  pageSize?: number | 'auto';
+  pageSizeList?: Array<number | 'auto'>;
+  initialPage?: number;
+  showPageSize?: boolean;
+  showCounter?: boolean;
+  showNavigation?: boolean;
+  uiContainer?: HTMLElement | null;
+}
 
 /**
  * The page state `Pagination#captureState()` records.
@@ -155,6 +171,14 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
    */
   static get DEFAULT_SETTINGS() {
@@ -205,6 +229,13 @@ export class Pagination extends BasePlugin {
    * @type {boolean}
    */
   #isUpdatingPlugin = false;
+  /**
+   * `true` from an `enablePlugin()` until the page state is computed. `updatePlugin()` and `onDataReady()`
+   * compute it themselves; otherwise the ready step does (at init, and after a direct `enablePlugin()` call).
+   *
+   * @type {boolean}
+   */
+  #stateOwed = false;
   /**
    * Page size setup by the user. It can be a number or 'auto' (in which case the plugin will
    * calculate the page size based on the viewport size and row heights).
@@ -276,10 +307,9 @@ export class Pagination extends BasePlugin {
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const declaredInitialPage = readDeclaredInitialPage(settings);
 
-    // Use the raw grid value, not `getSetting()`. `onUpdateSettings` branch 2
-    // (disabled → enabled) calls `enablePlugin()` before `updatePluginSettings()`,
-    // so `#pluginSettings` is still stale. Core has already merged the new
-    // `pagination` object onto `hot.getSettings()`.
+    // Use the raw grid value, which core has already merged when this runs. `getSetting()`
+    // reads the plugin's own copy, which `onUpdateSettings` now refreshes before an enable too,
+    // but the raw value does not depend on that order.
     if (typeof declaredInitialPage !== 'number') {
       this.#appliedInitialPage = undefined;
     } else if (declaredInitialPage !== this.#appliedInitialPage) {
@@ -307,6 +337,7 @@ export class Pagination extends BasePlugin {
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getCurrentThemeName(),
+        themeScopeClassName: this.hot.themeManager?.scopeClassName,
         phraseTranslator: (key: string, extraArguments?: unknown) => this.hot.getTranslatedPhrase(key, extraArguments),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
         syncIcon: (
@@ -337,15 +368,13 @@ export class Pagination extends BasePlugin {
         .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });
     }
 
-    // Place the onInit hook before others to make sure that the pagination state is computed
-    // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
-    this.addHook('init', this.#onInit, -1);
     this.addHook('beforeSelectAll', this.#onBeforeSelectAllRows);
     this.addHook('beforeSelectColumns', this.#onBeforeSelectAllRows);
     this.addHook('beforeSetRangeEnd', this.#onBeforeSetRangeEnd);
     this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
     this.addHook('beforePaste', this.#onBeforePaste);
     this.addHook('afterViewRender', this.#onAfterViewRender);
+    this.addHook('afterRender', this.#onAfterRender);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
@@ -353,6 +382,8 @@ export class Pagination extends BasePlugin {
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     this.#registerFocusScope();
+
+    this.#stateOwed = true;
 
     super.enablePlugin();
   }
@@ -435,6 +466,32 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Puts the page and page size back to the configured `initialPage` and `pageSize` without firing the page hooks,
+   * and returns the configured `initialPage`. The DataProvider plugin calls it when the grid has just changed to a
+   * view that has no response yet: the page and page size the previous view left describe that view, and the new
+   * view's first fetch asks for the configured ones, as the grid's own first fetch does. Until that response gives a
+   * row total, the pages are counted from the rows the grid holds, so the page shown may be clamped below the one
+   * returned; the response brings the page, page size, and total in through {@link Hooks#afterDataProviderFetch}.
+   * Does nothing and returns `undefined` while this plugin is disabled. Internal; not public API.
+   *
+   * @private
+   * @returns {number|undefined} The configured initial page.
+   */
+  _resetDataProviderPage(): number | undefined {
+    if (!this.enabled) {
+      return;
+    }
+
+    const initialPage = this.getSetting<number>('initialPage')!;
+
+    this.#setCurrentPage(initialPage);
+    this.#setPageSizeValue(this.getSetting<number | 'auto'>('pageSize')!);
+    this.#computeAndApplyState();
+
+    return initialPage;
+  }
+
+  /**
    * Tells whether a DataProvider currently backs the grid. Read on demand, because the answer
    * changes whenever `updateSettings()` adds or removes a `dataProvider`, and this plugin is not
    * updated then.
@@ -485,6 +542,52 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Computes the page state once the data the settings describe is loaded. Core's
+   * `_applySettingsAndData()` applies settings ahead of their data, and `updatePlugin()` leaves the
+   * computation for this step then: run against the rows the grid still held, it clamped the declared
+   * `initialPage` to their page count and rendered them under the new configuration.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (!this.takeDeferredDataWork()) {
+      return;
+    }
+
+    this.#stateOwed = false;
+    this.#refreshUI();
+  }
+
+  /**
+   * Computes the page state when no `updatePlugin()` or `onDataReady()` computed it: at init, and after a
+   * direct `enablePlugin()` call. Core runs it once after each enable or update, when the data is loaded and
+   * the view exists.
+   *
+   * At init it runs before the `init` hook and the first render, so the page is applied to the index mapper
+   * before AutoColumnSize and AutoRowSize measure from their `init` listeners. It does not render then, and
+   * leaves an `'auto'` page size to the render, which measures the rows it needs. On a grid already drawn it
+   * computes and renders.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#stateOwed) {
+      return;
+    }
+
+    this.#stateOwed = false;
+
+    // Whether the grid can measure, not whether this is the init pass: a grid that never drew (at init, or
+    // built hidden) cannot size an `'auto'` page and shows nothing a render would change. Its first render
+    // measures the `'auto'` page, as every render does.
+    if (this.hot.view._wt.drawn) {
+      this.#refreshUI();
+    } else if (this.#pageSize !== 'auto') {
+      this.#computeAndApplyState();
+    }
+  }
+
+  /**
    * Updates the plugin state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin() {
@@ -497,7 +600,12 @@ export class Pagination extends BasePlugin {
       this.#isUpdatingPlugin = false;
     }
 
-    this.#refreshUI();
+    if (this.isDataWorkDeferred()) {
+      this.deferDataWork();
+    } else {
+      this.#stateOwed = false;
+      this.#refreshUI();
+    }
 
     super.updatePlugin();
   }
@@ -1194,15 +1302,31 @@ export class Pagination extends BasePlugin {
   };
 
   /**
-   * Called after the initialization of the plugin. It computes the initial state of the pagination.
+   * Called after the grid is rendered. It holds the body of a grid with no rows open, so a root with a free
+   * height does not collapse to its column headers and leave the pager touching them.
    */
-  #onInit = () => {
-    if (this.#pageSize === 'auto') {
-      return;
-    }
+  #onAfterRender = () => {
+    const holder = this.hot.view._wt.wtTable.holder;
 
-    this.#computeAndApplyState();
+    this.#ui?.syncEmptyBodyReserve(holder, this.#shouldReserveEmptyBody(holder));
   };
+
+  /**
+   * Tells whether the body should keep its own height now: nothing is drawn, the holder follows its content
+   * (the engine gave it no pixel height, as it does for a free root height and not inside a sized scroll
+   * parent), the pager sits under the grid, and `emptyDataState` is not already holding the same space open.
+   *
+   * @param {HTMLElement} holder The table holder.
+   * @returns {boolean}
+   */
+  #shouldReserveEmptyBody(holder: HTMLElement): boolean {
+    const holderHeight = holder.style.height;
+
+    return this.hot.view.countRenderableRows() === 0 &&
+      (holderHeight === '' || holderHeight === 'auto') &&
+      !this.getSetting('uiContainer') &&
+      !this.hot.getPlugin('emptyDataState')?.enabled;
+  }
 
   /**
    * Called after the language change. It recomputes the pagination state which updates the UI.
@@ -1217,7 +1341,7 @@ export class Pagination extends BasePlugin {
    * @param {string | undefined} themeName The name of the theme to use.
    */
   #onAfterSetTheme = (themeName: unknown) => {
-    this.#ui?.updateTheme(themeName as string | undefined);
+    this.#ui?.updateTheme(themeName as string | undefined, this.hot.themeManager?.scopeClassName);
     this.#ui?.refreshIcons();
   };
 

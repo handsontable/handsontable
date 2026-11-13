@@ -105,6 +105,13 @@
       &:disabled {
         cursor: initial;
 
+        // The box covers the middle of its cell, and clicking it must still SELECT the cell.
+        // Current Chromium, Firefox, and WebKit already pass a press on a disabled control on to
+        // its ancestors (verified by the cross-browser E2E case), but disabled controls have
+        // historically swallowed pointer events. The input is non-interactive anyway, so letting
+        // the click through costs nothing and does not depend on that engine behavior.
+        pointer-events: none;
+
         // Box
         &::before {
           border-color: var(--ht-checkbox-disabled-border-color);

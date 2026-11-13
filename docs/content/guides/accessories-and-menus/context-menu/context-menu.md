@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Context menu
-metaTitle: Context menu - JavaScript Data Grid | Handsontable
+metaTitle: Context menu | Handsontable DataGrid for JavaScript
 description: Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
 permalink: /context-menu
 canonicalUrl: /context-menu
@@ -11,11 +11,11 @@ tags:
   - pop-up menu
   - right-click menu
 react:
-  metaTitle: Context menu - React Data Grid | Handsontable
+  metaTitle: Context menu | Handsontable DataGrid for React
 angular:
-  metaTitle: Context menu - Angular Data Grid | Handsontable
+  metaTitle: Context menu | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Context menu - Vue Data Grid | Handsontable
+  metaTitle: Context menu | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated
@@ -119,14 +119,14 @@ You can define the items in the menu by passing the [`contextMenu`](@/api/option
 | [`filter_operators`](@/api/contextMenu.md)               | Select a filter parameter. Requires: [`Filters`](@/api/filters.md)                                                                                                   |
 | [`filter_by_value`](@/api/contextMenu.md)                | Add a filter value. Requires: [`Filters`](@/api/filters.md)                                                                                                          |
 | [`filter_action_bar`](@/api/contextMenu.md)              | Apply the configured filter. Requires: [`Filters`](@/api/filters.md)                                                                                                 |
-| [`export_file`](@/api/contextMenu.md)                    | Open the Export submenu with "To CSV" and "To Excel" items. Requires: [`ExportFile`](@/api/exportFile.md). The Excel item is hidden when no XLSX engine is configured. |
+| [`export_file`](@/api/contextMenu.md)                    | Open the [Export](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#context-menu) submenu with "To CSV" and "To Excel" items. Requires: [`ExportFile`](@/api/exportFile.md) and the [`exportFile`](@/api/options.md#exportfile) option. The Excel item is hidden only when `engines.xlsx` is not a recognized engine. |
 
 The `filter_by_condition`, `filter_by_condition2`, `filter_operators`, `filter_by_value`, and
 `filter_action_bar` items build the filtering interface and take effect only in the dropdown (column)
 menu, not in the context menu. See [Filter menu items](@/guides/accessories-and-menus/column-menu/column-menu.md#filter-menu-items).
 
 The table above lists every key you can use in the array form of `contextMenu`. An array key that
-matches no available item is skipped, and Handsontable logs a console warning naming it and the
+matches no available item is skipped, and Handsontable DataGrid logs a console warning naming it and the
 menu it came from. That covers a key with a typo in it, and a key whose plugin is not enabled --
 so check the required plugin named beside the key when an item does not appear.
 
@@ -220,7 +220,7 @@ want. The items you keep carry their own actions, so they keep working:
 const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
 
 const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   contextMenu: true,
   afterContextMenuDefaultOptions(options) {
     const alignment = options.items.find(item => item.key === 'alignment');
@@ -252,7 +252,7 @@ const trimAlignment = (options) => {
 };
 
 <HotTable
-  licenseKey="non-commercial-and-evaluation"
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   contextMenu={true}
   afterContextMenuDefaultOptions={trimAlignment}
 />
@@ -264,7 +264,7 @@ const trimAlignment = (options) => {
 const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
 
 readonly gridSettings: GridSettings = {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   contextMenu: true,
   afterContextMenuDefaultOptions(options) {
     const alignment = options.items.find(item => item.key === 'alignment');
@@ -285,7 +285,7 @@ readonly gridSettings: GridSettings = {
 const verticalKeys = ['alignment:top', 'alignment:middle', 'alignment:bottom'];
 
 const settings = {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   contextMenu: true,
   afterContextMenuDefaultOptions(options) {
     const alignment = options.items.find(item => item.key === 'alignment');

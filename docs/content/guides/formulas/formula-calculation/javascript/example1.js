@@ -23,9 +23,9 @@ const data2 = [
 
 // create an external HyperFormula instance
 const hyperformulaInstance = HyperFormula.buildEmpty({
-  // to use an external HyperFormula instance,
-  // initialize it with the `'internal-use-in-handsontable'` license key
-  licenseKey: 'internal-use-in-handsontable',
+  // this demo uses the GPLv3 key,
+  // use your own HyperFormula license key in your app
+  licenseKey: 'gpl-v3',
 });
 
 const container1 = document.querySelector('#example-basic-multi-sheet-1');
@@ -41,7 +41,7 @@ new Handsontable(container1, {
   },
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const container2 = document.querySelector('#example-basic-multi-sheet-2');
@@ -57,5 +57,5 @@ new Handsontable(container2, {
   },
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });

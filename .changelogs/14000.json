@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `updateSettings()` so that a hook set to `null` removes the callbacks the settings registered for it, and fixed `colWidths: null` keeping columns at 50px instead of letting `AutoColumnSize` size them, and fixed a plugin turned on by `updateSettings()` reading its previous settings.",
+  "type": "changed",
+  "issueOrPR": 14000,
+  "breaking": true,
+  "framework": "none"
+}

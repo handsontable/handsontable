@@ -156,7 +156,9 @@ function ensureLatestHandsontable() {
  * Captures (does not stream) output so the caller decides whether to print it.
  * Returns { ok, output }.
  */
-function runCheck({ label, htDir }) {
+function runCheck({ label, htDir: rawHtDir }) {
+  // Without `baseUrl`, TypeScript rejects a non-relative `paths` target such as `.latest/...`.
+  const htDir = /^(\.\.?\/|\/)/.test(rawHtDir) ? rawHtDir : `./${rawHtDir}`;
   const tsconfig = {
     extends: './tsconfig.json',
     compilerOptions: {

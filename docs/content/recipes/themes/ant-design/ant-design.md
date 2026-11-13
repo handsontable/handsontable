@@ -1,7 +1,7 @@
 ---
-title: Handsontable with Ant Design
-metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
-description: Integrate Handsontable into a React app that uses Ant Design, and align the grid with your design system tokens through the Theme API.
+title: Handsontable DataGrid with Ant Design
+metaTitle: Ant Design theme | Handsontable DataGrid for JavaScript
+description: Integrate Handsontable DataGrid into a React app that uses Ant Design, and align the grid with your design system tokens through the Theme API.
 permalink: /recipes/themes/ant-design
 canonicalUrl: /recipes/themes/ant-design
 tags:
@@ -14,16 +14,17 @@ tags:
   - themes
   - Theme API
 react:
-  metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
+  metaTitle: Ant Design theme | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with Ant Design - Angular Data Grid | Handsontable
+  metaTitle: Ant Design theme | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Themes
 type: how-to
+menuTag: updated
 ---
 
-In this tutorial, you will integrate Handsontable into a React app that uses Ant Design and align the grid with your design system tokens through the Theme API. You will learn how to map Ant Design tokens to Handsontable theme parameters so the grid matches your existing styles.
+In this tutorial, you will integrate Handsontable DataGrid into a React app that uses Ant Design and align the grid with your design system tokens through the Theme API. You will learn how to map Ant Design tokens to Handsontable theme parameters so the grid matches your existing styles.
 
 <iframe src="https://demos.handsontable.com/embed/62392g4k2u"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -192,7 +193,7 @@ function ActionCell({ instance, row }) {
 }
 ```
 
-## Step 4: Create the Handsontable grid component
+## Step 4: Create the grid component
 
 Build the Ant-like table layout with `HotTable`, fixed column widths, and read-only cells.
 
@@ -205,6 +206,7 @@ function AntLikeGrid() {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       theme={antTableTheme}
       data={data}
       colHeaders={['Name', 'Age', 'Address', 'Tags', 'Action']}
@@ -212,7 +214,6 @@ function AntLikeGrid() {
       stretchH="all"
       height="auto"
       autoRowSize={false}
-      licenseKey="non-commercial-and-evaluation"
       cells={readOnlyCell}
     >
       <HotColumn data="name" width={160} renderer={NameCell} />
@@ -247,19 +248,19 @@ export default function App() {
 
 - Keep one source of truth - prefer Ant Design tokens as your source, and map Handsontable theme params from those tokens.
 - Start with `colors/ant`, then override only the values you need.
-- Use the same token map for dark mode, and switch it through Ant Design's `ConfigProvider`.
+- The theme is pinned to light mode with `.setColorScheme('light')`. Switching Ant Design to its dark algorithm through `ConfigProvider` doesn't change the grid. To follow it, call `antTableTheme.setColorScheme('dark')` or `setColorScheme('light')` when your app switches modes.
 
 ## What you learned
 
-- How to extract Ant Design token values from `theme.getDesignToken()` and map them to Handsontable Theme API parameters.
-- How to apply the mapped theme with `hot.updateSettings({ theme: new HotTableTheme({ ... }) })`.
-- How to use `ConfigProvider` from Ant Design to drive both the Ant Design components and the Handsontable theme from a single source of truth.
-- How to switch to dark mode by swapping the Ant Design algorithm and updating the Handsontable theme in the same callback.
+- How to register a theme from `horizonTheme` with the built-in `colors/ant` palette and `.params()` token overrides for Ant Design's header, border, padding, and link styles.
+- How to reuse a registered theme with `hasTheme()` and `getTheme()` instead of registering it twice.
+- How to set the color scheme and density with `.setColorScheme('light')` and `.setDensityType('comfortable')`.
+- How to render Ant Design components, such as `Typography.Link`, `Tag`, and `Space`, inside cells with custom renderers.
 
 ## Next steps
 
-- Explore [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) for the same token-mapping approach with Material UI.
-- Explore [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) for Tailwind-based design system integration.
+- Explore [Handsontable DataGrid with MUI](@/recipes/themes/mui-theme/mui-theme.md) for the same token-mapping approach with Material UI.
+- Explore [Handsontable DataGrid with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) for Tailwind-based design system integration.
 
 ## Related
 

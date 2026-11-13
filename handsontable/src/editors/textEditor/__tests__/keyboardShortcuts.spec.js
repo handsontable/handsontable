@@ -590,14 +590,12 @@ describe('TextEditor keyboard shortcut', () => {
   });
 
   describe('"Z + Cmd/Ctrl"', () => {
-    // Moved tests to the visual ones
-    // https://github.com/handsontable/handsontable/blob/develop/visual-tests/tests/editors/textEditor/undo.spec.ts
-    // https://github.com/handsontable/handsontable/blob/develop/visual-tests/tests/editors/textEditor/undo-multiline-text.spec.ts
+    // The native undo inside the open editor, and the editor's height after it, are asserted by the
+    // Playwright spec tests/e2e/text-editor-native-undo.spec.ts (a real key press, which this suite's
+    // synthetic events cannot drive).
   });
 
   describe('"Z + Shift + Cmd/Ctrl"', () => {
-    // Moved tests to the visual ones
-    // https://github.com/handsontable/handsontable/blob/develop/visual-tests/tests/editors/textEditor/redo.spec.ts
-    // https://github.com/handsontable/handsontable/blob/develop/visual-tests/tests/editors/textEditor/redo-multiline-text.spec.ts
+    // The native redo inside the open editor is asserted by tests/e2e/text-editor-native-undo.spec.ts.
   });
 });

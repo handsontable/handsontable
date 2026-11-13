@@ -49,6 +49,50 @@ describe('baseRenderer', () => {
       expect(TD.outerHTML).toMatchHTML('<td class="read-only"></td>', toMatchHTMLConfig);
     });
 
+    it('should not add the readOnly class name when `readOnlyStyling` is `false`', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        readOnly: true,
+        readOnlyCellClassName: 'read-only',
+        readOnlyStyling: false,
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td></td>', toMatchHTMLConfig);
+    });
+
+    it('should add the readOnly class name when `readOnlyStyling` is `true` or left unset', () => {
+      const explicit = document.createElement('td');
+      const unset = document.createElement('td');
+
+      baseRenderer(undefined, explicit, undefined, undefined, undefined, '', {
+        readOnly: true,
+        readOnlyCellClassName: 'read-only',
+        readOnlyStyling: true,
+      });
+      baseRenderer(undefined, unset, undefined, undefined, undefined, '', {
+        readOnly: true,
+        readOnlyCellClassName: 'read-only',
+      });
+
+      expect(explicit.outerHTML).toMatchHTML('<td class="read-only"></td>', toMatchHTMLConfig);
+      expect(unset.outerHTML).toMatchHTML('<td class="read-only"></td>', toMatchHTMLConfig);
+    });
+
+    it('should still announce the cell as read-only when `readOnlyStyling` is `false`', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        readOnly: true,
+        readOnlyCellClassName: 'read-only',
+        readOnlyStyling: false,
+        ariaTags: true,
+      });
+
+      // Only the appearance is withheld — the accessibility contract is untouched.
+      expect(TD.getAttribute('aria-readonly')).toBe('true');
+    });
+
     it('should manage validation class name', () => {
       const TD = document.createElement('td');
       const cellMeta = {

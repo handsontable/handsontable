@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
 type ApiUser = {
@@ -56,6 +56,8 @@ const USERS_QUERY = `
   `,
 })
 export class AppComponent implements OnInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+
   status = 'Loading users...';
   hasError = false;
   rows: UserRow[] = [];
@@ -94,6 +96,9 @@ export class AppComponent implements OnInit {
       this.rows = [];
       this.hasError = true;
       this.status = 'Failed to load users. Try again.';
+    } finally {
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 
@@ -137,7 +142,7 @@ export class AppComponent implements OnInit {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
@@ -146,7 +151,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

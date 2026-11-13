@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "dropdown-menu",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T11:07:36.828Z"
+  },
+  "steps": {
+    "open-menu": "",
+    "arrow-down-insert-right": "insert column right menu item group table 1 column 14 rows",
+    "arrow-down-remove": "remove column menu item group table 1 column 14 rows",
+    "arrow-down-clear": "clear column menu item group table 1 column 14 rows",
+    "arrow-down-read-only": "read only menu item table 1 column 14 rows",
+    "close-menu": "handsontable e2e fixture filters value list web content",
+    "arrow-down-in-grid": "color green table 3 columns"
+  }
+}

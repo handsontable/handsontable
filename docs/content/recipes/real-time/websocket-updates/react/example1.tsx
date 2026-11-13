@@ -83,6 +83,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       ref={hotRef}
       data={stockData}
       colHeaders={['Symbol', 'Company', 'Price ($)', 'Change ($)', 'Volume', 'Market Cap']}
@@ -99,7 +100,6 @@ const ExampleComponent = () => {
       width="100%"
       stretchH="all"
       afterChange={handleAfterChange}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

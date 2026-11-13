@@ -26,6 +26,7 @@
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } #outside-area { margin-top: .8rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -106,7 +107,7 @@
       colHeaders: true,
       rowHeaders: true,
       renderer: widgetRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.__hotProbe = {

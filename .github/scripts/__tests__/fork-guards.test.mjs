@@ -76,6 +76,7 @@ const GUARDED_SITES = [
   ['.github/workflows/visual.yml', 'name: Seed the golden records'],
   ['.github/workflows/visual.yml', 'name: Comment the visual verdict on the pull request'],
   ['.github/workflows/visual.yml', 'name: Record the approval on the pull request'],
+  ['.github/workflows/performance.yml', 'name: Record the approval on the pull request'],
   ['.github/workflows/docs.yml', 'name: Record the docs approval on the pull request'],
   ['.github/workflows/pr-cleanup.yml', '  purge-visual-screenshots:'],
   // The docs visual suite (DEV-2860): the sticky comment in docs.yml, and the
@@ -85,6 +86,13 @@ const GUARDED_SITES = [
   ['.github/actions/docs-visual-run/action.yml', 'name: Seed the golden records'],
   // The advisory breaking-change comment (DEV-3030).
   ['.github/workflows/breaking-check.yml', 'name: Comment'],
+  // The accessibility report's check run (DEV-3474): a check write a fork's token cannot make.
+  ['.github/workflows/a11y.yml', 'name: Post the report check run'],
+  ['.github/workflows/a11y.yml', 'name: Post the report comment'],
+  ['.github/workflows/a11y.yml', 'name: Post the evidence check runs'],
+  // The screen reader lane's check run: the same check write. The guard is kept so every check-write
+  // site carries both halves, per .ai/CI.md; a dispatch is never a pull_request event.
+  ['.github/workflows/screenreader.yml', 'name: Post the report check run'],
 ];
 
 test('every fork-hostile site carries both halves of the canonical guard', () => {

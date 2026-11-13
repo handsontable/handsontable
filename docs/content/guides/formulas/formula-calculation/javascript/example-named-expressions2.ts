@@ -8,7 +8,9 @@ registerAllModules();
 // Named expressions that reference cell ranges must be registered after the sheet
 // exists. Pre-build the engine, add the sheet, then add the named expressions.
 const hfInstance = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  // this demo uses the GPLv3 key,
+  // use your own HyperFormula license key in your app
+  licenseKey: 'gpl-v3',
 });
 
 hfInstance.addSheet('Sheet1');
@@ -35,5 +37,5 @@ new Handsontable(container, {
   },
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });

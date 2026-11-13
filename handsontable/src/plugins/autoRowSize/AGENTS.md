@@ -40,6 +40,93 @@ when every height is already cached.
 - **The first rendered row gets +1px** to compensate for its `border-top-width`. That compensation is
   per-render, not baked into the cached height.
 
+## A measured row height rounds UP, unless the row is a default-height one (DEV-544)
+
+`GhostTable#getHeights()` hands this plugin the sampled row's height snapped to the layout grid
+(`snapToLayoutUnit()`, `helpers/dom/layoutUnit.ts`), and the plugin stores `toStoredRowHeight()` of it
+(`helpers/measuredRowHeight.ts`). The stored heights stay whole pixels, which `getRowHeight()` (plugin and
+`hot.getRowHeight()`) keeps returning; the `#dev-1926` case of `__tests__/autoRowSize.spec.js` pins that.
+
+- **A row taller than the default rounds UP.** A row whose content is `118.27px` tall stored as `118` is
+  `0.27px` short in the row-header clone, which is written the stored height, while the master keeps sizing
+  the row from its own content. With the plugin on, `markOversizedRows` is a no-op (`externalRowCalculator`),
+  so this value is the only record of the row, and the shortfall stacked down the grid. Stored as `119`, both
+  panes lay the row out at `119`.
+- **A row at the default height keeps `Math.round()`.** Below 100% browser zoom the cells' 1px border is
+  inflated (1.111px at 90%), so a default row measures `29.11px`. Rounded up it would be `30`, and every
+  default row would be a pixel taller than it renders. That is why `GhostTable` hands the height over
+  unrounded: it does not know the default, this plugin does (`stylesHandler.getDefaultRowHeight()`).
+  `DEFAULT_HEIGHT_TOLERANCE` (0.05px) is what counts as "at the default": both numbers come off the same
+  layout, so they differ by a layout step (1/64px) at most. On top of it goes
+  `StylesHandler#getMaxDefaultRowOvergrowth()`, what the border inflation adds at the zoom of NOW (`1 / ratio
+  - 1`, `0` at 100% and above): the default height keeps the value read when the grid was built, so a grid
+  built at 100% and zoomed to 90% declares `29px` while its default rows measure `29.097px`, more than the
+  tolerance, and every one of them would round up to `30`. Do not use a bare `Math.ceil()` (a default row
+  measured a fraction above a whole pixel jumps a whole pixel) or a bare `Math.round()` (drops the fraction of
+  a taller row, which is the drift).
+- **The default is the uncompensated one** (`getDefaultRowHeight()` with no row). The first rendered body row
+  of a grid with no column headers draws its own 1px `border-top`, which `getDefaultRowHeight(row)` adds for
+  that row, but the ghost table measures every row without it. Compared with the compensated default, a first
+  row up to a pixel taller than the real default would count as a default-height row and round down.
+- **The header row keeps `Math.round()`** (the `row < 0` branch): it has no content-driven height of its own
+  to align.
+- Zoom is not testable here with CSS `zoom`: that scales the ghost table's rect too, so the measurement is
+  not what a zoomed-out browser reports. The default-row rule is pinned at unit level
+  (`__tests__/measuredRowHeight.unit.ts`, and the overgrowth in `utils/__tests__/stylesHandler.unit.js`); the
+  stored value of a content-tall row is pinned in `tests/e2e/row-header-fractional-height.spec.ts`.
+
+The engine's half of the same drift is in `src/3rdparty/walkontable/AGENTS.md`.
+
+## A merged block whose first row or column is hidden is measured on the cell it is drawn on
+
+A merge is drawn from the first row and column of it that are not hidden (`mergeCells/renderer.ts`,
+`getNearestNotHiddenIndex`). When its top-left cell sits in a hidden row or column, the block is drawn on a covered
+cell, and the rows that cell sits in must be as tall as the text. The sampler used to skip every cell with `hidden`
+meta, which includes that one, so the row kept the default height in the row-header clone while the master grew to
+the text (DEV-986). The measurement was not lost: the hidden top-left row was measured and stored, but
+`getRowHeight()` returns the default for a hidden row, so the value was never applied to any row.
+
+- **The sampler asks MergeCells, not the data.** For a covered cell it calls `getBlockDrawnOn(row, column)` through
+  `getPlugin('mergeCells')`, which answers only for the cell the renderer draws the block on. The sample carries the
+  block's text (formatted with the top-left cell's meta) and `block`, the top-left cell and the columns from the sampled
+  cell to the block's last one. A plain covered cell still answers `false`.
+- **The width and the meta must be the block's.** `GhostTable` reads `colspan` from the sampled cell's meta for the
+  `<col>` width, and a covered cell has none, so it takes the width from the sample's `block`. It also renders the ghost
+  cell with the top-left cell's coordinates and meta, because the grid paints a block drawn on a covered cell that way
+  (`modifyGetCellCoords`): with the covered cell's own meta a column with another renderer, `wordWrap` or `className`
+  measures a different height than the master draws. Without the width the text wraps in one column and the row comes
+  out taller than the master draws it.
+- **The sample has a bucket of its own** (`bundleSeed`). A bucket holds a few strings of each length and skips a value
+  already sampled, so the block's text could otherwise be left out by the other cells of its row.
+- **Heights are keyed by the physical row, the cell a block is drawn on follows hiding, trimming and sorting.** A full
+  render measures every row it draws, so a row in view is right after any of them. A row below the fold is measured
+  only when its cached height is dropped, and scrolling measures nothing. So `#remeasureMovedBlocks()` (called first in
+  `#onBeforeRender`) compares the covered cells the blocks are drawn on (`getCellsBlocksAreDrawnOn()`, keyed by physical
+  row, physical column and the block's width from there) with the ones of the last comparison, and drops the heights of
+  the rows that entered or left that set (`clearCache([rows])`, which queues them). The comparison runs only after
+  something that can move a block was reported: `cacheUpdated` of either index mapper with a hidden, trimmed or
+  sequence change, `afterMergeCells`, `afterUnmergeCells`, an `updateSettings()` that carries `mergeCells` (replacing
+  the merges drops the old ones without a hook), and the plugin being enabled. Undo and redo restore merges without a
+  hook too, and their own render has run by `afterUndo` and `afterRedo`, so those two compare at once and measure the
+  queued rows instead of waiting for a render that may not come. Comparing, rather than
+  reacting to the report, is what keeps a settings update that hides nothing new free: HiddenRows registers its hiding
+  map again on every update, which reports a hidden change, and the React and Angular wrappers send the settings on every
+  commit. The mapper callback only sets the flag: clearing from inside it would write the height map in the middle of a
+  cache update. A grid with no merge pays nothing.
+- **A change of data re-measures the carrier rows.** `#onBeforeChange` queues the rows of the changes, and a block
+  drawn on a covered cell takes its text from another cell, so it queues every row of `#blockCarriers` as well.
+- **A merge with nothing hidden is unchanged**: the top-left row takes the whole measured height and the rows it covers
+  keep the default, as before. Pinned by `__tests__/mergedBlockSamples.unit.ts` and
+  `tests/e2e/auto-row-size-merged-hidden-origin.spec.ts`. The E2E block below the fold is the case that fails without
+  the comparison; the cases in view pass without it, because a full render measures them anyway.
+- **Not covered:** a merge drawn by `virtualized` from a row the viewport moved it to, and a block drawn on the bottom
+  overlay's first row; both are drawn on a cell this rule does not name.
+- **A merge that a trim, a filter, or the removal of its first row re-anchors needs no rule here.** The cell it is drawn from afterwards held `hidden`
+  while the merge covered it, and the sampler skips every cell with `hidden`, so its text was never measured. MergeCells
+  now removes the flag from the new top-left cell when it re-anchors (see "Trimming re-anchors a merge, and clips it"
+  in `../mergeCells/AGENTS.md`), so the sampler sees an ordinary cell. Pinned by
+  `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
+
 ## `updateSettings` does not recalculate — with one exception
 
 Changing `wordWrap`, `textEllipsis` or a renderer changes row heights, but `updateSettings()` alone does not
@@ -58,17 +145,19 @@ Three rules hold that in place, and all three are load-bearing:
   returns early on an already-enabled plugin, and `BasePlugin` only re-runs the enable/disable pair when the
   plugin's enabled state itself changed — so a plain settings change never reaches it. This is exactly how
   `samplingRatio` came to be silently ignored on every `updateSettings()` call.
-- **Restore the stored settings first when the payload omits this plugin's key.** `SETTING_KEYS` is `true`,
-  so an update that never mentions `autoRowSize` still reaches `updatePlugin()` — and `onUpdateSettings` has
-  already fed `updatePluginSettings()` that missing key as `undefined`, which **wipes** the stored settings
-  (neither auto-size plugin declares `SETTINGS_VALIDATORS`, so the assignment falls straight through). Read
-  them in that state and you get the *defaults*, so re-applying would reset the user's `samplingRatio` and
-  re-measure the whole grid on an unrelated `updateSettings({ colHeaders: true })`. Restore from
-  `hot.getSettings()[PLUGIN_KEY]`, which is untouched — the same repair, for the same base-class reason, that
-  `manualRowResize` does (`../../utils/manualResize/AGENTS.md`, "Listing a foreign option in `SETTING_KEYS`").
-  **This is the common path, not an edge case:** the Vue wrapper omits every settings key whose value is
-  unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`), so a Vue app sends a payload *without*
-  `autoRowSize` on virtually every prop change.
+- **An update that omits this plugin's key keeps the stored settings.** `SETTING_KEYS` is `true`, so an
+  update that never mentions `autoRowSize` still reaches `updatePlugin()`. `BasePlugin#onUpdateSettings`
+  then refreshes the plugin settings from `hot.getSettings()[PLUGIN_KEY]`, not from the payload, so
+  `updatePlugin()` reads the user's `samplingRatio`, not the default, and an unrelated
+  `updateSettings({ colHeaders: true })` drops no measured height. Before that fallback lived in the base
+  class, this plugin restored the settings itself. **This is the common path, not an edge case:** the Vue
+  wrapper omits every settings key whose value is unchanged (`wrappers/vue3/src/helpers.ts`, `simpleEqual`),
+  so a Vue app sends a payload *without* `autoRowSize` on virtually every prop change. Pinned by
+  `__tests__/samplingSettings.unit.ts`.
+- **A sampling change in the call that turns the plugin on again clears the cache too.** `enablePlugin()`
+  applies the new settings first (`BasePlugin` refreshes them before it), so it records the change
+  (`#samplingChangedOnEnable`) for the `updatePlugin()` of the same call, which would otherwise see none and
+  keep the heights measured under the old settings.
 - **Clear the cache only when a value actually changed.** `updatePlugin()` runs on every `updateSettings()`
   call, and the React and Angular wrappers re-send unchanged settings on every update (React on every
   commit). An unconditional `clearCache()` would therefore re-measure every row on every commit.
@@ -168,12 +257,36 @@ to decide whether the refresh queue is safe to drain. Entry points that can over
 `#onAfterLoadData`, the column-resize gesture, an explicit `recalculateAllRowsHeight()`, and now a
 `clearCache()` that schedules one.
 
+## A web font re-measures the rows twice when the columns are still widening (DEV-199)
+
+`#onAfterFontsLoad` runs `recalculateAllRowsHeight()` right away, after AutoColumnSize's listener (both register
+`afterFontsLoad` with the same order index, and AutoColumnSize enables first). That listener measures one chunk of
+columns and leaves the rest to idle tasks, so the rows are measured against columns still at their fallback-font
+widths: text wraps more in them, and the rows outside the rendered band keep the extra height, since a render
+measures only the band. When AutoColumnSize's sweep is still running, `#rowsOwedToColumnSweep` is set, and the first
+`#onBeforeRender` of a visible grid that finds the sweep over schedules a full recalculation. AutoColumnSize draws
+once when its sweep ends, so that render comes by itself. The check reads `getPlugin('autoColumnSize').inProgress`,
+the plugin's public field, and a sweep AutoColumnSize restarts in the same render reads as still running, because
+its `beforeRender` listener runs first. Pinned by "measures the rows again once the column re-measure ends" in
+`tests/e2e/web-font-load.spec.ts`.
+
 ## Listeners stay bound while disabled — deliberately
 
 `disablePlugin()` leaves the height-recalculation listener active, because ManualRowResize's
 double-click-to-autofit needs it even with `autoRowSize: false`.
 
 Heights are also kept unchanged when every column is deleted or trimmed.
+
+## The first full measure stays on the `init` hook, on purpose
+
+Every other plugin that parked init work on `init` or `afterInit` moved it to the ready step
+(`onGridReady()`, `../base/AGENTS.md`). This one keeps its `init` listener. The steps run in
+`PLUGIN_PRIORITY` order, so a step of this plugin would run at 40, before the plugins that build what it
+measures: NestedHeaders (280) builds the header labels, MergeCells (150) the merges, and Pagination (900)
+the page. Measured from a step, the rows and the header height would be measured before that state exists
+(for AutoColumnSize that is the empty-label width defect PR #14080 fixed). Every ready step now runs before
+the `init` hook, so `init` is the point where the other plugins' state is in place and the first render has
+not run yet. AutoColumnSize keeps its listener for the same reason.
 
 ## Where to look next
 

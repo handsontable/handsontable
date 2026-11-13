@@ -19,8 +19,13 @@ const README = join(ROOT, 'README.md');
 
 // The short-window scenarios that run five iterations; everything else runs three.
 const FIVE_ITERATIONS = [
+  'checkbox-column-set-data',
+  'checkbox-header-toggle',
   'filtering',
   'initial-load',
+  'row-selection-deselect-all',
+  'row-selection-select-all',
+  'sheetsbar-structural-ops',
   'sorting',
   'source-data-validator-load',
   'undo-edit',

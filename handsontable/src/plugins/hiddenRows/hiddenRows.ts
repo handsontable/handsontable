@@ -2,13 +2,14 @@ import { BasePlugin } from '../base';
 import { addClass, normalizeClassNames } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import { Hooks } from '../../core/hooks';
 import { createTrackedIconSync } from '../../themes/engine/icons';
 import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
 import type { HidingMap } from '../../translations';
 import type { CellProperties } from '../../settings';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');
@@ -217,6 +218,14 @@ export class HiddenRows extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
    */
   static get DEFAULT_SETTINGS() {
@@ -271,7 +280,12 @@ export class HiddenRows extends BasePlugin {
       this.#onMapInit();
     }
 
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    registerMenuEntries(this, () => [
+      hideRowItem(this as unknown as Record<string, Function>),
+      showRowItem(this as unknown as Record<string, Function>),
+    ], {
+      contextMenu: {},
+    });
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
     this.addHook('modifyRowHeight', this.#onModifyRowHeight);
     this.addHook('afterGetRowHeader', this.#onAfterGetRowHeader);
@@ -419,6 +433,72 @@ export class HiddenRows extends BasePlugin {
 
     this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, isConfigValid,
       isConfigValid && destinationHideConfig.length > currentHideConfig.length);
+  }
+
+  /**
+   * Replaces the hidden rows with a set of physical rows, in one step. {@link HiddenRows#showRows} and
+   * {@link HiddenRows#hideRows} take visual indexes, and a row that a filter, `TrimRows`, or a collapsed
+   * `NestedRows` parent trims has none, so neither can show or hide it. This method addresses rows
+   * physically, so it can. It runs the same hooks as the two public methods, with the visual rows among
+   * the ones it touches, and applies nothing when a `beforeUnhideRows` or `beforeHideRows` listener returns
+   * `false`. Indexes outside the data are ignored.
+   *
+   * @private
+   * @param {number[]} physicalRows The physical indexes of the rows to hide. Every other row is shown.
+   */
+  _replaceHiddenRows(physicalRows: number[]): void {
+    this.runOperation('hide_rows', () => this.#replaceHiddenRows(physicalRows));
+  }
+
+  /**
+   * The body of `_replaceHiddenRows()`, run inside its operation.
+   *
+   * @param {number[]} physicalRows The physical indexes of the rows to hide.
+   */
+  #replaceHiddenRows(physicalRows: number[]): void {
+    const rowCount = this.hot.rowIndexMapper.getNumberOfIndexes();
+    const destination = new Set(physicalRows.filter(row => Number.isInteger(row) && row >= 0 && row < rowCount));
+    const current = new Set(this.#hiddenRowsMap!.getHiddenIndexes());
+    const toVisual = (rows: Iterable<number>) => Array.from(rows)
+      .map(row => this.hot.toVisualRow(row))
+      .filter((row): row is number => row !== null);
+    const currentHideConfig = this.getHiddenRows();
+    const destinationHideConfig = toVisual(destination);
+    const isUnhiding = Array.from(current).some(row => !destination.has(row));
+    const isHiding = Array.from(destination).some(row => !current.has(row));
+
+    if (isUnhiding &&
+        this.hot.runHooks('beforeUnhideRows', currentHideConfig, destinationHideConfig, true) === false) {
+      return;
+    }
+
+    if (isHiding &&
+        this.hot.runHooks('beforeHideRows', currentHideConfig, destinationHideConfig, true) === false) {
+      return;
+    }
+
+    this.hot.batchExecution(() => {
+      current.forEach((row) => {
+        if (!destination.has(row)) {
+          this.#hiddenRowsMap!.setValueAtIndex(row, false);
+        }
+      });
+      destination.forEach((row) => {
+        if (!current.has(row)) {
+          this.#hiddenRowsMap!.setValueAtIndex(row, true);
+        }
+      });
+    }, true);
+
+    // `isUnhiding` and `isHiding` already prove that a row changed. The visual lists cannot say so: a swap
+    // keeps their length, and a row a filter trims is in neither.
+    if (isUnhiding) {
+      this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, true, true);
+    }
+
+    if (isHiding) {
+      this.hot.runHooks('afterHideRows', currentHideConfig, destinationHideConfig, true, true);
+    }
   }
 
   /**
@@ -645,21 +725,6 @@ export class HiddenRows extends BasePlugin {
       classList.includes('afterHiddenRow') ? 'caretHiddenDown' : null);
     this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_END_SLOT_CLASS,
       classList.includes('beforeHiddenRow') ? 'caretHiddenUp' : null);
-  };
-
-  /**
-   * Add Show-hide rows to context menu.
-   *
-   * @param {object} options An array of objects containing information about the pre-defined Context Menu items.
-   */
-  #onAfterContextMenuDefaultOptions = (options: Record<string, unknown>) => {
-    (options.items as unknown[]).push(
-      {
-        name: SEPARATOR
-      },
-      hideRowItem(this as unknown as Record<string, Function>),
-      showRowItem(this as unknown as Record<string, Function>)
-    );
   };
 
   /**

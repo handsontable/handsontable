@@ -4,6 +4,10 @@ const realTimeItems = [
   { path: 'real-time/liveblocks-multiplayer/liveblocks-multiplayer', title: 'Multiplayer editing with Liveblocks', onlyFor: ['javascript', 'react'] },
   { path: 'real-time/liveblocks-comments/liveblocks-comments', title: 'Cell comments with Liveblocks', onlyFor: ['javascript', 'react'] },
   { path: 'real-time/a2ui-agent-grid/a2ui-agent-grid', title: 'Agent-driven grid with A2UI', onlyFor: ['javascript', 'react'] },
+  { path: 'real-time/copilotkit-agent-grid/copilotkit-agent-grid', title: 'Agent-driven grid with CopilotKit', onlyFor: ['react'] },
+  { path: 'real-time/ai-columns-jev/ai-columns-jev', title: 'AI-classified columns with Jev', onlyFor: ['javascript'] },
+  { path: 'real-time/kafka-stream/kafka-stream', title: 'Stream Kafka topics into the grid', onlyFor: ['javascript'] },
+  { path: 'real-time/google-sheets-sync/google-sheets-sync', title: 'Two-way sync with Google Sheets', onlyFor: ['javascript'] },
 ];
 
 const columnManagementItems = [
@@ -20,6 +24,7 @@ const contextMenuItems = [
 const dataManagementItems = [
   { path: 'data-management/load-data-rest-api/load-data-rest-api', title: 'Load data from a REST API', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'data-management/load-data-graphql/load-data-graphql', title: 'Load data from a GraphQL API', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'data-management/load-data-odata/load-data-odata', title: 'Load data from an OData service', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'data-management/sync-two-grids/sync-two-grids', title: 'Sync two grids', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/undo-redo-custom-ui/undo-redo-custom-ui', title: 'Undo / redo with a custom UI', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
   { path: 'data-management/auto-save-backend/auto-save-backend', title: 'Auto-save changes to a backend', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
@@ -32,6 +37,7 @@ const dataManagementItems = [
   { path: 'data-management/server-side-spring/server-side-spring', title: 'Server-side data with Spring Boot', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/server-side-supabase/server-side-supabase', title: 'Server-side data with Supabase', onlyFor: ['react'] },
   { path: 'data-management/server-side-symfony/server-side-symfony', title: 'Server-side data with Symfony', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'data-management/duckdb-wasm/duckdb-wasm', title: 'A million rows in the browser with DuckDB-Wasm', onlyFor: ['react'] },
 ];
 
 const cellTypesItems = [
@@ -41,6 +47,7 @@ const cellTypesItems = [
   { path: 'cell-types/rating/rating', title: 'Star Rating', onlyFor: ['javascript', 'angular', 'vue'] },
   // All frameworks
   { path: 'cell-types/radio/radio', title: 'Radio buttons', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'cell-types/auto-detect-cell-type/auto-detect-cell-type', title: 'Auto-detect cell type', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'cell-types/numbro/numbro', title: 'Numbro', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'cell-types/flatpickr/flatpickr', title: 'Flatpickr', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'cell-types/moment-date/moment-date', title: 'Moment.js-based date', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
@@ -84,7 +91,7 @@ const importExportItems = [
     title: 'Export to PDF',
     onlyFor: ['javascript', 'angular', 'react', 'vue'],
   },
-  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'import-export/import-csv-excel/import-csv-excel', title: 'Import from CSV or Excel', onlyFor: ['javascript', 'angular', 'react', 'vue'] },
 ];
 
 const filteringAndSearchItems = [
@@ -97,12 +104,12 @@ const filteringAndSearchItems = [
 ];
 
 const themesItems = [
-  { path: 'themes/base-theme/base-theme', title: 'Handsontable with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/custom-theme/custom-theme', title: 'Handsontable with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/ant-design/ant-design', title: 'Handsontable with Ant Design', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable with Fluent UI', onlyFor: ['react'] },
-  { path: 'themes/mui-theme/mui-theme', title: 'Handsontable with MUI', onlyFor: ['react', 'javascript', 'angular'] },
-  { path: 'themes/tabler-icons/tabler-icons', title: 'Handsontable with Tabler Icons', onlyFor: ['react', 'javascript', 'angular', 'vue'] },
+  { path: 'themes/base-theme/base-theme', title: 'Handsontable DataGrid with Base Web', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/custom-theme/custom-theme', title: 'Handsontable DataGrid with shadcn/ui', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/ant-design/ant-design', title: 'Handsontable DataGrid with Ant Design', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/fluent-ui/fluent-ui', title: 'Handsontable DataGrid with Fluent UI', onlyFor: ['react'] },
+  { path: 'themes/mui-theme/mui-theme', title: 'Handsontable DataGrid with MUI', onlyFor: ['react', 'javascript', 'angular'] },
+  { path: 'themes/tabler-icons/tabler-icons', title: 'Handsontable DataGrid with Tabler Icons', onlyFor: ['react', 'javascript', 'angular', 'vue'] },
 ];
 
 const editingValidationItems = [

@@ -16,6 +16,18 @@
  * splits each path into its leg (the variant) and its capture, and a capture
  * that differs on two themes in one run is one recurrence.
  *
+ * A fourth family is not about flakes: every Playwright leg, green or red, uploads its durations
+ * (`playwright-durations-*`, written by `scripts/playwright-durations.mjs`). `collectArtifactFiles`
+ * hands those to the caller separately; `./playwright-durations.mjs` merges them into their own
+ * document (`test-health/durations.json`, 30 days, a different shape), never into the ledger.
+ *
+ * A fifth family is the accessibility nightlies' evidence: the check documents and the axe findings
+ * of the `A11y nightly` (`a11y-checks-evidence`, `a11y-axe-results`) and the transcripts of the
+ * `Screen reader nightly` (`screenreader-transcripts-*`), and the docs site scan's findings of a `Docs a11y`
+ * run (`docs-a11y-axe-results`). `collectArtifactFiles` hands the files of
+ * those artifacts to the caller unparsed; `./a11y-ledger.mjs` reads them into the findings ledger
+ * (`test-health/a11y.json`, 90 days, one row per finding across nights), never into this one.
+ *
  * These helpers turn those artifacts into ledger entries, merge them into the
  * ledger that lives on `gh-pages` (`test-health/ledger.json`), prune it, and
  * aggregate it per test into the summary the page renders: how often a test
@@ -26,6 +38,14 @@
  * No I/O in here. `scripts/test-health-collect.mjs` reads the artifacts and
  * writes the files; `.github/workflows/test-health.yml` runs it.
  */
+
+import {
+  PLAYWRIGHT_DURATIONS_FILE,
+  parseDurationSummary,
+  parseLegArtifact,
+  renderDurationsLine,
+} from './playwright-durations.mjs';
+import { classifyA11yArtifact, renderA11yLine } from './a11y-ledger.mjs';
 
 export const LEDGER_VERSION = 1;
 
@@ -56,6 +76,12 @@ export const PLAYWRIGHT_JSON_REPORT = 'test-results/report.json';
 export const PLAYWRIGHT_ARTIFACT_PREFIX = 'playwright-report-';
 export const JASMINE_ARTIFACT_PREFIX = 'puppeteer-failed-specs-';
 export const VISUAL_ARTIFACT_PREFIX = 'visual-compare-';
+/**
+ * Every Playwright leg's durations (`e2e.yml`, both Playwright jobs, on `!cancelled()`). The suffix is the
+ * leg: `main`, `classic-min`, `engines`; a sharded leg uploads one artifact per shard, `main-s1`, `main-s2`,
+ * … (`parseLegArtifact` in `./playwright-durations.mjs` reads the leg and the shard back).
+ */
+export const DURATIONS_ARTIFACT_PREFIX = 'playwright-durations-';
 
 /**
  * The workflow whose runs count as nights for a visual capture's ticket line. It equals the `name:` of
@@ -124,17 +150,25 @@ export function runContextFromRun(run) {
  * Which kind of evidence an artifact holds, by its name.
  *
  * @param {string} name The artifact name.
- * @returns {'playwright'|'jasmine'|'visual'|null} The tier, or `null` for an unrelated artifact.
+ * @returns {'playwright'|'jasmine'|'visual'|'durations'|'a11y'|null} The tier (`durations` is a leg's timing and
+ * `a11y` an accessibility nightly's evidence, neither a tier of the flake ledger), or `null` for an unrelated
+ * artifact.
  */
 export function classifyArtifact(name) {
   if (name.startsWith(PLAYWRIGHT_ARTIFACT_PREFIX)) {
     return 'playwright';
+  }
+  if (name.startsWith(DURATIONS_ARTIFACT_PREFIX)) {
+    return 'durations';
   }
   if (name.startsWith(JASMINE_ARTIFACT_PREFIX)) {
     return 'jasmine';
   }
   if (name.startsWith(VISUAL_ARTIFACT_PREFIX)) {
     return 'visual';
+  }
+  if (classifyA11yArtifact(name) !== null) {
+    return 'a11y';
   }
 
   return null;
@@ -314,28 +348,78 @@ export function parseVisualRecord(record, run) {
  * do not parse are reported as notes and skipped: a broken report must never
  * stop the rest of the run from being recorded.
  *
+ * A durations artifact is not a source of entries: its one file, at the artifact's root, is checked and returned in
+ * `durations`, named after the artifact's leg and shard (GitHub keeps artifact names unique within a run, so two
+ * legs, or two parts of one, can never land on one record; the reducer folds a leg's parts). The report
+ * family's leg is the project each test names, so a sharded leg's report (`playwright-report-main-s2`) feeds
+ * the ledger with the leg, never the shard. Only the durations family is read for a summary: the summarizer runs after the
+ * report upload, so a report artifact does not hold the file today, but the failure upload ships all of
+ * `tests/test-results`, and if the steps were ever reordered, reading it there would count the leg twice.
+ *
+ * An accessibility artifact is not a source of entries either: its files are returned unparsed in `a11y`,
+ * the ones at the paths the ledger reads (`./a11y-ledger.mjs`: a check document at the evidence artifact's
+ * root, the findings at the axe artifact's root, a transcript under `transcripts/`), for the caller to read
+ * on a develop run only.
+ *
  * @param {Array<{artifact: string, path: string, text: string}>} files Each file with the artifact it came from
  * and its path inside that artifact.
  * @param {RunContext} run The run the artifacts belong to.
- * @returns {{entries: Entry[], notes: string[]}} The entries and one note per skipped file or empty artifact.
+ * @returns {{entries: Entry[], notes: string[], durations: import('./playwright-durations.mjs').LegSummary[],
+ * a11y: Array<{artifact: string, path: string, text: string}>}} The entries, one note per skipped file or empty
+ * artifact, the leg summaries, and the accessibility files.
  */
 export function collectArtifactFiles(files, run) {
   const entries = [];
   const notes = [];
+  const durations = [];
+  const a11y = [];
   const seenArtifacts = new Set(files.map(file => file.artifact));
+  const durationsFile = PLAYWRIGHT_DURATIONS_FILE.split('/').pop();
+  // Only the file at the artifact's root: the upload names one file, so that is where it lands, and a
+  // nested copy would add a second record for the same leg.
+  const isDurationsFile = filePath => filePath === durationsFile;
 
   for (const file of files) {
     const tier = classifyArtifact(file.artifact);
     const isReport = tier === 'playwright' && file.path.endsWith(PLAYWRIGHT_JSON_REPORT);
     const isRecord = tier === 'jasmine' && /(^|\/)failed-specs-[^/]*\.json$/.test(file.path);
     const isVisualRecord = tier === 'visual' && /(^|\/)visual-compare-[^/]*\.json$/.test(file.path);
+    const isDurations = tier === 'durations' && isDurationsFile(file.path);
 
-    if (!isReport && !isRecord && !isVisualRecord) {
+    if (tier === 'a11y') {
+      if (isA11yFile(file)) {
+        a11y.push(file);
+      }
+      continue;
+    }
+    if (!isReport && !isRecord && !isVisualRecord && !isDurations) {
       continue;
     }
 
     try {
       const parsed = JSON.parse(file.text);
+
+      if (isDurations) {
+        const summary = parseDurationSummary(parsed);
+        const { leg, shard } = parseLegArtifact(file.artifact.slice(DURATIONS_ARTIFACT_PREFIX.length));
+        const claimed = summary.shard?.index ?? null;
+
+        if (summary.leg !== leg) {
+          notes.push(`${file.artifact}: the file names leg ${summary.leg}; recorded as ${leg}`);
+        }
+        if (claimed !== shard) {
+          notes.push(`${file.artifact}: the file names shard ${claimed ?? 'none'}; recorded as ${shard ?? 'none'}`);
+        }
+        durations.push({
+          ...summary,
+          leg,
+          // The index is the artifact's; the total is what the file says (the reducer checks it against the
+          // legs table), or the index when the file carries none.
+          shard: shard === null ? null : { index: shard, total: Math.max(summary.shard?.total ?? 0, shard) },
+        });
+        continue;
+      }
+
       let parser = parseJasmineRecord;
 
       if (isReport) {
@@ -367,9 +451,35 @@ export function collectArtifactFiles(files, run) {
       notes.push(`${artifact}: no ${PLAYWRIGHT_JSON_REPORT} in the artifact `
         + '(a report from before the JSON reporter was configured), nothing recorded');
     }
+    if (classifyArtifact(artifact) === 'durations'
+      && !files.some(file => file.artifact === artifact && isDurationsFile(file.path))) {
+      notes.push(`${artifact}: no ${durationsFile} in the artifact, nothing recorded for that leg`);
+    }
   }
 
-  return { entries, notes };
+  return { entries, notes, durations, a11y };
+}
+
+/**
+ * Whether a file of an accessibility artifact sits where the ledger reads it: a check document at the root of the
+ * product's evidence artifact or of a site's (`<site>-checks`), the findings at the root of the axe artifact or of a
+ * site's scan, a transcript one level down under `transcripts/`. Everything else (per-test folders, detail files, the
+ * comparison, the scans) is skipped.
+ *
+ * @param {{artifact: string, path: string}} file The file.
+ * @returns {boolean} The verdict.
+ */
+function isA11yFile(file) {
+  const family = classifyA11yArtifact(file.artifact);
+
+  if (family === 'checks' || family.endsWith('-checks')) {
+    return /^[a-z0-9-]+\.json$/.test(file.path);
+  }
+  if (family !== 'reader') {
+    return file.path === 'a11y-findings.json';
+  }
+
+  return /^transcripts\/[^/]+\.json$/.test(file.path);
 }
 
 /**
@@ -598,6 +708,18 @@ export function stableGeneratedAt(previousSummary, summary, now) {
 }
 
 /**
+ * Text as one Markdown code span: line breaks collapsed and backticks swapped, so a value that came from a
+ * pull request's artifact (a file path, a leg, an error message) renders as literal text, never as a
+ * heading, a list or a link, in the summary of a workflow that runs with the base repository's token.
+ *
+ * @param {unknown} value The text.
+ * @returns {string} The code span.
+ */
+export function inlineCode(value) {
+  return `\`${String(value).replace(/`/g, '\'').replace(/\s+/g, ' ').trim()}\``;
+}
+
+/**
  * The Markdown block for the collecting job's step summary: what this run
  * added, which tests now need a ticket, and where the page is.
  *
@@ -607,9 +729,14 @@ export function stableGeneratedAt(previousSummary, summary, now) {
  * @param {string[]} input.notes Notes from the collection (skipped files, empty artifacts).
  * @param {object} input.summary The aggregate.
  * @param {string} input.pageUrl Where the page is published.
+ * @param {import('./playwright-durations.mjs').LegSummary[]} [input.durations] The leg durations the run
+ * recorded (`recorded` from `mergeDurations`, so a skipped leg is not counted). When there are any, one line
+ * names each leg's wall-clock and the heaviest spec file; a run without Playwright legs gets no line.
+ * @param {object[]} [input.a11y] The accessibility nights the run recorded (`recorded` from `mergeA11yLedger`).
+ * When there are any, one line names each night's counts and clusters.
  * @returns {string} The Markdown.
  */
-export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
+export function renderStepSummary({ run, added, notes, summary, pageUrl, durations, a11y }) {
   const lines = [`## Test health — run ${run.runId} (attempt ${run.runAttempt}, \`${run.branch}\`)`, ''];
 
   if (added.length === 0) {
@@ -642,8 +769,16 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
     }
   }
 
+  if (Array.isArray(durations) && durations.length > 0) {
+    lines.push('', renderDurationsLine(durations));
+  }
+  if (Array.isArray(a11y) && a11y.filter(Boolean).length > 0) {
+    lines.push('', renderA11yLine(a11y));
+  }
+
   if (notes.length > 0) {
-    lines.push('', 'Notes:', '', ...notes.map(note => `- ${note}`));
+    // A note quotes artifact names, paths and error messages: code spans keep them literal.
+    lines.push('', 'Notes:', '', ...notes.map(note => `- ${inlineCode(note)}`));
   }
 
   lines.push('', `Ledger: ${pageUrl}`);
@@ -652,19 +787,32 @@ export function renderStepSummary({ run, added, notes, summary, pageUrl }) {
 }
 
 /**
- * The published page, from the template with the summary inlined. Inlining
- * keeps the page self-contained (it renders from a file as well as from
- * GitHub Pages) and spares it a fetch that a viewer's blocker could stop.
+ * The published page, from the template with the summary and the durations
+ * view inlined. Inlining keeps the page self-contained (it renders from a file
+ * as well as from GitHub Pages) and spares it a fetch that a viewer's blocker
+ * could stop.
  *
- * @param {string} template The template with `__SUMMARY_JSON__` and `__GENERATED_AT__` placeholders.
+ * @param {string} template The template with `__SUMMARY_JSON__`, `__DURATIONS_JSON__`, `__A11Y_JSON__` and
+ * `__GENERATED_AT__` placeholders.
  * @param {object} summary The aggregate.
+ * @param {object|null} [durations] The durations view (`durationsView` in `./playwright-durations.mjs`),
+ * `null` before any was collected, or `{ error }` when the stored file could not be read.
+ * @param {object|null} [a11y] The accessibility view (`a11yView` in `./a11y-ledger.mjs`), `null` before any night
+ * was collected, or `{ error }` when the stored file or the catalog could not be read.
  * @returns {string} The HTML.
  */
-export function renderPage(template, summary) {
-  // `</script>` inside a JSON string would end the script element early.
-  const json = JSON.stringify(summary).replace(/<\//g, '<\\/');
+export function renderPage(template, summary, durations = null, a11y = null) {
+  // No `<` reaches the script element at all: `</script>` would end it early, and `<!--` followed by
+  // `<script` puts the tokenizer in a state where the template's own `</script>` no longer closes it,
+  // which blanks the whole page. A branch name is enough for that. `\u003c` reads back as `<`.
+  const inline = value => JSON.stringify(value ?? null).replace(/</g, '\\u003c');
+  const values = {
+    __SUMMARY_JSON__: inline(summary),
+    __DURATIONS_JSON__: inline(durations),
+    __A11Y_JSON__: inline(a11y),
+    __GENERATED_AT__: summary.generatedAt,
+  };
 
-  return template
-    .replace('__SUMMARY_JSON__', () => json)
-    .replace(/__GENERATED_AT__/g, summary.generatedAt);
+  // One pass: a placeholder spelled inside a test title must stay text, not be filled by a later pass.
+  return template.replace(/__SUMMARY_JSON__|__DURATIONS_JSON__|__A11Y_JSON__|__GENERATED_AT__/g, token => values[token]);
 }

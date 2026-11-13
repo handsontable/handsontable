@@ -152,6 +152,26 @@ export function needsDeterminismRatchet(changed) {
 }
 
 /**
+ * Does the push touch what the leg-declaration sweep reads? A spec, a page object, a fixture, a
+ * fixture helper (`tests/fixtures/*.ts`: `gestures.ts` and `frames.ts` are read like page objects,
+ * and `test.ts` is pinned by the sweep), the config and lint config the sweep pins, or the sweep's own
+ * lib and test can each make a spec touch theme or bundle surface it does not declare, or change what
+ * the sweep asserts; the sweep (`tests/lib/__tests__/leg-declarations.test.mjs`, in the root
+ * `test:tooling`) is otherwise first run by the pull request's tooling job. Pure so it can be
+ * unit-tested.
+ *
+ * @param {string[]} changed Repo-relative changed paths.
+ * @returns {boolean} True when the sweep must run before the push.
+ */
+export function needsLegDeclarationCheck(changed) {
+  const spec = /^tests\/e2e\/.*\.spec\.ts$/;
+  const read = /^tests\/(?:fixtures\/(?:pages\/|demo\/|[^/]+\.ts$)|lib\/(?:__tests__\/)?leg-declarations)/;
+  const pinned = /^tests\/(?:playwright\.config\.ts|\.eslintrc\.cjs)$/;
+
+  return changed.some(f => spec.test(f) || read.test(f) || pinned.test(f));
+}
+
+/**
  * Did Jest fail to START (a config/module-resolution error) rather than report
  * a real test failure? Such infra failures must NOT block the push — CI is
  * authoritative — the same way the presence gate skips on an ESLint config gap.
@@ -397,6 +417,28 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         ratchet.error?.code || ratchet.signal}) — skipping; CI runs it.`);
     } else if (ratchet.status !== 0) {
       process.exit(ratchet.status);
+    }
+  }
+
+  // 2c) The leg-declaration sweep — blocking. A spec that touches theme or bundle
+  //     surface (a computed style, a token, HyperFormula, a branch on the theme) must
+  //     declare the axis with THEMES_TAG / BUNDLES_TAG on every top-level block, or it
+  //     runs on e2e-main only and the other legs never see it (tests/AGENTS.md,
+  //     "Declaring the legs"). The same node:test file the tooling job runs; a child
+  //     that cannot run is infra and does not block.
+  if (needsLegDeclarationCheck(changed)) {
+    console.log('pre-push: running the leg-declaration sweep (tests/lib/__tests__/leg-declarations.test.mjs)…');
+    const sweep = spawnSync('node', ['--test', path.join(root, 'tests/lib/__tests__/leg-declarations.test.mjs')], {
+      stdio: 'inherit',
+      cwd: root,
+      env,
+    });
+
+    if (isSpawnInfraFailure(sweep)) {
+      console.log(`pre-push: the leg-declaration sweep could not complete (${
+        sweep.error?.code || sweep.signal}) — skipping; CI runs it.`);
+    } else if (sweep.status !== 0) {
+      process.exit(sweep.status);
     }
   }
 

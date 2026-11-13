@@ -8,6 +8,7 @@ import {
   deepObjectSize,
   createObjectPropListener,
   setProperty,
+  getProperty,
   extend,
   assignObjectDefaults,
   deepMerge,
@@ -460,6 +461,22 @@ describe('Object helper', () => {
   //
   // Handsontable.helper.setProperty
   //
+  describe('getProperty', () => {
+    it('should read a value at a nested path', () => {
+      expect(getProperty({ a: { b: { c: 1 } } }, 'a.b.c')).toBe(1);
+    });
+
+    it('should return `undefined` when a parent on the path is missing or `null`', () => {
+      expect(getProperty({ a: {} }, 'a.b.c')).toBeUndefined();
+      expect(getProperty({ a: { b: null } }, 'a.b.c')).toBeUndefined();
+      expect(getProperty({ a: null }, 'a.b.c')).toBeUndefined();
+    });
+
+    it('should return a `null` leaf as it is', () => {
+      expect(getProperty({ a: { b: { c: null } } }, 'a.b.c')).toBeNull();
+    });
+  });
+
   describe('setProperty', () => {
     it('should set a property value on a given object', () => {
       const testObject = {};

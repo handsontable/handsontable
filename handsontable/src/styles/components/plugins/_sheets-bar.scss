@@ -2,10 +2,6 @@
 
 // Sheets bar
 
-// The line along the bottom edge that marks the active tab. Shared, because the dragged tab has
-// to carry it alongside its own drop shadow.
-$active-marker: inset 0 calc(var(--ht-sheets-bar-tab-active-border-width) * -1) 0 0 var(--ht-sheets-bar-tab-active-border-color);
-
 // How many rows of the all-sheets menu stay visible before it starts to scroll.
 $all-sheets-visible-items: 8;
 
@@ -35,7 +31,8 @@ $all-sheets-visible-items: 8;
     // menu's rows are opaque and cover it, but the block padding above exposes the line at the
     // scroll extremes — and the menu's own border already comes from its wrapper, so the inner
     // one is dropped. `.htMenu` is repeated for specificity: the base rule carries five classes.
-    &.htMenu.htSheetsBarMenu .ht_master .wtHolder {
+    &.htMenu.htSheetsBarMenu .ht_master .wtHolder,
+    &.htMenu.htSheetsBarMenu .ht_master .htScrollbarFrame {
       box-shadow: none;
     }
 
@@ -100,7 +97,14 @@ $all-sheets-visible-items: 8;
     }
 
     &.ht-sheets-bar {
+      --ht-private-tab-enter-offset: -2em;
+      --ht-private-sheets-bar-button-width: calc(
+        (2 * var(--ht-icon-button-large-padding)) + var(--ht-icon-size) + 2px
+      );
+
       width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
       color: var(--ht-bar-foreground-color);
       background: var(--ht-sheets-bar-background-color);
       font-size: var(--ht-font-size);
@@ -122,11 +126,37 @@ $all-sheets-visible-items: 8;
         border-top-width: 1px;
       }
 
+      &[dir="rtl"] {
+        --ht-private-tab-enter-offset: 2em;
+      }
+
       .ht-sheets-bar__inner {
-        display: flex;
+        display: grid;
+        grid-template-columns: auto minmax(auto, 1fr) auto;
         align-items: stretch;
-        justify-content: space-between;
+        min-width: min-content;
         padding-inline: var(--ht-sheets-bar-horizontal-padding);
+      }
+
+      .ht-sheets-bar__tabs-sizer {
+        display: grid;
+        grid-row: 1;
+        grid-column: 2 / 4;
+        min-width: max-content;
+        height: 0;
+        overflow: clip;
+        visibility: hidden;
+        pointer-events: none;
+
+        > div {
+          grid-area: 1 / 1;
+          white-space: nowrap;
+          padding-inline: var(--ht-sheets-bar-tab-horizontal-padding) calc(
+            var(--ht-sheets-bar-tab-horizontal-padding) + var(--ht-sizing-size-1) + var(--ht-icon-size) +
+            var(--ht-gap-size) + 2px +
+            (2 * var(--ht-private-sheets-bar-button-width)) + 1px + (2 * var(--ht-gap-size))
+          );
+        }
       }
 
       .ht-sheets-bar__controls,
@@ -144,6 +174,8 @@ $all-sheets-visible-items: 8;
       }
 
       .ht-sheets-bar__controls {
+        grid-row: 1;
+        grid-column: 1;
         position: relative;
         padding-inline: calc(var(--ht-gap-size) * 2);
       }
@@ -168,6 +200,8 @@ $all-sheets-visible-items: 8;
       // Paired the way the add and all-sheets buttons are paired, so the two clusters read as
       // the same kind of control rather than as two different ones.
       .ht-sheets-bar__paging {
+        grid-row: 1;
+        grid-column: 3;
         position: relative;
         padding-inline-start: calc(var(--ht-gap-size) * 2);
       }
@@ -223,10 +257,14 @@ $all-sheets-visible-items: 8;
       }
 
       .ht-sheets-bar__tabs {
+        position: relative;
         display: flex;
         align-items: stretch;
-        flex: 1 1 auto;
+        grid-row: 1;
+        grid-column: 2;
         min-width: 0;
+        contain: inline-size;
+        padding-inline-end: 1px;
         overflow-x: auto;
 
         // The strip scrolls with the paging arrows and the wheel, never with a bar of its own.
@@ -241,6 +279,7 @@ $all-sheets-visible-items: 8;
 
       .ht-sheets-bar__tab {
         position: relative;
+        isolation: isolate;
         display: flex;
         cursor: pointer;
         align-items: center;
@@ -260,32 +299,50 @@ $all-sheets-visible-items: 8;
         // back for itself, since editing a name needs it.
         user-select: none;
 
-        // The drag is pointer-events-based so it works with touch as well as a mouse, but on
-        // touch the default `touch-action: auto` lets the browser claim a horizontal gesture for
-        // panning and cancel the pointer stream mid-drag. `pan-y` hands horizontal gestures to
-        // us — which is what a tab drag is — while still leaving vertical page scrolling to the
-        // browser.
-        touch-action: pan-y;
+        // The drag is pointer-events-based so it works with touch as well as a mouse. On touch a
+        // swipe scrolls the strip, so the browser keeps both pans; a tab held still for the long
+        // press lifts, and the drag then cancels the `touchmove` that would pan the strip under it.
+        touch-action: pan-x pan-y;
 
         // Carries the tabs the drag displaces back from where they were, so the strip makes room
         // in a slide rather than a jump. The controller drives it; there is nothing to animate
-        // when no drag is in progress.
-        transition: transform 150ms ease-out;
+        // when no drag is in progress. The text color follows the pointer over the theme's
+        // transition, and only the text color: a tab has no hover surface.
+        transition:
+          transform
+          var(--ht-private-tab-slide-duration, var(--ht-table-transition))
+          var(--ht-private-tab-slide-easing, ease-out),
+          color var(--ht-table-transition) ease-out;
 
         @media (prefers-reduced-motion: reduce) {
           transition: none;
         }
 
+        &--entering {
+          animation: ht-sheets-bar-tab-enter var(--ht-table-transition) ease-out backwards;
+
+          @media (prefers-reduced-motion: reduce) {
+            animation: none;
+          }
+        }
+
         &:hover {
           color: var(--ht-sheets-bar-tab-hover-foreground-color);
-          background: var(--ht-sheets-bar-tab-hover-background-color);
         }
 
         &--active,
         &--active:hover {
           color: var(--ht-sheets-bar-tab-active-foreground-color);
           background: var(--ht-sheets-bar-tab-active-background-color);
-          box-shadow: $active-marker;
+        }
+
+        &--active::after {
+          content: "";
+          position: absolute;
+          inset-inline: 0;
+          bottom: 0;
+          border-block-end: var(--ht-sheets-bar-tab-active-border-width) solid var(--ht-sheets-bar-tab-active-border-color);
+          pointer-events: none;
         }
 
         // Lifted while dragging so it reads as detached from the strip and travels with the
@@ -297,28 +354,113 @@ $all-sheets-visible-items: 8;
           pointer-events: none;
 
           // The pointer is on the tab for the whole gesture, but `pointer-events: none` means
-          // `:hover` never matches it. Wearing the hover surface directly is what keeps the tab
-          // looking held rather than dropping to its resting state the moment it is picked up.
-          // It is opaque, so it doubles as the backdrop the passing tabs travel behind.
+          // `:hover` never matches it, so the tab wears the hover text color directly. Hover
+          // changes no background, so the dragged tab keeps its own resting surface, painted
+          // opaque: it is the backdrop the passing tabs travel behind.
           color: var(--ht-sheets-bar-tab-hover-foreground-color);
-          background-color: var(--ht-sheets-bar-tab-hover-background-color);
+          background-color: var(--ht-sheets-bar-tab-background-color);
 
           // The dragged tab is positioned from the pointer on every move, so it must land where
           // the pointer is now — not ease toward where it was.
           transition: none;
+          animation: none;
 
           @include mixins.box-shadow;
         }
 
-        // The active tab keeps both of the things that mark it out while it travels: its own
-        // opaque surface, and its bottom-edge line — which has to ride along with the drop
-        // shadow, because a `box-shadow` is a single list and the drag rule's shadow would
-        // otherwise replace the marker outright.
-        &--active.ht-sheets-bar__tab--dragging {
+        &--lifted {
+          z-index: 1;
+          color: var(--ht-sheets-bar-tab-hover-foreground-color);
+          background-color: var(--ht-sheets-bar-tab-background-color);
+
+          @include mixins.box-shadow;
+        }
+
+        // The active tab keeps its own opaque surface while it travels.
+        &--active.ht-sheets-bar__tab--dragging,
+        &--active.ht-sheets-bar__tab--lifted {
           color: var(--ht-sheets-bar-tab-active-foreground-color);
           background-color: var(--ht-sheets-bar-tab-active-background-color);
-          box-shadow: $active-marker, mixins.box-shadow-value();
         }
+
+        @media (forced-colors: active) {
+          &--lifted,
+          &--dragging {
+            outline: 2px solid Highlight;
+            outline-offset: -2px;
+          }
+        }
+      }
+
+      .ht-sheets-bar__tab-ghost {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: var(--ht-private-tab-ghost-x, 0);
+        display: flex;
+        align-items: center;
+        gap: var(--ht-sizing-size-1);
+        box-sizing: border-box;
+        width: var(--ht-private-tab-ghost-width, 0);
+        padding-inline: var(--ht-sheets-bar-tab-horizontal-padding);
+        padding-block: var(--ht-sheets-bar-tab-vertical-padding);
+        color: var(--ht-sheets-bar-tab-foreground-color);
+        background: var(--ht-sheets-bar-tab-background-color);
+        pointer-events: none;
+        user-select: none;
+        animation: ht-sheets-bar-tab-leave var(--ht-table-transition) ease-in both;
+
+        @media (prefers-reduced-motion: reduce) {
+          animation: none;
+        }
+      }
+
+      .ht-sheets-bar__tabs--sliding {
+        --ht-private-tab-slide-easing: ease-in-out;
+      }
+
+      .ht-sheets-bar__tab--slide-lead {
+        z-index: 1;
+      }
+
+      .ht-sheets-bar__tab-indicator {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 0;
+        width: var(--ht-private-tab-indicator-width);
+        transform: translateX(var(--ht-private-tab-indicator-x));
+        background: var(--ht-sheets-bar-tab-active-background-color);
+        border-block-end: var(--ht-sheets-bar-tab-active-border-width) solid var(--ht-sheets-bar-tab-active-border-color);
+        pointer-events: none;
+        transition-property: transform, width;
+        transition-timing-function: ease-in-out;
+
+        @media (prefers-reduced-motion: reduce) {
+          transition: none;
+        }
+      }
+
+      .ht-sheets-bar__tabs--indicator-moving::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: var(--ht-private-tab-indicator-path-width, 0);
+        transform: translateX(var(--ht-private-tab-indicator-path-x, 0));
+        background: var(--ht-sheets-bar-tab-background-color);
+        pointer-events: none;
+      }
+
+      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--indicator-path,
+      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--active {
+        background: transparent;
+      }
+
+      .ht-sheets-bar__tabs--indicator-moving .ht-sheets-bar__tab--active::after {
+        content: none;
       }
 
       .ht-sheets-bar__tab-label,
@@ -326,10 +468,12 @@ $all-sheets-visible-items: 8;
         border: none;
         background: transparent;
         color: inherit;
-        font-size: inherit;
-        line-height: inherit;
+
+        @include mixins.inherit-text-metrics;
+
         cursor: pointer;
         padding: 0;
+        margin: 0;
       }
 
       // The tab is the focus stop, so the ring belongs to the whole of it. Drawn inside, so a
@@ -364,6 +508,12 @@ $all-sheets-visible-items: 8;
           inset: var(--ht-gap-size);
           border-radius: var(--ht-icon-button-border-radius);
         }
+
+        &::after {
+          content: "";
+          position: absolute;
+          inset: min(0px, calc((100% - var(--ht-icon-button-hit-area-size)) / 2));
+        }
       }
 
       // The glyph paints above the `::before` hover surface. As a static child it would sit
@@ -394,21 +544,26 @@ $all-sheets-visible-items: 8;
 
       // The design system draws the edit state as the whole tab becoming the field: the tab
       // itself wears the editor surface and a full accent border, at its normal size and
-      // padding. The border is an inset shadow, which takes no layout space — the bar must not
-      // grow when a rename starts — and it replaces the active tab's bottom marker outright,
-      // which is why the renaming rules sit after the active ones.
+      // padding. The border is an outline drawn inside the tab, which takes no layout space —
+      // the bar must not grow when a rename starts — and it replaces the active tab's bottom
+      // marker outright, which is why the renaming rules sit after the active ones.
       .ht-sheets-bar__tab--renaming,
       .ht-sheets-bar__tab--renaming:hover {
         color: var(--ht-cell-editor-foreground-color);
         background: var(--ht-cell-editor-background-color);
-        box-shadow: inset 0 0 0 2px var(--ht-cell-editor-border-color);
+        outline: 2px solid var(--ht-cell-editor-border-color);
+        outline-offset: -2px;
+      }
+
+      .ht-sheets-bar__tab--renaming::after {
+        content: none;
       }
 
       // The input is a transparent window into the tab's own surface — every visual belongs to
       // the tab above, so the field spans the full tab however wide the typed name grows.
       .ht-sheets-bar__tab-rename {
-        font-size: inherit;
-        line-height: inherit;
+        @include mixins.inherit-text-metrics;
+
         color: inherit;
         background: transparent;
         user-select: text;
@@ -416,13 +571,18 @@ $all-sheets-visible-items: 8;
         box-shadow: none;
         border-radius: 0;
         padding: 0;
+        margin: 0;
+        height: auto;
+        min-height: 0;
+        max-height: none;
         // The tab's accent border is the focus indication, exactly like the cell editor it
         // borrows its tokens from — the browser's own focus ring drew a second, rounded
         // outline around the field (UX review: "like the design system").
         outline: none;
-        // The width itself is measured and set inline while typing; these two bound it, so a
-        // one-character name stays clickable and a very long one cannot outgrow the bar.
-        min-width: var(--ht-sizing-size-10);
+        // The width itself is measured and set inline while typing, as wide as the tab will be once
+        // the name commits. No minimum: a floor held a one- or two-character name wider than its
+        // committed tab, and the tabs after it moved on the commit. The maximum keeps a very long
+        // name from outgrowing the bar.
         max-width: 40ch;
       }
 
@@ -435,9 +595,11 @@ $all-sheets-visible-items: 8;
         visibility: hidden;
         pointer-events: none;
         white-space: pre;
-        font-size: inherit;
-        line-height: inherit;
+
+        @include mixins.inherit-text-metrics;
+
         padding: 0;
+        margin: 0;
         border: none;
       }
 
@@ -464,6 +626,30 @@ $all-sheets-visible-items: 8;
       &.ht-sheets-bar-dragging .ht-sheets-bar__tab {
         pointer-events: none;
       }
+    }
+  }
+
+  @keyframes ht-sheets-bar-tab-enter {
+    from {
+      opacity: 0;
+      transform: translateX(var(--ht-private-tab-enter-offset));
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes ht-sheets-bar-tab-leave {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    to {
+      opacity: 0;
+      transform: translateX(var(--ht-private-tab-enter-offset));
     }
   }
 }

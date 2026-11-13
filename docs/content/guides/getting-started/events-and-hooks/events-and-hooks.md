@@ -1,8 +1,8 @@
 ---
 type: explanation
 title: Events and hooks
-metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
-description: Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
+metaTitle: Events and hooks | Handsontable DataGrid for JavaScript
+description: Run your code before or after data grid actions, using Handsontable DataGrid's API hooks (callbacks). For example, control what happens with the user's input.
 permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
 tags:
@@ -16,16 +16,16 @@ tags:
 - events
 - hooks
 react:
-  metaTitle: Events and hooks - React Data Grid | Handsontable
+  metaTitle: Events and hooks | Handsontable DataGrid for React
 angular:
-  metaTitle: Events and hooks - Angular Data Grid | Handsontable
+  metaTitle: Events and hooks | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Events and hooks - Vue Data Grid | Handsontable
+  metaTitle: Events and hooks | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Data management
 menuTag: updated
 ---
-Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
+Run your code before or after specific data grid actions, using Handsontable DataGrid's API hooks (callbacks). For example, control what happens with the user's input.
 
 [[toc]]
 
@@ -219,6 +219,26 @@ const hotSettings = ref({
 
 The first argument may be modified and passed on through the Handsontable hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
+A hook you pass in the settings stays registered until you replace or remove it. To replace it, pass another callback through [`updateSettings()`](@/api/core.md#updatesettings). To remove it, pass `null`: `hot.updateSettings({ afterChange: null })`. Passing `undefined` to `updateSettings()` changes nothing, and neither call touches a listener you added with [`addHook()`](@/api/core.md#addhook). To remove one of those, call [`removeHook()`](@/api/core.md#removehook) with the same callback.
+
+::: only-for react
+
+A hook you pass as a prop is removed when the prop stops holding a callback: when you set it to `null`, `undefined`, or another value that is not a function, such as `false`, or stop passing it. For example, `afterChange={isTracking ? logChange : null}` runs `logChange` only while `isTracking` is `true`.
+
+:::
+
+::: only-for vue
+
+A hook you pass as a prop is removed when the prop stops holding a callback: when you set it to `null`, `undefined`, or another value that is not a function, such as `false`, or stop passing it. The same applies to a hook in the `settings` prop. For example, `:afterChange="isTracking ? logChange : null"` runs `logChange` only while `isTracking` is `true`.
+
+:::
+
+::: only-for angular
+
+A hook in the `settings` input is removed when you pass a new settings object in which the hook is missing, or holds `null`, `undefined`, or another value that is not a function. A change made inside the same settings object does not reach the grid, so assign a new object, for example `this.gridSettings = { ...this.gridSettings, afterChange: null }`.
+
+:::
+
 ## Commonly used hooks
 
 Handsontable exposes hundreds of hooks. The ones below are the hooks you reach for most often, grouped by what they do. Unlike the [`source` argument list](#definition-for-source-argument) further down this page, this grouping is about purpose, not about which callbacks receive a `source` argument.
@@ -375,12 +395,14 @@ Note that some callbacks are checked on this page by default.
 
 It's worth mentioning that some Handsontable hooks are triggered from the Handsontable core and some from the plugins. In some situations, it is helpful to know what triggered the callback. Did Handsontable trigger it, or was it triggered by external code or a user action? That's why in crucial hooks, Handsontable delivers `source` as an argument informing you who triggered the action and providing detailed information about the source. Using the information retrieved in the `source`, you can create additional conditions.
 
+`source` helps tell actions apart. For example, `afterCreateRow` receives `'ContextMenu.rowAbove'` or `'ContextMenu.rowBelow'` when the user inserts a row from the context menu. It receives `'auto'` when Handsontable creates the row itself, for example when `minRows` or `minSpareRows` adds a row, or a paste reaches past the last row. For columns, `afterCreateCol` receives `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'`, and `'auto'` when `minCols` or `minSpareCols` adds a column, or a paste reaches past the last column. Don't confuse these values with the context menu item keys, such as `row_above` and `col_left`.
+
 `source` argument is optional. It takes the following values:
 
 | Value                                              | Description                                                                                                                                                                                                            |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `auto`                                             | Action triggered by Handsontable, and the reason for it is related directly to the settings applied to Handsontable. For example, [`afterCreateRow`](@/api/hooks.md#aftercreaterow) will be fired with this when [`minSpareRows`](@/api/options.md#minsparerows) will be greater than 0. |
-| `edit`                                             | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using [`setDataAtCell()`](@/api/core.md#setdataatcell), [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop), or [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) methods. |
+| `edit`                                             | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) methods. |
 | `loadData`                                         | Action triggered by Handsontable after the [`loadData`](@/api/core.md#loaddata) method has been called with the [`data`](@/api/options.md#data) property.
 | `updateData`                                         | Action triggered by Handsontable after the [`updateData`](@/api/core.md#updatedata) method has been called; e.g., before or after a data change.                                                                                                     |
 | `updateSettings`                                   | Action triggered by [`updateSettings()`](@/api/core.md#updatesettings) when its settings object includes the [`data`](@/api/options.md#data) option. The [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and [`afterUpdateData`](@/api/hooks.md#afterupdatedata) hooks receive this source. |
@@ -400,8 +422,8 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | [`ContextMenu.rowBelow`](@/api/contextMenu.md)     | Action triggered by the ContextMenu plugin after the "Insert row below" has been clicked.                                                                                                                              |
 | [`CopyPaste.paste`](@/api/copyPaste.md)            | Action triggered by the CopyPaste plugin after the value has been pasted.                                                                                                                                              |
 | [`MergeCells`](@/api/mergeCells.md)                | Action triggered by the MergeCells plugin when clearing the merged cells' underlying cells. |
-| [`SheetsBar.api`](@/api/sheetsBar.md)             | Action triggered by the SheetsBar plugin's API methods. Data hooks that run while a sheet switch loads the arriving sheet's data receive `SheetsBar.api.switch`. |
-| [`SheetsBar.ui`](@/api/sheetsBar.md)              | Action triggered by the SheetsBar plugin's tab bar -- a click, a drag, or one of its menus. Data hooks that run during the switch receive `SheetsBar.ui.switch`. |
+| [`SheetsBar.api`](@/api/sheetsBar.md)             | Action triggered by the SheetsBar plugin's API methods. During a sheet switch, `beforeLoadData` and `afterLoadData` receive `SheetsBar.api.switch`. |
+| [`SheetsBar.ui`](@/api/sheetsBar.md)              | Action triggered from the sheets bar: a click, a key, a drag, or a menu. During a sheet switch, `beforeLoadData` and `afterLoadData` receive `SheetsBar.ui.switch`. |
 | [`UndoRedo.redo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been redone.                                                                                                                                              |
 | [`UndoRedo.undo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been undone.                                                                                                                                              |
 | [`ColumnSummary.set`](@/api/columnSummary.md)      | Action triggered by the ColumnSummary plugin after the calculation has been done.                                                                                                                                      |
@@ -410,6 +432,12 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 ### Prevent feedback loops
 
 After initialization, [`updateSettings()`](@/api/core.md#updatesettings) uses [`updateData()`](@/api/core.md#updatedata) internally when its settings object includes `data`. The [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and [`afterUpdateData`](@/api/hooks.md#afterupdatedata) hooks receive `source === 'updateSettings'`. The resulting [`afterChange`](@/api/hooks.md#afterchange) hook receives `changes === null` and `source === 'updateData'`.
+
+Loading the data adds no paint of its own. The grid paints after [`updateSettings()`](@/api/core.md#updatesettings) has applied all its settings. Until then, [`isRenderSuspended()`](@/api/core.md#isrendersuspended) returns `true` in [`afterUpdateData`](@/api/hooks.md#afterupdatedata) and [`afterChange`](@/api/hooks.md#afterchange). A call to [`render()`](@/api/core.md#render) in those two hooks paints nothing.
+
+[`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) runs before the paint as well, but rendering is no longer held there. A call to [`render()`](@/api/core.md#render) in it adds a paint.
+
+In all three hooks, [`getCell()`](@/api/core.md#getcell) returns the cell element from the previous render, or `null` for a new row. To read the new cells, use [`afterRender`](@/api/hooks.md#afterrender).
 
 Calling `updateSettings({ data })` inside `afterChange` triggers `afterChange` again. Check the source before replacing data to prevent a feedback loop. In this callback snippet, `nextData` contains the dataset supplied by your application:
 
@@ -505,6 +533,12 @@ hot.addHook('beforeKeyDown', (event) => {
   }
 });
 ```
+
+::: only-for angular
+
+During server rendering hydration or with incremental hydration, `stopImmediatePropagation()` in this hook does not block the shortcut. Return `false` instead ([Server-side rendering (SSR)](@/guides/getting-started/installation/installation.md#server-side-rendering-ssr)).
+
+:::
 
 ::: only-for javascript
 

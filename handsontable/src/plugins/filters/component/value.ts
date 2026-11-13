@@ -94,9 +94,21 @@ export class ValueComponent extends BaseComponent {
       .addLocalHook('keydown', (event: KeyboardEvent) => this.#onInputKeyDown(event))
       .addLocalHook('listTabKeydown', (event: Event) => this.runLocalHooks('listTabKeydown', event));
 
-    this.hot?.addHook('modifyFiltersMultiSelectValue',
-      (value: string, meta: Record<string, unknown>, itemValue?: unknown) =>
-        this.#onModifyDisplayedValue(value, meta, itemValue));
+    // A negative order index keeps the formatter ahead of the application's own listeners, which expect
+    // the formatted label. The component is rebuilt on every enable, so without it a rebuilt listener
+    // would land after them and format the label they already changed.
+    this.hot?.addHook('modifyFiltersMultiSelectValue', this.#onModifyDisplayedValue, -1);
+  }
+
+  /**
+   * Destroy the component and take its `modifyFiltersMultiSelectValue` listener off the grid.
+   *
+   * The plugin builds a new component on every enable, so a listener left behind would run
+   * the formatter once more on the label the next one already formatted.
+   */
+  destroy() {
+    this.hot?.removeHook('modifyFiltersMultiSelectValue', this.#onModifyDisplayedValue);
+    super.destroy();
   }
 
   /**
@@ -132,7 +144,7 @@ export class ValueComponent extends BaseComponent {
 
       select.setItems(value.itemsSnapshot);
       select.setValue(value.args[0]);
-      // A restored `by_value` state with nothing selected is the record of a deliberate "Clear" -
+      // A restored `by_value` state with nothing selected is the record of a deliberate "Select none" -
       // the condition exists, it just excludes every value. This is the only place that knows it:
       // `reset()` runs for a column carrying no condition, where an empty list means the opposite
       // and must not turn a column the user never filtered into one that hides every row.
@@ -449,7 +461,7 @@ export class ValueComponent extends BaseComponent {
    * @param {*} [itemValue] The list item's source `value` (not `visualValue`).
    * @returns {*} Returns the modified value.
    */
-  #onModifyDisplayedValue(value: unknown, meta: Record<string, unknown>, itemValue?: unknown) {
+  #onModifyDisplayedValue = (value: unknown, meta: Record<string, unknown>, itemValue?: unknown) => {
     if (isBlankFilterListValue(itemValue)) {
       return value;
     }
@@ -459,7 +471,7 @@ export class ValueComponent extends BaseComponent {
     }
 
     return value;
-  }
+  };
 
   /**
    * Gets the values the list is built from for the currently selected column. The plugin decides

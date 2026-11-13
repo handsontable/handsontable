@@ -10,6 +10,7 @@ import { ManualColumnMove } from 'handsontable/plugins/manualColumnMove';
 import { NestedRows } from 'handsontable/plugins/nestedRows';
 import { conditions, registerCondition } from 'handsontable/plugins/filters/conditionRegisterer';
 import { registerOperation } from 'handsontable/plugins/filters/logicalOperationRegisterer';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(CheckboxCellType);
 registerCellType(NumericCellType);
@@ -63,7 +64,7 @@ describe('Filters -> column read parity', () => {
       rowHeights: 23,
       autoColumnSize: false,
       autoRowSize: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...overrides,
     });
 
@@ -81,7 +82,7 @@ describe('Filters -> column read parity', () => {
     hot = new Handsontable(container, {
       data,
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...overrides,
     });
 
@@ -411,7 +412,126 @@ describe('Filters -> column read parity', () => {
       filters.addCondition(0, 'contains', ['child a']);
       filters.filter();
 
-      expect(hot.getDataAtCol(0)).toEqual(['Child A1', 'Child A2']);
+      // A matching child keeps its parent (DEV-512).
+      expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Child A1', 'Child A2']);
+    });
+
+    describe('with the filter-by-value list', () => {
+      const buildTree = () => buildGrid([
+        {
+          name: 'Parent A',
+          __children: [{ name: 'Child A1' }, { name: 'Child A2' }],
+        },
+        {
+          name: 'Parent B',
+          __children: [{ name: 'Child B1', __children: [{ name: 'Grandchild B1a' }] }],
+        },
+      ], {
+        nestedRows: true,
+        columns: [{ data: 'name' }],
+      }).getPlugin('filters');
+
+      it('should list the values of every row of an expanded tree', () => {
+        const filters = buildTree();
+
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+          'Parent A', 'Child A1', 'Child A2', 'Parent B', 'Child B1', 'Grandchild B1a',
+        ]);
+      });
+
+      it('should not materialize the collapse map when nothing is collapsed', () => {
+        const filters = buildTree();
+        const getValues = jest.spyOn(hot.getPlugin('nestedRows').collapsedRowsMap, 'getValues');
+
+        filters._getValueListDataAtColumn(0);
+
+        expect(getValues).not.toHaveBeenCalled();
+      });
+
+      it('should list a value that only a deep child of the last parent holds', () => {
+        const filters = buildTree();
+
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toContain('Grandchild B1a');
+      });
+
+      it('should list the values of the children of a collapsed parent', () => {
+        const filters = buildTree();
+
+        hot.getPlugin('nestedRows').collapseParent(0);
+
+        expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Parent B', 'Child B1', 'Grandchild B1a']);
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+          'Parent A', 'Child A1', 'Child A2', 'Parent B', 'Child B1', 'Grandchild B1a',
+        ]);
+      });
+
+      it('should list the values of a child collapsed inside a collapsed parent', () => {
+        const filters = buildTree();
+        const nestedRows = hot.getPlugin('nestedRows');
+
+        nestedRows.collapseParent(4); // Child B1
+        nestedRows.collapseParent(3); // Parent B
+
+        expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Child A1', 'Child A2', 'Parent B']);
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+          'Parent A', 'Child A1', 'Child A2', 'Parent B', 'Child B1', 'Grandchild B1a',
+        ]);
+      });
+
+      it('should list no row past `maxRows` while a parent is collapsed', () => {
+        const filters = buildGrid([
+          {
+            name: 'Parent A',
+            __children: [{ name: 'Child A1' }, { name: 'Child A2' }],
+          },
+          {
+            name: 'Parent B',
+            __children: [{ name: 'Child B1', __children: [{ name: 'Grandchild B1a' }] }],
+          },
+        ], {
+          nestedRows: true,
+          maxRows: 3,
+          columns: [{ data: 'name' }],
+        }).getPlugin('filters');
+
+        hot.getPlugin('nestedRows').collapseParent(0);
+
+        expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Parent B', 'Child B1']);
+        // The folded children of Parent A stay listed; Grandchild B1a sits past the cap, so it is
+        // not a row the grid has and is not listed as a blank either.
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+          'Parent A', 'Child A1', 'Child A2', 'Parent B', 'Child B1',
+        ]);
+      });
+
+      it('should not list collapsed rows that an earlier column filtered out', () => {
+        const filters = buildGrid([
+          {
+            // Parent A does not match: a matching parent keeps its whole subtree (DEV-512), which
+            // would bring Child A2 back. It stays as the ancestor of Child A1.
+            name: 'Parent A',
+            kind: 'group',
+            __children: [{ name: 'Child A1', kind: 'keep' }, { name: 'Child A2', kind: 'drop' }],
+          },
+          {
+            name: 'Parent B',
+            kind: 'keep',
+            __children: [{ name: 'Child B1', kind: 'keep' }],
+          },
+        ], {
+          nestedRows: true,
+          columns: [{ data: 'name' }, { data: 'kind' }],
+        }).getPlugin('filters');
+
+        filters.addCondition(1, 'eq', ['keep']);
+        filters.filter();
+        hot.getPlugin('nestedRows').collapseParent(0);
+
+        expect(hot.getDataAtCol(0)).toEqual(['Parent A', 'Parent B', 'Child B1']);
+        expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+          'Parent A', 'Child A1', 'Parent B', 'Child B1',
+        ]);
+      });
     });
   });
 
@@ -441,6 +561,128 @@ describe('Filters -> column read parity', () => {
       // Column 1 sits second in the stack, so its list is narrowed by column 0 only - its own
       // condition must not remove `y` from the list (issue #12226).
       expect(filters._getValueListDataAtColumn(1).map(({ value }) => value)).toEqual(['x', 'y']);
+    });
+
+    it('should offer no values for a grid created with no rows', () => {
+      const filters = buildGrid([], { columns: [{}] }).getPlugin('filters');
+
+      // `getDataAtCol()` reads one `null` there, which is not a value to list.
+      expect(filters._getValueListDataAtColumn(0)).toEqual([]);
+    });
+
+    it('should offer no values once every row is removed', () => {
+      const filters = buildGrid([['a'], ['b']]).getPlugin('filters');
+
+      hot.alter('remove_row', 0, 2);
+
+      expect(hot.countRows()).toBe(0);
+      expect(filters._getValueListDataAtColumn(0)).toEqual([]);
+    });
+
+    // A control, not coverage of the empty-grid guard: `getDataAtCol()` already returns `[]` here.
+    it('should offer no values for a column left with no rows by another column\'s filter', () => {
+      const filters = buildGrid([['a', 'x'], ['b', 'y']]).getPlugin('filters');
+
+      filters.addCondition(1, 'eq', ['z']);
+      filters.filter();
+
+      expect(hot.countRows()).toBe(0);
+      expect(filters._getValueListDataAtColumn(0)).toEqual([]);
+    });
+
+    it('should hand a column with no condition the `cells` meta of a row outside the rendered band', () => {
+      const valueFormatter = value => `fmt-${value}`;
+      const filters = buildBigGrid({
+        cells: (row, column) => (row === 300 && column === 0 ? { valueFormatter } : {}),
+      }).getPlugin('filters');
+
+      const list = filters._getValueListDataAtColumn(0);
+
+      expect(list.length).toBe(BIG_ROWS);
+      expect(list[300].meta.valueFormatter).toBe(valueFormatter);
+      expect(list[300].meta).toEqual(hot.getCellMetaTransient(300, 0));
+      expect(list[299].meta.valueFormatter).toBeUndefined();
+    });
+
+    it('should hand a column with no condition the `afterGetCellMeta` meta of a row outside the rendered band', () => {
+      const filters = buildBigGrid({
+        afterGetCellMeta(row, column, cellProperties) {
+          if (row === 300 && column === 0) {
+            cellProperties.type = 'numeric';
+          }
+        },
+      }).getPlugin('filters');
+
+      const list = filters._getValueListDataAtColumn(0);
+
+      expect(list[300].meta.type).toBe('numeric');
+      expect(list[300].meta).toEqual(hot.getCellMetaTransient(300, 0));
+      expect(list[299].meta.type).toBe('text');
+    });
+
+    it('should list the `valueGetter` values `getDataAtCol()` reads for a column with no condition', () => {
+      const filters = buildBigGrid({
+        columns: [
+          { data: 0, valueGetter: value => `got-${value}` },
+          { data: 1 },
+        ],
+        modifyData(row, column, valueHolder, ioMode) {
+          if (ioMode === 'get' && row === 7 && column === 0) {
+            valueHolder.value = 'modified';
+          }
+        },
+      }).getPlugin('filters');
+
+      const expected = hot.getDataAtCol(0);
+
+      expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual(expected);
+      expect(expected[0]).toBe('got-10');
+    });
+
+    it('should list only the rows below `maxRows` for a column with no condition', () => {
+      const filters = buildGrid([['a'], ['b'], ['c'], ['d'], ['e']], {
+        maxRows: 2,
+      }).getPlugin('filters');
+
+      // `maxRows` trims nothing in the index mapper, so the rows past the cap keep a visual index
+      // while the grid reads no value for them. They are not rows, and must not list as blanks.
+      expect(hot.countRows()).toBe(2);
+      expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual(['a', 'b']);
+    });
+
+    it('should build the list of a grid with no folded rows without walking the row sequence', () => {
+      const filters = buildGrid([['a'], ['b'], ['c']]).getPlugin('filters');
+      const sequenceSpy = jest.spyOn(hot.rowIndexMapper, 'getIndexesSequence');
+
+      expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual(['a', 'b', 'c']);
+      // Only a row folded away by a `keepsRowsInFilterScope` map needs the physical walk.
+      expect(sequenceSpy).not.toHaveBeenCalled();
+    });
+
+    it('should keep rows trimmed by trimRows out of the list', () => {
+      const filters = buildGrid([
+        ['Apple'], ['Banana'], ['Cherry'], ['Date'], ['Elderberry'],
+      ], {
+        trimRows: [1, 3],
+      }).getPlugin('filters');
+
+      expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+        'Apple', 'Cherry', 'Elderberry',
+      ]);
+    });
+
+    it('should list the values in the visual row order', () => {
+      const filters = buildGrid([
+        ['Apple'], ['Banana'], ['Cherry'],
+      ], {
+        manualRowMove: true,
+      }).getPlugin('filters');
+
+      hot.getPlugin('manualRowMove').moveRow(2, 0);
+
+      expect(filters._getValueListDataAtColumn(0).map(({ value }) => value)).toEqual([
+        'Cherry', 'Apple', 'Banana',
+      ]);
     });
 
     it('should publish one meta object per entry', () => {

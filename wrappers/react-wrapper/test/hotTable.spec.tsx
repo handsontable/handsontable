@@ -1,6 +1,10 @@
 import React from 'react';
 import { act } from '@testing-library/react';
+import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { getCellType } from 'handsontable/cellTypes/registry';
+import { getEditor } from 'handsontable/editors/registry';
+import { getRenderer } from 'handsontable/renderers/registry';
 import { HotTable } from '../src/hotTable';
 import {
   createSpreadsheetData,
@@ -27,6 +31,7 @@ import {
 } from '../src/helpers';
 import { HotTableProps, HotTableRef } from '../src/types';
 import { HotColumn } from '../src/hotColumn';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // register Handsontable's modules
 registerAllModules();
@@ -37,7 +42,7 @@ describe('Handsontable initialization', () => {
       <HotTable
         id="test-hot"
         data={[[2]]}
-        licenseKey="non-commercial-and-evaluation"
+        licenseKey={TEST_LICENSE_KEY}
       />
     )).hotInstance!;
 
@@ -54,13 +59,13 @@ describe('Handsontable initialization', () => {
     const hotTableRef = renderHotTableWithProps({
       id: 'test-hot',
       data: [[2]],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(() => {
       renderHotTableWithProps({
         data: [[2]],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       }, true, hotTableRef);
     }).not.toThrow();
 
@@ -75,7 +80,7 @@ describe('Handsontable initialization', () => {
         rowHeaders={true}
         colHeaders={true}
         data={[[2]]}
-        licenseKey="non-commercial-and-evaluation"/>
+        licenseKey={TEST_LICENSE_KEY}/>
     )).hotInstance!;
 
     expect(hotInstance.rootContainer.id).toBe('test-hot');
@@ -89,7 +94,7 @@ describe('Handsontable initialization', () => {
 describe('Updating the Handsontable settings', () => {
   it('should call the updateSettings method of Handsontable, when the component properties get updated', async() => {
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'hot',
       autoRowSize: false,
       autoColumnSize: false,
@@ -119,7 +124,7 @@ describe('Updating the Handsontable settings', () => {
 
   it('should update the Handsontable options, when the component properties get updated', async() => {
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'hot',
       autoRowSize: false,
       autoColumnSize: false,
@@ -175,7 +180,7 @@ describe('Updating the Handsontable settings', () => {
 
       return (
         <>
-          <HotTable licenseKey="non-commercial-and-evaluation"
+          <HotTable licenseKey={TEST_LICENSE_KEY}
             id="test-hot"
             data={[[1]]}
             renderAllRows={renderAllRows}
@@ -224,7 +229,7 @@ describe('Updating the Handsontable settings', () => {
 
       return (
         <>
-          <HotTable licenseKey="non-commercial-and-evaluation"
+          <HotTable licenseKey={TEST_LICENSE_KEY}
             id="test-hot"
             data={[[1]]}
             rowHeaders={rowHeaders}
@@ -267,7 +272,7 @@ describe('Updating the Handsontable settings', () => {
     function ExampleComponent() {
       return (
         <>
-          <HotTable licenseKey="non-commercial-and-evaluation"
+          <HotTable licenseKey={TEST_LICENSE_KEY}
             id="test-hot"
             data={[[1]]}
             renderAllRows={true}
@@ -336,7 +341,7 @@ describe('Updating the Handsontable settings', () => {
 
             setTotalAmount(totalAmount);
           }}
-          licenseKey="non-commercial-and-evaluation"
+          licenseKey={TEST_LICENSE_KEY}
         />
       );
     }
@@ -376,12 +381,12 @@ describe('Updating the Handsontable settings', () => {
 describe('Renderer configuration using React components', () => {
   it('should use the renderer component as Handsontable renderer, when it\'s passed as component to HotTable renderer prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(100, 100)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -422,12 +427,12 @@ describe('Renderer configuration using React components', () => {
 
   it('should use the renderer component as Handsontable renderer, when it\'s passed inline to HotTable renderer prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(100, 100)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -468,12 +473,12 @@ describe('Renderer configuration using React components', () => {
 
   it('should use the renderer function as native Handsontable renderer, when it\'s passed to HotTable hotRenderer prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(100, 100)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -516,12 +521,12 @@ describe('Renderer configuration using React components', () => {
     console.warn = jest.fn();
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(100, 100)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -542,12 +547,12 @@ describe('Renderer configuration using React components', () => {
 describe('Editor configuration using React components', () => {
   it('should mount the editor component inside the Handsontable root portal', async() => {
     const hotTableComponent = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -566,12 +571,12 @@ describe('Editor configuration using React components', () => {
 
   it('should commit setValue after a real pointer sequence on the editor control', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -605,12 +610,12 @@ describe('Editor configuration using React components', () => {
     // the state has already healed itself by the time a full gesture returns. The hook is what
     // still sees the call - and a listener on it is the shape of user code this defect reaches.
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -657,12 +662,12 @@ describe('Editor configuration using React components', () => {
     // Documents the public `useHotEditor().value` contract after dropping
     // `useDeferredValue`. This does not cover the GH-13374 commit path.
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -682,14 +687,66 @@ describe('Editor configuration using React components', () => {
     expect(document.querySelector('#immediateValueDisplay')!.textContent).toEqual('typed');
   });
 
+  it('should not fire afterChange when a useHotEditor confirms a number or null without typing', async() => {
+    const edits: unknown[] = [];
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable licenseKey={TEST_LICENSE_KEY}
+        id="test-hot"
+        data={[[12345], [null]]}
+        width={300}
+        height={300}
+        minRowHeights={23}
+        colWidths={50}
+        init={function() {
+          mockElementDimensions(this.rootElement, 300, 300);
+        }}
+        afterChange={(changes, source) => {
+          if (source === 'edit') {
+            edits.push(changes);
+          }
+        }}
+        editor={ImmediateValueEditor} />
+    )).hotInstance!;
+
+    await act(async() => {
+      hotInstance.selectCell(0, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.isOpened()).toBe(true);
+
+    await act(async() => {
+      hotInstance.getActiveEditor()!.finishEditing(false);
+    });
+
+    expect(hotInstance.getActiveEditor()!.isOpened()).toBe(false);
+    expect(edits).toEqual([]);
+    expect(hotInstance.getDataAtCell(0, 0)).toBe(12345);
+
+    await act(async() => {
+      hotInstance.selectCell(1, 0);
+      simulateKeyboardEvent('keydown', 13);
+    });
+
+    expect(hotInstance.getActiveEditor()!.isOpened()).toBe(true);
+
+    await act(async() => {
+      hotInstance.getActiveEditor()!.finishEditing(false);
+    });
+
+    expect(hotInstance.getActiveEditor()!.isOpened()).toBe(false);
+    expect(edits).toEqual([]);
+    expect(hotInstance.getDataAtCell(1, 0)).toBe(null);
+  });
+
   it('should use the editor component as Handsontable editor, when it\'s passed as component to HotTable editor prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -722,12 +779,12 @@ describe('Editor configuration using React components', () => {
 
   it('should use the editor component as Handsontable editor, when it\'s passed inline to HotTable editor prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -760,12 +817,12 @@ describe('Editor configuration using React components', () => {
 
   it('should use the editor class as native Handsontable editor, when it\'s passed to HotTable hotEditor prop', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -787,12 +844,12 @@ describe('Editor configuration using React components', () => {
     const hotTableInstanceRef = React.createRef<HotTableRef>();
 
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'test-hot',
       data: createSpreadsheetData(3, 3),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       init() {
         mockElementDimensions(this.rootElement, 300, 300);
@@ -858,11 +915,11 @@ describe('Editor configuration using React components', () => {
     const hotTableInstanceRef = React.createRef<HotTableRef>();
 
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'test-hot',
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       init() {
         mockElementDimensions(this.rootElement, 300, 300);
@@ -922,12 +979,12 @@ describe('Editor configuration using React components', () => {
     console.warn = jest.fn();
 
     mountComponentWithRef((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -943,12 +1000,12 @@ describe('Editor configuration using React components', () => {
 
   it('should disable editing when the HotTable `editor` prop is set to `false`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         columns={[{}, { editor: 'text' }]}
         editor={false}
@@ -981,12 +1038,12 @@ describe('Editor configuration using React components', () => {
 
   it('should disable editing when the HotTable `hotEditor` prop is set to `false`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         columns={[{}, { editor: 'text' }]}
         hotEditor={false}
@@ -1019,12 +1076,12 @@ describe('Editor configuration using React components', () => {
   it('should apply and revert a dynamic switch of the `editor` prop to `false`', async() => {
     const hotTableRef = React.createRef<HotTableRef>();
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'test-hot',
       data: createSpreadsheetData(3, 2),
       width: 300,
       height: 300,
-      rowHeights: 23,
+      minRowHeights: 23,
       colWidths: 50,
       autoRowSize: false,
       autoColumnSize: false,
@@ -1064,12 +1121,12 @@ describe('Editor configuration using React components', () => {
 
   it('should let a `hotEditor` editor win over an `editor` prop set to `false`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         editor={false}
         hotEditor={CustomNativeEditor}
@@ -1094,12 +1151,12 @@ describe('Editor configuration using React components', () => {
 
   it('should fall back to the default editor when the `editor` prop is set to `true`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         editor={true}
         init={function() {
@@ -1121,12 +1178,12 @@ describe('Editor configuration using React components', () => {
 
   it('should fall back to the default editor when the `hotEditor` prop is set to `true`', async() => {
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         hotEditor={true}
         init={function() {
@@ -1149,12 +1206,12 @@ describe('Editor configuration using React components', () => {
   it('should keep opening the editor passed by an `editor={condition && Editor}` prop', async() => {
     const withEditor = true;
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         editor={withEditor && EditorComponent}
         init={function() {
@@ -1175,12 +1232,12 @@ describe('Editor configuration using React components', () => {
   it('should disable editing when an `editor={condition && Editor}` prop resolves to `false`', async() => {
     const withEditor = false;
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         editor={withEditor && EditorComponent}
         init={function() {
@@ -1207,12 +1264,12 @@ describe('Passing children', () => {
     console.warn = jest.fn();
 
     mountComponentWithRef((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -1229,12 +1286,12 @@ describe('Passing children', () => {
     console.warn = jest.fn();
 
     mountComponentWithRef((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         init={function() {
           mockElementDimensions(this.rootElement, 300, 300);
@@ -1265,7 +1322,7 @@ describe('Root size options', () => {
     const hotTableRef = renderHotTableWithProps({
       data: createSpreadsheetData(3, 3),
       height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const { rootElement } = hotTableRef.current!.hotInstance!;
 
@@ -1279,13 +1336,13 @@ describe('Root size options', () => {
     const hotTableRef = renderHotTableWithProps({
       data: createSpreadsheetData(3, 3),
       height: 300,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const badProps: HotTableProps = {
       data: createSpreadsheetData(3, 3),
       height: 'abc',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     };
 
     renderHotTableWithProps(badProps, true, hotTableRef);
@@ -1299,5 +1356,483 @@ describe('Root size options', () => {
     expect(sizeWarnings(warnSpy)[0]).toContain('"abc"');
 
     warnSpy.mockRestore();
+  });
+});
+
+describe('Props set to `undefined`', () => {
+  const baseProps: HotTableProps = {
+    data: createSpreadsheetData(3, 3),
+    licenseKey: TEST_LICENSE_KEY,
+  };
+  const pluginProps: Array<[keyof HotTableProps, string]> = [
+    ['copyPaste', 'copyPaste'],
+    ['fillHandle', 'autofill'],
+    ['undo', 'undoRedo'],
+    ['dragToScroll', 'dragToScroll'],
+  ];
+
+  it.each(pluginProps)('should keep `%s` on its default when the prop is `undefined` at init', (prop, plugin) => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, [prop]: undefined });
+    const hot = hotTableRef.current!.hotInstance!;
+
+    expect(hot.getPlugin(plugin as any).enabled).toBe(true);
+  });
+
+  it('should keep a default option value when the prop is `undefined` at init', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, allowInsertRow: undefined });
+
+    expect(hotTableRef.current!.hotInstance!.getSettings().allowInsertRow).toBe(true);
+  });
+
+  it('should still apply `null` and `false` props', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, copyPaste: null as any, undo: false });
+    const hot = hotTableRef.current!.hotInstance!;
+
+    expect(hot.getPlugin('copyPaste').enabled).toBe(false);
+    expect(hot.getPlugin('undoRedo').enabled).toBe(false);
+  });
+
+  it('should clear an option whose default is `undefined` when its prop changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, colWidths: 150 });
+    const hot = hotTableRef.current!.hotInstance!;
+
+    expect(hot.getSettings().colWidths).toBe(150);
+
+    renderHotTableWithProps({ ...baseProps, colWidths: undefined }, true, hotTableRef);
+
+    expect(hot.getSettings().colWidths).toBe(undefined);
+  });
+
+  it('should remove the root element\'s inline height and overflow when `height` changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, height: 120 });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.height).toBe('120px');
+    expect(rootElement.style.overflowY).toBe('clip');
+
+    renderHotTableWithProps({ ...baseProps, height: undefined }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('');
+    expect(rootElement.style.overflowX).toBe('');
+    expect(rootElement.style.overflowY).toBe('');
+  });
+
+  it('should remove the root element\'s inline `height: auto` when `height` changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, height: 'auto' });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.height).toBe('auto');
+
+    renderHotTableWithProps({ ...baseProps, height: undefined }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('');
+  });
+
+  it('should remove the root element\'s inline width when `width` changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, width: 300 });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    expect(rootElement.style.width).toBe('300px');
+
+    renderHotTableWithProps({ ...baseProps, width: undefined }, true, hotTableRef);
+
+    expect(rootElement.style.width).toBe('');
+  });
+
+  it('should clear only the axis whose prop changes to `undefined`, and apply a new value after the clear', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, height: 120, width: 300 });
+    const { rootElement } = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps, height: undefined, width: 300 }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('');
+    expect(rootElement.style.width).toBe('300px');
+
+    renderHotTableWithProps({ ...baseProps, height: 200, width: 300 }, true, hotTableRef);
+
+    expect(rootElement.style.height).toBe('200px');
+    expect(rootElement.style.width).toBe('300px');
+  });
+
+  it('should restore the default when a prop that had a value changes to `undefined` on update', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, copyPaste: false });
+    const hot = hotTableRef.current!.hotInstance!;
+
+    expect(hot.getPlugin('copyPaste').enabled).toBe(false);
+
+    renderHotTableWithProps({ ...baseProps, copyPaste: undefined }, true, hotTableRef);
+
+    expect(hot.getPlugin('copyPaste').enabled).toBe(true);
+  });
+
+  it('should keep a default when a prop stays `undefined` across updates', () => {
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, copyPaste: undefined });
+
+    renderHotTableWithProps({ ...baseProps, copyPaste: undefined, width: 300 }, true, hotTableRef);
+
+    expect(hotTableRef.current!.hotInstance!.getPlugin('copyPaste').enabled).toBe(true);
+  });
+
+  it('should keep the grid-level value when a `HotColumn` prop is `undefined`', () => {
+    const hotTableRef = renderHotTableWithProps({
+      ...baseProps,
+      readOnly: true,
+      children: [<HotColumn key="0" readOnly={undefined} />],
+    } as HotTableProps);
+
+    expect(hotTableRef.current!.hotInstance!.getCellMeta(0, 0).readOnly).toBe(true);
+  });
+});
+
+describe('Removing a hook prop', () => {
+  const data = [[1, 2], [3, 4]];
+  const baseProps: HotTableProps = {
+    data,
+    licenseKey: TEST_LICENSE_KEY,
+  };
+  const editCell = (hotInstance: Handsontable, value: string) => {
+    act(() => {
+      hotInstance.setDataAtCell(0, 0, value);
+    });
+  };
+
+  beforeEach(() => {
+    data[0][0] = 1;
+  });
+
+  it('should stop running the callback when the hook prop is removed', async() => {
+    const afterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).toHaveBeenCalledWith([[0, 0, 1, 'a']], 'edit');
+
+    renderHotTableWithProps({ ...baseProps }, false, hotTableRef);
+    editCell(hotInstance, 'b');
+
+    expect(afterChange).not.toHaveBeenCalledWith([[0, 0, 'a', 'b']], 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+  });
+
+  it('should stop running the callback when the hook prop becomes `undefined`', async() => {
+    const afterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps, afterChange: undefined }, false, hotTableRef);
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+  });
+
+  it('should stop running the callback when the hook prop becomes `null`', async() => {
+    const afterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps, afterChange: null }, false, hotTableRef);
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+  });
+
+  it('should stop running the callback when the hook prop becomes `false`', async() => {
+    const afterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps, afterChange: false as any }, false, hotTableRef);
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(hotInstance.getSettings().afterChange).toBe(null);
+  });
+
+  it('should keep a callback added with `addHook()` when the hook prop is removed', async() => {
+    const afterChange = jest.fn();
+    const addedAfterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    hotInstance.addHook('afterChange', addedAfterChange);
+    renderHotTableWithProps({ ...baseProps }, false, hotTableRef);
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+    expect(addedAfterChange).toHaveBeenCalledWith([[0, 0, 1, 'a']], 'edit');
+  });
+
+  it('should run the callback again when the hook prop is passed back', async() => {
+    const afterChange = jest.fn();
+    const hotTableRef = renderHotTableWithProps({ ...baseProps, afterChange }, false);
+    const hotInstance = hotTableRef.current!.hotInstance!;
+
+    renderHotTableWithProps({ ...baseProps }, false, hotTableRef);
+    editCell(hotInstance, 'a');
+
+    expect(afterChange).not.toHaveBeenCalledWith(expect.anything(), 'edit');
+
+    renderHotTableWithProps({ ...baseProps, afterChange }, false, hotTableRef);
+    editCell(hotInstance, 'b');
+
+    expect(afterChange.mock.calls.filter(([, source]) => source === 'edit'))
+      .toEqual([[[[0, 0, 'a', 'b']], 'edit']]);
+  });
+
+  describe('with a hook the app registered', () => {
+    afterEach(() => {
+      Handsontable.hooks.deregister('myHook');
+    });
+
+    it('should stop running the callback when the hook prop is removed', async() => {
+      Handsontable.hooks.register('myHook');
+
+      const myHook = jest.fn();
+      const hotTableRef = renderHotTableWithProps({ ...baseProps, myHook }, false);
+      const hotInstance = hotTableRef.current!.hotInstance!;
+
+      hotInstance.runHooks('myHook');
+
+      expect(myHook).toHaveBeenCalledTimes(1);
+
+      renderHotTableWithProps({ ...baseProps }, false, hotTableRef);
+      hotInstance.runHooks('myHook');
+
+      expect(myHook).toHaveBeenCalledTimes(1);
+      expect(hotInstance.getSettings().myHook).toBe(null);
+    });
+  });
+});
+
+describe('Grid-level cell type', () => {
+  function gridProps(props: HotTableProps = {}): HotTableProps {
+    return {
+      licenseKey: TEST_LICENSE_KEY,
+      id: 'test-hot',
+      data: [['A', true], ['B', false]],
+      width: 300,
+      height: 300,
+      minRowHeights: 23,
+      colWidths: 50,
+      autoRowSize: false,
+      autoColumnSize: false,
+      init() {
+        mockElementDimensions(this.rootElement, 300, 300);
+      },
+      ...props,
+    };
+  }
+
+  function render(props: HotTableProps, ref: React.RefObject<HotTableRef>): Handsontable {
+    renderHotTableWithProps(props, false, ref);
+
+    return ref.current!.hotInstance!;
+  }
+
+  it.each([
+    ['dropdown', { source: ['A', 'B'] }],
+    ['autocomplete', { source: ['A', 'B'] }],
+    ['date', { data: [['2026-01-01', true], ['2026-01-02', false]] }],
+    ['checkbox', {}],
+  ])('should give every cell the editor and renderer of the `%s` type set on HotTable', (type, extra) => {
+    const hotInstance = render(gridProps({ type, ...extra }), React.createRef<HotTableRef>());
+    const cellType = getCellType(type);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(cellType.editor);
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(cellType.renderer);
+    expect(hotInstance.getCellEditor(1, 1)).toBe(cellType.editor);
+    expect(hotInstance.getCellRenderer(1, 1)).toBe(cellType.renderer);
+  });
+
+  it('should draw the dropdown arrow for a `dropdown` type set on HotTable', () => {
+    const hotInstance = render(gridProps({ type: 'dropdown', source: ['A', 'B'] }), React.createRef<HotTableRef>());
+
+    expect(hotInstance.getCell(0, 0)!.querySelector('.htAutocompleteArrow')).not.toBeNull();
+  });
+
+  it('should keep the type\'s editor and renderer after a re-render with another prop changed', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render(props, ref);
+    const hotInstance = render({ ...props, colWidths: 60 }, ref);
+
+    expect(hotInstance.getSettings().colWidths).toBe(60);
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should let the editor and renderer props win over the type', () => {
+    const hotInstance = render(gridProps({
+      type: 'dropdown',
+      source: ['A', 'B'],
+      hotEditor: 'password',
+      hotRenderer: customNativeRenderer,
+    }), React.createRef<HotTableRef>());
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('password'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(customNativeRenderer);
+  });
+
+  it('should let a component editor and a component renderer win over the type', () => {
+    const hotInstance = render(gridProps({
+      type: 'dropdown',
+      source: ['A', 'B'],
+      editor: EditorComponent,
+      renderer: RendererComponent,
+    }), React.createRef<HotTableRef>());
+
+    expect(hotInstance.getCellEditor(0, 0).name).toBe('CustomEditor');
+    expect(hotInstance.getCellRenderer(0, 0).name).toBe('__internalRenderer');
+  });
+
+  it('should give the type\'s editor and renderer to a grid mounted in StrictMode', () => {
+    const hotInstance = renderHotTableWithProps(
+      gridProps({ type: 'dropdown', source: ['A', 'B'] }),
+      true,
+      React.createRef<HotTableRef>()
+    ).current!.hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should keep editing disabled with `editor={false}` and the type\'s renderer', () => {
+    const hotInstance = render(
+      gridProps({ type: 'dropdown', source: ['A', 'B'], editor: false }),
+      React.createRef<HotTableRef>()
+    );
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(false);
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should go back to the type\'s editor and renderer when the editor and renderer props are removed', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render(props, ref);
+    render({ ...props, editor: EditorComponent, renderer: RendererComponent }, ref);
+    let hotInstance = render(props, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+
+    render({ ...props, editor: false, hotRenderer: customNativeRenderer }, ref);
+    expect(ref.current!.hotInstance!.getCellEditor(0, 0)).toBe(false);
+
+    hotInstance = render(props, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should go back to the type\'s editor when an editor named by `hotEditor` or by `editor` is removed', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render(props, ref);
+    render({ ...props, hotEditor: 'password' }, ref);
+    expect(ref.current!.hotInstance!.getCellEditor(0, 0)).toBe(getEditor('password'));
+
+    expect(render(props, ref).getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+
+    render({ ...props, editor: 'password' as unknown as HotTableProps['editor'] }, ref);
+    expect(ref.current!.hotInstance!.getCellEditor(0, 0)).toBe(getEditor('password'));
+
+    expect(render(props, ref).getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+  });
+
+  it('should go back to the editor and renderer of a cell type object when the props are removed', () => {
+    const ref = React.createRef<HotTableRef>();
+    const cellType = { editor: getEditor('checkbox'), renderer: getRenderer('checkbox') };
+    const props = gridProps({ type: cellType as unknown as HotTableProps['type'] });
+
+    expect(render(props, ref).getCellEditor(0, 0)).toBe(getEditor('checkbox'));
+
+    render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+    const hotInstance = render(props, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('checkbox'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('checkbox'));
+  });
+
+  it('should apply the new type when one commit removes the props and changes `type`', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+    const hotInstance = render({ ...props, type: 'checkbox' }, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('checkbox'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('checkbox'));
+  });
+
+  it('should keep the current type when one commit removes the props and sets an unregistered `type`', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+
+    expect(() => render({ ...props, type: 'notRegisteredType' }, ref)).not.toThrow();
+
+    const hotInstance = ref.current!.hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('dropdown'));
+  });
+
+  it('should apply a `type` changed after mount', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'dropdown', source: ['A', 'B'] });
+
+    render(props, ref);
+    const hotInstance = render({ ...props, type: 'checkbox' }, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('checkbox'));
+    expect(hotInstance.getCellRenderer(0, 0)).toBe(getRenderer('checkbox'));
+  });
+
+  it('should supply the editor of the current `type` when the editor prop is removed after `type` changed', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps({ type: 'numeric' });
+
+    render({ ...props, hotEditor: 'password' }, ref);
+    render({ ...props, type: 'dropdown', source: ['A', 'B'], hotEditor: 'password' }, ref);
+
+    const hotInstance = render({ ...props, type: 'dropdown', source: ['A', 'B'] }, ref);
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+  });
+
+  it('should keep the text editor and renderer on a grid with no type', () => {
+    const ref = React.createRef<HotTableRef>();
+    const props = gridProps();
+    let hotInstance = render(props, ref);
+
+    expect(hotInstance.getSettings().editor).toBe(getEditor('text'));
+    expect(hotInstance.getSettings().renderer).toBe(getRenderer('text'));
+
+    render({ ...props, hotEditor: 'password', hotRenderer: customNativeRenderer }, ref);
+    hotInstance = render(props, ref);
+
+    expect(hotInstance.getSettings().editor).toBe(getEditor('text'));
+    expect(hotInstance.getSettings().renderer).toBe(getRenderer('text'));
+  });
+
+  it('should keep the type of a HotColumn over the type set on HotTable', () => {
+    const hotInstance = mountComponentWithRef<HotTableRef>((
+      <HotTable {...gridProps({ type: 'dropdown', source: ['A', 'B'] })}>
+        <HotColumn />
+        <HotColumn type="checkbox" />
+      </HotTable>
+    )).hotInstance!;
+
+    expect(hotInstance.getCellEditor(0, 0)).toBe(getEditor('dropdown'));
+    expect(hotInstance.getCellEditor(0, 1)).toBe(getEditor('checkbox'));
+    expect(hotInstance.getCellRenderer(0, 1)).toBe(getRenderer('checkbox'));
   });
 });

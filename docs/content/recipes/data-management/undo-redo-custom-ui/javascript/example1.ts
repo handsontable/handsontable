@@ -44,7 +44,7 @@ if (rootContainer instanceof HTMLElement) {
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
-    undoRedo: true,
+    undo: true,
     columns: [
       { data: 'id', type: 'numeric', width: 60, readOnly: true },
       { data: 'task', type: 'text', width: 220 },
@@ -62,7 +62,7 @@ if (rootContainer instanceof HTMLElement) {
     afterRedo: () => {
       updateButtonsState();
     },
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
   const undoRedoPlugin = hot.getPlugin('undoRedo');
 

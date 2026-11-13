@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where releasing a dragged horizontal scrollbar on an RTL page scrolled by the window jumped the page back to its start.",
+  "type": "fixed",
+  "issueOrPR": 13811,
+  "breaking": false,
+  "framework": "none"
+}

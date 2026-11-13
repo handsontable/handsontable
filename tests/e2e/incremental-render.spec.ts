@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG, BUNDLES_TAG } from '../fixtures/test';
 import { IncrementalRenderPage } from '../fixtures/pages/IncrementalRenderPage';
 
 /**
@@ -8,7 +8,7 @@ import { IncrementalRenderPage } from '../fixtures/pages/IncrementalRenderPage';
  * paints every cell produces (`IncrementalRenderPage#expectEqualToFullRepaint`). The second check
  * is what catches a skipped cell that should have been painted, whatever the reason.
  */
-test.describe('renderMode: onChange', () => {
+test.describe('renderMode: onChange', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('paints only the changed cell on a data change', async({ page, theme, bundle }) => {
     const grid = new IncrementalRenderPage(page, theme, bundle, 'text');
 
@@ -247,7 +247,7 @@ test.describe('renderMode: onChange', () => {
   });
 });
 
-test.describe('renderMode: onChange, changes the render must see', () => {
+test.describe('renderMode: onChange, changes the render must see', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('repaints the cells whose `cells` function result changed', async({ page, theme, bundle }) => {
     const grid = new IncrementalRenderPage(page, theme, bundle, 'cells-fn');
     const count = (selector: string) => grid.read<number>(`document.querySelectorAll('${selector}').length`);
@@ -360,7 +360,7 @@ test.describe('renderMode: onChange, changes the render must see', () => {
   });
 });
 
-test.describe('renderMode: onChange, scrolling', () => {
+test.describe('renderMode: onChange, scrolling', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   const rowOf = (key: string) => Number(key.split(',')[0]);
 
   test('paints only the rows that enter the band, and keeps the elements of the rows that stay', async({ page, theme, bundle }) => {
@@ -581,7 +581,7 @@ test.describe('renderMode: onChange, scrolling', () => {
   });
 });
 
-test.describe('renderMode: always (default)', () => {
+test.describe('renderMode: always (default)', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('paints every rendered cell on a scroll', async({ page, theme, bundle }) => {
     const grid = new IncrementalRenderPage(page, theme, bundle, 'always');
 

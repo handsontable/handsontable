@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Layout slots
-metaTitle: Layout slots - JavaScript Data Grid | Handsontable
+metaTitle: Layout slots | Handsontable DataGrid for JavaScript
 description: Place custom UI in the wrapper slots around the grid and control the order of elements within each slot.
 permalink: /layout-slots
 tags:
@@ -15,7 +15,7 @@ menuTag: updated
 addedIn: "18.0.0"
 ---
 
-Place custom UI in the slots that Handsontable renders around the grid, and control the order of the elements within each slot.
+Place custom UI in the slots that Handsontable DataGrid renders around the grid, and control the order of the elements within each slot.
 
 ## Overview
 
@@ -52,7 +52,7 @@ const hot = new Handsontable(container, {
     ['SKU-7740', 'Vertex Industries', 67],
   ],
   colHeaders: ['SKU', 'Supplier', 'In stock'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const toolbar = document.createElement('div');
@@ -125,7 +125,7 @@ const hot = new Handsontable(container, {
   layout: {
     bottom: ['summary', 'pagination'],
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const summary = document.createElement('div');
@@ -175,6 +175,7 @@ Use these keys in the `layout` setting to order the built-in UI:
 | Key | Slot | Provided by |
 |---|---|---|
 | `pagination` | `bottom` | The [`Pagination`](@/api/pagination.md) plugin |
+| `sheetsBar` | `bottom` | The [`SheetsBar`](@/api/sheetsBar.md) plugin |
 
 The license notification renders at the bottom but is not a slot contributor: it always stays last in the `bottom` slot and ignores any `layout` entry. The [`Dialog`](@/api/dialog.md) plugin renders in the overlays layer, which is not user-orderable through the `layout` setting.
 

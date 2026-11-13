@@ -1,5 +1,5 @@
 import { devices, type Page } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { MobileHandlesPage } from '../fixtures/pages/MobileHandlesPage';
 
 /**
@@ -45,7 +45,7 @@ test.use({
   viewport: { width: 1024, height: 768 },
 });
 
-test.describe('iPadOS selection range handles', () => {
+test.describe('iPadOS selection range handles', { tag: THEMES_TAG }, () => {
   let grid: MobileHandlesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -101,6 +101,25 @@ test.describe('iPadOS selection range handles', () => {
     await expect(grid.movingRoot()).toHaveCount(0);
   });
 
+  // With no headers the top band of a range at A1 starts at the grid edge, where the clamped top handle
+  // now sits. Its hit area must stay a corner target, not swallow the band next to it.
+  test('starts a moveCells drag from a mouse press on the top band next to the range handle at A1', async ({ page }) => {
+    await grid.goto({ headers: false });
+    await grid.enableMoveCells();
+    await grid.selectRange(0, 0, 2, 2);
+    await grid.expectHandlesVisible();
+    await expect(grid.moveZones().first()).toBeVisible();
+
+    await grid.pressTopMoveBandAt(30);
+
+    await expect(grid.movingRoot()).toHaveCount(1);
+
+    await page.keyboard.press('Escape');
+    await page.mouse.up();
+
+    await expect(grid.movingRoot()).toHaveCount(0);
+  });
+
   test('does not extend the selection from a mouse drag on the range handle', async () => {
     await grid.enableMoveCells();
     await grid.selectRange(1, 1, 1, 1);
@@ -116,7 +135,7 @@ test.describe('iPadOS selection range handles', () => {
   });
 });
 
-test.describe('iPadOS double-tap to edit with range handles present', () => {
+test.describe('iPadOS double-tap to edit with range handles present', { tag: THEMES_TAG }, () => {
   let grid: MobileHandlesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -142,7 +161,7 @@ test.describe('iPadOS double-tap to edit with range handles present', () => {
   });
 });
 
-test.describe('iPadOS frozen-top corner reserve', () => {
+test.describe('iPadOS frozen-top corner reserve', { tag: THEMES_TAG }, () => {
   let grid: MobileHandlesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -168,9 +187,29 @@ test.describe('iPadOS frozen-top corner reserve', () => {
 
     await expect.poll(() => grid.topOverlayHolderOverhang()).toBe(0);
   });
+
+  test('keeps a frozen-row bottom handle while its column is on screen, and only then', async () => {
+    // The top overlay draws a frozen-row selection's handles only for a column the viewport shows.
+    // Its bottom handle must survive that gate while the column is on screen, and stop being
+    // reachable once the column scrolls behind the frozen pane. The master renders the cell too,
+    // under the clone, but does not draw a second handle for it (DEV-749).
+    await grid.goto({ frozen: true, cols: 'wide' });
+    await grid.selectRange(0, 1, 0, 1);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top']);
+
+    await grid.scrollColumnEndUnderFrozenPane(1);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual([]);
+
+    // Back on screen, so a stale visible-range snapshot would keep the handle hidden.
+    await grid.scrollColumnIntoView(1);
+
+    await expect.poll(() => grid.reachableBottomHandles()).toEqual(['ht_clone_top']);
+  });
 });
 
-test.describe('iPadOS range handles on a merged cell across the freeze lines', () => {
+test.describe('iPadOS range handles on a merged cell across the freeze lines', { tag: THEMES_TAG }, () => {
   let grid: MobileHandlesPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

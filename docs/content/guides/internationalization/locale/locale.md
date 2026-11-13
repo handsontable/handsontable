@@ -1,8 +1,8 @@
 ---
 type: reference
 title: Locale
-metaTitle: Locale - JavaScript Data Grid | Handsontable
-description: Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
+metaTitle: Locale | Handsontable DataGrid for JavaScript
+description: Configure Handsontable DataGrid's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
 permalink: /locale
 canonicalUrl: /locale
 tags:
@@ -11,11 +11,11 @@ tags:
   - L10n
   - i18n
 react:
-  metaTitle: Locale - React Data Grid | Handsontable
+  metaTitle: Locale | Handsontable DataGrid for React
 angular:
-  metaTitle: Locale - Angular Data Grid | Handsontable
+  metaTitle: Locale | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Locale - Vue Data Grid | Handsontable
+  metaTitle: Locale | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Internationalization
 ---
@@ -25,7 +25,7 @@ The `locale` option configures number and date formatting using a BCP 47 languag
 
 ## Overview
 
-Handsontable's locale settings affect certain actions performed on your data, such as:
+Handsontable DataGrid's locale settings affect certain actions performed on your data, such as:
 
 - [Filtering](@/guides/columns/column-filter/column-filter.md)
 - [Searching](@/guides/navigation/searching-values/searching-values.md)

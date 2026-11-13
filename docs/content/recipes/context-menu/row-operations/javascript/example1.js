@@ -44,7 +44,7 @@ const hot = new Handsontable(container, {
   outsideClickDeselects(target) {
     return !toolbar.contains(target);
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const btnAddRow = toolbar.querySelector('#btn-add-row');

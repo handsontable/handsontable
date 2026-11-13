@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "id": "multiselect-editor",
+  "surface": "The multiselect editor: its search field, its checkbox options with their states, Space toggling an option, and Enter committing the selection.",
+  "group": "editors",
+  "page": "multiselect-editor",
+  "state": "editor",
+  "criteria": ["1.3.1", "2.1.1", "2.4.3", "4.1.2"],
+  "setup": [{"selectCell": [0, 0]}],
+  "steps": [
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["search options"], ["edit"]],
+      "note": "Enter opens the editor on the cell holding the chip `Alpha` and focuses its search field, named `Search options`, inside a group named `Select options`. Required: the field's name and role (NVDA `edit`, VoiceOver `edit text`)."
+    },
+    {
+      "id": "arrow-down-first",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alpha"], ["checked"]],
+      "note": "ArrowDown from the search field focuses the first option, a checkbox named `Alpha`, checked because it is the cell's value. `checked` is also inside `not checked`, so this group proves the state is spoken, not which state."
+    },
+    {
+      "id": "arrow-down-second",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alfa"], ["not checked", "unchecked"]],
+      "note": "The second option, Alfa, starts unchecked."
+    },
+    {
+      "id": "space-check",
+      "action": {"press": "Space"},
+      "expect": [["checked"]],
+      "note": "Space toggles the focused native checkbox and the reader reads the new state."
+    },
+    {
+      "id": "arrow-down-third",
+      "action": {"press": "ArrowDown"},
+      "expect": [["alto"], ["not checked", "unchecked"]],
+      "note": "Finding: VoiceOver with WebKit says nothing on this ArrowDown in two recordings of three, though it read the two before."
+    },
+    {
+      "id": "commit-selection",
+      "action": {"press": "Enter"},
+      "expect": [["alpha"], ["row 3"]],
+      "note": "Enter commits the selection and moves the selection one row down (enterMoves), to the next row's cell, which holds the chip `Alpha`. Finding: the focus is lost: it lands on the document body, so NVDA and VoiceOver with WebKit read the document (`Cell dropdown arrow fixture, document`) and VoiceOver with Chromium says nothing. The next arrow key brings it back to the grid."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["alpha"], ["alfa"]],
+      "note": "ArrowUp moves to the edited cell, which now holds two chips, Alpha and Alfa; each chip's label is a group of its own."
+    }
+  ]
+}

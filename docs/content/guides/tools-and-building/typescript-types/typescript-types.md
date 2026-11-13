@@ -1,8 +1,8 @@
 ---
 type: reference
 title: TypeScript types
-metaTitle: TypeScript types - JavaScript Data Grid | Handsontable
-description: A complete reference of the TypeScript types and interfaces that Handsontable exports, with usage examples for settings, hook callbacks, custom renderers, and editors.
+metaTitle: TypeScript types | Handsontable DataGrid for JavaScript
+description: A complete reference of the TypeScript types and interfaces that Handsontable DataGrid exports, with usage examples for settings, hook callbacks, custom renderers, and editors.
 permalink: /typescript-types
 canonicalUrl: /typescript-types
 tags:
@@ -11,16 +11,17 @@ tags:
   - interfaces
   - type safety
 react:
-  metaTitle: TypeScript types - React Data Grid | Handsontable
+  metaTitle: TypeScript types | Handsontable DataGrid for React
 angular:
-  metaTitle: TypeScript types - Angular Data Grid | Handsontable
+  metaTitle: TypeScript types | Handsontable DataGrid for Angular
 vue:
-  metaTitle: TypeScript types - Vue Data Grid | Handsontable
+  metaTitle: TypeScript types | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 
-Handsontable ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
+Handsontable DataGrid ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
 
 [[toc]]
 
@@ -71,6 +72,10 @@ These types describe the settings object you pass to `new Handsontable()` or `up
 | `Events` | All hook callback signatures, keyed by hook name. Use to type individual hook functions. |
 | `SanitizerContext` | The write surfaces the grid passes to the [`sanitizer`](@/api/options.md#sanitizer) option. Annotate the option's second parameter with it to get completion on those values. |
 | `TextExtractorContext` | The consumer surfaces the grid passes to the [`textExtractor`](@/api/options.md#textextractor) option. Annotate the option's second parameter with it to get completion on those values. |
+| `MenuItemConfig` | A custom item in the object form of the [`contextMenu`](@/api/options.md#contextmenu) and [`dropdownMenu`](@/api/options.md#dropdownmenu) options. |
+| `PredefinedMenuItemKey` | A built-in menu item key, such as `'row_above'` or `'hidden_columns_hide'`, for the array form of the same options. |
+
+`MenuItemConfig` and `PredefinedMenuItemKey` are also exported from `handsontable/plugins/contextMenu`, and that import keeps working.
 
 ```typescript
 import type { GridSettings, ColumnSettings } from 'handsontable';
@@ -83,7 +88,7 @@ const columns: ColumnSettings[] = [
 const settings: GridSettings = {
   data: myData,
   columns,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -128,7 +133,7 @@ let hot: HotInstance;
 
 hot = new Handsontable(document.querySelector('#grid')!, {
   data: myData,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -237,7 +242,9 @@ import { numericRenderer } from 'handsontable/renderers';
 // No type import needed -- the Handsontable class and its instance methods are already fully typed.
 import Handsontable from 'handsontable';
 
-const hot = new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation' });
+const hot = new Handsontable(container, {
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+});
 hot.loadData(myData); // IDE autocomplete and type checking work here.
 ```
 
@@ -260,7 +267,7 @@ const settings: GridSettings = {
     { data: 'department' },
     { data: 'hireDate', type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -323,7 +330,7 @@ class RatingEditor extends TextEditor {
 
 const settings: GridSettings = {
   columns: [{ editor: RatingEditor as unknown as string }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -343,7 +350,7 @@ export function Grid() {
 
   const settings: HotTableProps = {
     data: myData,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   };
 
   const selectFirstCell = () => {
@@ -379,7 +386,7 @@ export class GridComponent {
 
   readonly gridSettings: GridSettings = {
     data: myData,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   };
 }
 ```
@@ -402,7 +409,7 @@ const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
 
 const settings: GridSettings = {
   data: myData,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 </script>
 

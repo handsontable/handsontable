@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed touch taps inside cells when visual selection is off: buttons, file inputs, and links now respond to a single tap. Heads-up: a link in such a cell is now followed on the first tap, where before that tap did nothing.",
+  "type": "changed",
+  "issueOrPR": 13950,
+  "breaking": false,
+  "framework": "none"
+}

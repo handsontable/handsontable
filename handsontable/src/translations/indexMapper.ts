@@ -10,6 +10,7 @@ import {
 import type { IndexMap, IndexMapOptions } from './maps/indexMap';
 import type { LinkedPhysicalIndexToValueMap } from './maps/linkedPhysicalIndexToValueMap';
 import type { PhysicalIndexToValueMap } from './maps/physicalIndexToValueMap';
+import type { TrimmingMapOptions } from './maps/trimmingMap';
 import {
   AggregatedCollection,
   MapCollection,
@@ -288,11 +289,15 @@ export class IndexMapper {
    * @param {string} indexName A unique index name.
    * @param {string} mapType The index map type (e.g., "hiding", "trimming", "physicalIndexToValue").
    * @param {*} [initValueOrFn] The initial value for the index map.
+   * @param {object} [options] Map options, passed to the map's constructor. Some options are internal
+   * to Handsontable.
    * @returns {IndexMap}
    */
   createAndRegisterIndexMap(indexName: string, mapType: 'hiding', initValueOrFn?: unknown): HidingMap;
   /* eslint-disable jsdoc/require-jsdoc -- these overloads + the implementation share the JSDoc above */
-  createAndRegisterIndexMap(indexName: string, mapType: 'trimming', initValueOrFn?: unknown): TrimmingMap;
+  createAndRegisterIndexMap(
+    indexName: string, mapType: 'trimming', initValueOrFn?: unknown, options?: TrimmingMapOptions
+  ): TrimmingMap;
   createAndRegisterIndexMap(indexName: string, mapType: 'indexesSequence'): IndexesSequence;
   createAndRegisterIndexMap(
     indexName: string, mapType: 'physicalIndexToValue', initValueOrFn?: unknown, options?: IndexMapOptions
@@ -304,7 +309,7 @@ export class IndexMapper {
     indexName: string, mapType: string, initValueOrFn?: unknown, options?: IndexMapOptions
   ): IndexMap;
   createAndRegisterIndexMap(
-    indexName: string, mapType: string, initValueOrFn?: unknown, options?: IndexMapOptions
+    indexName: string, mapType: string, initValueOrFn?: unknown, options?: IndexMapOptions & TrimmingMapOptions
   ): IndexMap {
     return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn, options));
   }
@@ -698,7 +703,9 @@ export class IndexMapper {
    * @returns {number}
    */
   getNumberOfIndexes(): number {
-    return this.getIndexesSequence().length;
+    // Not `getIndexesSequence().length`: an identity sequence is stored compactly, and reading its
+    // values builds an array of every index. Plugins ask for the count on render paths.
+    return this.indexesSequence.getLength();
   }
 
   /**
@@ -766,7 +773,7 @@ export class IndexMapper {
    * @private
    * @param {number} firstInsertedVisualIndex First inserted visual index.
    * @param {number} amountOfIndexes Amount of inserted indexes.
-   * @param {'start' | 'end'} [mode] Sets where the column is inserted: at the start of the passed index or at the end.
+   * @param {'start' | 'end'} [mode] Sets where the row or column is inserted: at the start of the passed index or at the end.
    */
   insertIndexes(firstInsertedVisualIndex: number, amountOfIndexes: number, mode: 'start' | 'end' = 'start'): void {
     if (amountOfIndexes === 0) {
@@ -787,12 +794,16 @@ export class IndexMapper {
 
     this.indexesSequence.insert(visualInsertionIndex, insertedIndexes);
     this.indexesChangeSource = undefined;
+    // The mode tells a listener where the maps take the new slots: one index after `insertedIndexes` for `end`.
+    this.runLocalHooks('indexesInserted', insertedIndexes, mode);
 
     const modInsertedIndexes = mode === 'end' ? insertedIndexes.map(index => index + 1) : insertedIndexes;
 
     this.trimmingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
     this.hidingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
-    this.variousMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
+    // A sequence map mirrors `indexesSequence`, which takes the unshifted indexes above: inserted at the passed
+    // index's position, they leave that index's row before the new one, which is where `end` puts it.
+    this.variousMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes, insertedIndexes);
     this.resumeOperations();
   }
 
@@ -807,6 +818,7 @@ export class IndexMapper {
     this.indexesChangeSource = 'remove';
     this.indexesSequence.remove(removedIndexes);
     this.indexesChangeSource = undefined;
+    this.runLocalHooks('indexesRemoved', removedIndexes);
     this.trimmingMapsCollection.removeFromEvery(removedIndexes);
     this.hidingMapsCollection.removeFromEvery(removedIndexes);
     this.variousMapsCollection.removeFromEvery(removedIndexes);

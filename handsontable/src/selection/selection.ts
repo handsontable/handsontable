@@ -29,6 +29,14 @@ import {
 import { toSingleLine } from './../helpers/templateLiteralTag';
 import { throwWithCause } from '../helpers/errors';
 import { A11Y_SELECTED } from '../helpers/a11y';
+import {
+  expandRangeToBlocks,
+  findNonIntersectingIndex,
+  isRangeOneBlock,
+  type CellBlock,
+  type CellBlockProvider,
+} from './cellBlocks';
+import { FocusOrder, type FocusNodeData } from './focusOrder';
 
 /**
  * Checks if the value is a focus-position object with integer `row` and `col` fields.
@@ -77,6 +85,12 @@ function snapToNearestVisible(indexMapper: IndexMapper, index: number, isSingleL
  */
 
 type IndexAxis = 'row' | 'column';
+
+/**
+ * The grid-tracking snapshot of an update that cannot grow anything (it changes no trimmed index, or
+ * nothing is selected). Shared, so such an update allocates nothing. Never mutated.
+ */
+const NO_GRID_TRACKING_LAYERS: ReadonlySet<number> = new Set<number>();
 
 type PhysicalSelectionSnapshot = {
   ranges: Array<{
@@ -227,6 +241,41 @@ class Selection {
     column: [],
   };
   /**
+   * The layers whose extent covered the WHOLE axis when an index-mapper update started, one set per
+   * update, kept per axis as a stack for the same nesting reason as
+   * {@link Selection#physicalSelectionSnapshots}. Pushed by `capturePhysicalSelection()` whether or not
+   * an editor is open, and popped beside that snapshot by `discardPhysicalSelectionSnapshot()`.
+   *
+   * `fitGridTrackingExtents()` reads it to re-pin those layers to the post-update axis length, which
+   * is what lets a full-column selection or a select-all GROW when an untrim brings rows back
+   * (DEV-152). Coverage has to be measured here, before the update, because afterwards the range
+   * cannot tell "covered the old axis" apart from "named the first N records".
+   *
+   * @type {object}
+   */
+  #gridTrackingLayerSnapshots: Record<IndexAxis, Array<ReadonlySet<number>>> = {
+    row: [],
+    column: [],
+  };
+  /**
+   * The grid-tracking layers whose grow `fitGridTrackingExtents()` had to postpone, per axis. A grow
+   * waits while an `alter()` scope is open or while `Core` replaces the data set, and is applied
+   * when the last of those closes (`resumeShifts()`, `resumeGridTrackingFits()`).
+   *
+   * @type {object}
+   */
+  #pendingGridTrackingFits: Record<IndexAxis, Set<number>> = {
+    row: new Set(),
+    column: new Set(),
+  };
+  /**
+   * The number of open data-replacement scopes (`suspendGridTrackingFits()`). While any is open, the
+   * `DataMap` may be torn down, so a grow cannot commit its highlights and is postponed.
+   *
+   * @type {number}
+   */
+  #gridTrackingFitSuspensions = 0;
+  /**
    * The axis whose restore dropped the whole selection and still owes an `afterDeselect`, or `null`.
    *
    * Tagged with the axis rather than a bare flag so the notification cannot be consumed by the other
@@ -256,6 +305,14 @@ class Selection {
    * @type {number | null}
    */
   #highlightPhysicalRow: number | null = null;
+  /**
+   * Set by `destroy()`. Laying a range closes and saves an open editor, and a listener of that save can
+   * destroy the grid while a method of this class is still running. The methods that lay more than one
+   * range, or fire a hook after the range, stop when it is set.
+   *
+   * @type {boolean}
+   */
+  #isDestroyed = false;
   /**
    * The PHYSICAL column of the record the active highlight points at, or `null`. The column twin of
    * {@link Selection#highlightPhysicalRow}.
@@ -328,6 +385,28 @@ class Selection {
   #pendingColumnShifts: Array<{ sequence: number, index: number, amount: number }> = [];
 
   /**
+   * Supplies the blocks (merged cells) a cell range must cover whole, or `null` when nothing groups cells.
+   */
+  #cellBlockProvider: CellBlockProvider | null = null;
+  /**
+   * The cell the highlight was on before it snapped to a block's top-left. An arrow key moves from
+   * that cell, so a vertical move out of a block keeps the column it was entered on. Set where the
+   * highlight settles, used once by the next arrow-key move, and cleared by a new selection.
+   */
+  #blockEntryFocus: CellCoords | null = null;
+  /**
+   * The order Enter and Tab move the focus in inside a range that holds blocks. Rebuilt from the
+   * selection on every such move, so it never has to follow other selection changes.
+   *
+   * @type {FocusOrder}
+   */
+  readonly #blockFocusOrder: FocusOrder;
+  /**
+   * The step of the focus move in progress, as the public `modifyTransformFocus` hook left it.
+   */
+  #focusDelta: { row: number, col: number } | null = null;
+
+  /**
    * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
    */
   constructor(settings: SelectionSettings, tableProps: SelectionTableProps) {
@@ -376,12 +455,18 @@ class Selection {
       autoWrapCol: () => true,
     });
 
-    this.#extenderTransformation.addLocalHook('beforeTransformStart',
-      (...args: unknown[]) => this.runLocalHooks('beforeModifyTransformStart', ...args));
+    this.#extenderTransformation.addLocalHook('beforeTransformStart', (delta: CellCoords) => {
+      // Before the public hook, so a listener sees the step that already skips the block.
+      this.#stepOverCellBlock(delta);
+      this.runLocalHooks('beforeModifyTransformStart', delta);
+    });
     this.#extenderTransformation.addLocalHook('afterTransformStart',
       (...args: unknown[]) => this.runLocalHooks('afterModifyTransformStart', ...args));
-    this.#extenderTransformation.addLocalHook('beforeTransformEnd',
-      (...args: unknown[]) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
+    this.#extenderTransformation.addLocalHook('beforeTransformEnd', (delta: CellCoords) => {
+      // Before the public hook, so a listener sees the step that already skips the blocks.
+      this.#stepEndOverCellBlocks(delta);
+      this.runLocalHooks('beforeModifyTransformEnd', delta);
+    });
     this.#extenderTransformation.addLocalHook('afterTransformEnd',
       (...args: unknown[]) => this.runLocalHooks('afterModifyTransformEnd', ...args));
     this.#extenderTransformation.addLocalHook('insertRowRequire',
@@ -393,10 +478,19 @@ class Selection {
     this.#extenderTransformation.addLocalHook('beforeColumnWrap',
       (...args: unknown[]) => this.runLocalHooks('beforeColumnWrap', ...args));
 
-    this.#focusTransformation.addLocalHook('beforeTransformStart',
-      (...args: unknown[]) => this.runLocalHooks('beforeModifyTransformFocus', ...args));
+    this.#focusTransformation.addLocalHook('beforeTransformStart', (delta: CellCoords) => {
+      this.runLocalHooks('beforeModifyTransformFocus', delta);
+      // After the public hook, so a listener that changes the step changes where the focus goes.
+      this.#focusDelta = { row: delta.row ?? 0, col: delta.col ?? 0 };
+    });
     this.#focusTransformation.addLocalHook('afterTransformStart',
       (...args: unknown[]) => this.runLocalHooks('afterModifyTransformFocus', ...args));
+
+    this.#blockFocusOrder = new FocusOrder({
+      blockGetter: (row: number, column: number) => this.#cellBlockProvider?.getBlockAt(row, column) ?? null,
+      rowIndexMapper: this.tableProps.rowIndexMapper,
+      columnIndexMapper: this.tableProps.columnIndexMapper,
+    });
   }
 
   /**
@@ -515,6 +609,14 @@ class Selection {
   }
 
   /**
+   * Marks the selection as belonging to a destroyed grid, so a method that is still running when the
+   * grid is destroyed stops at its next range instead of reading the destroyed grid.
+   */
+  destroy() {
+    this.#isDestroyed = true;
+  }
+
+  /**
    * Indicate that selection process finished. It sets internally `.inProgress` property to `false`.
    */
   finish() {
@@ -557,6 +659,7 @@ class Selection {
     this.#discardHeldShifts();
     this.#disableHeadersHighlight = false;
     this.#isFocusSelectionChanged = false;
+    this.#blockEntryFocus = null;
     this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coordsClone);
 
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
@@ -686,6 +789,7 @@ class Selection {
       }
     }
 
+    this.#applyCellBlocks(cellRange);
     this.runLocalHooks('beforeHighlightSet');
     this.setRangeFocus(this.getActiveSelectedRange()?.highlight ?? cellRange.highlight, layerIndex);
     this.applyAndCommit(this.getActiveSelectedRange() ?? cellRange, layerIndex);
@@ -946,6 +1050,20 @@ class Selection {
    * @param {number} [layerIndex] The layer index to set the focus on.
    */
   setRangeFocus(coords: CellCoords, layerIndex = this.getLayerLevel()) {
+    this.#setRangeFocus(coords, layerIndex, null);
+  }
+
+  /**
+   * Sets the selection focus, as `setRangeFocus()` does. Enter and Tab pass `placedEntry`: their focus
+   * is already on a block's first visible cell, so the highlight is not snapped, and `placedEntry` is
+   * the cell an arrow key leaves the block from. A selection that a hook starts from inside goes
+   * through `setRangeFocus()` and gets neither.
+   *
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
+   * @param {number} layerIndex The layer index to set the focus on.
+   * @param {CellCoords | null} placedEntry The entry cell of a focus Enter or Tab placed, or `null`.
+   */
+  #setRangeFocus(coords: CellCoords, layerIndex: number, placedEntry: CellCoords | null) {
     if (this.selectedRange.isEmpty()) {
       return;
     }
@@ -970,6 +1088,7 @@ class Selection {
     cellRange.setHighlight(coords);
 
     if (!this.inProgress) {
+      this.#applyCellBlocks(cellRange, placedEntry);
       this.runLocalHooks('beforeHighlightSet');
     }
 
@@ -985,10 +1104,10 @@ class Selection {
       this.runLocalHooks('afterSetFocus', cellRange.highlight);
     }
 
-    // Last, because two things move the highlight after it is written above: `syncWith()` snaps it
-    // onto the nearest visible cell, and a consumer of `afterSetFocus` can reassign it outright -
-    // `mergeCells` does, to pull the focus onto a merged parent. Capturing any earlier records the
-    // cell the focus was on BEFORE the merge, so the next trim judges the wrong record.
+    // Last, because two things can move the highlight after it is written above: `syncWith()` snaps
+    // it onto the nearest visible cell, and a consumer of `afterSetFocus` can reassign it outright.
+    // Capturing any earlier records a cell the focus is no longer on, so the next trim judges the
+    // wrong record.
     this.#captureHighlightRecord();
   }
 
@@ -1042,12 +1161,19 @@ class Selection {
       return;
     }
 
+    this.#focusDelta = null;
+
     const {
       selectionLayer,
       visualCoords,
     } = this.#focusTransformation.transformStart(rowDelta, colDelta);
+    const blockFocus = this.#findBlockFocus(visualCoords, selectionLayer);
 
-    this.setRangeFocus(visualCoords.normalize(), selectionLayer);
+    if (blockFocus) {
+      this.#setRangeFocus(blockFocus.coords, blockFocus.layerIndex, blockFocus.entry);
+    } else {
+      this.setRangeFocus(visualCoords.normalize(), selectionLayer);
+    }
   }
 
   /**
@@ -1090,9 +1216,22 @@ class Selection {
     }
 
     if (applyHeld) {
-      this.#flushShifts();
+      try {
+        this.#flushShifts();
+      } catch (error) {
+        // The flush runs the selection hooks. A consumer that throws there must not leave a postponed
+        // grow behind for the next, unrelated scope to apply to whatever is selected by then.
+        this.#discardPendingGridTrackingFits();
+
+        throw error;
+      }
+
+      // AFTER the shifts: a grid-tracking grow postponed inside the scope re-pins the far corner to
+      // the axis as the whole action left it, so the shifts must not move it again afterwards.
+      this.#flushPendingGridTrackingFits();
     } else {
       this.#discardHeldShifts();
+      this.#discardPendingGridTrackingFits();
     }
   }
 
@@ -1549,11 +1688,406 @@ class Selection {
       return false;
     }
 
-    const isMultipleListener = createObjectPropListener(!cellRange.isSingle());
+    const isMultipleListener = createObjectPropListener(!cellRange.isSingle() && !this.#isOneCellBlock(cellRange));
 
     this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
 
     return isMultipleListener.value;
+  }
+
+  /**
+   * Registers the source of the blocks (merged cells) a cell range must cover whole. Pass `null` to
+   * stop growing ranges. There is one slot, and MergeCells overwrites it whenever it is enabled.
+   *
+   * @private
+   * @param {CellBlockProvider|null} provider The block source.
+   */
+  setCellBlockProvider(provider: CellBlockProvider | null) {
+    this.#cellBlockProvider = provider;
+  }
+
+  /**
+   * Tells whether the range is exactly one block, so the user sees it as one cell. Only the block
+   * covering the range's top-start cell can match, so it costs one lookup. Header coordinates count
+   * as `0`, so a full column whose only cells are one block counts as that block.
+   *
+   * @param {CellRange} cellRange The range to test.
+   * @returns {boolean}
+   */
+  #isOneCellBlock(cellRange: CellRange): boolean {
+    if (this.#cellBlockProvider === null) {
+      return false;
+    }
+
+    const { row, col } = cellRange.getTopStartCorner();
+    const block = row === null || col === null ? null : this.#cellBlockProvider.getBlockAt(row, col);
+
+    return block !== null && isRangeOneBlock(cellRange, [block]);
+  }
+
+  /**
+   * Lays a cell range out over the blocks before its highlight is set: the range grows until it cuts
+   * no block, and the highlight moves onto the top-left of the block it sits in. The cell the
+   * highlight was on is remembered for the next arrow-key move. A range made from a header is left
+   * as it is, and its highlight is remembered as it is.
+   *
+   * @param {CellRange} cellRange The range being changed, in place.
+   * @param {CellCoords | null} [placedEntry=null] For a focus Enter or Tab placed, the cell to remember
+   * instead of the highlight, which is then left where it is.
+   */
+  #applyCellBlocks(cellRange: CellRange, placedEntry: CellCoords | null = null) {
+    if (this.#cellBlockProvider === null) {
+      return;
+    }
+
+    const { highlight } = cellRange;
+
+    if (this.#isActiveLayerSelectedByHeader()) {
+      this.#blockEntryFocus = placedEntry ?? highlight.clone();
+
+      return;
+    }
+
+    expandRangeToBlocks(cellRange, this.#cellBlockProvider.getBlocks(), false);
+
+    if (highlight.row === null || highlight.col === null) {
+      return;
+    }
+
+    const block = this.#cellBlockProvider.getBlockAt(highlight.row, highlight.col);
+
+    this.#blockEntryFocus = placedEntry ?? highlight.clone();
+
+    // Enter and Tab put the highlight on the block's first visible cell themselves. Snapping it to the
+    // corner would let `syncWith()` move a hidden corner to the range's first visible cell instead.
+    if (block !== null && placedEntry === null) {
+      // The top-left can be hidden. `VisualSelection#syncWith()` then moves the visual highlight on.
+      highlight.assign({ row: block.row, col: block.col });
+    }
+  }
+
+  /**
+   * Tells whether the layer the selection is changing was made from a column or a row header. Enter
+   * or Tab can make that an earlier layer than the last one.
+   *
+   * @returns {boolean}
+   */
+  #isActiveLayerSelectedByHeader() {
+    const layerIndex = this.getActiveSelectionLayerIndex();
+
+    return this.isSelectedByColumnHeader(layerIndex) || this.isSelectedByRowHeader(layerIndex);
+  }
+
+  /**
+   * Changes an arrow-key step that starts in a block so it leaves the whole block (DEV-161). First
+   * the highlight goes back to the cell the block was entered on, so a vertical move keeps the entry
+   * column. A horizontal move onto the cell beside the block lands on the block's topmost visible
+   * row, so a block is addressed by its top-left however it was entered (DEV-102). Tab keeps its row.
+   *
+   * @param {CellCoords} delta The step, changed in place.
+   */
+  #stepOverCellBlock(delta: CellCoords) {
+    const provider = this.#cellBlockProvider;
+    const range = this.getActiveSelectedRange();
+
+    if (provider === null || !range) {
+      return;
+    }
+
+    const { highlight } = range;
+
+    this.#restoreBlockEntryFocus(highlight);
+
+    if (highlight.row === null || highlight.col === null) {
+      return;
+    }
+
+    const block = provider.getBlockAt(highlight.row, highlight.col);
+
+    if (block === null) {
+      return;
+    }
+
+    const landsOnAdjacentColumn = this.#stepAxisOverBlock('col', delta, highlight, block);
+
+    if (delta.row === 0 && landsOnAdjacentColumn && !this.isDuringTabNavigation()) {
+      // Assigning a hidden row throws "Renderable coords are not visible" from the transform.
+      const topVisibleRow = this.tableProps.rowIndexMapper.getNearestNotHiddenIndex(block.row, 1);
+
+      if (topVisibleRow !== null && topVisibleRow <= block.row + block.rowspan - 1) {
+        highlight.row = topVisibleRow;
+      }
+    }
+
+    this.#stepAxisOverBlock('row', delta, highlight, block);
+  }
+
+  /**
+   * Changes a Shift+Arrow step so the range's end leaves every block it would stop inside. The step
+   * starts from the edge line that cuts no block, and a scratch copy of the range is grown over the
+   * blocks the moved end touches, so the end lands past them. A range made from a header keeps its
+   * own extent: it crosses every block in its columns or rows.
+   *
+   * @param {CellCoords} delta The step, changed in place.
+   */
+  #stepEndOverCellBlocks(delta: CellCoords) {
+    const provider = this.#cellBlockProvider;
+    const range = this.getActiveSelectedRange();
+
+    if (provider === null || !range || this.#isActiveLayerSelectedByHeader()) {
+      return;
+    }
+
+    const blocks = provider.getBlocks();
+    // One copy for both axes: the row step reads what the column step grew.
+    const scratchRange = range.clone();
+
+    this.#stepEndAxisOverBlocks('col', delta, range, scratchRange, blocks);
+    this.#stepEndAxisOverBlocks('row', delta, range, scratchRange, blocks);
+  }
+
+  /**
+   * Changes the Shift+Arrow step on one axis. See `#stepEndOverCellBlocks()`.
+   *
+   * @param {'row'|'col'} axis The axis to change.
+   * @param {CellCoords} delta The step, changed in place.
+   * @param {CellRange} range The range being extended.
+   * @param {CellRange} scratchRange A copy of the range, grown in place.
+   * @param {CellBlock[]} blocks The blocks on screen.
+   */
+  #stepEndAxisOverBlocks(
+    axis: 'row' | 'col',
+    delta: CellCoords,
+    range: CellRange,
+    scratchRange: CellRange,
+    blocks: readonly CellBlock[],
+  ) {
+    const step = delta[axis] ?? 0;
+
+    if (step === 0) {
+      return;
+    }
+
+    const scanDirection = step < 0 ? -1 : 1;
+    const toIndex = range.to[axis] ?? 0;
+    let next = findNonIntersectingIndex(blocks, range, axis, scanDirection, toIndex) + step;
+    const movedEnd = this.tableProps.createCellCoords(range.to.row ?? 0, range.to.col ?? 0);
+
+    movedEnd[axis] = next;
+    scratchRange.expand(movedEnd);
+    expandRangeToBlocks(scratchRange, blocks, true);
+
+    const [towardStart, towardEnd] = axis === 'row' ? ['S-N', 'N-S'] : ['E-W', 'W-E'];
+    const direction = this.#getAxisDirection(range, axis);
+    const scratchDirection = this.#getAxisDirection(scratchRange, axis);
+
+    if (scanDirection < 0 && direction === towardStart && scratchDirection === towardStart) {
+      next = scratchRange.getTopStartCorner()[axis] ?? next;
+
+    } else if (scanDirection > 0 && direction === towardEnd && scratchDirection === towardEnd) {
+      next = scratchRange.getBottomEndCorner()[axis] ?? next;
+    }
+
+    // Search back toward the range, so the end lands on a visible line it actually reaches.
+    const nearest = this.#getAxisIndexMapper(axis).getNearestNotHiddenIndex(next, scanDirection < 0 ? 1 : -1);
+
+    if (nearest === null) {
+      return;
+    }
+
+    delta[axis] = scanDirection < 0 ?
+      -Math.max(this.#countRenderableInRange(axis, nearest, toIndex) - 1, 1) :
+      Math.max(this.#countRenderableInRange(axis, toIndex, nearest) - 1, 1);
+  }
+
+  /**
+   * Returns the index mapper of an axis.
+   *
+   * @param {'row'|'col'} axis The axis.
+   * @returns {IndexMapper}
+   */
+  #getAxisIndexMapper(axis: 'row' | 'col') {
+    return axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+  }
+
+  /**
+   * Counts the rendered rows or columns between two visual indexes, both included.
+   *
+   * @param {'row'|'col'} axis The axis to count on.
+   * @param {number} from The first visual index.
+   * @param {number} to The last visual index.
+   * @returns {number}
+   */
+  #countRenderableInRange(axis: 'row' | 'col', from: number, to: number) {
+    return axis === 'row' ?
+      this.tableProps.countRenderableRowsInRange(from, to) :
+      this.tableProps.countRenderableColumnsInRange(from, to);
+  }
+
+  /**
+   * Returns the direction a range runs in along an axis (`N-S` or `S-N` for rows, `W-E` or `E-W` for
+   * columns).
+   *
+   * @param {CellRange} range The range.
+   * @param {'row'|'col'} axis The axis.
+   * @returns {string}
+   */
+  #getAxisDirection(range: CellRange, axis: 'row' | 'col') {
+    return axis === 'row' ? range.getVerticalDirection() : range.getHorizontalDirection();
+  }
+
+  /**
+   * Finds where Enter or Tab moves the focus inside a range that holds blocks (DEV-161). The focus
+   * walks the focus order instead of the cells: it stops once on each block the layer covers whole,
+   * never on a cell a block covers, and wraps to the next layer when the rest of this one is blocks.
+   * Returns `null` with no provider or no step, and the cell-by-cell move stands.
+   *
+   * @param {CellCoords} transformedCoords Where the cell-by-cell move put the focus.
+   * @param {number} transformedLayer The layer the cell-by-cell move put the focus on.
+   * @returns {{coords: CellCoords, entry: CellCoords, layerIndex: number} | null}
+   */
+  #findBlockFocus(transformedCoords: CellCoords, transformedLayer: number) {
+    const delta = this.#focusDelta;
+    const range = this.getActiveSelectedRange();
+
+    this.#focusDelta = null;
+
+    if (this.#cellBlockProvider === null || delta === null || !range || (delta.row === 0 && delta.col === 0)) {
+      return null;
+    }
+
+    const node = this.#stepBlockFocusOrder(range, delta);
+
+    // With no node to start from the order answers `undefined` (see `FocusOrder#getNextVerticalNode`).
+    if (!node) {
+      return null;
+    }
+
+    const { selectionLayer, rowStart, rowEnd, colStart, colEnd } = node;
+    const { row, column } = this.#blockFocusOrder.getNodeAnchor(node);
+    const coords = this.tableProps.createCellCoords(row, column);
+    const isEnteredInNode = selectionLayer === transformedLayer &&
+      transformedCoords.row !== null && transformedCoords.col !== null &&
+      transformedCoords.row >= rowStart && transformedCoords.row <= rowEnd &&
+      transformedCoords.col >= colStart && transformedCoords.col <= colEnd;
+
+    // The focus lands on the node's first visible cell, in a header selection too. The cell the
+    // cell-by-cell move reached is the entry when it is in the node, so an arrow key leaves the
+    // block from the side the focus came from. Otherwise the move skipped it, and the entry is the
+    // cell the focus is on.
+    return {
+      coords,
+      entry: isEnteredInNode ? transformedCoords.clone() : coords.clone(),
+      layerIndex: selectionLayer,
+    };
+  }
+
+  /**
+   * Builds the focus order from the selection, puts it on the node the focus is on, and steps it
+   * once in the direction of the move.
+   *
+   * @param {CellRange} range The active range, before the move.
+   * @param {{row: number, col: number}} delta The step of the move.
+   * @returns {FocusNodeData}
+   */
+  #stepBlockFocusOrder(range: CellRange, delta: { row: number, col: number }): FocusNodeData {
+    const focusOrder = this.#blockFocusOrder;
+    const focus = range.highlight.clone().normalize();
+
+    focusOrder.buildFocusOrder(Array.from(this.selectedRange));
+
+    if (focus.row !== null && focus.col !== null) {
+      focusOrder.setActiveNode(focus.row, focus.col, this.getActiveSelectionLayerIndex());
+    }
+
+    if (!range.highlight.isCell()) {
+      // From a header, the first step lands on the cell the header points at, not on the one after it.
+      if (delta.row > 0 || delta.col > 0) {
+        focusOrder.setPrevNodeAsActive();
+
+      } else if (
+        range.getHorizontalDirection() === 'E-W' && delta.col < 0 ||
+        range.getVerticalDirection() === 'S-N' && delta.row < 0
+      ) {
+        focusOrder.setNextNodeAsActive();
+      }
+    }
+
+    if (delta.col !== 0) {
+      return delta.col < 0 ? focusOrder.getPrevHorizontalNode() : focusOrder.getNextHorizontalNode();
+    }
+
+    return delta.row < 0 ? focusOrder.getPrevVerticalNode() : focusOrder.getNextVerticalNode();
+  }
+
+  /**
+   * Puts the highlight back on the cell the block was entered on, where that cell is still rendered,
+   * and forgets it.
+   *
+   * @param {CellCoords} highlight The highlight of the range being moved, changed in place.
+   */
+  #restoreBlockEntryFocus(highlight: CellCoords) {
+    const entry = this.#blockEntryFocus;
+
+    if (entry === null) {
+      return;
+    }
+
+    const { rowIndexMapper, columnIndexMapper } = this.tableProps;
+
+    if (entry.row !== null && rowIndexMapper.getRenderableFromVisualIndex(entry.row) !== null) {
+      highlight.row = entry.row;
+    }
+
+    if (entry.col !== null && columnIndexMapper.getRenderableFromVisualIndex(entry.col) !== null) {
+      highlight.col = entry.col;
+    }
+
+    this.#blockEntryFocus = null;
+  }
+
+  /**
+   * Changes the step on one axis so it moves from the highlight past the block's far edge, onto the
+   * nearest visible line. With no visible line there, the step runs to the grid's edge.
+   *
+   * @param {'row'|'col'} axis The axis to change.
+   * @param {CellCoords} delta The step, changed in place.
+   * @param {CellCoords} highlight The highlight the step starts from.
+   * @param {CellBlock} block The block the highlight sits in.
+   * @returns {boolean} `true` when the step lands on the visible line next to the block.
+   */
+  #stepAxisOverBlock(axis: 'row' | 'col', delta: CellCoords, highlight: CellCoords, block: CellBlock): boolean {
+    const step = delta[axis] ?? 0;
+    const position = highlight[axis] ?? 0;
+
+    if (step === 0) {
+      return false;
+    }
+
+    const isRow = axis === 'row';
+    const mapper = this.#getAxisIndexMapper(axis);
+    const start = isRow ? block.row : block.col;
+    const end = start + (isRow ? block.rowspan : block.colspan) - 1;
+    const isInside = position >= start && position <= end;
+
+    if (step < 0) {
+      const nearest = mapper.getNearestNotHiddenIndex(isInside ? start - 1 : end, -1);
+
+      delta[axis] = nearest === null ?
+        -this.#countRenderableInRange(axis, 0, position) :
+        -Math.max(this.#countRenderableInRange(axis, nearest, position) - 1, 1);
+
+      return nearest !== null;
+    }
+
+    const nearest = mapper.getNearestNotHiddenIndex(isInside ? end + 1 : start, 1);
+    const lastIndex = isRow ? this.tableProps.countRows() : this.tableProps.countCols();
+
+    delta[axis] = nearest === null ?
+      this.#countRenderableInRange(axis, position, lastIndex) :
+      Math.max(this.#countRenderableInRange(axis, position, nearest) - 1, 1);
+
+    return nearest !== null;
   }
 
   /**
@@ -1830,7 +2364,7 @@ class Selection {
    * @returns {boolean} `true` if the corner element has to be visible, `false` otherwise.
    */
   isCellCornerVisible() {
-    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && !this.isMultiple();
+    return this.#isFillHandleAvailable() && !this.isMultiple();
   }
 
   /**
@@ -1857,7 +2391,37 @@ class Selection {
       return false;
     }
 
-    return this.settings.fillHandle && !this.tableProps.isEditorOpened() && this.isMultiple();
+    return this.#isFillHandleAvailable() && this.isMultiple();
+  }
+
+  /**
+   * Tells whether the fill handle may be drawn at all. The `fillHandle` setting alone is not enough:
+   * once the Autofill plugin is disabled or destroyed at runtime (`getPlugin('autofill').destroy()`)
+   * the setting still reads `true`, and a handle drawn from it does nothing when dragged (DEV-775).
+   * A grid that never registered the plugin (a tree-shaken build without `AutofillPlugin`) keeps
+   * drawing the handle from the setting, as it always has - that is a separate question, and hiding
+   * it there would change every such grid's look. A non-contiguous selection hides it too (DEV-540).
+   *
+   * @returns {boolean}
+   */
+  #isFillHandleAvailable() {
+    if (!this.settings.fillHandle || this.tableProps.isEditorOpened() || this.#isNonContiguous()) {
+      return false;
+    }
+
+    return !this.tableProps.isPluginRegistered('autofill') || this.tableProps.isPluginEnabled('autofill');
+  }
+
+  /**
+   * Tells whether the selection consists of more than one range (Ctrl/Cmd+click, or `selectCells()`
+   * with several ranges). The fill handle is hidden then (DEV-540), as in spreadsheet applications:
+   * Autofill fills from the last range only, so a handle there would silently ignore every other one.
+   * `isMultiple()` cannot answer this – it asks whether the ACTIVE range spans more than one cell.
+   *
+   * @returns {boolean}
+   */
+  #isNonContiguous() {
+    return this.selectedRange.size() > 1;
   }
 
   /**
@@ -2073,7 +2637,13 @@ class Selection {
         return true;
       }
 
-      this.refresh();
+      // Clamped under `shift`, the source `alter()`'s removals re-lay the selection with, unless a
+      // caller already named one: `refresh()` otherwise marks `refresh`, which scrolls the viewport
+      // to the clamped selection - a trim or a collapse under a full-column selection jumped a
+      // scrolled grid to the top. It also matters for DEV-152: NestedRows expands every parent around
+      // an "Insert child row" and collapses them again, so the grow on the expand is followed by this
+      // clamp on the collapse, and the clamp must not move the viewport the user never asked to move.
+      this.#refreshAsShift();
 
       return false;
     }
@@ -2105,6 +2675,8 @@ class Selection {
     }
 
     this.inProgress = false;
+    // A postponed grow describes the layers this call drops.
+    this.#discardPendingGridTrackingFits();
     this.clear();
     this.runLocalHooks('afterDeselect');
   }
@@ -2117,7 +2689,7 @@ class Selection {
    * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
    * headers, `false` otherwise.
    * @param {object} [options] Additional object with options.
-   * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
+   * @param {{row: number, col: number} | CellCoords | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
    * position won't be changed. When the {@link Options#navigableHeaders} option is disabled (the default), a
@@ -2128,7 +2700,7 @@ class Selection {
    * which stays visible even when {@link Options#navigableHeaders} moves the focus onto a header.
    */
   selectAll(includeRowHeaders = false, includeColumnHeaders = false, options: {
-    focusPosition?: SelectionFocusPosition | boolean; disableHeadersHighlight?: boolean
+    focusPosition?: SelectionFocusPosition | CellCoords | boolean; disableHeadersHighlight?: boolean
   } = { focusPosition: false, disableHeadersHighlight: false }) {
     const nrOfRows = this.tableProps.countRows();
     const nrOfColumns = this.tableProps.countCols();
@@ -2180,6 +2752,11 @@ class Selection {
     }
 
     this.setRangeEnd(endCoords);
+
+    if (this.#isDestroyed) {
+      return;
+    }
+
     this.runLocalHooks('afterSelectAll', startCoords, endCoords, highlight);
     this.finish();
   }
@@ -2232,12 +2809,16 @@ class Selection {
       this.clear();
       this.setExpectedLayers(selectionRanges.length);
 
-      selectionRanges.forEach((selection) => {
-        const { from, to } = selectionSchemaNormalizer(selection);
+      for (let i = 0; i < selectionRanges.length; i++) {
+        const { from, to } = selectionSchemaNormalizer(selectionRanges[i]);
 
         this.setRangeStartOnly(from.clone(), false);
         this.setRangeEnd(to.clone());
-      });
+
+        if (this.#isDestroyed) {
+          return isValid;
+        }
+      }
 
       this.finish();
     }
@@ -2303,6 +2884,11 @@ class Selection {
       // A column selection covers every row by construction, so its row extent follows the grid.
       this.#rowExtentSpansGrid.add(this.getLayerLevel());
       this.setRangeEnd(to);
+
+      if (this.#isDestroyed) {
+        return isValid;
+      }
+
       this.runLocalHooks('afterSelectColumns', from, to, highlight);
 
       // For mouse-driven selection the process is finished by the document-level `mouseup`/`touchend`
@@ -2369,6 +2955,11 @@ class Selection {
       // A row selection covers every column by construction.
       this.#columnExtentSpansGrid.add(this.getLayerLevel());
       this.setRangeEnd(to);
+
+      if (this.#isDestroyed) {
+        return isValid;
+      }
+
       this.runLocalHooks('afterSelectRows', from, to, highlight);
 
       // For mouse-driven selection the process is finished by the document-level `mouseup`/`touchend`
@@ -2457,9 +3048,17 @@ class Selection {
    * @param {boolean} canRestore Whether this update's shape allows a restore at all. A `false` pushes
    *                             an empty entry, which keeps the push/pop pairing with
    *                             `discardPhysicalSelectionSnapshot()` intact for nested updates.
+   * @param {boolean} [changesTrimming=true] Whether this update changes the trimmed indexes. Only such
+   *                                         an update can grow a grid-tracking layer, so any other one
+   *                                         pushes a shared empty entry instead of measuring every layer.
    */
-  capturePhysicalSelection(axis: IndexAxis, canRestore = true): void {
+  capturePhysicalSelection(axis: IndexAxis, canRestore = true, changesTrimming = true): void {
     const activeRange = this.getActiveSelectedRange();
+
+    // Taken on EVERY trimming update, before the editor gate below: the grow it feeds is the
+    // no-editor repair's job, and that repair has no other way to know the pre-update coverage.
+    this.#gridTrackingLayerSnapshots[axis].push(
+      changesTrimming && activeRange ? this.#collectGridTrackingLayers(axis) : NO_GRID_TRACKING_LAYERS);
 
     if (!canRestore || !this.tableProps.isEditorOpened() || !activeRange) {
       this.#physicalSelectionSnapshots[axis].push(null);
@@ -2468,12 +3067,9 @@ class Selection {
     }
 
     const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+    const gridTrackingStack = this.#gridTrackingLayerSnapshots[axis];
+    const gridTrackingLayers = gridTrackingStack[gridTrackingStack.length - 1];
     const coordinateKey = axis === 'row' ? 'row' : 'col';
-    // Read from the MAPPER, not from `countRows()`/`countCols()`: those resolve through `DataMap`,
-    // which `updateData()` tears down and rebuilds while cache updates are still firing, and the
-    // mapper owns the trimmed visual space this measures anyway. `deselectIfHighlightStranded()`
-    // sizes the same test the same way, for the same reason.
-    const axisLength = indexMapper.getNotTrimmedIndexesLength();
     const ranges: PhysicalSelectionSnapshot['ranges'] = [];
 
     this.selectedRange.ranges.forEach((range, originalLayerIndex) => {
@@ -2487,30 +3083,9 @@ class Selection {
 
       if (this.#hasResolvedPhysicalRange(physical, axis)) {
         // Whether this layer's extent along the restored axis TRACKS THE GRID, which decides
-        // whether the restore re-pins it to the axis boundaries or shrinks it onto survivors. It
-        // takes BOTH a declaration of intent and the geometry to back it, and neither half is
-        // sufficient:
-        //
-        //   - Intent comes from the `…ExtentSpansGrid` set for this axis, written by `selectAll()`,
-        //     `selectColumns()` and `selectRows()`. Geometry alone would mean a drag-selected range
-        //     that happens to reach both ends of the grid gets re-pinned, and it names records - so
-        //     a later untrim would grow it onto records the user never selected.
-        //   - Geometry is required because that set is STICKY: it is written when the selection is
-        //     laid and cleared only wholesale, so a `Shift+Up` that shrinks a full-column selection
-        //     to rows 0-3 leaves it still saying "spans the grid". Re-pinning then grows the range
-        //     back to the whole column and `Ctrl+Enter` fills a row the user had excluded.
-        //
-        // The `selectedByRowHeader` / `selectedByColumnHeader` sets are NOT consulted, which their
-        // own field JSDoc explains: they are written only when a header is rendered, so they answer
-        // "should a header be highlighted", not "does this extent span the grid".
-        //
-        // Measured here because here is the only place it can be: the length is still the
-        // pre-update one, and the range still describes the space it was laid in.
-        const extentSpansGrid = axis === 'row' ? this.#rowExtentSpansGrid : this.#columnExtentSpansGrid;
-        const fromIndex = range.from[coordinateKey];
-        const toIndex = range.to[coordinateKey];
-        const spansAxis = extentSpansGrid.has(originalLayerIndex) &&
-          (fromIndex ?? 0) <= 0 && (toIndex ?? -1) >= axisLength - 1;
+        // whether the restore re-pins it to the axis boundaries or shrinks it onto survivors.
+        // `#spansWholeAxis()` holds the rule; it was measured above, against the pre-update length.
+        const spansAxis = gridTrackingLayers.has(originalLayerIndex);
 
         ranges.push({
           physical,
@@ -2610,11 +3185,48 @@ class Selection {
     this.selectedByColumnHeader = this.#remapLayerSet(snapshot.selectedByColumnHeader, restoredRanges);
     this.#rowExtentSpansGrid = this.#remapLayerSet(snapshot.rowExtentSpansGrid, restoredRanges);
     this.#columnExtentSpansGrid = this.#remapLayerSet(snapshot.columnExtentSpansGrid, restoredRanges);
+    this.#remapGridTrackingLayerSnapshot(axis, restoredRanges);
     this.#disableHeadersHighlight = snapshot.disableHeadersHighlight;
     this.#selectionSource = snapshot.selectionSource;
     this.#extenderTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
     this.#focusTransformation.setActiveLayerIndex(this.#activeSelectionLayer);
 
+    this.commitHighlightsDirectly();
+  }
+
+  /**
+   * Re-indexes the current update's grid-tracking snapshot after a restore re-indexed the layers,
+   * like every other layer-keyed set. Left on the pre-restore indexes, a dropped layer would hand its
+   * slot to the next one, and `fitGridTrackingExtents()` could grow a full-column layer the user had
+   * shrunk, because it still carries the sticky "spans the grid" flag.
+   *
+   * @param {'row'|'column'} axis The mapper axis whose snapshot is re-indexed.
+   * @param {Array} restoredRanges The kept layers with their pre-restore indexes.
+   */
+  #remapGridTrackingLayerSnapshot(
+    axis: IndexAxis,
+    restoredRanges: Array<{ range: CellRange; originalLayerIndex: number }>,
+  ): void {
+    const stack = this.#gridTrackingLayerSnapshots[axis];
+
+    if (stack.length > 0) {
+      stack[stack.length - 1] = this.#remapLayerSet(stack[stack.length - 1], restoredRanges);
+    }
+  }
+
+  /**
+   * Re-commits every layer's highlight from the current ranges without the selection-change hooks.
+   *
+   * The index-mapper callers run where those hooks are unsafe: `afterSelection` makes `EditorManager`
+   * prepare an editor, which reads the source data through a `DataMap` that a data load may have torn
+   * down, and the scroll answer would jump the viewport. MergeCells calls it from the next view render
+   * after the merged cells change, because the area fill was committed while the range was still
+   * several cells. `isMultiple()` still asks `afterIsMultipleSelection`. That hook is not a
+   * selection-change hook.
+   *
+   * @private
+   */
+  commitHighlightsDirectly(): void {
     this.highlight.clear();
     this.selectedRange.ranges.forEach((range, layerIndex) => this.applyAndCommit(range, layerIndex));
 
@@ -2682,6 +3294,227 @@ class Selection {
    */
   discardPhysicalSelectionSnapshot(axis: IndexAxis): void {
     this.#physicalSelectionSnapshots[axis].pop();
+    this.#gridTrackingLayerSnapshots[axis].pop();
+  }
+
+  /**
+   * Re-pins every layer whose extent covered the whole axis when the current index-mapper update
+   * started to the axis as it is now. A full-column selection or a select-all therefore GROWS when
+   * an untrim (a NestedRows expand, `untrimRows()`, `untrimAll()`) brings rows back (DEV-152), and it
+   * is clamped onto the shorter axis when a trim takes rows away. For a non-active layer this is the
+   * only repair that clamps it, because `deselectIfHighlightStranded()` reads the active layer only.
+   *
+   * Nothing else reads the far corner when the axis GROWS: it is still in range, so the selection
+   * kept its old height and silently stopped being a whole column, and the next paste or fill skipped
+   * the rows that came back.
+   *
+   * Only the layers `#spansWholeAxis()` accepted before the update are touched, so a full-column
+   * selection the user shrank with `Shift+Up`, and a cell range that merely reached the last row,
+   * keep naming the records they named. The highlight is left where it is.
+   *
+   * The grow is POSTPONED in two windows, and applied when the last of them closes:
+   *
+   *   - an `alter()` scope (`suspendShifts()`): NestedRows expands every parent for the length of an
+   *     insert or remove (`collapsedRowsStash`), which arrives here as an ordinary untrim. Growing
+   *     onto that transient height left highlights past the rows the removal then took away, and the
+   *     next draw threw `TR was expected to be rendered but is not`. A consumer that untrims from an
+   *     `afterRemoveRow` hook lands here too, and `alter()` only SHIFTS the selection afterwards, so
+   *     the grow is applied by `resumeShifts()` once the shifts are written.
+   *   - a data replacement (`suspendGridTrackingFits()`): `replaceData()` destroys the `DataMap`
+   *     before `beforeUpdateData`, and a NestedRows parent collapsed there is untrimmed from that
+   *     hook, so committing the highlights read cells through the destroyed `DataMap` and threw
+   *     `Cannot read properties of null (reading 'rowIndexMapper')`.
+   *
+   * This method is not part of the public API and should not be called by a consumer.
+   *
+   * @private
+   * @param {'row'|'column'} axis The mapper axis that was updated.
+   */
+  fitGridTrackingExtents(axis: IndexAxis): void {
+    const stack = this.#gridTrackingLayerSnapshots[axis];
+    const gridTrackingLayers = stack.length > 0 ? stack[stack.length - 1] : null;
+
+    if (!gridTrackingLayers || gridTrackingLayers.size === 0 || !this.isSelected()) {
+      return;
+    }
+
+    if (this.#isGridTrackingFitPostponed()) {
+      gridTrackingLayers.forEach(layerIndex => this.#pendingGridTrackingFits[axis].add(layerIndex));
+
+      return;
+    }
+
+    if (this.#pinGridTrackingLayers(axis, gridTrackingLayers)) {
+      this.#commitGridTrackingFit();
+    }
+  }
+
+  /**
+   * Opens a data-replacement scope. Until the matching `resumeGridTrackingFits()`, a grid-tracking
+   * grow is recorded instead of applied, because `Core` has torn the `DataMap` down and the highlight
+   * commit reads cells through it.
+   *
+   * This method is not part of the public API and should not be called by a consumer.
+   *
+   * @private
+   */
+  suspendGridTrackingFits(): void {
+    this.#gridTrackingFitSuspensions += 1;
+  }
+
+  /**
+   * Closes a data-replacement scope. Closing the last one applies the grows recorded meanwhile, unless
+   * an `alter()` scope is still open, which applies them itself when it closes.
+   *
+   * This method is not part of the public API and should not be called by a consumer.
+   *
+   * @private
+   * @param {boolean} [applyPending=true] `false` drops the recorded grows instead of applying them.
+   * `Core` passes it when the data replacement threw.
+   */
+  resumeGridTrackingFits(applyPending = true): void {
+    this.#gridTrackingFitSuspensions = Math.max(0, this.#gridTrackingFitSuspensions - 1);
+
+    if (!applyPending) {
+      this.#discardPendingGridTrackingFits();
+
+      return;
+    }
+
+    this.#flushPendingGridTrackingFits();
+  }
+
+  /**
+   * Whether a grid-tracking grow has to wait - see `fitGridTrackingExtents()`.
+   *
+   * @returns {boolean}
+   */
+  #isGridTrackingFitPostponed(): boolean {
+    return this.#shiftScopes.length > 0 || this.#gridTrackingFitSuspensions > 0;
+  }
+
+  /**
+   * Applies the grows `fitGridTrackingExtents()` postponed, once neither window is open any more.
+   */
+  #flushPendingGridTrackingFits(): void {
+    if (this.#isGridTrackingFitPostponed()) {
+      return;
+    }
+
+    const { row: rowLayers, column: columnLayers } = this.#pendingGridTrackingFits;
+
+    if (rowLayers.size === 0 && columnLayers.size === 0) {
+      return;
+    }
+
+    // Taken and cleared before anything is written: the commit runs the selection hooks, and a
+    // consumer that throws there must not leave a grow for the next, unrelated update to apply.
+    const pendingRowLayers = new Set(rowLayers);
+    const pendingColumnLayers = new Set(columnLayers);
+
+    this.#discardPendingGridTrackingFits();
+
+    if (!this.isSelected()) {
+      return;
+    }
+
+    const isRowPinned = this.#pinGridTrackingLayers('row', pendingRowLayers);
+    const isColumnPinned = this.#pinGridTrackingLayers('column', pendingColumnLayers);
+
+    if (isRowPinned || isColumnPinned) {
+      this.#commitGridTrackingFit();
+    }
+  }
+
+  /**
+   * Drops every postponed grid-tracking grow on both axes.
+   */
+  #discardPendingGridTrackingFits(): void {
+    this.#pendingGridTrackingFits.row.clear();
+    this.#pendingGridTrackingFits.column.clear();
+  }
+
+  /**
+   * Moves the far corner of each listed layer onto the last index of the axis as it is now.
+   *
+   * A layer is re-checked against the CURRENT flags, because a repair that ran since the coverage was
+   * measured may have dropped or re-indexed the layers the set names.
+   *
+   * @param {'row'|'column'} axis The axis to pin.
+   * @param {ReadonlySet<number>} gridTrackingLayers The layers that covered the whole axis.
+   * @returns {boolean} Whether any layer changed.
+   */
+  #pinGridTrackingLayers(axis: IndexAxis, gridTrackingLayers: ReadonlySet<number>): boolean {
+    if (gridTrackingLayers.size === 0) {
+      return false;
+    }
+
+    const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+    const extentSpansGrid = axis === 'row' ? this.#rowExtentSpansGrid : this.#columnExtentSpansGrid;
+    const coordinateKey = axis === 'row' ? 'row' : 'col';
+    // Sized from the MAPPER, like `deselectIfHighlightStranded()`: `countRows()` reads the DataMap,
+    // which a data load tears down while cache updates still fire. The cap mirrors
+    // `DataMap#getLength()`, so the selection never reaches past what the grid shows.
+    const maxCount = axis === 'row' ? this.settings.maxRows : this.settings.maxCols;
+    const lastIndex = Math.min(indexMapper.getNotTrimmedIndexesLength(), maxCount ?? Infinity) - 1;
+    let isChanged = false;
+
+    if (lastIndex < 0) {
+      return false;
+    }
+
+    this.selectedRange.ranges.forEach((range, layerIndex) => {
+      if (!gridTrackingLayers.has(layerIndex) || !extentSpansGrid.has(layerIndex) ||
+          range.to[coordinateKey] === lastIndex) {
+        return;
+      }
+
+      range.to[coordinateKey] = lastIndex;
+      isChanged = true;
+    });
+
+    return isChanged;
+  }
+
+  /**
+   * Commits a grid-tracking fit the way the shrink side commits its clamp: through `refresh()`, under
+   * the `shift` source unless a caller named one, so the selection hooks fire for the grow as they do
+   * for the shrink, and a listener that keeps state per selection (`afterSelectionEnd`) sees the grown
+   * range. `shift` keeps the viewport still and the editor closed, which is what `alter()`'s own re-lay
+   * of the selection does.
+   *
+   * With an editor open the editor owns the selection and the hooks would re-prepare it, so the
+   * highlights are re-committed directly instead, as the editor-open restore does.
+   */
+  #commitGridTrackingFit(): void {
+    if (this.tableProps.isEditorOpened()) {
+      this.commitHighlightsDirectly();
+
+      return;
+    }
+
+    this.#refreshAsShift();
+  }
+
+  /**
+   * Runs `refresh()` under the `shift` source when no caller named one. `refresh()` otherwise marks
+   * `refresh`, which scrolls the viewport to the re-laid selection - a trim or an untrim under a
+   * full-column selection would jump a scrolled grid to its top or bottom.
+   */
+  #refreshAsShift(): void {
+    const isSourceUnset = this.getSelectionSource() === 'unknown';
+
+    if (isSourceUnset) {
+      this.markSource('shift');
+    }
+
+    try {
+      this.refresh();
+    } finally {
+      if (isSourceUnset) {
+        this.markEndSource();
+      }
+    }
   }
 
   /**
@@ -2782,6 +3615,66 @@ class Selection {
     }
 
     return indexMapper.getPhysicalFromVisualIndex(index);
+  }
+
+  /**
+   * Collects the layers whose extent covers the whole axis right now, measured by `#spansWholeAxis()`
+   * against the axis's current not-trimmed length.
+   *
+   * @param {'row'|'column'} axis The axis to measure.
+   * @returns {Set<number>} The indexes of the layers that span the whole axis.
+   */
+  #collectGridTrackingLayers(axis: IndexAxis): Set<number> {
+    const indexMapper = axis === 'row' ? this.tableProps.rowIndexMapper : this.tableProps.columnIndexMapper;
+    // Read from the MAPPER, not from `countRows()`/`countCols()`: those resolve through `DataMap`,
+    // which `updateData()` tears down and rebuilds while cache updates are still firing, and the
+    // mapper owns the trimmed visual space this measures anyway. `deselectIfHighlightStranded()`
+    // sizes the same test the same way, for the same reason.
+    const axisLength = indexMapper.getNotTrimmedIndexesLength();
+    const gridTrackingLayers = new Set<number>();
+
+    this.selectedRange.ranges.forEach((range, layerIndex) => {
+      if (this.#spansWholeAxis(range, layerIndex, axis, axisLength)) {
+        gridTrackingLayers.add(layerIndex);
+      }
+    });
+
+    return gridTrackingLayers;
+  }
+
+  /**
+   * Tests whether a layer's extent along one axis TRACKS THE GRID rather than naming records. It
+   * takes BOTH a declaration of intent and the geometry to back it, and neither half is sufficient:
+   *
+   *   - Intent comes from the `…ExtentSpansGrid` set for this axis, written by `selectAll()`,
+   *     `selectColumns()` and `selectRows()`. Geometry alone would mean a drag-selected range that
+   *     happens to reach both ends of the grid gets re-pinned, and it names records - so a later
+   *     untrim would grow it onto records the user never selected.
+   *   - Geometry is required because that set is STICKY: it is written when the selection is laid
+   *     and cleared only wholesale, so a `Shift+Up` that shrinks a full-column selection to rows 0-3
+   *     leaves it still saying "spans the grid". Re-pinning then grows the range back to the whole
+   *     column and `Ctrl+Enter` fills a row the user had excluded.
+   *
+   * The `selectedByRowHeader` / `selectedByColumnHeader` sets are NOT consulted, which their own
+   * field JSDoc explains: they are written only when a header is rendered, so they answer "should a
+   * header be highlighted", not "does this extent span the grid".
+   *
+   * Only meaningful BEFORE an index-mapper update: afterwards the length is the new one and the range
+   * still describes the old space.
+   *
+   * @param {CellRange} range The visual range of the layer.
+   * @param {number} layerIndex The layer index of the range.
+   * @param {'row'|'column'} axis The axis to test.
+   * @param {number} axisLength The not-trimmed length of that axis.
+   * @returns {boolean}
+   */
+  #spansWholeAxis(range: CellRange, layerIndex: number, axis: IndexAxis, axisLength: number): boolean {
+    const extentSpansGrid = axis === 'row' ? this.#rowExtentSpansGrid : this.#columnExtentSpansGrid;
+    const coordinateKey = axis === 'row' ? 'row' : 'col';
+    const fromIndex = range.from[coordinateKey];
+    const toIndex = range.to[coordinateKey];
+
+    return extentSpansGrid.has(layerIndex) && (fromIndex ?? 0) <= 0 && (toIndex ?? -1) >= axisLength - 1;
   }
 
   /**
@@ -3112,7 +4005,7 @@ class Selection {
    * @returns {Set<number>} Markers aligned with the restored range array.
    */
   #remapLayerSet(
-    layers: Set<number>,
+    layers: ReadonlySet<number>,
     restoredRanges: Array<{ range: CellRange; originalLayerIndex: number }>,
   ): Set<number> {
     const remappedLayers = new Set<number>();

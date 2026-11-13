@@ -3,10 +3,18 @@
  * Author: Ivan Zarkovic
  * Last updated: May 9, 2022
  *
- * Description: Definition file for Serbian - Republic of Serbia language-country.
+ * Description: Deprecated alias of the `sr-Latn-RS` language. It keeps the old `sr-SP` language code working.
+ * Keep the phrases identical to `sr-Latn-RS.ts`.
  */
 import * as C from '../constants';
 
+/**
+ * The Serbian dictionary registered under the deprecated `sr-SP` language code. Keep the phrases identical to
+ * `sr-Latn-RS.ts`: each language file is also built as a standalone bundle, so this file cannot import it.
+ *
+ * @deprecated Since 19.0.0. The `SP` region subtag is deprecated by IANA. This language code will be removed
+ * in 20.0.0. Use `srLatnRS` (the `sr-Latn-RS` language code) instead.
+ */
 const dictionary = {
   languageCode: 'sr-SP',
 
@@ -104,7 +112,7 @@ const dictionary = {
   [C.FILTERS_LABELS_DISJUNCTION]: 'Ili',
 
   [C.FILTERS_BUTTONS_SELECT_ALL]: 'Selektuj sve',
-  [C.FILTERS_BUTTONS_CLEAR]: 'Očisti',
+  [C.FILTERS_BUTTONS_CLEAR]: 'Poništi izbor',
   [C.FILTERS_BUTTONS_OK]: 'U redu',
   [C.FILTERS_BUTTONS_CANCEL]: 'Otkaži',
 
@@ -136,6 +144,9 @@ const dictionary = {
   [C.SHEETS_BAR_PAGE_NEXT]: 'Pomeri listove unapred',
   [C.SHEETS_BAR_SHEET_CHANGED]: 'List [name] aktiviran',
   [C.SHEETS_BAR_RENAME_REJECTED]: 'Naziv lista nije promenjen: [name] se već koristi',
+  [C.SHEETS_BAR_RENAME_NOT_CHANGED]: 'Naziv lista nije promenjen',
+  [C.SHEETS_BAR_SHEET_DUPLICATED]: 'List [name] dupliran kao [copy]',
+  [C.SHEETS_BAR_SHEET_MOVED]: 'List [name] premešten na poziciju [position] od [count]',
   [C.SHEETS_BAR_DEFAULT_SHEET_NAME]: 'List',
 
   [C.LOADING_TITLE]: 'Učitavanje...',
@@ -155,6 +166,39 @@ const dictionary = {
   [C.DATA_PROVIDER_ERRORS_REMOVE]: 'Nije moguće ukloniti redove',
   [C.DATA_PROVIDER_ERRORS_REQUEST_FAILED]: 'Zahtev nije uspeo',
   [C.DATA_PROVIDER_BUTTONS_REFETCH]: 'Ponovo učitaj',
+  [C.ROW_SELECTION_SELECT_ROW]: 'Izaberi red [row]',
+  [C.ROW_SELECTION_SELECT_ALL]: 'Izaberi sve redove (izabrano [selected] od [total])',
+  [C.CHECKBOX_HEADER_CHECK_ALL]: 'Označi sve (označeno [checked] od [total])',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_SELECTED]: 'Red [row] izabran',
+  [C.ROW_SELECTION_ANNOUNCE_ROW_DESELECTED]: 'Izbor reda [row] poništen',
+  [C.ROW_SELECTION_ANNOUNCE_COUNT]: 'Izabrano [selected] od [total] redova',
+  [C.ROW_SELECTION_MENU_REMOVE]: 'Ukloni izabrane redove ([count])',
+  [C.ROW_SELECTION_MENU_CLEAR]: 'Poništi izbor redova',
+  [C.FREEZE_BAR_ROWS_TOP]: 'Zamrznuti redovi na vrhu',
+  [C.FREEZE_BAR_ROWS_BOTTOM]: 'Zamrznuti redovi na dnu',
+  [C.FREEZE_BAR_COLUMNS_START]: 'Zamrznute kolone na početku',
+  [C.FREEZE_BAR_COLUMNS_END]: 'Zamrznute kolone na kraju',
+  [C.NESTED_ROWS_ANNOUNCEMENT_EXPANDED]: 'Proširen red [label], prikazani prošireni redovi: [count]',
+  [C.NESTED_ROWS_ANNOUNCEMENT_COLLAPSED]: 'Skupljen red [label]',
+  [C.FORMULA_BUILDER_EDITOR]: 'Uređivač formula',
+  [C.FORMULA_BUILDER_INPUT]: 'Unos formule',
+  [C.FORMULA_BUILDER_CELL_ADDRESS]: 'Adresa ćelije',
+  [C.FORMULA_BUILDER_SUGGESTIONS]: 'Predlozi formula',
+  [C.FORMULA_BUILDER_ACCEPT_HINT]: 'za prihvatanje.',
+  [C.FORMULA_BUILDER_NAVIGATE_HINT]: 'za kretanje',
+  [C.FORMULA_BUILDER_FUNCTION_HELP]: 'Pomoć za funkciju',
+  [C.FORMULA_BUILDER_FUNCTION_HELP_FOR]: 'Pomoć za funkciju [name]',
+  [C.FORMULA_BUILDER_FUNCTION_EXAMPLE]: 'Primer',
+  [C.FORMULA_BUILDER_FUNCTION_DESCRIPTION]: 'Opis',
+  [C.FORMULA_BUILDER_OPTIONAL_ARGUMENT]: 'opciono',
+  [C.FORMULA_BUILDER_REPEATABLE_ARGUMENT]: 'ponovljivo',
+  [C.FORMULA_BUILDER_LEARN_MORE]: 'Saznajte više',
+  [C.FORMULA_BUILDER_CLOSE]: 'Zatvori',
+  [C.FORMULA_BUILDER_INVALID_ADDRESS]: 'Nevažeća adresa ćelije: [text]',
+  [C.FORMULA_BUILDER_CELL_UNAVAILABLE]: 'Nije moguće izabrati [text]',
+  [C.FORMULA_BUILDER_CELL_ERROR]: 'Greška u [cell]: [message].',
+  [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Još [count] ćelija sada sadrži grešku.',
+  [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Broj drugih ćelija sa greškom: [count].',
 };
 
 export default dictionary;

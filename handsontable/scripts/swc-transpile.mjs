@@ -41,7 +41,10 @@ const outExt = getArg('--out-ext', '.js');
 const srcDir = resolve(ROOT, getArg('--src-dir', 'src'));
 const langRegistration = args.includes('--lang-registration');
 
-const IGNORE_PATTERNS = [/__tests__/, /[/\\]test[/\\]/, /[/\\]dist[/\\]/];
+// `registries.umd.ts` and `pageHandsontable.ts` exist only for the CDN file of `handsontable/settingsSchema`
+// (`.config/settings-schema-umd-development.js`), which bundles them from `src/`. No export reaches them in the package.
+const CDN_ONLY_SOURCES = /settingsSchema[/\\](registries\.umd|pageHandsontable)\.ts$/;
+const IGNORE_PATTERNS = [/__tests__/, /[/\\]test[/\\]/, /[/\\]dist[/\\]/, CDN_ONLY_SOURCES];
 // Matches a whole line that is either `import '…css';` (ESM side-effect) or
 // `require('…css');` (CJS side-effect). Both alternatives share the `^…\s*$`
 // anchors so partial mid-line matches like `var _x = require('…css');` cannot
@@ -98,15 +101,18 @@ function collectFiles(dir) {
  */
 function addImportExtensions(code, filePath, ext) {
   return code.replace(LOCAL_IMPORT_RE, (match, keyword, quote, importPath) => {
-    if (extname(importPath)) {
+    const absPath = resolve(dirname(filePath), importPath);
+    const hasSourceFile = existsSync(`${absPath}.js`) || existsSync(`${absPath}.ts`) || existsSync(`${absPath}.tsx`);
+
+    // A specifier with an extension is complete, unless the extension is part of a dotted file
+    // name (`./schema.generated` names `schema.generated.ts`), which needs one like any other.
+    if (extname(importPath) && !hasSourceFile) {
       return match;
     }
 
-    const absPath = resolve(dirname(filePath), importPath);
-
     let newPath;
 
-    if (existsSync(`${absPath}.js`) || existsSync(`${absPath}.ts`) || existsSync(`${absPath}.tsx`)) {
+    if (hasSourceFile) {
       newPath = `${importPath}.${ext}`;
     } else if (existsSync(absPath) && lstatSync(absPath).isDirectory()) {
       newPath = `${importPath}/index.${ext}`;

@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Text alignment
-metaTitle: Text alignment - JavaScript Data Grid | Handsontable
+metaTitle: Text alignment | Handsontable DataGrid for JavaScript
 description: "Align values within cells: horizontally (to the right, left, center, or by justifying them), and vertically (to the top, middle, or bottom of the cell)."
 permalink: /text-alignment
 canonicalUrl: /text-alignment
@@ -13,14 +13,13 @@ tags:
   - vertical-alignment
   - justify
 react:
-  metaTitle: Text alignment - React Data Grid | Handsontable
+  metaTitle: Text alignment | Handsontable DataGrid for React
 angular:
-  metaTitle: Text alignment - Angular Data Grid | Handsontable
+  metaTitle: Text alignment | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Text alignment - Vue Data Grid | Handsontable
+  metaTitle: Text alignment | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
-menuTag: updated
 ---
 Align values within cells: horizontally (to the right, left, center, or by justifying them), and vertically (to the top, middle, or bottom of the cell).
 
@@ -100,7 +99,7 @@ Select one or more cells, right-click to open the context menu, and choose an op
 - Horizontal: **Left**, **Center**, **Right**, **Justify**
 - Vertical: **Top**, **Middle**, **Bottom**
 
-Each option sets the matching CSS class name (`htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, `htBottom`) on the selected cells, and fires the [`beforeCellAlignment`](@/api/hooks.md#beforecellalignment) hook before applying the change.
+Each option sets the matching CSS class name (`htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, `htBottom`) on the selected cells, and fires the [`beforeCellAlignment`](@/api/hooks.md#beforecellalignment) hook before applying the change. The hook's `stateBefore` argument holds the alignment class names set in each cell's `className`. It leaves out the cell's other class names and the class names a renderer adds, such as the `htRight` of a numeric cell.
 
 ### Undo and redo alignment changes
 

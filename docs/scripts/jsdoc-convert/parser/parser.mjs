@@ -1,6 +1,6 @@
 const escape = text => text.replace(/[{}<>]/g, '').replace(/~/g, '-');
 
-export const buildParser = ({ logger, parseJsdoc }) => function* () {
+export const buildParser = ({ logger, parseJsdoc }) => async function* () {
   const getName = member => escape(
     (member.kind === 'class' && member.name) // if class get class name
     || member.memberof?.split('#')[0] // if member of a class
@@ -9,7 +9,7 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
   const groupMember = (map, member) => map.set(getName(member), [...map.get(getName(member)) || [], member]);
 
   logger.info('Parsing jsdoc comments...');
-  const data = parseJsdoc([
+  const data = await parseJsdoc([
     '3rdparty/walkontable/src/cell/coords.js',
     '3rdparty/walkontable/src/cell/range.js',
     'dataMap/metaManager/metaSchema.js',
@@ -25,6 +25,8 @@ export const buildParser = ({ logger, parseJsdoc }) => function* () {
     'eventManager.js',
     'editors/!(__tests__)/!(index).js',
     'plugins/!(__tests__)/!(index).js',
+    // Moved out of `plugins/mergeCells/` (DEV-161); its API page stays published.
+    'selection/focusOrder.js',
     'translations/maps/!(index).js',
     'translations/changesObservable/!(index).js',
     'translations/indexMapper.js',

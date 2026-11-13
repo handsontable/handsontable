@@ -31,7 +31,7 @@ on:
 jobs:
   umd:
     name: UMD
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: inputs.run-all || inputs.run-umd
     outputs:
       # Set by a step AFTER a successful build+upload (canonical GHA mechanism)
@@ -44,8 +44,16 @@ jobs:
       - name: Build
         run: |
           cd handsontable
+          # dist/manifest.json, the feature manifest license keys are built from. It runs first because it also
+          # fails the job when a committed feature.generated.ts, licenseCapabilities.generated.ts (the xlsx
+          # token lists) or released-tokens.json is stale, in about 100 ms, and nothing below clears dist/.
+          npm run build:feature-manifest
           npm run build:umd
           npm run build:umd.min
+          # The CDN file of handsontable/settingsSchema; it reads the registries of the Handsontable
+          # global, so the published dist/ carries it next to the two bundles above.
+          npm run build:settings-schema-umd
+          npm run build:settings-schema-umd.min
           npm run build:languages
           npm run build:languages.min
           # dist/themes/** comes only from these two tasks. Without them the artifact
@@ -63,7 +71,7 @@ jobs:
 
   es-cjs:
     name: ES + CJS
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: inputs.run-all || inputs.run-es-cjs
     outputs:
       built: ${{ steps.mark.outputs.built }}

@@ -10,6 +10,15 @@ import { type Page, type Locator, type CDPSession, expect } from '@playwright/te
  * script that sets `navigator.platform` to `MacIntel` and `maxTouchPoints`
  * to 5 before the grid script loads (see `e2e/ipad-selection-handles.spec.ts`).
  */
+/**
+ * The overlay root classes a handle can sit in, corners first, so the most specific one is found.
+ */
+const OVERLAY_NAMES = [
+  'ht_clone_top_inline_start_corner', 'ht_clone_bottom_inline_start_corner',
+  'ht_clone_top_inline_end_corner', 'ht_clone_bottom_inline_end_corner',
+  'ht_clone_inline_start', 'ht_clone_inline_end', 'ht_clone_top', 'ht_clone_bottom', 'ht_master',
+];
+
 export class MobileHandlesPage {
   readonly page: Page;
   readonly theme: string;
@@ -28,12 +37,19 @@ export class MobileHandlesPage {
    * Navigate to the fixture and wait for the grid to render. Frozen panes are off by default, and
    * headers are on, which is the configuration most grids run with.
    */
-  async goto({ direction = 'ltr', frozen = false, frozenBottom = false, headers = true, rows = 'short' }: {
+  async goto({
+    direction = 'ltr', frozen = false, frozenBottom = false, frozenEnd = false, headers = true, rows = 'short',
+    cols = 'short', rowHeaders, overscan = 'default',
+  }: {
     direction?: 'ltr' | 'rtl';
     frozen?: boolean;
     frozenBottom?: boolean;
+    frozenEnd?: boolean;
     headers?: boolean;
     rows?: 'short' | 'tall';
+    cols?: 'short' | 'wide';
+    rowHeaders?: boolean;
+    overscan?: 'default' | 'none';
   } = {}): Promise<void> {
     const query = new URLSearchParams({
       theme: this.theme,
@@ -41,9 +57,17 @@ export class MobileHandlesPage {
       direction,
       frozen: frozen ? '1' : '0',
       frozenBottom: frozenBottom ? '2' : '0',
+      frozenEnd: frozenEnd ? '2' : '0',
       headers: headers ? 'on' : 'off',
       rows,
+      cols,
+      overscan,
     });
+
+    // Without a value the row headers follow `headers`.
+    if (rowHeaders !== undefined) {
+      query.set('rowHeaders', rowHeaders ? 'on' : 'off');
+    }
 
     await this.page.goto(`/tests/fixtures/demo/mobile-handles.html?${query}`);
     await expect(this.cell(1, 1)).toBeVisible();
@@ -77,8 +101,8 @@ export class MobileHandlesPage {
    * The top-left mobile selection handle of the focus selection, scoped to
    * the master overlay.
    */
-  topHandle(): Locator {
-    return this.page.locator('.ht_master .htBorders .topSelectionHandle:visible').first();
+  topHandle(overlay = 'ht_master'): Locator {
+    return this.page.locator(`.${overlay} .htBorders .topSelectionHandle:visible`).first();
   }
 
   /**
@@ -100,10 +124,11 @@ export class MobileHandlesPage {
 
   /**
    * The hit area of the bottom-right mobile selection handle — the element a
-   * finger grabs. It is larger than the painted handle.
+   * finger grabs. It is larger than the painted handle. A frozen pane's cell has
+   * its handles drawn by that pane's overlay clone, so pass the clone's class there.
    */
-  bottomHitArea(): Locator {
-    return this.page.locator('.ht_master .htBorders .bottomSelectionHandle-HitArea:visible').first();
+  bottomHitArea(overlay = 'ht_master'): Locator {
+    return this.page.locator(`.${overlay} .htBorders .bottomSelectionHandle-HitArea:visible`).first();
   }
 
   /**
@@ -126,8 +151,8 @@ export class MobileHandlesPage {
   /**
    * Returns whether the top handle owns the pixels at the center of its visible marker.
    */
-  async isTopHandleHitAreaAtHandleCenter(): Promise<boolean> {
-    return this.topHandle().evaluate((handle) => {
+  async isTopHandleHitAreaAtHandleCenter(overlay = 'ht_master'): Promise<boolean> {
+    return this.topHandle(overlay).evaluate((handle) => {
       const { left, top, width, height } = handle.getBoundingClientRect();
       const element = document.elementFromPoint(left + (width / 2), top + (height / 2));
 
@@ -163,6 +188,24 @@ export class MobileHandlesPage {
 
     return handleBox.y + handleBox.height <= cellBox.y + (handleBox.height / 2)
       && handleBox.x + handleBox.width <= cellBox.x + (handleBox.width / 2);
+  }
+
+  /**
+   * Returns whether the painted handle sits fully inside the grid's root box, so no edge of the grid
+   * clips it.
+   */
+  async isHandleInsideGrid(handle: Locator): Promise<boolean> {
+    const handleBox = await handle.boundingBox();
+    const gridBox = await this.grid.boundingBox();
+
+    if (!handleBox || !gridBox) {
+      return false;
+    }
+
+    return handleBox.x >= gridBox.x
+      && handleBox.y >= gridBox.y
+      && handleBox.x + handleBox.width <= gridBox.x + gridBox.width
+      && handleBox.y + handleBox.height <= gridBox.y + gridBox.height;
   }
 
   /**
@@ -237,16 +280,46 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Tap a cell at the point where it is painted. A cell of a frozen pane is painted by its overlay
+   * clone, which sits on top of the master's copy, so `locator.tap()` on the master cell would be
+   * refused as intercepted. Before any scroll both copies share the same position.
+   */
+  async tapPaintedCell(row: number, col: number): Promise<void> {
+    const box = await this.cell(row, col).boundingBox();
+
+    expect(box, 'the cell must be laid out').not.toBeNull();
+
+    await this.page.touchscreen.tap(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+  }
+
+  /**
    * The overlays whose bottom mobile selection handle a finger can actually reach: the handle's hit
    * area (the element a finger grabs) displayed, and the topmost element at its own center. Every
    * overlay draws its own handles, and a copy drawn under a frozen pane still passes a `:visible`
    * count.
    */
   async reachableBottomHandles(): Promise<string[]> {
-    return this.page.evaluate(() => {
-      const overlays: string[] = [];
+    return this.#reachableHandles('bottomSelectionHandle-HitArea');
+  }
 
-      document.querySelectorAll('.bottomSelectionHandle-HitArea').forEach((handle) => {
+  /**
+   * The overlays whose top mobile selection handle a finger can actually reach. See
+   * {@link MobileHandlesPage#reachableBottomHandles}.
+   */
+  async reachableTopHandles(): Promise<string[]> {
+    return this.#reachableHandles('topSelectionHandle-HitArea');
+  }
+
+  /**
+   * The overlays whose hit area of the given class is displayed and is the topmost element at its
+   * own center.
+   */
+  async #reachableHandles(hitAreaClass: string): Promise<string[]> {
+    return this.page.evaluate(({ className, names }) => {
+      const overlays: string[] = [];
+      const overlayName = (element: Element) => names.find(name => element.closest(`.${name}`)) ?? 'none';
+
+      document.querySelectorAll(`.${className}`).forEach((handle) => {
         const rect = handle.getBoundingClientRect();
 
         if (getComputedStyle(handle).display === 'none' || rect.width === 0 || rect.height === 0) {
@@ -256,15 +329,174 @@ export class MobileHandlesPage {
         const hit = document.elementFromPoint(rect.x + (rect.width / 2), rect.y + (rect.height / 2));
 
         if (hit && (hit === handle || handle.contains(hit))) {
-          const overlay = ['ht_master', 'ht_clone_top_inline_start_corner', 'ht_clone_bottom_inline_start_corner',
-            'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom'].find(name => handle.closest(`.${name}`));
-
-          overlays.push(overlay ?? 'none');
+          overlays.push(overlayName(handle));
         }
       });
 
       return overlays.sort();
-    });
+    }, { className: hitAreaClass, names: OVERLAY_NAMES });
+  }
+
+  /**
+   * The overlays whose hit area of the given class is displayed, whether or not anything paints
+   * over it. Stacked copies on the same pixel each count, which the reachable list cannot show: it
+   * keeps only the topmost element at a handle's center.
+   */
+  async displayedHandles(hitAreaClass: 'topSelectionHandle-HitArea' | 'bottomSelectionHandle-HitArea'):
+  Promise<string[]> {
+    return this.page.evaluate(({ className, names }) => {
+      const overlays: string[] = [];
+
+      document.querySelectorAll(`.${className}`).forEach((handle) => {
+        const rect = handle.getBoundingClientRect();
+
+        if (getComputedStyle(handle).display !== 'none' && rect.width > 0 && rect.height > 0) {
+          overlays.push(names.find(name => handle.closest(`.${name}`)) ?? 'none');
+        }
+      });
+
+      return overlays.sort();
+    }, { className: hitAreaClass, names: OVERLAY_NAMES });
+  }
+
+  /**
+   * How far the center of the reachable bottom handle sits from the bottom-end corner of a cell, as
+   * `{ dx, dy }` in CSS pixels (physical: right and down are positive). Read in one evaluation from
+   * the cell the user sees at that position, so a frozen pane's copy of the cell is the one measured.
+   */
+  async bottomHandleOffsetFromCellCorner(row: number, col: number): Promise<{ dx: number, dy: number } | null> {
+    const box = await this.cell(row, col).boundingBox();
+
+    expect(box, 'the cell must be laid out').not.toBeNull();
+
+    return this.page.evaluate(({ x, y, rtl }) => {
+      const td = document.elementFromPoint(x, y)?.closest('td');
+      const handle = [...document.querySelectorAll('.bottomSelectionHandle-HitArea')].find((element) => {
+        const rect = element.getBoundingClientRect();
+        const hit = rect.width > 0 ? document.elementFromPoint(rect.x + (rect.width / 2), rect.y + (rect.height / 2)) : null;
+
+        return getComputedStyle(element).display !== 'none' && hit !== null && (hit === element || element.contains(hit));
+      })?.parentElement?.querySelector('.bottomSelectionHandle');
+
+      if (!td || !handle) {
+        return null;
+      }
+
+      const cell = td.getBoundingClientRect();
+      const mark = handle.getBoundingClientRect();
+      const cornerX = rtl ? cell.left : cell.right;
+
+      return {
+        dx: Math.round((mark.x + (mark.width / 2)) - cornerX),
+        dy: Math.round((mark.y + (mark.height / 2)) - cell.bottom),
+      };
+    }, { x: box!.x + (box!.width / 2), y: box!.y + (box!.height / 2), rtl: await this.isRtl() });
+  }
+
+  /**
+   * Whether the grid lays its columns out right to left.
+   */
+  async isRtl(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.isRtl());
+  }
+
+  /**
+   * Scroll the grid to its last row and wait until the master renders it.
+   */
+  async scrollToLastRow(): Promise<void> {
+    await this.page.evaluate(() => window.hot.scrollViewportTo({ row: window.hot.countRows() - 1, verticalSnap: 'bottom' }));
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getLastRenderedRow()
+      === window.hot.countRows() - 1)).toBe(true);
+  }
+
+  /**
+   * Scroll the grid to the end of its scrollable columns and wait until the viewport calculators
+   * count the last one as fully visible. The frozen end columns are left out: the master does not
+   * render them, the inline-end pane does.
+   */
+  async scrollToLastScrollableColumn(): Promise<void> {
+    const lastScrollable = await this.page.evaluate(() => window.hot.countCols() - 1
+      - (window.hot.getSettings().fixedColumnsEnd ?? 0));
+
+    await this.page.evaluate(col => window.hot.scrollViewportTo({ col, horizontalSnap: 'end' }), lastScrollable);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getLastFullyVisibleColumn()))
+      .toBe(lastScrollable);
+  }
+
+  /**
+   * Tap a cell in one overlay's copy, at the point where it is painted.
+   */
+  async tapCellIn(overlay: string, row: number, col: number): Promise<void> {
+    const box = await this.page.locator(`.${overlay}`).getByTestId(`cell-${row}-${col}`).boundingBox();
+
+    expect(box, 'the cell must be laid out').not.toBeNull();
+
+    await this.page.touchscreen.tap(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+  }
+
+  /**
+   * Scroll the master viewport until the given column's inline-end edge sits a few pixels inside the
+   * frozen inline-start pane (row headers and the frozen column), so the column is off screen.
+   */
+  async scrollColumnEndUnderFrozenPane(col: number): Promise<void> {
+    const paneInset = 8;
+
+    await this.page.evaluate(({ targetCol, inset }) => {
+      const holder = document.querySelector('.ht_master .wtHolder');
+      const cell = document.querySelector(`.ht_master [data-testid="cell-1-${targetCol}"]`);
+      const pane = document.querySelector('.ht_clone_inline_start');
+
+      if (!holder || !cell || !pane) {
+        throw new Error('The master viewport, the target cell or the frozen pane is not rendered.');
+      }
+
+      holder.scrollLeft += cell.getBoundingClientRect().right - (pane.getBoundingClientRect().right - inset);
+    }, { targetCol: col, inset: paneInset });
+
+    // The redraw is rAF-batched, so wait until the viewport calculators stop counting the column.
+    await expect.poll(() => this.page.evaluate(column => window.hot.getFirstPartiallyVisibleColumn() > column, col))
+      .toBe(true);
+  }
+
+  /**
+   * Scroll the grid until the given row is the first one the viewport shows, and wait until the master
+   * has drawn that band, with its first rendered row past `rangeStartRow` (the start of the selection
+   * that must be scrolled out).
+   */
+  async scrollRowToTop(row: number, rangeStartRow = 0): Promise<void> {
+    await this.page.evaluate(target => window.hot.scrollViewportTo({ row: target, verticalSnap: 'top' }), row);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getFirstFullyVisibleRow())).toBe(row);
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedRow()))
+      .toBeGreaterThan(rangeStartRow);
+  }
+
+  /**
+   * Scroll back to the top-start corner of the grid and wait until its first row is the first one rendered.
+   */
+  async scrollToGridStart(): Promise<void> {
+    await this.page.evaluate(() => window.hot.scrollViewportTo({ row: 0, col: 0, verticalSnap: 'top' }));
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedRow())).toBe(0);
+  }
+
+  /**
+   * Scroll horizontally so the given column is the first fully visible one, and wait until the table's
+   * first rendered column is past `rangeStartCol` (the start of the selection that must be scrolled out).
+   */
+  async scrollColumnToStart(col: number, rangeStartCol = 0): Promise<void> {
+    await this.page.evaluate(target => window.hot.scrollViewportTo({ col: target, horizontalSnap: 'start' }), col);
+    await expect.poll(() => this.page.evaluate(() => window.hot.getFirstFullyVisibleColumn())).toBe(col);
+    await expect.poll(() => this.page.evaluate(() => window.hot.view._wt.wtTable.getFirstRenderedColumn()))
+      .toBeGreaterThan(rangeStartCol);
+  }
+
+  /**
+   * Scroll back to the start of the grid so the given column is on screen again, and wait until the
+   * viewport calculators count it.
+   */
+  async scrollColumnIntoView(col: number): Promise<void> {
+    await this.page.evaluate(column => window.hot.scrollViewportTo({ col: column, horizontalSnap: 'start' }), col);
+    await expect.poll(() => this.page.evaluate(column => window.hot.getFirstFullyVisibleColumn() <= column
+      && column <= window.hot.getLastFullyVisibleColumn(), col)).toBe(true);
   }
 
   /**
@@ -319,11 +551,22 @@ export class MobileHandlesPage {
    * selection edge, away from the round range handles that hang off the corners.
    */
   async pressTopMoveBandMidpoint(): Promise<void> {
+    await this.pressTopMoveBandAt();
+  }
+
+  /**
+   * Presses the top `moveCells` band with the mouse, `along` pixels in from its left edge, or at its
+   * midpoint when `along` is left out.
+   */
+  async pressTopMoveBandAt(along?: number): Promise<void> {
     const box = await this.moveZones().first().boundingBox();
 
     expect(box, 'the top move band must be laid out').not.toBeNull();
 
-    await this.page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await this.page.mouse.move(
+      box!.x + (along ?? (box!.width / 2)),
+      box!.y + (box!.height / 2),
+    );
     await this.page.mouse.down();
   }
 
@@ -355,13 +598,14 @@ export class MobileHandlesPage {
   /**
    * Drags the bottom range handle onto another cell with a trusted touch
    * gesture. Playwright's `touchscreen` only taps, so this goes through CDP.
+   * `overlay` names the overlay that draws the handle (see `bottomHitArea()`).
    */
-  async dragBottomHandleToCell(row: number, col: number): Promise<void> {
+  async dragBottomHandleToCell(row: number, col: number, overlay = 'ht_master'): Promise<void> {
     if (!this.#cdp) {
       this.#cdp = await this.page.context().newCDPSession(this.page);
     }
 
-    const startBox = await this.bottomHitArea().boundingBox();
+    const startBox = await this.bottomHitArea(overlay).boundingBox();
     const targetBox = await this.cell(row, col).boundingBox();
 
     expect(startBox, 'the bottom handle hit area must be laid out').not.toBeNull();

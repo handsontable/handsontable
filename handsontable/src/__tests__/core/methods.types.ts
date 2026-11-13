@@ -1,7 +1,7 @@
 import Handsontable, {
   CellCoords,
 } from 'handsontable/base';
-import type { HotInstance } from 'handsontable';
+import type { HotInstance, SettingsUpdate } from 'handsontable';
 import type { BasePlugin } from 'handsontable/plugins';
 
 interface CellProperties {
@@ -172,7 +172,7 @@ hot.init() === undefined;
 const isColumnModificationAllowed: boolean = hot.isColumnModificationAllowed();
 const isEmptyCol: boolean = (hot as any).isEmptyCol(123);
 const isEmptyRow: boolean = (hot as any).isEmptyRow(123);
-const isExecutionSuspended: boolean = (hot as any).isExecutionSuspended();
+const isExecutionSuspended: boolean = hot.isExecutionSuspended();
 const isListening: boolean = hot.isListening();
 const isLtr: boolean = hot.isLtr();
 const isRenderSuspended: boolean = hot.isRenderSuspended();
@@ -207,13 +207,16 @@ hot.scrollViewportTo(0, 10);
 hot.scrollViewportTo(0, 10, true, true, true);
 hot.scrollToFocusedCell();
 hot.scrollToFocusedCell(() => {});
-(hot as any).selectAll();
-(hot as any).selectAll(true);
-(hot as any).selectAll(true, false);
-(hot as any).selectAll(false, true, { focusPosition: { row: 1, col: 2 } });
-(hot as any).selectAll(false, true, { focusPosition: new CellCoords(1, 2) });
-(hot as any).selectAll(false, true, { focusPosition: { row: 1, col: 2 }, disableHeadersHighlight: true });
-(hot as any).selectAll(false, true, { disableHeadersHighlight: false });
+hot.selectAll();
+hot.selectAll(true);
+hot.selectAll(true, false);
+hot.selectAll(false, true, { focusPosition: { row: 1, col: 2 } });
+hot.selectAll(false, true, { focusPosition: new CellCoords(1, 2) });
+hot.selectAll(false, true, { focusPosition: { row: 1, col: 2 }, disableHeadersHighlight: true });
+hot.selectAll(false, true, { disableHeadersHighlight: false });
+hot.selectAll(true, true, { focusPosition: false }, false);
+// @ts-expect-error `focusPosition` needs both `row` and `col`. A partial object is ignored.
+hot.selectAll(false, true, { focusPosition: { row: 1 } });
 hot.selectCell(123, 123, 123, 123, true, true);
 (hot as any).selectCell(123, 'prop1', 123, 'prop2', true, true);
 hot.selectCells([[123, 123, 123, 123]], true, true);
@@ -221,11 +224,15 @@ hot.selectCells([[123, 'prop1', 123, 'prop2']], true, true);
 hot.selectColumns(1, 4, -1);
 hot.selectColumns(1, 4, { row: -1, col: 1 });
 hot.selectColumns(1, 4, new CellCoords(-1, 1));
+hot.selectColumns(1, 4, -1, false);
+hot.selectColumns(1, 4, { row: -1, col: 1 }, true);
 hot.selectColumns(1, 4);
 hot.selectColumns(1);
 hot.selectRows(1, 4, -1);
 hot.selectRows(1, 4, { row: 1, col: -1 });
 hot.selectRows(1, 4, new CellCoords(1, -1));
+hot.selectRows(1, 4, -1, false);
+hot.selectRows(1, 4, { row: 1, col: -1 }, false);
 hot.selectRows(1, 4);
 hot.selectRows(1);
 hot.setCellMeta(123, 123, 'foo', 'foo');
@@ -247,10 +254,36 @@ hot.toPhysicalColumn(123) === 123;
 hot.toPhysicalRow(123) === 123;
 hot.toVisualColumn(123) === 123;
 hot.toVisualRow(123) === 123;
+const rowId: unknown = hot.getRowId(123);
+const visualRowById: number | null = hot.getVisualRowById(rowId);
+const physicalRowById: number | null = hot.getPhysicalRowById('id');
+const physicalRowId: unknown = hot.getRowIdAtPhysicalRow(3);
+const rowIds: unknown[] = hot.getRowIds([0, 1]);
+const allRowIds: unknown[] = hot.getRowIds();
+const visualRowsByIds: Array<number | null> = hot.getVisualRowsByIds(['a', 1]);
+const physicalRowsByIds: Array<number | null> = hot.getPhysicalRowsByIds(['a', 1]);
+const rowIdWritten: boolean = hot.setDataAtRowIdProp('a', 'name', 'value', 'asyncResult');
+
 hot.unlisten();
 (hot as any).updateData([[1, 2, 3], [1, 2, 3]]);
 (hot as any).updateData([{ a: 'a', b: 2, c: '' }, { a: 'a', b: 2, c: '' }]);
 hot.updateSettings({}, true);
+hot.updateSettings({ afterChange: null });
+const settingsPatch: SettingsUpdate = { afterChange: null, readOnly: true };
+const asSettingsUpdate: Parameters<typeof hot.updateSettings>[0] = settingsPatch;
+
+hot.updateSettings(settingsPatch);
+hot.updateSettings(asSettingsUpdate);
+const withOldSignature: (settings: Partial<Handsontable.GridSettings>, init?: boolean) => void = hot.updateSettings;
+
+withOldSignature({ readOnly: true });
+hot.updateSettings({ beforeChange: null, afterSelection: null, modifyColWidth: null });
+hot.updateSettings({ afterChange: (changes, source) => {} });
+hot.updateSettings({ afterChange: undefined });
+// @ts-expect-error A hook still takes a function of its own signature, not a string.
+hot.updateSettings({ afterChange: 'log' });
+// @ts-expect-error An option that is not a hook keeps its own type.
+hot.updateSettings({ readOnly: null });
 (hot as any).useTheme('ht-theme-sth');
 hot.validateCell('test', cellProperties, (valid: boolean) => {}, 'sourceString');
 (hot as any).validateCells((valid: boolean) => {});

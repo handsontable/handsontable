@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { GridPage } from '../fixtures/pages/GridPage';
 
 /**
@@ -24,7 +24,7 @@ test.use({
   },
 });
 
-test.describe('frozen bottom rows over a space-taking scrollbar', () => {
+test.describe('frozen bottom rows over a space-taking scrollbar', { tag: THEMES_TAG }, () => {
   test('stop at the scrollport, not at the holder\'s outer edge', async ({ page, theme, bundle }) => {
     const grid = new GridPage(page, theme, bundle);
 
@@ -69,7 +69,7 @@ test.describe('frozen bottom rows over a space-taking scrollbar', () => {
         colHeaders: true,
         fixedColumnsStart: 3,
         fixedRowsBottom: 2,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     });
 

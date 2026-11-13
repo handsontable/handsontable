@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a drag of cells, rows, a column or row border, or the fill handle that was still held when `loadData()` replaced the data: it is now canceled instead of committed into the new data, and its auto-scroll stops. Also fixed AutoColumnSize measuring the previous data after `loadData()`, and `downloadFileAsync()` with the Dialog plugin exporting data loaded after the call: it now rejects instead.",
+  "type": "fixed",
+  "issueOrPR": 13956,
+  "breaking": false,
+  "framework": "none"
+}

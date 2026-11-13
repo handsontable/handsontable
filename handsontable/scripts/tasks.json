@@ -31,9 +31,26 @@
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-css-production env-cmd -f ../hot.config.js rspack",
       "deps": []
     },
+    "build:settings-schema": {
+      "cmd": "node scripts/generate-settings-schema.mjs",
+      "deps": [],
+      "note": "writes the gitignored src/settingsSchema/schema.generated.ts that handsontable/settingsSchema imports; every task that compiles, lints, or tests src/ depends on it"
+    },
+    "build:feature-manifest": {
+      "cmd": "node scripts/generate-feature-manifest.mjs",
+      "deps": [],
+      "mode": "inherit",
+      "note": "writes dist/manifest.json from the feature.json/features.json sources in src/ and fails when a committed output (feature.generated.ts, licenseCapabilities.generated.ts, released-tokens.json) is stale; run generate:feature-manifest to refresh those"
+    },
+    "generate:feature-manifest": {
+      "cmd": "node scripts/generate-feature-manifest.mjs --write",
+      "deps": [],
+      "mode": "inherit",
+      "note": "Codegen: rewrites the committed feature.generated.ts modules, src/utils/xlsxEngine/licenseCapabilities.generated.ts, and src/featureManifest/released-tokens.json from the manifest sources, then writes dist/manifest.json. Run it after changing a feature.json or features.json file; commit the result."
+    },
     "build:commonjs": {
       "cmd": "env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format commonjs --out-dir tmp",
-      "deps": ["build:styles.min"],
+      "deps": ["build:styles.min", "build:settings-schema"],
       "note": "needs build:styles.min to finalize handsontableStyles.js before reading src/"
     },
     "build:languages": {
@@ -56,6 +73,15 @@
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-production env-cmd -f ../hot.config.js rspack",
       "deps": []
     },
+    "build:settings-schema-umd": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=settings-schema-umd-development env-cmd -f ../hot.config.js rspack",
+      "deps": ["build:settings-schema"],
+      "note": "dist/handsontable.settings-schema.js, the CDN file of handsontable/settingsSchema; reads the registries of the page's Handsontable global"
+    },
+    "build:settings-schema-umd.min": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=settings-schema-umd-production env-cmd -f ../hot.config.js rspack",
+      "deps": ["build:settings-schema"]
+    },
     "generate:themes-static": {
       "cmd": "node scripts/themes/figma/index.mjs",
       "deps": [],
@@ -63,11 +89,17 @@
     },
     "build:types": {
       "cmd": "tsc -p tsconfig.build-types.json",
-      "deps": []
+      "deps": ["build:settings-schema"]
     },
     "downlevel:types": {
       "cmd": "node scripts/downlevel-dts.mjs",
       "deps": ["build:types"]
+    },
+    "verify:esm-consumer-types": {
+      "cmd": "node scripts/verify-esm-consumer-types.mjs",
+      "deps": [],
+      "mode": "inherit",
+      "note": "Compiles .config/emitted-types/theme-presets.ts as an ES module under node16 and nodenext against the composed package in tmp/ (resolved through its exports map). Run it after `build:types`, `downlevel:types` and the ES/CJS build, then `postbuild` or `postbuild:partial` (it reads the composed tmp/ and fails with a hint when that is missing). The Emitted Types workflow runs the same script with its pinned TS 5.1 (TSC env). Catches a .d.mts whose default export is typed as the CJS namespace (DEV-3421), which attw and the .d.ts type-check both miss."
     },
     "build:umd": {
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.ts",
@@ -79,7 +111,7 @@
     },
     "build:es": {
       "cmd": "env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format esm --out-dir tmp --out-ext .mjs",
-      "deps": ["build:styles.min"],
+      "deps": ["build:styles.min", "build:settings-schema"],
       "note": "needs build:styles.min to finalize handsontableStyles.js"
     },
     "build:walkontable": {
@@ -99,12 +131,12 @@
 
     "lint:eslint": {
       "cmd": "eslint --cache --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
-      "deps": [],
+      "deps": ["build:settings-schema"],
       "mode": "inherit"
     },
     "lint:eslint.fix": {
       "cmd": "eslint --fix --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
-      "deps": [],
+      "deps": ["build:settings-schema"],
       "mode": "inherit"
     },
     "lint:stylelint": {
@@ -119,13 +151,13 @@
     },
     "typecheck": {
       "cmd": "tsc --noEmit",
-      "deps": [],
+      "deps": ["build:settings-schema"],
       "mode": "inherit"
     },
 
     "test:unit.jest": {
-      "cmd": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ../hot.config.js jest",
-      "deps": [],
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_OPTIONS=\"$NODE_OPTIONS --expose-gc\" env-cmd -f ../hot.config.js jest",
+      "deps": ["build:settings-schema"],
       "mode": "interactive",
       "passthrough": true,
       "passthroughFilter": ["--testPathPattern", "--watch", "--coverage", "--collectCoverageFrom", "--coveragePathIgnorePatterns"],
@@ -226,6 +258,8 @@
       "tasks": [
         "build:styles",
         "build:styles.min",
+        "build:settings-schema",
+        "build:feature-manifest",
         "build:themes-css",
         "build:themes-css.min",
         "build:commonjs",
@@ -234,6 +268,8 @@
         "build:languages.min",
         "build:themes-umd",
         "build:themes-umd.min",
+        "build:settings-schema-umd",
+        "build:settings-schema-umd.min",
         "build:umd",
         "build:umd.min",
         "build:es",
@@ -243,7 +279,7 @@
     },
     "lint": {
       "before": ["build:styles"],
-      "tasks": ["lint:eslint", "lint:stylelint", "typecheck"]
+      "tasks": ["build:settings-schema", "lint:eslint", "lint:stylelint", "typecheck"]
     },
     "lint:fix": {
       "before": ["build:styles"],

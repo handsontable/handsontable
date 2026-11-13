@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "page": "loading",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "alertdialog",
+        "name": "Loading..."
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "alertdialog",
+        "name": "Loading..."
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where importing a theme preset (for example `handsontable/themes/static/variables/tokens/main`) or a language dictionary (for example `handsontable/i18n/languages/de-DE`) with a default import in an ES module project using `node16` or `nodenext` module resolution typed it as the module namespace instead of the preset or the dictionary, which made `registerTheme()` fail to compile and `deDE.languageCode` a type error.",
+  "type": "fixed",
+  "issueOrPR": 13858,
+  "breaking": false,
+  "framework": "none"
+}

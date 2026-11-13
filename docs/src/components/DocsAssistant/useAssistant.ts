@@ -1,14 +1,37 @@
-import { useCallback, useEffect, useReducer, useRef } from 'react';
-import { CHAT_ENDPOINT, FEEDBACK_ENDPOINT, STORAGE_KEYS } from './constants';
-import { buildContextualMessage } from './pageContext';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
+import {
+  type AgentPollState,
+  type AgentReply,
+  createAgentPoller,
+  mergeReplies,
+  messagesForApi,
+  newestReplyId,
+  nextPollState,
+  outgoingMessage,
+  parsePollState,
+  toSupportApiText,
+} from './agentReplies';
+import { AGENT_REPLIES_ENDPOINT, CHAT_ENDPOINT, FEEDBACK_ENDPOINT, STORAGE_KEYS } from './constants';
 
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  /** `agent` is a reply a teammate wrote from Slack. It is never sent to the model and never rated. */
+  role: 'user' | 'assistant' | 'agent';
   content: string;
   ts: number;
   feedback?: 'up' | 'down';
   error?: string;
+  /**
+   * A reader's message written to Support (SU-1118). The backend posts it to the Slack thread and the
+   * bot does not answer, so it has no assistant message after it and never goes back to the model.
+   */
+  toSupport?: boolean;
+  /**
+   * Support took a message with `toSupport` (the stream ended with `message_end`). The "sent" note
+   * waits for it, so a failed or stopped send never claims Support has the message. It stays apart
+   * from `toSupport`, which retry and the model history still need.
+   */
+  supportSent?: boolean;
 }
 
 interface ThreadState {
@@ -19,7 +42,10 @@ interface ThreadState {
 
 type Action =
   | { type: 'ADD_USER'; message: ChatMessage }
+  | { type: 'ADD_AGENT'; replies: AgentReply[]; now: number }
   | { type: 'BEGIN_ASSISTANT'; message: ChatMessage }
+  | { type: 'BEGIN_SUPPORT_SEND' }
+  | { type: 'SUPPORT_SENT'; id: string }
   | { type: 'APPEND'; id: string; delta: string }
   | { type: 'END' }
   | { type: 'ERROR'; error: string }
@@ -28,14 +54,34 @@ type Action =
   | { type: 'SET_FEEDBACK'; id: string; feedback: 'up' | 'down' }
   | { type: 'HYDRATE'; messages: ChatMessage[] };
 
-function reducer(state: ThreadState, action: Action): ThreadState {
+// Exported for the node test of the thread state (`__tests__/docs-assistant-agent-replies.test.mjs`).
+export function reducer(state: ThreadState, action: Action): ThreadState {
   switch (action.type) {
     case 'HYDRATE':
       return { ...state, messages: action.messages };
     case 'ADD_USER':
       return { ...state, messages: [...state.messages, action.message], error: null };
+    case 'ADD_AGENT':
+      return {
+        ...state,
+        messages: mergeReplies<ChatMessage>(state.messages, action.replies, action.now, (id, content, ts) => ({
+          id,
+          role: 'agent',
+          content,
+          ts,
+        })),
+      };
     case 'BEGIN_ASSISTANT':
       return { ...state, messages: [...state.messages, action.message], streaming: true, error: null };
+    case 'BEGIN_SUPPORT_SEND':
+      // No assistant placeholder: nothing answers a message to Support, and an empty assistant
+      // message would count as a bot answer when the feedback buttons number them.
+      return { ...state, streaming: true, error: null };
+    case 'SUPPORT_SENT':
+      return {
+        ...state,
+        messages: state.messages.map((m) => (m.id === action.id ? { ...m, supportSent: true } : m)),
+      };
     case 'APPEND':
       return {
         ...state,
@@ -47,16 +93,19 @@ function reducer(state: ThreadState, action: Action): ThreadState {
       return { ...state, streaming: false };
     case 'ERROR': {
       // Drop the trailing empty assistant placeholder if it has no content.
+      // A Support reply can land after the placeholder, so look past those.
       const messages = [...state.messages];
-      const last = messages[messages.length - 1];
-      if (last && last.role === 'assistant' && !last.content) messages.pop();
+      let i = messages.length - 1;
+      while (i >= 0 && messages[i].role === 'agent') i -= 1;
+      if (i >= 0 && messages[i].role === 'assistant' && !messages[i].content) messages.splice(i, 1);
       return { ...state, streaming: false, error: action.error, messages };
     }
     case 'CLEAR':
       return { messages: [], streaming: false, error: null };
     case 'RETRY_POP': {
-      const messages = [...state.messages];
-      while (messages.length && messages[messages.length - 1].role === 'assistant') messages.pop();
+      // Drop the bot's answers to the last question; a Support reply stays.
+      const lastUser = state.messages.map((m) => m.role).lastIndexOf('user');
+      const messages = state.messages.filter((m, i) => !(i > lastUser && m.role === 'assistant'));
       return { ...state, messages, error: null };
     }
     case 'SET_FEEDBACK':
@@ -115,6 +164,23 @@ function clearThreadIdStorage() {
   }
 }
 
+function readStoredPoll(): AgentPollState | null {
+  try {
+    return parsePollState(localStorage.getItem(STORAGE_KEYS.agentReplies));
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredPoll(poll: AgentPollState | null) {
+  try {
+    if (poll) localStorage.setItem(STORAGE_KEYS.agentReplies, JSON.stringify(poll));
+    else localStorage.removeItem(STORAGE_KEYS.agentReplies);
+  } catch {
+    // Quota or privacy-mode — drop silently.
+  }
+}
+
 function uid() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -122,7 +188,12 @@ function uid() {
 async function* readSSE(
   body: ReadableStream<Uint8Array>,
   signal: AbortSignal
-): AsyncGenerator<{ type: string; delta?: { content?: string }; thread_id?: string }> {
+): AsyncGenerator<{
+  type: string;
+  delta?: { content?: string };
+  thread_id?: string;
+  agent_token?: string;
+}> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buf = '';
@@ -155,7 +226,11 @@ async function* readSSE(
   }
 }
 
-export function useAssistant() {
+/**
+ * `active` is true while the panel is open: only then does the hook poll for a Support reply, so a
+ * closed panel costs the backend nothing.
+ */
+export function useAssistant({ active = false }: { active?: boolean } = {}) {
   const [state, dispatch] = useReducer(reducer, {
     messages: [],
     streaming: false,
@@ -168,6 +243,23 @@ export function useAssistant() {
   // navigation, matching the lifecycle of the visible conversation. Reset in
   // `clear` / `clearAndSend`.
   const threadIdRef = useRef<string | null>(readThreadId());
+  // Support replies (SU-1083). The poll state lives in a ref (the cursor moves on every reply and must
+  // not re-render), while its thread id is mirrored in state so the polling effect restarts when the
+  // conversation changes. Saved state counts only while it still matches the saved thread id.
+  const pollRef = useRef<AgentPollState | null>(
+    (() => {
+      const stored = readStoredPoll();
+      return stored && stored.threadId === threadIdRef.current ? stored : null;
+    })()
+  );
+  const [pollThreadId, setPollThreadId] = useState<string | null>(() => pollRef.current?.threadId ?? null);
+  const lastActivityRef = useRef(Date.now());
+
+  const applyPollState = useCallback((next: AgentPollState | null) => {
+    pollRef.current = next;
+    writeStoredPoll(next);
+    setPollThreadId(next ? next.threadId : null);
+  }, []);
 
   useEffect(() => {
     if (hydratedRef.current) return;
@@ -196,30 +288,39 @@ export function useAssistant() {
   }, []);
 
   const sendInternal = useCallback(
-    async (userMessageText: string, historyForApi: ChatMessage[]) => {
-      // Register the controller before any await so clearAndSend can abort
-      // even while buildContextualMessage is still fetching page context.
+    async (
+      userMessageText: string,
+      historyForApi: ChatMessage[],
+      toSupport = false,
+      userMessageId?: string
+    ) => {
       const controller = new AbortController();
       abortRef.current = controller;
 
-      const contextualised = await buildContextualMessage(userMessageText);
-
-      // Bail out if aborted during page-context fetch (no UI state committed yet).
-      if (controller.signal.aborted) {
-        if (abortRef.current === controller) abortRef.current = null;
-        return;
-      }
-
+      // The question goes as typed. The backend reads the page the reader is
+      // on from pageTitle/pageUrl below and fetches its Markdown itself, so
+      // the request stays small: inlining the page's Markdown made turns on
+      // the largest API pages (Options, Core) exceed the same-origin proxy's
+      // body-size cap and fail with a 413.
+      // A message to Support carries the `!reply` marker in the request only (SU-1118); the
+      // reader's bubble keeps the text as typed.
       const apiMessages = [
-        ...historyForApi.map(({ role, content }) => ({ role, content })),
-        { role: 'user' as const, content: contextualised },
+        ...messagesForApi(historyForApi),
+        {
+          role: 'user' as const,
+          content: toSupport ? toSupportApiText(userMessageText) : userMessageText,
+        },
       ];
 
       const assistantId = uid();
-      dispatch({
-        type: 'BEGIN_ASSISTANT',
-        message: { id: assistantId, role: 'assistant', content: '', ts: Date.now() },
-      });
+      if (toSupport) {
+        dispatch({ type: 'BEGIN_SUPPORT_SEND' });
+      } else {
+        dispatch({
+          type: 'BEGIN_ASSISTANT',
+          message: { id: assistantId, role: 'assistant', content: '', ts: Date.now() },
+        });
+      }
 
       try {
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -260,17 +361,30 @@ export function useAssistant() {
           writeThreadId(id);
         };
         adoptThreadId(res.headers.get('X-Thread-Id'));
+        // The token that lets the panel poll for Support replies. The first frame carries it too, and
+        // the same-origin proxy does not pass the header, so the frame is the one that counts.
+        const adoptAgentToken = (token: string | null | undefined) => {
+          if (controller.signal.aborted) return;
+          applyPollState(nextPollState(pollRef.current, threadIdRef.current, token ?? null));
+        };
+        const headerToken = res.headers.get('X-Thread-Token');
+        if (headerToken) adoptAgentToken(headerToken);
 
+        let ended = false;
         for await (const event of readSSE(res.body, controller.signal)) {
           if (event.type === 'message_start') {
             adoptThreadId(event.thread_id);
+            adoptAgentToken(event.agent_token);
           } else if (event.type === 'content_chunk') {
             const delta = event.delta?.content ?? '';
-            if (delta) dispatch({ type: 'APPEND', id: assistantId, delta });
+            if (delta && !toSupport) dispatch({ type: 'APPEND', id: assistantId, delta });
           } else if (event.type === 'message_end') {
+            ended = true;
             break;
           }
         }
+        // Only a finished turn tells the reader Support has the message. A stopped one may or may not.
+        if (toSupport && ended && userMessageId) dispatch({ type: 'SUPPORT_SENT', id: userMessageId });
         dispatch({ type: 'END' });
       } catch (err) {
         if ((err as Error).name === 'AbortError') {
@@ -290,35 +404,62 @@ export function useAssistant() {
         }
       }
     },
-    []
+    [applyPollState]
   );
 
-  const send = useCallback(
-    async (text: string) => {
-      const trimmed = text.trim();
-      if (!trimmed || state.streaming) return;
+  // Support can be written to only while the conversation can still be polled. The poll state ends
+  // with the thread: a rejected token, an unknown route, or a thread older than the backend keeps.
+  const canWriteToSupport = pollThreadId !== null;
+
+  const deliver = useCallback(
+    async (content: string, toSupport: boolean) => {
       const userMessage: ChatMessage = {
         id: uid(),
         role: 'user',
-        content: trimmed,
+        content,
         ts: Date.now(),
+        ...(toSupport ? { toSupport: true } : {}),
       };
       const history = state.messages;
+      lastActivityRef.current = Date.now();
       dispatch({ type: 'ADD_USER', message: userMessage });
-      await sendInternal(trimmed, history);
+      await sendInternal(content, history, toSupport, userMessage.id);
     },
-    [sendInternal, state.messages, state.streaming]
+    [sendInternal, state.messages]
+  );
+
+  // `outgoingMessage` holds the rules for a typed `!reply` and for the chip. A reader who types the
+  // marker by hand writes to Support, like the button does. Without that the backend would skip the
+  // bot while the panel waited for a bot answer that never comes. The composer asks the same function,
+  // so it keeps the draft when nothing would be sent.
+  const send = useCallback(
+    async (text: string) => {
+      const out = outgoingMessage(text, { toSupport: false, canWriteToSupport });
+      if (!out || state.streaming) return;
+      await deliver(out.body, out.toSupport);
+    },
+    [canWriteToSupport, deliver, state.streaming]
+  );
+
+  const sendToSupport = useCallback(
+    async (text: string) => {
+      const out = outgoingMessage(text, { toSupport: true, canWriteToSupport });
+      if (!out || state.streaming) return;
+      await deliver(out.body, true);
+    },
+    [canWriteToSupport, deliver, state.streaming]
   );
 
   const retry = useCallback(async () => {
     if (state.streaming) return;
-    const messages = [...state.messages];
-    while (messages.length && messages[messages.length - 1].role === 'assistant') messages.pop();
-    const lastUser = messages[messages.length - 1];
-    if (!lastUser || lastUser.role !== 'user') return;
+    const lastUserIndex = state.messages.map((m) => m.role).lastIndexOf('user');
+    if (lastUserIndex < 0) return;
+    const lastUser = state.messages[lastUserIndex];
+    lastActivityRef.current = Date.now();
     dispatch({ type: 'RETRY_POP' });
-    const history = messages.slice(0, -1);
-    await sendInternal(lastUser.content, history);
+    const history = state.messages.slice(0, lastUserIndex);
+    // A failed message to Support is sent to Support again, never to the bot.
+    await sendInternal(lastUser.content, history, Boolean(lastUser.toSupport), lastUser.id);
   }, [sendInternal, state.messages, state.streaming]);
 
   const clear = useCallback(() => {
@@ -326,8 +467,9 @@ export function useAssistant() {
     abortRef.current = null;
     threadIdRef.current = null;
     clearThreadIdStorage();
+    applyPollState(null);
     dispatch({ type: 'CLEAR' });
-  }, []);
+  }, [applyPollState]);
 
   const clearAndSend = useCallback(
     async (text: string) => {
@@ -335,6 +477,8 @@ export function useAssistant() {
       abortRef.current = null;
       threadIdRef.current = null;
       clearThreadIdStorage();
+      applyPollState(null);
+      lastActivityRef.current = Date.now();
       dispatch({ type: 'CLEAR' });
       const trimmed = text.trim();
       if (!trimmed) return;
@@ -347,8 +491,44 @@ export function useAssistant() {
       dispatch({ type: 'ADD_USER', message: userMessage });
       await sendInternal(trimmed, []);
     },
-    [sendInternal]
+    [applyPollState, sendInternal]
   );
+
+  // Polls for a reply a teammate wrote in the conversation's Slack thread. Runs only while the panel is
+  // open and the tab is visible; opening the panel or coming back to the tab counts as activity and polls
+  // at once. The loop itself is createAgentPoller (see AGENT_POLL for the pace).
+  useEffect(() => {
+    if (!active || !pollThreadId) return undefined;
+    const poller = createAgentPoller({
+      endpoint: AGENT_REPLIES_ENDPOINT,
+      getPoll: () => pollRef.current,
+      getLastActivity: () => lastActivityRef.current,
+      setLastActivity: (ms) => {
+        lastActivityRef.current = ms;
+      },
+      isVisible: () => document.visibilityState === 'visible',
+      now: () => Date.now(),
+      fetch: (url, init) => window.fetch(url, init),
+      setTimer: (callback, ms) => window.setTimeout(callback, ms),
+      clearTimer: (id) => window.clearTimeout(id as number | undefined),
+      onReplies: (replies, poll) => {
+        if (pollRef.current !== poll) return false;
+        const updated = { ...poll, after: newestReplyId(replies) };
+        pollRef.current = updated;
+        writeStoredPoll(updated);
+        dispatch({ type: 'ADD_AGENT', replies, now: Date.now() });
+        return true;
+      },
+      onStop: () => applyPollState(null),
+    });
+    const onVisible = () => poller.wake();
+    document.addEventListener('visibilitychange', onVisible);
+    poller.start();
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      poller.stop();
+    };
+  }, [active, pollThreadId, applyPollState]);
 
   const setFeedback = useCallback((id: string, feedback: 'up' | 'down') => {
     const messages = messagesRef.current;
@@ -387,5 +567,5 @@ export function useAssistant() {
       });
   }, []);
 
-  return { state, send, stop, retry, clear, clearAndSend, setFeedback };
+  return { state, send, sendToSupport, canWriteToSupport, stop, retry, clear, clearAndSend, setFeedback };
 }

@@ -2,7 +2,6 @@
 import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
@@ -42,8 +41,8 @@ const sharedSettings: GridSettings = {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  exportFile: { engines: { xlsx: ExcelJS } },
-  licenseKey: 'non-commercial-and-evaluation',
+  exportFile: true,
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const hotQ1Settings = ref<GridSettings>({ ...sharedSettings, data: q1Data });

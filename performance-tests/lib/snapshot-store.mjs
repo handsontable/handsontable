@@ -9,6 +9,7 @@ import {
   MEDIAN_WINDOW_SIZE,
   computeMedianSnapshot,
   explainMedianRefusal,
+  newestMedianSource,
 } from './median-snapshot.mjs';
 import {
   DEFAULT_MEASUREMENT_VERSION,
@@ -93,7 +94,10 @@ export async function saveSnapshots(scenarioResults, metadata = {}, goldenDir = 
  * @param {boolean} [options.allowSingleFile=true] -- whether golden/snapshots.json may serve as the
  *   fallback. A golden-mode run passes false: there the file is the snapshot the run itself just
  *   saved, and comparing a run against itself reports 0% everywhere.
- * @returns {Promise<{ snapshot: object | null, unavailableReason: string | null }>}
+ * @returns {Promise<{ snapshot: object | null, unavailableReason: string | null,
+ *   newest?: object | null }>} `newest` is the newest golden the median was drawn from (see
+ *   newestMedianSource); it is set only when the baseline is a median, since a single-file
+ *   baseline is itself the newest golden
  */
 export async function loadBaseline(
   goldenDir = DEFAULT_GOLDEN_DIR, { compatibleWith = null, allowSingleFile = true } = {}
@@ -106,7 +110,7 @@ export async function loadBaseline(
     const median = await loadMedianFromHistory(historyDir, goldenPathExists, compatibleWith);
 
     if (median.snapshot) {
-      return { snapshot: median.snapshot, unavailableReason: null };
+      return { snapshot: median.snapshot, unavailableReason: null, newest: median.newest };
     }
 
     historyRefusal = median.refusal;
@@ -225,7 +229,8 @@ function envWindowSize() {
  * @param {string} historyDir
  * @param {boolean} goldenPathExists -- whether a single-file golden is actually there to fall back to
  * @param {{ key: object, scenarioVersions?: Record<string, number> } | null} compatibleWith
- * @returns {Promise<{ snapshot: object | null, refusal: { reason: string, example: object | null } | null }>}
+ * @returns {Promise<{ snapshot: object | null, newest?: object | null,
+ *   refusal: { reason: string, example: object | null } | null }>}
  */
 async function loadMedianFromHistory(historyDir, goldenPathExists, compatibleWith) {
   const files = (await readdir(historyDir)).filter(name => name.endsWith('.json'));
@@ -252,7 +257,11 @@ async function loadMedianFromHistory(historyDir, goldenPathExists, compatibleWit
       );
     }
 
-    return { snapshot: median, refusal: null };
+    return {
+      snapshot: median,
+      newest: newestMedianSource(snapshots, { windowSize, compatibleWith }),
+      refusal: null,
+    };
   }
 
   // The median module says why it refused; nothing is inferred from counts here.

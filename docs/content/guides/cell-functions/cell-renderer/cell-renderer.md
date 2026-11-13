@@ -1,22 +1,22 @@
 ---
 type: how-to
 title: Cell renderer
-metaTitle: Cell renderer - JavaScript Data Grid | Handsontable
+metaTitle: Cell renderer | Handsontable DataGrid for JavaScript
 description: Create a custom cell renderer function, to have full control over how a cell looks.
 permalink: /cell-renderer
 canonicalUrl: /cell-renderer
 react:
-  metaTitle: Cell renderer - React Data Grid | Handsontable
+  metaTitle: Cell renderer | Handsontable DataGrid for React
 angular:
-  metaTitle: Cell renderer - Angular Data Grid | Handsontable
+  metaTitle: Cell renderer | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cell renderer - Vue Data Grid | Handsontable
+  metaTitle: Cell renderer | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
 menuTag: updated
 ---
 
-A cell renderer is a function that controls how cell content is displayed in the DOM. Override a built-in renderer or write your own to customize the visual output.
+A cell renderer is a function that controls how Handsontable DataGrid displays cell content in the DOM. Override a built-in renderer or write your own to customize the visual output.
 
 [[toc]]
 
@@ -99,6 +99,8 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 @[code](@/content/guides/cell-functions/cell-renderer/react/example1.tsx)
 
 :::
+
+A component in a cell is reused for another record after a sort, a filter, or a scroll. State from `useState` stays with the cell position, not with the record, so a value you set on one record can show on another. Keep state outside the component, keyed by the record. Resetting the state with a `key` or a `useEffect` clears it, but doesn't move it to the record.
 
 ## Use the renderer component within React's context
 
@@ -373,15 +375,37 @@ Use `htmlRenderer` when your output is trusted HTML and you intentionally render
 
 Skip the built-in renderer when your renderer fully controls cell output from scratch, for example the image-based `coverRenderer` in [Render custom HTML in cells](#render-custom-html-in-cells).
 
-Both of the following call styles are valid:
+The simplest way to write such a renderer is [`rendererFactory()`](@/guides/cell-functions/custom-cells/custom-cells.md#rendererfactory). It passes all the cell arguments to your callback as a single object, so the callback receives everything by name. Write the callback as a regular function or an arrow function:
 
 ```js
-// Legacy style, common in classic JavaScript examples.
-textRenderer.apply(this, arguments);
+import { rendererFactory, textRenderer } from "handsontable/renderers";
 
-// Direct invocation style, common in ESM and TypeScript examples.
-textRenderer(instance, td, row, column, prop, value, cellProperties);
+const customRenderer = rendererFactory(
+  ({ instance, td, row, column, prop, value, cellProperties }) => {
+    textRenderer(instance, td, row, column, prop, value, cellProperties);
+
+    td.style.fontWeight = "bold";
+  }
+);
 ```
+
+If you write a plain renderer function instead, you can call the built-in renderer in one of two ways:
+
+```js
+// Direct invocation style, common in ESM and TypeScript examples.
+// Works in a `function` declaration and in an arrow function.
+textRenderer(instance, td, row, column, prop, value, cellProperties);
+
+// Legacy style, common in classic JavaScript examples.
+// Use it inside a `function` declaration or a `function` expression.
+textRenderer.apply(this, arguments);
+```
+
+::: warning
+
+Use `textRenderer.apply(this, arguments)` only inside a `function` declaration or a `function` expression. An arrow function takes `this` and `arguments` from the code around it, so the call can throw a `ReferenceError` or pass the wrong values to the built-in renderer. In an arrow function, call the built-in renderer directly or use [`rendererFactory()`](@/guides/cell-functions/custom-cells/custom-cells.md#rendererfactory).
+
+:::
 
 ### Handsontable runs `baseRenderer` for you
 
@@ -537,11 +561,36 @@ If you did't find a suitable _Handsontable event_ put the cell content into a wr
 
 ## Changes made outside a renderer do not survive
 
-Handsontable resets a cell's `td` element before it runs a renderer, so only what a renderer writes back survives. [Understanding rendering](@/guides/optimization/rendering/rendering.md#why-direct-dom-changes-disappear) lists exactly what the reset clears.
+Handsontable reuses `td` elements as you scroll, sort, filter, and load data. Before it paints a cell with a renderer, it resets only part of the element:
+
+- **Cleared before each repaint:** the `class` attribute, the inline `style`, the `dir` attribute, and the accessibility attributes. The reset removes every attribute whose name contains `role` or `aria-`, so it also removes `data-role` and `data-aria-label`.
+- **Kept on the reused cell:** other `data-*` attributes, the `title` attribute, child nodes, event listeners (see [Add event listeners in cell renderer function](#add-event-listeners-in-cell-renderer-function)), and properties that your code assigns to the element.
+
+What a renderer leaves behind in the second group shows up on whichever record the cell displays next. A stale tag, tooltip, or `data-*` attribute then appears on the wrong row. [Understanding rendering](@/guides/optimization/rendering/rendering.md#why-direct-dom-changes-disappear) explains when a render happens.
+
+To keep a reused cell correct, follow this rule: on every render, empty the cell, and set or remove every attribute your renderer uses. Don't write an attribute only when a condition is true.
+
+```js
+// Do not do this. The cell keeps the attribute after it shows another record.
+if (value === 'Blocked') {
+  td.setAttribute('data-status', 'blocked');
+}
+
+// Do this instead. The attribute matches the current value on every render.
+if (value === 'Blocked') {
+  td.setAttribute('data-status', 'blocked');
+} else {
+  td.removeAttribute('data-status');
+}
+```
+
+Built-in content renderers, such as `textRenderer`, replace the cell's content. A custom renderer that calls one first, as the [Extend a built-in renderer](#extend-a-built-in-renderer) section shows, starts from clean content. A renderer that builds its own nodes empties the cell itself, for example with `td.textContent = ''`, before it appends them.
+
+The [`afterRenderer`](@/api/hooks.md#afterrenderer) hook runs on the same reused `td`, after the renderer. Don't empty the cell there, because that removes the value the renderer just wrote. Remove any node you added on an earlier call, then set or remove every attribute you use, on every call.
 
 ::: warning
 
-Anything you write straight onto a cell's DOM node disappears at the next render:
+A class, style, or accessibility attribute you write straight onto a cell's DOM node disappears at the next render:
 
 ```js
 // Do not do this. The next render removes the class.
@@ -562,6 +611,157 @@ You have two supported ways to make a visual change stick:
 - Write a custom renderer. A renderer runs on every render, so what it writes is always reapplied. If your renderer reads state outside the grid and the grid uses [`renderMode: 'onChange'`](@/api/options.md#rendermode), set `renderMode: 'always'` on its cells, or call [`markCellChanged()`](@/api/core.md#markcellchanged) after that state changes.
 
 For the full picture of when a render happens and what it covers, see [Understanding rendering](@/guides/optimization/rendering/rendering.md).
+
+## Add a tooltip to a cell
+
+To show a description when users hover over a cell, set the HTML `title` attribute of the cell's `td` element in a custom renderer. The browser displays the attribute's value as a native tooltip. Browsers show a `title` tooltip only on mouse hover, so keyboard and touch users usually don't see it, and screen readers can ignore it on a grid cell. Don't put information that users need only in the tooltip.
+
+Setting `title` in a cell's configuration does not work. The [`title`](@/api/options.md#title) option sets a column header's label, so `cells: () => ({ title: 'Description' })` adds no `title` attribute to the `td`. Set the attribute on the element in the renderer.
+
+Because Handsontable reuses cells, a `td` can still hold the `title` of a record that was rendered in it earlier. To avoid showing the wrong tooltip, set the attribute when a cell has a description and remove it when it doesn't, on every call of the renderer.
+
+If the renderer reads state from outside the grid, as the `descriptions` lookup below does, and the grid uses [`renderMode: 'onChange'`](@/api/options.md#rendermode), see [Changes made outside a renderer do not survive](#changes-made-outside-a-renderer-do-not-survive).
+
+The renderer below calls the built-in text renderer first, then sets or removes `title` based on the cell's value. Assign it to the `renderer` option of the column that shows the description:
+
+::: only-for javascript
+
+```js
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+const descriptions = new Map([
+  ['SKU-4821', 'Back in stock on 2025-07-14.'],
+  ['SKU-0093', 'Discontinued by the supplier.'],
+]);
+
+const tooltipRenderer = (hot, td, row, column, prop, value, cellProperties) => {
+  textRenderer(hot, td, row, column, prop, value, cellProperties);
+
+  const description = descriptions.get(value);
+
+  if (description) {
+    td.title = description;
+  } else {
+    td.removeAttribute('title');
+  }
+
+  return td;
+};
+
+// In the grid settings:
+const columns = [{ renderer: tooltipRenderer }, {}];
+```
+
+:::
+
+::: only-for react
+
+```jsx
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+const descriptions = new Map([
+  ['SKU-4821', 'Back in stock on 2025-07-14.'],
+  ['SKU-0093', 'Discontinued by the supplier.'],
+]);
+
+const tooltipRenderer = (hot, td, row, column, prop, value, cellProperties) => {
+  textRenderer(hot, td, row, column, prop, value, cellProperties);
+
+  const description = descriptions.get(value);
+
+  if (description) {
+    td.title = description;
+  } else {
+    td.removeAttribute('title');
+  }
+
+  return td;
+};
+
+// Pass it to <HotTable columns={columns} />:
+const columns = [{ renderer: tooltipRenderer }, {}];
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import Handsontable from 'handsontable/base';
+import { GridSettings } from '@handsontable/angular-wrapper';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+const descriptions = new Map<string, string>([
+  ['SKU-4821', 'Back in stock on 2025-07-14.'],
+  ['SKU-0093', 'Discontinued by the supplier.'],
+]);
+
+const tooltipRenderer = (
+  hot: Handsontable,
+  td: HTMLTableCellElement,
+  row: number,
+  column: number,
+  prop: string | number,
+  value: unknown,
+  cellProperties: Handsontable.CellProperties
+) => {
+  textRenderer(hot, td, row, column, prop, value, cellProperties);
+
+  const description = descriptions.get(String(value));
+
+  if (description) {
+    td.title = description;
+  } else {
+    td.removeAttribute('title');
+  }
+
+  return td;
+};
+
+// In the component class. Pass the rows through the `[data]` input.
+readonly hotSettings: GridSettings = {
+  columns: [{ renderer: tooltipRenderer }, {}],
+};
+```
+
+:::
+
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import type { BaseRenderer } from 'handsontable/renderers';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+const descriptions = new Map<string, string>([
+  ['SKU-4821', 'Back in stock on 2025-07-14.'],
+  ['SKU-0093', 'Discontinued by the supplier.'],
+]);
+
+const tooltipRenderer: BaseRenderer = (hot, td, row, column, prop, value, cellProperties) => {
+  textRenderer(hot, td, row, column, prop, value, cellProperties);
+
+  const description = descriptions.get(String(value));
+
+  if (description) {
+    td.title = description;
+  } else {
+    td.removeAttribute('title');
+  }
+
+  return td;
+};
+
+// Pass it to <HotTable :columns="columns" />:
+const columns = [{ renderer: tooltipRenderer }, {}];
+</script>
+```
+
+:::
+
+If you need a tooltip that keyboard users can reach, or one with your own markup, render your own element instead of `title`. Show it from [`afterOnCellMouseOver`](@/api/hooks.md#afteroncellmouseover) and hide it in [`afterOnCellMouseOut`](@/api/hooks.md#afteroncellmouseout). Also show it from [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) and hide it in [`afterDeselect`](@/api/hooks.md#afterdeselect), so that moving the selection with the arrow keys shows it too. In `afterOnCellMouseOut`, show the tip of the selected cell again instead of hiding it, so that a mouse pass doesn't hide the tip of a cell the keyboard has selected.
+
+To attach a note that users can add, edit, and delete, use the [`comments`](@/guides/cell-features/comments/comments.md) plugin instead of a tooltip.
 
 ## Performance considerations
 

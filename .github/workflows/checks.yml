@@ -33,6 +33,7 @@ on:
       test-performance: { value: '${{ jobs.scope.outputs.test-performance }}' }
       verify-types: { value: '${{ jobs.scope.outputs.verify-types }}' }
       docs-angular: { value: '${{ jobs.scope.outputs.docs-angular }}' }
+      docs-content-types: { value: '${{ jobs.scope.outputs.docs-content-types }}' }
       pkg-preview: { value: '${{ jobs.scope.outputs.pkg-preview }}' }
       docs: { value: '${{ jobs.scope.outputs.docs }}' }
       # True when the PR touches anything outside the CI pipeline (.github/**).
@@ -59,7 +60,7 @@ on:
 jobs:
   scope:
     name: scope
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       run-all: ${{ endsWith(github.ref, '/master') || endsWith(github.ref, '/develop') || contains(github.ref, '/release/') || inputs.test-all == true }}
       build-handsontable-es-cjs: ${{ steps.path-filter.outputs.build-handsontable-es-cjs }}
@@ -76,6 +77,7 @@ jobs:
       test-performance: ${{ steps.path-filter.outputs.test-performance }}
       verify-types: ${{ steps.path-filter.outputs.verify-types }}
       docs-angular: ${{ steps.path-filter.outputs.docs-angular }}
+      docs-content-types: ${{ steps.path-filter.outputs.docs-content-types }}
       pkg-preview: ${{ steps.path-filter.outputs.pkg-preview }}
       docs: ${{ steps.path-filter.outputs.docs }}
       outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
@@ -165,6 +167,9 @@ jobs:
               - './handsontable/test/*.js'
               - './handsontable/test/__mocks__/**'
               - './handsontable/test/helpers/**'
+              # `src/settingsSchema/__tests__/docsExamples.unit.js` runs every JavaScript example of
+              # the guides through `validateSettings()`, so an example change routes Unit too.
+              - './docs/content/guides/**/javascript/example*.js'
             test-handsontable-types:
               - *hot-shared
               - *hot-definition-files
@@ -214,6 +219,11 @@ jobs:
             # bump from any other dependency bump, and a full render on every
             # Dependabot pull request is the cost this tier exists to remove.
             # A browser bump is proven by the next seed and nightly instead.
+            # One exception, accepted on purpose: the visual demo lockfiles
+            # (`examples/next/visual-tests/*/package-lock.json`) sit under
+            # `visual-sources`, so the grouped Dependabot security PR
+            # (.github/dependabot.yml) renders the full tier whenever it fixes
+            # an alert in one of those trees.
             visual-full:
               - *visual-sources
             # Per wrapper, the wrapper's own tree ONLY — never `*hot-shared`.
@@ -234,10 +244,14 @@ jobs:
               # can shift bundle perf — run the suite on the PR for those too, not just
               # src changes. Otherwise a config-driven slowdown skips the PR run and
               # is then recorded as the new golden baseline on the develop push.
-              # (Workflow changes are intentionally excluded — see the config-files note.)
+              # Workflow changes are excluded (see the config-files note), except the
+              # performance pipeline's own files: a change to them must run it.
               - *config-files
               - './handsontable/src/**'
               - './performance-tests/**'
+              - './.github/actions/performance-run/**'
+              - './.github/workflows/performance.yml'
+              - './.github/workflows/performance-tests.yml'
             verify-types:
               - './handsontable/**'
               - './.github/workflows/emitted-types.yml'
@@ -259,11 +273,22 @@ jobs:
               # paths, where GitHub-native path filters ARE subtractive. On a PR an
               # AGENTS.md edit sets this flag but is inert unless the docs job also
               # runs (it needs the `docs` flag), so it never routes a typecheck alone.
+            # Gates the CHANGED examples only (check.mjs diffs against the PR base), so a core
+            # change with no example change has nothing to check and is deliberately absent.
+            docs-content-types:
+              - './docs/content/**/javascript/*.ts'
+              - './docs/content/**/react/*.tsx'
+              - './docs/content/**/vue/*.vue'
+              - './docs/content-type-check/**'
+              - './.github/actions/docs-content-typecheck/**'
             pkg-preview:
               - './handsontable/**'
               - './wrappers/**'
             docs:
               - './docs/**'
+              # The examples type check lives in docs.yml, which test.yml starts only on this flag, so
+              # every `docs-content-types` glob must also match here (pinned by the wiring test).
+              - './.github/actions/docs-content-typecheck/**'
               - './handsontable/package.json'
               # docs' Playwright version comes from the workspace catalog too.
               - './pnpm-lock.yaml'
@@ -360,7 +385,7 @@ jobs:
 
   presence:
     name: test presence
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Pillar 1: source changed ⇒ a matching test changed. BLOCKS (DEV-3066):
     # a red verdict fails this job, which stops the pipeline the way the
     # changelog gate does. PR-only; needs git history, no build.
@@ -419,10 +444,31 @@ jobs:
         run: set -o pipefail; node .github/scripts/test-weakening-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
         env:
           GATE_BASE: ${{ github.event.pull_request.base.sha }}
+      # The feature manifest's record of released ids only grows: every id the base branch recorded stays, with
+      # every licensing value it had there (handsontable/src/featureManifest/AGENTS.md). One pull request can edit
+      # the manifest and the record together, so only the base branch's copy catches a removed token. Compared
+      # with the refreshed live tip, never `base.sha`, for the same reason as the gate above. A base without the
+      # file yet reads as `{}`. Needs nothing but Node, and runs even when the gate above failed.
+      - name: Check that the released feature ids only grow
+        if: ${{ !cancelled() }}
+        run: |
+          git fetch --no-tags origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}" \
+            || echo "::warning::could not refresh origin/${BASE_REF}; comparing with the checkout's copy"
+          git rev-parse --verify --quiet "origin/${BASE_REF}" > /dev/null \
+            || { echo "::error::origin/${BASE_REF} is missing, so the released feature ids cannot be compared"; exit 1; }
+          RECORD=handsontable/src/featureManifest/released-tokens.json
+          if git cat-file -e "origin/${BASE_REF}:${RECORD}" 2>/dev/null; then
+            git show "origin/${BASE_REF}:${RECORD}" > "$RUNNER_TEMP/released-base.json"
+          else
+            echo '{}' > "$RUNNER_TEMP/released-base.json"
+          fi
+          node handsontable/scripts/generate-feature-manifest.mjs --check-base "$RUNNER_TEMP/released-base.json"
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
 
   changelog:
     name: changelog
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # PR-only, and path-aware: an entry is required only when shippable source
     # changed (handsontable/src/** or wrappers/**, tests + markdown excluded) —
     # docs/test/CI-only PRs pass automatically, and `[skip changelog]` (outside
@@ -452,7 +498,7 @@ jobs:
 
   tooling-tests:
     name: tooling tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Runs the enforcement machinery's OWN unit tests (node --test) so a regression
     # in the presence-gate classifier, diff-coverage parser, weakening detector, eval
     # scorer, or the hooks is caught in CI — otherwise those tests exist but nothing

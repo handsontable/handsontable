@@ -36,9 +36,9 @@ export class CustomBordersLabPage {
    * bundle travel as query params so the fixture loads the matching stylesheet and Handsontable
    * build — miss either and the leg silently tests something other than what its name says.
    */
-  async goto(): Promise<void> {
+  async goto(scheme: 'light' | 'dark' = 'light'): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/custom-borders-lab.html?theme=${this.theme}&bundle=${this.bundle}`);
+      `/tests/fixtures/demo/custom-borders-lab.html?theme=${this.theme}&bundle=${this.bundle}&scheme=${scheme}`);
     await expect(this.grid).toBeAttached();
   }
 
@@ -175,6 +175,92 @@ export class CustomBordersLabPage {
       s => (window as any).borderUtils.countCustomBordersIn(s), overlaySelector);
   }
 
+  /**
+   * Scroll the master holder to the right in `steps` equal steps, one animation frame apart, and
+   * report how many forced layouts the browser ran (Chromium `Performance.getMetrics`
+   * `LayoutCount`) and how many view renders the steps caused. A warm-up pass runs first so the
+   * measured pass starts from a settled grid.
+   */
+  async measureHorizontalScrollLayouts(steps: number): Promise<{ layouts: number, renders: number }> {
+    const cdp = await this.page.context().newCDPSession(this.page);
+
+    await cdp.send('Performance.enable');
+
+    const readLayoutCount = async() => {
+      const { metrics } = await cdp.send('Performance.getMetrics');
+
+      return metrics.find(metric => metric.name === 'LayoutCount')!.value;
+    };
+    const scrollPass = () => this.page.evaluate(async(stepCount) => {
+      const hot = (window as any).hot;
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const stepSize = (holder.scrollWidth - holder.clientWidth) / stepCount;
+      let renders = 0;
+      const onRender = () => {
+        renders += 1;
+      };
+
+      hot.addHook('afterViewRender', onRender);
+      holder.scrollLeft = 0;
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      renders = 0;
+
+      for (let i = 1; i <= stepCount; i++) {
+        holder.scrollLeft = stepSize * i;
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+
+      hot.removeHook('afterViewRender', onRender);
+
+      return renders;
+    }, steps);
+
+    try {
+      await scrollPass();
+
+      const before = await readLayoutCount();
+      const renders = await scrollPass();
+      const after = await readLayoutCount();
+
+      return { layouts: after - before, renders };
+    } finally {
+      await cdp.detach();
+    }
+  }
+
+  /**
+   * Run `Border#measure()` on every selection layer the grid draws (focus, area, custom borders)
+   * and report, per layer, whether it measured something and how many DOM mutations it caused.
+   * Walkontable's measure pass must write nothing: one write between two geometry reads brings
+   * back a forced layout per border.
+   */
+  async measureBordersAndCountWrites(): Promise<Array<{ measured: boolean, mutations: number }>> {
+    return this.page.evaluate(() => {
+      const hot = (window as any).hot;
+      const manager = hot.view._wt.selectionManager;
+      const { highlight } = hot.selection;
+      const selections = [highlight.getFocus(), ...highlight.areas.values(), ...highlight.customSelections];
+      const observer = new MutationObserver(() => {});
+
+      observer.observe(document.body, { attributes: true, childList: true, subtree: true, characterData: true });
+      observer.takeRecords();
+
+      const results = [];
+
+      for (const selection of selections) {
+        for (const border of manager.getBorderInstances(selection)) {
+          const measurement = border.measure(selection.getCorners());
+
+          results.push({ measured: measurement !== null, mutations: observer.takeRecords().length });
+        }
+      }
+
+      observer.disconnect();
+
+      return results;
+    });
+  }
+
   /** The bounding box of a master-overlay cell. */
   async cellRect(row: number, col: number): Promise<{ top: number, right: number, bottom: number, left: number }> {
     return this.page.evaluate(([r, c]) => {
@@ -198,20 +284,48 @@ export class CustomBordersLabPage {
   }
 
   /**
+   * Add one border side to a cell through the context menu's Borders submenu (`Top`, `Bottom`,
+   * `Left`, or `Right`), then deselect so the built-in selection borders cannot mask the result.
+   */
+  async addBorderViaContextMenu(row: number, col: number, side: 'Top' | 'Bottom' | 'Left' | 'Right'): Promise<void> {
+    await this.#pickBordersSubmenuItem(row, col, side);
+  }
+
+  /**
+   * The painted (computed) background colors of all visible custom-border edges. Unlike
+   * `visibleBorderColors()`, which reads the inline value, this resolves CSS variables and
+   * `light-dark()` to the color the user sees.
+   */
+  async visibleBorderComputedColors(): Promise<string[]> {
+    return this.page.evaluate(() => (window as any).borderUtils.visibleBorderComputedColors());
+  }
+
+  /**
+   * The computed background color of a cell.
+   */
+  async cellBackgroundColor(row: number, col: number): Promise<string> {
+    return this.cellInMaster(row, col).evaluate(td => getComputedStyle(td).backgroundColor);
+  }
+
+  /**
    * Remove the border of a cell through the real context menu ("Borders" → "Remove
    * border(s)") — the user path that regressed with orphaned border ids.
    */
   async removeBorderViaContextMenu(row: number, col: number): Promise<void> {
+    await this.#pickBordersSubmenuItem(row, col, 'Remove border(s)');
+  }
+
+  /**
+   * Right-click a cell, open the context menu's Borders submenu, and click `label` in it. Then
+   * deselect so the built-in selection borders cannot mask the caller's border assertions.
+   */
+  async #pickBordersSubmenuItem(row: number, col: number, label: string): Promise<void> {
     await this.cellInMaster(row, col).click({ button: 'right' });
 
     const menu = this.page.locator('.htContextMenu:visible').last();
 
     await menu.getByText('Borders', { exact: true }).hover();
-
-    const submenu = this.page.locator('.htContextMenuSub_Borders');
-
-    await submenu.getByText('Remove border(s)', { exact: true }).click();
-    // Deselect so the built-in selection borders cannot mask the caller's border assertions.
+    await this.page.locator('.htContextMenuSub_Borders').getByText(label, { exact: true }).click();
     await this.page.evaluate(() => (window as any).hot.deselectCell());
   }
 }

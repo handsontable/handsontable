@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "select-editor",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T14:05:30.666Z"
+  },
+  "steps": {
+    "open-editor": "combo box collapsed",
+    "arrow-down-first": "option a",
+    "arrow-down-second": "option b",
+    "commit-option": "d 2 d row 3 c column 5",
+    "back-to-committed": "option b d row 2 c column 5"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "id": "checkbox-cell",
+  "surface": "A checkbox column: the checked and unchecked state of its cells, Space toggling one, and a read-only cell.",
+  "group": "editors",
+  "page": "checkbox",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"updateSettings": {"columns": [{"data": "name"}, {"data": "done", "type": "checkbox"}]}}, {"selectCell": [1, 1]}],
+  "steps": [
+    {
+      "id": "arrow-up-unchecked",
+      "action": {"press": "ArrowUp"},
+      "expect": [["unchecked", "not checked"], ["done"]],
+      "note": "The setup turns the header checkbox off: its name, `Check all (2 of 5 checked)`, is read as the column's name on every cell by NVDA with Chromium and VoiceOver, so its word `checked` would satisfy every state group below. The header checkbox is the row selection scenarios' surface. The grid starts on Task 1's cell, the only checked one; ArrowUp reads Task 0's, unchecked. Each cell's checkbox carries its state in its name (`Checked`, `Unchecked`). Finding: VoiceOver says nothing on this first arrow key, on both browsers, with the header checkbox on and off."
+    },
+    {
+      "id": "space-check",
+      "action": {"press": "Space"},
+      "expect": [["checked"]],
+      "note": "Space toggles the focused cell's checkbox and the focus stays on the cell. Only the state is required: a reader that announces a state change does not repeat the cell. `checked` is also inside `not checked`, so this group proves the state is spoken, not which state; the golden pins the words. Finding: with Chromium, NVDA and VoiceOver say nothing when Space toggles the cell; NVDA with Firefox reads the cell again (`Checked, Done, row 2`) and VoiceOver with WebKit reads `Done Checked`."
+    },
+    {
+      "id": "space-uncheck",
+      "action": {"press": "Space"},
+      "expect": [["unchecked", "not checked"]],
+      "note": "Space again unchecks the cell. Finding: silent on NVDA and VoiceOver with Chromium, as for the check."
+    },
+    {
+      "id": "arrow-down-checked",
+      "action": {"press": "ArrowDown"},
+      "expect": [["checked"], ["done"]],
+      "note": "Task 1's cell, checked from the start."
+    },
+    {
+      "id": "arrow-down-read-only",
+      "action": {"press": "ArrowDown"},
+      "expect": [["unchecked", "not checked"], ["read only"]],
+      "note": "Task 2's cell is read only and unchecked; the cell carries aria-readonly, so a reader should say it before a user presses Space for nothing. Finding: no reader says read only."
+    },
+    {
+      "id": "space-on-read-only",
+      "action": {"press": "Space"},
+      "expect": [],
+      "note": "Space on the read-only cell changes nothing. Nothing is required: the transcript records what a reader says when nothing happens."
+    },
+    {
+      "id": "arrow-up-checked",
+      "action": {"press": "ArrowUp"},
+      "expect": [["checked"], ["done"]],
+      "note": "Back on Task 1's cell, which is still checked: the grid answers keys after Space on a read-only cell."
+    }
+  ]
+}

@@ -8,6 +8,27 @@ import type { StylesHandler } from '../types';
 const DECLARED_UNCOUNTED_GRIDLINE_WIDTH = 1;
 
 /**
+ * The probe cell's rendered bottom border, in CSS pixels.
+ *
+ * The probe `td` is not the first row, so its top border is 0. Every themed cell's bottom
+ * border is the same width as the first head row's top gridline. An unreadable style falls
+ * back to the declared 1px.
+ *
+ * @param {StylesHandler | null | undefined} stylesHandler The handler that measured the probe.
+ * @returns {number}
+ */
+export function renderedBottomBorderWidth(
+  stylesHandler: StylesHandler | null | undefined
+): number {
+  const readStyle = stylesHandler?.getStyleForTD;
+  const rendered = Number.parseFloat(
+    typeof readStyle === 'function' ? `${readStyle.call(stylesHandler, 'border-bottom-width')}` : ''
+  );
+
+  return Number.isFinite(rendered) ? rendered : DECLARED_UNCOUNTED_GRIDLINE_WIDTH;
+}
+
+/**
  * The compensation added to the summed row heights to get the height the table actually renders at.
  *
  * The summed row heights fall one whole pixel short of the band the table renders, because the
@@ -71,15 +92,7 @@ export function getHiderHeightCompensation(wtSettings: Settings): number {
   const stylesHandler = wtSettings.getSetting<StylesHandler | null>('stylesHandler');
   // A standalone Walkontable host may supply no styles handler at all, or one implementing only
   // part of the class Handsontable passes in — the engine's own test harness does exactly that.
-  const readStyle = stylesHandler?.getStyleForTD;
-  const renderedBorderWidth = Number.parseFloat(
-    typeof readStyle === 'function' ? `${readStyle.call(stylesHandler, 'border-bottom-width')}` : ''
-  );
-
-  if (!Number.isFinite(renderedBorderWidth)) {
-    return DECLARED_UNCOUNTED_GRIDLINE_WIDTH;
-  }
-
+  const renderedBorderWidth = renderedBottomBorderWidth(stylesHandler);
   const wholePixelWidth = Math.round(renderedBorderWidth);
   const inflation = renderedBorderWidth > wholePixelWidth
     ? renderedBorderWidth - wholePixelWidth : 0;

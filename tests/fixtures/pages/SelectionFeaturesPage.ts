@@ -1,6 +1,12 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, MoveCellsHookRecord } from './windowTypes';
 import { dragFillHandle } from '../gestures';
+import { awaitBundle } from '../bundle';
+
+/**
+ * The plugins the DEV-775 spec destroys on their own, ahead of the grid.
+ */
+type DestroyablePluginName = 'autofill' | 'comments' | 'filters' | 'autoColumnSize' | 'nestedHeaders';
 
 type Box = { x: number, y: number, width: number, height: number };
 
@@ -35,11 +41,13 @@ function overlayClass(overlay: OverlayName): string {
 export class SelectionFeaturesPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
   }
 
@@ -48,7 +56,8 @@ export class SelectionFeaturesPage {
    * a real DOM condition).
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/selection-features.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/selection-features.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -110,8 +119,96 @@ export class SelectionFeaturesPage {
   }
 
   /** Select a cell range through the instance API. */
-  async selectCells(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
-    await this.page.evaluate(range => window.hot.selectCells([range]), [fromRow, fromCol, toRow, toCol]);
+  async selectCells(
+    fromRow: number, fromCol: number, toRow: number, toCol: number, scrollToCell = true,
+  ): Promise<void> {
+    await this.page.evaluate(
+      ([range, scroll]) => window.hot.selectCells([range as number[]], scroll as boolean),
+      [[fromRow, fromCol, toRow, toCol], scrollToCell] as const,
+    );
+  }
+
+  /**
+   * Select several ranges at once through the instance API, the way `selectCells()` builds a
+   * non-contiguous selection. Each range is `[fromRow, fromCol, toRow, toCol]`.
+   */
+  async selectRanges(ranges: [number, number, number, number][]): Promise<void> {
+    await this.page.evaluate(selection => window.hot.selectCells(selection), ranges);
+  }
+
+  /**
+   * Every fill handle drawn in any overlay – the cell corner (`.current`) and the area corner
+   * (`.area`) alike. Counting across overlays keeps a handle drawn by a frozen clone from hiding.
+   */
+  fillHandlesInAnyOverlay(): Locator {
+    return this.grid.locator('.wtBorder.corner:visible');
+  }
+
+  /**
+   * Select a cell and paste text into it through the CopyPaste plugin's `paste()` – the same write
+   * a Ctrl/Cmd+V makes (source `CopyPaste.paste`), without depending on the system clipboard.
+   */
+  async pasteText(row: number, col: number, text: string): Promise<void> {
+    await this.page.evaluate(([r, c, t]) => {
+      window.hot.selectCell(r, c);
+      window.hot.getPlugin('copyPaste').paste(t);
+    }, [row, col, text] as const);
+  }
+
+  /**
+   * What a checkbox cell holds and shows: the stored source value, whether the renderer drew the
+   * `#bad-value#` state, and whether the cell carries the invalid class.
+   */
+  async checkboxCell(row: number, col: number): Promise<{ value: unknown, badValue: boolean, invalid: boolean }> {
+    return this.page.evaluate(([r, c]) => {
+      const td = window.hot.getCell(r, c, true);
+
+      return {
+        value: window.hot.getSourceDataAtCell(r, c),
+        badValue: Boolean(td?.querySelector('.htBadValue')),
+        invalid: td?.classList.contains('htInvalid') ?? false,
+      };
+    }, [row, col] as const);
+  }
+
+  /**
+   * Write a value through `setDataAtCell()` with an explicit change source.
+   */
+  async setCellValueWithSource(row: number, col: number, value: CellValue, source: string): Promise<void> {
+    await this.page.evaluate(([r, c, v, src]) => window.hot.setDataAtCell(r, c, v, src), [row, col, value, source] as const);
+  }
+
+  /**
+   * Whether the grid renders a cell right now (a row below the viewport has no element).
+   */
+  async isCellRendered(row: number, col: number): Promise<boolean> {
+    return this.page.evaluate(([r, c]) => window.hot.getCell(r, c) !== null, [row, col] as const);
+  }
+
+  /**
+   * Select a cell through the API, make the grid listen, and press a key the way a user does.
+   */
+  async pressKeyOnCell(row: number, col: number, key: string): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      window.hot.selectCell(r, c);
+      window.hot.listen();
+    }, [row, col] as const);
+    await this.page.keyboard.press(key);
+  }
+
+  /**
+   * The values of one column in visual order, read through the instance API.
+   */
+  async visualColumnData(col: number): Promise<CellValue[]> {
+    return this.page.evaluate(c => window.hot.getDataAtCol(c), col);
+  }
+
+  /**
+   * Sort one column through the ColumnSorting plugin.
+   */
+  async sortColumn(col: number, sortOrder: 'asc' | 'desc'): Promise<void> {
+    await this.page.evaluate(([c, order]) => window.hot.getPlugin('columnSorting').sort({ column: c, sortOrder: order }),
+      [col, sortOrder] as const);
   }
 
   /** Clear the selection through the instance API. */
@@ -678,6 +775,13 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Read the last fully visible visual column.
+   */
+  async lastFullyVisibleColumn(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getLastFullyVisibleColumn());
+  }
+
+  /**
    * Scroll the target row to the bottom of the viewport.
    */
   async scrollRowToBottom(row: number): Promise<void> {
@@ -793,6 +897,73 @@ export class SelectionFeaturesPage {
    * @param {number} row Visual row index.
    */
   async ctrlClickRowHeader(row: number): Promise<void> {
+    await this.#clickRowHeader(row, true);
+  }
+
+  /**
+   * Clicks a row header with no modifier, which selects the whole row as the only range.
+   *
+   * @param {number} row Visual row index.
+   */
+  async clickRowHeader(row: number): Promise<void> {
+    await this.#clickRowHeader(row, false);
+  }
+
+  /**
+   * Drag-selects a range with the real pointer while Ctrl/Cmd is held, which adds it as a new
+   * selection layer instead of replacing the selection.
+   */
+  async ctrlDragSelectCells(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
+    await this.page.keyboard.down('ControlOrMeta');
+    await this.dragSelectCells(fromRow, fromCol, toRow, toCol);
+    await this.page.keyboard.up('ControlOrMeta');
+  }
+
+  /**
+   * Presses Ctrl/Cmd+A, which selects the whole grid as one range.
+   */
+  async pressSelectAll(): Promise<void> {
+    await this.page.keyboard.press('ControlOrMeta+a');
+  }
+
+  /**
+   * Clicks a cell where it is drawn on top, with or without Ctrl/Cmd held. A cell in a frozen row or
+   * column is drawn by a clone that covers the master copy, and `cell()` cannot tell the copies apart,
+   * so the point comes from `getCell(row, col, true)` – the topmost overlay's element.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} col Visual column index.
+   * @param {boolean} [withModifier=false] Whether to hold Ctrl/Cmd during the click.
+   */
+  async clickTopmostCell(row: number, col: number, withModifier = false): Promise<void> {
+    const point = await this.page.evaluate(([r, c]) => {
+      const rect = window.hot.getCell(r, c, true)?.getBoundingClientRect();
+
+      return rect ? { x: rect.x + (rect.width / 2), y: rect.y + (rect.height / 2) } : null;
+    }, [row, col] as const);
+
+    if (!point) {
+      throw new Error(`Cell (${row}, ${col}) is not rendered, so it cannot be clicked`);
+    }
+
+    if (withModifier) {
+      await this.page.keyboard.down('ControlOrMeta');
+    }
+
+    await this.page.mouse.click(point.x, point.y);
+
+    if (withModifier) {
+      await this.page.keyboard.up('ControlOrMeta');
+    }
+  }
+
+  /**
+   * Clicks a row header, resolved through the row's own cell and the inline-start header strip.
+   *
+   * @param {number} row Visual row index.
+   * @param {boolean} withModifier Whether to hold Ctrl/Cmd during the click.
+   */
+  async #clickRowHeader(row: number, withModifier: boolean): Promise<void> {
     const cellBox = await this.cell(row, 0).boundingBox();
     const headerBox = await this.grid.locator('.ht_clone_inline_start tbody th').first().boundingBox();
 
@@ -802,9 +973,15 @@ export class SelectionFeaturesPage {
 
     // The row comes from its own cell and the column from the header strip, so neither depends on
     // a position in the rendered rows — which a scrolled grid renumbers.
-    await this.page.keyboard.down('ControlOrMeta');
+    if (withModifier) {
+      await this.page.keyboard.down('ControlOrMeta');
+    }
+
     await this.page.mouse.click(headerBox.x + (headerBox.width / 2), cellBox.y + (cellBox.height / 2));
-    await this.page.keyboard.up('ControlOrMeta');
+
+    if (withModifier) {
+      await this.page.keyboard.up('ControlOrMeta');
+    }
   }
 
   /**
@@ -870,6 +1047,11 @@ export class SelectionFeaturesPage {
   /** The master holder's vertical scroll offset. */
   async verticalScrollOffset(): Promise<number> {
     return this.page.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollTop);
+  }
+
+  /** The master holder's horizontal scroll offset. */
+  async horizontalScrollOffset(): Promise<number> {
+    return this.page.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollLeft);
   }
 
   /** Scroll the master holder to its top edge, and wait until the first row is rendered. */
@@ -1170,6 +1352,16 @@ export class SelectionFeaturesPage {
     }, [overlayClass(overlay), row, col] as const);
   }
 
+  /**
+   * The visible border lines of the master's current and area selections (all edges and the corner).
+   * Walkontable hides the edges it does not need, so a drawn selection shows only some of them.
+   *
+   * @returns {Locator}
+   */
+  visibleSelectionBorders(): Locator {
+    return this.page.locator('.ht_master .wtBorder.area:visible, .ht_master .wtBorder.current:visible');
+  }
+
   /** The currently visible move-zone bands in the master overlay. */
   visibleMoveZones(): Locator {
     return this.page.locator('.ht_master .wtMoveZone:visible');
@@ -1203,6 +1395,14 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * The autofill fill handle of a multi-cell range (drawn by the area border, not the focus cell's),
+   * scoped to the master overlay.
+   */
+  rangeFillHandle(): Locator {
+    return this.page.locator('.ht_master .wtBorder.area.corner:visible');
+  }
+
+  /**
    * The visible edges of the autofill "fill" border in the master overlay — the dashed preview
    * that follows the pointer while the fill handle is dragged. Empty once no fill gesture is
    * in progress.
@@ -1219,6 +1419,16 @@ export class SelectionFeaturesPage {
    */
   async doubleClickFillHandle(): Promise<void> {
     await this.fillHandle().dblclick();
+  }
+
+  /** Every value of a column, by visual row, read through the instance API. */
+  async columnValues(col: number): Promise<CellValue[]> {
+    return this.page.evaluate(column => window.hot.getDataAtCol(column), col);
+  }
+
+  /** Every value of a row, by visual column, read through the instance API. */
+  async rowValues(row: number): Promise<CellValue[]> {
+    return this.page.evaluate(visualRow => window.hot.getDataAtRow(visualRow), row);
   }
 
   /** Drag the fill handle with the real pointer onto the given cell and release. */
@@ -1266,6 +1476,107 @@ export class SelectionFeaturesPage {
     await this.page.evaluate(() => {
       window.hot.updateSettings({ fillHandle: window.hot.getSettings().fillHandle });
     });
+  }
+
+  /**
+   * Destroy one plugin instance on its own, ahead of the grid, with `getPlugin(name).destroy()`. A
+   * reference to a destroyed Autofill plugin is kept, so `tryCallDestroyedAutofill()` can call it.
+   */
+  async destroyPlugin(pluginName: DestroyablePluginName): Promise<void> {
+    await this.page.evaluate((name) => {
+      if (name === 'autofill') {
+        const plugin = window.hot.getPlugin('autofill');
+
+        window.destroyedAutofill = plugin;
+        plugin.destroy();
+      } else if (name === 'comments') {
+        window.hot.getPlugin('comments').destroy();
+      } else if (name === 'filters') {
+        window.hot.getPlugin('filters').destroy();
+      } else {
+        window.hot.getPlugin(name).destroy();
+      }
+    }, pluginName);
+  }
+
+  /**
+   * Call `updateSettings()` and report the message it threw, or `null` when it did not throw.
+   */
+  async tryUpdateSettings(settings: Record<string, unknown>): Promise<string | null> {
+    return this.page.evaluate((nextSettings) => {
+      try {
+        window.hot.updateSettings(nextSettings);
+
+        return null;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    }, settings);
+  }
+
+  /**
+   * Call one lifecycle method on the Autofill plugin reference `destroyPlugin('autofill')` kept, and
+   * report the message it threw, or `null` when it did not throw. A missing reference is reported as
+   * a failure, so the call cannot pass without reaching the plugin.
+   */
+  async tryCallDestroyedAutofill(
+    method: 'enablePlugin' | 'disablePlugin' | 'updatePlugin'
+  ): Promise<string | null> {
+    return this.page.evaluate((methodName) => {
+      if (!window.destroyedAutofill) {
+        return 'no Autofill reference was kept';
+      }
+
+      try {
+        window.destroyedAutofill[methodName]();
+
+        return null;
+      } catch (error) {
+        return (error as Error).message;
+      }
+    }, method);
+  }
+
+  /**
+   * Destroy the whole grid and report what happened: the message the call threw (or `null`) and
+   * whether `afterDestroy` - the last step of the teardown - ran. The fixture's `hot` reference is
+   * dropped afterwards, so the next `initGrid()` does not destroy the same instance twice.
+   */
+  async tryDestroyGrid(): Promise<{ error: string | null, afterDestroyFired: boolean }> {
+    return this.page.evaluate(() => {
+      let afterDestroyFired = false;
+      let error: string | null = null;
+
+      window.hot.addHook('afterDestroy', () => {
+        afterDestroyFired = true;
+      });
+
+      try {
+        window.hot.destroy();
+      } catch (thrown) {
+        error = (thrown as Error).message;
+      }
+
+      Reflect.deleteProperty(window, 'hot');
+
+      return { error, afterDestroyFired };
+    });
+  }
+
+  /**
+   * Disable or re-enable the Autofill plugin directly, leaving the `fillHandle` setting as it is.
+   * No render is forced here: the plugin has to show or hide the fill handle on its own.
+   */
+  async setAutofillPluginEnabled(enabled: boolean): Promise<void> {
+    await this.page.evaluate((isEnabled) => {
+      const plugin = window.hot.getPlugin('autofill');
+
+      if (isEnabled) {
+        plugin.enablePlugin();
+      } else {
+        plugin.disablePlugin();
+      }
+    }, enabled);
   }
 
   /**
@@ -1350,38 +1661,117 @@ export class SelectionFeaturesPage {
    * and leaves nothing to assert on.
    */
   async scrollCellBehindFrozenPane(row: number, col: number, pane: 'columns' | 'rows'): Promise<void> {
+    if (pane === 'columns') {
+      await this.scrollCellEndUnderInlinePane(row, col, 'start');
+
+      return;
+    }
+
     const paneInset = 8;
 
-    await this.page.evaluate(({ targetRow, targetCol, targetPane, inset }) => {
+    await this.page.evaluate(({ targetRow, targetCol, inset }) => {
       const holder = document.querySelector('.ht_master .wtHolder');
       const cell = document.querySelector(`.ht_master [data-testid="cell-${targetRow}-${targetCol}"]`);
-      const paneElement = document.querySelector(
-        targetPane === 'columns' ? '.ht_clone_inline_start' : '.ht_clone_bottom'
-      );
+      const paneElement = document.querySelector('.ht_clone_bottom');
 
       if (!holder || !cell || !paneElement) {
         throw new Error('The master viewport, the target cell or the frozen pane is not rendered.');
       }
 
-      const cellRect = cell.getBoundingClientRect();
-      const paneRect = paneElement.getBoundingClientRect();
+      holder.scrollTop += cell.getBoundingClientRect().bottom - (paneElement.getBoundingClientRect().top + inset);
+    }, { targetRow: row, targetCol: col, inset: paneInset });
+  }
 
-      if (targetPane === 'columns') {
-        holder.scrollLeft += cellRect.right - (paneRect.right - inset);
-      } else {
-        holder.scrollTop += cellRect.bottom - (paneRect.top + inset);
-      }
-    }, { targetRow: row, targetCol: col, targetPane: pane, inset: paneInset });
+  /**
+   * How far the fill handle stands inside the master holder's inline-end and bottom edges, in
+   * pixels - the strip an overlay scrollbar of the holder is painted over - next to the same
+   * distances for the cell it belongs to (the selection's bottom-end cell). Negative when the handle
+   * or the cell reaches past the edge. `withinCellInline` says whether the handle still lies inside
+   * that cell along the inline axis (an unlifted handle hangs past the cell's bottom by design).
+   */
+  async fillHandleInsetFromHolderEdges(): Promise<{
+    inlineEnd: number, bottom: number, cellInlineEnd: number, cellBottom: number, withinCellInline: boolean,
+  }> {
+    const handleBox = await this.fillHandle().boundingBox();
+
+    if (!handleBox) {
+      throw new Error('The fill handle is not rendered.');
+    }
+
+    return this.page.evaluate((handle) => {
+      const holder = document.querySelector<HTMLElement>('[data-testid="grid"] .ht_master .wtHolder')!;
+      const holderBox = holder.getBoundingClientRect();
+      const { row, col } = window.hot.getSelectedRangeLast()!.getBottomEndCorner();
+      const cellBox = window.hot.getCell(row, col)!.getBoundingClientRect();
+      const rtl = window.hot.isRtl();
+      const handleEnd = rtl ? handle.x : handle.x + handle.width;
+      const cellEnd = rtl ? cellBox.left : cellBox.right;
+      const toEdge = (x: number) => Math.round(rtl ? x - holderBox.left : holderBox.right - x);
+      const handleStart = rtl ? handle.x + handle.width : handle.x;
+      const cellStart = rtl ? cellBox.right : cellBox.left;
+      const insideInline = rtl
+        ? handleStart <= cellStart + 1 && handleEnd >= cellEnd - 1
+        : handleStart >= cellStart - 1 && handleEnd <= cellEnd + 1;
+
+      return {
+        inlineEnd: toEdge(handleEnd),
+        bottom: Math.round(holderBox.bottom - (handle.y + handle.height)),
+        cellInlineEnd: toEdge(cellEnd),
+        cellBottom: Math.round(holderBox.bottom - cellBox.bottom),
+        withinCellInline: insideInline,
+      };
+    }, handleBox);
+  }
+
+  /**
+   * Whether the fill handle overlaps an open scrollbar clearance band (`.htScrollbarClearanceFiller`),
+   * the strip the grid keeps clear for an overlay scrollbar while it shows. `bandShown` is `false`
+   * when no band is open, which makes `overlaps` meaningless.
+   */
+  async fillHandleOverlapsScrollbarBand(): Promise<{ bandShown: boolean, overlaps: boolean }> {
+    const handleBox = await this.fillHandle().boundingBox();
+
+    if (!handleBox) {
+      throw new Error('The fill handle is not rendered.');
+    }
+
+    return this.page.evaluate((handle) => {
+      const bands = Array.from(document.querySelectorAll<HTMLElement>('[data-testid="grid"] .htScrollbarClearanceFiller'))
+        .map(band => band.getBoundingClientRect())
+        .filter(rect => rect.width > 0 && rect.height > 0);
+
+      return {
+        bandShown: bands.length > 0,
+        overlaps: bands.some(rect => handle.x < rect.right && handle.x + handle.width > rect.left &&
+          handle.y < rect.bottom && handle.y + handle.height > rect.top),
+      };
+    }, handleBox);
+  }
+
+  /**
+   * The layout space the master holder gives its vertical and horizontal scrollbars. `0` on both
+   * axes is an overlay ("floating") scrollbar, painted over the cells.
+   */
+  async holderScrollbarGutters(): Promise<{ vertical: number, horizontal: number }> {
+    return this.page.evaluate(() => {
+      const holder = document.querySelector<HTMLElement>('[data-testid="grid"] .ht_master .wtHolder')!;
+
+      return {
+        vertical: holder.offsetWidth - holder.clientWidth,
+        horizontal: holder.offsetHeight - holder.clientHeight,
+      };
+    });
   }
 
   /**
    * What the browser hit-tests at the center of the fill handle, as `<overlay>/<class name>`. A
    * frozen pane that occludes the handle owns those pixels, so the topmost element there belongs to
    * that pane rather than to the master. Match on the overlay and treat the class name as detail:
-   * which of the pane's elements is topmost at that point depends on the theme's cell metrics.
+   * which of the pane's elements is topmost at that point depends on the theme's cell metrics. Pass
+   * `rangeFillHandle()` for a multi-cell range, whose handle belongs to the area border.
    */
-  async elementAtFillHandleCenter(): Promise<string> {
-    const handleBox = await this.fillHandle().boundingBox();
+  async elementAtFillHandleCenter(handle: Locator = this.fillHandle()): Promise<string> {
+    const handleBox = await handle.boundingBox();
 
     if (!handleBox) {
       throw new Error('The fill handle is not rendered.');
@@ -1400,6 +1790,148 @@ export class SelectionFeaturesPage {
 
       return `${overlayName}/${element.className}`;
     }, { x: handleBox.x + (handleBox.width / 2), y: handleBox.y + (handleBox.height / 2) });
+  }
+
+  /**
+   * Scroll the master viewport until the given cell's inline-end edge, where its fill handle is
+   * drawn, sits a few pixels inside an inline frozen pane: the inline-start pane (row headers and
+   * `fixedColumnsStart`) or the inline-end pane (`fixedColumnsEnd`). Works in both layout
+   * directions. Ends once the redraw reports the column off screen on that side.
+   */
+  async scrollCellEndUnderInlinePane(row: number, col: number, pane: 'start' | 'end'): Promise<void> {
+    const paneInset = 8;
+
+    await this.page.evaluate(({ targetRow, targetCol, targetPane, inset }) => {
+      const holder = document.querySelector('.ht_master .wtHolder');
+      const cell = document.querySelector(`.ht_master [data-testid="cell-${targetRow}-${targetCol}"]`);
+      const paneElement = document.querySelector(`.ht_clone_inline_${targetPane}`);
+
+      if (!holder || !cell || !paneElement) {
+        throw new Error('The master viewport, the target cell or the inline pane is not rendered.');
+      }
+
+      const isRtl = window.hot.isRtl();
+      const cellRect = cell.getBoundingClientRect();
+      const paneRect = paneElement.getBoundingClientRect();
+      // The cell's inline-end edge, and the point inside the pane it has to reach.
+      const cellEnd = isRtl ? cellRect.left : cellRect.right;
+      const paneTarget = (targetPane === 'start') === isRtl ? paneRect.left + inset : paneRect.right - inset;
+
+      // A growing `scrollLeft` moves the content toward the physical left in both directions (RTL
+      // scrolls from 0 into negative values), so one formula covers both.
+      holder.scrollLeft += cellEnd - paneTarget;
+    }, { targetRow: row, targetCol: col, targetPane: pane, inset: paneInset });
+
+    // The redraw is rAF-batched and lands after the scroll offset settles, so wait for the
+    // viewport calculators, which exclude the frozen panes, to stop counting the column.
+    await expect.poll(() => this.page.evaluate(([column, side]) => (side === 'start'
+      ? window.hot.getFirstPartiallyVisibleColumn() > column
+      : window.hot.getLastFullyVisibleColumn() < column), [col, pane] as const)).toBe(true);
+  }
+
+  /**
+   * The last column whose cell in the given row ends at least `margin` pixels before the inline-end
+   * frozen pane (`fixedColumnsEnd`), read from the master's rendered cells. Picked from the DOM, not
+   * hardcoded, because each theme sizes the columns differently. Works in both layout directions: the
+   * pane is on the physical right in LTR and on the physical left in RTL.
+   */
+  async lastColumnClearOfInlineEndPane(row: number, margin = 16): Promise<number> {
+    return this.page.evaluate(({ targetRow, gap }) => {
+      const pane = document.querySelector('.ht_clone_inline_end');
+
+      if (!pane) {
+        throw new Error('The inline-end pane is not rendered.');
+      }
+
+      const isRtl = window.hot.isRtl();
+      const paneRect = pane.getBoundingClientRect();
+      let found = -1;
+
+      document.querySelectorAll(`.ht_master [data-testid^="cell-${targetRow}-"]`).forEach((cell) => {
+        const col = Number(cell.getAttribute('data-testid')!.split('-')[2]);
+        const rect = cell.getBoundingClientRect();
+        const isClear = isRtl ? rect.left >= paneRect.right + gap : rect.right <= paneRect.left - gap;
+
+        if (isClear && col > found) {
+          found = col;
+        }
+      });
+
+      if (found < 0) {
+        throw new Error('No rendered column ends clear of the inline-end pane.');
+      }
+
+      return found;
+    }, { targetRow: row, gap: margin });
+  }
+
+  /**
+   * Scroll the master viewport to the end of its horizontal range, in either layout direction. Ends
+   * once the offset has arrived; the redraw it triggers is rAF-batched, so a caller asserts on what
+   * the redraw draws through `expect.poll`.
+   */
+  async scrollHolderToInlineEnd(): Promise<void> {
+    await this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const max = holder.scrollWidth - holder.clientWidth;
+
+      holder.scrollLeft = window.hot.isRtl() ? -max : max;
+    });
+    await expect.poll(() => this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+
+      return holder.scrollWidth - holder.clientWidth - Math.abs(holder.scrollLeft) < 1;
+    })).toBe(true);
+  }
+
+  /**
+   * Hit-tests the row of pixels just below the frozen top rows, across the whole grid, and reports
+   * every place a fill handle (`.wtBorder.corner`) is the topmost element there, as
+   * `<overlay>@<region>`: the overlay that drew it (`top`, `top_inline_start_corner`, ...) and what it
+   * lies over (`inline_start` pane, `inline_end` pane, or the scrollable part, `main`). The `top`
+   * overlay's holder reaches a few pixels below its table so the handle can hang past the frozen rows
+   * (#6937), and that overlay paints above both inline panes, so a handle it draws over a pane covers
+   * that pane's cells or row headers. Only the fill handle is matched: the selection's own edges end
+   * inside the frozen rows, and their thickness differs per theme.
+   */
+  async fillHandlesBelowFrozenRows(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const root = document.querySelector('[data-testid="grid"]');
+      const topTable = document.querySelector('.ht_clone_top table.htCore');
+
+      if (!root || !topTable) {
+        throw new Error('The grid or the top overlay is not rendered.');
+      }
+
+      const paneRange = (name: string): [number, number] | null => {
+        const pane = document.querySelector(`.ht_clone_${name}`);
+        const rect = pane?.getBoundingClientRect();
+
+        return rect && rect.width > 0 ? [rect.left, rect.right] : null;
+      };
+      const panes: Array<[string, [number, number] | null]> = [
+        ['inline_start', paneRange('inline_start')],
+        ['inline_end', paneRange('inline_end')],
+      ];
+      const rootRect = root.getBoundingClientRect();
+      const y = topTable.getBoundingClientRect().bottom + 1.5;
+      const hits = new Set<string>();
+
+      for (let x = Math.ceil(rootRect.left) + 0.5; x < rootRect.right; x += 1) {
+        const element = document.elementFromPoint(x, y);
+        const overlay = element?.closest('[class*="ht_clone_"]');
+
+        if (element?.matches('.wtBorder.corner') && overlay) {
+          const overlayName = Array.from(overlay.classList)
+            .find(name => name.startsWith('ht_clone_'))!.replace('ht_clone_', '');
+          const [region] = panes.find(([, range]) => range && x >= range[0] && x <= range[1]) ?? ['main'];
+
+          hits.add(`${overlayName}@${region}`);
+        }
+      }
+
+      return Array.from(hits).sort();
+    });
   }
 
   /**
@@ -1490,7 +2022,8 @@ export class SelectionFeaturesPage {
     return this.page.evaluate(([targetRow, targetCol]) => {
       const { hot } = window;
       const OVERLAYS = ['ht_master', 'ht_clone_top_inline_start_corner', 'ht_clone_bottom_inline_start_corner',
-        'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom'];
+        'ht_clone_inline_start', 'ht_clone_top', 'ht_clone_bottom', 'ht_clone_inline_end',
+        'ht_clone_top_inline_end_corner', 'ht_clone_bottom_inline_end_corner'];
       const overlayOf = (element: Element) => OVERLAYS.find(name => element.closest(`.${name}`)) ?? 'none';
       const isDisplayed = (element: Element) => {
         const rect = element.getBoundingClientRect();

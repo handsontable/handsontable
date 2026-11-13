@@ -2,40 +2,60 @@
 /**
  * SiteTitle component override.
  *
- * Renders the logo as a link to handsontable.com (the marketing site)
- * instead of the docs root, matching the pre-Astro behavior so the docs
- * header still offers a direct path back to the main website.
+ * Renders the logo as a link to handsontable.com/datagrid (the product page)
+ * instead of the docs root, so the docs header offers a direct path to the
+ * product site.
  *
  * Adds a "dev" badge when BUILD_MODE is not 'production'. The framework
  * switcher lives in the header nav row (FrameworkSwitcher.astro).
  */
 import { logos } from 'virtual:starlight/user-images';
 import config from 'virtual:starlight/user-config';
+import logoShort from '../assets/logo-short.svg';
+import logoShortDark from '../assets/logo-short-dark.svg';
 
 const { siteTitle } = Astro.locals.starlightRoute;
 const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
 ---
 <div class="site-title-wrapper">
-  <a href="https://handsontable.com" class="site-title sl-flex">
+  <a href="https://handsontable.com/datagrid" class="site-title sl-flex">
     {
       config.logo && logos.dark && (
         <>
-          <img
-            class:list={{ 'light:sl-hidden print:hidden': !('src' in config.logo) }}
-            alt={config.logo.alt}
-            src={logos.dark.src}
-            width={logos.dark.width}
-            height={logos.dark.height}
-          />
-          {!('src' in config.logo) && (
+          <span class="logo-full">
+            <img
+              class:list={{ 'light:sl-hidden print:hidden': !('src' in config.logo) }}
+              alt={config.logo.alt}
+              src={logos.dark.src}
+              width={logos.dark.width}
+              height={logos.dark.height}
+            />
+            {!('src' in config.logo) && (
+              <img
+                class="dark:sl-hidden print:block"
+                alt={config.logo.alt}
+                src={logos.light?.src}
+                width={logos.light?.width}
+                height={logos.light?.height}
+              />
+            )}
+          </span>
+          <span class="logo-short" aria-hidden="true">
+            <img
+              class="light:sl-hidden print:hidden"
+              alt=""
+              src={logoShortDark.src}
+              width={logoShortDark.width}
+              height={logoShortDark.height}
+            />
             <img
               class="dark:sl-hidden print:block"
-              alt={config.logo.alt}
-              src={logos.light?.src}
-              width={logos.light?.width}
-              height={logos.light?.height}
+              alt=""
+              src={logoShort.src}
+              width={logoShort.width}
+              height={logoShort.height}
             />
-          )}
+          </span>
         </>
       )
     }
@@ -51,6 +71,26 @@ const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+  }
+
+  .logo-full,
+  .logo-short {
+    display: contents;
+  }
+
+  /* The full logotype is too wide for the mobile header: swap to the short H.datagrid lockup. */
+  .logo-short {
+    display: none;
+  }
+
+  @media screen and (max-width: 49.99rem) {
+    .logo-full {
+      display: none;
+    }
+
+    .logo-short {
+      display: contents;
+    }
   }
 
   .dev-badge {

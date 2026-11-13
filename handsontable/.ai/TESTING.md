@@ -25,6 +25,9 @@ npm run test:walkontable           # Run Walkontable-specific tests
 npm run test:types                 # TypeScript type checking only
 # New Playwright E2E (from the repo root):
 cd tests && npm test               # Playwright functional E2E (visual regression is the separate visual-tests/ package)
+cd tests && npm run test:a11y      # axe-core scan over the curated fixture pages, three themes, compared with tests/a11y/axe-baseline.json
+cd tests && npm run test:a11y-checks  # the accessibility checks beyond axe (keyboard walker, ...): one evidence document per check
+cd tests && npm run test:a11y-docs    # axe-core scan over the deployed docs site, light and dark, compared with tests/a11y/docs/docs-baseline.json
 
 # From monorepo root (npm --prefix):
 npm --prefix handsontable run test:unit
@@ -77,7 +80,7 @@ To reproduce a verdict locally, re-run one file alone against the same dump: `np
 
 **Test Environment:**
 - Unit tests: jsdom (JavaScript DOM implementation)
-- New E2E: Playwright (real Chromium; `tests/` package)
+- New E2E: Playwright (real Chromium, plus Firefox and WebKit for tests tagged `@cross-browser`; `tests/` package)
 - Legacy E2E: Puppeteer with real headless Chrome
 - Default legacy-Jasmine timeout: 15000ms (set in `test/bootstrap.js`)
 
@@ -323,6 +326,7 @@ Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`)
 - But if a legacy Jasmine test is **broken or flaky, fix it by migrating it to Playwright** (delete the `*.spec.js`, write the equivalent `tests/e2e/*.spec.ts`) rather than patching Jasmine. That is how the suite gradually migrates — the tests that hurt most move first.
 - **Migrate, don't patch — and if you must edit, `waitUntil()`.** A routine edit to a frozen spec that has to wait for state uses `waitUntil(condition, timeout)` (a spec global from `test/helpers/common.js`) — never a new `sleep()`, and never `waitForNextAnimationFrames()`, which is a fixed sleep denominated in frames (it awaits at most 2 real frames and pads the rest of the request with 16 ms per frame). A rendered-DOM count assertion pins the viewport first (`containerHeightForRows()`, or `scrollViewportTo()` the target into view).
 - **The flake ledger.** A legacy spec that is red or flaky across **two or more distinct CI runs** gets a migration ticket the next sprint. That is the trigger — not a third failure and not a reviewer's patience. The RefreshDimensions and display-none rerender specs both waited on the ledger until this rule existed (#13334, #13336).
+- **One CI leg on a pull request.** A pull request and a develop push run the suite on `E2E / UMD (theme: main)` only — plain UMD on the main theme, the shape `npm run test:e2e` defaults to. The six legs (three themes × UMD / the minified bundle of `test:production`) run on the `E2E nightly`, the rc/stable publish path and a master push (`.ai/CI.md`, the Jasmine single-leg entry). A spec red on another theme or on the minified bundle alone therefore first shows on the nightly, with `branch: develop` and the runner's isolation verdict in the ledger, and the verdict decides the answer: `passes alone` (the file passes when run alone — an order-dependent flake) is a migration ticket under the ledger rule above; `fails alone` is a deterministic theme- or bundle-only failure, fixed or migrated **before the next RC cut**, because the rc/stable publish path runs the six legs (`test-all`) and its publish needs them green; an unprobed red counts as `fails alone` until a local run on that theme (`--theme=<name>`) says otherwise. Neither is a reason to put a leg back on pull requests. A change you suspect is theme-sensitive is checked before the push with `--theme=horizon` / `--theme=classic`, and against the minified bundle with `npm run test:production` (same flags as `test:e2e`).
 
 ## Mocking
 
@@ -578,6 +582,7 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Unit tests (`test/unit/`): Jest tests that the core `npm run test:unit` runs, not `test:walkontable`
 - Location: `src/3rdparty/walkontable/test/`
 - Do not mix the specs with main E2E tests
+- The runner page sizes its scrollbars to a fixed 15px (`::-webkit-scrollbar` in `css/walkontable.test.css`), so the geometry of a theme-less holder does not depend on the OS scrollbar setting. A holder that a theme styles with `scrollbar-width` or `scrollbar-color` ignores the rule. Never add `--hide-scrollbars` to `test/scripts/run-puppeteer.mjs`: it zeroes the width, and about 60 specs fail (measured on Chrome 156, macOS; the "Test page scrollbar" block of `spec/overlay.spec.js` guards it). The Handsontable E2E page does not size them; its grids take the theme's scrollbar styles.
 
 **Visual Regression Tests:**
 - Framework: Playwright
@@ -585,6 +590,33 @@ npm run test:unit -- --coverage    # Show coverage after Jest run
 - Config: `visual-tests/playwright.config.ts` and `playwright-cross-browser.config.ts`
 - Screenshots stored in `visual-tests/screenshots/`
 - What earns a capture, and why a visual spec is in addition to, never instead of a Playwright assertion: `visual-tests/AGENTS.md` → Decision rule
+
+**Accessibility scan (axe):**
+- Framework: Playwright + `@axe-core/playwright` (axe-core, WCAG 2.2 A and AA rule tags – the target level; the published conformance report states conformance per criterion)
+- Location: `tests/a11y/` — `axe.spec.ts` (the scan), `pages.mjs` (the curated fixture pages, one per accessible surface, each on the three themes), `axe-baseline.json` (the catalog of known issues, and where each shows: one entry per page, theme, rule and element, with its node count), `coverage.mjs` (how the scan covers each plugin and editor folder, enforced by `tests/lib/__tests__/a11y-coverage.test.mjs`)
+- Config: `tests/playwright.a11y.config.ts`; the comparator is `tests/lib/a11y-baseline.mjs`, the reporter `tests/reporters/a11y.ts`
+- CI: one job, `A11y / axe`, in warn mode — a finding that needs action is an annotation and a summary row, never a red job; the job's only reds are tooling failures. The `A11y / axe report` check run follows the severity rule (red on a new or grown critical or serious finding, neutral on a moderate or minor one; `tests/AGENTS.md` → "A11y: the verdict of a check run"). An HTML report that locates every element (fixture, steps, selector, DOM path, screenshot) opens from the run page, a sticky pull request comment links it, and `a11y-findings.json` gives an implementer agent the same findings, concise. The baseline moves only with the code: the change that fixes a finding deletes its entry
+- It is not a test of a change: a pull request that touches an accessible surface still proves its behavior with a Playwright spec in `tests/e2e/`. How to add a page, baseline a finding, and when warn mode flips: `tests/AGENTS.md` → "A11y: the axe scan and its baseline"
+
+**Docs site accessibility scan (axe):**
+- The same rule set and comparator as the scan above, over a deployed docs site: `tests/a11y/docs/` (`docs-axe.spec.ts`, `pages.mjs` from the docs visual list plus the header's keyboard-opened states, `docs-baseline.json`), in the site's light and dark color schemes; config `tests/playwright.a11y-docs.config.ts`
+- Report-only, on demand: `.github/workflows/docs-a11y.yml` (`Docs a11y`: a dispatch, a caller, or a pull request that changes the scan's own code; never a docs change); a develop dispatch feeds the findings ledger's `docs` source. Locally: `cd tests && npm run test:a11y-docs` (`DOCS_A11Y_BASE_URL` picks the deploy). Policy: `tests/AGENTS.md`, "A11y: the docs site scan"
+- The docs site checks beyond axe run beside it on a dispatch or a call (the `checks` job): `tests/a11y/sites/` (structure, keyboard, focus and contrast, reflow, forced colors and motion), config `tests/playwright.a11y-sites.config.ts` (`HOT_A11Y_SITE=docs`), the registry `SITE_CHECKS` in `tests/lib/a11y-site-checks.mjs`, one `A11y / docs-<check> report` check run each. Locally: `cd tests && npm run test:a11y-sites`. Policy: `tests/AGENTS.md`, "A11y: the site checks beyond axe"
+
+**Accessibility checks beyond axe:**
+- Framework: Playwright, over the same catalog pages and keyboard-reached states as the axe scan (`tests/a11y/harness.ts`), one project per check
+- Location: `tests/a11y/checks/` (the specs), `tests/a11y/evidence.ts` (what a test declares and attaches); the evidence shape, the WCAG 2.2 criteria table, the summary and the check run are `tests/lib/a11y-evidence.mjs`, the reporter `tests/reporters/a11y-checks.ts`
+- Output: one evidence document per check, `tests/test-results/a11y-checks/<check>.json`, that the conformance report generator cites per criterion (the targets each criterion was evaluated on, and the findings against it), plus a detail file per target
+- CI: the `A11y nightly` only (a dispatch, no schedule; every check on develop, evidence kept 30 days, a subset's 7): the `checks` job of `a11y.yml` runs when its caller asks for it, which the pull-request pipeline does not, so a pull request runs the axe scan alone; the short suite (the checks that finish in under two minutes) is for a local run or a dispatch of the nightly, and the `checks` input runs the named checks alone (a proof run from a branch; `tests/AGENTS.md` → "A11y: the audit and the proof runs")
+- Checks: the keyboard walker (`keyboard-walker`: Tab walks with traps, focus order, Escape out of popups, the APG grid keys, every documented shortcut from `tests/a11y/checks/keyboard-shortcuts.mjs`, character keys, focus and input context changes; tab-order goldens in `tests/a11y/tab-order-goldens/`); the accessibility-tree snapshots (`tree-snapshots`: Chromium's tree of the grid and its portal in reading order, its structure, names and roles; goldens in `tests/a11y/tree-goldens/`); the axe discovery run (`axe-discovery`, nightly only: best-practice, AAA and experimental rules over the catalog, extra states, the dark scheme, right to left and a second phone, every "needs review" result with its reason, for triage); focus appearance and non-text contrast (`focus-contrast`: focus indicators, checkboxes, icons, selection outline and grid lines measured from pixels on every theme, light and dark, and the focus kept in view behind frozen panes); zoom, reflow, text spacing, and hover content (`reflow`: the surfaces around the grid at 320 px, at 200%, and under the text-spacing override, the comment shown on hover, both orientations); forced colors and reduced motion (`forced-colors-motion`, nightly only: every state watched at rest for five seconds, four interactions watched with and without `prefers-reduced-motion`, the focus, selection, menu highlight, grid lines, and icons captured in forced colors); pointer and drag alternatives (`pointer`: every control pressed and released away from it, compared with its click, every drag of `tests/a11y/checks/drag-operations.mjs` performed with each of its alternatives, and the inventory itself as the 2.5.1 target)
+- Report-only: a finding is a summary row and an annotation, never a red job; the `A11y / <check> report` check run follows the severity rule (`tests/AGENTS.md` → "A11y: the verdict of a check run"), and the nightly's run follows its worst check run; a test fails for tooling only, and a flaky check is a finding against the check. Product findings are recorded, never fixed in the check's change. How to add a check: `tests/AGENTS.md` → "A11y: the checks beyond axe"
+
+**Screen reader lanes (NVDA and VoiceOver, through Guidepup):**
+- Framework: Playwright + `@guidepup/playwright` (a real NVDA or VoiceOver driven over the fixture pages, one Playwright project per screen reader and browser)
+- Location: `tests/screenreader/` — `screenreader.spec.ts` (the runner), `scenarios/<surface>.scenario.json` (data: the catalog page or fixture, the criteria, the setup, the ordered primitives — keys and the reader's own reading commands — and the token groups each announcement must carry), `goldens/<project>/<scenario>.json` (the exact announcements per project, advisory), `coverage.mjs` (every catalog page, plugin and editor mapped to scenarios, `none` or a counted gap)
+- Config: `tests/playwright.screenreader.config.ts`; the schema is `tests/lib/screenreader-scenario.mjs`, the normalizer, matcher and golden diff `tests/lib/screenreader-transcript.mjs`, the report `tests/lib/screenreader-report.mjs`
+- CI: its own workflow (`Screen reader nightly`, a dispatch and no schedule, NVDA on Windows and VoiceOver on macOS, one job per screen reader, browser and scenario group; the `projects` and `groups` inputs keep a proof run from a branch to what changed), report-only — a missing token group or a golden difference is a summary row, never a red job, and the `Screen reader / <project> <group> report` check run follows the severity rule (a missing group is serious unless the step declares its severity; a golden difference is advisory); the pull-request pipeline does not run it. The transcripts it uploads are the evidence a future version of the conformance report can cite for what a screen reader announces
+- It is not a test of a change either: a change to something a user operates still proves its keyboard path and accessible names with a Playwright spec in `tests/e2e/`. How to add a scenario, record goldens, and what is advisory: `tests/AGENTS.md` → "Screen readers: the NVDA and VoiceOver lanes"
 
 ## Plugin Testing Requirements
 

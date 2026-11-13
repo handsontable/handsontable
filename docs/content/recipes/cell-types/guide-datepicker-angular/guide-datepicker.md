@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: "Date picker"
-metaTitle: "Date picker - JavaScript Data Grid | Handsontable"
-description: Learn how to create a custom Handsontable cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
+metaTitle: "Date picker | Handsontable DataGrid for JavaScript"
+description: Learn how to create a custom Handsontable DataGrid cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
 permalink: /recipes/cell-types/datepicker
 canonicalUrl: /recipes/cell-types/datepicker
 framework: angular
@@ -11,11 +11,11 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Date picker - React Data Grid | Handsontable
+  metaTitle: Date picker | Handsontable DataGrid for React
 angular:
-  metaTitle: Date picker - Angular Data Grid | Handsontable
+  metaTitle: Date picker | Handsontable DataGrid for Angular
 vue:
-  metaTitle: "Date picker - Vue Data Grid | Handsontable"
+  metaTitle: "Date picker | Handsontable DataGrid for Vue"
 searchCategory: Recipes
 category: Cells
 ---
@@ -35,7 +35,7 @@ This tutorial shows you how to build a date picker cell in Angular using custom 
 
 ## Overview
 
-This guide shows how to create a custom date picker cell using Angular components with the native HTML5 date input. You'll learn how to build custom editor and renderer components that extend Handsontable's Angular wrapper classes, providing a clean, type-safe implementation.
+This guide shows how to create a custom date picker cell using Angular components with the native HTML5 date input. You'll learn how to build custom editor and renderer components that extend Handsontable DataGrid's Angular wrapper classes, providing a clean, type-safe implementation.
 
 **Difficulty:** Intermediate
 **Time:** ~15 minutes
@@ -392,7 +392,7 @@ Configure Handsontable globally in `app.config.ts`. With standalone components, 
 ```typescript
 import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
 import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from "@handsontable/angular-wrapper";
 
 // Register Handsontable's modules
 registerAllModules();
@@ -403,7 +403,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        license: NON_COMMERCIAL_LICENSE,
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
       } as HotGlobalConfig,
     },
   ],

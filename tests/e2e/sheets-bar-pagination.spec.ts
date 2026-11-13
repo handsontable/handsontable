@@ -1,12 +1,16 @@
 import { test, expect } from '../fixtures/test';
 import { SheetsBarPaginationPage } from '../fixtures/pages/SheetsBarPaginationPage';
 
+// leg-declarations: ignore computed-style -- the sheets bar page object reads tab styles for the tab animation specs; this spec checks each sheet's pagination state, which no theme changes
+
 /**
  * Pagination keeps one current page for the whole grid and clamps it to the page count on every
  * load. A sheet switch runs a load, so without the page in a sheet's view state a round-trip
  * through a shorter sheet brought the long sheet back on the clamped page, and its restored
  * selection sat on a row hidden by pagination.
  */
+// leg-declarations: ignore computed-style -- SheetsBarPage's style readers serve the tab animation specs; this spec drives the pager and reads page and selection state through the API
+// leg-declarations: ignore pointer-offset -- SheetsBarPage.tabSurfaceColor() samples a tab's colour for the animation specs; this spec never calls it
 test.describe('SheetsBar keeps the pagination state of each sheet', () => {
   let grid: SheetsBarPaginationPage;
 

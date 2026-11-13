@@ -1,7 +1,7 @@
 ---
 type: tutorial
 title: Server-side data
-metaTitle: Server-side data - JavaScript Data Grid | Handsontable
+metaTitle: Server-side data | Handsontable DataGrid for JavaScript
 description: Load paged data with Handsontable DataProvider -- fetchRows, CRUD callbacks, migration from client-side arrays, pagination, sorting, filters, REST and GraphQL examples, and a JavaScript monorepo project with two Node servers.
 permalink: /server-side-data
 canonicalUrl: /server-side-data
@@ -11,16 +11,17 @@ tags:
   - pagination
   - REST
 react:
-  metaTitle: Server-side data - React Data Grid | Handsontable
+  metaTitle: Server-side data | Handsontable DataGrid for React
 angular:
-  metaTitle: Server-side data - Angular Data Grid | Handsontable
+  metaTitle: Server-side data | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Server-side data - Vue Data Grid | Handsontable
+  metaTitle: Server-side data | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 addedIn: "17.1.0"
 ---
-Use the [`dataProvider`](@/api/options.md#dataprovider) option so Handsontable loads row data from your backend instead of keeping the full dataset in the browser. The grid stays aligned with paging, column sorting, and (optionally) column filters that run on the server. The same configuration wires **create**, **update**, and **remove** to your API. When the `dataProvider` object is **complete** (all required keys valid), Handsontable ignores a static [`data`](@/api/options.md#data) array and loads rows only through `fetchRows`. If you still pass a `data` array with a complete provider, Handsontable logs a console warning that `data` is ignored.
+Use the [`dataProvider`](@/api/options.md#dataprovider) option so Handsontable DataGrid loads row data from your backend instead of keeping the full dataset in the browser. The grid stays aligned with paging, column sorting, and (optionally) column filters that run on the server. The same configuration wires **create**, **update**, and **remove** to your API. When the `dataProvider` object is **complete** (all required keys valid), Handsontable ignores a static [`data`](@/api/options.md#data) array and loads rows only through `fetchRows`. If you still pass a `data` array with a complete provider, Handsontable logs a console warning that `data` is ignored.
 
 [[toc]]
 
@@ -140,7 +141,7 @@ Respect `signal` so outdated requests abort when you sort, filter, or change pag
 
 ## Create, update, and remove
 
-With a complete `dataProvider` configuration, Handsontable sends **create**, **update**, and **remove** operations to your backend through three callbacks. Valid edits appear in the grid immediately; if the server rejects an update (or the mutation promise rejects), or if [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation) returns `false`, affected cells roll back. **Cell and column validators** run before `onRowsUpdate`; if any cell in the batch fails, Handsontable does not call `onRowsUpdate`, fires [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) with a validation failure, and reverts the edit. If `rowId` resolves to `null` or `undefined` for a row, Handsontable cannot send an update or remove for that row (edits revert; remove from the UI throws). Programmatic [`updateRows`](@/api/dataProvider.md#updaterows) and [`removeRows`](@/api/dataProvider.md#removerows) throw if an id is missing. Row insert from the context menu is skipped when the table already has as many rows as [`maxRows`](@/api/options.md#maxrows).
+With a complete `dataProvider` configuration, Handsontable sends **create**, **update**, and **remove** operations to your backend through three callbacks. Valid edits appear in the grid immediately; if the server rejects an update (or the mutation promise rejects), or if [`beforeRowsMutation`](@/api/hooks.md#beforerowsmutation) returns `false`, affected cells roll back. **Cell and column validators** run before `onRowsUpdate`; if any cell in the batch fails, Handsontable does not call `onRowsUpdate`, fires [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) with a validation failure, and reverts the edit. An edit is validated before Handsontable writes it into the grid. If a sort, filter, page change, or a `fetchData()` call loads new rows while that validation runs, the edit is dropped: Handsontable doesn't write it into the new rows and doesn't call `onRowsUpdate` for it. The refetch that follows a create, update, or remove doesn't drop it: once the validation finishes, Handsontable writes the edit into the same record (found by `rowId`) and saves it. If the server removed that record, the edit is dropped. If `rowId` resolves to `null` or `undefined` for a row, Handsontable cannot send an update or remove for that row (edits revert; remove from the UI throws). Programmatic [`updateRows`](@/api/dataProvider.md#updaterows) and [`removeRows`](@/api/dataProvider.md#removerows) throw if an id is missing. Row insert from the context menu is skipped when the table already has as many rows as [`maxRows`](@/api/options.md#maxrows).
 
 ### `onRowsCreate`
 
@@ -209,23 +210,16 @@ The [Empty data state / loading](@/guides/accessories-and-menus/empty-data-state
 
 From `hot.getPlugin('dataProvider')`:
 
-- [`fetchData`](@/api/dataProvider.md#fetchdata) — fetches the visible sheet, with optional overrides (`page`, `pageSize`, `sort`, `filters`, and client-only `skipLoading`). Overrides are merged into the current query; `page` is clamped to at least 1, and Handsontable may issue a follow-up fetch if `totalRows` from the server implies a lower last page than requested. After init, changing the `dataProvider` object through [`updateSettings`](@/api/core.md#updatesettings) runs the plugin's update path and triggers a **refetch** when the grid is already rendered. A sheets bar switch is the exception: it applies the arriving sheet's `dataProvider` without refetching (see [Use DataProvider with the sheets bar](#use-dataprovider-with-the-sheets-bar) below).
+- [`fetchData`](@/api/dataProvider.md#fetchdata) — fetches the visible sheet, with optional overrides (`page`, `pageSize`, `sort`, `filters`, and client-only `skipLoading`). Overrides are merged into the current query; `page` is clamped to at least 1, and Handsontable may issue a follow-up fetch if `totalRows` from the server implies a lower last page than requested. After init, passing another `dataProvider` object through [`updateSettings`](@/api/core.md#updatesettings) runs the plugin's update path and triggers a **refetch** when the grid is already rendered.
 - [`isFetching`](@/api/dataProvider.md#isfetching) — whether the visible sheet is waiting for a `fetchRows` response that shows the loading overlay. A fetch that passes `skipLoading` (like the refetch after a sort or a row change) does not count, and inside the `afterDataProviderFetch`, `afterDataProviderFetchError`, and `afterDataProviderFetchAbort` listeners of the fetch that settled, it's already `false`.
-- **`updateSettings` and loaded rows** — When [`hasExternalDataSource`](@/api/hooks.md#hasexternaldatasource) is `true`, Handsontable only resets the in-memory placeholder to an empty array during init or when the `updateSettings` payload includes [`data`](@/api/options.md#data) or [`dataProvider`](@/api/options.md#dataprovider). Other keys alone (for example `height` or `colHeaders`) do not clear the current page of rows or force a refetch; the DataProvider plugin refetches when its settings change. If you update `columns` without `data` or `dataProvider`, the data map is rebuilt but the same rule avoids wiping the grid with an empty dataset by accident. The [`Pagination`](@/api/pagination.md) and [`Filters`](@/api/filters.md) plugins follow a `dataProvider` added or removed this way too: both read live whether a data provider backs the grid, so they switch between server-side and client-side behavior the moment the setting changes. Destroying the grid while a fetch is in flight aborts that fetch without logging a console error.
+- **`updateSettings` and loaded rows** — When [`hasExternalDataSource`](@/api/hooks.md#hasexternaldatasource) is `true`, Handsontable only resets the in-memory placeholder to an empty array during init or when the `updateSettings` payload replaces [`dataProvider`](@/api/options.md#dataprovider) with another value, and the DataProvider plugin then refetches. A [`data`](@/api/options.md#data) value is ignored with a console warning and keeps the current rows. Passing the same `dataProvider` object again keeps the rows and does not refetch either, unless the same call also passes `pagination`, `columnSorting`, `filters`, or `columns`: those reset the page, sort, or filters, so the rows are fetched again. The React and Angular wrappers pass only the settings that changed; in React, keep the `dataProvider` object stable with `useMemo`. A change made inside the same object is used by the next request; to load the rows right away, call [`fetchData`](@/api/dataProvider.md#fetchdata). Other keys alone (for example `height` or `colHeaders`) keep the current page of rows and send no request. `pagination`, `columnSorting`, `filters`, or `columns` sent without `dataProvider` reset the page, sort, or filters the same way, and the rows are fetched again; a new `columns` value also clears the sort. The [`Pagination`](@/api/pagination.md) and [`Filters`](@/api/filters.md) plugins follow a `dataProvider` added or removed this way too: both read live whether a data provider backs the grid, so they switch between server-side and client-side behavior the moment the setting changes. Destroying the grid while a fetch is in flight aborts that fetch without logging a console error.
 - [`getQueryParameters`](@/api/dataProvider.md#getqueryparameters) — current `page`, `pageSize`, `sort`, `filters`.
 - [`getRowId`](@/api/dataProvider.md#getrowid) — resolve the id for a visual row.
 - [`createRows`](@/api/dataProvider.md#createrows), [`updateRows`](@/api/dataProvider.md#updaterows), [`removeRows`](@/api/dataProvider.md#removerows) — programmatic CRUD through the same server callbacks.
 
 ## Use DataProvider with the sheets bar
 
-With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md), declare `dataProvider` in the `settings` of each sheet that loads from a server. Sheets without it stay local - sorting, filtering, paging, and editing all run in the browser. Handsontable disables a grid-level `dataProvider` while the sheets bar is enabled, even when every sheet declares its own, and logs one console warning; it restores that value if you disable the sheets bar later. Setting a grid-level `dataProvider` afterward through `updateSettings()`, on a sheet that does not declare its own, is blocked the same way, and the sheet keeps its rows. On a sheet that declares its own `dataProvider`, a value passed through `updateSettings()` replaces that sheet's own one, unless it is the same object as the ignored grid-level value. If you keep a grid-level `dataProvider` anyway, pass the same object every time: a framework wrapper that builds a new object on every render re-configures the sheet you see.
-
-- The first time you show a sheet, it fetches its rows.
-- Returning to a sheet that already fetched does not trigger a new fetch. The sheet shows the rows, sort, filters, page, and page size it had when you left - Handsontable replays the saved response through [`afterDataProviderFetch`](@/api/hooks.md#afterdataproviderfetch) instead of re-sorting or re-filtering the rows in the browser. Call [`fetchData()`](@/api/dataProvider.md#fetchdata) to refresh them.
-- A fetch that is still running when you switch away keeps running, and its rows land in the sheet that started it.
-- An edit you save on a sheet after switching away still reaches that sheet's server, with that sheet's own row ids.
-- If a fetch or a mutation fails while its sheet is off-screen, [`afterDataProviderFetchError`](@/api/hooks.md#afterdataproviderfetcherror) or [`afterRowsMutationError`](@/api/hooks.md#afterrowsmutationerror) fires right away, and the error notification appears when you return to that sheet. `afterDataProviderFetchError` then receives a third argument, `isVisible`, set to `false`, so a custom error UI can tell such a failure apart from one on the sheet you see. The failure changes nothing on the visible sheet: its filters and its loading overlay stay as they are.
-- A duplicated sheet starts with a copy of the original's rows and server view, and its first visit does not fetch. Removing a sheet aborts its running fetch silently.
+With the sheets bar, set `dataProvider` in the `settings` of each sheet that loads from a server. For how server sheets fetch and behave when you switch, see [Server-backed sheets](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#server-backed-sheets).
 
 ## Examples (REST and GraphQL)
 
@@ -308,3 +302,4 @@ Each folder includes the same Express servers (`server-rest.mjs`, `server-graphq
 
 - [Migrate to server-side data](@/guides/getting-started/server-side-data/server-side-data-migration.md) -- follow the step-by-step checklist to move from a client-side array to `dataProvider`.
 - [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md) -- configure page size and navigation for server-backed grids.
+- [Load data from an OData service](@/recipes/data-management/load-data-odata/load-data-odata.md) -- connect `dataProvider` to an OData V4 service.

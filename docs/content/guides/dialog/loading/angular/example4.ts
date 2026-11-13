@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ViewChild, ViewEncapsulation, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -52,7 +52,9 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   hotData: any[] = [];
-  isLoading = false;  
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  isLoading = false;
   buttonText = 'Load Data';
 
   readonly hotSettings: GridSettings = {
@@ -208,7 +210,11 @@ export class AppComponent implements AfterViewInit {
       setTimeout(() => {
         loadingPlugin.hide();
         this.isLoading = false;
+        this.cdr.markForCheck();
       }, 2000);
+    } finally {
+      // Nothing marks the OnPush-by-default component dirty after an `await`, so mark it.
+      this.cdr.markForCheck();
     }
   }
 }
@@ -219,7 +225,7 @@ export class AppComponent implements AfterViewInit {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -229,7 +235,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

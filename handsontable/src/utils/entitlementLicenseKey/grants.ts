@@ -3,8 +3,8 @@ import { getProductEntitlement, defineOwn } from './extractKeyData';
 
 /**
  * The grants shared by every non-entitlement license state: a valid legacy
- * commercial key, a legacy expired key, the non-commercial key, a missing key,
- * an invalid key, or an unreadable entitlement key. Every query short-circuits
+ * commercial key, a legacy expired key, a missing key, an invalid key, or an
+ * unreadable entitlement key. Every query short-circuits
  * on `unrestricted`, so these keys unlock everything - introducing capability
  * gating can never take a feature away from an existing customer. Frozen so it
  * cannot be mutated by a consumer.
@@ -20,6 +20,11 @@ export const UNRESTRICTED_GRANTS: LicenseGrants = Object.freeze({
  * Builds the grants facet from a verified entitlement key: exactly the
  * capability tokens the payload lists, per product. Entitlement keys are never
  * unrestricted - they unlock only what they name.
+ *
+ * The `listed-capabilities` flag changes nothing here. A product that reads an
+ * entry without it as granting everything checks the flag itself
+ * (`LISTED_CAPABILITIES_FLAG`) before it reads the grants with `hasCapability`
+ * or `getProductCapabilities`.
  *
  * @param {EntitlementKeyData} keyData The verified key data.
  * @returns {LicenseGrants}

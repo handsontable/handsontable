@@ -89,7 +89,7 @@ function createScenario({ isRtl = false, start = 2, end = 2, notRendered = [] as
 }
 
 const columnAt = (deps: ReturnType<typeof createScenario>, x: number) =>
-  getCellCoordsFromMousePosition(deps, x, 10).coords.col;
+  getCellCoordsFromMousePosition(deps, x, 10).col;
 
 describe('getCellCoordsFromMousePosition with fixedColumnsEnd', () => {
   describe('in LTR', () => {

@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { MoveCells } from '../moveCells';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * A move whose target equals the source top-left is a no-op and must be rejected before any hook
@@ -38,7 +39,7 @@ describe('MoveCells no-op move guard', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 10 }, (_, row) => Array.from({ length: 10 }, (__, col) => `${row}-${col}`)),
       moveCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...options,
     });
 

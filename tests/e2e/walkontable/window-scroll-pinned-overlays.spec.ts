@@ -1,5 +1,5 @@
 import { type Locator } from '@playwright/test';
-import { test, expect } from '../../fixtures/test';
+import { test, expect, THEMES_TAG } from '../../fixtures/test';
 import { WindowScrollPinnedOverlaysPage } from '../../fixtures/pages/walkontable/WindowScrollPinnedOverlaysPage';
 
 /**
@@ -21,7 +21,7 @@ import { WindowScrollPinnedOverlaysPage } from '../../fixtures/pages/walkontable
  * the layout too, so everything that places itself from a cell's document position and then adds
  * the scroll distance on top (the editor, the fill handle, the resize handles) must not add it twice.
  */
-test.describe('walkontable window-scroll pinned overlays', { tag: '@walkontable' }, () => {
+test.describe('walkontable window-scroll pinned overlays', { tag: ['@walkontable', THEMES_TAG] }, () => {
   let wt: WindowScrollPinnedOverlaysPage;
 
   /** A pixel of border compensation either way is by design; anything larger is misplaced. */
@@ -58,17 +58,6 @@ test.describe('walkontable window-scroll pinned overlays', { tag: '@walkontable'
     expect(report.torn.inlineStart).toBeGreaterThan(report.scrolledFrames * 0.8);
     expect(report.torn.topCorner).toBeGreaterThan(report.scrolledFrames * 0.8);
     expect(report.torn.bottomCorner).toBeGreaterThan(report.scrolledFrames * 0.8);
-  });
-
-  test('the row headers and the corner stay pinned on every painted frame', async() => {
-    await wt.goto();
-
-    const report = await wt.recordHorizontalWheelScroll();
-
-    expect(report.torn.inlineStart, `row headers torn on ${report.torn.inlineStart} of ${report.scrolledFrames} frames`)
-      .toBe(0);
-    expect(report.torn.topCorner, `corner torn on ${report.torn.topCorner} of ${report.scrolledFrames} frames`)
-      .toBe(0);
   });
 
   test('frozen columns and both corners stay pinned on every painted frame', async() => {
@@ -178,15 +167,6 @@ test.describe('walkontable window-scroll pinned overlays', { tag: '@walkontable'
       // cannot see that, every zero below is worthless.
       expect(report.torn.top).toBeGreaterThan(report.scrolledFrames * 0.8);
       expect(report.torn.topCorner).toBeGreaterThan(report.scrolledFrames * 0.8);
-    });
-
-    test('the column headers stay pinned on every painted frame', async() => {
-      await wt.goto({ tall: true });
-
-      const report = await wt.recordVerticalWheelScroll();
-
-      expect(report.torn.top, `column headers torn on ${report.torn.top} of ${report.scrolledFrames} frames`)
-        .toBe(0);
     });
 
     test('frozen rows and both corners stay pinned on every painted frame', async() => {

@@ -18,7 +18,7 @@ on:
 jobs:
   check:
     name: check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # 15 minutes was lost on #13373 / #13375: GitHub reports a job timeout as
     # `cancelled`, and CI Gate treats that as a failure. attw on every export
     # path took ~8 minutes even when `npx -y` was fast; a cold npm day then
@@ -68,6 +68,9 @@ jobs:
       - name: Build Handsontable (includes downlevel:types)
         if: env.HOT_PREBUILT != 'true'
         run: npm run build --prefix handsontable
+      - name: Read the runner image
+        id: runner-image
+        run: echo "name=$ImageOS" >> "$GITHUB_OUTPUT"
       # Three sequential `npx -y` downloads have no cache (setup-node caches
       # pnpm, not ~/.npm). On a slow npm day each one took several minutes and
       # left attw no time inside the old 15-minute budget. One install into
@@ -77,8 +80,8 @@ jobs:
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
         with:
           path: ~/.npm
-          key: emitted-types-npx-${{ runner.os }}-ts5.1.6-publint0.3.21-attw0.18.3
-          restore-keys: emitted-types-npx-${{ runner.os }}-
+          key: emitted-types-npx-${{ runner.os }}-${{ steps.runner-image.outputs.name }}-ts5.1.6-publint0.3.21-attw0.18.3
+          restore-keys: emitted-types-npx-${{ runner.os }}-${{ steps.runner-image.outputs.name }}-
       - name: Install type-check tools
         run: |
           tools="$RUNNER_TEMP/emitted-types-tools"
@@ -110,6 +113,10 @@ jobs:
           "
           "$TOOLS_BIN/tsc" -p tsconfig.verify-types.json
           rm tsconfig.verify-types.json
+      - name: Type-check an ES module consumer under node16 and nodenext
+        # attw and the .d.ts check above pass for a .d.mts that re-exports a
+        # CommonJS-typed default; only a real default import shows it (DEV-3421).
+        run: TSC="$TOOLS_BIN/tsc" node handsontable/scripts/verify-esm-consumer-types.mjs
       - name: Check package exports and well-formedness (publint)
         run: |
           cd handsontable/tmp

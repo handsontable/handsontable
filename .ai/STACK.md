@@ -42,16 +42,16 @@
 - Jasmine 3.4 + Puppeteer 25 - **LEGACY (frozen) E2E** browser tests (`*.spec.js`, headless Chrome). Add no new specs; migrate broken ones to Playwright. Walkontable (`test/spec/**`) is frozen the same way and has a Playwright home at `tests/e2e/walkontable/`; its Jasmine job and the Playwright e2e job run in parallel in CI.
 - `@testing-library/react` 14 - React wrapper tests
 - `@vue/test-utils` 2.0.0-rc.16 - Vue 3 wrapper tests
-- `jest-preset-angular` 14 - Angular wrapper tests (requires `NODE_OPTIONS=--openssl-legacy-provider`)
+- `jest-preset-angular` 17 (with Jest 30) - Angular wrapper tests (requires `NODE_OPTIONS=--openssl-legacy-provider`)
 
 **Build/Dev:**
 - Rspack 1.7 (`@rspack/core`, `@rspack/cli`) - Core library bundling (`handsontable/rspack.config.js` + `handsontable/.config/`). Migrated from Webpack 5; the `.config/` folder name is kept for historical reasons.
 - Rollup 4 - React and Vue 3 wrapper bundling
 - SWC 1.x (`@swc/core`, `@swc/helpers`) - TypeScript/JavaScript transpilation for all builds: Rspack uses `builtin:swc-loader` with separate rules for `.js` (ecmascript) and `.ts`/`.tsx` (typescript), and file-per-file transpilation runs through `handsontable/scripts/swc-transpile.mjs` which handles `.ts`/`.tsx` in addition to `.js` (used by `build:commonjs`, `build:es`, `build:languages.es`)
 - Babel 7 - Retained only for Jest unit tests via `babel-jest` (see `handsontable/babel.config.js`); no longer used for production or test bundles
-- ng-packagr 16 - Angular library packaging
+- ng-packagr 22 - Angular library packaging
 - Sass 1.58 - SCSS compilation
-- TypeScript ^6.0.0 (core source + auto-generated types via `build:types` script using `tsconfig.build-types.json`), 5.1.6 (Angular), 4.x (Vue 3)
+- TypeScript ^6.0.0 (core source + auto-generated types via `build:types` script using `tsconfig.build-types.json`), ~6.0.3 (Angular), 4.x (Vue 3)
 
 ## Key Dependencies
 
@@ -64,10 +64,10 @@
 **Angular wrapper runtime:**
 - `rxjs` ^7.8.1 - Reactive extensions for Angular
 - `tslib` ^2.3.0 - TypeScript runtime helpers
-- `zone.js` ~0.13.0 - Angular change detection
+- `zone.js` ~0.15.1 - Angular change detection
 
 **Build tooling (key devDependencies):**
-- `eslint` ^8.57.1 (core) / 8 (wrappers) - Linting with Airbnb base config
+- `eslint` ^8.57.1 (core) / 8 (wrappers except Angular, which is on 9 with a flat config) - Linting with Airbnb base config
 - `eslint-plugin-handsontable` - Custom ESLint rules (`handsontable/.config/plugin/eslint/`)
 - `eslint-plugin-compat` - Browser API compatibility enforcement
 - `stylelint` 16 - CSS/SCSS linting

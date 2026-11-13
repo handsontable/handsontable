@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Date cell type
-metaTitle: Date cell type - JavaScript Data Grid | Handsontable
+metaTitle: Date cell type | Handsontable DataGrid for JavaScript
 description: Display, format, sort, and filter dates correctly by using the date cell type.
 permalink: /date-cell-type
 canonicalUrl: /date-cell-type
 react:
-  metaTitle: Date cell type - React Data Grid | Handsontable
+  metaTitle: Date cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Date cell type - Angular Data Grid | Handsontable
+  metaTitle: Date cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Date cell type - Vue Data Grid | Handsontable
+  metaTitle: Date cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
 menuTag: updated
@@ -376,6 +376,10 @@ const hotSettings = ref({
 
 For a complete reference, see the [`dateFormat` API documentation](@/api/options.md#dateformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
 
+**Year 0000**
+
+ISO 8601 uses year `0000` for 1 BC. A date in year `0000` is valid, and it sorts before `0001-01-01`. `Intl.DateTimeFormat` prints that year as `1`, the same as year `0001`. To tell them apart, Handsontable adds the era to the display of year `0000`. It does so when the format prints a year and sets no `era` of its own. For example, `0000-01-01` shows as `01/01/1 BC` and `0001-01-01` shows as `01/01/1`. The era text follows the locale. A format that uses `dateStyle` cannot carry an era, so it still prints year `0000` as `1`.
+
 ### Editor behavior
 
 The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are displayed in the cell. The editor (date picker or text input) may show the value in a normalized form; for `intl-date` and `date`, the underlying value remains in ISO 8601 format.
@@ -386,7 +390,7 @@ After configuring the date cell type, cells display dates formatted according to
 
 ## Keyboard shortcuts
 
-The `intl-date` and `date` cell editors open the browser's native date picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
+The `intl-date` and `date` cell editors open the browser's native date picker. Double-clicking a cell shows the picker. In Chromium-based browsers, an open picker takes the keys: <kbd>**Tab**</kbd> does nothing, and <kbd>**Enter**</kbd> and <kbd>**Escape**</kbd> close only the picker. Opening the editor with the keyboard (<kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, or typing) leaves the picker closed, so <kbd>**Tab**</kbd>, <kbd>**Escape**</kbd>, and the other grid shortcuts keep working. In Chrome and Edge, press <kbd>**Alt**</kbd>+<kbd>**↓**</kbd> (<kbd>⌥</kbd>+<kbd>**↓**</kbd> on macOS) in the editor to show the picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
 
 ## Related articles
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where undoing an inserted row or column in the Formulas plugin left empty rows or columns in the formula engine, which made its sheet grow with every insert and undo.",
+  "type": "fixed",
+  "issueOrPR": 14040,
+  "breaking": false,
+  "framework": "none"
+}

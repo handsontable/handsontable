@@ -142,7 +142,7 @@ const flatpickrEditor = editorFactory<FlatpickrEditorInstance>({
     return editor.input.value;
   },
   setValue(editor, value) {
-    editor.input.value = value;
+    editor.input.value = value == null ? '' : String(value);
     editor.flatpickr.setDate(value ? new Date(value) : new Date());
   },
 });
@@ -150,6 +150,7 @@ const flatpickrEditor = editorFactory<FlatpickrEditorInstance>({
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Product', 'Version', 'Release (EU)', 'Release (US)', 'Status']}
       autoRowSize={true}
@@ -158,7 +159,6 @@ const ExampleComponent = () => {
       width="100%"
       autoWrapRow={true}
       headerClassName="htLeft"
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="product" type="text" width={200} />
       <HotColumn data="version" type="text" width={80} />

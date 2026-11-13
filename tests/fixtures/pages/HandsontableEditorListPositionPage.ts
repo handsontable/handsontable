@@ -54,9 +54,15 @@ export interface Variant {
   inset?: 'none' | 'start';
   /**
    * `transform` makes the grid's container the containing block of the `fixed` list, a box that
-   * scrolls with the page; `none` when omitted.
+   * scrolls with the page; `translate` does the same and also moves the container 200 px toward
+   * the inline end, which the `offsetLeft` chain does not report; `none` when omitted.
    */
-  wrap?: 'none' | 'transform';
+  wrap?: 'none' | 'transform' | 'translate';
+  /**
+   * `multiselect` only: builds two columns, column 0 with a 30-entry source and column 1 with a source of
+   * this many entries, both with `visibleRows` set to it; no pair when omitted.
+   */
+  pairRows?: number;
 }
 
 /**
@@ -70,10 +76,13 @@ export interface Box {
 }
 
 /**
- * The edited cell, the editor's list, and the viewport, read in one evaluation.
+ * The edited cell, the editor's holder, the editor's list, and the viewport, read in one evaluation.
+ * The list is anchored to the holder, not to the cell: the two differ by the 1px the editor reaches
+ * past a cell whose gridline it covers, and by 0 where that pixel is covered by an overlay.
  */
 export interface ListGeometry {
   cell: Box;
+  holder: Box;
   list: Box;
   viewport: { width: number; height: number };
 }
@@ -93,8 +102,9 @@ export interface ListPlacement {
  * How far an edge may be from where it should be. The offsets are whole pixels, measured the same
  * on all three themes and in both layouts, so a 1 px shift fails on every leg:
  *
- * - opened toward the inline end (the default), the list starts 1 px before the cell's inline start
- *   (the editor border compensation in `BaseEditor#getEditedCellRect`);
+ * - opened toward the inline end (the default), the list starts where the editor's holder starts (the
+ *   editor border compensation in `BaseEditor#getEditedCellRect` moves that 1 px before the cell's inline
+ *   start, except where an inline-start overlay covers the pixel);
  * - flipped toward the inline start, its inline end is flush with the cell's;
  * - below the cell, its top is the cell's bottom; flipped above, its bottom is 1 px above the cell's
  *   top.
@@ -123,12 +133,13 @@ export const TRIMMED_SHORTFALL_PX = 2;
  * @returns {ListPlacement} The placement.
  */
 export function placementOf(geometry: ListGeometry, dir: 'ltr' | 'rtl'): ListPlacement {
-  const { cell, list, viewport } = geometry;
+  const { cell, holder, list, viewport } = geometry;
   const round = (value: number) => Math.round(value * 10) / 10;
   const meets = (a: number, b: number) => Math.abs(a - b) <= EDGE_TOLERANCE_PX;
-  // The border compensation sits on the cell's inline start: its left in LTR, its right in RTL.
-  const leftEdge = dir === 'rtl' ? cell.left : cell.left - 1;
-  const rightEdge = dir === 'rtl' ? cell.right + 1 : cell.right;
+  // The list is anchored to the editor's box, which carries the border compensation on the cell's
+  // inline start: its left in LTR, its right in RTL.
+  const leftEdge = holder.left;
+  const rightEdge = holder.right;
   let aligned: string;
   let side: string;
 
@@ -188,7 +199,8 @@ export class HandsontableEditorListPositionPage {
   readonly layout: Layout;
   readonly type: EditorType;
   readonly inset: 'none' | 'start';
-  readonly wrap: 'none' | 'transform';
+  readonly wrap: 'none' | 'transform' | 'translate';
+  readonly pairRows: number;
   readonly grid: Locator;
   readonly list: Locator;
 
@@ -211,6 +223,7 @@ export class HandsontableEditorListPositionPage {
     this.type = variant.type ?? 'handsontable';
     this.inset = variant.inset ?? 'none';
     this.wrap = variant.wrap ?? 'none';
+    this.pairRows = variant.pairRows ?? 0;
     this.grid = page.getByTestId('grid');
     // The element that is the list: the container of the nested grid, or the multiselect's list.
     this.list = page.locator(LIST_SELECTORS[this.type]);
@@ -224,7 +237,7 @@ export class HandsontableEditorListPositionPage {
   async goto(): Promise<void> {
     await this.page.goto('/tests/fixtures/demo/handsontable-editor-list-position.html'
       + `?theme=${this.theme}&bundle=${this.bundle}&dir=${this.dir}&doc=${this.doc}`
-      + `&layout=${this.layout}&type=${this.type}&inset=${this.inset}&wrap=${this.wrap}`);
+      + `&layout=${this.layout}&type=${this.type}&inset=${this.inset}&wrap=${this.wrap}&pairRows=${this.pairRows}`);
     // The bundle first, or a slow leg fails pointing at a missing cell instead of the real cause.
     await awaitBundle(this.page);
 
@@ -273,6 +286,26 @@ export class HandsontableEditorListPositionPage {
     }
 
     await expect(this.cell(99, 49)).toBeVisible();
+  }
+
+  /**
+   * Scrolls the page to its end, then back up by `distance` px, and waits until a cell is rendered
+   * under the lower part of the viewport, where the vertical flip's points sit. The page's scroll
+   * position is then partway, so the bottom of a transformed container is not the viewport's bottom.
+   * Window layout only.
+   *
+   * @param {number} [distance] How far to scroll back up, in px.
+   */
+  async scrollPartway(distance = 700): Promise<void> {
+    await this.scrollToEnd();
+
+    await this.page.evaluate(dy => window.scrollBy(0, -dy), distance);
+
+    await expect.poll(() => this.page.evaluate(() => {
+      const { clientWidth, clientHeight } = document.documentElement;
+
+      return Boolean(document.elementFromPoint(clientWidth / 2, clientHeight - 110)?.closest('.ht_master td'));
+    }), { message: 'the grid renders at the new scroll position' }).toBe(true);
   }
 
   /**
@@ -325,6 +358,21 @@ export class HandsontableEditorListPositionPage {
     await expect(this.list).toBeVisible();
 
     return coords;
+  }
+
+  /**
+   * Opens the editor on a given cell, with the page at its current scroll position, and waits until the
+   * list is visible.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async openEditorOnCell(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      (window as unknown as { hot: { selectCell(row: number, col: number): boolean } }).hot.selectCell(r, c);
+    }, [row, col] as const);
+    await this.page.keyboard.press('Enter');
+    await expect(this.list).toBeVisible();
   }
 
   /**
@@ -387,15 +435,40 @@ export class HandsontableEditorListPositionPage {
         return { left, right, top, bottom };
       };
       const { hot } = window as unknown as {
-        hot: { getCell(row: number, col: number): HTMLElement | null;
-          getActiveEditor(): { htContainer?: HTMLElement } | undefined; };
+        hot: { getCell(row: number, col: number): HTMLElement | null; rootElement: HTMLElement; isRtl(): boolean;
+          getActiveEditor(): { htContainer?: HTMLElement, TEXTAREA_PARENT?: HTMLElement,
+            getEditedCellRect(): { start: number, width: number } | undefined } | undefined; };
       };
       // The nested grid's container is read off the active editor, so a list left over from another
       // cell can never be the one measured; the multiselect exposes no such field.
       const list = nestedGrid ? hot.getActiveEditor()?.htContainer : document.querySelector(listSelector);
 
+      // The editor's box, as the list is anchored to it. Read from the editor's holder in the DOM, so the
+      // expectation does not move with the code under test. The multiselect editor has no holder element
+      // and positions its list from `getEditedCellRect()`, so its box is derived from that rect: the root's
+      // box plus the offset and width it returns, measured from the root's inline-start edge.
+      const editor = hot.getActiveEditor();
+      let holder;
+
+      if (editor?.TEXTAREA_PARENT) {
+        holder = box(editor.TEXTAREA_PARENT);
+      } else {
+        const editorRect = editor?.getEditedCellRect();
+
+        if (!editorRect) {
+          throw new Error('An element the list geometry needs is not in the DOM');
+        }
+
+        const rootBox = box(hot.rootElement);
+        const holderLeft = hot.isRtl() ?
+          rootBox.right - editorRect.start - editorRect.width : rootBox.left + editorRect.start;
+
+        holder = { ...box(hot.getCell(row, col)), left: holderLeft, right: holderLeft + editorRect.width };
+      }
+
       return {
         cell: box(hot.getCell(row, col)),
+        holder,
         list: box(list),
         viewport: { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight },
       };

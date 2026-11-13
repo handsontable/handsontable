@@ -5,6 +5,7 @@ import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce } from '../../helpers/array';
 import * as C from '../../i18n/constants';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import {
   top as menuItemTop,
   bottom as menuItemBottom,
@@ -14,6 +15,7 @@ import {
 } from './contextMenuItem';
 import {
   createId,
+  createContextMenuCustomBorder,
   createDefaultCustomBorder,
   createSingleEmptyBorder,
   createEmptyBorders,
@@ -34,9 +36,10 @@ import { detectSelectionType, normalizeSelectionFactory } from '../../selection'
 import { isDefined } from '../../helpers/mixed';
 import type { HotInstance } from '../../core/types';
 import type VisualSelection from '../../selection/highlight/visualSelection';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'customBorders';
-export const PLUGIN_PRIORITY = 90;
+export const PLUGIN_PRIORITY = 335;
 
 export type { BorderSettings, BorderObject };
 
@@ -44,6 +47,15 @@ export type { BorderSettings, BorderObject };
  * The four sides a border can be applied to.
  */
 type BorderSide = 'top' | 'bottom' | 'start' | 'end';
+
+/**
+ * `HotInstance` with the `_removeCellMetaByPhysicalIndex` and `_setCellMetaByPhysicalIndex` methods,
+ * which exist on the Core runtime object but are not part of the `HotInstance` type.
+ */
+type HotInstanceInternal = HotInstance & {
+  _removeCellMetaByPhysicalIndex(physicalRow: number, physicalColumn: number, key: string): void;
+  _setCellMetaByPhysicalIndex(physicalRow: number, physicalColumn: number, key: string, value: unknown): void;
+};
 
 /**
  * Type guard returning true when the given value is a non-null object.
@@ -112,12 +124,16 @@ const DEFAULT_PROGRESSIVE_CHUNK_SIZE = 5000;
  * To initialize Handsontable with predefined custom borders, provide cell coordinates and border styles in a form
  * of an array.
  *
- * When a border property is set to an empty object `{}` or an empty string `''`, the default style is applied:
- * **1px solid black**.
+ * When a border property is set to `true` or to an empty object `{}`, the default style is applied:
+ * **1px solid black**. For a single cell, and in `setBorders()`, a falsy value (`false`, `''`) hides that side.
+ * In a `range` configuration with a range-level `border` object, an empty side (`{}`, `''`, or `true`) takes that
+ * border's style instead.
  *
  * The plugin also integrates with the {@link ContextMenu} plugin. Adding `'borders'` to the
  * [`contextMenu`](@/api/options.md#contextmenu) items enables users to apply or remove borders on selected cells
- * directly from the right-click menu.
+ * directly from the right-click menu. A border added from the menu is 1px wide and takes its color from the
+ * `--ht-custom-borders-default-color` theme variable, so it stays visible in dark color schemes. Its stored
+ * `color` is `'var(--ht-custom-borders-default-color, #000)'`, which falls back to black when no theme is loaded.
  *
  * See [`customBorders` configuration option](@/api/options.md#customBorders) or go to
  * [Custom cell borders demo](@/guides/cell-features/formatting-cells/formatting-cells.md#custom-cell-borders) for more examples.
@@ -143,8 +159,8 @@ const DEFAULT_PROGRESSIVE_CHUNK_SIZE = 5000;
  *       col: 2,
  *       start: { width: 2, color: 'red', style: 'dotted' },
  *       end: { width: 1, color: 'green', style: 'dashed' },
- *       top: '',    // default: 1px solid black
- *       bottom: '', // default: 1px solid black
+ *       top: true,  // default: 1px solid black
+ *       bottom: {}, // default: 1px solid black
  *     },
  *   ],
  *   // Enable the 'borders' item in the context menu so users can
@@ -169,6 +185,14 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the settings keys that trigger the plugin update on `updateSettings()`. Beside the
    * plugin key itself this covers `customBordersProgressive`, which changes how the very same
    * configuration is applied - without it, switching only that option would stay inert until some
@@ -179,12 +203,23 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Saved borders.
-   *
-   * @private
-   * @type {Array}
+   * The border model behind {@link CustomBorders#savedBorders}.
    */
-  savedBorders: BorderObject[] = [];
+  #savedBorders: BorderObject[] = [];
+
+  /**
+   * `true` when a trim or a filter changed the visible rows and the border model has not been rebuilt
+   * from the `borders` meta yet. The rebuild walks every user-defined meta key, so it runs once, the
+   * next time anything reads or writes the model (the render's viewport sync, `getBorders()`, a
+   * structural change), instead of once per `trimRow()` call.
+   */
+  #isModelRebuildPending: boolean = false;
+  /**
+   * The visible rows (physical indexes in visual order) as they were when the running
+   * `updateSettings()` call started. The index mapper replaces the array on every cache update and
+   * never mutates it, so holding the reference is a free snapshot. `null` outside an update.
+   */
+  #visibleRowsBeforeUpdate: number[] | null = null;
 
   /**
    * Positions of the saved borders in the `savedBorders` array, keyed by the border id.
@@ -211,6 +246,33 @@ export class CustomBorders extends BasePlugin {
    * total border count.
    */
   #bordersByRowDirty: boolean = true;
+
+  /**
+   * Visual-row index of the borders a progressive `updateSettings()` replace is taking over from.
+   * The viewport sync keeps drawing them, cell by cell, until the new configuration reaches the cell
+   * or the load ends. `null` outside such a replace.
+   */
+  #outgoingBordersByRow: Map<number, BorderObject[]> | null = null;
+
+  /**
+   * Ids of the rendered selections in `#customSelectionsCache` that draw an outgoing border rather
+   * than one of the current model. The viewport sync replaces them as soon as the model holds a
+   * border for the same cell.
+   */
+  #outgoingSelectionIds: Set<string> = new Set();
+
+  /**
+   * The borders on screen when `updatePlugin()` started a progressive replace, handed over to
+   * `changeBorderSettings()` once the model reset is done. `null` when the update is not one.
+   */
+  #carriedBorders: BorderObject[] | null = null;
+
+  /**
+   * `true` from an `enablePlugin()` until the borders the settings declare are applied. `updatePlugin()`
+   * and `onDataReady()` apply them themselves; otherwise the ready step does (at init, and after a direct
+   * `enablePlugin()` call).
+   */
+  #declaredBordersOwed = false;
 
   /**
    * During a `createCustomBorders` pass, holds the `row,col` keys already written in this pass, so a
@@ -293,6 +355,27 @@ export class CustomBorders extends BasePlugin {
   #columnMoveSnapshot: (number | null)[] | null = null;
 
   /**
+   * Saved borders. Reading them completes a model rebuild a trim or a filter deferred.
+   *
+   * @private
+   * @type {Array}
+   */
+  get savedBorders(): BorderObject[] {
+    this.#flushPendingModelRebuild();
+
+    return this.#savedBorders;
+  }
+
+  /**
+   * Replaces the saved borders.
+   *
+   * @private
+   */
+  set savedBorders(borders: BorderObject[]) {
+    this.#savedBorders = borders;
+  }
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link CustomBorders#enablePlugin} method is called.
    *
@@ -310,9 +393,7 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    this.addHook('afterContextMenuDefaultOptions',
-      (options: unknown) => this.#onAfterContextMenuDefaultOptions(options));
-    this.addHook('init', () => this.#onAfterInit());
+    registerMenuEntries(this, () => this.#createMenuEntries(), { contextMenu: {} });
     this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('afterCreateRow', this.#onAfterCreateRow);
     this.addHook('beforeRemoveRow', this.#onBeforeRemoveRow);
@@ -328,6 +409,24 @@ export class CustomBorders extends BasePlugin {
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
+    this.addHook('beforeFilter', this.#onBeforeTrimmingChange);
+    this.addHook('afterFilter', this.#onAfterFilter);
+    this.addHook('beforeTrimRow', this.#onBeforeTrimmingChange);
+    this.addHook('beforeUntrimRow', this.#onBeforeTrimmingChange);
+    this.addHook('afterTrimRow', this.#onAfterTrimmingChange);
+    this.addHook('afterUntrimRow', this.#onAfterTrimmingChange);
+    // Ahead of the `afterUpdateSettings` listener that runs `TrimRows#updatePlugin()`, so it reads the
+    // visible rows from before the update.
+    this.addHook('afterUpdateSettings', this.#onUpdateSettingsStart, -1);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('beforeLoadData', this.#onBeforeDataReplacement);
+    this.addHook('beforeUpdateData', this.#onBeforeDataReplacement);
+    // Ahead of the application's own `afterLoadData` listeners: one that trims or filters (to re-apply a
+    // saved filter) marks a model rebuild from the meta, and that rebuild must not see the meta
+    // `loadData` just dropped. The registration order moves on `updatePlugin()`, the order index does not.
+    this.addHook('afterLoadData', this.#onAfterLoadData, -1);
+
+    this.#declaredBordersOwed = true;
 
     super.enablePlugin();
   }
@@ -337,6 +436,7 @@ export class CustomBorders extends BasePlugin {
    */
   disablePlugin() {
     this.#cancelProgressiveApply();
+    this.#visibleRowsBeforeUpdate = null;
     this.hideBorders();
 
     super.disablePlugin();
@@ -349,13 +449,82 @@ export class CustomBorders extends BasePlugin {
    *  - [`customBorders`](@/api/options.md#customborders)
    */
   updatePlugin() {
-    this.disablePlugin();
-    this.enablePlugin();
+    this.#carriedBorders = this.#collectBordersForProgressiveReplace();
 
-    this.changeBorderSettings();
+    try {
+      // Disabling the plugin destroys every rendered border. A progressive replace keeps them drawn
+      // until the new ones land, so it swaps the model in place and leaves the hooks registered.
+      if (this.#carriedBorders === null) {
+        // The `afterUpdateSettings` listener the cycle re-registers can still run in this pass, and the
+        // snapshot belongs to it: `disablePlugin()` alone would hand it `null` and force a rebuild.
+        const visibleRowsBefore = this.#visibleRowsBeforeUpdate;
+
+        this.disablePlugin();
+        this.enablePlugin();
+        this.#visibleRowsBeforeUpdate = visibleRowsBefore;
+      }
+
+      if (this.isDataWorkDeferred()) {
+        this.deferDataWork();
+      } else {
+        this.#declaredBordersOwed = false;
+        this.changeBorderSettings();
+      }
+    } finally {
+      this.#carriedBorders = null;
+    }
 
     super.updatePlugin();
   }
+
+  /**
+   * Applies the borders the settings declare once the data they describe is loaded. Core's
+   * `_applySettingsAndData()` applies settings ahead of their data, and `updatePlugin()` holds the
+   * pass back then: run against the rows the grid still held, it dropped every border outside them and
+   * wrote the rest into cell meta the load then cleared.
+   *
+   * @private
+   */
+  onDataReady() {
+    if (this.takeDeferredDataWork()) {
+      this.#declaredBordersOwed = false;
+      this.changeBorderSettings(false);
+    }
+  }
+
+  /**
+   * Applies the borders the settings declare when no `updatePlugin()` or `onDataReady()` applied them: at
+   * init, and after a direct `enablePlugin()` call. Core runs it once after each enable or update, when the
+   * data is loaded and the view exists.
+   *
+   * At init it runs before the `init` hook and the first render, so it does not render: that render syncs
+   * the master table's borders, and the overlay clones it builds get theirs from one more render, scheduled
+   * for `afterInit`. On a grid already drawn, it renders once.
+   *
+   * @private
+   */
+  onGridReady() {
+    if (!this.#declaredBordersOwed) {
+      return;
+    }
+
+    const isInitPass = this.isInitReadyStep();
+
+    this.#declaredBordersOwed = false;
+    this.changeBorderSettings(!isInitPass);
+
+    if (isInitPass && this.savedBorders.length > 0) {
+      this.hot.addHookOnce('afterInit', this.#onAfterInitRender);
+    }
+  }
+
+  /**
+   * Renders once more after the first render of the grid, which builds the overlay clones that still need a
+   * selection pass for the declared borders.
+   */
+  #onAfterInitRender = () => {
+    this.hot.render();
+  };
 
   /**
    * Set custom borders.
@@ -524,6 +693,21 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
+   * Marks the border model for a rebuild from the `borders` cell meta. The sheets bar calls it when a sheet
+   * comes back: core writes the sheet's kept cell meta back with its rows, so the meta holds the sheet's
+   * borders, a border on a row the filters hide included. The rebuild is deferred like the one a filter or
+   * a trim asks for, and runs the first time anything reads the model (the next render at the latest). The
+   * view-state restore runs with the index cache suspended, so a rebuild run from there translated each
+   * physical index through the order from before the restored sort or move, and drew the border on
+   * another record.
+   *
+   * @private
+   */
+  _rebuildFromCellMeta(): void {
+    this.#deferRebuildAfterIndexChange();
+  }
+
+  /**
    * The state is a version only. The borders live in the `borders` cell meta, and UndoRedo reads the
    * columns a step changed from its journal.
    *
@@ -535,21 +719,38 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Rebuilds the border model and its rendered selections from the stored `borders` cell meta.
+   * Returns every `borders` entry of the user-defined cell meta, keyed by physical coordinates.
    */
-  #rebuildModelFromMeta() {
+  #collectBorderedMetas(): { physicalRow: number, physicalColumn: number, value: unknown }[] {
+    return this.hot._getMetaManager().getUserDefinedCellMetas()
+      .filter(({ key }) => key === 'borders');
+  }
+
+  /**
+   * Rebuilds the border model and its rendered selections from the stored `borders` cell meta.
+   *
+   * @param {Array} [bordered] The `borders` meta entries to rebuild from. When omitted, they are
+   * collected from the meta manager; a caller that already knows them passes them to skip that walk.
+   * @param {boolean} [keepRendered=false] Leaves the rendered selections in place, for a progressive
+   * replace that keeps drawing them.
+   */
+  #rebuildModelFromMeta(
+    bordered: { physicalRow: number, physicalColumn: number, value: unknown }[] = this.#collectBorderedMetas(),
+    keepRendered = false,
+  ) {
+    this.#isModelRebuildPending = false;
     this.#cancelProgressiveApply();
-    this.#destroyAllSelections();
+
+    if (!keepRendered) {
+      this.#destroyAllSelections();
+    }
+
     this.savedBorders = [];
     this.#rebuildSavedBordersIndex();
     this.#bordersByRow.clear();
     this.#bordersByRowDirty = true;
 
-    this.hot._getMetaManager().getUserDefinedCellMetas().forEach(({ physicalRow, physicalColumn, key, value }) => {
-      if (key !== 'borders') {
-        return;
-      }
-
+    bordered.forEach(({ physicalRow, physicalColumn, value }) => {
       const row: number | null = this.hot.toVisualRow(physicalRow);
       const column: number | null = this.hot.toVisualColumn(physicalColumn);
       // A copy: the model edits its border objects in place, and the meta value belongs to the
@@ -858,10 +1059,22 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
+    this.#dropBorderFromModel(row, column);
+  }
+
+  /**
+   * Drops the border of a cell from the model, the row index and the rendered selections. The
+   * meta is not touched: callers have already removed it, or know it is gone.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  #dropBorderFromModel(row: number, column: number) {
     const borderId = createId(row, column);
 
     this.spliceBorder(borderId);
     this.#unindexBorderByRow(row, borderId);
+    this.#dropOutgoingBorder(row, borderId);
     // Destroy the rendered selection if this border is currently in the viewport working set; if it
     // is off-screen there is nothing rendered to remove.
     this.#destroyBorderSelection(borderId);
@@ -893,7 +1106,7 @@ export class CustomBorders extends BasePlugin {
       }
 
     } else {
-      bordersMeta[place] = createDefaultCustomBorder();
+      bordersMeta[place] = createContextMenuCustomBorder();
 
       // The meta is written first so a vetoed write leaves the model untouched.
       if (this.#writeBordersMeta(row, column, denormalizeBorder(bordersMeta))) {
@@ -1076,33 +1289,73 @@ export class CustomBorders extends BasePlugin {
     }
 
     this.#customSelectionsCache.clear();
+    this.#outgoingSelectionIds.clear();
   }
 
   /**
    * Clears the entire border model and its rendered working set: cancels any in-flight progressive
-   * load, removes the `borders` meta from every previously bordered cell, empties `savedBorders` and
-   * its indexes, and destroys the rendered selections. Shared by `clearBorders()` (clear all) and
-   * `changeBorderSettings()` (a fresh array config / `updateSettings` replace). Does not render.
+   * load, removes the `borders` meta from every cell that carries it, rebuilds `savedBorders` and its
+   * indexes from what is left, and destroys the rendered selections. Shared by `clearBorders()`
+   * (clear all) and `changeBorderSettings()` (a fresh array config / `updateSettings` replace). Does
+   * not render.
+   *
+   * The meta is removed by the PHYSICAL coordinates it is stored under, not by the model's. The model
+   * keeps the VISUAL coordinates a border was set at, and they stop naming that record once rows are
+   * sorted, moved or trimmed: a filter that hid the bordered row left `removeCellMeta` reading the
+   * stale index as a raw physical one, so the meta stayed on the record - the grid stopped painting
+   * the border while the XLSX export still wrote it and an unrelated undo painted it again. A record
+   * a trimming map hides has no visual index at all, so it is cleared through
+   * `_removeCellMetaByPhysicalIndex`, which is journaled like `removeCellMeta` but fires no meta hook.
+   *
+   * @param {boolean} [keepRendered=false] Leaves the rendered selections in place, for a progressive
+   * replace that keeps drawing them. Any other reset also drops the borders such a replace carries.
    */
-  #resetBorderModel() {
+  #resetBorderModel(keepRendered = false) {
     this.#cancelProgressiveApply();
 
-    // A `beforeRemoveCellMeta` listener can veto the removal. Those cells keep their `borders` meta,
-    // so they keep their model entry too - clearing the model around them would leave `getBorders()`
-    // and `getCellMeta().borders` disagreeing.
-    const kept: BorderObject[] = [];
+    if (!keepRendered) {
+      this.#carriedBorders = null;
+    }
 
-    arrayEach(this.savedBorders, (border) => {
-      if (!this.#writeBordersMeta(border.row, border.col, null)) {
-        kept.push(border);
+    const hot = this.hot as HotInstanceInternal;
+    const metaManager = hot._getMetaManager();
+    const bordered = this.#collectBorderedMetas();
+    const survivors: typeof bordered = [];
+    const rowCount = hot.countRows();
+    const columnCount = hot.countCols();
+
+    bordered.forEach(({ physicalRow, physicalColumn }) => {
+      const row: number | null = hot.toVisualRow(physicalRow);
+      const column: number | null = hot.toVisualColumn(physicalColumn);
+
+      if (row !== null && column !== null && row < rowCount && column < columnCount) {
+        // A `beforeRemoveCellMeta` listener can veto this removal; such a cell keeps its meta, and
+        // the rebuild below gives it its model entry back at its current visual coordinates. The
+        // value is read again, as the listener that vetoed may also have changed it.
+        if (!this.#writeBordersMeta(row, column, null)) {
+          const meta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+
+          if (meta !== undefined && hasOwnProperty(meta, 'borders')) {
+            survivors.push({ physicalRow, physicalColumn, value: meta.borders });
+          }
+        }
+
+        return;
+      }
+
+      this.#isInternalMetaWrite = true;
+
+      try {
+        hot._removeCellMetaByPhysicalIndex(physicalRow, physicalColumn, 'borders');
+      } finally {
+        this.#isInternalMetaWrite = false;
       }
     });
 
-    this.savedBorders = kept;
-    this.#rebuildSavedBordersIndex();
-    this.#bordersByRow.clear();
-    this.#bordersByRowDirty = true;
-    this.#destroyAllSelections();
+    // Rebuilt from the meta that survived (the vetoed removals), so `getBorders()` and
+    // `getCellMeta().borders` cannot disagree. Unless `keepRendered` is set, it also destroys the
+    // rendered selections. The survivors are passed in, so the clear walks the cell meta once, not twice.
+    this.#rebuildModelFromMeta(survivors, keepRendered);
   }
 
   /**
@@ -1165,6 +1418,27 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
+   * Forgets the outgoing border of one cell, so a running progressive replace does not draw it again
+   * after the cell was cleared on purpose (a removal, or a new configuration that hides every side).
+   *
+   * @param {number} row Visual row index the border sits on.
+   * @param {string} borderId The id of the border to forget.
+   */
+  #dropOutgoingBorder(row: number, borderId: string) {
+    const rowBorders = this.#outgoingBordersByRow?.get(row);
+
+    if (!rowBorders) {
+      return;
+    }
+
+    const at = rowBorders.findIndex(border => border.id === borderId);
+
+    if (at > -1) {
+      rowBorders.splice(at, 1);
+    }
+  }
+
+  /**
    * Drops a single border from the visual-row index. Runs only when the index is current, for the
    * same reason as {@link #indexBorderByRow}.
    *
@@ -1202,6 +1476,8 @@ export class CustomBorders extends BasePlugin {
    * Called on every view render (`beforeViewRender`), before the selection borders are drawn.
    */
   #syncViewportSelections() {
+    this.#flushPendingModelRebuild();
+
     if (this.#bordersByRowDirty) {
       this.#rebuildBordersByRow();
     }
@@ -1223,36 +1499,23 @@ export class CustomBorders extends BasePlugin {
 
     // Frozen rows/columns are rendered by the overlay clones even when the master rendered range
     // excludes them, so the working window is the union of the frozen areas and the master range.
-    const settings = this.hot.getSettings();
-    const fixedRowsTop = Number(settings.fixedRowsTop) || 0;
-    const fixedRowsBottom = Number(settings.fixedRowsBottom) || 0;
-    const fixedColumnsStart = Number(settings.fixedColumnsStart) || 0;
+    const fixedRowsTop = this.hot.view.countFixedRowsTop();
+    const fixedRowsBottom = this.hot.view.countFixedRowsBottom();
+    const fixedColumnsStart = this.hot.view.countFixedColumnsStart();
     const totalRows = this.hot.countRows();
     const totalColumns = this.hot.countCols();
     // The start columns have priority over the end ones when the two bands would overlap.
     const fixedColumnsEnd = this.hot.view.countFixedColumnsEnd();
     const rowRanges = getViewportUnionRanges(firstRow, lastRow, fixedRowsTop, fixedRowsBottom, totalRows);
     const shouldBeVisible = new Set<string>();
+    const isColumnInWindow = (column: number) => isIndexInViewportUnion(
+      column, firstColumn, lastColumn, fixedColumnsStart, fixedColumnsEnd, totalColumns
+    );
 
     arrayEach(rowRanges, ([fromRow, toRow]) => {
       for (let row = fromRow; row <= toRow; row++) {
-        const rowBorders = this.#bordersByRow.get(row);
-
-        if (!rowBorders) {
-          continue; // eslint-disable-line no-continue
-        }
-
-        arrayEach(rowBorders, (border) => {
-          if (isIndexInViewportUnion(
-            border.col, firstColumn, lastColumn, fixedColumnsStart, fixedColumnsEnd, totalColumns
-          )) {
-            shouldBeVisible.add(border.id);
-
-            if (!this.#customSelectionsCache.has(border.id)) {
-              this.#addSelectionForBorder(border);
-            }
-          }
-        });
+        this.#syncRowSelections(this.#bordersByRow.get(row), isColumnInWindow, shouldBeVisible);
+        this.#syncOutgoingRowSelections(this.#outgoingBordersByRow?.get(row), isColumnInWindow, shouldBeVisible);
       }
     });
 
@@ -1260,6 +1523,73 @@ export class CustomBorders extends BasePlugin {
     arrayEach(Array.from(this.#customSelectionsCache.keys()), (borderId) => {
       if (!shouldBeVisible.has(borderId)) {
         this.#destroyBorderSelection(borderId);
+      }
+    });
+  }
+
+  /**
+   * Makes sure every model border of one row that lies in the working window has a rendered
+   * selection, and records it as one that should stay visible.
+   *
+   * @param {object[]|undefined} rowBorders The model borders on the row.
+   * @param {Function} isColumnInWindow Tells whether a visual column is in the working window.
+   * @param {Set<string>} shouldBeVisible Collects the ids that should stay rendered.
+   */
+  #syncRowSelections(
+    rowBorders: BorderObject[] | undefined,
+    isColumnInWindow: (column: number) => boolean,
+    shouldBeVisible: Set<string>
+  ) {
+    if (!rowBorders) {
+      return;
+    }
+
+    arrayEach(rowBorders, (border) => {
+      if (!isColumnInWindow(border.col)) {
+        return;
+      }
+
+      shouldBeVisible.add(border.id);
+
+      // The cell still shows the border of the previous configuration: replace it in this pass.
+      if (this.#outgoingSelectionIds.has(border.id)) {
+        this.#destroyBorderSelection(border.id);
+      }
+
+      if (!this.#customSelectionsCache.has(border.id)) {
+        this.#addSelectionForBorder(border);
+      }
+    });
+  }
+
+  /**
+   * Keeps drawing the borders of the previous configuration on one row, for the cells the model of
+   * a running progressive replace has not reached yet.
+   *
+   * @param {object[]|undefined} rowBorders The outgoing borders on the row.
+   * @param {Function} isColumnInWindow Tells whether a visual column is in the working window.
+   * @param {Set<string>} shouldBeVisible Collects the ids that should stay rendered.
+   */
+  #syncOutgoingRowSelections(
+    rowBorders: BorderObject[] | undefined,
+    isColumnInWindow: (column: number) => boolean,
+    shouldBeVisible: Set<string>
+  ) {
+    if (!rowBorders) {
+      return;
+    }
+
+    arrayEach(rowBorders, (border) => {
+      // A cell the model holds a border for is drawn from the model.
+      if (this.#savedBordersIndex.has(border.id) || !isColumnInWindow(border.col)) {
+        return;
+      }
+
+      shouldBeVisible.add(border.id);
+
+      if (!this.#customSelectionsCache.has(border.id)) {
+        this.#addSelectionForBorder(border);
+        this.#outgoingSelectionIds.add(border.id);
       }
     });
   }
@@ -1287,6 +1617,8 @@ export class CustomBorders extends BasePlugin {
    * @param {string} borderId Border id name as string.
    */
   spliceBorder(borderId: string) {
+    this.#flushPendingModelRebuild();
+
     const index = this.#savedBordersIndex.get(borderId) ?? -1;
 
     if (index > -1) {
@@ -1317,12 +1649,15 @@ export class CustomBorders extends BasePlugin {
    * @returns {boolean}
    */
   checkSavedBorders(border: BorderObject) {
+    this.#flushPendingModelRebuild();
+
     let check = false;
 
     const hideCount = this.countHide(border);
 
     if (hideCount === 4) {
       this.spliceBorder(border.id);
+      this.#dropOutgoingBorder(border.row, border.id);
       check = true;
 
     } else {
@@ -1342,10 +1677,10 @@ export class CustomBorders extends BasePlugin {
    *
    * @private
    * @param {boolean} [render=true] If `true`, a render is forced after the border model is rebuilt
-   * so `#syncViewportSelections` materializes the visible selections. Pass `false` on the `init`
-   * path: the `init` hook fires before the core's own first render, so that render performs the
-   * sync - and rendering here would paint the grid before later-priority plugins (e.g.
-   * NestedHeaders) finish their `init` setup, leaving corrupted header DOM behind.
+   * so `#syncViewportSelections` materializes the visible selections. Pass `false` from the ready step
+   * at init: the core's first render follows and performs the sync, and rendering here would paint the
+   * grid before later-priority plugins (e.g. NestedHeaders) build their state, leaving corrupted header
+   * DOM behind (#11031).
    */
   changeBorderSettings(render = true) {
     const customBorders = this.hot.getSettings()[PLUGIN_KEY];
@@ -1358,14 +1693,19 @@ export class CustomBorders extends BasePlugin {
       // A fresh array config replaces the previous borders (this is also the `updateSettings` path).
       // Reset the model and clear the previous cells' meta first so `prepareBorderFromCustomAdded`
       // starts from a clean slate instead of merging the new config onto stale meta.
-      this.#resetBorderModel();
+      this.#resetBorderModel(this.#carriedBorders !== null);
 
       const progressive = this.#resolveProgressiveSetting();
 
       if (progressive.enabled && bordersClone.length > 0) {
-        // Apply borders in background batches: render the (border-less) grid now so it is
-        // interactive immediately; batches fill in and `afterCustomBordersUpdate` fires on drain.
+        // Apply borders in background batches: render the grid now so it is interactive immediately;
+        // batches fill in and `afterCustomBordersUpdate` fires on drain. The borders of a replaced
+        // configuration stay drawn until the batches reach their cells.
         this.#startProgressiveApply(bordersClone, progressive.chunkSize);
+
+        if (this.#carriedBorders) {
+          this.#adoptOutgoingBorders(this.#carriedBorders);
+        }
 
         if (render) {
           this.hot.render();
@@ -1385,6 +1725,66 @@ export class CustomBorders extends BasePlugin {
     }
 
     this.hot.runHooks('afterCustomBordersUpdate');
+  }
+
+  /**
+   * Returns the borders on screen when the update that `updatePlugin()` handles replaces them
+   * progressively, or `null` when it does not. Takes the borders of a running replace too, so a
+   * second `updateSettings()` call keeps drawing what the first one has not replaced yet.
+   *
+   * @returns {object[]|null}
+   */
+  #collectBordersForProgressiveReplace(): BorderObject[] | null {
+    const customBorders = this.hot.getSettings()[PLUGIN_KEY];
+
+    if (!this.enabled
+        || !Array.isArray(customBorders)
+        || !customBorders.some(isRecord)
+        || !this.#resolveProgressiveSetting().enabled) {
+      return null;
+    }
+
+    const carried: BorderObject[] = [];
+
+    this.#outgoingBordersByRow?.forEach((rowBorders) => {
+      arrayEach(rowBorders, (border) => {
+        carried.push(border);
+      });
+    });
+    arrayEach(this.savedBorders, (border) => {
+      carried.push(border);
+    });
+
+    return carried;
+  }
+
+  /**
+   * Indexes the carried borders by visual row, the last one winning for an id, and marks every
+   * selection that is rendered right now as one that draws an outgoing border.
+   *
+   * @param {object[]} borders The borders the progressive replace takes over from.
+   */
+  #adoptOutgoingBorders(borders: BorderObject[]) {
+    const byId = new Map<string, BorderObject>();
+
+    arrayEach(borders, (border) => {
+      byId.set(border.id, border);
+    });
+
+    const byRow = new Map<number, BorderObject[]>();
+
+    byId.forEach((border) => {
+      const rowBorders = byRow.get(border.row);
+
+      if (rowBorders) {
+        rowBorders.push(border);
+      } else {
+        byRow.set(border.row, [border]);
+      }
+    });
+
+    this.#outgoingBordersByRow = byRow;
+    this.#outgoingSelectionIds = new Set(this.#customSelectionsCache.keys());
   }
 
   /**
@@ -1457,6 +1857,12 @@ export class CustomBorders extends BasePlugin {
       this.createCustomBorders(queue.slice(this.#progressiveIndex, end));
     });
     this.#progressiveIndex = end;
+
+    // The last batch ends the replace: the render below drops what the old configuration left behind.
+    if (end >= queue.length) {
+      this.#outgoingBordersByRow = null;
+    }
+
     this.hot.render();
 
     if (this.#progressiveIndex >= queue.length) {
@@ -1500,6 +1906,7 @@ export class CustomBorders extends BasePlugin {
     this.#progressiveQueue = null;
     this.#progressiveIndex = 0;
     this.#configPassTouched = null;
+    this.#outgoingBordersByRow = null;
     this.hot.runHooks('afterCustomBordersUpdate');
   }
 
@@ -1516,6 +1923,7 @@ export class CustomBorders extends BasePlugin {
     this.#progressiveQueue = null;
     this.#progressiveIndex = 0;
     this.#configPassTouched = null;
+    this.#outgoingBordersByRow = null;
   }
 
   /**
@@ -1674,6 +2082,8 @@ The border style will be ignored.`);
    * @param {string} borderId The id of the border whose selection should be destroyed.
    */
   #destroyBorderSelection(borderId: string) {
+    this.#outgoingSelectionIds.delete(borderId);
+
     const customSelection = this.#customSelectionsCache.get(borderId);
 
     if (!customSelection) {
@@ -1692,29 +2102,16 @@ The border style will be ignored.`);
   }
 
   /**
-   * Add border options to context menu.
+   * Creates the border entries of the context menu. None while the `customBorders` setting is off.
    *
-   * @param {object} defaultOptions Context menu items.
+   * @returns {object[]}
    */
-  #onAfterContextMenuDefaultOptions(rawOptions: unknown) {
+  #createMenuEntries() {
     if (!this.hot.getSettings()[PLUGIN_KEY]) {
-      return;
+      return [];
     }
 
-    if (typeof rawOptions !== 'object' || rawOptions === null) {
-      return;
-    }
-
-    const defaultOptions = rawOptions as Record<string, unknown>;
-    const { items } = defaultOptions;
-
-    if (!Array.isArray(items)) {
-      return;
-    }
-
-    items.push({
-      name: '---------',
-    }, {
+    return [{
       key: 'borders',
       name(this: HotInstance): string {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
@@ -1741,24 +2138,7 @@ The border style will be ignored.`);
           menuItemNoBorders(this)
         ]
       }
-    });
-  }
-
-  /**
-   * `init` hook callback. Builds the border model without forcing a render: the `init` hook fires
-   * right before the core's first render, and a render forced from here would paint the grid
-   * before later-priority plugins (e.g. NestedHeaders) run their own `init` setup, leaving
-   * corrupted header DOM behind (#11031 regression). The core's first render syncs and draws the
-   * master overlay's borders; the freshly-bootstrapped overlay clones need one more selection
-   * pass, so that render is scheduled for `afterInit` - still inside the same synchronous init
-   * sequence, but after every plugin finished its initialization.
-   */
-  #onAfterInit() {
-    this.changeBorderSettings(false);
-
-    if (this.savedBorders.length > 0) {
-      this.hot.addHookOnce('afterInit', () => this.hot.render());
-    }
+    }];
   }
 
   /**
@@ -1777,6 +2157,186 @@ The border style will be ignored.`);
   };
 
   /**
+   * `beforeFilter`, `beforeTrimRow` and `beforeUntrimRow` hook callback. A progressive load still in
+   * flight is completed here, while its visual coordinates still name the rows it was configured
+   * for: completed from the `after*` hooks, its pending batches landed on the rows the trim had
+   * shifted into those positions (review round 12).
+   */
+  #onBeforeTrimmingChange = () => {
+    this.#flushProgressiveApply();
+  };
+
+  /**
+   * `afterUpdateSettings` hook callback, registered ahead of every plugin's own update. It stands in
+   * for a `beforeUpdateSettings` hook, which the core does not have, and records the visible rows
+   * before `TrimRows#updatePlugin()` writes the trimming map.
+   */
+  #onUpdateSettingsStart = () => {
+    this.#visibleRowsBeforeUpdate = this.hot.rowIndexMapper.getNotTrimmedIndexes();
+  };
+
+  /**
+   * `afterUpdateSettings` hook callback. `updateSettings({ trimRows })` writes the trimming map in
+   * `TrimRows#updatePlugin` without firing `afterTrimRow`, so the model kept the visual rows the
+   * borders were drawn at while their records moved (review round 12). The rebuild is skipped when
+   * the visible rows did not change: the React and Angular wrappers re-send `trimRows` on every
+   * render or settings change (the Vue wrapper drops an unchanged value), and the rebuild walks every
+   * bordered cell (DEV-3553). A progressive load still in flight completes
+   * after the map changed on this path only.
+   *
+   * @param {object} settings The settings passed to `updateSettings()`.
+   */
+  #onAfterUpdateSettings = (settings: Record<string, unknown>) => {
+    const visibleRowsBefore = this.#visibleRowsBeforeUpdate;
+
+    this.#visibleRowsBeforeUpdate = null;
+
+    if (!settings || !hasOwnProperty(settings, 'trimRows')) {
+      return;
+    }
+
+    const visibleRows = this.hot.rowIndexMapper.getNotTrimmedIndexes();
+
+    // While the mapper batches operations (`hot.batch()`, or a bare `suspendOperations()`) it does not
+    // rebuild its cache, so `trimRows: false` (which only unregisters the map) leaves the very same
+    // array behind and the comparison would pass.
+    if (
+      !this.hot.rowIndexMapper.isBatched &&
+      (
+        visibleRowsBefore === visibleRows ||
+        (
+          visibleRowsBefore !== null &&
+          visibleRowsBefore.length === visibleRows.length &&
+          visibleRowsBefore.every((physicalRow, visualRow) => physicalRow === visibleRows[visualRow])
+        )
+      )
+    ) {
+      return;
+    }
+
+    this.#deferRebuildAfterIndexChange();
+    this.#scheduleMetaSyncRender();
+  };
+
+  /**
+   * `beforeLoadData` and `beforeUpdateData` hook callback. Runs a rebuild a trim or a filter deferred
+   * while the `borders` meta is still there: `loadData` drops the cell meta and keeps the model, so a
+   * rebuild left for later read no meta and emptied the model, and `trimRow(0); loadData(same)` lost
+   * a border that `loadData(same)` alone keeps (review round 12).
+   */
+  #onBeforeDataReplacement = () => {
+    this.#flushPendingModelRebuild();
+  };
+
+  /**
+   * `afterLoadData` hook callback. `loadData` drops the cell meta and keeps the model, so the border
+   * stays drawn while its `borders` meta is gone, and the next rebuild from the meta (a trim, an
+   * untrim, a filter) found nothing and emptied the model. Writing the model back into the meta
+   * makes the two agree again, so the border survives what it survived before the rebuild existed.
+   *
+   * This is a restore, not an edit, so it writes through `_setCellMetaByPhysicalIndex`: no
+   * `beforeSetCellMeta`/`afterSetCellMeta` hook fires (an application that blocks `borders` edits on locked
+   * cells, or marks a document dirty on a meta write, sees nothing), nothing can be vetoed, and the model
+   * is never changed here. An entry past the loaded data gets its meta too, at the raw index `setCellMeta`
+   * would use, so a later `updateData()` that regrows the grid finds model and meta in agreement.
+   *
+   * The model is read without flushing a pending rebuild: one made after `#onBeforeDataReplacement`
+   * would read the meta `loadData` just dropped, and this hook runs ahead of the listeners that can
+   * make one. A `_applySettingsAndData()` call that declares `customBorders` replaces the model in its own
+   * `onDataReady()`, so there is nothing to restore.
+   */
+  #onAfterLoadData = () => {
+    if (this.hasDeferredDataWork()) {
+      return;
+    }
+
+    const rowCount = this.hot.countRows();
+    const columnCount = this.hot.countCols();
+    const hot = this.hot as HotInstanceInternal;
+
+    arrayEach(this.#savedBorders, (border) => {
+      const physicalRow = border.row < rowCount ? hot.toPhysicalRow(border.row) : border.row;
+      const physicalColumn = border.col < columnCount ? hot.toPhysicalColumn(border.col) : border.col;
+
+      hot._setCellMetaByPhysicalIndex(physicalRow, physicalColumn, 'borders', denormalizeBorder(border));
+    });
+  };
+
+  /**
+   * `afterFilter` hook callback. A filter changes which record sits at each visual row, while the
+   * model keeps the visual coordinates a border was set at. Rebuilding from the `borders` meta
+   * (stored by physical coordinates) moves every border back onto its record, and gives a border
+   * that an undo restored onto a filtered-out record its model entry once the record is visible. The
+   * filter renders right after this hook, and the render's viewport sync runs the rebuild.
+   */
+  #onAfterFilter = () => {
+    this.#deferRebuildAfterIndexChange();
+  };
+
+  /**
+   * `afterTrimRow` and `afterUntrimRow` hook callback. Same reason as {@link CustomBorders#onAfterFilter}:
+   * a trim changes the visual index of every record below it, and an untrim brings back a record
+   * whose border an undo restored while it was trimmed. The trim does not render, so a render is
+   * scheduled; its viewport sync runs the rebuild once for the whole burst of trim calls.
+   *
+   * @param {number[]} currentTrimConfig The physical rows trimmed before the change.
+   * @param {number[]} destinationTrimConfig The physical rows trimmed after the change.
+   * @param {boolean} actionPossible `true` when the configuration was valid.
+   * @param {boolean} stateChanged `true` when the set of trimmed rows changed.
+   */
+  #onAfterTrimmingChange = (
+    currentTrimConfig: number[],
+    destinationTrimConfig: number[],
+    actionPossible: boolean,
+    stateChanged: boolean,
+  ) => {
+    if (!stateChanged) {
+      return;
+    }
+
+    this.#deferRebuildAfterIndexChange();
+    this.#scheduleMetaSyncRender();
+  };
+
+  /**
+   * Marks the border model for a rebuild from the meta after the visible rows changed. A
+   * progressive load still in flight is completed first, while its coordinates still describe the
+   * rows it was configured for, so the rebuild (which cancels the load) cannot drop its pending
+   * batches.
+   *
+   * The rebuild itself is deferred: it walks every user-defined meta key, and a loop of `trimRow()`
+   * calls rebuilt the whole model once per call (6.3 s for 100 calls at 50,000 border entries). It
+   * runs once, from `#flushPendingModelRebuild()`, the next time the model is read or
+   * written.
+   */
+  #deferRebuildAfterIndexChange() {
+    this.#flushProgressiveApply();
+    this.#isModelRebuildPending = true;
+    // The model changes now, as far as UndoRedo is concerned; the deferred rebuild keeps this
+    // version, so a later step does not record the change again.
+    this.#modelVersion += 1;
+  }
+
+  /**
+   * Runs the model rebuild a trim or a filter deferred, if one is pending. Every reader and writer of
+   * the model calls it first: the `savedBorders` getter, the id-index helpers, the render's viewport
+   * sync, the external meta listeners and the `before*` structural hooks. `captureState()` does not:
+   * the deferral already advanced the model version, and the rebuild keeps it. The last
+   * one matters: the core shifts the meta before the `after*` hooks, so a rebuild from there would
+   * read the shifted meta and the shift would then move the borders a second time.
+   */
+  #flushPendingModelRebuild() {
+    if (!this.#isModelRebuildPending) {
+      return;
+    }
+
+    const version = this.#modelVersion;
+
+    this.#rebuildModelFromMeta();
+    this.#modelVersion = version;
+  }
+
+  /**
    * `afterSetCellMeta` hook callback. Follows an external write of the `borders` cell meta (e.g.
    * UndoRedo restoring the meta of an undone row/column removal, or user code calling
    * `setCellMeta` directly) by upserting the matching entry in the border model, so the model and
@@ -1791,6 +2351,8 @@ The border style will be ignored.`);
     if (this.#isInternalMetaWrite || key !== 'borders' || !isRecord(value)) {
       return;
     }
+
+    this.#flushPendingModelRebuild();
 
     // The written value may be a complete plugin-shaped border object (UndoRedo restoring the meta
     // of an undone removal) or a partial user-authored one (e.g. `{ top: { width: 2 } }` passed to
@@ -1847,11 +2409,8 @@ The border style will be ignored.`);
       return;
     }
 
-    const borderId = createId(row, column);
-
-    this.spliceBorder(borderId);
-    this.#unindexBorderByRow(row, borderId);
-    this.#destroyBorderSelection(borderId);
+    this.#flushPendingModelRebuild();
+    this.#dropBorderFromModel(row, column);
   };
 
   /**
@@ -1875,6 +2434,8 @@ The border style will be ignored.`);
    * @param {string} [source] Source that triggered the structural change.
    */
   #flushBeforeStructuralChange(source?: string) {
+    this.#flushPendingModelRebuild();
+
     if (source === 'auto') {
       return;
     }
@@ -2076,10 +2637,14 @@ The border style will be ignored.`);
     // Cancel any in-flight progressive load and release the border model / working-set graphs so a
     // destroyed instance does not retain them for the page lifetime.
     this.#cancelProgressiveApply();
+    this.#isModelRebuildPending = false;
     this.savedBorders = [];
     this.#savedBordersIndex.clear();
     this.#bordersByRow.clear();
     this.#customSelectionsCache.clear();
+    this.#outgoingBordersByRow = null;
+    this.#outgoingSelectionIds.clear();
+    this.#carriedBorders = null;
     this.#rowMoveSnapshot = null;
     this.#columnMoveSnapshot = null;
 

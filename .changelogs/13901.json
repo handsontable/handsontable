@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where the pagination bar shrank to the width of the row headers when the grid had no columns to render.",
+  "type": "fixed",
+  "issueOrPR": 13901,
+  "breaking": false,
+  "framework": "none"
+}

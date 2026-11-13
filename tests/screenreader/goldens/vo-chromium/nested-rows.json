@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "scenario": "nested-rows",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-10-27T09:27:07.807Z"
+  },
+  "steps": {
+    "collapse-parent": "1 collapsed column 1 row 1 collapsed row 1",
+    "expand-parent": "expanded row 1 expanded rows shown 5",
+    "into-parent-cell": "name root a column 1 row root a root a",
+    "down-to-child": "name a 1 column 1 row a 1 a 1"
+  }
+}

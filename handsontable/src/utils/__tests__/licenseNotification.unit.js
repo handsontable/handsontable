@@ -23,6 +23,8 @@ function createMockHotInstance(overrides = {}) {
     getLayoutManager: jest.fn(() => ({
       register: jest.fn(),
     })),
+    addHook: jest.fn(),
+    addHookOnce: jest.fn(),
     ...overrides,
   };
 }
@@ -53,6 +55,29 @@ describe('licenseNotification', () => {
 
       expect(_injectProductInfo).not.toHaveBeenCalled();
       expect(hotInstance.getFocusScopeManager).not.toHaveBeenCalled();
+    });
+
+    it('should write the license message of a later settings pass after every plugin has handled it', () => {
+      const hotInstance = createMockHotInstance();
+
+      initLicenseNotification(hotInstance);
+
+      // Plugins handle `afterUpdateSettings` at the default order index (0), so the message listener,
+      // which writes one message for every feature a pass turned off, has to run after them.
+      expect(hotInstance.addHook).toHaveBeenCalledTimes(1);
+      expect(hotInstance.addHook).toHaveBeenCalledWith('afterUpdateSettings', expect.any(Function), expect.any(Number));
+      expect(hotInstance.addHook.mock.calls[0][2]).toBeGreaterThan(0);
+    });
+
+    it('should write the first license message on the `init` hook, after every plugin\'s ready step', () => {
+      const hotInstance = createMockHotInstance();
+
+      initLicenseNotification(hotInstance);
+
+      // The plugins report what the key leaves out in their init turn and their ready step (CheckboxHeader
+      // checks its columns there), both before `init`, so the first message waits for it and names them all.
+      expect(hotInstance.addHookOnce).toHaveBeenCalledTimes(1);
+      expect(hotInstance.addHookOnce).toHaveBeenCalledWith('init', expect.any(Function));
     });
 
     it('should call _injectProductInfo with correct parameters when container exists', () => {
@@ -149,6 +174,29 @@ describe('licenseNotification', () => {
       expect(notificationEl.classList.contains('ht-slot-element')).toBe(true);
       // It is not a layout-slot contributor, so the LayoutManager is never touched.
       expect(hotInstance.getLayoutManager).not.toHaveBeenCalled();
+    });
+
+    it('should put the notification in front of the "Powered by" bar, which stays the last line', () => {
+      const hotInstance = createMockHotInstance();
+      const sibling = document.createElement('div');
+      const poweredByBar = document.createElement('div');
+      const notificationEl = document.createElement('div');
+
+      // A registered item (for example pagination) and the branding bar are already in the slot.
+      hotInstance.rootSlotBottomElement.appendChild(sibling);
+      poweredByBar.className = 'handsontable ht-license-powered-by';
+      hotInstance.rootSlotBottomElement.appendChild(poweredByBar);
+      notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
+
+      _injectProductInfo.mockImplementation(({ element }) => {
+        element.appendChild(notificationEl);
+
+        return notificationEl;
+      });
+
+      initLicenseNotification(hotInstance);
+
+      expect(Array.from(hotInstance.rootSlotBottomElement.children)).toEqual([sibling, notificationEl, poweredByBar]);
     });
 
     it('should register scope with runOnlyIf that returns false when notification element is removed', () => {

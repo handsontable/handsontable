@@ -371,6 +371,19 @@ export abstract class Overlay {
     return !isHTMLElement(verticalOwner);
   }
 
+  /**
+   * Whether the window scrolls the columns (and not the holder). It reads the element that really scrolls
+   * them (`mainTableScrollableElement`), never the horizontal axis owner (`trimmingContainer`): with
+   * `preventOverflow: 'vertical'` (or an ancestor that clips the vertical axis only) the window owns the
+   * horizontal axis while the holder scrolls the columns. Anything that is only true while the window
+   * scrolls them (the page offset in front of the grid, a clone held at the viewport's edge) asks this.
+   *
+   * @returns {boolean}
+   */
+  isScrolledByWindow(): boolean {
+    return this.mainTableScrollableElement === this.deps.rootWindow;
+  }
+
   abstract resetFixedPosition(): boolean;
   abstract createTable(...args: unknown[]): unknown;
   abstract setScrollPosition(pos: number): boolean;

@@ -15,11 +15,11 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       height="auto"
       colHeaders={true}
       rowHeaders={rows > 0}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };
@@ -167,4 +167,21 @@ export default ExampleComponent;
   assert.doesNotMatch(output, /HOT_BLANK/);
   // The blank line between the two statements in the callback body is kept.
   assert.match(output, /const label = item\.toUpperCase\(\);\n\n\s*return <li/);
+});
+
+test('keeps the license key placeholder when it is the first JSX attribute', async () => {
+  const output = await transpileDocExample(REACT_SOURCE, 'example.tsx');
+
+  assert.match(output, /<HotTable\n\s+\/\/ licenseKey="your-license-key" \/\/ get a key at https:\/\/handsontable\.com\/pricing\/\n\s+data=\{data\}/);
+});
+
+test('drops a comment that follows the last JSX attribute, which is why the placeholder goes first', async () => {
+  const source = REACT_SOURCE.replace(
+    /\n\s+\/\/ licenseKey=.*\n/,
+    '\n',
+  ).replace('rowHeaders={rows > 0}\n', 'rowHeaders={rows > 0}\n      // licenseKey="your-license-key"\n');
+  const output = await transpileDocExample(source, 'example.tsx');
+
+  assert.match(source, /rowHeaders=\{rows > 0\}\n\s+\/\/ licenseKey=/);
+  assert.doesNotMatch(output, /licenseKey/);
 });

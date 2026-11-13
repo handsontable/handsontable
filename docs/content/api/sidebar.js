@@ -7,7 +7,7 @@ module.exports = {
     {
       title: 'Columns',
       children: [
-        'autoColumnSize', 'collapsibleColumns', 'columnSorting', 'columnSummary',
+        'autoColumnSize', 'collapsibleColumns', 'columnSorting', 'columnSummary', 'freezeBar',
         'hiddenColumns', 'manualColumnFreeze', 'manualColumnMove',
         'manualColumnResize', 'multiColumnSorting', 'nestedHeaders', 'stretchColumns',
       ],
@@ -32,7 +32,7 @@ module.exports = {
     },
     {
       title: 'Data & tools',
-      children: ['copyPaste', 'exportFile', 'filters', 'pagination', 'search', 'undoRedo'],
+      children: ['copyPaste', 'exportFile', 'filters', 'pagination', 'search', 'sheetsBar', 'undoRedo'],
     },
     {
       title: 'Classes & utilities',

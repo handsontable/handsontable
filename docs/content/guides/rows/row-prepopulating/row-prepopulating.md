@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Row pre-populating
-metaTitle: Row pre-populating - JavaScript Data Grid | Handsontable
+metaTitle: Row pre-populating | Handsontable DataGrid for JavaScript
 description: Pre-populate spare rows with default values using minSpareRows, custom placeholder renderers, or auto-filling template values.
 permalink: /row-prepopulating
 canonicalUrl: /row-prepopulating
@@ -11,13 +11,14 @@ tags:
   - bottom rows
   - placeholder
 react:
-  metaTitle: Row pre-populating - React Data Grid | Handsontable
+  metaTitle: Row pre-populating | Handsontable DataGrid for React
 angular:
-  metaTitle: Row pre-populating - Angular Data Grid | Handsontable
+  metaTitle: Row pre-populating | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row pre-populating - Vue Data Grid | Handsontable
+  metaTitle: Row pre-populating | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Pre-populate new rows with default values when users add rows to the grid.
 
@@ -29,7 +30,7 @@ To keep one empty row at the bottom of the grid, set [`minSpareRows`](@/api/opti
 
 ::: warning
 
-Take care when you combine [`minSpareRows`](@/api/options.md#minsparerows) with [`allowInsertRow: false`](@/api/options.md#allowinsertrow). The spare rows still appear and typing into them works, because [`minSpareRows`](@/api/options.md#minsparerows) ignores [`allowInsertRow`](@/api/options.md#allowinsertrow). But a paste that extends past the last row is cut short, and Handsontable drops the rows that do not fit without an error.
+Take care when you combine [`minSpareRows`](@/api/options.md#minsparerows) with [`allowInsertRow: false`](@/api/options.md#allowinsertrow). The spare rows still appear and typing into them works, because [`minSpareRows`](@/api/options.md#minsparerows) ignores [`allowInsertRow`](@/api/options.md#allowinsertrow). But a paste that extends past the last row is cut short, and Handsontable DataGrid drops the rows that do not fit without an error.
 
 More generally, [`allowInsertRow: false`](@/api/options.md#allowinsertrow) does more than hide the context menu's insert items. It also stops the grid from adding rows during a paste or an autofill, and makes [`setDataAtCell()`](@/api/core.md#setdataatcell) throw when you write below the last row. See the [`allowInsertRow`](@/api/options.md#allowinsertrow) reference for what it does and does not stop.
 
@@ -192,7 +193,7 @@ const hot = new Handsontable(container, {
       });
     }
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -211,7 +212,7 @@ const hot = new Handsontable(container, {
         hot.setDataAtRow(index, [defaults.name, defaults.quantity, defaults.status]);
       });
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

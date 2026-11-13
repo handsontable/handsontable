@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild, AfterViewInit, OnDestroy, NgZone, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, AfterViewInit, OnDestroy, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 /* start:skip-in-preview */
@@ -43,7 +43,7 @@ const employees = [
 export class AppComponent implements AfterViewInit, OnDestroy {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   data = employees;
   lastShortcut = '—';
@@ -102,13 +102,14 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         hot.alter('insert_row_below', row);
         hot.populateFromArray(row + 1, 0, [Object.values(rowData)]);
 
-        this.ngZone.run(() => { this.lastShortcut = 'Ctrl+D -- row duplicated'; });
+        this.lastShortcut = 'Ctrl+D -- row duplicated';
+        this.cdr.markForCheck();
       },
     });
 
-    // Ctrl+Enter: submit the grid data
+    // Ctrl+Shift+Enter: submit the grid data
     gridContext.addShortcut({
-      keys: [['Control', 'Enter']],
+      keys: [['Control', 'Shift', 'Enter']],
       group: 'customActions',
       runOnlyIf: () => true,
       callback: (event: Event) => {
@@ -119,10 +120,9 @@ export class AppComponent implements AfterViewInit, OnDestroy {
         const rowCount = data.length;
         const timestamp = new Date().toLocaleTimeString();
 
-        this.ngZone.run(() => {
-          this.lastShortcut = 'Ctrl+Enter -- data submitted';
-          this.lastSubmission = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
-        });
+        this.lastShortcut = 'Ctrl+Shift+Enter -- data submitted';
+        this.lastSubmission = `[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`;
+        this.cdr.markForCheck();
       },
     });
   }
@@ -142,7 +142,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
@@ -151,7 +151,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

@@ -36,3 +36,19 @@ export function getRowBorderCompensation(isBorderBox: boolean): number {
 export function getBoxAdjustedRowHeight(logicalHeight: number, isBorderBox: boolean): number {
   return logicalHeight - getRowBorderCompensation(isBorderBox);
 }
+
+/**
+ * Whether the first rendered `<tr>` of a table draws its own 1px `border-top`, which makes it one pixel
+ * taller than the other rows. It does when the table renders no head row: the
+ * `thead:not(:empty) + tbody > tr:first-child` rule in `styles/base/_base.scss` hands the seam under a
+ * column header to the header's own `border-bottom`, so a body row abutting a head row has no top border.
+ * Per table, not per grid: the bottom clones render no head row, so their first row keeps the border (there it
+ * is the bottom-freeze seam). `StylesHandler#firstRenderedRowDrawsTopBorder` is the grid-level form of the
+ * same question, for the master's own row heights.
+ *
+ * @param {HTMLElement|null|undefined} thead The table's `<thead>`.
+ * @returns {boolean}
+ */
+export function firstRowDrawsTopBorder(thead: HTMLElement | null | undefined): boolean {
+  return !thead?.hasChildNodes();
+}

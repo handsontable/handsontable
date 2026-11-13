@@ -1,7 +1,7 @@
 import Csv from './types/csv';
 import Xlsx from './types/xlsx';
 import type BaseType from './types/_base';
-import type DataProvider from './dataProvider';
+import type ExportDataProvider from './dataProvider';
 
 export const TYPE_CSV = 'csv';
 export const TYPE_XLSX = 'xlsx';
@@ -11,7 +11,7 @@ export const TYPE_PDF = 'pdf'; // TODO
  * Constructor signature shared by every exporter registered in {@link EXPORT_TYPES}.
  */
 export type ExportTypeConstructor = new (
-  dataProvider: DataProvider,
+  dataProvider: ExportDataProvider,
   options: Record<string, unknown>
 ) => BaseType;
 
@@ -23,12 +23,12 @@ export const EXPORT_TYPES: Record<string, ExportTypeConstructor> = {
 /**
  * @private
  * @param {string} type The exporter type.
- * @param {DataProvider} dataProvider The data provider.
+ * @param {ExportDataProvider} dataProvider The data provider.
  * @param {object} options Constructor options for exporter class.
  * @returns {BaseType|null}
  */
 export default function typeFactory(
-  type: string, dataProvider: DataProvider, options: Record<string, unknown>
+  type: string, dataProvider: ExportDataProvider, options: Record<string, unknown>
 ): BaseType | null {
   const ExportType = EXPORT_TYPES[type];
 

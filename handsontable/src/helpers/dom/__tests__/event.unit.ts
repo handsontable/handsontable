@@ -1,6 +1,8 @@
 import {
+  POINTER_DRAG_TOLERANCE,
   getFirstChangedTouch,
   getTouchPointById,
+  hasPointerTraveled,
   hasTouchList,
   isLeftClick,
   isRightClick,
@@ -166,6 +168,32 @@ describe('DomEvent helper', () => {
 
     it('should return null for an event that carries no touch lists', () => {
       expect(getTouchPointById(new MouseEvent('mousemove'), 7)).toBe(null);
+    });
+  });
+
+  describe('hasPointerTraveled', () => {
+    const origin = { x: 100, y: 200 };
+
+    it('should return false when the pointer has not moved', () => {
+      expect(hasPointerTraveled(origin, { clientX: 100, clientY: 200 })).toBe(false);
+    });
+
+    it('should return false for a move up to the tolerance on either axis', () => {
+      expect(POINTER_DRAG_TOLERANCE).toBe(3);
+      expect(hasPointerTraveled(origin, { clientX: 103, clientY: 200 })).toBe(false);
+      expect(hasPointerTraveled(origin, { clientX: 97, clientY: 200 })).toBe(false);
+      expect(hasPointerTraveled(origin, { clientX: 100, clientY: 203 })).toBe(false);
+      expect(hasPointerTraveled(origin, { clientX: 100, clientY: 197 })).toBe(false);
+    });
+
+    it('should return true for a move past the tolerance on the horizontal axis only', () => {
+      expect(hasPointerTraveled(origin, { clientX: 104, clientY: 200 })).toBe(true);
+      expect(hasPointerTraveled(origin, { clientX: 96, clientY: 200 })).toBe(true);
+    });
+
+    it('should return true for a move past the tolerance on the vertical axis only', () => {
+      expect(hasPointerTraveled(origin, { clientX: 100, clientY: 204 })).toBe(true);
+      expect(hasPointerTraveled(origin, { clientX: 100, clientY: 196 })).toBe(true);
     });
   });
 });

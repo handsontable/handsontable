@@ -8,7 +8,7 @@
     "types": [
       "jest", "node"
     ],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "emitDecoratorMetadata": true
   },

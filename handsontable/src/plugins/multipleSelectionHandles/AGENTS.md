@@ -20,13 +20,23 @@ On iPad (`isIpadOS()` but not `isMobileBrowser()`):
 - Desktop resize handles (`adjustHandles`) stay off.
 - `moveCells` edge bands still render when the option is on.
 
-The round handles listen for `touchstart` / `touchmove` / `touchend` only — there is no `mousedown` on `topSelectionHandle-HitArea` / `bottomSelectionHandle-HitArea`. A trackpad or mouse therefore cannot resize via those handles. It still **moves** the selection through the 6px `wtMoveZone` bands, which listen for `mousedown` and sit at z-index 100 on the selection edge. The 40×40 handle hit area hangs off the corner, so most of it does not overlap the band; a mouse press on the painted handle that misses the band is a no-op. Do not add `mousedown` to the handles to "fix" that: it would steal the band's corner pixels and change the desktop-UA iPad product. Finger resize stays on the handles (`tests/e2e/ipad-selection-handles.spec.ts` pins both the mouse-on-band move and the mouse-on-handle no-resize).
+The round handles listen for `touchstart` / `touchmove` / `touchend` only — there is no `mousedown` on `topSelectionHandle-HitArea` / `bottomSelectionHandle-HitArea`. A trackpad or mouse therefore cannot resize via those handles. It still **moves** the selection through the 6px `wtMoveZone` bands, which listen for `mousedown` and sit at z-index 100 on the selection edge. The 40×40 handle hit area hangs off the corner, so most of it does not overlap the band; a mouse press on the painted handle that misses the band is a no-op. At the first row or column with no clone over that edge, `Border#updateMultipleSelectionHandlesPosition` shifts the handle and its hit area onto the grid by the same distance, so the hit area overlaps up to about 23px of the band next to the corner there (about 7px elsewhere). Do not add `mousedown` to the handles to "fix" that: it would steal the band's corner pixels and change the desktop-UA iPad product. Finger resize stays on the handles (`tests/e2e/ipad-selection-handles.spec.ts` pins both the mouse-on-band move and the mouse-on-handle no-resize).
 
 On both, a plain finger drag across cells is **native scrolling by design** — `walkontable/src/event.ts` defers the synthesized mousedown to `touchend` so a drag scrolls instead of selecting.
 
 Both together mean: if a feature should work while dragging on mobile, it has to hook into *this* plugin. DragToScroll does exactly that, by asking `isDraggedBy(touch.identifier)` from its own document-level `touchstart` listener (see `../dragToScroll/AGENTS.md`).
 
 The handle DOM lives in the border, not here — this plugin only reads the hit-area classes `topSelectionHandle-HitArea` and `bottomSelectionHandle-HitArea` off the event target.
+
+## One overlay draws each handle
+
+Every overlay (the master and each frozen-pane clone) has its own border and its own pair of handles, and the master also renders the frozen panes' cells, under the clones. **Each handle is drawn only by the overlay that owns its corner cell** — `ownsCornerCell()` in `walkontable/src/selection/border/adjustHandlesOwnership.ts`, resolved once per draw in `Border#measure`: the top handle by the owner of the selection's top-start cell, the bottom handle by the owner of its bottom-end cell (a merged block's real corner). Before DEV-749 the master drew a frozen cell's handles too, and the user saw two bottom handles. **The cause is geometry, not stacking:** on `develop` `.ht_master` is a stacking context below the clones (`z-index: 0`, see `walkontable/AGENTS.md`), so the master's copy did not paint over the clone; it hung past the freeze line into the master's own visible area, next to the clone's clamped copy. (On 18.1.2, before the master became a stacking context, the master's copy did also paint above the clones.) Do not chase related bugs through z-index, and do not hand frozen cells back to the master to get its unclipped copy: it sits in the scrolling table, so it slides away from the cell as soon as the grid scrolls.
+
+Consequences:
+
+- A clone's bottom handle is clamped inside its own table size (the clone clips overflow), so for a cell in the last frozen row (`fixedRowsTop`) or the last frozen column it sits a few pixels inside the corner, as it always did after a scroll. Accepted in review; `mobile-selection-handles.spec.ts` pins that it stays next to the corner.
+- The clone-occlusion checks (`isTopHandleOccludedByClone`, `isBottomHandleOccludedByClone`, and its inline-axis twin `isBottomHandleOccludedByInlineEndClone`) apply to every overlay on the scrollable side of an axis. A handle that would hang into a frozen pane is pulled inside its cell: the top handle on the `fixedRowsTop`/`fixedColumnsStart` line and on the first track of an end pane, the bottom handle on the last scrollable row before `fixedRowsBottom` and the last scrollable column before `fixedColumnsEnd`.
+- Testing: a reachable-handle check keeps only the topmost element at a handle's center, so two copies stacked on one pixel read as one. Assert `displayedHandles()` too (`MobileHandlesPage`), which counts every displayed copy.
 
 ## Resolving the finger
 
@@ -48,6 +58,16 @@ The handle DOM lives in the border, not here — this plugin only reads the hit-
 The `touchend` **target** is the element captured at `touchstart`, so a release over a cell still carries the handle's hit-area class — it governs `preventDefault()` only, not the drag state. The **legacy Jasmine specs dispatch `touchend` on the destination cell instead**; do not read those specs as a statement about real browser behavior.
 
 `#onAfterScroll` re-extends the selection at the last known finger position after each scroll, because a finger held still past the edge emits no further `touchmove`. It does not run away: the target is resolved against the *current* viewport and then de-duplicated on coordinates, so it reaches a fixed point after one step — measured with `dragToScroll: false`, where nothing suppresses the scroll-into-view, it stops after one row and stays there.
+
+## The legacy mobile Jasmine suite is manual, and handle positions are whole pixels
+
+`__tests__/mobile/` runs only when someone builds it and opens `test/MobileRunner.html` on a device; no CI job runs it. Build `dist/` first (`npm --prefix handsontable run build:umd` and `build:languages`), then `npm --prefix handsontable run test:mobile.dump`. The dump task builds only the styles and the spec bundles, while the runner loads `../dist/handsontable.js` and `../dist/languages/all.js`, so without the build it fails in a fresh checkout and tests a stale `dist/` in an older one.
+
+`Border#measure` builds each handle's position from the integer `offsetTop`/`offsetLeft` chain and `offsetWidth`/`offsetHeight` (through the geometry reader), so the handle sits on integer coordinates. In the runner's jQuery 1.11.1, `outerWidth()` and `outerHeight()` return `offsetWidth` and `offsetHeight`, so they are whole numbers too. Only `offset()` is fractional, because it comes from `getBoundingClientRect()`, for the handle as much as for the cell. Comparing two `offset()` values exactly therefore fails by a fraction of a pixel on a fractional layout and passes on an integer one (DEV-601). The `parseInt` calls in `updateMultipleSelectionHandlesPosition` are not the cause: their inputs are already integers.
+
+The `positioning.spec.js` files read both the cell and the handle through `Handsontable.dom.offset()`, the same integer chain, and compare with `toEqual`. That keeps the one-pixel constants in the handle math pinned on every layout: a tolerance on `offset()` would let a one-pixel shift pass whenever it runs against an existing fractional miss. A real Pixel 7 (Android 13, Chrome, DPR 2.625) reproduces the `offset()` miss (0.476px), while stock Chromium emulation at DPR 2 and 2.625 does not. To see it without a device, add `.handsontable { zoom: 1.0005 }` to the runner page and temporarily compare jQuery's `.offset()` instead. Keep the zoom near 1: at about 1.02 the touch coordinates scale too, and the drag specs then fail for another reason.
+
+Do not "fix" this by placing the handles at fractional coordinates in `border.ts`.
 
 ## Where to look next
 

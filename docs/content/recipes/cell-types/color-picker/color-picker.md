@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Color picker
-metaTitle: Color Picker Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a Handsontable custom color picker cell using the Pickr library, with a button to open the picker, live preview, hex validation, and nano theme.
+metaTitle: Color picker cell type | Handsontable DataGrid for JavaScript
+description: Learn how to create a Handsontable DataGrid custom color picker cell using the Pickr library, with a button to open the picker, live preview, hex validation, and nano theme.
 permalink: /recipes/cell-types/color-picker
 canonicalUrl: /recipes/cell-types/color-picker
 tags:
@@ -10,16 +10,17 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Color Picker Cell Type - React Data Grid | Handsontable
+  metaTitle: Color picker cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Color Picker Cell Type - Angular Data Grid | Handsontable
+  metaTitle: Color picker cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Color Picker Cell Type - Vue Data Grid | Handsontable
+  metaTitle: Color picker cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
+menuTag: updated
 ---
 
-This tutorial shows you how to integrate the Pickr color picker library as a custom Handsontable cell editor, with a swatch renderer and hex validation.
+This tutorial shows you how to integrate the Pickr color picker library as a custom Handsontable DataGrid cell editor, with a swatch renderer and hex validation.
 
 ::: only-for javascript vue
 
@@ -318,7 +319,7 @@ getValue(editor) {
 
 ```typescript
 setValue(editor, value) {
-  editor.input.value = value;
+  editor.input.value = value == null ? '' : String(value);
 }
 ```
 
@@ -428,7 +429,7 @@ const cellDefinition = {
       return editor.input.value;
     },
     setValue(editor, value) {
-      editor.input.value = value;
+      editor.input.value = value == null ? '' : String(value);
     },
     shortcuts: [
       {
@@ -453,7 +454,7 @@ const cellDefinition = {
 
 **Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
 
-## Step 12: Use in Handsontable
+## Step 12: Use in Handsontable DataGrid
 
 ```typescript
 const container = document.querySelector('#example1')!;
@@ -477,7 +478,7 @@ const hotOptions: Handsontable.GridSettings = {
     { data: 'cost', type: 'numeric', width: 70, headerClassName: 'htLeft' },
     { data: 'valueStock', type: 'numeric', width: 130, headerClassName: 'htRight' },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const hot = new Handsontable(container, hotOptions);

@@ -1,6 +1,6 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import {GridSettings, HotTableComponent, NON_COMMERCIAL_LICENSE, HotTableModule} from '@handsontable/angular-wrapper';
+import { AfterViewInit, ChangeDetectorRef, Component, inject, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 import {PredefinedMenuItemKey} from 'handsontable/plugins/contextMenu';
 import {mainTheme, horizonTheme, classicTheme, registerTheme, getTheme, ThemeColorScheme} from 'handsontable/themes';
 
@@ -1255,6 +1255,8 @@ export const data = [
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
   readonly hotData = data;
 
   hotSettings!: GridSettings;
@@ -1356,7 +1358,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       manualRowResize: true,
       manualColumnResize: true,
       navigableHeaders: true,
-      licenseKey: NON_COMMERCIAL_LICENSE
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     }
   }
 
@@ -1369,6 +1371,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     this.selectedTheme = currentTheme;
     this.setTheme(currentTheme);
+    // Nothing marks the OnPush-by-default component dirty after ngAfterViewInit, so refresh selectedTheme and the menu label.
+    this.changeDetectorRef.detectChanges();
   }
 
   selectTheme(value: string): void {
@@ -1420,7 +1424,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -1430,7 +1434,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

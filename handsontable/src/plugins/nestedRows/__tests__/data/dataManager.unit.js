@@ -7,10 +7,21 @@ import DataManager from '../../data/dataManager';
  * instance are never touched and can stay out of the way.
  *
  * @param {object[]} data The nested data.
+ * @param {number[]} [trimmedRows] Physical rows the stubbed row index mapper reports as trimmed.
  * @returns {DataManager}
  */
-function dataManagerWith(data) {
-  const dataManager = new DataManager(null, null);
+function dataManagerWith(data, trimmedRows = []) {
+  const trimmed = new Set(trimmedRows);
+  const hot = {
+    rowIndexMapper: {
+      getNumberOfIndexes: () => 100,
+      getNotTrimmedIndexesLength: () => 100 - trimmed.size,
+      isTrimmed: row => trimmed.has(row),
+    },
+  };
+  const dataManager = new DataManager(null, hot);
+
+  dataManager.trimmedRows = trimmed;
 
   dataManager.updateWithData(data);
 
@@ -107,6 +118,216 @@ describe('NestedRows DataManager', () => {
       expect(dataManager.getRowIndexByTreePath(pathToA2)).toBe(2);
       expect(dataManager.getRowIndexByTreePath(pathToB)).toBe(6);
       expect(dataManager.getDataObject(6).id).toBe('B');
+    });
+  });
+});
+
+describe('DataManager#getRowSetPosition', () => {
+  it('should report each row\'s 1-based position among its siblings and the number of siblings', () => {
+    const dataManager = dataManagerWith(sampleTree());
+    const positions = [0, 1, 2, 3, 4, 5, 6].map(row => dataManager.getRowSetPosition(row));
+
+    expect(positions).toEqual([
+      { position: 1, setSize: 2 },
+      { position: 1, setSize: 2 },
+      { position: 2, setSize: 2 },
+      { position: 1, setSize: 2 },
+      { position: 2, setSize: 2 },
+      { position: 2, setSize: 2 },
+      { position: 1, setSize: 1 },
+    ]);
+  });
+
+  it('should follow the tree after the cache is rebuilt', () => {
+    const data = sampleTree();
+    const dataManager = dataManagerWith(data);
+
+    data[1].__children.push({ id: 'B-2' });
+    dataManager.rewriteCache();
+
+    expect(dataManager.getRowSetPosition(6)).toEqual({ position: 1, setSize: 2 });
+    expect(dataManager.getRowSetPosition(7)).toEqual({ position: 2, setSize: 2 });
+  });
+
+  it('should count only the object entries among the siblings', () => {
+    const dataManager = dataManagerWith([
+      { id: 'A', __children: [{ id: 'A-1' }, null, { id: 'A-2' }] },
+      { id: 'B' },
+    ]);
+
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 2 });
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 2, setSize: 2 });
+    expect(dataManager.getRowSetPosition(3)).toEqual({ position: 2, setSize: 2 });
+  });
+
+  it('should keep loading a row whose `__children` is not an array', () => {
+    const dataManager = dataManagerWith([
+      { id: 'A', __children: 'abc' },
+      { id: 'B' },
+    ]);
+
+    expect(dataManager.getRowSetPosition(0)).toEqual({ position: 1, setSize: 2 });
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 2, setSize: 2 });
+  });
+
+  it('should count only the siblings that are not trimmed', () => {
+    // A-1 (1) and A-2-b (4) trimmed.
+    const dataManager = dataManagerWith(sampleTree(), [1, 4]);
+
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 1, setSize: 1 });
+    expect(dataManager.getRowSetPosition(3)).toEqual({ position: 1, setSize: 1 });
+    expect(dataManager.getRowSetPosition(5)).toEqual({ position: 2, setSize: 2 });
+    expect(dataManager.getRowSetPosition(6)).toEqual({ position: 1, setSize: 1 });
+  });
+
+  it('should count only the top-level rows that are not trimmed', () => {
+    // A (0) and its subtree trimmed: only B is left at the top level.
+    const dataManager = dataManagerWith(sampleTree(), [0, 1, 2, 3, 4]);
+
+    expect(dataManager.getRowSetPosition(5)).toEqual({ position: 1, setSize: 1 });
+    expect(dataManager.getRowSetPosition(6)).toEqual({ position: 1, setSize: 1 });
+  });
+
+  it('should keep the structural answer for a row that is trimmed itself', () => {
+    const dataManager = dataManagerWith(sampleTree(), [1]);
+
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 2 });
+  });
+
+  it('should answer a changed trimming once the set positions are invalidated, and not before', () => {
+    const dataManager = dataManagerWith(sampleTree(), [1, 5]);
+
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 1, setSize: 1 });
+
+    dataManager.trimmedRows.delete(1);
+    // Cached until the index mapper reports a change.
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 1, setSize: 1 });
+
+    dataManager.invalidateSetPositions();
+    expect(dataManager.getRowSetPosition(2)).toEqual({ position: 2, setSize: 2 });
+
+    dataManager.trimmedRows.add(2);
+    dataManager.invalidateSetPositions();
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 1 });
+  });
+
+  it('should answer from the new tree after the cache is rebuilt while rows are trimmed', () => {
+    const data = sampleTree();
+    const dataManager = dataManagerWith(data, [2]);
+
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 1 });
+
+    data[0].__children.push({ id: 'A-3' });
+    dataManager.rewriteCache();
+
+    expect(dataManager.getRowSetPosition(1)).toEqual({ position: 1, setSize: 2 });
+  });
+
+  it('should read a rendered header in O(1) after one pass over a parent with many children', () => {
+    const children = Array.from({ length: 10000 }, (_, i) => ({ id: `c${i}` }));
+    const dataManager = dataManagerWith([
+      { id: 'P', __children: children },
+      { id: 'Q', __children: [{ id: 'q' }] },
+    ], [10002]);
+    const isTrimmed = jest.spyOn(dataManager.hot.rowIndexMapper, 'isTrimmed');
+
+    for (let row = 1; row <= 200; row++) {
+      dataManager.getRowSetPosition(row);
+    }
+
+    expect(isTrimmed.mock.calls.length).toBeLessThanOrEqual(10000);
+  });
+
+  it('should return `null` for a row the cache does not know', () => {
+    const dataManager = dataManagerWith(sampleTree());
+
+    expect(dataManager.getRowSetPosition(99)).toBeNull();
+  });
+
+  describe('getRowsToKeepForMatches', () => {
+    it('should keep a matched row whose level the cache does not know', () => {
+      const dataManager = dataManagerWith(sampleTree());
+
+      // The cache lists the rows, but has lost what it knows about them.
+      dataManager.cache.nodeInfo = new WeakMap();
+
+      expect(dataManager.getRowsToKeepForMatches([1, 5])).toEqual([1, 5]);
+    });
+
+    it('should still keep the subtree and the ancestors of a matched row the cache knows', () => {
+      const dataManager = dataManagerWith(sampleTree());
+
+      expect(dataManager.getRowsToKeepForMatches([2])).toEqual([0, 2, 3, 4]);
+    });
+
+    it('should keep a matched row past the cache and ignore a negative one', () => {
+      const dataManager = dataManagerWith(sampleTree());
+
+      expect(dataManager.getRowsToKeepForMatches([99, -1])).toEqual([99]);
+    });
+
+    describe('on a parent with 10k children', () => {
+      const CHILD_COUNT = 10000;
+      // Physical rows: 0 the parent, 1..10000 its children; child 5000 (row 5000) has one child of
+      // its own at row 5001, which shifts the later children down by one.
+      const DEEP_CHILD_INDEX = 4999;
+
+      /**
+       * @returns {object[]}
+       */
+      function wideTree() {
+        const children = Array.from({ length: CHILD_COUNT }, (_, index) => ({ id: `C${index}` }));
+
+        children[DEEP_CHILD_INDEX].__children = [{ id: 'deep' }];
+
+        return [{ id: 'P', __children: children }];
+      }
+
+      it('should keep every row once every child matches', () => {
+        const dataManager = dataManagerWith(wideTree());
+        const childRows = [];
+
+        for (let row = 1; row <= CHILD_COUNT + 1; row++) {
+          if (row !== DEEP_CHILD_INDEX + 2) {
+            childRows.push(row);
+          }
+        }
+
+        // Every child matches; the deep row is kept as the subtree of its matching parent.
+        const kept = dataManager.getRowsToKeepForMatches(childRows);
+
+        expect(kept.length).toBe(CHILD_COUNT + 2);
+        expect(kept[0]).toBe(0);
+        expect(kept[kept.length - 1]).toBe(CHILD_COUNT + 1);
+      });
+
+      it('should keep only the ancestor chain of a single deep match', () => {
+        const dataManager = dataManagerWith(wideTree());
+        const deepRow = DEEP_CHILD_INDEX + 2;
+
+        expect(dataManager.getRowsToKeepForMatches([deepRow])).toEqual([0, deepRow - 1, deepRow]);
+      });
+    });
+
+    it('should keep a blank match with its ancestors but not its subtree', () => {
+      const dataManager = dataManagerWith(sampleTree());
+
+      // A-2 (row 2) matches only through a blank cell: it keeps A, but not A-2-a or A-2-b. B (row 5)
+      // matches a value, so it keeps B-1.
+      expect(dataManager.getRowsToKeepForMatches([2, 5], [2])).toEqual([0, 2, 5, 6]);
+      // A blank match inside the subtree of a value match is kept with that subtree.
+      expect(dataManager.getRowsToKeepForMatches([0, 2], [2])).toEqual([0, 1, 2, 3, 4]);
+      // A blank-only parent still keeps a child that matches on its own.
+      expect(dataManager.getRowsToKeepForMatches([2, 4], [2])).toEqual([0, 2, 4]);
+    });
+
+    it('should keep every match while the cache is empty', () => {
+      const dataManager = dataManagerWith(sampleTree());
+
+      // The flatten cache is empty before the first load of a tree, for example during a sheet switch.
+      dataManager.cache.rows = [];
+
+      expect(dataManager.getRowsToKeepForMatches([0, 3])).toEqual([0, 3]);
     });
   });
 });

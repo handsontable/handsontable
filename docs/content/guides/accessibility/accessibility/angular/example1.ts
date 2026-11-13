@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import {Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, inject, OnInit, ViewChild} from '@angular/core';
 import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 import type Handsontable from 'handsontable/base';
 
@@ -8,13 +8,19 @@ import type Handsontable from 'handsontable/base';
   standalone: true,
   imports: [HotTableModule],
   template: `
-    <hot-table
-      [settings]="hotSettings!" [data]="hotData">
-    </hot-table>
+    @if (isGridVisible) {
+      <hot-table
+        [settings]="hotSettings!" [data]="hotData">
+      </hot-table>
+    }
   `,
 })
 export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
+
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  isGridVisible = true;
 
   hotData: Handsontable.RowObject[] = [];
 
@@ -590,10 +596,16 @@ export class AppComponent implements OnInit {
     setupCheckbox(
       document.querySelector<HTMLInputElement>('#enable-cell-virtualization'),
       (checked: boolean) => {
-        this.hotTable.hotInstance!.updateSettings({
+        // Handsontable reads these options only at initialization, so remount the grid.
+        this.hotSettings = {
+          ...this.hotSettings,
           renderAllRows: !checked,
           renderAllColumns: !checked,
-        });
+        };
+        this.isGridVisible = false;
+        this.cdr.detectChanges();
+        this.isGridVisible = true;
+        this.cdr.detectChanges();
         console.log('Updated virtualization settings:', {
           renderAllRows: this.hotTable.hotInstance!.getSettings().renderAllRows,
           renderAllColumns: this.hotTable.hotInstance!.getSettings().renderAllColumns,
@@ -661,7 +673,7 @@ export class AppComponent implements OnInit {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -671,7 +683,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

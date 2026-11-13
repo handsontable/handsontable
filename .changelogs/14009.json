@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed `@handsontable/react-wrapper` to declare `react` and `react-dom` 18.0.0 or later as peer dependencies, matching the documented React 18 minimum.",
+  "type": "changed",
+  "issueOrPR": 14009,
+  "breaking": false,
+  "framework": "react"
+}

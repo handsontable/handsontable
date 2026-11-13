@@ -36,9 +36,10 @@ export interface FixtureHotInstance {
   getDataAtRow(row: number): CellValue[];
   getSourceDataAtCell(row: number, col: number): CellValue;
   getSourceData(): unknown[];
+  getSourceDataArray(): unknown[][];
   setDataAtCell(row: number, col: number, value: CellValue): void;
   setCellMeta(row: number, col: number, key: string, value: unknown): void;
-  getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
+  getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean, hidden?: boolean, spanned?: boolean };
   getPlugin(name: 'formulas'): {
     getCellType(row: number, col: number): string,
     sheetId: number | null,
@@ -107,6 +108,7 @@ export interface FixtureHotInstance {
     getCommentAtCell(row: number, column: number): string | undefined,
     showAtCell(row: number, column: number): boolean,
     focusEditor(): void,
+    destroy(): void,
   };
   getPlugin(name: 'pagination'): {
     setPage(page: number): void,
@@ -116,13 +118,16 @@ export interface FixtureHotInstance {
     mergedCellsCollection: {
       mergedCells: { row: number, col: number, rowspan: number, colspan: number }[],
     },
+    merge(startRow: number, startColumn: number, endRow: number, endColumn: number): void,
   };
   getPlugin(name: 'filters'): {
     addCondition(column: number, name: string, args: unknown[]): void,
     clearConditions(column?: number): void,
     filter(): void,
     exportConditions(): unknown[],
+    destroy(): void,
   };
+  getPlugin(name: 'autoColumnSize' | 'nestedHeaders'): { destroy(): void };
   /**
    * Both sorting plugins expose the same `sort()` signature - `MultiColumnSorting` extends
    * `ColumnSorting` and only widens what an array of configs means - so one overload covers
@@ -134,7 +139,16 @@ export interface FixtureHotInstance {
     clearSort(): void,
   };
   getPlugin(name: 'dragToScroll'): { isListening(): boolean };
-  getPlugin(name: 'autofill'): { mouseDownOnCellCorner: boolean };
+  getPlugin(name: 'copyPaste'): { paste(pastableText?: string): void };
+  getPlugin(name: 'autofill'): {
+    mouseDownOnCellCorner: boolean,
+    addingStarted: boolean,
+    enabled: boolean,
+    enablePlugin(): void,
+    disablePlugin(): void,
+    updatePlugin(): void,
+    destroy(): void,
+  };
   getPlugin(name: 'multipleSelectionHandles'): {
     isDragged(): boolean;
     enabled: boolean;
@@ -214,7 +228,10 @@ export interface FixtureHotInstance {
     isFlippedHorizontally?: boolean,
   } | undefined;
   isRtl(): boolean;
+  /** The master overlay's `<table>` element. */
+  table: HTMLTableElement;
   render(): void;
+  destroy(): void;
   listen(): void;
   view: {
     isVerticallyScrollableByWindow(): boolean,
@@ -240,10 +257,25 @@ export interface FixtureHotInstance {
   getRowHeight(row: number): number | undefined;
   getColWidth(col: number): number;
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string, horizontalSnap?: string }): boolean;
-  selectCells(ranges: number[][]): boolean;
-  selectColumns(fromCol: number, toCol: number): boolean;
+  selectCells(ranges: number[][], scrollToCell?: boolean, changeListener?: boolean): boolean;
+  batch<T>(operations: () => T): T;
+  batchExecution<T>(operations: () => T): T;
+  selectRows(fromRow: number, toRow?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectColumns(fromCol: number, toCol?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectAll(
+    includeRowHeaders?: boolean,
+    includeColumnHeaders?: boolean,
+    options?: {
+      focusPosition?: { row: number, col: number } | boolean,
+      disableHeadersHighlight?: boolean,
+    },
+    changeListener?: boolean,
+  ): void;
+  isListening(): boolean;
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;
+  /** The rendered element of a cell or header, the topmost overlay's with `topmost`, or `null` when none is rendered. */
+  getCell(row: number, column: number, topmost?: boolean): HTMLTableCellElement | null;
   getSelectedRange(): FixtureCellRange[];
   getSelectedRangeActive(): FixtureCellRange | undefined;
   getSelected(): number[][] | undefined;
@@ -251,7 +283,7 @@ export interface FixtureHotInstance {
     name: 'beforeSetCellMeta',
     callback: (row: number, column: number, key: string, value: unknown) => boolean | undefined,
   ): void;
-  addHook(name: string, callback: () => void): void;
+  addHook(name: string, callback: () => void, orderIndex?: number): void;
   removeHook(name: string, callback: () => void): void;
   addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
@@ -311,8 +343,27 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** The license key every fixture grid is built with (`fixtures/demo/test-license-key.js`). */
+    htTestLicenseKey: string;
+    /**
+     * DEV-775: a reference to the Autofill plugin kept after `destroy()`, the way an application that
+     * cached `getPlugin('autofill')` still holds it.
+     */
+    destroyedAutofill?: { enablePlugin(): void, disablePlugin(): void, updatePlugin(): void };
+    /**
+     * `formulas-batch-evaluation` fixture: the recalculations the grid reported (`afterFormulasValuesUpdate`).
+     */
+    valuesUpdates: number;
+    /**
+     * `formulas-batch-evaluation` fixture: the text of the first formula cell and whether it fits, per draw.
+     */
+    renderLog: Array<{ text: string | null, fits: boolean }>;
     /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
     metaWriteAttempts: number;
+    /**
+     * Undo fixture: the `beforeMergeCells`/`afterMergeCells` calls `UndoGridPage#trackMergeHooks()` counts.
+     */
+    mergeHookCalls?: { before: number, after: number };
     /** `dropdown-editor-clip` fixture: rebuilds the grid, optionally inside a named parent layout. */
     initDropdownClipGrid(settings?: Record<string, unknown>, containerClass?: string): boolean;
     /** `dropdown-editor-clip` fixture: the option set fed to the editor under test. */
@@ -331,6 +382,10 @@ declare global {
       getSheetSerialized(sheetId: number): unknown[][],
       /** DEV-2905 fixture: removes a sheet behind the Formulas plugin's back. */
       removeSheet(sheetId: number): unknown,
+      /**
+       * Formulas external engine fixture: writes a cell on the engine the grid is bound to.
+       */
+      setCellContents?(address: { sheet: number, row: number, col: number }, value: number | string): unknown,
     };
     /** DEV-2905 fixture: how many columns AutoColumnSize measured since the last reset, across every sweep. */
     measuredColumns?: number;
@@ -356,6 +411,14 @@ declare global {
       hooks: {
         add(key: string, callback: (...args: unknown[]) => unknown): void;
       };
+      helper: {
+        setBrowserMeta(meta?: { userAgent?: string, vendor?: string }): void;
+        setPlatformMeta(meta?: { platform?: string }): void;
+        isIOS(): boolean;
+        isChromeWebKit(): boolean;
+        isFirefoxWebKit(): boolean;
+        createSpreadsheetData(rows: number, columns: number): string[][];
+      };
     };
     /**
      * Rebuilds the formulas fixture grid with the given dataset, or – the width-window-scroll
@@ -365,6 +428,8 @@ declare global {
     initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
+    /** `afterScroll` calls since `SelectionViewportScrollPage#countAfterScroll()` started counting. */
+    afterScrollCount?: number;
     /**
      * Wheel events recorded by `WidthWindowScrollPage#watchWheelEvents()`, with the
      * `defaultPrevented` each one carried once the grid's own handler had run.
@@ -452,8 +517,11 @@ declare global {
     pendingValidationCount(): number;
     /** Rebuilds the `maxLength` fixture grid (`max-length.html`) with the given setting overrides. */
     initMaxLengthGrid(overrides?: Record<string, unknown>): boolean;
-    /** The constructor failure the `maxLength` fixture captured, or `null` when the grid was built. */
-    fixtureError: string | null;
+    /**
+     * The constructor failure a loud fixture captured (the shared contract `awaitFixtureBuilt()` in
+     * `fixtures/bundle.ts` rethrows), absent while the grid was built.
+     */
+    htBuildError?: string;
     /** Rebuilds the GH #5983 sorting-a-filtered-grid-with-`minSpareRows` fixture grid. */
     initSortingSpareRowsGrid(overrides?: Record<string, unknown>): boolean;
     /**
@@ -543,6 +611,14 @@ declare global {
     instrumentDragOutsideCheck(): boolean;
     /** How many drag-outside measurements the healthy grid has taken since instrumentation. */
     dragOutsideCheckCount: number;
+    /** DEV-140 fixture: rebuilds the fill handle grid with the given setting overrides. */
+    initFillGrid(overrides?: Record<string, unknown>): boolean;
+    /** DEV-140 fixture: `rows` x `cols` data labelled like spreadsheet cells (`A1`, `B1`, ...). */
+    buildCellLabels(rows: number, cols: number): string[][];
+    /** DEV-140 fixture: the visual corners of the fill preview, or `null` when none is drawn. */
+    fillPreviewCorners(): [number, number, number, number] | null;
+    /** DEV-140 fixture: every `afterCreateRow` call since the grid was built. */
+    createdRowLog: { index: number, amount: number, source: string }[];
     /** DEV-1159: `Element.prototype.scrollIntoView` calls since the oversized-cell counter reset. */
     htScrollIntoViewCount: number;
     /** DEV-1159: last `scrollIntoView` argument after the counter reset. */

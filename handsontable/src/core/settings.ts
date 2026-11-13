@@ -12,12 +12,22 @@ import type {
   ColumnDataGetterSetterFunction, RemoveIndexSignature,
 } from '../settings';
 import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
+import type { FormulaBuilderPluginSettings } from '../plugins/formulaBuilder';
 import type { LayoutConfig } from './layout';
-import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
+import type { PredefinedMenuItemKey, MenuItemConfig } from '../utils/menu/types';
+import type { ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
+import type { NotificationConfig } from '../plugins/notification';
+import type { ThemeBuilder } from '../themes/engine/builder';
+import type { RowSelectionSettings, RowSelectionSource } from '../plugins/rowSelection';
+import type { HeaderCheckboxSettings } from '../plugins/checkboxHeader';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
+import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
+import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/freezeBar';
 import type { ImportFileSettings, ImportResult } from '../plugins/importFile';
+import type { ExportFileSettings } from '../plugins/exportFile';
 import type { UndoRedoSettings } from '../plugins/undoRedo';
+import type { AsyncValueCancelReason, AsyncValuesSettings } from '../plugins/asyncValues';
 import type { PasteClipboardData } from '../plugins/copyPaste';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
 import type { NestedHeader } from '../plugins/nestedHeaders';
@@ -32,6 +42,8 @@ import type {
 import type { RangeType, HotInstance } from './types';
 import type { ThemeColorScheme, DensityType } from '../themes/types';
 import type { IndexesChangeSource } from '../translations/indexMapper';
+import type { SourceLabel } from '../utils/cellSource';
+import type { RowIdSetting } from './rowIdentity/rowIdentity';
 
 export type { PasteClipboardData };
 
@@ -147,7 +159,13 @@ export interface GridSettings {
   noWordWrapClassName?: string;
   placeholderCellClassName?: string;
   readOnlyCellClassName?: string;
+  readOnlyStyling?: boolean;
   tableClassName?: string | string[];
+  // `object` is the plain theme config the option's table documents (`horizonTheme`). The closed
+  // `ThemeParams` type would reject a config with a token of your own, which compiled as `any`. The
+  // cost is that an array or a function also compiles; `validateSettings()` rejects the array and the
+  // grid ignores both, and `Record<string, unknown>` would reject `horizonTheme`, an interface type.
+  theme?: ThemeBuilder | object | string;
   themeName?: string;
   colorScheme?: ThemeColorScheme;
   density?: DensityType;
@@ -155,11 +173,12 @@ export interface GridSettings {
   // Dimensions
   width?: number | 'auto' | (string & {}) | null | (() => number | string | null);
   height?: number | 'auto' | (string & {}) | null | (() => number | string | null);
-  colWidths?: number | number[] | string | ((column: number) => number | string) | Array<number | string>;
-  rowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
+  colWidths?: number | number[] | string | ((physicalColumn: number) => number | string | null | undefined)
+    | Array<number | string | null | undefined> | null;
+  rowHeights?: number | number[] | string | ((physicalRow: number) => number | string) | Array<number | string>;
   rowHeaderWidth?: number | number[] | string | Array<number | string>;
   columnHeaderHeight?: number | number[] | string | Array<number | string>;
-  minRowHeights?: number | string | number[] | ((index: number) => number);
+  minRowHeights?: number | number[] | string | ((physicalRow: number) => number | string) | Array<number | string>;
   maxRows?: number;
   maxCols?: number;
   minRows?: number;
@@ -174,10 +193,20 @@ export interface GridSettings {
   data?: unknown[][] | object[];
   dataSchema?: object | ((rowIndex: number) => Record<string, unknown>);
   dataDotNotation?: boolean;
+  /**
+   * How each row gets an id that stays with it across sorting, filtering, moving, inserting, and removing rows:
+   * a property path, a function that returns the id of a source row, or `true` for ids Handsontable generates.
+   */
+  rowId?: RowIdSetting;
   columns?: ColumnSettings[] | ((column: number) => ColumnSettings);
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
   source?: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void);
+  /**
+   * How an `autocomplete` or `dropdown` cell labels a `source` entry whose `value` is an object:
+   * a property path, or a function that returns the label.
+   */
+  sourceLabel?: SourceLabel;
   type?: string;
   /**
    * Configuration of the nested grid used by the `handsontable` cell type.
@@ -203,19 +232,33 @@ export interface GridSettings {
   editor?: string | (new (...args: unknown[]) => unknown) | boolean;
   emptyValue?: CellValue;
   enterBeginsEditing?: boolean;
+  enterCommits?: boolean;
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
+  filterSelectedItems?: boolean;
   imeFastEdit?: boolean;
   maxLength?: number;
+  maxSelections?: number;
+  parsePastedValue?: boolean;
   readOnly?: boolean;
+  searchInput?: boolean;
   skipColumnOnPaste?: boolean;
   skipRowOnPaste?: boolean;
   sourceDataValidator?: SourceDataValidatorFn;
   sourceDataWarningMessage?: string;
+  // Method syntax and an `any` parameter on purpose, as for `sanitizer` below: both options were `any`,
+  // so a consumer callback that annotates its parameter more narrowly, or leaves it to be inferred and
+  // calls `value.trim()` or `b.localeCompare(a)`, compiles today. A function property would reject the
+  // first form and an `unknown` or union parameter the second - see `.ai/BREAKING-CHANGES.md`. The
+  // breaking part of declaring these options is the read side (they are optional now) and the arity.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sourceSortFunction?(entries: any[]): any[];
   tabMoves?: { row: number; col: number } | ((event: KeyboardEvent) => { row: number; col: number });
   trimWhitespace?: boolean;
   undo?: boolean | UndoRedoSettings;
   validator?: string | RegExp | ((value: unknown, callback: (valid: boolean) => void) => void);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  valueParser?(value: any, cellProperties: CellProperties): CellValue;
   wordWrap?: boolean;
 
   // Rendering
@@ -257,6 +300,7 @@ export interface GridSettings {
   fixedColumnsStart?: number;
   fixedRowsBottom?: number;
   fixedRowsTop?: number;
+  limitFixedToViewport?: boolean;
 
   // Headers
   colHeaders?: boolean | string[] | ((column: number) => string);
@@ -268,6 +312,7 @@ export interface GridSettings {
   sortByRelevance?: boolean;
 
   // Plugins
+  asyncValues?: boolean | AsyncValuesSettings;
   autoLink?: boolean | {
     target?: '_blank' | '_self';
     schemes?: Array<'http' | 'https' | 'mailto' | 'tel'>;
@@ -292,16 +337,20 @@ export interface GridSettings {
   emptyDataState?: boolean | object;
   filters?: boolean | FiltersSettings;
   filterValueComparator?: (a: unknown, b: unknown) => number;
+  formulaBuilder?: false | FormulaBuilderPluginSettings;
   formulas?: boolean | {
     engine: unknown;
     sheetName?: string;
     hyperlinks?: boolean | { target?: '_blank' | '_self'; schemes?: Array<'http' | 'https' | 'mailto' | 'tel'> };
+    batchEvaluation?: boolean;
     [key: string]: unknown;
   };
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
-  manualColumnFreeze?: boolean;
+  notification?: boolean | NotificationConfig;
+  freezeBar?: boolean | FreezeBarSettings;
+  manualColumnFreeze?: boolean | ManualColumnFreezeSettings;
   manualColumnMove?: boolean | number[];
   manualColumnResize?: boolean | number[];
   manualRowMove?: boolean | number[];
@@ -310,14 +359,17 @@ export interface GridSettings {
   nestedHeaders?: NestedHeader[][];
   nestedRows?: boolean;
   pagination?: boolean | object;
+  rowSelection?: boolean | RowSelectionSettings;
   search?: boolean | object;
   importFile?: boolean | ImportFileSettings;
+  exportFile?: boolean | ExportFileSettings;
   sheetsBar?: boolean | SheetsBarSettings;
   trimRows?: boolean | number[];
 
   // Checkbox
   checkedTemplate?: unknown;
   uncheckedTemplate?: unknown;
+  headerCheckbox?: boolean | HeaderCheckboxSettings;
 
   // Date / Time
   dateFormat?: Intl.DateTimeFormatOptions;
@@ -352,6 +404,7 @@ export interface GridSettings {
 
   // Layout
   ariaTags?: boolean;
+  injectCoreCss?: boolean;
   layout?: LayoutConfig;
   layoutDirection?: 'inherit' | 'ltr' | 'rtl';
   licenseKey?: string;
@@ -387,6 +440,13 @@ export interface GridSettings {
 
   // Hook callbacks
   afterAddChild?: (parent: RowObject, element: RowObject | undefined, index: number | undefined) => void;
+  afterAsyncValueCancel?: (physicalRow: number, prop: string | number, reason: AsyncValueCancelReason,
+    rowId: unknown) => void;
+  afterAsyncValueReject?: (physicalRow: number, prop: string | number, error: unknown, message: string,
+    rowId: unknown) => void;
+  afterAsyncValueResolve?: (physicalRow: number, prop: string | number, value: unknown, rowId: unknown) => void;
+  afterAsyncValuesIdle?: () => void;
+  afterAsyncValueStart?: (physicalRow: number, prop: string | number, rowId: unknown) => void;
   afterAutofill?: (fillData: CellValue[][], sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange,
     direction: 'up' | 'down' | 'left' | 'right') => void;
   afterBeginEditing?: (row: number, column: number) => void;
@@ -401,6 +461,7 @@ export interface GridSettings {
   afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
+  afterFreezeChange?: (edge: FreezeEdge, newCount: number, oldCount: number, source: FreezeSource) => void;
   afterColumnSequenceChange?: (source: ChangeSource) => void;
   afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
@@ -409,7 +470,7 @@ export interface GridSettings {
   }) => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[],
     sortPossible: boolean) => void;
-  afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
+  afterColumnUnfreeze?: (columnIndex: number, isFreezingPerformed: boolean, finalIndex: number) => void;
   afterContextMenuDefaultOptions?: (predefinedItems: Array<PredefinedMenuItemKey | MenuItemConfig>)
     => void;
   afterContextMenuHide?: (context: ContextMenu) => void;
@@ -439,6 +500,7 @@ export interface GridSettings {
   afterEmptyDataStateHide?: () => void;
   afterEmptyDataStateShow?: () => void;
   afterFilter?: (conditionsStack: ColumnConditions[]) => void;
+  afterFontsLoad?: () => void;
   afterFormulasValuesUpdate?: (changes: unknown[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;
@@ -513,13 +575,17 @@ export interface GridSettings {
   afterRender?: (isForced: boolean) => void;
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  afterResumeExecution?: () => void;
   afterRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
     collapsePossible: boolean, successfullyCollapsed: boolean) => void;
   afterRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
     expandPossible: boolean, successfullyExpanded: boolean) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
+  afterRowIdsRemoved?: (rowIds: unknown[], source?: ChangeSource) => void;
+  afterRowIdsReset?: () => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
+  afterRowSelectionChange?: (selectedRows: number[], deselectedRows: number[], source: RowSelectionSource) => void;
   afterRowSequenceChange?: (source: ChangeSource) => void;
   afterRowSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
@@ -551,13 +617,14 @@ export interface GridSettings {
   afterSheetAdded?: (addedSheetDisplayName: string) => void;
   afterSheetRemoved?: (removedSheetDisplayName: string, changes: unknown[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
-  afterSheetTabAdd?: (sheetId: number, name: string, source: string) => void;
+  afterSheetTabAdd?: (sheetId: number, name: string, duplicateOfId: number | null, source: string) => void;
   afterSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void;
   afterSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void;
   afterSheetTabRemove?: (sheetId: number, source: string) => void;
   afterSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void;
   afterSheetTabStateCapture?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
   afterSheetTabStateRestore?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
+  afterSuspendExecution?: () => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig?: number[],
     actionPossible?: boolean, stateChanged?: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
@@ -590,6 +657,8 @@ export interface GridSettings {
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAlter?: (action: string, index: number | Array<[number, number]>, amount: number,
     source?: ChangeSource, keepEmptyRows?: boolean) => boolean | void;
+  beforeAsyncValueResolve?: (value: unknown, physicalRow: number, prop: string | number, rowId: unknown) => unknown;
+  beforeAsyncValueStart?: (physicalRow: number, prop: string | number, rowId: unknown) => void | boolean;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: WalkontableCellRange,
     targetRange: WalkontableCellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | void;
   beforeBeginEditing?: (row: number, column: number, initialValue: CellValue,
@@ -608,9 +677,10 @@ export interface GridSettings {
   beforeColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void | number | false;
+  beforeFreezeChange?: (edge: FreezeEdge, newCount: number, oldCount: number, source: FreezeSource) => void | boolean;
   beforeColumnSort?: (currentSortConfig: ColumnSortingConfig[],
     destinationSortConfigs: ColumnSortingConfig[], sortPossible: boolean) => void | boolean;
-  beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void | boolean;
+  beforeColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean, finalIndex: number) => void | boolean;
   beforeColumnWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
     isColumnFlipped: boolean) => void;
   beforeCompositionStart?: (event: CompositionEvent) => void;
@@ -699,6 +769,7 @@ export interface GridSettings {
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  beforeResumeExecution?: () => void;
   beforeRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
     collapsePossible: boolean) => void | boolean;
   beforeRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
@@ -706,6 +777,8 @@ export interface GridSettings {
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void | false;
+  beforeRowSelectionChange?: (rowsToSelect: number[], rowsToDeselect: number[],
+    source: RowSelectionSource) => void | boolean;
   beforeRowsMutation?: (operation: string, payload: RowMutationPayload) => void | boolean;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: WalkontableCellCoords,
     isRowFlipped: boolean) => void;
@@ -721,12 +794,13 @@ export interface GridSettings {
   beforeSetRangeEnd?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStart?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStartOnly?: (coords: WalkontableCellCoords) => void;
-  beforeSheetTabAdd?: (name: string | null, source: string) => void | boolean;
+  beforeSheetTabAdd?: (name: string | null, duplicateOfId: number | null, source: string) => void | boolean;
   beforeSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void | boolean;
   beforeSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void | boolean;
   beforeSheetTabRemove?: (sheetId: number, source: string) => void | boolean;
   beforeSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void | boolean;
   beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void | number;
+  beforeSuspendExecution?: () => void;
   beforeTouchScroll?: () => void;
   beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[],
     actionPossible: boolean) => void | boolean;
@@ -768,6 +842,7 @@ export interface GridSettings {
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => RangeType[] | void;
   modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  modifyFiltersMatchedRows?: (matchedRows: number[], blankMatchedRows: number[]) => number[] | void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyFocusOnTabNavigation?: (tabActivationDir: string, visualCoords: WalkontableCellCoords) => void;

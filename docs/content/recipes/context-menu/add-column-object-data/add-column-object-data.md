@@ -1,6 +1,6 @@
 ---
 title: Add a column to an object-based dataset
-metaTitle: Add a column to an object-based dataset - JavaScript Data Grid | Handsontable
+metaTitle: Add a column to an object-based dataset | Handsontable DataGrid for JavaScript
 description: Learn how to add a column at runtime through the context menu when your grid uses an object-based dataset, where the built-in column-insert items do not apply.
 permalink: /recipes/context-menu/add-column-object-data
 canonicalUrl: /recipes/context-menu/add-column-object-data
@@ -10,14 +10,13 @@ tags:
   - columns
   - object data
 react:
-  metaTitle: Add a column to an object-based dataset - React Data Grid | Handsontable
+  metaTitle: Add a column to an object-based dataset | Handsontable DataGrid for React
 angular:
-  metaTitle: Add a column to an object-based dataset - Angular Data Grid | Handsontable
+  metaTitle: Add a column to an object-based dataset | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Add a column to an object-based dataset - Vue Data Grid | Handsontable
+  metaTitle: Add a column to an object-based dataset | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Context Menu
-menuTag: new
 type: how-to
 ---
 
@@ -63,9 +62,9 @@ In this tutorial, you will add a column to an object-based dataset through a cus
 **Difficulty:** Intermediate
 **Time:** ~15 minutes
 
-When your data is an array of objects, each column maps to an object property through the `columns` setting. The built-in **Insert column left** and **Insert column right** menu items rely on `alter('insert_col_start')`, which Handsontable rejects for object data:
+When your data is an array of objects, each column maps to an object property through the `columns` setting. The built-in **Insert column left** and **Insert column right** menu items rely on `alter('insert_col_start')`, which Handsontable DataGrid rejects for object data:
 
-> Cannot create new column. When data source in an object, you can only have as much columns as defined in first data row, data schema or in the 'columns' setting.
+> Cannot create a new column when the data source holds objects or the "columns" option is set. You can only have as many columns as defined in the first data row, the data schema, or the "columns" setting. To add new columns, use an array data source without the "columns" option.
 
 To add a column over object data, you extend the `columns` setting yourself, add the matching property to every row, and re-apply the configuration with `updateSettings`. This recipe wires that into a custom **Add column** menu item.
 

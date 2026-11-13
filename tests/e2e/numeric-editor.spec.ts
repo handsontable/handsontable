@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { NumericGridPage } from '../fixtures/pages/NumericGridPage';
 
 /**
@@ -11,11 +11,11 @@ import { NumericGridPage } from '../fixtures/pages/NumericGridPage';
  * itself stays numerically formatted — only the editor preserves the literal, and
  * a preserved literal still sorts numerically.
  */
-test.describe('numeric cell editor precision', () => {
+test.describe('numeric cell editor precision', { tag: BUNDLES_TAG }, () => {
   let grid: NumericGridPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new NumericGridPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new NumericGridPage(page, theme, bundle);
     await grid.goto();
   });
 

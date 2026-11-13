@@ -23,7 +23,9 @@ interface GotoOptions {
   userErrorListeners?: boolean;
   userFetchListener?: boolean;
   noEmptyDataState?: boolean;
+  noRefetchAfterCreate?: boolean;
   releaseInitialFetch?: boolean;
+  ordersBorders?: boolean;
 }
 
 /**
@@ -118,6 +120,22 @@ export class DataProviderSheetsBarPage {
   }
 
   /**
+   * Opens the fixture with the page clock installed, waits until the bar's motion gate is open, and
+   * then freezes the clock, so the timers that end a slide only run when the test advances time.
+   * The gate opens in the second animation frame after the first render, and a frame requested
+   * while the clock is paused never fires, so pausing before the gate opened leaves every motion
+   * instant for the rest of the test.
+   */
+  async gotoWithPausedClock(options: GotoOptions = {}): Promise<void> {
+    await this.page.clock.install();
+    await this.goto(options);
+    await this.page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    }));
+    await this.page.clock.pauseAt(Date.now() + 60_000);
+  }
+
+  /**
    * Navigate to the fixture, release the initial `ORD` fetch (Orders declares its own provider
    * whether or not `?gridLevel` is set), and wait for its rows to land.
    *
@@ -133,7 +151,8 @@ export class DataProviderSheetsBarPage {
    * (`?frozenOrders=1`). `userErrorListeners: true` adds user error-hook listeners that return values
    * (`?userErrorListeners=1`). `userFetchListener: true` adds a user `afterDataProviderFetch` listener that returns
    * an inflated `totalRows` (`?userFetchListener=1`). `noEmptyDataState: true` builds the grid without EmptyDataState
-   * (`?noEmptyDataState=1`). `releaseInitialFetch: false` returns while the initial `ORD` fetch is still pending.
+   * (`?noEmptyDataState=1`). `noRefetchAfterCreate: true` sets `refetchAfterCreate: false` on both server sheets
+   * (`?noRefetchAfterCreate=1`). `releaseInitialFetch: false` returns while the initial `ORD` fetch is still pending.
    */
   async goto(options: GotoOptions = {}): Promise<void> {
     const extraParams = [
@@ -149,6 +168,8 @@ export class DataProviderSheetsBarPage {
       options.userErrorListeners ? '&userErrorListeners=1' : '',
       options.userFetchListener ? '&userFetchListener=1' : '',
       options.noEmptyDataState ? '&noEmptyDataState=1' : '',
+      options.noRefetchAfterCreate ? '&noRefetchAfterCreate=1' : '',
+      options.ordersBorders ? '&ordersBorders=1' : '',
     ].join('');
 
     await this.page.goto(
@@ -363,6 +384,15 @@ export class DataProviderSheetsBarPage {
    */
   async selectedLast(): Promise<number[] | null> {
     return this.page.evaluate(() => window.hot.getSelectedLast() ?? null);
+  }
+
+  /**
+   * The `[row, col]` cells of the custom borders the grid draws, sorted.
+   */
+  async borderCells(): Promise<number[][]> {
+    return this.page.evaluate(() => window.hot.getPlugin('customBorders').getBorders()
+      .map(({ row, col }) => [row, col])
+      .sort(([rowA, colA], [rowB, colB]) => (rowA - rowB) || (colA - colB)));
   }
 
   /**
@@ -631,6 +661,16 @@ export class DataProviderSheetsBarPage {
   }
 
   /**
+   * The row header the grid shows for a visual row: on a server-paged sheet, the row's number across all pages.
+   *
+   * @param {number} row The visual row index.
+   * @returns {Promise<unknown>} The row header.
+   */
+  async rowHeader(row: number): Promise<unknown> {
+    return this.page.evaluate(r => window.hot.getRowHeader(r), row);
+  }
+
+  /**
    * The pager's current page, page size, and total page count.
    *
    * @returns {Promise<{ currentPage: number, pageSize: number, totalPages: number }>} The pagination state.
@@ -753,5 +793,14 @@ export class DataProviderSheetsBarPage {
    */
   toast(): Locator {
     return this.page.locator('.ht-notification__toast');
+  }
+
+  /**
+   * The temporary marker that slides between the tabs on a sheet switch.
+   *
+   * @returns {Locator} The marker locator.
+   */
+  tabIndicator(): Locator {
+    return this.grid.locator('.ht-sheets-bar__tab-indicator');
   }
 }

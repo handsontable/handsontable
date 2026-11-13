@@ -1,0 +1,177 @@
+import { type Page, type Locator, expect } from '@playwright/test';
+import { awaitBundle } from '../bundle';
+
+/**
+ * The outcome of a request, as the fixture records it.
+ */
+export type RecordedResult = { status: string; reason?: string; value?: unknown } | null;
+
+/**
+ * Page Object for the `asyncValues` fixture: starting, settling and inspecting the requests the
+ * fixture controls, and reading the painted pending and error states.
+ */
+export class AsyncValuesPage {
+  readonly page: Page;
+  readonly theme: string;
+  readonly bundle: string;
+  readonly grid: Locator;
+
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
+    this.page = page;
+    this.theme = theme;
+    this.bundle = bundle;
+    this.grid = page.getByTestId('grid');
+  }
+
+  /**
+   * Navigates to the fixture and waits for the grid.
+   */
+  async goto(): Promise<void> {
+    await this.page.goto(`/tests/fixtures/demo/async-values.html?theme=${this.theme}&bundle=${this.bundle}`);
+    await awaitBundle(this.page);
+    await expect(this.cell(0, 1)).toHaveText('Old A');
+  }
+
+  /**
+   * A data cell, by visual row and column.
+   */
+  cell(row: number, column: number): Locator {
+    return this.page.getByTestId(`cell-${row}-${column}`);
+  }
+
+  /**
+   * The pending indicator of a cell.
+   */
+  indicator(row: number, column: number): Locator {
+    return this.cell(row, column).locator('.htAsyncIndicator');
+  }
+
+  /**
+   * Starts a request for a cell and returns its id.
+   */
+  async start(row: number, column: number): Promise<number> {
+    return this.page.evaluate(([r, c]) => (window as any).startRequest(r, c), [row, column]);
+  }
+
+  /**
+   * Resolves a request.
+   */
+  async resolve(id: number, value: unknown): Promise<void> {
+    await this.page.evaluate(([requestId, result]) => (window as any).resolveRequest(requestId, result), [id, value]);
+  }
+
+  /**
+   * Rejects a request with an error message.
+   */
+  async reject(id: number, message: string): Promise<void> {
+    await this.page.evaluate(([requestId, text]) => (window as any).rejectRequest(requestId, text), [id, message]);
+  }
+
+  /**
+   * The recorded outcome of a request, or `null` while it is pending.
+   */
+  async result(id: number): Promise<RecordedResult> {
+    return this.page.evaluate(requestId => (window as any).requests[requestId].result, id);
+  }
+
+  /**
+   * Whether a request's AbortSignal was aborted.
+   */
+  async isAborted(id: number): Promise<boolean> {
+    return this.page.evaluate(requestId => (window as any).requests[requestId].signal.aborted, id);
+  }
+
+  /**
+   * The source data of a physical row.
+   */
+  async sourceRow(physicalRow: number): Promise<Record<string, unknown>> {
+    return this.page.evaluate(row => (window as any).hot.getSourceDataAtRow(row), physicalRow);
+  }
+
+  /**
+   * Turns the name column into a dropdown column, so its cells draw an arrow.
+   */
+  async useDropdownNames(): Promise<void> {
+    await this.page.evaluate(() => (window as any).hot.updateSettings({
+      columns: [
+        { data: 'sku' },
+        { data: 'name', type: 'dropdown', source: ['Old A', 'Old B', 'Old C'] },
+        { data: 'price', type: 'numeric' },
+      ],
+    }));
+  }
+
+  /**
+   * The boxes of a cell, its spinner, and its dropdown arrow (or `null`), read in one task.
+   */
+  async boxes(row: number, column: number): Promise<{
+    cell: DOMRect; indicator: DOMRect; arrow: DOMRect | null;
+  }> {
+    return this.cell(row, column).evaluate((td) => {
+      const box = (element: Element | null) => {
+        if (!element) {
+          return null;
+        }
+
+        const { x, y, width, height, left, right, top, bottom } = element.getBoundingClientRect();
+
+        return { x, y, width, height, left, right, top, bottom } as DOMRect;
+      };
+
+      return {
+        cell: box(td)!,
+        indicator: box(td.querySelector('.htAsyncIndicator'))!,
+        arrow: box(td.querySelector('.htAutocompleteArrow')),
+      };
+    });
+  }
+
+  /**
+   * The error marker bar of a failed cell: its border width and color.
+   */
+  async errorMarker(row: number, column: number): Promise<{ width: string; color: string }> {
+    return this.cell(row, column).locator('.htAsyncErrorMarker').evaluate((element) => {
+      const style = getComputedStyle(element);
+
+      return { width: style.borderLeftWidth, color: style.borderLeftColor };
+    });
+  }
+
+  /**
+   * Sets theme variables on every element of the grid that carries the theme class: the container and the
+   * grid's root, which declares the theme's variables again.
+   */
+  async setThemeVariables(variables: Record<string, string>): Promise<void> {
+    await this.page.getByTestId('grid').evaluate((container, values) => {
+      [container, ...container.querySelectorAll('[class*="ht-theme-"]')].forEach((element) => {
+        Object.entries(values).forEach(([name, value]) => (element as HTMLElement).style.setProperty(name, value));
+      });
+    }, variables);
+  }
+
+  /**
+   * The computed border color of a pending cell's spinner, on its painted (block-start) side.
+   */
+  async indicatorColor(row: number, column: number): Promise<string> {
+    return this.indicator(row, column).evaluate(element => getComputedStyle(element).borderTopColor);
+  }
+
+  /**
+   * A cell's background color, and the `--ht-async-error-background-color` token resolved to a color on
+   * a probe inside the grid, for a theme-independent comparison.
+   */
+  async errorColors(row: number, column: number): Promise<{ cell: string; token: string }> {
+    return this.cell(row, column).evaluate((td) => {
+      const probe = td.ownerDocument.createElement('div');
+
+      probe.style.backgroundColor = 'var(--ht-async-error-background-color)';
+      td.closest('.handsontable')!.appendChild(probe);
+
+      const token = getComputedStyle(probe).backgroundColor;
+
+      probe.remove();
+
+      return { cell: getComputedStyle(td).backgroundColor, token };
+    });
+  }
+}

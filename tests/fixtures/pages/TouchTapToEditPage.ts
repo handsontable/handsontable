@@ -87,10 +87,10 @@ export class TouchTapToEditPage {
    * Walkontable's 10 px move-threshold path (`LONG_PRESS_MOVE_THRESHOLD`): past that offset the
    * touch path classifies the gesture as a scroll and fires no cell mouse hooks. The mouse pair
    * that follows is dispatched separately, with `dispatchMouseEvent()`, to drive the
-   * synthesized-event origin gate.
+   * synthesized-event origin gate. Returns whether `touchend` was cancelled.
    */
-  async dispatchTouchDrag(row: number, col: number, dx: number): Promise<void> {
-    await this.cell(row, col).evaluate((td, dxOffset) => {
+  async dispatchTouchDrag(row: number, col: number, dx: number): Promise<boolean> {
+    return this.cell(row, col).evaluate((td, dxOffset) => {
       const rect = td.getBoundingClientRect();
       const x = rect.left + rect.width / 2;
       const y = rect.top + rect.height / 2;
@@ -102,18 +102,25 @@ export class TouchTapToEditPage {
         pageX: clientX + window.scrollX,
         pageY: y + window.scrollY,
       });
-      const fire = (type: string, clientX: number, ended: boolean) => td.dispatchEvent(new TouchEvent(type, {
-        bubbles: true,
-        cancelable: true,
-        composed: true,
-        touches: ended ? [] : [touch(clientX)],
-        targetTouches: ended ? [] : [touch(clientX)],
-        changedTouches: [touch(clientX)],
-      }));
+      const fire = (type: string, clientX: number, ended: boolean) => {
+        const event = new TouchEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+          touches: ended ? [] : [touch(clientX)],
+          targetTouches: ended ? [] : [touch(clientX)],
+          changedTouches: [touch(clientX)],
+        });
+
+        td.dispatchEvent(event);
+
+        return event.defaultPrevented;
+      };
 
       fire('touchstart', x, false);
       fire('touchmove', x + dxOffset, false);
-      fire('touchend', x + dxOffset, true);
+
+      return fire('touchend', x + dxOffset, true);
     }, dx);
   }
 
@@ -249,5 +256,13 @@ export class TouchTapToEditPage {
    */
   async tapContextMenuItem(label: string): Promise<void> {
     await this.contextMenu.getByText(label, { exact: true }).tap();
+  }
+
+  /**
+   * A tap on the page margin, outside the grid. The browser answers it with one `click`, so a test
+   * can count that click to know every earlier tap's sequence has landed.
+   */
+  async tapOutsideGrid(): Promise<void> {
+    await this.page.touchscreen.tap(4, 4);
   }
 }

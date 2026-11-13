@@ -51,17 +51,20 @@ export function createCellHeadersRange(
 
 /**
  * Normalize language code. It takes handled languageCode proposition and change it to proper languageCode.
- * For example, when it takes `eN-us` as parameter it return `en-US`.
+ * For example, when it takes `eN-us` as parameter it return `en-US`, and for `sr-latn-rs` it returns `sr-Latn-RS`.
  *
  * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {string}
  */
 export function normalizeLanguageCode(languageCode: string) {
-  const languageCodePattern = /^([a-zA-Z]{2})-([a-zA-Z]{2})$/;
+  const languageCodePattern = /^([a-zA-Z]{2})(?:-([a-zA-Z]{4}))?-([a-zA-Z]{2})$/;
   const partsOfLanguageCode = languageCodePattern.exec(languageCode);
 
   if (partsOfLanguageCode) {
-    return `${partsOfLanguageCode[1].toLowerCase()}-${partsOfLanguageCode[2].toUpperCase()}`;
+    const [, language, script, region] = partsOfLanguageCode;
+    const normalizedScript = script ? `-${script[0].toUpperCase()}${script.slice(1).toLowerCase()}` : '';
+
+    return `${language.toLowerCase()}${normalizedScript}-${region.toUpperCase()}`;
   }
 
   return languageCode;
@@ -76,6 +79,7 @@ export function normalizeLanguageCode(languageCode: string) {
 export function warnUserAboutLanguageRegistration(languageCode: string) {
   if (isDefined(languageCode)) {
     error(toSingleLine`Language with code "${languageCode}" was not found. You should register particular language\x20
-    before using it. Read more about this issue at: https://docs.handsontable.com/i18n/missing-language-code.`);
+    before using it. Read more about this issue at:\x20
+    https://handsontable.com/docs/javascript-data-grid/language/#load-the-prepared-language-files`);
   }
 }

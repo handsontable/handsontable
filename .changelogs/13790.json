@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where the empty data state overlay was taller than a grid with `height: 'auto'` inside a clipping container and covered the content below it.",
+  "type": "fixed",
+  "issueOrPR": 13790,
+  "breaking": false,
+  "framework": "none"
+}

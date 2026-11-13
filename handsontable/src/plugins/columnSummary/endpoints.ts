@@ -116,6 +116,46 @@ class Endpoints {
   }
 
   /**
+   * Returns the endpoints in the form of the plugin's settings, at the positions they hold now. A row or
+   * column alteration shifts an endpoint's destination and ranges, and the settings still name the
+   * positions they declared, so a caller that applies the settings again later (the sheets bar, on a
+   * return to a sheet) applies these instead. A destination counted from the bottom is given back as the
+   * offset it has now, which differs from the declared one once a removal left the summary parked above a
+   * data row, and a whole-table range is left out so it keeps following the table. Returns `null` for the
+   * function form, which reads its settings again on every pass, and before the endpoints are parsed.
+   *
+   * @returns {object[]|null}
+   */
+  exportSettings(): EndpointConfig[] | null {
+    if (this.settingsType === 'function' || !Array.isArray(this.endpoints)) {
+      return null;
+    }
+
+    return this.endpoints.map((endpoint) => {
+      const settings: EndpointConfig = {
+        destinationRow: endpoint.reversedRowCoords
+          ? this.countAddressableRows() - endpoint.destinationRow! - 1
+          : endpoint.destinationRow,
+        destinationColumn: endpoint.destinationColumn,
+        sourceColumn: endpoint.sourceColumn,
+        reversedRowCoords: endpoint.reversedRowCoords,
+        type: endpoint.type,
+        forceNumeric: endpoint.forceNumeric,
+        suppressDataTypeErrors: endpoint.suppressDataTypeErrors,
+        customFunction: endpoint.customFunction,
+        readOnly: endpoint.readOnly,
+        roundFloat: endpoint.roundFloat,
+      };
+
+      if (!endpoint.rangesFromDefault) {
+        settings.ranges = Array.isArray(endpoint.ranges) ? endpoint.ranges.map(range => range.slice()) : [];
+      }
+
+      return settings;
+    });
+  }
+
+  /**
    * Get a single endpoint object.
    *
    * @param {number} index Index of the endpoint.
@@ -326,14 +366,12 @@ class Endpoints {
    * @param {object} defaultValue Default value for the settings.
    */
   assignSetting(settings: EndpointConfig, endpoint: EndpointConfig, name: string, defaultValue: unknown) {
-    if (name === 'ranges' && settings[name] === undefined) {
+    if (name === 'ranges' && !Array.isArray(settings[name])) {
       endpoint[name] = defaultValue as number[][];
       // Remember that the range is the whole-table default, so a structure alteration can re-derive it
       // (DEV-2995). INTERNAL field: not declared on `EndpointConfig`, and `parseSettings()` never copies it.
       endpoint.rangesFromDefault = true;
 
-      return;
-    } else if (name === 'ranges' && (settings[name] as number[][]).length === 0) {
       return;
     }
 
@@ -553,10 +591,7 @@ class Endpoints {
     if (axis === 'row') {
       endpoint.destinationRow = shiftIndex(endpoint.destinationRow!);
 
-      // `ranges: []` leaves the setting unset, so there can be nothing to shift.
-      if (endpoint.ranges) {
-        endpoint.ranges = this.#shiftRanges(endpoint.ranges, shiftIndex);
-      }
+      endpoint.ranges = this.#shiftRanges(endpoint.ranges!, shiftIndex);
 
     } else {
       endpoint.destinationColumn = shiftIndex(endpoint.destinationColumn!);
@@ -721,13 +756,19 @@ class Endpoints {
   /**
    * Calculate and refresh a single endpoint.
    *
+   * The refresh can run inside another endpoint's calculation: a cell read there can run a pending
+   * Formulas resync, whose values update refreshes the endpoints again. The endpoint it replaced is
+   * therefore put back on exit, not cleared, or the outer calculation reads a `null` endpoint.
+   *
    * @param {object} endpoint Contains the endpoint information.
    */
   refreshEndpoint(endpoint: EndpointConfig) {
+    const previousEndpoint = this.currentEndpoint;
+
     this.currentEndpoint = endpoint;
     this.plugin.calculate(endpoint as unknown as Parameters<typeof this.plugin.calculate>[0]);
     this.setEndpointValue(endpoint, undefined);
-    this.currentEndpoint = null;
+    this.currentEndpoint = previousEndpoint;
   }
 
   /**

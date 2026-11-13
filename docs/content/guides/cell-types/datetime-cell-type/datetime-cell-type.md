@@ -1,19 +1,19 @@
 ---
 type: how-to
 title: Date-time cell type
-metaTitle: Date-time cell type - JavaScript Data Grid | Handsontable
+metaTitle: Date-time cell type | Handsontable DataGrid for JavaScript
 description: Display, format, sort, and filter combined date and time values by using the datetime cell type.
 permalink: /datetime-cell-type
 canonicalUrl: /datetime-cell-type
 react:
-  metaTitle: Date-time cell type - React Data Grid | Handsontable
+  metaTitle: Date-time cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Date-time cell type - Angular Data Grid | Handsontable
+  metaTitle: Date-time cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Date-time cell type - Vue Data Grid | Handsontable
+  metaTitle: Date-time cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
-menuTag: new
+menuTag: updated
 addedIn: "18.1.0"
 ---
 Display, format, sort, and filter combined date and time values by using the datetime cell type. Edit values via a native date-time picker.
@@ -217,7 +217,7 @@ const hotSettings = ref<GridSettings>({
       }
     }
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -270,6 +270,10 @@ The `dateTimeFormat` option accepts properties of [`Intl.DateTimeFormat` options
 
 For a complete reference, see the [`dateTimeFormat` API documentation](@/api/options.md#datetimeformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
 
+**Year 0000**
+
+ISO 8601 uses year `0000` for 1 BC. A value in year `0000` is valid, and it sorts before `0001-01-01T00:00:00`. `Intl.DateTimeFormat` prints that year as `1`, the same as year `0001`. To tell them apart, Handsontable adds the era to the display of year `0000`. It does so when the format prints a year and sets no `era` of its own. For example, `0000-01-01T00:00:00` shows as `01/01/1 BC, 00:00:00` and `0001-01-01T00:00:00` shows as `01/01/1, 00:00:00`. The era text follows the locale. A format that uses `dateStyle` or `timeStyle` cannot carry an era, so it still prints year `0000` as `1`.
+
 ### Editor behavior
 
 Clicking an `intl-datetime` cell opens the browser's native [`datetime-local`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local) picker. The editor shows the value in the `YYYY-MM-DDTHH:mm:ss` form the native input expects; on commit, the value is stored back in that ISO form. The `dateTimeFormat` option only affects the rendered display, not the stored value.
@@ -280,7 +284,7 @@ After configuring the datetime cell type, cells display date-time values formatt
 
 ## Keyboard shortcuts
 
-The `intl-datetime` cell editor opens the browser's native date-time picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
+The `intl-datetime` cell editor opens the browser's native date-time picker. Double-clicking a cell shows the picker. In Chromium-based browsers, an open picker takes the keys: <kbd>**Tab**</kbd> does nothing, and <kbd>**Enter**</kbd> and <kbd>**Escape**</kbd> close only the picker. Opening the editor with the keyboard (<kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, or typing) leaves the picker closed, so <kbd>**Tab**</kbd>, <kbd>**Escape**</kbd>, and the other grid shortcuts keep working. In Chrome and Edge, press <kbd>**Alt**</kbd>+<kbd>**↓**</kbd> (<kbd>⌥</kbd>+<kbd>**↓**</kbd> on macOS) in the editor to show the picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
 
 ## Related articles
 

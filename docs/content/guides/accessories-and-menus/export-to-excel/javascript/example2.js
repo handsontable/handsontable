@@ -1,6 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import ExcelJS from 'exceljs';
 
 registerAllModules();
 
@@ -36,8 +35,8 @@ const sharedConfig = {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  exportFile: { engines: { xlsx: ExcelJS } },
-  licenseKey: 'non-commercial-and-evaluation',
+  exportFile: true,
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const hotQ1 = new Handsontable(document.querySelector('#example2-q1'), {

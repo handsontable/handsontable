@@ -561,14 +561,16 @@ describe('NestedRows Data Manager', () => {
         const dataManager = nrPlugin.dataManager;
         const dummyNode = { a: 'test' };
 
-        dataManager.cacheNode(dummyNode, 5, null);
+        dataManager.cacheNode(dummyNode, 5, null, 2, 4);
 
         expect(dataManager.cache.levels[5][0]).toEqual(dummyNode);
         expect(dataManager.cache.levelCount).toEqual(3);
         expect(dataManager.cache.nodeInfo.get(dummyNode)).toEqual({
           parent: null,
           row: 18,
-          level: 5
+          level: 5,
+          position: 3,
+          setSize: 4,
         });
       });
     });

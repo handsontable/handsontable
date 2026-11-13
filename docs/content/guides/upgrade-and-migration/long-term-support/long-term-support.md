@@ -1,20 +1,21 @@
 ---
 type: explanation
 title: Long-term support (LTS)
-metaTitle: Long Term Support (LTS) - JavaScript Data Grid | Handsontable
-description: LTS (Long-Term Support) versions are Handsontable releases that are maintained for an extended period. 
+metaTitle: Long-term support (LTS) | Handsontable DataGrid for JavaScript
+description: LTS (Long-Term Support) versions are Handsontable DataGrid releases that are maintained for an extended period. 
 permalink: /long-term-support
 canonicalUrl: /long-term-support
 react:
-  metaTitle: Long Term Support (LTS) - React Data Grid | Handsontable
+  metaTitle: Long-term support (LTS) | Handsontable DataGrid for React
 angular:
-  metaTitle: Long Term Support (LTS) - Angular Data Grid | Handsontable
+  metaTitle: Long-term support (LTS) | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Long Term Support (LTS) - Vue Data Grid | Handsontable
+  metaTitle: Long-term support (LTS) | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Upgrade and migration
+menuTag: updated
 ---
-LTS (Long-Term Support) versions are Handsontable release lines that are maintained and supported for an extended period. 
+LTS (Long-Term Support) versions are Handsontable DataGrid release lines that are maintained and supported for an extended period. 
 
 [[toc]]
 
@@ -58,6 +59,16 @@ Every major release progresses through distinct support phases:
 *   **End-of-Life** - No further updates, security patches, or support. Users should migrate to a supported version before this phase.
 
 Current-only (odd-numbered) releases skip the LTS phases entirely, moving directly from Current to End-of-Life after 6 months. These releases allow the community to preview and test upcoming features before they stabilize in the next LTS release.
+
+### Support status by version
+
+The LTS policy applies to Handsontable `16.0.0` and later. Versions released before `16.0.0` (`15.x` and earlier) predate this policy and are no longer supported.
+
+| Release line                                                                  | Release type  | Support                                                                                      |
+| ----------------------------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------------- |
+| `15.x` and earlier                                                            | Pre-policy    | **End-of-Life**: no longer supported                                                         |
+| Even-numbered releases: `16.0.0`, `18.0.0`, `20.0.0`, and so on               | LTS           | Current, then Active LTS, then Maintenance LTS, then End-of-Life (about 30 months in total)  |
+| Odd-numbered releases: `17.0.0`, `19.0.0`, `21.0.0`, and so on                | Current-only  | Current for 6 months, then **End-of-Life**                                                   |
 
 ## Choosing a release
 

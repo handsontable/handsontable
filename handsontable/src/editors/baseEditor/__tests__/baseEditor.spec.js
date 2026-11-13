@@ -98,6 +98,172 @@ describe('BaseEditor', () => {
     expect(getActiveEditor().open).toHaveBeenCalled();
   });
 
+  it('should pass the original array, object, and number to a custom BaseEditor setValue', async() => {
+    class RawValueEditor extends Handsontable.editors.BaseEditor {
+      init() {}
+      getValue() {
+        return this.received;
+      }
+      setValue(value) {
+        this.received = value;
+      }
+      open() {}
+      close() {}
+      focus() {}
+    }
+
+    const arrayValue = [[1, 2], [3, 4]];
+    const objectValue = { a: 1 };
+
+    handsontable({
+      data: [[arrayValue], [objectValue], [5]],
+      editor: RawValueEditor,
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    expect(getActiveEditor().received).toEqual(arrayValue);
+
+    await keyDownUp('escape');
+    await selectCell(1, 0);
+    await keyDownUp('enter');
+
+    expect(getActiveEditor().received).toEqual(objectValue);
+
+    await keyDownUp('escape');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
+
+    expect(getActiveEditor().received).toBe(5);
+  });
+
+  it('should not fire afterChange when a custom BaseEditor confirms a number or a null cell', async() => {
+    class EchoEditor extends Handsontable.editors.BaseEditor {
+      init() {}
+      getValue() {
+        return this.received;
+      }
+      setValue(value) {
+        this.received = value;
+      }
+      open() {}
+      close() {}
+      focus() {}
+    }
+
+    const edits = [];
+
+    handsontable({
+      data: [[12345], [null]],
+      editor: EchoEditor,
+      afterChange(changes, source) {
+        if (source === 'edit') {
+          edits.push(changes);
+        }
+      },
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
+
+    expect(edits).toEqual([]);
+    expect(getDataAtCell(0, 0)).toBe(12345);
+
+    await selectCell(1, 0);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
+
+    expect(edits).toEqual([]);
+    expect(getDataAtCell(1, 0)).toBe(null);
+  });
+
+  it('should apply the parser when a reloaded editor is confirmed without typing', async() => {
+    const edits = [];
+
+    handsontable({
+      data: [[0.5]],
+      valueGetter(value) {
+        return value * 100;
+      },
+      valueParser(value) {
+        return Number(value);
+      },
+      afterChange(changes, source) {
+        if (source === 'edit') {
+          edits.push(changes);
+        }
+      },
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    expect(keyProxy().val()).toBe('50');
+
+    await setSourceDataAtCell(0, 0, 0.25);
+
+    expect(getActiveEditor().isOpened()).toBe(true);
+    expect(keyProxy().val()).toBe('0.25');
+
+    await keyDownUp('enter');
+
+    expect(edits.length).toBe(1);
+    expect(getSourceDataAtCell(0, 0)).toBe(0.25);
+  });
+
+  it('should store the parsed number when a string cell is confirmed without typing', async() => {
+    handsontable({
+      data: [['5']],
+      valueParser(value) {
+        return Number(value);
+      },
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
+
+    expect(getSourceDataAtCell(0, 0)).toBe(5);
+  });
+
+  it('should save a typed value that the parser turns into the valueGetter result', async() => {
+    const edits = [];
+
+    handsontable({
+      data: [[0.5]],
+      valueGetter(value) {
+        return value * 100;
+      },
+      valueParser(value) {
+        return value === 'half' ? 50 : value;
+      },
+      afterChange(changes, source) {
+        if (source === 'edit') {
+          edits.push(changes);
+        }
+      },
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
+
+    expect(edits).toEqual([]);
+    expect(getSourceDataAtCell(0, 0)).toBe(0.5);
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    keyProxy().val('half');
+
+    await keyDownUp('enter');
+
+    expect(getSourceDataAtCell(0, 0)).toBe(50);
+    expect(edits.length).toBe(1);
+  });
+
   describe('should populate value from the currently active cell to every cell in the selected range', () => {
     it('Ctrl/Meta + Enter when editor is active', async() => {
       handsontable({

@@ -1,0 +1,629 @@
+{
+  "schema": 1,
+  "about": "The root-cause clusters of the accessibility findings ledger (lib/a11y-issues.mjs; tests/AGENTS.md, A11y: the findings ledger and the cluster catalog). A cluster has id, title, an optional tracker (a task id, or a list of them; code, never printed on the page) and match rules: source, then any of checks, kinds, rules, causes, criteria, pages, themes, where, axeIssues. Values in a field are ORed, fields in a rule ANDed, rules in a cluster ORed. A where pattern reads the finding's masked selector, its step, or both joined as '<masked selector> @ <step>'. A finding no rule matches lands in needs-triage; one that two rules match fails lib/__tests__/a11y-issues.test.mjs. triage lists every sampled finding shape (findingShape()) left in needs-triage, each with why it is neither a known cause nor the reader's own behavior yet; its length is the triage limit, exact: a shape leaves the list when it is sorted into a cluster, and joins it only visibly, with its reason, in the change that adds it.",
+  "triage": [
+    { "shape": "reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid", "reason": "NVDA with Firefox names the grid by the sheet's old name, where both Chromium readers say the new one: a stale name kept by Firefox or a name the grid sets on another element, not told apart yet." }
+  ],
+  "clusters": [
+    {
+      "id": "overlay-clones-split-tree",
+      "title": "The overlay clones split the accessibility tree: the column headers read after the data, each row is exposed twice, the row headers sit apart from their rows, and a screen reader loses the cell's row index",
+      "tracker": "DEV-3652",
+      "match": [
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["headers-after-data", "row-exposed-twice", "row-headers-apart"] },
+        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-needs-review"], "rules": ["aria-required-children"], "where": ["^(tbody|thead)\\[role=\"rowgroup\"\\]$"] },
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^(into-column-header|into-row-header|up-to-header-for-sort)$"] },
+        { "source": "reader", "kinds": ["traversal-off"], "pages": ["reading-mode-traversal"] }
+      ]
+    },
+    {
+      "id": "reading-skips-band-edge",
+      "title": "Reading mode skips a row at the edge of the rendered band of a long grid (A5 of 200 rows), on every reader but NVDA with Chromium",
+      "match": [
+        { "source": "reader", "kinds": ["traversal-off"], "pages": ["virtualization-reading"] }
+      ]
+    },
+    {
+      "id": "blank-item-before-grid",
+      "title": "In reading mode NVDA with Chromium stops on an empty item (`blank`) right before the grid, so the reading cursor reaches nothing where the table should start",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium"], "kinds": ["token-missing"], "pages": ["reading-mode-traversal(-plain|-rtl)?"], "where": ["^to-grid$"] }
+      ]
+    },
+    {
+      "id": "jump-to-unrendered-row-silent",
+      "title": "With Chromium a jump to a row the grid renders only once it scrolls there (Ctrl+ArrowDown to the last of 200 rows) is not announced",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["virtualization"], "where": ["^to-last-row$"] }
+      ]
+    },
+    {
+      "id": "grid-roles",
+      "title": "The grid is built from divs with ARIA roles, and its treegrid root holds children the role does not allow",
+      "tracker": "DEV-2964",
+      "match": [
+        { "source": "axe", "axeIssues": ["grid-roles"] },
+        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"treegrid\"\\]"] },
+        { "source": "docs", "axeIssues": ["example-grid-roles"] }
+      ]
+    },
+    {
+      "id": "focus-not-returned-after-escape",
+      "title": "The focus is not returned to the cell after Escape, Enter, Tab or a shortcut closes an editor, a menu or the comment editor: it stays on the closed editor's field or falls to the document, and a screen reader does not announce the cell",
+      "tracker": ["DEV-3603", "DEV-3604"],
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-not-returned", "focus-lost", "shortcut-moves-focus-out"] },
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^(close-editor|close-context-menu)$"] },
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-keeps-focus"], "where": ["handsontableInput"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor", "dropdown-editor", "date-editor", "comment-editor", "multiselect-editor", "dropdown-menu"], "where": ["^(commit-choice|commit-date|cancel-edit|save-with-control-enter|close-with-escape|commit-selection|close-menu)$"] }
+      ]
+    },
+    {
+      "id": "editor-choice-not-announced",
+      "title": "An editor's list does not announce the choice the keys reach: with Chromium the autocomplete and dropdown options that aria-activedescendant names have no name, a narrowed list and its highlighted choice are silent on every reader, and the handsontable editor exposes no highlighted row at all",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["autocomplete-editor"], "where": ["^(arrow-down-first|arrow-down-second|arrow-down-third)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["autocomplete-editor"], "where": ["^(type-narrow|arrow-down-narrowed)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["handsontable-editor"], "where": ["^(arrow-down-first|arrow-down-second|arrow-down-third)$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^(arrow-down-second|arrow-down-third)$"] }
+      ]
+    },
+    {
+      "id": "editor-combobox-markup",
+      "title": "The autocomplete and dropdown editors put the combobox role on a textarea, which ARIA in HTML does not allow, and name a closed list in aria-controls that axe cannot find",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-allowed-role", "aria-valid-attr-value"], "where": ["^textarea\\.handsontableInput\\[role=\"combobox\"\\]"] }
+      ]
+    },
+    {
+      "id": "voiceover-webkit-field-role",
+      "title": "VoiceOver with WebKit reads a text field the focus moves to inside the grid, a menu or the sheets bar by its value or label alone, without its role (the cell editors, the filter inputs, the sheet rename field), where it names the role of a field outside them",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["autocomplete-editor", "dropdown-editor", "grid-core", "grid-core-horizon", "column-summary", "handsontable-editor"], "where": ["^open-editor$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["filters-by-condition", "filters-by-value", "sheets-bar"], "where": ["^(choose-condition|tab-to-search|enter-rename)$"] }
+      ]
+    },
+    {
+      "id": "unnamed-controls",
+      "title": "Controls without an accessible name or role: the editor inputs, the native date and time inputs, the select editor, the comment textarea, the filter condition select and the filter listbox, the autocomplete list, and the focus catchers",
+      "tracker": ["DEV-3492", "DEV-2970"],
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-stop-unnamed"] },
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["unnamed-control"] },
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["focusable-without-role"], "where": ["htFocusCatcher"] },
+        { "source": "axe", "axeIssues": ["editor-input-names", "filters-listbox"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["label", "aria-input-field-name", "select-name"] },
+        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"listbox\"\\]"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["htFocusCatcher"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["comment-editor", "filters-by-condition", "filters-by-value"], "where": ["^(open-comment-editor|tab-to-condition|shift-tab-to-select)$"] }
+      ]
+    },
+    {
+      "id": "empty-data-state-without-role",
+      "title": "The empty data state's message, for no data and for loading, takes the focus as a div with no role, so NVDA with Firefox reads `section` without its text and VoiceOver with WebKit reads its title alone",
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-stop-without-role"], "where": ["ht-empty-data-state"] },
+        { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["empty-data", "data-provider-sheets-bar"], "where": ["^(tab-empty-message|shift-tab-empty-message|tab-loading-overlay)$"] }
+      ]
+    },
+    {
+      "id": "sheet-tab-rename-tab-stop",
+      "title": "A sheet tab being renamed keeps its tab stop after it drops its button role, so the focus order holds a div with no role beside the name field",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["ht-sheets-bar__tab--renaming"] }
+      ]
+    },
+    {
+      "id": "formula-editor-combobox-markup",
+      "title": "The formula builder's editor puts the combobox role on a textarea, which ARIA in HTML does not allow, and names a closed list in aria-controls",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-allowed-role", "aria-valid-attr-value"], "where": ["^textarea\\.hfe-editor__input"] }
+      ]
+    },
+    {
+      "id": "formula-help-panel-focus-stop",
+      "title": "The formula builder's function help panel takes the focus as a div with no role, and Tab does not leave it",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["hfe-fn-help__body"] },
+        { "source": "checks", "checks": ["tree-snapshots", "keyboard-walker"], "kinds": ["focusable-without-role", "focus-stop-without-role", "tab-keeps-focus"], "where": ["hfe-fn-help__body"] }
+      ]
+    },
+    {
+      "id": "formula-suggestion-tab",
+      "title": "Tab in the formula editor accepts the highlighted suggestion and keeps the focus in the editor, as the formula builder intends: the keyboard walker reads it as a Tab that stays",
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-keeps-focus"], "where": ["^textarea\\.hfe-editor__input"] }
+      ]
+    },
+    {
+      "id": "menu-semantics",
+      "title": "Menu items have no menu parent, the highlighted item carries aria-selected, separators are exposed as menu items, and a screen reader hears the context and column menus as a table, NVDA without the word menu",
+      "tracker": ["DEV-3491", "DEV-2944"],
+      "match": [
+        { "source": "axe", "axeIssues": ["menu-roles", "menu-separators"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-required-parent", "aria-allowed-attr"] },
+        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["^div\\.htMenu\\[role=\"menu\"\\]$"] },
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^open-context-menu$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["dropdown-menu", "filters-by-value", "filters-by-condition"], "where": ["^open-menu$"] }
+      ]
+    },
+    {
+      "id": "checkbox-state-not-announced",
+      "title": "A checkbox in a cell or a header does not announce its state: the focus stays on the cell, so the mixed state of the check all and select all checkboxes and a row header checkbox's state are never read, the corner reads its own name over the select all checkbox, and Space toggling one is silent with Chromium",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["checkbox-cell", "checkbox-header", "filters-by-value"], "where": ["^(space-check|space-uncheck|space-check-all|space-uncheck-all)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["checkbox-header", "row-selection-corner"], "where": ["^(arrow-up-header-mixed|arrow-up-corner|arrow-down-row-header)$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["checkbox-header"], "where": ["^arrow-up-to-header$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["row-selection"], "where": ["^arrow-up-to-header$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox", "vo-chromium"], "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^arrow-left-row-checkbox$"] }
+      ]
+    },
+    {
+      "id": "read-only-not-announced",
+      "title": "A read-only cell is not announced as read only: the cell carries aria-readonly, which no reader says when the focus reaches it",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["checkbox-cell"], "where": ["^arrow-down-read-only$"] }
+      ]
+    },
+    {
+      "id": "link-in-cell-not-announced",
+      "title": "A link in a cell is not announced as a link: the focus stays on the cell, whose name is its text, and the link inside never takes the focus, so NVDA reads the address and never says link",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["auto-link"], "where": ["^(arrow-left-link|arrow-down-inline-link|arrow-down-mailto-link|select-formula-link|select-local-link)$"] }
+      ]
+    },
+    {
+      "id": "cell-annotation-not-exposed",
+      "title": "What a plugin marks on a cell with a class alone is not announced: a commented cell and a column summary cell read as plain cells, the read-only summary without its read-only state",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["comment-editor", "column-summary"], "where": ["^(arrow-down-commented-cell|arrow-left-second-comment|arrow-down-summary-cell|arrow-right-editable-summary)$"] }
+      ]
+    },
+    {
+      "id": "merged-span-not-read",
+      "title": "A merged cell's span is not read by NVDA with Firefox or by VoiceOver, though the cell carries rowspan and colspan: only NVDA with Chromium says `through row 3 column 3`",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["merge-cells"], "where": ["^arrow-up-back-in$"] }
+      ]
+    },
+    {
+      "id": "filter-by-value-name",
+      "title": "The accessible name of the Filters \"Filter by value\" component does not include its visible text",
+      "tracker": "DEV-2948",
+      "match": [
+        { "source": "axe", "axeIssues": ["filter-by-value-name"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["label-content-name-mismatch"] }
+      ]
+    },
+    {
+      "id": "filters-nested-buttons",
+      "title": "The Filters \"Select all\" and \"Select none\" controls are buttons nested inside buttons",
+      "tracker": "DEV-3493",
+      "match": [
+        { "source": "axe", "axeIssues": ["filters-nested-buttons"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["nested-interactive"] }
+      ]
+    },
+    {
+      "id": "contrast-and-focus-visibility",
+      "title": "Text, icon, checkbox, grid line and focus indicator contrast under 4.5:1 or 3:1 per theme, and a focus indicator that does not show",
+      "tracker": ["DEV-2946", "DEV-3494"],
+      "match": [
+        { "source": "checks", "checks": ["focus-contrast"], "kinds": ["focus-not-visible", "focus-indicator-contrast", "icon-contrast", "checkbox-contrast", "gridline-contrast", "selection-contrast"] },
+        { "source": "axe", "axeIssues": ["classic-contrast", "horizon-contrast"] },
+        { "source": "axe", "rules": ["color-contrast"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["color-contrast", "color-contrast-enhanced"] }
+      ]
+    },
+    {
+      "id": "drag-and-press-activation",
+      "title": "Drags without a single-pointer or keyboard alternative that does all the drag does, and controls that act on the press or after the pointer left",
+      "tracker": "DEV-1018",
+      "match": [
+        { "source": "checks", "checks": ["pointer"], "kinds": ["drag-without-single-pointer-alternative", "drag-without-keyboard-alternative", "alternative-does-not-work", "gesture-without-single-pointer-alternative", "activates-on-press", "completes-after-pointer-left"] }
+      ]
+    },
+    {
+      "id": "reflow-and-motion",
+      "title": "Content cut off or needing a sideways scroll at 320 px or 200 %, hover content that does not dismiss, controls drawn over each other, a locked orientation, and motion that runs on or ignores the reduced-motion preference",
+      "match": [
+        { "source": "checks", "checks": ["reflow"], "kinds": ["text-clipped", "text-truncated", "outside-viewport", "needs-horizontal-scroll", "controls-overlap", "orientation-locked", "hover-content-not-dismissible", "hover-content-not-hoverable", "hover-content-not-persistent"] },
+        { "source": "checks", "checks": ["forced-colors-motion"], "kinds": ["moves-over-five-seconds", "motion-despite-reduced-motion"] }
+      ]
+    },
+    {
+      "id": "forced-colors",
+      "title": "In forced colors the focus, the selected range, the highlighted menu item, the header icons or the grid lines are not drawn",
+      "match": [
+        { "source": "checks", "checks": ["forced-colors-motion"], "kinds": ["focus-lost-in-forced-colors", "selection-lost-in-forced-colors", "menu-highlight-lost-in-forced-colors", "icon-lost-in-forced-colors", "gridlines-lost-in-forced-colors"] }
+      ]
+    },
+    {
+      "id": "status-messages",
+      "title": "A range extension, Ctrl+A selecting every cell, a sort and a nested row's level are not announced: no status message reaches the screen reader",
+      "tracker": "DEV-2957",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing"], "where": ["^(extend-range|extend-range-again|sort-ascending|sort-descending|into-parent-cell|down-to-child)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^select-all-cells$"] }
+      ]
+    },
+    {
+      "id": "loading-changes-not-announced",
+      "title": "A load that starts or ends without a focus move is not announced: a sheet switch that starts a server fetch (the loading message is no live region), and a pending cell's value that arrives (with Chromium)",
+      "match": [
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["data-provider-sheets-bar"], "where": ["^enter-switch-sheet$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "vo-chromium"], "kinds": ["token-missing"], "pages": ["async-values"], "where": ["^value-resolves$"] }
+      ]
+    },
+    {
+      "id": "status-text-runs-into-value",
+      "title": "A pending or failed cell's visually hidden status text follows its value with no space between them, so VoiceOver with WebKit reads the two as one word (`Old BLoading...`) and neither on its own",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["async-values"], "where": ["^(arrow-down-pending|arrow-down-failed)$"] }
+      ]
+    },
+    {
+      "id": "freeze-bar-count-not-read",
+      "title": "VoiceOver does not read a freeze bar's frozen count: the bars carry aria-valuenow over a range and no aria-valuetext (left out for want of a plural form per language), so a move reads as a percentage and a focus as a splitter without its count",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["freeze-bar"], "where": ["^(arrow-grow|arrow-shrink|arrow-down-grow|f6-to-next-bar)$"] }
+      ]
+    },
+    {
+      "id": "collapse-expand-silent-webkit",
+      "title": "VoiceOver with WebKit says nothing when Enter expands a collapsed column group, though it reads the collapse; a plain header put through the same redraw is read both ways, so the silence comes from the grid",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["collapsible-headers"], "where": ["^enter-expand$"] }
+      ]
+    },
+    {
+      "id": "password-commit-silent-webkit",
+      "title": "VoiceOver with WebKit says nothing when Enter commits the password editor and moves the focus to the next cell; it reads the focus leaving a plain password field and the select editor's commit to a cell, so the silence comes from the grid",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["password-editor"], "where": ["^commit-secret$"] }
+      ]
+    },
+    {
+      "id": "focusable-separator-review",
+      "title": "axe's experimental focus-order-semantics rule lists the freeze bars for review: a focusable separator is the window splitter pattern, which the rule does not take as a widget",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["^div\\[role=\"separator\"\\]$"] }
+      ]
+    },
+    {
+      "id": "dialogs-leak-tab",
+      "title": "Tab walks out of an open modal dialog to the content behind it, which the dialog hides from assistive technology",
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-leaves-modal"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["dialog"], "where": ["^tab-past-ok$"] }
+      ]
+    },
+    {
+      "id": "target-size",
+      "title": "Pagination and sheets bar buttons, links and checkboxes are smaller than 24 by 24 px, or sit closer than that to their neighbors",
+      "tracker": "DEV-3495",
+      "match": [
+        { "source": "axe", "axeIssues": ["classic-target-size"] },
+        { "source": "axe", "rules": ["target-size"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["target-size"] }
+      ]
+    },
+    {
+      "id": "voiceover-cell-position",
+      "title": "VoiceOver names no row number on a cell move, no column number in WebKit and no header role on a header, on a well-formed grid too: the screen reader's behavior, not the grid's (the scenario notes record it)",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "where": ["^(arrow-right|arrow-down|arrow-left|arrow-up|reselect-cell)$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["default-mode", "handsontable-editor", "select-editor", "virtualization", "nested-headers"], "where": ["^(tab-into-grid|to-row-end|to-row-start|commit-row|commit-option|page-down-again|to-first-row|arrow-up-to-header)$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["password-editor"], "where": ["^commit-secret$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["virtualization"], "where": ["^to-last-row$"] }
+      ]
+    },
+    {
+      "id": "voiceover-unchecked-state-silent",
+      "title": "VoiceOver says checked for a checked menu item and nothing for an unchecked one, on a well-formed menu too: the screen reader's behavior, not the grid's (the Read only item reads checked once its column is read only)",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-menu"], "where": ["^arrow-down-read-only$"] }
+      ]
+    },
+    {
+      "id": "voiceover-webkit-select-change-silent",
+      "title": "VoiceOver with WebKit says nothing when the keys change the option of a closed select, on a plain select too, whether a script changes it as the select editor does or its own type-ahead does: the screen reader's behavior, not the grid's",
+      "match": [
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["select-editor"], "where": ["^arrow-down-(first|second)$"] }
+      ]
+    },
+    {
+      "id": "reader-silent-step",
+      "title": "A screen reader says nothing on a step whose surface it reads on later steps or in other runs: VoiceOver on the first key after the runner enters the page above all, on cells, headers, menus, editors and page buttons alike, which points at the reader's start-up, not at the surface; a golden difference belongs here only where this run was the silent one",
+      "match": [
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["async-values", "auto-link", "checkbox-header", "collapsible-headers", "column-summary", "comment-editor", "dialog", "empty-data", "freeze-bar", "grid-core-single-tab-stop", "loading", "merge-cells", "pagination", "sheets-bar", "virtualization"], "where": ["^(arrow-right-pending|arrow-up-plain-url|arrow-up-to-header|arrow-up-to-lower-header|arrow-down-data-row|arrow-right-plain-cell|dialog-opens|tab-last-header|f6-to-first-bar|tab-out-forward|loading-shows|arrow-down-into-merge|tab-page-size|tab-add-sheet|page-down)$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["checkbox-cell", "row-selection"], "where": ["^arrow-up-unchecked$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["date-editor", "password-editor", "select-editor"], "where": ["^open-editor$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-menu", "filters-by-value"], "where": ["^open-menu$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["filters-by-condition"], "where": ["^open-menu$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^arrow-left-row-checkbox$"] },
+        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["token-missing"], "pages": ["grid-core-horizon"], "where": ["^menu-arrow-down$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["multiselect-editor"], "where": ["^arrow-down-third$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["date-editor"], "where": ["^back-to-committed$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["async-values"], "where": ["^arrow-right-pending$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["checkbox-header"], "where": ["^arrow-up-to-header$"] },
+        { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["dialog"], "where": ["^dialog-opens$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["empty-data"], "where": ["^tab-last-header$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["freeze-bar"], "where": ["^f6-to-first-bar$"] }
+      ]
+    },
+    {
+      "id": "reader-golden-drift",
+      "title": "An announcement or an accessibility tree differs from its golden with no defect behind it: reader wording that varies between runs, a golden that recorded a start-up silence the run did not repeat, a reading golden recorded a phrase late, and dropdown editor goldens older than its empty highlight on open, since re-recorded (drop the two dropdown-editor rules when the sample is next refreshed from an audit); record the golden again",
+      "match": [
+        { "source": "reader", "kinds": ["golden-differs"], "pages": ["auto-link", "autocomplete-editor", "comment-editor", "data-provider-sheets-bar", "dialog", "grid-core(-horizon)?", "nested-rows", "pagination", "sheets-bar"], "where": ["^(open-link|commit-choice|type-narrow|type-in-comment|enter-switch-sheet|server-answers|tab-ok|reselect-cell|collapse-parent|enter-first-page|enter-last-page|enter-sheet-menu)$"] },
+        { "source": "reader", "kinds": ["golden-differs"], "pages": ["dropdown-editor"], "where": ["^(open-editor|arrow-down-second|arrow-down-third|back-to-committed)$"] },
+        { "source": "reader", "kinds": ["golden-differs"], "pages": ["virtualization-reading"], "where": ["^read-\\d+$"] },
+        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["golden-differs"], "pages": ["filters-by-value"], "where": ["^open-menu$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["filters-by-condition"], "where": ["^open-menu$"] },
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["tree-snapshot-changed"], "pages": ["dropdown-editor"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["dialog"], "where": ["^dialog-opens$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["pagination"], "where": ["^tab-page-size$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["dropdown-menu"], "where": ["^open-menu$"] }
+      ]
+    },
+    {
+      "id": "scenario-expectation-outdated",
+      "title": "A screen reader scenario expected what the grid no longer does on purpose: the dropdown editor opens with no choice highlighted when the cell's value equals none of its choices, so the scenario's later choices were one step off; the scenario is fixed and these rows resolve on the next audit (remove this cluster when the sample is next refreshed from an audit, or a real dropdown miss would be filed here)",
+      "match": [
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox", "vo-chromium"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^open-editor$"] },
+        { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^(arrow-down-second|arrow-down-third)$"] },
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^back-to-committed$"] }
+      ]
+    },
+    {
+      "id": "tab-walk-wraps-rows",
+      "title": "With autoWrapRow a Tab walk wraps rows and leaves the grid through Ctrl+End then Tab, as the shortcut guide documents",
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-walk-needs-shortcut"] }
+      ]
+    },
+    {
+      "id": "goldens-missing",
+      "title": "A page has no tab-order or accessibility-tree golden recorded yet",
+      "match": [
+        { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-order-golden-missing"] },
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["tree-golden-missing"] }
+      ]
+    },
+    {
+      "id": "empty-column-headers",
+      "title": "Column headers with no accessible name: the corner and the empty header cells label their cells with nothing",
+      "match": [
+        { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["unnamed-header"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["empty-table-header"] }
+      ]
+    },
+    {
+      "id": "hidden-clone-content",
+      "title": "axe's experimental hidden-content rule lists every hidden element for review: the overlay clones' hidden rows, the closed editors and menus",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["hidden-content"] }
+      ]
+    },
+    {
+      "id": "scrollable-holder-not-focusable",
+      "title": "The scrolling holder is not keyboard focusable, though every cell in it is: axe cannot tell and lists it for review",
+      "match": [
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["scrollable-region-focusable"] }
+      ]
+    },
+    {
+      "id": "docs-assistant-button-name",
+      "title": "The docs header's \"Ask AI\" button has an accessible name that does not contain its visible text",
+      "match": [
+        { "source": "docs", "axeIssues": ["assistant-button-name"] }
+      ]
+    },
+    {
+      "id": "docs-framework-tab-name",
+      "title": "The docs framework switcher's tabs have accessible names that do not contain their visible text",
+      "match": [
+        { "source": "docs", "axeIssues": ["framework-tab-name"] }
+      ]
+    },
+    {
+      "id": "docs-hidden-focusable",
+      "title": "An off-screen copy of the docs navigation is hidden from screen readers but still holds focusable links",
+      "match": [
+        { "source": "docs", "axeIssues": ["sidebar-hidden-focusable"] }
+      ]
+    },
+    {
+      "id": "docs-link-color-only",
+      "title": "Links in the docs prose are told apart from the surrounding text by color alone",
+      "match": [
+        { "source": "docs", "axeIssues": ["prose-link-color-only"] }
+      ]
+    },
+    {
+      "id": "docs-contrast",
+      "title": "Docs code block line numbers in the dark theme, and cell text in some examples, fall below 4.5:1 contrast",
+      "match": [
+        { "source": "docs", "axeIssues": ["code-line-number-contrast", "example-cell-contrast"] }
+      ]
+    },
+    {
+      "id": "docs-scrollable-blocks",
+      "title": "Scrollable code blocks and tables in the docs cannot be scrolled from the keyboard",
+      "match": [
+        { "source": "docs", "axeIssues": ["scrollable-block-keyboard"] }
+      ]
+    },
+    {
+      "id": "docs-embeds-and-example-fields",
+      "title": "Docs embeds have no frame title, custom renderer images have no text alternative, and some example fields have no label",
+      "match": [
+        { "source": "docs", "axeIssues": ["embed-frame-title", "example-image-alt", "example-unlabeled-fields"] }
+      ]
+    },
+    {
+      "id": "docs-assistant-closed-tab-stops",
+      "title": "The closed docs assistant keeps its controls in the Tab order, off screen",
+      "match": [
+        { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden"], "where": ["^(button|textarea)\\.da-"] }
+      ]
+    },
+    {
+      "id": "docs-copy-button-hidden-focus",
+      "title": "A code block's copy button stays invisible when it has the keyboard focus",
+      "match": [
+        { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden"], "where": ["^div\\.copy button$"] }
+      ]
+    },
+    {
+      "id": "docs-hidden-nav-link-focusable",
+      "title": "A link in a hidden copy of the navigation takes the keyboard focus, off screen and hidden from screen readers",
+      "match": [
+        { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden", "focus-stop-aria-hidden"], "where": ["^a\\.active$"] }
+      ]
+    },
+    {
+      "id": "docs-example-grid-holds-focus",
+      "title": "An example grid keeps the Tab key, and the documented way out (Ctrl+End, then Tab) does not leave it",
+      "match": [
+        { "source": "docs-checks", "kinds": ["grid-holds-focus"] }
+      ]
+    },
+    {
+      "id": "docs-code-region-unnamed",
+      "title": "A code block that scrolls is a focusable region with no name",
+      "match": [
+        { "source": "docs-checks", "kinds": ["focus-stop-without-role"], "where": ["pre\\[role=\"region\"\\]"] }
+      ]
+    },
+    {
+      "id": "docs-search-slash-shortcut",
+      "title": "The / key opens the docs search with nothing focused, and nothing turns it off",
+      "match": [
+        { "source": "docs-checks", "kinds": ["single-key-shortcut"] }
+      ]
+    },
+    {
+      "id": "docs-popup-focus-not-returned",
+      "title": "Closing the docs assistant or the search does not give the focus back to the control that opened it",
+      "match": [
+        { "source": "docs-checks", "kinds": ["focus-not-returned"] }
+      ]
+    },
+    {
+      "id": "grid-refocus-on-settings-update",
+      "title": "After the grid had the focus, changing an example's option from the keyboard moves the focus into the grid: the grid takes it back when its settings update",
+      "match": [
+        { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["context-change-on-input"] }
+      ]
+    },
+    {
+      "id": "docs-sticky-header-hides-focus",
+      "title": "The sticky header hides a focused link when Shift+Tab scrolls it to the top of the window",
+      "match": [
+        { "source": "docs-checks", "kinds": ["focus-obscured"] }
+      ]
+    },
+    {
+      "id": "docs-focus-indicator-contrast",
+      "title": "A focus indicator in the docs stands under 3:1 from the colors next to it",
+      "match": [
+        { "source": "docs-checks", "kinds": ["focus-indicator-contrast"] }
+      ]
+    },
+    {
+      "id": "docs-example-field-boundary",
+      "title": "An example's text field has no edge or fill that stands 3:1 from the page",
+      "match": [
+        { "source": "docs-checks", "kinds": ["control-boundary-contrast"] }
+      ]
+    },
+    {
+      "id": "docs-current-state-forced-colors",
+      "title": "In forced colors, the current breadcrumb and the current table-of-contents entry look like the others",
+      "match": [
+        { "source": "docs-checks", "kinds": ["state-lost-in-forced-colors"] }
+      ]
+    },
+    {
+      "id": "docs-titles-truncate",
+      "title": "Sidebar and card titles are cut off with an ellipsis at 320 px, at 200% zoom and under text spacing",
+      "match": [
+        { "source": "docs-checks", "kinds": ["text-truncated"], "where": ["^span\\.title "] }
+      ]
+    },
+    {
+      "id": "docs-phone-breadcrumbs-truncate",
+      "title": "The phone breadcrumbs are cut off with an ellipsis at 320 px",
+      "match": [
+        { "source": "docs-checks", "kinds": ["text-truncated"], "where": ["^nav\\.mobile-breadcrumbs "] }
+      ]
+    },
+    {
+      "id": "docs-phone-subheader-cut",
+      "title": "The phone subheader reaches past the viewport at 320 px, where the page cannot scroll to it",
+      "match": [
+        { "source": "docs-checks", "kinds": ["outside-viewport"], "where": ["^div\\.mobile-subheader "] }
+      ]
+    },
+    {
+      "id": "docs-content-reflow",
+      "title": "Content that does not wrap (inline code, keys, a link in a callout, the not-found page's game) makes docs pages wider than 320 px",
+      "match": [
+        { "source": "docs-checks", "kinds": ["page-scrolls-sideways"] }
+      ]
+    },
+    {
+      "id": "docs-example-reflow",
+      "title": "Examples overlap the page's controls, clip their text and cut their labels at 320 px, at 200% zoom and under text spacing",
+      "match": [
+        { "source": "docs-checks", "kinds": ["controls-overlap"], "where": ["^div\\.example-container "] },
+        { "source": "docs-checks", "kinds": ["text-clipped"], "where": ["^div\\.hot-example "] },
+        { "source": "docs-checks", "kinds": ["text-truncated"], "where": ["^div\\.example-container label "] }
+      ]
+    },
+    {
+      "id": "docs-footer-overlap",
+      "title": "Footer links overlap each other at 200% zoom",
+      "match": [
+        { "source": "docs-checks", "kinds": ["controls-overlap"], "where": ["^nav\\.hot-footer__nav a × "] }
+      ]
+    },
+    {
+      "id": "docs-repeated-landmark-names",
+      "title": "Each callout is a complementary landmark named by its type, and the two pagination navigations share a name, so the landmark list repeats names",
+      "match": [
+        { "source": "docs-checks", "kinds": ["landmark-name-repeated"] }
+      ]
+    },
+    {
+      "id": "docs-heading-skips",
+      "title": "Docs pages skip heading levels inside the main content",
+      "match": [
+        { "source": "docs-checks", "kinds": ["heading-level-skipped"] }
+      ]
+    },
+    {
+      "id": "docs-framework-shared-titles",
+      "title": "The framework variants of a docs page share one title",
+      "match": [
+        { "source": "docs-checks", "kinds": ["page-title-duplicate"] }
+      ]
+    },
+    {
+      "id": "docs-generic-link-names",
+      "title": "Some docs links are named \"here\", \"read more\" or \"learn more\", which says nothing out of context",
+      "match": [
+        { "source": "docs-checks", "kinds": ["link-name-generic"] }
+      ]
+    },
+    {
+      "id": "docs-not-found-title",
+      "title": "The not-found page's title does not hold its heading",
+      "match": [
+        { "source": "docs-checks", "kinds": ["page-title-differs-from-heading"] }
+      ]
+    }
+  ]
+}

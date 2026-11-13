@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { GridPage } from '../fixtures/pages/GridPage';
 
 /**
@@ -24,7 +24,7 @@ import { GridPage } from '../fixtures/pages/GridPage';
  * either way - the scroll event is dispatched asynchronously, so it resolved before anything could
  * have been drawn. Hence the explicit wait for the scroll to be processed.
  */
-test.describe('overlay scrollbar clearance', () => {
+test.describe('overlay scrollbar clearance', { tag: THEMES_TAG }, () => {
   test.beforeEach(async ({ page, theme, bundle }) => {
     const grid = new GridPage(page, theme, bundle);
 
@@ -53,7 +53,7 @@ test.describe('overlay scrollbar clearance', () => {
           colHeaders: true,
           fixedColumnsStart: 3,
           fixedRowsBottom: 2,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         });
     });
 
@@ -162,7 +162,7 @@ test.describe('overlay scrollbar clearance', () => {
         rowHeaders: true,
         colHeaders: true,
         // Nothing frozen, on purpose.
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     });
 
@@ -316,7 +316,7 @@ test.describe('overlay scrollbar clearance', () => {
         colHeaders: true,
         fixedColumnsStart: 3,
         // No frozen rows: the column header is the only overlay on the vertical scrollbar.
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     });
 
@@ -392,7 +392,7 @@ test.describe('overlay scrollbar clearance', () => {
           colHeaders: true,
           fixedColumnsStart: 3,
           fixedRowsBottom: 2,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         });
     });
 
@@ -406,14 +406,15 @@ test.describe('overlay scrollbar clearance', () => {
       const root = document.querySelector('#reverse-split-grid')!;
       const holder = root.querySelector('.ht_master .wtHolder') as HTMLElement;
       const hot = (window as unknown as {
-        reverseSplitHot: { view: { isHorizontallyScrollableByWindow(): boolean } },
+        reverseSplitHot: { view: { _wt: { wtOverlays: { inlineStartOverlay: { trimmingContainer: unknown } } } } },
       }).reverseSplitHot;
 
       holder.addEventListener('scroll', () => {
         requestAnimationFrame(() => requestAnimationFrame(() => resolve({
           gutterX: holder.offsetWidth - holder.clientWidth,
           gutterY: holder.offsetHeight - holder.clientHeight,
-          windowOwnsColumns: hot.view.isHorizontallyScrollableByWindow(),
+          // The axis owner, not `isHorizontallyScrollableByWindow()`: that one is false while the holder scrolls.
+          windowOwnsColumns: hot.view._wt.wtOverlays.inlineStartOverlay.trimmingContainer === window,
           holderScrolledColumns: holder.scrollLeft > 0,
           edges: [...root.querySelectorAll('.htScrollbarClearanceFiller')]
             .map(el => el.getAttribute('data-ht-clearance-edge') || '?'),

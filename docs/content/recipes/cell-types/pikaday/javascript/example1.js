@@ -370,7 +370,7 @@ const cellDefinition = {
       return editor.input.value;
     },
     setValue(editor, value) {
-      editor.input.value = value;
+      editor.input.value = value == null ? '' : String(value);
     },
     getDateFormat(editor) {
       return editor.cellProperties.dateFormat ?? DEFAULT_DATE_FORMAT;
@@ -421,7 +421,7 @@ const hotOptions = {
       },
     },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 // Initialize the Handsontable instance with the specified configuration options

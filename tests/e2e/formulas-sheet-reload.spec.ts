@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasSheetReloadPage } from '../fixtures/pages/FormulasSheetReloadPage';
 
 /**
@@ -11,7 +11,7 @@ import { FormulasSheetReloadPage } from '../fixtures/pages/FormulasSheetReloadPa
  */
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
-test.describe('Formulas: reloading the engine sheet after a cut', () => {
+test.describe('Formulas: reloading the engine sheet after a cut', { tag: BUNDLES_TAG }, () => {
   let grid: FormulasSheetReloadPage;
 
   test.beforeEach(({ page, theme, bundle }) => {

@@ -23,16 +23,11 @@ const ExampleComponent = () => {
     const exportPlugin = hot?.getPlugin('exportFile');
 
     exportPlugin?.downloadFile('csv', {
-      bom: false,
-      columnDelimiter: ',',
-      colHeaders: false,
+      colHeaders: true,
+      rowHeaders: true,
       exportHiddenColumns: true,
       exportHiddenRows: true,
-      fileExtension: 'csv',
-      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
-      mimeType: 'text/csv',
-      rowDelimiter: '\r\n',
-      rowHeaders: true,
+      filename: 'Campaigns_[YYYY]-[MM]-[DD]',
     });
   };
 
@@ -46,6 +41,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         colHeaders={true}
@@ -55,7 +51,6 @@ const ExampleComponent = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

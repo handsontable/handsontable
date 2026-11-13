@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Focus scopes
-metaTitle: Focus scopes - JavaScript Data Grid | Handsontable
+metaTitle: Focus scopes | Handsontable DataGrid for JavaScript
 description: Manage focus boundaries and keyboard shortcuts contexts with focus scopes.
 permalink: /focus-scopes
 canonicalUrl: /focus-scopes
@@ -14,11 +14,11 @@ tags:
   - shortcuts context
   - tab navigation
 react:
-  metaTitle: Focus scopes - React Data Grid | Handsontable
+  metaTitle: Focus scopes | Handsontable DataGrid for React
 angular:
-  metaTitle: Focus scopes - Angular Data Grid | Handsontable
+  metaTitle: Focus scopes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Focus scopes - Vue Data Grid | Handsontable
+  metaTitle: Focus scopes | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Navigation
 menuTag: updated
@@ -342,6 +342,8 @@ The `focusSource` argument can be one of the following values:
 - `click`: The scope is activated by a click event.
 - `tab_from_above`: The scope is activated by a <kbd>Tab</kbd> key press.
 - `tab_from_below`: The scope is activated by a <kbd>Shift</kbd>+<kbd>Tab</kbd> key press.
+
+The `onActivate` callback also runs when the focus comes back into a scope that is already active through its focus catcher (a `tab_from_above` or `tab_from_below` source). For example, the focus returns to the page after a <kbd>Tab</kbd> key press moved it to the browser UI. Write the callback so that it is safe to run more than once.
 
 ```js
 const focusScopeManager = hot.getFocusScopeManager();

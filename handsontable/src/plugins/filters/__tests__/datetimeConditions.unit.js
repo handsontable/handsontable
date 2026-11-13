@@ -18,6 +18,11 @@ describe('intl-datetime filter conditions', () => {
     expect(before(row('2024-03-15T11:00:00'), ['2024-03-15T10:00:00'])).toBe(false);
   });
 
+  it('before keeps years below 100 instead of reading them as 19xx', () => {
+    expect(before(row('0050-03-12T10:00:00'), ['1920-01-01T00:00:00'])).toBe(true);
+    expect(before(row('1920-01-01T00:00:00'), ['0050-03-12T10:00:00'])).toBe(false);
+  });
+
   it('between is inclusive', () => {
     expect(between(row('2024-03-15T10:00:00'), ['2024-03-15T09:00:00', '2024-03-15T11:00:00'])).toBe(true);
     expect(between(row('2024-03-15T12:00:00'), ['2024-03-15T09:00:00', '2024-03-15T11:00:00'])).toBe(false);

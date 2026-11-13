@@ -7,6 +7,18 @@ import { type Page } from '@playwright/test';
 export const BUNDLE_POLLING_MS = 100;
 
 /**
+ * The bundle a leg runs, as the `bundle` option and every fixture's `?bundle=` allowlist spell it:
+ * `umd` is `dist/handsontable.js`, `full-min` is `dist/handsontable.full.min.js`.
+ */
+export type Bundle = 'umd' | 'full-min';
+
+/**
+ * What the fixture contract's `?theme=`/`?bundle=` block (copied from `demo/grid.html`) throws for a
+ * value outside its allowlist.
+ */
+const FIXTURE_PARAM_ERROR = /^Unknown \?(theme|bundle)= value: /;
+
+/**
  * Waits for the Handsontable bundle under test to have evaluated. Every page object's `goto()` calls
  * this right after `page.goto()`, before it asserts on anything the fixture rendered.
  *
@@ -14,6 +26,11 @@ export const BUNDLE_POLLING_MS = 100;
  * block that builds the grid are separate, so a page can report ready while `Handsontable` is still
  * undefined. The spec then fails inside its first `page.evaluate()` with a bare
  * `Handsontable is not defined` – far from the cause, and only on a cold or busy server.
+ *
+ * A fixture that rejected its `?theme=` or `?bundle=` threw in `<head>` before it wrote the bundle
+ * script, so the bundle never arrives. That throw happened during `page.goto()`, and this rethrows it
+ * up front: otherwise a page object passing a bad value (a fixture name in the bundle slot) ends as a
+ * bare test timeout inside the wait below, with nothing pointing at the cause.
  *
  * Two choices in here are deliberate. `waitForFunction` rather than `expect`: `dist/handsontable.js`
  * is ~6 MB uncompressed and every worker pulls its own copy, so a cold or busy server outlasts the
@@ -25,6 +42,13 @@ export const BUNDLE_POLLING_MS = 100;
  * @param {Page} page The page the fixture is open on.
  */
 export async function awaitBundle(page: Page): Promise<void> {
+  const paramError = (await page.pageErrors({ filter: 'since-navigation' }))
+    .find(error => FIXTURE_PARAM_ERROR.test(error.message));
+
+  if (paramError) {
+    throw new Error(`The fixture rejected its query params, so no bundle loads (${page.url()}):\n${paramError.message}`);
+  }
+
   await page.waitForFunction(() => 'Handsontable' in window, undefined, { polling: BUNDLE_POLLING_MS });
 }
 
@@ -46,5 +70,27 @@ export async function awaitFixtureBuilt(page: Page): Promise<void> {
 
   if (buildError !== null) {
     throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);
+  }
+}
+
+/**
+ * Throws when `bundle` is not one the fixtures know. `theme`, `bundle` and a page object's next
+ * positional argument are same-typed strings, so passing that argument in the bundle's slot is a
+ * one-token slip. The fixture's head script does throw on an unknown `?bundle=`, but it throws before
+ * `window.htBundle` is set, so the body still injects `/handsontable/dist/undefined` and the spec dies
+ * 10s later on a missing cell with nothing naming the cause. Call it first thing in `goto()`.
+ *
+ * It lives here, beside the `Bundle` type, rather than in a page object: this file is plumbing the
+ * leg-declaration sweep does not read, so the comparison to the two bundle names forces no `@bundles`
+ * tag on the specs whose page object only validates its arguments.
+ *
+ * @param {string} bundle The bundle the page object was given.
+ * @param {string} argumentOrder The constructor's argument order, for the message.
+ */
+export function assertKnownBundle(bundle: string, argumentOrder: string): void {
+  if (bundle !== 'umd' && bundle !== 'full-min') {
+    throw new Error(
+      `Unknown bundle ${JSON.stringify(bundle)} - expected 'umd' or 'full-min'. ` +
+      `Check the argument order: ${argumentOrder}.`);
   }
 }

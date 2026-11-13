@@ -3,11 +3,6 @@ import Handsontable from 'handsontable/base';
 import { generateExampleData, getDirectionFromURL, getThemeNameFromURL } from '../../utils';
 import { progressBarRenderer, starRenderer } from './customRenderers';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
-import {
-  addClassesToRows,
-  changeCheckboxCell,
-  drawCheckboxInRowHeaders
-} from './hooksCallbacks';
 
 // choose cell types you want to use and import them
 import {
@@ -32,6 +27,7 @@ import {
   MultiColumnSorting,
   UndoRedo,
 } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   // register imported cell types and plugins
@@ -144,10 +140,7 @@ export function init() {
         manualColumnMove: true,
         customBorders: true,
         headerClassName: getDirectionFromURL() === 'rtl' ? 'htRight' : 'htLeft',
-        afterGetRowHeader: drawCheckboxInRowHeaders,
-        afterOnCellMouseDown: changeCheckboxCell,
-        beforeRenderer: addClassesToRows,
-        licenseKey: 'non-commercial-and-evaluation'
+        licenseKey: TEST_LICENSE_KEY
       });
     }
   }

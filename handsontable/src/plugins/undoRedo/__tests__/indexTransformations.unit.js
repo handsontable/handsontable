@@ -3,7 +3,7 @@ import {
   UndoRedo,
 } from 'handsontable/plugins';
 import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
-import { setUpUndoGrid, spreadsheet } from './helpers/grid';
+import { setUpUndoGrid, spreadsheet } from './grid';
 
 registerPlugin(UndoRedo);
 registerPlugin(ManualColumnFreeze);

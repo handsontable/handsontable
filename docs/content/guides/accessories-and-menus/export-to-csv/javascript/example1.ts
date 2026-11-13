@@ -24,7 +24,7 @@ const hot = new Handsontable(container, {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const exportPlugin: ExportFile = hot.getPlugin('exportFile');
@@ -33,15 +33,10 @@ const button = document.querySelector('#export-file')!;
 
 button.addEventListener('click', () => {
   exportPlugin.downloadFile('csv', {
-    bom: false,
-    columnDelimiter: ',',
-    colHeaders: false,
+    colHeaders: true,
+    rowHeaders: true,
     exportHiddenColumns: true,
     exportHiddenRows: true,
-    fileExtension: 'csv',
-    filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
-    mimeType: 'text/csv',
-    rowDelimiter: '\r\n',
-    rowHeaders: true,
+    filename: 'Campaigns_[YYYY]-[MM]-[DD]',
   });
 });

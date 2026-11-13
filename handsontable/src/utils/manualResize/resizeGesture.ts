@@ -44,10 +44,19 @@ export interface ResizeGestureOwner {
    */
   clampSize(size: number): number;
   /**
-   * Stores a size for a visual index and returns the size actually stored. The gesture records its
-   * own undo step, so this must not open one.
+   * Stores a size for a visual index and returns it after the minimum is applied. Nothing is stored
+   * while the owner is disabled, for an index that does not exist, or for a size that is not finite; the
+   * clamped size is returned all the same. The gesture records its own undo step, so this must not open one.
    */
   setManualSize(index: number, size: number): number;
+  /**
+   * Returns how much wider (taller) a header renders than the size the owner stores for it, because
+   * something else adds to the stored size on every render. The drag starts from the stored size, so
+   * that what it stores is the pointer's travel on top of it. Optional: an owner whose headers render
+   * exactly their stored size leaves it out. The resize hooks and the stored size then report the size
+   * without the overhead.
+   */
+  getRenderedOverhead?(index: number): number;
 }
 
 /**
@@ -119,9 +128,19 @@ export class ResizeGesture {
    */
   #startPointer: number | null = null;
   /**
-   * The header's size when the handle was positioned.
+   * The size the owner stores for the header when the handle was positioned: the rendered size
+   * without the owner's overhead. The release stores the drag from here.
    */
   #startSize: number | null = null;
+  /**
+   * The size the header rendered at when the handle was positioned. The handle and the guide sit
+   * on the rendered edge.
+   */
+  #startRenderedSize: number | null = null;
+  /**
+   * How much wider the header renders than its stored size when the handle was positioned.
+   */
+  #startOverhead = 0;
   /**
    * The header's offset, along the resized axis, when the handle was positioned.
    */
@@ -198,10 +217,13 @@ export class ResizeGesture {
     eventManager.addEventListener(rootWindow, 'mousemove', this.#onMouseMove);
     eventManager.addEventListener(rootWindow, 'mouseup', this.#onMouseUp);
     eventManager.addEventListener(this.#handle, 'contextmenu', this.#onContextMenu);
+    this.#hot.addHook('afterUndo', this.#onHistoryRestored);
+    this.#hot.addHook('afterRedo', this.#onHistoryRestored);
   }
 
   /**
-   * Returns the size the pointer described last, or `null` before the first drag.
+   * Returns the rendered size the pointer described last (the owner's overhead included), or `null`
+   * before the first drag.
    *
    * @returns {number|null}
    */
@@ -248,6 +270,33 @@ export class ResizeGesture {
     this.#handle.remove();
     this.#guide.remove();
     this.#closeStep();
+  }
+
+  /**
+   * Ends a drag without storing a size, the way opening a context menu over it does. The owner calls it
+   * when the grid's data is replaced under the drag: the indexes it resizes belong to the data that
+   * left, and the release would resize the tracks of the data that replaced it. It also ends the
+   * double-click window, or the pending auto-size timer would auto-size the same index on the data that
+   * replaced it, with a size and an undo step the user never asked for.
+   */
+  abort() {
+    this.#dblclick = 0;
+
+    if (!this.#pressed) {
+      return;
+    }
+
+    this.detach();
+    this.#pressed = false;
+  }
+
+  /**
+   * Removes the undo and redo listeners and detaches the handle and the guide.
+   */
+  destroy() {
+    this.#hot.removeHook('afterUndo', this.#onHistoryRestored);
+    this.#hot.removeHook('afterRedo', this.#onHistoryRestored);
+    this.detach();
   }
 
   /**
@@ -479,16 +528,54 @@ export class ResizeGesture {
     const acrossOffset = this.#isVertical() ? headerPosition.start : headerPosition.top;
 
     this.#anchoredAtInlineEnd = this.#axis.isAnchoredAtInlineEnd?.(this.#hot, TH) === true;
-    this.#startSize = this.#measureAlong(TH);
+    this.#startRenderedSize = this.#measureAlong(TH);
+    // The band's first header renders wider than its column by the freeze-line overlap, which is not its size.
+    this.#startOverhead = (this.#owner.getRenderedOverhead?.(this.#currentIndex) ?? 0) +
+      (this.#axis.getFreezeLineOverlap?.(this.#hot, TH) ?? 0);
+    this.#startSize = this.#startRenderedSize - this.#startOverhead;
+
+    const frozenEdge = this.#getFrozenEdge(this.#currentIndex);
+    // On the edge before the end band the line a user sees is the band's, which covers this header's border.
+    const edgeShift = frozenEdge.after && !this.#anchoredAtInlineEnd ?
+      this.#axis.getEndBandEdgeShift?.(this.#hot) ?? 0 : 0;
+
     // The handle sits on the edge that moves: the inline-end one, or the inline-start one for a
     // header anchored to the inline end of the grid.
-    this.#startOffset = alongOffset - 6 - (this.#anchoredAtInlineEnd ? this.#startSize : 0);
+    this.#startOffset = alongOffset - 6 - edgeShift - (this.#anchoredAtInlineEnd ? this.#startRenderedSize : 0);
     this.#scaleFactor = getElementScaleFactor(TH, this.#axis.orientation);
 
-    this.#handle.style[this.#alongProp()] = `${this.#startOffset + this.#startSize}px`;
+    this.#handle.style[this.#alongProp()] = `${this.#startOffset + this.#startRenderedSize}px`;
     this.#handle.style[this.#acrossProp()] = `${acrossOffset}px`;
     this.#handle.style[this.#acrossExtentProp()] = `${headerAcrossSize}px`;
+    this.#handle.classList.toggle('ht-resize-handle--freeze-before', frozenEdge.before);
+    this.#handle.classList.toggle('ht-resize-handle--freeze-after', frozenEdge.after);
     this.#hot.rootElement.appendChild(this.#handle);
+  }
+
+  /**
+   * Tells whether the edge the handle sits on is the edge of a frozen band: `before` when the band ends there
+   * (the first rows or columns), `after` when it starts there (the last ones). The handle carries them as
+   * `--freeze-before` and `--freeze-after`; the marks only describe the grid, and a stylesheet that draws something
+   * on the frozen edge uses them to keep the handle clear of it.
+   *
+   * @param {number} visualIndex The visual index of the header the handle belongs to.
+   * @returns {{ before: boolean, after: boolean }}
+   */
+  #getFrozenEdge(visualIndex: number): { before: boolean; after: boolean } {
+    const hot = this.#hot;
+    const vertical = this.#isVertical();
+    // the number of tracks before the edge the handle sits on
+    const tracksBefore = this.#anchoredAtInlineEnd ? visualIndex : visualIndex + 1;
+    const total = vertical ? hot.countRows() : hot.countCols();
+    // The bands the grid DRAWS: with `limitFixedToViewport` they can be smaller than the configured counts, and a
+    // freeze bar sits on the drawn line.
+    const before = vertical ? hot.view.countFixedRowsTop() : hot.view.countFixedColumnsStart();
+    const after = vertical ? hot.view.countFixedRowsBottom() : hot.view.countFixedColumnsEnd();
+
+    return {
+      before: !!before && tracksBefore === before,
+      after: !!after && tracksBefore === total - after,
+    };
   }
 
   /**
@@ -530,7 +617,7 @@ export class ResizeGesture {
    * Moves the resize handle to the size the pointer describes.
    */
   #refreshHandlePosition() {
-    const startSize = this.#startSize ?? 0;
+    const startSize = this.#startRenderedSize ?? 0;
     const currentSize = this.#currentSize ?? 0;
     // A header anchored to the inline end grows towards the inline start, so its handle moves that way.
     const handleSize = this.#anchoredAtInlineEnd ? (2 * startSize) - currentSize : currentSize;
@@ -572,6 +659,27 @@ export class ResizeGesture {
     removeClass(this.#handle, 'active');
     removeClass(this.#guide, 'active');
   }
+
+  /**
+   * Repositions the attached handle from the header it belongs to.
+   */
+  #onHistoryRestored = () => {
+    // The press holds an empty undo step, so undo stays available. Rebuilding the snapshot
+    // here would make the next mousemove apply the original pointer delta to the new size.
+    if (this.#pressed || !this.#handle.isConnected) {
+      return;
+    }
+
+    // Undo can remove the hovered header. Positioning then returns early and the handle
+    // stays over the empty space where that header was.
+    if (this.#currentTH === null || !this.#currentTH.isConnected) {
+      this.detach();
+
+      return;
+    }
+
+    this.#setupHandlePosition(this.#currentTH);
+  };
 
   /**
    * "mouseover" listener – positions the handle over the hovered header.
@@ -631,6 +739,8 @@ export class ResizeGesture {
       this.#dblclick += 1;
       this.#startPointer = this.#readPointer(event);
       this.#newSize = this.#startSize;
+      // A handle press never reaches `onCellMouseDown`, which is what listens for a header TH.
+      this.#hot.listen();
     }
   };
 
@@ -651,8 +761,9 @@ export class ResizeGesture {
     const visualChange = this.#isVertical() ? pointerChange : pointerChange * this.#hot.getDirectionFactor();
     const change = normalizeVisualDelta(this.#anchoredAtInlineEnd ? -visualChange : visualChange, this.#scaleFactor);
 
-    this.#currentSize = (this.#startSize ?? 0) + change;
-    this.#newSize = this.#owner.clampSize(this.#currentSize);
+    // The handle follows the rendered size, and the release stores the size without the overhead.
+    this.#currentSize = (this.#startRenderedSize ?? 0) + change;
+    this.#newSize = this.#owner.clampSize(this.#currentSize - this.#startOverhead);
 
     this.#refreshHandlePosition();
     this.#refreshGuidePosition();

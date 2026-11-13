@@ -2,6 +2,7 @@ import Core from 'handsontable/core';
 import { registerCellType, TextCellType } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
 import { registerPlugin, AutoColumnSize } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerPlugin(AutoColumnSize);
 registerCellType(TextCellType);
@@ -20,7 +21,9 @@ describe('Column width equal to the grid width (DEV-270)', () => {
    */
   function createGrid(settings) {
     hot = new Core(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
+      // A raw `Core` is not a root instance, so no default theme is picked for it; name one.
+      themeName: 'ht-theme-main',
       data: [['a', 'b']],
       ...settings,
     });

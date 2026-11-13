@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { Component, ViewChild, AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
 
@@ -30,6 +30,8 @@ export class AppComponent implements AfterViewInit {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   private paginationPlugin: any;
+
+  private readonly cdr = inject(ChangeDetectorRef);
 
   currentPage = 1;
   totalPages = 1;
@@ -235,7 +237,6 @@ export class AppComponent implements AfterViewInit {
       totalPages,
       firstVisibleRowIndex,
       lastVisibleRowIndex,
-      totalRenderedRows,
     } = this.paginationPlugin.getPaginationData();
 
     this.currentPage = currentPage;
@@ -244,7 +245,9 @@ export class AppComponent implements AfterViewInit {
     this.isLastPage = currentPage === totalPages;
     this.firstVisibleRow = firstVisibleRowIndex + 1;
     this.lastVisibleRow = lastVisibleRowIndex + 1;
-    this.totalRows = totalRenderedRows;
+    this.totalRows = this.hotTable.hotInstance?.countRows() ?? 0;
+    // Nothing marks the OnPush-by-default component dirty here, so mark it.
+    this.cdr.markForCheck();
   }
 
   goToFirstPage() {
@@ -279,7 +282,7 @@ export class AppComponent implements AfterViewInit {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -289,7 +292,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

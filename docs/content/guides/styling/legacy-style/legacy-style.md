@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Legacy style
-metaTitle: Legacy Style - JavaScript Data Grid | Handsontable
+metaTitle: Legacy style | Handsontable DataGrid for JavaScript
 description: The legacy stylesheet was removed in Handsontable 17.0.0. Learn how to migrate to the Classic theme using the Theme API or CSS imports.
 permalink: /legacy-style
 canonicalUrl: /legacy-style
@@ -13,15 +13,15 @@ tags:
   - classic theme
   - legacy
 react:
-  metaTitle: Legacy Style - React Data Grid | Handsontable
+  metaTitle: Legacy style | Handsontable DataGrid for React
 angular:
-  metaTitle: Legacy Style - Angular Data Grid | Handsontable
+  metaTitle: Legacy style | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Legacy Style - Vue Data Grid | Handsontable
+  metaTitle: Legacy style | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Styling
 ---
-Starting from **version 17.0.0**, the legacy stylesheet has been removed from Handsontable. If you're upgrading from an earlier version, you must migrate to the **Classic** theme.
+Starting from **version 17.0.0**, the legacy stylesheet has been removed from Handsontable DataGrid. If you're upgrading from an earlier version, you must migrate to the **Classic** theme.
 
 [[toc]]
 
@@ -103,7 +103,7 @@ registerAllModules();
 const hotSettings = ref({
   theme: classicTheme,
   // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -174,7 +174,7 @@ const hot = new Handsontable(container, {
 const hotSettings = ref({
   theme: 'ht-theme-classic',
   // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

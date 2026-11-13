@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Column summary
-metaTitle: Column summary - JavaScript Data Grid | Handsontable
-description: Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
+metaTitle: Column summary | Handsontable DataGrid for JavaScript
+description: Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable DataGrid's aggregate functions.
 permalink: /column-summary
 canonicalUrl: /column-summary
 tags:
@@ -14,16 +14,16 @@ tags:
   - destinationColumn
   - reversedRowCoords
 react:
-  metaTitle: Column summary - React Data Grid | Handsontable
+  metaTitle: Column summary | Handsontable DataGrid for React
 angular:
-  metaTitle: Column summary - Angular Data Grid | Handsontable
+  metaTitle: Column summary | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column summary - Vue Data Grid | Handsontable
+  metaTitle: Column summary | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated
 ---
-Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
+Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable DataGrid's aggregate functions.
 
 [[toc]]
 
@@ -136,7 +136,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const hot = new Handsontable(document.querySelector('#example'), {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     [1, 2, 3, 4, 5],
     [6, 7, 8, 9, 10],
@@ -167,9 +167,9 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
       data={[
         [1, 2, 3, 4, 5],
         [6, 7, 8, 9, 10],
@@ -199,7 +199,7 @@ const data = [
   [11, 12, 13, 14, 15],
 ];
 const configurationOptions: GridSettings = {
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   colHeaders: true,
   rowHeaders: true,
   // set the `columnSummary` configuration option to an array of objects
@@ -222,7 +222,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const hotSettings = {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     [1, 2, 3, 4, 5],
     [6, 7, 8, 9, 10],
@@ -330,6 +330,8 @@ columnSummary: [
 :::
 
 You can also summarize individual ranges of rows (rather than a whole column). To do this, set the [`ranges`](@/api/columnSummary.md#options) option to an array of arrays, where each array represents a single row range.
+
+An empty array (`ranges: []`) summarizes no rows: `sum` and `count` return `0`, and `min`, `max`, and `average` return `Not enough data`. To summarize the whole column, leave `ranges` out.
 
 ::: only-for javascript
 

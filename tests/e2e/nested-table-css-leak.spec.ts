@@ -1,5 +1,5 @@
 import { type Locator, type Page } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 
 /**
  * Issue #4363 — Handsontable must not leak its cell styling into content a
@@ -55,6 +55,7 @@ const BUNDLE_FILES: Record<string, string> = {
  * @returns {string} The dist file name to load.
  */
 function bundleFile(bundle: string): string {
+  // leg-declarations: ignore bundle-compare -- BUNDLE_FILES[bundle] only picks the bundle file to serve, the fixture param block's job here
   const file = BUNDLE_FILES[bundle];
 
   if (!file) {
@@ -85,6 +86,7 @@ function fixtureHtml(theme: string, bundle: string): string {
     .nested-user-table { border-collapse: collapse; }
     .nested-user-table td { border: 2px solid #008000; padding: 6px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -143,14 +145,14 @@ function fixtureHtml(theme: string, bundle: string): string {
 
         return {};
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>
 </html>`;
 }
 
-test.describe('nested table in a cell (#4363)', () => {
+test.describe('nested table in a cell (#4363)', { tag: THEMES_TAG }, () => {
   let page: Page;
 
   test.beforeEach(async({ page: activePage, theme, bundle }) => {
@@ -295,6 +297,7 @@ function menuFixtureHtml(theme: string, bundle: string): string {
   <style id="host-input-rule">
     input { min-height: 40px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -314,14 +317,14 @@ function menuFixtureHtml(theme: string, bundle: string): string {
       rowHeaders: true,
       dropdownMenu: true,
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>
 </html>`;
 }
 
-test.describe('filters UI inside a menu cell (#4363)', () => {
+test.describe('filters UI inside a menu cell (#4363)', { tag: THEMES_TAG }, () => {
   test('menu-cell chrome keeps the input normalize against host CSS', async({ page, theme, bundle }) => {
     await page.route(`**${MENU_FIXTURE_URL}`, route => route.fulfill({
       contentType: 'text/html',
@@ -408,6 +411,7 @@ function ghostFixtureHtml(theme: string, bundle: string): string {
        friends ship exactly this. */
     * { box-sizing: border-box; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -443,14 +447,14 @@ function ghostFixtureHtml(theme: string, bundle: string): string {
         ['A sub', 'B sub', 'C sub'],
       ],
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>
 </html>`;
 }
 
-test.describe('nested headers ghost table under a host reset (#4363)', () => {
+test.describe('nested headers ghost table under a host reset (#4363)', { tag: THEMES_TAG }, () => {
   test('the ghost measuring table keeps the grid box-sizing normalize', async({ page, theme, bundle }) => {
     await page.route(`**${GHOST_FIXTURE_URL}`, route => route.fulfill({
       contentType: 'text/html',

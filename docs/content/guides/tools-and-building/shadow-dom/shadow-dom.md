@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Shadow DOM
-metaTitle: Shadow DOM - JavaScript Data Grid | Handsontable
-description: Run Handsontable inside a Shadow DOM tree, in web components, and on sandboxed platforms such as Salesforce Lightning Web Components.
+metaTitle: Shadow DOM | Handsontable DataGrid for JavaScript
+description: Run Handsontable DataGrid inside a Shadow DOM tree, in web components, and on sandboxed platforms such as Salesforce Lightning Web Components.
 permalink: /shadow-dom
 canonicalUrl: /shadow-dom
 tags:
@@ -13,18 +13,18 @@ tags:
   - lightning web components
   - lwc
 react:
-  metaTitle: Shadow DOM - React Data Grid | Handsontable
+  metaTitle: Shadow DOM | Handsontable DataGrid for React
 angular:
-  metaTitle: Shadow DOM - Angular Data Grid | Handsontable
+  metaTitle: Shadow DOM | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Shadow DOM - Vue Data Grid | Handsontable
+  metaTitle: Shadow DOM | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
-menuTag: new
+menuTag: updated
 addedIn: "18.1.0"
 ---
 
-Handsontable works inside a Shadow DOM tree. You can render the grid in a web component, a custom element, or a sandboxed component platform such as Salesforce Lightning Web Components.
+Handsontable DataGrid works inside a Shadow DOM tree. You can render the grid in a web component, a custom element, or a sandboxed component platform such as Salesforce Lightning Web Components.
 
 [[toc]]
 
@@ -63,7 +63,7 @@ class DataGridElement extends HTMLElement {
     ]).then(() => {
       this.hot = new Handsontable(container, {
         themeName: 'ht-theme-main',
-        licenseKey: 'non-commercial-and-evaluation',
+        // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
         // your configuration
       });
     });
@@ -79,7 +79,7 @@ customElements.define('data-grid-element', DataGridElement);
 
 If you skip the base stylesheet, the grid renders but interactive elements such as the cell editor appear in wrong positions. If you create the grid before the stylesheets finish loading, Handsontable warns that the theme stylesheets are missing and measures cell sizes against unstyled elements.
 
-Handsontable also injects its core styles into the document head (the [`injectCoreCss`](@/api/options.md#injectcorecss) option). Keep that default when the grid renders in a shadow root: the stylesheets inside the shadow root style the grid, and the document-head copy styles the elements that Handsontable renders outside the shadow root - the context menu and other dropdowns. Setting `injectCoreCss: false` removes the head copy only until the first menu opens, because the menus restore it for their own rendering.
+Handsontable also injects its core styles into the document head (the [`injectCoreCss`](@/api/options.md#injectcorecss) option). Keep that default when the grid renders in a shadow root: the stylesheets inside the shadow root style the grid, and the document-head copy styles the elements that Handsontable renders outside the shadow root - the context menu and other dropdowns. If you set `injectCoreCss: false`, Handsontable doesn't add the head copy at all, so also load `handsontable/styles/handsontable.css` in the document, or the menus and dropdowns render unstyled.
 
 ## The `ht-shadow-dom` class
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `setSourceDataAtCell()` ignoring the column-level `sourceDataValidator` and `valueSetter` when the cell is addressed by a property name. These writes now apply the column's `valueSetter`, its cell type's value conversion, and its validator.",
+  "type": "fixed",
+  "issueOrPR": 13942,
+  "breaking": false,
+  "framework": "none"
+}

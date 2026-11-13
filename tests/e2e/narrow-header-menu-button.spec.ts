@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { NarrowHeaderMenuButtonPage } from '../fixtures/pages/NarrowHeaderMenuButtonPage';
 
 /**
@@ -20,7 +20,7 @@ import { NarrowHeaderMenuButtonPage } from '../fixtures/pages/NarrowHeaderMenuBu
  * inner element. `className` styles body cells only, so a grid built with it would run the default
  * header layout and prove nothing about the opposite-side rules; the spec asserts the class landed.
  */
-test.describe('Narrow header with a menu button', () => {
+test.describe('Narrow header with a menu button', { tag: THEMES_TAG }, () => {
   let grid: NarrowHeaderMenuButtonPage;
 
   // Column 1 has the longest label, so it is the one that fights the menu button hardest.
@@ -64,25 +64,31 @@ test.describe('Narrow header with a menu button', () => {
       });
     }
 
-    test(`stops ${label} column at the width that fits its menu button`, async () => {
-      const minimum = grid.minimumWidth();
+    // The floor is one rule for every grid; the plain grid pins it, the sorted grids pin their own extras below.
+    if (testId === 'menu') {
+      test(`stops ${label} column at the width that fits its menu button`, async () => {
+        const minimum = grid.minimumWidth();
 
-      await grid.dragColumnHandle(testId, COLUMN, toNarrowest);
+        await grid.dragColumnHandle(testId, COLUMN, toNarrowest);
 
-      // The drag overshoots by hundreds of pixels, so the width is the floor and nothing else.
-      expect((await grid.geometry(testId, COLUMN)).width).toBe(minimum);
-    });
+        // The drag overshoots by hundreds of pixels, so the width is the floor and nothing else.
+        expect((await grid.geometry(testId, COLUMN)).width).toBe(minimum);
+      });
+    }
 
-    test(`keeps the menu button of ${label} column inside its own header at the narrowest width`, async () => {
-      await grid.dragColumnHandle(testId, COLUMN, toNarrowest);
+    // The alignment and the direction do not move the button inside its header; the sorted twins below cover the indicator.
+    if (testId === 'menu' || testId === 'menu-sort') {
+      test(`keeps the menu button of ${label} column inside its own header at the narrowest width`, async () => {
+        await grid.dragColumnHandle(testId, COLUMN, toNarrowest);
 
-      const { width, icon } = await grid.geometry(testId, COLUMN);
+        const { width, icon } = await grid.geometry(testId, COLUMN);
 
-      // The icon, not its larger hit area: the hit area overhangs by design, the icon must not.
-      // A pixel of slack for the border that the header's box includes.
-      expect(icon[0]).toBeGreaterThanOrEqual(-1);
-      expect(icon[1]).toBeLessThanOrEqual(width + 1);
-    });
+        // The icon, not its larger hit area: the hit area overhangs by design, the icon must not.
+        // A pixel of slack for the border that the header's box includes.
+        expect(icon[0]).toBeGreaterThanOrEqual(-1);
+        expect(icon[1]).toBeLessThanOrEqual(width + 1);
+      });
+    }
 
     if (name !== 'menu') {
       test(`keeps the menu button of a sorted ${label} column inside its header, and hides the indicator`, async () => {

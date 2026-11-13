@@ -8,7 +8,7 @@ test.beforeEach(async({ page }) => {
 
 /**
  * The focus ring on each kind of control the Tab order reaches in the filter's condition section: the
- * condition select, a condition's text input (with "Is between" chosen, so both of its inputs are on
+ * condition select, a condition's input (a native date input on this grid's date column, with "Is between" chosen, so both of its inputs are on
  * screen), the checked "And" radio, and the unchecked "Or" radio. A checked and an unchecked radio take
  * different focus tokens (`--ht-radio-checked-focus-*` against `--ht-radio-focus-*`), so each gets a
  * capture. The second input and the search input share the first input's `:focus` rule, and the second
@@ -73,7 +73,7 @@ visualTest(__filename, {
 
   await expect(firstInput).toBeFocused();
 
-  // the condition's first text input focused, with the second input beside it
+  // the condition's first date input focused, with the second input beside it
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await tablePage.keyboard.press('Tab'); // the second input

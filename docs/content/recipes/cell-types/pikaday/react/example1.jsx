@@ -177,7 +177,7 @@ const pikadayEditor = editorFactory({
     return editor.input.value;
   },
   setValue(editor, value) {
-    editor.input.value = value;
+    editor.input.value = value == null ? '' : String(value);
   },
   getDateFormat(editor) {
     return editor.cellProperties.dateFormat ?? DEFAULT_DATE_FORMAT;
@@ -367,6 +367,7 @@ const data = inputData.map((item) => ({
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       height="auto"
       colHeaders={['Item Name', 'Category', 'Lead Engineer', 'Restock Date', 'Cost']}
@@ -375,7 +376,6 @@ const ExampleComponent = () => {
       width="100%"
       autoWrapRow={true}
       headerClassName="htLeft"
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="itemName" type="text" width={130} />
       <HotColumn data="category" type="text" width={120} />

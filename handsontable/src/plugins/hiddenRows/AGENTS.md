@@ -35,6 +35,11 @@ Two real differences worth knowing:
 The marker class is applied for `this.isHidden(row - 1)` — the class describes the **neighbor**
 relationship, so an off-by-one there is a real bug.
 
+**`afterHideRows` fires during `new Handsontable()` too, before `hot.view` exists**, once, for `hiddenRows: true`
+(empty configuration) as well as for `{ rows: [1] }`. Same cause and same rules as
+`afterHideColumns`: see "The `init` local hook has to be replayed by hand" in `../hiddenColumns/AGENTS.md`.
+Pinned by `src/__tests__/core/viewGettersBeforeView.unit.js`.
+
 ## The indicator's BOX stops at the header edge; its GLYPH does not move
 
 `../../styles/components/plugins/_hidden-rows.scss` used to lay the arrow's box out at `bottom: -2px` on
@@ -118,6 +123,16 @@ re-hidden by hand. Full mechanics: `../undoRedo/AGENTS.md`.
 - Row hiding done by other plugins: `../nestedRows/AGENTS.md`, `../pagination/AGENTS.md` (also a `'hiding'`
   map).
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
+
+## `_replaceHiddenRows()` addresses rows physically
+
+`showRows()` and `hideRows()` take visual indexes, and `isValidConfig()` rejects the whole list when one of
+them is `null`, which is what `toVisualRow()` returns for a row a filter, TrimRows or a collapsed NestedRows
+parent trims. So neither can show or hide such a row, and `showRows(getHiddenRows())` quietly does nothing
+while any hidden row is trimmed. The `@private` `_replaceHiddenRows(physicalRows)` takes the full set of
+hidden physical rows (anything outside the data is ignored), runs `beforeUnhideRows`/`beforeHideRows`
+and the two after hooks with the visual rows among the ones it touches, and changes nothing when a before
+hook returns `false`. The view-state restore uses it, so no other plugin writes into this one's hiding map.
 
 ## Testing
 

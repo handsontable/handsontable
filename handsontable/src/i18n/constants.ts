@@ -138,11 +138,15 @@ export const SHEETS_BAR_PAGE_PREV = `${SHEETS_BAR_NAMESPACE}pagePrev`;
 export const SHEETS_BAR_PAGE_NEXT = `${SHEETS_BAR_NAMESPACE}pageNext`;
 export const SHEETS_BAR_SHEET_CHANGED = `${SHEETS_BAR_NAMESPACE}announcement.sheetChanged`;
 export const SHEETS_BAR_RENAME_REJECTED = `${SHEETS_BAR_NAMESPACE}announcement.renameRejected`;
+export const SHEETS_BAR_RENAME_NOT_CHANGED = `${SHEETS_BAR_NAMESPACE}announcement.renameNotChanged`;
+export const SHEETS_BAR_SHEET_DUPLICATED = `${SHEETS_BAR_NAMESPACE}announcement.sheetDuplicated`;
+export const SHEETS_BAR_SHEET_MOVED = `${SHEETS_BAR_NAMESPACE}announcement.sheetMoved`;
 export const SHEETS_BAR_DEFAULT_SHEET_NAME = `${SHEETS_BAR_NAMESPACE}defaultSheetName`;
 
 export const CHECKBOX_RENDERER_NAMESPACE = 'CheckboxRenderer:';
 export const CHECKBOX_CHECKED = `${CHECKBOX_RENDERER_NAMESPACE}checked`;
 export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
+export const CHECKBOX_HEADER_CHECK_ALL = `${CHECKBOX_RENDERER_NAMESPACE}headerCheckAll`;
 
 export const LOADING_NAMESPACE = 'Loading:';
 export const LOADING_TITLE = `${LOADING_NAMESPACE}title`;
@@ -169,3 +173,43 @@ export const DATA_PROVIDER_ERRORS_UPDATE = `${DATA_PROVIDER_NAMESPACE}errors.upd
 export const DATA_PROVIDER_ERRORS_REMOVE = `${DATA_PROVIDER_NAMESPACE}errors.remove`;
 export const DATA_PROVIDER_ERRORS_REQUEST_FAILED = `${DATA_PROVIDER_NAMESPACE}errors.requestFailed`;
 export const DATA_PROVIDER_BUTTONS_REFETCH = `${DATA_PROVIDER_NAMESPACE}buttons.refetch`;
+
+export const ROW_SELECTION_NAMESPACE = 'RowSelection:';
+export const ROW_SELECTION_SELECT_ROW = `${ROW_SELECTION_NAMESPACE}selectRow`;
+export const ROW_SELECTION_SELECT_ALL = `${ROW_SELECTION_NAMESPACE}selectAll`;
+export const ROW_SELECTION_ANNOUNCE_ROW_SELECTED = `${ROW_SELECTION_NAMESPACE}announce.rowSelected`;
+export const ROW_SELECTION_ANNOUNCE_ROW_DESELECTED = `${ROW_SELECTION_NAMESPACE}announce.rowDeselected`;
+export const ROW_SELECTION_ANNOUNCE_COUNT = `${ROW_SELECTION_NAMESPACE}announce.count`;
+export const ROW_SELECTION_MENU_REMOVE = `${ROW_SELECTION_NAMESPACE}menu.removeSelectedRows`;
+export const ROW_SELECTION_MENU_CLEAR = `${ROW_SELECTION_NAMESPACE}menu.clearSelection`;
+
+export const FREEZE_BAR_NAMESPACE = 'FreezeBar:';
+export const FREEZE_BAR_ROWS_TOP = `${FREEZE_BAR_NAMESPACE}rows.top`;
+export const FREEZE_BAR_ROWS_BOTTOM = `${FREEZE_BAR_NAMESPACE}rows.bottom`;
+export const FREEZE_BAR_COLUMNS_START = `${FREEZE_BAR_NAMESPACE}columns.start`;
+export const FREEZE_BAR_COLUMNS_END = `${FREEZE_BAR_NAMESPACE}columns.end`;
+
+export const NESTED_ROWS_NAMESPACE = 'NestedRows:';
+export const NESTED_ROWS_ANNOUNCEMENT_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.expanded`;
+export const NESTED_ROWS_ANNOUNCEMENT_COLLAPSED = `${NESTED_ROWS_NAMESPACE}announcement.collapsed`;
+
+export const FORMULA_BUILDER_NAMESPACE = 'FormulaBuilder:';
+export const FORMULA_BUILDER_EDITOR = `${FORMULA_BUILDER_NAMESPACE}labels.formulaEditor`;
+export const FORMULA_BUILDER_INPUT = `${FORMULA_BUILDER_NAMESPACE}labels.formulaInput`;
+export const FORMULA_BUILDER_CELL_ADDRESS = `${FORMULA_BUILDER_NAMESPACE}labels.cellAddress`;
+export const FORMULA_BUILDER_SUGGESTIONS = `${FORMULA_BUILDER_NAMESPACE}labels.formulaSuggestions`;
+export const FORMULA_BUILDER_ACCEPT_HINT = `${FORMULA_BUILDER_NAMESPACE}hints.acceptSuggestion`;
+export const FORMULA_BUILDER_NAVIGATE_HINT = `${FORMULA_BUILDER_NAMESPACE}hints.navigateSuggestions`;
+export const FORMULA_BUILDER_FUNCTION_HELP = `${FORMULA_BUILDER_NAMESPACE}labels.functionHelp`;
+export const FORMULA_BUILDER_FUNCTION_HELP_FOR = `${FORMULA_BUILDER_NAMESPACE}labels.functionHelpFor`;
+export const FORMULA_BUILDER_FUNCTION_EXAMPLE = `${FORMULA_BUILDER_NAMESPACE}labels.functionExample`;
+export const FORMULA_BUILDER_FUNCTION_DESCRIPTION = `${FORMULA_BUILDER_NAMESPACE}labels.functionDescription`;
+export const FORMULA_BUILDER_OPTIONAL_ARGUMENT = `${FORMULA_BUILDER_NAMESPACE}labels.optionalArgument`;
+export const FORMULA_BUILDER_REPEATABLE_ARGUMENT = `${FORMULA_BUILDER_NAMESPACE}labels.repeatableArgument`;
+export const FORMULA_BUILDER_LEARN_MORE = `${FORMULA_BUILDER_NAMESPACE}labels.learnMore`;
+export const FORMULA_BUILDER_CLOSE = `${FORMULA_BUILDER_NAMESPACE}labels.close`;
+export const FORMULA_BUILDER_INVALID_ADDRESS = `${FORMULA_BUILDER_NAMESPACE}announce.invalidCellAddress`;
+export const FORMULA_BUILDER_CELL_UNAVAILABLE = `${FORMULA_BUILDER_NAMESPACE}announce.cellUnavailable`;
+export const FORMULA_BUILDER_CELL_ERROR = `${FORMULA_BUILDER_NAMESPACE}announce.cellError`;
+export const FORMULA_BUILDER_DEPENDENT_ERROR = `${FORMULA_BUILDER_NAMESPACE}announce.dependentCellError`;
+export const FORMULA_BUILDER_DEPENDENT_ERRORS = `${FORMULA_BUILDER_NAMESPACE}announce.dependentCellErrors`;

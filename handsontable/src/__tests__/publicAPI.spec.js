@@ -120,6 +120,7 @@ describe('Public API', () => {
 
     it('should expose all registered validator functions', async() => {
       expect(Handsontable.validators.AutocompleteValidator).toBeFunction();
+      expect(Handsontable.validators.CheckboxValidator).toBeFunction();
       expect(Handsontable.validators.DropdownValidator).toBeFunction();
       expect(Handsontable.validators.DateValidator).toBeFunction();
       expect(Handsontable.validators.NumericValidator).toBeFunction();

@@ -415,7 +415,7 @@ const cellDefinition: Pick<
       return editor.input.value;
     },
     setValue(editor, value) {
-      editor.input.value = value;
+      editor.input.value = value == null ? '' : String(value);
     },
     getDateFormat(
       editor: FactoryEditorType<EditorPropertiesType, EditorMethodsType>,
@@ -468,7 +468,7 @@ const hotOptions: Handsontable.GridSettings = {
       },
     },
   ],
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
 };
 
 // Initialize the Handsontable instance with the specified configuration options

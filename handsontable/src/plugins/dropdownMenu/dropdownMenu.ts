@@ -2,14 +2,14 @@ import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
-import { CommandExecutor } from '../contextMenu/commandExecutor';
-import { getDocumentOffsetByElement } from '../contextMenu/utils';
+import { CommandExecutor } from '../../utils/menu/commandExecutor';
+import { getDocumentOffsetByElement } from '../../utils/menu/utils';
 import {
   addClass, eventTargetEl, hasClass, isBottomMostColumnHeader, isHTMLElement, removeClass, setAttribute
 } from '../../helpers/dom/element';
-import { ItemsFactory } from '../contextMenu/itemsFactory';
-import { Menu } from '../contextMenu/menu';
-import type { MenuAnchorRectProvider } from '../contextMenu/menu';
+import { ItemsFactory } from '../../utils/menu/itemsFactory';
+import { Menu } from '../../utils/menu/menu';
+import type { MenuAnchorRectProvider } from '../../utils/menu/menu';
 import { Hooks } from '../../core/hooks';
 import {
   COLUMN_LEFT,
@@ -19,10 +19,11 @@ import {
   READ_ONLY,
   ALIGNMENT,
   SEPARATOR
-} from '../contextMenu/predefinedItems';
+} from '../../utils/menu/predefinedItems';
 
 import { A11Y_HASPOPUP, A11Y_HIDDEN, A11Y_LABEL } from '../../helpers/a11y';
 import { syncIcon } from '../../themes/engine/icons';
+import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 Hooks.getSingleton().register('afterDropdownMenuDefaultOptions');
 Hooks.getSingleton().register('beforeDropdownMenuShow');
@@ -31,7 +32,7 @@ Hooks.getSingleton().register('afterDropdownMenuHide');
 Hooks.getSingleton().register('afterDropdownMenuExecute');
 
 // Re-exported because this plugin's public `open()` accepts a `MenuAnchorRectProvider`
-// (defined alongside the shared `Menu` class in `contextMenu/menu`) as its third parameter.
+// (defined alongside the shared `Menu` class in `utils/menu/menu`) as its third parameter.
 export type { MenuAnchorRectProvider };
 
 export const PLUGIN_KEY = 'dropdownMenu';
@@ -47,11 +48,14 @@ const BUTTON_ICON_CLASS_NAME = 'ht-dropdown-menu-button-icon';
 const HEADER_WITH_BUTTON_CLASS_NAME = 'has-header-button';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
-interface DropdownMenuSettings {
-  callback?: Function;
-  uiContainer?: HTMLElement;
-  items?: Record<string, unknown>[] | string[];
-  [key: string]: unknown;
+/**
+ * The keys the plugin reads from the `dropdownMenu` object. `settingsSchema` lists them as the only keys
+ * `validateSettings()` accepts there, so a key the plugin starts to read belongs here.
+ */
+export interface DropdownMenuSettings {
+  callback?: Function | null;
+  uiContainer?: HTMLElement | null;
+  items?: Array<string | Record<string, unknown>> | Record<string, unknown> | null;
 }
 
 /**
@@ -67,8 +71,6 @@ interface DropdownMenuSettings {
  *
  * or array of any available strings:
  * * `["col_left", "col_right", "remove_col", "---------", "undo", "redo"]`.
- *
- * See [the dropdown menu demo](@/guides/columns/column-menu/column-menu.md) for examples.
  *
  * @example
  * ::: only-for javascript
@@ -136,9 +138,15 @@ export class DropdownMenu extends BasePlugin {
    * Returns the list of plugin dependencies required before this plugin can be initialized.
    */
   static get PLUGIN_DEPS() {
-    return [
-      'plugin:AutoColumnSize',
-    ];
+    return [...PLUGIN_DEPS];
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -255,7 +263,11 @@ export class DropdownMenu extends BasePlugin {
       this.menu.addLocalHook('executeCommand',
         (commandName: string, ...params: unknown[]) => this.executeCommand(commandName, ...params));
 
-      this.prepareMenuItems();
+      // A plugin that enables after this one (Filters, priority 250 against 230) has not registered
+      // its items yet, so a key naming one of them cannot resolve here. The build still runs, so the
+      // commands exist for `executeCommand()` before the first open, but an unresolved key is
+      // skipped without a report: the build made by `open()` or `executeCommand()` reports it.
+      this.prepareMenuItems(false);
     });
   }
 
@@ -267,10 +279,11 @@ export class DropdownMenu extends BasePlugin {
    * `updateSettings` never reached the menu, and one disabled later kept entries that still ran.
    *
    * @private
+   * @param {boolean} [reportUnresolvedKeys=true] Whether a key that names no available item is reported.
    * @fires Hooks#afterDropdownMenuDefaultOptions
    * @fires Hooks#beforeDropdownMenuSetItems
    */
-  prepareMenuItems() {
+  prepareMenuItems(reportUnresolvedKeys = true) {
     // The menu is built once every plugin is ready, so an `open()` before that has nothing to
     // fill in yet.
     if (!this.menu) {
@@ -287,7 +300,7 @@ export class DropdownMenu extends BasePlugin {
     this.hot.runHooks('afterDropdownMenuDefaultOptions', predefinedItems);
 
     this.itemsFactory.setPredefinedItems(predefinedItems.items);
-    const menuItems = this.itemsFactory.getItems(settings);
+    const menuItems = this.itemsFactory.getItems(settings, reportUnresolvedKeys);
 
     this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
 
@@ -574,13 +587,11 @@ export class DropdownMenu extends BasePlugin {
    *
    * When no cells are selected, `executeCommand()` doesn't do anything.
    *
-   * You can execute all predefined commands:
+   * You can execute the predefined commands that the default `dropdownMenu` items register:
    *  * `'col_left'` - Insert column left
    *  * `'col_right'` - Insert column right
-   *  * `'clear_column'` - Clear selected column
+   *  * `'clear_column'` - Clear selected column (works only for selected columns, for example after `selectColumns()`)
    *  * `'remove_col'` - Remove column
-   *  * `'undo'` - Undo last action
-   *  * `'redo'` - Redo last action
    *  * `'make_read_only'` - Make cell read only
    *  * `'alignment:left'` - Alignment to the left
    *  * `'alignment:top'` - Alignment to the top
@@ -588,6 +599,10 @@ export class DropdownMenu extends BasePlugin {
    *  * `'alignment:bottom'` - Alignment to the bottom
    *  * `'alignment:middle'` - Alignment to the middle
    *  * `'alignment:center'` - Alignment to the center (justify).
+   *
+   * Any other predefined command, such as `'undo'` or `'redo'`, works only when you list it in
+   * the [`dropdownMenu`](@/api/options.md#dropdownmenu) option. Running a command that the menu doesn't register
+   * throws an error.
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *
@@ -716,35 +731,24 @@ export class DropdownMenu extends BasePlugin {
   /**
    * On after get column header listener.
    *
+   * The header cell is reused between renders and core strips every `aria-*` attribute off it each
+   * time, while the button survives. So `aria-haspopup="menu"` is set again on every call while the
+   * plugin is on, not only when the button is created.
+   *
    * @private
    * @param {number} col Visual column index.
    * @param {HTMLTableCellElement} TH Header's TH element.
    */
   #onAfterGetColHeader = (col: number, TH: HTMLTableCellElement) => {
-    if (col < 0 || !isBottomMostColumnHeader(TH)) {
+    if (col < 0) {
       return;
     }
 
     const existingButton = TH.querySelector(`.${BUTTON_CLASS_NAME}`);
 
-    // Plugin enabled and buttons already exists, return.
-    if (this.enabled && existingButton) {
-      // The container's class list is rebuilt on every header render (see `TableView`), while the
-      // button element itself survives - so the marker has to be re-applied here, not only where
-      // the button is created.
-      if (isHTMLElement(existingButton.parentNode)) {
-        addClass(existingButton.parentNode, HEADER_WITH_BUTTON_CLASS_NAME);
-      }
-
-      // The button survives too, so its icon must follow a runtime `icons` remap or theme switch
-      // here as well - `syncIcon()` re-applies the mapping only when the theme's icons revision
-      // moved, so on an ordinary redraw this is one class check per header.
-      syncIcon(this.hot, existingButton as HTMLElement, BUTTON_ICON_CLASS_NAME, 'menu');
-
-      return;
-    }
-    // Plugin disabled and buttons still exists, so remove them.
-    if (!this.enabled) {
+    // A header is reused between renders, and a `nestedHeaders` change moves the previous bottom
+    // level up, so a button is removed from every level it no longer belongs to.
+    if (!this.enabled || !isBottomMostColumnHeader(TH)) {
       if (existingButton) {
         const container = existingButton.parentNode;
 
@@ -757,6 +761,30 @@ export class DropdownMenu extends BasePlugin {
 
       return;
     }
+
+    // Plugin enabled and buttons already exists, return.
+    if (existingButton) {
+      // The container's class list is rebuilt on every header render (see `TableView`), while the
+      // button element itself survives - so the marker has to be re-applied here, not only where
+      // the button is created.
+      if (isHTMLElement(existingButton.parentNode)) {
+        addClass(existingButton.parentNode, HEADER_WITH_BUTTON_CLASS_NAME);
+      }
+
+      // The button survives too, so its icon must follow a runtime `icons` remap or theme switch
+      // here as well - `syncIcon()` re-applies the mapping only when the theme's icons revision
+      // moved, so on an ordinary redraw this is one class check per header.
+      syncIcon(this.hot, existingButton as HTMLElement, BUTTON_ICON_CLASS_NAME, 'menu');
+
+      if (this.hot.getSettings().ariaTags) {
+        setAttribute(TH, [
+          A11Y_HASPOPUP('menu'),
+        ]);
+      }
+
+      return;
+    }
+
     const button = this.hot.rootDocument.createElement('button');
 
     button.className = BUTTON_CLASS_NAME;

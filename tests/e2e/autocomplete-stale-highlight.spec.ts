@@ -24,6 +24,7 @@ async function commit(grid: AutocompleteAsyncSourcePage): Promise<void> {
   await grid.resolveQueries(0);
 }
 
+// leg-declarations: ignore pointer-offset -- EditorHiddenCellPage selects with a press 4 px inside the cell's leading padding, clear of every dropdown arrow on all three themes (editor-hidden-cell.spec.ts runs it there); these cases assert committed values only
 test.describe('committing an autocomplete whose choice list is out of date', () => {
   test('keeps a choice the user picked with the arrow keys', async({ page, theme, bundle }) => {
     const grid = new AutocompleteAsyncSourcePage(page, theme, bundle, { editor: 'dropdown' });
@@ -34,8 +35,11 @@ test.describe('committing an autocomplete whose choice list is out of date', () 
 
     await expect.poll(() => grid.dropdownChoices()).toEqual(['Alpha', 'Alfa', 'Alto']);
 
-    // Off the derived match on row 0 and onto row 1. An arrow pick is the user's own choice, so it
-    // must win outright - the freshness test below must never be applied to it.
+    // Onto row 1, which no match derived from `'Al'` would give. The editor opened on `'Al'`, which no
+    // entry equals, so nothing is highlighted yet and the first ArrowDown lands on row 0. An arrow pick
+    // is the user's own choice, so it must win outright - the freshness test below must never be
+    // applied to it.
+    await page.keyboard.press('ArrowDown');
     await page.keyboard.press('ArrowDown');
     await commit(grid);
 

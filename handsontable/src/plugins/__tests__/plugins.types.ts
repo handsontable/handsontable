@@ -1,4 +1,5 @@
 import {
+  AsyncValues,
   AutoColumnSize,
   Autofill,
   AutoRowSize,
@@ -15,7 +16,9 @@ import {
   DropdownMenu,
   ExportFile,
   Filters,
+  FormulaBuilder,
   Formulas,
+  FreezeBar,
   HiddenColumns,
   HiddenRows,
   ManualColumnFreeze,
@@ -44,6 +47,7 @@ import {
 
 registerAllPlugins();
 
+registerPlugin(AsyncValues);
 registerPlugin(AutoColumnSize);
 registerPlugin(Autofill);
 registerPlugin(AutoRowSize);
@@ -59,7 +63,9 @@ registerPlugin(DragToScroll);
 registerPlugin(DropdownMenu);
 registerPlugin(ExportFile);
 registerPlugin(Filters);
+registerPlugin(FormulaBuilder);
 registerPlugin(Formulas);
+registerPlugin(FreezeBar);
 registerPlugin(HiddenColumns);
 registerPlugin(HiddenRows);
 registerPlugin(ManualColumnFreeze);
@@ -84,6 +90,7 @@ registerPlugin(UndoRedo);
 registerPlugin('custom', class CustomPlugin extends BasePlugin {});
 
 // getPlugin() infers the specific constructor type for each registered plugin name.
+const asyncValues: typeof AsyncValues | undefined = getPlugin('asyncValues');
 const autoColumnSize: typeof AutoColumnSize | undefined = getPlugin('autoColumnSize');
 const autofill: typeof Autofill | undefined = getPlugin('autofill');
 const autoRowSize: typeof AutoRowSize | undefined = getPlugin('autoRowSize');
@@ -99,7 +106,9 @@ const dragToScroll: typeof DragToScroll | undefined = getPlugin('dragToScroll');
 const dropdownMenu: typeof DropdownMenu | undefined = getPlugin('dropdownMenu');
 const exportFile: typeof ExportFile | undefined = getPlugin('exportFile');
 const filters: typeof Filters | undefined = getPlugin('filters');
+const formulaBuilder: typeof FormulaBuilder | undefined = getPlugin('formulaBuilder');
 const formulas: typeof Formulas | undefined = getPlugin('formulas');
+const freezeBar: typeof FreezeBar | undefined = getPlugin('freezeBar');
 const hiddenColumns: typeof HiddenColumns | undefined = getPlugin('hiddenColumns');
 const hiddenRows: typeof HiddenRows | undefined = getPlugin('hiddenRows');
 const manualColumnFreeze: typeof ManualColumnFreeze | undefined = getPlugin('manualColumnFreeze');

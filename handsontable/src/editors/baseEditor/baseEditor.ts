@@ -9,6 +9,8 @@ import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
   getScrollbarWidth,
   offset,
+  standsBehindRowHeader,
+  isStartGapCovered,
   hasVerticalScrollbar,
   hasHorizontalScrollbar,
   outerWidth,
@@ -26,11 +28,12 @@ export const EDITOR_STATE = Object.freeze({
 });
 
 /**
- * The abstract base class for Handsontable cell editors.
+ * The abstract base class for Handsontable DataGrid cell editors.
  *
  * Extend it to create an editor that controls how a cell enters edit mode, reads and writes values,
  * and returns focus to the grid. Concrete editors implement `init()`, `getValue()`, `setValue()`,
- * `open()`, `close()`, and `focus()`.
+ * `open()`, `close()`, and `focus()`. `beginEditing()` passes the cell value to `setValue()`. An
+ * editor that needs a string stringifies that value itself.
  *
  * @class BaseEditor
  * @see https://handsontable.com/docs/javascript-data-grid/cell-editor/
@@ -131,18 +134,27 @@ export class BaseEditor {
    */
   originalValue: unknown = null;
   /**
-   * What the editor held the moment it finished opening, captured only when it was seeded from the
-   * cell's own value. `finishEditing()` compares against it to tell a real edit from a confirm that
-   * changed nothing.
+   * The string form of the value the editor was opened with, when it was opened from the cell.
    *
-   * Stays `null` whenever the guard must not apply: the editor was not seeded (fast edit mode, where
-   * the user's first keystroke supplies the value), or it was seeded with a caller-supplied string.
-   * Both keep the unconditional save they have always had.
+   * Taken from the seed in `beginEditing()`, not from `getValue()` after `setValue()`. `DateEditor`
+   * substitutes `defaultDate` inside `setValue()`, so a later `getValue()` is not the cell. A text
+   * editor's `getValue()` is this string, and an untouched confirm has to match it. Reading
+   * `getValue()` instead would save `''` over a `null` cell (#3927).
    */
-  #valueBeforeEdit: unknown = null;
+  #seededString: unknown = null;
 
   /**
-   * Whether `#valueBeforeEdit` holds a baseline at all.
+   * The same seed after the value getter and before stringifying, when the editor was opened from
+   * the cell.
+   *
+   * An editor whose `getValue()` returns the argument `setValue()` received matches this on an
+   * untouched confirm. Seeded the same way as `#seededString`, and for the same reason. `DateEditor`
+   * may have substituted `defaultDate`, so `getValue()` after `setValue()` is not the cell.
+   */
+  #seededCellValue: unknown = null;
+
+  /**
+   * Whether the seeded baselines hold a value at all.
    *
    * Kept separate from the value: `getValue()` is typed `unknown`, and a custom editor is free to
    * return `null` or `undefined` from it. Using the value itself as the "armed" marker would arm the
@@ -152,14 +164,33 @@ export class BaseEditor {
   #hasValueBeforeEdit: boolean = false;
 
   /**
+   * The wait for the validator that decides whether the editor closes. Each wait gets a new object,
+   * and its `postAfterValidate` listener acts only while that object is still the current one, so a
+   * wait ended early by `_endValidationWait()` cannot reopen the editor when its validator answers.
+   */
+  #validationWait: object | null = null;
+
+  /**
+   * The `postAfterValidate` listener of the current wait, removed with the wait. It removes itself on its
+   * first answer that is not stale, and the answer of a dropped call is stale, so a wait ended early would
+   * keep it until another validation in the grid answers.
+   */
+  #validationWaitListener: ((result: boolean) => void) | null = null;
+
+  /**
    * Re-arms the unchanged-edit guard after the editor's content has been reloaded from the data
    * source, so the baseline describes what the editor shows now rather than what it showed when it
    * opened. Does nothing while the guard is disarmed.
    */
   protected resetValueBeforeEdit(): void {
-    if (this.#hasValueBeforeEdit) {
-      this.#valueBeforeEdit = this.getValue();
+    if (!this.#hasValueBeforeEdit) {
+      return;
     }
+
+    this.#seededString = this.getValue();
+    // The same post-getter value `beginEditing()` stores. `originalValue` is the stored cell,
+    // and seeding that here treats a later edit of the stored value as untouched.
+    this.#seededCellValue = getValueGetterValue(this.originalValue, this.cellProperties);
   }
   /**
    * Object containing the cell's properties.
@@ -222,8 +253,13 @@ export class BaseEditor {
 
   /**
    * Required method to set new value into editable element.
+   *
+   * `beginEditing()` passes the cell value after the value getter, or the string it was given.
+   * When the editor needs a string, use `value == null ? '' : String(value)`.
+   *
+   * @param {*} value The editor value.
    */
-  setValue(_value?: unknown): void {
+  setValue(value?: unknown): void {
     throwWithCause('Editor setValue() method unimplemented');
   }
 
@@ -358,6 +394,9 @@ export class BaseEditor {
   /**
    * Begins editing on a highlighted cell and hides fillHandle corner if was present.
    *
+   * In full edit mode, a string `newInitialValue` is passed to `setValue()` unchanged. Any other
+   * value, including `undefined`, passes the cell value after the value getter.
+   *
    * @param {*} newInitialValue The initial editor value.
    * @param {Event} event The keyboard event object.
    */
@@ -387,34 +426,28 @@ export class BaseEditor {
 
     // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
     // otherwise IME (editor for Asia users) doesn't work.
-    // `seededFromCell` records whether the editor was filled from the cell's own value, which is the
-    // only case the no-op guard in `finishEditing()` may act on.
     let seededFromCell = false;
     let seededValue: unknown = null;
+    let rawSeed: unknown = null;
 
     if (this.isInFullEditMode()) {
       const originalValue = getValueGetterValue(this.originalValue, this.hot.getCellMeta(this.row, this.col));
-      const stringifiedInitialValue = typeof newInitialValue === 'string' ?
-        newInitialValue : stringify(originalValue);
+      const openedFromCell = typeof newInitialValue !== 'string';
 
-      seededFromCell = typeof newInitialValue !== 'string';
-      seededValue = stringifiedInitialValue;
+      seededFromCell = openedFromCell;
+      seededValue = openedFromCell ? stringify(originalValue) : newInitialValue;
+      rawSeed = openedFromCell ? originalValue : null;
 
-      this.setValue(stringifiedInitialValue);
+      this.setValue(openedFromCell ? originalValue : newInitialValue);
     }
 
     this.open(event);
     this._opened = true;
     this.focus();
 
-    // The baseline is the string the CELL's value produced, not what the editor ended up showing.
-    // The two differ whenever an editor substitutes something of its own - `DateEditor` swaps in
-    // `defaultDate` for an empty cell - and in that case the editor is genuinely offering a value the
-    // cell does not hold, so confirming has to save it. Reading `getValue()` back here instead made
-    // every confirm on such a cell compare equal, and a `date` column could no longer store its
-    // `defaultDate` from the editor at all.
     this.#hasValueBeforeEdit = seededFromCell;
-    this.#valueBeforeEdit = seededFromCell ? seededValue : null;
+    this.#seededString = seededFromCell ? seededValue : null;
+    this.#seededCellValue = rawSeed;
 
     // only rerender the selections (FillHandle should disappear when beginEditing is triggered)
     hotInstance.view.render();
@@ -466,12 +499,14 @@ export class BaseEditor {
 
       let value = this.getValue();
 
-      // Normalization runs BEFORE the comparison, so an unchanged confirm still trims whitespace and
-      // still runs `valueParser` exactly as it always did. Comparing first would silently drop both
-      // for a cell whose content the user did not touch.
+      // Compared after trim and `valueParser`, so an untouched `"5"` still becomes the number 5.
+      // `held` has to match as well: a parser result equal to the getter display is a new edit when
+      // that text changed. Trim stays in front, so an untouched `"  hi  "` still saves `"hi"`.
       if (this.cellProperties.trimWhitespace) {
         value = typeof value === 'string' ? String.prototype.trim.call(value || '') : value;
       }
+
+      const held = value;
 
       if (typeof this.cellProperties.valueParser === 'function') {
         value = this.cellProperties.valueParser(value, this.cellProperties);
@@ -492,10 +527,7 @@ export class BaseEditor {
       const fillsOtherCells = ctrlDown === true &&
         selectionFillsOtherCells(this.hot, value, this.row, this.col);
 
-      // The editor still holds exactly what it was opened with, so the user confirmed without changing
-      // anything. Writing the editor's stringified value back over the cell is what turned a `null`
-      // into `''` (#3927), so an unchanged confirm must not go through the normal save path.
-      const isUnchanged = !fillsOtherCells && this.#hasValueBeforeEdit && value === this.#valueBeforeEdit;
+      const isUnchanged = !fillsOtherCells && this.isEditUnchanged(held, value);
 
       if (isUnchanged) {
         this.#finishUnchangedEdit();
@@ -504,18 +536,45 @@ export class BaseEditor {
       }
 
       this.state = EDITOR_STATE.WAITING;
-      this.saveValue([[value]], ctrlDown);
 
-      if (this.hot.getCellValidator(this.cellProperties)) {
-        this.hot.addHookOnce('postAfterValidate', (result: unknown) => {
-          this.state = EDITOR_STATE.FINISHED;
-          this.discardEditor(result as boolean);
-        });
-      } else {
+      if (!this.hot.getCellValidator(this.cellProperties)) {
+        this.saveValue([[value]], ctrlDown);
+
+        // A listener of the save (`beforeChange`, `afterChange`, ...) destroyed the grid, and the
+        // editor's DOM went with it.
+        if (this.hot.isDestroyed) {
+          return;
+        }
+
         this.state = EDITOR_STATE.FINISHED;
         this.discardEditor(true);
+
+        return;
       }
+
+      this.#waitForValidation((result) => {
+        this.discardEditor(result);
+      });
+      this.saveValue([[value]], ctrlDown);
     }
+  }
+
+  /**
+   * Tells whether the edit being confirmed leaves the cell as it was, so the confirm writes nothing. The
+   * base rule compares the value the editor holds and the value that would be written with the seeds
+   * taken when editing began. An editor whose `getValue()` resolves its text into another form (the
+   * autocomplete editor turns a label into a key/value entry) adds its own rule.
+   *
+   * @private
+   * @param {*} held The editor value after `trimWhitespace`.
+   * @param {*} value The value that would be written, after `valueParser`.
+   * @returns {boolean}
+   */
+  protected isEditUnchanged(held: unknown, value: unknown): boolean {
+    const heldIsSeed = held === this.#seededString || held === this.#seededCellValue;
+    const valueIsSeed = value === this.#seededString || value === this.#seededCellValue;
+
+    return this.#hasValueBeforeEdit && heldIsSeed && valueIsSeed;
   }
 
   /**
@@ -546,13 +605,91 @@ export class BaseEditor {
 
     this.state = EDITOR_STATE.WAITING;
 
-    this.hot.addHookOnce('postAfterValidate', (result: unknown) => {
-      this.state = EDITOR_STATE.FINISHED;
-      this.discardEditor(result as boolean);
+    this.#waitForValidation((result) => {
+      this.discardEditor(result);
       this.hot.view.render();
     });
 
     this.hot.validateCell(this.originalValue, this.cellProperties, () => {}, 'edit');
+  }
+
+  /**
+   * Starts a wait for the next `postAfterValidate`, which finishes the editor with the validator's
+   * answer. The wait starts before the value is saved, so a `loadData()` from a listener of the save's own
+   * hooks finds it and ends it. An answer to a validator call made before the last `loadData()`
+   * (`_isAnsweringStaleValidation()`) is skipped: it belongs to a change the load dropped, and taken as
+   * this wait's answer it closed the editor before its own value was validated, or reopened it. The answer
+   * is ignored once the wait has been ended or replaced.
+   *
+   * @param {Function} onAnswer Called with the validation result once the editor is `FINISHED`.
+   */
+  #waitForValidation(onAnswer: (result: boolean) => void): void {
+    const wait = {};
+    const onPostAfterValidate = (result: boolean) => {
+      // An earlier `postAfterValidate` listener destroyed the grid. The hook registry still reaches
+      // this listener, and every method of the destroyed instance throws.
+      if (this.hot.isDestroyed) {
+        return;
+      }
+
+      if (this.hot._isAnsweringStaleValidation()) {
+        return;
+      }
+
+      this.hot.removeHook('postAfterValidate', onPostAfterValidate);
+
+      if (this.#validationWait !== wait) {
+        return;
+      }
+
+      this.#validationWait = null;
+      this.#validationWaitListener = null;
+      this.state = EDITOR_STATE.FINISHED;
+      onAnswer(result);
+    };
+
+    this.#removeValidationWaitListener();
+    this.#validationWait = wait;
+    this.#validationWaitListener = onPostAfterValidate;
+    this.hot.addHook('postAfterValidate', onPostAfterValidate);
+  }
+
+  /**
+   * Removes the `postAfterValidate` listener of the current wait, if there is one.
+   */
+  #removeValidationWaitListener(): void {
+    if (this.#validationWaitListener) {
+      this.hot.removeHook('postAfterValidate', this.#validationWaitListener);
+      this.#validationWaitListener = null;
+    }
+  }
+
+  /**
+   * Closes an editor that waits for a validator whose answer no longer applies, because `loadData()`
+   * replaced the data the editor saved its value to. Nothing is written, and the answer, when it
+   * arrives, leaves the editor closed instead of reopening it on a record of the loaded data. Does
+   * nothing unless the editor is waiting.
+   *
+   * The close callbacks are not run here: the caller is inside the load, before the new data is in, and
+   * a callback that reads `true` as "saved" re-prepared the editor against the replaced data. They are
+   * returned instead, for the caller to run with `false` once the load is done.
+   *
+   * @private
+   * @returns {Function|null} Runs the close callbacks with `false`, or `null` when the editor was not waiting.
+   */
+  _endValidationWait(): (() => void) | null {
+    if (!this.isWaiting()) {
+      return null;
+    }
+
+    const closeCallback = this._closeCallback;
+
+    this._closeCallback = null;
+    this.#validationWait = null;
+    this.#removeValidationWaitListener();
+    this.cancelChanges();
+
+    return closeCallback ? () => closeCallback(false) : null;
   }
 
   /**
@@ -595,7 +732,8 @@ export class BaseEditor {
       // rejected edit leaves the same editor open, and disarming here would let the NEXT confirm of
       // that session write the editor's stringified value, reintroducing #3927.
       this.#hasValueBeforeEdit = false;
-      this.#valueBeforeEdit = null;
+      this.#seededString = null;
+      this.#seededCellValue = null;
       this.state = EDITOR_STATE.VIRGIN;
       this._fireCallbacks(true);
 
@@ -738,15 +876,16 @@ export class BaseEditor {
 
     const cellComputedStyle = rootWindow.getComputedStyle(TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
-    const inlineStartBorderCompensation = Number.parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
+    const ownsInlineStartBorder = Number.parseFloat(cellComputedStyle[borderPhysicalWidthProp]) > 0;
+    const inlineStartBorderCompensation = ownsInlineStartBorder || this.#isStartPixelCovered(TD, overlayName) ? 0 : 1;
 
     // The position above shifted the editor 1px towards the inline start so that it covers the
     // gridline the previous cell draws on its inline-end side. A cell that draws its OWN
-    // inline-start border keeps that gridline inside its box, so there is nothing to cover and the
-    // shift is canceled here. Which cells those are is not a fixed index: with row headers the
-    // header owns the gridline and column 0 draws none (#6673), and `htFirstDatasetColumnNotRendered`
-    // takes it off the first rendered column too - so read the border rather than the index, and
-    // key it off the same value that sizes the editor below, or the two disagree by a pixel.
+    // inline-start border keeps that gridline inside its box, and one whose gridline is covered by
+    // the inline-start overlay shows nothing of the shifted pixel, so the shift is canceled for both.
+    // Which cells those are is not a fixed index: `htFirstDatasetColumnNotRendered` takes the border
+    // off the first rendered column - so read the DOM rather than the index, and key it off the same
+    // value that sizes the editor below, or the two disagree by a pixel.
     if (inlineStartBorderCompensation === 0) {
       inlineStartPos += 1;
     }
@@ -768,7 +907,7 @@ export class BaseEditor {
         horizontalScrollPosition : 0) :
       this.#calcCellStartOffset(TD, overlayName, overlayTable, cellWidth, firstColumnOffset, horizontalScrollPosition);
 
-    const topBorderCompensation = Number.parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
+    const topBorderCompensation = Number.parseFloat(cellComputedStyle.borderTopWidth) > 0 ? 0 : 1;
     const width = outerWidth(TD) + inlineStartBorderCompensation;
     const height = outerHeight(TD) + topBorderCompensation;
     const actualVerticalScrollbarWidth = scrollableContainerTop &&
@@ -792,9 +931,50 @@ export class BaseEditor {
   }
 
   /**
+   * Whether the pixel in front of the edited cell lies under an inline-start overlay, so the editor
+   * would show nothing of it. That is the gridline the row header owns in front of column 0 and, for a
+   * cell of the master table or of a frozen top or bottom row, the one in front of the first column
+   * after the overlay: the first visible column of a scrolled grid, the first one past `fixedColumnsStart`.
+   *
+   * The overlay that can cover it is the one whose layer is above the editor's own holder: the
+   * inline-start clone (120) over the master's (100), the top start corner (180) over the top clone's
+   * (160), and the bottom start corner (150) over the bottom clone's (130). A frozen column's holder is
+   * part of its own clone and paints over the row header by DOM order, so it never loses the pixel. It
+   * is canceled there too, by the row header test alone, so that column A is the same width with and
+   * without `fixedColumnsStart`.
+   *
+   * @param {HTMLTableCellElement} TD The edited cell.
+   * @param {string} overlayName The name of the overlay containing the edited cell.
+   * @returns {boolean}
+   */
+  #isStartPixelCovered(TD: HTMLTableCellElement, overlayName: string): boolean {
+    if (standsBehindRowHeader(TD)) {
+      return true;
+    }
+
+    const { wtOverlays } = this.hot.view._wt;
+    const coveringOverlay = {
+      master: wtOverlays.inlineStartOverlay,
+      top: wtOverlays.topInlineStartCornerOverlay,
+      bottom: wtOverlays.bottomInlineStartCornerOverlay,
+    }[overlayName];
+
+    // A grid with nothing frozen on that side has no overlay there to paint over anything.
+    if (!coveringOverlay?.needFullRender || !coveringOverlay.clone) {
+      return false;
+    }
+
+    return isStartGapCovered(
+      TD.getBoundingClientRect(),
+      coveringOverlay.clone.wtTable.TABLE.getBoundingClientRect(),
+      this.hot.isRtl()
+    );
+  }
+
+  /**
    * Calculates the width the editor of a cell may not grow into because the frozen end columns (`fixedColumnsEnd`)
-   * are painted over it. It is `0` for a cell of an end clone, which stands at the band itself, and for a grid
-   * without end columns.
+   * are painted over it, the pixel their first column reaches over the freeze line included. It is `0` for a cell
+   * of an end clone, which stands at the band itself, and for a grid without end columns.
    *
    * @param {string} overlayName The name of the overlay containing the edited cell.
    * @returns {number}
@@ -815,8 +995,10 @@ export class BaseEditor {
     // so the free room between the two counts as taken as well.
     const restingGap = wtViewport.hasHorizontalScroll() ?
       0 : Math.max(wtViewport.getWorkspaceWidth() - wtTable.getTotalWidth(), 0);
+    // The band's first column reaches over the freeze line, and the end clones paint that pixel too.
+    const freezeLineOverlap = wtOverlays.inlineEndOverlay?.getFreezeLineOverlap() ?? 0;
 
-    return bandWidth + restingGap;
+    return bandWidth + restingGap + freezeLineOverlap;
   }
 
   /**
@@ -947,15 +1129,15 @@ export class BaseEditor {
 
     const totalRows = this.hot.countRows();
     const totalColumns = this.hot.countCols();
-    const settings = this.hot.getSettings();
-    const fixedColumnsStart = settings.fixedColumnsStart ?? 0;
+    const fixedColumnsStart = this.hot.view.countFixedColumnsStart();
+    const fixedRowsBottom = this.hot.view.countFixedRowsBottom();
     // The start band has priority, so only the columns it leaves can belong to the end band.
     const firstFixedColumnEnd = totalColumns - this.hot.view.countFixedColumnsEnd();
     const isInlineStart = this.col < fixedColumnsStart;
     const isInlineEnd = !isInlineStart && this.col >= firstFixedColumnEnd;
     let section = '';
 
-    if (this.row < (settings.fixedRowsTop ?? 0)) {
+    if (this.row < this.hot.view.countFixedRowsTop()) {
       if (isInlineStart) {
         section = 'top-inline-start-corner';
       } else if (isInlineEnd) {
@@ -963,8 +1145,7 @@ export class BaseEditor {
       } else {
         section = 'top';
       }
-    } else if (settings.fixedRowsBottom &&
-               this.row >= totalRows - settings.fixedRowsBottom) {
+    } else if (fixedRowsBottom && this.row >= totalRows - fixedRowsBottom) {
       if (isInlineStart) {
         section = 'bottom-inline-start-corner';
       } else if (isInlineEnd) {

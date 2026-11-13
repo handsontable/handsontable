@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a blank area at the end of the horizontal scroll when `NestedHeaders` grows the column widths to fit long header labels.",
+  "type": "fixed",
+  "issueOrPR": 13751,
+  "breaking": false,
+  "framework": "none"
+}

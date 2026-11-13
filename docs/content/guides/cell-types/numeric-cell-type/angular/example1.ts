@@ -76,7 +76,7 @@ export class AppComponent {
     { value: 'pl-PL', label: 'Polish (Poland)' },
     { value: 'pt-BR', label: 'Portuguese (Brazil)' },
     { value: 'ru-RU', label: 'Russian (Russia)' },
-    { value: 'sr-SP', label: 'Serbian Latin (Serbia)' },
+    { value: 'sr-Latn-RS', label: 'Serbian Latin (Serbia)' },
     { value: 'zh-CN', label: 'Chinese (Simplified, China)' },
     { value: 'zh-TW', label: 'Chinese (Traditional, Taiwan)' },
   ];
@@ -247,7 +247,7 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -257,7 +257,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

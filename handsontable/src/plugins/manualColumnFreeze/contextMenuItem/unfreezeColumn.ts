@@ -1,7 +1,8 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 import { isPluginOff } from './isPluginOff';
-import { unfreezeWouldShiftEndBand } from '../endBand';
+import { followColumn } from './followColumn';
+import { getStartBandCount, unfreezeWouldShiftEndBand } from '../endBand';
 
 /**
  * @param {ManualColumnFreeze} manualColumnFreezePlugin The plugin instance.
@@ -18,7 +19,9 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin: unknown) {
     callback(this: HotInstance, key: unknown, selected: { start: { col: number } }[]) {
       const [{ start: { col: selectedColumn } }] = selected;
 
-      (manualColumnFreezePlugin as { unfreezeColumn: Function }).unfreezeColumn(selectedColumn);
+      followColumn(this, selectedColumn, () => {
+        (manualColumnFreezePlugin as { unfreezeColumn: Function }).unfreezeColumn(selectedColumn);
+      });
 
       this.render();
     },
@@ -45,7 +48,7 @@ export default function unfreezeColumnItem(manualColumnFreezePlugin: unknown) {
       } else {
         const fromCol = selection[0].from.col;
         const toCol = selection[0].to.col;
-        const fixedColumnsStart = this.getSettings().fixedColumnsStart ?? 0;
+        const fixedColumnsStart = getStartBandCount(this);
 
         if (fromCol !== toCol || (fromCol !== null && fromCol >= fixedColumnsStart)) {
           hide = true;

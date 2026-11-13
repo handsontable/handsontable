@@ -21,12 +21,12 @@ static get SETTING_KEYS() { return [PLUGIN_KEY, ...COLUMN_SIZE_OPTIONS]; }   // 
 
 That is what makes `updateSettings({ colWidths })` reach this plugin at all (issue
 [#4371](https://github.com/handsontable/handsontable/issues/4371)) — and it changes what `updatePlugin()`
-must assume, in three ways. **The rules are in `../../utils/manualResize/AGENTS.md`**; the short version, all visible
-in `updatePlugin()`:
+must assume. **The rules are in `../../utils/manualResize/AGENTS.md`**; the short version:
 
-1. **Restore the plugin option from the merged settings.** `BasePlugin#onUpdateSettings` feeds
-   `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`, which a `colWidths`-only update does not carry —
-   so without the restore `getSetting()` starts lying for the rest of the session.
+1. **The plugin option survives.** A `colWidths`-only update does not carry `manualColumnResize`, so
+   `BasePlugin#onUpdateSettings` refreshes the plugin settings from the merged settings instead, and
+   `getSetting()` keeps reporting the declared array or `true`. This plugin no longer restores it itself.
+   Pinned by `__tests__/manualSizeApi.unit.js`.
 2. **Re-initialize only when the plugin's own option was declared.** `#onMapInit` replays the declared
    `manualColumnResize` array, so re-initializing on a `colWidths`-only update reverts a column the user had
    since dragged — to neither the dragged width nor the requested one.
@@ -50,6 +50,15 @@ The gesture writes every width through the private `#setManualSize()` and tracks
 never through the public `setManualSize()` (that one opens an undo step of its own). Both use `#clampSize()`,
 so the width floor has one home. A drag stores the width only on release - see "One press, one undo step" in
 `../../utils/manualResize/AGENTS.md`.
+
+## A stored width is the width without what other plugins add on render
+
+`HiddenColumns` adds 15px (the indicator) to a column next to a hidden one, after this plugin's `modifyColWidth`
+(order 1 against 2), so such a column renders 15px wider than `getManualSize()` says. `getRenderedOverhead` of the
+gesture owner reports that difference, so a drag stores the pointer travel on top of the stored width. A new plugin
+that pads a width the same way must be added to it, or its columns overshoot the drag (DEV-3276). A column the
+`StretchColumns` plugin resizes (`stretchH: 'all'`, or the last column of `'last'`) renders the stretched width, which
+`modifyColWidth` order 10 puts in place of the padded one, so `#getRenderedOverhead` answers 0 for it.
 
 ## The width floor is derived from the theme, and only for grids with a menu button (DEV-158)
 

@@ -1,18 +1,18 @@
 ---
 type: how-to
 title: Column menu
-metaTitle: Column menu - JavaScript Data Grid | Handsontable
+metaTitle: Column menu | Handsontable DataGrid for JavaScript
 description: Display a configurable dropdown menu, triggered by clicking on a button in a column header.
 permalink: /column-menu
 canonicalUrl: /column-menu
 tags:
   - dropdown menu
 react:
-  metaTitle: Column menu - React Data Grid | Handsontable
+  metaTitle: Column menu | Handsontable DataGrid for React
 angular:
-  metaTitle: Column menu - Angular Data Grid | Handsontable
+  metaTitle: Column menu | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column menu - Vue Data Grid | Handsontable
+  metaTitle: Column menu | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated
@@ -32,7 +32,7 @@ Setting one option does not affect the other, even though both accept items in t
 
 ## Quick setup
 
-To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) configuration option to `true` when initializing Handsontable.
+To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) configuration option to `true` when initializing Handsontable DataGrid.
 
 ::: only-for javascript
 
@@ -100,6 +100,10 @@ With no other plugin adding its own entries, setting [`dropdownMenu`](@/api/opti
 The [`Filters`](@/api/filters.md) plugin and the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin (see below) each append their own entries after this list when enabled -- they don't replace it. `Filters` appends its entries first, and `ManualColumnFreeze` appends after them. See [Filter menu items](#filter-menu-items) for what `Filters` adds.
 
 Some entries come from other plugins, and work only when their plugin is enabled. The `freeze_column` and `unfreeze_column` entries require the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin. When you enable it, both entries join the default dropdown contents. Each one shows only when it applies: `freeze_column` on a column that is not frozen, and `unfreeze_column` on a column that is.
+
+The `hidden_columns_hide` and `hidden_columns_show` entries require the [`HiddenColumns`](@/api/hiddenColumns.md) plugin. They don't join the default dropdown contents, so list their keys to show them. Each one shows only when it applies, the same way it does in the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md). An item you define under one of these keys in the object form of `items` keeps that rule unless you give it your own `hidden`.
+
+Other plugin entries of the context menu, such as `mergeCells`, `borders`, or `commentsAddEdit`, are not available in the column menu. A key in the array form that the column menu can't resolve is skipped, and Handsontable logs a console warning naming it.
 
 The menu builds its item list every time it opens, so entries follow the current configuration. To leave a plugin's entries out, list the items you want instead of setting the option to `true`. To change the list on each open, use the [`beforeDropdownMenuSetItems`](@/api/hooks.md#beforedropdownmenusetitems) hook.
 

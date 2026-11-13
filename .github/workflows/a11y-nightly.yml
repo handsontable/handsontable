@@ -1,0 +1,169 @@
+name: A11y nightly
+
+# Every accessibility check on develop, on a dispatch: the axe scan and every check beyond axe
+# (a11y.yml with `checks: true` and `nightly: true`; tests/AGENTS.md, "A11y: the checks beyond axe").
+# Manual trigger only, no schedule: the accessibility program runs one audit, fixes, and re-audits
+# (.ai/CI.md), so a cron would spend the compute on nights nobody reads. The tiers come back with the
+# schedule, not before: axe on a pull request (test.yml today), a semi-lite set on a nightly, the full
+# set on a release candidate and a stable release. The name stays: the ledger, the Slack text and the
+# docs know this workflow as the A11y nightly.
+# This is the only run of the checks beyond axe: the pull-request Tests pipeline runs the axe scan
+# alone, because the checks are report-only and the accessibility program is still building its
+# picture, so a pull request learned nothing from them it could act on. The evidence is kept 30 days,
+# which is what the Accessibility Conformance Report cites per criterion. A plain dispatch runs every
+# check (the audit, on develop); a dispatch may ask for the short suite (`suite: pull-request`), the one
+# a developer runs locally, or name the checks to run (`checks: keyboard-walker`), the proof run of a
+# change to one check from its branch.
+# Each check's verdict is its `A11y / <check> report` check run and the job summary, by the severity rule
+# (tests/AGENTS.md, "A11y: the verdict of a check run"): red on a critical or serious finding, neutral with
+# a warning on a moderate or minor one, green on none. The run is an audit, so every open finding counts,
+# tracked or not. No finding fails a scan or stops one: the checks job carries `continue-on-error`, and
+# every scan runs to the end. Then the `verdict` job reads the check runs this run posted and fails the
+# run when any is red, so the run's own conclusion says what its checks found; on a subset dispatch it
+# expects the named checks only. Only `CI Gate` is required, and it is not in this run, so a red nightly
+# blocks no merge.
+#
+# Triage. A finding is about the product: record it, never fix it in the check's change. A target
+# that was not measured, or one flagged flaky, is a finding against the check: fix the measurement.
+on:
+  # From any ref: a dispatch on develop with no inputs is the audit (test-health.yml collects it into
+  # the findings ledger), and a dispatch from a feature branch is how a new check proves itself before
+  # it merges (the short suite and the `checks` input are for a branch: the check-inputs job refuses
+  # them on develop, and refuses an entry that is no check id, before the build). Never dispatch two
+  # screen reader runs at once; this workflow has no such limit.
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "Which checks beyond axe to run: every check (nightly), or the short suite (pull-request) a developer also runs locally."
+        type: choice
+        options: [ nightly, pull-request ]
+        default: nightly
+      checks:
+        description: "The checks beyond axe to run instead of the suite: comma-separated check ids (keyboard-walker,reflow). Empty runs the suite."
+        type: string
+        default: ''
+  # Self-validation, as screenreader-nightly.yml does it: this file never runs on an ordinary pull
+  # request, so a broken workflow_call graph would first execute after merging. With this trigger a
+  # pull request that touches the file gets a startup-validated run whose jobs skip themselves.
+  pull_request:
+    paths: [ '.github/workflows/a11y-nightly.yml' ]
+
+# NO permissions block: the called workflow validates its job-level grants against the default token
+# this caller hands down (the parity rule of e2e-nightly.yml and screenreader-nightly.yml).
+
+concurrency:
+  # Static prefix, never the workflow-name expression (a called workflow resolves it to the caller's).
+  group: a11y-nightly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # The dispatch's inputs, checked before the build spends a runner (tests/scripts/a11y-dispatch-inputs.mjs):
+  # on develop the dispatch is the audit and runs every check, so the short suite and a `checks` subset are
+  # refused there (test-health.yml would collect the run as the latest night, with the checks it skipped
+  # drawn as gone), and an entry of `checks` that is no check id (a space, a typo) is refused, as the config
+  # would refuse it, before the axe scan runs beside a checks job that cannot start. The verdict job reads
+  # the inputs through the same function, so both ends of the run read them one way.
+  check-inputs:
+    name: Check the inputs
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tests/lib
+            tests/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Refuse a subset on develop and an entry that names nothing
+        env:
+          A11Y_SUITE: ${{ inputs.suite == 'pull-request' && 'pull-request' || 'nightly' }}
+          A11Y_CHECKS: ${{ inputs.checks }}
+        run: node tests/scripts/a11y-dispatch-inputs.mjs --ref "$GITHUB_REF" --suite "$A11Y_SUITE" --checks "$A11Y_CHECKS"
+
+  build:
+    name: Build
+    needs: [ check-inputs ]
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/build.yml
+    with:
+      run-umd: true
+    secrets: inherit
+
+  a11y:
+    name: A11y
+    needs: [ build ]
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/a11y.yml
+    with:
+      checks: true
+      # Every check on a plain dispatch; a dispatch may ask for the short suite instead.
+      nightly: ${{ inputs.suite != 'pull-request' }}
+      # A subset dispatch names its checks; empty (the audit, the pull_request trigger) runs the suite.
+      check-ids: ${{ inputs.checks }}
+    # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
+
+  # The run's verdict: the worst of the check runs this run posted (tests/scripts/a11y-run-verdict.mjs),
+  # red when any is red or one the suite should have posted is missing. It runs after every scan and
+  # check has finished (`!cancelled()`, so a red job before it never skips it), reads the check runs by
+  # the run id their posters stamp as `external_id`, and fails this job, which fails the run. It stops
+  # nothing: by the time it runs, everything else has run and reported. Never on the self-validating
+  # pull request run, whose jobs post nothing.
+  verdict:
+    name: Verdict
+    needs: [ a11y ]
+    if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      # The script and the modules it imports, nothing else: no package to install, no build.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tests/lib
+            tests/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Follow the worst check run of this run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.sha }}
+          # Every check on a plain dispatch, as the a11y job runs them; a subset dispatch names its checks, and
+          # the verdict expects those only (the same `checks` input the a11y job reads as A11Y_CHECKS), read
+          # as the check-inputs job read them.
+          A11Y_SUITE: ${{ inputs.suite == 'pull-request' && 'pull-request' || 'nightly' }}
+          A11Y_CHECKS: ${{ inputs.checks }}
+        run: node tests/scripts/a11y-run-verdict.mjs --prefix "A11y / " --ref "$GITHUB_REF" --a11y-suite "$A11Y_SUITE" --a11y-checks "$A11Y_CHECKS"
+
+  # Optional Slack ping, develop only, when the run never reached the checks (the UMD build failed or
+  # the called workflow could not start). The checks job carries `continue-on-error`, so a red check is
+  # never reported here, and neither is the `verdict` job's red: their verdict is the check runs. The
+  # same webhook as the other nightlies.
+  notify:
+    name: Notify Slack
+    needs: [ a11y ]
+    if: ${{ failure() && github.event_name != 'pull_request' && github.ref_name == 'develop' }}
+    runs-on: ubuntu-26.04
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
+    steps:
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":red_circle: A11y nightly on ${{ github.ref_name }} failed outside the checks: the UMD build, the axe scan's tooling, or a dispatch input the check-inputs job refused (a subset on develop, an entry that names nothing). A finding of a check beyond axe is not reported here; its verdict is its A11y check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, A11y: the checks beyond axe."
+            }

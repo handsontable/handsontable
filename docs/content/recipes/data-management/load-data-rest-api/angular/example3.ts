@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, NgZone, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import type {
   DataProviderQueryParameters,
@@ -28,7 +28,7 @@ type UserRow = {
   `,
 })
 export class AppComponent {
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   statusIsError = false;
   statusMessage = 'Loading...';
@@ -40,10 +40,9 @@ export class AppComponent {
   /** Defers binding updates so sync data-provider hooks do not trigger NG0100 in dev mode. */
   private setFetchStatus(message: string, isError = false): void {
     setTimeout(() => {
-      this.ngZone.run(() => {
-        this.statusMessage = message;
-        this.statusIsError = isError;
-      });
+      this.statusMessage = message;
+      this.statusIsError = isError;
+      this.cdr.markForCheck();
     }, 0);
   }
 
@@ -147,7 +146,7 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
@@ -156,7 +155,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

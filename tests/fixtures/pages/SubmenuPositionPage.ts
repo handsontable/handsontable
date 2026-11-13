@@ -399,22 +399,6 @@ export class SubmenuPositionPage {
   }
 
   /**
-   * Scrolls the grid's own holder to its last row and column (the page itself does not scroll), and
-   * waits until the far corner cell is rendered, which is the render state the scroll produces.
-   */
-  async scrollGridToBottomAndInlineEnd(): Promise<void> {
-    await this.page.evaluate(() => {
-      const { hot } = window as unknown as {
-        hot: { scrollViewportTo(options: { row: number; col: number }): boolean;
-          countRows(): number; countCols(): number; };
-      };
-
-      hot.scrollViewportTo({ row: hot.countRows() - 1, col: hot.countCols() - 1 });
-    });
-    await expect(this.cell(99, 49)).toBeVisible();
-  }
-
-  /**
    * Where the open "Alignment" submenu sits, named by `placementOf()`. Poll it with `expect.poll`
    * rather than reading it once, so the assertion cannot run between the submenu appearing and the
    * positioner moving it.

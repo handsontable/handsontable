@@ -1,6 +1,9 @@
 import MergedCellsCollection from '../cellsCollection';
 import MergedCell from '../cellCoords';
 import { CellCoords, CellRange } from '../../../3rdparty/walkontable/src';
+import { findNonIntersectingIndex } from '../../../selection/cellBlocks';
+import { _resetDeprecationWarnings } from '../../../helpers/console';
+import * as mergeCellsUtils from '../utils';
 
 describe('MergeCells', () => {
   /**
@@ -39,6 +42,16 @@ describe('MergeCells', () => {
         new CellCoords(toRow, toColumn)
       );
     }
+
+    // Shift+Arrow reads these through `findNonIntersectingIndex()`, fed with the merges on screen.
+    const startMostColumn = (collection, range, column) =>
+      findNonIntersectingIndex(collection.getVisibleMergedCells(), range, 'col', -1, column);
+    const endMostColumn = (collection, range, column) =>
+      findNonIntersectingIndex(collection.getVisibleMergedCells(), range, 'col', 1, column);
+    const topMostRow = (collection, range, row) =>
+      findNonIntersectingIndex(collection.getVisibleMergedCells(), range, 'row', -1, row);
+    const bottomMostRow = (collection, range, row) =>
+      findNonIntersectingIndex(collection.getVisibleMergedCells(), range, 'row', 1, row);
 
     describe('`add` method', () => {
       it('should add a merged cell object to the array of merged cells', () => {
@@ -113,6 +126,229 @@ describe('MergeCells', () => {
         expect(mergedCellsCollection.mergedCells[0].col).toEqual(1);
         expect(mergedCellsCollection.mergedCells[1].row).toEqual(20);
         expect(mergedCellsCollection.mergedCells[1].col).toEqual(21);
+      });
+    });
+
+    describe('`canAdd` method', () => {
+      it('should accept a merged cell that neither overlaps another one nor starts at its anchor', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({ row: 0, col: 1, rowspan: 3, colspan: 4 });
+
+        expect(mergedCellsCollection.canAdd({ row: 10, col: 1, rowspan: 2, colspan: 2 })).toBe(true);
+        expect(mergedCellsCollection.mergedCells.length).toBe(1);
+      });
+
+      it('should refuse a merged cell that overlaps another one and warn the way `add` does', () => {
+        const warnSpy = spyOn(console, 'warn');
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const overlapping = { row: 1, col: 0, rowspan: 2, colspan: 7 };
+
+        mergedCellsCollection.add({ row: 0, col: 1, rowspan: 5, colspan: 3 });
+
+        expect(mergedCellsCollection.canAdd(overlapping)).toBe(false);
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(warnSpy).toHaveBeenCalledWith(MergedCellsCollection.IS_OVERLAPPING_WARNING(overlapping));
+        expect(mergedCellsCollection.mergedCells.length).toBe(1);
+      });
+
+      it('should refuse a merged cell whose anchor another merged cell already takes, also with `auto`', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({ row: 0, col: 1, rowspan: 3, colspan: 4 });
+
+        expect(mergedCellsCollection.canAdd({ row: 0, col: 1, rowspan: 2, colspan: 2 }, true)).toBe(false);
+      });
+
+      it('should skip the overlap check with `auto`, as `add` does', () => {
+        const warnSpy = spyOn(console, 'warn');
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const overlapping = { row: 1, col: 0, rowspan: 2, colspan: 7 };
+
+        mergedCellsCollection.add({ row: 0, col: 1, rowspan: 5, colspan: 3 });
+
+        expect(mergedCellsCollection.canAdd(overlapping, true)).toBe(true);
+        expect(warnSpy).not.toHaveBeenCalled();
+        expect(mergedCellsCollection.add(overlapping, true)).toBeTruthy();
+      });
+
+      it('should accept a merged cell that only the merges it is told to ignore overlap or start at its anchor', () => {
+        const warnSpy = spyOn(console, 'warn');
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const inner = mergedCellsCollection.add({ row: 1, col: 0, rowspan: 2, colspan: 1 });
+        const outer = mergedCellsCollection.add({ row: 0, col: 5, rowspan: 5, colspan: 2 });
+
+        expect(mergedCellsCollection.canAdd({ row: 1, col: 0, rowspan: 2, colspan: 3 }, false, [inner])).toBe(true);
+        expect(mergedCellsCollection.canAdd({ row: 1, col: 0, rowspan: 2, colspan: 7 }, false, [inner])).toBe(false);
+        expect(mergedCellsCollection.canAdd({ row: 1, col: 0, rowspan: 2, colspan: 7 }, false, [inner, outer]))
+          .toBe(true);
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(mergedCellsCollection.mergedCells).toEqual([inner, outer]);
+      });
+
+      it('should accept a merged cell over the stale coordinates of a merge purged from the lookup matrix', () => {
+        const warnSpy = spyOn(console, 'warn');
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const purged = mergedCellsCollection.add({ row: 1, col: 1, rowspan: 2, colspan: 2 });
+        const overlapping = { row: 1, col: 0, rowspan: 2, colspan: 3 };
+
+        expect(mergedCellsCollection.canAdd(overlapping)).toBe(false);
+
+        warnSpy.calls.reset();
+        mergedCellsCollection.removeFromMatrix([purged]);
+
+        expect(mergedCellsCollection.canAdd(overlapping)).toBe(true);
+        expect(mergedCellsCollection.add(overlapping)).toBeTruthy();
+        expect(warnSpy).not.toHaveBeenCalled();
+      });
+
+      describe('the overlap check', () => {
+        afterEach(() => {
+          jest.restoreAllMocks();
+        });
+
+        /**
+         * Adds one-row merges in rows 50-79, far from the cells the tests check. With them the collection holds
+         * more merges than a small new merge has cells, so the check reads the new merge's cells instead of
+         * scanning the merge list.
+         *
+         * @param {MergedCellsCollection} collection The collection to fill.
+         */
+        function addDistantMerges(collection) {
+          for (let row = 50; row < 80; row++) {
+            collection.add({ row, col: 0, rowspan: 1, colspan: 2 });
+          }
+        }
+
+        it('should read only the cells of a small merged cell, never scan the merge list', () => {
+          const warnSpy = spyOn(console, 'warn');
+          const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+          addDistantMerges(mergedCellsCollection);
+          mergedCellsCollection.add({ row: 0, col: 1, rowspan: 5, colspan: 3 });
+
+          const scanSpy = jest.spyOn(mergeCellsUtils, 'areMergesOverlapping');
+          const overlapping = { row: 4, col: 3, rowspan: 2, colspan: 2 };
+
+          expect(mergedCellsCollection.canAdd(overlapping)).toBe(false);
+          expect(warnSpy).toHaveBeenCalledWith(MergedCellsCollection.IS_OVERLAPPING_WARNING(overlapping));
+          expect(mergedCellsCollection.canAdd({ row: 5, col: 3, rowspan: 2, colspan: 2 })).toBe(true);
+          expect(scanSpy).not.toHaveBeenCalled();
+        });
+
+        it('should scan the merge list for a merged cell with more cells than there are merges', () => {
+          const warnSpy = spyOn(console, 'warn');
+          const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+          mergedCellsCollection.add({ row: 90, col: 90, rowspan: 2, colspan: 2 });
+
+          const getSpy = spyOn(mergedCellsCollection, 'get').and.callThrough();
+
+          expect(mergedCellsCollection.canAdd({ row: 0, col: 0, rowspan: 100, colspan: 100 })).toBe(false);
+          expect(mergedCellsCollection.canAdd({ row: 0, col: 0, rowspan: 50, colspan: 100 })).toBe(true);
+          expect(warnSpy).toHaveBeenCalledTimes(1);
+          // The anchor of each new merge and the top-left of the one overlapping merge, not a read per cell.
+          expect(getSpy.calls.count()).toBeLessThanOrEqual(4);
+        });
+
+        [false, true].forEach((manyMerges) => {
+          const branch = manyMerges ? 'reading the cells' : 'scanning the list';
+
+          it(`should accept a merged cell that only the merges it is told to ignore overlap (${branch})`, () => {
+            const warnSpy = spyOn(console, 'warn');
+            const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+            if (manyMerges) {
+              addDistantMerges(mergedCellsCollection);
+            }
+
+            const inner = mergedCellsCollection.add({ row: 1, col: 0, rowspan: 2, colspan: 1 });
+            const outer = mergedCellsCollection.add({ row: 0, col: 5, rowspan: 5, colspan: 2 });
+
+            expect(mergedCellsCollection.canAdd({ row: 1, col: 0, rowspan: 2, colspan: 3 }, false, [inner]))
+              .toBe(true);
+            expect(mergedCellsCollection.canAdd({ row: 1, col: 0, rowspan: 2, colspan: 7 }, false, [inner]))
+              .toBe(false);
+            expect(mergedCellsCollection.canAdd({ row: 1, col: 0, rowspan: 2, colspan: 7 }, false, [inner, outer]))
+              .toBe(true);
+            expect(warnSpy).toHaveBeenCalledTimes(1);
+          });
+
+          it(`should accept a merged cell over the stale coordinates of a purged merge (${branch})`, () => {
+            const warnSpy = spyOn(console, 'warn');
+            const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+            if (manyMerges) {
+              addDistantMerges(mergedCellsCollection);
+            }
+
+            const purged = mergedCellsCollection.add({ row: 1, col: 1, rowspan: 2, colspan: 2 });
+            const overlapping = { row: 1, col: 0, rowspan: 2, colspan: 3 };
+
+            expect(mergedCellsCollection.canAdd(overlapping)).toBe(false);
+
+            mergedCellsCollection.removeFromMatrix([purged]);
+
+            expect(mergedCellsCollection.canAdd(overlapping)).toBe(true);
+            expect(warnSpy).toHaveBeenCalledTimes(1);
+          });
+
+          it(`should refuse a merged cell over a merge another one was drawn over, when that one is ignored (${branch})`,
+            () => {
+              const warnSpy = spyOn(console, 'warn');
+              const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+              if (manyMerges) {
+                addDistantMerges(mergedCellsCollection);
+              }
+
+              mergedCellsCollection.add({ row: 0, col: 1, rowspan: 2, colspan: 2 });
+              // Added without the overlap check, as a sort or a restore can draw it: it takes the cell [1, 1]
+              // of the merge above in the lookup matrix.
+              const over = mergedCellsCollection.add({ row: 1, col: 0, rowspan: 2, colspan: 2 }, true);
+
+              expect(mergedCellsCollection.get(1, 1)).toBe(over);
+              expect(mergedCellsCollection.canAdd({ row: 1, col: 0, rowspan: 2, colspan: 2 }, false, [over]))
+                .toBe(false);
+              expect(mergedCellsCollection.canAdd({ row: 2, col: 0, rowspan: 2, colspan: 2 }, false, [over]))
+                .toBe(true);
+              expect(warnSpy).toHaveBeenCalledTimes(1);
+            });
+
+          it(`should refuse a merged cell over a merge another one was drawn over and then removed (${branch})`, () => {
+            const warnSpy = spyOn(console, 'warn');
+            const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+            if (manyMerges) {
+              addDistantMerges(mergedCellsCollection);
+            }
+
+            const under = mergedCellsCollection.add({ row: 0, col: 1, rowspan: 2, colspan: 2 });
+
+            mergedCellsCollection.add({ row: 1, col: 0, rowspan: 2, colspan: 2 }, true);
+            mergedCellsCollection.remove(1, 0);
+
+            // The removal takes back only its own cells, so the cell [1, 1] of the merge under it is empty.
+            expect(mergedCellsCollection.get(1, 1)).toBe(false);
+            expect(mergedCellsCollection.get(0, 1)).toBe(under);
+            expect(mergedCellsCollection.canAdd({ row: 1, col: 1, rowspan: 2, colspan: 1 })).toBe(false);
+            expect(warnSpy).toHaveBeenCalledTimes(1);
+          });
+        });
+
+        it('should read the cells again once the lookup matrix is rebuilt without merges drawn over each other', () => {
+          const mergedCellsCollection = new MergedCellsCollection({ hot: { ...hotMock, getCell: () => null } });
+
+          mergedCellsCollection.add({ row: 0, col: 1, rowspan: 2, colspan: 2 });
+          mergedCellsCollection.add({ row: 1, col: 0, rowspan: 2, colspan: 2 }, true);
+          mergedCellsCollection.clear();
+          addDistantMerges(mergedCellsCollection);
+
+          const scanSpy = jest.spyOn(mergeCellsUtils, 'areMergesOverlapping');
+
+          expect(mergedCellsCollection.canAdd({ row: 0, col: 0, rowspan: 2, colspan: 2 })).toBe(true);
+          expect(scanSpy).not.toHaveBeenCalled();
+        });
       });
     });
 
@@ -285,6 +521,33 @@ describe('MergeCells', () => {
         expect(wantedCollection.col).toEqual(11);
         expect(wantedCollection.rowspan).toEqual(3);
         expect(wantedCollection.colspan).toEqual(4);
+      });
+
+      it('should skip a merge purged from the lookup matrix, whose coordinates are stale', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const purged = mergedCellsCollection.add({ row: 2, col: 0, rowspan: 2, colspan: 2 });
+
+        expect(mergedCellsCollection.getByRange(createCellRange(2, 0, 3, 1))).toBe(purged);
+
+        mergedCellsCollection.removeFromMatrix([purged]);
+
+        expect(mergedCellsCollection.getByRange(createCellRange(2, 0, 3, 1))).toBe(false);
+      });
+    });
+
+    describe('`getVisibleMergedCells` method', () => {
+      it('should return every merge except the ones purged from the lookup matrix, in list order', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+        const first = mergedCellsCollection.add({ row: 0, col: 0, rowspan: 2, colspan: 1 });
+        const purged = mergedCellsCollection.add({ row: 2, col: 0, rowspan: 2, colspan: 2 });
+        const last = mergedCellsCollection.add({ row: 5, col: 3, rowspan: 1, colspan: 2 });
+
+        expect(mergedCellsCollection.getVisibleMergedCells()).toEqual([first, purged, last]);
+
+        mergedCellsCollection.removeFromMatrix([purged]);
+
+        expect(mergedCellsCollection.getVisibleMergedCells()).toEqual([first, last]);
+        expect(mergedCellsCollection.mergedCells).toEqual([first, purged, last]);
       });
     });
 
@@ -479,7 +742,63 @@ describe('MergeCells', () => {
       });
     });
 
-    describe('`getStartMostColumnIndex` method', () => {
+    describe('deprecated line-scan methods', () => {
+      const methods = [
+        'getStartMostColumnIndex', 'getEndMostColumnIndex', 'getTopMostRowIndex', 'getBottomMostRowIndex',
+      ];
+
+      beforeEach(() => {
+        _resetDeprecationWarnings();
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+      });
+
+      /**
+       * Builds the collection the line-scan tests below use: two merges that touch at a corner.
+       */
+      function createCollection() {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+
+        collection.add({ row: 1, col: 2, rowspan: 2, colspan: 2 });
+        collection.add({ row: 3, col: 3, rowspan: 2, colspan: 2 });
+
+        return collection;
+      }
+
+      it('should keep answering like the shared line scan', () => {
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        const collection = createCollection();
+        const range = createCellRange(0, 1, 5, 5);
+
+        for (let index = 0; index < 6; index++) {
+          expect(collection.getStartMostColumnIndex(range, index)).toBe(startMostColumn(collection, range, index));
+          expect(collection.getEndMostColumnIndex(range, index)).toBe(endMostColumn(collection, range, index));
+          expect(collection.getTopMostRowIndex(range, index)).toBe(topMostRow(collection, range, index));
+          expect(collection.getBottomMostRowIndex(range, index)).toBe(bottomMostRow(collection, range, index));
+        }
+      });
+
+      it('should print one deprecation warning per method, however often it is called', () => {
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const collection = createCollection();
+        const range = createCellRange(0, 1, 5, 5);
+
+        methods.forEach((method) => {
+          collection[method](range, 2);
+          collection[method](range, 3);
+        });
+
+        expect(warnSpy).toHaveBeenCalledTimes(methods.length);
+        methods.forEach((method, index) => {
+          expect(warnSpy.mock.calls[index][0]).toContain(`MergedCellsCollection#${method}()\` is deprecated`);
+        });
+      });
+    });
+
+    describe('start-most column index (`findNonIntersectingIndex`)', () => {
       it('should return start-most column index of where the merge cells are not intersected', () => {
         const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
@@ -498,17 +817,17 @@ describe('MergeCells', () => {
 
         const range = createCellRange(0, 1, 5, 5);
 
-        expect(mergedCellsCollection.getStartMostColumnIndex(range, 0)).toBe(0);
-        expect(mergedCellsCollection.getStartMostColumnIndex(range, 1)).toBe(1);
-        expect(mergedCellsCollection.getStartMostColumnIndex(range, 2)).toBe(2);
-        expect(mergedCellsCollection.getStartMostColumnIndex(range, 3)).toBe(2);
-        expect(mergedCellsCollection.getStartMostColumnIndex(range, 4)).toBe(2);
-        expect(mergedCellsCollection.getStartMostColumnIndex(range, 5)).toBe(5);
-        expect(mergedCellsCollection.getStartMostColumnIndex(range, 6)).toBe(5);
+        expect(startMostColumn(mergedCellsCollection, range, 0)).toBe(0);
+        expect(startMostColumn(mergedCellsCollection, range, 1)).toBe(1);
+        expect(startMostColumn(mergedCellsCollection, range, 2)).toBe(2);
+        expect(startMostColumn(mergedCellsCollection, range, 3)).toBe(2);
+        expect(startMostColumn(mergedCellsCollection, range, 4)).toBe(2);
+        expect(startMostColumn(mergedCellsCollection, range, 5)).toBe(5);
+        expect(startMostColumn(mergedCellsCollection, range, 6)).toBe(5);
       });
     });
 
-    describe('`getEndMostColumnIndex` method', () => {
+    describe('end-most column index (`findNonIntersectingIndex`)', () => {
       it('should return end-most column index of where the merge cells are not intersected', () => {
         const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
@@ -527,17 +846,17 @@ describe('MergeCells', () => {
 
         const range = createCellRange(0, 1, 5, 5);
 
-        expect(mergedCellsCollection.getEndMostColumnIndex(range, 0)).toBe(1);
-        expect(mergedCellsCollection.getEndMostColumnIndex(range, 1)).toBe(1);
-        expect(mergedCellsCollection.getEndMostColumnIndex(range, 2)).toBe(4);
-        expect(mergedCellsCollection.getEndMostColumnIndex(range, 3)).toBe(4);
-        expect(mergedCellsCollection.getEndMostColumnIndex(range, 4)).toBe(4);
-        expect(mergedCellsCollection.getEndMostColumnIndex(range, 5)).toBe(5);
-        expect(mergedCellsCollection.getEndMostColumnIndex(range, 6)).toBe(6);
+        expect(endMostColumn(mergedCellsCollection, range, 0)).toBe(1);
+        expect(endMostColumn(mergedCellsCollection, range, 1)).toBe(1);
+        expect(endMostColumn(mergedCellsCollection, range, 2)).toBe(4);
+        expect(endMostColumn(mergedCellsCollection, range, 3)).toBe(4);
+        expect(endMostColumn(mergedCellsCollection, range, 4)).toBe(4);
+        expect(endMostColumn(mergedCellsCollection, range, 5)).toBe(5);
+        expect(endMostColumn(mergedCellsCollection, range, 6)).toBe(6);
       });
     });
 
-    describe('`getTopMostRowIndex` method', () => {
+    describe('top-most row index (`findNonIntersectingIndex`)', () => {
       it('should return top-most row index of where the merge cells are not intersected', () => {
         const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
@@ -556,13 +875,13 @@ describe('MergeCells', () => {
 
         const range = createCellRange(1, 0, 5, 5);
 
-        expect(mergedCellsCollection.getTopMostRowIndex(range, 0)).toBe(0);
-        expect(mergedCellsCollection.getTopMostRowIndex(range, 1)).toBe(1);
-        expect(mergedCellsCollection.getTopMostRowIndex(range, 2)).toBe(2);
-        expect(mergedCellsCollection.getTopMostRowIndex(range, 3)).toBe(2);
-        expect(mergedCellsCollection.getTopMostRowIndex(range, 4)).toBe(2);
-        expect(mergedCellsCollection.getTopMostRowIndex(range, 5)).toBe(5);
-        expect(mergedCellsCollection.getTopMostRowIndex(range, 6)).toBe(5);
+        expect(topMostRow(mergedCellsCollection, range, 0)).toBe(0);
+        expect(topMostRow(mergedCellsCollection, range, 1)).toBe(1);
+        expect(topMostRow(mergedCellsCollection, range, 2)).toBe(2);
+        expect(topMostRow(mergedCellsCollection, range, 3)).toBe(2);
+        expect(topMostRow(mergedCellsCollection, range, 4)).toBe(2);
+        expect(topMostRow(mergedCellsCollection, range, 5)).toBe(5);
+        expect(topMostRow(mergedCellsCollection, range, 6)).toBe(5);
       });
     });
 
@@ -732,13 +1051,13 @@ describe('MergeCells', () => {
               `${range.getBottomEndCorner().row}, ${range.getBottomEndCorner().col}], ` +
               `visualRow ${visualRow}, visualColumn ${visualColumn}`;
 
-            expect({ context, value: mergedCellsCollection.getStartMostColumnIndex(range, visualColumn) })
+            expect({ context, value: startMostColumn(mergedCellsCollection, range, visualColumn) })
               .toEqual({ context, value: referenceMostIndex(mergedCellsCollection, range, 'col', -1, visualColumn) });
-            expect({ context, value: mergedCellsCollection.getEndMostColumnIndex(range, visualColumn) })
+            expect({ context, value: endMostColumn(mergedCellsCollection, range, visualColumn) })
               .toEqual({ context, value: referenceMostIndex(mergedCellsCollection, range, 'col', 1, visualColumn) });
-            expect({ context, value: mergedCellsCollection.getTopMostRowIndex(range, visualRow) })
+            expect({ context, value: topMostRow(mergedCellsCollection, range, visualRow) })
               .toEqual({ context, value: referenceMostIndex(mergedCellsCollection, range, 'row', -1, visualRow) });
-            expect({ context, value: mergedCellsCollection.getBottomMostRowIndex(range, visualRow) })
+            expect({ context, value: bottomMostRow(mergedCellsCollection, range, visualRow) })
               .toEqual({ context, value: referenceMostIndex(mergedCellsCollection, range, 'row', 1, visualRow) });
           }
         }
@@ -1144,7 +1463,7 @@ describe('MergeCells', () => {
       });
     });
 
-    describe('`getBottomMostRowIndex` method', () => {
+    describe('bottom-most row index (`findNonIntersectingIndex`)', () => {
       it('should return bottom-most row index of where the merge cells are not intersected', () => {
         const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
 
@@ -1163,13 +1482,13 @@ describe('MergeCells', () => {
 
         const range = createCellRange(1, 0, 5, 5);
 
-        expect(mergedCellsCollection.getBottomMostRowIndex(range, 0)).toBe(1);
-        expect(mergedCellsCollection.getBottomMostRowIndex(range, 1)).toBe(1);
-        expect(mergedCellsCollection.getBottomMostRowIndex(range, 2)).toBe(4);
-        expect(mergedCellsCollection.getBottomMostRowIndex(range, 3)).toBe(4);
-        expect(mergedCellsCollection.getBottomMostRowIndex(range, 4)).toBe(4);
-        expect(mergedCellsCollection.getBottomMostRowIndex(range, 5)).toBe(5);
-        expect(mergedCellsCollection.getBottomMostRowIndex(range, 6)).toBe(6);
+        expect(bottomMostRow(mergedCellsCollection, range, 0)).toBe(1);
+        expect(bottomMostRow(mergedCellsCollection, range, 1)).toBe(1);
+        expect(bottomMostRow(mergedCellsCollection, range, 2)).toBe(4);
+        expect(bottomMostRow(mergedCellsCollection, range, 3)).toBe(4);
+        expect(bottomMostRow(mergedCellsCollection, range, 4)).toBe(4);
+        expect(bottomMostRow(mergedCellsCollection, range, 5)).toBe(5);
+        expect(bottomMostRow(mergedCellsCollection, range, 6)).toBe(6);
       });
     });
   });

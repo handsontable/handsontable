@@ -6,11 +6,10 @@ registerAllModules();
 import {
   HOT_GLOBAL_CONFIG,
   HotGlobalConfig,
-  NON_COMMERCIAL_LICENSE,
 } from "@handsontable/angular-wrapper";
 
 const globalHotConfig: HotGlobalConfig = {
-  license: NON_COMMERCIAL_LICENSE,
+  // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 export const appConfig: ApplicationConfig = {

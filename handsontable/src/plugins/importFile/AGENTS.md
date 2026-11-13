@@ -7,6 +7,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 
 - Owns: option defaults (`mapper.ts#resolveImportOptions`), the snapshot → `ImportResult` mapping,
   type inference from number formats, and applying a result to the grid.
+- Exposes, but does not own, type inference from RAW values: `inferColumnTypes` and
+  `convertToInferredTypes` live in `../../utils/columnTypeInference/`, so a later paste or CSV path can
+  use them without importing from this plugin. The plugin methods of the same names only default
+  `locale` to the grid's, and the barrel re-exports the functions for grid-less use. There is no CSV
+  importer and no paste integration yet; both are follow-ups.
 - Does not own: parsing. Every engine call lives in `src/utils/xlsxEngine/adapters/<engine>.ts`, shared
   with `exportFile`. Never import from `../exportFile`; the unit constants both directions share
   (`PIXELS_PER_EXCEL_COLUMN_WIDTH_UNIT`, `POINTS_PER_PIXEL`) live in `src/utils/xlsxEngine/units.ts` and are
@@ -19,6 +24,28 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 
 ## Traps
 
+- **Never index a lookup table with a string that came from the file.** A number-format code is
+  file data, and `CURRENCY_SYMBOL_TO_CODE[symbol]` resolved `[$constructor-409]#,##0.00` through
+  `Object.prototype` to the `Object` function. It reached `Intl.NumberFormat` as the currency, the
+  import threw `Invalid currency code`, and every later `render()` threw the same error, because the
+  settings were already applied. Use `currencyForSymbol()`, `lookup()` (`styles.ts`) or another
+  `Object.hasOwn` check, or a `Map`. Pinned by `inference.unit.js` ("Object.prototype member").
+- **`requireEngine` never refuses a MISSING `engines` entry, and `supportsImportFormat` is why.** An
+  `engines` map that names no engine for the format leaves the format uninjected, so it falls back to the
+  built-in engine — the row `../../utils/xlsxEngine/AGENTS.md` documents, and what `exportFile` does for
+  the same configuration. `requireEngine` used to throw `ImportFile: no engine is configured for
+  "<format>" files` there instead, which made `supportsImportFormat('xlsx')` answer `true` for a call that
+  always threw: a caller gating on the predicate got a false green, and mutating the throw's
+  `Object.keys(engines).length > 0` term survived the whole suite. Both entry points now resolve the
+  override through `resolveEngineOverride(override, configured)` from `../../utils/xlsxEngine/detect.ts`,
+  so `engine: null` per call also means "no override" rather than "built-in engine". A configured
+  `engines: { xlsx: null }` (what `xlsx: useExcelJs ? ExcelJS : null` writes; typed `object | null`, pinned in
+  `importFile.types.ts`) is read as the built-in
+  engine too — by `detectXlsxEngine` itself, which treats `null` like `undefined`, so the predicate, this
+  plugin and `exportFile` cannot answer it differently; `requireEngine` used to throw
+  `Invalid xlsx engine module.` for it while `exportFile` exported. The two refusals that remain are an
+  entry that IS present, NON-nullish and does not duck-type (`Invalid xlsx engine module.`) and an engine
+  that cannot read the format.
 - **The adapter refuses a sheet before it allocates one.** `src/utils/xlsxEngine/limits.ts` caps a sheet at
   1,048,576 rows, 16,384 columns and 5,000,000 cells, and `readSheet` asserts all three from the DECLARED
   counts before the first row is read. A workbook is untrusted input: a file with one cell at `XFD1048576`
@@ -55,17 +82,56 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   as HTML, so a promoted first row is markup: a cell reading `<img src=x onerror=…>` executes on render.
   `escapeHtml` (`helpers/string.ts`), not `stripTags` — stripping cuts everything from a `<` to the next
   `>`, so `5 < 10` would become `5 `. Cell VALUES are rendered as text and are deliberately left alone.
+- **A text VALUE that starts with `=` is escaped with a leading apostrophe, and only when the Formulas
+  plugin is enabled** (`escapeTextFormula` in `mapper.ts`, on the non-formula branch of `pushCellValue`).
+  Such a cell is a string in the file and inert in Excel, but the grid hands every `=`-leading string to
+  HyperFormula, so importing `=HYPERLINK("http://evil","x")` verbatim turned the file's TEXT into a live
+  formula the file never had. The apostrophe is the Formulas plugin's own escape
+  (`isEscapedFormulaExpression`/`unescapeFormulaExpression` in `plugins/formulas/utils.ts`), stripped again
+  on read, so the cell renders what the file carried. It must stay gated on `formulasEnabled`: with no
+  plugin to unescape it, the apostrophe would become part of the value. The DECLARED-formula path is
+  untouched — it is already gated, because `shift` is `null` unless the plugin is enabled.
+- **A text VALUE that starts with `'=` is escaped the same way, and one that starts with a bare `'` is
+  NOT.** The escape must mirror the INVERSE of `unescapeFormulaExpression` exactly, and the grid's marker
+  is an apostrophe followed by `=` — `isEscapedFormulaExpression` tests both characters. So a file cell
+  reading `'=1+1` carries an apostrophe of its OWN that the grid then ate as its marker (the file's text
+  and an escaped formula were indistinguishable after import), and it is written `''=1+1`; a cell reading
+  `'hello` or `it's fine` is left verbatim, because nothing in the grid touches it either. Escaping every
+  apostrophe-leading value instead would ADD a character to text the grid never reinterprets. One limit
+  stays, and it is in the plugin's escape rather than in the mapper: the marker does not nest, so
+  `''=1+1` is not recognized as escaped and renders with both apostrophes. The import keeps the file's
+  character in `data` (which is what a re-export writes) rather than losing it; rendering it as one
+  apostrophe would need `isEscapedFormulaExpression` to count them, which is a Formulas-plugin change and
+  a behavior change for every grid, not an import one. The same non-nesting marker makes the two file
+  spellings COLLIDE: a file cell reading `'=1+1` and one reading `''=1+1` both land in `data` as `''=1+1`,
+  so after an import the reader cannot tell which the file held. The import guide states the visible half
+  (the doubled apostrophe on screen); state the collision here, because it is what a round-trip test would
+  otherwise read as a mapper bug.
 - **The lossy reads the adapter reports, and why each is only a report.** `hyperlink` (the text is kept, the
   URL is not — and a hyperlink's text may ITSELF be a rich-text run list, nested one level below the cell
   value, so both `hyperlinkText` and the `richText` report have to look there too), `richText` (the text is
   kept, the per-run formatting is not), `images`, `tables`,
   `autoFilter`, `sheetProtection:password` (the file carries a salted hash, never a password — it is
   deliberately NOT modelled, so a re-export cannot claim one; `readOnly` is still derived from the
-  protection) and `merge:overlap` from the write direction. They are listed in the import guide's
-  dropped-features table; add to both or neither.
-- **A number index in `sheet` skips very-hidden sheets** (`selectSheet` in `mapper.ts`). The export writes
-  its dropdown sources into a `veryHidden` `_HotValidation` sheet; picking it by index would import a list
-  of options as data. By name it is still reachable.
+  protection). They are listed in the XLSX engine page's "Dropped features on import" table
+  (`docs/content/guides/accessories-and-menus/xlsx-engine/`); add to both or neither.
+  `merge:overlap` is a WRITE-direction name and belongs in the export table only - it sat in the import
+  table until DEV-3414 because of an over-literal reading of this rule.
+- **A number index in `sheet` skips very-hidden sheets AND a hidden sheet named `_HotValidation<n>`**
+  (`selectSheet` in `mapper.ts`). The export writes its dropdown sources into a `_HotValidation` sheet,
+  now `hidden` rather than `veryHidden` (Apple Numbers dropped every dropdown pointing at a very hidden
+  one), so the very-hidden test alone stopped skipping it, and picking it by index would import a list
+  of options as data. Any other hidden sheet still counts. By name it is still reachable. A workbook
+  with NO worksheet is refused with `The workbook has no worksheets.`, plus `It holds only chart sheets,
+  which the import skips.` when `dropped` holds `chartSheets` (so `selectSheet` takes `dropped`); the
+  old "Available sheets: ." listed nothing and explained nothing.
+- **`importFromArrayBuffer` accepts an `ArrayBuffer` view** (a `Uint8Array`, a `subarray`, a
+  `DataView`): the plugin entry copies exactly the view's bytes (`byteOffset`, `byteLength`) before
+  either engine sees them. The native reader used to fail on a view with a `DataView` parse error
+  while ExcelJS accepted it.
+- **Disabling the plugin while a file is being read rejects the call** with the plugin-disabled
+  message instead of applying the result; `#assertEnabled()` and the destroyed-instance check run
+  again after the read and before `beforeImport`.
 - **An unqualified list range reads from the sheet the validation sits on.** Excel stores a Data Validation →
   List → range-on-this-sheet as a bare `$C$1:$C$10`; only a range on another sheet carries a `Sheet!`
   qualifier, and the export's own `_HotValidation` helper is the only shape the round-trip tests ever
@@ -89,7 +155,52 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   output for those currencies came back as `time` columns with `1234.5` turned into `12:00:00`.
   `inferCellType` therefore classifies `captureCurrency(numFmt).rest`, and `captureCurrency` recognizes a
   bare ISO code or dollar composite (`BARE_CURRENCY_REGEX`, anchored to the `#`/`0` digits so `YYYY-MM-DD`
-  is never a currency) on top of the symbol table.
+  is never a currency) on top of the symbol table. The classification lives in
+  `../../utils/xlsxEngine/numFmtCode.ts` (`classifyTemporalFormat`, `captureCurrency`,
+  `stripFormatDecorations`), shared with the native reader's `date1904` shift through
+  `isTemporalFormatCode`, so a serial the reader shifted is always one the import types as a date or a time.
+  `captureCurrency` also reads a quoted symbol at either end (`"$"#,##0.00`, Excel's en-US Currency style),
+  before the decoration strip deletes every quoted literal; only a symbol in the table counts, so
+  `"Total "0` stays a label. **A bare three-letter code counts only when it is an ISO 4217 code** (review round 7):
+  `Intl.supportedValuesOf('currency')`, or `FALLBACK_CURRENCY_CODES` in `numFmtCode.ts` where that is
+  missing. `0.00"MPH"`, `0" DAY"`, `#,##0" PCS"` and `"NIS"` used to import as made-up currencies. Padding
+  is deliberately NOT a signal: Excel re-saves `#,##0.00 USD` as `#,##0.00\ \U\S\D` and LibreOffice
+  writes `#,##0.00" RON"`, both real currencies. The cost: a unit label that is also a real code stays
+  ambiguous and reads as the currency (`0.0" KGS"` is the Kyrgyz som).
+- **Date tokens are read from a strip that leaves a SPACE for each literal** (`stripFormatDecorations(…,
+  { separateLiterals: true })` in `excelDateFmtToIntlOptions`). Deleting the escapes fused
+  `dddd\,\ d\ mmmm` into one `ddddd` weekday run and the day of the month was lost, on the built-in
+  engine only (ExcelJS hands the code over unescaped). The numeric classifiers keep the plain strip.
+- **A value its format cannot carry stays a NUMBER with `numFmt:<pattern>` in `dropped`**
+  (`isValueOutsideFormat`, part of `inferForCell`'s cache key): a duration past its elapsed section, and a
+  serial outside 0–2958465 or non-finite under a date or date-time format (it used to become
+  `0NaN-NaN-NaN` or `10000-01-01`). A `time`/`intl-datetime` type whose format shows fractions of a
+  second (`ss.000`, id 47) keeps its type and carries `unsupportedNumFmt`, so the mapper reports any
+  inferred type's `unsupportedNumFmt`, not only a numeric one's. A zero section that shows text or
+  nothing (`#,##0;-#,##0;"-"`) is reported like a negative section the grid cannot show, and `\ `
+  in a negative section reads as the space it is. `General` is matched case-insensitively
+  (`isGeneralFormatCode`).
+- **An elapsed-time section (`[h]`, `[hh]`, `[m]`, `[mm]`, `[s]`) is a `time`, decided on the raw code
+  first.** Stripping the bracket first left `[h]:mm` as `:mm`, a bare month, so a timesheet imported as
+  1899 dates. `excelDateFmtToIntlOptions` tokenizes the sections
+  (`stripFormatDecorations(code, { keepElapsed: true })`): `[m]`/`[s]` are always minute/second, and `[h]`
+  writes a 24-hour `hour` (`hour12: false`); leaving the hour out (the first version) rendered `13:30` as
+  `30`. `Intl` has no elapsed components, so those options fit only a duration under the LEADING
+  section's capacity – a day for `[h]`, an hour for `[m]`, a minute for `[s]`. A longer (or negative)
+  one stays a NUMBER with `numFmt:<pattern>` in `dropped` (`exceedsElapsedFormat`): the grid value of
+  a time cell is `HH:mm:ss`, so 25:30 used to import as `01:30:00` and lose its day from the data, and
+  a re-export wrote `0.0625`. The verdict depends on the value, so it is part of the `inferForCell`
+  cache key.
+- **The mapper strips `_xlfn.`/`_xlws.`/`_xlpm.` from every formula, live and recorded** (`readFormulaText`,
+  through `utils/xlsxEngine/functionPrefixes.ts`), because both engines hand the stored text over verbatim
+  and HyperFormula shows `#NAME?` for a prefixed name. `result.formulas` is prefix-free too.
+- **Every formula walk in the mapper is budgeted.** A strip, or a shift by a non-zero window origin, charges
+  the formula's length into `CollectContext.walkedFormulaChars` BEFORE the walk and refuses through
+  `throwLimitExceeded` past `MAX_TRANSLATED_FORMULA_CHARS`: 4000 cells x 32 768-character formulas cost
+  41 s of regex under `colHeaders: 'firstRow'`. A formula needing neither walk is not charged.
+  The count starts at the snapshot's `translatedFormulaChars`, what the native reader's shared-formula
+  translation already spent of the same budget (review round 12): with two separate budgets one 12 kB
+  file took 17.4 s in the reader and about 12 s more here before the mapper refused it.
 - **A list validation is resolved once per formula per pass** (`resolveDropdownMeta`, cache on
   `CollectContext.listMetaByFormula`). A validated column repeats the same formula on every cell and
   `readRangeValues` walks the whole range each time, so a 100k-row dropdown over a 1,000-row list used to
@@ -98,21 +209,88 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   source list per cell. Do not clone the meta per cell.
 - **Guard `this.hot` after every `await`.** The workbook read (and `blob.arrayBuffer()`) is the plugin's
   async boundary; `BasePlugin#destroy` deletes `hot`, so a grid torn down mid-read used to surface as a raw
-  `Cannot read properties of undefined`. Both entry points now reject with a Handsontable error instead.
+  `Cannot read properties of undefined`. Both entry points now reject with a Handsontable error instead,
+  and a call made AFTER `destroy()` says the instance is destroyed (`#assertEnabled` checks `this.hot`
+  first), not that `importFile` is `false`. `#assertAlive(phase)` names the step: `while the workbook was
+  being read` right after the read, `before the import was applied` for the checks after it (a
+  `beforeImport` handler that destroys the grid runs once the read has finished).
+- **`disablePlugin()` takes an apply ticket too** (review round 12), recorded as `#disabledAtTicket`, so an
+  import still reading when the plugin is turned off is rejected even after the plugin is turned back on:
+  `#assertEnabled()` sees only the state at apply time. `#assertLatest` calls `#assertEnabled()` first, so a
+  plugin still off keeps its `the plugin is disabled` message, and a re-enabled one gets `the plugin was
+  disabled while the file was being read`. Only a real `importFile: false` reaches `disablePlugin()`: the
+  plugin has no `updatePlugin()`, so a wrapper re-sending its settings mid-read cancels nothing.
+- **A `loadData()` that is not the import's own takes an apply ticket as well** (`#onBeforeLoadData`,
+  recorded as `#dataReplacedAtTicket`), so an import still reading when the grid loads other data is
+  rejected with `the grid's data was replaced while the file was being read`. A sheets bar switch is that
+  load: the result would otherwise land in the arriving sheet. The import's own `applyImportResult()`
+  runs under `#isApplying` and takes no ticket, so a newer import that applies first still rejects an
+  older one as stale, not as replaced. Only `loadData()` counts, not `updateData()`. Two loads take no
+  ticket: a DataProvider fetch (source `'dataProvider'`, compared as a string, because the plugin may not
+  import DataProvider), which reloads the data the import was started on, and a load a `beforeImport`
+  listener makes (`#isApplying` covers the hook too), the usual way to clear the grid before the result
+  lands. The sheets bar reads a narrower flag, `#isApplyingResult` (through `_isApplyingImport()`), set
+  around `applyImportResult()` only: a setting a `beforeImport` listener changes is the host's own, and
+  the bar keeps it as the grid-level value. Pinned by `importFile.unit.js` › "ImportFile overlapping
+  imports".
+- **Overlapping applying imports are ordered by when they STARTED, not when they finish (T90).** Each
+  `apply: true` call takes a ticket from `#latestApplyTicket` before its first `await` (in
+  `importFromBlob` that is before `blob.arrayBuffer()`, so the two entry points share one sequence), and
+  `#assertLatest(ticket)` rejects with `a newer import started before this one finished` after the read
+  and again after `beforeImport` (a handler can start a newer import). A rejected import applies nothing
+  and fires no `afterImport`. Three rules: the ticket is taken AFTER `#assertEnabled()`,
+  `requireEngine()` and `resolveImportOptions()`, so a call refused for its format, its engine or an
+  invalid option (`headerRows: 0`, a short `range`) never cancels one in flight (which is why both entry
+  points resolve the engine and the options before the read and hand `#importBuffer` the RESOLVED
+  options); `apply: false` takes no ticket, so a preview neither cancels nor is cancelled; and an older
+  import is rejected even when it finishes FIRST, because the grid would otherwise flash the file the
+  caller already replaced. A newer import that later fails its parse still cancelled the older one.
+  Pinned by `importFile.unit.js` › "ImportFile overlapping imports"; the import guide's "Several imports
+  at once" states the contract.
+- **ColumnSummary endpoints are not re-derived by an import.** A `reversedRowCoords` endpoint keeps the
+  destination row it computed for the previous data (`loadData` does the same), so the summary overwrites
+  an imported value. ColumnSummary is deliberately not changed; the guide documents turning `columnSummary`
+  off for the import and back on after it, pinned by `columnSummaryReimport.unit.js`.
 - **Never read `worksheet.model` in the ExcelJS adapter.** It is a getter that re-serializes the whole
   worksheet (every row, every cell) on each access. Merges are collected inside the row pass
   (`trackMerge`, keyed by the master cell) and sheet protection is `worksheet.sheetProtection`, which the
   reader sets straight from the XML.
+- **Per-cell meta is collected as RUNS per column, never as one entry per cell** (`CellPass.metaRuns`,
+  `recordMeta`). Consecutive rows of a column that derived the same meta object - every cell of one
+  number format, every slot one list validation covers - extend one `{ start, end, meta }` run, and
+  `dominantMeta` counts a run as the cells it spans. A `"row:col"`-keyed map cost one entry per
+  covered slot: one validation over `A1:E1000000` in a 2 kB file put five million entries in it
+  (+1.2 GB, 11 s in `mapWorkbook`). Only outlier runs are expanded, into the `cellsMeta` the result
+  has to carry anyway. Pinned by `mapper.unit.js` › "should keep the meta of a covered column as
+  runs, not one entry per cell", which counts `Map#set` calls. **Every `cellsMeta` entry is budgeted**
+  (`cellMetaEntries`, charged when an entry is created, before it is allocated; type outliers,
+  `readOnly` and `className` alike, a cell carrying several of them charged once): two list validations with different
+  formulas that split `A1:E1000000` leave half of every column as an outlier run, 2.5 M `cellsMeta`
+  entries from a 2 kB file. The sheet is refused once the expansion passes the larger of
+  `MIN_CELL_META_BUDGET` (1 M, `limits.ts`) and the cells that hold a value or a formula
+  (`CellPass.dataCells`), so real data is never refused for the settings its own cells carry. **The
+  same budget covers class names and borders, charged while the sheet is being read**: every
+  class-name run that cannot be lifted to a column (each run after a column's first) and every
+  `customBorders` entry (still one per bordered cell - the result shape did not change) count
+  against the larger of `MIN_CELL_META_BUDGET` and the data cells seen so far, with the same
+  message. Before that, `pass.classNames` and `pass.borders` were allocated BEFORE the `cellsMeta`
+  charge ran: a 101 KB alternating-fill file was refused only after 17 s / 2.2 GB, and a 103 KB
+  all-borders file was never refused (5 M entries, 2.7 GB). Pinned by `mapperCellMetaBudget.unit.js`,
+  which mocks the floor down to 1 000.
 - **Meta follows the `cell → column` cascade, dominant type first.** `placeMeta` lifts the meta MOST cells
   of a column share to `columns[c]` (the cached object itself, by reference) and emits `cellsMeta` only for
-  the cells that differ; `readOnly` and `className` are lifted the same way when every row of the column
-  agrees (`placeColumnWide`). One footer row or one stray `n/a` used to send a whole column through
+  the cells that differ; `className` is lifted when every row of the column agrees (`placeColumnWide`).
+  `readOnly` is collected as runs per column too, and `placeReadOnly` lifts it by MAJORITY: a column
+  locked on more than half its rows is `readOnly` as a whole and its unlocked rows get
+  `readOnly: false`, so one unlocked cell on a protected sheet no longer sends the rest of its
+  column through `cellsMeta` (and a protected blank sheet no longer allocates one entry per slot). One footer row or one stray `n/a` used to send a whole column through
   `setCellMetaObject` — a million retained meta objects on a million-cell sheet. `columns` is omitted
   when every entry is `{}`, because an array `columns` pins the grid's column count. A one-row sheet
   therefore lifts everything to the column level; that is the intended reading, not a bug.
 - **Inference is memoized per `numFmt` + value kind on the pass** (`inferForCell`,
   `CollectContext.inferredByFormat`), so a million-cell sheet with three formats parses each once and
   every cell of one format shares one meta object. Do not call `inferCellType` per cell from the mapper.
+  `recordUnsupported('numFmt', …)` runs on the cache miss only, never per cell.
 - **A blank cell on a protected sheet is locked.** OOXML treats a cell with no `<protection>` as locked,
   and an empty cell has none; `collectCells`' `null` branch records `readOnly` under protection too.
 - **Every option that sizes a loop is clamped to the sheet.** `resolveImportOptions` validates `range`
@@ -137,6 +315,14 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   result does carry is merged into an existing options object (`{ indicators: true }` on `hiddenRows`,
   `{ virtualized: true }` on `mergeCells`) rather than replacing it. `hiddenRows`/`hiddenColumns` are
   ALWAYS the object shape; only `mergeCells` may be a bare array.
+- **`result.rowHeights` lands in `minRowHeights`, never in `rowHeights` (`toSettings` in `applier.ts`).**
+  The reader keeps every row's `ht`, also the height the producing app measured and not one a user set
+  (no `customHeight` in the model): LibreOffice and Google Sheets write one on every row, 20 px for the
+  default 15 pt. The core `rowHeights` option is exact since 19.0 and clips, so those rows would render
+  below the theme's row height with their text cut. As a floor they keep the behavior they had. The
+  import also clears an exact `rowHeights` the grid held (it would win per row over the
+  imported heights), and the reset of an earlier import clears both settings. Applying only the user-set heights as
+  exact needs a `customHeight` flag on `SheetSnapshot`, in both adapters.
 - **The result is in sheet coordinates; the grid API takes visual ones.** `applyImportResult` runs every
   `cellsMeta` and comment coordinate through `toVisualRow`/`toVisualColumn`, because a `manualRowMove`
   array reorders rows inside `loadData`. Both return `null` for a trimmed index (`trimRows`,
@@ -158,9 +344,19 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   otherwise. There is no cell-meta home for inline style, so `mapper.ts` turns it into generated class names
   (`result.cellsMeta[].meta.className`) plus the declarations they need (`result.styles`), and borders into
   `result.customBorders`. `applier.ts#installImportedStyles` installs `result.styles` as one
-  `<style data-hot-imported-styles="<hot.guid>">` element in `hot.rootDocument.head` — one per instance,
+  `<style data-hot-imported-styles="<hot.guid>">` element in `hot.rootWrapperElement` (see the bullet above) — one per instance,
   `textContent` replaced (never appended) on every import — and `ImportFile#destroy()` removes it via
-  `removeImportedStyles(this.hot)` before `super.destroy()`. `toSettings` passes `result.customBorders`
+  `removeImportedStyles(this.hot)` before `super.destroy()`. `installImportedStyles` returns the rules it
+  installed (the rejected ones left out), and the plugin keeps them (`#installedStyles`) for the sheets bar, which
+  stores them per sheet through the `@private` `_exportImportedStyles()` and puts a sheet's rules back with
+  `_restoreImportedStyles()` (an empty map removes the element). Installing the returned rules again warns about
+  nothing, so a sheet switch never repeats the rejection warning. `#installedStyles` is written from
+  `applyImportResult()`'s `onStylesInstalled` callback, the moment the element is written: a listener that throws
+  later in the apply (a cell meta or settings hook) used to leave the element holding the new rules while the
+  tracked copy kept the old ones, and the next sheet switch dropped the styles. `disablePlugin()` empties
+  `#installedStyles` with the element. The applier's `updateSettings()` calls go through the plugin's
+  `#applyImportSettings` (the `updateSettings` option), which marks the payload object for `_isImportSettings()`:
+  the sheets bar records only the import's own payloads as the visible sheet's settings, never a listener's. `toSettings` passes `result.customBorders`
   straight through `updateSettings`. The exact selector `.handsontable tbody > tr > td.<class>` is
   load-bearing, and load-bearing in two directions at once. It has to keep matching the export's own
   class probe (`div.handsontable > table > tbody > tr > td.<class>`, no class on the `<table>` -
@@ -179,11 +375,17 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `string | null` and answers `null` for anything that is not six or eight hex digits — `fontFillRule`
   then omits the `color`/`background-color` declaration and `borderEntry` falls back to `#000000`. And
   `applier.ts#installImportedStyles` re-checks whatever it is handed, whoever built it: the class name must
-  match `htImported-<hash>` (plus the optional `-2`, `-3` collision suffix) and the declaration block must be
-  `property:value` pairs drawn from letters, digits, `#`, space, comma, dot, parentheses and hyphen, so no
-  value can carry a `}`. A failing rule is dropped and the rejected class names are named in one `warn()`.
-  Keep both layers: the first is what makes the output correct, the second is what keeps a future
-  declaration source (a second engine, a hook that mutates `result.styles`) from reopening the hole.
+  match `htImported-<hash>` (plus the optional `-2`, `-3` collision suffix) and every declaration in the
+  block must be on `IMPORTED_DECLARATIONS`, a per-property allow-list of exactly what `fontFillRule` emits:
+  `font-weight:bold`, `font-style:italic`, `text-decoration:underline`, and `color`/`background-color` with a
+  six-digit lower-case hex value. The first cut was a character-class regex that also let through
+  `color:expression(alert(1))`, `background-image:url(x.png)`, `-moz-binding`, `behavior` and `cursor`, so it
+  guarded against `}` and nothing else. A failing rule is dropped and the rejected class names are named in one
+  `warn()`. Keep both layers: the first is what makes the output correct, the second is what keeps a future
+  declaration source (a second engine, a hook that mutates `result.styles`) from reopening the hole. **A new
+  declaration `fontFillRule` learns to write must be added to `IMPORTED_DECLARATIONS` in the same commit**, or
+  it is silently rejected at install time; `applier.unit.js` derives every rule `fontFillRule` can produce
+  and asserts each one installs, so that drift fails a test rather than a user's import.
 - **The generated class name carries a collision suffix, and the applier's pattern knows about it.**
   `styleHash` is a djb2 hash, so `mapper.ts#registerStyleRule` appends `-2`, `-3`, … when the hashed name is
   already taken by DIFFERENT declarations, rather than letting one cell inherit another's style. Widening
@@ -193,13 +395,16 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   rejected) rule set removes the element rather than leaving an empty one — that is what clears the previous
   import's rules when the next workbook carries no styling at all. Guarding the call behind
   `if (result.styles)` left the stale stylesheet in the document.
-- **`result.customBorders` REPLACES the target's existing borders, and a workbook without borders leaves
-  them alone.** `toSettings` passes the array straight to `updateSettings`, and `CustomBorders#updatePlugin`
+- **`result.customBorders` REPLACES the target's existing borders, and a workbook without borders clears
+  them too.** `toSettings` passes the array straight to `updateSettings`, and `CustomBorders#updatePlugin`
   is disable → enable → `changeBorderSettings()`, so whatever the user had configured before the import is
-  gone once the import carries any border at all. The other half follows from `stripUndefined`: a workbook
-  with no borders produces no `customBorders` key, so `updateSettings` never sees one and the target keeps
-  its own. Both are the chosen semantics (an import describes a whole sheet, not a patch) — they are
-  documented in the guide's `## Styles` section, so change them in both places or not at all.
+  gone once the import carries any border at all. A workbook with no borders produces no `customBorders`
+  key, but `resetOmittedLayout` (with `importLayout` on, the default) then resets every
+  `RESETTABLE_LAYOUT_KEYS` entry the result omits and the grid carries, `customBorders` included — pinned
+  by `applier.unit.js` ("should clear the layout a previous import left"). Both are the chosen semantics
+  (an import describes a whole sheet, not a patch) — they are documented in the guide's `## Styles`
+  section, so change them in both places or not at all. Until DEV-3414 this bullet and the guide said the
+  opposite about the no-border case; the code was right.
 - **The read-only sentinel colors live in `../../utils/xlsxEngine/readOnlyStyle.ts`**, shared with the
   export. `READ_ONLY_FILL_ARGB`/`READ_ONLY_TEXT_ARGB` are what the export paints on a `readOnly` cell with
   no color of its own, and `fontFillRule` drops exactly those two values on a cell the import is about to
@@ -218,6 +423,272 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   without `comments: true` gets no comments and no `result.comments` key; the mapper reports the loss as
   `comments` in `dropped` so the console warning names it. The first demo target grid shipped without the
   option and the comment vanished silently before the `dropped` entry existed.
+- **A live formula that cannot RESOLVE in the grid imports its cached value.** A reference to a sheet the
+  Formulas engine does not hold (`Rates!A1`) shows `#REF!`, and a name the workbook defines but the
+  engine does not (`=SUM(Sales)`) shows `#NAME?` - and so does every formula depending on it - while the
+  file carries the value it evaluated to. `pushCellValue` therefore imports the cached value, lists the
+  formula in `result.formulas` and records `formula:otherSheet` / `formula:definedName`, the way
+  `formula:outOfRange` already worked. The plugin hands the mapper what the engine holds
+  (`MapperContext.formulaSheetNames`, `formulaNamedExpressions`, both lower-cased, and
+  `formulaSheetName`, the engine's name for the grid's OWN sheet). **The grid's own sheet name is not
+  "held" for a qualifier that also names another sheet of the workbook** (`isSheetKnown`): the import
+  replaces that engine sheet with the imported one, so importing `Sheet2` of a default-named workbook
+  left `=Sheet1!A1*2` live, reading the grid's own A1 instead of the workbook's `Sheet1`. Such a
+  qualifier imports the cached value with `formula:otherSheet`; a qualifier spelled like the grid's sheet
+  that names no workbook sheet stays live, and so does a sheet another grid holds in a shared engine.
+  Both readers carry the workbook's names (`WorkbookSnapshot.definedNames`, Excel's `_xlnm.` names left
+  out). **The ExcelJS reader flags every name `unsupported`** (it loses the scope and keeps one
+  definition of a name defined in several scopes), so on that engine no name is ever registered and none
+  counts as the engine's: a formula over one imports its cached value, even when the engine already
+  defines the name with the same text (the reader lost which scope it came from, so the match proves
+  nothing). ExcelJS 4.4's `definedNames.model` keeps only `$A$1`-style ranges: it drops a whole-column
+  name (`Sheet1!$B:$B`), a constant (`<definedName name="TaxRate">0.07`) and a relative one (`Data!G2`),
+  and a formula over such a name would stay live and show `#NAME?` with nothing reported. The adapter
+  therefore re-reads `xl/workbook.xml` with the built-in engine's zip reader and `parseWorkbook`
+  (`readWorkbookDefinedNames` in `adapters/native/read.ts`, `withLostDefinedNames` in `exceljs.ts`) and
+  appends every name the model lost, flagged like the rest (no ExcelJS-read name is ever registered or
+  matched). Where the part cannot be read again (no `DecompressionStream`), the model's names are kept as
+  they are. No bundle cost: `detect.ts` already imports both adapters. A multi-area name reaches the
+  mapper from both readers as its areas joined by commas; HyperFormula refuses the union, so its formulas
+  import cached values with `formula:definedName` and `definedNames:unsupported`. Each formula is charged
+  ONCE against `MAX_TRANSLATED_FORMULA_CHARS`, and that one charge covers the prefix strip, the reference
+  walk (which also judges each sheet qualifier, through the walk's own `qualifier` group), the
+  defined-name scan and the bare `TRUE`/`FALSE` walk. Charging every check separately refused files that
+  imported at 1a59dedd71.
+- **Array formulas import live; their spilled cells import empty** (DEV-3648, `pushCellValue`,
+  `recordLiveArray`). A PLAIN `<f>` that is one whole array-function call (`isWholeArrayFunctionCall`:
+  `=SEQUENCE(3)` with no `t="array"`, which is the export's own `formula:arrayExcluded` fallback)
+  records a one-cell legacy rectangle at its own address, so `spillsPastRef` settles it on its cached
+  value when the probe spills it (Excel intersects it to one value); one with a one-cell result stays
+  live. A dynamic array (`cm` on the master) goes in as written and spills. A legacy CSE
+  array goes in as `=ARRAYFORMULA(...)`, never double-wrapped (`unwrapArrayFormula`). So does a dynamic
+  one when the engine's `useArrayArithmetic` is off (`MapperContext.arrayArithmetic`, from `getConfig()`;
+  `HyperFormula.buildEmpty` defaults it off): such an engine evaluates `=A1:A3*2` as one value. The cost
+  is that the grid re-exports it as CSE. The ExcelJS engine cannot read `cm`, so it imports every array
+  as CSE. While the master is live, the cells its `ref` covers are pushed `null` (still typed from the
+  cached value): a cached value there would make the spill `#SPILL!`. The rectangle is recorded only when
+  the `ref` starts at the master, and is clipped to the window. A master that cannot go live (other
+  sheet, unresolved name, Formulas off) imports its cached values, spilled cells included, as before. **A
+  live master calling a function the engine does not register** (`MapperContext.registersFunction`, wired
+  to the engine's `getRegisteredFunctionNames()` - its own language, custom functions included - PLUS
+  `OFFSET` translated for the engine's language (`protectedFunctionNames`,
+  `engine.constructor.getLanguage(language).getFunctionTranslation('OFFSET')`): the instance list leaves
+  out `OFFSET`, which HF parses into a reference, and an `OFFSET(...)*2` master read as unregistered kept
+  its covered cells and showed `#SPILL!`. Never add the class's whole static
+  `getRegisteredFunctionNames(language)` list: it holds every plugin registered on the class, so an
+  engine built with `functionPlugins` (no FILTER) had its FILTER master judged registered, its covered
+  cells emptied and its spill `#NAME?`; HF 3.3 lacks UNIQUE, SORT, SORTBY, LET, VSTACK, TEXTSPLIT,
+  RANDARRAY) **records no rectangle** (`callsUnregisteredFunction`): it shows `#NAME?` and spills
+  nothing, so its covered cells keep their cached values instead of importing empty. The scan walks every
+  identifier followed by `(`, upper-cased, and shares the formula's one charge
+  (`readFormulaText(..., scansFunctions)`). The sweep over the rectangles charges the formula budget
+  (`beginLiveArrayRow`), so
+  many narrow arrays cannot make the walk quadratic. **HyperFormula, not the file's `ref`, decides the
+  spill** (`settleLiveArrays`): it sizes `FILTER` by its INPUT (`FILTER(A1:A3,A1:A3>1)` with `ref` B1:B2
+  and text in B3 is `#SPILL!`), and a one-value CSE array (`{=A1*2}` over B1:B3) is one cell. So each
+  rectangle keeps its master's cached value and recorded text, and every cell it empties keeps its cached
+  value (`LiveArraySweep.emptied`, owner = the span reaching furthest, `liveArrayCovering`). After the
+  walk, ONLY when a rectangle was recorded, `MapperContext.probeLiveArrays` builds a scratch engine
+  (`importFile.ts` `liveArrayProbe`: `engine.constructor.buildFromSheets` with `engine.getConfig()` - no
+  import of hyperformula, the base bundle keeps it external) over the mapped `data`, one sheet named like
+  the engine's grid sheet, plus the engine's names and `pass.namedExpressions`, added inside ONE
+  `suspendEvaluation()`/`resumeEvaluation()` pair (unsuspended, each add re-evaluated the scratch
+  sheet; a `batch()` makes the adds quadratic, as on the applier's side). A name the scratch engine
+  evaluates to `#REF!` (one over an engine sheet it does not hold, `=Rates!$A$1`) does not count as
+  defined (`definesName`), so a master over it reads outside the probe and `IFERROR(Rate,0)` cannot
+  turn the probe's `#REF!` into a settling `#DIV/0!`. Per rectangle: master `#SPILL!`
+  -> master and its emptied cells take their cached values, the text goes to `formulas`,
+  `formula:arraySpill`, unless the file caches an ERROR for the master (Excel 365 saves a blocked
+  spill as a cached `#VALUE!`): then it stays live and shows `#SPILL!`, or the cell would hold a
+  frozen `#VALUE!` and lose its formula (HF 3.3 re-spills it only when the formula is entered again,
+  not when the blocking cell is cleared: measured on the engine itself); master another error (`masterState` answers HF's error type) -> the same when the
+  file caches a VALUE for it (`LiveArrayRect.cachedIsError` false): HF 3.3 shows `#VALUE!` for a lone
+  range (`=A1:A3`, `=(A1:A3)`, `=Sheet1!A1:A3`), a range name (`=Sales`, `FILTER(Sales,Sales>1)`),
+  `INDEX(A1:A3,0)` and `ARRAYFORMULA(A1:A3)`, which Excel spills, and their covered cells would import
+  empty under a `#VALUE!` master. So `formula:arraySpill` means "HF cannot evaluate this array the way
+  Excel did", not only `#SPILL!`. Left as written: `#REF!`, `#NAME?`, an error the file caches too or
+  caches NO value for (openpyxl: the error proves nothing a cached value could replace), and - unless it
+  is `#SPILL!` - any master that reads OUTSIDE the probe (`settledState`, `readsOutsideProbe`): another
+  engine sheet (`LiveArrayRect.readsOtherSheet`, set when `rebaseImportedFormula` asks `isKnown` about a
+  qualifier) or an engine name the scratch lacks (`LiveArrayRect.names` from `engineNamesIn` over
+  `CollectContext.engineNames`, checked against the probe's `definesName`; a name the engine scopes to
+  the grid's sheet is not copied). The error code cannot tell those apart: HF turns an unknown sheet into
+  a REF node INSIDE the AST, so `FILTER(A1:A3,ISNUMBER(Other!A1:A3))` is `#N/A` and
+  `A1:A3/IFERROR(Other!B1,0)` is `#DIV/0!` in the scratch while the real engine evaluates both; settling
+  on them would freeze a live array to its cached values. A legacy CSE master (`array.dynamic` false)
+  that the probe spills a VALUE past its `ref` settles like `#SPILL!` too (`spillsPastRef`, after the
+  read-outside check): Excel never resizes a CSE ref, so `{=A1:A3*2}` with `ref` C1 shows one cell, and
+  live it filled C2:C3. A DYNAMIC master that is an error other than `#REF!`/`#NAME?` is asked the
+  same: a `FILTER` matching nothing is one `#CALC!` cell in Excel (cached as `#VALUE!`, which the built-in reader resolves to
+  `#CALC!` through `xl/richData`), while HF fills
+  every row it reserved with `#N/A`; a dynamic master with a value never is, since Excel resizes it as
+  HF does. Only the cell right below the ref and the one right of it are asked, through
+  the probe's `spillsValueInto` (part of an array AND not empty): the empty room HF reserves past a
+  `FILTER` result is part of the array, and the ExcelJS reader reads every array as CSE, so asking
+  `isCellPartOfArray` alone would settle every such `FILTER` on its cached values. Do NOT replace this with a check after
+  `loadData` in the applier: `apply: false` must return the settled data. Otherwise an emptied cell not
+  `isCellPartOfArray` takes its cached value. One probe, before anything is put back; a probe that
+  throws, while built, set up (`getSheetId`, the name adds) or asked, changes nothing, and the scratch is
+  destroyed either way. A spilled master with no cached value (openpyxl) imports empty and also records
+  `formula:noCachedValue`. HF 3.3 evaluates array arithmetic over a RANGE name (`FILTER(Sales,Sales>1)`)
+  to `#VALUE!` in the grid's engine too, so such a master imports its cached values like the lone range
+  above. It runs in the mapper, so `apply: false` returns the settled data. Cost: one extra HyperFormula
+  build of the sheet, about +85 ms on 10,000 rows x 5 columns (10,000 formulas; ~110 ms -> ~200 ms for
+  the whole import). The probe runs once ANY rectangle is recorded, a one-cell `cm="1"` master
+  included (Excel 365 saves `=SUM(A1:A3*2)` that way, and so does the export), so 50,000 such cells
+  cost about +0.6 s and 1,000 masters of 16,000 characters about +5 s, which the same formulas without
+  `cm` do not. Kept deliberately: the probe also settles a one-cell master HF evaluates to an error
+  where the file caches a value (`=Sales` over a range). The scratch engine evaluates the sheet again, so volatile functions (`RAND`, `NOW`)
+  and custom functions registered on the HyperFormula class run a second time during the import.
+- **`FORMULA_IDENTIFIER_REGEX` matches an error literal whole** (`#N/A`, `#DIV/0!`, `#NAME?`, ...,
+  case-insensitive; `isLiteralToken`), like a string or a quoted sheet name. Read as the names `n` and `a`,
+  `#N/A` let a workbook name `N` or `A` the import could not take (one scoped to another sheet) freeze
+  every formula spelling `#N/A` to its cached value. The newer literals (`#FIELD!`, `#BLOCKED!`, `#UNKNOWN!`,
+  `#CONNECT!`, `#BUSY!`, `#EXTERNAL!`, `#PYTHON!`) are listed too. `namesIn`, `rewriteBareBooleans`,
+  `callsUnregisteredFunction` and `callsSpillOperator` all skip such a token. `namesIn` also skips a
+  word that is part of a reference (`isReferenceWord` in `utils/xlsxEngine/definedNames.ts`, shared with
+  the export's `namesUsedIn`): the `G` of `$G$2`, `G$2` or `G:G`. `$` is not a name character, so the
+  regex hands that `G` over as a word, and a one-letter name the ExcelJS reader flagged would
+  otherwise send every such formula to its cached value.
+- **A cached rich error HyperFormula does not know imports as `#VALUE!`** (DEV-3665, `cachedValueOf`,
+  `MapperContext.recognizesErrorCode`). The native reader writes the code of an error Excel stores as a
+  rich value (`#CALC!`, `#FIELD!`, ...) over the `#VALUE!` the file caches; HF reads only its language's
+  error table (`engine.constructor.getLanguage(language).errors`, wired by `errorCodeCheck`) as errors, so
+  `#CALC!` went in as TEXT and `=IFERROR(E1,"none")` answered `#CALC!`. Only with the Formulas plugin
+  on (off, the grid shows the real code), and never for an `OOXML_ERROR_CODES` code: a file caches
+  those as they are, and remapping one for a non-English engine (`#DIV/0!` is `#DZIEL/0!` in `plPL`)
+  would change a value the reader did not write.
+- **A formula calling `ANCHORARRAY` or `SINGLE` imports its cached value** (DEV-3648, `callsSpillOperator`
+  in `pushCellValue`, `formula:spillReference`). Excel stores the spill operator `B1#` as
+  `_xlfn.ANCHORARRAY(B1)` and implicit intersection `@A1:A3` as `_xlfn.SINGLE(A1:A3)`; both readers hand
+  the text over verbatim and the prefix strip leaves `ANCHORARRAY(...)`/`SINGLE(...)`, which HF 3.3 lacks
+  (`#NAME?`, and `COUNTA(ANCHORARRAY(B1))` silently answered 1). The check runs on every live formula, not
+  only array masters, and is charged with the formula's one walk (`SPILL_OPERATOR_HINT` in
+  `readFormulaText`). Deferred, not built: rewriting `ANCHORARRAY(B1)` to the master's recorded `ref`
+  (`B1:B3`) when that master imports live, which would keep such formulas live. A DEFINED NAME over the
+  spill operator (`Spill = _xlfn.ANCHORARRAY(Sheet1!$B$1)`, Excel's `Sheet1!$B$1#`) is left out with
+  `definedNames:unsupported` (`callsSpillOperator` in `collectNamedExpressions`), also on an engine that
+  cannot list its functions, where `callsUnregisteredFunction` answers nothing.
+- **A bare `TRUE`/`FALSE` in a live formula or a name definition is rewritten to `TRUE()`/`FALSE()`**
+  (DEV-3648, `rewriteBareBooleans`, called by `readFormulaText`): HyperFormula reads the bare literal as
+  an unknown name (`=IF(TRUE,1,2)` is `#NAME?`). `readFormulaText` returns `{ recorded, live }`:
+  `ImportResult.formulas` records `recorded` (the file's text, prefixes stripped), the engine gets
+  `live`. It rewrites after the prefix strip and before `rebaseImportedFormula`, shares the formula's ONE
+  budget charge (a `/true|false/i` hit charges, like the strip and the walks), and skips a quoted token,
+  an error literal, one followed by `(`, `!` or `]`, or preceded by `!`, `.`, `[`, `@`, `$` or a digit. A
+  letter or `_` before it never reaches that check: `FORMULA_IDENTIFIER_REGEX` takes it into the token
+  (`MYTRUE`). The `]` rule is what catches `Tbl[ TRUE]`; `Tbl[TRUE]` and `[@TRUE]` are caught by `[`/`@`
+  already. Pinned in `mapper.unit.js`, including the `recorded`/`live` split on a cached-value import
+  (`IF(TRUE,Other!A1,2)`).
+- **The workbook's defined names are registered as HyperFormula named expressions** (DEV-3648,
+  `collectNamedExpressions` in `mapper.ts`), so a formula over one imports live. It runs only with live
+  formulas on AND `MapperContext.canAddNamedExpression` given (`importFile.ts` wires it to the engine's
+  `validateFormula` AND `isItPossibleToAddNamedExpression` - the latter accepts a definition that does
+  not parse, `=A1:` or `=SUM(`, which would register an erroring name; every engine question in these
+  checks goes through `answersTrue`, because HF 3.3's parser throws `RangeError` on ~100-deep nesting and
+  an uncaught throw failed the whole import; an engine without that method registers nothing and the old
+  cached-value path applies). Rules: a name scoped to ANOTHER sheet is ignored, unreported; one scoped to
+  the imported sheet is registered at WORKBOOK scope (the grid owns one engine sheet), ahead of a
+  workbook-scoped name spelled like it. **A name the engine already lists (`formulaNamedExpressions`) is
+  never re-registered, and is trusted only when its definition is the file's**
+  (`MapperContext.definesNamedExpression`: `getNamedExpressionFormula(name)` ===
+  `normalizeFormula('=' + rebased)` - HF's normal form, canonical sheet case and upper-case functions, is what
+  `getNamedExpressionFormula` answers). **A name the engine holds as a CONSTANT
+  (`addNamedExpression('TaxRate', 0.07)`) has no stored formula** (`getNamedExpressionFormula` answers
+  `undefined`), and the export writes it as a literal (`0.07`): `sameConstant` compares
+  `getNamedExpressionValue(name)` with `calculateFormula('=' + rebased, getSheetId(formulaSheetName))`
+  (side-effect free; an error value compares by its code; a throw, a range, or no sheet id is unequal).
+  Without it, re-importing your own export would freeze every formula over a constant name. **A name the
+  engine defines on the grid's own sheet counts too**: `engineNamedExpressions` lists
+  `listNamedExpressions(getSheetId(sheetName))` as well, and the comparison reads the formula and value
+  in that scope (`resolvingScope`), because HyperFormula resolves a sheet-scoped name first, so the
+  user's scoped `Sales` would shadow the file's handed over at workbook scope. **A string constant with an
+  escaped quote** (`"a""b"`, what the export writes for `a"b`) does not parse in HyperFormula
+  (`validateFormula` is false), so `toNamedExpressionInput` (`applier.ts`) turns it into the
+  apostrophe-prefixed text `'a"b`, a string constant whatever follows the apostrophe; the check, the
+  comparison (compared as that text), the probe and the applier all go through it, while
+  `ImportResult.namedExpressions` keeps the file's `"a""b"`. Equal: the formulas over it stay live.
+  Different, or not expressible: the name goes INTO `unresolvedNames`, so its formulas import cached
+  values with `formula:definedName`, plus `definedNames:unsupported`, so a re-import of a changed file
+  never reads the previous import's range. Replacing the old definition (`changeNamedExpression`) is
+  deliberately not done: the engine may be shared and nothing tags a name as the import's. A definition
+  goes through `readFormulaText` (prefix strip, budget charge) and `rebaseImportedFormula` with the
+  cell's shift, and **a reference to the imported sheet is re-qualified with the grid's sheet name**
+  (`selfAs` = `formulaSheetName`) instead of dropped: HyperFormula 3 reads an unqualified `$F$1:$F$3` in
+  a named expression as relative and refuses it (`NoRelativeAddressesAllowedError`; `isItPossible...`
+  answers false). A definition that is rejected by the shift, names an unknown sheet, is refused by the
+  engine (relative references), or uses a left-out name (followed transitively through `namesIn`) is left
+  out with ONE `definedNames:unsupported`, and the formulas over it keep `formula:definedName`. **A name
+  a reader flagged `unsupported`** (every ExcelJS name; a native definition too long to read, a scope
+  that names no sheet) **is never registered and never matches an engine name**: it goes into
+  `unresolvedNames` and `flaggedNames` even when the engine lists the name, before the
+  `definesNamedExpression` comparison (and `unresolvedDefinedNames` puts it there when
+  `collectNamedExpressions` does not run, `canAddNamedExpression` absent). It sorts after a valid name of
+  its scope (an orphan scope reads as workbook scope and must not hide the real workbook name), while a
+  flagged name scoped to the imported sheet still wins over a workbook-scoped one. **A workbook-scoped
+  definition over a name the imported sheet scopes too is left out** (`shadowed` in
+  `collectNamedExpressions`): the sheet's one is handed over at workbook scope, so the engine would read
+  it where the file reads the workbook one (`Triple = Rate*3`). It goes into `unresolvedNames` with
+  `definedNames:unsupported`, and the names over it follow through the left-out chain. **A flagged name
+  records `definedNames:unsupported` only when a formula uses it** (`usesUnresolvedName` checks
+  `flaggedNames`): ExcelJS flags every name, so recording it up front warned on every ExcelJS import of a
+  workbook with names. The built-in reader still records it on read for the names IT flags (too long,
+  orphan scope; `parseWorkbook`), whether or not a formula uses them. Registered names are removed from
+  `CollectContext.unresolvedNames`. The result carries them in `ImportResult.namedExpressions` (formula
+  without `=`); `applier.ts#addNamedExpressions` adds them FIRST in the batch (before `columns` and
+  `loadData`; after `loadData` the formulas evaluate to `#NAME?`) and re-asks
+  `isItPossibleToAddNamedExpression` per name, skipping a refused one: a `beforeImport` handler or
+  another grid on a shared engine can define the name after the mapper asked, and `addNamedExpression`
+  would throw mid-batch with the grid half-applied. A refused name is reported as
+  `definedNames:unsupported`, like one whose add throws: the formulas over it are already live and
+  read `#NAME?` or the engine's other definition. An engine the caller suspended
+  (`isEvaluationSuspended()`) gets the adds with no suspension of its own, whose end would resume
+  the caller's suspension too, as `Formulas` does for a restore inside its own batch. Not undoable:
+  `loadData` resets the grid's history, so the import never was an undo step. A name cycle
+  (`A = B`, `B = A`) registers both and evaluates `#CYCLE!`. The adds run between ONE
+  `suspendEvaluation()` and its `resumeEvaluation()` (none when every name is refused): on a running
+  engine every `addNamedExpression` recalculates it and fires `valuesUpdated`. **Never
+  `engine.batch()` here**: in HyperFormula 3.3 every add inside a batch calls `clearRedoStack`, which
+  walks the undo entry the batch has built so far, so the adds are quadratic (54,650 constant names
+  took 18-25 s; suspended, about a second). `applier.unit.js` pins it with 60,000 names under a time
+  bound (0.5 s against 10 s). Do not route it through the plugin's `registerNamedExpressions` – it
+  takes another input shape and swallows errors. **A suspended HyperFormula 3.3 evaluates nothing**:
+  `addNamedExpression` only records the name, and the evaluation runs in `resumeEvaluation()`, so a
+  `RangeError: Invalid array length` over a huge range leaves `resumeEvaluation()` itself.
+  `addNamedExpressions` therefore wraps the suspend, the adds and the resume: on a throw it resumes
+  evaluation if the engine is still suspended, removes every name THIS call added (which one threw is
+  unknown), each removal in its own `try` because a removal recalculates and can throw again, and
+  pushes `definedNames:unsupported` onto `result.dropped` (the warning has already been logged by
+  then); the import goes on. Each add is wrapped too (`addOrReport`),
+  for an engine that refuses or evaluates on the add itself. **A name removed this way leaves its
+  formulas showing `#NAME?`**: the mapper already put them into the data live, and no cached value is
+  available at that point, so the report (`definedNames:unsupported`, without `formula:definedName`) is
+  the only trace.
+- **A definition is bounded BEFORE the engine sees it** (`collectNamedExpressions`, constants in
+  `utils/xlsxEngine/limits.ts`). HyperFormula parses a definition twice in `canAdd`, far slower than the
+  import's own walk, and evaluates it when the applier resumes the engine, used or not, and the formula
+  budget's figures cover neither. So: a definition over `MAX_DEFINED_NAME_LENGTH` (8,192, Excel's limit), or read
+  once `MAX_DEFINED_NAME_CHARS` (256 Ki per import, counting every definition within the per-definition
+  cap: one over it is never parsed, so it spends nothing) is spent, is not even rebased; a rebased one
+  whose ranges cover more than `MAX_DEFINED_NAME_CELLS` (100,000, `closedReferenceArea` in
+  `formulaRefs.ts`) or bring the handed-over names past `MAX_DEFINED_NAME_TOTAL_CELLS` (1,000,000;
+  charged only for a name the engine evaluates - one `canAdd` accepts, or one the engine already defines,
+  whose comparison evaluates it - never for one `canAdd` refuses), or that calls a function the engine
+  does not register (`callsUnregisteredFunction`: every formula over a `=UNIQUE(...)` name shows
+  `#NAME?`) is not handed over (`isTooCostly`). Each goes into `unresolvedNames` with
+  `definedNames:unsupported`, so the formulas over it import cached values with `formula:definedName`.
+  The checks run for a name the engine already defines too: `sameConstant` evaluates the file's
+  definition with `calculateFormula`. **A whole column or row IS counted, against the engine sheet it is
+  on**: `closedReferenceArea` counts a column span as columns x rows and a row span as rows x columns
+  (each at least 1), because HyperFormula evaluates it over the sheet's other axis. The names are added and evaluated when the applier resumes the
+  engine, BEFORE `loadData` replaces the grid's sheet, so the sheet is sized as the engine holds it then
+  (`MapperContext.sheetExtent`, `getSheetDimensions`): an unqualified span or one on the grid's own
+  engine sheet by the larger of that and the imported window, a span on another engine sheet by that
+  sheet. A 3-row file imported into a 20,000-row grid counts `SUM(Sheet1!$A:$J)` as 200,000 cells. Without
+  `getSheetDimensions` on the engine, every span is sized by the window. One column (`$B:$B`, the
+  dynamic-list idiom) of a sheet under 100,000 rows stays within the cap. Not bounded: a range a
+  function builds at any size (`OFFSET(Sheet1!$A$1,0,0,1000000,100)`, `SEQUENCE`, `INDEX`), which
+  `closedReferenceArea` cannot size.
 - **A live formula is shifted back into grid coordinates, and one that cannot be is dropped.** The export
   prepends a header row and a row-header column and shifts every relative reference forward by them
   (`normalizeFormula` in `../exportFile/types/xlsx/formula-utils.ts`), so the grid's `=B1*0.2` is written
@@ -226,13 +697,26 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   walks a formula. A reference that would land above row 1 or left of column A pointed into the removed
   header band: the formula cannot be expressed in grid coordinates at all, so the cached value is imported,
   the formula is recorded in `result.formulas`, and `formula:outOfRange` lands in `result.dropped`.
-  **A qualified reference (`Rates!A1`, `'My Rates'!$A$1:$B$2`) is never shifted, in either direction**: the
+  **A qualified reference to ANOTHER sheet (`Rates!A1`, `'My Rates'!$A$1:$B$2`) is never shifted by
+  `shiftFormulaReferences`, in either direction.** A qualifier naming the imported sheet itself
+  (compared case-insensitively, `=Sheet1!B2*2` inside `Sheet1`) is dropped and the reference shifted
+  like an unqualified one, so it stays right after a header drop and is not mistaken for
+  `formula:otherSheet` when the grid's sheet has another name. A bare qualifier right after `]`
+  (`[1]Sheet1!A1`, an external workbook) or `:` (`Sheet1:Sheet3!A1` or `Sheet1!A1:Rates!A3`, a 3D
+  reference) names no sheet the engine holds, so it imports the cached value with `formula:otherSheet`
+  – except a qualifier after `:` that repeats the one of the reference right before the colon
+  (`Sheet1!A1:Sheet1!A3`, which LibreOffice and other writers produce), judged like the first end
+  (`isPlainQualifier` in `formulaRefs.ts`) (a shared formula's translation does move it – see `../../utils/xlsxEngine/AGENTS.md`): the
   band exists on this sheet only, so the regex captures the whole `Sheet!ref[:ref]` as an untouched token
   and the mapper never sees it. Shifting it used to turn `=Data!A2` into `=Data!A1` under a `firstRow`
   header and drop `=Data!A1` outright (Bugbot on #13551). The cell alternative is case-insensitive (`i`
   flag: HyperFormula accepts `=sum(a1)` and the export hands the source string over as typed) and guarded
   on the left by `(?<![\p{L}\p{N}_.$])`, so a defined name (`TOTAL1` → `AL1`) or a structured reference
-  (`TABLE1[Col]` → `BLE1`) never yields a reference. Whole-column (`A:A`) and whole-row (`2:2`) spans are
+  (`TABLE1[Col]` → `BLE1`) never yields a reference, and on the right by `(?![\d(\p{L}_.])`, so a name
+  that STARTS like a cell is not one either: `HEX2DEC(` holds `HEX2` and `Q1Sales` holds `Q1`, and a
+  header shift turned them into `HEX1DEC(` / `Q0Sales`, a shared-formula copy into `HEX3DEC(` (all twelve
+  `BIN2DEC`-style engineering functions). The same patterns drive `translateSharedFormula`, so the
+  built-in reader's shared-formula copies are covered by the one change. Whole-column (`A:A`) and whole-row (`2:2`) spans are
   their own alternatives, each end reaching the mapper with `null` on the open axis, so `=SUM(A:A)` follows
   a prepended row-header column to `SUM(B:B)` instead of passing through and summing the header column.
   The sheet-name alternatives are deliberately
@@ -257,14 +741,55 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   one from the cell's `locale` the way `Intl` does, so the clock the source rendered survives). The round trip is pinned in
   `__tests__/inference.unit.js` ("date format round trip"), the only place either plugin's tests import
   across the boundary; source must still never import from `../exportFile`.
-  The *value* the grid stores is unchanged — still `YYYY-MM-DD`, `HH:mm:ss` or `YYYY-MM-DD HH:mm:ss` — and a
-  date-time format stays a `date` cell whose `dateFormat` carries both halves. `mapper.ts` tells the two
-  apart by `dateFormat.hour`, never by inspecting a format string.
+  The *value* the grid stores is `YYYY-MM-DD`, `HH:mm:ss` or `YYYY-MM-DD HH:mm:ss`. **A date-time format
+  is an `intl-datetime` cell carrying `dateTimeFormat`, never a `date` cell.** It used to be a `date` cell
+  whose `dateFormat` carried both halves, but `dateRenderer`/`dateValidator` accept an ISO date ONLY
+  (`helpers/dateTime.ts#parseToLocalDate`), so every imported date-time cell rendered `#bad-value#` and
+  validated invalid. `intl-datetime` is the type the export writes a date-time `numFmt` from
+  (`intlDateTimeFmtToExcelNumFmt`), and its renderer, validator and editor all accept the space-separated
+  value (`ISO_DATETIME_REGEX` takes `T` or a space; the editor normalizes to `T` on save). `classifyTemporal`
+  decides the type; `toGridValue` switches on the inferred type, never on a format string or on
+  `dateFormat.hour`. Pinned by `mapper.unit.js` ("date-time cells", a real jsdom render) and the round-trip
+  block in `inference.unit.js`.
+- **Every layout value the file controls is bounded in `mapLayout`, whatever engine read it.** The reader
+  validates too, but the mapper is the second layer, so the ExcelJS adapter (or any future engine) cannot hand
+  `updateSettings` nonsense: a column width or row height that is not a finite, positive number inside
+  Excel's own maximum (260 width units, 409.5 pt — `MAX_EXCEL_COLUMN_WIDTH`/`MAX_EXCEL_ROW_HEIGHT_POINTS`,
+  the mapper's aliases of `MAX_COLUMN_WIDTH_UNITS`/`MAX_ROW_HEIGHT_POINTS` in `utils/xlsxEngine/units.ts`,
+  checked before the unit conversion; the width cap is 260, not Excel's 255-character UI limit, because the
+  stored width adds the cell padding, up to `255 + 5 / MDW` – see the JSDoc there) or that rounds to 0 px
+  becomes `undefined` (`toLayoutPixels`); a freeze
+  count is floored, shifted and clamped to `[0, count]`, with `NaN` freezing nothing (`toFreezeCount`); and a
+  hidden index that is not an integer is dropped ON ITS OWN (`toHiddenIndexes`). The last one matters more
+  than it looks: `HiddenRows`/`HiddenColumns` reject the WHOLE list when one entry is invalid, so a single
+  `0.5` used to unhide the rows the file legitimately hid. Observed before the fix: `colWidths [-350,
+  7e+300, Infinity]`, `rowHeights [1.33e300]`, `fixedRowsTop 2.7`. A width of `0` is now omitted rather than
+  imported as a 0 px column; Excel expresses a hidden column with the `hidden` flag, which is carried.
+- **No regex may rescan a number format from every `[`, and a format over 255 characters is not parsed.**
+  A number-format code is file data of unbounded length. `stripFormatDecorations`' (`numFmtCode.ts`) `\[[^\]]*\]` and
+  `CURRENCY_TOKEN_REGEX`'s `[^\]-]*` body both started a match at every `[` and ran to the end of the string
+  when no `]` followed, so a 2 KB file carrying a 100 000-character `[[[…` format hung the tab for 7 s. Both
+  bodies now exclude `[` (`\[[^[\]]*\]`, the same fix the engine's `isTemporalFormat` carries), which makes
+  each match attempt stop at the next `[`; the elapsed-keeping variant
+  `\[(?!(?:h+|m+|s+)\])[^[\]]*\]` is linear for the same reason. On top of that, `inferCellType` returns `unsupportedNumFmt` for a
+  format longer than `MAX_NUMBER_FORMAT_LENGTH` (255, Excel's own limit for a format code), which reaches the
+  existing `recordUnsupported('numFmt', …)` path. Keep the regex fix even with the cap: `excelNumFmtToIntlOptions`
+  and `excelDateFmtToIntlOptions` are exported and must not depend on their caller capping the input
+  (`inference.unit.js` "hostile number formats" times both). The other regexes on file text were checked and are
+  linear: the quoted-literal and escape strips, `BARE_CURRENCY_REGEX` (bounded `{1,3}` alternatives),
+  `PLAIN_NUMBER_PATTERN_REGEX` (anchored), `FORMAT_TOKEN_REGEX` (greedy runs), `findSheet`'s and
+  `resolveListSource`'s anchored quote matches, `styles.ts#ARGB_PATTERN` and the conditional-formatting
+  `ref.split(/\s+/)`.
 - **The data reaches the grid BEFORE any layout setting.** `applier.ts` calls `hot.loadData()` first and
   `hot.updateSettings()` second, inside one `hot.batch`. Every layout setting is validated against the table
   that exists when it is applied: MergeCells rejects (and logs about) a merge reaching past the last row, and
   a target grid usually starts with a single empty row — so the previous order silently dropped every merge
-  the workbook declared while `result.mergeCells` stayed correct. Do not fold the two into one
+  the workbook declared while `result.mergeCells` stayed correct. **The one exception is `columns`**,
+  which goes in BEFORE `loadData` (and again with the other settings): `loadData` runs the source-data
+  validators against whatever `columns` apply, so the previous grid's types judged the imported values
+  and logged a false `Source data warning` on every first import into a typed grid. `columns` has no row
+  bound, so moving it ahead costs nothing the layout order protects (`importIntoTypedGrid.unit.js`).
+  Do not fold the two into one
   `updateSettings({ ...settings, data })`: that routes through `updateData`, which keeps the previous
   import's cell states instead of resetting them. The `batch` suspends rendering, so the pair paints once.
 - **`updateSettings` gets only the keys the workbook set.** `applier.ts#toSettings` omits `undefined`, so
@@ -273,7 +798,33 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
 - **The dropped-feature warning fires once per call, from the plugin, not from the adapter.** The adapter
   only records (`DroppedFeatures.record`); `importFile.ts` calls `dropped.warn(detected.kind)` exactly once
   per `importFromArrayBuffer`/`importFromBlob` call. Keep it that way, or a multi-sheet read would warn per
-  sheet.
+  sheet. On the apply path it runs AFTER `#assertEnabled()`/`#assertAlive()` (review round 12), so an import
+  those guards reject logs nothing; a stale or disabled-during-read import is rejected earlier still, by the
+  `#assertLatest` right after the read. A newer import started from a `beforeImport` handler is the one
+  rejection that comes after the warning.
+- **This plugin records under the same declared names the adapters use.** `importFile.ts` and `mapper.ts`
+  raise names of their own (`cellStyles`, `cellStyles:borders`, `comments`, `comment:header` (a note on
+  a promoted header-band cell, which a column header cannot hold, recorded whether or not the Comments
+  plugin is on, and whatever the license unlocks), `conditionalFormatting:unparsedRef`, `dataValidation:unresolvedList`, `formula:outOfRange`,
+  `formula:otherSheet`, `formula:definedName`, `formula:noCachedValue` (a formula imported as a value -
+  Formulas plugin off or `importFormulas: false` - with no cached `<v>`, so the cell is empty; openpyxl
+  writes every formula that way), `layoutDirection`, plus `mergeCells`, `hiddenRows` and
+  `hiddenColumns` when the result carries one of those, is applied, and its plugin is not
+  registered, so the setting would be inert), and every one of them is passed as a `DROPPED_FEATURES.<member>`
+  (`utils/xlsxEngine/capabilities.ts`), never as a string literal - the names are public output and each
+  is a row in the import guide's dropped-features table. The one name built from the file's own value,
+  `numFmt:<pattern>`, goes through `dropped.recordUnsupported('numFmt', pattern)`, which BOUNDS what the
+  file can put in the result: 64 characters per value, control characters replaced, and 32 distinct
+  file-driven names per read before the rest count into `numFmt:other`. Two more families carry a
+  tail: `cellType:<name>` (a derived cell type that is not registered: the plugin falls back to
+  `text` before `loadData`, strips the type's own keys and records the name, so a modular bundle no
+  longer half-applies an import and then throws from `getCellType`; the fallback lives in
+  `importFile.ts` and runs only when the result is applied, so `apply: false` returns the types the
+  file asked for) and the
+  `conditionalFormatting:colorScale`/`dataBar`/`iconSet` kinds, which the BUILT-IN reader reports and
+  leaves out of `result.conditionalFormatting` because it does not read their `cfvo` thresholds
+  (ExcelJS reads them, and still returns those rules complete - an engine difference the guide names) - the bare
+  `{ type, priority }` they used to return made the ExcelJS export throw `cfvo.forEach`. Do not rebuild a tailed name by hand.
 - **Merges, hidden rows/columns, and frozen panes are cropped to the import window**, not dropped outright.
   A `range`, a promoted header row, or a dropped row-header column each shift the window; a merge that
   crosses it is cropped to what remains inside, and only dropped when nothing or a single cell remains.
@@ -291,12 +842,13 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   re-imports) `background-color:<hex>` alone, with no leading `color:`.
 - **`layoutDirection` is init-only, so the import reports it instead of applying it.** `core.ts:545`
   resolves it from the merged user settings while the instance is built and `isRtl()` closes over the
-  result; `metaSchema.ts` documents that a later `updateSettings` is ignored. `mapLayout` therefore puts
+  result; `metaSchema.ts` documents that a later `updateSettings` throws. `mapLayout` therefore puts
   `'rtl'`/`'ltr'` on `result.layoutDirection` under `importLayout`, `applier.ts#toSettings` deliberately
   keeps it out of the carried-keys list, and `importFile.ts#recordLayoutDirectionMismatch` records
   `layoutDirection` in `dropped` when the sheet and the target grid disagree - before `dropped.warn()`,
   so the plugin still warns exactly once per call. Adding it to `toSettings` would look like a fix and
   change nothing.
+- **Without `xlsx:layout`, `mapNestedHeaders` reads no band merge at all** (its `readsMerges` argument is `entitlement.layout`), matching the export, which writes no nested-header merge without the token: each header cell becomes its own label with colspan 1, a blank cell stays `''`, and `result.nestedHeaders` carries no group. `license:xlsx:layout` is still recorded when the caller's `importLayout` is on, because the merges existed, and ALSO with `importLayout: false` when the band holds a merge a nested header would have used (`hasHeaderBandGroup`, over `buildHeaderCoverage` for the same band and window): the groups follow the license, not `importLayout`, so the license is what dropped them. Keyed on the license, not on the caller's `importLayout`: a full key with `importLayout: false` keeps its groups, as before. Pinned by `importLicenseGates.unit.js`.
 - **A merge inside the header band becomes a `nestedHeaders` colspan, and never a `mergeCells` entry.**
   `mapNestedHeaders` reads the band's merges for the group spans; `cropMerge` then drops those same
   merges for free, because shifting them by `window.firstRow` puts their last row above row 0. Do not add
@@ -318,6 +870,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   entry was removed when the key was added. The ref parsing lives in
   `../../utils/xlsxEngine/cellRef.ts#parseMultiRangeRef`, beside the single-range parser both directions
   already share; do not grow a second A1 parser in the plugin.
+- **License gates sit in two files only.** `importFile.ts` refuses the call without `xlsx:import` (and `supportsImportFormat('xlsx')` answers `false`, as it does without `feat:import_file`, the plugin's own token, which is checked first), scopes the entitlement, and hands it to the mapper in `MapperContext.entitlement`, which is required, so a new call site cannot forget it. `mapper.ts` `mapWorkbook()` forces `importFormulas`, `importLayout`, and `importStyles` off for a missing token, and the mapper skips comments, validations, protection, and conditional formatting from the same entitlement. `importFile.ts` ANDs `importLayout` with `entitlement.layout` once more when it calls `applyImportResult()`, because the apply step reads the caller's resolved options, not the mapper's; keep both. A missing token forces an option off instead of adding an option. `xlsx:number_formats` never restricts import (it feeds type inference) and `xlsx:import_report` is always on, so `result.dropped` stays complete: a missing token adds a `license:xlsx:<token>` entry through `recordLicense`, ONLY when the file carried the feature AND the caller's options asked for it (`recordMissingLicenses` in `mapper.ts`, which takes the CALLER's `requestedOptions`, never the forced-off copy: `styles` = any cell style or border (`pass.sawStyle`) under `importStyles: true`, `comments` = a cell comment (never a header-band one: that note is lost on every key) with the Comments plugin on, `conditional_formatting` = any `sheet.conditionalFormatting`, `data_validation` = any `cell.validation` under `inferCellTypes: true` (the only path that turns it into a dropdown), `protection` = `sheet.protection?.enabled`, `formulas` = any formula cell under `importFormulas: true`, `layout` = any merge, hidden row or column, freeze pane, explicit width or height, or RTL under `importLayout: true`). The option-driven entries stay as on any key: `cellStyles` whenever the file is styled and the caller's `importStyles` is off, `comments` whenever the Comments plugin is off, `comment:header` whenever the header band holds a note, whatever the license and the Comments plugin. With the option on and the token missing, the license entry replaces `cellStyles` and `comments`, never `comment:header`. The missing-token warning (`#warnDropped`) names exactly the recorded tokens (`DroppedFeatures#licenseTokens()`), so a values-only file on a key that lacks some import tokens says nothing. Without `xlsx:formulas` the mapper does not read formulas at all: no `result.formulas`, no mapper `formula:*` entry, cached values in `data`. Scope the entitlement with `IMPORT_FILE_CAPABILITY_IDS` before use. Token rules: `utils/xlsxEngine/AGENTS.md` "License gating".
+
+## Raw-value inference
+
+The plugin only exposes it. The rules and traps live in `../../utils/columnTypeInference/AGENTS.md`.
 
 ## Deferred, with the reasoning
 
@@ -335,21 +892,36 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `sanitizeSheetName`) and shifts by THAT sheet's offsets. Decision on #13551: not for now, no ticket; documented as a
   limitation in the export guide's multi-sheet section.
 
+## The license check: every public method that does work
+
+The plugin is on unless `importFile: false`, so a license key that lists its features is checked when it is
+used, not at enable (`gate: 'call'` in `feature.json`). `inferColumnTypes()`, `convertToInferredTypes()`,
+`importFromArrayBuffer()` and `importFromBlob()` call `assertLicensedCall(this.hot, LICENSE)` first, before
+`#assertEnabled()`: a key that does not cover `feat:import_file` writes the license message and throws it (the
+async methods reject). `supportsImportFormat()` writes no message, but for `'xlsx'` it reads the same token with
+`hasLicenseCapability(this.hot, LICENSE.capability)` before the `xlsx:import` entitlement, so it answers `false`
+whenever an xlsx import would throw, for either token. Pinned by "on a key that lists its features" in
+`__tests__/importFile.unit.js`, which builds keys without `feat:all` and registers the fake grid as a root instance
+(`registerAsRootInstance`), because a non-root grid is never checked. The SheetsBar calls only the `_`-prefixed members,
+which are not checked. The import asks Formulas, Comments and CustomBorders whether they RUN (`.enabled`),
+never whether their option is on: a plugin a license key keeps off keeps its option, and an import that read the
+option wrote live formulas and `'`-escaped text that no plugin would read. Rules:
+`../../utils/entitlementLicenseKey/AGENTS.md`.
+
 ## Where to look next
 
 - `../exportFile/AGENTS.md` for the write direction and the `_HotValidation` sheet.
-- `../../utils/xlsxEngine/` for the model, detection, capabilities and adapters. ExcelJS is the only
-  engine; a second one adds its kind to `XlsxEngineKind`, its row to `CAPABILITIES`, its duck-typing to
-  `detect.ts` and an adapter beside `adapters/exceljs.ts`. Nothing about any specific future engine is
-  kept in the tree — a SheetJS evaluation was done under DEV-2135 and deliberately not shipped.
+- Two engines: `native` (built in, default) and `exceljs` (injected). `../../utils/xlsxEngine/AGENTS.md`
+  has the engine contract and the native adapter's traps.
 - `../base/AGENTS.md` for the plugin contract and the `PLUGIN_PRIORITY` table (this plugin is 245).
 
 ## Testing
 
-- `npm run test:unit -- --testPathPattern='importFile|xlsxEngine'`
+- `npm run test:unit -- --testPathPattern='importFile|xlsxEngine|columnTypeInference'`
 - Adapter tests parse real `.xlsx` fixtures under `src/utils/xlsxEngine/__tests__/fixtures/`; regenerate
   them with `node src/utils/xlsxEngine/__tests__/fixtures/generate.mjs` after changing a case, and commit.
-  They run with `@jest-environment node` because ExcelJS parses through Node streams. Three things make
+  They run with `@jest-environment node` because both adapters need Node globals jsdom lacks (ExcelJS:
+  streams; native: `CompressionStream`). Three things make
   that pragma work here: the `'jest-environment'` entry in the root `.eslintrc.js`'s `jsdoc/check-tag-names`
   → `definedTags` list (added in DEV-2135), without which the tag itself fails lint as unknown; and the
   `typeof window === 'undefined'` guards in `test/bootstrap.js` and `test/helpers/custom-matchers.js`,

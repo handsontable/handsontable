@@ -136,7 +136,7 @@ const cellDefinition = {
       return editor.input.value;
     },
     setValue(editor, value) {
-      editor.input.value = value;
+      editor.input.value = value == null ? '' : String(value);
       editor.flatpickr.setDate(value ? new Date(value) : new Date());
     },
   }),
@@ -181,7 +181,7 @@ const hotOptions = {
     },
     { data: 'status', type: 'text', width: 130 },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 // Initialize the Handsontable instance with the specified configuration options

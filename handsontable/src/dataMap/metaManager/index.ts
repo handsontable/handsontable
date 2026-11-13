@@ -7,8 +7,9 @@ import CellMeta, {
   type CellMetaKeyStateEntry,
 } from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
-import { mixin } from '../../helpers/object';
+import { hasOwnProperty, mixin } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
+import { throwInitOnlyUpdateError } from './mods/extendMetaProperties';
 import type { CellProperties } from '../../settings';
 
 /**
@@ -19,6 +20,7 @@ import type { CellProperties } from '../../settings';
 interface MetaManagerLocalHooks {
   afterGetCellMeta: (cellMeta: CellProperties) => void;
   extendTransientCellMeta: (cellMeta: CellProperties) => void;
+  invalidateMetaExtensions: () => void;
 }
 
 /**
@@ -54,6 +56,11 @@ export default class MetaManager {
    * `getStructureVersion()`.
    */
   #structureVersion = 0;
+
+  /**
+   * Becomes `true` when `finishInitialization()` is called. Read through `isInitialized()`.
+   */
+  #isInitialized = false;
 
   /**
    * The Handsontable instance passed to this manager on construction.
@@ -120,6 +127,45 @@ export default class MetaManager {
   }
 
   /**
+   * Tells the manager that the grid has finished initializing. From then on, a write to an init-only option
+   * is an update, including the first write of an option the initial settings did not define. Before it, the
+   * grid is still being built and its own steps (the column meta pass, the `cell` option, a `beforeInit`
+   * listener) may write those options once.
+   */
+  finishInitialization() {
+    this.#isInitialized = true;
+  }
+
+  /**
+   * Checks whether the grid has finished initializing (see `finishInitialization()`).
+   *
+   * @returns {boolean}
+   */
+  isInitialized(): boolean {
+    return this.#isInitialized;
+  }
+
+  /**
+   * Refuses a settings payload that names an init-only option, before any option of the payload is written,
+   * so a refused payload changes nothing. Does nothing while the grid initializes.
+   *
+   * @param {object} settings An `updateSettings()` payload.
+   */
+  assertNoInitOnlyUpdates(settings: Record<string, unknown>) {
+    if (!this.#isInitialized) {
+      return;
+    }
+
+    const initOnlyOptions = (this.globalMeta.getMeta()._initOnlySettings ?? []) as string[];
+
+    initOnlyOptions.forEach((option) => {
+      if (hasOwnProperty(settings, option)) {
+        throwInitOnlyUpdateError(option);
+      }
+    });
+  }
+
+  /**
    * Gets the global meta object that is a root of all default settings, which are recognizable by Handsontable.
    * Other layers inherites all properties from this. Adding, removing, or changing property in that
    * object has a direct reflection to all layers.
@@ -137,6 +183,17 @@ export default class MetaManager {
    */
   updateGlobalMeta(settings: Record<string, unknown>) {
     this.globalMeta.updateMeta(settings);
+  }
+
+  /**
+   * Expands the grid-level `type` again after an `updateSettings()` payload was written onto the global meta.
+   * Options the user set at grid level keep winning over the type.
+   *
+   * @param {object} settings The `updateSettings()` payload.
+   * @returns {boolean} `true` when the grid-level type changed to another one.
+   */
+  updateGlobalTypeFromSettings(settings: Record<string, unknown>): boolean {
+    return this.globalMeta.updateTypeFromSettings(settings);
   }
 
   /**
@@ -575,6 +632,16 @@ export default class MetaManager {
   }
 
   /**
+   * Whether a `cell`-option recording scope is open, so the cell meta being written comes from the
+   * declarative `cell` option rather than from a `setCellMeta` call.
+   *
+   * @returns {boolean}
+   */
+  isRecordingCellOptionMeta(): boolean {
+    return this.cellMeta.isRecordingCellOptionMeta();
+  }
+
+  /**
    * Creates one or more rows at specific position.
    *
    * @param {number} physicalRow The physical row index which points from what position the row is added.
@@ -620,6 +687,15 @@ export default class MetaManager {
     this.#structureVersion += 1;
     this.cellMeta.removeColumn(physicalColumn, amount);
     this.columnMeta.removeColumn(physicalColumn, amount);
+  }
+
+  /**
+   * Makes the next read of each stored cell meta object run the dynamic extension again (the `cells`
+   * function and the `beforeGetCellMeta`/`afterGetCellMeta` hooks). The extension runs once per cell per
+   * full render, and a full render forgets that at its start; core calls this where it held such a render.
+   */
+  invalidateMetaExtensions() {
+    this.runLocalHooks('invalidateMetaExtensions');
   }
 
   /**

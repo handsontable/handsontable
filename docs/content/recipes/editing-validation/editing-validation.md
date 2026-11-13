@@ -1,19 +1,19 @@
 ---
 title: Editing and validation recipes
-metaTitle: Editing and Validation Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Editing and validation recipes | Handsontable DataGrid for JavaScript
 permalink: /recipes/editing-validation
 canonicalUrl: /recipes/editing-validation
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-description: Recipes for dependent editors, validation patterns, submit-time checks, and dynamic cell configuration in Handsontable.
+description: Recipes for dependent editors, validation patterns, submit-time checks, and dynamic cell configuration in Handsontable DataGrid.
 react:
-  metaTitle: Editing and Validation Recipes - React Data Grid | Handsontable
+  metaTitle: Editing and validation recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Editing and Validation Recipes - Angular Data Grid | Handsontable
+  metaTitle: Editing and validation recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Editing and Validation Recipes - Vue Data Grid | Handsontable
+  metaTitle: Editing and validation recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 

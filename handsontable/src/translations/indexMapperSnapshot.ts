@@ -46,6 +46,8 @@ export interface IndexMapperSnapshot {
  * Pagination's map is derived too: the plugin rebuilds it from the page it restores and from the
  * other maps, and with `pageSize: 'auto'` it rebuilds it on every render. It is registered under the
  * plugin's registry name, which is capitalized (`'Pagination'`), not under its settings key.
+ * AsyncValues' map (`'AsyncValues'`, the registry name too) holds in-flight requests and their errors,
+ * which never come back on an undo: a restored row would bring back a request nothing settles.
  */
 const DERIVED_INDEX_MAP_NAMES: ReadonlySet<string> = new Set([
   'autoRowSize',
@@ -53,6 +55,7 @@ const DERIVED_INDEX_MAP_NAMES: ReadonlySet<string> = new Set([
   'stretchColumns',
   'nestedHeaders.widthsMap',
   'Pagination',
+  'AsyncValues',
 ]);
 
 /**

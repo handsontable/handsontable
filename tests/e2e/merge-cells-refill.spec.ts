@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { ColumnAutosizeRefillPage } from '../fixtures/pages/ColumnAutosizeRefillPage';
 
 /**
@@ -15,7 +15,7 @@ import { ColumnAutosizeRefillPage } from '../fixtures/pages/ColumnAutosizeRefill
  * reaching past the band would defeat the short-band precondition, and the gate only matters when
  * the block is already rendered when the refill starts.
  */
-test.describe('row-band refill with a merged block inside the band', () => {
+test.describe('row-band refill with a merged block inside the band', { tag: THEMES_TAG }, () => {
   let grid: ColumnAutosizeRefillPage;
 
   const ANCHOR = { row: 1, col: 3, rowspan: 3 };

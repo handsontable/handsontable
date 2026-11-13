@@ -58,9 +58,15 @@ export interface LayoutInput {
   totalContentWidth: number;
   totalContentHeight: number;
   /**
-   * Thickness of one scrollbar, in pixels. `0` on overlay scrollbars (e.g. macOS trackpad mode).
+   * Thickness of the vertical scrollbar, in pixels. It consumes width. `0` when that scrollbar
+   * takes no layout space (overlay scrollbars, or an axis that does not scroll).
    */
-  scrollbarSize: number;
+  scrollbarWidth: number;
+  /**
+   * Thickness of the horizontal scrollbar, in pixels. It consumes height. Independent of
+   * `scrollbarWidth`: the two axes are styled separately.
+   */
+  scrollbarHeight: number;
   overflowX: OverflowMode;
   overflowY: OverflowMode;
   /**
@@ -133,6 +139,7 @@ export interface LayoutSnapshot {
    */
   readonly hiderWidth: number;
   readonly hiderHeight: number;
-  readonly scrollbarSize: number;
+  readonly scrollbarWidth: number;
+  readonly scrollbarHeight: number;
   readonly isRtl: boolean;
 }

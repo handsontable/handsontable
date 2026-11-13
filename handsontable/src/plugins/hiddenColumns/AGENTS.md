@@ -30,6 +30,25 @@ if (this.hot.columnIndexMapper.getNumberOfIndexes() > 0) {
 plugin re-enable — which is before the hook above could attach. Without the replay, a re-enabled plugin
 never applies its configured hidden set. `../hiddenRows/` and `../trimRows/` carry the same replay.
 
+**`afterHideColumns` therefore fires during `new Handsontable()`, before `hot.view` exists** (`core.ts` builds
+the view after the first `updateSettings()`, whose data phase initializes the maps). With `hiddenColumns: true`
+the hook gets `[[], [], false, false]`, with `{ columns: [1] }` it gets `[[], [1], true, true]`, and the latter
+is the only "initially hidden" notification an integration gets, so do not stop or defer it. A listener that
+calls a viewport getter there must not throw: the 12 Core viewport getters (`getFirstFullyVisibleColumn()` and
+the rest, built on `readViewportIndex()` in `core.ts`) answer `null` without a view, and the
+`getFirstVisibleColumn()`/`getLastVisibleColumn()` of AutoColumnSize and the row ones of AutoRowSize turn that
+into `-1`. The data getters and `getCoords()` work there too, because `_createCellCoords()` and
+`_createCellRange()` build the object themselves when there is no view. `getCell()`, `scrollViewportTo()`,
+`selectCell()`, `selectCells()`, `selectRows()`, `selectColumns()` and `selectAll()` answer `null`, `false` or
+nothing, and select nothing. `setDataAtCell()` and `updateData()` write through in the initial `afterLoadData`, because `applyChanges()` and
+`replaceData()` read `editorManager` with `?.` (it is assigned after the first `afterLoadData`). In
+`afterHideColumns`/`afterHideRows` the grid has no visual row yet, so `setDataAtCell()` and `setDataAtRowProp()` warn and write nothing:
+a write there would append a record. **That is all that is guarded.** Other reads of `hot.view`
+(`AutoColumnSize#onScreenColumns`) still assume it exists, and `countRenderedRows()` and its siblings use their
+own `-1` answer. A new Core method that reads
+`hot.view` and can run inside an init-time hook (`afterHideColumns`, `afterHideRows`, `afterLoadData`) needs
+its own guard. `../hiddenRows/` has the same hook. Pinned by `src/__tests__/core/viewGettersBeforeView.unit.js`.
+
 ## `skipColumnOnPaste`: only flip what you flipped
 
 The plugin sets `skipColumnOnPaste` on hidden columns (when `copyPasteEnabled: false`) and marks each one it
@@ -68,11 +87,9 @@ Four rules, all visible in `#onAfterGetCellMeta`:
   `getUserDefinedMetas()` re-reads `className` at `updateSettings` time. Compare-before-assign cannot catch
   either, because an array is always `!==` its joined form. This was deliberately declined on PR #13235 and
   taken in DEV-2618, once `contextMenu`'s alignment *helpers* stopped casting `className` to a string in
-  #13266 — leaving arrays in cell meta is safe because nothing in `src/` string-operates the value. Two
-  caveats that go with that. `predefinedItems/alignment.ts` still casts `as string` at seven call sites, so
-  an array now reaches the public `beforeCellAlignment` payload on a hiding-plugin grid (it always did on a
-  grid without one). And **the two unconditional writes in `numericRenderer` and `search` are still there** —
-  both predate this and are tracked in DEV-2803.
+  #13266 — leaving arrays in cell meta is safe because nothing in `src/` string-operates the value. One
+  caveat goes with that. **The unconditional write in `search` is still there** (`numericRenderer` now writes
+  only when it added a class) — it predates this and is tracked in DEV-2803.
 - **Match a marker class by token, not substring.** `indexOf` on the joined string treats a user class named
   `afterHiddenColumnHighlight` as the marker already being present, so the real marker never gets added.
 
@@ -171,6 +188,14 @@ the real-element section below for why the real `<i>` element keeps 10px on all 
 `indicators` is on, the width is already a number, and `hasColHeaders()` is true. Read the code for the
 guards; do not assume the 15px is always there. That reservation and the 10px arrow hold each other up:
 moving the arrow to `--ht-icon-size` (16px) would not fit in 15px.
+
+The guards live in `getIndicatorExtraWidth()` (a `@private` method), and `#onModifyColWidth` and
+`ManualColumnResize` (through `getPlugin('hiddenColumns')`, no import) both call it. The 15px is added on top of **every** width, including a stored manual one, so
+a stored size describes the column without it. That is why a resize drag starts from the rendered width minus
+`getIndicatorExtraWidth()` (`getRenderedOverhead` in `../../utils/manualResize/AGENTS.md`); starting from the
+rendered width stored 15px too much and added another 15px per drag. Do not make the hook skip a manual width
+instead: that would change how every stored size, `manualColumnResize` array and persisted state renders, and
+double-click autosize relies on the room too. Pinned by `tests/e2e/manual-resize-drag-distance.spec.ts`.
 
 `stretchH` is only the easiest way to reach a flush table. Plain `colWidths` that happen to sum to the
 viewport do it too. And the RTL block mirrors the arrow to the other edge, which in RTL is the scrollable
@@ -284,7 +309,7 @@ decides for itself now — see "The engine decides for itself when the overlays 
 
 - The row mirror: `../hiddenRows/AGENTS.md`. Trimming instead of hiding: `../trimRows/AGENTS.md`.
 - Consumers of `skipColumnOnPaste`: `../copyPaste/AGENTS.md`, `../autofill/AGENTS.md`.
-- Menu entries: `contextMenuItem/`, wired via `../contextMenu/AGENTS.md`.
+- Menu entries: `contextMenuItem/`, registered through `registerMenuEntries()` (`../../utils/menu/AGENTS.md`). The context menu shows them by default. The dropdown menu has them available only (`inDefaults: false`): `hidden_columns_hide` / `hidden_columns_show` resolve when the user lists them, and `dropdownMenu: true` does not show them, so its default list stays what it was.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
 ## Testing

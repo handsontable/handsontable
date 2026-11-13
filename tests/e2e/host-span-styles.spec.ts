@@ -1,8 +1,11 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { type Locator, type Page } from '@playwright/test';
 import {
   HostSpanStylesPage,
+  HOST_BOX_STYLES,
   HOST_SPAN_STYLES,
   TEXT_PROPERTIES,
+  type BoxMetrics,
   type TextMetrics,
 } from '../fixtures/pages/HostSpanStylesPage';
 
@@ -20,7 +23,7 @@ import {
  * can never match by coincidence. A control span outside the grid must compute the host values
  * first, so a fixture that silences the hostile rule fails loud instead of passing vacuously.
  */
-test.describe('host-page span styles do not leak into grid UI spans', () => {
+test.describe('host-page span styles do not leak into grid UI spans', { tag: THEMES_TAG }, () => {
   function expectNotHostValues(metrics: TextMetrics): void {
     for (const property of TEXT_PROPERTIES) {
       expect(metrics[property], `${property} of the cascade parent coincides with the host value`)
@@ -65,6 +68,45 @@ test.describe('host-page span styles do not leak into grid UI spans', () => {
 
     for (const property of TEXT_PROPERTIES.filter(name => name !== 'font-size')) {
       await expect(fixture.arrow).toHaveCSS(property, expected[property]);
+    }
+  });
+
+  test('sheets bar tab labels and the rename field keep the tab text metrics', async({ page, theme, bundle }) => {
+    const fixture = new HostSpanStylesPage(page, theme, bundle);
+
+    await fixture.goto({ sheetsBar: true });
+
+    const expected = await fixture.textMetrics(fixture.activeTab);
+
+    expectNotHostValues(expected);
+
+    for (const span of [fixture.tabLabel, fixture.tabChevron]) {
+      for (const property of TEXT_PROPERTIES) {
+        await expect(span).toHaveCSS(property, expected[property]);
+      }
+    }
+
+    await fixture.startRename();
+
+    for (const element of [fixture.renameInput, fixture.renameMirror]) {
+      for (const property of TEXT_PROPERTIES) {
+        await expect(element).toHaveCSS(property, expected[property]);
+      }
+    }
+  });
+
+  test('sheet names in the all-sheets menu keep the menu row text metrics', async({ page, theme, bundle }) => {
+    const fixture = new HostSpanStylesPage(page, theme, bundle);
+
+    await fixture.goto({ sheetsBar: true });
+    await fixture.openAllSheetsMenu();
+
+    const expected = await fixture.textMetrics(fixture.menuItemWrapper);
+
+    expectNotHostValues(expected);
+
+    for (const property of TEXT_PROPERTIES) {
+      await expect(fixture.menuItemName).toHaveCSS(property, expected[property]);
     }
   });
 
@@ -154,5 +196,226 @@ test.describe('host-page span styles do not leak into grid UI spans', () => {
 
     await expect(fixture.columnHeaderSpan).toHaveCSS('font-size', expected['font-size']);
     await expect(fixture.columnHeaderSpan).toHaveCSS('line-height', expected['line-height']);
+  });
+});
+
+/**
+ * The same host page also gives bare `<span>` and `<input>` elements padding, a margin, a border and
+ * (inputs) a height, and adds two rules with three element selectors (`table th span`,
+ * `body div input`) that outrank a guard of two element selectors. Every test below renders the page twice, without the host rules and with them,
+ * and expects the grid's own spans and inputs, and the rows, bars and menus around them, to measure
+ * the same both times. `goto()` first proves the host rules apply to a span and an input outside the
+ * grid, so the comparison cannot pass because the rules went missing.
+ */
+test.describe('host-page span and input boxes do not resize grid UI', { tag: THEMES_TAG }, () => {
+  type ReadMetrics = (fixture: HostSpanStylesPage) => Promise<Record<string, BoxMetrics>>;
+  type GotoOptions = Parameters<HostSpanStylesPage['goto']>[0];
+
+  async function renderCleanAndHostile(
+    page: Page,
+    theme: string,
+    bundle: string,
+    options: GotoOptions,
+    read: ReadMetrics,
+  ): Promise<{ clean: Record<string, BoxMetrics>; hostile: Record<string, BoxMetrics> }> {
+    const cleanFixture = new HostSpanStylesPage(page, theme, bundle);
+
+    await cleanFixture.goto({ ...options, withoutHostStyles: true });
+
+    const clean = await read(cleanFixture);
+    const hostileFixture = new HostSpanStylesPage(page, theme, bundle);
+
+    await hostileFixture.goto(options);
+
+    const hostile = await read(hostileFixture);
+
+    return { clean, hostile };
+  }
+
+  function expectSameMetrics(clean: Record<string, BoxMetrics>, hostile: Record<string, BoxMetrics>): void {
+    for (const name of Object.keys(clean)) {
+      expect(hostile[name], `${name} measures differently under the host span and input rules`).toEqual(clean[name]);
+    }
+  }
+
+  function expectCleanBoxDiffersFromHost(metrics: BoxMetrics, element: 'span' | 'input'): void {
+    const differs = Object.entries(HOST_BOX_STYLES[element])
+      .some(([property, value]) => metrics[property] !== value);
+
+    expect(differs, `the clean ${element} already has the host box`).toBe(true);
+  }
+
+  function readAll(locators: (fixture: HostSpanStylesPage) => Record<string, Locator>): ReadMetrics {
+    return fixture => fixture.boxMetrics(locators(fixture));
+  }
+
+  test('header spans keep the header and row heights', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, {}, readAll(fixture => ({
+      columnHeaderCell: fixture.columnHeaderCell,
+      columnHeaderSpan: fixture.columnHeaderSpan,
+      cornerHeaderCell: fixture.cornerHeaderCell,
+      cornerHeaderSpan: fixture.cornerHeaderSpan,
+      rowHeaderCell: fixture.rowHeaderCell,
+      rowHeaderSpan: fixture.rowHeaderSpan,
+      firstDataCell: fixture.firstDataCell,
+    })));
+
+    for (const span of ['columnHeaderSpan', 'cornerHeaderSpan', 'rowHeaderSpan']) {
+      expectCleanBoxDiffersFromHost(clean[span], 'span');
+    }
+
+    expectSameMetrics(clean, hostile);
+  });
+
+  test('multiselect chips and the dropdown arrow keep their boxes', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, {}, readAll(fixture => ({
+      multiselectCell: fixture.multiselectCell,
+      arrow: fixture.arrow,
+      chip: fixture.chip,
+      chipLabel: fixture.chipLabel,
+      chipRemove: fixture.chipRemove,
+      overflow: fixture.overflow,
+    })));
+
+    for (const span of ['arrow', 'chip', 'chipLabel', 'chipRemove', 'overflow']) {
+      expectCleanBoxDiffersFromHost(clean[span], 'span');
+    }
+
+    expectSameMetrics(clean, hostile);
+  });
+
+  test('the pagination bar and its labels keep their size', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, {}, readAll(fixture => ({
+      paginationBar: fixture.paginationBar,
+      pageSizeLabel: fixture.pageSizeLabel,
+      pageNavLabel: fixture.pageNavLabel,
+    })));
+
+    expectCleanBoxDiffersFromHost(clean.pageSizeLabel, 'span');
+    expectCleanBoxDiffersFromHost(clean.pageNavLabel, 'span');
+    expectSameMetrics(clean, hostile);
+  });
+
+  test('the Filters controls keep the dropdown menu size', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, { menus: true }, async(fixture) => {
+      await fixture.openColumnMenu();
+
+      const closed = await fixture.boxMetrics({
+        menu: fixture.dropdownMenu,
+        conditionCaptionLabel: fixture.conditionCaptionLabel,
+        valueSearchInput: fixture.valueSearchInput,
+        valueCheckboxLabel: fixture.valueCheckboxLabel,
+        valueCheckboxText: fixture.valueCheckboxText,
+        valueCheckboxBox: fixture.valueCheckboxBox,
+        valueCheckboxInput: fixture.valueCheckboxInput,
+        okButton: fixture.okButton,
+        cancelButton: fixture.cancelButton,
+      });
+
+      await fixture.chooseCondition('Contains');
+
+      const withCondition = await fixture.boxMetrics({
+        menuWithCondition: fixture.dropdownMenu,
+        conditionInput: fixture.conditionInput,
+        operatorRadio: fixture.operatorRadio,
+        okButtonWithCondition: fixture.okButton,
+      });
+
+      return { ...closed, ...withCondition };
+    });
+
+    for (const span of ['conditionCaptionLabel', 'valueCheckboxText', 'valueCheckboxBox']) {
+      expectCleanBoxDiffersFromHost(clean[span], 'span');
+    }
+
+    for (const input of ['valueSearchInput', 'valueCheckboxInput', 'okButton', 'cancelButton', 'conditionInput',
+      'operatorRadio']) {
+      expectCleanBoxDiffersFromHost(clean[input], 'input');
+    }
+
+    expectSameMetrics(clean, hostile);
+  });
+
+  for (const { column, inputType } of [
+    { column: 'Shipped on', inputType: 'date' },
+    { column: 'Shipped at', inputType: 'time' },
+    { column: 'Arrived', inputType: 'datetime-local' },
+  ]) {
+    test(`the ${inputType} condition input keeps the dropdown menu size`, async({ page, theme, bundle }) => {
+      const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, { menus: true }, async(fixture) => {
+        await fixture.openColumnMenu(column);
+        await fixture.chooseCondition('Before');
+        await expect(fixture.conditionInput).toHaveAttribute('type', inputType);
+
+        return fixture.boxMetrics({
+          menu: fixture.dropdownMenu,
+          conditionInput: fixture.conditionInput,
+          okButton: fixture.okButton,
+        });
+      });
+
+      expectCleanBoxDiffersFromHost(clean.conditionInput, 'input');
+      expectSameMetrics(clean, hostile);
+    });
+  }
+
+  test('NestedRows level spacers keep the child row header and row heights', async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, { nestedRows: true },
+      readAll(fixture => ({
+        childHeaderCell: fixture.nestedChildHeaderCell,
+        levelSpacer: fixture.nestedLevelSpacer.first(),
+        childHeaderSpan: fixture.nestedChildHeaderSpan,
+        childDataCell: fixture.nestedChildDataCell,
+      })));
+
+    expectCleanBoxDiffersFromHost(clean.levelSpacer, 'span');
+    expectCleanBoxDiffersFromHost(clean.childHeaderSpan, 'span');
+    expectSameMetrics(clean, hostile);
+  });
+
+  test('menu check marks stay where the clean render draws them',async({ page, theme, bundle }) => {
+    const { clean, hostile } = await renderCleanAndHostile(page, theme, bundle, { menus: true }, async(fixture) => {
+      await fixture.openColumnMenu();
+
+      return fixture.boxMetrics({
+        checkMark: fixture.checkMark,
+        checkMarkIcon: fixture.checkMarkIcon,
+        mixedMark: fixture.mixedMark,
+        mixedMarkIcon: fixture.mixedMarkIcon,
+      });
+    });
+
+    expectCleanBoxDiffersFromHost(clean.checkMark, 'span');
+    expectCleanBoxDiffersFromHost(clean.mixedMark, 'span');
+    expectSameMetrics(clean, hostile);
+  });
+});
+
+/**
+ * The guard against host element rules sits at element level, (0,0,4), so a user's rule on the
+ * guarded element's own class, (0,1,0), still wins. The core stylesheet is injected after the
+ * user's, so a guard of the same specificity as the user rule would win on order instead. Each
+ * test reads the value first, to prove the user's value is not what the element computes anyway.
+ */
+test.describe('user class rules on guarded grid elements beat the host element guard', { tag: THEMES_TAG }, () => {
+  test('user rules on header and pagination label classes apply', async({ page, theme, bundle }) => {
+    const fixture = new HostSpanStylesPage(page, theme, bundle);
+    const userRules = [
+      { locator: fixture.columnHeaderSpan, rule: '.colHeader { font-weight: 600; }', property: 'font-weight', value: '600' },
+      { locator: fixture.rowHeaderSpan, rule: '.rowHeader { padding-inline: 8px; }', property: 'padding-left', value: '8px' },
+      { locator: fixture.pageSizeLabel, rule: '.ht-page-size-section__label { padding: 2px; }', property: 'padding-top', value: '2px' },
+    ];
+
+    await fixture.goto();
+
+    for (const { locator, property, value } of userRules) {
+      await expect(locator).not.toHaveCSS(property, value);
+    }
+
+    await fixture.prependUserStyles(userRules.map(({ rule }) => rule).join('\n'));
+
+    for (const { locator, property, value } of userRules) {
+      await expect.soft(locator).toHaveCSS(property, value);
+    }
   });
 });

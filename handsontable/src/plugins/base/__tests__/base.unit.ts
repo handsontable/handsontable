@@ -4,8 +4,95 @@ import {
   registerPlugin,
   BasePlugin,
 } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('BasePlugin', () => {
+  describe('`destroy()` method', () => {
+    it('should stop a plugin destroyed ahead of the grid from answering `updateSettings()` (DEV-775)', () => {
+      const onUpdateSettingsSpy = jest.fn();
+
+      class DestroyAheadPlugin extends BasePlugin {
+        static get PLUGIN_KEY() {
+          return 'destroyAheadPlugin';
+        }
+
+        isEnabled() {
+          return !!this.hot.getSettings().destroyAheadPlugin;
+        }
+
+        onUpdateSettings(newSettings: Record<string, unknown>) {
+          onUpdateSettingsSpy(newSettings);
+          super.onUpdateSettings(newSettings);
+        }
+      }
+
+      registerPlugin('DestroyAheadPlugin', DestroyAheadPlugin);
+
+      const hot = new Handsontable(document.createElement('div'), {
+        destroyAheadPlugin: true,
+        licenseKey: TEST_LICENSE_KEY,
+      });
+      const plugin = hot.getPlugin('DestroyAheadPlugin');
+
+      hot.updateSettings({ colHeaders: true });
+
+      expect(onUpdateSettingsSpy).toHaveBeenCalledTimes(1);
+
+      plugin.destroy();
+
+      expect(() => hot.updateSettings({ destroyAheadPlugin: false })).not.toThrow();
+      expect(() => hot.updateSettings({ colHeaders: false })).not.toThrow();
+      expect(onUpdateSettingsSpy).toHaveBeenCalledTimes(1);
+      // The grid destroys every plugin again on its own `destroy()`, after `hot` is already gone.
+      expect(() => hot.destroy()).not.toThrow();
+    });
+
+    it('should not destroy a plugin destroyed ahead of the grid again when the grid is destroyed (DEV-775)', () => {
+      const ownTeardownSpy = jest.fn();
+      const laterPluginDestroySpy = jest.fn();
+      const afterDestroySpy = jest.fn();
+
+      // Mirrors AutoColumnSize and NestedHeaders: the override reads `hot` before reaching the base class.
+      class OwnTeardownPlugin extends BasePlugin {
+        static get PLUGIN_KEY() {
+          return 'ownTeardownPlugin';
+        }
+
+        destroy() {
+          ownTeardownSpy(this.hot.rootElement);
+          super.destroy();
+        }
+      }
+
+      class LaterPlugin extends BasePlugin {
+        static get PLUGIN_KEY() {
+          return 'laterPlugin';
+        }
+
+        destroy() {
+          laterPluginDestroySpy();
+          super.destroy();
+        }
+      }
+
+      registerPlugin('OwnTeardownPlugin', OwnTeardownPlugin);
+      registerPlugin('LaterPlugin', LaterPlugin);
+
+      const hot = new Handsontable(document.createElement('div'), {
+        afterDestroy: afterDestroySpy,
+        licenseKey: TEST_LICENSE_KEY,
+      });
+
+      hot.getPlugin('OwnTeardownPlugin').destroy();
+
+      expect(ownTeardownSpy).toHaveBeenCalledTimes(1);
+      expect(() => hot.destroy()).not.toThrow();
+      expect(ownTeardownSpy).toHaveBeenCalledTimes(1);
+      expect(laterPluginDestroySpy).toHaveBeenCalledTimes(1);
+      expect(afterDestroySpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('`getSetting()` method', () => {
     it('should return raw value from the plugin\'s setting when the key setting is not passed', () => {
       class Test1Plugin extends BasePlugin {
@@ -21,7 +108,8 @@ describe('BasePlugin', () => {
       registerPlugin('Test1Plugin', Test1Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        testPlugin: true
+        testPlugin: true,
+        licenseKey: TEST_LICENSE_KEY,
       });
       const plugin = hot.getPlugin('Test1Plugin');
 
@@ -70,7 +158,8 @@ describe('BasePlugin', () => {
       registerPlugin('Test2Plugin', Test2Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        testPlugin: true
+        testPlugin: true,
+        licenseKey: TEST_LICENSE_KEY,
       });
       const plugin = hot.getPlugin('Test2Plugin');
 
@@ -120,7 +209,8 @@ describe('BasePlugin', () => {
       registerPlugin('Test3Plugin', Test3Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
-        testPlugin: true
+        testPlugin: true,
+        licenseKey: TEST_LICENSE_KEY,
       });
       const plugin = hot.getPlugin('Test3Plugin');
 
@@ -164,6 +254,7 @@ describe('BasePlugin', () => {
       registerPlugin('TestObjectPlugin', TestObjectPlugin);
 
       const hot = new Handsontable(document.createElement('div'), {
+        licenseKey: TEST_LICENSE_KEY,
         testPlugin: {
           test1: {
             test2: 20,
@@ -203,6 +294,7 @@ describe('BasePlugin', () => {
       registerPlugin('Test4Plugin', Test4Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
+        licenseKey: TEST_LICENSE_KEY,
         testPlugin: {
           test1: true,
           test2: 20,
@@ -249,7 +341,7 @@ describe('BasePlugin', () => {
 
       registerPlugin('Test5Plugin', Test5Plugin);
 
-      const hot = new Handsontable(document.createElement('div'));
+      const hot = new Handsontable(document.createElement('div'), { licenseKey: TEST_LICENSE_KEY });
       const plugin = hot.getPlugin('Test5Plugin');
 
       expect(plugin.getSetting('test1')).toBe(true);
@@ -277,6 +369,7 @@ describe('BasePlugin', () => {
       registerPlugin('Test6Plugin', Test6Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
+        licenseKey: TEST_LICENSE_KEY,
         testPlugin: {
           test1: 'test',
         },
@@ -312,6 +405,7 @@ describe('BasePlugin', () => {
       registerPlugin('Test7Plugin', Test7Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
+        licenseKey: TEST_LICENSE_KEY,
         testPlugin: 'test',
       });
       const plugin = hot.getPlugin('Test7Plugin');
@@ -339,6 +433,7 @@ describe('BasePlugin', () => {
       registerPlugin('Test8Plugin', Test8Plugin);
 
       const hot = new Handsontable(document.createElement('div'), {
+        licenseKey: TEST_LICENSE_KEY,
         testPlugin: {
           test1: 'test',
         },
@@ -388,7 +483,7 @@ describe('BasePlugin', () => {
     let hot;
 
     expect(() => {
-      hot = new Handsontable(document.createElement('div'), {});
+      hot = new Handsontable(document.createElement('div'), { licenseKey: TEST_LICENSE_KEY });
     }).toThrowWithCause(`The BarPlugin plugin requires the following modules:
  - FooPlugin (plugin)
 

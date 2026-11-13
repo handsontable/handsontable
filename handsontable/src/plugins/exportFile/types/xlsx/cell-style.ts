@@ -2,6 +2,8 @@ import { isDefined } from '../../../../helpers/mixed';
 import type { CellStyleSnapshot, CellValidationSnapshot } from '../../../../utils/xlsxEngine/model';
 import { normalizeClassNames } from '../../../../helpers/dom/element';
 import { READ_ONLY_FILL_ARGB, READ_ONLY_TEXT_ARGB } from '../../../../utils/xlsxEngine/readOnlyStyle';
+import { namedOrFunctionalColorToRgb } from './css-color';
+import type { SourceLabel } from '../../../../utils/cellSource';
 
 export interface CssStyle {
   fontBold: boolean;
@@ -23,6 +25,7 @@ export interface CellMeta {
   borders?: Record<string, { width: number; color: string }>;
   type?: string;
   source?: unknown[];
+  sourceLabel?: SourceLabel;
   comment?: { value?: unknown };
   numericFormat?: {
     pattern?: string;
@@ -66,9 +69,11 @@ export function clearStyleCaches(doc: Document): void {
   cssStyleProbeByDoc.delete(doc);
 }
 
-// Handsontable alignment class names — cells that carry only these classes have no
-// custom CSS color, so reading `color` from them would yield only the inherited default.
-const ALIGNMENT_CLASS_NAMES = new Set([
+/**
+ * Handsontable alignment class names. Cells that carry only these classes have no custom CSS color,
+ * so reading `color` from them would yield only the inherited default.
+ */
+export const ALIGNMENT_CLASS_NAMES: ReadonlySet<string> = new Set([
   'htLeft', 'htRight', 'htCenter', 'htJustify', 'htTop', 'htMiddle', 'htBottom',
 ]);
 
@@ -347,7 +352,12 @@ export function getCssStyleFromElement(
 }
 
 /**
- * Converts a CSS hex color string to an ARGB hex string expected by ExcelJS.
+ * Converts a CSS color string to an ARGB hex string, in an ExcelJS-compatible shape.
+ *
+ * Accepts hex (`#RGB`, `#RRGGBB`, with or without `#`), `rgb()`, `rgba()`, `hsl()`, `hsla()`, and the
+ * CSS named colors, in any case. The alpha component of a CSS color is dropped. An eight-digit hex
+ * value is read as ARGB (`AARRGGBB`), not as CSS `#RRGGBBAA`, and passed through. Anything else
+ * (`var(...)`, `transparent`, an unknown name) becomes black.
  *
  * @private
  * @param {string} color CSS color string.
@@ -358,29 +368,30 @@ export function cssColorToArgb(color: string): string {
     return 'FF000000';
   }
 
-  const hex = color.startsWith('#') ? color.slice(1) : color;
+  const normalized = color.trim().toLowerCase();
+  const hex = normalized.startsWith('#') ? normalized.slice(1) : normalized;
 
-  if (hex.length === 3) {
-    const r = hex[0] + hex[0];
-    const g = hex[1] + hex[1];
-    const b = hex[2] + hex[2];
+  if (/^[0-9a-f]+$/.test(hex)) {
+    if (hex.length === 3) {
+      return `FF${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}`.toUpperCase();
+    }
 
-    return `FF${r}${g}${b}`.toUpperCase();
+    if (hex.length === 6) {
+      return `FF${hex}`.toUpperCase();
+    }
+
+    if (hex.length === 8) {
+      return hex.toUpperCase();
+    }
   }
 
-  if (hex.length === 6) {
-    return `FF${hex}`.toUpperCase();
-  }
+  const rgb = namedOrFunctionalColorToRgb(normalized);
 
-  if (hex.length === 8) {
-    return hex.toUpperCase();
-  }
-
-  return 'FF000000';
+  return rgb === null ? 'FF000000' : `FF${rgb}`;
 }
 
 /**
- * Derives an ExcelJS `alignment` object from a CSS className string.
+ * Derives an `alignment` object, in an ExcelJS-compatible shape, from a CSS className string.
  *
  * @private
  * @param {string|undefined} className CSS class string.
@@ -395,7 +406,7 @@ export function getAlignmentFromClassName(className: string | undefined): CellSt
 }
 
 /**
- * Derives an ExcelJS `alignment` object from the cell meta `className`.
+ * Derives an `alignment` object, in an ExcelJS-compatible shape, from the cell meta `className`.
  *
  * Recognized Handsontable alignment classes:
  * - Horizontal: `htLeft`, `htCenter`, `htRight`, `htJustify`
@@ -435,7 +446,7 @@ export function getAlignmentFromMeta(meta: CellMeta | undefined): CellStyleSnaps
 }
 
 /**
- * Maps a Handsontable border pixel width to the closest ExcelJS border style string.
+ * Maps a Handsontable border pixel width to the closest xlsx border style string.
  *
  * Excel does not support arbitrary pixel widths; it uses a fixed set of named styles.
  * The mapping used here:
@@ -445,7 +456,7 @@ export function getAlignmentFromMeta(meta: CellMeta | undefined): CellStyleSnaps
  *
  * @private
  * @param {number} width Border width in pixels.
- * @returns {string} ExcelJS border style name.
+ * @returns {string} xlsx border style name.
  */
 function borderWidthToExcelStyle(width: number): string {
   if (width >= 3) {
@@ -460,7 +471,8 @@ function borderWidthToExcelStyle(width: number): string {
 }
 
 /**
- * Derives an ExcelJS `border` object from custom border data stored in cell meta.
+ * Derives a `border` object, in an ExcelJS-compatible shape, from custom border data stored in cell
+ * meta.
  *
  * Border widths are mapped to the nearest Excel border style:
  * `1` → `'thin'`, `2` → `'medium'`, `3+` → `'thick'`.
@@ -491,7 +503,7 @@ export function getBorderFromMeta(meta: CellMeta | undefined): CellStyleSnapshot
 }
 
 /**
- * Derives an ExcelJS `font` object from computed CSS style.
+ * Derives a `font` object, in an ExcelJS-compatible shape, from computed CSS style.
  *
  * All boolean properties (bold, italic, underline) and color are read exclusively
  * from the `cssStyle` object produced by `getCssStyleFromElement`. When `cssStyle`
@@ -545,7 +557,8 @@ export function getFontFromMeta(
 }
 
 /**
- * Derives an ExcelJS solid `fill` object from the computed CSS background color.
+ * Derives a solid `fill` object, in an ExcelJS-compatible shape, from the computed CSS background
+ * color.
  *
  * Background color is read exclusively from `cssStyle.backgroundColor`.
  * When `meta.readOnly` is `true` and no explicit color is found, a default light gray fill
@@ -580,7 +593,8 @@ export function getFillFromMeta(
 }
 
 /**
- * Returns an ExcelJS data validation object for dropdown and autocomplete cell types.
+ * Returns a data validation object, in an ExcelJS-compatible shape, for dropdown and autocomplete
+ * cell types.
  *
  * @private
  * @param {object|undefined} meta Cell meta object.

@@ -14,25 +14,54 @@ on:
 jobs:
   test:
     name: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           # Full history so the coverage-floor step can diff against the PR base.
           fetch-depth: 0
       - uses: ./.github/actions/setup-workspace
-      - name: Test (with coverage)
+      # Coverage is PR-only: it feeds only the changed-line floor below, so a push
+      # run skips the instrumentation.
+      - name: Test
+        if: ${{ !inputs.is-pr }}
         run: |
           cd handsontable
-          # Instrument ALL of src (not just files a test imports) so a changed
-          # file no test exercises shows as uncovered in the lcov — the coverage
-          # floor must see it, not silently skip it.
+          npm run test:unit
+      - name: Test (with coverage)
+        if: inputs.is-pr
+        # The base ref goes through the environment rather than into the script body, as
+        # lint.yml and visual.yml do, so a branch name can never be read as shell.
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          # Instrument only the source files this pull request changes. The floor
+          # below reads nothing else, and instrumenting all of src/ made the run
+          # 2.4x slower (DEV-3746: 247 s against 105 s plain on 11 cores, and the
+          # whole 20 minutes of this job on the runner). A changed file no test
+          # exercises is still listed, so it still shows as uncovered in the lcov.
+          # The diff is from the merge-base with the base branch's live tip, as
+          # .ai/CI.md asks of every diff-scoped gate; `--diff-filter=AMR` leaves
+          # out deleted files, which have nothing to cover. With no changed source
+          # file the pattern matches nothing: Jest instruments nothing, writes an
+          # empty lcov, and the floor reports nothing to check.
+          # A plain `*` in a git pathspec crosses `/`, so `src/*.ts` takes `src/core.ts` and
+          # `src/plugins/x/y.ts` alike; `src/**/*.ts` without `:(glob)` needs a path after `src/`
+          # and skips the files directly under `src/`.
+          BASE="$(git merge-base "origin/${BASE_REF}" HEAD)"
+          CHANGED="$(git diff --name-only --diff-filter=AMR "$BASE"...HEAD -- \
+            'handsontable/src/*.ts' 'handsontable/src/*.js' \
+            | grep -v -e '/__tests__/' -e '/3rdparty/' \
+            | sed 's|^handsontable/|--collectCoverageFrom=|' | tr '\n' ' ')"
+          if [ -z "$CHANGED" ]; then CHANGED='--collectCoverageFrom=src/no-source-changed/*'; fi
+          cd handsontable
+          # shellcheck disable=SC2086 -- one flag per changed file, split on purpose
           npm run test:unit -- --coverage \
-            --collectCoverageFrom='src/**/*.{js,ts}' \
+            $CHANGED \
             --coveragePathIgnorePatterns='/__tests__/' \
             --coveragePathIgnorePatterns='/3rdparty/'
       - name: Upload unit coverage (lcov)
-        if: always()
+        if: always() && inputs.is-pr
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
           name: unit-coverage

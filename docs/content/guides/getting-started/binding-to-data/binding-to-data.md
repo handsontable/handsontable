@@ -1,8 +1,8 @@
 ---
 type: tutorial
 title: Binding to data
-metaTitle: Binding to data - JavaScript Data Grid | Handsontable
-description: Use Handsontable's configuration options or API methods to fill your data grid with various data structures, including an array of arrays or an array of objects.
+metaTitle: Binding to data | Handsontable DataGrid for JavaScript
+description: Use Handsontable DataGrid's configuration options or API methods to fill your data grid with various data structures, including an array of arrays or an array of objects.
 permalink: /binding-to-data
 canonicalUrl: /binding-to-data
 tags:
@@ -10,11 +10,11 @@ tags:
   - data connect
   - data sources
 react:
-  metaTitle: Binding to data - React Data Grid | Handsontable
+  metaTitle: Binding to data | Handsontable DataGrid for React
 angular:
-  metaTitle: Binding to data - Angular Data Grid | Handsontable
+  metaTitle: Binding to data | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Binding to data - Vue Data Grid | Handsontable
+  metaTitle: Binding to data | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 menuTag: updated
@@ -170,7 +170,7 @@ An array of objects can be used as a data source as follows:
 
 :::
 
-If your data arrives as a JSON string (for example, from an API response), parse it with `JSON.parse()` into an array of objects before passing it to Handsontable -- the resulting structure matches the array of objects shown above.
+If your data arrives as a JSON string (for example, from an API response), parse it with `JSON.parse()` into an array of objects before passing it to Handsontable DataGrid -- the resulting structure matches the array of objects shown above.
 
 To combine an array-of-objects data source with a custom cell renderer, a checkbox cell type, and currency-formatted numeric columns, see the [built-in cell types example](@/guides/cell-types/cell-type/cell-type.md#built-in-cell-types-example) and [format numbers](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md#format-numbers) sections.
 
@@ -558,6 +558,28 @@ To avoid this scenario, copy the data before you pass it to the grid. To change 
 can use our API methods. For example, a change being made will be displayed immediately on the screen after calling
 the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
+::: only-for vue
+
+Pass a new array to replace the data. Assigning `data.value = newArray`, passing a new `data` prop, or setting a new
+`settings.data` loads the new array into the grid, as the [`updateData()`](@/api/core.md#updatedata) method does.
+The grid keeps the sorted row order, the trimmed rows, and the cell and column states. It places the new values
+through the row order of the sort and doesn't sort them again. When you also change the
+[`columns`](@/api/options.md#columns) in the same update and the column layout changes, the grid clears the sort and
+the filters and starts the column state over.
+
+Each replacement fires the [`afterChange`](@/api/hooks.md#afterchange) hook with `null` as `changes` and
+`"updateData"` as `source`. If an `afterChange` handler writes the grid's data back to your ref, check `source`
+first, or the replacement triggers another one. A handler that reads `changes` needs to skip a `null` value.
+
+After you replace the array, edits of the new array (`push()`, `splice()`, or a cell write) show up in the grid
+without another replacement. To change values from outside the grid, use the API methods below.
+
+Don't build the array in the template (`:data="rows.map(...)"`, or a literal that holds reactive values). Vue builds
+a new array on every render of the parent component, so the grid reloads its data each time, and edits made in the
+grid are lost. Keep the array in a `ref()`, or in a constant.
+
+:::
+
 ::: only-for javascript
 
 ::: example #example10 --js 1 --ts 2
@@ -711,7 +733,7 @@ To replace the entire data in an already-initialized Handsontable instance, you 
 
 **[`loadData()`](@/api/core.md#loaddata)**
 
-Replaces the data used in Handsontable with the dataset provided as the method argument. **Note:** Since version `12.0.0` this method causes the table to reset its configuration options and index mapper information, so some of the work done on the table since its initialization might be lost.
+Replaces the data used in Handsontable with the dataset provided as the method argument. **Note:** This method also resets the state of rows, columns, and cells -- for example sorting, moved and hidden rows and columns, filters, cell metadata, and the undo history -- so some of the work done on the table since its initialization might be lost. It keeps your settings, except the cell metadata from the `cell` option. For the full list, see [What the data-loading methods reset and keep](#what-the-data-loading-methods-reset-and-keep).
 
 ```js
 hot.loadData(newDataset);
@@ -722,7 +744,7 @@ hot.loadData(newDataset);
 
 **[`updateData()`](@/api/core.md#updatedata)**
 
-Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata) does NOT reset the configuration options and/or index mapper information, so it can be safely used to replace just the data, leaving the rest of the table intact.
+Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata) keeps the state of rows, columns, and cells -- for example row order, moved and hidden rows and columns, filters, and cell metadata -- so you can use it to replace just the data and leave the rest of the table intact. It clears the undo and redo history, unless the new data is what the grid shows already: the same array, a copy of it, or rows that hold the same values.
 
 ```js
 hot.updateData(newDataset);
@@ -753,7 +775,7 @@ You can also use the built-in mechanism of the Angular wrapper to update data. W
 
 ::: only-for react
 
-The React wrapper sends the `data` prop to the grid through [`updateSettings()`](@/api/core.md#updatesettings) on every render. Pass `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. If you write the array inline in JSX, every render creates a new array, and the grid replaces its data with it. Any change the user made to the previous array is lost.
+The React wrapper sends the `data` prop to the grid through [`updateSettings()`](@/api/core.md#updatesettings) on every render. Pass `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. If you write the array inline in JSX, every render creates a new array, and the grid replaces its data with it. Any change the user made to the previous array is lost, and so is the undo and redo history. A copy of the array, such as `rows.slice()` in a state update, keeps the history. So does a new object for the edited row, as an immutable row update gives, because its values equal what the grid shows. Data with other values replaces the grid's data and clears the history.
 
 ```jsx
 // Replaces the data on every render
@@ -767,7 +789,29 @@ const data = [['Rent', 1200]];
 
 To replace the data on purpose, pass a new array, for example through a `useState` setter.
 
+The same re-render applies your other props as well. To see which ones, and how to keep user changes such as merged cells, read [Pass props from state](@/guides/getting-started/react-redux/react-redux.md#pass-props-from-state).
+
 :::
+
+#### What the data-loading methods reset and keep
+
+The table lists what happens to each kind of state when you replace a dataset of the same size. Both methods keep your settings (`columns`, `colHeaders`, plugin options, and hooks) and the selection. The one exception is the `cell` option: `loadData()` drops its cell metadata, although `getSettings().cell` still lists it. If the new dataset has fewer rows or columns, the selection shrinks to fit.
+
+| State | [`loadData()`](@/api/core.md#loaddata) | [`updateData()`](@/api/core.md#updatedata) |
+|---|---|---|
+| Sorting, set through the UI, the API, or `initialConfig` | Cleared -- rows show in source order | Kept -- the rows keep their sorted order and are not sorted again by value. The sort state stays (`getSortConfig()` still returns it), so the column looks sorted when the new values are not. Sort again to order them. |
+| Rows and columns moved at runtime | Reset | Kept |
+| Moves, hidden rows or columns, and trimmed rows declared in the configuration, such as `manualColumnMove: [2, 0, 1]`, `hiddenRows: { rows: [2] }`, or `trimRows: [1]` | Applied again from the configuration | Kept |
+| Rows and columns hidden or trimmed through a plugin API | Shown again | Kept |
+| Row heights and column widths set by the user | Reset to the default size, or to the sizes in a `manualRowResize` or `manualColumnResize` array | Kept |
+| Filter conditions and the rows they trim | Cleared | Kept -- the same rows stay trimmed, and the filters do not run again on the new values. Call `filter()` to apply them. |
+| Cell metadata set with [`setCellMeta()`](@/api/core.md#setcellmeta), such as `readOnly` and `className`, and comments | Cleared | Kept |
+| Cell metadata from the `cell` option | Cleared, although `getSettings().cell` still lists it. Metadata from `columns` stays. | Kept |
+| Validation results | Cleared | Kept -- a cell can still be marked invalid for a value that is gone |
+| Merged cells | Kept | Kept |
+| Undo and redo history | Cleared | Cleared -- except when the new data is what the grid shows already (the same array, a copy of it, or rows that hold the same values). Then it is kept. |
+
+After `updateData()`, call [`validateCells()`](@/api/core.md#validatecells) if you need the validation results to match the new data.
 
 ### The data-modifying API methods
 
@@ -1080,7 +1124,7 @@ When the full dataset lives on a server, use [`dataProvider`](@/api/options.md#d
 
 - Handsontable accepts three main data structures: arrays of arrays, arrays of objects, and function-based data sources.
 - You can pass an initial dataset through the `data` option or via the `HotTable` component's props.
-- Use `loadData()` to replace data and reset configuration, `updateData()` to replace data without resetting settings, and `updateSettings({ data })` to update data alongside other options.
+- Use `loadData()` to replace data and reset the state of rows, columns, and cells, `updateData()` to replace data and keep that state, and `updateSettings({ data })` to update data alongside other options.
 - Handsontable binds to your data by reference. Copy the dataset before passing it in to avoid unintended mutations.
 - For large datasets that live on a server, use `dataProvider` instead of a local array.
 

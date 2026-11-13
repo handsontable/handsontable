@@ -2,7 +2,6 @@ import { ChangeEvent, useRef, useState } from 'react';
 import { HyperFormula } from 'hyperformula';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import { DetailedSettings } from 'handsontable/plugins/formulas';
 
 // register Handsontable's modules
 registerAllModules();
@@ -37,7 +36,6 @@ const ExampleComponent = () => {
     }
 
     setErrorMessage('');
-    hotNamedExpressions?.render();
   };
 
   return (
@@ -57,6 +55,7 @@ const ExampleComponent = () => {
         <output className={errorMessage ? 'is-error' : undefined}>{errorMessage}</output>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotNamedExpressionsRef}
         data={data}
         colHeaders={true}
@@ -71,11 +70,10 @@ const ExampleComponent = () => {
                 expression: 100,
               },
             ],
-          } as DetailedSettings
+          }
         }
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

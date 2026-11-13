@@ -62,10 +62,10 @@ describe('Validator correction via setDataAtCell', () => {
     expect(getDataAtCell(2, 0)).toEqual('FOO');
   });
 
-  it('should NOT preserve value corrected by a custom validator when the source name does not end with "Validator"', async() => {
+  it('should apply a correction written with a source that does not end with "Validator" as a write of its own', async() => {
     // When the source does not follow the 'Validator' suffix convention, validateChanges()
-    // does not track the correction. The original value from applyChanges() wins.
-    // This test documents the expected limitation so the convention is explicit.
+    // does not fold the correction into the change that triggered it. The correction is a write
+    // made after that change, so it wins and the triggering change is dropped.
     const lowercaseCorrector = function(value, callback) {
       if (typeof value === 'string' && value !== value.toLowerCase()) {
         this.instance.setDataAtCell(this.visualRow, this.visualCol, value.toLowerCase(), 'lowercaseCorrector');
@@ -103,9 +103,9 @@ describe('Validator correction via setDataAtCell', () => {
 
     await sleep(300);
 
-    // Correction is overwritten by applyChanges() because 'lowercaseCorrector' does not
-    // end in 'Validator' and is not captured by the afterChange tracking in validateChanges().
-    expect(getDataAtCell(0, 0)).toEqual('HELLO');
-    expect(getDataAtCell(1, 0)).toEqual('WORLD');
+    // The correction is the last write made to the cell, so it is not overwritten when the
+    // batch drains after the async validators.
+    expect(getDataAtCell(0, 0)).toEqual('hello');
+    expect(getDataAtCell(1, 0)).toEqual('world');
   });
 });

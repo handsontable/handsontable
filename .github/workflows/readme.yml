@@ -17,7 +17,7 @@ jobs:
     # rate-limited the runner; here a slow third party costs nothing but a red cron. Only 404 and
     # 410 fail — npm answers every scripted request with 403 and GitHub 429s a burst of raw
     # requests, and a check people learn to ignore is worse than no check.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
@@ -47,7 +47,7 @@ jobs:
     # Nightly and on demand instead: both fire while the entries still exist. Run it by hand
     # (Actions → README → Run workflow) before cutting a release — that is the release-checklist
     # step DEV-2900 asks for, and it reads the same list the release is about to ship.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0

@@ -40,14 +40,14 @@ describe('renderAllColumns option', () => {
     wt.draw();
 
     expect(spec().$table.find('tbody tr:first td').length).toBe(100);
-    expect(cellRenderer).toHaveBeenCalledTimes(900); // 100 columns * 9 virtualized rows
+    expect(cellRenderer).toHaveBeenCalledTimes(800); // 100 columns * 8 virtualized rows
 
     wt.draw(true);
 
-    expect(cellRenderer).toHaveBeenCalledTimes(900);
+    expect(cellRenderer).toHaveBeenCalledTimes(800);
 
     wt.draw(false);
 
-    expect(cellRenderer).toHaveBeenCalledTimes(1700);
+    expect(cellRenderer).toHaveBeenCalledTimes(1600);
   });
 });

@@ -1,4 +1,5 @@
 import { isValidISODate } from '../../helpers/dateTime';
+import { EXCEL_EPOCH_UTC, MS_PER_DAY } from '../../utils/xlsxEngine/dates';
 import { valueGetter as multiSelectValueGetter } from '../../cellTypes/multiSelectType/accessors/valueGetter';
 
 /**
@@ -22,7 +23,7 @@ export function unescapeFormulaExpression(expression: unknown) {
 }
 
 /**
- * Checks whether string looks like formula or not. Corresponds to {@link https://hyperformula.handsontable.com/api/globals.html#isformula|HyperFormula's implementation}.
+ * Checks whether string looks like formula or not. Corresponds to {@link https://handsontable.com/docs/hyperformula/api/globals.html#isformula|HyperFormula's implementation}.
  *
  * @param {string} value Checked value.
  * @returns {boolean}
@@ -101,9 +102,8 @@ export function getTimeFromHfTimeFraction(numericTime: number): string {
  * @returns {string}
  */
 export function getDateFromExcelDate(numericDate: unknown): string {
-  // HF epoch is 1899-12-30 (UTC).
-  const epochMs = Date.UTC(1899, 11, 30);
-  const dateMs = epochMs + ((numericDate as number) * 86400000);
+  // The HyperFormula epoch is 1899-12-30 (UTC), the same day zero the xlsx engine counts from.
+  const dateMs = EXCEL_EPOCH_UTC + ((numericDate as number) * MS_PER_DAY);
   const d = new Date(dateMs);
   const year = d.getUTCFullYear();
   const month = String(d.getUTCMonth() + 1).padStart(2, '0');
@@ -275,5 +275,25 @@ export function padRowsToWidestRow(rows: unknown[][]): unknown[][] {
     }
 
     return padded;
+  });
+}
+
+/**
+ * Inserts `amount` empty rows into `rows` at `index`, in place. A loop rather than a spread into `splice()`:
+ * a spread passes every row as an argument, and an insert of some hundred thousand rows overflows the stack.
+ *
+ * @param {Array<Array<*>>} rows The rows.
+ * @param {number} index Where the first new row goes.
+ * @param {number} amount How many rows to insert.
+ */
+export function insertEmptyRows(rows: unknown[][], index: number, amount: number): void {
+  const tail = rows.splice(index);
+
+  for (let row = 0; row < amount; row += 1) {
+    rows.push([]);
+  }
+
+  tail.forEach((row) => {
+    rows.push(row);
   });
 }

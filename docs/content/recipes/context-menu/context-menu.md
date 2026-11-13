@@ -1,7 +1,7 @@
 ---
 title: Context Menu Recipes
-metaTitle: Context Menu Recipes - JavaScript Data Grid | Handsontable
-description: Practical recipes for customizing the Handsontable context menu and adding programmatic row operations.
+metaTitle: Context Menu Recipes | Handsontable DataGrid for JavaScript
+description: Practical recipes for customizing the Handsontable DataGrid context menu and adding programmatic row operations.
 permalink: /recipes/context-menu
 canonicalUrl: /recipes/context-menu
 searchCategory: Recipes
@@ -9,17 +9,17 @@ hotPlugin: false
 editLink: false
 type: how-to
 react:
-  metaTitle: Context Menu Recipes - React Data Grid | Handsontable
+  metaTitle: Context Menu Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Context Menu Recipes - Angular Data Grid | Handsontable
+  metaTitle: Context Menu Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Context Menu Recipes - Vue Data Grid | Handsontable
+  metaTitle: Context Menu Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 
 ## Overview
 
-This section provides practical recipes for customizing the Handsontable right-click context menu and performing row operations programmatically. Each recipe includes a working example you can copy into your app.
+This section provides practical recipes for customizing the Handsontable DataGrid right-click context menu and performing row operations programmatically. Each recipe includes a working example you can copy into your app.
 
 ## Available Recipes
 

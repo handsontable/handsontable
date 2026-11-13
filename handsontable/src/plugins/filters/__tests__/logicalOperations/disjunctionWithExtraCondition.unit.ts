@@ -67,10 +67,10 @@ describe('Operation on set of conditions (`disjunction and variable`)', () => {
   it('should throw error when handling less than 3 arguments', () => {
     expect(() => {
       disjunctionWithExtraCondition([trueConditionMock()]);
-    }).toThrow();
+    }).toThrow('The operation requires at least three conditions.');
 
     expect(() => {
       disjunctionWithExtraCondition([trueConditionMock(), falseConditionMock()]);
-    }).toThrow();
+    }).toThrow('The operation requires at least three conditions.');
   });
 });

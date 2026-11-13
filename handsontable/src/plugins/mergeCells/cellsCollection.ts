@@ -2,11 +2,14 @@ import type { HotInstance } from '../../core/types';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import MergedCellCoords from './cellCoords';
 import { rangeEach, clamp } from '../../helpers/number';
-import { warn } from '../../helpers/console';
+import { deprecatedWarnOnce, warn } from '../../helpers/console';
 import { arrayEach } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import type { MergeCells } from './mergeCells';
+import { findNonIntersectingIndex } from '../../selection/cellBlocks';
+import type { MergeAreaGeometry } from '../../utils/mergeAreas';
 import {
+  areMergesOverlapping,
   getFirstRowOfActiveBottomOverlay,
   getFirstRenderedRowOfOverlay,
   getFirstRenderedColumnOfOverlay,
@@ -37,6 +40,16 @@ class MergedCellsCollection {
    * @type {Array}
    */
   mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
+  /**
+   * Merges were added or removed since the area highlight was last recomputed from this collection.
+   */
+  #selectionHighlightStale = false;
+  /**
+   * A merge was written over a cell of another merge in the lookup matrix since it was last rebuilt (a sort
+   * can draw two merges over each other, see `relocateInMatrix()`). The matrix then no longer names every
+   * merge a cell lies under, so the overlap check scans the merge list instead of reading the cells.
+   */
+  #hasDrawnOver = false;
   /**
    * The Handsontable instance.
    *
@@ -104,7 +117,9 @@ class MergedCellsCollection {
 
       if (
         row >= rowStart && row + rowspan - 1 <= rowEnd &&
-        col >= columnStart && col + colspan - 1 <= columnEnd
+        col >= columnStart && col + colspan - 1 <= columnEnd &&
+        // The lookup matrix is the authority on visibility (see `getWithinRange`).
+        this.get(row, col) === mergedCell
       ) {
         result = mergedCell;
 
@@ -113,6 +128,18 @@ class MergedCellsCollection {
     }
 
     return result;
+  }
+
+  /**
+   * Get the merged cells that are not trimmed away: every merge except the ones purged from the lookup
+   * matrix because all of their rows are trimmed. A purged merge keeps stale visual coordinates in
+   * the `mergedCells` list, which can point at rows that other records have moved into. A merge whose
+   * rows are only hidden is returned, because hidden rows keep their visual index.
+   *
+   * @returns {MergedCellCoords[]} The visible merged cells, in the order of the `mergedCells` list.
+   */
+  getVisibleMergedCells() {
+    return this.mergedCells.filter(mergedCell => this.get(mergedCell.row, mergedCell.col) === mergedCell);
   }
 
   /**
@@ -265,32 +292,78 @@ class MergedCellsCollection {
    * @returns {MergedCellCoords|boolean} Returns the new merged cell on success and `false` on failure.
    */
   add(mergedCellInfo: { row: number, col: number, rowspan: number, colspan: number }, auto = false) {
-    const row = mergedCellInfo.row;
-    const column = mergedCellInfo.col;
-    const rowspan = mergedCellInfo.rowspan;
-    const colspan = mergedCellInfo.colspan;
-    const newMergedCell = new MergedCellCoords(row, column, rowspan, colspan,
-      this.hot._createCellCoords, this.hot._createCellRange);
-    const alreadyExists = this.get(row, column);
-    const isOverlapping = auto ? false : this.isOverlapping(newMergedCell);
+    const newMergedCell = this.#createMergedCell(mergedCellInfo);
 
-    if (!alreadyExists && !isOverlapping) {
-      if (this.hot) {
-        newMergedCell.normalize(this.hot);
-      }
-
-      this.mergedCells.push(newMergedCell);
-      this.#addMergedCellToMatrix(newMergedCell);
-      this.hot?.markAllCellsChanged();
-
-      return newMergedCell;
+    if (!this.#accepts(newMergedCell, auto)) {
+      return false;
     }
+
+    if (this.hot) {
+      newMergedCell.normalize(this.hot);
+    }
+
+    this.mergedCells.push(newMergedCell);
+    this.#addMergedCellToMatrix(newMergedCell);
+    this.hot?.markAllCellsChanged();
+    this.#selectionHighlightStale = true;
+
+    return newMergedCell;
+  }
+
+  /**
+   * Checks whether `add()` would accept a merged cell, and warns as `add()` does when it overlaps
+   * another one. A merge runs it before it touches the cells, so a merge `add()` would refuse
+   * writes no cell meta and leaves no undo step (DEV-159). Both methods decide through the same
+   * private check, so a rule cannot reach one of them without the other.
+   *
+   * `ignoredMergedCells` lists merges that the caller removes before it adds this one:
+   * `mergeSelection()` unmerges the merges whose anchor lies inside the range first, and asks here
+   * before it touches any of them.
+   *
+   * @param {object} mergedCellInfo The merged cell information object. Has to contain `row`, `col`, `colspan` and `rowspan` properties.
+   * @param {boolean} [auto=false] `true` if called internally by the plugin (usually in batch).
+   * @param {MergedCellCoords[]} [ignoredMergedCells=[]] Merged cells to treat as already removed.
+   * @returns {boolean} `true` if `add()` would add the merged cell.
+   */
+  canAdd(
+    mergedCellInfo: { row: number, col: number, rowspan: number, colspan: number },
+    auto = false,
+    ignoredMergedCells: MergedCellCoords[] = [],
+  ) {
+    return this.#accepts(this.#createMergedCell(mergedCellInfo), auto, ignoredMergedCells);
+  }
+
+  /**
+   * Builds a merged cell object from its plain description.
+   *
+   * @param {object} mergedCellInfo The merged cell information object.
+   * @returns {MergedCellCoords}
+   */
+  #createMergedCell(mergedCellInfo: { row: number, col: number, rowspan: number, colspan: number }) {
+    return new MergedCellCoords(mergedCellInfo.row, mergedCellInfo.col, mergedCellInfo.rowspan,
+      mergedCellInfo.colspan, this.hot._createCellCoords, this.hot._createCellRange);
+  }
+
+  /**
+   * The one place that decides whether a merged cell can be added. It is refused when another merged
+   * cell starts at its anchor, or, unless `auto` is `true`, when another merged cell overlaps it. An
+   * overlap warns.
+   *
+   * @param {MergedCellCoords} newMergedCell The merged cell to check.
+   * @param {boolean} auto `true` if called internally by the plugin.
+   * @param {MergedCellCoords[]} [ignoredMergedCells=[]] Merged cells to treat as already removed.
+   * @returns {boolean}
+   */
+  #accepts(newMergedCell: MergedCellCoords, auto: boolean, ignoredMergedCells: MergedCellCoords[] = []) {
+    const atAnchor = this.get(newMergedCell.row, newMergedCell.col);
+    const alreadyExists = !!atAnchor && !ignoredMergedCells.includes(atAnchor);
+    const isOverlapping = auto ? false : this.isOverlapping(newMergedCell, ignoredMergedCells);
 
     if (isOverlapping) {
       warn(MergedCellsCollection.IS_OVERLAPPING_WARNING(newMergedCell));
     }
 
-    return false;
+    return !alreadyExists && !isOverlapping;
   }
 
   /**
@@ -308,6 +381,7 @@ class MergedCellsCollection {
     newMergedCell.normalize(this.hot);
     this.mergedCells.push(newMergedCell);
     this.hot.markAllCellsChanged();
+    this.#selectionHighlightStale = true;
 
     return newMergedCell;
   }
@@ -328,11 +402,26 @@ class MergedCellsCollection {
       this.mergedCells.splice(mergedCellIndex, 1);
       this.#removeMergedCellFromMatrix(mergedCell);
       this.hot?.markAllCellsChanged();
+      this.#selectionHighlightStale = true;
 
       return mergedCell;
     }
 
     return false;
+  }
+
+  /**
+   * Reports whether the merges changed since the highlight was last recomputed, and clears that mark.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  takeSelectionHighlightStale(): boolean {
+    const stale = this.#selectionHighlightStale;
+
+    this.#selectionHighlightStale = false;
+
+    return stale;
   }
 
   /**
@@ -355,30 +444,54 @@ class MergedCellsCollection {
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
+    this.#hasDrawnOver = false;
     this.hot?.markAllCellsChanged();
+    this.#selectionHighlightStale = true;
   }
 
   /**
-   * Check if the provided merged cell overlaps with the others already added.
+   * Check if the provided merged cell overlaps with the others already added. Like `getWithinRange()`,
+   * it asks the lookup matrix which merges take up cells: a merge purged from the matrix because all of
+   * its rows are trimmed keeps stale visual coordinates and covers no cell on screen.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to check against all others in the container.
+   * @param {MergedCellCoords[]} [ignoredMergedCells=[]] Merged cells to leave out of the check.
    * @returns {boolean} `true` if the provided merged cell overlaps with the others, `false` otherwise.
    */
-  isOverlapping(mergedCell: MergedCellCoords) {
-    const mergedCellRange = mergedCell.getRange();
+  isOverlapping(mergedCell: MergedCellCoords, ignoredMergedCells: MergedCellCoords[] = []) {
+    const ignored = new Set(ignoredMergedCells);
 
-    if (!mergedCellRange) {
-      return false;
+    return this.overlapsLiveMerge(mergedCell, otherMergedCell => ignored.has(otherMergedCell));
+  }
+
+  /**
+   * Checks whether an area shares a cell with a merge the lookup matrix holds at its own top-left (a merge
+   * purged because all of its rows are trimmed does not count, see `isOverlapping()`), leaving out the
+   * ignored ones. The cost is the smaller of the area's cell count and the number of merges: adding many
+   * small merges reads only their own cells, and one large merge is checked against the merge list instead
+   * of every cell it covers.
+   *
+   * @private
+   * @param {MergeAreaGeometry} area The area to check: `row`, `col`, `rowspan` and `colspan`.
+   * @param {Function} isIgnored Tells whether a merge is left out of the check.
+   * @returns {boolean}
+   */
+  overlapsLiveMerge(area: MergeAreaGeometry, isIgnored: (mergedCell: MergedCellCoords) => boolean): boolean {
+    const counts = (mergedCell: MergedCellCoords) => (
+      this.get(mergedCell.row, mergedCell.col) === mergedCell && !isIgnored(mergedCell)
+    );
+
+    if (this.#hasDrawnOver || area.rowspan * area.colspan > this.mergedCells.length) {
+      return this.mergedCells.some(mergedCell => areMergesOverlapping(area, mergedCell) && counts(mergedCell));
     }
 
-    for (let i = 0; i < this.mergedCells.length; i++) {
-      const otherMergedCell = this.mergedCells[i];
-      const otherMergedCellRange = otherMergedCell.getRange();
+    for (let row = area.row; row < area.row + area.rowspan; row++) {
+      for (let col = area.col; col < area.col + area.colspan; col++) {
+        const mergedCell = this.get(row, col);
 
-      const overlappingRange = otherMergedCellRange as CellRange & { overlaps(range: CellRange): boolean };
-
-      if (otherMergedCellRange && overlappingRange.overlaps(mergedCellRange)) {
-        return true;
+        if (mergedCell && counts(mergedCell)) {
+          return true;
+        }
       }
     }
 
@@ -444,188 +557,72 @@ class MergedCellsCollection {
   /**
    * Gets the start-most visual column index that do not intersect with other merged cells within the provided range.
    *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
    * @param {CellRange} range The range to search within.
    * @param {number} visualColumnIndex The visual column index to start the search from.
    * @returns {number}
    */
   getStartMostColumnIndex(range: CellRange, visualColumnIndex: number) {
-    return this.#findNonIntersectingIndex(range, 'col', -1, visualColumnIndex);
+    this.#warnDeprecatedScan('getStartMostColumnIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'col', -1, visualColumnIndex);
   }
 
   /**
    * Gets the end-most visual column index that do not intersect with other merged cells within the provided range.
    *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
    * @param {CellRange} range The range to search within.
    * @param {number} visualColumnIndex The visual column index to start the search from.
    * @returns {number}
    */
   getEndMostColumnIndex(range: CellRange, visualColumnIndex: number) {
-    return this.#findNonIntersectingIndex(range, 'col', 1, visualColumnIndex);
+    this.#warnDeprecatedScan('getEndMostColumnIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'col', 1, visualColumnIndex);
   }
 
   /**
    * Gets the top-most visual row index that do not intersect with other merged cells within the provided range.
    *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
    * @param {CellRange} range The range to search within.
    * @param {number} visualRowIndex The visual row index to start the search from.
    * @returns {number}
    */
   getTopMostRowIndex(range: CellRange, visualRowIndex: number) {
-    return this.#findNonIntersectingIndex(range, 'row', -1, visualRowIndex);
+    this.#warnDeprecatedScan('getTopMostRowIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'row', -1, visualRowIndex);
   }
 
   /**
    * Gets the bottom-most visual row index that do not intersect with other merged cells within the provided range.
    *
+   * @deprecated Since 19.0.0. The selection steps over merged cells itself now, so nothing in Handsontable
+   * calls this method. It will be removed in 20.0.0. There is no replacement.
    * @param {CellRange} range The range to search within.
    * @param {number} visualRowIndex The visual row index to start the search from.
    * @returns {number}
    */
   getBottomMostRowIndex(range: CellRange, visualRowIndex: number) {
-    return this.#findNonIntersectingIndex(range, 'row', 1, visualRowIndex);
+    this.#warnDeprecatedScan('getBottomMostRowIndex');
+
+    return findNonIntersectingIndex(this.getVisibleMergedCells(), range, 'row', 1, visualRowIndex);
   }
 
   /**
-   * Collects, per range line along the provided axis, the contributions of the merged cells that
-   * intersect the provided range. A line is a single row (for the `row` axis) or a single column
-   * (for the `col` axis) of the range. Each merged cell contributes, to every line it covers, its
-   * scan extent along the axis (the last covered index when scanning forward, the first when
-   * scanning backward) and the number of range cells it covers within the line. Lines without any
-   * merged cell are absent from the returned map. Only merged cells present in the lookup matrix
-   * are considered — merges purged from the matrix (fully hidden) are skipped.
+   * Prints the one-time deprecation warning of a line-scan method.
    *
-   * @param {CellRange} range The range to search within.
-   * @param {'row' | 'col'} axis The axis to search within.
-   * @param {number} scanDirection The direction to scan the range. `1` for forward, `-1` for backward.
-   * @returns {Map<number, { extents: Set<number>, coveredCells: number }>} Map keyed by the line index.
+   * @param {string} methodName The deprecated method's name.
    */
-  #collectLineContributions(range: CellRange, axis: 'row' | 'col', scanDirection: number) {
-    const { row: rangeStartRow, col: rangeStartColumn } = range.getTopStartCorner();
-    const { row: rangeEndRow, col: rangeEndColumn } = range.getBottomEndCorner();
-    const startRow = rangeStartRow ?? 0;
-    const startColumn = rangeStartColumn ?? 0;
-    const endRow = rangeEndRow ?? 0;
-    const endColumn = rangeEndColumn ?? 0;
-    const isRowAxis = axis === 'row';
-    const lineStart = isRowAxis ? startRow : startColumn;
-    const lineEnd = isRowAxis ? endRow : endColumn;
-    const crossStart = isRowAxis ? startColumn : startRow;
-    const crossEnd = isRowAxis ? endColumn : endRow;
-    const lines = new Map<number, { extents: Set<number>, coveredCells: number }>();
-
-    for (let i = 0; i < this.mergedCells.length; i++) {
-      const mergedCell = this.mergedCells[i];
-      const mergeLineStart = isRowAxis ? mergedCell.row : mergedCell.col;
-      const mergeLineEnd = mergeLineStart + (isRowAxis ? mergedCell.rowspan : mergedCell.colspan) - 1;
-      const mergeCrossStart = isRowAxis ? mergedCell.col : mergedCell.row;
-      const mergeCrossEnd = mergeCrossStart + (isRowAxis ? mergedCell.colspan : mergedCell.rowspan) - 1;
-
-      if (
-        mergeLineEnd < lineStart || mergeLineStart > lineEnd ||
-        mergeCrossEnd < crossStart || mergeCrossStart > crossEnd ||
-        // The lookup matrix is the authority on visibility: merges purged from the matrix
-        // (fully hidden) keep stale visual coordinates in the `mergedCells` list.
-        this.get(mergedCell.row, mergedCell.col) !== mergedCell
-      ) {
-        continue;
-      }
-
-      const extent = scanDirection === 1 ? mergeLineEnd : mergeLineStart;
-      const coveredCells = Math.min(mergeCrossEnd, crossEnd) - Math.max(mergeCrossStart, crossStart) + 1;
-      const firstLine = Math.max(mergeLineStart, lineStart);
-      const lastLine = Math.min(mergeLineEnd, lineEnd);
-
-      for (let line = firstLine; line <= lastLine; line++) {
-        let entry = lines.get(line);
-
-        if (!entry) {
-          entry = { extents: new Set(), coveredCells: 0 };
-          lines.set(line, entry);
-        }
-
-        entry.extents.add(extent);
-        entry.coveredCells += coveredCells;
-      }
-    }
-
-    return lines;
-  }
-
-  /**
-   * Finds the nearest index along the provided axis that does not intersect with any merged cell
-   * within the provided range. The range's lines are conceptually scanned in the provided
-   * direction; a line emits a candidate index when all of its cells agree on a single index — its
-   * own index when no merged cell touches it, or the shared scan extent when merged cells cover
-   * it uniformly. The first emitted candidate located at or past `visualIndex` (in the scan
-   * direction) wins. The cost scales with the number of merged cells intersecting the range, not
-   * with the area of the range.
-   *
-   * @param {CellRange} range The range to search within.
-   * @param {'row' | 'col'} axis The axis to search within.
-   * @param {number} scanDirection The direction to scan the range. `1` for forward, `-1` for backward.
-   * @param {number} visualIndex The visual row/column index the search relates to.
-   * @returns {number} The found visual index, or `visualIndex` when every line intersects a merged cell.
-   */
-  #findNonIntersectingIndex(range: CellRange, axis: 'row' | 'col', scanDirection: number, visualIndex: number) {
-    const { row: rangeStartRow, col: rangeStartColumn } = range.getTopStartCorner();
-    const { row: rangeEndRow, col: rangeEndColumn } = range.getBottomEndCorner();
-    const isRowAxis = axis === 'row';
-    const lineStart = (isRowAxis ? rangeStartRow : rangeStartColumn) ?? 0;
-    const lineEnd = (isRowAxis ? rangeEndRow : rangeEndColumn) ?? 0;
-    const crossLength = isRowAxis
-      ? ((rangeEndColumn ?? 0) - (rangeStartColumn ?? 0) + 1)
-      : ((rangeEndRow ?? 0) - (rangeStartRow ?? 0) + 1);
-    const matches = (index: number) => (scanDirection === 1 ? index >= visualIndex : index <= visualIndex);
-    const lines = this.#collectLineContributions(range, axis, scanDirection);
-    const touchedLines = Array.from(lines.keys())
-      .sort((lineA, lineB) => (lineA - lineB) * scanDirection);
-
-    // The first merge-touched line (in scan order) whose cells all agree on a single index
-    // that lies at or past `visualIndex`.
-    let touchedMatchLine = null;
-    let touchedMatchIndex = 0;
-
-    for (let i = 0; i < touchedLines.length; i++) {
-      const line = touchedLines[i];
-      const { extents, coveredCells } = lines.get(line)!;
-
-      // Cells not covered by any merged cell contribute the line's own index.
-      if (coveredCells < crossLength) {
-        extents.add(line);
-      }
-
-      if (extents.size === 1) {
-        const candidate = extents.values().next().value!;
-
-        if (matches(candidate)) {
-          touchedMatchLine = line;
-          touchedMatchIndex = candidate;
-          break;
-        }
-      }
-    }
-
-    // The first merge-free line in scan order that lies at or past `visualIndex`; such a line
-    // always emits its own index.
-    let freeMatchLine = scanDirection === 1
-      ? Math.max(lineStart, visualIndex)
-      : Math.min(lineEnd, visualIndex);
-
-    while (freeMatchLine >= lineStart && freeMatchLine <= lineEnd && lines.has(freeMatchLine)) {
-      freeMatchLine += scanDirection;
-    }
-
-    const hasFreeMatch = freeMatchLine >= lineStart && freeMatchLine <= lineEnd;
-
-    if (touchedMatchLine === null) {
-      return hasFreeMatch ? freeMatchLine : visualIndex;
-    }
-
-    if (!hasFreeMatch || (touchedMatchLine - freeMatchLine) * scanDirection <= 0) {
-      return touchedMatchIndex;
-    }
-
-    return freeMatchLine;
+  #warnDeprecatedScan(methodName: string) {
+    deprecatedWarnOnce(`MergedCellsCollection.${methodName}`,
+      `\`MergedCellsCollection#${methodName}()\` is deprecated and will be removed in Handsontable 20.0.0. ` +
+      'The selection steps over merged cells itself now.');
   }
 
   /**
@@ -687,6 +684,7 @@ class MergedCellsCollection {
     });
 
     this.mergedCellsMatrix.clear();
+    this.#hasDrawnOver = false;
 
     this.mergedCells.forEach((currentMerge) => {
       this.#addMergedCellToMatrix(currentMerge);
@@ -856,6 +854,7 @@ class MergedCellsCollection {
 
     this.mergedCells.length = 0;
     this.mergedCellsMatrix.clear();
+    this.#hasDrawnOver = false;
 
     replacements.forEach(({ source, info }) => {
       const added = this.add(info, true);
@@ -880,7 +879,14 @@ class MergedCellsCollection {
           this.mergedCellsMatrix.set(row, new Map());
         }
 
-        this.mergedCellsMatrix.get(row)!.set(col, mergedCell);
+        const matrixRow = this.mergedCellsMatrix.get(row)!;
+        const previous = matrixRow.get(col);
+
+        if (previous !== undefined && previous !== mergedCell) {
+          this.#hasDrawnOver = true;
+        }
+
+        matrixRow.set(col, mergedCell);
       }
     }
   }

@@ -76,6 +76,20 @@ describe('IntlDatetimeEditor', () => {
       TextEditor.prototype.open.mockRestore();
     });
 
+    it('does not show the picker when a key opens the editor', () => {
+      const editor = makeEditor();
+      const showPickerSpy = jest.fn();
+
+      jest.spyOn(TextEditor.prototype, 'open').mockImplementation(() => {});
+      editor.TEXTAREA.showPicker = showPickerSpy;
+
+      editor.open(new KeyboardEvent('keydown', { key: 'Enter' }));
+
+      expect(showPickerSpy).not.toHaveBeenCalled();
+
+      TextEditor.prototype.open.mockRestore();
+    });
+
     it('swallows showPicker() user-gesture errors', () => {
       const editor = makeEditor();
 

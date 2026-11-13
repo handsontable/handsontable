@@ -144,7 +144,8 @@ function bundle(esbuild, entryCode) {
     '--minify',
     '--format=esm',
     '--log-level=error',
-  ], { encoding: 'buffer' });
+    // The bundle of every module is over 1 MB, the default `maxBuffer`, which fails with `ENOBUFS`.
+  ], { encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 });
 
   const gzipped = gzipSync(output);
 
@@ -226,7 +227,7 @@ function buildMarkdownTables(data) {
   lines.push('::: tip');
   lines.push('');
   // eslint-disable-next-line max-len
-  lines.push('The `Formulas` module requires the external [`hyperformula`](https://hyperformula.handsontable.com/) package. Its size is not included in the measurements above.');
+  lines.push('The `Formulas` module requires the external [`hyperformula`](https://handsontable.com/hyperformula/) package. Its size is not included in the measurements above.');
   lines.push('');
   lines.push(':::');
 

@@ -15,7 +15,65 @@ import type { default as Viewport } from './viewport';
 import { subtractReservedHeight } from './layoutReservation';
 import { isHTMLElement } from '../../../../helpers/dom/element';
 import { resolveWidthBoundingRoot } from '../overlay/axisOwner';
+import { scrollbarAxisThickness } from '../overlay/scrollbarClearance';
 import { boundWorkspaceWidth } from './rootWidthBound';
+import { renderedBottomBorderWidth } from '../axisSizing/hiderCompensation';
+import { resolveRowHeaderWidths } from '../axisSizing/rowHeaderWidths';
+import type { StylesHandler } from '../types';
+
+/**
+ * Column-header band height while the head section has no rows yet.
+ *
+ * The per-level height is the stylesheet border box (content plus the bottom gridline).
+ * The first head row also draws a top gridline, and a table row treats `height` as a
+ * minimum, so that pixel is part of `offsetHeight(THEAD)` once the rows exist. A level
+ * taller than the default is written as an inline height (`adjustColumnHeaderHeights`),
+ * and that border box already contains the top gridline.
+ *
+ * AutoRowSize is the exception. Its ghost measurement drops the bottom gridline, so the
+ * number is not a border box, and the rendered cell grows by that pixel. The viewport
+ * records that on `columnHeaderHeightOmitsBottomBorder`. The pixel is added here, to the
+ * band, and not to the number painted on each header level.
+ *
+ * Returns 0 when there is no styles handler to read the heights from. A bare Walkontable
+ * host may omit it, and the DOM measure stays the answer there.
+ *
+ * @param {Viewport} viewport The viewport whose header levels are summed.
+ * @returns {number}
+ */
+function knownColumnHeaderBandHeight(viewport: Viewport): number {
+  const stylesHandler = viewport.wtSettings.getSetting<StylesHandler | null>('stylesHandler');
+
+  if (typeof stylesHandler?.getDefaultRowHeight !== 'function') {
+    return 0;
+  }
+
+  const levels = viewport.wtSettings.getSetting<Function[]>('columnHeaders').length;
+  let height = 0;
+
+  for (let level = 0; level < levels; level++) {
+    height += viewport.wtTable.getColumnHeaderHeight(level) || 0;
+  }
+
+  if (height <= 0) {
+    return 0;
+  }
+
+  const defaultRowHeight = stylesHandler.getDefaultRowHeight() || 0;
+  const firstLevelHeight = viewport.wtTable.getColumnHeaderHeight(0) || 0;
+
+  // The inline height is the border box, so the top gridline is already inside it.
+  // A ghost measurement is not: the rendered cell is one gridline taller than the number.
+  if (firstLevelHeight > defaultRowHeight) {
+    if (viewport.columnHeaderHeightOmitsBottomBorder) {
+      return height + Math.round(renderedBottomBorderWidth(stylesHandler));
+    }
+
+    return height;
+  }
+
+  return height + Math.round(renderedBottomBorderWidth(stylesHandler));
+}
 
 /**
  * The sub-pixel remainder between a used height read from the computed style and the whole-pixel
@@ -48,49 +106,6 @@ function measuredHeightFraction(usedHeight: string, roundedHeight: number): numb
   const remainder = used - roundedHeight;
 
   return Math.abs(remainder) < 1 ? remainder : 0;
-}
-
-/**
- * Reduces a row-header width answer to the single number the viewport needs.
- *
- * The `modifyRowHeaderWidth` hook may answer per row header level - `AutoRowHeaderSize` does, so
- * that every level can be measured on its own - while the viewport wants the width of the whole
- * row header block. A non-array answer is passed through unchanged.
- *
- * Returns `null` when the answer carries nothing usable (`0`, `NaN`, `undefined`), so the caller
- * keeps the width it already worked out - the behavior the previous `|| this.rowHeaderWidth`
- * fallback had.
- *
- * The array is read the way `ColumnUtils#calculateWidths` reads it, and for the same reason: that is
- * the other consumer of this hook, and it is what actually sizes the `col` elements. So the levels
- * counted are the levels the draw renders, and a level the array does not cover falls back to the
- * default column width there too. Summing the array as given instead would under-report the header
- * block by a level's width whenever a handler returned a short array, and over-report it for a long
- * one - either way leaving the viewport and the overlays disagreeing about the same header.
- *
- * @param {number|Array} width The value the hook returned.
- * @param {number} levels How many row header columns the draw renders.
- * @param {number} defaultColumnWidth The width a level the answer does not cover falls back to.
- * @returns {number|null}
- */
-export function toTotalRowHeaderWidth(
-  width: number | Array<number | null> | undefined,
-  levels: number,
-  defaultColumnWidth: number
-): number | null {
-  if (!Array.isArray(width)) {
-    return width || null;
-  }
-
-  let total = 0;
-
-  for (let level = 0; level < levels; level++) {
-    const levelWidth = width[level];
-
-    total += (levelWidth === null || levelWidth === undefined) ? defaultColumnWidth : levelWidth;
-  }
-
-  return total || null;
 }
 
 /**
@@ -143,7 +158,14 @@ function measureHasHorizontalScroll(viewport: Viewport): boolean {
   // Only the holder's own vertical scrollbar narrows the horizontal scrollport. When the window owns
   // the vertical axis its scrollbar sits outside the grid's box.
   const holderHasVerticalScrollbar = !viewport.isVerticallyScrollableByWindow() && measureHasVerticalScroll(viewport);
-  const scrollbarWidth = holderHasVerticalScrollbar ? geometryReader.getScrollbarWidth() : 0;
+  const scrollbarWidth = holderHasVerticalScrollbar
+    ? scrollbarAxisThickness(
+      geometryReader,
+      viewport.wtTable.holder,
+      'vertical',
+      geometryReader.getScrollbarWidth(),
+    )
+    : 0;
 
   return hiderOffsetWidth > measureWorkspaceWidth(viewport) - scrollbarWidth;
 }
@@ -197,7 +219,8 @@ export function measureWorkspaceHeight(viewport: Viewport): number {
  */
 export function measureWorkspaceWidth(viewport: Viewport): number {
   const { rootDocument, rootWindow, geometryReader } = viewport.deps;
-  const trimmingContainer = viewport.deps.getInlineStartOverlay().trimmingContainer;
+  const inlineStartOverlay = viewport.deps.getInlineStartOverlay();
+  const trimmingContainer = inlineStartOverlay.trimmingContainer;
   let width;
 
   if (trimmingContainer === rootWindow) {
@@ -205,7 +228,11 @@ export function measureWorkspaceWidth(viewport: Viewport): number {
 
     width = geometryReader.offsetWidth(viewport.wtTable.holder);
 
-    if (viewport.getRowHeaderWidth() + viewport.sumColumnWidths(0, totalColumns) > width) {
+    // The page is the workspace only while the window scrolls the columns. When the holder does (an
+    // ancestor clips the vertical axis only), the page is wider than the holder by the offset in front of it.
+    const windowScrolls = inlineStartOverlay.isScrolledByWindow();
+
+    if (windowScrolls && viewport.getRowHeaderWidth() + viewport.sumColumnWidths(0, totalColumns) > width) {
       width = geometryReader.clientWidth(rootDocument.documentElement);
     }
 
@@ -379,14 +406,20 @@ export const workspaceSize: WorkspaceSize = {
   },
 
   /**
-   * Checks if the window owns the horizontal axis: no ancestor of the table traps it horizontally,
-   * so the page scrolls the columns. The inline-start overlay carries the horizontal owner.
+   * Checks if the window scrolls the columns: no ancestor of the table traps the horizontal axis, so
+   * the page owns it, and the page, not the holder, does the scrolling. The inline-start overlay
+   * carries the horizontal owner and the element that scrolls the columns. They differ in the reverse
+   * split (an ancestor that clips only the vertical axis, or `preventOverflow: 'vertical'`): the window
+   * owns the axis while the holder scrolls the columns, and the answer is `false`, as it is for any
+   * grid whose holder scrolls them.
    *
    * @this Viewport
    * @returns {boolean}
    */
   isHorizontallyScrollableByWindow(this: Viewport): boolean {
-    return this.deps.getInlineStartOverlay().trimmingContainer === this.deps.rootWindow;
+    const inlineStartOverlay = this.deps.getInlineStartOverlay();
+
+    return inlineStartOverlay.trimmingContainer === this.deps.rootWindow && inlineStartOverlay.isScrolledByWindow();
   },
 
   /**
@@ -431,8 +464,15 @@ export const workspaceSize: WorkspaceSize = {
       this.columnHeaderHeightFraction = 0;
     } else if (isNaN(this.columnHeaderHeight)) {
       const { THEAD } = this.wtTable;
+      const measured = THEAD ? this.deps.geometryReader.outerHeight(THEAD) : 0;
+      // The master draw resolves the layout snapshot before it renders head rows, so the
+      // first read sees an empty section and `offsetHeight` is 0. That 0 is not a real
+      // header height. A section that has rows and still measures 0 is a real 0.
+      const headRowsDrawn = !!THEAD && THEAD.rows.length > 0;
 
-      this.columnHeaderHeight = THEAD ? this.deps.geometryReader.outerHeight(THEAD) : 0;
+      this.columnHeaderHeight = (measured > 0 || headRowsDrawn)
+        ? measured
+        : knownColumnHeaderBandHeight(this);
       // `outerHeight` is `offsetHeight`, an integer, so below 100% zoom it drops up to a pixel of
       // the header's real height. Record what it dropped. Only the hider/content total consumes it —
       // the calculators keep the integer they have always been given.
@@ -451,7 +491,9 @@ export const workspaceSize: WorkspaceSize = {
       // is not, so subtracting one from the other under CSS zoom yields a large negative number and
       // shrinks the hider instead of growing it. The computed style is in the same space as
       // `offsetHeight` at any zoom.
-      this.columnHeaderHeightFraction = THEAD
+      // An empty section has no used height, so there is no remainder to record. The next
+      // draw measures the filled section.
+      this.columnHeaderHeightFraction = (THEAD && (measured > 0 || headRowsDrawn))
         ? measuredHeightFraction(this.deps.geometryReader.getComputedStyle(THEAD).height,
           this.columnHeaderHeight) : 0;
     }
@@ -481,56 +523,15 @@ export const workspaceSize: WorkspaceSize = {
   },
 
   /**
+   * The width of the whole row header block: the sum of the per-level widths the `col` elements of
+   * the row headers get (`resolveRowHeaderWidths()`), so the hider, the column calculators and the
+   * inline-end overlay work from the width the row headers are drawn at.
+   *
    * @this Viewport
    * @returns {number}
    */
   getRowHeaderWidth(this: Viewport): number {
-    const rowHeadersWidthSetting = this.wtSettings.getSetting<number | Array<number | null>>('rowHeaderWidth');
-    const rowHeaders = this.wtSettings.getSetting<Function[]>('rowHeaders');
-
-    if (rowHeadersWidthSetting) {
-      this.rowHeaderWidth = 0;
-
-      for (let i = 0, len = rowHeaders.length; i < len; i++) {
-        const w = Array.isArray(rowHeadersWidthSetting)
-          ? rowHeadersWidthSetting[i]
-          : (rowHeadersWidthSetting as number);
-
-        this.rowHeaderWidth += w ?? NaN;
-      }
-    }
-
-    if (isNaN(this.rowHeaderWidth)) {
-
-      if (rowHeaders.length) {
-        let TH = this.wtTable.TABLE.querySelector('TH');
-
-        this.rowHeaderWidth = 0;
-
-        for (let i = 0, len = rowHeaders.length; i < len; i++) {
-          if (TH) {
-            this.rowHeaderWidth += this.deps.geometryReader.outerWidth(TH as HTMLElement);
-            TH = TH.nextSibling as HTMLTableCellElement;
-
-          } else {
-            // yes this is a cheat but it worked like that before, just taking assumption from CSS instead of measuring.
-            // TODO: proper fix
-            this.rowHeaderWidth += 50;
-          }
-        }
-      } else {
-        this.rowHeaderWidth = 0;
-      }
-    }
-
-    const modifiedWidth = this.wtSettings
-      .getSetting<number | Array<number | null>>('onModifyRowHeaderWidth', this.rowHeaderWidth);
-
-    this.rowHeaderWidth = toTotalRowHeaderWidth(
-      modifiedWidth,
-      this.wtSettings.getSetting<Function[]>('rowHeaders').length,
-      this.wtSettings.getSetting<number>('defaultColumnWidth')
-    ) ?? this.rowHeaderWidth;
+    this.rowHeaderWidth = resolveRowHeaderWidths(this.wtSettings).reduce((total, width) => total + width, 0);
 
     return this.rowHeaderWidth;
   },

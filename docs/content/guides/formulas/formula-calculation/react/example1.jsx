@@ -24,15 +24,16 @@ const ExampleComponent = () => {
 
   //  create an external HyperFormula instance
   const hyperformulaInstance = HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
+    // this demo uses the GPLv3 key,
+    // use your own HyperFormula license key in your app
+    licenseKey: 'gpl-v3',
   });
 
   return (
     <>
       <h3 className="demo-preview">Sheet 1</h3>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data1}
         colHeaders={true}
         rowHeaders={true}
@@ -43,10 +44,10 @@ const ExampleComponent = () => {
         }}
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
       />
       <h3 className="demo-preview">Sheet 2</h3>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data2}
         colHeaders={true}
         rowHeaders={true}
@@ -57,7 +58,6 @@ const ExampleComponent = () => {
         }}
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

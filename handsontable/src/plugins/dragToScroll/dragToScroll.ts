@@ -1,8 +1,14 @@
 import { BasePlugin } from '../base';
-import { getFirstChangedTouch, getTouchPointById, isRightClick } from '../../helpers/dom/event';
+import {
+  getFirstChangedTouch,
+  getTouchPointById,
+  isImmediatePropagationStopped,
+  isRightClick,
+} from '../../helpers/dom/event';
 import { getParentWindow } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { AutoScroller } from './autoScroller';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'dragToScroll';
 export const PLUGIN_PRIORITY = 100;
@@ -21,7 +27,7 @@ interface Boundaries {
 
 /**
  * @description
- * Plugin used to scroll Handsontable by selecting a cell and dragging outside of the visible viewport.
+ * Plugin used to scroll Handsontable DataGrid by selecting a cell and dragging outside of the visible viewport.
  *
  *
  * @class DragToScroll
@@ -40,6 +46,14 @@ export class DragToScroll extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -154,6 +168,14 @@ export class DragToScroll extends BasePlugin {
     });
 
     this.addHook('beforeOnCellMouseDown', (event: MouseEvent, _coords: unknown, _TD: unknown, controller: unknown) => {
+      // A listener that stopped the event owns the gesture: the core skips its selection handling
+      // for it, so there is no selection to extend, and the owner scrolls on its own if it needs
+      // to (the FormulaBuilder reference drag runs its own edge auto-scroller). Listening anyway
+      // would scroll the viewport a second time on every tick of that drag.
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+
       const typedController = (typeof controller === 'object' && controller !== null)
         ? controller as { row?: boolean; column?: boolean }
         : null;
@@ -165,6 +187,7 @@ export class DragToScroll extends BasePlugin {
     this.addHook('afterOnSelectionHandleMouseDown', this.#onSelectionHandleMouseDown);
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('beforeLoadData', this.#onBeforeLoadData);
 
     this.registerEvents();
 
@@ -396,6 +419,17 @@ export class DragToScroll extends BasePlugin {
 
     this.listen();
   }
+
+  /**
+   * Stops auto-scrolling a move-cells or autofill drag when `loadData()` replaces the data. Both
+   * plugins end such a drag there, and the button is still held, so without this the auto-scroller
+   * kept scrolling the data that replaced it until the release.
+   */
+  #onBeforeLoadData = (): void => {
+    if (this.#activeDragKind === 'move' || this.#activeDragKind === 'corner') {
+      this.unlisten();
+    }
+  };
 
   /**
    * Starts auto-scrolling for a move-zone drag, but only if MoveCells actually began one.

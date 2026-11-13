@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Dialog
-metaTitle: Dialog - JavaScript Data Grid | Handsontable
+metaTitle: Dialog | Handsontable DataGrid for JavaScript
 description: Display modal dialogs, alerts, loading indicators, and notifications to enhance user interaction and provide feedback in your data grid application.
 permalink: /dialog
 canonicalUrl: /dialog
@@ -13,11 +13,11 @@ tags:
   - confirm
   - prompt
 react:
-  metaTitle: Dialog - React Data Grid | Handsontable
+  metaTitle: Dialog | Handsontable DataGrid for React
 angular:
-  metaTitle: Dialog - Angular Data Grid | Handsontable
+  metaTitle: Dialog | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Dialog - Vue Data Grid | Handsontable
+  metaTitle: Dialog | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Dialog
 menuTag: updated
@@ -29,7 +29,7 @@ Display modal dialogs, alerts, loading indicators, and notifications to enhance 
 
 ## Overview
 
-The Dialog plugin provides a modal dialog system for Handsontable that allows you to display custom content in modal dialogs that overlay the table. This is useful for showing notifications, error messages, loading indicators, or any other interactive content that requires user attention.
+The Dialog plugin provides a modal dialog system for Handsontable DataGrid that allows you to display custom content in modal dialogs that overlay the table. This is useful for showing notifications, error messages, loading indicators, or any other interactive content that requires user attention.
 
 The dialog system is designed to be flexible and customizable, supporting various content types including plain text, HTML, and DOM elements. It also provides options for styling, animations, and user interaction controls.
 
@@ -372,7 +372,7 @@ The dialog plugin provides accessibility features through ARIA attributes. You c
 When a dialog opens, focus moves into it. Where it lands depends on how you configured the dialog:
 
 - With the `confirm` template, focus moves to the first button. If the template has no buttons, focus moves to the dialog's content area.
-- With the `content` option, focus moves to the dialog box itself. Handsontable does not search your HTML for focusable elements, so it never moves focus to a button inside your content. To place focus yourself, listen to the [`afterDialogFocus`](@/api/hooks.md#afterdialogfocus) hook and call `focus()` on the element you want. If you also use the [Loading](@/guides/dialog/loading/loading.md) plugin, note that it moves focus to the dialog box on that same hook, so register your callback after it or move focus on a later task.
+- With the `content` option, focus moves to the dialog box itself. Handsontable does not search your HTML for focusable elements, so it never moves focus to a button inside your content. To place focus yourself, listen to the [`afterDialogFocus`](@/api/hooks.md#afterdialogfocus) hook and call `focus()` on the element you want. The [Loading](@/guides/dialog/loading/loading.md) plugin listens to the same hook, but it moves focus to the dialog box only while the dialog shows its own loading screen, so it leaves the focus of your dialogs alone.
 
 Focus moves only if the grid was focused when the dialog opened. If the user has not interacted with the grid yet, the dialog opens without taking focus away from the rest of the page. The [`afterDialogFocus`](@/api/hooks.md#afterdialogfocus) hook follows the same rule, so it does not run in that case either.
 

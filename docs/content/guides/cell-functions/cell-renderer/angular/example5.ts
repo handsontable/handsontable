@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 
@@ -49,7 +49,7 @@ function coverRenderer(
   standalone: true,
   imports: [HotTableModule],
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements OnInit {
 
   readonly hotData = [
     {
@@ -82,7 +82,7 @@ export class AppComponent implements AfterViewInit {
 
   hotSettings!: GridSettings;
 
-  ngAfterViewInit() {
+  ngOnInit() {
     this.hotSettings = {
       colWidths: [200, 200, 200, 80],
       colHeaders: ['Title', 'Description', 'Comments', 'Cover'],
@@ -105,7 +105,7 @@ export class AppComponent implements AfterViewInit {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -115,7 +115,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

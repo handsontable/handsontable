@@ -1,6 +1,6 @@
 ---
 title: Conditional row coloring
-metaTitle: Conditional row coloring - JavaScript Data Grid | Handsontable
+metaTitle: Conditional row coloring | Handsontable DataGrid for JavaScript
 description: Color entire rows from a status column using the cells callback, className, and scoped CSS that updates after edits.
 permalink: /recipes/rendering-styling/conditional-row-coloring
 canonicalUrl: /recipes/rendering-styling/conditional-row-coloring
@@ -10,13 +10,14 @@ tags:
   - recipes
   - styling
 react:
-  metaTitle: Conditional row coloring - React Data Grid | Handsontable
+  metaTitle: Conditional row coloring | Handsontable DataGrid for React
 angular:
-  metaTitle: Conditional row coloring - Angular Data Grid | Handsontable
+  metaTitle: Conditional row coloring | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Conditional row coloring - Vue Data Grid | Handsontable
+  metaTitle: Conditional row coloring | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Rendering and styling
+menuTag: updated
 type: how-to
 ---
 
@@ -61,7 +62,7 @@ In this tutorial, you will color entire rows based on a status column value. You
 
 ## Overview
 
-This recipe shows how to tint every cell in a row based on a **Status** value (`active`, `pending`, or `inactive`). You map each status to a CSS class, attach that class to cells through Handsontable metadata, and keep colors correct on first load and after the user edits **Status**.
+This recipe shows how to tint every cell in a row based on a **Status** value (`active`, `pending`, or `inactive`). You map each status to a CSS class, attach that class to cells through Handsontable DataGrid metadata, and keep colors correct on first load and after the user edits **Status**.
 
 **Difficulty:** Beginner  
 **Time:** ~10 minutes  
@@ -150,7 +151,7 @@ Set up the grid with a dropdown for the Status column so the user can change val
 ```typescript
 const hotOptions: Handsontable.GridSettings = {
   data,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   rowHeaders: true,
   colHeaders: ['Task', 'Owner', 'Status'],
   height: 'auto',

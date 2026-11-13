@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a duplicated mobile selection handle on cells of a frozen column or row.",
+  "type": "fixed",
+  "issueOrPR": 13915,
+  "breaking": false,
+  "framework": "none"
+}

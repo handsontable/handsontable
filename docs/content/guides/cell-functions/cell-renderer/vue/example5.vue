@@ -64,7 +64,7 @@ const hotSettings = ref<GridSettings>({
   sanitizer: sanitizeHeader,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 function onContainerMousedown(event: MouseEvent) {

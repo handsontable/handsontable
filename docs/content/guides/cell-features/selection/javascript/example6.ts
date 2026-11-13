@@ -20,7 +20,7 @@ const hot = new Handsontable(container, {
   rowHeaders: true,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const autoWrapRowCheckbox = document.querySelector<HTMLInputElement>('#auto-wrap-row')!;

@@ -12,6 +12,7 @@ import {
   reservedScrollbarSpace,
 } from '../scrollbarClearance';
 import { setSpreaderOffset } from '../spreaderOffset';
+import { getFreezeLineOverlap } from '../../settings/fixedColumnsEnd';
 
 /**
  * The overlay that keeps the LAST columns of the grid (`fixedColumnsEnd`) at the inline-end edge
@@ -127,20 +128,6 @@ export class InlineEndOverlay extends Overlay {
     this.adjustElementsSize();
 
     return false;
-  }
-
-  /**
-   * Whether the window scrolls the columns, so the clone has to be held at the viewport's inline-end
-   * edge. It reads the element that really scrolls them (`mainTableScrollableElement`), never the
-   * horizontal axis owner (`trimmingContainer`): with `preventOverflow: 'vertical'` (or an ancestor that
-   * clips the vertical axis only) the window owns the horizontal axis while the holder scrolls the
-   * columns, and a clone pinned to the viewport there would stand outside a grid narrower than the page.
-   * The end corners ask this same question.
-   *
-   * @returns {boolean}
-   */
-  isScrolledByWindow(): boolean {
-    return this.mainTableScrollableElement === this.deps.rootWindow;
   }
 
   /**
@@ -290,38 +277,33 @@ export class InlineEndOverlay extends Overlay {
   }
 
   /**
-   * Whether the master already draws the freeze line at the clone's inline-start edge, so the clone must
-   * not add its own border (a 2px line against the 1px of the start side). That holds when the clone's
-   * first column stands exactly on the boundary of the column (or the row header) before it: the grid
-   * has no horizontal scroll, or it is scrolled to the end. Anywhere in between the clone's edge cuts
-   * through a master column, no master border sits there, and the clone's own first-cell border is the
-   * line. Without a column or a row header before the end band there is nothing to share the line with.
+   * How many pixels the band's first column reaches over the freeze line, toward the inline start
+   * (`getFreezeLineOverlap()` in `settings/fixedColumnsEnd.ts`). A header of that column renders this much wider
+   * than its column width.
+   *
+   * @returns {number}
+   */
+  getFreezeLineOverlap(): number {
+    return getFreezeLineOverlap(
+      this.wtSettings.getSetting<number>('fixedColumnsEnd'), this.wtSettings.getSetting<number>('totalColumns'),
+    );
+  }
+
+  /**
+   * Whether the row header draws the freeze line at the clone's inline-start edge, so the clone must not
+   * add its own border (a 2px line against the 1px of the start side). That holds only when the end band
+   * covers every column and the grid has row headers. With a column before the band, the clone's first
+   * column reaches over that column's inline-end border (`TableRenderer#getFreezeLineOverlap`) and draws
+   * the line itself, on the same pixel in every scroll state. With nothing before the band, the clone's
+   * border is the grid's outer frame line.
    *
    * @returns {boolean}
    */
   isFreezeLineShared(): boolean {
     const fixedColumnsEnd = this.wtSettings.getSetting<number>('fixedColumnsEnd');
     const totalColumns = this.wtSettings.getSetting<number>('totalColumns');
-    const hasRowHeaders = this.wtSettings.getSetting<unknown[]>('rowHeaders').length > 0;
 
-    if (totalColumns - fixedColumnsEnd <= 0 && !hasRowHeaders) {
-      return false;
-    }
-
-    if (!this.deps.getWtViewport().hasHorizontalScroll()) {
-      return true;
-    }
-
-    if (this.isScrolledByWindow()) {
-      // The offset comes from bounding rects, so at browser zoom it lands a fraction away from 0 at the junction.
-      // Under a pixel reads as arrived, the same tolerance the element branch below uses.
-      return Math.abs(this.getOverlayOffset()) < 1;
-    }
-
-    const scroller = this.mainTableScrollableElement as HTMLElement;
-
-    // Under a pixel from the end: a fractional scroll position (browser zoom) still reads as arrived.
-    return this.deps.geometryReader.getMaximumScrollLeft(scroller) - this.getScrollPosition() < 1;
+    return totalColumns - fixedColumnsEnd <= 0 && this.wtSettings.getSetting<unknown[]>('rowHeaders').length > 0;
   }
 
   /**
@@ -457,7 +439,8 @@ export class InlineEndOverlay extends Overlay {
   }
 
   /**
-   * Gets table parent left position - the same answer as the inline-start overlay's, which owns the axis.
+   * Gets the distance between the page's inline-start edge and the table's - the same answer as the
+   * inline-start overlay's, which owns the axis: a left offset in LTR, the right-hand page margin in RTL.
    *
    * @returns {number}
    */

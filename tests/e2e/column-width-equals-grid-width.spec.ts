@@ -1,11 +1,11 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { ColumnWidthEqualsGridWidthPage } from '../fixtures/pages/ColumnWidthEqualsGridWidthPage';
 
 /**
  * DEV-270. A column `width` that equals the grid `width` was discarded and the column collapsed to
  * the 50px default. The column width is its own setting and must be honored whatever the grid width.
  */
-test.describe('column width equal to the grid width', () => {
+test.describe('column width equal to the grid width', { tag: THEMES_TAG }, () => {
   let grid: ColumnWidthEqualsGridWidthPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

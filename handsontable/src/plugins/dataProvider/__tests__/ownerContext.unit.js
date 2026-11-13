@@ -11,6 +11,7 @@ import { HiddenRows } from '../../hiddenRows/hiddenRows';
 import { AutoColumnSize } from '../../autoColumnSize/autoColumnSize';
 import { registerCellType } from '../../../cellTypes/registry';
 import { CheckboxCellType } from '../../../cellTypes/checkboxType/checkboxType';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const flush = () => new Promise(resolve => queueMicrotask(resolve));
 
@@ -121,7 +122,7 @@ describe('DataProvider context owner contract', () => {
     hot = new Handsontable(container, {
       columns: [{ data: 'id' }, { data: 'name' }],
       dataProvider: provider.config,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
@@ -794,6 +795,26 @@ describe('DataProvider context owner contract', () => {
       await provider.settleMutation();
 
       expect(provider.lastQuery().page).toBe(1);
+    });
+
+    it('keep the page a context was changing to when a save refetches it from off screen', async() => {
+      const provider = createDeferredProvider();
+      const first = { name: 'first' };
+      const owner = createOwner(first);
+
+      await createGrid(provider, { owner });
+
+      const plugin = hot.getPlugin('dataProvider');
+
+      void plugin.removeRows(['a']);
+      await settle();
+      void plugin.fetchData({ page: 2 });
+      await settle();
+
+      owner.current = { name: 'second' };
+      await provider.settleMutation();
+
+      expect(provider.lastQuery().page).toBe(2);
     });
 
     it('decide a remove\'s page fallback from the latest response the owner keeps', async() => {

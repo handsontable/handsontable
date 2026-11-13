@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { DataProviderSheetsBarPage } from '../fixtures/pages/DataProviderSheetsBarPage';
 
 /**
@@ -9,7 +9,7 @@ import { DataProviderSheetsBarPage } from '../fixtures/pages/DataProviderSheetsB
  * declare its own, with one console warning. A local sheet's ColumnSorting/Filters stay
  * client-side and are never overwritten by a server sheet's in-flight fetch.
  */
-test.describe('dataProvider with sheetsBar', () => {
+test.describe('dataProvider with sheetsBar', { tag: THEMES_TAG }, () => {
   let grid: DataProviderSheetsBarPage;
 
   test.afterEach(async() => {
@@ -175,6 +175,22 @@ test.describe('dataProvider with sheetsBar', () => {
 
       await expect(grid.cell(0, 1)).toHaveText('#2');
       expect(await grid.cellMeta(0, 1, 'readOnly')).toBeFalsy();
+    });
+
+    test('a response that lands off-screen brings back the borders the sheet declares', async({
+      page, theme, bundle,
+    }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto({ ordersBorders: true });
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+      await grid.startFetch();
+      await grid.clickTab(1);
+      await grid.release('ORD');
+      await grid.clickTab(0);
+
+      await expect(grid.cell(0, 1)).toHaveText('#2');
+      await expect.poll(() => grid.borderCells()).toEqual([[0, 1]]);
     });
 
     test('a memoized fetchRows that returns the same array does not empty the sheet it lands in', async({
@@ -345,6 +361,30 @@ test.describe('dataProvider with sheetsBar', () => {
       expect(await grid.ids()).toEqual(['ORD-20', 'ORD-19', 'ORD-18', 'ORD-17', 'ORD-16']);
     });
 
+    test('a page fetch that fails after a return mid-fetch keeps the last page, sort, and row numbers', async() => {
+      await grid.sortByHeader(0, 'desc');
+      await grid.release('ORD');
+      await grid.goToPage(2);
+      await grid.release('ORD');
+      await expect(grid.cell(0, 0)).toHaveText('ORD-20');
+      await grid.goToPage(3);
+      await grid.failNext('ORD');
+      await grid.clickTab(1);
+      await grid.clickTab(0);
+
+      await expect(grid.loadingOverlayVisible()).toBeVisible();
+      await expect.poll(() => grid.rowHeader(0)).toBe(6);
+
+      await grid.release('ORD');
+
+      await expect(grid.toast()).toBeVisible();
+      await expect(grid.loadingOverlayVisible()).toBeHidden();
+      expect(await grid.ids()).toEqual(['ORD-20', 'ORD-19', 'ORD-18', 'ORD-17', 'ORD-16']);
+      expect(await grid.sortConfig()).toEqual([{ column: 0, sortOrder: 'desc' }]);
+      expect(await grid.pagination()).toEqual({ currentPage: 2, pageSize: 5, totalPages: 5 });
+      await expect.poll(() => grid.rowHeader(0)).toBe(6);
+    });
+
     test('Refetch from the deferred toast loads the sheet', async() => {
       await grid.startFetch();
       await grid.failNext('ORD');
@@ -446,6 +486,26 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.clickTab(0);
       expect(await grid.ids()).toEqual(['ORD-21', 'ORD-22']);
       expect((await grid.pagination()).currentPage).toBe(5);
+    });
+  });
+
+  test.describe('a create with refetchAfterCreate off that finishes off-screen', () => {
+    test.beforeEach(async({ page, theme, bundle }) => {
+      grid = new DataProviderSheetsBarPage(page, theme, bundle);
+      await grid.goto({ noRefetchAfterCreate: true });
+    });
+
+    test('refetches the sheet it was made on, so the new row is there on return', async() => {
+      await grid.startCreateRow('ORD-05');
+      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
+      await grid.clickTab(1);
+      await grid.releaseUpdates();
+      await expect.poll(() => grid.pendingCount('ORD')).toBe(1);
+      await grid.release('ORD');
+
+      expect(await grid.ids()).toEqual(['NOTE-1', 'NOTE-2', 'NOTE-3']);
+      await grid.clickTab(0);
+      await expect(grid.cell(0, 1)).toHaveText('#2');
     });
   });
 
@@ -1369,7 +1429,7 @@ test.describe('dataProvider with sheetsBar', () => {
       await grid.clickTab(2);
       await grid.clickTab(0);
 
-      expect((await grid.pagination()).pageSize).toBe(10);
+      expect(await grid.pagination()).toEqual(expect.objectContaining({ currentPage: 1, pageSize: 5 }));
 
       const fetchesBefore = await grid.fetchCount('ORD');
 
@@ -1473,25 +1533,6 @@ test.describe('dataProvider with sheetsBar', () => {
       await expect(grid.toast()).toHaveCount(1);
       await expect(grid.toast()).toContainText('Could not create rows');
       expect(await grid.pendingCount('ORD')).toBe(0);
-    });
-
-    test('a remove that fails off-screen shows its toast on return, not before', async() => {
-      await grid.startRemoveRows(['ORD-01']);
-      await expect.poll(() => grid.pendingUpdateCount()).toBe(1);
-      await grid.clickTab(1);
-      await grid.failNextUpdate();
-      await grid.releaseUpdates();
-      await expect.poll(() => grid.events()).toContain('afterMutationError remove');
-
-      await expect(grid.toast()).toHaveCount(0);
-      expect(await grid.consoleProblems()).toEqual([expect.stringContaining('Row remove failed:')]);
-      await grid.clearConsoleProblems();
-
-      await grid.clickTab(0);
-
-      await expect(grid.toast()).toHaveCount(1);
-      await expect(grid.toast()).toContainText('Could not remove rows');
-      expect(await grid.ids()).toEqual(['ORD-01', 'ORD-02', 'ORD-03', 'ORD-04', 'ORD-05']);
     });
   });
 

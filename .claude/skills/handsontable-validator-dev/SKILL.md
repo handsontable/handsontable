@@ -40,6 +40,8 @@ import { registerValidator } from '../../validators/registry';
 registerValidator('myValidator', myValidator);
 ```
 
+A new built-in validator also needs its entry in `src/validators/features.json` (`validator:<name_in_snake_case>`, `licensing: "none"`; copy a neighbor), and a cell type that uses it lists it in its `requires.allOf`. The unit suite fails until both exist. A validator folder that is never registered under a name (`maxLengthValidator`, `regExpValidator`) goes in the skip list of `scripts/utils/feature-manifest.js` instead, with the reason. Run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes. Rules: `src/featureManifest/AGENTS.md`.
+
 ## Triggers
 
 - The editor system during `finishEditing()`.
@@ -60,7 +62,7 @@ When a validator writes a corrected value with `setDataAtCell`, pass a source st
 this.instance.setDataAtCell(row, col, correctedValue, 'myCustomValidator');
 ```
 
-`validateChanges()` in `core.js` uses the suffix to track the correction. Without it, the correction is lost when the batch includes columns with async `source` callbacks (e.g. async autocomplete with `strict: true`) that resolve later.
+`validateChanges()` in `core.ts` uses the suffix to fold the correction into the change that triggered it, so that change still applies with the corrected value and fires `afterChange`. Without it, the correction is a separate write that wins over the triggering change (the last write to a cell wins), and the triggering change is dropped with no `afterChange`.
 
 ## Common mistakes
 

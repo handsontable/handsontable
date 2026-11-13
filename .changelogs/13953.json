@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where saving an edit, or creating or removing rows, while a page change was loading sent the DataProvider grid back to the previous page.",
+  "type": "fixed",
+  "issueOrPR": 13953,
+  "breaking": false,
+  "framework": "none"
+}

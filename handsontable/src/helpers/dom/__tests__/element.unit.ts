@@ -28,6 +28,9 @@ import {
   isHTMLTableCellElement,
   isShadowRoot,
   getComposedEventTargetEl,
+  standsBehindRowHeader,
+  isStartGapCovered,
+  isTopGapCovered,
   getDeepActiveElement,
   getShadowHostChain,
   outerHeight,
@@ -2177,6 +2180,121 @@ describe('DomElement helper', () => {
       parent.remove();
     });
 
+    describe('with a gutter at the inline-start edge of the viewport', () => {
+      const html = document.documentElement;
+      let child: HTMLElement;
+      let probeBox: { left: number, width: number };
+      let rectSpy: jest.SpyInstance;
+
+      /**
+       * Stubs a `documentElement` size, which is 0 in jsdom.
+       *
+       * @param {string} property The property to stub.
+       * @param {number} value The value to report.
+       */
+      function stubHtml(property, value) {
+        Object.defineProperty(html, property, { configurable: true, get: () => value });
+      }
+
+      beforeEach(() => {
+        child = document.createElement('div');
+        document.body.appendChild(child);
+        // jsdom lays nothing out, so the fixed probe reports the box a browser would: the viewport
+        // minus the gutter. Any other element keeps jsdom's all-zero rect.
+        probeBox = { left: 15, width: 1265 };
+        rectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function() {
+          const isProbe = this.style.position === 'fixed';
+
+          return {
+            left: isProbe ? probeBox.left : 0,
+            width: isProbe ? probeBox.width : 0,
+            top: 0,
+            height: 0,
+            right: 0,
+            bottom: 0,
+            x: 0,
+            y: 0,
+            toJSON() {},
+          };
+        });
+        // A window wider than the viewport is what tells the helper that a gutter may exist.
+        stubHtml('clientWidth', 1265);
+        Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1280 });
+      });
+
+      afterEach(() => {
+        rectSpy.mockRestore();
+        child.remove();
+        Reflect.deleteProperty(html, 'clientWidth');
+        Reflect.deleteProperty(window, 'innerWidth');
+        html.style.removeProperty('border-left');
+      });
+
+      it('should start the fallback box where the fixed probe starts', () => {
+        const rect = getFixedContainingBlockRect(child);
+
+        expect(rect.left).toBe(15);
+        expect(rect.width).toBe(1265);
+      });
+
+      it('should take the width of the probe too, so a reserved gutter on both edges is excluded', () => {
+        probeBox = { left: 15, width: 1250 };
+
+        const rect = getFixedContainingBlockRect(child);
+
+        expect(rect.left).toBe(15);
+        expect(rect.width).toBe(1250);
+      });
+
+      it('should not adjust the probe by a border of the html element', () => {
+        // Firefox reports `clientLeft` 0 for such a border and Chromium 4, so the probe is the only
+        // answer that holds in both.
+        html.style.borderLeft = '4px solid';
+
+        expect(getFixedContainingBlockRect(child).left).toBe(15);
+      });
+
+      it('should leave no probe in the document', () => {
+        getFixedContainingBlockRect(child);
+
+        expect(html.querySelector('[style*="position: fixed"]')).toBeNull();
+      });
+
+      it('should not probe when the window is no wider than the viewport', () => {
+        Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1265 });
+
+        const rect = getFixedContainingBlockRect(child);
+
+        expect(rect.left).toBe(0);
+        expect(rect.width).toBe(1265);
+        expect(rectSpy).not.toHaveBeenCalled();
+      });
+
+      it('should fall back to the viewport when the probe measures nothing', () => {
+        probeBox = { left: 0, width: 0 };
+
+        const rect = getFixedContainingBlockRect(child);
+
+        expect(rect.left).toBe(0);
+        expect(rect.width).toBe(1265);
+      });
+
+      it('should ignore the gutter when an ancestor establishes the containing block', () => {
+        const ancestor = document.createElement('div');
+
+        ancestor.style.transform = 'translate(-50%, -50%)';
+        ancestor.appendChild(child);
+        document.body.appendChild(ancestor);
+        stubRect(ancestor, { top: 100, left: 200, width: 400, height: 300 });
+
+        try {
+          expect(getFixedContainingBlockRect(child).left).toBe(200);
+        } finally {
+          ancestor.remove();
+        }
+      });
+    });
+
     // Only the properties jsdom carries through to `getComputedStyle`. It drops `perspective` and
     // `backdrop-filter` from the cascade entirely (the inline value is kept, the computed one comes
     // back empty), so those two cannot be exercised here even though every browser honours them and
@@ -2325,5 +2443,71 @@ describe('DomElement helper', () => {
         input.remove();
       }
     );
+  });
+
+  describe('standsBehindRowHeader', () => {
+    const buildRow = (...tags: string[]) => {
+      const row = document.createElement('tr');
+
+      tags.forEach(tag => row.appendChild(document.createElement(tag)));
+
+      return row;
+    };
+
+    it('should be true for a cell whose previous sibling is a row header', () => {
+      const row = buildRow('th', 'td', 'td');
+
+      expect(standsBehindRowHeader(row.children[1] as HTMLElement)).toBe(true);
+    });
+
+    it('should be false for a cell whose previous sibling is another cell', () => {
+      const row = buildRow('th', 'td', 'td');
+
+      expect(standsBehindRowHeader(row.children[2] as HTMLElement)).toBe(false);
+    });
+
+    it('should be false for the first cell of a row without row headers', () => {
+      const row = buildRow('td', 'td');
+
+      expect(standsBehindRowHeader(row.children[0] as HTMLElement)).toBe(false);
+    });
+  });
+
+  describe('isStartGapCovered', () => {
+    const cell = (left: number) => ({ left, right: left + 50 });
+
+    it.each([
+      ['an overlay that reaches into the cell', 70, 66, true],
+      ['an overlay that ends exactly where the cell starts', 66, 66, true],
+      ['an overlay that ends within the half pixel of tolerance', 65.6, 66, true],
+      ['an overlay that ends a pixel before the cell', 65, 66, false],
+      ['an overlay that ends half a pixel before the cell', 65.5, 66, false],
+    ])('should answer for %s in a left to right grid', (_, overlayRight, cellLeft, expected) => {
+      expect(isStartGapCovered(cell(cellLeft), { left: 0, right: overlayRight }, false)).toBe(expected);
+    });
+
+    it.each([
+      ['an overlay that reaches into the cell', 96, 100, true],
+      ['an overlay that starts exactly where the cell ends', 150, 100, true],
+      ['an overlay that starts within the half pixel of tolerance', 150.4, 100, true],
+      ['an overlay that starts half a pixel after the cell', 150.5, 100, false],
+      ['an overlay that starts a pixel after the cell', 151, 100, false],
+    ])('should answer for %s in a right to left grid', (_, overlayLeft, cellLeft, expected) => {
+      expect(isStartGapCovered(cell(cellLeft), { left: overlayLeft, right: 400 }, true)).toBe(expected);
+    });
+  });
+
+  describe('isTopGapCovered', () => {
+    const cell = (top: number) => ({ top, bottom: top + 23 });
+
+    it.each([
+      ['an overlay that reaches into the cell', 73, 70, true],
+      ['an overlay that ends exactly where the cell starts', 70, 70, true],
+      ['an overlay that ends within the half pixel of tolerance', 69.6, 70, true],
+      ['an overlay that ends half a pixel above the cell', 69.5, 70, false],
+      ['an overlay that ends a pixel above the cell', 69, 70, false],
+    ])('should answer for %s', (_, overlayBottom, cellTop, expected) => {
+      expect(isTopGapCovered(cell(cellTop), { top: 0, bottom: overlayBottom })).toBe(expected);
+    });
   });
 });

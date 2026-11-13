@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, AutoRowSize } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(AutoRowSize);
 
@@ -13,7 +14,7 @@ function buildGrid(settings: Record<string, unknown> = {}) {
   return new Handsontable(document.createElement('div'), {
     data: [['a'], ['b'], ['c']],
     autoRowSize: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 }
@@ -95,10 +96,6 @@ describe('AutoRowSize sampling settings', () => {
 
   it('should keep the sampling settings when an update does not mention this plugin', () => {
     // The path that matters most, and the one the "re-sent unchanged" test above cannot reach.
-    // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
-    // which is `undefined` here - it wipes the stored settings, so reading them back gives the
-    // defaults. Without the restore in `updatePlugin`, this reset `samplingRatio` from 6 to 3,
-    // flipped `allowSampleDuplicates` back to `false`, and dropped every measured height.
     //
     // The Vue wrapper makes this the normal case rather than an edge case: it omits every settings
     // key whose value has not changed, so `autoRowSize` is absent from nearly every payload it
@@ -112,6 +109,37 @@ describe('AutoRowSize sampling settings', () => {
     expect(plugin.samplesGenerator.getSampleCount()).toBe(6);
     expect(plugin.samplesGenerator.allowDuplicates).toBe(true);
     expect(plugin.getSetting('samplingRatio')).toBe(6);
+    expect(clearCache).not.toHaveBeenCalled();
+
+    hot.destroy();
+  });
+
+  it('should drop the measured heights when the update that turns the plugin on again changes a sampling setting', () => {
+    const hot = buildGrid({ autoRowSize: { samplingRatio: 5 } });
+    const plugin = hot.getPlugin('autoRowSize');
+
+    hot.updateSettings({ autoRowSize: false });
+
+    const clearCache = spyOn(plugin, 'clearCache').and.callThrough();
+
+    hot.updateSettings({ autoRowSize: { samplingRatio: 10 } });
+
+    expect(plugin.samplesGenerator.getSampleCount()).toBe(10);
+    expect(clearCache).toHaveBeenCalledTimes(1);
+
+    hot.destroy();
+  });
+
+  it('should keep the measured heights when the plugin is turned on again with the same sampling settings', () => {
+    const hot = buildGrid({ autoRowSize: { samplingRatio: 5 } });
+    const plugin = hot.getPlugin('autoRowSize');
+
+    hot.updateSettings({ autoRowSize: false });
+
+    const clearCache = spyOn(plugin, 'clearCache').and.callThrough();
+
+    hot.updateSettings({ autoRowSize: { samplingRatio: 5 } });
+
     expect(clearCache).not.toHaveBeenCalled();
 
     hot.destroy();

@@ -13,6 +13,7 @@ import {
   duckSchema,
   hasOwnProperty,
   isObject,
+  isPlainObject,
   objectEach
 } from '../helpers/object';
 import { extendArray, insertValuesInPlace, removeIndexesInPlace, to2dArray } from '../helpers/array';
@@ -248,7 +249,11 @@ class DataMap {
   }
 
   /**
-   * Generates columns' translation cache.
+   * Generates columns' translation cache. A plain object is walked, and every primitive leaf
+   * (`null`, `undefined`, a number, a string, a boolean) gets a column, whatever its default
+   * value. An array, a function, any other object (a `Date`, a `Map`) and the `__children` key get
+   * none. `deepObjectSize()` still counts an array, a function and such an object as a column, so
+   * the count can exceed the number of properties registered here.
    *
    * @param {object} schema An object to generate schema from.
    * @param {number} lastCol The column index.
@@ -262,14 +267,25 @@ class DataMap {
 
     if (typeof schema === 'object' && schema !== null && !Array.isArray(schema)) {
       objectEach(schema, (value: unknown, key: string) => {
-        if (value === null) {
+        const isObjectValue = typeof value === 'object' && value !== null;
+
+        if (
+          key === '__children' ||
+          typeof value === 'function' ||
+          Array.isArray(value) ||
+          (isObjectValue && !isPlainObject(value))
+        ) {
+          return;
+        }
+
+        if (isPlainObject(value)) {
+          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${propertyParent}${key}.`);
+        } else {
           prop = propertyParent + key;
           this.colToPropCache.push(prop);
           this.propToColCache!.set(prop, lastColumn);
 
           lastColumn += 1;
-        } else if (typeof value === 'object' && value !== null) {
-          lastColumn = this.recursiveDuckColumns(value, lastColumn, `${key}.`);
         }
       });
     }
@@ -458,7 +474,9 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.hot!.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
+    // The mode puts the new slots of every row index map at the physical index the rows take below (the ManualRowResize
+    // heights, the hidden and trimmed flags, the `rowHeights` origins), the way `createCol()` does for columns.
+    this.hot!.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows, mode === 'below' ? 'end' : 'start');
 
     if (mode === 'below') {
       physicalRowIndex = Math.min(physicalRowIndex + 1, sourceRowsCount);
@@ -524,15 +542,16 @@ class DataMap {
             { source, mode = 'start', fillsMinimumSize = false }:
             { source?: string; mode?: 'start' | 'end'; fillsMinimumSize?: boolean } = {}) {
     if (!this.hot!.isColumnModificationAllowed()) {
-      throwWithCause('Cannot create new column. When data source in an object, ' +
-        // eslint-disable-next-line max-len
-        'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
-        'If you want to be able to add new columns, you have to use array datasource.');
+      throwWithCause('Cannot create a new column when the data source holds objects or the "columns" option is set. ' +
+        'You can only have as many columns as defined in the first data row, the data schema, ' +
+        'or the "columns" setting. To add new columns, use an array data source without the "columns" option.');
     }
 
     const dataSource = this.dataSource ?? [];
     const maxCols = this.tableMeta.maxCols;
-    const numberOfSourceCols = this.hot!.countSourceCols();
+    // The index mapper holds the physical end of the grid. `countSourceCols()` is the first row's length, which is
+    // shorter than the grid when `dataSchema` or `minCols` made it wider, and 0 once every row was removed.
+    const numberOfSourceCols = this.hot!.columnIndexMapper.getNumberOfIndexes();
     const numberOfVisualCols = this.hot!.countCols();
     const numberOfSourceRows = this.hot!.countSourceRows();
     const visualColumnIndex = (typeof index === 'number' && index <= numberOfSourceCols) ? index : numberOfVisualCols;
@@ -596,13 +615,11 @@ class DataMap {
   }
 
   /**
-   * Inserts the given amount of null columns into the data source in at most two passes over
-   * the rows, instead of one full pass per created column. The previous per-column loop chose
-   * between an append and a middle splice per iteration, based on the visual index against the
-   * growing column count; the same sequence collapses into two batched phases: the first
-   * `appendCount` iterations (while the visual index is at or past the current count) are
-   * end-of-row pushes, and the remaining iterations are single splices at consecutive ascending
-   * positions - which is exactly one block insert at the first of those positions.
+   * Inserts the given amount of null columns into the data source, in one pass over the rows, as a block at
+   * the physical column the insertion is recorded at (the undo journal replays it by that index). The
+   * insertion index clamps to the row length inside `insertValuesInPlace`, so a row shorter than the
+   * insertion point gets the nulls at its end. A row longer than the grid keeps its values in order, and the
+   * nulls go in front of the values past the grid.
    *
    * @param {Array} dataSource The data source array.
    * @param {number} firstColumn The physical column index at which the first column is inserted.
@@ -623,39 +640,24 @@ class DataMap {
       return;
     }
 
-    let appendCount = amount;
+    if (numberOfSourceRows === 0) {
+      // A grid without rows gets one row per column created at its end, to hold the new columns.
+      const appendCount = typeof visualColumnIndex === 'number' ?
+        Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1)) : amount;
 
-    if (typeof visualColumnIndex === 'number') {
-      appendCount = Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1));
+      for (let i = 0; i < appendCount; i++) {
+        dataSource.push([null]);
+      }
+
+      return;
     }
 
-    const middleCount = amount - appendCount;
-
-    if (appendCount > 0) {
-      if (numberOfSourceRows > 0) {
-        for (let row = 0; row < numberOfSourceRows; row++) {
-          if (typeof dataSource[row] === 'undefined') {
-            dataSource[row] = [];
-          }
-
-          for (let i = 0; i < appendCount; i++) {
-            (dataSource[row] as unknown[]).push(null);
-          }
-        }
-      } else {
-        for (let i = 0; i < appendCount; i++) {
-          dataSource.push([null]);
-        }
+    for (let row = 0; row < numberOfSourceRows; row++) {
+      if (typeof dataSource[row] === 'undefined') {
+        dataSource[row] = [];
       }
-    }
 
-    if (middleCount > 0) {
-      // The insertion index clamps to the row length inside `insertValuesInPlace`, so rows
-      // shorter than the insertion point get the nulls appended at their end - matching what
-      // the previous repeated clamped `splice` calls did.
-      for (let row = 0; row < numberOfSourceRows; row++) {
-        insertValuesInPlace(dataSource[row] as unknown[], firstColumn + appendCount, middleCount, null);
-      }
+      insertValuesInPlace(dataSource[row] as unknown[], firstColumn, amount, null);
     }
   }
 
@@ -811,7 +813,7 @@ class DataMap {
    */
   removeCol(index: number, amount = 1, source: string) {
     if (this.hot!.dataType === 'object' || this.tableMeta.columns) {
-      throwWithCause('cannot remove column with object data source or columns option specified');
+      throwWithCause('Cannot remove a column when the data source holds objects or the "columns" option is set.');
     }
     let columnIndex = typeof index !== 'number' ? -amount : index;
 
@@ -1080,9 +1082,15 @@ class DataMap {
    * @param {number} row Visual row index.
    * @param {number|string|Function|null} prop The column property, a `columns[].data` accessor
    *   function, or `null` when the caller's column index named no column (see `colToProp()`).
+   * @param {object} [options] Read options.
+   * @param {boolean} [options.skipValueGetter=false] When `true`, returns the stored value without the
+   *   column's `valueGetter` (the `modifyRowData` and `modifyData` hooks still apply). Bulk validation
+   *   reads cells this way, because an edit validates the stored value too.
    * @returns {*}
    */
-  get(row: number, prop: string | number | DataAccessorFn | null) {
+  get(row: number, prop: string | number | DataAccessorFn | null, options?: { skipValueGetter?: boolean }) {
+    // Read without a default object: this runs for every cell a render or a data read touches.
+    const skipValueGetter = options?.skipValueGetter === true;
     const physicalRow = this.hot!.toPhysicalRow(row);
 
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
@@ -1112,7 +1120,8 @@ class DataMap {
       for (let i = 0, ilen = sliced.length; i < ilen; i++) {
         out = out[sliced[i]] as Record<string, unknown>;
 
-        if (typeof out === 'undefined') {
+        // A `null` parent has nothing to read under it, while a `null` leaf is a value like any other.
+        if (typeof out === 'undefined' || (out === null && i < ilen - 1)) {
           return null;
         }
       }
@@ -1135,7 +1144,8 @@ class DataMap {
       ? this.hot!.toPhysicalColumn(visualColumnIndex)
       : null;
 
-    if (typeof visualColumnIndex === 'number' && isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+    if (!skipValueGetter && typeof visualColumnIndex === 'number' &&
+        isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
       // The uncached read returns the stored meta when the cell carries persisted overrides and a
       // transient object otherwise - a plain data read must not permanently materialize one meta
       // object per visited cell (a full-table scan such as sorting would retain O(rows) of them).
@@ -1324,7 +1334,7 @@ class DataMap {
           return;
         }
 
-        if (typeof out[sliced[i]] === 'undefined') {
+        if (typeof out[sliced[i]] === 'undefined' || out[sliced[i]] === null) {
           out[sliced[i]] = {};
         }
         out = out[sliced[i]] as Record<string, unknown>;

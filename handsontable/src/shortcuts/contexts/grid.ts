@@ -1,6 +1,13 @@
 import type { HotInstance } from '../../core/types';
 import { isDefined } from '../../helpers/mixed';
-import { GRID_GROUP, EDITOR_EDIT_GROUP, GRID_SCOPE, GRID_TAB_NAVIGATION_GROUP } from './constants';
+import {
+  GRID_GROUP,
+  EDITOR_EDIT_GROUP,
+  GRID_SCOPE,
+  GRID_TAB_NAVIGATION_GROUP,
+  GRID_CLIPBOARD_GROUP,
+  GRID_CLIPBOARD_KEYS,
+} from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
 import { canAccessCellContent, canNavigateGrid, keepCoveredCellsUnselectable } from '../guards';
 import { getSelectedCellLink } from './commands/openCellLink';
@@ -58,6 +65,13 @@ export function shortcutsGridContext(hot: HotInstance) {
   }], {
     group: EDITOR_EDIT_GROUP,
     runOnlyIf: () => isDefined(hot.getSelected()) && canAccessCells(),
+  });
+
+  // The browser copies, cuts and pastes, and the `CopyPaste` plugin answers its native events. These entries
+  // only record that the keys are on, so that removing one is something the plugin can see.
+  context.addShortcuts(GRID_CLIPBOARD_KEYS.map(keys => ({ keys: [keys], callback: () => {} })), {
+    group: GRID_CLIPBOARD_GROUP,
+    preventDefault: false,
   });
 
   context.addShortcuts([{

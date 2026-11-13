@@ -14,7 +14,7 @@ A new feature gets its own `/<feature>-demo` route on the js demo's router, and 
 
 ## Example location
 
-The js demo is one Vite app with a Navigo router (`examples/next/visual-tests/js/demo/src/index.js`): `/` renders the shared multi-feature grid (`src/demos/default/`), and each feature has a `/<name>-demo` route backed by a `src/demos/<name>/` module (27 routes on 2026-09-18). The wrapper demos serve `/` only, plus `/scenario-grid` in `react-wrapper` and `angular-wrapper` (`vue3` has no router).
+The js demo is one Vite app with a Navigo router (`examples/next/visual-tests/js/demo/src/index.js`): `/` renders the shared multi-feature grid (`src/demos/default/`), and each feature has a `/<name>-demo` route backed by a `src/demos/<name>/` module. The wrapper demos serve `/` only, plus `/scenario-grid` in `react-wrapper` and `angular-wrapper` (`vue3` has no router).
 
 ## Directory structure
 
@@ -62,7 +62,7 @@ registerCellType(NumericCellType);
 ## Sample data, license, container
 
 - Put realistic sample data (company names, dates, currencies, countries; 20-50+ rows) in a data module (`src/data.js` is shared; a route can carry its own `data.js`).
-- Include `licenseKey: 'non-commercial-and-evaluation'`.
+- Pass `licenseKey: TEST_LICENSE_KEY`, imported from the app's `src/test-license-key` (the internal test key). Never write a key out: `scripts/__tests__/test-license-key.test.mjs` fails on a literal key in a demo, and checks that every test-key constant holds the same key.
 - Mount inside `#root`; a route module appends its own container to it.
 
 ## Smoke test

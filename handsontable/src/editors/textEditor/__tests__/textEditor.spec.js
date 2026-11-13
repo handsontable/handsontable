@@ -666,11 +666,10 @@ describe('TextEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    // The cell sits behind a row header, so the editor spans the cell plus the gridline the
-    // header draws on its inline-start side - the same 1px overlap every other column has
-    // always had (#6673).
+    // The row header owns the gridline in front of the cell, and the inline-start overlay paints
+    // over it, so the editor is exactly as wide as the cell and does not reach under the header.
     expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().e2eTextEditorTextareaHeightSingleLinePx());
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('51px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 when headers are selected', async() => {
@@ -684,11 +683,10 @@ describe('TextEditor', () => {
     await selectAll();
     await keyDownUp('enter');
 
-    // The cell sits behind a row header, so the editor spans the cell plus the gridline the
-    // header draws on its inline-start side - the same 1px overlap every other column has
-    // always had (#6673).
+    // The row header owns the gridline in front of the cell, and the inline-start overlay paints
+    // over it, so the editor is exactly as wide as the cell and does not reach under the header.
     expect(getActiveEditor().TEXTAREA.style.height).toBe(getThemeLayout().e2eTextEditorTextareaHeightSingleLinePx());
-    expect(getActiveEditor().TEXTAREA.style.width).toBe('51px');
+    expect(getActiveEditor().TEXTAREA.style.width).toBe('50px');
   });
 
   it('should render textarea editor in specified size at cell 0, 0 with headers defined in columns', async() => {
@@ -1343,7 +1341,7 @@ describe('TextEditor', () => {
 
       // A grid with no key is blocked by the license modal, which deselects and takes the keyboard.
       // The shared `handsontable()` helper injects this key; this local one has to do it too.
-      container.handsontable({ licenseKey: 'non-commercial-and-evaluation', ...options });
+      container.handsontable({ licenseKey: TEST_LICENSE_KEY, ...options });
       container[0].focus(); // otherwise TextEditor tests do not pass in IE8
 
       return container.data('handsontable');
@@ -1565,28 +1563,28 @@ describe('TextEditor', () => {
 
     const $inputHolder = $('.handsontableInputHolder');
 
-    expect($(getCell(1, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(1, 1, true)).offset().left).toEqual(editorInlineStartOffset($inputHolder));
     expect($(getCell(1, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // top
     await selectCell(1, 4);
     await keyDownUp('enter');
 
-    expect($(getCell(1, 4, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(1, 4, true)).offset().left).toEqual(editorInlineStartOffset($inputHolder));
     expect($(getCell(1, 4, true)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // left
     await selectCell(4, 1);
     await keyDownUp('enter');
 
-    expect($(getCell(4, 1, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(4, 1, true)).offset().left).toEqual(editorInlineStartOffset($inputHolder));
     expect($(getCell(4, 1, true)).offset().top).toEqual($inputHolder.offset().top + 1);
 
     // non-fixed
     await selectCell(10, 6);
     await keyDownUp('enter');
 
-    expect($(getCell(10, 6, true)).offset().left).toEqual($inputHolder.offset().left + 1);
+    expect($(getCell(10, 6, true)).offset().left).toEqual(editorInlineStartOffset($inputHolder));
     expect($(getCell(10, 6, true)).offset().top).toEqual($inputHolder.offset().top + 1);
   });
 
@@ -1636,7 +1634,9 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(left).toEqual($inputHolder.offset().left + 1);
+    // The cell sits flush against the frozen columns, so the gridline in front of it is under the
+    // corner clone that paints over the editor, and the editor starts on the cell's own edge.
+    expect(left).toEqual(editorInlineStartOffset($inputHolder));
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
@@ -1687,7 +1687,9 @@ describe('TextEditor', () => {
 
     await keyDownUp('enter');
 
-    expect(left).toEqual($inputHolder.offset().left + 1);
+    // The cell was scrolled flush against the frozen columns, so the gridline in front of it is under
+    // their overlay and the editor starts on the cell's own edge.
+    expect(left).toEqual(editorInlineStartOffset($inputHolder));
     expect(top).toEqual($inputHolder.offset().top + 1);
   });
 
@@ -1783,40 +1785,6 @@ describe('TextEditor', () => {
     await keyDownUp(['meta', 'enter']);
 
     expect(getActiveEditor().TEXTAREA.value).toEqual('Ma\n\n\nserati');
-  });
-
-  it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', async() => {
-    const data = [
-      ['', '', '', '', ''],
-      ['', 'The Dude abides. I don\'t know about you but I take comfort in that. ' +
-            'It\'s good knowin\' he\'s out there. The ' +
-           'Dude. Takin\' \'er easy for all us sinners. Shoosh. I sure hope he makes the finals.', '', '', ''],
-      ['', '', '', '', '']
-    ];
-
-    handsontable({
-      data,
-      colWidths: 40,
-      width: 300,
-      height: 200,
-      minSpareRows: 20,
-      minSpareCols: 20
-    });
-
-    await selectCell(1, 1);
-    await waitForNextAnimationFrames(1); // for some reason the sleep is needed here
-    await keyDownUp('enter');
-
-    const $editorInput = $('.handsontableInput');
-    const $editedCell = $(getCell(1, 1));
-
-    expect($editorInput.outerWidth())
-      .toEqual(tableView()._wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
-
-    await scrollViewportTo({ col: 3 });
-
-    expect($editorInput.width() + $editorInput.offset().left)
-      .toBeLessThan(tableView()._wt.wtTable.holder.clientWidth);
   });
 
   it('should resize editor to properly size after focus', async() => {

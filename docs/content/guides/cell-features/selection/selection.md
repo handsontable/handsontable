@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Selection
-metaTitle: Selection - JavaScript Data Grid | Handsontable
+metaTitle: Selection | Handsontable DataGrid for JavaScript
 description: Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
 permalink: /selection
 canonicalUrl: /selection
@@ -9,11 +9,11 @@ tags:
   - selecting ranges
   - cell selection
 react:
-  metaTitle: Selection - React Data Grid | Handsontable
+  metaTitle: Selection | Handsontable DataGrid for React
 angular:
-  metaTitle: Selection - Angular Data Grid | Handsontable
+  metaTitle: Selection | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Selection - Vue Data Grid | Handsontable
+  metaTitle: Selection | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: updated
@@ -26,7 +26,7 @@ Use the selection API to control how users select cells -- single cells, ranges,
 
 ## Overview
 
-Selection enables you to select a single cell or ranges of cells within Handsontable. Once selected, you can retrieve data from the cell, edit the cell's contents, or change the style of the cell.
+Selection enables you to select a single cell or ranges of cells within Handsontable DataGrid. Once selected, you can retrieve data from the cell, edit the cell's contents, or change the style of the cell.
 
 ## Basic configuration
 
@@ -265,6 +265,12 @@ On print, Handsontable hides the selection outline, the fill handle, and the `.a
 :::
 
 Unfortunately, there is no easy way to change the border color of the selection.
+
+### Add a class name to selected cells
+
+Use the [`afterDrawSelection`](@/api/hooks.md#afterdrawselection) hook to give selected cells your own class name. Handsontable calls the hook for each cell of the selection area while it draws the selection. If the hook returns a string, Handsontable adds that string as a class name to the cell. If the hook returns anything else, the cell gets no extra class.
+
+The hook receives the visual row and column index of the cell, the corners of the current selection layer, and the number of the layer being drawn.
 
 ## Resize a selection with handles
 

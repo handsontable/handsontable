@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasNestedRowsTogglePage } from '../fixtures/pages/FormulasNestedRowsTogglePage';
 
 /**
@@ -7,7 +7,7 @@ import { FormulasNestedRowsTogglePage } from '../fixtures/pages/FormulasNestedRo
  * for it on its own - `afterLoadData` / `afterUpdateData` never fire, and `afterCellMetaReset`
  * fires before the plugins update - so the engine kept the two-row layout it was built with.
  */
-test.describe('Formulas across a nestedRows runtime toggle', () => {
+test.describe('Formulas across a nestedRows runtime toggle', { tag: BUNDLES_TAG }, () => {
   let grid: FormulasNestedRowsTogglePage;
 
   test.beforeEach(({ page, theme, bundle }) => {
@@ -105,12 +105,12 @@ test.describe('Formulas across a nestedRows runtime toggle', () => {
     await grid.setNestedRows(true);
     await grid.resetSheetWriteCount();
 
-    // A payload that touches no row. The mid-update pass rebuilds the sheet once, as it always
-    // has; what must NOT happen is the late listener adding a second rebuild. The React wrapper
-    // sends a payload of this shape on every re-render.
+    // A payload that touches no row, the shape the React wrapper sends on every re-render. The
+    // late listener must not add a rebuild, and since DEV-3972 the resync writes nothing either:
+    // the data reads the same as what the engine holds.
     await grid.updateUnrelatedSetting(false);
 
-    expect(await grid.sheetWriteCount()).toBe(1);
+    expect(await grid.sheetWriteCount()).toBe(0);
     expect(await grid.rowCount()).toBe(4);
     expect(await grid.sheetHeight()).toBe(4);
   });

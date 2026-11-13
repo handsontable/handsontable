@@ -8,6 +8,7 @@ import {
   hasHorizontalScrollbar,
   isShadowRoot,
   outerHeight,
+  isHTMLElement,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
@@ -16,32 +17,35 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
-import { getEditorAnchorWidth } from './utils';
+import { getEditorAnchorHeight, getEditorAnchorWidth, getSelectionBorderOverhang } from './utils';
+import {
+  EDITOR_TOP_OVERLAP,
+  META_COMMENT,
+  META_COMMENT_VALUE,
+  META_STYLE,
+  META_READONLY,
+  type CommentMeta,
+} from './constants';
 import { shrinkSizeToViewport, clampPositionToViewport } from './viewport';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
-import type { PredefinedMenuItemKey, MenuItemConfig } from '../contextMenu/contextMenu';
 import addEditCommentItem from './contextMenuItem/addEditComment';
 import removeCommentItem from './contextMenuItem/removeComment';
 import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
-export const META_COMMENT = 'comment';
-export const META_COMMENT_VALUE = 'value';
-export const META_STYLE = 'style';
-export const META_READONLY = 'readOnly';
 
-/**
- * Represents a comment's metadata stored in cell meta.
- */
-interface CommentMeta {
-  [META_COMMENT_VALUE]?: string;
-  [META_STYLE]?: { width: number; height: number };
-  [META_READONLY]?: boolean;
-}
-
-export interface CommentObject extends CommentMeta { }
+// The keys live in `constants.ts`, so `utils.ts` and the menu items read them without importing the
+// plugin, which imports both. Re-exported here, where they have always been importable from.
+export {
+  META_COMMENT,
+  META_COMMENT_VALUE,
+  META_STYLE,
+  META_READONLY,
+  type CommentObject,
+} from './constants';
 
 /**
  * Checks if a value is a CommentMeta object.
@@ -221,6 +225,14 @@ export class Comments extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the default settings applied when the plugin is enabled without explicit configuration.
    */
   static get DEFAULT_SETTINGS() {
@@ -339,13 +351,13 @@ export class Comments extends BasePlugin {
       this.#displaySwitch.addLocalHook('show', (row: number, col: number) => this.showAtCell(row, col));
     }
 
-    this.addHook('afterContextMenuDefaultOptions',
-      (options: Record<string, unknown>) => this.addToContextMenu(options));
+    registerMenuEntries(this, () => this.#createMenuEntries(), { contextMenu: {} });
     this.addHook('afterRenderer',
       (TD: HTMLTableCellElement, row: number, col: number, prop: string | number,
        value: unknown, cellProperties: Record<string, unknown>) =>
         this.#onAfterRenderer(TD, cellProperties));
     this.addHook('afterScroll', this.#onAfterScroll);
+    this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeUndo', this.#onBeforeUndoRedo);
     this.addHook('beforeRedo', this.#onBeforeUndoRedo);
     this.addHook('afterUndo', this.#onAfterUndoRedo);
@@ -376,6 +388,7 @@ export class Comments extends BasePlugin {
   disablePlugin(): void {
     const manager = this.hot.getShortcutManager();
 
+    this.#displaySwitch?.cancel();
     this.hide();
 
     // The hold flag outlives a disable, because it is an instance field and `enablePlugin()` never
@@ -690,7 +703,8 @@ export class Comments extends BasePlugin {
   /**
    * Gets comment from a cell according to previously set range (see {@link Comments#setRange}).
    *
-   * @returns {string|undefined} Returns a content of the comment.
+   * @returns {string|undefined} Returns a content of the comment, or `undefined` if the cell has no comment
+   * or the range points at a header.
    */
   getComment(): string | undefined {
     const { row, col } = this.#getRangeCoords();
@@ -703,7 +717,8 @@ export class Comments extends BasePlugin {
    *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
-   * @returns {string|undefined} Returns a content of the comment.
+   * @returns {string|undefined} Returns a content of the comment, or `undefined` if the cell has no comment
+   * or the coordinates point at a header (a negative index).
    */
   getCommentAtCell(row: number, column: number): string | undefined {
     return this.getCommentMeta(row, column, META_COMMENT_VALUE);
@@ -712,7 +727,10 @@ export class Comments extends BasePlugin {
   /**
    * Shows the comment editor accordingly to the previously set range (see {@link Comments#setRange}).
    *
-   * @returns {boolean} Returns `true` if comment editor was shown.
+   * The editor opens even if the cell has no comment. In that case, it is empty, so you can add a comment.
+   * To check first, use {@link Comments#getCommentAtCell}.
+   *
+   * @returns {boolean} Returns `true` if comment editor was shown. Returns `false` if the cell is outside the grid.
    */
   show(): boolean {
     if (!this.range.from) {
@@ -740,9 +758,12 @@ export class Comments extends BasePlugin {
   /**
    * Shows comment editor according to cell coordinates.
    *
+   * The editor opens even if the cell has no comment. In that case, it is empty, so you can add a comment.
+   * To check first, use {@link Comments#getCommentAtCell}.
+   *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
-   * @returns {boolean} Returns `true` if comment editor was shown.
+   * @returns {boolean} Returns `true` if comment editor was shown. Returns `false` if the cell is outside the grid.
    */
   showAtCell(row: number, column: number): boolean {
     this.setRange({
@@ -780,6 +801,8 @@ export class Comments extends BasePlugin {
     let renderableColumn = columnIndexMapper.getRenderableFromVisualIndex(visualColumn);
     // Used when the requested row is hidden, and the editor needs to be positioned on the previous row's coords.
     const targetingPreviousRow = renderableRow === null;
+    // Same for a hidden column: its anchor cell belongs to a column next to it.
+    const targetingOtherColumn = renderableColumn === null;
 
     // Reset the editor position to (0, 0) so the opening direction calculation wouldn't be influenced by its
     // previous position
@@ -812,15 +835,37 @@ export class Comments extends BasePlugin {
     // TODO: Probably using `hot.getCell` would be the best. However, case for showing comment editor for hidden cell
     // potentially should be removed with that change (currently a test for it is passing).
     const TD = wt.getCell({ row: renderableRow, col: renderableColumn }, true) as HTMLTableCellElement;
-    const cellMeta = this.hot.getCellMeta<{ colspan?: number; [META_COMMENT]?: CommentMeta }>(visualRow, visualColumn);
+    const cellMeta = this.hot.getCellMeta<{
+      colspan?: number;
+      rowspan?: number;
+      [META_COMMENT]?: CommentMeta;
+    }>(visualRow, visualColumn);
     const metaColspan = cellMeta.colspan ?? 1;
+    const metaRowspan = cellMeta.rowspan ?? 1;
     const commentStyle = this.getCommentMeta(visualRow, visualColumn, META_STYLE);
+    const {
+      left,
+      top,
+      width: cellWidth,
+      height: cellHeight,
+    } = TD.getBoundingClientRect();
+
+    // Always reset first: a saved style that holds only one of the sizes sets nothing, and would leave the
+    // size of the previous comment's box on this one.
+    this.#editor.resetSize();
+
+    let blockHeight: number | undefined;
 
     if (commentStyle) {
       this.#editor.setSize(commentStyle.width, commentStyle.height);
 
-    } else {
-      this.#editor.resetSize();
+    // A hidden row or column is anchored to a neighbor's cell, which is not the range the comment belongs to.
+    } else if (!targetingPreviousRow && !targetingOtherColumn) {
+      blockHeight = this.#getMergedBlockHeight(TD, visualRow, renderableRow, renderableColumn, metaRowspan);
+
+      if (blockHeight !== undefined) {
+        this.#editor.setHeight(blockHeight);
+      }
     }
 
     const lastColWidth = isBeforeRenderedColumns ? 0 :
@@ -828,24 +873,18 @@ export class Comments extends BasePlugin {
     const lastRowHeight = targetingPreviousRow && !isBeforeRenderedRows ? outerHeight(TD) : 0;
 
     const {
-      left,
-      top,
-      width: cellWidth,
-      height: cellHeight,
-    } = TD.getBoundingClientRect();
-    const {
       width: editorWidth,
       height: editorHeight,
     } = this.#editor.getSize();
 
     const { innerWidth, innerHeight } = this.hot.rootWindow;
-    const documentElement = this.hot.rootDocument.documentElement;
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
     const verticalScrollbarWidth = hasVerticalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
     const horizontalScrollbarWidth = hasHorizontalScrollbar(this.hot.rootWindow) ? scrollbarWidth : 0;
     const mergedBorderCompensation = metaColspan > 1 ? 1 : 0;
     let x = left + rootWindow.scrollX + lastColWidth - mergedBorderCompensation;
     let y = top + rootWindow.scrollY + lastRowHeight;
+    let isFlippedUp = false;
 
     if (this.hot.isRtl()) {
       x -= (editorWidth + lastColWidth);
@@ -855,12 +894,13 @@ export class Comments extends BasePlugin {
     if (this.hot.isLtr() && left + cellWidth + editorWidth > innerWidth - verticalScrollbarWidth) {
       x = left + rootWindow.scrollX - editorWidth - 1;
 
-    } else if (this.hot.isRtl() && x < -(documentElement.scrollWidth - documentElement.clientWidth)) {
+    } else if (this.hot.isRtl() && x < rootWindow.scrollX) {
       x = left + rootWindow.scrollX + lastColWidth + 1;
     }
 
     if (top + editorHeight > innerHeight - horizontalScrollbarWidth) {
-      y -= (editorHeight - cellHeight + 1);
+      y -= (editorHeight - (blockHeight ?? cellHeight) + 1);
+      isFlippedUp = true;
     }
 
     // Cap the display size to the viewport. This setSize MUST happen before
@@ -888,9 +928,68 @@ export class Comments extends BasePlugin {
       }
     );
 
-    this.#editor.setPosition(clamped.x, clamped.y);
+    // The editor's top edge goes up to the top edge of the cell's selection border, which is drawn up to
+    // `EDITOR_TOP_OVERLAP` above the cell's box. Only a box that sits on its own cell does: a flipped or clamped one
+    // has its own placement, and one anchored to a neighbor of a hidden row or column has no border of its own to
+    // reach. The box never goes above the window's top edge, where the clamp would move it a margin down.
+    const sitsOnCell = !isFlippedUp && !targetingPreviousRow && !targetingOtherColumn && clamped.y === y;
+    const reach = sitsOnCell ?
+      Math.min(getSelectionBorderOverhang(TD, EDITOR_TOP_OVERLAP), y - rootWindow.scrollY) : 0;
+
+    this.#editor.setPosition(clamped.x, clamped.y - reach);
     this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY) ?? false);
     this.#editor.observeSize();
+  }
+
+  /**
+   * Gets the height of the merged block a comment belongs to, when its box takes that height.
+   *
+   * The master table's cell holds the whole block. The topmost one can be an overlay's copy, which keeps the
+   * block's `rowSpan` but is drawn only as tall as the overlay, so a block that crosses a freeze line is cut in
+   * it. The copy is used only when no master cell exists and no freeze line crosses the block: one in a frozen
+   * start column that the grid has scrolled away from, or one that sits wholly in the frozen rows. The count of
+   * rows is the visible ones, because hidden rows of the block are not drawn.
+   *
+   * @param {HTMLTableCellElement} anchorTD The topmost rendered cell of the comment.
+   * @param {number} visualRow Visual row index of the cell.
+   * @param {number} renderableRow Renderable row index of the cell.
+   * @param {number} renderableColumn Renderable column index of the cell.
+   * @param {number} metaRowspan The rowspan value from the cell meta (1 for non-merged cells).
+   * @returns {number | undefined} The height in pixels, or `undefined` when the default box height applies.
+   */
+  #getMergedBlockHeight(
+    anchorTD: HTMLTableCellElement,
+    visualRow: number,
+    renderableRow: number,
+    renderableColumn: number,
+    metaRowspan: number
+  ): number | undefined {
+    if (metaRowspan === 1) {
+      return undefined;
+    }
+
+    const masterTD = this.hot.view._wt.getCell({ row: renderableRow, col: renderableColumn });
+
+    if (isHTMLElement(masterTD)) {
+      return getEditorAnchorHeight(masterTD.rowSpan, masterTD.getBoundingClientRect().height);
+    }
+
+    const { rowIndexMapper, view } = this.hot;
+    let visibleRows = 0;
+
+    for (let row = visualRow; row < visualRow + metaRowspan; row++) {
+      if (rowIndexMapper.getRenderableFromVisualIndex(row) !== null) {
+        visibleRows += 1;
+      }
+    }
+
+    const lastRow = renderableRow + visibleRows - 1;
+    const bottomBandStart = rowIndexMapper.getRenderableIndexesLength() - view.countNotHiddenFixedRowsBottom();
+    const freezeLines = [view.countNotHiddenFixedRowsTop(), bottomBandStart];
+    const crossesFreezeLine = freezeLines.some(line => renderableRow < line && lastRow >= line);
+
+    return crossesFreezeLine ?
+      undefined : getEditorAnchorHeight(visibleRows, anchorTD.getBoundingClientRect().height);
   }
 
   /**
@@ -938,7 +1037,7 @@ export class Comments extends BasePlugin {
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
    * @param {string} property Cell meta property.
-   * @returns {Mixed}
+   * @returns {Mixed} Returns `undefined` if the cell has no comment or the coordinates point at a header (a negative index).
    */
   /**
    * @overload
@@ -962,7 +1061,12 @@ export class Comments extends BasePlugin {
    * Returns the value of a specific meta property from the comment attached to the given cell.
    */
   getCommentMeta(row: number, column: number, property: string): unknown {
-    const cellMeta = this.hot.getCellMeta<{ [META_COMMENT]?: CommentMeta }>(row, column);
+    // Header coordinates are negative, and `getCellMeta()` asserts unsigned indexes.
+    if (row < 0 || column < 0) {
+      return undefined;
+    }
+
+    const cellMeta = this.hot.getCellMetaTransient<{ [META_COMMENT]?: CommentMeta }>(row, column);
     const comment = cellMeta[META_COMMENT];
 
     if (!comment) {
@@ -1138,6 +1242,13 @@ export class Comments extends BasePlugin {
    * the keyboard shortcuts by switching the context to plugins one.
    */
   #onEditorFocus() {
+    const { row, col } = this.#getRangeCoords();
+
+    // A range on a header has no comment to edit, and the blur that follows could not save one.
+    if (row < 0 || col < 0) {
+      return;
+    }
+
     this.#commentValueBeforeSave = this.getComment() ?? '';
     this.hot.listen();
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
@@ -1199,6 +1310,23 @@ export class Comments extends BasePlugin {
   };
 
   /**
+   * Drops a show still waiting on the display delay when `loadData()` leaves its cell without a comment. The
+   * hover that armed it rested on a cell of the old data, so the show ran over a cell of the new data (a
+   * switch to another data set) and opened an empty editor there. A cell that still has a comment keeps its
+   * show: an app that reloads the same data more often than the delay never let a hovered comment open. A
+   * pending hide stays armed. `updateData()` is left alone: the wrappers send it on every re-render with the
+   * data the grid already shows.
+   */
+  #onAfterLoadData = () => {
+    const cell = this.#displaySwitch?.getPendingShowCell() ?? null;
+    const comment = cell ? this.getCommentAtCell(cell.row, cell.col) : undefined;
+
+    if (cell && (comment === undefined || comment === null)) {
+      this.#displaySwitch?.cancelShow();
+    }
+  };
+
+  /**
    * Reads the comment of the open editor's cell before an undo or a redo changes it.
    */
   #onBeforeUndoRedo = () => {
@@ -1218,7 +1346,7 @@ export class Comments extends BasePlugin {
 
     const { row, col } = this.#getRangeCoords();
 
-    if (row >= this.hot.countRows() || col >= this.hot.countCols()) {
+    if (row < 0 || col < 0 || row >= this.hot.countRows() || col >= this.hot.countCols()) {
       this.hide();
 
       return;
@@ -1260,18 +1388,41 @@ export class Comments extends BasePlugin {
   }
 
   /**
-   * Add Comments plugin options to the Context Menu.
+   * Saves the open editor's text as the comment of its cell, the way leaving the editor does, and
+   * closes the editor. The sheets bar calls it before a switch captures the departing sheet: an
+   * editor opened through the API is not blurred by a switch made through the API, so it stayed
+   * over the arriving sheet and saved its text into that sheet's cell.
+   *
+   * Only a focused editor is saved. Typing needs the focus, and a blur saves on its own, so an
+   * unfocused editor holds nothing new: a hover preview, or one the API opened. Its text may also
+   * belong to another cell than the plugin's range, which `setCommentAtCell()` moves without
+   * touching the editor, so saving it could write one cell's comment over another's.
    *
    * @private
-   * @param {object} options The menu options.
    */
-  addToContextMenu(options: Record<string, unknown>) {
-    (options.items as Array<PredefinedMenuItemKey | MenuItemConfig>).push(
-      { name: SEPARATOR },
+  _saveAndCloseEditor(): void {
+    if (!this.#editor?.isVisible() || !this.range.from) {
+      return;
+    }
+
+    if (this.#editor.isFocused()) {
+      this.#saveEditorComment();
+    }
+
+    this.#closeEditorWithoutSave();
+  }
+
+  /**
+   * Creates the comment entries of the context menu.
+   *
+   * @returns {object[]}
+   */
+  #createMenuEntries() {
+    return [
       addEditCommentItem(this),
       removeCommentItem(this),
       readOnlyCommentItem(this),
-    );
+    ];
   }
 
   /**

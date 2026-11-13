@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a merged cell declared in the `mergeCells` option so it spans a trimmed or filtered row between its rows once the row comes back, and keeps that span when the same settings are sent again.",
+  "type": "fixed",
+  "issueOrPR": 14030,
+  "breaking": false,
+  "framework": "none"
+}

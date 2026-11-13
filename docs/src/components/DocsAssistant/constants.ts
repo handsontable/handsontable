@@ -3,12 +3,41 @@ export const STORAGE_KEYS = {
   open: 'hot-docs-chat-open',
   width: 'hot-docs-chat-width',
   threadId: 'hot-docs-chat-thread-id',
+  /**
+   * localStorage: what the panel needs to poll for a Support reply in the current conversation
+   * (thread id, its token, the last reply shown). Cleared with the thread.
+   */
+  agentReplies: 'hot-docs-chat-agent-replies',
+  /**
+   * localStorage: set once the reader closes the proactive bubble, which then never shows again.
+   */
+  bubbleDismissed: 'hot-docs-chat-bubble-dismissed',
 } as const;
 
 export const WIDTH = {
   min: 360,
   max: 800,
   default: 520,
+} as const;
+
+/**
+ * Proactive bubble trigger (SU-598, stage I): the reader reached the bottom of a
+ * long page and stayed idle. The bubble can show again on later pages, until the
+ * reader closes it once.
+ */
+export const BUBBLE = {
+  /**
+   * How long the reader must stay idle at the bottom of the page.
+   */
+  idleMs: 3000,
+  /**
+   * How close to the end of the page (px) still counts as "the bottom".
+   */
+  bottomTolerancePx: 64,
+  /**
+   * A page shorter than this many viewport heights is not "long", so it never triggers.
+   */
+  minPageViewports: 2,
 } as const;
 
 export const STARTER_SUGGESTIONS = [
@@ -36,11 +65,11 @@ const SAME_ORIGIN_BASE = '/docs-assistant';
 /**
  * Absolute backend URL used everywhere the same-origin proxy does not exist —
  * `*.pages.dev` deploy previews and local development. Baked at build time from
- * `PUBLIC_CHAT_API_URL`, falling back to the Netlify deployment.
+ * `PUBLIC_CHAT_API_URL`, falling back to the production backend.
  */
 const ABSOLUTE_API_URL =
   (import.meta.env.PUBLIC_CHAT_API_URL as string | undefined) ||
-  'https://hot-docs-assistant.netlify.app';
+  'https://docs-assistant.handsontable.com';
 
 /**
  * Resolve the backend base URL at runtime. The widget mounts client-side only
@@ -58,6 +87,24 @@ export const API_URL = resolveApiBase();
 
 export const CHAT_ENDPOINT = `${API_URL.replace(/\/$/, '')}/api/chat`;
 export const FEEDBACK_ENDPOINT = `${API_URL.replace(/\/$/, '')}/api/feedback`;
+export const AGENT_REPLIES_ENDPOINT = `${API_URL.replace(/\/$/, '')}/api/agent-replies`;
+
+/** The label above a reply a teammate wrote from Slack, so a reader can tell it from the bot. */
+export const AGENT_LABEL = 'Handsontable Support';
+
+/** Text of the controls a reader uses to answer Support instead of the bot (SU-1118). */
+export const SUPPORT_UI = {
+  replyButton: 'Reply to Support',
+  chip: 'To Support',
+  chipRemove: 'Stop writing to Support',
+  placeholder: 'Write to Support...',
+  composerLabel: 'Write to Support',
+  sentNote: 'Sent to Support. Please wait for a reply.',
+  backToBot: 'You are replying to the bot again',
+} as const;
+
+/** How long the "replying to the bot again" notice stays under the input. */
+export const BACK_TO_BOT_NOTICE_MS = 4000;
 
 export const SHIKI_LANGS = ['js', 'ts', 'html', 'css', 'json', 'bash'] as const;
 export const SHIKI_THEMES = { light: 'github-light', dark: 'github-dark' } as const;

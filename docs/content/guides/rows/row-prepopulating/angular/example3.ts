@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
@@ -14,7 +14,7 @@ import { textRenderer } from 'handsontable/renderers/textRenderer';
   standalone: true,
   imports: [HotTableModule],
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
   hotData = [
@@ -27,7 +27,7 @@ export class AppComponent implements AfterViewInit {
 
   hotSettings: GridSettings = {};
 
-  ngAfterViewInit() {
+  ngOnInit() {
     const templateValues = ['one', 'two', 'three'];
 
     function isEmptyRow(instance: Handsontable, row: number) {
@@ -76,7 +76,7 @@ export class AppComponent implements AfterViewInit {
       minSpareRows: 1,
       contextMenu: true,
       height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
       cells() {
         return { renderer: defaultValueRenderer };
       },
@@ -127,7 +127,7 @@ export class AppComponent implements AfterViewInit {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -137,7 +137,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

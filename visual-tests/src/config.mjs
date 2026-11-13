@@ -59,7 +59,8 @@ export const CROSS_BROWSERS = ['chromium', 'firefox', 'webkit'];
  *
  * `frameworks`: what run-tests.mjs renders; `classic`: the bare chromium js run with no HOT_THEME; `themes`:
  * the HOT_THEME runs; `browsers`: the cross-browser leg's projects, empty when the leg does not run in that
- * tier; `copyWrappers`: after rendering, copy `js/chromium/multi-frameworks` into each wrapper directory.
+ * tier; `copyWrappers`: after rendering, copy each spec's bare js captures into the wrapper directories that spec
+ * declares (`lib/wrapper-copy.mjs`).
  *
  * The tier is one half of what a build renders. The other half is each spec's own `visualTest()`
  * declaration (`lib/visual-declarations.mjs`), so the golden set is the sum of the declarations

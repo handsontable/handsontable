@@ -10,6 +10,7 @@ import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
   makeElementContentEditableAndSelectItsContent,
+  getDeepActiveElement,
   isHTMLElement,
   isInternalElement,
   isShadowRoot,
@@ -17,12 +18,15 @@ import {
 import { sanitizeHTML } from '../../utils/sanitizer';
 import { warnOnce } from '../../helpers/console';
 import { extractText, getTextExtractor } from '../../utils/textExtractor';
-import { isSafari } from '../../helpers/browser';
+import { isSafari, isMacOS } from '../../helpers/browser';
+import { GRID_SCOPE, GRID_CLIPBOARD_KEYS } from '../../shortcuts/contexts/constants';
+import { normalizeKeys, getEventKeyCombinations } from '../../shortcuts/utils';
 import copyItem from './contextMenuItem/copy';
 import copyColumnHeadersOnlyItem from './contextMenuItem/copyColumnHeadersOnly';
 import copyWithColumnGroupHeadersItem from './contextMenuItem/copyWithColumnGroupHeaders';
 import copyWithColumnHeadersItem from './contextMenuItem/copyWithColumnHeaders';
 import cutItem from './contextMenuItem/cut';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import PasteEvent from './pasteEvent';
 import { PasteClipboardSnapshot, SOURCE_DATA_HTML_MIME_TYPE, type PasteClipboardSource } from './pasteClipboardData';
 import {
@@ -30,6 +34,38 @@ import {
   normalizeRanges,
 } from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
+import { LICENSE } from './feature.generated';
+
+const CLIPBOARD_KEYS = new Set(GRID_CLIPBOARD_KEYS.map(keys => normalizeKeys(keys)));
+
+/**
+ * The rows of the copied data, and a fingerprint of each of their cells, recorded before a hook may edit them.
+ * An object or array cell is fingerprinted by its JSON, so an edit made in place is still seen.
+ */
+interface RangedDataSnapshot {
+  rows: unknown[][];
+  cells: unknown[][];
+}
+
+/**
+ * Reduces a copied cell to a value that changes when the cell's content changes, even for an object or array
+ * edited in place. An object that cannot be serialized (a `BigInt`, a circular reference) reduces to a fresh
+ * symbol, so it always counts as changed instead of throwing out of the copy.
+ *
+ * @param {*} value The copied cell value.
+ * @returns {*} The JSON of an object or array, the value itself otherwise.
+ */
+function fingerprintCell(value: unknown): unknown {
+  if (!isObject(value) && !Array.isArray(value)) {
+    return value;
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return Symbol('unserializable');
+  }
+}
 
 /**
  * Internet Explorer-specific window extension with legacy clipboard API.
@@ -97,6 +133,14 @@ function padRowsToWidest(data: unknown[][]) {
 const CLIPBOARD_PARSE_WARN_KEY = 'copyPaste.clipboardParse';
 
 /**
+ * The `type`s of an `input` the user cannot enter text into. A focus on one is no reason to skip the
+ * Safari `mouseleave` workaround.
+ */
+const NON_TEXT_INPUT_TYPES = new Set([
+  'checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'file', 'image', 'color',
+]);
+
+/**
  * Reads the `text/plain` clipboard flavor.
  *
  * Shared by the no-table branch and by the fallback taken when the HTML parse throws, so the two
@@ -137,7 +181,6 @@ function readPlainText(clipboardData: PasteClipboardSnapshot): unknown {
  * - The browser's menu bar.
  *
  * Read more:
- * - [Guides: Clipboard](@/guides/cell-features/clipboard/clipboard.md)
  * - [Setting options: `copyPaste`](@/api/options.md#copypaste)
  *
  * @example
@@ -182,6 +225,14 @@ export class CopyPaste extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -316,8 +367,8 @@ export class CopyPaste extends BasePlugin {
   #pastePlan: [number, number, number, number] | null = null;
   /**
    * The `[startRow, startColumn, endRow, endColumn]` range `onPaste()`'s synchronous selection
-   * actually produced, read back after the selection so it reflects any adjustment a plugin made
-   * through `beforeSetRangeStart` (`mergeCells` snaps a range onto a merged area). It is `null`
+   * actually produced, read back after the selection so it reflects any adjustment the selection
+   * made (it grows a range over the merged cells it touches). It is `null`
    * until that selection runs, which lets `#onAfterChange` tell the synchronous case (the change
    * settles inside `populateFromArray()`, before this is set) from the deferred one, and it is
    * what the deferred correction compares the live selection against, so a selection the user or
@@ -364,10 +415,11 @@ export class CopyPaste extends BasePlugin {
     this.#enableCopyColumnHeadersOnly = this.getSetting<boolean>('copyColumnHeadersOnly')!;
     this.uiContainer = this.getSetting<HTMLElement>('uiContainer') ?? this.uiContainer;
 
-    this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
+    registerMenuEntries(this, () => this.#createMenuEntries(), { contextMenu: {} });
     this.addHook('afterSelection', this.#onAfterSelection);
     this.addHook('afterSelectionEnd', this.#onAfterSelectionEnd);
     this.addHook('afterChange', this.#onAfterChange);
+    this.addHook('beforeKeyDown', this.#onBeforeKeyDown);
 
     // The same three listeners go on up to three targets, because a clipboard event reaches
     // the grid by a different route depending on where the grid is embedded. More than one
@@ -629,6 +681,11 @@ export class CopyPaste extends BasePlugin {
 
     this.copyableRanges = this.hot.runHooks('modifyCopyableRange', this.copyableRanges);
 
+    // A `modifyCopyableRange` listener can destroy the grid, which clears `this.hot`.
+    if (!this.hot) {
+      return;
+    }
+
     const cellsRange = groupedRanges.get('cells');
 
     if (cellsRange !== null && cellsRange !== undefined && cellsRange.isRangeTrimmed) {
@@ -848,10 +905,29 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Checks whether the focus sits in a control the user enters a value into, such as the comment editor's
+   * text area or an open cell editor. Selecting the highlighted cell's content takes the focus from such a
+   * control. The input of a closed cell editor, which keeps the focus in a grid with `imeFastEdit`, is not
+   * one: its holder is hidden, and the Safari workaround still has to run there. Neither is a checkbox, a
+   * button, or another input that takes no text.
+   *
+   * @returns {boolean}
+   */
+  #isTypingIntoFormControl() {
+    const { HTMLTextAreaElement, HTMLInputElement, HTMLSelectElement } = this.hot.rootWindow;
+    const activeElement = getDeepActiveElement(this.hot.rootDocument);
+    const isEntryControl = activeElement instanceof HTMLTextAreaElement ||
+      activeElement instanceof HTMLSelectElement ||
+      (activeElement instanceof HTMLInputElement && !NON_TEXT_INPUT_TYPES.has(activeElement.type));
+
+    return isEntryControl && activeElement.closest('.ht_editor_hidden') === null;
+  }
+
+  /**
    * Add the `contenteditable` attribute to the highlighted cell and select its content.
    */
   #addContentEditableToHighlightedCell() {
-    if (this.hot.isListening()) {
+    if (this.hot.isListening() && !this.#isTypingIntoFormControl()) {
       const activeSelectedRange = this.hot.getSelectedRangeActive();
 
       if (activeSelectedRange) {
@@ -905,10 +981,10 @@ export class CopyPaste extends BasePlugin {
    * within the grid's shadow tree - in both cases the retargeted `target` is the deepest
    * reliable reference to the source element.
    *
-   * @param {ClipboardEvent | PasteEvent} event The clipboard event to resolve.
+   * @param {ClipboardEvent | PasteEvent | KeyboardEvent} event The clipboard or `keydown` event to resolve.
    * @returns {unknown} The deepest known event source element.
    */
-  #resolveClipboardEventTarget(event: ClipboardEvent | PasteEvent): unknown {
+  #resolveClipboardEventTarget(event: ClipboardEvent | PasteEvent | KeyboardEvent): unknown {
     const eventPath = event.composedPath();
 
     if (eventPath.some(entry => isShadowRoot(entry))) {
@@ -921,6 +997,26 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Tells whether the grid answers a clipboard action that comes from the given element. The grid's own
+   * focus input only counts while it is the element the grid refocuses. Any other element has to be the
+   * document body or sit inside the grid, because a field of the application keeps its own clipboard.
+   *
+   * @param {unknown} eventTarget The element the event originated from.
+   * @returns {boolean}
+   */
+  #isGridClipboardTarget(eventTarget: unknown): boolean {
+    if (!isHTMLElement(eventTarget)) {
+      return true;
+    }
+
+    if ('hotInput' in eventTarget.dataset) {
+      return eventTarget === this.hot.getFocusManager().getRefocusElement();
+    }
+
+    return eventTarget === this.hot.rootDocument.body || isInternalElement(eventTarget, this.hot.rootElement);
+  }
+
+  /**
    * `copy` event callback on textarea element.
    *
    * @param {Event} event ClipboardEvent.
@@ -928,19 +1024,11 @@ export class CopyPaste extends BasePlugin {
    */
   onCopy(event: ClipboardEvent) {
     const eventTarget = this.#resolveClipboardEventTarget(event);
-    const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCopy ||
       this.isEditorOpened() ||
-      isHTMLElement(eventTarget) && (
-        (isHotInput && eventTarget !== focusedElement) ||
-        (
-          !isHotInput && eventTarget !== this.hot.rootDocument.body &&
-          !isInternalElement(eventTarget, this.hot.rootElement)
-        )
-      )
+      !this.#isGridClipboardTarget(eventTarget)
     ) {
       return;
     }
@@ -949,16 +1037,32 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCopy = false;
 
+    // A `modifyCopyableRange` or `afterCopyLimit` listener can destroy the grid, which clears `this.hot`.
+    if (!this.hot) {
+      return;
+    }
+
     const rangedData = this.getRangedData(this.copyableRanges);
     const rangedSourceData = this.getRangedData(this.copyableRanges, true);
 
     const copiedHeadersCount = this.#countCopiedHeaders(this.copyableRanges);
     // Captured before `beforeCopy`, which may reshape the array. Identity is what survives that.
     const headerRows = new Set(rangedData.slice(0, copiedHeadersCount.columnHeadersCount));
+    const dataSnapshot = this.hot.hasHook('beforeCopy') ? this.#snapshotRangedData(rangedData) : null;
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges, copiedHeadersCount);
 
+    // So can a `beforeCopy` listener.
+    if (!this.hot) {
+      return;
+    }
+
     if (allowCopying) {
-      this.#setClipboardData(event, rangedData, rangedSourceData, headerRows);
+      this.#setClipboardData(
+        event,
+        rangedData,
+        this.#reconcileSourceData(rangedData, dataSnapshot, rangedSourceData),
+        headerRows
+      );
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges, copiedHeadersCount);
     }
@@ -974,19 +1078,11 @@ export class CopyPaste extends BasePlugin {
    */
   onCut(event: ClipboardEvent) {
     const eventTarget = this.#resolveClipboardEventTarget(event);
-    const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCut ||
       this.isEditorOpened() ||
-      isHTMLElement(eventTarget) && (
-        (isHotInput && eventTarget !== focusedElement) ||
-        (
-          !isHotInput && eventTarget !== this.hot.rootDocument.body &&
-          !isInternalElement(eventTarget, this.hot.rootElement)
-        )
-      )
+      !this.#isGridClipboardTarget(eventTarget)
     ) {
       return;
     }
@@ -995,14 +1091,35 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCut = false;
 
+    // A `modifyCopyableRange` or `afterCopyLimit` listener can destroy the grid, which clears `this.hot`.
+    if (!this.hot) {
+      return;
+    }
+
     const rangedData = this.getRangedData(this.copyableRanges);
     const rangedSourceData = this.getRangedData(this.copyableRanges, true);
+    const dataSnapshot = this.hot.hasHook('beforeCut') ? this.#snapshotRangedData(rangedData) : null;
     const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
 
+    // A `beforeCut` listener can destroy the grid, which clears `this.hot`.
+    if (!this.hot) {
+      return;
+    }
+
     if (allowCuttingOut) {
-      this.#setClipboardData(event, rangedData, rangedSourceData);
+      this.#setClipboardData(
+        event,
+        rangedData,
+        this.#reconcileSourceData(rangedData, dataSnapshot, rangedSourceData)
+      );
 
       this.hot.emptySelectedCells('CopyPaste.cut');
+
+      // So can the listeners of the writes `emptySelectedCells()` makes.
+      if (!this.hot) {
+        return;
+      }
+
       this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
     }
   }
@@ -1015,20 +1132,12 @@ export class CopyPaste extends BasePlugin {
    */
   onPaste(event: ClipboardEvent | PasteEvent) {
     const eventTarget = this.#resolveClipboardEventTarget(event);
-    const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
     if (
       !this.hot.isListening() ||
       this.isEditorOpened() ||
       !this.hot.getSelected() ||
-      isHTMLElement(eventTarget) && (
-        (isHotInput && eventTarget !== focusedElement) ||
-        (
-          !isHotInput && eventTarget !== this.hot.rootDocument.body &&
-          !isInternalElement(eventTarget, this.hot.rootElement)
-        )
-      )
+      !this.#isGridClipboardTarget(eventTarget)
     ) {
       return;
     }
@@ -1047,7 +1156,8 @@ export class CopyPaste extends BasePlugin {
 
     const clipboardSnapshot = this.#runBeforePasteParse(event);
 
-    if (clipboardSnapshot === false) {
+    // A `beforePasteParse` listener can destroy the grid, which clears `this.hot`.
+    if (clipboardSnapshot === false || !this.hot) {
       return;
     }
 
@@ -1069,7 +1179,8 @@ export class CopyPaste extends BasePlugin {
     // This is needed to detect if user modified values and respect their modifications over source data.
     const originalPastedData = deepClone(pastedData);
 
-    if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false) {
+    // The same goes for a `beforePaste` listener, and for the listeners of the writes below.
+    if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false || !this.hot) {
       return;
     }
 
@@ -1079,26 +1190,39 @@ export class CopyPaste extends BasePlugin {
       originalPlainData: originalPastedData as unknown[][],
     });
 
+    if (!this.hot) {
+      return;
+    }
+
     if (startRow !== null && startColumn !== null && endRow !== null && endColumn !== null) {
       this.#selectPastedRange(startRow, startColumn, endRow, endColumn);
-
-      // Read the range back rather than storing what was passed in: `beforeSetRangeStart` can move
-      // it (`mergeCells` snaps onto a merged area), and `#onAfterChange` must compare the live
-      // selection against what actually landed, not against the request.
-      const appliedRange = this.hot.getSelectedRangeActive();
-
-      if (appliedRange) {
-        const { row: appliedStartRow, col: appliedStartColumn } = appliedRange.getTopStartCorner();
-        const { row: appliedEndRow, col: appliedEndColumn } = appliedRange.getBottomEndCorner();
-
-        if (appliedStartRow !== null && appliedStartColumn !== null &&
-            appliedEndRow !== null && appliedEndColumn !== null) {
-          this.#appliedPasteRange = [appliedStartRow, appliedStartColumn, appliedEndRow, appliedEndColumn];
-        }
-      }
+      this.#recordAppliedPasteRange();
     }
 
     this.hot.runHooks('afterPaste', pastedData, this.copyableRanges);
+  }
+
+  /**
+   * Stores the range the paste's synchronous selection produced.
+   *
+   * It reads the range back rather than storing what was passed to the selection: the selection can
+   * grow it (over the merged cells it touches), and `#onAfterChange` must compare the live selection
+   * against what actually landed, not against the request.
+   */
+  #recordAppliedPasteRange(): void {
+    const appliedRange = this.hot.getSelectedRangeActive();
+
+    if (!appliedRange) {
+      return;
+    }
+
+    const { row: appliedStartRow, col: appliedStartColumn } = appliedRange.getTopStartCorner();
+    const { row: appliedEndRow, col: appliedEndColumn } = appliedRange.getBottomEndCorner();
+
+    if (appliedStartRow !== null && appliedStartColumn !== null &&
+        appliedEndRow !== null && appliedEndColumn !== null) {
+      this.#appliedPasteRange = [appliedStartRow, appliedStartColumn, appliedEndRow, appliedEndColumn];
+    }
   }
 
   /**
@@ -1319,6 +1443,63 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
+   * Records the rows of the copied data and a fingerprint of their cells, before `beforeCopy` or `beforeCut`
+   * may edit them.
+   *
+   * @param {Array[]} rangedData The copied data.
+   * @returns {{rows: Array[], cells: Array[]}} The row arrays, and the fingerprint of each row's cells.
+   */
+  #snapshotRangedData(rangedData: unknown[][]): RangedDataSnapshot {
+    return {
+      rows: rangedData.slice(),
+      cells: rangedData.map(row => row.map(fingerprintCell)),
+    };
+  }
+
+  /**
+   * Makes the source-data flavor follow what `beforeCopy` or `beforeCut` left in the copied data.
+   *
+   * The hooks receive only the plain data, so an edit they make would otherwise never reach the source
+   * data: a masked value would leak through it and a removed row would misalign the two flavors.
+   * A row the hook kept as the same array is matched to its source row by identity, so removing or
+   * reordering rows keeps the flavors aligned. In such a row a cell the hook did not change keeps its source
+   * value, and a cell it changed, including an object or array it edited in place, or one it appended,
+   * takes the hook's value. Any other row (a new array, or a row the hook added) is not matched to a source
+   * row: matching by position would hand a row another row's source value after a reorder. It takes the
+   * hook's values for every cell.
+   *
+   * @param {Array[]} rangedData The copied data, as the hook left it.
+   * @param {object|null} snapshot The rows and cells recorded before the hook ran, or `null` when no hook listens.
+   * @param {Array[]} rangedSourceData The source data built before the hook ran.
+   * @returns {Array[]} The source data matching `rangedData`.
+   */
+  #reconcileSourceData(
+    rangedData: unknown[][],
+    snapshot: RangedDataSnapshot | null,
+    rangedSourceData: unknown[][]
+  ): unknown[][] {
+    if (snapshot === null) {
+      return rangedSourceData;
+    }
+
+    const originalIndexes = new Map(snapshot.rows.map((row, index) => [row, index]));
+
+    return rangedData.map((row) => {
+      const originalIndex = originalIndexes.get(row);
+
+      return row.map((value, column) => {
+        const fingerprint = fingerprintCell(value);
+
+        if (originalIndex !== undefined && Object.is(fingerprint, snapshot.cells[originalIndex][column])) {
+          return rangedSourceData[originalIndex][column];
+        }
+
+        return typeof fingerprint === 'symbol' ? String(value) : fingerprint;
+      });
+    });
+  }
+
+  /**
    * Sets the clipboard data for the given event.
    *
    * @param {ClipboardEvent} event The Clipboard event.
@@ -1337,11 +1518,13 @@ export class CopyPaste extends BasePlugin {
 
     if (event && event.clipboardData) {
       const textHTML = _dataToHTML(projectedData);
-      const textSourceDataHTML = _dataToHTML(rangedSourceData);
 
       event.clipboardData.setData('text/plain', textPlain);
       event.clipboardData.setData('text/html', [META_HEAD, textHTML].join(''));
-      event.clipboardData.setData(SOURCE_DATA_HTML_MIME_TYPE, [META_HEAD, textSourceDataHTML].join(''));
+      event.clipboardData.setData(
+        SOURCE_DATA_HTML_MIME_TYPE,
+        [META_HEAD, _dataToHTML(rangedSourceData)].join('')
+      );
 
     } else if (typeof ClipboardEvent === 'undefined') {
       (this.hot.rootWindow as unknown as IEWindow).clipboardData.setData('Text', textPlain);
@@ -1349,33 +1532,76 @@ export class CopyPaste extends BasePlugin {
   }
 
   /**
-   * Add copy and cut options to the Context Menu.
+   * Creates the copy and cut entries of the context menu.
    *
-   * @param {object} options Contains default added options of the Context Menu.
+   * @returns {object[]}
    */
-  #onAfterContextMenuDefaultOptions = (options: { items: unknown[] }) => {
-    options.items.push(
-      { name: '---------' },
-      copyItem(this),
-    );
+  #createMenuEntries() {
+    const entries = [copyItem(this)];
 
     if (this.#enableCopyColumnHeaders) {
-      options.items.push(
-        copyWithColumnHeadersItem(this),
-      );
+      entries.push(copyWithColumnHeadersItem(this));
     }
     if (this.#enableCopyColumnGroupHeaders) {
-      options.items.push(
-        copyWithColumnGroupHeadersItem(this),
-      );
+      entries.push(copyWithColumnGroupHeadersItem(this));
     }
     if (this.#enableCopyColumnHeadersOnly) {
-      options.items.push(
-        copyColumnHeadersOnlyItem(this),
-      );
+      entries.push(copyColumnHeadersOnlyItem(this));
     }
 
-    options.items.push(cutItem(this));
+    entries.push(cutItem(this));
+
+    return entries;
+  }
+
+  /**
+   * Tells whether the shortcuts of the grid context run for the active context, which is the case when the
+   * active context is the grid context itself or falls back to it, the way the empty data state overlay does.
+   *
+   * @returns {boolean}
+   */
+  #isGridShortcutContextActive(): boolean {
+    const shortcutManager = this.hot.getShortcutManager();
+    const gridContext = shortcutManager.getContext(GRID_SCOPE);
+    const visitedContexts = new Set<unknown>();
+    let context = shortcutManager.getContext(shortcutManager.getActiveContextName());
+
+    while (context && !visitedContexts.has(context)) {
+      if (context === gridContext) {
+        return true;
+      }
+
+      visitedContexts.add(context);
+      context = context.getFallbackContext() ?? undefined;
+    }
+
+    return false;
+  }
+
+  /**
+   * Cancels the browser's copy, cut, or paste when the application removed the shortcut of that key from
+   * the grid context. Only a key press the grid itself would handle counts, so an open editor, a field of
+   * the application, and the contexts that do not fall back to the grid keep the native behavior, and so do
+   * `copy()`, `cut()`, `paste()`, and the context menu, which never press a key.
+   *
+   * @param {KeyboardEvent} event The `keydown` event.
+   */
+  #onBeforeKeyDown = (event: KeyboardEvent) => {
+    if (
+      !event.ctrlKey && !event.metaKey ||
+      this.isEditorOpened() ||
+      !this.#isGridClipboardTarget(this.#resolveClipboardEventTarget(event)) ||
+      !this.#isGridShortcutContextActive()
+    ) {
+      return;
+    }
+
+    const isClipboardKey = getEventKeyCombinations(event, isMacOS)
+      .some(keys => CLIPBOARD_KEYS.has(normalizeKeys(keys)));
+
+    if (isClipboardKey && !this.hot.getShortcutManager().hasEventShortcut(GRID_SCOPE, event)) {
+      event.preventDefault();
+    }
   };
 
   /**

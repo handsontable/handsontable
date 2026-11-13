@@ -127,6 +127,13 @@ class Table {
    * @type {number | { top: number; left: number }}
    */
   holderOffset: number | { top: number; left: number } = 0;
+  /**
+   * The page margin on the inline-start side of the holder in an RTL grid, measured with `holderOffset`
+   * at the start of the master draw. It is `0` in LTR.
+   *
+   * @type {number}
+   */
+  holderInlineStartMargin = 0;
 
   /**
    * The borders holder element.

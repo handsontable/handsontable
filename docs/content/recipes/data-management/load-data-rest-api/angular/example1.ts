@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, NgZone, ViewChild, AfterViewInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, AfterViewInit, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 type UserRow = {
@@ -52,7 +52,7 @@ function mapUsersToGridRows(users: Array<{
 export class AppComponent implements AfterViewInit {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   statusMessage = STATUS_LOADING;
   hasError = false;
@@ -77,10 +77,9 @@ export class AppComponent implements AfterViewInit {
 
   private setStatus(message: string, hasError = false): void {
     setTimeout(() => {
-      this.ngZone.run(() => {
-        this.statusMessage = message;
-        this.hasError = hasError;
-      });
+      this.statusMessage = message;
+      this.hasError = hasError;
+      this.cdr.markForCheck();
     }, 0);
   }
 
@@ -111,6 +110,7 @@ export class AppComponent implements AfterViewInit {
       this.setStatus(STATUS_ERROR, true);
     } finally {
       this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 
@@ -124,7 +124,7 @@ export class AppComponent implements AfterViewInit {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
@@ -133,7 +133,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

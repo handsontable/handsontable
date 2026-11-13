@@ -810,6 +810,59 @@ export function getCellContentRoot(element: HTMLElement): HTMLElement {
 }
 
 /**
+ * Whether a body cell has a row header as its previous sibling, so the row header owns the gridline
+ * in front of it and the inline-start overlay paints over that pixel.
+ *
+ * Read from the DOM because which cells stand behind a row header is not a fixed index: the first
+ * rendered column of a scrolled grid does too. The mirror of `standsBelowColumnHeader` on the row axis.
+ *
+ * @param {HTMLElement} cell The `td` to check.
+ * @returns {boolean}
+ */
+export function standsBehindRowHeader(cell: HTMLElement): boolean {
+  return cell.previousElementSibling?.nodeName === 'TH';
+}
+
+/**
+ * Whether the gridline in front of a cell lies under an inline-start overlay, which paints over the
+ * layer the cell's editor and selection edge live in. The gridline is the pixel just before the cell,
+ * so it is covered when the overlay's table reaches the cell or goes past it. Half a pixel absorbs the
+ * fractional sizes of a zoomed page.
+ *
+ * Works on rectangles, so each caller reads them through its own sanctioned path.
+ *
+ * @param {{ left: number, right: number }} cellRect The cell's bounding rectangle.
+ * @param {{ left: number, right: number }} overlayRect The bounding rectangle of the overlay's table.
+ * @param {boolean} isRtl `true` when the grid is laid out right to left.
+ * @returns {boolean}
+ */
+export function isStartGapCovered(
+  cellRect: { left: number, right: number },
+  overlayRect: { left: number, right: number },
+  isRtl: boolean
+): boolean {
+  const gap = isRtl ? overlayRect.left - cellRect.right : cellRect.left - overlayRect.right;
+
+  return gap < 0.5;
+}
+
+/**
+ * Whether the gridline above a cell lies under a top overlay, which paints over the layer the cell's
+ * selection edge lives in. The row axis twin of {@link isStartGapCovered}: the gridline is the pixel
+ * just above the cell, so it is covered when the overlay's table reaches the cell or goes past it.
+ *
+ * @param {{ top: number, bottom: number }} cellRect The cell's bounding rectangle.
+ * @param {{ top: number, bottom: number }} overlayRect The bounding rectangle of the overlay's table.
+ * @returns {boolean}
+ */
+export function isTopGapCovered(
+  cellRect: { top: number, bottom: number },
+  overlayRect: { top: number, bottom: number }
+): boolean {
+  return cellRect.top - overlayRect.bottom < 0.5;
+}
+
+/**
  * Returns true if element is attached to the DOM and visible, false otherwise.
  *
  * @param {HTMLElement} element An element to check.
@@ -1228,6 +1281,47 @@ function establishesFixedContainingBlock(style: CSSStyleDeclaration): boolean {
 }
 
 /**
+ * Measures the box a `position: fixed` element is laid out in when no ancestor establishes a
+ * containing block for it, as an empty `left: 0; right: 0` probe reports it.
+ *
+ * A root scrollbar drawn on the inline-start side (a right-to-left browser UI, Firefox's
+ * `layout.scrollbar.side`) or a `scrollbar-gutter: stable both-edges` leaves a gutter at the left
+ * edge, and the fixed box starts after it. No property answers that portably: `clientLeft` also
+ * counts the `border-left` of `<html>` in Chromium but not in Firefox, and reads 0 for a reserved
+ * `scrollbar-gutter`. The probe reads what the engine laid out. It is only run when the window is
+ * wider than the viewport, which is the sign of a gutter on some side, and falls back to the given
+ * viewport when it measures nothing.
+ *
+ * @param {Document} rootDocument The document of the grid.
+ * @param {Window} rootWindow The window of the grid.
+ * @param {{ top: number, left: number, width: number, height: number }} viewport The fallback.
+ * @returns {{ top: number, left: number, width: number, height: number }}
+ */
+function measureViewportFixedBox(
+  rootDocument: Document,
+  rootWindow: Window,
+  viewport: { top: number, left: number, width: number, height: number }
+): { top: number, left: number, width: number, height: number } {
+  const { documentElement } = rootDocument;
+
+  if (rootWindow.innerWidth <= documentElement.clientWidth) {
+    return viewport;
+  }
+
+  const probe = rootDocument.createElement('div');
+
+  probe.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; height: 0; visibility: hidden; '
+    + 'pointer-events: none; margin: 0; padding: 0; border: 0;';
+  documentElement.appendChild(probe);
+
+  const { left, width } = probe.getBoundingClientRect();
+
+  probe.remove();
+
+  return width > 0 ? { ...viewport, left, width } : viewport;
+}
+
+/**
  * Returns the box a `position: fixed` descendant of `base` is actually laid out in, in viewport
  * coordinates.
  *
@@ -1242,10 +1336,12 @@ function establishesFixedContainingBlock(style: CSSStyleDeclaration): boolean {
  * viewport coordinate into the value the element must be given, and use `width`/`height` as the
  * bounds the element has to stay inside.
  *
- * Falls back to the viewport, so a caller can use the result unconditionally. The viewport's own
- * size is read from `documentElement.clientWidth`/`clientHeight`, which is what a fixed box is
- * laid out in - `innerWidth`/`innerHeight` include the classic scrollbar gutters and, on mobile,
- * the area under collapsible browser chrome.
+ * Falls back to the viewport, so a caller can use the result unconditionally. A root scrollbar
+ * drawn on the left leaves a gutter the fixed box does not cover, so the fallback is measured with a
+ * probe where one can exist (see `measureViewportFixedBox()`).
+ * The viewport's own size is read from `documentElement.clientWidth`/`clientHeight`, which is
+ * what a fixed box is laid out in - `innerWidth`/`innerHeight` include the classic scrollbar
+ * gutters and, on mobile, the area under collapsible browser chrome.
  *
  * @param {HTMLElement} base The `position: fixed` element, or any element in its subtree.
  * @returns {{ top: number, left: number, width: number, height: number }}
@@ -1308,7 +1404,7 @@ export function getFixedContainingBlockRect(
     node = el.parentNode;
   }
 
-  return viewport;
+  return measureViewportFixedBox(rootDocument, rootWindow, viewport);
 }
 
 /**
@@ -1927,6 +2023,29 @@ export function isHTMLElement(element: unknown): element is HTMLElement {
     .ownerDocument?.defaultView?.Element;
 
   return !!(OwnElement && element instanceof OwnElement);
+}
+
+/**
+ * Check if the value is a `DocumentFragment`. Cross-realm safe: a fragment built from an iframe's
+ * document fails `instanceof DocumentFragment` against the top window's constructor, so it is also
+ * tested against its own realm's constructor through `ownerDocument.defaultView`.
+ *
+ * @param {*} value Value to check.
+ * @returns {boolean} `true` if the value is a `DocumentFragment` from any realm.
+ */
+export function isDocumentFragment(value: unknown): value is DocumentFragment {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  if (typeof DocumentFragment !== 'undefined' && value instanceof DocumentFragment) {
+    return true;
+  }
+
+  const OwnFragment = (value as { ownerDocument?: { defaultView?: { DocumentFragment?: typeof DocumentFragment } } })
+    .ownerDocument?.defaultView?.DocumentFragment;
+
+  return !!(OwnFragment && value instanceof OwnFragment);
 }
 
 /**

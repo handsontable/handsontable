@@ -1,5 +1,5 @@
 import { registerPlugin, TrimRows, UndoRedo } from 'handsontable/plugins';
-import { setUpUndoGrid, spreadsheet } from './helpers/grid';
+import { setUpUndoGrid, spreadsheet } from './grid';
 
 registerPlugin(UndoRedo);
 registerPlugin(TrimRows);

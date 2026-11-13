@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `ViewState` plugin, whose `getViewState()`, `setViewState()`, and `validateViewState()` methods capture the grid's view (sort, filters, hidden and resized rows and columns, frozen panes, pagination, selection, and scroll position) as plain JSON, check it, and restore it.",
+  "type": "added",
+  "issueOrPR": 13912,
+  "breaking": false,
+  "framework": "none"
+}

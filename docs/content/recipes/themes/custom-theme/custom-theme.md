@@ -1,8 +1,8 @@
 ---
 type: how-to
-title: Handsontable with shadcn/ui
-metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable
-description: Integrate Handsontable into a React app using shadcn/ui so the grid matches your design system colors, typography, and dark mode via the Theme API.
+title: Handsontable DataGrid with shadcn/ui
+metaTitle: shadcn/ui theme | Handsontable DataGrid for JavaScript
+description: Integrate Handsontable DataGrid into a React app using shadcn/ui so the grid matches your design system colors, typography, and dark mode via the Theme API.
 permalink: /recipes/themes/custom-theme
 canonicalUrl: /recipes/themes/custom-theme
 tags:
@@ -17,15 +17,16 @@ tags:
   - Theme API
   - custom theme
 react:
-  metaTitle: Handsontable with shadcn/ui - React Data Grid | Handsontable
+  metaTitle: shadcn/ui theme | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with shadcn/ui - Angular Data Grid | Handsontable
+  metaTitle: shadcn/ui theme | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Themes
+menuTag: updated
 ---
 
-This tutorial shows you how to integrate Handsontable into a Next.js app that uses shadcn/ui, registering a custom theme that maps shadcn CSS variables and Lucide icons to the Handsontable Theme API.
+This tutorial shows you how to integrate Handsontable DataGrid into a Next.js app that uses shadcn/ui, registering a custom theme that maps shadcn CSS variables and Lucide icons to the Handsontable Theme API.
 
 <iframe src="https://demos.handsontable.com/embed/6k14o3s142"
      style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -56,7 +57,7 @@ This recipe shows how to integrate Handsontable into a Next.js that uses [shadcn
 - shadcn's CSS variables defined (e.g. `--primary`, `--background`, `--foreground`, `--muted`, `--border`, `--radius`).
 - This recipe uses `lib/` for theme and helpers and `components/` for the grid, adjust paths if your structure differs.
 
-## Step 1: Install Handsontable
+## Step 1: Install Handsontable DataGrid
 
 In your project root:
 
@@ -79,7 +80,7 @@ registerAllModules();
 
 ## Step 3: Define shadcn colors for the theme
 
-Create a colors object that maps Handsontable's expected shape to shadcn CSS variables. The grid will follow light/dark automatically because `var(--…)` is resolved at render time.
+Create a colors object that maps Handsontable's expected shape to shadcn CSS variables. The browser resolves each `var(--…)` at render time, so the grid picks up changes to those variables. Dark mode isn't automatic, though: see [Dark mode](#dark-mode) below.
 
 **Option A – use the built-in shadcn colors:**  
 You can import the official mapping from Handsontable instead of defining your own:
@@ -94,14 +95,14 @@ import colorsShadcn from 'handsontable/themes/static/variables/colors/shadcn';
 ```tsx
 /**
  * Handsontable theme colors mapped to shadcn CSS variables (globals.css).
- * Structure must match what tokens/main expects: palette (50–950), primary (100–600), white, black, transparent.
- * Uses var(--…) so the grid follows your shadcn theme and dark mode.
+ * Structure must match what the Horizon tokens expect: palette (50–950), primary (100–600), white, black, transparent.
+ * Uses var(--…) so the grid picks up your shadcn light theme values.
  */
 export const colorsShadcn = {
   palette: {
     50: "var(--color-neutral-50)",
-    100: "var(--color-neutral-200)",
-    200: "var(--color-neutral-100)",
+    100: "var(--color-neutral-100)",
+    200: "var(--color-neutral-200)",
     300: "var(--color-neutral-300)",
     400: "var(--color-neutral-400)",
     500: "var(--color-neutral-500)",
@@ -143,7 +144,7 @@ function icon(svgContent: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(`<svg ${lucideAttrs}>${svgContent}</svg>`)}`;
 }
 
-// Lucide: ChevronRight, ChevronLeft, ChevronDown, ChevronUp, ChevronsRight, ChevronsLeft, Check, Menu, Plus, Minus, Circle (filled for radio)
+// Lucide: ChevronRight, ChevronLeft, ChevronDown, ChevronUp, ChevronsRight, ChevronsLeft, Check, Menu, Plus, Minus, Circle (filled for radio), X, Search, List
 export const iconsShadcn = {
   arrowRight: icon('<path d="m9 18 6-6-6-6"/>'),
   arrowRightWithBar: icon('<path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/>'),
@@ -163,10 +164,14 @@ export const iconsShadcn = {
   collapseOff: icon('<path d="M5 12h14"/>'),
   collapseOn: icon('<path d="M5 12h14"/><path d="M12 5v14"/>'),
   radio: icon('<circle cx="12" cy="12" r="6" fill="currentColor"/>'),
+  chipClose: icon('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+  search: icon('<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>'),
+  plus: icon('<path d="M5 12h14"/><path d="M12 5v14"/>'),
+  menuList: icon('<path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/>'),
 } as const;
 ```
 
-Use the exact icon keys required by your Handsontable theme (e.g. from the theme's type or docs).
+Provide every icon key the theme expects. If one is missing, `registerTheme()` logs a `Missing icon(s)` warning in the console.
 
 ## Step 5: Register the custom theme and create the grid component
 
@@ -182,7 +187,7 @@ import { HotTableProps } from "@handsontable/react-wrapper";
 export const config: Partial<HotTableProps> = {
   width: "100%",
   height: "auto",
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   autoWrapRow: true,
   filters: true,
   // Add more options: nestedHeaders, contextMenu, dropdownMenu, pagination, etc.
@@ -206,9 +211,9 @@ import { registerAllModules } from "handsontable/registry";
 
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
 
-import { colorsShadcn } from "@/lib/theme/colorsShadcn";
-import { iconsShadcn } from "@/lib/theme/iconsShadcn";
-import { data, config } from "@/lib/helpers";
+import { colorsShadcn } from "../lib/theme/colorsShadcn";
+import { iconsShadcn } from "../lib/theme/iconsShadcn";
+import { data, config } from "../lib/helpers";
 
 registerAllModules();
 
@@ -220,7 +225,7 @@ const shadcnDataGridTheme = registerTheme('shadcn-data-grid', {
   tokens: {
     borderRadius: "var(--radius)",
   },
-})
+}).setColorScheme("light");
 
 const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
   return (<HotTable
@@ -325,7 +330,13 @@ const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
 });
 ```
 
-Use the grid in your page (e.g. **`app/page.tsx`**): `import DataGrid from "@/components/DataGrid"` and render `<DataGrid />`.
+Use the grid in your page (e.g. **`app/page.tsx`**): `import DataGrid from "../components/DataGrid"` and render `<DataGrid />`.
+
+### Dark mode
+
+The theme's color scheme decides whether Horizon tokens use their light or dark palette entries. It defaults to `auto`, which follows the operating system's `prefers-color-scheme` setting, not shadcn's `.dark` class. `.setColorScheme("light")` keeps the grid light to match the light shadcn values in `colorsShadcn`.
+
+The custom mapping from Step 3 supports light mode only: its `white` and `black` follow `--background` and `--foreground`, which shadcn swaps in dark mode, so Horizon's dark token set reads them the wrong way round. To support dark mode, register the theme with the built-in colors from Option A, and call `shadcnDataGridTheme.setColorScheme("dark")` or `setColorScheme("light")` when your app toggles the `.dark` class. Grids that use the theme update in place.
 
 ## Complete example (minimal single-file shape)
 
@@ -339,9 +350,9 @@ import { HotTable, HotColumn, HotTableRef } from "@handsontable/react-wrapper";
 import { registerTheme } from "handsontable/themes";
 import { registerAllModules } from "handsontable/registry";
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
-import { colorsShadcn } from "@/lib/theme/colorsShadcn";
-import { iconsShadcn } from "@/lib/theme/iconsShadcn";
-import { data, config } from "@/lib/helpers";
+import { colorsShadcn } from "../lib/theme/colorsShadcn";
+import { iconsShadcn } from "../lib/theme/iconsShadcn";
+import { data, config } from "../lib/helpers";
 
 registerAllModules();
 
@@ -350,7 +361,7 @@ const shadcnDataGridTheme = registerTheme('shadcn-data-grid', {
   icons: iconsShadcn,
   colors: colorsShadcn,
   tokens: tokensHorizon,
-}).params({ tokens: { borderRadius: "var(--radius)" } });
+}).params({ tokens: { borderRadius: "var(--radius)" } }).setColorScheme("light");
 
 const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
   return (
@@ -399,8 +410,8 @@ You registered a custom Handsontable theme that maps shadcn CSS variables to Han
 
 ## Next steps
 
-- [Handsontable with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
-- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object.
+- [Handsontable DataGrid with Base Web](@/recipes/themes/base-theme/base-theme.md) - The same pattern using Base Web design tokens.
+- [Handsontable DataGrid with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Full reference for Theme API parameters and CSS variables.
 
 ## Related

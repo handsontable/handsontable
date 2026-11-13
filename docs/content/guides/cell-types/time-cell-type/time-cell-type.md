@@ -1,18 +1,19 @@
 ---
 type: how-to
 title: Time cell type
-metaTitle: Time cell type - JavaScript Data Grid | Handsontable
+metaTitle: Time cell type | Handsontable DataGrid for JavaScript
 description: Display, format, sort, and filter time values correctly by using the time cell type.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
-  metaTitle: Time cell type - React Data Grid | Handsontable
+  metaTitle: Time cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Time cell type - Angular Data Grid | Handsontable
+  metaTitle: Time cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Time cell type - Vue Data Grid | Handsontable
+  metaTitle: Time cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Display, format, sort, and filter time values correctly by using the time cell type. Edit times via the cell editor.
 
@@ -205,7 +206,7 @@ const hotSettings = ref<GridSettings>({
     second: '2-digit',
     hour12: true
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // set the time cell type for a single column
@@ -217,7 +218,7 @@ const hotSettingsColumn = ref<GridSettings>({
       timeFormat: { timeStyle: 'medium' }
     }
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // set the time cell type for a single cell
@@ -231,7 +232,7 @@ const hotSettingsCell = ref<GridSettings>({
       timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true }
     }
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 ```
@@ -354,7 +355,7 @@ const hotSettings = ref<GridSettings>({
       timeFormat: { timeStyle: 'medium' }
     }
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -406,7 +407,7 @@ After configuring the time cell type, cells display time values formatted accord
 
 ## Keyboard shortcuts
 
-The `intl-time` and `time` cell editors open the browser's native time picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
+The `intl-time` and `time` cell editors open the browser's native time picker. Double-clicking a cell shows the picker. In Chromium-based browsers, an open picker takes the keys: <kbd>**Tab**</kbd> does nothing, and <kbd>**Enter**</kbd> and <kbd>**Escape**</kbd> close only the picker. Opening the editor with the keyboard (<kbd>**Enter**</kbd>, <kbd>**F2**</kbd>, or typing) leaves the picker closed, so <kbd>**Tab**</kbd>, <kbd>**Escape**</kbd>, and the other grid shortcuts keep working. In Chrome and Edge, press <kbd>**Alt**</kbd>+<kbd>**↓**</kbd> (<kbd>⌥</kbd>+<kbd>**↓**</kbd> on macOS) in the editor to show the picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
 
 ## Related articles
 

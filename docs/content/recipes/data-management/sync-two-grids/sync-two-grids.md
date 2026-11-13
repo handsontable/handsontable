@@ -1,6 +1,6 @@
 ---
 title: Sync two grids
-metaTitle: Sync two grids - JavaScript Data Grid | Handsontable
+metaTitle: Sync two grids | Handsontable DataGrid for JavaScript
 description: Learn how to sync edits from a master grid to a detail grid in real time with afterChange, setDataAtCell(), and source guards.
 permalink: /recipes/data-management/sync-two-grids
 canonicalUrl: /recipes/data-management/sync-two-grids
@@ -10,11 +10,11 @@ tags:
   - recipes
   - data synchronization
 react:
-  metaTitle: Sync two grids - React Data Grid | Handsontable
+  metaTitle: Sync two grids | Handsontable DataGrid for React
 angular:
-  metaTitle: Sync two grids - Angular Data Grid | Handsontable
+  metaTitle: Sync two grids | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Sync two grids - Vue Data Grid | Handsontable
+  metaTitle: Sync two grids | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Data Management
 type: how-to

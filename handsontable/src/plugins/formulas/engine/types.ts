@@ -24,6 +24,11 @@ export interface FormulasCellRange {
 /**
  * Minimal duck-type interface for a HyperFormula engine **instance**.
  * Describes only the methods and properties accessed by Handsontable internals.
+ *
+ * The members the XLSX import and export read for named expressions, array formulas, and functions
+ * (`getNamedExpressionValue`, `isItPossibleToAddNamedExpression`, `getRegisteredFunctionNames`,
+ * `calculateFormula`) are optional: every caller checks that the method exists and skips the
+ * feature when it does not, so an engine object without them keeps type-checking.
  */
 export interface HyperFormulaEngine {
   doesSheetExist(sheetName: string): boolean;
@@ -37,16 +42,22 @@ export interface HyperFormulaEngine {
   getCellFormula(address: { sheet: number; row: number; col: number }): string | undefined;
   listNamedExpressions(scope?: number): string[];
   getNamedExpressionFormula(name: string, scope?: number): string | undefined;
+  getNamedExpressionValue?(name: string, scope?: number): unknown;
   getNamedExpression(name: string, scope?: number): {
     options?: Record<string, string | number | boolean>;
   } | undefined;
+  isItPossibleToAddNamedExpression?(name: string, expression: unknown, scope?: number): boolean;
   isItPossibleToChangeNamedExpression(name: string, expression: unknown, scope?: number): boolean;
   changeNamedExpression(
     name: string, expression: unknown, scope?: number, options?: Record<string, string | number | boolean>,
   ): unknown[];
   normalizeFormula(formula: string): string;
+  validateFormula(formula: string): boolean;
+  getRegisteredFunctionNames?(): string[];
+  calculateFormula?(formula: string, sheetId: number): unknown;
   getSheetDimensions(sheetId: number): { width: number; height: number };
   getCellType(address: { sheet: number | null; row: number; col: number }): unknown;
+  isCellEmpty(address: { sheet: number | null; row: number; col: number }): boolean;
   doesCellHaveFormula(address: { sheet: number | null; row: number; col: number }): boolean;
   getCellValue(address: { sheet: number | null; row: number; col: number }): unknown;
   getCellHyperlink(address: { sheet: number | null; row: number; col: number }): string | undefined;
@@ -75,13 +86,14 @@ export interface HyperFormulaEngine {
   on(eventName: string, listener: Function): void;
   off(eventName: string, listener: Function): void;
   suspendEvaluation(): void;
-  resumeEvaluation(): void;
+  resumeEvaluation(): unknown[];
   isEvaluationSuspended(): boolean;
   addNamedExpression(name: unknown, expression: unknown, scope: unknown, options: unknown): void;
   undo(): void;
   redo(): void;
   destroy(): void;
   rebuildAndRecalculate(): void;
+  clearUndoStack(): void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
@@ -91,7 +103,9 @@ export interface HyperFormulaEngine {
  * Describes only the static methods used during engine registration.
  */
 export interface HyperFormulaClass {
+  version?: string;
   buildEmpty(settings: Record<string, unknown>): HyperFormulaEngine;
   registerFunction(name: unknown, plugin: unknown, translations: unknown): void;
   registerLanguage(langCode: unknown, language: unknown): void;
+  getLanguage?(languageCode: string): { getFunctionTranslations(functionIds: string[]): string[] };
 }

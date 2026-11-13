@@ -41,20 +41,6 @@ export const DEFAULT_DECLARATION = Object.freeze({
 });
 
 /**
- * The shared `wrappersReason` every spec in `tests/multi-frameworks/` carries after the declaration codemod.
- *
- * The codemod's contract was that no golden record moves, so it wrote today's behavior out rather than
- * today's intent: every multi-framework spec rendered under all three wrappers, so every one of them
- * declares all three. None of those 23 declarations has been argued for yet. The constant marks them as
- * exactly that, and its name is the grep the consolidation audit runs to find the specs still owing a real
- * reason — a per-spec reason replaces it one spec at a time, and when the last one goes this constant goes
- * with it.
- */
-export const WRAPPERS_REASON_UNAUDITED
-  = 'Unaudited: the declaration codemod recorded the wrappers this spec already rendered under, '
-  + 'not a reason to keep them. The consolidation audit replaces this with a per-spec reason.';
-
-/**
  * The annotation type `visualTest()` attaches to every test it registers.
  *
  * `npx playwright test --list --reporter=json` reports it for every collected test, including one a
@@ -131,11 +117,12 @@ function parseAxis(key, value, allowed, where) {
  *   falls back to the default and the spec's rendered set changes without anybody editing it.
  * - An empty axis renders the spec nowhere on that leg, which reads as a deleted golden, never as a skip.
  * - `wrappers` without `CLASSIC` cannot work: a wrapper run never sets `HOT_THEME`, and on the seed tier the
- *   wrapper goldens are the bare js render copied wholesale (`scripts/run-tests.mjs`). Declaring a wrapper
- *   while dropping the bare js render asks the copy for a file the render never wrote.
- * - `wrappers` without `wrappersReason` is how the suite got 23 wrapper-rendered specs nobody can account
- *   for; three goldens a capture is the most expensive thing a spec can ask for, so it is the one axis that
- *   has to argue for itself in the file.
+ *   wrapper goldens are the spec's bare js render copied (`wrapperCopyPlan()` in `wrapper-copy.mjs`).
+ *   Declaring a wrapper while dropping the bare js render asks the copy for a file the render never wrote.
+ * - `wrappers` without `wrappersReason` is how the suite got 23 wrapper-rendered specs nobody could account
+ *   for (the declaration codemod gave them a shared placeholder reason, which the multi-frameworks trim of
+ *   DEV-3351 retired with the last spec carrying it); three goldens a capture is the most expensive thing a
+ *   spec can ask for, so it is the one axis that has to argue for itself in the file.
  * - A `wrappersReason` with no wrappers is a half-finished trim: the prose still claims a wrapper the spec
  *   no longer renders, and the audit greps reasons.
  *

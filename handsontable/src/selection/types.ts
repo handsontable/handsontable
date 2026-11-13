@@ -26,6 +26,7 @@ export interface SelectionTableProps {
   propToCol(prop: string | number): number;
   isEditorOpened(): boolean;
   isPluginEnabled(pluginName: string): boolean;
+  isPluginRegistered(pluginName: string): boolean;
   isDisabledCellSelection(row: number, column: number): boolean;
   visualToRenderableCoords(coords: CellCoords): { row: number | null; col: number | null };
   renderableToVisualCoords(coords: CellCoords): CellCoords;
@@ -55,6 +56,8 @@ export interface SelectionSettings {
   fixedColumnsEnd?: number;
   minSpareRows?: number;
   minSpareCols?: number;
+  maxRows?: number;
+  maxCols?: number;
   autoWrapRow?: boolean;
   autoWrapCol?: boolean;
   selectionMode?: 'single' | 'range' | 'multiple';

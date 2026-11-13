@@ -26,23 +26,31 @@
     if (!window.htBundle) {
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
+    if (htParams.has('productionStrip')) {
+      document.documentElement.setAttribute('data-production-strip', '');
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
     #toolbar { margin-bottom: .8rem; }
     /*
-      The bar's production SCSS (Task 9) styles the tab strip with `flex: 1 1
-      auto`, so it grows to fill whatever layout it sits in. This fixture pins
-      it to a fixed, non-growing width instead, so the strip reliably
+      The bar's production SCSS puts the tab strip in a flexible grid track,
+      so it grows to fill whatever layout it sits in. This fixture pins it to
+      a fixed, non-growing width instead, so the strip reliably
       overflows regardless of viewport size and the paging-arrow behavior
       under test stays observable. `!important` is required: Handsontable
       injects its own copy of the base CSS into a <style> tag appended to
       <head> at grid-construction time (src/utils/stylesHandler.ts), which
-      lands after this block in source order and matches with the same
-      selector specificity.
+      lands after this block in source order; with `!important` the pin
+      wins whatever that copy's specificity. `?productionStrip` sets
+      `data-production-strip` on the root element and drops the pin, so a
+      spec can see the layout the bar ships with.
     */
-    .handsontable.ht-sheets-bar .ht-sheets-bar__tabs { flex: 0 0 600px !important; }
+    html:not([data-production-strip]) .handsontable.ht-sheets-bar .ht-sheets-bar__tabs {
+      width: 600px !important;
+    }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -78,6 +86,12 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
+    const sheets = [
+      { name: 'Alpha', data: [['A1', 'A2'], ['A3', 'A4']] },
+      { name: 'Beta', data: [['B1', 'B2'], ['B3', 'B4']] },
+      { name: 'Gamma', data: [['G1', 'G2'], ['G3', 'G4']] },
+    ];
+
     const hot = new Handsontable(container, {
       colHeaders: true,
       rowHeaders: true,
@@ -86,13 +100,7 @@
       // below the fold — the paging controls then cannot be reached. A real application gives
       // the grid a viewport for the same reason.
       height: 320,
-      sheetsBar: {
-        sheets: [
-          { name: 'Alpha', data: [['A1', 'A2'], ['A3', 'A4']] },
-          { name: 'Beta', data: [['B1', 'B2'], ['B3', 'B4']] },
-          { name: 'Gamma', data: [['G1', 'G2'], ['G3', 'G4']] },
-        ],
-      },
+      sheetsBar: htParams.has('barOff') ? false : { sheets },
       manualColumnResize: true,
       columnSorting: true,
       filters: htParams.has('filters'),
@@ -104,10 +112,20 @@
         }
       },
       layoutDirection: htParams.get('rtl') ? 'rtl' : 'ltr',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.hot = hot;
+    window.htSheets = sheets;
+
+    if (htParams.has('loadSwitches')) {
+      const sheetsBar = hot.getPlugin('sheetsBar');
+
+      sheetsBar.setActiveSheet('Beta');
+      sheetsBar.addSheet('Delta');
+      sheetsBar.duplicateSheet(sheetsBar.getSheets()[0].id);
+      sheetsBar.setActiveSheet('Gamma');
+    }
 
     // Every lookup is guarded and nothing here throws. The grid defers its whole init when the
     // container has no layout yet, so the bar can be absent at this point; the previous version

@@ -50,7 +50,11 @@ Queues are per position (`POSITION_SET` from `NOTIFICATION_POSITIONS`), not glob
 ## `showMessage()` validates by throwing, and normalizes before the hook
 
 `#normalizeOptions` throws (`throwWithCause`) unless it gets an object whose `message` is a string or an
-`HTMLElement`. It then assigns an id (`htn-<random>`) and resolves variant and position.
+`HTMLElement`. It then assigns an id (`htn-<random>`) and resolves variant and position. The element test
+is `isHTMLElement()` from `helpers/dom/element.ts`, which checks against the node's OWN realm: a grid inside
+an iframe builds its nodes from `hot.rootDocument`, and a bare `instanceof HTMLElement` against the top
+window rejected a valid element from there (`__tests__/crossRealmMessage.unit.js`, same trap as Dialog's
+content check in `../dialog/AGENTS.md`).
 
 **Normalization happens before `beforeNotificationShow`**, so a listener sees the resolved options and a
 veto (`return false`) costs nothing. The method returns `''` on a veto and the id otherwise — do not change
@@ -90,3 +94,33 @@ teardown, or a hidden toast keeps its listeners.
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='notification'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='notification'`
+- `npm --prefix tests run test:e2e -- e2e/notification-placement.spec.ts`: each corner's toast from DOM
+  rects on every theme, in LTR and on one RTL corner (the toast's layout has no corner term): its variant,
+  its accent bar at the inline start (none on `info`), the primary action before the secondary one in
+  reading order, the close button at the inline end, and no focus taken. Its placement against the grid
+  root runs for every corner in both directions. A toast sits 20 px in from its corner's edges: the
+  stack's 10 px offset plus its 10 px padding.
+
+**The layer is fitted to the grid root, not to the root wrapper.** `.ht-overlay` has no styles of its own, so
+the host (`.ht-notification`, `inset: 0` in the stylesheet) is positioned against `.ht-root-wrapper`, which
+is as wide as the container and as tall as the grid plus its slots. `NotificationUI#fitToGrid()` therefore
+writes physical `left/top/width/height` on the host from `hot.rootElement`: when a toast mounts, and on
+`afterViewRender` and `afterRefreshDimensions` while a toast is open. A render that moved or resized
+nothing costs only a few offset reads. The inline styles override any `top`, `left`, `width` or `height` set
+on `.ht-notification`. A corner toast then sits 20 px in from the grid's own edge, and a bottom corner stays
+above a pager or any other bottom slot.
+
+- `right` and `bottom` are reset to `auto`, because `inset: 0` would overconstrain the box and RTL would
+  silently keep the wrapper's edge.
+- The box is measured against `host.offsetParent` and divided by its scale, so a transformed ancestor does
+  not skew it.
+- The height is capped at the wrapper's, which stays at the container's height. A grid that follows its
+  content (`height: 'auto'` in a CSS-sized container) is taller than that, and without the cap a bottom
+  toast would sit below the visible area.
+- A hidden root (zero size) leaves the host as it was.
+- The stacks' percentage `max-width` and `max-height` resolve against the host, so a small grid gets
+  smaller stacks.
+
+The Playwright spec pins the inline axis in both directions, the block axis in LTR and RTL above a pager and
+below a top slot, a grid resize with a toast open, a scaled page, a grid revealed after a toast showed, and
+the content-following grid.

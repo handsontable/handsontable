@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "scenario": "grid-core",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-10-22T14:20:35.799Z"
+  },
+  "steps": {
+    "arrow-right": "34 age row 2 column 3",
+    "arrow-down": "28 age row 3 column 3",
+    "arrow-left": "bruno name row 3 column 2",
+    "arrow-up": "alice name row 2 column 2",
+    "into-column-header": "name column header selected row 1 column 2",
+    "back-to-cell": "alice selected name row 2 column 2",
+    "into-row-header": "1 row header selected row 2 column 1",
+    "back-from-row-header": "alice selected name row 2 column 2",
+    "open-editor": "edit multi line alice",
+    "close-editor": "",
+    "open-context-menu": "table insert row above row 1 column 1 menu",
+    "menu-arrow-down": "table insert row below row 2",
+    "menu-arrow-down-again": "insert column left row 4",
+    "close-context-menu": "handsontable screen reader fixture document",
+    "reselect-cell": "table alice selected name row 2 column 2",
+    "extend-range": "",
+    "extend-range-again": "",
+    "up-to-header-for-sort": "name column header selected row 1 column 2",
+    "sort-ascending": "name column header sorted ascending row 1 column 2",
+    "sort-descending": "name column header sorted descending row 1 column 2"
+  }
+}

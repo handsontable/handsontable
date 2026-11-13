@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "dropdown-editor",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-12T09:19:04.973Z"
+  },
+  "steps": {
+    "open-editor": "list box pop up expanded text entry area al insertion at end of text",
+    "arrow-down-second": "al and 1 more item group",
+    "arrow-down-third": "al and 1 more item group",
+    "commit-choice": "list box pop up collapsed text entry area al insertion at end of text",
+    "back-to-committed": "a alfa column 1 row alfa al"
+  }
+}

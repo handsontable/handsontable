@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed notification toasts appearing at the container's far edge instead of the grid's in the end corners, and bottom-corner toasts covering the pagination bar. A toast stack's maximum width and height now follow the grid, so a small grid shows smaller toasts, and inline styles now override a custom `top`, `left`, `width` or `height` set on `.ht-notification`.",
+  "type": "fixed",
+  "issueOrPR": 13825,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,5 +1,5 @@
 import { devices } from '@playwright/test';
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
 
 /**
@@ -16,11 +16,15 @@ test.use({
   browserName: 'chromium',
 });
 
-test.describe('sheets bar touch drag', () => {
+const CLOCK_START = new Date('2026-08-28T10:00:00Z');
+
+test.describe('sheets bar touch drag', { tag: THEMES_TAG }, () => {
   test('dragging a tab past its neighbour by touch reorders the strip', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
+    await page.clock.install({ time: CLOCK_START });
     await bar.goto();
+    await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
 
     const names = () => page.evaluate(() => Array.from(
       document.querySelectorAll('.ht-sheets-bar__tab-label'),
@@ -44,6 +48,7 @@ test.describe('sheets bar touch drag', () => {
       type: 'touchStart',
       touchPoints: [{ x: startX, y: startY }],
     });
+    await page.clock.runFor(600);
     // Two moves: the first passes the drag threshold, the second carries the tab across --
     // matching the mouse-drag spec this touch spec mirrors.
     await cdp.send('Input.dispatchTouchEvent', {
@@ -62,39 +67,43 @@ test.describe('sheets bar touch drag', () => {
     await expect.poll(names).toEqual(['Beta', 'Gamma', 'Alpha']);
   });
 
-  // A long-press raises `contextmenu` with `button: 0`, like the keyboard's Shift+F10 — the
-  // strip tells them apart by the pointer being down on the tab, so a long-press must open the
-  // menu with no item preselected. (The other `button: 0` pointer opener, macOS Ctrl+click,
-  // cannot be synthesized from Playwright and rides on the same flag.)
-  test('a touch long-press opens the active tab menu with no item preselected', async ({ page, theme, bundle }) => {
+  test('a touch drag past a tab being renamed commits the name and throws nothing', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
+    const errors: string[] = [];
 
+    page.on('pageerror', error => errors.push(error.message));
+    await page.clock.install({ time: CLOCK_START });
     await bar.goto();
+    await page.clock.pauseAt(CLOCK_START.getTime() + 60_000);
+    await bar.tab(1).locator('.ht-sheets-bar__tab-label').dblclick();
 
-    const active = (await bar.tab(0).boundingBox())!;
+    const input = page.locator('.ht-sheets-bar__tab-rename');
+
+    await expect(input).toBeFocused();
+    await input.fill('Renamed');
+
+    const first = (await bar.tab(0).boundingBox())!;
+    const third = (await bar.tab(2).boundingBox())!;
+    const y = first.y + (first.height / 2);
     const cdp = await page.context().newCDPSession(page);
 
     await cdp.send('Input.dispatchTouchEvent', {
       type: 'touchStart',
-      touchPoints: [{ x: active.x + (active.width / 2), y: active.y + (active.height / 2) }],
+      touchPoints: [{ x: first.x + (first.width / 2), y }],
     });
+    await page.clock.runFor(600);
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: first.x + first.width, y }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: third.x + (third.width / 2) + 5, y }],
+    });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 
-    // Chromium recognizes the long-press on release, not while the finger rests, so the hold
-    // is paced by the poll's own intervals: the first attempt after the hold interval lifts
-    // the finger, the following ones watch for the menu the release-time gesture raises.
-    let lifted = false;
-
-    await expect.poll(async () => {
-      if (!lifted) {
-        lifted = true;
-        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-
-        return 0;
-      }
-
-      return page.locator('.htSheetsBarMenu:visible').count();
-    }, { intervals: [800, 250] }).toBe(1);
-
-    await expect(page.locator('.htSheetsBarMenu td.current')).toHaveCount(0);
+    await expect(input).toHaveCount(0);
+    await expect(page.locator('.ht-sheets-bar__tab-label', { hasText: 'Renamed' })).toHaveCount(1);
+    expect(errors).toEqual([]);
   });
 });

@@ -14,6 +14,10 @@ shape: a class several plugins build and own. **Do not move it back into `src/pl
 Read this before touching either resize plugin. The two plugins used to carry the whole gesture twice, with a
 note in each file to keep them in sync by hand; there is now one copy, here.
 
+## The handle on a frozen edge
+
+`#getFrozenEdge` decides, and `#setupHandlePosition` toggles, `ht-resize-handle--freeze-before` on the handle when the edge it sits on is where the first frozen rows or columns end, and `ht-resize-handle--freeze-after` when it is where the last ones start. All four counts are the DRAWN ones (`TableView#countFixedRowsTop()`, `countFixedColumnsStart()`, `countFixedRowsBottom()`, `countFixedColumnsEnd()`), never the settings: with `limitFixedToViewport` the grid can draw fewer tracks than are configured, and the freeze bar sits on the drawn line, so a mark from the configured count would offset the handle at a column with no bar and leave the one on the bar overlapped. The edge is counted in visual tracks before it: the index plus one, or the index itself for a header anchored at the inline end. The marks only describe the grid and draw nothing: the FreezeBar stylesheet uses them to keep the pills clear of its bar (`../../plugins/freezeBar/AGENTS.md`). Keep them free of any plugin check, so the gesture never has to know which plugin draws on the edge.
+
 ## What the gesture owns, and what the plugins own
 
 `ResizeGesture` owns everything about the drag: attaching and detaching the handle and guide, the press,
@@ -46,6 +50,16 @@ width. `tests/e2e/undo-plugin-state.spec.ts` pins it ("an edit made while a colu
   reports `max(dragged, wtTable.getRowHeight())`, and that height is read back from the size map (every
   write clears the row-height cache). Firing the hooks before the write reports the old height, and a
   manually tall row could no longer be reported smaller.
+- **Two start sizes, two spaces.** `#startRenderedSize` is what the header rendered at, and the handle and the guide
+  (and `#currentSize`, the pointer's rendered size) live there, including the anchored `2 * start - current` math.
+  `#startSize` is the size the owner stores: the rendered size minus `owner.getRenderedOverhead(index)`, which is
+  what something else adds on every render (the hidden-column indicator's 15px). `#newSize`, the hook sizes, what
+  the release stores and the "did it move?" tests all use the stored space, and `mousemove` clamps
+  `#currentSize - #startOverhead`. An owner without the optional method has an overhead of 0 and both are equal. A multi-selection stores one size
+  for every column, measured from the dragged one, so a selected column without the overhead renders narrower or wider
+  than the dragged one by it.
+  Starting a drag from the rendered size stored the overhead into the size, so the column ended up wider than the
+  drag by it, and by it again on every further drag.
 - **`#newSize` is still updated on every mousemove**, even though nothing is stored: the double-click timer's
   "still hold or drag?" test (`#newSize === #startSize`) and the release's "did it move?" test read it.
 - **The press holds the step** (`#openStep()` on `mousedown`, `#closeStep()` on `mouseup`), so the autosize a
@@ -56,6 +70,26 @@ width. `tests/e2e/undo-plugin-state.spec.ts` pins it ("an edit made while a colu
   `hot.runOperation()`. That is only safe because nothing was stored before the release.
 - **A drag the context menu aborts stores nothing**, so it keeps the size it started from. Before, the
   mousemove writes left the half-dragged size in the map with no resize hook.
+
+## The handle is a snapshot, and a handle press starts listening
+
+`#setupHandlePosition` writes the handle's CSS when the pointer reaches a header. `#refreshHandlePosition`
+writes it on every `mousemove` during a drag. `afterUndo` and `afterRedo` call `#setupHandlePosition`
+again while the handle is connected, no drag is pressed, and the header it sits on is still in the
+document. When that header is gone, the hook detaches the handle. The press holds an empty undo step, so
+undo stays available, and rebuilding the snapshot mid-drag makes the next `mousemove` apply the original
+pointer delta to the new size. Do not remove the hooks inside `detach()`. The context menu calls
+`detach()` to abort a drag. `destroy()` removes the history hooks.
+
+`#onMouseDown` calls `listen()`. A handle press never reaches `onCellMouseDown`. A header `TH` press does,
+and that path listens. The document `mouseup` in `tableView.ts` also treats `#selectionMouseDown` as a
+grid click, because the handle never sets `#mouseDown`. A release outside the grid would otherwise
+unlisten, and Ctrl+Z would do nothing. Pinned by `tests/e2e/manual-resize-undo-handle.spec.ts` (Ctrl+Z
+restores the header size and the handle sits on its far edge, including a release outside the grid, and
+Ctrl+Shift+Z puts the handle back on the dragged edge) and by `__tests__/resizeGesture.unit.js` (the
+handle's CSS follows an undo and a redo, `listen()` runs on the handle press, `destroy()` drops the
+history hooks, a removed header detaches the handle, the handle stays where the drag put it when an undo
+runs during the press, and it stays detached after `detach()`).
 
 ## One gesture for both axes: along and across
 
@@ -199,9 +233,10 @@ ROW_SIZE_OPTIONS    = ['rowHeights', 'minRowHeights']
 COLUMN_SIZE_OPTIONS = ['colWidths']
 ```
 
-`minRowHeights` is a documented alias of `rowHeights` — `Core#_getRowHeightFromSettings` reads
-`rowHeights ?? minRowHeights`, so both state the row heights equally. There is **no** `minColWidths` alias,
-which is why the column list has one entry and the row list two. Do not "symmetrize" them.
+Both row options state the row heights, so passing either one re-declares them. They differ at render time:
+`rowHeights` is exact and `minRowHeights` is a floor (`Core#_isRowHeightExact`), and `minRowHeights` is no longer
+an alias of `rowHeights`. There is **no** `minColWidths` option, which is why the column list has one entry and
+the row list two. Do not "symmetrize" them.
 
 ## Listing a foreign option in `SETTING_KEYS` changes three things
 
@@ -209,9 +244,10 @@ Both plugins put their size option in `SETTING_KEYS` next to their own key, so t
 `updateSettings({ rowHeights })` reaches them at all (issue [#4371](https://github.com/handsontable/handsontable/issues/4371)).
 Each consequence below has already shipped as a bug:
 
-1. **The stored setting gets wiped.** `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with
-   `newSettings[PLUGIN_KEY]`, and a `{ rowHeights }` call does not carry that key — it is `undefined`.
-   Restore it from the merged settings, or `getSetting()` starts lying for the rest of the session.
+1. **The stored setting used to get wiped.** A `{ rowHeights }` call does not carry the plugin's own key.
+   `BasePlugin#onUpdateSettings` now refreshes the plugin settings from the merged settings when the payload
+   omits that key, so `getSetting()` keeps reporting the declared value. The plugins no longer restore it
+   themselves; do not add a restore back.
 2. **Do not run the usual `disablePlugin(); enablePlugin();` cycle on such an update.** `#onMapInit` replays
    the declared `manualRowResize` array, so a grid configured with an array reverts a row the user had since
    dragged — to neither the dragged height nor the requested one. Re-initialize only when the plugin's own
@@ -250,6 +286,17 @@ so a difference of `<= 1` is reported as unscaled (factor `1`). Without it, `nor
 every resize one layout pixel short. Both helpers also fail safe to `1` on a non-finite or non-positive
 measurement, which is what a grid built inside a `display: none` container measures.
 
+## `abort()` ends a drag the owner's data left
+
+`abort()` ends a pressed drag the way the context menu does (`detach()`, which closes the held step, then
+`#pressed = false`), and stores no size. Both resize plugins call it on `beforeLoadData`: the
+drag's indexes belong to the data that left, and the release resized the tracks of the data that replaced it (a
+sheets bar switch). Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. It is not called from `detach()` - see the fourth teardown trap. It also
+resets the double-click count, even with no press held: a double-click leaves the 500ms timer armed after its second
+release, and the timer then auto-sized the same index on the arriving data, with a size and an undo step the user
+never made. Pinned by `__tests__/resizeGesture.unit.js` ("should not resize from a double-click window that an
+abort() ended").
+
 ## Where to look next
 
 - Row plugin: `../../plugins/manualRowResize/AGENTS.md`. Column plugin: `../../plugins/manualColumnResize/AGENTS.md`.
@@ -260,7 +307,7 @@ measurement, which is what a grid built inside a `display: none` container measu
 
 - `npm run test:unit --prefix handsontable -- --testPathPattern='manualResize'`
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='manualRowResize|manualColumnResize|autoRowSize'`
-- `cd tests && npx playwright test --project=e2e-main e2e/manual-resize-teardown.spec.ts e2e/manual-resize-drag-interruption.spec.ts e2e/manual-resize-dblclick-hold-guide.spec.ts e2e/manual-resize-guide-geometry.spec.ts`
+- `cd tests && npx playwright test --project=e2e-main e2e/manual-resize-teardown.spec.ts e2e/manual-resize-drag-interruption.spec.ts e2e/manual-resize-dblclick-hold-guide.spec.ts e2e/manual-resize-guide-geometry.spec.ts e2e/manual-resize-undo-handle.spec.ts`
 
 `__tests__/resizeGesture.unit.js` drives the gesture through its constructor, with a small grid, axis and owner
 passed in - no module is mocked. Each of its tests was checked against a deliberate regression of the
@@ -307,3 +354,12 @@ drag). When it is anchored:
 overlay's `getRelativeCellPosition` already adds the clone's own inline start). The row axis has no end headers
 and leaves the hook out. Pinned by `__tests__/axis.unit.js`, `__tests__/resizeGesture.unit.js` and
 `tests/e2e/fixed-columns-end-plugins.spec.ts`.
+
+**The band's first column reaches 1px over the freeze line** (walkontable `AGENTS.md`, the end freeze line), so two
+optional axis hooks keep the gesture on the line a user sees. `getFreezeLineOverlap(hot, header)` is the pixel the
+band's first header renders wider than its column; the gesture adds it to `#startOverhead`, so a drag of that header
+stores the dragged width, not one pixel more. `getEndBandEdgeShift(hot)` moves the handle on the edge before the band
+(`--freeze-after`, a header that is not anchored) onto the line, one pixel before that header's own inline-end edge,
+where the freeze bar sits. Both are 0 when nothing precedes the band. Pinned by
+`tests/e2e/fixed-columns-end-plugins.spec.ts`, `tests/e2e/fixed-columns-end-review3.spec.ts` and
+`tests/e2e/freeze-bar.spec.ts` (the pills around the end bar).

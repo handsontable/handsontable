@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the fill handle adding new top-level parents instead of child rows when dragged past the last row of a nested grid. On a nested grid, `alter('insert_row_below', <last row index>)` now adds a sibling of the last row instead of a new top-level row.",
+  "type": "fixed",
+  "issueOrPR": 13868,
+  "breaking": false,
+  "framework": "none"
+}

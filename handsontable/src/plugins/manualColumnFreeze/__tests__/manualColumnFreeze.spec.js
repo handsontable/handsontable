@@ -283,64 +283,63 @@ describe('manualColumnFreeze', () => {
   });
 
   describe('Cooperation with the `ManualColumnMove` plugin', () => {
-    it('should not allow to move any column before the "freeze line" - moving already frozen column', async() => {
+    // Freezing is positional, as with `fixedColumnsStart`: a move across or inside the frozen area
+    // is allowed, and the number of frozen columns stays the same.
+    it('should allow to move a frozen column before the "freeze line"', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         manualColumnFreeze: true,
         manualColumnMove: true
       });
 
-      const data = getData();
       const manualColumnFreezePlugin = getPlugin('manualColumnFreeze');
 
       manualColumnFreezePlugin.freezeColumn(0);
       manualColumnFreezePlugin.freezeColumn(1);
 
-      const manualColumnMovePlugin = getPlugin('manualColumnMove');
+      getPlugin('manualColumnMove').moveColumn(1, 0);
+      await render();
 
-      manualColumnMovePlugin.moveColumn(1, 0);
-
-      expect(getData()).toEqual(data);
+      expect(getDataAtRow(0)).toEqual(['B1', 'A1', 'C1', 'D1', 'E1']);
+      expect(getSettings().fixedColumnsStart).toBe(2);
     });
 
-    it('should not allow to move any column before the "freeze line" - moving not frozen column', async() => {
+    it('should allow to move a not frozen column before the "freeze line"', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         manualColumnFreeze: true,
         manualColumnMove: true
       });
 
-      const data = getData();
       const manualColumnFreezePlugin = getPlugin('manualColumnFreeze');
 
       manualColumnFreezePlugin.freezeColumn(0);
       manualColumnFreezePlugin.freezeColumn(1);
 
-      const manualColumnMovePlugin = getPlugin('manualColumnMove');
+      getPlugin('manualColumnMove').moveColumn(3, 0);
+      await render();
 
-      manualColumnMovePlugin.moveColumn(3, 0);
-
-      expect(getData()).toEqual(data);
+      expect(getDataAtRow(0)).toEqual(['D1', 'A1', 'B1', 'C1', 'E1']);
+      expect(getSettings().fixedColumnsStart).toBe(2);
     });
 
-    it('should not allow to move frozen column', async() => {
+    it('should allow to move a frozen column out of the frozen area', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         manualColumnFreeze: true,
         manualColumnMove: true
       });
 
-      const data = getData();
       const manualColumnFreezePlugin = getPlugin('manualColumnFreeze');
 
       manualColumnFreezePlugin.freezeColumn(0);
       manualColumnFreezePlugin.freezeColumn(1);
 
-      const manualColumnMovePlugin = getPlugin('manualColumnMove');
+      getPlugin('manualColumnMove').moveColumn(0, 3);
+      await render();
 
-      manualColumnMovePlugin.moveColumn(0, 3);
-
-      expect(getData()).toEqual(data);
+      expect(getDataAtRow(0)).toEqual(['B1', 'C1', 'D1', 'A1', 'E1']);
+      expect(getSettings().fixedColumnsStart).toBe(2);
     });
   });
 });

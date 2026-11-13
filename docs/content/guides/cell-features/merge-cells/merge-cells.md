@@ -1,21 +1,21 @@
 ---
 type: how-to
 title: Merge cells
-metaTitle: Merge cells - JavaScript Data Grid | Handsontable
-description: Merge adjacent cells, using the "Ctrl + M" shortcut or the context menu. Control merged cells, using Handsontable's API.
+metaTitle: Merge cells | Handsontable DataGrid for JavaScript
+description: Merge adjacent cells, using the "Ctrl + M" shortcut or the context menu. Control merged cells, using Handsontable DataGrid's API.
 permalink: /merge-cells
 canonicalUrl: /merge-cells
 react:
-  metaTitle: Merge cells - React Data Grid | Handsontable
+  metaTitle: Merge cells | Handsontable DataGrid for React
 angular:
-  metaTitle: Merge cells - Angular Data Grid | Handsontable
+  metaTitle: Merge cells | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Merge cells - Vue Data Grid | Handsontable
+  metaTitle: Merge cells | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: updated
 ---
-Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
+Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable DataGrid's API.
 
 [[toc]]
 
@@ -377,6 +377,8 @@ The `row` and `rowspan` of a range describe the rows on screen. While a filter h
 
 A range that reaches past the rows on screen can't be applied. If the range was applied before, and its merged cell still covers the rows it was merged on, Handsontable keeps that merged cell instead of dropping it. The merged cell comes back when you clear the filter, and its values stay as they were. This covers a filter that hides every row, too.
 
+Handsontable keeps a merged cell the same way once it has taken a removed row that the range doesn't span. Sending the same range again, with the row removed or back in the grid, doesn't shrink the merged cell to the range's `rowspan`. A range that would overlap a kept merged cell keeps its merged cell as well. Other ranges are applied to the rows on screen, as before. A kept merged cell isn't applied again, so it doesn't clear values that arrived under it since. Send a different range to rebuild it from the rows on screen.
+
 So one re-applied array can hold both kinds of range. For example, with only 3 rows on screen:
 
 ```js
@@ -445,6 +447,23 @@ new Handsontable(container, {
 });
 ```
 
+## Column widths
+
+When the [`autoColumnSize`](@/api/options.md#autocolumnsize) option sizes the columns to their content, it measures the content of merged cells too:
+
+- A merged cell that spans one column sizes that column, like any other cell.
+- A merged cell that spans several columns widens the first visible column it spans, until the spanned columns fit the content together. When the other spanned columns are wide enough already, no column changes.
+
+A spanned column with a fixed [`width`](@/api/options.md#width) or a width you dragged keeps it, and a hidden spanned column counts as zero.
+
+## Row heights
+
+A merged cell with long text can make the rows it spans taller. When the wrapped text needs more room than all the spanned rows give together, those rows grow. The rows then end up taller than your [`rowHeights`](@/api/options.md#rowheights). A cell that is not merged grows the same way.
+
+When the [`autoRowSize`](@/api/options.md#autorowsize) option is on, the plugin measures a merged cell on a single row. It gives the first spanned row the full height of the text, so the block grows even when the text fits the spanned rows together.
+
+To keep the configured heights, set [`textEllipsis`](@/api/options.md#textellipsis) or [`wordWrap`](@/api/options.md#wordwrap) for the column or the cell where the merged cell starts (its top-left cell). Settings on the other cells of the block have no effect. With `textEllipsis: true`, the text stays on one line and ends with an ellipsis. With `wordWrap: false`, it stays on one line and is cut off at the cell edge. To show a few lines instead of one, see [Limit the number of lines in a cell](@/guides/rows/row-height/row-height.md#limit-the-number-of-lines-in-a-cell).
+
 ## Effect on viewport getter methods
 
 With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:
@@ -478,13 +497,29 @@ Some features remove rows from the grid entirely: [`filters`](@/api/options.md#f
 
 - The merged cell moves to the first of its rows that is still shown, and spans only the rows of its own that remain. It never grows over the rows below it.
 - When none of its rows is shown, the merged cell is not displayed.
-- When the rows come back, the merged cell spans them again. Nothing about the merge is lost while its rows are away. A merged cell you create while rows are already removed from view covers only the rows you could see, and does not grow when the rest come back.
+- When the rows come back, the merged cell spans them again. Nothing about the merge is lost while its rows are away. A merged cell you create while rows are already removed from view, with the context menu, the keyboard shortcut, or the `merge()` method, covers the rows you could see and the removed rows between them. It spans those removed rows when they come back, but it does not grow over the removed rows above its first row or below its last row. Like any merged cell, it empties the cells it covers when you create it, but a removed row keeps its values in the source data. They stay under the merged cell, so `getData()`, exports, and search still return them, and they show again if you unmerge. A merged cell you declare in the [`mergeCells`](@/api/options.md#mergecells) option works the same way: its `row` and `rowspan` describe the rows on screen when it is applied for the first time, and the removed rows between them come back under it. Sending the same range again while rows are removed applies it to the rows on screen and does not add the removed rows between them. A merged cell declared with `rowspan: 3` over a removed row between its rows spans 4 rows once the removed row returns.
 - When a row move splits a merged cell while some of its rows are removed from view, each removed row stays with the fragment holding the merged cell's own rows next to it in the grid's row order, which is the order the rows take when they come back. A removed row never crosses a row the merged cell does not cover: when the move places such a row between the merged cell's own rows, the removed rows on each side of it stay on that side, and a removed row with no fragment reachable that way is lost.
 - A merged cell whose rows a sort has separated is the exception. It still spans one block, so that block reaches over rows the merged cell does not cover, and a row move that breaks the block cannot tell which fragment owns which row. Each fragment then covers only the rows it shows, and the rows removed from view are not restored. A single-column merged cell disappears altogether in this case, because every fragment it leaves behind is a single cell. Sort the column back, or clear the filter, before you move the rows.
 
 [`hiddenRows`](@/api/options.md#hiddenrows) works differently. A hidden row keeps its position, so a merged cell spanning one keeps its configured `rowspan` and simply draws over less space.
 
 One limitation applies to [`undo`](@/api/options.md#undo). Unmerging a merged cell whose rows are all hidden but one records only the single cell you can see, which is not a merged cell, so undoing that unmerge restores nothing. Expand or unfilter the rows first if you want the unmerge to be reversible.
+
+## Merged cells and frozen columns
+
+A merged cell can sit in, or cross, the frozen columns ([`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart) and [`fixedColumnsEnd`](@/api/options.md#fixedcolumnsend)). The frozen columns are drawn in their own part of the grid, so Handsontable draws the part of the merged cell that lies in them separately from the rest.
+
+When a merged cell crosses the line between the frozen and the scrollable columns:
+
+- Its content is laid out as wide as the whole merged cell, and each part shows its own slice of it. A right-aligned or centered value appears once, and a long value wraps the same way in both parts.
+- The content of the cell in the frozen part sits inside an extra `div` with the `htMergedCellContentWindow` class. If your CSS selects the direct children of the cell (`td > .my-class`), or your [`afterRenderer`](@/api/hooks.md#afterrenderer) code reads `TD.firstChild`, you get that `div` in the frozen part and not in the scrollable part. A hook that runs after the grid is built and appends to the cell (`TD.appendChild(icon)`) puts the icon on a line of its own under the content.
+- When the grid has no row headers, the rows of a merged cell keep the same height in every part.
+
+Some cases behave differently:
+
+- Content positioned against the cell, such as the arrow of an [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell, stays at the edge of the frozen part and shows again at the end of the merged cell.
+- A merged cell that crosses [`fixedRowsTop`](@/api/options.md#fixedrowstop) centers or bottom-aligns its content ([`htMiddle`, `htBottom`](@/guides/cell-features/text-alignment/text-alignment.md)) within each part separately.
+- With [`virtualized`](@/api/options.md#mergecells) set to `true`, the scrollable part moves its copy of the content as you scroll, while the frozen part keeps it where the merged cell starts.
 
 ## Keyboard navigation over a merged cell
 

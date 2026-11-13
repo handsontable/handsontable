@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where sorting inside `batch()` or `suspendExecution()` on an already sorted grid left the rows in the wrong order.",
+  "type": "fixed",
+  "issueOrPR": 13930,
+  "breaking": false,
+  "framework": "none"
+}

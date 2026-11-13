@@ -16,6 +16,7 @@ Three themes, each with a `-no-icons` variant (6 bundles): `ht-theme-main` (defa
 - Renaming or removing a CSS class is a breaking change: keep the old class in the DOM.
 - CSS and JS live in separate files.
 - Every CSS feature must work in the `browser-targets.js` browsers (`eslint-plugin-compat` enforces it).
+- A color or size change is an accessibility change: text 4.5:1, icons, borders and focus rings 3:1, pointer targets 24 by 24 CSS pixels, in all three themes, light and dark. Run the axe scan before and after (`handsontable-a11y` skill).
 
 ## Cell padding comes from the variables
 
@@ -41,19 +42,27 @@ The rule lives in `.config/plugin/stylelint/`, a pnpm `file:` dependency that is
 
 An exception for state not re-evaluated during a scroll (dialog focus, dropdown selection, offscreen `.htGhostTable`) uses `// stylelint-disable-next-line handsontable/no-has-selector -- <reason>` with the reason why it is off the scroll path.
 
-## Text-bearing spans declare their own text metrics
+## Grid-owned spans and inputs resist host element rules
 
-Every `<span>` (or other inline element) the grid renders with visible text declares `font-size`, `line-height`, `font-weight`, `letter-spacing`, and `font-family` itself. A host rule on the bare element (`span { font-size: 20px }`, specificity (0,0,1)) beats an inherited value (#11306, DEV-75). The older guards cover two properties only: `span.colHeader`/`span.rowHeader` (tokens in `_base.scss`), `.htCheckboxRendererLabel`, `.ht-sheets-bar__tab-label`; their `font-weight`, `letter-spacing`, and `font-family` still leak.
+A host page rule on a bare element (`span { padding: 12px }`, `input { height: 40px }`, specificity (0,0,1)) matches every `<span>` and `<input>` the grid renders in its own UI and beats an inherited value (#11306). Unguarded, it grew the header row from 30px to 64px, every body row with it, the pagination bar, and the Filters menu. Two tools in `src/styles/utils/_mixins.scss` stop it, and neither is a global rule.
 
-Pattern: the component root (`.ht-pagination`, `td`, `.ht-sheets-bar`) carries the token (`font-size: var(--ht-font-size)`), and every text-bearing span below it declares the five properties as `inherit`. That wins over the host's element selector and follows a user's override on the root, provided the override beats the root's rule on specificity. Source order does not decide it, because the core stylesheet is injected into `<head>` at init and often loads after the user's CSS. Core's cell rule `.handsontable :where(...) > td` is (0,1,1): a user's `.handsontable td` ties and loses on order, `.handsontable tbody td` (0,1,2) wins. The bar's `.handsontable.ht-pagination` is (0,2,0): `div.handsontable.ht-pagination` (0,2,1) wins. State three limits in the PR:
+**Text metrics that must follow a parent: `inherit-text-metrics`.** The component root (`.ht-pagination`, `td`, `.ht-sheets-bar`) carries the token (`font-size: var(--ht-font-size)`), and a text-bearing span below it that has to follow a user's override on that root includes `@include mixins.inherit-text-metrics` (the five properties `font-size`, `line-height`, `font-weight`, `letter-spacing`, `font-family` as `inherit`; `$except: font-size` keeps the multiselect arrow's `font-size: 0`). It sits at the component's own specificity, so it wins over the host's element selector and follows a user's override on the root, provided the override beats the root's rule. Source order does not decide it, because the core stylesheet is injected into `<head>` at init and often loads after the user's CSS. Core's cell rule `.handsontable :where(...) > td` is (0,1,1): a user's `.handsontable td` ties and loses on order, `.handsontable tbody td` (0,1,2) wins. The bar's `.handsontable.ht-pagination` is (0,2,0): `div.handsontable.ht-pagination` (0,2,1) wins. Users: pagination labels, multiselect chips and arrow, sheets bar tab label, chevron, rename field and mirror, sheets bar menu item name.
 
-- A user rule on the guarded class at lower specificity than the guard now loses: `.ht-multi-select-chip { font-size: 16px }` (guard (0,2,0)), `.ht-page-navigation-section__label { font-weight: 600 }`, and `.handsontable .ht-page-navigation-section__label` (guard `.handsontable.ht-pagination ...` (0,3,0)).
+**Everything else: the guard partial.** `src/styles/base/_host-guards.scss` holds one selector list that includes `revert-host-element` (`revert-host-box`: `padding`, `margin`, `border`, `height`; `revert-host-text-metrics`: the five text properties), all set to `revert`. `base-styles()` in `base/_index.scss` emits it first, before every other core rule. The policy:
+
+- **Element level, exactly (0,0,4):** `div:where(.handsontable)#{mixins.$host-guard-weight} span:where(.className)`, compiled to `div:where(.handsontable):not(p):not(p) span:where(.className)`. Two element types (the root `div`, the guarded element) plus `$host-guard-weight` (`utils/_mixins.scss`, `":not(p):not(p)"`), which `_host-guards.scss` appends once to the shared root selector, so the weight is set in one place. Each `:not(p)` weighs one element and always matches the root `div`. Every class and attribute stays inside `:where()`. Why element-only: any user class rule on the element (`.colHeader { font-weight: 600 }`, (0,1,0)) still beats the guard, even though the core stylesheet is injected after the user's. Why four: a host chain of up to three elements (`table th span`, `body div input`, `form div input`, all (0,0,3)) loses on specificity, wherever it loads. The remaining limits: a host chain of five or more element selectors wins; and with `injectCoreCss: false` the app loads `handsontable.css` itself, often before its own CSS, so a four-element host rule loaded after it ties and wins on order. Never write `:not(p, p)`: a selector list inside `:not()` weighs only its heaviest argument, one element. Check the minified CSS after a build: the minifier keeps the two `:not()`s apart today. Every guarded element sits under a core-built `div.handsontable` (the overlay tables, the pagination bar, the menus and the Filters UI); check that for a new one. For a class-less element match its attribute inside `:where()`: `:where(.htUIInput) > input:where([type="text"], [type="date"], ...)`, `:where(.htUIRadio) > input:where([type="radio"])`. The Filters condition input switches its `type` with the condition (`date`, `time`, `datetime-local` in `InputUI#setType()`), so every type it can take is listed. For a generic class name scope it tightly with `:where()` ancestors so a user's own element is not matched: `:where(.htItemWrapper) > span:where(.selected, .htMixed)`. A class-less text span the grid builds gets a class instead (`htCheckboxRendererLabelText` in `checkboxRenderer.ts`).
+- **`revert`, never a value.** `revert` drops the host's author rules back to the user-agent default or the inherited value, so a clean render is unchanged by construction, and every core rule after the partial with equal or higher specificity still wins. A core rule of lower specificity than (0,0,4) (an element-only or `:where()`-only rule, up to four elements) loses to the guard: check for one before adding an element. On an `<input>` `revert` goes to the browser's form-control defaults (a small control font, measured as 13.33px Arial in Chromium, and the control's own padding and border), which is the clean value only while no lower-specificity core rule set it; if a reverted property changes the clean render, drop it from that element or use `inherit`.
+- **Never `.handsontable span {}`, `.handsontable input {}`, or any element-only selector.** At (0,1,1) it overrides a user's `.my-class` on spans in custom renderers and header HTML, which is a breaking change.
+
+To add an element: add its selector to the list in `_host-guards.scss` (two element types, scoped as above; the shared root carries the weight, so the result is (0,0,4)), add it to `tests/e2e/host-span-styles.spec.ts`, build, and compare the clean render before and after on all three themes; it must not move by a pixel.
+
+State three limits in the PR:
+
+- A user rule on a class guarded by `inherit-text-metrics` can lose: `.ht-multi-select-chip { font-size: 16px }` loses to the inherit guard (0,2,0); `.ht-page-navigation-section__label { font-weight: 600 }` and `.handsontable .ht-page-navigation-section__label` lose to `.handsontable.ht-pagination ...` (0,3,0).
 - A bare `.ht-pagination { font-size }` never beat the bar's own `.handsontable.ht-pagination` rule.
 - Offsets computed from the `--ht-line-height` token (multiselect and autocomplete arrow `top`, chip end padding) do not follow a user's `td` `line-height` override.
 
-Scope the declarations to the guarded classes. Do not add a blanket `.handsontable span { ... }` rule: its specificity (0,1,1) overrides a user's `.my-class` on spans inside custom renderers.
-
-`tests/e2e/host-span-styles.spec.ts` (fixture `tests/fixtures/demo/host-span-styles.html`) hosts a hostile `span {}` rule and asserts the guarded spans against their cascade parent. Its user-override tests prepend their rule to `<head>` (`HostSpanStylesPage.prependUserStyles`). Add every new text-bearing span to that spec. The fixture loads the compiled `handsontable/styles/*.min.css` and a `dist/` bundle that injects the core stylesheet again at init, so after an SCSS edit run the full `npm --prefix handsontable run build` before trusting a spec run; `build:styles` and `build:styles.min` alone leave the bundle's copy stale and a reverted guard still passes.
+`tests/e2e/host-span-styles.spec.ts` (fixture `tests/fixtures/demo/host-span-styles.html`) hosts hostile `span {}` and `input {}` rules in `<style id="host-element-styles">`, with a span and an input outside the grid as positive controls. The text-metrics tests assert the guarded spans against their cascade parent; their user-override tests prepend their rule to `<head>` (`HostSpanStylesPage.prependUserStyles`). The box tests load the page twice, with `?withoutHostStyles=1` (the fixture removes the `<style>` before building the grid) and without, and expect every measured element, row, bar and menu to match (`HostSpanStylesPage.boxMetrics`); `?menus=1` adds Filters and a dropdown menu with a checked and a mixed item (the grid has `date`, `intl-time` and `intl-datetime` columns for the date, time and datetime-local condition inputs); `?nestedRows=1` adds a NestedRows grid with three levels. A separate test prepends user class rules on guarded elements and expects them to apply. The fixture loads the compiled `handsontable/styles/*.min.css` and a `dist/` bundle that injects the core stylesheet again at init, so after an SCSS edit run the full `npm --prefix handsontable run build` before trusting a spec run; `build:styles` and `build:styles.min` alone leave the bundle's copy stale and a reverted guard still passes.
 
 ## Icons
 
@@ -69,21 +78,22 @@ The glyph comes from the per-theme `--ht-icon-<name>` variable plus a generated 
 - **Migrating a site: move the state rules too.** Re-key every `:hover`, `:focus`, `:disabled`, `:checked`, or `.is-active` rule that colored the old pseudo-element onto `.ht-icon` (or a class the `<i>` carries); otherwise the glyph stays visually dead on state changes.
 - **Adding or renaming an icon touches four lists** that a test or `tsc` cross-checks: the generator side in `handsontable/scripts/themes/figma/.ai/CONVENTIONS.md` ("Adding or changing an icon") and `IconKey`/`ICON_NAMES`/`VALID_ICON_KEYS` at runtime.
 
-## Adding a new theme token: four layers
+## Adding a new theme token: Figma first, then four layers
 
 For a `--ht-<component>-<property>` variable and its JS token. A rename or removal follows the same playbook plus a legacy-alias path. Group the new entry next to related ones in each file.
 
-### Layer 1: static CSS defaults (6 files)
+**The rule: a new or changed theme token goes into the Handsontable Design System in Figma FIRST, while the PR is open, and reaches the code only through `npm run generate:themes`.** Never hand-edit `src/themes/static/`: the generator wipes it on every run, and aborts when the Figma export lacks a key listed in `tokensKeys.mjs`. Never merge a token that is in the code but not in Figma, and never leave a "not in Figma yet" note for later (the freezeBar and asyncValues tokens shipped that way and had to be added to Figma afterwards). `src/themes/__tests__/staticThemesGenerated.unit.js` fails on any hand edit of the static files. The only layers you edit by hand are 3 and 4 below, `tokensKeys.mjs`, the SCSS that consumes the variable, and the docs.
 
-`handsontable/src/themes/static/css/theme/ht-theme-{main,classic,horizon}{,-no-icons}.css`
+### Layers 1 and 2: Figma, then the generator
 
-Define `--ht-<kebab-case-name>` and its resolved default per theme, usually via `var(...)` of lower-level tokens so overrides keep cascading. All themes declare the same key set. Symptom when missing: the variable is undefined in DevTools while ThemeBuilder tests that skip rendered styles pass.
+These are the 6 static CSS files (`handsontable/src/themes/static/css/theme/ht-theme-{main,classic,horizon}{,-no-icons}.css`) and the 3 token modules (`handsontable/src/themes/static/variables/tokens/{main,classic,horizon}.ts`), which drive `ThemeBuilder`. Both are generated:
 
-### Layer 2: token JS runtime defaults (3 files)
+1. **Add the variable in Figma** (file `LGHQ25fTQMJouoO4qSdZJV`, `themes` collection, one mode per theme) with `use_figma` (load the `figma-use` and `figma-generate-library` skills first), or ask the designer. Name it `component/<area>/<kebab-key>`, and keep the last name segment unique in the collection: the generator looks a key up by it. Alias an existing variable in every mode (a `themes` variable such as `common/colors/accent-color`, a `mode` variable for a light/dark pair, or a `sizing`/`density` one) rather than typing a raw value, so overrides keep cascading. Set explicit `scopes`, `codeSyntax.WEB` = `var(--ht-<kebab-key>)` and a description. The precedents are `component/freeze-bar/*` and `component/async-values/*`.
+2. **Add the kebab-case key to `handsontable/scripts/themes/figma/tokensKeys.mjs`**, in its feature group. A key that is in Figma but not in this list is dropped.
+3. **The user exports `tokens.json`** with the Design Tokens plugin (Variables only) to `handsontable/scripts/themes/figma/tokens.json`. An agent cannot run the plugin; ask for the export and wait.
+4. **Run `npm run generate:themes`** from `handsontable/`. Review the `src/themes/static` diff: the new key in all 6 CSS files and all 3 token modules, and nothing else (an unrelated change means the export is out of date or Figma drifted). Commit the diff together with `scripts/themes/figma/static-manifest.json`, which the run rewrites.
 
-`handsontable/src/themes/static/variables/tokens/{main,classic,horizon}.ts`
-
-These drive `ThemeBuilder`. camelCase keys mirror the CSS variable (`paginationButtonBorderColor` for `--ht-pagination-button-border-color`); values use `'tokens.otherTokenName'` strings or primitive arrays like `['colors.palette.100', 'colors.palette.700']`. Symptom when missing: `createTheme()` ignores the token.
+camelCase keys mirror the CSS variable (`paginationButtonBorderColor` for `--ht-pagination-button-border-color`); values come out as `'tokens.otherTokenName'` strings or light/dark arrays like `['colors.palette.100', 'colors.palette.700']`. Symptom when missing: the variable is undefined in DevTools, and `createTheme()` ignores the token.
 
 ### Layer 3: validation allow-list
 
@@ -107,8 +117,8 @@ Reference the variable from the component SCSS under `src/styles/components/` (e
 
 ### Pre-flight
 
-1. CSS in all 6 theme files.
-2. JS token in all 3 runtime files.
+1. Variable in Figma (every theme mode, aliased, scoped, with code syntax), in this PR.
+2. Key in `tokensKeys.mjs`; `npm run generate:themes` run from a fresh export; the CSS (6 files) and JS (3 files) came from it, with the manifest.
 3. Key in the `validation.ts` allow-list.
 4. Key in `TokenKey`.
 5. `npm run test:unit --prefix handsontable --testPathPattern=themes` passes.

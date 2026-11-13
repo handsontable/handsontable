@@ -3,9 +3,15 @@ import { staticRegister } from '../../utils/staticRegister';
 import { deprecatedWarnOnce, error, warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isNumeric } from '../../helpers/number';
-import { isObject, isPlainObject } from '../../helpers/object';
+import { hasOwnProperty, isObject, isPlainObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
-import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
+import {
+  getRegisteredHotInstanceList,
+  getRegisteredHotInstances,
+  setupEngine,
+  setupSheet,
+  unregisterEngine,
+} from './engine/register';
 import {
   coalesceIndexesToSpans,
   escapeTextValue,
@@ -13,6 +19,7 @@ import {
   getDateInHfFormat,
   getDateInHotFormat,
   getTimeFromHfTimeFraction,
+  insertEmptyRows,
   isDate,
   isDateValid,
   isEngineEscapedValue,
@@ -37,11 +44,35 @@ import {
 } from '../../utils/cellLinks';
 import { fastInnerText } from '../../helpers/dom/element';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
+import {
+  beginHeldEngineWrite,
+  beginHeldSheetWrite,
+  collectHeldDependents,
+  flushEvaluationHold,
+  flushEvaluationHoldNow,
+  isEvaluationHeld,
+  isEvaluationHolder,
+  joinEvaluationHold,
+  leaveEvaluationHold,
+  leaveResumedHolders,
+  recordHeldWrite,
+  runAfterEvaluationFlush,
+  runEngineBatch,
+  settleEvaluationHold,
+  takeHeldRecalculations,
+  type HeldRecalculation,
+} from './engine/evaluationHold';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import { getValueGetterValue } from '../../utils/valueAccessors';
+import { quoteUnreadableSheetNames, canReadSheetNameUnquoted } from '../../utils/formulaReferences';
 import { Hooks } from '../../core/hooks';
 import IndexSyncer from './indexSyncer';
+import {
+  deferPaintToPluginEngineWrite,
+  holdPluginEngineWritePaints,
+  withPluginEngineWrite,
+} from './indexSyncer/pluginEngineWrite';
 import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { EngineOrder } from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine, FormulasCellAddress, FormulasCellRange } from './engine/types';
@@ -50,6 +81,7 @@ import type { RangeType } from '../../core/types';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { isCellRangeLike } from '../../3rdparty/walkontable/src/cell/range';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
+import { LICENSE } from './feature.generated';
 
 /**
  * Represents a cell change from the HyperFormula engine.
@@ -71,6 +103,15 @@ interface HFCellChange {
  */
 function isHFCellChange(value: unknown): value is HFCellChange {
   return typeof value === 'object' && value !== null;
+}
+
+/**
+ * @param {Array} changes The engine's change list.
+ * @param {number} sheetId The engine id of a sheet.
+ * @returns {boolean} `true` when a change in the list is a cell of that sheet.
+ */
+function changesNameSheet(changes: unknown[], sheetId: number): boolean {
+  return changes.some(change => isHFCellChange(change) && change.address?.sheet === sheetId);
 }
 
 /**
@@ -115,11 +156,67 @@ interface MoveCellsRect {
 }
 
 /**
+ * A `setDataAtCell()` / `setDataAtRowProp()` change set written into the engine and not yet applied
+ * to the source data by the Core (see `Formulas#changesAwaitingApply`). `writeCount` and `sheetId`
+ * are taken when the set is written; `writtenBack` is set once `beforeChangeRender` has written the
+ * whole set again, so the deferred write of its out-of-bounds changes is skipped.
+ */
+interface ChangeSetAwaitingApply {
+  writeCount: number;
+  /**
+   * The number of loads the plugin did not make itself (`#foreignLoadCount`) when the set was written.
+   */
+  foreignLoadCount: number;
+  sheetId: number | null;
+  writtenBack: boolean;
+  /**
+   * The cells the first write really reached, with the value each held before it. A sheet switch
+   * before the Core applies the set drops it and restores exactly these (`#restoreSwitchedAwaySheet`): by then the
+   * grid maps its indexes onto the switched-to sheet's data, so mapping the changes again names
+   * other cells.
+   */
+  writtenCells: WrittenCell[];
+}
+
+/**
+ * One cell a change set's first engine write reached: its engine address (sheet included) and the
+ * grid coordinates and value it had then.
+ */
+interface WrittenCell {
+  address: { row: number; col: number; sheet: number | null };
+  physicalRow: number;
+  physicalColumn: number;
+  visualRow: number;
+  visualColumn: number;
+  oldValue: unknown;
+  /**
+   * What the engine held in the cell right after the first write (`getCellSerialized()`), or `undefined`
+   * when it could not be read. A restore skips a cell that holds anything else by then: a newer write
+   * reached it.
+   */
+  writtenContent: unknown;
+}
+
+/**
  * The object form of the `formulas.hyperlinks` setting.
  */
 export interface FormulasHyperlinkSettings {
   target?: LinkTarget;
   schemes?: LinkScheme[];
+}
+
+/**
+ * The order an engine holds one of its sheets in, as `exportEngineOrder()` reports it while the sheet
+ * is bound, for `runWithEngineOrderHeld()` to take over when the sheet is bound again. `content` is the
+ * engine sheet's content in that order, for a sheet the next binding does not find in the engine (an
+ * engine built from the `HyperFormula` class is destroyed when the plugin is disabled).
+ */
+export interface FormulasEngineSheetOrder {
+  readonly engine: HyperFormulaEngine;
+  readonly sheetId: number;
+  readonly rowOrder: EngineOrder;
+  readonly columnOrder: EngineOrder;
+  readonly content?: unknown[][];
 }
 
 /**
@@ -129,6 +226,7 @@ interface FormulasPluginSettings {
   sheetName?: string;
   engine: unknown;
   hyperlinks?: boolean | FormulasHyperlinkSettings;
+  batchEvaluation?: boolean;
 }
 
 /**
@@ -139,6 +237,18 @@ interface FormulasPluginSettings {
  */
 function isFormulasSettingsObject(value: unknown): value is FormulasPluginSettings {
   return typeof value === 'object' && value !== null;
+}
+
+/**
+ * Tells whether an `engine` setting hands over the engine class (`HyperFormula` or `{ hyperformula }`),
+ * from which the plugin builds an engine of its own, rather than an engine instance.
+ *
+ * @param {unknown} engine The `engine` setting.
+ * @returns {boolean}
+ */
+function isEngineClassSetting(engine: unknown): boolean {
+  return typeof engine === 'function'
+    || (isObject(engine) && typeof (engine as { hyperformula?: unknown }).hyperformula === 'function');
 }
 
 /**
@@ -232,12 +342,19 @@ interface EngineSheetSnapshot {
 /**
  * What UndoRedo records for this plugin: a version that changes whenever the engine's rows or columns
  * are added, removed or reordered, a version that changes whenever a cell write reaches it, and – while
- * the engine's order is not the physical one – the engine's sheet itself.
+ * the engine's order is not the physical one or the source data holds stale formulas – the engine's
+ * sheet itself.
  */
 interface FormulasUndoState {
   readonly structureVersion: number;
   readonly dataVersion: number;
   readonly engineSheet: EngineSheetSnapshot | null;
+  /**
+   * `true` when the source data held formula text the engine had rewritten (`#sourceHasStaleFormulas`)
+   * at capture. Only a state that carries `engineSheet` can be stale, because the source data cannot
+   * rebuild its sheet.
+   */
+  readonly sourceHasStaleFormulas: boolean;
   /**
    * The formulas outside this grid's sheet that the step's engine calls rewrote.
    */
@@ -280,6 +397,13 @@ function isFormulasUndoState(value: unknown): value is FormulasUndoState {
 // `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
 const REMOVAL_SPANS_CHUNK_SIZE = 1000;
 
+/**
+ * The cell meta keys that decide the value the engine reads for a cell: the ones the built-in value getters
+ * read (directly, or through the cell type that sets the getter), and `preserveTextValue`, which the
+ * engine-bound escaping reads. A `cell` option entry setting one of them can change that value.
+ */
+const VALUE_GETTER_META_KEYS = ['type', 'valueGetter', 'source', 'sourceLabel', 'preserveTextValue'];
+
 // A formula whose reference the engine could not keep. Only operations that remove or relocate
 // cells may put one into the source data - see `#syncFormulasToSourceData`.
 const REF_ERROR_PATTERN = /#REF!/;
@@ -297,11 +421,111 @@ const HYPERLINK_WARN_KEY = 'formulas-hyperlink-refused';
 const HYPERLINK_SETTINGS_WARN_KEY = 'formulas-hyperlinks-settings';
 
 /**
+ * The column space of the source data array the engine was fed (see `Formulas#readSyncedColumnSpace`):
+ * physical columns, visual columns, or, for array rows a `columns` list projects, the array index of each
+ * visual column (`null` for one bound to no source index).
+ */
+type SyncedColumnSpace = 'physical' | 'visual' | Array<number | null>;
+
+/**
+ * Tells whether a value is a `Date`, also one from another window.
+ *
+ * @param {*} value The value.
+ * @returns {boolean}
+ */
+function isDateObject(value: unknown): value is Date {
+  return Object.prototype.toString.call(value) === '[object Date]';
+}
+
+/**
+ * Returns the value a record of what the engine was fed keeps for a cell. A `Date` is copied: the host can change
+ * the one it holds in place (`setFullYear()`), and a record that kept the same object would change with it.
+ *
+ * @param {*} value The value the engine got.
+ * @returns {*}
+ */
+function toSyncedValue(value: unknown): unknown {
+  return isDateObject(value) ? new Date(value.getTime()) : value;
+}
+
+/**
+ * Tells whether a recorded cell holds the value read now. A missing cell reads as `null`, the way the engine
+ * reads it. `NaN` equals itself (`Object.is()`), a `Date` equals one of the same time, and any other object
+ * counts as changed, because the host can change it in place.
+ *
+ * @param {*} recorded The recorded value.
+ * @param {*} value The value read now.
+ * @returns {boolean}
+ */
+function areSyncedValuesEqual(recorded: unknown, value: unknown): boolean {
+  if (typeof value === 'object' && value !== null) {
+    return isDateObject(recorded) && isDateObject(value) && Object.is(recorded.getTime(), value.getTime());
+  }
+
+  // The strict check first: it answers for almost every cell, and reading a type tag per cell made the comparison
+  // of a 10,000 x 50 sheet take 44 ms instead of 3 ms.
+  return recorded === value || Object.is(recorded ?? null, value ?? null);
+}
+
+/**
+ * Tells whether two rows of a source data array hold the same values. A missing cell reads as `null`, the way
+ * the engine reads it, so a row the grid created (`[]`) equals a row of `null` values.
+ *
+ * @param {Array} recorded The recorded row.
+ * @param {Array} row The row read now.
+ * @returns {boolean}
+ */
+function areSyncedRowsEqual(recorded: unknown[] | undefined, row: unknown[]): boolean {
+  const recordedRow = recorded ?? [];
+  const length = Math.max(recordedRow.length, row.length);
+
+  for (let column = 0; column < length; column += 1) {
+    if (!areSyncedValuesEqual(recordedRow[column], row[column])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Copies every `Date` of a source data array the engine was fed in place (`toSyncedValue()`), so the array can
+ * be kept as the record of what the engine holds.
+ *
+ * @param {Array<Array<*>>} rows The array.
+ * @returns {Array<Array<*>>}
+ */
+function toSyncedRows(rows: unknown[][]): unknown[][] {
+  rows.forEach((row) => {
+    for (let column = 0; column < row.length; column += 1) {
+      if (typeof row[column] === 'object' && row[column] !== null) {
+        row[column] = toSyncedValue(row[column]);
+      }
+    }
+  });
+
+  return rows;
+}
+
+/**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
  * integration with our other product, [HyperFormula](https://github.com/handsontable/hyperformula/), which is a
  * powerful calculation engine with an extensive number of features.
  *
  * To test out HyperFormula, see [this guide](@/guides/formulas/formula-calculation/formula-calculation.md#available-functions).
+ *
+ * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option set to `true`, the
+ * writes the grid makes while its execution is suspended are recalculated by HyperFormula once, when the
+ * execution resumes, instead of once per write. {@link Core#batch} is the way to get that saving, because it
+ * suspends rendering too.
+ *
+ * A read of a formula cell through the grid recalculates first, so reads stay fresh, and so does every
+ * render. For that reason {@link Core#batchExecution}, or a {@link Core#suspendExecution} and
+ * {@link Core#resumeExecution} pair, saves nothing when each write renders.
+ *
+ * After a write and until the next grid read or the resume, a direct HyperFormula read
+ * (`engine.getCellValue()`) throws "Computations are suspended". That includes a grid that shares the engine
+ * and did not opt in.
  *
  * @plugin Formulas
  * @class Formulas
@@ -319,6 +543,14 @@ export class Formulas extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -377,6 +609,43 @@ export class Formulas extends BasePlugin {
   #showFormulasFlag = false;
 
   /**
+   * How many `runWithEngineOrderHeld()` calls are running. While it is above zero the axis syncers keep
+   * the grid's order changes from the engine, an index syncer created by an enable in between included.
+   *
+   * @type {number}
+   */
+  #engineOrderHolds = 0;
+
+  /**
+   * The engine sheet the load inside the running `runWithEngineOrderHeld()` call takes over instead of
+   * writing the loaded data into it, and whether a load did. `null` outside such a call.
+   */
+  #pendingAdoption: { order: FormulasEngineSheetOrder; adopted: boolean } | null = null;
+
+  /**
+   * The `formulas.sheetName` setting the binding last followed (see `#requestedSheetName()`), or
+   * `undefined` before the first one.
+   *
+   * @type {string|undefined}
+   */
+  #followedSheetNameSetting: string | undefined = undefined;
+  /**
+   * Whether the engine was built from an engine class the settings handed over, rather than passed as an
+   * instance (see `#followEngineChange()`).
+   *
+   * @type {boolean}
+   */
+  #engineBuiltFromClass = false;
+
+  /**
+   * Whether the engine reads a sheet name without quotes, per name (`#canReadUnquoted`). Cleared on
+   * enable, when the engine can change.
+   *
+   * @type {Map<string, boolean>}
+   */
+  #unquotedSheetNames = new Map<string, boolean>();
+
+  /**
    * Flag needed to mark if Handsontable was initialized with no data.
    * (Required to work around the fact, that Handsontable auto-generates sample data, when no data is provided).
    *
@@ -421,6 +690,61 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #sheetResyncPending = false;
+
+  /**
+   * Counts the full sheet writes from the source data (`#writeSheet`). A change set compares it
+   * across its validation window to learn whether a full write replaced the sheet in between. The
+   * emptying write of `#clearRejectedSheet` is not counted: writing a change back into a sheet the
+   * engine could not hold would leave it holding that one cell.
+   *
+   * @type {number}
+   */
+  #sheetWriteCount = 0;
+
+  /**
+   * Counts the `loadData()` / `updateData()` calls the plugin did not make itself (`switchSheet()` loads
+   * the grid from the sheet with its own source). A change set records it when it is written, and
+   * `#onChangesDropped` puts the grid data back only while it has not moved: any other load replaced
+   * the grid's data with data that never held the dropped value, also a load the engine refused, which
+   * leaves `#sheetWriteCount` where it was.
+   *
+   * @type {number}
+   */
+  #foreignLoadCount = 0;
+
+  /**
+   * The `setDataAtCell()` / `setDataAtRowProp()` change sets written into the engine that the Core
+   * has not applied to the source data yet, keyed by the change array itself (the Core hands the
+   * same array to `afterSetDataAtCell` and to `beforeChangeRender`). Each one records the sheet write
+   * count and the sheet id at the moment it was written.
+   *
+   * The plugin writes a change into the engine from `afterSetDataAtCell`, before validation, while
+   * the Core applies a validated change to the source data only after its validators resolve, in a
+   * microtask. A full sheet write in between - an `updateSettings()` in the same task - scans source
+   * data that does not hold the change yet and drops it from the engine; `#onBeforeChangeRender`
+   * writes it back. A sheet switch in between is a `loadData()`, so the Core drops the set instead of
+   * applying it, and `#onChangesDropped` takes the first write back. A `WeakMap`, so a change set that
+   * never reaches either holds nothing alive.
+   *
+   * @type {WeakMap<CellChange[], ChangeSetAwaitingApply>}
+   */
+  #changesAwaitingApply = new WeakMap<CellChange[], ChangeSetAwaitingApply>();
+
+  /**
+   * The changes of a set that `afterSetDataAtCell` could not write because their row or column did not
+   * exist yet, keyed by the set's change array. `afterChange` reports that same array once the Core
+   * applied the set and created the rows, and `#onAfterChangeWriteOutOfBounds` writes them then. Keyed by
+   * the array, never taken by the next `afterChange` of any kind: a `loadData()` fires one with `null`, and
+   * the first cut wrote the changes of a set the load was about to drop into the loaded sheet. A dropped
+   * set's entry is deleted, and a `WeakMap` keeps a set that never applies (every change rejected) from
+   * holding anything alive.
+   *
+   * @type {WeakMap<CellChange[], object>}
+   */
+  #outOfBoundsWrites = new WeakMap<CellChange[], {
+    awaitingApply: ChangeSetAwaitingApply;
+    changes: [number, number, unknown][];
+  }>();
 
   /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
@@ -521,6 +845,30 @@ export class Formulas extends BasePlugin {
   #dataVersion = 0;
 
   /**
+   * The source data may hold formula text the engine has rewritten: a structural change made out of
+   * physical order writes nothing back, and the order returning to physical does not. A state captured
+   * while it is set carries the engine's sheet, because the source data cannot rebuild it. Set in
+   * `#syncFormulasToSourceData()`, cleared there and in `#writeSheet()`, set from the state in
+   * `restoreState()`.
+   */
+  #sourceHasStaleFormulas = false;
+
+  /**
+   * The content the last full write from the source data (`#writeSheet()`) fed the engine sheet, escaped,
+   * in physical row order, kept in step with the grid's own cell writes and row inserts and removals: what
+   * the sheet would hold had every later change been written in physical order. A resync whose source data
+   * reads the same skips the write and the order replay (`#isSyncedContent()`), because the engine already
+   * holds that content, in the grid's order, with the references the user's own moves left. `null` when no
+   * such record is kept: a write it cannot follow drops it, and the next resync writes the sheet in full.
+   */
+  #syncedContent: {
+    engine: HyperFormulaEngine;
+    sheetId: number | null;
+    rows: unknown[][];
+    columnSpace: SyncedColumnSpace;
+  } | null = null;
+
+  /**
    * The cell writes an undo or a redo made, in the `afterSetSourceDataAtCell` format (physical rows),
    * held until the restore is done – see `restoreState()`.
    */
@@ -541,16 +889,67 @@ export class Formulas extends BasePlugin {
   #sheetsNotNamingOwnSheet = new Set<number>();
 
   /**
+   * How many of this grid's own engine writes are on the stack. The grid is not painted for the events
+   * they cause: the Core (or the write's caller) paints it – see `#writeOwnSheet()`.
+   */
+  #ownWriteDepth = 0;
+
+  /**
+   * Whether this grid is drawing (`beforeRender` to `afterRender`) and the draw started while the engine held
+   * writes (`batchEvaluation`). The recalculation a read inside the draw makes does not repaint this grid at
+   * once: a render inside the draw would draw again from within it (see `#deferPaintToDraw()`). A draw that
+   * starts with nothing held paints as before.
+   */
+  #isDrawingHeldEngine = false;
+
+  /**
+   * Whether `beforeRender` is preparing this grid's draw (a flush, a resync). A paint asked for then is left to
+   * the draw (see `#deferPaintToDraw()`).
+   */
+  #isPreparingDraw = false;
+
+  /**
+   * Whether the draw that started last is a fast one (a selection, a scroll step): it repaints only the cells it
+   * adds, so a recalculation it waited on is painted by a render once it ends.
+   */
+  #isFastDraw = false;
+
+  /**
+   * Whether a recalculation during the current fast draw asks for a render once the draw ends.
+   */
+  #repaintAfterDraw = false;
+
+  /**
+   * Whether the check for a draw that threw before `afterRender` is queued (see `#onDrawEndCheck`).
+   */
+  #drawEndCheckQueued = false;
+
+  /**
    * The cells an undo or a redo recalculated when it reloaded the sheet, validated once the restore is
    * done – see `#validateRestoredDependents`.
    */
   #restoredDependentCells: unknown[] = [];
 
   /**
+   * The size the engine's sheet had when each recorded state was last captured: the floor of the trim an
+   * undo or a redo of a row or column change makes (`AxisSyncer#trimUnusedTail()`). It lives beside the
+   * state, not in it, because the sheet grows without any change to the grid (a formula in another grid
+   * reading a far cell), and a state that carried the size would then stop being reused, which makes
+   * UndoRedo record an empty step and drop the redo stack.
+   */
+  #sheetSizeFloors = new WeakMap<FormulasUndoState, { width: number; height: number }>();
+
+  /**
    * The engine addresses of the cells an undo or a redo wrote, as its `afterChange` reported them. The
    * UndoRedo plugin validates those itself, so they are left out of `#restoredDependentCells`.
    */
   #restoredChangedCells: unknown[] = [];
+
+  /**
+   * The listeners told that the engine is about to be detached from this grid – see
+   * `addEngineDetachListener()`. Kept across enable cycles: the plugin instance is the grid's.
+   */
+  readonly #engineDetachListeners = new Set<() => void>();
 
   /**
    * Maps a HyperFormula `ExportedCellChange` to the same change with `newValue` translated to a
@@ -623,6 +1022,100 @@ export class Formulas extends BasePlugin {
     this.#invalidateHyperlinkCells();
     this.#markCellsThatBecameHyperlinks(changes);
     this.hot.runHooks('afterFormulasValuesUpdate', exportedChanges);
+    this.#paintGridFromEngineChange(changes);
+  };
+
+  /**
+   * Paints this grid when the engine changed a cell on its sheet.
+   *
+   * An external write paints at once, once per event. During a plugin write the paint is handed to it
+   * and runs once, when the outermost write on this engine ends (see `withPluginEngineWrite()`). The
+   * grid whose own write it is does not paint: the Core, or the caller of that write, does.
+   *
+   * @param {Array} changes The engine's change list.
+   */
+  #paintGridFromEngineChange(changes: unknown[]) {
+    if (this.#ownWriteDepth > 0 || this.sheetId === null || this.hot.isDestroyed || !this.hot.view) {
+      return;
+    }
+
+    const sheetId = this.sheetId;
+
+    if (!changesNameSheet(changes, sheetId)) {
+      return;
+    }
+
+    if (deferPaintToPluginEngineWrite(this.engine, this.#paintGrid)) {
+      return;
+    }
+
+    // The paint runs inside the engine's emit. A throwing user hook must not fail the host's engine call.
+    try {
+      this.#paintGrid();
+    } catch (e) {
+      warn(`Formulas: the grid failed to repaint after an engine change: ${e instanceof Error ? e.message : e}`);
+    }
+  }
+
+  /**
+   * Paints this grid, unless it went away since the engine named it. While its draw is being prepared or draws
+   * a held engine, the paint is left to that draw (`#deferPaintToDraw()`).
+   */
+  #paintGrid = () => {
+    if (this.hot.isDestroyed || !this.hot.view) {
+      return;
+    }
+
+    if (this.#isPreparingDraw || this.#isDrawingHeldEngine) {
+      this.#deferPaintToDraw();
+
+      return;
+    }
+
+    this.hot.render();
+  };
+
+  /**
+   * Leaves a paint to the draw that is being prepared or runs. A full draw reads every cell after the
+   * recalculation, so it paints what the paint would. A fast draw repaints only the cells it adds, so the grid
+   * renders once more when it ends (`#onAfterRender`). A draw that throws never reaches `afterRender`, so a
+   * microtask checks for it (`#onDrawEndCheck`).
+   */
+  #deferPaintToDraw() {
+    if (this.#isFastDraw) {
+      this.#repaintAfterDraw = true;
+    }
+
+    if (!this.#drawEndCheckQueued) {
+      this.#drawEndCheckQueued = true;
+      this.hot._registerMicrotask(this.#onDrawEndCheck);
+    }
+  }
+
+  /**
+   * Microtask callback queued by `#deferPaintToDraw()`. No draw runs across a microtask, so a draw state still
+   * set means the draw threw before `afterRender`: the state is reset and the grid painted.
+   */
+  #onDrawEndCheck = () => {
+    this.#drawEndCheckQueued = false;
+
+    if (!this.#isPreparingDraw && !this.#isDrawingHeldEngine && !this.#repaintAfterDraw) {
+      return;
+    }
+
+    this.#isPreparingDraw = false;
+    this.#isDrawingHeldEngine = false;
+    this.#repaintAfterDraw = false;
+
+    if (this.hot.isDestroyed || !this.hot.view) {
+      return;
+    }
+
+    try {
+      this.hot.render();
+    } catch (e) {
+      warn(`Formulas: the grid failed to repaint after an engine change: ${e instanceof Error ? e.message : e}`);
+    }
   };
 
   /**
@@ -781,18 +1274,6 @@ export class Formulas extends BasePlugin {
    */
   sheetName: string | null = null;
   /**
-   * The flag that makes a `sheetName` change applied through `updateSettings` bind the sheet
-   * without loading its content into the grid. Set by a caller that loads the sheet's data
-   * itself right after the update (the SheetsBar plugin), so the grid is loaded once, not twice.
-   * That load's `afterLoadData` writes the data into the sheet bound here. A name the engine does
-   * not know still goes through `switchSheet`, which reports it.
-   *
-   * @private
-   * @type {boolean}
-   */
-  skipSheetSwitchLoad = false;
-
-  /**
    * Whether the engine currently holds the sheet this instance is bound to, or `null` when the
    * engine has to be asked again. The `modifyData` and `modifySourceData` hooks read it once per
    * cell read, so the engine lookup is cached and dropped only when a sheet is added, renamed, or
@@ -846,9 +1327,14 @@ export class Formulas extends BasePlugin {
     this.#nestedRowsDetachPending = false;
     this.#sheetResyncPending = false;
     this.#showFormulasFlag = false;
+    // A draw the plugin was turned off in never reached the listener that ends it.
+    this.#isPreparingDraw = false;
+    this.#isDrawingHeldEngine = false;
 
     this.engine = setupEngine(this.hot) ?? this.engine;
+    this.#engineBuiltFromClass = isEngineClassSetting(this.#readEngineSetting());
     this.#ownSheetExists = null;
+    this.#unquotedSheetNames.clear();
     this.#sheetsNotNamingOwnSheet.clear();
 
     if (!this.engine) {
@@ -858,17 +1344,30 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    let sheetPaintErrors: unknown[] = [];
+
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
-    if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
+    if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName) && this.isDataLoadPending()) {
+      this.sheetName = null;
+      this.sheetId = null;
+
+    } else if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
       const sourceDataArray = this.#getProcessedSourceDataArray();
 
       this.#escapeSourceDataArray(sourceDataArray);
 
-      const newSheetName = this.addSheet(this.sheetName, sourceDataArray);
+      const { addedSheetName, paintErrors } = this.#addSheet(this.sheetName, sourceDataArray);
 
-      if (typeof newSheetName === 'string') {
-        this.#updateSheetNameAndSheetId(newSheetName);
+      if (typeof addedSheetName === 'string') {
+        this.#updateSheetNameAndSheetId(addedSheetName);
       }
+
+      sheetPaintErrors = paintErrors;
+
+    } else if (this.sheetName !== null && this.hot.view && !this.#hotWasInitializedWithEmptyData
+      && !this.isDataLoadPending()) {
+      this.#updateSheetNameAndSheetId(this.sheetName);
+      this.#sheetResyncPending = true;
     }
 
     this.addHook('beforeLoadData', this.#onBeforeLoadData);
@@ -894,6 +1393,9 @@ export class Formulas extends BasePlugin {
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
     this.addHook('afterSetDataAtCell', this.#onAfterSetDataAtCell);
     this.addHook('afterSetDataAtRowProp', this.#onAfterSetDataAtCell);
+    this.addHook('beforeChangeRender', this.#onBeforeChangeRender);
+    this.addHook('afterChange', this.#onAfterChangeWriteOutOfBounds);
+    this.hot._addDroppedChangesListener(this.#onChangesDropped);
 
     this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('beforeCreateCol', this.#onBeforeCreateCol);
@@ -908,22 +1410,31 @@ export class Formulas extends BasePlugin {
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
 
     this.indexSyncer = new IndexSyncer(
-      this.hot.rowIndexMapper, this.hot.columnIndexMapper, (postponedAction: Function) => {
-        this.hot.addHookOnce('init', () => {
-          // Engine is initialized after executing callback to `afterLoadData` hook. Thus, some actions on indexes should
-          // be postponed.
-          postponedAction();
-        });
+      this.hot.rowIndexMapper, this.hot.columnIndexMapper, () => {
+        // Nothing is postponed: the axis syncers postpone the initial order only while no sheet is bound, and
+        // the plugin sets the sync endpoint up with a bound sheet only. Each setup sends the order itself.
+      }, <T>(engine: HyperFormulaEngine, fn: () => T) => this.#writeOwnSheet(engine, fn),
+      () => this.#isRowOrderSorted(),
+      // The engine's references then depend on the order (DEV-917), and only a write of the data repairs them
+      // once the order is gone: a cleared sort is itself an order sent, so the next resync writes. A reset of
+      // the grid's order (`onOrderReset()`) reaches no engine call, so only that write brings the engine to it.
+      () => {
+        this.#syncedContent = null;
       });
 
     this.rowAxisSyncer = this.indexSyncer.getForAxis('row');
     this.columnAxisSyncer = this.indexSyncer.getForAxis('column');
+
+    if (this.#engineOrderHolds > 0) {
+      this.indexSyncer.setOrderHeld(true);
+    }
 
     this.addHook('afterRowSequenceChange', this.rowAxisSyncer!.getIndexesChangeSyncMethod());
     this.addHook('afterColumnSequenceChange', this.columnAxisSyncer!.getIndexesChangeSyncMethod());
     // Any reorder rewrites formula references inside the engine, a sort included.
     this.addHook('afterRowSequenceChange', this.#onAfterSequenceChange);
     this.addHook('afterColumnSequenceChange', this.#onAfterSequenceChange);
+    this.addHook('afterColumnSequenceChange', this.#onAfterColumnSequenceChange);
 
     this.addHook('beforeRowMove',
       (movedRows: number[], finalIndex: number, _dropIndex: number | undefined, movePossible: boolean) => {
@@ -960,11 +1471,10 @@ export class Formulas extends BasePlugin {
       this.#trackPeerRewrites(() => this.columnAxisSyncer!.calculateAndSyncMoves(freezePerformed, freezePerformed));
     });
 
-    this.addHook('beforeColumnUnfreeze', (column: number, unfreezePerformed: boolean) => {
-      const fixedColumnsStart = this.hot.getSettings().fixedColumnsStart;
-
-      this.columnAxisSyncer!.storeMovesInformation(
-        [column], fixedColumnsStart! - 1, unfreezePerformed);
+    // The target comes from the hook: ManualColumnFreeze resolves it before the move, and with
+    // `restoreColumnPosition` it is not the freeze line.
+    this.addHook('beforeColumnUnfreeze', (column: number, unfreezePerformed: boolean, finalIndex: number) => {
+      this.columnAxisSyncer!.storeMovesInformation([column], finalIndex, unfreezePerformed);
     });
 
     this.addHook('afterColumnUnfreeze', (_column: number, unfreezePerformed: boolean) => {
@@ -976,7 +1486,22 @@ export class Formulas extends BasePlugin {
     // initialization, where `afterLoadData` returns early) and in `afterLoadData` /
     // `afterUpdateData`, where the transient meta read provides composed cell properties.
     this.addHook('afterCellMetaReset', this.#onAfterCellMetaReset);
+    this.addHook('beforeRender', this.#onBeforeRenderStart, -1);
     this.addHook('beforeRender', this.#onBeforeRender);
+    this.addHook('afterRender', this.#onAfterRender);
+
+    // `batchEvaluation`: the grid holds the engine's recalculation while its execution is suspended. The
+    // release runs ahead of every default-order listener, so one that reads the engine or throws runs after
+    // the engine is resumed.
+    this.addHook('afterSuspendExecution', this.#onAfterSuspendExecution);
+    this.addHook('afterResumeExecution', this.#onAfterResumeExecution, -1);
+    // A structure change moves the cells the held writes' dependents are named by, so they are validated
+    // before it (the insert and removal hooks do it in their own callbacks).
+    this.addHook('beforeRowMove', this.#onBeforeStructureChange);
+    this.addHook('beforeColumnMove', this.#onBeforeStructureChange);
+    this.addHook('beforeColumnSort', this.#onBeforeStructureChange);
+    this.addHook('beforeLoadData', this.#onBeforeLoadHeldData);
+    this.addHook('beforeUpdateData', this.#onBeforeLoadHeldData);
 
     // `orderIndex: 1` puts this after every default-order listener, and the plugins' own
     // `onUpdateSettings` is one of them - which is the whole point: the row count is only final once
@@ -1021,12 +1546,30 @@ export class Formulas extends BasePlugin {
     }
 
     super.enablePlugin();
+
+    if (sheetPaintErrors.length > 0) {
+      throw sheetPaintErrors[0];
+    }
   }
 
   /**
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    // A grid that leaves a held recalculation must not leave a shared engine suspended for the other grids.
+    // First, so everything below reads a resumed engine. A resync the settings update owes is dropped below
+    // anyway, so for a holder it is dropped before the release validates (and reads) this grid's cells.
+    if (this.engine && isEvaluationHolder(this.engine, this.hot)) {
+      this.#sheetResyncPending = false;
+      this.#releaseEvaluationHold();
+    }
+
+    // First, while the plugin is still whole: a listener may close an open edit (the FormulaBuilder
+    // plugin does), and that edit's render runs this plugin's `afterRenderer`, which would wrap the
+    // `HYPERLINK` anchors again after the cleanup below. The engine is still set here too.
+    this.#notifyEngineDetach();
+    this.#syncedContent = null;
+    this.hot._removeDroppedChangesListener(this.#onChangesDropped);
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
@@ -1096,64 +1639,244 @@ export class Formulas extends BasePlugin {
    * @param {object} newSettings New set of settings passed to the `updateSettings` method.
    */
   updatePlugin(newSettings: Record<string, unknown>) {
+    let sheetPaintErrors: unknown[] = [];
+
+    this.#followEngineChange(newSettings);
+
     const newEngineSettings = getEngineSettingsWithOverrides(this.hot.getSettings());
 
     if (this.engine && haveEngineSettingsChanged(this.engine.getConfig(), newEngineSettings)) {
       this.engine.updateConfig(newEngineSettings);
     }
 
-    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+    const requestedSheetName = this.#requestedSheetName();
 
     if (
-      pluginSettings !== undefined &&
-      typeof pluginSettings !== 'boolean' &&
-      pluginSettings.sheetName !== undefined &&
+      requestedSheetName !== undefined &&
       // Sheet ids are compared rather than names, because `sheetName` holds the engine's casing
       // while the setting keeps the one it was written with. An unknown name has no id, which
       // still differs from the current one and lets `switchSheet` report it.
-      this.engine?.getSheetId(pluginSettings.sheetName) !== this.sheetId
+      this.engine?.getSheetId(requestedSheetName) !== this.sheetId
     ) {
-      if (this.skipSheetSwitchLoad && this.engine?.doesSheetExist(pluginSettings.sheetName)) {
-        this.#updateSheetNameAndSheetId(pluginSettings.sheetName);
+      const sheetExists = this.engine?.doesSheetExist(requestedSheetName) === true;
 
-      } else {
-        this.switchSheet(pluginSettings.sheetName);
+      if (this.isDataLoadPending()) {
+        if (sheetExists) {
+          this.#updateSheetNameAndSheetId(requestedSheetName);
+          this.#followedSheetNameSetting = requestedSheetName;
+        }
+
+      } else if (sheetExists || this.sheetName !== null) {
+        this.#loadSheet(requestedSheetName);
       }
+    }
+
+    if (!this.isDataLoadPending()) {
+      this.#followSheetNameSettingWhenBound();
     }
 
     // If no data was passed to the `updateSettings` method and no sheet is connected to the instance -> create a
     // new sheet using the currently used data. Otherwise, it will be handled by the `afterLoadData` call.
-    if (!newSettings.data && this.sheetName === null) {
+    if (!newSettings.data && !this.isDataLoadPending() && this.sheetName === null) {
       const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
       const sheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
 
       if (sheetName && this.engine?.doesSheetExist(sheetName)) {
-        this.switchSheet(sheetName);
+        this.#loadSheet(sheetName);
 
       } else {
         const sourceDataArray = this.#getProcessedSourceDataArray();
 
         this.#escapeSourceDataArray(sourceDataArray);
 
-        const newSheetName = this.addSheet(sheetName ?? undefined, sourceDataArray);
+        const { addedSheetName, paintErrors } = this.#addSheet(sheetName ?? undefined, sourceDataArray);
 
-        if (typeof newSheetName === 'string') {
-          this.#updateSheetNameAndSheetId(newSheetName);
+        if (typeof addedSheetName === 'string') {
+          this.#updateSheetNameAndSheetId(addedSheetName);
         }
+
+        sheetPaintErrors = paintErrors;
       }
     }
 
     this.#refreshHyperlinksSetting();
 
     super.updatePlugin(newSettings);
+
+    if (sheetPaintErrors.length > 0) {
+      throw sheetPaintErrors[0];
+    }
+  }
+
+  /**
+   * Returns the `formulas.sheetName` setting when it asks for a sheet: it names one, and it changed since
+   * the binding last followed it (`#followedSheetNameSetting`). The binding is kept by sheet id and
+   * follows an engine rename of the sheet (`#onEngineSheetRenamed`), while the setting keeps the name it
+   * was written with, so an unchanged setting is not a request. Read as one, it found the old name after
+   * the sheets bar renamed the shown sheet: a `language` or `maxRows` update logged that the sheet does
+   * not exist and bound the grid to any sheet that took the old name since, and a `loadData()` added a
+   * new sheet under the old name.
+   *
+   * @returns {string|undefined}
+   */
+  #requestedSheetName(): string | undefined {
+    const sheetName = this.#readSheetNameSetting();
+
+    return sheetName !== this.#followedSheetNameSetting ? sheetName : undefined;
+  }
+
+  /**
+   * Records the `sheetName` setting as followed once the binding matches it. A request the plugin could
+   * not carry out (a name the engine did not hold yet) stays a request, so the same setting sent again
+   * after the host added that sheet binds it; recorded right away, the retry did nothing and logged
+   * nothing. A binding that only followed an engine rename keeps the setting it followed before.
+   */
+  #followSheetNameSettingWhenBound() {
+    const sheetName = this.#readSheetNameSetting();
+
+    if (sheetName === undefined || (this.sheetId !== null && this.engine?.getSheetId(sheetName) === this.sheetId)) {
+      this.#followedSheetNameSetting = sheetName;
+    }
+  }
+
+  /**
+   * Tells whether the engine reads a sheet name without quotes, asking the engine's own parser once per
+   * name.
+   *
+   * @param {string} name The sheet name.
+   * @returns {boolean}
+   */
+  #canReadUnquoted = (name: string): boolean => {
+    let readable = this.#unquotedSheetNames.get(name);
+
+    if (readable === undefined) {
+      readable = canReadSheetNameUnquoted(this.engine, name);
+      this.#unquotedSheetNames.set(name, readable);
+    }
+
+    return readable;
+  };
+
+  /**
+   * Returns formula text read from the engine in a form the engine can parse again. HyperFormula writes a
+   * sheet name that starts with a digit (`2026`, `1Q`) without the quotes it needs, even when the formula
+   * was written with them, and then fails to parse its own text: an editor opened on `='2026'!A1` and
+   * committed unchanged turned the cell into `#ERROR!`. Every formula text that leaves the engine (the
+   * source data reads, the copy, a fill, a move, the reload of a sheet, the text written back into the
+   * data, and the text undo keeps) goes through here. A value that is not a formula, or a formula with no
+   * sheet reference, comes back as it was.
+   *
+   * @param {*} value A value read from the engine.
+   * @returns {*}
+   */
+  #readableFormula<T>(value: T): T {
+    if (typeof value !== 'string' || !value.startsWith('=')) {
+      return value;
+    }
+
+    return quoteUnreadableSheetNames(value, this.#canReadUnquoted) as T;
+  }
+
+  /**
+   * Applies `#readableFormula()` to every cell of a sheet read from the engine. A row with nothing to
+   * change is kept as the same array.
+   *
+   * @param {Array[]} rows The rows.
+   * @returns {Array[]}
+   */
+  #readableSheet<T extends unknown[][]>(rows: T): T {
+    return rows.map((row) => {
+      if (!Array.isArray(row)) {
+        return row;
+      }
+
+      let readable: unknown[] | null = null;
+
+      row.forEach((cell: unknown, index: number) => {
+        const text = this.#readableFormula(cell);
+
+        if (text !== cell) {
+          readable ??= row.slice();
+          readable[index] = text;
+        }
+      });
+
+      return readable ?? row;
+    }) as T;
+  }
+
+  /**
+   * Returns the `formulas.engine` setting, or `undefined` when there is none.
+   *
+   * @returns {*}
+   */
+  #readEngineSetting(): unknown {
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+
+    return isFormulasSettingsObject(pluginSettings) ? pluginSettings.engine : undefined;
+  }
+
+  /**
+   * Returns the `formulas.sheetName` setting, or `undefined` when there is none.
+   *
+   * @returns {string|undefined}
+   */
+  #readSheetNameSetting(): string | undefined {
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+
+    return isFormulasSettingsObject(pluginSettings) ? pluginSettings.sheetName : undefined;
+  }
+
+  /**
+   * Moves the plugin to another engine instance when a sheets bar switch sets one. The engine is set up
+   * on enable only, so the plugin kept the first sheet's engine while every later sheet named another:
+   * the sheets bar switched between sheets bound to two engines, the edits of the second landed in a
+   * copy of its sheet inside the first engine, and the formulas of the second engine never saw them.
+   * The old engine's sheet is left where it is, and the plugin binds the sheet the settings name in the
+   * new engine.
+   *
+   * Only a call that loads the sheet's data next (`isDataLoadPending()`, a sheets bar switch) follows a
+   * change, so a plain `updateSettings()` keeps the engine the grid was built with, as before. An instance
+   * counts only when it already holds the sheet `sheetName` names, as every engine the sheets bar binds
+   * does. An engine class (or `{ hyperformula }`) builds an engine of the plugin's own, so it counts only
+   * when the current engine is an instance the host passed: kept on that instance, a sheet that passes the
+   * class wrote itself into another sheet's engine.
+   *
+   * @param {object} newSettings The settings update.
+   */
+  #followEngineChange(newSettings: Record<string, unknown>) {
+    const engine = this.#readEngineSetting();
+    const sheetName = this.#readSheetNameSetting();
+    const holdsSheet = sheetName !== undefined && isObject(engine)
+      && (engine as { doesSheetExist?: (name: string) => boolean }).doesSheetExist?.(sheetName) === true;
+    const changed = this.isDataLoadPending() && (isEngineClassSetting(engine)
+      ? !this.#engineBuiltFromClass
+      : isObject(engine) && engine !== this.engine && holdsSheet);
+
+    if (!this.enabled || !hasOwnProperty(newSettings, PLUGIN_KEY) || !changed) {
+      return;
+    }
+
+    this.disablePlugin();
+    this.sheetName = null;
+    this.sheetId = null;
+    this.#followedSheetNameSetting = undefined;
+    this.enablePlugin();
   }
 
   /**
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#notifyEngineDetach();
+    this.#engineDetachListeners.clear();
+    this.hot._removeDroppedChangesListener(this.#onChangesDropped);
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
+    // The core has torn the view, the data and the index mappers down by now, and the execution hooks are
+    // silent, so the hold is released here, after this grid stopped listening to the engine and before the
+    // engine goes: the other grids on it paint and read a resumed engine.
+    this.#releaseEvaluationHold(true);
 
     if (this.engine) {
       unregisterEngine(this.engine, this.hot);
@@ -1242,35 +1965,69 @@ export class Formulas extends BasePlugin {
    * @param {Array} [sheetData] Data passed to the shared HyperFormula instance. Has to be declared as an array of
    * arrays - array of objects is not supported in this scenario.
    * @returns {boolean|string} `false` if the data format is unusable or it is impossible to add a new sheet to the
-   * engine, the created sheet name otherwise.
+   * engine, the created sheet name otherwise. When a grid that repaints because of the new sheet throws, the
+   * sheet is already added and the error is rethrown once every grid has repainted.
    */
   addSheet(sheetName?: string | null, sheetData?: unknown[][]): string | boolean {
+    const { addedSheetName, paintErrors } = this.#addSheet(sheetName, sheetData);
+
+    if (paintErrors.length > 0) {
+      throw paintErrors[0];
+    }
+
+    return addedSheetName;
+  }
+
+  /**
+   * Adds the sheet to the engine and tells what the engine did, apart from what the grids that repaint did.
+   * A repaint that throws once the sheet is in the engine does not make the registration fail: the caller
+   * binds the sheet first and then reports the error, so the grid is never left unbound to a sheet that
+   * exists.
+   *
+   * @param {string|null} [sheetName] The name of the sheet.
+   * @param {Array} [sheetData] Data passed to the engine, as an array of arrays.
+   * @returns {{ addedSheetName: string|false, paintErrors: unknown[] }} The created sheet's name, or `false`
+   * when the engine did not take it, and the errors the grids' repaints threw.
+   */
+  #addSheet(sheetName?: string | null, sheetData?: unknown[][]) {
+    const paintErrors: unknown[] = [];
+
     if (isDefined(sheetData) && !isArrayOfArrays(sheetData)) {
       warn('The provided data should be an array of arrays.');
 
-      return false;
+      return { addedSheetName: false as const, paintErrors };
     }
 
     if (sheetName !== undefined && sheetName !== null && this.engine?.doesSheetExist(sheetName)) {
       warn('Sheet with the provided name already exists.');
 
-      return false;
+      return { addedSheetName: false as const, paintErrors };
     }
+
+    const engine = this.engine!;
+    let registered: string | undefined;
 
     try {
-      const actualSheetName = this.engine!.addSheet(sheetName ?? undefined);
+      withPluginEngineWrite(engine, () => {
+        const actualSheetName = engine.addSheet(sheetName ?? undefined);
 
-      if (sheetData) {
-        this.engine!.setSheetContent(this.engine!.getSheetId(actualSheetName), sheetData);
+        if (sheetData) {
+          engine.setSheetContent(engine.getSheetId(actualSheetName), this.#readableSheet(sheetData));
+        }
+
+        registered = actualSheetName;
+      });
+    } catch (e) {
+      if (registered === undefined) {
+        warn(e instanceof Error ? e.message : String(e));
+
+        return { addedSheetName: false as const, paintErrors };
       }
 
-      return actualSheetName;
-
-    } catch (e) {
-      warn(e instanceof Error ? e.message : String(e));
-
-      return false;
+      paintErrors.push(e);
     }
+
+    return { addedSheetName: registered ?? (false as const), paintErrors };
   }
 
   /**
@@ -1299,6 +2056,21 @@ export class Formulas extends BasePlugin {
    * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
    */
   switchSheet(sheetName: string): void {
+    this.#followedSheetNameSetting = undefined;
+    this.#loadSheet(sheetName);
+  }
+
+  /**
+   * Binds the grid to an engine sheet and loads its content into the grid: `switchSheet()`, and the
+   * reloads the plugin makes itself. Only `switchSheet()` moves the binding away from the `sheetName`
+   * setting, so only it drops the setting the binding followed (`#requestedSheetName()`): the next
+   * settings update that names a sheet then binds it again, even when the value did not change.
+   *
+   * @param {string} sheetName Sheet name used in the shared HyperFormula instance.
+   */
+  #loadSheet(sheetName: string): void {
+    this.#syncedContent = null;
+
     if (!this.engine?.doesSheetExist(sheetName)) {
       error(`The sheet named \`${sheetName}\` does not exist, switch aborted.`);
 
@@ -1310,10 +2082,13 @@ export class Formulas extends BasePlugin {
     // the grid's own source data, which a switch to a genuinely different sheet cannot.
     const isSameSheetReload = this.engine.getSheetId(sheetName) === this.sheetId;
 
+    // The writes held before the switch are recalculated with the sheet they were made in still bound, and
+    // their dependents validated while the grid still shows it (the load drops the data map first).
+    this.#validateHeldWritesNow();
     this.#updateSheetNameAndSheetId(sheetName);
 
     const unescaped = this.#unescapeEngineSheetArray(
-      this.engine.getSheetSerialized(this.sheetId), isSameSheetReload
+      this.#readableSheet(this.engine.getSheetSerialized(this.sheetId)), isSameSheetReload
     );
     // The engine trims each row's trailing empty cells, and the core reads the column count off the
     // first row, so a first row that ends in an emptied cell would load a grid one column short.
@@ -1325,6 +2100,86 @@ export class Formulas extends BasePlugin {
 
     if (serialized.length > 0) {
       this.hot.loadData(serialized, `${toUpperCaseFirst(PLUGIN_KEY)}.switchSheet`);
+    }
+  }
+
+  /**
+   * Returns the order the engine holds the bound sheet in, when it is not the physical order on either
+   * axis (a sort or a move reached the engine), or `null`. A caller that loads the sheet's data again
+   * later and puts the same row and column order back on the grid passes it to
+   * {@link Formulas#runWithEngineOrderHeld}, which then takes the engine sheet over instead of writing
+   * the data into it. With `withContent`, the order also carries the engine sheet's content, which a
+   * later binding to another engine sheet writes before it takes the order over.
+   *
+   * @private
+   * @param {boolean} [withContent] Whether to include the engine sheet's content.
+   * @returns {object|null}
+   */
+  exportEngineOrder(withContent = false): FormulasEngineSheetOrder | null {
+    if (!this.enabled || !this.engine || this.sheetId === null || !this.#hasOwnSheet()
+      || (this.rowAxisSyncer!.isEngineOrderPhysical() && this.columnAxisSyncer!.isEngineOrderPhysical())) {
+      return null;
+    }
+
+    if (withContent) {
+      this.#flushEvaluation();
+    }
+
+    return {
+      engine: this.engine,
+      sheetId: this.sheetId,
+      rowOrder: this.rowAxisSyncer!.getEngineOrder(),
+      columnOrder: this.columnAxisSyncer!.getEngineOrder(),
+      ...(withContent ? { content: this.#readableSheet(this.engine.getSheetSerialized(this.sheetId)) } : {}),
+    };
+  }
+
+  /**
+   * Runs an operation that replaces the grid's data and puts a row and column order back on it: the
+   * SheetsBar plugin, on a sheet switch. While it runs, the grid's order changes do not reach the engine,
+   * so the sheet the grid leaves keeps the order the user left it in, and the order changes on the way to
+   * the arriving sheet's order (a sort cleared and applied again) leave no mark in the engine. When it
+   * ends, the grid's order is sent once.
+   *
+   * The engine moves formula cells on every order it is handed, so the sheet's formula text in the
+   * engine depends on how the order was reached, and loading the sheet's data and sorting it again gives
+   * other formulas than the ones the user saw. With `adopt` given (what {@link Formulas#exportEngineOrder}
+   * reported when the sheet was left), a load that binds that sheet takes the engine sheet over instead:
+   * it writes nothing, and the order the engine holds becomes the stored one, which the grid's order
+   * ends on. Only the first such load takes it over: a later load in the same operation brings other data.
+   * When `adopt` carries the engine sheet's content, the first load takes it over whatever engine sheet it
+   * binds: it writes that content instead of the loaded data, so a sheet whose engine was destroyed or
+   * whose engine sheet was replaced comes back with the formulas the user left.
+   *
+   * A move made in the operation is held like a sort. Rows or columns inserted or removed in it are not
+   * supported: the engine changes positionally through the held order, which the stored order then no
+   * longer describes.
+   *
+   * @private
+   * @param {Function} run The operation.
+   * @param {object|null} [adopt] The engine order of the sheet a load in the operation takes over.
+   */
+  runWithEngineOrderHeld(run: () => void, adopt: FormulasEngineSheetOrder | null = null): void {
+    this.#engineOrderHolds += 1;
+
+    const outermost = this.#engineOrderHolds === 1;
+
+    if (outermost) {
+      this.#pendingAdoption = adopt === null ? null : { order: adopt, adopted: false };
+    }
+
+    this.indexSyncer?.setOrderHeld(true);
+
+    try {
+      run();
+
+    } finally {
+      this.#engineOrderHolds -= 1;
+
+      if (outermost) {
+        this.#pendingAdoption = null;
+        this.indexSyncer?.setOrderHeld(false, this.enabled && this.engine !== null);
+      }
     }
   }
 
@@ -1602,6 +2457,8 @@ export class Formulas extends BasePlugin {
       return null;
     }
 
+    this.#flushEvaluation();
+
     const url = this.engine.getCellHyperlink({
       sheet: this.sheetId,
       row: this.rowAxisSyncer.getHfIndexFromVisualIndex(row),
@@ -1628,37 +2485,340 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Renders dependent sheets (handsontable instances) based on the changes - list of the
-   * recalculated dependent cells.
+   * Runs `fn` as a plugin write to `engine`: every grid on the engine whose sheet the engine's events
+   * name is painted once, when the outermost write ends.
+   *
+   * The engine is an argument because a caller can write it before this instance is bound to it.
    *
    * @private
-   * @param {object[]} dependentCells The values and location of applied changes within HF engine.
-   * @param {boolean} [renderSelf] `true` if it's supposed to render itself, `false` otherwise.
+   * @param {object} engine The engine `fn` writes.
+   * @param {Function} fn The mutation.
+   * @returns {*} What `fn` returns.
    */
-  renderDependentSheets(dependentCells: unknown[], renderSelf = false) {
-    const affectedSheetIds = new Set();
+  runEngineWrite<T>(engine: object, fn: () => T): T {
+    return withPluginEngineWrite(engine, fn);
+  }
 
-    dependentCells.forEach((change: unknown) => {
-      // For the Named expression the address is empty, hence the `sheetId` is undefined.
-      const sheetId = isHFCellChange(change) ? change.address?.sheet : undefined;
+  /**
+   * Recalculates the writes a grid holds on `engine` (the `batchEvaluation` setting), so the engine can be
+   * read. Another plugin that reads the engine directly calls it first: HyperFormula refuses value reads
+   * while its evaluation is suspended. Does nothing when nothing is held.
+   *
+   * The engine is an argument because a caller can read an engine this instance is not bound to.
+   *
+   * @private
+   * @param {object|null} [engine] The engine to read, this instance's engine by default.
+   */
+  flushEngineEvaluation(engine: HyperFormulaEngine | null = this.engine): void {
+    flushEvaluationHold(engine);
+  }
 
-      if (sheetId !== undefined && !affectedSheetIds.has(sheetId)) {
-        affectedSheetIds.add(sheetId);
+  /**
+   * Tells whether this instance's engine holds writes that are not recalculated yet (the `batchEvaluation`
+   * setting), so a read of a formula cell would recalculate them. Another plugin that wants to avoid that read
+   * until the writes end asks first.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isEngineHeld(): boolean {
+    return isEvaluationHeld(this.engine);
+  }
+
+  /**
+   * Returns the names of the sheets of `engine` that Handsontable instances other than this one are bound to.
+   *
+   * The engine is an argument because a caller can ask before this instance is bound to it.
+   *
+   * @private
+   * @param {object} engine The engine.
+   * @returns {string[]}
+   */
+  getSheetNamesBoundElsewhere(engine: HyperFormulaEngine): string[] {
+    const names: string[] = [];
+
+    getRegisteredHotInstanceList(engine).forEach((hot) => {
+      const { sheetId } = hot.getPlugin('formulas');
+      const name = hot !== this.hot && typeof sheetId === 'number' ? engine.getSheetName(sheetId) : undefined;
+
+      if (typeof name === 'string') {
+        names.push(name);
       }
     });
 
-    if (!this.engine) {
+    return names;
+  }
+
+  /**
+   * Runs `fn` as a write to this grid's own sheet. Like `runEngineWrite()`, but this grid is left out
+   * of the paint: the Core paints it after the operation that made the write.
+   *
+   * @param {object|null|undefined} engine The engine `fn` writes.
+   * @param {Function} fn The mutation.
+   * @returns {*} What `fn` returns.
+   */
+  #writeOwnSheet<T>(engine: object | null | undefined, fn: () => T): T {
+    this.#ownWriteDepth += 1;
+
+    try {
+      return withPluginEngineWrite(engine, fn);
+    } finally {
+      this.#ownWriteDepth -= 1;
+    }
+  }
+
+  /**
+   * Whether the `batchEvaluation` setting is on. Read when the execution is suspended, so a change applies
+   * from the next suspension without restarting the plugin.
+   *
+   * @returns {boolean}
+   */
+  #isBatchEvaluationEnabled(): boolean {
+    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+
+    return isFormulasSettingsObject(pluginSettings) && pluginSettings.batchEvaluation === true;
+  }
+
+  /**
+   * `afterSuspendExecution` hook callback. With `batchEvaluation` on, the grid holds the engine's
+   * recalculation: the engine is suspended at the first engine write the plugin makes from now on, not here,
+   * so a suspension that writes only index maps (every render's autosizing, a filter, a hidden row) never
+   * touches the engine.
+   */
+  #onAfterSuspendExecution = () => {
+    if (this.engine && this.#isBatchEvaluationEnabled()) {
+      joinEvaluationHold(this.engine, this.hot);
+    }
+  };
+
+  /**
+   * `afterResumeExecution` hook callback. Releases the hold this grid has on the engine.
+   */
+  #onAfterResumeExecution = () => {
+    this.#releaseEvaluationHold();
+  };
+
+  /**
+   * Takes this grid out of the hold on its engine. When it was the last grid holding it, the held writes are
+   * recalculated, once, and their dependents are validated, once each. Both run in one plugin write scope, so
+   * the grids paint after the validation, and a paint that suspends a grid's execution again (its render's
+   * autosizing) starts a hold of its own. When the host holds the engine suspended itself, the hold ends and
+   * the dependents are validated when the host resumes it.
+   *
+   * @param {boolean} [leaving=false] `true` when the grid is being destroyed: its own cells are not validated,
+   *   and another grid on the engine validates the rest.
+   */
+  #releaseEvaluationHold(leaving = false) {
+    const engine = this.engine;
+
+    if (!engine) {
       return;
     }
 
-    getRegisteredHotInstances(this.engine).forEach((relatedHot, sheetId) => {
-      if (
-        (renderSelf || (sheetId !== this.sheetId)) &&
-        affectedSheetIds.has(sheetId)
-      ) {
-        relatedHot.render();
+    const wasHolder = isEvaluationHolder(engine, this.hot);
+
+    if (!leaveEvaluationHold(engine, this.hot)) {
+      // Another grid on the engine is still suspended, so the hold goes on. This grid's execution is over,
+      // though: its writes take effect and its dependents are validated now, as without the setting. Left to
+      // the last grid's release, they would wait for a resume that may never come.
+      if (wasHolder && !leaving) {
+        this.#recalculateAndValidateHeldWrites(engine);
+      }
+
+      return;
+    }
+
+    this.#endEvaluationHold(engine, leaving ? this.sheetId : null);
+  }
+
+  /**
+   * Recalculates the writes held on the engine and validates their dependents, while the hold stays open for
+   * the grids still suspended. Both run in one plugin write scope, so the grids paint after the validation.
+   *
+   * @param {object} engine The engine.
+   */
+  #recalculateAndValidateHeldWrites(engine: HyperFormulaEngine) {
+    withPluginEngineWrite(engine, () => {
+      flushEvaluationHold(engine);
+
+      const recalculations = takeHeldRecalculations(engine);
+
+      if (recalculations.length > 0) {
+        this.#validateHeldDependents(engine, recalculations, null);
       }
     });
+  }
+
+  /**
+   * Releases the hold of the grids whose execution resumed without a release: an `afterResumeExecution`
+   * listener that runs before the plugin's threw (a global one runs before every grid's own). Called before
+   * each draw of any grid on the engine, so the later writes of the other grids are not held for them.
+   */
+  #releaseResumedHolders() {
+    const engine = this.engine;
+
+    if (engine && leaveResumedHolders(engine)) {
+      this.#endEvaluationHold(engine, null);
+    }
+  }
+
+  /**
+   * Recalculates the writes a hold no grid holds anymore and settles it (`#releaseEvaluationHold()`).
+   *
+   * @param {object} engine The engine.
+   * @param {number|null} leavingSheetId The sheet of a grid that is being destroyed, or `null`.
+   */
+  #endEvaluationHold(engine: HyperFormulaEngine, leavingSheetId: number | null) {
+    withPluginEngineWrite(engine, () => {
+      // Settled also when a listener of the recalculation throws, so the next hold starts empty.
+      try {
+        flushEvaluationHold(engine);
+      } finally {
+        settleEvaluationHold(engine, (recalculations: HeldRecalculation[]) => {
+          this.#validateHeldDependents(engine, recalculations, leavingSheetId);
+        });
+      }
+    });
+  }
+
+  /**
+   * Validates the dependents a hold's recalculations owe a validation (`collectHeldDependents()`). Each one is
+   * validated by the grid bound to its sheet, whichever grid ends the hold, because `validateDependentCells()`
+   * checks the addresses against the size of the grid it runs on. The cells of a destroyed grid's sheet are
+   * left out.
+   *
+   * @param {object} engine The engine.
+   * @param {Array} recalculations The recalculations of the hold.
+   * @param {number|null} leavingSheetId The sheet of a grid that is being destroyed, or `null`.
+   */
+  #validateHeldDependents(engine: HyperFormulaEngine, recalculations: HeldRecalculation[],
+                          leavingSheetId: number | null) {
+    const dependentsBySheet = new Map<number, unknown[]>();
+
+    collectHeldDependents(recalculations).forEach((change) => {
+      const sheet = isHFCellChange(change) ? change.address?.sheet : undefined;
+
+      if (sheet === undefined || sheet === leavingSheetId) {
+        return;
+      }
+
+      const dependents = dependentsBySheet.get(sheet);
+
+      if (dependents === undefined) {
+        dependentsBySheet.set(sheet, [change]);
+      } else {
+        dependents.push(change);
+      }
+    });
+
+    // Most holds end with nothing to validate (every render's autosizing), so the registry is not read for them.
+    if (dependentsBySheet.size === 0) {
+      return;
+    }
+
+    const boundGrids = getRegisteredHotInstances(engine);
+
+    dependentsBySheet.forEach((dependents, sheet) => {
+      const plugin = boundGrids.get(sheet)?.getPlugin('formulas');
+
+      if (plugin?.enabled && plugin.engine === engine) {
+        plugin.validateDependentCells(dependents);
+      }
+    });
+  }
+
+  /**
+   * Recalculates the writes held on the engine, so it can be read (see `flushEngineEvaluation()`).
+   */
+  #flushEvaluation() {
+    flushEvaluationHold(this.engine);
+  }
+
+  /**
+   * Validates the dependents of the writes held so far, before a structure change (an insert, a removal, a
+   * move, a load) moves the cells the engine named them by, as they were validated without a hold.
+   * The writes are recalculated first, without painting this grid: the change paints it.
+   *
+   * @param {boolean} [skipOwnSheet=false] `true` for a load: it replaces this grid's cells, and its data map is
+   *   already gone, so only the other sheets' dependents are validated, by the grids bound to them.
+   */
+  #validateHeldWritesNow(skipOwnSheet = false) {
+    const engine = this.engine;
+
+    if (!engine) {
+      return;
+    }
+
+    if (isEvaluationHeld(engine)) {
+      this.#writeOwnSheet(engine, () => flushEvaluationHold(engine));
+    }
+
+    const recalculations = takeHeldRecalculations(engine);
+
+    if (recalculations.length > 0) {
+      this.#validateHeldDependents(engine, recalculations, skipOwnSheet ? this.sheetId : null);
+    }
+  }
+
+  /**
+   * The callback of the structure change hooks that carry no source (the row and column moves, a sort). See
+   * `#validateHeldWritesNow()`.
+   */
+  #onBeforeStructureChange = () => {
+    this.#validateHeldWritesNow();
+  };
+
+  /**
+   * `beforeLoadData` and `beforeUpdateData` hook callback. See `#validateHeldWritesNow()`. The Core runs these
+   * hooks with the data map already gone, so a recalculation listener that throws is reported, not rethrown:
+   * the load must go on, or the grid is left with no data map.
+   */
+  #onBeforeLoadHeldData = () => {
+    try {
+      this.#validateHeldWritesNow(true);
+    } catch (e) {
+      warn(`Formulas: the recalculation before a data load failed: ${e instanceof Error ? e.message : e}`);
+    }
+  };
+
+  /**
+   * `#validateHeldWritesNow()` for a row or column insert or removal. The rows and columns `auto` adds or
+   * gives back (`minSpareRows` and the like) sit at the end, so they move no cell a held write named.
+   *
+   * @param {string} [source] The source of the change.
+   */
+  #validateHeldWritesBeforeAlter(source?: string) {
+    if (!isBlockedSource(source)) {
+      this.#validateHeldWritesNow();
+    }
+  }
+
+  /**
+   * Validates the dependents of a cell write, or, when the write was held, records the cells it set, so
+   * the release validates the dependents once, against the recalculated values.
+   *
+   * @param {Array} dependentCells The engine's change list of the write.
+   * @param {Array} changedCells The cells the write set (`{ address }`).
+   */
+  #validateWriteDependents(dependentCells: unknown[], changedCells: unknown[]) {
+    if (!recordHeldWrite(this.engine, changedCells)) {
+      this.validateDependentCells(dependentCells, changedCells);
+    }
+  }
+
+  /**
+   * Runs an undo or redo write that needs its change list right away. When the write was held, the engine
+   * is recalculated now and the recalculation is taken out of the hold: the restore validates its
+   * dependents itself, so a restored cell is not validated twice (DEV-2036).
+   *
+   * @param {object} engine The engine.
+   * @param {Function} write The write, returning the engine's change list.
+   * @returns {object} The dependents, and the cells the held writes before it set (to leave out of them).
+   */
+  #runRestoreWrite(engine: HyperFormulaEngine, write: () => unknown[]): HeldRecalculation {
+    const dependents = write();
+
+    return flushEvaluationHoldNow(engine) ?? { dependents, changed: [] };
   }
 
   /**
@@ -1681,9 +2841,7 @@ export class Formulas extends BasePlugin {
       const address = isHFCellChange(change) ? change.address : undefined;
       const { row, col, sheet: sheetId } = address ?? {};
 
-      // Don't try to validate cells outside of the visual part of the table.
-      if (row === undefined || col === undefined ||
-        row >= this.hot.countRows() || col >= this.hot.countCols()) {
+      if (row === undefined || col === undefined) {
         return;
       }
 
@@ -1699,14 +2857,62 @@ export class Formulas extends BasePlugin {
           return;
         }
 
+        // The engine holds the trimmed rows and columns too, so its address is a visual one only through the
+        // syncers of the grid bound to that sheet (not this plugin's own, which describe another sheet).
+        const boundPlugin = boundHot.getPlugin('formulas');
+
+        if (!boundPlugin?.enabled || boundPlugin.engine !== this.engine) {
+          return;
+        }
+
+        const visualRow = boundPlugin.rowAxisSyncer?.getVisualIndexFromHfIndex(row) ?? -1;
+        const visualColumn = boundPlugin.columnAxisSyncer?.getVisualIndexFromHfIndex(col) ?? -1;
+
+        // Don't try to validate cells outside of the visual part of the table (a trimmed one included). The
+        // syncer answers `undefined` for a physical index the table does not cover, so the check is negated.
+        if (!(visualRow >= 0 && visualRow < boundHot.countRows()) ||
+          !(visualColumn >= 0 && visualColumn < boundHot.countCols())) {
+          return;
+        }
+
         // It will just re-render certain cell when necessary.
         boundHot.validateCell(
-          boundHot.getDataAtCell(row, col),
-          boundHot.getCellMeta(row, col),
+          boundHot.getDataAtCell(visualRow, visualColumn),
+          boundHot.getCellMeta(visualRow, visualColumn),
           () => {}
         );
       }
     });
+  }
+
+  /**
+   * Registers a listener called right before the engine is detached from this grid: when the plugin is
+   * disabled (a settings update that turns it off or replaces the engine) and when the grid is
+   * destroyed. The engine is still usable inside the listener. When this grid was the last user of an
+   * engine the plugin built itself, the engine is destroyed right after, so anything subscribed to its
+   * events must unsubscribe here. The FormulaBuilder plugin tears its builder down this way.
+   *
+   * @private
+   * @param {Function} listener The listener.
+   * @returns {Function} Removes the listener.
+   */
+  addEngineDetachListener(listener: () => void): () => void {
+    this.#engineDetachListeners.add(listener);
+
+    return () => {
+      this.#engineDetachListeners.delete(listener);
+    };
+  }
+
+  /**
+   * Tells the engine-detach listeners that the engine is about to be detached, while it is still usable.
+   */
+  #notifyEngineDetach(): void {
+    if (!this.engine) {
+      return;
+    }
+
+    [...this.#engineDetachListeners].forEach(listener => listener());
   }
 
   /**
@@ -1722,12 +2928,18 @@ export class Formulas extends BasePlugin {
       return undefined;
     }
 
+    const sheetSize = this.#hasOwnSheet() ? this.engine.getSheetDimensions(this.sheetId!) : null;
+
     if (
       isFormulasUndoState(previous) &&
       previous.structureVersion === this.#structureVersion &&
       previous.dataVersion === this.#dataVersion &&
       this.#pendingPeerRewrites.size === 0
     ) {
+      if (sheetSize !== null) {
+        this.#sheetSizeFloors.set(previous, sheetSize);
+      }
+
       return previous;
     }
 
@@ -1736,12 +2948,20 @@ export class Formulas extends BasePlugin {
 
     this.#pendingPeerRewrites.clear();
 
-    return {
+    const engineSheet = this.#captureEngineSheet(isFormulasUndoState(previous) ? previous.engineSheet : null);
+    const state: FormulasUndoState = {
       structureVersion: this.#structureVersion,
       dataVersion: this.#dataVersion,
-      engineSheet: this.#captureEngineSheet(isFormulasUndoState(previous) ? previous.engineSheet : null),
+      engineSheet,
+      sourceHasStaleFormulas: engineSheet !== null && this.#sourceHasStaleFormulas,
       peerRewrites,
     };
+
+    if (sheetSize !== null) {
+      this.#sheetSizeFloors.set(state, sheetSize);
+    }
+
+    return state;
   }
 
   /**
@@ -1764,6 +2984,7 @@ export class Formulas extends BasePlugin {
     // The host removed this grid's sheet from the engine, so there is no sheet to bring in line. The
     // versions still follow the restored state, so a later capture compares against it.
     if (!this.#hasOwnSheet()) {
+      this.#syncedContent = null;
       this.#restoredWrites = [];
       this.#structureVersion = state.structureVersion;
       this.#dataVersion = state.dataVersion;
@@ -1771,29 +2992,101 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    if (state.structureVersion !== this.#structureVersion) {
+    // A step that cleared the stale flag wrote the engine's formula text into the source data. Its undo
+    // puts the stale text back with the held writes, and only the recorded sheet holds the right one.
+    // The step's own two sides decide it, not the grid's current versions: a `columns` update rewrites
+    // the whole sheet outside any step, and a recorded sheet would bring back the previous column layout.
+    const otherSide = context?.other;
+    const { structureVersion, sourceHasStaleFormulas } = isFormulasUndoState(otherSide) ? otherSide : {
+      structureVersion: this.#structureVersion,
+      sourceHasStaleFormulas: this.#sourceHasStaleFormulas,
+    };
+    const reloadsSheet = state.structureVersion !== structureVersion ||
+      (state.sourceHasStaleFormulas && !sourceHasStaleFormulas);
+
+    this.#sourceHasStaleFormulas = state.sourceHasStaleFormulas;
+
+    if (reloadsSheet) {
+      // The sheet is loaded from the recorded state, not written cell by cell, so the record cannot follow it.
+      this.#syncedContent = null;
       this.#restoredWrites = [];
       this.#structureVersion = state.structureVersion;
       this.#dataVersion = state.dataVersion;
+      this.#restoreStructure(state, context);
 
-      const dependentCells = state.engineSheet === null ?
-        this.#loadSourceDataIntoSheet() : this.#loadEngineSheet(state.engineSheet);
-
-      dependentCells.forEach((cell) => {
-        this.#restoredDependentCells.push(cell);
-      });
-    } else {
-      this.#dataVersion = state.dataVersion;
-      this.#flushRestoredWrites();
+      return;
     }
 
-    this.#restorePeerRewrites(state, context);
+    // Only cells are written back, and each one goes into the record (`#writeSourceChangesToEngine()`), so a
+    // re-render after an edit and its undo still finds the data the engine holds and skips the write.
+    this.#dataVersion = state.dataVersion;
+    this.#flushRestoredWrites();
+    this.#syncPeerSources(this.#restorePeerRewrites(state, context, true));
   }
 
   /**
-   * A step that changed only data, on a grid in physical order, restores the cells it wrote by prop,
-   * so it names no column. A step that reloads the sheet, or restores a serialized one, restores a
-   * column layout, so it cannot be kept across a `columns` settings update.
+   * Reloads the sheet for a restored state whose rows or columns differ from the engine's, puts back the
+   * peers' formulas, and gives back the rows and columns the step added (`AxisSyncer#trimUnusedTail()`).
+   * It is one engine batch: a volatile formula recalculates on every engine call, and each call would
+   * emit `valuesUpdated` and repaint the other grids on the engine once more.
+   *
+   * @param {object} state The recorded state.
+   * @param {object} [context] The step being restored.
+   */
+  #restoreStructure(state: FormulasUndoState, context?: PluginRestoreContext) {
+    const engine = this.engine!;
+    const floor = this.#sheetSizeFloors.get(state);
+
+    // Reading the source data reads engine values, which a suspended engine refuses, so the writes held
+    // before the restore are recalculated first.
+    this.#flushEvaluation();
+
+    const sourceDataArray = state.engineSheet === null ? this.#getProcessedSourceDataArray() : undefined;
+    let dependentCells: unknown[];
+    let peerRewrites: readonly PeerRewrite[] = [];
+
+    // Passive for the hooks that read the engine: a suspended engine refuses those reads.
+    this.#internalOperationPending = true;
+
+    try {
+      const reload = () => {
+        if (sourceDataArray !== undefined) {
+          this.#loadSourceDataIntoSheet(sourceDataArray);
+        } else {
+          this.#loadEngineSheet(state.engineSheet!);
+        }
+
+        peerRewrites = this.#restorePeerRewrites(state, context);
+
+        if (floor !== undefined) {
+          this.rowAxisSyncer!.trimUnusedTail(floor.height);
+          this.columnAxisSyncer!.trimUnusedTail(floor.width);
+        }
+      };
+      const restored = this.#writeOwnSheet(engine, () => (
+        this.#runRestoreWrite(engine, () => runEngineBatch(engine, reload))
+      ));
+
+      dependentCells = restored.dependents;
+      restored.changed.forEach((cell) => {
+        this.#restoredChangedCells.push(cell);
+      });
+    } finally {
+      this.#internalOperationPending = false;
+    }
+
+    this.#syncPeerSources(peerRewrites);
+
+    dependentCells.forEach((cell) => {
+      this.#restoredDependentCells.push(cell);
+    });
+  }
+
+  /**
+   * A step whose two sides share the structure version and the stale flag restores the cells it wrote
+   * by prop and never reads a recorded sheet, so it names no column, whatever order the grid is in.
+   * A step that reloads the sheet, or restores a serialized one, restores a column layout, so it cannot
+   * be kept across a `columns` settings update.
    *
    * @private
    * @param {*} state The state on one side of a step.
@@ -1803,8 +3096,8 @@ export class Formulas extends BasePlugin {
   getStateColumns(state: unknown, other: unknown): readonly number[] | null {
     if (
       isFormulasUndoState(state) && isFormulasUndoState(other) &&
-      state.engineSheet === null && other.engineSheet === null &&
-      state.structureVersion === other.structureVersion
+      state.structureVersion === other.structureVersion &&
+      state.sourceHasStaleFormulas === other.sourceHasStaleFormulas
     ) {
       return [];
     }
@@ -1875,7 +3168,9 @@ export class Formulas extends BasePlugin {
       const count = candidates.length;
 
       engine.getSheetFormulas(sheet).forEach((formulasRow, row) => {
-        formulasRow.forEach((formula, col) => {
+        formulasRow.forEach((engineFormula, col) => {
+          const formula = this.#readableFormula(engineFormula);
+
           if (formula !== undefined && namesThisSheet(formula)) {
             candidates.push({ kind: 'cell', sheet, row, col, before: formula, after: formula });
           }
@@ -1890,7 +3185,7 @@ export class Formulas extends BasePlugin {
     // A named expression can reach this sheet with or without naming it, so each one is a candidate.
     [undefined, ...sheetIds].forEach((scope) => {
       engine.listNamedExpressions(scope).forEach((name: string) => {
-        const formula: string | undefined = engine.getNamedExpressionFormula(name, scope);
+        const formula: string | undefined = this.#readableFormula(engine.getNamedExpressionFormula(name, scope));
 
         if (formula !== undefined) {
           candidates.push({ kind: 'name', name, scope, before: formula, after: formula });
@@ -1912,9 +3207,9 @@ export class Formulas extends BasePlugin {
     const rewritten: PeerRewrite[] = [];
 
     candidates.forEach((candidate) => {
-      const after: string | undefined = candidate.kind === 'cell' ?
+      const after: string | undefined = this.#readableFormula(candidate.kind === 'cell' ?
         engine.getCellFormula({ sheet: candidate.sheet, row: candidate.row, col: candidate.col }) :
-        engine.getNamedExpressionFormula(candidate.name, candidate.scope);
+        engine.getNamedExpressionFormula(candidate.name, candidate.scope));
 
       if (after === candidate.before) {
         return;
@@ -1942,19 +3237,25 @@ export class Formulas extends BasePlugin {
    *
    * @param {object} state The state being restored.
    * @param {object} [context] The step being restored.
+   * @param {boolean} [flushesHeldWrites=false] `true` outside the batch of a structural restore: a held write
+   *   is recalculated right away, so the restore validates its dependents (see `#runRestoreWrite()`).
+   * @returns {PeerRewrite[]} The rewrites the other grids' source data still has to follow
+   *   (`#syncPeerSources()`), which reads values and so cannot run while the engine is suspended.
    */
-  #restorePeerRewrites(state: FormulasUndoState, context?: PluginRestoreContext) {
+  #restorePeerRewrites(
+    state: FormulasUndoState, context?: PluginRestoreContext, flushesHeldWrites = false,
+  ): readonly PeerRewrite[] {
     // The step's rewrites are recorded in the state it ended in.
     const stepEnd = context?.direction === 'undo' ? context.other : state;
 
     if (context?.direction === undefined || !isFormulasUndoState(stepEnd) || stepEnd.peerRewrites.length === 0) {
-      return;
+      return [];
     }
 
     const engine = this.engine!;
     const isUndo = context.direction === 'undo';
     let keptEdited = false;
-    const changes = engine.batch(() => {
+    const rewritePeers = () => {
       stepEnd.peerRewrites.forEach((rewrite) => {
         const expected = isUndo ? rewrite.after : rewrite.before;
         const text = isUndo ? rewrite.before : rewrite.after;
@@ -1966,7 +3267,7 @@ export class Formulas extends BasePlugin {
             return;
           }
 
-          if (engine.getCellFormula(address) !== expected) {
+          if (this.#readableFormula(engine.getCellFormula(address)) !== expected) {
             keptEdited = true;
           } else if (engine.isItPossibleToSetCellContents(address)) {
             engine.setCellContents(address, text ?? null);
@@ -1980,7 +3281,7 @@ export class Formulas extends BasePlugin {
           return;
         }
 
-        if (engine.getNamedExpressionFormula(rewrite.name, rewrite.scope) !== expected) {
+        if (this.#readableFormula(engine.getNamedExpressionFormula(rewrite.name, rewrite.scope)) !== expected) {
           keptEdited = true;
         } else if (text !== undefined &&
             engine.isItPossibleToChangeNamedExpression(rewrite.name, text, rewrite.scope)) {
@@ -1988,6 +3289,22 @@ export class Formulas extends BasePlugin {
             engine.getNamedExpression(rewrite.name, rewrite.scope)?.options);
         }
       });
+    };
+    // A restore of a structural step runs this inside its own batch, which a nested `batch()` would end.
+    const changes = this.#writeOwnSheet(engine, () => {
+      const write = () => runEngineBatch(engine, rewritePeers, { joinsAnySuspension: true });
+
+      if (!flushesHeldWrites) {
+        return write();
+      }
+
+      const restored = this.#runRestoreWrite(engine, write);
+
+      restored.changed.forEach((cell) => {
+        this.#restoredChangedCells.push(cell);
+      });
+
+      return restored.dependents;
     });
 
     if (keptEdited) {
@@ -1998,8 +3315,8 @@ export class Formulas extends BasePlugin {
     changes.forEach((cell) => {
       this.#restoredDependentCells.push(cell);
     });
-    this.renderDependentSheets(changes);
-    this.#syncPeerSources(stepEnd.peerRewrites);
+
+    return stepEnd.peerRewrites;
   }
 
   /**
@@ -2038,13 +3355,16 @@ export class Formulas extends BasePlugin {
         return;
       }
 
+      // The peer grid writes its source data and renders, which reads the engine.
+      this.#flushEvaluation();
       peerHot._getOperationScope().suppress(() => peer.#syncFormulasToSourceData(true, cells));
     });
   }
 
   /**
-   * Returns the engine's sheet while its order is not the physical one, and `null` otherwise – the
-   * source data rebuilds a sheet in physical order. A row that reads the same as in the previous
+   * Returns the engine's sheet while its order is not the physical one or the source data holds stale
+   * formulas (`#sourceHasStaleFormulas`), and `null` otherwise – the source data rebuilds a sheet in
+   * physical order. A row that reads the same as in the previous
    * capture is that capture's row array, so consecutive steps share what they did not change: each
    * step keeps the rows it changed, not a copy of the whole sheet.
    *
@@ -2054,12 +3374,15 @@ export class Formulas extends BasePlugin {
   #captureEngineSheet(previous: EngineSheetSnapshot | null): EngineSheetSnapshot | null {
     if (
       !this.engine || this.sheetId === null ||
-      (this.rowAxisSyncer!.isHfOrderPhysical() && this.columnAxisSyncer!.isHfOrderPhysical())
+      (!this.#sourceHasStaleFormulas && this.rowAxisSyncer!.isHfOrderPhysical() &&
+        this.columnAxisSyncer!.isHfOrderPhysical())
     ) {
       return null;
     }
 
-    const content: unknown[][] = this.engine.getSheetSerialized(this.sheetId);
+    this.#flushEvaluation();
+
+    const content: unknown[][] = this.#readableSheet(this.engine.getSheetSerialized(this.sheetId));
 
     if (previous !== null) {
       content.forEach((row, index) => {
@@ -2082,23 +3405,25 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Loads a recorded engine sheet back, in the order it was recorded in, and returns the cells whose
+   * Loads a recorded engine sheet back, ending in the grid's current order, and returns the cells whose
    * values changed.
    *
    * @param {object} snapshot The recorded sheet.
    * @returns {Array}
    */
   #loadEngineSheet(snapshot: EngineSheetSnapshot): unknown[] {
+    this.#syncedContent = null;
     this.#internalOperationPending = true;
 
     try {
-      const dependentCells = this.engine!.setSheetContent(this.sheetId, snapshot.content);
+      return this.#writeOwnSheet(this.engine!, () => {
+        const dependentCells = this.engine!.setSheetContent(this.sheetId, snapshot.content);
 
-      this.rowAxisSyncer!.adoptEngineOrder(snapshot.rowOrder);
-      this.columnAxisSyncer!.adoptEngineOrder(snapshot.columnOrder);
-      this.renderDependentSheets(dependentCells);
+        this.rowAxisSyncer!.adoptEngineOrder(snapshot.rowOrder);
+        this.columnAxisSyncer!.adoptEngineOrder(snapshot.columnOrder);
 
-      return dependentCells;
+        return dependentCells;
+      });
     } finally {
       this.#internalOperationPending = false;
     }
@@ -2138,6 +3463,17 @@ export class Formulas extends BasePlugin {
    */
   #onAfterSequenceChange = () => {
     this.#markStructureChanged();
+  };
+
+  /**
+   * `afterColumnSequenceChange` hook callback. Object rows, and array rows a `columns` list projects, are
+   * read in visual column order, so a column move moves their cells in the source data array and the record
+   * of what the engine was fed (`#syncedContent`) no longer lines up with it.
+   */
+  #onAfterColumnSequenceChange = () => {
+    if (this.#syncedContent !== null && this.#syncedContent.columnSpace !== 'physical') {
+      this.#syncedContent = null;
+    }
   };
 
   /**
@@ -2220,7 +3556,11 @@ export class Formulas extends BasePlugin {
       newValue = this.#escapeEngineBoundValue(newValue, this.hot.getCellMetaTransient(row, column));
     }
 
-    return this.engine?.setCellContents(address, newValue);
+    const changes = this.engine?.setCellContents(address, newValue);
+
+    this.#recordSyncedCell(this.hot.toPhysicalRow(row), column, newValue);
+
+    return changes;
   }
 
   /**
@@ -2447,6 +3787,10 @@ export class Formulas extends BasePlugin {
    * `setSourceDataAtCell` path came to send an invalid date to the engine unescaped while the other
    * two escaped it.
    *
+   * A formula gets the quotes the engine needs around a sheet name it cannot read unquoted
+   * (`#readableFormula()`), the same rule as the text read back out of the engine, so a cell's text and
+   * the formula the engine calculates are the same.
+   *
    * The `date` branch RETURNS rather than falling through to the preserved text check, so a cell
    * declaring both `type: 'date'` and `preserveTextValue: true` is treated as a date. The
    * combination is contradictory - `isPreservedText()` requires `type: 'text'` - and the only way
@@ -2461,6 +3805,10 @@ export class Formulas extends BasePlugin {
    * @returns {*} The escaped value, or the original value when no escaping applies.
    */
   #escapeEngineBoundValue(value: unknown, cellMeta: { type?: string; preserveTextValue?: boolean }): unknown {
+    if (isFormula(value)) {
+      return this.#readableFormula(value);
+    }
+
     if (isDate(value, cellMeta.type)) {
       if (isDateValid(value)) {
         // Rewriting the date from the Handsontable format to the engine format.
@@ -2520,9 +3868,9 @@ export class Formulas extends BasePlugin {
    * was applied per PHYSICAL cell (`#escapeSourceDataArray`), so its inverse has to resolve the same
    * physical cell, and the engine index translates to it through the axis syncers.
    *
-   * The whole scan is skipped – just like the escape scan – when `#needsEngineBoundEscaping()`
-   * reports that no configuration layer can mark a cell for escaping, so a sheet switch in the
-   * default configuration pays no per-cell meta read. Within the scan, values the unescaping can
+   * The whole scan is skipped when `#needsEngineBoundEscaping()` reports that no configuration
+   * layer can mark a cell for escaping, so a sheet switch in the default configuration pays no
+   * per-cell meta read (the escape scan skips its meta reads on the same gate). Within the scan, values the unescaping can
    * never change skip the meta read for the same reason.
    *
    * Accepted residual, on this cross-sheet path only: both the gate and the per-value confirmation
@@ -2767,8 +4115,8 @@ export class Formulas extends BasePlugin {
    * built in visual order. That distinction is read from `#doesEngineHoldPhysicalColumns()`, the one
    * place that answers it – see its note.
    *
-   * The scan is skipped entirely when `#needsEngineBoundEscaping()` reports that no configuration
-   * layer can mark a cell for escaping.
+   * The meta reads are skipped when `#needsEngineBoundEscaping()` reports that no configuration
+   * layer can mark a cell for escaping; the scan itself still runs for the formulas (see below).
    *
    * Observable side effect, on every path that runs this scan: the per-cell meta read is a
    * TRANSIENT one, so the user's `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
@@ -2781,27 +4129,37 @@ export class Formulas extends BasePlugin {
    * dropped; the gate above is what keeps a grid that declares no such type from paying for them
    * at all.
    *
+   * Formulas are not escaped, only given the quotes a sheet name needs (`#readableFormula()`), which
+   * needs no meta read, so every cell is visited even when the gate is closed. Non-strings and
+   * formulas never reach the meta read.
+   *
    * @param {Array<Array<*>>} sourceDataArray Source data array to process.
    * @param {number} [rowOffset=0] Physical row index of the array's first row (non-zero for partial arrays).
    * @param {number} [columnOffset=0] Index of the array's first column, in the array's own column space.
    */
   #escapeSourceDataArray(sourceDataArray: unknown[][], rowOffset = 0, columnOffset = 0) {
-    if (!this.#needsEngineBoundEscaping()) {
-      return;
-    }
-
+    const escapesText = this.#needsEngineBoundEscaping();
     const columnsInVisualOrder = !this.#doesEngineHoldPhysicalColumns();
     const metaManager = this.hot._getMetaManager();
 
     sourceDataArray.forEach((rowData: unknown[], arrayRowIndex: number) => {
       const physicalRow = rowOffset + arrayRowIndex;
-      const visualRow = this.hot.toVisualRow(physicalRow) ?? physicalRow;
+      const visualRow = escapesText ? (this.hot.toVisualRow(physicalRow) ?? physicalRow) : physicalRow;
 
       rowData.forEach((cellValue: unknown, arrayColumnIndex: number) => {
-        // Values that the escaping can never change – non-strings, and formulas, which the engine
-        // parses on its own – skip the meta read altogether. That read is the expensive part of
-        // this full-dataset scan, and it runs the user-provided `cells` function.
-        if (typeof cellValue !== 'string' || isFormula(cellValue)) {
+        if (typeof cellValue !== 'string') {
+          return;
+        }
+
+        if (isFormula(cellValue)) {
+          if (cellValue.includes('!')) {
+            sourceDataArray[arrayRowIndex][arrayColumnIndex] = this.#readableFormula(cellValue);
+          }
+
+          return;
+        }
+
+        if (!escapesText) {
           return;
         }
 
@@ -2850,6 +4208,10 @@ export class Formulas extends BasePlugin {
       };
 
       const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
+
+      // Only a formula cell reads the engine, so a validated plain write keeps a held recalculation.
+      this.#flushEvaluation();
+
       let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel-like date).
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
@@ -2941,7 +4303,9 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    const fillRangeData = this.engine!.getFillRangeData(engineSourceRange, engineTargetRange);
+    this.#flushEvaluation();
+
+    const fillRangeData = this.#readableSheet(this.engine!.getFillRangeData(engineSourceRange, engineTargetRange));
     const {
       row: sourceStartRow,
       col: sourceStartColumn,
@@ -3005,7 +4369,12 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * `beforeLoadData` hook callback.
+   * `beforeLoadData` hook callback. A grid counts as built without data when no `data` setting exists,
+   * except for the load core's `_applySettingsAndData()` makes: that load carries the data of the call,
+   * before the setting is stored (the sheets bar loads its opening sheet that way), and treating that grid
+   * as empty made every later settings update reload it from the engine sheet. The exception is scoped to
+   * that call on purpose: a grid built with a `dataProvider` and no `data` loads a `[]` placeholder first,
+   * and must keep reading the engine sheet as its data.
    *
    * @param {Array} sourceData Array of arrays or array of objects containing data.
    * @param {boolean} initialLoad Flag that determines whether the data has been loaded during the initialization.
@@ -3018,8 +4387,29 @@ export class Formulas extends BasePlugin {
 
     // This flag needs to be defined, because not passing data to HOT results in HOT auto-generating a `null`-filled
     // initial dataset.
-    this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data);
+    this.#hotWasInitializedWithEmptyData = isUndefined(this.hot.getSettings().data) &&
+      !(this.isDataWorkDeferred() && Array.isArray(sourceData));
   };
+
+  /**
+   * Whether the meta phase core runs after the load of `_applySettingsAndData()` can change a value the
+   * engine reads: it applies the `cell` option and the `columns` function form, and a cell type either
+   * sets (a key/value dropdown resolves an object to its label) decides that value. The load wrote the
+   * sheet before either was applied. Core resets the column meta before that load for `columns: null`,
+   * so the load already reads the values that call describes. Only a `cell` entry that sets a key the
+   * built-in value getters read counts (`VALUE_GETTER_META_KEYS`): the sheets bar restates a grid-level
+   * `cell` on every switch, and an entry that only sets `readOnly` or a class made every switch pay a
+   * full engine write. A custom `valueGetter` that reads another key of a `cell` entry is not seen.
+   *
+   * @returns {boolean}
+   */
+  #metaPhaseMayChangeEngineValues(): boolean {
+    const { cell, columns } = this.hot.getSettings();
+
+    return typeof columns === 'function' || (Array.isArray(cell) && cell.some(
+      entry => isObject(entry) && VALUE_GETTER_META_KEYS.some(key => hasOwnProperty(entry, key))
+    ));
+  }
 
   /**
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
@@ -3030,16 +4420,30 @@ export class Formulas extends BasePlugin {
    * and `#resyncSheet` runs it later, once per cycle - see `#sheetResyncPending`. Construction
    * has no `afterUpdateSettings` pass (the Core skips the hook on its first run), so the scan
    * stays eager there; `hot.view` is what the Core creates right after that first run.
+   *
+   * The reset core's `_applySettingsAndData()` fires from the meta phase it held back for its own load
+   * (`_isHeldMetaPhaseRunning()`, never the reset of a full settings update an `afterLoadData` listener makes
+   * in that call, whose `columns` the load never saw) needs no resync when the call
+   * declares no `cell` entries and no `columns` function: that load already wrote the sheet through
+   * `#onAfterLoadData`, with the column configuration of the call in force, and a second scan cost a full
+   * engine write and an AutoColumnSize sweep per sheet switch. `cell` entries and a `columns` function reach
+   * the cell meta only after that load, and a cell type they set can change the value the engine reads (a
+   * key/value dropdown resolves an object to its label), so such a call resyncs as any settings update does.
    */
   #onAfterCellMetaReset = () => {
     this.#closeLeakedGuards();
+
+    if (this.hot._isHeldMetaPhaseRunning()
+      && (this.#pendingAdoption?.adopted || !this.#metaPhaseMayChangeEngineValues())) {
+      return;
+    }
 
     // The reload below and the scan in `#resyncSheet` both run a full-dataset read whose per-cell
     // meta read fires `cells()` and the `beforeGetCellMeta`/`afterGetCellMeta` listeners – see
     // `#escapeSourceDataArray` for what that changes for a listener with side effects.
     if (this.#hotWasInitializedWithEmptyData) {
       if (this.sheetName !== null) {
-        this.switchSheet(this.sheetName);
+        this.#loadSheet(this.sheetName);
       }
 
       this.#recordSyncedLayout();
@@ -3051,6 +4455,11 @@ export class Formulas extends BasePlugin {
       this.#sheetResyncPending = true;
       this.#sheetIdAtLastSync = this.sheetId;
 
+      return;
+    }
+
+    if (this.sheetId !== null && this.#sheetIdAtLastSync === this.sheetId
+      && this.#sourceRowCountAtLastSync === this.hot.countSourceRows() && !this.#metaPhaseMayChangeEngineValues()) {
       return;
     }
 
@@ -3079,15 +4488,28 @@ export class Formulas extends BasePlugin {
   #resyncSheet() {
     this.#sheetResyncPending = false;
 
-    const sourceDataArray = this.#getProcessedSourceDataArray();
+    this.#writeOwnSheet(this.engine!, () => {
+      const sourceDataArray = this.#getProcessedSourceDataArray();
 
-    if (!this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
-      this.#clearRejectedSheet();
+      if (!this.engine!.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
+        this.#clearRejectedSheet();
 
-      return;
+        return;
+      }
+
+      this.#writeSheet(sourceDataArray, true);
+    });
+  }
+
+  /**
+   * Prepares a write that replaces this grid's sheet inside a hold (`beginHeldSheetWrite()`), before the read
+   * hooks go passive: held cell writes are recalculated first, without painting this grid. With nothing held it
+   * opens no write scope, so the paints a registration parked (`holdPluginEngineWritePaints()`) stay parked.
+   */
+  #beginHeldSheetWrite() {
+    if (isEvaluationHeld(this.engine)) {
+      this.#writeOwnSheet(this.engine, () => beginHeldSheetWrite(this.engine));
     }
-
-    this.#writeSheet(sourceDataArray);
   }
 
   /**
@@ -3099,27 +4521,181 @@ export class Formulas extends BasePlugin {
    * the next settings update. Shared by `#resyncSheet()` and the `#onAfterLoadData` write branch,
    * so the two cannot drift.
    *
+   * With `skipWhenSynced` (the resync of a settings update, every React or Vue re-render), a source data array
+   * that reads the same as the content the engine was last fed, with the grid's own changes since
+   * (`#syncedContent`), is not written: the engine already holds it in the grid's order, with every reference
+   * the user's moves left, in this sheet, in other sheets and in named expressions. Writing it again in
+   * physical order and replaying the order could only move those references a second time (DEV-3972).
+   *
    * @param {Array<Array<*>>} sourceDataArray The array `#getProcessedSourceDataArray()` produced.
+   * @param {boolean} [skipWhenSynced=false] Whether an unchanged array is left unwritten.
    */
-  #writeSheet(sourceDataArray: unknown[][]): unknown[] {
+  #writeSheet(sourceDataArray: unknown[][], skipWhenSynced = false): unknown[] {
     this.#escapeSourceDataArray(sourceDataArray);
+    this.#beginHeldSheetWrite();
 
+    if (skipWhenSynced && this.#isSyncedContent(sourceDataArray)) {
+      this.#recordSyncedLayout();
+
+      return [];
+    }
+
+    // Read before the write, while the data hooks answer as they did for the escape above: the write's own
+    // guard makes them return early, and inside an engine batch a read through them would throw.
+    const columnSpace = this.#readSyncedColumnSpace();
+
+    this.#syncedContent = null;
     this.#internalOperationPending = true;
 
     let dependentCells: unknown[] = [];
 
     try {
-      dependentCells = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
+      this.#sheetWriteCount += 1;
+      this.#sourceHasStaleFormulas = false;
 
-      this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
-      this.renderDependentSheets(dependentCells);
+      dependentCells = this.#writeOwnSheet(this.engine!, () => {
+        const changes = this.engine!.setSheetContent(this.sheetId, sourceDataArray);
+
+        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+
+        return changes;
+      });
     } finally {
       this.#internalOperationPending = false;
     }
 
+    this.#syncedContent = {
+      engine: this.engine!,
+      sheetId: this.sheetId,
+      rows: toSyncedRows(sourceDataArray),
+      columnSpace,
+    };
     this.#recordSyncedLayout();
 
     return dependentCells;
+  }
+
+  /**
+   * Tells whether the engine holds what a write of `sourceDataArray` would give it: the array reads the same
+   * as `#syncedContent`, the engine and the sheet are the ones it was recorded for, and the engine holds both
+   * axes in the grid's order (a data load can reset the grid's order, and an order held for the sheets bar
+   * is not the grid's). A value written in place into the host's data reads differently, so it is written.
+   *
+   * @param {Array<Array<*>>} sourceDataArray The escaped array a write would feed the engine.
+   * @returns {boolean}
+   */
+  #isSyncedContent(sourceDataArray: unknown[][]): boolean {
+    const synced = this.#syncedContent;
+
+    if (synced === null || synced.engine !== this.engine || synced.sheetId !== this.sheetId
+      || synced.rows.length !== sourceDataArray.length || !this.#hasOwnSheet()
+      || !this.rowAxisSyncer!.holdsGridOrder() || !this.columnAxisSyncer!.holdsGridOrder()) {
+      return false;
+    }
+
+    return sourceDataArray.every((row, index) => areSyncedRowsEqual(synced.rows[index], row));
+  }
+
+  /**
+   * Records a value the grid wrote into one engine cell in `#syncedContent`, at the cell's place in the
+   * source data array, so a later resync does not take the grid's own write for a change of the data. A cell
+   * the array has no place for drops the record.
+   *
+   * @param {number|null} physicalRow The physical row.
+   * @param {number} visualColumn The visual column.
+   * @param {*} value The value the engine got.
+   */
+  #recordSyncedCell(physicalRow: number | null, visualColumn: number, value: unknown) {
+    const synced = this.#syncedContent;
+
+    if (synced === null) {
+      return;
+    }
+
+    const column = this.#syncedColumnIndex(synced.columnSpace, visualColumn);
+
+    if (physicalRow === null || physicalRow < 0 || column === null || column < 0) {
+      this.#syncedContent = null;
+
+      return;
+    }
+
+    while (synced.rows.length <= physicalRow) {
+      synced.rows.push([]);
+    }
+
+    synced.rows[physicalRow][column] = toSyncedValue(value);
+  }
+
+  /**
+   * Reads the column space of the source data array `#getProcessedSourceDataArray()` builds: physical columns
+   * for plain array rows, visual columns for object rows (built in visual order), and for array rows a
+   * `columns` list projects, the place of each visual column among the visible columns bound to a source
+   * index, built once here so a recorded cell is a lookup. Read when the array is written, because the read
+   * goes through the data hooks, which a write inside an engine batch must not run.
+   *
+   * @returns {string|Array}
+   */
+  #readSyncedColumnSpace(): SyncedColumnSpace {
+    if (this.#doesEngineHoldPhysicalColumns()) {
+      return 'physical';
+    }
+
+    if (!this.#isSourceDataArrayOfArrays()) {
+      return 'visual';
+    }
+
+    const projectedIndexes: Array<number | null> = [];
+    let index = 0;
+
+    for (let column = 0; column < this.hot.countCols(); column += 1) {
+      if (typeof this.hot.colToProp(column) === 'number') {
+        projectedIndexes.push(index);
+        index += 1;
+      } else {
+        projectedIndexes.push(null);
+      }
+    }
+
+    return projectedIndexes;
+  }
+
+  /**
+   * Returns the index of a visual column in the source data array, in the column space it was recorded in.
+   *
+   * @param {string|Array} columnSpace The column space (`#readSyncedColumnSpace()`).
+   * @param {number} visualColumn The visual column.
+   * @returns {number|null}
+   */
+  #syncedColumnIndex(columnSpace: SyncedColumnSpace, visualColumn: number): number | null {
+    if (columnSpace === 'physical') {
+      return this.hot.toPhysicalColumn(visualColumn);
+    }
+
+    if (columnSpace === 'visual') {
+      return visualColumn;
+    }
+
+    return columnSpace[visualColumn] ?? null;
+  }
+
+  /**
+   * Follows a row insert or removal in `#syncedContent`, by physical index: the engine got an empty row, or
+   * lost one, at the same place. NestedRows moves rows inside the source data itself, so under it the record
+   * is dropped instead.
+   *
+   * @param {Function} update Changes the recorded rows.
+   */
+  #followSyncedRows(update: (rows: unknown[][]) => boolean) {
+    const synced = this.#syncedContent;
+
+    if (synced === null) {
+      return;
+    }
+
+    if (this.hot.getPlugin('nestedRows')?.enabled || !update(synced.rows)) {
+      this.#syncedContent = null;
+    }
   }
 
   /**
@@ -3128,17 +4704,24 @@ export class Formulas extends BasePlugin {
    * data in the engine while the grid already shows the new one, so stale values would be served;
    * emptying it changes what every grid reading it computes, hence the dependent redraw. The
    * layout is recorded so the late `afterUpdateSettings` listener does not take the emptied sheet
-   * for a row-count change and scan a layout the engine just rejected.
+   * for a row-count change and scan a layout the engine just rejected. The order syncers are pointed at
+   * the emptied sheet, as a write points them at the sheet it fills: left on the sheet bound before,
+   * a sort of the rejected sheet reordered that other sheet's formulas.
    */
   #clearRejectedSheet(): unknown[] {
+    this.#syncedContent = null;
     this.#internalOperationPending = true;
 
     let dependentCells: unknown[] = [];
 
     try {
-      dependentCells = this.engine!.setSheetContent(this.sheetId, [[]]);
+      dependentCells = this.#writeOwnSheet(this.engine!, () => {
+        const changes = this.engine!.setSheetContent(this.sheetId, [[]]);
 
-      this.renderDependentSheets(dependentCells);
+        this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+
+        return changes;
+      });
     } finally {
       this.#internalOperationPending = false;
     }
@@ -3159,10 +4742,56 @@ export class Formulas extends BasePlugin {
    * dependent grids' redraw would run from inside a cell paint of this grid's own draw. A plugin
    * that renders from its own `onUpdateSettings` - NestedRows does - reaches this before the late
    * `afterUpdateSettings` listener.
+   *
+   * The draw is prepared from `#onBeforeRenderStart` on, so a recalculation another listener's read makes
+   * before this one (AutoColumnSize samples the cells) is left to the draw too (`#deferPaintToDraw()`).
    */
   #onBeforeRender = () => {
-    if (this.engine && this.#sheetResyncPending) {
-      this.#resyncSheet();
+    try {
+      this.#releaseResumedHolders();
+
+      if (this.engine && this.#sheetResyncPending) {
+        this.#resyncSheet();
+      }
+
+      // A grid that holds the engine recalculates before it draws, so the draw does not end the hold from
+      // inside a cell paint. A grid that does not hold it draws first: a draw with no formula cell keeps the
+      // hold, and the first formula cell recalculates (see `#isDrawingHeldEngine`).
+      if (this.engine && isEvaluationHolder(this.engine, this.hot)) {
+        this.#flushEvaluation();
+      }
+    } finally {
+      this.#isPreparingDraw = false;
+    }
+
+    this.#isDrawingHeldEngine = isEvaluationHeld(this.engine);
+  };
+
+  /**
+   * `beforeRender` hook callback registered ahead of every default-order listener. Starts preparing the draw
+   * (see `#onBeforeRender`).
+   *
+   * @param {boolean} isFullRender `false` for a fast draw (see `#isFastDraw`).
+   */
+  #onBeforeRenderStart = (isFullRender: boolean) => {
+    this.#isFastDraw = !isFullRender;
+    // Only a held engine recalculates while the draw is prepared. With nothing held, a paint asked for here
+    // renders at once, as it always did.
+    this.#isPreparingDraw = isEvaluationHeld(this.engine);
+  };
+
+  /**
+   * `afterRender` hook callback. Ends the draw `#onBeforeRender` started, and renders once more when a
+   * recalculation during a fast draw asked for it (`#deferPaintToDraw()`).
+   */
+  #onAfterRender = () => {
+    const repaint = this.#repaintAfterDraw;
+
+    this.#isDrawingHeldEngine = false;
+    this.#repaintAfterDraw = false;
+
+    if (repaint) {
+      this.#paintGrid();
     }
   };
 
@@ -3257,47 +4886,124 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    this.#foreignLoadCount += 1;
+
     if (!this.engine) {
       return;
     }
 
     this.#closeLeakedGuards();
 
-    const formulasSettings = this.hot.getSettings()[PLUGIN_KEY];
-    const settingsSheetName = isFormulasSettingsObject(formulasSettings) ? formulasSettings.sheetName : undefined;
+    const engine = this.engine;
+
     // Fall back to the sheet this instance already owns. Without it every `loadData`/`updateData`
     // call adds a sheet and abandons the previous one - with its whole dependency graph - inside
     // the engine, which the engine then recalculates on every subsequent call.
-    const sheetName = setupSheet(this.engine, settingsSheetName ?? this.sheetName);
+    const bindSheet = () => setupSheet(
+      engine, this.#requestedSheetName() ?? this.sheetName ?? this.#readSheetNameSetting(),
+    );
+    const bindAndLoad = () => {
+      this.#updateSheetNameAndSheetId(bindSheet());
+      this.#followSheetNameSettingWhenBound();
 
-    this.#updateSheetNameAndSheetId(sheetName);
+      if (source === 'updateSettings') {
+        // For performance reasons, the initialization will be done in afterCellMetaReset hook. The grids
+        // that read the new sheet paint when that fill ends.
+        holdPluginEngineWritePaints(engine);
 
-    if (source === 'updateSettings') {
-      // For performance reasons, the initialization will be done in afterCellMetaReset hook
-      return;
-    }
+        return;
+      }
 
-    if (!this.#hotWasInitializedWithEmptyData) {
-      // Records the layout too, so a settings update this load ran inside of has no row-count change
-      // left to carry.
-      this.#loadSourceDataIntoSheet();
+      if (!this.#hotWasInitializedWithEmptyData && this.#pendingAdoption?.adopted === false
+        && (this.#isBoundTo(this.#pendingAdoption.order) || this.#pendingAdoption.order.content !== undefined)) {
+        this.#adoptEngineSheet(this.#pendingAdoption.order);
+        this.#pendingAdoption.adopted = true;
 
-    } else if (this.sheetName !== null) {
-      this.switchSheet(this.sheetName);
+        return;
+      }
+
+      if (!this.#hotWasInitializedWithEmptyData) {
+        // Records the layout too, so a settings update this load ran inside of has no row-count change
+        // left to carry.
+        this.#loadSourceDataIntoSheet();
+
+      } else if (this.sheetName !== null) {
+        this.#loadSheet(this.sheetName);
+      }
+    };
+
+    // Adding the sheet and filling it are one write: adding it makes the engine re-resolve a formula in
+    // another grid that named it first (`#REF!` becomes the cell's value, or empty), and that cell is
+    // in the first change list alone when the fill leaves it empty. One scope paints those grids once,
+    // after the data is in, or when the fill throws. A grid built from the sheet writes nothing, so the
+    // event of adding the sheet is its only paint.
+    if (this.#hotWasInitializedWithEmptyData) {
+      bindAndLoad();
+    } else {
+      this.#writeOwnSheet(engine, bindAndLoad);
     }
   };
+
+  /**
+   * Binds the sheet a load brought back without writing the loaded data into it: the engine already holds
+   * the sheet as the grid left it, in the order `order` describes, and its formula text there is what the
+   * user saw (see {@link Formulas#runWithEngineOrderHeld}). The order is taken over without being sent,
+   * and the grid's order ends on it. An order that carries the engine sheet's content writes it first: the
+   * engine sheet bound now is a new one, or one another sheet's data was loaded into meanwhile.
+   *
+   * @param {object} order The engine order the sheet was left in.
+   */
+  #adoptEngineSheet(order: FormulasEngineSheetOrder) {
+    this.#sheetResyncPending = false;
+    this.#syncedContent = null;
+
+    if (order.content !== undefined) {
+      this.engine!.setSheetContent(this.sheetId, order.content);
+    }
+
+    this.indexSyncer!.setupSyncEndpoint(this.engine!, this.sheetId);
+    this.rowAxisSyncer!.adoptEngineOrder(order.rowOrder);
+    this.columnAxisSyncer!.adoptEngineOrder(order.columnOrder);
+    this.#recordSyncedLayout();
+  }
+
+  /**
+   * Whether the plugin is bound to the engine sheet `order` describes.
+   *
+   * @param {object} order The engine order.
+   * @returns {boolean}
+   */
+  #isBoundTo(order: FormulasEngineSheetOrder): boolean {
+    return order.engine === this.engine && order.sheetId === this.sheetId;
+  }
+
+  /**
+   * Tells whether the grid's row order is a sort's (ColumnSorting or MultiColumnSorting). A sort reaches the
+   * engine as one order, so a reload sends it as one again, also from a syncer that has no record of it.
+   *
+   * @returns {boolean}
+   */
+  #isRowOrderSorted(): boolean {
+    const columnSorting = this.hot.getPlugin('columnSorting');
+    const multiColumnSorting = this.hot.getPlugin('multiColumnSorting');
+
+    return (columnSorting?.enabled === true && columnSorting.isSorted())
+      || (multiColumnSorting?.enabled === true && multiColumnSorting.isSorted());
+  }
 
   /**
    * Fills the sheet with the source data, renders the grids that read it, and returns the cells
    * whose values changed. When the data does not fit the engine, the sheet is emptied instead.
    *
+   * @param {Array<Array<*>>} [readSourceData] The source data read ahead, when the engine is about to be
+   *   suspended and cannot answer the read.
    * @returns {Array} The engine's changes.
    */
-  #loadSourceDataIntoSheet(): unknown[] {
+  #loadSourceDataIntoSheet(readSourceData?: unknown[][]): unknown[] {
     // Whatever this writes supersedes a resync still owed from a settings update it interrupted.
     this.#sheetResyncPending = false;
 
-    const sourceDataArray = this.#getProcessedSourceDataArray();
+    const sourceDataArray = readSourceData ?? this.#getProcessedSourceDataArray();
 
     // The guard only range-checks the sheet against the array dimensions, so escaping can run
     // after it – and then it is skipped altogether when the content is not replaced. Observable
@@ -3357,6 +5063,9 @@ export class Formulas extends BasePlugin {
 
       return;
     }
+
+    // Past the type check, so a plain cell never ends a held recalculation.
+    this.#flushEvaluation();
 
     let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel like date).
 
@@ -3473,7 +5182,8 @@ export class Formulas extends BasePlugin {
       sheet: this.sheetId,
     };
 
-    fastInnerText(TD, String(this.engine!.getCellSerialized(address)));
+    this.#flushEvaluation();
+    fastInnerText(TD, String(this.#readableFormula(this.engine!.getCellSerialized(address))));
   };
 
   /**
@@ -3514,7 +5224,8 @@ export class Formulas extends BasePlugin {
           sheet: this.sheetId,
         };
 
-        data[rowIndex][columnIndex] = this.engine!.getCellSerialized(address);
+        this.#flushEvaluation();
+        data[rowIndex][columnIndex] = this.#readableFormula(this.engine!.getCellSerialized(address));
       });
     });
   };
@@ -3583,7 +5294,20 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    valueHolder.value = this.engine!.getCellSerialized(address);
+    // The formula text needs no recalculation, so it is read without ending a held one: the Core reads the
+    // old value of every cell it writes here. `getCellSerialized()` answers the same text for a formula.
+    const formula = this.engine!.getCellFormula(address);
+
+    if (formula !== undefined) {
+      valueHolder.value = this.#readableFormula(formula);
+
+      return;
+    }
+
+    // A cell with no formula of its own (a value an array formula spilled) serializes to its value.
+    this.#flushEvaluation();
+
+    valueHolder.value = this.#readableFormula(this.engine!.getCellSerialized(address));
   };
 
   /**
@@ -3617,13 +5341,77 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const { dependentCells, changedCells, outOfBoundsChanges, writtenCells } = this.#writeChangesToEngine(changes);
+    const awaitingApply: ChangeSetAwaitingApply = {
+      writeCount: this.#sheetWriteCount,
+      foreignLoadCount: this.#foreignLoadCount,
+      sheetId: this.sheetId,
+      writtenBack: false,
+      writtenCells,
+    };
+
+    this.#changesAwaitingApply.set(changes, awaitingApply);
+
+    if (outOfBoundsChanges.length) {
+      this.#outOfBoundsWrites.set(changes, { awaitingApply, changes: outOfBoundsChanges });
+    }
+
+    this.#validateWriteDependents(dependentCells, changedCells);
+  };
+
+  /**
+   * `afterChange` hook callback. Writes the changes of a set that reached past the last row or column
+   * (`#outOfBoundsWrites`), once the Core applied the set and created those rows and columns: the engine
+   * would otherwise create them a second time. Only the set's own `afterChange` writes them.
+   *
+   * A write-back in `beforeChangeRender` already wrote the whole set, these changes included, once the
+   * Core had created their rows and columns. A second write would be redundant and would add an entry to
+   * the engine's own undo stack (a grid undo never uses that stack, but an app calling `engine.undo()`
+   * directly would revert only that entry). The Core painted before it created these rows, so this grid
+   * paints too.
+   *
+   * @param {Array[]|null} changes The applied change array.
+   */
+  #onAfterChangeWriteOutOfBounds = (changes: CellChange[] | null) => {
+    const pending = changes ? this.#outOfBoundsWrites.get(changes) : undefined;
+
+    if (!changes || !pending) {
+      return;
+    }
+
+    this.#outOfBoundsWrites.delete(changes);
+
+    if (pending.awaitingApply.writtenBack || !this.engine) {
+      return;
+    }
+
+    const engine = this.engine;
+
+    withPluginEngineWrite(engine, () => runEngineBatch(engine, () => {
+      pending.changes.forEach(([row, column, newValue]) => {
+        this.syncChangeWithEngine(row, column, newValue);
+      });
+    }));
+  };
+
+  /**
+   * Writes a `setDataAtCell()` / `setDataAtRowProp()` change set into the engine, in one batch.
+   * A change whose row or column does not exist yet is not written: it is returned in
+   * `outOfBoundsChanges` for the caller to write once the Core created it.
+   *
+   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   * @returns {{ dependentCells: unknown[], changedCells: unknown[], outOfBoundsChanges: Array[] }}
+   */
+  #writeChangesToEngine(changes: CellChange[]) {
     const outOfBoundsChanges: [number, number, unknown][] = [];
     const changedCells: unknown[] = [];
+    const writtenCells: WrittenCell[] = [];
 
     this.#markDataChanged();
 
-    const dependentCells = this.engine!.batch(() => {
-      changes.forEach(([visualRow, prop, , newValue]) => {
+    const engine = this.engine!;
+    const dependentCells = this.#writeOwnSheet(engine, () => runEngineBatch(engine, () => {
+      changes.forEach(([visualRow, prop, oldValue, newValue]) => {
         if (typeof prop !== 'string' && typeof prop !== 'number') {
           return;
         }
@@ -3649,6 +5437,9 @@ export class Formulas extends BasePlugin {
 
         if (physicalRow !== null && physicalColumn !== null) {
           this.syncChangeWithEngine(visualRow, visualColumn, newValue);
+          writtenCells.push({
+            address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue, writtenContent: undefined,
+          });
 
         } else {
           outOfBoundsChanges.push([visualRow, visualColumn, newValue]);
@@ -3656,25 +5447,227 @@ export class Formulas extends BasePlugin {
 
         changedCells.push({ address });
       });
+    }));
+
+    const readWrittenContent = () => writtenCells.forEach((cell) => {
+      cell.writtenContent = this.#readEngineContent(cell.address);
     });
 
-    if (outOfBoundsChanges.length) {
-      // Workaround for rows/columns being created two times (by HOT and the engine).
-      // (unfortunately, this requires an extra re-render)
-      this.hot.addHookOnce('afterChange', () => {
-        const outOfBoundsDependentCells = this.engine!.batch(() => {
-          outOfBoundsChanges.forEach(([row, column, newValue]) => {
-            this.syncChangeWithEngine(row, column, newValue);
-          });
-        });
-
-        this.renderDependentSheets(outOfBoundsDependentCells, true);
-      });
+    // A held write is read once the engine resumes: reading it now would recalculate once per write. A later
+    // write to the same cell in the same hold makes the content the later one.
+    if (!runAfterEvaluationFlush(engine, readWrittenContent)) {
+      readWrittenContent();
     }
 
-    this.renderDependentSheets(dependentCells);
-    this.validateDependentCells(dependentCells, changedCells);
+    return { dependentCells, changedCells, outOfBoundsChanges, writtenCells };
+  }
+
+  /**
+   * `beforeChangeRender` hook callback.
+   *
+   * Writes a change set back into the engine when a full sheet write from the source data replaced
+   * the sheet, or a sheet switch replaced the grid's data, between `afterSetDataAtCell` (where the
+   * change first reached the engine) and now, when the Core applied it. `beforeChangeRender` is the first hook `applyChanges` runs on its own
+   * after it writes the set to the data (the row and column hooks of `alter()`, such as
+   * `beforeCreateRow`/`afterCreateRow`, can fire before it, from `writeChangesToData` and
+   * `adjustRowsAndCols`, when a change lies out of bounds). It runs before the render that follows, so
+   * the cell never paints its raw formula text. That window
+   * is open while the Core validates a change, which it does in a microtask, so an `updateSettings()`
+   * in the same task rebuilds the sheet from source data that does not hold the change yet. A sheet
+   * switch loads data, so the Core drops a set that waited across one and this listener never sees it
+   * (`#onChangesDropped` handles it). The sheet id is still compared, so a set that does reach the
+   * render after the binding moved to another sheet is written into the current one, where the grid
+   * holds it.
+   *
+   * By now the Core has created the rows and columns an out-of-bounds change needed, so the whole set
+   * is written in one batch - one engine undo entry for one grid action - and the deferred
+   * `afterChange` write of those changes is skipped. The dependents the write recalculated are
+   * validated, as on the `afterSetDataAtCell` path.
+   *
+   * @param {Array[]|null} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   */
+  #onBeforeChangeRender = (changes: CellChange[] | null) => {
+    const awaitingApply = changes ? this.#changesAwaitingApply.get(changes) : undefined;
+
+    if (!changes || !awaitingApply) {
+      return;
+    }
+
+    this.#changesAwaitingApply.delete(changes);
+
+    if (
+      !this.engine ||
+      (awaitingApply.writeCount === this.#sheetWriteCount && awaitingApply.sheetId === this.sheetId) ||
+      changes.length === 0
+    ) {
+      return;
+    }
+
+    // One write, so a grid on another sheet that reads a restored cell and a written one paints once.
+    const { dependentCells, changedCells } = this.#writeOwnSheet(this.engine!, () => {
+      if (awaitingApply.sheetId !== null && awaitingApply.sheetId !== this.sheetId) {
+        this.#restoreSwitchedAwaySheet(awaitingApply.writtenCells, awaitingApply.sheetId);
+      }
+
+      return this.#writeChangesToEngine(changes);
+    });
+
+    awaitingApply.writtenBack = true;
+
+    this.#validateWriteDependents(dependentCells, changedCells);
   };
+
+  /**
+   * Called by the Core for a change set it dropped: the set waited for its validators while
+   * `loadData()` replaced the data, so it is never applied. `afterSetDataAtCell` already wrote it into
+   * the sheet the grid showed then, so when the grid now shows another sheet, that sheet is put back
+   * to the values the set replaced. Without this, the switched-away sheet kept a value its grid data
+   * never received, and showed it on a switch back.
+   *
+   * While the grid still shows the sheet the set was written into, two cases differ. When a load the
+   * plugin did not make ran since the set was written (`#foreignLoadCount` moved), the grid holds that
+   * load's data, which never had the dropped value, and nothing is put back. That includes a load the
+   * engine refused, which empties the sheet without counting a sheet write. Otherwise every load was the
+   * plugin's own `switchSheet()` (away and back within the window), which loads the grid FROM the sheet,
+   * so the grid's data holds the dropped value too, and both are put back (`#restoreReloadedCells`), cell
+   * by cell only where the engine still holds what the first write put there: a newer edit of the cell
+   * keeps its value.
+   *
+   * The restore runs in a plugin write that paints this grid as well: the Core renders nothing for a
+   * dropped set, so a cell of the sheet shown that reads a restored cell kept the value computed from the
+   * dropped one. The set's pending out-of-bounds write is dropped with it.
+   *
+   * @param {Array[]} changes The dropped change array, the one `afterSetDataAtCell` received.
+   */
+  #onChangesDropped = (changes: CellChange[]) => {
+    const awaitingApply = this.#changesAwaitingApply.get(changes);
+
+    this.#outOfBoundsWrites.delete(changes);
+
+    if (!awaitingApply) {
+      return;
+    }
+
+    this.#changesAwaitingApply.delete(changes);
+
+    const { sheetId, writtenCells, foreignLoadCount } = awaitingApply;
+
+    if (!this.engine || sheetId === null) {
+      return;
+    }
+
+    // The restore compares what the engine holds, and a held first write records that only when it resumes.
+    this.#flushEvaluation();
+
+    if (sheetId !== this.sheetId) {
+      withPluginEngineWrite(this.engine, () => this.#restoreSwitchedAwaySheet(writtenCells, sheetId));
+
+    } else if (foreignLoadCount === this.#foreignLoadCount) {
+      this.#restoreReloadedCells(writtenCells);
+    }
+  };
+
+  /**
+   * Puts the old values of a dropped change set back into a grid that loaded its data from the engine
+   * sheet the set was written into, and into that sheet. The grid's data and the engine both hold the
+   * dropped value then. The values go through `setSourceDataAtCell()`, whose `afterSetSourceDataAtCell`
+   * writes the engine, at the cells the first write reached, translated from engine indexes, because the
+   * load built the grid's rows from the engine sheet. A cell whose engine content is no longer what the
+   * first write left (`WrittenCell#writtenContent`) is skipped. All cells go in one `setSourceDataAtCell()`
+   * call, so a dropped paste renders and writes the engine once. The write is not an undo step: the user
+   * never made the change it reverts.
+   *
+   * @param {Array} writtenCells The cells the first write reached.
+   */
+  #restoreReloadedCells(writtenCells: WrittenCell[]) {
+    const restores: [number, string | number, unknown][] = [];
+
+    writtenCells.forEach(({ address, oldValue, writtenContent }) => {
+      if (writtenContent === undefined || this.#readEngineContent(address) !== writtenContent) {
+        return;
+      }
+
+      const visualRow = this.rowAxisSyncer?.getVisualIndexFromHfIndex(address.row) ?? -1;
+      const visualColumn = this.columnAxisSyncer?.getVisualIndexFromHfIndex(address.col) ?? -1;
+      const physicalRow = visualRow < 0 ? null : this.hot.toPhysicalRow(visualRow);
+
+      if (physicalRow !== null && visualColumn >= 0) {
+        restores.push([physicalRow, this.hot.colToProp(visualColumn) as string | number, oldValue]);
+      }
+    });
+
+    if (restores.length === 0) {
+      return;
+    }
+
+    this.hot._getOperationScope().suppress(() => {
+      this.hot.setSourceDataAtCell(
+        restores, undefined as unknown as string, undefined, 'Formulas.restoreDroppedChange',
+      );
+    });
+  }
+
+  /**
+   * Reads what the engine holds in a cell (`getCellSerialized()`), or `undefined` when the address is
+   * outside what the engine can read (a sheet removed since, an index the engine refused).
+   *
+   * @param {object} address The engine address.
+   * @returns {*}
+   */
+  #readEngineContent(address: WrittenCell['address']): unknown {
+    if (!this.engine || address.sheet === null || address.row < 0 || address.col < 0
+      || this.engine.getSheetName(address.sheet) === undefined) {
+      return undefined;
+    }
+
+    return this.engine.getCellSerialized(address as { row: number; col: number; sheet: number });
+  }
+
+  /**
+   * Puts a sheet the grid switched away from back to the values a change set replaced in it. It runs
+   * inside a plugin write, which paints the grids that read the sheet.
+   *
+   * `afterSetDataAtCell` writes a change into the sheet the grid shows at that moment, before the Core
+   * validates it. When the grid shows another sheet by the time the set is dropped or applied, the
+   * sheet it was written into must not keep it.
+   *
+   * The cells come from the record the FIRST write kept (`ChangeSetAwaitingApply#writtenCells`), not
+   * from mapping the changes again: by now the grid's indexes describe the switched-to sheet's data -
+   * rows the Core just created included - so a fresh mapping named cells that write never touched
+   * and skipped ones it did. An out-of-bounds change was never written there (its write is the
+   * deferred `afterChange` one), so it has no record. The old values are what that sheet held,
+   * because the grid's data was that sheet's when the change was made. A sheet removed from the
+   * engine in the meantime is left alone.
+   *
+   * @param {Array} writtenCells The cells the first write reached.
+   * @param {number} sheetId The engine id of the sheet the set was first written into.
+   */
+  #restoreSwitchedAwaySheet(writtenCells: WrittenCell[], sheetId: number) {
+    const engine = this.engine!;
+
+    if (engine.getSheetName(sheetId) === undefined || writtenCells.length === 0) {
+      return;
+    }
+
+    const metaManager = this.hot._getMetaManager();
+
+    runEngineBatch(engine, () => {
+      writtenCells.forEach(({ address, physicalRow, physicalColumn, visualRow, visualColumn, oldValue }) => {
+        let previous = this.#getValueGetterValue(physicalRow, physicalColumn, oldValue);
+
+        if (typeof previous === 'string') {
+          previous = this.#escapeEngineBoundValue(
+            previous,
+            metaManager.getCellMetaTransient(physicalRow, physicalColumn, { visualRow, visualColumn }),
+          );
+        }
+
+        if (engine.isItPossibleToSetCellContents(address)) {
+          engine.setCellContents(address, previous ?? null);
+        }
+      });
+    });
+  }
 
   /**
    * `onAfterSetSourceDataAtCell` hook callback.
@@ -3784,18 +5777,26 @@ export class Formulas extends BasePlugin {
       this.engine!.setCellContents(address, newValue).forEach((dependentCell: unknown) => {
         dependentCells.push(dependentCell);
       });
+      this.#recordSyncedCell(physicalRow, visualColumn, newValue);
     });
 
-    if (restored) {
-      this.engine!.batch(writeAll).forEach((dependentCell: unknown) => {
-        dependentCells.push(dependentCell);
+    const engine = this.engine!;
+
+    if (!restored) {
+      this.#writeOwnSheet(engine, () => {
+        beginHeldEngineWrite(engine);
+        writeAll();
       });
-    } else {
-      writeAll();
+      this.#validateWriteDependents(dependentCells, changedCells);
+
+      return;
     }
 
-    this.renderDependentSheets(dependentCells, restored);
-    this.validateDependentCells(dependentCells, changedCells);
+    const { dependents, changed } = withPluginEngineWrite(engine, () => (
+      this.#runRestoreWrite(engine, () => runEngineBatch(engine, writeAll))
+    ));
+
+    this.validateDependentCells(dependentCells.concat(dependents), changedCells.concat(changed));
   }
 
   /**
@@ -3808,6 +5809,8 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   #onBeforeCreateRow = (visualRow: number, amount: number, source?: string) => {
+    this.#validateHeldWritesBeforeAlter(source);
+
     if (isRestoreSource(source)) {
       return;
     }
@@ -3837,6 +5840,8 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   #onBeforeCreateCol = (visualColumn: number, amount: number, source?: string) => {
+    this.#validateHeldWritesBeforeAlter(source);
+
     if (isRestoreSource(source)) {
       return;
     }
@@ -3867,6 +5872,8 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   #onBeforeRemoveRow = (row: number, amount: number, physicalRows: number[], source?: string) => {
+    this.#validateHeldWritesBeforeAlter(source);
+
     if (isRestoreSource(source)) {
       return;
     }
@@ -3891,6 +5898,8 @@ export class Formulas extends BasePlugin {
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   #onBeforeRemoveCol = (col: number, amount: number, physicalColumns: number[], source?: string) => {
+    this.#validateHeldWritesBeforeAlter(source);
+
     if (isRestoreSource(source)) {
       return;
     }
@@ -4041,14 +6050,20 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const engine = this.engine;
+    const sheetId = engine.getSheetId(this.sheetName)!;
+
     // Once rows or columns have been moved or sorted, the engine and the source data no longer
     // share a reference frame, and the engine's formulas would be wrong in the source data's terms.
+    // Only a formula can have been rewritten, so a sheet without one leaves nothing stale and must not
+    // make every later step serialize the sheet.
     if (!this.rowAxisSyncer!.isHfOrderPhysical() || !this.columnAxisSyncer!.isHfOrderPhysical()) {
+      this.#sourceHasStaleFormulas ||= engine.getSheetFormulas(sheetId)
+        .some(formulasRow => formulasRow?.some(formula => formula !== undefined));
+
       return;
     }
 
-    const engine = this.engine;
-    const sheetId = engine.getSheetId(this.sheetName)!;
     const dimensions = engine.getSheetDimensions(sheetId);
 
     if (dimensions.width === 0 && dimensions.height === 0) {
@@ -4063,11 +6078,14 @@ export class Formulas extends BasePlugin {
 
       return engineHoldsPhysicalColumns;
     };
+    let leftStale = false;
     const collect = (hfRow: number, hfColumn: number, formula: string | undefined) => {
       const change = formula === undefined ? null :
         this.#readSourceChange(hfRow, hfColumn, formula, allowBrokenReferences, holdsPhysicalColumns);
 
-      if (change !== null) {
+      if (change === 'skipped') {
+        leftStale = true;
+      } else if (change !== null) {
         changes.push(change);
       }
     };
@@ -4079,13 +6097,18 @@ export class Formulas extends BasePlugin {
     try {
       if (cells === undefined) {
         engine.getSheetFormulas(sheetId).forEach((formulasRow, hfRow) => {
-          formulasRow?.forEach((formula, hfColumn) => collect(hfRow, hfColumn, formula));
+          formulasRow?.forEach((formula, hfColumn) => collect(hfRow, hfColumn, this.#readableFormula(formula)));
         });
       } else {
-        cells.forEach(({ row, col }) => collect(row, col, engine.getCellFormula({ sheet: sheetId, row, col })));
+        cells.forEach(({ row, col }) => collect(row, col,
+          this.#readableFormula(engine.getCellFormula({ sheet: sheetId, row, col }))));
       }
     } finally {
       this.#internalOperationPending = false;
+    }
+
+    if (cells === undefined && !leftStale) {
+      this.#sourceHasStaleFormulas = false;
     }
 
     if (changes.length === 0) {
@@ -4101,18 +6124,28 @@ export class Formulas extends BasePlugin {
     } finally {
       this.#sourceDataSyncPending = false;
     }
+
+    // The engine already holds these formulas; the source data now holds them too.
+    changes.forEach(([physicalRow, prop, value]) => {
+      const visualColumn = this.hot.propToCol(prop);
+
+      if (isNumeric(visualColumn)) {
+        this.#recordSyncedCell(physicalRow, visualColumn as number, value);
+      }
+    });
   }
 
   /**
-   * Returns the source data write that brings one engine formula into the source data, or `null`
-   * when the source already holds it or must not get it. The engine order must be the physical one.
+   * Returns the source data write that brings one engine formula into the source data, `null` when the
+   * source already holds it, or `'skipped'` when it must not get it. The engine order must be the
+   * physical one.
    *
    * @param {number} hfRow The engine row – the physical row, in the physical order.
    * @param {number} hfColumn The engine column.
    * @param {string} formula The engine's formula.
    * @param {boolean} allowBrokenReferences `true` to write a `#REF!` the source does not hold yet.
    * @param {Function} holdsPhysicalColumns Tells whether the engine holds the columns in physical order.
-   * @returns {Array|null} The write, as `[physicalRow, prop, formula]`.
+   * @returns {Array|string|null} The write, as `[physicalRow, prop, formula]`.
    */
   #readSourceChange(
     hfRow: number,
@@ -4120,14 +6153,14 @@ export class Formulas extends BasePlugin {
     formula: string,
     allowBrokenReferences: boolean,
     holdsPhysicalColumns: () => boolean,
-  ): [number, string | number, unknown] | null {
+  ): [number, string | number, unknown] | 'skipped' | null {
     // The engine's index IS the physical index in the physical order, so trimmed rows (Filters,
     // `trimRows`) are reached too – they hold formulas that need the same catch-up.
     const physicalRow = hfRow;
     const column = this.#resolveEngineColumn(hfColumn, holdsPhysicalColumns());
 
     if (column === null) {
-      return null;
+      return this.#isUnreachableCellStale(physicalRow, hfColumn, formula) ? 'skipped' : null;
     }
 
     // `getSourceDataAtCell` takes a physical row and a visual column, `setSourceDataAtCell` a physical
@@ -4142,10 +6175,33 @@ export class Formulas extends BasePlugin {
     // overwrite a still-good formula in the developer's array with an unrecoverable one, so it is only
     // written for the operations that can legitimately break a reference.
     if (!allowBrokenReferences && REF_ERROR_PATTERN.test(formula) && !REF_ERROR_PATTERN.test(String(stored))) {
-      return null;
+      return 'skipped';
     }
 
     return [physicalRow, column.prop, formula];
+  }
+
+  /**
+   * Tells whether the source data holds another formula than the engine for a cell no write can reach:
+   * its column has no visual counterpart, a column trimmed after the sheet was built. In the physical
+   * order the engine's column is the physical one, which `columns` maps to the property the source reads
+   * it by (the engine holds that column's data, not the source column of the same index). A `data`
+   * accessor function names no property, so its cell counts as stale.
+   *
+   * @private
+   * @param {number} physicalRow The engine row – the physical row, in the physical order.
+   * @param {number} physicalColumn The engine column – the physical column, in the physical order.
+   * @param {string} formula The engine's formula.
+   * @returns {boolean}
+   */
+  #isUnreachableCellStale(physicalRow: number, physicalColumn: number, formula: string): boolean {
+    const { columns } = this.hot.getSettings();
+    const column = typeof columns === 'function' ? columns(physicalColumn) : columns?.[physicalColumn];
+    const prop = column?.data ?? physicalColumn;
+    // A host can write a formula into the engine past the source rows, where there is no row to read.
+    const row = this.hot.getSourceDataAtRow(physicalRow) as Record<string | number, unknown> | null;
+
+    return !this.#isSameFormula(row?.[prop as string | number], formula);
   }
 
   /**
@@ -4159,6 +6215,17 @@ export class Formulas extends BasePlugin {
   #onAfterCreateRow = (visualRow: number, amount: number, source: string) => {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
+    this.#followSyncedRows((rows) => {
+      const physicalRow = this.hot.toPhysicalRow(visualRow) ?? rows.length;
+
+      if (physicalRow > rows.length) {
+        return false;
+      }
+
+      insertEmptyRows(rows, physicalRow, amount);
+
+      return true;
+    });
 
     if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
@@ -4166,11 +6233,15 @@ export class Formulas extends BasePlugin {
 
     this.#markStructureChanged();
 
-    const changes = this.#trackPeerRewrites(() => this.engine!.addRows(this.sheetId,
-      [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]));
+    const engine = this.engine!;
+
+    this.#trackPeerRewrites(() => this.#writeOwnSheet(engine, () => {
+      beginHeldEngineWrite(engine);
+
+      return engine.addRows(this.sheetId, [this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow), amount]);
+    }));
 
     this.#syncFormulasToSourceData();
-    this.renderDependentSheets(changes);
   };
 
   /**
@@ -4184,6 +6255,7 @@ export class Formulas extends BasePlugin {
   #onAfterCreateCol = (visualColumn: number, amount: number, source: string) => {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
+    this.#syncedContent = null;
 
     if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
@@ -4191,11 +6263,15 @@ export class Formulas extends BasePlugin {
 
     this.#markStructureChanged();
 
-    const changes = this.#trackPeerRewrites(() => this.engine!.addColumns(this.sheetId,
-      [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]));
+    const engine = this.engine!;
+
+    this.#trackPeerRewrites(() => this.#writeOwnSheet(engine, () => {
+      beginHeldEngineWrite(engine);
+
+      return engine.addColumns(this.sheetId, [this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn), amount]);
+    }));
 
     this.#syncFormulasToSourceData();
-    this.renderDependentSheets(changes);
   };
 
   /**
@@ -4210,6 +6286,23 @@ export class Formulas extends BasePlugin {
   #onAfterRemoveRow = (row: number, amount: number, physicalRows: number[], source: string) => {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
+    this.#followSyncedRows((rows) => {
+      // One pass that moves every kept row up once: a splice per removed row (or per span, when the removed
+      // rows are scattered) shifts the rest of the array each time, which is quadratic on a large removal.
+      const removed = new Set(physicalRows);
+      let kept = 0;
+
+      for (let physicalRow = 0; physicalRow < rows.length; physicalRow += 1) {
+        if (!removed.has(physicalRow)) {
+          rows[kept] = rows[physicalRow];
+          kept += 1;
+        }
+      }
+
+      rows.length = kept;
+
+      return true;
+    });
 
     if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
@@ -4218,13 +6311,13 @@ export class Formulas extends BasePlugin {
     this.#markStructureChanged();
 
     const removedSpans = coalesceIndexesToSpans(this.rowAxisSyncer!.getRemovedHfIndexes());
+    const engine = this.engine!;
 
-    const changes = this.#trackPeerRewrites(() => this.engine!.batch(() => {
+    this.#trackPeerRewrites(() => this.#writeOwnSheet(engine, () => runEngineBatch(engine, () => {
       this.#removeSpansFromEngine(removedSpans, 'removeRows');
-    }));
+    }, { movesCells: true })));
 
     this.#syncFormulasToSourceData(true);
-    this.renderDependentSheets(changes);
   };
 
   /**
@@ -4239,6 +6332,7 @@ export class Formulas extends BasePlugin {
   #onAfterRemoveCol = (col: number, amount: number, physicalColumns: number[], source: string) => {
     // Physical indexes shift; the repaint that follows the structural change re-registers the cells.
     this.#hyperlinkCells.clear();
+    this.#syncedContent = null;
 
     if (isBlockedSource(source) || isRestoreSource(source)) {
       return;
@@ -4247,13 +6341,13 @@ export class Formulas extends BasePlugin {
     this.#markStructureChanged();
 
     const removedSpans = coalesceIndexesToSpans(this.columnAxisSyncer!.getRemovedHfIndexes());
+    const engine = this.engine!;
 
-    const changes = this.#trackPeerRewrites(() => this.engine!.batch(() => {
+    this.#trackPeerRewrites(() => this.#writeOwnSheet(engine, () => runEngineBatch(engine, () => {
       this.#removeSpansFromEngine(removedSpans, 'removeColumns');
-    }));
+    }, { movesCells: true })));
 
     this.#syncFormulasToSourceData(true);
-    this.renderDependentSheets(changes);
   };
 
   /**
@@ -4420,15 +6514,21 @@ export class Formulas extends BasePlugin {
     // HyperFormula can still throw for cases the isItPossibleTo* pre-checks in
     // `beforeMoveCells` do not cover. Failing here is safe: the core has not mutated
     // anything yet and aborts the whole operation when `false` is returned.
+    const engine = this.engine;
+
     try {
       if (isCopy) {
-        // copy() reads cell values and cannot run inside batch() (evaluation must not be suspended).
-        this.engine.copy(source);
-        this.#moveCellsChanges = this.engine.paste(dest);
+        // copy() reads cell values and cannot run inside batch() (evaluation must not be suspended), and
+        // paste() throws while it is suspended, so a held recalculation ends here and neither is held.
+        this.#flushEvaluation();
+        engine.copy(source);
+        this.#moveCellsChanges = this.#writeOwnSheet(engine, () => engine.paste(dest));
       } else {
-        this.#moveCellsChanges = this.#trackPeerRewrites(() => this.engine!.batch(() => {
-          this.engine!.moveCells(source, dest);
-        }));
+        this.#moveCellsChanges = this.#trackPeerRewrites(() => this.#writeOwnSheet(engine, () => (
+          runEngineBatch(engine, () => {
+            engine.moveCells(source, dest);
+          })
+        )));
       }
     } catch (e) {
       const operation = isCopy ? 'copy/paste' : 'moveCells';
@@ -4470,6 +6570,7 @@ export class Formulas extends BasePlugin {
    * operation is read from `#committedMoveCells` instead, captured before any listener could run.
    */
   #onAfterMoveCells = () => {
+    this.#syncedContent = null;
     const committed = this.#committedMoveCells;
     const dependentCells = this.#moveCellsChanges;
 
@@ -4490,8 +6591,9 @@ export class Formulas extends BasePlugin {
     // pointed at the moved range were rewritten by the engine too, and need the same catch-up.
     this.#syncFormulasToSourceData(true);
 
-    if (dependentCells !== null) {
-      this.renderDependentSheets(dependentCells, true);
+    // The move wrote the engine before the grid changed, so the engine's write left this grid unpainted.
+    if (dependentCells !== null && this.sheetId !== null && changesNameSheet(dependentCells, this.sheetId)) {
+      this.#paintGrid();
     }
   };
 
@@ -4524,6 +6626,9 @@ export class Formulas extends BasePlugin {
     const height = srcToRow - srcFromRow + 1;
     const width = srcToCol - srcFromCol + 1;
 
+    // A held move is read back once it is recalculated.
+    this.#flushEvaluation();
+
     // Build target values from HF serialized content (formula strings or raw values).
     const targetData: unknown[][] = [];
 
@@ -4533,11 +6638,11 @@ export class Formulas extends BasePlugin {
       for (let c = 0; c < width; c++) {
         const hfRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(tgtFromRow + r);
         const hfCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(tgtFromCol + c);
-        const serialized = this.engine!.getCellSerialized({
+        const serialized = this.#readableFormula(this.engine!.getCellSerialized({
           sheet: this.sheetId,
           row: hfRow,
           col: hfCol,
-        });
+        }));
 
         // The serialized content keeps the escape apostrophe that dates and preserved text values
         // were written with, so it is unescaped before it goes back into the grid. The meta comes
@@ -4627,7 +6732,7 @@ export class Formulas extends BasePlugin {
    *
    * `#nestedRowsDetachPending` is left open when a listener registered ahead of this plugin's own
    * throws out of `afterDetachChild` – see `#onBeforeDetachChild`. `#internalOperationPending` is
-   * left open by a throw from `setSheetContent`, `setupSyncEndpoint`, or `renderDependentSheets`,
+   * left open by a throw from `setSheetContent` or `setupSyncEndpoint`,
    * which the two handlers below open it across without a `try`/`finally`. Both leaks are silent:
    * the first suppresses `#syncFormulasToSourceData`, so the developer's array keeps stale formula
    * text, and the second makes the read hooks early-return, so formula cells report their raw text.
@@ -4656,6 +6761,7 @@ export class Formulas extends BasePlugin {
   #onAfterDetachChild = (parent: Record<string, unknown>, element: Record<string, unknown>,
                          finalElementRowIndex: number, source?: string) => {
     this.#markStructureChanged();
+    this.#syncedContent = null;
 
     try {
       if (isBlockedSource(source)) {
@@ -4681,13 +6787,15 @@ export class Formulas extends BasePlugin {
       // trimming map, under which the visual and physical row spaces genuinely differ.
       this.#escapeSourceDataArray(rowsData, finalElementRowIndex, 0);
 
-      rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
-        row.forEach((value: unknown, colIndex: number) => {
-          this.engine?.setCellContents({
-            col: colIndex,
-            row: finalElementRowIndex + relativeRowIndex,
-            sheet: this.sheetId
-          }, [[value]]);
+      this.#writeOwnSheet(this.engine, () => {
+        rowsData.forEach((row: unknown[], relativeRowIndex: number) => {
+          row.forEach((value: unknown, colIndex: number) => {
+            this.engine?.setCellContents({
+              col: colIndex,
+              row: finalElementRowIndex + relativeRowIndex,
+              sheet: this.sheetId
+            }, [[value]]);
+          });
         });
       });
     } finally {

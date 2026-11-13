@@ -233,6 +233,8 @@ describe('IndexMapperStateTracker', () => {
     expect(snapshot.various.has('columnSorting.columnMeta')).toBe(false);
     expect(isDerivedIndexMap('nestedHeaders.widthsMap')).toBe(true);
     expect(isDerivedIndexMap('stretchColumns')).toBe(true);
+    expect(isDerivedIndexMap('AsyncValues')).toBe(true);
+    expect(isDerivedIndexMap('asyncValues')).toBe(false);
     expect(isDerivedIndexMap('hiddenRows')).toBe(false);
   });
 

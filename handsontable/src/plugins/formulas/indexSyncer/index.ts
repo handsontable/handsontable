@@ -2,6 +2,8 @@ import AxisSyncer from './axisSyncer';
 import type { IndexMapper } from '../../../translations';
 import type { HyperFormulaEngine } from '../engine/types';
 
+type OwnEngineWrite = <T>(engine: HyperFormulaEngine, fn: () => T) => T;
+
 /**
  * @private
  * @class IndexSyncer
@@ -34,6 +36,28 @@ class IndexSyncer {
    */
   readonly #postponeAction: Function;
   /**
+   * Runs a write to the engine as the grid's own (see `#writeOwnSheet()` in `Formulas`).
+   *
+   * @private
+   * @type {Function}
+   */
+  readonly #ownEngineWrite: OwnEngineWrite;
+  /**
+   * Tells whether the grid's row order is a sort's.
+   *
+   * @private
+   * @type {Function}
+   */
+  readonly #isOrderSorted: () => boolean;
+  /**
+   * Called whenever an axis sends one order (`setRowOrder()`/`setColumnOrder()`) to the engine, and whenever
+   * an axis takes an order the engine did not follow (`onOrderReset()`).
+   *
+   * @private
+   * @type {Function}
+   */
+  readonly #onOrderSent: () => void;
+  /**
    * The HF's engine instance which will be synced.
    *
    * @private
@@ -51,10 +75,20 @@ class IndexSyncer {
   /**
    * Initializes the index syncer by creating row and column axis syncers and storing the deferred action callback.
    */
-  constructor(rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper, postponeAction: Function) {
+  constructor(
+    rowIndexMapper: IndexMapper,
+    columnIndexMapper: IndexMapper,
+    postponeAction: Function,
+    ownEngineWrite: OwnEngineWrite,
+    isOrderSorted: () => boolean = () => false,
+    onOrderSent: () => void = () => {},
+  ) {
     this.#rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
     this.#columnIndexSyncer = new AxisSyncer('column', columnIndexMapper, this);
     this.#postponeAction = postponeAction;
+    this.#ownEngineWrite = ownEngineWrite;
+    this.#isOrderSorted = isOrderSorted;
+    this.#onOrderSent = onOrderSent;
   }
 
   /**
@@ -96,6 +130,59 @@ class IndexSyncer {
    */
   getPostponeAction() {
     return this.#postponeAction;
+  }
+
+  /**
+   * Gets the function that runs a write to the engine as the grid's own: the other grids on the engine
+   * paint once when it ends, this one is left to the caller.
+   *
+   * @returns {Function}
+   */
+  getOwnEngineWrite(): OwnEngineWrite {
+    return this.#ownEngineWrite;
+  }
+
+  /**
+   * Tells whether the grid's row order is a sort's (ColumnSorting or MultiColumnSorting), which reaches the
+   * engine as one order, never as moves.
+   *
+   * @returns {boolean}
+   */
+  isOrderSorted(): boolean {
+    return this.#isOrderSorted();
+  }
+
+  /**
+   * Reports that an axis sent one order to the engine (a sort, a cleared sort, `setIndexesSequence()`, an
+   * order the move guards or the cost choice sent as one). Such an order keeps each moved formula's relative
+   * offsets, so the engine's formula text no longer follows the data.
+   */
+  onOrderSent() {
+    this.#onOrderSent();
+  }
+
+  /**
+   * Reports that an axis took a sequence no engine call followed (a reset of the grid's order). The engine
+   * still holds the order it had, so whoever skips writing the data again has to write it.
+   */
+  onOrderReset() {
+    this.#onOrderSent();
+  }
+
+  /**
+   * Holds or releases the order changes of both axes (see `AxisSyncer#setOrderHeld()`). The column axis
+   * is released even when sending the row order throws: left held, no column order change would reach
+   * the engine until the plugin is turned off and on again.
+   *
+   * @param {boolean} held Whether the order is held.
+   * @param {boolean} [syncOnRelease=true] Whether ending the hold sends the grid's current order.
+   */
+  setOrderHeld(held: boolean, syncOnRelease: boolean = true) {
+    try {
+      this.#rowIndexSyncer.setOrderHeld(held, syncOnRelease);
+    } finally {
+      this.#columnIndexSyncer.setOrderHeld(held, syncOnRelease);
+    }
   }
 
   /**

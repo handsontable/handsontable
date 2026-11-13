@@ -8,7 +8,9 @@ export const esConfig = {
   output: {
     format: env,
     indent: false,
-    file: `./es/${filename}`
+    file: `./es/${filename}`,
+    // Rollup strips a source-level directive, so this banner is the first statement.
+    banner: "'use client';",
   },
   plugins: [
     plugins.json,

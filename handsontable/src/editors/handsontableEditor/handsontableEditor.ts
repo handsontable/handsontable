@@ -3,6 +3,7 @@ import type { CellProperties } from '../../settings';
 import { TextEditor } from '../textEditor';
 import { setCaretPosition, getFixedContainingBlockRect, isHTMLElement } from '../../helpers/dom/element';
 import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
+import { getVerticalRoom, getVisibleVerticalRange } from '../utils/visibleVerticalRange';
 import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
@@ -438,9 +439,14 @@ export class HandsontableEditor extends TextEditor {
     // includes the classic horizontal scrollbar's gutter and, on mobile, the area under
     // collapsible browser chrome and the software keyboard - which is up precisely because a
     // text editor has focus, so the list would be positioned into space the user cannot see.
-    const block = this.#containingBlockRect();
-    const spaceAbove = Math.max(cellRect.top - block.top, 0);
-    const spaceBelow = Math.max((block.top + block.height) - cellRect.bottom, 0);
+    //
+    // Only the part of that box the viewport shows counts: a transformed ancestor scrolls with the
+    // page, so its bottom can lie below the viewport's.
+    const { spaceAbove, spaceBelow } = getVerticalRoom(
+      cellRect,
+      this.#containingBlockRect(),
+      this.hot.rootDocument.documentElement.clientHeight
+    );
     const dropdownTargetHeight = this.getDropdownHeight();
     const flipNeeded = dropdownTargetHeight > spaceBelow && spaceAbove > spaceBelow + cellRect.height;
 
@@ -660,11 +666,12 @@ export class HandsontableEditor extends TextEditor {
   #writeDropdownTop(viewportTop: number): void {
     const dropdownStyle = this.htEditor.rootElement.style;
     const block = this.#containingBlockRect();
+    const visible = getVisibleVerticalRange(block, this.hot.rootDocument.documentElement.clientHeight);
     const height = this.getDropdownHeight();
-    // A list taller than the whole box pins to the top: showing the first options beats showing
-    // the middle of the list.
-    const maxTop = Math.max(block.top + block.height - height, block.top);
-    const clamped = Math.min(Math.max(viewportTop, block.top), maxTop);
+    // A list taller than the visible part of the box pins to its top: showing the first options
+    // beats showing the middle of the list.
+    const maxTop = Math.max(visible.bottom - height, visible.top);
+    const clamped = Math.min(Math.max(viewportTop, visible.top), maxTop);
 
     dropdownStyle.position = 'fixed';
     dropdownStyle.top = `${clamped - block.top}px`;
@@ -737,8 +744,9 @@ export class HandsontableEditor extends TextEditor {
    * so reading it keeps the list's geometry identical to what those rules produced and only
    * changes the coordinate space. That compensation is conditional
    * (`BaseEditor#getEditedCellRect()` cancels a 1px shift for a cell that draws its own
-   * inline-start border, which depends on row headers and on which columns are rendered), so a
-   * hardcoded 1px against the cell lands the list a pixel off on some columns and not others.
+   * inline-start border or stands behind a row header, which depends on which columns are
+   * rendered), so a hardcoded 1px against the cell lands the list a pixel off on some columns and
+   * not others.
    *
    * @returns {DOMRect}
    */

@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
-import type { DetailedSettings } from 'handsontable/plugins/columnSummary';
+import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
 
 // register Handsontable's modules
 registerAllModules();
@@ -25,13 +25,13 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 const hotSettings = ref<GridSettings>({
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: generateData(5, 5, true),
   height: 'auto',
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   columnSummary: function () {
-    const configArray = [];
+    const configArray: SummaryEndpoint[] = [];
     const summaryTypes = ['sum', 'min', 'max', 'count', 'average'];
 
     for (let i = 0; i < this.hot.countCols(); i++) {
@@ -49,7 +49,7 @@ const hotSettings = ref<GridSettings>({
       });
     }
 
-    return configArray as DetailedSettings[];
+    return configArray;
   },
 });
 </script>

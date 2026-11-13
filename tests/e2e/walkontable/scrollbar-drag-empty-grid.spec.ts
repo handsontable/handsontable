@@ -1,4 +1,4 @@
-import { test, expect } from '../../fixtures/test';
+import { test, expect, THEMES_TAG } from '../../fixtures/test';
 import {
   type HeaderPlacement,
   ScrollbarDragEmptyGridPage,
@@ -39,7 +39,7 @@ function expectOnTrack(placements: HeaderPlacement[], when: string): void {
   }
 }
 
-test.describe('Scrollbar drag on a grid with an empty axis', () => {
+test.describe('Scrollbar drag on a grid with an empty axis', { tag: THEMES_TAG }, () => {
   for (const dir of ['ltr', 'rtl'] as const) {
     for (const rowHeaders of ['off', 'on'] as const) {
       test(`keeps the column headers on their columns of a grid with no rows (${dir}, rowHeaders ${rowHeaders})`,
@@ -86,28 +86,54 @@ test.describe('Scrollbar drag on a grid with an empty axis', () => {
     expectOnTrack(await grid.rowHeaderPlacements(), 'after release');
   });
 
-  test('keeps the page scroll on release of a window-scrolled grid with no rows', async({ page, theme, bundle }) => {
+  for (const dir of ['ltr', 'rtl'] as const) {
+    test(`keeps the page scroll on release of a window-scrolled grid with no rows (${dir})`, async({ page, theme, bundle }) => {
+      const grid = new ScrollbarDragEmptyGridPage(page, theme, bundle);
+
+      await grid.goto({ mode: 'window', dir });
+
+      const maxScroll = await grid.maxWindowScrollLeft();
+
+      // The premise: the page must be wide enough to drag past the first step at all.
+      expect(maxScroll, 'horizontal page scroll range').toBeGreaterThan(120);
+
+      await grid.pressScrollbar();
+
+      for (const distance of [10, 120, maxScroll]) {
+        await grid.dragScrollbarTo('horizontal', distance);
+
+        expect(await grid.spreaderPosition(), `spreader position at ${distance}px`).toBe('sticky');
+        expectOnTrack(await grid.columnHeaderPlacements(), `at ${distance}px`);
+      }
+
+      await grid.releaseScrollbar();
+
+      await expect.poll(() => grid.scrollDistance('horizontal')).toBe(maxScroll);
+      expect(await grid.spreaderPosition(), 'spreader position after release').toBe('relative');
+    });
+  }
+
+  test('keeps the page scroll on release of an RTL grid on an LTR page that the window scrolls', async({
+    page,
+    theme,
+    bundle,
+  }) => {
     const grid = new ScrollbarDragEmptyGridPage(page, theme, bundle);
 
-    await grid.goto({ mode: 'window' });
+    await grid.goto({ mode: 'window', dir: 'rtl', pageDir: 'ltr' });
 
     const maxScroll = await grid.maxWindowScrollLeft();
 
-    // The premise: the page must be wide enough to drag past the first step at all.
     expect(maxScroll, 'horizontal page scroll range').toBeGreaterThan(120);
 
     await grid.pressScrollbar();
+    await grid.dragScrollbarTo('horizontal', 120);
 
-    for (const distance of [10, 120, maxScroll]) {
-      await grid.dragScrollbarTo('horizontal', distance);
-
-      expect(await grid.spreaderPosition(), `spreader position at ${distance}px`).toBe('sticky');
-      expectOnTrack(await grid.columnHeaderPlacements(), `at ${distance}px`);
-    }
+    expect(await grid.spreaderPosition(), 'spreader position during the drag').toBe('sticky');
 
     await grid.releaseScrollbar();
 
-    await expect.poll(() => grid.scrollDistance('horizontal')).toBe(maxScroll);
+    await expect.poll(() => grid.scrollDistance('horizontal')).toBe(120);
     expect(await grid.spreaderPosition(), 'spreader position after release').toBe('relative');
   });
 });

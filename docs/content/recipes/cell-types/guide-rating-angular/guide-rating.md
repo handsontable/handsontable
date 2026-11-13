@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: "Star Rating Editor"
-metaTitle: "Star Rating Editor - JavaScript Data Grid | Handsontable"
-description: Learn how to create a custom Handsontable cell type using SVG stars for intuitive 1-5 star ratings directly in your data grid.
+metaTitle: "Star Rating Editor | Handsontable DataGrid for JavaScript"
+description: Learn how to create a custom Handsontable DataGrid cell type using SVG stars for intuitive 1-5 star ratings directly in your data grid.
 permalink: /recipes/cell-types/rating-angular
 canonicalUrl: /recipes/cell-types/rating-angular
 framework: angular
@@ -11,11 +11,11 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: "Star Rating Editor - React Data Grid | Handsontable"
+  metaTitle: "Star Rating Editor | Handsontable DataGrid for React"
 angular:
-  metaTitle: "Star Rating Editor - Angular Data Grid | Handsontable"
+  metaTitle: "Star Rating Editor | Handsontable DataGrid for Angular"
 vue:
-  metaTitle: "Star Rating Editor - Vue Data Grid | Handsontable"
+  metaTitle: "Star Rating Editor | Handsontable DataGrid for Vue"
 searchCategory: Recipes
 category: Cell Types
 ---
@@ -48,7 +48,7 @@ A cell that:
 
 - Displays 5 SVG stars both when editing and viewing
 - Shows filled stars (gold) and unfilled stars (gray)
-- Uses Handsontable CSS tokens for theme-aware editor styling
+- Uses Handsontable DataGrid CSS tokens for theme-aware editor styling
 - Supports mouse hover for preview
 - Allows keyboard input (1-5 keys, arrow keys)
 - Provides immediate visual feedback
@@ -482,7 +482,7 @@ Configure Handsontable globally in `app.config.ts`. With standalone components, 
 ```typescript
 import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
 import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from "@handsontable/angular-wrapper";
 
 registerAllModules();
 
@@ -492,7 +492,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        license: NON_COMMERCIAL_LICENSE,
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
       } as HotGlobalConfig,
     },
   ],

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    /**
+     * Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright projects,
+     * mapped through fixed allowlists to literals so a crafted param is never reflected into the
+     * document. An absent param keeps the default (main / plain UMD); an unknown value throws.
+     */
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    A grid whose sheets bar declares no sheets and whose Formulas plugin gets a HyperFormula instance
+    built from three sheets: 'Data' with 1, 2, 3, 4 in A1:B2, 'Report' with `=SUM(Data!A1:B2)`, and
+    'Summary' with `=Report!A1*2`. The bar builds one tab per engine sheet. The fixture records every
+    `console.error` and `console.warn` the page makes, and stamps `sheets-bar` and `sheet-tab-{index}`
+    test ids on the bar and its tabs.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    window.consoleMessages = [];
+    ['error', 'warn'].forEach((level) => {
+      const original = console[level].bind(console);
+
+      console[level] = (...args) => {
+        window.consoleMessages.push(`${level}: ${args.map(String).join(' ')}`);
+        original(...args);
+      };
+    });
+
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+    const engine = HyperFormula.buildFromSheets({
+      Data: [[1, 2], [3, 4]],
+      Report: [['=SUM(Data!A1:B2)']],
+      Summary: [['=Report!A1*2']],
+    }, { licenseKey: 'internal-use-in-handsontable' });
+
+    window.engine = engine;
+
+    const stamp = (element, id) => {
+      if (element && element.getAttribute('data-testid') !== id) {
+        element.setAttribute('data-testid', id);
+      }
+    };
+    const stampBar = () => {
+      const bar = document.querySelector('.ht-sheets-bar');
+
+      if (!bar) {
+        return;
+      }
+
+      stamp(bar, 'sheets-bar');
+      bar.querySelectorAll('.ht-sheets-bar__tab').forEach((tab, index) => {
+        stamp(tab, `sheet-tab-${index}`);
+      });
+    };
+
+    new MutationObserver(stampBar).observe(document.body, { childList: true, subtree: true });
+
+    window.hot = new Handsontable(container, {
+      rowHeaders: true,
+      colHeaders: true,
+      renderer: testIdRenderer,
+      width: 700,
+      height: 400,
+      formulas: { engine },
+      sheetsBar: true,
+      licenseKey: window.htTestLicenseKey,
+    });
+
+    stampBar();
+  </script>
+</body>
+</html>

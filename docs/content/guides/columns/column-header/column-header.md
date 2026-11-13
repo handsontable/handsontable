@@ -1,16 +1,16 @@
 ---
 type: how-to
 title: Column headers
-metaTitle: Column headers - JavaScript Data Grid | Handsontable
+metaTitle: Column headers | Handsontable DataGrid for JavaScript
 description: Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 permalink: /column-header
 canonicalUrl: /column-header
 react:
-  metaTitle: Column headers - React Data Grid | Handsontable
+  metaTitle: Column headers | Handsontable DataGrid for React
 angular:
-  metaTitle: Column headers - Angular Data Grid | Handsontable
+  metaTitle: Column headers | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Column headers - Vue Data Grid | Handsontable
+  metaTitle: Column headers | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
 menuTag: updated
@@ -304,6 +304,61 @@ If you want to style the header labels, you can pass any number of class names, 
 @[code](@/content/guides/columns/column-header/angular/example5.html)
 
 :::
+
+:::
+
+## Add a tooltip to a column header
+
+To show a description when users hover over a column header, set the HTML `title` attribute of the header cell. Do this in the [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader) hook, which receives the header's `<th>` element. The browser displays the attribute's value as a native tooltip. Browsers show a `title` tooltip only on mouse hover, so keyboard users who focus a header (with [`navigableHeaders`](@/api/options.md#navigableheaders)) and touch users never see it. Don't put information that users need only in the tooltip.
+
+The HTML `title` attribute is not the same as the [`title`](@/api/options.md#title) option, which sets the header label.
+
+Handsontable DataGrid reuses header cells as users scroll, so a cell can still hold the `title` of a column that was rendered in it earlier. To avoid showing the wrong tooltip, set the attribute when a column has a description and remove it when it doesn't, on every call of the hook.
+
+Look up each description by the header's label, not by the `column` argument. That argument is a visual column index, so a description keyed by it stops matching its column after users move columns. This assumes your header labels are unique.
+
+The example below adds a tooltip to four of the seven headers.
+
+::: only-for javascript
+
+::: example #example8 --js 1 --ts 2
+@[code](@/content/guides/columns/column-header/javascript/example8.js)
+@[code](@/content/guides/columns/column-header/javascript/example8.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #example8 :react --js 1 --ts 2
+@[code](@/content/guides/columns/column-header/react/example8.jsx)
+@[code](@/content/guides/columns/column-header/react/example8.tsx)
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example8 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example8.vue)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example8 :angular --ts 1 --html 2
+@[code](@/content/guides/columns/column-header/angular/example8.ts)
+@[code](@/content/guides/columns/column-header/angular/example8.html)
+:::
+
+:::
+
+::: tip
+
+This approach sets plain text, so it doesn't need a [`sanitizer`](@/api/options.md#sanitizer). If you build header labels from HTML instead, see [Render custom HTML in header](@/guides/cell-functions/cell-renderer/cell-renderer.md#render-custom-html-in-header) and [Security](@/guides/security/security/security.md).
 
 :::
 

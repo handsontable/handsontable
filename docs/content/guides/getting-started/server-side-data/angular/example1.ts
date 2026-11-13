@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, NgZone, ViewChild, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
 import type {
@@ -290,7 +290,7 @@ function createInventoryDemoServer(): InventoryDemoServer {
 export class AppComponent {
   @ViewChild('hot') private hotTable?: HotTableComponent;
 
-  private readonly ngZone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   fetchStatus = 'Initializing…';
 
@@ -301,9 +301,8 @@ export class AppComponent {
   /** Defers binding updates so sync data-provider hooks do not trigger NG0100 in dev mode. */
   private setFetchStatus(message: string): void {
     setTimeout(() => {
-      this.ngZone.run(() => {
-        this.fetchStatus = message;
-      });
+      this.fetchStatus = message;
+      this.cdr.markForCheck();
     }, 0);
   }
 
@@ -369,7 +368,7 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -379,7 +378,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

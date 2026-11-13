@@ -32,7 +32,7 @@ export function hasRenderedCells(hot: HotInstance): boolean {
  * @param {Core} hot The Handsontable instance.
  * @returns {boolean}
  */
-function isGridBodyCovered(hot: HotInstance): boolean {
+export function isGridBodyCovered(hot: HotInstance): boolean {
   if (!isRootInstance(hot)) {
     return false;
   }

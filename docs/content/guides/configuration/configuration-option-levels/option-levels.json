@@ -6,11 +6,11 @@
     "cells",
     "cell"
   ],
-  "total": 177,
+  "total": 186,
   "counts": {
-    "grid": 108,
-    "grid columns cells cell": 62,
-    "grid columns": 6,
+    "grid": 113,
+    "grid columns cells cell": 65,
+    "grid columns": 7,
     "columns": 1
   },
   "options": [
@@ -99,10 +99,22 @@
       "name": "ariaTags",
       "category": "Core",
       "levels": [
-        "grid"
+        "grid",
+        "columns",
+        "cells",
+        "cell"
       ],
       "since": "14.0.0",
       "note": "The switch is grid level. A per-cell value only changes that cell's ARIA attributes."
+    },
+    {
+      "name": "asyncValues",
+      "category": "AsyncValues",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
+      "note": null
     },
     {
       "name": "autoColumnSize",
@@ -685,6 +697,15 @@
       "note": null
     },
     {
+      "name": "formulaBuilder",
+      "category": "FormulaBuilder",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
+      "note": null
+    },
+    {
       "name": "formulas",
       "category": "Formulas",
       "levels": [
@@ -700,6 +721,15 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "freezeBar",
+      "category": "FreezeBar",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -736,6 +766,16 @@
         "cell"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "headerCheckbox",
+      "category": "CheckboxHeader",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -887,6 +927,15 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "limitFixedToViewport",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1251,6 +1300,18 @@
       "note": null
     },
     {
+      "name": "readOnlyStyling",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "19.0.0",
+      "note": null
+    },
+    {
       "name": "renderAllColumns",
       "category": "Core",
       "levels": [
@@ -1317,6 +1378,24 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "rowId",
+      "category": "Core",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
+      "note": null
+    },
+    {
+      "name": "rowSelection",
+      "category": "RowSelection",
+      "levels": [
+        "grid"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {
@@ -1461,6 +1540,18 @@
         "cell"
       ],
       "since": "17.0.0",
+      "note": null
+    },
+    {
+      "name": "sourceLabel",
+      "category": "Core",
+      "levels": [
+        "grid",
+        "columns",
+        "cells",
+        "cell"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

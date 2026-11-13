@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
 
 /**
@@ -24,7 +24,7 @@ test.use({
   },
 });
 
-test.describe('Sheets bar tab strip under a page-wide scrollbar rule', () => {
+test.describe('Sheets bar tab strip under a page-wide scrollbar rule', { tag: THEMES_TAG }, () => {
   const cases = [
     { rule: '* { scrollbar-width: thin !important; }', holderFollowsRule: true },
     { rule: '.ht-sheets-bar__tabs { scrollbar-width: thin !important; }', holderFollowsRule: false },

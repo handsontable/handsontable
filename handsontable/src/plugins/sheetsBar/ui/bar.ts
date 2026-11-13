@@ -2,11 +2,13 @@ import { buildTemplate, type TemplateSpec } from '../../../helpers/dom/template'
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
 import * as C from '../../../i18n/constants';
-import { addClass, setAttribute } from '../../../helpers/dom/element';
+import { addClass, isHTMLElement, setAttribute } from '../../../helpers/dom/element';
+import { applyUiContainerTheme } from '../../../utils/uiContainerTheme';
 import { A11Y_GROUP, A11Y_LABEL } from '../../../helpers/a11y';
 import { isKeyboardActivation } from './activation';
 import { DISABLED_CLASS } from './overflow';
 import type { IconKey } from '../../../themes/types';
+import type { AnnouncementPoliteness } from '../../../utils/a11yAnnouncer';
 import type { IconOptions, IconSlotSync } from '../../../themes/engine/icons';
 
 /**
@@ -44,6 +46,7 @@ const TEMPLATE: TemplateSpec = {
         ],
       },
       { tag: 'div', ref: 'tabStrip', className: 'ht-sheets-bar__tabs' },
+      { tag: 'div', ref: 'tabsSizer', className: 'ht-sheets-bar__tabs-sizer', attrs: { 'aria-hidden': 'true' } },
       {
         tag: 'div',
         ref: 'pagingSection',
@@ -77,6 +80,7 @@ export interface SheetsBarRefs {
   addButton: HTMLButtonElement;
   allButton: HTMLButtonElement;
   tabStrip: HTMLDivElement;
+  tabsSizer: HTMLDivElement;
   pagingSection: HTMLDivElement;
   pagePrev: HTMLButtonElement;
   pageNext: HTMLButtonElement;
@@ -120,13 +124,17 @@ export class SheetsBarUI {
    */
   #themeName: string | undefined;
   /**
+   * The theme engine's scope class for the grid, `undefined` without the theme engine.
+   */
+  #themeScopeClassName: string | undefined;
+  /**
    * Phrase translation callback.
    */
   readonly #phraseTranslator: (...args: unknown[]) => string;
   /**
    * Accessibility announcement callback.
    */
-  readonly #a11yAnnouncer: (message: unknown) => void;
+  readonly #a11yAnnouncer: (message: unknown, politeness?: AnnouncementPoliteness) => void;
   /**
    * Whether the grid emits ARIA attributes.
    */
@@ -143,15 +151,18 @@ export class SheetsBarUI {
    * Creates the UI and installs it (into `uiContainer` when provided; otherwise the
    * container stays detached for the layout slot to place).
    */
-  constructor({ rootDocument, uiContainer, isRtl, themeName, phraseTranslator, a11yAnnouncer, ariaTags, syncIcon }:
-    Record<string, unknown>) {
+  constructor({
+    rootDocument, uiContainer, isRtl, themeName, themeScopeClassName,
+    phraseTranslator, a11yAnnouncer, ariaTags, syncIcon,
+  }: Record<string, unknown>) {
     this.#rootDocument = rootDocument as Document;
     this.#uiContainer = uiContainer as HTMLElement | null;
     this.#isRtl = isRtl as boolean;
     this.#ariaTags = ariaTags !== false;
     this.#themeName = themeName as string | undefined;
+    this.#themeScopeClassName = themeScopeClassName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
-    this.#a11yAnnouncer = a11yAnnouncer as (message: unknown) => void;
+    this.#a11yAnnouncer = a11yAnnouncer as (message: unknown, politeness?: AnnouncementPoliteness) => void;
     this.#syncIcon = syncIcon as IconSlotSync;
 
     this.#install();
@@ -172,14 +183,17 @@ export class SheetsBarUI {
   }
 
   /**
-   * Returns the bar's focusable controls in tab order: the live buttons and the tabs. Hidden
-   * sections and spent paging arrows are left out.
+   * Returns the bar's Tab stops in tab order: the live buttons and the one tab of the strip that
+   * holds its stop. Hidden sections, spent paging arrows and the other tabs (`tabindex="-1"`,
+   * reached with the arrow keys) are left out.
    *
    * @returns {HTMLElement[]} The controls the focus can land on.
    */
   getFocusableElements(): HTMLElement[] {
     return Array.from(this.getContainer().querySelectorAll<HTMLElement>('button, .ht-sheets-bar__tab'))
-      .filter(element => element.closest('[hidden]') === null && !element.classList.contains(DISABLED_CLASS));
+      .filter(element => element.closest('[hidden]') === null
+        && !element.classList.contains(DISABLED_CLASS)
+        && element.tabIndex >= 0);
   }
 
   /**
@@ -191,9 +205,13 @@ export class SheetsBarUI {
 
   /**
    * Announces a message to assistive technology.
+   *
+   * @param {string} message The message.
+   * @param {'assertive'|'polite'} [politeness='assertive'] How urgently it interrupts the screen
+   *   reader: a status message passes `'polite'`.
    */
-  announce(message: string): void {
-    this.#a11yAnnouncer(message);
+  announce(message: string, politeness: AnnouncementPoliteness = 'assertive'): void {
+    this.#a11yAnnouncer(message, politeness);
   }
 
   /**
@@ -239,19 +257,85 @@ export class SheetsBarUI {
   }
 
   /**
-   * Swaps the theme class on the container.
+   * Swaps the theme classes on the container, for a bar in a custom `uiContainer` only. A bar in
+   * a layout slot sits inside the grid's root wrapper and takes the theme from it, together with
+   * the grid's `colorScheme` and `density`, which the theme engine scopes to that wrapper. A
+   * theme class of its own matched the theme's base rules again on the bar and reset both to the
+   * theme's defaults, so a dark grid had a light bar. In a `uiContainer` the bar gets the theme
+   * engine's scope class beside the theme class for the same reason (`applyUiContainerTheme()`).
+   * Pagination does the same.
+   *
+   * @param {string} [themeName] The grid's theme class.
+   * @param {string} [scopeClassName] The theme engine's scope class for the grid.
    */
-  updateTheme(themeName?: string): void {
+  updateTheme(themeName?: string, scopeClassName?: string): void {
+    this.#themeName = themeName;
+    this.#themeScopeClassName = scopeClassName;
+
+    if (this.#uiContainer) {
+      applyUiContainerTheme(this.getContainer(), themeName, scopeClassName);
+    }
+  }
+
+  /**
+   * Scrolls the bar just far enough to show a focused element whole, when the bar is narrower than its minimum
+   * and scrolls inside the grid's container. The browser's own focus scroll leaves an element that is partly in
+   * view where it is, so a control the keyboard reached could stay cut at the bar's edge. The element is measured
+   * by its fractional box, and the offset is rounded away from it, because `scrollLeft` snaps to whole pixels.
+   * Only keyboard focus is revealed (`:focus-visible`): the browser does not scroll for a press either, and a
+   * scroll between a press and its release moved the clicked tab away, so the click landed elsewhere.
+   *
+   * @param {EventTarget|null} target The element that took the focus.
+   */
+  #revealInBar(target: EventTarget | null): void {
     const container = this.getContainer();
 
-    if (this.#themeName) {
-      container.classList.remove(this.#themeName);
+    if (!isHTMLElement(target) || container.scrollWidth <= container.clientWidth
+      || !target.matches(':focus-visible')) {
+      return;
     }
-    this.#themeName = themeName;
 
-    if (themeName) {
-      addClass(container, themeName);
+    const barBox = container.getBoundingClientRect();
+    const box = target.getBoundingClientRect();
+    const start = box.left - barBox.left - container.clientLeft;
+    const end = start + box.width;
+
+    if (start < 0) {
+      container.scrollLeft = Math.floor(container.scrollLeft + start);
+    } else if (end > container.clientWidth) {
+      container.scrollLeft = Math.ceil(container.scrollLeft + end - container.clientWidth);
     }
+  }
+
+  /**
+   * Gives the tabs pane the minimum width of the widest tab. A hidden, zero-height sizer in the bar's row spans
+   * the tabs pane and the paging arrows and holds one line per sheet name, with a tab's padding, gap and
+   * chevron plus the arrows' width around it, so the browser sizes the pane to the widest name in the tab's own
+   * font, whatever the theme, density or loaded font, with nothing measured in script. The lines are rebuilt
+   * only when the names change.
+   *
+   * @param {string[]} names The sheet names, in tab order.
+   */
+  setTabLabels(names: string[]): void {
+    const sizer = this.#refs?.tabsSizer;
+
+    if (!sizer) {
+      return;
+    }
+
+    const current = Array.from(sizer.children).map(line => line.textContent);
+
+    if (current.length === names.length && current.every((name, index) => name === names[index])) {
+      return;
+    }
+
+    sizer.replaceChildren(...names.map((name) => {
+      const line = this.#rootDocument.createElement('div');
+
+      line.textContent = name;
+
+      return line;
+    }));
   }
 
   /**
@@ -297,12 +381,14 @@ export class SheetsBarUI {
 
     addButton.addEventListener('click', () => this.runLocalHooks('addSheetClick'));
     allButton.addEventListener('click', event => this.runLocalHooks('allSheetsClick', isKeyboardActivation(event)));
+    container.addEventListener('focusin', event => this.#revealInBar(event.target));
 
     this.#installIcons();
 
     if (this.#uiContainer) {
       this.#uiContainer.appendChild(elements.fragment);
-      addClass(container, [this.#themeName ?? '', 'handsontable']);
+      addClass(container, 'handsontable');
+      applyUiContainerTheme(container, this.#themeName, this.#themeScopeClassName);
     }
   }
 

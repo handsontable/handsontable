@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Row freezing
-metaTitle: Row freezing - JavaScript Data Grid | Handsontable
+metaTitle: Row freezing | Handsontable DataGrid for JavaScript
 description: Lock (freeze) the position of specified rows, keeping them visible while scrolling to another area of the grid. This feature is sometimes called "pinned rows".
 permalink: /row-freezing
 canonicalUrl: /row-freezing
@@ -10,11 +10,11 @@ tags:
   - pinning rows
   - fixedRows
 react:
-  metaTitle: Row freezing - React Data Grid | Handsontable
+  metaTitle: Row freezing | Handsontable DataGrid for React
 angular:
-  metaTitle: Row freezing - Angular Data Grid | Handsontable
+  metaTitle: Row freezing | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row freezing - Vue Data Grid | Handsontable
+  metaTitle: Row freezing | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated
@@ -87,11 +87,30 @@ const hot = new Handsontable(container, {
   data: getData(),
   // freeze the last two rows as a footer
   fixedRowsBottom: 2,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
 You can combine `fixedRowsTop` and `fixedRowsBottom` to keep both a header and a footer row in view at the same time.
+
+## Freeze rows by dragging
+
+To let users change the number of frozen rows by dragging, enable the [`freezeBar`](@/api/options.md#freezebar) option. The [`FreezeBar`](@/api/freezeBar.md) plugin draws a bar on the edge of the frozen rows, and users drag it to the row boundary where they want the freeze line. The bar also works with the keyboard. Drags are limited to the number of rows that leave room to scroll.
+
+The plugin changes the counts on the grid and doesn't write them back to the settings you passed in. To keep the counts in your own state, copy them in the [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook.
+
+Some actions change the counts without `afterFreezeChange`, such as undo, `alter()`, and a sheets bar tab switch. See [Column freezing: Freeze columns by dragging](@/guides/columns/column-freezing/column-freezing.md#freeze-columns-by-dragging).
+
+The plugin hides the bars for rows when the [`Pagination`](@/api/pagination.md) plugin is on, because Pagination doesn't support frozen rows. For the full guide, see [Column freezing: Freeze columns by dragging](@/guides/columns/column-freezing/column-freezing.md#freeze-columns-by-dragging).
+
+## Hidden rows
+
+A row hidden with the [`HiddenRows`](@/api/hiddenRows.md) plugin keeps its slot in the frozen area. This applies to both [`fixedRowsTop`](@/api/options.md#fixedrowstop) and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom). Hiding a row inside the frozen area shrinks the frozen area by that row, and no other row moves in.
+
+- **Top rows.** The frozen area is always the first `fixedRowsTop` rows, hidden ones included. With `fixedRowsTop: 3` and row 1 hidden, the grid freezes 2 visible rows: rows 0 and 2. A trimmed or filtered row, unlike a hidden one, gives up its slot, so the next row moves in. With row 1 trimmed, the grid still freezes 3 rows: rows 0, 2, and 3.
+- **Bottom rows.** The frozen area is always the last `fixedRowsBottom` rows, hidden ones included. A trimmed or filtered row gives up its slot.
+
+To keep a set number of visible rows frozen, raise the option by the number of hidden rows inside the frozen area. Hidden columns work the same way. See [Column freezing: Hidden columns](@/guides/columns/column-freezing/column-freezing.md#hidden-columns).
 
 ## Result
 
@@ -101,13 +120,33 @@ After completing this guide, the rows you specify with `fixedRowsTop` or `fixedR
 
 When your grid has a defined [`height`](@/api/options.md#height), freeze only as many rows as fit within it.
 
-Handsontable always draws frozen rows in full. It never shrinks them, and it never scrolls them. If the frozen rows need more space than the grid has, they cover the whole grid. The remaining rows stay out of reach: the vertical scrollbar still moves, but the view no longer changes.
+By default, Handsontable DataGrid draws frozen rows in full. It never shrinks them, and it never scrolls them. If the frozen rows need more space than the grid has, they cover the whole grid. The remaining rows stay out of reach: the vertical scrollbar still moves, but the view no longer changes.
 
-This applies to the total height of the frozen rows, not to how many there are. Taller rows reach the limit sooner.
+This applies to the total height of the frozen rows, not to how many there are. Taller rows reach the limit sooner. Both `fixedRowsTop` and `fixedRowsBottom` behave this way.
 
-Both `fixedRowsTop` and `fixedRowsBottom` behave this way. Keep the combined height of your frozen rows smaller than the grid's height. If your grid has to work at several sizes, pick a number of frozen rows that fits the shortest one.
+To keep the rest of the grid reachable, set the [`limitFixedToViewport`](@/api/options.md#limitfixedtoviewport) option to `true`:
 
-Without a defined `height`, the grid grows to fit its rows, so the frozen rows cannot outgrow it and this limit does not apply. Read more in [Grid size](@/guides/getting-started/grid-size/grid-size.md).
+```js
+fixedRowsTop: 40,
+fixedRowsBottom: 2,
+limitFixedToViewport: true,
+```
+
+With this option on, Handsontable draws only as many frozen rows as fit and keeps a strip of the grid scrollable. The option changes what the grid draws, not what you configured:
+
+- [`getSettings()`](@/api/core.md#getsettings) still returns the values of `fixedRowsTop` and `fixedRowsBottom`.
+- Handsontable measures the grid again when it resizes. The frozen rows come back when the grid grows.
+- A strip of at least 40 px stays scrollable.
+- The top rows have priority over the bottom rows. When the top rows fill the grid, the bottom rows are not drawn as frozen at all, so rows you pin at the bottom, such as summary rows, can disappear from the frozen area first.
+- When a user drags a [`FreezeBar`](@/api/freezeBar.md) bar, the new count replaces the configured one, and the frozen area no longer returns when the grid grows. [`getFreezeCount()`](@/api/freezeBar.md#getfreezecount) reports the configured count, so an app that saves it keeps the value that was set.
+- The [`FreezeBar`](@/api/freezeBar.md) plugin shows the bar on the line where the drawn frozen area ends.
+- Sorting and filtering still treat the rows you configured as frozen. A row that the grid does not draw as frozen stays out of the sort and the filter.
+
+The option works the same way for frozen columns. Read more in [Column freezing](@/guides/columns/column-freezing/column-freezing.md#frozen-area-size-limit).
+
+If you leave the option off, keep the combined height of your frozen rows smaller than the grid's height. If your grid has to work at several sizes, pick a number of frozen rows that fits the shortest one.
+
+Without a defined `height`, the grid grows to fit its rows, so the frozen rows cannot outgrow it and this limit does not apply. With `limitFixedToViewport` on, the grid measures the height of the window instead, and draws only the frozen rows that fit in it. Read more in [Grid size](@/guides/getting-started/grid-size/grid-size.md).
 
 ## Related API reference
 
@@ -117,5 +156,24 @@ Without a defined `height`, the grid grows to fit its rows, so the frozen rows c
 
 - [fixedRowsBottom](@/api/options.md#fixedrowsbottom)
 - [fixedRowsTop](@/api/options.md#fixedrowstop)
+- [freezeBar](@/api/options.md#freezebar)
+- [limitFixedToViewport](@/api/options.md#limitfixedtoviewport)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [FreezeBar](@/api/freezeBar.md)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforeFreezeChange](@/api/hooks.md#beforefreezechange)
+- [afterFreezeChange](@/api/hooks.md#afterfreezechange)
 
 </div>

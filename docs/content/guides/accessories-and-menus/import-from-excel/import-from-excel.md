@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Import from Excel
-metaTitle: Import from Excel - JavaScript Data Grid | Handsontable
-description: Load an Excel (.xlsx) workbook into your grid, with cell types, dropdown sources, formulas, merged cells, hidden rows and columns, and frozen panes derived from the file.
+metaTitle: Import from Excel | Handsontable DataGrid for JavaScript
+description: Load an Excel (.xlsx) workbook into your grid - cell types, dropdown lists, formulas, comments, merged cells, and hidden rows and columns come from the file.
 permalink: /import-from-excel
 canonicalUrl: /import-from-excel
 tags:
@@ -11,155 +11,26 @@ tags:
   - xlsx
   - excel
 react:
-  metaTitle: Import from Excel - React Data Grid | Handsontable
+  metaTitle: Import from Excel | Handsontable DataGrid for React
 angular:
-  metaTitle: Import from Excel - Angular Data Grid | Handsontable
+  metaTitle: Import from Excel | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Import from Excel - Vue Data Grid | Handsontable
+  metaTitle: Import from Excel | Handsontable DataGrid for Vue
 searchCategory: Guides
-category: Accessories and menus
+category: Import and export
 menuTag: new
 addedIn: "19.0.0"
 ---
 
-Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin reads the file through an engine you provide, derives cell types from number formats, and applies the layout the workbook carries.
+Load an Excel (`.xlsx`) workbook into your grid. The `ImportFile` plugin derives cell types from number formats and applies the layout the workbook carries. It uses the built-in XLSX engine unless you configure ExcelJS - see [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md).
 
 [[toc]]
 
-## Prerequisites
+## Demo
 
-- Install [ExcelJS](https://github.com/exceljs/exceljs), the engine that powers XLSX import. The supported version range is **`^4.4.0`**.
+The grid shows the workbook's data with headers, cell types, dropdown lists, merged cells, hidden columns, a formula, and a comment. The demo passes [`importStyles: true`](#styles), so it also applies the workbook's alignment, fills, and borders. Without it, styling is reported as `cellStyles`. A workbook with hidden rows or frozen panes gets those applied the same way.
 
-  ```shell
-  npm install exceljs
-  ```
-
-## Engines
-
-XLSX import goes through an engine you inject, the same way the export does. ExcelJS is the only supported engine; the per-feature table in the [export guide](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md#engines) covers both directions.
-
-## Steps
-
-1. Pass the engine to the plugin.
-
-   ::: only-for javascript
-
-   ```javascript
-   import ExcelJS from 'exceljs';
-
-   const hot = new Handsontable(container, {
-     importFile: { engines: { xlsx: ExcelJS } },
-     licenseKey: 'non-commercial-and-evaluation',
-   });
-   ```
-
-   :::
-
-   ::: only-for react
-
-   ```jsx
-   import ExcelJS from 'exceljs';
-
-   <HotTable
-     importFile={{ engines: { xlsx: ExcelJS } }}
-     licenseKey="non-commercial-and-evaluation"
-   />
-   ```
-
-   :::
-
-   ::: only-for angular
-
-   ```typescript
-   import ExcelJS from 'exceljs';
-
-   readonly hotSettings: GridSettings = {
-     importFile: { engines: { xlsx: ExcelJS } },
-     licenseKey: 'non-commercial-and-evaluation',
-   };
-   ```
-
-   :::
-
-   ::: only-for vue
-
-   ```js
-   import ExcelJS from 'exceljs';
-
-   const hotSettings = ref({
-     importFile: { engines: { xlsx: ExcelJS } },
-     licenseKey: 'non-commercial-and-evaluation',
-   });
-   ```
-
-   :::
-
-2. Import a file picked by the user.
-
-   ```javascript
-   fileInput.addEventListener('change', async () => {
-     const [file] = fileInput.files;
-     const result = await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
-       colHeaders: 'firstRow',
-     });
-
-     console.log(result.dropped); // features the engine could not recover, for example cellStyles
-   });
-   ```
-
-3. Inspect the result before applying it, for a large file or one from an untrusted source.
-
-   ```javascript
-   const preview = await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', buffer, { apply: false });
-
-   if (preview.data.length <= 10000) {
-     await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', buffer);
-   }
-   ```
-
-## Result
-
-The grid shows the workbook's data with headers, types, dropdown sources, layout, formulas (when the [Formulas](@/guides/formulas/formula-calculation/formula-calculation.md) plugin is enabled), and cell comments (when the [Comments](@/guides/cell-features/comments/comments.md) plugin is enabled).
-
-Cell styling is applied only when you set [`importStyles: true`](#styles). Without it, styling is read but not applied, and appears in `result.dropped` as `cellStyles`. Conditional formatting is never applied - the grid has no plugin for it - but it is no longer lost: it comes back on `result.conditionalFormatting`, in grid coordinates and in the shape the export's `conditionalFormatting` option takes. Pass `result.conditionalFormatting` to [`exportFile`](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)'s `conditionalFormatting` option to carry the rules back into a file.
-
-The plugin also reports every dropped feature in one console warning per import call, naming the engine. With `importStyles` off, a workbook that carries any cell styling reports it this way:
-
-```text
-The "exceljs" xlsx engine dropped features it cannot write or read: cellStyles.
-```
-
-Expect `cellStyles` on almost any real workbook: Excel assigns a style to most cells you have used, even ones you never formatted yourself, so the plugin sees styling to report whether or not the sheet looks styled.
-
-Three keys on the result carry features that need more than a cell value. Each row says whether the grid applies it:
-
-| Key | What it carries |
-|---|---|
-| `nestedHeaders` | The promoted header band when `headerRows` is above `1`. It is applied - `updateSettings` both configures and enables the [`NestedHeaders`](@/api/nestedHeaders.md) plugin - and `colHeaders` is absent whenever it is present. A later import that promotes a single header row instead clears a previously applied `nestedHeaders` setting automatically, so the new `colHeaders` renders. |
-| `conditionalFormatting` | One entry per rectangle the workbook's rules cover, as `{ rows: [first, last], cols: [first, last], rules }` in zero-based, inclusive grid coordinates. The `rules` are the engine's own rule objects, passed through untouched. Nothing applies them. |
-| `layoutDirection` | `'rtl'` or `'ltr'`, the sheet's own direction. Nothing applies it - see below. |
-
-These are the keys the import can report, beyond `cellStyles`:
-
-| Key | What it means |
-|---|---|
-| `images` | The sheet carries embedded images. The grid has no cell-level home for them. |
-| `tables` | The sheet defines one or more Excel tables. Their cell values are imported; the table definition is not. |
-| `autoFilter` | The sheet carries an auto-filter range. Configure the [Filters](@/guides/columns/column-filter/column-filter.md) plugin on the target grid instead. |
-| `hyperlink` | A cell is a hyperlink. Its display text is imported; the target URL is not. |
-| `richText` | A cell mixes formatting inside one string. The text is imported; the per-run formatting is not. |
-| `sheetProtection:password` | The sheet is protected with a password. The file carries only a salted hash, so no password can be recovered - `readOnly` cells are still derived from the protection. |
-| `merge:overlap` | Two merged ranges overlap. The later one is skipped. |
-| `cellStyles:borders` | The workbook carries borders and the `CustomBorders` plugin is not enabled on the target grid. |
-| `comments` | The workbook carries cell comments and the `Comments` plugin is not enabled on the target grid. Set `comments: true` on the grid to import them. |
-| `layoutDirection` | The sheet's layout direction disagrees with the grid's. Handsontable resolves [`layoutDirection`](@/api/options.md#layoutdirection) at initialization and ignores it afterwards, so construct the grid with `layoutDirection: 'rtl'` to follow a right-to-left workbook. The direction is on `result.layoutDirection` either way. |
-| `dataValidation:<type>` | A non-list data validation, which has no grid equivalent. |
-| `conditionalFormatting:unparsedRef` | A conditional formatting range the plugin could not parse. The rule's other ranges still apply. |
-| `dataValidation:unresolvedList` | A list validation whose source cannot be read - a formula such as `INDIRECT()`, or a range on a sheet the workbook does not contain. An inline list and a range on the same or another sheet become a `dropdown` column. |
-| `numFmt:<pattern>` | A number format with no `Intl.NumberFormat` equivalent - scientific notation, a fraction, or more than the 100 fraction digits `Intl.NumberFormat` accepts. |
-| `formula:outOfRange` | A formula referencing a cell outside the imported window. Its cached value is imported instead. A reference to another sheet, such as `Rates!A1`, is kept as written. |
-
-Click **Import XLSX** and pick a `.xlsx` file to load it into the grid below.
+Click **Load sample** to import a workbook the export plugin wrote, or **Import XLSX** to pick your own.
 
 ::: only-for javascript
 ::: example #example1 --html 1 --js 2 --ts 3
@@ -199,27 +70,232 @@ Click **Import XLSX** and pick a `.xlsx` file to load it into the grid below.
 
 :::
 
+## Prerequisites
+
+- The `ImportFile` plugin is part of `registerAllModules()` and is on unless you set `importFile: false`. No other library is needed.
+- When you register modules one by one, register the `ImportFile` plugin itself (`registerPlugin(ImportFile)`), the plugins listed below, and the cell types the import derives: `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown`. An unregistered type is applied as `text` and reported as `cellType:<name>`. A preview with `apply: false` returns the type the file asked for.
+- Enable the plugins for what you want applied: [`CustomBorders`](@/api/customBorders.md), [`Comments`](@/api/comments.md), and [`Formulas`](@/api/formulas.md). [`MergeCells`](@/api/mergeCells.md), [`HiddenRows`](@/api/hiddenRows.md), and [`HiddenColumns`](@/api/hiddenColumns.md) only need to be registered, because the import turns them on. A missing `Comments` plugin is reported as `comments`, a missing `CustomBorders` plugin as `cellStyles:borders` (with `importStyles: true`), and an unregistered `MergeCells`, `HiddenRows`, or `HiddenColumns` plugin under its own name. Without `Formulas`, formulas import as their cached values and are listed in `result.formulas`, not in `result.dropped`. A formula with no cached value imports empty and is reported as `formula:noCachedValue`.
+- To run the import in Jest or Vitest, set up the test environment as [Testing](@/guides/tools-and-building/testing/testing.md#test-import-and-export-in-jest-or-vitest) describes.
+
+## Example
+
+### 1. Turn the plugin on
+
+::: only-for javascript
+
+```javascript
+const hot = new Handsontable(container, {
+  importFile: true,
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+  importFile={true}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```typescript
+readonly hotSettings: GridSettings = {
+  importFile: true,
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+};
+```
+
+:::
+
+::: only-for vue
+
+```javascript
+const hotSettings = ref({
+  importFile: true,
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+});
+```
+
+:::
+
+### 2. Import a file the user picked
+
+```javascript
+fileInput.addEventListener('change', async () => {
+  const [file] = fileInput.files;
+
+  try {
+    const result = await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
+      colHeaders: 'firstRow',
+    });
+
+    console.log(result.dropped); // what the file carried and the grid did not take
+  } catch (error) {
+    status.textContent = error.message; // a refused file says what to do, and the grid keeps its data
+  } finally {
+    fileInput.value = ''; // lets the user pick the same file again
+  }
+});
+```
+
+### 3. Read what was dropped
+
+`result.dropped` lists what the file carried and the grid did not take, and the plugin prints the same list in one console warning per import. An import that a newer import replaced while its file was being read, or that the plugin was disabled during, prints none. The [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md#dropped-on-import) explains every key. A feature the file carries and your license does not include is reported as `license:xlsx:<id>`: see [What your license unlocks](#what-your-license-unlocks).
+
+### 4. Preview before you apply
+
+For a large file, or one from an untrusted source, read the result first and apply it only when it passes your checks.
+
+```javascript
+const preview = await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', buffer, { apply: false });
+
+if (preview.data.length <= 10000) {
+  await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', buffer);
+}
+```
+
+### Security
+
+The plugin treats every workbook as untrusted input:
+
+- Promoted column headers are HTML-escaped, and cell values render as text.
+- A text value that starts with `=` stays text. Only a cell the file declares as a formula imports as one.
+- Files above the size, cell, and sheet limits are refused before they reach the grid. Macros are never run.
+
+For a file from an untrusted source, import it with `apply: false` first or with the Formulas plugin off: a few bytes of formula can reference every cell of a sheet and crash the tab. The full rules, the limits, and the risks of each engine are in [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#security).
+
+### Formulas, arrays, and defined names
+
+With the `Formulas` plugin on and `importFormulas` left at `true`, formulas import live:
+
+- **Dynamic arrays** (`=SEQUENCE(3)`, `=FILTER(...)`) import live and spill over the cells below them. The cells the array covers import empty, so the spill does not collide with their cached values. When the array calls a function HyperFormula lacks, such as `UNIQUE` or `SORT`, it shows an error and does not spill, so the cells it covers keep their cached values. A formula that reads a spilled range with the spill operator (`=SUM(B1#)`), or uses implicit intersection (`=@A1:A3`), imports its cached value, is listed in `result.formulas`, and is reported as `formula:spillReference`: HyperFormula supports neither.
+- **Where HyperFormula spills differently from Excel**, the import follows HyperFormula. Before it returns, it computes the array formulas in a temporary copy of the Formulas plugin's engine. A cell the array does not reach there keeps its cached value. For example, a legacy array `{=A1*2}` entered over `B1:B3` is one value to HyperFormula, so `B2` and `B3` keep the 2 the file holds. An array that would show `#SPILL!` imports its cached values when the file holds a value for it, is listed in `result.formulas`, and is reported as `formula:arraySpill`. When the file holds an error for it, as Excel 365 does for a spill that is already blocked, the array stays live and shows `#SPILL!`, as in Excel. After you clear the cells in its way, enter the formula again to make it spill: HyperFormula does not spill it on its own. This happens with `FILTER`, which HyperFormula sizes by its input range. An array that shows an error there while the file holds a value is imported the same way: HyperFormula shows `#VALUE!` for an array that is only a range, such as `=A1:A3` or `=Sheet1!A1:A3`, a range name, or `INDEX(A1:A3,0)`, where Excel spills the cells. The temporary copy holds only the imported sheet and the engine's workbook-level names. An array formula that reads another sheet of the engine, or a name the engine defines for the grid's sheet only, therefore keeps its cached values only when it would show `#SPILL!`. Otherwise it is imported live, as described above. An array that shows an error while the file holds no value for it, as in files written by openpyxl, is imported live too.
+- **A plain formula that is one call to a function that returns an array**, such as `=SEQUENCE(3)` saved without the array flag, is one value in Excel, which adds an `@` to it. The import keeps that one value: when HyperFormula would spill it over more cells, the cell imports its cached value, is listed in `result.formulas`, and is reported as `formula:arraySpill`. When the result is one cell, the formula stays live.
+- **Legacy (CSE) arrays** import as `=ARRAYFORMULA(...)`. The [ExcelJS engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#known-differences) cannot tell the two kinds apart, so it imports every array this way. A dynamic array imports this way too when HyperFormula's `useArrayArithmetic` is off, as in an engine you create with `HyperFormula.buildEmpty()`: without it, such an engine computes a formula like `=A1:A3*2` as one value. An export of that grid writes the array as a legacy array.
+- **Defined names** are added to the Formulas plugin's engine as named expressions, and `result.namedExpressions` lists them. A formula such as `=SUM(Sales)` stays live. A name HyperFormula cannot take, one that points at a sheet it does not hold, one that calls a function HyperFormula lacks (such as `UNIQUE`), one past the [defined-name limits](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#limits) (a definition longer than 8,192 characters, or ranges that cover more than 100,000 cells), or one scoped to a sheet the workbook does not have is reported as `definedNames:unsupported`. The formulas over it import their cached values and are reported as `formula:definedName`. A name scoped to the imported sheet is added at workbook scope, ahead of a workbook name spelled the same, because the grid holds one sheet. A workbook name whose definition uses that spelling is then reported the same way, because in the file it reads the workbook name. If the engine fails to add a name while the result is applied, the import removes it again and reports `definedNames:unsupported`. The formulas over that name stay in the grid and show `#NAME?`, because no cached value is available at that point. The ExcelJS engine adds no names, because ExcelJS loses their scope, so the formulas over every name import their cached values; see [Known differences](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#known-differences). The names live only in the engine: turning the Formulas plugin off and on again builds a new engine without them, so add them back from `result.namedExpressions`.
+- **Errors that Excel stores as rich values**, such as `#SPILL!` and `#CALC!`, import as that error. Excel 365 and Excel for the web cache `#VALUE!` for them in the cell and keep the real error elsewhere in the file. The [ExcelJS engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#known-differences) cannot read it, so with ExcelJS such a cell imports `#VALUE!`. With the Formulas plugin on, an error HyperFormula does not have, such as `#CALC!` or `#FIELD!`, imports as `#VALUE!`, so `IFERROR` and `ISERROR` still treat the cell as an error. A cell holding a linked data type, such as Stocks or Geography, imports `#VALUE!` and adds `cellValue:richValue` to `result.dropped`.
+- **`TRUE` and `FALSE`** written without parentheses become `TRUE()` and `FALSE()` in the live formula, because HyperFormula reads the bare words as names. `result.formulas` keeps the text from the file.
+
+When the engine already defines a name, at workbook scope or on the grid's own sheet (which HyperFormula reads first there), the import keeps that definition if it matches the file's. A name defined as a constant, such as `addNamedExpression('TaxRate', 0.07)`, matches when the file's definition has the same value. A text constant with a quotation mark, which Excel writes as `"a""b"`, is added as the text `a"b`. If the definition differs, as in a second import of a changed file, the import does not replace it. The formulas over that name import their cached values, and the import reports `formula:definedName` and `definedNames:unsupported`. To take the file's definition, remove the name first with HyperFormula's `removeNamedExpression()`.
+
+### Re-importing an export
+
+A workbook you exported from Handsontable DataGrid carries its nested headers and row headers as sheet content. Import it with `headerRows` set to the header depth and `rowHeaders: true`, or the second header row lands in the data and the row numbers become a column.
+
+```javascript
+await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
+  colHeaders: 'firstRow', headerRows: 2, rowHeaders: true,
+});
+```
+
+A multi-sheet export carries its header rows on every sheet. When you import such a workbook sheet by sheet with `colHeaders: 'firstRow'` and `rowHeaders: true`, a defined name that points at another sheet keeps the file's addresses, because the import knows only the headers of the sheet it reads. A formula over that name then reads the wrong cells. Import such a workbook without stripping the header rows, or add the names back yourself from `result.namedExpressions` after you correct them.
+
+A grid with a [`columnSummary`](@/guides/columns/column-summary/column-summary.md) exports the computed total, and the import loads that total back as data, so a summary over the whole column then shows double. Set the summary's `ranges` to stop above the summary row. Before an import with more rows, turn the summary off with `updateSettings({ columnSummary: false })`, and pass your endpoints again after the import. Otherwise the summary keeps writing to the row it computed for the previous data, over an imported value.
+
+Imported headers are HTML-escaped, so `R&D` is stored as `R&amp;D`. Set the grid's [`textExtractor`](@/api/options.md#textextractor) option to `true` to re-export them as the text the workbook held.
+
+::: only-for react
+
+### Keep the imported sheet through a re-render
+
+`HotTable` calls `updateSettings` with its props on every render. A re-render of the component that renders `HotTable` sends its props again (`columns`, `colWidths`, and a few others are skipped when unchanged). Your original `data` and `colHeaders` replace the imported sheet, and props such as `mergeCells={true}` and `hiddenColumns={true}` clear its merges and hidden columns. React Compiler can hide this in one component and not in the next, so do not rely on it.
+
+- Keep import state, such as a status text, in a sibling component, as the demo's `ImportControls` does.
+- Render `HotTable` in a `React.memo` component with stable props, so a parent's re-render does not reach it:
+
+  ```jsx
+  const Grid = React.memo(({ rows, hotRef }) => (
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      ref={hotRef}
+      data={rows}
+      importFile={true}
+    />
+  ));
+  ```
+
+- A grid fed by a server prop must keep the first value, because each router response sends a new array: `const [firstRows] = useState(rows);` and then `<Grid rows={firstRows} hotRef={hotRef} />`.
+
+Unmounting the grid, or hiding it with `<Activity mode="hidden">`, destroys the instance and its imported sheet. Keep the file in state and import it again when the grid is back.
+
+:::
+
+::: only-for angular
+
+### Keep the imported sheet through a settings change
+
+The `hot-table` component passes every key of a new `[settings]` object to `updateSettings`. Keep the settings in one object that nothing replaces, as the demo does. A settings object you bind after an import must leave out `colHeaders`, `columns`, and the layout options the import set (`mergeCells`, `hiddenRows`, `hiddenColumns`, `customBorders`, `fixedRowsTop`, `fixedColumnsStart`, `colWidths`, `minRowHeights`). Otherwise they replace the imported headers, column types, and layout.
+
+### Import outside the Angular zone
+
+The import awaits many times while it reads the file, and each await ends a Zone.js turn and runs change detection. Start the import with `NgZone.runOutsideAngular()` and report its status through a signal, as the demo does:
+
+```typescript
+private readonly zone = inject(NgZone);
+
+importFile(file: File): void {
+  this.zone.runOutsideAngular(async() => {
+    const importPlugin = this.hotTable.hotInstance!.getPlugin('importFile');
+
+    try {
+      const result = await importPlugin.importFromBlob('xlsx', file, { colHeaders: 'firstRow' });
+
+      this.status.set(`Imported ${file.name}`);
+    } catch (error) {
+      this.status.set((error as Error).message);
+    }
+  });
+}
+```
+
+:::
+
+::: only-for vue
+
+### Keep the imported sheet through a settings change
+
+The `HotTable` component watches the settings you pass to it. A later change sends the keys that differ to `updateSettings` again. The imported rows stay, because array-of-arrays `data` is not resent, unless the settings hold `columns` and the import changed the column count. Your original `colHeaders`, `columns`, and layout options such as `mergeCells: true` and `hiddenColumns: true` do come back, over the imported headers, types, merges, and hidden columns. Keep the settings in one stable `ref`, as the demo does, and do not change them after an import.
+
+:::
+
+### Import into a sheets bar workbook
+
+With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#import-and-export), an import changes the active sheet only, and the framework sections above don't apply: a re-render doesn't replace the imported layout.
+
 ## Options
 
-Pass these options as the third argument to `importFromArrayBuffer(format, buffer, options)` or `importFromBlob(format, blob, options)`.
+Pass these options as the third argument of `importFromArrayBuffer(format, buffer, options)` or `importFromBlob(format, blob, options)`. `importFromArrayBuffer()` also accepts a view over a buffer, such as a `Uint8Array`.
 
 | Option | Type | Default | Description |
 |---|---|---|---|
-| `sheet` | `string \| number` | `0` | Sheet to import, by index among the sheets that are not very hidden - a hidden sheet still counts - or by name. |
-| `colHeaders` | `boolean \| 'firstRow'` | `false` | `'firstRow'` promotes the first row to column headers. |
-| `headerRows` | `number` | `1` | How many rows the header band spans, with `colHeaders: 'firstRow'`. Above `1`, those rows become [nested headers](@/guides/columns/column-groups/column-groups.md) instead of `colHeaders`, and the data starts after them. Has to be an integer of at least `1` - an invalid value is rejected even when `colHeaders` is not `'firstRow'`. Otherwise ignored unless `colHeaders` is `'firstRow'`. |
-| `rowHeaders` | `boolean` | `false` | Drop the first column and enable generated row headers. |
-| `range` | `number[]` | whole sheet | `[startRow, startColumn, endRow, endColumn]` in sheet coordinates. |
-| `inferCellTypes` | `boolean` | `true` | Derive `numeric`, `date`, `time`, `checkbox`, and `dropdown` types. A `numeric` type carries `Intl.NumberFormat` options, and a `date` or `time` type carries `Intl.DateTimeFormatOptions`, both derived from the cell's number format. The type most cells of a column share becomes the column's type in `columns`; the cells that differ get their own entry in `cellsMeta`. Passing `columns` to the grid replaces any `columns` setting it had and fixes its column count, so the plugin omits it when no column carries a type, a `readOnly` flag, or a class name. When the grid already has a `columns` setting in that case, the plugin sends one empty column setting per imported column instead, so the previous file's types do not survive. |
-| `importFormulas` | `boolean` | `true` | Put formulas into the data when the `Formulas` plugin is enabled. |
-| `importLayout` | `boolean` | `true` | Merges, hidden rows and columns, frozen panes, widths, and heights. An import describes the whole sheet: merges, hidden rows and columns, frozen panes, custom borders, column widths, and row heights that a previous import left on the grid and this workbook does not carry are reset. The imported lists are merged into an existing `hiddenRows`, `hiddenColumns`, or `mergeCells` options object, so options such as `indicators` survive. |
-| `apply` | `boolean` | `true` | Apply the result to the grid. |
-| `engine` | `object` | - | Per-call engine override. |
-| `importStyles` | `boolean` | `false` | Apply alignment, font, fill, and borders from the workbook. |
+| `sheet` | `string \| number` | `0` | Sheet to import, by name or by index. The index counts the sheets that are not very hidden and skips the `_HotValidation` sheet an export writes for its dropdown lists. |
+| `colHeaders` | `boolean \| 'firstRow'` | `false` | `'firstRow'` promotes the first row to column headers. `true` behaves like `false`: the grid keeps its current `colHeaders`. |
+| `headerRows` | `number` | `1` | How many rows the header band spans, with `colHeaders: 'firstRow'`. Above `1`, those rows become [nested headers](@/guides/columns/column-groups/column-groups.md) and the data starts after them. Has to be an integer of at least `1`. |
+| `rowHeaders` | `boolean` | `false` | Drop the first column and turn generated row headers on. |
+| `range` | `number[]` | whole sheet | `[startRow, startColumn, endRow, endColumn]` in 0-based sheet coordinates, each start at or before its end. An end past the sheet is clamped; a start past the sheet rejects the call. |
+| `inferCellTypes` | `boolean` | `true` | Derive `numeric`, `date`, `intl-datetime`, `time`, `checkbox`, and `dropdown` types from the cells' number formats and values. The type most cells of a column share becomes the column's type in `result.columns`; cells that differ get their own `result.cellsMeta` entry. `false` turns dropdowns off too, and dates import as raw serials. Details: [number formats](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#dates-times-and-number-formats). |
+| `importFormulas` | `boolean` | `true` | Put formulas into the data when the `Formulas` plugin is on. The `_xlfn.`, `_xlws.`, and `_xlpm.` prefixes Excel writes are removed, and an export writes them back. A function HyperFormula lacks, such as `SORT` or `LET`, imports live and shows an error; set `importFormulas: false` to import the cached values instead. See [Formulas, arrays, and defined names](#formulas-arrays-and-defined-names). |
+| `importLayout` | `boolean` | `true` | Apply merges, hidden rows and columns, frozen panes, column widths, and row heights. An import describes the whole sheet: each of these, and `customBorders`, that the grid has and the result does not carry is reset, including one you set yourself. Borders themselves come from `importStyles`, so with `importStyles` off an import clears the grid's custom borders. The lists merge into an existing `hiddenRows`, `hiddenColumns`, or `mergeCells` options object, so options such as `indicators` survive. Independently of `importLayout`, a grid that already has a `columns` setting gets one empty column setting per imported column when the result carries no `columns`, so the previous file's column types do not survive. |
+| `importStyles` | `boolean` | `false` | Apply alignment, font, fill, and borders from the workbook. See [Styles](#styles). |
+| `apply` | `boolean` | `true` | Apply the result to the grid. With `false`, the result comes back and nothing changes, neither hook fires, and the dropped-features warning still prints. Its `dropped` leaves out the names that come from applying (`cellType:<name>`, `mergeCells`, `hiddenRows`, `hiddenColumns`, and `layoutDirection`), so a preview's list can be shorter than the real import's. |
+| `engine` | `object \| null` | - | Engine for this call only. See [Choose the engine](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#choose-the-engine). |
 
-## Styles
+### What your license unlocks
 
-By default, the plugin reads cell styling from the workbook but doesn't apply it - it reports `cellStyles` in `result.dropped` instead. Set `importStyles: true` to apply alignment, font, fill, and border styling to the imported cells.
+Formulas, styles, layout, comments, conditional formatting, data validation, and sheet protection read from the workbook are available as a bundle: the [XLSX add-on](@/guides/getting-started/license-key/license-key.md#xlsx-add-on). Every key issued before 19.0 includes all of it. Number formats always import, because the import reads them to infer cell types.
+
+When your key leaves out part of the add-on, the import skips that part of the file and does the rest. Without formulas, for example, each formula cell imports its cached value. If the file carries a skipped feature and your options ask for it, the import adds a `license:xlsx:<id>` entry to `result.dropped` and prints one console warning that names what it skipped. When your key does not include Excel import at all, `importFromBlob()` and `importFromArrayBuffer()` throw, and [`supportsImportFormat('xlsx')`](@/api/importFile.md#supportsimportformat) returns `false`, so check it before you offer an Excel upload.
+
+### Styles
+
+By default, the plugin reads cell styling from the workbook and reports it as `cellStyles` in `result.dropped` instead of applying it. Set `importStyles: true` to apply it:
 
 ```javascript
 await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
@@ -228,44 +304,74 @@ await hot.getPlugin('importFile').importFromBlob('xlsx', file, {
 });
 ```
 
-Styling maps to the grid this way:
-
 | Workbook style | Grid result |
 |---|---|
-| Horizontal and vertical alignment | A class name (`htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, `htBottom`) on `result.cellsMeta[].meta.className` |
-| Bold, italic, underline, and font color | A generated class name on `result.cellsMeta[].meta.className`, with the CSS declarations in `result.styles` |
-| Background fill | The same generated class name and declaration, added to `result.styles` |
-| Borders | An entry in `result.customBorders`, in the shape the [`CustomBorders`](@/api/customBorders.md) plugin's `customBorders` option takes |
+| Horizontal and vertical alignment | A class name (`htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, `htBottom`). |
+| Bold, italic, underline, and font color | A generated class name, with its CSS declarations in `result.styles`. |
+| Background fill | The same generated class name and declaration. |
+| Borders | An entry in `result.customBorders`, in the shape the [`CustomBorders`](@/api/customBorders.md) option takes. |
 
-The plugin installs `result.styles` for you: it writes one `<style>` element, owned by the grid instance, that holds a rule per generated class name. Destroying the grid removes this element, and an import that carries no styling removes it too, so one import never leaves the previous one's rules behind. Colors that the workbook doesn't write as plain hex are skipped rather than turned into a declaration.
+A class name goes on `result.columns[].className` when every cell of a column shares it, and on `result.cellsMeta[].meta.className` otherwise. The plugin installs `result.styles` in one `<style>` element owned by the grid, replaces it on the next import, and removes it when the grid is destroyed.
 
-`result.customBorders` passes straight to `updateSettings`, so enable the [`CustomBorders`](@/guides/cell-features/formatting-cells/formatting-cells.md) plugin on the target grid - otherwise borders are dropped and reported as `cellStyles:borders`. Two consequences follow from that passthrough:
+With `importStyles: true`, borders pass to the `CustomBorders` plugin through `updateSettings`, so an import replaces the borders the grid had, whatever `importLayout` is. When the result carries no borders - the workbook has none, or `importStyles` is off - `importLayout` clears the grid's custom borders. Font size and font name are not imported. Conditional formatting is returned on `result.conditionalFormatting`, in the shape the export's `conditionalFormatting` option takes, and never applied.
 
-- An import that carries any border **replaces** the target grid's existing borders. `updateSettings` restarts the `CustomBorders` plugin with the new setting, so borders you configured before the import are gone.
-- A workbook with no borders at all leaves the target grid's borders untouched, because the result then carries no `customBorders` key for `updateSettings` to apply.
+## Methods
 
-Font size and font name aren't imported: the model doesn't carry them today. Conditional formatting is read into `result.conditionalFormatting` and never applied.
+Each import method takes the format first (`'xlsx'`), the file second, and an options object third.
 
-## Security
+- [`importFromBlob(format, blob, options)`](@/api/importFile.md#importfromblob) - imports a `Blob` or a `File`, such as one from an `<input type="file">`. Returns a `Promise` of the result.
+- [`importFromArrayBuffer(format, buffer, options)`](@/api/importFile.md#importfromarraybuffer) - imports an `ArrayBuffer`, or a view over one such as a `Uint8Array`. Returns a `Promise` of the result.
+- [`supportsImportFormat(format)`](@/api/importFile.md#supportsimportformat) - `true` when the format can be read. `supportsImportFormat('xlsx')` also returns `false` when your license key does not include Excel import.
 
-The workbook is untrusted input, and the plugin treats it that way:
-
-- **Column headers are escaped.** Handsontable renders `colHeaders` as HTML, so a promoted header row is markup unless something stops it. Every header the plugin promotes is HTML-escaped, which also keeps text such as `5 < 10` whole. If you replace the headers with your own unescaped markup after the import, you own that decision - configure the [`sanitizer`](@/api/options.md#sanitizer) option to police it.
-- **Cell values are rendered as text.** They are not projected through any HTML path, so they need no escaping and keep whatever the file wrote.
-- **Colors are validated before they reach a stylesheet.** A color that is not a plain hex value is skipped rather than turned into a CSS declaration.
-- **Oversized input is refused.** A file above 128 MiB is rejected before the engine parses it. After the parse, a sheet declaring more than 1,048,576 rows, 16,384 columns, or 5,000,000 cells is refused before the plugin allocates anything for it, and a workbook whose sheets together declare more than 10,000,000 cells is refused too. A file can declare a size it does not hold, and reading it at face value exhausts the tab. The parse itself runs inside the engine you inject, so only the byte cap bounds it. The caps are security bounds, not a promise of comfort: a sheet near the 5,000,000-cell cap takes tens of seconds to read and map and several gigabytes of memory, which is more than a browser tab is usually given. Keep imports well below the cap, or split the workbook.
-- **References are bounded.** A list validation or conditional formatting range that reaches past the sheet limits is not read, and one that spans a whole column or row is clamped to the cells the sheet holds.
+To type data that doesn't come from a workbook, such as CSV rows, pasted text, or API values, use [`inferColumnTypes()`](@/api/importFile.md#infercolumntypes). See [Infer column types](@/guides/import-and-export/infer-column-types/infer-column-types.md).
 
 ## Hooks
 
-- [`beforeImport(result, format)`](@/api/hooks.md#beforeimport) runs after mapping and before applying. Return `false` to keep the grid untouched. Mutate `result` to change what is applied.
+- [`beforeImport(result, format)`](@/api/hooks.md#beforeimport) runs after mapping and before applying. Return `false` to leave the grid untouched; the promise still resolves with the result. Mutate `result` to change what is applied. The dropped-features warning is already printed by then.
 - [`afterImport(result, format)`](@/api/hooks.md#afterimport) runs after the grid was updated.
+- Neither hook runs for `apply: false`, or for an import that a newer import replaced (see [Concurrent imports](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md#concurrent-imports)).
 
-## Related
+## Related articles
+
+**Related guides**
+
+<div class="boxes-list">
 
 - [Export to Excel](@/guides/accessories-and-menus/export-to-excel/export-to-excel.md)
-- [`ImportFile` plugin API](@/api/importFile.md)
-- [`beforeImport`](@/api/hooks.md#beforeimport), [`afterImport`](@/api/hooks.md#afterimport)
+- [Export to CSV](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md)
+- [XLSX engines](@/guides/accessories-and-menus/xlsx-engine/xlsx-engine.md)
+- [Dropped features reference](@/guides/import-and-export/dropped-features/dropped-features.md)
+- [Infer column types](@/guides/import-and-export/infer-column-types/infer-column-types.md)
+- [Import from CSV or Excel](@/recipes/import-export/import-csv-excel/import-csv-excel.md)
+
+</div>
+
+## Related API reference
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [importFile](@/api/options.md#importfile)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ImportFile](@/api/importFile.md)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [beforeImport](@/api/hooks.md#beforeimport)
+- [afterImport](@/api/hooks.md#afterimport)
+
+</div>
 
 ---
 

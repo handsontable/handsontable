@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `limitFixedToViewport` option, which draws only the frozen rows and columns that fit the grid and keeps the rest of it scrollable.",
+  "type": "added",
+  "issueOrPR": 13771,
+  "breaking": false,
+  "framework": "none"
+}

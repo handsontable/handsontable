@@ -263,39 +263,114 @@ describe('TabDrag', () => {
     drag.destroy();
   });
 
-  it('takes the pointer back when a reorder drops the capture, and gives up once the pointer is gone', () => {
+  it('reorders forward without detaching the dragged tab', () => {
+    const onCommit = jest.fn();
+
+    host = buildStrip(4);
+
+    const drag = new TabDrag({ host, dragRoot: host, eventManager: new EventManager({}) }, onCommit);
+    const [first, second, third, fourth] = Array.from(host.children);
+    const observer = new MutationObserver(() => {});
+
+    first.setPointerCapture = jest.fn();
+    observer.observe(host, { childList: true });
+    drag.start(pointer('pointerdown', 50, first), first, 1);
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 60, first));
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 260, first));
+
+    const removed = observer.takeRecords().flatMap(record => Array.from(record.removedNodes));
+
+    observer.disconnect();
+
+    expect(Array.from(host.children)).toEqual([second, third, first, fourth]);
+    expect(removed).not.toContain(first);
+
+    host.ownerDocument.dispatchEvent(pointer('pointerup', 260, first));
+
+    expect(onCommit).toHaveBeenCalledWith(1, 2);
+
+    drag.destroy();
+  });
+
+  it('reorders backward without detaching the dragged tab', () => {
+    const onCommit = jest.fn();
+
+    host = buildStrip(4);
+
+    const drag = new TabDrag({ host, dragRoot: host, eventManager: new EventManager({}) }, onCommit);
+    const [first, second, third, fourth] = Array.from(host.children);
+    const observer = new MutationObserver(() => {});
+
+    fourth.setPointerCapture = jest.fn();
+    observer.observe(host, { childList: true });
+    drag.start(pointer('pointerdown', 350, fourth), fourth, 4);
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 340, fourth));
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 140, fourth));
+
+    const removed = observer.takeRecords().flatMap(record => Array.from(record.removedNodes));
+
+    observer.disconnect();
+
+    expect(Array.from(host.children)).toEqual([first, fourth, second, third]);
+    expect(removed).not.toContain(fourth);
+
+    host.ownerDocument.dispatchEvent(pointer('pointerup', 140, fourth));
+
+    expect(onCommit).toHaveBeenCalledWith(4, 1);
+
+    drag.destroy();
+  });
+
+  it('keeps dragging when the capture moves from a child of the tab onto the tab', () => {
     const onCommit = jest.fn();
 
     host = buildStrip(3);
 
     const drag = new TabDrag({ host, dragRoot: host, eventManager: new EventManager({}) }, onCommit);
     const [first, second, third] = Array.from(host.children);
-    let captures = 0;
+    const label = document.createElement('span');
 
-    first.setPointerCapture = jest.fn(() => {
-      captures += 1;
-
-      if (captures > 2) {
-        throw new Error('InvalidPointerId');
-      }
-    });
-    drag.start(pointer('pointerdown', 50, first), first, 1);
-    host.ownerDocument.dispatchEvent(pointer('pointermove', 60, first));
+    first.appendChild(label);
+    first.setPointerCapture = jest.fn();
+    drag.start(pointer('pointerdown', 50, label), first, 1);
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 60, label));
+    label.dispatchEvent(pointer('lostpointercapture', 60, label));
     host.ownerDocument.dispatchEvent(pointer('pointermove', 160, first));
 
     expect(Array.from(host.children)).toEqual([second, first, third]);
     expect(host.classList.contains('ht-sheets-bar-dragging')).toBe(true);
 
-    first.dispatchEvent(pointer('lostpointercapture', 160, first));
+    host.ownerDocument.dispatchEvent(pointer('pointerup', 160, first));
 
-    expect(first.setPointerCapture).toHaveBeenCalledTimes(2);
+    expect(onCommit).toHaveBeenCalledWith(1, 1);
+
+    drag.destroy();
+  });
+
+  it('cancels the drag without taking the pointer back when the capture is lost', () => {
+    const onCommit = jest.fn();
+
+    host = buildStrip(3);
+
+    const drag = new TabDrag({ host, dragRoot: host, eventManager: new EventManager({}) }, onCommit);
+    const [first, second, third] = Array.from(host.children);
+
+    first.setPointerCapture = jest.fn();
+    drag.start(pointer('pointerdown', 50, first), first, 1);
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 60, first));
+    host.ownerDocument.dispatchEvent(pointer('pointermove', 160, first));
+
     expect(Array.from(host.children)).toEqual([second, first, third]);
+    expect(first.setPointerCapture).toHaveBeenCalledTimes(1);
 
     first.dispatchEvent(pointer('lostpointercapture', 160, first));
 
-    expect(first.setPointerCapture).toHaveBeenCalledTimes(3);
+    expect(first.setPointerCapture).toHaveBeenCalledTimes(1);
     expect(Array.from(host.children)).toEqual([first, second, third]);
     expect(host.classList.contains('ht-sheets-bar-dragging')).toBe(false);
+
+    host.ownerDocument.dispatchEvent(pointer('pointerup', 160, first));
+
     expect(onCommit).not.toHaveBeenCalled();
 
     drag.destroy();
@@ -335,5 +410,117 @@ describe('TabDrag', () => {
     expect(host.classList.contains('ht-sheets-bar-dragging')).toBe(true);
 
     drag.destroy();
+  });
+
+  describe('a touch press', () => {
+    const timers = {
+      setTimeout: (callback, delay) => setTimeout(callback, delay),
+      clearTimeout: handle => clearTimeout(handle),
+    };
+
+    /**
+     * Builds a pointer event of a finger.
+     *
+     * @param {string} type The event type.
+     * @param {number} x The horizontal position.
+     * @param {HTMLElement} target The element under the finger.
+     * @returns {Event} The event.
+     */
+    function finger(type, x, target) {
+      const event = pointer(type, x, target);
+
+      Object.defineProperty(event, 'pointerType', { value: 'touch' });
+
+      return event;
+    }
+
+    /**
+     * Builds a touch event with the fingers still on the screen.
+     *
+     * @param {string} type The event type.
+     * @param {number} fingersLeft How many fingers are still down.
+     * @returns {Event} The event.
+     */
+    function touch(type, fingersLeft) {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+
+      Object.defineProperty(event, 'touches', { value: Array.from({ length: fingersLeft }, () => ({})) });
+
+      return event;
+    }
+
+    /**
+     * Holds the first tab of a fresh strip until it lifts.
+     *
+     * @returns {{ drag: TabDrag, tab: HTMLElement }} The controller and the lifted tab.
+     */
+    function holdUntilLifted() {
+      host = buildStrip(3);
+
+      const drag = new TabDrag({ host, dragRoot: host, eventManager: new EventManager({}), timers }, jest.fn());
+      const tab = host.children[0];
+
+      tab.setPointerCapture = jest.fn();
+      tab.releasePointerCapture = jest.fn();
+      drag.start(finger('pointerdown', 50, tab), tab, 1);
+      jest.advanceTimersByTime(500);
+
+      return { drag, tab };
+    }
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('stops blocking the pan once the browser cancels the touches', () => {
+      const { drag, tab } = holdUntilLifted();
+
+      expect(tab.classList.contains('ht-sheets-bar__tab--lifted')).toBe(true);
+
+      host.dispatchEvent(touch('touchcancel', 0));
+
+      const move = touch('touchmove', 1);
+
+      host.dispatchEvent(move);
+
+      expect(move.defaultPrevented).toBe(false);
+
+      drag.destroy();
+    });
+
+    it('removes its touch listeners when a press that never lifted ends', () => {
+      host = buildStrip(3);
+
+      const eventManager = new EventManager({});
+      const removeEventListener = jest.spyOn(eventManager, 'removeEventListener');
+      const drag = new TabDrag({ host, dragRoot: host, eventManager, timers }, jest.fn());
+      const tab = host.children[0];
+
+      drag.start(finger('pointerdown', 50, tab), tab, 1);
+      removeEventListener.mockClear();
+      host.ownerDocument.dispatchEvent(finger('pointerup', 50, tab));
+
+      expect(removeEventListener).toHaveBeenCalledWith(host, 'touchend', expect.any(Function));
+
+      drag.destroy();
+    });
+
+    it('keeps blocking the pan while the held finger stays after a second one lifts', () => {
+      const { drag, tab } = holdUntilLifted();
+
+      tab.dispatchEvent(touch('touchend', 1));
+
+      const move = touch('touchmove', 1);
+
+      tab.dispatchEvent(move);
+
+      expect(move.defaultPrevented).toBe(true);
+
+      drag.destroy();
+    });
   });
 });

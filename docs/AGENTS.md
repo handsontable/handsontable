@@ -98,6 +98,7 @@ This is the docs-**site** voice — it overrides the monorepo-wide documentation
 - Inline code for API names: `columnSorting`, `readOnly`.
 - Oxford comma in lists of three or more items.
 - American English spelling.
+- Product name: the first prose mention on a page that names the product, and a `description:` that names it, say `Handsontable DataGrid`. Later mentions and generic references keep `Handsontable`, and so do migration guides and version references such as "Handsontable 10.0". The `metaTitle:` templates below use the shape `<Page> | Handsontable DataGrid for <Framework>`: `<Page>` is the page title or a short form of it, with the same casing as `title:` (sentence case applies to `title:` itself), a pipe as the only separator, no dashes, and no `DataGrid` alone. Changelog and migration pages (`changelog*`, `migrating-from-*` under `guides/upgrade-and-migration/`) keep their old `metaTitle:` shape on purpose; do not rewrite them. Code, package names, and API names stay `Handsontable`. Full rule: `.ai/DOC-STANDARDS.md`, "Product naming". A renamed heading changes its anchor, so grep for inbound links first.
 
 ---
 
@@ -111,7 +112,7 @@ Use the appropriate template for each Diátaxis type. Do not omit required secti
 ---
 type: tutorial
 title: <Verb phrase — Build/Create/Set up X>
-metaTitle: <title> - JavaScript Data Grid | Handsontable
+metaTitle: <title> | Handsontable DataGrid for JavaScript
 description: <1-2 sentences summarizing outcome and who benefits>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -151,7 +152,7 @@ In this tutorial, you will [concrete outcome]. You will learn [skill or concept]
 ---
 type: how-to
 title: How to [specific goal]
-metaTitle: How to [specific goal] - JavaScript Data Grid | Handsontable
+metaTitle: How to [specific goal] | Handsontable DataGrid for JavaScript
 description: <1-2 sentences: what this achieves and when to use it>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -193,7 +194,7 @@ The ordered list under `## Steps` is rendered as a Starlight step list -- number
 ---
 type: reference
 title: [Component/API/option name]
-metaTitle: [Component/API name] - JavaScript Data Grid | Handsontable
+metaTitle: [Component/API name] | Handsontable DataGrid for JavaScript
 description: <1-2 sentences describing what this is>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -235,7 +236,7 @@ category: <nav category>
 ---
 type: explanation
 title: Understanding [concept]
-metaTitle: Understanding [concept] - JavaScript Data Grid | Handsontable
+metaTitle: Understanding [concept] | Handsontable DataGrid for JavaScript
 description: <1-2 sentences: why this concept matters and who should read this>
 permalink: /<slug>
 tags: [keyword1, keyword2]
@@ -329,7 +330,8 @@ Untagged code blocks (```` ``` ````) are not allowed.
 
 - Examples must be self-contained and runnable (or clearly labeled as a snippet).
 - Use `const` and `let`. Never use `var`.
-- Always include `licenseKey: 'non-commercial-and-evaluation'` in `new Handsontable(...)` calls.
+- Never write a license key value in an example. Leave the placeholder comment where the key goes, in the quote style of the file: `// licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/`. In an Angular `HOT_GLOBAL_CONFIG`, comment out `license` the same way. In JSX, make it the first attribute of the component (`// licenseKey="your-license-key" // get a key at ...`), because the TypeScript transpile that generates the `.jsx` drops a comment that follows the last attribute. In an executed `.vue` example, put the placeholder in the settings object of the script block, not in the template. In an HTML template or a code-only snippet, put `<!-- license-key="your-license-key" (get a key at ...) -->` above the tag, because a tag cannot hold a comment.
+- **Staging and pull request previews run the examples with the internal test key.** Core skips the lock screen only on `handsontable.com` and its subdomains, so a build with `DOCS_TEST_LICENSE_KEY=true` (`docs-staging.yml` sets it, and so does the local build in `docs-visual-tests.yml` outside a release branch) rewrites each placeholder line of an executed example (`example*.{js,jsx,ts}`, and `vue/example*.vue`) into a live option that holds the key from `src/test-license-key.mjs` (`src/plugins/preview-license-key.mjs`). The rewrite runs in the Vite transform, so the code a page shows keeps the placeholder. A production build (`BUILD_MODE=production`, which includes RC staging) never gets the key. The build fails when the key reaches a page, when an injecting build skips an executed example that holds a placeholder, or holds the key in no script chunk, and, with no key injected, when any output holds it. RC staging keeps the lock screen, so the `release/*` visual baseline does too, and a docs pull request into a release branch, whose preview has the key, reports its example pages as changed (2.18). Only the three line forms above are rewritten, not the template comment. `src/plugins/__tests__/preview-license-key.test.mjs` fails on an executed example with no placeholder, one whose placeholder stays, and a `license` placeholder outside an Angular example. For local `npm run dev`, which runs on `localhost`, add `DOCS_TEST_LICENSE_KEY=true` to `docs/.env`.
 - No inline `// TODO` or `// ...` comments in published examples.
 - Keep examples between 25 and 60 lines. If longer, link to the live sandbox instead.
 - TypeScript is the primary language for new examples. Generate the JavaScript variant: `npm run docs:code-examples:generate-js <path>`.
@@ -357,8 +359,8 @@ Content for React only.
 
 ### Vue example rules
 
-- **Swapping in a new `data` array does not reload the grid.** The `@handsontable/vue3` `$props` watcher assumes data is synchronized by reference and deletes `data` from the update unless column modification is disallowed *and* the source column count changed. So an example that replaces its dataset (an import, a "load sample" button) gets new `colHeaders` and `columns` over the old rows, or over empty cells when the keys change. Remount the grid with `:key` bumped on every load, as `recipes/import-export/import-csv-excel/vue/example1.vue` does, or call `hotInstance.loadData()` through a template ref.
-- **Async results need no zone workaround.** Refs set after an `await` (a Web Worker, a `Promise` from a parser) re-render the template like any other change. Unlike Angular's `NgZone.run`, nothing extra is required.
+- **A new `data` array reloads the grid, an in-place edit does not need to.** The `@handsontable/vue3` `$props` watcher compares the array's identity (`toRaw()`) with the one it was last given. A new array goes to `updateSettings({ data })`, which runs core's `updateData()`, so an example that replaces its dataset (an import, a "load sample" button) can assign `data.value = newRows` and change `colHeaders` and `columns` in the same tick. While the columns stay the same, `updateData()` keeps the sorted row order and the cell and column states; a changed column layout resets the column state and the sort. Keep the array in a `ref()`: an array built in the template (`rows.map(...)`, a literal with reactive values) is new on every render and reloads the grid each time. The `:key` remount in `recipes/import-export/import-csv-excel/vue/example1.vue` still works and is the choice when the old state must go, as `loadData()` through a template ref is.
+- **Async results need no zone workaround.** Refs set after an `await` (a Web Worker, a `Promise` from a parser) re-render the template like any other change. Angular needs the component marked dirty for the same write (`markForCheck()`, see the Angular rules above). Vue needs nothing extra.
 
 ### Angular component rules (standalone pattern)
 
@@ -380,6 +382,8 @@ All Angular docs examples use `standalone: true` bootstrapped via `bootstrapAppl
 - **Constructor DI**: Never inject services via the constructor. Use the `inject()` function instead -- constructors are not processed by Angular JIT without TypeScript decorator metadata.
 - **Lifecycle hooks**: Put `afterInit`, `afterChange`, and other Handsontable hook functions inside `gridSettings`, not as template event bindings (e.g., `(afterInit)="..."` fails in JIT mode).
 - **`@ViewChild`**: Safe to use. It is populated after the component view is initialized.
+- **No template-bound state in `ngAfterViewInit`**: Angular 22 makes components `OnPush` by default. A write nothing marks dirty (see the next bullet) is never rendered, and `ngAfterViewInit` is one such place: a field that an `@if` or binding reads stays stale, and a grid inside `@if (hotSettings)` never renders. Build `hotSettings` in `ngOnInit` (or a field initializer), and read the instance lazily inside callbacks (`this` in a hook, the first argument of a renderer). If the write needs the view, hold `ChangeDetectorRef` in a field (`private readonly cdr = inject(ChangeDetectorRef)`) and call `markForCheck()` after it.
+- **Mark the component dirty for template-bound state written outside an Angular event**: Angular 22 makes components `OnPush` by default (`onPush: changeDetection !== ChangeDetectionStrategy.Eager` in `@angular/core`). The zone still ticks, but it skips the root component unless something marked it dirty. A template event, an input change, or an `async` pipe marks it. A write made after an `await`, inside a `setTimeout`, or from a Handsontable callback (a hook or a shortcut action) does not, so the text, button state, or `@if` branch stays stale. `NgZone.run` changes nothing, because it only ticks the zone. The grid still renders, so the layout gate stays green. Inject `ChangeDetectorRef` and call `markForCheck()`. Outside the zone (a Handsontable callback, `ngAfterViewInit`) it schedules its own tick (`shouldScheduleTick()` in the Angular 22.2.2 scheduler), so no `detectChanges()` is needed there. Keep `detectChanges()` only where the view must render synchronously. Call it in a `finally`, when the method has one. A sync write in a click handler is unaffected. Check by loading the page and waiting, with no interaction.
 - **Control flow**: Use `@for`, `@if`, `@switch` (Angular 17+ built-in control flow). Do **not** use `*ngFor`, `*ngIf`, or `*ngSwitch` with structural directives — they require importing `NgFor`, `NgIf`, etc. from `@angular/common`, which is error-prone. The built-in control flow syntax requires no imports.
 - **Imports**: Only import symbols you actually use. Unused imports (e.g., `RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
 - **`registerAllModules()` placement**: `app.config.ts` is the default home for it, but if `app.component.ts` reaches into a registry at module scope -- `getValidator('numeric')`, `getEditor('numeric')`, `getRenderer(...)` outside a function body -- call `registerAllModules()` at the top of `app.component.ts` instead. ES imports are hoisted, so the component module body runs before `app.config.ts` is ever evaluated, and the lookup throws `No registered validator found under "..." name`. Only the built-ins that core registers on import (for example the `text` editor) survive the wrong order, which is why the bug hides until an example uses a module-provided cell type.
@@ -404,6 +408,27 @@ export class AppComponent {
 }
 ```
 
+### Type-checking the examples (changed files only)
+
+CI type-checks the **JavaScript** (`javascript/*.ts`), **React** (`react/*.tsx`) and **Vue** (`vue/*.vue`) examples a pull request changes. Angular examples have their own job (`docs/angular-type-check`).
+
+- **Rule: base against head, per file.** Each changed example is compiled twice against the current core types (`handsontable/tmp`) and the wrapper sources: once as it is now, once as it was at the base revision. The base copy of the example's folder comes from the base revision too, so an edited or deleted sibling helper counts. Every example folder (one page, one framework) is its own program, so `declare global` blocks of different examples never merge. The errors are compared as a multiset of code and message shape, never by line, with the quoted names and types removed (`Parameter 'value' implicitly has an 'any' type` and the same error for `cellValue` are one error). Only errors the head has beyond the base fail. Many examples already carry errors (for example `TS2345` for `querySelector` returning `Element`, `TS2683` for `this`), and you can edit those files without fixing them, but you cannot add a second copy or a new kind. A new file has no base, so every error in it fails.
+- **Type the container.** In a `.ts` or `.tsx` example write `document.querySelector<HTMLElement>('#exampleN')!`. An untyped `querySelector` returns `Element | null`, so `new Handsontable(container, {...})` already fails on its first argument, and TypeScript then never checks the settings object. In an edited example that old error is tolerated, so **a mistake in the settings object of such an example passes the check**. Most existing JavaScript examples have the untyped container, and typing them is a separate mechanical change. In a new file the untyped container fails the check.
+- **Limits.** Fixing one error and adding another with the same code and message shape in the same file nets to zero. An unresolved import of an already-unresolved package that you newly add is flagged by count. A failing check also skips the docs preview deploy, the same as the Angular job. A core change with no example change is not checked, so a removed core export that an example imports breaks the example without failing this job. The shipped typings cannot catch a misspelled option key (the settings type has an index signature), an unknown React prop, or any prop binding on the Vue `HotTable` and `HotColumn`, so the check passes those. The check compiles against the ES version in `browser-targets.js` (`ES_TARGET`) and the Vite client types.
+- **It is not a full gate.** Many examples carry old errors, and `@handsontable/react-wrapper` resolves to the wrapper source, not to a published build. Do not turn the check into a whole-tree gate without a baseline decision.
+- **A tooling error is never a pass.** Any compiler or config error (`TS5xxx`, `TS6xxx`) exits with code 2, because `tsc` skips every semantic check after one.
+- **Run it locally.** Build the types once, then check your branch or explicit files:
+
+```bash
+npm run build:types --prefix handsontable
+npm run docs:type-check-content --prefix docs -- --base origin/develop
+npm run docs:type-check-content --prefix docs -- --files docs/content/guides/<area>/<page>/react/example1.tsx
+```
+
+  `--base <ref>` takes the files changed since the merge base, uncommitted and untracked edits included. `--files` takes explicit paths, resolved against the directory you ran `npm run` in, and compares them with `HEAD` (or with `--base`). A path that is not a checked example exits with code 2. Once an edit is committed, `--files` against `HEAD` sees no diff and prints a warning: pass `--base origin/develop` then. Add `--show-existing` to list the tolerated errors. The tools are `tsc` from `docs/` and `vue-tsc` from `wrappers/vue3`, both installed by the root `pnpm install`.
+- **A real fix, not a shim.** Type an import with no declarations with `// @ts-expect-error` above it, the same as in the Angular rule above. Never add a `declare module` shim for the check.
+- **Config gaps stay quiet.** Packages the check cannot resolve fail the same way at base and head, so they are tolerated in an edited file. In a new file they fail. Fix the import, or add the `// @ts-expect-error` line.
+
 ---
 
 ## 2.6 Frontmatter Schema
@@ -413,13 +438,13 @@ Required fields for all pages:
 ```yaml
 ---
 type: tutorial | how-to | reference | explanation   # Diátaxis type (required)
-title: Feature Name       # Matches H1; do NOT add H1 in body (Starlight renders title once)
-metaTitle: Feature Name - JavaScript Data Grid | Handsontable
+title: Feature name       # Matches H1; do NOT add H1 in body (Starlight renders title once)
+metaTitle: Feature name | Handsontable DataGrid for JavaScript
 description: Short SEO description (1-2 sentences)
 permalink: /feature-name
 tags: [keyword1, keyword2]  # Optional; kebab-case
 react:
-  metaTitle: Feature Name - React Data Grid | Handsontable
+  metaTitle: Feature name | Handsontable DataGrid for React
 searchCategory: Guides
 category: Cell features
 menuTag: new | updated    # Optional; sidebar badge -- see rule below
@@ -448,9 +473,9 @@ Do not use relative paths (`../`) for internal links.
 
 ### Template variables in links
 
-Never hardcode a branch name in a GitHub link. Five template variables resolve at
+Never hardcode a branch name in a GitHub link. Six template variable families resolve at
 build time - production builds point at the frozen branch for the docs version,
-every other build points at the development branch. All five are declared and
+every other build points at the development branch. All six are declared and
 substituted in `src/plugins/template-variables.mjs`, the sole registry:
 
 | Variable | Production | Otherwise | Use for |
@@ -460,6 +485,7 @@ substituted in `src/plugins/template-variables.mjs`, the sole registry:
 | `{{$currentVersion}}` | package.json version | `0.0.0-next-<sha>-<date>` | version strings, runner links |
 | `{{$latestChangelogVersion}}` | highest `changelog-N` major | same | links to the newest changelog page |
 | `{{$basePath}}` | `''` | `''` | root-relative asset paths |
+| `{{$a11y.<key>}}` | values from `content/data/accessibility.json` | values from `content/data/accessibility.json` | accessibility claims (2.20) |
 
 Three pipelines substitute them and all three go through that module: the content
 loader (`src/plugins/framework-loader.mjs`), the Vite pre-transform
@@ -556,10 +582,11 @@ Copy and complete this checklist in your PR description:
 - [ ] All example data is domain-realistic and internally consistent
 - [ ] All code blocks have language tags (```javascript, ```typescript, etc.)
 - [ ] No `var` in code examples; uses `const` / `let`
-- [ ] All examples include `licenseKey: 'non-commercial-and-evaluation'`
+- [ ] All examples carry the commented-out `licenseKey` placeholder (2.5), never a key value
 - [ ] Heading hierarchy is correct (no skipped levels, e.g., H2 → H4)
 - [ ] Headings and the frontmatter `title:` use sentence case
 - [ ] Active voice and second person ("you") used throughout
+- [ ] Where the page names the product, the first prose mention and `description:` say `Handsontable DataGrid`; later mentions, generic references, code, and API names keep `Handsontable`
 - [ ] No banned words: simply, just, easy, straightforward, note that, please
 - [ ] Tutorials and how-tos have a Prerequisites section
 - [ ] Tutorials have "What you learned" and "Next steps" sections
@@ -578,11 +605,13 @@ Copy and complete this checklist in your PR description:
 
 **Production, staging, and PR previews are all served by Cloudflare Pages.** Netlify has been fully removed - see `README-DEPLOYMENT.md` for the current platform table.
 
-When you rename a page's `permalink` (or remove a page), add a redirect rule to `cloudflare/_worker.js` - the **sole**, hand-maintained authority for every redirect rule. Cloudflare Pages ignores `_redirects` when a `_worker.js` is present. Add old-slug-to-new-slug exact-path entries to its `crossFramework` map (matched before the static-asset fallthrough), one per framework prefix. Never point a `:major.:minor` versioned wildcard at the new slug; that wildcard matches frozen older versions where the page still lives at the old slug.
+When you rename a page's `permalink` (or remove a page), add a redirect rule to `cloudflare/_worker.js` - the **sole**, hand-maintained authority for every redirect rule. Cloudflare Pages ignores `_redirects` when a `_worker.js` is present. Add old-slug-to-new-slug exact-path entries to its `CROSS_FRAMEWORK_PAGES` map (matched before the static-asset fallthrough), one per framework prefix. Never point a `:major.:minor` versioned wildcard at the new slug; that wildcard matches frozen older versions where the page still lives at the old slug.
+
+Only versions from 9.0 up are deployed, and worker rule 12b sends every older version's URL to the current docs. The floor is declared twice - `OLDEST_DEPLOYED_DOCS_MAJOR` in `cloudflare/_worker.js` and `MIN_DOCS_VERSION` in `deploy/getListOrPreviousVersions.mjs` - so raise both together, or the dropped versions answer 404 (`cloudflare/README.md`).
 
 `docker/redirects-autogenerated.conf` is build-generated (`# DO NOT EDIT`) and only normalizes versions; `docker/redirects.conf` is for ancient slug families. Neither serves production. Full detail: `README-DEPLOYMENT.md` ("Redirects").
 
-`_worker.js` also sends the site's `Content-Security-Policy` header (`CONTENT_SECURITY_POLICY`), and production sends the same one. A recipe or example that loads a third-party webfont needs the font's host in `font-src`, not only the stylesheet's host in `style-src` -- otherwise the `@font-face` file is blocked and the icons or text render blank in every framework tab. Pin each such host with a worker test next to the existing CSP directive tests in `cloudflare/__tests__/_worker.test.mjs` (the Tabler icons recipe's `https://cdn.jsdelivr.net` is the example).
+`_worker.js` also sends the site's `Content-Security-Policy` header (`CONTENT_SECURITY_POLICY`), and production sends the same one. A recipe or example that loads a third-party webfont needs the font's host in `font-src`, not only the stylesheet's host in `style-src` -- otherwise the `@font-face` file is blocked and the icons or text render blank in every framework tab. Pin each such host with a worker test next to the existing CSP directive tests in `cloudflare/__tests__/_worker.test.mjs` (the Tabler icons recipe's `https://cdn.jsdelivr.net` is the example). A recipe whose example calls a third-party API with `fetch()` needs that API's origin in `connect-src` the same way, or every framework tab renders an empty grid: pin it with a `connect-src` test (the OData recipe's `https://services.odata.org` is the example). The docs sync never ports part of a commit: one that touches `docs/cloudflare/**` or an `AGENTS.md` is listed as "mixed" and skipped whole (`.github/scripts/lib/docs-sync/paths.mjs`), so the recipe stays behind with its CSP line. Hand-port both together, or land the CSP change first and ship the recipe in a content-only pull request.
 
 ### Content-type overrides and the agent files (rule 18b, llms.txt)
 
@@ -644,6 +673,7 @@ The custom loader (`src/plugins/framework-loader.mjs`) renders every source page
 - Both `.astro/data-store.json` and `.astro/rendered-html/` are derived caches — reset them together with `rm -rf .astro`. Never delete one without the other.
 - `npm run dev` must work with the default Node heap. Do not add `NODE_OPTIONS=--max-old-space-size` workarounds; shrink the data store instead.
 - Plugin unit tests run with `node --test src/plugins/__tests__/*.test.mjs`.
+- **`::: tip|warning|danger|note` asides are converted to raw HTML by `convertAsideBlocks()`, not parsed as markdown.** Inline code, links, and bold work (`aside-inline-markdown.mjs`). A fenced code block (three or more backticks or tildes, indented by up to three spaces) is the one block that stays markdown: `buildAsideContent()` emits it between blank lines so the renderer highlights it, and splits the text around it into one `<p>` per paragraph. An unclosed fence is closed at the end of the aside, so it cannot swallow the closing markup. Lists and tables inside an aside are not converted, and a line that is only `:::` inside a fence still ends the aside, so do not show a container example inside an aside's fence. A new case needs a test in `framework-loader.test.mjs`; the real-renderer one pins that the aside markup stays out of the `<pre>`.
 
 ### Starting the dev server from an agent session
 
@@ -943,6 +973,22 @@ concluding anything from a golden you read back.
   2026-09-25 the width facts fail on develop - #13381 also made the holder 33 to 35px wider than its root
   on 819 of the 976 example grids, and #13626 fixed only the height - so no develop seed lands until that
   is fixed. The fast check runs in the `functional` project on every docs pull request too.
+- **A full-page capture collapses the viewport on Linux, and a golden that flips between two heights points
+  here.** On Linux CI `page.screenshot({ fullPage: true })` shrinks the viewport to 1x1px for a moment (macOS
+  does not), and the docs layout follows: every `.hot-example-preview` collapses to 33px and every grid root
+  to 0px. A grid must come back from that unchanged. Until DEV-3460 it did not: AutoColumnSize measured in
+  the 0px root, kept the wrapped widths, and `export-to-csv` grew by 240px in most renders, so its golden
+  flipped between seeds (DEV-3458). `tests/captureLayoutStability.spec.ts` pins it on `export-to-csv` in all
+  four frameworks with two tests each: one forces the collapse with `setViewportSize({ width: 1, height: 1 })`
+  and fails on any OS, the other takes the visual suite's full-page captures, which collapse only on Linux
+  and only in some renders. The file sets `retries: 0`, because a retry reports a render that went wrong once
+  as flaky and passes it. Two rules follow. **Fix the grid, do not hold the layout in the spec**: a style
+  that keeps the layout wide through the capture (a `min-width` on `html` does) also hides a grid that breaks
+  in the collapse, which is the bug this spec exists to catch; the baseline test refuses a style injected
+  into `visualDocs.spec.ts`. **A golden captured after a collapse moves when the artifact goes**: a baseline is
+  only as true as its capture, and the next seed settles it. One collapse effect is not about column widths
+  and is not fixed: `react-use-icons-in-cells` changes height after a forced collapse, with or without a
+  layout hold.
 - **A failed seed posts to Slack once per streak.** `docs-visual-seed.yml`'s `notify` job posts a failed
   automatic seed through the core seed's `SLACK_VISUAL_WEBHOOK_URL` (an absent secret skips it; a hand
   dispatch posts nothing). While a render stays broken every docs deploy fails its seed, so it posts only
@@ -957,11 +1003,29 @@ concluding anything from a golden you read back.
   is the reason. Add the label and press "Re-run all jobs". Drop the label gate once the baseline has proven
   stable; the comment in `docs.yml`'s `visual` job marks the spot.
 - **The functional specs run on every docs pull request, report-only for one sprint.**
-  `playwright.config.ts` has two projects, `visual` (`visualDocs.spec.ts`) and `functional` (everything
-  else); a bare `npx playwright test` still runs both. `docs.yml`'s `functional` job runs
-  `--project=functional` against the preview with `continue-on-error: true`, writes one line to the job
-  summary, and uploads `docs-functional-report` (7 days). After a sprint of green, flip `continue-on-error`
-  off.
+  `playwright.config.ts` has two projects, `visual` (`visualDocs.spec.ts`) and `functional` (every other
+  `*.spec.ts`); a bare `npx playwright test` still runs both. `docs.yml`'s `functional` job runs
+  `--project=functional` against the preview with `continue-on-error: true`, writes one line with the
+  counts to the job summary, and uploads `docs-functional-report` (7 days). After a sprint of green, flip
+  `continue-on-error` off - and "green" means a run with a non-zero count, never the summary word alone.
+  Two rules keep the count honest. **Every project collects `*.spec.ts` only** (the top-level `testMatch`
+  in `playwright.config.ts`, so a project added later inherits it; `visual` narrows it further):
+  Playwright's default also takes `*.test.*`, which imported the `node:test` files under
+  `tests/lib/__tests__` (they belong to the root `npm run test:tooling`), one of them failed to load, and
+  the whole collection aborted, so every functional run listed 0 tests while the summary read "failed" like
+  any red spec. A `node:test` file stays `*.test.mjs`, and the pattern keeps it out. **Report-only covers a
+  failing spec, not a run that never started**: the job's last step, `Check that the functional specs ran`,
+  fails the job, and so blocks the merge, when `report.json` holds no test that ran. It reads only that count:
+  a load error always shows as 0, and an error outside a test in a run that did run its specs stays
+  report-only. It is not the seed's fast check (`Check that the example grids are laid out` in
+  `docs-visual-run`), which also refuses any skipped test; keep the two apart, because matching either to
+  the other loosens the seed gate or blocks a docs pull request over a `fixme`. A targeted run
+  (`npx playwright test --project=functional <file>`) never showed the bug, because a file filter skips the
+  files that break the load. To run the whole project by hand, point `BASE_URL` at a preview subdomain
+  (`https://pr-<number>.handsontable-docs-staging.pages.dev/docs`), not the bare
+  `https://handsontable-docs-staging.pages.dev/docs` alias: `demos.handsontable.com` allows framing only
+  from `https://*.handsontable-docs-staging.pages.dev`, so on the alias every recipe that embeds a demo
+  logs a `frame-ancestors` error and `recipeConsoleErrors.spec.ts` fails it (6 recipes).
 - **`PASS_COOKIE` is for `https://dev.handsontable.com/docs` only.** The spec sets it as a cookie on that
   domain; Cloudflare previews and the staging deploys need none. Callers pass `secrets.PASS_COOKIE` through
   the action's `pass-cookie` input.
@@ -1003,3 +1067,164 @@ the same way – that is how the spec was proven red on the #13381 deploy and gr
 `.github/scripts/__tests__/docs-visual-baseline.test.mjs` pins the contract above against the config, the
 spec, the action, and the workflows.
 
+## 2.19 Plugin, Hooks, and BaseEditor API pages link to their guide
+
+`content/api/*.md` is generated (gitignored) by `npm run docs:api`, so a hand edit there is lost. A plugin API page, and the `Hooks` and `BaseEditor` pages, open with one line, right after `[[toc]]`: `See the [<guide title>](@/guides/...md) guide for examples and configuration details.` The renderer (`scripts/jsdoc-convert/renderer/renderer.mjs`) adds it from the `apiGuideLinks` map in `scripts/jsdoc-convert/apiGuideLinks.mjs`, and reads the title from the guide's frontmatter (DEV-2809, extended by DEV-3426).
+
+- **Add or change a link** by editing that map: `'<pluginName>.md': 'guides/<section>/<page>/<page>.md'`. A new plugin with a guide needs an entry; one without a guide gets none. One primary guide per page. A value is a path, or an array of paths when a feature has two real guides (`exportFile.md` has CSV and Excel); the renderer then writes one sentence per guide, so a single guide reads exactly as before. Do not also write a pointer to the same guide by hand in the class JSDoc of a mapped page (a `See ...` or `Read more ...` sentence, or a bullet that is only the link): the generated line is the one. A link with an anchor (`guide.md#section`), or a link inside a sentence about something else, is fine. The validator enforces this by scanning that class description (the block with `@class <Name>` in the plugin file; the first block of `core/hooks/constants.ts` for Hooks; `baseEditor.ts` for BaseEditor), so it fails in `npm run build` and in `docs:test:plugins`, which does not need `docs:api`. Class descriptions are not rendered into the generated page body, so the generated-page test cannot see them.
+- **Plugins, `Hooks`, and `BaseEditor`.** The map keys are plugin directories plus `hooks.md` and `baseEditor.md` (`NON_PLUGIN_API_PAGES` in the validator). `Core` is skipped, and `Options` already links a guide from each option. The other editors are not mapped. A plugin with no guide goes in `unmappedPlugins` (same module), so every plugin directory is either mapped or listed on purpose.
+- **The guide must be framework-neutral and have a `permalink`.** The loader builds every page that has a `permalink` for all four frameworks, so an `onlyFor` guide is not a dead link, but one API page serves every framework and the target would be missing from the other frameworks' navigation. A guide with no `permalink` is skipped by the loader, so its link would 404.
+- **The gate is `npm run docs:validate-api-guide-links`.** `npm run build` runs it before `docs:api`, so a renamed guide fails with a readable message instead of an ENOENT from the generator. Unit tests are in `scripts/__tests__/validate-api-guide-links.test.mjs`, run by `docs:test:plugins`. It fails on a missing guide, a guide with no title or permalink, a guide missing from the sidebar, an `onlyFor` guide (array or string), a key that is neither a plugin directory nor `hooks.md`/`baseEditor.md` (so `core.md` fails), an empty guide array, every guide of an array that breaks a rule above, an `unmappedPlugins` name that is not a plugin directory, and a plugin directory that is neither mapped nor listed. It reads the sources and `content/guides` only, so it does not need `docs:api` first. The test that checks the generated `content/api/*.md` skips until `docs:api` has run, and fails on a missing or stale page after that.
+- **Tooling, not content.** The map and the renderer are outside `docs/content/**`, so the docs sync does not port them to `prod-docs/*`. The line reaches the live site at the next prod-docs cut, or through a hand cherry-pick.
+
+## 2.20 Accessibility claims have one source: `content/data/accessibility.json`
+
+Every public accessibility claim - the target, the conformance report's version and date, the
+tested screen readers and browsers, the known limitations - is written once, in
+`content/data/accessibility.json`, and rendered everywhere else. Before the file existed the guide
+said "meets WCAG 2.1 AA" under a report that judges WCAG 2.2 per criterion, a recipe targeted
+"WCAG 2.1 AA compliance", three pages listed JAWS, which no audit has run, and the website had its
+own copies of all of it. The approved public wording is **"targets WCAG 2.2 Level A and AA"**
+(short form "targets WCAG 2.2 AA"), with a link to the report; never "meets", "compliant",
+"conformance with", or "certified". A screen reader is named only when the file's matrix lists it
+as tested.
+
+### The shape
+
+| Key | Holds | Rules |
+|---|---|---|
+| `target` | `standard`, `version`, `level`, `url`, and `wording.long` / `wording.short` | each wording starts with "targets" (the validator rejects anything else) |
+| `report` | `title`, `version`, `date`, `slug`, `url`, `docsPath` (an `@/...md` link), `template`, `evaluatedProductVersion` (a string, or `null` while the report does not state it), `audit` (`auditor`, `period`, `coverage`), `next` (`version`, `status`, `scope`, or `null`) | `url` is the JavaScript docs URL; the READMEs derive their framework-prefixed form from `slug` |
+| `matrix[]` | one entry per screen reader, version and platform: `name`, `version` (`null` only when `howTested` is `not-tested`), `platform`, `howTested[]`, optionally `browsers[]`, and on an automated entry `scenarios` with `unsupported[]` | `howTested` values: `audit` (the external audit in `report.audit`), `automated-nightly`, `manual-per-major`, `not-tested`; `not-tested` stands alone. An entry whose only value is `not-tested` records a decision and is never rendered - its name is what public text must not use. `browsers[]` names the browsers an entry was tested in when they are not the audit's (`browsers`), as an automated run's are (`["WebKit (Playwright)", "Chromium"]` for the VoiceOver nightly); the list and the table render them beside the platform, so the entry never reads as tested in the audit's browsers. A not-tested entry names none. `scenarios` (a positive integer) and `unsupported[]` (the reader primitives the run cannot drive, such as `read in`; empty when none) go together and only on an `automated-nightly` entry, so the report states what the run covered; nothing renders them yet, and `tests/lib/__tests__/screenreader-coverage.test.mjs` keeps both equal to the committed scenarios (`tests/AGENTS.md`, "Screen readers") |
+| `browsers[]` | `name`, `version` (full) | sentences use the major version |
+| `knownLimitations[]` | `id`, `text` (Markdown), `criteria[]` (WCAG numbers), `reportRef` (the report's own "Ref." column, such as `#2375`, or `null`) | ids are unique; the order is the rendered order. `reportRef` is not a GitHub issue number (`#2375` on GitHub is an unrelated issue), so it renders as "ref. #2375 in the report" |
+| `notes` | `mobile`, `automation` | one sentence or two each; rendered verbatim |
+
+`src/plugins/accessibility-data.mjs` is the only reader: `loadAccessibilityData()` validates the
+shape (`validateAccessibilityData()`) and throws with the field's name, so a broken file fails the
+docs build and the root tooling suite instead of rendering `undefined`.
+
+### The consumers
+
+- **Docs pages** read it through the `{{$a11y.<key>}}` template variables (`template-variables.mjs`,
+  so all three pipelines resolve them). The keys are what `accessibilityTemplateValues()` returns:
+  `target.name`, `target.level`, `target.long`, `target.short`, `target.url`, `target.link`,
+  `report.title`, `report.version`, `report.date`, `report.url`, `report.docsPath`, `report.link`,
+  `report.template`, `report.evaluatedProductVersion`, `report.auditor`, `report.auditPeriod`,
+  `report.auditCoverage`, `report.next.version`, `report.next.status`, `report.next.scope`,
+  `report.next.sentence`, `matrix.table`, `matrix.list`, `matrix.auditList`, `matrix.sentence`, `matrix.names`,
+  `browsers.sentence`, `browsers.list`, `knownLimitations.list`, `notes.mobile`,
+  `notes.automation`. An unknown key throws at build time. `report.next` may be `null` (no next
+  version planned); the three `report.next.*` parts then render empty, and so does
+  `report.next.sentence` ("Version 1.2 of this report is in preparation: ..."). Announce the next
+  version with `report.next.sentence`, never by composing the parts, which would render
+  "Version  is : .". A value may hold Markdown (a list, a table, an `@/...md` link), so put a list
+  or table variable on a line of its own with blank lines around it, and keep it out of a
+  `::: tip` aside: the loader converts asides to HTML before it substitutes template variables, so
+  a variable holding Markdown inside an aside lands in already-emitted HTML. The values are cached
+  until the data file's modification time changes, so the dev server picks up a data-file edit on
+  the next page render, with no restart. The accessibility
+  guide, the conformance report page, the ARIA recipe, and the Pikaday recipe use them; the
+  tooling test requires the guide and the report page to render the target, the version, the date,
+  and the matrix from them rather than from literals. The two pages render different matrices: the
+  guide lists every tested entry (`matrix.list`), and the report lists only the entries the audit
+  covered (`matrix.auditList`), because its evaluation methods name the sources of its verdicts and
+  an automated run is not one until a report version cites it. The tooling test refuses
+  `matrix.list` on the report page.
+- **The READMEs** (root and the three wrappers) carry
+  `[targets WCAG 2.2 AA](https://handsontable.com/docs/<prefix>/accessibility-conformance-report/)`
+  next to their Accessibility feature link; the test derives the sentence and each README's prefix
+  from the file. The unprefixed `/docs/accessibility-conformance-report/` 404s, so the root README
+  uses the `javascript-data-grid` prefix, which `scripts/readme-check.mjs` accepts for it.
+- **The website** (handsontable.com, a separate repository) copies
+  `content/data/accessibility-website-strings.json`, which
+  `npm run docs:export-accessibility-strings` writes from the data file (`websiteStrings()`). The
+  export is committed and the tooling test fails when it is stale, so regenerate it in the same
+  change as the data. The website's `src/content/data/accessibility.json` is that copy; the chip,
+  the trust card, the solutions page, and the `llms.txt` line read it. The website composes its
+  sentences from the export's fields; `strings` holds only `chip` and `trustCardLabel`.
+- **The report generator** (the sibling task that replaces the report page with a generated
+  international-edition VPAT) reads the same file: the version, the date, the evaluated product
+  version, the matrix, and the known limitations are its inputs, and `report.next` is what the
+  page announces until the next version is published.
+
+### The gate
+
+`scripts/accessibility-claims.mjs` (root `test:tooling`, through
+`scripts/__tests__/accessibility-claims.test.mjs`; `node scripts/accessibility-claims.mjs` prints
+the findings) scans `docs/content/**` (the pages, the data files, and the example sources they
+embed; not the generated `api/`), the four READMEs, the core source under `handsontable/src` (its
+JSDoc is the API reference), the website export, and the data file's own text: every value it
+renders through `{{$a11y.<key>}}` and every `knownLimitations[].text`, each reported as
+`docs/content/data/accessibility.json#<key>`. The data file itself is allowlisted, because its
+matrix names the untested screen readers, and the pages hold only placeholders, so its values are
+the only way its text gets checked. The rules flag:
+
+- `WCAG 2.0` or `WCAG 2.1` in any spelling: spelled out as "Web Content Accessibility Guidelines",
+  or with spaces, a hyphen, Markdown emphasis, `&nbsp;`, or "v"/"version" between the name and the
+  number (`WCAG v2.1`, `WCAG-2.1`, `**WCAG** 2.1`). `WCAG 2.10` and `WCAG 2.1.1` pass.
+- "meets ... WCAG", "conformance with WCAG", and the adjective after the name ("WCAG 2.2 AA
+  compliant").
+- The claim verbs "conforms to", "complies with", and "adheres to" WCAG.
+- "compliant", "compliance", and "certified" in an accessibility sentence (a bare "508" or
+  "Level AA" makes one).
+- Any screen reader the matrix does not list as tested.
+
+Every rule runs per line, and again per paragraph with the hard-wrapped lines joined: a line break
+with its indentation and JSDoc star reads as one space, and a blank line ends the paragraph. So a
+claim wrapped across lines (" * meets\n * WCAG 2.1") is caught and reported at the line where it
+starts. Historical text keeps its wording through the allowlist in that script: the changelog pages,
+the migration guides, and the version highlights. A new screen reader goes into
+`SCREEN_READER_NAMES` there as well as into the matrix. Release blog posts live in the website
+repository; a dated post keeps its text and gets an editor's note with `updatedDate`.
+
+### Changing it
+
+1. Edit `content/data/accessibility.json` (a new audit updates `matrix`, `browsers`, and
+   `report.audit`; a new report version updates `report.version`, `report.date`, and
+   `report.evaluatedProductVersion`, and moves `report.next` on).
+2. Run `npm run docs:export-accessibility-strings` and commit the export.
+3. Run `npm run test:tooling` at the root; copy the export into the website repository.
+
+## 2.21 The keyboard shortcuts guide has an inventory in `tests/`
+
+`guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md` is read by the accessibility keyboard
+walker. `tests/a11y/checks/keyboard-shortcuts.mjs` holds one entry per row of the guide's tables, named
+by the section heading, the Windows keys, and the row's place among the rows of the same keys in that
+section, and `tests/lib/__tests__/keyboard-walker.test.mjs` fails the required `tooling tests` check
+when a row has no entry or an entry has no row. The gate is there so that no documented shortcut goes
+unchecked.
+
+- **A pull request that adds or removes a row, changes its Windows keys, or renames its section changes
+  the inventory too:** a `probe` that presses the key (the format is in the file's header comment), or
+  `notProbed` with the reason. Editing the action text or the macOS column needs nothing.
+- **The docs sync carries content-only commits,** so a row change that ships with its inventory entry
+  reaches `prod-docs/*` at the next cut or through a hand cherry-pick, like any tooling change.
+- **The walker itself is report-only:** it presses every probe and reports what each key did, and a
+  finding never fails a pull request. The rules are `tests/AGENTS.md`, "A11y: the checks beyond axe".
+
+## 2.22 The Headway changelog bell is initialized once, by `src/lib/headway-bell.mjs`
+
+`astro.config.mjs` loads Headway's `widget.js` on every page, and the header bell (`#headway-bell` in `components/Header.astro`) is its only anchor. `initHeadwayBell()` is the only caller of `Headway.init()`. The traps:
+
+- **Never call `Headway.init()` a second time, and never define `HW_config`.** `init()` destroys the previous widget first and detaches its iframe, and a `hide()` in that window throws on `this.iframe.contentWindow` (Sentry HANDSONTABLE-DOCS-76 on the VuePress docs). `widget.js` also self-inits when `HW_config` exists, which would be a second init. The module guards with a window flag and with an existing `#HW_badge_cont`. Counting `.HW_frame_cont` cannot prove a single init, because a re-init removes the old one first: `tests/headwayBell.spec.ts` counts `Headway.init` calls instead.
+- **One bell, moved between layouts.** `selector` is a single element, and the desktop and mobile header groups are each `display: none` in the other layout. The module moves the one button between the `data-headway-desktop-slot` and `data-headway-mobile-slot` slots on Starlight's `md` breakpoint, closes the panel first, and puts focus back on the bell when it had it (moving a focused element drops focus to `<body>`, and zooming to 200% crosses the breakpoint too). Do not add a second bell or re-init on resize. Widening the window hides the mobile group, and Chrome blurs the bell before the media query listener runs, so the module tracks focus from `focus` and `focusout` events (a blur from a bell with no box does not count) instead of reading `activeElement` at move time.
+- **Every Headway callback runs in a `setTimeout`.** `onShowWidget` and `onHideWidget` lag the `show()`/`hide()` that caused them, so `aria-expanded` lags too. Code that needs the panel's state now reads `Headway.visible`, as the bell's Escape handler does. A Tab or Escape can land between `show()` and `onShowWidget`, so `onShowWidget` first checks that the panel is still open and that focus has not moved to the page, and closes it instead of pulling focus into the frame.
+- **The panel's iframe does not close on Escape, and it sits at the end of `<body>`.** Opening the panel (by keyboard, mouse, or a screen reader's click) moves focus into `#HW_frame`. Two `.headway-focus-guard` spans around `#HW_frame_cont` catch Tab and Shift+Tab out of it: they close the panel and focus the bell. They are `position: fixed` and visually hidden, because a guard in the flow at the end of `<body>` scrolls the page there when it takes focus. Focus leaving the bell for anything but the frame closes the panel, so it never stays open over content that has focus. That check reads `document.activeElement` one task after `focusout`, not `relatedTarget`, which browsers report differently when focus enters a cross-origin frame. Headway itself sets `aria-hidden="true"` and `tabindex="-1"` on `#HW_frame` while the panel is closed and removes them when it opens - that is the widget, not a regression of §2.17.
+- **`init()` waits for the window's `load` event.** It adds the panel's iframe at once, and an iframe added before `load` holds that event back until its own page answers. `Header.astro` starts the mobile navigation, the ToC and sidebar toggles, and both Ask AI buttons on `load`, so an early init leaves them dead for as long as `headway-widget.net` takes to answer, or to time out behind a proxy that drops it. The module starts at once when `document.readyState` is `complete`, otherwise from a one-time `load` listener, and only then waits for `widget.js` if it has not run. The bell is still placed in its slot before that.
+- **`onShowWidget` fires from `toggle()` only, never from `show()`.** The bell opens the panel through Headway's `trigger`, which calls `toggle()`. Code that opens the panel with `show()` leaves `aria-expanded` at `false` and never moves focus into the frame. The unit-test fake follows the widget here.
+- **The bell sits first in each header group, and narrows on small phones.** It shows only after the widget answers, so a bell at the end of a right-aligned group would shift Ask AI and the GitHub link on every page view. First in the group, it extends the group to the left and moves nothing. On the mobile row, search, theme, Ask AI, and the hamburger leave about 43px beside the logo at 360px, so the bell is 36px wide up to 24rem and hidden below 21.875rem. A fifth full-size control does not fit there.
+- **The seen-state dot is not drawn.** Headway turns the badge into a gray dot (`.HW_softHidden`, `#d4d4d4`) when nothing is unseen. It is 1.40:1 against the light header and says nothing the bell's name does not, so `Header.astro` sets `visibility: hidden` on it. The unread count keeps the accent color.
+- **The dark theme paints `.HW_frame_cont` too.** The container behind the iframe is white and animates its height, so inverting only `.HW_frame` shows a white strip while the panel shrinks. `headway.css` sets the container to Headway's white after the same inversion.
+- **The module titles `#HW_frame` right after `init()`.** The §2.17 head guard titles it too, but it stops watching 15 seconds after the head is parsed, and `widget.js` can arrive later on a slow connection.
+- **Headway stops the bell's click.** Its `toggle()` calls `stopPropagation()`, so any control that closes on a bubble-phase `document` click stays open under the panel. That covers every outside-click closer, not only the header menus: `SupportDropdown.astro`, `VersionsDropdown.astro`, the example language menu in `public/example-tabs.js`, and `VersionSelector` in `VersionComparison.tsx` listen in the capture phase for that reason. A new control that closes on an outside click needs the same, and `tests/headwayBell.spec.ts` covers the two header menus.
+- **The first click on a page without a consent cookie reaches its control only through `src/lib/cookiebot-first-click.mjs`.** Cookiebot's implied-consent listener (capture phase on `document`, active until the visitor has a response) stops the first click on any `<a>` or `<button>` and replays it as an untrusted click on the same node about two seconds later. Measured on the live docs: the Support menu, Ask AI, Search, and the theme picker all reacted at about 2.05 s, and a second click made meanwhile toggled the control twice. `Head.astro` installs the module at window capture, ahead of Cookiebot. When the click never reaches window bubble, was default-prevented, and `Cookiebot.hasResponse` turned true during the dispatch, the module dispatches it again at once and drops Cookiebot's late copy. It reads only the public `Cookiebot.hasResponse`.
+  - **Links stay on Cookiebot's delay.** They still navigate about 2.2 s late, because a synthetic click on a link navigates and could cut Cookiebot's consent request short. A new `<button>` that navigates or submits a form on click has the same problem: make it a link.
+  - **A programmatic click is dropped once.** For eight seconds after a replay, the first untrusted click on the replayed node is dropped, because Cookiebot's copy looks the same as one from page code (the `.click()` calls in `Header.astro` and `a11y-utils.ts` are the callers to keep in mind).
+  - **Tests.** `tests/cookiebotFirstClick.spec.ts` stubs `uc.js` with the measured behavior and covers the path with no cookie. The other specs that click a header control still set the `CookieConsent` cookie, as `tests/headwayBell.spec.ts` does. Unit tests: `src/lib/__tests__/cookiebot-first-click.test.mjs`.
+- **The visual suite blocks Headway.** The bell appears only after a round trip to `headway-widget.net` and shows a live unread count, so `tests/visualDocs.spec.ts` aborts `cdn.headwayapp.co` and `headway-widget.net` and captures the header without the bell. Keep that route if you touch the spec's `beforeEach`.
+- **The CSP covers the widget as the account is configured today.** `script-src` lists `cdn.headwayapp.co` and `frame-src` lists `headway-widget.net`. Turning on Headway's "eyecatcher" option makes `widget.js` load `https://cdn.headwayapp.co/headway-animate.css`, which `style-src` does not list, so add the host there first.
+
+`src/lib/` and `src/components/` are tooling, not content, so the docs sync does not port this to `prod-docs/*`: it reaches the live site at the next prod-docs cut or through a hand cherry-pick.
+
+Unit tests: `src/lib/__tests__/headway-bell.test.mjs` (`npm run docs:test:plugins`), against a fake that defers callbacks the way the widget does. The real widget: `tests/headwayBell.spec.ts` (the `functional` project, run by the `functional` job in `.github/workflows/docs.yml` on a hosted runner against the PR preview). It skips when Headway is unreachable, which the job summary's skipped count shows, and the job runs only after the earlier gates are green.

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed slow scrolling of grids with many custom borders.",
+  "type": "fixed",
+  "issueOrPR": 13908,
+  "breaking": false,
+  "framework": "none"
+}

@@ -378,16 +378,19 @@ class MergedCellCoords {
    *
    * @returns {CellRange}
    */
-  getRange() {
-    if (!this.#cellRange) {
-      this.#cellRange = this.cellRangeFactory(
+  getRange(): CellRange {
+    let range = this.#cellRange;
+
+    if (range === null) {
+      range = this.cellRangeFactory(
         this.cellCoordsFactory(this.row, this.col),
         this.cellCoordsFactory(this.row, this.col),
         this.cellCoordsFactory(this.getLastRow(), this.getLastColumn()),
       );
+      this.#cellRange = range;
     }
 
-    return this.#cellRange;
+    return range;
   }
 }
 

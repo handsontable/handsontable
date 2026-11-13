@@ -1,7 +1,7 @@
 ---
 type: how-to
 title: Grid size
-metaTitle: Grid size - JavaScript Data Grid | Handsontable
+metaTitle: Grid size | Handsontable DataGrid for JavaScript
 description: Set the width and height of the grid, using either absolute values or values relative to the parent container.
 permalink: /grid-size
 canonicalUrl: /grid-size
@@ -11,11 +11,11 @@ tags:
   - height
   - dimensions
 react:
-  metaTitle: Grid size - React Data Grid | Handsontable
+  metaTitle: Grid size | Handsontable DataGrid for React
 angular:
-  metaTitle: Grid size - Angular Data Grid | Handsontable
+  metaTitle: Grid size | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Grid size - Vue Data Grid | Handsontable
+  metaTitle: Grid size | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 menuTag: updated
@@ -26,7 +26,7 @@ Set the width and height of the grid, using either absolute values or values rel
 
 ## Set your grid's size
 
-You need to define the grid's container as a starting point to initialize it. Usually, the `div` element becomes this container. This container should have defined dimensions as well as the rest of your layout. Handsontable supports relative units such as `%`, `rem`, `em`, `vh`, `vw`, and `px`.
+You need to define the grid's container as a starting point to initialize it. Usually, the `div` element becomes this container. This container should have defined dimensions as well as the rest of your layout. Handsontable DataGrid supports relative units such as `%`, `rem`, `em`, `vh`, `vw`, and `px`.
 
 ### Define the size in your CSS
 
@@ -476,6 +476,8 @@ If you don't define any dimensions, Handsontable generates as many rows and colu
 
 If your grid's contents don't fit in the viewport, the browser's native scrollbars are used for scrolling. For this to work properly, Handsontable's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) (e.g., [`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)) must be the same as your HTML document's layout direction (`<html dir='rtl'>`). Otherwise, horizontal scrolling doesn't work.
 
+A grid without a fixed height listens to page scroll events and runs code on every scroll step. On a page with many grids, give each grid a fixed height. See [Many grids on one page](@/guides/optimization/many-grids/many-grids.md).
+
 ## Stretch columns to fit the grid width
 
 Setting the grid's width doesn't change the width of your columns. When the columns are narrower than the grid, the space on the right stays empty. To redistribute the column widths so they fill the grid's width, use the [`stretchH`](@/api/options.md#stretchh) option: `'all'` stretches all columns proportionally, and `'last'` stretches only the last column.
@@ -531,6 +533,8 @@ const hotSettings = ref({
 ```
 
 :::
+
+Handsontable also re-measures its rows and columns when the page finishes loading a web font. A font that loads after the grid renders changes the size of the text without changing the size of the container. Without the re-measure, wrapped rows would fall out of line with their row headers, and columns sized by [`autoColumnSize`](@/api/options.md#autocolumnsize) would cut off the wider text. The grid listens to the [CSS Font Loading API](https://developer.mozilla.org/en-US/docs/Web/API/CSS_Font_Loading_API) (`document.fonts`), so it needs no configuration. The [`beforeRefreshDimensions`](@/api/hooks.md#beforerefreshdimensions) hook does not apply to this re-measure. If the grid is hidden when the font loads (for example, with `display: none`), it re-measures once it is shown and comes into view. To re-measure something of your own, such as a custom renderer's cached size, use the [`afterFontsLoad`](@/api/hooks.md#afterfontsload) hook. Your listener runs before the built-in plugins re-measure, so they measure with the sizes it dropped.
 
 ## Manual resizing
 

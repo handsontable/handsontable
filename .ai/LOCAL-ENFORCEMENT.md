@@ -20,7 +20,7 @@ the same floor with no manual step. (Manual fallback: `npx lefthook install` and
 | Agent-time (Claude Code) | `PostToolUse` (Edit/Write) | `eslint --fix` the edited file when it matches `*.(spec\|unit).[jt]sx?` | genuine lint errors in that file |
 | Agent-time (Claude Code) | `Stop` (turn end; 120 s timeout in `.claude/settings.json`) | new-Jasmine check + the touched Playwright specs (`tests/e2e/` only — the visual tier's enforcement map in §1 says why) + the touched **unit** tests | a **new** `*.spec.js`; a **failing** touched spec or unit test |
 | **pre-commit** (lefthook) | `scripts/lint-staged.mjs` | `eslint --fix` staged source/specs (determinism + anti-gaming), re-stage fixes | lint **errors** (warnings surface) |
-| **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → test-weakening detector (warn) → changed Playwright specs (`tests/e2e/` only) → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a failing spec or unit test |
+| **pre-push** (lefthook) | `scripts/pre-push.mjs` | presence gate (block) → **changelog entry filenames** (block) → eslint on changed → **determinism ratchet** (block) → **leg-declaration sweep** (block, when a Playwright spec, page object, fixture or `tests/lib/leg-declarations` changed) → test-weakening detector (warn) → changed Playwright specs (`tests/e2e/` only) → changed **unit** tests | missing test; a `.changelogs/*.json` not named after the number it cites; lint errors; a **new** `sleep()`/`it.flaky()`/skip on an added spec line; a spec touching theme or bundle surface without `THEMES_TAG`/`BUNDLES_TAG` (`tests/AGENTS.md`, Declaring the legs); a failing spec or unit test |
 | CI | `test.yml` + gates | the git-hook checks again (the ratchet is a step of `Lint / core`; the presence gate is `Checks / test presence`, with `GATE_MODE: block`) | see the pipeline |
 | CI (advisory) | `breaking-check.yml` | `.github/scripts/breaking-check.mjs`: flags a removed or renamed public name, a `metaSchema` default change, or a hook or option added to `REMOVED_HOOKS`/`REMOVED_OPTIONS`, and posts one PR comment; locally `node .github/scripts/breaking-check.mjs` (add `--render` for the comment text) | never (advisory, `continue-on-error`, not a `CI Gate` input) |
 
@@ -401,6 +401,21 @@ a verdict flip (the contract: `evals/lib/counterexamples.mjs`); the hollow-test 
 gaming signals are covered by the inline-source unit tests in
 `evals/__tests__/score.test.mjs` only. All of it runs under the root
 `npm run test:tooling` (CI: `Checks / tooling tests`).
+
+**The accessibility scan is not a local gate.** `npm --prefix tests run test:a11y` runs axe-core
+over the curated fixture pages on the three themes and compares the findings with
+`tests/a11y/axe-baseline.json`; no hook runs it, because it needs the built UMD bundle and the
+minified stylesheets (an unstyled grid gives wrong contrast results), and a violation never fails
+it (warn mode; CI runs it as `A11y / axe`). What the local tooling suite does enforce is the
+baseline's shape: `tests/lib/__tests__/a11y-baseline.test.mjs`, in the root `test:tooling` glob,
+refuses an entry whose issue is not in the catalog, an issue with no entry left, a missing or
+non-positive node count, an unknown field or theme, a page that is not in `tests/a11y/pages.mjs`,
+or a duplicate key, and pins the mode constant. It also enforces what the scan covers:
+`tests/lib/__tests__/a11y-coverage.test.mjs` fails on a plugin or editor folder with no entry in
+`tests/a11y/coverage.mjs`, and on a new `gap` entry (`A11Y_GAP_LIMIT` only goes down). Those tests
+import no package: the tooling job installs nothing. Run the scan by hand
+after a change to an accessible surface, and read the policy in `tests/AGENTS.md`, "A11y: the axe
+scan and its baseline".
 
 ### The visual tier's enforcement map
 

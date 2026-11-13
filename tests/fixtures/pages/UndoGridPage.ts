@@ -2,6 +2,12 @@ import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, FixtureSortConfig } from './windowTypes';
 import { dragFillHandle, dragResizeHandle } from '../gestures';
 import { awaitBundle } from '../bundle';
+import { clickMenuItem, menuItem, openMenu } from './menuItems';
+
+/**
+ * The selector of the context menu's own element, which `menuItems.ts` scopes every query to.
+ */
+const CONTEXT_MENU = '.htContextMenu';
 
 /**
  * The summary types `initSummaryGrid()` can build.
@@ -153,6 +159,41 @@ export class UndoGridPage {
       window.hot.getPlugin('trimRows').trimRows(rows);
       window.hot.render();
     }, physicalRows);
+  }
+
+  /**
+   * Bring every trimmed row back through the TrimRows plugin API.
+   */
+  async untrimAll(): Promise<void> {
+    await this.page.evaluate(() => {
+      window.hot.getPlugin('trimRows').untrimAll();
+      window.hot.render();
+    });
+  }
+
+  /**
+   * Filter out the rows whose value in the column equals the given one, through the Filters plugin API.
+   * The grid has to be built with `filters: true`.
+   */
+  async filterOutValue(visualColumn: number, value: string): Promise<void> {
+    await this.page.evaluate(([column, filtered]) => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.addCondition(column as number, 'neq', [filtered]);
+      filters.filter();
+    }, [visualColumn, value]);
+  }
+
+  /**
+   * Remove every filter condition through the Filters plugin API.
+   */
+  async clearFilters(): Promise<void> {
+    await this.page.evaluate(() => {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.clearConditions();
+      filters.filter();
+    });
   }
 
   /**
@@ -336,6 +377,15 @@ export class UndoGridPage {
   }
 
   /**
+   * The borders the CustomBorders plugin holds for a cell, with the sides each one draws.
+   */
+  async bordersOf(visualRow: number, visualColumn: number): Promise<Record<string, unknown>[]> {
+    return this.page.evaluate(([row, column]) => (
+      window.hot.getPlugin('customBorders').getBorders([[row, column, row, column]])
+    ), [visualRow, visualColumn]);
+  }
+
+  /**
    * Set a cell comment through the Comments plugin API.
    */
   async setComment(visualRow: number, visualColumn: number, value: string): Promise<void> {
@@ -376,6 +426,18 @@ export class UndoGridPage {
   }
 
   /**
+   * Send the `mouseleave` the page body reports when the pointer ends outside its box, such as after a
+   * context menu item is clicked on a page whose body is as short as the grid. A real one lands on a
+   * frame the layout and the engine decide, so the test sends it at a point of its own choosing. The
+   * handlers run before this returns, so a focus they take is already taken when the next assertion reads it.
+   */
+  async pointerLeavesBody(): Promise<void> {
+    await this.page.evaluate(() => {
+      document.body.dispatchEvent(new MouseEvent('mouseleave'));
+    });
+  }
+
+  /**
    * The comment editor's text area.
    */
   commentTextArea(): Locator {
@@ -394,6 +456,106 @@ export class UndoGridPage {
    */
   async currentPage(): Promise<number> {
     return this.page.evaluate(() => window.hot.getPlugin('pagination').getCurrentPage());
+  }
+
+  /**
+   * The rendered height of a visual row, read from its row header.
+   */
+  async renderedRowHeight(visualRow: number): Promise<number> {
+    return this.grid.locator('.ht_clone_inline_start tbody tr').nth(visualRow).locator('th')
+      .evaluate(header => header.getBoundingClientRect().height);
+  }
+
+  /**
+   * Whether a visual column is hidden by the HiddenColumns plugin.
+   */
+  async isColumnHidden(visualColumn: number): Promise<boolean> {
+    return this.page.evaluate(column => window.hot.getPlugin('hiddenColumns').isHidden(column), visualColumn);
+  }
+
+  /**
+   * The page size of the Pagination plugin.
+   */
+  async pageSize(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getPlugin('pagination').getPaginationData().pageSize);
+  }
+
+  /**
+   * Open the context menu the way a user does: right-click a cell.
+   */
+  async openContextMenuOnCell(visualRow: number, visualColumn: number): Promise<void> {
+    await this.cell(visualRow, visualColumn).click({ button: 'right' });
+    await expect(openMenu(this.page, CONTEXT_MENU)).toBeVisible();
+  }
+
+  /**
+   * Open the context menu on a row header, which selects the whole row first.
+   */
+  async openContextMenuOnRowHeader(visualRow: number): Promise<void> {
+    await this.grid.locator('.ht_clone_inline_start tbody tr').nth(visualRow).locator('th').click({ button: 'right' });
+    await expect(openMenu(this.page, CONTEXT_MENU)).toBeVisible();
+  }
+
+  /**
+   * Open the context menu on a column header, which selects the whole column first.
+   */
+  async openContextMenuOnColumnHeader(visualColumn: number): Promise<void> {
+    // `nth(column + 1)` skips the corner cell.
+    await this.grid.locator('.ht_clone_top thead tr').first().locator('th').nth(visualColumn + 1)
+      .click({ button: 'right' });
+    await expect(openMenu(this.page, CONTEXT_MENU)).toBeVisible();
+  }
+
+  /**
+   * Pick an entry of the open context menu by its whole label. The menu closes after the pick.
+   */
+  async chooseContextMenuItem(label: string): Promise<void> {
+    await clickMenuItem(this.page, CONTEXT_MENU, label);
+  }
+
+  /**
+   * Pick an entry of a submenu of the open context menu: hover its parent entry, wait for the submenu,
+   * then click the entry in it. The click is scoped to the submenu (the newest menu on screen), because
+   * a label such as "Top" also names an entry of another submenu (Alignment).
+   */
+  async chooseContextMenuSubmenuItem(parentLabel: string, label: string): Promise<void> {
+    const menus = this.page.locator(`${CONTEXT_MENU}:visible`);
+
+    await menuItem(this.page, CONTEXT_MENU, parentLabel).hover();
+    // The menu and its submenu.
+    await expect(menus).toHaveCount(2);
+    await menus.last().locator('td').filter({ hasText: new RegExp(`^\\s*${label}\\s*$`) }).click();
+    await expect(openMenu(this.page, CONTEXT_MENU)).toBeHidden();
+  }
+
+  /**
+   * Click a button of the pager.
+   */
+  async clickPagerButton(button: 'first' | 'prev' | 'next' | 'last'): Promise<void> {
+    await this.page.locator(`.ht-pagination .ht-page-${button}`).click();
+  }
+
+  /**
+   * Pick a page size in the pager's select.
+   */
+  async selectPageSize(size: string): Promise<void> {
+    await this.page.locator('.ht-pagination select[name="pageSize"]').selectOption(size);
+  }
+
+  /**
+   * Resize a row the way a user does: hover its header, then drag the resize handle that appears. The
+   * drag moves the pointer in several steps. The plugin attaches one handle and moves it from header to
+   * header, so call it once per freshly built grid: a second call could grab the handle of the previous
+   * row.
+   */
+  async dragRowResizeHandle(visualRow: number, deltaY: number): Promise<void> {
+    const handle = this.grid.locator('.manualRowResizer');
+
+    // Park the pointer first, so hovering the header produces the `mouseover` the plugin reacts to.
+    await this.page.mouse.move(0, 0);
+    await this.grid.locator('.ht_clone_inline_start tbody tr').nth(visualRow).locator('th').hover();
+    await expect(handle).toBeVisible();
+    await dragResizeHandle(this.page, handle, { y: deltaY });
   }
 
   /**
@@ -437,6 +599,119 @@ export class UndoGridPage {
   }
 
   /**
+   * Select whole rows the way a user does: click the first row header, then Shift-click the last.
+   */
+  async selectRowHeaders(fromRow: number, toRow: number): Promise<void> {
+    const header = (row: number) => this.grid.locator('.ht_clone_inline_start tbody tr').nth(row).locator('th');
+
+    await header(fromRow).click();
+    await header(toRow).click({ modifiers: ['Shift'] });
+  }
+
+  /**
+   * Merge the current selection with the `Ctrl`+`M` shortcut.
+   */
+  async pressMergeShortcut(): Promise<void> {
+    await this.page.keyboard.press('Control+m');
+  }
+
+  /**
+   * Merge the selected rows from the context menu: right-click a row header of the selection, then
+   * pick "Merge cells".
+   */
+  async mergeRowsWithContextMenu(visualRow: number): Promise<void> {
+    const menu = this.page.locator('.htContextMenu:visible');
+
+    await this.grid.locator('.ht_clone_inline_start tbody tr').nth(visualRow).locator('th').click({ button: 'right' });
+    await expect(menu).toBeVisible();
+    await menu.locator('td').filter({ hasText: /^\s*Merge cells\s*$/ }).click();
+    await expect(menu).toBeHidden();
+  }
+
+  /**
+   * Merge a range through the MergeCells plugin API.
+   */
+  async mergeWithApi(range: [number, number, number, number]): Promise<void> {
+    await this.page.evaluate(([startRow, startColumn, endRow, endColumn]) => {
+      window.hot.getPlugin('mergeCells').merge(startRow, startColumn, endRow, endColumn);
+    }, range);
+  }
+
+  /**
+   * Start counting the `beforeMergeCells` and `afterMergeCells` calls (read with `mergeHookCalls()`).
+   */
+  async trackMergeHooks(): Promise<void> {
+    await this.page.evaluate(() => {
+      const calls = { before: 0, after: 0 };
+
+      window.mergeHookCalls = calls;
+      window.hot.addHook('beforeMergeCells', () => { calls.before += 1; });
+      window.hot.addHook('afterMergeCells', () => { calls.after += 1; });
+    });
+  }
+
+  /**
+   * The merge hook calls counted since `trackMergeHooks()`.
+   */
+  async mergeHookCalls(): Promise<{ before: number, after: number }> {
+    return this.page.evaluate(() => window.mergeHookCalls ?? { before: 0, after: 0 });
+  }
+
+  /**
+   * The cells of a range whose meta carries a merge flag (`hidden` or `spanned`), as `"row,col"`.
+   */
+  async cellsWithMergeMeta(range: [number, number, number, number]): Promise<string[]> {
+    return this.page.evaluate(([startRow, startColumn, endRow, endColumn]) => {
+      const flagged: string[] = [];
+
+      for (let row = startRow; row <= endRow; row++) {
+        for (let column = startColumn; column <= endColumn; column++) {
+          const { hidden, spanned } = window.hot.getCellMeta(row, column);
+
+          if (hidden || spanned) {
+            flagged.push(`${row},${column}`);
+          }
+        }
+      }
+
+      return flagged;
+    }, range);
+  }
+
+  /**
+   * Start collecting console warnings. The returned array fills up as the page logs.
+   */
+  collectWarnings(): string[] {
+    const warnings: string[] = [];
+
+    this.page.on('console', (message) => {
+      if (message.type() === 'warning') {
+        warnings.push(message.text());
+      }
+    });
+
+    return warnings;
+  }
+
+  /**
+   * From now on, the next `beforeMergeCells` listener call merges another range through the API, the
+   * way a listener can add a merge while one is being made.
+   */
+  async mergeOnceFromBeforeMergeCells(range: [number, number, number, number]): Promise<void> {
+    await this.page.evaluate(([startRow, startColumn, endRow, endColumn]) => {
+      let merged = false;
+
+      // A flag rather than `addHookOnce()`: the merge the listener makes fires `beforeMergeCells` too.
+      window.hot.addHook('beforeMergeCells', () => {
+        if (!merged) {
+          merged = true;
+          window.hot.getPlugin('mergeCells').merge(startRow, startColumn, endRow, endColumn);
+        }
+      });
+    }, range);
+  }
+
+  /**
    * Undo with the keyboard shortcut: `Cmd`+`Z` on macOS, `Ctrl`+`Z` elsewhere.
    */
   async undoWithKeyboard(): Promise<void> {
@@ -455,6 +730,13 @@ export class UndoGridPage {
    */
   async isUndoAvailable(): Promise<boolean> {
     return this.page.evaluate(() => window.hot.getPlugin('undoRedo').isUndoAvailable());
+  }
+
+  /**
+   * Whether the redo stack holds a step.
+   */
+  async isRedoAvailable(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('undoRedo').isRedoAvailable());
   }
 
   /**

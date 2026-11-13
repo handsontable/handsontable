@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where removing several columns at once from a moved column order left the headers of other columns removed in their place.",
+  "type": "fixed",
+  "issueOrPR": 13849,
+  "breaking": false,
+  "framework": "none"
+}

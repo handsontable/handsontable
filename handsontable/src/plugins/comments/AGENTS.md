@@ -16,8 +16,49 @@ instead of a flat `getCellMeta().comment`.
 
 Removing a comment is `setCellMeta(row, col, META_COMMENT, undefined)`, not `delete`.
 
+`getCommentMeta()` answers `undefined` for a negative row or column (a header), and reads through
+`getCellMetaTransient()` because it only probes. `getComment()` and `getCommentAtCell()` go through it, so
+they soft-fail for a header. Keep that guard in this plugin: `Core#getCellMeta()` still asserts an unsigned
+index on purpose. What else a header does:
+
+- `show()` and `showAtCell()` return `false` before they read any meta.
+- The editor's focus handler and `#onAfterUndoRedo` return early (or hide) for a range on a header. Without
+  that, a focus switches the shortcut context to `plugin:comments` and the blur's save throws before the
+  context goes back to `grid`, leaving the grid shortcuts dead.
+- The write side throws on purpose, a write to a header being a caller bug: `setCommentAtCell()`,
+  `setComment()`, `updateCommentMeta()`, `removeCommentAtCell()`. So does `refreshEditor()`, which reads the raw
+  `getCellMeta()` and is only reached for a cell.
+
+A row or column past the last one is not guarded: it still reaches `getCellMeta()` and is read as a physical
+index, as it was before.
+
 Because the value lives in cell meta, a comment travels with the record through sorts and moves, and a
 sparse object data source needs no special handling (that was DEV-1718).
+
+## A comment menu item's `disabled()` judges the cells its `callback()` acts on
+
+"Delete comment" and "Read-only comment" act on every cell of the active selection range
+(`range.forAll`) that holds a comment. Past the guards both items share (a header highlight, select-all,
+nothing rendered), each is disabled when no cell in that range holds one:
+`checkSelectionConsistency([range], hasCommentAtCell)`. The guards win: select-all keeps both items
+disabled even over cells with comments. A highlight-only check greys out an item that would still have
+acted on the rest of the range, and no check at all left "Delete comment" enabled on a cell without a
+comment, where its click wrote `comment: undefined` meta (DEV-263).
+
+**`disabled()` and the click must count the same cells.** Both items use `hasCommentAtCell()` /
+`hasCommentInMeta()` from `utils.ts` in both places: a value is required, a hidden cell under a merged
+block is skipped, and the read is transient, because the walk runs on every menu draw. So a click writes
+nothing to a cell without a comment (no meta write, no undo entry), and a comment on a hidden cell is never
+deleted or toggled from the menu - it is invisible, and counting it in the click but not in `disabled()`
+greyed out an item that would still have deleted it. "Add comment" / "Edit comment" is the exception: it
+looks at the highlighted cell only, through `plugin.getCommentAtCell()`, which does not skip hidden cells.
+
+The `META_*` keys and `CommentObject` live in `constants.ts`, so `utils.ts` and the items do not import
+`comments.ts` (which imports them). `comments.ts` re-exports them, and that stays the public path.
+
+The menu renderer (`../../utils/menu/menu/menuItemRenderer.ts`) calls `isItemDisabled()` once per render,
+because these callbacks walk the whole range: a column selected from its header on a 100k-row grid with no
+comment is a full walk on every call.
 
 ## Shadow DOM: the handlers are bound twice, and the dedupe is required
 
@@ -61,8 +102,28 @@ Keep them that way.
 ## `DisplaySwitch` owns the show/hide delays
 
 Show is a `debounce`d call whose reference is **immutable** (re-creating it per hover would never fire);
-hide is a plain `setTimeout`. The API is `show(range)` / `hide()` / `cancelHiding()` / `updateDelay()` —
+hide is a plain `setTimeout`. The API is `show(range)` / `hide()` / `cancelHiding()` / `keepVisible()` /
+`cancel()` / `updateDelay()` —
 `updateDelay()` is what builds the debounced show, so it is also the constructor path.
+
+**`disablePlugin()` calls `cancel()` first**, and `destroy()` does too. `cancel()` drops the debounced
+show, the tracked hide timer and the carried-over range, and sets the flag back to its initial `true`.
+Without it a hover that armed a show just before `updateSettings({ comments: false })`, or a switch to a
+sheet that turns the plugin off, opened the editor a moment later over a grid with the plugin off, and
+neither Escape nor a click outside closed it: those handlers went with the plugin. Pinned by
+`__tests__/commentsDisableHover.unit.js` and `tests/e2e/comments-plugin-off-hover.spec.ts`.
+
+**`loadData()` drops the pending show only, and only when the armed cell has no comment after the load**
+(`afterLoadData` calls `cancelShow()`, not `cancel()`). The armed show names a cell by position, so after
+`loadData()` or a sheet switch that keeps the plugin on it opened an empty editor over a cell of the new data,
+and a typed note was saved there. A cell that still has a comment (a `cells` function, for one) keeps the
+show: an app that reloads the same data more often than `displayDelay` never let a hovered comment open
+otherwise. `getCommentAtCell()` reads `null`, not `undefined`, for a cell whose meta the load dropped, so
+the check takes both. Two things must stay: the pending
+hide and the last-action flag, or a comment whose hide was already armed stayed open; and `updateData()` must
+not be listened to, because React and Angular send it on every re-render with the same data, and listening
+dropped every hover-armed show and every armed hide. Pinned by `__tests__/commentsDisableHover.unit.js` and
+`tests/e2e/comments-plugin-off-hover.spec.ts`.
 
 Its internal flag records whether the last action was a show or a hide. Anything that hides the tooltip
 clears that flag — which is exactly the shadow-DOM double-binding failure above.
@@ -189,6 +250,68 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 - **Reset the editor position to (0, 0) before measuring**, or the previous position influences the
   opening-direction calculation.
 - The editor flips left/right when it would leave the browser viewport.
+- **The box reaches up to the top edge of the cell's selection border, by as much as the border is drawn above the
+  cell.** The 2px border is drawn up to `EDITOR_TOP_OVERLAP` (1px) outside the cell's box, and the design has the
+  editor flush with it (the box's start border already overlaps the border's end edge through the textarea's
+  `margin: 0 -1px`). The reach is MEASURED, never assumed: `getSelectionBorderOverhang()` (`utils.ts`) reads the
+  drawn `.wtBorder.current` edges next to the cell's table and answers the gap between the border's top and the
+  cell's top, `0` when the border does not enclose the cell. Reading it avoids repeating `border.ts`, which moves
+  the border back onto the cell's top edge under a column header, on a cell that draws its own top border, and
+  under an overlay: a constant 1px reached past the border there. It also answers `0` for a comment opened by a
+  hover (nothing selected) and for a selection elsewhere, with no condition of ours. The reach is applied AFTER
+  the clamp, and only when the box sits on its own cell: not flipped up (a flipped box keeps its own placement,
+  its bottom ending 1px above the cell's bottom edge, pinned by the flip specs), not clamped, and not anchored to
+  the neighbor of a hidden row or column (`targetingPreviousRow`, `targetingOtherColumn`: the border drawn there
+  is the neighbor's). The reach is also capped by the room above the cell in the window (`y - scrollY`).
+  Subtracting the 1px before the clamp looked simpler and broke a cell at the window's top edge: `y` went to -1,
+  below the viewport's top edge, so `clampPositionToViewport` moved the box a whole margin (8px) down. Pinned by
+  `tests/e2e/comments-editor-selection-alignment.spec.ts` (all three themes: a plain cell, a scrolled window, the
+  window's top edge, the row under the column headers, the row under a frozen row, no selection, another cell's
+  border, a hidden column).
+  The legacy `__tests__/comments.spec.js` never selects the comment cell, so it expects no reach and does not pin
+  this. `utils.unit.js` pins the helper's branches with stubbed boxes.
+  **Two limits.** The helper depends on the Walkontable DOM names `.wtSpreader`, `.htBorders`, `.wtBorder.current`
+  and `:not(.corner)`, and on `.current` being the single focus highlight: rename any of them and the box silently
+  stops reaching, and only the Playwright cases notice. And it reads what is drawn NOW, so an editor opened inside
+  `hot.batch()` or `suspendRender()` right after a selection sees the previous border (no reach, never a wrong
+  one), and a comment cell inside a range that is not the active cell has only the `.area` outline, which the helper
+  does not read.
+- **The RTL flip compares against the viewport, not the document extent.** The branch is keyed on the
+  grid's direction (`hot.isRtl()`), not the page's, so `scrollX` can be zero, negative (RTL page), or
+  positive (RTL grid on an LTR page). The viewport's left edge in document coordinates is
+  `rootWindow.scrollX` in all three. The document's leftmost x (`-(scrollWidth - clientWidth)`) matches
+  it only for an RTL page scrolled all the way to its inline end, so other scroll states missed the flip
+  and `clampPositionToViewport` put the editor on the cell. Never reduce the check to a sign-based or
+  document-based one. Chrome and Firefox put an RTL page's vertical scrollbar on the left, which neither
+  the flip nor the clamp accounts for yet.
+- **The default height follows a merged range that spans more than one row.** The box is a fixed `88px`
+  textarea (`_comments.scss`), so on a merged range it stuck out below a short one and ended short of a tall
+  one. With no saved `style`, `refreshEditor()` sizes it to the merged block through
+  `#getMergedBlockHeight()` and `getEditorAnchorHeight()` (`utils.ts`), after `resetSize()` and before
+  `getSize()`, so the flip and the viewport clamp see the real height. Five rules, each pinned by a case of
+  `tests/e2e/comments-merged-editor-size.spec.ts` that goes red without it. (1) **Read the height from the
+  MASTER table's cell** (`wt.getCell(coords)`), not from the topmost one the rest of the method uses: with a
+  frozen row across the block, the topmost cell is the top overlay's copy, cut at the freeze line, and the box
+  came out as tall as that part (58px for a 116px range). (2) **Fall back to the topmost cell only when the master has none AND no freeze line crosses the block.** A
+  block in a frozen start column that the grid has scrolled away from is drawn by the overlay only
+  (`getCell()` answers a negative code), and a block wholly in the frozen rows has no master cell once the grid
+  scrolls past them. The overlay's copy is whole in both. A block that crosses `fixedRowsTop` or
+  `fixedRowsBottom` keeps its `rowSpan` in the overlay but is drawn only as tall as the overlay, so the
+  `rowSpan` cannot tell a cut copy from a whole one: the check is the freeze line
+  (`countNotHiddenFixedRowsTop()` and the start of the bottom band, in renderable rows), and a crossing block
+  keeps the default. (3) **Count the DRAWN rows, not the meta's `rowspan`.** Hidden rows shrink the cell, so `{ rowspan: 2 }` with its second row hidden is a
+  one-row cell, and a one-row cell keeps the default like a plain one. (4) **A hidden row or column keeps the
+  default** (`targetingPreviousRow`, `targetingOtherColumn`): the anchor is a neighbor's cell, which is not the
+  range the comment belongs to, and a one-row cell there would give the box its own height (29px). (5) **The
+  flip reads the block's height, not the topmost cell's** (`blockHeight ?? cellHeight`): the flip moves the box
+  up by what sticks out below the range, and the cut copy made that the cut part as well.
+  `resetSize()` runs first, always: a saved `style` holding only one size sets nothing, and used to leave the
+  previous comment's derived height on the next box. The derived height is a display value that is never
+  written to `META_STYLE`, because only `#onEditorResize()` writes it and the saved size wins. It is
+  synchronous, so unlike the clamp it does not depend on running before `observeSize()`. With `virtualized`
+  the master block is clamped to the rendered band (`../mergeCells/AGENTS.md`), so the box is as tall as the
+  rendered part there. There is no minimum height, and no maximum beyond the viewport clamp: a range taller
+  than the window gives a window-tall box.
 - **A hidden row is positioned against the previous row's coords.** There is a standing
   `// TODO: Probably using hot.getCell would be the best` on this, with the note that showing an editor for
   a hidden cell might be removable altogether — a spec currently passes for it, so it stays.
@@ -197,6 +320,18 @@ The shortcut context is a third case: `ShortcutManager` can create a context but
 
 `contextMenuItem/` holds `addEditComment`, `readOnlyComment` and `removeComment`, wired through
 `afterContextMenuDefaultOptions`. A new item goes there, not inline in `comments.ts`.
+
+`show()` and `showAtCell()` open the editor on a cell with no comment, empty, and that is a contract: `addEditComment`
+(Add comment) and the Ctrl+Alt+M shortcut call `show()` on such cells to author a comment, and applications call
+`showAtCell()` for the same reason. Do not gate either on an existing comment; it is a breaking change. Leaving the focused
+empty editor stores an empty comment (`{ value: '' }`), as before. The hover path is gated on the `htCommentCell` class
+(`targetIsCellWithComment()`), not on the comment meta, so it is not a guard for this. The empty editor is pinned for
+`show()` through `showAtCell()` in `tests/e2e/comments-show-at-cell.spec.ts`. For Add comment, `comments.spec.js` pins only
+that the editor opens on a cell without a comment, not that it is empty; `addEditComment` reaches the same `show()`.
+
+The editor must keep the keyboard focus after "Add comment" and "Edit comment" close the menu. In Safari the
+CopyPaste plugin's `body` `mouseleave` workaround used to take it (DEV-4026); the guard and its reason are in
+`../copyPaste/AGENTS.md`, "Two Safari workarounds". Do not move focus again from this plugin to compensate.
 
 `readOnlyComment`'s mark and click must agree on which cells count (DEV-124). Both go through
 `getCommentReadOnlyState()`, which leaves out a hidden cell under a merged block and a cell with no
@@ -235,9 +370,21 @@ of its own to capture. What the plugin owns is how many steps a user action make
   cleared at once - a flag left set would skip the save of the next real edit. Pinned in
   `tests/e2e/undo-plugin-state.spec.ts`.
 
+## A sheet switch saves and closes the editor first
+
+`_saveAndCloseEditor()` (`@private`) saves the open editor's text the way a blur does (`#saveEditorComment`) and
+closes it without a second save (`#closeEditorWithoutSave`). The sheets bar calls it before it captures the sheet it
+leaves: an editor opened through the API is not blurred by a switch made through the API, so it stayed over the
+arriving sheet and its text was saved into that sheet's cell. It saves only a focused editor. Typing needs the focus
+and a blur saves on its own, so an unfocused editor (a hover preview, one the API opened) holds nothing new: saving
+it wrote an empty comment, with an undo step, onto the cell. Do not widen the test to "the text differs from the
+comment": `setCommentAtCell()` moves the plugin's range without touching the editor, so the text then belongs to
+another cell, and the save wrote one cell's comment over another's. Pinned by `tests/e2e/sheets-bar-in-flight-work.spec.ts` and
+`../sheetsBar/__tests__/inFlightSwitch.unit.js`.
+
 ## Where to look next
 
-- The menu the items land in: `../contextMenu/AGENTS.md`.
+- The menu the items land in and the registration helper: `../../utils/menu/AGENTS.md`, `../contextMenu/AGENTS.md`.
 - Theme reaction: this plugin listens on `afterSetTheme` — `useTheme()` does not go through
   `updateSettings`, so nothing else would notice. The hook is re-registered on every enable; see
   [What survives a disable](#what-survives-a-disable-and-what-has-to-be-registered-again).
@@ -250,6 +397,8 @@ of its own to capture. What the plugin owns is how many steps a user action make
 - `npm run test:unit --prefix handsontable -- --testPathPattern='comments'`
 - `npm run test:e2e --prefix tests -- comments-editor-resize` (Playwright — the resize and hover-cancel
   behavior, which needs a real browser)
+- `npm run test:e2e --prefix tests -- comments-merged-editor-size` (Playwright — the box height on merged
+  ranges)
 
 ## `renderMode: 'onChange'`
 

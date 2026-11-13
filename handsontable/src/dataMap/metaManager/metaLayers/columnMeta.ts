@@ -71,7 +71,7 @@ export default class ColumnMeta {
     const normalizedSettings = normalizeEditorSetting(settings);
 
     extend(meta, normalizedSettings);
-    extendByMetaType(meta, normalizedSettings);
+    extendByMetaType(meta, normalizedSettings, meta, settings.editor === true);
   }
 
   /**

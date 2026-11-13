@@ -19,6 +19,7 @@ import { AutocompleteKeyValuePastePage } from '../fixtures/pages/AutocompleteKey
  * Every assertion reads the DATA SOURCE. A stored entry and a bare label render the same text, so
  * a spec written against the rendered cell would pass against the bug it is meant to catch.
  */
+// leg-declarations: ignore pointer-offset -- copyCell() selects with a press 5 px inside the cell's top-left corner, clear of the dropdown arrow on every theme; the cases assert pasted values and validity
 test.describe('pasting a label into a key/value source (DEV-57)', () => {
   let grid: AutocompleteKeyValuePastePage;
 

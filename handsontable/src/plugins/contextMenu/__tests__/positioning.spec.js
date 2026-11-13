@@ -23,14 +23,17 @@ describe('ContextMenu', () => {
     });
 
     // Where a submenu opens is asserted from DOM rects in tests/e2e/submenu-position.spec.ts: from every
-    // corner, in both grid directions and both document directions (the rows of this using() table),
-    // with the grid scrolled and with the window scrolled. ./visual-tests/tests/js-only/context-menu/
-    // keeps a look check of the menu.
+    // corner on the two layouts whose grid and page directions differ (the mixed rows of this using()
+    // table), and with the window scrolled on all four. A scroll of the grid's own holder never reaches
+    // the positioner. ./visual-tests/tests/js-only/context-menu/ keeps a look check of the menu.
 
     describe('menu opening', () => {
       it('should open context menu in proper position in iframe', async() => {
         const themeLinkHtml = getE2eThemeStylesheetLinkTagHtml(getLoadedTheme());
-        const iframeOutside = $('<iframe/>').css({ width: '500px', height: '500px' }).appendTo(spec().$container);
+        // Tall enough for the whole menu below the cell on every theme (horizon's is the tallest, about 475px):
+        // a menu that fits neither below nor above its point is pulled back inside the frame, and this spec
+        // is about where the menu opens, not about that.
+        const iframeOutside = $('<iframe/>').css({ width: '500px', height: '700px' }).appendTo(spec().$container);
         const docOutside = iframeOutside[0].contentDocument;
 
         docOutside.open('text/html', 'replace');

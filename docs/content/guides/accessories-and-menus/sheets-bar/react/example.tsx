@@ -15,33 +15,35 @@ const notesData = [
   ['Pending sign-off from Finance'],
 ];
 
+const sheets = [
+  {
+    name: 'Budget',
+    data: budgetData,
+    settings: {
+      colHeaders: ['Category • A', 'Q1 2026 • B', 'Q2 2026 • C'],
+    },
+  },
+  {
+    name: 'Notes',
+    data: notesData,
+    settings: {
+      colHeaders: ['Note • A'],
+    },
+  },
+];
+
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       sheetsBar={{
-        sheets: [
-          {
-            name: 'Budget',
-            data: budgetData,
-            settings: {
-              colHeaders: ['Category • A', 'Q1 2026 • B', 'Q2 2026 • C'],
-            },
-          },
-          {
-            name: 'Notes',
-            data: notesData,
-            settings: {
-              colHeaders: ['Note • A'],
-            },
-          },
-        ],
+        sheets,
         activeSheet: 0,
       }}
       rowHeaders={true}
       colHeaders={true}
       stretchH="all"
       height={240}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

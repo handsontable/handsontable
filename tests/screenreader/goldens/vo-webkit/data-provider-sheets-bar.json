@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "data-provider-sheets-bar",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:52:50.922Z"
+  },
+  "steps": {
+    "tab-loading-overlay": "loading data and 1 more item website group busy group",
+    "tab-add-sheet": "add sheet button",
+    "tab-all-sheets": "all sheets menu pop up button",
+    "tab-active-sheet": "orders menu pop up current item button sheets group",
+    "end-last-sheet": "customers button",
+    "enter-switch-sheet": "sheet customers activated",
+    "server-fails": "could not load data cus failed refetch close close",
+    "f6-refetch": "could not load data and 3 more items alert refetch button",
+    "enter-refetch": "customers menu pop up collapsed current item button sheets group",
+    "server-answers": "id cus 01 customers table 3 columns"
+  }
+}

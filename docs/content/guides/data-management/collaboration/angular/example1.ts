@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 
@@ -19,6 +19,8 @@ const REMOTE_SOURCE = 'remotePeer';
 })
 export class AppComponent implements OnInit, OnDestroy {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+  private readonly cdr = inject(ChangeDetectorRef);
 
   statusText = 'A remote update to the first row arrives in 3 seconds.';
 
@@ -79,6 +81,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
     hot?.setDataAtCell(row, column, value, REMOTE_SOURCE);
     this.statusText = 'A collaborator marked "Update onboarding flow" as Done.';
+    // Nothing marks the OnPush-by-default component dirty in a timer callback, so mark it.
+    this.cdr.markForCheck();
   }
 }
 /* end-file */
@@ -86,7 +90,7 @@ export class AppComponent implements OnInit, OnDestroy {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -96,7 +100,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

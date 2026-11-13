@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { FormulasShowFormulasPage } from '../fixtures/pages/FormulasShowFormulasPage';
 
 /**
@@ -17,7 +17,7 @@ import { FormulasShowFormulasPage } from '../fixtures/pages/FormulasShowFormulas
  */
 test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
-test.describe('Formulas: showFormulas() / hideFormulas()', () => {
+test.describe('Formulas: showFormulas() / hideFormulas()', { tag: BUNDLES_TAG }, () => {
   let grid: FormulasShowFormulasPage;
 
   test.beforeEach(({ page, theme, bundle }) => {

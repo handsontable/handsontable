@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>hidden_columns_hide / hidden_columns_show in the dropdown menu e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    .grid { margin-bottom: 1.5rem; }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <div id="custom-keys" class="grid" data-testid="custom-keys"></div>
+  <div id="default-menu" class="grid" data-testid="default-menu"></div>
+  <div id="context-control" class="grid" data-testid="context-control"></div>
+  <div id="plugin-off" class="grid" data-testid="plugin-off"></div>
+  <div id="starts-hidden" class="grid" data-testid="starts-hidden"></div>
+  <div id="object-form" class="grid" data-testid="object-form"></div>
+  <div id="copy-listener" class="grid" data-testid="copy-listener"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const COLUMN_HEADERS = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot'];
+
+    const DATA = [
+      ['a1', 'b1', 'c1', 'd1', 'e1', 'f1'],
+      ['a2', 'b2', 'c2', 'd2', 'e2', 'f2'],
+      ['a3', 'b3', 'c3', 'd3', 'e3', 'f3'],
+    ];
+
+    const MENU_KEYS = ['col_left', 'hidden_columns_hide', 'hidden_columns_show'];
+
+    const stampHeader = function(column, TH) {
+      if (column >= 0) {
+        TH.setAttribute('data-testid', `header-${COLUMN_HEADERS[this.toPhysicalColumn(column)]}`);
+      }
+    };
+
+    const baseSettings = {
+      colHeaders: COLUMN_HEADERS,
+      rowHeaders: true,
+      colWidths: 100,
+      width: 720,
+      height: 160,
+      afterGetColHeader: stampHeader,
+      licenseKey: window.htTestLicenseKey,
+    };
+
+    /**
+     * Builds one grid and stamps a constructor error on its container, so one broken scenario
+     * cannot take the other grids down and the failure reads as the real error.
+     */
+    function build(testId, settings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `grid ht-theme-${window.htTheme}`;
+
+      try {
+        return new Handsontable(container, Object.assign({}, baseSettings, { data: DATA.map(row => row.slice()) }, settings));
+      } catch (error) {
+        container.setAttribute('data-init-error', String(error && error.message));
+
+        return null;
+      }
+    }
+
+    window.hots = {
+      'custom-keys': build('custom-keys', {
+        hiddenColumns: { indicators: true },
+        dropdownMenu: MENU_KEYS,
+      }),
+      'default-menu': build('default-menu', {
+        hiddenColumns: { indicators: true },
+        dropdownMenu: true,
+      }),
+      'context-control': build('context-control', {
+        hiddenColumns: { indicators: true },
+        contextMenu: true,
+      }),
+      'plugin-off': build('plugin-off', {
+        hiddenColumns: false,
+        dropdownMenu: ['hidden_columns_hide'],
+      }),
+      'starts-hidden': build('starts-hidden', {
+        hiddenColumns: { columns: [3], indicators: true },
+        dropdownMenu: MENU_KEYS,
+      }),
+      'object-form': build('object-form', {
+        hiddenColumns: { indicators: true },
+        dropdownMenu: { items: { hidden_columns_hide: { name: 'Hide this column' } } },
+      }),
+      'copy-listener': build('copy-listener', {
+        hiddenColumns: { indicators: true },
+        dropdownMenu: true,
+      }),
+    };
+
+    if (window.hots['copy-listener']) {
+      window.hots['copy-listener'].addHook('afterDropdownMenuDefaultOptions', (options) => {
+        options.items = options.items.map(item => ({ ...item }));
+      });
+    }
+  </script>
+</body>
+</html>

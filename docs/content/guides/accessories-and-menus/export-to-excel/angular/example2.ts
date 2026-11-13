@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
-import ExcelJS from 'exceljs';
 
 @Component({
   standalone: true,
@@ -57,7 +56,7 @@ export class AppComponent {
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
-    exportFile: { engines: { xlsx: ExcelJS } },
+    exportFile: true,
   };
 
   async exportSheets(): Promise<void> {
@@ -80,7 +79,7 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -90,7 +89,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

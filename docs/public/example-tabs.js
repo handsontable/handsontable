@@ -209,13 +209,14 @@ document.addEventListener('DOMContentLoaded', function () {
           updatePanels();
         });
 
-        // Close on outside click
+        // Close on outside click. Capture phase: a header control that stops its click (the
+        // Headway bell does) still closes the menu.
         document.addEventListener('click', function (e) {
           if (!langDropdown.contains(e.target)) {
             langMenu.hidden = true;
             langTrigger.setAttribute('aria-expanded', 'false');
           }
-        });
+        }, true);
       }
 
       // Initial panel visibility

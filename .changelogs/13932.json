@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where object data nested two or more levels deep without the `columns` option mapped to the wrong property, so the column rendered blank and an edit wrote a new top-level key.",
+  "type": "fixed",
+  "issueOrPR": 13932,
+  "breaking": false,
+  "framework": "none"
+}

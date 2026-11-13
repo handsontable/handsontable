@@ -2,13 +2,11 @@
  * @description
  *
  * ::: only-for javascript
- * Handsontable events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
+ * Handsontable DataGrid events are the common interface that function in 2 ways: as __callbacks__ and as __hooks__.
  * :::
  *
  * ::: only-for react
- * This page lists all the **Handsontable hooks** – callbacks that let you react before or after an action occurs.
- *
- * Read more on the [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) page.
+ * This page lists all the **Handsontable DataGrid hooks** – callbacks that let you react before or after an action occurs.
  * :::
  *
  * @example
@@ -284,6 +282,10 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'` when the user
+   *                          inserts a column from the context menu, and `'auto'` when the `minCols` or
+   *                          `minSpareCols` option adds columns. These are not the context menu item keys
+   *                          (`col_left`, `col_right`).
    * @returns {*} If `false` then creating columns is canceled.
    * @example
    * ::: only-for javascript
@@ -355,6 +357,10 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created columns in the data source.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.columnLeft'` or `'ContextMenu.columnRight'` when the user
+   *                          inserts a column from the context menu, and `'auto'` when the `minCols` or
+   *                          `minSpareCols` option adds columns. These are not the context menu item keys
+   *                          (`col_left`, `col_right`).
    */
   'afterCreateCol',
 
@@ -368,6 +374,9 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of rows to be created.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.rowAbove'` or `'ContextMenu.rowBelow'` when the user inserts
+   *                          a row from the context menu, and `'auto'` when the `minRows` or `minSpareRows` option
+   *                          adds rows. These are not the context menu item keys (`row_above`, `row_below`).
    * @returns {*|boolean} If false is returned the action is canceled.
    */
   'beforeCreateRow',
@@ -380,6 +389,9 @@ export const REGISTERED_HOOKS = [
    * @param {number} amount Number of newly created rows in the data source array.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   *                          For example, `'ContextMenu.rowAbove'` or `'ContextMenu.rowBelow'` when the user inserts
+   *                          a row from the context menu, and `'auto'` when the `minRows` or `minSpareRows` option
+   *                          adds rows. These are not the context menu item keys (`row_above`, `row_below`).
    */
   'afterCreateRow',
 
@@ -453,6 +465,22 @@ export const REGISTERED_HOOKS = [
   'beforeCompositionStart',
 
   /**
+   * Fired after the document finishes loading a web font, before Handsontable renders the grid again. A font
+   * that loads after the grid renders changes the size of the text without changing the size of the
+   * container, so a plugin that caches sizes measured from text drops or re-measures them here. The sizing
+   * plugins that ship with Handsontable re-measure on this hook too, after the listeners you add with the
+   * default order (including a listener in the settings object), so a listener that drops a custom
+   * renderer's cached sizes runs before they measure.
+   *
+   * The hook fires for every font the document loads, whether or not the grid uses it. On a hidden grid
+   * (for example, `display: none`), it fires once the grid is shown and comes into view.
+   *
+   * @event Hooks#afterFontsLoad
+   * @since 19.0.0
+   */
+  'afterFontsLoad',
+
+  /**
    * Fired after getting the cell settings.
    *
    * @event Hooks#afterGetCellMeta
@@ -485,11 +513,13 @@ export const REGISTERED_HOOKS = [
   'afterGetRowHeader',
 
   /**
-   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid.
+   * Fired by the {@link ImportFile} plugin after the imported result was applied to the grid. Not
+   * fired for an import with `apply: false`, for one that a newer import replaced, or for one the
+   * plugin was disabled during (`importFile: false` while the file was being read).
    *
    * @event Hooks#afterImport
    * @since 19.0.0
-   * @param {object} result The applied {@link ImportFile} result.
+   * @param {ImportResult} result The applied {@link ImportFile} result.
    * @param {string} format The import format, e.g. `'xlsx'`.
    */
   'afterImport',
@@ -505,6 +535,11 @@ export const REGISTERED_HOOKS = [
    * Fired after Handsontable's [`data`](@/api/options.md#data)
    * gets modified by the [`loadData()`](@/api/core.md#loaddata) method
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
+   *
+   * The hook also fires once while Handsontable initializes (`initialLoad` is `true`), before the grid has a view.
+   * The data getters, such as {@link Core#getDataAtCol}, and the writes, such as {@link Core#setDataAtCell}, work there. The viewport getters, such as
+   * {@link Core#getFirstFullyVisibleColumn}, and {@link Core#getCell} return `null`. Methods that need the rendered grid,
+   * such as {@link Core#selectCell} and {@link Core#scrollViewportTo}, select or scroll nothing and return `false`.
    *
    * Read more:
    * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
@@ -567,6 +602,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after a dataProvider `fetchRows` request ends without loading data because it was aborted
    * (superseded by a newer fetch, `AbortSignal`, or plugin disable/destroy).
+   *
+   * A newer fetch supersedes the running one only once it starts: when a {@link Hooks#beforeDataProviderFetch}
+   * listener cancels the newer fetch, the running one keeps going and this hook does not fire for it.
    *
    * @event Hooks#afterDataProviderFetchAbort
    * @since 17.1.0
@@ -864,6 +902,46 @@ export const REGISTERED_HOOKS = [
   'afterRenderer',
 
   /**
+   * Fired after rows that had ids (see the [`rowId`](@/api/options.md#rowid) option) stopped existing: after a row
+   * removal (an undo or a redo included), and after [`loadData()`](@/api/core.md#loaddata) or
+   * [`updateData()`](@/api/core.md#updatedata) replaced the data with data that no longer holds those ids.
+   *
+   * Use it to cancel pending work, such as an asynchronous request, made for those rows. A row that is trimmed
+   * or filtered out still exists, so it is not reported.
+   *
+   * The hook fires in a microtask once the call that removed the rows has finished, with every id that call
+   * removed. So the rows a call takes away and puts back, like a [`NestedRows`](@/api/nestedRows.md) detach or
+   * row move, are not reported.
+   *
+   * A grid backed by an external data source (the [`DataProvider`](@/api/dataProvider.md) plugin) loads every
+   * page, sort, and filter with `loadData()`, and the rows it drops still exist on the server, so a data load
+   * there reports nothing. A removal the server confirms (`afterRowsMutation` with `'remove'`) is reported with
+   * the `'dataProvider'` source.
+   *
+   * The hook reads the ids only while it has listeners, so a grid that does not listen to it pays nothing.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterRowIdsRemoved
+   * @param {Array} rowIds The ids of the rows that no longer exist.
+   * @param {string} [source] String that identifies the source of the change
+   *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+   */
+  'afterRowIdsRemoved',
+
+  /**
+   * Fired after a settings update changed how rows get their ids (the [`rowId`](@/api/options.md#rowid)
+   * option, or `dataProvider.rowId`), while the rows had ids before it. Every id read before the update may now
+   * name another row or none, so look the rows up again or cancel the pending work made for them.
+   *
+   * A function passed as `rowId` is compared by reference: pass the same function on every settings update, or
+   * the hook fires each time.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterRowIdsReset
+   */
+  'afterRowIdsReset',
+
+  /**
    * Fired after the cache of the row sequence has been updated.
    *
    * @since 16.2.0
@@ -1104,6 +1182,9 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired after the focus position within a selected range is changed.
+   *
+   * With merged cells, `row` and `column` name the cell the focus lands on: Enter and Tab stop once on
+   * a merged cell and skip the cells it covers.
    *
    * @since 14.3.0
    * @event Hooks#afterSelectionFocusSet
@@ -1434,6 +1515,10 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after calling the [`updateSettings`](@/api/core.md#updatesettings) method.
    *
+   * A legacy [`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft) passed to `updateSettings()` stays
+   * `fixedColumnsLeft` in `newSettings`, though the grid applies it as
+   * [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart).
+   *
    * @event Hooks#afterUpdateSettings
    * @param {object} newSettings New settings object.
    */
@@ -1480,13 +1565,35 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Autofill} plugin before populating the data in the autofill feature. This hook is fired when
    * {@link Options#fillHandle} option is enabled.
    *
+   * Several callbacks can return a result for this hook, and the last callback that returns a value decides
+   * the outcome. Global hooks (added with `Handsontable.hooks.add()`) run first, then the hooks of the
+   * instance (the `beforeAutofill` option and `addHook()`). Within each group, callbacks run in ascending
+   * `orderIndex` order, and callbacks with the same `orderIndex` run in the order they were registered. Each
+   * callback receives the previous result as its first argument. A callback that returns a value replaces
+   * the earlier results. A callback that returns `undefined` keeps them. Returning `false` doesn't stop the
+   * callbacks that run later, so a later callback can still return data and the autofill goes ahead.
+   *
+   * When the {@link Formulas} plugin is enabled, it registers its own `beforeAutofill` callback with the
+   * default `orderIndex` of 0. That callback ignores the results of earlier callbacks. It returns `false` when
+   * the engine can't set the target cells, or the filled data with the formulas adjusted. Your callback
+   * overrides the plugin's only if it runs after it. The `beforeAutofill` option set at initialization and a
+   * callback added with `addHook()` after the plugin is enabled run after it. A global hook, a callback added
+   * with `addHook()` before the plugin is enabled, and the `beforeAutofill` option when you enable the plugin
+   * later with `updateSettings()` run before it and are overridden. Disabling and re-enabling the plugin
+   * registers its callback again, after your callbacks that have an `orderIndex` of 0. To always override the
+   * plugin, add your callback with `addHook('beforeAutofill', callback, 1)`: an `orderIndex` greater than 0
+   * runs after the plugin's callback, whenever you add it.
+   *
    * @event Hooks#beforeAutofill
-   * @param {Array[]} selectionData Data the autofill operation will start from.
+   * @param {Array[]|boolean} selectionData Data the autofill operation will start from. A callback that
+   *                                        runs after another callback that returned a value receives that
+   *                                        value instead (for example, `false`).
    * @param {CellRange} sourceRange The range values will be filled from.
    * @param {CellRange} targetRange The range new values will be filled into.
    * @param {string} direction Declares the direction of the autofill. Possible values: `up`, `down`, `left`, `right`.
    *
-   * @returns {boolean|Array[]} If false, the operation is canceled. If array of arrays, the returned data
+   * @returns {boolean|Array[]} If the final result is false, the operation is canceled. If the final result is
+   *                              an array of arrays, the returned data
    *                              will be passed into [`populateFromArray`](@/api/core.md#populatefromarray) instead of the default autofill
    *                              algorithm's result.
    */
@@ -1507,11 +1614,123 @@ export const REGISTERED_HOOKS = [
   'afterAutofill',
 
   /**
+   * Fired by the {@link AsyncValues} plugin after it starts an asynchronous computation of a cell's
+   * value. The cell is in the pending state.
+   *
+   * @event Hooks#afterAsyncValueStart
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueStart',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin before it starts an asynchronous computation of a cell's
+   * value. Return `false` to skip the request: the cell does not become pending, its source is not
+   * called, and the request's promise resolves as canceled with the `'vetoed'` reason. No
+   * `afterAsyncValueCancel` hook fires for a skipped request, because nothing was pending.
+   *
+   * The callbacks run one after another, and each one receives the previous callback's result as its first
+   * argument instead of the row index when that result is not `undefined`. So a callback that only allows a
+   * request returns `undefined`, never `true`, and a callback that checks the decision of an earlier one
+   * compares its first argument with `false`. A callback that throws skips its cell's request, and the error
+   * is thrown again once the call has started its other cells.
+   *
+   * @event Hooks#beforeAsyncValueStart
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   * @returns {boolean|undefined} Return `false` to skip the request.
+   */
+  'beforeAsyncValueStart',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin before it passes a resolved value to the grid. Return a value
+   * to write it instead, or `false` to discard the value: the cell keeps its previous value, and the
+   * request ends as canceled with the `'vetoed'` reason. Because `false` discards, a listener cannot
+   * replace a value with a literal `false`; a resolved `false` that no listener changes is written.
+   *
+   * The callbacks run one after another, and each one receives the previous callback's result as its first
+   * argument when that result is not `undefined`. So a callback that keeps the value returns `undefined`, and
+   * a callback that checks for an earlier discard compares its first argument with `false`. Every callback of
+   * a flush runs before any value is written. A callback that throws fails its own cell with the error it
+   * threw. The other cells are written, and then the error is reported as an uncaught error.
+   *
+   * @event Hooks#beforeAsyncValueResolve
+   * @since 19.0.0
+   * @param {*} value The resolved value.
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   * @returns {*} The value to write, `false` to discard it, or `undefined` to keep it.
+   */
+  'beforeAsyncValueResolve',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after it passes a resolved value to the grid. A `beforeChange`
+   * listener or the cell's validator can still change or reject the value, and an asynchronous validator
+   * delays the write.
+   *
+   * @event Hooks#afterAsyncValueResolve
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} value The resolved value.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueResolve',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after a cell's request rejects. The cell keeps its
+   * previous value and is in the error state.
+   *
+   * @event Hooks#afterAsyncValueReject
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {*} error The rejection reason.
+   * @param {string} message The error message shown on the cell.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   */
+  'afterAsyncValueReject',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin after it cancels a cell's pending request. A late result
+   * of the request is ignored.
+   *
+   * @event Hooks#afterAsyncValueCancel
+   * @since 19.0.0
+   * @param {number} physicalRow Physical row index of the cell, at the time of the cancellation. For a
+   * removal of several non-contiguous groups of rows, it is the index just before that row's own group is removed.
+   * @param {string|number} prop The property of the cell's column.
+   * @param {string} reason Why the request was canceled: `'edit'`, `'dependency'`, `'restart'`,
+   * `'rowRemoved'`, `'columnsChanged'`, `'dataReplaced'`, `'manual'`, `'disabled'`, or `'vetoed'`.
+   * @param {*} rowId The id of the cell's row (see the [`rowId`](@/api/options.md#rowid) option), or `null`.
+   * For a row that was removed or replaced, it is the id the row held before.
+   */
+  'afterAsyncValueCancel',
+
+  /**
+   * Fired by the {@link AsyncValues} plugin when the last pending request settles (resolves, rejects, or is
+   * canceled), so no cell is pending any more.
+   *
+   * @event Hooks#afterAsyncValuesIdle
+   * @since 19.0.0
+   */
+  'afterAsyncValuesIdle',
+
+  /**
    * Fired before aligning the cell contents.
    *
    * @event Hooks#beforeCellAlignment
    * @param {object} stateBefore An object where each key is a visual row index and each value is an array
-   *                             of class names indexed by visual column.
+   *                             indexed by visual column. Each entry holds the alignment class names set in the
+   *                             cell's `className` (`htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`,
+   *                             `htMiddle`, `htBottom`), separated by a space. Other class names are left out,
+   *                             and so are the class names a renderer adds, such as the `htRight` of a numeric
+   *                             cell. The entry is `undefined` when the `className` holds no alignment class name.
    * @param {CellRange[]} range An array of `CellRange` coordinates where the alignment will be applied.
    * @param {string} type Type of the alignment - either `horizontal` or `vertical`.
    * @param {string} alignmentClass String defining the alignment class added to the cell.
@@ -1723,11 +1942,13 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by the {@link ImportFile} plugin after a workbook was read and mapped, and before the
-   * result is applied to the grid. Mutating `result` changes what gets applied.
+   * result is applied to the grid. Mutating `result` changes what gets applied. Not fired for an
+   * import with `apply: false`, for one that a newer import replaced, or for one the plugin was
+   * disabled during. The dropped-features warning is already printed by then.
    *
    * @event Hooks#beforeImport
    * @since 19.0.0
-   * @param {object} result The {@link ImportFile} result about to be applied.
+   * @param {ImportResult} result The {@link ImportFile} result about to be applied.
    * @param {string} format The import format, e.g. `'xlsx'`.
    * @returns {boolean|undefined} If `false`, the result is not applied. The import promise still resolves with it.
    */
@@ -1801,6 +2022,12 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired before the dataProvider fetches data. Return `false` to cancel the fetch.
+   *
+   * A canceled fetch leaves a fetch that is already running alone: that fetch still loads its rows. The
+   * loading state of the [`emptyDataState`](@/api/options.md#emptydatastate) overlay is updated after a
+   * cancel, so the overlay shows loading only while a fetch still runs. The fetch starts only after every
+   * listener returns, so a fetch a listener starts with `fetchData()` from inside this hook starts first, and the
+   * fetch the hook was fired for then replaces it, unless the listener returns `false`.
    *
    * @event Hooks#beforeDataProviderFetch
    * @since 17.1.0
@@ -2028,6 +2255,213 @@ export const REGISTERED_HOOKS = [
   'afterRender',
 
   /**
+   * Fired by {@link Core#suspendExecution} before it suspends the execution (the index cache updates).
+   * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend the
+   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   *
+   * The hook fires only when the execution changes from resumed to suspended: a nested call fires nothing.
+   * Its return value cannot cancel the suspension, but a listener that throws stops it, and the error
+   * reaches the caller. The hook does not fire while the instance is being destroyed.
+   *
+   * A listener can suspend and resume the execution of the same instance (for example, with
+   * [`batch()`](@/api/core.md#batch)). Those calls belong to the suspension in progress, so they fire no
+   * execution hooks.
+   *
+   * @event Hooks#beforeSuspendExecution
+   * @since 19.0.0
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeSuspendExecution() {
+   *     console.log(this.isExecutionSuspended()); // false
+   *   },
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeSuspendExecution={() => {
+   *     console.log('The execution is about to be suspended');
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   beforeSuspendExecution: () => {
+   *     console.log('The execution is about to be suspended');
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
+   */
+  'beforeSuspendExecution',
+
+  /**
+   * Fired by {@link Core#suspendExecution} after it suspends the execution (the index cache updates).
+   * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend the
+   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   *
+   * The hook fires only when the execution changes from resumed to suspended: a nested call fires nothing.
+   * When a listener throws, the execution is resumed (the `beforeResumeExecution` and
+   * `afterResumeExecution` hooks fire) and the error reaches the caller. The hook does not fire while the
+   * instance is being destroyed.
+   *
+   * @event Hooks#afterSuspendExecution
+   * @since 19.0.0
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   afterSuspendExecution() {
+   *     console.log(this.isExecutionSuspended()); // true
+   *   },
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   afterSuspendExecution={() => {
+   *     console.log('The execution is suspended');
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   afterSuspendExecution: () => {
+   *     console.log('The execution is suspended');
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
+   */
+  'afterSuspendExecution',
+
+  /**
+   * Fired by {@link Core#resumeExecution} before it resumes the execution and updates the index cache.
+   * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) resume the
+   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   *
+   * The hook fires only when the execution changes from suspended to resumed: a nested call, a forced
+   * nested call, and a call while the execution is not suspended fire nothing. It cannot cancel the resume.
+   * When a listener throws, the execution still resumes, `afterResumeExecution` still fires, and the error
+   * reaches the caller. The hook does not fire while the instance is being destroyed.
+   *
+   * A listener can suspend and resume the execution of the same instance. Those calls belong to the resume in
+   * progress, so they fire no execution hooks. A listener that leaves the execution suspended keeps it
+   * suspended. `beforeResumeExecution` then fires again, and `afterResumeExecution` fires, with the call that
+   * ends it.
+   *
+   * @event Hooks#beforeResumeExecution
+   * @since 19.0.0
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeResumeExecution() {
+   *     console.log(this.isExecutionSuspended()); // true
+   *   },
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeResumeExecution={() => {
+   *     console.log('The execution is about to be resumed');
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   beforeResumeExecution: () => {
+   *     console.log('The execution is about to be resumed');
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
+   */
+  'beforeResumeExecution',
+
+  /**
+   * Fired by {@link Core#resumeExecution} after it resumes the execution and updates the index cache, so
+   * the index changes made while the execution was suspended are already applied.
+   * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) resume the
+   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   * `batch()` resumes rendering after this hook.
+   *
+   * The hook fires only when the execution changes from suspended to resumed: a nested call, a forced
+   * nested call, and a call while the execution is not suspended fire nothing. It fires even when a
+   * `beforeResumeExecution` listener or the index cache update throws. The hook does not fire while the
+   * instance is being destroyed. A listener that suspends the execution again, directly or through a render,
+   * starts a new cycle, which fires all four hooks again, this one included.
+   *
+   * @event Hooks#afterResumeExecution
+   * @since 19.0.0
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   afterResumeExecution() {
+   *     console.log(this.isExecutionSuspended()); // false
+   *   },
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   afterResumeExecution={() => {
+   *     console.log('The execution is resumed');
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   afterResumeExecution: () => {
+   *     console.log('The execution is resumed');
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
+   */
+  'afterResumeExecution',
+
+  /**
    * When the focus position is moved to the next or previous row caused by the {@link Options#autoWrapRow} option
    * the hook is triggered.
    *
@@ -2077,6 +2511,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before setting focus selection.
    *
+   * With merged cells, the coordinates name the cell the focus moves to: Enter and Tab stop once on a
+   * merged cell and skip the cells it covers.
+   *
    * @since 14.3.0
    * @event Hooks#beforeSelectionFocusSet
    * @param {CellCoords} coords CellCoords instance.
@@ -2111,6 +2548,9 @@ export const REGISTERED_HOOKS = [
    * Fired before applying selection coordinates to the renderable coordinates for Walkontable (rendering engine).
    * It occurs even when cell coordinates remain unchanged and activates during cell selection and drag selection.
    * The behavior of <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> differs from <kbd>**←**</kbd> when there's no further movement possible.
+   *
+   * With merged cells, the selected range already covers every merged cell it touches, and its focus
+   * sits on a merged cell's top-left visible cell. A range selected through a header keeps its own extent.
    *
    * @since 14.0.0
    * @event Hooks#beforeSelectionHighlightSet
@@ -2208,6 +2648,40 @@ export const REGISTERED_HOOKS = [
    * @param {object} meta The cell properties object.
    */
   'modifyFiltersMultiSelectValue',
+
+  /**
+   * Fired by the Filters plugin after it finds the rows that match every condition, before it trims
+   * the rows that did not match. It fires once per filter pass, never per column. It also fires when
+   * the "Filter by value" list of a column reads the rows the earlier columns' conditions leave.
+   * A listener can return a replacement list of rows to keep, for example to keep the parents of a
+   * matching nested row. The plugin keeps only the integers within the source row range, in
+   * ascending order, without duplicates.
+   *
+   * The second argument lists the matching rows whose every column that the conditions of this pass
+   * read holds an empty cell.
+   * Such a row matches only because a condition accepts empty cells, so a listener can keep the row
+   * without keeping the rows that depend on it - for example, the children of a nested parent.
+   * Several listeners run in a chain: each one gets the rows the previous one returned, and the
+   * same list of blank matches.
+   *
+   * @since 19.0.0
+   * @event Hooks#modifyFiltersMatchedRows
+   * @param {number[]} matchedRows Physical indexes of the rows that match every condition, ascending.
+   * @param {number[]} blankMatchedRows Physical indexes of the rows from `matchedRows` whose every
+   * column that the conditions of this pass read holds an empty cell, ascending. For a "Filter by
+   * value" list, those are the columns filtered before it.
+   * @returns {number[]|undefined} The physical rows to keep, or `undefined` to keep `matchedRows`.
+   * @example
+   * ```js
+   * // Hide the rows that match only through empty cells.
+   * modifyFiltersMatchedRows(matchedRows, blankMatchedRows) {
+   *   const blank = new Set(blankMatchedRows);
+   *
+   *   return matchedRows.filter(row => !blank.has(row));
+   * }
+   * ```
+   */
+  'modifyFiltersMatchedRows',
 
   /**
    * Fired when focusing a cell or a header element. Allows replacing the element to be focused by returning a
@@ -2464,6 +2938,8 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link CopyPaste} plugin before copying the values to the clipboard and before clearing values of
    * the selected cells. This hook is fired when {@link Options#copyPaste} option is enabled.
    *
+   * Changes the callback makes to `data` also apply to the data that a paste into another Handsontable grid reads.
+   *
    * @event Hooks#beforeCut
    * @param {Array[]} data An array of arrays which contains data to cut.
    * @param {object[]} coords An array of objects with ranges of the visual indexes (`startRow`, `startCol`, `endRow`, `endCol`)
@@ -2551,6 +3027,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired before values are copied to the clipboard.
+   *
+   * Changes the callback makes to `data` also apply to the data that a paste into another Handsontable grid reads.
    *
    * @event Hooks#beforeCopy
    * @param {Array[]} data An array of arrays which contains data to copied.
@@ -2657,8 +3135,8 @@ export const REGISTERED_HOOKS = [
    *
    * Use it to clean the clipboard content that arrives from another application, for example the
    * `text/html` that a spreadsheet puts on the clipboard. After the hook, the plugin goes on as usual:
-   * it sanitizes and parses the content, and runs [`beforePaste`](#beforepaste), writes the values,
-   * and runs [`afterPaste`](#afterpaste).
+   * it sanitizes and parses the content, runs [`beforePaste`](#beforepaste), hands the values to the
+   * grid, and runs [`afterPaste`](#afterpaste).
    *
    * The hook doesn't fire when the plugin is disabled, when the grid isn't listening (on a page with
    * more than one grid, only the active grid's callbacks run), when nothing is selected, when a cell
@@ -2847,8 +3325,28 @@ export const REGISTERED_HOOKS = [
   'beforePaste',
 
   /**
-   * Fired by {@link CopyPaste} plugin after values are pasted into table. This hook is fired when
+   * Fired by {@link CopyPaste} plugin after the plugin hands the pasted values to the grid. This hook is fired when
    * {@link Options#copyPaste} option is enabled.
+   *
+   * `afterPaste` doesn't wait for the values to be written. The order depends on whether any pasted
+   * cell has a [validator](@/guides/cell-functions/cell-validator/cell-validator.md):
+   *
+   * - With a validator, `afterPaste` runs before Handsontable writes any pasted value, including the
+   *   cells without a validator. The validator runs after `afterPaste`, so a cell still holds its
+   *   previous value and `valid` flag. If the paste adds rows, `afterPaste` also runs before those
+   *   rows exist. The order is then `afterPaste`, [`afterCreateRow`](#aftercreaterow), and
+   *   [`afterChange`](#afterchange).
+   * - Without a validator, [`afterChange`](#afterchange) runs first and `afterPaste` follows. A paste
+   *   that adds rows runs [`afterCreateRow`](#aftercreaterow) before `afterChange`.
+   *
+   * A cell has a validator when you set one, when its cell type provides one (for example `numeric`,
+   * `date`, `dropdown`, or `autocomplete`), or when you set a [`maxLength`](@/api/options.md#maxlength)
+   * that is a finite number of 0 or more.
+   *
+   * To change or cancel the pasted values, use [`beforePaste`](#beforepaste). To react once the cells hold
+   * the new values, use [`afterChange`](#afterchange) and check for the `'CopyPaste.paste'` source.
+   * When [`copyPaste`](@/api/options.md#copypaste) sets `pasteMode` to `'shift_down'` or `'shift_right'`,
+   * the source is `'populateFromArray'`.
    *
    * @event Hooks#afterPaste
    * @param {Array[]} data An array of arrays with the pasted data.
@@ -2882,6 +3380,9 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link ManualColumnMove} plugin before change order of the visual indexes. This hook is fired when
    * {@link Options#manualColumnMove} option is enabled.
    *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a column back where it
+   * was. To tell such a move apart, use the `afterColumnMove` hook and check its `orderChanged` parameter.
+   *
    * @event Hooks#beforeColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
    * @param {number} finalIndex Visual column index, being a start index for the moved columns.
@@ -2901,6 +3402,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link ManualColumnMove} plugin after changing order of the visual indexes.
    * This hook is fired when {@link Options#manualColumnMove} option is enabled.
+   *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a column back where it
+   * was. In that case, `orderChanged` is `false`.
    *
    * @event Hooks#afterColumnMove
    * @param {Array} movedColumns Array of visual column indexes to be moved.
@@ -2937,6 +3441,7 @@ export const REGISTERED_HOOKS = [
    * @since 12.1.0
    * @param {number} column The visual index of the column that is going to unfreeze.
    * @param {boolean} unfreezePerformed If `true`: the column is going to unfreeze. If `false`: the column is not going to unfreeze (which might happen if the column is already unfrozen).
+   * @param {number} finalIndex The visual index the column is going to be moved to (available since 19.0.0). It depends on the `restoreColumnPosition` setting of the [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) option. Equal to `column` when `unfreezePerformed` is `false`.
    * @returns {boolean|undefined} If `false`: the column is not going to unfreeze, and the `afterColumnUnfreeze` hook won't fire.
    */
   'beforeColumnUnfreeze',
@@ -2948,6 +3453,7 @@ export const REGISTERED_HOOKS = [
    * @since 12.1.0
    * @param {number} column The visual index of the unfrozen column.
    * @param {boolean} unfreezePerformed If `true`: the column got successfully unfrozen. If `false`: the column didn't get unfrozen.
+   * @param {number} finalIndex The visual index the column was moved to (available since 19.0.0). Equal to `column` when `unfreezePerformed` is `false`.
    */
   'afterColumnUnfreeze',
 
@@ -3009,7 +3515,11 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link ManualRowMove} plugin before changing the order of the visual indexes. This hook is fired when
-   * {@link Options#manualRowMove} option is enabled.
+   * {@link Options#manualRowMove} option is enabled. It doesn't fire when the user presses a row header and releases it
+   * without moving the pointer more than a few pixels.
+   *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a row back where it
+   * was. To tell such a move apart, use the `afterRowMove` hook and check its `orderChanged` parameter.
    *
    * @event Hooks#beforeRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
@@ -3029,7 +3539,11 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link ManualRowMove} plugin after changing the order of the visual indexes.
-   * This hook is fired when {@link Options#manualRowMove} option is enabled.
+   * This hook is fired when {@link Options#manualRowMove} option is enabled. It doesn't fire when the user presses
+   * a row header and releases it without moving the pointer more than a few pixels.
+   *
+   * The hook also fires when the move leaves the order unchanged, for example when you drop a row back where it
+   * was. In that case, `orderChanged` is `false`.
    *
    * @event Hooks#afterRowMove
    * @param {Array} movedRows Array of visual row indexes to be moved.
@@ -3048,11 +3562,41 @@ export const REGISTERED_HOOKS = [
   'afterRowMove',
 
   /**
+   * Fired by {@link FreezeBar} plugin before the number of frozen rows or columns changes. Return `false` to cancel
+   * the change. This hook is fired when the {@link Options#freezeBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#beforeFreezeChange
+   * @param {'top'|'bottom'|'start'|'end'} edge The edge of the frozen area. `start` and `end` follow the layout direction.
+   * @param {number} newCount The new number of frozen rows or columns on that edge.
+   * @param {number} oldCount The current number of frozen rows or columns on that edge.
+   * @param {'drag'|'keyboard'|'api'} source What requested the change.
+   * @returns {boolean|undefined} If `false` is returned, the change is canceled.
+   */
+  'beforeFreezeChange',
+
+  /**
+   * Fired by {@link FreezeBar} plugin after the number of frozen rows or columns changed. The plugin changes the
+   * count on the grid only, and does not write it back to the settings you passed in. Copy the new count into your
+   * own state here. This hook is fired when the {@link Options#freezeBar} option is enabled.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterFreezeChange
+   * @param {'top'|'bottom'|'start'|'end'} edge The edge of the frozen area. `start` and `end` follow the layout direction.
+   * @param {number} newCount The new number of frozen rows or columns on that edge.
+   * @param {number} oldCount The previous number of frozen rows or columns on that edge.
+   * @param {'drag'|'keyboard'|'api'} source What requested the change.
+   */
+  'afterFreezeChange',
+
+  /**
    * Fired by {@link ManualColumnResize} plugin before rendering the table with modified column sizes. This hook is
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#beforeColumnResize
-   * @param {number} newSize Calculated new column width.
+   * @param {number} newSize Calculated new column width. It excludes the room that the hidden-column
+   *                         indicator adds to a column next to a hidden column, as the width taken by
+   *                         [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) does.
    * @param {number} column Visual index of the resized column.
    * @param {boolean} isDoubleClick Flag that determines whether there was a double-click.
    * @returns {number|false|undefined} Returns a new column size, `false` to cancel the resize, or `undefined` to keep the size set by the drag or auto-calculation.
@@ -3064,7 +3608,9 @@ export const REGISTERED_HOOKS = [
    * fired when {@link Options#manualColumnResize} option is enabled.
    *
    * @event Hooks#afterColumnResize
-   * @param {number} newSize Calculated new column width.
+   * @param {number} newSize Calculated new column width. It excludes the room that the hidden-column
+   *                         indicator adds to a column next to a hidden column, as the width taken by
+   *                         [`setManualSize()`](@/api/manualColumnResize.md#setmanualsize) does.
    * @param {number} column Visual index of the resized column.
    * @param {boolean} isDoubleClick Flag that determines whether there was a double-click.
    */
@@ -3368,6 +3914,14 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before changing the active sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
+   * By the time it fires, the cell editor and the comment editor have saved and closed, so the
+   * edit stays saved even when a listener cancels the switch. It does not fire when the switch is
+   * refused because a cell value is still waiting for its validator, or because the editor holds a
+   * value its validator rejected. A listener cannot switch, add, remove, rename, duplicate, or move
+   * a sheet: those calls return `false` (`null` for an add or a duplicate). A change it makes to a cell
+   * with a validator refuses the switch, because the change would otherwise be written into the
+   * arriving sheet.
+   *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabChange
    * @param {number} oldSheetId The id of the sheet being left.
@@ -3393,9 +3947,16 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before adding a new sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
+   * It fires for an added sheet and for a duplicate.
+   *
+   * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
+   * `false` (`null` for an add or a duplicate).
+   *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabAdd
-   * @param {string|null} name The requested sheet name, or `null` for a default-generated name.
+   * @param {string|null} name The requested sheet name, or `null` when it was omitted. For a duplicate,
+   * the name the copy gets.
+   * @param {number|null} duplicateOfId The id of the sheet being copied, or `null` for an added sheet.
    * @param {string} source String that identifies source of hook call.
    * @returns {*|boolean} If `false` is returned the action is canceled.
    */
@@ -3405,10 +3966,13 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after adding a new sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
+   * It fires for an added sheet and for a duplicate.
+   *
    * @since 19.0.0
    * @event Hooks#afterSheetTabAdd
    * @param {number} sheetId The id of the added sheet.
    * @param {string} name The name of the added sheet.
+   * @param {number|null} duplicateOfId The id of the sheet that was copied, or `null` for an added sheet.
    * @param {string} source String that identifies source of hook call.
    */
   'afterSheetTabAdd',
@@ -3416,6 +3980,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link SheetsBar} plugin before removing a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
+   *
+   * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
+   * `false` (`null` for an add or a duplicate).
    *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabRemove
@@ -3439,6 +4006,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link SheetsBar} plugin before renaming a sheet. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
+   *
+   * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
+   * `false` (`null` for an add or a duplicate).
    *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabRename
@@ -3467,6 +4037,9 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin before moving a sheet to a new tab position. This hook is fired when
    * {@link Options#sheetsBar} option is enabled.
    *
+   * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
+   * `false` (`null` for an add or a duplicate).
+   *
    * @since 19.0.0
    * @event Hooks#beforeSheetTabMove
    * @param {number} sheetId The id of the sheet being moved.
@@ -3492,10 +4065,19 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after capturing a sheet's runtime view state (e.g. scroll position,
    * selection) before switching away from it. This hook is fired when {@link Options#sheetsBar} option is enabled.
    *
+   * A listener cannot switch, add, remove, rename, duplicate, or move a sheet: those calls return
+   * `false` (`null` for an add or a duplicate). A change it makes to a cell with a validator refuses
+   * the switch, because the change would otherwise be written into the arriving sheet.
+   *
    * @since 19.0.0
    * @event Hooks#afterSheetTabStateCapture
    * @param {number} sheetId The id of the sheet the view state was captured from.
-   * @param {object} viewState The captured view state.
+   * @param {object} viewState The captured view state. Its `sortConfig` names each column by its physical index.
+   * Its `cellMeta` lists the cell meta the sheet keeps, one `{ row, col, key, value }` entry per key, where `row`
+   * and `col` are physical indexes: every key set through `setCellMeta()` except `hidden`, `spanned` and `valid`,
+   * internal keys starting with `_` included, and a `valid: false` entry for each cell marked invalid. Its
+   * `customBorders` lists the borders on screen for reading only: the sheet's borders come back with `cellMeta`,
+   * so a change made to that list is not applied.
    * @param {string} source String that identifies source of hook call.
    */
   'afterSheetTabStateCapture',
@@ -3504,10 +4086,13 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link SheetsBar} plugin after restoring a sheet's runtime view state (e.g. scroll position,
    * selection) when switching to it. This hook is fired when {@link Options#sheetsBar} option is enabled.
    *
+   * It fires before the switch has finished, so a listener cannot switch, add, remove, rename, duplicate,
+   * or move a sheet: those calls return `false` (`null` for an add or a duplicate).
+   *
    * @since 19.0.0
    * @event Hooks#afterSheetTabStateRestore
    * @param {number} sheetId The id of the sheet the view state was restored to.
-   * @param {object} viewState The restored view state.
+   * @param {object} viewState The restored view state. Its `sortConfig` names each column by its physical index.
    * @param {string} source String that identifies source of hook call.
    */
   'afterSheetTabStateRestore',
@@ -3527,7 +4112,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `valuesUpdated`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#valuesupdated)
+   * - [HyperFormula documentation: `valuesUpdated`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#valuesupdated)
    *
    * @since 9.0.0
    * @event Hooks#afterFormulasValuesUpdate
@@ -3542,7 +4127,7 @@ export const REGISTERED_HOOKS = [
    * because you called it directly or because you defined the `namedExpressions` configuration option.
    *
    * Read more:
-   * - [HyperFormula documentation: `addNamedExpression`](https://hyperformula.handsontable.com/api/classes/hyperformula.html#addnamedexpression)
+   * - [HyperFormula documentation: `addNamedExpression`](https://handsontable.com/docs/hyperformula/api/classes/hyperformula.html#addnamedexpression)
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionAdded
@@ -3557,7 +4142,7 @@ export const REGISTERED_HOOKS = [
    * This hook fires after the HyperFormula engine's `removeNamedExpression()` method runs.
    *
    * Read more:
-   * - [HyperFormula documentation: `removeNamedExpression`](https://hyperformula.handsontable.com/api/classes/hyperformula.html#removenamedexpression)
+   * - [HyperFormula documentation: `removeNamedExpression`](https://handsontable.com/docs/hyperformula/api/classes/hyperformula.html#removenamedexpression)
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionRemoved
@@ -3575,7 +4160,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `sheetAdded`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetadded)
+   * - [HyperFormula documentation: `sheetAdded`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#sheetadded)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetAdded
@@ -3588,7 +4173,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `sheetRenamed`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetrenamed)
+   * - [HyperFormula documentation: `sheetRenamed`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#sheetrenamed)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRenamed
@@ -3602,7 +4187,7 @@ export const REGISTERED_HOOKS = [
    *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
-   * - [HyperFormula documentation: `sheetRemoved`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#sheetremoved)
+   * - [HyperFormula documentation: `sheetRemoved`](https://handsontable.com/docs/hyperformula/api/interfaces/listeners.html#sheetremoved)
    *
    * @since 9.0.0
    * @event Hooks#afterSheetRemoved
@@ -3748,6 +4333,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired when the focus of the selection is being modified (e.g. Moving the focus with the enter/tab keys).
    *
+   * With merged cells, `delta` is the plain step. Handsontable then moves the focus in the direction the
+   * step leaves, from one merged cell or cell to the next.
+   *
    * @since 14.3.0
    * @event Hooks#modifyTransformFocus
    * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
@@ -3757,6 +4345,8 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired when the start of the selection is being modified (e.g. Moving the selection with the arrow keys).
    *
+   * With merged cells, `delta` already steps past the merged cell the selection starts in.
+   *
    * @event Hooks#modifyTransformStart
    * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
    */
@@ -3764,6 +4354,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired when the end of the selection is being modified (e.g. Moving the selection with the arrow keys).
+   *
+   * With merged cells, `delta` already moves the end past every merged cell it would stop inside.
    *
    * @event Hooks#modifyTransformEnd
    * @param {CellCoords} delta Cell coords object declaring the delta of the new selection relative to the previous one.
@@ -3850,6 +4442,11 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link HiddenRows} plugin after marking the rows as hidden. Fired only if the {@link Options#hiddenRows} option is enabled.
    *
+   * The hook also fires once while Handsontable initializes, before the grid has a view. At that point,
+   * {@link Core#getFirstFullyVisibleRow} and the other viewport getters of `Core` return `null`, and
+   * {@link AutoRowSize#getFirstVisibleRow} and {@link AutoRowSize#getLastVisibleRow} return `-1`.
+   * Methods that need the rendered grid, such as {@link Core#selectCell}, are not available yet.
+   *
    * @event Hooks#afterHideRows
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical row indexes.
    * @param {Array} destinationHideConfig Destination hide configuration - a list of hidden physical row indexes.
@@ -3882,6 +4479,46 @@ export const REGISTERED_HOOKS = [
   'afterUnhideRows',
 
   /**
+   * Fired by the {@link RowSelection} plugin before the row selection changes. Fired only if the
+   * {@link Options#rowSelection} option is enabled. Returning `false` in the callback cancels the change.
+   *
+   * The lists hold only the rows whose state really changes. With a server-backed grid (the
+   * {@link DataProvider} plugin), the lists hold only the loaded rows: a change that affects only rows
+   * on other pages (for example, "select all" while the loaded page is already selected) runs the hook
+   * with two empty lists. To read the full selection, call `getServerSelection()`.
+   *
+   * @since 19.0.0
+   * @event Hooks#beforeRowSelectionChange
+   * @param {number[]} rowsToSelect Physical indexes of the rows about to be selected.
+   * @param {number[]} rowsToDeselect Physical indexes of the rows about to be deselected.
+   * @param {string} source What changed the selection: `'checkbox'`, `'headerCheckbox'`, `'click'`,
+   * `'keyboard'`, `'api'`, or `'dataChange'`. `'dataChange'` means a write to the bound checkbox column
+   * (see {@link Options#rowSelection}) that did not come from editing the cell – for example a paste,
+   * an autofill, or a `setDataAtCell()` call.
+   * @returns {undefined|boolean} If the callback returns `false`, the selection does not change.
+   */
+  'beforeRowSelectionChange',
+
+  /**
+   * Fired by the {@link RowSelection} plugin after the row selection changes. Fired only if the
+   * {@link Options#rowSelection} option is enabled.
+   *
+   * With a server-backed grid (the {@link DataProvider} plugin), the lists hold only the loaded rows: a
+   * change that affects only rows on other pages runs the hook with two empty lists. To read the full
+   * selection, call `getServerSelection()`.
+   *
+   * @since 19.0.0
+   * @event Hooks#afterRowSelectionChange
+   * @param {number[]} selectedRows Physical indexes of the rows that were selected.
+   * @param {number[]} deselectedRows Physical indexes of the rows that were deselected.
+   * @param {string} source What changed the selection: `'checkbox'`, `'headerCheckbox'`, `'click'`,
+   * `'keyboard'`, `'api'`, or `'dataChange'`. `'dataChange'` means a write to the bound checkbox column
+   * (see {@link Options#rowSelection}) that did not come from editing the cell – for example a paste,
+   * an autofill, or a `setDataAtCell()` call.
+   */
+  'afterRowSelectionChange',
+
+  /**
    * Fired by {@link HiddenColumns} plugin before marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
    * Returning `false` in the callback will prevent the hiding action from completing.
    *
@@ -3895,6 +4532,11 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by {@link HiddenColumns} plugin after marking the columns as hidden. Fired only if the {@link Options#hiddenColumns} option is enabled.
+   *
+   * The hook also fires once while Handsontable initializes, before the grid has a view. At that point,
+   * {@link Core#getFirstFullyVisibleColumn} and the other viewport getters of `Core` return `null`, and
+   * {@link AutoColumnSize#getFirstVisibleColumn} and {@link AutoColumnSize#getLastVisibleColumn} return `-1`.
+   * Methods that need the rendered grid, such as {@link Core#selectCell}, are not available yet.
    *
    * @event Hooks#afterHideColumns
    * @param {Array} currentHideConfig Current hide configuration - a list of hidden physical column indexes.
@@ -4155,6 +4797,10 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Loading} plugin before hiding the loading indicator. This hook is fired when {@link Options#loading}
    * option is enabled.
    *
+   * It fires only for a hide that {@link Loading#hide} makes. A hide made through the {@link Dialog} plugin
+   * ({@link Dialog#hide}, the **Escape** key on a closable dialog, or a dialog shown over the loading indicator) cannot
+   * be skipped, so this hook does not fire for it, while {@link Hooks#afterLoadingHide} does.
+   *
    * @since 16.1.0
    * @event Hooks#beforeLoadingHide
    * @returns {boolean | undefined} If returns `false`, the action will be skipped.
@@ -4164,6 +4810,10 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by {@link Loading} plugin after hiding the loading indicator. This hook is fired when {@link Options#loading}
    * option is enabled.
+   *
+   * It also fires when the loading indicator goes away through the {@link Dialog} plugin: {@link Dialog#hide}, the
+   * **Escape** key on a closable dialog, or a dialog shown over the loading indicator. {@link Hooks#beforeLoadingHide}
+   * does not fire in those cases.
    *
    * @since 16.1.0
    * @event Hooks#afterLoadingHide
@@ -4262,6 +4912,10 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link MergeCells} plugin before cell merging. This hook is fired when {@link Options#mergeCells}
    * option is enabled.
    *
+   * The hook is fired only for a merge that the plugin applies. A merge that the plugin refuses – for example,
+   * one that overlaps an existing merged cell – doesn't fire it. The plugin checks for the overlap before it
+   * fires the hook, so a listener can't make room for a merge by unmerging the merged cell it overlaps.
+   *
    * @event Hooks#beforeMergeCells
    * @param {CellRange} cellRange Selection cell range.
    * @param {boolean} [auto=false] `true` if called automatically by the plugin.
@@ -4316,7 +4970,8 @@ export const REGISTERED_HOOKS = [
   'afterUnlisten',
 
   /**
-   * Fired after the window was resized or the size of the Handsontable root element was changed.
+   * Fired after the window was resized or the size of the Handsontable root element was changed. A
+   * re-measure after a web font loads does not fire it (see [`afterFontsLoad`](#afterfontsload)).
    *
    * @event Hooks#afterRefreshDimensions
    * @param {{ width: number, height: number }} previousDimensions Previous dimensions of the container.
@@ -4327,7 +4982,8 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Cancellable hook, called after resizing a window or after detecting size change of the
-   * Handsontable root element, but before redrawing a table.
+   * Handsontable root element, but before redrawing a table. A re-measure after a web font loads does not
+   * fire it (see [`afterFontsLoad`](#afterfontsload)), so returning `false` does not stop that re-measure.
    *
    * @event Hooks#beforeRefreshDimensions
    * @param {{ width: number, height: number }} previousDimensions Previous dimensions of the container.

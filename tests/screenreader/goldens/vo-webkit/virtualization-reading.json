@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "scenario": "virtualization-reading",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-06T11:52:59.828Z"
+  },
+  "steps": {
+    "read-1": "alpha bravo b1 column 3 of 4",
+    "read-2": "bravo charlie c1 column 4 of 4",
+    "read-3": "row 3 2 column 1 of 4 alpha a2 column 2 of 4",
+    "read-4": "alpha bravo b2 column 3 of 4",
+    "read-5": "bravo charlie c2 column 4 of 4",
+    "read-6": "row 4 3 column 1 of 4 alpha a3 column 2 of 4",
+    "read-7": "alpha bravo b3 column 3 of 4",
+    "read-8": "bravo charlie c3 column 4 of 4",
+    "read-9": "alpha a6",
+    "read-10": "alpha bravo b6 column 3 of 4",
+    "read-11": "bravo charlie c6 column 4 of 4",
+    "read-12": "row 8 7 column 1 of 4 alpha a7 column 2 of 4",
+    "read-13": "alpha bravo b7 column 3 of 4",
+    "read-14": "bravo charlie c7 column 4 of 4",
+    "read-15": "row 9 8 column 1 of 4 alpha a8 column 2 of 4",
+    "read-16": "alpha bravo b8 column 3 of 4",
+    "read-17": "bravo charlie c8 column 4 of 4",
+    "read-18": "row 10 9 column 1 of 4 alpha a9 column 2 of 4",
+    "read-19": "alpha bravo b9 column 3 of 4",
+    "read-20": "bravo charlie c9 column 4 of 4",
+    "read-21": "alpha a15",
+    "read-22": "alpha a15"
+  }
+}

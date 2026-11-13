@@ -24,7 +24,8 @@ export const TIER_NAMES = Object.keys(VISUAL_TIERS);
  * @property {boolean} classic Whether the bare chromium js run (no HOT_THEME) happens.
  * @property {string[]} themes The HOT_THEME runs.
  * @property {string[]} browsers The cross-browser leg's projects; empty when the leg does not run.
- * @property {boolean} copyWrappers Whether the js render is copied into every wrapper directory afterwards.
+ * @property {boolean} copyWrappers Whether the bare js render of each spec that declares wrappers is copied into
+ *   those wrappers' directories afterwards (`lib/wrapper-copy.mjs`).
  * @property {string[]} wrappers The wrappers rendered for real.
  * @property {string[]} prefixes The screenshot-relative directory prefixes this tier's records sit under.
  */
@@ -109,7 +110,7 @@ export function parseWrappers(value) {
  * @param {boolean} tier.classic Whether the bare js render runs.
  * @param {string[]} tier.themes The themes rendered.
  * @param {string[]} tier.browsers The cross-browser leg's projects.
- * @param {boolean} tier.copyWrappers Whether the js render is copied into every wrapper directory.
+ * @param {boolean} tier.copyWrappers Whether the bare js render is copied into the wrappers its specs declare.
  * @returns {string[]} The prefixes, deduplicated, in layout order.
  */
 export function tierPrefixes({ frameworks, classic, themes, browsers, copyWrappers }) {

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where a change rejected under `allowInvalid: false` was still written when the validators answered out of order.",
+  "type": "fixed",
+  "issueOrPR": 13959,
+  "breaking": false,
+  "framework": "none"
+}

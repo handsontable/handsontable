@@ -51,6 +51,11 @@ Consequences:
   the previous rendered selection, so without a render the old border DOM is gone and the new one waits for
   some unrelated render — the cell appears to lose its border.
 
+Scroll cost is **not** about how many borders have DOM. The viewport sync keeps that bounded, yet 2,100
+borders scrolled at half the speed of none because each visible border forced a layout in the border paint
+(DEV-3459). If scrolling a bordered grid is slow again, profile `Border#measure`/`paint` in Walkontable
+before looking at the model or the row index. See `../../3rdparty/walkontable/AGENTS.md`.
+
 ## Merging: a descriptor means "update these sides"
 
 `#buildRangeCellBorder` starts from the cell's existing borders and layers the descriptor on top, so sides
@@ -82,12 +87,214 @@ split across batches still merge correctly. A plain synchronous call owns and cl
   the configuration never targeted.
 - **Do not render from `afterCreateRow` / `afterCreateCol` / `afterRemove*`.** Those fire from inside
   `alter()`, before it finishes rewriting the headers, and `alter()` renders when it is done. A forced
-  mid-`alter()` render paints a header row the closing render then treats as up to date, so labels stay
-  bound to their pre-insert columns while the new column is appended at the end — clicking a header then
-  selects a different column than the label sits on (#11031).
+  mid-`alter()` render paints from half-written state and costs a draw the closing render repeats.
+  `grid.runAlter()` sets `forceFullRender` before that closing render, so a render from those hooks no
+  longer leaves the headers on the wrong columns (#11031). The plugin's own handlers never render, and
+  must keep it that way: the extra draw is pure cost, and anything that reads the DOM inside `alter()`
+  still sees the half-written paint.
 - **Skip the shift for auto-inserted rows and columns.** `minSpareRows` / `minSpareCols` append at the end
   and do **not** shift cell meta in the core (`DataMap#createCol` skips `metaManager.createColumn` when
   `source === 'auto'`), so shifting the model would diverge from the meta.
+
+## A shrinking `loadData` leaves the model addressing cells that are gone
+
+The plugin never clears its model on `loadData`, so `loadData` (and `updateSettings({ data })`,
+which routes to `updateData`) replaces the dataset while `savedBorders` keeps the previous grid's
+coordinates. Nothing renders them - `#syncViewportSelections` only materializes borders inside the
+rendered range - but `#resetBorderModel` walks the whole model into
+`#writeBordersMeta(row, col, null)`. On 8x8 data bordered at `{ row: 7, col: 7 }` followed by a 3x3
+`loadData`, `updateSettings({ customBorders: [] })`, `updateSettings({ customBorders: [in-range
+entry] })` and `clearBorders()` all threw `Assertion failed: Expecting an unsigned number` - a
+pre-existing defect, reproducible on released 18.1.1.
+
+**`#resetBorderModel` therefore walks the META, by the physical coordinates it is stored under, and
+never the model.** The model keeps the VISUAL coordinates a border was set at, and they stop naming
+that record as soon as rows are sorted, moved or trimmed. Replaying them into `removeCellMeta` (the
+first fix for the throw above, after `Core#removeCellMeta` learned to read an out-of-range index as a
+raw physical one) cleared the wrong record or none: sort, set a border, filter its row out, and
+`clearBorders()` emptied the model while the `borders` meta stayed on the record - the grid stopped
+painting the border, the XLSX export still wrote it, and an unrelated undo (which rebuilds the model
+from the meta) painted it again. Each `borders` entry from `getUserDefinedCellMetas()` is now
+resolved to its CURRENT visual coordinates and removed through `#writeBordersMeta` (so a
+`beforeRemoveCellMeta` veto still works); a record with no visual index (trimmed, or past a shrunk
+dataset) is removed through the internal `Core#_removeCellMetaByPhysicalIndex`, which is journaled
+for undo like `removeCellMeta` but fires no meta hook, because those hooks carry visual coordinates.
+The model is then rebuilt from whatever meta survived (`#rebuildModelFromMeta`), so a vetoed border
+keeps its entry at its current coordinates. Pinned by `__tests__/clearBordersTrimmedRows.unit.js`.
+
+**The reset walks the meta once.** `#resetBorderModel` collects the `borders` entries, removes them,
+and hands only the vetoed survivors (their values read again from `getCellMetaIfExists`) to
+`#rebuildModelFromMeta(bordered)`, so a clear does not walk `getUserDefinedCellMetas()` a second
+time. The walk is still O(every user-defined meta key) - a physical-index `Set` of bordered records is
+the follow-up. The `row < countRows() && column < countCols()` clause is load-bearing: after a
+lowered `maxRows` / `maxCols`, `toVisualRow()` answers an index the grid no longer counts, and
+`removeCellMeta` would read it as a raw physical index and leave the meta on the record. Pinned by
+the two "lowered maxRows / maxCols" cases in `clearBordersTrimmedRows.unit.js`.
+
+The removal is not cosmetic on the `updateData` path. Core drops the cell meta only in `loadData`
+(`metaManager.clearCellsCache()`); `updateData` - and therefore `updateSettings({ data })` - keeps it
+by physical row. So after a shrink through `updateData`, a reset, and a regrow, the old `borders`
+meta is still on a live cell unless the reset actually clears it, which is the state this file's
+`getBorders()`/`getCellMeta().borders` rule forbids.
+
+**`afterLoadData` writes the model back into the meta, and never clears the model (DEV-3667).** The
+core clears cell meta on `loadData` and keeps it on `updateData`, so clearing the model would remove
+borders the user still sees after a same-size `loadData` - a visible behavior change. Leaving the two
+disagreeing was the defect: the border stayed drawn from the model alone, and the next rebuild from the
+meta (a trim, an untrim, a filter, `resetBorderModel`) found no `borders` meta and emptied the model.
+`#onAfterLoadData` therefore writes the meta of every model entry back. Five rules ride along:
+
+- **The write is a restore, not an edit, so it goes through `_setCellMetaByPhysicalIndex`.** That core
+  method is journaled like `setCellMeta` (`loadData` runs under `operationScope.suppress()`, so there is no
+  undo step) and fires no `beforeSetCellMeta`/`afterSetCellMeta`. Through `setCellMeta` the restore fired
+  both hooks once per bordered cell for a write the application never made, and an app that blocks
+  `borders` edits on locked cells vetoed every one of them, so one `loadData()` of the same data removed
+  the borders it had kept before. It cannot be vetoed, so the hook never changes the model: there is no
+  veto path to drop an entry on, and nothing to splice one at a time. Do not move it back to
+  `#writeBordersMeta`, which is the vetoable path for edits. Undo restores meta the same way, without hooks.
+- **The hook runs at order index `-1` and reads `#savedBorders`, never the `savedBorders` getter.** The
+  getter flushes a pending rebuild from the meta, and an application's own `afterLoadData` listener that
+  trims or filters (to re-apply a saved filter) marks one. Run after that listener, the rebuild would read
+  the meta `loadData` just dropped and empty the model before the restore. `updatePlugin()` disables and
+  enables the plugin and so registers the hook again at the end of the list: only the order index keeps
+  it first. `#onBeforeDataReplacement` has already flushed a rebuild that was pending before the load.
+  Pinned by the "trims first" case in `loadDataMeta.unit.js`.
+- **Entries past the loaded data get their meta too**, at the raw index `setCellMeta` would use for an
+  index outside the grid (the same rule as `toCellMetaPhysicalCoords` in `core.ts`). They are not drawn,
+  and a later `updateData()` that regrows the grid keeps the meta by physical index, so the border comes
+  back with its meta and survives the next rebuild. Leaving them without meta let exactly that rebuild
+  empty the model, the defect this section is about reached by another path.
+- **A `_applySettingsAndData()` call that declares `customBorders` is skipped** (`hasDeferredDataWork()`:
+  `updatePlugin()` recorded the declared array for `onDataReady()`, which resets the model and applies it).
+  Restoring first wrote the old data's borders into the new rows only for `onDataReady()` to remove them
+  again, and a listener that vetoed that removal left them there as real meta. A call that declares no
+  array (`_applySettingsAndData({}, data)`) still restores. The sheets bar empties the model before the
+  load (`clearCustomBorders()`), so it has nothing to write.
+- **The model holds visual coordinates**, and the hook translates them through the index maps as they
+  stand when it runs. Which plugin has re-applied its order by then is not guaranteed: a declared
+  `trimRows` or `hiddenRows` re-applies from the index map `init` hook inside `initIndexMappers()`, before
+  any `afterLoadData` listener, and the manual move plugins put their listener back after their own
+  `updatePlugin()`. The result holds either way, because the move and trim handlers re-derive the model
+  from physical indexes afterwards, so do not rely on the priority (335) for this.
+
+Pinned by `__tests__/loadDataMeta.unit.js` and the `CustomBorders after loadData()` block in
+`tests/e2e/customBorders.spec.ts`. The shrinking-load rules above are pinned by
+`__tests__/shrinkingLoadData.unit.js`, which covers the bottom-only, right-only, corner and
+exact-boundary (`row === countRows()`) shapes, a same-size control proving an in-range entry still has
+its meta removed, and the `updateData` shrink -> reset -> regrow regression. The core rule itself is
+pinned by `src/__tests__/core/removeCellMeta.unit.js`.
+
+## A filter or a trim rebuilds the model from the meta
+
+The plugin listens to `afterFilter`, `afterTrimRow` and `afterUntrimRow` (the trim hooks only when
+`stateChanged`) and rebuilds the model from the `borders` meta (`#rebuildAfterIndexChange`). **Behavior
+change (DEV-3011): after a filter or a trim, a border follows its record** - `getBorders()` reports it at
+the record's current visual row, and the border is painted there - instead of staying at the visual row it
+was set at, which by then held another record. Two defects drove it:
+
+- **A ghost border through undo.** `restoreState` rebuilds the model from the meta but skips a record
+  with no visual index, so `clearBorders()` under a filter (or a trim) that hid the row, then `undo()`,
+  put the meta back with no model entry. When the row came back nothing rebuilt the model: nothing was
+  painted, `getBorders()` was empty, and the XLSX export still wrote the border.
+- **A range clear missed the record.** After a sort and a filter, the model painted the border at its
+  stale visual row; `clearBorders([[row...]])` of what you see removed the model entry and left the meta
+  on the record.
+
+Hidden rows (`hiddenRows`) keep their visual indexes, so `afterHideRows` needs no rebuild. Sorting and
+row moves are not covered by this rebuild. A progressive load still in flight is flushed first, so the
+rebuild (which cancels the load) cannot drop its pending batches, and it is flushed from
+`beforeFilter`/`beforeTrimRow`/`beforeUntrimRow` (review round 12): flushed from the `after*` hooks,
+its queued VISUAL rows landed on the records the trim had shifted into those positions.
+
+Three more entry points, all from review round 12:
+
+- **`updateSettings({ trimRows })` defers the rebuild too, but only when the visible rows changed**
+  (`#onAfterUpdateSettings`). `TrimRows#updatePlugin` writes the trimming map inside `batchExecution` and
+  fires no `afterTrimRow`, so the model kept the visual row a border was drawn at while its record moved.
+  There is no `beforeUpdateSettings` hook, so on this path only a progressive load still in flight
+  completes after the map changed. The React wrapper re-sends `trimRows` on every render (only
+  `columns`, `dataSchema` and the size options are compared, `settingsMapper.ts`), the Angular wrapper on
+  every `settings` change, and the Vue wrapper drops an unchanged value (`prepareSettings()` with
+  `simpleEqual()`). The rebuild walks every bordered cell, so the handler compares
+  `rowIndexMapper.getNotTrimmedIndexes()` with the array `#onUpdateSettingsStart` held before the update and
+  skips the rebuild when the two match (DEV-3553; about 4x faster for an unchanged `trimRows` at 50,000
+  borders, measured in jsdom with a stubbed layout, median of 5 runs; the rest is the `updateSettings()`
+  render itself). **`#onUpdateSettingsStart` is an
+  `afterUpdateSettings` listener at `orderIndex` -1**, not an `after*` hook that reads state late: every
+  plugin's own `updatePlugin()` runs from an `orderIndex` 0 listener registered in its constructor, so only a
+  negative index reads the rows before `TrimRows#updatePlugin()` writes the map. The mapper replaces its
+  not-trimmed array on every cache update and never mutates it, so holding the reference is the snapshot.
+  Do **not** key this on the mapper's cache update instead: an insert or a remove raises the same flags, and
+  the plugin already shifts its model for them in its `before*` hooks, so a rebuild there moves the borders
+  twice. Pinned by `__tests__/unchangedTrimRowsSettings.unit.js`. Two guards ride along. **The comparison is
+  skipped while `hot.rowIndexMapper.isBatched`**: a `trimRows: false` only unregisters the map, and the mapper
+  does not rebuild its cache until the batch ends, so inside `hot.batch()`, or a bare
+  `rowIndexMapper.suspendOperations()`, the array is the very same one and would read as "unchanged"; the
+  rebuild is then deferred as it always was. Key it on the mapper's flag (the one `updateCache()` checks), not
+  on `hot.isExecutionSuspended()`, which a bare mapper suspension does not set. **`updatePlugin()` keeps the
+  snapshot across its disable/enable cycle** (the listener it re-registers can still run in that pass), while
+  `disablePlugin()` nulls it, so a plugin switched off in one update never compares against rows from before.
+- **A pending rebuild runs in `beforeLoadData`/`beforeUpdateData`** (`#onBeforeDataReplacement`).
+  `loadData` drops the cell meta and keeps the model (the section above), so a rebuild left for the next
+  read found no meta and emptied the model: `trimRow(0); loadData(same)` lost the border that
+  `loadData(same)` alone keeps. Run first, it keeps the border where it was drawn. A test of this must
+  not read the model between the two calls, because any read runs the rebuild and hides the defect.
+- Pinned by `__tests__/indexChangeTiming.unit.js`. The trim plugin does not render after
+its hooks, so the trim path schedules a render; `filter()` renders right after `afterFilter`.
+
+**The rebuild is deferred and coalesced, never run from the hook.** It walks every user-defined meta
+key, and running it from each `afterTrimRow` made a loop of 100 `trimRow()` calls at 50,000 border
+entries take 6.3 s against about 50 ms before. The hooks only set `#isModelRebuildPending` (and advance
+the model version for UndoRedo); `#flushPendingModelRebuild()` runs the rebuild once, the first time
+anything touches the model. Every reader and writer must call it first: the `savedBorders` getter (which
+is why `savedBorders` is an accessor over `#savedBorders`), `spliceBorder()`, `checkSavedBorders()`,
+the render's `#syncViewportSelections` (the scheduled render is where it normally runs), the
+`afterSetCellMeta` / `afterRemoveCellMeta` listeners and **`#flushBeforeStructuralChange`**. The last one
+is load-bearing: the core shifts the meta before `afterCreateRow` / `afterRemoveRow`, so a rebuild first
+run from `#shiftBorders` would read the shifted meta and the shift would move every border twice.
+`captureState()` must **not** flush: UndoRedo calls it at the end of every `trimRow()` operation, which
+would undo the coalescing. The flush keeps the version the deferral set, so a later step does not record
+the change a second time.
+
+Pinned by `__tests__/trimmingRebuild.unit.js` (a border at row 8 reports row 7 right after
+`trimRow(0)` - kills a deleted `afterTrimRow` hook; the scheduled render paints it at row 7 with no
+explicit render - kills a deleted `#scheduleMetaSyncRender()`; a 100-call `trimRow()` burst walks the
+meta once; an insert right after a trim shifts once), and by the filter, untrim and sort-plus-filter
+cases in `__tests__/clearBordersTrimmedRows.unit.js`. That file's only trim case ends with `untrimAll()`,
+so it pins `afterUntrimRow`, not `afterTrimRow`.
+
+## The priority is 335: enable after every plugin that rewrites an index map
+
+`updatePlugin()` runs from the plugin's own `afterUpdateSettings` listener, in `PLUGIN_PRIORITY` order, and
+`changeBorderSettings()` -> `setCellMeta()` converts the configured visual coordinates to physical ones through
+whichever row and column maps are active at that moment. At the old priority 90 it ran before `ManualColumnMove`
+(120), `ManualRowMove` (140), `MultiColumnSorting` (170), `Filters` (250), `NestedRows` (300) and `TrimRows` (330)
+rewrote their maps in the same `updateSettings()` call. The border was drawn on the right cell, but its `borders`
+meta sat on the record the previous maps put there, and the next rebuild from meta (`trimRow`, untrim, a filter,
+`loadData`) moved it. 335 is the free slot after the last such plugin and before the overlay plugins (DEV-3640).
+
+- **Do not lower it, and do not fix a new case with a hook.** A first attempt applied the config from a listener
+  registered at `Number.MAX_SAFE_INTEGER` and failed in four ways, all measured: an application listener that
+  returns a value hands the next listener that value instead of the settings payload, so a payload check dropped
+  the config; a throwing listener skipped it; a `setBorders()` call in an application `afterUpdateSettings`
+  listener was wiped by the late reset; and a last-in-list listener lets a listener added mid-pass run in that
+  pass for every plugin on the grid. A priority has none of those effects, because it changes only the order of
+  the plugin's own update.
+- **The order of the plugin's other hooks moves with it.** `enablePlugin()` registers them, so they now land after
+  the hooks of the plugins between 90 and 335 at the same `orderIndex`. Nothing depended on the old position (the
+  broad E2E run over every plugin that shares a hook with this one was clean), but a hook added here that must run
+  before another plugin's listener should say so with an explicit `orderIndex`, as `#onUpdateSettingsStart` does.
+- **A new plugin that rewrites a row or column map from `updatePlugin()` must take a priority below 335**, or sit
+  above it with the same check against this plugin. The unit test lists the plugins that must stay below.
+- **Not covered:** a plugin that rewrites a map outside `updateSettings()` (sorting, moving and trimming through
+  their own APIs) is handled by the rebuild from meta in the section above, not by the priority. And a call
+  made inside `hot.batch()` (or between `suspendOperations()` and `resumeOperations()`) that turns `trimRows` off
+  or sends `manualRowMove`: the index mapper does not rebuild its cache until the batch ends, so `setCellMeta()`
+  still reads the maps from before the call. A `trimRows` array is fine, because `TrimRows#updatePlugin()` forces
+  the flush. The same limit applies to any caller that translates coordinates inside a batch.
+- Pinned by `__tests__/configWithIndexMapUpdates.unit.js` (an init-time oracle for each plugin, the priority
+  order, and the application-listener cases) and by the registration order lists in
+  `../__tests__/builtInPlugins.unit.ts` and `../../__tests__/registry/registerAllPlugins.unit.js`.
 
 ## A progressive load is never an undo step
 
@@ -98,6 +305,29 @@ progressive paths write under `operationScope.suppress()`: a batch run from the 
 action's step - an undo of the row insert that finished the load then removed the borders it wrote.
 Pinned in `../undoRedo/__tests__/pluginState.unit.js` ("a progressive border load").
 
+## A progressive replace keeps the outgoing borders drawn
+
+`updateSettings({ customBorders })` with `customBordersProgressive` empties the model and the meta at once and refills
+them in batches, so for a few frames there is nothing to draw. The previous borders are kept on screen anyway, and
+only the rendered selections are involved: `getBorders()` stays empty right after the call.
+
+- **The snapshot is taken in `updatePlugin()`, and a progressive replace skips the disable/enable cycle.** Disabling
+  destroys every rendered selection (`hideBorders()`), and `#resetBorderModel()` does it again, so the replace swaps
+  the model in place and passes `keepRendered` to the reset. Do not add a flag that turns `#destroyAllSelections()`
+  into a no-op: a `beforeRemoveCellMeta`/`afterRemoveCellMeta` listener that calls `clearBorders()` during the reset
+  would then keep the selections it cleared. Any reset without `keepRendered` also drops `#carriedBorders`. A second
+  replace during a load carries the first one's outgoing borders along with the model.
+- **Replacement is per cell, by id.** `#syncViewportSelections` draws the model first and the outgoing borders only for
+  ids the model does not hold, and it destroys an outgoing selection the moment the model has a border with the same
+  id. That also covers a border whose removal `beforeRemoveCellMeta` vetoed: it stays in the model, and without the
+  id check the cell would be drawn twice. Do not wait for "the first batch" instead: with a scrolled viewport the
+  first batch can miss every visible row.
+- **Every exit drops the outgoing state.** The last batch clears the row index before its render (a border that only
+  the old configuration had goes in that frame). The flush from a structural hook fires `afterCustomBordersUpdate`
+  before the render that follows, so the old borders can still be painted when the hook runs. The outgoing borders
+  are not in the model or the meta, so the Borders context menu and `setBorders()` do not see them. So do `#finishProgressiveApply()`, `#cancelProgressiveApply()`
+  and `destroy()`. A border that only the old configuration had stays visible until the load ends. A cell the user clears meanwhile (`removeAllBorders`, an external meta removal, or a new configuration that hides all four sides) is dropped from the outgoing index by `#dropOutgoingBorder`, or the sync would draw it again.
+
 ## `setCellMeta('borders', …)` written directly is supported
 
 The value may be a complete plugin-shaped object (UndoRedo restoring an undone removal) **or** a partial
@@ -105,6 +335,42 @@ user-authored one such as `{ top: { width: 2 } }`. So it must not be required to
 `id`/`row`/`col` bookkeeping. It is routed through `prepareBorderFromCustomAdded` as a descriptor for the
 write's coordinates; the canonical (complete, denormalized) object is written back to the meta, an
 all-hidden result clears the cell, and the model entry is upserted — so meta and model cannot diverge.
+
+## The sheets bar restores borders from the meta
+
+`_rebuildFromCellMeta()` (`@private`) marks the model for a rebuild from the `borders` cell meta, with no
+meta write and no hook. The sheets bar calls it when a sheet comes back: core writes the sheet's kept cell
+meta back with its rows, so the meta already holds the sheet's borders, a border on a row the filters hide
+included. **The rebuild is deferred like the one a filter or a trim asks for** (`#deferRebuildAfterIndexChange`),
+and must stay deferred: the bar calls it inside the view-state restore, which runs with the index cache
+suspended, so a rebuild run there translated each physical index through the order from before the restored
+sort or column move and drew the border on another record. It runs on the next model read or render, once the
+cache has resumed. It replaced a `clearBorders()` plus `setBorders()` replay of a visual-coordinate list,
+which lost every border on a filtered row. Pinned by the sorted-sheet and moved-column cases in
+`../sheetsBar/__tests__/cellMetaRoundTrip.unit.js`. The bar's side of it is in `../sheetsBar/AGENTS.md`.
+
+## A border added from the context menu stores a `var()` color
+
+`setBorder()` (the menu path) writes `createContextMenuCustomBorder()`: width 1 and `color:
+'var(--ht-custom-borders-default-color, #000)'` (`CONTEXT_MENU_BORDER_COLOR`). Walkontable paints a border
+with an inline `background-color`, so a stylesheet rule can never recolor it: the theme token has to travel
+inside the stored value. The token's light branch is `#000` in every theme, so light grids look as before,
+and the `#000` fallback covers a grid with no theme loaded.
+
+- **Only the menu path uses it.** A configured side given as `true` (`createDefaultCustomBorder()`) or `{}`
+  (which falls back to the cell's `border.color` from `createDefaultHtBorder()`) keeps `#000`: that is the
+  documented default of the `customBorders` option, and changing a default is a breaking change.
+- **`getBorders()` and `getCellMeta().borders` return the `var()` string** for a menu border. The XLSX
+  export maps this string to black (`FF000000`, `cssColorToArgb`), which is the right Excel value.
+- **The token lives in Figma too:** `component/cell/custom-borders-default-color` in the `themes` collection,
+  aliasing `<theme>/custom/custom-borders-default` in the `mode` collection (light is the theme's black, dark
+  is its foreground step). `npm run generate:themes` reproduces it from the export. If an export ever lacks
+  it, the generator drops the key silently, the `#000` fallback takes over, and the menu border turns
+  invisible in dark schemes again. The guard is `src/themes/__tests__/customBordersDefaultColor.unit.js` and
+  the dark-scheme case of `CustomBorders added from the context menu` in `tests/e2e/customBorders.spec.ts`.
+- **The name says "default" on purpose:** it is the color a border gets when nobody picked one. Today only
+  the menu path reads it; moving the configured default (`top: true`) onto it would change a documented
+  default, so it waits for a major release.
 
 ## `width: 0` is a real value
 
@@ -129,8 +395,8 @@ breaks** — that is expected; update the assertion and reference the issue.
 ## Where to look next
 
 - The rendered border primitive: `../../3rdparty/walkontable/AGENTS.md` (custom selections / Border).
-- Menu entries: `contextMenuItem/` (`top`, `bottom`, `left`, `right`, `noBorders`), wired via
-  `../contextMenu/AGENTS.md`.
+- Menu entries: `contextMenuItem/` (`top`, `bottom`, `left`, `right`, `noBorders`), registered through
+  `registerMenuEntries()` (`../../utils/menu/AGENTS.md`).
 - Snapshot/restore behavior: `../undoRedo/AGENTS.md`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 
@@ -148,3 +414,30 @@ breaks** — that is expected; update the assertion and reference the issue.
 read through `hot.view.countFixedColumnsEnd()`, so the start columns keep the priority). The end clone renders the last
 columns even when the master range is far from them, exactly like the start clone, so a border on an end column
 has to be in the working set or it is never drawn. Pinned by `tests/e2e/fixed-columns-end-plugins.spec.ts`.
+
+## The declared borders have one owner per enable
+
+The borders the settings declare are applied once per enable, by whichever path gets there:
+`updatePlugin()` (a `customBorders` update, including the off-to-on one, which runs `enablePlugin()` and
+then `updatePlugin()`), `onDataReady()` (the same update made ahead of its data), or the ready step
+(`onGridReady()`, `../base/AGENTS.md`) when neither ran: at init, and after a direct `enablePlugin()` call.
+`#declaredBordersOwed` is set by `enablePlugin()` and cleared by whichever applies them, so the step skips
+the pass after the other two and no border is written twice.
+
+At init the step runs before the `init` hook and the first render, and it does not render: that render
+syncs the master table's borders, and a render from the step would paint before later-priority plugins
+(NestedHeaders) build their state (#11031). The overlay clones that first render builds still need one
+more selection pass, so the step schedules a render for `afterInit` (`#onAfterInitRender`) when any border
+exists. Outside the init pass the step renders once itself. It replaced an `init` listener, which never
+fired again after init, so a direct `enablePlugin()` on a live grid used to apply nothing. **The step asks
+core whether it runs in the init pass (`isInitReadyStep()`), never whether the view has drawn.** A grid built
+inside a hidden container skips its draws, so `view._wt.drawn` stays `false` until it is first shown: read as
+"init", a direct `enablePlugin()` there rendered nothing and left an `afterInit` listener that never fires.
+Pinned by `__tests__/readyStep.unit.js`.
+
+## Declared borders applied ahead of their data wait for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `updatePlugin()` holds `changeBorderSettings()` back for `onDataReady()`, which runs it
+without its own render (core renders once). Run before, it dropped every border outside the rows the grid
+still held and wrote the rest into cell meta the load then cleared.

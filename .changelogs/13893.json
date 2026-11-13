@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the resize handle staying on the dragged edge after an undo, and Ctrl/Cmd+Z not undoing a row or column resize when no cell was clicked first.",
+  "type": "fixed",
+  "issueOrPR": 13893,
+  "breaking": false,
+  "framework": "none"
+}

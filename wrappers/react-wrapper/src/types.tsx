@@ -1,4 +1,4 @@
-import Handsontable, { RemoveIndexSignature } from 'handsontable/base';
+import Handsontable, { RemoveIndexSignature, OmitHooks } from 'handsontable/base';
 import React, {
   ComponentType,
   CSSProperties,
@@ -29,7 +29,12 @@ export interface HotRendererProps {
  * Interface for component-based editor overridden hooks object.
  */
 export interface HotEditorHooks {
-  onOpen?: () => void
+  /**
+   * Called when the editor opens.
+   *
+   * @param {Event} [event] The DOM event that opened the editor. It is `undefined` when you call `beginEditing()`.
+   */
+  onOpen?(event?: Event): void
   onClose?: () => void
   onPrepare?: (
     row: number,
@@ -95,6 +100,10 @@ type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'ed
    *
    * A component passed here wins over `hotEditor`. A bare `editor={false}` does not: an editor named
    * in `hotEditor` still applies.
+   *
+   * A Handsontable editor class or editor name belongs in `hotEditor`. When one is passed here, it
+   * is used as `hotEditor`, and the console shows a one-time warning. A name with no registered
+   * editor is ignored after the warning.
    */
   editor?: ComponentType | boolean,
 } & { [key: string]: any }
@@ -104,16 +113,24 @@ type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'ed
  * `Omit`) plus the column-specific `data` type. `data` is taken from `ColumnSettings` — an explicit
  * member that resolves even though `ColumnSettings` itself carries the broad index signature — so the
  * column form (`string | number | getter/setter`) overrides the grid's whole-table `data` type.
+ *
+ * Hook callbacks (`afterChange`, `beforeKeyDown`, ...) are left out because hooks run from the
+ * grid-level settings only, so `<HotColumn>` must not suggest them. `OmitHooks` comes from core for
+ * the same reason as `RemoveIndexSignature`. A hook passed to a column still type-checks through the
+ * `[key: string]: any` hatch on `ReplaceRenderersEditors`; it just is not suggested.
  */
-type ColumnGridSettings = Omit<RemoveIndexSignature<Handsontable.GridSettings>, 'data'> & {
+type ColumnGridSettings = Omit<OmitHooks<RemoveIndexSignature<Handsontable.GridSettings>>, 'data'> & {
   data?: Handsontable.ColumnSettings['data'],
 }
 
 /**
  * Interface for the `prop` of the HotTable component - extending the default Handsontable settings with additional,
  * component-related properties.
+ *
+ * The props are built from `SettingsUpdate`, the settings `updateSettings()` takes, so a hook prop may be
+ * `null`, which removes its callback (`afterChange={isTracking ? logChange : null}`).
  */
-export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.GridSettings> {
+export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.SettingsUpdate> {
   id?: string,
   className?: string,
   style?: CSSProperties,

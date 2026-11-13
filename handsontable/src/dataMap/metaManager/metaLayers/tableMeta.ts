@@ -61,6 +61,6 @@ export default class TableMeta {
     const normalizedSettings = normalizeEditorSetting(settings);
 
     extend(this.meta, normalizedSettings);
-    extendByMetaType(this.meta, normalizedSettings, normalizedSettings);
+    extendByMetaType(this.meta, normalizedSettings, normalizedSettings, settings.editor === true);
   }
 }

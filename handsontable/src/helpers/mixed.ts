@@ -8,8 +8,15 @@ import {
   getLicenseGrants,
   UNRESTRICTED_GRANTS,
   HANDSONTABLE_PRODUCT,
+  LISTED_CAPABILITIES_FLAG,
+  BADGE_FLAG,
 } from '../utils/entitlementLicenseKey';
-import type { LicenseLifecycle, LicenseGrants, LicenseChannels } from '../utils/entitlementLicenseKey';
+import type {
+  LicenseLifecycle,
+  LicenseGrants,
+  LicenseChannels,
+  ProductEntitlement,
+} from '../utils/entitlementLicenseKey';
 
 /**
  * Converts any value to string.
@@ -93,9 +100,9 @@ let _notified = false;
 // The entitlement-key console message is deduplicated PER KEY, and deliberately SEPARATE from the
 // legacy `_notified` flag above - do NOT merge them. Two reasons for each half:
 //
-// Separate from `_notified`, because the frozen legacy path sets it even when it prints nothing (a
-// non-commercial key's console message is empty), so a shared flag would let a silent non-commercial
-// grid initialized first suppress a later entitlement key's warning.
+// Separate from `_notified`, because the frozen legacy path sets it the first time it prints, for
+// any key, so a shared flag would let a legacy grid initialized first suppress a later entitlement
+// key's warning.
 //
 // Keyed by the key string rather than a single boolean, because these messages have severity tiers
 // the legacy path never had: a notice window prints `warn`, every stop prints `error`. With one flag,
@@ -114,10 +121,7 @@ const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVe
     to ${keyValidityDate}. If you need any help, contact us at sales@handsontable.com.`,
   missing: () => toSingleLine`
     The license key for Handsontable is missing. Use your purchased key to activate the product.\x20
-    Alternatively, you can activate Handsontable to use for non-commercial purposes by\x20
-    passing the key: 'non-commercial-and-evaluation'. If you need any help, contact\x20
-    us at support@handsontable.com.`,
-  non_commercial: () => '',
+    If you need any help, contact us at support@handsontable.com.`,
 };
 
 /**
@@ -128,7 +132,7 @@ const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVe
  * the message as parts and building the nodes touches no sink, and keeps the copy - which is
  * transcribed from the license specification - in exactly one place.
  */
-type MessagePart = string | { text: string; href: string; target?: string };
+export type MessagePart = string | { text: string; href: string; target?: string };
 
 /**
  * Renders license bar message parts into an element.
@@ -137,7 +141,7 @@ type MessagePart = string | { text: string; href: string; target?: string };
  * @param {Array} parts The message parts.
  * @param {Document} ownerDocument The document to build the nodes in.
  */
-function _renderMessageParts(target: HTMLElement, parts: MessagePart[], ownerDocument: Document) {
+export function _renderMessageParts(target: HTMLElement, parts: MessagePart[], ownerDocument: Document) {
   parts.forEach((part) => {
     if (typeof part === 'string') {
       target.appendChild(ownerDocument.createTextNode(part));
@@ -176,15 +180,12 @@ const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersio
     '.',
   ],
   missing: () => [
-    'The license key for Handsontable is missing. Use your purchased key to activate the product. ' +
-      'Alternatively, you can activate Handsontable to use for non-commercial purposes by ' +
-      'passing the key: \'non-commercial-and-evaluation\'. ',
+    'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
     { text: 'Read more', href: 'https://handsontable.com/docs/tutorial-license-key.html', target: '_blank' },
     ' about it in the documentation or contact us at ',
     { text: 'support@handsontable.com', href: 'mailto:support@handsontable.com' },
     '.',
   ],
-  non_commercial: () => [],
 };
 
 /**
@@ -243,6 +244,30 @@ type EntitlementConsoleNotification = {
   severity: 'warn' | 'error';
   message: (params: EntitlementMessageParams) => string;
 };
+
+/**
+ * Builds the message for the features a license key that lists its features leaves out: the console
+ * text and the bar parts. One message names every missing feature. The console text, which is also
+ * what a refused call throws, names each as `<display name> (<token>)` for the developer; the bar,
+ * which the end user can see, names each by its display name only. Transcribed from the license
+ * specification (rev 6, section 10.4).
+ *
+ * @param {Array<{name: string, capability: string}>} features The missing features, in the order to print.
+ * @returns {{text: string, parts: MessagePart[]}}
+ */
+export function _buildMissingFeaturesMessage(
+  features: ReadonlyArray<{ name: string; capability: string }>,
+): { text: string; parts: MessagePart[] } {
+  const lead = (list: string) => `The license key for Handsontable does not include these features: ${list}. ` +
+    'They are turned off. To add them, contact ';
+  const withTokens = features.map(({ name, capability }) => `${name} (${capability})`).join(', ');
+  const namesOnly = features.map(({ name }) => name).join(', ');
+
+  return {
+    text: `${lead(withTokens)}sales@handsontable.com.`,
+    parts: [lead(namesOnly), { text: 'sales@handsontable.com', href: 'mailto:sales@handsontable.com' }, '.'],
+  };
+}
 
 /**
  * License sentences the specification repeats verbatim across surfaces - the bottom bar (here), the
@@ -434,8 +459,6 @@ export function _injectProductInfo(
   }
 
   const hasValidType = !isEmpty(key);
-  const isNonCommercial = typeof key === 'string' &&
-    (key.toLowerCase() === 'non-commercial-and-evaluation' || key.toLowerCase() === 'ht68e-1f2b7-47158-70b05-0842f');
   const hotVersion = process.env.HOT_VERSION;
   let keyValidityDate;
   let consoleMessageState = 'invalid';
@@ -445,11 +468,7 @@ export function _injectProductInfo(
 
   const schemaValidity = _checkKeySchema(key);
 
-  if (isNonCommercial) {
-    consoleMessageState = 'non_commercial';
-    domMessageState = 'valid';
-
-  } else if (hasValidType || schemaValidity) {
+  if (hasValidType || schemaValidity) {
     if (schemaValidity) {
       const resolvedReleaseDate = releaseDate ?? process.env.HOT_RELEASE_DATE ?? '';
       const [dd, mm, yyyy] = resolvedReleaseDate.split('/').map(Number);
@@ -487,17 +506,10 @@ export function _injectProductInfo(
   }
 
   if (!_notified && consoleMessageState !== 'valid') {
-    const message = consoleMessages[consoleMessageState]({
+    console.warn(consoleMessages[consoleMessageState]({
       keyValidityDate,
       hotVersion,
-    });
-
-    if (message) {
-      console[consoleMessageState === 'non_commercial' ? 'info' : 'warn'](consoleMessages[consoleMessageState]({
-        keyValidityDate,
-        hotVersion,
-      }));
-    }
+    }));
     _notified = true;
   }
 
@@ -564,10 +576,11 @@ function _releaseDateToIsoDate(releaseDate: string): string {
 
 /**
  * The states outside the entitlement format: the legacy 25-character family classified the same way
- * the frozen legacy emitter classifies it (valid, expired, missing, non-commercial), plus "invalid"
- * (a broken legacy key, or an entitlement key that cannot be read).
+ * the frozen legacy emitter classifies it (valid, expired, missing), plus "invalid" (a broken legacy
+ * key, an entitlement key that cannot be read, or the `non-commercial-and-evaluation` key, which
+ * Handsontable 19.0 no longer recognizes).
  */
-type NonEntitlementLifecycleState = 'legacy_valid' | 'legacy_expired' | 'missing' | 'non_commercial' | 'invalid';
+type NonEntitlementLifecycleState = 'legacy_valid' | 'legacy_expired' | 'missing' | 'invalid';
 
 /**
  * The lifecycle facet a consumer reads: the entitlement states plus the states outside the format.
@@ -593,12 +606,16 @@ export type LicenseStateKey = LicenseLifecycleFacet['state'];
  * The resolved license state handed to the UI and (later) the feature gates: the lifecycle facet
  * (what the license IS right now), the channels it leaves open (where it may say so), and the
  * grants facet (what it UNLOCKS). `grants` is never null - the same query API serves legacy keys
- * (unlock everything) and entitlement keys (unlock what the payload lists).
+ * (unlock everything) and entitlement keys (unlock what the payload lists). `badge` says the
+ * Handsontable entry carries the `badge` flag - the "Powered by" bar the licensee agreed to show. It is
+ * branding, not a channel, so no silencing flag closes it; every key outside the entitlement format,
+ * and an unreadable one, has none.
  */
 export interface LicenseStateDescriptor {
   lifecycle: LicenseLifecycleFacet;
   channels: LicenseChannels;
   grants: LicenseGrants;
+  badge: boolean;
 }
 
 /**
@@ -611,7 +628,7 @@ const OPEN_CHANNELS: LicenseChannels = Object.freeze({ console: true, ui: true }
 
 /**
  * Builds the lifecycle facet for a state outside the entitlement format (the legacy 25-character
- * family, a missing key, the non-commercial key, or an unreadable entitlement key).
+ * family, a missing key, or an unreadable entitlement key).
  *
  * @param {string} state The state outside the entitlement format.
  * @param {string|null} [licensedUntil] The expiration date ("YYYY-MM-DD") of a legacy expired key.
@@ -631,8 +648,8 @@ function _nonEntitlementLifecycle(
 
 /**
  * Classifies a legacy license key into its lifecycle state. This mirrors - read-only - the exact
- * checks of the frozen legacy branch of `_injectProductInfo` (the non-commercial comparison, the
- * empty-key test, the key schema checksum, and the release-days versus validity-days comparison),
+ * checks of the frozen legacy branch of `_injectProductInfo` (the empty-key test, the key schema
+ * checksum, and the release-days versus validity-days comparison),
  * so the branding UI sees the same state the legacy console/DOM messaging acts on. The legacy
  * emitter itself is untouched.
  *
@@ -641,12 +658,6 @@ function _nonEntitlementLifecycle(
  * @returns {LicenseLifecycleFacet}
  */
 function _classifyLegacyKey(key?: string, releaseDate?: string): LicenseLifecycleFacet {
-  const isNonCommercial = typeof key === 'string' &&
-    (key.toLowerCase() === 'non-commercial-and-evaluation' || key.toLowerCase() === 'ht68e-1f2b7-47158-70b05-0842f');
-
-  if (isNonCommercial) {
-    return _nonEntitlementLifecycle('non_commercial');
-  }
   if (isEmpty(key)) {
     return _nonEntitlementLifecycle('missing');
   }
@@ -699,6 +710,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
       lifecycle: _nonEntitlementLifecycle('legacy_valid'),
       channels: OPEN_CHANNELS,
       grants: UNRESTRICTED_GRANTS,
+      badge: false,
     };
   }
 
@@ -707,6 +719,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
       lifecycle: _classifyLegacyKey(key, releaseDate),
       channels: OPEN_CHANNELS,
       grants: UNRESTRICTED_GRANTS,
+      badge: false,
     };
   }
 
@@ -724,6 +737,7 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
       lifecycle: _nonEntitlementLifecycle('invalid'),
       channels: OPEN_CHANNELS,
       grants: UNRESTRICTED_GRANTS,
+      badge: false,
     };
   }
 
@@ -738,8 +752,73 @@ export function _getLicenseState(rawKey?: string, releaseDate?: string): License
   return {
     lifecycle,
     channels: resolveChannels(entitlement),
-    grants: getLicenseGrants(keyData),
+    // The flag rule: only a key whose Handsontable entry carries `listed-capabilities` restricts.
+    // Every key issued before the flag lists only `core`, and the reader answers "not granted" for
+    // every token such a key leaves out - read without this check, it would turn off every paid
+    // feature of every customer.
+    grants: _listsCapabilities(entitlement) ? getLicenseGrants(keyData) : UNRESTRICTED_GRANTS,
+    badge: _carriesBadge(entitlement),
   };
+}
+
+/**
+ * Tells whether a product entry says its capability list is complete (the `listed-capabilities`
+ * flag). Without the flag, a Handsontable key unlocks every feature.
+ *
+ * @param {ProductEntitlement} entitlement The Handsontable entry of a verified key.
+ * @returns {boolean}
+ */
+function _listsCapabilities(entitlement: ProductEntitlement): boolean {
+  return entitlement.flags.indexOf(LISTED_CAPABILITIES_FLAG) !== -1;
+}
+
+/**
+ * Tells whether a product entry asks for the "Powered by" bar (the `badge` flag).
+ *
+ * @param {ProductEntitlement} entitlement The Handsontable entry of a verified key.
+ * @returns {boolean}
+ */
+function _carriesBadge(entitlement: ProductEntitlement): boolean {
+  return entitlement.flags.indexOf(BADGE_FLAG) !== -1;
+}
+
+/**
+ * Builds an empty license bar, the element the license messages go in, one block each. The frozen legacy
+ * emitter above builds the same shape inline and stays as it is.
+ *
+ * @param {Document} ownerDocument The document to build the node in.
+ * @param {string} className The bar's class name.
+ * @returns {HTMLElement}
+ */
+export function _createLicenseBar(ownerDocument: Document, className: string): HTMLElement {
+  const bar = ownerDocument.createElement('div');
+
+  bar.className = `handsontable ${className}`;
+
+  return bar;
+}
+
+/**
+ * Builds one message block of a license bar.
+ *
+ * @param {Document} ownerDocument The document to build the nodes in.
+ * @param {string} className The bar's class name; the block takes it with an `_inner` suffix.
+ * @param {Array} parts The message parts.
+ * @param {string} [blockClassName] A class name of the block's own.
+ * @returns {HTMLElement}
+ */
+export function _createLicenseBarBlock(
+  ownerDocument: Document,
+  className: string,
+  parts: MessagePart[],
+  blockClassName?: string,
+): HTMLElement {
+  const block = ownerDocument.createElement('div');
+
+  block.className = blockClassName ? `${className}_inner ${blockClassName}` : `${className}_inner`;
+  _renderMessageParts(block, parts, ownerDocument);
+
+  return block;
 }
 
 /**
@@ -809,14 +888,10 @@ function _injectEntitlementProductInfo(
   // Use the target element's own document so an iframe-hosted grid builds its bar nodes in the
   // right realm (the global `document` would be the loading window's).
   const ownerDocument = element.ownerDocument;
-  const messageNode = ownerDocument.createElement('div');
-  const innerNode = ownerDocument.createElement('div');
+  const barClassName = String(className);
+  const messageNode = _createLicenseBar(ownerDocument, barClassName);
 
-  messageNode.className = `handsontable ${className}`;
-  innerNode.className = `${className}_inner`;
-  _renderMessageParts(innerNode, buildDomMessage(params), ownerDocument);
-
-  messageNode.appendChild(innerNode);
+  messageNode.appendChild(_createLicenseBarBlock(ownerDocument, barClassName, buildDomMessage(params)));
   element.appendChild(messageNode);
 
   return messageNode;

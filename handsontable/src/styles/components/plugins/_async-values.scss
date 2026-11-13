@@ -1,0 +1,77 @@
+// Handsontable AsyncValues
+
+@mixin output {
+  .handsontable {
+    .htAsyncPending {
+      position: relative;
+    }
+
+    .htAsyncIndicator {
+      position: absolute;
+      top: 50%;
+      inset-inline-end: var(--ht-cell-horizontal-padding);
+      box-sizing: border-box;
+      width: calc(var(--ht-icon-size) * 0.75);
+      height: calc(var(--ht-icon-size) * 0.75);
+      margin-top: calc(var(--ht-icon-size) * -0.375);
+      border: 2px solid var(--ht-async-indicator-color, var(--ht-accent-color));
+      border-inline-end-color: transparent;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: ht-async-values-spin 1s linear infinite;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+
+    // Next to a dropdown arrow, which takes the same spot.
+    .htAutocompleteArrow ~ .htAsyncIndicator,
+    .ht-multi-select-arrow ~ .htAsyncIndicator {
+      inset-inline-end: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size) * 1.25);
+    }
+
+    // On the side the text does not take, so it does not cover the end of a right-aligned number.
+    td.htRight > .htAsyncIndicator {
+      inset-inline: auto;
+      left: var(--ht-cell-horizontal-padding);
+    }
+
+    td.htLeft > .htAsyncIndicator {
+      inset-inline: auto;
+      right: var(--ht-cell-horizontal-padding);
+    }
+
+    .htAsyncErrorMarker {
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 0;
+      width: 0;
+      border-inline-start: 3px solid var(--ht-async-error-marker-color, var(--ht-notification-error-accent));
+      pointer-events: none;
+    }
+
+    .htAsyncErrorMessage,
+    .htAsyncPendingMessage {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    // Above the row-striping rule (`tr.ht__row_even > td`), without `!important`.
+    tbody tr > td.htAsyncError {
+      position: relative;
+      background-color: var(--ht-async-error-background-color, var(--ht-cell-error-background-color));
+    }
+  }
+
+  @keyframes ht-async-values-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}

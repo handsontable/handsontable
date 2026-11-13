@@ -8,6 +8,7 @@ export type {
   OperationType,
   ConditionId,
   ColumnConditions,
+  AvailableCondition,
   FiltersSettings,
   FiltersColumnSettings,
 } from './filters';

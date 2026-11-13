@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { MoveCells, CELLS_LIMIT } from '../moveCells';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * `moveCellRange` is documented public API, so it must fail cleanly for caller-built ranges the
@@ -37,7 +38,7 @@ describe('MoveCells range guards', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 10 }, (_, row) => Array.from({ length: 10 }, (__, col) => `${row}-${col}`)),
       moveCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...options,
     });
 

@@ -353,5 +353,38 @@ describe('editors', () => {
       expect(caughtError).toBeDefined();
       expect(caughtError.message).toContain('Input is not assigned');
     });
+
+    it('should not fire afterChange when the default editor confirms a number or a null cell', async() => {
+      const DefaultEditor = editorFactory({
+        init(editor) {
+          editor.input = document.createElement('input');
+        },
+      });
+      const edits = [];
+
+      handsontable({
+        data: [[12345], [null]],
+        editor: DefaultEditor,
+        afterChange(changes, source) {
+          if (source === 'edit') {
+            edits.push(changes);
+          }
+        },
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+
+      expect(edits).toEqual([]);
+      expect(getDataAtCell(0, 0)).toBe(12345);
+
+      await selectCell(1, 0);
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+
+      expect(edits).toEqual([]);
+      expect(getDataAtCell(1, 0)).toBe(null);
+    });
   });
 });

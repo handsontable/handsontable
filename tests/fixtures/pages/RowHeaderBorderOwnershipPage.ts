@@ -140,32 +140,17 @@ export class RowHeaderBorderOwnershipPage {
   }
 
   /**
-   * The corner header cell as the TOP clone renders it. `SelectionManager` stamps
-   * `ht__active_highlight-prev` on the `th` directly before an active header, and for an active
-   * column-0 header that is this element - the corner overlay holds a different `th` and is not
-   * stamped, so the accent has to be read here.
-   *
-   * @param {string} testId The grid's test id.
-   * @returns {Locator}
-   */
-  topCloneCornerCell(testId: string): Locator {
-    return this.grid(testId)
-      .locator('.ht_clone_top table.htCore > thead > tr').first()
-      .locator('th').first();
-  }
-
-  /**
    * Selects a whole column through the grid's own API, which is what marks its header active.
    *
    * @param {string} name The grid's key in `window.grids`.
    * @param {number} column The visual column index.
    */
-  async selectColumn(name: string, column: number): Promise<void> {
+  async selectColumn(name: string, column: number, endColumn = column): Promise<void> {
     await this.page.evaluate(
-      ([gridName, c]) => (window as unknown as {
-        grids: Record<string, { selectColumns: (column: number) => void }>
-      }).grids[gridName as string].selectColumns(c as number),
-      [name, column]
+      ([gridName, from, to]) => (window as unknown as {
+        grids: Record<string, { selectColumns: (from: number, to: number) => void }>
+      }).grids[gridName as string].selectColumns(from as number, to as number),
+      [name, column, endColumn]
     );
   }
 

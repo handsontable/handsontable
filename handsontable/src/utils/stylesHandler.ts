@@ -70,6 +70,13 @@ export class StylesHandler {
   readonly #rootDocument: Document;
 
   /**
+   * Whether this instance was told to inject the core styles, decided once at construction.
+   *
+   * @type {boolean}
+   */
+  readonly #injectCoreCss: boolean;
+
+  /**
    * An object to store CSS variable values.
    *
    * @type {object}
@@ -127,10 +134,22 @@ export class StylesHandler {
     this.#rootElement = rootElement;
     this.#rootDocument = rootDocument;
     this.#onThemeChange = onThemeChange;
+    this.#injectCoreCss = injectCoreCss;
 
     if (injectCoreCss) {
       this.#injectCoreStyles();
     }
+  }
+
+  /**
+   * Tells whether this instance was told to inject the core styles when it was created. A grid that renders into
+   * another document (a menu in a `uiContainer` of an iframe's parent) passes this value on, so the core styles reach
+   * that document exactly when the grid that owns it injects them.
+   *
+   * @returns {boolean}
+   */
+  isCoreCssInjectionEnabled(): boolean {
+    return this.#injectCoreCss;
   }
 
   /**
@@ -432,6 +451,23 @@ export class StylesHandler {
     // A ratio at or above 1 inflates nothing, and this is only reached when something did grow, so
     // fall back to one whole pixel rather than to zero.
     return devicePixelRatio > 0 && devicePixelRatio < 1 ? (1 / devicePixelRatio) - 1 : 1;
+  }
+
+  /**
+   * How much taller than the default height a default row can render, because a cell border cannot
+   * be painted thinner than one device pixel.
+   *
+   * It is read from the device pixel ratio the page renders at NOW, not from the default row height,
+   * which follows the zoom only for a grid that was built below 100% (see `#calculateRowHeight()`): a
+   * grid built at 100% and zoomed out afterwards keeps the declared height while its rows render
+   * 0.1px taller at 90%.
+   *
+   * @returns {number} The overgrowth in pixels, `0` at or above 100%.
+   */
+  getMaxDefaultRowOvergrowth(): number {
+    const devicePixelRatio = this.#devicePixelRatio();
+
+    return devicePixelRatio > 0 && devicePixelRatio < 1 ? (1 / devicePixelRatio) - 1 : 0;
   }
 
   /**

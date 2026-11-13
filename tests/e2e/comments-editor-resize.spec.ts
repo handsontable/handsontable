@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { CommentsEditorResizePage } from '../fixtures/pages/CommentsEditorResizePage';
 
 /**
@@ -31,7 +31,7 @@ import { CommentsEditorResizePage } from '../fixtures/pages/CommentsEditorResize
  * drag however far it travels, and reaching a release over a CELL takes an explicit move off the
  * corner first.
  */
-test.describe('Comment editor resizing', () => {
+test.describe('Comment editor resizing', { tag: THEMES_TAG }, () => {
   let grid: CommentsEditorResizePage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -248,7 +248,7 @@ test.describe('Comment editor resizing', () => {
  * browser's rendering steps rather than a page timer, so it must not be observed through a faked
  * clock. `expect.poll` resolves as soon as the write lands and needs no fixed wait.
  */
-test.describe('Comment editor resizing — persisted size', () => {
+test.describe('Comment editor resizing — persisted size', { tag: THEMES_TAG }, () => {
   let grid: CommentsEditorResizePage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

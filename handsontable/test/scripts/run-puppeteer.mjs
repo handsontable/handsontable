@@ -175,7 +175,8 @@ const browser = await puppeteer.launch({
   // devtools: true, // Turn it on to debug the tests.
   headless: false,
   // Puppeteer by default hide the scrollbars in headless mode (https://github.com/GoogleChrome/puppeteer/blob/master/lib/Launcher.js#L86).
-  // To prevent this the custom arguments are provided.
+  // To prevent this the custom arguments are provided. Do not add `--hide-scrollbars`: the Walkontable
+  // specs measure a 15px scrollbar (see the "Test page scrollbar" specs in `overlay.spec.js` of the Walkontable tests).
   args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu', '--mute-audio'],
 });
 
@@ -204,6 +205,11 @@ const runnerUrl = query => `http://localhost:${PORT}/${packagePath}/${originalPa
 // natural order, so the verdict describes the file, not one shuffle of it.
 // `specFile` (the file filter) is replaced with the probed file's own.
 const mainQuery = htmlPath.slice(originalPath.length + 1);
+// The leg label the failure annotations, the step summary and the failed-specs
+// record carry, and the `leg` field the flake ledger reads: `HOT_E2E_LEG` is the
+// bundle label e2e.yml sets (`UMD` or `UMD.min`), the theme comes from the run
+// id's inputs. A pull request runs one leg, `UMD (theme: main)`; the E2E nightly
+// runs the six. Without the variable (a local run) the label is the theme alone.
 const leg = process.env.HOT_E2E_LEG
   ? `${process.env.HOT_E2E_LEG} (theme: ${runIdInputs.theme})`
   : `theme: ${runIdInputs.theme}`;

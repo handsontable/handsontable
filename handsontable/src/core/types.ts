@@ -11,7 +11,7 @@ import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';
 import type { RenderChangeTracker } from './incrementalRender/renderChangeTracker';
-import type { CellProperties, ColumnDataGetterSetterFunction } from '../settings';
+import type { CellChange, CellProperties, ColumnDataGetterSetterFunction, SettingsUpdate } from '../settings';
 import type { default as SelectionManager } from '../selection/selection';
 import type { default as ViewInstance } from '../tableView';
 import type { ShortcutManager } from '../shortcuts/manager';
@@ -31,6 +31,26 @@ import type { BaseRenderer } from '../renderers/baseRenderer';
 /**
  * Represents a selection range with start/end row/col coordinates.
  */
+/**
+ * One key of the meta the `cell` option wrote on a cell, addressed by physical indexes.
+ */
+export interface CellOptionMetaEntry {
+  physicalRow: number;
+  physicalColumn: number;
+  key: string;
+  value: unknown;
+}
+
+/**
+ * The cell meta a caller took away with a set of rows and brings back with them, addressed by physical
+ * indexes: the keys set through `setCellMeta()` (or an undo of one), and the cells whose meta holds
+ * `valid: false`, which the validation flow writes without `setCellMeta()`.
+ */
+export interface KeptCellMetas {
+  userDefined: CellOptionMetaEntry[];
+  invalid: Array<{ physicalRow: number, physicalColumn: number }>;
+}
+
 export interface RangeType {
   startRow: number;
   startCol: number;
@@ -68,6 +88,18 @@ export interface ViewportScrollerInstance {
 }
 
 /**
+ * Options for `selectAll`.
+ *
+ * `focusPosition` is one cell, or `false` to leave the focus where it is. A plain object
+ * needs both `row` and `col`. A `CellCoords` instance is accepted too. `selectAll` ignores
+ * an object that has only one of them.
+ */
+export interface SelectAllOptions {
+  focusPosition?: { row: number; col: number } | CellCoords | boolean;
+  disableHeadersHighlight?: boolean;
+}
+
+/**
  * Handsontable Core instance interface.
  * Provides type-safe access to the Core API without requiring circular imports.
  *
@@ -96,7 +128,7 @@ export interface HotInstance {
 
   // Settings
   getSettings(): GridSettings;
-  updateSettings(settings: Partial<GridSettings>, init?: boolean): void;
+  updateSettings(settings: SettingsUpdate, init?: boolean): void;
 
   // Selection
   selection: SelectionManager;
@@ -113,8 +145,14 @@ export interface HotInstance {
   selectCells(
     selectionRanges?: (number | undefined)[][] | unknown[], scrollToCell?: boolean, changeListener?: boolean
   ): boolean;
-  selectColumns(start: number, end?: number, focusPosition?: unknown): boolean;
-  selectRows(start: number, end?: number, focusPosition?: unknown): boolean;
+  selectColumns(start: number, end?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectRows(start: number, end?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
+  selectAll(
+    includeRowHeaders?: boolean,
+    includeColumnHeaders?: boolean,
+    options?: SelectAllOptions,
+    changeListener?: boolean
+  ): void;
   deselectCell(): void;
 
   // Index mapping
@@ -136,6 +174,16 @@ export interface HotInstance {
    */
   propToCol(prop: string | number): number | null;
   colToProp(column: number): string | number | null;
+
+  // Row identity
+  getRowId(row: number): unknown;
+  getVisualRowById(id: unknown): number | null;
+  getPhysicalRowById(id: unknown): number | null;
+  getRowIdAtPhysicalRow(physicalRow: number): unknown;
+  getRowIds(rows?: number[]): unknown[];
+  getVisualRowsByIds(ids: unknown[]): Array<number | null>;
+  getPhysicalRowsByIds(ids: unknown[]): Array<number | null>;
+  setDataAtRowIdProp(id: unknown, prop: string | number, value: unknown, source?: string): boolean;
 
   // Data access
   getSchema(): unknown[] | Record<string, unknown>;
@@ -200,6 +248,7 @@ export interface HotInstance {
   getRowHeight(row: number, source?: string): number;
   _getColWidthFromSettings(col: number): number | undefined;
   _getRowHeightFromSettings(row: number): number | undefined;
+  _isRowHeightExact(row: number): boolean;
   getColHeader(column?: number, headerLevel?: number): string | string[];
   getRowHeader(row?: number): string | string[];
   hasColHeaders(): boolean;
@@ -281,7 +330,34 @@ export interface HotInstance {
   _getEditorManager(): EditorManagerInstance;
   _getDataSource(): DataSourceInstance;
   _getMetaManager(): MetaManagerInstance;
+  _alignInsertedRowSizes(physicalRow: number, amount: number): void;
+  _readRowSizeOrigins(): Map<'rowHeights' | 'minRowHeights', unknown[]> | null;
+  _writeRowSizeOrigins(origins: Map<'rowHeights' | 'minRowHeights', unknown[]>): void;
   _getOperationScope(): OperationScope;
+  _hasPendingValidation(): boolean;
+  _isAnsweringStaleValidation(): boolean;
+  _applySettingsAndData(
+    settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null,
+    keptCellMetas?: KeptCellMetas | null
+  ): void;
+  _isDataWorkDeferred(): boolean;
+  _isDataLoadPending(): boolean;
+  _runInPluginLifecyclePass<T>(callback: () => T): T;
+  _isHeldMetaPhaseRunning(): boolean;
+  _isRunningInitReadySteps(): boolean;
+  _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
+  _addSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
+  _removeSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
+  _requirePlugin(pluginKey: string, requirer: object): void;
+  _releasePlugin(pluginKey: string, requirer: object): void;
+  _isPluginRequired(pluginKey: string): boolean;
+  _getWaitingChangeSets(): Array<{ changes: CellChange[], source: string | undefined }>;
+  _addDroppedChangesListener(
+    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
+  ): void;
+  _removeDroppedChangesListener(
+    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
+  ): void;
 
   // DOM references
   rootElement: HTMLElement;
@@ -330,6 +406,7 @@ export interface HotInstance {
   // Execution control
   suspendExecution(): void;
   resumeExecution(forceFlushChanges?: boolean): void;
+  isExecutionSuspended(): boolean;
 
   // Index mapper initialization
   initIndexMappers(): void;

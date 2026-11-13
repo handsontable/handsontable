@@ -24,13 +24,19 @@ env:
 
 jobs:
   build-on-unix:
-    name: Build all packages in ${{ matrix.os }}
+    name: Build all packages in ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        # `name` is the check name, which a branch rule can require: keep it as it was
+        # when the runner label changes, or the renamed check blocks merging.
+        include:
+          - os: ubuntu-26.04
+            name: ubuntu-latest # required check name
+          - os: macos-latest
+            name: macos-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 

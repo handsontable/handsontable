@@ -132,17 +132,17 @@ export class OverlaySelfResizePage {
   }
 
   /**
-   * Resize the grid's container and let the grid react. The workspace box is part of the geometry
-   * the engine compares, so this must reach the overlays even though no row or column changed.
+   * Resize the grid's scrollport and let the grid react.
+   *
+   * The `height` option is what makes the container the scrollport. A stylesheet height on a grid
+   * that has no `height` option leaves the window as the scrollport, so the workspace term the
+   * resize gate compares never moves. The hider is the sum of the rows and does not follow this.
    *
    * @param {number} height The new container height in pixels.
    */
   async resizeContainerTo(height: number): Promise<void> {
     await this.page.evaluate((px) => {
-      const container = document.querySelector('[data-testid="grid"]') as HTMLElement;
-
-      container.style.height = `${px}px`;
-      (window as any).hot.refreshDimensions();
+      (window as any).hot.updateSettings({ height: px });
     }, height);
   }
 

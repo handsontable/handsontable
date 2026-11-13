@@ -3,6 +3,7 @@ import Handsontable from 'handsontable';
 import { Component, EnvironmentInjector } from '@angular/core';
 import { BaseEditorAdapter } from './base-editor-adapter';
 import { HotCellEditorComponent } from './hot-cell-editor.component';
+import { TEST_LICENSE_KEY } from '../test-helpers/license-key';
 
 /**
  * A component editor whose focusable control is a plain `<input>`. The adapter appends its
@@ -48,7 +49,7 @@ describe('An Angular component editor whose input takes the browser focus', () =
     document.body.appendChild(container);
 
     instance = new Handsontable(container, <Handsontable.GridSettings>{
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [column],
       data: [['A1'], ['A2']],
     });
@@ -92,5 +93,46 @@ describe('An Angular component editor whose input takes the browser focus', () =
 
     expect(unlistenCount).toBe(0);
     expect(instance.isListening()).toBe(true);
+  });
+
+  it('should not fire afterChange when a number or null cell is confirmed without typing', () => {
+    instance.loadData([[12345], [null]]);
+
+    const edits: unknown[] = [];
+
+    instance.addHook('afterChange', (changes, source) => {
+      if (source === 'edit') {
+        edits.push(changes);
+      }
+    });
+
+    const confirm = (row: number) => {
+      instance.selectCell(row, 0);
+
+      const editor = instance.getActiveEditor();
+
+      if (!editor) {
+        throw new Error('No editor was prepared for the selected cell');
+      }
+
+      editor.enableFullEditMode();
+      editor.beginEditing();
+
+      if (!editor.isOpened()) {
+        throw new Error('The editor did not open');
+      }
+
+      editor.finishEditing();
+    };
+
+    confirm(0);
+
+    expect(edits).toEqual([]);
+    expect(instance.getDataAtCell(0, 0)).toBe(12345);
+
+    confirm(1);
+
+    expect(edits).toEqual([]);
+    expect(instance.getDataAtCell(1, 0)).toBe(null);
   });
 });

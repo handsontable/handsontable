@@ -42,6 +42,31 @@ corrupt data, by inserting the rows twice.
 Under LWS only one listener fires anyway, so dedupe is not what carries that case — but the membrane's
 event identity is unverified, so do not lean on it there.
 
+### The keyboard shortcuts are markers, and the plugin cancels the key when one is gone (DEV-763)
+
+Copy, cut and paste run from the native events above, never from a keydown. So the grid context registers
+Ctrl/Cmd+C, X and V in `shortcuts/contexts/grid.ts` as no-op, `preventDefault: false` entries in the
+`gridClipboard` group (`GRID_CLIPBOARD_GROUP`, `GRID_CLIPBOARD_KEYS` in `shortcuts/contexts/constants.ts`).
+Their presence means "the browser runs this key". `#onBeforeKeyDown` cancels the key's default when the
+event is one of those three chords, the grid context no longer has a shortcut for it, and the key press is
+the grid's own. That is what makes `removeShortcutsByKeys(['control/meta', 'c'])` stop keyboard copy.
+It returns early without Ctrl or Meta, with an open editor (`isEditorOpened()`), and for a target
+that `#isGridClipboardTarget()` rejects (the same predicate `onCopy`, `onCut` and `onPaste` use).
+
+- **The registration lives in core, not in `enablePlugin()`.** `updatePlugin()` re-enables the plugin and would
+  put back a shortcut the application removed.
+- **The group is not `gridDefault`**, so `removeShortcutsByGroup('gridDefault')` keeps its old meaning.
+- **Only the keydown is cancelled.** The context menu items, `copy()`, `cut()` and `paste()` never touch a
+  keydown, so they keep working. A custom editor that keeps the `grid` context (a plain `BaseEditor`
+  subclass) is covered by the `isEditorOpened()` check, not by the context.
+- **The active context follows the fallback chain.** `#isGridShortcutContextActive()` walks
+  `getFallbackContext()` from the active context until it reaches `grid`, so the empty data state overlay
+  (`plugin:emptyDataState`, which falls back to `grid`) is covered. Do not hardcode context names.
+- **The chord match is exact, apart from the Ctrl/Meta folding.** `getEventKeyCombinations` folds both
+  into `control/meta`, so Ctrl+Cmd+C/X/V on macOS and Ctrl+Win+C/X/V on Windows match too. Ctrl+Shift+V,
+  Shift+Insert, Ctrl+Insert and Shift+Delete are not cancelled.
+- Specs: `tests/e2e/clipboard-shortcuts-removal.spec.ts` (Playwright, real clipboard, includes a Mac emulation).
+
 ### Testing the LWS shape
 
 `tests/e2e/shadow-dom.spec.ts` drives it through the `?delivery=lws-shape` mode of
@@ -77,6 +102,30 @@ Tested on Safari 16.5.2:
 - without the other, Safari **does not fire** the `copy` event at all.
 
 Both are guarded on the instance listening — if it is not listening, the workaround is not needed.
+
+**The `body` `mouseleave` one takes the focus, so it must skip a control the user is typing into
+(DEV-4026).** `#addContentEditableToHighlightedCell()` makes the highlighted cell `contenteditable` and
+selects its content with `Selection.addRange`, and that moves the focus off whatever had it. The listening
+check does not help: the comment editor lives in the grid's portal, so the grid still listens while its text
+area is focused. In Safari the `mouseleave` arrives a moment after a context menu item is clicked whenever
+the pointer ends outside `<body>`'s box (a body as short as the grid), so "Add comment" and "Edit comment"
+opened an editor that lost the focus at once; with `copyPaste: false`, or a body that fills the window, it
+did not. `#isTypingIntoFormControl()` skips the workaround while a `textarea`, a `select` or an `input` that
+takes text has the focus, read through `getDeepActiveElement()`. An open cell editor is covered by the same
+test, so the `mouseleave` no longer takes the focus from the editor the user is typing into either.
+
+- **The test is "not inside `.ht_editor_hidden`", never a plugin class such as `.htCommentTextArea`.** The
+  holder of a closed cell editor carries that class (`textEditor.ts`), and a grid with `imeFastEdit` keeps
+  the focus in that hidden input at rest, which is exactly where the browser-menu copy workaround must still
+  run. The code never checks visibility: it relies on a hidden control not holding the focus, except in that
+  one case. A class of another plugin would also be a cross-plugin dependency, and the next editor-like
+  popup would need its own entry.
+- **A checkbox, radio button, button or another input that takes no text does not count** (`NON_TEXT_INPUT_TYPES`).
+  Focus on one is no reason to skip the workaround: the menu-bar copy would then copy nothing.
+- **Pinned by** `__tests__/safariMouseLeave.unit.ts` (mocks `isSafari()`; each control type on both sides of
+  the rule, a real open `TextEditor`, and a real closed one in an `imeFastEdit` grid, so a rename of the hidden
+  class turns it red) and `tests/e2e/undo-gestures.spec.ts` (WebKit leg, sends the `mouseleave` itself because
+  a real one lands on a frame the layout decides, which is why the old test passed on a race).
 
 ## Ragged clipboard payloads (DEV-2615, #7389)
 
@@ -144,6 +193,28 @@ returns a plain string. Each catch warns through `#warnClipboardParseRefused`, t
 
 Do not "tidy" either catch away.
 
+## The source-data flavor follows what `beforeCopy` and `beforeCut` leave
+
+`onCopy`/`onCut` build `rangedSourceData` before the hook runs, and the hooks only ever see `rangedData`.
+`#reconcileSourceData()` therefore rebuilds the source rows after the hook, and **never drops the flavor**.
+
+- A row the hook kept as the **same array** is matched to its source row by **identity**, so a `splice`, a
+  `reverse` or a `sort` keeps the flavors aligned. In it a cell the hook did not change keeps its source
+  value, and a changed or appended cell takes the hook's value (JSON for an object or array). An in-place
+  edit of an object cell counts as a change: the snapshot holds each object cell's JSON, not its reference.
+- **Any other row takes the hook's values for every cell** (`data[i] = row.map(...)`, a pushed row). Do not
+  match it to a source row by position: after a reorder two rows can hold equal plain values, and a
+  `valueGetter` makes the plain value differ from the stored one, so a position match hands a row another
+  row's source value (an earlier version did, and swapped amounts between ids).
+- A value `JSON.stringify` cannot serialize (a `BigInt`, a circular reference) reduces to a fresh symbol, so
+  it counts as changed and is written as `String(value)`. The hook's value must never throw out of `onCopy`,
+  which runs after `preventDefault()`: nothing would reach the clipboard.
+- With no `beforeCopy`/`beforeCut` listener the snapshot is skipped and the source data is written as built.
+  Formulas, NestedHeaders and AsyncValues register a listener, so in most grids the snapshot does run.
+
+Do not pass `rangedSourceData` to the hooks instead: every existing listener would keep leaking, and
+`beforeCut` has no `copiedHeadersCount`, so the argument position would differ.
+
 ## The private flavor is often absent, and that is not an error
 
 `pastedSourceData` is `undefined` for every paste the grid did not write itself, so `populateValues()`
@@ -189,6 +260,18 @@ rows are copied. Cell values and row headers are **not** projected, and that is 
 - **The copyable range array's identity is captured before `beforeCopy`**, which may reshape the array.
   Identity is what survives that — do not switch the check to a content comparison.
 - `modifyCopyableRange` is the hook for constraining what may be copied (DEV-844).
+- **Every hook run and write in `onPaste()`, `onCut()`, `onCopy()` and `setCopyableText()` is followed by
+  `if (!this.hot)`.** A listener of `beforeChange`, `afterChange`, `afterRender`, `beforePasteParse`,
+  `beforePaste`, `beforeCut`, `beforeCopy`, `modifyCopyableRange` or `afterCopyLimit` can call `hot.destroy()`,
+  which clears `this.hot`. Without the check the rest of the handler throws an uncaught `TypeError` after the
+  grid is gone (`runHooks('afterCut')`, `getRangedData()`). Add the check after each new hook run or write in
+  these methods. `#onAfterChange` needs none: the hook run stops reaching the plugin's listeners once a
+  listener destroyed the grid, even one ordered before it. Not covered, because the plugin cannot get control
+  back or the hook runs per cell: the `modifyData` hook that `getRangedData()` reaches for every cell, the
+  `sanitizer` and `textExtractor` callbacks, the selection hooks of the paste's `selectCell()`, and the
+  `afterCreateRow` and `afterCreateCol` hooks of a paste that adds rows or columns. The last two throw inside
+  core (`selectCell()`, `alter()`) before this plugin runs again. Pinned by `__tests__/destroyInHook.unit.ts`,
+  where setting any of these checks to `false` fails a case.
 
 ## The `beforePasteParse` hook (DEV-2930)
 
@@ -251,7 +334,7 @@ with `selectCell(..., false, false)` — no scroll and `changeListener: false`, 
 or not the grid still has focus and **never re-listens**: a slow async validator that settles after the user
 clicked away corrects the selection in place instead of yanking focus back. (4) It runs only while the live
 selection still equals the **exact range the inline selection produced** — read back from the grid after that
-selection (so `mergeCells`' `beforeSetRangeStart` snap is already reflected), start and end corners both — so
+selection (so the selection's growth over merged cells is already reflected), start and end corners both — so
 a selection the user or a synchronous `afterPaste` handler changed since the paste, even one that still starts
 at the paste origin, is left alone. (5) `#pastePlan` is cleared at the **top of `onPaste`**, not only when the
 correction consumes it: a paste that writes nothing (`beforeChange` returns false, or a `dropdown` under
@@ -280,9 +363,9 @@ needs to be correct.
 (c) A **merge partially overlapping the paste and extending outside it, on the COLUMN axis**, ends the
 validated (deferred) paste on a wider selection than the validator-free (synchronous) one (raised in review,
 measured, scoped out). The mechanism: the deferred correction re-selects at CopyPaste's `afterChange` priority
-(80), which runs BEFORE MergeCells' `#unmergeAfterPaste` (150) in the same cycle, so `#onBeforeSelectionHighlightSet`
-runs `expandByRange` on a merge that overlaps the corrected selection but extends outside it and pulls the
-outside cells in. A validator-free paste unmerges first (its inline `selectCell` runs after `#unmergeAfterPaste`,
+(80), which runs BEFORE MergeCells' `#unmergeAfterPaste` (150) in the same cycle, so `Selection#applyCellBlocks`
+grows the corrected selection over a merge that overlaps it but extends outside it, and pulls the outside
+cells in. A validator-free paste unmerges first (its inline `selectCell` runs after `#unmergeAfterPaste`,
 so the merge is already gone) and selects clean. The two axes behave differently:
 
 - **Row axis: closed by construction.** The DEV-38 bug is a paste that starts at the last row and runs past
@@ -320,11 +403,17 @@ data lands relative to the selection.
 In the header path, the `row` argument doubles as the **header level** — a signature quirk worth knowing
 before reading `copyableRanges.ts`.
 
+## "Copy with group headers" asks NestedHeaders whether it runs
+
+The item's `disabled()` reads `getPlugin('nestedHeaders')?.enabled`, not the `nestedHeaders` setting, because a
+license key can keep NestedHeaders off while the setting stays on, and the item would then copy with no group
+headers to copy.
+
 ## Where to look next
 
 - The text-extraction contract shared with export: `../exportFile/AGENTS.md`.
 - Menu entries: `contextMenuItem/` (`copy`, `cut`, `copyWithColumnHeaders`, `copyWithColumnGroupHeaders`,
-  `copyColumnHeadersOnly`), wired via `../contextMenu/AGENTS.md`.
+  `copyColumnHeadersOnly`), registered through `registerMenuEntries()` (`../../utils/menu/AGENTS.md`).
 - Clipboard parsing helpers: `../../utils/parseTable.ts`.
 - Plugin contract, lifecycle, priorities: `../base/AGENTS.md`.
 

@@ -9,6 +9,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [18.1.2] - 2026-10-07
+
+### Changed
+- Changed entitlement license keys to protect their human-readable text as well as their bracketed block, so the block alone, edited text, or text after the block makes a current key invalid, while a rewrapped, one-line, or `\n`-escaped key still works. [#13743](https://github.com/handsontable/handsontable/pull/13743)
+
+### Fixed
+- Fixed entitlement license keys whose bracketed block was broken across lines, for example by an email client, reading as invalid and locking the grid. [#13760](https://github.com/handsontable/handsontable/pull/13760)
+
 ## [18.1.1] - 2026-09-15
 
 ### Fixed
@@ -146,7 +154,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 - **Breaking change**: Migrated Handsontable core source from JavaScript to TypeScript [#12011](https://github.com/handsontable/handsontable/issues/12011)
 - **Breaking change**: Renamed the `--ht-wrapper-border-radius` theme variable to `--ht-border-radius` (token `wrapperBorderRadius` to `borderRadius`) and removed the `--ht-wrapper-border-width` and `--ht-wrapper-border-color` variables (tokens `wrapperBorderWidth` and `wrapperBorderColor`). [#12775](https://github.com/handsontable/handsontable/issues/12775)
-- **Breaking change**: Angular: Updated Angular peer dependency minimum version to 19 in `@handsontable/angular-wrapper` [#1836](https://github.com/handsontable/handsontable/pull/1836)
 - Dragging a selection past the viewport edge now scrolls the viewport and extends the selection to the newly-scrolled cells. [#12344](https://github.com/handsontable/handsontable/issues/12344)
 - Improved getSourceData() performance when called repeatedly inside the cells function or custom renderers. [#12480](https://github.com/handsontable/handsontable/issues/12480)
 - Improved scroll performance by caching overlay alignment calculations and using native visibility checks. [#12659](https://github.com/handsontable/handsontable/issues/12659)
@@ -159,10 +166,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Angular: Added support for installing Angular 16 through 22, without the --force flag [#12752](https://github.com/handsontable/handsontable/issues/12752)
 - Reduced memory usage and improved initialization time for large datasets by no longer materializing cell metadata for every cell during source data validation. [#12847](https://github.com/handsontable/handsontable/pull/12847)
 
+### Deprecated
+- Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()`. The methods do nothing, log a deprecation warning, and will be removed in the next major release. Registering the `persistentStateSave`, `persistentStateLoad`, or `persistentStateReset` hook now logs a warning that 17.0 removed it. [#12727](https://github.com/handsontable/handsontable/pull/12727)
+
 ### Removed
 - **Breaking change**: Removed the numbro, moment.js, DOMPurify, and @handsontable/pikaday dependencies. [#12689](https://github.com/handsontable/handsontable/issues/12689)
-- **Breaking change**: Removed the deprecated `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks. Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` — these now no-op and will be removed in the next major release. Removed from the source tree; the published 17.0 release already shipped without it (see [#12015](https://github.com/handsontable/handsontable/pull/12015)). [#12727](https://github.com/handsontable/handsontable/pull/12727)
-- **Breaking change**: Removed the deprecated Core-level undo/redo methods (`hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, `hot.undoRedo`). Use `hot.getPlugin('undoRedo')` instead. [#12728](https://github.com/handsontable/handsontable/issues/12728)
 
 ### Fixed
 - Fixed the React and Vue 3 wrappers hiding the table when `height: '100%'` was set inside a fixed-height parent. [#12445](https://github.com/handsontable/handsontable/issues/12445)
@@ -357,7 +365,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Deprecated **moment.js** for date parsing and display. Replace it with the `Intl.DateTimeFormat` API. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_4-migrate-from-moment-js-format-to-intl-datetimeformat)
 - Deprecated **DOMPurify** as a built-in XSS sanitizer. Use the new `sanitizer` option or convert content to plain text. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_5-migrate-from-built-in-dompurify-to-the-sanitizer-option)
 - Deprecated **core-js** polyfills for ECMAScript features. [Migration guide](https://handsontable.com/docs/javascript-data-grid/migration-from-16.2-to-17.0#_6-core-js-dependency-removed)
-- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
+- Deprecated bundling **HyperFormula** as a Handsontable dependency. Starting from version 18.0, install and import it separately, then pass it to the Formulas plugin with `formulas: { engine: HyperFormula }`. [Formula calculation](https://handsontable.com/docs/javascript-data-grid/formula-calculation)
 
 ### Removed
 - **Breaking change**: Removed deprecated wrapper packages for Angular, React, and Vue, the `PersistentState` plugin, and the legacy undo/redo methods. [#12015](https://github.com/handsontable/handsontable/pull/12015)

@@ -1,25 +1,25 @@
 ---
 title: Cell Type Recipes
-metaTitle: Cell Recipes - JavaScript Data Grid | Handsontable
+metaTitle: Cell Type Recipes | Handsontable DataGrid for JavaScript
 permalink: /recipes/cell-types
 canonicalUrl: /recipes/cell-types
 searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-description: Practical recipes for creating custom cell types in Handsontable.
+description: Practical recipes for creating custom cell types in Handsontable DataGrid.
 react:
-  metaTitle: Cell Recipes - React Data Grid | Handsontable
+  metaTitle: Cell Type Recipes | Handsontable DataGrid for React
 angular:
-  metaTitle: Cell Recipes - Angular Data Grid | Handsontable
+  metaTitle: Cell Type Recipes | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Cell Recipes - Vue Data Grid | Handsontable
+  metaTitle: Cell Type Recipes | Handsontable DataGrid for Vue
 ---
 [[toc]]
 
 ## Overview
 
-This section provides practical, ready-to-use recipes for creating custom cell types in Handsontable. Each recipe includes complete working examples with step-by-step instructions.
+This section provides practical, ready-to-use recipes for creating custom cell types in Handsontable DataGrid. Each recipe includes complete working examples with step-by-step instructions.
 
 ## Getting Started
 
@@ -33,5 +33,6 @@ Recipes in this section cover common use cases and demonstrate best practices fo
 - **Selection Controls** - Multi-select dropdowns, custom dropdowns
 - **Data Validation** - Custom validators and error handling
 - **UI Integration** - Third-party library integration
+- **Type Detection** - Assigning a cell's type from the value a user enters
 
 Each recipe includes complete code examples, configuration options, and troubleshooting tips.

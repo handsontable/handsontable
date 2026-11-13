@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, AutoColumnSize } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(AutoColumnSize);
 
@@ -13,7 +14,7 @@ function buildGrid(settings: Record<string, unknown> = {}) {
   return new Handsontable(document.createElement('div'), {
     data: [['a', 'b'], ['c', 'd']],
     autoColumnSize: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 }
@@ -109,10 +110,6 @@ describe('AutoColumnSize sampling settings', () => {
 
   it('should keep the sampling settings when an update does not mention this plugin', () => {
     // The path that matters most, and the one the "re-sent unchanged" test above cannot reach.
-    // `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with `newSettings[PLUGIN_KEY]`,
-    // which is `undefined` here - it wipes the stored settings, so reading them back gives the
-    // defaults. Without the restore in `updatePlugin`, this reset `samplingRatio` from 6 to 3,
-    // flipped `useHeaders` back to `true`, and re-measured every column.
     //
     // The Vue wrapper makes this the normal case rather than an edge case: it omits every settings
     // key whose value has not changed, so `autoColumnSize` is absent from nearly every payload it
@@ -130,6 +127,37 @@ describe('AutoColumnSize sampling settings', () => {
     expect(plugin.samplesGenerator.allowDuplicates).toBe(true);
     expect(plugin.getSetting('samplingRatio')).toBe(6);
     expect(plugin.ghostTable.getSetting('useHeaders')).toBe(false);
+    expect(recalculateAll).not.toHaveBeenCalled();
+
+    hot.destroy();
+  });
+
+  it('should re-measure every column when the update that turns the plugin on again changes a sampling setting', () => {
+    const hot = buildGrid({ autoColumnSize: { samplingRatio: 5 } });
+    const plugin = hot.getPlugin('autoColumnSize');
+
+    hot.updateSettings({ autoColumnSize: false });
+
+    const recalculateAll = spyOn(plugin, 'recalculateAllColumnsWidth').and.callThrough();
+
+    hot.updateSettings({ autoColumnSize: { samplingRatio: 10 } });
+
+    expect(plugin.samplesGenerator.getSampleCount()).toBe(10);
+    expect(recalculateAll).toHaveBeenCalledTimes(1);
+
+    hot.destroy();
+  });
+
+  it('should keep the measured widths when the plugin is turned on again with the same sampling settings', () => {
+    const hot = buildGrid({ autoColumnSize: { samplingRatio: 5 } });
+    const plugin = hot.getPlugin('autoColumnSize');
+
+    hot.updateSettings({ autoColumnSize: false });
+
+    const recalculateAll = spyOn(plugin, 'recalculateAllColumnsWidth').and.callThrough();
+
+    hot.updateSettings({ autoColumnSize: { samplingRatio: 5 } });
+
     expect(recalculateAll).not.toHaveBeenCalled();
 
     hot.destroy();

@@ -6,10 +6,11 @@
     "postinstall": "cd ../../.. && npm run link-packages -- --f angular-wrapper --examples-version next"
   },
   "workspaces": [
-    "@(!(node_modules))/"
+    "*"
   ],
   "overrides": {
     "webpack-dev-middleware@8": "^8.3.0",
-    "uuid@<11.1.1": "^11.1.1"
+    "uuid@<11.1.1": "^11.1.1",
+    "vite": "^8.3.5"
   }
 }

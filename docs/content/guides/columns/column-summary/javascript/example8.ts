@@ -1,7 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { NestedRows } from 'handsontable/plugins';
-import { DetailedSettings } from 'handsontable/plugins/columnSummary';
+import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -9,7 +9,7 @@ registerAllModules();
 const container = document.querySelector('#example8')!;
 
 new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     {
       value: null,
@@ -24,7 +24,7 @@ new Handsontable(container, {
   rowHeaders: true,
   colHeaders: ['sum', 'min', 'max', 'count', 'average'],
   columnSummary() {
-    const endpoints: DetailedSettings[] = [];
+    const endpoints: SummaryEndpoint[] = [];
     const nestedRowsPlugin: NestedRows = this.hot.getPlugin('nestedRows');
     const resultColumn = 0;
 

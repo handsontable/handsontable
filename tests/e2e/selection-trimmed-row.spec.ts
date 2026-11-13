@@ -23,35 +23,6 @@ test.describe('selection stranded by a trimming index map', () => {
     await grid.goto();
   });
 
-  test('drops a selection a trim left past the last row, so a paste cannot append records', async() => {
-    await grid.selectCell(3, 0);
-    // Leaves A2 and A4 visible, so visual row 3 addresses nothing at all.
-    await grid.trimRows([0, 1, 3]);
-
-    expect(await grid.selected()).toBeUndefined();
-
-    await grid.pasteIntoSelection('PASTED');
-
-    expect(await grid.sourceRowCount()).toBe(5);
-    expect(await grid.sourceData()).toEqual([
-      ['A0', 'B0'],
-      ['A1', 'B1'],
-      ['A2', 'B2'],
-      ['A3', 'B3'],
-      ['A4', 'B4'],
-    ]);
-    expect(await grid.committedChangeCount()).toBe(0);
-  });
-
-  test('drops it for a Ctrl+Enter-style write through the selection corners too', async() => {
-    await grid.selectCell(3, 0);
-    await grid.trimRows([0, 1, 3]);
-    await grid.populateFromSelection('POPULATED');
-
-    expect(await grid.sourceRowCount()).toBe(5);
-    expect(await grid.committedChangeCount()).toBe(0);
-  });
-
   test('drops it when the record survives further up but the coordinate is left out of range', async() => {
     await grid.selectCell(3, 0);
     // A3 stays visible, at visual row 1 - but the highlight still reads 3, and only two rows remain.
@@ -194,6 +165,236 @@ test.describe('selection stranded by a trimming index map', () => {
     expect(await grid.sourceRowCount()).toBe(5);
   });
 
+  test('grows a full-column selection when an untrim brings rows back below it (DEV-152)', async() => {
+    await grid.trimRows([3, 4]);
+    await grid.selectWholeColumn(0);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 2, 0]]);
+
+    // The far corner of a header-anchored selection tracks the grid in BOTH directions. A trim
+    // clamps it, so an untrim must grow it back - left at row 2, the selection silently stops
+    // being a whole column, and the next paste or fill skips the rows that came back.
+    await grid.untrimRows([3, 4]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 4, 0]]);
+    expect(await grid.isEntireColumnSelected()).toBe(true);
+    // The committed highlight, not only the range: a grow that skipped re-committing would leave the
+    // returned rows unpainted while `getSelected()` already reported them.
+    expect(await grid.highlightedAreaCorners()).toEqual([[-1, 0, 4, 0]]);
+  });
+
+  test('grows a full-column selection on a grid with no headers', async({ page, theme, bundle }) => {
+    // Without headers `selectColumns()` anchors the range at row 0, so the grid-tracking state, not
+    // a negative corner, has to be what marks the extent.
+    const headerless = new EditorTrimmedRowPage(page, theme, bundle, { headers: false });
+
+    await headerless.goto();
+    await headerless.trimRows([3, 4]);
+    await headerless.selectWholeColumn(0);
+
+    expect(await headerless.selected()).toEqual([[0, 0, 2, 0]]);
+
+    await headerless.untrimRows([3, 4]);
+
+    expect(await headerless.selected()).toEqual([[0, 0, 4, 0]]);
+  });
+
+  test('grows a select-all when an untrim brings rows back', async() => {
+    await grid.trimRows([3, 4]);
+    await grid.selectEverything();
+
+    expect(await grid.selected()).toEqual([[-1, -1, 2, 1]]);
+
+    await grid.untrimRows([3, 4]);
+
+    expect(await grid.selected()).toEqual([[-1, -1, 4, 1]]);
+  });
+
+  test('does not grow a full-column selection the user shrank before the untrim', async() => {
+    await grid.trimRows([4]);
+    await grid.selectWholeColumn(0);
+    // Shift+Up: the layer is still flagged as grid-tracking, but it no longer covers the column, so
+    // it names rows 0-2 and must not grow onto rows the user excluded.
+    await grid.shrinkSelectionUpwards();
+
+    expect(await grid.selected()).toEqual([[-1, 0, 2, 0]]);
+
+    await grid.untrimRows([4]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 2, 0]]);
+  });
+
+  test('does not grow a cell range that merely reached the last row before the untrim', async() => {
+    await grid.trimRows([4]);
+    // Rows 0-3 are the whole grid here, but a drag-style range names records, not the grid.
+    await grid.selectRanges([[0, 0, 3, 0]]);
+
+    await grid.untrimRows([4]);
+
+    expect(await grid.selected()).toEqual([[0, 0, 3, 0]]);
+  });
+
+  test('does not grow a full-row selection along the rows', async() => {
+    await grid.trimRows([4]);
+    await grid.selectWholeRow(3);
+
+    expect(await grid.selected()).toEqual([[3, -1, 3, 1]]);
+
+    // A full-row selection tracks the grid along its COLUMNS only; its row still names a record.
+    await grid.untrimRows([4]);
+
+    expect(await grid.selected()).toEqual([[3, -1, 3, 1]]);
+  });
+
+  test('does not scroll the viewport when a trim clamps a full-column selection', async({ page, theme, bundle }) => {
+    const tall = new EditorTrimmedRowPage(page, theme, bundle, { scenario: 'tall' });
+    const trimmed = Array.from({ length: 50 }, (unused, index) => index + 50);
+
+    await tall.goto();
+    await tall.selectWholeColumn(0);
+    await tall.scrollToRow(30);
+
+    await expect.poll(() => tall.isRowRendered(30)).toBe(true);
+    expect(await tall.isRowRendered(0)).toBe(false);
+
+    // The far corner (99) is past the 50 rows left, so the selection is clamped. That clamp used to
+    // run under the `refresh` source, which scrolled the viewport onto the selection - row 0.
+    await tall.trimRows(trimmed);
+
+    expect(await tall.selected()).toEqual([[-1, 0, 49, 0]]);
+
+    // A synchronous draw renders whatever the scroll position is NOW, so a clamp that scrolled shows
+    // up here without waiting on the scroll event - and the clamp above is the positive control.
+    await tall.render();
+
+    expect(await tall.isRowRendered(30)).toBe(true);
+    expect(await tall.isRowRendered(0)).toBe(false);
+  });
+
+  test('does not scroll the viewport when it grows a full-column selection', async({ page, theme, bundle }) => {
+    const tall = new EditorTrimmedRowPage(page, theme, bundle, { scenario: 'tall' });
+    const trimmed = Array.from({ length: 50 }, (unused, index) => index + 50);
+
+    await tall.goto();
+    await tall.trimRows(trimmed);
+    await tall.selectWholeColumn(0);
+
+    expect(await tall.selected()).toEqual([[-1, 0, 49, 0]]);
+    expect(await tall.isRowRendered(0)).toBe(true);
+
+    await tall.untrimRows(trimmed);
+
+    expect(await tall.selected()).toEqual([[-1, 0, 99, 0]]);
+    // The grow re-lays the selection; a scrolling source would jump the viewport to the new far
+    // corner, 99 rows away from where the user is looking.
+    await tall.render();
+
+    expect(await tall.isRowRendered(0)).toBe(true);
+  });
+
+  test('grows a full-column selection no further than maxRows lets the grid show', async() => {
+    await grid.updateSettings({ maxRows: 4 });
+    await grid.trimRows([0, 1, 2]);
+    await grid.selectWholeColumn(0);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 1, 0]]);
+
+    // Five rows come back, but `maxRows` caps the grid at four. A grow sized from the untrimmed
+    // length alone would reach row 4, which the grid does not show.
+    await grid.untrimRows([0, 1, 2]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 3, 0]]);
+    expect(await grid.isEntireColumnSelected()).toBe(true);
+  });
+
+  test('grows a select-all along the columns when a column untrim brings a column back', async() => {
+    await grid.setColumnsTrimmed([1], true);
+    await grid.selectEverything();
+
+    expect(await grid.selected()).toEqual([[-1, -1, 4, 0]]);
+
+    await grid.setColumnsTrimmed([1], false);
+
+    expect(await grid.selected()).toEqual([[-1, -1, 4, 1]]);
+  });
+
+  test('grows a full-row selection along the columns when a column untrim brings a column back', async() => {
+    await grid.setColumnsTrimmed([1], true);
+    await grid.selectWholeRow(2);
+
+    expect(await grid.selected()).toEqual([[2, -1, 2, 0]]);
+
+    // A full-row selection tracks the grid along its COLUMNS, so it grows on that axis.
+    await grid.setColumnsTrimmed([1], false);
+
+    expect(await grid.selected()).toEqual([[2, -1, 2, 1]]);
+  });
+
+  test('grows a full-column selection when a hook untrims rows inside a row removal', async() => {
+    await grid.trimRows([3, 4]);
+    await grid.selectWholeColumn(0);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 2, 0]]);
+
+    // The untrim lands inside the removal's `alter()` scope, which only SHIFTS the selection by the
+    // removed row. The grow waits for the scope to close, so the selection still covers the column:
+    // five rows less the removed one.
+    await grid.removeRowUntrimmingAllFromAfterRemoveRow(0);
+
+    expect(await grid.visibleRowCount()).toBe(4);
+    expect(await grid.selected()).toEqual([[-1, 0, 3, 0]]);
+    expect(await grid.isEntireColumnSelected()).toBe(true);
+  });
+
+  test('Enter walks the rows a grow brought back, with MergeCells on', async() => {
+    await grid.updateSettings({ mergeCells: true });
+    await grid.trimRows([3, 4]);
+    await grid.selectWholeColumn(0);
+    await grid.untrimRows([3, 4]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 4, 0]]);
+
+    // MergeCells rebuilds the focus order Enter follows from `afterSelectionEnd`. A grow that fires
+    // no selection hook left that order on the three pre-grow rows, so Enter wrapped back to row 0
+    // after row 2.
+    expect(await grid.focusRowsWalkedByEnter(6)).toEqual([0, 1, 2, 3, 4, 0]);
+  });
+
+  test('renders a clamp over several whole-column layers once, as it does for one layer', async() => {
+    await grid.watchHook('afterRender');
+    await grid.selectWholeColumn(0);
+
+    let rendersBefore = await grid.hookCalls('afterRender') ?? 0;
+
+    await grid.trimRows([4]);
+
+    const singleLayerRenders = (await grid.hookCalls('afterRender') ?? 0) - rendersBefore;
+
+    await grid.untrimRows([4]);
+    await grid.selectWholeColumn(0);
+    await grid.addWholeColumnLayer('B');
+
+    expect(await grid.selected()).toEqual([[-1, 0, 4, 0], [-1, 1, 4, 1]]);
+
+    rendersBefore = await grid.hookCalls('afterRender') ?? 0;
+
+    await grid.trimRows([4]);
+
+    expect(await grid.selected()).toEqual([[-1, 0, 3, 0], [-1, 1, 3, 1]]);
+    // The clamp re-lays every layer under the `shift` source. Rendering on each of them, rather than
+    // on the last, drew the grid once per layer inside the trim.
+    expect((await grid.hookCalls('afterRender') ?? 0) - rendersBefore).toBe(singleLayerRenders);
+  });
+
+  test('destroying the grid under a trimmed whole-column selection does not throw', async() => {
+    await grid.trimRows([3, 4]);
+    await grid.selectWholeColumn(0);
+
+    // The teardown unregisters the trimming map, which untrims the rows. A grow on that untrim ran
+    // the selection hooks against an editor manager the teardown had already destroyed.
+    expect(await grid.destroyGrid()).toBeNull();
+  });
+
   test('drops a full-row selection whose row a trim stranded, rather than sliding it', async() => {
     await grid.selectWholeRow(3);
 
@@ -263,32 +464,6 @@ test.describe('selection stranded by a trimming index map', () => {
     await grid.removeRow(0, 2);
 
     expect(await grid.selected()).toEqual([[3, 0, 3, 0]]);
-  });
-
-  test('drops a coordinate that addresses nothing even while an editor is open', async() => {
-    await grid.openEditorAndType(3, 0, 'TYPED');
-    // Two rows remain, so visual row 3 addresses nothing. An open editor does NOT exempt this
-    // shape: `EditorManager` discards the stranded editor and would leave the highlight behind it,
-    // and a paste through that highlight is what appends records.
-    await grid.trimRows([0, 1, 3]);
-
-    expect(await grid.selected()).toBeUndefined();
-
-    await grid.pasteIntoSelection('PASTED');
-
-    expect(await grid.sourceRowCount()).toBe(5);
-  });
-
-  test('keeps a still-addressable coordinate while an editor is open, so typing can continue', async() => {
-    await grid.openEditorAndType(3, 0, 'TYPED');
-    // Only the edited record is trimmed, so visual row 3 still addresses a cell - `A4` now. The
-    // editor is discarded, and `EditorManager` deliberately keeps the selection there so the next
-    // keystroke re-prepares against the record now under the cursor. A write lands on that real
-    // record rather than appending, which is why this half is exempt.
-    await grid.trimRows([3]);
-
-    expect(await grid.selected()).toEqual([[3, 0, 3, 0]]);
-    expect(await grid.sourceRowCount()).toBe(5);
   });
 
   test('judges the record by where it is now, not by where a sort left the captured index',

@@ -1,8 +1,8 @@
 ---
 type: how-to
 title: Row heights
-metaTitle: Row heights - JavaScript Data Grid | Handsontable
-description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
+metaTitle: Row heights | Handsontable DataGrid for JavaScript
+description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable DataGrid's interface.
 permalink: /row-height
 canonicalUrl: /row-height
 tags:
@@ -20,27 +20,40 @@ tags:
   - line clamp
   - ellipsis
 react:
-  metaTitle: Row heights - React Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for React
 angular:
-  metaTitle: Row heights - Angular Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Row heights - Vue Data Grid | Handsontable
+  metaTitle: Row heights | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
 menuTag: updated
 ---
-Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
+Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable DataGrid's interface.
 
 [[toc]]
 
 ## Overview
 
-The default (and minimum) row height is calculated based on the used theme's line height, vertical padding and cell border values and in the `main` theme it's 29px, in the `horizon` it's 37px and in the `classic` styles it's 26 px. Unless configured otherwise, Handsontable assumes that your cell contents fit in this default row height.
+The default row height is calculated based on the used theme's line height, vertical padding and cell border values and in the `main` theme it's 29px, in the `horizon` it's 37px and in the `classic` styles it's 26 px. Unless configured otherwise, Handsontable assumes that your cell contents fit in this default row height.
 
-If your cell contents require heights greater than default (because you use multiline text, or [custom renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), or custom styles), use one of the following configurations to avoid potential layout problems:
+Two options set row heights, and they differ in what happens when the content doesn't fit:
+
+| Option                                          | Row height                                       | Content taller than the row   |
+| ----------------------------------------------- | ------------------------------------------------ | ----------------------------- |
+| [`rowHeights`](@/api/options.md#rowheights)     | Exactly the height you set, even below default   | Clipped                       |
+| [`minRowHeights`](@/api/options.md#minrowheights) | At least the height you set, never below default | Grows the row to fit          |
+
+Both options accept a [number](#set-row-heights-to-a-number), an [array](#set-row-heights-with-an-array), or a [function](#set-row-heights-with-a-function). You can set both: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others. When you enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin, `rowHeights` is a minimum too, because the plugin lets each row grow to fit its content.
+
+If your cell contents require heights greater than default (because you use multiline text, or [custom renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), or custom styles), and you don't want them clipped, use one of the following configurations to avoid potential layout problems:
   - Configure your row heights in advance: set the [`minRowHeights`](@/api/options.md#minrowheights) option to a [number](#set-row-heights-to-a-number), or an [array](#set-row-heights-with-an-array), or a [function](#set-row-heights-with-a-function). This requires you to know the heights beforehand, but results in the best runtime performance.
   - Set the [`manualRowResize`](@/api/options.md#manualrowresize) option to an array, to configure initial row heights and let your users [adjust the row heights manually](#adjust-row-heights-manually).
   - Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin, by setting `autoRowSize: true`. This tells Handsontable to measure the actual row heights in the DOM. It impacts runtime performance but is accurate. Also enable `AutoRowSize` if you call [`scrollViewportTo()`](@/api/core.md#scrollviewportto) -- the method relies on accurate row height measurements to scroll to the correct position.
+
+To make rows shorter than the default row height, for example to use empty rows as separators, set [`rowHeights`](@/api/options.md#rowheights) and leave `AutoRowSize` off. The [`ManualRowResize`](@/api/manualRowResize.md) plugin doesn't make a row shorter than the default row height. When it is enabled, a row that a `rowHeights` height covers stays at the height the user drags it to and clips its content, and a row that `rowHeights` gives no height grows to fit its content.
+
+Content that doesn't fit an exact row stays in the DOM and screen readers read it, but it is cut off on the screen. A row doesn't grow when a user enlarges the text or overrides the text spacing, so leave room for it, or use `minRowHeights`.
 
 ## Set row heights to a number
 
@@ -93,6 +106,8 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 
 In this example, the height is only set for the first rows. Each additional row would be automatically adjusted to the content.
 
+The `rowHeights` and `minRowHeights` arrays and functions address rows by their physical index, so a height stays with its row when rows are moved with [`ManualRowMove`](@/api/manualRowMove.md), sorted, filtered, or collapsed with [`NestedRows`](@/api/nestedRows.md). The physical index doesn't change in any of those cases. A row that `NestedRows` moves by dragging or detaching takes a new physical index: an array entry follows the row, but a function is called with the new index. When you insert or remove rows, each height of an array stays with its row: a row inserted between others has no height of its own, and a row added after the last one takes the next entry. Handsontable never changes the array you pass. A function is called with the physical index the row has now, so after an insert or a removal it gets the index of the row's new position. To read the physical index of a row on the screen, use [`toPhysicalRow()`](@/api/core.md#tophysicalrow).
+
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2
@@ -138,7 +153,7 @@ In this example, the height is only set for the first rows. Each additional row 
 
 ## Set row heights with a function
 
-The row height can be set using a function. In this example, the size of all rows is set using a function that takes a row `index` (1, 2 ...) and multiplies it by `20px` for each consecutive row.
+The row height can be set using a function. In this example, the size of all rows is set using a function that takes a row's physical `index` (0, 1, 2 ...), adds one, and multiplies the result by `20px`, so the first row is `20px` high, the second `40px`, and so on.
 
 ::: only-for javascript
 
@@ -223,8 +238,11 @@ hot.render();
 
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 2
+Try it in the demo below: drag the bottom edge of a row header to resize a row, then select **Clear manual sizes**, which runs the snippet above.
 
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/row-height/javascript/example4.html)
 @[code](@/content/guides/rows/row-height/javascript/example4.js)
 @[code](@/content/guides/rows/row-height/javascript/example4.ts)
 

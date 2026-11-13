@@ -34,6 +34,8 @@ Rules that cost real bugs to learn:
 
 The guards exist because those hooks fire unconditionally from `TableView`, while the owning plugin may reject the press. Without the check, auto-scroll would run with no drag in progress.
 
+**A stopped mousedown is not armed.** The `beforeOnCellMouseDown` path returns early when an earlier listener called `stopImmediatePropagation()` on the event. Such a listener owns the gesture: `TableView` skips its selection handling for it, so there is no selection to extend, and the owner scrolls on its own if it needs to. The FormulaBuilder reference drag is one in-tree case, and the one the check was added for. Its own edge auto-scroller drives the drag, and arming here as well scrolled the viewport twice per tick. It used to work around that by disabling and re-enabling this plugin on every pick, which re-registered these hooks at the tail of every list. The check depends on the stopping listener running first in the same hook, which FormulaBuilder guarantees with order index `-1`. **Three other in-tree listeners stop the press too**: `rowSelection`, `checkboxHeader` and `collapsibleColumns` (on their checkbox and indicator presses). At init they register after this plugin (priority 385, 390 and 290 against 100), so this listener runs first and arms as before. After an `updatePlugin()` of this plugin its hook moves to the tail of the list, behind theirs, and from then on their stopped presses do not arm auto-scroll. That is a behavior change (in the changelog), and harmless for those presses, which select no range to scroll.
+
 **The mobile guard asks about one finger, not about the gesture.** `isDragged()` only says that *some* handle is held, and it stays `true` for the whole drag - so it also arms auto-scroll for any later finger landing anywhere in the document, with no handle press of its own. `isDraggedBy(touch.identifier)` asks whether *this* finger is the one on the handle, which is the question the guard actually needs.
 
 **The ordering the guards depend on comes from two different mechanisms — do not mix them up.**
@@ -54,6 +56,14 @@ The guards exist because those hooks fire unconditionally from `TableView`, whil
 `#onAfterScroll` extends the selection **only when `#activeDragKind === 'cell'`**. Corner, move and handle drags return early on purpose — autofill, MoveCells, SelectionHandles and MultipleSelectionHandles each own their own `afterScroll` continuation. Adding extension here for another kind means two plugins fighting over the same range.
 
 `#onAfterSelection` sets `preventScrolling.value = true` while listening and outside the viewport, so `setRangeEnd` does not scroll-into-view and undo the auto-scroll. It is deliberately limited to the active-drag window, or ordinary `selectCell` calls would stop scrolling into view.
+
+## A data load ends the auto-scroll of a drag its owner ended
+
+MoveCells and Autofill end a held drag on `beforeLoadData` (a sheets bar switch, a DataProvider fetch), but the
+button is still down, so this plugin kept scrolling the data that replaced it until the release. `#onBeforeLoadData`
+calls `unlisten()` for the `move` and `corner` kinds; it runs after both owners' listeners, which are enabled first
+(priorities 25 and 20 against 100). A plain cell drag-select (`cell`) and a handle drag (`handle`) keep scrolling:
+their owners do not end on a load. Pinned by `__tests__/selectionDragOwnership.unit.js`.
 
 ## Where to look next
 

@@ -8,7 +8,9 @@ registerAllModules();
 // Named expressions that reference cell ranges must be registered after the sheet
 // exists. Pre-build the engine at module level so it is created only once.
 const hfInstance = HyperFormula.buildEmpty({
-  licenseKey: 'internal-use-in-handsontable',
+  // this demo uses the GPLv3 key,
+  // use your own HyperFormula license key in your app
+  licenseKey: 'gpl-v3',
 });
 
 hfInstance.addSheet('Sheet1');
@@ -25,6 +27,7 @@ const data = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Product', 'Q1 Sales', 'Q2 Sales']}
       rowHeaders={true}
@@ -35,7 +38,6 @@ const ExampleComponent = () => {
       }}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

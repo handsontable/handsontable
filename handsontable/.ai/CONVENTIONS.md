@@ -99,7 +99,7 @@ import { BasePlugin } from '../base';
 import { addClass } from '../../helpers/dom/element';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayMap, arrayReduce } from '../../helpers/array';
-import { SEPARATOR } from '../contextMenu/predefinedItems';
+import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import { Hooks } from '../../core/hooks';
 import hideColumnItem from './contextMenuItem/hideColumn';
 import showColumnItem from './contextMenuItem/showColumn';
@@ -255,9 +255,17 @@ class MyPlugin extends BasePlugin {
   static get SETTING_KEYS() { return ['myPlugin']; }
   static get DEFAULT_SETTINGS() { return {}; }
   static get SETTINGS_VALIDATORS() { return null; }
-  static get PLUGIN_DEPS() { return ['plugin:AutoRowSize']; }
+  // Never a hand-written array: declared in the plugin's `feature.json` and generated (see below).
+  static get PLUGIN_DEPS() { return [...PLUGIN_DEPS]; }
 }
 ```
+
+**Plugin dependencies come from the feature manifest.** Every plugin folder has a `feature.json` (its manifest
+entry: license token and `requires`). A dependency `new Handsontable()` must check at init is listed in
+`requires.allOf` with `"enforceAtInit": true`; `npm run generate:feature-manifest` writes it to the committed
+`feature.generated.ts`, which the class imports (`import { PLUGIN_DEPS } from './feature.generated';`). A new
+plugin, cell type, editor, renderer, or validator needs its manifest entry, or the unit suite fails. Rules:
+`src/featureManifest/AGENTS.md`.
 
 **Plugin Lifecycle Methods (in order):**
 1. `constructor(hotInstance)` -- receives HOT instance as `this.hot`

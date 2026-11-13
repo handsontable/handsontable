@@ -29,7 +29,7 @@ const hot = new Handsontable(container, {
   },
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const input = document.getElementById('named-expressions-input');
@@ -50,5 +50,4 @@ button.addEventListener('click', () => {
 
   statusOutput.textContent = '';
   statusOutput.classList.remove('is-error');
-  hot.render();
 });

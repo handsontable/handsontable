@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { ColumnAutosizeRefillPage } from '../fixtures/pages/ColumnAutosizeRefillPage';
 
 /**
@@ -8,7 +8,7 @@ import { ColumnAutosizeRefillPage } from '../fixtures/pages/ColumnAutosizeRefill
  * blank area under the last row until an unrelated scroll forced another draw. The band must be
  * refilled within the same draw.
  */
-test.describe('viewport refill after the rendered rows shrink', () => {
+test.describe('viewport refill after the rendered rows shrink', { tag: THEMES_TAG }, () => {
   let grid: ColumnAutosizeRefillPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

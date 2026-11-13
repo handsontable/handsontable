@@ -20,17 +20,16 @@ import { init as initLargeDatasetDemo } from './demos/largeDataset';
 import { init as initCustomBordersDemo } from './demos/customBorders';
 import { init as initWebComponentDemo } from './demos/webComponent';
 import { init as initEditorsDemo } from './demos/editors';
-import { init as initTextEllipsisDemo } from './demos/textEllipsis';
 import { init as initDialogDemo } from './demos/dialog';
-import { init as initWrapperDemo } from './demos/wrapper';
 import { init as initLoadingDemo } from './demos/loading';
-import { init as initRowSizeDemo } from './demos/rowSize';
 import { init as initEmptyDataStateDemo } from './demos/emptyDataState';
 import { init as initNotificationDemo } from './demos/notification';
 import { init as initSelectionHandlesDemo } from './demos/selectionHandles';
 import { init as initMoveCellsDemo } from './demos/moveCells';
 import { init as initSheetsBarDemo } from './demos/sheetsBar';
 import { init as initSideLayoutSlotsDemo } from './demos/sideLayoutSlots';
+import { init as initRowSelectionDemo } from './demos/rowSelection';
+import { init as initLicensePoweredByDemo } from './demos/licensePoweredBy';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -242,15 +241,6 @@ router
         initEditorsDemo();
       });
     },
-    '/text-ellipsis-demo': function () {
-      removeCSS();
-
-      Promise.all([
-        loadThemeCSS(),
-      ]).then(() => {
-        initTextEllipsisDemo();
-      });
-    },
     '/custom-borders-demo': function () {
       removeCSS();
 
@@ -287,15 +277,6 @@ router
         initDialogDemo();
       });
     },
-    '/wrapper-demo': function () {
-      removeCSS();
-
-      Promise.all([
-        loadThemeCSS(),
-      ]).then(() => {
-        initWrapperDemo();
-      });
-    },
     '/loading-demo': function () {
       removeCSS();
 
@@ -303,15 +284,6 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initLoadingDemo();
-      });
-    },
-    '/row-size-demo': function () {
-      removeCSS();
-
-      Promise.all([
-        loadThemeCSS(),
-      ]).then(() => {
-        initRowSizeDemo();
       });
     },
     '/empty-data-state-demo': function () {
@@ -357,6 +329,24 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initSideLayoutSlotsDemo();
+      });
+    },
+    '/row-selection-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initRowSelectionDemo();
+      });
+    },
+    '/license-powered-by-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initLicensePoweredByDemo();
       });
     },
   })

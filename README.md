@@ -3,10 +3,10 @@
   <picture>
     <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-black.svg"/>
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-white.svg"/>
-    <img width="360" alt="Logo of Handsontable data grid" src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-black.svg"/>
+    <img width="360" alt="Logo of Handsontable DataGrid" src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/handsontable-logo-black.svg"/>
   </picture>
   <br><br>
-  <h3>Handsontable is a <a href="https://handsontable.com/docs" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
+  <h3>Handsontable DataGrid is a <a href="https://handsontable.com/docs" target="_blank">JavaScript component</a> with a spreadsheet-like look and feel.</h3>
   <p>
     Use it with JavaScript, TypeScript, or frameworks such as 
     <a href="https://github.com/handsontable/handsontable/tree/master/wrappers/react-wrapper" target="_blank">React</a>, 
@@ -44,7 +44,7 @@
 &nbsp;&nbsp;✅&nbsp; [IME support](https://handsontable.com/docs/ime-support/) <br>
 &nbsp;&nbsp;✅&nbsp; [Internationalization](https://handsontable.com/docs/language/) <br>
 &nbsp;&nbsp;✅&nbsp; [RTL support](https://handsontable.com/docs/layout-direction/) <br>
-&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/accessibility/) <br>
+&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/accessibility/) ([targets WCAG 2.2 AA](https://handsontable.com/docs/javascript-data-grid/accessibility-conformance-report/)) <br>
 &nbsp;&nbsp;✅&nbsp; [Keyboard shortcuts](https://handsontable.com/docs/keyboard-shortcuts/) <br>
 &nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/rows-sorting/) <br>
 &nbsp;&nbsp;✅&nbsp; [Filtering data](https://handsontable.com/docs/column-filter/) <br>
@@ -114,7 +114,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
     tabNavigation: true,
     multiColumnSorting: true,
     headerClassName: 'htLeft',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
   ```
@@ -135,7 +135,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Handsontable - JavaScript Data Grid Example</title>
+      <title>Handsontable DataGrid - JavaScript Example</title>
     </head>
     <body>
       <div id="handsontable-grid"></div>
@@ -159,7 +159,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
           tabNavigation: true,
           multiColumnSorting: true,
           headerClassName: "htLeft",
-          licenseKey: "non-commercial-and-evaluation",
+          // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
         });
       </script>
     </body>
@@ -174,7 +174,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 
 ## 🎨 Themes
 
-Handsontable themes control how your data table looks: colors, spacing, typography, borders, and overall visual style.
+Handsontable themes control how your data grid looks: colors, spacing, typography, borders, and overall visual style.
 
 You get three built-in themes out of the box:
 - main – modern, clean, default choice
@@ -212,9 +212,9 @@ You can style Handsontable to match your product’s visual identity by creating
 
 <br>
 
-## 🤔 Is Handsontable a Data Grid or a Spreadsheet?
+## 🤔 Is Handsontable DataGrid a data grid or a spreadsheet?
 
-Handsontable is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
+Handsontable DataGrid is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
 
 ### Spreadsheet-like features in Handsontable:
 
@@ -234,10 +234,10 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 
 ## 🤖 AI & agent resources
 
-Handsontable and HyperFormula ship first-party resources for AI assistants and coding agents:
+Handsontable DataGrid and HyperFormula ship first-party resources for AI assistants and coding agents:
 
 - **Agent Skills** - official skills for Claude Code, Codex, and other coding agents, covering both products. Install in Claude Code with `/plugin marketplace add handsontable/handsontable-skills`.
-  → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills)
+  → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills) · [Skills for Claude Code guide](https://handsontable.com/docs/javascript-data-grid/skills-for-claude-code/)
 - **AI Docs Assistant** - ask questions in English (or any other language) and get cited answers from the live docs, right in the [documentation header](https://handsontable.com/docs/javascript-data-grid/ai-docs-assistant/).
 - **[Docs MCP server](https://handsontable.com/docs/javascript-data-grid/docs-mcp-server/)** - semantic search over the full Handsontable + HyperFormula knowledge base: docs guides, API reference, code recipes, release notes, blog posts, and GitHub issues, always current with the latest release.
   `claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp`
@@ -261,20 +261,26 @@ If you have a commercial license, feel free to contact us directly at [**support
 
 ## 📖 Licenses
 
-Handsontable is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
+Handsontable DataGrid is available under the following licensing options. Each license comes with its own terms and conditions, as outlined below:
 
-### ① Free license for non-commercial use, and evaluation purposes
-This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.  
-[Learn more here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
+### ① Free trial for evaluation
+Businesses and other organizations can evaluate Handsontable DataGrid for free. Start a trial at [handsontable.com/pricing](https://handsontable.com/pricing/) to get a trial license key. The trial covers internal evaluation outside production, runs once, and can't be renewed. During the trial, you can contact our technical support team. When it ends, you need a commercial license to keep using Handsontable DataGrid.
 
 ### ② Commercial license
 For commercial use, a paid license is required. This license includes support and maintenance to ensure you get the most out of Handsontable. The commercial license can be purchased directly from Handsoncode or through an [authorized reseller](https://handsontable.com/resellers). See the [pricing page](https://handsontable.com/pricing) for details.
+
+### ③ Free license for non-commercial projects
+Non-commercial projects, such as teaching or academic research, may qualify for a free license. To apply, [contact our sales team](https://handsontable.com/contact/) and tell us about your project.
 
 <br>
 
 ## 🔑 License Key
 
-For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key. 
+Pass your license key in the `licenseKey` option. The examples above leave that line commented out: uncomment it and add your key.
+
+To evaluate Handsontable, [get a trial key](https://handsontable.com/pricing/). During the trial, the grid shows the Handsontable badge and a "Powered by Handsontable DataGrid" bar below the table, and the console warns how many days remain. After the trial expires, the grid shows an expiration message and the console reports an error. When the grace period stored in the key also passes, a blocking screen replaces the grid. See [Trial keys](https://handsontable.com/docs/license-key/#trial-keys) for details.
+
+For non-commercial use, [contact our sales team](https://handsontable.com/contact/) to apply for a free license.
 
 If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/license-key/).
 

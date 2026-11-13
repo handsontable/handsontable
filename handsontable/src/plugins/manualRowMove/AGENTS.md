@@ -20,6 +20,52 @@ Consequence: a grid configured with an array reverts a row the user had since dr
 runs again. The manual *resize* plugins hit the same class of problem and document it in detail —
 `../../utils/manualResize/AGENTS.md`.
 
+## A press another listener claimed arms no move
+
+`#onBeforeOnCellMouseDown` skips a press whose `isImmediatePropagationStopped(event)` is set, the way DragToScroll does: that listener owns the gesture. The FormulaBuilder header pick is the case it was added for. A pick dragged across the headers of a header-selected row armed a move, drew the guideline, scrolled the viewport on each `mousemove` next to the pick's own auto-scroller, and moved the range on release, which closed the edit. A pick that ended without a `mouseup` (a window blur) also left the move pressed for the next release on the page. The check depends on the claiming listener running first in the same hook: FormulaBuilder registers with order index `-1`. The other in-tree claimers (CheckboxHeader, RowSelection, CollapsibleColumns) register after this plugin, so their presses arm as before, until an `updatePlugin()` of this plugin moves its hook to the tail of the list.
+
+## A move that changes nothing never reaches the index mapper
+
+`moveRows()` computes `movePerformed` (`isMovePossible()` and `isRowOrderChanged()`) **before** it calls
+`rowIndexMapper.moveIndexes()`, and calls it only when that is true. `moveIndexes()` places the moved rows
+before the next NOT-trimmed row, so it does not see a trimmed row sitting between. Run for a drop onto the
+row's own position, it moved the row to the far side of the trimmed row, and untrimming (for example from
+`afterRowMove`) then showed an order nobody asked for. The hooks still fire for such a drop, with
+`movePossible: true` and `orderChanged: false`; firing them is by design and suppressing them would be
+breaking. Because the mapper is not touched, a drop onto the same position no longer fires
+`afterRowSequenceChange` and `afterRowSequenceCacheUpdate` (source `move`), no longer forces a full render, and
+no longer runs the selection repair of the cache update: nothing moved, so there is nothing to react to. Do not
+move the computation back below the mapper call.
+`../manualColumnMove/` has the identical guard. NestedRows moves rows by its own path and is not covered.
+Pinned by `__tests__/noopMoveTrimmedRows.unit.js` and `tests/e2e/manual-move-trimmed.spec.ts`.
+
+## A move that changes the order lands next to a visible row
+
+`moveIndexes()` puts the moved rows right before the physical row of the visible row at `finalIndex`, after any
+trimmed rows in front of it. A move to the last visible position puts them right after the last visible row,
+before the trailing trimmed rows. The rows never split a run of neighboring trimmed rows (they can land between
+two trimmed rows that have a visible row between them). The rule is specified and pinned by
+`__tests__/moveTrimmedPlacement.unit.js`, and the row-moving guide documents it. Landing on the other side of a
+trimmed block would change the physical order users see after untrimming, so it is a breaking change.
+
+With HIDDEN rows the same visible gap has two drop indexes: the lower half of the row above the hidden block
+and the upper half of the row below it. `moveIndexes()` counts a hidden row as an item, so the lower-half index
+(it points at the first hidden row) would land the rows in front of the block and the upper-half one after it.
+The pointer resolution steps over the hidden rows (`getLowerHalfDropIndex()`, called from the lower-half branch of
+`refreshPositions()`), so both give the same drop index and the rows land after the block, right before
+the next visible row, the same side as the trimmed rule and as `ManualColumnMove` (which gets it from its
+zero-width hidden columns). Do not move the fix into `moveIndexes()` or `countFinalIndex()`: `dragRows()` and
+`moveRows()` keep the literal meaning of the index a caller passes, and `moveIndexes()` is a public mapper method.
+When the hidden rows run to the end of the grid there is no visible row to step to, and the index is left
+alone, so the rows land in front of the trailing hidden rows, as they do in front of trailing trimmed ones.
+**The step is skipped in four more cases.** (1) A step that would cross into or out of a fixedRowsTop or fixedRowsBottom band: the guideline shows the old spot, and the row would land in the other band. (2) The NestedRows plugin is enabled: its move path reads the parent of the row at the drop index, so a step over hidden rows could make the row a child of a hidden row. (3) The visible row after the hidden ones is inside a merged cell but not its first row (the merge starts at a hidden row): landing before it would put the rows between the merged rows, and the MergeCells `afterRowMove` handler would shrink the merge (`isInsideMergedCell()`). (4) **The hovered row is one of the moved rows.** Grabbing a row and releasing it on its own
+lower half is the "drop it back in place" gesture, which must stay a no-op: stepping would move the row across
+the hidden block, fire `afterRowMove` with `orderChanged: true` and record an undo step for a visibly unchanged
+grid. Pinned by the self-drop case of `tests/e2e/manual-row-move-hidden-gap.spec.ts`.
+The hooks report the resolved drop index. Landing on the far side is a change from 18.1 for the lower-half drop
+(migration guide, section 60). Pinned by `__tests__/moveTrimmedPlacement.unit.js` (`getLowerHalfDropIndex()`, bands and NestedRows included) and
+`tests/e2e/manual-row-move-hidden-gap.spec.ts`. NestedRows moves rows by its own path and the e2e spec does not drive it; the unit tests only pin that the step is skipped.
+
 ## Row heights are read defensively
 
 The drag measurement sums Walkontable row heights and falls back per row to
@@ -44,9 +90,25 @@ border trade that no longer happens, and with headers on it now moves the guidel
 
 There are also clamps for the backlight below the table and the guideline below the table.
 
+**A zero size is a size.** `ui/_base.ts` `setSize()` writes `0` through `isNumeric()`, like `../manualColumnMove/ui/_base.ts`. The backlight is sized `hider.offsetWidth - leftPos`, and with no rendered column (every column hidden) that is `0`. A truthiness check skipped it, so the CSS `width: 100%` stayed and a box as wide as the row headers was drawn right of the grid. With no columns the backlight is therefore zero wide; the guideline stays, because the rows can still be moved by their headers. Pinned by `__tests__/ui/_base.unit.ts` and `tests/e2e/manual-row-move-no-columns.spec.ts`.
+
 `isFixedRowTop(row)` and `isFixedRowBottom(row)` exist because a row inside `fixedRowsTop` or
 `fixedRowsBottom` behaves differently as a drop target. Both are checked — a fix aimed at only the top
 band misses the bottom one.
+
+## A press that never traveled is a click and fires no move hook
+
+`#onMouseUp` calls `dragRows()` only when the pointer traveled farther than `POINTER_DRAG_TOLERANCE` (3 px) from
+the press. `#onMouseMove` tracks it in `#dragged` through `hasPointerTraveled()`, both from `helpers/dom/event.ts`,
+exactly as `ManualColumnMove` does. Before that guard a header pressed and released in place fired
+`beforeRowMove` and `afterRowMove` for a move that changed nothing. The guard is about the gesture, not the
+order: a drag that goes out and returns to its start still fires both hooks, with `orderChanged: false`, and that
+is deliberate, since suppressing it would be a breaking change (see "A move that changes nothing never reaches
+the index mapper" above). The tolerance is measured in client coordinates, so a row dropped by wheel-scrolling
+under a motionless pointer reads as a click, as it does in the column plugin. A test that simulates a move must
+send a `mousemove` that travels past the tolerance from the `mousedown` position, or the release reads as a
+click: `tests/e2e/manual-move-trimmed.spec.ts` moves the pointer inside the header for that reason. Pinned by
+`tests/e2e/manual-row-move-noop-hooks.spec.ts`.
 
 ## NestedRows reimplements this plugin
 
@@ -61,6 +123,15 @@ If you change move semantics, check `nestedRows` in the same pass.
 
 `registerConflict('dataProvider', ['manualRowMove', …])`: with a complete server-backed `dataProvider`
 configuration, **DataProvider** is the plugin that stays disabled. See `../base/AGENTS.md`.
+
+## A drag ends when the data is replaced
+
+`beforeLoadData` cancels a held header drag (`#onBeforeDataReplace`: the pressed flag, the
+rows to move and the moving classes), so the `mouseup` takes its early return. The rows a drag holds are visual
+indexes of the data it started on, and the release moved the rows of the data that replaced it (a sheets bar switch).
+Not on `updateData()`: the React wrapper sends `data` on every re-render, so a parent re-render would cancel the gesture. ManualColumnMove cancels on every column order reset instead, `updateSettings()` with `columns` included
+(`../manualColumnMove/AGENTS.md`); this plugin still covers `loadData()` only. Pinned by
+`tests/e2e/sheets-bar-in-flight-drags.spec.ts`.
 
 ## Where to look next
 

@@ -40,7 +40,7 @@ const hot = new Handsontable(container, {
     rowHeaders: true,
     width: UNIT_SIZES['px'].width,
     height: UNIT_SIZES['px'].height,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 unitCaption.textContent = UNIT_CAPTIONS['px'];
 unitSelect.addEventListener('change', () => {

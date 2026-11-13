@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `next build` failing with `createContext is not a function` when a Next.js Server Component imports `HotTable`. The React wrapper's ES and CommonJS builds now start with the `'use client'` directive.",
+  "type": "fixed",
+  "issueOrPR": 14008,
+  "breaking": false,
+  "framework": "react"
+}

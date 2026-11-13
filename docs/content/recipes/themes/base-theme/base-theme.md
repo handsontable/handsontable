@@ -1,8 +1,8 @@
 ---
 type: how-to
-title: Handsontable with Base Web
-metaTitle: Handsontable with Base Web - React Data Grid | Handsontable
-description: Integrate Handsontable into a React app using Base Web and style a custom theme with your design tokens so the grid matches your design system.
+title: Handsontable DataGrid with Base Web
+metaTitle: Base Web theme | Handsontable DataGrid for JavaScript
+description: Integrate Handsontable DataGrid into a React app using Base Web and style a custom theme with your design tokens so the grid matches your design system.
 permalink: /recipes/themes/base-theme
 canonicalUrl: /recipes/themes/base-theme
 tags:
@@ -16,15 +16,16 @@ tags:
   - Theme API
   - custom theme
 react:
-  metaTitle: Handsontable with Base Web - React Data Grid | Handsontable
+  metaTitle: Base Web theme | Handsontable DataGrid for React
 angular:
-  metaTitle: Handsontable with Base Web - Angular Data Grid | Handsontable
+  metaTitle: Base Web theme | Handsontable DataGrid for Angular
 vue:
 searchCategory: Recipes
 category: Themes
+menuTag: updated
 ---
 
-This tutorial shows you how to integrate Handsontable into a React app that uses Base Web, mapping Base design tokens to Handsontable colors and tokens so the grid follows your design system.
+This tutorial shows you how to integrate Handsontable DataGrid into a React app that uses Base Web, mapping Base design tokens to Handsontable colors and tokens so the grid follows your design system.
 
 <iframe src="https://demos.handsontable.com/embed/1pi3y3p3h2"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
@@ -61,7 +62,7 @@ This recipe shows how to integrate Handsontable into a React app that uses [Base
 Install Handsontable and the React wrapper in your project root:
 
 ```bash
-pnpm add handsontable@0.0.0-next-deba76c-20260408 @handsontable/react-wrapper@0.0.0-next-deba76c-20260408
+pnpm add handsontable @handsontable/react-wrapper
 ```
 
 If you are creating a new Base setup, install Base Web and Styletron as well:
@@ -70,7 +71,7 @@ If you are creating a new Base setup, install Base Web and Styletron as well:
 pnpm add baseui styletron-engine-atomic styletron-react
 ```
 
-## Step 2: Register Handsontable modules
+## Step 2: Register Handsontable DataGrid modules
 
 Register Handsontable modules once before rendering the grid.
 
@@ -81,9 +82,9 @@ import { registerTheme } from 'handsontable/themes';
 registerAllModules();
 ```
 
-## Step 3: Map Base design tokens to Handsontable colors
+## Step 3: Map Base design tokens to Handsontable DataGrid colors
 
-Create a colors object that maps Handsontable color keys to your Base CSS variables.
+Create a colors object that maps Handsontable color keys to your Base CSS variables. The `palette` runs from light to dark: Horizon uses `palette.700` for cell text and the upper end of the scale for dark accents, such as the editor text and the active header background.
 
 **File: `src/theme/colorsBase.ts`**
 
@@ -101,8 +102,8 @@ export const colorsBase = {
     400: 'var(--bds-content-tertiary)',
     500: 'var(--bds-content-secondary)',
     600: 'var(--bds-content-primary)',
-    700: 'var(--bds-content-inverse-secondary)',
-    800: 'var(--bds-content-inverse-primary)',
+    700: 'var(--bds-content-primary)',
+    800: 'var(--bds-background-inverse-secondary)',
     900: 'var(--bds-background-inverse-primary)',
     950: 'var(--bds-background-inverse-secondary)',
   },
@@ -133,8 +134,10 @@ import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
 
 For most Base Web integrations, start with the built-ins and only override shape and spacing tokens:
 
+**File: `src/theme/baseThemeTokenOverrides.ts`**
+
 ```tsx
-const baseThemeTokenOverrides = {
+export const baseThemeTokenOverrides = {
   borderRadius: 'var(--bds-radius-200)',
   buttonBorderRadius: 'var(--bds-radius-200)',
   menuBorderRadius: 'var(--bds-radius-300)',
@@ -146,6 +149,8 @@ const baseThemeTokenOverrides = {
 
 Create and register your theme, then pass it to `HotTable`.
 
+`.setColorScheme('light')` makes the grid use Horizon's light token set with your Base variables. Without it, the theme follows the operating system's color scheme, and a visitor in dark mode gets a dark grid in a light app.
+
 ```tsx
 import React from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
@@ -154,6 +159,7 @@ import { registerAllModules } from 'handsontable/registry';
 import iconsMain from 'handsontable/themes/static/variables/icons/main';
 import tokensHorizon from 'handsontable/themes/static/variables/tokens/horizon';
 import { colorsBase } from './theme/colorsBase';
+import { baseThemeTokenOverrides } from './theme/baseThemeTokenOverrides';
 
 registerAllModules();
 
@@ -162,13 +168,8 @@ const baseDataGridTheme = registerTheme('base-data-grid', {
   colors: colorsBase,
   tokens: tokensHorizon,
 }).params({
-  tokens: {
-    borderRadius: 'var(--bds-radius-200)',
-    buttonBorderRadius: 'var(--bds-radius-200)',
-    menuBorderRadius: 'var(--bds-radius-300)',
-    inputBorderRadius: 'var(--bds-radius-200)',
-  },
-});
+  tokens: baseThemeTokenOverrides,
+}).setColorScheme('light');
 
 const data = [
   { name: 'Alice', role: 'Designer', location: 'New York', active: true },
@@ -179,6 +180,7 @@ const data = [
 export default function BaseThemeExample() {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       theme={baseDataGridTheme}
       data={data}
       width="100%"
@@ -191,7 +193,6 @@ export default function BaseThemeExample() {
         { data: 'location' },
         { data: 'active', type: 'checkbox' },
       ]}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 }
@@ -222,9 +223,9 @@ This keeps the grid aligned with system-level style updates and avoids one-off C
 
 ## Related
 
-- [Themes](/themes) - Built-in themes and Theme API.
+- [Themes](@/guides/styling/themes/themes.md) - Built-in themes and Theme API.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Theme API parameters and CSS variable reference.
-- [Design system (Figma)](/handsontable-design-system) - Figma kit and design tokens.
+- [Design system (Figma)](@/guides/styling/design-system/design-system.md) - Figma kit and design tokens.
 
 ## What you learned
 
@@ -232,6 +233,6 @@ You registered a custom Handsontable theme that maps Base Web design tokens to H
 
 ## Next steps
 
-- [Handsontable with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) - The same pattern using shadcn/ui CSS variables and Lucide icons.
-- [Handsontable with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object via `useTheme()`.
+- [Handsontable DataGrid with shadcn/ui](@/recipes/themes/custom-theme/custom-theme.md) - The same pattern using shadcn/ui CSS variables and Lucide icons.
+- [Handsontable DataGrid with MUI](@/recipes/themes/mui-theme/mui-theme.md) - The same pattern reading colors from the MUI `Theme` object via `useTheme()`.
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md) - Full reference for Theme API parameters and CSS variables.

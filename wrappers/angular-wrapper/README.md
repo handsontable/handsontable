@@ -3,12 +3,12 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-white.svg?raw=true"/>
     <source media="(prefers-color-scheme: light)" srcset="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
-    <img width="360" alt="Logo of Handsontable data grid" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
+    <img width="360" alt="Logo of Handsontable DataGrid" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
   </picture>
   <br><br>
-  <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="16" height="16"> Angular 16+ wrapper for Handsontable.
+  <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="16" height="16"> Angular 16+ wrapper for Handsontable DataGrid.
     <br>
-    <a href="https://handsontable.com/docs/angular-data-grid" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
+    <a href="https://handsontable.com/docs/angular-data-grid" target="_blank">JavaScript component</a> with a spreadsheet-like look and feel.</h3>
 
   <p>With its spreadsheet-like editing features, it's perfect for building data-rich internal apps. It allows users to enter, edit, validate, and process data from various sources. Common use cases include resource planning software (ERP), inventory management systems, digital platforms, and data modeling applications.</p>
 
@@ -42,7 +42,7 @@
 &nbsp;&nbsp;✅&nbsp; [IME support](https://handsontable.com/docs/angular-data-grid/ime-support/) <br>
 &nbsp;&nbsp;✅&nbsp; [Internationalization](https://handsontable.com/docs/angular-data-grid/language/) <br>
 &nbsp;&nbsp;✅&nbsp; [RTL support](https://handsontable.com/docs/angular-data-grid/layout-direction/) <br>
-&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/angular-data-grid/accessibility/) <br>
+&nbsp;&nbsp;✅&nbsp; [Accessibility](https://handsontable.com/docs/angular-data-grid/accessibility/) ([targets WCAG 2.2 AA](https://handsontable.com/docs/angular-data-grid/accessibility-conformance-report/)) <br>
 &nbsp;&nbsp;✅&nbsp; [Keyboard shortcuts](https://handsontable.com/docs/angular-data-grid/keyboard-shortcuts/) <br>
 &nbsp;&nbsp;✅&nbsp; [Sorting data](https://handsontable.com/docs/angular-data-grid/rows-sorting/) <br>
 &nbsp;&nbsp;✅&nbsp; [Filtering data](https://handsontable.com/docs/angular-data-grid/column-filter/) <br>
@@ -128,7 +128,7 @@ export class HotTableWrapperComponent {
     height: "auto",
     autoWrapRow: true,
     autoWrapCol: true,
-    licenseKey: "non-commercial-and-evaluation"
+    // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   };
 }
 ```
@@ -141,7 +141,7 @@ export class HotTableWrapperComponent {
 
 ## 🎨 Themes
 
-Handsontable themes control how your data table looks: colors, spacing, typography, borders, and overall visual style.
+Handsontable themes control how your data grid looks: colors, spacing, typography, borders, and overall visual style.
 
 You get three built-in themes out of the box:
 - main – modern, clean, default choice
@@ -178,9 +178,9 @@ To stay aligned with design, you can rely on the:
 
 <br>
 
-## 🤔 Is Handsontable a Data Grid or a Spreadsheet?
+## 🤔 Is Handsontable DataGrid a data grid or a spreadsheet?
 
-Handsontable is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
+Handsontable DataGrid is a data grid component written in JavaScript, not a spreadsheet. However, it brings in many features typically found in spreadsheet software. We designed it this way because spreadsheet-like patterns are often the most user-friendly when it comes to data entry and management.
 
 ### Spreadsheet-like features in Handsontable:
 
@@ -200,7 +200,7 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 
 ## 🤖 AI & agent resources
 
-Working with an AI assistant or coding agent? Handsontable and HyperFormula ship first-party agent resources:
+Working with an AI assistant or coding agent? Handsontable DataGrid and HyperFormula ship first-party agent resources:
 
 - **Agent Skills** — install in Claude Code with `/plugin marketplace add handsontable/handsontable-skills` → [github.com/handsontable/handsontable-skills](https://github.com/handsontable/handsontable-skills)
 - **Docs MCP server** — live semantic search over the docs, API reference, release notes, and GitHub issues: `claude mcp add --transport http handsontable-docs https://docs-assistant.handsontable.com/mcp` → [guide](https://handsontable.com/docs/angular-data-grid/docs-mcp-server/)
@@ -221,20 +221,26 @@ If you have a commercial license, feel free to contact us directly at [support@h
 
 ## 📖 Licenses
 
-Handsontable is available under two licensing options, allowing you to choose the one that best fits your needs. Each license comes with its own terms and conditions, as outlined below:
+Handsontable DataGrid is available under the following licensing options. Each license comes with its own terms and conditions, as outlined below:
 
-### ① Free license for non-commercial use, and evaluation purposes
-This license is available for non-commercial purposes such as teaching, academic research, or evaluation. It allows you to use Handsontable free of charge under the terms specified in the non-commercial license agreement.
-[Learn more here](https://github.com/handsontable/handsontable/blob/master/handsontable-non-commercial-license.pdf).
+### ① Free trial for evaluation
+Businesses and other organizations can evaluate Handsontable DataGrid for free. Start a trial at [handsontable.com/pricing](https://handsontable.com/pricing/) to get a trial license key. The trial covers internal evaluation outside production, runs once, and can't be renewed. During the trial, you can contact our technical support team. When it ends, you need a commercial license to keep using Handsontable DataGrid.
 
 ### ② Commercial license
 For commercial use, a paid license is required. This license includes support and maintenance to ensure you get the most out of Handsontable. The commercial license can be purchased directly from Handsoncode or through an [authorized reseller](https://handsontable.com/resellers). See the [pricing page](https://handsontable.com/pricing) for details.
+
+### ③ Free license for non-commercial projects
+Non-commercial projects, such as teaching or academic research, may qualify for a free license. To apply, [contact our sales team](https://handsontable.com/contact/) and tell us about your project.
 
 <br>
 
 ## 🔑 License Key
 
-For projects covered by the free non-commercial license, simply use the phrase `'non-commercial-and-evaluation'` as your license key.
+Pass your license key in the `licenseKey` option. The examples above leave that line commented out: uncomment it and add your key.
+
+To evaluate Handsontable, [get a trial key](https://handsontable.com/pricing/). During the trial, the grid shows the Handsontable badge and a "Powered by Handsontable DataGrid" bar below the table, and the console warns how many days remain. After the trial expires, the grid shows an expiration message and the console reports an error. When the grace period stored in the key also passes, a blocking screen replaces the grid. See [Trial keys](https://handsontable.com/docs/angular-data-grid/license-key/#trial-keys) for details.
+
+For non-commercial use, [contact our sales team](https://handsontable.com/contact/) to apply for a free license.
 
 If you're using Handsontable in a project that supports commercial activities, you'll need to purchase a license key at [handsontable.com/pricing](https://handsontable.com/pricing). You can find more details in [our documentation](https://handsontable.com/docs/angular-data-grid/license-key/).
 

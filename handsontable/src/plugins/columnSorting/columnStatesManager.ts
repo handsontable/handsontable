@@ -4,9 +4,9 @@ import type { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../tra
 
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
 
-const SORT_EMPTY_CELLS_DEFAULT = false;
-const SHOW_SORT_INDICATOR_DEFAULT = true;
-const HEADER_ACTION_DEFAULT = true;
+export const SORT_EMPTY_CELLS_DEFAULT = false;
+export const SHOW_SORT_INDICATOR_DEFAULT = true;
+export const HEADER_ACTION_DEFAULT = true;
 
 /**
  * Store and manages states of sorted columns.
@@ -83,6 +83,17 @@ export class ColumnStatesManager {
         (this as Record<string, unknown>)[propertyName] = newValue;
       }
     });
+  }
+
+  /**
+   * Puts every column property which affects the sorting result back to its default value, dropping a
+   * `compareFunctionFactory` set by an earlier configuration object.
+   */
+  resetAllColumnsProperties() {
+    this.sortEmptyCells = SORT_EMPTY_CELLS_DEFAULT;
+    this.indicator = SHOW_SORT_INDICATOR_DEFAULT;
+    this.headerAction = HEADER_ACTION_DEFAULT;
+    this.compareFunctionFactory = undefined;
   }
 
   /**

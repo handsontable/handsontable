@@ -34,6 +34,32 @@ through the `cols === 0` case, and it is only ever true with `cols > 0`. It runs
 `afterRow/ColumnSequenceCacheUpdate` during a fetch's `loadData()`, so a resize there only buys a forced
 reflow per index update (measured: six per fetch) and a line no test can pin.
 
+## Pagination keeps the same 150 px open when this plugin is off
+
+`MIN_HEIGHT` (`ui.ts`) is the height of the placeholder this plugin appends into the holder. The pagination plugin
+appends an identical one for a free-height grid with no rows (DEV-1103) and steps aside while this plugin is
+enabled, so the pager sits at the same place either way. Change `MIN_HEIGHT` and `EMPTY_BODY_RESERVE_HEIGHT` in
+`../pagination/ui.ts` together, or toggling this plugin moves the pager.
+
+## The overlay height is capped at the root's own box
+
+`computeEmptyDataStateHeight()` starts from `view.getWorkspaceHeight()` / `getViewportHeight()`, which the
+engine measures on the trimming container. With `height: 'auto'` inside a container that clips its
+overflow and holds more than the grid (a docs example: the padded preview, the `overflow: hidden`
+wrapper, the toolbar), that container is taller than the grid, and the overlay used to take its height
+and cover whatever sits below the grid.
+
+The result is therefore capped at `hot.getTableHeight()` (the root's `offsetHeight`) minus the header row
+the overlay starts under **and minus `scrollbarSize`**. The root's box includes a horizontal scrollbar, so
+without that term the cap covers the scrollbar and the user cannot scroll the columns of an empty grid.
+A fixed pixel height is unaffected, because the cap is not smaller than the value the engine returned
+there. A root with no box (hidden) is left uncapped.
+
+Pinned by `tests/e2e/empty-data-state-clipped-container.spec.ts`, which needs the clipping ancestor (a
+plain page lets the window own the axis and never takes this path), and by
+`empty-data-state-clipped-container-scrollbar.spec.ts`, which drops `--hide-scrollbars` because a
+zero-width scrollbar cannot show the defect.
+
 ## The `message` option accepts three shapes
 
 `string` | `function` | a record. `SETTINGS_VALIDATORS` accepts all three plus `undefined`, and the plugin
@@ -148,11 +174,43 @@ Only when nothing was captured — no ranges — does it fall back to selecting 
 is suppressed**. That is deliberate: a scroll-into-view on an arriving dataset would jump the viewport.
 Either way, `afterEmptyDataStateHide` fires last.
 
+**A `loadData()` drops the captured selection** (`#onBeforeLoadData`). The coordinates addressed the
+replaced rows, and restoring them put a selection on unrelated cells of the new data; under the sheets bar
+a sheet the user never visited opened with the departing sheet's selection. When a selection was captured,
+the drop also sets `#isSelectionDataReplaced`, and the hide after it then leaves the selection alone, as
+`#hide(false)` does for a view change: neither the old cells nor the first cell belong to the new data, and
+a sheet switch opens a never-visited sheet with nothing selected. Only a hide with nothing captured (a grid
+built empty) still takes the `(0, 0)` fallback. Two loads keep it, on purpose. One made while `hasExternalDataSource`
+answers `true`: a server-backed grid replaces its rows with `loadData()` on every page, sort and filter,
+and restoring the selection is how the user keeps it there. Ask the core hook, never the plugin behind it
+(`releasedPluginsViewAgnostic.unit.js`). And `updateData()`, which keeps the dataset's state by design
+(the wrappers send it on re-render), is not listened to at all.
+
+**A sheet switch is a view change, not a load** (`_runViewChange()`, `@private`, which the sheets bar wraps
+around its switch). A hide during it is `#hide(false)`, so it never takes the `(0, 0)` fallback: leaving an
+empty sheet with its overlay up for a never-visited sheet selected A1 there, because the empty sheet had
+captured nothing. When the switch ends with the overlay shown, the overlay keeps the arriving sheet's
+selection for its own hide. Do not mark every load under a visible overlay as replaced instead: an empty
+grid plus `loadData()` must still select A1 (`emptyDataStateLifecycle.unit.js`). Pinned by
+`tests/e2e/sheets-bar-empty-data-state.spec.ts`.
+
+**`disablePlugin()` forgets the overlay**: `#isVisible` goes to `false` and the captured selection to
+`null`, like `destroy()`, and no hide hook fires. Left as they were, `isVisible()` answered `true` for a
+disabled plugin, and the next enable over rows ran `#hide()`: a phantom `afterEmptyDataStateHide` and a
+forced `selectCell(0, 0)`. `updatePlugin()` saves that state before its own disable and puts it back before
+the enable, so an update of the options keeps a visible overlay visible without a hide or show hook.
+**`#loadingActive` is part of that state.** `disablePlugin()` clears it, and an update that did not put it
+back dropped the loading overlay mid-fetch: "No data" over 0 rows, nothing over rows, and the fetch's
+`afterDataProviderFetch` then had no loading state left to clear. A sheet switch that re-sends an
+`emptyDataState` object took the same path. A new piece of overlay state belongs in that save and restore.
+Pinned by `__tests__/emptyDataStateLifecycle.unit.js` and `../dataProvider/__tests__/dataProviderLoadingSettle.unit.js`.
+
 ## Where to look next
 
 - Sibling overlay surfaces and the shared button-type rule: `../dialog/AGENTS.md`,
   `../notification/AGENTS.md`, `../loading/AGENTS.md`.
 - A failed DataProvider fetch hides the loading overlay only when the hook's third argument, `isVisible`, is not `false`. A request made for a view the grid no longer shows can fail while the view on screen still waits for its own fetch; clearing on that failure dropped the overlay mid-fetch.
+- **A replayed DataProvider response does not hide the loading overlay.** `afterDataProviderFetch` hides it for a loaded response only; a payload with `isRestored: true` (`DataProvider#_restoreFetchResult()`) is left alone. A replay brings back rows the grid already shows, and it can run while a fetch of the same view is still loading (the owner replays the view's last response before it waits for that fetch), so hiding there took the overlay off a fetch still in flight. When no fetch runs, the view change has already hidden the overlay through `_syncDataProviderLoading()`. Pinned by `__tests__/dataProviderReplay.unit.js`.
 - **This plugin knows nothing about the view that changed.** When DataProvider's owner changes the view the grid shows, no fetch hook fires, so DataProvider calls the internal `_syncDataProviderLoading(isLoading, isViewChange)` (`@private`, not API) with its own `isFetching()`, also after releasing a context (an aborted fetch fires no hook). It does nothing while this plugin is disabled — the default — because `#show()` activates a focus scope that only exists while the plugin is enabled. The call exists because a fetch left running for another view must not keep the overlay up, and a view whose fetch still runs must show it again. A view change (`isViewChange: true`) also re-homes the selection `#show()` stashed: while the overlay stays up, the stash becomes the arriving view's selection (the owner restored it before the sync runs), and when the change hides the overlay, `#hide(false)` restores nothing — no `importSelection()` and no `selectCell(0, 0)` fallback. The stash otherwise belonged to the view that was left, and hiding pasted that view's selection over the arriving one, or reset it to the first cell. Never listen to an owner plugin's hooks here; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if this directory's source names the owner plugin or its hooks.
 - Where the message usually comes from on a server-backed grid: `../dataProvider/AGENTS.md`.
 - Layout slots vs fixed internal elements: `../../core/layout/`.
@@ -163,9 +221,30 @@ Either way, `afterEmptyDataStateHide` fires last.
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='emptyDataState'`
 - `npm run test:unit --prefix handsontable -- --testPathPattern='emptyDataState'`
 - `npm --prefix tests run test:e2e -- e2e/empty-data-state-shortcuts.spec.ts`
+- `npm --prefix tests run test:e2e -- e2e/empty-data-state-layout.spec.ts`: where the panel sits against
+  the headers and the root for a fixed height, `height: 'auto'`, no height, no columns and RTL, and the
+  keyboard path to the no-results state. The buttons row is a sibling of `__content`, so the spec centers
+  the title's text, the description's text and the Reset filters button one by one, and the panel's
+  content vertically on the union of the two rows.
 
 `__tests__/` splits into `hooks/`, `methods/`, `options/`, `keyboardShortcuts/`, `plugins/` plus
 `ui.unit.js`.
 
 The shortcut behavior is pinned by the Playwright spec, not by `__tests__/keyboardShortcuts/`: it needs a
 real context menu and real key events, and the legacy suite is frozen.
+
+## The overlay first appears in the ready step
+
+At init `enablePlugin()` runs before the view exists, so its own toggle does nothing. `onGridReady()`
+(`../base/AGENTS.md`) toggles once after each enable or update, before the next render, so at init the
+overlay is shown before the `init` hook and drawn by the first render. It replaced an `afterInit` listener
+that showed it after the first render and then rendered a second time. The step toggles only when the enable
+ran without a view (`#toggleOwed`): on a live grid the enable toggles itself (or leaves it to `onDataReady()`),
+and a second toggle there only read the view counts again on every settings update a wrapper sends. Pinned by
+`__tests__/readyStep.unit.js`.
+
+## The enable-time toggle waits for `onDataReady()` when settings arrive ahead of data
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), `enablePlugin()` leaves `#toggleEmptyDataState()` to `onDataReady()`. Run before, it
+showed the overlay and took the keyboard for a grid about to receive rows.

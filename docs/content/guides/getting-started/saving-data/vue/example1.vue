@@ -3,7 +3,7 @@ import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
-import type { CellChange, ChangeSource } from 'handsontable/common';
+import type { CellChange, ChangeSource } from 'handsontable';
 
 registerAllModules();
 
@@ -73,7 +73,7 @@ const hotSettings = ref<GridSettings>({
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   afterChange,
 });
 </script>

@@ -10,6 +10,7 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
     <div class="example-controls-container">
       <div class="controls">
         <button (click)="exportBlob()">Export as a Blob</button>
+        <button (click)="exportString()">Export as a string</button>
       </div>
     </div>
 
@@ -41,21 +42,24 @@ export class AppComponent {
     autoWrapCol: true,
   };
 
+  // Hidden rows and columns stay out of both exports.
+  private readonly exportOptions = {
+    colHeaders: true,
+    rowHeaders: true,
+    exportHiddenColumns: false,
+    exportHiddenRows: false,
+  };
+
   exportBlob() {
     const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
 
-    const exportedBlob = exportPlugin.exportAsBlob('csv', {
-      bom: false,
-      columnDelimiter: ',',
-      colHeaders: false,
-      exportHiddenColumns: false,
-      exportHiddenRows: false,
-      mimeType: 'text/csv',
-      rowDelimiter: '\r\n',
-      rowHeaders: true,
-    });
+    console.log(exportPlugin.exportAsBlob('csv', this.exportOptions));
+  }
 
-    console.log(exportedBlob);
+  exportString() {
+    const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
+
+    console.log(exportPlugin.exportAsString('csv', this.exportOptions));
   }
 }
 /* end-file */
@@ -65,7 +69,7 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -75,7 +79,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

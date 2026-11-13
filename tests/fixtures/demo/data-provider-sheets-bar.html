@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -49,6 +50,7 @@
     `dataProvider: null` in its settings. `?activeSheet=<n>` opens the workbook on another sheet.
     `?frozenOrders=1` declares the Orders sheet's `data` as a frozen array (the shape an immutable store such as
     Immer hands over), exposed as `window.htOrdersData`, so a spec can prove nothing writes into it.
+    `?ordersBorders=1` makes the Orders sheet declare a `customBorders` array with one border at row 0, column 1.
     `?userErrorListeners=1` adds user `afterDataProviderFetchError` and `afterRowsMutationError` listeners that
     return values (a hook passes a non-`undefined` return on to the next listener as its first argument), so a spec
     can prove such listeners do not change how an off-screen failure is kept.
@@ -67,13 +69,16 @@
     way a memoizing data layer does. `window.htServer.totalRows` sets how many rows the server holds
     (25 by default), read when a request is released. The server honors `contains` filter conditions,
     so a filtered total is real. Every pending request records the `params` it was called with.
+    `?noRefetchAfterCreate=1` gives both server sheets `refetchAfterCreate: false`.
 
     Every `fetchRows` call parks on a deferred promise until the spec releases it
     (`window.htServer.release(prefix)`), so the spec decides exactly when a response lands.
     `onRowsCreate`, `onRowsUpdate`, and `onRowsRemove` park the same way on
     `window.htServer.releaseUpdates()`; `failNextUpdate` makes the next released mutation reject, and every
     `onRowsUpdate` call records its `{ id, changes }` rows in `window.htServer.updatePayloads`. `failNext`
-    makes the next `fetchRows` call for a prefix reject instead of resolving.
+    makes the next `fetchRows` call for a prefix reject instead of resolving. `window.htReleaseFetch(prefix)` and
+    `window.htFailNextFetch(prefix)` do the same two things from a top-level name, because a screen reader
+    scenario's `call` step names a function on `window`, never a path into an object.
 
     `window.htServer.consoleProblems` mirrors every `console.error`/`console.warn` call so specs can
     assert on it directly instead of reading the browser's own console. `window.htServer.events`
@@ -138,6 +143,10 @@
     };
 
     window.htServer = server;
+    window.htReleaseFetch = prefix => server.release(prefix);
+    window.htFailNextFetch = (prefix) => {
+      server.failNext.add(prefix);
+    };
 
     ['error', 'warn'].forEach((level) => {
       const original = console[level];
@@ -226,6 +235,7 @@
 
     const provider = prefix => ({
       rowId: 'id',
+      ...(fixtureParams.has('noRefetchAfterCreate') ? { refetchAfterCreate: false } : {}),
       fetchRows: makeFetchRows(prefix),
       onRowsCreate: parkMutation,
       onRowsUpdate: (rows) => {
@@ -255,7 +265,16 @@
     window.htOrdersData = ordersData;
 
     const buildSheets = () => [
-      { name: 'Orders', data: ordersData, settings: { dataProvider: provider('ORD') } },
+      {
+        name: 'Orders',
+        data: ordersData,
+        settings: {
+          dataProvider: provider('ORD'),
+          ...(fixtureParams.has('ordersBorders')
+            ? { customBorders: [{ row: 0, col: 1, top: { width: 2, color: 'red' } }] }
+            : {}),
+        },
+      },
       {
         name: 'Notes',
         data: [{ id: 'NOTE-1', fetch: '-' }, { id: 'NOTE-2', fetch: '-' }, { id: 'NOTE-3', fetch: '-' }],
@@ -324,7 +343,7 @@
         afterRowsMutationError(operation) {
           server.events.push(`afterMutationError ${operation}`);
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       container.setAttribute('data-init-error', String(error && error.message));

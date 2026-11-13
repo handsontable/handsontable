@@ -31,8 +31,8 @@ docs/content/guides/category/feature/
    import { registerAllModules } from 'handsontable/registry';
    registerAllModules();
    ```
-2. `licenseKey: 'non-commercial-and-evaluation'`
-3. Container: `const container = document.querySelector('#example');`
+2. The license key stays a commented-out placeholder, never a key value: `// licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/`. In JSX it is the first attribute (`// licenseKey="your-license-key" // get a key at ...`), because the generated `.jsx` loses a comment that follows the last attribute; in a Vue or HTML template it is an `<!-- license-key="your-license-key" (get a key at ...) -->` comment above the tag.
+3. Container, typed in the `.ts` and `.tsx` files: `const container = document.querySelector<HTMLElement>('#example1')!;`. An untyped `querySelector` returns `Element | null`, which fails with `TS2345` in a new file, and it also hides every later error in the settings object from the type check (see `docs/AGENTS.md`, "Type-checking the examples"). The generated `.js` file keeps the plain `document.querySelector('#example1')`.
 
 ## React (TSX/JSX)
 
@@ -42,14 +42,19 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const App = () => {
-  return <HotTable data={data} licenseKey="non-commercial-and-evaluation" />;
+  return (
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      data={data}
+    />
+  );
 };
 ```
 
 ## Angular
 
 - Standalone components (`standalone: true`, `imports: [HotTableModule]`), class named `AppComponent` in every example.
-- `app.config.ts` (not `app.module.ts`) with `ApplicationConfig`, `provideZoneChangeDetection({ eventCoalescing: true })`, and global `HOT_GLOBAL_CONFIG` for the license key. Set the license there only; leave `licenseKey` off individual `<hot-table>` bindings.
+- `app.config.ts` (not `app.module.ts`) with `ApplicationConfig`, `provideZoneChangeDetection({ eventCoalescing: true })`, and global `HOT_GLOBAL_CONFIG`, which carries the commented-out placeholder `// license: 'your-license-key', // get a key at https://handsontable.com/pricing/` (never a key value, never `NON_COMMERCIAL_LICENSE`). Leave `licenseKey` off individual `<hot-table>` bindings.
 - Template control flow: `@if` / `@for (x of list; track x.id)`.
 
 The docs site bootstraps Angular examples with JIT in the browser, which cannot load external files and lacks decorator metadata:
@@ -59,6 +64,8 @@ The docs site bootstraps Angular examples with JIT in the browser, which cannot 
 - Inject services with `inject()`. Constructor DI throws `NG0202`.
 - Put Handsontable hook functions inside `gridSettings`, not as template bindings (`(afterInit)="handler()"`).
 - Import only the symbols you use; unused imports (`RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
+- Set template-bound state (such as `hotSettings` read by `@if`) in `ngOnInit`. Angular 22 components are `OnPush` by default, and nothing marks the component dirty after `ngAfterViewInit`, so a write there leaves an `@if` grid blank. If the write needs the view, call `markForCheck()` on an injected `ChangeDetectorRef` after it, or `detectChanges()` when the view must render synchronously.
+- Mark the component dirty after any write to template-bound state that happens after an `await`, in a `setTimeout`, or in a Handsontable callback such as a hook or a shortcut action (status text, a disabled button). Angular 22 components are `OnPush` by default, and `NgZone.run` does not mark them dirty. Call `markForCheck()` on an injected `ChangeDetectorRef`: outside the zone it schedules its own tick, so a Handsontable callback needs nothing more. Keep `detectChanges()` for a view that must render synchronously. Verify by loading the page and waiting, with no interaction.
 
 The `.ts` file holds `app.component.ts` and `app.config.ts` as separate `/* file: ... */` sections:
 
@@ -86,14 +93,19 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    { provide: HOT_GLOBAL_CONFIG, useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig },
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
+    },
   ],
 };
 /* end-file */
@@ -130,7 +142,7 @@ const hotSettings = ref<GridSettings>({
   ],
   colHeaders: true,
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -181,7 +193,7 @@ Embed the files with `@[code]` inside an `::: example` container; syntax in the 
 ## Checklist
 
 - [ ] TypeScript source written (`.ts`/`.tsx`, or `.vue` with `lang="ts"`); JS variant generated, not hand-written.
-- [ ] `licenseKey: 'non-commercial-and-evaluation'`, `handsontable/base` import plus registration.
+- [ ] The commented-out `licenseKey` placeholder (no key value), `handsontable/base` import plus registration.
 - [ ] 25-60 lines, one concept, realistic data.
 - [ ] Every framework variant rendered and looked at: open the page in the docs dev server (`npm --prefix docs run dev`, not a full docs build) and check each variant for console load errors, grid width, and styling. A variant you did not open counts as untested.
 - [ ] Angular variants type-check: `SKIP_LATEST=1 npm run typecheck --prefix docs/angular-type-check` (as CI runs it; without `SKIP_LATEST` it also checks against `handsontable@latest`, so an API added on the branch fails locally) (needs `handsontable` and `wrappers/angular-wrapper` built first). This is the `Docs Angular Type Check` CI job, which fails most often after an example edit.

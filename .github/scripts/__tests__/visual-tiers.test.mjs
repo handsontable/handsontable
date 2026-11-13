@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot } from '../lib/repo-root.mjs';
+import { job, jobIds, steps } from '../lib/workflow-text.mjs';
 import * as visualConfig from '../../../visual-tests/src/config.mjs';
 
 // The visual stage renders by tier (DEV-2797): every pull request renders the
@@ -36,46 +37,6 @@ const visual = read('.github/workflows/visual.yml');
 const tests = read('.github/workflows/test.yml');
 const seed = read('.github/workflows/visual-seed.yml');
 const nightly = read('.github/workflows/visual-nightly.yml');
-
-/**
- * The jobs a workflow declares, by the two-space indent that starts each one.
- *
- * @param {string} source The workflow file's contents.
- * @returns {string[]} Job ids in order.
- */
-function jobIds(source) {
-  const [, jobsBlock = ''] = source.split(/^jobs:$/m);
-
-  return [...jobsBlock.matchAll(/^ {2}([A-Za-z0-9_-]+):$/gm)].map(([, id]) => id);
-}
-
-/**
- * One job's block, by the two-space indent that starts each job.
- *
- * @param {string} source The workflow file's contents.
- * @param {string} id The job id.
- * @returns {string} The job's text.
- */
-function job(source, id) {
-  const [, jobsBlock = ''] = source.split(/^jobs:$/m);
-  const blocks = jobsBlock.split(/^ {2}(?=[A-Za-z0-9_-]+:$)/m);
-
-  return blocks.find(block => block.startsWith(`${id}:`)) ?? '';
-}
-
-/**
- * A job's steps, split on the six-space `- ` that starts each one. The comment
- * block above a step stays with the step before it, which is harmless here: no
- * comment carries an `if:` key.
- *
- * @param {string} jobBody One job's text, from `job()`.
- * @returns {string[]} One entry per step, its leading indent removed.
- */
-function steps(jobBody) {
-  const [, stepsBlock = ''] = jobBody.split(/^ {4}steps:$/m);
-
-  return stepsBlock.split(/^ {6}(?=- )/m).filter(block => block.trim());
-}
 
 /**
  * A step's folded `if:` expression, or null when the step has none. The key

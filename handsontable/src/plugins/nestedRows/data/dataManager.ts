@@ -2,6 +2,7 @@ import type { HotInstance } from '../../../core/types';
 import { rangeEach } from '../../../helpers/number';
 import { objectEach } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
+import { warnOnce } from '../../../helpers/console';
 import type { NestedRows } from '../nestedRows';
 import { recordMetaRowsShift } from '../../../dataMap/dataJournal';
 
@@ -16,6 +17,17 @@ interface NodeInfo {
   parent: RowObject | null;
   row: number;
   level: number;
+  position: number;
+  setSize: number;
+}
+
+/**
+ * Where a row sits among its siblings, 1-based, as the `aria-posinset` and `aria-setsize`
+ * attributes need it.
+ */
+export interface RowSetPosition {
+  position: number;
+  setSize: number;
 }
 
 /**
@@ -125,6 +137,12 @@ class DataManager {
    * shape capture can tell whether anything moved since the previous one.
    */
   #shapeVersion = 0;
+
+  /**
+   * Per sibling list: the number of untrimmed siblings and the position of each. Filled lazily by
+   * `getRowSetPosition()` while rows are trimmed, so a rendered header reads in O(1) after one pass.
+   */
+  #reachableSiblings = new WeakMap<RowObject[], { setSize: number; positions: Map<RowObject, number> }>();
 
   /**
    * Initializes the data manager with references to the NestedRows plugin and the Handsontable instance.
@@ -271,6 +289,7 @@ class DataManager {
    */
   rewriteCache() {
     this.#shapeVersion += 1;
+    this.invalidateSetPositions();
     this.cache = {
       levels: [],
       levelCount: 0,
@@ -278,9 +297,7 @@ class DataManager {
       nodeInfo: new WeakMap<object, NodeInfo>()
     };
 
-    rangeEach(0, this.data!.length - 1, (i: number) => {
-      this.cacheNode(this.data![i], 0, null);
-    });
+    this.#cacheSiblings(this.data!, 0, null);
   }
 
   /**
@@ -290,8 +307,10 @@ class DataManager {
    * @param {object} node Node to cache.
    * @param {number} level Level of the node.
    * @param {object} parent Parent of the node.
+   * @param {number} [index=0] Position of the node among its siblings, 0-based.
+   * @param {number} [setSize=1] Number of siblings, the node included.
    */
-  cacheNode(node: RowObject, level: number, parent: RowObject | null) {
+  cacheNode(node: RowObject, level: number, parent: RowObject | null, index = 0, setSize = 1) {
     if (!node || typeof node !== 'object') {
       return;
     }
@@ -304,14 +323,34 @@ class DataManager {
     this.cache.nodeInfo.set(node, {
       parent,
       row: this.cache.rows.length - 1,
-      level
+      level,
+      position: index + 1,
+      setSize,
     });
 
     if (this.hasChildren(node) && node.__children) {
-      arrayEach(node.__children, (elem: RowObject) => {
-        this.cacheNode(elem, level + 1, node);
-      });
+      this.#cacheSiblings(node.__children, level + 1, node);
     }
+  }
+
+  /**
+   * Caches a list of sibling nodes. Only object entries become rows, so only those count towards a
+   * node's position and the size of its set - a `null` among the children would otherwise make the
+   * last row report a position past the number of rows. A string or an array-like `__children` goes
+   * through `Array.from()` first, as `arrayEach()` did, so it keeps loading instead of throwing; an
+   * array is filtered without that extra copy.
+   *
+   * @param {Array} siblings The nodes to cache.
+   * @param {number} level Level of the nodes.
+   * @param {object} parent Parent of the nodes.
+   */
+  #cacheSiblings(siblings: RowObject[], level: number, parent: RowObject | null) {
+    const list = Array.isArray(siblings) ? siblings : Array.from<RowObject>(siblings);
+    const rows = list.filter(node => node !== null && typeof node === 'object');
+
+    arrayEach(rows, (node: RowObject, index: number) => {
+      this.cacheNode(node, level, parent, index, rows.length);
+    });
   }
 
   /**
@@ -634,6 +673,148 @@ class DataManager {
   }
 
   /**
+   * Gets the rows a filter keeps for the provided matching rows, so the tree stays whole: each
+   * matching row, every ancestor of it, and every descendant of it (DEV-512). Both walks read the
+   * flatten cache, never the live `__children` arrays, so a source changed without a re-cache cannot
+   * stretch a subtree over its next sibling. A matching row the cache has no level for stays, but
+   * its subtree and ancestors are not walked.
+   *
+   * A row that matches only through blank cells keeps its ancestors but not its subtree: a parent
+   * with an empty cell must not bring back the children the filter excluded (DEV-512).
+   *
+   * @private
+   * @param {number[]} matchedRows Physical indexes of the matching rows.
+   * @param {number[]} [blankMatchedRows] Physical indexes of the matching rows whose every
+   * conditioned column reads empty.
+   * @returns {number[]} Physical indexes of the rows to keep, ascending.
+   */
+  getRowsToKeepForMatches(matchedRows: number[], blankMatchedRows: number[] = []): number[] {
+    const cachedRowCount = this.cache.rows.length;
+    const isBlankMatch = new Set(blankMatchedRows);
+    // A match past the cache (an empty or stale cache) still stays, so the range covers it too. The
+    // Filters plugin bounds the answer by the source row count.
+    const rowCount = matchedRows.reduce((count, row) => Math.max(count, row + 1), cachedRowCount);
+    const isKept = new Uint8Array(rowCount);
+    // Set for a match and its descendants, whose subtrees are kept already. An ancestor is only in
+    // `isKept`, because its other children are not kept with it.
+    const isSubtreeKept = new Uint8Array(rowCount);
+
+    matchedRows.forEach((matchedRow) => {
+      if (matchedRow < 0 || isSubtreeKept[matchedRow] === 1) {
+        return;
+      }
+
+      // A match always stays, whatever the cache knows about it.
+      isKept[matchedRow] = 1;
+
+      const level = matchedRow < cachedRowCount ? this.getRowLevel(matchedRow) : null;
+
+      if (level === null) {
+        return;
+      }
+
+      if (!isBlankMatch.has(matchedRow)) {
+        isSubtreeKept[matchedRow] = 1;
+
+        // The cache is flattened depth-first, so the descendants are the rows right after the match
+        // that sit deeper than it.
+        for (let row = matchedRow + 1; row < cachedRowCount; row++) {
+          const rowLevel = this.getRowLevel(row);
+
+          if (rowLevel === null || rowLevel <= level) {
+            break;
+          }
+
+          isKept[row] = 1;
+          isSubtreeKept[row] = 1;
+        }
+      }
+
+      let parentRow = this.getRowIndex(this.getRowParent(matchedRow));
+
+      // An ancestor already kept had its own ancestors kept with it.
+      while (parentRow !== null && isKept[parentRow] !== 1) {
+        isKept[parentRow] = 1;
+        parentRow = this.getRowIndex(this.getRowParent(parentRow));
+      }
+    });
+
+    const rowsToKeep: number[] = [];
+
+    for (let row = 0; row < rowCount; row++) {
+      if (isKept[row] === 1) {
+        rowsToKeep.push(row);
+      }
+    }
+
+    return rowsToKeep;
+  }
+
+  /**
+   * Gets where the row with the provided physical index sits among its siblings.
+   *
+   * While no row is trimmed, the answer comes straight from the structure cache. While any trimming
+   * map (a filter, for example) hides rows, only the siblings that are not trimmed count: they are the
+   * ones a user can reach, so they are the ones a screen reader should count.
+   *
+   * @private
+   * @param {number} row Physical row index.
+   * @returns {RowSetPosition|null} The 1-based position and the number of siblings, or `null` for a
+   * row the cache does not know.
+   */
+  getRowSetPosition(row: number): RowSetPosition | null {
+    const rowObject = this.getDataObject(row);
+    const nodeInfo = rowObject ? this.cache.nodeInfo.get(rowObject) : undefined;
+
+    if (!rowObject || !nodeInfo) {
+      return null;
+    }
+
+    const { rowIndexMapper } = this.hot;
+
+    if (rowIndexMapper.getNotTrimmedIndexesLength() === rowIndexMapper.getNumberOfIndexes()) {
+      return { position: nodeInfo.position, setSize: nodeInfo.setSize };
+    }
+
+    const siblings: RowObject[] = nodeInfo.parent ? nodeInfo.parent.__children! : this.data!;
+    let reachable = this.#reachableSiblings.get(siblings);
+
+    if (!reachable) {
+      reachable = { setSize: 0, positions: new Map<RowObject, number>() };
+
+      for (let i = 0; i < siblings.length; i++) {
+        const sibling = siblings[i];
+        const siblingInfo = sibling && typeof sibling === 'object' ? this.cache.nodeInfo.get(sibling) : undefined;
+
+        if (siblingInfo && !rowIndexMapper.isTrimmed(siblingInfo.row)) {
+          reachable.setSize += 1;
+          reachable.positions.set(sibling, reachable.setSize);
+        }
+      }
+
+      this.#reachableSiblings.set(siblings, reachable);
+    }
+
+    const position = reachable.positions.get(rowObject);
+
+    // The row itself is trimmed (so it is not rendered): keep the structural answer.
+    return position === undefined ?
+      { position: nodeInfo.position, setSize: nodeInfo.setSize } :
+      { position, setSize: reachable.setSize };
+  }
+
+  /**
+   * Forgets the reachable-sibling counts that `getRowSetPosition()` keeps while rows are trimmed.
+   * The plugin calls it whenever the row index mapper's cache changes, and `rewriteCache()` calls it
+   * when the tree changes.
+   *
+   * @private
+   */
+  invalidateSetPositions() {
+    this.#reachableSiblings = new WeakMap();
+  }
+
+  /**
    * Check if the provided row/row element has children.
    *
    * @param {number|object} row Row number or row element.
@@ -769,6 +950,50 @@ class DataManager {
       atAxisEnd: physicalRow === this.hot.rowIndexMapper.getNumberOfIndexes() - 1,
     });
     this.hot._getMetaManager().createRow(physicalRow, 1);
+    // The index-mapper insert before this one is not always at the row's physical index (the parent branch of
+    // `addChildAtIndex()` passes a position inside the parent, or one past the last row), so the declared row
+    // heights are moved to it, and a row that does not end the rows gets no entry.
+    this.hot._alignInsertedRowSizes(physicalRow, 1);
+  }
+
+  /**
+   * Captures, by row object, which entry of an array `rowHeights` or `minRowHeights` each row was declared
+   * at, for a hand-built change that renumbers rows without the index mapper (a detach, a row move). The
+   * index mapper keeps those entries on their rows for an insert or a removal, but a rewrite of the tree
+   * moves the data under fixed physical indexes, so the entries have to follow the row objects.
+   *
+   * @returns {Function|null} Puts each row's entry back at the row's new physical index; `null` when neither
+   * option is an array.
+   */
+  captureRowSizeOrigins(): (() => void) | null {
+    const origins = this.hot._readRowSizeOrigins();
+
+    if (origins === null) {
+      return null;
+    }
+
+    // The cache lists every row object by its physical index, so a copy of it needs no walk of the tree.
+    const rows: (RowObject | null)[] = this.cache.rows.slice();
+
+    return () => {
+      const moved = new Map<'rowHeights' | 'minRowHeights', unknown[]>();
+
+      origins.forEach((values, option) => {
+        const next: unknown[] = new Array(values.length).fill(null);
+
+        rows.forEach((row, physicalRow) => {
+          const newPhysicalRow = row === null ? null : this.getRowIndex(row);
+
+          if (newPhysicalRow !== null && newPhysicalRow < next.length) {
+            next[newPhysicalRow] = values[physicalRow] ?? null;
+          }
+        });
+
+        moved.set(option, next);
+      });
+
+      this.hot._writeRowSizeOrigins(moved);
+    };
   }
 
   /**
@@ -845,6 +1070,19 @@ class DataManager {
   }
 
   /**
+   * Tells the developer that `addChildAtIndex()` was given a parent row object the grid no longer
+   * holds, once per grid, because nothing else in the call shows it.
+   */
+  #warnStaleParent() {
+    warnOnce(
+      this.hot.rootElement,
+      'nestedRows.addChildAtIndex.staleParent',
+      'The parent row object passed to `addChildAtIndex()` is not in the grid (for example, it was kept '
+      + 'across a data load), so no row was added. Read the parent again with `getDataObject()`.'
+    );
+  }
+
+  /**
    * The body of `addChildAtIndex()`, run inside its operation.
    *
    * @param {object} parent Parent node.
@@ -855,14 +1093,35 @@ class DataManager {
     let childElement = element;
     let flattenedIndex: number;
 
+    // A parent object the cache does not know (one an app kept across a data load) has no row to
+    // insert under. Falling back to row 0 wrote its children onto the first top-level row and left an
+    // index slot with no data behind it.
+    if (parent && this.getRowIndex(parent) === null) {
+      this.#warnStaleParent();
+
+      return;
+    }
+
     if (!childElement) {
       childElement = this.mockNode();
     }
 
     this.hot.runHooks('beforeAddChild', parent, childElement, index);
 
-    if (parent) {
-      const parentIndex = this.getRowIndex(parent) ?? 0;
+    // Read after the hook: a listener may have moved the parent (removed a row above it, detached
+    // it), and a row number taken earlier would address whatever row holds that position now.
+    const parentIndex = parent ? this.getRowIndex(parent) : null;
+
+    // A listener removed the parent itself. `beforeAddChild` has opened the collapsed-rows stash,
+    // and only `afterAddChild` closes it, so the hook still fires, as it does for a cancelled insert.
+    if (parent && parentIndex === null) {
+      this.#warnStaleParent();
+      this.hot.runHooks('afterAddChild', parent, null, index);
+
+      return;
+    }
+
+    if (parent && parentIndex !== null) {
       const finalChildIndex = parentIndex + index + 1;
 
       this.hot.runHooks('beforeCreateRow', finalChildIndex, 1);
@@ -871,8 +1130,9 @@ class DataManager {
 
       this.rewriteCache();
 
-      this.plugin.disableCoreAPIModifiers();
-
+      // The plugin's modifiers stay on: `parentIndex` is a flattened row, and with them off the write
+      // would address the top-level array by that number and hand the parent's `__children` to an
+      // unrelated top-level row.
       this.hot.setSourceDataAtCell(
         parentIndex,
         '__children',
@@ -881,8 +1141,6 @@ class DataManager {
       );
 
       this.hot.rowIndexMapper.insertIndexes(finalChildIndex, 1);
-
-      this.plugin.enableCoreAPIModifiers();
 
       // Read the real index instead of reusing `finalChildIndex`: that one assumes every preceding
       // sibling is a leaf, so a sibling with descendants would splice the meta above the new row.
@@ -1029,9 +1287,14 @@ class DataManager {
     // condition, free to drift away from the one the data operation is gated on.
     let hasMovedTheRow = false;
 
+    // Captured only for a detach that moves the row, which is the only one the restore below runs for.
+    let restoreRowSizeOrigins: (() => void) | null = null;
+
     this.hot.runHooks('beforeDetachChild', parent, element, source);
 
     if (indexWithinParent !== null && indexWithinParent !== undefined) {
+      restoreRowSizeOrigins = this.captureRowSizeOrigins();
+
       const removedRowIndexes = Array.from(
         new Array(childRowIndex + childCount + 1).keys()
       ).splice(-1 * (childCount + 1));
@@ -1083,6 +1346,7 @@ class DataManager {
       // arithmetically from the grandparent position, and a sibling that owns descendants breaks
       // the formula.
       this.moveCellsMeta(childPhysicalIndex, this.getRowIndex(element), childCount + 1);
+      restoreRowSizeOrigins?.();
     }
 
     this.hot.runHooks('afterCreateRow', movedElementRowIndex! - 2, childCount + 1, source);
@@ -1125,6 +1389,24 @@ class DataManager {
         tempParent.__children!.splice(indexWithinParent, 1);
       }
     });
+
+    this.rewriteCache();
+  }
+
+  /**
+   * Appends row objects to the parent of the provided row, right after its last child. Used for an insert
+   * below the last row of the tree, so the anchor is always the last child of its parent and the new rows
+   * land at the end of the flattened tree.
+   *
+   * @private
+   * @param {object} anchor The row object the new rows become siblings of.
+   * @param {object[]} elements Row objects to add.
+   */
+  appendSiblings(anchor: RowObject, elements: RowObject[]) {
+    const parent = this.getRowParent(anchor);
+    const siblings = parent === null ? this.data! : parent.__children!;
+
+    elements.forEach(element => siblings.push(element));
 
     this.rewriteCache();
   }

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the React wrapper turning off on-by-default options, such as `copyPaste`, when a prop is `undefined`. An `undefined` prop now counts as not passed, so the option keeps its default.",
+  "type": "fixed",
+  "issueOrPR": 13976,
+  "breaking": false,
+  "framework": "react"
+}

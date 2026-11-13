@@ -1,43 +1,39 @@
 ---
 type: reference
 title: Software license
-metaTitle: Software license - JavaScript Data Grid | Handsontable
-description: Learn about the licensing terms of the Handsontable data grid.
+metaTitle: Software license | Handsontable DataGrid for JavaScript
+description: Learn about the licensing terms of Handsontable DataGrid.
 permalink: /software-license
 canonicalUrl: /software-license
 react:
-  metaTitle: Software license - React Data Grid | Handsontable
+  metaTitle: Software license | Handsontable DataGrid for React
 angular:
-  metaTitle: Software license - Angular Data Grid | Handsontable
+  metaTitle: Software license | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Software license - Vue Data Grid | Handsontable
+  metaTitle: Software license | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Technical specification
+menuTag: updated
 ---
-Learn about the licensing terms of the Handsontable data grid.
+Learn about the licensing terms of Handsontable DataGrid.
 
 [[toc]]
 
 ## Overview
 
-Handsontable's source code is available under two types of licenses, to make it a better fit for different types of projects. You are required to specify which type of license you use.
+Handsontable DataGrid is available under the following licensing options, to make it a better fit for different types of projects. You are required to specify which license you use.
 
 For more details on entering the license key, see the [License key](@/guides/getting-started/license-key/license-key.md) page.
 
 ## Available licenses
 
-| Name                                                                                                                         | Type        |
-| ---------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| [Non-Commercial License](https://handsontable.com/static/licenses/non-commercial/v5/handsontable-non-commercial-license.pdf) | Proprietary |
-| Commercial License Agreement                                                                                                 | Proprietary |
+- Free trial for evaluation.
+- Commercial license.
+- Free license for non-commercial projects.
 
-## Non-commercial use
+## Free trial for evaluation
 
-We allow you to use this software for such non-commercial purposes as, but not limited to, research, private study, and evaluation. Your use in commercial settings is strictly limited to evaluation, development and testing tier of a software deployment architecture.
-
-**In other words, you can’t enter the production stage if your project is in any way connected with your commercial activity.**
-
-To use Handsontable in a non-commercial or open-source project, see the [License key](@/guides/getting-started/license-key/license-key.md) page.
+Businesses and other organizations can evaluate Handsontable for free. Start a trial at [handsontable.com/pricing](https://handsontable.com/pricing/) to get a trial license key. The trial covers internal evaluation outside production, runs once, and can't be renewed. During the trial, you can contact our technical support team. When it ends, you need a commercial license to keep using Handsontable.
 
 ## Commercial use
 
@@ -45,9 +41,15 @@ To obtain a commercial license key, contact our Sales Team directly, either thro
 
 An enterprise license is available on demand.
 
+## Free license for non-commercial projects
+
+Non-commercial projects, such as teaching or academic research, may qualify for a free license. To apply, [contact our sales team](https://handsontable.com/contact/) and tell us about your project.
+
+If your project is in any way connected with your commercial activity, you need a commercial license.
+
 ## How to use the license key
 
-In your Handsontable configuration, enter either a corresponding keyword, or a generated commercial license key:
+In your Handsontable configuration, enter the license key you received:
 
 ::: only-for javascript
 

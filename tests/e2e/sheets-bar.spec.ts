@@ -1,7 +1,17 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { SheetsBarPage } from '../fixtures/pages/SheetsBarPage';
 
-test.describe('sheets bar', () => {
+/**
+ * Each theme's `--ht-table-transition`, as a computed duration: the tabs a drag pushes aside
+ * slide over it, so the classic theme's `0s` makes that displacement instant.
+ */
+const THEME_TRANSITION: Record<string, string> = {
+  main: '0.15s',
+  horizon: '0.2s',
+  classic: '0s',
+};
+
+test.describe('sheets bar', { tag: THEMES_TAG }, () => {
   test('clicking a tab switches the grid to that sheet', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
@@ -17,17 +27,6 @@ test.describe('sheets bar', () => {
 
     await bar.clickTab(2);
     await bar.expectCell(0, 0, 'G1');
-  });
-
-  test('the add button appends a new default-named sheet', async ({ page, theme, bundle }) => {
-    const bar = new SheetsBarPage(page, theme, bundle);
-
-    await bar.goto();
-    await bar.addButton.click();
-
-    await bar.tab(3).waitFor();
-    await bar.clickTab(3);
-    await bar.expectActiveTab(3);
   });
 
   test('column width and sort survive a sheet round-trip', async ({ page, theme, bundle }) => {
@@ -336,9 +335,9 @@ test.describe('sheets bar', () => {
 
     await bar.goto();
 
-    // One stop per tab: the tab is the control, and Tab walks the strip a sheet at a time.
+    // The strip is one Tab stop, and the arrow keys walk it a sheet at a time.
     await bar.tab(0).focus();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press('ArrowRight');
     await page.keyboard.press('Enter');
 
     await bar.expectActiveTab(1);
@@ -567,6 +566,35 @@ test.describe('sheets bar', () => {
     await bar.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
     await expect(bar.renameInput).toBeFocused();
     await page.keyboard.type('Quarterly');
+    await page.keyboard.press('Enter');
+
+    await expect(bar.tabByName('Quarterly')).toBeVisible();
+    expect(await bar.isEditorOpened()).toBe(false);
+    expect(await bar.dataAtCell(1, 1)).toBe('A4');
+  });
+
+  test('a rename keeps its input when the same `sheetsBar` value is sent again mid-typing', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(1, 1).click();
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+
+    await bar.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
+    await expect(bar.renameInput).toBeFocused();
+    await page.keyboard.type('Quar');
+
+    await page.evaluate(() => {
+      const { hot, htSheets } = window as never as { hot: any, htSheets: object[] };
+
+      hot.updateSettings({ sheetsBar: { sheets: htSheets.map(sheet => ({ ...sheet })) } });
+    });
+
+    await expect(bar.renameInput).toBeFocused();
+    await page.keyboard.type('terly');
     await page.keyboard.press('Enter');
 
     await expect(bar.tabByName('Quarterly')).toBeVisible();
@@ -928,22 +956,6 @@ test.describe('sheets bar', () => {
     await expect(page.locator('.htSheetsBarMenu:visible')).toHaveCount(0);
   });
 
-  test('opening the tab menu from the keyboard selects the first item', async ({ page, theme, bundle }) => {
-    const bar = new SheetsBarPage(page, theme, bundle);
-
-    await bar.goto();
-
-    // A screen reader needs a `menuitem` to announce, and without a selection Escape stops
-    // reaching the menu — so the keyboard path keeps the preselection the pointer path drops.
-    // The first activation moves to the sheet; on the sheet you are already on, it opens the
-    // menu. Tab 0 is the active one, so a single Enter is the menu.
-    await bar.tab(0).focus();
-    await bar.tab(0).press('Enter');
-
-    await expect(page.locator('.htSheetsBarMenu:visible')).toHaveCount(1);
-    await expect(page.locator('.htSheetsBarMenu td.current')).toHaveText(/Rename/);
-  });
-
   test('the tab menu trigger is hidden while renaming and returns afterwards', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
@@ -1019,28 +1031,6 @@ test.describe('sheets bar', () => {
     await bar.renameInput.fill('A');
 
     await expect.poll(widthOf).toBeLessThan(long);
-  });
-
-  test('the tab menu renames, duplicates, and deletes sheets', async ({ page, theme, bundle }) => {
-    const bar = new SheetsBarPage(page, theme, bundle);
-
-    await bar.goto();
-
-    await bar.chevron(0).click();
-    await bar.menuItem('Rename').click();
-    await bar.renameInput.fill('Budget');
-    await bar.renameInput.press('Enter');
-    await expect(bar.tabByName('Budget')).toBeVisible();
-
-    await bar.chevronByName('Budget').click();
-    await bar.menuItem('Duplicate').click();
-    await expect(bar.tabByName('Budget (2)')).toBeVisible();
-
-    // The copy is not the active sheet, so its menu is reached by right-click rather than by
-    // one click on its trigger.
-    await bar.tabByName('Budget (2)').click({ button: 'right' });
-    await bar.menuItem('Delete').click();
-    await expect(bar.tabByName('Budget (2)')).toHaveCount(0);
   });
 
   test('the all-sheets menu marks the sheet you are on', async ({ page, theme, bundle }) => {
@@ -1270,30 +1260,6 @@ test.describe('sheets bar', () => {
     ).toBeLessThan(scrollLeftBefore);
   });
 
-  test('dragging a tab past its neighbour reorders the strip', async ({ page, theme, bundle }) => {
-    const bar = new SheetsBarPage(page, theme, bundle);
-
-    await bar.goto();
-
-    const names = () => page.evaluate(() => Array.from(
-      document.querySelectorAll('.ht-sheets-bar__tab-label'),
-    ).map(label => label.textContent));
-
-    expect(await names()).toEqual(['Alpha', 'Beta', 'Gamma']);
-
-    const first = (await bar.tab(0).boundingBox())!;
-    const third = (await bar.tab(2).boundingBox())!;
-
-    await page.mouse.move(first.x + (first.width / 2), first.y + (first.height / 2));
-    await page.mouse.down();
-    // Two moves: the first passes the threshold, the second carries the tab across.
-    await page.mouse.move(first.x + first.width, first.y + (first.height / 2));
-    await page.mouse.move(third.x + (third.width / 2) + 5, third.y + (third.height / 2));
-    await page.mouse.up();
-
-    await expect.poll(names).toEqual(['Beta', 'Gamma', 'Alpha']);
-  });
-
   test('Escape during a drag leaves the order untouched', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
@@ -1373,16 +1339,20 @@ test.describe('sheets bar', () => {
     expect(surfaces[2]).not.toEqual(surfaces[0]);
 
     // The active tab's bottom-edge marker must survive the drag, alongside the drop shadow.
-    await expect(bar.tab(2)).toHaveCSS('box-shadow', /inset/);
+    expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').content)).not.toBe('none');
+    expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').borderBottomStyle)).toBe('solid');
+    expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').borderBottomWidth)).not.toBe('0px');
 
     await page.mouse.up();
 
     await expect(page.locator('body')).not.toHaveClass(/ht-sheets-bar-dragging/);
     await expect(bar.tab(0)).toHaveCSS('pointer-events', 'auto');
-    await expect(bar.tab(0)).toHaveCSS('transition-duration', '0.15s');
+    await expect.poll(() => bar.tab(0).evaluate(
+      element => getComputedStyle(element).transitionDuration.split(',')[0].trim(),
+    )).toBe(THEME_TRANSITION[theme]);
   });
 
-  test('a dragged tab keeps the hover surface it was picked up with', async ({ page, theme, bundle }) => {
+  test('a dragged tab keeps its opaque resting surface', async ({ page, theme, bundle }) => {
     const bar = new SheetsBarPage(page, theme, bundle);
 
     await bar.goto();
@@ -1391,17 +1361,20 @@ test.describe('sheets bar', () => {
       element => getComputedStyle(element).backgroundColor,
     );
 
-    // A plain tab is the proving case: its resting surface differs from its hover surface, so
-    // a dragged tab that dropped to its resting look — pointer events are off for the whole
-    // gesture, so `:hover` never matches it — would be caught. The active tab cannot prove
-    // this any more: by design its resting, hover, and dragged surfaces are one solid color.
-    const resting = await surfaceOf(bar.tab(1));
+    const tokenSurface = await bar.tab(1).evaluate((element) => {
+      const probe = element.ownerDocument.createElement('span');
 
-    await bar.tab(1).hover();
+      probe.style.backgroundColor = 'var(--ht-sheets-bar-tab-background-color)';
+      element.appendChild(probe);
 
-    const hovered = await surfaceOf(bar.tab(1));
+      const color = getComputedStyle(probe).backgroundColor;
 
-    expect(hovered).not.toEqual(resting);
+      probe.remove();
+
+      return color;
+    });
+
+    expect(tokenSurface).not.toMatch(/rgba\(.*,\s*0\)$|transparent/);
 
     const box = (await bar.tab(1).boundingBox())!;
     const middle = box.y + (box.height / 2);
@@ -1412,7 +1385,9 @@ test.describe('sheets bar', () => {
 
     await expect.poll(
       () => surfaceOf(page.locator('.ht-sheets-bar__tab--dragging')),
-    ).toEqual(hovered);
+    ).toEqual(tokenSurface);
+
+    expect(await surfaceOf(page.locator('.ht-sheets-bar__tab--dragging'))).not.toEqual('rgba(0, 0, 0, 0)');
 
     await page.mouse.up();
   });

@@ -5,8 +5,8 @@
       "prNumber": 10342,
       "tagline": "Focus now goes to cell elements, not textarea",
       "whyItMatters": "Browser focus moves to the cell and header DOM elements so screen readers can read the grid. This breaks IME fast-edit - opt back in with the new imeFastEdit option if your users rely on it.",
-      "codeBefore": "const hot = new Handsontable(container, {\n  data,\n  licenseKey: 'non-commercial-and-evaluation'\n});",
-      "codeAfter": "const hot = new Handsontable(container, {\n  data,\n  imeFastEdit: true,\n  licenseKey: 'non-commercial-and-evaluation'\n});",
+      "codeBefore": "const hot = new Handsontable(container, {\n  data,\n  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/\n});",
+      "codeAfter": "const hot = new Handsontable(container, {\n  data,\n  imeFastEdit: true,\n  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/\n});",
       "migrationAnchor": "/migration-from-13.1-to-14.0#changes-to-ime"
     },
     {
@@ -24,7 +24,7 @@
     {
       "prNumber": 10585,
       "tagline": "Tab navigation across the grid",
-      "whyItMatters": "A new tabNavigation option lets users move through the grid as part of the surrounding page's tab order. Pair it with navigableHeaders for full keyboard navigation - both are required for accessible single-page apps."
+      "whyItMatters": "A new tabNavigation option decides what Tab does. With the default true, Tab and Shift+Tab move between cells, so the grid is a set of tab stops. With false, the grid hands both keys back to the browser and is one tab stop in the page's tab order. Pair tabNavigation: false with navigableHeaders: true for the data grid mode of the accessibility guide."
     },
     {
       "prNumber": 10529,

@@ -1,6 +1,7 @@
 import {
   toExcelDateSerial,
   parseIsoStringToSerial,
+  parseIsoDateTimeStringToSerial,
   parseTimeStringToSerial,
   getDateNumFmt,
   getTimeNumFmt,
@@ -42,6 +43,38 @@ describe('parseIsoStringToSerial', () => {
     expect(parseIsoStringToSerial(null)).toBeNull();
     expect(parseIsoStringToSerial(undefined)).toBeNull();
     expect(parseIsoStringToSerial('')).toBeNull();
+  });
+
+  it('should return null for a year 0-99, which `new Date` reads as 1900-1999', () => {
+    // `0001-01-01` (.NET `DateTime.MinValue`, a common "no date") was written as 1901-01-01.
+    expect(parseIsoStringToSerial('0001-01-01')).toBeNull();
+    expect(parseIsoStringToSerial('0099-12-31')).toBeNull();
+  });
+
+  it('should return null for a year before 1900, which Excel\'s date system cannot hold', () => {
+    // Written as a negative serial, which every reader shows differently.
+    expect(parseIsoStringToSerial('1850-05-05')).toBeNull();
+    expect(parseIsoStringToSerial('1899-12-31')).toBeNull();
+    expect(parseIsoStringToSerial('1900-01-01')).toBe(2);
+  });
+
+  it('should return null for an impossible date instead of rolling it over', () => {
+    expect(parseIsoStringToSerial('2023-02-29')).toBeNull();
+    expect(parseIsoStringToSerial('2023-04-31')).toBeNull();
+    expect(parseIsoStringToSerial('2023-13-01')).toBeNull();
+    expect(parseIsoStringToSerial('2023-00-10')).toBeNull();
+    expect(parseIsoStringToSerial('2024-02-29')).toBe(45351);
+  });
+});
+
+describe('parseIsoDateTimeStringToSerial with a date Excel cannot hold', () => {
+  it('should return null for a year 0-99, a year before 1900 and an impossible date', () => {
+    expect(parseIsoDateTimeStringToSerial('0001-01-01T00:00:00')).toBeNull();
+    expect(parseIsoDateTimeStringToSerial('0099-12-31 12:00')).toBeNull();
+    expect(parseIsoDateTimeStringToSerial('1850-05-05T08:30')).toBeNull();
+    expect(parseIsoDateTimeStringToSerial('2023-02-29T12:00:00')).toBeNull();
+    expect(parseIsoDateTimeStringToSerial('2023-04-31')).toBeNull();
+    expect(parseIsoDateTimeStringToSerial('2024-02-29T12:00:00')).toBe(45351.5);
   });
 });
 

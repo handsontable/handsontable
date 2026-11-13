@@ -3,6 +3,7 @@ import { registerPlugin } from '../../registry';
 import { DragToScroll } from '../dragToScroll';
 import { MoveCells } from '../../moveCells';
 import { SelectionHandles } from '../../selectionHandles';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('DragToScroll selection-drag ownership', () => {
   let container;
@@ -37,7 +38,7 @@ describe('DragToScroll selection-drag ownership', () => {
       moveCells: true,
       selectionHandles: true,
       dragToScroll: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...options,
     });
 
@@ -62,6 +63,30 @@ describe('DragToScroll selection-drag ownership', () => {
     // Guards the hook ordering this fix depends on: MoveCells (PLUGIN_PRIORITY 25) must settle its
     // drag state before DragToScroll (100) reads it, otherwise auto-scroll would never engage.
     expect(hot.getPlugin('moveCells').isDragActive()).toBe(true);
+    expect(hot.getPlugin('dragToScroll').isListening()).toBe(true);
+  });
+
+  it('stops auto-scroll for a move drag that loadData() ended', () => {
+    build();
+    hot.selectCells([[1, 1, 3, 3]]);
+    hot.runHooks('afterOnSelectionEdgeMouseDown', mouseDown(), 'top');
+
+    expect(hot.getPlugin('dragToScroll').isListening()).toBe(true);
+
+    hot.loadData([['y']]);
+
+    expect(hot.getPlugin('moveCells').isDragActive()).toBe(false);
+    expect(hot.getPlugin('dragToScroll').isListening()).toBe(false);
+  });
+
+  it('keeps auto-scroll for a cell drag-select across loadData()', () => {
+    build();
+    hot.runHooks('beforeOnCellMouseDown', mouseDown(), null, null, {});
+
+    expect(hot.getPlugin('dragToScroll').isListening()).toBe(true);
+
+    hot.loadData([['y']]);
+
     expect(hot.getPlugin('dragToScroll').isListening()).toBe(true);
   });
 

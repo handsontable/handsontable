@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 import { DynamicCellMetaMod } from '../dynamicCellMeta';
 import MetaManager from '../../';
 import { Hooks } from '../../../../core/hooks';
-import { registerAllCellTypes } from '../../../../cellTypes';
+import { registerAllCellTypes, getCellType } from '../../../../cellTypes';
 import type { CellProperties } from '../../../../settings';
 
 type MetaManagerArg = ConstructorParameters<typeof DynamicCellMetaMod>[0];
@@ -151,7 +151,7 @@ describe('DynamicCellMetaMod', () => {
     expect(cellMeta.cells).toHaveBeenCalledWith(1, 2, 'prop_2');
   });
 
-  it('should drop an "editor" of `true` returned by the "cells" setting option', () => {
+  it('should resolve an "editor" of `true` returned by the "cells" setting option to the type\'s editor', () => {
     const hotMock = new Handsontable();
     const metaManager = new MetaManager(hotMock);
     const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
@@ -168,16 +168,12 @@ describe('DynamicCellMetaMod', () => {
       },
     };
 
-    jest.spyOn(metaManager, 'extendCellMeta').mockReset();
-
     mod.extendCellMeta(createCellMeta(cellMeta));
 
-    // `true` names no editor, so it must not reach the meta layers - otherwise it would both block
-    // the numeric editor the "type" supplies and throw once the cell is edited.
-    expect(metaManager.extendCellMeta).toHaveBeenCalledTimes(1);
-    expect(metaManager.extendCellMeta).toHaveBeenCalledWith(1, 2, {
-      type: 'numeric',
-    });
+    // `true` names no editor, so it must never be stored as one - that would both block the numeric
+    // editor the "type" supplies and throw once the cell is edited. The meta layer normalizes it.
+    expect(metaManager.getCellMeta(1, 2, { visualRow: 1, visualColumn: 2 }).editor)
+      .toBe(getCellType('numeric').editor);
   });
 
   it('should extend the cell meta object only once per table slow render cycle', () => {

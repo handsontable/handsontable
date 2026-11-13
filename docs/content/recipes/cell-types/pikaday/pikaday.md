@@ -1,8 +1,8 @@
 ---
 type: tutorial
 title: Pikaday
-metaTitle: Pikaday Cell Type - JavaScript Data Grid | Handsontable
-description: Learn how to create a custom Handsontable cell type using Pikaday for a date picker with per-column configuration directly inside your data grid. This guide serves as a migration path for users moving away from the built-in date cell type.
+metaTitle: Pikaday cell type | Handsontable DataGrid for JavaScript
+description: Learn how to create a custom Handsontable DataGrid cell type using Pikaday for a date picker with per-column configuration directly inside your data grid. This guide serves as a migration path for users moving away from the built-in date cell type.
 permalink: /recipes/cell-types/pikaday
 canonicalUrl: /recipes/cell-types/pikaday
 tags:
@@ -10,17 +10,17 @@ tags:
   - tutorial
   - recipes
 react:
-  metaTitle: Pikaday Cell Type - React Data Grid | Handsontable
+  metaTitle: Pikaday cell type | Handsontable DataGrid for React
 angular:
-  metaTitle: Pikaday Cell Type - Angular Data Grid | Handsontable
+  metaTitle: Pikaday cell type | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Pikaday Cell Type - Vue Data Grid | Handsontable
+  metaTitle: Pikaday cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
 menuTag: updated
 ---
 
-This tutorial shows you how to integrate the Pikaday date picker as a custom Handsontable cell editor, with portal positioning and Moment.js formatting. This recipe also serves as a migration guide for users moving away from the built-in `date` cell type.
+This tutorial shows you how to integrate the Pikaday date picker as a custom Handsontable DataGrid cell editor, with portal positioning and Moment.js formatting. This recipe also serves as a migration guide for users moving away from the built-in `date` cell type.
 
 ::: only-for javascript vue
 
@@ -474,7 +474,7 @@ getValue(editor) {
 }
 
 setValue(editor, value) {
-  editor.input.value = value;
+  editor.input.value = value == null ? '' : String(value);
 }
 ```
 
@@ -706,7 +706,7 @@ const cellDefinition: Pick<
 };
 ```
 
-## Step 17: Use in Handsontable
+## Step 17: Use in Handsontable DataGrid
 
 ```typescript
 const container = document.querySelector('#example1')!;
@@ -753,7 +753,7 @@ const hotOptions: Handsontable.GridSettings = {
       },
     },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const hot = new Handsontable(container, hotOptions);
@@ -894,8 +894,8 @@ Pikaday has good keyboard support out of the box:
 - **Page Up/Down**: Navigate months
 - **Home/End**: Navigate to first/last day of month
 
-**ARIA attributes:**
-Pikaday automatically adds ARIA attributes for screen readers.
+**Screen readers:**
+Pikaday carries some ARIA attributes of its own, but the last audit found that the built-in date cell type's picker, which used the same library at the time, was not announced properly by screen readers. Expect the same gap in a custom Pikaday editor until you verify it. The {{$a11y.report.link}} lists it under [Known open issues](@/guides/accessibility/accessibility-conformance-report/accessibility-conformance-report.md#known-open-issues) (WCAG 4.1.2). Test the picker with {{$a11y.matrix.sentence}} before you rely on it.
 
 ## Performance Considerations
 

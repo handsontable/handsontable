@@ -6,7 +6,9 @@ import { join } from 'node:path';
 import ExcelJS from 'exceljs';
 import { excelJsAdapter } from '../adapters/exceljs';
 import { DroppedFeatures } from '../capabilities';
-import { MAX_INPUT_BYTES, MAX_WORKBOOK_CELLS } from '../limits';
+import { nativeAdapter } from '../adapters/native';
+import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../model';
+import { isLimitError, MAX_INPUT_BYTES, MAX_WORKBOOK_CELLS, MAX_WORKBOOK_SHEETS } from '../limits';
 
 function load(name) {
   const bytes = readFileSync(join(__dirname, 'fixtures', `${name}.xlsx`));
@@ -337,5 +339,220 @@ describe('excelJsAdapter.read', () => {
 
     await expect(excelJsAdapter.read(new Uint8Array([1, 2, 3]).buffer, ExcelJS, dropped))
       .rejects.toThrow(/could not be parsed/);
+  });
+
+  it('should refuse a workbook declaring more sheets than the native reader accepts, before reading any', async() => {
+    // The native reader refuses the sheet count while it tokenizes `workbook.xml`; the ExcelJS
+    // engine has already parsed every sheet by the time the adapter sees them, so the adapter
+    // refuses right after the load instead, and before a single sheet reaches the snapshot.
+    const readSheet = jest.fn();
+    const engine = {
+      Workbook: class {
+        constructor() {
+          this.worksheets = Array.from({ length: MAX_WORKBOOK_SHEETS + 1 }, (_, index) => ({
+            get name() {
+              readSheet(index);
+
+              return `S${index}`;
+            },
+          }));
+          this.xlsx = { load: async() => {} };
+        }
+      },
+    };
+    let caught;
+
+    try {
+      await excelJsAdapter.read(new ArrayBuffer(0), engine, new DroppedFeatures());
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught.message)
+      .toBe(`The workbook declares more than ${MAX_WORKBOOK_SHEETS} sheets, above the limit this reader accepts.`);
+    expect(isLimitError(caught)).toBe(true);
+    expect(readSheet).not.toHaveBeenCalled();
+  });
+
+  it('should read exactly MAX_WORKBOOK_SHEETS sheets without refusing', async() => {
+    const engine = {
+      Workbook: class {
+        constructor() {
+          this.worksheets = Array.from({ length: MAX_WORKBOOK_SHEETS }, (_, index) => ({
+            name: `S${index}`,
+            state: 'visible',
+            rowCount: 0,
+            columnCount: 0,
+            findRow: () => undefined,
+            getColumn: () => ({}),
+            views: [],
+            conditionalFormattings: [],
+          }));
+          this.xlsx = { load: async() => {} };
+        }
+      },
+    };
+    const snapshot = await excelJsAdapter.read(new ArrayBuffer(0), engine, new DroppedFeatures());
+
+    expect(snapshot.sheets).toHaveLength(MAX_WORKBOOK_SHEETS);
+  });
+
+  describe('array formulas and error cells', () => {
+    async function readBuilt(fill) {
+      const workbook = new ExcelJS.Workbook();
+
+      fill(workbook.addWorksheet('Sheet1'));
+
+      const bytes = await workbook.xlsx.writeBuffer();
+      const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+      const dropped = new DroppedFeatures();
+      const snapshot = await excelJsAdapter.read(buffer, ExcelJS, dropped);
+
+      return { snapshot, dropped, row: snapshot.sheets[0].rows[0] };
+    }
+
+    it('should read an array master as a non-dynamic array, since ExcelJS does not expose cm', async() => {
+      const { row } = await readBuilt((ws) => {
+        ws.getCell('A1').value = { formula: 'B1:B2*2', ref: 'A1:A2', shareType: 'array', result: 2 };
+      });
+
+      expect(row[0].formula).toEqual({ text: 'B1:B2*2', result: 2, array: { ref: 'A1:A2', dynamic: false } });
+    });
+
+    it('should leave array and the error flags absent on ordinary cells', async() => {
+      const { row } = await readBuilt((ws) => {
+        ws.getCell('A1').value = { formula: 'B1*2', result: 4 };
+        ws.getCell('B1').value = 5;
+      });
+
+      expect('array' in row[0].formula).toBe(false);
+      expect('resultIsError' in row[0].formula).toBe(false);
+      expect('valueIsError' in row[1]).toBe(false);
+    });
+
+    it('should flag a plain error cell and a formula error result', async() => {
+      const { row } = await readBuilt((ws) => {
+        ws.getCell('A1').value = { error: '#N/A' };
+        ws.getCell('B1').value = { formula: '1/0', result: { error: '#DIV/0!' } };
+      });
+
+      expect(row[0].value).toBe('#N/A');
+      expect(row[0].valueIsError).toBe(true);
+      expect(row[1].formula.result).toBe('#DIV/0!');
+      expect(row[1].formula.resultIsError).toBe(true);
+    });
+  });
+});
+
+describe('excelJsAdapter.read on defined names', () => {
+  it('should keep a name over several areas with its areas joined, and report nothing', async() => {
+    // ExcelJS lists each area of `Multi` as its own range. Keeping the first silently turned the name
+    // into a different one, and leaving it out made a formula over it import live as `#NAME?`.
+    const workbook = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [[{ ...createCellSnapshot(), value: 1 }]];
+    workbook.sheets.push(sheet);
+    workbook.definedNames = [
+      { name: 'Multi', formula: 'Sheet1!$A$1,Sheet1!$C$1', sheetName: null },
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+    ];
+
+    const bytes = await nativeAdapter.write(workbook, undefined, new DroppedFeatures());
+    const dropped = new DroppedFeatures();
+    const snapshot = await excelJsAdapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, dropped,
+    );
+
+    // Flagged: ExcelJS loses the scope, so no definition it reads is one `importFile` can trust.
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Multi', formula: 'Sheet1!$A$1,Sheet1!$C$1', sheetName: null, unsupported: true },
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null, unsupported: true },
+    ]);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should read the names ExcelJS\'s model loses from the workbook part, flagged', async() => {
+    // ExcelJS 4.4 keeps only `$A$1`-style ranges: a whole column (the usual dynamic-list idiom), a
+    // constant and a relative reference never reached the import, so a formula over one imported
+    // live and showed `#NAME?`, with nothing reported.
+    const workbook = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [[{ ...createCellSnapshot(), value: 1 }]];
+    workbook.sheets.push(sheet);
+    workbook.definedNames = [
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null },
+      { name: 'Column', formula: 'Sheet1!$B:$B', sheetName: null },
+      { name: 'TaxRate', formula: '0.07', sheetName: null },
+      { name: 'Relative', formula: 'Sheet1!A1', sheetName: 'Sheet1' },
+    ];
+
+    const bytes = await nativeAdapter.write(workbook, undefined, new DroppedFeatures());
+    const dropped = new DroppedFeatures();
+    const snapshot = await excelJsAdapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, dropped,
+    );
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null, unsupported: true },
+      { name: 'Column', formula: 'Sheet1!$B:$B', sheetName: null, unsupported: true },
+      { name: 'TaxRate', formula: '0.07', sheetName: null, unsupported: true },
+      { name: 'Relative', formula: 'Sheet1!A1', sheetName: 'Sheet1', unsupported: true },
+    ]);
+    expect(dropped.list()).toEqual([]);
+  });
+
+  it('should keep the names ExcelJS read when the workbook part cannot be read again', async() => {
+    const workbook = createWorkbookSnapshot();
+    const sheet = createSheetSnapshot('Sheet1');
+
+    sheet.rows = [[{ ...createCellSnapshot(), value: 1 }]];
+    workbook.sheets.push(sheet);
+    workbook.definedNames = [{ name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null }];
+
+    const bytes = await nativeAdapter.write(workbook, undefined, new DroppedFeatures());
+    const { DecompressionStream } = globalThis;
+
+    // The built-in engine's reader needs `DecompressionStream`; without it only ExcelJS's model is left.
+    delete globalThis.DecompressionStream;
+
+    try {
+      const snapshot = await excelJsAdapter.read(
+        bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, new DroppedFeatures(),
+      );
+
+      expect(snapshot.definedNames).toEqual([
+        { name: 'Sales', formula: 'Sheet1!$A$1:$A$3', sheetName: null, unsupported: true },
+      ]);
+    } finally {
+      globalThis.DecompressionStream = DecompressionStream;
+    }
+  });
+
+  it('should flag every name, since a name defined in two scopes keeps one definition without its scope', async() => {
+    // ExcelJS 4.4 keys its names by name: of the workbook `Rate` and the `Sheet2` one, only the last
+    // survives, read as workbook-wide. Registered, `=Rate*100` on Sheet1 read Sheet2's rate.
+    const workbook = createWorkbookSnapshot();
+
+    ['Sheet1', 'Sheet2'].forEach((name) => {
+      const sheet = createSheetSnapshot(name);
+
+      sheet.rows = [[{ ...createCellSnapshot(), value: 1 }]];
+      workbook.sheets.push(sheet);
+    });
+    workbook.definedNames = [
+      { name: 'Rate', formula: 'Sheet1!$A$1', sheetName: null },
+      { name: 'Rate', formula: 'Sheet2!$A$1', sheetName: 'Sheet2' },
+    ];
+
+    const bytes = await nativeAdapter.write(workbook, undefined, new DroppedFeatures());
+    const snapshot = await excelJsAdapter.read(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), ExcelJS, new DroppedFeatures(),
+    );
+
+    expect(snapshot.definedNames).toEqual([
+      { name: 'Rate', formula: 'Sheet2!$A$1', sheetName: null, unsupported: true },
+    ]);
   });
 });

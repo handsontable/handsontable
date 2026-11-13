@@ -45,16 +45,11 @@ export class AppComponent {
     const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
 
     exportPlugin.downloadFile('csv', {
-      bom: false,
-      columnDelimiter: ',',
-      colHeaders: false,
+      colHeaders: true,
+      rowHeaders: true,
       exportHiddenColumns: true,
       exportHiddenRows: true,
-      fileExtension: 'csv',
-      filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
-      mimeType: 'text/csv',
-      rowDelimiter: '\r\n',
-      rowHeaders: true,
+      filename: 'Campaigns_[YYYY]-[MM]-[DD]',
     });
   }
 }
@@ -65,7 +60,7 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -75,7 +70,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

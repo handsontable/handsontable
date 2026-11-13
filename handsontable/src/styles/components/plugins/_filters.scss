@@ -63,6 +63,9 @@
     }
 
     .htUISelectionControls {
+      // The menu is `white-space: nowrap`, which the row inherits. Without this, a link whose label is
+      // too long for the room beside the other one is clipped at the menu's edge and cannot wrap.
+      white-space: normal;
       padding-top: calc(var(--ht-gap-size, 2px) * 2) !important;
       padding-bottom: var(--ht-gap-size, 2px) !important;
       margin: 0 calc(var(--ht-gap-size, 2px) * -1);

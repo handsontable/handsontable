@@ -25,7 +25,7 @@ const hot = new Handsontable(container, {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const button = document.querySelector('#list-comments')!;

@@ -27,6 +27,7 @@ export function createStickyScrollStrategyDeps(ctx: EngineContext, overlays: Ove
     getInlineStartOverlay: ctx.getInlineStartOverlay,
     getInlineEndOverlay: ctx.getInlineEndOverlay,
     getScrollableElement: () => overlays.scrollableElement,
+    isScrollbarProxy: (element: EventTarget | null) => overlays.isScrollbarProxy(element),
     refreshAll: () => overlays.refreshAll(),
     applyToDOM: () => overlays.applyToDOM(),
   };
@@ -82,20 +83,25 @@ export class StickyScrollStrategy {
   }
 
   /**
-   * Registers mousedown/mouseup listeners for scrollbar drag detection.
-   * Called from `Overlays.registerListeners()`.
+   * Discards the sticky state left from the previous scrollable element, so a stale `deactivate()`
+   * cannot compute a wrong scroll. Called whenever the scrollable elements are re-picked.
    */
-  registerListeners() {
-    const { eventManager, rootDocument } = this.#deps;
-
-    // Scrollable elements may have changed (e.g. updateSettings). Discard any
-    // leftover sticky state so a stale deactivate() cannot compute a wrong scroll.
+  resetForScrollableElementChange() {
     if (this.#active) {
       this.#active = false;
       this.#applySpreaderStyles('relative', 0, 0);
     }
 
     this.#mouseDown = false;
+  }
+
+  /**
+   * Registers mousedown/mouseup listeners for scrollbar drag detection. They are bound to the
+   * document, so they are registered once, when the overlays are built, and survive a change of
+   * the scrollable element.
+   */
+  registerListeners() {
+    const { eventManager, rootDocument } = this.#deps;
 
     eventManager.addEventListener(rootDocument, 'mousedown', (event) => {
       if (event instanceof MouseEvent) {
@@ -258,13 +264,6 @@ export class StickyScrollStrategy {
   #getScrollLeft() {
     const inlineStartOverlay = this.#deps.getInlineStartOverlay();
 
-    // For RTL window scrolling, scrollX increases as the user scrolls left (away from
-    // the right-edge origin). getTableParentOffset() returns the left-edge offset which
-    // doesn't apply to the RTL coordinate system, so skip it and return scrollX directly.
-    if (this.#isRtl() && this.#isWindowScroll()) {
-      return Math.abs(inlineStartOverlay.getScrollPosition());
-    }
-
     return Math.abs(inlineStartOverlay.getScrollPosition())
       - inlineStartOverlay.getTableParentOffset();
   }
@@ -278,14 +277,14 @@ export class StickyScrollStrategy {
   #setScrollPosition(top: number, left: number): void {
     if (this.#isWindowScroll()) {
       const { rootWindow } = this.#deps;
-      // RTL + window-scroll: left is in scrollX coordinates (distance from the right-edge
-      // origin), so pass it directly. LTR: add back the table's left page offset.
-      const absoluteLeft = this.#isRtl()
-        ? left
-        : left + this.#deps.getInlineStartOverlay().getTableParentOffset();
+      // Hider coordinates run from the table's inline-start edge: add back the page's offset to it
+      // (the left one in LTR, the right margin in RTL), the one `#getScrollLeft` took off. The page's
+      // own direction sets the sign of `scrollX` (negative on an RTL page), not the grid's: an RTL grid
+      // on an LTR page scrolls into positive values.
+      const absoluteLeft = left + this.#deps.getInlineStartOverlay().getTableParentOffset();
 
       rootWindow.scrollTo(
-        absoluteLeft,
+        this.#isPageRtl() ? -absoluteLeft : absoluteLeft,
         top + this.#deps.getTopOverlay().getTableParentOffset()
       );
     } else {
@@ -403,6 +402,8 @@ export class StickyScrollStrategy {
    * scrollable container itself (the scrollbar is part of the element's
    * rendering but not a child DOM node). Clicks on child elements (cells,
    * headers, etc.) set a descendant as the target, so they are excluded.
+   * A scrollbar proxy counts too: its scrollbar is the one the user drags, and the
+   * drag scrolls the holder through it.
    *
    * @param {MouseEvent} event The mousedown event.
    * @returns {boolean}
@@ -412,7 +413,7 @@ export class StickyScrollStrategy {
       return event.target === this.#deps.rootDocument.documentElement;
     }
 
-    return event.target === this.#deps.getScrollableElement();
+    return event.target === this.#deps.getScrollableElement() || this.#deps.isScrollbarProxy(event.target);
   }
 
   /**
@@ -422,6 +423,17 @@ export class StickyScrollStrategy {
    */
   #isWindowScroll() {
     return this.#deps.getScrollableElement() === this.#deps.rootWindow;
+  }
+
+  /**
+   * Returns whether the page is scrolled into negative `window.scrollX`, which is what a page laid out
+   * right to left does. It can differ from the grid's own direction. A page at `scrollX` 0 reads as LTR,
+   * which is harmless: the scroll it gets back is 0 either way.
+   *
+   * @returns {boolean}
+   */
+  #isPageRtl(): boolean {
+    return this.#deps.rootWindow.scrollX < 0;
   }
 
   /**

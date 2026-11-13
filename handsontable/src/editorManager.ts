@@ -59,11 +59,13 @@ class EditorManager {
    */
   declare activeEditor: BaseEditor | undefined;
   /**
-   * Keeps a reference to the cell's properties object.
+   * Cell meta for the current edit cycle. Undefined until the first `prepareEditor()`,
+   * and may be stale afterwards.
    *
-   * @type {object}
+   * @private
+   * @type {CellProperties | undefined}
    */
-  declare cellProperties: CellProperties;
+  declare cellProperties: CellProperties | undefined;
   /**
    * Whether a close of an editor stranded on a hidden cell is already pending, either scheduled on
    * the next tick or waiting on an async validator to settle. Suppresses duplicate work when one
@@ -151,6 +153,124 @@ class EditorManager {
     this.#repairEditor(this.#isStructuralChange(indexesChangesState), indexesChangesState);
   };
   /**
+   * Keeps an open editor on its cell when the grid's own size changes.
+   *
+   * The editors reposition themselves when the grid scrolls (and the text and select editors on a
+   * row or column resize too), never after the grid re-renders at a new size. So a grid that got
+   * shorter (a container sized in viewport units, which the Android soft keyboard shrinks in a
+   * WebView that resizes its content) left the edited cell outside the rendered range and the
+   * editor at its old position, and a grid that got narrower (stretched columns) left the editor
+   * where its column used to be. The cell is scrolled into view FIRST, the same way a selection is
+   * (a partly visible cell is scrolled fully into view), and only then is the editor repositioned:
+   * asked to reposition on a cell that is not rendered, the text, select, multiselect and
+   * factory-built editors close, and the handsontable and autocomplete editors hide their list.
+   *
+   * A resize with no open editor scrolls nothing, as before, and neither does a refresh that leaves
+   * the grid's size unchanged (a grid the window scrolls reports every window resize).
+   *
+   * An editor parked in `WAITING` for an asynchronous validator is left alone until the validator
+   * answers. While it waits, its coordinates are not kept in step with a sort or a filter, and
+   * `refreshDimensions()` of the text and select editors does nothing outside `EDITING`, so a scroll
+   * to those coordinates could land on another record while the editor stayed put. An editor the
+   * validator rejects is back in `EDITING` by then and is placed like any other.
+   *
+   * With rendering suspended (`hot.batch()`, `suspendRender()`) the grid has not drawn at the new size
+   * yet and `view.render()` does nothing, so a scroll would read the old draw. `refreshDimensions()`
+   * has already stored the new size, so nothing would refresh the editor later. The placement waits
+   * for the next render instead.
+   *
+   * @param {object} previousDimensions The grid's size before the resize.
+   * @param {object} currentDimensions The grid's size after the resize.
+   * @param {boolean} isSizeChanged Whether the grid's size changed.
+   */
+  #onAfterRefreshDimensions = (
+    previousDimensions: { width: number; height: number },
+    currentDimensions: { width: number; height: number },
+    isSizeChanged: boolean,
+  ): void => {
+    if (!isSizeChanged) {
+      return;
+    }
+
+    this.#placeEditorWhenReady();
+  };
+  /**
+   * Whether a placement is already queued behind a hook, so several resizes before that hook fires
+   * queue one callback.
+   *
+   * @type {boolean}
+   */
+  #isPlacementQueued = false;
+  /**
+   * Places the active editor on its cell now, or queues the placement for when it can be done: after
+   * the validator the editor waits for answers, or after the next render when rendering is suspended.
+   *
+   * A queued placement checks again when its hook fires, because the editor can be waiting again, or
+   * the render suspended again, by then.
+   */
+  #placeEditorWhenReady(): void {
+    const editor = this.activeEditor;
+
+    if (this.destroyed || !editor?.isOpened()) {
+      return;
+    }
+
+    if (editor.state === EDITOR_STATE.WAITING) {
+      // Registered after the editor's own `postAfterValidate` hook, so it runs after the editor has
+      // either closed or gone back to `EDITING`.
+      this.#queuePlacement('postAfterValidate');
+
+      return;
+    }
+
+    if (this.hot.isRenderSuspended()) {
+      this.#queuePlacement('afterRender');
+
+      return;
+    }
+
+    this.#placeEditorOnItsCell();
+  }
+  /**
+   * Runs `#placeEditorWhenReady()` once, the next time the hook fires.
+   *
+   * @param {string} hookName The hook to wait for.
+   */
+  #queuePlacement(hookName: 'postAfterValidate' | 'afterRender'): void {
+    if (this.#isPlacementQueued) {
+      return;
+    }
+
+    this.#isPlacementQueued = true;
+
+    this.hot.addHookOnce(hookName, () => {
+      this.#isPlacementQueued = false;
+      this.#placeEditorWhenReady();
+    });
+  }
+  /**
+   * Scrolls the cell the active editor edits into view, then repositions the editor on it.
+   *
+   * The scroll comes first: asked to reposition on a cell that is not rendered, several editors
+   * close or hide themselves.
+   */
+  #placeEditorOnItsCell(): void {
+    const editor = this.activeEditor;
+
+    if (!editor?.isOpened() || editor.row === null || editor.col === null) {
+      return;
+    }
+
+    if (this.hot.scrollViewportTo({ row: editor.row, col: editor.col })) {
+      // Draw the scrolled viewport now, so the edited cell is rendered before the editor reads it.
+      this.hot.view.render();
+    }
+
+    if ('refreshDimensions' in editor && typeof editor.refreshDimensions === 'function') {
+      editor.refreshDimensions();
+    }
+  }
+  /**
    * Determines whether a cache update renumbered the physical index space.
    *
    * @param {object} indexesChangesState The state object of the index mapper's cache update.
@@ -207,6 +327,7 @@ class EditorManager {
     this.hot.addHook('beforeCompositionStart', (event: KeyboardEvent) => this.#onAfterDocumentKeyDown(event));
     this.hot.addHook('afterRowSequenceCacheUpdate', this.#onRowSequenceCacheUpdate);
     this.hot.addHook('afterColumnSequenceCacheUpdate', this.#onColumnSequenceCacheUpdate);
+    this.hot.addHook('afterRefreshDimensions', this.#onAfterRefreshDimensions);
     this.hot.view._wt.update(
       'onCellDblClick', (event: MouseEvent, coords: { isCell: () => boolean }, _elem: HTMLElement) =>
         this.#onCellDblClick(event, coords)
@@ -240,8 +361,8 @@ class EditorManager {
    *
    * There is deliberately NO self-healing timer behind that contract. A zero-delay timeout was
    * tried and does not work: it runs in the NEXT task, while the `Filters#filter()` that reads
-   * the scope and appends runs in THIS one, so it healed nothing that mattered while retaining a
-   * timeout handle per call for the instance's life (`_registerTimeout` never prunes).
+   * the scope and appends runs in THIS one, so it healed nothing that mattered while scheduling a
+   * timeout per call.
    */
   suspendStrandDiscards(): void {
     this.#strandDiscardsSuspended += 1;
@@ -298,7 +419,9 @@ class EditorManager {
     }
 
     // Getting values using the modified coordinates.
-    this.cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
+    const cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
+
+    this.cellProperties = cellProperties;
 
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
@@ -311,7 +434,7 @@ class EditorManager {
     // Skip the preparation when the cell is not rendered in the DOM. The cell is scrolled out of
     // the table's viewport.
     if (td) {
-      const editorClass = this.hot.getCellEditor(this.cellProperties);
+      const editorClass = this.hot.getCellEditor(cellProperties);
       // Keeps the editor receiving the column reference it was already given before `colToProp()`
       // began answering `null`. An unbound column (`{ data: null }`) has always reached `prepare()`
       // as `null`; its signature declares `string | number`, so the cast keeps that long-standing
@@ -323,7 +446,7 @@ class EditorManager {
       this.activeEditor = getEditorInstance(editorClass, this.hot) as BaseEditor;
       // Using not modified coordinates, as we need to get the table element using selection coordinates.
       // There is an extra translation in the editor for saving value.
-      this.activeEditor.prepare(row, col, prop, td, originalValue, this.cellProperties);
+      this.activeEditor.prepare(row, col, prop, td, originalValue, cellProperties);
       // Remember which RECORD this edit belongs to. The editor keeps visual coordinates only, and a
       // trimming map rebinds those to a different record; see `#reconcileEditorWithIndexMaps()`.
       this.#editedPhysicalRow = this.hot.rowIndexMapper.getPhysicalFromVisualIndex(row);
@@ -348,7 +471,14 @@ class EditorManager {
    * @param {boolean} [enableFullEditMode=false] When true, an editor works in full editing mode. Mode disallows closing an editor
    *                                             when arrow keys are pressed.
    */
-  openEditor(newInitialValue: string | null, event: Event, enableFullEditMode = false) {
+  openEditor(newInitialValue: string | null, event?: Event, enableFullEditMode = false) {
+    // The stored prepare belongs to the highlight and the meta it was built from. `loadData`
+    // clears the meta cache and leaves both in place, so refresh before the editability check
+    // unless an edit is already on screen.
+    if (!this.activeEditor?.isOpened() && !this.activeEditor?.isWaiting()) {
+      this.prepareEditor();
+    }
+
     if (!this.isCellEditable()) {
       this.clearActiveEditor();
 
@@ -440,6 +570,7 @@ class EditorManager {
   /**
    * Checks if the currently selected cell (pointed by selection highlight coords) is editable.
    * Editable cell is when:
+   *   - the highlight is a cell, not a header;
    *   - the cell has defined an editor type;
    *   - the cell is not marked as read-only;
    *   - the cell is not hidden.
@@ -448,20 +579,24 @@ class EditorManager {
    * @returns {boolean}
    */
   isCellEditable() {
-    const selection = this.hot.getSelectedRangeActive();
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-    if (!selection) {
+    // A header is not a cell. Meta from an earlier cell can still be stored here, and
+    // `getCellEditor` would read that cell's `editor`.
+    if (!highlight || highlight.isHeader()) {
       return false;
     }
 
-    const editorClass = this.hot.getCellEditor(this.cellProperties);
-    const { row, col } = selection.highlight;
+    const cellProperties = this.cellProperties;
+    const { row, col } = highlight;
 
-    if (row === null || col === null) {
+    if (row === null || col === null || !cellProperties) {
       return false;
     }
 
-    if (this.cellProperties.readOnly || !editorClass || this.#isCellHidden(row, col)) {
+    const editorClass = this.hot.getCellEditor(cellProperties);
+
+    if (cellProperties.readOnly || !editorClass || this.#isCellHidden(row, col)) {
       return false;
     }
 
@@ -654,9 +789,8 @@ class EditorManager {
   }): void {
     const editor = this.activeEditor;
     const isEditing = editor?.state === EDITOR_STATE.EDITING;
-    // A prepared-but-untyped editor is just as stale as an editing one, and more quietly so: nothing
-    // re-prepares it, `openEditor()` skips `prepareEditor()` while a reference exists, and the first
-    // keystroke then calls `beginEditing()` on the pre-change coordinates.
+    // VIRGIN is a prepared editor that has not taken a keystroke. An index-map change in that
+    // window leaves it on the pre-change coordinates, the same as one that is already typing.
     const isPrepared = editor?.state === EDITOR_STATE.VIRGIN;
 
     if ((!indexesChangesState.trimmedIndexesChanged && !indexesChangesState.indexesSequenceChanged) ||

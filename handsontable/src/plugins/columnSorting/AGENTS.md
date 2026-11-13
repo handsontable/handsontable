@@ -25,6 +25,53 @@ The `columnMeta` map's initializer converts physical → visual and **falls back
 `toVisualColumn()` returns `null`**. Keep that fallback: during an alter the column may have no visual index
 yet.
 
+## The pre-sort order is taken whenever a sort starts from unsorted rows
+
+`indexesSequenceCache` (the `columnSorting` row map) is the order the sort starts from and a cleared sort goes
+back to. `#capturePresortOrder()` writes it from the live sequence whenever the cache is missing (the first
+sort, including one after `setSortConfig()` on a never-sorted grid) and every time a `sort()` starts from empty
+states on rows that show no sort result. `setSortConfig()` does the same when it writes states onto such a
+grid and the cache exists.
+
+**Open: a row moved after `setSortConfig()` is kept or reverted depending on the cache.** On a grid with no
+cache the clear takes the rows as they are then, so the move stays. On a grid that sorted before, the cache
+exists and `setSortConfig()` leaves it, so the clear puts the pre-move order back. Making both keep the move
+breaks the sheets bar restore, which writes the sort states, then writes the sorted order straight into the
+row sequence, and expects a later clear to return to the unsorted order
+(`sheetsBar/__tests__/viewStateRoundTrip.unit.js`, "brings back the unsorted order after a switch whose sort a
+listener canceled"). It needs a decision, not a patch.
+
+**Empty sort states do not mean unsorted rows.** `setSortConfig([])` and removing the sorted column empty the
+states and leave the rows in sorted order. Retaking the cache there makes the sorted order the one a later
+`clearSort()` returns to, and a later sort on another column breaks its ties by it. So `#sortedRowOrder` holds
+the order the last applied sort or clear left the rows in, and `#rowsShowSortResult()` compares the live
+sequence with it: equal means the rows are still the sort result and the cache stays. Compare the order, do
+not keep a flag: UndoRedo, `loadData()` and row moves rewrite the sequence without going through `sort()`, and a
+flag would miss a row moved after an undone sort.
+
+**`#sortedRowOrder` is a registered `indexesSequence` map (`<pluginKey>.sortedRowOrder`), not a plain copy.**
+A plain array is not touched by a row insert or removal, so after either it no longer matched the live order
+while the rows still showed the sort, and the next sort from emptied states retook the sorted order as the
+pre-sort one. As a registered map it gets the same `insert()`/`remove()` the live sequence and the cache get,
+so equal stays equal and different stays different. A row move rewrites only the live order (the rows no longer
+show the sort, so the next sort retakes the cache, as for any move). UndoRedo captures and restores it with the
+cache and the live order, so an undone sort or clear brings back a matching triple, and `loadData()` resets all
+three to the identity order. A clear writes it too (it equals the cache then), which stands in for "no sort
+result": a `true` while the rows show the cache only skips a capture that would write the same values. It is
+registered and unregistered together with the cache, never alone, so it never changes the set of map names
+UndoRedo watches at a moment the cache does not. Every path (both plugins, both ways of emptying the states,
+the tie-break, the undo, inserts and removals while sorted) is pinned in `__tests__/presortOrderCapture.unit.js`.
+Taking it only on the first sort was wrong twice: a row moved while nothing was sorted was lost on the next
+sort-and-clear, and `loadData()` re-initializes the registered map to the identity order (with the states
+emptied), so after a load the next clear put back the identity order instead of the one the rows had.
+
+**Do not unregister the map on a clear.** It looks like the clean fix (create on sort, drop on clear, the way
+`disablePlugin()` does), but UndoRedo captures this map with the other row maps and drops its whole history
+whenever the set of map names changes, and an undo of a clear restores its values. Keep it registered and
+rewrite its values. `setSortConfig()` does not create the map when it is missing, so the server-side pattern
+(`setSortConfig()` from `beforeColumnSort` on a grid that never sorted) registers nothing. Pinned by
+`__tests__/presortOrderCapture.unit.js` (both sorting plugins).
+
 ## Sort configs carry VISUAL column indexes
 
 `getColumnNextConfig()`, `sort()` and `getSortConfig()` all speak visual indexes, and
@@ -44,6 +91,10 @@ Everything about that machinery is load-bearing:
 - **`#onBeforeOnCellMouseDown` drops any stale press.** A release that never arrived — the window lost focus
   while the button was held — would otherwise resolve on the next unrelated release and sort a column out of
   nowhere.
+- **A column order reset drops the queued press.** `afterColumnSequenceChange` with the `'init'` source
+  (`loadData()`, `updateSettings()` with `columns`, a new column layout) names the press's column in an order that
+  no longer exists. ManualColumnMove cancels a held drag on the same change, so `isDragging()` then reads `false`
+  and the release would have sorted a column of the new order. A same-shape `updateData()` fires no `'init'`.
 - **Two release signals, deliberately.** `afterOnCellMouseUp` is primary: on touch devices Walkontable calls
   its `onMouseUp` straight from `touchend` instead of dispatching a DOM `mouseup`, so a document listener
   alone would never fire and tapping a header would stop sorting. A raw `mouseup` on `documentElement` is
@@ -59,6 +110,21 @@ Everything about that machinery is load-bearing:
   in a microtask, so it is already over by mouse-up — and reading `awaitsValidation` on release is wrong
   too, because by then the new selection has opened an editor on the highlighted cell. The wait happens in
   `#resolvePendingSort`, not in `applyHeaderClickSort`, so subclasses overriding that seam still get it.
+- **The waiting sorts are plugin state, and every reset drops them.** Release takes the press out of
+  `#pendingHeaderSort`, so a sort that waits for the validator sits in the `#awaitingHeaderSorts` set, and its wait
+  runs it only while the set still holds it. It is a set, not one field: the editor stays open until the answer, so
+  a second header press during the wait waits too, and one field let the second release overwrite the first (two
+  clicks on a header ended `asc` instead of `desc`, and MultiColumnSorting kept only the last Ctrl+click). The waits
+  resolve on the same `postAfterValidate`, in press order. `disablePlugin()`, `destroy()`, `afterLoadData` and an
+  `'init'` column order reset clear the set (`#dropHeaderSorts()`). Without that a sort waiting through
+  `updateSettings({ columnSorting: false })` threw `Cannot read properties of null (reading 'getSortStates')`, and
+  one waiting through `loadData()` sorted the loaded rows. `updateData()` keeps the sorts on purpose: the wrappers
+  call it with the same records while an edit waits, and dropping there would lose the click. The plugin cannot
+  tell the same records from other ones, so an `updateData()` with other records keeps them too and they sort
+  those records, the same way core still writes the waiting edit into them. The wait still resolves on
+  the next `postAfterValidate` of any cell, so an unrelated validation that answers first sorts the rows before
+  the edit lands, and the edit is written by visual row onto another record. That is a core defect, and once
+  core keeps a waiting change on its record this wait can go.
 
 `applyHeaderClickSort(press)` is the extension seam: MultiColumnSorting overrides it to build a different
 sort config for the same gesture without repeating any of the click-versus-drag handling.
@@ -75,7 +141,7 @@ same place.
 `sortByPresetSortStates()` has two sort paths, and they must stay behaviorally identical. Both start from
 one gather, `#gatherBand()`: one physical-row array, one value array per sorted column, and the highest
 physical index. The physical-row array is a plain array, never an `Int32Array`: `getNumberOfRowsToSort()`
-is an overridable seam, a widening override makes `toPhysicalRow()` return `null`, and a typed array would
+is an overridable seam, a widening override makes the gather's `?? null` read answer `null`, and a typed array would
 store that as physical row 0. It is never permuted, so it is both paths' `indexesBefore`.
 
 - **Parallel value arrays (the default).** `#sortRowPositions()` builds no per-row object. It sorts a plain
@@ -305,6 +371,19 @@ with both at 1 the bound is the same as either option alone. `sortableRowRange.u
 both directions of the overlap (more spares than pinned rows, and more pinned rows than
 spares) plus `maxRows` capping the displayed count.
 
+## The band is gathered from an uncached read, because the sort runs inside batches
+
+`sortByPresetSortStates()` resets the sequence to the pre-sort order and then gathers the band. `#gatherBand()`
+therefore reads `rowIndexMapper.getNotTrimmedIndexes(false)` once, never `toPhysicalRow()`: the mapper does not
+rebuild `notTrimmedIndexesCache` while `isBatched`, so inside `batch()`, between `suspendExecution()` and
+`resumeExecution()`, and in ViewState's restore the cached read still holds the PREVIOUS sort's order. The remap
+then lands on the reset sequence and the rows come out wrong, with `getSortConfig()` still reporting the new
+sort. It only shows on a grid that is already sorted. Do not refresh the cache mid-batch with `updateCache(true)`:
+it fires `cacheUpdated`, which runs the selection repair and the size-cache invalidation. The read is fresh for the
+sequence only: `getNotTrimmedIndexes(false)` still filters it through the trimming maps' cached merged values, and
+`countRows()` (the band's upper bound) is cache-based too, so a trim made earlier in the same batch is not seen by
+either, as before. Row axis only: the column axis is not touched. Pinned by `__tests__/sortInsideBatch.unit.js`.
+
 ## The remap table must cover the highest physical index the band holds
 
 `sortByPresetSortStates()` rewrites the indexes sequence through an `Int32Array` keyed BY physical row
@@ -320,7 +399,7 @@ the sequence length. Either one undersizes the table; a typed-array write past t
 error and the read gives `undefined`, so those rows silently keep their pre-sort place and the sequence ends
 up with duplicated physical indexes.
 
-**Guard `toPhysicalRow()`'s `null` at both ends.** A subclass may widen `getNumberOfRowsToSort()`, and the
+**Guard the gather's `null` at both ends** (the `?? null` read in `#gatherBand()`, which answers what `toPhysicalRow()` does). A subclass may widen `getNumberOfRowsToSort()`, and the
 visual rows past the mapper's reach answer `null`. `null > -1` is `true`, so an unguarded comparison makes
 `highestPhysicalIndex` itself `null`; and a typed array coerces a `null` **value** to `0`, so writing one
 would remap a real row onto physical row 0 — a duplicated row with no error, where the `Map` this replaced
@@ -343,13 +422,48 @@ declared there, not in the core-package file).
 it, and with `headerAction: false` no indicator is rendered at all (18.1 painted the arrow only through
 `.columnSorting.sortAction.ascending::before`), so there is nothing to reserve.
 
+## The sort markup is cleared on every header level, for the instance's life
+
+A column header is reused between renders: `TableView#appendColHeader` keeps the `div.relative` and the
+`span.colHeader` and resets only the container's class list, so the sort classes on the label and the
+`ht-sort-indicator` element survive a render unless this plugin removes them. A `nestedHeaders` change moves
+the previous bottom row up, so a header that was sorted becomes a group header. Two paths clear it, both
+through `#clearSortMarkup()`:
+
+- **While the plugin is on**, `#onAfterGetColHeader` clears every header that is not the bottom level
+  instead of returning early. Returning early left `sortAction` on the group label (the CSS keyed on it
+  shrank and shifted the label) when `nestedHeaders` was added to a sorted grid.
+- **While the plugin is off**, `#onAfterGetColHeaderWhileDisabled` runs. It is registered in the
+  constructor with `this.hot.addHook()` (the `require-tracked-hook-in-enable` rule bans that inside
+  `enablePlugin()`) and does nothing until the first enable sets `#mayHaveMarkedHeaders`, so a grid that
+  never sorted pays one boolean check per header. `destroy()` removes it, or a plugin destroyed on a live
+  grid keeps running it against a `hot` that `BasePlugin#destroy()` nulled (pinned by
+  `__tests__/disabledHeaderCleanup.unit.js`). It replaced a hook `disablePlugin()` added and removed
+  after the first `afterViewRender`: that one cleared the bottom level only, and only on one render, so
+  `{ columnSorting: false, nestedHeaders }` in one call, or removing `nestedHeaders` later, kept the classes.
+
+**Do not skip the clear on a header without the `columnSorting` class.** `#syncIcon` is
+`createTrackedIconSync()` per instance: it removes the indicator only from a container this instance
+filled. With ColumnSorting turned off and MultiColumnSorting turned off later, both instances' disabled hooks
+run; ColumnSorting's runs first, strips the classes and cannot see MultiColumnSorting's indicator. A
+"nothing to clear" check on the class then made MultiColumnSorting skip its own indicator, which stayed.
+
+**While another sorting plugin is on (`pluginConflictsState`), the disabled hook clears on one render only.**
+That plugin cannot remove what this one drew: its `#syncIcon` does not know this instance's indicators, and
+ColumnSorting's `getClassesToRemove()` has no `sort-N` badge. So `disablePlugin()` sets `#clearsUnderConflict`,
+and an `afterViewRender` hook added once resets it: one update that switches the two plugins
+(`{ multiColumnSorting: false, columnSorting: true }`, or the other way) clears the old plugin's markup on the
+render that follows. After that render the hook skips again. Clearing on every render under the other plugin
+removes its indicator each time and it draws a new element, so the `<i>` is replaced on every `render()`.
+Pinned by `tests/e2e/header-plugin-markup-all-rows.spec.ts` and `__tests__/disabledHeaderCleanup.unit.js`.
+
 ## The indicator is a real element, and it still needs the ghost-table `*` stand-in
 
 `#onAfterGetColHeader` keys `syncIcon(this.hot, container, 'ht-sort-indicator', iconName)` on the sort
 order, the `indicator` setting, and the `headerAction` setting: ascending → `arrowNarrowUp`, descending →
 `arrowNarrowDown`, anything else (no sort, `indicator: false`, `headerAction: false` — 18.1 parity, the
-column keeps its `aria-sort` but shows no arrow — or the whole plugin disabled via `disablePlugin()`'s
-`clearColHeader`) →
+column keeps its `aria-sort` but shows no arrow — or the whole plugin disabled, through
+`#clearSortMarkup()`, see the section above) →
 `null`, which removes the slot. `syncIcon` guarantees exactly one `<i class="ht-icon
 ht-sort-indicator">` in the container regardless of how many times a render calls this hook.
 
@@ -410,29 +524,43 @@ both directions, `htRight`/`htLeft`, sorted and unsorted; the menu icon has to s
 `#pendingHeaderSort = null` and `columnStatesManager?.destroy()` are explicit here. Any new `#field` holding
 state needs the same treatment.
 
-## Known workaround
+## The settings sort of an enable runs in the ready step
 
-`enablePlugin()` carries a `// TODO: Workaround? It should be refactored / described.` guard on
-`this.hot.view` — the #6806 initialization-order problem described in `../base/AGENTS.md`.
+`enablePlugin()` sorts nothing. It marks the settings sort as owed (`#settingsSortOwed`), and the ready step
+(`onGridReady()`, `../base/AGENTS.md`) runs it once the data the settings describe is loaded: at init before
+the `init` hook, and after the load on a settings switch. Core holds the renders at init while the steps run,
+so the sort's own render is skipped and the first render draws sorted rows; the grid renders once at init
+instead of twice. It replaced an `afterInit` listener (which sorted after the first render had drawn the rows
+unsorted), the #6806 `this.hot.view` branch in `enablePlugin()`, and an `afterLoadData` listener whose
+`initialLoad` branch never ran (it read the data array as the flag). A load an `init` listener makes comes
+after the step, so the new `#onAfterLoadData` sorts it (see the `onDataReady()` section below). Pinned by
+`__tests__/readyStep.unit.js`.
 
 ## Enabling via `updateSettings` must not sort twice (DEV-187)
 
 A `disabled → enabled` transition through `updateSettings()` (e.g. `hot.updateSettings({ columnSorting:
-{...} })` on a grid built without the option) runs the settings sort from **two** places in the same
-pass: `enablePlugin()`'s `#loadOrSortBySettings()` (the #6806 `this.hot.view` workaround above, which
-already fires because `view` exists by then) and `onUpdateSettings()`'s own tail call to
+{...} })` on a grid built without the option) can run the settings sort from **two** places in the same
+pass: the ready step of the enable (above) and `onUpdateSettings()`'s own tail call to
 `sortBySettings(pluginSettings)`. Left unguarded, that runs the comparator twice for the same sort -
 the original DEV-187 report blamed construction-time `initialConfig`, which was already fixed and
 measures single on develop; the survivor is this enable-via-`updateSettings` path.
 
 `onUpdateSettings()` captures `wasEnabled = this.enabled` **before** calling `super.onUpdateSettings()`
 (which is what may flip `enabled` from `false` to `true`), and only re-sorts when the plugin was
-`enabled` on **both** sides of that call. A fresh enable is left to `enablePlugin()` alone; an
+`enabled` on **both** sides of that call. A fresh enable is left to its ready step alone; an
 already-enabled plugin receiving a new sort config through `updateSettings` still re-sorts here as
-before. `MultiColumnSorting` overrides neither `onUpdateSettings()` nor `sortBySettings()` - its
-`enablePlugin()` override only adds an already-enabled early return before delegating to `super`,
-so it still runs the same #6806 workaround path - and it inherits this guard unchanged. Do not
-special-case it.
+before, and its step does nothing (only `enablePlugin()` marks the sort as owed). `MultiColumnSorting`
+overrides neither `onUpdateSettings()` nor `sortBySettings()` - its `enablePlugin()` override only adds
+an already-enabled early return before delegating to `super` - and it inherits this guard and the step
+unchanged. Do not special-case it.
+
+## `Enter` on a collapsible header belongs to CollapsibleColumns
+
+The `Enter` header shortcut here sits in the `'columnSorting'` shortcut group. CollapsibleColumns anchors its own
+`Enter` shortcut before that group by name, and this plugin anchors behind the `'collapsibleColumns'` group by name
+when it is already there, so a collapsible header collapses instead of sorting in either registration order. Rename
+either group, or register the shortcut under another one, and that order breaks:
+`tests/e2e/collapsible-enter-vs-sorting.spec.ts` goes red. Details: `../collapsibleColumns/AGENTS.md`.
 
 ## Where to look next
 
@@ -462,7 +590,8 @@ that pseudo-element and gave it `width: var(--ht-icon-size, 16px)`, so the measu
 without the width restated on the ghost rule every sortable header with a menu button measured ~10px
 narrower than 18.1: the visual suite flagged all 30 nested-headers goldens (complex-demo, nested-headers
 collapse, filters active-class). The ghost rule now carries `width: var(--ht-icon-size, 16px)` itself.
-Pinned by "the ghost-table sort reserve keeps its 18.1 geometry" in `tests/e2e/icon-elements.spec.ts`.
+Pinned by "the ghost-table `*` stand-in keeps the glyph width on a label without `sortAction`" in
+`tests/e2e/icon-elements-sorting.spec.ts`.
 A local repro page for the complex demo (gitignored, not in the repository) is the quickest way to
 compare its column widths against 18.1.
 
@@ -477,3 +606,44 @@ rule in `_column-sorting.scss` sets `pointer-events: auto` (plus `cursor: pointe
 sibling selector), and `wasClickableHeaderClicked()` accepts `SORT_INDICATOR_SLOT_CLASS` as a target
 alongside `HEADER_SPAN_CLASS`. Pinned by "a click precisely on the indicator icon toggles the sort
 order" in `tests/e2e/icon-elements.spec.ts`.
+
+## The `initialConfig` sort applied ahead of its data waits for `onDataReady()`
+
+While core's `_applySettingsAndData()` applies settings ahead of their data (`isDataWorkDeferred()`,
+`../base/AGENTS.md`), the sort in `onUpdateSettings()` is held, and `onDataReady()` runs
+`#loadOrSortBySettings()` against the loaded rows. The sort of a fresh enable needs no hold: its ready step
+runs after the load. Run before the load, either sorted the departing rows and the load reset the order, so
+a sheet's own `initialConfig` was ignored on its first visit.
+
+**Rows an `init` listener loads are sorted by `#onAfterLoadData`, not by the ready step.** The ready step sorts
+before the `init` hook, so a `loadData()` from an `init` listener replaces the sorted rows, and `replaceData()`
+runs no ready step pass for it (it skips `beforeRender` while `firstRun` is truthy). Core passes `afterLoadData`
+one of three `initialLoad` values: `true` for the load made before the view exists, the truthy
+`[null, 'loadData']` for a load made later during init (from an `init` listener, with the view in place), and
+`false` after init. The listener sorts by the settings only for a truthy value with the view in place, which is
+that second load alone. A load after init keeps the order it brings. Test
+the value as truthy, not `=== true`: the listener this replaced did, and never ran. Pinned by
+`__tests__/readyStep.unit.js` and `tests/e2e/column-sorting-init-load.spec.ts`.
+
+## `true` after an object resets the column properties; `true` after `true` does not
+
+The column properties a configuration object sets (`indicator`, `headerAction`, `sortEmptyCells`,
+`compareFunctionFactory`) live on the `ColumnStatesManager`, which is created only on enable.
+`getMergedPluginSettings()` merges the settings value over them, and a boolean adds nothing there, so an object's
+values used to outlive a later `true` (and a sheets bar sheet declaring `true` inherited the previous sheet's
+object). `onUpdateSettings()` reads the plugin's previous value (`getSetting()`, before `super`) and calls
+`ColumnStatesManager#resetAllColumnsProperties()` when a non-object value replaces an object, before the column
+meta cache is rebuilt. `true` sent again (every React or Angular render) changes nothing and keeps the sort; an
+object after an object still merges. Object → `false` → `true` also starts from the defaults, as it always did:
+`disablePlugin()` destroys the manager and the next enable builds a fresh one, so the reset never runs on that path
+(Search keeps the object's options there instead, because its options live on the plugin itself). MultiColumnSorting
+inherits all of it unchanged. Pinned by
+`__tests__/settingsReset.unit.js` and `../sheetsBar/__tests__/pluginOptionReset.unit.js`.
+
+## `_getObjectSettingDefaults()` lists every column property an object sets
+
+`@private`, read by the SheetsBar plugin (see `../base/AGENTS.md`). An object sent again merges into the column
+properties the previous one set (`ColumnStatesManager#updateAllColumnsProperties`), so the override lists the
+default of each one: `indicator`, `headerAction`, `sortEmptyCells` and `compareFunctionFactory`. A new key of the
+object form must be added there, or a sheet that leaves it out keeps the previous sheet's value. MultiColumnSorting
+inherits the override.

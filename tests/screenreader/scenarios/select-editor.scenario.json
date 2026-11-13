@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "id": "select-editor",
+  "surface": "The select editor, a native select over the cell: opening it, choosing an option with the arrow keys, and Enter committing it.",
+  "group": "editors",
+  "page": "select-editor",
+  "state": "editor",
+  "criteria": ["2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [0, 3]}],
+  "steps": [
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["combo box"]],
+      "note": "Enter opens the editor on the cell holding `D1`, a native select with Option A and Option B. `D1` is not an option, so nothing is chosen yet and only the role is required. NVDA reads `combo box, collapsed` with no name: the select has none (the axe baseline's `editor-input-names`). Finding: VoiceOver says nothing when the select editor opens, on both browsers."
+    },
+    {
+      "id": "arrow-down-first",
+      "action": {"press": "ArrowDown"},
+      "expect": [["option a"]],
+      "note": "The editor answers ArrowDown itself and chooses the next option, so the native popup never opens. VoiceOver with WebKit says nothing on this step or the next. It says nothing on a plain select either, whether the same script changes its option or its own type-ahead does (its behavior). With Chromium it reads the option."
+    },
+    {
+      "id": "arrow-down-second",
+      "action": {"press": "ArrowDown"},
+      "expect": [["option b"]]
+    },
+    {
+      "id": "commit-option",
+      "action": {"press": "Enter"},
+      "expect": [["d2", "d 2"], ["row 3"]],
+      "note": "Enter commits Option B and moves the selection one row down (enterMoves), to the next row's cell, `D2`, which NVDA spells `D 2`. Required: the value and the row. The focus reaches the cell: every reader reads it. VoiceOver names no row (its behavior)."
+    },
+    {
+      "id": "back-to-committed",
+      "action": {"press": "ArrowUp"},
+      "expect": [["option b"]],
+      "note": "ArrowUp moves to the edited cell, which now holds the committed option, `Option B`."
+    }
+  ]
+}

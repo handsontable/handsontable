@@ -750,4 +750,28 @@ describe('getCellCoordsFromMousePosition', () => {
       expect(coords.col).not.toBe(0);
     });
   });
+
+  describe('a walk that starts on a slave of a merge crossing every visible column', () => {
+    // Every visible column is merged across rows 0-9 and the first visible row is 3, so the walk starts on a
+    // slave: each rendered row resolves to the anchor's element, whose full height must be counted once.
+    const slaveStartGeometry = {
+      tableRect: { left: 0, top: 0, right: 160, bottom: 300 },
+      viewportWidth: 160,
+      viewportHeight: 300,
+      firstRow: 3,
+      lastRow: 9,
+      firstCol: 0,
+      lastCol: 1,
+      totalRows: 10,
+      rowHeight: 30,
+      colWidth: 80,
+      mergedCells: [{ row: 0, col: 0, rowspan: 10 }, { row: 0, col: 1, rowspan: 10 }],
+    };
+
+    it('maps a pointer past the bottom edge to the last visible row', () => {
+      const hot = buildHot(slaveStartGeometry);
+
+      expect(getCellCoordsFromMousePosition(hot, 100, 5000).row).toBe(9);
+    });
+  });
 });

@@ -13,9 +13,9 @@ export type SetterContext = {
 
 /**
  * The cell meta fields the setter reads. Derived from `CellProperties` so the two cannot drift,
- * and narrowed to these two so a caller need not build a whole meta object.
+ * and narrowed to these three so a caller need not build a whole meta object.
  */
-export type ChoiceMeta = Pick<CellProperties, 'source' | 'allowHtml'>;
+export type ChoiceMeta = Pick<CellProperties, 'source' | 'allowHtml' | 'sourceLabel'>;
 
 /**
  * Defines what value is set to an autocomplete-typed cell.
@@ -57,7 +57,9 @@ export function valueSetter(
   // pay for the scan - that is the common configuration, and `hasKeyValueChoices()` answers it
   // without touching a single character of any label.
   if (!isEmpty(newValue) && hasKeyValueChoices(cellMeta?.source)) {
-    const matchedChoice = findChoiceByDisplayedValue(cellMeta?.source, newValue, cellMeta?.allowHtml === true);
+    const matchedChoice = findChoiceByDisplayedValue(
+      cellMeta?.source, newValue, cellMeta?.allowHtml === true, cellMeta?.sourceLabel
+    );
 
     if (isKeyValueEntry(matchedChoice)) {
       return matchedChoice;

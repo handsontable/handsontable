@@ -1,5 +1,14 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle } from '../bundle';
+
+/**
+ * The xlsx fixtures the core package's unit tests read. The app-saved ones (`libreoffice-saved`,
+ * `excel-saved`) were written by LibreOffice and Excel, not by a writer in this repository; how is in
+ * the README beside them.
+ */
+const XLSX_FIXTURES = new URL('../../../handsontable/src/utils/xlsxEngine/__tests__/fixtures/', import.meta.url);
 
 /**
  * Page object for the xlsx round-trip fixture: a configured source grid, an empty target grid, and
@@ -9,14 +18,16 @@ export class XlsxImportPage {
   readonly page: Page;
   readonly theme: string;
   readonly bundle: string;
+  readonly engine: string;
   readonly status: Locator;
   readonly sourceMaster: Locator;
   readonly targetMaster: Locator;
 
-  constructor(page: Page, theme = 'main', bundle = 'umd') {
+  constructor(page: Page, theme = 'main', bundle = 'umd', engine: 'exceljs' | 'native' = 'exceljs') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
+    this.engine = engine;
     this.status = page.getByTestId('status');
     // The source grid has `fixedRowsTop: 1`, so row 0 is rendered twice: once in the master
     // table and once cloned into the top overlay. Both clones carry the same stamped
@@ -28,7 +39,9 @@ export class XlsxImportPage {
 
   /** Open the fixture and wait for the bundle and the source grid. */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/xlsx-import.html?theme=${this.theme}&bundle=${this.bundle}`);
+    const query = `theme=${this.theme}&bundle=${this.bundle}&engine=${this.engine}`;
+
+    await this.page.goto(`/tests/fixtures/demo/xlsx-import.html?${query}`);
     await awaitBundle(this.page);
     await expect(this.sourceCell(0, 0)).toBeVisible();
   }
@@ -47,13 +60,219 @@ export class XlsxImportPage {
    * too, just with the negative visual index Walkontable renders the corner at.
    */
   targetHeaders(): Locator {
-    return this.page.locator('[data-testid="target"] .ht_clone_top thead th span.colHeader:not(.cornerHeader)');
+    return this.targetHeaderRows().locator('th span.colHeader:not(.cornerHeader)');
+  }
+
+  /**
+   * The target grid's column-header rows, scoped to the top overlay clone - the only layer that
+   * renders the header exactly once. Every header reader goes through this one locator.
+   */
+  private targetHeaderRows(): Locator {
+    return this.page.locator('[data-testid="target"] .ht_clone_top thead tr');
+  }
+
+  /**
+   * Waits until the fixture reports `expected` or an error, and throws with the error's message.
+   * A thrown import used to leave the status on `working`, so a red run waited out the full expect
+   * timeout and named no cause.
+   */
+  private async waitForStatus(expected: string): Promise<void> {
+    await expect(this.status).toHaveText(new RegExp(`^(${expected}|error: .*)$`));
+
+    const text = await this.status.textContent();
+
+    if (text !== expected) {
+      throw new Error(`The fixture reported ${text}`);
+    }
   }
 
   /** Click the round-trip button and wait for the fixture to report completion. */
   async roundTrip(): Promise<void> {
     await this.page.getByTestId('round-trip').click();
-    await expect(this.status).toHaveText('done');
+    await this.waitForStatus('done');
+  }
+
+  /** Export the source grid and return the workbook bytes, without importing them. */
+  async exportSource(): Promise<Buffer> {
+    const bytes = await this.page.evaluate(async() => {
+      const source = (window as unknown as {
+        __source: { getPlugin(name: string): { exportAsBlobAsync(f: string, o: object): Promise<Blob> } };
+      }).__source;
+      const blob = await source.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
+        colHeaders: true, rowHeaders: true, exportHiddenColumns: 'hide', exportFormulas: true,
+      });
+
+      return Array.from(new Uint8Array(await blob.arrayBuffer()));
+    });
+
+    return Buffer.from(bytes);
+  }
+
+  /** Pick a workbook in the fixture's file input, the way a user does, and wait for the import. */
+  async importFile(file: { name: string; buffer: Buffer }): Promise<void> {
+    await this.page.getByTestId('import-input').setInputFiles({
+      name: file.name,
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer: file.buffer,
+    });
+    await this.waitForStatus('done-file');
+  }
+
+  /** The bytes of one committed xlsx fixture, as a user would pick the file from disk. */
+  xlsxFixture(name: string): Buffer {
+    return readFileSync(fileURLToPath(new URL(`${name}.xlsx`, XLSX_FIXTURES)));
+  }
+
+  /** The checkbox a `checkbox` cell of the target grid renders. */
+  targetCheckbox(row: number, col: number): Locator {
+    return this.targetCell(row, col).locator('input[type="checkbox"]');
+  }
+
+  /**
+   * Imports a workbook with the defined names `Sales` (`Data!$B$2:$B$4`: 10, 20, 30) and `Rate`
+   * (`Data!$F$1`: 0.07), and the formulas `D2 =SUM(Sales)` (cached 60) and `D3 =Rate*100` (cached 7),
+   * into the target with no header promotion, so the cells keep their sheet coordinates. With
+   * `defineNames`, the same two names are first added to the target's own HyperFormula engine,
+   * over the cells the import fills. Answers the source data of D2 and D3 and the `dropped` list.
+   */
+  async importDefinedNamesWorkbook(
+    defineNames: boolean | 'differently',
+  ): Promise<{ sources: unknown[]; dropped: string[]; names: string[] }> {
+    return this.page.evaluate(async(withNames) => {
+      const w = window as unknown as Record<string, any>;
+      const target = w.__target;
+      const engine = target.getPlugin('formulas').engine;
+
+      if (withNames === true) {
+        engine.addNamedExpression('Sales', '=Target!$B$2:$B$4');
+        engine.addNamedExpression('Rate', '=Target!$F$1');
+      } else if (withNames === 'differently') {
+        // Defined already, over other cells than the file's: the file's definition is not taken.
+        engine.addNamedExpression('Sales', '=Target!$B$2:$B$3');
+        engine.addNamedExpression('Rate', '=Target!$F$2');
+      }
+
+      const workbook = new w.ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Data');
+
+      sheet.getCell('B2').value = 10;
+      sheet.getCell('B3').value = 20;
+      sheet.getCell('B4').value = 30;
+      sheet.getCell('F1').value = 0.07;
+      workbook.definedNames.add('Data!$B$2:$B$4', 'Sales');
+      workbook.definedNames.add('Data!$F$1', 'Rate');
+      sheet.getCell('D2').value = { formula: 'SUM(Sales)', result: 60 };
+      sheet.getCell('D3').value = { formula: 'Rate*100', result: 7 };
+
+      const bytes = new Uint8Array(await workbook.xlsx.writeBuffer());
+      const result = await target.getPlugin('importFile').importFromArrayBuffer('xlsx', bytes.slice().buffer);
+
+      return {
+        sources: [target.getSourceDataAtCell(1, 3), target.getSourceDataAtCell(2, 3)],
+        dropped: result.dropped,
+        names: engine.listNamedExpressions(),
+      };
+    }, defineNames);
+  }
+
+  /**
+   * Exports the array and error grid (`window.__source3`: `SEQUENCE(3)` in B1, `FILTER` in C2, `=1/0`
+   * in D1 and a typed `#N/A` in E1, over 3, 1, 2, 5 in column A) with `exportFormulas` and no
+   * headers, and imports the blob into the target, so the cells keep their coordinates. Answers the
+   * target's source data and displayed data over the same 4 x 5 block, and the import's `dropped`.
+   */
+  async roundTripArraysAndErrors(): Promise<{ sources: unknown[][]; values: unknown[][]; dropped: string[] }> {
+    return this.page.evaluate(async() => {
+      const w = window as unknown as Record<string, any>;
+      const target = w.__target;
+      const blob = await w.__source3.getPlugin('exportFile').exportAsBlobAsync('xlsx', { exportFormulas: true });
+      const result = await target.getPlugin('importFile').importFromBlob('xlsx', blob);
+      const block = (read: (row: number, col: number) => unknown) => [0, 1, 2, 3]
+        .map(row => [0, 1, 2, 3, 4].map(col => read(row, col)));
+
+      return {
+        sources: block((row, col) => target.getSourceDataAtCell(row, col)),
+        values: block((row, col) => target.getDataAtCell(row, col)),
+        dropped: result.dropped,
+      };
+    });
+  }
+
+  /**
+   * Imports a workbook ExcelJS writes, whose B1 holds the legacy array formula `{=A1:A3}` over B1:B3
+   * with the values Excel cached (3, 1, 2), over 3, 1, 2 in column A. HyperFormula evaluates a lone
+   * range to `#VALUE!`, so the import keeps the cached values. Answers the target's source data of
+   * B1:B3 and the import's `dropped`.
+   */
+  async importBareRangeArray(): Promise<{ sources: unknown[]; dropped: string[] }> {
+    return this.page.evaluate(async() => {
+      const w = window as unknown as Record<string, any>;
+      const target = w.__target;
+      const workbook = new w.ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Data');
+
+      [3, 1, 2].forEach((value, row) => {
+        sheet.getCell(row + 1, 1).value = value;
+      });
+      sheet.getCell('B1').value = { formula: 'A1:A3', result: 3, shareType: 'array', ref: 'B1:B3' };
+      sheet.getCell('B2').value = 1;
+      sheet.getCell('B3').value = 2;
+
+      const bytes = new Uint8Array(await workbook.xlsx.writeBuffer());
+      const result = await target.getPlugin('importFile').importFromArrayBuffer('xlsx', bytes.slice().buffer);
+
+      return {
+        sources: [0, 1, 2].map(row => target.getSourceDataAtCell(row, 1)),
+        dropped: result.dropped,
+      };
+    });
+  }
+
+  /**
+   * Imports raw bytes into the target and answers how the call ended, what the grid holds after it
+   * and whether `afterImport` ran - the shape a refused upload is asserted on.
+   */
+  async importBytes(bytes: Buffer): Promise<{
+    rejection: { message: string; limit: boolean } | null;
+    data: unknown[][];
+    afterImportRan: boolean;
+  }> {
+    return this.page.evaluate(async(input) => {
+      const target = (window as unknown as {
+        __target: {
+          getData(): unknown[][];
+          addHook(name: string, fn: () => void): void;
+          getPlugin(name: string): { importFromArrayBuffer(f: string, b: ArrayBuffer): Promise<unknown> };
+        };
+      }).__target;
+      let afterImportRan = false;
+      let rejection = null;
+
+      target.addHook('afterImport', () => {
+        afterImportRan = true;
+      });
+
+      try {
+        await target.getPlugin('importFile').importFromArrayBuffer('xlsx', new Uint8Array(input).buffer);
+      } catch (error) {
+        const { message, cause } = error as Error & { cause?: { limit?: unknown } };
+
+        rejection = { message, limit: cause?.limit !== undefined };
+      }
+
+      return { rejection, data: target.getData(), afterImportRan };
+    }, Array.from(bytes));
+  }
+
+  /** The comment the target grid holds on one cell, or `null`. */
+  async targetComment(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(([r, c]) => {
+      const target = (window as unknown as {
+        __target: { getPlugin(name: string): { getCommentAtCell(r: number, c: number): unknown } };
+      }).__target;
+
+      return target.getPlugin('comments').getCommentAtCell(r, c) ?? null;
+    }, [row, col]);
   }
 
   /**
@@ -62,7 +281,7 @@ export class XlsxImportPage {
    */
   async roundTripWithStyles(): Promise<void> {
     await this.page.getByTestId('round-trip-styles').click();
-    await expect(this.status).toHaveText('done-styles');
+    await this.waitForStatus('done-styles');
   }
 
   /** The `afterImport` result the fixture stored. */
@@ -84,17 +303,7 @@ export class XlsxImportPage {
    * identical between them; the master is just the one `targetCell()` already scopes to.
    */
   async targetComputedStyle(row: number, col: number, prop: string): Promise<string> {
-    return this.page.evaluate(([r, c, cssProp]) => {
-      const cell = document.querySelector(
-        `[data-testid="target"] .ht_master [data-testid="target-${r}-${c}"]`
-      ) as HTMLElement | null;
-
-      if (!cell) {
-        throw new Error(`No target cell at row ${r}, col ${c}`);
-      }
-
-      return getComputedStyle(cell).getPropertyValue(cssProp);
-    }, [row, col, prop] as const);
+    return this.targetCell(row, col).evaluate((cell, cssProp) => getComputedStyle(cell).getPropertyValue(cssProp), prop);
   }
 
   /**
@@ -204,7 +413,7 @@ export class XlsxImportPage {
   /** Click the nested-header round-trip button and wait for the fixture to report completion. */
   async roundTripNested(): Promise<void> {
     await this.page.getByTestId('round-trip-nested').click();
-    await expect(this.status).toHaveText('done-nested');
+    await this.waitForStatus('done-nested');
   }
 
   /**
@@ -212,12 +421,8 @@ export class XlsxImportPage {
    * top overlay clone - the only layer that renders the header exactly once.
    */
   async targetHeaderLayers(): Promise<string[][]> {
-    return this.page.evaluate(() => {
-      const rows = document.querySelectorAll('[data-testid="target"] .ht_clone_top thead tr');
-
-      return Array.from(rows).map(row => Array.from(row.querySelectorAll('th'))
-        .map(th => (th.textContent ?? '').trim()));
-    });
+    return this.targetHeaderRows().evaluateAll(rows => rows.map(row => Array.from(row.querySelectorAll('th'))
+      .map(th => (th.textContent ?? '').trim())));
   }
 
   /**
@@ -225,10 +430,7 @@ export class XlsxImportPage {
    * a nested header group reached the DOM rather than just the settings object.
    */
   async targetHeaderColspans(): Promise<number[]> {
-    return this.page.evaluate(() => {
-      const row = document.querySelector('[data-testid="target"] .ht_clone_top thead tr');
-
-      return Array.from(row?.querySelectorAll('th') ?? []).map(th => th.colSpan);
-    });
+    return this.targetHeaderRows().first().locator('th')
+      .evaluateAll(cells => cells.map(th => (th as HTMLTableCellElement).colSpan));
   }
 }

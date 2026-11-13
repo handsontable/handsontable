@@ -85,6 +85,11 @@ describe('i18n helpers', () => {
     it('should normlize properly langage code #3', () => {
       expect(normalizeLanguageCode('PL-PL')).toEqual('pl-PL');
     });
+
+    it('should normalize a language code with a script subtag', () => {
+      expect(normalizeLanguageCode('sr-Latn-RS')).toEqual('sr-Latn-RS');
+      expect(normalizeLanguageCode('SR-lATN-rs')).toEqual('sr-Latn-RS');
+    });
   });
 
   describe('warnUserAboutLanguageRegistration', () => {
@@ -102,6 +107,19 @@ describe('i18n helpers', () => {
       warnUserAboutLanguageRegistration('pl-PL');
 
       expect(spy).toHaveBeenCalled();
+    });
+
+    it('should link the language guide with no punctuation glued to the URL', () => {
+      const spy = spyOn(console, 'error');
+
+      warnUserAboutLanguageRegistration('pl-PL');
+
+      const message = spy.calls.mostRecent().args[0];
+      const url = 'https://handsontable.com/docs/javascript-data-grid/language/#load-the-prepared-language-files';
+
+      expect(message).toContain(url);
+      // A console turns the text up to the next space into the link.
+      expect(message.split(/\s+/)).toContain(url);
     });
   });
 });

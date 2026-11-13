@@ -77,6 +77,23 @@ describe('preview package composition', () => {
       expect(umdJob).toContain('npm run build:themes-umd.min\n');
     });
 
+    it('should build the settings schema CDN file in the UMD job', () => {
+      // dist/handsontable.settings-schema.js is emitted only by these two tasks. The settings schema
+      // Playwright spec loads it from the UMD artifact, and the published package copies it from dist/.
+      const umdJob = extractJob(readRepoFile('.github/workflows/build.yml'), 'umd');
+
+      expect(umdJob).toContain('npm run build:settings-schema-umd\n');
+      expect(umdJob).toContain('npm run build:settings-schema-umd.min\n');
+    });
+
+    it('should build the feature manifest in the UMD job', () => {
+      // dist/manifest.json is emitted only by this task, and the published package copies it from dist/.
+      // License keys are built from it.
+      const umdJob = extractJob(readRepoFile('.github/workflows/build.yml'), 'umd');
+
+      expect(umdJob).toContain('npm run build:feature-manifest\n');
+    });
+
     it('should compose a publishable package only where the whole package exists', () => {
       // Both directions matter. A job composing a partial tree with the strict script fails on
       // every run; a job composing the published tree with the partial script publishes whatever

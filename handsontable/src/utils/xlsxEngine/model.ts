@@ -4,13 +4,55 @@
 export type CellValue = string | number | boolean | null;
 
 /**
+ * The error values a cell can hold in OOXML (`ST_CellType` `e`, ECMA-376 18.18.11). A cached
+ * formula result is written as an error only when it is one of these: anything else in a `t="e"`
+ * cell is a file Excel repairs, and readers such as Apache POI refuse the code.
+ */
+export const OOXML_ERROR_CODES: ReadonlySet<string> = new Set([
+  '#NULL!', '#DIV/0!', '#VALUE!', '#REF!', '#NAME?', '#NUM!', '#N/A',
+]);
+
+/**
+ * Whether a value is one of the {@link OOXML_ERROR_CODES}.
+ */
+export function isOoxmlErrorCode(value: unknown): value is string {
+  return typeof value === 'string' && OOXML_ERROR_CODES.has(value);
+}
+
+/**
+ * The array part of a formula cell: the formula is the master of an array formula
+ * (`<f t="array" ref="…">`), dynamic (Excel 365, `cm="1"`) or a legacy CSE array.
+ */
+export interface CellFormulaArray {
+  /**
+   * The A1 range the array covers, in the file's own 1-based sheet coordinates (`D1:D3`).
+   */
+  ref: string;
+  /**
+   * `true` for an Excel 365 dynamic array (`cm="1"`), `false` for a legacy CSE array.
+   */
+  dynamic: boolean;
+}
+
+/**
  * A formula cell. `text` carries the formula without the leading `=`; `result` is the cached value
  * and is optional so the two shapes the export produces (`{ formula }` and `{ formula, result }`)
  * round-trip unchanged.
+ *
+ * `resultIsError` says the cached result is an ERROR value, not text: `result` then holds the
+ * OOXML error code (`#DIV/0!`) and both writers type the cell `t="e"`. The export sets it from the
+ * Formulas engine's own cell value, never from the text, because a formula may answer the text
+ * `#N/A` (`="#N/A"`), which is a string. The readers set it from a `t="e"` cell, so they no longer
+ * hand the code back unflagged. A flagged result that is not one of the {@link OOXML_ERROR_CODES}
+ * is written as text.
+ *
+ * `array` says the formula is the master of an array formula, see {@link CellFormulaArray}.
  */
 export interface CellFormula {
   text: string;
   result?: CellValue;
+  resultIsError?: boolean;
+  array?: CellFormulaArray;
 }
 
 /**
@@ -43,6 +85,11 @@ export interface CellSnapshot {
   validation: CellValidationSnapshot | null;
   locked: boolean | null;
   comment: string | null;
+  /**
+   * `true` when `value` holds an error code (`#N/A`), not text. Optional and absent by default:
+   * readers set it from `t="e"`, and `exportFile` sets it from the engine's value.
+   */
+  valueIsError?: boolean;
 }
 
 /**
@@ -56,12 +103,50 @@ export interface MergeSnapshot {
 }
 
 /**
+ * The permissions a protected sheet may grant, every one of them optional and absent by default.
+ * `true` means the action stays ALLOWED on a protected sheet, which is the sense ExcelJS's
+ * `worksheet.protect()` uses — OOXML stores most of them inverted, and each adapter's writer and
+ * reader is what flips them.
+ *
+ * The set is closed on purpose: a reader takes these names out of a file and nothing else, so an
+ * unknown or hostile `<sheetProtection>` attribute cannot ride along in the snapshot.
+ */
+const SHEET_PROTECTION_OPTION_NAMES = [
+  'sheet', 'objects', 'scenarios', 'selectLockedCells', 'selectUnlockedCells', 'formatCells',
+  'formatColumns', 'formatRows', 'insertColumns', 'insertRows', 'insertHyperlinks', 'deleteColumns',
+  'deleteRows', 'sort', 'autoFilter', 'pivotTables',
+] as const;
+
+/**
+ * One permission name.
+ */
+export type SheetProtectionOptionName = typeof SHEET_PROTECTION_OPTION_NAMES[number];
+
+/**
+ * The permissions themselves, keyed by name.
+ */
+export type SheetProtectionOptions = { [K in SheetProtectionOptionName]?: boolean };
+
+/**
+ * The names above as a set, for the membership test below.
+ */
+const PROTECTION_OPTION_NAME_SET = new Set<string>(SHEET_PROTECTION_OPTION_NAMES);
+
+/**
+ * Whether an attribute name a file carries is one of the permissions the model declares. This is
+ * the allow-list both readers filter `<sheetProtection>` through.
+ */
+export function isProtectionOptionName(name: string): name is SheetProtectionOptionName {
+  return PROTECTION_OPTION_NAME_SET.has(name);
+}
+
+/**
  * Sheet protection. `options` carries the engine-neutral permission flags the export sets today.
  */
 export interface SheetProtectionSnapshot {
   enabled: boolean;
   password: string | null;
-  options: Record<string, boolean>;
+  options: SheetProtectionOptions;
 }
 
 /**
@@ -89,11 +174,49 @@ export interface SheetSnapshot {
 }
 
 /**
+ * One defined name: its text and its definition.
+ */
+export interface DefinedNameSnapshot {
+  /**
+   * The name, as a formula spells it.
+   */
+  name: string;
+  /**
+   * The definition, without the leading `=` (`Data!$G$2:$G$4`, `0.07`).
+   */
+  formula: string;
+  /**
+   * The sheet the name is scoped to, or `null` for a name visible in the whole workbook.
+   */
+  sheetName: string | null;
+  /**
+   * `true` when a reader knows the name but not a definition it can trust: a definition too long
+   * to read, a scope that names no sheet (both native), or any name ExcelJS reads, since ExcelJS
+   * loses the scope. Such an entry is kept only so `importFile` imports the formulas over the name
+   * as their cached values; it is never registered and never written.
+   */
+  unsupported?: true;
+}
+
+/**
  * A whole workbook, the unit every adapter reads and writes.
  */
 export interface WorkbookSnapshot {
   sheets: SheetSnapshot[];
   compression: false | number;
+  /**
+   * The names the workbook defines (`<definedNames>`), with their definitions. The native engine
+   * reads and writes them. A formula that uses one cannot resolve on import unless the Formulas
+   * engine defines it too. Excel's own `_xlnm.` names (print areas, the filter database) are left
+   * out.
+   */
+  definedNames?: DefinedNameSnapshot[];
+  /**
+   * The formula characters the native reader's shared-formula translation ran over, read on import
+   * only. The import mapper starts its own formula-walk count from it, so one import spends
+   * `MAX_TRANSLATED_FORMULA_CHARS` once, not once in the reader and again in the mapper.
+   */
+  translatedFormulaChars?: number;
 }
 
 /**
@@ -136,4 +259,32 @@ export function createCellSnapshot(): CellSnapshot {
     locked: null,
     comment: null,
   };
+}
+
+/**
+ * The snapshot of a cell a merge COVERS: its own style and lock, and nothing else. Both readers
+ * build it through here so they agree. The value belongs to the merge's master; the number format
+ * formats no value, and kept it would sway the column's type inference. The lock is the reason
+ * this exists: a covered cell read as `null` imported read-only under sheet protection whatever its
+ * own `locked="0"` said, which showed once the user unmerged. Returns `null` when the cell carries
+ * neither, which is what a covered cell with no formatting reads as.
+ *
+ * @param {CellStyleSnapshot|null} style The covered cell's own style.
+ * @param {boolean|null} locked The covered cell's own lock.
+ * @returns {CellSnapshot|null}
+ */
+export function createCoveredCellSnapshot(
+  style: CellStyleSnapshot | null,
+  locked: boolean | null,
+): CellSnapshot | null {
+  if (style === null && locked === null) {
+    return null;
+  }
+
+  const cell = createCellSnapshot();
+
+  cell.style = style;
+  cell.locked = locked;
+
+  return cell;
 }

@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { isObject } from '../../helpers/object';
+import { isHTMLElement } from '../../helpers/dom/element';
 import { randomString } from '../../helpers/string';
 import { resolveButtonType, type ButtonType } from '../../helpers/uiButton';
 import * as C from '../../i18n/constants';
@@ -17,6 +18,7 @@ import {
   type NotificationPosition,
   type NotificationVariant,
 } from './constants';
+import { LICENSE } from './feature.generated';
 
 export type { NotificationPosition, NotificationVariant } from './constants';
 
@@ -86,7 +88,7 @@ const TICK_MS = 200;
  * @class Notification
  *
  * @description
- * The Notification plugin shows non-blocking toast messages anchored to the Handsontable root.
+ * The Notification plugin shows non-blocking toast messages anchored to the grid root.
  * Enable it with the {@link Options#notification} option. Toasts are exposed to assistive technologies with
  * `aria-live` and do not take keyboard focus when they appear; use **F6** to move focus into the notification region
  * for the grid that currently contains keyboard focus (with several instances on one page, each grid only handles **F6**
@@ -99,7 +101,7 @@ const TICK_MS = 200;
  * const hot = new Handsontable(container, {
  *   data: data,
  *   notification: true,
- *   licenseKey: 'non-commercial-and-evaluation',
+ *   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
  * });
  * const notification = hot.getPlugin('notification');
  * notification.showMessage({ message: 'Saved.' });
@@ -118,6 +120,14 @@ export class Notification extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -251,6 +261,8 @@ export class Notification extends BasePlugin {
 
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
+    this.addHook('afterViewRender', this.#onAfterViewRender);
+    this.addHook('afterRefreshDimensions', this.#onAfterViewRender);
     this.eventManager.addEventListener(this.hot.rootDocument, 'visibilitychange', () => {
       if (this.#hasActiveCountdowns()) {
         this.#queueTick();
@@ -486,6 +498,17 @@ export class Notification extends BasePlugin {
   };
 
   /**
+   * Keeps the toast layer fitted to the grid root after a render or a dimensions refresh, the latter
+   * covering a grid that moves inside the wrapper without changing size.
+   */
+  readonly #onAfterViewRender = () => {
+    // Read only while a toast is on screen; `#mountToast` fits the layer for the next one.
+    if (this.#toasts.size > 0) {
+      this.#ui?.fitToGrid(this.hot.rootElement);
+    }
+  };
+
+  /**
    * Rebuilds the close icon of every currently-open toast after a theme change. A toast built
    * before the change keeps showing its close control - only the icon inside it needs to catch
    * up, the same way pagination and the sheets bar refresh their persistent icons.
@@ -503,7 +526,7 @@ export class Notification extends BasePlugin {
    */
   #normalizeOptions(raw: NotificationMessageOptions): NotificationNormalizedOptions {
     if (!isObject(raw) || (typeof raw.message !== 'string' &&
-      !(typeof HTMLElement !== 'undefined' && raw.message instanceof HTMLElement))) {
+      !isHTMLElement(raw.message))) {
       throwWithCause('Notification.showMessage expects an object with a `message` string or HTMLElement.');
     }
 
@@ -558,6 +581,8 @@ export class Notification extends BasePlugin {
    * @param {object} normalized Validated toast options including `id` and `position`.
    */
   #mountToast(normalized: NotificationNormalizedOptions): void {
+    this.#ui!.fitToGrid(this.hot.rootElement);
+
     const closeLabel = this.hot.getTranslatedPhrase(C.NOTIFICATION_BUTTONS_CLOSE);
     const animation = this.getSetting<boolean>('animation');
     const { element } = this.#ui!.createToastElement(normalized, closeLabel, animation);

@@ -105,6 +105,7 @@ const VALID_TOKEN_KEYS = new Set([
   // Cell selection
   'cellSelectionBorderColor',
   'cellSelectionBackgroundColor',
+  'rowSelectionBackgroundColor',
   // Cell autofill
   'cellAutofillSize',
   'cellAutofillHitAreaSize',
@@ -113,6 +114,8 @@ const VALID_TOKEN_KEYS = new Set([
   'cellAutofillBorderColor',
   'cellAutofillBackgroundColor',
   'cellAutofillFillBorderColor',
+  // Custom borders
+  'customBordersDefaultColor',
   // Cell mobile
   'cellMobileHandleSize',
   'cellMobileHandleBorderWidth',
@@ -129,6 +132,12 @@ const VALID_TOKEN_KEYS = new Set([
   'cellSelectionHandleBackgroundColor',
   // Resize/Move indicators
   'resizeIndicatorColor',
+  'freezeBarColor',
+  'freezeBarHoverColor',
+  'freezeBarHighlightColor',
+  'asyncIndicatorColor',
+  'asyncErrorBackgroundColor',
+  'asyncErrorMarkerColor',
   'moveBacklightColor',
   'moveBacklightOpacity',
   'moveIndicatorColor',
@@ -367,7 +376,6 @@ const VALID_TOKEN_KEYS = new Set([
   'sheetsBarTabForegroundColor',
   'sheetsBarTabBackgroundColor',
   'sheetsBarTabHoverForegroundColor',
-  'sheetsBarTabHoverBackgroundColor',
   'sheetsBarTabActiveForegroundColor',
   'sheetsBarTabActiveBackgroundColor',
   'sheetsBarTabActiveBorderWidth',

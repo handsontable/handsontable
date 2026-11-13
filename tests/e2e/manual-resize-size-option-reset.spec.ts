@@ -21,6 +21,7 @@ import { ManualResizeSizeOptionResetPage } from '../fixtures/pages/ManualResizeS
  * The sizes are asserted from a real pointer drag on the resize handle, so the stored size is
  * produced the way a user produces it. None of this is checkable in jsdom, where every size is zero.
  */
+// leg-declarations: ignore geometry-helper -- every height and width compared is one the settings configure (rows of 50, 90 and 150 px, columns of 80 and 120 px), above every theme's default
 test.describe('Manual resize versus the size option', () => {
   let grid: ManualResizeSizeOptionResetPage;
 
@@ -133,9 +134,9 @@ test.describe('Manual resize versus the size option', () => {
     expect(await grid.rowHeights('rows-empty-array')).toEqual(new Array(5).fill(SHORT));
   });
 
-  test('applies minRowHeights, the documented alias, to a dragged row', async () => {
-    // `Core#_getRowHeightFromSettings` reads `rowHeights ?? minRowHeights`, so the alias states the
-    // heights just as `rowHeights` does.
+  test('applies minRowHeights to a dragged row', async () => {
+    // `minRowHeights` states the heights too, as a floor instead of an exact height, so passing it
+    // re-declares them just as `rowHeights` does.
     await grid.dragRowHandle(0, 70);
 
     expect((await grid.rowHeights())[0]).toBeGreaterThan(SHORT);

@@ -1,14 +1,21 @@
-// Compact markdown report builder -- produces a summary table with regression
-// callouts and a collapsible raw-details section. The heavy lifting (charts,
-// interactive tables) lives in the HTML report instead.
+// Compact markdown report builder -- the sticky pull request comment and the job summary. It leads
+// with the regression gate's verdict and lists only the scenarios that need a reader's attention,
+// so its length grows with the problems, not with the number of scenarios. The full table is folded
+// away below that, and the heavy lifting (charts, interactive tables) lives in the HTML report.
 
 import {
-  REGRESSION_CALLOUT_THRESHOLD_TIMING,
+  GATE_RUN_SHIFT_THRESHOLD,
+  GATE_TIMING_FLOOR_MS,
+  GATE_TIMING_THRESHOLD,
+  HEAP_THRESHOLDS_BY_SCENARIO,
+  REGRESSION_CALLOUT_THRESHOLD_HEAP,
+  WATCH_TIMING_THRESHOLD,
   INCOMPARABLE_LABELS,
   activeTotalsPerIteration,
   calcCv,
   fmtCvValue,
   heapThresholdFor,
+  isOverTimingLine,
   pctChange,
   relativeToShift,
   runShift,
@@ -20,13 +27,15 @@ import {
   fmtPct,
   fmtPctWithEmoji,
   formatTitle,
+  fmtMsDelta,
 } from './thresholds.mjs';
 import { formatEnvironment } from './environment.mjs';
+import { decideGate } from './gate.mjs';
 
 /**
  * Decides every verdict the comment makes, once. `buildReport` renders from it and
  * `collectRegressions` lists from it, and the teardown passes the same object to both -- deciding it
- * per render site is how the table and the callouts once disagreed on one run.
+ * per render site is how two parts of one comment once disagreed on one run.
  *
  * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
  * @param {object | null} goldenSnapshots
@@ -50,33 +59,47 @@ export function assessReport(allScenarioResults, goldenSnapshots, meta = {}) {
  * @param {Record<string, object>} allScenarioResults -- keyed by scenario name
  * @param {object | null} goldenSnapshots -- golden baseline (or null to self-compare)
  * @param {object} [meta] -- { pagesUrl, crossWindowScenarios, versionMismatchScenarios, commit,
- *   runId, environment, baselineUnavailable }
+ *   runId, runUrl, environment, baselineUnavailable, gated }. `gated` is true on a pull request
+ *   run, the only one the gate acts on (isGatedRun); it adds the gate's rules and what happens next
+ *   to a failing headline.
  * @param {{ assessments: Array<object>, shift: number | null, hasGolden: boolean }} [assessment]
  *   -- from assessReport; computed here when the caller has no other use for it
+ * @param {object} [verdict] -- from lib/gate.mjs decideGate, the one the job acts on. Decided here
+ *   without a newest develop golden when the caller has none, which fails safe.
  * @returns {string} full markdown report
  */
 export function buildReport(
   allScenarioResults, goldenSnapshots, meta = {},
-  assessment = assessReport(allScenarioResults, goldenSnapshots, meta)
+  assessment = assessReport(allScenarioResults, goldenSnapshots, meta),
+  verdict = decideGate({
+    assessment, baseline: goldenSnapshots, unavailableReason: meta.baselineUnavailable ?? null,
+  })
 ) {
   const goldenScenarios = goldenSnapshots?.scenarios || {};
-  const { assessments, shift, hasGolden } = assessment;
-  const sections = [];
+  const { assessments, hasGolden } = assessment;
+  // After a re-run the rows mix two runs, so the run's shift is the first pass's (confirmVerdict).
+  const shift = verdict.rerun ? verdict.shift : assessment.shift;
+  // A self-comparison is 0% by construction, so nothing on it may read as cleared or flagged.
+  const compared = hasGolden && !goldenSnapshots?.isSelfCompare;
+  const sections = [buildHeadline(verdict, assessments, meta, compared)];
 
-  // Summary table
-  sections.push(buildSummaryTable(assessments, hasGolden, shift));
+  if (compared) {
+    const attention = buildAttentionTable(verdict, assessments);
 
-  // Hook timing, for the scenarios that measure it independently of the trace
-  const hookTiming = buildHookTimingSection(allScenarioResults, goldenScenarios, hasGolden);
+    if (attention) {
+      sections.push(attention);
+    }
 
-  if (hookTiming) {
-    sections.push(hookTiming);
-  }
+    const notes = buildAssessmentNotes(assessments);
 
-  // Regression callouts (only for scenarios > threshold). Suppressed on a self-comparison, where
-  // every delta is 0% by construction and "within tolerance" would be a claim about nothing.
-  if (hasGolden && !goldenSnapshots?.isSelfCompare) {
-    sections.push(buildRegressionCallouts(assessments, shift));
+    if (notes) {
+      sections.push(notes);
+    }
+
+    // The re-run and the approval it describes happen only where the gate acts.
+    if (meta.gated) {
+      sections.push(buildRulesLine());
+    }
   }
 
   // Where the baseline came from, so a reader can tell one run from five
@@ -93,6 +116,19 @@ export function buildReport(
     );
   }
 
+  // Everything, folded away: the full table and the hook timing.
+  const details = [buildSummaryTable(assessments, hasGolden, shift)];
+  const hookTiming = buildHookTimingSection(allScenarioResults, goldenScenarios, hasGolden);
+
+  if (hookTiming) {
+    details.push(hookTiming);
+  }
+
+  // The blank lines inside are what let GitHub render the tables within the fold.
+  sections.push(
+    `<details><summary>All ${assessments.length} scenarios</summary>\n\n${details.join('\n\n')}\n\n</details>`
+  );
+
   return sections.join('\n\n');
 }
 
@@ -100,8 +136,8 @@ export function buildReport(
  * The scenarios a run regressed on, for a caller that needs the list rather than the prose -- the
  * golden (develop-push) teardown turns each into a `::warning` annotation on the develop run.
  *
- * Same assessment as the callouts, so the two cannot disagree -- and the same run shift, so a
- * consumer can say how far a row sits from the rest of the run the way the callout prose does.
+ * Same assessment as the comment, so the two cannot disagree -- and the same run shift, so a
+ * consumer can say how far a row sits from the rest of the run the way the footer does.
  *
  * @param {Record<string, object>} allScenarioResults
  * @param {object | null} goldenSnapshots
@@ -172,18 +208,21 @@ function orderedScenarioEntries(results) {
  * @param {object} current
  * @param {object | undefined} golden
  * @param {false | 'window-mismatch' | 'version-mismatch'} mismatch
- * @returns {{ change: number | null, incomplete: boolean }}
+ * @returns {{ change: number | null, baselineMs: number | null, currentMs: number | null,
+ *   incomplete: boolean }} the two totals only when the comparison is publishable
  */
 function totalDelta(current, golden, mismatch) {
+  const withheld = { change: null, baselineMs: null, currentMs: null };
+
   if (!golden) {
-    return { change: null, incomplete: false, label: null, shortLabel: null };
+    return { ...withheld, incomplete: false, label: null, shortLabel: null };
   }
 
   const verdict = comparability(golden.categories, current.categories, mismatch);
 
   if (!verdict.comparable) {
     return {
-      change: null, incomplete: true, label: verdict.label, shortLabel: verdict.shortLabel,
+      ...withheld, incomplete: true, label: verdict.label, shortLabel: verdict.shortLabel,
     };
   }
 
@@ -192,14 +231,19 @@ function totalDelta(current, golden, mismatch) {
   );
 
   return {
-    change: pctChange(baseline, currentTotal), incomplete: false, label: null, shortLabel: null,
+    change: pctChange(baseline, currentTotal),
+    baselineMs: baseline,
+    currentMs: currentTotal,
+    incomplete: false,
+    label: null,
+    shortLabel: null,
   };
 }
 
 /**
- * Everything the table, the callouts and the annotations need to know about one scenario, decided
+ * Everything the table, the gate and the annotations need to know about one scenario, decided
  * once. Deciding it per render site is how one comment came to print a red heap cell in its table
- * and clear the same run in its callouts.
+ * and clear the same run elsewhere.
  *
  * @param {Record<string, object>} results
  * @param {Record<string, object>} goldenScenarios
@@ -212,7 +256,9 @@ function assessScenarios(results, goldenScenarios, mismatches) {
     // A trace-level mismatch: the two sides bracket different slices (window) or different
     // definitions of the scenario (version). Both withhold everything derived from the trace.
     const traceMismatch = mismatches[name] ?? false;
-    const { change: totalPct, incomplete, label, shortLabel } = totalDelta(current, golden, traceMismatch);
+    const {
+      change: totalPct, baselineMs, currentMs, incomplete, label, shortLabel,
+    } = totalDelta(current, golden, traceMismatch);
     // Heap survives a missed timing category -- the two are measured independently -- but not a
     // trace mismatch: jsHeapMaxBytes is a maximum over the samples inside the window, so two
     // windows (or two definitions) sample two different things.
@@ -228,12 +274,15 @@ function assessScenarios(results, goldenScenarios, mismatches) {
       golden,
       traceMismatch,
       totalPct,
+      baselineMs,
+      currentMs,
       incomplete,
       label,
       shortLabel,
       heapPct,
       heapThreshold,
-      timingRegressed: totalPct != null && totalPct > REGRESSION_CALLOUT_THRESHOLD_TIMING,
+      // The gate's fail line, floor included, so the develop annotations and the gate agree.
+      timingRegressed: isOverTimingLine(baselineMs, currentMs),
       heapRegressed: heapPct != null && heapPct > heapThreshold,
     };
   });
@@ -256,7 +305,10 @@ function assessScenarios(results, goldenScenarios, mismatches) {
 function reliabilityCell(current, golden) {
   const iterationTotals = activeTotalsPerIteration(current._iterationValues?.categories);
 
-  return `${fmtCvValue(calcCv(iterationTotals))} / ${fmtCvValue(golden?.spread)}`;
+  // Only the baseline's spread is flagged. A run's own spread is wide by construction on a few
+  // scenarios (undo-edit's iterations read ~100% apart on every run while its develop runs sit 1.5%
+  // apart), so a flag there fired on every comment and meant nothing.
+  return `${fmtCvValue(calcCv(iterationTotals), { flag: false })} / ${fmtCvValue(golden?.spread)}`;
 }
 
 function buildSummaryTable(assessments, hasGolden, shift) {
@@ -282,19 +334,25 @@ function buildSummaryTable(assessments, hasGolden, shift) {
     if (hasGolden) {
       // The verdict's own wording. A fixed "baseline incomplete" misattributes a failure of this
       // run's own capture to develop, and sends a maintainer to re-run develop for nothing.
-      const totalChange = a.incomplete ? a.shortLabel : fmtPctWithEmoji(a.totalPct);
-      // Informational, no emoji: the callout gate runs on the raw delta and a second set of colours
-      // here would let the two columns reach opposite verdicts on one row.
+      let totalChange = a.incomplete ? a.shortLabel : fmtPctWithEmoji(a.totalPct);
+
+      // Over the line in percent but under the ms floor is what the gate watches, not what it fails,
+      // so the cell says the same (a 13 ms scenario at +12% is 1.6 ms of timer rounding).
+      if (!a.incomplete && a.totalPct > GATE_TIMING_THRESHOLD && !a.timingRegressed) {
+        totalChange = `${fmtPct(a.totalPct)} \u{1F7E1}`;
+      }
+      // Informational, no emoji: the gate runs on the raw delta and a second set of colours here would
+      // let the two columns reach opposite verdicts on one row.
       const vsShift = hasShift ? [fmtPct(relativeToShift(a.totalPct, shift))] : [];
-      // Gated here as well as in the callouts, so the table and the callout below it cannot reach
-      // opposite verdicts on the same run.
+      // Withheld here as the gate withholds it, so the table and the verdict cannot reach opposite
+      // verdicts on the same run.
       const heapChange = a.traceMismatch
         // The mismatch's own label, not the baseline-side one: the heap cell is only ever withheld
         // for a trace mismatch, where the baseline captured everything and it is the windows or
         // the definitions that differ. "baseline incomplete" here would give one row two
         // explanations for one cause.
         ? INCOMPARABLE_LABELS[a.traceMismatch]
-        : fmtPctWithEmoji(a.heapPct, a.heapThreshold);
+        : fmtPctWithEmoji(a.heapPct, a.heapThreshold, null);
 
       rows.push([
         a.title, fmtMs(cats.scripting), fmtMs(cats.rendering),
@@ -305,7 +363,8 @@ function buildSummaryTable(assessments, hasGolden, shift) {
       rows.push([
         a.title, fmtMs(cats.scripting), fmtMs(cats.rendering),
         fmtMs(cats.painting), fmtMs(total),
-        fmtCvValue(calcCv(activeTotalsPerIteration(current._iterationValues?.categories))), heap,
+        // The run's own spread, unflagged for the same reason as in reliabilityCell.
+        fmtCvValue(calcCv(activeTotalsPerIteration(current._iterationValues?.categories)), { flag: false }), heap,
       ]);
     }
   }
@@ -313,16 +372,16 @@ function buildSummaryTable(assessments, hasGolden, shift) {
   // The shift sentence on the same condition as the column.
   const shiftLegend = hasShift
     ? '`Δ vs shift`: the delta with this run\'s common shift against the baseline removed (see the '
-      + 'footer); callouts use the raw `Δ Total`. '
+      + 'footer); the gate uses the raw `Δ Total`. '
     : '';
   const legend = hasGolden
     ? `\n\n<sub>${shiftLegend}`
-      + '`CV run / base`: spread across the three iterations of this run, then across the '
-      + 'develop runs behind the baseline. A high second number means the baseline itself moves, '
-      + 'so read the delta beside it loosely.</sub>'
+      + '`CV run / base`: spread across the iterations of this run, then across the develop runs '
+      + 'behind the baseline. A high second number means the baseline itself moves, so read the '
+      + 'delta beside it loosely.</sub>'
     : '';
 
-  return `## ⚡ Performance Results\n\n${formatMarkdownTable(headers, rows)}${legend}`;
+  return `${formatMarkdownTable(headers, rows)}${legend}`;
 }
 
 // --- hook timing ---
@@ -348,11 +407,13 @@ function buildHookTimingSection(results, goldenScenarios, hasGolden) {
     const row = [
       formatTitle(name),
       fmtMs(current.hookTiming),
-      fmtCvValue(calcCv(current._iterationValues?.hookTiming)),
+      // The run's own spread, unflagged for the same reason as in reliabilityCell.
+      fmtCvValue(calcCv(current._iterationValues?.hookTiming), { flag: false }),
     ];
 
     if (hasGolden) {
-      row.push(fmtPctWithEmoji(pctChange(golden?.hookTiming, current.hookTiming)));
+      // No marker: the gate never judges hook timing, and markers appear only where it acts.
+      row.push(fmtPct(pctChange(golden?.hookTiming, current.hookTiming)));
     }
 
     rows.push(row);
@@ -369,7 +430,7 @@ function buildHookTimingSection(results, goldenScenarios, hasGolden) {
   return `### Hook timing\n\n${formatMarkdownTable(headers, rows)}`;
 }
 
-// --- regression callouts ---
+// --- the gate's verdict ---
 
 function buildTimingBreakdown(current, golden) {
   const parts = [];
@@ -385,8 +446,181 @@ function buildTimingBreakdown(current, golden) {
   return parts.join(', ');
 }
 
-function buildRegressionCallouts(assessments, shift) {
-  const callouts = [];
+/**
+ * @param {number} count
+ * @param {string} noun -- singular
+ * @returns {string} "1 scenario", "2 scenarios"
+ */
+function plural(count, noun) {
+  return `${count} ${noun}${count === 1 ? '' : 's'}`;
+}
+
+/**
+ * What happens next on a failing pull request run, or '' anywhere the gate does not act.
+ *
+ * @param {object} verdict
+ * @param {object} meta
+ * @returns {string}
+ */
+function nextStep(verdict, meta) {
+  if (!meta.gated) {
+    return '';
+  }
+
+  const run = meta.runUrl ? `[workflow run](${meta.runUrl})` : 'workflow run';
+
+  if (verdict.mode === 'block') {
+    return '\n\nWaiting for approval: if the slowdown is intended, a reviewer approves the pending '
+      + `\`performance-approval\` deployment on the ${run}; otherwise push a fix. A new push measures `
+      + 'and asks again.';
+  }
+
+  return '\n\nThe gate is in warn mode, so nothing waits. In block mode this run would need an approval '
+    + 'on the `performance-approval` environment.';
+}
+
+/**
+ * The comment's first line: the gate's verdict in a number a reviewer reads at a glance.
+ *
+ * @param {object} verdict -- from decideGate
+ * @param {Array<object>} assessments
+ * @param {object} meta
+ * @param {boolean} compared -- false without a develop baseline, or on a self-comparison
+ * @returns {string}
+ */
+function buildHeadline(verdict, assessments, meta, compared) {
+  const title = '## ⚡ Performance';
+
+  // Nothing to compare against: raw numbers only, and the footer says why. Never "within
+  // tolerance", which would be a claim about nothing.
+  if (!compared) {
+    return `${title}: not compared against develop`;
+  }
+
+  if (verdict.status === 'not-assessed') {
+    return `${title}: ⏸ not assessed\n\nNot assessed: ${verdict.reason}.`;
+  }
+
+  const total = assessments.length;
+  const cleared = verdict.rerun?.cleared ?? [];
+  const clearedNames = new Set(cleared.map(scenario => scenario.name));
+  // A scenario the re-run cleared can also be watched on its second run; the table lists it once, as
+  // cleared, and so does the headline.
+  const watching = verdict.watching.filter(scenario => !clearedNames.has(scenario.name));
+  const extras = [
+    watching.length > 0 ? `${watching.length} to watch` : '',
+    verdict.absorbed.length > 0 ? `${verdict.absorbed.length} already on develop` : '',
+    cleared.length > 0 ? `${cleared.length} cleared on re-run` : '',
+  ].filter(Boolean).map(text => ` · ${text}`).join('');
+
+  if (verdict.status === 'fail') {
+    const regressed = verdict.failing.length;
+    const what = regressed > 0
+      ? `❌ ${regressed} of ${plural(total, 'scenario')} regressed`
+      : `❌ the median scenario ran ${fmtPct(verdict.shift)} slower`;
+    // Always when the shift failed: it says how to tell a slowdown from a change on the runner.
+    const shift = verdict.shiftFailed
+      ? `\n\n${verdict.reason[0].toUpperCase()}${verdict.reason.slice(1)}.`
+      : '';
+
+    return `${title}: ${what}${extras}${shift}${nextStep(verdict, meta)}`;
+  }
+
+  // Over the line on a level develop already shows is not within tolerance: it is counted out here
+  // and named in the extras, like a scenario that could not be judged.
+  const outside = new Set([
+    ...assessments.filter(a => !a.golden || a.incomplete).map(a => a.name),
+    ...verdict.absorbed.map(scenario => scenario.name),
+  ]);
+  const within = outside.size > 0
+    ? `${total - outside.size} of ${plural(total, 'scenario')} within tolerance`
+    : `all ${plural(total, 'scenario')} within tolerance`;
+
+  return `${title}: ✅ ${within}${extras}`;
+}
+
+/**
+ * The scenarios a reader has to look at, and nothing else: failing, already on develop, cleared
+ * on the re-run, and to watch. Its length grows with the problems, not with the suite.
+ *
+ * @param {object} verdict -- from decideGate
+ * @param {Array<object>} assessments
+ * @returns {string} a markdown table, or '' when nothing needs attention
+ */
+function buildAttentionTable(verdict, assessments) {
+  const byName = new Map(assessments.map(a => [a.name, a]));
+  const confirmed = new Set(verdict.rerun?.confirmed ?? []);
+  const unconfirmed = new Set(verdict.rerun?.unconfirmed ?? []);
+  const listed = new Set();
+  const rows = [];
+  const add = (scenario, status, moved) => {
+    // A scenario the re-run cleared can also be watched on its second run; it is listed once.
+    if (listed.has(scenario.name)) {
+      return;
+    }
+
+    listed.add(scenario.name);
+    rows.push([
+      scenario.title, status, fmtPct(scenario.timingPct), fmtMsDelta(scenario.deltaMs),
+      fmtPct(scenario.heapPct), moved,
+    ]);
+  };
+  const whatMoved = (scenario) => {
+    const a = byName.get(scenario.name);
+    const parts = [];
+
+    // The timing breakdown only when timing is why the scenario is listed: on a heap-only failure
+    // it is three flat categories that say nothing.
+    if (a?.golden && !a.incomplete && (scenario.overTiming || !scenario.overHeap)) {
+      parts.push(buildTimingBreakdown(a.current, a.golden));
+    }
+
+    if (scenario.overHeap) {
+      parts.push(`JS heap ${fmtPct(scenario.heapPct)} larger`);
+    }
+
+    return parts.filter(Boolean).join('; ') || '--';
+  };
+
+  for (const scenario of verdict.failing) {
+    let status = '❌ regressed';
+
+    if (confirmed.has(scenario.name)) {
+      status = '❌ regressed, confirmed on re-run';
+    } else if (unconfirmed.has(scenario.name)) {
+      status = '❌ regressed, re-run could not measure it';
+    }
+
+    add(scenario, status, whatMoved(scenario));
+  }
+
+  for (const scenario of verdict.absorbed) {
+    add(scenario, '➖ already on develop', whatMoved(scenario));
+  }
+
+  for (const scenario of verdict.rerun?.cleared ?? []) {
+    add(scenario, '✔️ cleared on re-run', 'first run only');
+  }
+
+  for (const scenario of verdict.watching) {
+    add(scenario, '🟡 to watch', whatMoved(scenario));
+  }
+
+  if (rows.length === 0) {
+    return '';
+  }
+
+  return formatMarkdownTable(['Scenario', 'Status', 'Δ Total', 'Δ ms', 'Δ Heap', 'What moved'], rows);
+}
+
+/**
+ * The scenarios the comparison could not judge, said so rather than folded into "within
+ * tolerance": neither cleared nor flagged.
+ *
+ * @param {Array<object>} assessments
+ * @returns {string} a `<sub>` line, or ''
+ */
+function buildAssessmentNotes(assessments) {
   const skipped = [];
   const noBaseline = [];
 
@@ -402,64 +636,41 @@ function buildRegressionCallouts(assessments, shift) {
     if (a.incomplete) {
       // A trace mismatch withholds heap too (jsHeapMaxBytes is a maximum over the samples inside
       // the parsed window, invalid across two different windows or definitions), so a reader must
-      // not conclude heap was still assessed just because it isn't called out separately below.
+      // not conclude heap was still assessed just because it isn't named separately. A baseline
+      // that only missed a timing category keeps its heap: the two are measured independently.
       const heapNote = a.traceMismatch ? '; heap also not assessed' : '';
 
       skipped.push(`${a.title} (${a.label}${heapNote})`);
     }
-
-    if (!a.timingRegressed && !a.heapRegressed) {
-      continue;
-    }
-
-    const header = a.timingRegressed
-      ? `> ⚠️ **${a.title}** regressed ${fmtPct(a.totalPct)}`
-      : `> ⚠️ **${a.title}** regressed`;
-    const lines = [header];
-
-    if (a.timingRegressed) {
-      lines.push(`> ${buildTimingBreakdown(a.current, a.golden)}`);
-
-      // Where the run as a whole sits tells the reader whether this row stands out from it. Prose,
-      // not a verdict: the callout fired on the raw delta and stays fired.
-      const relative = relativeToShift(a.totalPct, shift);
-
-      if (relative != null) {
-        lines.push(`> ${fmtPct(relative)} relative to this run's shift of ${fmtPct(shift)}`);
-      }
-    }
-
-    if (a.heapRegressed) {
-      lines.push(`> JS heap ${fmtPct(a.heapPct)} larger`);
-    }
-
-    callouts.push(lines.join('\n'));
   }
 
-  // A scenario whose baseline is unusable was neither cleared nor flagged, so say so rather than
-  // letting it fall silently into "within tolerance". Scoped to the total by default, because heap
-  // survives a baseline that only missed a timing category -- the two are measured independently --
-  // and calling heap unassessed there would contradict a callout standing directly above it. A
-  // window mismatch is the exception: it invalidates heap too, and that entry says so explicitly.
   const notes = [];
 
   if (skipped.length > 0) {
     notes.push(`Total delta not assessed: ${skipped.join(', ')}.`);
   }
 
-  // Not in the baseline at all, which "within tolerance" cannot claim either -- there is nothing to
-  // be flat against. Kept distinct from `skipped`, which is baselines that exist but disagree.
+  // Kept distinct from `skipped`, which is baselines that exist but disagree.
   if (noBaseline.length > 0) {
     notes.push(`No baseline yet: ${noBaseline.join(', ')}.`);
   }
 
-  const note = notes.length > 0 ? `\n\n<sub>${notes.join(' ')}</sub>` : '';
+  return notes.length > 0 ? `<sub>${notes.join(' ')}</sub>` : '';
+}
 
-  if (callouts.length === 0) {
-    return `All assessed scenarios within tolerance ✅${note}`;
-  }
+/**
+ * @returns {string} the gate's rules in one line, stated from the constants it runs on
+ */
+function buildRulesLine() {
+  const heapOverrides = Object.entries(HEAP_THRESHOLDS_BY_SCENARIO)
+    .map(([name, threshold]) => `+${threshold}% on ${name}`)
+    .join(', ');
 
-  return `### Regressions\n\n${callouts.join('\n\n')}${note}`;
+  return `<sub>Gate: a scenario fails above +${GATE_TIMING_THRESHOLD}% and +${GATE_TIMING_FLOOR_MS} ms of `
+    + `active time, or +${REGRESSION_CALLOUT_THRESHOLD_HEAP}% of JS heap (${heapOverrides}), and is `
+    + `watched above +${WATCH_TIMING_THRESHOLD}%. The run fails when its median scenario is more than `
+    + `+${GATE_RUN_SHIFT_THRESHOLD}% slower. A failing scenario is re-run once and passes only `
+    + 'when the re-run measures it under the line.</sub>';
 }
 
 // --- provenance ---
@@ -526,9 +737,8 @@ function buildProvenanceFooter(goldenSnapshots, meta, hasGolden, shift, assessme
     const rows = assessments.filter(a => a.totalPct != null).length;
 
     shiftNote = ` Run shift: ${fmtPct(shift)} (median Δ across ${rows} scenarios: how much `
-      + 'faster or slower this runner ran than the baseline\'s, which every scenario shares. '
-      + '`Δ vs shift` removes it; callouts use the raw `Δ Total`, because a change that '
-      + 'slows every scenario alike is exactly what the shift cannot see).';
+      + 'faster or slower this runner ran than the baseline\'s, which every scenario shares; '
+      + '`Δ vs shift` removes it, and the gate judges the raw `Δ Total`).';
   }
 
   return `<sub>Baseline: ${baseline}.${current}${shiftNote}</sub>`;

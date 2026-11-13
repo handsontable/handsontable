@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import { awaitBundle } from '../bundle';
+import { awaitBundle, awaitFixtureBuilt } from '../bundle';
 
 /**
  * Page object for the `maxLength` fixture (`demo/max-length.html`): a small grid that is rebuilt per
@@ -32,11 +32,14 @@ export class MaxLengthPage {
   }
 
   /**
-   * Navigate to the fixture and wait for the default grid to render.
+   * Navigate to the fixture and wait for the default grid to render. The shared `awaitFixtureBuilt()`
+   * waits for the grid or for the constructor failure the fixture captured in `htBuildError`, and
+   * rethrows the failure with its cause.
    */
   async goto(): Promise<void> {
     await this.page.goto(`/tests/fixtures/demo/max-length.html?theme=${this.theme}&bundle=${this.bundle}`);
     await awaitBundle(this.page);
+    await awaitFixtureBuilt(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
@@ -187,9 +190,12 @@ export class MaxLengthPage {
     await this.expectBuilt();
   }
 
-  /** Rethrows a constructor failure the fixture captured, then waits for the grid to render. */
+  /**
+   * Rethrows a constructor failure the fixture captured in `htBuildError` (a rebuild runs after `goto()`,
+   * so the shared wait does not cover it), then waits for the grid to render.
+   */
   private async expectBuilt(): Promise<void> {
-    const buildError = await this.page.evaluate(() => window.fixtureError);
+    const buildError = await this.page.evaluate(() => window.htBuildError ?? null);
 
     if (buildError !== null) {
       throw new Error(`Handsontable constructor threw in the fixture:\n${buildError}`);

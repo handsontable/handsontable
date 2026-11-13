@@ -1,20 +1,20 @@
 ---
 type: explanation
 title: Introduction
-metaTitle: JavaScript Data Grid - Documentation | Handsontable
-description: An overview of Handsontable's developer documentation. Handsontable is a client-side, spreadsheet-like data grid for editing data in web applications.
+metaTitle: Documentation | Handsontable DataGrid for JavaScript
+description: Handsontable DataGrid is a client-side, spreadsheet-like data grid for editing data in web applications. This overview introduces the developer documentation.
 permalink: /
 canonicalUrl: /
 react:
-  metaTitle: React Data Grid - Documentation | Handsontable
+  metaTitle: Documentation | Handsontable DataGrid for React
 angular:
-  metaTitle: Angular Data Grid - Documentation | Handsontable
+  metaTitle: Documentation | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Vue Data Grid - Documentation | Handsontable
+  metaTitle: Documentation | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Getting started
 ---
-Handsontable is a JavaScript data grid component. This page explains what it does, who uses it, and when it is the right tool for your project.
+Handsontable DataGrid is a JavaScript component with a spreadsheet-like look and feel. This page explains what it does, who uses it, and when it is the right tool for your project.
 
 [[toc]]
 
@@ -66,7 +66,7 @@ Think of Handsontable as an extensible framework that empowers you to quickly bu
 Examples include:
 
 - In an internal financial application, an editable Handsontable-based grid simplifies importing hand-picked data from Excel and Google Sheets.
-- In a construction company's software, an interactive data table built with Handsontable helps users modify codes and standards tables.
+- In a construction company's software, an interactive data grid built with Handsontable helps users modify codes and standards tables.
 - At a hospital, Handsontable helps track and manage supplies.
 - A mobile game company uses Handsontable to streamline certain aspects of development.
 - In project management software, Handsontable allows for managers to collect weekly feedback from the team and customers.

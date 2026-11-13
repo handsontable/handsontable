@@ -3,7 +3,7 @@ import type { CellProperties } from '../../settings';
 import { EDITOR_STATE } from '../baseEditor';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
-import { findChoiceByDisplayedValue, isKeyValueEntry } from '../../utils/cellSource';
+import { findChoiceByDisplayedValue, getChoiceLabel, isKeyValueEntry, isListableChoice } from '../../utils/cellSource';
 import {
   addClass,
   fastInnerHTML,
@@ -12,6 +12,7 @@ import {
   getScrollbarWidth,
   getSelectionEndPosition,
   outerWidth,
+  removeAttribute,
   setAttribute,
   setCaretPosition,
   empty,
@@ -38,6 +39,7 @@ import {
   A11Y_TEXT,
 } from '../../helpers/a11y';
 import { debounce } from '../../helpers/function';
+import { isPlainObject } from '../../helpers/object';
 
 export const EDITOR_TYPE = 'autocomplete';
 
@@ -105,6 +107,15 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @type {Set}
    */
   #queryTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
+  /**
+   * The text the editor opened with when it was seeded from the cell, or `null` when it opened with
+   * text of its own (a fast edit, `beginEditing('x')`) or is closed. While the editor still holds it,
+   * the user has changed nothing, and the strict commit must not replace the cell's value
+   * (`#firstPartialMatch()`).
+   *
+   * @type {string | null}
+   */
+  #openedText: string | null = null;
 
   /**
    * Gets current value from editable element.
@@ -126,8 +137,10 @@ export class AutocompleteEditor extends HandsontableEditor {
       return this.TEXTAREA.value;
     }
 
+    // `rawChoices`, not the stripped list the user sees: the match hands back the source entry
+    // itself, so an object `value` is stored whole - the stripped copies carry only its label.
     const selectedValue = findChoiceByDisplayedValue(
-      this.rawChoices, this.TEXTAREA.value, this.cellProperties.allowHtml === true
+      this.rawChoices, this.TEXTAREA.value, this.cellProperties.allowHtml === true, this.cellProperties.sourceLabel
     );
 
     if (isDefined(selectedValue)) {
@@ -192,6 +205,34 @@ export class AutocompleteEditor extends HandsontableEditor {
       valueGetter: (cellValue: unknown) => (isKeyValueEntry(cellValue)
         ? cellValue.value : cellValue),
     };
+  }
+
+  /**
+   * Begins editing and remembers the text the editor was seeded with from the cell.
+   *
+   * @param {*} [newInitialValue] The initial editor value. A string is text the user brought (a fast
+   *   edit), anything else opens the editor on the cell's value.
+   * @param {Event} [event] The event that started the edit.
+   */
+  beginEditing(newInitialValue?: unknown, event?: Event): void {
+    // An editor already open is left as it is, as the base class leaves it: a double-click on the
+    // edited cell calls this again, and taking the typed text as the opening text would stop strict
+    // mode from completing it.
+    if (this.state !== EDITOR_STATE.VIRGIN) {
+      super.beginEditing(newInitialValue, event);
+
+      return;
+    }
+
+    const opensOnCellValue = typeof newInitialValue !== 'string' && this.isInFullEditMode();
+
+    this.#openedText = null;
+    super.beginEditing(newInitialValue, event);
+
+    // Read after the seed, before the deferred first query: the query compares against it.
+    if (opensOnCellValue && this.isOpened()) {
+      this.#openedText = this.TEXTAREA.value;
+    }
   }
 
   /**
@@ -357,8 +398,6 @@ export class AutocompleteEditor extends HandsontableEditor {
     { choices: ChoiceArray, highlightIndex: number | null } {
     const sortByRelevanceSetting = this.cellProperties.sortByRelevance as boolean | undefined;
     const filterSetting = this.cellProperties.filter as boolean | undefined;
-    const locale = this.cellProperties.locale as string | undefined;
-    const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive as boolean | undefined;
     const comparableValue = isKeyValueEntry(value) ? value.value : value;
 
     let highlightIndex: number | null = null;
@@ -369,38 +408,166 @@ export class AutocompleteEditor extends HandsontableEditor {
       // `source` setting) must keep its original order. The spread also keeps iterable callers (a
       // Set, a NodeList) working, which `Array#toSorted` would not — the floor now allows it, but
       // switching would narrow what this public method accepts.
-      choices = [...choices].sort((a, b) => stringify(a).localeCompare(stringify(b)));
+      choices = [...choices].sort(this.#getChoiceComparator());
     }
 
-    const filteredChoiceIndexes: number[] = [];
-    const valueToMatch = filteringCaseSensitive ? comparableValue : localeLowerCase(String(comparableValue), locale);
-
-    for (let i = 0; i < choices.length; i++) {
-      const choice = choices[i];
-      const currentItem = isKeyValueEntry(choice) ?
-        stripTags(stringify(choice.value)) :
-        stripTags(stringify(choice));
-      const itemToMatch = filteringCaseSensitive ? currentItem : localeLowerCase(currentItem, locale);
-
-      if (itemToMatch.indexOf(String(valueToMatch)) !== -1) {
-        filteredChoiceIndexes.push(i);
-
-        if (filterSetting === false) {
-          break;
-        }
-      }
-    }
+    const valueText = String(comparableValue);
+    const { matchedIndexes, equalPosition } = this.#scanChoices(choices, valueText);
+    // A position in `matchedIndexes`: the entry equal to the value, or else the first one it is part of.
+    const position = equalPosition ?? this.#firstPartialMatch();
 
     if (filterSetting === false) {
-      if (String(value).length > 0) {
-        highlightIndex = filteredChoiceIndexes[0] ?? null;
+      if (valueText.length > 0 && position !== null) {
+        highlightIndex = matchedIndexes[position] ?? null;
       }
     } else {
-      choices = filteredChoiceIndexes.map(index => choices[index]);
-      highlightIndex = choices.indexOf(valueToMatch) > -1 ? choices.indexOf(valueToMatch) : 0;
+      choices = matchedIndexes.map(index => choices[index]);
+      highlightIndex = position;
     }
 
     return { choices, highlightIndex };
+  }
+
+  /**
+   * Walks the choices once for the entries a value is part of, and finds the one equal to it.
+   *
+   * Entries are compared by the text the list shows - a key/value entry by its label - and
+   * case-insensitively unless `filteringCaseSensitive` is set. An entry equal in case too wins over
+   * one equal only without it, and the first of several equal entries wins, the way a label resolves
+   * to the first entry that carries it (`findChoiceByDisplayedValue`). A case-insensitive equal still
+   * counts as equal: a cell holding `'metric'` highlights the `'Metric'` entry, and strict mode writes
+   * that entry on confirm.
+   *
+   * With filtering, every entry the value is part of is kept (the list shows them). Without it only
+   * the highlight is read, so the walk keeps the first such entry and the equal one, and stops at a
+   * case-exact equal. In non-strict mode nothing reads that highlight, so it stops at the first entry,
+   * as it always did.
+   *
+   * @param {Array} choices The choices to walk, already stripped and sorted.
+   * @param {string} valueText The value's text.
+   * @returns {{ matchedIndexes: number[], equalPosition: number | null }} The indexes into `choices`
+   *   of the kept entries, and the position in that list of the equal entry.
+   */
+  #scanChoices(choices: ChoiceArray, valueText: string):
+    { matchedIndexes: number[], equalPosition: number | null } {
+    const { filter, filteringCaseSensitive, strict } = this.cellProperties;
+    const locale = this.cellProperties.locale as string | undefined;
+    const keepsAll = filter !== false;
+    const seeksEqual = keepsAll || (strict === true && valueText !== '');
+    const toComparable = (text: string): string => (filteringCaseSensitive ? text : localeLowerCase(text, locale));
+    const valueToMatch = toComparable(valueText);
+    const matchedIndexes: number[] = [];
+    let equalPosition: number | null = null;
+    let equalCasePosition: number | null = null;
+
+    for (let i = 0; i < choices.length; i++) {
+      const choice = choices[i];
+      const currentItem = stripTags(stringify(isKeyValueEntry(choice) ? choice.value : choice));
+      const itemToMatch = toComparable(currentItem);
+
+      if (itemToMatch.indexOf(valueToMatch) === -1) {
+        continue;
+      }
+
+      const isEqual = itemToMatch === valueToMatch;
+
+      if (keepsAll || isEqual || matchedIndexes.length === 0) {
+        matchedIndexes.push(i);
+      }
+
+      if (isEqual && equalPosition === null) {
+        equalPosition = matchedIndexes.length - 1;
+      }
+
+      if (equalCasePosition === null && currentItem === valueText) {
+        equalCasePosition = matchedIndexes.length - 1;
+      }
+
+      if (!keepsAll && (!seeksEqual || equalCasePosition !== null)) {
+        break;
+      }
+    }
+
+    return { matchedIndexes, equalPosition: equalCasePosition ?? equalPosition };
+  }
+
+  /**
+   * The highlight for a value no listed entry equals: the first entry the value is part of (index
+   * `0`), which strict mode completes typed text to, so `'Alf'` commits `'Alfa'`. Or `null` while the
+   * editor still holds the text it opened with.
+   *
+   * Confirming an edit the user did not change must not rewrite the cell. Strict mode commits the
+   * highlight, so a highlight derived from the cell's own value would replace a value that is not in
+   * the list with the first entry that contains it. A cell that opened empty keeps the first entry:
+   * there is no value to keep, and Enter on it has always committed that entry.
+   *
+   * @returns {number | null}
+   */
+  #firstPartialMatch(): number | null {
+    return this.#holdsOpeningText() ? null : 0;
+  }
+
+  /**
+   * Tells whether the editor still holds the non-empty text it was seeded with from the cell.
+   *
+   * @returns {boolean}
+   */
+  #holdsOpeningText(): boolean {
+    const openedWith = this.#openedText;
+
+    return openedWith !== null && openedWith !== '' && this.TEXTAREA.value === openedWith;
+  }
+
+  /**
+   * Tells whether the edit being confirmed leaves the cell as it was. Besides the base rule, an edit
+   * whose text the user never changed and whose list they never picked from is unchanged: `getValue()`
+   * resolves a label into the FIRST entry that carries it, so the base comparison with the seeded label
+   * fails for a key/value cell, and writing would replace an entry with another one of the same label.
+   * Nothing is written then, the cell's value is validated as it is, and no `afterChange` fires.
+   *
+   * @private
+   * @param {*} held The editor value after `trimWhitespace`.
+   * @param {*} value The value that would be written, after `valueParser`.
+   * @returns {boolean}
+   */
+  protected isEditUnchanged(held: unknown, value: unknown): boolean {
+    return super.isEditUnchanged(held, value) || (this.innerSelectionOrigin !== 'user' && this.#holdsOpeningText());
+  }
+
+  /**
+   * Re-seeds the unchanged-edit baseline after the open editor took the cell's value again
+   * (`TextEditor#refreshValue()`, after `setSourceDataAtCell()` on the edited cell), and the opening
+   * text with it.
+   */
+  protected resetValueBeforeEdit(): void {
+    super.resetValueBeforeEdit();
+
+    if (this.#openedText !== null) {
+      this.#openedText = this.TEXTAREA.value;
+    }
+  }
+
+  /**
+   * Returns the comparator the list is sorted with when `sortByRelevance` is `false`.
+   *
+   * When `sourceLabel` relabels an object `value` in `source`, a key/value entry is compared by
+   * the label it displays - the choices reaching here are already stripped, so its `value` half
+   * holds that label. Otherwise the comparison stays as it always was: `stringify()` of the whole
+   * choice, which for a key/value entry is `[object Object]`, so such a list keeps its source order.
+   * Comparing labels there too would reorder lists of existing configurations - and `sourceLabel`
+   * set at grid level cascades to columns whose entries hold string values - so it stays gated on
+   * the option having an object `value` to label.
+   *
+   * @returns {Function}
+   */
+  #getChoiceComparator(): (a: unknown, b: unknown) => number {
+    if (!this.#hasLabeledObjectValues()) {
+      return (a, b) => stringify(a).localeCompare(stringify(b));
+    }
+
+    const toText = (choice: unknown): string => stringify(isKeyValueEntry(choice) ? choice.value : choice);
+
+    return (a, b) => toText(a).localeCompare(toText(b));
   }
 
   /**
@@ -453,7 +620,9 @@ export class AutocompleteEditor extends HandsontableEditor {
     // Non-strict derives no highlight of its own, so with no pick outstanding there is nothing the
     // list can contribute. Checking the origin FIRST is what makes clearing it on `input` mean
     // something here: short-circuiting on `strict` would hand back a pick the typing superseded.
-    if (this.cellProperties.strict !== true) {
+    // Strict mode completes text the user typed. Text they never changed is the cell's own value, which
+    // the confirm keeps as it is (`isEditUnchanged()`), even where an entry equals it only without case.
+    if (this.cellProperties.strict !== true || this.#holdsOpeningText()) {
       return undefined;
     }
 
@@ -489,6 +658,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     // on scroll-back), while `close()` here is the genuine edit-end teardown that also unhooks and tears
     // down the inner grid.
     this.#dropInFlightQueries();
+    this.#openedText = null;
 
     this.removeHooksByKey('beforeKeyDown');
     super.close();
@@ -647,12 +817,12 @@ export class AutocompleteEditor extends HandsontableEditor {
         }
 
         this.rawChoices = choices;
-        this.updateChoicesList(this.stripValuesIfNeeded(choices));
+        this.updateChoicesList(this.stripValuesIfNeeded(this.#listableChoices(choices)));
       });
 
     } else if (Array.isArray(source)) {
       this.rawChoices = source;
-      this.updateChoicesList(this.stripValuesIfNeeded(source));
+      this.updateChoicesList(this.stripValuesIfNeeded(this.#listableChoices(source)));
 
     } else {
       this.updateChoicesList([]);
@@ -697,6 +867,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       // The list is empty and hidden, so there is nothing left on screen that a pick could refer
       // to. Without this an arrow pick made against an earlier list stays authoritative.
       this.innerSelectionOrigin = null;
+      removeAttribute(this.TEXTAREA, 'aria-activedescendant');
     }
 
     this.hot.listen();
@@ -829,6 +1000,11 @@ export class AutocompleteEditor extends HandsontableEditor {
       this.htEditor.selectCell(index, 0, undefined, undefined, undefined, false);
     } else {
       this.htEditor.deselectCell();
+
+      // The input names the highlighted option only through `afterSelectionEnd`, which a deselect
+      // does not fire, so without this it keeps pointing a screen reader at an option nothing
+      // highlights any more.
+      removeAttribute(this.TEXTAREA, 'aria-activedescendant');
     }
   }
 
@@ -906,21 +1082,76 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {Array<string|{key: string, value: string}>}
    */
   stripValuesIfNeeded(values: unknown[]): unknown[] {
-    const { allowHtml } = this.cellProperties;
+    const { allowHtml, sourceLabel } = this.cellProperties;
     const processValue = (value: unknown) => stringify(allowHtml ? value : stripTags(String(value)));
 
     if (values.every(value => isKeyValueEntry(value))) {
       return values.map((value) => {
         const obj = value as Record<string, unknown>;
+        // Labeled before stringifying: an object `value` would otherwise reach the list as
+        // `[object Object]`, every option alike, and a pick would resolve to the first one.
+        const label = getChoiceLabel(obj.value, sourceLabel);
 
         return {
           key: processValue(obj.key),
-          value: processValue(obj.value),
+          // A label `sourceLabel` derived is stringified first, so a path that resolves to nothing
+          // lists as empty - the text the cell shows and the label lookup compares against - rather
+          // than as the word `undefined`, which a pick would then store as a bare string. A value
+          // that was not relabeled keeps the processing it always had.
+          value: processValue(label === obj.value ? label : stringify(label)),
         };
       });
     }
 
-    return values.map(value => processValue(value));
+    // A mixed list - plain values beside key/value entries - lists each entry as its label text.
+    // Without `sourceLabel` that stays `String()` of the whole entry, as it always was. With it, an
+    // entry lists as its label even when its `value` is a string, which `getChoiceLabel()` returns
+    // unchanged: that is the text the cell shows, and the one the label lookup and the XLSX list use.
+    return values.map((value) => {
+      if (isKeyValueEntry(value)) {
+        const label = getChoiceLabel(value.value, sourceLabel);
+
+        if (sourceLabel || label !== value.value) {
+          return processValue(stringify(label));
+        }
+      }
+
+      return processValue(value);
+    });
+  }
+
+  /**
+   * Reports whether `sourceLabel` has an object `value` in the raw choices to label. Only then do
+   * labels replace the `[object Object]` a key/value entry compares by in the alphabetical sort.
+   *
+   * @returns {boolean}
+   */
+  #hasLabeledObjectValues(): boolean {
+    return Boolean(this.cellProperties.sourceLabel) &&
+      this.rawChoices.some(choice => isKeyValueEntry(choice) && isPlainObject(choice.value));
+  }
+
+  /**
+   * Leaves out the choices the list cannot offer: a key/value entry whose `sourceLabel` resolves
+   * to nothing - a missing property, or a function returning `null`.
+   *
+   * Such an entry would list as a blank option, and picking it could never store it: the editor
+   * then holds empty text, and `getValue()` keeps an emptied editor empty before any lookup runs,
+   * so the pick would clear the cell instead (and fail validation under `allowEmpty: false`). An
+   * entry whose `value` is not an object is never relabeled, so a blank `{ key, value: null }`
+   * option stays listed as it always was.
+   *
+   * @param {Array} choices The raw choices.
+   * @returns {Array}
+   */
+  #listableChoices(choices: unknown[]): unknown[] {
+    const { sourceLabel } = this.cellProperties;
+
+    if (!sourceLabel) {
+      return choices;
+    }
+
+    return choices.filter(choice => isListableChoice(choice, sourceLabel));
   }
 
   /**

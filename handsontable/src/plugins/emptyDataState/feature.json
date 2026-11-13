@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:empty_data_state",
+      "kind": "plugin",
+      "module": "EmptyDataState",
+      "name": "Empty data state",
+      "description": "Shows a message in place of the grid body when there is no data to display.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable"
+    }
+  ]
+}

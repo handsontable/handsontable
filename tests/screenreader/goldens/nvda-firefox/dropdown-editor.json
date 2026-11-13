@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "dropdown-editor",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-12T09:15:26.038Z"
+  },
+  "steps": {
+    "open-editor": "combo box expanded has auto complete multi line editable al",
+    "arrow-down-second": "list alpha 1 of 3",
+    "arrow-down-third": "alfa 2 of 3",
+    "commit-choice": "combo box collapsed has auto complete multi line editable al",
+    "back-to-committed": "alfa a row 2 column 2"
+  }
+}

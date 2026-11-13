@@ -4,7 +4,6 @@ import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
 import type { GridSettings } from 'handsontable/settings';
-import type { DetailedSettings } from 'handsontable/plugins/formulas';
 
 // register Handsontable's modules
 registerAllModules();
@@ -33,10 +32,10 @@ const hotSettings = ref<GridSettings>({
         expression: 100,
       },
     ],
-  } as DetailedSettings,
+  },
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 function inputChangeCallback(event: Event) {
@@ -57,7 +56,6 @@ function buttonClickCallback() {
   }
 
   errorMessage.value = '';
-  hotInstance?.render();
 }
 </script>
 

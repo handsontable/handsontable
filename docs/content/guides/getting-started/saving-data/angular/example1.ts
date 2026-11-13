@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild, ViewEncapsulation, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 
@@ -44,6 +44,8 @@ import Handsontable from 'handsontable/base';
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
+  private readonly cdr = inject(ChangeDetectorRef);
+
   isAutoSave = false;
   output: string = 'Click "Load" to load data from server';
 
@@ -79,6 +81,7 @@ export class AppComponent {
         this.output = `Autosaved (${change?.length} cell${
           (change?.length || 0) > 1 ? 's' : ''
         })`;
+        this.cdr.markForCheck();
         console.log('The POST request is only used here for the demo purposes');
       });
     }
@@ -105,6 +108,7 @@ export class AppComponent {
           hot?.loadData(data.data);
           // or, use `updateData()` to replace `data` without resetting states
           this.output = 'Data loaded';
+          this.cdr.markForCheck();
         });
       }
     );
@@ -123,6 +127,7 @@ export class AppComponent {
       body: JSON.stringify({ data: hot?.getData() }),
     }).then(() => {
       this.output = 'Data saved';
+      this.cdr.markForCheck();
       console.log('The POST request is only used here for the demo purposes');
     });
   }
@@ -134,7 +139,7 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -144,7 +149,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

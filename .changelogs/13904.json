@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed swapping the ColumnSorting and MultiColumnSorting plugins in one updateSettings() call, which turned both plugins off.",
+  "type": "fixed",
+  "issueOrPR": 13904,
+  "breaking": false,
+  "framework": "none"
+}

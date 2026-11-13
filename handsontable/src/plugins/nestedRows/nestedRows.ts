@@ -1,4 +1,5 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
+import type { GridSettings } from '../../core/settings';
 import { BasePlugin } from '../base';
 import DataManager, { isNestedRowsShape, type RowObject } from './data/dataManager';
 import CollapsingUI from './ui/collapsing';
@@ -6,13 +7,25 @@ import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
 import { isValidDataSource } from './utils/isValidDataSource';
 import { error } from '../../helpers/console';
+import { hasOwnProperty } from '../../helpers/object';
 import type { TrimmingMap } from '../../translations';
-import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
+import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR, GRID_GROUP } from '../../shortcuts/contexts';
 import RowMoveController from './utils/rowMoveController';
+import { announce } from '../../utils/a11yAnnouncer';
+import { isGridBodyCovered } from '../../shortcuts/guards';
+import {
+  NESTED_ROWS_ANNOUNCEMENT_COLLAPSED,
+  NESTED_ROWS_ANNOUNCEMENT_EXPANDED,
+} from '../../i18n/constants';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+/**
+ * The source the fill handle inserts its rows with (`Autofill#addRow()`).
+ */
+const AUTOFILL_INSERT_SOURCE = 'Autofill.fill';
 
 /**
  * Error message for the wrong data type error.
@@ -66,6 +79,14 @@ export class NestedRows extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -139,13 +160,53 @@ export class NestedRows extends BasePlugin {
   #stashedParentPaths: number[][] | null = null;
 
   /**
+   * `true` while `updatePlugin()` tears the plugin down only to build it again. The treegrid row
+   * attributes stay on the rows then: the next draw writes only the values that changed, so a
+   * rebuild of an unchanged tree - every re-render in React - touches none of them.
+   *
+   * @type {boolean}
+   */
+  #isRebuilding = false;
+
+  /**
+   * The row an insert through the Core API was anchored on, recorded in `beforeCreateRow` and consumed
+   * by the `beforeDataSplice` call that follows it. See `#onBeforeCreateRow`.
+   *
+   * @type {RowObject|null}
+   */
+  #insertAnchor: RowObject | null = null;
+
+  /**
+   * `true` from an enable held back until the `loadData()` that brings the plugin its data. Core's
+   * `_applySettingsAndData()` (the sheets bar on a sheet switch) applies the settings while the grid
+   * still holds the previous dataset, and an enable then takes its data from the load that follows,
+   * through `#onBeforeLoadData`, instead of validating the previous dataset, which is not nested and
+   * would turn the plugin off.
+   *
+   * @type {boolean}
+   */
+  #awaitsDataLoad = false;
+
+  /**
+   * `true` while the plugin is off because the data it was given is not an array of objects. The user's
+   * `nestedRows` setting is left as it was, and the next `loadData()` or `updateData()` with an array of
+   * objects, or an `updateSettings()` call that carries `nestedRows`, turns the plugin back on.
+   *
+   * @type {boolean}
+   */
+  #waitsForObjectData = false;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
+   *
+   * It answers `false` while the plugin waits for data it can handle, so a settings update that does not
+   * carry `nestedRows` does not turn it on over the same data.
    *
    * @returns {boolean}
    */
   isEnabled(): boolean {
-    return !!this.hot.getSettings()[PLUGIN_KEY];
+    return !this.#waitsForObjectData && !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
   /**
@@ -156,9 +217,17 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming');
+    // A collapse only folds the children away: the filter still evaluates them, so their values
+    // must stay in the Filters plugin's "Filter by value" list (DEV-512).
+    this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming', false, {
+      keepsRowsInFilterScope: true,
+    });
 
     this.dataManager = new DataManager(this, this.hot);
+    // `beforeCacheUpdate` drops the counts before the public `afterRowSequenceCacheUpdate` hook
+    // runs, and `cacheUpdated` again: a read in between would refill them from the old state.
+    this.hot.rowIndexMapper.addLocalHook('beforeCacheUpdate', this.#onRowIndexCacheUpdated);
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.collapsingUI = new CollapsingUI(this, this.hot);
     this.headersUI = new HeadersUI(this, this.hot);
     this.contextMenuUI = new ContextMenuUI(this, this.hot);
@@ -166,12 +235,12 @@ export class NestedRows extends BasePlugin {
       this as unknown as ConstructorParameters<typeof RowMoveController>[0]
     );
 
-    this.addHook('afterInit', this.#onAfterInit);
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('modifyRowData', this.onModifyRowData.bind(this));
     this.addHook('modifySourceLength', this.onModifySourceLength.bind(this));
     this.addHook('beforeDataSplice', this.onBeforeDataSplice.bind(this));
     this.addHook('filterData', this.#onFilterData);
+    this.addHook('modifyFiltersMatchedRows', this.#onModifyFiltersMatchedRows);
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetRowHeader', this.#onAfterGetRowHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
@@ -185,11 +254,13 @@ export class NestedRows extends BasePlugin {
     this.addHook('beforeDetachChild', this.#onBeforeDetachChild);
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
     this.addHook('modifyRowHeaderWidth', this.#onModifyRowHeaderWidth);
+    this.addHook('beforeCreateRow', this.#onBeforeCreateRow);
     this.addHook('afterCreateRow', this.#onAfterCreateRow);
     this.addHook('beforeRowMove', this.#onBeforeRowMove);
     this.addHook('beforeLoadData', this.#onBeforeLoadData, 1);
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
+    this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -206,12 +277,24 @@ export class NestedRows extends BasePlugin {
    * headers while `afterGetRowHeader` is still registered.
    */
   disablePlugin() {
+    this.hot.rowIndexMapper.removeLocalHook('beforeCacheUpdate', this.#onRowIndexCacheUpdated);
+    this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.hot.rowIndexMapper.unregisterMap('nestedRows');
 
     this.unregisterShortcuts();
     super.disablePlugin();
 
+    // A stash still open here is never applied: a fresh CollapsingUI replaces this one, and the expand
+    // it made stays in place. The grow it held is applied now, so a whole-column selection covers the
+    // rows that expand brought back. Only AFTER the hooks are gone: a removal's stash window also
+    // skips renders (`#skipRender`), and the grow renders.
+    this.collapsingUI?.releaseGridTrackingFits(true);
+
     this.headersUI!.removeRenderedLevelIndicators();
+
+    if (!this.#isRebuilding) {
+      this.headersUI!.removeRenderedRowAttributes();
+    }
   }
 
   /**
@@ -231,11 +314,21 @@ export class NestedRows extends BasePlugin {
     // which, in React, is every parent re-render.
     const collapsedParents = this.collapsingUI?.getCollapsedParents() ?? [];
 
+    this.#isRebuilding = true;
     this.disablePlugin();
+    this.#isRebuilding = false;
 
     // We store a state of the data manager.
     let currentSourceData = this.dataManager!.getData();
     const isDataManagerEmpty = currentSourceData === null;
+
+    if (isDataManagerEmpty && this.isDataLoadPending()) {
+      this.enablePlugin();
+      this.#awaitsDataLoad = true;
+      super.updatePlugin();
+
+      return;
+    }
 
     if (isDataManagerEmpty) {
       currentSourceData = this.hot.getSettings().data as RowObject[];
@@ -244,6 +337,8 @@ export class NestedRows extends BasePlugin {
       // ran inside `BasePlugin#onUpdateSettings`, so this only skips the rebuild, not the whole
       // build-up.
       if (!this.#acceptsData(currentSourceData)) {
+        this.headersUI!.removeRenderedRowAttributes();
+
         return;
       }
     }
@@ -252,15 +347,6 @@ export class NestedRows extends BasePlugin {
 
     // After enabling plugin previously stored data is restored.
     this.dataManager!.updateWithData(currentSourceData!);
-
-    // `enablePlugin()` built a new HeadersUI, whose width cache starts empty, and the `afterInit`
-    // hook that normally seeds it has long since fired on a settings-driven enable. Left empty,
-    // `#onModifyRowHeaderWidth` falls back to `?? 0` and the header keeps its default width, which
-    // clips the indentation and the collapse button (measured: 50px against the 71px an
-    // init-enabled three-level tree gets). Seeded here, where the cache knows the tree's depth, and
-    // without its render: the Core draws right after `afterUpdateSettings`, and this method runs on
-    // every re-render in React.
-    this.headersUI!.updateRowHeaderWidth(undefined, false);
 
     if (collapsedParents.length > 0) {
       // Replaying a state the user already chose is not a new action, so the hooks stay silent. Firing
@@ -272,6 +358,17 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
+   * Sizes the row header to the depth of the tree. Core runs it once after each enable or update, when the
+   * data is loaded, before the next render: `enablePlugin()` builds a new `HeadersUI` whose width cache starts
+   * empty, and left empty the header keeps the grid default and clips the indentation and the collapse button.
+   *
+   * @private
+   */
+  onGridReady() {
+    this.headersUI!.updateRowHeaderWidth(undefined, false);
+  }
+
+  /**
    * Keeps the row index maps in step with a plugin that `updateSettings()` just turned on or off.
    *
    * @private
@@ -280,9 +377,13 @@ export class NestedRows extends BasePlugin {
   onUpdateSettings(newSettings: Record<string, unknown>) {
     const wasEnabled = this.enabled;
 
+    if (hasOwnProperty(newSettings, PLUGIN_KEY)) {
+      this.#stopWaitingForObjectData();
+    }
+
     super.onUpdateSettings(newSettings);
 
-    if (wasEnabled === this.enabled) {
+    if (wasEnabled === this.enabled || this.#awaitsDataLoad) {
       return;
     }
 
@@ -330,39 +431,78 @@ export class NestedRows extends BasePlugin {
    * @private
    */
   registerShortcuts() {
-    this.hot.getShortcutManager()
-      .getContext('grid')
-      ?.addShortcut({
-        keys: [['Enter']],
-        callback: () => {
-          const activeRange = this.hot.getSelectedRangeActive();
+    const context = this.hot.getShortcutManager().getContext('grid');
 
-          if (!activeRange) {
-            return false;
-          }
+    context?.addShortcut({
+      keys: [['Enter']],
+      callback: () => {
+        const row = this.collapsingUI!.translateTrimmedRow(this.#getFocusedRowHeader()!);
 
-          const { highlight } = activeRange;
-          const row = this.collapsingUI!.translateTrimmedRow(highlight.row ?? 0);
+        this.toggleParentByUser(row, this.collapsingUI!.areChildrenCollapsed(row) ? 'expand' : 'collapse');
 
-          this.collapsingUI!.toggleCollapsedRows(
-            [row],
-            this.collapsingUI!.areChildrenCollapsed(row) ? 'expand' : 'collapse'
-          );
+        // prevent default Enter behavior (move to the next row within a selection range)
+        return false;
+      },
+      runOnlyIf: () => this.#getFocusedRowHeader() !== null,
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: SHORTCUTS_GROUP_EDITOR,
+      position: 'before',
+    });
 
-          // prevent default Enter behavior (move to the next row within a selection range)
-          return false;
-        },
-        runOnlyIf: () => {
-          const highlight = this.hot.getSelectedRangeActive()?.highlight;
+    context?.addShortcuts([{
+      keys: [['ArrowRight', 'Control/Meta']],
+      callback: () => this.#runTreeArrowCommand('ArrowRight'),
+      runOnlyIf: () => this.#getFocusedRowHeaderRow() !== null,
+    }, {
+      keys: [['ArrowLeft', 'Control/Meta']],
+      callback: () => this.#runTreeArrowCommand('ArrowLeft'),
+      runOnlyIf: () => this.#getFocusedRowHeaderRow() !== null,
+    }], {
+      captureCtrl: true,
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: GRID_GROUP,
+      position: 'before',
+    });
+  }
 
-          return !!(highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
-            this.hot.selection.isCellVisible(highlight) && highlight.col === -1 &&
-            highlight.row !== null && highlight.row >= 0);
-        },
-        group: SHORTCUTS_GROUP,
-        relativeToGroup: SHORTCUTS_GROUP_EDITOR,
-        position: 'before',
-      });
+  /**
+   * Collapses or expands a parent row in answer to a user gesture - the row header button, or a key
+   * pressed on a focused row header - and announces the result to assistive technologies through a
+   * polite live region.
+   *
+   * The public methods do not announce: an app calling them knows what it changed and can tell the
+   * user itself, and `collapseAll()` would otherwise queue one message per parent.
+   *
+   * The <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow keys reach this method too. On a focused row header they
+   * replace the grid's own jump to the row's edge outright - with nothing to expand, collapse, or walk
+   * up to, they do nothing - so the chord means one thing on a tree row's header. From a cell the jump
+   * is untouched. The plain arrows are left to the grid's navigation, which is the WAI-ARIA treegrid
+   * pattern's cell-focus mode: there the arrows only move the focus. The number of rows shown counts
+   * rendered rows, so rows the `HiddenRows` plugin hides are left out.
+   *
+   * @private
+   * @param {number} physicalRow Physical index of the parent row.
+   * @param {'collapse'|'expand'} action The change to make.
+   * @returns {boolean} `true` when the state changed.
+   */
+  toggleParentByUser(physicalRow: number, action: 'collapse' | 'expand'): boolean {
+    const { rowIndexMapper } = this.hot;
+    const rowsBefore = rowIndexMapper.getRenderableIndexesLength();
+    const performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
+
+    if (performed && this.hot.getSettings().ariaTags) {
+      const label = this.#getRowLabel(physicalRow);
+      const message = action === 'expand' ?
+        this.hot.getTranslatedPhrase(NESTED_ROWS_ANNOUNCEMENT_EXPANDED, {
+          label,
+          count: rowIndexMapper.getRenderableIndexesLength() - rowsBefore,
+        }) :
+        this.hot.getTranslatedPhrase(NESTED_ROWS_ANNOUNCEMENT_COLLAPSED, { label });
+
+      announce(String(message ?? ''), 'polite');
+    }
+
+    return performed;
   }
 
   /**
@@ -1086,7 +1226,26 @@ export class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   onBeforeDataSplice(index: number, amount: number, element: Record<string, unknown>) {
-    if (this.#skipCoreAPIModifiers || this.dataManager!.isRowHighestLevel(index)) {
+    const anchor = this.#insertAnchor;
+
+    // Defensive: `#onBeforeCreateRow` replaces the anchor before every Core insert anyway.
+    this.#insertAnchor = null;
+
+    if (this.#skipCoreAPIModifiers) {
+      return true;
+    }
+
+    // An insert below the last row of the tree. The splice index alone reads as "past the end", which
+    // the check below would hand to the Core as a top-level append, so the new rows join the anchor's
+    // parent instead. Only the end is handled here: there every level lands at the same flattened
+    // position, so the index maps and the cell meta the Core already shifted stay in step.
+    if (anchor !== null && index === this.dataManager!.countAllRows() && this.#endsWithSubtreeOf(anchor)) {
+      this.dataManager!.appendSiblings(anchor, element as unknown as RowObject[]);
+
+      return false;
+    }
+
+    if (this.dataManager!.isRowHighestLevel(index)) {
       return true;
     }
 
@@ -1094,6 +1253,31 @@ export class NestedRows extends BasePlugin {
 
     return false;
   }
+
+  /**
+   * The row index mapper's `beforeCacheUpdate` and `cacheUpdated` local hook callback. Drops the
+   * data manager's reachable-sibling counts around a cache change (a trim, an untrim, a collapse, a
+   * filter), so `aria-posinset`/`aria-setsize` are recounted on the next read.
+   */
+  #onRowIndexCacheUpdated = () => {
+    this.dataManager?.invalidateSetPositions();
+  };
+
+  /**
+   * `modifyFiltersMatchedRows` hook callback. Keeps the tree whole while the Filters plugin filters:
+   * a matching row keeps its ancestors, so it is never shown without its parents (and a collapse
+   * cannot leave the grid empty), and its descendants, so a matching parent shows its whole subtree
+   * (DEV-512). A row that matches only through blank cells keeps its ancestors but not its
+   * subtree, so an empty parent cell cannot bring back the children the filter excluded.
+   *
+   * @param {number[]} matchedRows Physical indexes of the rows that match every condition.
+   * @param {number[]} blankMatchedRows Physical indexes of the matching rows whose every conditioned
+   * column reads empty.
+   * @returns {number[]}
+   */
+  #onModifyFiltersMatchedRows = (matchedRows: number[], blankMatchedRows: number[]) => {
+    return this.dataManager!.getRowsToKeepForMatches(matchedRows, blankMatchedRows);
+  };
 
   /**
    * Provide custom source data filtering. It's handled by core method and replaces the native filtering.
@@ -1124,6 +1308,140 @@ export class NestedRows extends BasePlugin {
     type DefaultOptions = { items: { key: string; [k: string]: unknown }[]; [key: string]: unknown };
 
     return this.contextMenuUI!.appendOptions(defaultOptions as DefaultOptions);
+  };
+
+  /**
+   * Returns the visual row of the row header that holds the focus, or `null` when the focus is
+   * anywhere else - on a cell, on a column header, or on a selection of several rows.
+   *
+   * A click on a row header selects the whole row: the highlight sits on the header, and the range
+   * runs to the last column. That still counts as a focused row header, so the keys answer the same
+   * way whether the header was reached by a click or by the keyboard.
+   *
+   * The Ctrl/Cmd+arrow chords claim the key whenever this answers a row, even while an overlay
+   * covers the grid body, so they never fall through to the grid's jump to the row's edge: that
+   * jump moved the selection onto a covered cell, fired the selection hooks, and was only then put
+   * back on the header.
+   *
+   * @returns {number|null}
+   */
+  #getFocusedRowHeaderRow(): number | null {
+    const activeRange = this.hot.getSelectedRangeActive();
+    const highlight = activeRange?.highlight;
+
+    if (!highlight || !this.hot.selection.isCellVisible(highlight) ||
+        highlight.col !== -1 || highlight.row === null || highlight.row < 0 ||
+        activeRange.from.row !== highlight.row || activeRange.to.row !== highlight.row) {
+      return null;
+    }
+
+    return highlight.row;
+  }
+
+  /**
+   * Returns the visual row of the focused row header that a tree key may act on: the one
+   * `#getFocusedRowHeaderRow()` answers, or `null` while an overlay covers the grid
+   * body, where a collapse would change rows the user cannot see.
+   *
+   * @returns {number|null}
+   */
+  #getFocusedRowHeader(): number | null {
+    return isGridBodyCovered(this.hot) ? null : this.#getFocusedRowHeaderRow();
+  }
+
+  /**
+   * Resolves what a <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chord pressed on a focused row header does,
+   * or `null` when it does nothing. The chord is claimed either way, so it never reaches the grid's
+   * jump to the row's edge from a row header.
+   *
+   * The inline-end chord (`ArrowRight`, or `ArrowLeft` in RTL) expands a collapsed parent. The
+   * inline-start chord collapses an expanded parent, and otherwise moves the focus to the parent
+   * row's header. An expanded parent's or a leaf's inline-end chord and a top-level row's
+   * inline-start chord do nothing. So does the walk to a parent that is not rendered (trimmed by
+   * another plugin, or hidden), because a focus moved there would leave the keyboard user with no
+   * visible position.
+   *
+   * @param {'ArrowLeft'|'ArrowRight'} key The arrow of the pressed chord.
+   * @returns {Function|null}
+   */
+  #getTreeArrowCommand(key: 'ArrowLeft' | 'ArrowRight'): (() => void) | null {
+    const visualRow = this.#getFocusedRowHeader();
+
+    if (visualRow === null) {
+      return null;
+    }
+
+    const physicalRow = this.collapsingUI!.translateTrimmedRow(visualRow);
+    const isParent = this.dataManager!.isParent(physicalRow);
+    const isCollapsed = isParent && this.collapsingUI!.areChildrenCollapsed(physicalRow);
+    const isInlineEnd = (key === 'ArrowRight') !== this.hot.isRtl();
+
+    if (isInlineEnd) {
+      return isCollapsed ? () => this.toggleParentByUser(physicalRow, 'expand') : null;
+    }
+
+    if (isParent && !isCollapsed) {
+      return () => this.toggleParentByUser(physicalRow, 'collapse');
+    }
+
+    const parent = this.dataManager!.getRowParent(physicalRow);
+    const parentPhysicalRow = parent ? this.dataManager!.getRowIndex(parent) : null;
+    const parentVisualRow = parentPhysicalRow === null ? null : this.hot.toVisualRow(parentPhysicalRow);
+
+    if (parentVisualRow === null || this.hot.rowIndexMapper.isHidden(parentPhysicalRow!)) {
+      return null;
+    }
+
+    return () => this.hot.selectCell(parentVisualRow, -1);
+  }
+
+  /**
+   * Runs the treegrid command of a <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chord, and claims the chord so
+   * the grid does not also move the selection.
+   *
+   * @param {'ArrowLeft'|'ArrowRight'} key The arrow of the pressed chord.
+   * @returns {boolean} Always `false`, which stops the other shortcuts bound to the key.
+   */
+  #runTreeArrowCommand(key: 'ArrowLeft' | 'ArrowRight'): boolean {
+    this.#getTreeArrowCommand(key)?.();
+
+    return false;
+  }
+
+  /**
+   * Returns the text that names a row in an announcement: the text its row header shows, or its
+   * 1-based row number when the header shows nothing. No column is guessed to hold a name - the first
+   * one may as well be an ID, a price, or a checkbox. The text is read from the rendered header
+   * rather than from `rowHeaders`, because a header configured as HTML would otherwise be announced
+   * with its markup. Every announcing gesture starts on the row's header, so it is rendered.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @returns {string}
+   */
+  #getRowLabel(physicalRow: number): string {
+    const visualRow = this.hot.toVisualRow(physicalRow);
+
+    if (visualRow === null) {
+      return '';
+    }
+
+    const rowHeader = this.hot.getCell(visualRow, -1, true)?.querySelector('.rowHeader')?.textContent ?? '';
+
+    return rowHeader.trim() === '' ? `${visualRow + 1}` : rowHeader.trim();
+  }
+
+  /**
+   * `afterUpdateSettings` hook callback. The treegrid row attributes are written from
+   * `afterGetRowHeader`, which stops firing once `rowHeaders` is switched off, so the rows rendered
+   * until then are cleared here. Only a call that names `rowHeaders` can switch them off, so any
+   * other call skips the walk.
+   *
+   * @param {object} newSettings The settings object passed to `updateSettings()`.
+   */
+  #onAfterUpdateSettings = (newSettings: Partial<GridSettings>) => {
+    if ('rowHeaders' in newSettings && !this.hot.hasRowHeaders()) {
+      this.headersUI!.removeRenderedRowAttributes();
+    }
   };
 
   /**
@@ -1330,17 +1648,82 @@ export class NestedRows extends BasePlugin {
   };
 
   /**
+   * Checks whether the last row of the flattened tree is the provided row or one of its descendants,
+   * which is when a sibling appended after it lands at the end of the flattened tree.
+   *
+   * @param {object} rowObject The row object to check.
+   * @returns {boolean}
+   */
+  #endsWithSubtreeOf(rowObject: RowObject): boolean {
+    let node: RowObject | null | undefined = this.dataManager!.getDataObject(this.dataManager!.countAllRows() - 1);
+
+    while (node) {
+      if (node === rowObject) {
+        return true;
+      }
+
+      node = this.dataManager!.getRowParent(node);
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns the row object an insert is anchored on, or `null` for an insert that names no row.
+   *
+   * Two inserts name a row: one with a row index, and the fill handle's, which appends past the
+   * last row while it continues the rows the user drags from, so it is anchored on the last row the
+   * user sees. That is the last RENDERED row, not `countRows() - 1`: HiddenRows keeps a hidden row in
+   * the visual space, so the last visual row can be one the user cannot see. The fill handle passes
+   * no index on purpose: an explicit one would make the Core move the last row's index map values (a
+   * hidden row, a manual height) onto the new row. Any other insert with no row index
+   * (`minSpareRows`, `minRows`, a paste or an edit past the last row, `alter('insert_row_below')`)
+   * keeps appending a top-level row. The plugin's own hand-built inserts never reach the Core splice.
+   *
+   * @param {number} index The visual index of the row the insert is anchored on.
+   * @param {string} [source] The source of the call.
+   * @returns {object|null}
+   */
+  #findInsertAnchor(index: number, source?: string): RowObject | null {
+    if (typeof source === 'string' && source.startsWith('NestedRows.')) {
+      return null;
+    }
+
+    let anchorRow: number | null = null;
+
+    if (Number.isInteger(index) && index >= 0 && index < this.hot.countRows()) {
+      anchorRow = index;
+
+    } else if (source === AUTOFILL_INSERT_SOURCE) {
+      const renderableRows = this.hot.rowIndexMapper.getRenderableIndexesLength();
+
+      anchorRow = renderableRows > 0 ? this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderableRows - 1) : null;
+    }
+
+    const physicalRow = anchorRow === null ? null : this.hot.toPhysicalRow(anchorRow);
+
+    return physicalRow === null ? null : (this.dataManager!.getDataObject(physicalRow) ?? null);
+  }
+
+  /**
+   * `beforeCreateRow` hook callback. Records the row an insert is anchored on (see
+   * `#findInsertAnchor()`), so that `onBeforeDataSplice()` can tell "below the last row" from a
+   * plain append. Every Core insert runs this hook before it splices, and the anchor is replaced on
+   * every call, so the anchor of an insert a listener vetoed never reaches the next one.
+   *
+   * @param {number} index The visual index of the row the insert is anchored on.
+   * @param {number} amount The number of rows to insert.
+   * @param {string} [source] The source of the call.
+   */
+  #onBeforeCreateRow = (index: number, amount: number, source?: string) => {
+    this.#insertAnchor = this.#findInsertAnchor(index, source);
+  };
+
+  /**
    * `afterCreateRow` hook callback.
    */
   #onAfterCreateRow = () => {
     this.dataManager!.rewriteCache();
-  };
-
-  /**
-   * `afterInit` hook callback.
-   */
-  #onAfterInit = () => {
-    this.headersUI!.updateRowHeaderWidth(undefined);
   };
 
   /**
@@ -1368,11 +1751,84 @@ export class NestedRows extends BasePlugin {
 
     error(WRONG_DATA_TYPE_ERROR);
 
-    this.hot.getSettings()[PLUGIN_KEY] = false;
     this.disablePlugin();
+    this.#waitForObjectData();
 
     return false;
   }
+
+  /**
+   * Keeps the plugin off until it gets data it can handle. The plugin's own hooks are gone once it is
+   * disabled, so the next data load is watched through hooks added on the Handsontable instance.
+   * `beforeLoadData` takes `orderIndex: 1` for the same reason the plugin's own listener does: the sheets
+   * bar redirects the load at the default order, and the data checked here has to be the redirected one.
+   */
+  #waitForObjectData() {
+    if (this.#waitsForObjectData) {
+      return;
+    }
+
+    this.#waitsForObjectData = true;
+    this.hot.addHook('beforeLoadData', this.#onBeforeLoadDataWhileWaiting, 1);
+    this.hot.addHook('beforeUpdateData', this.#onBeforeUpdateDataWhileWaiting);
+  }
+
+  /**
+   * Stops watching the data loads that `#waitForObjectData()` started watching.
+   */
+  #stopWaitingForObjectData() {
+    if (!this.#waitsForObjectData) {
+      return;
+    }
+
+    this.#waitsForObjectData = false;
+    this.hot.removeHook('beforeLoadData', this.#onBeforeLoadDataWhileWaiting);
+    this.hot.removeHook('beforeUpdateData', this.#onBeforeUpdateDataWhileWaiting);
+  }
+
+  /**
+   * Turns the plugin back on for incoming data it can handle, when the settings still ask for it.
+   *
+   * @param {Array} data The incoming data.
+   * @returns {boolean} `true` when the plugin is on and takes the data.
+   */
+  #resumeFor(data: unknown[]): boolean {
+    if (!isValidDataSource(data)) {
+      return false;
+    }
+
+    this.#stopWaitingForObjectData();
+
+    if (!this.isEnabled() || this.isHardConflictBlocked()) {
+      return false;
+    }
+
+    this.enablePlugin();
+
+    return this.enabled;
+  }
+
+  /**
+   * `beforeLoadData` hook callback, added while the plugin waits for data it can handle.
+   *
+   * @param {Array} data The source data.
+   */
+  #onBeforeLoadDataWhileWaiting = (data: unknown[]) => {
+    if (this.#resumeFor(data)) {
+      this.#onBeforeLoadData(data);
+    }
+  };
+
+  /**
+   * `beforeUpdateData` hook callback, added while the plugin waits for data it can handle.
+   *
+   * @param {Array} data The source data.
+   */
+  #onBeforeUpdateDataWhileWaiting = (data: unknown[]) => {
+    if (this.#resumeFor(data)) {
+      this.#onBeforeUpdateData(data);
+    }
+  };
 
   /**
    * Forgets which parents are collapsed, and untrims the rows that collapse had hidden.
@@ -1445,6 +1901,8 @@ export class NestedRows extends BasePlugin {
    * @param {Array} data The source data.
    */
   #onBeforeLoadData = (data: unknown[]) => {
+    this.#awaitsDataLoad = false;
+
     if (!this.#acceptsData(data)) {
       return;
     }
@@ -1513,8 +1971,9 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    // Replaying a state the user already chose is not a new action, so the hooks stay silent, and
-    // `replaceData` renders as soon as this hook returns - a render here would be the second one.
+    // Replaying a state the user already chose is not a new action, so the hooks stay silent. The caller paints
+    // once this hook returns (`replaceData()` for `updateData()`, `fitGridToSettings()` for `updateSettings()`),
+    // so a render here would be a second one.
     this.collapsingUI.toggleCollapsedRows(parentsToCollapse, 'collapse', false, false);
 
     // The Core clamped the selection before this hook ran, against a grid that was still fully
@@ -1527,6 +1986,7 @@ export class NestedRows extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#stopWaitingForObjectData();
     super.destroy();
   }
 }

@@ -99,8 +99,8 @@ describe('manualColumnFreeze', () => {
 
         getPlugin('manualColumnFreeze').unfreezeColumn(0);
 
-        expect(beforeColumnUnfreezeCallback).toHaveBeenCalledWith(0, true);
-        expect(afterColumnUnfreezeCallback).toHaveBeenCalledWith(0, true);
+        expect(beforeColumnUnfreezeCallback).toHaveBeenCalledWith(0, true, 0);
+        expect(afterColumnUnfreezeCallback).toHaveBeenCalledWith(0, true, 0);
         expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
       });
 
@@ -120,8 +120,8 @@ describe('manualColumnFreeze', () => {
 
         getPlugin('manualColumnFreeze').unfreezeColumn(0);
 
-        expect(beforeColumnUnfreezeCallback).toHaveBeenCalledWith(0, false);
-        expect(afterColumnUnfreezeCallback).toHaveBeenCalledWith(0, false);
+        expect(beforeColumnUnfreezeCallback).toHaveBeenCalledWith(0, false, 0);
+        expect(afterColumnUnfreezeCallback).toHaveBeenCalledWith(0, false, 0);
         expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
       });
 

@@ -1,4 +1,4 @@
-import { colIndexToLetter, colLetterToIndex } from './cellRef';
+import { colIndexToLetter, colLetterToIndex, parseCellRef } from './cellRef';
 import { MAX_SHEET_COLUMNS, MAX_SHEET_ROWS } from './limits';
 
 /**
@@ -43,46 +43,79 @@ export interface MappedReference {
 /**
  * Matches either a token to copy through untouched or a reference to rewrite.
  *
- * The leading alternative captures the untouched tokens: a double-quoted Excel string (`""`
- * escapes a quote inside one) and a **qualified** reference - a sheet name, single-quoted
- * (`'Sheet 1'!B2`, with `''` escaping an apostrophe inside) or bare (`Data!A2`, letters and digits
- * of any script, `_` and `.`), followed by `!` and a cell, a range, a whole-column span or a
- * whole-row span. A qualified reference points at another sheet, and a header band added to or
- * removed from THIS sheet moves nothing there, so its cell part is left alone along with the name.
- * The range form is captured whole because the reference after the `:` inherits the qualifier.
+ * The leading alternative captures a double-quoted Excel string (`""` escapes a quote inside one),
+ * which is always copied through untouched. The next captures a **qualified** reference - a sheet
+ * name, single-quoted (`'Sheet 1'!B2`, with `''` escaping an apostrophe inside) or bare (`Data!A2`,
+ * letters and digits of any script, `_` and `.`), followed by `!` and a cell, a range, a
+ * whole-column span or a whole-row span - as two groups, the qualifier with its `!` and the
+ * reference part. A qualified reference points at another sheet, so a header band added to or
+ * removed from THIS sheet moves nothing there and `shiftFormulaReferences` copies it through whole;
+ * a shared formula's copy rule moves it like any other reference, so `translateSharedFormula` asks
+ * for its reference part to be mapped too. The range form is captured whole because the reference
+ * after the `:` inherits the qualifier.
+ * Neither name may start inside a run that could have started it earlier: the bare name only where
+ * a run of name characters starts (`(?<![\p{L}\p{N}_.])`), the quoted one only at an apostrophe
+ * that does not follow another. Tried from every position, the run is re-scanned once per
+ * character of a long run of letters - or of apostrophes - with no `!` (or `'!`) after it, which
+ * is quadratic in the formula's length (bounded at 255, still 255 steps per character: about
+ * 6.4 us per character on Cyrillic), and the formula is the file's own text. The quoted body is
+ * also bounded at `MAX_QUALIFIER_LENGTH` units (a character or an escaped `''`). A sheet name is
+ * at most 31 characters (62 once every apostrophe is doubled), and a valid formula never places
+ * a name inside a longer run or an opening apostrophe right after another, so neither rule
+ * changes a match a workbook can produce; a bare name longer than any real one still reads as a
+ * qualifier.
  *
  * The next alternative is the cell reference itself: an optional `$` before each component, one to
  * three column letters, then up to seven row digits, matched case-insensitively because
  * HyperFormula accepts `=sum(a1)` and the export hands the source string over as typed (the
  * rewritten reference comes back uppercase). The leading `(?<![\p{L}\p{N}_.$])` keeps it from
  * starting inside a number, a defined name (`TOTAL1` must not yield `AL1`) or a structured
- * reference (`TABLE1[Col]`). The trailing `(?![\d(])` keeps a function name from reading as a
- * reference: a bare `(?!\()` lets the digit run backtrack, so `LOG10(` matches `G1` and is
- * rewritten to `H2`, and rejecting a following digit as well is what closes that. A real row number
- * is never followed by a digit, because the run is greedy.
+ * reference (`TABLE1[Col]`). The trailing `(?![\d(\p{L}_.])` keeps a function or a name from
+ * reading as a reference: a bare `(?!\()` lets the digit run backtrack, so `LOG10(` matches `G1`
+ * and is rewritten to `H2`, and rejecting a following digit as well is what closes that. A letter,
+ * `_` or `.` is rejected too, because a name may continue past a cell-shaped start: `HEX2DEC(` holds
+ * `HEX2` and `Q1Sales` holds `Q1`, and a shared-formula copy or a header shift used to rewrite them
+ * to `HEX3DEC(` and `Q2Sales`. A real row number is never followed by a digit, because the run is
+ * greedy, and never by a name character.
  *
  * The last two alternatives are the open spans, `A:C` and `2:3`, each end its own reference with
  * `null` on the open axis. They come after the cell alternative so `A1:B2` is read as two cells,
  * never as a column span starting at `A`.
  */
-const CELL_PATTERN = String.raw`\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(])`;
+const MAX_QUALIFIER_LENGTH = 255;
+const CELL_PATTERN = String.raw`\$?[A-Z]{1,3}\$?\d{1,7}(?![\d(\p{L}_.])`;
 const COLUMN_SPAN_PATTERN = String.raw`\$?[A-Z]{1,3}:\$?[A-Z]{1,3}(?![\p{L}\p{N}_(])`;
 const ROW_SPAN_PATTERN = String.raw`\$?\d{1,7}:\$?\d{1,7}(?![\d\p{L}])`;
-const REFERENCE_REGEX = new RegExp(
-  String.raw`(?<literal>"(?:[^"]|"")*"|(?:'(?:[^']|'')*'|[\p{L}\p{N}_.]+)!` +
-  String.raw`(?:${CELL_PATTERN}(?::${CELL_PATTERN})?|${COLUMN_SPAN_PATTERN}|${ROW_SPAN_PATTERN}))` +
-  String.raw`|(?<![\p{L}\p{N}_.$])(?<colAbs>\$?)(?<colLetters>[A-Z]{1,3})(?<rowAbs>\$?)(?<rowDigits>\d{1,7})(?![\d(])` +
+const QUOTED_QUALIFIER_PATTERN = String.raw`(?<!')'(?:[^']|''){0,${MAX_QUALIFIER_LENGTH}}'`;
+const BARE_QUALIFIER_PATTERN = String.raw`(?<![\p{L}\p{N}_.])[\p{L}\p{N}_.]+`;
+const UNQUALIFIED_PATTERN =
+  String.raw`(?<![\p{L}\p{N}_.$])(?<colAbs>\$?)(?<colLetters>[A-Z]{1,3})(?<rowAbs>\$?)(?<rowDigits>\d{1,7})` +
+  String.raw`(?![\d(\p{L}_.])` +
   String.raw`|(?<![\p{L}\p{N}_.$])(?<c1Abs>\$?)(?<c1>[A-Z]{1,3}):(?<c2Abs>\$?)(?<c2>[A-Z]{1,3})(?![\p{L}\p{N}_(])` +
-  String.raw`|(?<![\p{L}\p{N}_.$:])(?<r1Abs>\$?)(?<r1>\d{1,7}):(?<r2Abs>\$?)(?<r2>\d{1,7})(?![\d\p{L}])`,
+  String.raw`|(?<![\p{L}\p{N}_.$:])(?<r1Abs>\$?)(?<r1>\d{1,7}):(?<r2Abs>\$?)(?<r2>\d{1,7})(?![\d\p{L}])`;
+
+export const REFERENCE_REGEX = new RegExp(
+  String.raw`(?<literal>"(?:[^"]|"")*")` +
+  String.raw`|(?<qualifier>(?:${QUOTED_QUALIFIER_PATTERN}|${BARE_QUALIFIER_PATTERN})!)` +
+  String.raw`(?<qualified>${CELL_PATTERN}(?::${CELL_PATTERN})?|${COLUMN_SPAN_PATTERN}|${ROW_SPAN_PATTERN})` +
+  String.raw`|${UNQUALIFIED_PATTERN}`,
   'giu'
 );
+
+/**
+ * The unqualified alternatives of `REFERENCE_REGEX` on their own, run over the reference part of a
+ * qualified match (`B2:C3` of `Data!B2:C3`) when the caller asked for qualified references to be
+ * mapped too. A separate instance, so the walk over that short part never shares `lastIndex` with
+ * the walk over the whole formula.
+ */
+const QUALIFIED_PART_REGEX = new RegExp(UNQUALIFIED_PATTERN, 'giu');
 
 /**
  * The named groups `REFERENCE_REGEX` produces, every one optional because each alternative fills
  * its own.
  */
 type ReferenceGroups = Partial<Record<
-  'literal' | 'colAbs' | 'colLetters' | 'rowAbs' | 'rowDigits'
+  'literal' | 'qualifier' | 'qualified' | 'colAbs' | 'colLetters' | 'rowAbs' | 'rowDigits'
   | 'c1Abs' | 'c1' | 'c2Abs' | 'c2' | 'r1Abs' | 'r1' | 'r2Abs' | 'r2',
   string
 >>;
@@ -107,65 +140,440 @@ function mapOpenEnd(
 }
 
 /**
- * Rewrites every unqualified A1-style reference in a formula through `map`, leaving string
- * literals and qualified references (`Data!A2`, `'Sheet 1'!B2:C3`) untouched. An open span's ends
- * reach `map` with `null` on the open axis and keep it open however `map` answers. Returns `null` when `map` rejects any
- * reference, so a caller that cannot express a reference in the target coordinate space can drop
- * the whole formula rather than emit a wrong one.
- *
- * The formula is expected without its leading `=`.
+ * What `mapFormulaReferences` rewrites besides the unqualified references it always maps.
  */
-export function mapFormulaReferences(
-  formula: string,
-  map: (reference: FormulaReference) => MappedReference | null
+export interface MapFormulaReferencesOptions {
+  /**
+   * Whether a qualified reference (`Data!A2`, `'Sheet 1'!B2:C3`) is mapped too, its sheet name kept
+   * as written. Off by default: a header band exists on one sheet only.
+   */
+  qualified?: boolean;
+  /**
+   * Decides, for each qualified reference, whether its sheet is renamed. It gets the sheet name as
+   * the formula spells it, unquoted, and answers the name to write in its place - the reference
+   * part is then mapped through the answer's own `map` (or the main one when it has none), and the
+   * new name quoted when it has to be - or `null` to leave the reference to `qualified`. A
+   * qualifier naming a sheet of another workbook (`[1]Data!A1`) is never offered.
+   */
+  requalify?: Requalify;
+}
+
+/**
+ * The callback of `MapFormulaReferencesOptions#requalify`.
+ */
+export type Requalify = (sheetName: string) => { sheetName: string; map?: ReferenceMap } | null;
+
+/**
+ * A sheet name a formula may write without quotes: a letter or `_` first, then letters, digits and
+ * `_`, and not something Excel reads as a cell (`A1`), an R1C1 reference (`R1C1`), or a boolean
+ * (`TRUE`, `false`; Excel writes `'TRUE'!A1`). A dot forces quotes: HyperFormula's unquoted sheet
+ * grammar has none, so `=Data.2024!$A$1` is a parsing error there while `='Data.2024'!$A$1` works,
+ * and ExcelJS and LibreOffice quote it too.
+ */
+const UNQUOTED_SHEET_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const CELL_LIKE_SHEET_NAME_PATTERN = /^(?:[A-Za-z]{1,3}\d+|[RC]|R\d*C\d*|TRUE|FALSE)$/i;
+
+/**
+ * Spells a sheet name as a formula qualifier, without its `!`: as it is when Excel reads it
+ * unquoted, otherwise single-quoted with every apostrophe doubled (`'Q1 Sales'`, `'Bob''s'`).
+ */
+export function quoteSheetName(sheetName: string): string {
+  if (UNQUOTED_SHEET_NAME_PATTERN.test(sheetName) && !CELL_LIKE_SHEET_NAME_PATTERN.test(sheetName)) {
+    return sheetName;
+  }
+
+  return `'${sheetName.replaceAll('\'', '\'\'')}'`;
+}
+
+/**
+ * The reference callback `mapFormulaReferences` takes.
+ */
+export type ReferenceMap = (reference: FormulaReference) => MappedReference | null;
+
+/**
+ * Rewrites one cell reference through `map`, or returns `null` when `map` rejects it or leaves it
+ * open on an axis a cell reference must name.
+ */
+function mapCell(groups: ReferenceGroups, map: ReferenceMap): string | null {
+  const moved = map({
+    row: Number.parseInt(groups.rowDigits ?? '0', 10),
+    col: colLetterToIndex(groups.colLetters ?? ''),
+    rowAbsolute: groups.rowAbs === '$',
+    colAbsolute: groups.colAbs === '$',
+  });
+
+  if (moved === null || moved.row === null || moved.col === null) {
+    return null;
+  }
+
+  return `${groups.colAbs}${colIndexToLetter(moved.col)}${groups.rowAbs}${moved.row}`;
+}
+
+/**
+ * Rewrites one whole-column (`A:C`) or whole-row (`2:3`) span through `map`, each end on its own,
+ * or returns `null` when `map` rejects either end.
+ */
+function mapSpan(groups: ReferenceGroups, map: ReferenceMap): string | null {
+  const columnEnd = (letters: string | undefined, abs: string | undefined): [FormulaReference, string] => [
+    { row: null, col: colLetterToIndex(letters ?? ''), rowAbsolute: false, colAbsolute: abs === '$' }, abs ?? '',
+  ];
+  const rowEnd = (digits: string | undefined, abs: string | undefined): [FormulaReference, string] => [
+    { row: Number.parseInt(digits ?? '0', 10), col: null, rowAbsolute: abs === '$', colAbsolute: false }, abs ?? '',
+  ];
+  const ends = groups.c1 !== undefined
+    ? [columnEnd(groups.c1, groups.c1Abs), columnEnd(groups.c2, groups.c2Abs)]
+    : [rowEnd(groups.r1, groups.r1Abs), rowEnd(groups.r2, groups.r2Abs)];
+  const [first, second] = ends.map(([reference, abs]) => mapOpenEnd(reference, abs, map));
+
+  if (first === null || second === null) {
+    return null;
+  }
+
+  return `${first}:${second}`;
+}
+
+/**
+ * Walks `formula` with `regex` and rewrites every reference it finds through `map`. Returns `null`
+ * when `map` rejects any of them.
+ */
+function rewriteReferences(
+  formula: string, regex: RegExp, map: ReferenceMap, qualified: boolean,
+  requalify?: Requalify
 ): string | null {
   let rejected = false;
 
-  const rewritten = formula.replace(REFERENCE_REGEX, (match: string, ...args: unknown[]) => {
+  const rewritten = formula.replace(regex, (match: string, ...args: unknown[]) => {
     const groups = args[args.length - 1] as ReferenceGroups;
+    const offset = args[args.length - 3] as number;
+    let replacement: string | null;
+    const renamed = groups.qualifier !== undefined && requalify !== undefined && formula[offset - 1] !== ']'
+      ? requalify(unquoteQualifier(groups.qualifier))
+      : null;
 
     if (groups.literal !== undefined) {
-      return groups.literal;
+      replacement = match;
+
+    } else if (renamed !== null) {
+      const part = rewriteReferences(groups.qualified ?? '', QUALIFIED_PART_REGEX, renamed.map ?? map, false);
+
+      replacement = part === null ? null : `${quoteSheetName(renamed.sheetName)}!${part}`;
+
+    } else if (groups.qualifier !== undefined) {
+      // The reference part is a cell, a range or a span of at most a few dozen characters, so the
+      // second walk is bounded whatever the formula holds.
+      const part = qualified
+        ? rewriteReferences(groups.qualified ?? '', QUALIFIED_PART_REGEX, map, false)
+        : (groups.qualified ?? '');
+
+      replacement = part === null ? null : `${groups.qualifier}${part}`;
+
+    } else {
+      replacement = groups.colLetters !== undefined ? mapCell(groups, map) : mapSpan(groups, map);
     }
 
-    if (groups.colLetters !== undefined) {
-      const moved = map({
-        row: Number.parseInt(groups.rowDigits ?? '0', 10),
-        col: colLetterToIndex(groups.colLetters),
-        rowAbsolute: groups.rowAbs === '$',
-        colAbsolute: groups.colAbs === '$',
-      });
-
-      if (moved === null || moved.row === null || moved.col === null) {
-        rejected = true;
-
-        return match;
-      }
-
-      return `${groups.colAbs}${colIndexToLetter(moved.col)}${groups.rowAbs}${moved.row}`;
-    }
-
-    const columnEnd = (letters: string | undefined, abs: string | undefined): [FormulaReference, string] => [
-      { row: null, col: colLetterToIndex(letters ?? ''), rowAbsolute: false, colAbsolute: abs === '$' }, abs ?? '',
-    ];
-    const rowEnd = (digits: string | undefined, abs: string | undefined): [FormulaReference, string] => [
-      { row: Number.parseInt(digits ?? '0', 10), col: null, rowAbsolute: abs === '$', colAbsolute: false }, abs ?? '',
-    ];
-    const ends = groups.c1 !== undefined
-      ? [columnEnd(groups.c1, groups.c1Abs), columnEnd(groups.c2, groups.c2Abs)]
-      : [rowEnd(groups.r1, groups.r1Abs), rowEnd(groups.r2, groups.r2Abs)];
-    const [first, second] = ends.map(([reference, abs]) => mapOpenEnd(reference, abs, map));
-
-    if (first === null || second === null) {
+    if (replacement === null) {
       rejected = true;
 
       return match;
     }
 
-    return `${first}:${second}`;
+    return replacement;
   });
 
   return rejected ? null : rewritten;
+}
+
+/**
+ * Rewrites every unqualified A1-style reference in a formula through `map`, leaving string
+ * literals untouched, and qualified references (`Data!A2`, `'Sheet 1'!B2:C3`) too unless
+ * `options.qualified` is set - then their reference part is mapped as well and the sheet name kept -
+ * or `options.requalify` renames their sheet, which maps the reference part and writes the new name.
+ * An open span's ends reach `map` with `null` on the open axis and keep it open however `map`
+ * answers. Returns `null` when `map` rejects any reference, so a caller that cannot express a
+ * reference in the target coordinate space can drop the whole formula rather than emit a wrong one.
+ *
+ * The formula is expected without its leading `=`.
+ */
+export function mapFormulaReferences(
+  formula: string,
+  map: ReferenceMap,
+  options: MapFormulaReferencesOptions = {}
+): string | null {
+  return rewriteReferences(formula, REFERENCE_REGEX, map, options.qualified === true, options.requalify);
+}
+
+/**
+ * The sheets an imported formula is checked against by `rebaseImportedFormula`.
+ */
+export interface ImportedFormulaSheets {
+  /**
+   * The name of the sheet the formula sits on. A qualifier naming it (compared case-insensitively,
+   * unquoted) is dropped and its reference shifted like an unqualified one, because the grid holds
+   * this sheet under whatever name its Formulas engine gives it.
+   */
+  self: string;
+  /**
+   * The name a qualifier naming `self` is written as, quoted when it has to be, instead of being
+   * dropped. A named expression needs it: HyperFormula reads an unqualified reference in one as
+   * relative and refuses it, so a defined name over the imported sheet is qualified with the grid's
+   * own sheet name. Absent means the qualifier is dropped.
+   */
+  selfAs?: string;
+  /**
+   * Whether the Formulas engine holds a sheet of this name (unquoted, as written).
+   */
+  isKnown: (name: string) => boolean;
+}
+
+/**
+ * What `rebaseImportedFormula` answers.
+ */
+export interface ImportedFormula {
+  /**
+   * The formula in grid coordinates, or `null` when a reference cannot be expressed there.
+   */
+  formula: string | null;
+  /**
+   * Whether the formula names a sheet the engine does not hold, or one it cannot resolve at all: a
+   * bare qualifier right after `]` (an external workbook, `[1]Sheet1!A1`) or after `:` (a 3D
+   * range, `Sheet1:Sheet3!A1` or `Sheet1!A1:Rates!A3`; `Sheet1!A1:Sheet1!A3` is one sheet).
+   */
+  unknownSheet: boolean;
+}
+
+/**
+ * Unquotes a qualifier matched by `REFERENCE_REGEX`, without its `!`.
+ */
+function unquoteQualifier(qualifier: string): string {
+  const name = qualifier.slice(0, -1);
+
+  return name.startsWith('\'') ? name.slice(1, -1).replaceAll('\'\'', '\'') : name;
+}
+
+/**
+ * Whether a qualifier names one sheet the way `Sheet!A1` does. A bare qualifier right after `]`
+ * names a sheet of another workbook (`[1]Sheet1!A1`), and one right after `:` closes a 3D range
+ * (`Sheet1:Sheet3!A1`, `Sheet1!A1:Rates!A3`) - unless the reference before the colon carries the
+ * same qualifier (`followedSheet`, lower-cased), which is the second end of a range on one sheet
+ * (`Sheet1!A1:Sheet1!A3`).
+ */
+function isPlainQualifier(before: string | undefined, sheet: string, followedSheet: string | null): boolean {
+  if (before === ']') {
+    return false;
+  }
+
+  return before !== ':' || followedSheet === sheet;
+}
+
+/**
+ * One corner a `closedReferenceArea` walk may join with the next reference into a range.
+ */
+interface AreaCorner {
+  /**
+   * Where the reference ends in the formula.
+   */
+  end: number;
+  row: number;
+  col: number;
+}
+
+/**
+ * The corner of a single-cell reference matched by `REFERENCE_REGEX` (`A1`, `Data!$B$2`), or
+ * `null` for a range, an open span or a literal.
+ *
+ * @param {object} groups The match's named groups.
+ * @returns {{ row: number, col: number }|null}
+ */
+function singleCellOf(groups: ReferenceGroups): { row: number; col: number } | null {
+  if (groups.qualified !== undefined) {
+    return groups.qualified.includes(':') ? null : parseCellRef(groups.qualified);
+  }
+
+  if (groups.colLetters !== undefined && groups.rowDigits !== undefined) {
+    return parseCellRef(`${groups.colLetters}${groups.rowDigits}`);
+  }
+
+  return null;
+}
+
+/**
+ * The cells a rectangle between two corners covers, corners included, in any order.
+ */
+function rectangleCells(a: { row: number; col: number }, b: { row: number; col: number }): number {
+  return (Math.abs(a.row - b.row) + 1) * (Math.abs(a.col - b.col) + 1);
+}
+
+/**
+ * The rows and columns of a sheet, which size a whole column or row on it.
+ */
+export interface SheetExtent {
+  rows: number;
+  cols: number;
+}
+
+/**
+ * The cells an open span covers on a sheet of `extent`, or `null` when the match is not a span: a
+ * whole column (`A:C`) counts its columns times the sheet's rows, a whole row (`2:3`) its rows times
+ * the sheet's columns, because HyperFormula sizes an open span to the other axis of its sheet. An
+ * empty sheet counts as one row and one column.
+ */
+function openSpanCells(groups: ReferenceGroups, extent: SheetExtent): number | null {
+  const [first, second] = groups.qualified?.replace(/\$/g, '').split(':')
+    ?? [groups.c1 ?? groups.r1, groups.c2 ?? groups.r2];
+
+  if (first === undefined || second === undefined) {
+    return null;
+  }
+
+  if (/^\d+$/.test(first) && /^\d+$/.test(second)) {
+    return (Math.abs(Number(first) - Number(second)) + 1) * Math.max(extent.cols, 1);
+  }
+
+  if (/^[A-Z]+$/i.test(first) && /^[A-Z]+$/i.test(second)) {
+    return (Math.abs(colLetterToIndex(first) - colLetterToIndex(second)) + 1) * Math.max(extent.rows, 1);
+  }
+
+  return null;
+}
+
+/**
+ * How many cells the references of a formula cover, summed: a cell counts 1 and a range its
+ * rectangle, whether it is written `Data!$A$1:$B$2`, `A1:B2` or `Data!A1:Data!B2` (two references
+ * joined by `:`). A whole column or row (`A:A`, `2:3`) counts what HyperFormula evaluates for it on
+ * a sheet of `extent` (`openSpanCells`), so `$1:$1048576` on a 3x3 sheet counts 3,145,728 cells. A
+ * string literal counts nothing. Linear: one walk of `REFERENCE_REGEX`.
+ *
+ * `extent` is one size for every sheet, or a function that sizes the sheet a span is on: it gets
+ * the span's unquoted qualifier, or `null` for an unqualified span.
+ *
+ * The formula is expected without its leading `=`.
+ *
+ * @param {string} formula The formula.
+ * @param {object|Function} extent The rows and columns of the sheet the engine holds, or a
+ *   function answering them for a qualifier.
+ * @returns {number}
+ */
+export function closedReferenceArea(
+  formula: string,
+  extent: SheetExtent | ((sheet: string | null) => SheetExtent),
+): number {
+  let area = 0;
+  let previous: AreaCorner | null = null;
+
+  for (const match of formula.matchAll(REFERENCE_REGEX)) {
+    const groups = (match.groups ?? {}) as ReferenceGroups;
+    const start = match.index ?? 0;
+    const end = start + match[0].length;
+    const corner = singleCellOf(groups);
+
+    if (corner === null) {
+      const [first, second] = groups.qualified?.split(':') ?? [];
+      const from = first === undefined ? null : parseCellRef(first);
+      const to = second === undefined ? null : parseCellRef(second);
+
+      const sheetExtent = typeof extent === 'function'
+        ? extent(groups.qualifier === undefined ? null : unquoteQualifier(groups.qualifier)) : extent;
+
+      area += from !== null && to !== null ? rectangleCells(from, to) : (openSpanCells(groups, sheetExtent) ?? 0);
+      previous = null;
+    } else if (previous !== null && previous.end + 1 === start && formula[previous.end] === ':') {
+      // The two corners were counted as one cell each: the range replaces the first.
+      area += rectangleCells(previous, corner) - 1;
+      previous = null;
+    } else {
+      area += 1;
+      previous = { end, ...corner };
+    }
+  }
+
+  return area;
+}
+
+/**
+ * Moves a formula read from a sheet into grid coordinates in ONE walk of `REFERENCE_REGEX`, which
+ * the import charges once against `MAX_TRANSLATED_FORMULA_CHARS`:
+ *
+ * - every unqualified reference is shifted by `rowDelta` rows and `colDelta` columns, the way
+ * `shiftFormulaReferences` does;
+ * - a qualifier naming the formula's own sheet (`sheets.self`) is dropped (or written as
+ * `sheets.selfAs`), and its reference is shifted like an unqualified one, because the band the shift
+ * accounts for is on that sheet;
+ * - a qualifier naming any other sheet is kept with its reference as written, and checked with
+ * `sheets.isKnown`; a bare qualifier right after `]` or `:` is never a sheet the engine can resolve,
+ * except one after `:` that repeats the qualifier of the reference before the colon
+ * (`Sheet1!A1:Sheet1!A3`), which is judged like the first end.
+ *
+ * A formula with no `!` and a zero shift is returned as it is, without a walk.
+ *
+ * The formula is expected without its leading `=`.
+ */
+export function rebaseImportedFormula(
+  formula: string, rowDelta: number, colDelta: number, sheets: ImportedFormulaSheets
+): ImportedFormula {
+  if (rowDelta === 0 && colDelta === 0 && !formula.includes('!')) {
+    return { formula, unknownSheet: false };
+  }
+
+  const self = sheets.self.toLowerCase();
+  const selfQualifier = sheets.selfAs === undefined ? '' : `${quoteSheetName(sheets.selfAs)}!`;
+  let unknownSheet = false;
+  let rejected = false;
+  const map: ReferenceMap = (reference) => {
+    const row = reference.row === null ? null : reference.row + rowDelta;
+    const col = reference.col === null ? null : reference.col + colDelta;
+    const rowOut = row !== null && (row < 1 || row > MAX_SHEET_ROWS);
+    const colOut = col !== null && (col < 1 || col > MAX_SHEET_COLUMNS);
+
+    return rowOut || colOut ? null : { row, col };
+  };
+
+  // The end and the lower-cased qualifier of the previous match, so the second end of
+  // `Sheet1!A1:Sheet1!A3` can tell it repeats the first one's sheet.
+  let previousEnd = -1;
+  let previousSheet: string | null = null;
+
+  const rebased = formula.replace(REFERENCE_REGEX, (match: string, ...args: unknown[]) => {
+    const groups = args[args.length - 1] as ReferenceGroups;
+    const offset = args[args.length - 3] as number;
+    const follows = previousEnd === offset - 1 ? previousSheet : null;
+    let replacement: string | null = match;
+
+    previousEnd = offset + match.length;
+    previousSheet = null;
+
+    if (groups.qualifier !== undefined) {
+      const name = unquoteQualifier(groups.qualifier);
+      const lowered = name.toLowerCase();
+
+      previousSheet = lowered;
+
+      if (!isPlainQualifier(formula[offset - 1], lowered, follows)) {
+        unknownSheet = true;
+
+      } else if (lowered === self) {
+        // The reference part is a cell, a range or a span of at most a few dozen characters.
+        const part = rewriteReferences(groups.qualified ?? '', QUALIFIED_PART_REGEX, map, false);
+
+        replacement = part === null ? null : `${selfQualifier}${part}`;
+
+      } else if (!sheets.isKnown(name)) {
+        unknownSheet = true;
+      }
+
+    } else if (groups.literal === undefined) {
+      replacement = groups.colLetters !== undefined ? mapCell(groups, map) : mapSpan(groups, map);
+    }
+
+    if (replacement === null) {
+      rejected = true;
+
+      return match;
+    }
+
+    return replacement;
+  });
+
+  return { formula: rejected ? null : rebased, unknownSheet };
 }
 
 /**
@@ -203,4 +611,28 @@ export function shiftFormulaReferences(formula: string, rowDelta: number, colDel
 
     return rowOut || colOut ? null : { row, col };
   });
+}
+
+/**
+ * Translates a shared formula from its master cell to a slave cell `rowDelta` rows and `colDelta`
+ * columns away. Unlike `shiftFormulaReferences`, which moves a whole coordinate space and so
+ * shifts `$` components too, a shared formula follows Excel's copy rule: a `$`-pinned component
+ * stays where it is. The copy rule moves a QUALIFIED reference too - `=Data!B2` filled down reads
+ * `=Data!B3`, in Excel and in ExcelJS's `slideFormula` - so unlike `shiftFormulaReferences` this
+ * maps the reference part of `Data!B2` and `'My Rates'!A1` and keeps the sheet name. Returns `null`
+ * when a shifted reference would fall off the sheet.
+ */
+export function translateSharedFormula(formula: string, rowDelta: number, colDelta: number): string | null {
+  if (rowDelta === 0 && colDelta === 0) {
+    return formula;
+  }
+
+  return mapFormulaReferences(formula, (reference) => {
+    const row = reference.row === null || reference.rowAbsolute ? reference.row : reference.row + rowDelta;
+    const col = reference.col === null || reference.colAbsolute ? reference.col : reference.col + colDelta;
+    const rowOut = row !== null && (row < 1 || row > MAX_SHEET_ROWS);
+    const colOut = col !== null && (col < 1 || col > MAX_SHEET_COLUMNS);
+
+    return rowOut || colOut ? null : { row, col };
+  }, { qualified: true });
 }

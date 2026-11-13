@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the lists of the Handsontable, autocomplete, dropdown, and multi-select editors, which landed a scrollbar's width away from their cell when the page draws its root scrollbar on the left.",
+  "type": "fixed",
+  "issueOrPR": 13798,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where turning off `collapsibleColumns` in the same `updateSettings()` call that adds a nested header level threw an error.",
+  "type": "fixed",
+  "issueOrPR": 13936,
+  "breaking": false,
+  "framework": "none"
+}

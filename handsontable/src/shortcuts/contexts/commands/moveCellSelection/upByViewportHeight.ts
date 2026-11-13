@@ -28,7 +28,7 @@ export const command = {
     // When selection lands in the top frozen rows area (including column headers when
     // navigableHeaders is enabled), the normal scroll strategy is blocked by the
     // Walkontable frozen-row guard. Explicitly scroll the master viewport to top.
-    const fixedRowsTop = hot.getSettings().fixedRowsTop ?? 0;
+    const fixedRowsTop = hot.view.countFixedRowsTop();
     const currentRow = hot.getSelectedRangeActive()?.highlight.row ?? 0;
 
     if (currentRow < fixedRowsTop) {

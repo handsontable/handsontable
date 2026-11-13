@@ -40,7 +40,15 @@ const MethodsMap: Partial<
 };
 
 /**
- * Create a class to be passed to the Handsontable's settings.
+ * The editor class made for each component's hooks reference. The class reads the hooks and the instance
+ * through those references when it runs, so one class serves every render of the component, and an
+ * update that passes the same class is left out like any other unchanged setting.
+ */
+const editorClasses = new WeakMap<MutableRefObject<HotEditorHooks | null>, typeof Handsontable.editors.BaseEditor>();
+
+/**
+ * Create a class to be passed to the Handsontable's settings, or return the one made for the same hooks
+ * reference.
  *
  * @param {RefObject<HotEditorHooks>} hooksRef Reference to component-based editor overridden hooks object.
  * @param {RefObject} instanceRef Reference to Handsontable-native custom editor class instance.
@@ -50,7 +58,13 @@ export function makeEditorClass(
   hooksRef: MutableRefObject<HotEditorHooks | null>,
   instanceRef: MutableRefObject<Handsontable.editors.BaseEditor | null>
 ): typeof Handsontable.editors.BaseEditor {
-  return class CustomEditor
+  const cachedEditorClass = editorClasses.get(hooksRef);
+
+  if (cachedEditorClass) {
+    return cachedEditorClass;
+  }
+
+  const EditorClass = class CustomEditor
     extends Handsontable.editors.BaseEditor
     implements Handsontable.editors.BaseEditor {
     private value: any;
@@ -109,6 +123,10 @@ export function makeEditorClass(
 
     close() { }
   };
+
+  editorClasses.set(hooksRef, EditorClass);
+
+  return EditorClass;
 }
 
 interface EditorContextType {
@@ -151,7 +169,14 @@ export const EditorContextProvider: FC<EditorContextProviderProps> = ({
   );
 };
 
-type EditorWithPosition = Handsontable.editors.BaseEditor & { position?: string };
+type EditorWithPosition = Handsontable.editors.BaseEditor & {
+  position?: string;
+  /**
+   * Set when an `EditorComponent` editor opens. Core calls it to move an open editor onto its cell, for
+   * example after the grid changes size, once `EditorManager` has scrolled the cell into view.
+   */
+  refreshDimensions?: () => void;
+};
 
 /**
  * Applies editor overlay position/dimensions to an element.
@@ -255,9 +280,9 @@ export function useHotEditor<T>(
     hooksRef,
     () => ({
       ...overriddenHooks,
-      onOpen() {
+      onOpen(event?: Event) {
         setEditorValue(hotCustomEditorInstanceRef.current?.getValue() as T | undefined);
-        overriddenHooks?.onOpen?.();
+        overriddenHooks?.onOpen?.(event);
         setRerenderTrigger(t => t + 1);
       },
     }),
@@ -317,7 +342,7 @@ type EditorComponentProps = {
     originalValue: any,
     cellProperties: Handsontable.CellProperties
   ) => void;
-  onOpen?: () => void;
+  onOpen?(event?: Event): void;
   onClose?: () => void;
   onFocus?: () => void;
   shortcutsGroup?: string;
@@ -342,7 +367,7 @@ type EditorComponentProps = {
  * @param {object} root0 The component props.
  * @param {Function} [root0.onPrepare] Called when the editor is prepared for a cell.
  * @param {Function} [root0.onClose] Called when the editor closes.
- * @param {Function} [root0.onOpen] Called when the editor opens.
+ * @param {Function} [root0.onOpen] Called when the editor opens. Receives the DOM event that opened the editor. It is `undefined` when you call `beginEditing()`.
  * @param {Function} [root0.onFocus] Called when the editor is focused.
  * @param {EditorRenderProp} [root0.children] Render prop returning the editor's UI.
  * @param {string} [root0.shortcutsGroup] The shortcuts group name to register under.
@@ -420,8 +445,18 @@ export function EditorComponent<T = any>({
       return;
     }
 
-    if (!applyEditorPosition(el, editor, hot, null) && typeof editor.close === 'function') {
-      editor.close();
+    // Leave an editor that waits for an async validator alone, as core `TextEditor` does. The scroll
+    // hooks call this without core's wait, and a cancel here would not stop the pending validation:
+    // a rejected value then put the editor back in edit mode while it was closed.
+    if (editor.state !== 'STATE_EDITING') {
+      return;
+    }
+
+    // The edited cell is not rendered (it scrolled out of view). End the edit without saving and reset
+    // the editor, so the next key starts a new edit. A bare `close()` hid the element but left the
+    // editor open, so it never showed again and kept the keyboard.
+    if (!applyEditorPosition(el, editor, hot, null)) {
+      editor.cancelChanges();
     }
   }, []);
 
@@ -450,7 +485,7 @@ export function EditorComponent<T = any>({
   }, [refreshDimensions]);
 
   const { value, setValue, finishEditing, isOpen, col, row } = useHotEditor<T>({
-    onOpen: () => {
+    onOpen: (event?: Event) => {
       if (!mainElementRef.current) {
         return;
       }
@@ -463,14 +498,15 @@ export function EditorComponent<T = any>({
 
       mainElementRef.current.style.display = 'block';
 
-      onOpen?.();
-
       const el = mainElementRef.current;
       const editor = hotCustomEditorInstanceRef.current as EditorWithPosition | null;
 
       if (el && editor?.hot) {
         applyEditorPosition(el, editor, editor.hot, null);
+        editor.refreshDimensions = refreshDimensions;
       }
+
+      onOpen?.(event);
 
       registerShortcuts();
       registerScrollHooks();

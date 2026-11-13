@@ -24,7 +24,8 @@ function solveElementScrollbars(input: LayoutInput): {
     totalContentHeight: contentHeight,
     workspaceWidth,
     workspaceHeight,
-    scrollbarSize,
+    scrollbarWidth,
+    scrollbarHeight,
   } = input;
   const forcedVertical = input.overflowY === 'scroll';
   const forcedHorizontal = input.overflowX === 'scroll';
@@ -34,13 +35,13 @@ function solveElementScrollbars(input: LayoutInput): {
   // First guess: does the content overflow the raw box on each axis?
   let hasVerticalScroll = forcedVertical || (!suppressVertical && contentHeight > workspaceHeight);
   const hasHorizontalScroll = forcedHorizontal || (!suppressHorizontal &&
-    contentWidth > workspaceWidth - (hasVerticalScroll ? scrollbarSize : 0));
+    contentWidth > workspaceWidth - (hasVerticalScroll ? scrollbarWidth : 0));
 
   // Corrective pass: a horizontal scrollbar we just decided on consumes height, which may now push
   // the content past the vertical box. This can only turn the vertical scrollbar on, never off (the
   // box only shrinks), so one pass is enough.
   if (hasHorizontalScroll && !hasVerticalScroll && !suppressVertical) {
-    hasVerticalScroll = contentHeight > workspaceHeight - scrollbarSize;
+    hasVerticalScroll = contentHeight > workspaceHeight - scrollbarHeight;
   }
 
   return { hasVerticalScroll, hasHorizontalScroll };
@@ -90,9 +91,9 @@ export function resolveLayout(input: LayoutInput): LayoutSnapshot {
     ? solveWindowScrollbars(input)
     : solveElementScrollbars(input);
 
-  const { workspaceWidth, workspaceHeight, scrollbarSize } = input;
-  const innerWidth = workspaceWidth - (hasVerticalScroll ? scrollbarSize : 0);
-  const innerHeight = workspaceHeight - (hasHorizontalScroll ? scrollbarSize : 0);
+  const { workspaceWidth, workspaceHeight, scrollbarWidth, scrollbarHeight } = input;
+  const innerWidth = workspaceWidth - (hasVerticalScroll ? scrollbarWidth : 0);
+  const innerHeight = workspaceHeight - (hasHorizontalScroll ? scrollbarHeight : 0);
   // Render band = scrollbar-unaware (workspace − header, no scrollbar); visible band = scrollbar-aware
   // (inner − header). The two differ by exactly one scrollbar on the axis the opposite scrollbar eats.
   const renderViewportWidth = workspaceWidth - input.rowHeaderWidth;
@@ -120,7 +121,8 @@ export function resolveLayout(input: LayoutInput): LayoutSnapshot {
     totalContentHeight: input.totalContentHeight,
     hiderWidth: input.totalContentWidth,
     hiderHeight: input.totalContentHeight,
-    scrollbarSize,
+    scrollbarWidth,
+    scrollbarHeight,
     isRtl: input.isRtl,
   });
 }

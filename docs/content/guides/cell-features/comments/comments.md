@@ -1,18 +1,18 @@
 ---
 type: how-to
 title: Comments
-metaTitle: Comments - JavaScript Data Grid | Handsontable
+metaTitle: Comments | Handsontable DataGrid for JavaScript
 description: Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 permalink: /comments
 canonicalUrl: /comments
 tags:
   - notes
 react:
-  metaTitle: Comments - React Data Grid | Handsontable
+  metaTitle: Comments | Handsontable DataGrid for React
 angular:
-  metaTitle: Comments - Angular Data Grid | Handsontable
+  metaTitle: Comments | Handsontable DataGrid for Angular
 vue:
-  metaTitle: Comments - Vue Data Grid | Handsontable
+  metaTitle: Comments | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell features
 menuTag: updated
@@ -22,6 +22,10 @@ Add a comment (a note) to a cell, using the context menu, just like in Excel. Ed
 [[toc]]
 
 The Comments plugin lets users attach text notes to individual cells. Use it when reviewers need to annotate data without changing cell values.
+
+The plugin shows and edits a comment in a text field, so it doesn't parse the comment as HTML. If you use the comment text elsewhere, for example in your own interface, escape or sanitize it first.
+
+For a plain-text note that users can't edit, use a [read-only comment](#make-a-comment-read-only). For a native hover hint, see [Add a tooltip to a cell](@/guides/cell-functions/cell-renderer/cell-renderer.md#add-a-tooltip-to-a-cell).
 
 ## Enable the plugin
 
@@ -86,7 +90,7 @@ const hotSettings = {
   comments: true,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -243,6 +247,8 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 ## Set a comment box's size
 
 To set the width and height of a comment box, use the [`style`](@/api/options.md#comments) parameter.
+
+Without `style`, a comment box is 240 pixels wide and 88 pixels tall. The box of a comment on a merged cell that spans more than one row takes the height of the merged range instead. A size you set, or one the user drags, takes precedence.
 
 ::: only-for javascript
 

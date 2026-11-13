@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { DropdownScrollRoundTripPage } from '../fixtures/pages/DropdownScrollRoundTripPage';
 
 /**
@@ -15,7 +15,7 @@ import { DropdownScrollRoundTripPage } from '../fixtures/pages/DropdownScrollRou
  * (`editedCellRendered() === false`); a grid tall enough to keep the cell rendered would fail there
  * rather than pass a vacuous "list still visible" afterwards.
  */
-test.describe('layered editor — scroll round-trip (DEV-26)', () => {
+test.describe('layered editor — scroll round-trip (DEV-26)', { tag: THEMES_TAG }, () => {
   let grid: DropdownScrollRoundTripPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
