@@ -244,14 +244,23 @@ async function designColor(
  * defaults: the light value, then the dark one.
  */
 const DESIGN = {
-  foreground: 'light-dark(#1c1d20, #e6e6e6)',
   fnUnknown: 'light-dark(#ea580c, #fdba74)',
   sheet: 'light-dark(#64748b, #7c8694)',
   highlight: 'light-dark(#f7f7f9, #000000)',
   error: 'light-dark(#fa4d56, #fa4d56)',
-  ref1: 'light-dark(#007bff, #0a84ff)',
-  ref2: 'light-dark(#ff9500, #ff9d0a)',
+  refs: [
+    'light-dark(#007bff, #0a84ff)',
+    'light-dark(#ff9500, #ff9d0a)',
+    'light-dark(#af52de, #bf5af2)',
+    'light-dark(#30d158, #34c759)',
+    'light-dark(#ff2d54, #ff375f)',
+    'light-dark(#30b0c7, #40c8e0)',
+    'light-dark(#5856d6, #5e5ce6)',
+    'light-dark(#a2855e, #ac8e68)',
+  ],
 };
+
+const THEME_FOREGROUND = 'var(--ht-foreground-color)';
 
 /**
  * The WCAG contrast ratio of an element's text against what is painted under it: the background colors
@@ -400,9 +409,10 @@ test.describe('formulaBuilder design colors', { tag: [THEMES_TAG, BUNDLES_TAG] }
     const grid = new FormulaBuilderPage(page, theme, bundle);
 
     await grid.goto();
-    await grid.selectCellByApi(0, 2);
+    await grid.setDataAt(3, 0, '=A1+B1+C1+A2+B2+C2+A3+B3');
+    await grid.selectCellByApi(3, 0);
 
-    for (const [index, value] of [['0', DESIGN.ref1], ['1', DESIGN.ref2]]) {
+    for (const [index, value] of DESIGN.refs.entries()) {
       const mark = grid.formulaBar.locator(`.hfe-ref-mark[data-ref-index="${index}"]`).first();
 
       await expect(mark).toBeVisible();
@@ -413,7 +423,7 @@ test.describe('formulaBuilder design colors', { tag: [THEMES_TAG, BUNDLES_TAG] }
     }
   });
 
-  test('the formula tokens use the design token colors', async({ page, theme, bundle }) => {
+  test('the plain formula tokens follow the theme text color and the rest use the design colors', async({ page, theme, bundle }) => {
     const grid = new FormulaBuilderPage(page, theme, bundle);
 
     await grid.goto();
@@ -421,12 +431,12 @@ test.describe('formulaBuilder design colors', { tag: [THEMES_TAG, BUNDLES_TAG] }
     await page.keyboard.type('=SUM(1,"a")+NOPE(2)');
 
     const expected: [string, string][] = [
-      ['fn', DESIGN.foreground],
-      ['num', DESIGN.foreground],
-      ['str', DESIGN.foreground],
-      ['op', DESIGN.foreground],
-      ['sep', DESIGN.foreground],
-      ['paren', DESIGN.foreground],
+      ['fn', THEME_FOREGROUND],
+      ['num', THEME_FOREGROUND],
+      ['str', THEME_FOREGROUND],
+      ['op', THEME_FOREGROUND],
+      ['sep', THEME_FOREGROUND],
+      ['paren', THEME_FOREGROUND],
       ['fn-unknown', DESIGN.fnUnknown],
     ];
 
@@ -461,7 +471,8 @@ test.describe('formulaBuilder design colors', { tag: [THEMES_TAG, BUNDLES_TAG] }
   });
 
   // The bar's rings are drawn like the selected cell's border, so a focused bar reads like a selected
-  // cell. The ring is inset, so the text must also start past it rather than under it.
+  // cell. Their contrast is the theme's `--ht-cell-selection-border-color` (2.45:1 on horizon), owned by
+  // the grid-wide focus ring contrast task. The ring is inset, so the text must also start past it.
   test('the bar editor\'s focus ring matches the selection border and leaves the text clear', async({
     page, theme, bundle,
   }) => {

@@ -435,16 +435,20 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   `tests/e2e/`.
 - **The colors are the design's, contrast gaps included.** Every `--hfe-*` color the plugin sets equals
   the FormulaBuilder design in its Handsontable mode. Where the design keeps the package's own value (the
-  token colors, the error color, the named expression and sheet color, the comment color, and the
+  unknown function and error token colors, the error color, the named expression and sheet color, the comment color, and the
   highlight of the active suggestion row), `_formula-builder.scss` sets nothing, and the package's `:root`
   `light-dark()` default applies, dark side included. Do not restate one of them on the theme block: a
   `var(--hfe-color-foreground)` there would resolve to the cell editor's foreground, not the design's
   `#1c1d20`. Mapped to theme tokens: the editor and menu surfaces, the accent text, the active argument
-  chip and the paren match (`--ht-accent-color`), and the keyboard row's frame (`--ht-border-color`).
+  chip and the paren match (`--ht-accent-color`), the keyboard row's frame (`--ht-border-color`), and
+  the plain tokens (function names, numbers, strings, booleans, operators, parentheses, brackets,
+  separators and names)
+  on `--ht-foreground-color`, so a custom theme still recolors them.
   The design's colors fail WCAG 1.4.3 in places, accepted for now: the error text `#fa4d56` measures
-  3.35:1 on white, an unknown function name `#ea580c` 3.56:1, a comment `#8a8f99` 3.25:1, a named
-  expression `#64748b` 4.45:1 on the active row `#f7f7f9`, and the accent text 2.45:1 on horizon and
-  3.08:1 on classic. The axe scan measures them under `formula-builder-design-contrast`: the
+  3.35:1 on white, an unknown function name `#ea580c` 3.56:1, a comment `#8a8f99` 3.25:1 (and `#6c7280`
+  4.23:1 on the main theme's dark background), and a named expression `#64748b` 4.45:1 on the active row
+  `#f7f7f9`. The accent's contrast is the theme's, baselined under the theme contrast issues (see the
+  next paragraph). The axe scan measures these under `formula-builder-design-contrast`: the
   `formula-builder-tokens` page (the formula fixture's `design-colors` variant) shows an unknown function
   and a comment in the formula bar and the error popup's title, and `formula-builder-named-expression` a
   named expression on the active suggestion row. Axe cannot measure the error text in a cell: the cell's

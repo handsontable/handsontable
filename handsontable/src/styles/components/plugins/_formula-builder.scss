@@ -71,13 +71,25 @@
       color-mix(in srgb, var(--ht-menu-shadow-color) var(--ht-menu-shadow-opacity), transparent);
 
     /* Token */
-    // The design keeps hyperformula-ui's own token colors (the `:root` defaults, light and dark) for the
-    // grid too, so only the paren match is mapped: it tints in the theme accent, like the cell editor.
+    // The plain tokens and function names follow the theme's text color, so a custom theme recolors
+    // them. Unknown functions, errors, sheet names and comments keep hyperformula-ui's own colors (the
+    // `:root` defaults, light and dark), which are the design's. The paren match tints in the accent.
+    --hfe-token-fn: var(--ht-foreground-color);
+    --hfe-token-num: var(--ht-foreground-color);
+    --hfe-token-str: var(--ht-foreground-color);
+    --hfe-token-bool: var(--ht-foreground-color);
+    --hfe-token-op: var(--ht-foreground-color);
+    --hfe-token-paren: var(--ht-foreground-color);
     --hfe-token-paren-match: var(--ht-accent-color);
+    --hfe-token-bracket: var(--ht-foreground-color);
+    --hfe-token-sep: var(--ht-foreground-color);
+    --hfe-token-ident: var(--ht-foreground-color);
 
     /* Reference */
     // The design's reference palette (blue, orange, purple, green, pink, teal, indigo, brown). The
-    // package's own palette is darker in light mode, so the plugin restates all eight.
+    // package's own palette is darker in light mode, so the plugin restates all eight. These are the
+    // only color literals here: the palette has no `--ht-*` theme token, so do not copy the pattern for
+    // a color the theme can carry.
     --hfe-ref-1: light-dark(#007bff, #0a84ff);
     --hfe-ref-2: light-dark(#ff9500, #ff9d0a);
     --hfe-ref-3: light-dark(#af52de, #bf5af2);
