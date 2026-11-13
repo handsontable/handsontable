@@ -202,7 +202,9 @@ because a record never loses a value.
 - **The `tier` namespace is reserved** for tier tokens: no entry id may start with `tier:`.
 - **A tier name, once merged, is never renamed or removed.** The license portal reads the top-level `tiers` of each
   published build (the `experimental` tag included) and refuses a build that lacks a tier it sells, and keys that
-  name the tier are already issued. Add a tier; do not rename one.
+  name the tier are already issued. Add a tier; do not rename one. `released-tokens.json` records each tier as its
+  key token (`"tier:standard": ["tier"]`): `checkReleased()` refuses sources that lack a recorded tier, and
+  `--check-base` refuses a record that drops one, the same way both protect a sold feature id.
 - **Public text says "tier"**, never "plan": the key token is `tier:<name>`, the manifest field is `tiers`, and
   "plan" already names a support product.
 - **`dist/manifest.json`** carries `tiers` at the top level and per capability, and no `keyFlag` (the

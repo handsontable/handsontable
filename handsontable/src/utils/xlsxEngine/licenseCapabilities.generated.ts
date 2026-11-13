@@ -55,39 +55,39 @@ export const XLSX_FLAG_BY_ID: Readonly<Record<string, string>> = Object.freeze({
 });
 
 // The license tiers that include each feature.
-export const XLSX_TIERS_BY_ID: Readonly<Record<string, string[]>> = Object.freeze({
-  'xlsx:import': [
+export const XLSX_TIERS_BY_ID: Readonly<Record<string, readonly string[]>> = Object.freeze({
+  'xlsx:import': Object.freeze([
     'standard',
     'professional',
-  ],
-  'xlsx:export': [
+  ]),
+  'xlsx:export': Object.freeze([
     'standard',
     'professional',
-  ],
-  'xlsx:formulas': [
+  ]),
+  'xlsx:formulas': Object.freeze([
     'standard',
     'professional',
-  ],
-  'xlsx:layout': [
+  ]),
+  'xlsx:layout': Object.freeze([
     'standard',
     'professional',
-  ],
-  'xlsx:number_formats': [
+  ]),
+  'xlsx:number_formats': Object.freeze([
     'professional',
-  ],
-  'xlsx:comments': [
+  ]),
+  'xlsx:comments': Object.freeze([
     'professional',
-  ],
-  'xlsx:styles': [
+  ]),
+  'xlsx:styles': Object.freeze([
     'professional',
-  ],
-  'xlsx:conditional_formatting': [
+  ]),
+  'xlsx:conditional_formatting': Object.freeze([
     'professional',
-  ],
-  'xlsx:data_validation': [
+  ]),
+  'xlsx:data_validation': Object.freeze([
     'professional',
-  ],
-  'xlsx:protection': [
+  ]),
+  'xlsx:protection': Object.freeze([
     'professional',
-  ],
+  ]),
 });

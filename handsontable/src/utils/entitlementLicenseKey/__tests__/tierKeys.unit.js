@@ -97,6 +97,22 @@ describe('tier test keys', () => {
     expect(Filters.LICENSE.tiers.filter(tier => tier.startsWith('test_tier_'))).toEqual([]);
   });
 
+  it('should never change the shipped table, which is frozen, and put it back after resetTierKeys()', () => {
+    const shipped = XLSX_TIERS_BY_ID;
+
+    expect(Object.isFrozen(shipped)).toBe(true);
+    expect(Object.values(shipped).every(tiers => Object.isFrozen(tiers))).toBe(true);
+
+    tierKeyWithout([]);
+
+    expect(XLSX_TIERS_BY_ID).not.toBe(shipped);
+    expect(Object.values(shipped).flat().filter(tier => tier.startsWith('test_tier_'))).toEqual([]);
+
+    resetTierKeys();
+
+    expect(XLSX_TIERS_BY_ID).toBe(shipped);
+  });
+
   it('should leave no test tier behind after two calls and resetTierKeys()', () => {
     tierKeyWithout([]);
     tierKeyWith(['feat:filters', 'xlsx:import']);

@@ -56,6 +56,9 @@ const LICENSING = ['token', 'none'];
  * that was always granted before tiers replaced it. A record never loses a value, so the old one stays readable.
  */
 const RECORDED_LICENSING = ['core', 'token', 'none'];
+// What the record of released ids lists for a tier: its key token (`tier:<name>`), with this one value.
+const RECORDED_TIER = 'tier';
+const TIER_TOKEN_PREFIX = 'tier:';
 const STATUSES = ['stable', 'planned'];
 
 /**
@@ -1132,11 +1135,11 @@ function renderXlsxLicenseModule(sources) {
     '});',
     '',
     '// The license tiers that include each feature.',
-    'export const XLSX_TIERS_BY_ID: Readonly<Record<string, string[]>> = Object.freeze({',
+    'export const XLSX_TIERS_BY_ID: Readonly<Record<string, readonly string[]>> = Object.freeze({',
     ...tokens.flatMap(({ id, tiers }) => [
-      `  '${id}': [`,
+      `  '${id}': Object.freeze([`,
       ...tiers.map(tier => `    ${toStringLiteral(tier)},`),
-      '  ],',
+      '  ]),',
     ]),
     '});',
     '',
@@ -1221,16 +1224,21 @@ function checkRecordShape(record) {
     return [`${RELEASED_FILE} must be an object of ids`];
   }
 
-  return Object.entries(record)
-    .filter(([, values]) => !isStringList(values) || values.length === 0 ||
-      values.some(value => !RECORDED_LICENSING.includes(value)))
-    .map(([id]) => `${RELEASED_FILE}: "${id}" must list the licensing values it has had ` +
-      `(${RECORDED_LICENSING.join(', ')})`);
+  return Object.entries(record).flatMap(([id, values]) => {
+    if (id.startsWith(TIER_TOKEN_PREFIX)) {
+      return isStringList(values) && values.length === 1 && values[0] === RECORDED_TIER ? [] :
+        [`${RELEASED_FILE}: "${id}" is a tier, so it must list "${RECORDED_TIER}" and nothing else`];
+    }
+
+    return !isStringList(values) || values.length === 0 || values.some(value => !RECORDED_LICENSING.includes(value)) ?
+      [`${RELEASED_FILE}: "${id}" must list the licensing values it has had (${RECORDED_LICENSING.join(', ')})`] : [];
+  });
 }
 
 /**
- * Builds the record of released ids: every stable id, with every licensing value it has had. A value is never
- * dropped, so an id once sold can never be removed.
+ * Builds the record of released ids: every stable id, with every licensing value it has had, and every tier as its
+ * key token (`tier:<name>`). A value is never dropped, so an id once sold, and a tier once released, can never be
+ * removed.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
  * @returns {object} The record, keys and values sorted.
@@ -1246,6 +1254,9 @@ function buildReleased(sources) {
       record[entry.id] = [...new Set([...(record[entry.id] ?? []), entry.licensing])].sort();
     }
   });
+  sources.tiers.forEach((tier) => {
+    record[`${TIER_TOKEN_PREFIX}${tier}`] = [RECORDED_TIER];
+  });
 
   return Object.fromEntries(Object.entries(record).sort(([a], [b]) => (a < b ? -1 : 1)));
 }
@@ -1253,7 +1264,8 @@ function buildReleased(sources) {
 /**
  * Checks the manifest against the released ids. A sold id may never be removed, and a released id never goes
  * back to `planned`. An id released as `core` or `none` may be sold: a key names tiers, not features, so no key
- * issued before lists the features it unlocks one by one.
+ * issued before lists the features it unlocks one by one. A released tier may never be removed or renamed: keys
+ * name it, and a key whose tier no feature lists turns every gated feature off.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
  * @returns {string[]} The problems.
@@ -1268,6 +1280,12 @@ function checkReleased(sources) {
   const byId = indexEntries(sources);
 
   return Object.entries(sources.released).flatMap(([id, values]) => {
+    if (id.startsWith(TIER_TOKEN_PREFIX)) {
+      return sources.tiers.includes(id.slice(TIER_TOKEN_PREFIX.length)) ? [] : [`"${id}" was released as a tier, ` +
+        `so it can never be removed or renamed (keys already name it). Restore it in ${TIERS_FILE}. If it never ` +
+        `reached the base branch, delete its line from ${RELEASED_FILE} instead.`];
+    }
+
     const entry = byId.get(id);
 
     if (entry === undefined) {

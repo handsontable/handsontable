@@ -1,6 +1,7 @@
 import { getPlugin, getPluginsNames } from '../../../plugins/registry';
 import { isPluginLicense } from '../../licenseCapabilities';
-import { XLSX_TIERS_BY_ID } from '../../xlsxEngine/licenseCapabilities';
+import * as xlsxLicenseModule from '../../xlsxEngine/licenseCapabilities';
+import * as xlsxGeneratedModule from '../../xlsxEngine/licenseCapabilities.generated';
 import { buildTestKey } from './buildTestKey';
 import { keyWithTier } from './xlsxLicenseKeys';
 
@@ -8,7 +9,8 @@ import { keyWithTier } from './xlsxLicenseKeys';
  * TEST-ONLY license keys that name a made-up tier, for the Jest suites. Each call makes a tier no
  * earlier call used (`test_tier_<n>`) and adds it to the features the key should unlock: the tiers of
  * a registered plugin through a spy on its static `LICENSE` getter, and the tiers of an xlsx feature by
- * pushing onto its list in `XLSX_TIERS_BY_ID`. A unique tier makes every key string unique, so the
+ * replacing the frozen `XLSX_TIERS_BY_ID` export with a frozen copy that lists the tier
+ * too (the shipped table is never changed). A unique tier makes every key string unique, so the
  * per-key caches of the license gates need no reset.
  *
  * It uses `jest` and the plugin registry, so it is kept apart from `xlsxLicenseKeys.js`, which the
@@ -30,6 +32,31 @@ const TEST_TIER_PREFIX = 'test_tier_';
  * @type {Map<Function, {spy: jest.SpyInstance, original: object, added: string[], license: object}>}
  */
 const spiedPlugins = new Map();
+
+/**
+ * The shipped `XLSX_TIERS_BY_ID`, kept while a copy with test tiers stands in for it; `null` otherwise.
+ *
+ * @type {object|null}
+ */
+let shippedXlsxTiers = null;
+
+/**
+ * Makes `table` the `XLSX_TIERS_BY_ID` every reader gets: the export of the generated module and of the module
+ * that re-exports it. The readers take the export from the module object on each read, so they follow the
+ * replacement.
+ *
+ * @param {object} table The table.
+ */
+function setXlsxTiers(table) {
+  [xlsxGeneratedModule, xlsxLicenseModule].forEach((module) => {
+    Object.defineProperty(module, 'XLSX_TIERS_BY_ID', {
+      value: table,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+  });
+}
 
 let tierCount = 0;
 
@@ -103,11 +130,12 @@ function buildTierKey(includes, flags, dates) {
     }
   });
 
-  Object.keys(XLSX_TIERS_BY_ID).forEach((id) => {
-    if (includes(id)) {
-      XLSX_TIERS_BY_ID[id].push(tier);
-    }
-  });
+  const current = xlsxLicenseModule.XLSX_TIERS_BY_ID;
+
+  shippedXlsxTiers ??= current;
+  setXlsxTiers(Object.freeze(Object.fromEntries(
+    Object.entries(current).map(([id, tiers]) => [id, Object.freeze(includes(id) ? [...tiers, tier] : [...tiers])]),
+  )));
 
   if (dates === undefined) {
     return keyWithTier([tier], flags);
@@ -155,17 +183,14 @@ export function tierKeyWith(featureIds, flags = [], dates = undefined) {
 }
 
 /**
- * Restores every spied `LICENSE` getter and removes every test tier from `XLSX_TIERS_BY_ID`.
+ * Restores every spied `LICENSE` getter and puts the shipped `XLSX_TIERS_BY_ID` back.
  */
 export function resetTierKeys() {
   spiedPlugins.forEach(({ spy }) => spy.mockRestore());
   spiedPlugins.clear();
 
-  Object.values(XLSX_TIERS_BY_ID).forEach((tiers) => {
-    for (let index = tiers.length - 1; index >= 0; index -= 1) {
-      if (tiers[index].startsWith(TEST_TIER_PREFIX)) {
-        tiers.splice(index, 1);
-      }
-    }
-  });
+  if (shippedXlsxTiers !== null) {
+    setXlsxTiers(shippedXlsxTiers);
+    shippedXlsxTiers = null;
+  }
 }

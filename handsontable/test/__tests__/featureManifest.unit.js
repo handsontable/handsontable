@@ -328,6 +328,45 @@ describe('feature manifest', () => {
       expect(checkReleased(changed)).toEqual([expect.stringContaining('"feat:search" was released as a token')]);
     });
 
+    it('should record every tier as its key token', () => {
+      sources.tiers.forEach((tier) => {
+        expect([tier, sources.released[`tier:${tier}`]]).toEqual([tier, ['tier']]);
+      });
+    });
+
+    it('should refuse to remove or rename a released tier, in every source file at once', () => {
+      const [first, ...rest] = sources.tiers;
+      const rename = tiers => tiers.map(tier => (tier === first ? 'renamed_tier' : tier));
+      const renamed = {
+        ...sources,
+        tiers: rename(sources.tiers),
+        tiersFile: { ...sources.tiersFile, tiers: rename(sources.tiers) },
+        files: sources.files.map(file => ({
+          ...file,
+          data: {
+            ...file.data,
+            capabilities: file.data.capabilities
+              .map(entry => (Array.isArray(entry.tiers) ? { ...entry, tiers: rename(entry.tiers) } : entry)),
+          },
+        })),
+      };
+
+      // The sources agree with each other, so only the record can tell that keys already name the old tier.
+      expect(checkSources(renamed)).toEqual([]);
+      expect(checkReleased(renamed)).toEqual([expect.stringContaining(`"tier:${first}" was released as a tier`)]);
+      expect(checkReleased({ ...sources, tiers: rest })).toEqual([
+        expect.stringContaining(`"tier:${first}" was released as a tier`),
+      ]);
+      expect(checkReleased({ ...sources, tiers: [...sources.tiers, 'added_tier'] })).toEqual([]);
+    });
+
+    it('should refuse a tier line of the record that lists anything but "tier"', () => {
+      const [first] = sources.tiers;
+
+      expect(checkReleased({ ...sources, released: { ...sources.released, [`tier:${first}`]: ['token'] } }))
+        .toEqual([expect.stringContaining(`"tier:${first}" is a tier, so it must list "tier" and nothing else`)]);
+    });
+
     it('should let an id recorded as core be sold in a tier', () => {
       expect(sources.released['cell:text']).toEqual(['core', 'token']);
       expect(checkReleased(sources)).toEqual([]);
@@ -477,8 +516,9 @@ describe('feature manifest', () => {
       expect(lines[0]).toBe(`| Feature | ${[...sources.tiers, 'alpha']
         .map(tier => tier[0].toUpperCase() + tier.slice(1)).join(' | ')} |`);
       expect(lines).toContain(rowOf('Filters', [...sources.tiers.map(() => ''), 'Yes']));
-      // The plugin's generated LICENSE carries its tiers too.
-      expect(findStaleOutputs(changed)).toEqual(['src/plugins/filters/feature.generated.ts', LICENSE_GUIDE_FILE]);
+      // The plugin's generated LICENSE carries its tiers too, and the record of released ids lists the new tier.
+      expect(findStaleOutputs(changed))
+        .toEqual(['src/plugins/filters/feature.generated.ts', RELEASED_FILE, LICENSE_GUIDE_FILE]);
     });
 
     it('should read the guide as stale when the block is edited, and keep the text around it', () => {
@@ -532,6 +572,16 @@ describe('feature manifest', () => {
       expect(removed).toEqual(['token']);
       expect(checkRecordAgainstBase(record, current)).toEqual([
         `"feat:search" is in the base branch's ${RELEASED_FILE}, so it must stay in it`,
+      ]);
+    });
+
+    it('should refuse a record that drops a tier the base recorded', () => {
+      const [first] = sources.tiers;
+      const { [`tier:${first}`]: removed, ...current } = record;
+
+      expect(removed).toEqual(['tier']);
+      expect(checkRecordAgainstBase(record, current)).toEqual([
+        `"tier:${first}" is in the base branch's ${RELEASED_FILE}, so it must stay in it`,
       ]);
     });
 
