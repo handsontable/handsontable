@@ -3464,8 +3464,13 @@ In 19.0, the change is written into the record it was made on:
 - In the validator, `this.visualRow` and `this.row` name the row the record has when the validator answers, and
   so does the row of [`afterValidate`](@/api/hooks.md#aftervalidate). When a filter or `trimRows` took the record
   out of the visual space, or the record was removed, `this.visualRow` and the `afterValidate` row are `null`. A
-  validator that corrects the value with `this.instance.setDataAtCell(this.visualRow, …)` writes the correction
-  into the edited record, and has to skip the correction when `this.visualRow` is `null`.
+  validator that corrects the value with `this.instance.setDataAtCell(this.visualRow, this.visualCol, value,
+  'myValidator')` writes the correction into the edited record, also when `this.visualRow` is `null`. Handsontable
+  drops the correction and writes the entered value when it can't tell which record the correction is for: two
+  records out of the visual space wait for the same column, and the validator corrects after it returns.
+- [`updateData()`](@/api/core.md#updatedata) with copies of the rows in a new order follows the record only
+  with a [`rowId`](@/api/options.md#rowid). Without one, the change goes to the row at the record's position:
+  the copies are new objects, and the cell meta stays with the physical row.
 - With [`allowInvalid: false`](@/api/options.md#allowinvalid), a value the validator rejects reopens the editor
   on the row the record has now, with the typed text. When a sort or a move took the record to another
   [`Pagination`](@/api/pagination.md) page, that page is shown first. When you changed the page yourself while
@@ -3483,8 +3488,10 @@ is unchanged, so [`beforeChange`](@/api/hooks.md#beforechange) and the `afterSet
   lands.
 - Your cells have validators, you use filters, `trimRows`, or `NestedRows`, and your `afterChange`,
   `beforeChangeRender`, or `modifyData` callback uses the row as a number. It can now be `null`.
-- Your validator corrects the value through `this.visualRow`, or your `afterValidate` callback uses the row as a
-  number, and you use filters or `trimRows`. It can now be `null`.
+- Your validator uses `this.visualRow` as a number other than to pass it to `setDataAtCell()`, or your
+  `afterValidate` callback uses the row as a number, and you use filters or `trimRows`. It can now be `null`.
+- You call `updateData()` with copies of the rows in a new order while an edit waits for its validator, and you
+  don't set `rowId`. Set it, so the edit follows its record.
 - You use TypeScript and type the `changes` parameter of `afterChange` or `beforeChangeRender` as
   `CellChange[]`, or the `row` of `modifyData` or `afterValidate` as `number`, in the grid settings or in a
   listener typed through the `Events` type. That no longer compiles. A listener you pass to
