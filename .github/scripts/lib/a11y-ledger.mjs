@@ -8,7 +8,9 @@
  * `tests/lib/screenreader-transcript.mjs`). A dispatch of `Docs a11y` leaves the docs site scan's findings in
  * the same shape as the axe scan's (`docs-a11y-axe-results`, `tests/a11y/docs/`), a night of a third source, and the
  * documents of the docs site checks beyond axe (`docs-a11y-checks-evidence`, `tests/a11y/sites/`) in the product
- * checks' shape, in the same night under the row source `docs-checks`.
+ * checks' shape, in the same night under the row source `docs-checks`. A dispatch of `Website a11y` leaves the same
+ * two for handsontable.com (`website-a11y-axe-results`, `website-a11y-checks-evidence`): a night of a fourth source,
+ * `website`, with the row source `website-checks`.
  * A raw night holds thousands of records, most of them the
  * same few defects on many pages, and nothing used to accumulate across nights or deduplicate across
  * checks. This module turns a night's artifacts into findings keyed so that a finding keeps its
@@ -20,7 +22,8 @@
  *
  * The rules that keep the ledger honest:
  *
- * - Only the two nightlies and the docs site scan, run on develop by their schedule or a dispatch (`isA11yRun`). A pull request's
+ * - Only the workflows of `SOURCES_OF_WORKFLOW` (the two nightlies and the docs and website site scans), run on develop by
+ *   their schedule or a dispatch (`isA11yRun`). A pull request's
  *   evidence, a fork's included, is produced by the pull request's own code, and a fork can name its branch
  *   `develop`: the branch alone is not enough. A night's source is its workflow's.
  * - A night is read once per attempt, in order: a run already recorded at that attempt, or one that completed
@@ -161,7 +164,7 @@ export const WEBSITE_A11Y_WORKFLOW = 'Website a11y';
 /**
  * The events a run is recorded from: a dispatch (on the two nightlies the audit, on develop with no inputs:
  * their `check-inputs` job refuses a subset dispatch there, because the page draws the latest night of each
- * source and a subset night would show what it skipped as gone; the docs site scan runs by dispatch only)
+ * source and a subset night would show what it skipped as gone; the docs and website site scans run by dispatch only)
  * and a schedule, which the two nightlies do not have today and which is kept here for the day a tier
  * brings a cron back (`.ai/CI.md`). All three workflows also run on a pull request that touches them, to
  * validate their graph; such a run is never recorded.
@@ -216,8 +219,8 @@ const SITE_NIGHTS = Object.freeze({
 /**
  * @typedef {object} Finding
  * @property {'checks'|'axe'|'reader'|'docs'|'docs-checks'|'website'|'website-checks'} source Where it came from.
- * @property {string} check The check id, `axe` for the gating scan, `docs-axe` for the docs site scan, a docs site check
- * (`docs-keyboard`), or the reader project (`nvda-chromium`).
+ * @property {string} check The check id, `axe` for the gating scan, `docs-axe` or `website-axe` for a site scan, a site
+ * check (`docs-keyboard`, `website-forms`), or the reader project (`nvda-chromium`).
  * @property {string} kind The finding kind; `axe-violation` for every finding of the scan; `token-missing` or
  * `golden-differs` for a reader step, `traversal-off` for a reader scenario's reading traversal (at `where`
  * `traversal`).
@@ -243,7 +246,7 @@ const SITE_NIGHTS = Object.freeze({
  * @typedef {object} Coverage
  * @property {Record<string, string[]>} checks Per check, the targets (`page|theme|variant`) it measured with every
  * step taken and every finding read.
- * @property {boolean|null} axe Whether the axe scan (on a docs night, the docs site scan) was complete and read whole;
+ * @property {boolean|null} axe Whether the axe scan (on a docs or website night, that site's scan) was complete and read whole;
  * `null` without one.
  * @property {string[]} reader The complete transcripts, every step read (`project|scenario`).
  * @property {string[]} golden The complete transcripts whose wording was compared with a golden, every difference read.
@@ -256,8 +259,8 @@ const SITE_NIGHTS = Object.freeze({
  * @property {Coverage} coverage What the night measured. A row is resolved only inside it.
  * @property {number} problems The tooling problems the night reported.
  * @property {Record<string, {targets: number, measured: number, findings: number, problems: number}>} checks Per check document.
- * @property {{complete: boolean, findings: number, problems: number}|null} axe The scan document (the docs site scan's, on a
- * docs night).
+ * @property {{complete: boolean, findings: number, problems: number}|null} axe The scan document (the site scan's, on a
+ * docs or website night).
  * @property {Record<string, Record<string, {steps: string[], failed: string[], golden: string, incomplete: string|null}>>} reader
  * Per project and scenario, the transcript's steps and verdicts.
  */
@@ -294,7 +297,7 @@ export function classifyA11yArtifact(name) {
 
 /**
  * Whether a run's accessibility artifacts are recorded: a run of the `A11y nightly`, the `Screen reader
- * nightly` or `Docs a11y` on develop, started by its schedule or a dispatch. The branch alone is not enough:
+ * nightly`, `Docs a11y` or `Website a11y` (`SOURCES_OF_WORKFLOW`) on develop, started by its schedule or a dispatch. The branch alone is not enough:
  * the `Tests` pipeline uploads the same artifacts from a pull request's own code, and a fork's pull request
  * opened from the fork's `develop` reports `develop` as its branch. A fork cannot start a schedule or a dispatch
  * here.
@@ -308,7 +311,20 @@ export function isA11yRun(run, workflows = SOURCES_OF_WORKFLOW) {
 }
 
 /**
- * The night sources a recorded workflow's run holds: one per nightly, and the docs site scan's.
+ * The workflows the ledger records, by name, as a sentence lists them ("A11y nightly, Screen reader nightly, Docs a11y
+ * and Website a11y"), so a message that names them follows `SOURCES_OF_WORKFLOW` and a new one is never left out.
+ *
+ * @param {Record<string, readonly string[]>} [workflows] The recorded workflows and their sources (`SOURCES_OF_WORKFLOW`).
+ * @returns {string} The list.
+ */
+export function recordedWorkflows(workflows = SOURCES_OF_WORKFLOW) {
+  const names = Object.keys(workflows);
+
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names.join('');
+}
+
+/**
+ * The night sources a recorded workflow's run holds: one per nightly, and one per site scan (docs, website).
  *
  * @param {string} workflow The workflow's `name:`.
  * @param {Record<string, readonly string[]>} [workflows] The recorded workflows and their sources (`SOURCES_OF_WORKFLOW`).
@@ -599,8 +615,8 @@ function readEvidence(file, label, night, notes, site = null) {
  * the ledger and the check run cannot disagree on a severity. A location of a document written before the locations
  * carried their impact has none, and its row keeps a `null` severity until a night that names it. The scan covers its
  * rows only when it was complete (no tooling problem, no unverified page) and read whole. The product scan's document
- * goes into the a11y night with the source `axe`; the docs site scan's, in the same shape, into the docs night with
- * the source `docs`.
+ * goes into the a11y night with the source `axe`; a site scan's, in the same shape, into its site's night with the
+ * source `docs` or `website`.
  *
  * @param {{artifact: string, path: string, text: string}} file The file.
  * @param {string} label The file, for a note.
@@ -1280,8 +1296,8 @@ export function mergeA11yLedger(previous, night, run, catalog, {
   assertA11yVersion(previous ?? null);
 
   if (!isA11yRun(run, workflows)) {
-    throw new Error(`run ${run.runId} is a ${run.event} run of ${run.workflow} on ${run.branch}; only the A11y and Screen reader `
-      + 'nightlies and the docs site scan on develop, by schedule or dispatch, are recorded');
+    throw new Error(`run ${run.runId} is a ${run.event} run of ${run.workflow} on ${run.branch}; only runs of `
+      + `${recordedWorkflows(workflows)} on develop, by schedule or dispatch, are recorded`);
   }
   if (!RUN_ID.test(String(run.runId))) {
     throw new Error(`run id ${JSON.stringify(run.runId)} is not a run id`);

@@ -63,6 +63,7 @@ import {
   isA11yRun,
   mergeA11yLedger,
   readA11yArtifacts,
+  recordedWorkflows,
   serializeA11yLedger,
 } from './lib/a11y-ledger.mjs';
 import { compileIssuesCatalog } from '../../tests/lib/a11y-issues.mjs';
@@ -306,14 +307,14 @@ try {
       }
       a11yPage = a11yView(doc, catalog);
     } else {
-      // Only the two nightlies' and the docs site scan's runs on develop are recorded: a pull request's evidence, a
-      // fork's included, comes from the pull request's own code and stays in its own run.
+      // Only the recorded workflows' runs on develop are (`isA11yRun`): a pull request's evidence, a fork's included,
+      // comes from the pull request's own code and stays in its own run.
       assertA11yVersion(previousA11y);
       a11yPage = a11yView(previousA11y, catalog);
 
       if (a11yFiles.length > 0) {
-        notes.push(`${a11yFiles.length} accessibility artifact file(s) not recorded: only the A11y and Screen reader nightlies `
-          + 'and the docs site scan on develop are, and this run keeps its own');
+        notes.push(`${a11yFiles.length} accessibility artifact file(s) not recorded: only runs of ${recordedWorkflows()} `
+          + 'on develop are, and this run keeps its own');
       }
     }
   }

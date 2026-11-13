@@ -39,6 +39,7 @@ import {
   mergeA11yLedger,
   readA11yArtifacts,
   readerArtifactProject,
+  recordedWorkflows,
   renderA11yLine,
   serializeA11yLedger,
   sourcesOfWorkflow,
@@ -458,7 +459,7 @@ test('the website is a night of its own: its scan and checks of production only,
   assert.equal(preview.nights[0].findings.length, 0);
 });
 
-test('isA11yRun takes the two nightlies and the docs site scan on develop by schedule or dispatch, and nothing a pull request can start', () => {
+test('isA11yRun takes the two nightlies and the site scans on develop by schedule or dispatch, and nothing a pull request can start', () => {
   assert.equal(isA11yRun(runContextFromRun(NIGHTLY)), true);
   assert.equal(isA11yRun(runContextFromRun(READER_RUN)), true);
   assert.equal(isA11yRun(runContextFromRun(DOCS_RUN)), true, 'the docs site scan, dispatched on develop');
@@ -473,6 +474,12 @@ test('isA11yRun takes the two nightlies and the docs site scan on develop by sch
   assert.equal(isA11yRun(runContextFromRun({ ...DOCS_RUN, name: WEBSITE_A11Y_WORKFLOW })), true, 'the website scan, dispatched on develop');
   assert.deepEqual(sourcesOfWorkflow('Tests'), []);
   assert.deepEqual(sourcesOfWorkflow('constructor'), [], 'never a prototype key');
+  // The messages that say which runs are recorded list the registry, so a workflow added to it is named there too.
+  assert.equal(recordedWorkflows(), 'A11y nightly, Screen reader nightly, Docs a11y and Website a11y');
+  for (const workflow of Object.keys(SOURCES_OF_WORKFLOW)) {
+    assert.ok(recordedWorkflows().includes(workflow), `the recorded workflows name ${workflow}`);
+  }
+  assert.equal(recordedWorkflows({ 'A11y nightly': ['a11y'] }), 'A11y nightly');
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'workflow_dispatch' })), true, 'a proof run, or a missed night run again');
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'push' })), false);
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'pull_request' })), false, 'the nightly validating its own graph');
@@ -488,7 +495,7 @@ test('isA11yRun takes the two nightlies and the docs site scan on develop by sch
 
   // The merge refuses such a run itself, and a night of another source than the run's workflow.
   assert.throws(() => mergeA11yLedger(null, nightOf(nightlyFiles()), runContextFromRun({ ...PULL_REQUEST, head_branch: 'develop' }), CATALOG,
-    { now: NOW }), /only the A11y and Screen reader nightlies and the docs site scan on develop/);
+    { now: NOW }), /only runs of A11y nightly, Screen reader nightly, Docs a11y and Website a11y on develop/);
 
   const wrong = mergeA11yLedger(null, nightOf(readerFiles()), runContextFromRun(NIGHTLY), CATALOG, { now: NOW });
 
@@ -1985,7 +1992,7 @@ test('a pull request run with accessibility artifacts records nothing, and a run
 
     assert.equal(pullRequest.status, 0, pullRequest.stderr);
     assert.deepEqual(sandbox.snapshot(), before, 'a pull request\'s evidence changes no published byte');
-    assert.match(pullRequest.stdout, /4 accessibility artifact file\(s\) not recorded: only the A11y and Screen reader nightlies and the docs site scan on develop are/);
+    assert.match(pullRequest.stdout, /4 accessibility artifact file\(s\) not recorded: only runs of A11y nightly, Screen reader nightly, Docs a11y and Website a11y on develop are/);
 
     // A fork's pull request opened from the fork's own develop: its Tests run reports develop as its branch, and its
     // evidence would resolve every walker row its code no longer shows.
