@@ -4,6 +4,7 @@ import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
 import { chooseOrderMoves, type OrderMove } from './orderMoves';
 import { getDecreasedIndexes, getIncreasedIndexes } from '../../../translations/maps/utils/actionsOnIndexes';
+import { runEngineBatch } from '../engine/evaluationHold';
 import type { HyperFormulaEngine } from '../engine/types';
 
 interface AxisIndexMapper {
@@ -585,7 +586,7 @@ class AxisSyncer {
     }
 
     this.#indexSyncer.getOwnEngineWrite()(engine, () => {
-      engine.batch(() => {
+      runEngineBatch(engine, () => {
         moves.forEach((move: { from: number; to: number }) => {
           const moveToTheSamePosition = move.from !== move.to;
           // Moving from left to right (or top to bottom) to a line (drop index) right after already moved element.
@@ -1043,17 +1044,14 @@ class AxisSyncer {
    * `engine.batch()`: one change list and one undo entry. A batch of the host's (or a `suspendEvaluation()`)
    * is already open otherwise, and `engine.batch()` would end it: it resumes the evaluation the host
    * suspended and commits a batch mode the host's own commit then finds closed, so the calls are made
-   * directly and the host's batch folds them.
+   * directly and the host's batch folds them. A suspension a grid holds (`formulas.batchEvaluation`) starts
+   * here when none is open yet, and the calls join it (see `runEngineBatch()`).
    *
    * @param {HyperFormulaEngine} engine The engine.
    * @param {Function} calls The engine calls.
    */
   #runBatched(engine: HyperFormulaEngine, calls: () => void) {
-    if (engine.isEvaluationSuspended()) {
-      calls();
-    } else {
-      engine.batch(calls);
-    }
+    runEngineBatch(engine, calls, { joinsAnySuspension: true });
   }
 
   /**

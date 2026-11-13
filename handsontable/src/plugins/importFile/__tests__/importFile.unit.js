@@ -35,6 +35,15 @@ import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
 
+/**
+ * @param {HyperFormula} engine The engine.
+ * @param {string} [sheetName] The sheet the grid is bound to.
+ * @returns {object} A stub of a running Formulas plugin.
+ */
+function runningFormulasPlugin(engine, sheetName = 'Sheet1') {
+  return { isEnabled: () => true, enabled: true, flushEngineEvaluation: () => {}, sheetName, engine };
+}
+
 function fakeCtx(importFileSettings) {
   return { hot: { getSettings: () => ({ importFile: importFileSettings }) } };
 }
@@ -111,7 +120,7 @@ function pluginWithFakeHot(
     getPlugin: name => ({
       // `isEnabled()` reads the option, `enabled` says whether the plugin runs: a license key
       // can keep a plugin off while its option is on.
-      formulas: { isEnabled: () => formulasEnabled, enabled: formulasRuns },
+      formulas: { isEnabled: () => formulasEnabled, enabled: formulasRuns, flushEngineEvaluation: () => {} },
       comments: { isEnabled: () => false, enabled: false },
     })[name],
     runHooks: (name, ...args) => {
@@ -1340,6 +1349,7 @@ describe('ImportFile and the Formulas engine\'s named expressions', () => {
       formulas: {
         isEnabled: () => true,
         enabled: true,
+        flushEngineEvaluation: () => {},
         engine: { getSheetNames: () => ['Data'], listNamedExpressions },
       },
     })[name];
@@ -1376,7 +1386,7 @@ describe('ImportFile and bare TRUE and FALSE in a real HyperFormula engine', () 
     const { plugin, hot } = pluginWithFakeHot(true);
 
     hot.getPlugin = name => ({
-      formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+      formulas: runningFormulasPlugin(hf),
     })[name];
 
     const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false });
@@ -1443,7 +1453,7 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
       const { plugin, hot } = pluginWithFakeHot(true);
 
       hot.getPlugin = name => ({
-        formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+        formulas: runningFormulasPlugin(hf),
       })[name];
 
       // eslint-disable-next-line no-await-in-loop -- one engine at a time.
@@ -1482,7 +1492,7 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
       const { plugin, hot } = pluginWithFakeHot(true);
 
       hot.getPlugin = name => ({
-        formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+        formulas: runningFormulasPlugin(hf),
       })[name];
 
       // eslint-disable-next-line no-await-in-loop -- one engine at a time.
@@ -1514,7 +1524,7 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
     const { plugin, hot } = pluginWithFakeHot(true);
 
     hot.getPlugin = name => ({
-      formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+      formulas: runningFormulasPlugin(hf),
     })[name];
 
     const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false, colHeaders: 'firstRow' });
@@ -1560,7 +1570,7 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
       const { plugin, hot } = pluginWithFakeHot(true);
 
       hot.getPlugin = name => ({
-        formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+        formulas: runningFormulasPlugin(hf),
       })[name];
 
       // eslint-disable-next-line no-await-in-loop -- one engine at a time.
@@ -1593,7 +1603,7 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
       const { plugin, hot } = pluginWithFakeHot(true);
 
       hot.getPlugin = name => ({
-        formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+        formulas: runningFormulasPlugin(hf),
       })[name];
 
       // eslint-disable-next-line no-await-in-loop -- one engine at a time.
@@ -1620,7 +1630,7 @@ describe('ImportFile and the workbook\'s defined names in a real HyperFormula en
   function importInto(hf, bytes, sheetName = 'Sheet1') {
     const { plugin, hot } = pluginWithFakeHot(true);
 
-    hot.getPlugin = name => ({ formulas: { isEnabled: () => true, enabled: true, sheetName, engine: hf } })[name];
+    hot.getPlugin = name => ({ formulas: runningFormulasPlugin(hf, sheetName) })[name];
 
     return plugin.importFromArrayBuffer('xlsx', bytes, { apply: false, colHeaders: 'firstRow' });
   }
@@ -2116,6 +2126,7 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
         formulas: {
           isEnabled: () => true,
           enabled: true,
+          flushEngineEvaluation: () => {},
           sheetName: 'Sheet1',
           engine: { getSheetNames: () => ['Sheet1'], listNamedExpressions: () => [] },
         },
@@ -2170,7 +2181,7 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
       const { plugin, hot } = pluginWithFakeHot(true);
 
       hot.getPlugin = name => ({
-        formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+        formulas: runningFormulasPlugin(hf),
       })[name];
 
       // eslint-disable-next-line no-await-in-loop -- one engine at a time.
@@ -2211,7 +2222,7 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     const { plugin, hot } = pluginWithFakeHot(true);
 
     hot.getPlugin = name => ({
-      formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+      formulas: runningFormulasPlugin(hf),
     })[name];
 
     const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false });
@@ -2256,7 +2267,7 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     const { plugin, hot } = pluginWithFakeHot(true);
 
     hot.getPlugin = name => ({
-      formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+      formulas: runningFormulasPlugin(hf),
     })[name];
 
     const result = await plugin.importFromArrayBuffer('xlsx', bytes, { ...options, apply: false, engine });
@@ -3005,7 +3016,7 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
       const { plugin, hot } = pluginWithFakeHot(true);
 
       hot.getPlugin = name => ({
-        formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+        formulas: runningFormulasPlugin(hf),
       })[name];
 
       // eslint-disable-next-line no-await-in-loop -- one engine at a time.
@@ -3086,7 +3097,7 @@ describe('ImportFile and array formulas evaluated by HyperFormula', () => {
     const { plugin, hot } = pluginWithFakeHot(true);
 
     hot.getPlugin = name => ({
-      formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+      formulas: runningFormulasPlugin(hf),
     })[name];
 
     const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false });
@@ -3246,6 +3257,7 @@ describe('ImportFile and the Formulas engine\'s own sheet', () => {
       formulas: {
         isEnabled: () => true,
         enabled: true,
+        flushEngineEvaluation: () => {},
         sheetName: 'Sheet1',
         engine: { getSheetNames: () => ['Sheet1'], listNamedExpressions: () => [] },
       },
@@ -3417,7 +3429,7 @@ describe('ImportFile and rich value errors in a real HyperFormula engine', () =>
     const { plugin, hot } = pluginWithFakeHot(true);
 
     hot.getPlugin = name => ({
-      formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+      formulas: runningFormulasPlugin(hf),
     })[name];
 
     const result = await plugin.importFromArrayBuffer('xlsx', fixture('excel-online-rich-errors'), { apply: false });
@@ -3457,7 +3469,7 @@ describe('ImportFile and rich value errors in a real HyperFormula engine', () =>
     const { plugin, hot } = pluginWithFakeHot(true);
 
     hot.getPlugin = name => ({
-      formulas: { isEnabled: () => true, enabled: true, sheetName: 'Sheet1', engine: hf },
+      formulas: runningFormulasPlugin(hf),
     })[name];
 
     const result = await plugin.importFromArrayBuffer('xlsx', bytes, { apply: false });
