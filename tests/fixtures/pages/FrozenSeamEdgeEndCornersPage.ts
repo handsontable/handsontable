@@ -10,6 +10,7 @@ type HotWindow = {
     selectCell(row: number, column: number, endRow: number, endColumn: number, scrollToCell?: boolean): boolean;
     getCell(row: number, column: number, topmost?: boolean): HTMLElement | null;
     addHook(key: 'afterRenderer', callback: (td: HTMLElement, row: number) => void): void;
+    addHook(key: 'afterScroll', callback: () => void): void;
   };
 };
 
