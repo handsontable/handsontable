@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt } from '../bundle';
+import { afterAnimationFrames } from '../frames';
 
 type HotWindow = {
   hot: {
@@ -8,6 +9,8 @@ type HotWindow = {
     scrollViewportTo(options: { row: number; col: number }): boolean;
     selectCell(row: number, column: number, endRow: number, endColumn: number, scrollToCell?: boolean): boolean;
     getCell(row: number, column: number, topmost?: boolean): HTMLElement | null;
+    addHook(key: 'afterRenderer', callback: (td: HTMLElement, row: number) => void): void;
+    addHook(key: 'afterScroll', callback: () => void): void;
   };
 };
 
@@ -168,6 +171,155 @@ export class FrozenSeamEdgeEndCornersPage {
 
       return [...offsets].sort((a, b) => a - b);
     }, [line, col] as const);
+  }
+
+  /**
+   * Scrolls the master holder to its bottom-right end and waits until the master renders the last scrollable
+   * row and column (a render-state probe, never the scroll offset).
+   */
+  async scrollHolderToEnd(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as unknown as HotWindow;
+      const holder = document.querySelector('[data-testid="grid"] .ht_master .wtHolder') as HTMLElement;
+
+      holder.scrollTop = holder.scrollHeight;
+      holder.scrollLeft = hot.isRtl() ? -holder.scrollWidth : holder.scrollWidth;
+    });
+    await expect.poll(() => this.page.evaluate(() => {
+      const { hot } = window as unknown as HotWindow;
+
+      return hot.getCell(hot.countRows() - 2, 98) !== null;
+    })).toBe(true);
+    await afterAnimationFrames(this.page, 2);
+  }
+
+  /**
+   * Turns the mouse wheel over the middle of the grid, then waits until the grid has drawn the new viewport. A
+   * wheel is delivered asynchronously, so without the wait a slow run measured before the scroll and let two
+   * steps land together.
+   *
+   * @param {number} deltaX The horizontal wheel delta.
+   * @param {number} deltaY The vertical wheel delta.
+   */
+  async wheel(deltaX: number, deltaY: number): Promise<void> {
+    const box = await this.master.boundingBox();
+
+    if (!box) {
+      throw new Error('The master table has no box');
+    }
+
+    await this.scrollAndAwaitDraw(async() => {
+      await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
+      await this.page.mouse.wheel(deltaX, deltaY);
+    });
+  }
+
+  /**
+   * Scrolls the master holder by a delta, the way a scrollbar drag or a script does, then waits until the
+   * grid has drawn the new viewport.
+   *
+   * @param {number} deltaX The horizontal delta.
+   * @param {number} deltaY The vertical delta.
+   */
+  async scrollHolderBy(deltaX: number, deltaY: number): Promise<void> {
+    await this.scrollAndAwaitDraw(() => this.page.evaluate(([dx, dy]) => {
+      const holder = document.querySelector('[data-testid="grid"] .ht_master .wtHolder') as HTMLElement;
+
+      holder.scrollLeft += dx;
+      holder.scrollTop += dy;
+    }, [deltaX, deltaY]));
+  }
+
+  /**
+   * Runs a scroll and waits until the grid has handled it: the `afterScroll` hook fires after the engine drew
+   * the master and synced the clones from the holder's `scroll` event, which the browser dispatches a frame
+   * after the offset moved. A render-state probe, so a slow run cannot measure the previous viewport.
+   *
+   * @param {Function} scroll Performs the scroll.
+   */
+  async scrollAndAwaitDraw(scroll: () => Promise<unknown>): Promise<void> {
+    const before = await this.page.evaluate(() => {
+      const win = window as unknown as HotWindow & { htScrollDraws?: number };
+
+      if (win.htScrollDraws === undefined) {
+        win.htScrollDraws = 0;
+        win.hot.addHook('afterScroll', () => {
+          win.htScrollDraws = (win.htScrollDraws ?? 0) + 1;
+        });
+      }
+
+      return win.htScrollDraws;
+    });
+
+    await scroll();
+    await expect.poll(() => this.page.evaluate(() => (
+      window as unknown as { htScrollDraws: number }
+    ).htScrollDraws)).toBeGreaterThan(before);
+  }
+
+  /**
+   * Starts counting the cells the grid renders (`afterRenderer` calls) from now on, split into the
+   * `fixedRowsBottom` row and every other row. Read the counts with {@link FrozenSeamEdgeEndCornersPage#renderCounts}.
+   */
+  async startRenderCounter(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as HotWindow & { htRenderCounts: { bottomRow: number, otherRows: number } };
+      const lastRow = win.hot.countRows() - 1;
+
+      win.htRenderCounts = { bottomRow: 0, otherRows: 0 };
+      win.hot.addHook('afterRenderer', (_td: HTMLElement, row: number) => {
+        if (row === lastRow) {
+          win.htRenderCounts.bottomRow += 1;
+        } else {
+          win.htRenderCounts.otherRows += 1;
+        }
+      });
+    });
+  }
+
+  /**
+   * Reads the counts {@link FrozenSeamEdgeEndCornersPage#startRenderCounter} collected.
+   *
+   * @returns {Promise<{ bottomRow: number, otherRows: number }>}
+   */
+  async renderCounts(): Promise<{ bottomRow: number, otherRows: number }> {
+    return this.page.evaluate(() => (
+      window as unknown as { htRenderCounts: { bottomRow: number, otherRows: number } }
+    ).htRenderCounts);
+  }
+
+  /**
+   * Measures how far each `fixedRowsBottom` cell the `bottom` overlay draws sits from its column's header,
+   * along the inline axis: `0` when the frozen bottom row lines up with the columns above it. The cell is
+   * found by its text (`R<row>C<col>`), not through `getCell()`, because the lookup answers from the band
+   * the overlay should render, not from the cells it holds. Only the scrollable columns are measured, the
+   * ones whose topmost header is in the `top` overlay: a frozen column's cell in the `bottom` overlay is
+   * covered by a corner. Read in one evaluation.
+   *
+   * @returns {Promise<Record<string, number>>} The offset in pixels by visual column index.
+   */
+  async bottomRowOffsets(): Promise<Record<string, number>> {
+    return this.page.evaluate(() => {
+      const { hot } = window as unknown as HotWindow;
+      const lastRow = hot.countRows() - 1;
+      const offsets: Record<string, number> = {};
+
+      document.querySelectorAll('[data-testid="grid"] .ht_clone_bottom tbody td').forEach((cell) => {
+        const match = cell.textContent?.match(/^R(\d+)C(\d+)$/);
+
+        if (!match || Number(match[1]) !== lastRow) {
+          return;
+        }
+
+        const header = hot.getCell(-1, Number(match[2]), true);
+
+        if (header?.closest('.ht_clone_top')) {
+          offsets[match[2]] = cell.getBoundingClientRect().left - header.getBoundingClientRect().left;
+        }
+      });
+
+      return offsets;
+    });
   }
 
   /**

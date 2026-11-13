@@ -529,29 +529,39 @@ export class ResizeGesture {
 
     this.#anchoredAtInlineEnd = this.#axis.isAnchoredAtInlineEnd?.(this.#hot, TH) === true;
     this.#startRenderedSize = this.#measureAlong(TH);
-    this.#startOverhead = this.#owner.getRenderedOverhead?.(this.#currentIndex) ?? 0;
+    // The band's first header renders wider than its column by the freeze-line overlap, which is not its size.
+    this.#startOverhead = (this.#owner.getRenderedOverhead?.(this.#currentIndex) ?? 0) +
+      (this.#axis.getFreezeLineOverlap?.(this.#hot, TH) ?? 0);
     this.#startSize = this.#startRenderedSize - this.#startOverhead;
+
+    const frozenEdge = this.#getFrozenEdge(this.#currentIndex);
+    // On the edge before the end band the line a user sees is the band's, which covers this header's border.
+    const edgeShift = frozenEdge.after && !this.#anchoredAtInlineEnd ?
+      this.#axis.getEndBandEdgeShift?.(this.#hot) ?? 0 : 0;
+
     // The handle sits on the edge that moves: the inline-end one, or the inline-start one for a
     // header anchored to the inline end of the grid.
-    this.#startOffset = alongOffset - 6 - (this.#anchoredAtInlineEnd ? this.#startRenderedSize : 0);
+    this.#startOffset = alongOffset - 6 - edgeShift - (this.#anchoredAtInlineEnd ? this.#startRenderedSize : 0);
     this.#scaleFactor = getElementScaleFactor(TH, this.#axis.orientation);
 
     this.#handle.style[this.#alongProp()] = `${this.#startOffset + this.#startRenderedSize}px`;
     this.#handle.style[this.#acrossProp()] = `${acrossOffset}px`;
     this.#handle.style[this.#acrossExtentProp()] = `${headerAcrossSize}px`;
-    this.#markFrozenEdge(this.#currentIndex);
+    this.#handle.classList.toggle('ht-resize-handle--freeze-before', frozenEdge.before);
+    this.#handle.classList.toggle('ht-resize-handle--freeze-after', frozenEdge.after);
     this.#hot.rootElement.appendChild(this.#handle);
   }
 
   /**
-   * Marks the handle when the edge it sits on is the edge of a frozen band: `--freeze-before` when the band ends
-   * there (the first rows or columns), `--freeze-after` when it starts there (the last ones). The marks only
-   * describe the grid; a stylesheet that draws something on the frozen edge uses them to keep the handle clear
-   * of it.
+   * Tells whether the edge the handle sits on is the edge of a frozen band: `before` when the band ends there
+   * (the first rows or columns), `after` when it starts there (the last ones). The handle carries them as
+   * `--freeze-before` and `--freeze-after`; the marks only describe the grid, and a stylesheet that draws something
+   * on the frozen edge uses them to keep the handle clear of it.
    *
    * @param {number} visualIndex The visual index of the header the handle belongs to.
+   * @returns {{ before: boolean, after: boolean }}
    */
-  #markFrozenEdge(visualIndex: number) {
+  #getFrozenEdge(visualIndex: number): { before: boolean; after: boolean } {
     const hot = this.#hot;
     const vertical = this.#isVertical();
     // the number of tracks before the edge the handle sits on
@@ -562,8 +572,10 @@ export class ResizeGesture {
     const before = vertical ? hot.view.countFixedRowsTop() : hot.view.countFixedColumnsStart();
     const after = vertical ? hot.view.countFixedRowsBottom() : hot.view.countFixedColumnsEnd();
 
-    this.#handle.classList.toggle('ht-resize-handle--freeze-before', !!before && tracksBefore === before);
-    this.#handle.classList.toggle('ht-resize-handle--freeze-after', !!after && tracksBefore === total - after);
+    return {
+      before: !!before && tracksBefore === before,
+      after: !!after && tracksBefore === total - after,
+    };
   }
 
   /**

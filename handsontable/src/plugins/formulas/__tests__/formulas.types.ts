@@ -84,3 +84,25 @@ formulas.hideFormulas();
 const isShowingFormulas: boolean = formulas.isShowingFormulas();
 
 isShowingFormulas.valueOf();
+
+// DEV-202: `batchEvaluation` holds HyperFormula's recalculation while the grid's execution is suspended.
+new Handsontable(document.createElement('div'), {
+  formulas: {
+    engine: Hyperformula.buildEmpty(),
+    sheetName: 'sheet1',
+    batchEvaluation: true,
+  },
+});
+new Handsontable(document.createElement('div'), {
+  formulas: {
+    engine: Hyperformula,
+    batchEvaluation: false,
+  },
+});
+new Handsontable(document.createElement('div'), {
+  formulas: {
+    engine: Hyperformula,
+    // @ts-expect-error `batchEvaluation` takes a boolean only.
+    batchEvaluation: 'yes',
+  },
+});

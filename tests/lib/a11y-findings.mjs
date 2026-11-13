@@ -12,7 +12,7 @@
  * a field is removed or renamed.
  */
 import { headline, selectorText, verdictCounts } from './a11y-baseline.mjs';
-import { PRODUCT_SUITE } from './a11y-suites.mjs';
+import { PRODUCT_SUITE, withScannedUrls } from './a11y-suites.mjs';
 
 export const FINDINGS_SCHEMA = 1;
 // How many elements a finding that needs action lists.
@@ -42,9 +42,11 @@ function element(detail) {
  * @param {object[]} [input.pages] The page list; the suite's when absent.
  * @param {string[]} [input.problems] Tooling problems.
  * @param {object} [input.suite] The scan (`lib/a11y-suites.mjs`); the product scan when absent.
+ * @param {object[]} [input.scans] The completed scans, for the URL each one opened.
  * @returns {object} The findings document.
  */
-export function agentFindings({ verdict, pages, problems = [], suite = PRODUCT_SUITE }) {
+export function agentFindings({ verdict, pages, problems = [], suite: plainSuite = PRODUCT_SUITE, scans = [] }) {
+  const suite = withScannedUrls(plainSuite, scans);
   const list = pages ?? suite.pages;
   const pageOf = new Map(list.map(page => [page.id, page]));
   const where = (item) => {

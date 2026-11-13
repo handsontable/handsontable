@@ -3,7 +3,7 @@ import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
-import type { CellChange, ChangeSource } from 'handsontable/common';
+import type { CellChange, ChangeSource } from 'handsontable';
 
 registerAllModules();
 

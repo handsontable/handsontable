@@ -4,6 +4,7 @@ import {
   quoteUnreadableSheetNames,
   rewriteSheetReferences,
 } from '../../../utils/formulaReferences';
+import { isEvaluationHeld } from './evaluationHold';
 import type { FormulasCellAddress, FormulasCellRange, HyperFormulaEngine, HyperFormulaClass } from './types';
 
 /**
@@ -174,7 +175,8 @@ function findSheetListFormulaWrites(engineClass: HyperFormulaClass, engine: Hype
  * The writes run with the evaluation suspended, and the engine's own undo stack is cleared before it
  * resumes, as the rebuild this replaces did, so an `engine.undo()` right after a sheet change does not
  * land on these writes. Inside a batch the host started, the writes join that batch and nothing is
- * cleared. Only a failing read or write is caught: the `valuesUpdated` emit that the resume makes
+ * cleared. Inside a suspension a grid holds (`formulas.batchEvaluation`), the writes join it and the stack
+ * is cleared at once. Only a failing read or write is caught: the `valuesUpdated` emit that the resume makes
  * runs outside it, so an error from a hook listening to it reaches the caller.
  *
  * @param {Function} engineClass The engine class.
@@ -201,6 +203,9 @@ export function recalculateSheetListFormulas(engineClass: HyperFormulaClass, eng
   }
 
   const ownSuspension = !engine.isEvaluationSuspended();
+  // A suspension a grid holds (`formulas.batchEvaluation`) is resumed only when the grid releases it, and an
+  // `engine.undo()` after that would land on these writes, so the stack is cleared now, without resuming.
+  const heldSuspension = isEvaluationHeld(engine);
 
   if (ownSuspension) {
     engine.suspendEvaluation();
@@ -213,8 +218,11 @@ export function recalculateSheetListFormulas(engineClass: HyperFormulaClass, eng
     reportFailure(error);
 
   } finally {
-    if (ownSuspension) {
+    if (ownSuspension || heldSuspension) {
       engine.clearUndoStack();
+    }
+
+    if (ownSuspension) {
       engine.resumeEvaluation();
     }
   }

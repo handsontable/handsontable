@@ -59,15 +59,21 @@ export class RowHeaderWidthPerLevelPage {
   }
 
   /**
-   * The inline-start edge of the last column's first cell, as the master draws it and as the
-   * inline-end overlay draws it over the master, read in one evaluation.
+   * The inline-end edge of the last column's first cell, as the master draws it and as the
+   * inline-end overlay draws it over the master, read in one evaluation. The inline-end edge, because
+   * the first column of the inline-end overlay reaches 1px further toward the inline start to cover the
+   * border of the column before it and draw the freeze line itself.
    *
    * @returns {Promise<{ master: number, clone: number }>}
    */
   async lastColumnEdges(): Promise<{ master: number; clone: number }> {
     return this.page.getByTestId('grid').evaluate((root) => {
-      const read = (overlay: string) => root.querySelector(`.${overlay} [data-testid="cell-0-5"]`)!
-        .getBoundingClientRect().left;
+      const read = (overlay: string) => {
+        const cell = root.querySelector(`.${overlay} [data-testid="cell-0-5"]`)!;
+        const rect = cell.getBoundingClientRect();
+
+        return getComputedStyle(cell).direction === 'rtl' ? rect.left : rect.right;
+      };
 
       return { master: read('ht_master'), clone: read('ht_clone_inline_end') };
     });

@@ -25,6 +25,7 @@ const FIVE_ITERATIONS = [
   'initial-load',
   'row-selection-deselect-all',
   'row-selection-select-all',
+  'sheetsbar-structural-ops',
   'sorting',
   'source-data-validator-load',
   'undo-edit',

@@ -16,7 +16,7 @@ note in each file to keep them in sync by hand; there is now one copy, here.
 
 ## The handle on a frozen edge
 
-`#markFrozenEdge` toggles `ht-resize-handle--freeze-before` on the handle when the edge it sits on is where the first frozen rows or columns end, and `ht-resize-handle--freeze-after` when it is where the last ones start. All four counts are the DRAWN ones (`TableView#countFixedRowsTop()`, `countFixedColumnsStart()`, `countFixedRowsBottom()`, `countFixedColumnsEnd()`), never the settings: with `limitFixedToViewport` the grid can draw fewer tracks than are configured, and the freeze bar sits on the drawn line, so a mark from the configured count would offset the handle at a column with no bar and leave the one on the bar overlapped. The edge is counted in visual tracks before it: the index plus one, or the index itself for a header anchored at the inline end. The marks only describe the grid and draw nothing: the FreezeBar stylesheet uses them to keep the pills clear of its bar (`../../plugins/freezeBar/AGENTS.md`). Keep them free of any plugin check, so the gesture never has to know which plugin draws on the edge.
+`#getFrozenEdge` decides, and `#setupHandlePosition` toggles, `ht-resize-handle--freeze-before` on the handle when the edge it sits on is where the first frozen rows or columns end, and `ht-resize-handle--freeze-after` when it is where the last ones start. All four counts are the DRAWN ones (`TableView#countFixedRowsTop()`, `countFixedColumnsStart()`, `countFixedRowsBottom()`, `countFixedColumnsEnd()`), never the settings: with `limitFixedToViewport` the grid can draw fewer tracks than are configured, and the freeze bar sits on the drawn line, so a mark from the configured count would offset the handle at a column with no bar and leave the one on the bar overlapped. The edge is counted in visual tracks before it: the index plus one, or the index itself for a header anchored at the inline end. The marks only describe the grid and draw nothing: the FreezeBar stylesheet uses them to keep the pills clear of its bar (`../../plugins/freezeBar/AGENTS.md`). Keep them free of any plugin check, so the gesture never has to know which plugin draws on the edge.
 
 ## What the gesture owns, and what the plugins own
 
@@ -354,3 +354,12 @@ drag). When it is anchored:
 overlay's `getRelativeCellPosition` already adds the clone's own inline start). The row axis has no end headers
 and leaves the hook out. Pinned by `__tests__/axis.unit.js`, `__tests__/resizeGesture.unit.js` and
 `tests/e2e/fixed-columns-end-plugins.spec.ts`.
+
+**The band's first column reaches 1px over the freeze line** (walkontable `AGENTS.md`, the end freeze line), so two
+optional axis hooks keep the gesture on the line a user sees. `getFreezeLineOverlap(hot, header)` is the pixel the
+band's first header renders wider than its column; the gesture adds it to `#startOverhead`, so a drag of that header
+stores the dragged width, not one pixel more. `getEndBandEdgeShift(hot)` moves the handle on the edge before the band
+(`--freeze-after`, a header that is not anchored) onto the line, one pixel before that header's own inline-end edge,
+where the freeze bar sits. Both are 0 when nothing precedes the band. Pinned by
+`tests/e2e/fixed-columns-end-plugins.spec.ts`, `tests/e2e/fixed-columns-end-review3.spec.ts` and
+`tests/e2e/freeze-bar.spec.ts` (the pills around the end bar).

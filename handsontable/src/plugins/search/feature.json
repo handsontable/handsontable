@@ -9,7 +9,11 @@
       "description": "Finds the cells that match a query and highlights them.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

@@ -35,6 +35,15 @@ export class Positioner {
    */
   #keepInViewport = false;
   /**
+   * Keeps only the vertical edges of the menu inside the viewport: the menu opens below and on the right of the
+   * cursor as it does without `keepInViewport`, and is then moved up when its bottom would lie below the viewport.
+   * It never flips the menu above the cursor or to the other side of it. It is for a menu that opens under its own
+   * anchor, the Filters condition list, where a flip would put the list beside its select instead of over it.
+   *
+   * @type {boolean}
+   */
+  #keepVerticallyInViewport = false;
+  /**
    * Allows apply the position offset for directions.
    *
    * @type {{above: number, below: number, left: number, right: number}}
@@ -47,10 +56,16 @@ export class Positioner {
   };
 
   /**
-   * Initializes the positioner with a flag indicating whether the menu should be kept within the viewport boundaries.
+   * Initializes the positioner with a flag indicating whether the menu should be kept within the viewport boundaries,
+   * and one that keeps its vertical edges alone inside them.
+   *
+   * @param {boolean} keepInViewport Whether the menu is kept inside the viewport on both axes, flipped above or beside
+   * its point when it does not fit.
+   * @param {boolean} [keepVerticallyInViewport=false] Whether only the vertical edges are kept inside the viewport.
    */
-  constructor(keepInViewport: boolean) {
+  constructor(keepInViewport: boolean, keepVerticallyInViewport = false) {
     this.#keepInViewport = keepInViewport;
+    this.#keepVerticallyInViewport = keepVerticallyInViewport;
   }
 
   /**
@@ -115,6 +130,10 @@ export class Positioner {
     } else {
       this.setPositionBelowCursor();
       this.setPositionOnRightOfCursor();
+
+      if (this.#keepVerticallyInViewport) {
+        this.#clampVertically();
+      }
     }
   }
 
@@ -239,8 +258,9 @@ export class Positioner {
   }
 
   /**
-   * Moves the menu back inside the viewport when neither the room below the cursor nor the room above
-   * it fits the menu, which `updatePosition()` answers by placing it below anyway. The check runs on
+   * Moves the menu back inside the viewport when its bottom edge lies below it: a menu that fits neither
+   * below nor above the cursor, which `updatePosition()` answers by placing it below anyway, or a menu placed
+   * below the cursor by the vertical-only mode. The check runs on
    * the position written to `style.top`, which is in page coordinates, so the viewport's edges are the
    * window's scroll offset and that offset plus the viewport's height without a horizontal scrollbar
    * (`clientHeight`, as the horizontal clamp reads `clientWidth`). A menu taller than the viewport keeps

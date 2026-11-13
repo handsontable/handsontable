@@ -9,7 +9,11 @@
       "description": "Shows rows as a tree whose branches collapse and expand.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

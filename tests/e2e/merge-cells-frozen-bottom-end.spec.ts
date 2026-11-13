@@ -13,6 +13,7 @@ import { MergeCellsFrozenBottomEndPage } from '../fixtures/pages/MergeCellsFroze
  */
 const END_CORNER = 'ht_clone_bottom_inline_end_corner';
 const FROZEN_ROWS = [8, 9];
+const END_COLUMNS = [7, 8, 9];
 
 interface Shape {
   name: string;
@@ -95,10 +96,15 @@ for (const direction of ['ltr', 'rtl'] as const) {
                 for (const cloneClass of ['ht_clone_bottom', END_CORNER]) {
                   for (const col of await grid.displayedColumns(cloneClass, row)) {
                     const isBlockCarrier = row === 8 && col === shape.carrier.col;
+                    // The end clones' first column reaches 1px over the freeze line, so its header starts 1px
+                    // before the bottom clone's copy of that column (the copy the end corner covers). This block
+                    // runs in LTR only.
+                    const isFirstEndColumnCopy = cloneClass === 'ht_clone_bottom' && col === END_COLUMNS[0];
+                    const expectedOffset = isFirstEndColumnCopy ? 1 : 0;
 
                     if (!blockColumns.includes(col) || isBlockCarrier) {
                       expect(await grid.offsetFromHeader(cloneClass, row, col), `${cloneClass} ${row}/${col}`)
-                        .toBe(0);
+                        .toBe(expectedOffset);
                     }
                   }
                 }
