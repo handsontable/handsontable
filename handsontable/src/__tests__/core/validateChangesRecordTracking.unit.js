@@ -384,6 +384,30 @@ describe('Core validation of a change while its record moves', () => {
       expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'new']);
       expect(applied).toEqual([[[6, 0, null, 'new']]]);
     });
+
+    it('should create the row of a change past the last one after a row was inserted above it', async() => {
+      createGrid();
+
+      hot.setDataAtCell(6, 0, 'new');
+      hot.alter('insert_row_above', 0);
+      await answerAll();
+
+      expect(sourceNames()).toEqual([null, 'p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'new']);
+      expect(applied).toEqual([[[7, 0, null, 'new']]]);
+      expect(validAt(7)).toBe(true);
+    });
+
+    it('should create the row of a change past the last one after a row above it was removed', async() => {
+      createGrid();
+
+      hot.setDataAtCell(6, 0, 'new');
+      hot.alter('remove_row', 0);
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p1', 'p2', 'p3', 'p4', 'p5', 'new']);
+      expect(applied).toEqual([[[5, 0, null, 'new']]]);
+      expect(validAt(5)).toBe(true);
+    });
   });
 
   describe('a record its tracked row no longer holds', () => {

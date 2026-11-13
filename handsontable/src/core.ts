@@ -507,6 +507,7 @@ export default function Core(
    */
   const recordReader: RecordReader = {
     countPhysicalRows: () => instance.rowIndexMapper.getNumberOfIndexes(),
+    countVisualRows: () => instance.countRows(),
     readRowObject: physicalRow => dataSource.modifyRowData(physicalRow),
     getStoredMeta: (physicalRow, physicalColumn) => metaManager.getCellMetaIfExists(physicalRow, physicalColumn),
     readKeyedRowId: physicalRow => rowIdentity.getKeyedRowIdAtPhysicalRow(physicalRow),

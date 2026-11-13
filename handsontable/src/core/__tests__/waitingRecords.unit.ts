@@ -18,6 +18,7 @@ describe('createWaitingChangeRecords', () => {
     let rowReads = 0;
     const reader = {
       countPhysicalRows: () => rows.length,
+      countVisualRows: () => mapper.getNotTrimmedIndexesLength(),
       readRowObject: (physicalRow: number) => {
         rowReads += 1;
 

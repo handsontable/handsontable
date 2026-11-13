@@ -10,6 +10,10 @@ export interface RecordReader {
    */
   countPhysicalRows(): number;
   /**
+   * Returns the number of visual rows.
+   */
+  countVisualRows(): number;
+  /**
    * Returns the source row object at a physical row (not a copy).
    */
   readRowObject(physicalRow: number): unknown;
@@ -282,8 +286,9 @@ function writeChangeRow(change: CellChange, visualRow: number | null): void {
  */
 export interface WaitingChangeRecords {
   /**
-   * Captures the record of every change of the set that addresses an existing row. Runs once, before the first
-   * validator of the set is called; later calls do nothing.
+   * Captures the record of every change of the set that addresses an existing row, and how far past the last row
+   * every other change of a row past the last one is. Runs once, before the first validator of the set is called;
+   * later calls do nothing.
    */
   capture(changes: CellChange[]): void;
   /**
@@ -306,7 +311,9 @@ export interface WaitingChangeRecords {
   /**
    * Resolves the record of every change when the set is applied: a change whose record is gone is taken out of
    * `changes` (in place) and returned, and every other tracked change gets the visual row its record has now in
-   * place of the one it was made at (`null` while the record is trimmed out of the visual space).
+   * place of the one it was made at (`null` while the record is trimmed out of the visual space). A change of a
+   * row past the last one gets the row as far past the last row as it was made, so a row inserted or removed
+   * meanwhile does not turn it into a write to an existing record.
    */
   settle(changes: CellChange[], toVisualRow: (physicalRow: number) => number | null): CellChange[];
   /**
@@ -345,6 +352,7 @@ export function createWaitingChangeRecords(
   const anchorsByChange = new Map<object, RecordAnchor>();
   const anchors = new Set<RecordAnchor>();
   const settledRows = new Map<object, number>();
+  const pastEndOffsets = new Map<CellChange, number>();
   let captured = false;
 
   const records: WaitingChangeRecords = {
@@ -356,11 +364,16 @@ export function createWaitingChangeRecords(
       captured = true;
 
       const anchorsByRow = new Map<number, RecordAnchor>();
+      const visualRowsCount = reader.countVisualRows();
 
       changes.forEach((change) => {
         const physicalRow = Number.isInteger(change[0]) ? toPhysicalRow(change[0]) : null;
 
         if (physicalRow === null) {
+          if (Number.isInteger(change[0]) && change[0] >= visualRowsCount) {
+            pastEndOffsets.set(change, change[0] - visualRowsCount);
+          }
+
           return;
         }
 
@@ -396,6 +409,12 @@ export function createWaitingChangeRecords(
       return anchorsByChange.size > 0;
     },
     settle(changes, toVisualRow) {
+      if (pastEndOffsets.size > 0) {
+        const visualRowsCount = reader.countVisualRows();
+
+        pastEndOffsets.forEach((offset, change) => writeChangeRow(change, visualRowsCount + offset));
+      }
+
       if (anchorsByChange.size === 0) {
         return [];
       }
@@ -454,6 +473,7 @@ export function createWaitingChangeRecords(
       anchors.clear();
       anchorsByChange.clear();
       settledRows.clear();
+      pastEndOffsets.clear();
     },
   };
 
