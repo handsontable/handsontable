@@ -197,9 +197,11 @@ export async function readStop(page: Page, cdp: CDPSession, { grid, startUrl, di
         return parts.join('>');
       };
       // A class a build generates (Astro's scoped `astro-<hash>`, a hash suffix with a digit in it) and a layout
-      // utility (`sl-flex`, `md:sl-hidden`) name no kind of element. An element with no class or role of its own is named inside its nearest ancestor that has a class
+      // utility (`sl-flex`, `md:sl-hidden`) name no kind of element; a CSS module's class (`_input_4y8oc_15`, the
+      // website's) is read as the name its author wrote (`input`), because its hash changes with every build. An element with no class or role of its own is named inside its nearest ancestor that has a class
       // (`div.copy button`), so a copy button and a panel's suggestion button are two shapes.
-      const classOf = (node: Element) => [...node.classList].find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
+      const classOf = (node: Element) => [...node.classList].map(name => name.replace(/^_([A-Za-z][\w-]*?)_[a-z0-9]{5}_\d+$/, '$1'))
+          .find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
       const meaningful = classOf(element);
       const role = element.getAttribute('role');
       const own = `${element.tagName.toLowerCase()}${meaningful ? `.${meaningful}` : ''}${role ? `[role="${role}"]` : ''}`;
@@ -218,7 +220,16 @@ export async function readStop(page: Page, cdp: CDPSession, { grid, startUrl, di
       const rect = element.getBoundingClientRect();
       let hidden: string | null = null;
 
-      if (!element.checkVisibility({ visibilityProperty: true, opacityProperty: true })) {
+      // A native checkbox or radio drawn by its label instead (transparent or clipped over a box the label paints) is
+      // seen through its label: the focus is not hidden, and whether its ring shows is the focus check's to measure.
+      const label = ['checkbox', 'radio'].includes((element as HTMLInputElement).type) ? (element as HTMLInputElement).labels?.[0] : null;
+      const labelBox = label?.getBoundingClientRect();
+      const drawnByLabel = Boolean(label && labelBox && labelBox.width > 1 && labelBox.height > 1
+        && label.checkVisibility({ visibilityProperty: true, opacityProperty: true }) && !outOfReach(label, labelBox));
+
+      if (drawnByLabel) {
+        hidden = null;
+      } else if (!element.checkVisibility({ visibilityProperty: true, opacityProperty: true })) {
         hidden = 'not rendered, or hidden by visibility or opacity';
       } else if (rect.width === 0 || rect.height === 0) {
         hidden = 'no size';
@@ -291,6 +302,17 @@ export async function readStop(page: Page, cdp: CDPSession, { grid, startUrl, di
     dialogOpened: dom.open > dialogs,
     box: dom.box,
   };
+}
+
+/**
+ * Whether a stop is an embedded document (an `<iframe>`): its focus moves inside a page of its own, which the run
+ * cuts off from its origin, so what it draws on focus is the embed's, not the site's, and the focus checks skip it.
+ *
+ * @param stop The stop.
+ * @returns The verdict.
+ */
+export function isEmbed(stop: Pick<SiteStop, 'shape'>): boolean {
+  return /(^|\s)iframe(?=[.[]|$)/.test(stop.shape);
 }
 
 /**
@@ -452,7 +474,8 @@ export async function unfocusableControls(page: Page, grid: string): Promise<Arr
         && !focusable(element) && !element.parentElement?.closest('a[href], button, [tabindex]:not([tabindex="-1"])')
         && !element.querySelector('a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])'))
       .map((element) => {
-        const classOf = (node: Element) => [...node.classList].find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
+        const classOf = (node: Element) => [...node.classList].map(name => name.replace(/^_([A-Za-z][\w-]*?)_[a-z0-9]{5}_\d+$/, '$1'))
+          .find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
         const meaningful = classOf(element);
         const role = element.getAttribute('role');
         let context = '';

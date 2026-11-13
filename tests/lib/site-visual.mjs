@@ -77,6 +77,36 @@ export function orientationFindings(sizes) {
 }
 
 /**
+ * Whether a focus stop's shape names a form field (an input, a text area or a select), whose boundary 1.4.11
+ * measures. The kind is read from the stop's own part, the last one: an element with no class or role of its own
+ * is named inside a classed ancestor (`label.option-label input`), so a match at the start of the shape alone
+ * missed exactly the plain fields.
+ *
+ * @param {string} shape The stop's shape, as the harness reads it.
+ * @returns {boolean} The verdict.
+ */
+export function isFieldShape(shape) {
+  return /(?:^|\s)(?:input|textarea|select)(?=[.[]|$)/.test(shape);
+}
+
+// The roles Chromium's tree gives a field a visitor types into or picks from.
+const FIELD_ROLES = new Set(['textbox', 'searchbox', 'combobox', 'listbox', 'spinbutton']);
+
+/**
+ * Whether a focus stop is a field whose own box 1.4.11 measures (`boundaryFindings()`): a field's shape
+ * (`isFieldShape()`, read without a round trip, so it picks the stops worth asking about) that the accessibility tree
+ * gives a field's role. A checkbox, a radio button, a switch or a range is an input too, but a styled one often draws
+ * nothing in its own box (opacity 0, `appearance: none`, visually hidden) and shows a sibling instead, so its box
+ * would read as a field with no edge.
+ *
+ * @param {{shape: string, role: string}} stop The stop's shape, and its role as the accessibility tree gives it.
+ * @returns {boolean} The verdict.
+ */
+export function isFieldStop({ shape, role }) {
+  return isFieldShape(shape) && FIELD_ROLES.has(role);
+}
+
+/**
  * The 1.4.11 finding of a text field or a select that nothing sets apart from the page: its boundary and its fill
  * both stand under 3:1 from the color around it. A control set apart by either passes.
  *
@@ -95,7 +125,7 @@ export function boundaryFindings({ selector, boundary, fill, around }) {
   return [{
     kind: 'control-boundary-contrast', criteria: ['1.4.11'], severity: 'serious', selector,
     measured: { boundary: floorRatio(boundary.ratio), fill: floorRatio(fill.ratio), around: `rgb(${around.slice(0, 3).join(', ')})` },
-    reason: `Neither the control's edge (${floorRatio(boundary.ratio)}:1) nor its fill (${floorRatio(fill.ratio)}:1) stands 3:1 from the page around it, so it is hard to tell where to type`,
+    reason: `Neither the control's edge (${floorRatio(boundary.ratio)}:1) nor its fill (${floorRatio(fill.ratio)}:1) stands 3:1 from the page around it, so it is hard to tell where the field is`,
   }];
 }
 

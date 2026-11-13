@@ -34,6 +34,7 @@ const readSample = () => JSON.parse(readFileSync(SAMPLE_PATH, 'utf8'));
 // The live sources of the ids a rule may name, which the frozen sample cannot speak for.
 const AXE_ISSUES = JSON.parse(readFileSync(path.join(TESTS_ROOT, 'a11y/axe-baseline.json'), 'utf8')).issues.map(issue => issue.id);
 const DOCS_ISSUES = JSON.parse(readFileSync(path.join(TESTS_ROOT, 'a11y/docs/docs-baseline.json'), 'utf8')).issues.map(issue => issue.id);
+const WEBSITE_ISSUES = JSON.parse(readFileSync(path.join(TESTS_ROOT, 'a11y/website/website-baseline.json'), 'utf8')).issues.map(issue => issue.id);
 const READER_PROJECTS = [...readFileSync(path.join(TESTS_ROOT, 'playwright.screenreader.config.ts'), 'utf8')
   .matchAll(/\{ name: '([a-z0-9-]+)', use:/g)].map(([, name]) => name);
 
@@ -123,7 +124,7 @@ test('validateIssuesCatalog accepts the documented shape and names every problem
       { id: 'bad-tracker-list', title: 'T', tracker: ['DEV-1', 7], match: [{ source: 'checks', kinds: ['x'] }] },
       { id: 'no-source', title: 'T', match: [{ kinds: ['x'] }] },
       { id: 'only-source', title: 'T', match: [{ source: 'checks' }] },
-      { id: 'bad-source', title: 'T', match: [{ source: 'website', kinds: ['x'] }] },
+      { id: 'bad-source', title: 'T', match: [{ source: 'intranet', kinds: ['x'] }] },
       { id: 'bad-regex', title: 'T', match: [{ source: 'checks', where: ['('] }] },
       { id: 'unknown-field', title: 'T', match: [{ source: 'checks', selectors: ['x'] }] },
       { id: 'not-a-list', title: 'T', match: [{ source: 'checks', kinds: 'x' }] },
@@ -183,7 +184,7 @@ test('validateIssuesCatalog reads the triage list: one entry per queued shape, e
       { shape, reason: '' },
       { shape, reason: 'Twice.' },
       { shape: 'reader|nvda-firefox|token-missing', reason: 'Too short.' },
-      { shape: 'website|x|y|||p|w', reason: 'Unknown source.' },
+      { shape: 'intranet|x|y|||p|w', reason: 'Unknown source.' },
       { shape: 'axe|axe|axe-violation|r||p|w', reason: 'R.', note: 'x' },
       'reader|x',
     ],
@@ -391,9 +392,10 @@ test('the committed catalog validates against the live baseline issues and scree
 
   assert.ok(AXE_ISSUES.includes('menu-roles') && READER_PROJECTS.includes('nvda-chromium') && READER_PROJECTS.includes('vo-webkit'),
     'read the baseline issues and the screen reader projects');
-  assert.deepEqual(validateIssuesCatalog(doc, { axeIssues: AXE_ISSUES, docsIssues: DOCS_ISSUES, readerProjects: READER_PROJECTS }), []);
+  assert.deepEqual(validateIssuesCatalog(doc, { axeIssues: AXE_ISSUES, docsIssues: DOCS_ISSUES, websiteIssues: WEBSITE_ISSUES,
+    readerProjects: READER_PROJECTS }), []);
   assert.equal(doc.schema, ISSUES_SCHEMA);
-  assert.deepEqual(FINDING_SOURCES, ['checks', 'axe', 'reader', 'docs', 'docs-checks']);
+  assert.deepEqual(FINDING_SOURCES, ['checks', 'axe', 'reader', 'docs', 'website', 'docs-checks', 'website-checks']);
   assert.deepEqual(MATCH_FIELDS, ['source', 'checks', 'kinds', 'rules', 'causes', 'criteria', 'pages', 'themes', 'where', 'axeIssues']);
   assert.equal(TRIAGE_ID, 'needs-triage');
 

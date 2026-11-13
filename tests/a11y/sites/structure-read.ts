@@ -172,9 +172,16 @@ export async function readStructure(page: Page, help: RegExp): Promise<Structure
       helps: [...document.querySelectorAll('a[href], button, [role="button"]')].filter(element => exposed(element) && inChrome(element))
         .map(nameOf).filter(name => helpPattern.test(name)),
       // A link to this page from a navigation landmark. A link to a place on this page (the table of contents) is
-      // not a way to reach it.
+      // not a way to reach it, and neither is a bare `#` or an empty href: it resolves to this page with no
+      // fragment, but it is a placeholder or a control a script handles, and goes nowhere.
       inNavigation: landmarkElements.filter(element => roleOf(element) === 'navigation').some(nav => [...nav.querySelectorAll('a[href]')]
         .some((link) => {
+          const raw = (link.getAttribute('href') ?? '').trim();
+
+          if (raw === '' || raw.startsWith('#')) {
+            return false;
+          }
+
           const target = new URL((link as HTMLAnchorElement).href);
 
           return target.hash === '' && target.pathname.replace(/\/+$/, '') === here;

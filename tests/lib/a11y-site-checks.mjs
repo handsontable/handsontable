@@ -12,13 +12,14 @@
 
 /**
  * The sites a check can measure. The docs site is the deploy `DOCS_A11Y_BASE_URL` names (the develop staging
- * deploy by default, `tests/a11y/docs/constants.mjs`).
+ * deploy by default, `tests/a11y/docs/constants.mjs`); the website is the one `WEBSITE_A11Y_BASE_URL` names
+ * (production handsontable.com by default, `tests/a11y/website/constants.mjs`).
  */
-export const SITES = ['docs'];
+export const SITES = ['docs', 'website'];
 /**
  * What a site's checks are called in a check run and a summary.
  */
-export const SITE_TITLES = Object.freeze({ docs: 'Docs site' });
+export const SITE_TITLES = Object.freeze({ docs: 'Docs site', website: 'Website' });
 /**
  * The kinds of site check: one spec each under `a11y/sites/`, shared by every site that lists the kind in
  * `sites`. `criteria` is what the check evidences on that site; a target may evaluate fewer (a page with no
@@ -31,31 +32,39 @@ export const SITE_CHECK_KINDS = Object.freeze({
     // 2.4.4 is advisory only: a link's purpose in context needs a person, and the check lists the names that
     // say nothing on their own.
     criteria: ['1.3.1', '2.4.1', '2.4.2', '2.4.4', '2.4.5', '2.4.6', '3.1.1', '3.2.3', '3.2.4', '3.2.6'],
-    sites: ['docs'],
+    sites: ['docs', 'website'],
   },
   keyboard: {
     title: 'Keyboard walk',
     spec: 'keyboard.spec.ts',
     criteria: ['2.1.1', '2.1.2', '2.1.4', '2.4.1', '2.4.3', '3.2.1', '3.2.2', '4.1.2'],
-    sites: ['docs'],
+    sites: ['docs', 'website'],
   },
   'focus-contrast': {
     title: 'Focus appearance and non-text contrast',
     spec: 'focus-contrast.spec.ts',
     criteria: ['1.4.11', '2.4.7', '2.4.11'],
-    sites: ['docs'],
+    sites: ['docs', 'website'],
   },
   reflow: {
     title: 'Reflow, zoom, text spacing, and orientation',
     spec: 'reflow.spec.ts',
     criteria: ['1.3.4', '1.4.4', '1.4.10', '1.4.12'],
-    sites: ['docs'],
+    sites: ['docs', 'website'],
   },
   'forced-colors-motion': {
     title: 'Forced colors and motion',
     spec: 'forced-colors-motion.spec.ts',
     criteria: ['1.4.1', '2.2.2', '2.3.3', '2.4.7'],
-    sites: ['docs'],
+    sites: ['docs', 'website'],
+  },
+  // The website's lead forms, its support call booker and its newsletter; the docs site has no form. 3.3.7 is
+  // advisory only: whether a form's tabs are one process is a person's call.
+  forms: {
+    title: 'Forms: labels, input purposes, errors, and status messages',
+    spec: 'forms.spec.ts',
+    criteria: ['1.3.1', '1.3.5', '3.3.1', '3.3.2', '3.3.3', '3.3.7', '4.1.3'],
+    sites: ['website'],
   },
 });
 

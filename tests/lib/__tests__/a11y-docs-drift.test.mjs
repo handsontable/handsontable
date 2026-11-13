@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareViolations } from '../a11y-baseline.mjs';
 import { DOCS_SCAN, baselineLines, buildCheckRun, pageLines } from '../a11y-check-run.mjs';
-import { DOCS_AUDIT_COMMAND, LEDGER_URL, docsAudit, driftKey, driftNotes, driftOf, isDrift } from '../a11y-docs-drift.mjs';
+import { DOCS_AUDIT_COMMAND, LEDGER_URL, docsAudit, driftKey, driftNotes, driftOf, isDrift, siteAudit } from '../a11y-docs-drift.mjs';
 
 // tests/AGENTS.md ("A11y: the docs site scan", baseline drift): a pull request's docs scan reads develop's staging deploy,
 // so a new finding develop's latest docs audit also saw is drift, a warning at most; a grown one, and one the audit did
@@ -22,7 +22,7 @@ const LEDGER = {
   ],
   rows: [
     row(),
-    row({ rule: 'link-in-text-block', page: 'js-api-core', theme: 'light', where: 'a' }),
+    row({ rule: 'link-in-text-block', page: 'js-api-core', theme: 'light', where: 'a', nodes: 6 }),
     row({ rule: 'label', page: 'js-demo', where: 'input', lastRun: '150' }),
     row({ source: 'axe', check: 'axe', page: 'dialog', theme: 'main', where: 'button' }),
   ],
@@ -31,10 +31,11 @@ const LEDGER = {
 test('the audit is the ledger\'s latest docs night: its run, time, commit and the docs findings it sighted', () => {
   const audit = docsAudit(LEDGER);
 
-  assert.deepEqual({ ...audit, keys: [...audit.keys].sort() }, {
+  assert.deepEqual({ ...audit, keys: [...audit.keys].sort(), nodes: Object.fromEntries(audit.nodes) }, {
     runId: '200', seenAt: '2026-11-10T10:29:01Z', headSha: 'abc',
     keys: ['color-contrast|angular-instance-access|dark|div.ln', 'link-in-text-block|js-api-core|light|a'],
-  }, 'a row the latest night did not sight, and a product row, are not the audit\'s');
+    nodes: { 'color-contrast|angular-instance-access|dark|div.ln': null, 'link-in-text-block|js-api-core|light|a': 6 },
+  }, 'a row the latest night did not sight, and a product row, are not the audit\'s; a row recorded before node counts has none');
   assert.equal(docsAudit({ latest: { a11y: { runId: '1' } }, nights: [], rows: [] }), null, 'no docs night, no audit');
   assert.equal(docsAudit(null), null);
 
@@ -51,6 +52,28 @@ test('the audit is the ledger\'s latest docs night: its run, time, commit and th
   assert.equal(docsAudit({ ...checksOnly, nights: checksOnly.nights.slice(2) }), null, 'only a night of the checks: no audit, and the note says so');
   assert.equal(driftKey({ rule: 'r', page: 'p', theme: 't', where: 'w' }), 'r|p|t|w');
   assert.equal(LEDGER_URL, 'https://handsontable.github.io/handsontable/test-health/a11y.json');
+});
+
+test('the website audit is the ledger\'s latest website night, and its notes name the website\'s baseline and audit', () => {
+  const ledger = {
+    ...LEDGER,
+    latest: { ...LEDGER.latest, website: { runId: '300', seenAt: '2026-11-12T09:00:00Z' } },
+    nights: [...LEDGER.nights, { source: 'website', runId: '300', headSha: 'def', seenAt: '2026-11-12T09:00:00Z', axe: { complete: true } }],
+    rows: [...LEDGER.rows, row({ source: 'website', check: 'website-axe', page: 'pricing', theme: 'phone', where: 'button.tab', lastRun: '300' })],
+  };
+  const audit = siteAudit(ledger, 'website');
+
+  assert.deepEqual([...audit.keys], ['color-contrast|pricing|phone|button.tab'], 'a docs row is not the website audit\'s');
+  assert.equal(siteAudit(LEDGER, 'website'), null, 'no website night, no audit');
+
+  const [note] = driftNotes({ audit, drift: 1, counted: 2, site: 'website' });
+
+  assert.match(note, /1 of the 2 new or grown findings are on the live website already: the website audit of 2026-11-12 \(run 300\)/);
+  assert.match(note, /refresh tests\/a11y\/website\/website-baseline\.json from that audit \(tests\/AGENTS\.md/,
+    'the docs refresh command is not the website\'s');
+  assert.match(driftNotes({ audit: null, drift: 0, counted: 1, site: 'website' })[0], /gh workflow run website-a11y\.yml --ref develop/);
+  assert.match(driftNotes({ audit, drift: 0, counted: 1, grown: 1, site: 'website' })[0],
+    /^A grown finding counts at its severity: this run counts more nodes than the website audit recorded/);
 });
 
 test('a finding is drift when the audit saw its rule on its page, scheme and masked element', () => {
@@ -71,9 +94,10 @@ test('the notes say how much is drift and the remedy, when nothing could be read
   const audit = docsAudit(LEDGER);
 
   assert.deepEqual(driftNotes({ audit, drift: 0, counted: 2 }), []);
-  assert.match(driftNotes({ audit, drift: 0, counted: 0, grown: 2 })[0], /^The 2 grown findings count at their severity: the ledger keeps no node count/);
+  assert.match(driftNotes({ audit, drift: 0, counted: 2, grown: 2 })[0],
+    /^2 grown findings count at their severity: this run counts more nodes than the develop docs audit recorded, or its row there has no count/);
   assert.match(driftNotes({ audit, drift: 3, counted: 5 })[0],
-    /^3 of the 5 new findings are on develop's docs already: the develop docs audit of 2026-11-10 \(run 200\) saw them\..*refresh tests\/a11y\/docs\/docs-baseline\.json from that audit, `node tests\/scripts\/a11y-docs-baseline\.mjs --run 200`/);
+    /^3 of the 5 new or grown findings are on develop's docs already: the develop docs audit of 2026-11-10 \(run 200\) saw them, each grown one with at least as many nodes\..*refresh tests\/a11y\/docs\/docs-baseline\.json from that audit, `node tests\/scripts\/a11y-docs-baseline\.mjs --run 200`/);
   assert.match(driftNotes({ audit: null, problem: 'HTTP 404', drift: 0, counted: 5 })[0], /could not be read \(HTTP 404\), so every new or grown finding counts/);
   assert.ok(driftNotes({ audit: null, drift: 0, counted: 5 })[0].includes(DOCS_AUDIT_COMMAND), 'no audit: dispatch one');
 
@@ -109,12 +133,16 @@ test('the docs check run counts drift as a warning on a change run, a finding th
   assert.match(warned.title, /· 1 warning only · 1 new/);
   assert.ok(warned.annotations.every(item => item.annotation_level === 'warning'));
 
-  // Grown on a baselined entry the audit saw, from 3 nodes to 40: the ledger keeps no node count, so the growth is
-  // this change's until the baseline says otherwise.
-  const grown = comparison(Array.from({ length: 40 }, () => finding()));
+  // Grown on a baselined entry the audit saw: develop's growth is drift up to the node count the audit recorded (6),
+  // and growth past it is this change's, as is any growth on a row recorded before the ledger kept node counts.
+  const developGrew = comparison(Array.from({ length: 6 }, () => finding()));
+  const changeGrew = comparison(Array.from({ length: 40 }, () => finding()));
+  const uncounted = docsAudit({ ...LEDGER, rows: LEDGER.rows.map(item => ({ ...item, nodes: undefined })) });
 
-  assert.equal(grown.grown.length, 1);
-  assert.equal(build(grown, { drift: driftOf(audit, grown) }).conclusion, 'failure', 'a grown finding is never drift');
+  assert.equal(developGrew.grown.length, 1);
+  assert.equal(build(developGrew, { drift: driftOf(audit, developGrew) }).conclusion, 'neutral', 'growth the audit had is drift');
+  assert.equal(build(changeGrew, { drift: driftOf(audit, changeGrew) }).conclusion, 'failure', 'growth past the audit is this change\'s');
+  assert.equal(build(developGrew, { drift: driftOf(uncounted, developGrew) }).conclusion, 'failure', 'a row with no count says nothing');
 
   const causedComparison = comparison([...Array.from({ length: 3 }, () => finding()), finding({ page: 'angular-instance-access', theme: 'dark',
     rule: 'aria-allowed-attr', target: 'button.version-select', impact: 'critical', wcag: ['4.1.2'] })]);
@@ -122,4 +150,28 @@ test('the docs check run counts drift as a warning on a change run, a finding th
 
   assert.equal(caused.conclusion, 'failure', 'a finding the audit did not see is this change\'s');
   assert.equal(build(drifted, { drift, scope: 'audit' }).conclusion, 'failure', 'an audit counts every open finding, drift or not');
+});
+
+test('a grown finding is compared by the ledger row\'s sum: a sibling location that masks alike does not hide its growth', () => {
+  const entry = (target, nodes) => ({ page: 'js-api-core', theme: 'light', rule: 'link-in-text-block', target, impact: 'serious', nodes,
+    issue: 'prose-link-color-only' });
+  const finding = target => ({ page: 'js-api-core', theme: 'light', rule: 'link-in-text-block', target, impact: 'serious', help: 'h',
+    helpUrl: 'https://dequeuniversity.com/x', wcag: ['1.4.1'], nodes: 1 });
+  // Two list items' links mask to one ledger row (`li:nth-child(n) > a`), which keeps the sum of their nodes.
+  const comparison = (first, second) => compareViolations({
+    baseline: [entry('li:nth-child(1) > a', 3), entry('li:nth-child(2) > a', 2)], issues: [{ id: 'prose-link-color-only', title: 'Prose links' }],
+    violations: [...Array.from({ length: first }, () => finding('li:nth-child(1) > a')), ...Array.from({ length: second }, () => finding('li:nth-child(2) > a'))],
+    scanned: [{ page: 'js-api-core', theme: 'light' }], mode: 'warn', baselineFile: 'a11y/docs/docs-baseline.json',
+  });
+  const audit = recorded => siteAudit({
+    nights: [{ source: 'docs', runId: '200', seenAt: '2026-11-10T10:29:01Z', axe: { complete: true } }],
+    rows: [row({ rule: 'link-in-text-block', page: 'js-api-core', theme: 'light', where: 'li:nth-child(n) > a', nodes: recorded })],
+  }, 'docs');
+  const grewByOne = comparison(4, 2);
+
+  assert.deepEqual(grewByOne.grown.map(item => [item.target, item.nodes]), [['li:nth-child(1) > a', 4]]);
+  assert.equal(driftOf(audit(5), grewByOne)(grewByOne.grown[0]), false,
+    'the row went from 5 to 6 nodes: the growth is this change\'s, though the one location (4) is under the row\'s 5');
+  assert.equal(driftOf(audit(6), grewByOne)(grewByOne.grown[0]), true, 'the audit recorded the row at 6: develop grew it that far');
+  assert.equal(driftOf(audit(null), grewByOne)(grewByOne.grown[0]), false, 'a row with no count says nothing');
 });

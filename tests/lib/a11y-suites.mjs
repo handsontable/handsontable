@@ -7,6 +7,9 @@
  * - `docs`: the docs site pages of `tests/a11y/docs/pages.mjs` in the site's light and dark color schemes,
  *   against `tests/a11y/docs/docs-baseline.json` (`tests/a11y/docs/docs-axe.spec.ts`; `tests/AGENTS.md`,
  *   "A11y: the docs site scan").
+ * - `website`: the pages of `tests/a11y/website/pages.mjs` on production handsontable.com at the phone and the
+ *   desktop width, against `tests/a11y/website/website-baseline.json` (`tests/a11y/website/website-axe.spec.ts`;
+ *   `tests/AGENTS.md`, "A11y: the website scan").
  *
  * The baseline's shape, its fingerprint, the comparator and the findings document are the same for both,
  * so one report reads like the other and the findings ledger reads both with one reader. A suite only says
@@ -15,11 +18,20 @@
 import { A11Y_THEMES, BASELINE_FILE } from './a11y-baseline.mjs';
 import { A11Y_PAGES, fixtureUrl, stateSteps } from '../a11y/pages.mjs';
 import { DEFAULT_DOCS_BASE_URL, DOCS_PAGES, DOCS_THEMES, docsBaseUrl as resolveDocsBaseUrl, docsStateSteps, docsUrl } from '../a11y/docs/pages.mjs';
+import {
+  DEFAULT_WEBSITE_BASE_URL,
+  WEBSITE_PAGES,
+  WEBSITE_THEMES,
+  websiteBaseUrl as resolveWebsiteBaseUrl,
+  websiteStateSteps,
+  websiteUrl,
+} from '../a11y/website/pages.mjs';
 
 // The fixture server's default address (`tests/playwright.config.ts`); `HOT_TEST_PORT` moves it.
 export const FIXTURE_SERVER = 'http://localhost:8123';
 export const DOCS_BASELINE_FILE = 'a11y/docs/docs-baseline.json';
-export const A11Y_SUITE_IDS = ['product', 'docs'];
+export const WEBSITE_BASELINE_FILE = 'a11y/website/website-baseline.json';
+export const A11Y_SUITE_IDS = ['product', 'docs', 'website'];
 
 /**
  * A suite whose `locate()` passes the URL each scan opened, so a page that needs one (see
@@ -163,18 +175,81 @@ export function docsSuite(baseUrl = DEFAULT_DOCS_BASE_URL) {
 }
 
 /**
- * A suite by id.
+ * The website scan, reading the deploy at `baseUrl` (production by default).
  *
- * @param {string} id `product` or `docs`.
- * @param {{docsBaseUrl?: string}} [options] The docs base URL (`DOCS_A11Y_BASE_URL`, checked by `docsBaseUrl()`).
+ * @param {string} [baseUrl] The website base URL the run scanned (`WEBSITE_A11Y_BASE_URL`).
  * @returns {object} The suite.
  */
-export function suiteFor(id, { docsBaseUrl } = {}) {
+export function websiteSuite(baseUrl = DEFAULT_WEBSITE_BASE_URL) {
+  return Object.freeze({
+    id: 'website',
+    title: 'A11y / website axe',
+    reportTitle: 'Website accessibility report',
+    reportFile: 'website-a11y-report.html',
+    baselineFile: WEBSITE_BASELINE_FILE,
+    pagesFile: 'tests/a11y/website/pages.mjs',
+    artifact: 'website-a11y-axe-results',
+    outputDir: 'test-results/a11y-website',
+    pages: WEBSITE_PAGES,
+    themes: WEBSITE_THEMES,
+    baseUrl,
+    policy: { file: 'tests/AGENTS.md', anchor: 'a11y-the-website-scan', title: 'A11y: the website scan' },
+    /**
+     * Where a page is and how to reach its state: the path is root-relative (`/pricing/?tab=bundle`), so the findings
+     * ledger keeps it whatever deploy the run read.
+     *
+     * @param {object} page The page.
+     * @param {string} theme The viewport.
+     * @returns {{path: string, href: string, steps: string}} The path, the link and the steps.
+     */
+    locate(page, theme) {
+      const href = websiteUrl(page, theme, baseUrl);
+      const url = new URL(href);
+
+      return { path: `${url.pathname}${url.search}${url.hash}`, href, steps: websiteStateSteps(page, theme) };
+    },
+    /**
+     * A page as the findings document lists it under `pages`.
+     *
+     * @param {object} page The page.
+     * @returns {object} The entry.
+     */
+    pageEntry(page) {
+      return { fixture: page.route, query: null, steps: websiteStateSteps(page), surface: page.surface ?? null };
+    },
+    about: 'Accessibility findings of the website scan (tests/a11y/website/), read on production handsontable.com. Fix a finding in '
+      + 'the website repository, then change tests/a11y/website/website-baseline.json as its remedy says. `url` is the page\'s path '
+      + `on the deploy the run read (${baseUrl}); \`steps\` reach the scanned state at the phone or the desktop width; \`selector\` and `
+      + '`domPath` locate the element in the browser\'s developer tools.',
+    reproduce: {
+      build: 'none: the scan reads a deployed site (WEBSITE_A11Y_BASE_URL; production by default).',
+      scan: 'npm --prefix tests run test:a11y-website',
+      outputs: 'tests/test-results/a11y-website/ (website-a11y-report.html, a11y-findings.json, summary.md, comparison.json, scans/)',
+    },
+    howToFind: `open the page link (the deploy the run read, ${baseUrl}) at the width the finding names, follow the steps, `
+      + 'then paste the selector into the browser\'s developer tools: <code>document.querySelector(\'…\')</code>. The DOM path is the '
+      + 'full route from <code>html</code> when the short selector matches more than one element.',
+    linkNote: 'A page links to the deploy the run read.',
+  });
+}
+
+/**
+ * A suite by id.
+ *
+ * @param {string} id `product`, `docs` or `website`.
+ * @param {{docsBaseUrl?: string, websiteBaseUrl?: string}} [options] The docs base URL (`DOCS_A11Y_BASE_URL`, checked by
+ * `docsBaseUrl()`) and the website's (`WEBSITE_A11Y_BASE_URL`, checked by `websiteBaseUrl()`).
+ * @returns {object} The suite.
+ */
+export function suiteFor(id, { docsBaseUrl, websiteBaseUrl } = {}) {
   if (id === 'product') {
     return PRODUCT_SUITE;
   }
   if (id === 'docs') {
     return docsSuite(resolveDocsBaseUrl(docsBaseUrl));
+  }
+  if (id === 'website') {
+    return websiteSuite(resolveWebsiteBaseUrl(websiteBaseUrl));
   }
 
   throw new Error(`Unknown a11y suite ${JSON.stringify(id)}; expected one of ${A11Y_SUITE_IDS.join(', ')}`);
