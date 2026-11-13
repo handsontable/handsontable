@@ -392,9 +392,13 @@ function blankComments(text) {
     const char = text[index];
     const next = text[index + 1];
 
-    if (quote) {
+    if (quote && char === '\\') {
+      // An escape takes the next character with it, so `\\"` ends the string and `\"` does not.
+      output += char + (next ?? '');
+      index += 1;
+    } else if (quote) {
       output += char;
-      quote = char === quote && text[index - 1] !== '\\' ? null : quote;
+      quote = char === quote ? null : quote;
     } else if (char === '\'' || char === '"') {
       output += char;
       quote = char;

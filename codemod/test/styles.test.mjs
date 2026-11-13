@@ -407,3 +407,20 @@ describe('themeToken', () => {
     assert.equal(second.changed, false);
   });
 });
+
+describe('a Sass map key next to an interpolated variable name', () => {
+  it('does not report a key in a comment that follows a string ending in an escaped backslash', async() => {
+    const source = [
+      '$tokens: (',
+      '  \'separator\': "a\\\\", // \'wrapper-border-width\': 1px,',
+      '  \'wrapper-border-radius\': 6px,',
+      ');',
+      '@each $name, $value in $tokens { .x { --ht-#{$name}: #{$value}; } }',
+      '',
+    ].join('\n');
+    const { entries } = await run('tokens.scss', source);
+
+    assert.deepEqual(entries.filter(entry => entry.ruleId === WIDTH), []);
+    assert.equal(entries.filter(entry => entry.ruleId === RADIUS).length, 1);
+  });
+});
