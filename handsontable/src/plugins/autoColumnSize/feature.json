@@ -9,7 +9,11 @@
       "description": "Sets column widths from the widest content in each column.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

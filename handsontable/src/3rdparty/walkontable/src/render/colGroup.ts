@@ -60,6 +60,8 @@ export class ColGroupRenderer extends BaseRenderer {
       .setOffset(0)
       .start();
 
+    const freezeLineOverlap = this.table.getFreezeLineOverlap();
+
     for (let visibleColumnIndex = 0; visibleColumnIndex < allColumnsToRender; visibleColumnIndex++) {
       this.orderView.render();
 
@@ -75,8 +77,14 @@ export class ColGroupRenderer extends BaseRenderer {
         COL.style.width = `${this.table.columnUtils!.getHeaderWidth(sourceColumnIndex)}px`;
       } else {
         const sourceColumnIndex = this.table.renderedColumnToSource(visibleColumnIndex - rowHeadersCount);
+        let width = this.table.columnUtils!.getWidth(sourceColumnIndex);
 
-        COL.style.width = `${this.table.columnUtils!.getWidth(sourceColumnIndex)}px`;
+        // An end clone's first column reaches over the freeze line (`TableRenderer#getFreezeLineOverlap`).
+        if (visibleColumnIndex === rowHeadersCount && width !== undefined) {
+          width += freezeLineOverlap;
+        }
+
+        COL.style.width = `${width}px`;
       }
     }
 

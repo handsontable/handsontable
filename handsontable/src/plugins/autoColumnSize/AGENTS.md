@@ -385,7 +385,7 @@ width.
   sheets declare (its `undefined` baseline), so every sheet after one declaring `colWidths` was fixed at 50px,
   and an xlsx export from it wrote one-character columns. Pinned by
   `../sheetsBar/__tests__/settingsBaseline.unit.js`.
-- **`hot._getColWidthFromSettings()` takes a VISUAL index.** It translates the index to the physical one itself for the `colWidths` array and function (`colWidths` is addressed by physical index), and it reads `getCellMeta(0, col)`, which also takes a visual index. Pass the visual column at every call site; passing the physical one translates twice and reads another column's width once columns are moved.
+- **`hot._getColWidthFromSettings()` takes a VISUAL index.** It translates the index itself: the `colWidths` function gets the physical index, and the array is read at the entry the column was declared at (`core/columnSizeSettings.ts`, which keeps that entry when columns are inserted or removed), and it reads `getCellMeta(0, col)`, which also takes a visual index. Pass the visual column at every call site; passing the physical one translates twice and reads another column's width once columns are moved.
 
 ## Notes for docs
 

@@ -156,9 +156,49 @@ test('validateIssuesCatalog accepts the documented shape and names every problem
   expect(/"extra".*unknown field "note"/);
   expect(/"needs-triage".*reserved/);
 
-  assert.deepEqual(validateIssuesCatalog(null), ['the catalog must be a JSON object with "schema", "triageLimit" and "clusters"']);
+  assert.deepEqual(validateIssuesCatalog(null), ['the catalog must be a JSON object with "schema", "triage" (or "triageLimit") and "clusters"']);
   assert.throws(() => compileIssuesCatalog({ schema: ISSUES_SCHEMA, triageLimit: 0, clusters: [{ id: 'x', title: 'T', match: [] }] }),
     /no match rule/);
+});
+
+test('validateIssuesCatalog reads the triage list: one entry per queued shape, each with a reason, and the limit is its length', () => {
+  const shape = 'reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid';
+  const base = catalogOf(['x', [{ source: 'checks', kinds: ['x'] }]]);
+
+  delete base.triageLimit;
+
+  const listed = { ...base, triage: [{ shape, reason: 'Not told apart yet.' }] };
+
+  assert.deepEqual(validateIssuesCatalog(listed), []);
+  assert.equal(compileIssuesCatalog(listed).triageLimit, 1, 'the limit is the length of the list');
+  assert.deepEqual(compileIssuesCatalog(listed).triage, [{ shape, reason: 'Not told apart yet.' }]);
+  assert.equal(compileIssuesCatalog({ ...base, triageLimit: 3 }).triageLimit, 3, 'a catalog that gives the number alone keeps it');
+  assert.deepEqual(compileIssuesCatalog({ ...base, triageLimit: 3 }).triage, []);
+  assert.deepEqual(validateIssuesCatalog({ ...base, triage: [] }), [], 'an empty queue is a list of none');
+
+  const problems = validateIssuesCatalog({
+    ...base,
+    triageLimit: 1,
+    triage: [
+      { shape, reason: '' },
+      { shape, reason: 'Twice.' },
+      { shape: 'reader|nvda-firefox|token-missing', reason: 'Too short.' },
+      { shape: 'website|x|y|||p|w', reason: 'Unknown source.' },
+      { shape: 'axe|axe|axe-violation|r||p|w', reason: 'R.', note: 'x' },
+      'reader|x',
+    ],
+  });
+  const expect = (pattern) => assert.ok(problems.some(problem => pattern.test(problem)),
+    `expected a problem matching ${pattern}; got:\n${problems.join('\n')}`);
+
+  expect(/give one of them, not both/);
+  expect(/triage entry 1 needs a "reason"/);
+  expect(/triage entry 2 repeats the shape/);
+  expect(/triage entry 3 needs a "shape"/);
+  expect(/triage entry 4 needs a "shape"/);
+  expect(/triage entry 5 has an unknown field "note"/);
+  expect(/triage entry 6 must be an object/);
+  assert.deepEqual(validateIssuesCatalog({ ...base, triage: {} }), ['"triage" must be an array of { "shape", "reason" } entries']);
 });
 
 test('validateIssuesCatalog refuses a field no finding of the rule\'s source carries, and an id its live source does not have', () => {
@@ -295,6 +335,25 @@ test('catalogFinding reads a check run\'s finding the way the ledger does, so a 
   });
 });
 
+test('catalogFinding reads a docs scan finding as the ledger does: the axe shape under the docs source and check', () => {
+  const item = { page: 'js-introduction', theme: 'dark', rule: 'aria-required-children', target: 'div.ht-wrapper[role="treegrid"]',
+    wcag: ['1.3.1'], suggestedIssue: 'example-grid-roles' };
+
+  assert.deepEqual(catalogFinding('docs', DOCS_SCAN_CHECK, item), {
+    source: 'docs', check: DOCS_SCAN_CHECK, kind: AXE_SCAN_KIND, rule: 'aria-required-children', cause: null, criteria: ['1.3.1'],
+    page: 'js-introduction', theme: 'dark', where: 'div.ht-wrapper[role="treegrid"]', issue: 'example-grid-roles',
+  });
+
+  const catalog = compileIssuesCatalog(catalogOf(
+    ['product-grid', [{ source: 'axe', rules: ['aria-required-children'] }], { tracker: 'TASK-1' }],
+    ['docs-grid', [{ source: 'docs', axeIssues: ['example-grid-roles'] }]],
+  ));
+
+  assert.equal(clusterOf(catalogFinding('docs', DOCS_SCAN_CHECK, item), catalog).id, 'docs-grid');
+  assert.equal(trackedBy(catalog)('docs', DOCS_SCAN_CHECK, item), false, 'a docs finding never borrows a product cluster\'s tracker');
+  assert.equal(trackedBy(catalog)('axe', AXE_SCAN_CHECK, item), true, 'the same item read as the product scan\'s would');
+});
+
 test('trackedBy says whether a finding\'s cluster has a tracker, and tracks nothing without a catalog', () => {
   const catalog = compileIssuesCatalog(catalogOf(
     ['one', [{ source: 'checks', kinds: ['focus-not-returned'] }], { tracker: 'TASK-1' }],
@@ -334,7 +393,7 @@ test('the committed catalog validates against the live baseline issues and scree
     'read the baseline issues and the screen reader projects');
   assert.deepEqual(validateIssuesCatalog(doc, { axeIssues: AXE_ISSUES, docsIssues: DOCS_ISSUES, readerProjects: READER_PROJECTS }), []);
   assert.equal(doc.schema, ISSUES_SCHEMA);
-  assert.deepEqual(FINDING_SOURCES, ['checks', 'axe', 'reader', 'docs']);
+  assert.deepEqual(FINDING_SOURCES, ['checks', 'axe', 'reader', 'docs', 'docs-checks']);
   assert.deepEqual(MATCH_FIELDS, ['source', 'checks', 'kinds', 'rules', 'causes', 'criteria', 'pages', 'themes', 'where', 'axeIssues']);
   assert.equal(TRIAGE_ID, 'needs-triage');
 
@@ -383,20 +442,23 @@ test('every rule of every cluster matches a sampled finding', () => {
 });
 
 test('every sampled finding maps to one cluster or to needs-triage, and the triage count is exact', () => {
-  // The sample is one row per distinct finding shape (source, check, kind, rule, cause, page, where) of two
-  // real nights (fixtures/a11y-findings-sample.json says which). A rule that matches two clusters is refused
-  // here, not sorted at collection time, and the needs-triage count is pinned exactly: a change to the
-  // catalog or to a check that moves it changes `triageLimit` in tests/a11y/issues.json in the same change:
-  // lowered when a shape is sorted into a cluster, raised only visibly, in the change that adds one.
+  // The sample is one row per distinct finding shape (source, check, kind, rule, cause, page, where) of a
+  // real audit (fixtures/a11y-findings-sample.json says which runs). A rule that matches two clusters is refused
+  // here, not sorted at collection time, and the needs-triage queue is pinned exactly: a change to the catalog
+  // or to a check that moves it changes the `triage` list of tests/a11y/issues.json in the same change, whose
+  // entries name each queued shape with its reason. A shape leaves the list when it is sorted into a cluster,
+  // and joins it only visibly, in the change that adds it; the limit the collector warns at is its length.
   const doc = readCatalog();
   const catalog = compileIssuesCatalog(doc);
   const sample = readSample();
-  const A11Y_TRIAGE_LIMIT = doc.triageLimit;
+  const A11Y_TRIAGE_LIMIT = catalog.triageLimit;
+
+  assert.ok(Array.isArray(doc.triage), 'the committed catalog lists its queued shapes in "triage", not as a bare "triageLimit"');
   const ambiguous = [];
   const triage = [];
   const matched = new Map(catalog.clusters.map(cluster => [cluster.id, 0]));
 
-  assert.ok(sample.findings.length > 100, 'the sample holds the two nights');
+  assert.ok(sample.findings.length > 100, 'the sample holds a night');
   assert.equal(new Set(sample.findings.map(findingShape)).size, sample.findings.length, 'one row per finding shape');
 
   for (const item of sample.findings) {
@@ -418,7 +480,9 @@ test('every sampled finding maps to one cluster or to needs-triage, and the tria
   }
   assert.ok(triage.length <= A11Y_TRIAGE_LIMIT,
     `${triage.length} findings need triage against a limit of ${A11Y_TRIAGE_LIMIT}: map the new ones to a cluster `
-    + `(tests/a11y/issues.json) instead of raising the limit:\n${triage.slice(0, 20).map(item => `  ${item.check} ${item.kind} ${item.rule ?? ''} ${item.page} ${item.where}`).join('\n')}`);
+    + `(tests/a11y/issues.json) instead of growing the triage list:\n${triage.slice(0, 20).map(item => `  ${findingShape(item)}`).join('\n')}`);
   assert.equal(triage.length, A11Y_TRIAGE_LIMIT,
-    `${triage.length} findings need triage against a limit of ${A11Y_TRIAGE_LIMIT}: lower triageLimit in tests/a11y/issues.json to match`);
+    `${triage.length} findings need triage against a list of ${A11Y_TRIAGE_LIMIT}: remove the sorted shapes from "triage" in tests/a11y/issues.json`);
+  assert.deepEqual(triage.map(findingShape).sort(), doc.triage.map(entry => entry.shape).sort(),
+    'every shape left in needs-triage has its entry in the catalog\'s "triage" list, and every entry names a shape still there');
 });

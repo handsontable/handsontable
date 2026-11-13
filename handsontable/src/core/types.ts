@@ -404,6 +404,7 @@ export interface HotInstance {
   // Execution control
   suspendExecution(): void;
   resumeExecution(forceFlushChanges?: boolean): void;
+  isExecutionSuspended(): boolean;
 
   // Index mapper initialization
   initIndexMappers(): void;

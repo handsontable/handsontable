@@ -461,9 +461,10 @@ export function collectArtifactFiles(files, run) {
 }
 
 /**
- * Whether a file of an accessibility artifact sits where the ledger reads it: a check document at the
- * evidence artifact's root, the findings at the axe artifact's root and at the docs site scan's, a transcript
- * one level down under `transcripts/`. Everything else (per-test folders, detail files, the comparison, the scans) is skipped.
+ * Whether a file of an accessibility artifact sits where the ledger reads it: a check document at the root of the
+ * product's evidence artifact or of a site's (`<site>-checks`), the findings at the root of the axe artifact or of a
+ * site's scan, a transcript one level down under `transcripts/`. Everything else (per-test folders, detail files, the
+ * comparison, the scans) is skipped.
  *
  * @param {{artifact: string, path: string}} file The file.
  * @returns {boolean} The verdict.
@@ -471,10 +472,10 @@ export function collectArtifactFiles(files, run) {
 function isA11yFile(file) {
   const family = classifyA11yArtifact(file.artifact);
 
-  if (family === 'checks') {
+  if (family === 'checks' || family.endsWith('-checks')) {
     return /^[a-z0-9-]+\.json$/.test(file.path);
   }
-  if (family === 'axe' || family === 'docs') {
+  if (family !== 'reader') {
     return file.path === 'a11y-findings.json';
   }
 

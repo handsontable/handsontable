@@ -1,14 +1,14 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
+import { presetKey, presetQuery, type LicensePresetName } from '../licenseTiers';
 
-type LicenseKeyName = 'flagged-base' | 'flagged-column-menu' | 'flagged-filters' | 'flagged-no-ui' |
-  'flagged-minimal' | 'unflagged';
 type PluginsName = 'filters' | 'column-menu' | 'header-checkbox';
 
 /**
- * Page Object for the license capabilities fixture: a grid built with a license key that lists the
- * features it unlocks (or one that does not), asking for Filters, or Filters and the column menu.
- * A plugin the key leaves out stays off, and one console error and the license bar say which.
+ * Page Object for the license capabilities fixture: a grid built with a license key that names a
+ * made-up tier (or none), asking for Filters, or Filters and the column menu. The fixture gives each
+ * made-up tier the features of its preset (`LICENSE_PRESETS`). A plugin the key's tier leaves out stays
+ * off, and one console error and the license bar say which.
  */
 export class LicenseCapabilitiesPage {
   readonly page: Page;
@@ -45,16 +45,17 @@ export class LicenseCapabilitiesPage {
   }
 
   /**
-   * Opens the fixture with a license key and the options the grid asks for, and waits for the grid.
+   * Opens the fixture with every preset's tier, the key of one preset and the options the grid asks
+   * for, and waits for the grid.
    *
    * @param {object} options The fixture options.
-   * @param {string} options.key The license key.
+   * @param {string} options.key The preset whose key the grid is built with.
    * @param {string} [options.plugins] The options the grid asks for.
    */
-  async goto({ key, plugins = 'filters' }: { key: LicenseKeyName; plugins?: PluginsName }): Promise<void> {
+  async goto({ key, plugins = 'filters' }: { key: LicensePresetName; plugins?: PluginsName }): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/license-capabilities.html?theme=${this.theme}&bundle=${this.bundle}` +
-      `&key=${key}&plugins=${plugins}`
+      `&${presetQuery(key, plugins)}`
     );
     await awaitBundle(this.page);
     await awaitFixtureBuilt(this.page);
@@ -116,19 +117,16 @@ export class LicenseCapabilitiesPage {
   }
 
   /**
-   * Passes another of the fixture's keys through `updateSettings()`.
+   * Passes the key of another preset through `updateSettings()`. The fixture gave every preset's tier
+   * its features when it loaded.
    *
-   * @param {string} key The license key.
+   * @param {string} name The preset.
    */
-  async updateLicenseKey(key: LicenseKeyName): Promise<void> {
-    await this.page.evaluate((name) => {
-      const fixture = window as unknown as {
-        hot: { updateSettings(settings: object): void };
-        licenseKeys: Record<string, string>;
-      };
-
-      fixture.hot.updateSettings({ licenseKey: fixture.licenseKeys[name] });
-    }, key);
+  async updateLicenseKey(name: LicensePresetName): Promise<void> {
+    await this.page.evaluate((licenseKey) => {
+      (window as unknown as { hot: { updateSettings(settings: object): void } })
+        .hot.updateSettings({ licenseKey });
+    }, presetKey(name));
   }
 
   /**

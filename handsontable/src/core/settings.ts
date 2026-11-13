@@ -342,6 +342,7 @@ export interface GridSettings {
     engine: unknown;
     sheetName?: string;
     hyperlinks?: boolean | { target?: '_blank' | '_self'; schemes?: Array<'http' | 'https' | 'mailto' | 'tel'> };
+    batchEvaluation?: boolean;
     [key: string]: unknown;
   };
   hiddenColumns?: boolean | object;
@@ -574,6 +575,7 @@ export interface GridSettings {
   afterRender?: (isForced: boolean) => void;
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  afterResumeExecution?: () => void;
   afterRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
     collapsePossible: boolean, successfullyCollapsed: boolean) => void;
   afterRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
@@ -622,6 +624,7 @@ export interface GridSettings {
   afterSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void;
   afterSheetTabStateCapture?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
   afterSheetTabStateRestore?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
+  afterSuspendExecution?: () => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig?: number[],
     actionPossible?: boolean, stateChanged?: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
@@ -766,6 +769,7 @@ export interface GridSettings {
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  beforeResumeExecution?: () => void;
   beforeRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
     collapsePossible: boolean) => void | boolean;
   beforeRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
@@ -796,6 +800,7 @@ export interface GridSettings {
   beforeSheetTabRemove?: (sheetId: number, source: string) => void | boolean;
   beforeSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void | boolean;
   beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void | number;
+  beforeSuspendExecution?: () => void;
   beforeTouchScroll?: () => void;
   beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[],
     actionPossible: boolean) => void | boolean;

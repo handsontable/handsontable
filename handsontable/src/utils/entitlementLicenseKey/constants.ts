@@ -1,5 +1,3 @@
-import { XLSX_ALL_CAPABILITY, XLSX_CAPABILITY_IDS } from '../xlsxEngine/licenseCapabilities';
-
 /**
  * The length of the checksum that closes the machine-readable
  * block of every entitlement license key.
@@ -42,16 +40,6 @@ export const DATE_FIELDS = ['usage_until', 'release_until'];
 export const HANDSONTABLE_PRODUCT = 'handsontable';
 
 /**
- * The capability tokens this build understands. The key asserts an entitlement;
- * what a token unlocks is defined here, never in the key. Unknown tokens are
- * ignored, so a token added on the issuing side cannot break a build already in
- * the field. `xlsx:all` grants the whole xlsx namespace.
- *
- * @type {string[]}
- */
-export const KNOWN_CAPABILITIES = ['core', ...XLSX_CAPABILITY_IDS, XLSX_ALL_CAPABILITY];
-
-/**
  * Marks a license as an evaluation one. A flag is present or absent - there is
  * no `false` value - and an unrecognized flag is ignored, for the same reason
  * an unrecognized capability token is.
@@ -82,22 +70,6 @@ export const NO_CONSOLE_WARNS_FLAG = 'no-console-warns';
  * @type {string}
  */
 export const NO_UI_WARNS_FLAG = 'no-ui-warns';
-
-/**
- * Says the entry's `capabilities` list is complete: the license grants the
- * tokens it lists and nothing else. The issuer sets it per product entry; no
- * contract type or mode implies it.
- *
- * The reader does not act on it - `getLicenseGrants` lists the tokens either
- * way. The product decides what an entry WITHOUT it means. A product that
- * gated no feature when its first keys were issued reads such an entry as
- * granting everything, so a new gate never takes a feature away from a key
- * already in the field. A product that has always gated on its tokens ignores
- * the flag.
- *
- * @type {string}
- */
-export const LISTED_CAPABILITIES_FLAG = 'listed-capabilities';
 
 /**
  * Says the licensee agreed to show the product's "Powered by" bar - usually

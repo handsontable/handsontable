@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SheetsBar structural operations</title>
+  <link rel="stylesheet" href="../../fixtures/handsontable.css">
+  <script src="../../fixtures/handsontable.full.js"></script>
+  <script src="../../fixtures/test-license-key.js"></script>
+</head>
+<body>
+  <div id="hot"></div>
+  <script>
+    const SHEET_COUNT = 10;
+    const ROWS = 10000;
+    const COLUMNS = 10;
+    const hf = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const sheetData = withFormulas => {
+      const rows = Array.from({ length: ROWS }, (_, row) => (
+        Array.from({ length: COLUMNS }, (__, column) => (row * COLUMNS) + column)
+      ));
+
+      if (withFormulas) {
+        // One formula above the rows the spec inserts into and one below, so the insert shifts a reference.
+        rows[0][COLUMNS - 1] = '=SUM(B1:B50)';
+        rows[200][COLUMNS - 1] = '=SUM(B200:B300)';
+      }
+
+      return rows;
+    };
+    const names = Array.from({ length: SHEET_COUNT }, (_, index) => `Sheet${index + 1}`);
+    const hot = new Handsontable(document.getElementById('hot'), {
+      rowHeaders: true,
+      colHeaders: true,
+      width: 1280,
+      height: 600,
+      autoRowSize: false,
+      autoColumnSize: false,
+      sheetsBar: {
+        sheets: names.map((name, index) => ({
+          name,
+          data: sheetData(index === 0),
+          settings: { formulas: { engine: hf, sheetName: name } },
+        })),
+        activeSheet: 0,
+      },
+      licenseKey: window.htTestLicenseKey,
+    });
+    const bar = hot.getPlugin('sheetsBar');
+
+    // The bar registers every sheet of the workbook in the engine when it builds it, and the scan the
+    // scenario measures reads the engine's other sheets, so a workbook that holds only the visible one
+    // would measure nothing.
+    if (hf.getSheetNames().length !== SHEET_COUNT) {
+      throw new Error(`The engine holds ${hf.getSheetNames().length} sheets, expected ${SHEET_COUNT}.`);
+    }
+
+    // The peer scan the scenario measures runs only for a grid that has the Formulas plugin on, and the
+    // formula in the first sheet must evaluate: a workbook where the plugin silently stayed off would
+    // measure a plain `alter()` and read as a speedup.
+    if (!hot.getPlugin('formulas').enabled || hot.getDataAtCell(0, COLUMNS - 1) === '=SUM(B1:B50)') {
+      throw new Error('The Formulas plugin is not computing the visible sheet.');
+    }
+
+    window.__hf = hf;
+    window.__hot = hot;
+  </script>
+</body>
+</html>

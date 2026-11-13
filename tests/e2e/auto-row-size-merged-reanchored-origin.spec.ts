@@ -145,6 +145,37 @@ test.describe('row headers beside a merge that a trim or a filter drew from anot
     expect(await grid.copyableText(1, 0)).toBe(`"${LINES}"`);
   });
 
+  // A move takes the merge's middle row out of it. While a row is trimmed or filtered, the cell kept the `hidden`
+  // and `copyable: false` the merge had stored on it, so a copy of its text returned an empty string and the
+  // sampler skipped it.
+  test('moving a row out of the merge while a row is trimmed, then copying its text', async() => {
+    await grid.buildWithoutText({
+      mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }],
+      trimRows: true,
+      manualRowMove: true,
+    });
+    await grid.callPlugin('trimRows', 'trimRows', [8]);
+    await grid.callPlugin('manualRowMove', 'moveRow', 2, 7);
+    // The row sits at visual row 7 now, outside the merge.
+    await grid.setDataAtCell(7, 4, 'released');
+
+    expect(await grid.copyableText(7, 4)).toBe('released');
+  });
+
+  test('moving a row out of the merge on a filtered grid, then copying its text', async() => {
+    await grid.buildWithoutText({
+      mergeCells: [{ row: 1, col: 4, rowspan: 3, colspan: 1 }],
+      filters: true,
+      manualRowMove: true,
+    });
+    // Row 8 of the spreadsheet data holds `A9` in the first column.
+    await grid.filterOutValue(0, 'A9');
+    await grid.callPlugin('manualRowMove', 'moveRow', 2, 7);
+    await grid.setDataAtCell(7, 4, 'released');
+
+    expect(await grid.copyableText(7, 4)).toBe('released');
+  });
+
   // A guard, not a repro of the bug: the untrim makes the original cell the top-left again, and that cell never
   // held `hidden`, so this case passes without the fix. It fails if the fix clears more than it should.
   test('trimming the first row, then untrimming it, keeps every row header as tall as its row', async() => {

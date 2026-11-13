@@ -31,6 +31,31 @@ This directory holds the `Hooks` singleton, the per-instance `HooksBucket`, and 
   `Symbol.for()` so the wrapper, bundled apart from core, needs no import. Pinned by the "a function that
   forwards to a callback", "a settings function already added through `addHook()`" and "a lasting
   registration of a callback first added with `addHookOnce()`" blocks of `__tests__/bucket.unit.ts`.
+- **The four execution hooks (`before`/`afterSuspendExecution`, `before`/`afterResumeExecution`) fire on the
+  state change only, and `afterResumeExecution` is a release point.** `Core#suspendExecution()` fires the suspend
+  pair when the counter goes 0 to 1, `Core#resumeExecution()` fires the resume pair when it comes back to 0;
+  nested, forced nested and stray calls fire nothing, and all four are silent once `destroy()` has started (its
+  teardown `batchExecution()` resumes after `afterDestroy`). Before hooks see the old state, after hooks the new
+  one, and `afterResumeExecution` runs after both index mappers resumed. A plugin may hold something from the
+  suspend pair until `afterResumeExecution` (Formulas does), so three rules keep the pairs balanced: a throwing
+  `afterSuspendExecution` listener makes `suspendExecution()` resume through the resume pair and rethrow; a throw
+  from `beforeResumeExecution` or from a cache update still updates the counter, resumes both mappers and fires
+  `afterResumeExecution` (a later throw replaces an earlier one); and `batch()`, `batchExecution()` and
+  `safeBatch()` keep `resumeRender()` and `resumeExecution()` in `finally` blocks around the suspend. Renders
+  suspend the execution too (AutoColumnSize, AutoRowSize), so a listener that renders re-enters the hooks.
+  A suspend or resume a `before*` listener makes on the same grid fires no hooks
+  (`isRunningBeforeExecutionHook` in `core.ts`): the counter is still unchanged while that listener runs, so
+  the call would fire the hook again and recurse. `resumeExecution()` therefore decrements the LIVE counter
+  after `beforeResumeExecution` and fires `afterResumeExecution` only when the execution is really resumed;
+  a listener that leaves a suspension open keeps the grid suspended, and `beforeResumeExecution` fires AGAIN
+  with the call that ends it (two before events for one after event; a listener that always re-suspends never lets
+  the grid resume). The mirror case holds for `beforeSuspendExecution`: a suspension its listener leaves open
+  outlives the caller's matching resume. A throw from `beforeSuspendExecution`/`beforeResumeExecution` clears
+  the flag in a `finally`.
+  When the callback of `batch()`/`batchExecution()`/`safeBatch()` throws and a resume listener throws as well,
+  the listener's error replaces the callback's (`finally` semantics; `suspendExecution()`'s own rollback keeps
+  the original cause).
+  Pinned by `src/__tests__/core/executionSuspendHooks.unit.js`.
 
 Pointers:
 - Deep reference: `handsontable/.ai/HOOKS.md`

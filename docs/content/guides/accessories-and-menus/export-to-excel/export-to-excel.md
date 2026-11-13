@@ -248,7 +248,7 @@ Pass these options as the second argument of `downloadFileAsync('xlsx', options)
 
 Formulas, styles, layout, number formats, comments, conditional formatting, data validation, and sheet protection in the exported file are available as a bundle: the [XLSX add-on](@/guides/getting-started/license-key/license-key.md#xlsx-add-on). Every key issued before 19.0 includes all of it.
 
-When your key leaves out part of the add-on, the export writes the rest of the workbook and prints one console warning that names what it skipped. Without number formats, for example, a date cell exports as the text the grid shows, such as `01/15/2024`. When your key does not include Excel export at all, the export methods throw, [`supportsExportFormat('xlsx')`](@/api/exportFile.md#supportsexportformat) returns `false` and the **To Excel** context menu item is hidden, so check it before you offer an Excel download.
+When your tier leaves out part of the add-on, the export writes the rest of the workbook and prints one console warning that names what it skipped. Without number formats, for example, a date cell exports as the text the grid shows, such as `01/15/2024`. When your tier does not include Excel export at all, the export methods throw, [`supportsExportFormat('xlsx')`](@/api/exportFile.md#supportsexportformat) returns `false` and the **To Excel** context menu item is hidden, so check it before you offer an Excel download.
 
 ### Protect read-only cells
 
