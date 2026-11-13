@@ -2699,14 +2699,19 @@ export class RowSelection extends BasePlugin {
 
     // Without the "select all" checkbox the header stays a plain one: no class, so no pointer
     // cursor and no hit area.
-    if (column !== checkboxColumn || !isBottomMostColumnHeader(TH) || !this.#hasHeaderCheckbox()) {
+    if (
+      column !== checkboxColumn ||
+      (checkboxColumn >= 0 && this.hot.view.isColumnHeaderCorner(TH)) ||
+      !isBottomMostColumnHeader(TH) ||
+      !this.#hasHeaderCheckbox()
+    ) {
       this.#removeCheckbox(container);
 
       return;
     }
 
-    // The corner gets a class of its own: core never removes `cornerHeader` from a reused header
-    // label, so that class cannot tell the corner apart from a column header.
+    // The corner gets a class of its own: core's `cornerHeader` is on the header label, and the
+    // stylesheet keys the corner's rules on the header cell.
     addClass(TH, column < 0 ? [HEADER_CELL_CLASS, CORNER_CELL_CLASS] : HEADER_CELL_CLASS);
 
     // A header with no label (the corner, or a column made only for the checkboxes) centers the

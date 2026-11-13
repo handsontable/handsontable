@@ -618,7 +618,7 @@ export class CheckboxHeader extends BasePlugin {
     let box = container.querySelector<HTMLElement>(`:scope > .${CHECKBOX_BOX_CLASS}`);
     let input = box?.querySelector<HTMLInputElement>(`:scope > .${CHECKBOX_CLASS}`) ?? null;
 
-    if (!this.hasHeaderCheckbox(column) || !isBottomMostColumnHeader(TH)) {
+    if (!this.hasHeaderCheckbox(column) || this.hot.view.isColumnHeaderCorner(TH) || !isBottomMostColumnHeader(TH)) {
       box?.remove();
 
       return;

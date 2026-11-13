@@ -3174,6 +3174,35 @@ class TableView {
   }
 
   /**
+   * Checks whether a column header element is a corner: one of the row header columns its table draws
+   * first in every header row. The rendering engine offsets a corner's negative index by the first
+   * rendered column, so in a table scrolled horizontally `afterGetColHeader` gets the corner with the
+   * index of the column before the first rendered one. A hook that draws into column headers tells the
+   * corner by this check, not by a negative index alone.
+   *
+   * @private
+   * @param {HTMLTableCellElement} TH The table header element.
+   * @returns {boolean}
+   */
+  isColumnHeaderCorner(TH: HTMLTableCellElement): boolean {
+    const headerRow = TH.parentNode;
+
+    if (!headerRow) {
+      return false;
+    }
+
+    for (let index = 0; index < this.#rowHeadersCount; index++) {
+      if (headerRow.childNodes[index] === TH) {
+        const { wtTable } = this.#getOwningWt(TH);
+
+        return headerRow.parentNode === wtTable.THEAD && index < (wtTable.columnFilter?.countTH ?? 0);
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * Append column header to a TH element.
    *
    * @private
@@ -3273,6 +3302,7 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
+      removeClass(element, 'cornerHeader');
       fastInnerHTML(element, String(content(index, headerLevel)), getSanitizer(this.hot),
         'header', this.hot.rootElement);
 

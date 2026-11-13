@@ -670,7 +670,7 @@ export class HiddenColumns extends BasePlugin {
    */
   #onAfterGetColHeader = (column: number, TH: HTMLTableCellElement) => {
 
-    if (!this.getSetting('indicators') || column < 0) {
+    if (!this.getSetting('indicators') || column < 0 || this.hot.view.isColumnHeaderCorner(TH)) {
       // The indicator setting can be toggled off, or this can be the corner header - either way,
       // any caret left over from a previous render must be cleared here, since we return early.
       this.#syncIcon(this.hot, TH, HIDDEN_INDICATOR_START_SLOT_CLASS, null);

@@ -2857,6 +2857,7 @@ export class Filters extends BasePlugin {
     if (
       this.enabled
       && this.conditionCollection?.hasConditions(physicalColumn)
+      && !this.hot.view.isColumnHeaderCorner(TH as HTMLTableCellElement)
       && isBottomMostColumnHeader(TH as HTMLTableCellElement)
     ) {
       addClass(TH, 'htFiltersActive');

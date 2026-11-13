@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - plugin markup in the column header corner</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD); an
+    // unknown value THROWS rather than falling back, so a typo in the project config is one red
+    // leg instead of a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    One grid with one plugin that draws into column headers, picked by ?plugin=. ?rowHeaders=0 starts it
+    without row headers, so a spec can turn them on later and watch the header cell that was column A
+    become the corner. Twelve 90px columns in a 320px grid: scrolled horizontally, the master table and
+    the top overlay draw their corner with the index of the column before the first rendered one.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const plainColumns = Array.from({ length: 12 }, () => ({}));
+    const checkboxColumns = extra => plainColumns.map((column, index) => (index === 3 ? { type: 'checkbox', ...extra } : column));
+    const pluginSettings = ({
+      dropdownMenu: { dropdownMenu: true },
+      filters: { dropdownMenu: true, filters: true },
+      columnSorting: { columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } } },
+      multiColumnSorting: { multiColumnSorting: { initialConfig: [{ column: 0, sortOrder: 'asc' }] } },
+      hiddenColumns: { hiddenColumns: { columns: [2], indicators: true } },
+      checkboxHeader: { columns: checkboxColumns({ headerCheckbox: true }) },
+      rowSelectionColumn: { columns: checkboxColumns({}), rowSelection: { checkboxLocation: { column: 3 } } },
+      rowSelection: { rowSelection: true },
+    })[htParams.get('plugin') ?? 'dropdownMenu'];
+    const rowHeaders = ({ 0: false, 1: true })[htParams.get('rowHeaders') ?? '1'];
+
+    if (!pluginSettings || rowHeaders === undefined) {
+      throw new Error('Unknown ?plugin= or ?rowHeaders= value');
+    }
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.hot = new Handsontable(container, {
+      data: Array.from({ length: 8 }, (_, row) => Array.from({ length: 12 }, (__, col) => (col === 3 ? row % 2 === 0 : `${row}-${col}`))),
+      colHeaders: true,
+      rowHeaders,
+      colWidths: 90,
+      width: 320,
+      height: 260,
+      ...pluginSettings,
+      licenseKey: window.htTestLicenseKey,
+    });
+
+    if (htParams.get('plugin') === 'filters') {
+      const filters = window.hot.getPlugin('filters');
+
+      filters.addCondition(3, 'not_empty', []);
+      filters.filter();
+    }
+  </script>
+</body>
+</html>

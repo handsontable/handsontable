@@ -29,8 +29,8 @@
 
     // A header with no label - the corner, or a column made only for the checkboxes - holds just the
     // checkbox. Its label is a non-breaking space (the corner) or empty, and would push the checkbox
-    // off center. Keyed on the plugin's own class, not on `cornerHeader`: core leaves that class on a
-    // reused label, so it would also hide a real column label in the first column location.
+    // off center. Keyed on the plugin's own class, not on `cornerHeader`: core once left that class
+    // on a reused label, where it also hid a real column label in the first column location.
     th.htRowSelectionCheckboxOnly .colHeader {
       display: none;
     }

@@ -132,8 +132,9 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   label is empty, such as a column made only for the checkboxes in the `firstColumn` location). The CSS hides
   its label and centers the checkbox on both axes; an empty label would still take the room next to it.
 - **The corner gets its own class (`htRowSelectionCorner`).** Core adds `cornerHeader` to a header label
-  that renders a negative column and never removes it, so a header cell reused from the corner (switching
-  `checkboxLocation`) keeps it. A CSS rule keyed on `cornerHeader` hid the first column's label. Pinned by
+  that renders a negative column, and until `TableView#updateCellHeader` started removing it from a label
+  drawn for a column, a header cell reused from the corner (switching `checkboxLocation`) kept it. A CSS
+  rule keyed on `cornerHeader` hid the first column's label. Pinned by
   the "keeps the first column label after switching" case in `tests/e2e/row-selection.spec.ts`.
 - **Space on a data cell toggles its row (as in AG Grid), and must mark the event handled.** The editor
   manager opens an editor on any printable key in `afterDocumentKeyDown` unless
