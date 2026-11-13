@@ -1,0 +1,11 @@
+[
+  { "ruleId": "18.0.0/resize-state-methods", "severity": "changed", "line": 8 },
+  { "ruleId": "18.0.0/resize-state-methods", "severity": "changed", "line": 9 },
+  { "ruleId": "18.0.0/resize-state-methods", "severity": "changed", "line": 13 },
+  { "ruleId": "18.0.0/resize-state-methods", "severity": "changed", "line": 14 },
+  { "ruleId": "18.0.0/resize-state-methods", "severity": "changed", "line": 15 },
+  { "ruleId": "18.0.0/resize-state-methods", "severity": "manual", "line": 17 },
+  { "ruleId": "18.0.0/resize-state-methods", "severity": "manual", "line": 19 },
+  { "ruleId": "18.0.0/resize-state-methods", "severity": "manual", "line": 21 },
+  { "ruleId": "18.0.0/resize-state-methods", "severity": "manual", "line": 22 }
+]

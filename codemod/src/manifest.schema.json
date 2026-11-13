@@ -1,0 +1,336 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://handsontable.com/schemas/codemod-manifest.json",
+  "title": "Handsontable codemod version manifest",
+  "description": "Documentation of versions/<semver>/manifest.json. The validator in src/manifest.mjs is the enforcing copy; test/manifest.test.mjs pins the kind list and the required fields of each kind against this file.",
+  "type": "object",
+  "required": ["version", "from", "status", "guide"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Must equal the directory name."
+    },
+    "from": {
+      "type": "string",
+      "pattern": "^\\d+(\\.\\d+){0,2}$",
+      "description": "The version line the migration starts from: \"17\" for 18.0.0, \"18.0\" for 18.1.0. A partial version stands for the whole line. It must be below `version`. The lowest `from` of all manifests is the oldest version the tool covers."
+    },
+    "status": {
+      "enum": ["released", "draft"],
+      "description": "A draft manifest runs only with --include-draft."
+    },
+    "guide": {
+      "type": "object",
+      "required": ["url", "source"],
+      "properties": {
+        "url": { "type": "string", "description": "Public URL of the migration guide." },
+        "source": { "type": "string", "description": "Repository path of the guide source." }
+      }
+    },
+    "inlineScriptChecks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Short phrases that say what to check in an inline script of an HTML page, which the tool does not read. The report of a run that selects the manifest lists them after \"Check by hand:\"."
+    },
+    "notAutomated": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["reason"],
+        "oneOf": [{ "required": ["guide"] }, { "required": ["title"] }],
+        "properties": {
+          "guide": { "type": "string", "description": "Anchor of a section of the guide that no rule covers." },
+          "title": { "type": "string", "description": "Short title of a change that the guide has no section for, such as a row of the deprecation table." },
+          "reason": { "type": "string", "description": "One sentence that says why the tool cannot detect or rewrite it." }
+        }
+      },
+      "description": "Guide sections that have no rule, each with the reason. It has no effect on a run. `--list` prints how many there are."
+    },
+    "include": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Files, relative to the version directory, that hold a { \"rules\": [...] } object. Their rules follow the inline ones."
+    },
+    "rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/rule" }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "properties": {
+        "id": { "type": "string", "description": "<version>/<slug>, unique in the manifest." },
+        "kind": {
+          "enum": [
+            "importSource",
+            "exportRename",
+            "namespaceType",
+            "exportRemoved",
+            "optionRename",
+            "optionMove",
+            "optionRemove",
+            "methodRemove",
+            "methodMove",
+            "callUnwrap",
+            "cssVariable",
+            "themeToken",
+            "dependency",
+            "detect",
+            "custom"
+          ]
+        },
+        "guide": { "type": "string", "description": "Anchor in the migration guide, without the #." },
+        "safe": { "type": "boolean", "description": "true: the tool applies the rewrite by default. false: the tool never edits code for the rule. It reports manual entries and may leave a TODO comment. Required for every kind except detect and exportRemoved, which only report and take false or no value." },
+        "minConfidence": { "enum": ["high", "medium"] },
+        "message": { "type": "string" },
+        "advice": { "type": "string" }
+      },
+      "additionalProperties": true,
+      "if": { "properties": { "kind": { "enum": ["detect", "exportRemoved"] } }, "required": ["kind"] },
+      "then": { "properties": { "safe": { "const": false } } },
+      "else": { "required": ["safe"] },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "importSource" } } },
+          "then": {
+            "required": ["from", "exports"],
+            "properties": {
+              "from": { "type": "string", "description": "The module the names were imported from." },
+              "exports": {
+                "type": "object",
+                "description": "Name to { to, note } (the name moved to a module or a list of candidate modules, with an optional manual note) or { removed: true, advice }.",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "to": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }] },
+                    "note": { "type": "string" },
+                    "removed": { "type": "boolean" },
+                    "advice": { "type": "string" },
+                    "neverExported": { "type": "boolean", "description": "The module never exported this name. The entry stays so that a broken named import of it is still redirected, and messages leave it out." }
+                  }
+                }
+              },
+              "runtimeAdvice": { "type": "string", "description": "What to say about a dynamic import() or require() of a module that had no runtime code." },
+              "reason": { "type": "string", "description": "Why the names move, appended to the entry of each move. {name} is the name and {from} the old module." },
+              "fallback": { "type": "object", "description": "Entry for names that `exports` does not list. Same shape as an `exports` entry." },
+              "moduleRemoved": { "type": "boolean", "description": "The module no longer exists. Every namespace import, `export *`, dynamic import, and `require` of it is reported, not only the ones that name an entry of `exports`." },
+              "todo": { "type": "boolean", "description": "For a rule that is not safe: leave a TODO comment on the old import besides the manual entry." }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "exportRename" } } },
+          "then": {
+            "required": ["source", "from", "to"],
+            "properties": {
+              "source": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }], "description": "A module or the list of modules the name was exported from." },
+              "toSource": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }], "description": "The module, or candidates, the new name is imported from when it moves." },
+              "note": { "type": "string", "description": "Text of a manual entry added once per file after a rewrite." },
+              "reason": { "type": "string", "description": "Why the rename happens, appended to the entry of the rewrite. Say so when the old name still works in the target version." },
+              "todo": { "type": "boolean", "description": "For a rule that is not safe: leave a TODO comment on the old import besides the manual entry." }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "namespaceType" } } },
+          "then": {
+            "required": ["from"],
+            "anyOf": [{ "required": ["to"] }, { "required": ["removed"] }],
+            "properties": {
+              "from": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }], "description": "Handsontable.<path> or a list of paths. A * stands for one segment, as in Handsontable.plugins.*.Settings." },
+              "to": { "type": "object", "required": ["source"], "description": "The named export that replaces the member. `name` defaults to the last segment of the path, `source` is a module or a list of candidate modules." },
+              "note": { "type": "string", "description": "Text of a manual entry added once per file after a rewrite." },
+              "reason": { "type": "string", "description": "Why the rename happens, appended to the entry of the rewrite. Say so when the old name still works in the target version." },
+              "positions": { "enum": ["type", "any"], "description": "`type` (default) rewrites type positions only." },
+              "optionKeys": { "type": "object", "description": "Plugin name to option key, or null for a plugin with no option, for the {optionKey} placeholder of the advice." },
+              "noKeyAdvice": { "type": "string", "description": "Advice used instead of `advice` for a plugin whose option key is null." },
+              "todo": { "type": "boolean", "description": "For a rule that is not safe: leave a TODO comment on the statement besides the manual entry." }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "exportRemoved" } } },
+          "then": {
+            "required": ["source", "name"],
+            "properties": {
+              "source": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }], "description": "A module, a list, or a pattern where * stands for one path segment." },
+              "except": { "type": "array", "items": { "type": "string" }, "description": "Exact modules that never match." },
+              "name": { "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" }, "minItems": 1 }] },
+              "optionKeys": { "type": "object", "description": "Plugin name to option key, or null for a plugin with no option, for the {optionKey} placeholder of the advice." },
+              "noKeyAdvice": { "type": "string", "description": "Advice used instead of `advice` for a plugin whose option key is null." }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "optionRename" } } },
+          "then": {
+            "required": ["from", "to"],
+            "properties": {
+              "context": {
+                "type": "object",
+                "description": "Without it the rule renames a key of Handsontable option objects and wrapper attributes. { \"callArg\": [method names] } renames it in object-literal arguments of method calls with those names instead.",
+                "required": ["callArg"],
+                "properties": {
+                  "callArg": { "type": "array", "items": { "type": "string" } },
+                  "receiver": {
+                    "type": "object",
+                    "required": ["plugin"],
+                    "properties": { "plugin": { "oneOf": [{ "type": "string" }, { "type": "array", "minItems": 1, "items": { "type": "string" } }] } },
+                    "description": "Rewrite only calls on `x.getPlugin('<key>')` or a variable or this member the file sets from it. Calls on another receiver in a Handsontable file are reported when the argument sets the key."
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "optionMove" } } },
+          "then": {
+            "required": ["from", "to"],
+            "properties": {
+              "from": { "description": "<option>.<key>, for example numericFormat.culture." },
+              "to": { "description": "Name of the option that sits beside <option>." },
+              "report": { "type": "string", "description": "Text of a manual entry added after every move." },
+              "readerAdvice": {
+                "type": "string",
+                "description": "Text of the manual entry that replaces a move when custom code may read the nested key: a custom renderer on the same object or element, or a read of the key in the file."
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "optionRemove" } } },
+          "then": {
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string", "description": "Option name to delete." },
+              "todo": { "type": "boolean", "description": "Leave a TODO comment with the advice where the option stood. Default true." }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "methodRemove" } } },
+          "then": {
+            "required": ["methods", "receiver"],
+            "properties": {
+              "methods": { "type": "array", "minItems": 1, "items": { "type": "string" }, "description": "Method names to remove." },
+              "receiver": {
+                "oneOf": [
+                  { "enum": ["any", "instance"] },
+                  {
+                    "type": "object",
+                    "required": ["plugin"],
+                    "properties": { "plugin": { "oneOf": [{ "type": "string" }, { "type": "array", "minItems": 1, "items": { "type": "string" } }] } }
+                  }
+                ],
+                "description": "`any`: the names are unique to Handsontable and are removed on any receiver in a Handsontable file. `instance`: only on a receiver confirmed to be a grid instance. `{ plugin }`: only on `x.getPlugin('<key>')` or a variable or this member the file sets from it."
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "methodMove" } } },
+          "then": {
+            "required": ["methods", "via", "receiver"],
+            "properties": {
+              "methods": { "type": "object", "additionalProperties": { "type": "string" }, "description": "Old method name to its name on the new home." },
+              "via": {
+                "type": "object",
+                "required": ["method", "args"],
+                "properties": { "method": { "type": "string" }, "args": { "type": "array", "items": { "type": "string" } } },
+                "description": "The call that reaches the new home, for example { method: getPlugin, args: [undoRedo] }."
+              },
+              "receiver": {
+                "oneOf": [
+                  { "enum": ["instance"] },
+                  {
+                    "type": "object",
+                    "required": ["plugin"],
+                    "properties": { "plugin": { "oneOf": [{ "type": "string" }, { "type": "array", "minItems": 1, "items": { "type": "string" } }] } }
+                  }
+                ]
+              },
+              "properties": { "type": "object", "additionalProperties": { "type": "null" }, "description": "Property names that become the `via` call itself." }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "callUnwrap" } } },
+          "then": {
+            "required": ["callee"],
+            "properties": {
+              "callee": { "type": "string", "description": "Dotted path of the function, rooted at the namespace: Handsontable.helper.sanitize." },
+              "arg": { "type": "integer", "minimum": 0, "description": "Index of the argument that replaces the call. Default 0." }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "cssVariable" } } },
+          "then": {
+            "required": ["from"],
+            "anyOf": [{ "required": ["to"] }, { "required": ["removed"] }],
+            "properties": {
+              "zeroAdvice": { "type": "string", "description": "Advice for a declaration that sets the removed variable to 0, 0px, or none." },
+              "scopedAdvice": { "type": "string", "description": "Added to the advice of a declaration in a stylesheet scoped to a component (a Vue style scoped or module block, an Angular component stylesheet)." }
+            }
+          }
+        },
+        { "if": { "properties": { "kind": { "const": "themeToken" } } }, "then": { "required": ["from"], "anyOf": [{ "required": ["to"] }, { "required": ["removed"] }] } },
+        {
+          "if": { "properties": { "kind": { "const": "dependency" } } },
+          "then": {
+            "required": [],
+            "properties": {
+              "bump": { "type": "object", "description": "Package name to target version (MAJOR.MINOR.PATCH). The range keeps the operator the user wrote." },
+              "replaced": { "type": "object", "description": "Package name that has no release for the target to the text of a manual entry that names its replacement." },
+              "add": {
+                "type": "array",
+                "description": "Packages to add. Each item: name, range, whenFact, onlyIfDependsOn (a package name or an array of names).",
+                "items": { "type": "object", "required": ["name", "range"] }
+              },
+              "reportMissing": {
+                "type": "array",
+                "description": "Packages to report when the package.json does not declare them and, with whenFact, phase 1 found that fact. Never added. Each item: name, optional whenFact, onlyIfDependsOn, and message.",
+                "items": { "type": "object", "required": ["name"] }
+              },
+              "reportPresent": {
+                "type": "array",
+                "description": "Packages to report when the package.json declares them and, with whenFact, phase 1 found that fact. Each item: name, message, optional whenFact and onlyIfDependsOn.",
+                "items": { "type": "object", "required": ["name", "message"] }
+              },
+              "facts": {
+                "type": "array",
+                "description": "Facts to collect from js parts in phase 1. Each item: name and when, one of { import }, { property, withKey? }.",
+                "items": { "type": "object", "required": ["name", "when"] }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "detect" } } },
+          "then": {
+            "required": ["match"],
+            "properties": {
+              "match": { "type": "object", "description": "One matcher object (import, property, call, hook, string, selector, regex, missingOption) with its modifiers, or { anyOf: [...] } or { allOf: [first, ...gates] }. See the detect transform." },
+              "files": { "type": "array", "items": { "enum": ["js", "css", "template"] }, "description": "Part kinds the rule reads. The js-only matchers need [\"js\"]." },
+              "severity": { "enum": ["manual", "warning"], "description": "Defaults to manual." },
+              "requires": { "enum": ["hot-file", "option-object", "none"], "description": "Defaults to hot-file." },
+              "emitsFact": { "type": "string", "description": "Fact name added when the rule matches in a part." },
+              "unlessFileMatches": { "type": "string", "description": "Regular expression on the text of the part. The rule skips a part that matches it." },
+              "mergeKey": { "type": "string", "description": "Rules of different versions that share a mergeKey report a spot once, on the same line of the same part. The rule of the earliest version owns the entry: its id, message, and guide link." },
+              "unresolvedMessage": { "type": "string", "description": "Message of a missingOption match (with reportUnresolved) on a grid whose settings have sources the tool could not read. {sources} stands for their names." },
+              "variableMessage": { "type": "string", "description": "Message of a match whose value comes from a variable that the tool cannot resolve (a property matcher with viaReference). The other matches use message." },
+              "todo": { "type": "boolean", "description": "false keeps the rule's manual entries out of the code: no TODO comment is left at their lines. Without it, every manual entry in a js or css part gets one." }
+            }
+          }
+        },
+        { "if": { "properties": { "kind": { "const": "custom" } } }, "then": { "required": ["module"] } }
+      ]
+    }
+  }
+}

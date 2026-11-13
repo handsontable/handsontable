@@ -1,0 +1,9 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/html-without-sanitizer", "severity": "manual", "line": 21 },
+    { "ruleId": "18.0.0/html-without-sanitizer", "severity": "manual", "line": 24 },
+    { "ruleId": "18.0.0/html-without-sanitizer", "severity": "manual", "line": 32 },
+    { "ruleId": "18.0.0/html-without-sanitizer", "severity": "manual", "line": 34 }
+  ]
+}

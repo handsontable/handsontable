@@ -1,0 +1,30 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/icon-pseudo-element-selectors",
+      "severity": "manual",
+      "line": 1
+    },
+    {
+      "ruleId": "19.0.0/icon-pseudo-element-selectors",
+      "severity": "manual",
+      "line": 5
+    },
+    {
+      "ruleId": "19.0.0/icon-pseudo-element-selectors",
+      "severity": "manual",
+      "line": 9
+    },
+    {
+      "ruleId": "19.0.0/icon-pseudo-element-selectors",
+      "severity": "manual",
+      "line": 14
+    },
+    {
+      "ruleId": "19.0.0/icon-pseudo-element-selectors",
+      "severity": "manual",
+      "line": 18
+    }
+  ]
+}

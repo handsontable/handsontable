@@ -1,0 +1,12 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/moment-date-format", "severity": "manual", "line": 12 },
+    { "ruleId": "18.0.0/moment-time-format", "severity": "manual", "line": 13 },
+    { "ruleId": "18.0.0/moment-date-format", "severity": "manual", "line": 14 },
+    { "ruleId": "18.0.0/moment-date-format", "severity": "manual", "line": 15 },
+    { "ruleId": "18.0.0/moment-date-format", "severity": "manual", "line": 16 },
+    { "ruleId": "18.0.0/moment-date-format", "severity": "manual", "line": 17 },
+    { "ruleId": "18.0.0/moment-time-format", "severity": "manual", "line": 18 }
+  ]
+}

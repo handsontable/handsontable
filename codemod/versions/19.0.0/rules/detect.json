@@ -1,0 +1,338 @@
+{
+  "rules": [
+    {
+      "id": "19.0.0/before-init-option",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js", "template"],
+      "requires": "hot-file",
+      "guide": "a-beforeinit-callback-in-your-settings-now-runs",
+      "match": { "property": "beforeInit", "in": "option-object" },
+      "message": "Check what this beforeInit callback does, because 19.0 runs it. It was ignored when you passed it in the settings. It fires before the data loads, so countRows(), getData(), and the methods of hot.view are not available yet and throw. Move any code that touches the grid to afterInit."
+    },
+    {
+      "id": "19.0.0/size-css-keywords",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js", "template"],
+      "requires": "option-object",
+      "guide": "height-auto-no-longer-clips-the-grid",
+      "match": {
+        "property": ["width", "height"],
+        "valueMatches": "^\\s*(?:inherit|initial|unset|revert|revert-layer|none|normal|min-content|max-content|fit-content(?:\\(.*)?|stretch|-webkit-fill-available|-moz-available)\\s*$",
+        "flags": "i"
+      },
+      "message": "Replace this width or height with 'auto', a length, or '100%'. Handsontable 19.0 ignores a CSS keyword that is not a size, and logs a warning once. The keywords inherit, initial, unset, revert, none, and normal set no size. The keywords min-content, max-content, and fit-content size the grid to its content, so it renders every row or column. The keywords stretch, -webkit-fill-available, and -moz-available clip the columns past the container with no scrollbar."
+    },
+    {
+      "id": "19.0.0/width-outside-reference",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js", "template"],
+      "requires": "option-object",
+      "guide": "height-auto-no-longer-clips-the-grid",
+      "match": {
+        "property": "width",
+        "valueMatches": "var\\(|\\d\\s*cq(?:w|h|i|b|min|max)\\b",
+        "flags": "i"
+      },
+      "message": "Check this width when the height is 'auto' or unset. A width that resolves against something outside the grid, such as var() or a container-query unit, no longer clips the grid in 19.0: the page scrolls the columns instead of the grid. Give the grid a fixed width, such as a number or a px or em length, to keep it scrolling its own columns."
+    },
+    {
+      "id": "19.0.0/get-copyable-data",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "getcopyabledata-returns-a-string",
+      "match": { "call": "getCopyableData", "receiver": "instance" },
+      "message": "Check how this code uses the result of getCopyableData(). It returns a string in 19.0: a number, a boolean, null, or an object that it used to return as stored now comes back as text. To read the stored value, call getDataAtCell() and check the copyable cell setting yourself."
+    },
+    {
+      "id": "19.0.0/splice-methods",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "splicecol-and-splicerow-are-deprecated",
+      "match": { "call": ["spliceCol", "spliceRow"], "receiver": "instance" },
+      "message": "Replace this call before 20.0 removes it. spliceCol() and spliceRow() are deprecated since 19.0, still work, and log a warning once. Read the column or row, run Array.prototype.splice() on it, and write the shifted tail back with populateFromArray(), or use alter() to add or remove whole rows and columns."
+    },
+    {
+      "id": "19.0.0/col-to-prop-null",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "coltoprop-and-proptocol-return-null-for-an-unknown-column",
+      "match": {
+        "anyOf": [
+          { "call": ["colToProp", "propToCol", "getDataAtProp"], "receiver": "instance" },
+          { "hook": "modifyData" }
+        ]
+      },
+      "message": "Check this code for null before it uses the result. In 19.0, colToProp() and propToCol() return null for a column that does not exist, where they returned your argument, and getDataAtProp() returns an empty array for an index that names no column. The modifyData hook gets null as its column argument for such an index. Test the result of propToCol() with Number.isInteger(), and compare the result of colToProp() with null."
+    },
+    {
+      "id": "19.0.0/undo-false",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "undo-and-redo-restore-a-recorded-state",
+      "match": { "property": "undo", "valueIs": false, "in": "option-object" },
+      "message": "Check this undo: false setting. With it, 19.0 records nothing, so the undo() and redo() methods of the UndoRedo plugin do nothing. Before, only the keyboard shortcuts were off, and an app could undo from its own buttons. To keep those buttons working, set undo: true and remove the shortcuts you do not want with removeShortcutsByKeys() on the grid shortcut context."
+    },
+    {
+      "id": "19.0.0/max-length-option",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js", "template"],
+      "requires": "option-object",
+      "guide": "maxlength-is-a-built-in-cell-option",
+      "match": { "property": "maxLength" },
+      "message": "Rename this maxLength key if it is your own, for example to maxChars, in your settings and in the code that reads it. Handsontable 19.0 reads maxLength: it stops typing and pasting at the limit, marks a longer value invalid, and runs that check before your own validator. To use the built-in limit instead, remove your own length validator."
+    },
+    {
+      "id": "19.0.0/icon-pseudo-element-selectors",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["css", "js", "template"],
+      "requires": "hot-file",
+      "guide": "icons-are-rendered-as-i-elements",
+      "match": {
+        "selector": "^(?=[\\s\\S]*::?(?:before|after)(?![\\w-]))(?=[\\s\\S]*(?:\\.(?:changeType|htAutocompleteArrow|htUISelectCaption|ht-page-first|ht-page-prev|ht-page-next|ht-page-last|ht-page-size-section__select-wrapper|ht-multi-select-chip-remove|ht-notification__close|htCheckboxRendererInput|htUIRadio|ht-multi-select-editor-item-selected|collapsibleIndicator|ht_nestingButton)|\\.columnSorting\\.sortAction|\\.htItemWrapper\\s+span\\.selected|\\.htSubmenu\\s+\\.htItemWrapper|\\b(?:before|after)Hidden(?:Column|Row))(?![\\w-]))"
+      },
+      "message": "Replace this pseudo-element selector with the matching .ht-icon-<name> class. Handsontable 19.0 renders every built-in icon as an <i class=\"ht-icon ht-icon-<name>\"> element, so a ::before or ::after rule on the old host paints nothing. Target the icon element, or override its --ht-icon-<name> variable to change only the glyph. The migration guide lists each old selector with its replacement."
+    },
+    {
+      "id": "19.0.0/icons-map-helper",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "icons-are-rendered-as-i-elements",
+      "match": { "import": "handsontable/themes/static/variables/helpers/iconsMap" },
+      "message": "Replace iconsMap(icons, themePrefix) with iconStyles(icons, scopeSelector) from handsontable/themes/static/variables/helpers/iconStyles. The iconsMap helper is deprecated since 19.0 and 20.0 removes it. Until then it logs a warning once and returns the iconStyles() output. The second argument of iconStyles() is a full scope selector, such as .ht-theme-main, not a theme class prefix."
+    },
+    {
+      "id": "19.0.0/editor-false",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "option-object",
+      "guide": "editor-false-is-honored-by-typed-and-checkbox-columns",
+      "match": {
+        "anyOf": [
+          { "property": "editor", "valueIs": false },
+          { "property": "editor", "valueIs": null }
+        ]
+      },
+      "message": "Check the columns this editor setting reaches. Handsontable 19.0 honors editor: false and editor: null in two more cases. A column type no longer brings back its editor, so a typed column under a grid-level editor: false is no longer editable. A checkbox cell with no editor renders a disabled checkbox that a click or the Space key cannot toggle. To keep a column editable, give it an editor of its own, such as editor: true, next to its type. To keep a checkbox from being toggled, use readOnly."
+    },
+    {
+      "id": "19.0.0/data-provider-row-id-dot",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js", "template"],
+      "requires": "hot-file",
+      "guide": "a-string-dataproviderrowid-reads-a-property-with-a-dot-in-its-name",
+      "match": { "property": "dataProvider.rowId", "valueMatches": "\\." },
+      "message": "Check this rowId, which has a dot in it. In 19.0 a property named exactly like the string wins, dots included, so 'meta.id' reads row['meta.id'] before it reads row.meta.id. A row without such a property still reads the nested one. To keep reading the nested value when a row has both, pass a function, such as (row) => row.meta?.id ?? null."
+    },
+    {
+      "id": "19.0.0/col-widths-null",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "colwidths-null-sizes-columns-like-undefined",
+      "match": { "property": "colWidths", "valueIs": null },
+      "message": "Set colWidths to 50 to keep fixed 50px columns. Handsontable 19.0 treats colWidths: null like undefined, so AutoColumnSize sizes the columns, where 18.1 drew every column at the default 50px width. Also check a modifyColWidth callback that compares the width with null: it now receives undefined for a column with no width."
+    },
+    {
+      "id": "19.0.0/clipboard-shortcut-keys",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "the-copy-cut-and-paste-shortcuts-are-registered-in-the-grid-context",
+      "match": {
+        "call": ["removeShortcutsByKeys", "getShortcuts", "hasShortcut"],
+        "argMatches": "^(?:c|x|v)$",
+        "flags": "i"
+      },
+      "message": "Remove your own entry with removeShortcutsByGroup() instead of by its keys. Handsontable 19.0 registers Ctrl/Cmd + C, X, and V in the grid shortcut context, in the gridClipboard group, so removeShortcutsByKeys() on one of them also removes that default entry and keyboard copy, cut, or paste stops working. For the same reason hasShortcut() returns true and getShortcuts() returns the default entry: skip it by its group. To turn keyboard copy, cut, or paste off on purpose, keep removeShortcutsByKeys()."
+    },
+    {
+      "id": "19.0.0/vue-handsontable-get-value-props",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["template"],
+      "requires": "hot-file",
+      "guide": "the-vue-3-wrapper-props-are-type-checked",
+      "match": { "property": ["handsontable", "getValue"] },
+      "message": "Check this handsontable or getValue prop. The Vue 3 wrapper of 19.0 passes both to the grid settings: handsontable on HotTable and HotColumn, getValue on HotTable. In 18.1 a handsontable prop on HotColumn never reached the column, and a handsontable or getValue prop on HotTable fell through as an attribute on the root div. Remove the prop if you relied on it being ignored. A getValue on HotColumn still has no effect."
+    },
+    {
+      "id": "19.0.0/loading-without-dialog",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "the-loading-plugin-needs-the-dialog-plugin-registered",
+      "match": { "pluginRegistration": "Loading", "withoutPlugin": "Dialog" },
+      "message": "Add the Dialog plugin next to Loading. Handsontable 19.0 throws when you create a grid with Loading registered and Dialog not, because Loading shows its overlay through Dialog. Call registerPlugin(Dialog) beside the call that registers Loading. registerAllModules() and the full handsontable package register both. Ignore this entry if another file registers Dialog."
+    },
+    {
+      "id": "19.0.0/row-heights-exact",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js", "template"],
+      "requires": "option-object",
+      "guide": "rowheights-sets-an-exact-row-height",
+      "match": { "property": "rowHeights" },
+      "message": "Check that the content of every row fits this rowHeights value. Handsontable 19.0 sets the exact height of a row: a value below the default row height is no longer raised, and content taller than the value is clipped. To keep rows that grow to fit their content, rename the option to minRowHeights, or turn on autoRowSize, where rowHeights stays a minimum."
+    },
+    {
+      "id": "19.0.0/merged-cells-collection-methods",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "four-mergedcellscollection-methods-are-deprecated",
+      "match": {
+        "call": ["getStartMostColumnIndex", "getEndMostColumnIndex", "getTopMostRowIndex", "getBottomMostRowIndex"]
+      },
+      "message": "Remove this call before 20.0 removes the method. Handsontable 19.0 deprecates the four MergedCellsCollection methods, because the selection steps over merged cells by itself. They still return what they did, and log a warning once. There is no replacement."
+    },
+    {
+      "id": "19.0.0/non-commercial-license-key",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js", "template"],
+      "requires": "none",
+      "guide": "the-non-commercial-and-evaluation-license-key-no-longer-works",
+      "precheck": "non-commercial-and-evaluation|ht68e-1f2b7-47158-70b05-0842f",
+      "match": {
+        "anyOf": [
+          {
+            "regex": "^\\s*(?:non-commercial-and-evaluation|ht68e-1f2b7-47158-70b05-0842f)\\s*$",
+            "in": "strings",
+            "flags": "i"
+          },
+          { "regex": "\\bNON_COMMERCIAL_LICENSE\\b" }
+        ]
+      },
+      "message": "Replace this license key with your own before you upgrade. Handsontable 19.0 reads the non-commercial-and-evaluation key, in any letter case, and the second key of the same kind as invalid, so a lock screen covers the grid. The Angular NON_COMMERCIAL_LICENSE constant holds the first key and is deprecated. Get a trial key to evaluate, apply for a sponsored license for non-commercial use, or buy a commercial license. The codemod never inserts or changes a license key."
+    },
+    {
+      "id": "19.0.0/sr-sp-language-code",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "match": {
+        "anyOf": [
+          { "property": "language", "valueMatches": "^sr-SP$", "flags": "i" },
+          { "import": "handsontable/i18n/languages/sr-SP" },
+          { "regex": "\\bsrSP\\b", "code": true }
+        ]
+      },
+      "message": "Replace the sr-SP language code with sr-Latn-RS. Handsontable 19.0 deprecates sr-SP, because IANA deprecated the SP region subtag, and 20.0 removes it. The phrases are the same. The new code is the sr-Latn-RS language file and the srLatnRS export, and you register and select it like any other language."
+    },
+    {
+      "id": "19.0.0/checked-menu-item-property",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "checked-is-a-reserved-context-menu-item-property",
+      "match": {
+        "allOf": [
+          { "property": "checked", "in": "menu-item" },
+          { "anyOf": [{ "property": "contextMenu" }, { "property": "dropdownMenu" }] }
+        ]
+      },
+      "message": "Check this checked property, which sits in a file that builds a context menu or a column menu. Handsontable 19.0 reads checked on every menu item: a boolean, 'mixed', or a function that returns either now draws a check mark or a dash before the label, and the item is announced as a checkbox. If the property is your own bookkeeping, rename it, for example to syncing. If you drew the mark inside name, use checked and drop that markup, or the item gets two marks."
+    },
+    {
+      "id": "19.0.0/dropdown-strict-false",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js", "template"],
+      "requires": "hot-file",
+      "guide": "a-dropdown-column-with-strict-false-validates-strictly",
+      "match": {
+        "allOf": [
+          { "property": "strict", "valueIs": false },
+          { "regex": "^dropdown$", "in": "strings" }
+        ]
+      },
+      "message": "Check whether a dropdown column with this strict: false expects values outside its source list to be valid. Handsontable 19.0 validates such a column strictly on every path, not only in cells the user clicked: a paste, setDataAtCell(), populateFromArray(), autofill, and validateCells() all mark a value outside the list invalid. To keep accepting custom values, use an autocomplete column with strict: false, or keep allowInvalid at true and accept the invalid mark."
+    },
+    {
+      "id": "19.0.0/data-schema-without-columns",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js", "template"],
+      "requires": "hot-file",
+      "guide": "a-dataschema-with-non-null-values-creates-a-column-for-each-value",
+      "match": { "missingOption": "columns", "whenAnyKey": ["dataSchema"] },
+      "message": "Check the column order of this grid, which sets dataSchema and no columns. Handsontable 19.0 creates a column property for every schema value except an array, a function, and a non-plain object, whatever its default, and the columns follow the key order of the schema. A setting or call that addresses a column by index, such as an array colHeaders, hiddenColumns, or getDataAtCol(), can now reach another column. Set columns and name each property, or use null for every value in the schema. Changing dataSchema later with updateSettings() resets the index state of the grid."
+    },
+    {
+      "id": "19.0.0/editor-set-value",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "a-custom-editors-setvalue-receives-the-cell-value",
+      "match": {
+        "regex": "extends\\s+(?:[\\w$]+\\.)*BaseEditor\\b|\\beditorFactory\\s*\\(|\\buseHotEditor\\b|\\bEditorComponent\\b|\\bHotCellEditorComponent\\b",
+        "code": true
+      },
+      "message": "Check the setValue() method of this custom editor. Handsontable 19.0 passes it the cell value as stored, where 18.1 passed a string: a number, an object, or null arrives as it is, and an array no longer turns into '1,2,3,4'. Turn the value into a string where the editor needs one, for example value == null ? '' : String(value). TextEditor and the editors that extend it still stringify inside setValue()."
+    },
+    {
+      "id": "19.0.0/after-render-engine-write",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "an-afterrender-hook-that-writes-to-the-engine-loops",
+      "match": {
+        "allOf": [
+          { "call": "setCellContents" },
+          { "hook": "afterRender" }
+        ]
+      },
+      "message": "Check that no afterRender hook calls this on every render. Handsontable 19.0 repaints the grids that use the HyperFormula engine after every engine write, so an afterRender hook that writes each time repaints until the call stack overflows. Write only when the value differs, for example when engine.getCellValue(address) is not the new value. Wrapping the write in engine.batch() does not stop the loop."
+    }
+  ]
+}

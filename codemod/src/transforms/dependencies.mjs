@@ -1,0 +1,827 @@
+import { attributeName, propertyName } from '../lib/ast.mjs';
+import { isRemoteSource, parseCatalogSpec, planRange, rangeAdmits } from '../lib/dependency-range.mjs';
+import { addFact, dirOf, factSite, hasFactFor } from '../lib/facts.mjs';
+import { memberPosition } from '../lib/json-edit.mjs';
+import { redact } from '../lib/redact.mjs';
+import { rewrites } from '../lib/safety.mjs';
+import { problemsOf } from '../lib/validate.mjs';
+import { BELOW_FROM_RULE_ID } from '../report.mjs';
+import { lineBelowFrom, minimumOfRange } from '../versions.mjs';
+
+/**
+ * The `package.json` sections that declare dependencies.
+ */
+const SECTIONS = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'];
+
+/**
+ * Sections a new dependency may go to, in order of preference.
+ */
+const ADD_SECTIONS = ['dependencies', 'devDependencies'];
+
+/**
+ * Cheap test for the phase 1 scan. It is a superset of every module name a fact rule can look for, so a file
+ * that imports `moment` without ever naming Handsontable is still parsed.
+ */
+const SCAN_PRECHECK = /handsontable|hyperformula|numbro|moment|dompurify|pikaday/i;
+
+/**
+ * An `npm:` alias spec: `npm:handsontable@^17.0.0` names the package and its range.
+ */
+const NPM_ALIAS = /^npm:((?:@[\w.-]+\/)?[\w.-]+)@(.+)$/;
+
+/**
+ * Tell whether a value is a plain object.
+ *
+ * @param {unknown} value Value to test.
+ * @returns {boolean} `true` for a non-null, non-array object.
+ */
+function isObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Tell whether an import path names a module or a file inside it.
+ *
+ * @param {unknown} path The path from an import, `require()`, or `import()`.
+ * @param {string} name Module name, for example `numbro`.
+ * @returns {boolean} `true` for `numbro` and `numbro/languages/de-DE`, not for `numbro-extra`.
+ */
+function isModulePath(path, name) {
+  return typeof path === 'string' && (path === name || path.startsWith(`${name}/`));
+}
+
+/**
+ * Tell whether a js file imports a module, by `import`, `export ... from`, `require()`, `import()`, or
+ * `import x = require()`.
+ *
+ * @param {object} j The jscodeshift API.
+ * @param {object} root The parsed file, a jscodeshift Collection.
+ * @param {string} name Module name.
+ * @returns {object|null} The first such statement in source order, or `null` when none names the module.
+ */
+function firstImport(j, root, name) {
+  const isRequire = callee => (callee.type === 'Identifier' && callee.name === 'require') || callee.type === 'Import';
+  const found = [];
+  const collect = (type, test) => Boolean(type) && root.find(type).forEach((path) => {
+    if (test(path.node)) {
+      found.push(path.node);
+    }
+  });
+
+  [j.ImportDeclaration, j.ExportNamedDeclaration, j.ExportAllDeclaration, j.ImportExpression]
+    .forEach(type => collect(type, node => isModulePath(node.source?.value, name)));
+  collect(j.CallExpression, node => isRequire(node.callee) && isModulePath(node.arguments[0]?.value, name));
+  collect(j.TSImportEqualsDeclaration, node => isModulePath(node.moduleReference?.expression?.value, name));
+
+  return earliest(found);
+}
+
+/**
+ * The node that comes first in the source.
+ *
+ * @param {object[]} nodes AST nodes.
+ * @returns {object|null} The node with the lowest start offset, or `null` for an empty list.
+ */
+function earliest(nodes) {
+  return nodes.reduce((first, node) => (first === null || (node.start ?? Infinity) < (first.start ?? Infinity)
+    ? node : first), null);
+}
+
+/**
+ * Name of an object property key or JSX attribute name, or `null` for a computed key.
+ *
+ * @param {object} node An `ObjectProperty`, `Property`, or `JSXAttribute` node.
+ * @returns {string|null} The name.
+ */
+function keyName(node) {
+  return node.type === 'JSXAttribute' ? attributeName(node) : propertyName(node);
+}
+
+/**
+ * Tell whether an object expression has a key.
+ *
+ * @param {object|undefined} node A node that may be an `ObjectExpression`.
+ * @param {string} key Key name.
+ * @returns {boolean} `true` when the node is an object with that key.
+ */
+function objectHasKey(node, key) {
+  return node?.type === 'ObjectExpression'
+    && node.properties.some(property => keyName(property) === key);
+}
+
+/**
+ * Tell whether a js file sets a property, as an object property or a JSX attribute.
+ *
+ * @param {object} j The jscodeshift API.
+ * @param {object} root The parsed file, a jscodeshift Collection.
+ * @param {string} name Property name.
+ * @param {string} [withKey] When set, the value must be an object that has this key.
+ * @returns {object|null} The first such property or attribute in source order, or `null` when there is none.
+ */
+function firstProperty(j, root, name, withKey) {
+  const valueOf = node => (node.type === 'JSXAttribute' ? node.value?.expression : node.value);
+  const found = [];
+
+  [j.ObjectProperty, j.Property, j.JSXAttribute].filter(Boolean).forEach(type => root.find(type).forEach((path) => {
+    if (keyName(path.node) === name && (withKey === undefined || objectHasKey(valueOf(path.node), withKey))) {
+      found.push(path.node);
+    }
+  }));
+
+  return earliest(found);
+}
+
+/**
+ * Test one `when` condition of a fact rule against a parsed js file. Pure: it reads the tree and nothing else.
+ *
+ * - `{ "import": "name" }`: the file imports the module `name` or a file inside it (`name/...`), through
+ *   `import`, `export ... from`, `require()`, `import()`, or `import x = require()`.
+ * - `{ "property": "name" }`: the file sets an object property or JSX attribute called `name`.
+ *   `{ "property": "name", "withKey": "key" }` also needs its value to be an object literal with that key.
+ *
+ * A condition with neither field never matches.
+ *
+ * @param {object} j The jscodeshift API bound to the file's parser.
+ * @param {object} root The parsed file, a jscodeshift Collection.
+ * @param {object} when The condition: `{ import }` or `{ property, withKey }`, all fields optional strings.
+ * @returns {boolean} `true` when the file matches.
+ */
+export function matchesWhen(j, root, when) {
+  return findWhen(j, root, when) !== null;
+}
+
+/**
+ * Find the first match of one `when` condition, as `matchesWhen` reads it.
+ *
+ * @param {object} j The jscodeshift API bound to the file's parser.
+ * @param {object} root The parsed file, a jscodeshift Collection.
+ * @param {object} when The condition: `{ import }` or `{ property, withKey }`.
+ * @returns {{line: number|undefined}|null} The line of the first match (`undefined` for a node with no position),
+ * or `null` when the file does not match.
+ */
+export function findWhen(j, root, when) {
+  let node = null;
+
+  if (typeof when?.import === 'string') {
+    node = firstImport(j, root, when.import);
+  } else if (typeof when?.property === 'string') {
+    node = firstProperty(j, root, when.property, when.withKey);
+  }
+
+  return node === null ? null : { line: node.loc?.start?.line };
+}
+
+/**
+ * Phase 1: evaluate the `facts` of every rule against one js part and record the ones that match. A `property`
+ * condition counts only in a file that names Handsontable, because `formulas` and `engine` are common words.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of a js part.
+ * @param {import('../types.mjs').Rule[]} rules The module's rules for one version.
+ * @returns {void}
+ */
+function collectFacts(ctx, rules) {
+  const mentionsHandsontable = /handsontable/i.test(ctx.source);
+  const dir = dirOf(ctx.filePath);
+
+  for (const rule of rules) {
+    for (const fact of Array.isArray(rule.facts) ? rule.facts : []) {
+      const needsMention = typeof fact.when?.property === 'string';
+
+      if (ctx.facts.has(`${fact.name}@${dir}`) || (needsMention && !mentionsHandsontable)) {
+        continue;
+      }
+
+      const found = findWhen(ctx.j, ctx.root, fact.when);
+
+      if (found) {
+        addFact(ctx, fact.name, found.line);
+      }
+    }
+  }
+}
+
+/**
+ * List the names a `package.json` declares in one section.
+ *
+ * @param {object} manifest The parsed `package.json`.
+ * @param {string} section Section name.
+ * @returns {object} The section, or an empty object when it is missing or not an object.
+ */
+function sectionOf(manifest, section) {
+  return isObject(manifest[section]) ? manifest[section] : {};
+}
+
+/**
+ * Tell whether any dependency section declares a package.
+ *
+ * @param {object} manifest The parsed `package.json`.
+ * @param {string} name Package name.
+ * @returns {boolean} `true` when a section lists it.
+ */
+function declares(manifest, name) {
+  return SECTIONS.some(section => name in sectionOf(manifest, section));
+}
+
+/**
+ * Tell whether the `package.json` declares at least one package of a list.
+ *
+ * @param {object} manifest The parsed `package.json`.
+ * @param {string|string[]|undefined} names One name or several. Absent means no condition.
+ * @returns {boolean} `true` when no condition is set or one of the names is declared.
+ */
+function dependsOnAny(manifest, names) {
+  const list = [names].flat().filter(Boolean);
+
+  return list.length === 0 || list.some(name => declares(manifest, name));
+}
+
+/**
+ * The range each `package.json` entry had before the run changed it, so a chain of migrations (17 to 18.0 to 18.1)
+ * reports the net change once, from the range the user wrote.
+ *
+ * @type {WeakMap<object, Map<string, string>>}
+ */
+const writtenRanges = new WeakMap();
+
+/**
+ * Write a new range into a `package.json` entry. The text is edited by offset when the file has a `JsonDocument`,
+ * so nothing outside the value changes. A scan that disagrees with the parsed file edits nothing.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {string} section Section name.
+ * @param {string} name Package name.
+ * @param {string} value The new range.
+ * @returns {boolean} `true` when the range was written.
+ */
+function setRange(ctx, section, name, value) {
+  if (ctx.json) {
+    return ctx.json.setString(section, name, value);
+  }
+
+  ctx.root[section][name] = value;
+
+  return true;
+}
+
+/**
+ * The packages of one `package.json` that were left alone because their range is below `--from`, in the order the
+ * run found them. Two migration steps that find the same package list it once.
+ *
+ * @type {WeakMap<object, Array<{name: string, range: string, line: string}>>}
+ */
+const belowFrom = new WeakMap();
+
+/**
+ * Report that a package declares a range below `--from`. The tool does not raise it: the steps that lead from that
+ * version were not selected, so a raised range would claim a migration that did not happen. One entry per
+ * `package.json` lists every such package, and a later step replaces it with the same, longer list.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {{name: string, range: string, line: string}} found The package, its range, and the line of the range.
+ * @returns {void}
+ */
+function reportBelowFrom(ctx, found) {
+  const list = belowFrom.get(ctx.root) ?? [];
+
+  belowFrom.set(ctx.root, list);
+
+  if (!list.some(item => item.name === found.name && item.range === found.range)) {
+    list.push(found);
+  }
+
+  const lowest = list.map(item => item.line).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))[0];
+  const declared = list.map(item => `${item.name} ${redact(item.range)}`).join(' and ');
+
+  ctx.report({
+    ruleId: BELOW_FROM_RULE_ID,
+    severity: 'warning',
+    mergeKey: 'below-from',
+    message: `${ctx.filePath} declares ${declared}, which ${list.length === 1 ? 'is' : 'are'} below --from `
+      + `${ctx.fromText}. It was not changed. Run the tool on that package with --from ${lowest}.`,
+  });
+}
+
+/**
+ * Tell the user that a raised peer range drops the older line for the consumers of this package. The raise stays
+ * (the code was migrated to the new API), but a library that still supports older versions has to widen it.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule The `dependency` rule that raised the range.
+ * @param {{name: string, original: string, value: string}} change The package, the range the user wrote, and the
+ * new range.
+ * @returns {void}
+ */
+function reportPeerRaised(ctx, rule, { name, original, value }) {
+  const minimum = minimumOfRange(original);
+  const dropped = minimum ? `${minimum.split('.')[0]}.x` : 'the older versions';
+
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    mergeKey: `peer:${name}`,
+    message: `Raised the peer range of ${name} to ${value}. This drops ${dropped} for consumers of this package. `
+      + 'Widen it by hand if you still support older versions.',
+  });
+}
+
+/**
+ * Report a dependency that takes its range from a pnpm catalog. The range lives in `pnpm-workspace.yaml`, so the
+ * entry says to set it there: replacing the spec in `package.json` would take the package out of the catalog. The
+ * tool edits neither file. When the workspace file is found and has an entry, the report names its current value. An
+ * entry that already admits the target, sits above it, or is a source (a path, a link) gets no report.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A `dependency` rule with a `bump` map.
+ * @param {object} found What was found.
+ * @param {string} found.name The package name.
+ * @param {string} found.section The `package.json` section that holds the spec.
+ * @param {string} found.spec The spec as written (`catalog:` or `catalog:<name>`).
+ * @param {string} found.target The target version.
+ * @param {{name: string|null}} found.catalog The catalog the spec names, `null` for the default one.
+ * @param {string} found.mergeKey Merge key of the spot.
+ * @returns {void}
+ */
+function reportCatalog(ctx, rule, { name, section, spec, target, catalog, mergeKey }) {
+  const place = catalog.name ? `catalogs.${catalog.name}` : 'catalog';
+  const range = ctx.catalog?.catalogs.get(catalog.name ?? '')?.get(name);
+  const file = ctx.catalog?.file ?? 'pnpm-workspace.yaml';
+  const lead = `${name} "${redact(spec)}" in ${section} takes its range from the pnpm catalog.`;
+
+  if (range && (['keep', 'skip'].includes(planRange(range, target).action) || rangeAdmits(range, target) === true)) {
+    return;
+  }
+
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    mergeKey,
+    message: range
+      ? `${lead} The ${place} section of ${file} has "${redact(range)}". `
+        + `Set it to ^${target} there, not in package.json.`
+      : `${lead} Set it to ^${target} in the ${place} section of ${file}, not in package.json.`,
+  });
+}
+
+/**
+ * Raise the range of every listed package that the `package.json` declares, keeping the operator style. A compound
+ * or open range that already allows the target version (`>=17.1.0 <19`, `*`) is left alone and not reported, and so
+ * is a range that starts at or above it. A simple caret, tilde, or exact range below the target is raised even when
+ * it admits the target (`^18.0.0` becomes `^18.1.0`). Two migration steps that touch the same entry produce one
+ * report entry that states the net change.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A rule with a `bump` map of package name to target version.
+ * @returns {void}
+ */
+function bump(ctx, rule) {
+  const written = writtenRanges.get(ctx.root) ?? new Map();
+
+  writtenRanges.set(ctx.root, written);
+
+  for (const [name, target] of Object.entries(isObject(rule.bump) ? rule.bump : {})) {
+    for (const section of SECTIONS) {
+      const current = sectionOf(ctx.root, section)[name];
+
+      if (typeof current !== 'string') {
+        continue;
+      }
+
+      const key = `${section}:${name}`;
+      const original = written.get(key) ?? current;
+      const mergeKey = `range:${key}`;
+      const catalog = parseCatalogSpec(current);
+
+      if (catalog) {
+        reportCatalog(ctx, rule, { name, section, spec: current, target, catalog, mergeKey });
+        continue;
+      }
+
+      const plan = planRange(current, target);
+      const line = plan.action === 'rewrite' || plan.action === 'manual' ? lineBelowFrom(current, ctx.fromText) : null;
+
+      if (line) {
+        reportBelowFrom(ctx, { name, range: current, line });
+        continue;
+      }
+
+      if (plan.action === 'rewrite' && !rewrites(rule)) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          mergeKey,
+          message: `Update ${name} in ${section} from "${redact(original)}" to "${plan.value}".`,
+        });
+      } else if (plan.action === 'rewrite' && !setRange(ctx, section, name, plan.value)) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          mergeKey,
+          message: `Could not edit ${name} in ${section} without reformatting package.json. `
+            + `Set it from "${redact(original)}" to "${plan.value}" by hand.`,
+        });
+      } else if (plan.action === 'rewrite') {
+        written.set(key, original);
+        ctx.markChanged();
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'changed',
+          mergeKey,
+          message: `Updated ${name} in ${section} from "${redact(original)}" to "${plan.value}".`,
+        });
+
+        if (section === 'peerDependencies') {
+          reportPeerRaised(ctx, rule, { name, original, value: plan.value });
+        }
+      } else if (plan.action === 'manual') {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          mergeKey,
+          message: `${name} "${redact(current)}" in ${section} ${plan.reason}. Set it to ^${target} by hand.`,
+        });
+      } else if (plan.action === 'skip' && isRemoteSource(current)) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          mergeKey,
+          message: `${name} "${redact(current)}" in ${section} installs from a repository or a URL, so the tool `
+            + `cannot tell its version. Point it at ${target} by hand.`,
+        });
+      }
+    }
+  }
+}
+
+/**
+ * The package a `overrides`, `resolutions`, or `pnpm.overrides` key names, when it is Handsontable or a wrapper:
+ * `handsontable`, `handsontable@^17`, `**\/handsontable`, `some-lib>handsontable`, `@handsontable/vue3`.
+ *
+ * @param {string} key The key as written.
+ * @param {string[]} names The package names the rule bumps.
+ * @returns {string|null} The package name, or `null` for any other key.
+ */
+function overriddenPackage(key, names) {
+  const last = key.split('>').pop().replace(/^(?:\*\*\/)+/, '');
+
+  return names.find(name => last === name || last.startsWith(`${name}@`)
+    || last.endsWith(`/${name}`) || last.includes(`/${name}@`)) ?? null;
+}
+
+/**
+ * Report the pins that hold a package below the target version: an entry of `overrides`, `resolutions`, or
+ * `pnpm.overrides` that names Handsontable or a wrapper, and an `npm:` alias to one of them under another name.
+ * The tool never edits them: each is one `manual` entry, and two migration steps report it once.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A rule with a `bump` map of package name to target version.
+ * @returns {void}
+ */
+function reportPins(ctx, rule) {
+  const bumps = isObject(rule.bump) ? rule.bump : {};
+  const names = Object.keys(bumps);
+
+  if (names.length === 0) {
+    return;
+  }
+
+  const below = (spec, name) => {
+    if (typeof spec !== 'string' || spec.startsWith('$') || planRange(spec, bumps[name]).action === 'skip') {
+      return false;
+    }
+
+    const alias = NPM_ALIAS.exec(spec.trim());
+
+    return rangeAdmits(alias ? alias[2] : spec, bumps[name]) !== true;
+  };
+  const visit = (label, key, value, inherited = null) => {
+    const name = inherited ?? overriddenPackage(key, names);
+
+    if (isObject(value)) {
+      Object.entries(value).forEach(([childKey, child]) => {
+        visit(`${label}.${childKey}`, childKey, child, childKey === '.' ? name : null);
+      });
+
+      return;
+    }
+
+    if (name && below(value, name)) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        mergeKey: `pin:${label}`,
+        message: `${label} pins ${name} to "${redact(value)}", which does not allow ${bumps[name]}. `
+          + `Update or remove it by hand. The tool does not edit ${label.replace(/\[.*$/s, '')}.`,
+      });
+    }
+  };
+  const containers = [
+    ['overrides', ctx.root.overrides],
+    ['resolutions', ctx.root.resolutions],
+    ['pnpm.overrides', isObject(ctx.root.pnpm) ? ctx.root.pnpm.overrides : undefined],
+  ];
+
+  containers.filter(([, value]) => isObject(value)).forEach(([label, value]) => {
+    Object.entries(value).forEach(([key, child]) => visit(`${label}["${key}"]`, key, child));
+  });
+
+  for (const section of SECTIONS) {
+    for (const [key, spec] of Object.entries(sectionOf(ctx.root, section))) {
+      const alias = typeof spec === 'string' ? NPM_ALIAS.exec(spec.trim()) : null;
+
+      // A package that is its own alias is reported by the range bump.
+      if (alias && names.includes(alias[1]) && alias[1] !== key && below(spec, alias[1])) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          mergeKey: `alias:${section}:${key}`,
+          message: `${key} in ${section} is an alias of ${alias[1]}@${redact(alias[2])}, which does not allow `
+            + `${bumps[alias[1]]}. Update it by hand.`,
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Report script and stylesheet URLs of an HTML page that pin Handsontable or a wrapper to a version below the target:
+ * `.../npm/handsontable@17.1.0/...`, `unpkg.com/handsontable@17/...`, `.../ajax/libs/handsontable/17.1.0/...`. The
+ * page is never edited, so each one is a `manual` entry with its line, and two migration steps report it once.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of a `template` part of an HTML file.
+ * @param {import('../types.mjs').Rule} rule A rule with a `bump` map of package name to target version.
+ * @returns {void}
+ */
+function reportCdnPins(ctx, rule) {
+  const bumps = isObject(rule.bump) ? rule.bump : {};
+
+  for (const attribute of ctx.source.matchAll(/\b(?:src|href)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi)) {
+    const url = attribute[1] ?? attribute[2];
+    const line = ctx.source.slice(0, attribute.index).split('\n').length;
+
+    for (const [name, target] of Object.entries(bumps)) {
+      const escaped = name.replace(/[.*+?^${}()|[\]\\/]/g, match => `\\${match}`);
+      const pinned = new RegExp(`(?:[/]|^)${escaped}@([0-9][^/?#]*)`).exec(url)
+        ?? new RegExp(`/${escaped}/([0-9]+\\.[0-9]+\\.[0-9]+[^/?#]*)/`).exec(url);
+
+      if (pinned && rangeAdmits(pinned[1], target) !== true) {
+        const below = lineBelowFrom(pinned[1], ctx.fromText)
+          ? ` This URL is below --from ${ctx.fromText}, so the earlier steps were not checked for this page. `
+            + 'Follow the earlier migration guides for it.'
+          : '';
+
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          line,
+          mergeKey: `cdn:${line}:${name}`,
+          message: `${name} ${pinned[1]} is loaded from a URL here, which does not allow ${target}. `
+            + `The tool does not edit HTML pages. Update the URL by hand.${below}`,
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Report packages that have no release for the target version and name the package that replaces them.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A rule with a `replaced` map of old package to advice text.
+ * @returns {void}
+ */
+function reportReplaced(ctx, rule) {
+  for (const [name, advice] of Object.entries(isObject(rule.replaced) ? rule.replaced : {})) {
+    if (declares(ctx.root, name)) {
+      ctx.report({ ruleId: rule.id, severity: 'manual', message: `${name} ${advice}` });
+    }
+  }
+}
+
+/**
+ * Add a dependency to a section. Keys stay in alphabetical order when they already were, and the new key goes last
+ * otherwise. A missing section is created before `devDependencies`, or last. The text is edited by offset (see
+ * `JsonDocument`), so the only new bytes are the new line.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {string} section Section name.
+ * @param {string} name Package name.
+ * @param {string} range Version range.
+ * @returns {boolean} `true` when the dependency was added. `false` edits nothing: the scan of the text and the
+ * parsed file disagree.
+ */
+function addMember(ctx, section, name, range) {
+  if (!ctx.json) {
+    const manifest = ctx.root;
+
+    if (!isObject(manifest[section])) {
+      manifest[section] = {};
+    }
+
+    const keys = Object.keys(manifest[section]);
+    const entries = Object.entries(manifest[section]);
+
+    entries.splice(memberPosition(keys, name), 0, [name, range]);
+    Object.keys(manifest[section]).forEach(key => delete manifest[section][key]);
+    entries.forEach(([key, value]) => {
+      manifest[section][key] = value;
+    });
+
+    return true;
+  }
+
+  return ctx.json.addMember(section, name, range);
+}
+
+/**
+ * Add the packages a rule asks for when their fact is present for this project, the project depends on the
+ * host package, and the package is not declared yet. A package that has no section to go to (the host is only
+ * a peer dependency) is reported instead.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A rule with an `add` list of `{ name, range, whenFact, onlyIfDependsOn }`.
+ * @returns {void}
+ */
+function addPackages(ctx, rule) {
+  for (const item of Array.isArray(rule.add) ? rule.add : []) {
+    if (declares(ctx.root, item.name) || !dependsOnAny(ctx.root, item.onlyIfDependsOn)
+      || (item.whenFact && !hasFactFor(ctx, item.whenFact))) {
+      continue;
+    }
+
+    const hosts = [item.onlyIfDependsOn].flat().filter(Boolean);
+    const section = ADD_SECTIONS.find(candidate => hosts.some(host => host in sectionOf(ctx.root, candidate)))
+      ?? (hosts.some(host => host in sectionOf(ctx.root, 'optionalDependencies')) ? 'dependencies' : null);
+
+    if (!section) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        message: `Add ${item.name}@${item.range} to your own dependencies. This package.json lists Handsontable `
+          + 'only as a peer dependency.',
+      });
+      continue;
+    }
+
+    if (!rewrites(rule)) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        message: `Add ${item.name}@${item.range} to ${section}. Handsontable no longer installs it.`,
+      });
+      continue;
+    }
+
+    if (!addMember(ctx, section, item.name, item.range)) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        message: `Could not add ${item.name} to ${section} without reformatting package.json. Add `
+          + `${item.name}@${item.range} by hand. Handsontable no longer installs it.`,
+      });
+      continue;
+    }
+
+    ctx.markChanged();
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'changed',
+      message: `Added ${item.name} "${item.range}" to ${section}. Handsontable no longer installs it.`,
+    });
+  }
+}
+
+/**
+ * Report packages the `package.json` does declare, for a rule that says a declared package needs a decision (a
+ * deprecated package, say). With `whenFact`, only when phase 1 found that fact for this project. Nothing is edited.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A rule with a `reportPresent` list of
+ * `{ name, message, whenFact?, onlyIfDependsOn? }`.
+ * @returns {void}
+ */
+function reportPresent(ctx, rule) {
+  for (const item of Array.isArray(rule.reportPresent) ? rule.reportPresent : []) {
+    if (!declares(ctx.root, item.name) || !dependsOnAny(ctx.root, item.onlyIfDependsOn)
+      || (item.whenFact && !hasFactFor(ctx, item.whenFact))) {
+      continue;
+    }
+
+    ctx.report({ ruleId: rule.id, severity: 'manual', message: item.message });
+  }
+}
+
+/**
+ * Check the items of a rule's `add`, `reportMissing`, and `reportPresent` lists.
+ *
+ * @param {import('../types.mjs').Rule} rule A `dependency` rule.
+ * @returns {void}
+ * @throws {Error} When an item has no `name`, an `add` item no `range`, or a `reportPresent` item no `message`.
+ */
+function assertItems(rule) {
+  const needs = { add: ['name', 'range'], reportMissing: ['name'], reportPresent: ['name', 'message'] };
+
+  for (const [list, fields] of Object.entries(needs)) {
+    (Array.isArray(rule[list]) ? rule[list] : []).forEach((item, index) => {
+      for (const field of fields) {
+        if (typeof item?.[field] !== 'string' || item[field] === '') {
+          throw new Error(`Rule ${rule.id}: "${list}[${index}].${field}" must be a string.`);
+        }
+      }
+    });
+  }
+
+  if ('reportOnly' in rule) {
+    throw new Error(`Rule ${rule.id}: "reportOnly" is now "reportMissing".`);
+  }
+}
+
+/**
+ * Report packages Handsontable used to install and no longer does, when the project imports them and does not
+ * declare them. Nothing is added.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {import('../types.mjs').Rule} rule A rule with a `reportMissing` list of
+ * `{ name, whenFact?, onlyIfDependsOn?, message? }`.
+ * @returns {void}
+ */
+function reportMissing(ctx, rule) {
+  for (const item of Array.isArray(rule.reportMissing) ? rule.reportMissing : []) {
+    if (declares(ctx.root, item.name) || !dependsOnAny(ctx.root, item.onlyIfDependsOn)
+      || (item.whenFact && !hasFactFor(ctx, item.whenFact))) {
+      continue;
+    }
+
+    const site = item.whenFact ? factSite(ctx, item.whenFact) : null;
+    const where = site ? `${site} imports it` : 'Your code imports it';
+    const version = item.range
+      ? ` Handsontable 17.1.0 shipped ${item.name} ${item.range}, so that range is a safe start.` : '';
+
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      message: item.message
+        ?? `Add ${item.name} to your dependencies. ${where}, and Handsontable no longer installs it.${version}`
+        + ' The tool never adds it.',
+    });
+  }
+}
+
+/**
+ * Handles `dependency` rules. In phase 2 it edits a `package.json`: it raises the Handsontable package
+ * ranges, reports replaced wrapper packages, adds packages that a project now has to install itself, and
+ * reports the ones it will not add. In phase 1 it scans js parts for the facts those steps read.
+ *
+ * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
+ * when the rule asks for one (see `lib/safety.mjs`).
+ *
+ * @type {import('../types.mjs').Transform}
+ */
+const dependencies = {
+  kinds: ['dependency'],
+  fileKinds: ['json', 'js', 'template'],
+  scan: { fileKinds: ['js', 'template'], precheck: SCAN_PRECHECK },
+
+  /**
+   * @param {import('../types.mjs').Rule} rule A `dependency` rule.
+   * @returns {string[]} The problems of the rule.
+   */
+  validate(rule) {
+    return problemsOf(() => assertItems(rule));
+  },
+
+  /**
+   * @param {import('../types.mjs').Ctx} ctx The transform context.
+   * @param {import('../types.mjs').Rule[]} rules The module's rules for one version.
+   * @returns {void}
+   */
+  apply(ctx, rules) {
+    if (ctx.fileKind === 'js') {
+      collectFacts(ctx, rules);
+
+      return;
+    }
+
+    if (ctx.fileKind === 'template') {
+      if (/\.html?$/i.test(ctx.filePath)) {
+        rules.forEach(rule => reportCdnPins(ctx, rule));
+      }
+
+      return;
+    }
+
+    if (!isObject(ctx.root)) {
+      return;
+    }
+
+    for (const rule of rules) {
+      bump(ctx, rule);
+      reportPins(ctx, rule);
+      reportReplaced(ctx, rule);
+      addPackages(ctx, rule);
+      reportMissing(ctx, rule);
+      reportPresent(ctx, rule);
+    }
+  },
+};
+
+export default dependencies;

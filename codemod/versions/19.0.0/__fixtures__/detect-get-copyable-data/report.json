@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/get-copyable-data",
+      "severity": "manual",
+      "line": 5
+    }
+  ]
+}

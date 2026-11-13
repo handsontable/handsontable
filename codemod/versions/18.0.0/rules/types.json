@@ -1,0 +1,770 @@
+{
+  "rules": [
+    {
+      "id": "18.0.0/type-columnsorting-config",
+      "kind": "exportRename",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": true,
+      "source": "handsontable/plugins/columnSorting",
+      "from": "Config",
+      "to": "ColumnSortingConfig",
+      "note": "ColumnSortingConfig accepts `sortOrder: 'none'` besides 'asc' and 'desc'. Code that narrows `sortOrder` to two values needs a third branch."
+    },
+    {
+      "id": "18.0.0/type-multicolumnsorting-config",
+      "kind": "exportRename",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": true,
+      "source": "handsontable/plugins/multiColumnSorting",
+      "from": "Config",
+      "to": "ColumnSortingConfig",
+      "toSource": "handsontable/plugins/columnSorting",
+      "note": "ColumnSortingConfig accepts `sortOrder: 'none'` besides 'asc' and 'desc', so code that narrows `sortOrder` to two values needs a third branch."
+    },
+    {
+      "id": "18.0.0/type-multicolumnsorting-columnsorting",
+      "kind": "exportRename",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": true,
+      "source": "handsontable/plugins/multiColumnSorting",
+      "from": "ColumnSorting",
+      "to": "ColumnSorting",
+      "toSource": "handsontable/plugins/columnSorting"
+    },
+    {
+      "id": "18.0.0/type-columnsummary-endpoint",
+      "kind": "exportRename",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": true,
+      "source": "handsontable/plugins/columnSummary",
+      "from": "Endpoint",
+      "to": "SummaryEndpoint",
+      "note": "SummaryEndpoint makes every field optional, types `type` as a string and `result` as `number | string`, and adds an index signature, so code that reads a field as a number or a literal union needs a check."
+    },
+    {
+      "id": "18.0.0/type-columnsummary-detailedsettings",
+      "kind": "exportRename",
+      "safe": true,
+      "guide": "replace-detailedsettings",
+      "source": "handsontable/plugins/columnSummary",
+      "from": "DetailedSettings",
+      "to": "SummaryEndpoint",
+      "note": "SummaryEndpoint has an index signature and optional fields, so TypeScript no longer checks the option names or that `type`, `destinationRow`, and `destinationColumn` are set."
+    },
+    {
+      "id": "18.0.0/type-undoredo-action",
+      "kind": "exportRename",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": true,
+      "source": "handsontable/plugins/undoRedo",
+      "from": "Action",
+      "to": "UndoRedoAction",
+      "note": "UndoRedoAction is `{ actionType: string; [key: string]: unknown }` and replaces the union of the 11 action interfaces, so narrowing on `actionType` no longer types the other fields."
+    },
+    {
+      "id": "18.0.0/type-customborders-borderoptions",
+      "kind": "exportRename",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": true,
+      "source": "handsontable/plugins/customBorders",
+      "from": "BorderOptions",
+      "to": "BorderSettings",
+      "note": "BorderSettings has an index signature and no named `style` field (it reads as `unknown`), and it adds `cornerVisible` and `className` besides `width`, `color`, and `hide`."
+    },
+    {
+      "id": "18.0.0/type-nestedheaders-detailedsettings",
+      "kind": "exportRename",
+      "guide": "replace-detailedsettings",
+      "safe": true,
+      "source": "handsontable/plugins/nestedHeaders",
+      "from": "DetailedSettings",
+      "to": "NestedHeaderSettings",
+      "note": "NestedHeaderSettings makes `label` optional and adds an index signature."
+    },
+    {
+      "id": "18.0.0/type-exportfile-settings",
+      "kind": "exportRename",
+      "safe": true,
+      "source": "handsontable/plugins/exportFile",
+      "from": "Settings",
+      "to": "ExportFileSettings",
+      "reason": "Settings is deprecated in 18.0 and removed in 19.0."
+    },
+    {
+      "id": "18.0.0/type-dataprovider-options",
+      "kind": "exportRename",
+      "safe": true,
+      "source": "handsontable/plugins/dataProvider",
+      "from": "DataProviderOptions",
+      "to": "DataProviderFetchOptions"
+    },
+    {
+      "id": "18.0.0/type-filters-operationtype",
+      "kind": "exportRename",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": true,
+      "source": "handsontable/plugins/filters",
+      "from": "_OperationType",
+      "to": "OperationType"
+    },
+    {
+      "id": "18.0.0/type-copypaste-rangetype",
+      "kind": "exportRename",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": true,
+      "source": "handsontable/plugins/copyPaste",
+      "from": "RangeType",
+      "to": "RangeType",
+      "toSource": ["handsontable", "handsontable/base"]
+    },
+    {
+      "id": "18.0.0/type-i18n-arar",
+      "kind": "exportRename",
+      "safe": true,
+      "source": ["handsontable/i18n", "handsontable/i18n/languages"],
+      "from": "arAr",
+      "to": "arAR"
+    },
+
+    {
+      "id": "18.0.0/type-plugin-settings",
+      "kind": "exportRemoved",
+      "guide": "replace-settings",
+      "safe": false,
+      "source": "handsontable/plugins/*",
+      "except": [
+        "handsontable/plugins/exportFile",
+        "handsontable/plugins/dataProvider",
+        "handsontable/plugins/nestedHeaders",
+        "handsontable/plugins/multipleSelectionHandles",
+        "handsontable/plugins/notification",
+        "handsontable/plugins/touchScroll"
+      ],
+      "name": "Settings",
+      "optionKeys": {
+        "autofill": "fillHandle",
+        "undoRedo": "undo",
+        "stretchColumns": "stretchH"
+      },
+      "advice": "Use `GridSettings['{optionKey}']` (import type { GridSettings } from 'handsontable'). The option is typed loosely in 18.0, often `boolean | object`."
+    },
+    {
+      "id": "18.0.0/type-boolean-settings",
+      "kind": "exportRemoved",
+      "safe": false,
+      "guide": "replace-settings",
+      "source": ["handsontable/plugins/multipleSelectionHandles", "handsontable/plugins/touchScroll"],
+      "name": "Settings",
+      "advice": "Use `boolean`. `GridSettings` has no typed key for the {plugin} option in 18.0."
+    },
+    {
+      "id": "18.0.0/type-notification-settings",
+      "kind": "exportRemoved",
+      "safe": false,
+      "guide": "replace-settings",
+      "source": "handsontable/plugins/notification",
+      "name": "Settings",
+      "advice": "Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification'). `GridSettings` has no typed key for the notification option in 18.0."
+    },
+    {
+      "id": "18.0.0/type-nestedheaders-settings",
+      "kind": "exportRemoved",
+      "guide": "replace-settings",
+      "safe": false,
+      "source": "handsontable/plugins/nestedHeaders",
+      "name": "Settings",
+      "advice": "Use `NestedHeader[][]` (import type { NestedHeader } from 'handsontable/plugins/nestedHeaders'), or `GridSettings['nestedHeaders']`."
+    },
+    {
+      "id": "18.0.0/type-dataprovider-settings",
+      "kind": "exportRemoved",
+      "guide": "replace-settings",
+      "safe": false,
+      "source": "handsontable/plugins/dataProvider",
+      "name": "Settings",
+      "advice": "Use `DataProviderConfig | undefined` (import type { DataProviderConfig } from 'handsontable/plugins/dataProvider'), or `GridSettings['dataProvider']`."
+    },
+    {
+      "id": "18.0.0/type-contextmenu-detailedsettings",
+      "kind": "exportRemoved",
+      "safe": false,
+      "guide": "replace-detailedsettings",
+      "source": "handsontable/plugins/contextMenu",
+      "name": "DetailedSettings",
+      "advice": "Remove the annotation and type the callback parameters yourself. To type one menu item, use `MenuItemConfig` from 'handsontable/plugins/contextMenu'."
+    },
+    {
+      "id": "18.0.0/type-formulas-detailedsettings",
+      "kind": "exportRemoved",
+      "safe": false,
+      "guide": "replace-detailedsettings",
+      "source": "handsontable/plugins/formulas",
+      "name": "DetailedSettings",
+      "advice": "Remove the type and the `as DetailedSettings` cast. The `formulas` option accepts the object as it is. To keep an annotation, use `GridSettings['formulas']`."
+    },
+    {
+      "id": "18.0.0/type-plugin-detailedsettings",
+      "kind": "exportRemoved",
+      "guide": "replace-detailedsettings",
+      "safe": false,
+      "source": [
+        "handsontable/plugins/autoColumnSize",
+        "handsontable/plugins/autoRowSize",
+        "handsontable/plugins/autofill",
+        "handsontable/plugins/collapsibleColumns",
+        "handsontable/plugins/columnSorting",
+        "handsontable/plugins/comments",
+        "handsontable/plugins/copyPaste",
+        "handsontable/plugins/customBorders",
+        "handsontable/plugins/dropdownMenu",
+        "handsontable/plugins/hiddenColumns",
+        "handsontable/plugins/hiddenRows",
+        "handsontable/plugins/mergeCells",
+        "handsontable/plugins/multiColumnSorting",
+        "handsontable/plugins/pagination",
+        "handsontable/plugins/search"
+      ],
+      "name": "DetailedSettings",
+      "optionKeys": { "autofill": "fillHandle" },
+      "advice": "Use `Exclude<NonNullable<GridSettings['{optionKey}']>, boolean>`. Import GridSettings from 'handsontable'. For an option typed as an array, such as collapsibleColumns or customBorders, add `[number]` to get one item. The result is a loose `object` in 18.0, so TypeScript no longer checks the shape."
+    },
+    {
+      "id": "18.0.0/type-sortordertype",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": ["handsontable/plugins/columnSorting", "handsontable/plugins/multiColumnSorting"],
+      "name": "SortOrderType",
+      "advice": "Use `Exclude<ColumnSortingConfig['sortOrder'], 'none'>`. Import ColumnSortingConfig from 'handsontable/plugins/columnSorting'. Its `sortOrder` also allows 'none', which SortOrderType did not."
+    },
+    {
+      "id": "18.0.0/type-autofill-direction",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/autofill",
+      "name": "Direction",
+      "advice": "Use the inline union `'vertical' | 'horizontal'`."
+    },
+    {
+      "id": "18.0.0/type-columnsummary-endpoints",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/columnSummary",
+      "name": "Endpoints",
+      "advice": "Read the endpoints from the plugin instance (`hot.getPlugin('columnSummary').endpoints`) and let TypeScript infer the type. 18.0 removed this type with no replacement."
+    },
+    {
+      "id": "18.0.0/type-comments-config",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/comments",
+      "name": ["CommentConfig", "CommentsRangeObject"],
+      "advice": "Use `GridSettings['comments']`, or describe the object inline. 18.0 removed this type with no replacement. `CommentObject` is still exported."
+    },
+    {
+      "id": "18.0.0/type-contextmenu-menuconfig",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/contextMenu",
+      "name": "MenuConfig",
+      "advice": "Use `Record<string, MenuItemConfig | PredefinedMenuItemKey>`. Both types are exported from 'handsontable/plugins/contextMenu'."
+    },
+    {
+      "id": "18.0.0/type-contextmenu-submenu",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/contextMenu",
+      "name": ["SubmenuConfig", "SubmenuItemConfig"],
+      "advice": "Use `MenuItemConfig` from 'handsontable/plugins/contextMenu'. A submenu is `{ items: MenuItemConfig[] }`, and a submenu item key is 'parent_key:sub_key'."
+    },
+    {
+      "id": "18.0.0/type-contextmenu-selection",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/contextMenu",
+      "name": "Selection",
+      "advice": "Use the inline type `{ start: CellCoords; end: CellCoords }` (import type { CellCoords } from 'handsontable')."
+    },
+    {
+      "id": "18.0.0/type-menu-separatorobject",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": ["handsontable/plugins/contextMenu", "handsontable/plugins/dropdownMenu"],
+      "name": "SeparatorObject",
+      "advice": "Use the inline type `{ name: string }`."
+    },
+    {
+      "id": "18.0.0/type-customborders-shapes",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/customBorders",
+      "name": ["BorderRange", "BorderDescriptor", "ComputedBorder"],
+      "advice": "Describe the object inline, using `BorderSettings` from 'handsontable/plugins/customBorders' for the sides, or use `GridSettings['customBorders']`. 18.0 removed this type with no replacement."
+    },
+    {
+      "id": "18.0.0/type-plugin-config-types",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": [
+        "handsontable/plugins/dialog",
+        "handsontable/plugins/loading",
+        "handsontable/plugins/emptyDataState"
+      ],
+      "name": ["DialogConfig", "TemplateOptions", "LoadingConfig", "EmptyDataStateConfig", "EmptyDataStateMessage"],
+      "advice": "Use `GridSettings['{optionKey}']` (import type { GridSettings } from 'handsontable'), or describe the object inline. The option is typed `boolean | object` in 18.0. 18.0 removed this type with no replacement."
+    },
+    {
+      "id": "18.0.0/type-filters-conditionname",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/filters",
+      "name": "ConditionName",
+      "advice": "Use `ConditionId['name']` (import type { ConditionId } from 'handsontable/plugins/filters'). It is typed `string`, where ConditionName was a union of the built-in condition names such as 'eq' and 'contains'."
+    },
+    {
+      "id": "18.0.0/type-filters-config",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/filters",
+      "name": ["FiltersConfig", "CellLikeData"],
+      "advice": "Use `GridSettings['filters']`, or describe the object inline. 18.0 removed this type with no replacement."
+    },
+    {
+      "id": "18.0.0/type-formulas-hyperformula",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/formulas",
+      "name": ["HyperFormulaSettings", "NamedExpressions"],
+      "advice": "Use `GridSettings['formulas']`, or describe the settings inline. `HyperFormulaSettings` was `Partial<ConfigParams> & { hyperformula: typeof HyperFormula | HyperFormula }`, with `ConfigParams` from 'hyperformula'. A named expression is `{ name: string; expression: RawCellContent; scope?: number }`. 18.0 removed this type with no replacement."
+    },
+    {
+      "id": "18.0.0/type-mergecells-settings",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/mergeCells",
+      "name": "MergeCellsSettings",
+      "advice": "Use `GridSettings['mergeCells']`, or describe the object inline. 18.0 removed this type with no replacement."
+    },
+    {
+      "id": "18.0.0/type-dragtoscroll-domboundaries",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/dragToScroll",
+      "name": "DOMBoundaries",
+      "advice": "Use the inline type `{ left: number; right: number; top: number; bottom: number }`."
+    },
+    {
+      "id": "18.0.0/type-pagination-types",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/pagination",
+      "name": ["PageSizeOption", "PaginationData"],
+      "advice": "Use `number | 'auto'` for `PageSizeOption`. For `PaginationData`, use `ReturnType<Pagination['getPaginationData']>` (import type { Pagination } from 'handsontable/plugins/pagination')."
+    },
+    {
+      "id": "18.0.0/type-search-types",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/search",
+      "name": ["SearchCallback", "SearchQueryMethod"],
+      "advice": "Describe the function inline. `SearchCallback` was `(instance: Handsontable, row: number, column: number, value: unknown, result: boolean) => void`. `SearchQueryMethod` was `(queryStr: string, value: unknown, cellProperties: CellProperties) => boolean`."
+    },
+    {
+      "id": "18.0.0/type-copypaste-modes",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/copyPaste",
+      "name": ["CopyModeType", "PasteModeType"],
+      "advice": "Use the inline union. `CopyModeType` was 'cells-only' | 'column-headers-only' | 'with-all-column-headers' | 'with-column-headers'. `PasteModeType` was 'overwrite' | 'shift_down' | 'shift_right'."
+    },
+    {
+      "id": "18.0.0/type-undoredo-actions",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/undoRedo",
+      "name": [
+        "CellAlignmentAction",
+        "ChangeAction",
+        "ColumnMoveAction",
+        "ColumnSortAction",
+        "FilterAction",
+        "InsertColAction",
+        "InsertRowAction",
+        "MergeAction",
+        "RemoveColAction",
+        "RemoveRowAction",
+        "UnmergeAction"
+      ],
+      "advice": "Use `UndoRedoAction` from 'handsontable/plugins/undoRedo'. It is one shape for all actions, so narrow on `actionType`, and its other fields are `unknown`."
+    },
+    {
+      "id": "18.0.0/type-exportfile-formats",
+      "kind": "exportRemoved",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "source": "handsontable/plugins/exportFile",
+      "name": "Formats",
+      "advice": "Use the inline union `'csv' | 'xlsx'`."
+    },
+    {
+      "id": "18.0.0/type-plugins-map",
+      "kind": "exportRemoved",
+      "safe": false,
+      "source": "handsontable/plugins",
+      "name": "Plugins",
+      "advice": "Get a typed plugin from the instance with `hot.getPlugin('<key>')`. 18.0 removed this type with no equivalent."
+    },
+    {
+      "id": "18.0.0/type-registry-maps",
+      "kind": "exportRemoved",
+      "safe": false,
+      "source": [
+        "handsontable/cellTypes",
+        "handsontable/editors",
+        "handsontable/renderers",
+        "handsontable/validators"
+      ],
+      "name": ["CellTypes", "Editors", "Renderers", "Validators"],
+      "advice": "Use the string union that the registry entry points export instead: `CellType`, `EditorType`, `RendererType`, or `ValidatorType`. To type one cell type, editor, renderer, or validator, import it and use `typeof`. 18.0 removed this type with no replacement."
+    },
+    {
+      "id": "18.0.0/type-validators-basevalidator",
+      "kind": "exportRemoved",
+      "safe": false,
+      "source": "handsontable/validators",
+      "name": "BaseValidator",
+      "advice": "Describe the validator inline: `(this: CellProperties, value: unknown, callback: (valid: boolean) => void) => void`. 18.0 removed this type with no replacement."
+    },
+    {
+      "id": "18.0.0/type-editorfactory-shortcut",
+      "kind": "exportRemoved",
+      "safe": false,
+      "source": "handsontable/editors/factory",
+      "name": "Shortcut",
+      "advice": "Describe one shortcut inline, or use `NonNullable<EditorFactoryOptions['shortcuts']>[number]` (EditorFactoryOptions is exported from 'handsontable/editors/factory'). It was never a public export."
+    },
+    {
+      "id": "18.0.0/type-i18n-languagedictionary",
+      "kind": "exportRemoved",
+      "safe": false,
+      "source": ["handsontable/i18n", "handsontable/i18n/registry"],
+      "name": "LanguageDictionary",
+      "advice": "Use `Record<string, unknown>`. That is what registerLanguageDictionary() accepts in 18.0."
+    },
+    {
+      "id": "18.0.0/type-settings-cellsettings",
+      "kind": "exportRemoved",
+      "safe": false,
+      "source": "handsontable/settings",
+      "name": "CellSettings",
+      "advice": "Use `CellMeta & { row: number; col: number }`, which is what it was, or `CellProperties` when you also need `instance`, `visualRow`, `visualCol`, and `prop`."
+    },
+    {
+      "id": "18.0.0/type-settings-omit",
+      "kind": "exportRemoved",
+      "safe": false,
+      "source": "handsontable/settings",
+      "name": "Omit",
+      "advice": "Use the built-in TypeScript `Omit`."
+    },
+
+    {
+      "id": "18.0.0/ns-core-types",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": [
+        "Handsontable.CellCoords",
+        "Handsontable.CellRange"
+      ],
+      "to": { "source": ["handsontable", "handsontable/base"] }
+    },
+    {
+      "id": "18.0.0/ns-settings-types",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": ["Handsontable.SelectOptionsObject", "Handsontable.SourceRowData"],
+      "to": { "source": ["handsontable", "handsontable/base", "handsontable/settings"] }
+    },
+    {
+      "id": "18.0.0/ns-registry-types",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": ["Handsontable.EditorType", "Handsontable.RendererType", "Handsontable.ValidatorType"],
+      "to": { "source": ["handsontable", "handsontable/base"] }
+    },
+    {
+      "id": "18.0.0/ns-celltype",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": "Handsontable.CellType",
+      "to": { "source": ["handsontable", "handsontable/base", "handsontable/cellTypes"] }
+    },
+    {
+      "id": "18.0.0/ns-theme-types",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": [
+        "Handsontable.BaseTheme",
+        "Handsontable.ThemeBuilder",
+        "Handsontable.ThemeColorScheme",
+        "Handsontable.ThemeColorsConfig",
+        "Handsontable.ThemeConfig",
+        "Handsontable.ThemeDensityConfig",
+        "Handsontable.ThemeDensitySizes",
+        "Handsontable.ThemeIconsConfig",
+        "Handsontable.ThemeLightDarkValue",
+        "Handsontable.ThemeParams",
+        "Handsontable.ThemeSizingConfig",
+        "Handsontable.ThemeTokenValue",
+        "Handsontable.ThemeTokensConfig"
+      ],
+      "to": { "source": ["handsontable", "handsontable/base", "handsontable/themes"] }
+    },
+    {
+      "id": "18.0.0/ns-indexmapper",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": "Handsontable.RecordTranslation.IndexMapper",
+      "to": { "name": "IndexMapper", "source": ["handsontable", "handsontable/base"] },
+      "positions": "any"
+    },
+    {
+      "id": "18.0.0/ns-comments-commentobject",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": "Handsontable.plugins.Comments.CommentObject",
+      "to": { "name": "CommentObject", "source": "handsontable/plugins/comments" }
+    },
+    {
+      "id": "18.0.0/ns-multicolumnsorting-config",
+      "kind": "namespaceType",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": true,
+      "from": "Handsontable.plugins.MultiColumnSorting.Config",
+      "to": { "name": "ColumnSortingConfig", "source": "handsontable/plugins/columnSorting" },
+      "note": "ColumnSortingConfig accepts `sortOrder: 'none'` besides 'asc' and 'desc'. Code that narrows `sortOrder` to two values needs a third branch."
+    },
+    {
+      "id": "18.0.0/ns-customborders-borderoptions",
+      "kind": "namespaceType",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": true,
+      "from": "Handsontable.plugins.CustomBorders.BorderOptions",
+      "to": { "name": "BorderSettings", "source": "handsontable/plugins/customBorders" },
+      "note": "BorderSettings has an index signature and no named `style` field, so `style` reads as `unknown`."
+    },
+    {
+      "id": "18.0.0/ns-exportfile-settings",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": "Handsontable.plugins.ExportFile.Settings",
+      "to": { "name": "ExportFileSettings", "source": "handsontable/plugins/exportFile" },
+      "reason": "Settings is deprecated in 18.0 and removed in 19.0."
+    },
+    {
+      "id": "18.0.0/ns-dataprovider-types",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": [
+        "Handsontable.plugins.DataProvider.RowMutationCreatePayload",
+        "Handsontable.plugins.DataProvider.RowMutationPayload",
+        "Handsontable.plugins.DataProvider.RowMutationRemovePayload",
+        "Handsontable.plugins.DataProvider.RowMutationUpdatePayload",
+        "Handsontable.plugins.DataProvider.RowUpdatePayload",
+        "Handsontable.plugins.DataProvider.RowsCreatePayload"
+      ],
+      "to": { "source": "handsontable/plugins/dataProvider" }
+    },
+    {
+      "id": "18.0.0/ns-dataprovider-renamed",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": "Handsontable.plugins.DataProvider.BeforeFetchParameters",
+      "to": { "name": "DataProviderBeforeFetchParameters", "source": "handsontable/plugins/dataProvider" }
+    },
+    {
+      "id": "18.0.0/ns-dataprovider-fetchdataoverrides",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": "Handsontable.plugins.DataProvider.FetchDataOverrides",
+      "to": { "name": "DataProviderFetchDataOverrides", "source": "handsontable/plugins/dataProvider" }
+    },
+    {
+      "id": "18.0.0/ns-dataprovider-options",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": "Handsontable.plugins.DataProvider.Options",
+      "to": { "name": "DataProviderFetchOptions", "source": "handsontable/plugins/dataProvider" }
+    },
+    {
+      "id": "18.0.0/ns-dataprovider-config",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": true,
+      "from": "Handsontable.plugins.DataProvider.Config",
+      "to": { "name": "DataProviderConfig", "source": "handsontable/plugins/dataProvider" }
+    },
+    {
+      "id": "18.0.0/ns-dataprovider-settings",
+      "kind": "namespaceType",
+      "guide": "replace-settings",
+      "safe": false,
+      "from": "Handsontable.plugins.DataProvider.Settings",
+      "removed": true,
+      "advice": "Use `DataProviderConfig | undefined` (import type { DataProviderConfig } from 'handsontable/plugins/dataProvider'), or `GridSettings['dataProvider']`."
+    },
+    {
+      "id": "18.0.0/ns-nestedheaders-settings",
+      "kind": "namespaceType",
+      "guide": "replace-settings",
+      "safe": false,
+      "from": "Handsontable.plugins.NestedHeaders.Settings",
+      "removed": true,
+      "advice": "Use `NestedHeader[][]` (import type { NestedHeader } from 'handsontable/plugins/nestedHeaders'), or `GridSettings['nestedHeaders']`."
+    },
+    {
+      "id": "18.0.0/ns-boolean-settings",
+      "kind": "namespaceType",
+      "guide": "replace-settings",
+      "safe": false,
+      "from": ["Handsontable.plugins.MultipleSelectionHandles.Settings", "Handsontable.plugins.TouchScroll.Settings"],
+      "removed": true,
+      "advice": "Use `boolean`. `GridSettings` has no typed key for this option in 18.0."
+    },
+    {
+      "id": "18.0.0/ns-notification-settings",
+      "kind": "namespaceType",
+      "guide": "replace-settings",
+      "safe": false,
+      "from": "Handsontable.plugins.Notification.Settings",
+      "removed": true,
+      "advice": "Use `boolean | NotificationConfig` (from 'handsontable/plugins/notification'). `GridSettings` has no typed key for the notification option in 18.0."
+    },
+    {
+      "id": "18.0.0/ns-plugin-settings",
+      "kind": "namespaceType",
+      "guide": "replace-settings",
+      "safe": false,
+      "from": "Handsontable.plugins.*.Settings",
+      "removed": true,
+      "optionKeys": {
+        "Autofill": "fillHandle",
+        "UndoRedo": "undo",
+        "StretchColumns": "stretchH"
+      },
+      "advice": "Use `GridSettings['{optionKey}']` (import type { GridSettings } from 'handsontable'). The option is typed loosely in 18.0, often `boolean | object`."
+    },
+    {
+      "id": "18.0.0/ns-sortordertype",
+      "kind": "namespaceType",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "from": [
+        "Handsontable.plugins.ColumnSorting.SortOrderType",
+        "Handsontable.plugins.MultiColumnSorting.SortOrderType"
+      ],
+      "removed": true,
+      "advice": "Use `Exclude<ColumnSortingConfig['sortOrder'], 'none'>`. Import ColumnSortingConfig from 'handsontable/plugins/columnSorting'. Its `sortOrder` also allows 'none', which SortOrderType did not."
+    },
+    {
+      "id": "18.0.0/ns-plugin-types-removed",
+      "kind": "namespaceType",
+      "guide": "replace-other-removed-plugin-types",
+      "safe": false,
+      "from": [
+        "Handsontable.plugins.Filters.ConditionName",
+        "Handsontable.plugins.Formulas.HyperFormulaSettings",
+        "Handsontable.plugins.Search.SearchCallback",
+        "Handsontable.plugins.Search.SearchQueryMethod",
+        "Handsontable.plugins.ContextMenu.MenuConfig",
+        "Handsontable.plugins.ContextMenu.Selection",
+        "Handsontable.plugins.ContextMenu.SubmenuConfig",
+        "Handsontable.plugins.ContextMenu.SubmenuItemConfig",
+        "Handsontable.plugins.Comments.CommentConfig",
+        "Handsontable.plugins.CustomBorders.BorderRange"
+      ],
+      "removed": true,
+      "advice": "Remove this reference or describe the shape inline, because 18.0 removed it from the Handsontable namespace with no replacement. Describe the shape inline, or read it from the option type with `GridSettings['<optionKey>']`."
+    },
+    {
+      "id": "18.0.0/ns-numericformatoptions",
+      "kind": "namespaceType",
+      "safe": false,
+      "guide": "replace-removed-handsontable-namespace-types",
+      "from": "Handsontable.NumericFormatOptions",
+      "removed": true,
+      "advice": "Use `Intl.NumberFormatOptions` instead, because 18.0 removed this type. The `numericFormat` option is typed `object`, and the Numbro.js `pattern` and `culture` keys no longer apply."
+    },
+    {
+      "id": "18.0.0/ns-recordtranslation-types",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": false,
+      "from": [
+        "Handsontable.RecordTranslation.ChangesEventData",
+        "Handsontable.RecordTranslation.ChangesObserver",
+        "Handsontable.RecordTranslation.MapTypes"
+      ],
+      "removed": true,
+      "advice": "Remove this reference or describe the shape inline, because 18.0 removed it from the Handsontable namespace with no replacement."
+    },
+    {
+      "id": "18.0.0/ns-helper-types",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": false,
+      "from": ["Handsontable.helper.Comparator", "Handsontable.helper.DebouncedFunction"],
+      "removed": true,
+      "advice": "Remove this reference or describe the shape inline, because 18.0 removed it from the Handsontable namespace with no replacement. `Comparator` was `(a: any, b: any) => -1 | 0 | 1`. `DebouncedFunction` was `{ (...args: any[]): any; cancel(): void }`."
+    },
+    {
+      "id": "18.0.0/ns-eventmanager",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": false,
+      "from": "Handsontable.EventManager",
+      "removed": true,
+      "positions": "any",
+      "advice": "Remove the EventManager type annotation, because 18.0 has no public type for it. Using it fails with TS18046. The value exists at runtime only on the `handsontable` entry, not on `handsontable/base`."
+    },
+    {
+      "id": "18.0.0/ns-intl-celltype",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": false,
+      "from": ["Handsontable.cellTypes.intlDate.cellType", "Handsontable.cellTypes.intlTime.cellType"],
+      "removed": true,
+      "advice": "Remove this reference or describe the shape inline, because 18.0 removed it from the Handsontable typings with no replacement."
+    }
+  ]
+}

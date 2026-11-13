@@ -1,0 +1,226 @@
+{
+  "page": "migration-from-17.1-to-18.0",
+  "note": "Headings of the guide as written in Markdown, with the id the built docs site gave each one, read from the rendered page. test/guide-anchors.test.mjs holds slugOf() to these ids. The guide itself may change; this file does not.",
+  "headings": [
+    {
+      "level": 2,
+      "markdown": "1. Replace `handsontable/common` imports",
+      "id": "replace-handsontablecommon-imports"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate"
+    },
+    {
+      "level": 3,
+      "markdown": "`CellValue` is now `unknown`",
+      "id": "cellvalue-is-now-unknown"
+    },
+    {
+      "level": 3,
+      "markdown": "Quick fix with search and replace",
+      "id": "quick-fix-with-search-and-replace"
+    },
+    {
+      "level": 2,
+      "markdown": "2. Migrate numeric format from Numbro.js `pattern` and `culture` to `Intl.NumberFormat`",
+      "id": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-1"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-1"
+    },
+    {
+      "level": 2,
+      "markdown": "3. Migrate date and time cells to ISO 8601 format",
+      "id": "migrate-date-and-time-cells-to-iso-8601-format"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-2"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate -- date cells",
+      "id": "how-to-migrate--date-cells"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate -- time cells",
+      "id": "how-to-migrate--time-cells"
+    },
+    {
+      "level": 3,
+      "markdown": "Sorting and filtering dates",
+      "id": "sorting-and-filtering-dates"
+    },
+    {
+      "level": 3,
+      "markdown": "`correctFormat` option",
+      "id": "correctformat-option"
+    },
+    {
+      "level": 3,
+      "markdown": "`datePickerConfig` option",
+      "id": "datepickerconfig-option"
+    },
+    {
+      "level": 2,
+      "markdown": "4. Replace built-in DOMPurify with a custom sanitizer",
+      "id": "replace-built-in-dompurify-with-a-custom-sanitizer"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-3"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-2"
+    },
+    {
+      "level": 2,
+      "markdown": "5. Update theme wrapper border variables",
+      "id": "update-theme-wrapper-border-variables"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-4"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-3"
+    },
+    {
+      "level": 2,
+      "markdown": "6. Update CSS selectors and DOM queries for the new wrapper structure",
+      "id": "update-css-selectors-and-dom-queries-for-the-new-wrapper-structure"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-5"
+    },
+    {
+      "level": 3,
+      "markdown": "What changed",
+      "id": "what-changed"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-4"
+    },
+    {
+      "level": 2,
+      "markdown": "7. Install HyperFormula separately",
+      "id": "install-hyperformula-separately"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-6"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-5"
+    },
+    {
+      "level": 2,
+      "markdown": "8. Replace removed plugin type exports",
+      "id": "replace-removed-plugin-type-exports"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-7"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-6"
+    },
+    {
+      "level": 4,
+      "markdown": "Replace `Settings`",
+      "id": "replace-settings"
+    },
+    {
+      "level": 4,
+      "markdown": "Replace `DetailedSettings`",
+      "id": "replace-detailedsettings"
+    },
+    {
+      "level": 4,
+      "markdown": "Replace other removed plugin types",
+      "id": "replace-other-removed-plugin-types"
+    },
+    {
+      "level": 2,
+      "markdown": "9. Replace removed `Handsontable.*` namespace types",
+      "id": "replace-removed-handsontable-namespace-types"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-8"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-7"
+    },
+    {
+      "level": 2,
+      "markdown": "Deprecated APIs",
+      "id": "deprecated-apis"
+    },
+    {
+      "level": 3,
+      "markdown": "Stop calling deprecated resize-state methods",
+      "id": "stop-calling-deprecated-resize-state-methods"
+    },
+    {
+      "level": 4,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-9"
+    },
+    {
+      "level": 4,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-8"
+    },
+    {
+      "level": 2,
+      "markdown": "Summary of breaking changes",
+      "id": "summary-of-breaking-changes"
+    },
+    {
+      "level": 2,
+      "markdown": "Result",
+      "id": "result"
+    },
+    {
+      "level": 2,
+      "markdown": "Related resources",
+      "id": "related-resources"
+    }
+  ]
+}

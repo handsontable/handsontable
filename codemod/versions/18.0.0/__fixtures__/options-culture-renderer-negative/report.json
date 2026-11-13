@@ -1,0 +1,9 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 5 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 6 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 7 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 8 }
+  ]
+}

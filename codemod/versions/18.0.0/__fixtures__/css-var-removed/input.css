@@ -1,0 +1,11 @@
+/* Border drawn by the old variables */
+.ht-theme-main {
+  --ht-wrapper-border-width: 1px;
+  --ht-wrapper-border-color: #a0aec0;
+  --ht-wrapper-border-width-extra: 2px;
+}
+
+.card .handsontable {
+  box-shadow: 0 0 0 var(--ht-wrapper-border-width) var(--ht-wrapper-border-color);
+  border-color: var(--ht-wrapper-border-color, red);
+}

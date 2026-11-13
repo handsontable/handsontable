@@ -1,0 +1,8 @@
+// Already on the new variable name: a second run must not touch it.
+.ht-theme-main {
+  --ht-border-radius: 8px;
+
+  &:hover {
+    border-radius: var(--ht-border-radius);
+  }
+}

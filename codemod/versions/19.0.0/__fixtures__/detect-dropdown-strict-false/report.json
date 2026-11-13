@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/dropdown-strict-false",
+      "severity": "manual",
+      "line": 5
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/data-provider-row-id-dot",
+      "severity": "manual",
+      "line": 4
+    }
+  ]
+}

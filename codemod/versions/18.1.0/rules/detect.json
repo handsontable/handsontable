@@ -1,0 +1,96 @@
+{
+  "rules": [
+    {
+      "id": "18.1.0/license-key-missing",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "todo": false,
+      "files": ["js", "template"],
+      "requires": "hot-file",
+      "guide": "set-a-license-key-in-every-environment",
+      "match": {
+        "missingOption": "licenseKey",
+        "unlessFileMatches": "@handsontable/angular|HOT_GLOBAL_CONFIG|HotGlobalConfig"
+      },
+      "message": "Pass a valid licenseKey to this grid, because it sets none. In 18.1 a missing or invalid license key covers the grid with a modal that cannot be closed. Pass a valid key to every instance, in every environment, including local development, CI, and test suites. The codemod never adds a key. For where to get one, see https://handsontable.com/docs/javascript-data-grid/license-key/#get-a-license-key"
+    },
+    {
+      "id": "18.1.0/synthetic-header-mousedown",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "todo": false,
+      "files": ["js"],
+      "requires": "none",
+      "guide": "update-code-that-reacts-to-a-column-header-click",
+      "match": {
+        "allOf": [
+          {
+            "anyOf": [
+              { "call": ["dispatchEvent", "trigger", "simulate", "triggerEvent"], "argMatches": "^mousedown$", "flags": "i" },
+              { "call": "mouseDown", "receiver": "fireEvent" }
+            ]
+          },
+          { "regex": "thead|\\bth\\b|colHeader|columnSorting|sortAction", "flags": "i" }
+        ]
+      },
+      "message": "Dispatch mousedown and then mouseup on the label without moving the pointer, or click the label itself. In 18.1 a column header sorts on mouse up, and only the header label (.colHeader.sortAction) and its sort indicator respond. A test that dispatches only mousedown on a header cell no longer sorts."
+    },
+    {
+      "id": "18.1.0/column-move-hooks",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "update-code-that-reacts-to-a-column-header-click",
+      "match": { "hook": ["beforeColumnMove", "afterColumnMove"] },
+      "message": "Move header-click logic from this hook to afterColumnSort or afterOnCellMouseUp. In 18.1 beforeColumnMove and afterColumnMove run only when the pointer drags a column. They no longer run on a plain header click."
+    },
+    {
+      "id": "18.1.0/loading-markup",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "option-object",
+      "guide": "expect-markup-in-the-loading-plugins-title-and-description-to-render-as-text",
+      "match": {
+        "anyOf": [
+          { "property": "loading.title", "valueMatches": "<[A-Za-z/!]" },
+          { "property": "loading.description", "valueMatches": "<[A-Za-z/!]" }
+        ]
+      },
+      "message": "Drop the markup and style .ht-loading__title and .ht-loading__description with CSS. In 18.1 the loading plugin renders title and description as text, so this markup now shows up literally. The icon option is the one slot that still takes markup."
+    },
+    {
+      "id": "18.1.0/pikaday-theme-leftovers",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["css", "template"],
+      "requires": "none",
+      "mergeKey": "pikaday",
+      "unlessFileMatches": "pikaday",
+      "match": { "selector": "\\.pika-(?:single|next|prev)(?![\\w-])" },
+      "message": "Remove this rule unless you load Pikaday yourself. Handsontable no longer ships Pikaday styles."
+    },
+    {
+      "id": "18.1.0/sanitizer-source",
+      "kind": "custom",
+      "safe": false,
+      "module": "custom/sanitizer-source.mjs",
+      "mode": "source",
+      "guide": "update-a-sanitizer-that-branches-on-its-source-argument"
+    },
+    {
+      "id": "18.1.0/sanitizer-new-sources",
+      "kind": "custom",
+      "safe": false,
+      "module": "custom/sanitizer-source.mjs",
+      "mode": "new-sources",
+      "guide": "expect-your-sanitizer-to-see-two-surfaces-it-never-saw-before"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 5 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 10 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 21 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 22 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 28 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 6 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 21 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 22 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 28 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 29 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 30 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "manual", "line": 13 },
+    { "ruleId": "18.0.0/correct-format-removed", "severity": "manual", "line": 16 }
+  ]
+}

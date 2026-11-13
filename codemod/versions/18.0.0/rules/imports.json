@@ -1,0 +1,96 @@
+{
+  "rules": [
+    {
+      "id": "18.0.0/common-imports",
+      "kind": "importSource",
+      "safe": true,
+      "guide": "replace-handsontablecommon-imports",
+      "from": "handsontable/common",
+      "moduleRemoved": true,
+      "runtimeAdvice": "Remove this import: handsontable/common had no runtime code and is removed in 18.0.",
+      "exports": {
+        "CellChange": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "CellValue": {
+          "to": ["handsontable", "handsontable/base", "handsontable/settings"],
+          "note": "CellValue is now `unknown`. It was `any`. Code that calls members of a cell value, or passes it where a specific type is expected, needs a type check or a cast."
+        },
+        "ChangeSource": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "RowObject": {
+          "to": ["handsontable", "handsontable/base", "handsontable/settings"],
+          "note": "The values of a RowObject are now `unknown`. They were `any`. Narrow or cast a property before you use it."
+        },
+        "SelectOptionsObject": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "SourceRowData": { "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "OverlayType": { "to": ["handsontable", "handsontable/base"] },
+        "RangeType": { "to": ["handsontable", "handsontable/base"] },
+        "ColumnDataGetterSetterFunction": { "to": ["handsontable/settings"] },
+        "GridSettings": { "neverExported": true, "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "ColumnSettings": { "neverExported": true, "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "CellProperties": { "neverExported": true, "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "CellMeta": { "neverExported": true, "to": ["handsontable", "handsontable/base", "handsontable/settings"] },
+        "Events": { "neverExported": true, "to": ["handsontable", "handsontable/base"] },
+        "HotInstance": { "neverExported": true, "to": ["handsontable", "handsontable/base"] },
+        "HooksRegistry": { "neverExported": true, "to": ["handsontable", "handsontable/base"] },
+        "CellCoords": { "neverExported": true, "to": ["handsontable", "handsontable/base"] },
+        "CellRange": { "neverExported": true, "to": ["handsontable", "handsontable/base"] },
+        "IndexMapper": { "neverExported": true, "to": ["handsontable", "handsontable/base"] },
+        "SimpleCellCoords": {
+          "removed": true,
+          "advice": "Use `{ row: number; col: number }` instead of SimpleCellCoords, which 18.0 removed. The `CellCoords` class does not match this shape, because its `row` and `col` can be `null`."
+        },
+        "NumericFormatOptions": {
+          "removed": true,
+          "advice": "Use `Intl.NumberFormatOptions` instead of NumericFormatOptions, which 18.0 removed. The `numericFormat` option is typed `object`, and the Numbro.js `pattern` and `culture` keys no longer apply."
+        },
+        "NumbroFormatOptions": {
+          "removed": true,
+          "advice": "Use `Intl.NumberFormatOptions` instead of NumbroFormatOptions, which 18.0 removed together with Numbro.js."
+        },
+        "LabelOptions": {
+          "removed": true,
+          "advice": "Use the inline type `{ property?: string; position?: 'before' | 'after'; value?: string | (() => string) }` instead of LabelOptions, which 18.0 removed. The `label` option is typed `object`."
+        }
+      },
+      "fallback": {
+        "removed": true,
+        "advice": "Find a replacement for this name by hand: 18.0 removed the `handsontable/common` entry point, and the codemod knows no entry point that exports it."
+      }
+    },
+    {
+      "id": "18.0.0/theme-registry-imports-main",
+      "kind": "importSource",
+      "safe": true,
+      "reason": "17.x declared {name} on \"{from}\" in its typings only.",
+      "from": "handsontable",
+      "exports": {
+        "registerTheme": { "to": "handsontable/themes" },
+        "reinitTheme": { "to": "handsontable/themes" },
+        "getTheme": { "to": "handsontable/themes" },
+        "getThemes": { "to": "handsontable/themes" },
+        "getThemeNames": { "to": "handsontable/themes" },
+        "hasTheme": { "to": "handsontable/themes" },
+        "mainTheme": { "to": "handsontable/themes" },
+        "classicTheme": { "to": "handsontable/themes" },
+        "horizonTheme": { "to": "handsontable/themes" }
+      }
+    },
+    {
+      "id": "18.0.0/theme-registry-imports-base",
+      "kind": "importSource",
+      "safe": true,
+      "reason": "17.x declared {name} on \"{from}\" in its typings only.",
+      "from": "handsontable/base",
+      "exports": {
+        "registerTheme": { "to": "handsontable/themes" },
+        "reinitTheme": { "to": "handsontable/themes" },
+        "getTheme": { "to": "handsontable/themes" },
+        "getThemes": { "to": "handsontable/themes" },
+        "getThemeNames": { "to": "handsontable/themes" },
+        "hasTheme": { "to": "handsontable/themes" },
+        "mainTheme": { "to": "handsontable/themes" },
+        "classicTheme": { "to": "handsontable/themes" },
+        "horizonTheme": { "to": "handsontable/themes" }
+      }
+    }
+  ]
+}

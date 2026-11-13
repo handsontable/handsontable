@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.1.0/column-move-hooks", "severity": "manual", "line": 15 },
+    { "ruleId": "18.1.0/column-move-hooks", "severity": "manual", "line": 17 },
+    { "ruleId": "18.1.0/column-move-hooks", "severity": "manual", "line": 24 },
+    { "ruleId": "18.1.0/column-move-hooks", "severity": "manual", "line": 25 },
+    { "ruleId": "18.1.0/column-move-hooks", "severity": "manual", "line": 33 }
+  ]
+}

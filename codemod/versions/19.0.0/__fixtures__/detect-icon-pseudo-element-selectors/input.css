@@ -1,0 +1,38 @@
+.changeType::before {
+  background-color: blue;
+}
+
+.ht-page-navigation-section .ht-page-next::before {
+  content: none;
+}
+
+th.beforeHiddenColumn::after,
+th.afterHiddenRow::before {
+  display: none;
+}
+
+.htCheckboxRendererInput::after {
+  color: red;
+}
+
+.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after {
+  content: '';
+}
+
+/* The same hosts without a pseudo-element are not reported. */
+.changeType {
+  color: blue;
+}
+
+.ht-page-next:hover {
+  color: red;
+}
+
+/* Another stylesheet's pseudo-element is not reported. */
+.my-card::before {
+  content: '';
+}
+
+.ht-icon-menu {
+  color: blue;
+}

@@ -1,0 +1,21 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/dependencies",
+      "severity": "changed"
+    },
+    {
+      "ruleId": "19.0.0/dependencies",
+      "severity": "changed"
+    },
+    {
+      "ruleId": "19.0.0/dependencies",
+      "severity": "changed"
+    },
+    {
+      "ruleId": "19.0.0/dependencies",
+      "severity": "changed"
+    }
+  ]
+}

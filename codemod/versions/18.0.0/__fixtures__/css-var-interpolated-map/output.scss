@@ -1,0 +1,25 @@
+@use 'sass:map';
+
+$radius: 6px;
+
+// The wrapper-border-radius key is a variable name without the prefix.
+// TODO(handsontable-codemod 18.0.0/css-wrapper-border-radius): Rename the wrapper-border-radius key to border-radius by hand. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables
+// TODO(handsontable-codemod 18.0.0/css-wrapper-border-width): Draw the outer border with a box-shadow on the root wrapper, because 18.0 removed this variable. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables
+// TODO(handsontable-codemod 18.0.0/css-wrapper-border-color): Draw the outer border with a box-shadow on the root wrapper, because 18.0 removed this variable. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables
+$ht-desk: (
+  'wrapper-border-radius': $radius,
+  "wrapper-border-color": #d0d5dd,
+  wrapper-border-width: 1px,
+  'row-header-odd-background-color': #f8f9fb,
+);
+
+// TODO(handsontable-codemod 18.0.0/css-wrapper-border-color): Draw the outer border with a box-shadow on the root wrapper, because 18.0 removed this variable. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables
+$ht-night: map.merge($ht-desk, ('wrapper-border-color': #344054));
+
+$label: 'wrapper-border-radius-extra';
+
+@mixin ht-theme-vars($tokens) {
+  @each $name, $value in $tokens {
+    --ht-#{$name}: #{$value};
+  }
+}

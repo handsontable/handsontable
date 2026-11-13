@@ -1,0 +1,1890 @@
+{
+  "generatedBy": "codemod/tools/derive-type-map.mjs (typescript 6.0.3)",
+  "old": {
+    "name": "handsontable",
+    "version": "18.1.2",
+    "entryPointCount": 152
+  },
+  "new": {
+    "name": "handsontable",
+    "version": "0.0.0-next-755eba9-20261112",
+    "entryPointCount": 169
+  },
+  "rules": [],
+  "entryPoints": {
+    "removed": [],
+    "added": [
+      {
+        "specifier": "handsontable/i18n/languages/sr-Latn-RS",
+        "exports": [
+          {
+            "name": "default",
+            "kind": "namespace",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/asyncValues",
+        "exports": [
+          {
+            "name": "ASYNC_VALUES_SOURCE",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "ASYNC_VALUE_CANCEL_REASONS",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "AsyncCellInfo",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "AsyncCellRef",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AsyncRowRef",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValueBatchOptions",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValueBatchSource",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValueCancelReason",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValueContext",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValueOptions",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValueProp",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValueResult",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValueSource",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValueState",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValueStatus",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AsyncValues",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "AsyncValuesSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/autoLink",
+        "exports": [
+          {
+            "name": "AutoLink",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "AutoLinkSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/autoRowHeaderSize",
+        "exports": [
+          {
+            "name": "AutoRowHeaderSize",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "AutoRowHeaderSizeSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/checkboxHeader",
+        "exports": [
+          {
+            "name": "CheckboxHeader",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "HeaderCheckboxSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/formulaBuilder",
+        "exports": [
+          {
+            "name": "FormulaBuilder",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "FormulaBuilderErrorPopupOptions",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "FormulaBuilderFunctionHelpOptions",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "FormulaBuilderLayoutDirection",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "FormulaBuilderPluginSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "FormulaBuilderPopupHostOption",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "FormulaBuilderPopupsOptions",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "FormulaBuilderStepDirection",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "FormulaBuilderSuggestionsOptions",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "FormulaEditorHandle",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/freezeBar",
+        "exports": [
+          {
+            "name": "FreezeBar",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "FreezeBarSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "FreezeEdge",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "FreezeSource",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/importFile",
+        "exports": [
+          {
+            "name": "ConvertedData",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "ImportColumn",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ImportFile",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "ImportFileSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ImportOptions",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ImportResult",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ImportedBorder",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ImportedConditionalFormatting",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ImportedNestedHeader",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "InferColumnTypesOptions",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "InferColumnTypesResult",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "InferenceData",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "InferredCellType",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "InferredColumn",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "InferredColumnSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "InferredColumnStats",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "InferredInputFormat",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "convertToInferredTypes",
+            "kind": "function",
+            "space": "value"
+          },
+          {
+            "name": "inferColumnTypes",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/rowSelection",
+        "exports": [
+          {
+            "name": "HeaderCheckboxState",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "HeaderCheckboxSummary",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "RowSelection",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "RowSelectionBoundColumn",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "RowSelectionClickMode",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "RowSelectionGroupSelects",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "RowSelectionSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "RowSelectionSource",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SelectAllScope",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "ServerRowSelection",
+            "kind": "interface",
+            "space": "type"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/sheetsBar",
+        "exports": [
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "SheetDescriptor",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "SheetsBar",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "SheetsBarAnimationSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "SheetsBarPaginationState",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "SheetsBarSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "SheetsBarSheetConfig",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "SheetsBarTrackedCellMeta",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "SheetsBarViewState",
+            "kind": "interface",
+            "space": "type"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/viewState",
+        "exports": [
+          {
+            "name": "GridViewState",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateColumnKey",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateCoords",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateError",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateFilterInput",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateInput",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateIssue",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStatePart",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateRange",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateRestoreResult",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateSelection",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateSetOptions",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateSkipReason",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateSortColumn",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateSortColumnInput",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "GridViewStateValidationResult",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "ViewState",
+            "kind": "class",
+            "space": "both"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/settingsSchema",
+        "exports": [
+          {
+            "name": "JsonSchemaObject",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "JsonSchemaType",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SettingsProblem",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "SettingsProblemCode",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SettingsProblemSeverity",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SettingsSchemaAnnotations",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "SettingsSchemaLevel",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SettingsValidationResult",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ValidateSettingsOptions",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "settingsSchema",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "validateSettings",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/themes/static/variables/helpers/iconStyles",
+        "exports": [
+          {
+            "name": "iconStyles",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/themes/types",
+        "exports": [
+          {
+            "name": "BaseTheme",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "DensitySizeKey",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "DensitySizeValues",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "DensityType",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "IconKey",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "IconRenderer",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "IconValue",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SizingKey",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "ThemeColorScheme",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "ThemeColorsConfig",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ThemeConfig",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ThemeDensityConfig",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ThemeDensitySizes",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "ThemeIconsConfig",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "ThemeLightDarkValue",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "ThemeParams",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "ThemeSizingConfig",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "ThemeTokenValue",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "ThemeTokensConfig",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "TokenKey",
+            "kind": "type",
+            "space": "type"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/validators/checkboxValidator",
+        "exports": [
+          {
+            "name": "VALIDATOR_TYPE",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "checkboxValidator",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/validators/maxLengthValidator",
+        "exports": [
+          {
+            "name": "isMaxLengthActive",
+            "kind": "function",
+            "space": "value"
+          },
+          {
+            "name": "maxLengthValidator",
+            "kind": "function",
+            "space": "value"
+          },
+          {
+            "name": "withMaxLength",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/validators/regExpValidator",
+        "exports": [
+          {
+            "name": "regExpValidator",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      }
+    ],
+    "changed": {
+      "handsontable": {
+        "removed": [],
+        "added": [
+          {
+            "name": "ColumnDataGetterSetterFunction",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "MenuItemConfig",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "OmitHooks",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "PasteClipboardData",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "PredefinedMenuItemKey",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "RowIdKey",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "RowIdSetting",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SettingsUpdate",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "TextExtractorContext",
+            "kind": "type",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/base": {
+        "removed": [],
+        "added": [
+          {
+            "name": "ColumnDataGetterSetterFunction",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "MenuItemConfig",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "OmitHooks",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "PasteClipboardData",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "PredefinedMenuItemKey",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "RowIdKey",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "RowIdSetting",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SettingsUpdate",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "TextExtractorContext",
+            "kind": "type",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/i18n": {
+        "removed": [],
+        "added": [
+          {
+            "name": "srLatnRS",
+            "kind": "namespace",
+            "space": "value"
+          },
+          {
+            "name": "warnAboutDeprecatedLanguageCode",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      "handsontable/i18n/languages": {
+        "removed": [],
+        "added": [
+          {
+            "name": "srLatnRS",
+            "kind": "namespace",
+            "space": "value"
+          }
+        ]
+      },
+      "handsontable/i18n/registry": {
+        "removed": [],
+        "added": [
+          {
+            "name": "warnAboutDeprecatedLanguageCode",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      "handsontable/plugins": {
+        "removed": [],
+        "added": [
+          {
+            "name": "AsyncValues",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "AutoLink",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "AutoRowHeaderSize",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "CheckboxHeader",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "FormulaBuilder",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "FreezeBar",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "ImportFile",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "RowSelection",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "SheetsBar",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "ViewState",
+            "kind": "class",
+            "space": "both"
+          }
+        ]
+      },
+      "handsontable/plugins/base": {
+        "removed": [],
+        "added": [
+          {
+            "name": "PluginRestoreContext",
+            "kind": "interface",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/plugins/copyPaste": {
+        "removed": [],
+        "added": [
+          {
+            "name": "PasteClipboardData",
+            "kind": "interface",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/plugins/dataProvider": {
+        "removed": [
+          {
+            "name": "DataProviderOptions",
+            "kind": "type",
+            "space": "type"
+          }
+        ],
+        "added": []
+      },
+      "handsontable/plugins/exportFile": {
+        "removed": [
+          {
+            "name": "Settings",
+            "kind": "type",
+            "space": "type"
+          }
+        ],
+        "added": []
+      },
+      "handsontable/plugins/filters": {
+        "removed": [],
+        "added": [
+          {
+            "name": "AvailableCondition",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "AvailableConditions",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AvailableConditionsDataType",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AvailableConditionsExclusion",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "AvailableConditionsList",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "AvailableConditionsRule",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "FiltersColumnSettings",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "FiltersSettings",
+            "kind": "interface",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/plugins/formulas": {
+        "removed": [],
+        "added": [
+          {
+            "name": "FormulasCellAddress",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "FormulasCellRange",
+            "kind": "interface",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/plugins/manualColumnFreeze": {
+        "removed": [],
+        "added": [
+          {
+            "name": "ManualColumnFreezeSettings",
+            "kind": "interface",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/plugins/mergeCells": {
+        "removed": [],
+        "added": [
+          {
+            "name": "MergeAreaGeometry",
+            "kind": "interface",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/plugins/registry": {
+        "removed": [],
+        "added": [
+          {
+            "name": "countRegisteredPlugins",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      "handsontable/plugins/undoRedo": {
+        "removed": [],
+        "added": [
+          {
+            "name": "UndoRedoSettings",
+            "kind": "interface",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/renderers/passwordRenderer": {
+        "removed": [],
+        "added": [
+          {
+            "name": "valueFormatter",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      "handsontable/settings": {
+        "removed": [],
+        "added": [
+          {
+            "name": "HookSettingKey",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "OmitHooks",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "PasteClipboardData",
+            "kind": "interface",
+            "space": "type"
+          },
+          {
+            "name": "SettingsUpdate",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "TextExtractorContext",
+            "kind": "type",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/themes": {
+        "removed": [],
+        "added": [
+          {
+            "name": "IconRenderer",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "IconValue",
+            "kind": "type",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/validators": {
+        "removed": [],
+        "added": [
+          {
+            "name": "CHECKBOX_VALIDATOR",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "checkboxValidator",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      }
+    }
+  },
+  "namespace": {
+    "removed": [
+      {
+        "path": "Handsontable.helper.sanitize",
+        "kind": "function",
+        "space": "value"
+      }
+    ],
+    "added": [
+      {
+        "path": "Handsontable.BaseEditorInstance",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.BaseTheme",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.CellType",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ColumnDataGetterSetterFunction",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.DensityType",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.EditorType",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.Events",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.HooksRegistry",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.HotInstance",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.IndexMapper",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.MenuItemConfig",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.OmitHooks",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.OverlayType",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.PasteClipboardData",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.PredefinedMenuItemKey",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.RangeType",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.RemoveIndexSignature",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.RendererType",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.RowIdKey",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.RowIdSetting",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.SelectOptionsObject",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.SettingsUpdate",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.SourceRowData",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.TextExtractorContext",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeBuilder",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeColorScheme",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeColorsConfig",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeConfig",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeDensityConfig",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeDensitySizes",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeIconsConfig",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeLightDarkValue",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeParams",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeSizingConfig",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeTokenValue",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ThemeTokensConfig",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.ValidatorType",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.cellTypes.autocomplete.textEllipsis",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.dropdown.textEllipsis",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.handsontable.textEllipsis",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.password.valueFormatter",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.CELL_CLIP_CLASS",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.POINTER_DRAG_TOLERANCE",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.getCellContentRoot",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.getComposedEventTargetEl",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.getFixedContainingBlockRect",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.hasPointerTraveled",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.isDocumentFragment",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.isStartGapCovered",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.isTopGapCovered",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.normalizeClassNames",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.removeInlineStyle",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.standsBehindRowHeader",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper._buildMissingFeaturesMessage",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper._createLicenseBar",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper._createLicenseBarBlock",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper._renderMessageParts",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.decodeHtmlEntities",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.formatLocalDate",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.getCharacterLength",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.getDateTimeFormat",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.htmlToPlainText",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.instanceToTableElement",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.isMobileOrIpadOS",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.removeCharactersBefore",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.splitIntoCharacters",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.stripFunctionValues",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.writeOwnProperty",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.plugins.CheckboxHeader",
+        "kind": "class",
+        "space": "both"
+      },
+      {
+        "path": "Handsontable.plugins.Filters.AvailableCondition",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.Filters.AvailableConditions",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.Filters.AvailableConditionsDataType",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.Filters.AvailableConditionsExclusion",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.Filters.AvailableConditionsList",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.Filters.AvailableConditionsRule",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.Filters.ColumnSettings",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.Filters.Settings",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.FormulaBuilder",
+        "kind": "class",
+        "space": "both"
+      },
+      {
+        "path": "Handsontable.plugins.ImportFile",
+        "kind": "class",
+        "space": "both"
+      },
+      {
+        "path": "Handsontable.plugins.RowSelection",
+        "kind": "class",
+        "space": "both"
+      },
+      {
+        "path": "Handsontable.plugins.RowSelection.BoundColumn",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.RowSelection.GroupSelects",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.RowSelection.ServerSelection",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.RowSelection.Settings",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState",
+        "kind": "class",
+        "space": "both"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.ColumnKey",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.FilterInput",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.Input",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.Issue",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.Part",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.RestoreResult",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.Selection",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.SetOptions",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.SkipReason",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.SortColumn",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.SortColumnInput",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.State",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.StateError",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.plugins.ViewState.ValidationResult",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.validators.CheckboxValidator",
+        "kind": "function",
+        "space": "both"
+      },
+      {
+        "path": "Handsontable.validators.CheckboxValidator.VALIDATOR_TYPE",
+        "kind": "const",
+        "space": "value"
+      }
+    ],
+    "spaceChanged": [
+      {
+        "path": "Handsontable.CellCoords",
+        "oldKind": "class",
+        "oldSpace": "value",
+        "newKind": "class",
+        "newSpace": "both"
+      },
+      {
+        "path": "Handsontable.CellRange",
+        "oldKind": "class",
+        "oldSpace": "value",
+        "newKind": "class",
+        "newSpace": "both"
+      }
+    ]
+  },
+  "candidates": [],
+  "wrappers": {
+    "@handsontable/react-wrapper": {
+      "old": {
+        "name": "@handsontable/react-wrapper",
+        "version": "18.1.2",
+        "entryPointCount": 1
+      },
+      "new": {
+        "name": "@handsontable/react-wrapper",
+        "version": "0.0.0-next-755eba9-20261112",
+        "entryPointCount": 1
+      },
+      "entryPoints": {
+        "removed": [],
+        "added": [],
+        "changed": {}
+      },
+      "candidates": []
+    },
+    "@handsontable/vue3": {
+      "old": {
+        "name": "@handsontable/vue3",
+        "version": "18.1.2",
+        "entryPointCount": 0,
+        "typesDeclaredButMissing": [
+          "@handsontable/vue3 -> ./index.d.ts"
+        ]
+      },
+      "new": {
+        "name": "@handsontable/vue3",
+        "version": "0.0.0-next-755eba9-20261112",
+        "entryPointCount": 1
+      },
+      "entryPoints": {
+        "removed": [],
+        "added": [
+          {
+            "specifier": "@handsontable/vue3",
+            "exports": [
+              {
+                "name": "HotColumn",
+                "kind": "const",
+                "space": "value"
+              },
+              {
+                "name": "HotTable",
+                "kind": "const",
+                "space": "value"
+              },
+              {
+                "name": "HotTableProps",
+                "kind": "interface",
+                "space": "type"
+              },
+              {
+                "name": "VueProps",
+                "kind": "type",
+                "space": "type"
+              },
+              {
+                "name": "default",
+                "kind": "const",
+                "space": "value"
+              }
+            ]
+          }
+        ],
+        "changed": {}
+      },
+      "candidates": []
+    },
+    "@handsontable/angular-wrapper": {
+      "old": {
+        "name": "@handsontable/angular-wrapper",
+        "version": "18.1.2",
+        "entryPointCount": 1
+      },
+      "new": {
+        "name": "@handsontable/angular-wrapper",
+        "version": "0.0.0-next-755eba9-20261112",
+        "entryPointCount": 1
+      },
+      "entryPoints": {
+        "removed": [],
+        "added": [],
+        "changed": {
+          "@handsontable/angular-wrapper": {
+            "removed": [],
+            "added": [
+              {
+                "name": "DATA_BINDING_SOURCE",
+                "kind": "const",
+                "space": "value"
+              }
+            ]
+          }
+        }
+      },
+      "candidates": []
+    }
+  }
+}

@@ -1,0 +1,29 @@
+// Theme override for the grid
+$radius: 8px;
+
+.ht-theme-main {
+  --ht-border-radius: #{$radius};
+  --ht-wrapper-border-radius-extra: 2px;
+
+  .inner {
+    border-radius: var(--ht-border-radius);
+    margin: calc(var(--ht-border-radius, 4px) * 2);
+  }
+}
+
+// Both names are already set here, so this rule is left alone
+.both-defined {
+  // TODO(handsontable-codemod 18.0.0/css-wrapper-border-radius): Merge --ht-wrapper-border-radius and --ht-border-radius by hand: both are defined in this rule... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables
+  --ht-wrapper-border-radius: 3px;
+  --ht-border-radius: 5px;
+  // TODO(handsontable-codemod 18.0.0/css-wrapper-border-radius): Merge --ht-wrapper-border-radius and --ht-border-radius by hand: both are defined in this rule... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables
+  padding: var(--ht-wrapper-border-radius);
+}
+
+@media (min-width: 600px) {
+  .ht-theme-main {
+    --ht-border-radius: 2px;
+  }
+}
+
+@include theme-override((--ht-border-radius: 1px));

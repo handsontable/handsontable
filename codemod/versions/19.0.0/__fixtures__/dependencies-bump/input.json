@@ -1,0 +1,12 @@
+{
+  "name": "grid-app",
+  "dependencies": {
+    "@handsontable/react-wrapper": "~18.1.2",
+    "@handsontable/vue3": "^18.1.0",
+    "handsontable": "^18.1.2",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@handsontable/angular-wrapper": "18.1.0"
+  }
+}

@@ -11,6 +11,7 @@ packages:
   - docs
   - docs/angular-type-check
   - tests
+  - codemod
 
 # One Playwright version across the monorepo — the catalog version and the CI
 # container tag (mcr.microsoft.com/playwright:vX.Y.Z-noble in e2e.yml) bump

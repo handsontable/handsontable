@@ -21,6 +21,10 @@ on:
         description: 'Also run the determinism ratchet (a handsontable spec/unit tree changed)'
         type: boolean
         default: false
+      run-codemod:
+        description: 'Also run the codemod suite on Windows and on the other supported Node versions (its scope changed)'
+        type: boolean
+        default: false
 
 jobs:
   core:
@@ -41,6 +45,17 @@ jobs:
         run: npm run in handsontable stylelint
       - name: Custom ESLint rule tests (RuleTester)
         run: npm run in handsontable test:eslint-rules
+      # The codemod's own suite (`node --test`, literal file list). It imports jscodeshift and postcss, so it
+      # cannot join the root `test:tooling` glob, whose job installs nothing; this job has the workspace
+      # installed. The package's `lint` already ran in `npm run lint` above. It runs only when the codemod
+      # scope changed or on a run-all (`run-codemod`, set by `test.yml`), because the suite takes about a
+      # minute and every pull request reaches this job, on the critical path of `build`. When it does run,
+      # this step is the Linux leg on the Node version of `.nvmrc`, and the `codemod` job below adds Node 20
+      # and 24 on Linux and Node 22 on Windows, so the supported versions are all covered whenever the
+      # scope changes.
+      - name: Codemod tests
+        if: inputs.run-codemod
+        run: npm run test --prefix codemod
 
       # The frozen Jasmine suite's determinism rules (no-fixed-sleep-in-spec,
       # no-new-it-flaky, no-skipped-test) are `warn`, and `npm run lint` above
@@ -91,3 +106,36 @@ jobs:
       # workspace installed and runs whenever the visual-tests scope changed.
       - name: Lint config self-test
         run: npm run in visual-tests test:lint-config
+
+  # The codemod is a CLI customers run on their own machines, so its suite also
+  # runs where they do: Windows (path separators, CRLF, git) and the Node versions
+  # its `engines` field allows. The `Codemod tests` step of the `core` job above
+  # covers Linux on the Node version of `.nvmrc`, on the same `run-codemod` gate.
+  # Only the codemod's own dependencies are installed.
+  codemod:
+    name: codemod (${{ matrix.os }}, Node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    if: inputs.run-codemod
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-26.04
+            node: 20
+          - os: ubuntu-26.04
+            node: 24
+          - os: windows-2025-vs2026
+            node: 22
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      # No `version:` here: the action reads `packageManager` from the root `package.json`, and naming a
+      # second version makes it refuse to install.
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install the codemod's dependencies
+        run: pnpm install --filter @handsontable/codemod --ignore-scripts --frozen-lockfile
+      - name: Codemod tests
+        run: npm run test --prefix codemod

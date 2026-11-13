@@ -1,0 +1,43 @@
+{
+  "rules": [
+    {
+      "id": "18.0.0/numeric-format-culture",
+      "kind": "optionMove",
+      "safe": true,
+      "guide": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat",
+      "from": "numericFormat.culture",
+      "to": "locale",
+      "readerAdvice": "Move numericFormat.culture to locale and update the renderer in the same change. A custom renderer may read numericFormat.culture, but 18.0 formats with locale, so the renderer would fall back to its default culture if only the key moved."
+    },
+    {
+      "id": "18.0.0/correct-format-removed",
+      "kind": "optionRemove",
+      "safe": true,
+      "guide": "correctformat-option",
+      "name": "correctFormat",
+      "todo": true,
+      "advice": "Use valueParser or valueSetter to correct entered values. 18.0 removed correctFormat. The date, time, intl-date, and intl-time cell types work with ISO 8601 values and do not reformat input."
+    },
+    {
+      "id": "18.0.0/date-picker-config-removed",
+      "kind": "optionRemove",
+      "safe": true,
+      "guide": "datepickerconfig-option",
+      "name": "datePickerConfig",
+      "todo": true,
+      "advice": "Check the native date input, which replaces Pikaday. The date and intl-date cell types use it, and 18.0 removed datePickerConfig."
+    },
+    {
+      "id": "18.0.0/export-column-headers",
+      "kind": "optionRename",
+      "safe": true,
+      "from": "columnHeaders",
+      "to": "colHeaders",
+      "context": {
+        "callArg": ["exportAsString", "exportAsBlob", "exportAsBlobAsync", "downloadFile", "downloadFileAsync"],
+        "receiver": { "plugin": "exportFile" }
+      },
+      "message": "Rename columnHeaders to colHeaders: the export option is deprecated since 17.1 and 19.0 removes it. colHeaders keeps the meaning of the value."
+    }
+  ]
+}

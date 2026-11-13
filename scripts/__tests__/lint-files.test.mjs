@@ -18,6 +18,8 @@ test('lintable keeps files inside a CI lint scope', () => {
       'tests/lib/__tests__/screenreader-report.test.mjs',
       'visual-tests/tests/multi-frameworks/filters/accepting-by-enter.spec.ts',
       'visual-tests/src/test-runner.ts',
+      'codemod/src/cli.mjs',
+      'codemod/test/runner.test.mjs',
       'scripts/pre-push.mjs',
     ]),
     [
@@ -34,8 +36,33 @@ test('lintable keeps files inside a CI lint scope', () => {
       'tests/lib/__tests__/screenreader-report.test.mjs',
       'visual-tests/tests/multi-frameworks/filters/accepting-by-enter.spec.ts',
       'visual-tests/src/test-runner.ts',
+      'codemod/src/cli.mjs',
+      'codemod/test/runner.test.mjs',
       'scripts/pre-push.mjs',
     ],
+  );
+});
+
+test('lintable drops codemod manifests and fixtures, which its own lint ignores', () => {
+  assert.deepEqual(
+    lintable([
+      'codemod/versions/18.0.0/__fixtures__/x/input.js',
+      'codemod/versions/18.0.0/manifest.json',
+      'codemod/versions/18.0.0/rules/methods.json',
+      'codemod/package.json',
+    ]),
+    [],
+  );
+});
+
+test('lintable keeps the codemod custom rule modules, which its own lint covers', () => {
+  assert.deepEqual(
+    lintable([
+      'codemod/versions/18.1.0/custom/sanitizer-source.mjs',
+      'codemod/versions/18.1.0/custom/__fixtures__/x.mjs',
+      'codemod/versions/18.1.0/__fixtures__/x/custom/input.js',
+    ]),
+    ['codemod/versions/18.1.0/custom/sanitizer-source.mjs'],
   );
 });
 

@@ -1,0 +1,45 @@
+{
+  "rules": [
+    {
+      "id": "18.0.0/resize-state-methods",
+      "kind": "methodRemove",
+      "guide": "stop-calling-deprecated-resize-state-methods",
+      "safe": true,
+      "receiver": { "plugin": ["manualColumnResize", "manualRowResize"] },
+      "methods": [
+        "saveManualColumnWidths",
+        "loadManualColumnWidths",
+        "saveManualRowHeights",
+        "loadManualRowHeights"
+      ],
+      "message": "{name} is a no-op.",
+      "advice": "Store the columnWidths and rowHeights values yourself to keep column widths or row heights across page loads, for example in localStorage, and pass them back as settings when the grid initializes. In 18.0 the method is deprecated and logs a warning, and 19.0 removes it."
+    },
+    {
+      "id": "18.0.0/core-undo-methods",
+      "kind": "methodMove",
+      "safe": true,
+      "receiver": "instance",
+      "via": { "method": "getPlugin", "args": ["undoRedo"] },
+      "methods": {
+        "undo": "undo",
+        "redo": "redo",
+        "clearUndo": "clear",
+        "isUndoAvailable": "isUndoAvailable",
+        "isRedoAvailable": "isRedoAvailable"
+      },
+      "properties": { "undoRedo": null },
+      "message": "Move this call to the undoRedo plugin. Core lost the undo methods and the undoRedo property in 17.0, so this is a cleanup for code that still uses them.",
+      "advice": "Call them on the plugin: hot.getPlugin('undoRedo'). Core no longer has the undo methods or the undoRedo property."
+    },
+    {
+      "id": "18.0.0/helper-sanitize",
+      "kind": "callUnwrap",
+      "guide": "replace-built-in-dompurify-with-a-custom-sanitizer",
+      "safe": false,
+      "callee": "Handsontable.helper.sanitize",
+      "arg": 0,
+      "advice": "Pass a sanitizer through the sanitizer option, or call DOMPurify.sanitize() yourself. In 17.x this called DOMPurify, and in 18.0 it returns its input unchanged and is deprecated, so removing the call would drop the sanitization your code relies on."
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+@use 'sass:map';
+
+$radius: 6px;
+
+// The wrapper-border-radius key is a variable name without the prefix.
+$ht-desk: (
+  'wrapper-border-radius': $radius,
+  "wrapper-border-color": #d0d5dd,
+  wrapper-border-width: 1px,
+  'row-header-odd-background-color': #f8f9fb,
+);
+
+$ht-night: map.merge($ht-desk, ('wrapper-border-color': #344054));
+
+$label: 'wrapper-border-radius-extra';
+
+@mixin ht-theme-vars($tokens) {
+  @each $name, $value in $tokens {
+    --ht-#{$name}: #{$value};
+  }
+}

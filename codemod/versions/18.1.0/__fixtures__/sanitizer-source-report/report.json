@@ -1,0 +1,60 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 11
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 10
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 23
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 21
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 39
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 36
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 47
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-source",
+      "severity": "manual",
+      "line": 47
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-new-sources",
+      "severity": "manual",
+      "line": 10
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-new-sources",
+      "severity": "manual",
+      "line": 36
+    },
+    {
+      "ruleId": "18.1.0/sanitizer-new-sources",
+      "severity": "manual",
+      "line": 47
+    }
+  ]
+}

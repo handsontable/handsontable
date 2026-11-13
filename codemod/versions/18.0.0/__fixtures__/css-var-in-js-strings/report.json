@@ -1,0 +1,7 @@
+[
+  { "ruleId": "18.0.0/css-wrapper-border-width", "severity": "manual", "line": 10 },
+  { "ruleId": "18.0.0/css-wrapper-border-radius", "severity": "changed", "line": 5 },
+  { "ruleId": "18.0.0/css-wrapper-border-radius", "severity": "changed", "line": 8 },
+  { "ruleId": "18.0.0/css-wrapper-border-radius", "severity": "changed", "line": 10 },
+  { "ruleId": "18.0.0/css-wrapper-border-radius", "severity": "changed", "line": 9 }
+]

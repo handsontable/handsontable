@@ -1,0 +1,146 @@
+{
+  "page": "migration-from-18.0-to-18.1",
+  "note": "Headings of the guide as written in Markdown, with the id the built docs site gave each one, read from the rendered page. test/guide-anchors.test.mjs holds slugOf() to these ids. The guide itself may change; this file does not.",
+  "headings": [
+    {
+      "level": 2,
+      "markdown": "1. Set a license key in every environment",
+      "id": "set-a-license-key-in-every-environment"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate"
+    },
+    {
+      "level": 2,
+      "markdown": "2. Update code that reacts to a column-header click",
+      "id": "update-code-that-reacts-to-a-column-header-click"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-1"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate -- simulated header clicks",
+      "id": "how-to-migrate--simulated-header-clicks"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate -- column-move hooks used as click handlers",
+      "id": "how-to-migrate--column-move-hooks-used-as-click-handlers"
+    },
+    {
+      "level": 2,
+      "markdown": "3. Expect expired-key notices to reappear",
+      "id": "expect-expired-key-notices-to-reappear"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-2"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-1"
+    },
+    {
+      "level": 2,
+      "markdown": "4. Check custom layout code if the grid renders a wrong scrollbar",
+      "id": "check-custom-layout-code-if-the-grid-renders-a-wrong-scrollbar"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-3"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-2"
+    },
+    {
+      "level": 2,
+      "markdown": "5. Expect markup in the loading plugin's `title` and `description` to render as text",
+      "id": "expect-markup-in-the-loading-plugins-title-and-description-to-render-as-text"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-4"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-3"
+    },
+    {
+      "level": 2,
+      "markdown": "6. Update a sanitizer that branches on its `source` argument",
+      "id": "update-a-sanitizer-that-branches-on-its-source-argument"
+    },
+    {
+      "level": 3,
+      "markdown": "Nested header measurement: `'innerHTML'` becomes `'header'`",
+      "id": "nested-header-measurement-innerhtml-becomes-header"
+    },
+    {
+      "level": 3,
+      "markdown": "Dialog content: `undefined` becomes `'dialog'`",
+      "id": "dialog-content-undefined-becomes-dialog"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-5"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-4"
+    },
+    {
+      "level": 2,
+      "markdown": "7. Expect your sanitizer to see two surfaces it never saw before",
+      "id": "expect-your-sanitizer-to-see-two-surfaces-it-never-saw-before"
+    },
+    {
+      "level": 3,
+      "markdown": "`password` cells, under `'password'`",
+      "id": "password-cells-under-password"
+    },
+    {
+      "level": 3,
+      "markdown": "Handsontable's own clipboard payload, under `'CopyPaste.paste.sourceData'`",
+      "id": "handsontables-own-clipboard-payload-under-copypastepastesourcedata"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-5"
+    },
+    {
+      "level": 2,
+      "markdown": "Summary of changes",
+      "id": "summary-of-changes"
+    },
+    {
+      "level": 2,
+      "markdown": "Result",
+      "id": "result"
+    },
+    {
+      "level": 2,
+      "markdown": "Related resources",
+      "id": "related-resources"
+    }
+  ]
+}
