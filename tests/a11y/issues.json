@@ -589,7 +589,7 @@
       "id": "docs-footer-overlap",
       "title": "Footer links overlap each other at 200% zoom",
       "match": [
-        { "source": "docs-checks", "kinds": ["controls-overlap"], "where": ["^nav\\.hot-footer__nav a × "] }
+        { "source": "docs-checks", "kinds": ["controls-overlap"], "where": ["^nav\\.hot-footer__nav a × ", "^a\\.hot-footer__[\\w-]+ × a\\.hot-footer__"] }
       ]
     },
     {
