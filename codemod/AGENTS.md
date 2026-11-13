@@ -525,8 +525,7 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   match (css-loader and others moved from 8.5.23 to 8.5.31, with vue and nanoid moving along). The importer therefore
   names `postcss` 8.5.23 and `@vue/compiler-sfc` 3.5.43, versions the lockfile already holds. After a change, restore
   the lockfile of the merge base, add the importer by hand if needed, run `pnpm install --lockfile-only`, and check
-  that `git diff <merge base> -- pnpm-lock.yaml` has no removed line. jscodeshift is a new dependency that needs team
-  sign-off before the package leaves draft.
+  that `git diff <merge base> -- pnpm-lock.yaml` has no removed line. jscodeshift is a new dependency the team agreed to.
 - `package.json` `files` limits the package to `bin`, `src`, the manifests, `rules/**`, and `custom/**` of every version,
   and the README. Tests, fixtures, tools, and the generated diffs stay out. After a change to it, run `npm pack
   --dry-run --json` in a copy of the package outside the monorepo.

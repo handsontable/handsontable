@@ -350,7 +350,7 @@ describe('literals in other kinds of files', () => {
         '',
       ].join('\n');
       const output = await migrate(input, 'Grid.vue', CULTURE);
-      const script = text => /<script[^>]*>([\s\S]*)<\/script>/.exec(text)[1];
+      const script = text => text.slice(text.indexOf('>', text.indexOf('<script')) + 1, text.lastIndexOf('</script>'));
 
       assert.match(output, /locale: 'de-DE'/);
       assertLiteralsKept(script(input), script(output), 'grid.js');
