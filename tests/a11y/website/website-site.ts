@@ -8,13 +8,16 @@ import { WEBSITE_VIEWPORTS, websiteUrl } from './pages.mjs';
  *
  * **Nothing a test does reaches anyone.** The site's forms post from the browser to HubSpot, and the support call books
  * through the site's own Worker: a test submission would be a real lead in the CRM, a test booking a real meeting.
- * `guardSite()` routes every request of the browser context. Another origin than the site's is aborted (the consent
+ * `guardSite()` routes every request the browser context starts, and closes every WebSocket it opens. Another origin
+ * than the site's is aborted (the consent
  * banner, analytics, HubSpot's scripts and its submit endpoint, the media bucket, the docs assistant, video), as the
  * website's own browser gates do (`scripts/browser-isolation.mjs` there), so a run depends on nobody's uptime and no
  * visit reaches the marketing data. On the site's origin only a read goes through: every other method is aborted,
  * except the two writes a state answers on the page itself, the HubSpot submit of `form-sent` and the booking of
  * `booker-booked`, which are fulfilled here and never sent. Each is recorded, so a test proves both that its own write
- * was caught and that none went out.
+ * was caught and that none went out. A redirect's later hops are not routed (Playwright routes a request's first hop
+ * only), so a read the site redirects to another origin reaches it; a write never gets that far, since it is
+ * answered or aborted at its first hop. The configs block service workers, whose requests no route sees.
  *
  * What makes two runs agree is the website's own recipe (`tests/browser/support/test.ts` there): every `client:visible`
  * island is woken on load (`wakeVisibleIslands()`), and a page is measured once every island hydrated, no request has
@@ -46,7 +49,7 @@ export interface Guard {
    */
   answered: string[];
   /**
-   * The writes refused: any other request to the site that is not a read.
+   * The writes refused: any other request to the site that is not a read, and every WebSocket, which can write.
    */
   refused: string[];
 }
@@ -103,6 +106,16 @@ export async function guardSite(context: BrowserContext, origin: string, { submi
       return;
     }
     await route.continue();
+  });
+  // A WebSocket is no request a route sees, and it sends as well as reads: each one is closed before it connects.
+  await context.routeWebSocket('**', (socket) => {
+    const url = new URL(socket.url());
+
+    if (url.origin !== origin.replace(/^http/, 'ws')) {
+      guard.blocked.add(url.host);
+    }
+    guard.refused.push(`WebSocket ${url.origin}${url.pathname}`);
+    socket.close();
   });
 
   return guard;
@@ -188,7 +201,9 @@ export async function wakeVisibleIslands(page: Page): Promise<void> {
 }
 
 /**
- * Every request the page makes, so a wait can tell when none is in flight. Call it before `goto()`.
+ * Every request the page makes, so a wait can tell when none is in flight. One per page, made before its first
+ * `goto()` (`openWebsitePage()` keeps it, `requestsOf()` hands it out): a watch made later misses a request already in
+ * flight, and each one adds listeners that stay for the page's life.
  *
  * @param page The page.
  * @returns A wait for quiet.
@@ -217,8 +232,16 @@ export function watchRequests(page: Page) {
      * @param quietMs How long the network must stay quiet.
      */
     async quiet(deadline: number, quietMs = 500) {
-      await expect.poll(() => (inFlight.size === 0 && Date.now() - changedAt >= quietMs ? [] : [...inFlight].map(request => request.url()).slice(0, 5)),
-        { message: 'requests still in flight', timeout: deadline, intervals: [100] }).toEqual([]);
+      await expect.poll(() => {
+        if (inFlight.size > 0) {
+          return [...inFlight].map(request => request.url()).slice(0, 5);
+        }
+
+        const quietFor = Date.now() - changedAt;
+
+        // Nothing in flight is not yet quiet: a request that just ended can be followed by the one it causes.
+        return quietFor >= quietMs ? [] : [`quiet for ${quietFor} of ${quietMs} ms`];
+      }, { message: 'requests still in flight', timeout: deadline, intervals: [100] }).toEqual([]);
     },
   };
 }
@@ -280,7 +303,24 @@ export async function settleWebsite(page: Page, requests: ReturnType<typeof watc
 }
 
 // The pages already prepared, with how: `openWebsitePage()` prepares a page once, however often a check opens it.
-const PREPARED = new WeakMap<Page, { setup: string; guard: Guard }>();
+const PREPARED = new WeakMap<Page, { setup: string; guard: Guard; requests: ReturnType<typeof watchRequests> }>();
+
+/**
+ * The request watch of a page `openWebsitePage()` opened, listening since before its first request: a wait after a
+ * key press or a resize sees a request that was in flight before it began.
+ *
+ * @param page The page.
+ * @returns The request watch.
+ */
+export function requestsOf(page: Page): ReturnType<typeof watchRequests> {
+  const prepared = PREPARED.get(page);
+
+  if (!prepared) {
+    throw new Error('requestsOf(): the page was not opened by openWebsitePage(), so nothing watched its requests');
+  }
+
+  return prepared.requests;
+}
 
 /**
  * Opens a page of the site at a width and waits until it can be measured: the viewport, the guard and the islands'
@@ -311,24 +351,23 @@ export async function openWebsitePage(page: Page, entry: { route: string; state:
 
   await page.setViewportSize(WEBSITE_VIEWPORTS[viewport as keyof typeof WEBSITE_VIEWPORTS]);
 
-  const requests = watchRequests(page);
   let prepared = PREPARED.get(page);
 
   // A page opened again (a check reopens it after a key press that acted, or after a walk that loaded another page)
-  // keeps its init script, clock, guard and error listener: added again, they would stack, the islands' observer
-  // would be wrapped twice, and each uncaught error would be recorded once per visit.
+  // keeps its init script, clock, guard, request watch and error listener: added again, they would stack, the islands'
+  // observer would be wrapped twice, and each uncaught error would be recorded once per visit.
   if (!prepared) {
     await wakeVisibleIslands(page);
     if (clock) {
       await page.clock.install();
     }
-    prepared = { setup, guard: await guardSite(page.context(), new URL(baseUrl).origin, answers) };
+    prepared = { setup, guard: await guardSite(page.context(), new URL(baseUrl).origin, answers), requests: watchRequests(page) };
     PREPARED.set(page, prepared);
     page.on('pageerror', error => pageErrors.push(String(error.stack ?? error)));
   }
   expect(prepared.setup, 'a page is opened again with the guard and clock it was first opened with').toBe(setup);
 
-  const { guard } = prepared;
+  const { guard, requests } = prepared;
 
   const response: Response | null = await page.goto(url, { waitUntil: 'load' });
 

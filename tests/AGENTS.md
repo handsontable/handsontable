@@ -2019,16 +2019,21 @@ comparator, the reports and the baseline holds; this section says what differs. 
   (`NOT_SCANNED`), so a page the site gains is scanned or excluded in the change that notices it.
 - **It reads production, and writes nothing to it.** `WEBSITE_A11Y_BASE_URL` names another deploy (a plain https
   origin, or `http://localhost` for a local preview; `websiteBaseUrl()` refuses the rest). `guardSite()` in
-  `a11y/website/website-site.ts` routes the whole context: every other origin is aborted (consent, analytics, error
-  reporting, the chat), the site's own reads go through, and every write is aborted except the one a state makes,
+  `a11y/website/website-site.ts` routes every request the context starts and closes every WebSocket it opens: every
+  other origin is aborted (consent, analytics, error reporting, the chat), the site's own reads go through, and every
+  write is aborted except the one a state makes,
   which the runner answers on the page: the lead form's HubSpot submit (`form-sent`) and the support call's booking
   (`booker-booked`). No form is sent and no call is booked. The scan asserts that exactly that write was answered
   (the guard's positive control) and records every aborted write (`refusedWrites`) and blocked host. A state that
   submits installs the page's clock and moves it past the forms' spam guard (`MIN_FILL_MS`), and fills each form by
-  reading its fields (`fillForm()`: production's fields come from the live HubSpot schema and change).
+  reading its fields (`fillForm()`: production's fields come from the live HubSpot schema and change). A route sees
+  only a request's first hop, so a read the site redirects to another origin reaches it; a write never gets that
+  far, and the configs block service workers, whose requests no route sees.
 - **A page is measured hydrated and still.** The site's islands hydrate when visible, so an observer that reports
   every island as visible is installed before the first script (`wakeVisibleIslands()`). `settleWebsite()` waits
-  until no island is server markup, no request has been in flight for half a second, the fonts are ready, the
+  until no island is server markup, no request has been in flight for half a second (one request watch per page,
+  made before its first request and reused by every later settle, `requestsOf()`: a watch made later misses a
+  request already in flight), the fonts are ready, the
   running finite animations ended (a paused one never ends, and holds still), and the DOM held still. A page
   that answers with a bot challenge, the wrong status, or a tab its query or hash should select that is not
   selected fails its test.

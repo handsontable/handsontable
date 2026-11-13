@@ -2,7 +2,7 @@ import { type Page } from '@playwright/test';
 import { DOCS_STATES, openDocsPage, settle as settleDocs } from '../docs/docs-site';
 import { DOCS_PAGES, DOCS_THEMES, docsBaseUrl, type DocsPage, type DocsState } from '../docs/pages.mjs';
 import { WEBSITE_PAGES, websiteBaseUrl } from '../website/pages.mjs';
-import { WEBSITE_STATES, openWebsitePage, settleWebsite, watchRequests, type WebsiteState } from '../website/website-site';
+import { WEBSITE_STATES, openWebsitePage, requestsOf, settleWebsite, type WebsiteState } from '../website/website-site';
 
 /**
  * The sites the site checks measure, and how a check opens one of their pages. One definition per site of
@@ -238,8 +238,9 @@ export const WEBSITE_SITE: Site = {
   async reach(page, entry) {
     await WEBSITE_STATES[entry.state as WebsiteState](page);
   },
+  // The page's own request watch, listening since its open: a request a key press or a resize started is seen.
   async settle(page) {
-    await settleWebsite(page, watchRequests(page));
+    await settleWebsite(page, requestsOf(page));
 
     return true;
   },
