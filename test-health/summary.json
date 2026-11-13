@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T09:12:52.553Z",
+  "generatedAt": "2026-11-13T10:28:02.535Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,7 +9,7 @@
   "retentionDays": 90,
   "totals": {
     "tests": 449,
-    "needsTicket": 8,
+    "needsTicket": 7,
     "quarantined": 0,
     "entries": 2305
   },
@@ -224,43 +224,6 @@
         "leg": "UMD (theme: horizon)",
         "status": "failed",
         "error": "Expected 94 to be 97.",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "tier": "jasmine",
-      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
-      "line": null,
-      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
-      "count7": 0,
-      "count30": 3,
-      "countAll": 5,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "UMD (theme: classic)",
-        "UMD (theme: main)",
-        "UMD.min (theme: main)"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [
-        "passes alone"
-      ],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-15T13:41:12Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38738667338/attempts/2",
-        "branch": "feature/DEV-140_Autofill-diagonal-drag",
-        "leg": "UMD.min (theme: main)",
-        "status": "failed",
-        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 96px; height: 30px; overflow-y: visible; font-size: 14px; font-family: sans-serif;\">. Tip: To ch...",
         "source": "ci"
       },
       "needsTicket": true
@@ -1634,6 +1597,43 @@
         "leg": "e2e-classic",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js|IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/intlDateEditor/__tests__/intlDateEditor.spec.js",
+      "line": null,
+      "title": "IntlDateEditor should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 5,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: classic)",
+        "UMD (theme: main)",
+        "UMD.min (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "passes alone"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-15T13:41:12Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38738667338/attempts/2",
+        "branch": "feature/DEV-140_Autofill-diagonal-drag",
+        "leg": "UMD.min (theme: main)",
+        "status": "failed",
+        "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to be <input data-hot-input tabindex=\"-1\" class=\"handsontableInput\" type=\"date\" style=\"width: 96px; height: 30px; overflow-y: visible; font-size: 14px; font-family: sans-serif;\">. Tip: To ch...",
         "source": "ci"
       },
       "needsTicket": false
