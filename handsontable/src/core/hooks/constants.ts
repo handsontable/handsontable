@@ -4744,8 +4744,11 @@ export const REGISTERED_HOOKS = [
   'beforeDialogShow',
 
   /**
-   * Fired by {@link Dialog} plugin before focusing the previous element. This hook is fired when {@link Options#dialog}
-   * option is enabled.
+   * Fired by {@link Dialog} plugin when the user presses <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> while focus is
+   * inside the open dialog. This hook is fired when {@link Options#dialog} option is enabled.
+   *
+   * The hook runs once per key press, after the browser handled the key. It receives no arguments.
+   * To find out which element has the focus, read `document.activeElement` in the callback.
    *
    * @since 16.1.0
    * @event Hooks#dialogFocusPreviousElement
@@ -4753,8 +4756,11 @@ export const REGISTERED_HOOKS = [
   'dialogFocusPreviousElement',
 
   /**
-   * Fired by {@link Dialog} plugin before focusing the next element. This hook is fired when {@link Options#dialog}
-   * option is enabled.
+   * Fired by {@link Dialog} plugin when the user presses <kbd>**Tab**</kbd> while focus is inside the open dialog.
+   * This hook is fired when {@link Options#dialog} option is enabled.
+   *
+   * The hook runs once per key press, after the browser handled the key. It receives no arguments.
+   * To find out which element has the focus, read `document.activeElement` in the callback.
    *
    * @since 16.1.0
    * @event Hooks#dialogFocusNextElement

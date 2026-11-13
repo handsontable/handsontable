@@ -378,6 +378,10 @@ Focus moves only if the grid was focused when the dialog opened. If the user has
 
 While the dialog is open, **Tab** and **Shift+Tab** move between the focusable elements inside it and skip the grid. They still reach the other elements on your page. **Escape** closes the dialog, but only when `closable` is set to `true`. The [`showAlert()`](@/api/dialog.md#showalert) and [`showConfirm()`](@/api/dialog.md#showconfirm) methods set `closable` to `false`, so **Escape** does not close those dialogs.
 
+The [`dialogFocusNextElement`](@/api/hooks.md#dialogfocusnextelement) and [`dialogFocusPreviousElement`](@/api/hooks.md#dialogfocuspreviouselement) hooks run once per **Tab** and **Shift+Tab** press, after the browser handled the key. They receive no arguments, so read `document.activeElement` to see where the focus is.
+
+The browser decides which elements **Tab** reaches. Safari skips buttons by default. To reach them, press **Option+Tab**, or turn on "Press Tab to highlight each item on a webpage" in Safari's settings. This is a browser setting, so it applies to the buttons in your own `content` as well.
+
 To move focus to the dialog box at any time, call the [`focus()`](@/api/dialog.md#focus) method.
 
 ## Programmatic control
