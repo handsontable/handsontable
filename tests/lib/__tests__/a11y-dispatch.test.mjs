@@ -117,6 +117,20 @@ test('the guard script says what the run covers, and refuses with an error annot
   assert.match(develop.stdout, /^::error title=Dispatch inputs::a dispatch on develop is the audit, which runs every check and every lane; projects=vo-webkit is for a proof run on a branch/);
   assert.match(develop.stderr, /^a11y-dispatch-inputs: a dispatch on develop is the audit/);
 
+  // The site workflows run the guard on every run, a pull request's too, with their own arguments. A pull request
+  // that changes the guard does not start the site scans (the scans never read it), so this is its proof there.
+  for (const site of ['docs', 'website']) {
+    const pullRequest = guard(['--ref', 'refs/pull/1/merge', '--site', site, '--site-checks', '']);
+
+    assert.equal(pullRequest.status, 0, pullRequest.stderr);
+    assert.match(pullRequest.stdout, new RegExp(`^a11y-dispatch-inputs: no subset on refs/pull/1/merge\\na11y-dispatch-inputs: ${site} site checks: ${site}-structure, `));
+
+    const siteAudit = guard(['--ref', AUDIT_REF, '--site', site, '--site-checks', `${site}-reflow`]);
+
+    assert.equal(siteAudit.status, 1);
+    assert.match(siteAudit.stdout, new RegExp(`^::error title=Dispatch inputs::a dispatch on develop is the audit, .*; checks=${site}-reflow is for a proof run on a branch`));
+  }
+
   const spaced = guard(['--ref', BRANCH, '--suite', 'nightly', '--checks', 'keyboard-walker, reflow']);
 
   assert.equal(spaced.status, 1);

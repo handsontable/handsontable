@@ -2097,7 +2097,7 @@ and of `.github/workflows/website-a11y.yml`.
   accessibility tree exposes them (an element under `aria-hidden`, `inert` or `hidden`, or not rendered, is left
   out). 2.4.2's duplicates compare each title with every page's, read from the start of each page's HTML once
   per worker; the same address at another viewport is the same page. 2.4.5 counts the navigation that links the
-  page and the site's search, read once per worker from the page that holds it; a search that could not be read
+  page (a bare `#` or an empty href resolves to the page but goes nowhere, so it never counts) and the site's search, read once per worker from the page that holds it; a search that could not be read
   is a problem of the reference page, and no page evaluates 2.4.5 that run. 3.2.3, 3.2.4 and 3.2.6 compare each
   page with the site's reference page at the same viewport: the shared links of each header and footer
   navigation in the same order (a link added or left out keeps the order), one name per target within one
@@ -2123,7 +2123,8 @@ and of `.github/workflows/website-a11y.yml`.
   never sampled here. The indicator of the first stop of each shape is captured with nothing focused and again
   after a key press and the focus (what makes `:focus-visible` match), and judged by `focusFindings()` of
   `lib/contrast.mjs`; a text field's or a select's boundary and fill against the page around it
-  (`boundaryFindings()`, 1.4.11). A popup state is left out: its items' indicators touch each other and the
+  (`boundaryFindings()`, 1.4.11), for every stop `isFieldShape()` reads as a field from its own part, so a plain
+  input named inside its ancestor (`label.option-label input`) is measured too. A popup state is left out: its items' indicators touch each other and the
   trigger's, so no capture before the focus is clean.
 - **`<site>-reflow`** (`reflow.spec.ts`): one load per page, resized through `CONDITIONS` of `lib/reflow.mjs` and
   then given the text-spacing override, plus both orientations (1.3.4). At 320 px the page must not scroll

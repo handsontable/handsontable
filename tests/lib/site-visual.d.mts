@@ -11,6 +11,7 @@ type Finding = {
 export const STATE_SIGNATURE: string[];
 export function pageReflowFindings(input: { condition: string; viewport: { width: number; scrollWidth: number }; offenders: Array<{ selector: string; right: number }>; exempt?: number }): Finding[];
 export function orientationFindings(sizes: Record<'portrait' | 'landscape', { width: number; height: number }>): Finding[];
+export function isFieldShape(shape: string): boolean;
 export function boundaryFindings(input: { selector: string; boundary: { ratio: number }; fill: { ratio: number }; around: number[] }): Finding[];
 export function stateLostFindings(input: {
   selector: string; state: string;

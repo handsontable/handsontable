@@ -10,7 +10,7 @@ import {
   walkProblem,
   walkVerdict,
 } from '../site-keyboard.mjs';
-import { boundaryFindings, orientationFindings, pageReflowFindings, stateLostFindings } from '../site-visual.mjs';
+import { boundaryFindings, isFieldShape, orientationFindings, pageReflowFindings, stateLostFindings } from '../site-visual.mjs';
 
 // tests/AGENTS.md ("A11y: the site checks beyond axe"): the verdicts of the keyboard walk on a site (2.1.1, 2.1.2,
 // 2.1.4, 2.4.1, 2.4.3, 3.2.1, 3.2.2, 4.1.2) and the visual judges the site checks add (1.4.10, 1.3.4, 1.4.11, 1.4.1).
@@ -164,6 +164,17 @@ test('1.4.11: a text field whose edge and fill both stand under 3:1 from the pag
 
   assert.equal(finding.kind, 'control-boundary-contrast');
   assert.deepEqual(finding.measured, { boundary: 1.99, fill: 1.05, around: 'rgb(255, 255, 255)' });
+});
+
+test('1.4.11 measures every field stop, a plain one named inside its ancestor too, and nothing else', () => {
+  for (const shape of ['input', 'input.search', 'textarea', 'select.ht-select', 'input[role="combobox"]',
+    'label.option-label input', 'span.slider input', 'div.form textarea']) {
+    assert.equal(isFieldShape(shape), true, shape);
+  }
+  // An ancestor's or an element's class named like a field, a custom element, and a role word are not fields.
+  for (const shape of ['div.input button', 'div.select', 'input-group', 'a.link', 'div.copy button', 'button[role="input"]']) {
+    assert.equal(isFieldShape(shape), false, shape);
+  }
 });
 
 test('1.4.1 in forced colors: a state that differed only in colors forced colors replaces', () => {

@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { siteCheckId, siteOf } from '../../lib/a11y-site-checks.mjs';
 import { distinctName, focusFindings, obscuredFindings } from '../../lib/contrast.mjs';
 import { walkProblem, walkVerdict } from '../../lib/site-keyboard.mjs';
-import { boundaryFindings } from '../../lib/site-visual.mjs';
+import { boundaryFindings, isFieldShape } from '../../lib/site-visual.mjs';
 import { openAxSession } from '../checks/walker';
 import { attachEvidence, readEnvironment, type EvidenceFinding } from '../evidence';
 import { indicator, samplePoints } from './focus';
@@ -32,7 +32,6 @@ const SITE = siteDefinition(siteOf(process.env.HOT_A11Y_SITE));
 const CHECK = siteCheckId(SITE.id, 'focus-contrast');
 // How many shapes a page's indicator is measured on.
 const SHAPES = 30;
-const FIELDS = /^(input|textarea|select)\b/;
 
 for (const theme of SITE.themes) {
   test.describe(`${CHECK} on ${theme}`, () => {
@@ -128,7 +127,7 @@ for (const theme of SITE.themes) {
           }
           indicators.push({ selector: name, ...measured.summary });
           findings.push(...focusFindings({ selector: name, step: 'Tab', change: measured.change }) as EvidenceFinding[]);
-          if (FIELDS.test(shape)) {
+          if (isFieldShape(shape)) {
             const boundary = measured.boundary;
 
             boundaries.push({ selector: name, ...boundary });

@@ -77,6 +77,19 @@ export function orientationFindings(sizes) {
 }
 
 /**
+ * Whether a focus stop's shape names a form field (an input, a text area or a select), whose boundary 1.4.11
+ * measures. The kind is read from the stop's own part, the last one: an element with no class or role of its own
+ * is named inside a classed ancestor (`label.option-label input`), so a match at the start of the shape alone
+ * missed exactly the plain fields.
+ *
+ * @param {string} shape The stop's shape, as the harness reads it.
+ * @returns {boolean} The verdict.
+ */
+export function isFieldShape(shape) {
+  return /(?:^|\s)(?:input|textarea|select)(?=[.[]|$)/.test(shape);
+}
+
+/**
  * The 1.4.11 finding of a text field or a select that nothing sets apart from the page: its boundary and its fill
  * both stand under 3:1 from the color around it. A control set apart by either passes.
  *
