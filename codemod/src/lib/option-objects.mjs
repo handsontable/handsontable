@@ -5,8 +5,10 @@
  *
  * A match is `high` when the file shows it: the second argument of `new <namespace>(...)`, the argument of
  * `.updateSettings()`, `settings={...}` on a wrapper component, a `GridSettings` (or similar) annotation, and
- * what hangs below those (`columns`, `cell`, `cells`, also as props of a wrapper component). It is `medium` when
- * only the keys suggest it.
+ * what hangs below those (`columns`, `cell`, `cells`, also as props of a wrapper component). The elements of an
+ * array annotated `ColumnSettings[]` (also `readonly ColumnSettings[]`, `Array<ColumnSettings>`, and `satisfies` one
+ * of them) are column objects of the same confidence, and an object annotated `Events` is a map of hooks (role
+ * `hooks`). It is `medium` when only the keys suggest it.
  *
  * @module lib/option-objects
  */
@@ -28,8 +30,9 @@ import { findReferences, invalidateScope, lookup } from './scope.mjs';
  * @typedef {object} OptionObject
  * @property {object} path NodePath of the `ObjectExpression`.
  * @property {'high'|'medium'} confidence How sure the finder is that this is a Handsontable options object.
- * @property {'grid'|'column'|'cell'} role Which level of the cascade the object configures. A `medium` object
- * that is not below another match is reported as `grid`.
+ * @property {'grid'|'column'|'cell'|'hooks'} role Which level of the cascade the object configures, or `hooks` for
+ * a map of hook callbacks (an object annotated `Events`). A `medium` object that is not below another match is
+ * reported as `grid`.
  * @property {string} origin Where the match came from: `new`, `updateSettings`, `jsx-settings`, `annotation`,
  * `columns`, `columns()`, `cell`, `cells()`, `spread`, or `heuristic`. A `:identifier` suffix means the object
  * was reached through a variable in the same file.
@@ -71,6 +74,17 @@ export const GENERIC_OPTIONS = new Set([
   'tableClassName', 'headerClassName', 'initialState', 'pagination', 'selectionMode', 'rowId',
 ]);
 
+/**
+ * The renderer names that Handsontable registers (`RENDERER_TYPE` of every built-in renderer in the 17.1 and 18.x
+ * packages). A string `renderer` outside this set names a renderer the project registered itself.
+ *
+ * @type {Set<string>}
+ */
+export const BUILT_IN_RENDERERS = new Set([
+  'autocomplete', 'base', 'checkbox', 'date', 'dropdown', 'handsontable', 'html', 'intl-date', 'intl-datetime',
+  'intl-time', 'multiselect', 'numeric', 'password', 'select', 'text', 'time',
+]);
+
 const IGNORED_ATTRIBUTES = new Set(['settings', 'ref', 'key']);
 const TYPE_WRAPPERS = new Set(['Partial', 'Readonly', 'Required', 'Omit', 'Pick']);
 const HOT_TYPE_ROLES = new Map([
@@ -78,6 +92,7 @@ const HOT_TYPE_ROLES = new Map([
   ['ColumnSettings', 'column'],
   ['CellProperties', 'cell'],
   ['CellMeta', 'cell'],
+  ['Events', 'hooks'],
 ]);
 const PROPERTY_TYPES = new Set(['ObjectProperty', 'Property', 'ObjectMethod']);
 const MAX_RESOLVE_DEPTH = 4;
@@ -490,6 +505,34 @@ export function findOptionObjects(j, root, bindings) {
       ? roleOfType(typeArguments(typeNode)[0]) : null;
   };
 
+  /**
+   * Role of the elements of an array type: `ColumnSettings[]`, `readonly ColumnSettings[]`, `Array<ColumnSettings>`,
+   * and `ReadonlyArray<ColumnSettings>`.
+   *
+   * @param {object|null|undefined} typeNode A type node.
+   * @returns {string|null} The role of the elements, or `null`.
+   */
+  const elementRoleOfType = (typeNode) => {
+    if (!typeNode) {
+      return null;
+    }
+
+    switch (typeNode.type) {
+      case 'TSTypeAnnotation':
+      case 'TSParenthesizedType':
+        return elementRoleOfType(typeNode.typeAnnotation);
+      case 'TSTypeOperator':
+        return typeNode.operator === 'readonly' ? elementRoleOfType(typeNode.typeAnnotation) : null;
+      case 'TSArrayType':
+        return roleOfType(typeNode.elementType);
+      case 'TSTypeReference':
+        return typeNode.typeName.type === 'Identifier' && ['Array', 'ReadonlyArray'].includes(typeNode.typeName.name)
+          ? roleOfType(typeArguments(typeNode)[0]) : null;
+      default:
+        return null;
+    }
+  };
+
   let addObject;
 
   /**
@@ -606,6 +649,33 @@ export function findOptionObjects(j, root, bindings) {
     });
   };
 
+  /**
+   * Add what a type annotation says about an expression: an object of a known role, or an array whose elements
+   * are objects of one.
+   *
+   * @param {object|undefined} path NodePath of the annotated expression.
+   * @param {object|null|undefined} typeNode The annotation, an `as` or `satisfies` type, or a return type.
+   */
+  const addAnnotated = (path, typeNode) => {
+    if (!path) {
+      return;
+    }
+
+    const role = roleOfType(typeNode);
+
+    if (role) {
+      addFrom(path, role, 'annotation');
+
+      return;
+    }
+
+    const elementRole = elementRoleOfType(typeNode);
+
+    if (elementRole) {
+      addElements(resolveArray(path), elementRole, 'annotation', 'high');
+    }
+  };
+
   root.find(j.NewExpression).forEach((path) => {
     if (bindings.isInstance(path) && path.node.arguments.length > 1) {
       addFrom(path.get('arguments', 1), 'grid', 'new');
@@ -668,32 +738,30 @@ export function findOptionObjects(j, root, bindings) {
 
   root.find(j.VariableDeclarator).forEach((path) => {
     if (path.node.init && path.node.id.typeAnnotation) {
-      addFrom(path.get('init'), roleOfType(path.node.id.typeAnnotation), 'annotation');
+      addAnnotated(path.get('init'), path.node.id.typeAnnotation);
     }
   });
 
   root.find(j.ClassProperty).forEach((path) => {
     if (path.node.value && path.node.typeAnnotation) {
-      addFrom(path.get('value'), roleOfType(path.node.typeAnnotation), 'annotation');
+      addAnnotated(path.get('value'), path.node.typeAnnotation);
     }
   });
 
   root.find(j.Node).filter(path => ['TSAsExpression', 'TSSatisfiesExpression', 'TSTypeAssertion']
     .includes(path.node.type)).forEach((path) => {
-    addFrom(path.get('expression'), roleOfType(path.node.typeAnnotation), 'annotation');
+    addAnnotated(path.get('expression'), path.node.typeAnnotation);
   });
 
   root.find(j.Node).filter(path => isFunctionNode(path.node) && path.node.returnType).forEach((path) => {
-    const role = roleOfType(path.node.returnType);
-
-    returned(path).forEach(item => addFrom(item, role, 'annotation'));
+    returned(path).forEach(item => addAnnotated(item, path.node.returnType));
   });
 
   root.find(j.CallExpression).forEach((path) => {
     const [typeArgument] = typeArguments(path.node);
 
     if (typeArgument && path.node.arguments.length > 0) {
-      addFrom(path.get('arguments', 0), roleOfType(typeArgument), 'annotation');
+      addAnnotated(path.get('arguments', 0), typeArgument);
     }
   });
 

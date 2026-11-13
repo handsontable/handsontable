@@ -6,7 +6,8 @@
       "safe": true,
       "guide": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat",
       "from": "numericFormat.culture",
-      "to": "locale"
+      "to": "locale",
+      "readerAdvice": "Move numericFormat.culture to locale and update the renderer in the same change. A custom renderer may read numericFormat.culture, but 18.0 formats with locale, so the renderer would fall back to its default culture if only the key moved."
     },
     {
       "id": "18.0.0/correct-format-removed",

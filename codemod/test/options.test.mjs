@@ -385,13 +385,23 @@ describe('optionMove', () => {
     }
   });
 
-  it('does nothing without the nested key, for a non-object parent, or for an unrecognized object', async() => {
+  it('does nothing without the nested key or for a call as the parent', async() => {
     const none = await run(grid('{ numericFormat: { pattern: \'0\' } }'), [MOVE]);
     const call = await run(grid('{ numericFormat: makeFormat() }'), [MOVE]);
-    const plain = await run(`${IMPORT}const x = { numericFormat: { culture: 'de-DE' } };\n`, [MOVE]);
 
-    assert.deepEqual([none.changed, call.changed, plain.changed], [false, false, false]);
-    assert.deepEqual([none.entries.length, call.entries.length, plain.entries.length], [0, 0, 0]);
+    assert.deepEqual([none.changed, call.changed], [false, false]);
+    assert.deepEqual([none.entries.length, call.entries.length], [0, 0]);
+  });
+
+  it('reports, and never moves, the pair in an object that is not recognized as an options object', async() => {
+    const plain = await run(`${IMPORT}const x = { numericFormat: { culture: 'de-DE' } };\n`, [MOVE]);
+    const noImport = await run('const x = { numericFormat: { culture: \'de-DE\' } };\n', [MOVE]);
+
+    assert.equal(plain.changed, false);
+    assert.deepEqual(summary(plain.entries), ['2:manual']);
+    assert.match(plain.entries[0].message, /^Move numericFormat\.culture to locale by hand if this object holds/);
+    assert.equal(noImport.changed, false);
+    assert.deepEqual(noImport.entries, []);
   });
 
   it('respects minConfidence high and the aggressive flag', async() => {

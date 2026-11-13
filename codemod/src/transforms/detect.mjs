@@ -4,13 +4,16 @@ import {
   lineOfNode,
   propertyName,
   stringValue,
+  typeArguments,
   unwrapNode,
+  unwrapPath,
 } from '../lib/ast.mjs';
 import { addFact } from '../lib/facts.mjs';
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
 import { findDynamicImports, findImports, findReExports, findRequires } from '../lib/imports.mjs';
-import { findOptionObjects, hasSpread } from '../lib/option-objects.mjs';
+import { GENERIC_OPTIONS, KNOWN_OPTIONS, findOptionObjects, hasSpread } from '../lib/option-objects.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
+import { createHop, isReference } from '../lib/resolve.mjs';
 import { lookup } from '../lib/scope.mjs';
 
 /**
@@ -33,15 +36,15 @@ const VALUE_KINDS = [true, false, null, 'array', 'function', 'object'];
  */
 const MODIFIERS = {
   import: [],
-  property: ['withKey', 'siblingKey', 'valueMatches', 'valueIs', 'in', 'flags'],
-  annotatedObject: ['flags'],
+  property: ['withKey', 'siblingKey', 'valueMatches', 'viaReference', 'valueIs', 'in', 'flags'],
+  annotatedObject: ['recordEntries', 'withKey', 'flags'],
   call: ['argMatches', 'receiver', 'flags'],
   hook: [],
   namespaceMember: [],
   string: ['flags'],
   selector: ['flags'],
   regex: ['flags'],
-  missingOption: ['whenAnyKey', 'whenValueMatches', 'unlessFileMatches', 'flags'],
+  missingOption: ['whenAnyKey', 'whenValueMatches', 'reportUnresolved', 'unlessFileMatches', 'flags'],
 };
 
 const WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSTypeAssertion',
@@ -125,6 +128,11 @@ function validateMatch(spec, files, where) {
       + `so "files" must be ${JSON.stringify(readable)} or a part of it`);
   }
 
+  if (spec.reportUnresolved !== undefined && (spec.reportUnresolved !== true || key !== 'missingOption'
+    || !Array.isArray(spec.whenAnyKey))) {
+    problems.push(`${where}.reportUnresolved must be true, and goes with missingOption and whenAnyKey`);
+  }
+
   if (key === 'missingOption' && typeof spec.missingOption !== 'string') {
     problems.push(`${where}.missingOption must be a key name`);
   }
@@ -168,6 +176,15 @@ function validateMatch(spec, files, where) {
     if (field in spec && typeof spec[field] !== 'string') {
       problems.push(`${where}.${field} must be a string`);
     }
+  }
+
+  if (spec.viaReference !== undefined && (spec.viaReference !== true || spec.valueMatches === undefined)) {
+    problems.push(`${where}.viaReference must be true, and goes with valueMatches`);
+  }
+
+  if (spec.recordEntries !== undefined && (spec.recordEntries !== true || key !== 'annotatedObject'
+    || typeof spec.withKey !== 'string')) {
+    problems.push(`${where}.recordEntries must be true, and goes with annotatedObject and withKey`);
   }
 
   if (typeof spec.flags === 'string' && !/^[imsu]*$/.test(spec.flags)) {
@@ -229,6 +246,15 @@ export function validateDetectRule(rule) {
 
   if (rule.mergeKey !== undefined && (typeof rule.mergeKey !== 'string' || rule.mergeKey === '')) {
     problems.push('"mergeKey" must be a string');
+  }
+
+  if (rule.unresolvedMessage !== undefined && (typeof rule.unresolvedMessage !== 'string'
+    || !rule.unresolvedMessage.includes('{sources}'))) {
+    problems.push('"unresolvedMessage" must be a string with a {sources} placeholder');
+  }
+
+  if (rule.variableMessage !== undefined && (typeof rule.variableMessage !== 'string' || rule.variableMessage === '')) {
+    problems.push('"variableMessage" must be a string');
   }
 
   return [...problems, ...validateMatch(rule.match, files, 'match')];
@@ -451,6 +477,7 @@ function receiverText(node) {
  * @property {() => import('../lib/hot-bindings.mjs').HotBindings} bindings Hot bindings of the part.
  * @property {() => import('../lib/option-objects.mjs').OptionObject[]} optionList Option objects of the part.
  * @property {() => Set<object>} optionNodes The nodes of those objects.
+ * @property {() => ReturnType<import('../lib/resolve.mjs').createHop>} resolver The one-hop resolver of the part.
  */
 
 /**
@@ -463,8 +490,19 @@ function createEnv(ctx) {
   const bindings = memo(() => collectHotBindings(ctx.j, ctx.root));
   const optionList = memo(() => findOptionObjects(ctx.j, ctx.root, bindings()));
   const optionNodes = memo(() => new Set(optionList().map(item => item.path.node)));
+  const resolver = memo(() => createHop(ctx.j, ctx.root));
 
-  return { ctx, source: ctx.source, j: ctx.j, root: ctx.root, requires: 'hot-file', bindings, optionList, optionNodes };
+  return {
+    ctx,
+    source: ctx.source,
+    j: ctx.j,
+    root: ctx.root,
+    requires: 'hot-file',
+    bindings,
+    optionList,
+    optionNodes,
+    resolver,
+  };
 }
 
 /**
@@ -590,6 +628,24 @@ function valueOfProperty(node) {
 }
 
 /**
+ * The NodePath of the value expression of a property or JSX attribute.
+ *
+ * @param {object} path NodePath of an `ObjectProperty`, `JSXAttribute`, or `ObjectMethod`.
+ * @returns {object|null} NodePath of the value, `null` for a method or a bare attribute.
+ */
+function valuePathOf(path) {
+  if (path.node.type === 'JSXAttribute') {
+    if (path.node.value?.type === 'JSXExpressionContainer') {
+      return path.get('value', 'expression');
+    }
+
+    return path.node.value ? path.get('value') : null;
+  }
+
+  return path.node.type === 'ObjectMethod' ? null : path.get('value');
+}
+
+/**
  * Whether the value of a property is of the kind a `valueIs` modifier asks for.
  *
  * @param {object|null} property The `ObjectProperty`, `ObjectMethod`, or `JSXAttribute` node, `null` for an
@@ -691,10 +747,23 @@ function matchProperty(env, node) {
         }
       }
 
-      if (re.value) {
-        const text = stringValue(unwrapNode(value));
+      let variable = false;
 
-        if (text === null || !re.value.test(text)) {
+      if (re.value) {
+        let text = stringValue(unwrapNode(value));
+        const target = value ? unwrapNode(value) : null;
+
+        if (text === null && spec.viaReference && target && isReference(target)) {
+          const valuePath = valuePathOf(path);
+          const resolved = valuePath ? env.resolver().hop(valuePath) : null;
+
+          text = resolved ? stringValue(resolved.node) : null;
+          // A reference that does not resolve (or resolves to another reference or a call) may hold a matching string.
+          // One that resolves to an object or another literal does not.
+          variable = resolved === null || isReference(resolved.node) || resolved.node.type === 'CallExpression';
+        }
+
+        if (!variable && (text === null || !re.value.test(text))) {
           continue;
         }
       }
@@ -703,7 +772,7 @@ function matchProperty(env, node) {
         continue;
       }
 
-      matches.push({ line: lineOfNode(path.node) });
+      matches.push({ line: lineOfNode(path.node), ...(variable ? { variable: true } : {}) });
     }
   };
 
@@ -811,7 +880,9 @@ function matchTemplateProperty(env, node) {
 /**
  * Find the matches of an `annotatedObject` matcher: an object literal that a type annotation, `as`, or `satisfies`
  * names with one of the listed types (the last segment of a qualified name counts), as in
- * `const format: NumericFormatOptions = { ... }`.
+ * `const format: NumericFormatOptions = { ... }`. With `recordEntries` and `withKey`, it matches instead each entry of an
+ * object annotated `Record<K, Type>` whose value is an object literal that sets the key, at that key, as in
+ * `{ fxRate: { pattern: '0.00' } } satisfies Record<string, NumericFormatOptions>`.
  *
  * @param {Env} env Part state.
  * @param {Compiled} node The compiled matcher.
@@ -820,27 +891,58 @@ function matchTemplateProperty(env, node) {
 function matchAnnotatedObject(env, node) {
   const { j, root } = env;
   const names = new Set(listOf(node.spec.annotatedObject));
-  const named = (type) => {
+  const records = node.spec.recordEntries === true;
+  const lastName = (type) => {
     const reference = type?.type === 'TSTypeAnnotation' ? type.typeAnnotation : type;
     const typeName = reference?.type === 'TSTypeReference' ? reference.typeName : null;
-    const last = typeName?.type === 'TSQualifiedName' ? typeName.right.name : typeName?.name;
 
-    return names.has(last);
+    return typeName?.type === 'TSQualifiedName' ? typeName.right.name : typeName?.name;
   };
+  const named = (type) => {
+    if (!records) {
+      return names.has(lastName(type));
+    }
+
+    // `Record<K, Named>`: the values of the object are the named type.
+    const reference = type?.type === 'TSTypeAnnotation' ? type.typeAnnotation : type;
+
+    return lastName(reference) === 'Record' && reference.typeName.type === 'Identifier'
+      && names.has(lastName(typeArguments(reference)[1]));
+  };
+
   const matches = [];
+  const report = (object) => {
+    if (!records) {
+      matches.push({ line: lineOfNode(object) });
+
+      return;
+    }
+
+    for (const entry of object.properties) {
+      const value = entry.type === 'ObjectProperty' ? unwrapNode(entry.value) : null;
+      const key = value?.type === 'ObjectExpression'
+        ? value.properties.find(property => propertyName(property) === node.spec.withKey) : null;
+
+      if (key) {
+        matches.push({ line: lineOfNode(key) });
+      }
+    }
+  };
 
   root.find(j.VariableDeclarator).forEach((path) => {
     const init = path.node.init ? unwrapNode(path.node.init) : null;
 
     if (init?.type === 'ObjectExpression' && named(path.node.id.typeAnnotation)) {
-      matches.push({ line: lineOfNode(init) });
+      report(init);
     }
   });
 
   [j.TSAsExpression, j.TSSatisfiesExpression].filter(Boolean).forEach((type) => {
     root.find(type).forEach((path) => {
-      if (path.node.expression.type === 'ObjectExpression' && named(path.node.typeAnnotation)) {
-        matches.push({ line: lineOfNode(path.node.expression) });
+      const expression = records ? unwrapNode(path.node.expression) : path.node.expression;
+
+      if (expression.type === 'ObjectExpression' && named(path.node.typeAnnotation)) {
+        report(expression);
       }
     });
   });
@@ -893,8 +995,79 @@ function matchCall(env, node) {
 }
 
 /**
+ * Whether the receiver of an `add()` or `once()` call is the global hook registry: `Handsontable.hooks`, or a
+ * `const` of this file that holds it (`const globalHooks = Handsontable.hooks`).
+ *
+ * @param {Env} env Part state.
+ * @param {object} callPath NodePath of the call.
+ * @returns {boolean} `true` for a call on the registry.
+ */
+function isHooksRegistry(env, callPath) {
+  if (['hooks.add', 'hooks.once'].includes(env.bindings().resolveNamespaceMember(callPath.get('callee')))) {
+    return true;
+  }
+
+  const receiver = unwrapPath(callPath.get('callee')).get('object');
+
+  if (unwrapNode(receiver.node).type !== 'Identifier') {
+    return false;
+  }
+
+  const alias = env.resolver().hop(receiver);
+
+  return Boolean(alias) && alias.node.type !== 'Identifier' && env.bindings().resolveNamespaceMember(alias) === 'hooks';
+}
+
+/**
+ * The `hook` matches on component elements that the tool does not know as Handsontable wrappers: a component with a
+ * hook as a prop and at least two other known options, one of them not a common name (`<DeskGrid data columns
+ * afterColumnMove={...}>`, where `DeskGrid` is a re-exported `HotTable`). A DOM tag never matches, and neither does a
+ * wrapper, which the property matcher already covers.
+ *
+ * @param {Env} env Part state.
+ * @param {string[]} names The hook names.
+ * @returns {Match[]} The matches, at the attribute.
+ */
+function matchHookOnElements(env, names) {
+  if (!env.bindings().isHotFile) {
+    return [];
+  }
+
+  const matches = [];
+
+  env.root.find(env.j.JSXElement).forEach((path) => {
+    const opening = path.node.openingElement;
+    const isComponent = opening.name.type === 'JSXMemberExpression'
+      || (opening.name.type === 'JSXIdentifier' && /^[A-Z]/.test(opening.name.name));
+
+    if (!isComponent || env.bindings().getComponent(path)) {
+      return;
+    }
+
+    const known = opening.attributes.map(item => attributeName(item)).filter(name => KNOWN_OPTIONS.has(name));
+
+    for (const attribute of opening.attributes) {
+      const hook = attributeName(attribute);
+
+      if (names.includes(hook)) {
+        const others = known.filter(name => name !== hook);
+
+        if (others.length >= 2 && others.some(name => !GENERIC_OPTIONS.has(name))) {
+          matches.push({ line: lineOfNode(attribute) });
+        }
+      }
+    }
+  });
+
+  return matches;
+}
+
+/**
  * Find the matches of a `hook` matcher: a hook used as an option key, a JSX prop, or the name in `addHook()`,
- * `addHookOnce()`, `Handsontable.hooks.add()`, or `Handsontable.hooks.once()`.
+ * `addHookOnce()`, `Handsontable.hooks.add()`, or `Handsontable.hooks.once()`. The name may come one hop away in the
+ * same file (a `const`, or a member of a `const` object, also `as const`), the registry may be a `const` alias of
+ * `Handsontable.hooks`, and the option key may sit in an object annotated `Events` or `Partial<Events>`. A component
+ * that is not a known wrapper counts when it sets other known options (see `matchHookOnElements()`).
  *
  * @param {Env} env Part state.
  * @param {Compiled} node The compiled matcher.
@@ -913,21 +1086,23 @@ function matchHook(env, node) {
     .forEach((path) => {
       const callee = unwrapNode(path.node.callee);
       const name = calleeName(callee);
-      const hookName = stringValue(path.node.arguments[0]);
+
+      if (!['addHook', 'addHookOnce', 'add', 'once'].includes(name) || path.node.arguments.length === 0) {
+        return;
+      }
+
+      const hookName = env.resolver().stringOf(path.get('arguments', 0));
 
       if (hookName === null || !names.includes(hookName)) {
         return;
       }
 
-      const viaNamespace = ['add', 'once'].includes(name) && MEMBERS.has(callee.type)
-        && ['hooks.add', 'hooks.once'].includes(env.bindings().resolveNamespaceMember(path.get('callee')));
-
-      if (name === 'addHook' || name === 'addHookOnce' || viaNamespace) {
+      if (name === 'addHook' || name === 'addHookOnce' || (MEMBERS.has(callee.type) && isHooksRegistry(env, path))) {
         calls.push({ line: lineOfNode(path.node) });
       }
     }));
 
-  return [...keyed, ...calls];
+  return [...keyed, ...calls, ...matchHookOnElements(env, names)];
 }
 
 /**
@@ -957,19 +1132,20 @@ function matchNamespaceMember(env, node) {
  *
  * @param {Env} env Part state.
  * @param {RegExp} pattern Test for one string.
+ * @param {(text: string) => string} [normalize] Applied to each string before the test.
  * @returns {Match[]} One match per string that passes.
  */
-function matchStrings(env, pattern) {
+function matchStrings(env, pattern, normalize = text => text) {
   const matches = [];
   const { j, root } = env;
 
   root.find(j.Literal).forEach((path) => {
-    if (typeof path.node.value === 'string' && pattern.test(path.node.value)) {
+    if (typeof path.node.value === 'string' && pattern.test(normalize(path.node.value))) {
       matches.push({ line: lineOfNode(path.node) });
     }
   });
   root.find(j.TemplateElement).forEach((path) => {
-    if (pattern.test(path.node.value.cooked ?? path.node.value.raw)) {
+    if (pattern.test(normalize(path.node.value.cooked ?? path.node.value.raw))) {
       matches.push({ line: lineOfNode(path.node) });
     }
   });
@@ -989,6 +1165,55 @@ function matchRaw(env, pattern) {
 }
 
 /**
+ * The functional wrappers of component styles: `:deep(...)`, `:global(...)`, and `::v-deep(...)` hold a selector and
+ * keep its meaning.
+ */
+const SELECTOR_FUNCTIONS = /(?:::?v-deep|:deep|:global)\(/g;
+
+/**
+ * The combinator-like markers of component styles that carry no selector of their own: `::v-deep`, `:v-deep`,
+ * `::ng-deep`, `/deep/`, and `>>>`. They all mean "a descendant, past the component scope".
+ */
+const SELECTOR_MARKERS = /::?v-deep|::ng-deep|\/deep\/|>>>/g;
+
+/**
+ * Take the style-scoping wrappers out of a selector, so a rule that looks for `.ht-grid >` sees it inside
+ * `:deep(.ht-grid) > ...`, `::v-deep .ht-grid >`, `:global(.ht-grid) >`, `::ng-deep .ht-grid >`, and `>>>`. A function
+ * wrapper is replaced by its content, a marker by a space. The text is only tested, never edited, and the report
+ * keeps the line of the original rule.
+ *
+ * @param {string} selector Selector text.
+ * @returns {string} The selector without the wrappers.
+ */
+export function normalizeSelector(selector) {
+  let text = selector;
+
+  for (let match = SELECTOR_FUNCTIONS.exec(text); match; match = SELECTOR_FUNCTIONS.exec(text)) {
+    let depth = 1;
+    let index = match.index + match[0].length;
+
+    while (index < text.length && depth > 0) {
+      if (text[index] === '(') {
+        depth += 1;
+      } else if (text[index] === ')') {
+        depth -= 1;
+      }
+
+      index += 1;
+    }
+
+    const inner = text.slice(match.index + match[0].length, depth === 0 ? index - 1 : index);
+
+    text = `${text.slice(0, match.index)}${inner}${text.slice(index)}`;
+    SELECTOR_FUNCTIONS.lastIndex = match.index;
+  }
+
+  SELECTOR_FUNCTIONS.lastIndex = 0;
+
+  return text.replace(SELECTOR_MARKERS, ' ');
+}
+
+/**
  * Find the matches of a `selector` matcher. In a stylesheet it tests the selector of every rule, in js it tests
  * string literals and template text, and in a template it tests the raw text.
  *
@@ -1000,14 +1225,14 @@ function matchSelector(env, node) {
   const pattern = node.re.primary;
 
   if (env.ctx.fileKind === 'js') {
-    return matchStrings(env, pattern);
+    return matchStrings(env, pattern, normalizeSelector);
   }
 
   if (env.ctx.fileKind === 'css') {
     const matches = [];
 
     env.root.walkRules((rule) => {
-      if (pattern.test(rule.selector)) {
+      if (pattern.test(normalizeSelector(rule.selector))) {
         matches.push({ line: rule.source?.start?.line });
       }
     });
@@ -1025,48 +1250,112 @@ function matchSelector(env, node) {
  * @property {number|undefined} line Line of the object or the JSX element.
  * @property {Map<string, object|null>} keys Own keys with their value nodes.
  * @property {boolean} unknown `true` when a spread, a computed key, or an unresolved `settings` hides keys.
+ * @property {string[]} unresolved What hides the keys, as text for a message: a spread (`...props`), the `settings` prop, a
+ * computed key.
  */
 
 /**
- * Read the keys of an object literal node into a candidate.
+ * Mark a candidate unknown and remember what hid its keys.
  *
- * @param {object} objectNode An `ObjectExpression` node.
- * @param {Candidate} candidate The candidate to fill.
+ * @param {Env} env Part state.
+ * @param {Candidate} candidate The candidate.
+ * @param {object|string} source The node of a spread argument or a prop, or a description.
  * @returns {void}
  */
-function readKeys(objectNode, candidate) {
-  const path = { node: objectNode };
+function markUnknown(env, candidate, source) {
+  const text = typeof source === 'string' ? source : env.j(source).toSource().trim().replace(/\s+/g, ' ');
 
-  candidate.unknown = candidate.unknown || hasSpread(path);
+  candidate.unknown = true;
+  candidate.unresolved.push(text.length > 40 ? `${text.slice(0, 37)}...` : text);
+}
 
-  for (const property of objectNode.properties) {
+/**
+ * Read the keys of an object literal into a candidate. A spread is read when it stands for an object literal of
+ * this file (one hop, through a `const` or a member of one) that has no spread of its own: its keys count, so the
+ * keys of the merged object are fully known. Any other spread marks the candidate unknown, because it may set the key.
+ *
+ * @param {Env} env Part state.
+ * @param {object} objectNode An `ObjectExpression` node.
+ * @param {Candidate} candidate The candidate to fill.
+ * @param {object|null} [objectPath] NodePath of the object, which lets its spreads resolve.
+ * @returns {void}
+ */
+function readKeys(env, objectNode, candidate, objectPath = null) {
+  objectNode.properties.forEach((property, index) => {
+    if (property.type === 'SpreadElement' || property.type === 'SpreadProperty'
+      || property.type === 'ExperimentalSpreadProperty') {
+      const spread = objectPath ? resolveSpread(env, objectPath.get('properties', index, 'argument')) : null;
+
+      if (spread) {
+        readKeys(env, spread.node, candidate);
+      } else {
+        markUnknown(env, candidate, `the spread ...${env.j(property.argument).toSource()}`);
+      }
+
+      return;
+    }
+
     if (property.type !== 'ObjectProperty' && property.type !== 'ObjectMethod') {
-      continue;
+      return;
     }
 
     const name = propertyName(property);
 
     if (name === null) {
-      candidate.unknown = true;
+      markUnknown(env, candidate, 'a computed key');
     } else {
       candidate.keys.set(name, valueOfProperty(property));
     }
-  }
+  });
 }
 
 /**
- * Describe a `<HotTable>` element: its attributes merged with the object in `settings={...}`. An unresolvable
- * `settings` or a spread attribute marks the element unknown.
+ * The object literal a spread argument stands for, when it is written there or one hop away, and has no spread of its
+ * own.
  *
+ * @param {Env} env Part state.
+ * @param {object} argumentPath NodePath of the spread argument.
+ * @returns {object|null} NodePath of the `ObjectExpression`, or `null`.
+ */
+function resolveSpread(env, argumentPath) {
+  const target = unwrapPath(argumentPath);
+  const resolved = target.node.type === 'ObjectExpression' ? target : env.resolver().hop(target);
+
+  return resolved?.node.type === 'ObjectExpression' && !hasSpread(resolved) ? resolved : null;
+}
+
+/**
+ * Describe a `<HotTable>` element: its attributes merged with the object in `settings={...}` and with the object
+ * literals its spread attributes stand for (`<HotTable {...settings}>`). An unresolvable `settings` or spread attribute
+ * marks the element unknown.
+ *
+ * @param {Env} env Part state.
  * @param {object} elementPath NodePath of the `JSXElement`.
  * @returns {Candidate} The candidate.
  */
-function describeElement(elementPath) {
-  const candidate = { line: lineOfNode(elementPath.node.openingElement), keys: new Map(), unknown: false };
+function describeElement(env, elementPath) {
+  const candidate = {
+    line: lineOfNode(elementPath.node.openingElement),
+    keys: new Map(),
+    unknown: false,
+    unresolved: [],
+  };
 
   elementPath.node.openingElement.attributes.forEach((attribute, index) => {
+    if (attribute.type === 'JSXSpreadAttribute') {
+      const spread = resolveSpread(env, elementPath.get('openingElement', 'attributes', index, 'argument'));
+
+      if (spread) {
+        readKeys(env, spread.node, candidate);
+      } else {
+        markUnknown(env, candidate, `the spread ...${env.j(attribute.argument).toSource()}`);
+      }
+
+      return;
+    }
+
     if (attribute.type !== 'JSXAttribute' || attributeName(attribute) === null) {
-      candidate.unknown = true;
+      markUnknown(env, candidate, 'an attribute it cannot read');
 
       return;
     }
@@ -1081,15 +1370,17 @@ function describeElement(elementPath) {
 
     const valuePath = elementPath.get('openingElement', 'attributes', index, 'value', 'expression');
     let resolved = unwrapNode(valueOfProperty(attribute));
+    let resolvedPath = resolved?.type === 'ObjectExpression' ? unwrapPath(valuePath) : null;
 
     if (resolved?.type === 'Identifier') {
-      resolved = unwrapNode(lookup(valuePath, resolved.name)?.init);
+      resolvedPath = env.resolver().hop(valuePath);
+      resolved = resolvedPath ? resolvedPath.node : unwrapNode(lookup(valuePath, resolved.name)?.init);
     }
 
     if (resolved?.type === 'ObjectExpression') {
-      readKeys(resolved, candidate);
+      readKeys(env, resolved, candidate, resolvedPath);
     } else {
-      candidate.unknown = true;
+      markUnknown(env, candidate, 'the settings prop');
     }
   });
 
@@ -1183,6 +1474,8 @@ function matchInlineMissingOption(env, node) {
  */
 function matchMissingOption(env, node) {
   const { spec, re } = node;
+  // Only a check that also needs visible markup can be hedged: without it, an unread source proves nothing.
+  const hedges = spec.reportUnresolved === true;
 
   if (re.unlessFile?.test(env.source)) {
     return [];
@@ -1196,29 +1489,32 @@ function matchMissingOption(env, node) {
     .filter(item => item.confidence === 'high' && item.role === 'grid'
       && ['new', 'new:identifier'].includes(item.origin))
     .map((item) => {
-      const candidate = { line: lineOfNode(item.path.node), keys: new Map(), unknown: false };
+      const candidate = { line: lineOfNode(item.path.node), keys: new Map(), unknown: false, unresolved: [] };
 
-      readKeys(item.path.node, candidate);
+      readKeys(env, item.path.node, candidate, item.path);
 
       return candidate;
     });
 
   env.root.find(env.j.JSXElement).forEach((path) => {
     if (env.bindings().getComponent(path) === 'HotTable') {
-      candidates.push(describeElement(path));
+      candidates.push(describeElement(env, path));
     }
   });
 
   return candidates
     .filter((candidate) => {
-      if (candidate.unknown || candidate.keys.has(spec.missingOption)) {
+      if (candidate.keys.has(spec.missingOption) || (candidate.unknown && !hedges)) {
         return false;
       }
 
       return !spec.whenAnyKey || spec.whenAnyKey.some(key => candidate.keys.has(key)
         && (!re.whenValue || stringsIn(candidate.keys.get(key)).some(text => re.whenValue.test(text))));
     })
-    .map(candidate => ({ line: candidate.line }));
+    .map(candidate => ({
+      line: candidate.line,
+      ...(candidate.unknown ? { hedge: [...new Set(candidate.unresolved)] } : {}),
+    }));
 }
 
 /**
@@ -1292,6 +1588,22 @@ function uniqueByLine(matches) {
 }
 
 /**
+ * The message of one match: the rule's `message`, its `variableMessage` for a value that comes from a variable, or its
+ * `unresolvedMessage` for a grid with sources the tool could not read, with `{sources}` replaced by their names.
+ *
+ * @param {import('../types.mjs').Rule} rule A `detect` rule.
+ * @param {Match} match The match.
+ * @returns {string} The message.
+ */
+function messageOf(rule, match) {
+  if (match.hedge && rule.unresolvedMessage) {
+    return rule.unresolvedMessage.replace('{sources}', match.hedge.join(', '));
+  }
+
+  return match.variable && rule.variableMessage ? rule.variableMessage : rule.message;
+}
+
+/**
  * Apply one rule to a part: evaluate it, report the matches, and record the rule's fact.
  *
  * @param {Env} env Part state.
@@ -1331,7 +1643,7 @@ function applyRule(env, rule) {
       ruleId: rule.id,
       severity: compiled.severity,
       line: match.line,
-      message: rule.message,
+      message: messageOf(rule, match),
       ...(rule.mergeKey && match.line !== undefined
         ? { mergeKey: `${rule.mergeKey}:${match.line}`, merge: 'earliest' } : {}),
     }));
@@ -1344,7 +1656,8 @@ function applyRule(env, rule) {
     severity: compiled.severity,
     line: matches[0].line,
     lines: matches.map(match => match.line),
-    message: `${rule.message} This part has ${matches.length} matches.`,
+    message: `${rule.variableMessage && matches.every(match => match.variable) ? rule.variableMessage : rule.message} `
+      + `This part has ${matches.length} matches.`,
   });
 }
 
@@ -1364,25 +1677,32 @@ function applyRule(env, rule) {
  *   of `name/...`.
  * - `property`: a dotted key path, or a list, such as `numericFormat.pattern`. Matches an object property or a JSX
  *   attribute. `withKey` needs an object value with that key. `valueMatches` is a regular expression tested against
- *   a string literal or a template literal without expressions, so a non-literal value never matches it. `in:
- *   "option-object"` needs the object to be found by `findOptionObjects` (any confidence) or the attribute to sit on
- *   a Handsontable wrapper component.
+ *   a string literal or a template literal without expressions, so a non-literal value never matches it. With
+ *   `viaReference`, a value that is an identifier or a member read (`DATE_FORMAT`, `FORMATS.date`) is followed one hop
+ *   to a `const` of the same file and tested as that literal, and one the tool cannot resolve (an import, a parameter,
+ *   a `let`) matches too, with the rule's `variableMessage` as its message. `in: "option-object"` needs the object to
+ *   be found by `findOptionObjects` (any confidence) or the attribute to sit on a Handsontable wrapper component.
  * - `call`: a method or function name, or a list. `argMatches` is tested against every string literal inside the
  *   arguments, also inside `new MouseEvent('mousedown')`. `receiver` is `"instance"` (a confirmed grid instance) or
  *   the text of the receiver, such as `fireEvent`.
- * - `hook`: a hook name, or a list, used as an option key in an option object, as a `<HotTable>` prop, in
- *   `addHook()` and `addHookOnce()`, or in `Handsontable.hooks.add()` and `.once()`.
+ * - `hook`: a hook name, or a list, used as an option key in an option object (also one annotated `Events` or
+ *   `Partial<Events>`), as a prop of a `<HotTable>` or of a component that sets other known options, in `addHook()` and
+ *   `addHookOnce()`, or in `add()` and `once()` on `Handsontable.hooks` or a `const` alias of it. The name may be a
+ *   `const` or a member of a `const` object in the same file.
  * - `namespaceMember`: a member path after the namespace, or a list, such as `helper.log`. Matches a read of
  *   `Handsontable.helper.log`, called or not, when `Handsontable` is the file's own import or global. A destructured
  *   alias (`const { log } = Handsontable.helper`) is not followed.
  * - `string`: a regular expression tested against string literals and template text.
  * - `selector` (`js`, `css`, `template`): a regular expression tested against the selector of every stylesheet
  *   rule, against string literals in js, and against the raw text of a template. A selector nested in SCSS
- *   is tested as written, so `.a { > .b {} }` does not match `.a >`.
+ *   is tested as written, so `.a { > .b {} }` does not match `.a >`. The scoping wrappers of component styles are taken
+ *   out first (`normalizeSelector()`): `:deep(.a)`, `:global(.a)`, `::v-deep(.a)` become `.a`, and `::v-deep`, `::ng-deep`,
+ *   `/deep/`, and `>>>` become a space. The report keeps the line of the original rule.
  * - `regex` (`js`, `css`, `template`): a regular expression on the raw text of the part, with a line per hit.
  * - `missingOption`: reports each grid configuration the file builds (`new Handsontable(element, {...})`, directly
  *   or through one variable, and every `<HotTable>` element with its `settings` object) that lacks the key. A
- *   configuration with a spread, a computed key, or an unresolved `settings` is skipped. `whenAnyKey` limits it to
+ *   configuration with a computed key, an unresolved `settings`, or a spread that is not an object literal of this file
+ *   (one hop, with no spread of its own) is skipped. A spread that is one adds its keys. `whenAnyKey` limits it to
  *   configurations that set one of those keys, and with `whenValueMatches` only when that key holds a matching
  *   string. `unlessFileMatches` skips files whose text matches.
  * - `anyOf` and `allOf`: lists of matchers. `anyOf` reports the matches of all of them. `allOf` reports the matches

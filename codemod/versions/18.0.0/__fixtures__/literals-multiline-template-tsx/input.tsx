@@ -8,7 +8,7 @@ export function Ledger() {
         { data: 'net', type: 'numeric', numericFormat: { culture: 'de-DE' }, title: `Net
 amount (EUR)` },
         { data: 'fx', type: 'numeric', numericFormat: { culture: 'fr-FR' }, title: `FX
-    rate`, renderer: () => <b title="Rate
+    rate`, validator: () => <b title="Rate
    in EUR">rate</b> },
       ]}
     />

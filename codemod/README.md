@@ -207,7 +207,8 @@ The tool rewrites:
 - The removed `correctFormat` and `datePickerConfig` options. Handsontable 18.0 ignores both, so deleting them keeps
   the behavior. A TODO comment stays where the option was.
 - `columnHeaders` to `colHeaders` in the arguments of the export methods.
-- The `--ht-wrapper-border-radius` custom property and the `wrapperBorderRadius` theme token.
+- The `--ht-wrapper-border-radius` custom property and the `wrapperBorderRadius` theme token, also in the arguments of
+  `Handsontable.themes.registerTheme(...).params(...)`, which is the registry that `handsontable/themes` exports.
 - Calls to the deprecated resize-state methods, which do nothing, when the call is a whole statement. Other calls get a
   TODO.
 - The `handsontable` and wrapper ranges in `package.json`, and a `hyperformula` dependency when the project uses
@@ -253,8 +254,23 @@ confidence: the tool reports their keys and rewrites them only under `--aggressi
 parameter, and a destructured name cannot be read, so they are neither reported nor rewritten. An object that
 only looks like settings, for example a variable with the keys `colHeaders` and `rowHeaders`, has medium confidence.
 
+The elements of an array that a type names are column objects with high confidence: `ColumnSettings[]`,
+`readonly ColumnSettings[]`, `Array<ColumnSettings>`, and `satisfies` one of them, also as `Handsontable.ColumnSettings`.
+
 A rule rewrites an object at high confidence. At medium confidence it reports the key and leaves the object alone.
 `--aggressive` lowers the bar to medium for every rule. Use it after you read the report of a normal run.
+
+Some code holds Handsontable options without showing it. The tool does not rewrite it. It reports the options it
+would have changed, because a missed option fails silently at run time: an object that sets
+`numericFormat: { culture }` in a file that uses Handsontable, and a component the tool does not know as a wrapper
+(a re-exported `HotTable` under another name, with `columns`, `data`, and similar props) that sets an option a rule
+changes or removes. A DOM tag never counts.
+
+A key is also not moved when custom code may read it. `numericFormat.culture` stays where it is, with a report that
+names the renderer, when the same object or element sets a `renderer` that is not a built-in name (a function, an
+identifier, or a string such as `'nwm.signedAmount'`), and when the file itself reads `numericFormat.culture`, in a
+member read or a destructuring. A renderer of your own that read `culture` keeps working only if you move the key and
+update the renderer together. This holds under `--aggressive` too.
 
 Every rule kind needs a Handsontable import or global in the file, with one exception. `--ht-` is Handsontable's own
 CSS variable namespace, so a file that names a `--ht-` variable counts as Handsontable usage for the CSS variable
@@ -287,6 +303,29 @@ the tool reads the version from `package.json`, which the run raised, and answer
 ## Limitations
 
 - The tool reads one file at a time. It does not follow a settings object across files.
+- It follows a reference one hop inside the file and no further: an identifier or a member read such as `PRESET.chf`
+  that a `const` holds, also through `as const`. An import, a parameter, a `let`, and a second hop are not followed. A
+  `numericFormat` that comes from such a reference, or from an object that spreads one, is reported with "if it sets
+  `culture`", and only in a file that mentions `culture`. A `dateFormat` or `timeFormat` from a reference it cannot
+  resolve is reported as coming from a variable. One that resolves to a Moment string is reported like the string.
+- A `html-without-sanitizer` check merges a spread of an object literal of the same file (one hop, with no spread of
+  its own) into the grid configuration. A spread of anything else, a prop for example, may set `sanitizer`. When the
+  settings the tool can read hold markup and none of them sets `sanitizer`, it still reports, and the entry names the
+  spread or prop it could not read and asks you to check that one of them sets `sanitizer`. A grid with an unread source
+  and no visible markup gets no report. The license key check stays silent for such a grid.
+- The pattern of a `numericFormat` map is read when the map is annotated `Record<string, NumericFormatOptions>` (also
+  `satisfies`, and `Handsontable.NumericFormatOptions`). A map with no annotation is not.
+- A column-move hook is found when its name is a string literal, a `const`, or a member of a `const` object in the
+  same file, when the registry is `Handsontable.hooks` or a `const` alias of it, and when the key sits in an object
+  annotated `Events` or `Partial<Events>`. A hook name that is computed in any other way, such as one read from
+  `Object.entries()` of an untyped object, is not found. `Hooks` is the class of the registry and is not read as a map.
+- A selector is matched without the scoping wrappers of component styles (`:deep()`, `:global()`, `::v-deep`,
+  `::ng-deep`, `/deep/`, `>>>`). A selector that a Sass mixin or a template literal builds at run time is not read.
+- A Sass map key that names a variable (`'wrapper-border-radius': 6px`) is reported in a stylesheet that builds
+  variable names with `--ht-#{$name}`. The tool does not rename the key, because it cannot tell what else reads the
+  map. A variable name built in JavaScript (`` `--ht-${token}` ``) is not found.
+- The line of a report entry inside a multi-line template literal is the line of the variable. Its TODO marker goes on
+  the statement that holds the literal, because a comment cannot sit inside the literal.
 - A receiver it cannot confirm as a grid instance is not rewritten. A generic name such as `editor.undo()` is
   silent. The same holds for a plugin: it rewrites `saveManualColumnWidths()` and `downloadFile({ columnHeaders })`
   only on `hot.getPlugin('<key>')` or a variable the file sets from it, and a call on any other receiver is

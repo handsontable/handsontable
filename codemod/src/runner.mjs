@@ -332,7 +332,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog 
     const markersOn = options.todo !== false && options.markers !== false;
 
     if (mark && annotatable && markersOn && wantsMarker(entry, owner)) {
-      const lines = [...new Set([entry.line, ...(entry.lines ?? [])].filter(Number.isInteger))];
+      const lines = [...new Set([entry.markLine ?? entry.line, ...(entry.lines ?? [])].filter(Number.isInteger))];
 
       marks.push({ stored, ruleId: entry.ruleId, text: entry.message, lines });
     }

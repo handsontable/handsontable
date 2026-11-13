@@ -113,10 +113,11 @@ function cssRemovalAdvice(ctx, node, rule) {
  * @param {import('../types.mjs').Ctx} ctx Context of a `css` or `js` part.
  * @param {import('../types.mjs').Rule} rule A rename rule.
  * @param {number|undefined} line One-based line.
+ * @param {number} [markLine] The line the TODO marker is placed from, when `line` is inside a literal.
  * @returns {void}
  */
-function reportRename(ctx, rule, line) {
-  reportInstead(ctx, rule, line, `Rename ${rule.from} to ${rule.to} here.`);
+function reportRename(ctx, rule, line, markLine) {
+  reportInstead(ctx, rule, line, `Rename ${rule.from} to ${rule.to} here.`, null, undefined, markLine);
 }
 
 /**
@@ -263,12 +264,12 @@ function applyToJs(ctx, entries) {
   const { j, root } = ctx;
   const rename = entries.filter(entry => !entry.removed && entry.edits);
 
-  for (const { rule, test, removed } of entries.filter(entry => entry.removed || !entry.edits)) {
-    const report = (line) => {
+  for (const { rule, test, removed, all } of entries.filter(entry => entry.removed || !entry.edits)) {
+    const report = (line, markLine) => {
       if (removed) {
-        ctx.report({ ruleId: rule.id, severity: 'manual', line, message: removalAdvice(rule, rule.from) });
+        ctx.report({ ruleId: rule.id, severity: 'manual', line, markLine, message: removalAdvice(rule, rule.from) });
       } else {
-        reportRename(ctx, rule, line);
+        reportRename(ctx, rule, line, markLine);
       }
     };
 
@@ -278,9 +279,7 @@ function applyToJs(ctx, entries) {
       }
     });
     root.find(j.TemplateElement).forEach((path) => {
-      if (test.test(path.node.value.raw)) {
-        report(path.node.loc?.start?.line);
-      }
+      matchLines(path.node, all).forEach(line => report(line, path.node.loc?.start?.line));
     });
   }
 
@@ -322,7 +321,7 @@ function applyToJs(ctx, entries) {
       return;
     }
 
-    const line = path.node.loc?.start?.line;
+    const lines = matched.map(hit => matchLines(path.node, hit.all));
 
     value.raw = edit(templateRaw(path.node));
 
@@ -330,8 +329,26 @@ function applyToJs(ctx, entries) {
       value.cooked = edit(value.cooked);
     }
 
-    matched.forEach(hit => note(hit, line));
+    matched.forEach((hit, index) => lines[index].forEach(line => note(hit, line)));
   });
+}
+
+/**
+ * The lines of a template literal text where a pattern matches, one per match. The text of a template literal spans
+ * lines, so a match is on the line of the quasi start plus the line breaks before it, not on the line where the
+ * literal opens.
+ *
+ * @param {object} quasi A `TemplateElement` node.
+ * @param {RegExp} all Global pattern.
+ * @returns {Array<number|undefined>} One-based lines, `undefined` when the node has no position.
+ */
+function matchLines(quasi, all) {
+  const start = quasi.loc?.start?.line;
+  const raw = quasi.value.raw;
+  const lines = [...raw.matchAll(all)].map(match => (start === undefined ? undefined
+    : start + (raw.slice(0, match.index).match(/\n/g) ?? []).length));
+
+  return [...new Set(lines)];
 }
 
 /**
@@ -353,6 +370,110 @@ function reportInTemplate(ctx, entries) {
       ctx.report({ ruleId: rule.id, severity: 'manual', line, message });
     }
   }
+}
+
+/**
+ * The Sass interpolation that builds a Handsontable variable name at compile time: `--ht-#{$name}`.
+ */
+const INTERPOLATED_PREFIX = '--ht-#{';
+
+/**
+ * Replace the comments of a stylesheet snippet with spaces of the same length, so offsets and line breaks stay. A
+ * `//` inside a string or a `url()` is not a comment.
+ *
+ * @param {string} text The snippet.
+ * @returns {string} The snippet without comment text.
+ */
+function blankComments(text) {
+  let output = '';
+  let quote = null;
+
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    const next = text[index + 1];
+
+    if (quote) {
+      output += char;
+      quote = char === quote && text[index - 1] !== '\\' ? null : quote;
+    } else if (char === '\'' || char === '"') {
+      output += char;
+      quote = char;
+    } else if (char === '/' && next === '*') {
+      const end = text.indexOf('*/', index + 2);
+      const stop = end === -1 ? text.length : end + 2;
+
+      output += text.slice(index, stop).replace(/[^\n]/g, ' ');
+      index = stop - 1;
+    } else if (char === '/' && next === '/' && text[index - 1] !== ':') {
+      const end = text.indexOf('\n', index);
+      const stop = end === -1 ? text.length : end;
+
+      output += ' '.repeat(stop - index);
+      index = stop - 1;
+    } else {
+      output += char;
+    }
+  }
+
+  return output;
+}
+
+/**
+ * Report the Sass map keys and strings that name a variable the rules rename or remove, in a stylesheet that builds
+ * its variable names with `--ht-#{...}`. The name never appears whole in the file, so the rules cannot find the
+ * variable, and the key is the only place the name is written: `'wrapper-border-radius': 6px` or an unquoted
+ * `wrapper-border-width: 1px` in a map. Nothing is edited.
+ *
+ * @param {import('../types.mjs').Ctx} ctx Context of a `css` part.
+ * @param {import('../types.mjs').Rule[]} rules `cssVariable` rules.
+ * @returns {void}
+ */
+function reportInterpolatedNames(ctx, rules) {
+  const named = rules.filter(rule => rule.from.startsWith('--ht-')).map((rule) => {
+    const name = rule.from.slice('--ht-'.length);
+    const escaped = escapeRegExp(name);
+
+    return {
+      rule,
+      name,
+      pattern: new RegExp(`(['"])${escaped}\\1|(?<![\\w$#{.@-])${escaped}(?=\\s*:)`, 'g'),
+    };
+  });
+
+  ctx.root.walk((node) => {
+    const start = node.source?.start;
+    const end = node.source?.end;
+
+    const isLeaf = node.type === 'decl' || (node.type === 'atrule' && !node.nodes);
+
+    if (!isLeaf || !start || !end || start.offset === undefined) {
+      return;
+    }
+
+    const text = blankComments(ctx.source.slice(start.offset, end.offset + 1));
+
+    for (const { rule, name, pattern } of named) {
+      for (const match of text.matchAll(pattern)) {
+        if (match.index === 0) {
+          continue;
+        }
+
+        const line = start.line + (text.slice(0, match.index).match(/\n/g) ?? []).length;
+        const built = 'This stylesheet builds variable names at compile time with --ht-#{...}, so the tool cannot '
+          + `rename or find ${rule.from}.`;
+
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          line,
+          markLine: start.line,
+          message: rule.removed === true
+            ? `${removalAdvice(rule, rule.from)} The key "${name}" names ${rule.from}. ${built}`
+            : `Rename the ${name} key to ${rule.to.slice('--ht-'.length)} by hand. ${built}`,
+        });
+      }
+    }
+  });
 }
 
 /**
@@ -393,6 +514,11 @@ const cssVariables = {
    * @returns {void}
    */
   apply(ctx, rules) {
+    if (ctx.fileKind === 'css' && ctx.source.includes(INTERPOLATED_PREFIX)
+      && blankComments(ctx.source).includes(INTERPOLATED_PREFIX)) {
+      reportInterpolatedNames(ctx, rules.filter(rule => typeof rule.from === 'string'));
+    }
+
     const entries = buildEntries(rules, ctx.source);
 
     if (entries.length === 0) {

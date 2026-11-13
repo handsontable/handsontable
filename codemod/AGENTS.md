@@ -31,6 +31,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   spaces, tabs, and CRLF, the deliberate-edit cases, `guardLiterals()` itself, and a sweep that compares the template
   literals and multi-line strings of every fixture input with its output. It reads literals through
   `test/helpers/literals.mjs`, a plain parser walk that does not use `src/lib/literals.mjs`.
+- `test/indirect-sites.test.mjs` pins the code that holds options without showing it: the one-hop resolver, the custom renderer and file-read guards of `numericFormat.culture`, references and spreads as the value, the unrecognized-holder reports, wrapped selectors, indirect column-move hooks, dates from variables, and the marker of an entry inside a template literal.
 - `test/manifest.test.mjs` checks every rule's `guide` anchor against the headings of the guide page with
   `anchorsOf()` in `test/helpers/guide-anchors.mjs`, the one slug function of the tests.
 
@@ -60,6 +61,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/css-edit.mjs` | `CssDocument`: edits a stylesheet by offset (`replaceInDeclaration()`, `replaceInAtRule()`, `insertCommentBefore()`) and prints the original text with the edits spliced in. `print()` parses the result again and compares it with the postcss model. |
 | `src/lib/validate.mjs` | `problemsOf()` and `assertRenameOrRemoval()`, the helpers behind the `validate(rule)` hook of a transform. |
 | `src/lib/rename-key.mjs` | `renameKey()` and `removalAdvice()`, shared by the option, theme token, and CSS transforms. |
+| `src/lib/resolve.mjs` | `createHop()`: the one-hop resolver of a file. `hop()` follows an identifier or a member read (`PRESET.chf`) to the value a `const` of the same file holds, through `as const`; `stringOf()` reads the string behind it; `spreadsOf()` resolves the spreads of an object. Nothing else is followed (see Traps). |
 | `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, ...) and `isUnresolvedReceiver()`. |
 | `src/lib/facts.mjs` | `addFact(ctx, name, line)`, `hasFactFor(ctx, name)`, and `factSite(ctx, name)`: facts keyed by name and directory, with the file and line of the first sighting (see Traps). |
 | `src/lib/marker.mjs` | Where a generic TODO marker goes: `createMarkerIndex()` (a report line to its anchor), `markerTargets()` (the climb from a node to a property, array element, statement, or JSX element), and `cssTargetAt()`. |
@@ -164,7 +166,7 @@ of its earliest kind in `KIND_ORDER`.
 | `source` | Original text of this part. |
 | `j` | jscodeshift API bound to the right parser. `null` unless `fileKind` is `js`. |
 | `root` | Parsed form, edited in place. `js`: a jscodeshift Collection. `css`: a postcss Root. `json`: the parsed value. |
-| `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. `merge: 'earliest'` keeps the first entry instead: two merge policies exist. `latest` (the default, used by `dependency` bumps) reports the net change with the latest target. `earliest` (used by `detect` rules that share a `mergeKey`) lets the rule of the earliest migration own the id, the message, and the guide link. `todo: false` keeps one `manual` entry out of the code. |
+| `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. `merge: 'earliest'` keeps the first entry instead: two merge policies exist. `latest` (the default, used by `dependency` bumps) reports the net change with the latest target. `earliest` (used by `detect` rules that share a `mergeKey`) lets the rule of the earliest migration own the id, the message, and the guide link. `todo: false` keeps one `manual` entry out of the code. `markLine` is the line the generic marker is placed from when `line` names a spot inside a literal that cannot hold a comment (a line of a multi-line template literal, a key of a Sass map): the report keeps `line`. |
 | `todo(target, ruleId, text, comment?)` | Leave `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` before a js node or path or a postcss node, once, and add a `manual` entry with the whole `text`. `comment` replaces `text` as the source of the comment when the caller has a better short form. The link is added only for a rule with a `guide` anchor. Returns whether a comment was inserted. It calls `markChanged()` itself. `json` gets the entry only. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX comment `{/* ... */}` before the element (or before the expression that holds it) when the element is a child of another element, else a `//` comment on the enclosing statement when it starts at most 3 lines above, else on the element's first attribute. |
 | `comment(target, ruleId, text)` | The comment half of `todo()`: the same TODO comment, no report entry. A removal uses it, so its one `changed` entry carries the advice. |
 | `json` | For a `json` part, the `JsonDocument` that edits the text by offset: `setString(section, name, value)` and `addMember(section, name, value)` return `false` and change nothing when the scan of the text and the parsed file disagree, and the transform then reports `manual`. `null` for every other kind. A transform never prints a `package.json` with `JSON.stringify`. |
@@ -527,7 +529,7 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   the lockfile of the merge base, add the importer by hand if needed, run `pnpm install --lockfile-only`, and check
   that `git diff <merge base> -- pnpm-lock.yaml` has no removed line. jscodeshift is a new dependency the team agreed to.
 - `package.json` `files` limits the package to `bin`, `src`, the manifests, `rules/**`, and `custom/**` of every version,
-  and the README. Tests, fixtures, tools, and the generated diffs stay out. After a change to it, run `npm pack
+  and the README and the CHANGELOG. Tests, fixtures, tools, and the generated diffs stay out. After a change to it, run `npm pack
   --dry-run --json` in a copy of the package outside the monorepo.
 - **Method rules have no type information, so the receiver is the safety story.** `methodMove` rules use
   `receiver: "instance"`: a call is rewritten only on a receiver that `isInstance()` confirms. An unconfirmed receiver
@@ -666,5 +668,61 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   branch would change what rendered headers show against 18.0. The `sanitizer-source` entry has three shapes (`same-place`,
   `elsewhere`, `none`). `sanitizer-new-sources` stays quiet for a function that returns one sanitizing call on its content
   argument and for one whose default path returns the content unchanged (`passesOtherSourcesThrough()`).
+- **One hop, same file, is the resolution limit (`lib/resolve.mjs`).** `hop()` follows an identifier to its `const`
+  initializer and `X.key` to a property of a `const` object literal, through `as const` and `satisfies`. A `let`, a `var`, an
+  import, a parameter, a destructured name, and a second hop are `null`, and each caller treats `null` as "unknown", never
+  as "absent". The `options` and `detect` transforms share it. `cells` functions keep their own resolver in
+  `lib/option-objects.mjs`, which also reads `this.x` and `useMemo`.
+- **`optionMove` and the value of the parent option.** When `numericFormat` is not an object literal that sets `culture`,
+  `reportNestedHolder()` decides: a reference or a spread that resolves to an object that sets the key gets "... comes from
+  a variable that sets culture"; one that resolves to an object that certainly lacks it (no spread of its own) is silent;
+  one that does not resolve gets "... by hand if it sets culture", at any confidence of the object, because nothing is
+  rewritten. The whole rule is skipped for a file that never writes `culture` (`mentions()`), so the cross-file case
+  stays a documented limitation. A literal with its own `culture` and a spread still moves, as before.
+- **A key that custom code may read is not moved (`readerAdvice` on an `optionMove` rule).** `18.0.0/numeric-format-culture`
+  reports instead of moving when the object or wrapper element sets a `renderer` that is not in `BUILT_IN_RENDERERS`
+  (`lib/option-objects.mjs`, from `RENDERER_TYPE` of the 17.1 and 18.x packages: re-derive it when a release adds a
+  renderer), or when the file reads `numericFormat.culture` (`fileReadsNestedKey()`: a member read, an optional read,
+  `as`, parentheses, the left side of `??`/`||`, a destructuring, a nested destructuring). It applies at every
+  confidence and under `--aggressive`. A `renderer` of `undefined` or `null` is not custom. A renderer registered by name
+  in another file is custom too, because only the built-in names are known.
+- **Option rules report code they cannot place (`reportUnrecognized()`), and never rewrite it.** In a file that uses
+  Handsontable: an `optionMove` rule reports `<option>: { <key> }` in an object literal that `findOptionObjects` did not
+  return, and on a component element that is not a known wrapper (the pair is distinctive on its own); `optionRename` and
+  `optionRemove` report an attribute of such an element only when it passes `corroborated()` (two other known options, one
+  not generic). A lowercase JSX tag never counts. A re-exported `HotTable` therefore gets entries and no edit. Do not
+  extend this to other keys without a corroboration bar: it is the only thing keeping a look-alike element silent.
+- **Arrays annotated with an element type** (`ColumnSettings[]`, `readonly ColumnSettings[]`, `Array<ColumnSettings>`,
+  `ReadonlyArray<>`, `satisfies` one of them, also `Handsontable.ColumnSettings`): `addAnnotated()` in
+  `findOptionObjects` adds the array's object elements at high confidence, with the role of the element type. An object
+  annotated `Events` (also `Partial<Events>`) has the role `hooks`. `Events` is the exported hook map in 17.1 and 18.x;
+  `Hooks` is the registry class and is not a map.
+- **`detect` extensions.** `property` takes `viaReference` (with `valueMatches`): a reference is resolved one hop and tested
+  as the string it holds, an unresolved one (or one that resolves to another reference or a call) matches with
+  `variable: true`, and `applyRule()` then uses the rule's `variableMessage`. An object or a non-matching string is not a
+  match. `annotatedObject` takes `recordEntries` with `withKey`: each entry of an object annotated `Record<K, Type>` that
+  sets the key matches, at the key (so the line is the same as the sibling-`culture` match and `uniqueByLine` merges them).
+  `hook` resolves the name through `stringOf()`, accepts `add()`/`once()` on a `const` alias of `Handsontable.hooks`
+  (`isHooksRegistry()`; `new Set().add()` stays out), and matches a prop of a component that is not a known wrapper
+  when it passes the corroboration bar (`matchHookOnElements()`). `missingOption` merges a spread of a same-file object
+  literal with no spread of its own (`resolveSpread()`); a spread of anything else, a prop included, makes the
+  configuration unknown, and an unknown configuration is silent. The exception is a matcher with `reportUnresolved`
+  (needs `whenAnyKey`): when the markup is visible in the keys the tool read, no visible key sets the option, and a source is
+  unread, `applyRule()` reports the rule's `unresolvedMessage` with the unread sources named (`markUnknown()` collects
+  them: a spread, the `settings` prop, a computed key). Only `18.0.0/html-without-sanitizer` sets it. `18.1.0/license-key-missing`
+  has no markup to see, so it stays silent for an unknown configuration.
+  `selector` tests `normalizeSelector()` of the text, so the scoping wrappers of component styles never hide a selector.
+- **`cssVariable` and names built at compile time.** A stylesheet part whose code (comments blanked by
+  `blankComments()`) holds `--ht-#{` gets a report for each quoted or unquoted map key or string equal to the name of any
+  `cssVariable` rule without `--ht-`, in a `decl` or a leaf at-rule. The rule's own scan would skip the file, because the
+  name never appears whole. It reports only. The entry names the key's line and sets `markLine` to the line the
+  declaration starts on, which is where `cssTargetAt()` finds a node. A text match in a template literal reports the
+  line of the match (quasi start plus the line breaks before it) and sets `markLine` to the quasi start.
+- **`themeToken` knows `Handsontable.themes`.** The namespace member `themes` (`resolveNamespaceMember()`) is a theme receiver
+  like a binding of `handsontable/themes`, because 17.1 and 18.x set `Handsontable.themes` (with `registerTheme`,
+  `getTheme`, `reinitTheme`) on the namespace at run time. A chain from another object (`kit.themes.registerTheme()`) is not.
+- **Several TODO markers on one JSX element are deduplicated across the whole run of comments before it.**
+  `hasJsTodo()` looks at every comment container in a row, not only the nearest, or a second run would add the first
+  marker again.
 - Detect negative fixtures must pass the adapter precheck, or they prove nothing: put the word Handsontable in a
   comment. `report.json` is matched as a subset, so `test/detect.test.mjs` asserts the empty reports.

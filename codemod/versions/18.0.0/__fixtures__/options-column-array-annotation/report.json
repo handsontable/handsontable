@@ -1,0 +1,13 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 9 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 13 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 17 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 21 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 25 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 29 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 33 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 37 }
+  ]
+}

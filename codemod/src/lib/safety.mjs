@@ -55,9 +55,18 @@ export function modeOf(rule) {
  * @param {string} instruction What to do by hand, one sentence.
  * @param {object|null} [target] Node or path that takes the TODO comment, or `null` for a report only.
  * @param {string} [comment] Short text for the TODO comment. Defaults to `instruction`.
+ * @param {number} [markLine] The line the generic TODO marker is placed from, when `line` is inside a literal.
  * @returns {void}
  */
-export function reportInstead(ctx, rule, line, instruction, target = null, comment = instruction) {
+export function reportInstead(
+  ctx,
+  rule,
+  line,
+  instruction,
+  target = null,
+  comment = instruction,
+  markLine = undefined,
+) {
   const message = [instruction, rule.note ?? rule.message].filter(Boolean).join(' ');
 
   if (target && rule.todo === true) {
@@ -66,5 +75,5 @@ export function reportInstead(ctx, rule, line, instruction, target = null, comme
     return;
   }
 
-  ctx.report({ ruleId: rule.id, severity: 'manual', line, message });
+  ctx.report({ ruleId: rule.id, severity: 'manual', line, markLine, message });
 }

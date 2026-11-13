@@ -119,7 +119,7 @@ const SHAPES = {
   'template with an expression': `{ data: 'a', ${CULTURE_KEY}, title: \`x\${ 1 + 1 }y\nz\${ 2 }\n  w\` }`,
   'tagged template': `{ data: 'a', ${CULTURE_KEY}, title: tag\`z\n  w\` }`,
   'String.raw': `{ data: 'a', ${CULTURE_KEY}, title: String.raw\`C:\\x\n   y\` }`,
-  'template in a renderer': `{ data: 'a', ${CULTURE_KEY}, renderer: () => \`\n  <b>  keep  </b>\` }`,
+  'template in a function': `{ data: 'a', ${CULTURE_KEY}, validator: () => \`\n  <b>  keep  </b>\` }`,
   'string with a line continuation': `{ data: 'a', ${CULTURE_KEY}, title: 'Net\\\n  amount    two' }`,
   'two templates': `{ data: 'a', ${CULTURE_KEY}, title: \`one\n  two\`, hint: \`three\n    four\` }`,
 };
@@ -314,7 +314,7 @@ describe('literals in other kinds of files', () => {
       'export const Ledger = () => (',
       '  <HotTable',
       '    licenseKey="k"',
-      `    columns={[{ data: 'net', ${CULTURE_KEY}, renderer: () => <b title="p`,
+      `    columns={[{ data: 'net', ${CULTURE_KEY}, validator: () => <b title="p`,
       '   q">text</b>, title: `a',
       '  b` }]}',
       '  />',

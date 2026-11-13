@@ -1,15 +1,27 @@
 import { enclosingAnchor, hasOwnLines } from '../lib/anchor.mjs';
-import { attributeName, lineOfNode, memberName, stringValue, unwrapNode, unwrapPath } from '../lib/ast.mjs';
+import {
+  attributeName,
+  lineOfNode,
+  memberName,
+  propertyName,
+  stringValue,
+  unwrapNode,
+  unwrapPath,
+} from '../lib/ast.mjs';
 import { collectHotBindings, isUnresolvedReceiver } from '../lib/hot-bindings.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import {
+  BUILT_IN_RENDERERS,
   GENERIC_OPTIONS,
+  KNOWN_OPTIONS,
   findJsxOptionAttributes,
   findOptionObjects,
   getProperties,
   getProperty,
+  hasSpread as isSpreadObject,
 } from '../lib/option-objects.mjs';
-import { invalidateScope, lookup } from '../lib/scope.mjs';
+import { createHop, isReference } from '../lib/resolve.mjs';
+import { invalidateScope } from '../lib/scope.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { removalAdvice, renameKey } from '../lib/rename-key.mjs';
 import { problemsOf } from '../lib/validate.mjs';
@@ -30,6 +42,9 @@ const MEMBER_CALLS = new Set(['MemberExpression', 'OptionalMemberExpression']);
  * @property {boolean} aggressive Whether `--aggressive` is on, which lowers every rule's bar to `medium`.
  * @property {string[]|null} keys Known option names of the `heuristic` object being handled, or `null` for any
  * other object. Set by `apply()` before each handler call.
+ * @property {ReturnType<import('../lib/resolve.mjs').createHop>} resolver The one-hop resolver of the file.
+ * @property {Map<string, boolean>} reads Per rule id: whether the file reads the nested key of its `optionMove`
+ * (`x.numericFormat.culture`), computed once.
  */
 
 /**
@@ -235,10 +250,10 @@ function attributeValue(attribute) {
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
+ * @param {import('../lib/hot-bindings.mjs').HotBindings} bindings Result of `collectHotBindings`.
  * @returns {Target[]} The targets in discovery order.
  */
-function collectTargets(j, root) {
-  const bindings = collectHotBindings(j, root);
+function collectTargets(j, root, bindings) {
   const objects = new Map();
   const elements = new Map();
 
@@ -672,24 +687,209 @@ function removeOnElement(env, openingPath) {
 }
 
 /**
- * Resolve an identifier to the object literal it was declared with, one hop, in the same file.
+ * Whether a `renderer` value names a renderer the project wrote or registered: a function, an identifier, a member
+ * read, or a string that is not one of Handsontable's own renderer names. A built-in name, an absent value, and
+ * `undefined` or `null` are not custom.
+ *
+ * @param {object|null|undefined} value The value node of the property or attribute, `null` for a bare attribute.
+ * @returns {boolean} `true` when the renderer is the project's own.
+ */
+function isCustomRenderer(value) {
+  const node = value ? unwrapNode(value) : null;
+
+  if (!node) {
+    return false;
+  }
+
+  const text = stringValue(node);
+
+  if (text !== null) {
+    return !BUILT_IN_RENDERERS.has(text);
+  }
+
+  const empty = (node.type === 'Identifier' && node.name === 'undefined') || node.type === 'NullLiteral'
+    || (node.type === 'Literal' && node.value === null);
+
+  return !empty;
+}
+
+/**
+ * Whether an object literal sets a custom renderer.
+ *
+ * @param {object} objectPath NodePath of an `ObjectExpression`.
+ * @returns {boolean} `true` for a `renderer` property that is not a built-in name.
+ */
+function objectHasCustomRenderer(objectPath) {
+  const property = getProperty(objectPath, 'renderer');
+
+  return Boolean(property) && (property.node.type === 'ObjectMethod' || isCustomRenderer(property.node.value));
+}
+
+/**
+ * Whether a wrapper element sets a custom renderer.
+ *
+ * @param {object[]} attributes The attributes of a `JSXOpeningElement`.
+ * @returns {boolean} `true` for a `renderer` attribute that is not a built-in name.
+ */
+function elementHasCustomRenderer(attributes) {
+  const attribute = attributes.find(item => attributeName(item) === 'renderer');
+
+  return Boolean(attribute) && isCustomRenderer(attributeValue(attribute));
+}
+
+/**
+ * Whether a file reads `<parent>.<child>` anywhere: `numericFormat.culture`, `cellProperties.numericFormat?.culture`,
+ * `(x.numericFormat ?? {}).culture`, and a destructuring of the child out of the parent, through `as` and
+ * parentheses. A project that reads the key itself has code (a renderer, an exporter) that reads the old name.
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
- * @param {object} path NodePath of an `Identifier`.
- * @returns {object|null} NodePath of the `ObjectExpression`, or `null`.
+ * @param {string} parentKey The option, for example `numericFormat`.
+ * @param {string} childKey The nested key, for example `culture`.
+ * @returns {boolean} `true` when the file reads the key.
  */
-function declaredObject(j, root, path) {
-  const binding = lookup(path, path.node.name, 'value');
+function fileReadsNestedKey(j, root, parentKey, childKey) {
+  const isParent = (expression) => {
+    let node = expression ? unwrapNode(expression) : null;
 
-  if (!binding?.init) {
-    return null;
+    while (node?.type === 'LogicalExpression' && (node.operator === '??' || node.operator === '||')) {
+      node = unwrapNode(node.left);
+    }
+
+    if (!node) {
+      return false;
+    }
+
+    return node.type === 'Identifier' ? node.name === parentKey
+      : MEMBER_CALLS.has(node.type) && memberName(node) === parentKey;
+  };
+  let found = false;
+
+  [j.MemberExpression, j.OptionalMemberExpression].filter(Boolean).forEach(type => root.find(type).forEach((path) => {
+    found = found || (memberName(path.node) === childKey && isParent(path.node.object));
+  }));
+
+  root.find(j.ObjectPattern).forEach((path) => {
+    const names = path.node.properties.map(property => (property.type === 'RestElement' ? null
+      : propertyName(property)));
+
+    if (!names.includes(childKey)) {
+      return;
+    }
+
+    const owner = path.parent?.node;
+
+    if (owner?.type === 'VariableDeclarator' && owner.id === path.node) {
+      found = found || isParent(owner.init);
+    } else if (owner?.type === 'AssignmentExpression' && owner.left === path.node) {
+      found = found || isParent(owner.right);
+    } else if ((owner?.type === 'ObjectProperty' || owner?.type === 'Property') && owner.value === path.node) {
+      found = found || propertyName(owner) === parentKey;
+    }
+  });
+
+  return found;
+}
+
+/**
+ * The reason a `culture`-style move must not run on an object or element: custom code may read the nested key. The
+ * move is for a rule with `readerAdvice`, and the code is a custom renderer on the same object or element, or a
+ * read of the key anywhere in the file.
+ *
+ * @param {Env} env The state.
+ * @param {boolean} customRenderer Whether the holder of the option sets a custom renderer.
+ * @returns {boolean} `true` when the move must not run.
+ */
+function readerMayExist(env, customRenderer) {
+  const { rule } = env;
+
+  if (typeof rule.readerAdvice !== 'string') {
+    return false;
   }
 
-  const declarator = root.find(j.VariableDeclarator).filter(item => item.node === binding.node).paths()[0];
-  const init = declarator ? unwrapPath(declarator.get('init')) : null;
+  if (!env.reads.has(rule.id)) {
+    const [parentKey, childKey] = rule.from.split('.');
 
-  return init?.node.type === 'ObjectExpression' ? init : null;
+    env.reads.set(rule.id, fileReadsNestedKey(env.j, env.ctx.root, parentKey, childKey));
+  }
+
+  return customRenderer || env.reads.get(rule.id);
+}
+
+/**
+ * What an option value that is not an object literal says about the nested key, one hop in the same file.
+ *
+ * @param {Env} env The state.
+ * @param {object} objectPath NodePath of an object literal that should hold the nested key.
+ * @param {string} childKey The nested key.
+ * @returns {'sets'|'unknown'|'clear'} `sets` when the object or a spread of it (itself without a spread) sets the
+ * key, `unknown` when a spread cannot be read, `clear` when the key is certainly not set.
+ */
+function nestedKeyState(env, objectPath, childKey) {
+  if (getProperty(objectPath, childKey)) {
+    return 'sets';
+  }
+
+  if (!isSpreadObject(objectPath)) {
+    return 'clear';
+  }
+
+  const spreads = env.resolver.spreadsOf(objectPath);
+
+  if (spreads === null || spreads.some(isSpreadObject)) {
+    return 'unknown';
+  }
+
+  return spreads.some(spread => getProperty(spread, childKey)) ? 'sets' : 'clear';
+}
+
+/**
+ * Report an option whose value the tool cannot move the nested key out of: a reference to a variable, a member read
+ * such as `PRESET.chf`, or an object that spreads another object. The reference is resolved one hop in the same
+ * file. An object that certainly lacks the nested key is silent, and every case the tool cannot read is reported,
+ * whatever the confidence of the object that holds the option: nothing is rewritten here.
+ *
+ * @param {Env} env The state.
+ * @param {object} holder NodePath of the option value.
+ * @param {object} node Node whose line the entry names.
+ * @param {boolean} hasDestination Whether the object or element already sets the option the key moves to. Its value
+ * wins in 18.x whatever the unreadable source holds, so the source is not reported: a second run over migrated code
+ * stays silent.
+ * @returns {void}
+ */
+function reportNestedHolder(env, holder, node, hasDestination) {
+  const { ctx, rule } = env;
+  const [parentKey, childKey] = rule.from.split('.');
+  const reference = isReference(holder.node);
+
+  if (!reference && holder.node.type !== 'ObjectExpression') {
+    return;
+  }
+
+  const resolved = reference ? env.resolver.hop(holder) : holder;
+
+  if (resolved && resolved.node.type !== 'ObjectExpression') {
+    return;
+  }
+
+  const state = resolved ? nestedKeyState(env, resolved, childKey) : 'unknown';
+  const origin = reference ? 'a variable' : 'a spread';
+  const line = lineOfNode(node);
+
+  if (state === 'clear' || (state === 'unknown' && hasDestination)) {
+    return;
+  }
+
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    line,
+    message: state === 'sets'
+      ? `Move ${rule.from} to ${rule.to} by hand: ${parentKey} ${reference ? 'comes from a variable that sets'
+        : 'spreads an object that sets'} ${childKey}.`
+      : `Move ${rule.from} to ${rule.to} by hand if it sets ${childKey}. ${parentKey} comes from ${origin} here, so `
+        + 'the tool cannot read its keys.',
+  });
 }
 
 /**
@@ -829,36 +1029,23 @@ function moveInObject(env, objectPath, confidence) {
     return;
   }
 
-  let holder = unwrapPath(parent.get('value'));
-
-  if (holder.node.type === 'Identifier') {
-    invalidateScope();
-    holder = declaredObject(j, ctx.root, holder);
-
-    if (holder && getProperty(holder, childKey)) {
-      ctx.report({
-        ruleId: rule.id,
-        severity: 'manual',
-        line: lineOfNode(parent.node),
-        message: `Move ${rule.from} to ${rule.to} by hand: ${parentKey} comes from a variable that sets ${childKey}.`,
-      });
-    }
-
-    return;
-  }
-
-  if (holder.node.type !== 'ObjectExpression') {
-    return;
-  }
-
-  const child = getProperty(holder, childKey);
+  const holder = unwrapPath(parent.get('value'));
+  const child = holder.node.type === 'ObjectExpression' ? getProperty(holder, childKey) : null;
 
   if (!child) {
+    reportNestedHolder(env, holder, parent.node, getProperty(objectPath, rule.to) !== null);
+
     return;
   }
 
   if (!rewrites(rule)) {
     reportInstead(ctx, rule, lineOfNode(child.node), `Move ${rule.from} to ${rule.to}.`);
+
+    return;
+  }
+
+  if (readerMayExist(env, objectHasCustomRenderer(objectPath))) {
+    ctx.report({ ruleId: rule.id, severity: 'manual', line: lineOfNode(child.node), message: rule.readerAdvice });
 
     return;
   }
@@ -935,34 +1122,22 @@ function moveOnElement(env, openingPath) {
   }
 
   const holder = unwrapPath(openingPath.get('attributes', index, 'value', 'expression'));
-
-  if (holder.node.type !== 'ObjectExpression') {
-    if (holder.node.type === 'Identifier') {
-      invalidateScope();
-
-      const declared = declaredObject(j, ctx.root, holder);
-
-      if (declared && getProperty(declared, childKey)) {
-        ctx.report({
-          ruleId: rule.id,
-          severity: 'manual',
-          line: lineOfNode(attributes[index]),
-          message: `Move ${rule.from} to ${rule.to} by hand: ${parentKey} comes from a variable that sets ${childKey}.`,
-        });
-      }
-    }
-
-    return;
-  }
-
-  const child = getProperty(holder, childKey);
+  const child = holder.node.type === 'ObjectExpression' ? getProperty(holder, childKey) : null;
 
   if (!child) {
+    reportNestedHolder(env, holder, attributes[index], attributes.some(item => attributeName(item) === rule.to));
+
     return;
   }
 
   if (!rewrites(rule)) {
     reportInstead(ctx, rule, lineOfNode(child.node), `Move ${rule.from} to the ${rule.to} attribute.`);
+
+    return;
+  }
+
+  if (readerMayExist(env, elementHasCustomRenderer(attributes))) {
+    ctx.report({ ruleId: rule.id, severity: 'manual', line: lineOfNode(child.node), message: rule.readerAdvice });
 
     return;
   }
@@ -986,6 +1161,124 @@ function moveOnElement(env, openingPath) {
   reportMove(env, moved, plan === 'move'
     ? `Moved ${rule.from} to the ${rule.to} attribute.`
     : `Removed ${rule.from}: ${rule.to} is already set to the same value.`);
+}
+
+/**
+ * The tag of a JSX element as text, for a message.
+ *
+ * @param {object} nameNode A `JSXIdentifier` or `JSXMemberExpression` node.
+ * @returns {string|null} The tag, or `null` for a namespaced name.
+ */
+function tagText(nameNode) {
+  if (nameNode.type === 'JSXIdentifier') {
+    return nameNode.name;
+  }
+
+  if (nameNode.type === 'JSXMemberExpression') {
+    const object = tagText(nameNode.object);
+
+    return object === null ? null : `${object}.${nameNode.property.name}`;
+  }
+
+  return null;
+}
+
+/**
+ * Report what the option rules would act on in code that holds Handsontable options without being recognized as
+ * holding them, in a file that belongs to Handsontable. Nothing is rewritten.
+ *
+ * - An `optionMove` rule reports an object literal that sets `<option>: { <key>: ... }` (`numericFormat: { culture }`)
+ *   outside every option object, and a component element (not a DOM tag) with such an attribute. The pair is specific
+ *   enough on its own.
+ * - An `optionRename` and `optionRemove` rule report an attribute of a component element that is not a wrapper, when
+ *   the element sets at least two other known options and one of them is not a common name.
+ *
+ * @param {Env} env The state.
+ * @param {Set<object>} handled The object literals that `findOptionObjects` recognized, at any confidence.
+ * @param {import('../lib/hot-bindings.mjs').HotBindings} bindings Result of `collectHotBindings`.
+ * @returns {void}
+ */
+function reportUnrecognized(env, handled, bindings) {
+  const { ctx, j, rule } = env;
+
+  if (!bindings.isHotFile || (rule.kind === 'optionRename' && rule.context)) {
+    return;
+  }
+
+  const [parentKey, childKey] = rule.kind === 'optionMove' ? rule.from.split('.') : [ownKey(rule), null];
+  const holds = value => value?.type === 'ObjectExpression'
+    && value.properties.some(property => propertyName(property) === childKey);
+
+  if (rule.kind === 'optionMove') {
+    ctx.root.find(j.ObjectProperty).forEach((path) => {
+      const value = unwrapNode(path.node.value);
+
+      if (propertyName(path.node) !== parentKey || !holds(value) || handled.has(path.parent.node)) {
+        return;
+      }
+
+      const child = value.properties.find(property => propertyName(property) === childKey);
+
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        line: lineOfNode(child),
+        message: `Move ${rule.from} to ${rule.to} by hand if this object holds Handsontable options. It was not `
+          + `recognized as one, so ${parentKey} was left alone.`,
+      });
+    });
+  }
+
+  ctx.root.find(j.JSXElement).forEach((path) => {
+    const opening = path.node.openingElement;
+    const tag = tagText(opening.name);
+
+    if (tag === null || (opening.name.type === 'JSXIdentifier' && /^[a-z]/.test(tag)) || bindings.getComponent(path)) {
+      return;
+    }
+
+    const attribute = opening.attributes.find(item => attributeName(item) === parentKey);
+
+    if (!attribute) {
+      return;
+    }
+
+    const where = `<${tag}> is a Handsontable component. It was not recognized as one`;
+
+    if (rule.kind === 'optionMove') {
+      const value = attribute.value?.type === 'JSXExpressionContainer' ? unwrapNode(attribute.value.expression) : null;
+
+      if (holds(value)) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          line: lineOfNode(value.properties.find(property => propertyName(property) === childKey)),
+          message: `Move ${rule.from} to ${rule.to} by hand if ${where}, so ${parentKey} was left alone.`,
+        });
+      }
+
+      return;
+    }
+
+    const keys = opening.attributes.map(item => attributeName(item)).filter(name => KNOWN_OPTIONS.has(name));
+
+    env.keys = keys;
+
+    if (corroborated(env)) {
+      const left = `by hand if ${where}, so the attribute was left alone.`;
+
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        line: lineOfNode(attribute),
+        message: rule.kind === 'optionRename'
+          ? `Rename ${rule.from} to ${rule.to} ${left}`
+          : `Remove ${rule.name} ${left} ${removalAdvice(rule, rule.name)}`.trim(),
+      });
+    }
+
+    env.keys = null;
+  });
 }
 
 /**
@@ -1094,8 +1387,12 @@ function reportDynamicOptions(ctx, rules) {
  *   one is reported. A literal value that is not a BCP 47 tag is reported and not moved. An emptied `<option>`
  *   object stays: `numericFormat: {}` is not the same as no `numericFormat`, because the 18.x numeric renderer
  *   falls back to its own defaults (`DEFAULT_INTL_FORMAT`, no grouping) only for a nullish value, and formats with
- *   the `Intl.NumberFormat` defaults (grouping on) for an empty object. A value read through a variable is only
- *   reported. An optional `report` text is added as a
+ *   the `Intl.NumberFormat` defaults (grouping on) for an empty object. A value that is not an object literal (a
+ *   variable, a member read such as `PRESET.chf`) and an object literal that spreads another object are resolved one
+ *   hop in the same file: when the key is set there, or the source cannot be read, the option is only reported.
+ *   A rule with `readerAdvice` does not move the key when custom code may read it: the object or element sets a
+ *   `renderer` that is not a built-in name, or the file reads the nested key (`numericFormat.culture`). It reports
+ *   `readerAdvice` instead, at every confidence and under `--aggressive`. An optional `report` text is added as a
  *   `manual` entry after every move.
  * - `optionRemove` (`name`, `todo`, `advice`): every property or attribute of that name goes. Unless `todo` is
  *   `false`, a TODO comment with the advice is left before the next property (else the previous one, else the
@@ -1107,6 +1404,12 @@ function reportDynamicOptions(ctx, rules) {
  * `<hot-table>`, `<hot-column>`, `<HotTable>`, and `<HotColumn>` in a `template` part (Vue, Angular, and HTML
  * templates, kebab-case and camel-case names, with `:`, `v-bind:`, and `[...]` prefixes, and `settings` bindings that
  * name the option), and, in a Handsontable file, assignments and `setCellMeta()` calls that set the option.
+ *
+ * Code that holds the option without being recognized is reported too, in a Handsontable file (`reportUnrecognized()`).
+ * An `optionMove` rule reports an object literal that sets `<option>: { <key> }` outside every option object, and a
+ * component element that is not a known wrapper with such an attribute. An `optionRename` and `optionRemove` rule
+ * report an attribute on such a component when it sets at least two other known options. A DOM tag never counts.
+ * Nothing is rewritten there, so a re-exported `HotTable` under another name gets entries and no edit.
  *
  * A rule whose `safe` is not `true` never edits code. It reports `manual` entries instead, and leaves a TODO comment
  * when the rule asks for one (see `lib/safety.mjs`).
@@ -1150,10 +1453,14 @@ const options = {
 
     const { j } = ctx;
     const aggressive = Boolean(ctx.options?.aggressive);
-    const targets = collectTargets(j, ctx.root);
+    const bindings = collectHotBindings(j, ctx.root);
+    const targets = collectTargets(j, ctx.root, bindings);
+    const handled = new Set(targets.filter(target => target.type === 'object').map(target => target.path.node));
+    const resolver = createHop(j, ctx.root);
+    const reads = new Map();
 
     for (const rule of active) {
-      const env = { ctx, j, rule, aggressive, keys: null };
+      const env = { ctx, j, rule, aggressive, keys: null, resolver, reads };
 
       if (rule.kind === 'optionRename' && rule.context) {
         renameInCallArguments(env);
@@ -1174,6 +1481,8 @@ const options = {
           handler[rule.kind](env, target.path);
         }
       }
+
+      reportUnrecognized(env, handled, bindings);
     }
   },
 };

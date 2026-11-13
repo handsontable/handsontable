@@ -302,9 +302,25 @@ export function hasJsTodo(target, ruleId, text, guideUrl = null, scan = null) {
   if (site) {
     const index = site.parent.children.indexOf(site.child);
     const isBlank = child => child?.type === 'JSXText' && child.value.trim() === '';
-    const before = site.parent.children.slice(0, index).reverse().find(child => !isBlank(child));
+    const isComment = child => child?.type === 'JSXExpressionContainer'
+      && child.expression.type === 'JSXEmptyExpression';
+    const before = [];
 
-    return hasTodo(site.child, body, scan) || isTodoContainer(before, body);
+    // Several markers of one element stand in a row, so the run of comment containers in front of it is searched, not
+    // just the nearest one.
+    for (const child of site.parent.children.slice(0, index).reverse()) {
+      if (isBlank(child)) {
+        continue;
+      }
+
+      if (!isComment(child)) {
+        break;
+      }
+
+      before.push(child);
+    }
+
+    return hasTodo(site.child, body, scan) || before.some(child => isTodoContainer(child, body));
   }
 
   const statement = enclosingAnchor(elementPath);

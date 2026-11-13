@@ -13,7 +13,8 @@
         "anyOf": [
           { "property": "numericFormat.pattern" },
           { "property": "pattern", "siblingKey": "culture" },
-          { "annotatedObject": "NumericFormatOptions" }
+          { "annotatedObject": "NumericFormatOptions" },
+          { "annotatedObject": "NumericFormatOptions", "recordEntries": true, "withKey": "pattern" }
         ]
       },
       "message": "Replace numericFormat.pattern with Intl.NumberFormat options. Handsontable 18.0 removed Numbro.js, so the pattern does nothing. Use, for example, style: 'currency' with currency: 'USD', style: 'percent', or minimumFractionDigits and maximumFractionDigits for a fixed number of decimals. Set the locale with the locale option. To keep Numbro, follow the Numbro recipe: https://handsontable.com/docs/javascript-data-grid/recipes/cell-types/numbro"
@@ -26,7 +27,8 @@
       "files": ["js", "template"],
       "requires": "option-object",
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
-      "match": { "property": "dateFormat", "valueMatches": "." },
+      "match": { "property": "dateFormat", "valueMatches": ".", "viaReference": true },
+      "variableMessage": "Check the dateFormat value, because it comes from a variable. If it is a Moment format string, replace it with an Intl.DateTimeFormat object. Handsontable 18.0 removed Moment.js, so a string no longer works with the built-in date cell types. Use, for example, { year: 'numeric', month: '2-digit', day: '2-digit' }, and the locale option picks the order. The source data must be ISO 8601 (YYYY-MM-DD).",
       "message": "Replace the string dateFormat with an Intl.DateTimeFormat object. Handsontable 18.0 removed Moment.js, so a string no longer works with the built-in date cell types. Use, for example, { year: 'numeric', month: '2-digit', day: '2-digit' }, and the locale option picks the order. The source data must be ISO 8601 (YYYY-MM-DD)."
     },
     {
@@ -37,7 +39,8 @@
       "files": ["js", "template"],
       "requires": "option-object",
       "guide": "migrate-date-and-time-cells-to-iso-8601-format",
-      "match": { "property": "timeFormat", "valueMatches": "." },
+      "match": { "property": "timeFormat", "valueMatches": ".", "viaReference": true },
+      "variableMessage": "Check the timeFormat value, because it comes from a variable. If it is a Moment format string, replace it with an Intl.DateTimeFormat object. Handsontable 18.0 removed Moment.js, so a string no longer works with the built-in time cell types. Use, for example, { hour: 'numeric', minute: '2-digit', hour12: true }, and the locale option picks the style. The source data must be in 24-hour format, such as '14:30:00'.",
       "message": "Replace the string timeFormat with an Intl.DateTimeFormat object. Handsontable 18.0 removed Moment.js, so a string no longer works with the built-in time cell types. Use, for example, { hour: 'numeric', minute: '2-digit', hour12: true }, and the locale option picks the style. The source data must be in 24-hour format, such as '14:30:00'."
     },
     {
@@ -62,8 +65,10 @@
           "selectOptions",
           "hashSymbol"
         ],
-        "whenValueMatches": "<[A-Za-z/!]"
+        "whenValueMatches": "<[A-Za-z/!]",
+        "reportUnresolved": true
       },
+      "unresolvedMessage": "Check that one of {sources} sets a sanitizer option, because the tool could not see every source of the settings of this grid. The settings it could read pass markup to a surface that used to be sanitized (headers, menu labels, dialog or notification content, select options) and set no sanitizer. Handsontable 18.0 removed DOMPurify and no longer sanitizes HTML. If none of them sets one, add a sanitizer option, for example sanitizer: (html) => DOMPurify.sanitize(html). The codemod never adds one.",
       "message": "Add a sanitizer option if any of the markup in this grid is untrusted. Handsontable 18.0 removed DOMPurify and no longer sanitizes HTML. This grid passes markup to a surface that used to be sanitized (headers, menu labels, dialog or notification content, select options) and sets no sanitizer. For example, set sanitizer: (html) => DOMPurify.sanitize(html). The codemod never adds one. Ignore this entry if you set the sanitizer elsewhere."
     },
     {

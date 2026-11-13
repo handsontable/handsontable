@@ -1,0 +1,7 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/css-wrapper-border-radius", "severity": "changed", "line": 7 },
+    { "ruleId": "18.0.0/css-wrapper-border-width", "severity": "manual", "line": 8 }
+  ]
+}

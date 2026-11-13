@@ -94,7 +94,7 @@ export const RULE_KINDS = {
     optional: { except: 'strings', optionKeys: 'object', noKeyAdvice: 'string' },
   },
   optionRename: { required: { from: 'string', to: 'string' }, optional: { context: 'object' } },
-  optionMove: { required: { from: 'string', to: 'string' }, optional: { report: 'string' } },
+  optionMove: { required: { from: 'string', to: 'string' }, optional: { report: 'string', readerAdvice: 'string' } },
   optionRemove: { required: { name: 'string' }, optional: { todo: 'boolean' } },
   methodRemove: { required: { methods: 'strings', receiver: 'stringOrObject' }, optional: {} },
   methodMove: {
@@ -127,6 +127,8 @@ export const RULE_KINDS = {
       requires: 'string',
       unlessFileMatches: 'string',
       mergeKey: 'string',
+      variableMessage: 'string',
+      unresolvedMessage: 'string',
       todo: 'boolean',
     },
   },

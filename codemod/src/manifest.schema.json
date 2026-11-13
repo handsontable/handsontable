@@ -180,7 +180,11 @@
             "properties": {
               "from": { "description": "<option>.<key>, for example numericFormat.culture." },
               "to": { "description": "Name of the option that sits beside <option>." },
-              "report": { "type": "string", "description": "Text of a manual entry added after every move." }
+              "report": { "type": "string", "description": "Text of a manual entry added after every move." },
+              "readerAdvice": {
+                "type": "string",
+                "description": "Text of the manual entry that replaces a move when custom code may read the nested key: a custom renderer on the same object or element, or a read of the key in the file."
+              }
             }
           }
         },
@@ -304,6 +308,8 @@
               "emitsFact": { "type": "string", "description": "Fact name added when the rule matches in a part." },
               "unlessFileMatches": { "type": "string", "description": "Regular expression on the text of the part. The rule skips a part that matches it." },
               "mergeKey": { "type": "string", "description": "Rules of different versions that share a mergeKey report a spot once, on the same line of the same part. The rule of the earliest version owns the entry: its id, message, and guide link." },
+              "unresolvedMessage": { "type": "string", "description": "Message of a missingOption match (with reportUnresolved) on a grid whose settings have sources the tool could not read. {sources} stands for their names." },
+              "variableMessage": { "type": "string", "description": "Message of a match whose value comes from a variable that the tool cannot resolve (a property matcher with viaReference). The other matches use message." },
               "todo": { "type": "boolean", "description": "false keeps the rule's manual entries out of the code: no TODO comment is left at their lines. Without it, every manual entry in a js or css part gets one." }
             }
           }

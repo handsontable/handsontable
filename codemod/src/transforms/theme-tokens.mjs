@@ -1,5 +1,6 @@
 import { anchorForProperty } from '../lib/anchor.mjs';
 import { calleeName, isFunctionNode, propertyName, unwrapNode, unwrapPath } from '../lib/ast.mjs';
+import { collectHotBindings } from '../lib/hot-bindings.mjs';
 import { removalAdvice, renameKey } from '../lib/rename-key.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { invalidateScope, lookup } from '../lib/scope.mjs';
@@ -87,9 +88,11 @@ function themeIdentifiers(j, root) {
  *
  * @param {object} path NodePath of the expression.
  * @param {Set<object>} ids Declaring identifiers of theme bindings.
+ * @param {import('../lib/hot-bindings.mjs').HotBindings} bindings Result of `collectHotBindings`, which knows the
+ * `Handsontable` namespace.
  * @returns {boolean} `true` when the expression is rooted at the theme API.
  */
-function isThemeReceiver(path, ids) {
+function isThemeReceiver(path, ids, bindings) {
   const target = unwrapPath(path);
   const { node } = target;
 
@@ -101,10 +104,12 @@ function isThemeReceiver(path, ids) {
     }
     case 'CallExpression':
     case 'OptionalCallExpression':
-      return isThemeReceiver(target.get('callee'), ids);
+      return isThemeReceiver(target.get('callee'), ids, bindings);
     case 'MemberExpression':
     case 'OptionalMemberExpression':
-      return isThemeReceiver(target.get('object'), ids);
+      // `Handsontable.themes` is the registry that `handsontable/themes` exports, set on the namespace at run time.
+      return bindings.resolveNamespaceMember(target) === 'themes'
+        || isThemeReceiver(target.get('object'), ids, bindings);
     default:
       return false;
   }
@@ -116,13 +121,14 @@ function isThemeReceiver(path, ids) {
  * @param {object} j The jscodeshift API.
  * @param {object} root The file's Collection.
  * @param {Set<object>} ids Declaring identifiers of `handsontable/themes` bindings. The variables are added.
+ * @param {import('../lib/hot-bindings.mjs').HotBindings} bindings Result of `collectHotBindings`.
  * @returns {void}
  */
-function addThemeVariables(j, root, ids) {
+function addThemeVariables(j, root, ids, bindings) {
   const found = [];
 
   root.find(j.VariableDeclarator).forEach((path) => {
-    if (path.node.id.type === 'Identifier' && path.node.init && isThemeReceiver(path.get('init'), ids)) {
+    if (path.node.id.type === 'Identifier' && path.node.init && isThemeReceiver(path.get('init'), ids, bindings)) {
       found.push(path.node.id);
     }
   });
@@ -248,13 +254,14 @@ const themeTokens = {
       invalidateScope();
 
       const themeIds = themeIdentifiers(j, root);
+      const bindings = collectHotBindings(j, root);
 
-      addThemeVariables(j, root, themeIds);
+      addThemeVariables(j, root, themeIds, bindings);
 
       for (const call of calls) {
         const name = calleeName(call.node.callee);
         const onTheme = !METHOD_CALLEES.has(name) || (call.node.callee.type !== 'Identifier'
-          && isThemeReceiver(unwrapPath(call.get('callee')).get('object'), themeIds));
+          && isThemeReceiver(unwrapPath(call.get('callee')).get('object'), themeIds, bindings));
 
         if (!onTheme) {
           continue;

@@ -49,6 +49,9 @@
  * @property {Severity} severity Entry severity.
  * @property {number} [line] One-based line inside the part's own source.
  * @property {number[]} [lines] Every line of a collapsed group of matches, inside the part's own source.
+ * @property {number} [markLine] The line the TODO marker is placed from, when `line` names a spot inside a literal
+ * that no marker can sit on: a line of a multi-line template literal, or of a map in a stylesheet declaration. The
+ * report keeps `line`. Defaults to `line`.
  * @property {'run'} [scope] `run` for a note that is the same in every file (a rule's `note`), so the report shows
  * it once with the list of files.
  * @property {string} [mergeKey] A later entry of the same part with the same key replaces this one instead of adding
