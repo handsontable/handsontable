@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T08:38:44.468Z",
+  "generatedAt": "2026-11-13T08:48:56.287Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1712,41 +1712,6 @@
       "needsTicket": false
     },
     {
-      "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "tier": "playwright",
-      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
-      "line": 87,
-      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 6,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-classic-min",
-        "e2e-horizon-min",
-        "e2e-main-min"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-14T09:10:38Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38534050426/attempts/2",
-        "branch": "feature/DEV-918_colWidths-physical-indexes",
-        "leg": "e2e-horizon-min",
-        "status": "flaky",
-        "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
       "key": "playwright|e2e/manual-row-move-no-columns.spec.ts|moving a row by its header while columns are hidden › still moves the row through its header when every column is hidden",
       "tier": "playwright",
       "file": "e2e/manual-row-move-no-columns.spec.ts",
@@ -2187,6 +2152,41 @@
         "leg": "UMD.min (theme: main)",
         "status": "failed",
         "error": "Expected spy onAfterValidate to have been called.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/collapsible-indicator-dropdown-menu.spec.ts|collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
+      "tier": "playwright",
+      "file": "e2e/collapsible-indicator-dropdown-menu.spec.ts",
+      "line": 87,
+      "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
+      "count7": 0,
+      "count30": 1,
+      "countAll": 6,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-classic-min",
+        "e2e-horizon-min",
+        "e2e-main-min"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-14T09:10:38Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38534050426/attempts/2",
+        "branch": "feature/DEV-918_colWidths-physical-indexes",
+        "leg": "e2e-horizon-min",
+        "status": "flaky",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": false
