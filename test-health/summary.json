@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T08:22:49.647Z",
+  "generatedAt": "2026-11-13T08:38:44.468Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1785,7 +1785,7 @@
       "file": "handsontable/src/__tests__/core/update.spec.js",
       "line": null,
       "title": "Core_updateSettings should update cache of index mappers only once when updating `data` and `column` properties",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
