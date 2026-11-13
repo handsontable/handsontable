@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Side layout slots e2e fixture</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
   <script>
     const htParams = new URLSearchParams(location.search);
 
@@ -17,9 +18,9 @@
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
     window.htLicenseKey = ({
-      'non-commercial': 'non-commercial-and-evaluation',
-      trial: 'This is a Handsontable license key for Test Fixture, issued on 2026-08-12 for the "Fixture Project" project. It includes 1 license: > 1. Trial license under Handsontable Evaluation License Agreement 4.0 of 2026-03-02, for Handsontable on the Enterprise package, for internal use, valid until 2026-09-26 (UTC). Not licensed for production use. To purchase a license, contact sales@handsontable.com. [eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI2LTA5LTI2Iiwibm90aWNlIjo0NSwiZ3JhY2UiOjE1LCJmbGFncyI6WyJ0cmlhbCJdfX195f2c28b185a0f34f2c85b97568c44f8930d30dd58f4901815807d550bc45716c98c6e9d01ea036efb6cfda123b7dfb7904cb5e946e0a407c0f5329e72691d715]',
-    })[htParams.get('license') ?? 'non-commercial'];
+      test: window.htTestLicenseKey,
+      trial: 'This is a Handsontable license key for Test Fixture, issued on 2026-08-12 for the "Fixture Project" project. It includes 1 license: > 1. Trial license under Handsontable Evaluation License Agreement 4.0 of 2026-03-02, for Handsontable on the Enterprise package, for internal use, valid until 2026-09-26 (UTC). Not licensed for production use. To purchase a license, contact sales@handsontable.com. [eyJwcm9kdWN0cyI6eyJoYW5kc29udGFibGUiOnsiY2FwYWJpbGl0aWVzIjpbImNvcmUiXSwidXNhZ2VfdW50aWwiOiIyMDI2LTA5LTI2Iiwibm90aWNlIjo0NSwiZ3JhY2UiOjE1LCJmbGFncyI6WyJ0cmlhbCJdfX0sInYiOjIsInByb3NlIjoiMzg3MzYxOTE5Yzc1YTQ0NTA4NGZmNmM1MmYwMmM0ZDJjNmMyMTVhYzc2YjFkMGRiYTZiMDkzODFmMDkwNjg1YSJ973a630de3fb4f97dd3d82647b57149489e48114b83ac7d5ca92d370a0be18246eecfedca9c2671de91a39840c8c2b6964b5756bf3fc2b7adbe0718167ea55b50]',
+    })[htParams.get('license') ?? 'test'];
     if (!window.htLicenseKey) {
       throw new Error('Unknown ?license= value: ' + JSON.stringify(htParams.get('license')));
     }
@@ -36,9 +37,11 @@
     <div id="grid" data-testid="grid"></div>
   </div>
 
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
   <script>
     const testIdRenderer = function(instance, td, row, col) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);

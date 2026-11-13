@@ -86,7 +86,7 @@ export class SideLayoutSlotsPage {
    * Opens the fixture and waits for the first data row. A constructor throw is rethrown with its
    * own message instead of reading as a visibility timeout.
    */
-  async goto({ license = 'non-commercial' }: { license?: 'non-commercial' | 'trial' } = {}): Promise<void> {
+  async goto({ license = 'test' }: { license?: 'test' | 'trial' } = {}): Promise<void> {
     await this.page.goto(
       `/tests/fixtures/demo/side-layout-slots.html?theme=${this.theme}&bundle=${this.bundle}&license=${license}`
     );

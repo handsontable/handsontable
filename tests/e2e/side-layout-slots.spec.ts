@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import {
   SideLayoutSlotsPage, type Box, type PanelSeam, type SideSlotGeometry,
 } from '../fixtures/pages/SideLayoutSlotsPage';
@@ -63,7 +63,7 @@ function onlyPanel(panels: Box[]): Box {
   return panels[0];
 }
 
-test.describe('side layout slots', () => {
+test.describe('side layout slots', { tag: THEMES_TAG }, () => {
   let grid: SideLayoutSlotsPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {

@@ -3077,6 +3077,10 @@ export default function Core(
       const gridInsets = { start: '', end: '' };
 
       const syncGridInsets = () => {
+        if (!instance || instance.isDestroyed) {
+          return;
+        }
+
         const { rootWrapperElement: wrapper, rootGridElement: grid } = instance;
         const hasSideSlots = getSideSlotsWidth(instance) > 0;
         const before = hasSideSlots ? grid.offsetLeft : 0;

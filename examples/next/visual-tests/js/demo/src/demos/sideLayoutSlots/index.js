@@ -4,6 +4,7 @@ import { registerPlugin, Pagination } from "handsontable/plugins";
 import { registerCellType, CheckboxCellType } from "handsontable/cellTypes";
 
 import { generateExampleData, getDirectionFromURL, getThemeNameFromURL } from "../../utils";
+import { TEST_LICENSE_KEY } from "../../test-license-key";
 
 registerPlugin(Pagination);
 registerCellType(CheckboxCellType);
@@ -62,7 +63,7 @@ export function init() {
     pagination: {
       pageSize: 10,
     },
-    licenseKey: "non-commercial-and-evaluation",
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   hot.getLayoutManager().register(

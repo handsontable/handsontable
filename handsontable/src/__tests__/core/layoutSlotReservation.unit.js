@@ -217,7 +217,7 @@ describe('Side slot teardown', () => {
   function createGridWithPanels() {
     const hot = new Handsontable(container, {
       data: [['a']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getLayoutManager().register('nav', document.createElement('div'), { side: 'start' });
@@ -229,7 +229,7 @@ describe('Side slot teardown', () => {
   it('should schedule a side slot pass when a panel registers on a live grid (control)', () => {
     const hot = new Handsontable(container, {
       data: [['a']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const registerTimeoutSpy = jest.spyOn(hot, '_registerTimeout');
 

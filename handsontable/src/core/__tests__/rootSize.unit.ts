@@ -428,7 +428,7 @@ describe('root size options', () => {
     function buildNestedInstance() {
       const container = document.createElement('div');
       const nested = new Core(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [[1, 2], [3, 4]],
       });
 
