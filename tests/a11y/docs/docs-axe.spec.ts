@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { expect, test, type Page, type TestInfo } from '@playwright/test';
+import { test, type Page, type TestInfo } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {
   findingsFromScan,
@@ -11,15 +11,12 @@ import {
   type ScanMark,
 } from '../../lib/a11y-baseline.mjs';
 import { WCAG_TAGS, measureNodes } from '../axe-scan';
+import { DOCS_STATES, STILL_TIMEOUT, hasRequirement, openDocsPage, settle } from './docs-site';
 import {
-  DESKTOP_VIEWPORT,
   DOCS_PAGES,
   DOCS_THEMES,
-  PHONE_VIEWPORT,
   docsBaseUrl,
-  docsUrl,
   type DocsPage,
-  type DocsState,
 } from './pages.mjs';
 
 /**
@@ -36,46 +33,27 @@ import {
  * wall, an example that never finished loading, a color scheme that did not apply, a state the
  * keyboard did not open. Policy: `tests/AGENTS.md`, "A11y: the docs site scan".
  *
- * What makes two runs of the same deploy agree:
- *
- * - Third-party scripts that draw late, from a live service, or not at all depending on the region
- *   are blocked (`BLOCKED_HOSTS`): the changelog bell and its panel (Headway), the consent banner
- *   (Cookiebot), the GitHub stars count (the unauthenticated GitHub API allows 60 requests an hour, and
- *   a run makes several hundred), and the error reporter, so a scan never files Sentry events. The
- *   scan therefore says nothing about those widgets; the PR that added the scan lists them as gaps. The
- *   document inside a video or design-file embed is left out the same way (`THIRD_PARTY_FRAMES`); the frame
- *   element stays in.
- * - The color scheme is set before the first paint (`colorScheme` and Starlight's own
- *   `starlight-theme` key), and the spec checks that the document took it.
- * - The examples have finished loading (no `.hot-example-preview--loading` left), the fonts are ready,
- *   and two animation frames have passed, before a state is reached; after it, every finite animation
- *   has ended (a menu or a panel mid-open) and the code blocks' script has run (`settle()`).
+ * What makes two runs of the same deploy agree is how `docs-site.ts` opens a page and settles it: the
+ * third-party hosts blocked, the color scheme set before the first paint, the examples loaded, the
+ * animations ended. The scan therefore says nothing about the blocked widgets; the PR that added the scan
+ * lists them as gaps. The document inside a video or design-file embed is left out the same way
+ * (`THIRD_PARTY_FRAMES`); the frame element stays in.
  */
 
 const BASE_URL = docsBaseUrl(process.env.DOCS_A11Y_BASE_URL);
 // `DOCS_A11Y_SCREENSHOTS=0` photographs nothing: the run that builds a baseline marks every finding new,
 // and a screenshot per scan would make the HTML report hundreds of megabytes.
 const SCREENSHOTS = process.env.DOCS_A11Y_SCREENSHOTS !== '0';
-const BLOCKED_HOSTS = /(^|\.)(headwayapp\.co|headway-widget\.net|cookiebot\.com|api\.github\.com|sentry-cdn\.com|sentry\.io|googletagmanager\.com|google-analytics\.com)$/;
 // The outline colors of the screenshot marks, as in the product scan: new, grown, a pictured known issue.
 const MARK_COLORS: Record<ScanMark['status'], string> = { new: '#d03b3b', grown: '#b85a2f', known: '#1c5cab' };
 // A docs page can be many screens long: a screenshot shows the marked part, at most this tall.
 const MAX_CLIP_HEIGHT = 1600;
-const EXAMPLES_TIMEOUT = 60_000;
-// How long the scan gives the code blocks' script to make every overflowing block focusable (`settle()`).
-const CODE_BLOCKS_TIMEOUT = 5_000;
-// How long the scan waits for the finite animations to end before it names the ones that did not.
-const ANIMATIONS_TIMEOUT = 10_000;
-// How long the scan waits for the DOM to hold still: a grid an example builds after its data arrives.
-const STILL_TIMEOUT = 10_000;
 // How long a screenshot may take before the scan is kept without one.
 const SCREENSHOT_TIMEOUT = 20_000;
 // The embeds whose document is another service's (a video, a design file): axe reads into a frame, and what it
 // finds there changes with that service, so the nodes inside such a frame are dropped and the frame itself stays
 // (its title is the docs' own markup). axe's own `exclude` does not reach into a cross-origin frame here.
 const THIRD_PARTY_FRAMES = ['iframe[src*="youtube.com"]', 'iframe[src*="youtube-nocookie.com"]', 'iframe[src*="figma.com"]'];
-// Starlight's DocSearch button; only production builds render search.
-const SEARCH_BUTTON = '.DocSearch-Button, button[data-open-modal]';
 
 const BASELINE_ENTRIES: BaselineEntry[] = (() => {
   try {
@@ -108,30 +86,8 @@ for (const theme of DOCS_THEMES) {
  */
 async function scan(page: Page, testInfo: TestInfo, entry: DocsPage, theme: string): Promise<void> {
   const started = Date.now();
-  const url = docsUrl(entry, theme, BASE_URL);
   const pageErrors: string[] = [];
-
-  await page.setViewportSize(entry.viewport === 'phone' ? PHONE_VIEWPORT : DESKTOP_VIEWPORT);
-  await page.context().route(target => BLOCKED_HOSTS.test(target.hostname), route => route.abort());
-  await page.addInitScript((scheme) => {
-    try {
-      localStorage.setItem('starlight-theme', scheme);
-    } catch {
-      // A storage that throws leaves the media query to decide, which `colorScheme` already set.
-    }
-  }, theme);
-  page.on('pageerror', error => pageErrors.push(String(error.stack ?? error)));
-
-  const response = await page.goto(url, { waitUntil: 'load' });
-
-  expect(response?.status(), `${url} answers with ${entry.status ?? 200}`).toBe(entry.status ?? 200);
-  await expect(page.getByText('Password protected site'), 'the deploy is not behind its password wall').toHaveCount(0);
-  await expect(page.locator('.hot-example-preview--loading'), 'every example finished loading').toHaveCount(0, { timeout: EXAMPLES_TIMEOUT });
-  expect(await page.evaluate(() => document.documentElement.dataset.theme), `the ${theme} color scheme applied`).toBe(theme);
-  await page.evaluate(async() => {
-    await document.fonts.ready;
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-  });
+  const { url } = await openDocsPage(page, entry, { theme, baseUrl: BASE_URL, pageErrors });
 
   // A control only production builds render: on any other deploy the page is not scanned. The test attaches
   // no scan, so the reporter reads the page as not scanned and its baseline entries as unverified, never as
@@ -218,76 +174,6 @@ async function scan(page: Page, testInfo: TestInfo, entry: DocsPage, theme: stri
 }
 
 /**
- * Waits until the page holds still for a scan, and says whether the DOM did.
- *
- * - Every finite animation ends (a menu or a panel that is opening). The wait is bounded: an animation still
- *   running or paused after `ANIMATIONS_TIMEOUT` fails the test with its name, rather than the test running
- *   out of time with none.
- * - The code blocks' script (Expressive Code) has made every code block that scrolls focusable: it adds
- *   `tabindex="0"` to an overflowing block a few hundred milliseconds after load, so a scan that lands first
- *   reports the block as a scrollable region the keyboard cannot reach, and the next run does not. A block
- *   the script never reaches stays a finding.
- * - The DOM holds still for 30 frames in a row: an example that builds its grid once its data arrives (the
- *   server-side data guide) is scanned with the grid. The count restarts on every change, inside one
- *   `evaluate`: `waitForFunction()` does not await a predicate's promise, so a promise there passes at once.
- *   A page that never holds still within `STILL_TIMEOUT` is scanned as it is, and the caller annotates it.
- *
- * @param page The page.
- * @returns Whether the DOM held still.
- */
-async function settle(page: Page): Promise<boolean> {
-  const unfinished = await page.evaluate(async(timeout) => {
-    const finite = document.getAnimations().filter(animation => animation.effect?.getTiming().iterations !== Infinity);
-    const deadline = new Promise<void>((resolve) => {
-      const start = performance.now();
-      const tick = () => (performance.now() - start >= timeout ? resolve() : requestAnimationFrame(tick));
-
-      requestAnimationFrame(tick);
-    });
-
-    await Promise.race([Promise.all(finite.map(animation => animation.finished.catch(() => undefined))), deadline]);
-
-    return finite.filter(animation => animation.playState === 'running' || animation.playState === 'paused')
-      .map((animation) => {
-        const name = animation instanceof CSSAnimation ? animation.animationName
-          : animation instanceof CSSTransition ? animation.transitionProperty : animation.id || 'a script animation';
-        const target = (animation.effect as KeyframeEffect | null)?.target;
-
-        return `${name} (${animation.playState}) on ${target ? `${target.tagName.toLowerCase()}.${String(target.className).split(' ')[0]}` : 'nothing'}`;
-      });
-  }, ANIMATIONS_TIMEOUT);
-
-  if (unfinished.length > 0) {
-    throw new Error(`animations still unfinished after ${ANIMATIONS_TIMEOUT} ms: ${unfinished.join(', ')}`);
-  }
-  await page.waitForFunction(() => [...document.querySelectorAll('.expressive-code pre')]
-    .every(block => block.scrollWidth <= block.clientWidth || block.hasAttribute('tabindex')),
-  undefined, { polling: 100, timeout: CODE_BLOCKS_TIMEOUT }).catch(() => undefined);
-
-  return page.evaluate(timeout => new Promise<boolean>((resolve) => {
-    const start = performance.now();
-    const count = () => document.getElementsByTagName('*').length;
-    let last = count();
-    let still = 0;
-    const tick = () => {
-      const now = count();
-
-      still = now === last ? still + 1 : 0;
-      last = now;
-      if (still >= 30) {
-        resolve(true);
-      } else if (performance.now() - start >= timeout) {
-        resolve(false);
-      } else {
-        requestAnimationFrame(tick);
-      }
-    };
-
-    requestAnimationFrame(tick);
-  }), STILL_TIMEOUT);
-}
-
-/**
  * Drops the violation nodes inside a third-party embed (`THIRD_PARTY_FRAMES`), in place, and the violations
  * left with no node.
  *
@@ -313,66 +199,6 @@ async function dropThirdPartyFrames(page: Page, results: { violations: Array<{ n
 
   return dropped;
 }
-
-/**
- * Whether the page renders a control only some builds have.
- *
- * @param page The page.
- * @param requirement The control.
- * @returns The verdict.
- */
-async function hasRequirement(page: Page, requirement: NonNullable<DocsPage['requires']>): Promise<boolean> {
-  const selector = { search: SEARCH_BUTTON }[requirement];
-
-  return (await page.locator(selector).count()) > 0;
-}
-
-/**
- * Presses Enter on a header control, which takes the focus first, the way a keyboard user opens it.
- *
- * @param page The page.
- * @param selector The control.
- */
-async function pressEnterOn(page: Page, selector: string): Promise<void> {
-  const control = page.locator(selector).first();
-
-  await expect(control, `${selector} is on the page`).toBeVisible();
-  await control.focus();
-  await page.keyboard.press('Enter');
-}
-
-/**
- * The state each page is scanned in. A menu or a panel is opened from the keyboard, so the scanned DOM
- * is the one a keyboard user reaches.
- */
-const DOCS_STATES: Record<DocsState, (page: Page) => Promise<void>> = {
-  none: async() => {},
-  'versions-menu': async(page) => {
-    await pressEnterOn(page, '#versions-trigger');
-    await expect(page.locator('#versions-trigger')).toHaveAttribute('aria-expanded', 'true');
-  },
-  'support-menu': async(page) => {
-    await pressEnterOn(page, '#support-trigger');
-    await expect(page.locator('#support-trigger')).toHaveAttribute('aria-expanded', 'true');
-  },
-  // The panel is in the DOM and visible before it opens, so its open animation is what says it opened: the
-  // focus moves into its text field once that animation has started (about 100 ms after the key), and
-  // `settle()` then waits it out. A scan before the end read the page behind the panel as it was before
-  // it opened, and reported the off-screen sidebar copy on some runs and not on others.
-  'docs-assistant': async(page) => {
-    await pressEnterOn(page, '#header-assistant-btn');
-    await expect(page.locator('[role="dialog"]').locator('textarea, input').first()).toBeFocused();
-  },
-  search: async(page) => {
-    await pressEnterOn(page, SEARCH_BUTTON);
-    await expect(page.locator('.DocSearch-Modal, dialog[open]').first()).toBeVisible();
-  },
-  'phone-navigation': async(page) => {
-    await pressEnterOn(page, '.mobile-menu-btn');
-    await expect(page.locator('.mobile-menu-btn')).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.locator('#mobile-nav-overlay')).toBeVisible();
-  },
-};
 
 /**
  * Outlines and numbers every node of every mark in an overlay that takes no pointer events, after

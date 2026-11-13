@@ -259,4 +259,83 @@ describe('FormulaBuilder with formulas.batchEvaluation', () => {
       grid.resumeRender();
     });
   });
+
+  describe('a commit made while the host holds a suspended execution', () => {
+    const ANNOUNCEMENT = '1 more cell now contains an error.';
+
+    /**
+     * Commits `0` into A1, the precedent of `=1/A1`, through the package's own key handler while the host keeps
+     * `suspendExecution()` open, and waits for the package's delayed live-region announcement.
+     *
+     * @param {boolean} batchEvaluation The `formulas.batchEvaluation` setting.
+     * @param {object} [keyInit] The Enter key's modifiers.
+     * @returns {Promise<{ grid: Handsontable, announced: string, errors: string[] }>}
+     */
+    async function commitWhileSuspended(
+      batchEvaluation: boolean,
+      keyInit: KeyboardEventInit = {}
+    ): Promise<{ grid: Handsontable, announced: string, errors: string[] }> {
+      const grid = mountGrid(buildEngine(), {
+        data: [[1, '=1/A1', 'x']],
+        formulas: { batchEvaluation },
+        formulaBuilder: { builder: core },
+        // A synchronous validator writes inside `finishEditing()`, so the commit's hold is open when the package
+        // reads the engine to announce the dependent errors.
+        validator: (_value: unknown, callback: (valid: boolean) => void) => callback(true),
+      });
+      const errors: string[] = [];
+
+      jest.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+        errors.push(args.map(String).join(' '));
+      });
+
+      grid.selectCell(0, 0);
+      grid._getEditorManager().openEditor(null, new KeyboardEvent('keydown', { key: 'Enter' }), true);
+      grid.getPlugin('formulaBuilder').getActiveEditor()?.setValue('0');
+      grid.suspendExecution();
+
+      grid.rootElement.querySelector<HTMLTextAreaElement>('.ht-formula-builder__inline-editor textarea')!
+        .dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true, ...keyInit }));
+
+      const liveRegions = document.querySelectorAll('.hfe-live-region');
+      const liveRegion = liveRegions[liveRegions.length - 1];
+      const deadline = Date.now() + 2000;
+
+      // The package announces after a short delay of its own.
+      while (!liveRegion?.textContent && Date.now() < deadline) {
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+
+      grid.resumeExecution();
+
+      return { grid, announced: liveRegion?.textContent ?? '', errors };
+    }
+
+    it('announces the dependent error and logs no console error on Enter', async() => {
+      const { grid, announced, errors } = await commitWhileSuspended(true);
+
+      expect(errors).toEqual([]);
+      expect(announced).toContain(ANNOUNCEMENT);
+      expect(grid.getDataAtCell(0, 0)).toBe('0');
+      expect(grid.getDataAtCell(0, 1)).toBe('#DIV/0!');
+    });
+
+    it('announces the dependent error and logs no console error on Ctrl/Cmd+Enter',
+      async() => {
+        const { grid, announced, errors } = await commitWhileSuspended(true, { ctrlKey: true, metaKey: true });
+
+        expect(errors).toEqual([]);
+        expect(announced).toContain(ANNOUNCEMENT);
+        expect(grid.getDataAtCell(0, 0)).toBe('0');
+        expect(grid.getDataAtCell(0, 1)).toBe('#DIV/0!');
+      });
+
+    it('announces the same without batchEvaluation', async() => {
+      const { announced, errors } = await commitWhileSuspended(false);
+
+      expect(errors).toEqual([]);
+      expect(announced).toContain(ANNOUNCEMENT);
+    });
+  });
 });

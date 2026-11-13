@@ -163,7 +163,7 @@
 <section class="a11y viz" aria-labelledby="a11y">
   <h2 id="a11y">Accessibility</h2>
   <div class="meta" id="a11y-meta">
-    Every finding of the <code>A11y nightly</code> (the checks beyond axe and the axe scan), of the <code>Screen reader nightly</code> and of the docs site scan (<code>Docs a11y</code>) on develop, one row per finding across nights, sorted into root-cause clusters by <code>tests/a11y/issues.json</code>. A row is <em>new</em> on its first night, <em>persisting</em> after, <em>resolved</em> once its target was measured again and the finding was gone, and <em>flapping</em> when it came back after that. A finding no cluster claims waits in the triage queue.
+    Every finding of the <code>A11y nightly</code> (the checks beyond axe and the axe scan), of the <code>Screen reader nightly</code> and of the docs site scan and checks (<code>Docs a11y</code>) on develop, one row per finding across nights, sorted into root-cause clusters by <code>tests/a11y/issues.json</code>. A row is <em>new</em> on its first night, <em>persisting</em> after, <em>resolved</em> once its target was measured again and the finding was gone, and <em>flapping</em> when it came back after that. A finding no cluster claims waits in the triage queue.
   </div>
   <div class="empty" id="a11y-empty" hidden>No accessibility night collected yet.</div>
   <div id="a11y-body">
@@ -886,7 +886,7 @@ var runPage = (function() {
     var status = document.createElement('td');
     status.appendChild(badge(row.status, row.status));
     tr.appendChild(status);
-    cell(tr, row.source === 'reader' ? row.check + ' (reader)' : row.source === 'docs' ? row.check + ' (docs site)' : row.check);
+    cell(tr, row.source === 'reader' ? row.check + ' (reader)' : row.source === 'docs' || row.source === 'docs-checks' ? row.check + ' (docs site)' : row.check);
     var kind = cell(tr, row.kind + (row.rule ? ' ' + row.rule : '') + (row.cause ? ' (' + row.cause + ')' : ''));
     kind.appendChild(text('div', row.reason, 'error'));
     cell(tr, row.where, 'where');

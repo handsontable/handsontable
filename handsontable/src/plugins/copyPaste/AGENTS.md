@@ -103,6 +103,30 @@ Tested on Safari 16.5.2:
 
 Both are guarded on the instance listening — if it is not listening, the workaround is not needed.
 
+**The `body` `mouseleave` one takes the focus, so it must skip a control the user is typing into
+(DEV-4026).** `#addContentEditableToHighlightedCell()` makes the highlighted cell `contenteditable` and
+selects its content with `Selection.addRange`, and that moves the focus off whatever had it. The listening
+check does not help: the comment editor lives in the grid's portal, so the grid still listens while its text
+area is focused. In Safari the `mouseleave` arrives a moment after a context menu item is clicked whenever
+the pointer ends outside `<body>`'s box (a body as short as the grid), so "Add comment" and "Edit comment"
+opened an editor that lost the focus at once; with `copyPaste: false`, or a body that fills the window, it
+did not. `#isTypingIntoFormControl()` skips the workaround while a `textarea`, a `select` or an `input` that
+takes text has the focus, read through `getDeepActiveElement()`. An open cell editor is covered by the same
+test, so the `mouseleave` no longer takes the focus from the editor the user is typing into either.
+
+- **The test is "not inside `.ht_editor_hidden`", never a plugin class such as `.htCommentTextArea`.** The
+  holder of a closed cell editor carries that class (`textEditor.ts`), and a grid with `imeFastEdit` keeps
+  the focus in that hidden input at rest, which is exactly where the browser-menu copy workaround must still
+  run. The code never checks visibility: it relies on a hidden control not holding the focus, except in that
+  one case. A class of another plugin would also be a cross-plugin dependency, and the next editor-like
+  popup would need its own entry.
+- **A checkbox, radio button, button or another input that takes no text does not count** (`NON_TEXT_INPUT_TYPES`).
+  Focus on one is no reason to skip the workaround: the menu-bar copy would then copy nothing.
+- **Pinned by** `__tests__/safariMouseLeave.unit.ts` (mocks `isSafari()`; each control type on both sides of
+  the rule, a real open `TextEditor`, and a real closed one in an `imeFastEdit` grid, so a rename of the hidden
+  class turns it red) and `tests/e2e/undo-gestures.spec.ts` (WebKit leg, sends the `mouseleave` itself because
+  a real one lands on a frame the layout decides, which is why the old test passed on a race).
+
 ## Ragged clipboard payloads (DEV-2615, #7389)
 
 A clipboard whose rows have unequal length must **not** be narrowed to the first row's width, or cells past

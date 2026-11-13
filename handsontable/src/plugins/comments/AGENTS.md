@@ -329,6 +329,10 @@ empty editor stores an empty comment (`{ value: '' }`), as before. The hover pat
 `show()` through `showAtCell()` in `tests/e2e/comments-show-at-cell.spec.ts`. For Add comment, `comments.spec.js` pins only
 that the editor opens on a cell without a comment, not that it is empty; `addEditComment` reaches the same `show()`.
 
+The editor must keep the keyboard focus after "Add comment" and "Edit comment" close the menu. In Safari the
+CopyPaste plugin's `body` `mouseleave` workaround used to take it (DEV-4026); the guard and its reason are in
+`../copyPaste/AGENTS.md`, "Two Safari workarounds". Do not move focus again from this plugin to compensate.
+
 `readOnlyComment`'s mark and click must agree on which cells count (DEV-124). Both go through
 `getCommentReadOnlyState()`, which leaves out a hidden cell under a merged block and a cell with no
 comment `value`. The mark can be `'mixed'`, so the click sets **one** state for every comment in the

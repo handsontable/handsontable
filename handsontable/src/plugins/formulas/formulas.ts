@@ -4154,9 +4154,7 @@ export class Formulas extends BasePlugin {
       const address = isHFCellChange(change) ? change.address : undefined;
       const { row, col, sheet: sheetId } = address ?? {};
 
-      // Don't try to validate cells outside of the visual part of the table.
-      if (row === undefined || col === undefined ||
-        row >= this.hot.countRows() || col >= this.hot.countCols()) {
+      if (row === undefined || col === undefined) {
         return;
       }
 
@@ -4172,9 +4170,27 @@ export class Formulas extends BasePlugin {
           return;
         }
 
+        // The engine holds the trimmed rows and columns too, so its address is a visual one only through the
+        // syncers of the grid bound to that sheet (not this plugin's own, which describe another sheet).
+        const boundPlugin = boundHot.getPlugin('formulas');
+
+        if (!boundPlugin?.enabled || boundPlugin.engine !== this.engine) {
+          return;
+        }
+
+        const visualRow = boundPlugin.rowAxisSyncer?.getVisualIndexFromHfIndex(row) ?? -1;
+        const visualColumn = boundPlugin.columnAxisSyncer?.getVisualIndexFromHfIndex(col) ?? -1;
+
+        // Don't try to validate cells outside of the visual part of the table (a trimmed one included). The
+        // syncer answers `undefined` for a physical index the table does not cover, so the check is negated.
+        if (!(visualRow >= 0 && visualRow < boundHot.countRows()) ||
+          !(visualColumn >= 0 && visualColumn < boundHot.countCols())) {
+          return;
+        }
+
         const validate = () => boundHot.validateCell(
-          boundHot.getDataAtCell(row, col),
-          boundHot.getCellMeta(row, col),
+          boundHot.getDataAtCell(visualRow, visualColumn),
+          boundHot.getCellMeta(visualRow, visualColumn),
           () => {}
         );
 

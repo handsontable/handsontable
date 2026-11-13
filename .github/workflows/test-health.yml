@@ -147,7 +147,7 @@ jobs:
         run: |
           mkdir -p artifacts
           gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts?per_page=100" \
-            --jq '.artifacts[] | select(.expired == false) | select((.name | test("^(playwright-report-|playwright-durations-|puppeteer-failed-specs-|visual-compare-)")) or (.name | test("^(a11y-checks-evidence$|a11y-axe-results$|docs-a11y-axe-results$|screenreader-transcripts-)"))) | select((.name | startswith("playwright-durations-") | not) or env.DEVELOP_PUSH == "true") | select((.name | test("^(a11y-checks-evidence$|a11y-axe-results$|docs-a11y-axe-results$|screenreader-transcripts-)") | not) or env.A11Y_RUN == "true") | .name' \
+            --jq '.artifacts[] | select(.expired == false) | select((.name | test("^(playwright-report-|playwright-durations-|puppeteer-failed-specs-|visual-compare-)")) or (.name | test("^(a11y-checks-evidence$|a11y-axe-results$|docs-a11y-axe-results$|docs-a11y-checks-evidence$|screenreader-transcripts-)"))) | select((.name | startswith("playwright-durations-") | not) or env.DEVELOP_PUSH == "true") | select((.name | test("^(a11y-checks-evidence$|a11y-axe-results$|docs-a11y-axe-results$|docs-a11y-checks-evidence$|screenreader-transcripts-)") | not) or env.A11Y_RUN == "true") | .name' \
             > artifact-names.txt
           if [ ! -s artifact-names.txt ]; then
             echo "No test artifacts on run ${RUN_ID}: nothing flaky or failed to record."

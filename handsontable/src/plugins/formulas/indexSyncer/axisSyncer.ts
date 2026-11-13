@@ -232,8 +232,12 @@ class AxisSyncer {
     this.#indexMapper.addLocalHook('indexesSequenceChange', () => {
       this.#translationCache = null;
     });
-    this.#indexMapper.addLocalHook('cacheUpdated', (changes: { trimmedIndexesChanged: boolean }) => {
-      if (changes.trimmedIndexesChanged) {
+    this.#indexMapper.addLocalHook('cacheUpdated', (
+      changes: { trimmedIndexesChanged: boolean; indexesSequenceChanged: boolean }
+    ) => {
+      // The sequence hook above fires before the mapper rebuilds its not-trimmed cache (inside a suspended
+      // execution, long before it), so a table built in between holds the previous visual order.
+      if (changes.trimmedIndexesChanged || changes.indexesSequenceChanged) {
         this.#translationCache = null;
       }
     });
