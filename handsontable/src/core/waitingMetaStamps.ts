@@ -194,6 +194,23 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
     return isFound;
   };
 
+  /**
+   * Tells whether a waiting call still keeps a meta object. Calls on one cell share its stored meta, so a call
+   * that is released must not mark the meta as answered while another one still waits on it.
+   *
+   * @param {object} meta The meta object.
+   * @returns {boolean}
+   */
+  const isMetaHeld = (meta: M) => {
+    for (const stamp of stamps) {
+      if (stamp.meta === meta) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
   return {
     add(record, meta, column) {
       const stamp = { record, meta, column };
@@ -208,7 +225,7 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
           columnStampsCount -= column === undefined ? 0 : 1;
         }
 
-        if (meta.visualRow === null) {
+        if (meta.visualRow === null && !isMetaHeld(meta)) {
           releasedUnplaced.add(meta);
         }
 
