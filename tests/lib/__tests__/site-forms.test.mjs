@@ -91,10 +91,19 @@ test('3.3.2: a field with no name, a name not drawn, and required fields told ap
     field({ role: 'checkbox', name: 'I accept the terms', label: 'I accept the terms', autocomplete: null, required: true }),
     field({ role: 'textbox', name: 'Notes', label: 'Notes', autocomplete: null, required: false }),
   ])), ['required-not-indicated'], 'a required checkbox still counts among the required fields');
+  assert.deepEqual(kinds(fieldFindings([
+    field({ name: 'How many licenses are required?', label: 'How many licenses are required?', autocomplete: null, required: true }),
+    field({ role: 'textbox', name: 'Notes', label: 'Notes', autocomplete: null, required: false }),
+  ])), ['required-not-indicated'], 'a question that says "required" marks no field required');
 });
 
 test('1.3.1: a field marked required in its label and not exposed as required; a spam trap read out', () => {
   assert.deepEqual(kinds(fieldFindings([field({ label: 'Email address *', required: false })])), ['required-not-exposed']);
+  assert.deepEqual(kinds(fieldFindings([field({ label: 'Email address (required)', required: false })])), ['required-not-exposed']);
+  // The mark ends the label: the word inside a question, or negated, marks nothing.
+  assert.deepEqual(kinds(fieldFindings([field({ name: 'Phone', label: 'Phone (not required)', autocomplete: 'tel', required: false })])), []);
+  assert.deepEqual(kinds(fieldFindings([field({ name: 'How many licenses are required?', label: 'How many licenses are required?',
+    autocomplete: null, required: false })])), []);
 
   const trap = field({ name: 'Leave this field empty', label: 'Leave this field empty', tabindex: '-1', autocomplete: 'off', required: false });
 

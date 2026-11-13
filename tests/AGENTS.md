@@ -2175,7 +2175,8 @@ and of `.github/workflows/website-a11y.yml`.
 - **`website-forms`** (`forms.spec.ts`, judged by `lib/site-forms.mjs`), the website's alone: the three tabs of the
   contact form, the trial form, the support call's details and the footer newsletter. At rest, every field's role,
   name, description and required state from the accessibility tree, its label, whether a label is drawn, and its
-  `autocomplete` (1.3.1, 1.3.5 against the input purposes its name asks for, a full name and the organization only on
+  `autocomplete` (1.3.1: a label that ends in `*` or "required" is a required field in the tree too, a question that
+  says "required" or a "not required" marks nothing; 1.3.5 against the input purposes its name asks for, a full name and the organization only on
   the whole name, since "Name of your project" and "Company size" ask for neither, 3.3.2: required and optional fields told
   apart, where a checkbox, a radio button or a switch left unticked is a choice, not a missing entry, so no form marks
   it optional). Then the submit button pressed from the keyboard with the form empty (3.3.1: each required field

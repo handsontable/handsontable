@@ -55,8 +55,10 @@ export const FIELD_PURPOSES = Object.freeze([
   { purpose: 'website', pattern: /\b(web ?site|url)\b/i, tokens: ['url'] },
 ]);
 
-// A label's mark of a required field, and of an optional one.
-const REQUIRED_MARK = /\*|\brequired\b/i;
+// A label's mark of a required field, and of an optional one. A required mark ends the label, the way a name ends
+// before it (`wholeName()`): "How many licenses are required?" asks a question, and "Phone (not required)" marks the
+// field optional.
+const REQUIRED_MARK = /(?:\*|(?<!\bnot\s+)\(?\brequired\b\)?)\s*$/i;
 const OPTIONAL_MARK = /\boptional\b/i;
 // The roles of a choice: left unticked, it is an answer, never a missing entry, so no form marks it optional.
 const CHOICE_ROLES = new Set(['checkbox', 'radio', 'switch']);
