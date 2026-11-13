@@ -24,6 +24,8 @@ the grid decides its layout, and how the loading plugin renders two of its optio
 notification appear that 18.0 suppressed. The last two concern the
 [`sanitizer`](@/api/options.md#sanitizer) option and reach you only if you set one.
 
+The [migration codemod](@/guides/upgrade-and-migration/migration-codemod/migration-codemod.md) automates part of this migration. It raises the version ranges in `package.json` and reports the other changes.
+
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md).
 
 [[toc]]
