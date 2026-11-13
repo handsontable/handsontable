@@ -1104,8 +1104,21 @@ Consequences worth knowing:
   as at any gridline, and `frozenBoundaryEdge.spec.js` pins that a shift would break it. Moving such an edge off
   the line instead shows a gray line beside it. The master's copy is hidden only in the index case; for a lined-up
   track the frozen overlay's holder clips its copy at the line, so the master keeps the inside half. The bottom
-  line has no lined-up case yet: the bottom clone is 1px taller than the row calculators count (its first row
-  draws its own top border, a second gridline under the row's), so a lined-up row reads as partly covered. A cell of the inline-start clone and of the corners is in
+  line has its own lined-up case (`Border#isEdgeOnBottomFreezeLine`, DEV-3984): the bottom clone is 1px taller
+  than the height the row calculators count (its first row draws its own top border), so the bottom border of
+  a row that ends at the calculators' boundary lies under the clone's first pixel row, and that pixel is the
+  freeze line. `TopOverlay#scrollTo` adds its bottom-edge `+ 1` above frozen bottom rows only
+  when the first body row draws its own top border (no column header, `getHiderHeightCompensation() > 0`), the
+  pixel the summed row heights leave out. With a column header the pixel does not exist (DEV-2786), and the
+  nudge put a row that an arrow key or a bottom snap lined up 1px above the clone, so its border and the
+  clone's showed as a double line (the maximum scroll, which the browser clamps, never had it). Without
+  frozen bottom rows the nudge is unchanged. Known limit: with AutoRowSize on, the bottom clone's first row
+  is recorded 1px taller (`oversizedRows`, its top border included), the calculators then count the clone's
+  full height, and a lined-up row still ends at the clone's top edge with both borders showing. For
+  such a row the bottom clone and its corners draw the selection's line pixel, the fill handle and the mobile
+  bottom handle are pulled inside the cell as on the last scrollable row, and a custom border, which no frozen
+  overlay draws, ends 1px higher. Pinned by `tests/e2e/fixed-rows-bottom-line.spec.ts` and
+  `test/unit/selection/border/frozenBottomLine.unit.ts`. A cell of the inline-start clone and of the corners is in
   the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
   brings a column next to the overlay moves its edge too. Pinned by
   `tests/e2e/selection-start-edge-row-header.spec.ts`, which measures how much of the edge lies inside

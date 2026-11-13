@@ -1020,7 +1020,7 @@ class Border {
    * @returns {boolean}
    */
   isBottomHandleOccludedByClone(toRow: number): boolean {
-    return getOverlaySegment(this.wot.wtTable.name, 'row') === 'main' && this.isFrozenBottomBoundaryEdge(toRow);
+    return getOverlaySegment(this.wot.wtTable.name, 'row') === 'main' && this.isEdgeOnBottomFreezeLine(toRow);
   }
 
   /**
@@ -1215,6 +1215,39 @@ class Border {
   }
 
   /**
+   * Tells whether scrolling lined a scrollable row up with the `fixedRowsBottom` freeze line: the row ends where
+   * the bottom clone starts. The bottom clone's first row draws its own top border one pixel above the height the
+   * row calculators count, over the lined-up row's bottom border, so that border's pixel is the freeze line.
+   *
+   * @private
+   * @param {number} toRow The row index.
+   * @returns {boolean}
+   */
+  isRowLinedUpWithBottomFreezeLine(toRow: number): boolean {
+    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom') as number;
+
+    return fixedRowsBottom > 0 &&
+      toRow < (this.wot.getSetting('totalRows') as number) - fixedRowsBottom - 1 &&
+      this.isTrackLinedUpWithFreezeLine('row', 1, toRow);
+  }
+
+  /**
+   * Block-axis mirror of {@link Border#isEdgeOnEndFreezeLine}: tells whether the selection's bottom edge lies on
+   * the `fixedRowsBottom` freeze line. Its row is the last scrollable one ({@link Border#isFrozenBottomBoundaryEdge}),
+   * or an earlier one that scrolling lined up with the bottom rows. The master and the bottom overlay then draw
+   * the edge's two halves around the line.
+   *
+   * @private
+   * @param {number} toRow The selection's bottom row index.
+   * @returns {boolean}
+   */
+  isEdgeOnBottomFreezeLine(toRow: number): boolean {
+    // A custom border has no copy in the frozen overlays, so nothing would draw its half on the line.
+    return this.isFrozenBottomBoundaryEdge(toRow) ||
+      (!this.isCustomBorder() && this.isRowLinedUpWithBottomFreezeLine(toRow));
+  }
+
+  /**
    * Tells whether this border draws a `customBorders` range rather than a selection.
    *
    * @private
@@ -1306,7 +1339,7 @@ class Border {
 
     // The bottom-freeze counterpart of `rowEdgeOwned`: the selection's bottom edge lands on the
     // `fixedRowsBottom` line and its boundary cell is still visible in the master.
-    const bottomRowEdgeOwned = rowSegment === 'end' && this.isFrozenBottomBoundaryEdge(toRow) &&
+    const bottomRowEdgeOwned = rowSegment === 'end' && this.isEdgeOnBottomFreezeLine(toRow) &&
       !this.isBottomBoundaryCornerScrolledOut(toRow);
 
     // The row-freeze edge straddles the freeze line: the master draws its lower half (below the seam)
@@ -1995,7 +2028,7 @@ class Border {
     TD: HTMLElement,
     trimmingContainer: HTMLElement | Window,
   ): boolean {
-    if (this.isFrozenBottomBoundaryEdge(toRow)) {
+    if (this.isEdgeOnBottomFreezeLine(toRow)) {
       return true;
     }
 
@@ -2342,6 +2375,12 @@ class Border {
       width = Math.max(width - overlap, 0);
     }
 
+    // The bottom mirror: the bottom clone's first row covers the bottom border of a row lined up with it, and
+    // no frozen overlay draws a custom border's edge there, so the edge moves off that pixel.
+    if (this.isCustomBorder() && this.isRowLinedUpWithBottomFreezeLine(corners[2])) {
+      height = Math.max(height - 1, 0);
+    }
+
     // Resolved before the first style write below: narrowing the handle box reads cell geometry, and
     // a read after the writes would force a second synchronous layout on every draw.
     const adjustHandlesPlan = this.planAdjustHandles(
@@ -2581,7 +2620,7 @@ class Border {
     // the full thickness in both selection and edit modes. Hide the master only when the whole
     // selection is in frozen columns (then the inline-start pane occludes it and the bottom corner owns
     // the edge); `inline_start` always hides its duplicate.
-    if (this.isFrozenBottomBoundaryEdge(originalToRow) &&
+    if (this.isEdgeOnBottomFreezeLine(originalToRow) &&
         (overlayName === 'inline_start' || (wtTable.isMaster && seamAllFrozenCols))) {
       this.bottomStyle!.display = 'none';
     }
