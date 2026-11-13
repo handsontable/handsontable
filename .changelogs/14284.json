@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added license plans: a license key can name the Standard or Professional plan, and the license key guide lists the features each plan includes. A key that names no plan keeps every feature.",
+  "type": "added",
+  "issueOrPR": 14284,
+  "breaking": false,
+  "framework": "none"
+}
