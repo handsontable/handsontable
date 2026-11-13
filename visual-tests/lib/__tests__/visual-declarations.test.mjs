@@ -51,11 +51,10 @@ const LIVE_GOLDENS = JSON.parse(
 // deleted 12 of that family's 14 specs, whose states moved to tests/e2e, which left 55 files, one of
 // them parked. The close-out deleted the parked one, which had rendered nothing since 2025-01-14, so
 // every one of the 54 files left is live. The row selection spec (PRO-87) adds one, so 55 live, and
-// the "Powered by Handsontable DataGrid" bar spec (DEV-3413) one more, so 56. The side layout slots
-// add two js-only specs, so 58.
+// the "Powered by Handsontable DataGrid" bar spec (DEV-3413) one more, so 56.
 // Adding or deleting a spec moves this number, and moves a number in LIVE_GOLDENS too – the pair is
 // the review a description cannot give, so update both in the pull request that adds the spec.
-const LIVE_SPEC_COUNT = 58;
+const LIVE_SPEC_COUNT = 56;
 
 /**
  * Every `.spec.ts` under `tests/`, as paths relative to `tests/`, sorted.

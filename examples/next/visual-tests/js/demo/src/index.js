@@ -27,7 +27,6 @@ import { init as initNotificationDemo } from './demos/notification';
 import { init as initSelectionHandlesDemo } from './demos/selectionHandles';
 import { init as initMoveCellsDemo } from './demos/moveCells';
 import { init as initSheetsBarDemo } from './demos/sheetsBar';
-import { init as initSideLayoutSlotsDemo } from './demos/sideLayoutSlots';
 import { init as initRowSelectionDemo } from './demos/rowSelection';
 import { init as initLicensePoweredByDemo } from './demos/licensePoweredBy';
 
@@ -320,15 +319,6 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initMoveCellsDemo();
-      });
-    },
-    '/side-layout-slots-demo': function () {
-      removeCSS();
-
-      Promise.all([
-        loadThemeCSS(),
-      ]).then(() => {
-        initSideLayoutSlotsDemo();
       });
     },
     '/row-selection-demo': function () {
