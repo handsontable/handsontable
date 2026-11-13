@@ -41,6 +41,15 @@ test('1.3.5: the organization is the whole name, so a question about the company
     autocomplete: null })])), [], 'a select of company sizes needs no autocomplete token');
 });
 
+test('1.3.5: a full name is the whole name too, so a question that starts with "Name" asks for none', () => {
+  for (const name of ['Name', 'Your name', 'Full name', 'Full Name*', 'NameOptional']) {
+    assert.equal(purposeOf(name)?.purpose, 'name', name);
+  }
+  assert.equal(purposeOf('Name of your project'), null, 'a project\'s name is not the visitor\'s');
+  assert.deepEqual(kinds(fieldFindings([field({ name: 'Name of your project', label: 'Name of your project', autocomplete: null })])), [],
+    'a field naming the project needs no autocomplete token');
+});
+
 test('1.3.5: a personal field without its token, or with another one', () => {
   assert.deepEqual(kinds(fieldFindings([field()])), [], 'production\'s email field carries autocomplete="email"');
   assert.deepEqual(kinds(fieldFindings([field({ autocomplete: null })])), ['autocomplete-missing']);

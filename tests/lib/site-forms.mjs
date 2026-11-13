@@ -24,20 +24,31 @@
  */
 
 /**
+ * A pattern that matches a field's whole name, followed at most by a required or optional mark (`*`, `Optional`,
+ * `(required)`), glued to it or not (`Company nameOptional`).
+ *
+ * @param {string} source The name, as a regular expression source.
+ * @returns {RegExp} The pattern, case-insensitive.
+ */
+function wholeName(source) {
+  return new RegExp(`^${source}\\s*(\\*|\\(?(optional|required)\\)?)?\\s*$`, 'i');
+}
+
+/**
  * The input purposes of WCAG 2.2 (section 7) a field's name can be matched with, and the `autocomplete` field names
  * that serve each. A field whose name matches none is not about the visitor, or not a purpose the list has, and 1.3.5
  * asks nothing of it. A pattern has no word boundary after "name": a label's "Optional" badge can follow it with no
- * space (`Last NameOptional`). The organization takes the whole name, with a required or optional mark at most: a
- * company is the subject of other questions too ("Company size", "Company website", "Position in the company"),
- * which ask for no organization name, and a field's names come from the live HubSpot schema, so such a field can
- * appear with no change here.
+ * space (`Last NameOptional`). A full name and the organization take the whole name, with a required or optional mark
+ * at most (`wholeName()`): a name and a company are the subject of other questions too ("Name of your project",
+ * "Company size", "Company website", "Position in the company"), which ask for neither, and a field's names come from
+ * the live HubSpot schema, so such a field can appear with no change here.
  */
 export const FIELD_PURPOSES = Object.freeze([
   { purpose: 'email', pattern: /\be-?mail\b/i, tokens: ['email'] },
   { purpose: 'given name', pattern: /\b(first|given) ?name/i, tokens: ['given-name'] },
   { purpose: 'family name', pattern: /\b(last|family|sur) ?name/i, tokens: ['family-name'] },
-  { purpose: 'name', pattern: /^(your |full )?name\b/i, tokens: ['name'] },
-  { purpose: 'organization', pattern: /^(your )?(company|organi[sz]ation)( name)?\s*(\*|\(?(optional|required)\)?)?\s*$/i, tokens: ['organization'] },
+  { purpose: 'name', pattern: wholeName('(your |full )?name'), tokens: ['name'] },
+  { purpose: 'organization', pattern: wholeName('(your )?(company|organi[sz]ation)( name)?'), tokens: ['organization'] },
   { purpose: 'job title', pattern: /\b(job title|position)\b/i, tokens: ['organization-title'] },
   { purpose: 'telephone', pattern: /\b(phone|mobile|telephone)\b/i, tokens: ['tel', 'tel-national'] },
   { purpose: 'country', pattern: /\bcountry\b/i, tokens: ['country', 'country-name'] },
