@@ -42,7 +42,8 @@ test('website-a11y.yml is the Website a11y workflow the ledger records, started 
       'tests/playwright.a11y-website.config.ts', 'tests/reporters/a11y.ts', 'tests/lib/a11y-baseline.*', 'tests/lib/a11y-findings.*',
       'tests/lib/a11y-report.*', 'tests/lib/a11y-suites.*', 'tests/lib/a11y-check-run.*', 'tests/lib/a11y-docs-drift.*',
       'tests/lib/a11y-issues.*', 'tests/lib/a11y-evidence.*', 'tests/lib/a11y-site-checks.*', 'tests/lib/a11y-subset.*',
-      'tests/lib/a11y-verdict.*', 'tests/lib/a11y-verdict-inputs.*', 'tests/lib/github-check-run.*', 'tests/scripts/a11y-check-run.mjs'],
+      'tests/lib/a11y-verdict.*', 'tests/lib/a11y-verdict-inputs.*', 'tests/lib/github-check-run.*', 'tests/lib/website-pages.*',
+      'tests/scripts/a11y-check-run.mjs'],
     `${WEBSITE}: a pull request runs the scan only when it changes the scan's own code. ${DOC}`);
   // Every module of tests/lib the spec, its reporter and the check run's poster reach, import by import, is in the
   // list, so a change to the scan's code, its verdict or its poster runs the scan.

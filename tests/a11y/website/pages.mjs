@@ -1,3 +1,4 @@
+import { pageIdOf } from '../../lib/website-pages.mjs';
 import { DEFAULT_WEBSITE_BASE_URL, WEBSITE_THEMES, WEBSITE_VIEWPORTS } from './constants.mjs';
 
 export { DEFAULT_WEBSITE_BASE_URL, WEBSITE_THEMES, WEBSITE_VIEWPORTS };
@@ -32,18 +33,6 @@ const page = (route, extra = {}) => ({
   state: 'none',
   ...extra,
 });
-
-/**
- * A route as a page id, the way the website's list derives one.
- *
- * @param {string} route The route.
- * @returns {string} The id.
- */
-export function pageIdOf(route) {
-  const id = route.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-
-  return id === '' ? 'home' : id;
-}
 
 export const WEBSITE_PAGES = Object.freeze([
   page('/'),

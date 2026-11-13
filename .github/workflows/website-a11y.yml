@@ -64,6 +64,7 @@ on:
       - 'tests/lib/a11y-verdict.*'
       - 'tests/lib/a11y-verdict-inputs.*'
       - 'tests/lib/github-check-run.*'
+      - 'tests/lib/website-pages.*'
       - 'tests/scripts/a11y-check-run.mjs'
   workflow_call:
     inputs:

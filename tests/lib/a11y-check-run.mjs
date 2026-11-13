@@ -16,9 +16,9 @@
  * `tests/scripts/a11y-check-run.mjs` reads the reporter's `comparison.json`,
  * builds the payload here, and posts it. No I/O in here.
  */
-import { pageIdOf } from '../a11y/website/pages.mjs';
 import { BASELINE_FILE, entryKey, headline, renderSummary, verdictCounts } from './a11y-baseline.mjs';
 import { annotationLevel, capAnnotations, renderVerdict, severityOfImpact, verdictOf, verdictTitle } from './a11y-verdict.mjs';
+import { pageIdOf } from './website-pages.mjs';
 
 export const CHECK_RUN_NAME = 'A11y / axe report';
 export const ANNOTATIONS_PER_REQUEST = 50;
