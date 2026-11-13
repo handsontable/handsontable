@@ -1,7 +1,7 @@
 import Xlsx from '../types/xlsx';
 import ExportDataProvider from '../dataProvider';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
-import { ALL_XLSX_TOKENS, keyWith } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { resetTierKeys, tierKeyWithout } from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 
 // A two-column sheet with one header row. Read lazily by the mock below (jest hoists the factory, so
 // the name must be `mock`-prefixed).
@@ -131,7 +131,7 @@ jest.mock('../dataProvider', () => ({
  * @returns {object}
  */
 function createInstance() {
-  const licenseKey = keyWith(ALL_XLSX_TOKENS);
+  const licenseKey = tierKeyWithout([]);
 
   return { rootDocument: document, rootWindow: window, getSettings: () => ({ licenseKey }) };
 }
@@ -145,6 +145,7 @@ describe('Xlsx export `headerStyle` colors', () => {
 
   afterEach(() => {
     writeSpy.mockRestore();
+    resetTierKeys();
   });
 
   /**

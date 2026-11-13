@@ -2359,6 +2359,20 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   master can also grow a row on that same scroll when a new column holds a taller cell. If you add the twin,
   gate it on "no frozen-derived rows are being synced and no row height changed in this draw", and keep a
   test that a vertical scroll, a data change and `updateSettings` still redraw the clone.
+- **`bottomFastDraw` is gated on the column band, not on the scroll direction alone.** The `bottom` overlay
+  renders the master's column band, and a vertical scroll can move that band. Small horizontal scrolls are
+  fast draws while every column they show is already rendered, so the master keeps an old band. The next
+  vertical scroll that moves the master's row band runs a full master draw, and that draw resolves the
+  column band again for the current horizontal offset, often one column away. A fast-drawn `bottom` clone
+  then kept the cells of the old band behind the spreader offset of the new one, and the `fixedRowsBottom`
+  row stood a whole column off its headers until the next horizontal re-render. `Overlays#refresh` records
+  the master's band (first rendered column and count) each time the `bottom` clone renders, and lets it
+  fast-draw only while the band is the same. The bottom corners keep the direction-only rule
+  (`bottomCornersFastDraw`): they render the frozen columns, which no scroll moves. Do not reach for
+  `clone.wtTable.getFirstRenderedColumn()` to learn what the clone holds: a clone reads the master's
+  calculators, so it answers with the new band while its DOM still holds the old one. Pinned by
+  `tests/e2e/bottom-row-column-band-scroll.spec.ts`, which also counts the bottom row's renders on a
+  vertical scroll that keeps the band (0), so the fix cannot turn into a full redraw on every scroll.
 - **Header heights only grow, with or without the end corners.** The render-size probe measures the master's
   THEAD, which already carries the height it was given, so a column header row never shrinks until the grid
   is rebuilt (same with `fixedColumnsStart` alone). The two-sided sync in

@@ -5,7 +5,9 @@ import { FormulaBuilderPage } from '../fixtures/pages/FormulaBuilderPage';
 // The autocomplete and function help popups, and the error indicator. Themes: the popups are
 // themed surfaces laid out against the editor. Bundles: the suggestions and the error values come
 // from HyperFormula, which the plain UMD leg loads externally. Engines: real key presses drive the
-// listbox and its ARIA state.
+// listbox and its ARIA state. The accent test pins the matched letters, the chip and the paren match
+// to `--ht-accent-color`, so their contrast is the theme accent's: below 4.5:1 on horizon and classic,
+// owned by the horizon and classic theme contrast tasks.
 test.describe('formulaBuilder autocomplete popup', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
   let grid: FormulaBuilderPage;
 
@@ -85,6 +87,36 @@ test.describe('formulaBuilder autocomplete popup', { tag: [THEMES_TAG, BUNDLES_T
     await page.keyboard.press('Escape');
     await expect(grid.cell(3, 1)).toBeFocused();
     expect(await grid.sourceAt(3, 1)).toBe('');
+  });
+
+  test('the matched letters, the active argument chip and the paren match use the theme accent', async({ page }) => {
+    const accent = await grid.accentColor();
+
+    expect(accent).not.toBe('rgba(0, 0, 0, 0)');
+    await expect(grid.suggestions.locator('.hfe-suggestions__match').first()).toHaveCSS('color', accent);
+
+    await page.keyboard.type('M(');
+    await expect(grid.fnHelp.locator('.hfe-fn-help__arg--active')).toHaveCSS('background-color', accent);
+
+    const parenMatch = grid.inlineEditor.locator('.hfe-token--paren-match').first();
+
+    await expect(parenMatch).toBeVisible();
+
+    const tint = await parenMatch.evaluate((token) => {
+      const probe = document.createElement('span');
+
+      probe.style.background = 'color-mix(in srgb, var(--ht-accent-color) calc(var(--hfe-selection-opacity) * 100%), transparent)';
+      token.parentElement!.appendChild(probe);
+
+      const expected = getComputedStyle(probe).backgroundColor;
+
+      probe.remove();
+
+      return { painted: getComputedStyle(token).backgroundColor, expected };
+    });
+
+    expect(tint.expected).not.toBe('rgba(0, 0, 0, 0)');
+    expect(tint.painted).toBe(tint.expected);
   });
 });
 
@@ -175,16 +207,15 @@ test.describe('formulaBuilder error message by keyboard', { tag: [THEMES_TAG, BU
 
 
 /**
- * The WCAG contrast ratio of an element's text (or another color it paints, such as its focus outline)
- * against what is painted under it: the background colors and the `::before` tints (the grid draws a
- * selected range as one) of the element and its ancestors, composited down to the first opaque layer.
+ * The WCAG contrast ratio of an element's text against what is painted under it: the background colors
+ * and the `::before` tints (the grid draws a selected range as one) of the element and its ancestors,
+ * composited down to the first opaque layer.
  *
  * @param {Locator} locator The element holding the text.
- * @param {'color' | 'outlineColor'} [property] The color to measure.
  * @returns {Promise<number>} The ratio, or `0` while a color cannot be read (poll it).
  */
-function textContrast(locator: Locator, property: 'color' | 'outlineColor' = 'color'): Promise<number> {
-  return locator.evaluate((element, colorProperty) => {
+function textContrast(locator: Locator): Promise<number> {
+  return locator.evaluate((element) => {
     type Rgba = [number, number, number, number];
     const parse = (value: string): Rgba | null => {
       const srgb = value.match(/color\(srgb ([^)]+)\)/);
@@ -234,7 +265,7 @@ function textContrast(locator: Locator, property: 'color' | 'outlineColor' = 'co
 
       return (0.2126 * channel(color[0])) + (0.7152 * channel(color[1])) + (0.0722 * channel(color[2]));
     };
-    const text = parse(getComputedStyle(element)[colorProperty]);
+    const text = parse(getComputedStyle(element).color);
 
     if (!text) {
       return 0;
@@ -243,7 +274,7 @@ function textContrast(locator: Locator, property: 'color' | 'outlineColor' = 'co
     const [lighter, darker] = [luminance(text), luminance(backdrop)].sort((first, second) => second - first);
 
     return (lighter + 0.05) / (darker + 0.05);
-  }, property);
+  });
 }
 
 // WCAG 1.4.3: the two text colors the plugin's tokens set that measured below 4.5:1 on the light
@@ -281,17 +312,24 @@ test.describe('formulaBuilder text contrast', { tag: [THEMES_TAG, BUNDLES_TAG] }
     await expect.poll(() => textContrast(cell)).toBeGreaterThanOrEqual(4.5);
   });
 
-  // WCAG 1.4.11: horizon's accent measured 2.45:1 as the ring. The ring is inset, so the text must also
-  // start past it rather than under it.
-  test('the bar editor\'s focus ring reaches 3:1 and leaves the text clear', async({ page, theme, bundle }) => {
+  // The bar's rings are drawn like the selected cell's border, so a focused bar reads like a selected
+  // cell. Their contrast is the theme's `--ht-cell-selection-border-color` (2.45:1 on horizon), owned by
+  // the grid-wide focus ring contrast task. The ring is inset, so the text must also start past it.
+  test('the bar editor\'s focus ring matches the selection border and leaves the text clear', async({
+    page, theme, bundle,
+  }) => {
     const grid = new FormulaBuilderPage(page, theme, bundle);
 
     await grid.goto();
     await grid.selectCellByApi(0, 2);
+
+    const selectionBorder = await grid.selectionBorderColor();
+
+    expect(selectionBorder).not.toBeNull();
+
     await grid.openBarEditor();
     await expect(grid.editorInput).toBeFocused();
-
-    await expect.poll(() => textContrast(grid.barEditor, 'outlineColor')).toBeGreaterThanOrEqual(3);
+    await expect(grid.barEditor).toHaveCSS('outline-color', selectionBorder!);
 
     const layout = await grid.barEditor.evaluate((editor) => {
       const style = getComputedStyle(editor);
@@ -312,5 +350,21 @@ test.describe('formulaBuilder text contrast', { tag: [THEMES_TAG, BUNDLES_TAG] }
 
     expect(layout.textStart).toBeGreaterThanOrEqual(layout.ringInnerEdge);
     expect(layout.ringWidth).toBeGreaterThan(0);
+  });
+
+  test('the address box\'s focus ring matches the selection border', async({ page, theme, bundle }) => {
+    const grid = new FormulaBuilderPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.selectCellByApi(0, 2);
+
+    const selectionBorder = await grid.selectionBorderColor();
+
+    expect(selectionBorder).not.toBeNull();
+
+    await grid.addressInput.click();
+    await expect(grid.addressInput).toBeFocused();
+    await expect(grid.addressInput).toHaveCSS('outline-style', 'solid');
+    await expect(grid.addressInput).toHaveCSS('outline-color', selectionBorder!);
   });
 });

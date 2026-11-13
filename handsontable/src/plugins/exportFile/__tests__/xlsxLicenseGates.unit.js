@@ -11,11 +11,9 @@ import { dateRenderer } from '../../../renderers/dateRenderer';
 import * as cellStyle from '../types/xlsx/cell-style';
 import {
   ALL_XLSX_TOKENS,
-  keyWith,
-  keyWithAll,
-  keyWithout,
-  keyWithoutFlag,
+  keyWithoutTier,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { resetTierKeys, tierKeyWithout } from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 
 /**
  * An arbitrary subset of the xlsx tokens, chosen so a key both grants some export features and lacks
@@ -23,6 +21,17 @@ import {
  * never here.
  */
 const PARTIAL_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
+
+/**
+ * Builds a key that unlocks every plugin and, of the xlsx family, exactly `tokens`.
+ *
+ * @param {string[]} tokens The xlsx tokens the key unlocks.
+ * @param {string[]} [flags] The product flags.
+ * @returns {string}
+ */
+function xlsxKeyWith(tokens, flags = []) {
+  return tierKeyWithout(ALL_XLSX_TOKENS.filter(id => !tokens.includes(id)), flags);
+}
 
 // One rich sheet: headers, a formula, a currency number, a read-only cell, a comment, a dropdown, a
 // right-aligned cell, a merge, a hidden row and column, a frozen row, RTL, widths and heights. Read
@@ -195,6 +204,7 @@ describe('Xlsx export license gates', () => {
   afterEach(() => {
     warnSpy.mockRestore();
     writeSpy.mockRestore();
+    resetTierKeys();
   });
 
   /**
@@ -222,8 +232,8 @@ describe('Xlsx export license gates', () => {
   const headerCells = sheet => sheet.rows[0].filter(Boolean);
 
   it('drops cell styles and the header fill without xlsx:styles', async() => {
-    const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
-    const gated = (await exportSnapshot(keyWithout('xlsx:styles'))).sheets[0];
+    const full = (await exportSnapshot(tierKeyWithout([]))).sheets[0];
+    const gated = (await exportSnapshot(tierKeyWithout(['xlsx:styles']))).sheets[0];
 
     expect(dataCells(full).some(cell => cell.style !== null)).toBe(true);
     expect(headerCells(full).length).toBeGreaterThan(0);
@@ -238,7 +248,7 @@ describe('Xlsx export license gates', () => {
   });
 
   it('follows a license key passed later on the same instance', async() => {
-    const settings = { licenseKey: keyWithout('xlsx:styles') };
+    const settings = { licenseKey: tierKeyWithout(['xlsx:styles']) };
     const hot = { rootDocument: document, rootWindow: window, getSettings: () => settings };
     const exportWith = async() => {
       writeSpy.mockClear();
@@ -256,7 +266,7 @@ describe('Xlsx export license gates', () => {
     expect(skipped().join()).toContain('xlsx:styles');
 
     // What `updateSettings({ licenseKey })` does to the settings the plugin reads.
-    settings.licenseKey = keyWith(ALL_XLSX_TOKENS);
+    settings.licenseKey = tierKeyWithout([]);
     warnSpy.mockClear();
 
     const after = await exportWith();
@@ -269,12 +279,12 @@ describe('Xlsx export license gates', () => {
     const probeSpy = jest.spyOn(cellStyle, 'getCssStyleFromElement');
 
     try {
-      await exportSnapshot(keyWith(ALL_XLSX_TOKENS));
+      await exportSnapshot(tierKeyWithout([]));
 
       expect(probeSpy).toHaveBeenCalled();
 
       probeSpy.mockClear();
-      await exportSnapshot(keyWithout('xlsx:styles'));
+      await exportSnapshot(tierKeyWithout(['xlsx:styles']));
 
       expect(probeSpy).not.toHaveBeenCalled();
     } finally {
@@ -283,8 +293,8 @@ describe('Xlsx export license gates', () => {
   });
 
   it('writes no numFmt without xlsx:number_formats', async() => {
-    const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
-    const gated = (await exportSnapshot(keyWithout('xlsx:number_formats'))).sheets[0];
+    const full = (await exportSnapshot(tierKeyWithout([]))).sheets[0];
+    const gated = (await exportSnapshot(tierKeyWithout(['xlsx:number_formats']))).sheets[0];
 
     expect(full.rows[1][1].numFmt).not.toBeNull();
     expect(dataCells(gated).every(cell => cell.numFmt === null)).toBe(true);
@@ -309,8 +319,8 @@ describe('Xlsx export license gates', () => {
     mockState.cellsMeta = [[dateMeta, timeMeta, intlDateMeta]];
 
     try {
-      const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
-      const gated = (await exportSnapshot(keyWithout('xlsx:number_formats'))).sheets[0];
+      const full = (await exportSnapshot(tierKeyWithout([]))).sheets[0];
+      const gated = (await exportSnapshot(tierKeyWithout(['xlsx:number_formats']))).sheets[0];
       const rendered = mockState.cellsMeta[0]
         .map((meta, col) => formatCellValue(mockState.data[0][col], meta, meta.renderer));
 
@@ -335,8 +345,8 @@ describe('Xlsx export license gates', () => {
       sourceData: [['2024-01-15', '=A1+30']],
       cellsMeta: [[dateMeta, dateMeta]],
     }, async() => {
-      const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
-      const gated = (await exportSnapshot(keyWithout('xlsx:number_formats'))).sheets[0];
+      const full = (await exportSnapshot(tierKeyWithout([]))).sheets[0];
+      const gated = (await exportSnapshot(tierKeyWithout(['xlsx:number_formats']))).sheets[0];
 
       // With both tokens: a live formula, formatted as a date.
       expect(full.rows[1][1].formula).toEqual(expect.objectContaining({ text: 'A2+30' }));
@@ -369,7 +379,7 @@ describe('Xlsx export license gates', () => {
         dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
       }]],
     }, async() => {
-      const gated = (await exportSnapshot(keyWithout('xlsx:number_formats'))).sheets[0];
+      const gated = (await exportSnapshot(tierKeyWithout(['xlsx:number_formats']))).sheets[0];
 
       expect(gated.rows[1][0].value).toBe('15.01.2024');
       expect(gated.rows[1][0].numFmt).toBeNull();
@@ -377,8 +387,8 @@ describe('Xlsx export license gates', () => {
   });
 
   it('writes no widths, heights, merges, hidden, freeze, rtl without xlsx:layout', async() => {
-    const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
-    const gated = (await exportSnapshot(keyWithout('xlsx:layout'))).sheets[0];
+    const full = (await exportSnapshot(tierKeyWithout([]))).sheets[0];
+    const gated = (await exportSnapshot(tierKeyWithout(['xlsx:layout']))).sheets[0];
 
     expect(full.colWidths.some(width => width !== null)).toBe(true);
     expect(full.rowHeights.some(height => height !== null)).toBe(true);
@@ -405,8 +415,8 @@ describe('Xlsx export license gates', () => {
     mockState.rowHeaders = [1, 2, 3];
 
     try {
-      const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
-      const gated = (await exportSnapshot(keyWithout('xlsx:layout'))).sheets[0];
+      const full = (await exportSnapshot(tierKeyWithout([]))).sheets[0];
+      const gated = (await exportSnapshot(tierKeyWithout(['xlsx:layout']))).sheets[0];
       // 0-based: the two header rows are rows 0 and 1.
       const headerMerges = sheet => sheet.merges.filter(merge => merge.row < 2);
 
@@ -426,8 +436,8 @@ describe('Xlsx export license gates', () => {
   });
 
   it('exports values instead of formulas without xlsx:formulas', async() => {
-    const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
-    const gated = (await exportSnapshot(keyWithout('xlsx:formulas'))).sheets[0];
+    const full = (await exportSnapshot(tierKeyWithout([]))).sheets[0];
+    const gated = (await exportSnapshot(tierKeyWithout(['xlsx:formulas']))).sheets[0];
 
     expect(full.rows[2][1].formula).toEqual({ text: 'B2+1', result: 2 });
     expect(dataCells(gated).every(cell => cell.formula === null)).toBe(true);
@@ -436,16 +446,16 @@ describe('Xlsx export license gates', () => {
   });
 
   it('ignores conditionalFormatting without xlsx:conditional_formatting', async() => {
-    const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
-    const gated = (await exportSnapshot(keyWithout('xlsx:conditional_formatting'))).sheets[0];
+    const full = (await exportSnapshot(tierKeyWithout([]))).sheets[0];
+    const gated = (await exportSnapshot(tierKeyWithout(['xlsx:conditional_formatting']))).sheets[0];
 
     expect(full.conditionalFormatting.length).toBe(1);
     expect(gated.conditionalFormatting).toEqual([]);
   });
 
   it('writes no validation and no helper sheet without xlsx:data_validation', async() => {
-    const full = await exportSnapshot(keyWith(ALL_XLSX_TOKENS));
-    const gated = await exportSnapshot(keyWithout('xlsx:data_validation'));
+    const full = await exportSnapshot(tierKeyWithout([]));
+    const gated = await exportSnapshot(tierKeyWithout(['xlsx:data_validation']));
 
     expect(full.sheets.map(sheet => [sheet.name, sheet.state]))
       .toEqual([['Sheet1', 'visible'], ['_HotValidation', 'hidden']]);
@@ -457,23 +467,23 @@ describe('Xlsx export license gates', () => {
   });
 
   it('keeps the helper sheet hidden without xlsx:layout, because it belongs to xlsx:data_validation', async() => {
-    const gated = await exportSnapshot(keyWithout('xlsx:layout'));
+    const gated = await exportSnapshot(tierKeyWithout(['xlsx:layout']));
 
     expect(gated.sheets.map(sheet => [sheet.name, sheet.state]))
       .toEqual([['Sheet1', 'visible'], ['_HotValidation', 'hidden']]);
   });
 
   it('writes no comment without xlsx:comments', async() => {
-    const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
-    const gated = (await exportSnapshot(keyWithout('xlsx:comments'))).sheets[0];
+    const full = (await exportSnapshot(tierKeyWithout([]))).sheets[0];
+    const gated = (await exportSnapshot(tierKeyWithout(['xlsx:comments']))).sheets[0];
 
     expect(full.rows[2][0].comment).toBe('Check');
     expect(dataCells(gated).every(cell => cell.comment === null)).toBe(true);
   });
 
   it('writes no locked cells and no protection without xlsx:protection', async() => {
-    const full = (await exportSnapshot(keyWith(ALL_XLSX_TOKENS))).sheets[0];
-    const gated = (await exportSnapshot(keyWithout('xlsx:protection'))).sheets[0];
+    const full = (await exportSnapshot(tierKeyWithout([]))).sheets[0];
+    const gated = (await exportSnapshot(tierKeyWithout(['xlsx:protection']))).sheets[0];
 
     expect(full.rows[1][0].locked).toBe(true);
     expect(full.protection).not.toBeNull();
@@ -483,7 +493,7 @@ describe('Xlsx export license gates', () => {
   });
 
   it('warns once with every missing export token, unless no-console-warns is set', async() => {
-    await exportSnapshot(keyWith(PARTIAL_TOKENS));
+    await exportSnapshot(xlsxKeyWith(PARTIAL_TOKENS));
 
     expect(warnSpy).toHaveBeenCalledTimes(1);
     expect(warnSpy.mock.calls[0][0]).toBe(
@@ -492,13 +502,13 @@ describe('Xlsx export license gates', () => {
     );
 
     warnSpy.mockClear();
-    const silenced = (await exportSnapshot(keyWith(PARTIAL_TOKENS, ['no-console-warns']))).sheets[0];
+    const silenced = (await exportSnapshot(xlsxKeyWith(PARTIAL_TOKENS, ['no-console-warns']))).sheets[0];
 
     expect(warnSpy).not.toHaveBeenCalled();
     expect(dataCells(silenced).every(cell => cell.style === null)).toBe(true);
 
     warnSpy.mockClear();
-    await exportSnapshot(keyWith(ALL_XLSX_TOKENS));
+    await exportSnapshot(tierKeyWithout([]));
     await exportSnapshot('non-commercial-and-evaluation');
 
     expect(warnSpy).not.toHaveBeenCalled();
@@ -546,7 +556,7 @@ describe('Xlsx export license gates', () => {
 
   it('says nothing about the license for a plain text grid on a key that lacks some tokens', async() => {
     await withMockSheet(PLAIN_SHEET, async() => {
-      const sheet = (await exportSnapshot(keyWith(PARTIAL_TOKENS), { conditionalFormatting: [] })).sheets[0];
+      const sheet = (await exportSnapshot(xlsxKeyWith(PARTIAL_TOKENS), { conditionalFormatting: [] })).sheets[0];
 
       expect(sheet.rows[0][0].value).toBe('Ana García');
       expect(exportWarnings()).toEqual([]);
@@ -558,7 +568,7 @@ describe('Xlsx export license gates', () => {
       ...PLAIN_SHEET,
       cellsMeta: [[{ className: 'bold' }, {}], [{}, {}]],
     }, async() => {
-      await exportSnapshot(keyWith(PARTIAL_TOKENS), { conditionalFormatting: [] });
+      await exportSnapshot(xlsxKeyWith(PARTIAL_TOKENS), { conditionalFormatting: [] });
 
       expect(exportWarnings()).toEqual([
         'The xlsx export skipped features your license does not unlock: xlsx:styles.',
@@ -571,7 +581,7 @@ describe('Xlsx export license gates', () => {
       ...PLAIN_SHEET,
       cellsMeta: [[{ comment: { value: 'Check' } }, {}], [{}, {}]],
     }, async() => {
-      await exportSnapshot(keyWith(PARTIAL_TOKENS), { conditionalFormatting: [] });
+      await exportSnapshot(xlsxKeyWith(PARTIAL_TOKENS), { conditionalFormatting: [] });
 
       expect(exportWarnings()).toEqual([
         'The xlsx export skipped features your license does not unlock: xlsx:comments.',
@@ -607,7 +617,7 @@ describe('Xlsx export license gates', () => {
 
       // eslint-disable-next-line no-await-in-loop
       await withMockSheet({ ...PLAIN_SHEET, ...sheetOverrides }, async() => {
-        await exportSnapshot(keyWith(['xlsx:export']), {
+        await exportSnapshot(xlsxKeyWith(['xlsx:export']), {
           conditionalFormatting: [],
           exportFormulas: false,
           ...options,
@@ -635,10 +645,10 @@ describe('Xlsx export license gates', () => {
 
       // eslint-disable-next-line no-await-in-loop
       await withMockSheet({ ...PLAIN_SHEET, cellsMeta: [[{}, { type, source }], [{}, {}]] }, async() => {
-        await exportSnapshot(keyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });
+        await exportSnapshot(xlsxKeyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });
 
         // A full key writes a validation exactly when the warning would name the token.
-        const full = await exportSnapshot(keyWith(ALL_XLSX_TOKENS), { conditionalFormatting: [] });
+        const full = await exportSnapshot(tierKeyWithout([]), { conditionalFormatting: [] });
 
         expect([type, source, full.sheets[0].rows[0][1].validation !== null])
           .toEqual([type, source, expected.length > 0]);
@@ -654,7 +664,7 @@ describe('Xlsx export license gates', () => {
 
   it('counts explicit layout only toward xlsx:layout', async() => {
     await withMockSheet(PLAIN_SHEET, async() => {
-      await exportSnapshot(keyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });
+      await exportSnapshot(xlsxKeyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });
     });
 
     expect(exportWarnings()).toEqual([]);
@@ -675,7 +685,7 @@ describe('Xlsx export license gates', () => {
 
       // eslint-disable-next-line no-await-in-loop
       await withMockSheet({ ...PLAIN_SHEET, layout: { ...LAYOUT_FREE, [name]: value } }, async() => {
-        await exportSnapshot(keyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });
+        await exportSnapshot(xlsxKeyWith(['xlsx:export']), { conditionalFormatting: [], exportFormulas: false });
       });
 
       expect([name, exportWarnings()]).toEqual([
@@ -685,8 +695,8 @@ describe('Xlsx export license gates', () => {
   });
 
   it('takes the entitlement from its own instance when sheets name another instance', async() => {
-    const own = createInstance(keyWithout('xlsx:comments'));
-    const other = createInstance(keyWith(ALL_XLSX_TOKENS));
+    const own = createInstance(tierKeyWithout(['xlsx:comments']));
+    const other = createInstance(tierKeyWithout([]));
     const xlsx = new Xlsx(new ExportDataProvider(own), { sheets: [{ instance: other, name: 'Other' }] });
 
     writeSpy.mockClear();
@@ -702,30 +712,19 @@ describe('Xlsx export license gates', () => {
   });
 
   it('leaves a full key\'s snapshot equal to the snapshot of a key that restricts nothing', async() => {
-    const full = await exportSnapshot(keyWith(ALL_XLSX_TOKENS));
+    const full = await exportSnapshot(tierKeyWithout([]));
     // An invalid key (the non-commercial key is one since 19.0) restricts nothing.
     const unrestricted = await exportSnapshot('non-commercial-and-evaluation');
 
     expect(full).toEqual(unrestricted);
   });
 
-  it('exports like a full key, and says nothing, for a flagged key that lists xlsx:all', async() => {
-    const full = await exportSnapshot(keyWith(ALL_XLSX_TOKENS));
-    const all = await exportSnapshot(keyWithAll());
-
-    expect(all).toEqual(full);
-
-    await exportSnapshot(keyWithAll(['no-console-warns']));
-
-    expect(warnSpy).not.toHaveBeenCalled();
-  });
-
   it('names only the tokens the export gates in its warning', async() => {
-    await exportSnapshot(keyWithout('xlsx:import'));
+    await exportSnapshot(tierKeyWithout(['xlsx:import']));
 
     expect(warnSpy).not.toHaveBeenCalled();
 
-    await exportSnapshot(keyWith(['xlsx:export']));
+    await exportSnapshot(xlsxKeyWith(['xlsx:export']));
 
     expect(warnSpy.mock.calls.map(call => call[0])).toEqual([
       'The xlsx export skipped features your license does not unlock: xlsx:formulas, xlsx:layout, ' +
@@ -734,11 +733,11 @@ describe('Xlsx export license gates', () => {
     ]);
   });
 
-  it('leaves a key without the listed-capabilities flag unrestricted, whatever it lists', async() => {
-    const unflagged = await exportSnapshot(keyWithoutFlag(PARTIAL_TOKENS));
+  it('leaves a key that names no tier unrestricted, whatever it lists', async() => {
+    const noTier = await exportSnapshot(keyWithoutTier(PARTIAL_TOKENS));
     const legacy = await exportSnapshot('non-commercial-and-evaluation');
 
-    expect(unflagged).toEqual(legacy);
+    expect(noTier).toEqual(legacy);
     expect(warnSpy).not.toHaveBeenCalled();
   });
 });

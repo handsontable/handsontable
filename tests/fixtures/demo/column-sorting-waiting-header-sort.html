@@ -42,7 +42,8 @@
 
     ?plugin=columnSorting (default) or ?plugin=multiColumnSorting picks the sorting plugin. Column A has
     a validator that holds its callback in window.heldValidations until the spec answers it, so the
-    spec decides when the validation ends instead of racing a timer. window.postAfterValidateCount
+    spec decides when the validation ends instead of racing a timer. Each held callback carries the visual
+    row it validates as `htRow`. window.postAfterValidateCount
     counts the answers, and window.htAsyncErrors keeps every unhandled promise rejection.
 
     Cells carry data-testid="cell-<row>-<col>" and headers data-testid="col-header-<col>".
@@ -76,7 +77,9 @@
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
-    const heldValidator = (value, callback) => {
+    // Each held callback carries the visual row it validates (`htRow`), so a spec can answer one cell first.
+    const heldValidator = function(value, callback) {
+      callback.htRow = this.visualRow;
       window.heldValidations.push(callback);
     };
 

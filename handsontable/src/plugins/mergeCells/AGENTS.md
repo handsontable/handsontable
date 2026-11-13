@@ -303,11 +303,21 @@ hooks). Six rules keep it narrow:
   splits it like any other. The set is limited to the merges the move can reach (`MoveWindow`, the visual
   indexes between the lowest of the moved and dropped indexes and the highest), because a move permutes only
   those, so the cost follows the merges in the window and not every merge on the grid; a freeze has no window.
-  **Known limit:** undo and redo do not run it. `restoreState()` runs after UndoRedo restored the index maps,
-  so the visual columns of a live merge name the wrong physical columns, and a set built from them cannot see
-  the cell a redo takes out of a merge. The redo of a column move can leave `hidden` and `copyable: false` on
-  that cell, trimmed or not (it does on `develop`). The redo of a row move does not: dropping the live merge
-  cleans it, and a spec pins that.
+  Undo and redo do not run it, because `restoreState()` runs after UndoRedo restored the index maps: the
+  visual columns of a live merge name the wrong physical columns, and a set built from them cannot see the
+  cell a redo takes out of a merge. They compare the two sides of the step by their recorded merges instead
+  (`#clearCoveredFlagsOfCellsReleasedByStep()`): each captured merge carries its anchor rows and its
+  `physicalColumns`, so the cells the other side covered and the restored side does not are known without
+  reading a live merge's columns. Only the merges the step changed are walked, and a cell the restored side's
+  changed merges cover is skipped. A cell an unchanged merge covers is not looked at, so it may be cleaned and
+  `afterGetCellMeta` stores the flags again on the next read. Never build the released set from the live
+  merges' visual columns. A guard that reads the live lookup was tried and dropped: no test needed it, and the
+  recorded sides already hold the answer. It does nothing
+  without a recorded other side (no `context.other`), for a merge captured with no `physicalColumns`, or when
+  the replay inserted or removed rows or columns (`context.reordered`): the recorded physical indexes are
+  numbered like the grid before that replay. A row move's redo was already clean, because dropping the live merge cleans it by the
+  anchor's physical rows. Pinned by the `after the undo and the redo` cases of
+  `__tests__/reanchoredTopLeftMeta.unit.js` and `tests/e2e/merge-cells-column-move-redo.spec.ts`.
 - **The cell a merge is no longer drawn from loses its span keys.** `afterGetCellMeta` stores `spanned`,
   `rowspan` and `colspan` on whichever cell is the top-left, and nothing took them off when a move or a freeze
   made another cell the top-left, so `getCellMeta()` reported a span nothing backs (DEV-3990). The same pass

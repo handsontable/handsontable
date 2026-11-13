@@ -68,8 +68,11 @@ export const A11Y_PAGES = [
     surface: 'a notification toast with a close button and two actions' },
   { id: 'license-bar', fixture: 'license-bar.html', query: 'width=600', state: 'none',
     surface: 'the license notification bar under the grid and its text contrast' },
-  { id: 'license-missing-features', fixture: 'license-capabilities.html', query: 'key=flagged-base&plugins=filters',
-    state: 'none', surface: 'the license bar naming the features a license key leaves out, and its sales link' },
+  // `licensePreset` names a preset of `tests/fixtures/licenseTiers.ts`: the TypeScript side (`fixtureUrl()` in
+  // `harness.ts`) adds its made-up tiers and its key to the query, because this file cannot build a key.
+  { id: 'license-missing-features', fixture: 'license-capabilities.html', query: 'plugins=filters',
+    licensePreset: 'tier-base', state: 'none',
+    surface: 'the license bar naming the features a license key leaves out, and its sales link' },
   { id: 'license-powered-by', fixture: 'license-branding.html', query: 'key=sponsored-badge', state: 'none',
     surface: 'the "Powered by Handsontable DataGrid" bar of a key with the badge flag, its link and text contrast' },
   // Menus, opened from the keyboard.
@@ -146,6 +149,11 @@ export const A11Y_PAGES = [
 /**
  * The fixture URL a page is scanned at, relative to the fixture server (`support/static-server.mjs`,
  * `http://localhost:8123` by default).
+ *
+ * A page with a `licensePreset` also needs that preset's tiers and key, which only the TypeScript side
+ * can build: open it through `fixtureUrl()` in `harness.ts`. This one leaves them out, so the grid it opens
+ * has no license key. The reports link such a page to the URL its scan opened instead
+ * (`withScannedUrls()` in `lib/a11y-suites.mjs`).
  *
  * @param {{fixture: string, query?: string}} page The page.
  * @param {string} theme The theme.

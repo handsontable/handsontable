@@ -1,4 +1,4 @@
-import { warn } from '../../../helpers/console';
+import { warn, warnOnce } from '../../../helpers/console';
 import { listEngineElements } from './engineElements';
 import { toUpperCaseFirst } from '../../../helpers/string';
 import { getMoves } from '../../../helpers/moves';
@@ -44,6 +44,7 @@ export interface EngineOrder {
   paddedElements: number[];
   orderShifts?: Array<[number, number]>;
   orderBase?: number[] | null;
+  orderPoint?: number[] | null;
 }
 
 interface ParentIndexSyncer {
@@ -131,6 +132,16 @@ class AxisSyncer {
    */
   #orderBase: number[] | null = null;
   /**
+   * The grid's sequence the engine was brought to by the last order it took as one order (a sort, a sequence set, a
+   * load's order on an engine where moves were refused), while that order's shifts are kept. Moves after it keep the
+   * shifts, so an engine order whose grid order goes back to this point differs from it by moves alone: a release
+   * that finds the grid there sends the difference as moves (`releaseAdoptedOrderAsMoves()`). `null` while no order
+   * was sent, and dropped with the shifts and wherever `#orderBase` is.
+   *
+   * @type {Array<number>|null}
+   */
+  #orderPoint: number[] | null = null;
+  /**
    * List of moved HF indexes, stored before performing move on HOT to calculate transformation needed on HF's engine.
    *
    * @private
@@ -198,6 +209,14 @@ class AxisSyncer {
    * @type {Array<number>|null}
    */
   #heldOrderBase: number[] | null = null;
+  /**
+   * Whether the hold's release sends the grid's order as moves to an engine order adopted in the hold
+   * (`releaseAdoptedOrderAsMoves()`): the sheet a grid returns to, which the engine kept as the grid left it.
+   * Cleared by every release, by a later adoption or reload in the hold, and by any order change other than a move.
+   *
+   * @type {boolean}
+   */
+  #adoptedByMoves = false;
 
   /**
    * Initializes the axis syncer for the given axis with the corresponding index mapper and parent index syncer references.
@@ -213,8 +232,12 @@ class AxisSyncer {
     this.#indexMapper.addLocalHook('indexesSequenceChange', () => {
       this.#translationCache = null;
     });
-    this.#indexMapper.addLocalHook('cacheUpdated', (changes: { trimmedIndexesChanged: boolean }) => {
-      if (changes.trimmedIndexesChanged) {
+    this.#indexMapper.addLocalHook('cacheUpdated', (
+      changes: { trimmedIndexesChanged: boolean; indexesSequenceChanged: boolean }
+    ) => {
+      // The sequence hook above fires before the mapper rebuilds its not-trimmed cache (inside a suspended
+      // execution, long before it), so a table built in between holds the previous visual order.
+      if (changes.trimmedIndexesChanged || changes.indexesSequenceChanged) {
         this.#translationCache = null;
       }
     });
@@ -224,6 +247,7 @@ class AxisSyncer {
     // it (an undo removes the grid's row only), and what the set holds is a line that may be empty, not a row.
     this.#indexMapper.addLocalHook('indexesInserted', (insertedIndexes: number[]) => {
       this.#orderBase = null;
+      this.#orderPoint = null;
 
       if (this.#paddedElements.size > 0) {
         this.#paddedElements = new Set(
@@ -240,6 +264,7 @@ class AxisSyncer {
     });
     this.#indexMapper.addLocalHook('indexesRemoved', (removedIndexes: number[]) => {
       this.#orderBase = null;
+      this.#orderPoint = null;
 
       if (this.#paddedElements.size > 0) {
         this.#paddedElements = new Set(getDecreasedIndexes(Array.from(this.#paddedElements), removedIndexes));
@@ -315,18 +340,52 @@ class AxisSyncer {
 
     const reloadedByMoves = this.#reloadedWhileHeld === true && !this.#orderChangedWhileHeld
       && !this.#isOrderSorted();
+    const adoptedByMoves = this.#adoptedByMoves && this.#adoptedWhileHeld && !this.#orderChangedWhileHeld
+      && !this.#isOrderSorted() && (this.#orderShifts.size === 0 || this.#isAtOrderPoint());
     const heldOrderBase = this.#reloadedWhileHeld === false ? this.#heldOrderBase : null;
 
     this.#orderHeld = held;
     this.#adoptedWhileHeld = false;
+    this.#adoptedByMoves = false;
     this.#reloadedWhileHeld = null;
     this.#orderChangedWhileHeld = false;
     this.#heldOrderBase = null;
     this.#translationCache = null;
 
     if (!held && syncOnRelease) {
-      this.#syncOrderWithGrid(reloadedByMoves, heldOrderBase);
+      this.#syncOrderWithGrid(reloadedByMoves || adoptedByMoves, heldOrderBase, adoptedByMoves);
     }
+  }
+
+  /**
+   * Marks the engine order adopted in the current hold (`adoptEngineOrder()`) as one the hold's release sends the
+   * grid's order to as moves. The caller has loaded a sheet the engine kept as the grid left it, without writing
+   * it, so every reference in it, in other sheets and in named expressions follows the moves that order was reached
+   * by; the grid's order on the return (the move plugins' arrays applied again) is reached from it by moves too. One
+   * order between them kept each moved formula's relative offsets: a reference across the moved lines turned into
+   * `#REF!` or read another line. An order qualifies when moves alone reached it from the engine's physical order
+   * (no order shifts, no order base), or from the last order it took as one order (`#orderPoint`) when the grid's
+   * order at the release is that point again (`#isAtOrderPoint()`): the difference is then the moves undone. A sort
+   * or a sequence set on the visit before that the grid does not return to, or one set in the hold, still sends one
+   * order, as such a reset reaches the engine on a grid that stays on the sheet.
+   */
+  releaseAdoptedOrderAsMoves() {
+    this.#adoptedByMoves = this.#orderHeld && this.#adoptedWhileHeld && this.#orderBase === null
+      && (this.#orderShifts.size === 0 || this.#orderPoint !== null);
+  }
+
+  /**
+   * Tells whether the grid's current order is the one the last order the engine took as one order brought it to
+   * (`#orderPoint`).
+   *
+   * @returns {boolean}
+   */
+  #isAtOrderPoint(): boolean {
+    const point = this.#orderPoint;
+    const sequence = this.#indexMapper.getIndexesSequence();
+
+    return point !== null && point.length === sequence.length
+      && point.every((physicalIndex, position) => physicalIndex === sequence[position]);
   }
 
   /**
@@ -340,10 +399,14 @@ class AxisSyncer {
    * A release over a reload whose order was moves and then an order replays the moves to the order they
    * reached (`orderBase`) as moves first, as a reload outside the hold does (`#syncInitialOrder()`).
    *
+   * A release over an adopted order marked with `releaseAdoptedOrderAsMoves()` sends the grid's order as moves to
+   * a sheet the engine kept (`sheetKept`), which no reload replaced.
+   *
    * @param {boolean} [asMoves=false] Whether the order is sent as moves.
    * @param {number[]|null} [orderBase=null] The order moves reached before an order was sent on top of them.
+   * @param {boolean} [sheetKept=false] Whether the engine kept the sheet rather than being fed it again.
    */
-  #syncOrderWithGrid(asMoves: boolean = false, orderBase: number[] | null = null) {
+  #syncOrderWithGrid(asMoves: boolean = false, orderBase: number[] | null = null, sheetKept: boolean = false) {
     const sequence = this.#indexMapper.getIndexesSequence();
 
     if (this.#indexSyncer.getEngine() !== null && this.#indexSyncer.getSheetId() !== null
@@ -352,7 +415,7 @@ class AxisSyncer {
         this.#syncOrderWithEngine(orderBase, true, true);
       }
 
-      this.#syncOrderWithEngine(sequence, asMoves);
+      this.#syncOrderWithEngine(sequence, asMoves, false, sheetKept);
     }
   }
 
@@ -435,6 +498,7 @@ class AxisSyncer {
       paddedElements: Array.from(this.#paddedElements),
       orderShifts: Array.from(this.#orderShifts),
       ...(this.#orderBase === null ? {} : { orderBase: this.#orderBase.slice() }),
+      ...(this.#orderPoint === null ? {} : { orderPoint: this.#orderPoint.slice() }),
     };
   }
 
@@ -464,6 +528,7 @@ class AxisSyncer {
     this.#indexesSequence = order.sequence.slice();
     this.#fillSequence = order.fillSequence === null ? null : order.fillSequence.slice();
     this.#adoptedWhileHeld = this.#orderHeld;
+    this.#adoptedByMoves = false;
     this.#reloadedWhileHeld = null;
 
     const held = new Set<number>(order.sequence);
@@ -471,6 +536,7 @@ class AxisSyncer {
     this.#paddedElements = new Set<number>(order.paddedElements.filter(physicalIndex => held.has(physicalIndex)));
     this.#orderShifts = new Map(order.orderShifts ?? []);
     this.#orderBase = order.orderBase && this.#orderShifts.size > 0 ? order.orderBase.slice() : null;
+    this.#orderPoint = order.orderPoint && this.#orderShifts.size > 0 ? order.orderPoint.slice() : null;
     this.#heldOrderBase = null;
     this.#translationCache = null;
 
@@ -917,11 +983,35 @@ class AxisSyncer {
    * @param {number[]} targetSequence The grid's sequence of physical indexes, in grid order.
    * @param {boolean} [asMoves=false] Whether the order is sent as moves.
    * @param {boolean} [movesOnly=false] Whether to send nothing when the order cannot go as moves.
+   * @param {boolean} [sheetKept=false] Whether the engine kept the sheet rather than being fed it again, so the
+   * references other sheets and named expressions hold into it follow the moves too (`#planSafeMoves()`).
    * @returns {boolean} `true` when the engine holds the sequence's order, `false` when its sheet is empty or
    * cannot be extended to hold it, or the moves `movesOnly` asks for cannot be sent.
    */
-  #syncOrderWithEngine(targetSequence: number[], asMoves: boolean = false, movesOnly: boolean = false): boolean {
-    const engine = this.#indexSyncer.getEngine()!;
+  #syncOrderWithEngine(
+    targetSequence: number[],
+    asMoves: boolean = false,
+    movesOnly: boolean = false,
+    sheetKept: boolean = false,
+  ): boolean {
+    const engine = this.#indexSyncer.getEngine();
+
+    // No endpoint: every path that binds or fills a sheet points the syncers at it first (`#loadSheet()`,
+    // `#writeSheet()`, `#clearRejectedSheet()`, `#adoptEngineSheet()`, and the `enablePlugin()` and `updatePlugin()`
+    // paths that add a sheet or bind one the engine still holds, for a grid built with `data` and for one built
+    // from an engine sheet), so no known path reaches this. The one shape left in theory, not reproduced, is an
+    // enable whose `#addSheet()` the engine refuses (its `addSheet()` throws), which binds nothing. The last two
+    // windows found (a shared-engine re-enable before its resync drained, and any re-enable of a grid built from an
+    // engine sheet) are pinned in `__tests__/enableOnLiveGridSyncEndpoint.unit.js`. It warns, once per syncer,
+    // rather than throwing: the order is lost and the formula results stay where they were, which a warning names.
+    // A throw would end the user's sort or move half-done (before DEV-3760 this line threw a `TypeError`).
+    if (engine === null) {
+      warnOnce(this, 'noSyncEndpoint', `The Formulas plugin got a ${this.#axis} order before it was bound to an ` +
+        'engine sheet, so the engine keeps its previous order and formulas may read the wrong cells.');
+
+      return false;
+    }
+
     const sheetId = this.#indexSyncer.getSheetId()!;
     const sheetDimensions = engine.getSheetDimensions(sheetId);
     const isRowAxis = this.#axis === 'row';
@@ -937,6 +1027,7 @@ class AxisSyncer {
       this.#paddedElements = new Set<number>();
       this.#orderShifts = new Map<number, number>();
       this.#orderBase = null;
+      this.#orderPoint = null;
 
       return false;
     }
@@ -949,6 +1040,7 @@ class AxisSyncer {
     );
     const heldSize = engineOrder.length;
     let sentAsMoves = false;
+    let sentOrder = false;
 
     // The engine records an undo entry and clears its redo stack for any order it is handed, so an order
     // that changes nothing costs the user their redo history. Compression makes that common: every sort
@@ -968,7 +1060,7 @@ class AxisSyncer {
       }
 
       const moves = asMoves
-        ? this.#planSafeMoves(engine, sheetId, engineOrder, sizeForAxis, sizeForOtherAxis)
+        ? this.#planSafeMoves(engine, sheetId, engineOrder, sizeForAxis, sizeForOtherAxis, sheetKept)
         : null;
 
       sentAsMoves = moves !== null;
@@ -1004,11 +1096,17 @@ class AxisSyncer {
       if (!written) {
         return false;
       }
+
+      sentOrder = !sentAsMoves;
     }
 
     // A move keeps every reference on its cell, so the engine's text keeps the data's meaning.
     if (!sentAsMoves) {
       this.#addOrderShifts(engineElements, engineOrder);
+    }
+
+    if (sentOrder) {
+      this.#orderPoint = targetSequence.slice();
     }
     this.#indexesSequence = reordered;
     this.#fillSequence = this.#followsPhysicalOrderBehind(reordered, targetSequence) ? null : targetSequence.slice();
@@ -1071,12 +1169,15 @@ class AxisSyncer {
    * - **Readers outside the sheet.** A reload replaces only this sheet's content, so the references other
    *   sheets and named expressions hold into it already follow the order; a move would move them again. An
    *   engine with another sheet or with a named expression therefore gets one order, which leaves them alone.
+   *   A sheet the engine kept (`sheetKept`, a return to a sheet the grid left) was not replaced: its readers
+   *   followed every move that reached it, as they follow a drag, so the moves go as moves there.
    *
    * @param {HyperFormulaEngine} engine The engine.
    * @param {number} sheetId The sheet the axis is synced with.
    * @param {number[]} engineOrder The order to send, possibly longer than the sheet.
    * @param {number} sizeForAxis Size of the engine's sheet along the synchronized axis.
    * @param {number} sizeForOtherAxis Size of the sheet along the other axis.
+   * @param {boolean} [sheetKept=false] Whether the engine kept the sheet rather than being fed it again.
    * @returns {OrderMove[]|null}
    */
   #planSafeMoves(
@@ -1085,9 +1186,10 @@ class AxisSyncer {
     engineOrder: number[],
     sizeForAxis: number,
     sizeForOtherAxis: number,
+    sheetKept: boolean = false,
   ): OrderMove[] | null {
-    if (engine.getSheetNames().length > 1 || engine.listNamedExpressions().length > 0
-      || engine.listNamedExpressions(sheetId).length > 0) {
+    if (!sheetKept && (engine.getSheetNames().length > 1 || engine.listNamedExpressions().length > 0
+      || engine.listNamedExpressions(sheetId).length > 0)) {
       return null;
     }
 
@@ -1160,6 +1262,7 @@ class AxisSyncer {
 
     if (this.#orderShifts.size === 0) {
       this.#orderBase = null;
+      this.#orderPoint = null;
     }
   }
 
@@ -1298,6 +1401,7 @@ class AxisSyncer {
           this.#syncOrderWithEngine(newSequence);
         } else if (this.#orderHeld) {
           this.#orderChangedWhileHeld = true;
+          this.#adoptedByMoves = false;
           this.#heldOrderBase = null;
         }
 
@@ -1321,6 +1425,7 @@ class AxisSyncer {
         this.#paddedElements = new Set<number>();
         this.#orderShifts = new Map<number, number>();
         this.#orderBase = null;
+        this.#orderPoint = null;
 
         // The grid's order was reset (`initIndexMappers()`, a `columns` update without `data`) and no engine
         // call followed it, so the engine still holds the order it had, and the order stored above is not it.
@@ -1394,10 +1499,12 @@ class AxisSyncer {
    * @private
    * @param {boolean} [reachedByMoves] Whether the grid's order was reached by moves alone.
    * @param {number[]|null} [orderBase] The order moves reached before the first order was sent on top of them.
+   * @param {boolean} [syncOrder=true] Whether to send the grid's current order to the engine (see `init()`).
    */
   #applyInitialOrder(
     reachedByMoves: boolean = this.#orderShifts.size === 0 && !this.#isOrderSorted(),
     orderBase: number[] | null = this.#orderBase,
+    syncOrder: boolean = true,
   ) {
     // The engine holds the sheet it was just fed, in physical order, whatever order the previous sheet was
     // left in — so the stored order starts empty, which reads back as that physical order, rather than
@@ -1407,21 +1514,29 @@ class AxisSyncer {
     this.#paddedElements = new Set<number>();
     this.#orderShifts = new Map<number, number>();
     this.#orderBase = null;
+    this.#orderPoint = null;
     this.#translationCache = null;
 
     if (this.#orderHeld) {
+      this.#adoptedByMoves = false;
       this.#reloadedWhileHeld = reachedByMoves;
       this.#heldOrderBase = reachedByMoves ? null : orderBase;
     }
 
-    this.#syncInitialOrder(reachedByMoves, orderBase);
+    if (syncOrder) {
+      this.#syncInitialOrder(reachedByMoves, orderBase);
+    }
   }
 
   /**
    * Initialize the AxisSyncer.
+   *
+   * @param {boolean} [syncOrder=true] Whether to send the grid's current order to the engine. `false` when
+   * the grid is about to load the sheet's data, which resets its order: whatever order the grid then takes
+   * reaches the engine through the sequence and move hooks.
    */
-  init() {
-    this.#applyInitialOrder();
+  init(syncOrder: boolean = true) {
+    this.#applyInitialOrder(undefined, undefined, syncOrder);
   }
 }
 

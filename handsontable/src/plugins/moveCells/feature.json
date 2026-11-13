@@ -9,7 +9,11 @@
       "description": "Moves a block of cells by dragging the border of the selection.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

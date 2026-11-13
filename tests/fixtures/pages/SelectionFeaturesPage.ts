@@ -281,6 +281,14 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * The text the clipboard would receive for a single cell, which is empty for a cell flagged
+   * `copyable: false`.
+   */
+  async copyableText(row: number, col: number): Promise<string> {
+    return this.page.evaluate(([r, c]) => window.hot.getCopyableText(r, c, r, c), [row, col] as const);
+  }
+
+  /**
    * Write a cell value through the grid, producing one undoable data change.
    */
   async setCellValue(row: number, col: number, value: CellValue): Promise<void> {

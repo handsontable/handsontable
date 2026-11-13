@@ -9,7 +9,11 @@
       "description": "Freezes a column at the start of the grid from a menu.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

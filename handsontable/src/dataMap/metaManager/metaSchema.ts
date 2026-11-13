@@ -5085,11 +5085,11 @@ export default (): Record<string, unknown> => {
      * `'ht68e-1f2b7-47158-70b05-0842f'`, are not valid keys: they lock the grid, as any invalid key does.
      * See [Get a license key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
      *
-     * An entitlement license key can list the features it unlocks. A plugin such a key does not list
-     * stays off, and the console and the bar under the grid name it. The plugin's option keeps the
-     * value you set, so passing a key that lists the feature through `updateSettings()` turns the plugin
-     * on. A key that does not list its features unlocks every feature. See
-     * [Keys that list features](@/guides/getting-started/license-key/license-key.md#keys-that-list-features).
+     * An entitlement license key can name one or more tiers. The grid turns on the features of those
+     * tiers, and a plugin they do not include stays off: the console and the bar under the grid name it.
+     * The plugin's option keeps the value you set, so passing a key whose tier includes the feature
+     * through `updateSettings()` turns the plugin on. A key that names no tier turns on every feature. See
+     * [Keys that name a tier](@/guides/getting-started/license-key/license-key.md#keys-that-name-a-tier).
      *
      * Read more:
      * - [License key](@/guides/getting-started/license-key/license-key.md)

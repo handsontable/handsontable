@@ -86,7 +86,7 @@ pressed. Read this before touching `checkboxHeader.ts`, `../../utils/checkboxCol
 
 ## The license check lives in `hasHeaderCheckbox()`
 
-The plugin is on in every grid, so a license key that lists its features is checked where a column asks for
+The plugin is on in every grid, so a license key that names tiers is checked where a column asks for
 the checkbox (`gate: 'call'` in `feature.json`). `hasHeaderCheckbox()` is the one check every path goes through
 (the header render, the shortcuts, `toggleColumn()`, `setColumnChecked()`), so it answers `false` when the key
 does not cover `feat:checkbox_header`, after the column-meta checks so a grid without the option pays nothing

@@ -175,6 +175,16 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   every resume re-read the bar mid-operation. Without the option nothing is held, so nothing waits; do not key
   the deferral on `isExecutionSuspended()` (the bar then lags every host `suspendExecution()`). Pinned by
   `__tests__/batchEvaluation.unit.ts`.
+- **A commit flushes the Formulas hold AFTER its write, never before.** The package's `announcingCommit` runs
+  `onCommit`, then `announceCommitErrors` reads the raw engine (`engine.getCellValue()`) to announce the dependent
+  errors. With `formulas.batchEvaluation` and a host `suspendExecution()` open, the commit's write takes the hold
+  lazily, so that read threw `EvaluationSuspendedError` (logged by the package's `EventScope`) and the announcement
+  was lost. A flush before the commit is undone by the write, so `commitInlineEdit()` and
+  `commitInlineEditToSelection()` call `#flushAfterCommitWrite()` right after `finishEditing()`. A synchronous
+  validator is what exposes it: without one the write releases the hold itself, and an asynchronous validator
+  needs no flush because the engine already holds the value when the package reads it (probed: the announcement
+  arrives with the setting on or off). The flush recalculates every write the host still holds, so the
+  announcement can count their dependent errors too. Pinned by `__tests__/batchEvaluation.unit.ts`.
 - **`updatePlugin()` keeps the built plugin when nothing it was built from changed.** `SETTING_KEYS` lists
   `formulas`, and the React and Angular wrappers re-send every object prop with a new identity on each
   render, so a full rebuild per render discarded the bar's focus and an open edit. `#isConfigUnchanged()`
@@ -501,12 +511,17 @@ The `hyperformula-ui` side of each is listed for the package maintainers (the re
   editor shim does not have, and giving it a hidden one would not help: the composition would start in that
   element and could not move into the package's input when the editor opens. It needs a `hyperformula-ui`
   input that is mounted and focusable before the edit opens.
-- The horizon theme's accent focus ring measures below 3:1; it is the theme token every grid surface uses.
-  The formula bar's own rings (the address box and the bar-hosted editor) do not use it:
-  `--hfe-formula-bar-input-focus-ring` is the text accent (`$accent-text-color`, 5.33:1 on horizon). The
-  bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
+- **The bar's focus rings and the accent colors map to theme tokens; the theme owns their contrast.** The
+  rings (`--hfe-formula-bar-input-focus-ring`) read `--ht-cell-selection-border-color`, so a focused bar
+  reads like the selected cell. The accent text (matched letters, the active parameter name), the active
+  argument chip and the paren match read `--ht-accent-color`, like every other grid surface that draws the
+  accent. Do not mix a darker plugin-local color to fix their contrast: that was tried, and the bar looked
+  like a different control next to the cell. Where the theme accent misses a contrast threshold (horizon,
+  classic), the fix belongs in the theme token, and it then reaches the formula builder with no change here.
+  The bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
   of the ring width (the idle overlay too, so the text does not shift on focus); drawing the ring outward
-  instead is clipped by the top slot. Pinned by "the bar editor's focus ring" in
+  instead is clipped by the top slot. Pinned by "the bar editor's focus ring", "the address box's focus
+  ring" and "the matched letters, the active argument chip and the paren match use the theme accent" in
   `tests/e2e/formula-builder-popups.spec.ts`.
 - `hyperformula-ui` is MIT-licensed since 0.3.6 (0.3.5 and earlier were `GPL-3.0-only`). It is pinned to an
   exact version because the 0.x line may break in a minor.

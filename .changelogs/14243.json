@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed formulas showing a rejected or pending value, the editor closing on another cell's validation, a header sort running before a pending edit landed, and sorting, moving, pending edits, and sort state on grids built from a HyperFormula sheet, a sort after enabling formulas on a live grid, and `updateSettings({ data, formulas })` showing formulas as text. A change to a cell with a validator and `allowInvalid: false` now reaches HyperFormula after validation, so `afterFormulasValuesUpdate` fires then, and a reload through `updateSettings()` of a grid built from a HyperFormula sheet fires `afterUpdateData` instead of `afterLoadData` and `afterChange` with the `'updateData'` source instead of `'loadData'`.",
+  "type": "fixed",
+  "issueOrPR": 14243,
+  "breaking": false,
+  "framework": "none"
+}

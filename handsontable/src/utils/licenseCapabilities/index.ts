@@ -1,5 +1,4 @@
 import { _getLicenseState } from '../../helpers/mixed';
-import { getProductCapabilities, HANDSONTABLE_PRODUCT } from '../entitlementLicenseKey';
 import { countRegisteredPlugins, getPlugin, getPluginsNames } from '../../plugins/registry';
 import { isRootInstance } from '../rootInstance';
 import type { HotInstance } from '../../core/types';
@@ -8,7 +7,7 @@ import type { PluginLicense } from './types';
 export type { PluginLicense, PluginLicenseGate } from './types';
 
 /**
- * What a license key unlocks: `'all'`, or the set of tokens it grants.
+ * What a license key unlocks: `'all'`, or the set of plugin tokens its tiers grant.
  */
 export type LicenseCapabilities = 'all' | ReadonlySet<string>;
 
@@ -44,30 +43,12 @@ const ALL: LicenseCapabilities = 'all';
 
 /**
  * The resolved capabilities per key string, with the number of registered plugins they were resolved
- * against: the implications come from the registered plugin classes, so a plugin registered later
- * makes the entry stale.
+ * against: the tiers of each plugin come from the registered plugin classes, so a plugin registered
+ * later makes the entry stale.
  */
 const resolvedByKey = new Map<string, { pluginCount: number; capabilities: LicenseCapabilities }>();
 
 const missingByInstance = new WeakMap<HotInstance, MissingCapabilitiesRecord>();
-
-/**
- * Tells whether a set of listed tokens covers a token: the token itself, or the `<namespace>:all`
- * token of its namespace.
- *
- * @param {ReadonlySet<string>} listed The listed tokens.
- * @param {string} token The token to check.
- * @returns {boolean}
- */
-function covers(listed: ReadonlySet<string>, token: string): boolean {
-  if (listed.has(token)) {
-    return true;
-  }
-
-  const separator = token.indexOf(':');
-
-  return separator !== -1 && listed.has(`${token.slice(0, separator)}:all`);
-}
 
 /**
  * Tells whether a plugin class's static `LICENSE` has the shape the generator writes. A plugin from outside
@@ -80,39 +61,42 @@ export function isPluginLicense(value: unknown): value is PluginLicense {
   const license = value as PluginLicense | null | undefined;
 
   return typeof license?.capability === 'string' && typeof license.name === 'string' &&
-    (license.gate === 'enable' || license.gate === 'call') && Array.isArray(license.implies);
+    (license.gate === 'enable' || license.gate === 'call') && Array.isArray(license.tiers);
 }
 
 /**
- * Resolves what a license key unlocks. A key that does not restrict (see `_getLicenseState`) unlocks
- * everything. A key that does unlocks `core`, the tokens it lists, every token a `<namespace>:all` it
- * lists covers, and the tokens every granted, registered plugin requires (its `LICENSE.implies`).
+ * Returns the tokens of the registered plugins whose `LICENSE.tiers` list one of the tiers a key names.
+ *
+ * @param {string[]} tiers The tiers the key names.
+ * @returns {Set<string>}
+ */
+function resolveTiers(tiers: readonly string[]): Set<string> {
+  const granted = new Set<string>();
+
+  getPluginsNames().forEach((pluginName) => {
+    const license: unknown = getPlugin(pluginName)?.LICENSE;
+
+    if (isPluginLicense(license) && license.tiers.some(tier => tiers.includes(tier))) {
+      granted.add(license.capability);
+    }
+  });
+
+  return granted;
+}
+
+/**
+ * Resolves what a license key unlocks. A key that names a tier (`tier:<name>`) unlocks the plugins whose
+ * `LICENSE.tiers` list one of its tiers, whatever else it lists and whatever its flags. Every other key
+ * (see `_getLicenseState`) unlocks everything.
  *
  * @param {string} key The license key.
  * @returns {LicenseCapabilities}
  */
 function resolveKey(key: string): LicenseCapabilities {
-  const { grants } = _getLicenseState(key);
+  const { tiers } = _getLicenseState(key);
 
-  if (grants.unrestricted) {
-    return ALL;
-  }
-
-  const listed = new Set(getProductCapabilities(grants, HANDSONTABLE_PRODUCT) ?? []);
-  const granted = new Set(listed);
-
-  granted.add('core');
-
-  // One pass is enough: `implies` is already the full closure of a plugin's requirements.
-  getPluginsNames().forEach((pluginName) => {
-    const license: unknown = getPlugin(pluginName)?.LICENSE;
-
-    if (isPluginLicense(license) && covers(listed, license.capability)) {
-      license.implies.forEach(token => granted.add(token));
-    }
-  });
-
-  return granted;
+  // A state without a `tiers` field names no tier, so it unlocks everything, as `null` does.
+  return tiers === null || tiers === undefined ? ALL : resolveTiers(tiers);
 }
 
 /**
@@ -154,13 +138,13 @@ export function resolveLicenseCapabilities(hot: HotInstance): LicenseCapabilitie
  * @returns {boolean}
  */
 export function hasLicenseCapability(hot: HotInstance, token: string): boolean {
-  if (!isRootInstance(hot) || token === 'core') {
+  if (!isRootInstance(hot)) {
     return true;
   }
 
   const capabilities = resolveLicenseCapabilities(hot);
 
-  return capabilities === 'all' || covers(capabilities, token);
+  return capabilities === 'all' || capabilities.has(token);
 }
 
 /**
