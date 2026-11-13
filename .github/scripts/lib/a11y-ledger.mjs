@@ -239,7 +239,8 @@ const SITE_NIGHTS = Object.freeze({
  * @property {string|null} url The fixture path, when the finding names one.
  * @property {string|null} issue The baseline issue an axe finding is filed under, or the one the scan suggests for a new one.
  * @property {number|null} [nodes] A scan finding's node count, as the scan counted it (a site's change run compares a
- *   grown finding with it: `lib/a11y-docs-drift.mjs`); `null` from a document that gave none. Other sources carry none.
+ *   grown finding with it: `lib/a11y-docs-drift.mjs`); `null` from a document that gave none. Every axe scan's row
+ *   carries it (`axe`, `docs`, `website`); the check sources and `reader` carry none.
  */
 
 /**
