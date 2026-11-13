@@ -122,9 +122,9 @@ jobs:
             node: 22
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      # No `version:` here: the action reads `packageManager` from the root `package.json`, and naming a
+      # second version makes it refuse to install.
       - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
-        with:
-          version: 10 # On Windows the `packageManager` field of `package.json` seems to not be recognized.
       - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
           node-version: ${{ matrix.node }}
