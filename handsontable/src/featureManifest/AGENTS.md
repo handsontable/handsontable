@@ -17,7 +17,9 @@ JSON file next to its code. A build step checks the files against the source and
   (`docs/content/guides/getting-started/license-key/license-key.md`, between the `license-tiers` markers). The path
   starts with `../`, because every output path is relative to `handsontable/`. Two tests hold it: the sync test in
   `test/__tests__/featureManifest.unit.js`, and `scripts/__tests__/license-tiers-matrix.test.mjs` in the root
-  `test:tooling`, which runs on a pull request that changes only the page.
+  `test:tooling`, which runs on a pull request that changes only the page. A checkout without the `docs/`
+  directory (a sparse one) leaves the guide out, so the core still builds there; with `docs/` present and the
+  guide missing, the generator throws.
 
 Code: `scripts/utils/feature-manifest.js` (loader, checks, builders; CommonJS so Jest and node both load it) and
 `scripts/generate-feature-manifest.mjs` (the CLI). Tests: `test/__tests__/featureManifest.unit.js` (the sources

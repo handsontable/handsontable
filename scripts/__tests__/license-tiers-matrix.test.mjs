@@ -19,7 +19,12 @@ const {
 } = createRequire(import.meta.url)(join(PACKAGE_DIR, 'scripts/utils/feature-manifest.js'));
 
 test('the tier matrix in the license key guide matches the feature manifest sources', () => {
-  const stale = findStaleOutputs(loadSources(PACKAGE_DIR));
+  const sources = loadSources(PACKAGE_DIR);
+  const stale = findStaleOutputs(sources);
+
+  // Without `docs/` the generator leaves the guide out, and this test would pass on nothing.
+  assert.equal(sources.hasDocs, true, 'the checkout holds the docs directory');
+  assert.equal(typeof sources.licenseGuideText, 'string', `${LICENSE_GUIDE_FILE} exists`);
 
   assert.ok(!stale.includes(LICENSE_GUIDE_FILE),
     `${LICENSE_GUIDE_FILE} is stale. Edit the manifest sources instead of the block between the license-tiers ` +

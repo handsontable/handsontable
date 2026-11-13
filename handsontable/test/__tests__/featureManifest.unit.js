@@ -507,6 +507,14 @@ describe('feature manifest', () => {
       expect(build).toThrow(`${LICENSE_GUIDE_FILE} is missing`);
       expect(build).not.toThrow('license-tiers:end');
     });
+
+    it('should leave the guide out in a checkout without the docs directory, and never report it stale there', () => {
+      const withoutDocs = { ...sources, hasDocs: false, licenseGuideText: null };
+
+      expect(sources.hasDocs).toBe(true);
+      expect(buildCommittedOutputs(withoutDocs).map(({ file }) => file)).not.toContain(LICENSE_GUIDE_FILE);
+      expect(findStaleOutputs(withoutDocs)).toEqual([]);
+    });
   });
 
   describe('checkRecordAgainstBase()', () => {

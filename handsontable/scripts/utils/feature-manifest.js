@@ -165,7 +165,8 @@ const OUTPUT_FILE = 'dist/manifest.json';
  * The license key guide, relative to `handsontable/`, and the markers around the feature-to-tier matrix it holds.
  * Everything between the markers is generated; the rest of the page is hand-written.
  */
-const LICENSE_GUIDE_FILE = '../docs/content/guides/getting-started/license-key/license-key.md';
+const DOCS_DIR = '../docs';
+const LICENSE_GUIDE_FILE = `${DOCS_DIR}/content/guides/getting-started/license-key/license-key.md`;
 const TIER_MATRIX_START = '<!-- license-tiers:start -->';
 const TIER_MATRIX_END = '<!-- license-tiers:end -->';
 
@@ -304,6 +305,8 @@ function loadSources(packageDir) {
     releasedText: readText(RELEASED_FILE),
     xlsxLicenseModuleText: readText(XLSX_LICENSE_MODULE_FILE),
     licenseGuideText: readText(LICENSE_GUIDE_FILE),
+    // Whether the checkout holds the docs site at all: without it the license key guide is not generated.
+    hasDocs: existsSync(join(packageDir, DOCS_DIR)),
   };
 }
 
@@ -1307,6 +1310,7 @@ function checkRecordAgainstBase(base, current) {
  * Lists the committed files the sources generate: one module per plugin whose dependencies are checked at init
  * or that a license key can name, the XLSX license token module, the record of released ids, and the license key
  * guide with its feature-to-tier matrix. Every path is relative to `handsontable/`, so the guide's starts with `../`.
+ * A checkout without the `docs/` directory leaves the guide out; one with `docs/` and no guide still throws.
  *
  * @param {object} sources What `loadSources()` returns, already checked.
  * @returns {Array<{file: string, content: string}>}
@@ -1324,7 +1328,8 @@ function buildCommittedOutputs(sources) {
     ...modules,
     { file: XLSX_LICENSE_MODULE_FILE, content: renderXlsxLicenseModule(sources) },
     { file: RELEASED_FILE, content: `${JSON.stringify(buildReleased(sources), null, 2)}\n` },
-    { file: LICENSE_GUIDE_FILE, content: renderLicenseGuide(sources) },
+    // A checkout without `docs/` (a sparse one, or the published package) has no guide to write the matrix into.
+    ...(sources.hasDocs ? [{ file: LICENSE_GUIDE_FILE, content: renderLicenseGuide(sources) }] : []),
   ];
 }
 
