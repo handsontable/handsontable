@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T13:01:50.714Z",
+  "generatedAt": "2026-11-13T16:10:27.767Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 449,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 2305
+    "entries": 2306
   },
   "rows": [
     {
@@ -57,14 +57,14 @@
       "file": "e2e/formula-builder-picking.spec.ts",
       "line": 701,
       "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
-      "count7": 4,
-      "count30": 8,
-      "countAll": 8,
-      "runs30": 5,
-      "flakyRuns30": 5,
-      "branches30": 5,
+      "count7": 5,
+      "count30": 9,
+      "countAll": 9,
+      "runs30": 6,
+      "flakyRuns30": 6,
+      "branches30": 6,
       "nightlyRuns30": 0,
-      "openBranches30": 5,
+      "openBranches30": 6,
       "legs": [
         "e2e-firefox"
       ],
@@ -74,9 +74,9 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-11-09T13:48:29Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/42619406851/attempts/2",
-        "branch": "feature/DEV-999_Comment-popup-position",
+        "seenAt": "2026-11-13T16:09:27Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43456615504",
+        "branch": "feature/DEV-3980_Website-checks-beyond-axe",
         "leg": "e2e-firefox",
         "status": "flaky",
         "error": "Error: expect(locator).toHaveValue(expected) failed",
