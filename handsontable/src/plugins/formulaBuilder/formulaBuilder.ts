@@ -755,6 +755,8 @@ export class FormulaBuilder extends BasePlugin {
 
       this.#moveSelectionAfterCommit(direction);
     });
+
+    this.#flushAfterCommitWrite();
   }
 
   /**
@@ -795,6 +797,16 @@ export class FormulaBuilder extends BasePlugin {
       this.hot.getShortcutManager().releasePressedKeys();
       this.hot._getEditorManager().moveSelectionAfterEnter(event);
     });
+
+    this.#flushAfterCommitWrite();
+  }
+
+  /**
+   * Recalculates the engine after a commit's write, before the package reads it to announce the dependent errors.
+   * The write takes the Formulas plugin's hold lazily, so a flush before the commit is undone by the write.
+   */
+  #flushAfterCommitWrite(): void {
+    this.#formulasPlugin?.flushEngineEvaluation();
   }
 
   /**

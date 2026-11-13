@@ -175,6 +175,16 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   every resume re-read the bar mid-operation. Without the option nothing is held, so nothing waits; do not key
   the deferral on `isExecutionSuspended()` (the bar then lags every host `suspendExecution()`). Pinned by
   `__tests__/batchEvaluation.unit.ts`.
+- **A commit flushes the Formulas hold AFTER its write, never before.** The package's `announcingCommit` runs
+  `onCommit`, then `announceCommitErrors` reads the raw engine (`engine.getCellValue()`) to announce the dependent
+  errors. With `formulas.batchEvaluation` and a host `suspendExecution()` open, the commit's write takes the hold
+  lazily, so that read threw `EvaluationSuspendedError` (logged by the package's `EventScope`) and the announcement
+  was lost. A flush before the commit is undone by the write, so `commitInlineEdit()` and
+  `commitInlineEditToSelection()` call `#flushAfterCommitWrite()` right after `finishEditing()`. A synchronous
+  validator is what exposes it: without one the write releases the hold itself, and an asynchronous validator
+  needs no flush because the engine already holds the value when the package reads it (probed: the announcement
+  arrives with the setting on or off). The flush recalculates every write the host still holds, so the
+  announcement can count their dependent errors too. Pinned by `__tests__/batchEvaluation.unit.ts`.
 - **`updatePlugin()` keeps the built plugin when nothing it was built from changed.** `SETTING_KEYS` lists
   `formulas`, and the React and Angular wrappers re-send every object prop with a new identity on each
   render, so a full rebuild per render discarded the bar's focus and an open edit. `#isConfigUnchanged()`
