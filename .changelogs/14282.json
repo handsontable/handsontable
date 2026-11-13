@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where the validation of formula dependents ran on the wrong cell, or skipped the real one, when rows or columns were trimmed (for example by Filters or `trimRows`).",
+  "type": "fixed",
+  "issueOrPR": 14282,
+  "breaking": false,
+  "framework": "none"
+}
