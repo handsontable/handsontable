@@ -2026,8 +2026,8 @@ export class MergeCells extends BasePlugin {
    * restored side does not. `restoreState()` runs after UndoRedo restored the index maps, so the visual columns
    * of a live merge name the wrong physical columns and a set built from them cannot see the cell a redo takes
    * out of a merge. The recorded merges carry their physical columns, so the two sides are compared by those.
-   * A cell a live merge still covers is left alone; one an unchanged merge covers may be cleaned, and
-   * `afterGetCellMeta` stores the flags again on the next read.
+   * A cell the restored side's changed merges cover is left alone. One an unchanged merge covers may be
+   * cleaned, and `afterGetCellMeta` stores the flags again on the next read.
    *
    * @param {Array} state The merges on the restored side of the step.
    * @param {Array} other The merges on the other side of the step.
@@ -2046,17 +2046,7 @@ export class MergeCells extends BasePlugin {
         return;
       }
 
-      const physicalRow = Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE);
-      const physicalColumn = key % DRAWN_CELL_COLUMN_STRIDE;
-      const visualRow = this.hot.toVisualRow(physicalRow);
-      const visualColumn = this.hot.toVisualColumn(physicalColumn);
-
-      if (visualRow !== null && visualColumn !== null &&
-          this.mergedCellsCollection.get(visualRow, visualColumn) !== false) {
-        return;
-      }
-
-      this.#clearCoveredFlagsOfTopLeftCell(physicalRow, physicalColumn);
+      this.#clearCoveredFlagsOfTopLeftCell(Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE), key % DRAWN_CELL_COLUMN_STRIDE);
     });
   }
 

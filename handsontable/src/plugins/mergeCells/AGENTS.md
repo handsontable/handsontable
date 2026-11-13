@@ -308,9 +308,11 @@ hooks). Six rules keep it narrow:
   cell a redo takes out of a merge. They compare the two sides of the step by their recorded merges instead
   (`#clearCoveredFlagsOfCellsReleasedByStep()`): each captured merge carries its anchor rows and its
   `physicalColumns`, so the cells the other side covered and the restored side does not are known without
-  reading a live merge's columns. Only the merges the step changed are walked, and a cell a live merge still
-  covers is skipped (the live lookup is read only after the changed merges were put back, so it answers for
-  the restored side). Never build the released set from the live merges' visual columns. It does nothing
+  reading a live merge's columns. Only the merges the step changed are walked, and a cell the restored side's
+  changed merges cover is skipped. A cell an unchanged merge covers is not looked at, so it may be cleaned and
+  `afterGetCellMeta` stores the flags again on the next read. Never build the released set from the live
+  merges' visual columns. A guard that reads the live lookup was tried and dropped: no test needed it, and the
+  recorded sides already hold the answer. It does nothing
   without a recorded other side (no `context.other`), for a merge captured with no `physicalColumns`, or when
   the replay inserted or removed rows or columns (`context.reordered`): the recorded physical indexes are
   numbered like the grid before that replay. A row move's redo was already clean, because dropping the live merge cleans it by the
