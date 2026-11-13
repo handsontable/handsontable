@@ -28,6 +28,19 @@ test('1.3.5: a field is matched with its purpose by name, and an autocomplete va
   assert.equal(autocompleteField(null), null);
 });
 
+test('1.3.5: the organization is the whole name, so a question about the company asks for no organization', () => {
+  // The names production's forms carry (the contact tabs and the trial form), each with a mark at most.
+  for (const name of ['Company name', 'Company Name', 'COMPANY NAME', 'Company', 'Your company', 'Organisation name',
+    'Company nameOptional', 'Company name *', 'Company name (optional)']) {
+    assert.equal(purposeOf(name)?.purpose, 'organization', name);
+  }
+  assert.equal(purposeOf('Company size'), null, 'a size is no input purpose');
+  assert.equal(purposeOf('Company website')?.purpose, 'website', 'the company\'s address is a URL');
+  assert.equal(purposeOf('Position in the company')?.purpose, 'job title', 'a position is the visitor\'s job title');
+  assert.deepEqual(kinds(fieldFindings([field({ role: 'combobox', shape: 'select', name: 'Company size', label: 'Company size',
+    autocomplete: null })])), [], 'a select of company sizes needs no autocomplete token');
+});
+
 test('1.3.5: a personal field without its token, or with another one', () => {
   assert.deepEqual(kinds(fieldFindings([field()])), [], 'production\'s email field carries autocomplete="email"');
   assert.deepEqual(kinds(fieldFindings([field({ autocomplete: null })])), ['autocomplete-missing']);

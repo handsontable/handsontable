@@ -2168,7 +2168,8 @@ and of `.github/workflows/website-a11y.yml`.
 - **`website-forms`** (`forms.spec.ts`, judged by `lib/site-forms.mjs`), the website's alone: the three tabs of the
   contact form, the trial form, the support call's details and the footer newsletter. At rest, every field's role,
   name, description and required state from the accessibility tree, its label, whether a label is drawn, and its
-  `autocomplete` (1.3.1, 1.3.5 against the input purposes its name asks for, 3.3.2: required and optional fields told
+  `autocomplete` (1.3.1, 1.3.5 against the input purposes its name asks for, the organization only on the whole name,
+  since "Company size" asks for none, 3.3.2: required and optional fields told
   apart, where a checkbox, a radio button or a switch left unticked is a choice, not a missing entry, so no form marks
   it optional). Then the submit button pressed from the keyboard with the form empty (3.3.1: each required field
   flagged, with text, tied to it; 4.1.3: a live region speaks or the focus moves), with an email address that has no @
