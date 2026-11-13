@@ -214,8 +214,8 @@ moves focus into a modal in all circumstances; re-deciding it is a product call,
 
 The Tab shortcut is registered with `preventDefault: false` and runs the hook inside `_registerTimeout`, so the
 browser has already moved the focus when the hook runs, and the hook gets no arguments. A handler reads
-`document.activeElement`. It fires for every Tab while the dialog's shortcut context is active, including the
-press that leaves the dialog. The hook JSDoc once said "before focusing", which is wrong; do not restore that
+`document.activeElement`. It fires for a Tab pressed while the focus is inside the dialog, including the press
+that leaves it, and not for a press that brings the focus in from the page. The hook JSDoc once said "before focusing", which is wrong; do not restore that
 wording, and do not pass an element or move the timing without a product call (public hooks).
 
 A report of "Safari does not Tab to the buttons" (DEV-1118) is the browser's default: Safari skips buttons on
