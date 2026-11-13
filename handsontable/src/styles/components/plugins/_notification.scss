@@ -6,6 +6,7 @@
   .ht-notification {
     position: absolute;
     inset: 0;
+    inset-inline: var(--ht-grid-inset-inline-start, 0) var(--ht-grid-inset-inline-end, 0);
     z-index: 1070;
     pointer-events: none;
     overflow: visible;

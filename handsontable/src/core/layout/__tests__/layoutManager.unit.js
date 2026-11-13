@@ -4,9 +4,11 @@ describe('LayoutManager', () => {
   function setup() {
     const top = document.createElement('div');
     const bottom = document.createElement('div');
-    const manager = new LayoutManager({ top, bottom });
+    const start = document.createElement('div');
+    const end = document.createElement('div');
+    const manager = new LayoutManager({ top, bottom, start, end });
 
-    return { manager, top, bottom };
+    return { manager, top, bottom, start, end };
   }
 
   const ids = parent => Array.from(parent.children).map(c => c.dataset.id);
@@ -19,9 +21,12 @@ describe('LayoutManager', () => {
   };
 
   it('exposes a DomSlot per slot name bound to the right element', () => {
-    const { manager, bottom } = setup();
+    const { manager, top, bottom, start, end } = setup();
 
+    expect(manager.getSlot('top').getElement()).toBe(top);
     expect(manager.getSlot('bottom').getElement()).toBe(bottom);
+    expect(manager.getSlot('start').getElement()).toBe(start);
+    expect(manager.getSlot('end').getElement()).toBe(end);
   });
 
   it('throws for an unknown slot name', () => {
@@ -73,6 +78,54 @@ describe('LayoutManager', () => {
 
     expect(ids(top)).toEqual(['a']);
     expect(ids(bottom)).toEqual(['b']);
+  });
+
+  it('register places the element into the start and end side slots', () => {
+    const { manager, top, bottom, start, end } = setup();
+
+    manager.register('a', make('a'), { side: 'start' });
+    manager.register('b', make('b'), { side: 'end' });
+
+    expect(ids(start)).toEqual(['a']);
+    expect(ids(end)).toEqual(['b']);
+    expect(ids(top)).toEqual([]);
+    expect(ids(bottom)).toEqual([]);
+  });
+
+  it('register orders the start and end slots by weight and the layout config overrides it', () => {
+    const { manager, start, end } = setup();
+
+    manager.register('outline', make('outline'), { side: 'start', weight: 200 });
+    manager.register('nav', make('nav'), { side: 'start', weight: 100 });
+    manager.register('details', make('details'), { side: 'end', weight: 300 });
+    manager.register('history', make('history'), { side: 'end', weight: 50 });
+
+    expect(ids(start)).toEqual(['nav', 'outline']);
+    expect(ids(end)).toEqual(['history', 'details']);
+
+    manager.applyConfig({ start: ['outline', 'nav'], end: ['details', 'history'] });
+
+    expect(ids(start)).toEqual(['outline', 'nav']);
+    expect(ids(end)).toEqual(['details', 'history']);
+
+    manager.applyConfig({ start: ['outline', 'nav'] });
+
+    expect(ids(start)).toEqual(['outline', 'nav']);
+    expect(ids(end)).toEqual(['history', 'details']);
+  });
+
+  it('unregister detaches the element from the start and end slots', () => {
+    const { manager, start, end } = setup();
+
+    manager.register('a', make('a'), { side: 'start' });
+    manager.register('b', make('b'), { side: 'start' });
+    manager.register('c', make('c'), { side: 'end' });
+
+    manager.unregister('a', 'start');
+    manager.unregister('c', 'end');
+
+    expect(ids(start)).toEqual(['b']);
+    expect(ids(end)).toEqual([]);
   });
 
   it('register throws for a non-slot side such as the internal overlays layer', () => {
@@ -150,6 +203,23 @@ describe('LayoutManager', () => {
     expect(ids(bottom)).toEqual(['toolbar', 'pagination', 'license']);
   });
 
+  it('reports the slot name to onSlotContentChange on register and unregister', () => {
+    const elements = {
+      top: document.createElement('div'),
+      bottom: document.createElement('div'),
+      start: document.createElement('div'),
+      end: document.createElement('div'),
+    };
+    const onSlotContentChange = jest.fn();
+    const manager = new LayoutManager(elements, { onSlotContentChange });
+
+    manager.register('panel', make('panel'), { side: 'start' });
+    manager.register('bar', make('bar'), { side: 'bottom' });
+    manager.unregister('panel', 'start');
+
+    expect(onSlotContentChange.mock.calls.map(([name]) => name)).toEqual(['start', 'bottom', 'start']);
+  });
+
   it('clears all slots on destroy', () => {
     const { manager, top } = setup();
 
@@ -164,13 +234,17 @@ describe('LayoutManager', () => {
       const wrapper = document.createElement('div');
       const top = document.createElement('div');
       const bottom = document.createElement('div');
+      const start = document.createElement('div');
+      const end = document.createElement('div');
 
+      wrapper.appendChild(start);
       wrapper.appendChild(top);
       wrapper.appendChild(bottom);
+      wrapper.appendChild(end);
 
-      const manager = new LayoutManager({ top, bottom });
+      const manager = new LayoutManager({ top, bottom, start, end });
 
-      return { manager, wrapper, top, bottom };
+      return { manager, wrapper, top, bottom, start, end };
     }
 
     it('mirrors each slot\'s fill state onto the slot parent as items are added and removed', () => {
@@ -192,6 +266,30 @@ describe('LayoutManager', () => {
 
       expect(wrapper.classList.contains('ht-slot-top-filled')).toBe(false);
       expect(wrapper.classList.contains('ht-slot-bottom-filled')).toBe(true);
+    });
+
+    it('mirrors the start and end slots\' fill state onto the slot parent independently', () => {
+      const { manager, wrapper } = setupWithWrapper();
+      const filled = () => ['top', 'bottom', 'start', 'end']
+        .filter(name => wrapper.classList.contains(`ht-slot-${name}-filled`));
+
+      expect(filled()).toEqual([]);
+
+      manager.register('a', make('a'), { side: 'start' });
+
+      expect(filled()).toEqual(['start']);
+
+      manager.register('b', make('b'), { side: 'end' });
+
+      expect(filled()).toEqual(['start', 'end']);
+
+      manager.unregister('a', 'start');
+
+      expect(filled()).toEqual(['end']);
+
+      manager.unregister('b', 'end');
+
+      expect(filled()).toEqual([]);
     });
 
     it('keeps the class while at least one registered item remains', () => {
@@ -223,11 +321,15 @@ describe('LayoutManager', () => {
 
       manager.register('a', make('a'), { side: 'top' });
       manager.register('b', make('b'), { side: 'bottom' });
+      manager.register('c', make('c'), { side: 'start' });
+      manager.register('d', make('d'), { side: 'end' });
 
       manager.destroy();
 
       expect(wrapper.classList.contains('ht-slot-top-filled')).toBe(false);
       expect(wrapper.classList.contains('ht-slot-bottom-filled')).toBe(false);
+      expect(wrapper.classList.contains('ht-slot-start-filled')).toBe(false);
+      expect(wrapper.classList.contains('ht-slot-end-filled')).toBe(false);
     });
 
     it('keeps the class on destroy while a foreign slot item remains in the slot', () => {
