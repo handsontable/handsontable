@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed plugin markup staying in the header corner after row headers were turned on or the grid was scrolled horizontally.",
+  "type": "fixed",
+  "issueOrPR": 14287,
+  "breaking": false,
+  "framework": "none"
+}
