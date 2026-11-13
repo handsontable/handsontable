@@ -130,7 +130,7 @@ import { captureRecord, createWaitingChangeRecords, resolveRecord } from './core
 import { createWaitingMetaStamps } from './core/waitingMetaStamps';
 import type { StampedMeta } from './core/waitingMetaStamps';
 import type {
-  RecordAnchor, RecordReader, TrackedRecordHandle, WaitingChangeRecords,
+  RecordAnchor, RecordReader, RowShiftObserver, TrackedRecordHandle, WaitingChangeRecords,
 } from './core/waitingRecords';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
@@ -520,6 +520,27 @@ export default function Core(
         return null;
       }
     },
+  };
+  /**
+   * Tells a waiting change of a row past the last one about the rows `alter()`, a write past the last row or
+   * a spare-row option inserts or removes, by their visual rows, see `core/waitingRecords.ts`.
+   *
+   * @param {object} listener The listener.
+   * @returns {Function} Stops telling the listener.
+   */
+  const observeRowShifts: RowShiftObserver = (listener) => {
+    const onAfterCreateRow = (visualRow: number, amount: number) => listener.rowsInserted(visualRow, amount);
+    const onAfterRemoveRow = (visualRow: number, amount: number) => listener.rowsRemoved(visualRow, amount);
+
+    instance.addHook('afterCreateRow', onAfterCreateRow);
+    instance.addHook('afterRemoveRow', onAfterRemoveRow);
+
+    return () => {
+      if (instance) {
+        instance.removeHook('afterCreateRow', onAfterCreateRow);
+        instance.removeHook('afterRemoveRow', onAfterRemoveRow);
+      }
+    };
   };
   let datamap: DataMapInstance;
   let dataSource: DataSourceInstance;
@@ -4708,7 +4729,7 @@ export default function Core(
   function validateAndApplyChanges(changes: CellChange[], source: string | undefined, loadGeneration: number) {
     const hold = operationScope.hold();
     const records = createWaitingChangeRecords(
-      recordTracker, recordReader, getPhysicalRowOfExistingRow, waitingChangeRecords,
+      recordTracker, recordReader, getPhysicalRowOfExistingRow, waitingChangeRecords, observeRowShifts,
     );
 
     if (loadGeneration === validationLoadGeneration) {

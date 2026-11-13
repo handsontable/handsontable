@@ -282,13 +282,33 @@ function writeChangeRow(change: CellChange, visualRow: number | null): void {
 }
 
 /**
+ * Told about the rows inserted into or removed from the visual space, by the visual row of the first one and their
+ * count. A removal is told after its rows are gone, an insert after its rows are in.
+ */
+export interface RowShiftListener {
+  /**
+   * Called after rows are inserted at a visual row.
+   */
+  rowsInserted(visualRow: number, amount: number): void;
+  /**
+   * Called after rows are removed from a visual row.
+   */
+  rowsRemoved(visualRow: number, amount: number): void;
+}
+
+/**
+ * Starts telling a listener about the rows inserted and removed, and returns the function that stops it.
+ */
+export type RowShiftObserver = (listener: RowShiftListener) => () => void;
+
+/**
  * The records of the changes of one set that waits for its validators.
  */
 export interface WaitingChangeRecords {
   /**
-   * Captures the record of every change of the set that addresses an existing row, and how far past the last row
-   * every other change of a row past the last one is. Runs once, before the first validator of the set is called;
-   * later calls do nothing.
+   * Captures the record of every change of the set that addresses an existing row, and the visual row of every
+   * change of a row past the last one. Runs once, before the first validator of the set is called; later calls do
+   * nothing.
    */
   capture(changes: CellChange[]): void;
   /**
@@ -312,8 +332,9 @@ export interface WaitingChangeRecords {
    * Resolves the record of every change when the set is applied: a change whose record is gone is taken out of
    * `changes` (in place) and returned, and every other tracked change gets the visual row its record has now in
    * place of the one it was made at (`null` while the record is trimmed out of the visual space). A change of a
-   * row past the last one gets the row as far past the last row as it was made, so a row inserted or removed
-   * meanwhile does not turn it into a write to an existing record.
+   * row past the last one moves only by the rows inserted or removed above it while it waited, so such a row does
+   * not turn it into a write to the record that slid to its row. A row appended at the end does not move it: a
+   * write past the last row appends the row that a later change to the same row then writes to.
    */
   settle(changes: CellChange[], toVisualRow: (physicalRow: number) => number | null): CellChange[];
   /**
@@ -341,6 +362,8 @@ export interface WaitingChangeRecords {
  *   past the last one, which the write creates and which keeps its visual coordinates.
  * @param {WeakMap} registry Maps each captured change to the bookkeeping of its set, for as long as the set holds
  *   its records, so the record of one change is found in O(1) whatever number of sets waits.
+ * @param {Function} observeRowShifts Tells the changes of rows past the last one about the rows inserted and
+ *   removed while they wait.
  * @returns {object}
  */
 export function createWaitingChangeRecords(
@@ -348,12 +371,55 @@ export function createWaitingChangeRecords(
   reader: RecordReader,
   toPhysicalRow: (visualRow: number) => number | null,
   registry: WeakMap<object, WaitingChangeRecords>,
+  observeRowShifts: RowShiftObserver,
 ): WaitingChangeRecords {
   const anchorsByChange = new Map<object, RecordAnchor>();
   const anchors = new Set<RecordAnchor>();
   const settledRows = new Map<object, number>();
-  const pastEndOffsets = new Map<CellChange, number>();
+  const pastEndRows = new Map<CellChange, number>();
+  let stopObservingRows: (() => void) | null = null;
   let captured = false;
+
+  /**
+   * Moves the rows of the changes past the last row by the rows inserted at or above them, unless the rows are
+   * appended at the end.
+   *
+   * @param {number} visualRow The visual row of the first inserted row.
+   * @param {number} amount The number of inserted rows.
+   */
+  const shiftOnInsert = (visualRow: number, amount: number) => {
+    if (visualRow >= reader.countVisualRows() - amount) {
+      return;
+    }
+
+    pastEndRows.forEach((row, change) => {
+      if (visualRow <= row) {
+        pastEndRows.set(change, row + amount);
+      }
+    });
+  };
+
+  /**
+   * Moves the rows of the changes past the last row up by the removed rows above them.
+   *
+   * @param {number} visualRow The visual row of the first removed row.
+   * @param {number} amount The number of removed rows.
+   */
+  const shiftOnRemove = (visualRow: number, amount: number) => {
+    pastEndRows.forEach((row, change) => {
+      if (visualRow < row) {
+        pastEndRows.set(change, row - Math.min(amount, row - visualRow));
+      }
+    });
+  };
+
+  /**
+   * Stops following the rows inserted and removed.
+   */
+  const stopShifting = () => {
+    stopObservingRows?.();
+    stopObservingRows = null;
+  };
 
   const records: WaitingChangeRecords = {
     capture(changes) {
@@ -371,7 +437,7 @@ export function createWaitingChangeRecords(
 
         if (physicalRow === null) {
           if (Number.isInteger(change[0]) && change[0] >= visualRowsCount) {
-            pastEndOffsets.set(change, change[0] - visualRowsCount);
+            pastEndRows.set(change, change[0]);
           }
 
           return;
@@ -388,6 +454,10 @@ export function createWaitingChangeRecords(
         anchorsByChange.set(change, anchor);
         registry.set(change, records);
       });
+
+      if (pastEndRows.size > 0) {
+        stopObservingRows = observeRowShifts({ rowsInserted: shiftOnInsert, rowsRemoved: shiftOnRemove });
+      }
     },
     noteMeta(change, meta, physicalColumn) {
       const anchor = anchorsByChange.get(change);
@@ -409,11 +479,8 @@ export function createWaitingChangeRecords(
       return anchorsByChange.size > 0;
     },
     settle(changes, toVisualRow) {
-      if (pastEndOffsets.size > 0) {
-        const visualRowsCount = reader.countVisualRows();
-
-        pastEndOffsets.forEach((offset, change) => writeChangeRow(change, visualRowsCount + offset));
-      }
+      stopShifting();
+      pastEndRows.forEach((row, change) => writeChangeRow(change, row));
 
       if (anchorsByChange.size === 0) {
         return [];
@@ -473,7 +540,8 @@ export function createWaitingChangeRecords(
       anchors.clear();
       anchorsByChange.clear();
       settledRows.clear();
-      pastEndOffsets.clear();
+      stopShifting();
+      pastEndRows.clear();
     },
   };
 

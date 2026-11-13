@@ -410,6 +410,80 @@ describe('Core validation of a change while its record moves', () => {
     });
   });
 
+  describe('separate writes to the same row past the last one', () => {
+    /**
+     * Creates a grid of six records `{ id, qty }`.
+     *
+     * @param {Array<object>} columns The column settings.
+     * @returns {Handsontable}
+     */
+    function createRecordsGrid(columns) {
+      return createGrid({
+        data: Array.from({ length: 6 }, (_, row) => ({ id: row + 1, qty: (row + 1) * 10 })),
+        columns,
+        cells: undefined,
+      });
+    }
+
+    it('should write both values to one created record when both columns wait for a validator', async() => {
+      createRecordsGrid([{ data: 'id', validator: heldValidator }, { data: 'qty', validator: heldValidator }]);
+
+      hot.setDataAtCell(6, 0, 7);
+      hot.setDataAtCell(6, 1, 70);
+      await answerAll();
+
+      expect(hot.countRows()).toBe(7);
+      expect(hot.getSourceDataAtRow(6)).toEqual({ id: 7, qty: 70 });
+    });
+
+    it('should write both values to one created record when both columns are numeric', async() => {
+      createRecordsGrid([{ data: 'id', type: 'numeric' }, { data: 'qty', type: 'numeric' }]);
+
+      hot.setDataAtCell(6, 0, 7);
+      hot.setDataAtCell(6, 1, 70);
+      await settle();
+
+      expect(hot.countRows()).toBe(7);
+      expect(hot.getSourceDataAtRow(6)).toEqual({ id: 7, qty: 70 });
+    });
+
+    it('should write both values to one created record when only the first column waits for a validator', async() => {
+      createRecordsGrid([{ data: 'id', validator: heldValidator }, { data: 'qty' }]);
+
+      hot.setDataAtCell(6, 0, 7);
+      hot.setDataAtCell(6, 1, 70);
+      await answerAll();
+
+      expect(hot.countRows()).toBe(7);
+      expect(hot.getSourceDataAtRow(6)).toEqual({ id: 7, qty: 70 });
+    });
+
+    it('should write both values to one created record moved by a row inserted above while they wait', async() => {
+      createRecordsGrid([{ data: 'id', validator: heldValidator }, { data: 'qty', validator: heldValidator }]);
+
+      hot.setDataAtCell(6, 0, 7);
+      hot.setDataAtCell(6, 1, 70);
+      hot.alter('insert_row_above', 0);
+      await answerAll();
+
+      expect(hot.countRows()).toBe(8);
+      expect(hot.getSourceDataAtRow(0)).toEqual({ id: null, qty: null });
+      expect(hot.getSourceDataAtRow(7)).toEqual({ id: 7, qty: 70 });
+    });
+
+    it('should write both values to one created record when the first one lands before a row is inserted above', async() => {
+      createRecordsGrid([{ data: 'id' }, { data: 'qty', validator: heldValidator }]);
+
+      hot.setDataAtCell(6, 1, 70);
+      hot.setDataAtCell(6, 0, 7);
+      hot.alter('insert_row_above', 0);
+      await answerAll();
+
+      expect(hot.countRows()).toBe(8);
+      expect(hot.getSourceDataAtRow(7)).toEqual({ id: 7, qty: 70 });
+    });
+  });
+
   describe('a record its tracked row no longer holds', () => {
     it('should find the record by its row id when the data is replaced by copies through updateSettings()', async() => {
       createGrid({

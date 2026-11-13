@@ -33,6 +33,7 @@ describe('createWaitingChangeRecords', () => {
       reader,
       visualRow => visualRow,
       new WeakMap<object, WaitingChangeRecords>(),
+      () => () => {},
     );
     const changes: CellChange[] = Array.from({ length: 10 }, (_, row): CellChange => [row, 0, 'old', 'new']);
 
