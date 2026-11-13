@@ -8,6 +8,7 @@ import { detachValue, recordCellChange } from '../../dataMap/dataJournal';
 import { Launch, LaunchQueue } from './launchQueue';
 import { getChangeKey, isArrayLike, isProp, toErrorMessage, type Change } from './utils';
 import { normalizeRanges } from '../../utils/copiedRanges';
+import { createIndexedLocator, isRowObject, type RowObjectLocator } from '../../core/waitingRecords';
 import { decorateCell, undecorateCell } from './decoration';
 import { LOADING_TITLE } from '../../i18n/constants';
 import type { CellChange, CellProperties } from '../../settings';
@@ -195,11 +196,12 @@ interface Decisions {
 }
 
 /**
- * A row state captured before a data replacement, with its row id.
+ * A row state captured before a data replacement, with its row id and the source row object its row held.
  */
 interface ReplacedRow {
   state: RowState;
   rowId: unknown;
+  rowObject: unknown;
 }
 
 /**
@@ -3655,15 +3657,19 @@ export class AsyncValues extends BasePlugin {
   };
 
   /**
-   * Captures every row state, with its row id, so `after*Data` can put it back on the row that holds the
-   * same record.
+   * Captures every row state, with its row id and its source row object, so `after*Data` can put it back on
+   * the row that holds the same record.
    *
    * @param {boolean} isLoad Whether the data is replaced with `loadData()`.
    */
   #onBeforeDataReplaced(isLoad: boolean): void {
     this.#replacingData = true;
     this.#replacingIsLoad = isLoad;
-    this.#replacedRows = [...this.#states].map(state => ({ state, rowId: this.#rowIdOf(state.physicalRow) }));
+    this.#replacedRows = [...this.#states].map(state => ({
+      state,
+      rowId: this.#rowIdOf(state.physicalRow),
+      rowObject: this.#readRowObject(state.physicalRow),
+    }));
 
     // A load that throws never reaches `after*Data`, so the flag is cleared and the states it orphaned
     // are dropped once the load's task ends.
@@ -3708,7 +3714,11 @@ export class AsyncValues extends BasePlugin {
     const length = rowsMap.getLength();
     const kept = new Set<RowState>();
     const lostReasons = new Map<RowState, AsyncValueCancelReason>();
-    const targets = replaced.map(row => this.#targetRowOf(row, isLoad));
+    const locate = createIndexedLocator({
+      countPhysicalRows: () => this.hot.rowIndexMapper.getNumberOfIndexes(),
+      readRowObject: physicalRow => this.#readRowObject(physicalRow),
+    });
+    const targets = replaced.map(row => this.#targetRowOf(row, isLoad, locate));
 
     // A state that stays on its row is left alone: the React wrapper runs `updateData()` on every commit,
     // and rewriting every state then cost tens of milliseconds per commit with many requests pending.
@@ -3880,19 +3890,48 @@ export class AsyncValues extends BasePlugin {
 
   /**
    * Returns the physical row a captured row state belongs on after a data replacement: the row that holds
-   * the same id now, or, without ids, the same physical row for `updateData()` (as it keeps cell meta) and
-   * none for `loadData()` (a new dataset).
+   * the same id now, or, without ids, none for `loadData()` (a new dataset), and for `updateData()` the row
+   * that holds the same row object now, the way core finds the record of a waiting change, or the same
+   * physical row when no row holds it (the data was replaced by copies, and `updateData()` keeps cell meta by
+   * physical row). A row object two rows hold names no row.
    *
    * @param {object} row The captured row.
    * @param {boolean} isLoad Whether the data was replaced with `loadData()`.
+   * @param {Function} locate Returns the physical row that holds a row object.
    * @returns {number|null}
    */
-  #targetRowOf(row: ReplacedRow, isLoad: boolean): number | null {
+  #targetRowOf(row: ReplacedRow, isLoad: boolean, locate: RowObjectLocator): number | null {
     if (this.#hasId(row)) {
       return this.hot.getPhysicalRowById(row.rowId);
     }
 
-    return isLoad ? null : row.state.physicalRow;
+    if (isLoad) {
+      return null;
+    }
+
+    const { rowObject, state } = row;
+
+    if (!isRowObject(rowObject) || this.#readRowObject(state.physicalRow) === rowObject) {
+      return state.physicalRow;
+    }
+
+    const located = locate(rowObject);
+
+    return located === undefined ? state.physicalRow : located;
+  }
+
+  /**
+   * Reads the source row object a physical row holds, or `undefined` past the last row.
+   *
+   * @param {number} physicalRow The physical row.
+   * @returns {*}
+   */
+  #readRowObject(physicalRow: number): unknown {
+    if (physicalRow >= this.hot.rowIndexMapper.getNumberOfIndexes()) {
+      return undefined;
+    }
+
+    return this.hot._getDataSource().modifyRowData(physicalRow);
   }
 
   /**

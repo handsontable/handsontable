@@ -224,9 +224,16 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
 - **A data replacement keeps the requests whose rows survive.** The React wrapper sends `data` on every commit,
   so core runs `updateData()` on every re-render, and Angular on every data change; cancelling there killed every
   run on the first re-render. `before*Data` captures every `RowState` with its row id, and `after*Data` (order
-  `-1`) puts each back: on the row that holds the same id now, or, without ids, on the same physical row for
-  `updateData()` (core's convention for cell meta and generated ids) and nowhere for `loadData()` (a new dataset,
-  `'dataReplaced'`). A row not found cancels its requests with `'rowRemoved'`. Settled requests waiting for the
+  `-1`) puts each back: on the row that holds the same id now, or, without ids, nowhere for `loadData()` (a new
+  dataset, `'dataReplaced'`) and, for `updateData()`, on the row that holds the source row object its row held
+  (`#readRowObject()`, the raw row through `_getDataSource().modifyRowData()`, never the `getSourceDataAtRow()`
+  copy), else on the same physical row (copies; core's convention for cell meta and generated ids). That is how
+  core finds the record of a change waiting for its validator (`resolveUnkeyedRecord()` in
+  `core/waitingRecords.ts`, whose `createIndexedLocator()` the plugin reuses): kept on its physical row while core
+  followed the moved object, a state never saw the landing or the overtaking of its write, so the call never
+  finalized and the state was never released. A row object two rows hold names no row. A state whose row still
+  holds its object reads no other row, so the wrapper's per-commit `updateData()` builds no index. A row not found
+  cancels its requests with `'rowRemoved'`. Settled requests waiting for the
   flush keep their place, so a result that lands after the replacement still reaches its record. With
   `dataProvider.rowId`, requests survive a DataProvider refetch too. The capture must happen in `before*Data`:
   `updateData()`'s `fitToLength` has already truncated the map, and `loadData()` re-initialized it, by `after*`.

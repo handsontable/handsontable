@@ -550,6 +550,118 @@ describe('AsyncValues: progress, retry, and request options', () => {
       destroy();
     });
 
+    /**
+     * Builds a grid without row ids whose `name` column has a validator that waits for the test to answer and
+     * rejects an invalid value, starts a call with `undo: 'record'` that writes `new A` into the first row, and
+     * waits until the write waits for its validator.
+     */
+    async function startValidatedCall() {
+      const answers: Array<(valid: boolean) => void> = [];
+      const data = products();
+      const grid = createGrid({
+        data,
+        undo: true,
+        columns: [
+          { data: 'sku' },
+          {
+            data: 'name',
+            allowInvalid: false,
+            validator: (value: unknown, callback: (valid: boolean) => void) => answers.push(callback),
+          },
+          { data: 'price' },
+        ],
+      });
+      const result = grid.plugin.setAsyncValue(0, 1, Promise.resolve('new A'), { undo: 'record' });
+
+      await settle();
+
+      /**
+       * Answers every waiting validator call as valid, twice, for the calls the first answers lead to.
+       */
+      async function answerAll() {
+        answers.splice(0).forEach(answer => answer(true));
+        await settle();
+        answers.splice(0).forEach(answer => answer(true));
+        await settle();
+      }
+
+      return { ...grid, data, result, answerAll };
+    }
+
+    /**
+     * Tells whether the plugin holds no row state.
+     */
+    function holdsNoRowState(hot: ReturnType<typeof createGrid>['hot']) {
+      return hot.rowIndexMapper.variousMapsCollection.get('AsyncValues')!.getValues().every(state => state === null);
+    }
+
+    it('should end a call whose waiting write a newer edit overtook when `updateData()` moved the same row objects', async() => {
+      const { hot, plugin, data, result, answerAll, destroy } = await startValidatedCall();
+
+      hot.setDataAtRowProp(0, 'name', 'second');
+      hot.updateData(data.slice().reverse());
+      await answerAll();
+
+      expect(await result).toEqual({ status: 'resolved', value: 'new A' });
+      expect(hot.getSourceDataAtCol(1)).toEqual(['old D', 'old C', 'old B', 'second']);
+      expect(plugin.countPending()).toBe(0);
+      expect(holdsNoRowState(hot)).toBe(true);
+
+      destroy();
+    });
+
+    it('should record a call\'s value on its record when `updateData()` moved the same row objects without a row id', async() => {
+      const { hot, data, answerAll, destroy } = await startValidatedCall();
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      hot.updateData(data.slice().reverse());
+      hot.setDataAtRowProp(0, 'name', 'second');
+      await answerAll();
+
+      expect(hot.getSourceDataAtCol(1)).toEqual(['second', 'old C', 'old B', 'new A']);
+      expect(holdsNoRowState(hot)).toBe(true);
+
+      undoRedo.undo();
+      undoRedo.undo();
+
+      expect(hot.getSourceDataAtCol(1)).toEqual(['old D', 'old C', 'old B', 'old A']);
+      expect(undoRedo.isUndoAvailable()).toBe(false);
+
+      destroy();
+    });
+
+    it('should end a call whose waiting write a newer edit overtook when `updateData()` brought reordered copies', async() => {
+      const { hot, plugin, result, answerAll, destroy } = await startValidatedCall();
+
+      hot.setDataAtRowProp(0, 'name', 'second');
+      hot.updateData(products().reverse());
+      await answerAll();
+
+      expect(await result).toEqual({ status: 'resolved', value: 'new A' });
+      expect(hot.getSourceDataAtCol(1)).toEqual(['second', 'old C', 'old B', 'old A']);
+      expect(plugin.countPending()).toBe(0);
+      expect(holdsNoRowState(hot)).toBe(true);
+
+      destroy();
+    });
+
+    it('should end a call whose waiting write a newer edit overtook when `updateData()` kept the row order', async() => {
+      const { hot, plugin, data, result, answerAll, destroy } = await startValidatedCall();
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      hot.setDataAtRowProp(0, 'name', 'second');
+      hot.updateData(data.slice());
+      await answerAll();
+
+      expect(await result).toEqual({ status: 'resolved', value: 'new A' });
+      expect(hot.getSourceDataAtCol(1)).toEqual(['second', 'old B', 'old C', 'old D']);
+      expect(plugin.countPending()).toBe(0);
+      expect(holdsNoRowState(hot)).toBe(true);
+      expect(undoRedo.isUndoAvailable()).toBe(true);
+
+      destroy();
+    });
+
     it('should apply `meta` and record the step once a validator answering in a later task lets the value in', async() => {
       // The test answers for the validator, as a remote validator answers tasks later.
       const answers: Array<(valid: boolean) => void> = [];

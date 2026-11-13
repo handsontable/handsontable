@@ -134,7 +134,9 @@ function createScanningLocator(reader: RecordReader): RowObjectLocator {
  * @param {object} reader Reads the grid.
  * @returns {Function}
  */
-export function createIndexedLocator(reader: RecordReader): RowObjectLocator {
+export function createIndexedLocator(
+  reader: Pick<RecordReader, 'countPhysicalRows' | 'readRowObject'>,
+): RowObjectLocator {
   let index: Map<object, number | null> | null = null;
 
   return (rowObject) => {
@@ -172,7 +174,7 @@ function hasRowId(anchor: RecordAnchor): boolean {
  * @param {*} rowObject The source row.
  * @returns {boolean}
  */
-function isRowObject(rowObject: unknown): rowObject is object {
+export function isRowObject(rowObject: unknown): rowObject is object {
   return typeof rowObject === 'object' && rowObject !== null;
 }
 
