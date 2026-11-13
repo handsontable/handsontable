@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-13T08:48:56.287Z",
+  "generatedAt": "2026-11-13T09:12:52.553Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -2163,13 +2163,13 @@
       "line": 87,
       "title": "collapsible indicator pressed while a menu or editor is open › the press keeps the text typed into an open comment",
       "count7": 0,
-      "count30": 1,
+      "count30": 0,
       "countAll": 6,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
       "nightlyRuns30": 0,
-      "openBranches30": 1,
+      "openBranches30": 0,
       "legs": [
         "e2e-classic-min",
         "e2e-horizon-min",
