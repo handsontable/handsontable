@@ -45,7 +45,10 @@ export const PLUGIN_COVERAGE = {
   emptyDataState: { pages: ['empty-data'] },
   exportFile: { none: 'writes data to a file and draws no element of its own' },
   filters: { pages: ['dropdown-menu', 'filters-conditions'] },
-  formulaBuilder: { pages: ['formula-builder', 'formula-builder-suggestions', 'formula-builder-function-help'] },
+  formulaBuilder: {
+    pages: ['formula-builder', 'formula-builder-suggestions', 'formula-builder-function-help', 'formula-builder-tokens',
+      'formula-builder-named-expression'],
+  },
   formulas: { none: 'computes cell values; a formula is edited in the text editor or the formula builder editor' },
   freezeBar: { pages: ['freeze-bar'] },
   hiddenColumns: { pages: ['shared-demo'] },

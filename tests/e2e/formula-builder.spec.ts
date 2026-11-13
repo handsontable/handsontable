@@ -38,18 +38,23 @@ test.describe('formulaBuilder plugin', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BR
     const values = await page.evaluate(() => {
       const style = document.createElement('style');
 
-      style.textContent = '.handsontable, .hfe-formula-bar { --hfe-color-error: rgb(1, 2, 3); }';
+      style.textContent = '.handsontable, .hfe-formula-bar { --hfe-color-accent: rgb(1, 2, 3); --hfe-color-error: rgb(4, 5, 6); }';
       document.head.prepend(style);
 
-      const read = (el: Element | null) => (el ? getComputedStyle(el).getPropertyValue('--hfe-color-error').trim() : null);
+      const read = (el: Element | null, name: string) => (el ? getComputedStyle(el).getPropertyValue(name).trim() : null);
+      const root = (window as unknown as { hot: { rootElement: Element } }).hot.rootElement;
+      const bar = document.querySelector('.hfe-formula-bar');
 
       return {
-        grid: read((window as unknown as { hot: { rootElement: Element } }).hot.rootElement),
-        bar: read(document.querySelector('.hfe-formula-bar')),
+        accent: { grid: read(root, '--hfe-color-accent'), bar: read(bar, '--hfe-color-accent') },
+        error: { grid: read(root, '--hfe-color-error'), bar: read(bar, '--hfe-color-error') },
       };
     });
 
-    expect(values).toEqual({ grid: 'rgb(1, 2, 3)', bar: 'rgb(1, 2, 3)' });
+    expect(values).toEqual({
+      accent: { grid: 'rgb(1, 2, 3)', bar: 'rgb(1, 2, 3)' },
+      error: { grid: 'rgb(4, 5, 6)', bar: 'rgb(4, 5, 6)' },
+    });
   });
 
   test('seeded formulas compute through the engine', async () => {

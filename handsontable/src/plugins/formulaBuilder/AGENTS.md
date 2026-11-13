@@ -443,16 +443,29 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   the grid goes address box, formula editor (the same remembered cell), then back into the grid. There is no keyboard trap, so the bar
   registers no focus scope; the package owns the keys inside it. Pinned by the keyboard spec under
   `tests/e2e/`.
-- **The error colors are mixed for text.** The theme's notification error accent measures 3.4:1 on white,
-  enough for the error triangle but not for 4.5:1 text, so `_formula-builder.scss` mixes 35% of the
-  foreground color into every text-level error token. Measure against the DARKEST background the text
-  gets, not white: a selected range tints the cell (`td.area::before`), and 30% left main at 4.46:1
-  there. The same holds for `--hfe-token-sheet` (named expressions in the suggestions, sheet names): the
-  package default `#64748b` measured 4.12:1 on classic's active suggestion row, so the plugin sets it to
-  the secondary text color with 20% of the foreground. Both are pinned by "formulaBuilder text
-  contrast" in `tests/e2e/formula-builder-popups.spec.ts`, which composites the `::before` tint. The reference palette is the package's own: its
-  defaults clear 4.5:1 on the editor backgrounds and stay apart from each other, so the plugin does not
-  restate `--hfe-ref-1` to `--hfe-ref-8` (an application can, on the theme class). Neither does it
+- **The colors are the design's, contrast gaps included.** Every `--hfe-*` color the plugin sets equals
+  the FormulaBuilder design in its Handsontable mode. Where the design keeps the package's own value (the
+  unknown function and error token colors, the error color, the named expression and sheet color, the comment color, and the
+  highlight of the active suggestion row), `_formula-builder.scss` sets nothing, and the package's `:root`
+  `light-dark()` default applies, dark side included. Do not restate one of them on the theme block: a
+  `var(--hfe-color-foreground)` there would resolve to the cell editor's foreground, not the design's
+  `#1c1d20`. Mapped to theme tokens: the editor and menu surfaces, the accent text, the active argument
+  chip and the paren match (`--ht-accent-color`), the keyboard row's frame (`--ht-border-color`), and
+  the plain tokens (function names, numbers, strings, booleans, operators, parentheses, brackets,
+  separators and names)
+  on `--ht-foreground-color`, so a custom theme still recolors them.
+  The design's colors fail WCAG 1.4.3 in places, accepted for now: the error text `#fa4d56` measures
+  3.35:1 on white, an unknown function name `#ea580c` 3.56:1, a comment `#8a8f99` 3.25:1 (and `#6c7280`
+  4.23:1 on the main theme's dark background), and a named expression `#64748b` 4.45:1 on the active row
+  `#f7f7f9`. The accent's contrast is the theme's, baselined under the theme contrast issues (see the
+  next paragraph). The axe scan measures these under `formula-builder-design-contrast`: the
+  `formula-builder-tokens` page (the formula fixture's `design-colors` variant) shows an unknown function
+  and a comment in the formula bar and the error popup's title, and `formula-builder-named-expression` a
+  named expression on the active suggestion row. Axe cannot measure the error text in a cell: the cell's
+  corner marker and a selected range's tint are pseudo-elements, so it reports the cell as incomplete.
+  Pinned by "formulaBuilder design colors" in `tests/e2e/formula-builder-popups.spec.ts`. The reference palette is the design's, not the package's: the
+  package's light values are darker, so the plugin restates `--hfe-ref-1` to `--hfe-ref-8` (light and dark
+  from the design; an application can still override them on the theme class). The plugin does not
   override the error cell's font or `color-scheme`: the package reads `--hfe-font-family`, which the plugin
   sets, for the error value and the error popup title alike, and sets `color-scheme` only on its roots,
   where the theme class wins.
@@ -502,8 +515,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 The `hyperformula-ui` side of each is listed for the package maintainers (the review of PR #13172).
 
 - In a grid that is not in a shadow root, the popups and the live region mount in the document body. The
-  axe scan marks that portal on two pages (`formula-builder-suggestions`, `formula-builder-function-help`);
-  the error popup and the live region are not scanned.
+  axe scan marks that portal on four pages (`formula-builder-suggestions`, `formula-builder-function-help`,
+  `formula-builder-named-expression`, and `formula-builder-tokens`, which shows the error popup); the live
+  region is not scanned.
 - The `formula` alias is registered by the first grid built with the plugin registered, so with the full
   bundle every page that builds a grid has it (the constructor trap above explains why).
 - `imeFastEdit: true` has no effect on a formula cell: the selected cell keeps the focus, so an IME

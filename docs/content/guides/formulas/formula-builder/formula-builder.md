@@ -372,12 +372,12 @@ The colors of the references and of their highlights, the look of the highlights
 
 | Property | Default | Description |
 |---|---|---|
-| `--hfe-ref-1` to `--hfe-ref-8` | package palette | The reference colors, in the order references appear in a formula. |
+| `--hfe-ref-1` to `--hfe-ref-8` | design palette | The reference colors, in the order references appear in a formula. |
 | `--hfe-reference-border-width` | `1px` | The border width of a reference highlight in the grid. |
 | `--hfe-selection-opacity` | `0.08` | The opacity of the tint that fills the referenced cells. |
-| `--hfe-color-error` | theme error color | The color of the error popup's title and accent border, and of the error triangle in the corner of an error cell. It does not recolor the error text in cells or in the editor. |
+| `--hfe-color-error` | `#fa4d56` | The color of the error popup's title and accent border, and of the error triangle in the corner of an error cell. It does not recolor the error text in cells or in the editor. |
 
-The default reference colors clear a 4.5:1 contrast ratio on the editor's light and dark backgrounds, and no two of them look alike. The theme declares `--hfe-color-error` on the grid's root element, the formula bar (`.hfe-formula-bar`), the popup portal (`.hfe-popup-portal`), and the two popups you can dock into your own container (`.hfe-suggestions`, `.hfe-fn-help`). Declare your values on the same elements, because the popup portal and a docked popup are not inside the grid's container. The theme's declarations have no specificity, so yours take precedence whatever order the stylesheets load in:
+The default colors come from the formula builder design and are the same in every theme: the reference colors, the error color, and the colors of unknown functions, comments, sheet names, named expressions, and the active suggestion row do not follow the theme's `--ht-*` properties. Function names, numbers, strings, operators, separators, parentheses, and names use the theme's `--ht-foreground-color`. Several of them measure below a 4.5:1 contrast ratio on the editor's background, in light and in dark mode. Declare your values on the grid's root element, the formula bar (`.hfe-formula-bar`), the popup portal (`.hfe-popup-portal`), and the two popups you can dock into your own container (`.hfe-suggestions`, `.hfe-fn-help`), because the popup portal and a docked popup are not inside the grid's container. The theme's declarations have no specificity, so yours take precedence whatever order the stylesheets load in:
 
 ```css
 .handsontable,
