@@ -291,7 +291,7 @@ Pass these options as the third argument of `importFromArrayBuffer(format, buffe
 
 Formulas, styles, layout, comments, conditional formatting, data validation, and sheet protection read from the workbook are available as a bundle: the [XLSX add-on](@/guides/getting-started/license-key/license-key.md#xlsx-add-on). Every key issued before 19.0 includes all of it. Number formats always import, because the import reads them to infer cell types.
 
-When your key leaves out part of the add-on, the import skips that part of the file and does the rest. Without formulas, for example, each formula cell imports its cached value. If the file carries a skipped feature and your options ask for it, the import adds a `license:xlsx:<id>` entry to `result.dropped` and prints one console warning that names what it skipped. When your key does not include Excel import at all, `importFromBlob()` and `importFromArrayBuffer()` throw, and [`supportsImportFormat('xlsx')`](@/api/importFile.md#supportsimportformat) returns `false`, so check it before you offer an Excel upload.
+When your plan leaves out part of the add-on, the import skips that part of the file and does the rest. Without formulas, for example, each formula cell imports its cached value. If the file carries a skipped feature and your options ask for it, the import adds a `license:xlsx:<id>` entry to `result.dropped` and prints one console warning that names what it skipped. When your plan does not include Excel import at all, `importFromBlob()` and `importFromArrayBuffer()` throw, and [`supportsImportFormat('xlsx')`](@/api/importFile.md#supportsimportformat) returns `false`, so check it before you offer an Excel upload.
 
 ### Styles
 
