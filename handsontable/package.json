@@ -147,7 +147,7 @@
     "loader-utils": "^1.4.2",
     "lodash": "^4.17.20",
     "lodash.debounce": "^4.0.8",
-    "minimatch": "^3.0.4",
+    "minimatch": "^4.2.5",
     "puppeteer": "^25.16.0",
     "replace-in-file": "^6.1.0",
     "rimraf": "^3.0.2",
