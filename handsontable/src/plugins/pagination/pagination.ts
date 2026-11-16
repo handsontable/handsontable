@@ -210,6 +210,13 @@ export class Pagination extends BasePlugin {
    */
   #currentPage = 1;
   /**
+   * How many times a page was chosen (`setPage()`, `resetPage()`, an undo, a DataProvider fetch). The clamp in
+   * `#computeAndApplyState()` does not count: a filter that leaves fewer pages is not a navigation.
+   *
+   * @type {number}
+   */
+  #pageNavigations = 0;
+  /**
    * The last `initialPage` value copied onto `#currentPage`.
    *
    * Re-enabling with the same declared value (the React wrapper re-sends the full
@@ -436,6 +443,10 @@ export class Pagination extends BasePlugin {
    * @param {number} page Page number (1-based).
    */
   #setCurrentPage(page: number) {
+    if (page !== this.#currentPage) {
+      this.#pageNavigations += 1;
+    }
+
     this.#currentPage = page;
   }
 
@@ -1272,17 +1283,17 @@ export class Pagination extends BasePlugin {
    * Prepares a reveal of a row the plugin keeps on another page. Core calls it through `_prepareRowReveal()` when
    * an editor starts to wait for its validator, and the editor uses the returned function when a rejected value
    * reopens it on its record after a sort moved the record to another page. The returned function shows the
-   * record's page only while the page shown is still the one shown when the wait started: a page the user moved
-   * to meanwhile is kept, and the editor closes. A plain selection of a row on another page does not ask, and keeps
-   * working as before.
+   * record's page only while no page was chosen since the wait started: a page the user moved to meanwhile is kept,
+   * and the editor closes. A page the clamp changed (a filter left fewer pages) is not a choice, so the record's page
+   * is still shown then. A plain selection of a row on another page does not ask, and keeps working as before.
    *
    * @returns {Function} Takes a visual row and returns whether the page changed.
    */
   #prepareRowReveal = (): ((visualRow: number) => boolean) => {
-    const pageAtStart = this.#currentPage;
+    const navigationsAtStart = this.#pageNavigations;
 
     return (visualRow: number): boolean => {
-      if (!this.enabled || this.#currentPage !== pageAtStart) {
+      if (!this.enabled || this.#pageNavigations !== navigationsAtStart) {
         return false;
       }
 

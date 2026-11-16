@@ -1304,6 +1304,41 @@ describe('Core validation of a change while its record moves', () => {
       expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
     });
 
+    it('should reopen on the record with the typed text when a filter lowered the page count during the wait', async() => {
+      createGrid({
+        allowInvalid: false,
+        trimRows: false,
+        hiddenRows: false,
+        pagination: { pageSize: 2 },
+      });
+
+      const pagination = hot.getPlugin('pagination');
+
+      pagination.setPage(3);
+      hot.selectCell(4, 0);
+
+      const editor = hot.getActiveEditor();
+
+      editor.beginEditing();
+      editor.setValue('zzz');
+      editor.finishEditing();
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'gt', [3]);
+      filters.filter();
+
+      expect(pagination.getPaginationData().currentPage).toBe(2);
+
+      await answerAll(false);
+
+      expect(pagination.getPaginationData().currentPage).toBe(1);
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.row).toBe(1);
+      expect(editor.getValue()).toBe('zzz');
+      expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
+    });
+
     it('should close without saving when hiddenRows hid the record', async() => {
       createGrid({ allowInvalid: false });
       hot.selectCell(1, 0);

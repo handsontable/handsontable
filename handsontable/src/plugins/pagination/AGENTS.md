@@ -170,9 +170,13 @@ registers `#prepareRowReveal` with the `@private` `Core#_addRowRevealer()` (`dis
 Core calls it from `_prepareRowReveal()`, which an editor runs when it starts to wait for its validator; it
 records the current page and returns the function that reveals a row later. Today one caller uses it: an
 editor that reopens on the record a rejected value was typed into, after a sort moved that record to another
-page (`BaseEditor#discardEditor()`). **The reveal refuses when the current page is no longer the page recorded
-at the start of the wait.** The user changed the page during the wait, and switching back would undo their
-navigation, so the editor closes with nothing written. A check made only when the validator answers cannot
+page (`BaseEditor#discardEditor()`). **The reveal refuses when a page was chosen after the start of the wait.**
+The user changed the page during the wait, and switching back would undo their navigation, so the editor closes
+with nothing written. The plugin counts the choices (`#pageNavigations`, raised by `#setCurrentPage()` when the
+page changes: `setPage()`, `resetPage()`, an undo, a DataProvider fetch) and the reveal compares the count, not
+the page: the clamp in `#computeAndApplyState()` also moves `#currentPage` when a filter leaves fewer pages, and a
+page compare refused the reveal then, closing the editor and losing the typed text. A choice that comes back to
+the same page (3 → 4 → 3) still counts. A check made only when the validator answers cannot
 tell the two apart: the record is off the current page either way. The refusal is pinned by
 `src/__tests__/core/validateChangesRecordTracking.unit.js`, the reveal itself by
 `tests/e2e/pending-edit-follows-record.spec.ts`. **The editor runs a reveal of a row that is not rendered through
