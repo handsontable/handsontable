@@ -3446,15 +3446,22 @@ To put a row in front of the hidden rows, as 18.1 did for a lower-half drop, cal
 
 ## 61. Writing past the last column of an object data source is deprecated
 
-This applies only if your [`data`](@/api/options.md#data) is an array of objects, or your
-[`dataSchema`](@/api/options.md#dataschema) is a function, and a write can reach a column index the
-grid has no column for.
-
-Writing to such an index adds a property named after the index, which no column can display. It is
-deprecated since 19.0.0 and prints a one-time console warning. The write still lands, so nothing
-changes in your data yet. From 20.0.0 on, the write is skipped: no value is written, and no
+Writing to a column index the grid has no column for adds a property named after the index, which
+no column can display. On an object data source that write is deprecated since 19.0.0 and prints a
+one-time console warning. The write still lands, so nothing changes in your data yet. From 20.0.0
+on, the write is skipped: no value is written, and no
 [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange) entry
 is reported for it.
+
+The warning prints only for a write that lands. If a
+[`beforeChange`](@/api/hooks.md#beforechange) listener of yours already drops such a change or
+cancels the call, nothing is written and nothing is printed.
+
+### Who is affected
+
+You are affected if your [`data`](@/api/options.md#data) is an array of objects, or your
+[`dataSchema`](@/api/options.md#dataschema) is a function, and a write can reach a column index the
+grid has no column for.
 
 ```js
 const rows = [
@@ -3486,10 +3493,10 @@ existing values past the last column, and those are deprecated the same way.
 
 ### Why this changed
 
-An object data source cannot gain columns - its column count comes from the first row or from
-[`dataSchema`](@/api/options.md#dataschema), and
-[`alter()`](@/api/core.md#alter) refuses to add one. The value therefore has nowhere to be
-displayed, and lands on a property your schema never declared. No column renders it, yet
+A write past the last column cannot create a column on an object data source - the column count
+comes from the first row or from [`dataSchema`](@/api/options.md#dataschema), and only an
+array-of-arrays source grows when a value is written past its end. The value therefore has nowhere
+to be displayed, and lands on a property your schema never declared. No column renders it, yet
 [`getSourceData()`](@/api/core.md#getsourcedata) returns it, so it reaches anything that serializes
 the row - a save, a request payload, a schema validator.
 [`countSourceCols()`](@/api/core.md#countsourcecols) counts it too when the write lands on the
@@ -3499,8 +3506,9 @@ first row, because that method reads the first row's keys.
 
 The remedy depends on which path writes the property.
 
-**For a `setDataAtCell()` call of your own**, declare the field in your data schema and address it
-by name instead. The grid can keep showing no column for it:
+**For a `setDataAtCell()` call of your own**, address the field by name instead. The grid can keep
+showing no column for it, and listing the field in
+[`dataSchema`](@/api/options.md#dataschema) is optional:
 
 ```js
 const hot = new Handsontable(container, {

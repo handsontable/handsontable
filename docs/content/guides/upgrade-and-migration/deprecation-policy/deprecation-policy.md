@@ -95,7 +95,7 @@ The following dependencies were deprecated in version 17.0 and removed in versio
 
 ## List of current deprecations
 
-The following APIs are deprecated. They keep working and print a one-time console warning. The Removal column names the version that drops each one.
+The following APIs and behaviors are deprecated. They keep working and print a one-time console warning. The Removal column names the version that drops each one.
 
 ### Behaviors
 

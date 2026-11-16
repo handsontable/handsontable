@@ -676,6 +676,59 @@ describe('Core.setDataAtCell past the last column', () => {
     core.destroy();
   });
 
+  it('should not warn when a `beforeChange` listener drops the change, so nothing is written', () => {
+    const data = [{ id: 1, name: 'Ted Right' }];
+    const core = build({
+      data,
+      dataSchema: { id: null, name: null },
+      // The workaround from the issue: null every change addressed by a column index.
+      beforeChange: (changes) => {
+        changes.forEach((change, index) => {
+          if (typeof change[1] === 'number') {
+            changes[index] = null;
+          }
+        });
+      },
+    });
+
+    core.setDataAtCell(0, 2, 'x');
+
+    expect(data[0]).toEqual({ id: 1, name: 'Ted Right' });
+    expect(pastLastColumnWarnings()).toHaveLength(0);
+
+    core.destroy();
+  });
+
+  it('should not warn when a `beforeChange` listener vetoes the whole call', () => {
+    const data = [{ id: 1, name: 'Ted Right' }];
+    const core = build({ data, dataSchema: { id: null, name: null }, beforeChange: () => false });
+
+    core.setDataAtCell(0, 2, 'x');
+
+    expect(data[0]).toEqual({ id: 1, name: 'Ted Right' });
+    expect(pastLastColumnWarnings()).toHaveLength(0);
+
+    core.destroy();
+  });
+
+  it('should warn when only some of the changes past the last column are dropped', () => {
+    const data = [{ id: 1, name: 'Ted Right' }];
+    const core = build({
+      data,
+      dataSchema: { id: null, name: null },
+      beforeChange: (changes) => {
+        changes[0] = null;
+      },
+    });
+
+    core.setDataAtCell([[0, 2, 'x'], [0, 3, 'y']]);
+
+    expect(data[0]).toEqual({ 3: 'y', id: 1, name: 'Ted Right' });
+    expect(pastLastColumnWarnings()).toHaveLength(1);
+
+    core.destroy();
+  });
+
   it('should still move an existing value that a `shift_right` paste pushes past the last column', () => {
     const data = [{ id: 1, name: 'Ted Right' }];
     const core = build({ data, dataSchema: { id: null, name: null } });

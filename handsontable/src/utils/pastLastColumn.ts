@@ -10,8 +10,9 @@
  * is exempt: there every index is past the last column, and writing is how an empty dataset gets
  * bootstrapped.
  *
- * `Core#setDataAtCell()` reads it to warn. The 20.0 removal reads the same predicate to skip the
- * change, which is why the rule lives in its own module.
+ * `Core#setDataAtCell()` reads it to warn, and is its only caller in 19.0. The 20.0 removal will read
+ * the same predicate to skip the change, which is why the rule lives in its own module and is named
+ * after the skip.
  *
  * @param {string} dataType The grid's data type - `'array'`, `'object'` or `'function'`.
  * @param {number} countCols The number of columns the grid has.

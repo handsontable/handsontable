@@ -413,9 +413,9 @@ describe('UndoRedo -> DataChange action', () => {
     expect(hot.getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3']);
   });
 
-  // From 20.0.0 on, `setDataAtCell()` skips a column past the last one of an object data source
-  // and fires no `afterChange` for it (#5409; 19.0 only warns). The replay settles on that hook, so a change routed through the
-  // grid there would leave `ignoreNewActions` on and every later edit unrecorded.
+  // A property that names no column is recorded by prop and replayed by prop, so undo and redo reach
+  // it whether it came from `setDataAtRowProp()` or from a `setDataAtCell()` past the last column of an
+  // object data source (#5409; deprecated in 19.0.0, skipped from 20.0.0 on).
   describe('columns the grid cannot address (#5409)', () => {
     it('should undo a numeric prop past the last column and keep recording', () => {
       const data = [{ id: 1, name: 'Ted Right' }];
@@ -444,6 +444,35 @@ describe('UndoRedo -> DataChange action', () => {
       // The edit after the replay was recorded, so it is what this undo reverts.
       expect(data[0].name).toBe('Ted Right');
       expect(data[0][5]).toBe('x');
+    });
+
+    it('should undo and redo a `setDataAtCell()` write past the last column of an object data source', () => {
+      const data = [{ id: 1, name: 'Ted Right' }];
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data,
+        dataSchema: { id: null, name: null },
+        undo: true,
+      });
+
+      const undoRedo = hot.getPlugin('undoRedo');
+
+      // Deprecated in 19.0.0, but the write still lands on a `2` key, so it must stay undoable.
+      hot.setDataAtCell(0, 2, 'x');
+
+      expect(data[0][2]).toBe('x');
+
+      undoRedo.undo();
+
+      expect(data[0][2]).toBeUndefined();
+
+      undoRedo.redo();
+
+      expect(data[0][2]).toBe('x');
+
+      warnSpy.mockRestore();
     });
 
     it('should restore the recorded field after the `columns` option narrowed', () => {

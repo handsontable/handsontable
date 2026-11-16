@@ -339,11 +339,18 @@ A paste that runs past the last column adds the columns it needs when the
 
 In every other configuration the column count is fixed. An object data source takes its columns
 from the first row or from [`dataSchema`](@/api/options.md#dataschema), and a `columns` option
-states them outright. The values that reach past the last column are still written, but to a
-property named after the column index, so no column displays them.
-[`getSourceData()`](@/api/core.md#getsourcedata) returns those properties, and
-[`countSourceCols()`](@/api/core.md#countsourcecols) counts only the ones on the first row, because that method
-reads the first row's keys.
+states them outright. What happens to the values that reach past the last column depends on the
+configuration:
+
+- With [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) set to `false`, the paste stops at
+  the last column and drops them, whatever the data source.
+- On an array data source narrowed by a `columns` option, they are written to the matching array
+  indexes. No column displays them, and [`getSourceData()`](@/api/core.md#getsourcedata) returns
+  them.
+- On an object data source, they are written to properties named after the column indexes, so no
+  column displays them. [`getSourceData()`](@/api/core.md#getsourcedata) returns those properties,
+  and [`countSourceCols()`](@/api/core.md#countsourcecols) counts only the ones on the first row,
+  because that method reads the first row's keys.
 
 ::: tip
 

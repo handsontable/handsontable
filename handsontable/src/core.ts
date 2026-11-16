@@ -4373,10 +4373,12 @@ export default function Core(
     let i;
     let ilen;
     let prop;
+    let pastLastColumnChanges: CellChange[] | null = null;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, visualColumn, newValue] = input[i];
       const visualColumnIndex = getSetDataAtCellColumn(input[i]);
+      let isPastLastColumn = false;
 
       if (visualColumnIndex >= this.countCols()) {
         // No column exists at this index, and on an object-rowed data source none ever can -
@@ -4388,14 +4390,8 @@ export default function Core(
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
         // serializes the row. Deprecated in 19.0.0; the write is skipped from 20.0.0 on. The rule, and why it
         // reads `!== 'array'` and exempts a grid with no columns, is in `utils/pastLastColumn.ts`.
-        if (isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex)) {
-          deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
-            'Writing past the last column of an object data source is deprecated and will be ' +
-            'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +
-            'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
-            'field the grid shows no column for.');
-        }
-
+        // The warning waits for `beforeChange`, see below.
+        isPastLastColumn = isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex);
         prop = visualColumnIndex;
 
       } else {
@@ -4405,12 +4401,18 @@ export default function Core(
         prop = colToPropOrIndex(instance, visualColumnIndex) as string | number;
       }
 
-      changes.push([
+      const change: CellChange = [
         visualRow,
         prop,
         dataSource.getAtCell(this.toPhysicalRow(visualRow), visualColumn),
         newValue,
-      ]);
+      ];
+
+      changes.push(change);
+
+      if (isPastLastColumn) {
+        (pastLastColumnChanges ??= []).push(change);
+      }
     }
 
     if (!changeSource && typeof row === 'object') {
@@ -4419,6 +4421,17 @@ export default function Core(
 
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
+
+    // The deprecation warning says the value lands, so it prints only for a change that got past
+    // `beforeChange`. A listener that drops such a change - the #5409 workaround - or vetoes the
+    // call writes nothing and is told nothing.
+    if (pastLastColumnChanges?.some(change => processedChanges.includes(change))) {
+      deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
+        'Writing past the last column of an object data source is deprecated and will be ' +
+        'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +
+        'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
+        'field the grid shows no column for.');
+    }
 
     // `beforeChange` and `afterSetDataAtCell` listeners can destroy the grid, and nothing after them
     // may read the destroyed instance.
