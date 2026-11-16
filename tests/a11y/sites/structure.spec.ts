@@ -59,7 +59,7 @@ for (const entry of SITE.pages) {
     ];
     const criteria = CRITERIA.filter(id => (ways !== null || id !== '2.4.5') && (compared !== null || !['3.2.3', '3.2.4', '3.2.6'].includes(id)));
     const problems = hasSearch === null && entry.id === SITE.reference.id
-      ? [`the site search could not be read from ${SITE.search.page.baseUrl ?? SITE.baseUrl}${SITE.search.page.path}, so no page evaluated 2.4.5`]
+      ? [`the site search could not be read from ${SITE.search?.page.baseUrl ?? SITE.baseUrl}${SITE.search?.page.path ?? ''}, so no page evaluated 2.4.5`]
       : [];
 
     await attachEvidence(testInfo, {
@@ -160,6 +160,10 @@ function decodeEntities(value: string): string {
  * @returns The verdict.
  */
 async function siteSearch(): Promise<boolean | null> {
+  if (SITE.search === null) {
+    return false;
+  }
+
   const entry: SitePage = SITE.search.page;
   const url = `${(entry.baseUrl ?? SITE.baseUrl).replace(/\/+$/, '')}${entry.path}`;
 
