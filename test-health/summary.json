@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-16T13:13:51.707Z",
+  "generatedAt": "2026-11-16T13:29:07.756Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 449,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 2310
+    "entries": 2311
   },
   "rows": [
     {
@@ -20,9 +20,9 @@
       "file": "e2e/formula-builder-picking.spec.ts",
       "line": 701,
       "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
-      "count7": 5,
-      "count30": 11,
-      "countAll": 11,
+      "count7": 6,
+      "count30": 12,
+      "countAll": 12,
       "runs30": 7,
       "flakyRuns30": 7,
       "branches30": 7,
@@ -37,8 +37,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-11-16T13:13:11Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43868103479",
+        "seenAt": "2026-11-16T13:28:05Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43868103479/attempts/2",
         "branch": "feature/DEV-3995_Migration-Codemod-MVP",
         "leg": "e2e-firefox",
         "status": "flaky",
