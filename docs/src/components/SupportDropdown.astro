@@ -74,11 +74,13 @@ const links = [
       }
     });
 
+    // Capture phase: a header control that stops its click (the Headway bell does) still
+    // closes the menu.
     document.addEventListener('click', (e) => {
       if (!wrapper.contains(e.target as Node)) {
         closeMenu();
       }
-    });
+    }, true);
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !menu.hidden) {
