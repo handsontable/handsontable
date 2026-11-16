@@ -2,35 +2,48 @@ import ExcelJS from 'exceljs';
 import { test, expect, BUNDLES_TAG } from '../fixtures/test';
 import { XlsxLicensePage } from '../fixtures/pages/XlsxLicensePage';
 import {
-  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWith, keyWithout, INVALID_KEY,
+  ALL_XLSX_TOKENS, CORE_ONLY_KEY, keyWithTier, INVALID_KEY,
 } from '../fixtures/xlsxLicenseKeys';
+import {
+  featuresMissingFrom, manifestTiers, requiredTierWithEvery, requiredTierWithout, tiersLeavingOut,
+} from '../fixtures/licenseTiers';
 
 /**
- * An arbitrary subset of the xlsx tokens, chosen so a key both grants some export features and lacks
- * others. It is not a product package: which tokens a product grants is decided where keys are issued,
- * never here.
+ * The feature a partial tier must leave out: the first tier without it is the one the partial tests
+ * read. Styles are named because the tests below assert on them; which tier leaves them out, and what
+ * else it leaves out, is the manifest's.
+ *
+ * The keys name the build's real tiers, read from `dist/manifest.json` when a test runs: the fixture cannot
+ * add a made-up tier to the bundle's XLSX tier table, as `license-capabilities.html` does for plugins. A
+ * test picks its tier by the feature it needs off (or on) and reads everything else it asserts from the
+ * manifest. It still depends on the assignment in one way: it fails, with the reason, when no tier fits
+ * (every tier lists the feature, or none lists a feature the test needs on beside it).
+ *
+ * A feature every real tier lists cannot be switched off by a real key, so those cases live in the unit
+ * suite, which builds keys with made-up tiers: the export refused and the menu item hidden without
+ * xlsx:export (`handsontable/src/plugins/exportFile/__tests__/exportFile.unit.js`), and the parts and
+ * warnings without xlsx:formulas or xlsx:layout
+ * (`handsontable/src/plugins/exportFile/__tests__/xlsxLicenseGates.unit.js`). That suite counts any column
+ * width other than the default as layout ("counts explicit layout only toward xlsx:layout"), which is why an
+ * auto-sized width counts too; `xlsxAutoSizedWidthLicense.unit.js` beside it exports a width the grid computed
+ * through the real data provider.
  */
-const PARTIAL_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
+const PARTIAL_TIER_LACKS = 'xlsx:styles';
 
 test.describe('Export entry gate (xlsx:export)', { tag: BUNDLES_TAG }, () => {
-  test('hides To Excel and rejects the call without xlsx:export', async({ page, theme, bundle }) => {
+  test('shows To Excel for an unrestricted key and for a key naming any tier that lists xlsx:export', async({
+    page, theme, bundle,
+  }) => {
     const lic = new XlsxLicensePage(page, theme, bundle);
+    const exportTiers = manifestTiers().filter(tier => featuresMissingFrom(tier, ['xlsx:export']).length === 0);
 
-    await lic.goto();
-    await lic.create(keyWith(['xlsx:import']));
-
-    expect(await lic.exportMenuItems()).toEqual(['To CSV']);
-    await expect(lic.exportBytes()).rejects.toThrow('does not unlock "xlsx:export"');
-  });
-
-  test('shows To Excel for an unrestricted key and for a key that lists xlsx:export', async({ page, theme, bundle }) => {
-    const lic = new XlsxLicensePage(page, theme, bundle);
+    expect(exportTiers.length).toBeGreaterThan(0);
 
     await lic.goto();
 
     // The menu is opened with a right click, so the key must not lock the grid: INVALID_KEY restricts
     // nothing either, but its lock screen covers the cell.
-    for (const key of [CORE_ONLY_KEY, keyWith(['xlsx:export']), keyWith(PARTIAL_TOKENS)]) {
+    for (const key of [CORE_ONLY_KEY, ...exportTiers.map(tier => keyWithTier([tier]))]) {
       await lic.create(key);
       expect(await lic.exportMenuItems()).toEqual(['To CSV', 'To Excel']);
       expect((await lic.exportBytes()).length).toBeGreaterThan(0);
@@ -76,6 +89,23 @@ const PASSWORD_OPTIONS = { protection: { password: PASSWORD } };
 type ExportFeature = typeof EXPORT_FEATURE_TOKENS[number];
 
 /**
+ * Of the export tokens a tier lacks, the ones whose part the fixture's grid carries, which the export's
+ * warning names, in declaration order: the umd bundle has no HyperFormula, so its grid holds no formula.
+ * `exclude` leaves out the tokens whose option an export does not ask for.
+ */
+function exportWarnedTokens(tier: string, bundle: string, exclude: string[] = []): string[] {
+  return featuresMissingFrom(tier, EXPORT_FEATURE_TOKENS)
+    .filter(id => (id !== 'xlsx:formulas' || bundle === 'full-min') && !exclude.includes(id));
+}
+
+/**
+ * The warning the export logs for missing tokens.
+ */
+function exportWarning(tokens: string[]): string {
+  return `The xlsx export skipped features your license does not unlock: ${tokens.join(', ')}.`;
+}
+
+/**
  * Exports the fixture's source grid and reports, per token, whether the part it unlocks reached the
  * file. Read back with ExcelJS, plus the raw sheet XML for the two parts ExcelJS does not expose.
  * Header row 1; data rows 2-7; A2 read-only, A3 commented, A4 bold, A5:B5 merged, B6 a formula on
@@ -110,22 +140,6 @@ async function exportedFeatures(lic: XlsxLicensePage): Promise<Record<ExportFeat
 }
 
 /**
- * Overrides that turn the fixture's source grid into a plain text grid on default settings: no
- * `colWidths`, no merge, hidden column, frozen row, comment, read-only cell or class, and text
- * columns only.
- */
-const PLAIN_GRID = {
-  data: [['Ana García', 'Engineering'], ['Li Wei', 'Marketing']],
-  colHeaders: false,
-  columns: [{ type: 'text' }, { type: 'text' }],
-  cell: [],
-  mergeCells: false,
-  hiddenColumns: false,
-  fixedRowsTop: 0,
-  colWidths: undefined,
-};
-
-/**
  * The export's missing-token warnings logged since the last `create()`.
  */
 async function licenseWarnings(lic: XlsxLicensePage): Promise<string[]> {
@@ -134,26 +148,25 @@ async function licenseWarnings(lic: XlsxLicensePage): Promise<string[]> {
 
 for (const engine of ['native', 'exceljs'] as const) {
   test.describe(`xlsx export license gates (${engine})`, { tag: BUNDLES_TAG }, () => {
-    test('a key listing import, export, formulas and layout only writes values, formulas and layout', async({
+    test('a tier that leaves export features out writes only the parts it lists', async({
       page, theme, bundle,
     }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
+      // The date assertion below is about a tier without number formats, so the tier is picked by that
+      // feature and nothing is assumed about what else it leaves out.
+      const tier = requiredTierWithout('xlsx:number_formats');
+      const missing = featuresMissingFrom(tier, EXPORT_FEATURE_TOKENS);
 
       await lic.goto();
-      await lic.create(keyWith(PARTIAL_TOKENS));
+      await lic.create(keyWithTier([tier]));
 
       const features = await exportedFeatures(lic);
 
-      expect(features).toEqual({
-        'xlsx:formulas': bundle === 'full-min',
-        'xlsx:layout': true,
-        'xlsx:number_formats': false,
-        'xlsx:comments': false,
-        'xlsx:styles': false,
-        'xlsx:conditional_formatting': false,
-        'xlsx:data_validation': false,
-        'xlsx:protection': false,
-      });
+      expect(features).toEqual(Object.fromEntries(EXPORT_FEATURE_TOKENS.map(id => [
+        id,
+        // The umd bundle has no HyperFormula, so its grid holds no formula on any key.
+        !missing.includes(id) && (id !== 'xlsx:formulas' || bundle === 'full-min'),
+      ])));
 
       const workbook = await lic.exportWorkbook(EXPORT_OPTIONS);
       const sheet = workbook.worksheets[0];
@@ -165,23 +178,21 @@ for (const engine of ['native', 'exceljs'] as const) {
       expect(sheet.getCell('C2').value).toBe('01/15/2024');
       expect(sheet.getCell('D2').value).toBe('Open');
 
-      if (bundle === 'full-min') {
+      if (bundle === 'full-min' && !missing.includes('xlsx:formulas')) {
         expect(sheet.getCell('B6').formula).toBe('B2+B3');
       }
 
-      expect(await licenseWarnings(lic)).toEqual(Array(2).fill(
-        'The xlsx export skipped features your license does not unlock: xlsx:number_formats, xlsx:comments, '
-        + 'xlsx:styles, xlsx:conditional_formatting, xlsx:data_validation, xlsx:protection.'
-      ));
+      expect(await licenseWarnings(lic)).toEqual(Array(2).fill(exportWarning(exportWarnedTokens(tier, bundle))));
     });
 
     // Compared on the built-in engine only, whose output carries nothing but the content.
     if (engine === 'native') {
-      test('a full key writes the same sheet as an invalid key', async({ page, theme, bundle }) => {
+      test('a tier that lists every xlsx feature writes the same sheet as an invalid key', async({ page, theme, bundle }) => {
         const lic = new XlsxLicensePage(page, theme, bundle, engine);
+        const tier = requiredTierWithEvery(ALL_XLSX_TOKENS);
 
         await lic.goto();
-        await lic.create(keyWith(ALL_XLSX_TOKENS));
+        await lic.create(keyWithTier([tier]));
 
         const full = lic.sheetXml(await lic.exportBytes(EXPORT_OPTIONS));
 
@@ -193,27 +204,35 @@ for (const engine of ['native', 'exceljs'] as const) {
       });
     }
 
-    test('each export feature token removes exactly its part', async({ page, theme, bundle }) => {
+    // Every tier that leaves an export feature out, once: tiers that lack the same features are one
+    // case, and each is expected to drop exactly the parts of every token it lacks.
+    test('each tier that leaves export features out removes exactly the parts it leaves out', async({
+      page, theme, bundle,
+    }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
+      const tiers = tiersLeavingOut(EXPORT_FEATURE_TOKENS);
+
+      expect(tiers.length).toBeGreaterThan(0);
 
       await lic.goto();
-      await lic.create(keyWith(ALL_XLSX_TOKENS));
+      // A key that names no tier writes every part.
+      await lic.create(CORE_ONLY_KEY);
 
       const full = await exportedFeatures(lic);
 
       expect(Object.entries(full).filter(([, present]) => !present).map(([id]) => id))
         .toEqual(bundle === 'full-min' ? [] : ['xlsx:formulas']);
 
-      for (const token of EXPORT_FEATURE_TOKENS) {
-        await lic.create(keyWithout(token));
-
+      for (const tier of tiers) {
+        const missing = featuresMissingFrom(tier, EXPORT_FEATURE_TOKENS);
         // The umd bundle has no HyperFormula, so its grid holds no formula for the export to drop.
-        const hasPart = token !== 'xlsx:formulas' || bundle === 'full-min';
+        const warned = exportWarnedTokens(tier, bundle);
 
-        expect(await exportedFeatures(lic), token).toEqual({ ...full, [token]: false });
-        expect(await licenseWarnings(lic), token).toEqual(hasPart ? [
-          `The xlsx export skipped features your license does not unlock: ${token}.`,
-        ] : []);
+        await lic.create(keyWithTier([tier]));
+
+        expect(await exportedFeatures(lic), tier)
+          .toEqual({ ...full, ...Object.fromEntries(missing.map(id => [id, false])) });
+        expect(await licenseWarnings(lic), tier).toEqual(warned.length > 0 ? [exportWarning(warned)] : []);
       }
     });
 
@@ -221,7 +240,7 @@ for (const engine of ['native', 'exceljs'] as const) {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
-      await lic.create(keyWith(ALL_XLSX_TOKENS));
+      await lic.create(CORE_ONLY_KEY);
 
       const first = lic.sheetXml(await lic.exportBytes(PASSWORD_OPTIONS));
       const second = lic.sheetXml(await lic.exportBytes(PASSWORD_OPTIONS));
@@ -243,7 +262,7 @@ for (const engine of ['native', 'exceljs'] as const) {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
-      await lic.create(keyWith(ALL_XLSX_TOKENS));
+      await lic.create(CORE_ONLY_KEY);
 
       const workbook = await lic.exportWorkbook({ protection: null });
 
@@ -255,7 +274,7 @@ for (const engine of ['native', 'exceljs'] as const) {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
       await lic.goto();
-      await lic.create(keyWith(ALL_XLSX_TOKENS));
+      await lic.create(CORE_ONLY_KEY);
 
       const error = await lic.exportBytes({ protection: { password: 1234 } }).then(() => null, (e: Error) => e);
 
@@ -265,13 +284,14 @@ for (const engine of ['native', 'exceljs'] as const) {
       expect(error?.message.split('\n')[0]).not.toContain('1234');
     });
 
-    test('a key without xlsx:protection writes no sheetProtection despite the option, and the warning has no password', async({
+    test('a tier without xlsx:protection writes no sheetProtection despite the option, and the warning has no password', async({
       page, theme, bundle,
     }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
+      const tier = requiredTierWithout('xlsx:protection');
 
       await lic.goto();
-      await lic.create(keyWith(PARTIAL_TOKENS));
+      await lic.create(keyWithTier([tier]));
 
       const xml = lic.sheetXml(await lic.exportBytes(PASSWORD_OPTIONS));
       const warnings = await lic.warnings();
@@ -279,8 +299,7 @@ for (const engine of ['native', 'exceljs'] as const) {
       expect(xml).not.toContain('<sheetProtection');
       // No `conditionalFormatting` option here, so the warning leaves out its token.
       expect(await licenseWarnings(lic)).toEqual([
-        'The xlsx export skipped features your license does not unlock: xlsx:number_formats, xlsx:comments, '
-        + 'xlsx:styles, xlsx:data_validation, xlsx:protection.',
+        exportWarning(exportWarnedTokens(tier, bundle, ['xlsx:conditional_formatting'])),
       ]);
       expect(warnings.some(message => message.includes(PASSWORD))).toBe(false);
     });
@@ -290,7 +309,7 @@ for (const engine of ['native', 'exceljs'] as const) {
         const lic = new XlsxLicensePage(page, theme, bundle, engine);
 
         await lic.goto();
-        await lic.create(keyWith(ALL_XLSX_TOKENS));
+        await lic.create(CORE_ONLY_KEY);
 
         const result = await lic.importBytes(await lic.exportBytes(PASSWORD_OPTIONS));
         const cellsMeta = (result.cellsMeta ?? []) as { row: number; col: number; meta: Record<string, unknown> }[];
@@ -307,6 +326,7 @@ for (const engine of ['native', 'exceljs'] as const) {
       page, theme, bundle,
     }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
+      const tier = requiredTierWithout('xlsx:number_formats');
       // Only the full bundle carries HyperFormula, so only there does C2 compute a date; on the base
       // bundle the grid shows the unparsed source as a bad value. Either way the export writes what
       // the grid shows.
@@ -319,10 +339,13 @@ for (const engine of ['native', 'exceljs'] as const) {
         mergeCells: false,
       };
 
+      // The tier must list xlsx:formulas, or the formula would be missing for the wrong reason.
+      expect(featuresMissingFrom(tier, ['xlsx:formulas'])).toEqual([]);
+
       await lic.goto();
 
-      // This key unlocks xlsx:formulas but not xlsx:number_formats.
-      await lic.create(keyWith(PARTIAL_TOKENS), dateFormula);
+      // This tier unlocks xlsx:formulas but not xlsx:number_formats.
+      await lic.create(keyWithTier([tier]), dateFormula);
 
       const gated = (await lic.exportWorkbook({ exportFormulas: true })).worksheets[0].getCell('C2');
 
@@ -337,48 +360,28 @@ for (const engine of ['native', 'exceljs'] as const) {
         expect(shown).toBe('02/14/2024');
       }
 
-      await lic.create(keyWith(ALL_XLSX_TOKENS), dateFormula);
+      await lic.create(CORE_ONLY_KEY, dateFormula);
 
       const full = (await lic.exportWorkbook({ exportFormulas: true })).worksheets[0].getCell('C2');
 
-      // With both tokens the source formula goes out live, formatted as a date.
+      // With a key that names no tier the source formula goes out live, formatted as a date.
       expect(full.formula).toBe('C1+30');
       expect(full.numFmt).toMatch(/yy/);
     });
 
-    test('a grid on default settings warns about xlsx:layout for its auto-sized columns only', async({
-      page, theme, bundle,
-    }) => {
-      const lic = new XlsxLicensePage(page, theme, bundle, engine);
-
-      await lic.goto();
-
-      // AutoColumnSize is on by default, and the widths it measures are layout the file would carry.
-      await lic.create(keyWith(['xlsx:export']), PLAIN_GRID);
-      await lic.exportBytes();
-
-      expect(await licenseWarnings(lic)).toEqual([
-        'The xlsx export skipped features your license does not unlock: xlsx:layout.',
-      ]);
-
-      // With every column at the default width, the grid has no layout to write.
-      await lic.create(keyWith(['xlsx:export']), { ...PLAIN_GRID, autoColumnSize: false });
-      await lic.exportBytes();
-
-      expect(await licenseWarnings(lic)).toEqual([]);
-    });
-
     test('no-console-warns silences the warning but not the gate', async({ page, theme, bundle }) => {
       const lic = new XlsxLicensePage(page, theme, bundle, engine);
+      const tier = requiredTierWithout(PARTIAL_TIER_LACKS);
+      const missing = featuresMissingFrom(tier, EXPORT_FEATURE_TOKENS);
 
       await lic.goto();
-      await lic.create(keyWith(PARTIAL_TOKENS, ['no-console-warns']));
+      await lic.create(keyWithTier([tier], ['no-console-warns']));
 
       const features = await exportedFeatures(lic);
 
       expect(features['xlsx:styles']).toBe(false);
-      expect(features['xlsx:comments']).toBe(false);
-      expect(features['xlsx:layout']).toBe(true);
+      expect(features['xlsx:comments']).toBe(!missing.includes('xlsx:comments'));
+      expect(features['xlsx:layout']).toBe(!missing.includes('xlsx:layout'));
       expect(await licenseWarnings(lic)).toEqual([]);
     });
   });

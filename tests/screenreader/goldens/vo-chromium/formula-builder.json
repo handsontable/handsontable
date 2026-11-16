@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "scenario": "formula-builder",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-12T19:10:38.460Z"
+  },
+  "steps": {
+    "tab-address-box": "",
+    "tab-formula-input": "formula editor list box pop up collapsed text entry area a1 b1 insertion at end of text",
+    "tab-into-grid": "c 3 column 3 row 1 2 3 tree grid 4 columns 13 rows",
+    "open-editor": "formula editor list box pop up collapsed text entry area a1 b1 insertion at end of text",
+    "select-formula-text": "",
+    "type-function-prefix": "u su",
+    "type-named-prefix": "m summ",
+    "erase-to-function": "m",
+    "open-function-help": "formula editor sum function help list box pop up collapsed text entry area sum insertion on word sum between characters and",
+    "close-function-help": "",
+    "cancel-edit": "c 3 column 3 row 1 2 3 tree grid 4 columns 13 rows",
+    "move-down": "c 5 column 3 row 3 div 0 5",
+    "error-cell": "c name invalid data column 3 row 5 6 name"
+  }
+}

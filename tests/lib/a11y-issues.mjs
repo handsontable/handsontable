@@ -11,7 +11,8 @@
  * catalog error, which `lib/__tests__/a11y-issues.test.mjs` refuses before it can reach the ledger.
  *
  * A match rule names the `source` a finding came from (`checks`: the checks beyond axe; `axe`: the
- * gating scan; `reader`: the screen reader lanes; `docs`: the docs site scan) and any of: `checks` (check ids, or reader projects),
+ * gating scan; `reader`: the screen reader lanes; `docs`: the docs site scan; `docs-checks`: the checks beyond axe on
+ * the docs site, `SITE_CHECKS` of `lib/a11y-site-checks.mjs`) and any of: `checks` (check ids, or reader projects),
  * `kinds`, `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria` (WCAG
  * ids), `pages` (anchored patterns on the page id, or the reader scenario), `themes`, `where` (patterns
  * searched in the finding's `where`) and `axeIssues` (the baseline issue an axe or docs finding is filed
@@ -34,6 +35,7 @@
  */
 import { A11Y_THEMES, VOLATILE_CLASSES } from './a11y-baseline.mjs';
 import { EVIDENCE_CHECKS, WCAG_CRITERIA } from './a11y-evidence.mjs';
+import { SITES, siteChecks } from './a11y-site-checks.mjs';
 import { DOCS_THEMES } from '../a11y/docs/constants.mjs';
 
 export const ISSUES_SCHEMA = 1;
@@ -42,7 +44,14 @@ export const ISSUES_FILE = 'a11y/issues.json';
  * The cluster a finding lands in when no rule matches it. Reserved: a catalog cluster cannot take the id.
  */
 export const TRIAGE_ID = 'needs-triage';
-export const FINDING_SOURCES = ['checks', 'axe', 'reader', 'docs'];
+/**
+ * The finding source of each site's checks beyond axe (`docs-checks`): a source of its own, so a rule written for the
+ * product's checks never matches a site's finding, and the other way round.
+ */
+export const SITE_SOURCES = Object.freeze(Object.fromEntries(SITES.map(site => [`${site}-checks`, site])));
+// The color schemes a site's findings carry.
+const SITE_THEMES = Object.freeze({ docs: DOCS_THEMES });
+export const FINDING_SOURCES = ['checks', 'axe', 'reader', 'docs', ...Object.keys(SITE_SOURCES)];
 /**
  * The fields a match rule may carry, `source` first. A rule needs `source` and at least one other.
  */
@@ -77,6 +86,8 @@ const NEVER_CARRIED = Object.freeze({
   axe: ['causes'],
   docs: ['causes'],
   reader: ['rules', 'causes', 'criteria', 'themes', 'axeIssues'],
+  // A site check's finding names no axe rule, needs-review cause or baseline issue.
+  ...Object.fromEntries(Object.keys(SITE_SOURCES).map(source => [source, ['rules', 'causes', 'axeIssues']])),
 });
 
 const LIST_FIELDS = MATCH_FIELDS.slice(1);
@@ -336,6 +347,14 @@ function valuesProblem(field, values, source, known) {
   if (field === 'themes' && source === 'docs') {
     return outside(values, DOCS_THEMES, `not a docs color scheme (${DOCS_THEMES.join(', ')})`);
   }
+  if (field === 'themes' && Object.hasOwn(SITE_SOURCES, source)) {
+    const themes = SITE_THEMES[SITE_SOURCES[source]];
+
+    return outside(values, themes, `not a ${SITE_SOURCES[source]} color scheme (${themes.join(', ')})`);
+  }
+  if (field === 'checks' && Object.hasOwn(SITE_SOURCES, source)) {
+    return outside(values, Object.keys(siteChecks(SITE_SOURCES[source])), `not a ${SITE_SOURCES[source]} site check (SITE_CHECKS, tests/lib/a11y-site-checks.mjs)`);
+  }
   if (field === 'themes') {
     return outside(values, A11Y_THEMES, `not a theme (${A11Y_THEMES.join(', ')})`);
   }
@@ -461,16 +480,17 @@ export function clusterOf(finding, catalog) {
  * A finding of a check run as the catalog reads it, the way the ledger reads the same finding from the night's
  * artifacts (`.github/scripts/lib/a11y-ledger.mjs`), so a cluster rule matches it at pull request time too.
  *
- * @param {'checks'|'axe'|'reader'} source The source.
- * @param {string} check The check (`keyboard-walker`), `axe` for the scan, or the screen reader project.
+ * @param {'checks'|'axe'|'reader'|'docs'|'docs-checks'} source The source.
+ * @param {string} check The check (`keyboard-walker`, `docs-keyboard`), `axe` for the scan, or the screen reader project.
  * @param {object} item The finding as the run holds it: an evidence finding, an axe comparison item, or
  * `{scenario, step, kind}` for a screen reader step.
  * @returns {object} The finding `clusterOf()` reads.
  */
 export function catalogFinding(source, check, item) {
-  if (source === 'axe') {
+  // The docs site scan's comparison items have the gating scan's shape, under the docs scan's check.
+  if (source === 'axe' || source === 'docs') {
     return {
-      source, check: AXE_SCAN_CHECK, kind: AXE_SCAN_KIND, rule: item.rule ?? null, cause: null, criteria: [...(item.wcag ?? [])],
+      source, check: source === 'docs' ? DOCS_SCAN_CHECK : AXE_SCAN_CHECK, kind: AXE_SCAN_KIND, rule: item.rule ?? null, cause: null, criteria: [...(item.wcag ?? [])],
       page: item.page, theme: item.theme ?? null, where: maskSelector(item.target), issue: item.issue ?? item.suggestedIssue ?? null,
     };
   }

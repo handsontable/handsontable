@@ -136,7 +136,7 @@ function setLifecycle(state, extra = {}, channels = { console: true, ui: true },
       state, isTrial: state.indexOf('trial') === 0, daysRemaining: null, licensedUntil: null, ...extra,
     },
     channels,
-    grants: { unrestricted: false, products: {} },
+    tiers: null,
     badge,
   });
 }

@@ -158,8 +158,8 @@ export const OVERLAY_RAIL_CLASS_NAME = 'htOverlayRail';
 
 /**
  * The state class the three inline-end clone roots carry while the freeze line at their inline-start edge
- * is drawn by the master (the clone rests against the last scrolling column, or against the row header).
- * Without it the clone's own first cell draws the line. See `Overlays#syncInlineEndFreezeLine`.
+ * is drawn by the row header (the end band covers every column). Without it the clone's own first cell
+ * draws the line. See `Overlays#syncInlineEndFreezeLine`.
  */
 export const INLINE_END_FREEZE_LINE_SHARED_CLASS = 'htFreezeLineShared';
 

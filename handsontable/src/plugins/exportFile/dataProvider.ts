@@ -444,6 +444,10 @@ class ExportDataProvider {
       return [];
     }
 
+    // A name defined with a constant is read as a value, which the engine refuses while the Formulas plugin
+    // holds its recalculation (`batchEvaluation`).
+    formulasPlugin!.flushEngineEvaluation();
+
     const read = (scope: string | null, sheetId?: number) => (name: string) => {
       const formula = engine.getNamedExpressionFormula(name, sheetId);
 
@@ -532,6 +536,10 @@ class ExportDataProvider {
     if (!engine || sheetId === null || sheetId === undefined || !rowAxisSyncer || !columnAxisSyncer) {
       return null;
     }
+
+    // The values are read from the engine, which refuses that while the Formulas plugin holds its
+    // recalculation (`batchEvaluation`).
+    formulasPlugin!.flushEngineEvaluation();
 
     let exportedRows: Map<number, number> | null = null;
     let exportedCols: Map<number, number> | null = null;

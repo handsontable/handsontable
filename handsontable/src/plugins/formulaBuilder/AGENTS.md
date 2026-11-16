@@ -165,6 +165,26 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   after `afterUpdateData`, so the bar listens there with order 2. The dedupe key (`#lastBarCell`) also
   holds whether the cell uses the formula editor: `updateSettings({ columns })` can move the selected cell
   to or from the formula editor with the same text, and the bar kept offering a formula edit there.
+- **The bar's re-read waits while the Formulas plugin holds writes (`formulas.batchEvaluation`).** Reading the
+  active cell recalculates a held engine, so `#resyncBarCell()` asks `Formulas#isEngineHeld()` and, while it is
+  true and this grid's own execution is suspended, only sets `#barResyncDeferred`: ten `setSourceDataAtCell()` calls
+  in a `batch()` would otherwise recalculate ten times. The grid's own suspension is part of the test because
+  another grid can hold the engine while this one never resumes (`isEngineHeld()` alone left its bar stale). The deferred read runs from `beforeViewRender` once a draw recalculated the engine (a
+  draw reads it anyway), or from `afterResumeExecution`, a listener of the default order that runs after the
+  Formulas release (order -1). The flag is separate from `#barCellStale` (an index change): sharing it made
+  every resume re-read the bar mid-operation. Without the option nothing is held, so nothing waits; do not key
+  the deferral on `isExecutionSuspended()` (the bar then lags every host `suspendExecution()`). Pinned by
+  `__tests__/batchEvaluation.unit.ts`.
+- **A commit flushes the Formulas hold AFTER its write, never before.** The package's `announcingCommit` runs
+  `onCommit`, then `announceCommitErrors` reads the raw engine (`engine.getCellValue()`) to announce the dependent
+  errors. With `formulas.batchEvaluation` and a host `suspendExecution()` open, the commit's write takes the hold
+  lazily, so that read threw `EvaluationSuspendedError` (logged by the package's `EventScope`) and the announcement
+  was lost. A flush before the commit is undone by the write, so `commitInlineEdit()` and
+  `commitInlineEditToSelection()` call `#flushAfterCommitWrite()` right after `finishEditing()`. A synchronous
+  validator is what exposes it: without one the write releases the hold itself, and an asynchronous validator
+  needs no flush because the engine already holds the value when the package reads it (probed: the announcement
+  arrives with the setting on or off). The flush recalculates every write the host still holds, so the
+  announcement can count their dependent errors too. Pinned by `__tests__/batchEvaluation.unit.ts`.
 - **`updatePlugin()` keeps the built plugin when nothing it was built from changed.** `SETTING_KEYS` lists
   `formulas`, and the React and Angular wrappers re-send every object prop with a new identity on each
   render, so a full rebuild per render discarded the bar's focus and an open edit. `#isConfigUnchanged()`
@@ -423,16 +443,29 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
   the grid goes address box, formula editor (the same remembered cell), then back into the grid. There is no keyboard trap, so the bar
   registers no focus scope; the package owns the keys inside it. Pinned by the keyboard spec under
   `tests/e2e/`.
-- **The error colors are mixed for text.** The theme's notification error accent measures 3.4:1 on white,
-  enough for the error triangle but not for 4.5:1 text, so `_formula-builder.scss` mixes 35% of the
-  foreground color into every text-level error token. Measure against the DARKEST background the text
-  gets, not white: a selected range tints the cell (`td.area::before`), and 30% left main at 4.46:1
-  there. The same holds for `--hfe-token-sheet` (named expressions in the suggestions, sheet names): the
-  package default `#64748b` measured 4.12:1 on classic's active suggestion row, so the plugin sets it to
-  the secondary text color with 20% of the foreground. Both are pinned by "formulaBuilder text
-  contrast" in `tests/e2e/formula-builder-popups.spec.ts`, which composites the `::before` tint. The reference palette is the package's own: its
-  defaults clear 4.5:1 on the editor backgrounds and stay apart from each other, so the plugin does not
-  restate `--hfe-ref-1` to `--hfe-ref-8` (an application can, on the theme class). Neither does it
+- **The colors are the design's, contrast gaps included.** Every `--hfe-*` color the plugin sets equals
+  the FormulaBuilder design in its Handsontable mode. Where the design keeps the package's own value (the
+  unknown function and error token colors, the error color, the named expression and sheet color, the comment color, and the
+  highlight of the active suggestion row), `_formula-builder.scss` sets nothing, and the package's `:root`
+  `light-dark()` default applies, dark side included. Do not restate one of them on the theme block: a
+  `var(--hfe-color-foreground)` there would resolve to the cell editor's foreground, not the design's
+  `#1c1d20`. Mapped to theme tokens: the editor and menu surfaces, the accent text, the active argument
+  chip and the paren match (`--ht-accent-color`), the keyboard row's frame (`--ht-border-color`), and
+  the plain tokens (function names, numbers, strings, booleans, operators, parentheses, brackets,
+  separators and names)
+  on `--ht-foreground-color`, so a custom theme still recolors them.
+  The design's colors fail WCAG 1.4.3 in places, accepted for now: the error text `#fa4d56` measures
+  3.35:1 on white, an unknown function name `#ea580c` 3.56:1, a comment `#8a8f99` 3.25:1 (and `#6c7280`
+  4.23:1 on the main theme's dark background), and a named expression `#64748b` 4.45:1 on the active row
+  `#f7f7f9`. The accent's contrast is the theme's, baselined under the theme contrast issues (see the
+  next paragraph). The axe scan measures these under `formula-builder-design-contrast`: the
+  `formula-builder-tokens` page (the formula fixture's `design-colors` variant) shows an unknown function
+  and a comment in the formula bar and the error popup's title, and `formula-builder-named-expression` a
+  named expression on the active suggestion row. Axe cannot measure the error text in a cell: the cell's
+  corner marker and a selected range's tint are pseudo-elements, so it reports the cell as incomplete.
+  Pinned by "formulaBuilder design colors" in `tests/e2e/formula-builder-popups.spec.ts`. The reference palette is the design's, not the package's: the
+  package's light values are darker, so the plugin restates `--hfe-ref-1` to `--hfe-ref-8` (light and dark
+  from the design; an application can still override them on the theme class). The plugin does not
   override the error cell's font or `color-scheme`: the package reads `--hfe-font-family`, which the plugin
   sets, for the error value and the error popup title alike, and sets `color-scheme` only on its roots,
   where the theme class wins.
@@ -482,8 +515,9 @@ touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse path
 The `hyperformula-ui` side of each is listed for the package maintainers (the review of PR #13172).
 
 - In a grid that is not in a shadow root, the popups and the live region mount in the document body. The
-  axe scan marks that portal on two pages (`formula-builder-suggestions`, `formula-builder-function-help`);
-  the error popup and the live region are not scanned.
+  axe scan marks that portal on four pages (`formula-builder-suggestions`, `formula-builder-function-help`,
+  `formula-builder-named-expression`, and `formula-builder-tokens`, which shows the error popup); the live
+  region is not scanned.
 - The `formula` alias is registered by the first grid built with the plugin registered, so with the full
   bundle every page that builds a grid has it (the constructor trap above explains why).
 - `imeFastEdit: true` has no effect on a formula cell: the selected cell keeps the focus, so an IME
@@ -491,12 +525,17 @@ The `hyperformula-ui` side of each is listed for the package maintainers (the re
   editor shim does not have, and giving it a hidden one would not help: the composition would start in that
   element and could not move into the package's input when the editor opens. It needs a `hyperformula-ui`
   input that is mounted and focusable before the edit opens.
-- The horizon theme's accent focus ring measures below 3:1; it is the theme token every grid surface uses.
-  The formula bar's own rings (the address box and the bar-hosted editor) do not use it:
-  `--hfe-formula-bar-input-focus-ring` is the text accent (`$accent-text-color`, 5.33:1 on horizon). The
-  bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
+- **The bar's focus rings and the accent colors map to theme tokens; the theme owns their contrast.** The
+  rings (`--hfe-formula-bar-input-focus-ring`) read `--ht-cell-selection-border-color`, so a focused bar
+  reads like the selected cell. The accent text (matched letters, the active parameter name), the active
+  argument chip and the paren match read `--ht-accent-color`, like every other grid surface that draws the
+  accent. Do not mix a darker plugin-local color to fix their contrast: that was tried, and the bar looked
+  like a different control next to the cell. Where the theme accent misses a contrast threshold (horizon,
+  classic), the fix belongs in the theme token, and it then reaches the formula builder with no change here.
+  The bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
   of the ring width (the idle overlay too, so the text does not shift on focus); drawing the ring outward
-  instead is clipped by the top slot. Pinned by "the bar editor's focus ring" in
+  instead is clipped by the top slot. Pinned by "the bar editor's focus ring", "the address box's focus
+  ring" and "the matched letters, the active argument chip and the paren match use the theme accent" in
   `tests/e2e/formula-builder-popups.spec.ts`.
 - `hyperformula-ui` is MIT-licensed since 0.3.6 (0.3.5 and earlier were `GPL-3.0-only`). It is pinned to an
   exact version because the 0.x line may break in a minor.

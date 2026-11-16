@@ -6,7 +6,9 @@
  *                                                    and writes `dist/manifest.json`.
  *   node scripts/run.mjs generate:feature-manifest   The same, but rewrites the committed outputs first: the
  *                                                    `feature.generated.ts` modules,
- *                                                    `licenseCapabilities.generated.ts`, and `released-tokens.json`.
+ *                                                    `licenseCapabilities.generated.ts`, `released-tokens.json`, and
+ *                                                    the feature-to-tier matrix in the license key guide
+ *                                                    (`docs/content/guides/getting-started/license-key/`).
  *   node scripts/generate-feature-manifest.mjs --check-base <file>
  *                                                    Only compares `released-tokens.json` with the base branch's
  *                                                    copy (CI passes it; `{}` before the file existed there).

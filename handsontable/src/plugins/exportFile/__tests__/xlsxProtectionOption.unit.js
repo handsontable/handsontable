@@ -2,7 +2,7 @@ import Xlsx from '../types/xlsx';
 import ExportDataProvider from '../dataProvider';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
 import * as consoleHelpers from '../../../helpers/console';
-import { ALL_XLSX_TOKENS, keyWith } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { resetTierKeys, tierKeyWithout } from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 
 // A small sheet with one read-only cell. The tests swap `cellsMeta` and `columnSummaries` to drop the
 // read-only cell or to add a ColumnSummary destination. Read lazily by the mock below (jest hoists the
@@ -141,13 +141,14 @@ function createInstance(licenseKey) {
   return { rootDocument: document, rootWindow: window, getSettings: () => ({ licenseKey }) };
 }
 
-const FULL_KEY = keyWith(ALL_XLSX_TOKENS);
-
 describe('Xlsx export `protection` option', () => {
   let warnSpy;
   let writeSpy;
+  // A key that unlocks every feature.
+  let fullKey;
 
   beforeEach(() => {
+    fullKey = tierKeyWithout([]);
     mockState.cellsMeta = READ_ONLY_META;
     mockState.columnSummaries = [];
     warnSpy = jest.spyOn(consoleHelpers, 'warn').mockImplementation(() => {});
@@ -158,6 +159,7 @@ describe('Xlsx export `protection` option', () => {
   afterEach(() => {
     warnSpy.mockRestore();
     writeSpy.mockRestore();
+    resetTierKeys();
   });
 
   /**
@@ -180,7 +182,7 @@ describe('Xlsx export `protection` option', () => {
   const passwordReachedAWarning = () => warnSpy.mock.calls.flat().some(arg => String(arg).includes(PASSWORD));
 
   it('protects with no password by default', async() => {
-    const sheet = (await exportSnapshot(FULL_KEY)).sheets[0];
+    const sheet = (await exportSnapshot(fullKey)).sheets[0];
 
     expect(sheet.protection.enabled).toBe(true);
     expect(sheet.protection.password).toBeNull();
@@ -188,14 +190,14 @@ describe('Xlsx export `protection` option', () => {
   });
 
   it('protects with no password for an explicit `undefined`', async() => {
-    const sheet = (await exportSnapshot(FULL_KEY, { protection: undefined })).sheets[0];
+    const sheet = (await exportSnapshot(fullKey, { protection: undefined })).sheets[0];
 
     expect(sheet.protection.enabled).toBe(true);
     expect(sheet.protection.password).toBeNull();
   });
 
   it('passes the password to the sheet protection', async() => {
-    const sheet = (await exportSnapshot(FULL_KEY, { protection: { password: PASSWORD } })).sheets[0];
+    const sheet = (await exportSnapshot(fullKey, { protection: { password: PASSWORD } })).sheets[0];
 
     expect(sheet.protection.enabled).toBe(true);
     expect(sheet.protection.password === PASSWORD).toBe(true);
@@ -213,8 +215,8 @@ describe('Xlsx export `protection` option', () => {
   });
 
   it('treats an empty password as none', async() => {
-    const empty = (await exportSnapshot(FULL_KEY, { protection: { password: '' } })).sheets[0];
-    const noKey = (await exportSnapshot(FULL_KEY, { protection: {} })).sheets[0];
+    const empty = (await exportSnapshot(fullKey, { protection: { password: '' } })).sheets[0];
+    const noKey = (await exportSnapshot(fullKey, { protection: {} })).sheets[0];
 
     expect(empty.protection.enabled).toBe(true);
     expect(empty.protection.password).toBeNull();
@@ -223,7 +225,7 @@ describe('Xlsx export `protection` option', () => {
   });
 
   it('writes no protection and no locked cell for protection: null', async() => {
-    const sheet = (await exportSnapshot(FULL_KEY, { protection: null })).sheets[0];
+    const sheet = (await exportSnapshot(fullKey, { protection: null })).sheets[0];
 
     expect(sheet.protection).toBeNull();
     expect(sheet.rows.flat().filter(Boolean).every(cell => cell.locked === null)).toBe(true);
@@ -232,7 +234,7 @@ describe('Xlsx export `protection` option', () => {
   it('writes nothing for a password when no cell is read-only', async() => {
     mockState.cellsMeta = [[{}, {}], [{}, {}]];
 
-    const sheet = (await exportSnapshot(FULL_KEY, { protection: { password: PASSWORD } })).sheets[0];
+    const sheet = (await exportSnapshot(fullKey, { protection: { password: PASSWORD } })).sheets[0];
 
     expect(sheet.protection).toBeNull();
     expect(sheet.rows.flat().filter(Boolean).every(cell => cell.locked === null)).toBe(true);
@@ -241,16 +243,16 @@ describe('Xlsx export `protection` option', () => {
   it('keeps the ColumnSummary exception with a password', async() => {
     mockState.columnSummaries = [{ destRow: 1, destCol: 1, type: 'sum', result: 3 }];
 
-    const sheet = (await exportSnapshot(FULL_KEY, { protection: { password: PASSWORD } })).sheets[0];
+    const sheet = (await exportSnapshot(fullKey, { protection: { password: PASSWORD } })).sheets[0];
 
     expect(sheet.protection).toBeNull();
   });
 
   it('protects every sheet that has read-only cells with the same password', async() => {
-    const own = createInstance(FULL_KEY);
+    const own = createInstance(fullKey);
     const xlsx = new Xlsx(new ExportDataProvider(own), {
       protection: { password: PASSWORD },
-      sheets: [{ instance: own, name: 'One' }, { instance: createInstance(FULL_KEY), name: 'Two' }],
+      sheets: [{ instance: own, name: 'One' }, { instance: createInstance(fullKey), name: 'Two' }],
     });
 
     writeSpy.mockClear();
@@ -269,12 +271,12 @@ describe('Xlsx export `protection` option', () => {
     ['a per-sheet protection: null', null],
     ['an invalid per-sheet protection', true],
   ])('ignores %s and applies the top-level password to every sheet', async(_, sheetProtection) => {
-    const own = createInstance(FULL_KEY);
+    const own = createInstance(fullKey);
     const xlsx = new Xlsx(new ExportDataProvider(own), {
       protection: { password: PASSWORD },
       sheets: [
         { instance: own, name: 'One', protection: sheetProtection },
-        { instance: createInstance(FULL_KEY), name: 'Two' },
+        { instance: createInstance(fullKey), name: 'Two' },
       ],
     });
 
@@ -295,12 +297,12 @@ describe('Xlsx export `protection` option', () => {
     + 'the value set on a sheet entry was ignored.';
 
   it('warns once, without the value, when sheet entries carry a protection key', async() => {
-    const own = createInstance(FULL_KEY);
+    const own = createInstance(fullKey);
     const xlsx = new Xlsx(new ExportDataProvider(own), {
       protection: { password: PASSWORD },
       sheets: [
         { instance: own, name: 'One', protection: { password: 'other-sheet-password' } },
-        { instance: createInstance(FULL_KEY), name: 'Two', protection: null },
+        { instance: createInstance(fullKey), name: 'Two', protection: null },
       ],
     });
 
@@ -312,10 +314,10 @@ describe('Xlsx export `protection` option', () => {
   });
 
   it('does not warn about a per-sheet protection when no sheet entry carries one', async() => {
-    const own = createInstance(FULL_KEY);
+    const own = createInstance(fullKey);
     const xlsx = new Xlsx(new ExportDataProvider(own), {
       protection: { password: PASSWORD },
-      sheets: [{ instance: own, name: 'One' }, { instance: createInstance(FULL_KEY), name: 'Two' }],
+      sheets: [{ instance: own, name: 'One' }, { instance: createInstance(fullKey), name: 'Two' }],
     });
 
     await xlsx.export();
@@ -324,7 +326,7 @@ describe('Xlsx export `protection` option', () => {
   });
 
   it('ignores the option and names only the token without xlsx:protection', async() => {
-    const key = keyWith(ALL_XLSX_TOKENS.filter(id => id !== 'xlsx:protection'));
+    const key = tierKeyWithout(['xlsx:protection']);
     const sheet = (await exportSnapshot(key, { protection: { password: PASSWORD } })).sheets[0];
 
     expect(sheet.protection).toBeNull();
@@ -358,7 +360,7 @@ describe('Xlsx export `protection` option', () => {
     ['an object', { secret: 'q4' }],
     ['a boolean', true],
   ])('refuses %s as the password, without naming the value', async(_, password) => {
-    const error = await refusal(FULL_KEY, { protection: { password } });
+    const error = await refusal(fullKey, { protection: { password } });
 
     expect(error).toBeInstanceOf(Error);
     expect(error.message).toBe(PASSWORD_REFUSAL);
@@ -367,7 +369,7 @@ describe('Xlsx export `protection` option', () => {
   });
 
   it('refuses a non-string password even without xlsx:protection', async() => {
-    const key = keyWith(ALL_XLSX_TOKENS.filter(id => id !== 'xlsx:protection'));
+    const key = tierKeyWithout(['xlsx:protection']);
     const error = await refusal(key, { protection: { password: 1234 } });
 
     expect(error?.message).toBe(PASSWORD_REFUSAL);
@@ -378,7 +380,7 @@ describe('Xlsx export `protection` option', () => {
   it('refuses a protection value that is neither an object nor null', async() => {
     for (const protection of [true, 'q4-budget', 1, ['q4-budget']]) {
       // eslint-disable-next-line no-await-in-loop
-      const error = await refusal(FULL_KEY, { protection });
+      const error = await refusal(fullKey, { protection });
 
       expect(error?.message).toBe(PROTECTION_REFUSAL);
       expect(error.message.includes(PASSWORD)).toBe(false);
@@ -389,12 +391,12 @@ describe('Xlsx export `protection` option', () => {
 
   it('accepts a password of 255 characters and refuses one of 256, without naming the value', async() => {
     const longest = `${'q'.repeat(254)}Z`;
-    const sheet = (await exportSnapshot(FULL_KEY, { protection: { password: longest } })).sheets[0];
+    const sheet = (await exportSnapshot(fullKey, { protection: { password: longest } })).sheets[0];
 
     expect(sheet.protection.password === longest).toBe(true);
 
     const tooLong = `${'q'.repeat(255)}Z`;
-    const error = await refusal(FULL_KEY, { protection: { password: tooLong } });
+    const error = await refusal(fullKey, { protection: { password: tooLong } });
 
     expect(error?.message).toBe('ExportFile: the "protection.password" option has to be at most 255 characters long.');
     expect(error.message.includes('qqq')).toBe(false);
@@ -402,7 +404,7 @@ describe('Xlsx export `protection` option', () => {
   });
 
   it('accepts a null password as no password', async() => {
-    const sheet = (await exportSnapshot(FULL_KEY, { protection: { password: null } })).sheets[0];
+    const sheet = (await exportSnapshot(fullKey, { protection: { password: null } })).sheets[0];
 
     expect(sheet.protection.enabled).toBe(true);
     expect(sheet.protection.password).toBeNull();

@@ -179,12 +179,14 @@ test.describe('undo of a gesture', { tag: CROSS_BROWSER_TAG }, () => {
 
 /**
  * Adding a comment through the context menu needs the comment editor to keep the keyboard focus after
- * the menu closes. On WebKit the editor loses it here: the pointer ends outside this fixture's short
- * page body, and the CopyPaste plugin's Safari-only `mouseleave` workaround then selects the highlighted
- * cell's content and takes the focus (Chromium keeps it in the editor). So this block has no
- * `CROSS_BROWSER_TAG` and runs on the Chromium legs only.
+ * the menu closes. The page body can report a `mouseleave` a moment after the menu item is clicked (the
+ * pointer ends outside a short page body), and the CopyPaste plugin's Safari-only `mouseleave`
+ * workaround used to select the highlighted cell's content then and take the focus from the editor.
+ * Whether a real `mouseleave` lands before the test types depends on the page layout and the engine, so
+ * the tests send one themselves (`UndoGridPage.pointerLeavesBody()`), which makes the order the same
+ * on every run. Chromium has no such workaround, so the WebKit leg is the one that proves the fix.
  */
-test.describe('undo of a comment added through the context menu', () => {
+test.describe('undo of a comment added through the context menu', { tag: CROSS_BROWSER_TAG }, () => {
   let grid: UndoGridPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -192,10 +194,37 @@ test.describe('undo of a comment added through the context menu', () => {
     await grid.goto();
   });
 
+  test('the comment editor keeps the focus when the page body reports a mouseleave', async () => {
+    await grid.initGrid({ contextMenu: true, comments: true });
+    await grid.openContextMenuOnCell(1, 1);
+    await grid.chooseContextMenuItem('Add comment');
+    await expect(grid.commentTextArea()).toBeFocused();
+
+    await grid.pointerLeavesBody();
+
+    await expect(grid.commentTextArea()).toBeFocused();
+    await expect(grid.cell(1, 1)).not.toHaveAttribute('contenteditable');
+  });
+
+  test('the comment editor of "Edit comment" keeps the focus when the page body reports a mouseleave', async () => {
+    await grid.initGrid({ contextMenu: true, comments: true });
+    await grid.setComment(1, 1, 'Existing');
+    await grid.openContextMenuOnCell(1, 1);
+    await grid.chooseContextMenuItem('Edit comment');
+    await expect(grid.commentTextArea()).toBeFocused();
+
+    await grid.pointerLeavesBody();
+
+    await expect(grid.commentTextArea()).toBeFocused();
+    await expect(grid.cell(1, 1)).not.toHaveAttribute('contenteditable');
+  });
+
   test('adding a comment through the context menu is one step, recorded when the editor is left', async ({ page }) => {
     await grid.initGrid({ contextMenu: true, comments: true });
     await grid.openContextMenuOnCell(1, 1);
     await grid.chooseContextMenuItem('Add comment');
+    await expect(grid.commentTextArea()).toBeFocused();
+    await grid.pointerLeavesBody();
     await expect(grid.commentTextArea()).toBeFocused();
     await page.keyboard.type('Check this');
 

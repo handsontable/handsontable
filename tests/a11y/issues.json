@@ -461,6 +461,169 @@
       "match": [
         { "source": "docs", "axeIssues": ["embed-frame-title", "example-image-alt", "example-unlabeled-fields"] }
       ]
+    },
+    {
+      "id": "docs-assistant-closed-tab-stops",
+      "title": "The closed docs assistant keeps its controls in the Tab order, off screen",
+      "match": [
+        { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden"], "where": ["^(button|textarea)\\.da-"] }
+      ]
+    },
+    {
+      "id": "docs-copy-button-hidden-focus",
+      "title": "A code block's copy button stays invisible when it has the keyboard focus",
+      "match": [
+        { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden"], "where": ["^div\\.copy button$"] }
+      ]
+    },
+    {
+      "id": "docs-hidden-nav-link-focusable",
+      "title": "A link in a hidden copy of the navigation takes the keyboard focus, off screen and hidden from screen readers",
+      "match": [
+        { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden", "focus-stop-aria-hidden"], "where": ["^a\\.active$"] }
+      ]
+    },
+    {
+      "id": "docs-example-grid-holds-focus",
+      "title": "An example grid keeps the Tab key, and the documented way out (Ctrl+End, then Tab) does not leave it",
+      "match": [
+        { "source": "docs-checks", "kinds": ["grid-holds-focus"] }
+      ]
+    },
+    {
+      "id": "docs-code-region-unnamed",
+      "title": "A code block that scrolls is a focusable region with no name",
+      "match": [
+        { "source": "docs-checks", "kinds": ["focus-stop-without-role"], "where": ["pre\\[role=\"region\"\\]"] }
+      ]
+    },
+    {
+      "id": "docs-search-slash-shortcut",
+      "title": "The / key opens the docs search with nothing focused, and nothing turns it off",
+      "match": [
+        { "source": "docs-checks", "kinds": ["single-key-shortcut"] }
+      ]
+    },
+    {
+      "id": "docs-popup-focus-not-returned",
+      "title": "Closing the docs assistant or the search does not give the focus back to the control that opened it",
+      "match": [
+        { "source": "docs-checks", "kinds": ["focus-not-returned"] }
+      ]
+    },
+    {
+      "id": "grid-refocus-on-settings-update",
+      "title": "After the grid had the focus, changing an example's option from the keyboard moves the focus into the grid: the grid takes it back when its settings update",
+      "match": [
+        { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["context-change-on-input"] }
+      ]
+    },
+    {
+      "id": "docs-sticky-header-hides-focus",
+      "title": "The sticky header hides a focused link when Shift+Tab scrolls it to the top of the window",
+      "match": [
+        { "source": "docs-checks", "kinds": ["focus-obscured"] }
+      ]
+    },
+    {
+      "id": "docs-focus-indicator-contrast",
+      "title": "A focus indicator in the docs stands under 3:1 from the colors next to it",
+      "match": [
+        { "source": "docs-checks", "kinds": ["focus-indicator-contrast"] }
+      ]
+    },
+    {
+      "id": "docs-example-field-boundary",
+      "title": "An example's text field has no edge or fill that stands 3:1 from the page",
+      "match": [
+        { "source": "docs-checks", "kinds": ["control-boundary-contrast"] }
+      ]
+    },
+    {
+      "id": "docs-current-state-forced-colors",
+      "title": "In forced colors, the current breadcrumb and the current table-of-contents entry look like the others",
+      "match": [
+        { "source": "docs-checks", "kinds": ["state-lost-in-forced-colors"] }
+      ]
+    },
+    {
+      "id": "docs-titles-truncate",
+      "title": "Sidebar and card titles are cut off with an ellipsis at 320 px, at 200% zoom and under text spacing",
+      "match": [
+        { "source": "docs-checks", "kinds": ["text-truncated"], "where": ["^span\\.title "] }
+      ]
+    },
+    {
+      "id": "docs-phone-breadcrumbs-truncate",
+      "title": "The phone breadcrumbs are cut off with an ellipsis at 320 px",
+      "match": [
+        { "source": "docs-checks", "kinds": ["text-truncated"], "where": ["^nav\\.mobile-breadcrumbs "] }
+      ]
+    },
+    {
+      "id": "docs-phone-subheader-cut",
+      "title": "The phone subheader reaches past the viewport at 320 px, where the page cannot scroll to it",
+      "match": [
+        { "source": "docs-checks", "kinds": ["outside-viewport"], "where": ["^div\\.mobile-subheader "] }
+      ]
+    },
+    {
+      "id": "docs-content-reflow",
+      "title": "Content that does not wrap (inline code, keys, a link in a callout, the not-found page's game) makes docs pages wider than 320 px",
+      "match": [
+        { "source": "docs-checks", "kinds": ["page-scrolls-sideways"] }
+      ]
+    },
+    {
+      "id": "docs-example-reflow",
+      "title": "Examples overlap the page's controls, clip their text and cut their labels at 320 px, at 200% zoom and under text spacing",
+      "match": [
+        { "source": "docs-checks", "kinds": ["controls-overlap"], "where": ["^div\\.example-container "] },
+        { "source": "docs-checks", "kinds": ["text-clipped"], "where": ["^div\\.hot-example "] },
+        { "source": "docs-checks", "kinds": ["text-truncated"], "where": ["^div\\.example-container label "] }
+      ]
+    },
+    {
+      "id": "docs-footer-overlap",
+      "title": "Footer links overlap each other at 200% zoom",
+      "match": [
+        { "source": "docs-checks", "kinds": ["controls-overlap"], "where": ["^nav\\.hot-footer__nav a × "] }
+      ]
+    },
+    {
+      "id": "docs-repeated-landmark-names",
+      "title": "Each callout is a complementary landmark named by its type, and the two pagination navigations share a name, so the landmark list repeats names",
+      "match": [
+        { "source": "docs-checks", "kinds": ["landmark-name-repeated"] }
+      ]
+    },
+    {
+      "id": "docs-heading-skips",
+      "title": "Docs pages skip heading levels inside the main content",
+      "match": [
+        { "source": "docs-checks", "kinds": ["heading-level-skipped"] }
+      ]
+    },
+    {
+      "id": "docs-framework-shared-titles",
+      "title": "The framework variants of a docs page share one title",
+      "match": [
+        { "source": "docs-checks", "kinds": ["page-title-duplicate"] }
+      ]
+    },
+    {
+      "id": "docs-generic-link-names",
+      "title": "Some docs links are named \"here\", \"read more\" or \"learn more\", which says nothing out of context",
+      "match": [
+        { "source": "docs-checks", "kinds": ["link-name-generic"] }
+      ]
+    },
+    {
+      "id": "docs-not-found-title",
+      "title": "The not-found page's title does not hold its heading",
+      "match": [
+        { "source": "docs-checks", "kinds": ["page-title-differs-from-heading"] }
+      ]
     }
   ]
 }

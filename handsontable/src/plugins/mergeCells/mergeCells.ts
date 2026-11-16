@@ -1986,7 +1986,68 @@ export class MergeCells extends BasePlugin {
     this.#reanchorMergesToVisibleRows();
     this.#clearSpanKeysOfCellsNoLongerDrawnFrom(drawnFromBefore);
 
+    // A replay that inserted or removed columns renumbered the physical indexes the recorded merges name.
+    if (isMergeState(other) && context?.reordered !== true) {
+      this.#clearCoveredFlagsOfCellsReleasedByStep(state, other);
+    }
+
     this.hot.markAllCellsChanged();
+  }
+
+  /**
+   * Collects the physical cells the recorded merges cover: every row of the anchor in every physical column the
+   * merge spanned when it was captured. A merge with no anchor or no recorded columns is left out.
+   *
+   * @param {Array} entries The recorded merges.
+   * @returns {Set<number>} The cells, packed as `physicalRow * DRAWN_CELL_COLUMN_STRIDE + physicalColumn`.
+   */
+  #collectRecordedCoveredCells(entries: readonly MergeStateEntry[]): Set<number> {
+    const cells = new Set<number>();
+
+    entries.forEach(({ anchor, physicalColumns }) => {
+      if (anchor === null || physicalColumns === undefined) {
+        return;
+      }
+
+      physicalColumns.forEach((physicalColumn) => {
+        if (physicalColumn !== null) {
+          anchor.physicalRows.forEach((physicalRow) => {
+            cells.add((physicalRow * DRAWN_CELL_COLUMN_STRIDE) + physicalColumn);
+          });
+        }
+      });
+    });
+
+    return cells;
+  }
+
+  /**
+   * Removes `hidden` and `copyable` from the cells the merges of the other side of a step covered and the
+   * restored side does not. `restoreState()` runs after UndoRedo restored the index maps, so the visual columns
+   * of a live merge name the wrong physical columns and a set built from them cannot see the cell a redo takes
+   * out of a merge. The recorded merges carry their physical columns, so the two sides are compared by those.
+   * A cell the restored side's changed merges cover is left alone. One an unchanged merge covers may be
+   * cleaned, and `afterGetCellMeta` stores the flags again on the next read.
+   *
+   * @param {Array} state The merges on the restored side of the step.
+   * @param {Array} other The merges on the other side of the step.
+   */
+  #clearCoveredFlagsOfCellsReleasedByStep(state: readonly MergeStateEntry[], other: readonly MergeStateEntry[]) {
+    const left = other.filter(entry => !isMergeListed(state, entry));
+
+    if (left.length === 0) {
+      return;
+    }
+
+    const covered = this.#collectRecordedCoveredCells(state.filter(entry => !isMergeListed(other, entry)));
+
+    this.#collectRecordedCoveredCells(left).forEach((key) => {
+      if (covered.has(key)) {
+        return;
+      }
+
+      this.#clearCoveredFlagsOfTopLeftCell(Math.trunc(key / DRAWN_CELL_COLUMN_STRIDE), key % DRAWN_CELL_COLUMN_STRIDE);
+    });
   }
 
   /**
