@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import { chmod, link, lstat, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import {
+  chmod, link, lstat, mkdir, mkdtemp, readFile, readdir, rename, rm, symlink, writeFile,
+} from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -92,7 +94,9 @@ describe('writeFileSafely()', () => {
 
       await assert.rejects(writeFileSafely(path, 'old\n', 'new\n', {
         beforeRename: async() => {
-          await rm(path);
+          // The old file stays alive under another name, so the file system cannot hand its inode number to the
+          // new file. Linux reuses the number of a file that is gone at once, which would hide the swap.
+          await rename(path, join(dir, 'a.old.js'));
           await writeFile(path, 'old\n');
         },
       }), /changed while the tool was running/);
