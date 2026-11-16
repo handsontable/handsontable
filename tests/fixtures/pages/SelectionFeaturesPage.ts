@@ -1444,6 +1444,11 @@ export class SelectionFeaturesPage {
     await dragFillHandle(this.page, this.fillHandle(), this.cell(row, col));
   }
 
+  /** The fill handle of the focus selection drawn by the inline-end clone (a `fixedColumnsEnd` cell). */
+  endCloneFillHandle(): Locator {
+    return this.page.locator('.ht_clone_inline_end .wtBorder.current.corner:visible');
+  }
+
   /** Whether the Autofill plugin still believes the fill handle is pressed. */
   async isFillHandlePressed(): Promise<boolean> {
     return this.page.evaluate(() => window.hot.getPlugin('autofill').mouseDownOnCellCorner);

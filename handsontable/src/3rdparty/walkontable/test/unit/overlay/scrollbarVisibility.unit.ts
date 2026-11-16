@@ -308,6 +308,16 @@ describe('ScrollbarVisibility', () => {
     expect(tracker.visible.vertical).toBe(false);
   });
 
+  it('should not hold the vertical band from beside it in RTL', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(0, 60);
+    tracker.notifyPointerMoved(SCROLLPORT.left + OVERLAY_SCROLLBAR_CLEARANCE + 1, 200, true);
+    fadeAll();
+
+    expect(tracker.visible.vertical).toBe(false);
+  });
+
   it('should pin the vertical band from the inline-start edge in RTL', () => {
     const { tracker, scrollBy, fadeAll } = build();
 
