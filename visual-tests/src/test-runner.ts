@@ -48,7 +48,7 @@ const FADE_ALLOWANCE = 1500;
  * a pointer resting this close to a scrollbar's edge holds that band open with no timer behind it. A
  * change to the engine's constant has to be mirrored here.
  */
-const SCROLLBAR_PROXIMITY = 26;
+const SCROLLBAR_PROXIMITY = 16;
 
 /**
  * The shape the init script below leaves on `window`, so the settle wait can read where the pointer

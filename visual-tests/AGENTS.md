@@ -368,7 +368,7 @@ These things about this pipeline are worth knowing before changing it.
   the band up: measured 16 of 20 times on `selection-arabic-rtl-demo-2` (a capture retired since), 0 of
   20 once two frames had elapsed. The band then closes 1000 ms later (`OVERLAY_SCROLLBAR_FADE_DELAY`). `test-runner.ts` waits
   those two frames before the first poll, and when a band is still open after 5 s it decides instead of
-  giving up silently: a pointer resting within 26 px of that scrollbar's edge (`OVERLAY_SCROLLBAR_PROXIMITY`,
+  giving up silently: a pointer resting within 16 px of that scrollbar's edge (`OVERLAY_SCROLLBAR_PROXIMITY`,
   mirrored in the fixture) pins the band open by design, so the capture proceeds with a `scrollbar-band`
   annotation on the test; anything else throws, Playwright re-renders the spec, and a persistent stuck
   band reds the render job with a message naming the cause — and the fixture buys that message its time
