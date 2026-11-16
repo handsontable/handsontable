@@ -4307,10 +4307,16 @@ export default function Core(
       // function itself — not a usable column reference. Fall back to the visual column index
       // so hook listeners always receive a number or a property string, never a function.
       const colArg = isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop;
-      // Both captured before `beforeValidate`: a listener of that hook can load other data, and then the
-      // answer must neither mark a loaded record nor be taken for the answer to a later call.
+      // All captured before `beforeValidate`: a listener of that hook can load other data, and then the
+      // answer must neither mark a loaded record nor be taken for the answer to a later call; and it can sort,
+      // move or insert rows, and the call then follows the record it was made for, not the one on its row.
       const structureVersion = metaManager.getStructureVersion();
       const loadGeneration = validationLoadGeneration;
+      const validatedPhysicalRow = isChangeCall ?
+        getPhysicalRowOfExistingRow(cellProperties.visualRow as number) : null;
+      const validatedRecord = validatedPhysicalRow === null ? null : recordTracker.track(validatedPhysicalRow);
+      const releaseMetaStamp = validatedRecord === null ? () => {} :
+        waitingMetaStamps.add(validatedRecord, cellProperties);
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
 
@@ -4329,11 +4335,6 @@ export default function Core(
       let answered = !isCountedCall;
       let isGenerationReleased = !isChangeCall;
       const validatedProp = cellProperties.prop;
-      const validatedPhysicalRow = isChangeCall ?
-        getPhysicalRowOfExistingRow(cellProperties.visualRow as number) : null;
-      const validatedRecord = validatedPhysicalRow === null ? null : recordTracker.track(validatedPhysicalRow);
-      const releaseMetaStamp = validatedRecord === null ? () => {} :
-        waitingMetaStamps.add(validatedRecord, cellProperties);
       const countAnswer = () => {
         if (!isGenerationReleased) {
           isGenerationReleased = true;

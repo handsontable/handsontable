@@ -1037,6 +1037,26 @@ describe('Core validation of a change while its record moves', () => {
       expect(rows).toEqual([4]);
     });
 
+    it('should follow the edited record when a beforeValidate listener sorts the rows', async() => {
+      createGrid();
+
+      const rows = [];
+
+      hot.addHook('afterValidate', (isValid, value, row) => {
+        rows.push(row);
+      });
+      hot.addHookOnce('beforeValidate', () => sortByKey());
+      hot.suspendRender();
+      hot.setDataAtCell(1, 0, 'zzz');
+      await answerAll(false);
+      hot.resumeRender();
+
+      expect(rows).toEqual([4]);
+      expect(sourceNames()).toEqual(['p0', 'zzz', 'p2', 'p3', 'p4', 'p5']);
+      expect(validAt(1)).toBe(false);
+      expect([0, 2, 3, 4, 5].map(validAt).includes(false)).toBe(false);
+    });
+
     it('should pass afterValidate a null row when a filter took the record out of the visual rows', async() => {
       createGrid();
 
