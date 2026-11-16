@@ -1002,35 +1002,10 @@ function snapshotSelectionVisibleRange(table: Table, wtOverlays: Overlays): void
       partial: [table.getFirstPartiallyVisibleColumn(), table.getLastPartiallyVisibleColumn()],
       full: [table.getFirstVisibleColumn(), table.getLastVisibleColumn()],
     },
-    bottomCloneCoversLinedUpRow: isBottomCloneTallerThanCountedRows(table, wtOverlays),
+    // Left open here: the bottom clone renders inside `refresh()`, after this snapshot, and its height is
+    // read on the first ask after that (`Overlays#bottomCloneCoversLinedUpRow`).
+    bottomCloneCoversLinedUpRow: null,
   };
-}
-
-/**
- * Tells whether the bottom clone, as last drawn, is taller than the height the row calculators count for the
- * frozen bottom rows. Its first row draws its own top border, the freeze line. While that row has no height
- * of its own the border is one pixel on top of the counted height, so the clone covers the bottom border of
- * a row that scrolling lined up with it. A first row with a height of its own (`rowHeights`, `minRowHeights`,
- * a resized row, a recorded content height) holds the border inside that height: the clone is as tall as
- * counted, and a lined-up row ends at its top edge with its own border in view.
- *
- * @param {Table} table The master table.
- * @param {Overlays} wtOverlays The master's overlays.
- * @returns {boolean}
- */
-function isBottomCloneTallerThanCountedRows(table: Table, wtOverlays: Overlays): boolean {
-  const fixedRowsBottom = table.wtSettings.getSetting('fixedRowsBottom');
-  const cloneTable = wtOverlays.bottomOverlay?.clone?.wtTable.TABLE;
-
-  if (fixedRowsBottom === 0 || !cloneTable) {
-    return false;
-  }
-
-  const totalRows = table.wtSettings.getSetting('totalRows') ?? 0;
-  const countedHeight = table.deps.getWtViewport().sumRowHeights(totalRows - fixedRowsBottom, totalRows);
-
-  // Half a pixel, not zero: below 100% zoom the two heights differ by a fraction of a pixel anyway.
-  return table.deps.geometryReader.outerHeight(cloneTable) - countedHeight > 0.5;
 }
 
 /**

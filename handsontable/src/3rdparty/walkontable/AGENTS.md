@@ -1120,9 +1120,12 @@ Consequences worth knowing:
   ends 1px higher. Two limits. (1) The clone is 1px taller than counted only while its first row has no height
   of its own. A first bottom row with one (`rowHeights`, `minRowHeights`, ManualRowResize, a recorded content
   height) holds its top border inside that height, so a lined-up row ends at the clone's top edge with both
-  borders showing, as in 18.1.2. The master's snapshot carries the answer
-  (`selectionVisibleRange.bottomCloneCoversLinedUpRow`, the clone's drawn height against the counted one), and
-  `Border#isRowLinedUpWithBottomFreezeLine` is false without it: the row's selection and custom border are
+  borders showing, as in 18.1.2. `Overlays#bottomCloneCoversLinedUpRow()` answers
+  it from the clone's drawn height against the counted one, once per draw: on the first ask, which the bottom
+  overlay makes right after it rendered (it is the first overlay `refresh()` renders), and then from the
+  draw's snapshot. Reading it with the snapshot, before `refresh()`, used the clone of the previous draw, so
+  a `fixedRowsBottom` or `minRowHeights` change was one draw late. `Border#isRowLinedUpWithBottomFreezeLine`
+  is false without it: the row's selection and custom border are
   drawn on the row's own gridline, as for any row. (2) Where the nudge is kept (no column header, AutoRowSize
   off), the row below is one pixel inside the calculators' viewport, so the snapshot does not report the row as
   lined up. The line is one border high there, but the selection is drawn as for any row and the fill handle

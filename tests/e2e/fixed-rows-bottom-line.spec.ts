@@ -170,6 +170,22 @@ test.describe('fixedRowsBottom freeze line around the lined-up state', { tag: ['
     expect(await grid.masterRowEndsAtLine()).toBe(true);
   });
 
+  test('draws the edge on the line in the same draw that freezes the bottom row', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 0 });
+    await grid.freezeBottomRowUnderLinedUpRow(20, 2);
+
+    // No scroll and no other draw follows the settings update, so this is what that one draw left: the
+    // bottom clone's height is read after the clone rendered, not from the draw before it existed.
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
+    expect(await grid.bottomEdgeAcrossLine(20, 2)).toEqual({
+      onLine: expect.stringMatching(/^ht_clone_bottom\/div\.wtBorder current/),
+      inside: expect.stringMatching(/^(ht_master|ht_clone_bottom)\/div\.wtBorder current/),
+      handleOnTop: true,
+      handleAboveBand: true,
+    });
+  });
+
   test('fills down from the handle of a lined-up row with a real drag', async () => {
     await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1 });
 

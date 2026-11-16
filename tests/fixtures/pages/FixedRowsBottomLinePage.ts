@@ -178,6 +178,33 @@ export class FixedRowsBottomLinePage {
   }
 
   /**
+   * In a grid without frozen bottom rows, scrolls so that a row ends where the top border of one frozen
+   * bottom row would cover it, selects a cell of that row, and then freezes the last row with one
+   * `updateSettings()` call. The row is lined up with the bottom rows from the first draw that has them.
+   *
+   * @param {number} row The visual row to line up.
+   * @param {number} column The visual column to select.
+   */
+  async freezeBottomRowUnderLinedUpRow(row: number, column: number): Promise<void> {
+    // The row below ends 1px above the viewport edge after a bottom snap. One pixel back, this row ends 1px
+    // under the place where a default-height bottom row starts.
+    await this.page.evaluate((r) => {
+      (window as unknown as { hot: HotLike }).hot.scrollViewportTo({ row: r + 1, verticalSnap: 'bottom' });
+    }, row);
+    await expect(this.master.locator(`td[data-testid="cell-${row + 1}-1"]`)).toBeAttached();
+    await this.#settle();
+    await this.page.evaluate(() => {
+      (document.querySelector('.ht_master .wtHolder') as HTMLElement).scrollTop -= 1;
+    });
+    await this.#settle();
+    await this.selectRange(row, column, row, column);
+    await this.page.evaluate(() => {
+      (window as unknown as { hot: HotLike }).hot.updateSettings({ fixedRowsBottom: 1 });
+    });
+    await expect(this.page.locator('.ht_clone_bottom tbody tr:first-child > td').first()).toBeAttached();
+  }
+
+  /**
    * The master holder's vertical scroll offset.
    */
   async scrollTop(): Promise<number> {

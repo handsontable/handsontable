@@ -11,7 +11,7 @@ type BorderStub = {
   wot: {
     getSetting: (key: string) => unknown,
     wtTable: { name: string },
-    wtOverlays: { selectionVisibleRange: unknown },
+    wtOverlays: { selectionVisibleRange: unknown, bottomCloneCoversLinedUpRow: () => boolean },
   },
   settings: { selectionType?: string },
 };
@@ -54,7 +54,12 @@ function createBorder({ totalRows = 20, fixedRowsBottom = 0, overlay = 'master',
   const wot = {
     getSetting: (key: string) => wtSettings.getSetting(key),
     wtTable: { name: overlay },
-    wtOverlays: { selectionVisibleRange: snapshot },
+    wtOverlays: {
+      selectionVisibleRange: snapshot,
+      // The real method reads the bottom clone's height once per draw; the stub answers from the snapshot.
+      bottomCloneCoversLinedUpRow: () =>
+        (snapshot as { bottomCloneCoversLinedUpRow?: boolean } | null)?.bottomCloneCoversLinedUpRow === true,
+    },
   };
 
   // A real prototype chain without running the constructor (which builds DOM): the methods call each other.
