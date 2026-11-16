@@ -823,7 +823,6 @@ export function collectHotBindings(j, root) {
    * @property {object[]} values NodePaths of every value written to a member of the name (`null` and `undefined` are
    * no value).
    * @property {boolean} opaque A write of a value the file does not show, or a `defineProperty`, or an accessor.
-   * @property {boolean} declared An object literal or a class declares a member of the name.
    */
 
   /**
@@ -840,13 +839,14 @@ export function collectHotBindings(j, root) {
   const blockedNames = new Set();
 
   /**
-   * Whether `.hotInstance` counts as the grid by its name. The wrappers expose it read-only, so a file that
-   * declares a member of that name (an object literal key, a class member) is defining something else, and so is a
-   * file that writes a value that is not a grid to one.
+   * Whether `.hotInstance` counts as the grid by its name. The wrappers expose it read-only, so a file that writes
+   * a value to a member of that name that is not a grid, or declares a method or accessor of that name, is defining
+   * something else. A declaration with no value, `null`, or `undefined` (a Vue `data()` that returns
+   * `{ hotInstance: null }`) is neutral, like a variable's.
    *
-   * @returns {boolean} `true` when no write or declaration of the name takes the trust away.
+   * @returns {boolean} `true` when no write of the name takes the trust away.
    */
-  const hotInstanceTrusted = () => !blockedNames.has('hotInstance') && !nameWrites.get('hotInstance')?.declared;
+  const hotInstanceTrusted = () => !blockedNames.has('hotInstance');
 
   /**
    * The writes of a member name, created on the first sighting.
@@ -856,7 +856,7 @@ export function collectHotBindings(j, root) {
    */
   const nameEntry = (name) => {
     if (!nameWrites.has(name)) {
-      nameWrites.set(name, { values: [], opaque: false, declared: false });
+      nameWrites.set(name, { values: [], opaque: false });
     }
 
     return nameWrites.get(name);
@@ -867,12 +867,9 @@ export function collectHotBindings(j, root) {
    *
    * @param {string} name The member name.
    * @param {object|null} valuePath NodePath of the value, `null` when the file does not show it.
-   * @param {boolean} [declares] Whether the write declares the member (an object literal key, a class member).
    */
-  const noteNameWrite = (name, valuePath, declares = false) => {
+  const noteNameWrite = (name, valuePath) => {
     const entry = nameEntry(name);
-
-    entry.declared = entry.declared || declares;
 
     if (!valuePath) {
       entry.opaque = true;
@@ -1170,9 +1167,7 @@ export function collectHotBindings(j, root) {
 
     // A field of any class of the file is a write of its name, whichever class reads it.
     if (path.node.value) {
-      noteNameWrite(name, path.get('value'), true);
-    } else {
-      nameEntry(name).declared = true;
+      noteNameWrite(name, path.get('value'));
     }
 
     if (isHolderType(path.node.typeAnnotation)) {
@@ -1202,7 +1197,7 @@ export function collectHotBindings(j, root) {
 
     // A method or an accessor of the same name stands in for the member.
     memberHistory(classNode, `${path.node.static ? 'static ' : ''}${name}`).opaque = true;
-    noteNameWrite(name, null, true);
+    noteNameWrite(name, null);
   });
 
   root.find(j.TSParameterProperty).forEach((path) => {
@@ -1216,13 +1211,11 @@ export function collectHotBindings(j, root) {
 
     if (isHotType(parameter.typeAnnotation)) {
       addSeed(memberSeeds, classNode, parameter.name);
-      nameEntry(parameter.name).declared = true;
     } else if (isHolderType(parameter.typeAnnotation)) {
       addSeed(holderMemberSeeds, classNode, parameter.name);
-      nameEntry(parameter.name).declared = true;
     } else {
       memberHistory(classNode, parameter.name).opaque = true;
-      noteNameWrite(parameter.name, null, true);
+      noteNameWrite(parameter.name, null);
     }
   });
 
@@ -1237,9 +1230,9 @@ export function collectHotBindings(j, root) {
       }
 
       if (property.type === 'ObjectProperty' || property.type === 'Property') {
-        noteNameWrite(name, path.get('properties', index, 'value'), true);
+        noteNameWrite(name, path.get('properties', index, 'value'));
       } else if (property.type === 'ObjectMethod') {
-        noteNameWrite(name, null, true);
+        noteNameWrite(name, null);
       }
     });
   });
@@ -1254,7 +1247,7 @@ export function collectHotBindings(j, root) {
       const written = stringValue(path.node.arguments[1]);
 
       if (written !== null) {
-        noteNameWrite(written, null, true);
+        noteNameWrite(written, null);
       }
     }
   });

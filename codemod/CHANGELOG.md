@@ -52,8 +52,9 @@ How versions are chosen:
   `wrapper.hot = mock`, `wrapper['hot'] = mock`, `Object.assign(wrapper, { hot: mock })`, an object literal key, a
   field, getter, or method of that name in any class, a subclass that sets it, and `Object.defineProperty`. Before,
   only writes inside the class counted, so `this.hot.undo()` was still rewritten on a mock.
-- `.hotInstance` counts as the grid only when the file writes no value that is not a grid to a member of that name and
-  declares none (an object literal key, a class member). Before, the name alone was enough.
+- `.hotInstance` counts as the grid only when the file writes no value that is not a grid, `null`, or `undefined` to a
+  member of that name, and declares no method or accessor of it. A declaration with no value or `null` (a Vue `data()`
+  that returns `{ hotInstance: null }`) is neutral. Before, the name alone was enough.
 - `getPlugin()` is checked for its receiver. A plugin counts when the receiver is an instance the file shows. A local
   object that stands in for the grid (`fake.getPlugin('manualColumnResize')`) is left alone and not reported, and any
   other unresolved receiver, a parameter named `hot` included, is reported. Before, any receiver counted, so a call on

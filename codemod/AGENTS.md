@@ -860,8 +860,11 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   file does not show counts through what the class itself assigns or declares, as before. Not seen: a write through a
   computed key on another object (`y[k] = v`), and `Object.assign(y, source)` with a source that is not an object
   literal. **`.hotInstance` counts as the grid by its name** (`classify()`) only while `hotInstanceTrusted()`: no write
-  of the name is a value that is not a grid, and nothing declares one (an object literal key, even `hotInstance: null`
-  in a Vue `data()`, or a class member). A copy (`this.hotInstance = this.$refs.hot.hotInstance`) is not a foreign
+  of the name is a value that is not a grid, `null`, or `undefined`, and no method or accessor has the name. A
+  declaration with no value or a neutral one (`data() { return { hotInstance: null } }`, a class field) is neutral,
+  like a variable's. In a Vue options object `this` is not the class, so `this.hotInstance` rewrites through this name
+  trust only; a `this.hot` there never resolved. A `ref(null)` holder (`hotInstance.value.undo()`) never rewrote
+  either: only a typed `ref<Handsontable>(null)` is a holder. A copy (`this.hotInstance = this.$refs.hot.hotInstance`) is not a foreign
   value, or the trust would end on a cycle. When the name is not trusted, `this.hotInstance` still resolves through its
   class history or a type. `var` is hoisted to a namespace body and a class static block too (`declarationsOf()`), and bindings carry
   the node of their scope. The histories are keyed by the declaring identifier node, because a rebuilt scope cache

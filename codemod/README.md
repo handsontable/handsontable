@@ -369,9 +369,9 @@ not see a write through a computed key on another object (`wrapper[key] = x`), o
 source)` with a source that is not an object literal.
 
 `.hotInstance`, the property the wrappers expose, counts as the grid by its name, unless the file writes a value that is
-not a grid to a member of that name, or declares one: an object literal with a `hotInstance` key (a Vue `data()` that
-returns one, say), a class member of that name. The wrappers expose it read-only, so a file that defines its own is
-defining something else. A class field typed as the grid still counts through its type.
+not a grid, `null`, or `undefined` to a member of that name, or declares a method or accessor of it. A declaration with
+no value, `null`, or `undefined` (a Vue `data()` that returns `{ hotInstance: null }`, a class field) is neutral, like
+a variable's. The wrappers expose it read-only, so a file that gives it another value is defining something else.
 
 `getPlugin()` is also a method of other objects, so its receiver counts, as it does for `hot.undo()`. A plugin counts
 when the receiver is an instance the file shows (`const hot = new Handsontable(...)`, `ref.current.hotInstance`). A
