@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "formula-function-help",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T13:56:43.033Z"
+  },
+  "steps": {
+    "open-editor": "formula editor combo box collapsed has auto complete multi line editable equals a 1 plus b 1",
+    "select-all": "equals a 1 plus b 1 selected",
+    "type-sum": "equals sum unselected sum function help",
+    "type-range": "",
+    "type-comma": "",
+    "type-close": "",
+    "commit-formula": "7 c row 3 b column 4",
+    "back-to-committed": "11 c row 2 b column 4"
+  }
+}

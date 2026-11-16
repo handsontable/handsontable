@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "id": "formula-suggestions",
+  "surface": "The formula editor's function suggestions: typing a function's first letters, the arrow keys through the list, Tab inserting a function, and Escape out of the list and the edit.",
+  "group": "formulas",
+  "page": "formula-builder-suggestions",
+  "start": "page",
+  "state": "formula-suggestions",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [0, 2]}],
+  "steps": [
+    {
+      "id": "open-editor",
+      "action": {"press": "Enter"},
+      "expect": [["formula editor"]],
+      "note": "Enter opens the formula editor on C1, which holds `=A1+B1`. VoiceOver with WebKit says nothing on this first key after it enters the page, as on other pages."
+    },
+    {
+      "id": "select-all",
+      "action": {"press": "ControlOrMeta+a"},
+      "expect": [],
+      "note": "Selects the editor's text, so the typed text replaces the formula. Nothing is required."
+    },
+    {
+      "id": "type-su",
+      "action": {"type": "=SU"},
+      "expect": [["substitute"]],
+      "note": "Typing `=SU` opens the suggestions list (`listbox`, `Formula suggestions`) with its first function, SUBSTITUTE, highlighted through `aria-activedescendant`. Required: the highlighted function (NVDA `Formula suggestions, list. SUBSTITUTE, 1 of 14`; VoiceOver with Chromium reads the options as menu items). Finding: VoiceOver with WebKit reads only the typed text, `=SU`, and not the list or the highlighted function, and VoiceOver with Chromium did the same in one run of two; both read the next two."
+    },
+    {
+      "id": "down-to-subtotal",
+      "action": {"press": "ArrowDown"},
+      "expect": [["subtotal"]],
+      "note": "ArrowDown highlights the next function, SUBTOTAL."
+    },
+    {
+      "id": "down-to-sum",
+      "action": {"press": "ArrowDown"},
+      "expect": [["sum"]],
+      "note": "ArrowDown highlights SUM."
+    },
+    {
+      "id": "accept-sum",
+      "action": {"press": "Tab"},
+      "expect": [["sum"]],
+      "note": "Tab inserts `SUM(` and closes the list; the editor now describes the function (`SUM(any, ...)`). Required: the inserted function (`equals SUM()`, `=SUM()`: the editor closes the parenthesis)."
+    },
+    {
+      "id": "close-help",
+      "action": {"press": "Escape"},
+      "expect": [],
+      "note": "The first Escape closes the function's popup and keeps the edit. Nothing is required."
+    },
+    {
+      "id": "cancel-edit",
+      "action": {"press": "Escape"},
+      "expect": [["3"]],
+      "note": "The second Escape cancels the edit; C1 keeps `=A1+B1` and shows `3`."
+    }
+  ]
+}

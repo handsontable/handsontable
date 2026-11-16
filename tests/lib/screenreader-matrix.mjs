@@ -28,8 +28,9 @@ export const SCREENREADER_PROJECTS = ['nvda-chromium', 'nvda-firefox', 'vo-webki
  * links autoLink draws. `editors`: the cell editors and the checkbox cell. `selection`: row selection
  * and the check all header. `structure`: nested and collapsible headers, merged cells and the freeze
  * bars. `status`: the status messages and the bars around the grid (pagination, the sheets bar, a
- * dialog, a notification, the loading and empty data overlays, a value that resolves later). A new
+ * dialog, a notification, the loading and empty data overlays, a value that resolves later). `formulas`:
+ * the formula bar, its suggestions and function help, and a cell that shows a formula's result. A new
  * group joins this list, the workflow's matrix and its `exclude` together; the workflow test keeps
  * them equal.
  */
-export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure', 'status'];
+export const SCENARIO_GROUPS = ['keyboard', 'reading', 'menus', 'editors', 'selection', 'structure', 'status', 'formulas'];
