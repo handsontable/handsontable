@@ -935,6 +935,12 @@ const VUE_LEGACY_ALIASES = {
 // framework, or a renamed slug. Read by rule 6, and by rule 16 for the same
 // slug without a framework prefix.
 const CROSS_FRAMEWORK_PAGES = {
+  // The 19.0 to 20.0 guide was published on staging before 19.0 was cut and then removed: its only
+  // section (writing past the last column, #5409) is a 19.0 deprecation in the 18.1 to 19.0 guide.
+  '/docs/javascript-data-grid/migration-from-19.0-to-20.0/': '/docs/javascript-data-grid/migration-from-18.1-to-19.0/',
+  '/docs/react-data-grid/migration-from-19.0-to-20.0/': '/docs/react-data-grid/migration-from-18.1-to-19.0/',
+  '/docs/angular-data-grid/migration-from-19.0-to-20.0/': '/docs/angular-data-grid/migration-from-18.1-to-19.0/',
+  '/docs/vue-data-grid/migration-from-19.0-to-20.0/': '/docs/vue-data-grid/migration-from-18.1-to-19.0/',
   '/docs/react-data-grid/angular-installation/': '/docs/angular-data-grid/installation/',
   '/docs/react-data-grid/angular-basic-example/': '/docs/angular-data-grid/demo/',
   '/docs/react-data-grid/angular-modules/': '/docs/angular-data-grid/modules/',

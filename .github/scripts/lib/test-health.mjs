@@ -23,8 +23,9 @@
  *
  * A fifth family is the accessibility nightlies' evidence: the check documents and the axe findings
  * of the `A11y nightly` (`a11y-checks-evidence`, `a11y-axe-results`) and the transcripts of the
- * `Screen reader nightly` (`screenreader-transcripts-*`), and the docs site scan's findings of a `Docs a11y`
- * run (`docs-a11y-axe-results`). `collectArtifactFiles` hands the files of
+ * `Screen reader nightly` (`screenreader-transcripts-*`), and each site scan's findings and checks: `Docs a11y`
+ * (`docs-a11y-axe-results`, `docs-a11y-checks-evidence`) and `Website a11y` (`website-a11y-axe-results`,
+ * `website-a11y-checks-evidence`). `collectArtifactFiles` hands the files of
  * those artifacts to the caller unparsed; `./a11y-ledger.mjs` reads them into the findings ledger
  * (`test-health/a11y.json`, 90 days, one row per finding across nights), never into this one.
  *

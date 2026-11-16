@@ -29,8 +29,10 @@
 # A fifth family is the accessibility nightlies' evidence: the check documents
 # and the axe findings of `A11y nightly` (`a11y-checks-evidence`,
 # `a11y-axe-results`), the transcripts of `Screen reader nightly`
-# (`screenreader-transcripts-*`), and the docs site scan's findings of
-# `Docs a11y` (`docs-a11y-axe-results`). Those of these workflows on develop, run
+# (`screenreader-transcripts-*`), the docs site scan's findings and checks of
+# `Docs a11y` (`docs-a11y-axe-results`, `docs-a11y-checks-evidence`), and the
+# website's of `Website a11y` (`website-a11y-axe-results`,
+# `website-a11y-checks-evidence`). Those of these workflows on develop, run
 # by their schedule or a dispatch, go to `test-health/a11y.json`: one row per
 # finding across nights (first and last seen, nights seen, new / persisting /
 # flapping / resolved), sorted into root-cause clusters by
@@ -72,13 +74,14 @@ on:
     # are triaged. Its durations artifacts are never recorded (a schedule event is not a develop push).
     # 'A11y nightly' and 'Screen reader nightly' feed the accessibility findings ledger (a11y.json), on
     # develop: every check's evidence and the axe findings, and every reader lane's transcripts.
-    # 'Docs a11y' adds the docs site scan's findings, from a dispatch on develop (it has no schedule).
-    workflows: ['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly', 'Docs a11y']
+    # 'Docs a11y' and 'Website a11y' add the docs site's and the website's findings, from a dispatch on develop (they
+    # have no schedule).
+    workflows: ['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly', 'Docs a11y', 'Website a11y']
     types: [completed]
   workflow_dispatch:
     inputs:
       run-id:
-        description: 'Id of the Tests, Develop, Publish, Visual nightly, E2E nightly, A11y nightly, Screen reader nightly or Docs a11y run to collect (backfill, or testing a change to this workflow)'
+        description: 'Id of the Tests, Develop, Publish, Visual nightly, E2E nightly, A11y nightly, Screen reader nightly, Docs a11y or Website a11y run to collect (backfill, or testing a change to this workflow)'
         required: true
         type: string
 
@@ -129,7 +132,7 @@ jobs:
           # Only develop pushes have their Playwright durations recorded; the lib owns that rule.
           DEVELOP_PUSH=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; import { isDevelopPush } from './.github/scripts/lib/playwright-durations.mjs'; import { runContextFromRun } from './.github/scripts/lib/test-health.mjs'; console.log(isDevelopPush(runContextFromRun(JSON.parse(readFileSync('run.json', 'utf8')))));")
           echo "DEVELOP_PUSH=${DEVELOP_PUSH}" >> "$GITHUB_ENV"
-          # Only the two nightlies and the docs site scan on develop, by schedule or dispatch, have their accessibility evidence recorded; the lib owns that rule too.
+          # Only the recorded accessibility workflows (SOURCES_OF_WORKFLOW) on develop, by schedule or dispatch, have their evidence recorded; the lib owns that rule too.
           A11Y_RUN=$(node --input-type=module -e "import { readFileSync } from 'node:fs'; import { isA11yRun } from './.github/scripts/lib/a11y-ledger.mjs'; import { runContextFromRun } from './.github/scripts/lib/test-health.mjs'; console.log(isA11yRun(runContextFromRun(JSON.parse(readFileSync('run.json', 'utf8')))));")
           echo "A11Y_RUN=${A11Y_RUN}" >> "$GITHUB_ENV"
           echo "Collecting run ${RUN_ID} ($(node -p 'const r = JSON.parse(require("fs").readFileSync("run.json", "utf8")); `${r.name} · ${r.head_branch} · attempt ${r.run_attempt} · ${r.conclusion}`'))"
@@ -147,7 +150,7 @@ jobs:
         run: |
           mkdir -p artifacts
           gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts?per_page=100" \
-            --jq '.artifacts[] | select(.expired == false) | select((.name | test("^(playwright-report-|playwright-durations-|puppeteer-failed-specs-|visual-compare-)")) or (.name | test("^(a11y-checks-evidence$|a11y-axe-results$|docs-a11y-axe-results$|docs-a11y-checks-evidence$|screenreader-transcripts-)"))) | select((.name | startswith("playwright-durations-") | not) or env.DEVELOP_PUSH == "true") | select((.name | test("^(a11y-checks-evidence$|a11y-axe-results$|docs-a11y-axe-results$|docs-a11y-checks-evidence$|screenreader-transcripts-)") | not) or env.A11Y_RUN == "true") | .name' \
+            --jq '.artifacts[] | select(.expired == false) | select((.name | test("^(playwright-report-|playwright-durations-|puppeteer-failed-specs-|visual-compare-)")) or (.name | test("^(a11y-checks-evidence$|a11y-axe-results$|docs-a11y-axe-results$|docs-a11y-checks-evidence$|website-a11y-axe-results$|website-a11y-checks-evidence$|screenreader-transcripts-)"))) | select((.name | startswith("playwright-durations-") | not) or env.DEVELOP_PUSH == "true") | select((.name | test("^(a11y-checks-evidence$|a11y-axe-results$|docs-a11y-axe-results$|docs-a11y-checks-evidence$|website-a11y-axe-results$|website-a11y-checks-evidence$|screenreader-transcripts-)") | not) or env.A11Y_RUN == "true") | .name' \
             > artifact-names.txt
           if [ ! -s artifact-names.txt ]; then
             echo "No test artifacts on run ${RUN_ID}: nothing flaky or failed to record."

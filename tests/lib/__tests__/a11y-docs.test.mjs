@@ -115,7 +115,7 @@ test('the docs suite keeps its own files, artifact and report name, and locates 
     steps: docsStateSteps(DOCS_PAGES[0], 'dark'),
   });
   assert.equal(suiteFor('product'), PRODUCT_SUITE);
-  assert.throws(() => suiteFor('website'), /Unknown a11y suite "website"/);
+  assert.throws(() => suiteFor('intranet'), /Unknown a11y suite "intranet"/);
 });
 
 test('the committed docs baseline validates against the docs pages and color schemes', () => {

@@ -11,8 +11,11 @@ import {
   annotationBatches,
   baselineLines,
   buildCheckRun,
+  WEBSITE_SCAN,
   docsPageLines,
+  websitePageLines,
   pageLines,
+  pageLinesOf,
 } from '../a11y-check-run.mjs';
 import { AXE_SCAN_CHECK, DOCS_SCAN_CHECK, ISSUES_FILE, compileIssuesCatalog, trackedBy } from '../a11y-issues.mjs';
 import { DOCS_BASELINE_FILE, suiteFor } from '../a11y-suites.mjs';
@@ -195,6 +198,7 @@ const DOCS_PAGES_SOURCE = [
   "    surface: 'the version menu' },",
   '];',
 ].join('\n');
+import { WEBSITE_PAGES } from '../../a11y/website/pages.mjs';
 
 /**
  * A docs comparison as the reporter writes it with `suite: 'docs'`.
@@ -228,6 +232,25 @@ test('each scan names the files lib/a11y-suites.mjs gives it, and reads its find
   assert.deepEqual([PRODUCT_SCAN.name, PRODUCT_SCAN.source, PRODUCT_SCAN.check], [CHECK_RUN_NAME, 'axe', AXE_SCAN_CHECK]);
   assert.deepEqual([DOCS.name, DOCS.source, DOCS.check], ['A11y / docs-axe report', 'docs', DOCS_SCAN_CHECK],
     'a docs finding is read the way the ledger reads it (source docs, check docs-axe), never as the product scan\'s');
+});
+
+test('websitePageLines finds every website page on its page() call, by the id it names or its route gives', () => {
+  const source = readFileSync(path.join(TESTS_ROOT, 'a11y/website/pages.mjs'), 'utf8');
+  const lines = websitePageLines(source);
+  const text = source.split('\n');
+
+  assert.deepEqual(WEBSITE_PAGES.filter(page => !lines.has(page.id)).map(page => page.id), [], 'every website page has a line to annotate');
+  for (const page of WEBSITE_PAGES) {
+    assert.ok(text[lines.get(page.id) - 1].includes(`page('${page.route}'`), `${page.id}: annotated on its own entry`);
+  }
+  assert.equal(WEBSITE_SCAN.name, 'A11y / website-axe report');
+  assert.equal(WEBSITE_SCAN.source, 'website');
+  // Every report reads a list's lines through pageLinesOf(): the product's `id:` lines would find 21 of the 53
+  // website ids and put the rest on line 1.
+  assert.deepEqual(pageLinesOf('website', source), lines);
+  assert.ok(WEBSITE_PAGES.filter(page => !pageLines(source).has(page.id)).length > 0, 'most website ids have no `id:` line');
+  assert.deepEqual(pageLinesOf('product', PAGES_SOURCE), pageLines(PAGES_SOURCE));
+  assert.deepEqual(pageLinesOf('docs', DOCS_PAGES_SOURCE, ['js-introduction']), docsPageLines(DOCS_PAGES_SOURCE, ['js-introduction']));
 });
 
 test('docsPageLines finds every docs page: an extra page on its entry, a guide page on the function that builds it', () => {
