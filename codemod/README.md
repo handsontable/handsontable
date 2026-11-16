@@ -406,8 +406,6 @@ the tool reads the version from `package.json`, which the run raised, and answer
   that the file repeats (two blank lines, say) and those lines end in different ways, the text cannot say which one is
   left, so the tool does not guess: it leaves that file unchanged and reports a `transform-error`. A file that uses one
   ending, a lone CR included, is written in it.
-- It writes a changed file to a temporary file beside it and renames that over the original, so a crash never leaves
-  half a file. A hard link to the same file therefore keeps the old text.
 - It never follows a symbolic link, and it never writes a file whose real path is outside the project directory. A
   link goes to "Skipped files".
 - It writes a changed file to a temporary file in the same directory and renames it over the original, so a full
