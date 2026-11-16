@@ -24,6 +24,10 @@
     if (!window.htLicenseKey) {
       throw new Error('Unknown ?license= value: ' + JSON.stringify(htParams.get('license')));
     }
+    window.htPanels = ({ none: 'none', both: 'both' })[htParams.get('panels') ?? 'none'];
+    if (!window.htPanels) {
+      throw new Error('Unknown ?panels= value: ' + JSON.stringify(htParams.get('panels')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 0; padding: 20px; }
@@ -296,6 +300,14 @@
 
     try {
       window.initSideSlotGrid();
+
+      if (window.htPanels === 'both') {
+        window.addSidePanel('start', 'filters', 200);
+        window.addPanelButton('filters', 'Apply');
+        window.addSidePanel('end', 'details', 200);
+        window.addPanelButton('details', 'Close');
+        window.addTopButton('Refresh');
+      }
     } catch (error) {
       window.htBuildError = String((error && error.stack) || error);
       throw error;

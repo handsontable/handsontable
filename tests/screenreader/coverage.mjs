@@ -45,6 +45,7 @@ export const SR_PAGE_COVERAGE = {
   'license-bar': { gap: 'the license notice under an unlicensed grid is page text a reader meets, read by no scenario' },
   'license-powered-by': { gap: 'the Powered by badge under a grid with a sponsored key is a link a reader meets, read by no scenario' },
   'license-missing-features': { gap: 'the notice naming the features a license key leaves out, and its link, are read by no scenario' },
+  'side-layout-slots': { none: 'the layout slots add role-less containers, borders and corner radii, nothing in the accessibility tree: a reader meets the panels\' own content, which the page owns, and the grid the grid page reads' },
   'context-menu': { gap: 'checkable menu items and separators are read by no scenario; grid-core reads a context menu without them, on its own fixture' },
   'context-menu-submenu': { gap: 'a submenu opened from the context menu, and the way back, are read by no scenario' },
   'dropdown-menu': { scenarios: ['dropdown-menu', 'filters-by-value'] },
