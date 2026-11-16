@@ -421,11 +421,13 @@ export class TopOverlay extends Overlay {
       newY -= wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
 
       // The summed row heights leave out the top border the first body row draws when no column header owns
-      // that gridline, so the row's real bottom edge is one pixel lower and the target moves with it. With a
-      // column header there is no such pixel (DEV-2786), and the extra one put the row 1px above the bottom
-      // clone: its bottom border and the clone's top border, the freeze line, showed as a double line where
-      // the border belongs under the clone's first pixel row (DEV-3984). Without frozen bottom rows the extra
-      // pixel is kept as it was: nothing is drawn over the viewport's last pixel row there.
+      // that gridline, so the row's real bottom edge is one pixel lower and the target moves with it. The
+      // heights are not short in two cases, the ones `getHiderHeightCompensation()` answers 0 for: a column
+      // header owns the gridline (DEV-2786), or AutoRowSize measures the rows and counts that border in the
+      // first rendered row's height. The extra pixel then put the row 1px above the bottom clone: its bottom
+      // border and the clone's top border, the freeze line, showed as a double line where the border belongs
+      // under the clone's first pixel row (DEV-3984). Without frozen bottom rows the extra pixel is kept as
+      // it was: nothing is drawn over the viewport's last pixel row there.
       if (fixedRowsBottom === 0 || getHiderHeightCompensation(wtSettings) > 0) {
         newY += 1;
       }

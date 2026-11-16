@@ -21,10 +21,12 @@ type BorderStub = {
  *
  * @param {number} lastFull The last fully visible row.
  * @param {number} lastPartial The last partially visible row.
+ * @param {boolean} [bottomCloneCoversLinedUpRow=true] Whether the bottom clone is taller than the counted
+ *   height of the frozen bottom rows, so it covers the bottom border of a row lined up with it.
  * @returns {object}
  */
-function rowsSnapshot(lastFull: number, lastPartial: number) {
-  return { row: { full: [0, lastFull], partial: [0, lastPartial] } };
+function rowsSnapshot(lastFull: number, lastPartial: number, bottomCloneCoversLinedUpRow = true) {
+  return { row: { full: [0, lastFull], partial: [0, lastPartial] }, bottomCloneCoversLinedUpRow };
 }
 
 /**
@@ -88,6 +90,14 @@ describe('Border bottom freeze-line predicates', () => {
       const border = createBorder({ fixedRowsBottom: 0, snapshot: rowsSnapshot(9, 9) });
 
       expect(call(border, 'isRowLinedUpWithBottomFreezeLine', 9)).toBe(false);
+    });
+
+    it('should be false while the bottom clone is as tall as counted, so the row keeps its border in view', () => {
+      const border = createBorder({ fixedRowsBottom: 2, snapshot: rowsSnapshot(9, 9, false) });
+
+      expect(call(border, 'isRowLinedUpWithBottomFreezeLine', 9)).toBe(false);
+      expect(call(border, 'isEdgeOnBottomFreezeLine', 9)).toBe(false);
+      expect(call(border, 'isBottomHandleOccludedByClone', 9)).toBe(false);
     });
 
     it('should be false before the first draw took a snapshot', () => {

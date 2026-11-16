@@ -173,11 +173,15 @@ class Overlays {
    * and the clones render their selections before the master does, with a possible
    * `createVisibleCalculators()` in between. Reading the live range there would let the clones and the
    * master decide on different ranges, drawing a handle twice or not at all. `null` until the first
-   * snapshot.
+   * snapshot. `bottomCloneCoversLinedUpRow` is taken with it: whether the bottom clone is taller than the
+   * frozen bottom rows' counted height, so it covers the bottom border of a row lined up with it
+   * (`Border#isRowLinedUpWithBottomFreezeLine`).
    *
-   * @type {{row: AxisVisibleRange, column: AxisVisibleRange}|null}
+   * @type {{row: AxisVisibleRange, column: AxisVisibleRange, bottomCloneCoversLinedUpRow: boolean}|null}
    */
-  selectionVisibleRange: { row: AxisVisibleRange, column: AxisVisibleRange } | null = null;
+  selectionVisibleRange: {
+    row: AxisVisibleRange, column: AxisVisibleRange, bottomCloneCoversLinedUpRow: boolean,
+  } | null = null;
 
   /**
    * Binds the native DOM input listeners (scroll, wheel, key, resize) and translates them into the

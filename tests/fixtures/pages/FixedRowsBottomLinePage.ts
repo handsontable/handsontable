@@ -8,9 +8,11 @@ export interface FixedRowsBottomLineOptions {
   rtl?: boolean;
   rows?: number;
   cols?: number;
-  height?: number;
-  fixedColumnsStart?: number;
   fixedRowsBottom?: number;
+  /** `false` builds the grid without column headers. */
+  colHeaders?: boolean;
+  autoRowSize?: boolean;
+  minRowHeights?: number;
 }
 
 /**
@@ -58,8 +60,12 @@ export class FixedRowsBottomLinePage {
     const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
 
     Object.entries(options).forEach(([name, value]) => {
-      if (value !== undefined && value !== false) {
-        params.set(name, value === true ? '1' : String(value));
+      if (typeof value === 'boolean') {
+        // `false` is sent too: `colHeaders` is on unless the fixture is told otherwise.
+        params.set(name, value ? '1' : '0');
+
+      } else if (value !== undefined) {
+        params.set(name, String(value));
       }
     });
     await this.page.goto(`/tests/fixtures/demo/fixed-columns-end-line.html?${params}`);
@@ -128,9 +134,13 @@ export class FixedRowsBottomLinePage {
       await this.page.keyboard.press('ArrowDown');
     }
 
+    const selectedRow = await this.page.evaluate(
+      () => (window as unknown as { hot: HotLike }).hot.getSelectedRangeLast().to.row);
+
+    await expect(this.master.locator(`td[data-testid="cell-${selectedRow}-${column}"]`)).toBeAttached();
     await this.#settle();
 
-    return this.page.evaluate(() => (window as unknown as { hot: HotLike }).hot.getSelectedRangeLast().to.row);
+    return selectedRow;
   }
 
   /**
@@ -227,6 +237,27 @@ export class FixedRowsBottomLinePage {
         handleOnTop,
         handleAboveBand,
       };
+    }, [row, column] as const);
+  }
+
+  /**
+   * How far the master's custom border edge ends from its cell's bottom edge: `0` on the cell's own gridline,
+   * `-1` one pixel higher, which is where the edge goes on a row whose bottom border the bottom clone covers.
+   *
+   * @param {number} row The visual row of the cell with the custom border.
+   * @param {number} column The visual column of that cell.
+   * @returns {Promise<number | null>} `null` while no custom border is drawn.
+   */
+  async customBottomBorderOffGridline(row: number, column: number): Promise<number | null> {
+    return this.page.evaluate(([r, c]) => {
+      const cell = (window as unknown as { hot: HotLike }).hot.getCell(r, c).getBoundingClientRect();
+      // The selection was cleared, so the only drawn border of the master is the custom one.
+      const edge = Array.from(document.querySelectorAll('.ht_master .wtBorder'))
+        .filter(el => getComputedStyle(el).display !== 'none')
+        .map(el => el.getBoundingClientRect())
+        .find(rect => rect.height > 0 && rect.width > rect.height);
+
+      return edge ? Math.round(edge.bottom - cell.bottom) : null;
     }, [row, column] as const);
   }
 

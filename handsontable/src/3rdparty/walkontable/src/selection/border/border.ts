@@ -1219,6 +1219,10 @@ class Border {
    * the bottom clone starts. The bottom clone's first row draws its own top border one pixel above the height the
    * row calculators count, over the lined-up row's bottom border, so that border's pixel is the freeze line.
    *
+   * That holds while the clone's first row has no height of its own. With one, the clone is as tall as counted
+   * and the lined-up row keeps its own border in view above the clone, so the row is treated as any other
+   * (the master's snapshot says which, see `Overlays#selectionVisibleRange`).
+   *
    * @private
    * @param {number} toRow The row index.
    * @returns {boolean}
@@ -1228,7 +1232,8 @@ class Border {
 
     return fixedRowsBottom > 0 &&
       toRow < (this.wot.getSetting('totalRows') as number) - fixedRowsBottom - 1 &&
-      this.isTrackLinedUpWithFreezeLine('row', 1, toRow);
+      this.isTrackLinedUpWithFreezeLine('row', 1, toRow) &&
+      (this.wot.cloneSource ?? this.wot).wtOverlays.selectionVisibleRange?.bottomCloneCoversLinedUpRow === true;
   }
 
   /**

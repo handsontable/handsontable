@@ -52,6 +52,7 @@ for (const rtl of [false, true]) {
       const row = await grid.arrowToBandEdge(1, 2);
 
       expect(row).toBeLessThan(LAST_SCROLLABLE_ROW);
+      expect(await grid.masterRowEndsAtLine()).toBe(true);
 
       // Like at any gridline: the line pixel is the selection's (drawn by the bottom clone over itself), and so
       // is the pixel above it (the master's edge). The fill handle is on top, and at most the empty margin row
@@ -69,8 +70,84 @@ for (const rtl of [false, true]) {
 
       await grid.addCustomBottomBorder(row, 2);
 
+      // The row is still lined up after the settings update, or the two checks below would hold for any row.
+      expect(await grid.masterRowEndsAtLine()).toBe(true);
       // No frozen overlay draws a custom border, so its edge stays off the pixel the bottom clone covers.
       await expect.poll(() => grid.customBottomBorderAgainstBand()).toEqual({ height: 1, underBand: 0 });
+      expect(await grid.customBottomBorderOffGridline(row, 2)).toBe(-1);
     });
   });
 }
+
+test.describe('fixedRowsBottom freeze line in other grid shapes', { tag: ['@core', THEMES_TAG] }, () => {
+  let grid: FixedRowsBottomLinePage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new FixedRowsBottomLinePage(page, theme, bundle);
+  });
+
+  test('is one border high under a lined-up row in a grid without column headers', async () => {
+    // Without a column header the first body row draws the top gridline, a pixel the summed row heights
+    // leave out, and the scroll target keeps its extra pixel for it.
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, colHeaders: false });
+
+    const row = await grid.arrowToBandEdge(1, 2);
+
+    expect(row).toBeLessThan(LAST_SCROLLABLE_ROW);
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
+  });
+
+  test('is one border high under a lined-up row with AutoRowSize and no column headers', async () => {
+    // AutoRowSize counts the first row's top border in that row's height, so the scroll target has no pixel
+    // to add although no column header owns the gridline.
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, colHeaders: false, autoRowSize: true });
+
+    const row = await grid.arrowToBandEdge(1, 2);
+
+    expect(row).toBeLessThan(LAST_SCROLLABLE_ROW);
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
+  });
+
+  test('draws the selection edge on the line and keeps a custom border in view with AutoRowSize', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, autoRowSize: true });
+
+    const row = await grid.arrowToBandEdge(1, 2);
+
+    expect(row).toBeLessThan(LAST_SCROLLABLE_ROW);
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
+    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 2)).toEqual({
+      onLine: expect.stringMatching(/^ht_clone_bottom\/div\.wtBorder current/),
+      inside: expect.stringMatching(/^(ht_master|ht_clone_bottom)\/div\.wtBorder current/),
+      handleOnTop: true,
+      handleAboveBand: true,
+    });
+
+    await grid.addCustomBottomBorder(row, 2);
+
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    await expect.poll(() => grid.customBottomBorderAgainstBand()).toEqual({ height: 1, underBand: 0 });
+  });
+
+  test('leaves a row above a bottom row with a height of its own drawn as any other row', async () => {
+    // A frozen bottom row with a height of its own holds its top border inside that height, so the bottom
+    // clone does not cover the border of the row that ends on it. The selection and a custom border of that
+    // row are then drawn on the row's own gridline, and the bottom clone draws no part of the selection.
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, minRowHeights: 40 });
+
+    const row = await grid.arrowToBandEdge(1, 2);
+
+    expect(row).toBeLessThan(LAST_SCROLLABLE_ROW);
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    // Only the line's own pixel is read: a hit test half a pixel above a collapsed border answers either table.
+    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 2)).toMatchObject({
+      onLine: expect.stringMatching(/^ht_clone_bottom\/td/),
+    });
+
+    await grid.addCustomBottomBorder(row, 2);
+
+    await expect.poll(() => grid.customBottomBorderOffGridline(row, 2)).toBe(0);
+  });
+});

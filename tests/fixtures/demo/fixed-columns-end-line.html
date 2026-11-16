@@ -26,7 +26,8 @@
 <body>
   <!--
     The `fixedColumnsEnd` freeze line at every scroll state. Query params: rtl=1, rows, cols, colWidth,
-    width, height, fixedColumnsStart, fixedColumnsEnd, fixedRowsBottom, rowHeaders=0 (no row headers).
+    width, height, fixedColumnsStart, fixedColumnsEnd, fixedRowsBottom, rowHeaders=0 (no row headers),
+    colHeaders=0 (no column headers), autoRowSize=1 (the AutoRowSize plugin on), minRowHeights.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -69,10 +70,18 @@
       fixedColumnsEnd: number('fixedColumnsEnd', 0),
       rowHeaders: htParams.get('rowHeaders') !== '0',
       fixedRowsBottom: number('fixedRowsBottom', 0),
-      colHeaders: true,
+      colHeaders: htParams.get('colHeaders') !== '0',
       renderer: testIdRenderer,
       licenseKey: window.htTestLicenseKey,
     };
+
+    if (htParams.get('autoRowSize') === '1') {
+      settings.autoRowSize = true;
+    }
+
+    if (htParams.has('minRowHeights')) {
+      settings.minRowHeights = number('minRowHeights', 0);
+    }
 
     window.hot = new Handsontable(container, settings);
     } catch (error) {
