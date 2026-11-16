@@ -737,7 +737,7 @@ describe('adding HyperFormula', () => {
         'packages/b/src/grid.js': app,
       }, { to: '18.0' }, async({ result }) => {
         assert.match(result.report.entries.find(item => item.ruleId === '18.0.0/dependency-hyperformula').message,
-          new RegExp(`declared there as "${range.replace('*', '\\*')}"`));
+          new RegExp(`declared there as "${range.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`));
       });
     }
 

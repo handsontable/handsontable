@@ -39,7 +39,7 @@ describe('a file that is not valid UTF-8 is left alone', () => {
 
         assert.deepEqual(await readFile(join(dir, name)), bytes, 'the file was rewritten');
         assert.match(result.stdout, /not valid UTF-8/, result.stdout);
-        assert.match(result.stdout, new RegExp(`${name.replace('.', '\\.')}`));
+        assert.match(result.stdout, new RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
         assert.doesNotMatch(result.stdout, /�/);
         assert.equal(result.status, 0, result.stderr);
       });
