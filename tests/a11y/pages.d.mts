@@ -10,7 +10,9 @@ export type A11yState =
   | 'selection-hover'
   | 'async-pending'
   | 'formula-suggestions'
-  | 'formula-function-help';
+  | 'formula-function-help'
+  | 'formula-error-range'
+  | 'formula-named-suggestion';
 
 
 export interface A11yPage {

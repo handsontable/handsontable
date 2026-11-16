@@ -7535,21 +7535,54 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
-      physicalRow, physicalColumn, { visualRow: physicalRow, visualColumn },
-    );
-    let newValue = this.#getValueGetterValue(physicalRow, physicalColumn, value);
+    const newValue = this.#keepingStoredMetaStamps(physicalRow, physicalColumn, () => {
+      const valueGetterValue = this.#getValueGetterValue(physicalRow, physicalColumn, value);
 
-    if (typeof newValue === 'string') {
-      newValue = this.#escapeEngineBoundValue(newValue, cellMeta);
-    }
+      if (typeof valueGetterValue !== 'string') {
+        return valueGetterValue;
+      }
 
+      return this.#escapeEngineBoundValue(valueGetterValue, this.hot._getMetaManager().getCellMetaTransient(
+        physicalRow, physicalColumn, { visualRow: physicalRow, visualColumn },
+      ));
+    });
+
+    this.#noteOwnCellWrite(address);
     this.engine!.setCellContents(address, newValue);
     this.#recordSyncedCell(physicalRow, visualColumn, newValue);
     writtenCells.push({
       address, physicalRow, physicalColumn, visualRow: physicalRow, visualColumn, oldValue, writtenContent: undefined,
     });
     changedCells.push({ address });
+  }
+
+  /**
+   * Runs a read of a cell's meta that stamps coordinates on it (`getCellMetaTransient()` stamps the stored meta
+   * object), and puts the stamps of the stored meta back afterwards. The stored meta of a record a trim took out of
+   * the visual space is the `this` of a validator call that waits on it, whose `visualRow` the Core keeps `null`
+   * for as long as the record has no visual row, so a correction the validator writes through it is dropped instead
+   * of landing on the record at the visual row equal to the physical one.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {Function} read The read.
+   * @returns {*} What the read returns.
+   */
+  #keepingStoredMetaStamps<T>(physicalRow: number, physicalColumn: number, read: () => T): T {
+    const storedMeta = this.hot._getMetaManager().getCellMetaIfExists(physicalRow, physicalColumn);
+
+    if (storedMeta === undefined) {
+      return read();
+    }
+
+    const { row, col, visualRow, visualCol } = storedMeta;
+
+    try {
+      return read();
+
+    } finally {
+      Object.assign(storedMeta, { row, col, visualRow, visualCol });
+    }
   }
 
   /**

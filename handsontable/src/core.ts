@@ -126,7 +126,9 @@ import { createWriteLedger, getCellWriteKey, isValidatorCorrection } from './cor
 import type { LedgerCellMeta, WriteLedgerCall } from './core/writeLedger';
 import { createRecordTracker } from './core/recordTracker';
 import type { TrackedRecord } from './core/recordTracker';
-import { captureRecord, createWaitingChangeRecords, resolveRecord } from './core/waitingRecords';
+import {
+  captureRecord, createWaitingChangeRecords, followReplacedRecords, resolveRecord,
+} from './core/waitingRecords';
 import { createWaitingMetaStamps } from './core/waitingMetaStamps';
 import { createColumnTracker } from './core/columnTracker';
 import type { ColumnTracking, TrackedColumn } from './core/columnTracker';
@@ -519,6 +521,14 @@ export default function Core(
     },
   );
   /**
+   * The stored cell metas of waiting validator calls whose record `updateData()` moved to another physical row
+   * while the meta stays stored at the row it was read from (`updateData()` keeps cell meta by physical row). The
+   * meta there belongs to the record now at that row, so the answer of such a call is written only to the meta at
+   * the record's row (`persistValidationResult()`), never on the call's own meta object. Each maps to the tracked
+   * record of its call. A meta leaves the map when the next validator call starts on it.
+   */
+  const displacedMetas = new WeakMap<object, TrackedRecord>();
+  /**
    * What the record resolution reads from the grid, see `core/waitingRecords.ts`.
    */
   const recordReader: RecordReader = {
@@ -538,19 +548,35 @@ export default function Core(
   };
   /**
    * Tells a waiting change of a row past the last one about the rows `alter()`, a write past the last row or
-   * a spare-row option inserts or removes, by their visual rows, see `core/waitingRecords.ts`.
+   * a spare-row option inserts or removes, by their visual rows, and about a change of the number of trimmed rows
+   * (read on every `cacheUpdated` of the row index mapper), see `core/waitingRecords.ts`.
    *
    * @param {object} listener The listener.
    * @returns {Function} Stops telling the listener.
    */
   const observeRowShifts: RowShiftObserver = (listener) => {
+    const rowIndexMapper = instance.rowIndexMapper;
+    const countTrimmedRows = () => rowIndexMapper.getNumberOfIndexes() - rowIndexMapper.getNotTrimmedIndexesLength();
+    let trimmedRows = countTrimmedRows();
     const onAfterCreateRow = (visualRow: number, amount: number) => listener.rowsInserted(visualRow, amount);
     const onAfterRemoveRow = (visualRow: number, amount: number) => listener.rowsRemoved(visualRow, amount);
+    const onCacheUpdated = () => {
+      const previousTrimmedRows = trimmedRows;
+
+      trimmedRows = countTrimmedRows();
+
+      if (trimmedRows !== previousTrimmedRows) {
+        listener.trimmedRowsChanged(trimmedRows - previousTrimmedRows);
+      }
+    };
 
     instance.addHook('afterCreateRow', onAfterCreateRow);
     instance.addHook('afterRemoveRow', onAfterRemoveRow);
+    rowIndexMapper.addLocalHook('cacheUpdated', onCacheUpdated);
 
     return () => {
+      rowIndexMapper.removeLocalHook('cacheUpdated', onCacheUpdated);
+
       if (instance) {
         instance.removeHook('afterCreateRow', onAfterCreateRow);
         instance.removeHook('afterRemoveRow', onAfterRemoveRow);
@@ -3593,8 +3619,19 @@ export default function Core(
    * @param {number} structureVersion The structure version captured when validation started.
    */
   function restoreValidity(cellMeta: LedgerCellMeta, valid: boolean, structureVersion: number) {
-    cellMeta.valid = valid;
-    persistValidationResult(cellMeta as Parameters<typeof persistValidationResult>[0], valid, structureVersion);
+    const answerMeta = readAnswerMeta(
+      cellMeta as Parameters<typeof persistValidationResult>[0], displacedMetas.get(cellMeta) ?? null,
+    );
+
+    if (answerMeta === cellMeta) {
+      if (cellMeta.valid === valid) {
+        return;
+      }
+
+      cellMeta.valid = valid;
+    }
+
+    persistValidationResult(answerMeta, valid, structureVersion);
   }
 
   /**
@@ -3653,7 +3690,7 @@ export default function Core(
 
       const record = records.getRecord(change);
 
-      return record === undefined ? visualRow !== null && change[0] === visualRow :
+      return record === undefined ? visualRow !== null && (records.getPastEndRow(change) ?? change[0]) === visualRow :
         record.physicalRow !== null && record.physicalRow === physicalRow;
     });
 
@@ -3887,6 +3924,7 @@ export default function Core(
 
         if (row >= visibleRowsCount) {
           pendingRowMetas.push(cellProperties as { row?: number, valid?: boolean });
+          records.notePastEndMeta(changes[i], cellProperties);
 
         } else if (Number.isInteger(cellProperties.col)) {
           records.noteMeta(changes[i], cellProperties, cellProperties.col as number);
@@ -3927,10 +3965,17 @@ export default function Core(
                 }
 
                 // we canceled the change, so cell value is still valid
-                cellPropertiesReference.valid = true;
+                if (!displacedMetas.has(cellPropertiesReference)) {
+                  cellPropertiesReference.valid = true;
+                }
+
                 // ...and the stored meta has to hear about it too, or a cache clear that landed while
                 // the validator was running leaves the kept value wearing the rejected edit's mark.
-                persistValidationResult(cellPropertiesReference, true, structureVersion);
+                persistValidationResult(
+                  readAnswerMeta(cellPropertiesReference, displacedMetas.get(cellPropertiesReference) ?? null),
+                  true,
+                  structureVersion,
+                );
               }
 
               ledger?.answered(change, result);
@@ -4308,6 +4353,36 @@ export default function Core(
   }
 
   /**
+   * Returns the coordinates the answer of a validator call is written and reported at: the call's own cell meta,
+   * or, for a meta displaced by `updateData()` (`displacedMetas`), the cell of the call's record, whose row the
+   * meta no longer names.
+   *
+   * @private
+   * @param {object} cellProperties The cell meta the validator was handed.
+   * @param {object|null} record The tracked record of the call, or `null`.
+   * @returns {object}
+   */
+  function readAnswerMeta<M extends Record<string, unknown> & { visualRow?: number, visualCol?: number }>(
+    cellProperties: M,
+    record: TrackedRecord | null,
+  ): M {
+    if (record === null || !displacedMetas.has(cellProperties)) {
+      return cellProperties;
+    }
+
+    const { physicalRow } = record;
+
+    return {
+      ...cellProperties,
+      row: physicalRow ?? undefined,
+      col: cellProperties.col,
+      visualRow: physicalRow === null ? null : instance.toVisualRow(physicalRow),
+      visualCol: cellProperties.visualCol,
+      hidden: cellProperties.hidden,
+    };
+  }
+
+  /**
    * Validate a single cell.
    *
    * @memberof Core#
@@ -4337,8 +4412,9 @@ export default function Core(
      * @function done
      * @param {boolean} valid Indicates if the validation was successful.
      * @param {boolean} [canBeValidated=true] Flag which controls the validation process.
+     * @param {object} [answerMeta] The coordinates of the cell the answer is for.
      */
-    function done(valid: boolean, canBeValidated = true) {
+    function done(valid: boolean, canBeValidated = true, answerMeta: typeof cellProperties = cellProperties) {
       // Fixes GH#3903
       if (!canBeValidated || cellProperties.hidden === true) {
         callback(valid);
@@ -4346,8 +4422,8 @@ export default function Core(
         return;
       }
 
-      const col = cellProperties.visualCol as number;
-      const row = cellProperties.visualRow as number;
+      const col = answerMeta.visualCol as number;
+      const row = answerMeta.visualRow as number;
       const td = instance.getCell(row, col, true);
 
       if (td && td.nodeName !== 'TH') {
@@ -4370,10 +4446,22 @@ export default function Core(
       // so hook listeners always receive a number or a property string, never a function.
       const getColArg = () => (isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop);
       const colArg = getColArg();
-      // Both captured before `beforeValidate`: a listener of that hook can load other data, and then the
-      // answer must neither mark a loaded record nor be taken for the answer to a later call.
+      // All captured before `beforeValidate`: a listener of that hook can load other data, and then the
+      // answer must neither mark a loaded record nor be taken for the answer to a later call; and it can sort,
+      // move or insert rows, and the call then follows the record it was made for, not the one on its row.
       const structureVersion = metaManager.getStructureVersion();
       const loadGeneration = validationLoadGeneration;
+      const validatedPhysicalRow = isChangeCall ?
+        getPhysicalRowOfExistingRow(cellProperties.visualRow as number) : null;
+      const validatedRecord = validatedPhysicalRow === null ? null : recordTracker.track(validatedPhysicalRow);
+      const validatedPhysicalColumn = validatedRecord === null ? null : getTrackedPhysicalColumn(cellProperties.prop);
+      const validatedColumn: TrackedColumn | null = validatedPhysicalColumn === null ? null :
+        columnTracking.tracker.track(validatedPhysicalColumn);
+
+      displacedMetas.delete(cellProperties);
+
+      const releaseMetaStamp = validatedRecord === null ? () => {} :
+        waitingMetaStamps.add(validatedRecord, cellProperties, validatedColumn ?? undefined);
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
 
@@ -4392,14 +4480,6 @@ export default function Core(
       let answered = !isCountedCall;
       let isGenerationReleased = !isChangeCall;
       const validatedProp = cellProperties.prop;
-      const validatedPhysicalRow = isChangeCall ?
-        getPhysicalRowOfExistingRow(cellProperties.visualRow as number) : null;
-      const validatedRecord = validatedPhysicalRow === null ? null : recordTracker.track(validatedPhysicalRow);
-      const validatedPhysicalColumn = validatedRecord === null ? null : getTrackedPhysicalColumn(cellProperties.prop);
-      const validatedColumn: TrackedColumn | null = validatedPhysicalColumn === null ? null :
-        columnTracking.tracker.track(validatedPhysicalColumn);
-      const releaseMetaStamp = validatedRecord === null ? () => {} :
-        waitingMetaStamps.add(validatedRecord, cellProperties, validatedColumn ?? undefined);
       const countAnswer = () => {
         if (!isGenerationReleased) {
           isGenerationReleased = true;
@@ -4454,8 +4534,10 @@ export default function Core(
 
             try {
               hold.resume(() => {
+                const answerMeta = readAnswerMeta(cellProperties, validatedRecord);
+
                 valid = instance
-                  .runHooks('afterValidate', valid, value, cellProperties.visualRow, getColArg(), source);
+                  .runHooks('afterValidate', valid, value, answerMeta.visualRow, getColArg(), source);
 
                 // Every call into user code can destroy the grid (an `afterValidate` listener here, the
                 // callback in `done()` below), and nothing after it may read the destroyed instance.
@@ -4463,13 +4545,15 @@ export default function Core(
                   return;
                 }
 
-                cellProperties.valid = valid;
-                markCellMetaChanged(cellProperties);
+                if (answerMeta === cellProperties) {
+                  cellProperties.valid = valid;
+                  markCellMetaChanged(cellProperties);
+                }
 
-                persistValidationResult(cellProperties, valid, structureVersion);
+                persistValidationResult(answerMeta, valid, structureVersion);
                 countAnswer();
 
-                done(valid);
+                done(valid, true, answerMeta);
 
                 if (!instance) {
                   return;
@@ -4481,7 +4565,7 @@ export default function Core(
 
                 try {
                   instance.runHooks(
-                    'postAfterValidate', valid, value, cellProperties.visualRow, getColArg(), source
+                    'postAfterValidate', valid, value, answerMeta.visualRow, getColArg(), source
                   );
                 } finally {
                   isAnsweringStaleValidation = wasAnsweringStaleValidation;
@@ -4626,11 +4710,9 @@ export default function Core(
    * [`getSourceData()`](@/api/core.md#getsourcedata) returns it while the grid never displays it.
    *
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
-   * the change is **skipped** from 20.0.0 on, after its deprecation in 19.0.0: the value cannot become a column
-   * there, so it would only add a property the schema never declared. No value is written, and no
-   * {@link Hooks#beforeChange} or {@link Hooks#afterChange} entry is reported for it. A one-time console warning
-   * says so. {@link Hooks#afterSetDataAtCell} still fires, with the changes that were not skipped – an empty array
-   * when every change was. To write a field the grid shows no column for, address it by property name with
+   * that write is **deprecated as of 19.0.0** and will be ignored from 20.0.0 on: the value cannot become a column
+   * there, so it only adds a property the schema never declared. A one-time console warning says so. To write a
+   * field the grid shows no column for, address it by property name with
    * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead. A grid that declares no columns at all is
    * exempt – there every index is past the last column, and writing is how an empty dataset gets bootstrapped.
    *
@@ -4699,6 +4781,7 @@ export default function Core(
     let i;
     let ilen;
     let prop;
+    let writesPastLastColumn = false;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, visualColumn, newValue] = input[i];
@@ -4717,17 +4800,10 @@ export default function Core(
         // function `dataSchema`.) The index then travels on as the property name, so
         // `dataMap.set()` mints a positional key on a row whose other fields are named:
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
-        // serializes the row. Deprecated in 19.0.0, skipped from 20.0.0 on. The rule, and why it
+        // serializes the row. Deprecated in 19.0.0; the write is skipped from 20.0.0 on. The rule, and why it
         // reads `!== 'array'` and exempts a grid with no columns, is in `utils/pastLastColumn.ts`.
-        if (isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex)) {
-          removedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
-            'Writing past the last column of an object data source was removed in Handsontable 20.0.0. ' +
-            'The value is not written, and no change is reported for it. Use `setDataAtRowProp()` to ' +
-            'write a field the grid shows no column for.');
-
-          continue;
-        }
-
+        // The warning waits for `beforeChange`, see below.
+        writesPastLastColumn ||= isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex);
         prop = visualColumnIndex;
 
       } else {
@@ -4764,6 +4840,21 @@ export default function Core(
 
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
+
+    // The deprecation warning says the value lands on a property named after the column index, so it
+    // is decided by what `beforeChange` left: a listener that drops such a change, vetoes the call
+    // or redirects it to a named field (the #5409 workarounds) is told nothing, and one that
+    // replaces the entry with another past the last column still is. A numeric property that a
+    // column declares (`columns: [{ data: 5 }]`) resolves to that column and does not count.
+    if (writesPastLastColumn && processedChanges.some(([, changeProp]) => Number.isInteger(changeProp) &&
+        isSkippedPastLastColumn(instance.dataType, this.countCols(), changeProp as number) &&
+        datamap.propToCol(changeProp as number) === null)) {
+      deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
+        'Writing past the last column of an object data source is deprecated and will be ' +
+        'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +
+        'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
+        'field the grid shows no column for.');
+    }
 
     // `beforeChange` and `afterSetDataAtCell` listeners can destroy the grid, and nothing after them
     // may read the destroyed instance.
@@ -6139,6 +6230,7 @@ export default function Core(
             instance.rowIndexMapper.fitToLength(instance.countSourceRows());
           }
 
+          followWaitingRecordsAfterUpdate();
           grid.adjustRowsAndCols();
           selection.markSource('updateData');
 
@@ -6164,6 +6256,31 @@ export default function Core(
         firstRun,
         beforeRender: () => runOwedReadySteps(1),
       }));
+  }
+
+  /**
+   * Moves the records of the waiting change sets to the rows that hold them after `updateData()` replaced the data
+   * (`followReplacedRecords()`), so the stamps of their validator calls (`this.visualRow`, the row of
+   * `afterValidate`) and the answers follow them, and marks a call's meta that stays stored at the row it was read
+   * from as displaced (`displacedMetas`).
+   *
+   * @private
+   */
+  function followWaitingRecordsAfterUpdate() {
+    if (waitingChangeSets.size === 0) {
+      return;
+    }
+
+    const sets = Array.from(waitingChangeSets.values(), ({ records }) => records);
+    const moved = followReplacedRecords(recordTracker, recordReader, sets);
+
+    if (moved.size === 0) {
+      return;
+    }
+
+    waitingMetaStamps.followRelocated(moved, (meta, physicalRow) => (
+      !Number.isInteger(meta.col) || metaManager.getCellMetaIfExists(physicalRow, meta.col as number) === meta
+    )).forEach(({ record, meta }) => displacedMetas.set(meta, record));
   }
 
   /**

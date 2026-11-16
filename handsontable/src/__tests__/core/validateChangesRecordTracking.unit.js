@@ -397,6 +397,29 @@ describe('Core validation of a change while its record moves', () => {
       expect(validAt(7)).toBe(true);
     });
 
+    it('should create one row for a change past the last one when a trim hides rows while it waits', async() => {
+      createGrid();
+
+      hot.setDataAtCell(6, 0, 'new');
+      hot.getPlugin('trimRows').trimRows([1, 2]);
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'new']);
+      expect(applied).toEqual([[[4, 0, null, 'new']]]);
+    });
+
+    it('should create a row for a change past the last one instead of writing a record an untrim shows', async() => {
+      createGrid();
+
+      hot.getPlugin('trimRows').trimRows([1, 2]);
+      hot.setDataAtCell(4, 0, 'new');
+      hot.getPlugin('trimRows').untrimAll();
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'new']);
+      expect(applied).toEqual([[[6, 0, null, 'new']]]);
+    });
+
     it('should create the row of a change past the last one after a row above it was removed', async() => {
       createGrid();
 
@@ -578,13 +601,21 @@ describe('Core validation of a change while its record moves', () => {
 
       createGrid({ data });
 
+      const rows = [];
+
+      hot.addHook('afterValidate', (isValid, value, row) => {
+        rows.push(row);
+      });
       hot.setDataAtCell(1, 0, 'zzz');
       await settle();
       hot.updateData([...data].reverse());
-      await answerAll();
+      await answerAll(false);
 
       expect(sourceNames()).toEqual(['p5', 'p4', 'p3', 'p2', 'zzz', 'p0']);
       expect(dropped).toEqual([]);
+      expect(rows).toEqual([4]);
+      expect(validAt(4)).toBe(false);
+      expect([0, 1, 2, 3, 5].map(validAt).includes(false)).toBe(false);
     });
 
     it('should keep the change of a record whose key column is edited while the change waits', async() => {
@@ -741,6 +772,17 @@ describe('Core validation of a change while its record moves', () => {
       hot.resumeRender();
 
       expect(sourceNames()).toEqual([null, 'p0', 'ZZZ', 'p2', 'p3', 'p4', 'p5']);
+    });
+
+    it('should write the correction made through this.visualRow to the created row of a change past the last one after an insert above', async() => {
+      createCorrectingGrid();
+
+      hot.setDataAtCell(6, 0, 'zzz');
+      hot.alter('insert_row_above', 0);
+      await answerAll();
+      await answerAll();
+
+      expect(sourceNames()).toEqual([null, 'p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'ZZZ']);
     });
 
     it('should write the correction made through a null this.visualRow to the edited record a trim took out', async() => {
@@ -1037,6 +1079,26 @@ describe('Core validation of a change while its record moves', () => {
       expect(rows).toEqual([4]);
     });
 
+    it('should follow the edited record when a beforeValidate listener sorts the rows', async() => {
+      createGrid();
+
+      const rows = [];
+
+      hot.addHook('afterValidate', (isValid, value, row) => {
+        rows.push(row);
+      });
+      hot.addHookOnce('beforeValidate', () => sortByKey());
+      hot.suspendRender();
+      hot.setDataAtCell(1, 0, 'zzz');
+      await answerAll(false);
+      hot.resumeRender();
+
+      expect(rows).toEqual([4]);
+      expect(sourceNames()).toEqual(['p0', 'zzz', 'p2', 'p3', 'p4', 'p5']);
+      expect(validAt(1)).toBe(false);
+      expect([0, 2, 3, 4, 5].map(validAt).includes(false)).toBe(false);
+    });
+
     it('should pass afterValidate a null row when a filter took the record out of the visual rows', async() => {
       createGrid();
 
@@ -1239,6 +1301,41 @@ describe('Core validation of a change while its record moves', () => {
       expect(hot.getPlugin('pagination').getPaginationData().currentPage).toBe(2);
       expect(editor.isOpened()).toBe(false);
       expect(closed).toEqual([false]);
+      expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
+    });
+
+    it('should reopen on the record with the typed text when a filter lowered the page count during the wait', async() => {
+      createGrid({
+        allowInvalid: false,
+        trimRows: false,
+        hiddenRows: false,
+        pagination: { pageSize: 2 },
+      });
+
+      const pagination = hot.getPlugin('pagination');
+
+      pagination.setPage(3);
+      hot.selectCell(4, 0);
+
+      const editor = hot.getActiveEditor();
+
+      editor.beginEditing();
+      editor.setValue('zzz');
+      editor.finishEditing();
+
+      const filters = hot.getPlugin('filters');
+
+      filters.addCondition(1, 'gt', [3]);
+      filters.filter();
+
+      expect(pagination.getPaginationData().currentPage).toBe(2);
+
+      await answerAll(false);
+
+      expect(pagination.getPaginationData().currentPage).toBe(1);
+      expect(editor.isOpened()).toBe(true);
+      expect(editor.row).toBe(1);
+      expect(editor.getValue()).toBe('zzz');
       expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5']);
     });
 

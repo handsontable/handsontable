@@ -68,6 +68,19 @@ test.describe('an edit waiting for its validator while the rows change order', (
     await expect(grid.cell(0, 0)).toHaveText('edited');
     await expect(grid.cell(1, 0)).toHaveText('p2');
   });
+
+  test('marks the record\'s new row invalid, not the row that took its place', async() => {
+    await grid.typeAndConfirm(1, 0, 'edited');
+    await grid.expectPending('edited');
+
+    await grid.sortByRank();
+    await expect(grid.cell(1, 0)).toHaveText('p3');
+
+    await grid.answer('edited', false);
+
+    await expect(grid.cell(4, 0)).toHaveClass(/\bhtInvalid\b/);
+    await expect(grid.cell(1, 0)).not.toHaveClass(/\bhtInvalid\b/);
+  });
 });
 
 /**
@@ -104,6 +117,7 @@ test.describe('a rejected edit when the rows changed order while it waited', () 
       selected: [4, 0],
     });
     await expect(grid.editorInput).toBeVisible();
+    await expect(grid.editorInput).toBeFocused();
     await expect(grid.editorInput).toHaveValue('bad');
     expect(await grid.sourceData()).toEqual(SOURCE);
 

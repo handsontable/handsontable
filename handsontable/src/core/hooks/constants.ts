@@ -506,7 +506,9 @@ export const REGISTERED_HOOKS = [
    * Fired after retrieving information about a column header and appending it to the table header.
    *
    * @event Hooks#afterGetColHeader
-   * @param {number} column Visual column index.
+   * @param {number} column Visual column index. In a grid scrolled horizontally, the corner of the main
+   *                        table and of the top overlay gets the index of the column before the first
+   *                        rendered one, not a negative index.
    * @param {HTMLTableCellElement} TH Header's TH element.
    * @param {number} [headerLevel=0] (Since 12.2.0) Header level index. Accepts positive (0 to n)
    *                                 and negative (-1 to -n) values. For positive values, 0 points to the
@@ -1472,9 +1474,7 @@ export const REGISTERED_HOOKS = [
    * This hook fires for every `setDataAtCell()` call – not only when you call it directly, but also
    * for regular cell edits, paste, cut, Delete/Backspace, the fill handle, Ctrl+Enter, a checkbox
    * click, and undo/redo, since those are applied internally via `setDataAtCell()` too. It also fires
-   * with an empty `changes` array when a `beforeChange` handler cancels the change, and when every
-   * change is skipped because it addresses a column past the last one of an object data source (see
-   * [`setDataAtCell()`](@/api/core.md#setdataatcell)). Changes made
+   * when a `beforeChange` handler cancels the change, with an empty `changes` array. Changes made
    * through `setDataAtRowProp()` fire [`afterSetDataAtRowProp`](@/api/hooks.md#aftersetdataatrowprop)
    * instead – never both for the same change.
    *
@@ -4770,8 +4770,11 @@ export const REGISTERED_HOOKS = [
   'beforeDialogShow',
 
   /**
-   * Fired by {@link Dialog} plugin before focusing the previous element. This hook is fired when {@link Options#dialog}
-   * option is enabled.
+   * Fired by {@link Dialog} plugin when the user presses <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> while focus is
+   * inside the open dialog. This hook is fired when {@link Options#dialog} option is enabled.
+   *
+   * The hook runs once per key press, after the browser handled the key. It receives no arguments.
+   * To find out which element has the focus, read `document.activeElement` in the callback.
    *
    * @since 16.1.0
    * @event Hooks#dialogFocusPreviousElement
@@ -4779,8 +4782,11 @@ export const REGISTERED_HOOKS = [
   'dialogFocusPreviousElement',
 
   /**
-   * Fired by {@link Dialog} plugin before focusing the next element. This hook is fired when {@link Options#dialog}
-   * option is enabled.
+   * Fired by {@link Dialog} plugin when the user presses <kbd>**Tab**</kbd> while focus is inside the open dialog.
+   * This hook is fired when {@link Options#dialog} option is enabled.
+   *
+   * The hook runs once per key press, after the browser handled the key. It receives no arguments.
+   * To find out which element has the focus, read `document.activeElement` in the callback.
    *
    * @since 16.1.0
    * @event Hooks#dialogFocusNextElement

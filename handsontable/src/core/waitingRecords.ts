@@ -278,6 +278,56 @@ export function resolveRecord(
 }
 
 /**
+ * Moves the tracked records of waiting change sets to the physical rows that hold them after the data was replaced
+ * without the index mapper's insert and removal hooks (`updateData()`): with the same row objects in another order,
+ * or with row ids that now sit on other rows, the tracked row holds another record. A record moves only when every
+ * anchor that shares it resolves to one row, and no two records end on one row. The anchor's stored meta becomes
+ * the one at the new row, because `updateData()` keeps cell meta by physical row. Returns the records it moved.
+ *
+ * @param {object} tracker The record tracker.
+ * @param {object} reader Reads the grid.
+ * @param {Array<object>} sets The record bookkeeping of the waiting change sets.
+ * @returns {Set<object>}
+ */
+export function followReplacedRecords(
+  tracker: RecordTracker,
+  reader: RecordReader,
+  sets: WaitingChangeRecords[],
+): Set<TrackedRecord> {
+  const locate = createIndexedLocator(reader);
+  const targets = new Map<TrackedRecord, number | null>();
+  const anchorsOfRecord = new Map<TrackedRecord, RecordAnchor[]>();
+
+  sets.forEach(set => set.forEachAnchor((anchor) => {
+    const { record } = anchor;
+    const physicalRow = resolveRecord(reader, anchor, locate);
+
+    anchorsOfRecord.set(record, [...(anchorsOfRecord.get(record) ?? []), anchor]);
+    targets.set(record, !targets.has(record) || targets.get(record) === physicalRow ? physicalRow : null);
+  }));
+
+  const moves = new Map<TrackedRecord, number>();
+
+  targets.forEach((physicalRow, record) => {
+    if (physicalRow !== null) {
+      moves.set(record, physicalRow);
+    }
+  });
+
+  const moved = tracker.relocate(moves);
+
+  moved.forEach((record) => {
+    anchorsOfRecord.get(record)!.forEach((anchor) => {
+      if (anchor.meta !== null) {
+        anchor.meta = reader.getStoredMeta(record.physicalRow!, anchor.metaColumn) ?? null;
+      }
+    });
+  });
+
+  return moved;
+}
+
+/**
  * Puts the visual row a record has now into its change. The change tuple types its row as a number, the visual
  * row a change is made at; a change applied to a record that is trimmed out of the visual space meanwhile has no
  * visual row, and `afterChange` and `beforeChangeRender` report `null` for it.
@@ -291,7 +341,8 @@ function writeChangeRow(change: CellChange, visualRow: number | null): void {
 
 /**
  * Told about the rows inserted into or removed from the visual space, by the visual row of the first one and their
- * count. A removal is told after its rows are gone, an insert after its rows are in.
+ * count, and about a change of the number of trimmed rows. A removal is told after its rows are gone, an insert
+ * after its rows are in.
  */
 export interface RowShiftListener {
   /**
@@ -302,6 +353,11 @@ export interface RowShiftListener {
    * Called after rows are removed from a visual row.
    */
   rowsRemoved(visualRow: number, amount: number): void;
+  /**
+   * Called after a trimming map (a filter, `trimRows`, a collapse) changed the number of trimmed rows, with the
+   * difference (positive when more rows are trimmed).
+   */
+  trimmedRowsChanged(difference: number): void;
 }
 
 /**
@@ -323,6 +379,17 @@ export interface WaitingChangeRecords {
    * Notes the stored cell meta a validated change's cell has, which tells its record apart later.
    */
   noteMeta(change: CellChange, meta: object, physicalColumn: number): void;
+  /**
+   * Keeps the `visualRow` of the cell meta a validator call of a change past the last row gets on the visual row
+   * that change has while it waits, so a validator that corrects through `this.visualRow` writes to the row the
+   * change creates, not to the record a shift brought to its old row.
+   */
+  notePastEndMeta(change: CellChange, meta: object): void;
+  /**
+   * Returns the visual row a change past the last row has now while it waits, or `undefined` for any other
+   * change.
+   */
+  getPastEndRow(change: CellChange): number | undefined;
   /**
    * Tells whether the set captured a record for any change. A set no validator waited on captures none.
    */
@@ -367,6 +434,10 @@ export interface WaitingChangeRecords {
    */
   getColumn(change: CellChange): TrackedColumn | undefined;
   /**
+   * Calls a function with every record anchor the set holds.
+   */
+  forEachAnchor(callback: (anchor: RecordAnchor) => void): void;
+  /**
    * Stops tracking the records.
    */
   release(): void;
@@ -400,8 +471,20 @@ export function createWaitingChangeRecords(
   const anchors = new Set<RecordAnchor>();
   const settledRows = new Map<object, number>();
   const pastEndRows = new Map<CellChange, number>();
+  const pastEndMetas = new Map<CellChange, object[]>();
   let stopObservingRows: (() => void) | null = null;
   let captured = false;
+
+  /**
+   * Puts a change past the last row on another visual row, and the cell meta of its validator calls with it.
+   *
+   * @param {Array} change The change.
+   * @param {number} visualRow The visual row.
+   */
+  const movePastEnd = (change: CellChange, visualRow: number) => {
+    pastEndRows.set(change, visualRow);
+    pastEndMetas.get(change)?.forEach(meta => Reflect.set(meta, 'visualRow', visualRow));
+  };
 
   /**
    * Moves the rows of the changes past the last row by the rows inserted at or above them, unless the rows are
@@ -417,7 +500,7 @@ export function createWaitingChangeRecords(
 
     pastEndRows.forEach((row, change) => {
       if (visualRow <= row) {
-        pastEndRows.set(change, row + amount);
+        movePastEnd(change, row + amount);
       }
     });
   };
@@ -431,9 +514,21 @@ export function createWaitingChangeRecords(
   const shiftOnRemove = (visualRow: number, amount: number) => {
     pastEndRows.forEach((row, change) => {
       if (visualRow < row) {
-        pastEndRows.set(change, row - Math.min(amount, row - visualRow));
+        movePastEnd(change, row - Math.min(amount, row - visualRow));
       }
     });
+  };
+
+  /**
+   * Keeps the changes past the last row on the physical rows they create when the number of trimmed rows changes.
+   * Such a change creates the physical row `rows + visualRow - visibleRows`, and a trim changes the visible rows
+   * only, so the visual row moves by the difference: a filter applied in the wait would otherwise create filler
+   * rows up to the old visual row, and a cleared one write into the record the untrim brought to it.
+   *
+   * @param {number} difference The change of the number of trimmed rows.
+   */
+  const shiftOnTrim = (difference: number) => {
+    pastEndRows.forEach((row, change) => movePastEnd(change, row - difference));
   };
 
   /**
@@ -519,7 +614,11 @@ export function createWaitingChangeRecords(
       });
 
       if (pastEndRows.size > 0) {
-        stopObservingRows = observeRowShifts({ rowsInserted: shiftOnInsert, rowsRemoved: shiftOnRemove });
+        stopObservingRows = observeRowShifts({
+          rowsInserted: shiftOnInsert,
+          rowsRemoved: shiftOnRemove,
+          trimmedRowsChanged: shiftOnTrim,
+        });
       }
     },
     noteMeta(change, meta, physicalColumn) {
@@ -529,6 +628,17 @@ export function createWaitingChangeRecords(
         anchor.meta = meta;
         anchor.metaColumn = physicalColumn;
       }
+    },
+    notePastEndMeta(change, meta) {
+      const row = pastEndRows.get(change);
+
+      if (row !== undefined) {
+        pastEndMetas.set(change, [...(pastEndMetas.get(change) ?? []), meta]);
+        Reflect.set(meta, 'visualRow', row);
+      }
+    },
+    getPastEndRow(change) {
+      return pastEndRows.get(change);
     },
     getRecord(change) {
       return anchorsByChange.get(change)?.record;
@@ -604,6 +714,9 @@ export function createWaitingChangeRecords(
 
       return anchor === undefined ? undefined : resolveRecord(reader, anchor);
     },
+    forEachAnchor(callback) {
+      anchors.forEach(callback);
+    },
     release() {
       anchors.forEach(anchor => tracker.release(anchor.record));
       columnsByChange.forEach((column, change) => {
@@ -624,6 +737,7 @@ export function createWaitingChangeRecords(
       settledRows.clear();
       stopShifting();
       pastEndRows.clear();
+      pastEndMetas.clear();
     },
   };
 

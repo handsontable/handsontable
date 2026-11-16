@@ -12,6 +12,7 @@
     "test:a11y-checks": "playwright test --config playwright.a11y-checks.config.ts",
     "test:a11y-docs": "playwright test --config playwright.a11y-docs.config.ts",
     "test:a11y-sites": "playwright test --config playwright.a11y-sites.config.ts",
+    "test:a11y-website": "playwright test --config playwright.a11y-website.config.ts",
     "test:screenreader": "playwright test --config playwright.screenreader.config.ts",
     "test:screenreader:update-goldens": "playwright test --config playwright.screenreader.config.ts --update-snapshots",
     "screenreader:report": "node scripts/screenreader-report.mjs --dry-run"

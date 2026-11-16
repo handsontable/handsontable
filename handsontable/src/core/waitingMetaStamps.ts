@@ -71,6 +71,16 @@ export interface WaitingMetaStamps<M extends StampedMeta = StampedMeta> {
    */
   findUnplaced(prop: unknown, preferred: M | null): { record: TrackedRecord, meta: M } | null;
   /**
+   * Follows a move of records no `cacheUpdated` follows (`RecordTracker#relocate()`). A kept meta of a moved record
+   * that is not stored at the record's new row (`isStoredAt`) belongs to the record now at the row it was read
+   * from, so it is no longer kept current and is returned with its record; every other kept meta gets the rows its
+   * record holds.
+   */
+  followRelocated(
+    moved: Set<TrackedRecord>,
+    isStoredAt: (meta: M, physicalRow: number) => boolean,
+  ): Array<{ record: TrackedRecord, meta: M }>;
+  /**
    * The number of meta objects kept current now.
    */
   readonly size: number;
@@ -246,6 +256,23 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
       }
 
       return isAmbiguous || hasReleasedUnplaced(prop) ? null : found;
+    },
+    followRelocated(moved, isStoredAt) {
+      const displaced: Array<{ record: TrackedRecord, meta: M }> = [];
+
+      stamps.forEach((stamp) => {
+        const { record, meta } = stamp;
+
+        if (moved.has(record) && record.physicalRow !== null && !isStoredAt(meta, record.physicalRow)) {
+          stamps.delete(stamp);
+          displaced.push(stamp);
+        }
+      });
+
+      onCacheUpdated();
+      syncListener();
+
+      return displaced;
     },
     get size() {
       return stamps.size;

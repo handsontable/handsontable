@@ -8,7 +8,9 @@
  * `tests/lib/screenreader-transcript.mjs`). A dispatch of `Docs a11y` leaves the docs site scan's findings in
  * the same shape as the axe scan's (`docs-a11y-axe-results`, `tests/a11y/docs/`), a night of a third source, and the
  * documents of the docs site checks beyond axe (`docs-a11y-checks-evidence`, `tests/a11y/sites/`) in the product
- * checks' shape, in the same night under the row source `docs-checks`.
+ * checks' shape, in the same night under the row source `docs-checks`. A dispatch of `Website a11y` leaves the same
+ * two for handsontable.com (`website-a11y-axe-results`, `website-a11y-checks-evidence`): a night of a fourth source,
+ * `website`, with the row source `website-checks`.
  * A raw night holds thousands of records, most of them the
  * same few defects on many pages, and nothing used to accumulate across nights or deduplicate across
  * checks. This module turns a night's artifacts into findings keyed so that a finding keeps its
@@ -20,7 +22,8 @@
  *
  * The rules that keep the ledger honest:
  *
- * - Only the two nightlies and the docs site scan, run on develop by their schedule or a dispatch (`isA11yRun`). A pull request's
+ * - Only the workflows of `SOURCES_OF_WORKFLOW` (the two nightlies and the docs and website site scans), run on develop by
+ *   their schedule or a dispatch (`isA11yRun`). A pull request's
  *   evidence, a fork's included, is produced by the pull request's own code, and a fork can name its branch
  *   `develop`: the branch alone is not enough. A night's source is its workflow's.
  * - A night is read once per attempt, in order: a run already recorded at that attempt, or one that completed
@@ -56,11 +59,13 @@ import {
   READER_TRAVERSAL_OFF,
   READER_TRAVERSAL_WHERE,
   TRIAGE_ID,
+  WEBSITE_SCAN_CHECK,
   clusterOf,
   findingShape,
   maskSelector,
 } from '../../../tests/lib/a11y-issues.mjs';
 import { DEFAULT_DOCS_BASE_URL } from '../../../tests/a11y/docs/constants.mjs';
+import { DEFAULT_WEBSITE_BASE_URL } from '../../../tests/a11y/website/constants.mjs';
 import { SCENARIO_GROUPS } from '../../../tests/lib/screenreader-scenario.mjs';
 import { DEFAULT_TOKEN_SEVERITY, TOKEN_SEVERITIES } from '../../../tests/lib/screenreader-transcript.mjs';
 import { severityOfImpact } from '../../../tests/lib/a11y-verdict.mjs';
@@ -110,6 +115,16 @@ export const DOCS_AXE_ARTIFACT = 'docs-a11y-axe-results';
  */
 export const DOCS_CHECKS_ARTIFACT = siteEvidenceArtifact('docs');
 /**
+ * The website scan's artifact (`.github/workflows/website-a11y.yml`): `a11y-findings.json` at its root, in the axe
+ * scan's shape, with the website's pages and its two widths.
+ */
+export const WEBSITE_AXE_ARTIFACT = 'website-a11y-axe-results';
+/**
+ * The website site checks' artifact (`.github/workflows/website-a11y.yml`, the `checks` job), read into the website
+ * night with the row source `website-checks`.
+ */
+export const WEBSITE_CHECKS_ARTIFACT = siteEvidenceArtifact('website');
+/**
  * The axe scan's concise findings, at the axe artifact's root (`tests/lib/a11y-findings.mjs` writes it).
  */
 export const A11Y_AXE_FILE = 'a11y-findings.json';
@@ -145,10 +160,11 @@ export const READER_TRANSCRIPT_SCHEMA = 1;
 export const A11Y_NIGHTLY_WORKFLOW = 'A11y nightly';
 export const READER_NIGHTLY_WORKFLOW = 'Screen reader nightly';
 export const DOCS_A11Y_WORKFLOW = 'Docs a11y';
+export const WEBSITE_A11Y_WORKFLOW = 'Website a11y';
 /**
  * The events a run is recorded from: a dispatch (on the two nightlies the audit, on develop with no inputs:
  * their `check-inputs` job refuses a subset dispatch there, because the page draws the latest night of each
- * source and a subset night would show what it skipped as gone; the docs site scan runs by dispatch only)
+ * source and a subset night would show what it skipped as gone; the docs and website site scans run by dispatch only)
  * and a schedule, which the two nightlies do not have today and which is kept here for the day a tier
  * brings a cron back (`.ai/CI.md`). All three workflows also run on a pull request that touches them, to
  * validate their graph; such a run is never recorded.
@@ -174,7 +190,9 @@ const PROJECT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ROOT_JSON = /^([a-z0-9]+(?:-[a-z0-9]+)*)\.json$/;
 const TRANSCRIPT_PATH = new RegExp(`^${READER_TRANSCRIPTS_DIR}/[^/]+\\.json$`);
 const RUN_ID = /^\d{1,20}$/;
-const SOURCE_OF_NIGHT = Object.freeze({ checks: 'a11y', axe: 'a11y', reader: 'reader', docs: 'docs', 'docs-checks': 'docs' });
+const SOURCE_OF_NIGHT = Object.freeze({
+  checks: 'a11y', axe: 'a11y', reader: 'reader', docs: 'docs', 'docs-checks': 'docs', website: 'website', 'website-checks': 'website',
+});
 /**
  * The night sources each recorded workflow's run holds. A list, so a workflow that calls several of the reusable
  * accessibility workflows (a full audit) names every source its run uploads.
@@ -183,14 +201,26 @@ export const SOURCES_OF_WORKFLOW = Object.freeze({
   [A11Y_NIGHTLY_WORKFLOW]: Object.freeze(['a11y']),
   [READER_NIGHTLY_WORKFLOW]: Object.freeze(['reader']),
   [DOCS_A11Y_WORKFLOW]: Object.freeze(['docs']),
+  [WEBSITE_A11Y_WORKFLOW]: Object.freeze(['website']),
 });
-export const NIGHT_SOURCES = ['a11y', 'reader', 'docs'];
+export const NIGHT_SOURCES = ['a11y', 'reader', 'docs', 'website'];
+/**
+ * What each site's scan and checks are read as: the night source, the scan's check, the artifacts, and the deploy a
+ * recorded night must be of (the docs: develop's staging deploy; the website: production). A dispatch can read
+ * another deploy (`base-url`), and its findings would open or resolve the recorded deploy's rows.
+ */
+const SITE_NIGHTS = Object.freeze({
+  docs: { scanCheck: DOCS_SCAN_CHECK, axeArtifact: DOCS_AXE_ARTIFACT, checksArtifact: DOCS_CHECKS_ARTIFACT, baseUrl: DEFAULT_DOCS_BASE_URL,
+    deploy: 'the develop staging deploy' },
+  website: { scanCheck: WEBSITE_SCAN_CHECK, axeArtifact: WEBSITE_AXE_ARTIFACT, checksArtifact: WEBSITE_CHECKS_ARTIFACT,
+    baseUrl: DEFAULT_WEBSITE_BASE_URL, deploy: 'production' },
+});
 
 /**
  * @typedef {object} Finding
- * @property {'checks'|'axe'|'reader'|'docs'|'docs-checks'} source Where it came from.
- * @property {string} check The check id, `axe` for the gating scan, `docs-axe` for the docs site scan, a docs site check
- * (`docs-keyboard`), or the reader project (`nvda-chromium`).
+ * @property {'checks'|'axe'|'reader'|'docs'|'docs-checks'|'website'|'website-checks'} source Where it came from.
+ * @property {string} check The check id, `axe` for the gating scan, `docs-axe` or `website-axe` for a site scan, a site
+ * check (`docs-keyboard`, `website-forms`), or the reader project (`nvda-chromium`).
  * @property {string} kind The finding kind; `axe-violation` for every finding of the scan; `token-missing` or
  * `golden-differs` for a reader step, `traversal-off` for a reader scenario's reading traversal (at `where`
  * `traversal`).
@@ -208,13 +238,16 @@ export const NIGHT_SOURCES = ['a11y', 'reader', 'docs'];
  * @property {string} reason One sentence, bounded.
  * @property {string|null} url The fixture path, when the finding names one.
  * @property {string|null} issue The baseline issue an axe finding is filed under, or the one the scan suggests for a new one.
+ * @property {number|null} [nodes] A scan finding's node count, as the scan counted it (a site's change run compares a
+ *   grown finding with it: `lib/a11y-docs-drift.mjs`); `null` from a document that gave none. Every axe scan's row
+ *   carries it (`axe`, `docs`, `website`); the check sources and `reader` carry none.
  */
 
 /**
  * @typedef {object} Coverage
  * @property {Record<string, string[]>} checks Per check, the targets (`page|theme|variant`) it measured with every
  * step taken and every finding read.
- * @property {boolean|null} axe Whether the axe scan (on a docs night, the docs site scan) was complete and read whole;
+ * @property {boolean|null} axe Whether the axe scan (on a docs or website night, that site's scan) was complete and read whole;
  * `null` without one.
  * @property {string[]} reader The complete transcripts, every step read (`project|scenario`).
  * @property {string[]} golden The complete transcripts whose wording was compared with a golden, every difference read.
@@ -222,13 +255,13 @@ export const NIGHT_SOURCES = ['a11y', 'reader', 'docs'];
 
 /**
  * @typedef {object} Night
- * @property {'a11y'|'reader'|'docs'} source Which nightly, or the docs site scan, the artifacts are.
+ * @property {'a11y'|'reader'|'docs'|'website'} source Which nightly, or which site's scan, the artifacts are.
  * @property {Finding[]} findings What the night found.
  * @property {Coverage} coverage What the night measured. A row is resolved only inside it.
  * @property {number} problems The tooling problems the night reported.
  * @property {Record<string, {targets: number, measured: number, findings: number, problems: number}>} checks Per check document.
- * @property {{complete: boolean, findings: number, problems: number}|null} axe The scan document (the docs site scan's, on a
- * docs night).
+ * @property {{complete: boolean, findings: number, problems: number}|null} axe The scan document (the site scan's, on a
+ * docs or website night).
  * @property {Record<string, Record<string, {steps: string[], failed: string[], golden: string, incomplete: string|null}>>} reader
  * Per project and scenario, the transcript's steps and verdicts.
  */
@@ -238,20 +271,23 @@ export const NIGHT_SOURCES = ['a11y', 'reader', 'docs'];
  * the recordings and the goldens are named outside it on purpose.
  *
  * @param {string} name The artifact name.
- * @returns {'checks'|'axe'|'reader'|'docs'|'docs-checks'|null} The family, or `null` for an unrelated artifact.
+ * @returns {'checks'|'axe'|'reader'|'docs'|'docs-checks'|'website'|'website-checks'|null} The family, or `null` for an
+ *   unrelated artifact.
  */
 export function classifyA11yArtifact(name) {
   if (name === A11Y_EVIDENCE_ARTIFACT) {
     return 'checks';
   }
-  if (name === DOCS_CHECKS_ARTIFACT) {
-    return 'docs-checks';
-  }
   if (name === A11Y_AXE_ARTIFACT) {
     return 'axe';
   }
-  if (name === DOCS_AXE_ARTIFACT) {
-    return 'docs';
+  for (const [site, night] of Object.entries(SITE_NIGHTS)) {
+    if (name === night.checksArtifact) {
+      return `${site}-checks`;
+    }
+    if (name === night.axeArtifact) {
+      return site;
+    }
   }
   if (name.startsWith(READER_ARTIFACT_PREFIX)) {
     return 'reader';
@@ -262,7 +298,7 @@ export function classifyA11yArtifact(name) {
 
 /**
  * Whether a run's accessibility artifacts are recorded: a run of the `A11y nightly`, the `Screen reader
- * nightly` or `Docs a11y` on develop, started by its schedule or a dispatch. The branch alone is not enough:
+ * nightly`, `Docs a11y` or `Website a11y` (`SOURCES_OF_WORKFLOW`) on develop, started by its schedule or a dispatch. The branch alone is not enough:
  * the `Tests` pipeline uploads the same artifacts from a pull request's own code, and a fork's pull request
  * opened from the fork's `develop` reports `develop` as its branch. A fork cannot start a schedule or a dispatch
  * here.
@@ -276,7 +312,20 @@ export function isA11yRun(run, workflows = SOURCES_OF_WORKFLOW) {
 }
 
 /**
- * The night sources a recorded workflow's run holds: one per nightly, and the docs site scan's.
+ * The workflows the ledger records, by name, as a sentence lists them ("A11y nightly, Screen reader nightly, Docs a11y
+ * and Website a11y"), so a message that names them follows `SOURCES_OF_WORKFLOW` and a new one is never left out.
+ *
+ * @param {Record<string, readonly string[]>} [workflows] The recorded workflows and their sources (`SOURCES_OF_WORKFLOW`).
+ * @returns {string} The list.
+ */
+export function recordedWorkflows(workflows = SOURCES_OF_WORKFLOW) {
+  const names = Object.keys(workflows);
+
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names.join('');
+}
+
+/**
+ * The night sources a recorded workflow's run holds: one per nightly, and one per site scan (docs, website).
  *
  * @param {string} workflow The workflow's `name:`.
  * @param {Record<string, readonly string[]>} [workflows] The recorded workflows and their sources (`SOURCES_OF_WORKFLOW`).
@@ -567,14 +616,14 @@ function readEvidence(file, label, night, notes, site = null) {
  * the ledger and the check run cannot disagree on a severity. A location of a document written before the locations
  * carried their impact has none, and its row keeps a `null` severity until a night that names it. The scan covers its
  * rows only when it was complete (no tooling problem, no unverified page) and read whole. The product scan's document
- * goes into the a11y night with the source `axe`; the docs site scan's, in the same shape, into the docs night with
- * the source `docs`.
+ * goes into the a11y night with the source `axe`; a site scan's, in the same shape, into its site's night with the
+ * source `docs` or `website`.
  *
  * @param {{artifact: string, path: string, text: string}} file The file.
  * @param {string} label The file, for a note.
  * @param {Night} night The a11y night, or the docs night.
  * @param {string[]} notes Where a note goes.
- * @param {{source: 'axe'|'docs', check: string}} [scan] The finding source and check the scan's rows carry.
+ * @param {{source: 'axe'|'docs'|'website', check: string}} [scan] The finding source and check the scan's rows carry.
  */
 function readAxe(file, label, night, notes, { source = 'axe', check = AXE_SCAN_CHECK } = {}) {
   const doc = parse(file, label, notes);
@@ -597,11 +646,11 @@ function readAxe(file, label, night, notes, { source = 'axe', check = AXE_SCAN_C
 
     return;
   }
-  // A docs night is the develop staging deploy's. A dispatch can scan another deploy (`base-url`, a pull
-  // request's preview), and its findings would open or resolve the staging rows.
-  if (source === 'docs' && doc.baseUrl !== DEFAULT_DOCS_BASE_URL) {
-    notes.push(`${label}: a scan of ${cut(JSON.stringify(doc.baseUrl ?? null), LIMITS.url)}, not the develop staging deploy `
-      + `(${DEFAULT_DOCS_BASE_URL}), skipped`);
+  // A site's night is its recorded deploy's (`SITE_NIGHTS`). A dispatch can scan another deploy (`base-url`, a pull
+  // request's preview), and its findings would open or resolve the recorded rows.
+  if (Object.hasOwn(SITE_NIGHTS, source) && doc.baseUrl !== SITE_NIGHTS[source].baseUrl) {
+    notes.push(`${label}: a scan of ${cut(JSON.stringify(doc.baseUrl ?? null), LIMITS.url)}, not ${SITE_NIGHTS[source].deploy} `
+      + `(${SITE_NIGHTS[source].baseUrl}), skipped`);
 
     return;
   }
@@ -628,6 +677,7 @@ function readAxe(file, label, night, notes, { source = 'axe', check = AXE_SCAN_C
       state: null,
       variant: null,
       where: cut(maskSelector(item.target), LIMITS.where),
+      nodes: Number.isSafeInteger(item.nodes) && item.nodes >= 0 ? item.nodes : null,
       ...fields,
     });
   };
@@ -866,7 +916,7 @@ function parse(file, label, notes) {
 /**
  * An empty night of a source.
  *
- * @param {'a11y'|'reader'|'docs'} source The source.
+ * @param {'a11y'|'reader'|'docs'|'website'} source The source.
  * @returns {Night} The night.
  */
 function emptyNight(source) {
@@ -897,34 +947,33 @@ export function readA11yArtifacts(files) {
   const notes = [];
   const a11y = emptyNight('a11y');
   const reader = emptyNight('reader');
-  const docs = emptyNight('docs');
-  let sawA11y = false;
-  let sawReader = false;
-  let sawDocs = false;
+  const sites = Object.fromEntries(Object.keys(SITE_NIGHTS).map(site => [site, emptyNight(site)]));
+  const saw = new Set();
 
   for (const file of files) {
     const family = classifyA11yArtifact(file.artifact);
     const label = `${file.artifact}/${file.path}`;
+    const site = family === null ? null : SOURCE_OF_NIGHT[family];
 
     if (family === 'checks' && ROOT_JSON.test(file.path)) {
-      sawA11y = true;
+      saw.add('a11y');
       readEvidence(file, label, a11y, notes);
     } else if (family === 'axe' && file.path === A11Y_AXE_FILE) {
-      sawA11y = true;
+      saw.add('a11y');
       readAxe(file, label, a11y, notes);
     } else if (family === 'reader' && TRANSCRIPT_PATH.test(file.path)) {
-      sawReader = true;
+      saw.add('reader');
       readTranscript(file, label, reader, notes);
-    } else if (family === 'docs' && file.path === A11Y_AXE_FILE) {
-      sawDocs = true;
-      readAxe(file, label, docs, notes, { source: 'docs', check: DOCS_SCAN_CHECK });
-    } else if (family === 'docs-checks' && ROOT_JSON.test(file.path)) {
-      sawDocs = true;
-      readEvidence(file, label, docs, notes, { checks: siteChecks('docs'), source: 'docs-checks', baseUrl: DEFAULT_DOCS_BASE_URL });
+    } else if (Object.hasOwn(SITE_NIGHTS, family ?? '') && file.path === A11Y_AXE_FILE) {
+      saw.add(site);
+      readAxe(file, label, sites[site], notes, { source: site, check: SITE_NIGHTS[site].scanCheck });
+    } else if (family === `${site}-checks` && Object.hasOwn(SITE_NIGHTS, site ?? '') && ROOT_JSON.test(file.path)) {
+      saw.add(site);
+      readEvidence(file, label, sites[site], notes, { checks: siteChecks(site), source: family, baseUrl: SITE_NIGHTS[site].baseUrl });
     }
   }
 
-  return { nights: [...(sawA11y ? [a11y] : []), ...(sawReader ? [reader] : []), ...(sawDocs ? [docs] : [])], notes };
+  return { nights: [a11y, reader, ...Object.values(sites)].filter(night => saw.has(night.source)), notes };
 }
 
 /**
@@ -979,7 +1028,7 @@ export function assertA11yVersion(doc) {
  * Which night source a row belongs to.
  *
  * @param {{source: string}} row The row or finding.
- * @returns {'a11y'|'reader'|'docs'} The source.
+ * @returns {'a11y'|'reader'|'docs'|'website'} The source.
  */
 function nightSourceOf(row) {
   return SOURCE_OF_NIGHT[row.source];
@@ -1057,11 +1106,11 @@ function coverageIndex(coverage) {
  * @returns {boolean} The verdict.
  */
 function covered(row, index) {
-  if (row.source === 'checks' || row.source === 'docs-checks') {
+  if (row.source === 'checks' || row.source === 'docs-checks' || row.source === 'website-checks') {
     return index.checks.get(row.check)?.has(targetKey(row)) ?? false;
   }
-  // The docs night keeps its scan's coverage in the same field: a night holds one source's rows.
-  if (row.source === 'axe' || row.source === 'docs') {
+  // A site's night keeps its scan's coverage in the same field: a night holds one source's rows.
+  if (row.source === 'axe' || row.source === 'docs' || row.source === 'website') {
     return index.axe;
   }
 
@@ -1187,7 +1236,7 @@ function nightSummaries(earlier, night) {
   if (night.source === 'a11y') {
     return { checks: { ...(earlier?.checks ?? {}), ...night.checks }, axe: night.axe ?? earlier?.axe ?? null };
   }
-  if (night.source === 'docs') {
+  if (Object.hasOwn(SITE_NIGHTS, night.source)) {
     const checks = { ...(earlier?.checks ?? {}), ...night.checks };
 
     return { axe: night.axe ?? earlier?.axe ?? null, ...(Object.keys(checks).length > 0 ? { checks } : {}) };
@@ -1248,8 +1297,8 @@ export function mergeA11yLedger(previous, night, run, catalog, {
   assertA11yVersion(previous ?? null);
 
   if (!isA11yRun(run, workflows)) {
-    throw new Error(`run ${run.runId} is a ${run.event} run of ${run.workflow} on ${run.branch}; only the A11y and Screen reader `
-      + 'nightlies and the docs site scan on develop, by schedule or dispatch, are recorded');
+    throw new Error(`run ${run.runId} is a ${run.event} run of ${run.workflow} on ${run.branch}; only runs of `
+      + `${recordedWorkflows(workflows)} on develop, by schedule or dispatch, are recorded`);
   }
   if (!RUN_ID.test(String(run.runId))) {
     throw new Error(`run id ${JSON.stringify(run.runId)} is not a run id`);
@@ -1316,6 +1365,16 @@ export function mergeA11yLedger(previous, night, run, catalog, {
   const handled = new Set();
   let sightings = 0;
   let resolutions = 0;
+  // A scan finding's node count per row: two locations whose selectors mask alike are one row, so their counts add up.
+  // A location with no count leaves its row's count unknown.
+  const nodesOf = new Map();
+
+  for (const finding of night.findings.filter(item => Object.hasOwn(item, 'nodes'))) {
+    const key = findingKey(finding);
+    const before = nodesOf.has(key) ? nodesOf.get(key) : 0;
+
+    nodesOf.set(key, before === null || finding.nodes === null ? null : before + finding.nodes);
+  }
 
   for (const finding of night.findings) {
     const key = findingKey(finding);
@@ -1330,7 +1389,8 @@ export function mergeA11yLedger(previous, night, run, catalog, {
       continue;
     }
 
-    const latestFields = { criteria: finding.criteria, severity: finding.severity, reason: finding.reason, url: finding.url, issue: finding.issue };
+    const latestFields = { criteria: finding.criteria, severity: finding.severity, reason: finding.reason, url: finding.url, issue: finding.issue,
+      ...(nodesOf.has(key) ? { nodes: nodesOf.get(key) } : {}) };
     const row = rows.get(key);
 
     if (row?.lastRun === run.runId) {
@@ -1662,14 +1722,16 @@ export function a11yView(doc, catalog) {
       })),
     ]
     : [];
-  const latestDocs = nightOf('docs');
+  for (const [site, title] of [['docs', 'docs site axe scan'], ['website', 'website axe scan']]) {
+    const latestSite = nightOf(site);
 
-  if (latestDocs?.axe) {
-    checks.push({ check: DOCS_SCAN_CHECK, title: 'docs site axe scan', targets: null, measured: null, findings: latestDocs.axe.findings,
-      problems: latestDocs.axe.problems });
-  }
-  for (const check of Object.keys(latestDocs?.checks ?? {}).sort()) {
-    checks.push({ check, title: SITE_CHECKS[check]?.title ?? check, ...latestDocs.checks[check] });
+    if (latestSite?.axe) {
+      checks.push({ check: SITE_NIGHTS[site].scanCheck, title, targets: null, measured: null, findings: latestSite.axe.findings,
+        problems: latestSite.axe.problems });
+    }
+    for (const check of Object.keys(latestSite?.checks ?? {}).sort()) {
+      checks.push({ check, title: SITE_CHECKS[check]?.title ?? check, ...latestSite.checks[check] });
+    }
   }
 
   const latestReader = nightOf('reader');
@@ -1745,7 +1807,7 @@ export function a11yView(doc, catalog) {
     retentionDays: doc.retentionDays,
     trendNights: doc.trendNights ?? A11Y_TREND_NIGHTS,
     flapNights: doc.flapNights ?? A11Y_FLAP_NIGHTS,
-    latest: { a11y: latestOf('a11y'), reader: latestOf('reader'), docs: latestOf('docs') },
+    latest: { a11y: latestOf('a11y'), reader: latestOf('reader'), docs: latestOf('docs'), website: latestOf('website') },
     totals: {
       open: open.length,
       new: open.filter(row => row.status === 'new').length,

@@ -18,6 +18,7 @@
  */
 import { BASELINE_FILE, entryKey, headline, renderSummary, verdictCounts } from './a11y-baseline.mjs';
 import { annotationLevel, capAnnotations, renderVerdict, severityOfImpact, verdictOf, verdictTitle } from './a11y-verdict.mjs';
+import { pageIdOf } from './website-pages.mjs';
 
 export const CHECK_RUN_NAME = 'A11y / axe report';
 export const ANNOTATIONS_PER_REQUEST = 50;
@@ -36,6 +37,10 @@ export const PRODUCT_SCAN = Object.freeze({
 export const DOCS_SCAN = Object.freeze({
   name: 'A11y / docs-axe report', title: 'A11y / docs axe', job: 'docs axe job', comparison: 'test-results/a11y-docs/comparison.json',
   pagesFile: 'tests/a11y/docs/pages.mjs', baselineFile: 'tests/a11y/docs/docs-baseline.json', source: 'docs', check: 'docs-axe',
+});
+export const WEBSITE_SCAN = Object.freeze({
+  name: 'A11y / website-axe report', title: 'A11y / website axe', job: 'website axe job', comparison: 'test-results/a11y-website/comparison.json',
+  pagesFile: 'tests/a11y/website/pages.mjs', baselineFile: 'tests/a11y/website/website-baseline.json', source: 'website', check: 'website-axe',
 });
 
 /**
@@ -81,6 +86,47 @@ export function docsPageLines(source, ids) {
 }
 
 /**
+ * The line of each website page in `tests/a11y/website/pages.mjs`, by page id. An entry is a `page('<route>', …)` call
+ * on one line, whose id is the one it names or the one its route gives (`pageIdOf()`, as the website's list derives it).
+ *
+ * @param {string} source The file's text.
+ * @returns {Map<string, number>} The 1-based lines.
+ */
+export function websitePageLines(source) {
+  const lines = new Map();
+
+  source.split('\n').forEach((line, index) => {
+    const match = /\bpage\('([^']+)'(?:,\s*\{\s*id:\s*'([a-z0-9-]+)')?/.exec(line);
+    const id = match ? (match[2] ?? pageIdOf(match[1])) : null;
+
+    if (id !== null && !lines.has(id)) {
+      lines.set(id, index + 1);
+    }
+  });
+
+  return lines;
+}
+
+/**
+ * The line of each page in a page list, by page id, the way that list declares its pages: the product's by an `id:`
+ * line (`pageLines()`), the docs' with the guide pages on the function that builds them (`docsPageLines()`), and the
+ * website's by its `page()` calls, most of which take their id from the route (`websitePageLines()`). Every report that
+ * annotates a page reads its lines here, so a scan's check run and its checks' check runs put one page on one line.
+ *
+ * @param {'product'|'docs'|'website'} list The page list.
+ * @param {string} source The list's text.
+ * @param {string[]} [ids] Every page id; the docs list needs them (`DOCS_PAGES`).
+ * @returns {Map<string, number>} The 1-based lines.
+ */
+export function pageLinesOf(list, source, ids = []) {
+  if (list === 'docs') {
+    return docsPageLines(source, ids);
+  }
+
+  return list === 'website' ? websitePageLines(source) : pageLines(source);
+}
+
+/**
  * The line of each entry in the baseline, by its key. The file holds one entry per line.
  *
  * @param {string} source The file's text.
@@ -118,10 +164,10 @@ export function baselineLines(source) {
  * @param {(source: string, check: string, item: object) => boolean} [input.tracked] Whether a finding's cluster
  * has a tracker (`trackedBy()` of `lib/a11y-issues.mjs`); read on a change run only.
  * @param {object} [input.scan] Which scan the comparison is: the product scan by default (`PRODUCT_SCAN`), or the
- * docs site scan (`DOCS_SCAN`), whose check run, page list, baseline and finding source are its own.
+ * docs site scan (`DOCS_SCAN`) or the website scan (`WEBSITE_SCAN`), whose check run, page list, baseline and finding
+ * source are their own.
  * @param {(item: object) => boolean} [input.drift] Whether a counted finding is baseline drift: on a change run it
- * counts as a warning at most, like a tracked one (`driftOf()` of `lib/a11y-docs-drift.mjs`, new findings only; the
- * docs scan only).
+ * counts as a warning at most, like a tracked one (`driftOf()` of `lib/a11y-docs-drift.mjs`; the site scans only).
  * @returns {{name: string, conclusion: string, title: string, summary: string, annotations: object[]}} The payload.
  */
 export function buildCheckRun({

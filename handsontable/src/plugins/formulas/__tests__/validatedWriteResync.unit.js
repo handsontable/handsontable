@@ -221,6 +221,86 @@ describe('Formulas write validated in flight across a sheet resync', () => {
     expect(engine.getCellValue({ sheet, row: 1, col: 1 })).toBe(10);
   });
 
+  it('leaves the validator meta of a trimmed record without a visual row, so its late correction is dropped',
+    async() => {
+      let answer = null;
+
+      buildGrid([[1, 'a'], [2, 'b'], [3, 'c']], {
+        trimRows: true,
+        columns: [{
+          allowInvalid: false,
+          validator(value, callback) {
+            const meta = this;
+
+            answer = () => {
+              callback(true);
+
+              return () => meta.instance.setDataAtCell(meta.visualRow, 0, 9, 'lateValidator');
+            };
+          },
+        }, {}],
+      });
+
+      hot.setDataAtCell(1, 0, 5);
+      hot.getPlugin('trimRows').trimRow(1);
+      await waitForValidation();
+
+      const correct = answer();
+
+      await waitForValidation();
+
+      expect(hot._getMetaManager().getCellMetaIfExists(1, 0).visualRow).toBe(null);
+
+      correct();
+      await waitForValidation();
+
+      expect(hot.getSourceDataAtCol(0)).toEqual([1, 5, 3]);
+    });
+
+  it('escapes a write-back into a trimmed record by the meta the cells function gives', async() => {
+    const engine = buildGrid([[1, 'a'], [2, 'b'], [3, 'c'], [4, 'd'], [5, 'e']], {
+      trimRows: true,
+      cells: (row, column) => (column === 1 ? { preserveTextValue: true } : {}),
+    });
+    const sheet = hot.getPlugin('formulas').sheetId;
+
+    hot.setDataAtCell([[4, 0, 9], [4, 1, '007']]);
+    hot.getPlugin('trimRows').trimRow(4);
+    hot.updateSettings({});
+
+    await waitForValidation();
+
+    expect(engine.getCellValue({ sheet, row: 4, col: 1 })).toBe('007');
+  });
+
+  it('reloads a grid built from an engine sheet in place after a validated write into a trimmed record', async() => {
+    const engine = HyperFormula.buildFromSheets(
+      { Sheet1: [[1, 'a'], [2, 'b'], [3, 'c']] },
+      { licenseKey: 'internal-use-in-handsontable' },
+    );
+
+    hot = new Handsontable(container, {
+      columns: REJECTING_COLUMNS,
+      formulas: { engine, sheetName: 'Sheet1' },
+      trimRows: true,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    const loads = jest.fn();
+
+    hot.addHook('afterLoadData', loads);
+    hot.setDataAtCell(1, 0, '=A1*2');
+    hot.getPlugin('trimRows').trimRow(1);
+
+    await waitForValidation();
+
+    expect(engine.getCellValue({ sheet: hot.getPlugin('formulas').sheetId, row: 1, col: 0 })).toBe(2);
+
+    hot.updateSettings({});
+
+    expect(loads).not.toHaveBeenCalled();
+  });
+
   it('drops the change from both sheets when the sheet switched while the change was validated', async() => {
     const engine = buildGrid([[1, 'a'], [2, 'b'], [null, 'c']]);
     const first = hot.getPlugin('formulas').sheetId;

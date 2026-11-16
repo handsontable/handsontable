@@ -12,13 +12,20 @@ const loaderScript = configSource.match(/content: `(window\.sentryOnLoad[\s\S]*?
 assert.ok(loaderScript, 'astro.config.mjs must inline a window.sentryOnLoad Sentry Loader hook');
 
 /**
- * Runs the inlined Sentry Loader hook and returns the `beforeSend` it registers.
+ * Runs the inlined Sentry Loader hook the way the Loader Script does and returns the
+ * options it passes to `Sentry.init`.
+ *
+ * @param {string | null} [sentryRelease] - The build-time value that `astro.config.mjs`
+ * interpolates into the script, under the same name.
+ * @param {string} [hostname] - The host the page is served from.
+ * @returns {object} The options object passed to `Sentry.init`.
  */
-function loadBeforeSend() {
-  const window = {};
+function loadInitOptions(sentryRelease = null, hostname = 'handsontable.com') {
+  const window = { location: { hostname } };
   let options = null;
   const context = vm.createContext({
     window,
+    sentryRelease,
     Sentry: {
       init(initOptions) {
         options = initOptions;
@@ -36,10 +43,37 @@ function loadBeforeSend() {
 
   assert.ok(options && typeof options.beforeSend === 'function');
 
-  return options.beforeSend;
+  return options;
 }
 
-const beforeSend = loadBeforeSend();
+const beforeSend = loadInitOptions().beforeSend;
+
+test('passes the build-time release to Sentry.init on the live site', () => {
+  assert.equal(loadInitOptions('handsontable-docs@18.1.2').release, 'handsontable-docs@18.1.2');
+  assert.equal(
+    loadInitOptions('handsontable-docs@18.1.2', 'www.handsontable.com').release,
+    'handsontable-docs@18.1.2'
+  );
+});
+
+test('passes no release from an RC staging deploy that was built in production mode', () => {
+  const release = 'handsontable-docs@19.0.0';
+
+  assert.equal(loadInitOptions(release, 'rc-19-0-0.handsontable-docs-staging.pages.dev').release, undefined);
+  assert.equal(loadInitOptions(release, 'dev.handsontable.com').release, undefined);
+  assert.equal(loadInitOptions(release, 'handsontable.com.evil.example').release, undefined);
+  assert.equal(loadInitOptions(release, 'localhost').release, undefined);
+});
+
+test('derives the release from the build mode and the core version', () => {
+  // The vm harness above injects `sentryRelease` as a global, so it cannot tell whether
+  // the config computes it. Pin the call.
+  assert.match(configSource, /const sentryRelease = resolveSentryRelease\(\{ buildMode, version: HOT_VERSION \}\);/);
+});
+
+test('passes no release when the build has none', () => {
+  assert.equal(loadInitOptions(null).release, undefined);
+});
 
 /**
  * Minimal shape of the fields `beforeSend` reads off an error event.

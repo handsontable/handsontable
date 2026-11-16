@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "intl-time-editor",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:10:58.502Z"
+  },
+  "steps": {
+    "arrive-on-time": "",
+    "open-editor": "09 hours stepper",
+    "type-time": "am am pm stepper",
+    "commit-time": "am am pm stepper",
+    "back-to-committed": "11 45 am column 3 row 06 10 2024 two 11 45 am"
+  }
+}

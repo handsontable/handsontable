@@ -860,9 +860,16 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
   change to its record and hands `beforeChangeRender` the record's current visual row, so a sort or a move in
   the window is already in `change[0]` when `#writeChangesToEngine()` writes it. A record a filter or a collapse
   trimmed meanwhile arrives with a `null` row: `#writeTrimmedRecordChange()` addresses it by physical row
-  (`getPhysicalRowOfChange()`), which the engine still holds, and records the cell in `#syncedContent`
-  (`#recordSyncedCell()`) like every other cell write, or the next resync takes the write for a change of the
-  data and writes the whole sheet. A record removed meanwhile is dropped by the Core and reaches
+  (`getPhysicalRowOfChange()`), which the engine still holds. Like every other cell write it notes the cell as
+  its own (`#noteOwnCellWrite()`), or a formula it writes reads as a foreign change (`#foreignSheetChange`) and
+  the next `updateSettings()` of a grid built from an engine sheet reloads with `loadData()`, dropping the sort,
+  the meta, the filters and the waiting edits; and it records the cell in `#syncedContent`
+  (`#recordSyncedCell()`), or the next resync takes the write for a change of the data and writes the whole
+  sheet. It reads the meta through `getCellMetaTransient()`, so the `cells` function and the meta hooks apply
+  (`preserveTextValue` keeps `'007'` text), and puts back the stamps that read writes on a stored meta
+  (`#keepingStoredMetaStamps()`): that meta is the `this` of the record's validator, whose `visualRow` the Core
+  keeps `null` while the record is trimmed, and a stamp left there sent a late correction to the record at the
+  visual row equal to the physical one. Pinned in `__tests__/validatedWriteResync.unit.js`. A record removed meanwhile is dropped by the Core and reaches
   `#onChangesDropped` in a new array, which matches no awaiting set.
 - **Nothing takes a rejected change back any more.** The previous repair (`#onChangesRejected`, fed by a
   `@private` core `_addRejectedChangesListener()`, both removed) restored the engine after a rejection;

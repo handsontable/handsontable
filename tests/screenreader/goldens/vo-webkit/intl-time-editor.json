@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "intl-time-editor",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:11:19.938Z"
+  },
+  "steps": {
+    "arrive-on-time": "",
+    "open-editor": "9 hour stepper",
+    "type-time": "45",
+    "commit-time": "10 hour stepper",
+    "back-to-committed": "12 hour stepper"
+  }
+}

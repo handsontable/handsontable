@@ -33,8 +33,9 @@ export interface WriteLedgerCall {
   answered: (change: CellChange, valid: boolean) => void;
   /**
    * Takes out the changes a newer write to the same cell has overtaken, and gives the cell the
-   * validity of the write that lands on it. `restoreValidity` receives that validity, because a
-   * validator that answered later wrote its own on the shared cell meta.
+   * validity of the write that lands on it. `restoreValidity` receives that validity for every registered
+   * change, because a validator that answered later wrote its own on the shared cell meta; it leaves a cell
+   * that already holds it alone.
    */
   claim: (
     changes: CellChange[],
@@ -157,7 +158,7 @@ export function createWriteLedger() {
             changes.splice(i, 1);
           }
 
-          if (typeof valid === 'boolean' && registered.cellMeta.valid !== valid) {
+          if (typeof valid === 'boolean') {
             restoreValidity(registered.cellMeta, valid, registered.structureVersion);
           }
         }

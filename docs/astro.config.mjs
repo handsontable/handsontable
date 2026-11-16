@@ -23,6 +23,7 @@ import { buildAllSidebars, buildAllValidUrls, FRAMEWORK_PREFIXES } from './src/s
 import { AGENT_NOTE_MD } from './src/agent-note.mjs';
 import { buildLlmsFull, buildLlmsIndex, buildLlmsSections, SITE_URL } from './src/llms.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
+import { resolveSentryRelease } from './src/lib/sentry-release.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlinkSync } from 'fs';
@@ -78,6 +79,10 @@ const HOT_DIR = resolve(__dirname, '../handsontable');
 // than inside a component's own frontmatter, which Vite relocates during
 // the production build.
 const HOT_VERSION = resolveHotVersion(__dirname);
+
+// The Sentry release of this build (`null` outside a production build). Interpolated
+// into the inline `window.sentryOnLoad` script, which is static HTML at runtime.
+const sentryRelease = resolveSentryRelease({ buildMode, version: HOT_VERSION });
 
 // Absolute path to the local Handsontable ESM build (handsontable/tmp/).
 // Used to resolve `handsontable` and `handsontable/*` imports in example files
@@ -836,6 +841,10 @@ export default defineConfig({
         // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
         // automatically, so adding `beforeSend` does not disturb the rest of the setup.
         //
+        // `release` (`handsontable-docs@<core version>`) is set on production builds only,
+        // from `src/lib/sentry-release.mjs`, and at runtime only on handsontable.com, so
+        // events can be tied to a docs version.
+        //
         // Seven classes of expected errors are dropped:
         //
         //   1. Failed requests from server-side data recipe examples.
@@ -933,7 +942,13 @@ export default defineConfig({
     }
   })();
 
+  // The build-time release also reaches RC staging, which builds in production mode
+  // but is served from *.pages.dev. Only the live site reports under a release.
+  var isLiveSite = /^(www\\.)?handsontable\\.com$/.test(window.location.hostname);
+  var release = isLiveSite ? ${JSON.stringify(sentryRelease)} : null;
+
   Sentry.init({
+    release: release || undefined,
     beforeSend: function (event, hint) {
       try {
         // Drop failed requests from server-side data recipe pages: the HTTP <status>
