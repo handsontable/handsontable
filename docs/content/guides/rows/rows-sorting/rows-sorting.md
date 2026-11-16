@@ -1500,7 +1500,7 @@ When a user sorts a column by pressing its header or by using the keyboard short
 - The name of the column is the text of its header. A column with an empty header is named by its letter, such as `B`.
 - With `MultiColumnSorting`, the message names the column that the user pressed, not the whole sort queue.
 - A sort made through the API (`sort()`, `setSortConfig()`, `clearSort()`) or through the `initialConfig` option is not announced.
-- A sort that [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) cancels is not announced.
+- A [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) hook that returns `false` without changing the sort states is not announced. A hook that writes the states with `setSortConfig()` and then returns `false`, as server-side sorting does, is announced.
 - A grid with [`ariaTags`](@/api/options.md#ariatags) set to `false` announces nothing, the same as it writes no `aria-sort` attribute.
 - The messages are language phrases, so [`language`](@/api/options.md#language) translates them.
 

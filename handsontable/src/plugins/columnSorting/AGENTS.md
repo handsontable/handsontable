@@ -634,10 +634,10 @@ only place that announces.
   not the whole queue; naming the queue needs more phrases per language.
 - **A language pack without the phrases falls back to English**, like every other phrase, so a custom pack is never
   silent.
-- **The column is named by the rendered header text** (`.colHeader` `textContent`), which is what the user sees, so
-  markup and character references never reach the message and `textExtractor` is not involved. A header that is
-  not rendered keeps its label when it is plain text (`HTML_CHARACTERS` does not match), otherwise the
-  spreadsheet letter names it.
+- **The column is named by the rendered header text** (`.colHeader` `textContent`, `<br>` read as a space), which is
+  what the user sees, so markup and character references never reach the message and `textExtractor` is not
+  involved. A header that is not rendered (virtualized out) is read from `getColHeader()` with its tags stripped,
+  and an empty label is named by its spreadsheet letter. Pinned by "not rendered" in the test below.
 - **It is gated on `ariaTags`**, like `aria-sort`, and it is `polite`: `assertive` is for errors.
 - The phrases are `COLUMN_SORTING_ANNOUNCEMENT_*` in `i18n/constants.ts`, in all 22 language files. A new
   gesture that sorts goes through `sortByUser()`, or it is silent to a screen reader.

@@ -82,7 +82,8 @@ describe.each([
     const event = new MouseEvent('mousedown', { button: 0, ...eventProps });
     const coords = { row: -1, col: column };
 
-    // The plugin reads the header label from `event.target`, so the event is dispatched on a detached label.
+    // The plugin treats a press as a sort only when `event.target` is a header label, so the event is
+    // dispatched on a detached one.
     label.className = 'colHeader';
     label.dispatchEvent(event);
 
@@ -276,6 +277,38 @@ describe.each([
     expect(region('polite')).toBe('Sorted by Tag, descending');
     expect(hot.getCell(-1, 0).getAttribute('aria-sort')).toBe('descending');
     expect(hot.getCell(-1, 1).getAttribute('aria-sort')).toBe('none');
+  });
+
+  describe('with a header that is not rendered', () => {
+    /**
+     * Sorts a column through the gesture seam while the header cell is not in the DOM.
+     *
+     * @param {Array} colHeaders The header labels.
+     */
+    function sortWithoutRenderedHeader(colHeaders) {
+      buildGrid({ colHeaders });
+      jest.spyOn(hot, 'getCell').mockReturnValue(null);
+      hot.getPlugin(pluginKey).sortByUser({ column: 1, sortOrder: 'asc' }, 1);
+      settle();
+    }
+
+    it('should read a plain text label from the header setting', () => {
+      sortWithoutRenderedHeader(['Name', 'Age', 'Tag']);
+
+      expect(region('polite')).toBe('Sorted by Age, ascending');
+    });
+
+    it('should strip the tags of a label that is markup', () => {
+      sortWithoutRenderedHeader(['Name', '<b>Age</b>', 'Tag']);
+
+      expect(region('polite')).toBe('Sorted by Age, ascending');
+    });
+
+    it('should name the column by its letter when the label is empty', () => {
+      sortWithoutRenderedHeader(['Name', '', 'Tag']);
+
+      expect(region('polite')).toBe('Sorted by B, ascending');
+    });
   });
 
   it('should name the column by its letter when the header label is empty', () => {

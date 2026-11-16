@@ -55,6 +55,7 @@ import type { CellChange } from '../../settings';
 import { getWaitingEditorSaveChangeSets } from '../../editors/baseEditor/editorSaveChangeSets';
 import { A11Y_SORT } from '../../helpers/a11y';
 import { spreadsheetColumnLabel } from '../../helpers/data';
+import { stripTags } from '../../helpers/string';
 import { announce } from '../../utils/a11yAnnouncer';
 import {
   COLUMN_SORTING_ANNOUNCEMENT_ASCENDING,
@@ -627,8 +628,8 @@ export class ColumnSorting extends BasePlugin {
   /**
    * Reads the name of a column the way a user sees it: the text of the rendered header, so markup and character
    * references in a header label never reach the announcement. A line break (`<br>`) reads as a space and runs of
-   * whitespace collapse to one. A header that is not rendered keeps its label when it is plain text. A column
-   * without a label, or with a label that is markup and is not rendered, is named by its spreadsheet letter.
+   * whitespace collapse to one. A header that is not rendered (virtualized out) is read from `getColHeader()`, with
+   * its tags stripped. A column without a label is named by its spreadsheet letter.
    *
    * @param {number} column Visual column index.
    * @returns {string}
@@ -651,7 +652,9 @@ export class ColumnSorting extends BasePlugin {
 
     const header = String(this.hot.getColHeader(column) ?? '').trim();
 
-    return header !== '' && !HTML_CHARACTERS.test(header) ? header : spreadsheetColumnLabel(column);
+    const plainHeader = HTML_CHARACTERS.test(header) ? stripTags(header).trim() : header;
+
+    return plainHeader !== '' ? plainHeader : spreadsheetColumnLabel(column);
   }
 
   /**
