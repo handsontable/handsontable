@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a missing screen reader announcement when a user sorts a column with a header press or the keyboard. The grid now announces the column and its new order.",
+  "type": "fixed",
+  "issueOrPR": 14296,
+  "breaking": false,
+  "framework": "none"
+}

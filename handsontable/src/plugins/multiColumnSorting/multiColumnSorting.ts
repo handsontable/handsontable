@@ -158,7 +158,7 @@ export class MultiColumnSorting extends ColumnSorting {
             if ((highlight.row ?? 0) === -1 && (highlight.col ?? 0) >= 0) {
               const sortConfig = this.getNextSortConfig(highlight.col ?? 0, APPEND_COLUMN_CONFIG_STRATEGY);
 
-              this.sort(sortConfig as SortConfig[]);
+              this.sortByUser(sortConfig as SortConfig[], highlight.col ?? 0);
             }
           }
 
@@ -326,10 +326,12 @@ export class MultiColumnSorting extends ColumnSorting {
    */
   applyHeaderClickSort(press: HeaderSortPress) {
     if (press.isCtrlPressed) {
-      this.sort(this.getNextSortConfig(press.column, APPEND_COLUMN_CONFIG_STRATEGY) as SortConfig[]);
+      const sortConfig = this.getNextSortConfig(press.column, APPEND_COLUMN_CONFIG_STRATEGY);
+
+      this.sortByUser(sortConfig as SortConfig[], press.column);
 
     } else {
-      this.sort(this.getColumnNextConfig(press.column));
+      this.sortByUser(this.getColumnNextConfig(press.column), press.column);
     }
   }
 }

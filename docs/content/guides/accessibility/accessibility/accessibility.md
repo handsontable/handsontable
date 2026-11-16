@@ -190,7 +190,7 @@ Otherwise, they require the use of [additional ARIA attributes](https://www.w3.o
 such as `row-colindex` or `aria-rowindex`, to understand the grid's structure and accurately announce (read) it to the user.
 
 Handsontable describes hidden columns or rows, merged cells, and the sort order of a column (`aria-sort`) with ARIA attributes.
-Screen readers do not always read them: a change of the sort order is not announced, and in some scenarios a screen reader announces incorrect indices or omits the attributes. See [Known limitations](#known-limitations).
+Screen readers do not always read them, and in some scenarios a screen reader announces incorrect indices or omits the attributes. See [Known limitations](#known-limitations).
 To address this issue, we recommend disabling DOM virtualization, which entails loading all grid elements into the browser.
 This action creates a complete [Accessibility tree](https://developer.mozilla.org/en-US/docs/Glossary/Accessibility_tree) that can be easily parsed
 and interpreted by assistive technology.
@@ -299,7 +299,7 @@ The {{$a11y.report.link}} lists the ones that carry a reference and a success cr
 
 ## Result
 
-Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell and the menus; the sort order and a range selection are not announced yet (see [Known limitations](#known-limitations)).
+Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell, the menus, and a sort that a user makes; a range selection is not announced yet (see [Known limitations](#known-limitations)).
 
 ## API reference
 

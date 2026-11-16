@@ -614,6 +614,36 @@ overrides neither `onUpdateSettings()` nor `sortBySettings()` - its `enablePlugi
 an already-enabled early return before delegating to `super` - and it inherits this guard and the step
 unchanged. Do not special-case it.
 
+## A sort the user makes is announced, and one the API makes is not
+
+`aria-sort` is a state, read only when the header is focused again, so a gesture also writes a polite status
+message (`Sorted by Age, ascending`, `... descending`, `Sorting removed from Age`) through `announce()` from
+`utils/a11yAnnouncer.ts`. The three gestures (the `Enter` shortcut, `applyHeaderClickSort()`, and
+MultiColumnSorting's `Shift+Enter`) go through `sortByUser(config, column)` instead of `sort()`, and that is the
+only place that announces.
+
+- **Never announce from `#sort()`.** `sort()`, `setSortConfig()` and `clearSort()` also run at init, from
+  `initialConfig`, from the sheets bar restore, and from the server-side pattern in `beforeColumnSort`, where a
+  message is noise. The nested rows plugin follows the same split (`toggleParentByUser()` announces, the API does not).
+- **The message follows the column's order before and after, not the config.** `sortByUser()` reads
+  `getSortOrderOfColumn()` before `sort()` and announces only when it changed, so a `beforeColumnSort` that
+  returns `false` without touching the sort states is silent. The announcement follows the same state as
+  `aria-sort`: a server-side hook that writes the states with `setSortConfig()` and then returns `false` (the
+  DataProvider plugin does) is announced, before its rows arrive, and stays announced if the fetch fails. Pinned by
+  "server-side beforeColumnSort" in the test below. With MultiColumnSorting it names the column the user pressed,
+  not the whole queue; naming the queue needs more phrases per language.
+- **A language pack without the phrases falls back to English**, like every other phrase, so a custom pack is never
+  silent.
+- **The column is named by the rendered header text** (`.colHeader` `textContent`, `<br>` read as a space), which is
+  what the user sees, so markup and character references never reach the message and `textExtractor` is not
+  involved. A header that is not rendered (virtualized out) is read from `getColHeader()` and reduced the same way
+  (`htmlToPlainText()`, `<br>` as a space), and an empty label is named by its spreadsheet letter. Pinned by "not rendered" in the test below.
+- **It is gated on `ariaTags`**, like `aria-sort`, and it is `polite`: `assertive` is for errors.
+- The phrases are `COLUMN_SORTING_ANNOUNCEMENT_*` in `i18n/constants.ts`, in all 22 language files. A new
+  gesture that sorts goes through `sortByUser()`, or it is silent to a screen reader.
+
+Pinned by `__tests__/a11y/sortAnnouncement.unit.js` (both plugins) and `tests/e2e/column-sorting-announcement.spec.ts`.
+
 ## `Enter` on a collapsible header belongs to CollapsibleColumns
 
 The `Enter` header shortcut here sits in the `'columnSorting'` shortcut group. CollapsibleColumns anchors its own
