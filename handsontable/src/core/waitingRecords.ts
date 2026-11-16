@@ -272,6 +272,56 @@ export function resolveRecord(
 }
 
 /**
+ * Moves the tracked records of waiting change sets to the physical rows that hold them after the data was replaced
+ * without the index mapper's insert and removal hooks (`updateData()`): with the same row objects in another order,
+ * or with row ids that now sit on other rows, the tracked row holds another record. A record moves only when every
+ * anchor that shares it resolves to one row, and no two records end on one row. The anchor's stored meta becomes
+ * the one at the new row, because `updateData()` keeps cell meta by physical row. Returns the records it moved.
+ *
+ * @param {object} tracker The record tracker.
+ * @param {object} reader Reads the grid.
+ * @param {Array<object>} sets The record bookkeeping of the waiting change sets.
+ * @returns {Set<object>}
+ */
+export function followReplacedRecords(
+  tracker: RecordTracker,
+  reader: RecordReader,
+  sets: WaitingChangeRecords[],
+): Set<TrackedRecord> {
+  const locate = createIndexedLocator(reader);
+  const targets = new Map<TrackedRecord, number | null>();
+  const anchorsOfRecord = new Map<TrackedRecord, RecordAnchor[]>();
+
+  sets.forEach(set => set.forEachAnchor((anchor) => {
+    const { record } = anchor;
+    const physicalRow = resolveRecord(reader, anchor, locate);
+
+    anchorsOfRecord.set(record, [...(anchorsOfRecord.get(record) ?? []), anchor]);
+    targets.set(record, !targets.has(record) || targets.get(record) === physicalRow ? physicalRow : null);
+  }));
+
+  const moves = new Map<TrackedRecord, number>();
+
+  targets.forEach((physicalRow, record) => {
+    if (physicalRow !== null) {
+      moves.set(record, physicalRow);
+    }
+  });
+
+  const moved = tracker.relocate(moves);
+
+  moved.forEach((record) => {
+    anchorsOfRecord.get(record)!.forEach((anchor) => {
+      if (anchor.meta !== null) {
+        anchor.meta = reader.getStoredMeta(record.physicalRow!, anchor.metaColumn) ?? null;
+      }
+    });
+  });
+
+  return moved;
+}
+
+/**
  * Puts the visual row a record has now into its change. The change tuple types its row as a number, the visual
  * row a change is made at; a change applied to a record that is trimmed out of the visual space meanwhile has no
  * visual row, and `afterChange` and `beforeChangeRender` report `null` for it.
@@ -349,6 +399,10 @@ export interface WaitingChangeRecords {
    * captured for.
    */
   getPhysicalRow(change: object): number | null | undefined;
+  /**
+   * Calls a function with every record anchor the set holds.
+   */
+  forEachAnchor(callback: (anchor: RecordAnchor) => void): void;
   /**
    * Stops tracking the records.
    */
@@ -531,6 +585,9 @@ export function createWaitingChangeRecords(
       const anchor = anchorsByChange.get(change);
 
       return anchor === undefined ? undefined : resolveRecord(reader, anchor);
+    },
+    forEachAnchor(callback) {
+      anchors.forEach(callback);
     },
     release() {
       anchors.forEach(anchor => tracker.release(anchor.record));

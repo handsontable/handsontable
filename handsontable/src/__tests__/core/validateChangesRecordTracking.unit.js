@@ -578,13 +578,21 @@ describe('Core validation of a change while its record moves', () => {
 
       createGrid({ data });
 
+      const rows = [];
+
+      hot.addHook('afterValidate', (isValid, value, row) => {
+        rows.push(row);
+      });
       hot.setDataAtCell(1, 0, 'zzz');
       await settle();
       hot.updateData([...data].reverse());
-      await answerAll();
+      await answerAll(false);
 
       expect(sourceNames()).toEqual(['p5', 'p4', 'p3', 'p2', 'zzz', 'p0']);
       expect(dropped).toEqual([]);
+      expect(rows).toEqual([4]);
+      expect(validAt(4)).toBe(false);
+      expect([0, 1, 2, 3, 5].map(validAt).includes(false)).toBe(false);
     });
 
     it('should keep the change of a record whose key column is edited while the change waits', async() => {

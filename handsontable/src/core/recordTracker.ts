@@ -39,6 +39,12 @@ export interface RecordTracker {
    */
   release(record: TrackedRecord): void;
   /**
+   * Moves followed records to other physical rows at once, for a change that moved records without the index
+   * mapper's insert and removal hooks (`updateData()` with the same row objects in another order). A move that
+   * would leave two followed records on one physical row is not made. Returns the records it moved.
+   */
+  relocate(moves: Map<TrackedRecord, number>): Set<TrackedRecord>;
+  /**
    * The number of records followed now.
    */
   readonly size: number;
@@ -158,6 +164,35 @@ export function createRecordTracker(getIndexMapper: () => TrackedIndexMapper): R
   };
 
   /**
+   * Drops every planned move whose record would share its row with another followed record.
+   *
+   * @param {Map} accepted The planned moves, by record. Changed in place.
+   * @returns {boolean} Whether a move was dropped.
+   */
+  const dropConflictingMoves = (accepted: Map<TrackedRecord, number>): boolean => {
+    const recordsByRow = new Map<number, TrackedRecord[]>();
+    let isDropped = false;
+
+    holds.forEach((_, record) => {
+      const physicalRow = accepted.get(record) ?? record.physicalRow;
+
+      if (physicalRow !== null) {
+        recordsByRow.set(physicalRow, [...(recordsByRow.get(physicalRow) ?? []), record]);
+      }
+    });
+
+    recordsByRow.forEach((records) => {
+      if (records.length > 1) {
+        records.forEach((record) => {
+          isDropped = accepted.delete(record) || isDropped;
+        });
+      }
+    });
+
+    return isDropped;
+  };
+
+  /**
    * Starts or stops listening, so the tracker listens exactly while it follows a record.
    */
   const syncListeners = () => {
@@ -217,6 +252,28 @@ export function createRecordTracker(getIndexMapper: () => TrackedIndexMapper): R
       }
 
       syncListeners();
+    },
+    relocate(moves) {
+      const accepted = new Map<TrackedRecord, number>();
+
+      moves.forEach((physicalRow, record) => {
+        if (holds.has(record) && record.physicalRow !== physicalRow) {
+          accepted.set(record, physicalRow);
+        }
+      });
+
+      let isDropped = accepted.size > 0;
+
+      while (isDropped) {
+        isDropped = dropConflictingMoves(accepted);
+      }
+
+      accepted.forEach((physicalRow, record) => {
+        record.physicalRow = physicalRow;
+        isIndexStale = true;
+      });
+
+      return new Set(accepted.keys());
     },
     get size() {
       return holds.size;

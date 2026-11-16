@@ -126,7 +126,9 @@ import { createWriteLedger, getCellWriteKey, isValidatorCorrection } from './cor
 import type { LedgerCellMeta, WriteLedgerCall } from './core/writeLedger';
 import { createRecordTracker } from './core/recordTracker';
 import type { TrackedRecord } from './core/recordTracker';
-import { captureRecord, createWaitingChangeRecords, resolveRecord } from './core/waitingRecords';
+import {
+  captureRecord, createWaitingChangeRecords, followReplacedRecords, resolveRecord,
+} from './core/waitingRecords';
 import { createWaitingMetaStamps } from './core/waitingMetaStamps';
 import type { StampedMeta } from './core/waitingMetaStamps';
 import type {
@@ -503,6 +505,14 @@ export default function Core(
     () => instance.rowIndexMapper,
     physicalRow => instance.toVisualRow(physicalRow),
   );
+  /**
+   * The stored cell metas of waiting validator calls whose record `updateData()` moved to another physical row
+   * while the meta stays stored at the row it was read from (`updateData()` keeps cell meta by physical row). The
+   * meta there belongs to the record now at that row, so the answer of such a call is written only to the meta at
+   * the record's row (`persistValidationResult()`), never on the call's own meta object. Each maps to the tracked
+   * record of its call. A meta leaves the map when the next validator call starts on it.
+   */
+  const displacedMetas = new WeakMap<object, TrackedRecord>();
   /**
    * What the record resolution reads from the grid, see `core/waitingRecords.ts`.
    */
@@ -3578,8 +3588,19 @@ export default function Core(
    * @param {number} structureVersion The structure version captured when validation started.
    */
   function restoreValidity(cellMeta: LedgerCellMeta, valid: boolean, structureVersion: number) {
-    cellMeta.valid = valid;
-    persistValidationResult(cellMeta as Parameters<typeof persistValidationResult>[0], valid, structureVersion);
+    const answerMeta = readAnswerMeta(
+      cellMeta as Parameters<typeof persistValidationResult>[0], displacedMetas.get(cellMeta) ?? null,
+    );
+
+    if (answerMeta === cellMeta) {
+      if (cellMeta.valid === valid) {
+        return;
+      }
+
+      cellMeta.valid = valid;
+    }
+
+    persistValidationResult(answerMeta, valid, structureVersion);
   }
 
   /**
@@ -3865,10 +3886,17 @@ export default function Core(
                 }
 
                 // we canceled the change, so cell value is still valid
-                cellPropertiesReference.valid = true;
+                if (!displacedMetas.has(cellPropertiesReference)) {
+                  cellPropertiesReference.valid = true;
+                }
+
                 // ...and the stored meta has to hear about it too, or a cache clear that landed while
                 // the validator was running leaves the kept value wearing the rejected edit's mark.
-                persistValidationResult(cellPropertiesReference, true, structureVersion);
+                persistValidationResult(
+                  readAnswerMeta(cellPropertiesReference, displacedMetas.get(cellPropertiesReference) ?? null),
+                  true,
+                  structureVersion,
+                );
               }
 
               ledger?.answered(change, result);
@@ -4246,6 +4274,36 @@ export default function Core(
   }
 
   /**
+   * Returns the coordinates the answer of a validator call is written and reported at: the call's own cell meta,
+   * or, for a meta displaced by `updateData()` (`displacedMetas`), the cell of the call's record, whose row the
+   * meta no longer names.
+   *
+   * @private
+   * @param {object} cellProperties The cell meta the validator was handed.
+   * @param {object|null} record The tracked record of the call, or `null`.
+   * @returns {object}
+   */
+  function readAnswerMeta<M extends Record<string, unknown> & { visualRow?: number, visualCol?: number }>(
+    cellProperties: M,
+    record: TrackedRecord | null,
+  ): M {
+    if (record === null || !displacedMetas.has(cellProperties)) {
+      return cellProperties;
+    }
+
+    const { physicalRow } = record;
+
+    return {
+      ...cellProperties,
+      row: physicalRow ?? undefined,
+      col: cellProperties.col,
+      visualRow: physicalRow === null ? null : instance.toVisualRow(physicalRow),
+      visualCol: cellProperties.visualCol,
+      hidden: cellProperties.hidden,
+    };
+  }
+
+  /**
    * Validate a single cell.
    *
    * @memberof Core#
@@ -4275,8 +4333,9 @@ export default function Core(
      * @function done
      * @param {boolean} valid Indicates if the validation was successful.
      * @param {boolean} [canBeValidated=true] Flag which controls the validation process.
+     * @param {object} [answerMeta] The coordinates of the cell the answer is for.
      */
-    function done(valid: boolean, canBeValidated = true) {
+    function done(valid: boolean, canBeValidated = true, answerMeta: typeof cellProperties = cellProperties) {
       // Fixes GH#3903
       if (!canBeValidated || cellProperties.hidden === true) {
         callback(valid);
@@ -4284,8 +4343,8 @@ export default function Core(
         return;
       }
 
-      const col = cellProperties.visualCol as number;
-      const row = cellProperties.visualRow as number;
+      const col = answerMeta.visualCol as number;
+      const row = answerMeta.visualRow as number;
       const td = instance.getCell(row, col, true);
 
       if (td && td.nodeName !== 'TH') {
@@ -4315,6 +4374,9 @@ export default function Core(
       const validatedPhysicalRow = isChangeCall ?
         getPhysicalRowOfExistingRow(cellProperties.visualRow as number) : null;
       const validatedRecord = validatedPhysicalRow === null ? null : recordTracker.track(validatedPhysicalRow);
+
+      displacedMetas.delete(cellProperties);
+
       const releaseMetaStamp = validatedRecord === null ? () => {} :
         waitingMetaStamps.add(validatedRecord, cellProperties);
 
@@ -4385,8 +4447,10 @@ export default function Core(
 
             try {
               hold.resume(() => {
+                const answerMeta = readAnswerMeta(cellProperties, validatedRecord);
+
                 valid = instance
-                  .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
+                  .runHooks('afterValidate', valid, value, answerMeta.visualRow, colArg, source);
 
                 // Every call into user code can destroy the grid (an `afterValidate` listener here, the
                 // callback in `done()` below), and nothing after it may read the destroyed instance.
@@ -4394,13 +4458,15 @@ export default function Core(
                   return;
                 }
 
-                cellProperties.valid = valid;
-                markCellMetaChanged(cellProperties);
+                if (answerMeta === cellProperties) {
+                  cellProperties.valid = valid;
+                  markCellMetaChanged(cellProperties);
+                }
 
-                persistValidationResult(cellProperties, valid, structureVersion);
+                persistValidationResult(answerMeta, valid, structureVersion);
                 countAnswer();
 
-                done(valid);
+                done(valid, true, answerMeta);
 
                 if (!instance) {
                   return;
@@ -4412,7 +4478,7 @@ export default function Core(
 
                 try {
                   instance.runHooks(
-                    'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
+                    'postAfterValidate', valid, value, answerMeta.visualRow, colArg, source
                   );
                 } finally {
                   isAnsweringStaleValidation = wasAnsweringStaleValidation;
@@ -6060,6 +6126,7 @@ export default function Core(
             instance.rowIndexMapper.fitToLength(instance.countSourceRows());
           }
 
+          followWaitingRecordsAfterUpdate();
           grid.adjustRowsAndCols();
           selection.markSource('updateData');
 
@@ -6085,6 +6152,31 @@ export default function Core(
         firstRun,
         beforeRender: () => runOwedReadySteps(1),
       }));
+  }
+
+  /**
+   * Moves the records of the waiting change sets to the rows that hold them after `updateData()` replaced the data
+   * (`followReplacedRecords()`), so the stamps of their validator calls (`this.visualRow`, the row of
+   * `afterValidate`) and the answers follow them, and marks a call's meta that stays stored at the row it was read
+   * from as displaced (`displacedMetas`).
+   *
+   * @private
+   */
+  function followWaitingRecordsAfterUpdate() {
+    if (waitingChangeSets.size === 0) {
+      return;
+    }
+
+    const sets = Array.from(waitingChangeSets.values(), ({ records }) => records);
+    const moved = followReplacedRecords(recordTracker, recordReader, sets);
+
+    if (moved.size === 0) {
+      return;
+    }
+
+    waitingMetaStamps.followRelocated(moved, (meta, physicalRow) => (
+      !Number.isInteger(meta.col) || metaManager.getCellMetaIfExists(physicalRow, meta.col as number) === meta
+    )).forEach(({ record, meta }) => displacedMetas.set(meta, record));
   }
 
   /**

@@ -138,4 +138,26 @@ describe('createRecordTracker', () => {
 
     expect(countListeners(mapper)).toBe(idle);
   });
+  it('should relocate records that swap their rows, and find each one at its new row', () => {
+    const { tracker } = setup(6);
+    const first = tracker.track(1);
+    const second = tracker.track(4);
+    const moved = tracker.relocate(new Map([[first, 4], [second, 1]]));
+
+    expect([...moved]).toEqual([first, second]);
+    expect([first.physicalRow, second.physicalRow]).toEqual([4, 1]);
+    expect(tracker.find(4)).toBe(first);
+    expect(tracker.find(1)).toBe(second);
+  });
+
+  it('should not relocate a record onto the row of another record that stays', () => {
+    const { tracker } = setup(6);
+    const moving = tracker.track(1);
+    const staying = tracker.track(4);
+    const following = tracker.track(2);
+    const moved = tracker.relocate(new Map([[moving, 4], [following, 1]]));
+
+    expect(moved.size).toBe(0);
+    expect([moving.physicalRow, staying.physicalRow, following.physicalRow]).toEqual([1, 4, 2]);
+  });
 });
