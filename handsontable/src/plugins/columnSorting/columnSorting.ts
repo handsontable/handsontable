@@ -2,6 +2,7 @@ import {
   addClass,
   eventTargetEl,
   hasClass,
+  HTML_CHARACTERS,
   isBottomMostColumnHeader,
   removeClass,
   setAttribute,
@@ -53,6 +54,14 @@ import type { HotInstance } from '../../core/types';
 import type { CellChange } from '../../settings';
 import { getWaitingEditorSaveChangeSets } from '../../editors/baseEditor/editorSaveChangeSets';
 import { A11Y_SORT } from '../../helpers/a11y';
+import { spreadsheetColumnLabel } from '../../helpers/data';
+import { htmlToPlainText } from '../../helpers/string';
+import { announce } from '../../utils/a11yAnnouncer';
+import {
+  COLUMN_SORTING_ANNOUNCEMENT_ASCENDING,
+  COLUMN_SORTING_ANNOUNCEMENT_DESCENDING,
+  COLUMN_SORTING_ANNOUNCEMENT_REMOVED,
+} from '../../i18n/constants';
 import { LICENSE } from './feature.generated';
 
 /**
@@ -479,7 +488,7 @@ export class ColumnSorting extends BasePlugin {
 
           const { highlight } = activeRange;
 
-          this.sort(this.getColumnNextConfig(highlight.col ?? 0));
+          this.sortByUser(this.getColumnNextConfig(highlight.col ?? 0), highlight.col ?? 0);
 
           // prevent default Enter behavior (move to the next row within a selection range)
           return false;
@@ -535,6 +544,28 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
+   * Sorts the rows as the result of a user gesture (a header press or a key) and announces the new order of the
+   * column the gesture acted on, because `aria-sort` is read only when the header is focused again. The announcement
+   * is polite, and it is made only when the order of that column changed, so a sort that `beforeColumnSort` canceled
+   * is silent. A sort made through the API (`sort()`, `setSortConfig()`, `clearSort()`) is never announced.
+   *
+   * @private
+   * @param {undefined|object|Array} sortConfig The sort configuration the gesture produced.
+   * @param {number} column Visual index of the column the gesture acted on.
+   */
+  sortByUser(sortConfig: SortConfig | SortConfig[] | undefined, column: number): void {
+    const orderBefore = this.columnStatesManager?.getSortOrderOfColumn(column);
+
+    this.sort(sortConfig);
+
+    const orderAfter = this.columnStatesManager?.getSortOrderOfColumn(column);
+
+    if (orderAfter !== orderBefore && this.hot.getSettings().ariaTags) {
+      this.#announceSortOrder(column, orderAfter);
+    }
+  }
+
+  /**
    * The body of `sort()`, run inside its operation.
    *
    * @param {undefined|object|Array} sortConfig Single column sort configuration or full sort configuration.
@@ -573,6 +604,59 @@ export class ColumnSorting extends BasePlugin {
     if (sortPossible) {
       this.hot.render();
     }
+  }
+
+  /**
+   * Announces the order a user gesture left a column in.
+   *
+   * @param {number} column Visual column index.
+   * @param {string|undefined} sortOrder The order of the column after the sort, `undefined` when it is not sorted.
+   */
+  #announceSortOrder(column: number, sortOrder: string | undefined): void {
+    let phrase = COLUMN_SORTING_ANNOUNCEMENT_REMOVED;
+
+    if (sortOrder === ASC_SORT_STATE) {
+      phrase = COLUMN_SORTING_ANNOUNCEMENT_ASCENDING;
+
+    } else if (sortOrder === DESC_SORT_STATE) {
+      phrase = COLUMN_SORTING_ANNOUNCEMENT_DESCENDING;
+    }
+
+    announce(String(this.hot.getTranslatedPhrase(phrase, { label: this.#getColumnLabel(column) }) ?? ''), 'polite');
+  }
+
+  /**
+   * Reads the name of a column the way a user sees it: the text of the rendered header, so markup and character
+   * references in a header label never reach the announcement. A line break (`<br>`) reads as a space and runs of
+   * whitespace collapse to one. A header that is not rendered (virtualized out) is read from `getColHeader()` and
+   * reduced the same way: tags stripped, character references decoded, `<br>` read as a space. A column without
+   * a label is named by its spreadsheet letter.
+   *
+   * @param {number} column Visual column index.
+   * @returns {string}
+   */
+  #getColumnLabel(column: number): string {
+    const TH = this.hot.getCell(-1, column, true);
+    const headerSpan = TH ? getHeaderSpanElement(TH) : null;
+    let rendered = '';
+
+    if (headerSpan) {
+      const copy = headerSpan.cloneNode(true) as HTMLElement;
+
+      copy.querySelectorAll('br').forEach(lineBreak => lineBreak.replaceWith(' '));
+      rendered = (copy.textContent ?? '').replace(/\s+/g, ' ').trim();
+    }
+
+    if (rendered) {
+      return rendered;
+    }
+
+    const header = String(this.hot.getColHeader(column) ?? '').trim();
+
+    const plainHeader = HTML_CHARACTERS.test(header) ?
+      htmlToPlainText(header.replace(/<br\s*\/?>/gi, ' ')).replace(/\s+/g, ' ').trim() : header;
+
+    return plainHeader !== '' ? plainHeader : spreadsheetColumnLabel(column);
   }
 
   /**
@@ -1620,7 +1704,7 @@ export class ColumnSorting extends BasePlugin {
    * @param {object} press The press that queued this sort.
    */
   applyHeaderClickSort(press: HeaderSortPress) {
-    this.sort(this.getColumnNextConfig(press.column));
+    this.sortByUser(this.getColumnNextConfig(press.column), press.column);
   }
 
   /**

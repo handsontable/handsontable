@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "formula-function-help",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T13:58:52.759Z"
+  },
+  "steps": {
+    "open-editor": "",
+    "select-all": "",
+    "type-sum": "substitute menu item 1 of 14 formula editor sum function help list box pop up collapsed text entry area sum insertion on word sum between characters and",
+    "type-range": "",
+    "type-comma": "",
+    "type-close": "",
+    "commit-formula": "c 7 column 3 row 3 4 7 tree grid 4 columns 13 rows",
+    "back-to-committed": "c 11 column 3 row 1 2 11"
+  }
+}

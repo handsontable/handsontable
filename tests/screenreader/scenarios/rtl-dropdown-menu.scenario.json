@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "id": "rtl-dropdown-menu",
+  "surface": "The column dropdown menu of a right-to-left grid: opening it from the keyboard, End to the Alignment item, ArrowLeft into its submenu and ArrowRight back, as the direction swaps the keys, and Escape back to the grid.",
+  "group": "menus",
+  "page": "rtl-dropdown-menu",
+  "state": "dropdown-menu",
+  "criteria": ["1.3.1", "1.3.2", "2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [1, 1]}],
+  "steps": [
+    {
+      "id": "open-menu",
+      "action": {"press": "Shift+Alt+ArrowDown"},
+      "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
+      "expect": [["insert column left"], ["menu"]],
+      "note": "Shift+Alt+ArrowDown on B2 of the right-to-left grid opens its column's menu with the first item highlighted. Required: the item and the menu role. Finding: NVDA with Chromium reads the menu as a `table`, without the word menu; VoiceOver with Chromium says nothing when the menu opens, as in the dropdown-menu scenario, and nothing on any later step of this one."
+    },
+    {
+      "id": "end-to-alignment",
+      "action": {"press": "End"},
+      "expect": [["alignment"], ["submenu", "sub menu", "collapsed"]],
+      "note": "End highlights the last item, Alignment, the parent of a submenu; NVDA and VoiceOver with WebKit say `Alignment, collapsed`."
+    },
+    {
+      "id": "open-submenu",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["left"]],
+      "note": "In a right-to-left grid ArrowLeft opens the submenu, toward the side it opens on, with its first item, Left, highlighted; NVDA reads it. Finding: VoiceOver with WebKit read only the parent item again, `Alignment expanded menu item`, in one run of two, as in the left-to-right context menu, and Left before the parent item in the other."
+    },
+    {
+      "id": "close-submenu",
+      "action": {"press": "ArrowRight"},
+      "expect": [["alignment"]],
+      "note": "ArrowRight closes the submenu, and the highlight should return to Alignment. Finding: the focus falls to the document, as in the context-menu-submenu scenario, and NVDA and VoiceOver with WebKit read the page's title as a document."
+    },
+    {
+      "id": "close-menu",
+      "action": {"press": "Escape"},
+      "after": {"hidden": ".htDropdownMenu .ht_master .htCore tbody td"},
+      "expect": [["b1"]],
+      "note": "Escape closes the menu, and the focus should return to the grid. Opening the menu from the keyboard selects the whole column and clamps the focus cell to row 0, so the cell is B1. Finding: no reader says anything: the focus is still on the document."
+    }
+  ]
+}

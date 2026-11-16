@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "rtl-dropdown-menu",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:59:37.081Z"
+  },
+  "steps": {
+    "open-menu": "insert column left menu item group table 1 column 10 rows",
+    "end-to-alignment": "alignment collapsed menu item group table 1 column 10 rows",
+    "open-submenu": "alignment expanded menu item group 1 of 1",
+    "close-submenu": "narrow header with a menu button e2e fixture web content",
+    "close-menu": ""
+  }
+}

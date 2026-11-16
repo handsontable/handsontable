@@ -354,7 +354,7 @@ export interface HotInstance {
   _releasePlugin(pluginKey: string, requirer: object): void;
   _isPluginRequired(pluginKey: string): boolean;
   _getWaitingChangeSets(): Array<{ changes: CellChange[], source: string | undefined }>;
-  _trackRecord(visualRow: number): TrackedRecordHandle | null;
+  _trackRecord(visualRow: number, visualColumn?: number): TrackedRecordHandle | null;
   _runAfterValidatorAnswer(callback: () => void): void;
   _addDroppedChangesListener(
     listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
