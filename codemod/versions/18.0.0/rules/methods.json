@@ -29,8 +29,8 @@
         "isRedoAvailable": "isRedoAvailable"
       },
       "properties": { "undoRedo": null },
-      "message": "Move this call to the undoRedo plugin. Core lost the undo methods and the undoRedo property in 17.0, so this is a cleanup for code that still uses them.",
-      "advice": "Call them on the plugin: hot.getPlugin('undoRedo'). Core no longer has the undo methods or the undoRedo property."
+      "message": "Move this call to the undoRedo plugin. Core lost the undo methods and the undoRedo property in 17.0, so this call did not work on 17.x: it threw a TypeError. Check that running it now is what you want.",
+      "advice": "Call them on the plugin: hot.getPlugin('undoRedo'). Core had no undo methods and no undoRedo property in 17.x, so code that used them did not work there."
     },
     {
       "id": "18.0.0/helper-sanitize",

@@ -268,7 +268,8 @@ export const App = () => <Other oldName={1} />;
 });
 
 describe('optionRename with context.callArg', () => {
-  const PLUGIN = `${IMPORT}const plugin = hot.getPlugin('exportFile');\n`;
+  const PLUGIN = `${IMPORT}const hot = new Handsontable(el, {});\n`
+    + 'const plugin = hot.getPlugin(\'exportFile\');\n';
 
   it('renames in object-literal arguments of method calls, at any position and in sheets entries', async() => {
     const source = `${PLUGIN}plugin.downloadFile('csv', { columnHeaders: true });
@@ -285,7 +286,7 @@ plugin.downloadFile('xlsx', { sheets: [{ columnHeaders: true }, { colHeaders: tr
     const source = `${PLUGIN}xlsx.downloadFile({ columnHeaders: ['a', 'b'] });
 hot.getPlugin('filters').exportAsString('csv', { columnHeaders: true });
 axios.downloadFile('csv', { filename: 'a' });
-this.hot.getPlugin('exportFile').downloadFile('csv', { columnHeaders: true });
+hot.getPlugin('exportFile').downloadFile('csv', { columnHeaders: true });
 const other = makeExporter();
 other?.downloadFile('csv', { columnHeaders: true });
 `;
@@ -295,7 +296,7 @@ other?.downloadFile('csv', { columnHeaders: true });
     assert.match(result.output, /getPlugin\('filters'\)\.exportAsString\('csv', \{ columnHeaders: true \}\);/);
     assert.match(result.output, /getPlugin\('exportFile'\)\.downloadFile\('csv', \{ colHeaders: true \}\);/);
     assert.match(result.output, /other\?\.downloadFile\('csv', \{ columnHeaders: true \}\);/);
-    assert.deepEqual(summary(result.entries), ['3:manual', '6:changed', '8:manual']);
+    assert.deepEqual(summary(result.entries), ['4:manual', '7:changed', '9:manual']);
     assert.match(result.entries[0].message, /exportFile plugin/);
   });
 
@@ -321,7 +322,7 @@ const unrelated = { columnHeaders: true };
     const result = await run(source, [CALLS]);
 
     assert.equal(result.changed, false);
-    assert.deepEqual(summary(result.entries), ['3:manual']);
+    assert.deepEqual(summary(result.entries), ['4:manual']);
   });
 
   it('appends the rule message to the changed entry', async() => {

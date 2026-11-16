@@ -38,6 +38,8 @@ import { findReferences, invalidateScope, lookup } from './scope.mjs';
  * `columns`, `columns()`, `cell`, `cells()`, `spread`, or `heuristic`. A `:identifier` suffix means the object
  * was reached through a variable in the same file.
  * @property {string[]} [keys] For a `heuristic` object: the known option names it sets, in source order.
+ * @property {boolean} annotated A type annotation, `as`, or `satisfies` names the object itself as Handsontable's
+ * (`GridSettings`, `ColumnSettings`), whichever pass found it first.
  */
 
 /**
@@ -643,6 +645,11 @@ export function analyzeOptionObjects(j, root, bindings) {
   addObject = (objectPath, role, origin, confidence) => {
     const known = found.get(objectPath.node);
 
+    // A type annotation names the object as Handsontable's, whichever pass found it first.
+    if (origin === 'annotation' && known) {
+      known.annotated = true;
+    }
+
     if (known) {
       // The passes run in a fixed order, not in order of strength, so a later pass may know more. A higher
       // confidence takes over the role and the origin that came with it, and what hangs below follows. A tie
@@ -655,7 +662,7 @@ export function analyzeOptionObjects(j, root, bindings) {
       return;
     }
 
-    found.set(objectPath.node, { path: objectPath, confidence, role, origin });
+    found.set(objectPath.node, { path: objectPath, confidence, role, origin, annotated: origin === 'annotation' });
     expand(objectPath, role, confidence);
   };
 

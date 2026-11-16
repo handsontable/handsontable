@@ -334,6 +334,8 @@ describe('resolveNamespaceMember', () => {
 });
 
 describe('isPluginReceiver', () => {
+  const HEAD = 'import Handsontable from \'handsontable\';\nconst hot = new Handsontable(el, {});\n';
+
   /**
    * Check, for every `<receiver>.probe()` call in the source, whether the receiver is a plugin of the given keys.
    *
@@ -342,7 +344,7 @@ describe('isPluginReceiver', () => {
    * @returns {boolean[]} One answer per call, in source order.
    */
   function pluginProbes(source, keys) {
-    const { j, root, bindings } = bind(source);
+    const { j, root, bindings } = bind(`${HEAD}${source}`);
 
     return root.find(j.CallExpression)
       .filter(path => path.node.callee.property?.name === 'probe')
@@ -352,16 +354,29 @@ describe('isPluginReceiver', () => {
 
   const KEYS = ['manualColumnResize', 'manualRowResize'];
 
-  it('accepts a direct getPlugin call with a listed key on any object, optional chaining included', () => {
+  it('accepts a direct getPlugin call with a listed key on an instance, optional chaining included', () => {
     assert.deepEqual(pluginProbes([
       'hot.getPlugin(\'manualColumnResize\').probe();',
-      'this.hot.getPlugin("manualRowResize").probe();',
+      'class K { constructor() { this.hot = new Handsontable(el, {}); } '
+        + 'go() { this.hot.getPlugin("manualRowResize").probe(); } }',
       'hot?.getPlugin(\'manualColumnResize\')?.probe();',
       'hot.getPlugin(\'manualColumnResize\')!.probe();',
       'hot.getPlugin(\'filters\').probe();',
       'hot.getPlugin(key).probe();',
       'hot.getOther(\'manualColumnResize\').probe();',
     ].join('\n'), KEYS), [true, true, true, true, false, false, false]);
+  });
+
+  it('does not accept a getPlugin call on a receiver that is not an instance the file shows', () => {
+    assert.deepEqual(pluginProbes([
+      'thing.getPlugin(\'manualColumnResize\').probe();',
+      'function f(grid) { grid.getPlugin(\'manualColumnResize\').probe(); }',
+      'class P extends Base { go() { this.hot.getPlugin(\'manualColumnResize\').probe(); } }',
+      'const fake = { getPlugin() { return {}; } };',
+      'fake.getPlugin(\'manualColumnResize\').probe();',
+      'const made = fake.getPlugin(\'manualColumnResize\');',
+      'made.probe();',
+    ].join('\n'), KEYS), [false, false, false, false, false]);
   });
 
   it('follows a variable, an assignment, and a this member for one hop', () => {

@@ -114,7 +114,10 @@ const BODIES = [
     name: 'optionRemove kept in an object argument that another rule rewrites',
     file: 'a.js',
     plan: buildPlan(manifests, ['18.0.0/date-picker-config-removed', '18.0.0/numeric-format-culture']),
-    code: 'hot.updateSettings({ numericFormat: { culture: \'nb-NO\' }, datePickerConfig: cfg() });',
+    // A cell object, because the move of a grid-level culture is only reported. The pattern keeps the note about the
+    // number format out, so the object holds one TODO.
+    code: 'hot.setCellMetaObject(0, 0, { numericFormat: { culture: \'nb-NO\', pattern: \'0,0\' }, '
+      + 'datePickerConfig: cfg() });',
   },
   {
     name: 'JSX element with a TODO',

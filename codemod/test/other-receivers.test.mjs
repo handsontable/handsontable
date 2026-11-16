@@ -7,6 +7,8 @@ const manifests = await loadManifests(VERSIONS_DIR);
 const IMPORTS = 'import Handsontable from \'handsontable\';\nimport formKit from \'form-kit\';\n';
 const TODO = 'TODO(handsontable-codemod';
 const CULTURE = '{ numericFormat: { pattern: \'0,0\', culture: \'de-DE\' } }';
+// The same format in a column: a grid-level culture is only reported, because a grid-level locale reaches every column.
+const COLUMN_CULTURE = '{ columns: [{ numericFormat: { pattern: \'0,0\', culture: \'de-DE\' } }] }';
 
 /**
  * Run a plan over a file three times, as the idempotency contract does, and return the first run.
@@ -76,9 +78,21 @@ describe('an object that another receiver than the grid takes is not Handsontabl
     assert.equal(result.output, source);
   });
 
-  it('still reports and rewrites an object that a grid takes too', async() => {
-    const source = `${IMPORTS}const hot = new Handsontable(document.body, {});\nconst settings = ${CULTURE};\n`
+  it('reports, and does not edit, an object that a grid takes and another receiver takes too', async() => {
+    const source = `${IMPORTS}const hot = new Handsontable(document.body, {});\nconst settings = ${COLUMN_CULTURE};\n`
       + 'formKit.updateSettings(settings);\nhot.updateSettings(settings);\n';
+    const result = await threeRuns(source, everyRule);
+    const entry = result.entries.find(item => item.ruleId === '18.0.0/numeric-format-culture');
+
+    assert.equal(entry.severity, 'manual');
+    assert.match(entry.message, /also passed to `formKit\.updateSettings\(\)`/);
+    assert.ok(result.output.includes('culture: \'de-DE\''), result.output);
+    assert.ok(!result.output.includes('locale: \'de-DE\''), result.output);
+  });
+
+  it('rewrites an object that only a grid takes', async() => {
+    const source = `${IMPORTS}const hot = new Handsontable(document.body, {});\nconst settings = ${COLUMN_CULTURE};\n`
+      + 'hot.updateSettings(settings);\n';
     const result = await threeRuns(source, everyRule);
 
     assert.ok(result.entries.some(entry => entry.ruleId === '18.0.0/numeric-format-culture'));
@@ -93,7 +107,7 @@ describe('an object that another receiver than the grid takes is not Handsontabl
     };
 
     for (const [kind, line] of Object.entries(plans)) {
-      const source = `${IMPORTS}${line.replace('SETTINGS', CULTURE)}\n`;
+      const source = `${IMPORTS}${line.replace('SETTINGS', COLUMN_CULTURE)}\n`;
       const result = await threeRuns(source, everyRule);
       const manual = result.entries.filter(entry => entry.severity === 'manual'
         && entry.ruleId === '18.0.0/numeric-format-culture');
@@ -103,7 +117,7 @@ describe('an object that another receiver than the grid takes is not Handsontabl
     }
 
     const confirmed = await threeRuns(`${IMPORTS}const hot = new Handsontable(document.body, {});\n`
-      + `hot.updateSettings(${CULTURE});\n`, everyRule);
+      + `hot.updateSettings(${COLUMN_CULTURE});\n`, everyRule);
 
     assert.ok(confirmed.output.includes('locale: \'de-DE\''), confirmed.output);
   });

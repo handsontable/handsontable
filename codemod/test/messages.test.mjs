@@ -189,7 +189,7 @@ describe('the wording of the report entries', () => {
 
   it('says what 18.0 does with a locale and culture that differ', async() => {
     const result = await run('import Handsontable from \'handsontable\';\n'
-      + 'new Handsontable(el, { locale: \'fr-FR\', numericFormat: { culture: \'de-DE\' } });\n', 'a.js');
+      + 'new Handsontable(el, { columns: [{ locale: \'fr-FR\', numericFormat: { culture: \'de-DE\' } }] });\n', 'a.js');
     const [entry] = result.entries.filter(item => item.ruleId === '18.0.0/numeric-format-culture');
 
     assert.equal(entry.message, 'Set locale to \'de-DE\' if that was intended, then remove culture. 18.0 formats '

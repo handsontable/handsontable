@@ -72,6 +72,7 @@ export function Grids() {
       <HotTable licenseKey="k" columns={columnDefs} />
       <HotTable licenseKey="k" columns={memoColumns} />
       <HotTable licenseKey="k" columns={branching} />
+      {/* TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat */}
       <HotTable
         licenseKey="k"
         columns={(index) => ({ data: index, type: 'numeric', locale: 'ja-JP', // TODO(handsontable-codemod 18.0.0/correct-format-removed): Deleted correctFormat here. Use valueParser or valueSetter to correct entered values. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#correctformat-option

@@ -33,6 +33,7 @@ export const compact = {
 
 export function createGrid(container: HTMLElement): Handsontable {
   return new Handsontable(container, {
+    // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
     columns: [{
       type: 'numeric',
       locale: 'pl-PL',

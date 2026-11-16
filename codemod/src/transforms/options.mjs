@@ -21,6 +21,7 @@ import {
   hasSpread as isSpreadObject,
   isClaimed,
 } from '../lib/option-objects.mjs';
+import { createHolders } from '../lib/holders.mjs';
 import { printTree } from '../lib/print.mjs';
 import { createHop, isReference } from '../lib/resolve.mjs';
 import { invalidateScope } from '../lib/scope.mjs';
@@ -44,9 +45,12 @@ const MEMBER_CALLS = new Set(['MemberExpression', 'OptionalMemberExpression']);
  * @property {boolean} aggressive Whether `--aggressive` is on, which lowers every rule's bar to `medium`.
  * @property {string[]|null} keys Known option names of the `heuristic` object being handled, or `null` for any
  * other object. Set by `apply()` before each handler call.
+ * @property {string|null} level What the target configures (`Target.level`), `null` when it is not known. Set by
+ * `apply()` before each handler call.
  * @property {ReturnType<import('../lib/resolve.mjs').createHop>} resolver The one-hop resolver of the file.
  * @property {ReturnType<import('../lib/custom-reader.mjs').createReaderFinder>} readers The finder of the code that
  * may read an option a rule deletes or moves.
+ * @property {ReturnType<import('../lib/holders.mjs').createHolders>} holders What else holds an options object.
  */
 
 /**
@@ -61,6 +65,9 @@ const MEMBER_CALLS = new Set(['MemberExpression', 'OptionalMemberExpression']);
  * @property {object} path NodePath of the `ObjectExpression` or of the `JSXOpeningElement`.
  * @property {'high'|'medium'} confidence Confidence that it holds Handsontable options. JSX is always `high`.
  * @property {string[]|null} [keys] Known option names of a `heuristic` object, `null` for any other target.
+ * @property {string} [level] What the object or element configures: `grid` (a settings object, `<HotTable>`),
+ * `column` (an element of `columns`, `<HotColumn>`), `cell` (a `cells` return, an element of `cell`), or `hooks`.
+ * @property {boolean} [annotated] A type annotation names the object as Handsontable's.
  */
 
 /**
@@ -88,6 +95,11 @@ function mentions(source, rule) {
 function assertRule(rule) {
   if (rule.kind === 'optionMove' && (rule.from.split('.').length !== 2 || rule.to.includes('.'))) {
     throw new Error(`Rule ${rule.id}: "from" must be "<option>.<key>" and "to" a sibling option name.`);
+  }
+
+  if (rule.levels !== undefined && (!Array.isArray(rule.levels) || rule.levels.length === 0
+    || !rule.levels.every(level => ['grid', 'column', 'cell'].includes(level)))) {
+    throw new Error(`Rule ${rule.id}: "levels" must be a non-empty list of "grid", "column", or "cell".`);
   }
 
   if (rule.kind === 'optionRename' && rule.context !== undefined && !Array.isArray(rule.context.callArg)) {
@@ -271,6 +283,8 @@ function collectTargets(j, root, bindings) {
       path: item.path,
       confidence: item.confidence,
       keys: item.keys ?? null,
+      level: item.role,
+      annotated: item.annotated === true,
     });
   }
 
@@ -278,9 +292,15 @@ function collectTargets(j, root, bindings) {
     const parent = entry.attributePath.parent;
 
     if (entry.viaSpread) {
-      objects.set(parent.node, { type: 'object', path: parent, confidence: 'high' });
+      objects.set(parent.node, {
+        type: 'object',
+        path: parent,
+        confidence: 'high',
+        level: objects.get(parent.node)?.level ?? entry.elementRole,
+        annotated: objects.get(parent.node)?.annotated === true,
+      });
     } else {
-      elements.set(parent.node, { type: 'jsx', path: parent, confidence: 'high' });
+      elements.set(parent.node, { type: 'jsx', path: parent, confidence: 'high', level: entry.elementRole });
     }
   }
 
@@ -451,6 +471,75 @@ function spreadFollows(list, node) {
 }
 
 /**
+ * Whether the object or element that spreads an object can set the option a rule edits, so the edit would change
+ * what the receiver ends up with. A move always conflicts: the receiver may set the destination, and the moved value
+ * would win or lose against it. A rename conflicts when the receiver sets the new name (anywhere) or the old one
+ * after the spread. A removal never conflicts: the removed option is ignored where the rule runs, so no receiver can
+ * give it a meaning, and a check on the receiver would also make a second run differ from the first (the first
+ * run deletes the receiver's own key, so the second finds nothing to conflict with). The names are the ones the
+ * receiver had before any rule edited it, so the answer does not depend on which object a rule reaches first.
+ *
+ * @param {import('../types.mjs').Rule} rule The rule.
+ * @param {{names: {after: Set<string>, anywhere: Set<string>}}} spread The spread, with the names of its receiver.
+ * @returns {boolean} `true` when the rule must leave the object alone.
+ */
+function spreadConflicts(rule, { names }) {
+  if (rule.kind === 'optionMove') {
+    return true;
+  }
+
+  return rule.kind === 'optionRename' && (names.anywhere.has(rule.to) || names.after.has(rule.from));
+}
+
+/**
+ * Report an object that the rule must not edit because something else holds it: another consumer of the variable
+ * that holds it, or an object that spreads it and may set the same key. An object that a type annotation names
+ * (`GridSettings`, `ColumnSettings`) is Handsontable's by its type, so the compiler holds every other consumer to
+ * that type and the check does not apply to it, nor to anything inside it (`heldBy()` answers `null`).
+ *
+ * @param {Env} env The state.
+ * @param {object} objectPath NodePath of the options object.
+ * @param {object} node The node that holds the key, for the line of the entry.
+ * @returns {boolean} `true` when the object was reported and the rule must not edit it.
+ */
+function reportSharedObject(env, objectPath, node) {
+  const held = env.holders.heldBy(objectPath);
+
+  if (!held) {
+    return false;
+  }
+
+  const { ctx, rule } = env;
+  const line = lineOfNode(node);
+  const say = (text) => {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      line,
+      message: `${actionFor(rule)} ${text} The tool left it alone.`,
+    });
+
+    return true;
+  };
+
+  if (held.other !== null) {
+    return say(`This object is also ${held.other}${held.otherLine ? ` (line ${held.otherLine})` : ''}, so editing it `
+      + 'here would change that use too.');
+  }
+
+  const spread = held.spreads.find(item => spreadConflicts(rule, item));
+
+  if (spread) {
+    const where = spread.spread.loc?.start?.line;
+
+    return say(`This object is spread into another one${where ? ` (line ${where})` : ''}, which can set the same `
+      + 'option and win.');
+  }
+
+  return false;
+}
+
+/**
  * Handle `optionRename` for one options object.
  *
  * @param {Env} env The state.
@@ -477,6 +566,10 @@ function renameInObject(env, objectPath, confidence) {
   if (!clearsBar(env, confidence)) {
     reportBelowBar(env, property.node, `${rule.from} is set.`);
 
+    return;
+  }
+
+  if (reportSharedObject(env, objectPath, property.node)) {
     return;
   }
 
@@ -640,7 +733,8 @@ function renameInCallArguments(env) {
       if (receiver) {
         const property = getProperty(objectPath, rule.from);
 
-        if (property && bindings.isHotFile && isUnresolvedReceiver(receiver, bindings)) {
+        if (property && bindings.isHotFile
+          && (isUnresolvedReceiver(receiver, bindings) || bindings.isPartlyPlugin(receiver, pluginKeys))) {
           env.ctx.report({
             ruleId: rule.id,
             severity: 'manual',
@@ -704,6 +798,10 @@ function removeInObject(env, objectPath, confidence) {
       adviseRemoval(env, hasOwnLines(objectPath.node, node) ? node : enclosingAnchor(objectPath), lineOfNode(node),
         `the ${rule.name} property`, readerReason(rule, reader));
 
+      continue;
+    }
+
+    if (reportSharedObject(env, objectPath, node)) {
       continue;
     }
 
@@ -993,9 +1091,10 @@ function planMove(env, child, existing, hasSpread) {
  * @param {Env} env The state.
  * @param {object} child The nested property node that moved.
  * @param {string} done What was done, for the `changed` entry.
+ * @param {object} holder NodePath of the object literal that held the nested key.
  * @returns {void}
  */
-function reportMove(env, child, done) {
+function reportMove(env, child, done, holder) {
   const { ctx, rule } = env;
   const line = lineOfNode(child);
 
@@ -1010,9 +1109,37 @@ function reportMove(env, child, done) {
     });
   }
 
-  if (rule.report) {
+  // `reportWithout` names a key of the holder that makes the note unnecessary: the holder has it, so its own rule
+  // speaks (`numericFormat.pattern`, which the `numbro-pattern` rule reports).
+  if (rule.report && !(rule.reportWithout && getProperty(holder, rule.reportWithout))) {
     ctx.report({ ruleId: rule.id, severity: 'manual', line, message: rule.report });
   }
+}
+
+/**
+ * Report a move that was left alone because it would change what other options configure: the rule says at which
+ * levels the key may move (`levels`), and this object or element is at another one.
+ *
+ * @param {Env} env The state.
+ * @param {object} child The node of the nested key.
+ * @returns {boolean} `true` when the move is wrong at this level and was reported.
+ */
+function reportWrongLevel(env, child) {
+  const { ctx, rule } = env;
+
+  if (!rule.levels || rule.levels.includes(env.level)) {
+    return false;
+  }
+
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    line: lineOfNode(child),
+    message: rule.levelAdvice ?? `Move ${rule.from} to ${rule.to} by hand: the tool does not set ${rule.to} at the `
+      + `${env.level ?? 'unknown'} level.`,
+  });
+
+  return true;
 }
 
 /**
@@ -1105,6 +1232,14 @@ function moveInObject(env, objectPath, confidence) {
     return;
   }
 
+  if (reportWrongLevel(env, child.node)) {
+    return;
+  }
+
+  if (reportSharedObject(env, objectPath, child.node)) {
+    return;
+  }
+
   if (spreadFollows(holder.node.properties, child.node)) {
     reportLaterSpread(env, child.node, parentKey, childKey);
 
@@ -1133,7 +1268,7 @@ function moveInObject(env, objectPath, confidence) {
   removeProperty(env, holder, moved, null);
   reportMove(env, moved, plan === 'move'
     ? `Moved ${rule.from} to ${rule.to}.`
-    : `Removed ${rule.from}: ${rule.to} is already set to the same value.`);
+    : `Removed ${rule.from}: ${rule.to} is already set to the same value.`, holder);
 }
 
 /**
@@ -1199,6 +1334,10 @@ function moveOnElement(env, openingPath) {
     return;
   }
 
+  if (reportWrongLevel(env, child.node)) {
+    return;
+  }
+
   if (spreadFollows(holder.node.properties, child.node)) {
     reportLaterSpread(env, child.node, parentKey, childKey);
 
@@ -1223,7 +1362,7 @@ function moveOnElement(env, openingPath) {
   removeProperty(env, holder, moved, null);
   reportMove(env, moved, plan === 'move'
     ? `Moved ${rule.from} to the ${rule.to} attribute.`
-    : `Removed ${rule.from}: ${rule.to} is already set to the same value.`);
+    : `Removed ${rule.from}: ${rule.to} is already set to the same value.`, holder);
 }
 
 /**
@@ -1538,8 +1677,19 @@ const options = {
       optionNodes: new Set(targets.filter(target => target.type === 'object').map(target => target.path.node)),
     });
 
+    const annotated = new Set(targets.filter(target => target.type === 'object' && target.annotated)
+      .map(target => target.path.node));
+    const holders = createHolders({
+      j,
+      root: ctx.root,
+      bindings,
+      isOptionObject: node => handled.has(node),
+      isAnnotated: node => annotated.has(node),
+      aggressive,
+    });
+
     for (const rule of active) {
-      const env = { ctx, j, rule, aggressive, keys: null, resolver, readers };
+      const env = { ctx, j, rule, aggressive, keys: null, level: null, resolver, readers, holders };
 
       if (rule.kind === 'optionRename' && rule.context) {
         renameInCallArguments(env);
@@ -1548,6 +1698,8 @@ const options = {
       }
 
       for (const target of targets) {
+        env.level = target.level ?? null;
+
         if (target.type === 'object') {
           const handler = { optionRename: renameInObject, optionMove: moveInObject, optionRemove: removeInObject };
 
@@ -1559,6 +1711,8 @@ const options = {
 
           handler[rule.kind](env, target.path);
         }
+
+        env.level = null;
       }
 
       reportUnrecognized(env, handled, bindings, claimed);

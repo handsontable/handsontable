@@ -80,16 +80,20 @@ describe('methodRemove', () => {
 
   it('keeps a call whose receiver or arguments can have side effects and leaves a TODO', async() => {
     const body = [
-      'createGrid().getPlugin(\'manualColumnResize\').saveManualColumnWidths();',
-      'async function f() { (await initGrid()).getPlugin(\'manualColumnResize\').saveManualColumnWidths(); }',
+      'new Handsontable(el, {}).getPlugin(\'manualColumnResize\').saveManualColumnWidths();',
+      'async function f() { await new Handsontable(el, {}).getPlugin(\'manualColumnResize\')'
+        + '.saveManualColumnWidths(); }',
       'plugin.saveManualColumnWidths(sideEffect());',
       'plugin.saveManualColumnWidths(true);',
     ].join('\n');
     const { output, entries } = await removal(body);
 
-    assert.equal(output.includes('createGrid().getPlugin(\'manualColumnResize\').saveManualColumnWidths();'), true);
     assert.equal(
-      output.includes('(await initGrid()).getPlugin(\'manualColumnResize\').saveManualColumnWidths();'),
+      output.includes('new Handsontable(el, {}).getPlugin(\'manualColumnResize\').saveManualColumnWidths();'),
+      true
+    );
+    assert.equal(
+      output.includes('await new Handsontable(el, {}).getPlugin(\'manualColumnResize\').saveManualColumnWidths(); }'),
       true
     );
     assert.equal(output.includes('plugin.saveManualColumnWidths(sideEffect());'), true);
@@ -145,10 +149,11 @@ describe('methodRemove', () => {
   it('keeps a license header on the first statement byte for byte', async() => {
     const header = '/*! Copyright (c) Example\n * All rights reserved. */';
     const source = `${header}\nhot.getPlugin('manualColumnResize').saveManualColumnWidths();\n`
-      + 'import Handsontable from \'handsontable\';\nconst y = 2;\n';
+      + 'import Handsontable from \'handsontable\';\nconst hot = new Handsontable(el, {});\nconst y = 2;\n';
     const { output } = await run(source, rules);
 
-    assert.equal(output, `${header}\nimport Handsontable from 'handsontable';\nconst y = 2;\n`);
+    assert.equal(output,
+      `${header}\nimport Handsontable from 'handsontable';\nconst hot = new Handsontable(el, {});\nconst y = 2;\n`);
   });
 
   it('keeps the call and leaves a TODO when its result is used', async() => {
@@ -338,20 +343,18 @@ describe('methodMove', () => {
       'a?.hotInstance?.undo();',
       'hot?.undoRedo;',
       'hot?.undoRedo.undo();',
-      'hot.undoRedo?.undo();',
     ].join('\n'));
 
-    assert.deepEqual(output.split('\n').slice(2, 10), [
+    assert.deepEqual(output.split('\n').slice(2, 9), [
       'hot?.getPlugin(\'undoRedo\').undo();',
       'hot.undo?.();',
       'hot?.undo?.();',
       'a?.b.hotInstance.getPlugin(\'undoRedo\').undo();',
       'a?.hotInstance?.getPlugin(\'undoRedo\').undo();',
-      'hot?.getPlugin(\'undoRedo\');',
+      'hot?.undoRedo;',
       'hot?.getPlugin(\'undoRedo\').undo();',
-      'hot.getPlugin(\'undoRedo\')?.undo();',
     ]);
-    assert.deepEqual(entries.filter(entry => entry.severity === 'manual').map(entry => entry.line), [4, 5]);
+    assert.deepEqual(entries.filter(entry => entry.severity === 'manual').map(entry => entry.line), [4, 5, 8]);
     assert.match(entries.find(entry => entry.severity === 'manual').message, /^undo\?\.\(\) is an optional call/);
   });
 
@@ -373,12 +376,22 @@ describe('methodMove', () => {
     assert.match(double.output, /getPlugin\("undoRedo"\)/);
   });
 
-  it('replaces the undoRedo property with the plugin lookup', async() => {
-    const { output } = await move('const h = hot.undoRedo;\nhot.undoRedo.clear();\nlist.push(hot.undoRedo);');
+  it('replaces the undoRedo property with the plugin lookup when a member of it is used', async() => {
+    const { output } = await move('hot.undoRedo.clear();\nhot.undoRedo.isUndoAvailable();\nhot?.undoRedo.redo();');
 
-    assert.match(output, /const h = hot\.getPlugin\('undoRedo'\);/);
     assert.match(output, /hot\.getPlugin\('undoRedo'\)\.clear\(\);/);
-    assert.match(output, /list\.push\(hot\.getPlugin\('undoRedo'\)\);/);
+    assert.match(output, /hot\.getPlugin\('undoRedo'\)\.isUndoAvailable\(\);/);
+    assert.match(output, /hot\?\.getPlugin\('undoRedo'\)\.redo\(\);/);
+  });
+
+  it('keeps a read of the undoRedo property that is used as a value: it was undefined on 17.x', async() => {
+    const { output, entries } = await move(
+      'const h = hot.undoRedo;\nlist.push(hot.undoRedo);\nconst s = hot?.undoRedo;');
+
+    assert.ok(!output.includes('getPlugin'), output);
+    assert.equal(entries.filter(entry => entry.severity === 'changed').length, 0);
+    assert.equal(entries.filter(entry => entry.severity === 'manual').length, 3);
+    assert.match(entries[0].message, /undoRedo is read here as a value, and it was undefined on 17\.x/);
   });
 
   it('moves calls through this.hot, hotInstance, and typed holders', async() => {
@@ -499,6 +512,117 @@ describe('methodMove', () => {
 
     assert.equal(badVia.entries[0].ruleId, 'transform-error');
     assert.equal(badProperty.entries[0].ruleId, 'transform-error');
+  });
+});
+
+describe('methodMove: a member that code tests before it uses', () => {
+  const rules = [MOVE];
+  const BODY_HEAD = `${HEAD}const other = new Handsontable(el, {});\n`;
+
+  /**
+   * Run the move rule over a body with markers, three times, and check that runs 2 and 3 change nothing.
+   *
+   * @param {string} body Statements after the grid.
+   * @returns {Promise<{output: string, entries: object[]}>} The first run.
+   */
+  async function twice(body) {
+    const plan = { versions: [{ version: '18.0.0', rules }], rulesById: new Map(rules.map(rule => [rule.id, rule])) };
+    const options = { markers: true };
+    const first = await transformFile({ filePath: 'file.ts', source: `${BODY_HEAD}${body}\n`, plan, options });
+    const second = await transformFile({ filePath: 'file.ts', source: first.output, plan, options });
+    const third = await transformFile({ filePath: 'file.ts', source: second.output, plan, options });
+
+    assert.equal(second.output, first.output, 'run 2 changed the file');
+    assert.equal(third.output, second.output, 'run 3 changed the file');
+
+    return first;
+  }
+
+  const manual = entries => entries.filter(entry => entry.severity === 'manual');
+  const changed = entries => entries.filter(entry => entry.severity === 'changed');
+
+  it('says in the rule and in the entry that the call did not work on 17.x', async() => {
+    const { entries, output } = await twice('function f() { hot.undo(); }');
+
+    assert.match(MOVE.message, /did not work on 17\.x: it threw a TypeError/);
+    assert.match(MOVE.advice, /Core had no undo methods and no undoRedo property in 17\.x/);
+    assert.match(changed(entries)[0].message, /threw a TypeError/);
+    assert.ok(output.includes('hot.getPlugin(\'undoRedo\').undo()'), output);
+  });
+
+  it('still moves a plain call, and a plain read of the property, on a confirmed instance', async() => {
+    const { entries, output } = await twice('function f() { hot.undo(); hot.undoRedo.clear(); }');
+
+    assert.equal(changed(entries).length, 2);
+    assert.ok(output.includes('hot.getPlugin(\'undoRedo\').undo()'), output);
+    assert.ok(output.includes('hot.getPlugin(\'undoRedo\').clear()'), output);
+  });
+
+  const TESTS = [
+    ['the test of an if', 'function f() { if (hot.undoRedo) { hot.undoRedo.clear(); } }', 2],
+    ['a negated test with an early return', 'function f() { if (!hot.undoRedo) { return; } hot.undoRedo.clear(); }', 2],
+    ['typeof', 'function f() { return typeof hot.undo === \'function\' ? hot.undo() : null; }', 2],
+    ['the in operator', 'function f() { return \'undo\' in hot && hot.undo(); }', 2],
+    ['an optional chain on the property', 'function f() { return hot.undoRedo?.clear(); }', 1],
+    ['a logical operand', 'function f() { hot.undoRedo && hot.undoRedo.clear(); }', 2],
+    ['a comparison with undefined',
+      'function f() { if (hot.undoRedo === undefined) { return; } hot.undoRedo.clear(); }', 2],
+    ['a comparison with null', 'function f() { if (hot.undoRedo != null) { hot.undoRedo.clear(); } }', 2],
+    ['Boolean()', 'function f() { return Boolean(hot.undo) && hot.undo(); }', 2],
+    ['a conditional expression', 'function f() { return hot.undo ? hot.undo() : null; }', 2],
+    ['a while loop', 'function f() { while (hot.undoRedo) { hot.undoRedo.clear(); } }', 2],
+    ['a callback inside the guarded function',
+      'function f() { if (hot.undoRedo) { [1].forEach(() => hot.undoRedo.clear()); } }', 2],
+    ['this.hot',
+      'class A { go() { this.hot = new Handsontable(el, {}); if (this.hot.undoRedo) { this.hot.undoRedo.clear(); } } }',
+      2],
+  ];
+
+  for (const [label, body, count] of TESTS) {
+    it(`reports the test and what it guards, and moves nothing: ${label}`, async() => {
+      const { entries, output } = await twice(body);
+      const held = manual(entries).filter(entry => /test/.test(entry.message));
+
+      assert.equal(changed(entries).length, 0, output);
+      assert.equal(held.length, count, JSON.stringify(entries.map(entry => entry.message)));
+      assert.ok(!output.includes('getPlugin(\'undoRedo\').clear'), output);
+      assert.ok(!output.includes('getPlugin(\'undoRedo\').undo'), output);
+    });
+  }
+
+  it('names the guard in the entry', async() => {
+    const { entries } = await twice('function f() { if (hot.undoRedo) { hot.undoRedo.clear(); } }');
+    const [test, guarded] = manual(entries).filter(entry => entry.line === 4);
+
+    assert.match(test.message, /^Call them on the plugin: hot\.getPlugin\('undoRedo'\)\./);
+    assert.match(test.message, /The tool left undoRedo alone: (?:it is read in a test here|a test of undoRedo)/);
+    assert.match(test.message, /, and that test never passed on 17\.x, because core had no undoRedo\./);
+    assert.ok([test, guarded].some(entry => /it is read in a test here/.test(entry.message)));
+    assert.ok([test, guarded].some(entry => /a test of undoRedo on the same receiver guards it/.test(entry.message)));
+    assert.match(test.message, /a rewrite would run the guarded code for the first time\.$/);
+  });
+
+  it('moves a call that a test on another receiver, in another function, or after it does not guard', async() => {
+    const cases = [
+      'function f() { if (other.undoRedo) { other.undoRedo.clear(); } hot.undo(); }',
+      'function f() { if (hot.undoRedo) { hot.undoRedo.clear(); } } function g() { hot.undo(); }',
+      'function g() { hot.undo(); } function f() { if (hot.undo) { return 1; } }',
+      'function f() { if (this.hot.undoRedo) { this.hot.undoRedo.clear(); } hot.undo(); }',
+    ];
+
+    for (const body of cases) {
+      const { entries, output } = await twice(body);
+      const moved = changed(entries);
+
+      assert.ok(moved.length >= 1, body);
+      assert.ok(output.includes('hot.getPlugin(\'undoRedo\').undo()'), `${body}\n${output}`);
+    }
+  });
+
+  it('reports a test of a receiver that is not a confirmed instance only as before', async() => {
+    const { entries } = await twice('function f(thing) { if (thing.undoRedo) { thing.undoRedo.clear(); } }');
+
+    assert.deepEqual(entries, []);
   });
 });
 

@@ -137,7 +137,9 @@ describe('numeric-format-culture: custom code that reads the key', () => {
       + 'export const B = () => <HotColumn renderer="numeric" numericFormat={{ culture: \'de-DE\' }} />;\n';
     const result = await run('18.0.0', 'grid.tsx', source, [CULTURE]);
 
-    assert.deepEqual(result.entries.map(entry => `${entry.line}:${entry.severity}`), ['2:manual', '3:changed']);
+    // The element that moved also gets the note about the number format, which 18.0 gives the Intl defaults.
+    assert.deepEqual(result.entries.map(entry => `${entry.line}:${entry.severity}`),
+      ['2:manual', '3:changed', '3:manual']);
   });
 });
 

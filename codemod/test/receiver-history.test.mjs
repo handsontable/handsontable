@@ -225,6 +225,34 @@ const MEMBER_HISTORIES = [
   ['method of the same name', 'class A { r = V; r() {} n() { USE(this.r); } }', false],
   ['untyped parameter property', 'class A { constructor(public r) {} m() { USE(this.r); } }', false],
   ['computed class property', 'class A { r = V; [k] = 1; m() { USE(this.r); } }', false],
+  ['outside write of the good value', 'class A { r = V; m() { USE(this.r); } } const a = new A(); a.r = V;', true],
+  ['outside write of null', 'class A { r = V; m() { USE(this.r); } } const a = new A(); a.r = null;', true],
+  ['outside write of a foreign value', 'class A { r = V; m() { USE(this.r); } } const a = new A(); a.r = F;', false],
+  ['outside write through a string key', 'class A { r = V; m() { USE(this.r); } } const a = new A(); a[\'r\'] = F;',
+    false],
+  ['outside write in a closure', 'class A { r = V; m() { USE(this.r); } } const set = a => { a.r = F; };', false],
+  ['outside compound write', 'class A { r = V; m() { USE(this.r); } } const a = new A(); a.r += 1;', false],
+  ['outside destructuring write', 'class A { r = V; m() { USE(this.r); } } const a = new A(); ({ r: a.r } = bag);',
+    false],
+  ['Object.assign of the good value', 'class A { r = V; m() { USE(this.r); } } Object.assign(new A(), { r: V });',
+    true],
+  ['Object.assign of a foreign value', 'class A { r = V; m() { USE(this.r); } } Object.assign(new A(), { r: F });',
+    false],
+  ['object literal key of a foreign value', 'class A { r = V; m() { USE(this.r); } } const o = { r: F };', false],
+  ['object literal method of the name', 'class A { r = V; m() { USE(this.r); } } const o = { r() {} };', false],
+  ['copy of the same member', 'class A { r = V; m() { USE(this.r); } } const o = { r: new A().r };', true],
+  ['defineProperty of the name', 'class A { r = V; m() { USE(this.r); } } Object.defineProperty(a, \'r\', {});',
+    false],
+  ['field of another class', 'class A { r = V; m() { USE(this.r); } } class C { r = F; }', false],
+  ['getter of another class', 'class A { r = V; m() { USE(this.r); } } class C { get r() { return F; } }', false],
+  ['subclass that sets a foreign value',
+    'class A { r = V; m() { USE(this.r); } } class B extends A { constructor() { super(); this.r = F; } }', false],
+  ['subclass that sets the good value',
+    'class A { r = V; m() { USE(this.r); } } class B extends A { constructor() { super(); this.r = V; } }', true],
+  ['class with a base the file does not show, member set in the class',
+    'class A extends Base { r = V; m() { USE(this.r); } }', true],
+  ['class with a base the file does not show, member never set in the class',
+    'class A extends Base { m() { USE(this.r); } }', false],
 ];
 
 /**
@@ -239,6 +267,23 @@ const TYPED_HISTORIES = [
 ];
 
 /**
+ * Run a plan over the output of a first run twice more, and check that neither run changes the text: a spot that was
+ * rewritten or reported stays as it is, with its marker.
+ *
+ * @param {object} plan The plan.
+ * @param {string} output The text of the first run.
+ * @param {object} options The options of the run.
+ * @returns {Promise<void>}
+ */
+async function assertStable(plan, output, options) {
+  const second = await transformFile({ filePath: 'a.ts', source: output, plan, options });
+  const third = await transformFile({ filePath: 'a.ts', source: second.output, plan, options });
+
+  assert.equal(second.output, output, 'run 2 changed the file');
+  assert.equal(third.output, second.output, 'run 3 changed the file');
+}
+
+/**
  * Run a history through a setup.
  *
  * @param {Setup} setup The rule.
@@ -251,7 +296,10 @@ async function rewriteOf(setup, template) {
     .replace(/\bV\b/g, setup.good).replace(/\bF\b/g, setup.foreign);
   const source = `${setup.head}${body}\n`;
   const plan = buildPlan(manifests.filter(manifest => manifest.version === (setup.version ?? '18.0.0')), setup.only);
-  const { output, entries } = await transformFile({ filePath: 'a.ts', source, plan, options: { markers: false } });
+  const options = { markers: true };
+  const { output, entries } = await transformFile({ filePath: 'a.ts', source, plan, options });
+
+  await assertStable(plan, output, options);
 
   return { rewrote: entries.some(entry => entry.severity === 'changed') && setup.rewritten(output), output, source };
 }
@@ -273,4 +321,159 @@ describe('a receiver counts only when every value it can hold qualifies', () => 
       }
     });
   }
+});
+
+/**
+ * Run rules of the 18.0.0 manifest over a source text, with markers, and check that two more runs change nothing.
+ *
+ * @param {string[]} only Rule ids.
+ * @param {string} source The source text.
+ * @returns {Promise<{output: string, entries: object[]}>} The printed text and the report entries.
+ */
+async function runRules(only, source) {
+  const plan = buildPlan(manifests.filter(manifest => manifest.version === '18.0.0'), only);
+  const options = { markers: true };
+  const first = await transformFile({ filePath: 'a.ts', source, plan, options });
+
+  await assertStable(plan, first.output, options);
+
+  return first;
+}
+
+/**
+ * The three outcomes of one rule over one source: it rewrote, it reported only, or it said nothing.
+ *
+ * @param {string[]} only Rule ids.
+ * @param {string} source The source text.
+ * @returns {Promise<'rewrote'|'reported'|'silent'>} The outcome.
+ */
+async function outcomeOf(only, source) {
+  const { entries } = await runRules(only, source);
+
+  if (entries.some(entry => entry.severity === 'changed')) {
+    return 'rewrote';
+  }
+
+  return entries.some(entry => entry.severity === 'manual') ? 'reported' : 'silent';
+}
+
+describe('.hotInstance counts as the grid only when the file defines no member of that name', () => {
+  const only = ['18.0.0/core-undo-methods'];
+  const head = 'import Handsontable from \'handsontable\';\n';
+  const SHAPES = [
+    ['a ref holder', 'const ref = useRef(null); ref.current.hotInstance.undo();', 'rewrote'],
+    ['a Vue ref holder', 'const hotRef = ref(null); hotRef.value.hotInstance.undo();', 'rewrote'],
+    ['a member of this, the Angular wrapper', 'class A { go() { this.hotTable.hotInstance.undo(); } }', 'rewrote'],
+    ['a Vue refs member', 'class A { go() { this.$refs.hot.hotInstance.undo(); } }', 'rewrote'],
+    ['a variable set from it', 'const inst = ref.current.hotInstance; inst.undo();', 'rewrote'],
+    ['a write of a grid', 'holder.hotInstance = new Handsontable(el, {}); holder.hotInstance.undo();', 'rewrote'],
+    ['a write of null', 'state.hotInstance = null; ref.current.hotInstance.undo();', 'rewrote'],
+    ['a copy of it into a member',
+      'class A { go() { this.hotInstance = this.$refs.hot.hotInstance; this.hotInstance.undo(); } }', 'rewrote'],
+    ['a field typed as the grid', 'class A { hotInstance: Handsontable; go() { this.hotInstance.undo(); } }',
+      'rewrote'],
+    ['a write of an object', 'state.hotInstance = { undo() {} }; state.hotInstance.undo();', 'reported'],
+    ['an object literal that declares it', 'const state = { hotInstance: null }; ref.current.hotInstance.undo();',
+      'reported'],
+    ['an object literal that declares it and a write of an object',
+      'const state = { hotInstance: null }; state.hotInstance = { undo() {} }; state.hotInstance.undo();', 'reported'],
+    ['an object literal that holds a call', 'const state = { hotInstance: makeEditor() }; state.hotInstance.undo();',
+      'reported'],
+    ['a write of a call', 'state.hotInstance = makeEditor(); state.hotInstance.undo();', 'reported'],
+    ['a class field of another value', 'class A { hotInstance = makeEditor(); go() { this.hotInstance.undo(); } }',
+      'reported'],
+    ['a class field set to null and never to a grid',
+      'class A { hotInstance = null; go() { this.hotInstance.undo(); } }', 'reported'],
+    ['a Vue data function', 'export default { data() { return { hotInstance: null }; }, methods: { go() { '
+      + 'this.hotInstance.undo(); } } };', 'reported'],
+    ['a method of that name', 'const api = { hotInstance() {} }; ref.current.hotInstance.undo();', 'reported'],
+    ['a defineProperty', 'Object.defineProperty(state, \'hotInstance\', { value: 1 }); ref.current.hotInstance.undo();',
+      'reported'],
+  ];
+
+  for (const [label, body, expected] of SHAPES) {
+    it(`${expected}: ${label}`, async() => {
+      assert.equal(await outcomeOf(only, `${head}${body}\n`), expected);
+    });
+  }
+});
+
+describe('a getPlugin() host counts as the grid only when the file shows an instance', () => {
+  const head = 'import Handsontable from \'handsontable\';\nconst hot = new Handsontable(el, {});\n';
+  const REMOVE = ['18.0.0/resize-state-methods'];
+  const RENAME = ['18.0.0/export-column-headers'];
+  const SHAPES = [
+    ['an instance', 'hot.getPlugin(\'manualColumnResize\').saveManualColumnWidths();', REMOVE, 'rewrote'],
+    ['an instance, held in a variable',
+      'const p = hot.getPlugin(\'manualColumnResize\'); p.saveManualColumnWidths();', REMOVE, 'rewrote'],
+    // A parameter named `hot` is not shown to be a grid, as for `hot.undo()`: it is reported, not rewritten.
+    ['a parameter named like a grid',
+      'function f(hot2, grid) { grid.getPlugin(\'manualColumnResize\').saveManualColumnWidths(); }', REMOVE,
+      'reported'],
+    ['a this member named like a grid, in a class of an imported base',
+      'class P extends Base { go() { this.hot.getPlugin(\'manualColumnResize\').saveManualColumnWidths(); } }', REMOVE,
+      'reported'],
+    ['a this member that the class sets from the grid',
+      'class P { constructor() { this.hot = new Handsontable(el, {}); } '
+      + 'go() { this.hot.getPlugin(\'manualColumnResize\').saveManualColumnWidths(); } }', REMOVE, 'rewrote'],
+    ['a wrapper holder',
+      'ref.current.hotInstance.getPlugin(\'manualColumnResize\').saveManualColumnWidths();', REMOVE, 'rewrote'],
+    ['a parameter that is not named like a grid',
+      'function f(thing) { thing.getPlugin(\'manualColumnResize\').saveManualColumnWidths(); }', REMOVE, 'reported'],
+    ['the result of a call', 'makeGrid().getPlugin(\'manualColumnResize\').saveManualColumnWidths();', REMOVE,
+      'reported'],
+    ['a global', 'store.getPlugin(\'manualColumnResize\').saveManualColumnWidths();', REMOVE, 'reported'],
+    ['a variable set from a call on a global',
+      'const p = store.getPlugin(\'manualColumnResize\'); p.saveManualColumnWidths();', REMOVE, 'reported'],
+    ['a local object',
+      'const fake = { getPlugin() { return {}; } }; fake.getPlugin(\'manualColumnResize\').saveManualColumnWidths();',
+      REMOVE, 'silent'],
+    ['a local object named like a grid',
+      'const grid = { getPlugin() { return {}; } }; grid.getPlugin(\'manualColumnResize\').saveManualColumnWidths();',
+      REMOVE, 'silent'],
+    ['a local object, held in a variable',
+      'const fake = { getPlugin() { return {}; } }; const p = fake.getPlugin(\'manualColumnResize\'); '
+      + 'p.saveManualColumnWidths();', REMOVE, 'silent'],
+    ['an instance of a local class',
+      'class Fake { getPlugin() { return {}; } } new Fake().getPlugin(\'manualColumnResize\')'
+      + '.saveManualColumnWidths();', REMOVE, 'reported'],
+    ['a local class instance in a variable',
+      'class Fake { getPlugin() { return {}; } } const fake = new Fake(); '
+      + 'fake.getPlugin(\'manualColumnResize\').saveManualColumnWidths();', REMOVE, 'silent'],
+    ['an import', 'import api from \'./api\'; api.getPlugin(\'manualColumnResize\').saveManualColumnWidths();', REMOVE,
+      'silent'],
+    ['a function', 'function make() {} make.getPlugin(\'manualColumnResize\').saveManualColumnWidths();', REMOVE,
+      'silent'],
+    ['a plugin of another key', 'hot.getPlugin(\'filters\').saveManualColumnWidths();', REMOVE, 'silent'],
+    ['an instance, in the argument of a call',
+      'hot.getPlugin(\'exportFile\').downloadFile(\'csv\', { columnHeaders: true });', RENAME, 'rewrote'],
+    ['a local object, in the argument of a call',
+      'const fake = { getPlugin() { return {}; } }; fake.getPlugin(\'exportFile\').downloadFile(\'csv\', '
+      + '{ columnHeaders: true });', RENAME, 'silent'],
+    ['a global, in the argument of a call',
+      'thing.getPlugin(\'exportFile\').downloadFile(\'csv\', { columnHeaders: true });', RENAME, 'reported'],
+    ['a parameter named like a grid, in the argument of a call',
+      'function f(hot2, table) { table.getPlugin(\'exportFile\').downloadFile(\'csv\', { columnHeaders: true }); }',
+      RENAME, 'reported'],
+  ];
+
+  for (const [label, body, only, expected] of SHAPES) {
+    it(`${expected}: ${label}`, async() => {
+      assert.equal(await outcomeOf(only, `${head}${body}\n`), expected);
+    });
+  }
+
+  it('leaves the arguments of a call on a local object as they are', async() => {
+    const source = `${head}const fake = { getPlugin() { return {}; } };\n`
+      + 'fake.getPlugin(\'exportFile\').downloadFile(\'csv\', { columnHeaders: true });\n';
+    const { output } = await runRules(RENAME, source);
+
+    assert.equal(output, source);
+  });
+
+  it('does not loop on a name that is set from a call on itself', async() => {
+    const source = `${head}let p = hot.getPlugin('exportFile'); p = p.getPlugin('x'); p.downloadFile('csv', {});\n`;
+
+    assert.equal(await outcomeOf(RENAME, source), 'silent');
+  });
 });

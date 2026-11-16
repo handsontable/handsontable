@@ -1287,7 +1287,9 @@ export async function run({
   const manifests = new Map();
 
   /**
-   * The `package.json` files above one, parsed, nearest first. One that cannot be read or parsed is left out.
+   * The `package.json` files above one, parsed, nearest first. A leading byte order mark is read past, as npm does.
+   * One that cannot be read or parsed stays in the list with `manifest: null`, so a rule that depends on what the
+   * files above declare can tell that it does not know.
    *
    * @param {string} file Project-relative path of a `package.json`.
    * @returns {Promise<import('./types.mjs').AncestorManifest[]>} The manifests.
@@ -1297,12 +1299,16 @@ export async function run({
 
     for (const above of packageFilesAbove(facts, file)) {
       if (!manifests.has(above)) {
-        manifests.set(above, await readUtf8(join(cwd, above)).then(text => JSON.parse(text)).catch(() => null));
+        manifests.set(above, await readUtf8(join(cwd, above)).then(text => JSON.parse(stripBom(text)))
+          .catch(() => null));
       }
 
-      if (manifests.get(above) !== null && typeof manifests.get(above) === 'object') {
-        found.push({ file: above, manifest: manifests.get(above) });
-      }
+      const manifest = manifests.get(above);
+
+      found.push({
+        file: above,
+        manifest: manifest !== null && typeof manifest === 'object' && !Array.isArray(manifest) ? manifest : null,
+      });
     }
 
     return found;

@@ -60,7 +60,13 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   an option removal in the object of `setCellMetaObject`, a theme token rename) it runs the same histories of the name
   (`const`, a later assignment in a branch or a closure, a destructuring target, a `for` head, a parameter, a shadowing
   `var` in a namespace or a static block, a `this` member set in a nested object, a nested function, or a getter) and
-  expects a rewrite for a name whose every value qualifies and none for any other.
+  expects a rewrite for a name whose every value qualifies and none for any other. It also runs the writes of a `this`
+  member from outside its class (`a.r = v`, `a['r'] = v`, `Object.assign(a, { r })`, a subclass, a field of another
+  class, `defineProperty`), and has a block for `.hotInstance` (the wrapper shapes that must still rewrite, and the
+  definitions that end the trust) and one for the host of `getPlugin()` (an instance, a name like a grid, a global, a
+  local object, an import).
+  `test/numeric-format-culture.test.mjs` pins the levels of the `numeric-format-culture` move and its note,
+  `test/shared-objects.test.mjs` the uses of a variable that hold an object and the spreads, and
   `test/custom-reader.test.mjs` pins the custom reader check, `test/jsx-todo.test.mjs` the JSX text guard, and
   `test/scope.test.mjs` `referenceSpace()` and the hoisting of `var`.
 - `test/encoding.test.mjs` (a non-UTF-8 file of every kind is skipped with its bytes kept, a byte order mark stays in a
@@ -161,6 +167,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/rename-key.mjs` | `renameKey()` and `removalAdvice()`, shared by the option, theme token, and CSS transforms. |
 | `src/lib/resolve.mjs` | `createHop()`: the one-hop resolver of a file. `hop()` follows an identifier or a member read (`PRESET.chf`) to the value a `const` of the same file holds, through `as const`; `stringOf()` reads the string behind it; `spreadsOf()` resolves the spreads of an object, and `{ exact: true }` answers `null` for an object the file changes. Nothing else is followed (see Traps). |
 | `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, `isPlugin()`, `valuesOf()`, ...), `isUnresolvedReceiver()`, and `receiverOfGrid()` (`instance`, `other`, or `unknown`, for a call that only the grid answers to). Every question about a name is answered from its whole history (see Traps). |
+| `src/lib/holders.mjs` | `createHolders()`: `heldBy(objectPath)`, the other uses of the variable, member, or export that holds an options object, and the objects that spread it (see Traps). |
 | `src/lib/custom-reader.mjs` | `createReaderFinder()`: the one check "could custom code read this option of this object or element" behind `readerAdvice` (see Traps). |
 | `src/lib/facts.mjs` | `addFact(ctx, name, line)`, `hasFactFor(ctx, name)`, and `factSite(ctx, name)`: facts keyed by name and directory, with the file and line of the first sighting (see Traps). |
 | `src/lib/marker.mjs` | Where a generic TODO marker goes: `createMarkerIndex()` (a report line to its anchor and the nodes above it, `anchorsAbove()`), `markerTargets()` (the climb from a node to a property, array element, statement, or JSX element), and `cssTargetAt()`. |
@@ -317,7 +324,7 @@ of its earliest kind in `KIND_ORDER`.
 | `css` | For a `css` part (a stylesheet or a Vue `<style>` block), the `CssDocument` that edits the text by offset and keeps `root` in step. A transform reads the postcss `root` and edits only through `replaceInDeclaration(declaration, pattern, replacement)`, `replaceInAtRule()`, and `todo()`/`comment()`. Each replace returns `null` (no match), `true`, or `false` (the text at the node's offsets is not what the model says, or the value holds a comment): on `false` the transform reports `manual` and edits nothing. A transform never assigns `decl.prop`, `decl.value`, or `params` itself and never stringifies `root`. `null` for every other kind. |
 | `cssScope`, `lineOffset`, `fromText` | `'scoped'`, `'module'`, or `null` for the Vue `<style>` block of a `css` part; the part's zero-based line offset (add it by hand when a line is stored outside `report()`); the run's `--from` as text. |
 | `catalog` | For a `package.json` in phase 2 that holds a `catalog:` spec: `{ file, catalogs }` of the nearest `pnpm-workspace.yaml` (`catalogs` maps a catalog name, `''` for the default, to package ranges), else `null`. The runner reads it, so a transform stays free of file reads. |
-| `ancestors` | For a `package.json` in phase 2: the `package.json` files of the project above it, nearest first, parsed (`[{ file, manifest }]`). A fixture has none. |
+| `ancestors` | For a `package.json` in phase 2: the `package.json` files of the project above it, nearest first, parsed (`[{ file, manifest }]`, `manifest` is `null` for a file that cannot be read as JSON). A fixture has none. |
 | `facts` | A `Set` shared across the run. Add `uses-formulas` style keys in phase 1, read them in phase 2. |
 | `options` | `{ aggressive, dryRun, todo }`. `todo: false` (`--no-todo`) makes `todo()` and `comment()` write nothing and switches the generic markers off. `markers: false` (tests use it) switches off only the generic markers. Never write to disk from a transform. |
 | `markChanged()` | Call after every edit of `root`. An untouched part is never printed, so the file keeps its exact bytes. |
@@ -366,7 +373,7 @@ across kinds. Every kind also takes the common fields, and `safe` is required ex
 | `namespaceType` | `from*` (path or list), `to: { name?, source }` or `removed` + `advice`, `positions`, `optionKeys`, `noKeyAdvice`, `note`, `todo` |
 | `exportRemoved` | `source*` (module, list, or `handsontable/plugins/*`), `name*`, `advice*`, `except`, `optionKeys`, `noKeyAdvice`, `message` (replaces the lead sentence "is no longer exported from"; same placeholders as `advice`) |
 | `optionRename` | `from*`, `to*`, `context: { callArg: [methods], receiver?: { plugin } }` |
-| `optionMove` | `from*` (`<option>.<key>`), `to*` (a sibling), `report` |
+| `optionMove` | `from*` (`<option>.<key>`), `to*` (a sibling), `report`, `reportWithout`, `readerAdvice`, `levels`, `levelAdvice` |
 | `optionRemove` | `name*`, `todo`, `advice` |
 | `methodRemove` | `methods*`, `receiver*` (`"any"`, `"instance"`, or `{ plugin: key or keys }`), `advice` |
 | `methodMove` | `methods*` (old to new name), `via*` (`{ method, args }`), `receiver*` (`"instance"` or `{ plugin }`), `properties` |
@@ -791,20 +798,33 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   the lockfile of the merge base, add the importer by hand if needed, run `pnpm install --lockfile-only`, and check
   that `git diff <merge base> -- pnpm-lock.yaml` has no removed line. jscodeshift is a new dependency the team agreed to.
 - `package.json` `files` limits the package to `bin`, `src`, the manifests, `rules/**`, and `custom/**` of every version,
-  and the README and the CHANGELOG. Tests, fixtures, tools, and the generated diffs stay out. After a change to it, run `npm pack
+  and the README, the CHANGELOG, and `LICENSE.txt` (a copy of the root file, pinned by `test/package-license.test.mjs`). Tests, fixtures, tools, and the generated diffs stay out. After a change to it, run `npm pack
   --dry-run --json` in a copy of the package outside the monorepo.
 - **Method rules have no type information, so the receiver is the safety story.** `methodMove` rules use
   `receiver: "instance"`: a call is rewritten only on a receiver that `isInstance()` confirms. An unconfirmed receiver
-  gets a `manual` entry only when its name is on a short grid-name list (`GRID_NAME` in `methods.mjs`: `hot`, `grid`,
+  gets a `manual` entry only when its name is on a short grid-name list (`GRID_NAME` in `lib/hot-bindings.mjs`: `hot`, `grid`,
   `table`, ...). A generic receiver (`editor.undo()`) stays silent, because `undo` and `redo` are common names. A
   receiver that is already a `via` call (`x.getPlugin('undoRedo')`) is never rewritten, which keeps the rule
   idempotent. A rule has no list of names that rewrite on any receiver: `isUndoAvailable()` is a valid call on the
   plugin, so such a rewrite would break working code.
 - **`receiver: { plugin }`** (`methodRemove` and `methodMove`, and `context.receiver` of `optionRename`) names the
   plugin key or keys the receiver must be. `isPluginReceiver(path, keys)` in `lib/hot-bindings.mjs` says yes for
-  `<x>.getPlugin('<key>')` (any `x`, optional chaining included) and for a variable or `this` member that the file
-  sets from such a call, one hop, when every value of the name is a listed plugin (see "A name is a receiver only when
-  every value it can hold qualifies" below). `getPlugin()` upper-cases the first
+  `<x>.getPlugin('<key>')` (optional chaining included) when `<x>` is an instance, and for a variable or `this` member
+  that the file sets from such a call, one hop, when every value of the name is a listed plugin on an instance (see "A
+  name is a receiver only when every value it can hold qualifies" below). `<x>` is an instance when `receiverOfGrid()`
+  says `instance`: the same rule as `updateSettings()` and `hot.undo()`. `pluginCallOf()` returns the key and that host
+  (`instance`, `unknown`, `other`). A host the file shows to be something else (`other`: a local object, an instance of
+  a local class in a variable, an import, a function) gives no plugin and no report, so
+  `fake.getPlugin('manualColumnResize').saveManualColumnWidths()` stays; `unknown` (a global, a parameter, `this.hot`
+  that the class never sets, a call result) is a `manual` entry through `isPartlyPlugin()`. `isPlugin()` stays
+  syntactic (any `getPlugin()` call is a plugin and not the grid), `pluginKeyOf()` in `lib/ast.mjs` stays syntactic
+  too, and `isSimpleReceiver()` of `methods.mjs` depends on that. `--aggressive` does not apply: the method rules have
+  no medium tier and the `callArg` path is always high. A looser rule would take an `unknown` receiver named like a
+  grid (`isGridNamed()`, the `GRID_NAME` list: `hot`, `grid`, `table`, `this.hot`) for the grid: `confirmsHost()` in
+  `collectHotBindings()` is the one place to make it. Measured on the shipped fixtures and the 2116 docs examples
+  that name Handsontable, the strict rule loses no rewrite of a released fixture and none of the docs, and one of the
+  19.0 draft (its fixture declares the grid now); a function parameter named `hot` is reported, as for `hot.undo()`.
+  `getPlugin()` upper-cases the first
   letter of its argument, so `'exportFile'` and `'ExportFile'` are the same key here too (`registryName()`). Anything else is never edited. A
   report `manual` happens only when the receiver is unresolved (`isUnresolvedReceiver()`: a global, a parameter, or the
   result of another call) and is not `this`, `super`, a member chain rooted at one, a local object or class, an import,
@@ -828,7 +848,22 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   function; a static method, property, and block read the static members. A class that assigns `this[key]`, passes
   `this` to `Object.assign`/`defineProperty`/`defineProperties`/`setPrototypeOf`/`Reflect.set`, or has a computed
   member has unreadable members, and none of its members counts. A method or accessor of the same name makes the member
-  opaque. `var` is hoisted to a namespace body and a class static block too (`declarationsOf()`), and bindings carry
+  opaque. **A `this.x` member is also judged by every write of the name `x` in the file, on any object** (`NameWrites`
+  in `collectHotBindings()`): `y.x = v` and `y['x'] = v` (any `y`), a key `x:` of any object literal (so
+  `Object.assign(y, { x: v })` too, and an `ObjectMethod`), a field, accessor, method, or parameter property of that
+  name in any class (a subclass that sets it included), and `Object.defineProperty(y, 'x', ...)`. A value that is not
+  neutral and is neither a grid nor a read of a member of the same name (a copy of what the name already holds)
+  blocks the name (`blockedNames`, found by `settleAll()`: settle, judge the names, settle again without the blocked
+  ones, until no name is added). The same union is part of `valuesOf()`, so the option resolver (`hop()`) and
+  `receiverOfGrid()` see an outside write too, and of `keysAt()`, which answers for the plugin keys of a name. A typed
+  seed (`x: Handsontable` on a field) still wins: the compiler holds every value to it. A class whose base class the
+  file does not show counts through what the class itself assigns or declares, as before. Not seen: a write through a
+  computed key on another object (`y[k] = v`), and `Object.assign(y, source)` with a source that is not an object
+  literal. **`.hotInstance` counts as the grid by its name** (`classify()`) only while `hotInstanceTrusted()`: no write
+  of the name is a value that is not a grid, and nothing declares one (an object literal key, even `hotInstance: null`
+  in a Vue `data()`, or a class member). A copy (`this.hotInstance = this.$refs.hot.hotInstance`) is not a foreign
+  value, or the trust would end on a cycle. When the name is not trusted, `this.hotInstance` still resolves through its
+  class history or a type. `var` is hoisted to a namespace body and a class static block too (`declarationsOf()`), and bindings carry
   the node of their scope. The histories are keyed by the declaring identifier node, because a rebuilt scope cache
   hands out new binding objects. The same history decides `isUnresolvedReceiver(path, bindings)`, the option object
   that a variable stands for (`createResolver()` in `lib/option-objects.mjs` follows a name only when it holds one
@@ -898,7 +933,17 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   and `handsontable/base` entry points although the runtime exported them only from `handsontable/themes`.
 - Rules whose guide has no section (`18.0.0/core-undo-methods`, `18.0.0/export-column-headers`) omit `guide`: the
   anchor must exist on the page of the manifest. The core undo methods were already gone from runtime and typings in
-  17.0, so that rule is a cleanup that belongs in a 17.0 manifest, which does not exist. The `columnHeaders` export
+  17.0 (`hot.undo`, `hot.undoRedo`, `clearUndo`, `isUndoAvailable`, `isRedoAvailable` are in none of `core.js`,
+  `core.d.ts`, or the undo plugin of the 17.0.0 and 17.1.0 packages, and the plugin never sets them on the
+  instance; 16.2.0 had `isUndoAvailable` and `undoRedo` on `core.js`). So a call on 17.x threw a `TypeError`, and the
+  rule is not a cleanup of working code: it makes a call work that never did, and its message and advice say so. A
+  read in a test position never passed, so `methods.mjs` reports it and what it guards instead of moving it
+  (`isTestRead()`: the test of an `if`, a loop, or a conditional, the left operand of `&&`, `||`, `??`, `!`, `typeof`, a
+  comparison with `null`, `undefined`, or a string, `Boolean()`, `'x' in hot`, and the root of an optional chain). A
+  test guards every use of the same receiver text and name in the same function or in a function nested in it
+  (`enclosingFunctions()`), also after the use, because an early return is a guard too. The root of an optional chain
+  is reported and guards nothing else. `methods-undo-guarded` and the `methodMove: a member that code tests` block of
+  `methods.test.mjs` pin it. The `columnHeaders` export
   option is deprecated in 17.1 and removed in 19.0, and only the 19.0 guide has a section for it.
 - **`detect` rule shape:** `{ id, kind: "detect", severity?: "manual" | "warning", files: ["js" | "css" | "template"],
   requires?: "hot-file" | "option-object" | "none", emitsFact?, unlessFileMatches?, mergeKey?, match, message, guide }`.
@@ -1007,6 +1052,39 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   object (`spreadFollows()`): the spread can set `culture` again and win, so the move is reported. A spread before the
   key moves as before. `optionRename` does the same for a later spread in the object or among the attributes of an
   element (`{ columnHeaders: false, ...opts }` is reported).
+- **An object that something else holds is edited only when every use of its holder is the grid's own
+  (`lib/holders.mjs`, `reportSharedObject()` in `options.mjs`).** `heldBy(objectPath)` climbs from the literal through a
+  type assertion, an array, a property of another object, a conditional, and a `useMemo`/`useCallback` callback to the
+  declarator, class field, assignment, or export that names it. A variable is judged by `findReferences()`, a class
+  field or `this` assignment by every member read of the name in the file. Each reference is `fine` (`new Handsontable()`
+  of an instance, `updateSettings()` of an `instance` receiver, or of an `unknown` one under `--aggressive`, a wrapper
+  prop or spread attribute, a spread or a property in an object that is itself an option object, a member read, a
+  destructuring, `typeof`, a write) or `other` (any other call argument, an alias, a return, an `export`, a component that
+  is not a wrapper), and the first `other` makes the rule report with its text ("also passed to `x.configure()` (line
+  6)"). Not every shape is named: an unknown parent says "used here". **A type names the holder:** an object found
+  through `annotated` (an annotation, `as`, or `satisfies` of `GridSettings` and the like, whichever pass found it
+  first), and everything inside it, is never held, because the compiler holds every other consumer to that type
+  (`isAnnotated`). The nested object that a consumer receives through a member read (`legacy.use(cfg.columns)`) is not
+  followed. A spread into another object is `spreadInto`, with the names the receiver set **before any rule edited
+  it** (`around`, taken when the analysis is built): the answer must not depend on which object a rule reaches first.
+  A move (`optionMove`) always conflicts, a rename when the receiver sets the new name or the old one after the spread,
+  and a removal never does, because the removed option does nothing in the target version, and a check on the
+  receiver would make run 2 differ from run 1 (run 1 deletes the receiver's own key).
+- **`optionMove` takes `levels` and `reportWithout`.** `levels` (`grid`, `column`, `cell`) lists where the key may move;
+  `Target.level` is the role of the object (`item.role` of `findOptionObjects`) or the component of the element
+  (`HotTable` is `grid`, `HotColumn` is `column`). At any other level `reportWrongLevel()` reports `levelAdvice` and
+  moves nothing. `18.0.0/numeric-format-culture` lists `column` and `cell`: a grid-level `locale` is read by the
+  date, time, `intl-date`, `intl-time`, `intl-datetime`, and checkbox renderers, the autocomplete and multiselect
+  editors, the text sort, the filter conditions, `search`, and the xlsx export (the `locale` readers of the 18.1.2
+  package), so it would change every other column. `reportWithout` names a key of the holder that makes the `report`
+  text unnecessary: the `report` of that rule says what 17.1 showed for a culture with no pattern (`isNumbroScheme()`
+  in the 17.1.0 `numericRenderer/utils` was true for any `culture`, and `numbroFormatter()` formatted with
+  `pattern || '0'`; `intlFormatter()` of 18.x gives `Intl.NumberFormat(locale, {})` for an empty object). **Do not
+  write "1235" in that text:** numbro 2.5.0 formats `1234.56` with `'0'` as `1234.56` (`1234,56` with the de-DE
+  language), every decimal and no grouping, while `Intl.NumberFormat('de-DE', {})` gives `1.234,56` and rounds
+  `1234.5678` to `1.234,568`. `{ useGrouping: false, maximumFractionDigits: 20 }` matches numbro for every value
+  tried, and is `DEFAULT_INTL_FORMAT` of the renderer; `maximumFractionDigits: 0` would round. The note stays out when
+  the holder keeps a `pattern`, because the `numbro-pattern` rule speaks about it.
 - **An option that custom code may read is neither moved nor deleted (`readerAdvice`, `lib/custom-reader.mjs`).** A rule
   with `readerAdvice` (the `optionMove` `18.0.0/numeric-format-culture`, the `optionRemove` rules
   `18.0.0/correct-format-removed` and `18.0.0/date-picker-config-removed`) reports instead of editing when
@@ -1117,7 +1195,12 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `hyperformula` to a package when a `package.json` above it declares it at a range whose lowest version the new range
   does not allow (or at a spec with no version: `catalog:`, `workspace:`): it reports `Update hyperformula in <file> to
   <range>`, and names the nearest such file. A declaration above that allows it still gets the add. The runner reads the
-  files above (`packageFilesAbove()` in `lib/facts.mjs`) once per run.
+  files above (`packageFilesAbove()` in `lib/facts.mjs`) once per run, past a leading byte order mark (`stripBom()`:
+  npm accepts one and `JSON.parse` does not). A file above that cannot be read (invalid JSON, not UTF-8, not an
+  object) stays in `ctx.ancestors` with `manifest: null`: the add is a guess then, so the rule reports `Check
+  <package> in <file>` and adds nothing below it, unless a readable file above declares the package compatibly. Every
+  other `JSON.parse` of a user file in `src/` goes through `stripBom()` already (`versions.mjs`, the `runner.mjs` read
+  of the package being edited, `adapters/json.mjs`); the ones left read the package's own files.
 - **`cssVariable` renames the strings of a style, not the keys of the project's own maps.** A string that is the key of an
   object literal, or a computed member key, is renamed only when the object is a style: a `style` prop or key, a variable
   or key with `style` in its name, a `CSSProperties`-typed or `as`/`satisfies` object, `Object.assign(<style>, {...})`,

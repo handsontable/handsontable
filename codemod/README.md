@@ -255,7 +255,15 @@ The tool rewrites:
 - Renamed plugin types, and `Handsontable.X` namespace types that became named imports. When the successor type has
   another shape, such as `SummaryEndpoint`, the tool still renames and reports one note per run that says what
   changed in the shape.
-- `numericFormat.culture` to the `locale` option, in option objects, `<HotTable>` props, and `<HotColumn>` props.
+- `numericFormat.culture` to the `locale` option, on a column or a cell: an element of `columns` or `cell`, an object
+  that `cells` returns, a `<HotColumn>` prop. At grid level (a settings object, a `<HotTable>` prop) the tool only
+  reports it, because a grid-level `locale` also reaches the date, time, and `intl-*` columns, and text sorting,
+  filtering, and search. Set `locale` on the numeric columns, or on the grid if every column should use it. When the
+  move leaves a `numericFormat` with no `pattern`, a note says what 17.1 showed: it formatted a culture without a
+  pattern with the Numbro pattern `'0'`, which keeps every decimal and groups nothing (1234.56 as 1234,56 for de-DE),
+  while 18.0 sends the object to `Intl.NumberFormat`, which groups the digits and keeps three decimals (1.234,56, and
+  1234.5678 as 1.234,568). The note names `useGrouping: false` and `maximumFractionDigits: 20`, which keep the 17.1
+  output (checked with numbro 2.5.0, the version 17.1 ships). The tool does not write them.
 - The removed `correctFormat` and `datePickerConfig` options. The built-in cell types of Handsontable 18.0 ignore
   both, so deleting them keeps the behavior. A TODO comment stays where the option was. The tool keeps the option and
   reports it when custom code may read it (see "How confidence works").
@@ -264,6 +272,13 @@ The tool rewrites:
   `Handsontable.themes.registerTheme(...).params(...)`, which is the registry that `handsontable/themes` exports.
 - Calls to the deprecated resize-state methods, which do nothing, when the call is a whole statement. Other calls get a
   TODO.
+- Calls to the undo methods that 17.0 took off the core instance (`hot.undo()`, `hot.redo()`, `hot.clearUndo()`,
+  `hot.isUndoAvailable()`, `hot.isRedoAvailable()`) and `hot.undoRedo` when a member of it is used, on an instance the
+  file shows. Core had none of them in 17.x, so such a call threw a `TypeError` there: the move makes it work, and the
+  entry says so. A member that code tests (`if (hot.undoRedo)`, `typeof hot.undo`, `'undo' in hot`,
+  `hot.undoRedo?.clear()`) never passed that test on 17.x and would pass now, so the tool reports it and everything
+  that the same function guards, and moves nothing there. A `hot.undoRedo` that is stored, passed, or compared was
+  `undefined` on 17.x and is reported too.
 - The `handsontable` and wrapper ranges in `package.json`, and a `hyperformula` dependency when the project uses
   formulas.
 
@@ -321,6 +336,17 @@ The elements of an array that a type names are column objects with high confiden
 A rule rewrites an object at high confidence. At medium confidence it reports the key and leaves the object alone.
 `--aggressive` lowers the bar to medium for every rule. Use it after you read the report of a normal run.
 
+An object that a variable holds is edited only when every use of the variable is the grid's own: it goes to
+`new Handsontable()`, to `updateSettings()` of a grid the file shows (a receiver the file does not show counts under
+`--aggressive`), to a wrapper component, or into another settings object, or the code reads it member by member. Any
+other use (an argument of another call, an alias, a return, an export, a component that is not a wrapper) leaves the
+object alone, and the report names that use: the other code would lose the key too. The same goes for a variable
+that holds a column object, or an array of them, and for a class member. An object that a type names
+(`GridSettings`, `ColumnSettings`, also through `satisfies`) is held to that type, so this check does not apply to it.
+An object that another object spreads (`{ ...base, locale: 'en-US' }`) is reported, not moved, for a move of a nested
+key, and for a rename when the receiver sets the new name or sets the old one after the spread. A removal is not
+held by a spread, because the removed option does nothing in the target version.
+
 Some code holds Handsontable options without showing it. The tool does not rewrite it. It reports the options it
 would have changed, because a missed option fails silently at run time: an object that sets
 `numericFormat: { culture }` in a file that uses Handsontable, and a component the tool does not know as a wrapper
@@ -332,6 +358,27 @@ can hold qualifies: the initializer and every later assignment, in any scope. A 
 else, set by a destructuring or a `for` head, or declared as a parameter is not rewritten on. A call on it is reported
 when it may still be the grid or the plugin. In a class, `this` must be the instance: a `this` inside a function or an
 object method is not.
+
+A `this` member is judged by every write of its name in the file, on any object: `wrapper.hot = mock`, a
+`wrapper['hot'] = mock`, a key `hot:` of an object literal (so `Object.assign(wrapper, { hot: mock })` too), a field,
+getter, or method of that name in any class (a subclass that sets it included), and `Object.defineProperty(x, 'hot',
+...)`. One write that is not a grid, or that the file does not show, takes the trust away from every `this.hot` of the
+file. A copy of the same member (`other.hot = wrapper.hot`) and a write of `null` or `undefined` do not. A class
+whose base class is not in the file counts only through what it assigns itself, or a type it declares. The tool does
+not see a write through a computed key on another object (`wrapper[key] = x`), or through `Object.assign(wrapper,
+source)` with a source that is not an object literal.
+
+`.hotInstance`, the property the wrappers expose, counts as the grid by its name, unless the file writes a value that is
+not a grid to a member of that name, or declares one: an object literal with a `hotInstance` key (a Vue `data()` that
+returns one, say), a class member of that name. The wrappers expose it read-only, so a file that defines its own is
+defining something else. A class field typed as the grid still counts through its type.
+
+`getPlugin()` is also a method of other objects, so its receiver counts, as it does for `hot.undo()`. A plugin counts
+when the receiver is an instance the file shows (`const hot = new Handsontable(...)`, `ref.current.hotInstance`). A
+receiver the file shows to be something else (a local object that stands in for the grid, a variable that holds an
+instance of a local class, an import, a function) is left alone and not reported, and so is a call on its result. Any
+other receiver (a global, a parameter, the result of a call, `this.hot` in a class that never sets it) is reported and
+not rewritten, even when it is named `hot`. `--aggressive` does not change this.
 
 An option is also not moved or deleted when custom code may read it. `numericFormat.culture`, `correctFormat`, and
 `datePickerConfig` stay where they are, with a report that names the reader, when the object, an enclosing settings
@@ -378,8 +425,13 @@ the tool reads the version from `package.json`, which the run raised, and answer
 ## Limitations
 
 - The tool reads one file at a time. It does not follow a settings object across files.
+- The check that another consumer holds an object stops at a function: a `cells` function that a shared settings object
+  holds, or the object a function returns, is not followed to the other users of the function. The nested object that
+  another consumer receives through a member read (`legacy.use(cfg.columns)`) is not followed either.
 - It reads and writes UTF-8. A file with a UTF-8 byte order mark keeps it, in a script, a stylesheet, and a
-  `package.json`. A file in another encoding is listed under "Skipped files" and is not touched.
+  `package.json`, and reads past it in a `package.json` above the one it edits, as npm does. A file in another
+  encoding is listed under "Skipped files" and is not touched. A `package.json` above that cannot be read as JSON may
+  declare `hyperformula`, so the tool does not add it below that file and reports the file instead.
 - It runs `git rev-parse`, `git ls-files`, and `git status` in your project, with `core.fsmonitor` off and no pager,
   so the configuration of the repository cannot start a program through those two settings. Git itself still applies
   the repository's clean filters (`filter.<name>.clean` with a `filter=<name>` attribute) when `git status` has to
@@ -415,8 +467,8 @@ the tool reads the version from `package.json`, which the run raised, and answer
   else on another is not confirmed either, and neither is a `this.x` inside a function, an object method, or a nested
   class, or in a class that assigns members by a computed key. A generic name such as `editor.undo()` is
   silent. The same holds for a plugin: it rewrites `saveManualColumnWidths()` and `downloadFile({ columnHeaders })`
-  only on `hot.getPlugin('<key>')` or a variable the file sets from it, and a call on any other receiver is
-  reported or left alone. A call whose receiver or arguments can have effects of their own is kept, with a TODO. An
+  only on `hot.getPlugin('<key>')` (on an instance the file shows) or a variable the file sets from it, and a call on
+  any other receiver is reported or left alone. A call whose receiver or arguments can have effects of their own is kept, with a TODO. An
   optional call (`hot.undo?.()`) is reported, not moved, because the plugin method always exists.
 - A JavaScript or TypeScript file with mixed line endings (CRLF, LF, and a lone CR in one file) keeps the ending of
   every line the tool did not change. A line the tool adds or changes gets the ending most lines have. The tool finds

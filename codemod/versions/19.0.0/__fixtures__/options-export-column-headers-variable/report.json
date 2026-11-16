@@ -4,12 +4,12 @@
     {
       "ruleId": "19.0.0/export-column-headers",
       "severity": "manual",
-      "line": 8
+      "line": 9
     },
     {
       "ruleId": "19.0.0/export-column-headers",
       "severity": "changed",
-      "line": 9
+      "line": 10
     }
   ]
 }

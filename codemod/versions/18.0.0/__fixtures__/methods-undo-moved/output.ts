@@ -10,8 +10,10 @@ const canUndo = hot.getPlugin('undoRedo').isUndoAvailable();
 // TODO(handsontable-codemod 18.0.0/core-undo-methods): isRedoAvailable?.() is an optional call, which the tool does not rewrite: the plugin method...
 const canRedo = hot.isRedoAvailable?.();
 hot.getPlugin('undoRedo').clear();
-const history = hot.getPlugin('undoRedo');
-hot?.getPlugin('undoRedo')?.clear();
+// TODO(handsontable-codemod 18.0.0/core-undo-methods): Call them on the plugin: hot.getPlugin('undoRedo').
+const history = hot.undoRedo;
+// TODO(handsontable-codemod 18.0.0/core-undo-methods): Call them on the plugin: hot.getPlugin('undoRedo').
+hot?.undoRedo?.clear();
 hot.getPlugin('undoRedo').isUndoAvailable();
 
 export class Grid {

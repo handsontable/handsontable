@@ -121,7 +121,7 @@
  *
  * @typedef {object} AncestorManifest
  * @property {string} file Project-relative path, forward slashes.
- * @property {object} manifest The parsed file.
+ * @property {object|null} manifest The parsed file, or `null` when it could not be read as UTF-8 or parsed as JSON.
  */
 
 /**

@@ -9,6 +9,7 @@ function namedCells() {
   return {};
 }
 const expressionCells = function(row: number, col: number) {
+  // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
   return col === 1 ? {
     locale: 'de-DE',
     numericFormat: {}
@@ -18,6 +19,7 @@ function dateCells() {
   // TODO(handsontable-codemod 18.0.0/moment-date-format): Replace the string dateFormat with an Intl.DateTimeFormat object. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-date-and-time-cells-to-iso-8601-format
   return { dateFormat: 'DD/MM/YYYY' };
 }
+// TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
 const vanillaCells = () => ({
   locale: 'pl-PL',
   numericFormat: {}

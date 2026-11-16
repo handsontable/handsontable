@@ -111,6 +111,42 @@ const SETS_MEMBERS = new Set([
 ]);
 
 /**
+ * Names a variable or property that holds a grid has when its type cannot be confirmed: `hot`, `hotInstance`,
+ * `this.grid`, `table`. A call on such a receiver is reported, or taken for the grid where a rule says so. Generic
+ * names (`editor`, `history`, `instance`) are not listed on purpose, so an unrelated `.undo()` stays silent.
+ */
+export const GRID_NAME = new RegExp('^[_$]*(hot|hotInstance|hotInst|hotTable|hotRef|hotGrid|grid|gridInstance|table'
+  + '|handsontable|spreadsheet)$', 'i');
+
+/**
+ * The last name of a receiver expression: `hot` for `hot` and for `this.hot`. Calls and `this` have none.
+ *
+ * @param {object} path The receiver NodePath.
+ * @returns {string|null} The name, or `null`.
+ */
+export function receiverLabel(path) {
+  const node = unwrapNode(path.node);
+
+  if (node.type === 'Identifier') {
+    return node.name;
+  }
+
+  return MEMBER_TYPES.has(node.type) ? memberName(node) : null;
+}
+
+/**
+ * Whether a receiver is named like a grid.
+ *
+ * @param {object} path The receiver NodePath.
+ * @returns {boolean} `true` when its last name is on the grid-name list (`GRID_NAME`).
+ */
+export function isGridNamed(path) {
+  const label = receiverLabel(path);
+
+  return label !== null && GRID_NAME.test(label);
+}
+
+/**
  * Whether a module name is a Handsontable package or a subpath of one.
  *
  * @param {string} source Module name.
@@ -167,6 +203,18 @@ const LOCAL_VALUE_TYPES = new Set([
 ]);
 
 /**
+ * Whether a value that a name is set from is local to the file: an object, a class, a literal, or a `getPlugin()`
+ * call on a host that the file shows to be a local object (a mock that stands in for the grid).
+ *
+ * @param {object} value NodePath of the value.
+ * @param {HotBindings} [bindings] The bindings of the file.
+ * @returns {boolean} `true` when the value is something the file shows.
+ */
+function isLocalValue(value, bindings) {
+  return LOCAL_VALUE_TYPES.has(unwrapNode(value.node).type) || bindings?.pluginCallOf(value)?.host === 'other';
+}
+
+/**
  * Whether a receiver is unresolved: the file shows neither what it is nor that it is something else. A `this` or
  * `super` receiver, a member chain rooted at one, a local object, class, function, or import, and a plugin
  * looked up by key are resolved. A global, a parameter, and the result of another call are not. A variable is
@@ -208,7 +256,7 @@ export function isUnresolvedReceiver(path, bindings) {
 
   if (history?.variable) {
     return history.opaque || history.values.length === 0
-      || !history.values.every(value => LOCAL_VALUE_TYPES.has(unwrapNode(value.node).type));
+      || !history.values.every(value => isLocalValue(value, bindings));
   }
 
   return !(binding.init && LOCAL_VALUE_TYPES.has(unwrapNode(binding.init).type));
@@ -249,7 +297,7 @@ export function receiverOfGrid(path, bindings) {
     const direct = unwrapPath(target.get('object')).node === root.node;
     const history = direct ? bindings.valuesOf(target) : null;
     const local = Boolean(history?.variable) && !history.opaque && history.values.length > 0
-      && history.values.every(value => LOCAL_VALUE_TYPES.has(unwrapNode(value.node).type));
+      && history.values.every(value => isLocalValue(value, bindings));
 
     return local ? 'other' : 'unknown';
   }
@@ -558,6 +606,8 @@ export function collectHotBindings(j, root) {
    * @property {boolean} variable A `var`, `let`, `const`, or a class member (not a parameter, import, or function).
    * @property {object|null} guard For a class member, the class node whose members the file may set in a way it
    * cannot name (`this[key] = x`, `Object.assign(this, x)`).
+   * @property {string} [member] For a class member, its name: every write of that name in the file counts (see
+   * `NameWrites`).
    * @property {boolean} qualified Every value is a grid instance (the fixpoint of `settle()`).
    */
 
@@ -669,7 +719,14 @@ export function collectHotBindings(j, root) {
     const table = memberHistories.get(classNode);
 
     if (!table.has(key)) {
-      const history = { values: [], opaque: false, variable: true, guard: classNode, qualified: false };
+      const history = {
+        values: [],
+        opaque: false,
+        variable: true,
+        guard: classNode,
+        qualified: false,
+        member: key.replace(/^static /, ''),
+      };
 
       table.set(key, history);
       histories.push(history);
@@ -757,6 +814,74 @@ export function collectHotBindings(j, root) {
   };
 
   /**
+   * Everything the file writes to a member of one name, on any object: `x.name = value`, `x['name'] = value`, a key
+   * `name:` of an object literal (so `Object.assign(x, { name })` too), a field, accessor, or method of a class, and
+   * a `defineProperty`. A `this.name` member is trusted only when every write of its name qualifies, because the
+   * class is not the only code that can set it (`wrapper.name = mock`, a subclass, an `Object.assign`).
+   *
+   * @typedef {object} NameWrites
+   * @property {object[]} values NodePaths of every value written to a member of the name (`null` and `undefined` are
+   * no value).
+   * @property {boolean} opaque A write of a value the file does not show, or a `defineProperty`, or an accessor.
+   * @property {boolean} declared An object literal or a class declares a member of the name.
+   */
+
+  /**
+   * @type {Map<string, NameWrites>}
+   */
+  const nameWrites = new Map();
+
+  /**
+   * Member names that some write in the file does not qualify, so no `this.<name>` member of that name is a grid.
+   * Filled by `settleAll()`.
+   *
+   * @type {Set<string>}
+   */
+  const blockedNames = new Set();
+
+  /**
+   * Whether `.hotInstance` counts as the grid by its name. The wrappers expose it read-only, so a file that
+   * declares a member of that name (an object literal key, a class member) is defining something else, and so is a
+   * file that writes a value that is not a grid to one.
+   *
+   * @returns {boolean} `true` when no write or declaration of the name takes the trust away.
+   */
+  const hotInstanceTrusted = () => !blockedNames.has('hotInstance') && !nameWrites.get('hotInstance')?.declared;
+
+  /**
+   * The writes of a member name, created on the first sighting.
+   *
+   * @param {string} name The member name.
+   * @returns {NameWrites} The writes.
+   */
+  const nameEntry = (name) => {
+    if (!nameWrites.has(name)) {
+      nameWrites.set(name, { values: [], opaque: false, declared: false });
+    }
+
+    return nameWrites.get(name);
+  };
+
+  /**
+   * Record a write of a member name.
+   *
+   * @param {string} name The member name.
+   * @param {object|null} valuePath NodePath of the value, `null` when the file does not show it.
+   * @param {boolean} [declares] Whether the write declares the member (an object literal key, a class member).
+   */
+  const noteNameWrite = (name, valuePath, declares = false) => {
+    const entry = nameEntry(name);
+
+    entry.declared = entry.declared || declares;
+
+    if (!valuePath) {
+      entry.opaque = true;
+    } else if (!isNeutral(valuePath)) {
+      entry.values.push(valuePath);
+    }
+  };
+
+  /**
    * Record a write to a binding or a `this` member.
    *
    * @param {object} targetPath NodePath of the write target.
@@ -773,6 +898,11 @@ export function collectHotBindings(j, root) {
     } else if (MEMBER_TYPES.has(target.node.type)) {
       const object = unwrapPath(target.get('object'));
       const member = memberOf(target);
+      const written = memberName(target.node);
+
+      if (written !== null) {
+        noteNameWrite(written, valuePath);
+      }
 
       if (member) {
         history = memberHistory(member.classNode, member.key);
@@ -893,7 +1023,7 @@ export function collectHotBindings(j, root) {
       case 'OptionalMemberExpression': {
         const name = memberName(node);
 
-        if (name === 'hotInstance') {
+        if (name === 'hotInstance' && hotInstanceTrusted()) {
           return true;
         }
 
@@ -1038,6 +1168,13 @@ export function collectHotBindings(j, root) {
       memberHistory(classNode, key).values.push(path.get('value'));
     }
 
+    // A field of any class of the file is a write of its name, whichever class reads it.
+    if (path.node.value) {
+      noteNameWrite(name, path.get('value'), true);
+    } else {
+      nameEntry(name).declared = true;
+    }
+
     if (isHolderType(path.node.typeAnnotation)) {
       addSeed(holderMemberSeeds, classNode, key);
     }
@@ -1065,6 +1202,7 @@ export function collectHotBindings(j, root) {
 
     // A method or an accessor of the same name stands in for the member.
     memberHistory(classNode, `${path.node.static ? 'static ' : ''}${name}`).opaque = true;
+    noteNameWrite(name, null, true);
   });
 
   root.find(j.TSParameterProperty).forEach((path) => {
@@ -1078,10 +1216,46 @@ export function collectHotBindings(j, root) {
 
     if (isHotType(parameter.typeAnnotation)) {
       addSeed(memberSeeds, classNode, parameter.name);
+      nameEntry(parameter.name).declared = true;
     } else if (isHolderType(parameter.typeAnnotation)) {
       addSeed(holderMemberSeeds, classNode, parameter.name);
+      nameEntry(parameter.name).declared = true;
     } else {
       memberHistory(classNode, parameter.name).opaque = true;
+      noteNameWrite(parameter.name, null, true);
+    }
+  });
+
+  // An object literal key is a write of its name. `Object.assign(wrapper, { hot: mock })` and a literal that a
+  // function returns set a member as much as `wrapper.hot = mock` does.
+  root.find(j.ObjectExpression).forEach((path) => {
+    path.node.properties.forEach((property, index) => {
+      const name = propertyName(property) ?? (property.computed ? stringValue(property.key) : null);
+
+      if (name === null) {
+        return;
+      }
+
+      if (property.type === 'ObjectProperty' || property.type === 'Property') {
+        noteNameWrite(name, path.get('properties', index, 'value'), true);
+      } else if (property.type === 'ObjectMethod') {
+        noteNameWrite(name, null, true);
+      }
+    });
+  });
+
+  // `Object.defineProperty(x, 'name', ...)` and `Reflect.set(x, 'name', value)` write a name the file shows.
+  root.find(j.CallExpression).forEach((path) => {
+    const callee = unwrapNode(path.node.callee);
+    const label = MEMBER_TYPES.has(callee?.type) && callee.object?.type === 'Identifier'
+      ? `${callee.object.name}.${memberName(callee)}` : null;
+
+    if (label && SETS_MEMBERS.has(label)) {
+      const written = stringValue(path.node.arguments[1]);
+
+      if (written !== null) {
+        noteNameWrite(written, null, true);
+      }
     }
   });
 
@@ -1096,6 +1270,7 @@ export function collectHotBindings(j, root) {
       for (const history of histories) {
         if (!history.qualified && history.variable && !history.opaque && history.values.length > 0
           && !(history.guard && unreadableClasses.has(history.guard))
+          && !(history.member && blockedNames.has(history.member))
           && history.values.every(value => classify(value))) {
           history.qualified = true;
           changed = true;
@@ -1104,49 +1279,216 @@ export function collectHotBindings(j, root) {
     }
   };
 
-  settle();
+  /**
+   * Whether a value written to a member name leaves the member a grid: `null` and `undefined` never reach here, a
+   * read of a member of the same name is a copy of what the name already holds, and anything else must be a grid.
+   *
+   * @param {object} value NodePath of the value.
+   * @param {string} name The member name.
+   * @returns {boolean} `true` when the write qualifies.
+   */
+  const qualifiesAs = (value, name) => {
+    const node = unwrapNode(value.node);
+
+    return (MEMBER_TYPES.has(node.type) && memberName(node) === name) || classify(value);
+  };
 
   /**
-   * The plugin keys a history is set from, or `null` when any value is not a `getPlugin()` call, the history is
-   * opaque, or the name is not a plain variable.
-   *
-   * @param {History|undefined} history The history.
-   * @returns {string[]|null} The plugin keys.
+   * Settle the histories, then take the trust away from every member name that some write in the file does not
+   * qualify (an outside `wrapper.hot = mock`, an `Object.assign(wrapper, { hot: mock })`, a subclass that sets it),
+   * and settle again without those members. A blocked name only grows, so the loop ends. A name is judged only when
+   * a member history or `.hotInstance` asks for it.
    */
-  const pluginKeysOf = (history) => {
+  const settleAll = () => {
+    const judged = new Set(['hotInstance']);
+
+    histories.forEach((history) => {
+      if (history.member) {
+        judged.add(history.member);
+      }
+    });
+
+    for (;;) {
+      histories.forEach((history) => {
+        history.qualified = false;
+      });
+      settle();
+
+      let grew = false;
+
+      for (const name of judged) {
+        const entry = nameWrites.get(name);
+
+        if (entry && !blockedNames.has(name)
+          && (entry.opaque || !entry.values.every(value => qualifiesAs(value, name)))) {
+          blockedNames.add(name);
+          grew = true;
+        }
+      }
+
+      if (!grew) {
+        return;
+      }
+    }
+  };
+
+  settleAll();
+
+  /**
+   * Whether a value is a read of a member of the given name, which copies what the name already holds.
+   *
+   * @param {object} value NodePath of the value.
+   * @param {string} name The member name.
+   * @returns {boolean} `true` for `x.<name>`.
+   */
+  const readsSameName = (value, name) => {
+    const node = unwrapNode(value.node);
+
+    return MEMBER_TYPES.has(node.type) && memberName(node) === name;
+  };
+
+  /**
+   * The keys that every value of a name or `this` member gives, or `null` when any value gives none, the history is
+   * opaque, or the name is not a plain variable. A `this` member also answers for every write of its name in the
+   * file (see `NameWrites`).
+   *
+   * @param {object} target Unwrapped expression NodePath of the name or the member.
+   * @param {(value: object) => (string|null)} accept The key a value gives, `null` when it gives none.
+   * @returns {string[]|null} The keys.
+   */
+  const keysAt = (target, accept) => {
+    let history;
+
+    if (target.node.type === 'Identifier') {
+      const binding = lookup(target, target.node.name, 'value');
+
+      history = binding ? bindingHistories.get(canonicalOf(binding).canonical.idNode) : null;
+    } else {
+      const member = memberOf(target);
+
+      history = member ? memberHistories.get(member.classNode)?.get(member.key) : null;
+    }
+
     if (!history || !history.variable || history.opaque || history.values.length === 0
       || (history.guard && unreadableClasses.has(history.guard))) {
       return null;
     }
 
-    const keys = history.values.map(value => pluginKeyOf(value.node));
+    const keys = [];
 
-    return keys.every(key => key !== null) ? keys : null;
+    for (const value of history.values) {
+      const key = accept(value);
+
+      if (key === null) {
+        return null;
+      }
+
+      keys.push(key);
+    }
+
+    const entry = history.member ? nameWrites.get(history.member) : null;
+
+    if (entry) {
+      if (entry.opaque) {
+        return null;
+      }
+
+      for (const value of entry.values) {
+        if (history.values.some(own => own.node === value.node) || readsSameName(value, history.member)) {
+          continue;
+        }
+
+        const key = accept(value);
+
+        if (key === null) {
+          return null;
+        }
+
+        keys.push(key);
+      }
+    }
+
+    return keys;
   };
 
   /**
-   * The plugin keys a name or `this` member is set from, or `null` when some value is not a `getPlugin()` call.
+   * Whether a host of a `getPlugin()` call counts as the grid: only an instance the file shows, as for the method
+   * rules of the core instance. A receiver that the file shows to be something else (a local object, a class, an
+   * import) and a receiver that the file does not show (a parameter, a global, a call result) do not. `isGridNamed()`
+   * is the looser choice, a parameter named `hot` taken for the grid: `confirmsHost` is the one place to make it.
+   *
+   * @param {'instance'|'unknown'|'other'} host The host.
+   * @returns {boolean} `true` when a `getPlugin()` call on it gives a plugin.
+   */
+  const confirmsHost = host => host === 'instance';
+
+  /**
+   * The receivers whose host is being worked out, so `plugin = plugin.getPlugin('k')` ends.
+   *
+   * @type {Set<object>}
+   */
+  const resolvingHosts = new Set();
+  let api = null;
+
+  /**
+   * A `<x>.getPlugin('<key>')` call and what `<x>` is: `instance` when `isInstance()` confirms it, `other` when the
+   * file shows it is something else (a local object that stands in for the grid), and `unknown` for any other
+   * receiver.
+   *
+   * @param {object} path Expression NodePath.
+   * @returns {{key: string, host: 'instance'|'unknown'|'other'}|null} The call, or `null` for any other expression.
+   */
+  const pluginCallOf = (path) => {
+    const target = unwrapPath(path);
+    const key = pluginKeyOf(target.node);
+
+    if (key === null) {
+      return null;
+    }
+
+    const object = unwrapPath(unwrapPath(target.get('callee')).get('object'));
+
+    if (resolvingHosts.has(object.node)) {
+      return { key, host: 'unknown' };
+    }
+
+    resolvingHosts.add(object.node);
+
+    try {
+      return { key, host: receiverOfGrid(object, api) };
+    } finally {
+      resolvingHosts.delete(object.node);
+    }
+  };
+
+  /**
+   * The key of a value that is a `getPlugin()` call on a host that counts as the grid.
+   *
+   * @param {object} value NodePath of the value.
+   * @returns {string|null} The key, or `null`.
+   */
+  const confirmedKeyOf = (value) => {
+    const call = pluginCallOf(value);
+
+    return call && confirmsHost(call.host) ? call.key : null;
+  };
+
+  /**
+   * The plugin keys a name or `this` member is set from, or `null` when some value is not a `getPlugin()` call on a
+   * host that counts as the grid.
    *
    * @param {object} target Unwrapped expression NodePath.
    * @returns {string[]|null} The plugin keys.
    */
-  const pluginKeysAt = (target) => {
-    if (target.node.type === 'Identifier') {
-      const binding = lookup(target, target.node.name, 'value');
-
-      return binding ? pluginKeysOf(bindingHistories.get(canonicalOf(binding).canonical.idNode)) : null;
-    }
-
-    const member = memberOf(target);
-
-    return member ? pluginKeysOf(memberHistories.get(member.classNode)?.get(member.key)) : null;
-  };
+  const pluginKeysAt = target => keysAt(target, confirmedKeyOf);
 
   /**
    * Whether an expression is a plugin of one of the given keys: a direct `<x>.getPlugin('<key>')` call, or a
-   * variable or `this` member that the file sets from such a call. Every value the name can hold, the
-   * initializer and every assignment anywhere, must be a listed plugin. `getPlugin()` upper-cases the first
-   * letter of its argument, so `'exportFile'` and `'ExportFile'` name the same plugin.
+   * variable or `this` member that the file sets from such a call. In both, `<x>` must be an instance the file shows.
+   * A local object that stands in for the grid (`fake.getPlugin('k')`) is not, and neither is a receiver the file
+   * does not show. Every value the name can hold, the initializer and every assignment anywhere, must be a listed plugin.
+   * `getPlugin()` upper-cases the first letter of its argument, so `'exportFile'` and `'ExportFile'` name the same
+   * plugin.
    *
    * @param {object} path Expression NodePath.
    * @param {string[]} keys Plugin keys the receiver may be.
@@ -1155,10 +1497,10 @@ export function collectHotBindings(j, root) {
   const isPluginReceiver = (path, keys) => {
     const allowed = new Set(keys.map(registryName));
     const target = unwrapPath(path);
-    const direct = pluginKeyOf(target.node);
+    const direct = pluginCallOf(target);
 
     if (direct !== null) {
-      return allowed.has(registryName(direct));
+      return allowed.has(registryName(direct.key)) && confirmsHost(direct.host);
     }
 
     const found = pluginKeysAt(target);
@@ -1167,8 +1509,9 @@ export function collectHotBindings(j, root) {
   };
 
   /**
-   * Whether an expression is a plugin of any key: a direct `getPlugin()` call, or a name or `this` member that the
-   * file sets only from such calls.
+   * Whether an expression is a plugin of any key, whatever it is called on: a direct `getPlugin()` call, or a name
+   * or `this` member that the file sets only from such calls. It tells a plugin from the grid, so a mock host does
+   * not matter.
    *
    * @param {object} path Expression NodePath.
    * @returns {boolean} `true` when the file shows the expression is a plugin.
@@ -1176,7 +1519,7 @@ export function collectHotBindings(j, root) {
   const isPlugin = (path) => {
     const target = unwrapPath(path);
 
-    return pluginKeyOf(target.node) !== null || pluginKeysAt(target) !== null;
+    return pluginKeyOf(target.node) !== null || keysAt(target, value => pluginKeyOf(value.node)) !== null;
   };
 
   /**
@@ -1205,11 +1548,19 @@ export function collectHotBindings(j, root) {
     const member = memberOf(target);
     const history = member ? memberHistories.get(member.classNode)?.get(member.key) : null;
 
-    return history ? {
-      values: history.values,
-      opaque: history.opaque || unreadableClasses.has(member.classNode),
+    if (!history) {
+      return null;
+    }
+
+    // Every write of the name counts, wherever it is: `wrapper.hot = mock` is a value of `this.hot` too.
+    const entry = history.member ? nameWrites.get(history.member) : null;
+    const outside = entry ? entry.values.filter(value => !history.values.some(own => own.node === value.node)) : [];
+
+    return {
+      values: outside.length > 0 ? [...history.values, ...outside] : history.values,
+      opaque: history.opaque || unreadableClasses.has(member.classNode) || Boolean(entry?.opaque),
       variable: true,
-    } : null;
+    };
   };
 
   /**
@@ -1222,13 +1573,20 @@ export function collectHotBindings(j, root) {
    */
   const isPartlyPlugin = (path, keys) => {
     const allowed = new Set(keys.map(registryName));
-    const history = valuesOf(path);
+    const lists = (value) => {
+      const call = pluginCallOf(value);
 
-    return Boolean(history?.variable) && history.values.some((value) => {
-      const key = pluginKeyOf(value.node);
+      return call !== null && call.host !== 'other' && allowed.has(registryName(call.key));
+    };
+    const target = unwrapPath(path);
 
-      return key !== null && allowed.has(registryName(key));
-    });
+    if (pluginKeyOf(target.node) !== null) {
+      return lists(target);
+    }
+
+    const history = valuesOf(target);
+
+    return Boolean(history?.variable) && history.values.some(lists);
   };
 
   const getComponent = (path) => {
@@ -1263,7 +1621,7 @@ export function collectHotBindings(j, root) {
     }
   });
 
-  return {
+  api = {
     namespace,
     components,
     angular: flags.angular,
@@ -1274,10 +1632,13 @@ export function collectHotBindings(j, root) {
     isPluginReceiver,
     isPlugin,
     isPartlyPlugin,
+    pluginCallOf,
     valuesOf,
     resolveNamespaceMember,
     isNamespaceIdentifier,
     getComponent,
     resolveTypeName: typeName => resolveTypeNode(typeName.node ?? typeName),
   };
+
+  return api;
 }

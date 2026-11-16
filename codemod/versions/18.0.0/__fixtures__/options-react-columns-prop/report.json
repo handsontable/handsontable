@@ -6,6 +6,7 @@
     { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 21 },
     { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 22 },
     { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 28 },
+    { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 28 },
     { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 6 },
     { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 21 },
     { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 22 },

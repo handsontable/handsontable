@@ -7,6 +7,10 @@
       "guide": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat",
       "from": "numericFormat.culture",
       "to": "locale",
+      "levels": ["column", "cell"],
+      "levelAdvice": "Set locale on the numeric columns that used numericFormat.culture, or on the grid if every column should use it, then delete culture. The tool kept numericFormat.culture here because a grid-level locale reaches every other column too: date, time, intl-date, intl-time, and intl-datetime columns format with it, and text sorting, filtering, and search lower-case with it.",
+      "reportWithout": "pattern",
+      "report": "Check the numbers this column shows. With a culture and no pattern, 17.1 formatted them with the Numbro pattern '0': every decimal and no grouping, so 1234.56 showed as 1234,56 for de-DE. In 18.0 the object goes to Intl.NumberFormat, which groups the digits and keeps three decimals unless the options say otherwise: 1.234,56 for de-DE, and 1234.5678 becomes 1.234,568. Add useGrouping: false and maximumFractionDigits: 20 to numericFormat to keep the 17.1 output.",
       "readerAdvice": "Move numericFormat.culture to locale and update the code that reads it in the same change. A custom renderer, editor, or validator may read numericFormat.culture, but 18.0 formats with locale, so that code would fall back to its default culture if only the key moved."
     },
     {

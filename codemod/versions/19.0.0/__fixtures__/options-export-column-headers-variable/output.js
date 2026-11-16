@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 
-export function save(hot, other) {
+export function save(other) {
+  const hot = new Handsontable(document.body, {});
   const plugin = hot.getPlugin('exportFile');
   const base = { filename: 'trades', columnHeaders: true };
   const plain = { filename: 'trades' };

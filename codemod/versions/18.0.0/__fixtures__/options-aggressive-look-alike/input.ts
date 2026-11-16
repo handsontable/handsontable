@@ -4,7 +4,10 @@ import Handsontable from 'handsontable';
 export const picker = { locale: 'zz', numericFormat: { culture: 'de-DE' } };
 export const cfg = { correctFormat: true, datePickerConfig: {} };
 
-// Settings shared with another module: two other known options corroborate the object.
+// Settings that stay in this module: two other known options corroborate the object.
+const local = { colHeaders: true, rowHeaders: true, correctFormat: true };
+
+// Settings shared with another module: the other module may hand them to code that still reads the key.
 export const shared = { colHeaders: true, rowHeaders: true, correctFormat: true };
 
 export const grid = Handsontable;

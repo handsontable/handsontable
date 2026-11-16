@@ -116,7 +116,8 @@ export function save(hot, other) {
   });
 
   it('keeps renaming an inline object, and spelling the plugin key with a capital letter', async() => {
-    const source = `${HOT}export function save(hot) {
+    const source = `${HOT}export function save() {
+  const hot = new Handsontable(document.body, {});
   hot.getPlugin('exportFile').exportAsBlob('csv', { columnHeaders: false });
   hot.getPlugin('ExportFile').exportAsBlob('csv', { columnHeaders: false });
   hot.getPlugin('ExportFile').downloadFile('csv', { filename: 'a', columnHeaders: true });
@@ -124,7 +125,7 @@ export function save(hot, other) {
 `;
     const [first] = await runs('a.js', source, ['19.0.0/export-column-headers']);
 
-    assert.deepEqual(lines(first, '19.0.0/export-column-headers'), ['changed:3', 'changed:4', 'changed:5']);
+    assert.deepEqual(lines(first, '19.0.0/export-column-headers'), ['changed:4', 'changed:5', 'changed:6']);
     assert.equal(first.output.match(/colHeaders/g).length, 3);
     assert.doesNotMatch(first.output, /columnHeaders/);
   });
@@ -135,7 +136,8 @@ describe('19.0.0/resize-state-methods on a call it keeps', () => {
 
   it('names the method in the TODO and in the entry, for a plugin the file cannot confirm', async() => {
     const source = `${HOT}const pluginName = 'manualRowResize';
-export function save(hot) {
+export function save() {
+  const hot = new Handsontable(document.body, {});
   hot.getPlugin(pluginName).saveManualRowHeights();
   hot.getPlugin('manualColumnResize').loadManualColumnWidths();
 }
@@ -144,7 +146,7 @@ export function save(hot) {
     const [entry] = results[0].entries.filter(item => item.ruleId === RULE);
     const todos = results[0].output.split('\n').filter(row => row.includes(TODO));
 
-    assert.deepEqual(lines(results[0], RULE), ['manual:4', 'changed:5']);
+    assert.deepEqual(lines(results[0], RULE), ['manual:5', 'changed:6']);
     assert.match(entry.message, /^Replace saveManualRowHeights\(\) with your own store/);
     assert.equal(todos.length, 1);
     assert.ok(todos[0].includes(`${TODO} ${RULE}): Replace saveManualRowHeights() with your own store`));
@@ -152,7 +154,8 @@ export function save(hot) {
   });
 
   it('names the method for a result that is used and for a call with no braces', async() => {
-    const source = `${HOT}export function save(hot) {
+    const source = `${HOT}export function save() {
+  const hot = new Handsontable(document.body, {});
   const columns = hot.getPlugin('manualColumnResize');
   const widths = columns.loadManualColumnWidths();
 
@@ -172,7 +175,8 @@ describe('a kept call that is the whole body of a statement without braces', () 
   const RULE = '19.0.0/resize-state-methods';
 
   it('gets its TODO above the statement, which recast prints over two lines (a documented limitation), and stays stable', async() => {
-    const source = `${HOT}export function save(hot, ready) {
+    const source = `${HOT}export function save(ready) {
+  const hot = new Handsontable(document.body, {});
   const columns = hot.getPlugin('manualColumnResize');
 
   if (ready) columns.saveManualColumnWidths();

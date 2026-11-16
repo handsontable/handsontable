@@ -16,6 +16,7 @@ How versions are chosen:
 
 ### Added
 
+- The package carries the repository's `LICENSE.txt`, and its `license` field points at it.
 - `detect` `call` matchers take `receiver: "grid"`: a confirmed grid instance, or a receiver the file does not show,
   never one it shows to be another object. `19.0.0/update-settings-data-provider` uses it, so an `updateSettings()` call
   on a local object, an imported library, or a plugin is no longer reported because the file sets `dataProvider`.
@@ -47,6 +48,33 @@ How versions are chosen:
 
 ### Fixed
 
+- A `this` member is a grid or a plugin only when every write of its name in the file qualifies, on any object:
+  `wrapper.hot = mock`, `wrapper['hot'] = mock`, `Object.assign(wrapper, { hot: mock })`, an object literal key, a
+  field, getter, or method of that name in any class, a subclass that sets it, and `Object.defineProperty`. Before,
+  only writes inside the class counted, so `this.hot.undo()` was still rewritten on a mock.
+- `.hotInstance` counts as the grid only when the file writes no value that is not a grid to a member of that name and
+  declares none (an object literal key, a class member). Before, the name alone was enough.
+- `getPlugin()` is checked for its receiver. A plugin counts when the receiver is an instance the file shows. A local
+  object that stands in for the grid (`fake.getPlugin('manualColumnResize')`) is left alone and not reported, and any
+  other unresolved receiver, a parameter named `hot` included, is reported. Before, any receiver counted, so a call on
+  a mock was deleted and `columnHeaders` in its arguments was renamed.
+- An object that a variable holds is edited only when every use of the variable is the grid's own. Another consumer
+  (`legacyFormatter.configure(cfg)`), an alias, a return, or an export makes the rule report instead, naming the use.
+  Before, the key was deleted or moved for the other consumer too. An object that a type names is not held by this check.
+- An object that another object spreads is not changed by a move of a nested key, and not by a rename when the
+  receiver sets the new name or the old one after the spread. Before, the receiver's own `locale` won after the spread.
+- A read of the removed `hot.undoRedo` or an undo method in a test (`if (hot.undoRedo)`, `typeof hot.undo`,
+  `'undo' in hot`, `hot.undoRedo?.clear()`), and the code that the same function guards with it, is reported and not
+  moved: the test never passed on 17.x. So is a `hot.undoRedo` that is stored, passed, or compared, which was
+  `undefined` there. The entry and the advice of `core-undo-methods` say that a plain call threw a `TypeError` on 17.x.
+- `numericFormat.culture` moves to `locale` only on a column or a cell. At grid level it is reported, because a
+  grid-level `locale` reaches every locale-driven column. A move that leaves a `numericFormat` with no `pattern` adds a
+  note: 17.1 formatted a culture without a pattern with the Numbro pattern `'0'` (every decimal, no grouping), and 18.0
+  sends the object to `Intl.NumberFormat` (grouping, three decimals). The note names the options that keep the 17.1
+  output, `useGrouping: false` and `maximumFractionDigits: 20`.
+- A `package.json` above the one being edited that starts with a byte order mark is read, as npm does. Before, it was
+  dropped silently and `hyperformula` was added below a root that declared an older range. A file above that cannot be
+  read as JSON is reported, and `hyperformula` is not added below it.
 - A write is not a read of an option. `columns[2].correctFormat = true`, `delete x.datePickerConfig`, a destructuring or
   `for` head target, and a key in an object literal no longer make the custom reader check keep `correctFormat`,
   `datePickerConfig`, or `numericFormat.culture` elsewhere in the file (and no longer say "code that reads" it).

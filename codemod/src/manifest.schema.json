@@ -201,6 +201,14 @@
               "from": { "description": "<option>.<key>, for example numericFormat.culture." },
               "to": { "description": "Name of the option that sits beside <option>." },
               "report": { "type": "string", "description": "Text of a manual entry added after every move." },
+              "reportWithout": { "type": "string", "description": "A key of the object that held the nested key. The report text is left out when that object sets the key, because another rule speaks about it." },
+              "levels": {
+                "type": "array",
+                "items": { "enum": ["grid", "column", "cell"] },
+                "minItems": 1,
+                "description": "The levels at which the key may move: grid (a settings object, a HotTable element), column (an element of columns, a HotColumn element), cell (a cells return, an element of cell). At any other level the key stays and levelAdvice is reported."
+              },
+              "levelAdvice": { "type": "string", "description": "Text of the manual entry reported instead of a move at a level that levels does not list." },
               "readerAdvice": {
                 "type": "string",
                 "description": "Text of the manual entry that replaces a move when custom code may read the nested key: a custom editor, renderer, or validator, a cell type that is not built in, an unreadable spread, or a read of the key in the file."

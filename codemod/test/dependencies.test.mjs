@@ -727,6 +727,63 @@ describe('adding HyperFormula', () => {
     }
   });
 
+  it('reads a package.json above that starts with a byte order mark, as npm does', async() => {
+    const manifest = pkg({ dependencies: { handsontable: '^17.1.0' } });
+    const root = Buffer.concat([Buffer.from([0xEF, 0xBB, 0xBF]),
+      Buffer.from(pkg({ name: 'root', private: true, devDependencies: { hyperformula: '^2.7.0' } }))]);
+
+    await migrate({
+      'package.json': root,
+      'packages/b/package.json': manifest,
+      'packages/b/src/grid.js': app,
+    }, { to: '18.0' }, async({ result, read }) => {
+      const entry = result.report.entries.find(item => item.ruleId === '18.0.0/dependency-hyperformula');
+
+      assert.equal(JSON.parse(await read('packages/b/package.json')).dependencies.hyperformula, undefined);
+      assert.match(entry.message,
+        /^Update hyperformula in package\.json to \^3\.0\.0\. It is declared there as "\^2\.7\.0"/);
+    });
+  });
+
+  it('reports a package.json above that it cannot read, and adds nothing, because it may declare the package',
+    async() => {
+      const manifest = pkg({ dependencies: { handsontable: '^17.1.0' } });
+      const unreadable = {
+        'invalid JSON': Buffer.from('{ "name": "root", '),
+        'not UTF-8': Buffer.from([0x7B, 0x22, 0xFF, 0x22, 0x7D]),
+        'not an object': Buffer.from('[]'),
+      };
+
+      for (const [label, content] of Object.entries(unreadable)) {
+        await migrate({
+          'package.json': content,
+          'packages/b/package.json': manifest,
+          'packages/b/src/grid.js': app,
+        }, { to: '18.0', allowDirty: true }, async({ result, read }) => {
+          const entry = result.report.entries.find(item => item.ruleId === '18.0.0/dependency-hyperformula');
+
+          assert.equal(JSON.parse(await read('packages/b/package.json')).dependencies.hyperformula, undefined, label);
+          assert.equal(entry.severity, 'manual', label);
+          assert.match(entry.message, /^Check hyperformula in package\.json: the tool could not read it as JSON/,
+            label);
+          assert.equal(entry.file, 'packages/b/package.json', label);
+        });
+      }
+    });
+
+  it('adds it when the package.json above that it cannot read sits above one that declares it compatibly', async() => {
+    const manifest = pkg({ dependencies: { handsontable: '^17.1.0' } });
+
+    await migrate({
+      'package.json': Buffer.from('{ "name": "root", '),
+      'packages/package.json': pkg({ name: 'group', devDependencies: { hyperformula: '^3.4.0' } }),
+      'packages/b/package.json': manifest,
+      'packages/b/src/grid.js': app,
+    }, { to: '18.0' }, async({ read }) => {
+      assert.equal(JSON.parse(await read('packages/b/package.json')).dependencies.hyperformula, '^3.0.0');
+    });
+  });
+
   it('reports for a declaration that names no version, and takes the nearest package.json that declares it', async() => {
     const manifest = pkg({ dependencies: { handsontable: '^17.1.0' } });
 

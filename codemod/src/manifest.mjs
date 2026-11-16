@@ -96,7 +96,16 @@ export const RULE_KINDS = {
     optional: { except: 'strings', optionKeys: 'object', noKeyAdvice: 'string' },
   },
   optionRename: { required: { from: 'string', to: 'string' }, optional: { context: 'object' } },
-  optionMove: { required: { from: 'string', to: 'string' }, optional: { report: 'string', readerAdvice: 'string' } },
+  optionMove: {
+    required: { from: 'string', to: 'string' },
+    optional: {
+      report: 'string',
+      reportWithout: 'string',
+      readerAdvice: 'string',
+      levels: 'strings',
+      levelAdvice: 'string',
+    },
+  },
   optionRemove: { required: { name: 'string' }, optional: { todo: 'boolean', readerAdvice: 'string' } },
   methodRemove: { required: { methods: 'strings', receiver: 'stringOrObject' }, optional: {} },
   methodMove: {

@@ -260,6 +260,10 @@ function compatible(declared, wanted) {
  */
 function declaredAbove(ctx, name) {
   for (const { file, manifest } of ctx.ancestors ?? []) {
+    if (manifest === null) {
+      continue;
+    }
+
     const section = SECTIONS.find(candidate => name in sectionOf(manifest, candidate));
 
     if (section) {
@@ -707,6 +711,20 @@ function addPackages(ctx, rule) {
         severity: 'manual',
         message: `Update ${item.name} in ${above.file} to ${item.range}. It is declared there as "${above.range}", `
           + `which does not allow ${item.range}, so the tool did not add ${item.name} to this package.json.`,
+      });
+      continue;
+    }
+
+    // A file above that the tool cannot read may declare it: the add would be a guess.
+    const unreadable = above ? null : (ctx.ancestors ?? []).find(ancestor => ancestor.manifest === null);
+
+    if (unreadable) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        message: `Check ${item.name} in ${unreadable.file}: the tool could not read it as JSON, so it cannot `
+          + `tell whether ${item.name} is declared there. It did not add ${item.name}@${item.range} to this `
+          + 'package.json.',
       });
       continue;
     }

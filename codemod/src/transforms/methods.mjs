@@ -1,6 +1,14 @@
 import { detectQuote } from '../adapters/js.mjs';
-import { lineOfNode, memberName, pluginKeyOf, propertyName, unwrapNode } from '../lib/ast.mjs';
-import { collectHotBindings, isUnresolvedReceiver } from '../lib/hot-bindings.mjs';
+import {
+  isFunctionNode,
+  lineOfNode,
+  memberName,
+  pluginKeyOf,
+  propertyName,
+  stringValue,
+  unwrapNode,
+} from '../lib/ast.mjs';
+import { collectHotBindings, isGridNamed, isUnresolvedReceiver } from '../lib/hot-bindings.mjs';
 import { rewrites } from '../lib/safety.mjs';
 import { problemsOf } from '../lib/validate.mjs';
 
@@ -16,14 +24,6 @@ const WRAPPER_TYPES = new Set([
   'TypeCastExpression',
 ]);
 const STATEMENT_LISTS = new Set(['Program', 'BlockStatement', 'StaticBlock', 'SwitchCase', 'TSModuleBlock']);
-
-/**
- * Names a variable or property that holds a grid has when its type cannot be confirmed: `hot`,
- * `hotInstance`, `this.grid`, `table`. A call on such a receiver is reported, never rewritten. Generic names
- * (`editor`, `history`, `instance`) are not listed on purpose, so an unrelated `.undo()` stays silent.
- */
-const GRID_NAME = new RegExp('^[_$]*(hot|hotInstance|hotInst|hotTable|hotRef|hotGrid|grid|gridInstance|table'
-  + '|handsontable|spreadsheet)$', 'i');
 
 /**
  * One rule prepared for matching.
@@ -151,22 +151,6 @@ function declaredNames(j, root, names) {
 }
 
 /**
- * Last name of a receiver expression: `hot` for `hot` and for `this.hot`. Calls and `this` have none.
- *
- * @param {object} path The receiver NodePath.
- * @returns {string|null} The name, or `null`.
- */
-function receiverName(path) {
-  const node = unwrapNode(path.node);
-
-  if (node.type === 'Identifier') {
-    return node.name;
-  }
-
-  return MEMBER_TYPES.includes(node.type) ? memberName(node) : null;
-}
-
-/**
  * Whether a receiver is a call to the `via` method, which means it already is the new home.
  *
  * @param {object} path The receiver NodePath.
@@ -230,9 +214,7 @@ function decide(spec, name, receiver, bindings, declared) {
     return declared.has(name) ? 'skip' : 'rewrite';
   }
 
-  const label = receiverName(receiver);
-
-  return label !== null && GRID_NAME.test(label) ? 'manual' : 'skip';
+  return isGridNamed(receiver) ? 'manual' : 'skip';
 }
 
 /**
@@ -267,6 +249,141 @@ function usageOf(path) {
   }
 
   return { role: 'reference' };
+}
+
+/**
+ * A receiver as text, so two reads of the same member can be told to be on the same object: `hot`, `this.hot`,
+ * `a.b.c`. A call, an index, or a computed key gives no text.
+ *
+ * @param {object} node An expression node.
+ * @returns {string|null} The text, or `null` when the receiver is not a plain chain.
+ */
+function chainText(node) {
+  const current = unwrapNode(node);
+
+  switch (current.type) {
+    case 'Identifier':
+      return current.name;
+    case 'ThisExpression':
+      return 'this';
+    case 'MemberExpression':
+    case 'OptionalMemberExpression': {
+      const name = memberName(current);
+      const object = name === null ? null : chainText(current.object);
+
+      return object === null ? null : `${object}.${name}`;
+    }
+    default:
+      return null;
+  }
+}
+
+/**
+ * The function nodes around a path, nearest first, and the program at the end.
+ *
+ * @param {object} path Any NodePath.
+ * @returns {object[]} The nodes.
+ */
+function enclosingFunctions(path) {
+  const found = [];
+
+  for (let current = path.parent; current; current = current.parent) {
+    if (isFunctionNode(current.node) || current.node.type === 'Program') {
+      found.push(current.node);
+    }
+  }
+
+  return found;
+}
+
+/**
+ * The function (or the program) a path sits in.
+ *
+ * @param {object} path Any NodePath.
+ * @returns {object} The node.
+ */
+function functionOf(path) {
+  return enclosingFunctions(path)[0];
+}
+
+/**
+ * Whether a member read is the object of another member access: `hot.undoRedo` in `hot.undoRedo.clear()`.
+ *
+ * @param {object} path The member NodePath.
+ * @returns {boolean} `true` when the value is only used to reach a member of it.
+ */
+function isMemberBase(path) {
+  let current = path;
+
+  while (current.parent && WRAPPER_TYPES.has(current.parent.node.type)
+    && current.parent.node.expression === current.node) {
+    current = current.parent;
+  }
+
+  const parent = current.parent?.node;
+
+  return MEMBER_TYPES.includes(parent?.type) && parent.object === current.node;
+}
+
+/**
+ * Whether a member read is the root of an optional chain: `hot.undoRedo?.clear()`.
+ *
+ * @param {object} path The member NodePath.
+ * @returns {boolean} `true` when the next link of the chain is optional.
+ */
+function isChainRoot(path) {
+  const parent = path.parent?.node;
+
+  return parent?.type === 'OptionalMemberExpression' && parent.optional === true && parent.object === path.node;
+}
+
+/**
+ * Whether a member read is a test: the value only decides what runs, as in the test of an `if`, a loop, or a
+ * conditional, an operand of `&&`, `||`, or `??` (the left one), the operand of `!` or `typeof`, a comparison with
+ * `null` or `undefined`, `Boolean(x)`, or the root of an optional chain (`hot.undoRedo?.clear()`).
+ *
+ * @param {object} path The member NodePath.
+ * @returns {boolean} `true` for a read in a test position.
+ */
+function isTestRead(path) {
+  let current = path;
+
+  while (current.parent && WRAPPER_TYPES.has(current.parent.node.type)
+    && current.parent.node.expression === current.node) {
+    current = current.parent;
+  }
+
+  const parent = current.parent?.node;
+
+  switch (parent?.type) {
+    case 'IfStatement':
+    case 'WhileStatement':
+    case 'DoWhileStatement':
+    case 'ForStatement':
+    case 'ConditionalExpression':
+      return parent.test === current.node;
+    case 'LogicalExpression':
+      return parent.left === current.node;
+    case 'UnaryExpression':
+      return parent.operator === '!' || parent.operator === 'typeof';
+    case 'BinaryExpression': {
+      const other = unwrapNode(parent.left === current.node ? parent.right : parent.left);
+
+      return ['==', '!=', '===', '!=='].includes(parent.operator)
+        && (other.type === 'NullLiteral' || (other.type === 'Literal' && other.value === null)
+          || (other.type === 'Identifier' && other.name === 'undefined')
+          || (other.type === 'UnaryExpression' && other.operator === 'typeof')
+          || stringValue(other) !== null);
+    }
+    case 'CallExpression':
+      return parent.callee.type === 'Identifier' && parent.callee.name === 'Boolean'
+        && parent.arguments[0] === current.node;
+    case 'OptionalMemberExpression':
+      // `hot.undo?.()` is an optional call, which `act()` reports on its own.
+      return parent.optional === true && parent.object === current.node;
+    default:
+      return false;
+  }
 }
 
 /**
@@ -426,11 +543,13 @@ function guidance(spec, name) {
  * Act on one matched member access.
  *
  * @param {import('../types.mjs').Ctx} ctx Context.
- * @param {{path: object, spec: Spec, name: string, decision: 'rewrite'|'manual', usage: object}} action The match.
+ * @param {{path: object, spec: Spec, name: string, decision: 'rewrite'|'manual', usage: object,
+ * guard?: 'test'|'guarded'}} action The match. `guard` says the member is read in a test, or sits in a function that
+ * tests it, so a rewrite would make code run that never ran.
  * @param {'single'|'double'} quote Quote style of the file.
  * @returns {void}
  */
-function act(ctx, { path, spec, name, decision, usage }, quote) {
+function act(ctx, { path, spec, name, decision, usage, guard }, quote) {
   const { rule } = spec;
   const line = lineOfNode(path.node);
   const isProperty = spec.properties.has(name);
@@ -449,6 +568,16 @@ function act(ctx, { path, spec, name, decision, usage }, quote) {
 
   if (!rewrites(rule)) {
     manual(`${name}${isProperty ? '' : '()'} needs a review. ${guidance(spec, name)}`);
+
+    return;
+  }
+
+  if (guard) {
+    const why = guard === 'test' ? 'it is read in a test here' : `a test of ${name} on the same receiver guards it`;
+
+    manual(`${guidance(spec, name)} The tool left ${name}${isProperty ? '' : '()'} alone: ${why}, and that test `
+      + `never passed on 17.x, because core had no ${name}. The plugin always exists, so a rewrite would run the `
+      + 'guarded code for the first time.');
 
     return;
   }
@@ -476,6 +605,16 @@ function act(ctx, { path, spec, name, decision, usage }, quote) {
 
   if (usage.role === 'reference' && !isProperty) {
     manual(`${guidance(spec, name)} ${name} is used without a call.`);
+
+    return;
+  }
+
+  if (isProperty && !isMemberBase(path)) {
+    // `hot.undoRedo.clear()` threw on 17.x, so moving it makes it work. A value that is stored, passed, or compared
+    // was `undefined` there, and the plugin is not, so code that tests it later would take another branch.
+    manual(`${guidance(spec, name)} ${name} is read here as a value, and it was undefined on 17.x, so the tool left `
+      + 'it alone: the plugin is not undefined, and code that stores, passes, or tests the value would behave '
+      + 'differently.');
 
     return;
   }
@@ -731,7 +870,51 @@ const methods = {
 
     MEMBER_TYPES.forEach(type => root.find(j[type]).forEach(path => handle(path, specForMember)));
 
+    // A test of a moved member (`if (hot.undoRedo)`, `typeof hot.undo`, `'undo' in hot`) never passed where the member
+    // did not exist, and the plugin always exists, so a rewrite would run the guarded code for the first time.
+    const tests = new Map();
+    const noteTest = (receiver, name, anchor) => {
+      const key = `${chainText(receiver.node) ?? '?'}.${name}`;
+
+      tests.set(key, [...(tests.get(key) ?? []), functionOf(anchor)]);
+    };
+
     for (const action of actions) {
+      if (action.spec.type === 'move' && action.decision === 'rewrite' && isTestRead(action.path)) {
+        action.guard = 'test';
+
+        // The root of an optional chain only skips its own call: it guards nothing else.
+        if (!isChainRoot(action.path)) {
+          noteTest(action.path.get('object'), action.name, action.path);
+        }
+      }
+    }
+
+    root.find(j.BinaryExpression, { operator: 'in' }).forEach((path) => {
+      const name = stringValue(path.node.left);
+      const spec = name === null ? null : specForMember(name);
+
+      if (spec?.type === 'move' && decide(spec, name, path.get('right'), bindings, declared) === 'rewrite') {
+        noteTest(path.get('right'), name, path);
+        ctx.report({
+          ruleId: spec.rule.id,
+          severity: 'manual',
+          line: lineOfNode(path.node),
+          message: `${guidance(spec, name)} '${name}' in ${chainText(path.node.right) ?? 'the grid'} is a test `
+            + `that never passed on 17.x, because core had no ${name}, and it passes now: the tool left it alone.`,
+        });
+      }
+    });
+
+    for (const action of actions) {
+      if (action.spec.type === 'move' && action.decision === 'rewrite' && !action.guard) {
+        const scopes = tests.get(`${chainText(action.path.node.object) ?? '?'}.${action.name}`) ?? [];
+
+        if (scopes.length > 0 && enclosingFunctions(action.path).some(node => scopes.includes(node))) {
+          action.guard = 'guarded';
+        }
+      }
+
       act(ctx, action, quote);
     }
 

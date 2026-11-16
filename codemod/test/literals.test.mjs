@@ -134,7 +134,7 @@ describe('multi-line literals survive a reprint of the object around them', () =
           const output = await migrate(input, filePath, CULTURE);
 
           assert.match(output, /locale: 'de-DE'/);
-          assert.doesNotMatch(output, /culture/);
+          assert.doesNotMatch(output, /\bculture:/);
           assertLiteralsKept(input, output, filePath);
         });
       }
@@ -158,8 +158,12 @@ describe('the reported cases', () => {
       '}',
       '',
     ].join('\n');
-    const output = await migrate(input, 'probe.js', CULTURE);
+    const marked = await migrate(input, 'probe.js', CULTURE);
+    // The move leaves a note about the number format. Take its line out, to compare the rest byte for byte.
+    const note = /^ *\/\/ TODO\(handsontable-codemod 18\.0\.0\/numeric-format-culture\): Check the numbers/;
+    const output = marked.split('\n').filter(line => !note.test(line)).join('\n');
 
+    assert.notEqual(output, marked, 'the note about the number format is there');
     assert.equal(output, [
       'import Handsontable from \'handsontable\';',
       '',
