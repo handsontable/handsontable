@@ -27,6 +27,25 @@ describe('waitingMetaStamps', () => {
       expect(stamps.findUnplaced(2, null)).toEqual({ record, meta });
     });
 
+    it('should keep the shared meta found until every call that holds it is released', () => {
+      const stamps = createStamps();
+      const record: TrackedRecord = { id: 1, physicalRow: 4 };
+      const meta: StampedMeta = { row: 4, visualRow: null, prop: 2 };
+      const otherRecord: TrackedRecord = { id: 2, physicalRow: 5 };
+      const otherMeta: StampedMeta = { row: 5, visualRow: null, prop: 2 };
+      const releases = [stamps.add(record, meta), stamps.add(record, meta), stamps.add(record, meta)];
+
+      stamps.add(otherRecord, otherMeta);
+      releases[0]();
+      releases[1]();
+
+      expect(stamps.findUnplaced(2, meta)).toEqual({ record, meta });
+
+      releases[2]();
+
+      expect(stamps.findUnplaced(2, null)).toBeNull();
+    });
+
     it('should not find a released meta once no call holds it', () => {
       const stamps = createStamps();
       const record: TrackedRecord = { id: 1, physicalRow: 4 };

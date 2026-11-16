@@ -108,7 +108,7 @@ describe('Core validation of a change while its column moves', () => {
   }
 
   describe('a move of the visual columns', () => {
-    it('should write the value to the edited column when the column is moved before the validator answers', async() => {
+    it('should write the value to the edited column when the column is moved before the validator answers (guard)', async() => {
       createGrid();
 
       hot.setDataAtCell(1, 1, 'edit');
@@ -132,7 +132,7 @@ describe('Core validation of a change while its column moves', () => {
       expect(sourceRow(1)).toEqual(['r1c0', 'ZZZ', 'r1c2']);
     });
 
-    it('should report in afterChange the property of the edited column, which names its visual column now', async() => {
+    it('should report in afterChange the property of the edited column, which names its visual column now (guard)', async() => {
       createGrid();
 
       hot.setDataAtCell(1, 1, 'edit');
@@ -157,7 +157,7 @@ describe('Core validation of a change while its column moves', () => {
       expect(sourceRow(1)).toEqual([null, 'r1c0', 'edit', 'r1c2']);
     });
 
-    it('should write the value to the edited column when a column is inserted after it', async() => {
+    it('should write the value to the edited column when a column is inserted after it (guard)', async() => {
       createGrid();
 
       hot.setDataAtCell(1, 1, 'edit');
@@ -177,7 +177,7 @@ describe('Core validation of a change while its column moves', () => {
       expect(sourceRow(1)).toEqual(['edit', 'r1c2']);
     });
 
-    it('should write the value to the edited column when a column after it is removed', async() => {
+    it('should write the value to the edited column when a column after it is removed (guard)', async() => {
       createGrid();
 
       hot.setDataAtCell(1, 1, 'edit');
@@ -223,7 +223,7 @@ describe('Core validation of a change while its column moves', () => {
   });
 
   describe('a hidden column', () => {
-    it('should write the value to the edited column when it is hidden before the validator answers', async() => {
+    it('should write the value to the edited column when it is hidden before the validator answers (guard)', async() => {
       createGrid({ hiddenColumns: true });
 
       hot.setDataAtCell(1, 1, 'edit');
@@ -253,7 +253,7 @@ describe('Core validation of a change while its column moves', () => {
   });
 
   describe('object data', () => {
-    it('should keep writing to the property when the columns are moved', async() => {
+    it('should keep writing to the property when the columns are moved (guard)', async() => {
       createGrid({
         data: [{ a: 'a0', b: 'b0' }],
         columns: [{ data: 'a' }, { data: 'b', validator: heldValidator }],
@@ -265,6 +265,87 @@ describe('Core validation of a change while its column moves', () => {
       await answerAll();
 
       expect(hot.getSourceDataAtRow(0)).toEqual({ a: 'a0', b: 'edit' });
+    });
+  });
+
+  describe('a validator correction after the edited column was removed', () => {
+    it('should skip a correction written through this.visualCol and end the validation', async() => {
+      createGrid({
+        cells: (row, col) => (col === 1 ? { validator: correctingValidator } : {}),
+      });
+
+      hot.setDataAtCell(1, 1, 'zzz');
+      hot.alter('remove_col', 1);
+      await settle();
+
+      const answers = pending.splice(0);
+
+      expect(() => answers.forEach(({ answer }) => answer(true))).not.toThrow();
+      await settle();
+
+      expect(hot._hasPendingValidation()).toBe(false);
+      expect(sourceRow(1)).toEqual(['r1c0', 'r1c2']);
+    });
+
+    it('should skip a correction written through this.prop instead of writing it to the neighbor column', async() => {
+      createGrid({
+        cells: (row, col) => (col === 1 ? {
+          validator(value, callback) {
+            pending.push({
+              value,
+              answer: (result) => {
+                this.instance.setDataAtRowProp(this.visualRow, this.prop, 'ZZZ', 'upperValidator');
+                callback(result);
+              },
+            });
+          },
+        } : {}),
+      });
+
+      hot.setDataAtCell(1, 1, 'zzz');
+      hot.alter('remove_col', 1);
+      await answerAll();
+      await answerAll();
+
+      expect(sourceRow(1)).toEqual(['r1c0', 'r1c2']);
+    });
+
+    it('should apply a correction to a column declared with a null data property', async() => {
+      createGrid({
+        data: [{ a: 'a0' }],
+        columns: [{ data: null, validator: correctingValidator }, { data: 'a' }],
+        cells: undefined,
+      });
+
+      hot.setDataAtCell(0, 0, 'zzz');
+      await answerAll();
+      await answerAll();
+
+      expect(hot.getSourceDataAtRow(0)).toEqual({ a: 'a0', null: 'ZZZ' });
+    });
+  });
+
+  describe('an editor whose value the validator rejects, with a function accessor column', () => {
+    it('should reopen on the column after updateSettings() gave the accessor a new identity', async() => {
+      createGrid({
+        data: [{ a: 'a0', b: 'b0' }, { a: 'a1', b: 'b1' }],
+        columns: [{ data: row => row.a, validator: heldValidator }, { data: 'b' }],
+        cells: undefined,
+        allowInvalid: false,
+      });
+
+      hot.selectCell(0, 0);
+
+      const editor = hot.getActiveEditor();
+
+      editor.beginEditing();
+      editor.setValue('zzz');
+      editor.finishEditing();
+      hot.updateSettings({ columns: [{ data: row => row.a, validator: heldValidator }, { data: 'b' }] });
+      await answerAll(false);
+
+      expect(editor.isOpened()).toBe(true);
+      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
     });
   });
 });

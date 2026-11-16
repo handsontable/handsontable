@@ -3677,6 +3677,19 @@ export default function Core(
   }
 
   /**
+   * Tells whether a write of a change to a `null` property is a validator's correction for a column a removal took
+   * while its validator call waits. The validator writes it through `this.prop`, which is `null` then. A grid with a
+   * column declared `{ data: null }` writes through that property, so it never counts there.
+   *
+   * @param {*} prop The property of the change.
+   * @param {string} [source] The change source.
+   * @returns {boolean}
+   */
+  function isRemovedColumnCorrection(prop: unknown, source: string | undefined) {
+    return prop === null && isValidatorCorrection(source) && !(datamap.colToPropCache as unknown[]).includes(null);
+  }
+
+  /**
    * Folds a validator's correction written to a `null` row into the waiting change of the record it corrects, which
    * has no visual row to write it through. The record is the one of the validator call that runs now, or, for a
    * correction written later (after a timer or a request), the only record whose waiting validator call has a `null`
@@ -4689,6 +4702,11 @@ export default function Core(
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, visualColumn, newValue] = input[i];
+
+      if (visualColumn === null && isValidatorCorrection(changeSource)) {
+        continue;
+      }
+
       const visualColumnIndex = getSetDataAtCellColumn(input[i]);
 
       if (visualColumnIndex >= this.countCols()) {
@@ -4717,10 +4735,6 @@ export default function Core(
         // always has. An unbound column keeps its `null` property, so the write does not land on
         // a neighbour's source field.
         prop = colToPropOrIndex(instance, visualColumnIndex) as string | number;
-      }
-
-      if (prop === null && isValidatorCorrection(changeSource)) {
-        continue;
       }
 
       if (isUnplacedCorrection(visualRow, changeSource)) {
@@ -4888,6 +4902,10 @@ export default function Core(
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, inputProp, newValue] = input[i];
+
+      if (isRemovedColumnCorrection(inputProp, changeSource)) {
+        continue;
+      }
 
       if (isUnplacedCorrection(visualRow, changeSource)) {
         foldUnplacedCorrection(inputProp, newValue, changeSource);
@@ -6990,7 +7008,11 @@ export default function Core(
 
         const followedColumn = datamap.propToCol(prop as string | number);
 
-        return typeof followedColumn === 'number' ? followedColumn : null;
+        if (typeof followedColumn === 'number') {
+          return followedColumn;
+        }
+
+        return followedColumn === null ? null : visualColumn;
       },
       release() {
         if (anchor !== null) {

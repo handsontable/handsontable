@@ -99,6 +99,7 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
 ): WaitingMetaStamps<M> {
   const stamps = new Set<{ record: TrackedRecord, meta: M, column?: TrackedColumn }>();
   const releasedUnplaced = new Set<M>();
+  const holdsOfMeta = new Map<M, number>();
   let listenedMapper: StampedIndexMapper | null = null;
   let listenedColumnMapper: StampedIndexMapper | null = null;
   let columnStampsCount = 0;
@@ -133,7 +134,9 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
       const { physicalColumn } = column;
 
       if (physicalColumn === null) {
+        meta.col = null;
         meta.visualCol = null;
+        meta.prop = null;
 
         return;
       }
@@ -194,39 +197,32 @@ export function createWaitingMetaStamps<M extends StampedMeta = StampedMeta>(
     return isFound;
   };
 
-  /**
-   * Tells whether a waiting call still keeps a meta object. Calls on one cell share its stored meta, so a call
-   * that is released must not mark the meta as answered while another one still waits on it.
-   *
-   * @param {object} meta The meta object.
-   * @returns {boolean}
-   */
-  const isMetaHeld = (meta: M) => {
-    for (const stamp of stamps) {
-      if (stamp.meta === meta) {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
   return {
     add(record, meta, column) {
       const stamp = { record, meta, column };
 
       releasedUnplaced.delete(meta);
       stamps.add(stamp);
+      holdsOfMeta.set(meta, (holdsOfMeta.get(meta) ?? 0) + 1);
       columnStampsCount += column === undefined ? 0 : 1;
       syncListener();
 
       return () => {
         if (stamps.delete(stamp)) {
           columnStampsCount -= column === undefined ? 0 : 1;
-        }
 
-        if (meta.visualRow === null && !isMetaHeld(meta)) {
-          releasedUnplaced.add(meta);
+          const holds = (holdsOfMeta.get(meta) ?? 1) - 1;
+
+          if (holds > 0) {
+            holdsOfMeta.set(meta, holds);
+
+          } else {
+            holdsOfMeta.delete(meta);
+
+            if (meta.visualRow === null) {
+              releasedUnplaced.add(meta);
+            }
+          }
         }
 
         syncListener();
