@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { UsageError } from './errors.mjs';
+import { plainText } from './lib/markdown.mjs';
 import { redact } from './lib/redact.mjs';
 import { BELOW_FROM_RULE_ID, plural, renderConsole, renderMarkdown } from './report.mjs';
 import { describeRules, resolvePlan, run } from './runner.mjs';
@@ -177,6 +178,8 @@ function nextSteps(result, stdout) {
  * @param {string} [io.cwd] Working directory.
  * @param {(text: string) => void} [io.stdout] Standard output writer.
  * @param {(text: string) => void} [io.stderr] Standard error writer.
+ * @param {(path: string, text: string) => Promise<void>} [io.writeReport] Writes the `--report` file. Defaults to
+ * `writeFile`, and a test replaces it to fail after the run.
  * @param {boolean} [io.progress] Whether to print a progress line every two seconds. Defaults to whether standard
  * output is a terminal.
  * @returns {Promise<number>} The exit code: 0 done, 1 runtime or parse errors, 2 usage error or refusal.
@@ -186,11 +189,13 @@ export async function main(argv, {
   stdout: writeOut = text => process.stdout.write(text),
   stderr: writeErr = text => process.stderr.write(text),
   progress = Boolean(process.stdout.isTTY),
+  writeReport = writeFile,
 } = {}) {
   // Everything that reaches a terminal or a log passes through one filter, so the user information of a URL in a
-  // dependency spec never shows up, whichever message or diff line carries it.
-  const stdout = text => writeOut(redact(text));
-  const stderr = text => writeErr(redact(text));
+  // dependency spec never shows up, whichever message or diff line carries it, and a control character from a file
+  // name or a source line (an escape sequence that rewrites the screen) is printed as text.
+  const stdout = text => writeOut(plainText(redact(text)));
+  const stderr = text => writeErr(plainText(redact(text)));
   let parsed;
 
   try {
@@ -289,7 +294,7 @@ export async function main(argv, {
       const date = new Date().toISOString().slice(0, 10);
 
       try {
-        await writeFile(resolve(cwd, values.report), renderMarkdown(result.report, {
+        await writeReport(resolve(cwd, values.report), renderMarkdown(result.report, {
           ...summary,
           from: result.from,
           to: result.to,

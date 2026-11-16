@@ -2,6 +2,7 @@ import { extname } from 'node:path';
 import jscodeshift from 'jscodeshift';
 import { calleeName, propertyName, unwrapNode } from '../lib/ast.mjs';
 import { spliceCarriers } from '../lib/carrier.mjs';
+import { dominantBreak, restoreLineEndings } from '../lib/line-endings.mjs';
 import { guardLiterals, intendedLiterals, keepJsxEntities, linesInsideLiterals } from '../lib/literals.mjs';
 
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.mts', '.cts']);
@@ -128,17 +129,14 @@ export function createJsPart(source, parser, lineOffset = 0) {
 }
 
 /**
- * The line terminator most lines of a text end with. The printer writes one terminator for the whole part, so a file
- * with mixed line endings comes out in the one it mostly uses, and a single stray `\r\n` does not convert the file.
+ * The line terminator the printer writes: `\r\n` when most of the lines of the source end with it, otherwise `\n`. A
+ * file that uses another ending gets it back after printing (`restoreLineEndings()`).
  *
  * @param {string} source Text of the part.
- * @returns {string} `\r\n` when at least half of the line breaks are `\r\n`, otherwise `\n`.
+ * @returns {'\r\n'|'\n'} The terminator for recast and the helpers that work on its output.
  */
-function dominantTerminator(source) {
-  const crlf = source.split('\r\n').length - 1;
-  const all = source.split('\n').length - 1;
-
-  return crlf > 0 && crlf * 2 >= all ? '\r\n' : '\n';
+function workingTerminator(source) {
+  return dominantBreak(source) === '\r\n' ? '\r\n' : '\n';
 }
 
 /**
@@ -165,7 +163,18 @@ function dominantTerminator(source) {
  * @throws {Error} When a string or template literal cannot be kept as intended, or the text does not parse.
  */
 export function printJsPart(part, source) {
-  const lineTerminator = dominantTerminator(source);
+  return restoreLineEndings(source, printWithTerminator(part, source), workingTerminator(source));
+}
+
+/**
+ * Print a `js` part with one line terminator for the whole text. See `printJsPart()` for the steps.
+ *
+ * @param {import('../types.mjs').Part} part A part made by `createJsPart`.
+ * @param {string} source Original text of the part.
+ * @returns {string} Printed text, ended by `workingTerminator(source)`.
+ */
+function printWithTerminator(part, source) {
+  const lineTerminator = workingTerminator(source);
   const tabs = usesTabs(source);
   const parser = part.parser ?? 'babylon';
   const intended = intendedLiterals(part);

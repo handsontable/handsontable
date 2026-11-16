@@ -62,7 +62,7 @@ A pre-built Tree-sitter knowledge graph over the whole monorepo answers cross-fi
 | `@handsontable/vue3` | `wrappers/vue3/` | Vue 3 wrapper |
 | `handsontable-visual-tests` | `visual-tests/` | Playwright visual regression tests |
 | `handsontable-tests` | `tests/` | Playwright functional E2E suite (theme × bundle matrix) |
-| `@handsontable/codemod` | `codemod/` | Migration CLI that applies the mechanical part of an upgrade (private, never published) |
+| `@handsontable/codemod` | `codemod/` | Migration CLI that applies the mechanical part of an upgrade (private, not published yet) |
 | `handsontable-examples-internal` | `examples/` | Code examples |
 | `handsontable-documentation` | `docs/` | Documentation site (requires Node 22) |
 

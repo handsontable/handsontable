@@ -1,11 +1,12 @@
 import { constants } from 'node:fs';
-import { access, lstat, realpath, stat, writeFile } from 'node:fs/promises';
-import { basename, dirname, join, posix, relative, resolve, sep } from 'node:path';
-import { adapterFor } from './adapters/index.mjs';
+import { access, lstat, realpath, stat } from 'node:fs/promises';
+import { basename, dirname, isAbsolute, join, parse, posix, relative, resolve, sep } from 'node:path';
+import { adapterFor, isCandidate } from './adapters/index.mjs';
 import { unifiedDiff } from './diff.mjs';
 import { UsageError } from './errors.mjs';
-import { discover, resolvesInside } from './discover.mjs';
-import { insideRelative } from './lib/paths.mjs';
+import { discover, firstLinkOn, resolvesInside } from './discover.mjs';
+import { insideRelative, realpathNative, toPosix } from './lib/paths.mjs';
+import { StaleFileError, writeFileSafely } from './lib/safe-write.mjs';
 import { redact } from './lib/redact.mjs';
 import { dirtyPaths, isGitRepo, isTracked } from './git.mjs';
 import { packageFilesAbove, registerPackageDir } from './lib/facts.mjs';
@@ -115,16 +116,29 @@ function firstLine(message) {
 }
 
 /**
- * What the report says about a symbolic link the run did not follow. A link whose target is inside the project says
+ * What the report says about something discovery left out. A symbolic link whose target is inside the project says
  * where it points, and whether the run migrates the target as its own file. A link to a place outside the project, or
- * to nothing, keeps the general advice: a link can point outside, and that project is migrated on its own.
+ * to nothing, keeps the general advice: a link can point outside, and that project is migrated on its own. A
+ * submodule or an embedded repository says to run the tool inside it, and a directory the walk skipped says how to
+ * include it.
  *
  * @param {string} cwd Project directory.
- * @param {string} file Project-relative path of the link.
+ * @param {import('./discover.mjs').SkippedLink} item What was left out.
  * @param {string[]} files The files the run migrates.
  * @returns {Promise<string>} The text of the entry.
  */
-async function linkMessage(cwd, file, files) {
+async function skippedMessage(cwd, item, files) {
+  const file = item.file;
+
+  if (item.kind === 'repository') {
+    return 'This is a submodule or an embedded git repository, so the tool did not read it. Run the tool inside it.';
+  }
+
+  if (item.kind === 'directory') {
+    return 'This directory holds files the tool reads, but outside a git repository it cannot tell build output from '
+      + `source, so it skipped it. To include it, name it: migrate ${file}`;
+  }
+
   const general = 'This is a symbolic link, so it was not followed. A link can point outside the project. Migrate '
     + 'the file it points to in its own project.';
 
@@ -146,13 +160,27 @@ async function linkMessage(cwd, file, files) {
 }
 
 /**
+ * The entries of a file whose edits were not applied (the write failed, or the file sits outside the project). A
+ * `changed` entry says what the tool did, so it goes. A `manual` entry keeps its place, but its marker never reached
+ * the file, so it is no longer "marked in the code".
+ *
+ * @param {import('./types.mjs').ReportEntry[]} entries The entries of the file.
+ * @returns {import('./types.mjs').ReportEntry[]} The entries that are still true.
+ */
+function withoutApplied(entries) {
+  return entries.filter(entry => entry.severity !== 'changed')
+    .map(entry => (entry.marked ? { ...entry, marked: false } : entry));
+}
+
+/**
  * Say where and why a parser gave up. An error at the end of the text (a missing bracket or quote) is reported on the
  * last line of the file, as `unexpected end of file`: the parser's own position is the line after it. Any other error
  * keeps the parser's message and shows the text of the line, cut to 80 characters.
  *
  * @param {object} error The error the parser threw: `loc`, `pos`, `reason`, and `message` are read when present.
  * @param {string} source The file text.
- * @returns {{line: number|null, text: string}} The one-based line, and the sentence that follows `skipped:`.
+ * @returns {{line: number|null, text: string, quoted: string[]}} The one-based line, the sentence that follows
+ * `skipped:`, and the part of the sentence that is a line of the user's file (`quoted`, for the Markdown report).
  */
 function describeParseError(error, source) {
   const lines = source.replace(/\r?\n$/, '').split(/\r?\n/);
@@ -162,13 +190,13 @@ function describeParseError(error, source) {
   const atEnd = at !== null && (at > lines.length || pastEnd);
 
   if (atEnd) {
-    return { line: lines.length, text: 'unexpected end of file.' };
+    return { line: lines.length, text: 'unexpected end of file.', quoted: [] };
   }
 
   const reason = firstLine(error.reason ?? error.message).replace(/ \(\d+:\d+\)$/, '').replace(/[.]$/, '');
   const shown = at === null ? '' : lines[at - 1]?.trim().slice(0, 80);
 
-  return { line: at, text: shown ? `${reason}, at: ${shown}` : `${reason}.` };
+  return { line: at, text: shown ? `${reason}, at: ${shown}` : `${reason}.`, quoted: shown ? [shown] : [] };
 }
 
 /**
@@ -625,6 +653,7 @@ export async function transformFile({
         file: filePath,
         line: where.line,
         message: `The file could not be parsed and was skipped: ${where.text}`,
+        quoted: where.quoted,
         guideUrl: null,
       }],
     };
@@ -686,9 +715,75 @@ export async function transformFile({
 }
 
 /**
+ * The first symbolic link on the way to a report target, the target itself included. Components above the project
+ * directory are the user's own environment (`/tmp` is a link on macOS) and are not looked at: the walk starts at the
+ * deepest directory that the project directory and the target share.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string} target Absolute path of the report.
+ * @returns {Promise<string|null>} The absolute path of the link, or `null`.
+ */
+async function linkOnReportPath(cwd, target) {
+  const rel = relative(cwd, target);
+  let base = cwd;
+  let below;
+
+  if (isAbsolute(rel)) {
+    // Another drive: nothing is shared with the project directory.
+    base = parse(target).root;
+    below = relative(base, target);
+  } else {
+    const segments = rel.split(sep).filter(Boolean);
+    let up = 0;
+
+    while (segments[up] === '..') {
+      up += 1;
+      base = dirname(base);
+    }
+
+    below = segments.slice(up).join(sep);
+  }
+
+  const link = await firstLinkOn(base, below);
+
+  return link === null ? null : join(base, link);
+}
+
+/**
+ * Tell whether two paths name one file. A file system that ignores letter case (macOS, Windows) gives `src/A.JS` and
+ * `src/a.js` different strings, and a hard link gives two names to one inode, so the answer comes from the file
+ * system: the same real path as it stores it, or the same device and inode.
+ *
+ * @param {string} left Absolute path of an existing file.
+ * @param {string} right Absolute path of a file that may not exist.
+ * @returns {Promise<boolean>} `true` when both paths are one file.
+ */
+async function isSameFile(left, right) {
+  const [leftPath, rightPath, leftInfo, rightInfo] = await Promise.all([
+    realpathNative(left).catch(() => null),
+    realpathNative(right).catch(() => null),
+    stat(left, { bigint: true }).catch(() => null),
+    stat(right, { bigint: true }).catch(() => null),
+  ]);
+
+  if (leftPath !== null && leftPath === rightPath) {
+    return true;
+  }
+
+  // An inode of 0 means the file system gave none (some network and FAT volumes on Windows).
+  return Boolean(leftInfo && rightInfo) && leftInfo.ino !== 0n && leftInfo.ino === rightInfo.ino
+    && leftInfo.dev === rightInfo.dev;
+}
+
+/**
  * Refuse a report path that would overwrite something that is not a previous report: a file git tracks, a file the
- * run is about to migrate, or a symbolic link, which `writeFile` would follow. A file that does not exist, or an
- * untracked file that is not a project file (the report of the previous run), is fine.
+ * run is about to migrate, a file with an extension the tool handles (it may be a source file the run did not list,
+ * and a report has no business there), a symbolic link on the way, which `writeFile` would follow, or a file the user
+ * cannot write. A file that does not exist, or an untracked file that is not a project file (the report of the
+ * previous run), is fine.
+ *
+ * Files are compared as the file system sees them (`isSameFile()`), so a different letter case or a hard link does not
+ * get past the check.
  *
  * @param {string} cwd Project directory.
  * @param {string} reportPath The `--report` value.
@@ -709,6 +804,13 @@ async function assertReportTarget(cwd, reportPath, files, repo) {
       + 'Create it, or choose a file in an existing directory.');
   }
 
+  const link = await linkOnReportPath(cwd, target);
+
+  if (link !== null) {
+    throw new UsageError(`--report ${reportPath} is a symbolic link, or sits below one (${relative(cwd, link)}), and `
+      + 'the report would be written through it. Choose another file.');
+  }
+
   if (info?.isDirectory()) {
     throw new UsageError(`--report ${reportPath} is a directory. Choose a file name, for example `
       + `${posix.join(reportPath.split(sep).join('/').replace(/\/+$/, ''), 'migration-report.md')}.`);
@@ -723,18 +825,24 @@ async function assertReportTarget(cwd, reportPath, files, repo) {
     return;
   }
 
-  if (info.isSymbolicLink()) {
-    throw new UsageError(`--report ${reportPath} is a symbolic link, and the report would be written through it. `
-      + 'Choose another file.');
-  }
-
-  const rel = relative(cwd, target).split(sep).join('/');
-  const projectFile = files.includes(rel) || (repo && await isTracked(cwd, target));
+  const sameAsProject = (await Promise.all(files.map(file => isSameFile(join(cwd, file), target)))).some(Boolean);
+  const stored = await realpathNative(target).catch(() => target);
+  const projectFile = sameAsProject || (repo && (await isTracked(cwd, target) || await isTracked(cwd, stored)));
 
   if (projectFile) {
     throw new UsageError(`--report ${reportPath} would overwrite a project file. Choose another file, for example `
       + 'migration-report.md.');
   }
+
+  if (isCandidate(toPosix(relative(cwd, target)))) {
+    throw new UsageError(`--report ${reportPath} is an existing file of a type the tool migrates, so the report `
+      + 'would overwrite source. Choose another file, for example migration-report.md.');
+  }
+
+  // An existing report that the user cannot write would fail after every file was migrated.
+  await access(target, constants.W_OK).catch(() => {
+    throw new UsageError(`--report ${reportPath} exists and is not writable. Choose another file.`);
+  });
 }
 
 /**
@@ -1050,6 +1158,8 @@ export function describeRules(plan, registry = defaultRegistry) {
  * @param {number} [options.progressIntervalMs] Milliseconds between progress reports. Defaults to
  * `PROGRESS_INTERVAL_MS`.
  * @param {(text: string) => void} [options.onWarning] Called with a one-line warning before anything is written.
+ * @param {object} [options.hooks] Injection points for tests. `discover` replaces the file search, and
+ * `beforeRename(file)` runs after the temporary file of a write is complete, before it replaces the original.
  * @returns {Promise<{changedFiles: string[], report: Report, diffs: Array<{file: string, diff: string}>,
  * exitCode: number, notes: string[], error: string|null}>} The outcome. `exitCode` is 0 on success, 1 when a
  * file could not be parsed, read, or transformed, and 2 for a usage error or a refused dirty tree.
@@ -1074,6 +1184,7 @@ export async function run({
   onProgress,
   progressIntervalMs = PROGRESS_INTERVAL_MS,
   onWarning,
+  hooks = {},
 } = {}) {
   const report = new Report();
   const result = { changedFiles: [], report, diffs: [], exitCode: 0, notes: [], error: null, from: '', to: '' };
@@ -1105,16 +1216,27 @@ export async function run({
     }
 
     const links = [];
+    const searchNotes = [];
+    const reasons = [];
 
-    files = await discover({ cwd, paths, skipped: links });
+    files = await (hooks.discover ?? discover)({ cwd, paths, skipped: links, notes: searchNotes, reasons });
 
     if (reportPath) {
       await assertReportTarget(cwd, reportPath, files, repo);
     }
 
     for (const link of links) {
-      report.add(skippedEntry(link.file, null, await linkMessage(cwd, link.file, files)));
+      report.add(skippedEntry(link.file, null, await skippedMessage(cwd, link, files)));
     }
+
+    // A run that reads no file must not look like a run that read them all and found nothing to change.
+    if (files.length === 0) {
+      searchNotes.push(`No files to migrate. ${reasons.length > 0 ? reasons.join(' ')
+        : 'No file with an extension the tool reads was found.'}`);
+    }
+
+    result.notes.push(...searchNotes);
+    report.notes.push(...searchNotes);
   } catch (error) {
     if (error instanceof UsageError) {
       return { ...result, exitCode: 2, error: error.message };
@@ -1207,35 +1329,42 @@ export async function run({
       ancestors: phase === 2 ? await ancestorsOf(file) : [],
     });
 
-    report.addAll(outcome.entries);
+    if (!outcome.changed) {
+      report.addAll(outcome.entries);
 
-    if (outcome.changed && !(await resolvesInside(cwd, file))) {
+      return;
+    }
+
+    if (!(await resolvesInside(cwd, file))) {
+      report.addAll(withoutApplied(outcome.entries));
       report.add(skippedEntry(file, null, 'It resolves to a place outside the project directory, so it was not '
         + 'changed.'));
 
       return;
     }
 
-    if (outcome.changed) {
-      if (write) {
-        try {
-          await writeFile(join(cwd, file), outcome.output);
-        } catch (error) {
-          // A file that could not be written is not a changed file: the summary must count what is on disk.
-          report.add({
-            ruleId: 'write-error',
-            severity: 'warning',
-            file,
-            message: `The file could not be written: ${error.message}`,
-          });
+    if (write) {
+      try {
+        await writeFileSafely(join(cwd, file), source, outcome.output, {
+          beforeRename: () => hooks.beforeRename?.(file),
+        });
+      } catch (error) {
+        // A file that could not be written is not a changed file: the summary must count what is on disk.
+        report.addAll(withoutApplied(outcome.entries));
+        report.add({
+          ruleId: 'write-error',
+          severity: 'warning',
+          file,
+          message: error instanceof StaleFileError ? error.message : `The file could not be written: ${error.message}`,
+        });
 
-          return;
-        }
+        return;
       }
-
-      result.changedFiles.push(file);
-      result.diffs.push({ file, diff: unifiedDiff(file, source, outcome.output) });
     }
+
+    report.addAll(outcome.entries);
+    result.changedFiles.push(file);
+    result.diffs.push({ file, diff: unifiedDiff(file, source, outcome.output) });
   };
 
   const packageFiles = files.filter(candidate => basename(candidate) === 'package.json');

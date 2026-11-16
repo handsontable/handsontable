@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { main } from '../src/cli.mjs';
 import { loadManifests } from '../src/manifest.mjs';
+import { isolatedGitEnv } from './helpers/git-env.mjs';
 
 const BIN = fileURLToPath(new URL('../bin/handsontable-codemod.mjs', import.meta.url));
 const CSS = 'a {\n  border-radius: var(--ht-wrapper-border-radius);\n}\n';
@@ -14,22 +15,34 @@ const CSS = 'a {\n  border-radius: var(--ht-wrapper-border-radius);\n}\n';
 /**
  * Run the CLI in process and capture its output.
  *
+ * Without a `cwd` the CLI runs in an empty directory made for the call and removed after it, never in the host's
+ * temporary directory itself: a case that reaches the migration by mistake would then rewrite whatever else sits
+ * there, and the temporary directory of a developer holds other projects.
+ *
  * @param {string[]} argv Arguments.
  * @param {string} [cwd] Working directory.
  * @returns {Promise<{code: number, out: string, err: string}>} Exit code and captured streams.
  */
-async function cli(argv, cwd = tmpdir()) {
+async function cli(argv, cwd) {
+  const own = cwd === undefined ? await mkdtemp(join(tmpdir(), 'codemod-cli-empty-')) : null;
   let out = '';
   let err = '';
-  const code = await main(argv, { cwd,
-    stdout: (text) => {
-      out += text;
-    },
-    stderr: (text) => {
-      err += text;
-    } });
 
-  return { code, out, err };
+  try {
+    const code = await main(argv, { cwd: cwd ?? own,
+      stdout: (text) => {
+        out += text;
+      },
+      stderr: (text) => {
+        err += text;
+      } });
+
+    return { code, out, err };
+  } finally {
+    if (own !== null) {
+      await rm(own, { recursive: true, force: true });
+    }
+  }
 }
 
 /**
@@ -44,9 +57,7 @@ async function makeProject(repo) {
   await writeFile(join(dir, 'a.css'), CSS);
 
   if (repo) {
-    const env = { ...process.env };
-
-    ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE'].forEach(name => delete env[name]);
+    const env = isolatedGitEnv();
 
     const identity = ['-c', 'user.name=T', '-c', 'user.email=t@example.com', '-c', 'commit.gpgsign=false'];
 
@@ -258,7 +269,7 @@ describe('cli', () => {
       assert.match(out, /18\.0\.0\/css-wrapper-border-radius \(1 changed\)/);
       assert.match(out, /^Next: run your formatter and linter on the changed files\.$/m);
       assert.match(out, /^Next: run tsc and your tests\.$/m);
-      assert.match(await readFile(join(dir, 'report.md'), 'utf8'), /- \[x\] a\.css:2 /);
+      assert.match(await readFile(join(dir, 'report.md'), 'utf8'), /- \[x\] `a\.css:2` /);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -293,7 +304,7 @@ describe('cli', () => {
       const again = await cli(['migrate', '--from', '17', '--to', '18', '--report', 'report.md'], dir);
 
       assert.equal(again.code, 0, again.err);
-      assert.match(await readFile(join(dir, 'report.md'), 'utf8'), /- \[x\] a\.css:2 /);
+      assert.match(await readFile(join(dir, 'report.md'), 'utf8'), /- \[x\] `a\.css:2` /);
 
       await rm(join(dir, 'report.md'));
       await symlink(join(dir, 'a.css'), join(dir, 'link.md'));

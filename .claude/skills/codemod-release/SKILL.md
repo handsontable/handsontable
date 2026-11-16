@@ -9,12 +9,27 @@ release never bumps it (the package is outside the root `workspaces` and the ver
 
 ## 1. Decide whether there is anything to release
 
+The last release is the last commit that changed the `version` line of `codemod/package.json`. Before the first
+release that commit is the one that added the file, so the range then starts at its parent and holds everything in
+`codemod/`. No tag is involved. Set `ref` to the branch you release from (here `origin/develop`):
+
 ```bash
 git fetch origin
-git log --oneline "$(git describe --tags --match 'codemod-v*' --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD)"..origin/develop -- codemod
+ref=origin/develop
+added=$(git log --diff-filter=A --format=%H "$ref" -- codemod/package.json | tail -1)
+last=$(git log -1 --format=%H -G'^  "version":' "$ref" -- codemod/package.json)
+if [ -z "$last" ]; then
+  echo "codemod/ is not on $ref yet: nothing to release"
+else
+  if [ "$last" = "$added" ]; then base="$added^"; else base="$last"; fi
+  git log --oneline "$base".."$ref" -- codemod
+fi
 ```
 
-No tag yet means no release was made: everything in `codemod/` is new. No commits means stop and say so.
+No output, or the "nothing to release" line, means stop and say so. While the codemod is still on a feature branch,
+`ref=origin/develop` prints `codemod/ is not on origin/develop yet: nothing to release`, and `ref=HEAD` lists every
+commit of the package, ending with the commit that added the package skeleton (both checked on the branch of the first
+pull request).
 
 ## 2. Choose the version
 
@@ -58,10 +73,11 @@ Open the PR with the `pr-creation` skill. Title: `<task ID>: Release @handsontab
 ## 4. After the merge
 
 Publishing to npm is not wired yet. Until the publish workflow exists, a release ends at the merged PR: do not create a
-tag, a GitHub Release, or an `npm publish` by hand. Two traps for whoever wires it:
+tag, a GitHub Release, or an `npm publish` by hand. The record of a release is the merged release PR (the commit that
+changed the `version` line, which step 1 reads) and `codemod/CHANGELOG.md`. Two traps for whoever wires publishing:
 
 - **Never create a GitHub Release for the codemod.** `publish.yml` listens to `release: created` and reads the
   Handsontable version from the release name, so a codemod release would start a Handsontable release cut, and it
-  would take the "Latest" badge. The record of a codemod release is the git tag `codemod-v<version>` and
-  `codemod/CHANGELOG.md`.
+  would take the "Latest" badge. When publishing is wired, mark the release with a git tag `codemod-v<version>` on
+  the release commit, and keep step 1 reading the `version` line, which works with and without the tag.
 - The prerelease dist-tag of this repository is `experimental`, not `next`.

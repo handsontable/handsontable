@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { diffArrays } from 'diff';
+import { loadManifests } from '../src/manifest.mjs';
+import { withoutComments } from './helpers/code-text.mjs';
 import { listFixtures, parseReport, runFixture, unmatchedEntries } from './helpers/fixtures.mjs';
 
 const fixtures = await listFixtures();
@@ -128,6 +132,35 @@ function untargetedStyleChanges(input, output, entries, isVue) {
   return problems;
 }
 
+/**
+ * What the tool must never put into the code of a project: a license key, or a sanitizer.
+ */
+const INSERTIONS = [/licenseKey/gi, /sanitizer/gi, /DOMPurify/gi];
+
+/**
+ * How often a word occurs in a file's code, comments left out.
+ *
+ * @param {string} text File text.
+ * @param {string} fileName File name, which says the language.
+ * @param {RegExp} word A global pattern.
+ * @returns {number} The count.
+ */
+function occurrencesInCode(text, fileName, word) {
+  return (withoutComments(text, fileName).match(word) ?? []).length;
+}
+
+describe('the sweep that keeps a license key and a sanitizer out of the code', () => {
+  it('counts an occurrence in code and not in a comment, a TODO, or a CSS comment', () => {
+    const [licenseKey, sanitizer] = INSERTIONS;
+
+    assert.equal(occurrencesInCode('new H(el, { licenseKey: \'k\' });', 'a.js', licenseKey), 1);
+    assert.equal(occurrencesInCode('// TODO(x): set a licenseKey\n/* sanitizer */\nrun();', 'a.js', licenseKey), 0);
+    assert.equal(occurrencesInCode('const sanitizer = x => x;', 'a.ts', sanitizer), 1);
+    assert.equal(occurrencesInCode('a { /* sanitizer */ color: red; }', 'a.css', sanitizer), 0);
+    assert.equal(occurrencesInCode('<script>\n  new H(el, { sanitizer });\n</script>\n', 'a.vue', sanitizer), 1);
+  });
+});
+
 for (const fixture of fixtures) {
   describe(`fixture ${fixture.version}/${fixture.name}`, () => {
     if (/\.(css|scss|vue)$/.test(fixture.inputName ?? '')) {
@@ -157,6 +190,16 @@ for (const fixture of fixtures) {
       if (result.expected === result.input) {
         assert.equal(result.changed, false, 'a negative fixture must not change');
       }
+
+      // The README promises that the tool never inserts a license key and never inserts a sanitizer. A comment may name
+      // either (a TODO says what to do), the code may not gain one.
+      for (const word of INSERTIONS) {
+        const after = occurrencesInCode(result.output, fixture.inputName, word);
+        const before = occurrencesInCode(result.input, fixture.inputName, word);
+
+        assert.ok(after <= before,
+          `${fixture.version}/${fixture.name}: the output has more ${word} in code than the input`);
+      }
     });
 
     it('is idempotent: running the output again changes nothing', async() => {
@@ -167,3 +210,42 @@ for (const fixture of fixtures) {
     });
   });
 }
+
+describe('fixture coverage of every manifest, released and draft', () => {
+  /**
+   * The ids of the rules that some `report.json` of the version names.
+   *
+   * @param {string} version Version directory name.
+   * @returns {Promise<Set<string>>} The named rule ids.
+   */
+  async function namedRules(version) {
+    const named = new Set();
+
+    for (const fixture of fixtures.filter(item => item.version === version)) {
+      const text = await readFile(join(fixture.dir, 'report.json'), 'utf8').catch(() => null);
+
+      parseReport(text).entries.forEach(entry => named.add(entry.ruleId));
+    }
+
+    return named;
+  }
+
+  it('names every rule of every manifest in the report.json of some fixture of its version', async() => {
+    for (const manifest of await loadManifests()) {
+      const named = await namedRules(manifest.version);
+      const unnamed = manifest.rules.map(rule => rule.id).filter(id => !named.has(id));
+
+      assert.deepEqual(unnamed, [], `${manifest.version}: a rule that no fixture report names is untested, so a ` +
+        'wrong target name in it would pass. Add a fixture with a positive and a negative case.');
+    }
+  });
+
+  it('names only rules that its own manifest has', async() => {
+    for (const manifest of await loadManifests()) {
+      const ids = new Set(manifest.rules.map(rule => rule.id));
+      const stray = [...await namedRules(manifest.version)].filter(id => id.includes('/') && !ids.has(id));
+
+      assert.deepEqual(stray, [], `${manifest.version}: report.json names a rule that the manifest does not have`);
+    }
+  });
+});

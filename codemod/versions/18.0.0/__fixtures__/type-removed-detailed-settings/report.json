@@ -1,0 +1,7 @@
+[
+  { "ruleId": "18.0.0/type-dataprovider-settings", "severity": "manual", "line": 1 },
+  { "ruleId": "18.0.0/type-formulas-detailedsettings", "severity": "manual", "line": 2 },
+  { "ruleId": "18.0.0/type-plugin-detailedsettings", "severity": "manual", "line": 3 },
+  { "ruleId": "18.0.0/type-plugin-detailedsettings", "severity": "manual", "line": 4 },
+  { "ruleId": "18.0.0/type-plugin-detailedsettings", "severity": "manual", "line": 5 }
+]

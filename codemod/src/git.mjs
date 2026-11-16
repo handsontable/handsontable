@@ -2,6 +2,7 @@ import { execFile } from 'node:child_process';
 import { realpath } from 'node:fs/promises';
 import { basename, dirname, resolve } from 'node:path';
 import { promisify } from 'node:util';
+import { findExecutable } from './lib/find-executable.mjs';
 
 const execFileAsync = promisify(execFile);
 
@@ -38,16 +39,50 @@ function gitEnv() {
 const GIT_OPTIONS = ['--no-pager', '-c', 'core.fsmonitor=false'];
 
 /**
+ * The absolute path of the git program, by the `PATH` it was asked with. `PATH` rarely changes inside a process, and a
+ * test changes it, so the answer is kept per value of `PATH` (and `PATHEXT`, `Path`) instead of once for ever.
+ *
+ * @type {Map<string, Promise<string|null>>}
+ */
+const gitPaths = new Map();
+
+/**
+ * Resolve git from `PATH` once and keep the answer. The lookup never reads the current directory or the project
+ * directory: on Windows `execFile('git', ..., { cwd })` can start a `git.exe` that sits in `cwd` before it looks at
+ * `PATH`, and the project is code the tool does not trust (see `findExecutable()`).
+ *
+ * @param {Record<string, string|undefined>} [env] The environment to read `PATH` from. Defaults to `process.env`.
+ * @returns {Promise<string|null>} The absolute path, or `null` when no directory of `PATH` holds git.
+ */
+export function gitExecutable(env = process.env) {
+  const key = ['PATH', 'Path', 'PATHEXT'].map(name => `${name}=${env[name] ?? ''}`).join('\0');
+
+  if (!gitPaths.has(key)) {
+    gitPaths.set(key, findExecutable('git', { env }));
+  }
+
+  return gitPaths.get(key);
+}
+
+/**
  * Run git in a directory.
  *
  * @param {string[]} args Git arguments.
  * @param {string} cwd Working directory.
  * @returns {Promise<string>} Standard output.
+ * @throws {Error} When git is not on `PATH`, or exits with an error.
  */
 async function git(args, cwd) {
-  const { stdout } = await execFileAsync('git', [...GIT_OPTIONS, ...args], {
+  const env = gitEnv();
+  const program = await gitExecutable(env);
+
+  if (program === null) {
+    throw new Error('git was not found on PATH.');
+  }
+
+  const { stdout } = await execFileAsync(program, [...GIT_OPTIONS, ...args], {
     cwd,
-    env: gitEnv(),
+    env,
     maxBuffer: 256 * 1024 * 1024,
   });
 
@@ -88,7 +123,10 @@ async function canonical(path) {
 /**
  * List the paths with uncommitted changes under a directory, untracked files included.
  *
- * An untracked file listed in \`ignoreUntracked\` does not count. The caller uses it for the report file the user
+ * Untracked files are listed one by one (`--untracked-files=all`), whatever `status.showUntrackedFiles` says: a user who
+ * set it to `no` would otherwise get no guard for the new files a migration lands next to.
+ *
+ * An untracked file listed in `ignoreUntracked` does not count. The caller uses it for the report file the user
  * asked for: a report left in the tree by the previous run would otherwise refuse the next run.
  *
  * @param {string} cwd Directory.
@@ -97,7 +135,7 @@ async function canonical(path) {
  * @returns {Promise<string[]>} Porcelain status lines, empty for a clean tree.
  */
 export async function dirtyPaths(cwd, { ignoreUntracked = [] } = {}) {
-  const output = await git(['status', '--porcelain', '-z', '--', '.'], cwd);
+  const output = await git(['status', '--porcelain', '-z', '--untracked-files=all', '--', '.'], cwd);
   const fields = output.split('\0').filter(Boolean);
   const lines = [];
   const top = ignoreUntracked.length > 0 ? (await git(['rev-parse', '--show-toplevel'], cwd)).trim() : null;
@@ -152,4 +190,24 @@ export async function listFiles(cwd) {
   const output = await git(['ls-files', '-z', '--cached', '--others', '--exclude-standard'], cwd);
 
   return output.split('\0').filter(Boolean);
+}
+
+/**
+ * Tell whether git ignores a path, because a `.gitignore` of this repository or of an outer one names it or a
+ * directory above it. A tracked file is never ignored. Nothing is listed under an ignored directory, so a project
+ * inside one gets an empty file list.
+ *
+ * @param {string} cwd Directory inside the work tree.
+ * @param {string} [path] Path relative to `cwd`. Defaults to `cwd` itself.
+ * @returns {Promise<boolean>} `true` when git ignores the path.
+ */
+export async function isIgnored(cwd, path = '.') {
+  try {
+    await git(['check-ignore', '-q', '--', path], cwd);
+
+    return true;
+  } catch {
+    // `git check-ignore -q` exits 1 for a path that is not ignored, and 128 on an error: neither says "ignored".
+    return false;
+  }
 }

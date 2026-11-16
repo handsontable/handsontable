@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { PACKAGE_ROOT } from '../src/manifest.mjs';
+import { skipWithoutFile } from './helpers/guide-source.mjs';
 
 const PAGE = join(PACKAGE_ROOT, '..', 'docs', 'content', 'guides', 'upgrade-and-migration', 'migration-codemod',
   'migration-codemod.md');
@@ -43,9 +43,7 @@ export function guardProblems(manifest, page) {
 
 describe('the guide page of a package that is not published', () => {
   it('says so while the package is private, and stops saying so when it is not', async(context) => {
-    if (!existsSync(PAGE)) {
-      context.skip('the guide page is not available outside the monorepo');
-
+    if (skipWithoutFile(context, PAGE, 'the guide page')) {
       return;
     }
 
@@ -55,9 +53,7 @@ describe('the guide page of a package that is not published', () => {
   });
 
   it('uses the command the README gives for running the codemod from the repository', async(context) => {
-    if (!existsSync(PAGE)) {
-      context.skip('the guide page is not available outside the monorepo');
-
+    if (skipWithoutFile(context, PAGE, 'the guide page')) {
       return;
     }
 

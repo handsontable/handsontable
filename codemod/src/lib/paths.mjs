@@ -1,4 +1,15 @@
+import { realpath } from 'node:fs';
 import path from 'node:path';
+import { promisify } from 'node:util';
+
+/**
+ * `realpath` that asks the operating system (`realpath(3)`, `GetFinalPathNameByHandle`), so the result has the letter
+ * case the file system stores. The JavaScript implementation keeps the case it was given, and on a case-insensitive file
+ * system (macOS, Windows) `src/A.JS` and `src/a.js` are then two strings for one file.
+ *
+ * @type {(path: string) => Promise<string>}
+ */
+export const realpathNative = promisify(realpath.native);
 
 /**
  * Tell whether a path from `path.relative()` leaves the directory it was made relative to. The decision takes the

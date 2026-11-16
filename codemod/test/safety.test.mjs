@@ -7,23 +7,9 @@ import { VERSIONS_DIR, buildPlan, loadManifest, loadManifests } from '../src/man
 import { transformFile } from '../src/runner.mjs';
 import { createRegistry, registry as shipped } from '../src/transforms/index.mjs';
 import { listFixtures } from './helpers/fixtures.mjs';
+import { withoutComments } from './helpers/code-text.mjs';
 
 const fixtures = await listFixtures();
-
-/**
- * The code of a text: no comment and no white space. A comment can move when a TODO lands next to it, and a TODO
- * is the one thing a rule that is not safe may add.
- *
- * @param {string} text File text.
- * @returns {string} The text without comments and white space.
- */
-function codeOf(text) {
-  return text
-    .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, '')
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\/\/[^\n]*/g, '')
-    .replace(/\s+/g, '');
-}
 
 /**
  * One kind, the fixture that exercises it, and the options that fixture needs.
@@ -50,6 +36,40 @@ const KINDS = [
   { kind: 'exportRemoved', fixture: 'plugin-settings-removed' },
   { kind: 'custom', fixture: 'sanitizer-source-report', version: '18.1.0' },
 ];
+
+/**
+ * The code of a text: no comment and no white space (see `withoutComments()`). A comment can move when a TODO lands
+ * next to it, and a TODO is the one thing a rule that is not safe may add.
+ *
+ * @param {string} text File text.
+ * @param {string} fileName The file name, which says the language.
+ * @returns {string} The text without comments and white space.
+ */
+function codeOf(text, fileName) {
+  // A JSX comment leaves its braces behind once the comment is blank, and the braces of an empty object read the same
+  // on both sides of the comparison.
+  return withoutComments(text, fileName).replace(/\{\s*\}/g, '').replace(/\s+/g, '');
+}
+
+describe('the comparison of "only comments changed" reads code the way the language does', () => {
+  it('keeps the rest of a line that holds a URL or the characters of a comment inside a string', () => {
+    const before = 'const url = "http://example.com"; // note\nfoo(1);\n';
+
+    assert.equal(codeOf(before, 'a.js'), 'consturl="http://example.com";foo(1);');
+    // A `//` in the string must not hide the code after it: the edit below changes `foo`, and is seen.
+    assert.notEqual(codeOf('const url = "http://example.com"; foo(1);\n', 'a.js'),
+      codeOf('const url = "http://example.com"; bar(1);\n', 'a.js'));
+    assert.notEqual(codeOf('const s = "/* x */"; foo();\n', 'a.js'), codeOf('const s = ""; foo();\n', 'a.js'));
+  });
+
+  it('drops a comment, a TODO, and a JSX comment, and nothing else', () => {
+    assert.equal(codeOf('a(); // TODO(x): y\n/* b */ c();\n', 'a.js'), 'a();c();');
+    assert.equal(codeOf('const e = <p>{/* TODO(x) */}<b/></p>;\n', 'a.jsx'),
+      codeOf('const e = <p><b/></p>;\n', 'a.jsx'));
+    assert.equal(codeOf('a { /* c */ color: red; }\n', 'a.css'), codeOf('a { color: red; }\n', 'a.css'));
+    assert.notEqual(codeOf('a { content: "/* c */"; }\n', 'a.css'), codeOf('a { content: ""; }\n', 'a.css'));
+  });
+});
 
 describe('the safe contract helpers', () => {
   it('rewrites only for a rule that states safe: true and is not report-only by kind', () => {
@@ -167,7 +187,7 @@ describe('a rule that is not safe never edits code, whatever the input', () => {
       assert.equal(result.entries.some(item => item.ruleId === 'transform-error'), false,
         result.entries.map(item => item.message).join('\n'));
       assert.equal(result.entries.some(item => item.severity === 'changed'), false);
-      assert.equal(codeOf(result.output), codeOf(input));
+      assert.equal(codeOf(result.output, fixture.inputName), codeOf(input, fixture.inputName));
     });
   }
 });
@@ -203,7 +223,7 @@ describe('a rule that is not safe never edits code', () => {
         result.entries.map(item => item.message).join('\n'));
       assert.equal(severities.has('changed'), false, 'a rule that is not safe reported a change');
       assert.equal(severities.has('manual'), true, 'it should still say what is left to do');
-      assert.equal(codeOf(result.output), codeOf(input));
+      assert.equal(codeOf(result.output, file), codeOf(input, file));
     });
   }
 

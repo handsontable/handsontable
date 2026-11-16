@@ -481,7 +481,7 @@ describe('the markdown report', () => {
     });
 
     assert.match(renderMarkdown(report),
-      /- \[ \] a\.js:1 Alone\.\n\nShared message\.\n\n- \[ \] b\.js:2\n- \[ \] c\.js:3\n/);
+      /- \[ \] `a\.js:1` Alone\.\n\nShared message\.\n\n- \[ \] `b\.js:2`\n- \[ \] `c\.js:3`\n/);
   });
 
   it('names the report file in the console, and tells the user to pass --report otherwise', () => {

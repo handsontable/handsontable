@@ -57,20 +57,35 @@ describe('the report target is checked before any file is migrated', () => {
   });
 });
 
-describe('a report that cannot be written after the run does not hide the summary', () => {
-  it('prints the summary and the next steps, names the file on stderr, and exits 1', { skip: !CAN_BLOCK_WRITES }, async() => {
+describe('a report that cannot be written', () => {
+  it('is refused before any file changes when it exists and is read-only', { skip: !CAN_BLOCK_WRITES }, async() => {
     await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
       await writeFile(join(dir, 'r.md'), 'old report');
       await chmod(join(dir, 'r.md'), 0o444);
 
       const result = await migrate(dir, [...RANGE, '--report', 'r.md', '.']);
 
-      assert.equal(result.status, 1, result.stdout + result.stderr);
-      assert.match(result.stdout, /Summary: 1 file changed/);
-      assert.match(result.stdout, /Next: /);
-      assert.match(result.stderr, /Could not write the report to r\.md: EACCES/);
-      assert.doesNotMatch(result.stderr, /\n\s+at /, 'a stack trace reached the user');
-      assert.doesNotMatch(await readFile(join(dir, 'a.js'), 'utf8'), /correctFormat: true/);
+      assert.equal(result.status, 2, result.stdout + result.stderr);
+      assert.match(result.stderr, /--report r\.md exists and is not writable/);
+      assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE);
+      assert.equal(await readFile(join(dir, 'r.md'), 'utf8'), 'old report');
     });
   });
+
+  it('after the run (the disk fills up) prints the summary and the next steps, names the file on stderr, and exits 1',
+    async() => {
+      await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
+        const failing = async() => {
+          throw Object.assign(new Error('EACCES: permission denied'), { code: 'EACCES' });
+        };
+        const result = await migrate(dir, [...RANGE, '--report', 'r.md', '.'], { writeReport: failing });
+
+        assert.equal(result.status, 1, result.stdout + result.stderr);
+        assert.match(result.stdout, /Summary: 1 file changed/);
+        assert.match(result.stdout, /Next: /);
+        assert.match(result.stderr, /Could not write the report to r\.md: EACCES/);
+        assert.doesNotMatch(result.stderr, /\n\s+at /, 'a stack trace reached the user');
+        assert.doesNotMatch(await readFile(join(dir, 'a.js'), 'utf8'), /correctFormat: true/);
+      });
+    });
 });

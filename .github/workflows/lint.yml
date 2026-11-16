@@ -111,7 +111,10 @@ jobs:
   # runs where they do: Windows (path separators, CRLF, git) and the Node versions
   # its `engines` field allows. The `Codemod tests` step of the `core` job above
   # covers Linux on the Node version of `.nvmrc`, on the same `run-codemod` gate.
-  # Only the codemod's own dependencies are installed.
+  # Only the codemod's own dependencies are installed. This job runs on a pull request only (test.yml calls
+  # this file on pull requests). develop.yml has a `codemod` job of its own for the push after the merge: the
+  # same legs plus the Linux leg on the Node of `.nvmrc`, which the `core` job covers here.
+  # `codemod/test/workflow-gates.test.mjs` pins the two sets.
   codemod:
     name: codemod (${{ matrix.os }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}

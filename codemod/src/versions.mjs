@@ -1,7 +1,8 @@
 import { stat } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { UsageError } from './errors.mjs';
-import { aliasRange, isSourceSpec, rangeAdmits } from './lib/dependency-range.mjs';
+import { aliasRange, isSourceSpec, rangeAdmits, rangeFloor } from './lib/dependency-range.mjs';
+import { leavesDirectory } from './lib/paths.mjs';
 import { redact } from './lib/redact.mjs';
 import { readUtf8, stripBom } from './lib/text-file.mjs';
 
@@ -238,9 +239,11 @@ export function defaultTo(manifests, includeDraft) {
 
 /**
  * Take the lowest version a dependency range allows: `^17.1.0` gives `17.1.0`, `17.x` gives `17`, and
- * `>=17 <19` gives `17`, and an `npm:handsontable@^17.1.0` alias gives the minimum of the range it names. A spec
- * that names no version (`latest`, `*`) gives `null`, and so does a spec that points at a source (`workspace:`,
- * `file:`, `link:`, a path, a URL, a repository, `catalog:`), because the digits in it belong to a file name or a tag.
+ * `>=17 <19` gives `17`, `^18 || ^17` gives `17` (the lowest over every alternative), and an
+ * `npm:handsontable@^17.1.0` alias gives the minimum of the range it names. A spec that names no lowest version gives
+ * `null`: `latest` and `*`, a range with an open lower end (`<18.0.0`, `<=18`, `>17`, or one alternative that has no
+ * lower bound), and a spec that points at a source (`workspace:`, `file:`, `link:`, a path, a URL, a repository,
+ * `catalog:`), because the digits in it belong to a file name or a tag. The caller then asks for `--from`.
  *
  * @param {string} range A dependency range from package.json.
  * @returns {string|null} The minimum version text, or `null`.
@@ -258,23 +261,7 @@ export function minimumOfRange(range) {
     return null;
   }
 
-  const match = /(\d+)(?:\.(\d+|[xX*]))?(?:\.(\d+|[xX*]))?(-[0-9A-Za-z.-]+)?/.exec(text);
-
-  if (!match) {
-    return null;
-  }
-
-  const parts = [match[1]];
-
-  for (const part of [match[2], match[3]]) {
-    if (part === undefined || /^[xX*]$/.test(part)) {
-      break;
-    }
-
-    parts.push(part);
-  }
-
-  return parts.join('.') + (parts.length === 3 && match[4] ? match[4] : '');
+  return rangeFloor(text);
 }
 
 /**
@@ -309,37 +296,40 @@ export function lineBelowFrom(range, fromText) {
 }
 
 /**
- * Detect the Handsontable version a project uses. The installed package wins, found by walking up from
- * `start`. The range in the nearest package.json, from `start` up to `stopAt`, is the fallback.
+ * Detect the Handsontable version a project uses. The installed package wins, found by walking up from `start` to
+ * `stopAt` and no further: an install in a directory above the project (a stray `~/node_modules`) says nothing about
+ * the project. The range in the nearest package.json, from `start` up to `stopAt`, is the fallback.
+ *
+ * When both name a version and the declared range does not admit the installed one (`^17.1.0` against an installed
+ * 18.0.2), the project is between two versions, and the tool does not pick one: it asks for `--from`.
  *
  * @param {string} start Directory to start from, usually the project directory.
  * @param {object} [options] Options.
- * @param {string} [options.stopAt] The highest directory whose package.json counts. Defaults to `start`.
+ * @param {string} [options.stopAt] The highest directory whose package.json and node_modules count. Defaults to
+ * `start`.
  * @returns {Promise<{version: string|null, source: string, range?: string}|null>} The version and where it came
  * from, or `null`. A `handsontable` range that names no version (`latest`) gives `version: null` with the `range`.
+ * @throws {UsageError} When the installed version is outside the declared range.
  */
 export async function detectInstalledVersion(start, { stopAt = start } = {}) {
-  let dir = start;
+  const inside = !leavesDirectory(relative(stopAt, start));
+  const reachedTop = dir => dir === stopAt || dirname(dir) === dir || !inside;
+  let installed = null;
 
-  for (;;) {
-    const installed = await readJson(join(dir, 'node_modules', 'handsontable', 'package.json'));
+  for (let dir = start; installed === null; dir = dirname(dir)) {
+    const found = await readJson(join(dir, 'node_modules', 'handsontable', 'package.json'));
 
-    if (installed && typeof installed.version === 'string') {
-      return { version: installed.version, source: 'node_modules/handsontable' };
-    }
-
-    const parent = dirname(dir);
-
-    if (parent === dir) {
+    if (found && typeof found.version === 'string') {
+      installed = { version: found.version, source: 'node_modules/handsontable' };
+    } else if (reachedTop(dir)) {
       break;
     }
-
-    dir = parent;
   }
 
   let unversioned = null;
+  let declared = null;
 
-  for (dir = start; ; dir = dirname(dir)) {
+  for (let dir = start; declared === null; dir = dirname(dir)) {
     const manifest = await readJson(join(dir, 'package.json'));
 
     for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
@@ -349,7 +339,9 @@ export async function detectInstalledVersion(start, { stopAt = start } = {}) {
       const source = `${where ? `${where}/` : ''}package.json ${field}`;
 
       if (minimum) {
-        return { version: minimum, source };
+        declared = { version: minimum, source, range };
+
+        break;
       }
 
       if (typeof range === 'string' && !unversioned) {
@@ -357,10 +349,25 @@ export async function detectInstalledVersion(start, { stopAt = start } = {}) {
       }
     }
 
-    if (dir === stopAt || dirname(dir) === dir) {
-      return unversioned;
+    if (declared === null && reachedTop(dir)) {
+      break;
     }
   }
+
+  if (installed === null) {
+    return declared ? { version: declared.version, source: declared.source } : unversioned;
+  }
+
+  const full = /^\d+\.\d+\.\d+/.exec(installed.version)?.[0];
+  const text = declared?.range.trim().startsWith('npm:') ? aliasRange(declared.range.trim()) : declared?.range;
+
+  if (declared && full && text && rangeAdmits(text, full) === false) {
+    throw new UsageError(`node_modules holds handsontable ${installed.version}, but ${declared.source} names `
+      + `"${redact(declared.range)}", which does not allow it. The project is between two versions. Pass --from `
+      + 'to say which one to migrate from.');
+  }
+
+  return installed;
 }
 
 /**

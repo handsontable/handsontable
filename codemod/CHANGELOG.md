@@ -106,6 +106,36 @@ How versions are chosen:
   takes linear time. Before, 1 MiB of either took a minute or more.
 - The guide anchors of two `notAutomated` entries of the 19.0 draft (the Cmd/Ctrl rows) are the ids of the built
   site, and the test helper slugs a heading with inline tags and a double hyphen the way the site does.
+- A changed file is written to a temporary file in its directory and renamed over the original, keeps its mode, and is
+  checked against the text the tool read just before the rename: a file that an editor saved during the run keeps the
+  editor's text and gets a `write-error`. The summary no longer counts the `changed` entries of a file that was not
+  written (a failed write, a refused write, a file outside the project).
+- A run that reads no file says "No files to migrate." with the reason (a path that holds nothing the tool reads, a
+  directory that git ignores, a file of another type), on standard error and in the report, with exit code 0. Before,
+  it ended with `Summary: 0 files changed` and no word. A project directory that an outer repository ignores is walked,
+  with a note, instead of listing no file. A path argument is read in the letter case the file system stores.
+- A submodule or an embedded repository is listed under "Skipped files". Outside git, the walk skips every directory
+  that starts with a dot and the usual build output names (`out`, `storybook-static`, ...) and names each one that
+  held files it reads, with the command that includes it.
+- The clean-tree guard lists untracked files one by one (`--untracked-files=all`), so `status.showUntrackedFiles=no` in
+  a user's configuration no longer turns off the check for them.
+- `git` is started by the absolute path found in `PATH`, never from the project directory or a relative `PATH` entry.
+  Before, on Windows, a `git.exe` in the project could run first.
+- `--report` is refused when a directory on its path is a symbolic link, when it is another name for a migrated file
+  (another letter case on a case-insensitive file system, a hard link), when it is an existing file of a type the tool
+  migrates, and when an existing report is read-only (before any file changes, not after).
+- `--from` detection takes the lowest bound of a range with `||` (`^18 || ^17` is 17) and asks for `--from` for a range
+  with an open lower end (`<18.0.0`, `*`). It reads `node_modules/handsontable` only up to the project directory, and
+  asks for `--from` when the installed version is outside the declared range.
+- A syntax error in a Vue `<script>` or `<style>` block is reported on the line of the file, with the text of that line.
+- A file with mixed line endings (CRLF, LF, a lone CR) keeps the ending of every line the tool did not change. When an
+  edit sits next to a repeated line that ends in two ways, the file is left unchanged with a `transform-error`. A file
+  that uses a lone CR everywhere keeps it. Before, the whole file came out in one ending.
+- The Markdown report writes file names, quoted source lines, and the tags of the tool's own messages as code, escapes
+  the rest, and every renderer and the CLI print a control character (an escape sequence) as `\x1b`.
+- Many names in one CSS declaration value, and a stylesheet with tens of thousands of renamed declarations, take linear
+  time. Before, 130 KB of `var(--ht-...)` references took 18 seconds and 1.5 MB of declarations took 6 seconds. A Vue
+  script block with a run of 120,000 spaces took 9 seconds.
 
 ## [0.1.0] – not published
 

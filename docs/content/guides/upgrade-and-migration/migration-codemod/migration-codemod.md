@@ -35,13 +35,13 @@ The codemod reads the files of your project and finds the places an upgrade chan
 - **Rewrite.** When the change is certain, the codemod edits the file. For example, it renames an option, moves an import, or raises a version range in `package.json`.
 - **Report.** When the change needs a decision, the codemod leaves the code alone. It adds a line to the report. In some cases it also adds a `TODO(handsontable-codemod <rule>)` comment next to the code.
 
-The codemod has no type information. It reports a spot it cannot confirm instead of rewriting it. A JavaScript file needs a Handsontable import or global before the codemod edits it.
+The codemod has no type information. It reports a spot it cannot confirm instead of rewriting it. A JavaScript file needs a Handsontable import or global before the codemod edits it. The one exception is a file that names a `--ht-` CSS variable. Those names belong to Handsontable, so the CSS variable rules also edit such a file, for example a `'--ht-wrapper-border-radius'` string.
 
 ### What the codemod does not do
 
 - It never inserts a sanitizer. Handsontable 18.0 stopped sanitizing HTML. The codemod reports the grids that pass markup to a surface that used to be sanitized, and you choose the sanitizer.
 - It never inserts or invents a license key. It reports a grid that sets none.
-- It does not rewrite templates or inline scripts. Vue, Angular, and HTML templates, and the inline `<script>` elements of an HTML page, are report-only.
+- It does not rewrite templates or inline scripts. Vue, Angular, and HTML templates, and the inline `<script>` elements of an HTML page, are report-only. The codemod also reads the inline `template` of an Angular `@Component` and reports it, but edits nothing in it.
 - It does not convert Numbro.js patterns or Moment.js date formats. It reports each pattern that no longer works, because the replacement depends on what the pattern meant.
 - It does not format code or install packages. Run your formatter and your package manager afterward.
 
@@ -113,10 +113,10 @@ For the 17.x to 18.0 migration, the codemod rewrites:
 - Imports from `handsontable/common`, and the theme registry names, to the entry points that export them now.
 - Renamed plugin types, and `Handsontable.X` namespace types that became named imports.
 - `numericFormat.culture` to the `locale` option.
-- The removed `correctFormat` and `datePickerConfig` options. Handsontable 18.0 ignores both, so deleting them keeps the behavior. A TODO comment stays where the option was.
+- The removed `correctFormat` and `datePickerConfig` options. The built-in cell types of Handsontable 18.0 ignore both, so deleting them keeps the behavior. A TODO comment stays where the option was. The codemod keeps the option and reports it when custom code may read it: a custom editor, renderer, or validator, or a read of the option in the same file.
 - `columnHeaders` to `colHeaders` in the arguments of the export methods.
-- The `--ht-wrapper-border-radius` CSS custom property and the `wrapperBorderRadius` theme token.
-- Calls to the deprecated resize-state methods, when the call is a whole statement.
+- The `--ht-wrapper-border-radius` CSS custom property and the `wrapperBorderRadius` theme token. In a stylesheet, the codemod renames the variable definition and every `var()` reference. It reports any other use of the name, such as one inside `url()`, a quoted string, or `transition-property`, and leaves it as it is.
+- Calls to the deprecated resize-state methods, when the call is a whole statement and the receiver is a grid instance or plugin the codemod can confirm. A call on a variable that can hold something other than the grid is reported, not rewritten.
 - The `handsontable` and wrapper ranges in `package.json`.
 
 For the 18.0 to 18.1 migration, the codemod raises the `handsontable` and wrapper ranges in `package.json`.
@@ -140,7 +140,7 @@ For the 18.0 to 18.1 migration, the codemod reports:
 - Loading markup.
 - Pikaday styles that are left in a theme, a stylesheet, or an HTML page.
 
-The [codemod README](https://github.com/handsontable/handsontable/tree/develop/codemod) lists every rule.
+To list every rule that applies to your migration, run `migrate --list` with the same `--from` and `--to`. The [codemod README](https://github.com/handsontable/handsontable/tree/develop/codemod) explains how the rules work.
 
 ## After the run
 
@@ -182,8 +182,8 @@ Pass `--help` to see the full list.
 
 - The codemod reads one file at a time. It does not follow a settings object across files.
 - It recognizes a settings object by what the file shows. An object it recognizes with high confidence is rewritten. An object it recognizes with medium confidence is reported, and the codemod rewrites it only with `--aggressive`. Read the report of a normal run before you use `--aggressive`.
-- It does not rewrite a receiver it cannot confirm as a grid instance or a plugin. It reports or skips the call.
-- It reports template code and the inline scripts of an HTML page, and does not rewrite them.
+- It does not rewrite a receiver it cannot confirm as a grid instance or a plugin. It reports or skips the call. A call on a variable that can hold something other than the grid, for example one that is also assigned another object, is reported, not rewritten.
+- It reports template code, the inline `template` of an Angular component, and the inline scripts of an HTML page, and does not rewrite them.
 - It does not edit `catalog:` specs, `overrides`, `resolutions`, `pnpm.overrides`, or CDN URLs. It reports the ones that hold Handsontable or a wrapper below the target version.
 - A file that does not parse is skipped and reported, and the run exits with code 1.
 - When a rewrite adds or removes a key, the codemod reprints that object. A one-line object can spread over several lines, and a trailing comma can go. Run your formatter afterward.

@@ -26,7 +26,7 @@ handsontable/
 │   └── angular-type-check/     # Internal Angular type-check workspace (docs-angular-type-check)
 ├── examples/                   # Code examples
 ├── visual-tests/               # Playwright visual regression tests
-├── codemod/                    # `@handsontable/codemod`: migration CLI (private, never published; `versions/<semver>/manifest.json` per release)
+├── codemod/                    # `@handsontable/codemod`: migration CLI (private, not published yet; `versions/<semver>/manifest.json` per release)
 ├── .changelogs/                # Changelog entry mechanism
 ├── bin/                        # CLI tools (changelog)
 ├── scripts/                    # Monorepo-level scripts
@@ -65,7 +65,7 @@ packages:
 | `wrappers/angular-wrapper/` | `@handsontable/angular-wrapper` | Angular component wrapper |
 | `wrappers/vue3/` | `@handsontable/vue3` | Vue 3 component wrapper |
 | `visual-tests/` | `handsontable-visual-tests` | Playwright/reg-suit visual regression suite |
-| `codemod/` | `@handsontable/codemod` | Migration CLI that applies the mechanical part of an upgrade and reports the rest. Private, not in root `workspaces`, not in the version bump or publish lists. See `codemod/AGENTS.md` |
+| `codemod/` | `@handsontable/codemod` | Migration CLI that applies the mechanical part of an upgrade and reports the rest. Private and not published yet. Not in root `workspaces`, not in the version bump or publish lists. See `codemod/AGENTS.md` |
 | `examples/` | `handsontable-examples-internal` | Code examples for documentation |
 | `docs/` | `handsontable-documentation` | Astro/Starlight documentation site (Node 20) |
 | `docs/angular-type-check/` | `docs-angular-type-check` | Internal Angular type-check workspace for the docs site |

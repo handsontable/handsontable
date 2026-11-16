@@ -218,6 +218,89 @@ export function rangeAdmits(range, version) {
 }
 
 /**
+ * The lowest version a range allows, as the text of its lower bound (`17`, `17.1`, `17.1.0`, `18.0.0-rc.1`).
+ *
+ * The answer is the lowest over every `||` alternative, and within an alternative the highest of its lower bounds
+ * (`>=17 <19` is 17, `>=17 >=17.2` is 17.2). A range has no usable floor, and the answer is `null`, when:
+ *
+ * - an alternative has no lower bound: it holds only `<`, `<=`, `*`, an `x` major, or nothing (`<18.0.0`, `*`, an
+ *   empty spec), so any version below the others is allowed,
+ * - an alternative uses `>` (`>17.0.0`), whose floor is the next version after the one written,
+ * - a token is not a comparator at all (`latest`, a tag, a word).
+ *
+ * @param {string} range The range as written in `package.json`, after an `npm:` alias was unwrapped.
+ * @returns {string|null} The floor text, or `null` when the tool must ask for `--from`.
+ */
+export function rangeFloor(range) {
+  let lowest = null;
+
+  for (const text of String(range).trim().split('||')) {
+    const hyphen = /^(\S+)\s+-\s+(\S+)$/.exec(text.trim());
+    const tokens = hyphen ? [`>=${hyphen[1]}`, `<=${hyphen[2]}`]
+      : text.trim().replace(/(>=|<=|>|<|=|\^|~)\s+/g, '$1').split(/\s+/).filter(Boolean);
+    let floor = null;
+
+    for (const token of tokens) {
+      const match = COMPARATOR.exec(token);
+
+      if (!match) {
+        return null;
+      }
+
+      const [, operator = '', ...rest] = match;
+
+      if (operator === '>') {
+        return null;
+      }
+
+      if (operator === '<' || operator === '<=') {
+        continue;
+      }
+
+      const parts = [];
+
+      for (const part of rest.slice(0, 3)) {
+        if (part === undefined || /^[xX*]$/.test(part)) {
+          break;
+        }
+
+        parts.push(Number(part));
+      }
+
+      if (parts.length === 0) {
+        continue;
+      }
+
+      const bound = { parts, text: parts.join('.') + (parts.length === 3 && rest[3] ? `-${rest[3]}` : '') };
+
+      if (floor === null || cmp(padded(bound.parts), padded(floor.parts)) > 0) {
+        floor = bound;
+      }
+    }
+
+    if (floor === null) {
+      return null;
+    }
+
+    if (lowest === null || cmp(padded(floor.parts), padded(lowest.parts)) < 0) {
+      lowest = floor;
+    }
+  }
+
+  return lowest?.text ?? null;
+}
+
+/**
+ * Pad a partial version with zeros.
+ *
+ * @param {number[]} parts One to three numbers.
+ * @returns {number[]} Three numbers.
+ */
+function padded(parts) {
+  return [parts[0], parts[1] ?? 0, parts[2] ?? 0];
+}
+
+/**
  * Decide how to move a dependency range to a target version, keeping the operator the user wrote.
  *
  * - `rewrite`: `^17.1.0` becomes `^18.0.0`, `~17.1.0` becomes `~18.0.0`, `17.1.0` becomes `18.0.0`, and a

@@ -313,12 +313,21 @@ export class CssDocument {
     const operations = [
       ...[...this.replacements.values()].map(item => ({ at: item.start, end: item.end, text: item.text, order: -1 })),
       ...this.insertions.map(item => ({ at: item.at, end: item.at, text: item.text, order: item.order })),
-    ].sort(spliceOrder);
-    let output = this.source;
+    ].sort(spliceOrder).reverse();
+    // Reversed, the order runs from the start of the text to its end: at one offset the insertions come first, the
+    // earliest in front, then the replacement. The text is built in one pass. Splicing each edit into the whole text
+    // copies it once per edit, which is quadratic in the number of edits of a large stylesheet.
+    const pieces = [];
+    let cursor = 0;
 
     for (const operation of operations) {
-      output = output.slice(0, operation.at) + operation.text + output.slice(operation.end);
+      pieces.push(this.source.slice(cursor, operation.at), operation.text);
+      cursor = Math.max(cursor, operation.end);
     }
+
+    pieces.push(this.source.slice(cursor));
+
+    const output = pieces.join('');
 
     let reparsed;
 

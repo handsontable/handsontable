@@ -1,0 +1,579 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { chmod, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { delimiter, dirname, join } from 'node:path';
+import { describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
+import { discover } from '../src/discover.mjs';
+import { dirtyPaths, gitExecutable, isGitRepo, listFiles } from '../src/git.mjs';
+import { findExecutable } from '../src/lib/find-executable.mjs';
+import { run } from '../src/runner.mjs';
+import { GIT_ISOLATION, isolatedGitEnv } from './helpers/git-env.mjs';
+import { IN_MONOREPO, skipWithoutFile } from './helpers/guide-source.mjs';
+import { inPlainProject, migrate } from './helpers/plain-project.mjs';
+import { git, writeFiles } from './helpers/sample-project.mjs';
+
+const SOURCE = 'import Handsontable from \'handsontable\';\nnew Handsontable(el, { data: [], correctFormat: true });\n';
+const CSS = 'a {\n  border-radius: var(--ht-wrapper-border-radius);\n}\n';
+const CSS_DONE = 'a {\n  border-radius: var(--ht-border-radius);\n}\n';
+const RANGE = { from: '17.1', to: '18.0' };
+const POSIX = process.platform !== 'win32';
+
+/**
+ * Create a git repository with one commit under the temporary directory.
+ *
+ * @param {Record<string, string>} files File text by project-relative path.
+ * @param {string} [prefix] Directory name prefix.
+ * @returns {Promise<string>} The directory.
+ */
+async function repo(files, prefix = 'codemod-guards-') {
+  const dir = await mkdtemp(join(tmpdir(), prefix));
+
+  await writeFiles(dir, files);
+  git(dir, ['init', '-q']);
+  git(dir, ['add', '-A']);
+  git(dir, ['commit', '-q', '-m', 'init']);
+
+  return dir;
+}
+
+describe('findExecutable() resolves a program from PATH, never from the project', () => {
+  /**
+   * A file system that holds exactly these files. It records every path that was asked about.
+   *
+   * @param {string[]} files Absolute paths.
+   * @returns {{isFile: (path: string) => Promise<boolean>, asked: string[]}} The probe and the log.
+   */
+  const fake = (files) => {
+    const asked = [];
+
+    return { asked,
+      isFile: async(path) => {
+        asked.push(path);
+
+        return files.includes(path);
+      } };
+  };
+
+  it('returns the first match of the directories of PATH, in order', async() => {
+    const system = fake(['/usr/local/bin/git', '/usr/bin/git']);
+
+    assert.equal(await findExecutable('git', { env: { PATH: '/opt/bin:/usr/local/bin:/usr/bin' },
+      platform: 'linux',
+      isFile: system.isFile }), '/usr/local/bin/git');
+  });
+
+  it('skips an empty and a relative entry, so the current directory is never searched', async() => {
+    const system = fake(['/work/project/git', '/work/project/bin/git', '/usr/bin/git']);
+    const found = await findExecutable('git', {
+      env: { PATH: ':.:bin:./node_modules/.bin::/usr/bin' },
+      platform: 'linux',
+      isFile: system.isFile,
+    });
+
+    assert.equal(found, '/usr/bin/git');
+    assert.deepEqual(system.asked, ['/usr/bin/git'], 'only the absolute entry was probed');
+  });
+
+  it('gives null when no directory holds the program', async() => {
+    assert.equal(await findExecutable('git', { env: { PATH: '/usr/bin' }, platform: 'linux', isFile: fake([]).isFile }),
+      null);
+    assert.equal(await findExecutable('git', { env: {}, platform: 'linux', isFile: fake([]).isFile }), null);
+  });
+
+  it('on Windows reads Path in any case, and only starts what execFile can: .exe and .com', async() => {
+    const system = fake(['C:\\tools\\git.cmd', 'C:\\tools\\git.bat', 'C:\\Git\\cmd\\git.exe', 'C:\\project\\git.exe']);
+    const found = await findExecutable('git', {
+      env: { Path: 'C:\\tools;"C:\\Git\\cmd"', pathext: '.COM;.EXE;.BAT;.CMD' },
+      platform: 'win32',
+      isFile: system.isFile,
+    });
+
+    assert.equal(found, 'C:\\Git\\cmd\\git.exe');
+    assert.ok(!system.asked.some(path => path.startsWith('C:\\project')), 'the project directory was never probed');
+  });
+
+  it('on Windows skips a relative entry and falls back to .exe when PATHEXT names no direct extension', async() => {
+    const system = fake(['.\\git.exe', 'C:\\project\\git.exe', 'C:\\Git\\git.exe']);
+
+    assert.equal(await findExecutable('git', { env: { PATH: '.;;C:\\Git', PATHEXT: '.CMD' },
+      platform: 'win32',
+      isFile: system.isFile }), 'C:\\Git\\git.exe');
+    assert.deepEqual(system.asked, ['C:\\Git\\git.exe']);
+  });
+
+  it('on a POSIX host needs the execute bit, and finds a real program', async() => {
+    const found = await findExecutable('node');
+
+    assert.ok(found && existsSync(found), String(found));
+  });
+});
+
+describe('git runs from PATH, not from the project directory', () => {
+  /**
+   * Run a body with another `PATH`, then restore it.
+   *
+   * @param {string} value The new `PATH`.
+   * @param {() => Promise<void>} body The body.
+   * @returns {Promise<void>}
+   */
+  async function withPath(value, body) {
+    const before = process.env.PATH;
+
+    process.env.PATH = value;
+
+    try {
+      await body();
+    } finally {
+      process.env.PATH = before;
+    }
+  }
+
+  it('does not run a program named git that sits in the project, although PATH names the current directory',
+    { skip: !POSIX }, async(context) => {
+      const real = await findExecutable('git');
+      const project = await repo({ 'a.js': 'x\n' });
+      const marker = join(project, 'ran');
+
+      try {
+        await writeFile(join(project, 'git'), `#!/bin/sh\ntouch '${marker}'\nexit 1\n`);
+        await chmod(join(project, 'git'), 0o755);
+
+        const path = ['.', '', dirname(real)].join(delimiter);
+
+        // The control: a bare `git` with this PATH does run the project's program on this platform.
+        try {
+          execFileSync('git', ['--version'], { cwd: project, env: { ...process.env, PATH: path }, stdio: 'ignore' });
+        } catch {
+          // The program exits 1 on purpose.
+        }
+
+        if (!existsSync(marker)) {
+          context.skip('this platform does not search a relative PATH entry from the working directory');
+
+          return;
+        }
+
+        await rm(marker);
+
+        await withPath(path, async() => {
+          assert.equal(await isGitRepo(project), true, 'the real git answered');
+          assert.equal((await listFiles(project)).includes('a.js'), true);
+        });
+        assert.equal(existsSync(marker), false, 'the project\'s program ran');
+      } finally {
+        await rm(project, { recursive: true, force: true });
+      }
+    });
+
+  it('behaves as "not a git repository" when git is not on PATH, and resolves once per PATH', async() => {
+    const project = await repo({ 'a.js': 'x\n' });
+
+    try {
+      await withPath(join(project, 'nowhere'), async() => {
+        assert.equal(await gitExecutable(), null);
+        assert.equal(await isGitRepo(project), false);
+      });
+      assert.equal(await isGitRepo(project), true, 'the answer follows the PATH of the moment');
+      assert.equal(await gitExecutable(), await gitExecutable(), 'one answer per PATH');
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('the clean-tree guard does not depend on the user\'s git configuration', () => {
+  it('sees an untracked file although status.showUntrackedFiles is no', async() => {
+    const project = await repo({ 'a.css': CSS });
+
+    try {
+      git(project, ['config', 'status.showUntrackedFiles', 'no']);
+      await writeFile(join(project, 'new.css'), CSS);
+
+      assert.deepEqual(await dirtyPaths(project), ['?? new.css']);
+
+      const result = await migrate(project, ['--from', '17.1', '--to', '18.0']);
+
+      assert.equal(result.status, 2, result.stdout + result.stderr);
+      assert.match(result.stderr, /uncommitted change/);
+      assert.equal(await readFile(join(project, 'a.css'), 'utf8'), CSS, 'nothing was migrated');
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('reads untracked files in a new directory one by one', async() => {
+    const project = await repo({ 'a.css': CSS });
+
+    try {
+      await mkdir(join(project, 'fresh'));
+      await writeFile(join(project, 'fresh', 'x.css'), CSS);
+
+      assert.deepEqual(await dirtyPaths(project), ['?? fresh/x.css']);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('lists files by the ignore rules of git itself, the global file included', async() => {
+    const project = await repo({ 'a.css': CSS, 'b.scss': CSS });
+
+    try {
+      await writeFile(join(project, 'global-ignore'), '*.scss\n');
+      git(project, ['config', 'core.excludesFile', join(project, 'global-ignore')]);
+      await writeFile(join(project, 'c.scss'), CSS);
+
+      // Git hides c.scss in status, and the tool does not read it: the file list and the guard agree.
+      assert.deepEqual(await dirtyPaths(project), ['?? global-ignore']);
+      assert.deepEqual(await discover({ cwd: project }), ['a.css', 'b.scss']);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('runs every test that spawns git with an empty global and system configuration', async() => {
+    const project = await repo({ 'a.css': CSS });
+
+    try {
+      const listing = execFileSync('git', ['config', '--list', '--show-origin'], {
+        cwd: project,
+        env: isolatedGitEnv(),
+        encoding: 'utf8',
+      });
+
+      for (const line of listing.split('\n').filter(Boolean)) {
+        assert.match(line, /^file:\.git\/config\t/, `a setting outside the repository: ${line}`);
+      }
+
+      assert.equal(process.env.GIT_CONFIG_GLOBAL, GIT_ISOLATION.GIT_CONFIG_GLOBAL);
+      assert.equal(process.env.GIT_CONFIG_NOSYSTEM, '1');
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('is enforced: a test file that spawns git imports the isolation helper', async() => {
+    const files = [
+      ...(await readdir(new URL('.', import.meta.url))).filter(name => name.endsWith('.mjs')).map(name => ['.', name]),
+      ...(await readdir(new URL('./helpers/', import.meta.url))).filter(name => name.endsWith('.mjs'))
+        .map(name => ['helpers', name]),
+    ];
+    const missing = [];
+
+    for (const [folder, name] of files) {
+      const text = await readFile(new URL(`${folder}/${name}`, import.meta.url), 'utf8');
+
+      const spawnsGit = /(?:execFileSync|spawnSync|execFile|spawn)\(\s*'git'/.test(text);
+
+      if (spawnsGit && !/git-env\.mjs|isolatedGitEnv/.test(text)) {
+        missing.push(`${folder}/${name}`);
+      }
+    }
+
+    assert.deepEqual(missing, []);
+  });
+});
+
+describe('a run that reads no file says so', () => {
+  it('names the reason when a directory holds no file the tool reads, and still exits 0', async() => {
+    await inPlainProject({ 'README.md': '# hi\n', 'docs/guide.md': 'x\n' }, async(dir) => {
+      const result = await migrate(dir, ['--from', '17.1', '--to', '18.0', 'docs']);
+
+      assert.equal(result.status, 0, result.stderr);
+      assert.match(result.stderr,
+        /No files to migrate\. "docs" holds no source, style, template, or package\.json file/);
+      assert.match(result.stdout, /No files to migrate/, 'the report says it too');
+    });
+  });
+
+  it('names the reason for an explicit file of a type the tool does not read', async() => {
+    await inPlainProject({ 'README.md': '# hi\n' }, async(dir) => {
+      const result = await run({ cwd: dir, ...RANGE, paths: ['README.md'] });
+
+      assert.equal(result.exitCode, 0);
+      assert.ok(result.notes.some(note => /No files to migrate\. "README\.md" is not a type of file the tool reads\./
+        .test(note)), JSON.stringify(result.notes));
+      assert.ok(result.report.notes.length > 0);
+    });
+  });
+
+  it('says that git ignores the directory, in a repository', async() => {
+    const project = await repo({ '.gitignore': 'gen/\n', 'a.css': CSS });
+
+    try {
+      await mkdir(join(project, 'gen'));
+      await writeFile(join(project, 'gen', 'x.css'), CSS);
+
+      const result = await run({ cwd: project, ...RANGE, paths: ['gen'] });
+
+      assert.equal(result.exitCode, 0);
+      assert.ok(result.notes.some(note => /"gen" is ignored by git, and the tool reads no ignored file/.test(note)),
+        JSON.stringify(result.notes));
+      assert.equal(await readFile(join(project, 'gen', 'x.css'), 'utf8'), CSS);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('does not add the note to a run that found a file', async() => {
+    await inPlainProject({ 'a.css': CSS }, async(dir) => {
+      const result = await run({ cwd: dir, ...RANGE });
+
+      assert.deepEqual(result.notes.filter(note => /No files to migrate/.test(note)), []);
+    });
+  });
+
+  it('is still a usage error for a path that does not exist', async() => {
+    await inPlainProject({ 'a.css': CSS }, async(dir) => {
+      const result = await run({ cwd: dir, ...RANGE, paths: ['nope'] });
+
+      assert.equal(result.exitCode, 2);
+      assert.match(result.error, /"nope" does not exist/);
+    });
+  });
+
+  it('reads a path argument in the letter case the file system stores, and says so', async(context) => {
+    const project = await repo({ 'src/a.css': CSS });
+
+    try {
+      if (!existsSync(join(project, 'SRC'))) {
+        context.skip('this file system tells src and SRC apart');
+
+        return;
+      }
+
+      const result = await run({ cwd: project, ...RANGE, paths: ['SRC'] });
+
+      assert.deepEqual(result.changedFiles, ['src/a.css']);
+      assert.ok(result.notes.some(note => /"SRC" is spelled "src" on disk/.test(note)), JSON.stringify(result.notes));
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('a project that an outer repository ignores', () => {
+  it('is walked instead of listed, because git lists nothing there, and the report says so', async() => {
+    const outer = await repo({ '.gitignore': 'proj/\n', 'README.md': 'x\n' });
+
+    try {
+      const project = join(outer, 'proj');
+
+      await writeFiles(project, { 'a.css': CSS, 'node_modules/x/b.css': CSS });
+
+      const result = await run({ cwd: project, ...RANGE });
+
+      assert.equal(result.exitCode, 0, result.error);
+      assert.deepEqual(result.changedFiles, ['a.css']);
+      assert.equal(await readFile(join(project, 'a.css'), 'utf8'), CSS_DONE);
+      assert.equal(await readFile(join(project, 'node_modules', 'x', 'b.css'), 'utf8'), CSS, 'the walk skips it too');
+      assert.ok(result.notes.some(note => /A \.gitignore above this directory ignores it/.test(note)
+        && /git diff will not show what changed/.test(note)), JSON.stringify(result.notes));
+      assert.ok(result.report.notes.some(note => /ignores it/.test(note)));
+    } finally {
+      await rm(outer, { recursive: true, force: true });
+    }
+  });
+
+  it('is listed by git, as before, when it is not ignored', async() => {
+    const project = await repo({ 'a.css': CSS });
+
+    try {
+      const result = await run({ cwd: project, ...RANGE });
+
+      assert.deepEqual(result.notes.filter(note => /ignores it/.test(note)), []);
+      assert.deepEqual(result.changedFiles, ['a.css']);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('a submodule or an embedded repository', () => {
+  it('is named under "Skipped files", with the advice to run the tool inside it, and none of its files is read',
+    async() => {
+      const project = await repo({ 'a.css': CSS });
+
+      try {
+        await writeFiles(join(project, 'nested'), { 'b.css': CSS });
+        git(join(project, 'nested'), ['init', '-q']);
+
+        const result = await run({ cwd: project, ...RANGE, allowDirty: true });
+        const entry = result.report.skipped().find(item => item.file === 'nested');
+
+        assert.ok(entry, JSON.stringify(result.report.skipped()));
+        assert.match(entry.message, /submodule or an embedded git repository.*Run the tool inside it/);
+        assert.equal(await readFile(join(project, 'nested', 'b.css'), 'utf8'), CSS);
+        assert.deepEqual(result.changedFiles, ['a.css']);
+      } finally {
+        await rm(project, { recursive: true, force: true });
+      }
+    });
+
+  it('is named when it is a gitlink in the index with its directory present', async() => {
+    const project = await repo({ 'a.css': CSS });
+
+    try {
+      const sha = git(project, ['rev-parse', 'HEAD']).trim();
+
+      git(project, ['update-index', '--add', '--cacheinfo', `160000,${sha},vendor-sub`]);
+      await mkdir(join(project, 'vendor-sub'));
+      await writeFile(join(project, 'vendor-sub', 'c.css'), CSS);
+
+      const result = await run({ cwd: project, ...RANGE, allowDirty: true });
+
+      assert.ok(result.report.skipped().some(item => item.file === 'vendor-sub'),
+        JSON.stringify(result.report.skipped()));
+      assert.equal(await readFile(join(project, 'vendor-sub', 'c.css'), 'utf8'), CSS);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('is the reason when the path argument is the repository itself', async() => {
+    const project = await repo({ 'a.css': CSS });
+
+    try {
+      await writeFiles(join(project, 'nested'), { 'b.css': CSS });
+      git(join(project, 'nested'), ['init', '-q']);
+
+      const result = await run({ cwd: project, ...RANGE, allowDirty: true, paths: ['nested'] });
+
+      assert.deepEqual(result.changedFiles, []);
+      assert.ok(result.report.skipped().some(item => item.file === 'nested'));
+      assert.ok(result.notes.some(note => /No files to migrate/.test(note)));
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('a project outside git: the walk leaves build output and hidden folders alone, and says so', () => {
+  const FILES = {
+    'src/a.js': SOURCE,
+    '.next/static/main.js': SOURCE,
+    'out/bundle.js': SOURCE,
+    '.storybook/preview.js': SOURCE,
+    '.github/workflows/ci.yml': 'name: ci\n',
+    'storybook-static/x.js': SOURCE,
+  };
+
+  it('migrates the source only, and names each skipped directory that held files it reads', async() => {
+    await inPlainProject(FILES, async(dir) => {
+      const result = await run({ cwd: dir, ...RANGE });
+
+      assert.deepEqual(result.changedFiles, ['src/a.js']);
+
+      const readable = ['.next/static/main.js', 'out/bundle.js', '.storybook/preview.js', 'storybook-static/x.js'];
+
+      for (const skipped of readable) {
+        assert.equal(await readFile(join(dir, skipped), 'utf8'), SOURCE, `${skipped} was rewritten`);
+      }
+
+      const names = result.report.skipped().map(item => item.file);
+
+      assert.deepEqual(names, ['.next', '.storybook', 'out', 'storybook-static']);
+      assert.match(result.report.skipped()[0].message, /To include it, name it: migrate \.next$/);
+      assert.equal(names.includes('.github'), false, 'a directory with nothing the tool reads is not worth a line');
+    });
+  });
+
+  it('reads one of them when the path argument names it', async() => {
+    await inPlainProject(FILES, async(dir) => {
+      const result = await run({ cwd: dir, ...RANGE, paths: ['.storybook', 'src'] });
+
+      assert.deepEqual(result.changedFiles, ['.storybook/preview.js', 'src/a.js']);
+      assert.deepEqual(result.report.skipped(), []);
+    });
+  });
+
+  it('does not skip a hidden folder that git lists, because git has the ignore rules', async() => {
+    const project = await repo({ 'src/a.js': SOURCE, '.storybook/preview.js': SOURCE });
+
+    try {
+      const result = await run({ cwd: project, ...RANGE });
+
+      assert.deepEqual(result.changedFiles, ['.storybook/preview.js', 'src/a.js']);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('does not follow a link into a skipped directory, and does not crash on a dangling one', async(context) => {
+    await inPlainProject({ 'src/a.js': SOURCE }, async(dir) => {
+      try {
+        await symlink(join(dir, 'nowhere'), join(dir, '.cache'), 'dir');
+      } catch {
+        context.skip('this platform cannot make a symbolic link');
+
+        return;
+      }
+
+      const result = await run({ cwd: dir, ...RANGE });
+
+      assert.deepEqual(result.changedFiles, ['src/a.js']);
+    });
+  });
+});
+
+describe('the tests read the monorepo files they depend on, or fail', () => {
+  it('fails inside the monorepo when a file is missing, and passes for a file that is there', () => {
+    assert.equal(IN_MONOREPO, true, 'this suite runs in the monorepo, where pnpm-workspace.yaml is two levels up');
+
+    const context = { skip() {
+      throw new Error('skipped');
+    } };
+
+    assert.throws(() => skipWithoutFile(context, join(tmpdir(), 'no-such-guide.md'), 'the guide'),
+      /the guide is missing.*A file moved or was renamed/s);
+    assert.equal(skipWithoutFile(context, fileURLToPath(new URL('docs-structure.test.mjs', import.meta.url)), 'a test'),
+      false);
+  });
+});
+
+describe('discovery drops a link to a file on its own, before the write-time check can', () => {
+  it('lists neither a link to a file inside the project nor one outside it, in git and outside it', async(context) => {
+    const outside = await mkdtemp(join(tmpdir(), 'codemod-outside-'));
+
+    try {
+      await writeFile(join(outside, 'target.css'), CSS);
+
+      for (const inGit of [true, false]) {
+        const files = { 'src/own.css': CSS };
+        const project = inGit ? await repo(files) : await mkdtemp(join(tmpdir(), 'codemod-guards-'));
+
+        try {
+          if (!inGit) {
+            await writeFiles(project, files);
+          }
+
+          try {
+            await symlink(join(project, 'src', 'own.css'), join(project, 'src', 'inside.css'));
+            await symlink(join(outside, 'target.css'), join(project, 'src', 'outside.css'));
+          } catch {
+            context.skip('this platform cannot make a symbolic link');
+
+            return;
+          }
+
+          if (inGit) {
+            git(project, ['add', '-A']);
+            git(project, ['commit', '-q', '-m', 'links']);
+          }
+
+          const skipped = [];
+          const found = await discover({ cwd: project, skipped });
+
+          assert.deepEqual(found, ['src/own.css'], `in git: ${inGit}`);
+          assert.deepEqual(skipped.map(item => item.file).sort(), ['src/inside.css', 'src/outside.css']);
+        } finally {
+          await rm(project, { recursive: true, force: true });
+        }
+      }
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+});

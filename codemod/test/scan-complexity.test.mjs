@@ -226,3 +226,59 @@ describe('blankToolComments() returns what the regular expression returned', () 
     assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
   });
 });
+
+describe('a file with a long run of white space, many names in one value, or many edits is read in linear time', () => {
+  /**
+   * Run a whole file through the default rules and return how long it took.
+   *
+   * @param {string} filePath File name, which picks the adapter.
+   * @param {string} source File text.
+   * @returns {Promise<{ms: number, result: Awaited<ReturnType<typeof transformFile>>}>} The time and the outcome.
+   */
+  async function timedFile(filePath, source) {
+    const plan = buildPlan((await loadManifests(VERSIONS_DIR)).filter(manifest => manifest.status === 'released'));
+    const start = process.hrtime.bigint();
+    const result = await transformFile({ filePath, source, plan, options: {}, facts: new Set(), phase: 1 });
+
+    return { ms: Number(process.hrtime.bigint() - start) / 1e6, result };
+  }
+
+  it('a Vue script block that holds 120,000 spaces in a row (the edges of a block were read with /\\s*$/)', async() => {
+    // The run sits inside the block, followed by code: `/\s*$/` fails at the end of it from every position of the run.
+    const source = `<script>\nimport Handsontable from 'handsontable';\nconst a = 1;${' '.repeat(120000)}const b = 2;\n`
+      + 'new Handsontable(el, { correctFormat: true });\n</script>\n';
+    const { ms, result } = await timedFile('a.vue', source);
+
+    assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
+    assert.equal(result.changed, true);
+    assert.equal(result.output.includes(`const a = 1;${' '.repeat(120000)}const b = 2;`), true,
+      'the white space is kept');
+  });
+
+  it('one declaration that names the variable 4,000 times', async() => {
+    const value = 'var(--ht-wrapper-border-radius), '.repeat(4000);
+    const { ms, result } = await timedFile('a.css', `a { box-shadow: ${value}0 0 red; }\n`);
+
+    assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
+    assert.equal(result.output.split('--ht-border-radius').length - 1, 4000);
+  });
+
+  it('1.5 MB of declarations that are all renamed (the edits were spliced into the whole text one by one)',
+    async() => {
+      const source = `a {\n${'  border-radius: var(--ht-wrapper-border-radius);\n'.repeat(30000)}}\n`;
+      const { ms, result } = await timedFile('a.css', source);
+
+      assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
+      assert.equal(result.output.split('--ht-border-radius').length - 1, 30000);
+      assert.equal(result.output.length, source.length - (30000 * 'wrapper-'.length));
+    });
+
+  it('names that sit between strings and url() are decided by position, in the same bound', async() => {
+    const value = 'url(--ht-wrapper-border-radius.png) "--ht-wrapper-border-radius" var(--ht-wrapper-border-radius) '
+      .repeat(2000).trim();
+    const { ms, result } = await timedFile('a.css', `a { background: ${value}; }\n`);
+
+    assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
+    assert.equal(result.output.split('var(--ht-border-radius)').length - 1, 2000, 'only the var() references change');
+  });
+});

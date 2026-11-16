@@ -131,7 +131,7 @@ describe('renderConsole', () => {
     assert.match(text, /src\/a\.ts:10 {2}Fix 10\./);
     assert.doesNotMatch(text, /src\/a\.ts:11 /);
     assert.match(text, /^ {2}\+4 more \(use --report <file> for the full list\)$/m);
-    assert.match(renderMarkdown(report), /^- \[ \] src\/a\.ts:14 Fix 14\.$/m);
+    assert.match(renderMarkdown(report), /^- \[ \] `src\/a\.ts:14` Fix 14\.$/m);
   });
 });
 
@@ -158,7 +158,7 @@ describe('every location of a collapsed entry', () => {
     const tail = 'Check it. This part has 5 matches. Lines: 3, 9, 14-16.';
 
     assert.ok(renderConsole(report).includes(`src/a.ts:3  ${tail}`));
-    assert.ok(renderMarkdown(report).includes(`- [ ] src/a.ts:3 ${tail}`));
+    assert.ok(renderMarkdown(report).includes(`- [ ] \`src/a.ts:3\` ${tail}`));
   });
 });
 
@@ -194,9 +194,9 @@ describe('Read once and Skipped files sections', () => {
     const text = renderMarkdown(fill());
 
     assert.ok(text.includes('## Read once\n'));
-    assert.ok(text.includes('\n  - 4 files: src/a.ts, src/b.ts, src/c.ts, src/d.ts\n'));
+    assert.ok(text.includes('\n  - 4 files: `src/a.ts`, `src/b.ts`, `src/c.ts`, `src/d.ts`\n'));
     assert.ok(text.includes('## Skipped files\n'));
-    assert.ok(text.includes('- [ ] a.less Not analyzed.\n'));
+    assert.ok(text.includes('- [ ] `a.less` Not analyzed.\n'));
   });
 
   it('uses the same summary line in both reports', () => {
@@ -215,10 +215,10 @@ describe('renderMarkdown', () => {
 
     assert.match(text, /^# Handsontable migration report$/m);
     assert.match(text, /^## 18\.0\.0\/a$/m);
-    assert.match(text, /^Renamed\.\n\n- \[x\] src\/a\.css:2\n- \[x\] src\/b\.css:9\n/m);
+    assert.match(text, /^Renamed\.\n\n- \[x\] `src\/a\.css:2`\n- \[x\] `src\/b\.css:9`\n/m);
     assert.equal(text.match(/Renamed\./g).length, 1);
-    assert.match(text, /^- \[ \] src\/z\.ts:4 Replace by hand\.$/m);
-    assert.match(text, /^- \[ \] src\/bad\.ts \(warning\) Could not parse\.$/m);
+    assert.match(text, /^- \[ \] `src\/z\.ts:4` Replace by hand\.$/m);
+    assert.match(text, /^- \[ \] `src\/bad\.ts` \(warning\) Could not parse\.$/m);
     assert.match(text, /^Guide: https:\/\/example\.com\/g#b$/m);
   });
 

@@ -129,7 +129,57 @@ function reportRename(ctx, rule, line, markLine) {
  * @returns {boolean} `true` when a declaration of that name is a direct child.
  */
 function declares(container, name) {
-  return (container.nodes ?? []).some(node => node.type === 'decl' && node.prop === name);
+  return (propertyCounts(container).get(name) ?? 0) > 0;
+}
+
+/**
+ * How many declarations of each custom property name a container holds directly, per container. A rule with thousands of
+ * declarations asks once per declaration, so the answer is counted once and kept in step with the renames of
+ * `renamed()`.
+ *
+ * @type {WeakMap<object, Map<string, number>>}
+ */
+const propertyCountsByContainer = new WeakMap();
+
+/**
+ * The counts of declared property names of a container.
+ *
+ * @param {object} container A postcss container.
+ * @returns {Map<string, number>} Property name to the number of direct declarations of it.
+ */
+function propertyCounts(container) {
+  if (!propertyCountsByContainer.has(container)) {
+    const counts = new Map();
+
+    for (const node of container.nodes ?? []) {
+      if (node.type === 'decl') {
+        counts.set(node.prop, (counts.get(node.prop) ?? 0) + 1);
+      }
+    }
+
+    propertyCountsByContainer.set(container, counts);
+  }
+
+  return propertyCountsByContainer.get(container);
+}
+
+/**
+ * Tell `declares()` that a declaration of a container got another property name.
+ *
+ * @param {object} container A postcss container.
+ * @param {string} from The name it had.
+ * @param {string} to The name it has.
+ * @returns {void}
+ */
+function renamed(container, from, to) {
+  if (from === to) {
+    return;
+  }
+
+  const counts = propertyCounts(container);
+
+  counts.set(from, (counts.get(from) ?? 1) - 1);
+  counts.set(to, (counts.get(to) ?? 0) + 1);
 }
 
 /**
@@ -174,8 +224,74 @@ function textRanges(text) {
  * @returns {boolean} `true` for a `var(--name ...)` reference.
  */
 function isReference(value, offset) {
-  return /\bvar\(\s*$/i.test(value.slice(0, offset))
-    && !textRanges(value).some(([start, end]) => offset >= start && offset < end);
+  return followsVarOpen(value, offset) && !insideText(rangesOf(value), offset);
+}
+
+/**
+ * The text ranges of the value asked about last. A value with thousands of names is asked about once per name, and the
+ * ranges do not change in between.
+ */
+let lastRanges = { text: null, ranges: [] };
+
+/**
+ * `textRanges()` with the last answer kept.
+ *
+ * @param {string} text A declaration value.
+ * @returns {Array<[number, number]>} The ranges, sorted and apart.
+ */
+function rangesOf(text) {
+  if (lastRanges.text !== text) {
+    lastRanges = { text, ranges: textRanges(text) };
+  }
+
+  return lastRanges.ranges;
+}
+
+/**
+ * Tell whether an offset sits inside one of the ranges. The ranges are sorted and do not overlap, so a binary search
+ * answers.
+ *
+ * @param {Array<[number, number]>} ranges The ranges from `textRanges()`.
+ * @param {number} offset The offset.
+ * @returns {boolean} `true` when a range holds the offset.
+ */
+function insideText(ranges, offset) {
+  let low = 0;
+  let high = ranges.length - 1;
+
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+    const [start, end] = ranges[middle];
+
+    if (offset < start) {
+      high = middle - 1;
+    } else if (offset >= end) {
+      low = middle + 1;
+    } else {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Tell whether the text right before an offset is `var(` and white space, with a word boundary in front of `var`. It
+ * reads backward from the offset: a regular expression with `$` on a slice would read the whole value from its start
+ * for every name, which is quadratic in a value that holds many.
+ *
+ * @param {string} value The declaration value.
+ * @param {number} offset Where the name starts.
+ * @returns {boolean} `true` when a `var(` opens the offset.
+ */
+function followsVarOpen(value, offset) {
+  let at = offset;
+
+  while (at > 0 && /\s/.test(value[at - 1])) {
+    at -= 1;
+  }
+
+  return at >= 4 && value.slice(at - 4, at).toLowerCase() === 'var(' && !/\w/.test(value[at - 5] ?? '');
 }
 
 /**
@@ -248,6 +364,7 @@ function applyToDeclaration(ctx, declaration, entry) {
     return;
   }
 
+  renamed(declaration.parent, prop, declaration.prop);
   ctx.markChanged();
   ctx.report({ ruleId: rule.id, severity: 'changed', line, message: `Renamed ${rule.from} to ${rule.to}.` });
 }

@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { buildPlan } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
+import { skipWithoutFile } from './helpers/guide-source.mjs';
 import { parse } from './helpers/parse.mjs';
 
 const IMPORT = 'import Handsontable from \'handsontable\';\n';
@@ -300,9 +302,7 @@ describe('optionMove', () => {
   it('keeps the empty numericFormat because the renderer reads {} and an absent value differently', (context) => {
     const path = new URL('../../handsontable/src/renderers/numericRenderer/utils.ts', import.meta.url);
 
-    if (!existsSync(path)) {
-      context.skip('the core sources are not available outside the monorepo');
-
+    if (skipWithoutFile(context, fileURLToPath(path), 'the numeric renderer source')) {
       return;
     }
 

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { collectHotBindings } from '../src/lib/hot-bindings.mjs';
@@ -13,6 +13,7 @@ import {
   getProperties,
   hasSpread,
 } from '../src/lib/option-objects.mjs';
+import { skipWithoutFile } from './helpers/guide-source.mjs';
 import { parse, print } from './helpers/parse.mjs';
 
 const TS_PARSERS = ['ts', 'tsx'];
@@ -54,9 +55,7 @@ describe('known-options.json', () => {
     const schemaPath = fileURLToPath(new URL('../../handsontable/src/dataMap/metaManager/metaSchema.ts',
       import.meta.url));
 
-    if (!existsSync(schemaPath)) {
-      context.skip('metaSchema.ts is not available outside the monorepo');
-
+    if (skipWithoutFile(context, schemaPath, 'metaSchema.ts')) {
       return;
     }
 

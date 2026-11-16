@@ -2,8 +2,8 @@ import { lstat, readdir, realpath, stat } from 'node:fs/promises';
 import { join, relative, resolve, sep } from 'node:path';
 import { isCandidate } from './adapters/index.mjs';
 import { UsageError } from './errors.mjs';
-import { isGitRepo, listFiles } from './git.mjs';
-import { insideRelative, leavesDirectory, toPosix } from './lib/paths.mjs';
+import { isGitRepo, isIgnored, listFiles } from './git.mjs';
+import { insideRelative, leavesDirectory, realpathNative, toPosix } from './lib/paths.mjs';
 
 export { leavesDirectory };
 
@@ -11,6 +11,26 @@ export { leavesDirectory };
  * Directory names discovery never enters or lists.
  */
 export const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', 'coverage', '.git']);
+
+/**
+ * Directory names that only the walk (a project outside git) leaves out, besides `SKIPPED_DIRECTORIES` and every
+ * directory that starts with a dot (`.next`, `.nuxt`, `.output`, `.svelte-kit`, `.angular`, `.cache`, `.turbo`,
+ * `.vercel`, ...). Inside git the ignore rules tell build output from source. Without them the tool cannot, and
+ * rewriting a bundler's output costs more than skipping a hidden folder that holds source (`.storybook`), which the
+ * report names.
+ */
+export const BUILD_OUTPUT_DIRECTORIES = new Set(['out', 'storybook-static', 'bower_components', 'jspm_packages',
+  '_site']);
+
+/**
+ * Tell whether the walk leaves a directory out although it is not in `SKIPPED_DIRECTORIES`.
+ *
+ * @param {string} name Directory name.
+ * @returns {boolean} `true` for a dot-directory or a build output name.
+ */
+function isWalkSkipped(name) {
+  return name.startsWith('.') || BUILD_OUTPUT_DIRECTORIES.has(name);
+}
 
 /**
  * Tell whether a project-relative path is generated or vendored output: it sits under a skipped directory,
@@ -31,32 +51,84 @@ export function isSkipped(filePath) {
 }
 
 /**
- * A symbolic link that discovery did not follow.
+ * Something discovery left out and the report must name.
+ *
+ * - `link` (the default): a symbolic link that was not followed.
+ * - `repository`: a submodule or an embedded git repository. Git lists it as one entry, and the files in it belong to
+ *   another repository, so the tool does not read them.
+ * - `directory`: a directory the walk skipped because it cannot tell build output from source without git.
  *
  * @typedef {object} SkippedLink
- * @property {string} file Project-relative path with forward slashes of the link itself.
+ * @property {string} file Project-relative path with forward slashes of the link, repository, or directory itself.
+ * @property {'link'|'repository'|'directory'} [kind] What it is. Defaults to `link`.
  */
+
+/**
+ * Tell whether a directory holds a file that discovery would otherwise read, anywhere below it. The search stops at
+ * the first one and follows no symbolic link.
+ *
+ * @param {string} dir Absolute directory path.
+ * @param {string} cwd Project directory that paths are made relative to.
+ * @returns {Promise<boolean>} `true` when a handled file is below `dir`.
+ */
+async function holdsCandidate(dir, cwd) {
+  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+
+  for (const entry of entries) {
+    const path = join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      if (!SKIPPED_DIRECTORIES.has(entry.name) && await holdsCandidate(path, cwd)) {
+        return true;
+      }
+    } else if (entry.isFile()) {
+      const rel = toPosix(relative(cwd, path));
+
+      if (isCandidate(rel) && !isSkipped(rel)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 /**
  * Walk a directory without git, skipping the skipped directories. A symbolic link is never followed: a link to a
  * file that a rule could edit, or to a directory, is handed to `onLink`.
  *
+ * A dot-directory or a build output name (`isWalkSkipped()`) is not entered either, and `onDirectory` hears of it when
+ * it holds a file the walk would otherwise read.
+ *
  * @param {string} dir Absolute directory path.
  * @param {string} cwd Project directory that paths are made relative to.
  * @param {string[]} out Collected project-relative paths.
- * @param {(file: string) => void} onLink Called with the project-relative path of a link that was left out.
+ * @param {object} hooks Callbacks.
+ * @param {(file: string) => void} hooks.onLink Called with the project-relative path of a link that was left out.
+ * @param {(file: string) => void} hooks.onDirectory Called with the project-relative path of a directory that was
+ * skipped and holds readable files.
  * @returns {Promise<void>}
  */
-async function walk(dir, cwd, out, onLink) {
+async function walk(dir, cwd, out, hooks) {
   const entries = await readdir(dir, { withFileTypes: true });
 
   for (const entry of entries) {
     const path = join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      if (!SKIPPED_DIRECTORIES.has(entry.name)) {
-        await walk(path, cwd, out, onLink);
+      if (SKIPPED_DIRECTORIES.has(entry.name)) {
+        continue;
       }
+
+      if (isWalkSkipped(entry.name)) {
+        if (await holdsCandidate(path, cwd)) {
+          hooks.onDirectory(toPosix(relative(cwd, path)));
+        }
+
+        continue;
+      }
+
+      await walk(path, cwd, out, hooks);
     } else if (entry.isFile()) {
       out.push(toPosix(relative(cwd, path)));
     } else if (entry.isSymbolicLink()) {
@@ -66,38 +138,53 @@ async function walk(dir, cwd, out, onLink) {
         : Boolean(target) && isCandidate(rel) && !isSkipped(rel);
 
       if (matters) {
-        onLink(rel);
+        hooks.onLink(rel);
       }
     }
   }
 }
 
 /**
- * Find the entries of a git file list that are symbolic links to a directory. Git lists such a link as one entry
- * with no sign of the directory behind it, and its name usually has no handled extension, so the file filter drops it
- * silently. Only entries no adapter handles are checked, because a handled one goes through `isFile`.
+ * Find the entries of a git file list that are a symbolic link to a directory, or a directory of their own. Git lists a
+ * link to a directory as one entry with no sign of the directory behind it, and a submodule (a gitlink) or an embedded
+ * repository as one entry too (the embedded one with a trailing slash), and their names usually have no handled
+ * extension, so the file filter drops them silently. Only entries no adapter handles are checked, because a handled
+ * one goes through `isFile`.
  *
  * @param {string} cwd Project directory.
  * @param {string[]} files Project-relative paths with forward slashes.
- * @returns {Promise<string[]>} The paths of the links to a directory that the walk would also leave out.
+ * @returns {Promise<{links: string[], repositories: string[]}>} The links to a directory that the walk would also
+ * leave out, and the directories git lists as one entry (the path has no trailing slash).
  */
-async function directoryLinks(cwd, files) {
+async function unhandledEntries(cwd, files) {
   const unhandled = files.filter(file => !isCandidate(file) && !isSkipped(file)
-    && !SKIPPED_DIRECTORIES.has(file.split('/').pop()));
+    && !SKIPPED_DIRECTORIES.has(file.replace(/\/$/, '').split('/').pop()));
   const links = [];
+  const repositories = [];
 
   for (let start = 0; start < unhandled.length; start += 256) {
     const batch = unhandled.slice(start, start + 256);
     const results = await Promise.all(batch.map(async(file) => {
-      const info = await lstat(join(cwd, file)).catch(() => null);
+      const path = join(cwd, file.replace(/\/$/, ''));
+      const info = await lstat(path).catch(() => null);
 
-      return info?.isSymbolicLink() && (await stat(join(cwd, file)).catch(() => null))?.isDirectory() ? file : null;
+      if (info?.isSymbolicLink()) {
+        return (await stat(path).catch(() => null))?.isDirectory() ? { link: file } : null;
+      }
+
+      return info?.isDirectory() ? { repository: file.replace(/\/$/, '') } : null;
     }));
 
-    links.push(...results.filter(Boolean));
+    results.forEach((result) => {
+      if (result?.link) {
+        links.push(result.link);
+      } else if (result?.repository) {
+        repositories.push(result.repository);
+      }
+    });
   }
 
-  return links;
+  return { links, repositories };
 }
 
 /**
@@ -126,13 +213,13 @@ async function isFile(path, onLink) {
 }
 
 /**
- * Find the first symbolic link on the way from the project directory to a path, the path itself included.
+ * Find the first symbolic link on the way from a base directory to a path, the path itself included.
  *
- * @param {string} cwd Project directory.
+ * @param {string} cwd Base directory. A link in `cwd` itself or above it is not looked at.
  * @param {string} rel Relative path with the platform separator, inside `cwd`.
  * @returns {Promise<string|null>} The relative path of the link, or `null` when no component is a link.
  */
-async function firstLinkOn(cwd, rel) {
+export async function firstLinkOn(cwd, rel) {
   const segments = rel.split(sep).filter(Boolean);
 
   for (let count = 1; count <= segments.length; count += 1) {
@@ -166,31 +253,67 @@ export async function resolvesInside(cwd, file) {
 }
 
 /**
+ * The spelling of a path argument that the file system stores. On a case-insensitive file system `SRC` names the
+ * directory `src`, but git lists `src/...`, so a prefix match on `SRC/` finds nothing.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string} absolute Absolute path of the argument.
+ * @param {string} raw The argument as `relative(cwd, absolute)`, with the platform separator.
+ * @returns {Promise<string>} The path as stored when it differs from `raw` in letter case only, else `raw`.
+ */
+async function storedSpelling(cwd, absolute, raw) {
+  try {
+    const [base, real] = await Promise.all([realpathNative(cwd), realpathNative(absolute)]);
+    const actual = relative(base, real);
+
+    return !leavesDirectory(actual) && actual !== raw && actual.toLowerCase() === raw.toLowerCase() ? actual : raw;
+  } catch {
+    return raw;
+  }
+}
+
+/**
  * Find the files to migrate. Inside a git repository the list is `git ls-files --cached --others
- * --exclude-standard`, so ignored files never appear. Otherwise the directory is walked. In both cases
- * generated output is dropped (see `isSkipped`), deleted files are dropped, and only files an adapter can
- * handle remain. A file named explicitly on the command line bypasses the generated-output filter.
+ * --exclude-standard`, so ignored files never appear, and "ignored" is what git itself says: the `.gitignore` files of
+ * the repository and of every directory above it, `.git/info/exclude`, and the user's global ignore file
+ * (`core.excludesFile`). That is the same set `git status` hides, so the clean-tree guard and the file list agree. A
+ * project directory that an outer repository ignores gets an empty list from git, so it is walked instead (see
+ * `notes`). Without git the directory is walked. In both cases generated output is dropped (see `isSkipped`), deleted
+ * files are dropped, and only files an adapter can handle remain. A file named explicitly on the command line
+ * bypasses the generated-output filter.
  *
  * @param {object} options Options.
  * @param {string} options.cwd Project directory. Returned paths are relative to it.
  * @param {string[]} [options.paths] Files or directories to search, relative to `cwd`. Defaults to `cwd`.
  * @param {SkippedLink[]} [options.skipped] Receives one item per symbolic link that was left out: a file or
  * directory link met while searching, a path argument that is a link or sits below one. Symbolic links are never
- * followed, because a link can point outside the project.
+ * followed, because a link can point outside the project. It also gets the submodules and embedded repositories git
+ * lists as one entry, and the directories the walk skipped (see `walk`).
+ * @param {string[]} [options.notes] Receives a sentence for what changed how the search ran: the walk that replaced
+ * git, a path argument read in the letter case the file system stores.
+ * @param {string[]} [options.reasons] Receives a sentence for each path argument that gave no file. The caller says
+ * them when the whole run found nothing.
  * @returns {Promise<string[]>} Sorted project-relative paths with forward slashes.
  */
-export async function discover({ cwd, paths = [], skipped = [] }) {
+export async function discover({ cwd, paths = [], skipped = [], notes = [], reasons = [] }) {
   const roots = paths.length > 0 ? paths : ['.'];
   const found = new Set();
   const links = new Set();
   const repo = await isGitRepo(cwd);
-  const tracked = repo ? await listFiles(cwd) : null;
-  const noteLink = (file) => {
+  let tracked = repo ? await listFiles(cwd) : null;
+  const noteSkipped = (file, kind) => {
     if (!links.has(file)) {
       links.add(file);
-      skipped.push({ file });
+      skipped.push({ file, kind });
     }
   };
+  const noteLink = file => noteSkipped(file, 'link');
+
+  if (tracked !== null && tracked.length === 0 && await isIgnored(cwd)) {
+    tracked = null;
+    notes.push('A .gitignore above this directory ignores it, so git lists no file here. The tool walked the directory '
+      + 'instead, and no ignore rule applies. git diff will not show what changed.');
+  }
 
   for (const root of roots) {
     const absolute = resolve(cwd, root);
@@ -200,7 +323,6 @@ export async function discover({ cwd, paths = [], skipped = [] }) {
       throw new UsageError(`"${root}" is outside the project directory.`);
     }
 
-    const rel = toPosix(raw);
     const link = await firstLinkOn(cwd, raw);
 
     if (link !== null) {
@@ -217,31 +339,60 @@ export async function discover({ cwd, paths = [], skipped = [] }) {
       throw new UsageError(`"${root}" does not exist.`);
     }
 
+    const spelled = raw === '' ? raw : await storedSpelling(cwd, absolute, raw);
+    const rel = toPosix(spelled);
+    const label = rel === '' ? 'The project directory' : `"${root}"`;
+
+    if (spelled !== raw) {
+      notes.push(`"${root}" is spelled "${rel}" on disk, so the tool read it as "${rel}".`);
+    }
+
     if (info.isFile()) {
       if (isCandidate(rel)) {
         found.add(rel);
+      } else {
+        reasons.push(`${label} is not a type of file the tool reads.`);
       }
 
       continue;
     }
 
     const candidates = [];
+    const before = found.size;
+    let listed = 0;
 
     if (tracked) {
       const prefix = rel === '' ? '' : `${rel}/`;
-
       const inside = tracked.filter(file => file.startsWith(prefix));
+      const { links: directoryLinks, repositories } = await unhandledEntries(cwd, inside);
 
+      listed = inside.length;
       candidates.push(...inside);
-      (await directoryLinks(cwd, inside)).forEach(noteLink);
+      directoryLinks.forEach(noteLink);
+      repositories.forEach(file => noteSkipped(file, 'repository'));
+
+      if (listed === 0) {
+        reasons.push(await isIgnored(cwd, rel === '' ? '.' : rel)
+          ? `${label} is ignored by git, and the tool reads no ignored file.`
+          : `git lists no file under ${label}.`);
+      }
     } else {
-      await walk(absolute, cwd, candidates, noteLink);
+      await walk(absolute, cwd, candidates, { onLink: noteLink, onDirectory: file => noteSkipped(file, 'directory') });
+      listed = candidates.length;
+
+      if (listed === 0) {
+        reasons.push(`${label} holds no file.`);
+      }
     }
 
     for (const file of candidates) {
       if (isCandidate(file) && !isSkipped(file) && (await isFile(join(cwd, file), () => noteLink(file)))) {
         found.add(file);
       }
+    }
+
+    if (listed > 0 && found.size === before) {
+      reasons.push(`${label} holds no source, style, template, or package.json file that the tool reads.`);
     }
   }
 

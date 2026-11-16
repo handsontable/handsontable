@@ -129,13 +129,13 @@ describe('indentation of an edited file', () => {
     assert.ok(output.split('\n').every(line => !/^ /.test(line)), `a line starts with a space:\n${output}`);
   });
 
-  it('prints a file with mixed line endings in the ending most of its lines have', async() => {
+  it('prints a file with mixed line endings with the ending each line had (see line-endings.test.mjs)', async() => {
     const { source, removedLine } = removalModule('  ');
     const mostlyLf = source.replace('hot.render();\n', 'hot.render();\r\n');
     const { output, changed } = await transform(mostlyLf, 'grid.js', REMOVAL);
 
     assert.equal(changed, true);
-    assert.equal(output.split('\r\n').length - 1 <= 1, true, JSON.stringify(output));
-    assert.equal(output.includes(removedLine), false);
+    assert.equal(output, mostlyLf.replace(`${removedLine}\n`, ''));
+    assert.equal(output.split('\r\n').length - 1, 1, 'the one CRLF line is still CRLF');
   });
 });

@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { isolatedGitEnv } from './git-env.mjs';
 
 /**
  * Files of a small project that is on Handsontable 17.1: the vanilla, React, Angular, and Vue wrappers, a type
@@ -114,19 +115,6 @@ new Handsontable(el, { licenseKey: 'x', columns: [{ type: 'date', correctFormat:
 };
 
 /**
- * Environment for a git child process that ignores any repository the test runner itself sits in.
- *
- * @returns {NodeJS.ProcessEnv} The environment.
- */
-function gitEnv() {
-  const env = { ...process.env };
-
-  ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE'].forEach(name => delete env[name]);
-
-  return env;
-}
-
-/**
  * Run git in a project with an explicit identity, so the test needs no global configuration.
  *
  * @param {string} dir Project directory.
@@ -136,7 +124,7 @@ function gitEnv() {
 export function git(dir, args) {
   const identity = ['-c', 'user.name=T', '-c', 'user.email=t@example.com', '-c', 'commit.gpgsign=false'];
 
-  return execFileSync('git', [...identity, ...args], { cwd: dir, env: gitEnv(), encoding: 'utf8' });
+  return execFileSync('git', [...identity, ...args], { cwd: dir, env: isolatedGitEnv(), encoding: 'utf8' });
 }
 
 /**

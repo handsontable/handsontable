@@ -16,7 +16,12 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 - Test: `npm run test --prefix codemod`. CI runs it in the `Codemod tests` step of `lint.yml`, job `core`, and only when
   the codemod scope changed or on a run-all (`inputs.run-codemod`): the suite takes about a minute of CPU and that job is
   on the critical path of every pull request. The `codemod` job of the same file adds Node 20 and 24 on Linux and Node 22
-  on Windows, and `checks.yml` includes `pnpm-lock.yaml` in the scope, so a Dependabot bump runs the matrix.
+  on Windows, and `checks.yml` includes `pnpm-lock.yaml` and the migration guides (`docs/content/guides/upgrade-and-migration/`)
+  in the scope, so a Dependabot bump or a renamed guide heading runs the matrix. `lint.yml` runs only on a pull request, so
+  `develop.yml` has its own `codemod` job (the same legs plus the Linux leg on the Node of `.nvmrc`), gated on the
+  `test-codemod` flag or a manual dispatch and not on run-all. The job is advisory (`continue-on-error`, plus a warning annotation and a job summary on failure): a red
+  run does not fail the Develop run, so it cannot hold the `experimental` publish. On a pull request the suite is a real
+  gate. `codemod/test/workflow-gates.test.mjs` and `.github/scripts/__tests__/codemod-workflow.test.mjs` pin it.
 - The `test` script lists its files literally. `test/test-list.test.mjs` fails until the list and the `test/`
   directory name the same `*.test.mjs` files, so a new test file must be added to the script.
 - Smoke test: `node codemod/bin/handsontable-codemod.mjs migrate --list --from 17 --to 18.1`. The last line counts the
@@ -62,6 +67,29 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   `<script>` scanner and `blankToolComments()` return what the expressions they replaced returned, on random text, and
   finish 1 MiB of adversarial text in a bounded time) are the CLI-level pins. They spawn the real bin through
   `test/helpers/plain-project.mjs` (`inPlainProject()`, `migrate()`).
+- `test/write-safety.test.mjs` pins the write: `writeFileSafely()` (temporary file and rename, the mode kept, a file
+  that changed after the read refused, a link or a read-only file refused, no temporary file left), a failed or refused
+  write not counted as a rewrite, the `resolvesInside()` check at its call site in `run()` (an injected
+  `hooks.discover` list that holds a link to a file or directory outside the project, and a file that becomes a link
+  between the read and the write), and the `--report` target as the file system sees it (hard link, letter case, an
+  existing file of a handled type, a link on the path). `hooks.discover` and `hooks.beforeRename(file)` of `run()` are
+  the injection points of these tests and exist for nothing else.
+  `test/discovery-guards.test.mjs` pins `findExecutable()` with an injected `PATH`, `PATHEXT`, and file system, git
+  started from `PATH` and never from the project, the clean-tree guard under `status.showUntrackedFiles=no`, the ignore
+  rules of git as the file list (the global file included), the "No files to migrate." note and its reasons, a project
+  that an outer repository ignores, submodules and embedded repositories, the walk's skipped directories outside git,
+  and that discovery drops a link on its own. `test/report-text.test.mjs` pins `src/lib/markdown.mjs` and the report
+  as text (see Traps). `test/line-endings.test.mjs` pins `src/lib/line-endings.mjs`.
+- Every test that spawns git, or runs the tool in a repository, imports `test/helpers/git-env.mjs`, which sets
+  `GIT_CONFIG_GLOBAL` to an empty file, `GIT_CONFIG_NOSYSTEM=1`, and `HOME`, `XDG_CONFIG_HOME`, and `USERPROFILE` to a
+  directory with nothing in it, for the test process and its children (`isolatedGitEnv()` for an explicit `env`). A
+  developer's `core.excludesFile` or `status.showUntrackedFiles` otherwise fails ten tests. A test in
+  `discovery-guards.test.mjs` fails for a file that spawns git without it.
+- A test that reads a file of the monorepo (a guide, a core source) calls `skipWithoutFile()` or `skipWithoutGuides()` of
+  `test/helpers/guide-source.mjs`: it skips outside the monorepo and **fails** inside it, where `IN_MONOREPO` is the
+  presence of the root `pnpm-workspace.yaml`. A moved guide must never turn its anchor checks into skips.
+  `test/helpers/code-text.mjs` (`withoutComments()`) reads comments the way the language does (the parser of the tool,
+  postcss, and the SFC blocks), and `safety.test.mjs` and the fixture sweep for a license key or a sanitizer use it.
 - `test/docs-structure.test.mjs` fails on a repeated `# ` title or a repeated `## ` heading in `AGENTS.md` and
   `README.md` (the file was once spliced into itself). `test/docs-page-guard.test.mjs` ties the guide page of the
   codemod to `package.json`: while `private` is `true` the page must open with the "not on npm yet" warning and the
@@ -140,7 +168,11 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/transforms/options.mjs` | `optionRename`, `optionMove`, `optionRemove` on option objects, wrapper attributes, and `context.callArg` arguments (see Traps). |
 | `src/transforms/dependencies.mjs` | The `dependency` kind: range bumps, `add`, `reportMissing`, `reportPresent`, `replaced`, and `facts` (item fields in "Rule fields by kind"). `matchesWhen(j, root, when)` is the fact matcher. |
 | `src/report.mjs` | `Report` (dedupe, `scope: 'run'` entries kept once with their `files`, ordering by version then rule id, `notes` for the top of the report), `renderConsole()`, `renderMarkdown()` (title with the versions and the date), `summaryLine()` (both renderers print it), `clusterByMessage()` (a message that several locations share is printed once, then the locations), `SKIPPED_RULE_ID`, `BELOW_FROM_RULE_ID`, and `counts().marked`. |
-| `src/discover.mjs`, `git.mjs`, `diff.mjs` | Support modules. |
+| `src/discover.mjs`, `git.mjs`, `diff.mjs` | Support modules. `git.mjs` resolves git once per `PATH` through `gitExecutable()`, lists the dirty paths with `--untracked-files=all`, and answers `isIgnored()`. |
+| `src/lib/find-executable.mjs` | `findExecutable(name, { env, platform, isFile })`: the first match in the absolute entries of `PATH` (an empty or relative entry and the current directory are never searched; on Windows only `.exe` and `.com`, `Path` in any case). |
+| `src/lib/safe-write.mjs` | `writeFileSafely(path, expected, output)`: temporary file, a last read of the target against `expected`, `rename`, the mode kept. `StaleFileError`. |
+| `src/lib/markdown.mjs` | `codeSpan()` (a fence that fits the text), `markdownText(text, quoted)` (the message of an entry as Markdown that renders as text), and `plainText()` / `plainName()` (control characters and bidirectional overrides as `\x1b`). |
+| `src/lib/line-endings.mjs` | `restoreLineEndings(source, printed, working)`, `dominantBreak()`, `splitLines()`: the line endings of a printed js part (see Traps). |
 | `versions/<semver>/` | `manifest.json`, optional `custom/*.mjs`, optional extra rule files, `__fixtures__/`. |
 | `test/*.test.mjs`, `test/helpers/` | Tests (`node:test`). Helpers are not listed in the test script. |
 
@@ -149,7 +181,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 1. `resolvePlan()` loads every manifest, resolves `--from` and `--to`, and selects manifests with
    `from < version <= to`. A partial `--from` stands for the end of its line (`17` means "any 17.x"), a partial
    `--to` for the highest known manifest of that line (`18` means the latest 18.x). `--from` falls back to
-   `node_modules/handsontable/package.json`, then the `package.json` range minimum. `--to` defaults to the latest
+   `node_modules/handsontable/package.json` (searched up to the project directory only, never above it), then the
+   `package.json` range minimum. When both name a version and the range does not admit the installed one, it is a usage
+   error that asks for `--from`. `--to` defaults to the latest
    `released` manifest, or to the latest manifest of any status with `--include-draft` (`defaultTo()`). `draft` manifests
    need `--include-draft`.
    `--only` takes a full rule id or a prefix that ends in `*`. A pattern that selects no rule in range is a usage error,
@@ -168,6 +202,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    names no version (`latest`) is a usage error that asks for `--from`. With no `--from` and no range at the path or above
    it (a monorepo root), `scanPackageVersions()` reads the `package.json` files below the path arguments: different
    versions are a usage error that lists the packages, equal ones become the `--from` and the note names the files.
+   `minimumOfRange()` takes the lowest bound over every `||` alternative (`^18 || ^17` is 17, the highest bound inside
+   one: `>=17 >=17.2` is 17.2) and returns `null` when an alternative has no lower bound (`<18`, `*`, `x`), uses `>`, or
+   holds a token that is no comparator (`latest`), via `rangeFloor()` in `lib/dependency-range.mjs`.
    A spec that points at a source is not a version: `minimumOfRange()` returns `null` for `file:`, `link:`, `portal:`,
    `workspace:`, `catalog:`, git, `github:`, URL, path, and `owner/repo` specs (`isSourceSpec()`), so detection says
    "... is not a version. Pass --from." and `scanPackageVersions()` skips them, and names the first one when no
@@ -177,10 +214,20 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    is never bumped. `dependencies.mjs` reports one `below-from` warning per `package.json` (`reportBelowFrom()`), the CLI
    repeats it on stderr after the report, and the exit code stays 0. A CDN URL below `--from` gets a sentence in its own
    entry. A raised `peerDependencies` range also gets a `manual` entry (`reportPeerRaised()`).
-2. The git guard refuses a dirty tree (exit 2) unless `--allow-dirty`. It does not apply to `--dry-run`,
+2. The git guard refuses a dirty tree (exit 2) unless `--allow-dirty`. `status` lists untracked files one by one,
+   whatever `status.showUntrackedFiles` says. It does not apply to `--dry-run`,
    `--list`, `write: false`, or a directory outside a git repository, where `onWarning` gets a one-line notice before
    the first write. An untracked file at the `--report` path (`reportPath`) is not a change.
-3. `discover()` lists files (`git ls-files -z --cached --others --exclude-standard`, or an fs walk), drops
+3. `discover()` lists files (`git ls-files -z --cached --others --exclude-standard`, or an fs walk). "Ignored" is what
+   git says, so the global ignore file counts and the file list agrees with `git status`. A project directory that an
+   outer repository ignores gets an empty list, and `git check-ignore` confirms it, so the directory is walked and a note
+   says so (`git diff` will not show the changes). A git entry that no adapter handles and that is a directory is a
+   submodule or an embedded repository: it goes to `skipped` with `kind: 'repository'`. Outside git the walk also skips
+   every dot-directory and `BUILD_OUTPUT_DIRECTORIES`, and reports a skipped directory that holds a readable file
+   (`kind: 'directory'`, found by `holdsCandidate()`). A path argument is read in the letter case the file system stores
+   (`realpathNative()`), with a note. `discover()` fills `notes` and `reasons`: when no file is found at all, `run()`
+   adds "No files to migrate." and the reasons to `result.notes` and `report.notes` (exit code 0, justified in the
+   README). It drops
    `node_modules`, `dist`, `build`, `coverage`, `.git`, `*.min.*`, `*.d.ts`, files deleted on disk, and any
    extension no adapter handles. JSON is limited to `package.json`. A file named on the command line bypasses the
    generated-output filter. It never follows a symbolic link: a link to a file or a directory, a path argument that
@@ -189,8 +236,12 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    list that no adapter handles with `lstat`, and the fs walk checks every entry. A path
    check uses `leavesDirectory()`, so a directory named `..odd` is inside the project. Before a write, `run()` asks
    `resolvesInside()`: the real path of the file must be inside the real project directory. `--report` is refused
-   (exit 2) when its target is a symbolic link, a file git tracks, a file the run migrates, a directory, or a file in a
-   directory that does not exist or cannot be written (`assertReportTarget()`, before any file changes). Every git
+   (exit 2) when its target is a symbolic link or sits below one (`linkOnReportPath()`, the components below the
+   directory that the project and the target share), a file git tracks, a file the run migrates, an existing file of a
+   type the tool handles, a directory, an existing file that cannot be written, or a file in a directory that does not
+   exist or cannot be written (`assertReportTarget()`, before any file changes). The same file is decided by
+   `isSameFile()`: the real path as the file system stores it (`realpathNative()`) or the same device and inode, so
+   another letter case and a hard link do not get past `files.includes()` or `git ls-files`, which compare strings. Every git
    command goes through `git()` in `git.mjs`, which adds `--no-pager` and `-c core.fsmonitor=false`: a repository can
    set `core.fsmonitor` to a program that `ls-files` and `status` run. A clean filter still runs in `status`, and
    cannot be turned off without marking every Git LFS file as modified, so the README says to run the tool only in a
@@ -202,8 +253,11 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    Parse and transform failures become `parse-error` and `transform-error` warning entries, the file is left
    byte for byte alone, and the run ends with exit code 1. A file above `MAX_FILE_BYTES` (1 MB, `--max-file-size`) is
    not read and becomes a `skipped-file` warning, as does a file that is not valid UTF-8 (`readUtf8()` in
-   `lib/text-file.mjs`, phase 1 only). A write that fails is a `write-error` warning, the file is not counted as
-   changed, and the run ends with exit code 1. `transformFile()` also turns what an adapter cannot read into
+   `lib/text-file.mjs`, phase 1 only). A write goes through `writeFileSafely()`: a temporary file in the directory, a last read of the target that must still
+   be the text the tool started from (else a `write-error` that says the file changed while the tool ran), `rename`,
+   the mode kept. A write that fails or is refused is a `write-error` warning, the file is not counted as changed, its
+   `changed` entries are dropped from the report (`withoutApplied()`, which also clears `marked`), and the run ends
+   with exit code 1. `transformFile()` also turns what an adapter cannot read into
    `skipped-file` warnings: `skipReason` (whole file), `handle.skippedBlocks` entries with `relevant: true` (Vue), and
    `skipNotes(source)` (inline scripts of an HTML page). The report lists them under "Skipped files".
 5. Phase 2 visits only `package.json` files and runs the kinds in `PHASE_TWO_KINDS` (`dependency`) after phase 1
@@ -335,7 +389,9 @@ project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `
 3. Give each rule an id `<version>/<slug>`, a `guide` anchor that exists on the page (leave it out when the page
    has no section for the rule), and `safe` (a boolean, except on `detect` and `exportRemoved` rules). Pick the kind
    and its fields from "Rule fields by kind". A malformed rule fails when the manifests load.
-4. Add fixtures (below), one per rule at least, with a negative case next to each positive one.
+4. Add fixtures (below), one per rule at least, with a negative case next to each positive one. `test/fixtures.test.mjs`
+   fails until the `report.json` of some fixture names every rule of every manifest, released or draft. One fixture may
+   name several rules (the type rules are grouped that way), but each rule id must appear in its report.
 5. For a released migration, add a row to the "Supported migrations" table of `README.md` and update the kind table. The first column is
    `<from line> to <major.minor>`, for example `18.0 to 18.1`. `test/readme.test.mjs` requires one row per released
    manifest and compares the counts with `--list`.
@@ -539,6 +595,29 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 
 ## Traps
 
+- **Line endings.** The printer writes one terminator for a part (`workingTerminator()`: `\r\n` when CRLF is at least as
+  common as bare LF, else `\n`). `printJsPart()` then calls `restoreLineEndings()`. A source with one kind of break gets
+  it back everywhere (a lone `\r` too). A source that mixes kinds is aligned with the printed text by the longest
+  common subsequence of its lines, computed twice (earliest and latest match, the second on the reversed arrays): a
+  line that both alignments pair with the same source line takes that line's ending, a line that neither pairs takes the
+  dominant ending, and a line that they pair differently, or pair in one and not in the other, is fine only when every
+  line it could be ends the same way. Otherwise it **throws**, and `transformFile()` leaves the file alone as a
+  `transform-error`: no heuristic may put a wrong ending on a line the tool did not touch. The README says the same.
+- **A path comparison on a case-insensitive file system uses the file system, not strings.** `realpathNative()` returns
+  the stored case, and `stat(..., { bigint: true })` the inode. `git ls-files --error-unmatch src/A.JS` does not match
+  `src/a.js` even with `core.ignorecase`.
+- **The Markdown report escapes what it did not author** (`markdownText()`). A message may hold a literal tag the tool
+  names (`<style lang="less">`), a name from the project, or a source line. An entry can carry `quoted: [...]`, the
+  fragments of its message that are the user's text (the parse-error entry quotes its line), and each becomes a code
+  span with a fence one backtick longer than its longest run. Locations and file names are code spans. Everything else
+  outside a code span has `\ & < > * _ [ ] | ~` and a leading `#`, `-`, `+`, or `1.` escaped. A transform that quotes
+  user text in a message sets `quoted` rather than writing backticks. `plainText()` runs over the console report and
+  every byte the CLI writes (a diff line included), so an escape sequence from a file name or a source line is printed
+  as `\x1b`.
+- **A regular expression with `$` on a growing slice, or a `slice` and `+` of the whole text per edit, is quadratic.**
+  Read a run of white space with `trimStart()`/`trimEnd()`, test the text before an offset by walking backward from it,
+  and build the edited text from pieces in one pass (`CssDocument.print()`, `isReference()` in `css-variables.mjs`). Add
+  the input to `test/scan-complexity.test.mjs`.
 - **Windows.** The suite runs on Windows in CI. Three rules keep it green. (1) recast ends a printed line with `os.EOL`
   (`\r\n` there) unless it gets `lineTerminator`: product code prints through `printTree()` (`src/lib/print.mjs`) or
   passes the terminator itself (`printJsPart()`), and tests print through `print()` in `test/helpers/parse.mjs`.

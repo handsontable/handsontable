@@ -1,3 +1,4 @@
+import { codeSpan, markdownText, plainName, plainText } from './lib/markdown.mjs';
 import { redact } from './lib/redact.mjs';
 
 /**
@@ -189,7 +190,7 @@ export class Report {
  * @returns {string} The location.
  */
 function location(entry) {
-  return entry.line === null ? entry.file : `${entry.file}:${entry.line}`;
+  return plainName(entry.line === null ? entry.file : `${entry.file}:${entry.line}`);
 }
 
 /**
@@ -317,9 +318,21 @@ export function summaryLine(report, { filesChanged = 0, dryRun = false } = {}) {
  */
 function fileList(files, limit) {
   const sorted = [...files].sort();
-  const shown = sorted.slice(0, limit).join(', ');
+  const shown = sorted.slice(0, limit).map(plainName).join(', ');
 
   return `${plural(sorted.length, 'file')}: ${shown}${sorted.length > limit ? `, +${sorted.length - limit} more` : ''}`;
+}
+
+/**
+ * The files an entry applies to, as code spans.
+ *
+ * @param {string[]} files File paths.
+ * @returns {string} For example `3 files: `a.ts`, `b.ts`, `c.ts``.
+ */
+function markdownFileList(files) {
+  const sorted = [...files].sort();
+
+  return `${plural(sorted.length, 'file')}: ${sorted.map(file => codeSpan(plainName(file))).join(', ')}`;
 }
 
 /**
@@ -396,7 +409,7 @@ export function renderConsole(report, {
 
   if (skipped.length > 0) {
     lines.push(`Skipped files (${skipped.length})`);
-    skipped.slice(0, limit).forEach(entry => lines.push(`  ${entry.file}  ${entry.message}`));
+    skipped.slice(0, limit).forEach(entry => lines.push(`  ${plainName(entry.file)}  ${entry.message}`));
 
     if (skipped.length > limit) {
       lines.push(`  +${skipped.length - limit} more ${rest}`);
@@ -407,7 +420,7 @@ export function renderConsole(report, {
 
   lines.push(summaryLine(report, { filesChanged, dryRun }));
 
-  return redact(`${lines.join('\n')}\n`);
+  return redact(plainText(`${lines.join('\n')}\n`));
 }
 
 /**
@@ -439,7 +452,7 @@ export function renderMarkdown(report, {
   const heading = title ?? `Handsontable migration report${range}${date ? ` (${date})` : ''}`;
   const lines = [`# ${heading}`, ''];
 
-  report.notes.forEach(note => lines.push(note, ''));
+  report.notes.forEach(note => lines.push(markdownText(note), ''));
   lines.push(summaryLine(report, { filesChanged, dryRun }), '');
 
   if (report.entries.length === 0) {
@@ -460,15 +473,15 @@ export function renderMarkdown(report, {
           lines.push('');
         }
 
-        lines.push(cluster.message, '');
+        lines.push(markdownText(cluster.message, cluster.entries[0].quoted), '');
       }
 
       cluster.entries.forEach((entry) => {
         const mark = entry.severity === 'changed' ? 'x' : ' ';
         const tag = entry.severity === 'warning' ? '(warning) ' : '';
-        const text = cluster.message === null ? messageOf(entry) : linesOf(entry);
+        const text = cluster.message === null ? markdownText(messageOf(entry), entry.quoted) : linesOf(entry);
 
-        lines.push(`- [${mark}] ${location(entry)}${text || tag ? ` ${tag}${text}` : ''}`.trimEnd());
+        lines.push(`- [${mark}] ${codeSpan(location(entry))}${text || tag ? ` ${tag}${text}` : ''}`.trimEnd());
       });
 
       if (cluster.message !== null) {
@@ -484,7 +497,7 @@ export function renderMarkdown(report, {
   if (once.length > 0) {
     lines.push('## Read once', '', 'These notes hold for every file that uses the rule. Each is listed one time.', '');
     once.forEach((entry) => {
-      lines.push(`- [ ] ${entry.ruleId} ${entry.message}`, `  - ${fileList(entry.files, entry.files.length)}`);
+      lines.push(`- [ ] ${entry.ruleId} ${markdownText(entry.message)}`, `  - ${markdownFileList(entry.files)}`);
     });
     lines.push('');
   }
@@ -493,9 +506,9 @@ export function renderMarkdown(report, {
 
   if (skipped.length > 0) {
     lines.push('## Skipped files', '', 'The tool did not analyze these files. Check them by hand.', '');
-    skipped.forEach(entry => lines.push(`- [ ] ${entry.file} ${entry.message}`));
+    skipped.forEach(entry => lines.push(`- [ ] ${codeSpan(plainName(entry.file))} ${markdownText(entry.message)}`));
     lines.push('');
   }
 
-  return redact(lines.join('\n').replace(/\n{3,}/g, '\n\n'));
+  return redact(plainText(lines.join('\n')).replace(/\n{3,}/g, '\n\n'));
 }

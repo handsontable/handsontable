@@ -8,6 +8,7 @@ import { discover, isSkipped, resolvesInside } from '../src/discover.mjs';
 import { buildPlan } from '../src/manifest.mjs';
 import { describeRules, formatSize, resolvePlan, run, transformFile } from '../src/runner.mjs';
 import { createRegistry } from '../src/transforms/index.mjs';
+import { isolatedGitEnv } from './helpers/git-env.mjs';
 
 const RADIUS_CSS = 'a {\n  border-radius: var(--ht-wrapper-border-radius, 4px);\n}\n';
 const RADIUS_CSS_DONE = 'a {\n  border-radius: var(--ht-border-radius, 4px);\n}\n';
@@ -20,9 +21,7 @@ const RADIUS_CSS_DONE = 'a {\n  border-radius: var(--ht-border-radius, 4px);\n}\
  * @returns {void}
  */
 function git(cwd, args) {
-  const env = { ...process.env };
-
-  ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE'].forEach(name => delete env[name]);
+  const env = isolatedGitEnv();
   const identity = ['-c', 'user.name=Test', '-c', 'user.email=test@example.com', '-c', 'commit.gpgsign=false'];
 
   execFileSync('git', [...identity, ...args], { cwd, env, stdio: 'ignore' });

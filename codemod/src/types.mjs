@@ -49,6 +49,8 @@
  * @property {Severity} severity Entry severity.
  * @property {number} [line] One-based line inside the part's own source.
  * @property {number[]} [lines] Every line of a collapsed group of matches, inside the part's own source.
+ * @property {string[]} [quoted] Fragments of `message` that are text from the user's files (a source line, say). The
+ * Markdown report writes each as a code span, so the text renders as text.
  * @property {number} [markLine] The line the TODO marker is placed from, when `line` names a spot inside a literal
  * that no marker can sit on: a line of a multi-line template literal, or of a map in a stylesheet declaration. The
  * report keeps `line`. Defaults to `line`.

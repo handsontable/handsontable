@@ -35,9 +35,10 @@ export async function inPlainProject(files, body) {
  *
  * @param {string} dir Working directory.
  * @param {string[]} args Arguments after `migrate`.
+ * @param {object} [io] Extra injection points for `main()`, such as `writeReport`.
  * @returns {Promise<{status: number, stdout: string, stderr: string}>} Exit code and output.
  */
-export async function migrate(dir, args) {
+export async function migrate(dir, args, io = {}) {
   let stdout = '';
   let stderr = '';
   const status = await main(['migrate', ...args], {
@@ -49,6 +50,7 @@ export async function migrate(dir, args) {
       stderr += text;
     },
     progress: false,
+    ...io,
   });
 
   return { status, stdout, stderr };

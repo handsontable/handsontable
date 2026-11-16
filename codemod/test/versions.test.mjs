@@ -139,6 +139,23 @@ describe('minimumOfRange', () => {
     assert.equal(minimumOfRange('17.1.0-rc.2'), '17.1.0-rc.2');
   });
 
+  it('takes the lowest bound over every || alternative, and the highest bound inside one', () => {
+    assert.equal(minimumOfRange('^18 || ^17'), '17');
+    assert.equal(minimumOfRange('^17.1.0 || ^18.0.0'), '17.1.0');
+    assert.equal(minimumOfRange('>=17 <19 || ^16.2.0'), '16.2.0');
+    assert.equal(minimumOfRange('>=17 >=17.2 <19'), '17.2');
+    assert.equal(minimumOfRange('17.1.0 - 18.0.0'), '17.1.0');
+    assert.equal(minimumOfRange('>= 17.0.0 < 19'), '17.0.0');
+    assert.equal(minimumOfRange('v17.1.0'), '17.1.0');
+  });
+
+  it('returns null, so the run asks for --from, when the lower end is open or the spec is not a plain range', () => {
+    for (const range of ['<18.0.0', '<=18', '<18 || ^17', '^17 || <16', '>17.0.0', '>=17 || *', 'latest', 'next', 'x',
+      '^17 || latest', '17.1.0 beta', '1.x.x || <=1', 'foo17']) {
+      assert.equal(minimumOfRange(range), null, range);
+    }
+  });
+
   it('returns null when the range names no version', () => {
     for (const range of ['latest', '*', 'workspace:*', '']) {
       assert.equal(minimumOfRange(range), null, range);
@@ -201,13 +218,39 @@ describe('detectInstalledVersion', () => {
     }
   }
 
-  it('prefers the installed package over the declared range', async() => {
+  it('prefers the installed package when the declared range allows it', async() => {
     await withProject(async(dir) => {
       await mkdir(join(dir, 'node_modules', 'handsontable'), { recursive: true });
       await writeFile(join(dir, 'node_modules', 'handsontable', 'package.json'), '{"version":"17.1.2"}');
-      await writeFile(join(dir, 'package.json'), '{"dependencies":{"handsontable":"^16.0.0"}}');
+      await writeFile(join(dir, 'package.json'), '{"dependencies":{"handsontable":"^17.0.0"}}');
 
       assert.deepEqual(await detectInstalledVersion(dir), { version: '17.1.2', source: 'node_modules/handsontable' });
+    });
+  });
+
+  it('asks for --from when the installed version is outside the declared range', async() => {
+    await withProject(async(dir) => {
+      await mkdir(join(dir, 'node_modules', 'handsontable'), { recursive: true });
+      await writeFile(join(dir, 'node_modules', 'handsontable', 'package.json'), '{"version":"18.0.2"}');
+      await writeFile(join(dir, 'package.json'), '{"dependencies":{"handsontable":"^17.1.0"}}');
+
+      await assert.rejects(detectInstalledVersion(dir), (error) => {
+        assert.match(error.message,
+          /node_modules holds handsontable 18\.0\.2, but package\.json dependencies names "\^17\.1\.0"/);
+        assert.match(error.message, /Pass --from/);
+
+        return true;
+      });
+    });
+  });
+
+  it('does not ask when the declared range names no version, or the install is a prerelease inside it', async() => {
+    await withProject(async(dir) => {
+      await mkdir(join(dir, 'node_modules', 'handsontable'), { recursive: true });
+      await writeFile(join(dir, 'node_modules', 'handsontable', 'package.json'), '{"version":"18.0.0-rc.1"}');
+      await writeFile(join(dir, 'package.json'), '{"dependencies":{"handsontable":"latest"}}');
+
+      assert.equal((await detectInstalledVersion(dir))?.version, '18.0.0-rc.1');
     });
   });
 
@@ -228,7 +271,23 @@ describe('detectInstalledVersion', () => {
       await writeFile(join(dir, 'node_modules', 'handsontable', 'package.json'), '{"version":"17.0.0"}');
       await mkdir(join(dir, 'packages', 'app'), { recursive: true });
 
-      assert.equal((await detectInstalledVersion(join(dir, 'packages', 'app')))?.version, '17.0.0');
+      assert.equal((await detectInstalledVersion(join(dir, 'packages', 'app'), { stopAt: dir }))?.version, '17.0.0');
+    });
+  });
+
+  it('does not climb above the project directory for an install', async() => {
+    await withProject(async(outer) => {
+      // A stray install in a directory above the project says nothing about the project.
+      await mkdir(join(outer, 'node_modules', 'handsontable'), { recursive: true });
+      await writeFile(join(outer, 'node_modules', 'handsontable', 'package.json'), '{"version":"18.0.2"}');
+      await mkdir(join(outer, 'proj'), { recursive: true });
+      await writeFile(join(outer, 'proj', 'package.json'), '{"dependencies":{"handsontable":"^17.1.0"}}');
+
+      const project = join(outer, 'proj');
+      const detected = await detectInstalledVersion(project, { stopAt: project });
+
+      assert.equal(detected?.version, '17.1.0');
+      assert.match(detected?.source, /package\.json/);
     });
   });
 

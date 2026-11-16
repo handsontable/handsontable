@@ -34,7 +34,8 @@ a `--ht-` CSS variable, which counts as Handsontable usage for the CSS variable 
 
 - Node.js 20 or later.
 - A clean git tree. The tool refuses to run when `git status` shows uncommitted changes, so the migration is one
-  clean diff that you can review and revert. Pass `--allow-dirty` to run anyway. An untracked file at the path of
+  clean diff that you can review and revert. Untracked files count, whatever `status.showUntrackedFiles` says in your
+  git configuration. Pass `--allow-dirty` to run anyway. An untracked file at the path of
   `--report` does not count, so a report from the previous run does not block the next one. Keep the report out
   of the tree, or delete it when you are done. A directory outside a git repository has no such check, and the tool
   warns before it writes there.
@@ -53,7 +54,11 @@ handsontable-codemod migrate --from 17.1 --to 18.1 --report migration-report.md
 
 `--from` is optional. For each path you name, the tool reads the installed version from the nearest
 `node_modules/handsontable`, then the range of `handsontable` in the nearest `package.json`, searching from the
-path up to the current directory. Paths that resolve to different versions need `--from`. At a monorepo root where no
+path up to the current directory and no further: a `node_modules` in a directory above the project is not read. When
+both name a version and the range does not allow the installed one (`^17.1.0` against an installed 18.0.2), the project
+is between two versions, and the tool asks for `--from` instead of picking one. Of a range with several alternatives
+(`^18 || ^17`) it takes the lowest, and a range with no lower end (`<18.0.0`, `*`, `latest`) names no version, so it
+asks for `--from`. Paths that resolve to different versions need `--from`. At a monorepo root where no
 `package.json` names `handsontable`, the tool reads the ranges of the packages below it: when they agree it uses that
 version and names the files, and when they differ it asks for `--from` and lists the packages. A spec that points at
 a source is not a version: `file:`, `link:`, `workspace:`, `portal:`, a git or `github:` spec, a URL, a path, and
@@ -114,13 +119,28 @@ handsontable-codemod migrate [paths...] [options]
 skips `node_modules`, `dist`, `build`, `coverage`, `.git`, minified files, and `.d.ts` files. A file you name on the
 command line skips the generated-output filter.
 
+Inside a git repository the tool reads the files git lists: tracked files, and untracked files that git does not
+ignore. "Ignored" is what git says, so the `.gitignore` files above the project, `.git/info/exclude`, and your global
+ignore file count, and the tool agrees with `git status` about which files exist. A submodule or an embedded
+repository is listed under "Skipped files" with the advice to run the tool inside it. A project directory that an
+outer repository ignores gets no file from git, so the tool walks it instead, says so, and warns that `git diff` will
+not show the changes. Outside git the tool walks the directory and also skips every directory that starts with a dot
+(`.next`, `.nuxt`, `.output`, `.svelte-kit`, `.angular`, `.cache`, `.turbo`, `.vercel`, `.storybook`) and `out`,
+`storybook-static`, `bower_components`, `jspm_packages`, and `_site`, because without ignore rules it cannot tell build
+output from source. A skipped directory that holds files the tool would read is listed under "Skipped files" with the
+command that includes it (`migrate .storybook`). A path argument is read in the letter case the file system stores.
+
+A run that finds no file to read is not an error (exit code 0, so a loop over packages goes on), and it does not look
+like a run that found nothing to change: the tool prints "No files to migrate." with the reason on standard error and
+at the top of the report.
+
 | Flag | Meaning |
 |---|---|
 | `--from <version>` | Version your project is on: `17`, `17.1`, or `18.0.0`. A partial version means any version of that line. Detected for each path argument from the nearest `node_modules/handsontable`, then the nearest `package.json` range, up to the current directory, when omitted. Paths that differ need `--from`. |
 | `--to <version>` | Version to migrate to. A partial version means the highest known release of that line. Defaults to the newest released migration, or to the newest draft with `--include-draft`. |
 | `--dry-run` | Print a unified diff and write no project files. The git check does not apply. A file named by `--report` is still written, because you asked for it. |
 | `--allow-dirty` | Run even when the git tree has uncommitted changes. |
-| `--report <file>` | Also write the full report to `<file>` as a Markdown checklist. The git check ignores an untracked file at this path and no other. |
+| `--report <file>` | Also write the full report to `<file>` as a Markdown checklist. The git check ignores an untracked file at this path and no other. File names, source lines, and the tags the tool names (`<style lang="less">`) are written as code, so they render as text. |
 | `--only <ruleId>` | Run only this rule. Repeat the flag for several rules. A trailing `*` matches a prefix, for example `--only "18.0.0/type-*"`. |
 | `--list` | List the rules in the version range and exit. `rewrite` rules edit code, `report` rules only report. |
 | `--aggressive` | Also rewrite settings objects found with medium confidence. |
@@ -138,7 +158,7 @@ A migration for version `v` runs when `from < v <= to`. `--from 17` means any 17
 
 | Code | Meaning |
 |---|---|
-| 0 | Done. |
+| 0 | Done. A run that finds no file to read is also 0, with "No files to migrate." and the reason. |
 | 1 | A file could not be read, parsed, transformed, or written, or the report file could not be written. The other files are still migrated. |
 | 2 | Usage error or refusal: unknown flag or command, dirty git tree, no version to start from, nothing to migrate, unknown rule id, a `--report` path that cannot be written. |
 
@@ -162,9 +182,12 @@ to use on the package. Source files under it still get the selected rules.
 
 The last line sums up the run: files changed, rewrites applied, manual steps, and warnings. The file from `--report`
 has a title with the versions and the date, then the same line, every location, one checkbox per entry, and a link to
-the migration guide section of each rule. The tool refuses a `--report` path that is a symbolic link, a file git
-tracks, a file it migrates, a directory, or a file in a directory that does not exist or cannot be written. It checks
-the path before it changes any file. The user information of a URL (`//user:TOKEN@host`) is shown as `//***@host` in
+the migration guide section of each rule. The tool refuses a `--report` path that is a symbolic link or sits below
+one, a file git tracks, a file it migrates (found by what the file system says, so another letter case or a hard link
+does not get past the check), an existing file of a type the tool migrates, a directory, an existing file you cannot
+write, or a file in a directory that does not exist or cannot be written. It checks the path before it changes any file.
+A control character in a file name or a source line (an escape sequence) is printed as `\x1b`, in the console, the
+report file, and the diff, so a project cannot rewrite your terminal. The user information of a URL (`//user:TOKEN@host`) is shown as `//***@host` in
 the console, the report file, and the `--dry-run` diff, so a dependency spec with a credential never reaches a log.
 A diff line that holds such a URL is therefore for reading, not for `git apply`. A rewrite is checked. A manual step is not. After the run the tool says how many manual steps have a marker in the code
 and how many are in the report only. On a terminal, a long run prints a progress line to the
@@ -377,11 +400,25 @@ the tool reads the version from `package.json`, which the run raised, and answer
   only on `hot.getPlugin('<key>')` or a variable the file sets from it, and a call on any other receiver is
   reported or left alone. A call whose receiver or arguments can have effects of their own is kept, with a TODO. An
   optional call (`hot.undo?.()`) is reported, not moved, because the plugin method always exists.
-- A JavaScript or TypeScript file with mixed line endings is written in the line ending most of its lines use. The
-  value of a string or template literal does not change, because JavaScript reads every line break in a template
-  literal as a line feed.
+- A JavaScript or TypeScript file with mixed line endings (CRLF, LF, and a lone CR in one file) keeps the ending of
+  every line the tool did not change. A line the tool adds or changes gets the ending most lines have. The tool finds
+  which line of the file a printed line came from by comparing the text of the lines. When an edit sits next to a line
+  that the file repeats (two blank lines, say) and those lines end in different ways, the text cannot say which one is
+  left, so the tool does not guess: it leaves that file unchanged and reports a `transform-error`. A file that uses one
+  ending, a lone CR included, is written in it.
+- It writes a changed file to a temporary file beside it and renames that over the original, so a crash never leaves
+  half a file. A hard link to the same file therefore keeps the old text.
 - It never follows a symbolic link, and it never writes a file whose real path is outside the project directory. A
   link goes to "Skipped files".
+- It writes a changed file to a temporary file in the same directory and renames it over the original, so a full
+  disk or a kill during the write leaves the original whole. Just before the rename it reads the file again, and when
+  the text is not the text the tool started from (an editor saved while the tool ran) it keeps what is there and
+  reports a `write-error`. The mode of the file stays. A read-only file is refused, and so is a file that became a
+  link. The new file has a new inode, so a hard link to the old file keeps the old text. A failed or refused write is
+  not counted as a rewrite in the summary.
+- It runs the `git` found in the directories of `PATH` by absolute path, and never one in the project directory (on
+  Windows a `git.exe` in the project would otherwise run first). When git is not found it behaves as outside a
+  repository.
 - It edits `package.json` by text offset, so only the changed values and one added line differ. When it cannot
   find a value in the text in a way that agrees with the parsed file (a repeated key, say), it reports the step
   instead of editing.

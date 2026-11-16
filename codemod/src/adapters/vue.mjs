@@ -34,10 +34,44 @@ const TEMPLATE_LANGS = new Set([undefined, 'html']);
  * @returns {string} The printed text with the original leading and trailing whitespace.
  */
 function restoreEdges(original, printed) {
-  const leading = /^\s*/.exec(original)[0];
-  const trailing = /\s*$/.exec(original)[0];
+  // `trimStart()` and `trimEnd()` read each side once. `/\s*$/` tries every position of a long run of white space and
+  // then fails at the first character after it, which is quadratic in the length of the run.
+  const leading = original.slice(0, original.length - original.trimStart().length);
+  const trailing = original.slice(original.trimEnd().length);
 
   return leading + printed.trim() + trailing;
+}
+
+/**
+ * Move the position of a parse error from the block to the file. A parser reads the text of the block, so it counts
+ * the lines and the characters from the start of the block, and the runner reads the position against the whole file.
+ * Without this the report names a line that is near the top of the file, with the text of the wrong line.
+ *
+ * @param {object} error The error a parser threw. `loc.line`, `loc.index`, `line`, and `pos` are shifted when present.
+ * @param {object} block The SFC block that was parsed.
+ * @returns {object} The same error.
+ */
+function inFileCoordinates(error, block) {
+  const lines = block.loc.start.line - 1;
+  const characters = block.loc.start.offset;
+
+  if (Number.isInteger(error?.loc?.line)) {
+    error.loc.line += lines;
+  }
+
+  if (Number.isInteger(error?.loc?.index)) {
+    error.loc.index += characters;
+  }
+
+  if (Number.isInteger(error?.line)) {
+    error.line += lines;
+  }
+
+  if (Number.isInteger(error?.pos)) {
+    error.pos += characters;
+  }
+
+  return error;
 }
 
 /**
@@ -80,9 +114,15 @@ function blockToPart(block, type, filePath, fileMentions) {
       return { part: null, skipped };
     }
 
-    return JS_PRECHECK.test(block.content)
-      ? found(createJsPart(block.content, SCRIPT_PARSERS.get(lang), lineOffset))
-      : { part: null, skipped: null };
+    if (!JS_PRECHECK.test(block.content)) {
+      return { part: null, skipped: null };
+    }
+
+    try {
+      return found(createJsPart(block.content, SCRIPT_PARSERS.get(lang), lineOffset));
+    } catch (error) {
+      throw inFileCoordinates(error, block);
+    }
   }
 
   if (type === 'style') {
@@ -90,13 +130,19 @@ function blockToPart(block, type, filePath, fileMentions) {
       return { part: null, skipped };
     }
 
-    return CSS_PRECHECK.test(block.content)
-      ? found({
+    if (!CSS_PRECHECK.test(block.content)) {
+      return { part: null, skipped: null };
+    }
+
+    try {
+      return found({
         ...createCssPart(block.content, filePath, lang === 'scss', lineOffset),
         scoped: Boolean(block.scoped),
         module: Boolean(block.module),
-      })
-      : { part: null, skipped: null };
+      });
+    } catch (error) {
+      throw inFileCoordinates(error, block);
+    }
   }
 
   if (!TEMPLATE_LANGS.has(lang)) {
