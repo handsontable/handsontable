@@ -29,6 +29,11 @@ const hotSettings: GridSettings = {
     }
 
     const [row, prop] = changes[changes.length - 1];
+
+    if (row === null) {
+      return;
+    }
+
     const column = prop as number;
     const value = this.getDataAtCell(row, column);
     const label = column === 1 ? 'Default' : 'preserveNumericLiteral';

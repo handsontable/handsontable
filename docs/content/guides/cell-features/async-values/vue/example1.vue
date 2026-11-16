@@ -64,7 +64,7 @@ const hotSettings = ref<GridSettings>({
   // Look the product up again when its SKU changes.
   afterChange(changes) {
     changes?.forEach(([row, prop]) => {
-      if (prop === 'sku') {
+      if (row !== null && prop === 'sku') {
         lookUpRows(row, row);
       }
     });

@@ -66,7 +66,7 @@ const ExampleComponent = () => {
   }
 
   function afterChange(
-    changes: Handsontable.CellChange[] | null,
+    changes: Handsontable.AppliedCellChange[] | null,
     source: Handsontable.ChangeSource
   ): void {
     const hot = hotRef.current?.hotInstance;
@@ -79,6 +79,11 @@ const ExampleComponent = () => {
 
     for (const change of changes) {
       const [row, prop] = change;
+
+      if (row === null) {
+        continue;
+      }
+
       const col = typeof prop === 'string' ? hot.propToCol(prop) : (prop as number);
 
       // Skip a property that names no column.

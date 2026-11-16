@@ -740,15 +740,11 @@ export class DropdownMenu extends BasePlugin {
    * @param {HTMLTableCellElement} TH Header's TH element.
    */
   #onAfterGetColHeader = (col: number, TH: HTMLTableCellElement) => {
-    if (col < 0) {
-      return;
-    }
-
     const existingButton = TH.querySelector(`.${BUTTON_CLASS_NAME}`);
 
     // A header is reused between renders, and a `nestedHeaders` change moves the previous bottom
     // level up, so a button is removed from every level it no longer belongs to.
-    if (!this.enabled || !isBottomMostColumnHeader(TH)) {
+    if (!this.enabled || col < 0 || this.hot.view.isColumnHeaderCorner(TH) || !isBottomMostColumnHeader(TH)) {
       if (existingButton) {
         const container = existingButton.parentNode;
 

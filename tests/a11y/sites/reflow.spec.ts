@@ -118,15 +118,28 @@ function aggregate(findings: EvidenceFinding[]): EvidenceFinding[] {
 }
 
 /**
- * Waits for a resize or a stylesheet to lay out: two animation frames, then every finite animation it started.
+ * Waits for a resize or a stylesheet to lay out: two animation frames, then every finite animation that is running,
+ * for five seconds at most. A paused animation holds still and never finishes (the website pauses its stories'
+ * progress bar until they are in view), and one that runs longer is part of the page as it stands.
  *
  * @param page The page.
  */
 async function frames(page: Page): Promise<void> {
   await page.evaluate(async() => {
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    await Promise.all(document.getAnimations().filter(animation => animation.effect?.getTiming().iterations !== Infinity)
-      .map(animation => animation.finished.catch(() => undefined)));
+
+    const running = document.getAnimations().filter(animation => animation.effect?.getTiming().iterations !== Infinity
+      && animation.playState === 'running');
+
+    await Promise.race([
+      Promise.all(running.map(animation => animation.finished.catch(() => undefined))),
+      new Promise<void>((resolve) => {
+        const begin = performance.now();
+        const tick = () => (performance.now() - begin >= 5000 ? resolve() : requestAnimationFrame(tick));
+
+        requestAnimationFrame(tick);
+      }),
+    ]);
   });
 }
 
@@ -148,7 +161,8 @@ async function measure(page: Page, grid: string): Promise<Layout> {
     // checkboxes of a list is one finding with a count (`aggregate()` in the spec). A fixed layer keeps its id, which
     // names the one layer it is.
     // An element with no class of its own is named inside its nearest ancestor that has one (`div.hot-footer__row a`).
-    const classOf = (node: Element) => [...node.classList].find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
+    const classOf = (node: Element) => [...node.classList].map(name => name.replace(/^_([A-Za-z][\w-]*?)_[a-z0-9]{5}_\d+$/, '$1'))
+          .find(name => !/^astro-|^sl-(?:flex|hidden|block|inline)$|:|-(?=[a-z]*\d)[a-z0-9]{5,}$/.test(name));
     const shapeOf = (element: Element, { id = false } = {}) => {
       const meaningful = classOf(element);
       let context = '';
@@ -244,8 +258,19 @@ async function measure(page: Page, grid: string): Promise<Layout> {
       const hiddenX = /(hidden|clip)/.test(style.overflowX) ? Math.max(0, text.right - box.right, box.left - text.left) : 0;
       const hiddenY = /(hidden|clip)/.test(style.overflowY) ? Math.max(0, text.bottom - box.bottom, box.top - text.top) : 0;
       const onScreen = box.right > 0 && box.bottom > 0 && box.left < width && box.top < height + scroller.scrollHeight;
+      // Text cut off whole is hidden on purpose (a skip link drawn only while it has the focus), not text a reader loses
+      // part of; so is text under the visually hidden pattern (`clip-path: inset(50%)`, `clip: rect(0 0 0 0)`), which
+      // a screen reader reads and the screen never shows.
+      const showsPart = text.width - hiddenX > 1 && text.height - hiddenY > 1;
+      let visuallyHidden = false;
 
-      if ((hiddenX > 1 || hiddenY > 1) && onScreen && box.width > 1 && box.height > 1) {
+      for (let ancestor: Element | null = parent; ancestor && ancestor !== document.body && !visuallyHidden; ancestor = ancestor.parentElement) {
+        const own = getComputedStyle(ancestor);
+
+        visuallyHidden = /inset\(\s*50%/.test(own.clipPath) || /^rect\(\s*0(px)?,?\s+0(px)?,?\s+0(px)?,?\s+0(px)?\s*\)$/.test(own.clip);
+      }
+
+      if ((hiddenX > 1 || hiddenY > 1) && onScreen && showsPart && !visuallyHidden && box.width > 1 && box.height > 1) {
         seen.add(container);
         texts.push({
           selector: shapeOf(container), surface: 'text container', text: node.textContent.trim().slice(0, 60),

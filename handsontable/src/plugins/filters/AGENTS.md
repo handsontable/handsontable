@@ -336,6 +336,10 @@ first, while `hot` still exists: the callback starts with `this.hot.toPhysicalCo
 instance destroyed ahead of the grid threw on the next header render. Pinned by
 `tests/e2e/plugin-destroy-update-settings.spec.ts`.
 
+## A menu item's `key` is not always a string
+
+`createMenuFocusController()` (`menu/focusController.ts`) reads `key` from the item the menu's `afterSelectionChange` hook hands it. An array `items` list gives a keyless entry, a separator, its array index as the `key`, so the value is a number there. The hook also receives `null` when nothing is selected. Never cast it to `string` and call a string method on it: a touch tap selects the 1px separator row (a mouse click and the arrow keys never do), and `key.startsWith is not a function` aborted the hook before the focus navigator was cleared. Narrow with `typeof key === 'string'` first. Coverage: `tests/e2e/filters-menu-separator-tap.spec.ts` and `__tests__/menuFocusController.unit.ts`.
+
 ## The condition list is moved into the viewport and capped by `scrollInViewport` (DEV-3994)
 
 The condition list (`.htFiltersConditionsMenu`, built in `ui/select.ts`) is a standalone `Menu` that opens under its select with `keepInViewport: false`. On a page whose window cannot scroll (an app shell, a frame the size of its content) its lower rows used to end below the edge with nothing to reach them. The menu sets `scrollInViewport: true`, which moves the list up so its bottom ends inside the viewport and caps a list taller than the viewport so it scrolls in itself, on desktop as well. Keep `keepInViewport: false` and do not switch to `true`: the flip-above and the horizontal fit it adds would put the list beside its select, not over it (`../../utils/menu/AGENTS.md`, the cap section). Any new measurement or full draw of this menu's grid must be followed by `updateMenuDimensions()`, which re-applies the cap.

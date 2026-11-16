@@ -21,7 +21,7 @@ const ExampleComponent = () => {
 
   const afterChange = useCallback(function (
     this: Handsontable,
-    changes: Handsontable.CellChange[] | null,
+    changes: Handsontable.AppliedCellChange[] | null,
     source: Handsontable.ChangeSource
   ) {
     if (source === 'loadData' || !changes) {
@@ -29,6 +29,11 @@ const ExampleComponent = () => {
     }
 
     const [row, prop] = changes[changes.length - 1];
+
+    if (row === null) {
+      return;
+    }
+
     const column = prop as number;
     const value = this.getDataAtCell(row, column);
     const label = column === 1 ? 'Default' : 'preserveNumericLiteral';

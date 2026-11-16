@@ -132,6 +132,12 @@ Details that bite:
   two. Filters does it for `afterGetColHeader` (its callback reads `this.hot` and threw on the next
   header render). DropdownMenu deliberately keeps its own: its callback does not read `hot` on the
   disabled path, and it is what strips the destroyed plugin's buttons out of the reused header cells.
+- **In `afterGetColHeader`, `column < 0` does not catch every corner.** Walkontable offsets the corner's
+  negative index by the first rendered column, so in a grid scrolled horizontally the master table and
+  the top overlay pass their corner with the index of the column before the first rendered one. A hook
+  that draws into column headers checks `this.hot.view.isColumnHeaderCorner(TH)` as well, and removes
+  its own markup on that branch: a header cell is reused, and the one that was column A becomes the
+  corner when `rowHeaders` turns on. Pinned by `tests/e2e/column-header-corner-markup.spec.ts`.
 - **Default to `addHook()` on the plugin, not `this.hot.addHook()`.** The plugin's own `addHook` records the
   callback in `#hooks` so `disablePlugin()` can remove it; a hook registered straight on the instance
   survives `disablePlugin()` and can fire against a disabled plugin. **The exception is deliberate and

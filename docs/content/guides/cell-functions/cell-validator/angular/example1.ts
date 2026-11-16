@@ -136,7 +136,7 @@ export class AppComponent implements OnInit {
 
         return true;
       },
-      afterChange(changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) {
+      afterChange(changes: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) {
         if (source !== 'loadData') {
           componentInstance.output = JSON.stringify(changes);
         }
