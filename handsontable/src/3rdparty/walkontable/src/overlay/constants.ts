@@ -52,11 +52,25 @@ export const INLINE_END_CLONE_TYPES = [
 export const OVERLAY_SCROLLBAR_CLEARANCE = 16;
 
 /**
- * How close, in CSS pixels, the pointer has to come to the scrollport's edge before the clearance strip
- * opens. Roughly the reach at which a browser brings its own overlay scrollbar back on screen, plus
- * enough margin that the strip is already open by the time the pointer arrives at the thumb.
+ * How close, in CSS pixels, the pointer has to rest to the scrollport's edge to hold an open band open.
+ * It equals `OVERLAY_SCROLLBAR_CLEARANCE`, so only a pointer over the band holds it. On macOS, with
+ * Chromium's Fluent overlay scrollbars and in Gecko that is where the browser keeps a hovered thumb up
+ * (the 16px interactive reach measured for that constant). A plain literal, because the visual-tests
+ * fixture mirrors it (`visual-tests/src/test-runner.ts`).
+ *
+ * A wider reach (it was 26) pinned the band from the part of the last column that is still visible
+ * beside it. A pin has no timer, so the last 16px of a `fixedColumnsEnd` column – the cell text, the
+ * selection's outer edge, and the fill handle – stayed cut for as long as the pointer rested on the
+ * cell, with no thumb on screen (DEV-3975).
+ *
+ * Known limit: Chromium's other overlay scrollbars (ChromeOS, Linux with the overlay scrollbar flag) keep
+ * the thumb up from further away. `cc/input/single_scrollbar_animation_controller_thinning.cc` expands
+ * the thumb within 25px of it and fades it in within 30px of the scrollbar; both distances are 0 for
+ * Fluent. A pointer resting 17 to 30px from the edge there keeps a thumb on screen after the band closed,
+ * and a frozen overlay covers it again (#10370). That is the price of a whole last column. Read from the
+ * Chromium source, not measured on such a device.
  */
-export const OVERLAY_SCROLLBAR_PROXIMITY = 26;
+export const OVERLAY_SCROLLBAR_PROXIMITY = 16;
 
 /**
  * How long a band stays open, in milliseconds, after the last scroll - with the pointer away from the

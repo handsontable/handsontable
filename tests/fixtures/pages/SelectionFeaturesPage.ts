@@ -1444,6 +1444,11 @@ export class SelectionFeaturesPage {
     await dragFillHandle(this.page, this.fillHandle(), this.cell(row, col));
   }
 
+  /** The fill handle of the focus selection drawn by the inline-end clone (a `fixedColumnsEnd` cell). */
+  endCloneFillHandle(): Locator {
+    return this.page.locator('.ht_clone_inline_end .wtBorder.current.corner:visible');
+  }
+
   /** Whether the Autofill plugin still believes the fill handle is pressed. */
   async isFillHandlePressed(): Promise<boolean> {
     return this.page.evaluate(() => window.hot.getPlugin('autofill').mouseDownOnCellCorner);
@@ -1754,6 +1759,46 @@ export class SelectionFeaturesPage {
           handle.y < rect.bottom && handle.y + handle.height > rect.top),
       };
     }, handleBox);
+  }
+
+  /**
+   * Rests the pointer inside the master holder, the given distance from its inline-end edge (the right
+   * one in LTR, the left one in RTL) and at half its height. The pointer arrives in two steps, so the grid
+   * sees a move there.
+   *
+   * @param {number} distance The distance from the holder's inline-end edge, in pixels.
+   */
+  async restPointerFromInlineEndEdge(distance: number): Promise<void> {
+    const holder = this.grid.locator('.ht_master .wtHolder');
+    const box = await holder.boundingBox();
+
+    if (!box) {
+      throw new Error('The master holder is not rendered.');
+    }
+
+    const isRtl = await holder.evaluate(element => getComputedStyle(element).direction === 'rtl');
+    const y = box.y + (box.height / 2);
+    // The x of a point that many pixels inside the holder, measured from its inline-end edge.
+    const fromInlineEnd = (inset: number) => (isRtl ? box.x + inset : box.x + box.width - inset);
+
+    await this.page.mouse.move(fromInlineEnd(distance + 40), y);
+    await this.page.mouse.move(fromInlineEnd(distance), y);
+  }
+
+  /**
+   * The clip the grid puts on the `fixedColumnsEnd` clone while the vertical scrollbar's clearance band is
+   * open: the `clip-path` written on the clone's root, `''` while the band is closed.
+   */
+  async inlineEndCloneClip(): Promise<string> {
+    return this.page.evaluate(() => {
+      const clone = document.querySelector<HTMLElement>('[data-testid="grid"] .ht_clone_inline_end');
+
+      if (!clone) {
+        throw new Error('The inline-end clone is not rendered.');
+      }
+
+      return clone.style.clipPath === 'none' ? '' : clone.style.clipPath;
+    });
   }
 
   /**
