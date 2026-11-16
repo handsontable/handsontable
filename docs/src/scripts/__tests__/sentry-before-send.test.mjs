@@ -12,13 +12,19 @@ const loaderScript = configSource.match(/content: `(window\.sentryOnLoad[\s\S]*?
 assert.ok(loaderScript, 'astro.config.mjs must inline a window.sentryOnLoad Sentry Loader hook');
 
 /**
- * Runs the inlined Sentry Loader hook and returns the `beforeSend` it registers.
+ * Runs the inlined Sentry Loader hook the way the Loader Script does and returns the
+ * options it passes to `Sentry.init`.
+ *
+ * @param {string | null} [sentryRelease] - The build-time value that `astro.config.mjs`
+ * interpolates into the script, under the same name.
+ * @returns {object} The options object passed to `Sentry.init`.
  */
-function loadBeforeSend() {
+function loadInitOptions(sentryRelease = null) {
   const window = {};
   let options = null;
   const context = vm.createContext({
     window,
+    sentryRelease,
     Sentry: {
       init(initOptions) {
         options = initOptions;
@@ -36,10 +42,24 @@ function loadBeforeSend() {
 
   assert.ok(options && typeof options.beforeSend === 'function');
 
-  return options.beforeSend;
+  return options;
 }
 
-const beforeSend = loadBeforeSend();
+const beforeSend = loadInitOptions().beforeSend;
+
+test('passes the build-time release to Sentry.init', () => {
+  assert.equal(loadInitOptions('handsontable-docs@18.1.2').release, 'handsontable-docs@18.1.2');
+});
+
+test('derives the release from the build mode and the core version', () => {
+  // The vm harness above injects `sentryRelease` as a global, so it cannot tell whether
+  // the config computes it. Pin the call.
+  assert.match(configSource, /const sentryRelease = resolveSentryRelease\(\{ buildMode, version: HOT_VERSION \}\);/);
+});
+
+test('passes no release when the build has none', () => {
+  assert.equal(loadInitOptions(null).release, undefined);
+});
 
 /**
  * Minimal shape of the fields `beforeSend` reads off an error event.
