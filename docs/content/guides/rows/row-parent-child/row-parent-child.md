@@ -443,7 +443,7 @@ When the `NestedRows` plugin is enabled, the `ManualRowMove` plugin's [`moveRows
 
 ### Subtotals in parent rows
 
-To show a subtotal in a parent row, use the [`ColumnSummary`](@/api/columnSummary.md) plugin. Set up the summaries with a function, and give each parent row a summary of its child rows. To make a parent row count the subtotal of a nested group, set the `includeSummaryResults` option on its summary. For the rules and an example, see [Include nested summary results](@/guides/columns/column-summary/column-summary.md#include-nested-summary-results).
+To show a subtotal in a parent row, use the [`ColumnSummary`](@/api/columnSummary.md) plugin. [Set up the summaries with a function](@/guides/columns/column-summary/column-summary.md#set-up-column-summaries-using-a-function), and give each parent row a summary of its child rows. To make a parent row count the subtotal of a nested group, set the `includeSummaryResults` option on its summary. For the rules and an example, see [Include nested summary results](@/guides/columns/column-summary/column-summary.md#include-nested-summary-results).
 
 ### Rows added below the last row
 

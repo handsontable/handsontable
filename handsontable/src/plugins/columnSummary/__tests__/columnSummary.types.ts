@@ -24,7 +24,8 @@ const hot = new Handsontable(document.createElement('div'), {
       type: 'sum',
       destinationRow: 3,
       destinationColumn: 0,
-      forceNumeric: true
+      forceNumeric: true,
+      includeSummaryResults: true,
     },
     {
       sourceColumn: 1,
@@ -69,7 +70,8 @@ new Handsontable(document.createElement('div'), {
         type: 'sum',
         destinationRow: this.hot.countRows() - 1,
         destinationColumn: this.hot.countCols() - 1,
-        forceNumeric: true
+        forceNumeric: true,
+        includeSummaryResults: false,
       },
     ];
   }

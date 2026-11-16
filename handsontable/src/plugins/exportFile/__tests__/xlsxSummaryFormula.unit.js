@@ -168,15 +168,16 @@ function createRecordingEngine() {
  * pre-calculated display value, and returns the cells the engine received.
  *
  * @param {*} cellValue The pre-calculated display value of the summary cell.
+ * @param {object} [descriptor] Keys to add to the summary descriptor.
  * @returns {Promise<Map<string, object>>}
  */
-async function exportSummaryCell(cellValue) {
+async function exportSummaryCell(cellValue, descriptor = {}) {
   const instance = { rootDocument: document, rootWindow: window, getSettings: () => ({}) };
   const { engine, cells } = createRecordingEngine();
 
   mockProviderState.data = [[cellValue]];
   mockProviderState.summaries = [{
-    destRow: 0, destCol: 0, type: 'sum', sourceCol: 0, sourceRanges: [[0, 0]],
+    destRow: 0, destCol: 0, type: 'sum', sourceCol: 0, sourceRanges: [[0, 0]], ...descriptor,
   }];
 
   const xlsx = new Xlsx(new ExportDataProvider(instance), { engine, exportFormulas: true });
@@ -206,5 +207,20 @@ describe('Xlsx summary formula result', () => {
     expect((await exportSummaryCell(undefined)).get('1:1').value).toEqual({
       formula: 'SUM(A1)', result: null,
     });
+  });
+
+  it('should write a summary that includes other summary results as its value, not as a formula', async() => {
+    // The source ranges leave every summary destination out, so `SUM(A1)` would recalculate to the
+    // direct rows only (11 in place of 35 for the nested subtotal case).
+    const cells = await exportSummaryCell(35, { includesSummaryResults: true });
+
+    // The mocked cell meta has no type, so the value goes out the way a text cell does.
+    expect(cells.get('1:1').value).toBe('35');
+  });
+
+  it('should keep the formula of a summary that does not include other summary results', async() => {
+    const cells = await exportSummaryCell(11, { includesSummaryResults: false });
+
+    expect(cells.get('1:1').value).toEqual({ formula: 'SUM(A1)', result: 11 });
   });
 });

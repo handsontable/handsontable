@@ -1359,6 +1359,10 @@ class ExportDataProvider {
    * Returns `null` when the endpoint falls outside the export range or produces no
    * valid source rows after filtering.
    *
+   * An endpoint with `includeSummaryResults` counts the results of other summaries, which the source
+   * ranges leave out, so no formula over those ranges gives its result. Its descriptor carries
+   * `includesSummaryResults`, and the destination is written as its value.
+   *
    * @private
    * @param {object} endpoint ColumnSummary endpoint object from `getAllEndpoints()`.
    * @param {number} startRow First visual row of the export range.
@@ -1429,6 +1433,7 @@ class ExportDataProvider {
       type: String(endpoint.type || 'sum').toLowerCase(),
       sourceCol,
       sourceRanges,
+      includesSummaryResults: endpoint.includeSummaryResults === true,
     };
   }
 

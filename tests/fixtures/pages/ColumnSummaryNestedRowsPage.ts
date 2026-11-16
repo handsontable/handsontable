@@ -65,6 +65,11 @@ export class ColumnSummaryNestedRowsPage extends UndoGridPage {
    * Rebuild the grid with `columnSummary` in the function form, the way the docs example builds it:
    * every parent gets a `sum` of its direct children with `includeSummaryResults`, and the endpoints
    * are worked out from the data tree in physical rows, so they do not depend on what is collapsed.
+   *
+   * `addEndpoints` mirrors the function of the same name in the docs example
+   * (`docs/content/guides/columns/column-summary/javascript/example13.ts`) on a smaller tree, without
+   * its `sourceColumn: 1`, which is the destination column here anyway. It is a copy, so the example
+   * itself is not under test: keep the two in step by hand.
    */
   async initTreeSummaryGrid(): Promise<void> {
     await this.page.evaluate(() => {
@@ -141,6 +146,13 @@ export class ColumnSummaryNestedRowsPage extends UndoGridPage {
    */
   collapseButton(visualRow: number): Locator {
     return this.grid.locator('.ht_clone_inline_start tbody tr').nth(visualRow).locator('.ht_nestingButton');
+  }
+
+  /**
+   * Redo the last undone action with the keyboard shortcut.
+   */
+  async redoWithKeyboard(): Promise<void> {
+    await this.page.keyboard.press('ControlOrMeta+Shift+z');
   }
 
   /**

@@ -143,6 +143,15 @@ Other rules:
   under `strictNullChecks`; `exportFile.types.ts` and `importFile.types.ts` pin `{ xlsx: null }`.
 - **`exportFormulas` is off by default.** On, HyperFormula formula cells and ColumnSummary destinations
   export as **live Excel formulas**; off, the pre-calculated static values go out.
+- **A summary with `includeSummaryResults` is written as its value even with `exportFormulas`.**
+  `getColumnSummaries()` drops every summary destination row from every endpoint's source ranges
+  (`allDestRows`, against circular references), so a formula for such a summary would leave out the
+  results it counts: the grid shows 35 and Excel recalculates 11. `_transformEndpointToSummary()` sets
+  `includesSummaryResults` on the descriptor and `buildSummaryFormula()` returns `null` for it, the
+  path the `custom` type takes. The descriptor is still returned, because the protection pre-scan needs
+  the destination. Do not write a formula that names the subtotal cell instead: endpoints that include
+  each other would become a circular reference. Pinned by
+  `__tests__/dataProviderIncludedSummaryResults.unit.js` and `__tests__/xlsxSummaryFormula.unit.js`.
 - **`ExportDataProvider#getSourceData()` reads the formula by PHYSICAL row** (review round 12).
   `_extractDataMatrix` walks visual indexes, and `getSourceDataAtCell` takes a physical row and a
   visual column, so the row is translated with `toPhysicalRow` and the column is passed as it is.

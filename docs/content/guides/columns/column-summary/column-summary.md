@@ -811,15 +811,17 @@ For example, a subtotal row sums the values 7, 8, and 9, so its result is 24. A 
 
 | Range of the parent summary                         | `includeSummaryResults` | Parent result |
 | --------------------------------------------------- | ----------------------- | ------------- |
-| Covers the rows under the subtotal (5, 6, 7, 8, 9)  | Leave it off            | 35            |
-| Names the subtotal row (5, 6, and the subtotal row) | Turn it on              | 35            |
+| Covers the rows under the subtotal (5, 6, 7, 8, 9)  | `false`                 | 35            |
+| Names the subtotal row (5, 6, and the subtotal row) | `true`                  | 35            |
 
 With the option off, the second range returns 11, because the parent skips the subtotal's result.
+
+Don't turn the option on when the range also covers the rows under the subtotal. The summary then counts those rows and the subtotal, so each row counts twice. In the example above, such a range returns 59.
 
 These rules apply to an included result:
 
 - It counts as one entry for the `count` and `average` summary types.
-- A summary uses the rounded result, if you set the [`roundFloat`](@/api/columnSummary.md#options) option.
+- A summary counts the rounded result of the included summary, if that summary sets the [`roundFloat`](@/api/columnSummary.md#options) option.
 - A `'Not enough data'` result adds nothing.
 - If two summaries include each other, the plugin logs a warning in the console, and skips the result that closes the loop.
 - The [`custom`](#implement-a-custom-summary-function) summary type is not affected, unless your custom function calls the plugin's own `getCellValue()` or `calculateSum()` method for a summary that has the option: then it gets the included results too.

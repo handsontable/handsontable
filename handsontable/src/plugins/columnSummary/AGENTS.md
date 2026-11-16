@@ -56,13 +56,30 @@ destination through `#readIncludedSummaryResult()` instead. The option is off by
   `Endpoints#resolveDependencyResult()` calculates the dependency on demand and applies its `roundFloat`.
   A dependency whose `roundFloat` gives a string (`roundFloat: 0`) still sums, because the built-in types
   test every value with `holdsNoNumber`, and the summing ones convert it with `Number()`.
-- **The memo holds the raw result and lives for at most one outermost calculation.** `#passResults` keeps
-  the result before `setEndpointValue()` rounds `endpoint.result` in place, and `#runPass()` drops it when
-  the outermost pass exits (passes nest, because a cell read can run a Formulas resync). A nested pass also
-  drops it earlier: `cacheSummaryDestinations()` clears `#passResults` and `#cycleWarned` whenever it runs,
-  so a nested refresh makes the outer pass recalculate a dependency it already had, and can warn about a loop
-  a second time. That is the safe direction (a recalculation, never a stale value). Otherwise a dependency
-  is calculated once per pass, whatever the declaration order.
+- **The memo lives for at most one pass, and only a pass that has the option uses it.**
+  `#passCalculated` holds the endpoints already calculated, so a dependency is calculated once per pass,
+  whatever the declaration order. `#passIncludesResults` (read from the endpoints
+  `cacheSummaryDestinations()` receives) turns the memo off for a grid with no `includeSummaryResults`
+  endpoint: there every endpoint is calculated each time it is asked for, as before the option, so a
+  `custom` function runs as many times as it did (pinned: three custom endpoints with a nested
+  `refreshAllEndpoints()` log `A, nested, A, B, C, B, C`). `#runPass()` drops the memo when the outermost
+  pass exits, and `cacheSummaryDestinations()` drops it whenever it runs.
+- **`endpoint.result` holds the rounded value outside a calculation, and the memo never writes it.**
+  `setEndpointValue()` rounds `endpoint.result` in place, and `resolveDependencyResult()` rounds it the
+  same way and keeps the rounded value on the endpoint. Rounding a rounded result gives the same value
+  back (`roundFloat()` returns a string unchanged), so an endpoint calculated only as a dependency, and
+  one included after it was written, both keep a `result` equal to the cell. An earlier version put the
+  raw memoized result back, and `getAllEndpoints()[i].result` read `3.345` beside a cell showing `3.35`.
+- **A refresh that starts inside another pass is a pass of its own.** A cell read can run a pending
+  Formulas resync, which refreshes the endpoints again. The three refreshes of a set
+  (`refreshAllEndpoints()`, `refreshChangedEndpoints()`, `refreshEndpointsBySourceColumns()`) call
+  `#runPass(callback, true)`, which gives a nested pass its own `#resolving`, memo and loop warning, and
+  puts the outer `#resolving` back on exit. The endpoint the outer pass is still calculating is not part
+  of a loop in the nested one. Sharing the guard reported a loop that did not exist: the nested parent
+  read `null` for the dependency (11 in place of 35) and the wrong value stayed memoized for the outer
+  pass. After the nested pass the outer memo starts empty, so the outer pass calculates a dependency
+  again (a recalculation, never a stale value). `#calculateInPass()` removes the endpoint from the
+  `#resolving` set it added it to, because the field can point at another set by then.
 - **Identity-keyed state must use the pass's own endpoint array.** A function-form `columnSummary` returns
   new endpoint objects on every call, so `#passResults`, `#resolving` and `#destinationEndpoints` hold or are
   keyed by the objects of the pass's endpoint array (the one `cacheSummaryDestinations()` received), never
@@ -72,14 +89,24 @@ destination through `#readIncludedSummaryResult()` instead. The option is off by
   calculated, so its own destination answers a copy of it. Identity alone double counted (254 instead of
   127); `includeSummaryResults.unit.js` pins it.
 - **`#resolving` is deliberately not cleared in `cacheSummaryDestinations()`.** A `try`/`finally` in
-  `#calculateInPass()` keeps it balanced. Clearing it during a nested pass would drop the outer
-  calculation's cycle guard. Two endpoints that include each other warn once per pass, and the result that
-  closes the loop counts as empty.
+  `#calculateInPass()` keeps it balanced, and the method also runs lazily from a cell read in the middle
+  of a calculation, where clearing would drop the cycle guard of the calculation that is running. A
+  nested pass swaps the set in `#runPass()` instead (see above). Two endpoints that include each other
+  warn once per pass, and the result that closes the loop counts as empty.
 - **`#withDependents()` exists because the refresh paths select by `sourceColumn`.** An edit in a leaf
   column selects only the endpoints reading that column, so a parent that reads a subtotal column would
   stay stale. The method adds every `includeSummaryResults` endpoint whose range covers the destination row
   of another selected endpoint and whose source column is that endpoint's destination column, repeated
-  until the set stops growing, so a change reaches a parent through several levels.
+  until the set stops growing, so a change reaches a parent through several levels. It returns at once
+  when no endpoint has the option, so a grid without it pays one `filter()`. Each sweep indexes the
+  destination rows of the selected endpoints by column, sorted, and a candidate looks its ranges up
+  with a binary search: comparing every candidate with every selected endpoint cost n² range checks and
+  one array per candidate on every edit.
+- **The XLSX export writes an `includeSummaryResults` destination as its value, never as a formula.**
+  The export leaves every summary destination out of every formula's ranges, so a formula would
+  recalculate to the direct rows only. `ExportDataProvider` marks the descriptor
+  (`includesSummaryResults`) and `buildSummaryFormula()` answers `null` for it. See
+  `../exportFile/AGENTS.md`.
 - **The refresh order of a grid without the option must not change.** When no selected endpoint has
   `includeSummaryResults`, `#withDependents()` returns the endpoints in the order the caller collected them:
   change order for `refreshChangedEndpoints()` (each change in turn, every endpoint reading its column in

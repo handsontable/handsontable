@@ -123,23 +123,67 @@ describe('ColumnSummary `includeSummaryResults` option', () => {
     });
 
     it('counts a subtotal as one entry for `count`, `average`, `min`, and `max`', () => {
-      const results = {};
+      const resultsOf = (data) => {
+        const results = {};
 
-      ['count', 'average', 'min', 'max'].forEach((type) => {
-        hot = buildGrid([
-          endpoint(3, [[4, 6]], { type }),
-          endpoint(0, [[1, 3]], { type, includeSummaryResults: true }),
-        ]);
-        results[type] = hot.getDataAtCell(0, 1);
-        hot.destroy();
-        hot = null;
-      });
+        ['count', 'average', 'min', 'max'].forEach((type) => {
+          hot = buildGrid([
+            endpoint(3, [[4, 6]], { type }),
+            endpoint(0, [[1, 3]], { type, includeSummaryResults: true }),
+          ], { data });
+          results[type] = hot.getDataAtCell(0, 1);
+          hot.destroy();
+          hot = null;
+        });
+
+        return results;
+      };
+      const results = resultsOf(createData());
 
       // count: 2 leaves + subtotal 3 as one numeric entry -> 3. average: (5 + 6 + 8) / 3.
       expect(results.count).toBe(3);
       expect(results.average).toBeCloseTo(19 / 3, 10);
-      expect(results.min).toBe(5); // min(5, 6, child min 7)
-      expect(results.max).toBe(9); // max(5, 6, child max 9)
+      expect(results.max).toBe(9); // max(5, 6, child max 9); 6 without the child
+
+      // With the default data `min` is 5 with or without the child, so the leaves are raised above it.
+      const raisedLeaves = createData();
+
+      raisedLeaves[1][1] = 50;
+      raisedLeaves[2][1] = 60;
+
+      expect(resultsOf(raisedLeaves).min).toBe(7); // min(50, 60, child min 7); 50 without the child
+    });
+
+    it('counts each row twice when the range covers the subtotal and the rows under it', () => {
+      // The documented misuse: the option belongs on a range that names the subtotal row only.
+      hot = buildGrid([endpoint(3, [[4, 6]]), endpoint(0, [[1, 6]], { includeSummaryResults: true })]);
+
+      // 5 + 6 + 24 + 7 + 8 + 9
+      expect(hot.getDataAtCell(0, 1)).toBe(59);
+    });
+
+    it('gives the included results to a custom function that calls the plugin\'s own methods', () => {
+      const read = {};
+      const parent = includeSummaryResults => endpoint(0, [[1, 3]], {
+        type: 'custom',
+        includeSummaryResults,
+        customFunction(currentEndpoint) {
+          read[includeSummaryResults] = this.getCellValue(3, 1);
+
+          return this.calculateSum(currentEndpoint);
+        },
+      });
+
+      hot = buildGrid([endpoint(3, [[4, 6]]), parent(true)]);
+
+      expect(read.true).toBe(24);
+      expect(hot.getDataAtCell(0, 1)).toBe(35);
+
+      hot.destroy();
+      hot = buildGrid([endpoint(3, [[4, 6]]), parent(false)]);
+
+      expect(read.false).toBe(null);
+      expect(hot.getDataAtCell(0, 1)).toBe(11);
     });
 
     it('works with settings declared as a function', () => {
@@ -172,6 +216,31 @@ describe('ColumnSummary `includeSummaryResults` option', () => {
       expect(hot.getDataAtCell(0, 1)).toBe(19);
     });
 
+    it.each([
+      ['childFirst', true], ['parentFirst', true], ['childFirst', false],
+    ])('keeps the rounded result on an included endpoint (%s, option %s)', (order, includeSummaryResults) => {
+      const data = createData();
+
+      data[4][1] = 1.234; data[5][1] = 2.111; data[6][1] = null;
+
+      const child = endpoint(3, [[4, 6]], { roundFloat: 2 });
+      const parent = endpoint(0, [[1, 3]], { includeSummaryResults });
+
+      hot = buildGrid(order === 'childFirst' ? [child, parent] : [parent, child], { data });
+
+      const childEndpoint = () => hot.getPlugin('columnSummary').endpoints.getAllEndpoints()
+        .find(({ destinationRow }) => destinationRow === 3);
+
+      // 1.234 + 2.111 = 3.345, rounded to 2 places with `toFixed()`.
+      expect(hot.getDataAtCell(3, 1)).toBe((3.345).toFixed(2));
+      expect(childEndpoint().result).toBe(hot.getDataAtCell(3, 1));
+
+      // A change that refreshes the parent only: the child is calculated as a dependency.
+      hot.setDataAtCell(1, 1, 10);
+
+      expect(childEndpoint().result).toBe(hot.getDataAtCell(3, 1));
+    });
+
     it('adds nothing for a dependency that has not enough data, and does not throw', () => {
       const data = createData();
 
@@ -185,6 +254,22 @@ describe('ColumnSummary `includeSummaryResults` option', () => {
       }).not.toThrow();
       expect(hot.getDataAtCell(3, 1)).toBe('Not enough data');
       expect(hot.getDataAtCell(0, 1)).toBe(11);
+    });
+
+    it.each([
+      ['sum', 11], ['count', 2], ['average', 5.5], ['min', 5], ['max', 6],
+    ])('adds nothing to a `%s` parent for a dependency that has not enough data', (type, expected) => {
+      const data = createData();
+
+      data[4][1] = null; data[5][1] = null; data[6][1] = null;
+      hot = buildGrid([
+        endpoint(3, [[4, 6]], { type: 'max' }),
+        endpoint(0, [[1, 3]], { type, includeSummaryResults: true }),
+      ], { data });
+
+      expect(hot.getDataAtCell(3, 1)).toBe('Not enough data');
+      // The two leaves only (5 and 6): the dependency is no entry for `count` and `average`.
+      expect(hot.getDataAtCell(0, 1)).toBe(expected);
     });
 
     it('warns once and stays finite when two endpoints include each other', () => {
@@ -254,6 +339,34 @@ describe('ColumnSummary `includeSummaryResults` option', () => {
       warnSpy.mockRestore();
     });
 
+    it('runs a custom function as many times as before when a nested refresh runs with the option off', () => {
+      const calls = [];
+      let nestedRan = false;
+      const custom = name => function() {
+        calls.push(name);
+
+        if (name === 'A' && !nestedRan) {
+          nestedRan = true;
+          calls.push('nested');
+          this.endpoints.refreshAllEndpoints();
+        }
+
+        return 1;
+      };
+
+      hot = buildGrid([
+        { destinationRow: 0, destinationColumn: 1, type: 'custom', customFunction: custom('A') },
+        { destinationRow: 3, destinationColumn: 1, type: 'custom', customFunction: custom('B') },
+        { destinationRow: 0, destinationColumn: 0, type: 'custom', customFunction: custom('C') },
+      ]);
+      calls.length = 0;
+      nestedRan = false;
+      hot.getPlugin('columnSummary').endpoints.refreshAllEndpoints();
+
+      // The outer pass calculates B and C again after the nested one, as it did before the option.
+      expect(calls).toEqual(['A', 'nested', 'A', 'B', 'C', 'B', 'C']);
+    });
+
     it('keeps the nested total after a row is inserted above the subtotal', () => {
       hot = buildGrid(nested());
       hot.alter('insert_row_above', 2);
@@ -282,6 +395,96 @@ describe('ColumnSummary `includeSummaryResults` option', () => {
 
       expect(hot.getDataAtCell(3, 1)).toBe(116);
       expect(hot.getDataAtCell(0, 1)).toBe(127);
+    });
+
+    it.each([
+      ['array', endpoints => endpoints],
+      ['function', endpoints => () => endpoints.map(config => ({ ...config }))],
+    ])('reads the dependency when a nested refresh interrupts its calculation (%s form)', (form, settings) => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        // The dependency is declared first, so the pass is calculating it when the nested refresh runs.
+        hot = buildGrid(settings([
+          endpoint(3, [[4, 6]], { sourceColumn: 2 }),
+          endpoint(0, [[1, 3]], { includeSummaryResults: true }),
+        ]), { data: createCrossData() });
+
+        const plugin = hot.getPlugin('columnSummary');
+        const originalGetCellValue = plugin.getCellValue;
+        let interrupted = false;
+
+        // A cell read can run a pending Formulas resync, which refreshes the endpoints of a column.
+        plugin.getCellValue = function(...args) {
+          if (!interrupted && this.endpoints.currentEndpoint?.destinationRow === 3) {
+            interrupted = true;
+            this.endpoints.refreshEndpointsBySourceColumns([1]);
+          }
+
+          return originalGetCellValue.apply(this, args);
+        };
+        plugin.endpoints.refreshAllEndpoints();
+
+        expect(interrupted).toBe(true);
+        expect(hot.getDataAtCell(3, 1)).toBe(24);
+        expect(hot.getDataAtCell(0, 1)).toBe(35);
+        expect(warnSpy.mock.calls.filter(([message]) => /ColumnSummary/.test(message)).length).toBe(0);
+      } finally {
+        warnSpy.mockRestore();
+      }
+    });
+
+    it('still stops a loop of endpoints after a nested refresh interrupted the pass', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      try {
+        hot = buildGrid([
+          endpoint(0, [[1, 3]], { destinationColumn: 2, includeSummaryResults: true }),
+          endpoint(3, [[0, 0], [4, 6]], { sourceColumn: 2, includeSummaryResults: true }),
+        ], { data: createCrossData() });
+
+        const plugin = hot.getPlugin('columnSummary');
+        const originalGetCellValue = plugin.getCellValue;
+        let interrupted = false;
+
+        plugin.getCellValue = function(...args) {
+          if (!interrupted) {
+            interrupted = true;
+            this.endpoints.refreshEndpointsBySourceColumns([2]);
+          }
+
+          return originalGetCellValue.apply(this, args);
+        };
+
+        expect(() => plugin.endpoints.refreshAllEndpoints()).not.toThrow();
+        expect(hot.getDataAtCell(0, 2)).toBe(35);
+        expect(hot.getDataAtCell(3, 1)).toBe(24);
+      } finally {
+        warnSpy.mockRestore();
+      }
+    });
+
+    it('adds the parents of many subtotals in one change', () => {
+      // 300 groups: a parent row reads the subtotal row below it, and every subtotal reads column 2.
+      const data = [];
+      const endpoints = [];
+
+      for (let group = 0; group < 300; group++) {
+        const row = group * 2;
+
+        data.push(['Parent', null, null], ['Subtotal', null, group]);
+        endpoints.push(
+          endpoint(row, [[row + 1]], { includeSummaryResults: true }),
+          endpoint(row + 1, [[row + 1, row + 1]], { sourceColumn: 2 }),
+        );
+      }
+
+      hot = buildGrid(endpoints, { data });
+      hot.setDataAtCell(599, 2, 1000);
+
+      expect(hot.getDataAtCell(598, 1)).toBe(1000);
+      expect(hot.getDataAtCell(0, 1)).toBe(0);
+      expect(hot.getDataAtCell(2, 1)).toBe(1);
     });
 
     it('updates a grandparent through two levels', () => {

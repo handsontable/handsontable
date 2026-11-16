@@ -104,11 +104,17 @@ class Endpoints {
    */
   #destinationEndpoints: Map<number, Map<number, EndpointConfig>> | null = null;
   /**
-   * The raw (unrounded) results calculated in the current pass, keyed by endpoint. It lets an endpoint
-   * that another one includes be calculated once per pass, whatever the declaration order. It holds
-   * the raw result because `setEndpointValue()` rounds `endpoint.result` in place.
+   * The endpoints already calculated in the current pass. It lets an endpoint that another one
+   * includes be calculated once per pass, whatever the declaration order. It is consulted only while
+   * the pass has an `includeSummaryResults` endpoint (`#passIncludesResults`).
    */
-  #passResults: Map<EndpointConfig, number | string | undefined> = new Map();
+  #passCalculated: Set<EndpointConfig> = new Set();
+  /**
+   * Whether an endpoint of the current pass has `includeSummaryResults`. Without one, every endpoint is
+   * calculated each time it is asked for, as before the option existed, so a `custom` function runs as
+   * many times as it did.
+   */
+  #passIncludesResults = false;
   /**
    * The endpoints whose calculation is running, used to stop a loop of `includeSummaryResults`
    * endpoints that include each other.
@@ -278,6 +284,7 @@ class Endpoints {
   cacheSummaryDestinations(endpoints: EndpointConfig[]) {
     this.#summaryDestinations = new Map();
     this.#destinationEndpoints = new Map();
+    this.#passIncludesResults = endpoints.some(endpoint => endpoint.includeSummaryResults === true);
     this.#resetPassResults();
 
     arrayEach(endpoints, (endpoint: EndpointConfig) => {
@@ -323,9 +330,10 @@ class Endpoints {
    * is fresh whatever the declaration order, and it is read from the endpoint, not from the cell: the
    * cell writes are batched, and a trimmed destination is never written.
    *
-   * The value is rounded the way `setEndpointValue()` rounds it. A result that holds no number
-   * (`'Not enough data'`) answers `null`, and so does an endpoint whose calculation is already running
-   * (two endpoints include each other), which warns once per pass.
+   * The value is rounded the way `setEndpointValue()` rounds it, and the rounded value is kept on the
+   * endpoint, so `endpoint.result` matches the cell whether or not the endpoint is refreshed in this
+   * pass. A result that holds no number (`'Not enough data'`) answers `null`, and so does an endpoint
+   * whose calculation is already running (two endpoints include each other), which warns once per pass.
    *
    * @param {object} endpoint The endpoint whose result is included.
    * @returns {number|string|null}
@@ -339,9 +347,10 @@ class Endpoints {
 
     this.#calculateInPass(endpoint);
 
-    const result = roundFloat(endpoint.result, endpoint.roundFloat) as number | string | undefined;
+    // Rounding a result that is already rounded gives the same value back.
+    endpoint.result = roundFloat(endpoint.result, endpoint.roundFloat) as number | string;
 
-    return holdsNoNumber(result) ? null : result!;
+    return holdsNoNumber(endpoint.result) ? null : endpoint.result;
   }
 
   /**
@@ -727,7 +736,7 @@ class Endpoints {
         this.#calculateInPass(value);
         this.setEndpointValue(value, 'init');
       });
-    });
+    }, true);
     this.currentEndpoint = null;
 
     if (this.cellsToSetCache.length) {
@@ -779,7 +788,7 @@ class Endpoints {
       arrayEach(needToRefresh, (endpoint: EndpointConfig) => {
         this.refreshEndpoint(endpoint);
       });
-    });
+    }, true);
 
     if (this.cellsToSetCache.length) {
       this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], null, undefined, 'ColumnSummary.reset');
@@ -813,7 +822,7 @@ class Endpoints {
       arrayEach(matched, (endpoint) => {
         this.refreshEndpoint(endpoint as EndpointConfig);
       });
-    });
+    }, true);
 
     if (this.cellsToSetCache.length) {
       this.hot.setDataAtCell(this.cellsToSetCache as unknown[][], null, undefined, 'ColumnSummary.reset');
@@ -957,12 +966,28 @@ class Endpoints {
 
   /**
    * Runs a refresh pass. The passes nest (a cell read can run a pending Formulas resync, which
-   * refreshes the endpoints again), and the memo of results is dropped when the outermost one exits,
-   * so the next pass never reuses a result calculated from older data.
+   * refreshes the endpoints again), and the memo of calculated endpoints is dropped when the outermost
+   * one exits, so the next pass never reuses a result calculated from older data.
+   *
+   * A pass that starts inside another one (`startsOwnPass`) gets its own memo, loop guard and loop
+   * warning. The endpoint the outer pass is still calculating is not part of a loop in the nested one,
+   * so sharing the guard reported a loop that does not exist and left an empty value for the result.
+   * On exit the outer guard is put back and the outer memo starts empty: the outer pass calculates a
+   * dependency again and never reads a result from before the nested pass.
    *
    * @param {Function} callback The pass.
+   * @param {boolean} [startsOwnPass=false] `true` for a refresh of a set of endpoints, `false` for a
+   * single endpoint refreshed as a part of the pass that is running.
    */
-  #runPass(callback: () => void) {
+  #runPass(callback: () => void, startsOwnPass = false) {
+    const outerPass = startsOwnPass && this.#passDepth > 0 ?
+      { resolving: this.#resolving, cycleWarned: this.#cycleWarned } : null;
+
+    if (outerPass !== null) {
+      this.#resolving = new Set();
+      this.#resetPassResults();
+    }
+
     this.#passDepth += 1;
 
     try {
@@ -970,48 +995,53 @@ class Endpoints {
     } finally {
       this.#passDepth -= 1;
 
-      if (this.#passDepth === 0) {
+      if (outerPass !== null || this.#passDepth === 0) {
         this.#resetPassResults();
+      }
+
+      if (outerPass !== null) {
+        this.#resolving = outerPass.resolving;
+        this.#cycleWarned = outerPass.cycleWarned;
       }
     }
   }
 
   /**
-   * Drops the results memoized in the current pass and its loop warning.
+   * Drops the memo of the endpoints calculated in the current pass and its loop warning.
    */
   #resetPassResults() {
-    this.#passResults.clear();
+    this.#passCalculated.clear();
     this.#cycleWarned = false;
   }
 
   /**
-   * Calculates an endpoint once per pass. A second call in the same pass puts the memoized raw result
-   * back on the endpoint (`setEndpointValue()` rounds it in place) instead of calculating it again.
-   * The endpoint the calculation replaces as `currentEndpoint` is put back on exit, because the
-   * calculation can run inside another endpoint's one.
+   * Calculates an endpoint. In a pass that has an `includeSummaryResults` endpoint it is calculated
+   * once: a second call keeps the result the endpoint holds. The endpoint the calculation replaces as
+   * `currentEndpoint` is put back on exit, because the calculation can run inside another endpoint's
+   * one.
    *
    * @param {object} endpoint The endpoint to calculate.
    */
   #calculateInPass(endpoint: EndpointConfig) {
-    if (this.#passResults.has(endpoint)) {
-      endpoint.result = this.#passResults.get(endpoint);
-
+    if (this.#passIncludesResults && this.#passCalculated.has(endpoint)) {
       return;
     }
 
     const previousEndpoint = this.currentEndpoint;
+    // The guard of the pass that started the calculation: a nested pass swaps `#resolving`.
+    const resolving = this.#resolving;
 
     this.currentEndpoint = endpoint;
-    this.#resolving.add(endpoint);
+    resolving.add(endpoint);
 
     try {
       this.plugin.calculate(endpoint as unknown as Parameters<typeof this.plugin.calculate>[0]);
     } finally {
-      this.#resolving.delete(endpoint);
+      resolving.delete(endpoint);
       this.currentEndpoint = previousEndpoint;
     }
 
-    this.#passResults.set(endpoint, endpoint.result);
+    this.#passCalculated.add(endpoint);
   }
 
   /**
@@ -1055,37 +1085,90 @@ class Endpoints {
    * @returns {object[]} The endpoints to refresh, in the order described above.
    */
   #withDependents(matched: EndpointConfig[], all: EndpointConfig[]): EndpointConfig[] {
-    const selected = new Set<EndpointConfig>(matched);
-    const includesResultOf = (endpoint: EndpointConfig, dependency: EndpointConfig) => {
-      return dependency !== endpoint &&
-        dependency.destinationColumn === endpoint.sourceColumn &&
-        (endpoint.ranges ?? []).some((range) => {
-          const start = range[0];
-          const end = range.length > 1 ? range[1] : range[0];
+    const candidates = all.filter(endpoint => endpoint.includeSummaryResults === true);
 
-          return dependency.destinationRow! >= start && dependency.destinationRow! <= end;
-        });
-    };
+    // No endpoint has the option, so nothing can be added and the order stays the caller's.
+    if (candidates.length === 0) {
+      return matched;
+    }
+
+    const selected = new Set<EndpointConfig>(matched);
     let previousSize = -1;
 
     while (selected.size !== previousSize) {
       previousSize = selected.size;
 
-      arrayEach(all, (endpoint: EndpointConfig) => {
-        if (
-          endpoint.includeSummaryResults && !selected.has(endpoint) &&
-          Array.from(selected).some(dependency => includesResultOf(endpoint, dependency))
-        ) {
+      const destinationRows = this.#collectDestinationRows(selected);
+
+      arrayEach(candidates, (endpoint: EndpointConfig) => {
+        if (!selected.has(endpoint) && this.#coversAnyRow(endpoint, destinationRows.get(endpoint.sourceColumn!))) {
           selected.add(endpoint);
         }
       });
     }
 
-    if (!Array.from(selected).some(endpoint => endpoint.includeSummaryResults)) {
+    if (!candidates.some(endpoint => selected.has(endpoint))) {
       return matched;
     }
 
     return all.filter(endpoint => selected.has(endpoint));
+  }
+
+  /**
+   * Collects the destination rows of a set of endpoints, sorted, by destination column.
+   *
+   * @param {Set<object>} endpoints The endpoints to read.
+   * @returns {Map<number, number[]>}
+   */
+  #collectDestinationRows(endpoints: Set<EndpointConfig>): Map<number, number[]> {
+    const rowsByColumn = new Map<number, number[]>();
+
+    endpoints.forEach((endpoint) => {
+      const rows = rowsByColumn.get(endpoint.destinationColumn!);
+
+      if (rows === undefined) {
+        rowsByColumn.set(endpoint.destinationColumn!, [endpoint.destinationRow!]);
+      } else {
+        rows.push(endpoint.destinationRow!);
+      }
+    });
+
+    rowsByColumn.forEach(rows => rows.sort((a, b) => a - b));
+
+    return rowsByColumn;
+  }
+
+  /**
+   * Checks whether one of the endpoint's ranges holds one of the rows.
+   *
+   * @param {object} endpoint The endpoint whose ranges are checked.
+   * @param {number[]} [sortedRows] The rows to look for, sorted in ascending order.
+   * @returns {boolean}
+   */
+  #coversAnyRow(endpoint: EndpointConfig, sortedRows?: number[]): boolean {
+    if (sortedRows === undefined) {
+      return false;
+    }
+
+    return (endpoint.ranges ?? []).some((range) => {
+      const start = range[0];
+      const end = range.length > 1 ? range[1] : range[0];
+      let low = 0;
+      let high = sortedRows.length;
+
+      // Finds the first row at or after the range start.
+      while (low < high) {
+        const middle = (low + high) >>> 1; // eslint-disable-line no-bitwise
+
+        if (sortedRows[middle] < start) {
+          low = middle + 1;
+        } else {
+          high = middle;
+        }
+      }
+
+      return low < sortedRows.length && sortedRows[low] <= end;
+    });
   }
 
   /**
