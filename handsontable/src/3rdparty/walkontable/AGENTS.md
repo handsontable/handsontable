@@ -1104,8 +1104,33 @@ Consequences worth knowing:
   as at any gridline, and `frozenBoundaryEdge.spec.js` pins that a shift would break it. Moving such an edge off
   the line instead shows a gray line beside it. The master's copy is hidden only in the index case; for a lined-up
   track the frozen overlay's holder clips its copy at the line, so the master keeps the inside half. The bottom
-  line has no lined-up case yet: the bottom clone is 1px taller than the row calculators count (its first row
-  draws its own top border, a second gridline under the row's), so a lined-up row reads as partly covered. A cell of the inline-start clone and of the corners is in
+  line has its own lined-up case (`Border#isEdgeOnBottomFreezeLine`, DEV-3984): the bottom clone is 1px taller
+  than the height the row calculators count (its first row draws its own top border), so the bottom border of
+  a row that ends at the calculators' boundary lies under the clone's first pixel row, and that pixel is the
+  freeze line. `TopOverlay#scrollTo` adds its bottom-edge `+ 1` above frozen bottom rows only
+  when the summed row heights leave out the top border the first body row draws
+  (`getHiderHeightCompensation() > 0`). They do not leave it out in two cases: a column header owns that
+  gridline (DEV-2786), or AutoRowSize measures the rows (`externalRowCalculator`) and counts the border in the
+  first rendered row's height. There the nudge put a row that an arrow key or a bottom snap lined up 1px above
+  the clone, so its border and the clone's showed as a double line (the maximum scroll, which the browser
+  clamps, never had it). Without frozen bottom rows the nudge is unchanged. Gating the nudge on the column
+  header alone brings the double line back for AutoRowSize without column headers. For a lined-up row the
+  bottom clone and its corners draw the selection's line pixel, the fill handle and the mobile bottom handle
+  are pulled inside the cell as on the last scrollable row, and a custom border, which no frozen overlay draws,
+  ends 1px higher. Two limits. (1) The clone is 1px taller than counted only while its first row has no height
+  of its own. A first bottom row with one (`rowHeights`, `minRowHeights`, ManualRowResize, a recorded content
+  height) holds its top border inside that height, so a lined-up row ends at the clone's top edge with both
+  borders showing, as in 18.1.2. `Overlays#bottomCloneCoversLinedUpRow()` answers
+  it from the clone's drawn height against the counted one, once per draw: on the first ask, which the bottom
+  overlay makes right after it rendered (it is the first overlay `refresh()` renders), and then from the
+  draw's snapshot. Reading it with the snapshot, before `refresh()`, used the clone of the previous draw, so
+  a `fixedRowsBottom` or `minRowHeights` change was one draw late. `Border#isRowLinedUpWithBottomFreezeLine`
+  is false without it: the row's selection and custom border are
+  drawn on the row's own gridline, as for any row. (2) Where the nudge is kept (no column header, AutoRowSize
+  off), the row below is one pixel inside the calculators' viewport, so the snapshot does not report the row as
+  lined up. The line is one border high there, but the selection is drawn as for any row and the fill handle
+  is partly under the bottom rows, as before DEV-3984. Pinned by `tests/e2e/fixed-rows-bottom-line.spec.ts` and
+  `test/unit/selection/border/frozenBottomLine.unit.ts`. A cell of the inline-start clone and of the corners is in
   the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
   brings a column next to the overlay moves its edge too. Pinned by
   `tests/e2e/selection-start-edge-row-header.spec.ts`, which measures how much of the edge lies inside
