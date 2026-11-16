@@ -153,8 +153,8 @@
       "reason": "It changes where a dragged row lands next to hidden rows, and no pattern in your code marks it."
     },
     {
-      "title": "Writing past the last column of an object data source (deprecated in 19.0, removed in 20.0)",
-      "reason": "The deprecation table of the deprecation policy lists it, the guide has no section for it, and no pattern in your code shows a write past the last column."
+      "guide": "writing-past-the-last-column-of-an-object-data-source-is-deprecated",
+      "reason": "No pattern in your code shows a write past the last column of an object data source: it depends on the data and on what a user pastes at run time. 19.0 warns once in the console and still writes the value, and 20.0 will skip the write."
     }
   ]
 }
