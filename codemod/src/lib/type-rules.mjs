@@ -360,6 +360,23 @@ function readsWantedName(j, root, importPath, wanted) {
 }
 
 /**
+ * Text that can hold a wildcard re-export: `export * from`, `export type * from`, `export * as ns from`. A file that has
+ * one passes on names that its own text never shows, so a rule that looks for a name in the text still has to read it.
+ */
+export const WILDCARD_EXPORT = /export\s*(?:type\s+)?\*/;
+
+/**
+ * Whether a re-export passes on every name of its module: `export * from 'm'` and `export * as ns from 'm'`.
+ *
+ * @param {object} node An `ExportAllDeclaration` or `ExportNamedDeclaration` node with a source.
+ * @returns {boolean} `true` for a wildcard.
+ */
+export function isWildcardReExport(node) {
+  return node.type === 'ExportAllDeclaration'
+    || (node.specifiers ?? []).some(specifier => specifier.type === 'ExportNamespaceSpecifier');
+}
+
+/**
  * Report, as `manual`, the references to a module that a rewrite cannot follow. Nothing is edited.
  *
  * With `all` (the module is gone) every such reference counts: `import * as ns` and default imports, `export ...
@@ -368,8 +385,9 @@ function readsWantedName(j, root, importPath, wanted) {
  * (`ns.Name`, `ns.Name` in a type), an `export { Name } from`, a `require` destructured to `Name`, and a dynamic
  * import that is read for `Name`: `import('module').Name`, `(await import('module')).Name`, `const { Name } = await
  * import('module')`, a name that holds the awaited module and is read as `ns.Name`, and a `.then()` callback that
- * destructures `Name` or reads it from its parameter. A bare `export *`, `require('handsontable')`, or
- * `import('handsontable')` stays quiet.
+ * destructures `Name` or reads it from its parameter. A wildcard re-export (`export * from 'm'`, `export * as ns from
+ * 'm'`) of a module that has any of `names` counts too, because every file that imports from the barrel gets the new
+ * names. A bare `require('handsontable')` or `import('handsontable')` stays quiet.
  *
  * @param {import('../types.mjs').Ctx} ctx The transform context of a `js` part.
  * @param {object} options Options.
@@ -425,6 +443,9 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
 
     if (all || named.length > 0) {
       report(node, 'This re-export reads from', String(node.source.value));
+    } else if (wanted.size > 0 && isWildcardReExport(node)) {
+      // The names of the module reach every file that imports from this one, and nothing here spells them.
+      report(node, 'This re-export passes on every name of', String(node.source.value));
     }
   });
 

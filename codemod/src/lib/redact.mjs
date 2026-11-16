@@ -7,10 +7,12 @@
  */
 
 /**
- * The user information of a URL: everything between `//` and the `@` that ends it, without a slash, a space, or a
- * quote inside, so the path of a CDN address (`//cdn.example.com/npm/@scope/pkg`) is never matched.
+ * The user information of a URL: everything between `//` and the last `@` of the authority. The authority ends at
+ * the first `/`, `?`, `#`, white space, or quote, so the path of a CDN address (`//cdn.example.com/npm/@scope/pkg`)
+ * is never matched. npm and git split at the last `@`, so a password that holds one (`user:p@ssword@host`) is hidden
+ * whole.
  */
-const USERINFO = /\/\/[^/\s@"'`]+@/g;
+const USERINFO = /\/\/[^/?#\s"'`]*@/g;
 
 /**
  * Replace the user information of every URL in a text with `***`.

@@ -416,17 +416,48 @@ export function addNamedImport(j, root, { source, imported, local, typeOnly = fa
 }
 
 /**
+ * Put the comments of a declaration that is going away in front of another declaration, as leading comments. They go
+ * after the leading comments the target already has, so a next-line directive (`// eslint-disable-next-line`) that
+ * the target carries stays on the line right above it, and before its trailing comments. A header goes first
+ * (`atTop`): they came first in the file, so they stay above everything the next statement had.
+ *
+ * @param {object[]} comments The comments to move.
+ * @param {object} target The declaration node that takes them.
+ * @param {boolean} atTop `true` to put them before the leading comments of the target.
+ */
+function giveComments(comments, target, atTop) {
+  const current = target.comments ?? [];
+  const firstTrailing = current.findIndex(comment => comment.trailing);
+  let at = firstTrailing === -1 ? current.length : firstTrailing;
+
+  if (atTop) {
+    at = 0;
+  }
+
+  comments.forEach((comment) => {
+    comment.leading = true;
+    comment.trailing = false;
+  });
+  target.comments = [...current.slice(0, at), ...comments, ...current.slice(at)];
+}
+
+/**
  * Remove a specifier from its declaration. The declaration goes with its last specifier. A side-effect import
- * (`import 'x'`) holds no specifier and is never touched. When the removed declaration is the first statement
- * of the file, its comments (a license header) move to the statement that follows.
+ * (`import 'x'`) holds no specifier and is never touched. The comments of a removed declaration (a line above it, a
+ * trailing note, a JSDoc block) are never dropped. When the declaration is the first statement of the file they move
+ * to the statement that follows, so a license header stays at the top. Otherwise they move to `options.commentsTo`,
+ * the declaration that took the specifier, or to the statement that follows, or to the one before when it was the
+ * last. Siblings are not touched.
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
  * @param {object} declaration NodePath or node of the `ImportDeclaration`.
  * @param {object} specifier NodePath or node of the specifier to remove.
+ * @param {object} [options] Options.
+ * @param {object} [options.commentsTo] NodePath or node of the declaration that now holds the specifier.
  * @returns {{removed: boolean, declarationRemoved: boolean}} What was removed.
  */
-export function removeNamedImport(j, root, declaration, specifier) {
+export function removeNamedImport(j, root, declaration, specifier, options = {}) {
   const declarationResolved = declarationPath(j, root, declaration);
   const specifierResolved = declarationResolved ? specifierPath(declarationResolved, specifier) : null;
 
@@ -443,10 +474,21 @@ export function removeNamedImport(j, root, declaration, specifier) {
 
   const siblings = declarationResolved.parent.node.body;
   const index = siblings.indexOf(declarationResolved.node);
-  const comments = declarationResolved.node.comments;
+  const comments = declarationResolved.node.comments ?? [];
 
-  if (index === 0 && comments?.length && siblings[1]) {
-    siblings[1].comments = [...comments, ...(siblings[1].comments ?? [])];
+  if (comments.length > 0) {
+    const kept = options.commentsTo?.node ?? options.commentsTo ?? null;
+    const target = index > 0 && kept && kept !== declarationResolved.node && siblings.includes(kept) ? kept : null;
+
+    if (target || siblings[index + 1]) {
+      giveComments(comments, target ?? siblings[index + 1], target === null);
+    } else if (index > 0) {
+      comments.forEach((comment) => {
+        comment.leading = false;
+        comment.trailing = true;
+      });
+      siblings[index - 1].comments = [...(siblings[index - 1].comments ?? []), ...comments];
+    }
   }
 
   declarationResolved.prune();
@@ -534,7 +576,7 @@ export function moveNamedImport(j, root, declaration, specifier, targetSource, o
     return { moved: false, reason: 'collision' };
   }
 
-  removeNamedImport(j, root, declarationResolved, specifierResolved);
+  removeNamedImport(j, root, declarationResolved, specifierResolved, { commentsTo: result.declaration });
 
   return { moved: true };
 }

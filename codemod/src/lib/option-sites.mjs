@@ -91,7 +91,7 @@ export function templateOptionSites(source, names) {
 
       if (wanted.has(name)) {
         sites.push({ name, line, tag: tag[1], attribute: written, value });
-      } else if (SETTINGS_ATTRIBUTES.has(name) && value) {
+      } else if ((SETTINGS_ATTRIBUTES.has(name) || SETTINGS_ATTRIBUTES.has(written)) && value) {
         [...wanted].filter(option => new RegExp(`(?<![\\w$])${option}(?![\\w$])`).test(value))
           .forEach(option => sites.push({ name: option, line, tag: tag[1], attribute: written, value }));
       }

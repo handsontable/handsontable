@@ -338,6 +338,46 @@ function addJsxTodo(j, path, body, scan) {
 }
 
 /**
+ * A comment that talks about the next line of code: an eslint, stylelint, or tslint next-line directive, a TypeScript
+ * `@ts-expect-error` or `@ts-ignore`, `prettier-ignore`, `biome-ignore`, `deno-lint-ignore`, and a coverage ignore. A
+ * comment of the tool between such a directive and its line would take the directive's place, so the tool's comment goes
+ * above the run of them.
+ */
+const NEXT_LINE_DIRECTIVE = new RegExp('^\\s*(?:(?:eslint|oxlint|stylelint)-disable-next-line|tslint:disable-next-line'
+  + '|@ts-expect-error|@ts-ignore|prettier-ignore|biome-ignore|deno-lint-ignore|(?:istanbul|c8|v8) ignore)(?![\\w-])');
+
+/**
+ * Whether a line of source is one comment, a `//` line or a one-line block, that is a next-line directive (see
+ * `NEXT_LINE_DIRECTIVE`).
+ *
+ * @param {string} line A line of text, without its terminator.
+ * @returns {boolean} `true` for a line that holds only such a comment.
+ */
+export function isDirectiveLine(line) {
+  const text = /^\s*(?:\/\/(.*)|\/\*(.*)\*\/)\s*$/.exec(line);
+
+  return text !== null && NEXT_LINE_DIRECTIVE.test(text[1] ?? text[2]);
+}
+
+/**
+ * Where a new comment goes in the comments of a node: after the leading ones and before a trailing one, and above the
+ * run of next-line directives that ends the leading ones (see `NEXT_LINE_DIRECTIVE`).
+ *
+ * @param {object[]} comments The comments of the node, leading ones first.
+ * @returns {number} The index to insert at.
+ */
+function insertionIndex(comments) {
+  const trailing = comments.findIndex(comment => comment.trailing === true);
+  let at = trailing === -1 ? comments.length : trailing;
+
+  while (at > 0 && NEXT_LINE_DIRECTIVE.test(comments[at - 1].value)) {
+    at -= 1;
+  }
+
+  return at;
+}
+
+/**
  * Add a `//` comment before a node, after its leading comments and before a trailing one, unless the same
  * comment is already in front of it.
  *
@@ -355,9 +395,8 @@ function insertLineComment(j, node, body, scan) {
   node.comments = node.comments ?? [];
 
   // The TODO goes after the leading comments and before a trailing one, so a note at the end of the line stays there.
-  const trailing = node.comments.findIndex(comment => comment.trailing === true);
-
-  node.comments.splice(trailing === -1 ? node.comments.length : trailing, 0, j.commentLine(` ${body}`, true, false));
+  // A directive for the next line keeps that line: the TODO goes above it.
+  node.comments.splice(insertionIndex(node.comments), 0, j.commentLine(` ${body}`, true, false));
 
   return true;
 }
@@ -437,22 +476,34 @@ export function addJsTodo(j, target, ruleId, text, guideUrl = null, scan = null)
  * @param {string|null} [guideUrl] Link to the guide section, or `null` for none.
  * @param {import('./css-edit.mjs').CssDocument|null} [document] The part's document, which splices the comment into
  * the original text. Without one, only the postcss model gets the comment.
+ * @param {string[]} [twinIds] Ids of the earlier rules that report the same spot. A comment of one of them in front of
+ * the node counts as this comment (see `hasTwinTodo()`).
  * @returns {boolean} `true` when a comment was inserted, `false` when an identical one was already there.
  */
-export function addCssTodo(target, ruleId, text, guideUrl = null, document = null) {
+export function addCssTodo(target, ruleId, text, guideUrl = null, document = null, twinIds = []) {
   const body = formatTodo(ruleId, text, guideUrl);
+  const isTwin = comment => twinIds.some(id => comment.startsWith(`${TODO_PREFIX} ${id}):`));
 
   // Two rules can leave a comment before one node, so look through the whole run of comments right before it.
   for (let previous = target.prev(); previous?.type === 'comment'; previous = previous.prev()) {
-    if (previous.text.trim() === body) {
+    if (previous.text.trim() === body || isTwin(previous.text.trim())) {
       return false;
     }
   }
 
+  // A directive for the next line (`stylelint-disable-next-line`, `prettier-ignore`) keeps that line: the TODO goes
+  // above the run of them.
+  let anchor = target;
+
+  for (let previous = target.prev(); previous?.type === 'comment' && NEXT_LINE_DIRECTIVE.test(previous.text);
+    previous = previous.prev()) {
+    anchor = previous;
+  }
+
   if (document) {
-    document.insertCommentBefore(target, body);
+    document.insertCommentBefore(anchor, body);
   } else {
-    target.before(postcss.comment({ text: body }));
+    anchor.before(postcss.comment({ text: body }));
   }
 
   return true;

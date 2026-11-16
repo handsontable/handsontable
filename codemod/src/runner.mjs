@@ -8,10 +8,11 @@ import { discover, firstLinkOn, resolvesInside } from './discover.mjs';
 import { insideRelative, leavesDirectory, realpathNative, toPosix } from './lib/paths.mjs';
 import { StaleFileError, writeFileSafely } from './lib/safe-write.mjs';
 import { redact } from './lib/redact.mjs';
-import { dirtyPaths, isGitRepo, isTracked } from './git.mjs';
+import { GitError, dirtyPaths, isGitRepo, isTracked } from './git.mjs';
 import { packageFilesAbove, registerPackageDir } from './lib/facts.mjs';
 import { findCatalog } from './lib/pnpm-catalog.mjs';
 import { NotUtf8Error, readUtf8, stripBom } from './lib/text-file.mjs';
+import { unreachedPackageNotes } from './lib/unreached-package.mjs';
 import { modeOf, rewrites } from './lib/safety.mjs';
 import { MarkerCarriers } from './lib/carrier.mjs';
 import { anchorsAbove, arrayOfTarget, createMarkerIndex, cssTargetAt } from './lib/marker.mjs';
@@ -166,14 +167,15 @@ async function skippedMessage(cwd, item, files) {
 
 /**
  * The entries of a file whose edits were not applied (the write failed, or the file sits outside the project). A
- * `changed` entry says what the tool did, so it goes. A `manual` entry keeps its place, but its marker never reached
- * the file, so it is no longer "marked in the code".
+ * `changed` entry says what the tool did, so it goes, and so does a note for the whole run (`scope: 'run'`), which
+ * says what a rewrite changed: it would list a file the tool did not touch. A `manual` entry keeps its place, but its
+ * marker never reached the file, so it is no longer "marked in the code".
  *
  * @param {import('./types.mjs').ReportEntry[]} entries The entries of the file.
  * @returns {import('./types.mjs').ReportEntry[]} The entries that are still true.
  */
 function withoutApplied(entries) {
-  return entries.filter(entry => entry.severity !== 'changed')
+  return entries.filter(entry => entry.severity !== 'changed' && entry.scope !== 'run')
     .map(entry => (entry.marked ? { ...entry, marked: false } : entry));
 }
 
@@ -436,7 +438,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
 
       inserted = !earlier && addJsTodo(part.j, target, ruleId, text, guideUrl, scan);
     } else if (part.fileKind === 'css') {
-      inserted = addCssTodo(target, ruleId, text, guideUrl, part.document);
+      inserted = addCssTodo(target, ruleId, text, guideUrl, part.document, owner?.twins ?? []);
     }
 
     if (inserted) {
@@ -553,7 +555,7 @@ function applyMarkers(part, marks, plan) {
         inserted = !there && (carriers.add(arrayOfTarget(targets[0]), targets[0], body)
           || addJsTodo(part.j, targets[0], mark.ruleId, mark.text, guideUrl, scan));
       } else {
-        inserted = addCssTodo(targets[0], mark.ruleId, mark.text, guideUrl, part.document);
+        inserted = addCssTodo(targets[0], mark.ruleId, mark.text, guideUrl, part.document, owner?.twins ?? []);
       }
 
       part.changed = part.changed || inserted;
@@ -965,7 +967,7 @@ export async function resolvePlan({
     if (detected?.version) {
       fromText = detected.version;
       notes.push(`Detected --from ${fromText} (${detected.source}).`);
-    } else if (detected) {
+    } else if (detected && !lenientFrom) {
       throw new UsageError(`${detected.source.replace(/ \w+Dependencies$| dependencies$/, '')} names handsontable `
         + `as "${redact(detected.range)}", which is not a version. Pass --from.`);
     } else if (!lenientFrom) {
@@ -1226,7 +1228,27 @@ export async function run({
     result.to = resolved.selected[resolved.selected.length - 1].version;
     report.notes.push(...resolved.reportNotes);
 
-    const repo = await isGitRepo(cwd);
+    let repo;
+
+    try {
+      repo = await isGitRepo(cwd);
+    } catch (error) {
+      if (!(error instanceof GitError)) {
+        throw error;
+      }
+
+      // git ran and failed, so there may be a repository and uncommitted edits in it that the tool cannot see.
+      if (write && !allowDirty) {
+        throw new UsageError('git failed in this directory, so the tool cannot check for uncommitted changes: '
+          + `${error.message} Fix that, or pass --allow-dirty to run without the check.`);
+      }
+
+      const note = `git failed in this directory (${error.message}), so the tool read the files without it.`;
+
+      repo = false;
+      report.notes.push(note);
+      result.notes.push(note);
+    }
 
     if (write && !repo) {
       onWarning?.('Not a git repository: you cannot review the changes with git diff. Stop now and use --dry-run '
@@ -1404,6 +1426,21 @@ export async function run({
   const packageFiles = files.filter(candidate => basename(candidate) === 'package.json');
 
   packageFiles.forEach(file => registerPackageDir(facts, file));
+
+  if (paths.length > 0 && orderSteps(resolved.plan, registry, 2).length > 0) {
+    // The `package.json` above a folder of the run is not in it, so phase 2 never reads it.
+    const bumps = {};
+
+    for (const { rules } of resolved.plan.versions) {
+      rules.filter(rule => rule.kind === 'dependency' && rule.bump && typeof rule.bump === 'object')
+        .forEach(rule => Object.assign(bumps, rule.bump));
+    }
+
+    const unreached = await unreachedPackageNotes({ cwd, paths, visited: new Set(packageFiles), bumps });
+
+    result.notes.push(...unreached);
+    report.notes.push(...unreached);
+  }
 
   let lastProgress = Date.now();
 

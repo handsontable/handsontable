@@ -270,6 +270,11 @@ describe('loadManifest', () => {
       ['callUnwrap', { kind: 'callUnwrap', safe: false, callee: 'sanitize' }, /"callee" to be a dotted path/],
       ['optionMove', { kind: 'optionMove', safe: true, from: 'culture', to: 'locale' },
         /"from" must be "<option>.<key>"/],
+      ['optionMove', { kind: 'optionMove', safe: true, from: 'a.b', to: 'c', levels: ['colum'] },
+        /"levels" must be a non-empty list of "grid", "column", or "cell"/],
+      ['optionMove', { kind: 'optionMove', safe: true, from: 'a.b', to: 'c', levels: [] },
+        /"levels" must be of type strings/],
+      ['optionMove', { kind: 'optionMove', safe: true, from: 'a.b', to: 'c', levels: ['grid', 'cell'] }, null],
       ['optionRename', {
         kind: 'optionRename',
         safe: true,

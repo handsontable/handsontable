@@ -7,7 +7,7 @@ import { delimiter, dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { discover } from '../src/discover.mjs';
-import { dirtyPaths, gitExecutable, isGitRepo, listFiles } from '../src/git.mjs';
+import { GitError, dirtyPaths, gitExecutable, isGitRepo, listFiles } from '../src/git.mjs';
 import { findExecutable } from '../src/lib/find-executable.mjs';
 import { run } from '../src/runner.mjs';
 import { GIT_ISOLATION, isolatedGitEnv } from './helpers/git-env.mjs';
@@ -181,6 +181,106 @@ describe('git runs from PATH, not from the project directory', () => {
     } finally {
       await rm(project, { recursive: true, force: true });
     }
+  });
+});
+
+describe('a git that runs and fails is not the same as no repository', { skip: !POSIX }, () => {
+  const DUBIOUS = 'fatal: detected dubious ownership in repository at \'/work/project\'\n'
+    + 'To add an exception for this directory, call:\n\n\tgit config --global --add safe.directory /work/project';
+  const NOT_A_REPO = 'fatal: not a git repository (or any of the parent directories): .git';
+
+  /**
+   * Run a body with a `git` on `PATH` that prints a message and exits with a code.
+   *
+   * @param {string} message What the fake git writes to standard error.
+   * @param {number} code Its exit code.
+   * @param {() => Promise<void>} body The body.
+   * @returns {Promise<void>}
+   */
+  async function withFakeGit(message, code, body) {
+    const bin = await mkdtemp(join(tmpdir(), 'codemod-fakegit-'));
+    const before = process.env.PATH;
+
+    try {
+      // Only shell built-ins: `PATH` holds nothing but this directory.
+      await writeFile(join(bin, 'message.txt'), `${message}\n`);
+      await writeFile(join(bin, 'git'), '#!/bin/sh\nwhile IFS= read -r line; do printf \'%s\\n\' "$line" >&2; done '
+        + `< "\${0%/*}/message.txt"\nexit ${code}\n`);
+      await chmod(join(bin, 'git'), 0o755);
+      process.env.PATH = bin;
+      await body();
+    } finally {
+      process.env.PATH = before;
+      await rm(bin, { recursive: true, force: true });
+    }
+  }
+
+  it('isGitRepo() says false for "not a git repository" and throws what git said for any other failure', async() => {
+    await withFakeGit(NOT_A_REPO, 128, async() => {
+      assert.equal(await isGitRepo(tmpdir()), false);
+    });
+    await withFakeGit(DUBIOUS, 128, async() => {
+      await assert.rejects(isGitRepo(tmpdir()), (error) => {
+        assert.equal(error instanceof GitError, true);
+        assert.match(error.message, /detected dubious ownership in repository at '\/work\/project'/);
+        assert.match(error.message, /safe\.directory/);
+
+        return true;
+      });
+    });
+    await withFakeGit('', 3, async() => {
+      await assert.rejects(isGitRepo(tmpdir()), /git exited with code 3/);
+    });
+  });
+
+  it('refuses a run that writes, shows git\'s message, and changes nothing', async() => {
+    await inPlainProject({ 'a.css': CSS }, async(dir) => {
+      await withFakeGit(DUBIOUS, 128, async() => {
+        const result = await migrate(dir, ['--from', '17.1', '--to', '18.0']);
+
+        assert.equal(result.status, 2, result.stdout + result.stderr);
+        assert.match(result.stderr, /git failed in this directory/);
+        assert.match(result.stderr, /detected dubious ownership/);
+        assert.match(result.stderr, /--allow-dirty/);
+        assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS);
+      });
+    });
+  });
+
+  it('runs without git when --allow-dirty is passed, and says so', async() => {
+    await inPlainProject({ 'a.css': CSS }, async(dir) => {
+      await withFakeGit(DUBIOUS, 128, async() => {
+        const result = await migrate(dir, ['--from', '17.1', '--to', '18.0', '--allow-dirty']);
+
+        assert.equal(result.status, 0, result.stdout + result.stderr);
+        assert.match(result.stdout, /git failed in this directory \(fatal: detected dubious ownership/);
+        assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS_DONE);
+      });
+    });
+  });
+
+  it('previews without git on --dry-run, because nothing is written', async() => {
+    await inPlainProject({ 'a.css': CSS }, async(dir) => {
+      await withFakeGit(DUBIOUS, 128, async() => {
+        const result = await migrate(dir, ['--from', '17.1', '--to', '18.0', '--dry-run']);
+
+        assert.equal(result.status, 0, result.stdout + result.stderr);
+        assert.match(result.stdout, /git failed in this directory/);
+        assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS);
+      });
+    });
+  });
+
+  it('still treats "not a git repository" as an ordinary project outside git, with the old warning', async() => {
+    await inPlainProject({ 'a.css': CSS }, async(dir) => {
+      await withFakeGit(NOT_A_REPO, 128, async() => {
+        const result = await migrate(dir, ['--from', '17.1', '--to', '18.0']);
+
+        assert.equal(result.status, 0, result.stdout + result.stderr);
+        assert.match(result.stderr, /Not a git repository/);
+        assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS_DONE);
+      });
+    });
   });
 });
 

@@ -78,6 +78,15 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
     assert.deepEqual(await skippedOf('a.less', '.card { color: red; }\n'), []);
   });
 
+  it('warns about a Pikaday selector in a Vue Less block, as it does in a Less file', async() => {
+    const style = '<style lang="less">\n.pika-single { color: red; }\n</style>\n';
+
+    assert.equal((await skippedOf('a.less', '.pika-single { color: red; }\n')).length, 1);
+    assert.deepEqual(await skippedOf('App.vue', `<template><div /></template>\n${style}`), [
+      { line: 2, message: 'A <style lang="less"> block was not analyzed. Check it by hand.' },
+    ]);
+  });
+
   it('warns about a Vue style block in another language and about a src= block, with the line of the tag', async() => {
     const source = '<script>import Handsontable from \'handsontable\';</script>\n'
       + '<style lang="less">\n.a { --ht-wrapper-border-radius: 1px; }\n</style>\n'
@@ -321,6 +330,60 @@ describe('the sample project of the tests does not outlive them', () => {
       assert.ok(stderr.includes(dir), stderr);
     } finally {
       await rm(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('a package.json above the paths of the run', () => {
+  const SOURCE = 'import Handsontable from \'handsontable\';\n'
+    + 'new Handsontable(el, { data: [], correctFormat: true });\n';
+  const ROOT = '{ "dependencies": { "handsontable": "^17.0.0", "react": "^18.0.0" } }\n';
+
+  it('is named in a note when the run covers a folder below it, and is not edited', async() => {
+    await inPlainProject({ 'package.json': ROOT, 'src/a.js': SOURCE }, async(dir) => {
+      const result = await run({ cwd: dir, paths: ['src'], from: '17.0', to: '18.0', allowDirty: true });
+      const note = result.notes.find(text => /package\.json is above the paths/.test(text));
+
+      assert.ok(note, JSON.stringify(result.notes));
+      assert.match(note, /It asks for handsontable "\^17\.0\.0", and this run migrates to 18\.0\.0\./);
+      assert.ok(result.report.notes.includes(note));
+      assert.equal(await readFile(join(dir, 'package.json'), 'utf8'), ROOT);
+      assert.deepEqual(result.changedFiles, ['src/a.js']);
+    });
+  });
+
+  it('says nothing when the run covers it, or when the folder has a package.json of its own', async() => {
+    await inPlainProject({ 'package.json': ROOT, 'src/a.js': SOURCE }, async(dir) => {
+      const whole = await run({ cwd: dir, paths: ['.'], from: '17.0', to: '18.0', allowDirty: true });
+      const bare = await run({ cwd: dir, from: '17.0', to: '18.0', allowDirty: true, dryRun: true });
+
+      assert.equal([...whole.notes, ...bare.notes].some(text => /is above the paths/.test(text)), false);
+    });
+
+    await inPlainProject({
+      'package.json': ROOT,
+      'packages/app/package.json': '{ "dependencies": { "handsontable": "^17.0.0" } }\n',
+      'packages/app/a.js': SOURCE,
+    }, async(dir) => {
+      const result = await run({ cwd: dir, paths: ['packages/app'], from: '17.0', to: '18.0', allowDirty: true });
+
+      assert.equal(result.notes.some(text => /is above the paths/.test(text)), false);
+      assert.ok(result.changedFiles.includes('packages/app/package.json'));
+    });
+  });
+
+  it('says nothing for a package.json above that does not ask for an older version, or names no Handsontable', async() => {
+    for (const root of [
+      '{ "dependencies": { "handsontable": "^18.0.0" } }\n',
+      '{ "dependencies": { "handsontable": "workspace:*" } }\n',
+      '{ "dependencies": { "react": "^18.0.0" } }\n',
+      '{ not json',
+    ]) {
+      await inPlainProject({ 'package.json': root, 'src/a.js': SOURCE }, async(dir) => {
+        const result = await run({ cwd: dir, paths: ['src'], from: '17.0', to: '18.0', allowDirty: true });
+
+        assert.equal(result.notes.some(text => /is above the paths/.test(text)), false, root);
+      });
     }
   });
 });

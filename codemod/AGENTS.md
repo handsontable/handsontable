@@ -69,6 +69,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   `test/shared-objects.test.mjs` the uses of a variable that hold an object and the spreads, and
   `test/custom-reader.test.mjs` pins the custom reader check, `test/jsx-todo.test.mjs` the JSX text guard, and
   `test/scope.test.mjs` `referenceSpace()` and the hoisting of `var`.
+- `test/leading-trivia.test.mjs` pins the start of a printed file (see Traps, "What stands before the first statement"):
+  a shebang, a byte order mark, a license comment, `// @ts-check`, and a directive prologue come out of a rule that merges or
+  removes the first statement as they went in, in LF and CRLF, and a lost comment or directive fails the file.
 - `test/encoding.test.mjs` (a non-UTF-8 file of every kind is skipped with its bytes kept, a byte order mark stays in a
   script, a stylesheet, and a `package.json`, a file that cannot be written is a `write-error`),
   `test/redaction.test.mjs` (a token in a dependency spec never reaches the console, the report file, `--dry-run`,
@@ -185,6 +188,8 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/safe-write.mjs` | `writeFileSafely(path, expected, output)`: temporary file, a last read of the target against `expected`, `rename`, the mode kept. `StaleFileError`. |
 | `src/lib/markdown.mjs` | `codeSpan()` (a fence that fits the text), `markdownText(text, quoted)` (the message of an entry as Markdown that renders as text), and `plainText()` / `plainName()` (control characters and bidirectional overrides as `\x1b`). |
 | `src/lib/line-endings.mjs` | `restoreLineEndings(source, printed, working)`, `dominantBreak()`, `splitLines()`: the line endings of a printed js part (see Traps). |
+| `src/lib/leading-trivia.mjs` | `splitBom()`, `maskShebang()` and `unmaskShebang()`, and `assertLeadingTrivia()`: what stands before the first statement of a printed js part (see Traps). |
+| `src/lib/unreached-package.mjs` | `unreachedPackageNotes()`: the note for the `package.json` above a folder of the run, which phase 2 never reads. |
 | `versions/<semver>/` | `manifest.json`, optional `custom/*.mjs`, optional extra rule files, `__fixtures__/`. |
 | `test/*.test.mjs`, `test/helpers/` | Tests (`node:test`). Helpers are not listed in the test script. |
 
@@ -229,7 +234,10 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 2. The git guard refuses a dirty tree (exit 2) unless `--allow-dirty`. `status` lists untracked files one by one,
    whatever `status.showUntrackedFiles` says. It does not apply to `--dry-run`,
    `--list`, `write: false`, or a directory outside a git repository, where `onWarning` gets a one-line notice before
-   the first write. An untracked file at the `--report` path (`reportPath`) is not a change.
+   the first write. An untracked file at the `--report` path (`reportPath`) is not a change. `isGitRepo()` answers `false`
+   for no git program and for git's "not a git repository", and throws `GitError` (git's own message) for any other
+   failure of `rev-parse`: `run()` then refuses a write unless `--allow-dirty` (exit 2), and otherwise reads the files
+   without git and adds a note. Git runs with `LC_ALL=C`, because that one message is matched as text.
 3. `discover()` lists files (`git ls-files -z --cached --others --exclude-standard`, or an fs walk). "Ignored" is what
    git says, so the global ignore file counts and the file list agrees with `git status`. A project directory that an
    outer repository ignores gets an empty list, and `git check-ignore` confirms it, so the directory is walked and a note
@@ -617,6 +625,25 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 
 ## Traps
 
+- **What stands before the first statement stays (`lib/leading-trivia.mjs`).** recast prints a shebang through the
+  `interpreter` node of the parser, and when the first statement is printed again it can swallow the line break of the
+  shebang, put the shebang after the directives, drop a byte order mark, or lose a comment. `printJsPart()` therefore works
+  on a text with no byte order mark (`splitBom()`) and with the shebang line turned into a `//` comment of the same length
+  (`maskShebang()`), so recast treats it as any comment, and writes `#!` back after printing (`unmaskShebang()`, which throws
+  when the line is not the first one any more). `assertLeadingTrivia()` then parses the source and the printed text with the
+  plain parser and checks that the directives are equal and that the comments before the first statement of the source
+  are still in the printed text, in order (more are allowed: a TODO, a comment moved from a removed statement). A throw is a
+  `transform-error`. A `.ts` file that starts with a byte order mark and a shebang is parsed as the shebang being a comment.
+- **A TODO goes above a directive for the next line.** `insertionIndex()` in `todo.mjs` puts a comment above the run of
+  `NEXT_LINE_DIRECTIVE` comments (`eslint-disable-next-line`, `@ts-expect-error`, `@ts-ignore`, `prettier-ignore`, a coverage
+  ignore, ...) that ends the leading comments of a node, `addCssTodo()` does the same for the comment nodes before a rule, and
+  `spliceCarriers()` for an array element (`aboveDirectives()`). `eslint-disable-line` and a plain note are not directives. A
+  second run finds the TODO through the directive, because `sitsBefore()` looks through other comments.
+- **The comments of a removed import go to the import that took its name.** `removeNamedImport(j, root, declaration, specifier,
+  { commentsTo })` appends them (as leading comments, after the target's own) to `commentsTo`, which `moveNamedImport()` sets to
+  the declaration that now holds the specifier. A removed first statement still gives its comments to the next statement,
+  before the ones that statement had, so a license header stays on top. recast reprints the statements after a removed one
+  and writes two statements that shared a line without the space between them; that is the limit (README, Limitations).
 - **Line endings.** The printer writes one terminator for a part (`workingTerminator()`: `\r\n` when CRLF is at least as
   common as bare LF, else `\n`). `printJsPart()` then calls `restoreLineEndings()`. A source with one kind of break gets
   it back everywhere (a lone `\r` too). A source that mixes kinds is aligned with the printed text by the longest
@@ -921,6 +948,30 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   it (`import('m').Name`, `(await import('m')).Name`), a destructuring of the awaited module, a name that holds it and is
   read as `ns.Name`, and a `.then()` callback that destructures the name or reads it from its parameter. A bare
   `import('m')` and a read of other names stay quiet.
+- **A wildcard re-export is a reference to every name of its module.** `reportOpaqueReferences()` reports an `export * from`
+  and an `export * as ns from` of a source whose names a rule renames or moves (`isWildcardReExport()`), once per rule, and
+  `export-removed.mjs` leaves one TODO per rule on it, worded "may pass on" and naming every name of the rule: a rule can cover
+  several modules or names, and one module holds only some of them. The text of the file never spells the names, so both transforms also run
+  on a file that matches `WILDCARD_EXPORT` (`export *`) when none of the names appears in it. `export-rename.mjs` reports the
+  JSDoc types that still say the old local name after it renamed an import (`reportStaleJsdocTypes()`): one entry per
+  comment line, `@tag {...Name...}`, never an edit.
+- **`namespaceType` checks the scope at the reference.** `capturedBy()` in `namespace-type.mjs` looks up the local name the
+  new reference would get (the existing import's local name, else the imported name) from the reference, and a binding that
+  is not at the top level (`binding.scope.type !== 'Program'`: a type parameter, a block-scoped type, a namespace member)
+  would capture it, so the reference is reported and left. A top-level binding is `addNamedImport()`'s business.
+- **`cssVariable` does not make a name point at itself.** `applyToDeclaration()` leaves a declaration alone, and reports, when
+  its container defined the new name when the run began (`declaredAtStart()`: a name that an earlier rename of this run gave
+  to a declaration does not count): `--new: var(--old, 4px)` would become a reference to itself, and `var(--old)` next to
+  `--new: 1px` would read the new value. Only the same container counts: another rule that defines the new name may match
+  other elements, so the tool cannot call it a conflict, and the guide asks for the rename anyway. A name in a string or
+  `url()` of an at-rule is reported and not renamed, as in a declaration value.
+- **A match whose node has no `loc` gets the line of its first child.** recast takes the location off the expression right
+  after `export default`. `lineOfNode()` returns the line of the first descendant that starts at the same offset, so the
+  entry has a line and a marker. `markerTargets()` sends a JSX child that is an expression container (`{ok && <X />}`) to the
+  element inside it, so the marker is a JSX comment in front of that child and not a comment on the enclosing statement.
+- **Phase 2 reads only the `package.json` files the run discovered.** `migrate src` leaves the one above `src` alone, so
+  `run()` names it in a note (`unreachedPackageNotes()`): the nearest `package.json` of each path argument that the run did
+  not discover, when it asks for an older range of a package a `dependency` rule bumps.
 - The four transforms never delete a name they cannot replace. `importSource` leaves a removed name in a residual
   import from the old module with one TODO per declaration, `exportRemoved` keeps the import and adds a TODO, and a
   removed `namespaceType` member gets a TODO on the enclosing statement or member. A name collision, a global
@@ -942,7 +993,10 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   rule is not a cleanup of working code: it makes a call work that never did, and its message and advice say so. A
   read in a test position never passed, so `methods.mjs` reports it and what it guards instead of moving it
   (`isTestRead()`: the test of an `if`, a loop, or a conditional, the left operand of `&&`, `||`, `??`, `!`, `typeof`, a
-  comparison with `null`, `undefined`, or a string, `Boolean()`, `'x' in hot`, and the root of an optional chain). A
+  comparison whose answer changes when the read stops being `undefined` (`== null`, `!= null`, every comparison with
+  `undefined`; `=== null` and a comparison with a string give the same answer before and after, so they are no test),
+  `Boolean()`, `'x' in hot`, and the root of an optional chain). The entry says that the member was `undefined` on 17.x
+  and a rewrite would change what the test answers: it never claims that the test never passed, which `!x` falsifies. A
   test guards every use of the same receiver text and name in the same function or in a function nested in it
   (`enclosingFunctions()`), also after the use, because an early return is a guard too. The root of an optional chain
   is reported and guards nothing else. `methods-undo-guarded` and the `methodMove: a member that code tests` block of
@@ -1054,7 +1108,12 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   stays a documented limitation. A literal with its own `culture` moves, unless a spread follows the key in the same
   object (`spreadFollows()`): the spread can set `culture` again and win, so the move is reported. A spread before the
   key moves as before. `optionRename` does the same for a later spread in the object or among the attributes of an
-  element (`{ columnHeaders: false, ...opts }` is reported).
+  element (`{ columnHeaders: false, ...opts }` is reported), and for an earlier spread that can set the new name or the old
+  one (`spreadBeforeMaySet()`: a spread the tool cannot read, or an object literal that has either key, a computed key, or a
+  spread of its own that can). In 17.1, 18.x, and 19.0 an explicit `colHeaders` wins over `columnHeaders` in the export
+  options (`normalizeExportOptions()`), so `{ ...opts, columnHeaders: false }` reads `opts.colHeaders` today, and the renamed
+  key would win over it. A move whose value `canBeEmpty()` (`undefined`, `null`, `void 0`, a conditional with such a branch, a
+  `??` or `||` whose right side is one, any `&&`) is reported: an own `locale: undefined` overrides the grid locale.
 - **An object that something else holds is edited only when every use of its holder is the grid's own
   (`lib/holders.mjs`, `reportSharedObject()` in `options.mjs`).** `heldBy(objectPath)` climbs from the literal through a
   type assertion, an array, a property of another object, a conditional, and a `useMemo`/`useCallback` callback to the
@@ -1062,7 +1121,8 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   field or `this` assignment by every member read of the name in the file. Each reference is `fine` (`new Handsontable()`
   of an instance, `updateSettings()` of an `instance` receiver, or of an `unknown` one under `--aggressive`, a wrapper
   prop or spread attribute, a spread or a property in an object that is itself an option object, a member read, a
-  destructuring, `typeof`, a write) or `other` (any other call argument, an alias, a return, an `export`, a component that
+  destructuring, `typeof`, `!x`, `void x`, a comparison (`x == null`, `'k' in x`), the left of `&&`, a `while`, `do`, or `for`
+  test, `Boolean(x)`, a write) or `other` (any other call argument, an alias, a return, an `export`, a component that
   is not a wrapper), and the first `other` makes the rule report with its text ("also passed to `x.configure()` (line
   6)"). Not every shape is named: an unknown parent says "used here". **A type names the holder:** an object found
   through `annotated` (an annotation, `as`, or `satisfies` of `GridSettings` and the like, whichever pass found it
@@ -1091,7 +1151,11 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 - **An option that custom code may read is neither moved nor deleted (`readerAdvice`, `lib/custom-reader.mjs`).** A rule
   with `readerAdvice` (the `optionMove` `18.0.0/numeric-format-culture`, the `optionRemove` rules
   `18.0.0/correct-format-removed` and `18.0.0/date-picker-config-removed`) reports instead of editing when
-  `createReaderFinder()` cannot rule a reader out, at every confidence and under `--aggressive`. A reader is: an
+  `createReaderFinder()` cannot rule a reader out, at every confidence and under `--aggressive`. A reader is: a `cells`,
+  `cell`, `afterGetCellMeta`, or `beforeGetCellMeta` key of the object, an enclosing one, or a wrapper element that sets or
+  may set a custom editor, renderer, validator, or type (`mayAssignReader()`: a key of an object or an assignment to the
+  meta inside the function or literal, a `cells` function whose returned value the tool cannot see or that spreads, and any
+  function or object the file does not show, an import included); an
   `editor`, `renderer`, `validator`, or `hotEditor`/`hotRenderer` prop that is anything but a built-in name (a function, an
   identifier, a string that is not in `BUILT_IN_EDITORS`, `BUILT_IN_RENDERERS`, or `BUILT_IN_VALIDATORS`; `undefined`,
   `null`, `false`, and a regular expression validator are not), or a `type` that is not in `BUILT_IN_CELL_TYPES`, on the
@@ -1168,7 +1232,11 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   both the earliest rule owns the entry, and a later rule's `ctx.todo()` and generic marker are skipped. When only the
   later migration runs, over code the earlier one marked, `ctx.comment()` and `applyMarkers()` look for a comment that
   starts `TODO(handsontable-codemod <twin id>)` on the target and the anchors above it (`hasTwinTodo()`) and leave
-  none, while the later rule still reports its entry. A rule that repeats an older one adds the id to `twins`.
+  none, while the later rule still reports its entry. A rule that repeats an older one adds the id to `twins`. A
+  stylesheet marker is found the same way (`addCssTodo()` takes the twin ids and looks through the run of comments before the
+  node), so the Pikaday rules of 18.0 and 18.1, which also share a `mergeKey`, leave one marker in a stepwise run.
+  `test/twin-rules.test.mjs` derives a signature for every kind (`exportRename`: source, from, to; `detect`: `mergeKey`) and
+  fails for a rule that repeats an earlier signature without listing it, so the next pair cannot be missed.
 - **An inline Angular template is a `template` part.** `adapters/js.mjs` (`inlineTemplateParts()`) adds one read-only
   part for the `template` property of the object passed to `Component(...)` (a decorator or a call), when the file
   names `@angular/core`, as a string or a template literal (an expression `${}` becomes a space plus the line breaks it spans, so the lines

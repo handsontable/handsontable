@@ -572,6 +572,168 @@ describe('type rule transforms', () => {
     assert.match(result.output, /new HOT\.CellCoords\(0, 0\)/);
   });
 
+  describe('a local binding of the new name between the reference and the module', () => {
+    const header = 'import Handsontable from \'handsontable\';';
+    const shadowed = [
+      ['a type parameter',
+        'export function f<CellRange extends object>(x: CellRange, y: Handsontable.CellRange) { return [x, y]; }'],
+      ['a block-scoped interface',
+        'export function g() { interface CellCoords { z: number } const c: Handsontable.CellCoords = {} as any; }'],
+      ['a block-scoped type alias',
+        'export function g() { type CellCoords = number; const c: Handsontable.CellCoords = {} as any; }'],
+      ['a class generic parameter', 'export class K<CellRange> { m(y: Handsontable.CellRange) { return y; } }'],
+      ['a method generic parameter', 'export class K { m<CellRange>(y: Handsontable.CellRange) { return y; } }'],
+      ['a type parameter of an arrow', 'export const h = <CellRange,>(y: Handsontable.CellRange) => y;'],
+      ['a namespace member',
+        'namespace N { export interface CellCoords { z: number } export let c: Handsontable.CellCoords; }'],
+    ];
+
+    for (const [label, code] of shadowed) {
+      it(`reports and leaves the reference when ${label} has the name`, async() => {
+        const source = `${header}\n${code}\n`;
+        const result = await run('a.ts', source);
+        const entries = result.entries.filter(entry => entry.ruleId === '18.0.0/ns-core-types');
+
+        assert.equal(result.changed, false, label);
+        assert.equal(result.output, source, label);
+        assert.equal(entries.length, 1, JSON.stringify(result.entries));
+        assert.equal(entries[0].severity, 'manual');
+        assert.match(entries[0].message, /declared in an enclosing scope/);
+      });
+    }
+
+    it('still rewrites a reference that no local binding of the name reaches', async() => {
+      const result = await run('a.ts', [
+        header,
+        'export function f<CellRange extends object>(x: CellRange) { return x; }',
+        'export function g(y: Handsontable.CellRange) { return y; }',
+        'export function h() { interface CellCoords { z: number } return {} as CellCoords; }',
+        'export let c: Handsontable.CellCoords;',
+        '',
+      ].join('\n'));
+
+      assert.match(result.output, /export function g\(y: CellRange\)/);
+      assert.match(result.output, /export let c: CellCoords;/);
+      assert.match(result.output, /import type \{ CellRange, CellCoords \} from 'handsontable';/);
+    });
+
+    it('checks the scope of the name an existing import gives it', async() => {
+      const source = [
+        'import Handsontable, { CellCoords as Coords } from \'handsontable\';',
+        'export function g<Coords>(c: Handsontable.CellCoords) { return c; }',
+        '',
+      ].join('\n');
+      const result = await run('a.ts', source);
+
+      assert.equal(result.output, source);
+      assert.equal(result.entries.filter(entry => entry.severity === 'manual').length, 1);
+    });
+  });
+
+  describe('a re-export of every name of a module whose names a rule renames or removes', () => {
+    const RENAMED = 'handsontable/plugins/columnSorting';
+    const REMOVED = 'handsontable/plugins/nestedHeaders';
+
+    for (const code of [
+      `export * from '${RENAMED}';`,
+      `export * as sorting from '${RENAMED}';`,
+      `export type * from '${RENAMED}';`,
+      `export*from'${RENAMED}';`,
+    ]) {
+      it(`reports a barrel of a renamed name, once for each rule that names the module: ${code}`, async() => {
+        const result = await run('barrel.ts', `${code}\n`, ['18.0.0/type-columnsorting-config']);
+        const ours = result.entries.filter(entry => entry.ruleId === '18.0.0/type-columnsorting-config');
+
+        assert.equal(ours.length, 1, JSON.stringify(result.entries));
+        assert.equal(ours[0].severity, 'manual');
+        assert.equal(ours[0].line, 1);
+        assert.match(ours[0].message, /passes on every name of "handsontable\/plugins\/columnSorting"/);
+        assert.match(ours[0].message, /Config is now ColumnSortingConfig/);
+        assert.equal(result.output, `${code}\n`);
+      });
+    }
+
+    it('reports a barrel of a removed name with a TODO on the export', async() => {
+      const result = await run('barrel.ts', `export * from '${REMOVED}';\nexport const keep = 1;\n`,
+        ['18.0.0/type-nestedheaders-settings']);
+      const ours = result.entries.filter(entry => entry.ruleId === '18.0.0/type-nestedheaders-settings');
+
+      assert.equal(ours.length, 1, JSON.stringify(result.entries));
+      assert.ok(ours[0].message.startsWith('Check Settings, which this export * from '
+        + '"handsontable/plugins/nestedHeaders" may pass on. '), ours[0].message);
+      assert.ok(result.output.startsWith('// TODO(handsontable-codemod 18.0.0/type-nestedheaders-settings): '
+        + 'Check Settings, which this export * may pass on.'), result.output);
+      assert.equal(result.output.split('\n').filter(line => line.includes('TODO(')).length, 1);
+
+      const again = await run('barrel.ts', result.output, ['18.0.0/type-nestedheaders-settings']);
+
+      assert.equal(again.changed, false);
+    });
+
+    it('names every name of a rule that covers several, and says "may", because one module holds only some', async() => {
+      const result = await run('barrel.ts', 'export * from \'handsontable/editors\';\n', ['18.0.0/type-registry-maps']);
+      const [entry] = result.entries;
+
+      assert.equal(result.entries.length, 1);
+      assert.ok(entry.message.startsWith('Check CellTypes, Editors, Renderers, Validators, which this export * from '
+        + '"handsontable/editors" may pass on. '), entry.message);
+      assert.doesNotMatch(entry.message, /no longer exported from/);
+    });
+
+    it('stays quiet about a barrel of another module, and about a re-export of a named import', async() => {
+      for (const code of [
+        'export * from \'lodash\';',
+        'export * from \'./local\';',
+        'export * as lodash from \'lodash\';',
+        'export * from \'handsontable/plugins/columnSorting/other\';',
+      ]) {
+        const result = await run('barrel.ts', `${code}\n`);
+
+        assert.deepEqual(result.entries, [], code);
+      }
+    });
+
+    it('reports a type import and a destructured require of the renamed name', async() => {
+      const typed = await run('a.ts', `type A = import('${RENAMED}').Config;\nexport type { A };\n`);
+      const required = await run('a.ts', `const { Config } = require('${RENAMED}');\nexport { Config };\n`);
+      const other = await run('a.ts', `const { Other } = require('${RENAMED}');\nexport { Other };\n`);
+
+      assert.equal(typed.entries.filter(entry => entry.ruleId === '18.0.0/type-columnsorting-config').length, 1);
+      assert.equal(required.entries.filter(entry => entry.ruleId === '18.0.0/type-columnsorting-config').length, 1);
+      assert.equal(other.entries.filter(entry => entry.ruleId === '18.0.0/type-columnsorting-config').length, 0);
+    });
+  });
+
+  describe('a JSDoc type that still says the old name after an import rename', () => {
+    const IMPORT = 'import { Config } from \'handsontable/plugins/columnSorting\';\n';
+    const only = ['18.0.0/type-columnsorting-config'];
+    const stale = result => result.entries.filter(entry => entry.severity === 'manual'
+      && /type of this comment/.test(entry.message)).map(entry => entry.line);
+
+    it('is reported at its line, once per line, and the comment is not edited', async() => {
+      const source = `${IMPORT}\n/**\n * Sort.\n * @param {Config} first The first.\n`
+        + ' * @param {Array<Config>} rest The rest.\n * @returns {Config|null} The result.\n */\n'
+        + 'export function sort(first, rest) { return first || rest; }\n';
+      const result = await run('a.js', source, only);
+
+      assert.deepEqual(stale(result), [5, 6, 7]);
+      assert.match(result.output, /^import \{ ColumnSortingConfig \} from/);
+      assert.ok(result.output.includes(' * @param {Config} first The first.'), 'comments are never edited');
+    });
+
+    it('is not reported for a qualified name, another word, prose, a line comment, or an aliased import', async() => {
+      const quiet = `${IMPORT}/**\n`
+        + ' * @param {import(\'handsontable/plugins/columnSorting\').Config} a The same type, by import.\n'
+        + ' * @param {ConfigOther} b Another word.\n * @param {Plugin.Config} c A member.\n'
+        + ' * The Config is mentioned in prose only.\n */\nexport function f(a, b, c) {}\n// @param {Config} d\n';
+      const aliased = 'import { Config as Mine } from \'handsontable/plugins/columnSorting\';\n'
+        + '/** @param {Config} a Not the local name. */\nexport function g(a) {}\n';
+
+      assert.deepEqual(stale(await run('a.js', quiet, only)), []);
+      assert.deepEqual(stale(await run('a.js', aliased, only)), []);
+    });
+  });
+
   it('reuses a CellCoords the file already imports, even under another name', async() => {
     const result = await run('a.ts', [
       'import Handsontable, { CellCoords as Coords } from \'handsontable\';',

@@ -66,7 +66,7 @@ How versions are chosen:
   receiver sets the new name or the old one after the spread. Before, the receiver's own `locale` won after the spread.
 - A read of the removed `hot.undoRedo` or an undo method in a test (`if (hot.undoRedo)`, `typeof hot.undo`,
   `'undo' in hot`, `hot.undoRedo?.clear()`), and the code that the same function guards with it, is reported and not
-  moved: the test never passed on 17.x. So is a `hot.undoRedo` that is stored, passed, or compared, which was
+  moved: the member was `undefined` on 17.x, so the test answers differently now. So is a `hot.undoRedo` that is stored, passed, or compared, which was
   `undefined` there. The entry and the advice of `core-undo-methods` say that a plain call threw a `TypeError` on 17.x.
 - `numericFormat.culture` moves to `locale` only on a column or a cell. At grid level it is reported, because a
   grid-level `locale` reaches every locale-driven column. A move that leaves a `numericFormat` with no `pattern` adds a
@@ -214,6 +214,62 @@ How versions are chosen:
 - Many names in one CSS declaration value, and a stylesheet with tens of thousands of renamed declarations, take linear
   time. Before, 130 KB of `var(--ht-...)` references took 18 seconds and 1.5 MB of declarations took 6 seconds. A Vue
   script block with a run of 120,000 spaces took 9 seconds.
+- A shebang line and a byte order mark survive a rule that prints the first statement again, and so do the comments and
+  directives before it (a license header, `// @ts-check`, `'use client'`). Before, the shebang fused with the first
+  statement (`#!/usr/bin/env nodeimport ...`), and a byte order mark was dropped. The printed file is compared with the
+  source, and a lost comment or directive leaves the file unchanged with a `transform-error`.
+- The comments of an import that a move removes (a line above it, a trailing note, a JSDoc block) move to the import
+  that took its name. Before, they were deleted unless the import was the first statement.
+- A `Handsontable.X` type is not replaced by a bare `X` when a type parameter, a block-scoped type, or a namespace member
+  of that name is in scope at the reference. The reference is reported.
+- A custom property is not renamed into a reference to itself (`--ht-border-radius: var(--ht-wrapper-border-radius)`),
+  and a rule that already defines the new name keeps its uses of the old one. Both are reported. A name inside a string
+  or `url()` of an at-rule (`@import url("...")`, `@warn "..."`) is left alone and reported, as in a declaration value.
+- The three 19.0 rules `undo-false`, `col-widths-null`, and `editor-false` also read `:undo="false"` and its relatives on
+  `<hot-table>` in Vue and Angular templates. A bare `v-bind="{ ... }"` on a wrapper tag is read for the option rules.
+- An expression right after `export default` gets its line and its marker. A flagged child of a JSX element on a line of
+  its own (`{cond && <HotTable />}`, `{items.map(...)}`) gets its own marker, and `marked` is true only for an entry
+  that has one.
+- A TODO goes above a directive for the next line (`// eslint-disable-next-line`, `// @ts-expect-error`,
+  `// prettier-ignore`, `/* istanbul ignore next */`, `// stylelint-disable-next-line`) and not between the directive and
+  its code, in code, in an array element, and in a stylesheet.
+- `columnHeaders` in `{ ...opts, columnHeaders: false }` is not renamed: an explicit `colHeaders` wins over
+  `columnHeaders` in the export options of 17.1 and later, so a `colHeaders` in the spread decided the header row, and the
+  renamed key would win over it. A spread of an object literal that sets neither name still lets the rename through.
+- `numericFormat.culture` with a value that can be `undefined` or `null` (`undefined`, `cond ? 'de-DE' : undefined`, `a &&
+  b`) is reported and not moved: an own `locale` of `undefined` overrides the locale of the grid.
+- A `cells` option or a meta hook (`afterGetCellMeta`, `beforeGetCellMeta`, `cell`) in the same settings that sets or may
+  set an editor, a renderer, or a validator makes `correctFormat`, `datePickerConfig`, and
+  `numericFormat.culture` stay and be reported.
+- A re-export of every name of a module (`export * from`, `export * as ns from`) whose names a rule renames or removes
+  gets an entry, once per rule. The JSDoc types of a file (`@param {Config}`) that still say the old name after an
+  import rename are reported per line.
+- The rules that repeat an earlier migration name it in `twins` (the two type aliases of 19.0, the Pikaday rule of 18.1),
+  and a stylesheet marker of a twin is found, so following the guides one step at a time leaves one TODO, as a chained
+  run does. `test/twin-rules.test.mjs` fails for a rule that repeats an earlier one without naming it.
+- A password that holds an `@` (`git+https://user:p@ss@host/...`) is hidden up to the last `@` of the authority. The
+  message about a `hyperformula` declaration above a package no longer prints the raw spec.
+- A key of `overrides`, `resolutions`, or `pnpm.overrides` names a package by its last path segment: `some-lib/handsontable`
+  is Handsontable, and `@acme/handsontable` is not.
+- A test of a removed method that gives the same answer before and after (`hot.undo === null`, a comparison with a string)
+  is no longer reported as a test, and the entry for one that does change says what the member was on 17.x (`undefined`)
+  instead of claiming that the test never passed.
+- A holder check reads `!x`, `x == null`, `x === undefined`, `'k' in x`, `x && x.y`, `while (x)`, and `Boolean(x)` as reads
+  of the variable that holds an options object, so ordinary guards no longer make the rule report.
+- `const HT = Handsontable; HT.helper.sanitize(x)` is found. A call on a plugin that a file keeps in a property of a local
+  object, or in a `this` member set from a conditional, is reported as a call on an unconfirmed receiver.
+- A git that runs and fails (`detected dubious ownership`, a corrupt repository) is no longer read as "not a repository".
+  A run that writes stops with exit code 2 and git's message, and `--allow-dirty` or `--dry-run` reads the files without git
+  and says so. git speaks English to the tool (`LC_ALL=C`).
+- `migrate --list` works in a project whose `handsontable` range is a tag (`latest`). An empty `--from` or `--to` is a
+  usage error.
+- The CLI says to install the new ranges after it edited a `package.json`. A run on a folder names the `package.json`
+  above it that still asks for an older version, and that it did not edit.
+- A file that a failed write left unchanged is no longer listed under a note that says what a rewrite changed.
+- A new import in a CommonJS file takes the quotes of its `require()` calls. A `.pika-single` or a theme class in a Vue
+  `<style lang="less">` block is listed under "Skipped files", and a plain `<style>` block with only such a selector is
+  read.
+- The README says that `--report` is the one file the tool writes outside the project, if you point it there.
 
 ## [0.1.0] – not published
 

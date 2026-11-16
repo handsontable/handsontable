@@ -215,6 +215,58 @@ describe('removeNamedImport', () => {
     assert.equal(print(root), '/**\n * License header.\n */\nimport b from \'b\';\n');
   });
 
+  for (const parser of ALL_PARSERS) {
+    it(`keeps every comment of a removed declaration that is not the first statement (${parser})`, () => {
+      const { j, root } = parse([
+        'import z from \'z\';',
+        '// eslint-disable-next-line import/no-unresolved',
+        'import { a } from \'x\'; // trailing note',
+        '/** Docs for the next one */',
+        'import b from \'b\';',
+        '',
+      ].join('\n'), parser);
+      const [binding] = getImportedBindings(j, root, 'x');
+
+      removeNamedImport(j, root, binding.declaration, binding.specifier);
+
+      assert.equal(print(root), [
+        'import z from \'z\';',
+        '// eslint-disable-next-line import/no-unresolved',
+        '// trailing note',
+        '/** Docs for the next one */',
+        'import b from \'b\';',
+        '',
+      ].join('\n'));
+    });
+  }
+
+  it('gives the comments of a removed declaration to the declaration named by commentsTo, after its own', () => {
+    const { j, root } = parse([
+      '// existing',
+      'import z from \'z\';',
+      'const a1 = 1;',
+      '// about x',
+      'import { a } from \'x\';',
+      'const a2 = 2;',
+      '',
+    ].join('\n'));
+    const [binding] = getImportedBindings(j, root, 'x');
+    const [target] = findImports(j, root, 'z');
+
+    removeNamedImport(j, root, binding.declaration, binding.specifier, { commentsTo: target });
+
+    assert.equal(print(root), '// existing\n// about x\nimport z from \'z\';\nconst a1 = 1;\nconst a2 = 2;\n');
+  });
+
+  it('gives the comments of the last statement to the one before it', () => {
+    const { j, root } = parse('const k = 1;\nimport { a } from \'x\'; // end\n');
+    const [binding] = getImportedBindings(j, root, 'x');
+
+    removeNamedImport(j, root, binding.declaration, binding.specifier);
+
+    assert.equal(print(root), 'const k = 1; // end\n');
+  });
+
   it('accepts nodes instead of paths', () => {
     const { j, root } = parse('import { a, b } from \'x\';\n');
     const [binding] = getImportedBindings(j, root, 'x');

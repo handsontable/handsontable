@@ -2,6 +2,8 @@ import { enclosingAnchor, hasOwnLines } from './anchor.mjs';
 
 const MEMBER_NODES = new Set(['ObjectProperty', 'ObjectMethod', 'Property', 'ClassProperty', 'ClassMethod']);
 const JSX_ELEMENTS = new Set(['JSXElement', 'JSXOpeningElement']);
+const JSX_PARENTS = new Set(['JSXElement', 'JSXFragment']);
+const SKIPPED_KEYS = new Set(['loc', 'tokens', 'comments', 'extra', 'leadingComments', 'trailingComments']);
 const ARRAYS = new WeakMap();
 
 /**
@@ -48,11 +50,47 @@ function hasOwnArrayLines(arrayNode, node) {
 }
 
 /**
+ * The first JSX element inside a path, in source order: the elements that no other element inside the path holds.
+ *
+ * @param {object} path NodePath to search below.
+ * @returns {object|null} NodePath of the `JSXElement`, or `null` when the path holds none.
+ */
+function firstElementIn(path) {
+  const found = [];
+  const visit = (current) => {
+    if (current.node.type === 'JSXElement') {
+      found.push(current);
+
+      return;
+    }
+
+    for (const key of Object.keys(current.node)) {
+      const value = current.node[key];
+
+      if (SKIPPED_KEYS.has(key) || !value || typeof value !== 'object') {
+        continue;
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((item, index) => item && typeof item.type === 'string' && visit(current.get(key, index)));
+      } else if (typeof value.type === 'string') {
+        visit(current.get(key));
+      }
+    }
+  };
+
+  visit(path);
+
+  return found.sort((a, b) => (a.node.start ?? 0) - (b.node.start ?? 0))[0] ?? null;
+}
+
+/**
  * Where a comment about the code at a path can go without changing the code around it. From the path it climbs to
  * the first of:
  *
  * - a JSX attribute or element: the opening element, which `addJsTodo()` puts a JSX comment or a statement comment
- *   in front of;
+ *   in front of. A child that is an expression container (`{ok && <HotTable />}`) stands for the element inside it, so
+ *   the comment goes in front of the child and not on the element that holds it;
  * - a property, method, or class member on lines of its own;
  * - an array element on lines of its own;
  * - a statement or declaration, with its `export` wrapper.
@@ -80,6 +118,11 @@ export function markerTargets(path) {
 
     if (JSX_ELEMENTS.has(node.type)) {
       return [...found, current];
+    }
+
+    if (node.type === 'JSXExpressionContainer' && parent && JSX_PARENTS.has(parent.node.type)
+      && parent.node.children.includes(node)) {
+      return [...found, firstElementIn(current) ?? parent];
     }
 
     if (MEMBER_NODES.has(node.type) && (parent?.node.type !== 'ObjectExpression' || hasOwnLines(parent.node, node))) {

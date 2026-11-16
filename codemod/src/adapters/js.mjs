@@ -2,6 +2,7 @@ import { extname } from 'node:path';
 import jscodeshift from 'jscodeshift';
 import { calleeName, propertyName, unwrapNode } from '../lib/ast.mjs';
 import { spliceCarriers } from '../lib/carrier.mjs';
+import { assertLeadingTrivia, maskShebang, splitBom, unmaskShebang } from '../lib/leading-trivia.mjs';
 import { dominantBreak, restoreLineEndings } from '../lib/line-endings.mjs';
 import { guardLiterals, intendedLiterals, keepJsxEntities, linesInsideLiterals } from '../lib/literals.mjs';
 
@@ -26,14 +27,15 @@ export function parserFor(filePath) {
 }
 
 /**
- * Pick the quote style recast uses for nodes it creates, by counting what the file already uses.
+ * Pick the quote style recast uses for nodes it creates, by counting what the file already uses in the module
+ * position: `import 'x'`, `from 'x'`, `require('x')`, and `import('x')`.
  *
  * @param {string} source File text.
  * @returns {'single'|'double'} Quote style.
  */
 export function detectQuote(source) {
-  const single = (source.match(/(?:from|import)\s*'/g) ?? []).length;
-  const double = (source.match(/(?:from|import)\s*"/g) ?? []).length;
+  const single = (source.match(/(?:from|import|require)\s*\(?\s*'/g) ?? []).length;
+  const double = (source.match(/(?:from|import|require)\s*\(?\s*"/g) ?? []).length;
 
   return double > single ? 'double' : 'single';
 }
@@ -125,7 +127,7 @@ const FILE_PRECHECK = new RegExp(`${JS_PRECHECK.source}|<hot-(?:table|column)\\b
 export function createJsPart(source, parser, lineOffset = 0) {
   const j = jscodeshift.withParser(parser);
 
-  return { fileKind: 'js', source, root: j(source), j, parser, lineOffset, changed: false };
+  return { fileKind: 'js', source, root: j(maskShebang(source)), j, parser, lineOffset, changed: false };
 }
 
 /**
@@ -152,10 +154,12 @@ function workingTerminator(source) {
  * 3. Parse the text with a plain parser and put back any literal that printing changed (`guardLiterals()`). It
  * comes before the tab fix so that the fix learns which lines begin inside a literal, and it parses only a part
  * that changed, because `printJsPart()` runs for no other.
- * 4. Fix the tabs of a tab-indented file, never in a line that begins inside a literal, and check the result once
+ * 4. Check that the comments and directives before the first statement of the source are still there, in order
+ * (`assertLeadingTrivia()`).
+ * 5. Fix the tabs of a tab-indented file, never in a line that begins inside a literal, and check the result once
  * more when that changed the text.
  *
- * A failure in step 3 or 4 throws, and `transformFile()` leaves the file alone.
+ * A failure in step 3, 4, or 5 throws, and `transformFile()` leaves the file alone.
  *
  * @param {import('../types.mjs').Part} part A part made by `createJsPart`.
  * @param {string} source Original text of the part, used to detect the quote style and line terminator.
@@ -167,13 +171,28 @@ export function printJsPart(part, source) {
 }
 
 /**
- * Print a `js` part with one line terminator for the whole text. See `printJsPart()` for the steps.
+ * Print a `js` part with one line terminator for the whole text. See `printJsPart()` for the steps. A byte order mark
+ * is kept out of the steps and written back in front of the result.
  *
  * @param {import('../types.mjs').Part} part A part made by `createJsPart`.
- * @param {string} source Original text of the part.
- * @returns {string} Printed text, ended by `workingTerminator(source)`.
+ * @param {string} original Original text of the part.
+ * @returns {string} Printed text, ended by `workingTerminator(original)`.
  */
-function printWithTerminator(part, source) {
+function printWithTerminator(part, original) {
+  const { bom, text: bare } = splitBom(original);
+
+  return bom + unmaskShebang(bare, printBare(part, maskShebang(bare)));
+}
+
+/**
+ * The steps of `printJsPart()` on a text with no byte order mark and no shebang line (a shebang is a comment of the
+ * same length here).
+ *
+ * @param {import('../types.mjs').Part} part A part made by `createJsPart`.
+ * @param {string} source Original text of the part, without a byte order mark, its shebang made a comment.
+ * @returns {string} Printed text without a byte order mark.
+ */
+function printBare(part, source) {
   const lineTerminator = workingTerminator(source);
   const tabs = usesTabs(source);
   const parser = part.parser ?? 'babylon';
@@ -181,11 +200,11 @@ function printWithTerminator(part, source) {
 
   keepJsxEntities(part);
 
-  const printed = part.root.toSource({
+  const printed = splitBom(part.root.toSource({
     quote: detectQuote(source),
     lineTerminator,
     ...(tabs ? { useTabs: true, tabWidth: TAB_WIDTH } : {}),
-  });
+  })).text;
   const spliced = spliceCarriers(part.carriers, printed, lineTerminator);
   const guarded = guardLiterals({
     parser,
@@ -194,6 +213,8 @@ function printWithTerminator(part, source) {
     source,
     lineTerminator,
   });
+
+  assertLeadingTrivia(parser, source, guarded.text);
 
   if (!tabs) {
     return guarded.text;

@@ -27,6 +27,7 @@ const WRAPPERS = new Set([
 ]);
 const SPREADS = new Set(['SpreadElement', 'SpreadProperty', 'ExperimentalSpreadProperty']);
 const MEMO_CALLEES = new Set(['useMemo', 'useCallback']);
+const READ_OPERATORS = new Set(['==', '!=', '===', '!==', 'in', 'instanceof']);
 
 /**
  * One use of the variable that holds an object.
@@ -248,9 +249,30 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
         case 'ExpressionStatement':
           return fine;
         case 'UnaryExpression':
-          return node.operator === 'typeof' ? fine : other('used here');
+          // A read that only asks about the value (`typeof x`, `!x`, `void x`) never gives the object to anyone.
+          return ['typeof', '!', 'void'].includes(node.operator) ? fine : other('used here');
+        case 'BinaryExpression':
+          // A comparison, `'key' in x`, and `x instanceof Y` give a boolean, not the object.
+          return READ_OPERATORS.has(node.operator) ? fine : other('used here');
         case 'IfStatement':
+        case 'WhileStatement':
+        case 'DoWhileStatement':
+        case 'ForStatement':
           return node.test === current.node ? fine : other('used here');
+        case 'LogicalExpression':
+          // `x && y` gives `y` when `x` is an object, so `x` on the left is a test. Any other operand can be the value
+          // of the whole expression, which then goes wherever the expression goes.
+          if (node.operator === '&&' && node.left === current.node) {
+            return fine;
+          }
+
+          current = parent;
+
+          while (current.parent && WRAPPERS.has(current.parent.node.type)) {
+            current = current.parent;
+          }
+
+          continue;
         case 'AssignmentExpression':
           return node.left === current.node
             ? fine : other(`assigned to \`${printTree(j, node.left).trim()}\``);
@@ -263,6 +285,11 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
         case 'OptionalCallExpression': {
           if (node.callee === current.node) {
             return other(`called as \`${calleeText(node)}()\``);
+          }
+
+          if (node.callee.type === 'Identifier' && node.callee.name === 'Boolean' && node.arguments[0] === current.node
+            && !lookup(parent.get('callee'), 'Boolean', 'value')) {
+            return fine;
           }
 
           const callee = unwrapPath(parent.get('callee'));

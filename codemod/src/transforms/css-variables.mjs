@@ -122,14 +122,23 @@ function reportRename(ctx, rule, line, markLine) {
 }
 
 /**
- * Tell whether a rule or at-rule block already declares a custom property directly.
+ * How many declarations of a container an earlier rename of the run gave each name, per container.
+ *
+ * @type {WeakMap<object, Map<string, number>>}
+ */
+const renamedInto = new WeakMap();
+
+/**
+ * Tell whether a rule or at-rule block declared a custom property directly when the run began. A name that an earlier
+ * rename of this run gave to a declaration does not count: `--ht-a: 1px; margin: var(--ht-a);` renames both, and the
+ * second must not take the first for a clash.
  *
  * @param {object} container A postcss container.
  * @param {string} name Custom property name.
- * @returns {boolean} `true` when a declaration of that name is a direct child.
+ * @returns {boolean} `true` when a declaration of that name was a direct child at the start.
  */
-function declares(container, name) {
-  return (propertyCounts(container).get(name) ?? 0) > 0;
+function declaredAtStart(container, name) {
+  return (propertyCounts(container).get(name) ?? 0) - (renamedInto.get(container)?.get(name) ?? 0) > 0;
 }
 
 /**
@@ -164,7 +173,7 @@ function propertyCounts(container) {
 }
 
 /**
- * Tell `declares()` that a declaration of a container got another property name.
+ * Tell `declaredAtStart()` that a declaration of a container got another property name.
  *
  * @param {object} container A postcss container.
  * @param {string} from The name it had.
@@ -178,8 +187,12 @@ function renamed(container, from, to) {
 
   const counts = propertyCounts(container);
 
+  const into = renamedInto.get(container) ?? new Map();
+
   counts.set(from, (counts.get(from) ?? 1) - 1);
   counts.set(to, (counts.get(to) ?? 0) + 1);
+  into.set(to, (into.get(to) ?? 0) + 1);
+  renamedInto.set(container, into);
 }
 
 /**
@@ -338,13 +351,18 @@ function applyToDeclaration(ctx, declaration, entry) {
     return;
   }
 
-  if (declares(declaration.parent, rule.from) && declares(declaration.parent, rule.to)) {
+  // A rule that defines the new name already would end with one name for two things: the old name's value replaces
+  // or shadows the new one (`--new: var(--old)` becomes a reference to itself, and `var(--old)` next to `--new: 1px`
+  // reads the new value). Only a definition that stood there at the start counts, not one this run made.
+  if (declaredAtStart(declaration.parent, rule.to)) {
     ctx.report({
       ruleId: rule.id,
       severity: 'manual',
       line,
-      message: `Merge ${rule.from} and ${rule.to} by hand: both are defined in this rule, so the codemod left it `
-        + 'alone.',
+      message: declaredAtStart(declaration.parent, rule.from)
+        ? `Merge ${rule.from} and ${rule.to} by hand: both are defined in this rule, so the codemod left it alone.`
+        : `Rename ${rule.from} by hand: this rule already defines ${rule.to}, and renaming would make the two `
+          + 'names one, so the codemod left it alone.',
     });
 
     return;
@@ -379,8 +397,24 @@ function applyToDeclaration(ctx, declaration, entry) {
  */
 function applyToAtRule(ctx, atRule, entry) {
   const { rule, removed, test, all } = entry;
+  const line = atRule.source?.start?.line;
 
   if (!test.test(atRule.params)) {
+    return;
+  }
+
+  // As in a declaration value, a name in a string or in `url()` is text, and the tool leaves it alone.
+  const ranges = textRanges(atRule.params);
+
+  if ([...atRule.params.matchAll(all)].every(match => insideText(ranges, match.index))) {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      line,
+      message: `Check this text by hand: it names ${rule.from} in a string, a url(), or outside var(), so the tool `
+        + 'did not change it.',
+    });
+
     return;
   }
 
@@ -391,26 +425,22 @@ function applyToAtRule(ctx, atRule, entry) {
   }
 
   if (!entry.edits) {
-    reportRename(ctx, rule, atRule.source?.start?.line);
+    reportRename(ctx, rule, line);
 
     return;
   }
 
-  const edited = ctx.css.replaceInAtRule(atRule, all, rule.to);
+  const edited = ctx.css.replaceInAtRule(atRule, all,
+    (match, offset, text) => (insideText(rangesOf(text), offset) ? match : rule.to));
 
   if (edited === false) {
-    reportRename(ctx, rule, atRule.source?.start?.line);
+    reportRename(ctx, rule, line);
 
     return;
   }
 
   ctx.markChanged();
-  ctx.report({
-    ruleId: rule.id,
-    severity: 'changed',
-    line: atRule.source?.start?.line,
-    message: `Renamed ${rule.from} to ${rule.to}.`,
-  });
+  ctx.report({ ruleId: rule.id, severity: 'changed', line, message: `Renamed ${rule.from} to ${rule.to}.` });
 }
 
 const STYLE_NAME = /style/i;

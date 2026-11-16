@@ -1,5 +1,5 @@
 import { readFile, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { posix, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { UsageError } from './errors.mjs';
 import { plainText } from './lib/markdown.mjs';
@@ -146,6 +146,10 @@ function renderList(rows, notAutomated = []) {
 function nextSteps(result, stdout) {
   const { manual, marked } = result.report.counts();
 
+  if (result.changedFiles.some(file => posix.basename(file) === 'package.json')) {
+    stdout('Next: install the new package ranges with your package manager. The tool does not install anything.\n');
+  }
+
   if (result.changedFiles.length > 0) {
     stdout('Next: run your formatter and linter on the changed files.\n'
       + 'Next: run tsc and your tests.\n');
@@ -236,6 +240,14 @@ export async function main(argv, {
     stderr(`--max-file-size needs a whole number of bytes above 0, not "${values['max-file-size']}".\n`);
 
     return 2;
+  }
+
+  for (const flag of ['from', 'to']) {
+    if (values[flag] === '') {
+      stderr(`Option "--${flag}" needs a value.\n${USAGE_LINE}\nRun with --help for all options.\n`);
+
+      return 2;
+    }
   }
 
   const range = {

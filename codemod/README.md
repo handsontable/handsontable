@@ -276,8 +276,9 @@ The tool rewrites:
   `hot.isUndoAvailable()`, `hot.isRedoAvailable()`) and `hot.undoRedo` when a member of it is used, on an instance the
   file shows. Core had none of them in 17.x, so such a call threw a `TypeError` there: the move makes it work, and the
   entry says so. A member that code tests (`if (hot.undoRedo)`, `typeof hot.undo`, `'undo' in hot`,
-  `hot.undoRedo?.clear()`) never passed that test on 17.x and would pass now, so the tool reports it and everything
-  that the same function guards, and moves nothing there. A `hot.undoRedo` that is stored, passed, or compared was
+  `hot.undoRedo?.clear()`, `hot.undoRedo == null`, a comparison with `undefined`) was `undefined` on 17.x and answers
+  differently now, so the tool reports it and everything that the same function guards, and moves nothing there. A
+  comparison that gives the same answer either way (`=== null`, a comparison with a string) is not a test. A `hot.undoRedo` that is stored, passed, or compared was
   `undefined` on 17.x and is reported too.
 - The `handsontable` and wrapper ranges in `package.json`, and a `hyperformula` dependency when the project uses
   formulas.
@@ -384,7 +385,10 @@ An option is also not moved or deleted when custom code may read it. `numericFor
 `datePickerConfig` stay where they are, with a report that names the reader, when the object, an enclosing settings
 object, or the element sets an `editor`, `renderer`, or `validator` that is not a built-in name (a function, an
 identifier, or a string such as `'nwm.signedAmount'`), or a `type` that is not a built-in cell type; when the object has
-a spread or a computed key the tool cannot read; when the file registers a built-in name again; and when the file reads
+a spread or a computed key the tool cannot read; when the settings hold a `cells` option, `cell` option, or
+`afterGetCellMeta` or `beforeGetCellMeta` hook that sets or may set such an `editor`, `renderer`, `validator`, or `type`
+(a function that returns one, a hook that assigns one to the cell meta, or a function the tool cannot see, such as an
+import); when the file registers a built-in name again; and when the file reads
 the option, in a member read, a destructuring, or an `in` test. A write is not a read: an assignment (`columns[2].correctFormat = true`), `delete`,
 a destructuring or `for` head target, and a key in an object literal do not count, while `+=`, `||=`, and `++` read the
 value first, so they do. A validator or an editor of your own that reads `correctFormat` or
@@ -476,8 +480,9 @@ the tool reads the version from `package.json`, which the run raised, and answer
   that the file repeats (two blank lines, say) and those lines end in different ways, the text cannot say which one is
   left, so the tool does not guess: it leaves that file unchanged and reports a `transform-error`. A file that uses one
   ending, a lone CR included, is written in it.
-- It never follows a symbolic link, and it never writes a file whose real path is outside the project directory. A
-  link goes to "Skipped files".
+- It never follows a symbolic link, and it never migrates a file whose real path is outside the project directory. A
+  link goes to "Skipped files". The one file it writes by your request is the `--report` target, which may sit outside
+  the project (`--report ../report.md`) as long as the checks above accept it.
 - It writes a changed file to a temporary file in the same directory and renames it over the original, so a full
   disk or a kill during the write leaves the original whole. Just before the rename it reads the file again, and when
   the text is not the text the tool started from (an editor saved while the tool ran) it keeps what is there and
@@ -485,8 +490,12 @@ the tool reads the version from `package.json`, which the run raised, and answer
   link. The new file has a new inode, so a hard link to the old file keeps the old text. A failed or refused write is
   not counted as a rewrite in the summary.
 - It runs the `git` found in the directories of `PATH` by absolute path, and never one in the project directory (on
-  Windows a `git.exe` in the project would otherwise run first). When git is not found it behaves as outside a
-  repository.
+  Windows a `git.exe` in the project would otherwise run first). When git is not found, or says that the directory is
+  not a repository, it behaves as outside a repository. A git that runs and fails for another reason (`detected
+  dubious ownership` in a container, a corrupt repository) is different: the tool cannot tell a clean tree from a
+  dirty one, so a run that writes stops with exit code 2 and git's message. `--allow-dirty` runs without the check, and
+  `--dry-run` previews; both read the files without git and say so. It asks git in English (`LC_ALL=C`), so a
+  translated message is not read as a failure.
 - It edits `package.json` by text offset, so only the changed values and one added line differ. When it cannot
   find a value in the text in a way that agrees with the parsed file (a repeated key, say), it reports the step
   instead of editing.
@@ -515,6 +524,21 @@ the tool reads the version from `package.json`, which the run raised, and answer
   literal that the printer re-indented is put back as it was. When a literal is lost or cannot be put back, the tool
   reports a `transform-error` and leaves the file alone. A literal that a rule does edit (a `--ht-` variable
   renamed inside a template literal) changes only the renamed name.
+- A shebang line, a byte order mark, and the comments and directives before the first statement (a license header,
+  `// @ts-check`, `'use client'`) stay where they are when a rule prints the first statement again. The tool compares
+  the printed file with the source, and when a comment or a directive of that start is lost or reordered it leaves the
+  file unchanged and reports a `transform-error`. A comment the tool adds goes after them, or above a directive for the
+  next line (`// eslint-disable-next-line`, `// @ts-expect-error`, `// prettier-ignore`), which keeps its line.
+- When a statement goes away (a removed call, an import merged into another), the printer reprints the statements after
+  it in the same list, and two statements that shared a line (`a(); b();`) come out without the space between them
+  (`a();b();`). The code is the same. Run your formatter. The comments of a removed import (a line above it, a trailing
+  note, a JSDoc block) move to the import that took its name.
+- A wildcard re-export (`export * from 'handsontable/plugins/columnSorting'`, `export * as ns from ...`) of a module
+  whose names a rule renames or removes gets one entry per rule: every file that imports from the barrel gets the new
+  names. The files that import from the barrel are not read. A JSDoc type (`@param {Config}`) that still says the
+  old name after an import rename is reported, not edited, because the tool never edits a comment.
+- The tool reads one `package.json` above a folder of the run only for its note: `migrate src --to 18.0` migrates the files
+  under `src`, names the `package.json` above it that still asks for an older version, and does not edit it.
 - An Angular inline template (the `template` of `@Component`) is read like an `.html` page: its options are reported
   and nothing in it is edited. A template with an expression (`${}`) is read with the expressions as spaces, so a
   reported line after a multi-line expression can be off. A template that another module builds is not read.

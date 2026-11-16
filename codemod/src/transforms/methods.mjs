@@ -339,8 +339,9 @@ function isChainRoot(path) {
 
 /**
  * Whether a member read is a test: the value only decides what runs, as in the test of an `if`, a loop, or a
- * conditional, an operand of `&&`, `||`, or `??` (the left one), the operand of `!` or `typeof`, a comparison with
- * `null` or `undefined`, `Boolean(x)`, or the root of an optional chain (`hot.undoRedo?.clear()`).
+ * conditional, an operand of `&&`, `||`, or `??` (the left one), the operand of `!` or `typeof`, a comparison whose
+ * answer changes when the read stops being `undefined` (`x == null`, `x != null`, a comparison with `undefined`),
+ * `Boolean(x)`, or the root of an optional chain (`hot.undoRedo?.clear()`).
  *
  * @param {object} path The member NodePath.
  * @returns {boolean} `true` for a read in a test position.
@@ -369,11 +370,19 @@ function isTestRead(path) {
     case 'BinaryExpression': {
       const other = unwrapNode(parent.left === current.node ? parent.right : parent.left);
 
-      return ['==', '!=', '===', '!=='].includes(parent.operator)
-        && (other.type === 'NullLiteral' || (other.type === 'Literal' && other.value === null)
-          || (other.type === 'Identifier' && other.name === 'undefined')
-          || (other.type === 'UnaryExpression' && other.operator === 'typeof')
-          || stringValue(other) !== null);
+      if (!['==', '!=', '===', '!=='].includes(parent.operator)) {
+        return false;
+      }
+
+      // On 17.x the read was `undefined`, and it is a function now. A comparison is a test only when that changes its
+      // answer: `x == null` and `x != null` (`undefined` is loosely equal to `null`, a function is not), and every
+      // comparison with `undefined`. `x === null` and a comparison with a string are false before and after.
+      if (other.type === 'NullLiteral' || (other.type === 'Literal' && other.value === null)) {
+        return parent.operator === '==' || parent.operator === '!=';
+      }
+
+      return (other.type === 'Identifier' && other.name === 'undefined')
+        || (other.type === 'UnaryExpression' && (other.operator === 'void' || other.operator === 'typeof'));
     }
     case 'CallExpression':
       return parent.callee.type === 'Identifier' && parent.callee.name === 'Boolean'
@@ -575,9 +584,9 @@ function act(ctx, { path, spec, name, decision, usage, guard }, quote) {
   if (guard) {
     const why = guard === 'test' ? 'it is read in a test here' : `a test of ${name} on the same receiver guards it`;
 
-    manual(`${guidance(spec, name)} The tool left ${name}${isProperty ? '' : '()'} alone: ${why}, and that test `
-      + `never passed on 17.x, because core had no ${name}. The plugin always exists, so a rewrite would run the `
-      + 'guarded code for the first time.');
+    manual(`${guidance(spec, name)} The tool left ${name}${isProperty ? '' : '()'} alone: ${why}, and ${name} was `
+      + `undefined on 17.x, because core had no ${name}. The plugin always exists, so a rewrite would change what that `
+      + 'test answers and which code it guards runs.');
 
     return;
   }

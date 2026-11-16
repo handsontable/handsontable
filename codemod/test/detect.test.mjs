@@ -769,6 +769,20 @@ describe('reporting', () => {
     assert.deepEqual([...facts].sort(), ['uses-thing', 'uses-thing@src']);
   });
 
+  it('gives a match in the value of `export default` a line and a marker', async() => {
+    const detectRule = rule({ match: { call: 'getCopyableData' } });
+    const plan = {
+      versions: [{ version: 'x', rules: [detectRule] }],
+      rulesById: new Map([[detectRule.id, detectRule]]),
+    };
+    const source = `${HOT}const hot = new Handsontable(el, {});\nexport default hot.getCopyableData(0, 0, 1, 1);\n`;
+    const result = await transformFile({ filePath: 'a.js', source, plan, facts: new Set(), options: {} });
+
+    assert.deepEqual(result.entries.map(entry => entry.line), [3]);
+    assert.equal(result.entries[0].marked, true);
+    assert.match(result.output, /\/\/ TODO\(handsontable-codemod x\/r\): m\.\nexport default hot\.getCopyableData/);
+  });
+
   it('never edits a file', async() => {
     const source = `${HOT}const x = { a: 1 };\n`;
     const result = await run(rule({ match: { property: 'a' } }), source);

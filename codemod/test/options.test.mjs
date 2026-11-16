@@ -102,8 +102,9 @@ describe('optionRename in option objects', () => {
     assert.match(result.entries[0].message, /both oldName and newName are set in this object/);
   });
 
-  it('handles explicit keys of an object that has a spread', async() => {
-    const result = await run(grid('{ ...base, oldName: 1 }'), [RENAME]);
+  it('renames a key after a spread of an object literal that sets neither name', async() => {
+    const source = `${IMPORT}const base = { other: 1 };\nnew Handsontable(el, { ...base, oldName: 1 });\n`;
+    const result = await run(source, [RENAME]);
 
     assert.match(result.output, /\.\.\.base, newName: 1/);
   });
@@ -774,32 +775,90 @@ describe('a spread after the key', () => {
       /^Rename oldName to newName by hand: a spread after it can set oldName again/);
   });
 
-  it('still renames a key that stands after the spread, and in an object with no spread', async() => {
-    assert.equal((await run(grid('{ ...rest, oldName: 1 }'), [RENAME])).output, grid('{ ...rest, newName: 1 }'));
+  it('still renames a key in an object with no spread, and one after a spread that cannot hold either name', async() => {
+    const base = 'const base = { other: 1 };\n';
+    const nested = 'const inner = { more: 1 };\nconst base = { ...inner, other: 1 };\n';
+
+    for (const preamble of [base, nested]) {
+      const source = `${IMPORT}${preamble}new Handsontable(el, { ...base, oldName: 1 });\n`;
+
+      assert.equal((await run(source, [RENAME])).output, source.replace('oldName', 'newName'));
+    }
+
     assert.equal((await run(grid('{ oldName: 1, colHeaders: true }'), [RENAME])).output,
       grid('{ newName: 1, colHeaders: true }'));
   });
 
-  it('keeps an attribute that a later spread attribute can set again, and renames one after it', async() => {
-    const before = `${COMPONENT}export const A = () => <HotTable oldName {...rest} />;\n`;
-    const after = `${COMPONENT}export const A = () => <HotTable {...rest} oldName />;\n`;
-    const kept = await run(before, [RENAME], { filePath: 'a.jsx' });
-    const renamed = await run(after, [RENAME], { filePath: 'a.jsx' });
+  it('keeps an attribute that a later spread attribute can set again, and renames one after a spread of a literal',
+    async() => {
+      const before = `${COMPONENT}export const A = () => <HotTable oldName {...rest} />;\n`;
+      const after = `${COMPONENT}const rest = { other: 1 };\nexport const A = () => <HotTable {...rest} oldName />;\n`;
+      const kept = await run(before, [RENAME], { filePath: 'a.jsx' });
+      const renamed = await run(after, [RENAME], { filePath: 'a.jsx' });
 
-    assert.equal(kept.output, before);
-    assert.deepEqual(summary(kept.entries), ['2:manual']);
-    assert.equal(renamed.output, after.replace('oldName', 'newName'));
+      assert.equal(kept.output, before);
+      assert.deepEqual(summary(kept.entries), ['2:manual']);
+      assert.equal(renamed.output, after.replace('oldName', 'newName'));
+    });
+
+  it('keeps an attribute that follows a spread attribute that the tool cannot read or that sets a name', async() => {
+    for (const rest of ['', 'const rest = { newName: 1 };\n', 'const rest = { oldName: 1 };\n',
+      'const rest = { ...other };\n', 'const rest = { [key]: 1 };\n']) {
+      const source = `${COMPONENT}${rest}export const A = () => <HotTable {...rest} oldName />;\n`;
+      const result = await run(source, [RENAME], { filePath: 'a.jsx' });
+
+      assert.equal(result.output, source, rest);
+      assert.equal(result.entries.some(entry => /a spread attribute before it can set newName or oldName already/
+        .test(entry.message)), true, rest);
+    }
+  });
+
+  it('keeps a key after a spread that may set the new name, because the key would win over it', async() => {
+    for (const preamble of ['', 'const base = { newName: 1 };\n', 'const base = { oldName: 1 };\n',
+      'const base = { ...unknown };\n', 'let base = { other: 1 };\n']) {
+      const source = `${IMPORT}${preamble}new Handsontable(el, { ...base, oldName: 2 });\n`;
+      const result = await run(source, [RENAME]);
+
+      assert.equal(result.output, source, preamble);
+      const lead = /^Rename oldName to newName by hand: a spread before it can set newName or oldName already/;
+
+      assert.equal(result.entries.some(entry => lead.test(entry.message)), true, preamble);
+    }
   });
 
   it('keeps the export option in the argument of an export call', async() => {
-    const call = (argument, extra = '') => `${IMPORT}const hot = new Handsontable(el, {});\n`
-      + `hot.getPlugin('exportFile').downloadFile('csv', ${argument});\n${extra}`;
+    const call = (argument, preamble = '') => `${IMPORT}${preamble}const hot = new Handsontable(el, {});\n`
+      + `hot.getPlugin('exportFile').downloadFile('csv', ${argument});\n`;
     const kept = await run(call('{ columnHeaders: false, ...opts }'), [CALLS]);
-    const renamed = await run(call('{ ...opts, columnHeaders: false }'), [CALLS]);
 
     assert.equal(kept.output, call('{ columnHeaders: false, ...opts }'));
     assert.deepEqual(summary(kept.entries), ['3:manual']);
-    assert.equal(renamed.output, call('{ ...opts, colHeaders: false }'));
+    assert.match(kept.entries[0].message, /a spread after it can set columnHeaders again/);
+  });
+
+  it('keeps columnHeaders after a spread that may set colHeaders, which an explicit colHeaders overrides', async() => {
+    // In 18.x an explicit `colHeaders` wins over `columnHeaders` (`normalizeExportOptions()`), so `opts.colHeaders`
+    // decides the header row of `{ ...opts, columnHeaders: false }` today. After the rename the later `colHeaders`
+    // would win over the spread, and the header row would change.
+    const call = (argument, preamble = '') => `${IMPORT}${preamble}const hot = new Handsontable(el, {});\n`
+      + `hot.getPlugin('exportFile').downloadFile('csv', ${argument});\n`;
+
+    for (const preamble of ['', 'const opts = { colHeaders: true };\n', 'const opts = { ...fromElsewhere };\n']) {
+      const source = call('{ ...opts, columnHeaders: false }', preamble);
+      const result = await run(source, [CALLS]);
+
+      assert.equal(result.output, source, preamble);
+      assert.equal(result.entries.some(entry => /a spread before it can set colHeaders or columnHeaders already/
+        .test(entry.message)), true, preamble);
+    }
+  });
+
+  it('renames columnHeaders after a spread of a literal that sets neither name', async() => {
+    const source = `${IMPORT}const opts = { columnDelimiter: ';' };\nconst hot = new Handsontable(el, {});\n`
+      + 'hot.getPlugin(\'exportFile\').downloadFile(\'csv\', { ...opts, columnHeaders: false });\n';
+    const result = await run(source, [CALLS]);
+
+    assert.equal(result.output, source.replace('columnHeaders', 'colHeaders'));
   });
 
   it('keeps a nested key that a later spread can set again, and moves one that stands after the spread', async() => {
@@ -890,6 +949,21 @@ describe('options in templates', () => {
       'move 4',
       'picker 3',
     ]);
+  });
+
+  it('reads a bare v-bind object and a v-bind:settings binding on a wrapper tag', async() => {
+    const source = [
+      '<template>',
+      '  <hot-table v-bind="{ correctFormat: true, data: rows }" />',
+      '  <hot-table v-bind:settings="{ correctFormat: true }" />',
+      '  <hot-table v-bind="{ data: rows }" />',
+      '  <div v-bind="{ correctFormat: true }"></div>',
+      '</template>',
+      '<script>import Handsontable from \'handsontable\';</script>',
+      '',
+    ].join('\n');
+
+    assert.deepEqual(await sites(source, 'a.vue'), ['correct-format 2', 'correct-format 3']);
   });
 
   it('ignores a plain element and an attribute that only contains the name', async() => {

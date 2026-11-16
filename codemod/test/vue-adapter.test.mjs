@@ -72,6 +72,10 @@ describe('vue adapter registration', () => {
     assert.ok(vueAdapter.precheck.test('import { HotTable } from \'@handsontable/vue3\';'));
     assert.ok(vueAdapter.precheck.test('<style>.a { color: var(--ht-foreground-color); }</style>'));
     assert.ok(!vueAdapter.precheck.test('<template><div /></template>'));
+    assert.ok(vueAdapter.precheck.test('<style lang="less">.pika-single { color: red; }</style>'));
+    assert.ok(vueAdapter.precheck.test('<style>.ht-theme-main { color: red; }</style>'));
+    assert.ok(vueAdapter.precheck.test('<template><HotTable /></template>'));
+    assert.ok(!vueAdapter.precheck.test('<style>.right-aligned { height-limit: 1px; }</style>'));
   });
 });
 
@@ -150,6 +154,11 @@ describe('vue adapter parse', () => {
     const quiet = vueAdapter.parse(`<style lang="less">\n.a { color: red; }\n</style>\n${srcBlock}`, 'App.vue');
     const loud = vueAdapter.parse(`<template lang="pug">\np handsontable\n</template>\n${srcBlock}`, 'App.vue');
 
+    const pika = vueAdapter.parse('<style lang="less">\n.pika-single { color: red; }\n</style>\n', 'App.vue');
+    const theme = vueAdapter.parse('<style lang="stylus">\n.ht-theme-main\n  color red\n</style>\n', 'App.vue');
+
+    assert.deepEqual(pika.skippedBlocks.map(block => block.relevant), [true]);
+    assert.deepEqual(theme.skippedBlocks.map(block => block.relevant), [true]);
     assert.deepEqual(quiet.skippedBlocks.map(block => block.relevant), [false, false]);
     assert.deepEqual(loud.skippedBlocks.map(block => [block.type, block.relevant]),
       [['template', true], ['style', true]]);

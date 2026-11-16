@@ -194,6 +194,30 @@ describe('ranges, overrides, and aliases in a chained run', () => {
     });
   });
 
+  it('reads a yarn path to the package and ignores a scoped package that only ends in its name', async() => {
+    const input = pkg({
+      dependencies: { handsontable: '^17.1.0' },
+      overrides: { '@acme/handsontable': '^2.1.0', '@acme/handsontable-theme': '1.0.0' },
+      resolutions: {
+        'some-lib/handsontable': '17.0.0',
+        '@scope/lib/handsontable@^17': '17.0.0',
+        '@acme/handsontable@^2': '2.0.0',
+        'some-lib/@handsontable/vue3': '17.0.0',
+      },
+    });
+
+    await migrate({ 'package.json': input }, {}, async({ result }) => {
+      const pins = result.report.entries.filter(entry => / pins /.test(entry.message)).map(entry => entry.message);
+
+      assert.equal(pins.length, 3, pins.join('\n'));
+      assert.ok(pins.some(text => text.startsWith('resolutions["some-lib/handsontable"] pins handsontable')));
+      assert.ok(pins.some(text => text.startsWith('resolutions["@scope/lib/handsontable@^17"] pins handsontable')));
+      assert.ok(pins.some(text => text
+        .startsWith('resolutions["some-lib/@handsontable/vue3"] pins @handsontable/vue3')));
+      assert.equal(pins.some(text => text.includes('@acme')), false, pins.join('\n'));
+    });
+  });
+
   it('names the section of a pin in the sentence that says the tool does not edit it', async() => {
     const input = pkg({
       dependencies: { handsontable: '^18.1.0' },

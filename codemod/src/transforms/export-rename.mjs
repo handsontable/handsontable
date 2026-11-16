@@ -1,6 +1,7 @@
 import { getImportedBindings, moveNamedImport, renameBinding } from '../lib/imports.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
-import { chooseSource, lazyModular, reportOpaqueReferences, toList } from '../lib/type-rules.mjs';
+import { collectComments } from '../lib/todo.mjs';
+import { WILDCARD_EXPORT, chooseSource, lazyModular, reportOpaqueReferences, toList } from '../lib/type-rules.mjs';
 import { problemsOf } from '../lib/validate.mjs';
 
 /**
@@ -30,6 +31,38 @@ function failureMessage(rule, reason) {
   }
 
   return `Could not rename ${rule.from} to ${rule.to} (${reason}). Rename it by hand.`;
+}
+
+/**
+ * Report the JSDoc types of the file that still say the old local name after a rename: `@param {Config} x` names the
+ * imported type by the name the import had. The tool does not edit comments, so each line is one `manual` entry. A
+ * name after a dot (`import('m').Config`) or inside another word is not the local name.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of a `js` part.
+ * @param {import('../types.mjs').Rule} rule The rule.
+ * @param {string} oldName The local name the import had.
+ */
+function reportStaleJsdocTypes(ctx, rule, oldName) {
+  const escaped = oldName.replace(/[.*+?^${}()|[\]\\]/g, match => `\\${match}`);
+  const line = new RegExp(`@\\w+\\s*\\{[^\\n]*?(?<![\\w$.'"\`])${escaped}(?![\\w$'"\`])`);
+
+  for (const comment of collectComments(ctx.root.get().node)) {
+    if (!comment.loc || comment.type !== 'CommentBlock') {
+      continue;
+    }
+
+    comment.value.split('\n').forEach((text, index) => {
+      if (line.test(text)) {
+        ctx.report({
+          ruleId: rule.id,
+          severity: 'manual',
+          line: comment.loc.start.line + index,
+          message: `Rename ${oldName} to ${rule.to} in the type of this comment by hand: the codemod renamed the `
+            + 'import but does not edit comments.',
+        });
+      }
+    });
+  }
 }
 
 /**
@@ -79,6 +112,9 @@ function renameInModule(ctx, rule, source, isModular, noted) {
         ctx.report({ ruleId: rule.id, severity: 'manual', line, message: failureMessage(rule, renamed.reason) });
 
         continue;
+      } else if (!aliased) {
+        // The local name changed with the import, so a comment that still says the old one is stale.
+        reportStaleJsdocTypes(ctx, rule, binding.local);
       }
 
       changed = true;
@@ -167,7 +203,7 @@ const exportRename = {
     const noted = new Set();
 
     for (const rule of rules) {
-      if (!ctx.source.includes(rule.from)) {
+      if (!ctx.source.includes(rule.from) && !WILDCARD_EXPORT.test(ctx.source)) {
         continue;
       }
 

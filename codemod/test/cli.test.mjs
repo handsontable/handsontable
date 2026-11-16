@@ -90,6 +90,36 @@ describe('cli', () => {
     assert.match(missing.err, /^Option "--from" needs a value\.\nUsage: /);
   });
 
+  it('treats an empty --from or --to as a missing value, not as no value', async() => {
+    for (const flag of ['--from', '--to']) {
+      const empty = await cli(['migrate', flag, '', '--dry-run']);
+      const inline = await cli(['migrate', `${flag}=`, '--dry-run']);
+
+      for (const result of [empty, inline]) {
+        assert.equal(result.code, 2, flag);
+        assert.ok(result.err.startsWith(`Option "${flag}" needs a value.\nUsage: `), result.err);
+      }
+    }
+  });
+
+  it('lists the rules of a project whose handsontable range is a tag, from the beginning', async() => {
+    const dir = await mkdtemp(join(tmpdir(), 'codemod-cli-tag-'));
+
+    try {
+      await writeFile(join(dir, 'package.json'), '{ "dependencies": { "handsontable": "latest" } }\n');
+
+      const listed = await cli(['migrate', '--list'], dir);
+      const migrate = await cli(['migrate', '--dry-run', '.'], dir);
+
+      assert.equal(listed.code, 0, listed.err);
+      assert.match(listed.out.trimEnd().split('\n').pop(), /^\d+ rules: \d+ rewrite, \d+ report\.$/);
+      assert.equal(migrate.code, 2);
+      assert.match(migrate.err, /names handsontable as "latest", which is not a version\. Pass --from\./);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it('prints the help for -h and the package version for --version', async() => {
     const short = await cli(['-h']);
     const version = await cli(['--version']);
@@ -256,6 +286,25 @@ describe('cli', () => {
       assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS);
     } finally {
       await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('says to install when it edited a package.json, and not otherwise', async() => {
+    const withPackage = await makeProject(false);
+    const cssOnly = await makeProject(false);
+
+    try {
+      await writeFile(join(withPackage, 'package.json'), '{ "dependencies": { "handsontable": "^17.1.0" } }\n');
+
+      const edited = await cli(['migrate', '--from', '17', '--to', '18'], withPackage);
+      const plain = await cli(['migrate', '--from', '17', '--to', '18'], cssOnly);
+
+      assert.match(edited.out, /^Next: install the new package ranges with your package manager\./m);
+      assert.ok(edited.out.indexOf('Next: install') < edited.out.indexOf('Next: run your formatter'));
+      assert.doesNotMatch(plain.out, /Next: install/);
+    } finally {
+      await rm(withPackage, { recursive: true, force: true });
+      await rm(cssOnly, { recursive: true, force: true });
     }
   });
 

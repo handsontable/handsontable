@@ -1,5 +1,12 @@
 import { findReExports, getImportedBindings } from '../lib/imports.mjs';
-import { expandAdvice, moduleMatcher, pluginOfModule, toList } from '../lib/type-rules.mjs';
+import {
+  WILDCARD_EXPORT,
+  expandAdvice,
+  isWildcardReExport,
+  moduleMatcher,
+  pluginOfModule,
+  toList,
+} from '../lib/type-rules.mjs';
 import { problemsOf } from '../lib/validate.mjs';
 
 /**
@@ -60,7 +67,7 @@ function applyRule(ctx, rule, handled) {
   const { j, root } = ctx;
   const names = new Set(toList(rule.name));
 
-  if (![...names].some(name => ctx.source.includes(name))) {
+  if (![...names].some(name => ctx.source.includes(name)) && !WILDCARD_EXPORT.test(ctx.source)) {
     return;
   }
 
@@ -82,6 +89,21 @@ function applyRule(ctx, rule, handled) {
 
   findReExports(j, root, matches).forEach((path) => {
     const source = String(path.node.source.value);
+
+    // A wildcard re-export passes the removed names on to every file that imports from it, once per rule. The rule
+    // can name several modules or several names, and the typings of one module hold some of them, so the text says
+    // "may" and gives the advice of the rule.
+    if (isWildcardReExport(path.node)) {
+      const [first] = names;
+      const list = [...names].join(', ');
+      const advice = expandAdvice(rule, { plugin: pluginOfModule(source), name: first, source });
+
+      ctx.todo(path.node, rule.id,
+        `Check ${list}, which this export * from "${source}" may pass on. ${advice}`,
+        `Check ${list}, which this export * may pass on. ${advice}`);
+
+      return;
+    }
 
     (path.node.specifiers ?? [])
       .filter(specifier => specifier.local && names.has(specifier.local.name) && !handled.has(specifier))

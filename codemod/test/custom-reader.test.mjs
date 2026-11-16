@@ -50,6 +50,70 @@ const grid = (column, after = '') => `${IMPORT}${bare(column, after)}`;
  */
 const deleted = (result, name) => !new RegExp(`${name}\\s*[:=]`).test(result.output.replace(/\/\/ TODO.*$/gm, ''));
 
+describe('a cells option or a meta hook of the same settings that may set a reader', () => {
+  const COLUMN = '{ type: \'date\', correctFormat: true }';
+  const settings = hook => `${IMPORT}new Handsontable(el, {\n  columns: [${COLUMN}],\n  ${hook},\n});\n`;
+  const KEPT = [
+    ['a cells function that returns a custom editor', 'cells(row) { return { editor: PikadayEditor }; }'],
+    ['a cells arrow that returns a conditional custom renderer',
+      'cells: (row) => (row ? { renderer: fancy } : { readOnly: true })'],
+    ['a cells function that is imported', 'cells: importedCells'],
+    ['a cells function that returns something it cannot see', 'cells(row) { return lookup[row]; }'],
+    ['a cells function that returns a spread', 'cells(row) { return { ...base, readOnly: true }; }'],
+    ['a hook that assigns an editor to the meta', 'afterGetCellMeta(row, col, meta) { meta.editor = PikadayEditor; }'],
+    ['a hook that assigns a validator by key', 'beforeGetCellMeta(row, col, meta) { meta[\'validator\'] = check; }'],
+    ['a hook that is imported', 'afterGetCellMeta: importedHook'],
+    ['a cell array with a custom editor', 'cell: [{ row: 0, col: 0, editor: PikadayEditor }]'],
+    ['a named function that sets one',
+      'cells: namedCells'],
+  ];
+
+  for (const [label, hook] of KEPT) {
+    it(`keeps correctFormat when the settings hold ${label}`, async() => {
+      const named = hook === 'cells: namedCells'
+        ? 'function namedCells() { return { validator: check }; }\n' : '';
+      const result = await run(`${named}${settings(hook)}`, REMOVALS);
+      const manual = result.entries.filter(entry => entry.severity === 'manual');
+
+      assert.ok(result.output.includes('correctFormat: true'), result.output);
+      assert.equal(result.entries.filter(entry => entry.severity === 'changed').length, 0);
+      assert.equal(manual.length, 1, JSON.stringify(result.entries));
+      assert.match(manual[0].message, /^Check the cells option or the meta hook/);
+    });
+  }
+
+  const DELETED = [
+    ['a cells function that sets only plain options', 'cells(row) { return row === 0 ? { readOnly: true } : {}; }'],
+    ['a cells function that returns nothing', 'cells() { return undefined; }'],
+    ['a cells function that sets a built-in editor', 'cells: () => ({ editor: \'text\' })'],
+    ['a hook that only reads the meta', 'afterGetCellMeta(row, col, meta) { log(meta.readOnly); }'],
+    ['a hook that assigns a plain option', 'afterGetCellMeta(row, col, meta) { meta.readOnly = true; }'],
+    ['a cell array of plain options', 'cell: [{ row: 0, col: 0, readOnly: true }]'],
+    ['an unrelated key named like a hook', 'afterRender() { return lookup; }'],
+  ];
+
+  for (const [label, hook] of DELETED) {
+    it(`still deletes correctFormat when the settings hold ${label}`, async() => {
+      const result = await run(settings(hook), REMOVALS);
+
+      assert.equal(deleted(result, 'correctFormat'), true, result.output);
+      assert.equal(result.entries.filter(entry => entry.severity === 'manual').length, 0,
+        JSON.stringify(result.entries));
+    });
+  }
+
+  it('reads a hook that a wrapper element takes as a prop', async() => {
+    const keep = await run(`${REACT}export const a = <HotTable cells={importedCells}>\n`
+      + '  <HotColumn type="date" correctFormat />\n</HotTable>;\n', REMOVALS);
+    const drop = await run(`${REACT}export const a = <HotTable cells={(r) => ({ readOnly: r === 0 })}>\n`
+      + '  <HotColumn type="date" correctFormat />\n</HotTable>;\n', REMOVALS);
+
+    assert.ok(keep.output.includes('correctFormat'));
+    assert.equal(keep.entries.filter(entry => entry.severity === 'manual').length, 1);
+    assert.equal(deleted(drop, 'correctFormat'), true, drop.output);
+  });
+});
+
 describe('a removal that custom code may read is reported, and deletes nothing', () => {
   const READERS = [
     ['a function validator', 'validator: myValidator'],

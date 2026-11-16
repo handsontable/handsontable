@@ -4,8 +4,9 @@ import type { CellValue, Settings, Config } from './grid-types';
 import type { SimpleCellCoords } from 'other-grid/common';
 import { Settings as SortSettings } from 'other-grid/plugins/columnSorting';
 
-export * from 'handsontable';
-export * from 'handsontable/plugins/columnSorting';
+export * from 'other-grid';
+export * from 'other-grid/plugins/columnSorting';
+export * from './grid-types';
 
 const core = require('handsontable');
 const { Core } = require('handsontable/base');

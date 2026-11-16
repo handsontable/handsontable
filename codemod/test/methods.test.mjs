@@ -297,6 +297,64 @@ describe('methodRemove', () => {
   });
 });
 
+describe('methodRemove: a plugin that the file keeps in a member, a property, or a branch', () => {
+  const report = async(body) => {
+    const result = await run(`${HEAD}${body}\n`, [REMOVE]);
+
+    return { ...result, manual: result.entries.filter(entry => entry.severity === 'manual') };
+  };
+
+  const REPORTED = [
+    ['a this member set from a ternary with a plugin branch',
+      'class A { constructor(f) { this.p = f ? hot.getPlugin(\'manualColumnResize\') : null; } '
+        + 'go() { this.p.saveManualColumnWidths(); } }'],
+    ['a this member set from a ternary of two plugins',
+      'class A { constructor(f) { this.p = f ? hot.getPlugin(\'manualColumnResize\') '
+        + ': hot.getPlugin(\'manualRowResize\'); } go() { this.p.saveManualColumnWidths(); } }'],
+    ['a this member set from || with a plugin',
+      'class A { constructor(q) { this.p = q || hot.getPlugin(\'manualColumnResize\'); } '
+        + 'go() { this.p.saveManualColumnWidths(); } }'],
+    ['a variable set from a ternary with a plugin branch',
+      'let p = f ? hot.getPlugin(\'manualColumnResize\') : other; p.saveManualColumnWidths();'],
+    ['a property of a local object that holds the plugin',
+      'const o = { p: hot.getPlugin(\'manualColumnResize\') }; o.p.saveManualColumnWidths();'],
+    ['a property of a local object that holds the plugin in a branch',
+      'const o = { p: f ? hot.getPlugin(\'manualColumnResize\') : null }; o.p.saveManualColumnWidths();'],
+  ];
+
+  for (const [label, body] of REPORTED) {
+    it(`reports a call on ${label}, and removes nothing`, async() => {
+      const result = await report(body);
+
+      assert.equal(result.changed, false, result.output);
+      assert.equal(result.manual.length, 1, JSON.stringify(result.entries));
+      assert.match(result.output, /saveManualColumnWidths/);
+    });
+  }
+
+  const SILENT = [
+    ['a this member set from a ternary of local values',
+      'class A { constructor(f) { this.p = f ? { a: 1 } : null; } go() { this.p.saveManualColumnWidths(); } }'],
+    ['a this member set from a plugin of another key',
+      'class A { constructor(f) { this.p = f ? hot.getPlugin(\'undoRedo\') : null; } '
+        + 'go() { this.p.saveManualColumnWidths(); } }'],
+    ['a property of a local object that holds something else',
+      'const o = { p: other }; o.p.saveManualColumnWidths();'],
+    ['a property of a local object that holds a plugin of another key',
+      'const o = { p: hot.getPlugin(\'undoRedo\') }; o.p.saveManualColumnWidths();'],
+    ['another property of a local object that holds the plugin',
+      'const o = { p: hot.getPlugin(\'manualColumnResize\'), q: 1 }; o.q.saveManualColumnWidths();'],
+  ];
+
+  for (const [label, body] of SILENT) {
+    it(`stays silent about a call on ${label}`, async() => {
+      const result = await report(body);
+
+      assert.deepEqual(result.entries, [], result.output);
+    });
+  }
+});
+
 describe('methodMove', () => {
   const rules = [MOVE];
 
@@ -590,16 +648,54 @@ describe('methodMove: a member that code tests before it uses', () => {
     });
   }
 
+  it('says what happened on 17.x, not that the test never passed, for a negated test', async() => {
+    const { entries } = await twice('function f() { if (!hot.undoRedo) { return; } hot.undoRedo.clear(); }');
+    const held = manual(entries).filter(entry => /test/.test(entry.message));
+
+    assert.equal(held.length, 2);
+
+    for (const entry of held) {
+      assert.doesNotMatch(entry.message, /never passed/);
+      assert.match(entry.message, /undoRedo was undefined on 17\.x/);
+    }
+  });
+
+  const COMPARISONS = [
+    // [comparison, whether its answer changes when the read stops being undefined]
+    ['hot.undoRedo == null', true],
+    ['hot.undoRedo != null', true],
+    ['null == hot.undoRedo', true],
+    ['hot.undoRedo === undefined', true],
+    ['hot.undoRedo !== undefined', true],
+    ['undefined !== hot.undoRedo', true],
+    ['hot.undoRedo === void 0', true],
+    ['hot.undoRedo === null', false],
+    ['hot.undoRedo !== null', false],
+    ['hot.undoRedo === \'x\'', false],
+    ['hot.undoRedo !== \'x\'', false],
+    ['hot.undoRedo == \'x\'', false],
+  ];
+
+  for (const [comparison, changes] of COMPARISONS) {
+    it(`${changes ? 'reports' : 'does not report as a test'} the comparison ${comparison}`, async() => {
+      const { entries, output } = await twice(`function f() { return ${comparison} ? 1 : 2; }`);
+      const asTest = manual(entries).filter(entry => /read in a test here/.test(entry.message));
+
+      assert.equal(asTest.length, changes ? 1 : 0, JSON.stringify(entries.map(entry => entry.message)));
+      assert.equal(changed(entries).length, 0, output);
+    });
+  }
+
   it('names the guard in the entry', async() => {
     const { entries } = await twice('function f() { if (hot.undoRedo) { hot.undoRedo.clear(); } }');
     const [test, guarded] = manual(entries).filter(entry => entry.line === 4);
 
     assert.match(test.message, /^Call them on the plugin: hot\.getPlugin\('undoRedo'\)\./);
     assert.match(test.message, /The tool left undoRedo alone: (?:it is read in a test here|a test of undoRedo)/);
-    assert.match(test.message, /, and that test never passed on 17\.x, because core had no undoRedo\./);
+    assert.match(test.message, /, and undoRedo was undefined on 17\.x, because core had no undoRedo\./);
     assert.ok([test, guarded].some(entry => /it is read in a test here/.test(entry.message)));
     assert.ok([test, guarded].some(entry => /a test of undoRedo on the same receiver guards it/.test(entry.message)));
-    assert.match(test.message, /a rewrite would run the guarded code for the first time\.$/);
+    assert.match(test.message, /a rewrite would change what that test answers and which code it guards runs\.$/);
   });
 
   it('moves a call that a test on another receiver, in another function, or after it does not guard', async() => {
@@ -633,6 +729,27 @@ describe('callUnwrap', () => {
   it('ships as report-only because 17.x sanitize used DOMPurify', () => {
     assert.equal(byId('helper-sanitize').safe, false);
     assert.equal(byId('helper-sanitize').guide, 'replace-built-in-dompurify-with-a-custom-sanitizer');
+  });
+
+  it('follows a module-level const that holds the namespace, one hop', async() => {
+    const lines = entries => entries.filter(entry => entry.severity === 'manual').map(entry => entry.line);
+    const aliased = `${head}const HT = Handsontable;\nconst v = HT.helper.sanitize(x);\n`;
+    const alias = await run(aliased, [byId('helper-sanitize')]);
+
+    assert.deepEqual(lines(alias.entries), [3]);
+
+    for (const preamble of [
+      'let HT = Handsontable;',
+      'var HT = Handsontable;',
+      'const HT = other;',
+      'const HT = Handsontable.helper;',
+      'const { HT } = Handsontable;',
+      'function f() { const HT = Handsontable; return HT.helper.sanitize(x); }',
+    ]) {
+      const result = await run(`${head}${preamble}\nconst v = HT.helper.sanitize(x);\n`, [byId('helper-sanitize')]);
+
+      assert.deepEqual(lines(result.entries), [], preamble);
+    }
   });
 
   it('reports every match and edits nothing when the rule is not safe', async() => {

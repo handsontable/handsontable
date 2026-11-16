@@ -15,6 +15,7 @@
 
 import { jsxTextsOf } from './literals.mjs';
 import { printTree } from './print.mjs';
+import { isDirectiveLine } from './todo.mjs';
 
 const SENTINEL_PREFIX = '__codemodMarker';
 const LINE_BREAK = /[\n\r\u2028\u2029]/;
@@ -179,6 +180,29 @@ export class MarkerCarriers {
 }
 
 /**
+ * The start of the first line of the run of next-line directives that ends right before a line.
+ *
+ * @param {string} text The printed text.
+ * @param {number} lineStart Offset of the start of the line.
+ * @returns {number} The offset of the first line of the run, or `lineStart` when no directive is right above.
+ */
+function aboveDirectives(text, lineStart) {
+  let top = lineStart;
+
+  while (top > 0) {
+    const previous = text.lastIndexOf('\n', top - 2) + 1;
+
+    if (!isDirectiveLine(text.slice(previous, top - 1).replace(/\r$/, ''))) {
+      break;
+    }
+
+    top = previous;
+  }
+
+  return top;
+}
+
+/**
  * Turn the sentinels of a printed part into comment lines.
  *
  * @param {MarkerCarriers|undefined} carriers The carriers of the part.
@@ -205,9 +229,12 @@ export function spliceCarriers(carriers, printed, eol) {
 
     if (BLOCK_COMMENTS_ONLY.test(before)) {
       // Nothing but white space and block comments stands in front of the element: the marker goes on lines above
-      // the whole line, so the element keeps the comments it had on its line.
-      text = text.slice(0, lineStart) + comments.map(comment => `${indent}${comment}${eol}`).join('')
-        + before + text.slice(at + sentinel.length);
+      // the whole line, so the element keeps the comments it had on its line. A directive for the next line
+      // (`// eslint-disable-next-line`) keeps that line, so the marker goes above the lines of such directives.
+      const top = aboveDirectives(text, lineStart);
+
+      text = text.slice(0, top) + comments.map(comment => `${indent}${comment}${eol}`).join('')
+        + text.slice(top, lineStart) + before + text.slice(at + sentinel.length);
     } else {
       text = text.slice(0, at) + comments.map(comment => `${comment}${eol}${indent}`).join('')
         + text.slice(at + sentinel.length);

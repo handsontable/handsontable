@@ -513,10 +513,24 @@ function bump(ctx, rule) {
  * @returns {string|null} The package name, or `null` for any other key.
  */
 function overriddenPackage(key, names) {
-  const last = key.split('>').pop().replace(/^(?:\*\*\/)+/, '');
+  const parts = key.split('>').pop().replace(/^(?:\*\*\/)+/, '').split('/');
+  const packages = [];
 
-  return names.find(name => last === name || last.startsWith(`${name}@`)
-    || last.endsWith(`/${name}`) || last.includes(`/${name}@`)) ?? null;
+  // A yarn path names packages one under another (`some-lib/handsontable`), and a scoped one is two segments.
+  for (let index = 0; index < parts.length; index += 1) {
+    if (parts[index].startsWith('@') && index + 1 < parts.length) {
+      packages.push(`${parts[index]}/${parts[index + 1]}`);
+      index += 1;
+    } else {
+      packages.push(parts[index]);
+    }
+  }
+
+  const last = packages[packages.length - 1] ?? '';
+  const at = last.lastIndexOf('@');
+  const bare = at > 0 ? last.slice(0, at) : last;
+
+  return names.find(name => bare === name) ?? null;
 }
 
 /**
@@ -709,8 +723,9 @@ function addPackages(ctx, rule) {
       ctx.report({
         ruleId: rule.id,
         severity: 'manual',
-        message: `Update ${item.name} in ${above.file} to ${item.range}. It is declared there as "${above.range}", `
-          + `which does not allow ${item.range}, so the tool did not add ${item.name} to this package.json.`,
+        message: `Update ${item.name} in ${above.file} to ${item.range}. `
+          + `It is declared there as "${redact(above.range)}", which does not allow ${item.range}, `
+          + `so the tool did not add ${item.name} to this package.json.`,
       });
       continue;
     }

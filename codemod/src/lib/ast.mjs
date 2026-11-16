@@ -166,14 +166,51 @@ export function calleeName(callee) {
   return memberName(node);
 }
 
+const LOCATION_KEYS = new Set([
+  'loc', 'tokens', 'comments', 'extra', 'leadingComments', 'trailingComments', 'original',
+]);
+
 /**
- * The one-based line of a node, for a report entry.
+ * The line of the first node below `node` that starts where `node` does and has a location. recast takes the location
+ * off an expression that is the direct child of `export default`, but the first node inside it (the callee of a call,
+ * the object of a member) starts at the same offset and keeps its own.
+ *
+ * @param {object} node A node without a location, with a `start` offset.
+ * @returns {number|undefined} The line, or `undefined` when no such node exists.
+ */
+function lineOfFirstChild(node) {
+  for (const key of Object.keys(node)) {
+    const value = node[key];
+
+    if (LOCATION_KEYS.has(key) || !value || typeof value !== 'object') {
+      continue;
+    }
+
+    for (const child of Array.isArray(value) ? value : [value]) {
+      if (child && typeof child.type === 'string' && child.start === node.start) {
+        const line = child.loc?.start?.line ?? lineOfFirstChild(child);
+
+        if (line !== undefined) {
+          return line;
+        }
+      }
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * The one-based line of a node, for a report entry. A node recast gave no location (the expression right after
+ * `export default`) gets the line of the first node inside it that starts at the same offset.
  *
  * @param {object|null|undefined} node An AST node.
  * @returns {number|undefined} The line, `undefined` for a node another transform created.
  */
 export function lineOfNode(node) {
-  return node?.loc?.start?.line;
+  const line = node?.loc?.start?.line;
+
+  return line === undefined && typeof node?.start === 'number' ? lineOfFirstChild(node) : line;
 }
 
 /**

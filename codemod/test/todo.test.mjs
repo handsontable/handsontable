@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import jscodeshift from 'jscodeshift';
 import postcss from 'postcss';
-import { addCssTodo, addJsTodo, formatTodo, lineOf, shortenAdvice } from '../src/lib/todo.mjs';
+import { addCssTodo, addJsTodo, formatTodo, isDirectiveLine, lineOf, shortenAdvice } from '../src/lib/todo.mjs';
 import { print } from './helpers/parse.mjs';
 
 describe('shortenAdvice', () => {
@@ -100,6 +100,86 @@ describe('addJsTodo', () => {
 
     assert.match(output, /\/\/ header\n/);
     assert.match(output, /TODO\(handsontable-codemod r\/x\)/);
+  });
+});
+
+describe('a TODO above a directive for the next line', () => {
+  const j = jscodeshift.withParser('ts');
+  const TODO = '// TODO(handsontable-codemod r/x): Replace A.';
+
+  /**
+   * Insert a TODO before the last statement and print the result.
+   *
+   * @param {string} code Source text.
+   * @returns {string} The printed code.
+   */
+  function addToLast(code) {
+    const root = j(code);
+    const statements = root.find(j.Program).paths()[0].node.body;
+
+    addJsTodo(j, root.find(j.Program).paths()[0].get('body', statements.length - 1), 'r/x', 'Replace A.');
+
+    return print(root);
+  }
+
+  for (const directive of [
+    '// eslint-disable-next-line no-console',
+    '// oxlint-disable-next-line no-console',
+    '// stylelint-disable-next-line color-no-invalid-hex',
+    '// tslint:disable-next-line:no-console',
+    '// @ts-expect-error because',
+    '// @ts-ignore',
+    '// prettier-ignore',
+    '// biome-ignore lint/suspicious/noConsole: logging',
+    '// deno-lint-ignore no-console',
+    '/* eslint-disable-next-line no-console */',
+    '/* istanbul ignore next */',
+    '// c8 ignore next',
+    '// v8 ignore next',
+  ]) {
+    it(`goes above ${directive}`, () => {
+      assert.equal(isDirectiveLine(directive), true);
+      assert.equal(addToLast(`${directive}\nconsole.log(1);\n`), `${TODO}\n${directive}\nconsole.log(1);\n`);
+    });
+  }
+
+  it('goes above a run of directives and after a plain comment, and a second pass adds nothing', () => {
+    const code = '// a note\n// eslint-disable-next-line no-console\n// @ts-expect-error x\nconsole.log(1);\n';
+    const once = addToLast(code);
+
+    assert.equal(once,
+      `// a note\n${TODO}\n// eslint-disable-next-line no-console\n// @ts-expect-error x\nconsole.log(1);\n`);
+    assert.equal(addToLast(once), once);
+  });
+
+  for (const comment of [
+    '// eslint-disable-line no-console',
+    '// eslint-disable no-console',
+    '// eslint-enable',
+    '// note: do not use eslint-disable-next-line here',
+    '// see @ts-ignore in the docs',
+    '// prettier-ignore-start',
+    '// istanbulish',
+  ]) {
+    it(`stays after ${comment}, which is not a next-line directive`, () => {
+      assert.equal(isDirectiveLine(comment), false);
+      assert.equal(addToLast(`${comment}\nconsole.log(1);\n`), `${comment}\n${TODO}\nconsole.log(1);\n`);
+    });
+  }
+
+  it('does not move a directive that trails the statement on its line', () => {
+    assert.equal(addToLast('console.log(1); // eslint-disable-line no-console\n'),
+      `${TODO}\nconsole.log(1); // eslint-disable-line no-console\n`);
+  });
+
+  it('goes above the directives that stand before a stylesheet rule', () => {
+    const root = postcss.parse('/* a */\n/* stylelint-disable-next-line x */\n.a { color: red; }\n');
+    const rule = root.nodes[root.nodes.length - 1];
+
+    addCssTodo(rule, 'r/x', 'Replace A.');
+
+    assert.equal(root.toString(), '/* a */\n/* TODO(handsontable-codemod r/x): Replace A. */\n'
+      + '/* stylelint-disable-next-line x */\n.a { color: red; }\n');
   });
 });
 

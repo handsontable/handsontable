@@ -90,11 +90,78 @@ describe('cssVariable in css', () => {
     assert.deepEqual(entries.map(entry => [entry.ruleId, entry.severity, entry.line]), [[RADIUS, 'manual', 2]]);
   });
 
+  for (const [label, name, source] of [
+    ['sets the new name from the old one', 'a.css',
+      '.ht-theme-alt {\n  --ht-border-radius: var(--ht-wrapper-border-radius, 4px);\n}\n'],
+    ['sets the new name from the old one in SCSS', 'a.scss',
+      '.ht-theme-alt {\n  --ht-border-radius: var(--ht-wrapper-border-radius, 4px);\n  .x {\n'
+      + '    --ht-border-radius: var(--ht-wrapper-border-radius);\n  }\n}\n'],
+    ['defines the new name next to a use of the old one', 'a.css',
+      '.t {\n  --ht-border-radius: 1px;\n  margin: var(--ht-wrapper-border-radius);\n}\n'],
+    ['uses the old name before it defines the new one', 'a.css',
+      '.t {\n  margin: var(--ht-wrapper-border-radius);\n  --ht-border-radius: 1px;\n}\n'],
+  ]) {
+    it(`leaves a rule that ${label}, reports it, and changes nothing on a second run`, async() => {
+      const first = await run(name, source);
+      const second = await run(name, first.output);
+
+      assert.equal(first.changed, false);
+      assert.equal(first.output, source);
+      assert.equal(first.entries.length >= 1 && first.entries.every(entry => entry.severity === 'manual'), true,
+        JSON.stringify(first.entries));
+      assert.equal(first.entries.every(entry => entry.ruleId === RADIUS), true);
+      assert.match(first.entries[0].message, /already defines --ht-border-radius/);
+      assert.equal(second.changed, false);
+      assert.equal(second.entries.length, first.entries.length);
+    });
+  }
+
+  it('still renames the old name in a rule next to the one that defines the new name', async() => {
+    const source = '.a {\n  --ht-border-radius: 2px;\n}\n.b {\n  --ht-wrapper-border-radius: 1px;\n'
+      + '  margin: var(--ht-wrapper-border-radius);\n}\n.c {\n  --ht-border-radius: var(--ht-radius-other, 4px);\n}\n';
+    const { output, entries } = await run('a.css', source);
+
+    assert.equal(output, source
+      .replace('  --ht-wrapper-border-radius: 1px;', '  --ht-border-radius: 1px;')
+      .replace('margin: var(--ht-wrapper-border-radius)', 'margin: var(--ht-border-radius)'));
+    assert.deepEqual(entries.map(entry => [entry.severity, entry.line]), [['changed', 5], ['changed', 6]]);
+  });
+
   it('renames inside at-rule parameters', async() => {
     const source = '@include theme((--ht-wrapper-border-radius: 1px));\n';
     const { output } = await run('a.scss', source);
 
     assert.equal(output, '@include theme((--ht-border-radius: 1px));\n');
+  });
+
+  for (const text of [
+    '@import url("fonts.css?v=--ht-wrapper-border-radius");',
+    '@import url(fonts.css?v=--ht-wrapper-border-radius);',
+    '@warn "unknown --ht-wrapper-border-radius";',
+    '@debug \'--ht-wrapper-border-radius\';',
+  ]) {
+    it(`reports the name in a string or url() of an at-rule and does not rename it: ${text}`, async() => {
+      const source = `${text}\n`;
+      const first = await run('a.scss', source);
+      const second = await run('a.scss', first.output);
+
+      assert.equal(first.changed, false);
+      assert.equal(first.output, source);
+      assert.deepEqual(first.entries.map(entry => [entry.ruleId, entry.severity, entry.line]), [[RADIUS, 'manual', 1]]);
+      assert.match(first.entries[0].message,
+        /^Check this text by hand: it names --ht-wrapper-border-radius in a string/);
+      assert.equal(second.changed, false);
+    });
+  }
+
+  it('renames the name in an at-rule outside its strings and url()', async() => {
+    const source = '@include theme((--ht-wrapper-border-radius: 1px, label: "--ht-wrapper-border-radius"));\n'
+      + '@include box(var(--ht-wrapper-border-radius), url(--ht-wrapper-border-radius.png));\n';
+    const { output, entries } = await run('a.scss', source);
+
+    assert.equal(output, '@include theme((--ht-border-radius: 1px, label: "--ht-wrapper-border-radius"));\n'
+      + '@include box(var(--ht-border-radius), url(--ht-wrapper-border-radius.png));\n');
+    assert.deepEqual(entries.map(entry => [entry.severity, entry.line]), [['changed', 1], ['changed', 2]]);
   });
 
   it('inserts one TODO per rule and declaration, also when two removed variables share a declaration', async() => {

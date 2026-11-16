@@ -29,6 +29,59 @@ async function threeRuns(source, filePath = 'grid.js') {
 
 const kinds = entries => entries.map(entry => entry.severity);
 
+describe('numeric-format-culture leaves a culture that can be empty, or that is not a value', () => {
+  const column = culture => `${HEAD}new Handsontable(el, { locale: 'pl-PL', `
+    + `columns: [{ numericFormat: { ${culture} } }] });\n`;
+
+  for (const value of [
+    'undefined',
+    'null',
+    'void 0',
+    'isDe ? \'de-DE\' : undefined',
+    'isDe ? null : \'de-DE\'',
+    'saved ?? undefined',
+    'saved || null',
+    'isDe && \'de-DE\'',
+    '(isDe ? \'de-DE\' : undefined) as string',
+  ]) {
+    it(`does not move culture: ${value}, because an own locale of undefined overrides the grid locale`, async() => {
+      const source = column(`culture: ${value}`);
+      const result = await threeRuns(source, 'grid.ts');
+      const manual = result.entries.filter(entry => entry.severity === 'manual');
+
+      assert.equal(result.output.replace(/\/\/ TODO.*\n\s*/g, ''), source, result.output);
+      assert.equal(result.entries.filter(entry => entry.severity === 'changed').length, 0);
+      assert.equal(manual.length, 1, JSON.stringify(result.entries));
+      assert.match(manual[0].message, /can be undefined or null here/);
+    });
+  }
+
+  for (const value of [
+    '\'de-DE\'',
+    'isDe ? \'de-DE\' : \'en-US\'',
+    'saved ?? \'de-DE\'',
+    'saved || \'de-DE\'',
+    'locales.de',
+  ]) {
+    it(`still moves culture: ${value}`, async() => {
+      const result = await threeRuns(column(`culture: ${value}`), 'grid.ts');
+
+      assert.equal(result.entries.filter(entry => entry.severity === 'changed').length, 1,
+        JSON.stringify(result.entries));
+      assert.match(result.output, /locale: /);
+    });
+  }
+
+  it('does not move a culture that is a method, and reports it', async() => {
+    const source = column('culture() { return \'de-DE\'; }');
+    const result = await threeRuns(source, 'grid.ts');
+
+    assert.equal(result.output.replace(/\/\/ TODO.*\n\s*/g, ''), source);
+    assert.deepEqual(kinds(result.entries), ['manual']);
+    assert.match(result.entries[0].message, /^Move numericFormat\.culture to locale by hand\./);
+  });
+});
+
 describe('numeric-format-culture moves the key only where one column or cell reads it', () => {
   it('moves it in a column and in a cell, and reports a grid-level key without moving it', async() => {
     const result = await threeRuns(`${HEAD}const hot = new Handsontable(el, {});\n`

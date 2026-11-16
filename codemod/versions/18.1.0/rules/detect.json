@@ -69,6 +69,7 @@
       "kind": "detect",
       "safe": false,
       "severity": "manual",
+      "twins": ["18.0.0/pikaday-leftovers"],
       "files": ["css", "template"],
       "requires": "none",
       "mergeKey": "pikaday",

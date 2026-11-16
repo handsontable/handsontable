@@ -10,6 +10,10 @@
  *   anything that is not a built-in name (a function, an identifier, a name the project registered), or sets a
  *   `type` that is not a built-in cell type name;
  * - the object has a spread or a computed key that the tool cannot read, since either can carry any of those;
+ * - the object, or an enclosing one, sets `cells`, `cell`, `afterGetCellMeta`, or `beforeGetCellMeta`, and what it holds
+ *   sets or may set one of them: a function that returns an object with a custom `editor`, `renderer`, `validator`,
+ *   or `type`, or something the tool cannot see; a hook that assigns one to the cell meta; or a function from another
+ *   file;
  * - the file registers a cell type, editor, renderer, or validator under a built-in name again; or
  * - the file reads the option as a member (`.correctFormat`, `['correctFormat']`), destructures it, or tests it with `in`.
  *   A write is not a read: the target of a plain assignment, `delete`, and a destructuring or `for` head target
@@ -32,13 +36,14 @@ import {
   unwrapNode,
   unwrapPath,
 } from './ast.mjs';
+import { lookup } from './scope.mjs';
 import { BUILT_IN_CELL_TYPES, BUILT_IN_EDITORS, BUILT_IN_RENDERERS, BUILT_IN_VALIDATORS } from './option-objects.mjs';
 
 /**
  * Something that may read the option.
  *
  * @typedef {object} Reader
- * @property {'editor'|'renderer'|'validator'|'type'|'spread'|'computed'|'registered'|'read'} kind What it is.
+ * @property {'editor'|'renderer'|'validator'|'type'|'spread'|'computed'|'registered'|'read'|'cells'} kind What it is.
  * @property {number|undefined} line Line of the code that makes it a reader.
  * @property {'own'|'enclosing'} [scope] Whether the object or element itself holds it, or one that encloses it.
  */
@@ -59,6 +64,11 @@ const REGISTER_CALLEES = new Set(['registerCellType', 'registerEditor', 'registe
 const MEMBER_TYPES = new Set(['MemberExpression', 'OptionalMemberExpression']);
 const SPREADS = new Set(['SpreadElement', 'SpreadProperty', 'ExperimentalSpreadProperty']);
 const MAX_SPREAD_DEPTH = 4;
+const CELL_HOOKS = new Set(['cells', 'cell', 'afterGetCellMeta', 'beforeGetCellMeta']);
+const FUNCTION_NODES = new Set([
+  'FunctionExpression', 'ArrowFunctionExpression', 'FunctionDeclaration', 'ObjectMethod',
+]);
+const SKIPPED_KEYS = new Set(['loc', 'tokens', 'comments', 'extra', 'leadingComments', 'trailingComments', 'original']);
 
 /**
  * Whether the value of `editor`, `renderer`, `validator`, or `type` is something the project wrote or registered.
@@ -92,6 +102,63 @@ function isCustomValue(key, value, registered) {
     || ((node.type === 'BooleanLiteral' || node.type === 'Literal') && node.value === false);
 
   return !empty;
+}
+
+/**
+ * Call a function for a node and every node below it.
+ *
+ * @param {object} node An AST node.
+ * @param {(node: object) => void} visit Called for each node.
+ * @returns {void}
+ */
+function walkNodes(node, visit) {
+  visit(node);
+
+  for (const key of Object.keys(node)) {
+    const value = node[key];
+
+    if (SKIPPED_KEYS.has(key) || !value || typeof value !== 'object') {
+      continue;
+    }
+
+    for (const child of Array.isArray(value) ? value : [value]) {
+      if (child && typeof child.type === 'string') {
+        walkNodes(child, visit);
+      }
+    }
+  }
+}
+
+/**
+ * Whether the value a function returns, or an arrow returns as its body, could carry a reader: anything but a plain
+ * object literal, `undefined`, `null`, or another literal. A conditional or a logical expression is read branch by
+ * branch. An object literal that has a spread or a computed key can carry one too.
+ *
+ * @param {object|null|undefined} expression The returned expression, `null` for a bare `return`.
+ * @returns {boolean} `true` when the tool cannot tell the value holds no reader.
+ */
+function returnsUnknown(expression) {
+  const node = expression ? unwrapNode(expression) : null;
+
+  if (!node) {
+    return false;
+  }
+
+  switch (node.type) {
+    case 'ConditionalExpression':
+      return returnsUnknown(node.consequent) || returnsUnknown(node.alternate);
+    case 'LogicalExpression':
+      return returnsUnknown(node.left) || returnsUnknown(node.right);
+    case 'ObjectExpression':
+      return node.properties.some(property => SPREADS.has(property.type)
+        || (property.computed && stringValue(property.key) === null));
+    case 'Identifier':
+      return node.name !== 'undefined';
+    case 'UnaryExpression':
+      return node.operator !== 'void';
+    default:
+      return !/Literal$/.test(node.type);
+  }
 }
 
 /**
@@ -158,6 +225,89 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
   };
 
   /**
+   * The function that a `cells` option or a meta hook holds, when the file shows it: written there, wrapped in
+   * `useCallback()`, or named by a `const` or a function declaration of the file.
+   *
+   * @param {object|null|undefined} path NodePath of the value.
+   * @param {object} node The value node, or the method.
+   * @returns {object|null} The function node, or `null` when it cannot be seen.
+   */
+  const functionOfHook = (path, node) => {
+    const target = unwrapNode(node);
+
+    if (FUNCTION_NODES.has(target.type)) {
+      return target;
+    }
+
+    const callback = target.arguments?.[0];
+
+    if ((target.type === 'CallExpression' || target.type === 'OptionalCallExpression')
+      && calleeName(target.callee) === 'useCallback' && callback && FUNCTION_NODES.has(callback.type)) {
+      return callback;
+    }
+
+    if (target.type !== 'Identifier' || !path) {
+      return null;
+    }
+
+    const binding = lookup(unwrapPath(path), target.name, 'value');
+
+    if (binding?.kind === 'function') {
+      return binding.node;
+    }
+
+    return binding?.kind === 'const' && binding.init ? functionOfHook(null, binding.init) : null;
+  };
+
+  /**
+   * Whether a `cells` option or a meta hook sets, or may set, a reader: an `editor`, `renderer`, `validator`, or `type`
+   * that is not a built-in name, as a key of an object or an assignment to the cell meta anywhere in it. A `cells`
+   * function also counts when what it returns could carry one. A function or an object the file does not show counts.
+   *
+   * @param {{name: string, value: object|null, node: object, path?: object}} entry The key or attribute.
+   * @returns {boolean} `true` when a reader is possible.
+   */
+  const mayAssignReader = ({ name, value, node, path }) => {
+    const { names } = registrations();
+    const holder = node.type === 'ObjectMethod' || !value ? node : unwrapNode(value);
+    const code = name === 'cell' ? holder : functionOfHook(path, holder ?? node);
+    let found = false;
+
+    if (!code || (name === 'cell' && !['ArrayExpression', 'ObjectExpression'].includes(code.type))) {
+      return true;
+    }
+
+    const isReader = (key, valueNode) => {
+      const kind = WRAPPER_ALIASES.get(key) ?? key;
+
+      return BUILT_INS.has(kind) && isCustomValue(kind, valueNode, names);
+    };
+
+    walkNodes(code, (current) => {
+      if (found) {
+        return;
+      }
+
+      if (['ObjectProperty', 'Property'].includes(current.type)) {
+        const key = propertyName(current);
+
+        found = key !== null && isReader(key, current.value);
+      } else if (current.type === 'ObjectMethod') {
+        found = current !== code && isReader(propertyName(current) ?? '', { type: 'FunctionExpression' });
+      } else if (current.type === 'AssignmentExpression' && current.operator === '='
+        && MEMBER_TYPES.has(current.left.type)) {
+        found = isReader(memberName(current.left) ?? '', current.right);
+      } else if (name === 'cells' && FUNCTION_NODES.has(current.type) && current.type !== 'FunctionDeclaration') {
+        found = current.body.type === 'BlockStatement' ? false : returnsUnknown(current.body);
+      } else if (name === 'cells' && current.type === 'ReturnStatement') {
+        found = returnsUnknown(current.argument);
+      }
+    });
+
+    return found;
+  };
+
+  /**
    * The reader a list of properties or attributes gives, own keys only.
    *
    * @param {Array<{name: string|null, value: object|null, node: object}>} entries The keys and values.
@@ -181,7 +331,9 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
       }
     }
 
-    return null;
+    const hook = entries.find(entry => CELL_HOOKS.has(entry.name) && mayAssignReader(entry));
+
+    return hook ? { kind: 'cells', line: lineOfNode(hook.node) } : null;
   };
 
   /**
@@ -198,7 +350,7 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
   const ofLiteral = (objectPath, depth = 0, unreadable = true) => {
     const entries = [];
 
-    for (const node of objectPath.node.properties) {
+    for (const [index, node] of objectPath.node.properties.entries()) {
       if (SPREADS.has(node.type)) {
         continue;
       }
@@ -213,7 +365,12 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
         continue;
       }
 
-      entries.push({ name, value: node.type === 'ObjectMethod' ? { type: 'FunctionExpression' } : node.value, node });
+      entries.push({
+        name,
+        value: node.type === 'ObjectMethod' ? { type: 'FunctionExpression' } : node.value,
+        node,
+        path: node.type === 'ObjectMethod' ? null : objectPath.get('properties', index, 'value'),
+      });
     }
 
     const own = ofEntries(entries);
@@ -270,7 +427,10 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
 
       const value = attribute.value?.type === 'JSXExpressionContainer' ? attribute.value.expression : attribute.value;
 
-      entries.push({ name: attributeName(attribute), value, node: attribute });
+      const valuePath = attribute.value?.type === 'JSXExpressionContainer'
+        ? openingPath.get('attributes', index, 'value', 'expression') : null;
+
+      entries.push({ name: attributeName(attribute), value, node: attribute, path: valuePath });
     }
 
     return ofEntries(entries);
@@ -446,6 +606,8 @@ export function describeReader(reader, option) {
       return 'the computed key next to it';
     case 'registered':
       return 'the built-in name that this file registers again';
+    case 'cells':
+      return `the cells option or the meta hook ${where} that can set an editor, a renderer, or a validator`;
     case 'type':
       return `the cell type ${where}`;
     default:

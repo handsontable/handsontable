@@ -156,6 +156,23 @@ describe('a write that fails or is refused is not a rewrite', () => {
     });
   });
 
+  it('does not list a file it did not write under a note that says what the rewrite changed', async() => {
+    const TYPE = 'import type { Config } from \'handsontable/plugins/columnSorting\';\nexport type X = Config;\n';
+
+    await inPlainProject({ 'a.ts': TYPE, 'b.ts': TYPE }, async(dir) => {
+      const result = await run({
+        cwd: dir,
+        ...RANGE,
+        hooks: { beforeRename: file => (file === 'a.ts' ? writeFile(join(dir, file), 'edited\n') : undefined) },
+      });
+      const notes = result.report.once().filter(entry => entry.ruleId === '18.0.0/type-columnsorting-config');
+
+      assert.deepEqual(result.changedFiles, ['b.ts']);
+      assert.equal(notes.length, 1, JSON.stringify(result.report.entries));
+      assert.deepEqual(notes[0].files, ['b.ts']);
+    });
+  });
+
   it('counts no rewrite for a read-only file, and goes on with the files after it', { skip: !CAN_BLOCK_WRITES }, async() => {
     await inPlainProject({ 'a.js': SOURCE, 'b.js': SOURCE, 'c.js': SOURCE }, async(dir) => {
       await chmod(join(dir, 'b.js'), 0o444);

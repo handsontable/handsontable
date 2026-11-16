@@ -184,6 +184,64 @@ describe('a TODO next to a JSX element leaves the text of its parent as it was',
   });
 });
 
+describe('every flagged JSX child on a line of its own gets a marker of its own', () => {
+  const plan19 = buildPlan(manifests.filter(manifest => manifest.version === '19.0.0'), ['19.0.0/col-widths-null']);
+  const lines = [
+    '    <HotTable data={[]} colWidths={null} />',
+    '    {ok && <HotTable data={[]} colWidths={null} />}',
+    '    {list.map(i => <HotTable data={[]} colWidths={null} />)}',
+  ];
+  const source = `${IMPORT}export const a = (\n  <div>\n${lines.join('\n')}\n  </div>\n);\n`;
+
+  /**
+   * Run the rule three times and check that runs 2 and 3 change nothing.
+   *
+   * @param {string} text A tsx source.
+   * @returns {Promise<{output: string, entries: object[]}>} Run 1.
+   */
+  async function stable(text) {
+    const one = await transformFile({ filePath: 'grid.tsx', source: text, plan: plan19, options: {} });
+    const two = await transformFile({ filePath: 'grid.tsx', source: one.output, plan: plan19, options: {} });
+    const three = await transformFile({ filePath: 'grid.tsx', source: two.output, plan: plan19, options: {} });
+
+    assert.equal(one.entries.some(entry => /error$/.test(entry.ruleId)), false, JSON.stringify(one.entries));
+    assert.equal(two.output, one.output, 'run 2 changed the file');
+    assert.equal(three.output, one.output, 'run 3 changed the file');
+
+    return one;
+  }
+
+  it('puts one JSX comment in front of each of the three children and none on the statement', async() => {
+    const { output } = await stable(source);
+    const rows = output.split('\n');
+
+    assert.equal(output.split(TODO).length - 1, 3, output);
+    assert.equal(rows.filter(row => row.trimStart().startsWith(`// ${TODO}`)).length, 0, output);
+
+    for (const child of ['<HotTable data', '{ok && <HotTable', '{list.map(']) {
+      const at = rows.findIndex(row => row.trimStart().startsWith(child));
+
+      assert.match(rows[at - 1], /^\s*\{\/\* TODO\(handsontable-codemod 19\.0\.0\/col-widths-null\)/, child);
+    }
+  });
+
+  it('says marked for each entry, as each has its own marker', async() => {
+    const { entries } = await stable(source);
+    const manual = entries.filter(entry => entry.severity === 'manual');
+
+    assert.equal(manual.length, 3);
+    assert.deepEqual(manual.map(entry => entry.marked), [true, true, true]);
+  });
+
+  it('marks a child that shares its line with a sibling', async() => {
+    const text = `${IMPORT}export const a = (\n  <div>\n    <b>x</b>{ok && <HotTable data={[]} colWidths={null} />}\n`
+      + '  </div>\n);\n';
+    const { output } = await stable(text);
+
+    assert.equal(output.split(TODO).length - 1, 1, output);
+  });
+});
+
 describe('two TODOs on one JSX child do not multiply', () => {
   it('holds in a parent element', async() => {
     await check(`${IMPORT}const a = <div><HotTable ${TWO} /></div>;\n`, 2);

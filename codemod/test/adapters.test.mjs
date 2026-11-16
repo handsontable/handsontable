@@ -96,6 +96,16 @@ describe('js adapter', () => {
     assert.equal(detectQuote('const x = 1;'), 'single');
   });
 
+  it('reads the quotes of require() in a CommonJS file, and of a dynamic import', () => {
+    assert.equal(detectQuote('const a = require("a");\nconst b = require("b");'), 'double');
+    assert.equal(detectQuote('const a = require( "a" );\nconst b = require(\'b\');\nconst c = require("c");'),
+      'double');
+    assert.equal(detectQuote('const a = require(\'a\');\nconst b = require("b");\nconst c = require(\'c\');'),
+      'single');
+    assert.equal(detectQuote('import a from "a";\nconst b = require(\'b\');\nconst c = require(\'c\');'), 'single');
+    assert.equal(detectQuote('const m = await import("m");'), 'double');
+  });
+
   it('lets a file through the precheck when it mentions Handsontable or a theme variable', () => {
     assert.ok(jsAdapter.precheck.test('import Handsontable from \'handsontable\';'));
     assert.ok(jsAdapter.precheck.test('import { HotTable } from \'@handsontable/react-wrapper\';'));

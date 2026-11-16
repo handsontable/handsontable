@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { redact } from '../src/lib/redact.mjs';
+import { run } from '../src/runner.mjs';
 import { inPlainProject, migrate } from './helpers/plain-project.mjs';
 
 const TOKEN = 'ghp_SECRETTOKEN0123456789';
@@ -16,8 +17,18 @@ describe('redact()', () => {
       'a ssh://***@host/r and https://***@h/x');
   });
 
+  it('hides a password that holds an @, up to the last one of the authority', () => {
+    assert.equal(redact('git+https://user:p@ssword1@github.com/o/r.git'), 'git+https://***@github.com/o/r.git');
+    assert.equal(redact('https://a:b@c:d@host:8080/x@y'), 'https://***@host:8080/x@y');
+    assert.equal(redact('https://tok@en@host?mail=a@b#c@d'), 'https://***@host?mail=a@b#c@d');
+  });
+
   it('leaves everything else as it was', () => {
     for (const text of [
+      '//cdn.example.com/npm/@scope/pkg',
+      'https://cdn.example.com/npm/@scope/pkg@1.0.0/a.js',
+      'https://example.com?mail=a@b.c',
+      'https://example.com#a@b',
       '^17.1.0',
       'git+https://github.com/o/r.git#v1',
       'git@github.com:o/r.git',
@@ -70,6 +81,35 @@ describe('a credential in a dependency spec never reaches the output', () => {
       });
     });
   }
+
+  it('a credential on the hyperformula spec of a parent package.json is hidden in the entry, report, and console',
+    async() => {
+      await inPlainProject({
+        'package.json': `{
+  "dependencies": {
+    "hyperformula": "git+https://user:${TOKEN}@github.com/handsontable/hyperformula.git#semver:^2.0.0"
+  }
+}
+`,
+        'packages/app/package.json': '{ "dependencies": { "handsontable": "^17.1.0" } }\n',
+        'packages/app/src/grid.js':
+          'import { HyperFormula } from \'hyperformula\';\nimport Handsontable from \'handsontable\';\n'
+          + 'new Handsontable(document.body, { formulas: { engine: HyperFormula } });\n',
+      }, async(dir) => {
+        const result = await migrate(dir, [...RANGE, '--report', 'report.md', '.']);
+        const report = await readFile(join(dir, 'report.md'), 'utf8');
+        const entry = result.stdout + report;
+
+        const direct = await run({ cwd: dir, from: '17.1', to: '18.1', dryRun: true, allowDirty: true });
+        const messages = direct.report.entries.map(item => item.message).join('\n');
+
+        assert.match(messages, /Update hyperformula in package\.json to \^3\.0\.0/, messages);
+        assert.equal(messages.includes(TOKEN), false, `an entry message leaked: ${messages}`);
+        assert.match(entry, /Update hyperformula in package\.json to \^3\.0\.0/, entry);
+        assert.equal(entry.includes(TOKEN), false, entry);
+        assert.equal(result.stderr.includes(TOKEN), false, result.stderr);
+      });
+    });
 
   it('the usage error for a spec with no version does not print the credential', async() => {
     await inPlainProject({

@@ -437,6 +437,25 @@ export function collectHotBindings(j, root) {
   });
 
   /**
+   * Whether a binding is a module-level `const` that holds the namespace under another name
+   * (`const HT = Handsontable;`), one hop, as an identifier and not as a destructured name.
+   *
+   * @param {object} binding A binding from `lookup()`.
+   * @returns {boolean} `true` for an alias of the namespace.
+   */
+  const isNamespaceAlias = (binding) => {
+    if (binding.kind !== 'const' || binding.scope?.type !== 'Program' || binding.node?.id !== binding.idNode
+      || binding.init?.type !== 'Identifier') {
+      return false;
+    }
+
+    const target = (moduleBindings(programPath.node).get(binding.init.name) ?? [])
+      .find(item => item.kind !== 'type' && item.kind !== 'typeParam');
+
+    return target ? namespaceIds.has(target.idNode) : flags.global && binding.init.name === 'Handsontable';
+  };
+
+  /**
    * Whether an identifier path refers to a namespace binding.
    *
    * @param {object} path An `Identifier` NodePath.
@@ -455,7 +474,8 @@ export function collectHotBindings(j, root) {
 
     const binding = lookup(path, path.node.name, space);
 
-    return binding ? namespaceIds.has(binding.idNode) : flags.global && path.node.name === 'Handsontable';
+    return binding ? namespaceIds.has(binding.idNode) || isNamespaceAlias(binding)
+      : flags.global && path.node.name === 'Handsontable';
   };
 
   /**
@@ -1557,6 +1577,58 @@ export function collectHotBindings(j, root) {
   };
 
   /**
+   * Whether an expression is, or can be by a branch, a `getPlugin()` call of a listed key. It reads the syntax only: the
+   * host of the call is not checked.
+   *
+   * @param {object} node An expression node.
+   * @param {Set<string>} allowed The registry names of the listed keys.
+   * @returns {boolean} `true` for such a call.
+   */
+  const listsNode = (node, allowed) => {
+    const value = unwrapNode(node);
+
+    if (value.type === 'ConditionalExpression') {
+      return listsNode(value.consequent, allowed) || listsNode(value.alternate, allowed);
+    }
+
+    if (value.type === 'LogicalExpression') {
+      return listsNode(value.left, allowed) || listsNode(value.right, allowed);
+    }
+
+    const key = pluginKeyOf(value);
+
+    return key !== null && allowed.has(registryName(key));
+  };
+
+  /**
+   * Whether a member read (`o.p`) names a property of a module-level `const` object literal whose value passes the
+   * test. One hop: the object is the literal the `const` holds, and the property is a plain key of it.
+   *
+   * @param {object} target The member NodePath.
+   * @param {(node: object) => boolean} test The test on the value of the property.
+   * @returns {boolean} `true` when such a property exists.
+   */
+  const heldInObject = (target, test) => {
+    if (!MEMBER_TYPES.has(target.node.type)) {
+      return false;
+    }
+
+    const name = memberName(target.node);
+    const holder = unwrapPath(target.get('object'));
+
+    if (name === null || holder.node.type !== 'Identifier') {
+      return false;
+    }
+
+    const binding = lookup(holder, holder.node.name, 'value');
+    const plain = binding?.kind === 'const' && binding.node?.id === binding.idNode && binding.init;
+    const init = plain ? unwrapNode(binding.init) : null;
+
+    return init?.type === 'ObjectExpression' && init.properties.some(property => property.type === 'ObjectProperty'
+      && !property.computed && propertyName(property) === name && test(property.value));
+  };
+
+  /**
    * Whether a name or `this` member is a plugin of one of the keys on at least one path, without being one on
    * every path. A call on it may be on the plugin, so a rule reports it instead of leaving it silent.
    *
@@ -1567,7 +1639,18 @@ export function collectHotBindings(j, root) {
   const isPartlyPlugin = (path, keys) => {
     const allowed = new Set(keys.map(registryName));
     const lists = (value) => {
-      const call = pluginCallOf(value);
+      const target = unwrapPath(value);
+
+      // A branch of a conditional, or an operand of `||`, `&&`, and `??`, can be the value of the name.
+      if (target.node.type === 'ConditionalExpression') {
+        return lists(target.get('consequent')) || lists(target.get('alternate'));
+      }
+
+      if (target.node.type === 'LogicalExpression') {
+        return lists(target.get('left')) || lists(target.get('right'));
+      }
+
+      const call = pluginCallOf(target);
 
       return call !== null && call.host !== 'other' && allowed.has(registryName(call.key));
     };
@@ -1575,6 +1658,10 @@ export function collectHotBindings(j, root) {
 
     if (pluginKeyOf(target.node) !== null) {
       return lists(target);
+    }
+
+    if (heldInObject(target, node => listsNode(node, allowed))) {
+      return true;
     }
 
     const history = valuesOf(target);

@@ -2,7 +2,7 @@ import { lstat, readdir, realpath, stat } from 'node:fs/promises';
 import { join, relative, resolve, sep } from 'node:path';
 import { isCandidate } from './adapters/index.mjs';
 import { UsageError } from './errors.mjs';
-import { isGitRepo, isIgnored, listFiles } from './git.mjs';
+import { GitError, isGitRepo, isIgnored, listFiles } from './git.mjs';
 import { insideRelative, leavesDirectory, realpathNative, toPosix } from './lib/paths.mjs';
 
 export { leavesDirectory };
@@ -371,7 +371,14 @@ export async function discover({ cwd, paths = [], skipped = [], notes = [], reas
   const roots = paths.length > 0 ? paths : ['.'];
   const found = new Set();
   const links = new Set();
-  const repo = await isGitRepo(cwd);
+  // A git that ran and failed was reported by the caller: the walk below reads the files without it.
+  const repo = await isGitRepo(cwd).catch((error) => {
+    if (error instanceof GitError) {
+      return false;
+    }
+
+    throw error;
+  });
   let tracked = repo ? await listFiles(cwd) : null;
   const noteSkipped = (file, kind, reason) => {
     if (!links.has(file)) {

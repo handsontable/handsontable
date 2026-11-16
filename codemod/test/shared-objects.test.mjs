@@ -56,6 +56,21 @@ describe('an object that something else holds is edited only when every use is t
       'const cfg = { correctFormat: true }; new Handsontable(el, cfg); const { columns } = cfg; const t = typeof cfg;'],
     ['a declaration that the grid takes after another assignment',
       'let cfg; cfg = { correctFormat: true }; new Handsontable(el, cfg);'],
+    ['a negated guard',
+      'const cfg = { correctFormat: true }; if (!cfg) { throw new Error(); } new Handsontable(el, cfg);'],
+    ['a double negation', 'const cfg = { correctFormat: true }; const has = !!cfg; new Handsontable(el, cfg);'],
+    ['a null check', 'const cfg = { correctFormat: true }; if (cfg == null) { return; } new Handsontable(el, cfg);'],
+    ['a strict comparison with undefined',
+      'const cfg = { correctFormat: true }; const ok = cfg !== undefined; new Handsontable(el, cfg);'],
+    ['an in test', 'const cfg = { correctFormat: true }; const has = \'columns\' in cfg; new Handsontable(el, cfg);'],
+    ['the left operand of &&',
+      'const cfg = { correctFormat: true }; const c = cfg && cfg.columns; new Handsontable(el, cfg);'],
+    ['a test inside || and a logical test',
+      'const cfg = { correctFormat: true }; if (cfg || other) { go(); } new Handsontable(el, cfg);'],
+    ['a while test', 'const cfg = { correctFormat: true }; while (cfg) { break; } new Handsontable(el, cfg);'],
+    ['a ternary test and Boolean()',
+      'const cfg = { correctFormat: true }; const n = cfg ? 1 : 2; const b = Boolean(cfg); new Handsontable(el, cfg);'],
+    ['a void', 'const cfg = { correctFormat: true }; void cfg; new Handsontable(el, cfg);'],
   ];
 
   for (const [label, body] of UNDERSTOOD) {
@@ -72,6 +87,10 @@ describe('an object that something else holds is edited only when every use is t
       /^Remove correctFormat by hand\. This object is also passed to `legacyFormatter\.configure\(\)` \(line \d+\)/],
     ['an argument of new', 'new Legacy(cfg);', /also passed to `new Legacy\(\)`/],
     ['an assignment to another name', 'const copy = cfg;', /also assigned to `copy`/],
+    ['a value of || that flows on', 'const copy = cfg || {};', /also assigned to `copy`/],
+    ['a value of && on the right that flows on', 'const copy = ready && cfg;', /also assigned to `copy`/],
+    ['a value returned through ||', 'function make() { return cfg || other; }', /also returned/],
+    ['an arithmetic use', 'const n = cfg + 1;', /also used here/],
     ['a spread into an object that is not options', 'legacy({ ...cfg });',
       /also spread into an object that is not Handsontable options/],
     ['a source of Object.assign', 'Object.assign({}, cfg);', /also passed to `Object\.assign\(\)`/],
@@ -200,9 +219,12 @@ describe('an object that another object spreads is edited only when the receiver
       const result = await threeRuns(`${HEAD}const base = { oldName: 1 };\n${body}\n`, RENAME);
       const held = result.entries.filter(entry => entry.severity === 'manual');
 
-      // The receiver may rename its own key, but the object it spreads stays.
-      assert.equal(held.length, 1, body);
-      assert.match(held[0].message, /spread into another one/, body);
+      // The receiver may rename its own key, but the object it spreads stays. A receiver key that stands after the
+      // spread is reported too: the spread already sets the old name, so the key is left alone as well.
+      const own = /oldName[:=]/.test(body.replace(/\.\.\.base/, ''));
+
+      assert.equal(held.length, own && !body.includes('newName') ? 2 : 1, body);
+      assert.ok(held.some(entry => /spread into another one/.test(entry.message)), body);
       assert.ok(result.output.includes('oldName: 1'), body);
     }
   });

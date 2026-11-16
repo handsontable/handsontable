@@ -7,15 +7,39 @@ import { findExecutable } from './lib/find-executable.mjs';
 const execFileAsync = promisify(execFile);
 
 /**
+ * Raised when git ran and failed for a reason other than "this is not a repository": "detected dubious ownership" in a
+ * container or a CI mount, a corrupt repository, a refused permission. The tool cannot tell a clean tree from a dirty
+ * one then, so the caller must not read the failure as "no repository, nothing to guard".
+ */
+export class GitError extends Error {
+  /**
+   * @param {string} message What git printed, the first lines of its standard error.
+   */
+  constructor(message) {
+    super(message);
+
+    this.name = 'GitError';
+  }
+}
+
+/**
+ * Raised when there is no git program to run, which behaves as outside a repository.
+ */
+class GitMissing extends Error {}
+
+/**
  * Environment for git child processes. A run started from inside a git hook inherits `GIT_DIR` and friends,
  * which would point git at the hook's repository instead of the project.
  *
- * @returns {NodeJS.ProcessEnv} A copy of `process.env` without the repository-selecting variables.
+ * @returns {NodeJS.ProcessEnv} A copy of `process.env` without the repository-selecting variables, and with `LC_ALL=C`.
  */
 function gitEnv() {
   const env = { ...process.env };
 
   ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_PREFIX'].forEach(name => delete env[name]);
+
+  // The tool reads one message of git (`isGitRepo()`), so git must say it in English whatever the user's language is.
+  env.LC_ALL = 'C';
 
   return env;
 }
@@ -77,7 +101,7 @@ async function git(args, cwd) {
   const program = await gitExecutable(env);
 
   if (program === null) {
-    throw new Error('git was not found on PATH.');
+    throw new GitMissing('git was not found on PATH.');
   }
 
   const { stdout } = await execFileAsync(program, [...GIT_OPTIONS, ...args], {
@@ -93,14 +117,29 @@ async function git(args, cwd) {
  * Tell whether a directory is inside a git work tree.
  *
  * @param {string} cwd Directory.
- * @returns {Promise<boolean>} `true` inside a work tree. `false` when not, or when git is missing.
+ * @returns {Promise<boolean>} `true` inside a work tree. `false` when the directory is not in one, or when there is no
+ * git program to ask.
+ * @throws {GitError} When git ran and failed for another reason, with what it said.
  */
 export async function isGitRepo(cwd) {
   try {
     return (await git(['rev-parse', '--is-inside-work-tree'], cwd)).trim() === 'true';
-  } catch {
-    // Not a repository, or git is not installed: both mean there is no tree to guard.
-    return false;
+  } catch (error) {
+    // No git on PATH, or a git that cannot start (a string code such as `EACCES`): there is nothing to guard with.
+    if (error instanceof GitMissing || typeof error.code === 'string') {
+      return false;
+    }
+
+    const said = String(error.stderr ?? '').trim();
+
+    // `git rev-parse` exits 128 with this sentence outside a repository, which is no failure.
+    if (/not a git repository/i.test(said)) {
+      return false;
+    }
+
+    const lines = said.split(/\r?\n/).filter(Boolean).slice(0, 3);
+
+    throw new GitError(lines.join(' ') || `git exited with code ${error.code}.`);
   }
 }
 

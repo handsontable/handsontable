@@ -1,5 +1,5 @@
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
-import { addNamedImport } from '../lib/imports.mjs';
+import { addNamedImport, getImportedBindings } from '../lib/imports.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { lookup, referenceSpace } from '../lib/scope.mjs';
 import { problemsOf } from '../lib/validate.mjs';
@@ -158,6 +158,29 @@ function collectReferences(ctx, includeValues) {
 }
 
 /**
+ * The local name the new reference would have, when a binding of that name that is not the file's top level stands
+ * between the reference and the module: a type parameter, a block-scoped type or interface, a member of a namespace.
+ * That binding would capture the bare name. A binding of the top level is `addNamedImport()`'s business (it reuses the
+ * import or reports a collision).
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context.
+ * @param {object} path NodePath of the reference.
+ * @param {string} source The module the name is imported from.
+ * @param {string} name The imported name.
+ * @param {boolean} isType Whether the reference sits in a type position.
+ * @returns {string|null} The local name that a nearer binding captures, or `null`.
+ */
+function capturedBy(ctx, path, source, name, isType) {
+  const { j, root } = ctx;
+  const existing = getImportedBindings(j, root, source).find(binding => binding.form === 'named'
+    && binding.imported === name && (binding.kind === 'value' || isType));
+  const local = existing?.local ?? name;
+  const found = lookup(path, local, isType ? 'type' : 'value');
+
+  return found && found.scope?.type !== 'Program' ? local : null;
+}
+
+/**
  * Rewrite one matched reference to a bare imported name.
  *
  * @param {import('../types.mjs').Ctx} ctx The transform context.
@@ -186,6 +209,21 @@ function rewrite(ctx, match, isModular, noted) {
   }
 
   const source = chooseSource(j, root, toList(rule.to.source), { name, isModular });
+  const captured = capturedBy(ctx, path, source, name, isType);
+
+  if (captured !== null) {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      line,
+      message: `Import ${name} from "${source}" under another name and use it instead of ${NAMESPACE_PREFIX}${member}. `
+        + `The codemod did not replace it, because ${captured} is declared in an enclosing scope here and would `
+        + 'take the place of the import.',
+    });
+
+    return;
+  }
+
   const result = addNamedImport(j, root, { source, imported: name, typeOnly: isType });
 
   if (result.reason === 'collision') {

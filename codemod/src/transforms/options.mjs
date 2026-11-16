@@ -457,6 +457,7 @@ function adviseRemoval(env, target, line, what, reason) {
 }
 
 const SPREAD_NODES = /^(?:Spread|ExperimentalSpread|JSXSpread)/;
+const MAX_SPREAD_DEPTH = 4;
 
 /**
  * Whether a spread follows a node in a list of properties or attributes. A later spread can set the key again and
@@ -468,6 +469,59 @@ const SPREAD_NODES = /^(?:Spread|ExperimentalSpread|JSXSpread)/;
  */
 function spreadFollows(list, node) {
   return list.slice(list.indexOf(node) + 1).some(item => SPREAD_NODES.test(item.type));
+}
+
+/**
+ * Whether an object literal can set one of the names: it has the key, a computed key that is not a string, or a spread
+ * that cannot be read or that can.
+ *
+ * @param {Env} env The state.
+ * @param {object} literalPath NodePath of an `ObjectExpression`.
+ * @param {Set<string>} names The option names.
+ * @param {number} depth Recursion guard for a spread of a spread.
+ * @returns {boolean} `true` when the object may set a name.
+ */
+function literalMaySet(env, literalPath, names, depth = 0) {
+  const keys = literalPath.node.properties.filter(item => !SPREAD_NODES.test(item.type));
+
+  if (keys.some(item => propertyName(item) === null || names.has(propertyName(item)))) {
+    return true;
+  }
+
+  const spreads = env.resolver.spreadsOf(literalPath, { exact: true });
+
+  return spreads === null || depth >= MAX_SPREAD_DEPTH
+    || spreads.some(spread => literalMaySet(env, spread, names, depth + 1));
+}
+
+/**
+ * Whether a spread in front of a key (in an object, or among the attributes of an element) can set one of the names.
+ * A rename gives the key the new name, and the spread may set that name already: the key would then win over the
+ * spread, where before the two were different options. A spread that is not an object literal of this file, or a
+ * `const` that holds one that nothing changes, may set anything.
+ *
+ * @param {Env} env The state.
+ * @param {object} holderPath NodePath of the object literal or of the `JSXOpeningElement`.
+ * @param {object} node The property or attribute that the rule renames.
+ * @param {string[]} names The names a spread must not set.
+ * @returns {boolean} `true` when a spread before the key can set a name.
+ */
+function spreadBeforeMaySet(env, holderPath, node, names) {
+  const isElement = holderPath.node.type === 'JSXOpeningElement';
+  const field = isElement ? 'attributes' : 'properties';
+  const list = holderPath.node[field];
+  const wanted = new Set(names);
+
+  return list.slice(0, list.indexOf(node)).some((item, index) => {
+    if (!SPREAD_NODES.test(item.type)) {
+      return false;
+    }
+
+    const argument = unwrapPath(holderPath.get(field, index, 'argument'));
+    const resolved = argument.node.type === 'ObjectExpression' ? argument : env.resolver.hop(argument, { exact: true });
+
+    return resolved?.node.type !== 'ObjectExpression' || literalMaySet(env, resolved, wanted);
+  });
 }
 
 /**
@@ -596,6 +650,18 @@ function renameInObject(env, objectPath, confidence) {
     return;
   }
 
+  if (spreadBeforeMaySet(env, objectPath, property.node, [rule.from, rule.to])) {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      line,
+      message: `Rename ${rule.from} to ${rule.to} by hand: a spread before it can set ${rule.to} or ${rule.from} `
+        + 'already, and the renamed key would win over it, so it was left alone.',
+    });
+
+    return;
+  }
+
   renameKey(j, property, rule.from, rule.to);
   ctx.markChanged();
   ctx.report({
@@ -646,6 +712,18 @@ function renameOnElement(env, openingPath) {
       line: lineOfNode(attribute),
       message: `Rename the ${rule.from} attribute to ${rule.to} by hand: a spread after it can set ${rule.from} `
         + 'again and win, so it was left alone.',
+    });
+
+    return;
+  }
+
+  if (spreadBeforeMaySet(env, openingPath, attribute, [rule.from, rule.to])) {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      line: lineOfNode(attribute),
+      message: `Rename the ${rule.from} attribute to ${rule.to} by hand: a spread attribute before it can set `
+        + `${rule.to} or ${rule.from} already, and the renamed attribute would win over it, so it was left alone.`,
     });
 
     return;
@@ -1017,6 +1095,35 @@ function reportNestedHolder(env, holder, node, hasDestination) {
 }
 
 /**
+ * Whether an expression can be `undefined` or `null` by its form: the word, `void 0`, a conditional with such a branch,
+ * a `??` or `||` whose right side is one, and any `&&` (it gives its left side when that is falsy). Another expression
+ * is taken as a value: whether a name holds one is not known here.
+ *
+ * @param {object|null|undefined} node An expression node.
+ * @returns {boolean} `true` when the form can yield `undefined` or `null`.
+ */
+function canBeEmpty(node) {
+  const value = node ? unwrapNode(node) : null;
+
+  switch (value?.type) {
+    case 'NullLiteral':
+      return true;
+    case 'Literal':
+      return value.value === null;
+    case 'Identifier':
+      return value.name === 'undefined';
+    case 'UnaryExpression':
+      return value.operator === 'void';
+    case 'ConditionalExpression':
+      return canBeEmpty(value.consequent) || canBeEmpty(value.alternate);
+    case 'LogicalExpression':
+      return value.operator === '&&' || canBeEmpty(value.right);
+    default:
+      return false;
+  }
+}
+
+/**
  * Check a move and decide whether it can run. Reports every case that stops it.
  *
  * @param {Env} env The state.
@@ -1055,6 +1162,19 @@ function planMove(env, child, existing, hasSpread) {
       severity: 'manual',
       line,
       message: `${rule.from} is "${text}", which is not a valid BCP 47 locale tag. Pick the ${rule.to} by hand.`,
+    });
+
+    return null;
+  }
+
+  if (canBeEmpty(child.value)) {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      line,
+      message: `${rule.from} can be undefined or null here, so the tool did not move it: an own ${rule.to} of `
+        + `undefined would override the ${rule.to} of the grid, where 17.x read an undefined culture as none. Move it `
+        + 'by hand.',
     });
 
     return null;
