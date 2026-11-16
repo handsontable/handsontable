@@ -729,6 +729,44 @@ describe('Core.setDataAtCell past the last column', () => {
     core.destroy();
   });
 
+  it('should not warn when a `beforeChange` listener redirects the change to a named field', () => {
+    const data = [{ id: 1, name: 'Ted Right' }];
+    const core = build({
+      data,
+      dataSchema: { id: null, name: null },
+      beforeChange: (changes) => {
+        changes[0][1] = 'city';
+      },
+    });
+
+    core.setDataAtCell(0, 2, 'Boston');
+
+    expect(data[0]).toEqual({ id: 1, name: 'Ted Right', city: 'Boston' });
+    expect(pastLastColumnWarnings()).toHaveLength(0);
+
+    core.destroy();
+  });
+
+  it('should warn when a `beforeChange` listener replaces the change with another past the last column', () => {
+    const data = [{ id: 1, name: 'Ted Right' }];
+    const core = build({
+      data,
+      dataSchema: { id: null, name: null },
+      beforeChange: (changes) => {
+        const [row, prop, oldValue, newValue] = changes[0];
+
+        changes[0] = [row, prop, oldValue, newValue.trim()];
+      },
+    });
+
+    core.setDataAtCell(0, 2, ' x ');
+
+    expect(data[0]).toEqual({ 2: 'x', id: 1, name: 'Ted Right' });
+    expect(pastLastColumnWarnings()).toHaveLength(1);
+
+    core.destroy();
+  });
+
   it('should still move an existing value that a `shift_right` paste pushes past the last column', () => {
     const data = [{ id: 1, name: 'Ted Right' }];
     const core = build({ data, dataSchema: { id: null, name: null } });

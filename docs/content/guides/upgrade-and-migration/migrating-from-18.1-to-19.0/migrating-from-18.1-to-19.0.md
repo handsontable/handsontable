@@ -3454,8 +3454,9 @@ on, the write is skipped: no value is written, and no
 is reported for it.
 
 The warning prints only for a write that lands. If a
-[`beforeChange`](@/api/hooks.md#beforechange) listener of yours already drops such a change or
-cancels the call, nothing is written and nothing is printed.
+[`beforeChange`](@/api/hooks.md#beforechange) listener of yours already drops such a change,
+cancels the call, or points the change at a named field, no property named after the index is
+written and nothing is printed.
 
 ### Who is affected
 

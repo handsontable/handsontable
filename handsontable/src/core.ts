@@ -4373,12 +4373,11 @@ export default function Core(
     let i;
     let ilen;
     let prop;
-    let pastLastColumnChanges: CellChange[] | null = null;
+    let writesPastLastColumn = false;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, visualColumn, newValue] = input[i];
       const visualColumnIndex = getSetDataAtCellColumn(input[i]);
-      let isPastLastColumn = false;
 
       if (visualColumnIndex >= this.countCols()) {
         // No column exists at this index, and on an object-rowed data source none ever can -
@@ -4391,7 +4390,7 @@ export default function Core(
         // serializes the row. Deprecated in 19.0.0; the write is skipped from 20.0.0 on. The rule, and why it
         // reads `!== 'array'` and exempts a grid with no columns, is in `utils/pastLastColumn.ts`.
         // The warning waits for `beforeChange`, see below.
-        isPastLastColumn = isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex);
+        writesPastLastColumn ||= isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex);
         prop = visualColumnIndex;
 
       } else {
@@ -4401,18 +4400,12 @@ export default function Core(
         prop = colToPropOrIndex(instance, visualColumnIndex) as string | number;
       }
 
-      const change: CellChange = [
+      changes.push([
         visualRow,
         prop,
         dataSource.getAtCell(this.toPhysicalRow(visualRow), visualColumn),
         newValue,
-      ];
-
-      changes.push(change);
-
-      if (isPastLastColumn) {
-        (pastLastColumnChanges ??= []).push(change);
-      }
+      ]);
     }
 
     if (!changeSource && typeof row === 'object') {
@@ -4422,10 +4415,14 @@ export default function Core(
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
 
-    // The deprecation warning says the value lands, so it prints only for a change that got past
-    // `beforeChange`. A listener that drops such a change - the #5409 workaround - or vetoes the
-    // call writes nothing and is told nothing.
-    if (pastLastColumnChanges?.some(change => processedChanges.includes(change))) {
+    // The deprecation warning says the value lands on a property named after the column index, so it
+    // is decided by what `beforeChange` left: a listener that drops such a change, vetoes the call
+    // or redirects it to a named field (the #5409 workarounds) is told nothing, and one that
+    // replaces the entry with another past the last column still is. A numeric property that a
+    // column declares (`columns: [{ data: 5 }]`) resolves to that column and does not count.
+    if (writesPastLastColumn && processedChanges.some(([, changeProp]) => Number.isInteger(changeProp) &&
+        isSkippedPastLastColumn(instance.dataType, this.countCols(), changeProp as number) &&
+        datamap.propToCol(changeProp as number) === null)) {
       deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
         'Writing past the last column of an object data source is deprecated and will be ' +
         'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +

@@ -229,6 +229,22 @@ describe('CopyPaste past the last column of an object data source', () => {
     hot.destroy();
   });
 
+  it('should still move an existing value that a `shift_right` paste pushes past the last column', () => {
+    const data = [{ id: 1, name: 'Ted Right' }];
+    const hot = pasteInto(data, 'Frank Honest', {
+      dataSchema: { id: null, name: null },
+      copyPaste: { pasteMode: 'shift_right' },
+      at: [0, 0],
+    });
+
+    // `name` shifts onto the column past the last one, which an object data source cannot gain, so
+    // it lands on a `2` key. From 20.0 on it is dropped instead.
+    expect(data[0]).toEqual({ 2: 'Ted Right', id: 'Frank Honest', name: 1 });
+    expect(pastLastColumnWarnings()).toHaveLength(1);
+
+    hot.destroy();
+  });
+
   it('should not write past the last column at all when `allowInsertColumn` is off', () => {
     const data = schemaBoundRows();
     const hot = pasteInto(data, '2\tFrank Honest', {
