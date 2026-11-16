@@ -36,6 +36,7 @@ interface HotLike {
   deselectCell(): void;
   scrollViewportTo(options: object): boolean;
   updateSettings(settings: object): void;
+  setDataAtCell(row: number, col: number, value: string): void;
   getCell(row: number, col: number, topmost?: boolean): HTMLElement;
   getSelectedRangeLast(): { to: { row: number } };
 }
@@ -146,6 +147,49 @@ export class FixedRowsBottomLinePage {
     await this.#settle();
 
     return selectedRow;
+  }
+
+  /**
+   * Turns the AutoRowSize plugin on or off through `updateSettings()`, and waits until the grid root carries
+   * (or dropped) the plugin's class name, which the plugin toggles when it is enabled and disabled.
+   *
+   * @param {boolean} enabled The plugin state to set.
+   */
+  async setAutoRowSize(enabled: boolean): Promise<void> {
+    await this.page.evaluate((autoRowSize) => {
+      (window as unknown as { hot: HotLike }).hot.updateSettings({ autoRowSize });
+    }, enabled);
+    await expect(this.page.locator('.ht-wrapper.htAutoRowSize')).toHaveCount(enabled ? 1 : 0);
+    await this.#settle();
+  }
+
+  /**
+   * Writes a text that wraps to several lines into a cell, and waits until its row is drawn taller than the
+   * row above it.
+   *
+   * @param {number} row The visual row, below the first one.
+   * @param {number} column The visual column.
+   * @returns {Promise<number>} By how many pixels the row is taller than the row above it.
+   */
+  async fillWithWrappingText(row: number, column: number): Promise<number> {
+    await this.page.evaluate(([r, c]) => {
+      (window as unknown as { hot: HotLike }).hot.setDataAtCell(r, c, 'a b c d e f g h i j k l m n o p q r s t');
+    }, [row, column] as const);
+
+    const height = (r: number) => this.master.locator(`td[data-testid="cell-${r}-${column}"]`)
+      .evaluate(cell => cell.getBoundingClientRect().height);
+    const growth = async() => await height(row) - await height(row - 1);
+
+    await expect.poll(growth).toBeGreaterThan(10);
+
+    return growth();
+  }
+
+  /**
+   * The height of the master's scroll range: the element that gives the holder its scroll height.
+   */
+  async scrollRangeHeight(): Promise<number> {
+    return this.master.locator('.wtHider').evaluate(hider => hider.getBoundingClientRect().height);
   }
 
   /**

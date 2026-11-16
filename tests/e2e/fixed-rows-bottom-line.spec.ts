@@ -286,3 +286,36 @@ test.describe('fixedRowsBottom freeze line in other grid shapes', { tag: ['@core
     await expect.poll(() => grid.customBottomBorderOffGridline(row, 2)).toBe(0);
   });
 });
+
+test.describe('fixedRowsBottom freeze line after AutoRowSize is switched at runtime', { tag: ['@core', THEMES_TAG] }, () => {
+  let grid: FixedRowsBottomLinePage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new FixedRowsBottomLinePage(page, theme, bundle);
+  });
+
+  test('is one border high under a lined-up row after updateSettings() turned AutoRowSize on', async () => {
+    // The engine used to keep measuring the rows next to the plugin. It recorded the bottom clone's first row
+    // with its top border, the freeze line, so the row calculators counted the line and a lined-up row ended
+    // above it, with both borders showing.
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1 });
+    await grid.setAutoRowSize(true);
+    await grid.scrollRowToBandEdge(20);
+
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
+  });
+
+  test('counts a row that grows into the scroll range after updateSettings() turned AutoRowSize off', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, autoRowSize: true });
+    await grid.setAutoRowSize(false);
+
+    const rangeBefore = await grid.scrollRangeHeight();
+
+    // Nobody measured the rows any more: the engine still left it to the plugin, so the row that grew was
+    // drawn taller while the scroll range kept its height.
+    const growth = await grid.fillWithWrappingText(2, 1);
+
+    await expect.poll(async () => await grid.scrollRangeHeight() - rangeBefore).toBe(growth);
+  });
+});

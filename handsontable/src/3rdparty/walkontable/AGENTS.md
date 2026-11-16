@@ -1136,7 +1136,10 @@ Consequences worth knowing:
   draw's snapshot. Reading it with the snapshot, before `refresh()`, used the clone of the previous draw, so
   a `fixedRowsBottom` or `minRowHeights` change was one draw late. `Border#isRowLinedUpWithBottomFreezeLine`
   is false without it: the row's selection and custom border are
-  drawn on the row's own gridline, as for any row. (2) Where the nudge is kept (no column header, AutoRowSize
+  drawn on the row's own gridline, as for any row. An AutoRowSize plugin turned on through `updateSettings()`
+  used to put every grid in this case: the host read `externalRowCalculator` only when it built the engine, so
+  the engine kept measuring and recorded the clone's first row with its border (`#syncExternalRowCalculator()`
+  in `tableView.ts`, see `src/plugins/autoRowSize/AGENTS.md`). (2) Where the nudge is kept (no column header, AutoRowSize
   off), the row below is one pixel inside the calculators' viewport, so the snapshot does not report the row as
   lined up. The line is one border high there, but the selection is drawn as for any row and the fill handle
   is partly under the bottom rows, as before DEV-3984. Pinned by `tests/e2e/fixed-rows-bottom-line.spec.ts` and
