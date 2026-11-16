@@ -304,6 +304,12 @@ describe.each([
       expect(region('polite')).toBe('Sorted by Age, ascending');
     });
 
+    it('should read a line break as a space and decode a character reference', () => {
+      sortWithoutRenderedHeader(['Name', 'Age<br>in years &amp; more', 'Tag']);
+
+      expect(region('polite')).toBe('Sorted by Age in years & more, ascending');
+    });
+
     it('should name the column by its letter when the label is empty', () => {
       sortWithoutRenderedHeader(['Name', '', 'Tag']);
 
