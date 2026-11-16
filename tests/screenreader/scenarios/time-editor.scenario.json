@@ -30,7 +30,7 @@
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
       "expect": [["11:45"]],
-      "note": "ArrowUp moves to the edited cell, drawn as `11:45 AM` (`12:30 AM` in WebKit, see the typing step); the arrow key takes the focus from the closed input to the cell, and NVDA and VoiceOver with Chromium read it."
+      "note": "ArrowUp moves to the edited cell, drawn as `11:45 AM` (`12:30 AM` in WebKit, see the typing step); the arrow key takes the focus from the closed input to the cell, and every reader reads it: NVDA with both browsers and VoiceOver with Chromium read `11:45 AM`, and VoiceOver with WebKit reads `12:30 AM`, the value its input took, so the step misses there on the typing, not on the reading."
     },
     {
       "id": "reopen-editor",
