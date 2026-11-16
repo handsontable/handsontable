@@ -43,7 +43,7 @@ const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
 
   const handleAfterChange = (
-    changes: Handsontable.CellChange[] | null,
+    changes: Handsontable.AppliedCellChange[] | null,
     source: Handsontable.ChangeSource
   ): void => {
     if (source !== 'external' || !changes) {
@@ -57,7 +57,11 @@ const ExampleComponent = () => {
     }
 
     changes.forEach(([row]) => {
-      [2, 3].forEach((col) => flashCell(hot, row as number, col));
+      if (row === null) {
+        return;
+      }
+
+      [2, 3].forEach((col) => flashCell(hot, row, col));
     });
   };
 

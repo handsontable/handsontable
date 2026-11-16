@@ -213,6 +213,27 @@ export class RowIdentity {
   }
 
   /**
+   * Returns the id a row KEY reads from a physical row: the `rowId` option or `dataProvider.rowId` set to a
+   * property path or a function. Generated ids (`rowId: true`) are not returned, and a key function that throws
+   * reads as no id.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @returns {*} The id, or `null` when no key is configured or the row has none.
+   */
+  getKeyedRowIdAtPhysicalRow(physicalRow: number): unknown {
+    if (this.#generatedIds) {
+      return null;
+    }
+
+    try {
+      return this.getRowIdAtPhysicalRow(physicalRow);
+
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Returns the ids of several physical rows, reading the settings once.
    *
    * @param {Array<number|null>} physicalRows The physical row indexes (`null` for a row that does not exist).

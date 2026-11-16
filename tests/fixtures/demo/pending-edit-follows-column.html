@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - an edit waiting for its validator follows its column</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+
+    window.htAllowInvalid = ({ true: true, false: false })[htParams.get('allowInvalid') ?? 'true'];
+    if (window.htAllowInvalid === undefined) {
+      throw new Error('Unknown ?allowInvalid= value: ' + JSON.stringify(htParams.get('allowInvalid')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    /**
+     * The validator answers only when the spec releases it, the way a server-side check answers
+     * later, so the spec can move, insert, or remove columns while the edit waits.
+     */
+    window.htPending = [];
+
+    const heldValidator = function(value, callback) {
+      window.htPending.push({ value, callback });
+    };
+
+    let hot;
+
+    try {
+      hot = new Handsontable(container, {
+        data: [['a0', 'b0', 'c0'], ['a1', 'b1', 'c1'], ['a2', 'b2', 'c2']],
+        validator: heldValidator,
+        allowInvalid: window.htAllowInvalid,
+        renderer: testIdRenderer,
+        colHeaders: true,
+        rowHeaders: true,
+        manualColumnMove: true,
+        hiddenColumns: true,
+        width: 600,
+        height: 'auto',
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+
+      throw error;
+    }
+
+    window.hot = hot;
+
+    /**
+     * Answers the held validator of a value and reports whether one was waiting.
+     */
+    window.htAnswer = function(value, result) {
+      const index = window.htPending.findIndex(item => item.value === value);
+
+      if (index === -1) {
+        return false;
+      }
+
+      const [{ callback }] = window.htPending.splice(index, 1);
+
+      callback(result);
+
+      return true;
+    };
+
+    /**
+     * Moves the visual column `from` so it ends at the visual column `to`.
+     */
+    window.htMoveColumn = function(from, to) {
+      hot.getPlugin('manualColumnMove').moveColumn(from, to);
+      hot.render();
+    };
+
+    /**
+     * Inserts a column at a visual column.
+     */
+    window.htInsertColumn = function(index) {
+      hot.alter('insert_col_start', index);
+    };
+
+    /**
+     * Removes the column at a visual column.
+     */
+    window.htRemoveColumn = function(index) {
+      hot.alter('remove_col', index);
+    };
+
+    /**
+     * Hides the column at a visual column.
+     */
+    window.htHideColumn = function(index) {
+      hot.getPlugin('hiddenColumns').hideColumn(index);
+      hot.render();
+    };
+
+    /**
+     * Reports the source rows the grid holds, in physical order.
+     */
+    window.htSourceData = function() {
+      return JSON.parse(JSON.stringify(hot.getSourceData()));
+    };
+
+    /**
+     * Reports the active editor's state, the visual cell it edits, and the last selected cell.
+     */
+    window.htEditorState = function() {
+      const editor = hot.getActiveEditor();
+      const selected = hot.getSelectedLast();
+
+      return {
+        opened: Boolean(editor && editor.isOpened()),
+        waiting: Boolean(editor && editor.isWaiting()),
+        row: editor && editor.isOpened() ? editor.row : null,
+        col: editor && editor.isOpened() ? editor.col : null,
+        selected: selected ? [selected[0], selected[1]] : null,
+      };
+    };
+  </script>
+</body>
+</html>

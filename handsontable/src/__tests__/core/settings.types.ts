@@ -2,6 +2,7 @@ import type Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
 import type {
   CellProperties, CellCoords, RangeType, RemoveIndexSignature, OmitHooks, Events, HotInstance, CellChange, ChangeSource,
+  AppliedCellChange,
 } from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
@@ -460,6 +461,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterCellMetaReset: () => {},
   afterChange: (changes, source) => {
     if (changes !== null) {
+      changes.forEach(change => change[0]?.toFixed());
+      // @ts-expect-error The row of an applied change is `null` for a record trimmed out of the visual space.
       changes.forEach(change => change[0].toFixed());
     }
 
@@ -721,7 +724,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return false;
   },
-  beforeChangeRender: (changes, source) => {},
+  beforeChangeRender: (changes, source) => {
+    const _row: number | null = changes[0][0];
+    // @ts-expect-error The row of an applied change is `null` for a record trimmed out of the visual space.
+    const _numberRow: number = changes[0][0];
+  },
   beforeAlter: (action, index, amount, source, keepEmptyRows) => true,
   beforeColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible) => {},
   beforeColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible) => {},
@@ -955,7 +962,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
-  modifyData: () => {},
+  modifyData: (row) => {
+    const _row: number | null = row;
+    // @ts-expect-error A write to a record trimmed out of the visual space reports no visual row.
+    const _numberRow: number = row;
+  },
   modifyFocusOnTabNavigation: (tabActivationDir, visualCoords) => {},
   modifyGetCellCoords: (row, column, topmost, source) => {
     const _row: number = row;
@@ -1125,9 +1136,18 @@ const _sourceDataValidatorBadReturn: Handsontable.GridSettings = {
 // signature, so every hook callback typed through `Events[hookName]` inferred its parameters as `any`.
 const _onAfterChange: Events['afterChange'] = (changes, source) => {
   // These assignments only compile if the parameters keep their real, non-`any` types.
-  const _changes: CellChange[] | null = changes;
+  const _changes: AppliedCellChange[] | null = changes;
+  // @ts-expect-error An applied change's row can be `null`, so it is not a `CellChange`.
+  const _cellChanges: CellChange[] | null = changes;
   const _source: ChangeSource = source;
 };
+const _onAfterValidate: Events['afterValidate'] = (isValid, value, row) => {
+  const _row: number | null = row;
+  // @ts-expect-error The row of a record a filter took out of the visual rows while it was validated is `null`.
+  const _visualRow: number = row;
+};
+const _madeChange: CellChange = [0, 'name', 'a', 'b'];
+const _appliedFromMade: AppliedCellChange = _madeChange;
 // Newly-documented hooks (previously missing from `GridSettings`) resolve to real callback types too.
 const _onBeforeOnCellMouseOverOutside: Events['beforeOnCellMouseOverOutside'] = (event, coords, TD, controller) => {
   const _event: MouseEvent = event;
@@ -1145,7 +1165,7 @@ declare const hot: HotInstance;
 // Rung 1 of the `addHook` overload ladder: an unannotated arrow under a known hook name
 // gets full parameter inference from `Events[K]`.
 hot.addHook('afterChange', (changes, source) => {
-  const _changes: CellChange[] | null = changes;
+  const _changes: AppliedCellChange[] | null = changes;
   const _source: ChangeSource = source;
 });
 // Rung 2: an explicitly-annotated callback that doesn't exactly match the declared hook

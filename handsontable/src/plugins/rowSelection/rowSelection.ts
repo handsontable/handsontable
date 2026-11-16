@@ -2679,6 +2679,26 @@ export class RowSelection extends BasePlugin {
   }
 
   /**
+   * Tells whether a column header holds the "select all" checkbox. A corner holds it only when the
+   * checkbox is in a row header column (a negative coordinate), and the right corner is the one at that
+   * position: in a grid scrolled horizontally the rendering engine offsets every corner's index, so
+   * `column` cannot name it. Any other header holds it when its own column is the checkbox column.
+   *
+   * @param {number} column Visual column index the hook was called with.
+   * @param {number} cornerIndex The header's position among the corners of its table, or `-1`.
+   * @param {number|null} checkboxColumn The column coordinate the checkbox lives in.
+   * @returns {boolean}
+   */
+  #isCheckboxHeader(column: number, cornerIndex: number, checkboxColumn: number | null): boolean {
+    if (cornerIndex >= 0) {
+      return checkboxColumn !== null && checkboxColumn < 0 &&
+        cornerIndex === this.hot.view.getRowHeadersCount() + checkboxColumn;
+    }
+
+    return column === checkboxColumn;
+  }
+
+  /**
    * Renders the "select all" checkbox into the column header it belongs to, and removes a stale
    * one from any other header (header cells are reused).
    *
@@ -2697,21 +2717,28 @@ export class RowSelection extends BasePlugin {
       this.#warnIfFirstColumnIsCheckboxColumn(column);
     }
 
+    const cornerIndex = this.hot.view.getColumnHeaderCornerIndex(TH);
+    const isCorner = cornerIndex >= 0 || column < 0;
+
     // Without the "select all" checkbox the header stays a plain one: no class, so no pointer
     // cursor and no hit area.
-    if (column !== checkboxColumn || !isBottomMostColumnHeader(TH) || !this.#hasHeaderCheckbox()) {
+    if (
+      !this.#isCheckboxHeader(column, cornerIndex, checkboxColumn) ||
+      !isBottomMostColumnHeader(TH) ||
+      !this.#hasHeaderCheckbox()
+    ) {
       this.#removeCheckbox(container);
 
       return;
     }
 
-    // The corner gets a class of its own: core never removes `cornerHeader` from a reused header
-    // label, so that class cannot tell the corner apart from a column header.
-    addClass(TH, column < 0 ? [HEADER_CELL_CLASS, CORNER_CELL_CLASS] : HEADER_CELL_CLASS);
+    // The corner gets a class of its own: core's `cornerHeader` is on the header label, and the
+    // stylesheet keys the corner's rules on the header cell.
+    addClass(TH, isCorner ? [HEADER_CELL_CLASS, CORNER_CELL_CLASS] : HEADER_CELL_CLASS);
 
     // A header with no label (the corner, or a column made only for the checkboxes) centers the
     // checkbox: the empty label would otherwise still take the room next to it.
-    if (column < 0 || (container.querySelector('.colHeader')?.textContent ?? '').trim() === '') {
+    if (isCorner || (container.querySelector('.colHeader')?.textContent ?? '').trim() === '') {
       addClass(TH, CHECKBOX_ONLY_CELL_CLASS);
     }
     this.#renderCheckbox(container, this.#getHeaderCheckboxRenderState());
@@ -3019,15 +3046,17 @@ export class RowSelection extends BasePlugin {
    * `beforeChange`, where the data still holds it; there the changes that would select a row
    * `isRowSelectable` rejects are marked too. `null` after the change, where the change's own old value
    * is used.
-   * @param {Function} [toPhysicalRow] Resolves a change's row to a physical row. Defaults to the visual
-   * to physical translation; source-data changes already carry physical rows.
+   * @param {Function} [toPhysicalRow] Resolves a change to a physical row. Defaults to the row of the change's
+   * record (`getPhysicalRowOfChange()`, which also answers for a record a filter took out of the visual space while
+   * the change waited for its validator); source-data changes already carry physical rows.
    * @returns {object|null} The physical rows that get selected and deselected, the indexes of those
    * changes, and the indexes of the changes that would select a row `isRowSelectable` rejects.
    */
   #collectBoundFlips(
     changes: Array<unknown[] | null>,
     checksBeforeChange: RowChecks | null,
-    toPhysicalRow: (row: number) => number | null = row => this.hot.toPhysicalRow(row),
+    toPhysicalRow: (row: number, change: unknown[]) => number | null = (row, change) => this.hot
+      .getPhysicalRowOfChange(change),
   ) {
     const boundColumn = this.getBoundColumn();
 
@@ -3046,7 +3075,7 @@ export class RowSelection extends BasePlugin {
         return;
       }
 
-      const physicalRow = toPhysicalRow(change[0] as number);
+      const physicalRow = toPhysicalRow(change[0] as number, change);
 
       if (physicalRow === null) {
         return;

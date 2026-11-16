@@ -22,6 +22,9 @@ test.describe('fill handle next to an overlay scrollbar', { tag: [THEMES_TAG, CR
   // The strip `axisScrollbarClearance()` keeps clear for an overlay scrollbar
   // (`OVERLAY_SCROLLBAR_CLEARANCE` in walkontable's `overlay/constants.ts`).
   const SCROLLBAR_STRIP = 16;
+  // How long an open band waits before it closes: `OVERLAY_SCROLLBAR_FADE_DELAY` in Walkontable's
+  // `overlay/constants.ts`, in milliseconds.
+  const BAND_FADE_DELAY = 1000;
 
   const dataOf = (rows: number, cols: number) => Array.from({ length: rows }, (_, row) =>
     Array.from({ length: cols }, (__, col) => `R${row + 1}C${col + 1}`));
@@ -101,6 +104,62 @@ test.describe('fill handle next to an overlay scrollbar', { tag: [THEMES_TAG, CR
 
     await expect.poll(() => grid.fillHandleOverlapsScrollbarBand())
       .toEqual({ bandShown: true, overlaps: false });
+  });
+
+  test('lets the band over a fixed end column close while the pointer rests on the column beside the strip', async() => {
+    await grid.initGrid({ data: WIDE_TALL_DATA, width: 500, height: 300, fixedColumnsEnd: 1 });
+    // On the end column's visible part: past the strip, inside the reach that used to hold the band (26px).
+    await grid.restPointerFromInlineEndEdge(SCROLLBAR_STRIP + 4);
+    // Selecting a cell far down scrolls the grid vertically, which opens the band. The cell under test is
+    // then one a few rows up, already in view: its handle is clear of the grid's bottom edge in every theme.
+    await grid.selectCells(25, 19, 25, 19);
+    await grid.selectCells(22, 19, 22, 19, false);
+
+    // Precondition: the band opened and cut the strip out of the end column, the cell's fill handle with it:
+    // the clip takes the handle out of hit testing too.
+    await expect.poll(() => grid.inlineEndCloneClip()).toBe(`inset(0px ${SCROLLBAR_STRIP}px 0px 0px)`);
+    expect(await grid.elementAtFillHandleCenter(grid.endCloneFillHandle())).not.toMatch(/^ht_clone_inline_end\//);
+
+    // The pointer is not over the scrollbar, so the band fades and the column is whole again.
+    await expect.poll(() => grid.inlineEndCloneClip()).toBe('');
+    // What the user gets back: the handle takes the pointer again.
+    await expect.poll(() => grid.elementAtFillHandleCenter(grid.endCloneFillHandle()))
+      .toMatch(/^ht_clone_inline_end\/.*corner/);
+  });
+
+  test('lets the band over a fixed end column close in RTL, where the column is on the left', async() => {
+    await grid.initGrid({
+      data: WIDE_TALL_DATA, width: 500, height: 300, fixedColumnsEnd: 1, layoutDirection: 'rtl',
+    });
+    // On the end column's visible part, measured from the holder's left edge in RTL.
+    await grid.restPointerFromInlineEndEdge(SCROLLBAR_STRIP + 4);
+    await grid.selectCells(25, 19, 25, 19);
+
+    // Precondition: the band opened and clipped the end column.
+    await expect.poll(() => grid.inlineEndCloneClip()).not.toBe('');
+    await expect.poll(() => grid.inlineEndCloneClip()).toBe('');
+  });
+
+  test('holds the band over a fixed end column while the pointer rests on the scrollbar strip', async() => {
+    await grid.initGrid({ data: WIDE_TALL_DATA, width: 500, height: 300, fixedColumnsEnd: 1 });
+    await grid.restPointerFromInlineEndEdge(SCROLLBAR_STRIP / 2);
+    await grid.selectCells(25, 19, 25, 19);
+
+    // Precondition: the band opened. The fade delay is counted from here.
+    await expect.poll(() => grid.inlineEndCloneClip()).toBe(`inset(0px ${SCROLLBAR_STRIP}px 0px 0px)`);
+
+    const openedAt = Date.now();
+
+    // Read after the fade delay has passed: the band is still open, because the pointer is on the strip.
+    await expect.poll(async() => {
+      const clip = await grid.inlineEndCloneClip();
+
+      return Date.now() - openedAt > BAND_FADE_DELAY + 500 ? clip : 'before the fade delay';
+    }).toBe(`inset(0px ${SCROLLBAR_STRIP}px 0px 0px)`);
+
+    // Positive control for the hold: once the pointer leaves the strip, the same band closes.
+    await grid.restPointerFromInlineEndEdge(SCROLLBAR_STRIP + 4);
+    await expect.poll(() => grid.inlineEndCloneClip()).toBe('');
   });
 
   test('clears the strip for a last column that ends a few pixels short of the holder edge', async() => {

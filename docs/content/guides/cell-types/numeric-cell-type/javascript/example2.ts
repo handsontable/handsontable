@@ -30,6 +30,11 @@ const hot = new Handsontable(container, {
     }
 
     const [row, prop] = changes[changes.length - 1];
+
+    if (row === null) {
+      return;
+    }
+
     const column = prop as number;
     const value = hot.getDataAtCell(row, column);
     const label = column === 1 ? 'Default' : 'preserveNumericLiteral';

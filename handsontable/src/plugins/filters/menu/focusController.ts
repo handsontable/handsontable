@@ -139,8 +139,9 @@ export function createMenuFocusController(mainMenu: Menu, menuItems: unknown[]) 
    * @param {Menu} menu The new menu instance.
    */
   function setMenu(menu: Menu) {
-    menu.addLocalHook('afterSelectionChange', (selectedItem: Record<string, unknown>) => {
-      if (!(selectedItem.key as string).startsWith('filter_')) {
+    menu.addLocalHook('afterSelectionChange', (selectedItem: Record<string, unknown> | null) => {
+      // A keyless item (a separator) of an array `items` list has its array index as the key.
+      if (typeof selectedItem?.key !== 'string' || !selectedItem.key.startsWith('filter_')) {
         focusNavigator.clear();
       }
     });

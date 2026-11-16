@@ -34,6 +34,7 @@ import type {
   CellProperties as CellPropertiesType,
   CellMeta as CellMetaType,
   CellChange as CellChangeType,
+  AppliedCellChange as AppliedCellChangeType,
   ChangeSource as ChangeSourceType,
   RowObject as RowObjectType,
 } from './settings';
@@ -330,6 +331,7 @@ declare namespace Handsontable {
   /** Alias of the top-level `CellMeta` export. */
   export type CellMeta = CellMetaType;
   export type CellChange = CellChangeType;
+  export type AppliedCellChange = AppliedCellChangeType;
   export type ChangeSource = ChangeSourceType;
   export type RowObject = RowObjectType;
   export type Events = import('./core/settings').Events;
@@ -540,7 +542,7 @@ export {
 // Note: CellCoords and CellRange are already exported as runtime values above.
 export type { GridSettings, Events, SanitizerContext, TextExtractorContext, PasteClipboardData } from './core/settings';
 export type {
-  CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, SourceRowData, ChangeSource,
+  CellValue, CellChange, AppliedCellChange, ColumnDataGetterSetterFunction, RowObject, SourceRowData, ChangeSource,
   CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks, SettingsUpdate
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';

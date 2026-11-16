@@ -233,9 +233,9 @@ export class GridLayoutsPage {
    *
    * The redraw is the render-state probe, not the scroll offset: the band is opened by the same
    * `scroll` handler that redraws, so once the redraw is seen the band is up if it is going to be.
-   * The pointer is parked off the grid first, because a pointer resting within 26 px of a scrollbar
+   * The pointer is parked off the grid first, because a pointer resting within 16 px of a scrollbar
    * keeps that scrollbar's band open by design (`OVERLAY_SCROLLBAR_PROXIMITY`) – which is where it
-   * rests after a click on the far corner.
+   * may rest after a click on the far corner.
    *
    * @param {'start' | 'end'} edge Which end to scroll to.
    */

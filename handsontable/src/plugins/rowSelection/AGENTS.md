@@ -132,8 +132,9 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   label is empty, such as a column made only for the checkboxes in the `firstColumn` location). The CSS hides
   its label and centers the checkbox on both axes; an empty label would still take the room next to it.
 - **The corner gets its own class (`htRowSelectionCorner`).** Core adds `cornerHeader` to a header label
-  that renders a negative column and never removes it, so a header cell reused from the corner (switching
-  `checkboxLocation`) keeps it. A CSS rule keyed on `cornerHeader` hid the first column's label. Pinned by
+  that renders a negative column, and until `TableView#updateCellHeader` started removing it from a label
+  drawn for a column, a header cell reused from the corner (switching `checkboxLocation`) kept it. A CSS
+  rule keyed on `cornerHeader` hid the first column's label. Pinned by
   the "keeps the first column label after switching" case in `tests/e2e/row-selection.spec.ts`.
 - **Space on a data cell toggles its row (as in AG Grid), and must mark the event handled.** The editor
   manager opens an editor on any printable key in `afterDocumentKeyDown` unless
@@ -160,7 +161,10 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
 - **The row header column is pushed last** in `afterGetRowHeaderRenderers`, next to the data, and its
   column coordinate is `#rowHeaderRendererIndex - view.getRowHeadersCount()` (`-1` unless a plugin
   enabled after this one adds a column). The corner above it gets the same coordinate in
-  `afterGetColHeader`. Do not hard-code `-1`.
+  `afterGetColHeader`, except in a grid scrolled horizontally, where the engine offsets every corner's
+  index. `#isCheckboxHeader()` therefore finds that corner by its position among the corners
+  (`TableView#getColumnHeaderCornerIndex()`), so with two row header columns the checkbox stays in the
+  second one. Do not hard-code `-1`.
 - **NestedRows: `groupSelects` decides the tree's rules** (`#resolveGroupSelects()`), and a wrong guess about
   it breaks the parent's state. With `'descendants'` (the default) **only the leaves store a selection**: a
   parent's checked / mixed / unchecked state and whether it can be selected are computed from the leaves

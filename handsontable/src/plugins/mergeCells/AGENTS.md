@@ -1157,6 +1157,18 @@ Do not "fix" `#getStoredValueAt` back to a physical column.
 `registerConflict('pagination', ['mergeCells', …])` — Pagination is the plugin that stays disabled. See
 `../base/AGENTS.md`.
 
+## An autofill that waits for its validator recreates no merge once its area moved
+
+`recreateAfterDataPopulation()` (`calculations/autofill.ts`, from `afterChange` with the `Autofill.fill` source)
+copies the base area's merges along the filled area at fill-time visual offsets. A fill whose changes wait for an
+async validator lands in `afterChange` later, and core reports each change at its record's CURRENT visual row, so
+a sort, a move or a trim during the wait scatters those rows and the offsets name other records. The merges would
+then be added every `cycleLength` rows over unrelated records. `captureFillArea()` (called from
+`#onModifyAutofillRange`) records the physical rows and columns of the fill area, and `isFillAreaInPlace()` skips
+the recreation, and drops the fill cache, when any of them no longer sits at its fill-time visual index. The
+filled values still land; only the merge copies are skipped. Pinned by
+`__tests__/autofillAfterHeldValidator.unit.js`.
+
 ## Viewport getter methods
 
 `mergeCells` changes what the viewport getters report (DEV-932). That is documented behavior, not a defect.
