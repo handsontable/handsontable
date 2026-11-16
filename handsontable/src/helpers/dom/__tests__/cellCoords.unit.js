@@ -29,6 +29,7 @@ import { getCellCoordsFromMousePosition } from 'handsontable/helpers/dom/cellCoo
  * @param {number}   opts.fixedRowsTop     Count of frozen top rows.
  * @param {number}   opts.fixedRowsBottom  Count of frozen bottom rows.
  * @param {number}   opts.fixedColumnsStart Count of frozen start columns.
+ * @param {number}   opts.fixedColumnsEnd  Count of frozen end columns, drawn at the viewport's inline-end edge.
  * @param {Array}    opts.mergedCells      Merge anchors as `{ row, col, rowspan?, colspan? }`.
  * @param {number[]} opts.hiddenColumns    Columns that render no cell (`getCell` returns null).
  * @param {number[]} opts.hiddenRows       Rows that render no cell (`getCell` returns null).
@@ -59,6 +60,7 @@ function buildHot({
   fixedRowsTop = 0,
   fixedRowsBottom = 0,
   fixedColumnsStart = 0,
+  fixedColumnsEnd = 0,
   mergedCells = [],
   hiddenColumns = [],
   hiddenRows = [],
@@ -95,8 +97,14 @@ function buildHot({
 
     return tableRect.top + colHeaderHeight + ((row - firstRow - hiddenBefore) * rowHeight);
   };
+  // Whether a column is one of the frozen end columns, which sit at the viewport's inline-end edge.
+  const isEndColumn = col => fixedColumnsEnd > 0 && col >= colCount - fixedColumnsEnd;
   // Rendered left for a column, skipping the width of any hidden columns before it.
   const cellLeft = (col) => {
+    if (isEndColumn(col)) {
+      return tableRect.left + rowHeaderWidth + viewportWidth - ((colCount - col) * colWidth);
+    }
+
     let hiddenBefore = 0;
 
     for (let c = firstCol; c < col; c++) {
@@ -108,7 +116,9 @@ function buildHot({
     return tableRect.left + rowHeaderWidth + ((col - firstCol - hiddenBefore) * colWidth);
   };
   // Cell right for col c in RTL (columns grow leftward from the right edge of the viewport).
-  const cellRight = c => tableRect.right - rowHeaderWidth - ((c - firstCol) * colWidth);
+  const cellRight = c => (isEndColumn(c)
+    ? tableRect.right - rowHeaderWidth - viewportWidth + ((colCount - c) * colWidth)
+    : tableRect.right - rowHeaderWidth - ((c - firstCol) * colWidth));
 
   const makeCell = (row, col, merge) => {
     const el = document.createElement('td');
@@ -185,6 +195,7 @@ function buildHot({
     columnIndexMapper: {
       getVisualFromRenderableIndex: n => n,
       getNearestNotHiddenIndex: n => n,
+      getNotHiddenIndexesLength: () => colCount,
     },
     rowIndexMapper: {
       getVisualFromRenderableIndex: n => n,
@@ -199,6 +210,7 @@ function buildHot({
       getColumnHeaderHeight: () => colHeaderHeight,
       getRowHeaderWidth: () => rowHeaderWidth,
       countNotHiddenFixedColumnsStart: () => fixedColumnsStart,
+      countNotHiddenFixedColumnsEnd: () => fixedColumnsEnd,
       countNotHiddenFixedRowsTop: () => fixedRowsTop,
       countNotHiddenFixedRowsBottom: () => fixedRowsBottom,
     },
@@ -748,6 +760,63 @@ describe('getCellCoordsFromMousePosition', () => {
       expect(coords.col).toBe(1);
       expect(coords.row).toBe(2);
       expect(coords.col).not.toBe(0);
+    });
+  });
+
+  describe('frozen end columns drawn over the scrollable ones', () => {
+    // 20 columns of 80px in a 480px viewport: the master shows columns 0 to 5, and the last two columns
+    // (18 and 19) are frozen at the inline-end edge, over the place where columns 4 and 5 are.
+    const endBandGeometry = {
+      tableRect: { left: 0, top: 0, right: 480, bottom: 300 },
+      viewportWidth: 480,
+      viewportHeight: 300,
+      firstRow: 0,
+      lastRow: 9,
+      firstCol: 0,
+      lastCol: 5,
+      totalRows: 10,
+      totalCols: 20,
+      fixedColumnsEnd: 2,
+      rowHeight: 30,
+      colWidth: 80,
+    };
+
+    it('resolves a pointer over the end columns to those columns, not to the columns under them', () => {
+      const hot = buildHot(endBandGeometry);
+
+      // The band starts at 480 - 160 = 320. Column 18 is 320..400, column 19 is 400..480.
+      expect(getCellCoordsFromMousePosition(hot, 360, 75)).toEqual({ row: 2, col: 18 });
+      expect(getCellCoordsFromMousePosition(hot, 440, 75)).toEqual({ row: 2, col: 19 });
+    });
+
+    it('resolves a pointer before the end columns to the scrollable column there', () => {
+      const hot = buildHot(endBandGeometry);
+
+      // Column 3 is 240..320, right before the band.
+      expect(getCellCoordsFromMousePosition(hot, 300, 75)).toEqual({ row: 2, col: 3 });
+    });
+
+    it('resolves a pointer past the inline-end edge to the last end column', () => {
+      const hot = buildHot(endBandGeometry);
+
+      expect(getCellCoordsFromMousePosition(hot, 900, 75)).toEqual({ row: 2, col: 19 });
+    });
+
+    it('resolves the end columns from the left edge in RTL', () => {
+      const hot = buildHot({ ...endBandGeometry, isRtl: true });
+
+      // In RTL the band is at the left: column 19 is 0..80, column 18 is 80..160.
+      expect(getCellCoordsFromMousePosition(hot, 40, 75)).toEqual({ row: 2, col: 19 });
+      expect(getCellCoordsFromMousePosition(hot, 120, 75)).toEqual({ row: 2, col: 18 });
+      // Column 1 is 320..400 from the right edge, clear of the band.
+      expect(getCellCoordsFromMousePosition(hot, 360, 75)).toEqual({ row: 2, col: 1 });
+    });
+
+    it('leaves the frozen start columns their priority when both bands are set', () => {
+      const hot = buildHot({ ...endBandGeometry, totalCols: 3, lastCol: 2, fixedColumnsStart: 2 });
+
+      // Three columns, two frozen at the start: only the last one is left for the end band.
+      expect(getCellCoordsFromMousePosition(hot, 120, 75)).toEqual({ row: 2, col: 1 });
     });
   });
 
