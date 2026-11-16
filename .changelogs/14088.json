@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the ColumnSummary plugin throwing an error when an endpoint's `ranges` option is an empty array. Such an endpoint now summarizes no rows, and a `custom` function now receives `ranges` as `[]` instead of `undefined`.",
-  "type": "fixed",
-  "issueOrPR": 14088,
-  "breaking": false,
-  "framework": "none"
-}

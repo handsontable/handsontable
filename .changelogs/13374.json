@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed React custom editors not committing `setValue` after a click on the editor UI.",
-  "type": "fixed",
-  "issueOrPR": 13374,
-  "breaking": false,
-  "framework": "react"
-}

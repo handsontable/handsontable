@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed merged cells keeping the wrong value after a column move.",
-  "type": "fixed",
-  "issueOrPR": 13520,
-  "breaking": false,
-  "framework": "none"
-}

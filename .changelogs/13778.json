@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a bug where Shift + mouse wheel scrolled the rows instead of the columns.",
-  "type": "fixed",
-  "issueOrPR": 13778,
-  "breaking": false,
-  "framework": "none"
-}

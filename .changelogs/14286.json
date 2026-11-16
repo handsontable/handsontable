@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a fill handle partly hidden under the frozen bottom rows after a keyboard move scrolled a row up to them, in a grid with column headers.",
-  "type": "fixed",
-  "issueOrPR": 14286,
-  "breaking": false,
-  "framework": "none"
-}

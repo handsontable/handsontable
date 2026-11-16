@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an `editor` option of `true` throwing an error instead of using the default editor.",
-  "type": "fixed",
-  "issueOrPR": 13278,
-  "breaking": false,
-  "framework": "none"
-}

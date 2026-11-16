@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a validated edit being saved into another column when columns are inserted or removed before its validator answers. A validator correction and a reopened editor now also stay on the edited column after a column move.",
-  "type": "fixed",
-  "issueOrPR": 14288,
-  "breaking": false,
-  "framework": "none"
-}

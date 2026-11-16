@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an error thrown when a touch tap selected a separator in the filters dropdown menu.",
-  "type": "fixed",
-  "issueOrPR": 14292,
-  "breaking": false,
-  "framework": "none"
-}

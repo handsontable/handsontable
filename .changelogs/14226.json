@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed formulas showing #REF! or wrong values after an initial manualRowMove or manualColumnMove order, and after a re-render that follows a row or column drag.",
-  "type": "fixed",
-  "issueOrPR": 14226,
-  "breaking": false,
-  "framework": "none"
-}
