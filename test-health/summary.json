@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-16T13:00:53.557Z",
+  "generatedAt": "2026-11-16T13:08:47.035Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 449,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 2308
+    "entries": 2309
   },
   "rows": [
     {
@@ -234,9 +234,9 @@
       "file": "e2e/formula-builder-picking.spec.ts",
       "line": 672,
       "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page and extends the range",
-      "count7": 1,
-      "count30": 2,
-      "countAll": 2,
+      "count7": 2,
+      "count30": 3,
+      "countAll": 3,
       "runs30": 2,
       "flakyRuns30": 1,
       "branches30": 2,
@@ -253,8 +253,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-11-16T13:00:05Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43864708557",
+        "seenAt": "2026-11-16T13:08:01Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43864708557/attempts/2",
         "branch": "feature/DEV-4034_Pending-write-follows-column",
         "leg": "e2e-horizon-min",
         "status": "flaky",
