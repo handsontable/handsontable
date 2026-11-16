@@ -162,8 +162,25 @@ describe('validateDetectRule', () => {
     }
 
     for (const key of ['import', 'call', 'hook']) {
-      for (const value of [1, '', [1], [''], null]) {
-        assert.match(validateDetectRule(rule({ match: { [key]: value } })).join(), /must be a name or a list of names/,
+      for (const value of [1, '', [1], [''], null, []]) {
+        assert.match(validateDetectRule(rule({ match: { [key]: value } })).join(),
+          /must be a name or a non-empty list of names/, `${key} ${JSON.stringify(value)}`);
+      }
+
+      assert.deepEqual(validateDetectRule(rule({ match: { [key]: 'a' } })), [], key);
+      assert.deepEqual(validateDetectRule(rule({ match: { [key]: ['a', 'b'] } })), [], key);
+    }
+
+    // An empty list passes `every()` and matches nothing, which would silence the rule without a word.
+    const lists = {
+      property: /property must be a dotted key path/,
+      annotatedObject: /must be a type name/,
+      namespaceMember: /must be a member path/,
+    };
+
+    for (const [key, message] of Object.entries(lists)) {
+      for (const value of [[], [''], ['a', '']]) {
+        assert.match(validateDetectRule(rule({ match: { [key]: value } })).join(), message,
           `${key} ${JSON.stringify(value)}`);
       }
     }

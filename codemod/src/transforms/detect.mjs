@@ -11,7 +11,7 @@ import {
   unwrapPath,
 } from '../lib/ast.mjs';
 import { addFact } from '../lib/facts.mjs';
-import { collectHotBindings } from '../lib/hot-bindings.mjs';
+import { collectHotBindings, receiverOfGrid } from '../lib/hot-bindings.mjs';
 import {
   findDynamicImports,
   findImports,
@@ -20,7 +20,7 @@ import {
   getImportedBindings,
 } from '../lib/imports.mjs';
 import { createLineCounter, scanScripts } from '../lib/inline-script.mjs';
-import { GENERIC_OPTIONS, KNOWN_OPTIONS, findOptionObjects } from '../lib/option-objects.mjs';
+import { GENERIC_OPTIONS, KNOWN_OPTIONS, analyzeOptionObjects, isClaimed } from '../lib/option-objects.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import { printTree } from '../lib/print.mjs';
 import { createHop, isReference } from '../lib/resolve.mjs';
@@ -90,6 +90,19 @@ function propertyPaths(spec) {
  */
 function listOf(value) {
   return Array.isArray(value) ? value : [value];
+}
+
+/**
+ * Tell whether a manifest field is a name or a non-empty list of names, none of them empty. An empty list passes
+ * `every()` and then matches nothing, so a typo of that kind would silence a rule without a word.
+ *
+ * @param {unknown} value A value or an array of values.
+ * @returns {boolean} `true` for a name, or a list of at least one name.
+ */
+function isNameList(value) {
+  const names = listOf(value);
+
+  return names.length > 0 && names.every(item => typeof item === 'string' && item.length > 0);
 }
 
 /**
@@ -172,8 +185,8 @@ function validateMatch(spec, files, where) {
     problems.push(`${where}.whenAnyKey must be a non-empty array of key names`);
   }
 
-  if (['import', 'call', 'hook'].includes(key) && !listOf(spec[key]).every(item => typeof item === 'string' && item)) {
-    problems.push(`${where}.${key} must be a name or a list of names`);
+  if (['import', 'call', 'hook'].includes(key) && !isNameList(spec[key])) {
+    problems.push(`${where}.${key} must be a name or a non-empty list of names`);
   }
 
   if (spec.withKey !== undefined && (typeof spec.withKey !== 'string' || !spec.withKey)) {
@@ -181,18 +194,18 @@ function validateMatch(spec, files, where) {
   }
 
   if (spec.receiver !== undefined && (typeof spec.receiver !== 'string' || !spec.receiver)) {
-    problems.push(`${where}.receiver must be "instance" or the text of the receiver`);
+    problems.push(`${where}.receiver must be "instance", "grid", or the text of the receiver`);
   }
 
   if (['string', 'selector', 'regex'].includes(key) && typeof spec[key] !== 'string') {
     problems.push(`${where}.${key} must be a regular expression source`);
   }
 
-  if (key === 'property' && !listOf(spec.property).every(item => typeof item === 'string' && item)) {
+  if (key === 'property' && !isNameList(spec.property)) {
     problems.push(`${where}.property must be a dotted key path or a list of them (${ANY_HOOK} is every hook)`);
   }
 
-  if (key === 'annotatedObject' && !listOf(spec.annotatedObject).every(item => typeof item === 'string' && item)) {
+  if (key === 'annotatedObject' && !isNameList(spec.annotatedObject)) {
     problems.push(`${where}.annotatedObject must be a type name or a list of them`);
   }
 
@@ -215,7 +228,7 @@ function validateMatch(spec, files, where) {
     problems.push(`${where}.withoutPlugin must be a plugin export name such as Dialog`);
   }
 
-  if (key === 'namespaceMember' && !listOf(spec.namespaceMember).every(item => typeof item === 'string' && item)) {
+  if (key === 'namespaceMember' && !isNameList(spec.namespaceMember)) {
     problems.push(`${where}.namespaceMember must be a member path after the namespace or a list of them`);
   }
 
@@ -564,6 +577,8 @@ function receiverText(node) {
  * @property {() => import('../lib/hot-bindings.mjs').HotBindings} bindings Hot bindings of the part.
  * @property {() => import('../lib/option-objects.mjs').OptionObject[]} optionList Option objects of the part.
  * @property {() => Set<object>} optionNodes The nodes of those objects.
+ * @property {() => Set<object>} claimedNodes The object literals that another receiver than the grid takes
+ * (`analyzeOptionObjects()`). A `property` matcher skips a key in one.
  * @property {() => ReturnType<import('../lib/resolve.mjs').createHop>} resolver The one-hop resolver of the part.
  * @property {() => string} clean The text of the part without the comments the tool wrote.
  * @property {() => string} code The text of a js part without any comment.
@@ -577,8 +592,10 @@ function receiverText(node) {
  */
 function createEnv(ctx) {
   const bindings = memo(() => collectHotBindings(ctx.j, ctx.root));
-  const optionList = memo(() => findOptionObjects(ctx.j, ctx.root, bindings()));
+  const analysis = memo(() => analyzeOptionObjects(ctx.j, ctx.root, bindings()));
+  const optionList = memo(() => analysis().objects);
   const optionNodes = memo(() => new Set(optionList().map(item => item.path.node)));
+  const claimedNodes = memo(() => analysis().claimed);
   const resolver = memo(() => createHop(ctx.j, ctx.root));
 
   return {
@@ -590,6 +607,7 @@ function createEnv(ctx) {
     bindings,
     optionList,
     optionNodes,
+    claimedNodes,
     resolver,
     clean: memo(() => blankToolComments(ctx.source)),
     code: memo(() => blankCodeComments(ctx.parser, ctx.source)),
@@ -978,6 +996,11 @@ function matchProperty(env, node) {
         continue;
       }
 
+      // An object that another receiver than the grid takes (`form.updateSettings({ ... })`) is not Handsontable's.
+      if (origin.object && isClaimed(origin.object, env.claimedNodes())) {
+        continue;
+      }
+
       if (spec.in === 'menu-item' && !(origin.object && isMenuItem(origin.object))) {
         continue;
       }
@@ -1075,8 +1098,8 @@ function matchDynamicProperty(env, node) {
   }
 
   const paths = propertyPaths(spec);
-
-  return dynamicOptionSites(env.j, env.root).filter(site => paths.some((segments) => {
+  const bindings = env.bindings();
+  const matches = (site, segments) => {
     const last = segments[segments.length - 1];
     const before = segments[segments.length - 2];
     const set = site.name === last && (segments.length === 1 || site.parent === before);
@@ -1101,7 +1124,13 @@ function matchDynamicProperty(env, node) {
     }
 
     return true;
-  })).map(site => ({ line: site.line }));
+  };
+
+  return dynamicOptionSites(env.j, env.root)
+    // A call on a receiver the file shows to be another object (not the grid) sets nothing of ours.
+    .filter(site => !site.receiver || receiverOfGrid(site.receiver, bindings) !== 'other')
+    .filter(site => paths.some(segments => matches(site, segments)))
+    .map(site => ({ line: site.line }));
 }
 
 /**
@@ -1243,9 +1272,15 @@ function matchCall(env, node) {
         return;
       }
 
-      const isMatch = spec.receiver === 'instance'
-        ? env.bindings().isInstance(path.get('callee', 'object'))
-        : receiverText(callee.object) === spec.receiver;
+      const receiver = path.get('callee', 'object');
+      let isMatch = receiverText(callee.object) === spec.receiver;
+
+      if (spec.receiver === 'instance') {
+        isMatch = env.bindings().isInstance(receiver);
+      } else if (spec.receiver === 'grid') {
+        // A confirmed instance, or a receiver the file does not show (a parameter, a global, a call result).
+        isMatch = receiverOfGrid(receiver, env.bindings()) !== 'other';
+      }
 
       if (!isMatch) {
         return;
@@ -2071,10 +2106,13 @@ function applyRule(env, rule) {
  *   `viaReference`, a value that is an identifier or a member read (`DATE_FORMAT`, `FORMATS.date`) is followed one hop
  *   to a `const` of the same file and tested as that literal, and one the tool cannot resolve (an import, a parameter,
  *   a `let`) matches too, with the rule's `variableMessage` as its message. `in: "option-object"` needs the object to
- *   be found by `findOptionObjects` (any confidence) or the attribute to sit on a Handsontable wrapper component.
+ *   be found by `findOptionObjects` (any confidence) or the attribute to sit on a Handsontable wrapper component. A key in an
+ *   object literal that a receiver other than the grid takes (`form.updateSettings({ ... })`, with a local object, an
+ *   imported library, or a plugin as the receiver) never matches, with or without `in`.
  * - `call`: a method or function name, or a list. `argMatches` is tested against every string literal inside the
- *   arguments, also inside `new MouseEvent('mousedown')`. `receiver` is `"instance"` (a confirmed grid instance) or
- *   the text of the receiver, such as `fireEvent`.
+ *   arguments, also inside `new MouseEvent('mousedown')`. `receiver` is `"instance"` (a confirmed grid instance),
+ *   `"grid"` (a confirmed instance or a receiver the file does not show, never one it shows to be another object),
+ *   or the text of the receiver, such as `fireEvent`.
  * - `hook`: a hook name, or a list, used as an option key in an option object (also one annotated `Events` or
  *   `Partial<Events>`), as a prop of a `<HotTable>` or of a component that sets other known options, in `addHook()` and
  *   `addHookOnce()`, or in `add()` and `once()` on `Handsontable.hooks` or a `const` alias of it. The name may be a

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { inPlainProject, migrate } from './helpers/plain-project.mjs';
@@ -54,6 +55,35 @@ describe('the report target is checked before any file is migrated', () => {
       assert.match(result.stderr, /is not writable/);
       assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE);
     });
+  });
+});
+
+describe('a link outside the project does not block the report', () => {
+  it('writes the report below a link that lies outside the project, as /tmp does on macOS', async(context) => {
+    const outside = await mkdtemp(join(tmpdir(), 'codemod-outside-'));
+
+    try {
+      await mkdir(join(outside, 'real'));
+
+      try {
+        await symlink(join(outside, 'real'), join(outside, 'linked'), 'dir');
+      } catch {
+        context.skip('this platform cannot make a symbolic link');
+
+        return;
+      }
+
+      await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
+        const report = join(outside, 'linked', 'r.md');
+        const result = await migrate(dir, [...RANGE, '--report', report, '.']);
+
+        assert.equal(result.status, 0, result.stderr);
+        assert.match(await readFile(join(outside, 'real', 'r.md'), 'utf8'), /^# Handsontable migration report/);
+        assert.notEqual(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE, 'the file was migrated');
+      });
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
   });
 });
 

@@ -11,7 +11,9 @@
  *   `type` that is not a built-in cell type name;
  * - the object has a spread or a computed key that the tool cannot read, since either can carry any of those;
  * - the file registers a cell type, editor, renderer, or validator under a built-in name again; or
- * - the file reads the option as a member (`.correctFormat`, `['correctFormat']`) or destructures it.
+ * - the file reads the option as a member (`.correctFormat`, `['correctFormat']`), destructures it, or tests it with `in`.
+ *   A write is not a read: the target of a plain assignment, `delete`, and a destructuring or `for` head target
+ *   (`isWriteOnly()`), and an object literal key, never count. A compound assignment and `++` read the value.
  *
  * Code in another file is out of reach: a cell type that another module registers under its own name is custom
  * (its name is not built in), but a reader attached to a grid in another file is not seen.
@@ -22,6 +24,7 @@
 import {
   attributeName,
   calleeName,
+  isWriteOnly,
   lineOfNode,
   memberName,
   propertyName,
@@ -106,6 +109,7 @@ function isCustomValue(key, value, registered) {
 export function createReaderFinder({ j, root, resolver, optionNodes }) {
   let registered = null;
   let members = null;
+  let tests = null;
   const reads = new Map();
 
   /**
@@ -118,6 +122,17 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
       .flatMap(type => root.find(type).paths());
 
     return members;
+  };
+
+  /**
+   * Every `'key' in object` test of the file, listed once. It reads the key without a member expression.
+   *
+   * @returns {object[]} NodePaths of the `BinaryExpression`s.
+   */
+  const inChecks = () => {
+    tests = tests ?? root.find(j.BinaryExpression, { operator: 'in' }).paths();
+
+    return tests;
   };
 
   /**
@@ -299,7 +314,7 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
       let line = null;
 
       memberPaths().forEach((path) => {
-        if (line === null && memberName(path.node) === name) {
+        if (line === null && memberName(path.node) === name && !isWriteOnly(path)) {
           line = lineOfNode(path.node) ?? 0;
         }
       });
@@ -310,6 +325,12 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
 
         if (line === null && hit) {
           line = lineOfNode(hit) ?? 0;
+        }
+      });
+
+      inChecks().forEach((path) => {
+        if (line === null && stringValue(path.node.left) === name) {
+          line = lineOfNode(path.node) ?? 0;
         }
       });
 
@@ -352,7 +373,13 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
     let hit = null;
 
     memberPaths().forEach((path) => {
-      if (hit === null && memberName(path.node) === childKey && isParent(path.node.object)) {
+      if (hit === null && memberName(path.node) === childKey && isParent(path.node.object) && !isWriteOnly(path)) {
+        hit = path.node;
+      }
+    });
+
+    inChecks().forEach((path) => {
+      if (hit === null && stringValue(path.node.left) === childKey && isParent(path.node.right)) {
         hit = path.node;
       }
     });

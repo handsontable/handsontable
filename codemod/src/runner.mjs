@@ -5,7 +5,7 @@ import { adapterFor, isCandidate } from './adapters/index.mjs';
 import { unifiedDiff } from './diff.mjs';
 import { UsageError } from './errors.mjs';
 import { discover, firstLinkOn, resolvesInside } from './discover.mjs';
-import { insideRelative, realpathNative, toPosix } from './lib/paths.mjs';
+import { insideRelative, leavesDirectory, realpathNative, toPosix } from './lib/paths.mjs';
 import { StaleFileError, writeFileSafely } from './lib/safe-write.mjs';
 import { redact } from './lib/redact.mjs';
 import { dirtyPaths, isGitRepo, isTracked } from './git.mjs';
@@ -136,7 +136,7 @@ async function skippedMessage(cwd, item, files) {
 
   if (item.kind === 'unreadable') {
     return `The tool could not read this directory (${item.reason ?? 'error'}), so it skipped it and everything below `
-      + `it. Fix the permissions and run the tool again, or name the directory: migrate ${file}`;
+      + 'it. Fix the permissions and run the tool again.';
   }
 
   if (item.kind === 'directory') {
@@ -720,38 +720,57 @@ export async function transformFile({
 }
 
 /**
- * The first symbolic link on the way to a report target, the target itself included. Components above the project
- * directory are the user's own environment (`/tmp` is a link on macOS) and are not looked at: the walk starts at the
- * deepest directory that the project directory and the target share.
+ * The symbolic link that makes a report target unsafe, or `null`. The target is unsafe when:
+ *
+ * - it sits in the project directory (or below it) and a component below the project directory is a link, the target
+ *   itself included, because `writeFile` would follow it out of the project or into another file of it;
+ * - it is a link itself, wherever it is; or
+ * - it is spelled outside the project, but a link on the way makes its directory land inside the project, so the
+ *   report would be written there although the path looks like it is not.
+ *
+ * A link on the part of the path that lies outside the project is the operating system's business and harmless
+ * otherwise (`/tmp` is a link to `/private/tmp` on macOS, and so is `/var`).
  *
  * @param {string} cwd Project directory.
  * @param {string} target Absolute path of the report.
- * @returns {Promise<string|null>} The absolute path of the link, or `null`.
+ * @returns {Promise<string|null>} The absolute path of the link, as spelled in `target`, or `null`.
  */
 async function linkOnReportPath(cwd, target) {
   const rel = relative(cwd, target);
-  let base = cwd;
-  let below;
 
-  if (isAbsolute(rel)) {
-    // Another drive: nothing is shared with the project directory.
-    base = parse(target).root;
-    below = relative(base, target);
-  } else {
-    const segments = rel.split(sep).filter(Boolean);
-    let up = 0;
+  if (!leavesDirectory(rel)) {
+    const link = await firstLinkOn(cwd, rel);
 
-    while (segments[up] === '..') {
-      up += 1;
-      base = dirname(base);
-    }
-
-    below = segments.slice(up).join(sep);
+    return link === null ? null : join(cwd, link);
   }
 
-  const link = await firstLinkOn(base, below);
+  if ((await lstat(target).catch(() => null))?.isSymbolicLink()) {
+    return target;
+  }
 
-  return link === null ? null : join(base, link);
+  const { root } = parse(target);
+  const segments = relative(root, dirname(target)).split(sep).filter(Boolean);
+  const [project, directory] = await Promise.all([realpathNative(cwd), realpathNative(dirname(target))])
+    .catch(() => [null, null]);
+
+  if (project === null || insideRelative(project, directory) === null) {
+    return null;
+  }
+
+  // The directory lands inside the project: name the first link on the way that leads there.
+  for (let count = 1; count <= segments.length; count += 1) {
+    const prefix = join(root, ...segments.slice(0, count));
+
+    if ((await lstat(prefix).catch(() => null))?.isSymbolicLink()) {
+      const real = await realpathNative(prefix).catch(() => null);
+
+      if (real !== null && insideRelative(project, real) !== null) {
+        return prefix;
+      }
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -812,7 +831,11 @@ async function assertReportTarget(cwd, reportPath, files, repo) {
   const link = await linkOnReportPath(cwd, target);
 
   if (link !== null) {
-    throw new UsageError(`--report ${reportPath} is a symbolic link, or sits below one (${relative(cwd, link)}), and `
+    // The link is named by the path the user typed: absolute when they typed an absolute path, else relative to the
+    // project directory, as they wrote it.
+    const named = isAbsolute(reportPath) ? link : relative(cwd, link);
+
+    throw new UsageError(`--report ${reportPath} is a symbolic link, or sits below one (${named}), and `
       + 'the report would be written through it. Choose another file.');
   }
 

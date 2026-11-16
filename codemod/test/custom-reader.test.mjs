@@ -139,7 +139,11 @@ describe('a removal that custom code may read is reported, and deletes nothing',
     ['a string key', 'const f = cellProperties => cellProperties[\'correctFormat\'];'],
     ['a destructuring', 'const f = ({ correctFormat }) => correctFormat;'],
     ['a destructuring of the cell meta', 'const { correctFormat } = hot.getCellMeta(0, 0);'],
-    ['a write to the option', 'function f(meta) { meta.correctFormat = false; }'],
+    ['an in check', 'const f = cellProperties => \'correctFormat\' in cellProperties;'],
+    ['a compound assignment, whose read half counts', 'function f(meta) { meta.correctFormat ||= true; }'],
+    ['an update expression', 'function f(meta) { meta.correctFormat++; }'],
+    ['a read of a member of the option', 'function f(meta) { return meta.correctFormat.value; }'],
+    ['a read in the right side of an assignment', 'function f(meta) { target.correctFormat = meta.correctFormat; }'],
   ];
 
   for (const [label, text] of READS) {
@@ -179,6 +183,60 @@ describe('a removal that custom code may read is reported, and deletes nothing',
     const result = await run(source, REMOVALS);
 
     assert.match(result.output, /correctFormat \/>/);
+  });
+});
+
+describe('a write to the option is not a read of it', () => {
+  const WRITES = [
+    ['an assignment', 'function f(meta) { meta.correctFormat = false; }'],
+    ['an assignment to an indexed column', 'columns[2].correctFormat = true;'],
+    ['an assignment to a string key', 'function f(meta) { meta[\'correctFormat\'] = false; }'],
+    ['an assignment to a nested member', 'function f(meta) { meta.cell.correctFormat = false; }'],
+    ['a parenthesized assignment target', 'function f(meta) { (meta.correctFormat) = false; }'],
+    ['a deletion', 'function f(meta) { delete meta.correctFormat; }'],
+    ['a destructuring assignment target', 'function f(meta, list) { [meta.correctFormat] = list; }'],
+    ['an object pattern assignment target', 'function f(meta, bag) { ({ value: meta.correctFormat } = bag); }'],
+    ['a for head target', 'function f(meta, list) { for (meta.correctFormat of list) { run(); } }'],
+    ['an object literal key', 'const defaults = { correctFormat: true };'],
+    ['a class property key', 'class Defaults { correctFormat = true; }'],
+  ];
+
+  for (const [label, text] of WRITES) {
+    it(`deletes correctFormat when the file has ${label}`, async() => {
+      const result = await run(grid('{ type: \'date\', correctFormat: true }', `${text}\n`), REMOVALS, 'grid.ts');
+      const column = result.output.split('\n').find(line => line.includes('new Handsontable'));
+
+      assert.doesNotMatch(column, /correctFormat/, result.output);
+      assert.ok(!result.entries.some(entry => /reads correctFormat/.test(entry.message)),
+        JSON.stringify(result.entries));
+    });
+  }
+
+  it('deletes datePickerConfig when the file only assigns it', async() => {
+    const source = grid('{ type: \'date\', datePickerConfig: { firstDay: 1 } }',
+      'columns[0].datePickerConfig = { firstDay: 0 };\n');
+    const result = await run(source, REMOVALS);
+
+    assert.ok(deleted(result, 'datePickerConfig') || !result.output.split('\n')[1].includes('datePickerConfig'),
+      result.output);
+    assert.ok(!result.entries.some(entry => /reads datePickerConfig/.test(entry.message)));
+  });
+
+  it('moves numericFormat.culture when the file only assigns it', async() => {
+    const source = grid('{ data: \'a\', type: \'numeric\', numericFormat: { culture: \'de-DE\' } }',
+      'meta.numericFormat.culture = \'fr-FR\';\n');
+    const result = await run(source, CULTURE);
+
+    assert.ok(result.output.includes('locale: \'de-DE\''), result.output);
+  });
+
+  it('keeps numericFormat.culture when the file reads it, in a member read and in an in check', async() => {
+    for (const read of ['const c = meta.numericFormat.culture;', 'const c = \'culture\' in meta.numericFormat;']) {
+      const source = grid('{ data: \'a\', type: \'numeric\', numericFormat: { culture: \'de-DE\' } }', `${read}\n`);
+      const result = await run(source, CULTURE);
+
+      assert.ok(result.output.includes('culture: \'de-DE\''), read);
+    }
   });
 });
 

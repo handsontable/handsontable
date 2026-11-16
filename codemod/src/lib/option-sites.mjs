@@ -111,8 +111,9 @@ export function templateOptionSites(source, names) {
  * @property {object|null} value The value node, or `null` when it is not known.
  * @property {'assignment'|'setCellMeta'|'setCellMetaObject'} form How the option is set. For `setCellMetaObject`,
  * it is the name of the method that makes the call.
- * @property {object} [receiver] For `setCellMetaObject`, the NodePath of the receiver of the call, so the caller can
- * tell a confirmed grid instance, whose object is an option object, from any other receiver.
+ * @property {object} [receiver] For `setCellMeta` and `setCellMetaObject`, the NodePath of the receiver of the call,
+ * so the caller can tell a confirmed grid instance, whose object is an option object, a receiver the file shows to be
+ * another object, and one it does not show.
  */
 
 /**
@@ -159,7 +160,14 @@ export function dynamicOptionSites(j, root) {
       const name = stringValue(third);
 
       if (name !== null) {
-        sites.push({ name, parent: null, line, value: fourth ?? null, form: 'setCellMeta' });
+        sites.push({
+          name,
+          parent: null,
+          line,
+          value: fourth ?? null,
+          form: 'setCellMeta',
+          receiver: unwrapPath(path.get('callee')).get('object'),
+        });
       }
     }
 

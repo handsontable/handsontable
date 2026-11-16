@@ -569,27 +569,68 @@ describe('a project outside git: a directory that cannot be read', () => {
         assert.equal(entry.file, 'locked');
         assert.match(entry.message,
           /^The tool could not read this directory \(EACCES\), so it skipped it and everything below it\./);
-        assert.match(entry.message, /migrate locked$/);
+        assert.match(entry.message, /Fix the permissions and run the tool again\.$/);
+        assert.doesNotMatch(entry.message, /migrate locked/, 'naming a directory the tool cannot read does not help');
       } finally {
         await chmod(join(dir, 'locked'), 0o755);
       }
     });
   });
 
-  it('is an error when it is the directory the run starts from', async(context) => {
+  it('is a usage error that names the path and the reason when it is the directory the run starts from',
+    async(context) => {
+      if (unreadable()) {
+        context.skip('permissions cannot deny a read on this platform or for this user');
+
+        return;
+      }
+
+      await inPlainProject({ 'locked/b.js': SOURCE }, async(dir) => {
+        await chmod(join(dir, 'locked'), 0o000);
+
+        try {
+          await assert.rejects(discover({ cwd: dir, paths: ['locked'] }), (error) => {
+            assert.equal(error.name, 'UsageError');
+            assert.match(error.message,
+              /^"locked" could not be read: permission denied \(EACCES\)\. Fix the permissions/);
+
+            return true;
+          });
+
+          const result = await run({ cwd: dir, ...RANGE, paths: ['locked'] });
+
+          assert.equal(result.exitCode, 2);
+          assert.match(result.error, /^"locked" could not be read: permission denied \(EACCES\)/);
+
+          const cli = await migrate(dir, ['--from', '17.1', '--to', '18.0', 'locked']);
+
+          assert.equal(cli.status, 2, cli.stdout + cli.stderr);
+          assert.match(cli.stderr, /"locked" could not be read: permission denied \(EACCES\)/);
+          assert.doesNotMatch(cli.stderr, /\n\s+at /, 'a stack trace reached the user');
+        } finally {
+          await chmod(join(dir, 'locked'), 0o755);
+        }
+      });
+    });
+
+  it('is a usage error for the default directory too, when the project directory cannot be listed', async(context) => {
     if (unreadable()) {
       context.skip('permissions cannot deny a read on this platform or for this user');
 
       return;
     }
 
-    await inPlainProject({ 'locked/b.js': SOURCE }, async(dir) => {
-      await chmod(join(dir, 'locked'), 0o000);
+    await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
+      await chmod(dir, 0o111);
 
       try {
-        await assert.rejects(discover({ cwd: dir, paths: ['locked'] }), { code: 'EACCES' });
+        const cli = await migrate(dir, ['--from', '17.1', '--to', '18.0']);
+
+        assert.equal(cli.status, 2, cli.stdout + cli.stderr);
+        assert.match(cli.stderr, /The project directory could not be read: permission denied \(EACCES\)/);
+        assert.doesNotMatch(cli.stderr, /\n\s+at /, 'a stack trace reached the user');
       } finally {
-        await chmod(join(dir, 'locked'), 0o755);
+        await chmod(dir, 0o755);
       }
     });
   });

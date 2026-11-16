@@ -171,6 +171,7 @@ function sharedLineSiblings(path) {
  */
 export function createMarkerIndex(j, root) {
   const outermost = new Map();
+  const outermostInBlock = new Map();
 
   root.find(j.Node).forEach((path) => {
     const line = path.node.loc?.start?.line;
@@ -184,6 +185,12 @@ export function createMarkerIndex(j, root) {
     if (!outermost.has(line) || outermost.get(line).depth > depth) {
       outermost.set(line, { path, depth });
     }
+
+    const known = outermostInBlock.get(line);
+
+    if (path.node.type !== 'BlockStatement' && (!known || known.depth > depth)) {
+      outermostInBlock.set(line, { path, depth });
+    }
   });
 
   return (line) => {
@@ -192,8 +199,18 @@ export function createMarkerIndex(j, root) {
     }
 
     const { path } = outermost.get(line);
+    const targets = markerTargets(path);
 
-    return { targets: markerTargets(path), above: anchorsAbove(path) };
+    // A block that opens the line has no statement above it to take the comment (`{ a(); b(); }` among the statements
+    // of a program or of another block, whose parents are no anchors), so the first statement inside it that starts on
+    // the line takes it, as the outermost node of the line would have.
+    if (targets.length === 0 && outermostInBlock.has(line)) {
+      const inner = outermostInBlock.get(line).path;
+
+      return { targets: markerTargets(inner), above: anchorsAbove(inner) };
+    }
+
+    return { targets, above: anchorsAbove(path) };
   };
 }
 

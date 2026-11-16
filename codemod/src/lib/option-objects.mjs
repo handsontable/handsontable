@@ -468,14 +468,18 @@ function createResolver(j, root, bindings) {
 }
 
 /**
- * Collect every option object in a file.
+ * Collect every option object in a file, and the object literals that the file hands to the `updateSettings()` or
+ * `setCellMetaObject()` of another object.
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
  * @param {import('./hot-bindings.mjs').HotBindings} bindings Result of `collectHotBindings`.
- * @returns {OptionObject[]} The objects in source order of discovery, each once, at its highest confidence.
+ * @returns {{objects: OptionObject[], claimed: Set<object>}} The option objects in source order of discovery, each
+ * once, at its highest confidence, and the nodes of the objects that a receiver other than the grid takes (a local
+ * object, an imported library, a plugin) and that no grid takes too. A claimed object is not Handsontable options, so
+ * no rule reports on it, and neither on anything nested in it (see `isClaimed()`).
  */
-export function findOptionObjects(j, root, bindings) {
+export function analyzeOptionObjects(j, root, bindings) {
   const { returned, resolveObjects, resolveArray, resolveFunction } = createResolver(j, root, bindings);
   const found = new Map();
 
@@ -827,7 +831,41 @@ export function findOptionObjects(j, root, bindings) {
     });
   }
 
-  return [...found.values()];
+  return { objects: [...found.values()], claimed: new Set([...claimed].filter(node => !found.has(node))) };
+}
+
+/**
+ * Collect every option object in a file.
+ *
+ * @param {object} j The jscodeshift API.
+ * @param {object} root The parsed Collection.
+ * @param {import('./hot-bindings.mjs').HotBindings} bindings Result of `collectHotBindings`.
+ * @returns {OptionObject[]} The objects in source order of discovery, each once, at its highest confidence.
+ */
+export function findOptionObjects(j, root, bindings) {
+  return analyzeOptionObjects(j, root, bindings).objects;
+}
+
+/**
+ * Whether a node sits in an object that another receiver than the grid takes (see `analyzeOptionObjects()`): the
+ * object itself, or an object that encloses it.
+ *
+ * @param {object} path NodePath of any node.
+ * @param {Set<object>} claimed The `claimed` set of `analyzeOptionObjects()`.
+ * @returns {boolean} `true` when the node is part of a claimed object.
+ */
+export function isClaimed(path, claimed) {
+  if (claimed.size === 0) {
+    return false;
+  }
+
+  for (let current = path; current; current = current.parent) {
+    if (claimed.has(current.node)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**

@@ -9,16 +9,17 @@ import {
   unwrapPath,
 } from '../lib/ast.mjs';
 import { createReaderFinder, describeReader, describeReaderLine } from '../lib/custom-reader.mjs';
-import { collectHotBindings, isUnresolvedReceiver } from '../lib/hot-bindings.mjs';
+import { collectHotBindings, isUnresolvedReceiver, receiverOfGrid } from '../lib/hot-bindings.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import {
   GENERIC_OPTIONS,
   KNOWN_OPTIONS,
+  analyzeOptionObjects,
   findJsxOptionAttributes,
-  findOptionObjects,
   getProperties,
   getProperty,
   hasSpread as isSpreadObject,
+  isClaimed,
 } from '../lib/option-objects.mjs';
 import { printTree } from '../lib/print.mjs';
 import { createHop, isReference } from '../lib/resolve.mjs';
@@ -256,13 +257,15 @@ function attributeValue(attribute) {
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
  * @param {import('../lib/hot-bindings.mjs').HotBindings} bindings Result of `collectHotBindings`.
- * @returns {Target[]} The targets in discovery order.
+ * @returns {{targets: Target[], claimed: Set<object>}} The targets in discovery order, and the object literals that
+ * another receiver than the grid takes (`analyzeOptionObjects()`), which no rule reports on.
  */
 function collectTargets(j, root, bindings) {
   const objects = new Map();
   const elements = new Map();
+  const { objects: optionObjects, claimed } = analyzeOptionObjects(j, root, bindings);
 
-  for (const item of findOptionObjects(j, root, bindings)) {
+  for (const item of optionObjects) {
     objects.set(item.path.node, {
       type: 'object',
       path: item.path,
@@ -281,7 +284,7 @@ function collectTargets(j, root, bindings) {
     }
   }
 
-  return [...objects.values(), ...elements.values()];
+  return { targets: [...objects.values(), ...elements.values()], claimed };
 }
 
 /**
@@ -1256,9 +1259,11 @@ function tagText(nameNode) {
  * @param {Env} env The state.
  * @param {Set<object>} handled The object literals that `findOptionObjects` recognized, at any confidence.
  * @param {import('../lib/hot-bindings.mjs').HotBindings} bindings Result of `collectHotBindings`.
+ * @param {Set<object>} claimed The object literals that another receiver than the grid takes. They are not
+ * Handsontable options, so an object in one is never reported.
  * @returns {void}
  */
-function reportUnrecognized(env, handled, bindings) {
+function reportUnrecognized(env, handled, bindings, claimed) {
   const { ctx, j, rule } = env;
 
   if (!bindings.isHotFile || (rule.kind === 'optionRename' && rule.context)) {
@@ -1273,7 +1278,8 @@ function reportUnrecognized(env, handled, bindings) {
     ctx.root.find(j.ObjectProperty).forEach((path) => {
       const value = unwrapNode(path.node.value);
 
-      if (propertyName(path.node) !== parentKey || !holds(value) || handled.has(path.parent.node)) {
+      if (propertyName(path.node) !== parentKey || !holds(value) || handled.has(path.parent.node)
+        || isClaimed(path, claimed)) {
         return;
       }
 
@@ -1413,6 +1419,11 @@ function reportDynamicOptions(ctx, rules) {
       continue;
     }
 
+    if (site.receiver && receiverOfGrid(site.receiver, bindings) === 'other') {
+      // The file shows that the receiver is another object (a local one, a library, a plugin): not the grid.
+      continue;
+    }
+
     for (const { rule, site: target } of targets.filter(item => item.site.name === site.name)) {
       const how = site.form === 'assignment' ? 'an assignment' : `${site.form}()`;
 
@@ -1517,7 +1528,7 @@ const options = {
     const { j } = ctx;
     const aggressive = Boolean(ctx.options?.aggressive);
     const bindings = collectHotBindings(j, ctx.root);
-    const targets = collectTargets(j, ctx.root, bindings);
+    const { targets, claimed } = collectTargets(j, ctx.root, bindings);
     const handled = new Set(targets.filter(target => target.type === 'object').map(target => target.path.node));
     const resolver = createHop(j, ctx.root);
     const readers = createReaderFinder({
@@ -1550,7 +1561,7 @@ const options = {
         }
       }
 
-      reportUnrecognized(env, handled, bindings);
+      reportUnrecognized(env, handled, bindings, claimed);
     }
   },
 };

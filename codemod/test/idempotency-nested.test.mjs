@@ -35,6 +35,12 @@ const WRAPPERS = [
   { name: 'object method', code: 'const o = { m() { {{BODY}} } };' },
   { name: 'method of a Vue options object', code: 'export default { mounted() { {{BODY}} } };' },
   { name: 'if block', code: 'if (ready) { {{BODY}} }' },
+  // A block that is a statement of its own has no statement above it to take the marker, so the first statement
+  // inside it that shares the line does.
+  { name: 'block statement', code: '{ {{BODY}} }' },
+  { name: 'block statement nested twice', code: '{ { {{BODY}} } }' },
+  { name: 'block statement inside a function', code: 'function f() {\n  { {{BODY}} }\n}' },
+  { name: 'block statement of a switch case', code: 'switch (kind) { case 1: { {{BODY}} } }' },
   { name: 'callback argument', code: 'setup(function() { {{BODY}} });' },
   { name: 'immediately invoked function', code: '(function() { {{BODY}} })();' },
   { name: 'function nested twice', code: 'function outer() { function inner() { {{BODY}} } inner(); }' },
@@ -212,6 +218,31 @@ describe('a call that shares its line with other code stays stable across three 
       }
     });
   }
+
+  it('marks every manual step that sits in a one-line block, and the entries say so', async() => {
+    const body = BODIES[0];
+    const blocks = [
+      '{ {{BODY}} }',
+      '{ { {{BODY}} } }',
+      '{ let a = 1; {{BODY}} let b = 2; }',
+      'if (ready) { {{BODY}} }',
+      'const f = () => { {{BODY}} };',
+      'const g = () => this.hot.undo();',
+    ];
+
+    for (const block of blocks) {
+      const source = `${HEADER}${block.replace('{{BODY}}', body.code)}\n`;
+      const [one, two, three] = await threeRuns(body, source);
+      const manual = one.entries.filter(entry => entry.severity === 'manual');
+
+      assert.ok(manual.length > 0, block);
+      assert.ok(manual.every(entry => entry.marked), `an entry has no marker in: ${one.output}`);
+      assert.equal(count(one.output), manual.length, one.output);
+      assert.equal(two.changed, false, one.output);
+      assert.equal(three.changed, false, block);
+      assert.ok(two.entries.filter(entry => entry.severity === 'manual').every(entry => entry.marked), block);
+    }
+  });
 
   it('adds no second comment above a property of the object argument of a top-level call', async() => {
     const body = BODIES.find(item => item.name.startsWith('optionRemove kept in an object argument'));

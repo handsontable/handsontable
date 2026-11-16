@@ -375,6 +375,84 @@ describe('the --report target as the file system sees it', () => {
     }
   });
 
+  it('names the link by the path the user typed, not by a climb out of the project', async(context) => {
+    const outside = await mkdtemp(join(tmpdir(), 'codemod-outside-'));
+
+    try {
+      await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
+        if (!await tryLink(outside, join(dir, 'reports'), 'dir')) {
+          context.skip('this platform cannot make a symbolic link');
+
+          return;
+        }
+
+        const absolute = await run({ cwd: dir, ...RANGE, reportPath: join(dir, 'reports', 'r.md') });
+        const relative = await run({ cwd: dir, ...RANGE, reportPath: join('sub', '..', 'reports', 'r.md') });
+
+        assert.equal(absolute.exitCode, 2);
+        assert.ok(absolute.error.includes(`(${join(dir, 'reports')})`), absolute.error);
+        assert.equal(relative.exitCode, 2);
+        assert.ok(relative.error.includes('(reports)'), relative.error);
+
+        for (const result of [absolute, relative]) {
+          assert.doesNotMatch(result.error, /\.\.[\\/]/);
+        }
+
+        assert.equal(existsSync(join(outside, 'r.md')), false, 'nothing was written through the link');
+      });
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses a report that is spelled outside the project and lands inside it through a link', async(context) => {
+    const outside = await mkdtemp(join(tmpdir(), 'codemod-outside-'));
+
+    try {
+      await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
+        if (!await tryLink(dir, join(outside, 'alias'), 'dir')) {
+          context.skip('this platform cannot make a symbolic link');
+
+          return;
+        }
+
+        const result = await run({ cwd: dir, ...RANGE, reportPath: join(outside, 'alias', 'r.md') });
+
+        assert.equal(result.exitCode, 2);
+        assert.ok(result.error.includes(`(${join(outside, 'alias')})`), result.error);
+        assert.equal(existsSync(join(dir, 'r.md')), false, 'nothing was written into the project');
+        assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE, 'and no file was migrated');
+      });
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses a report that is a link itself, outside the project too', async(context) => {
+    const outside = await mkdtemp(join(tmpdir(), 'codemod-outside-'));
+
+    try {
+      await writeFile(join(outside, 'other.md'), 'keep\n');
+
+      await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
+        if (!await tryLink(join(outside, 'other.md'), join(outside, 'r.md'))) {
+          context.skip('this platform cannot make a symbolic link');
+
+          return;
+        }
+
+        const result = await run({ cwd: dir, ...RANGE, reportPath: join(outside, 'r.md') });
+
+        assert.equal(result.exitCode, 2);
+        assert.ok(result.error.includes(`(${join(outside, 'r.md')})`), result.error);
+        assert.equal(await readFile(join(outside, 'other.md'), 'utf8'), 'keep\n');
+        assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE);
+      });
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+
   it('accepts a report in a real directory of the project, and one that does not exist yet', async() => {
     await inPlainProject({ 'a.js': SOURCE, 'reports/old.md': 'old\n' }, async(dir) => {
       await mkdir(join(dir, 'reports'), { recursive: true });

@@ -371,7 +371,7 @@
       "guide": "updatesettings-keeps-the-rows-of-a-server-backed-grid",
       "match": {
         "allOf": [
-          { "call": "updateSettings" },
+          { "call": "updateSettings", "receiver": "grid" },
           { "property": "dataProvider" }
         ]
       },

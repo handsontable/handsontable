@@ -102,6 +102,8 @@ describe('a runtime import() of a module that survives, read for a name that mov
       'async function f() { const { registerTheme: add, Core } = await import(\'handsontable\'); }\n',
       'async function f() { const ns = await import(\'handsontable\'); ns.registerTheme(1); }\n',
       'async function f() { const ns = await import(\'handsontable\') as any; return ns.registerTheme; }\n',
+      'async function f() { const { [\'registerTheme\']: add } = await import(\'handsontable\'); }\n',
+      'import(\'handsontable\').then(({ [\'registerTheme\']: add }) => add(1));\n',
     ]) {
       const entries = await reports(source);
 
@@ -130,6 +132,9 @@ describe('a runtime import() of a module that survives, read for a name that mov
       'import(\'handsontable\').then(m => m.Core);\n',
       'import(\'handsontable\').then(m => other.registerTheme(m));\n',
       'import(\'handsontable\').then(callback);\n',
+      // A computed key that is a variable is a read of whatever the variable holds, not of the name it is spelled as.
+      'async function f(registerTheme) { const { [registerTheme]: x } = await import(\'handsontable\'); }\n',
+      'import(\'handsontable\').then(({ [registerTheme]: x }) => x(1));\n',
     ]) {
       assert.deepEqual(await reports(source), [], source);
     }

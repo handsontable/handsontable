@@ -16,6 +16,10 @@ How versions are chosen:
 
 ### Added
 
+- `detect` `call` matchers take `receiver: "grid"`: a confirmed grid instance, or a receiver the file does not show,
+  never one it shows to be another object. `19.0.0/update-settings-data-provider` uses it, so an `updateSettings()` call
+  on a local object, an imported library, or a plugin is no longer reported because the file sets `dataProvider`.
+
 - Two rules of the 17.x to 18.0 migration, `18.0.0/date-default-format` and `18.0.0/time-default-format`: a `date` or
   `time` column with no `dateFormat` or `timeFormat` is reported, because 17.1 read `DD/MM/YYYY` and `h:mm:ss a` by
   default and 18.0 reads ISO 8601. A format set on the grid or on a wrapper element above the column counts.
@@ -43,6 +47,26 @@ How versions are chosen:
 
 ### Fixed
 
+- A write is not a read of an option. `columns[2].correctFormat = true`, `delete x.datePickerConfig`, a destructuring or
+  `for` head target, and a key in an object literal no longer make the custom reader check keep `correctFormat`,
+  `datePickerConfig`, or `numericFormat.culture` elsewhere in the file (and no longer say "code that reads" it).
+  `'correctFormat' in meta` now counts as a read, and `+=`, `||=`, and `++` still do.
+- An object that the `updateSettings()` of a local object, an imported library, or a plugin takes is ignored by every
+  rule, at any depth: no entry and no TODO from the `numericFormat.culture` move, the `numericFormat.pattern` and other
+  detect rules, or the unrecognized-object reports. So are `setCellMeta()` and `setCellMetaObject()` calls on such a
+  receiver. A receiver the file does not show is still reported.
+- A manual step in a one-line block among statements (`{ let hot = ...; hot.undo(); }`) gets its marker, so the
+  summary no longer says "7 of 9 are marked" for it.
+- `--report /tmp/x.md` is no longer refused on macOS. A link on the part of the path outside the project directory is
+  ignored. A link at or below the project, a report that is a link itself, and a path spelled outside the project that a
+  link brings inside it are still refused, and the message names the link as typed.
+- A start directory that cannot be read (`migrate locked`, or the project directory itself) is a usage error with exit
+  code 2 and a sentence that names the path and the reason, not a stack trace. The note about a skipped unreadable
+  directory no longer says to name it.
+- `const { [Name]: x } = await import('module')` is no longer reported as a read of `Name`: a computed key is a name
+  only when it is a string literal.
+- A `detect` rule with an empty list in `import`, `call`, `hook`, `property`, `annotatedObject`, or `namespaceMember`
+  fails when the manifests load, as an empty `whenAnyKey` already did, instead of matching nothing.
 - `updateSettings()` is judged by its receiver. The object of `store.updateSettings({ ... })` on a local object, an
   imported library, a plugin from `getPlugin()`, or `this` is no longer taken for grid options, so `correctFormat` and the
   other keys in it are not rewritten or reported. A receiver the file does not show (a parameter, a global, the result

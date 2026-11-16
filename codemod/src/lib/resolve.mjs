@@ -10,7 +10,7 @@
  * @module lib/resolve
  */
 
-import { memberName, propertyName, stringValue, unwrapPath } from './ast.mjs';
+import { isPatternTarget, memberName, propertyName, stringValue, unwrapPath } from './ast.mjs';
 import { findReferences, lookup } from './scope.mjs';
 
 const MEMBERS = new Set(['MemberExpression', 'OptionalMemberExpression']);
@@ -56,32 +56,6 @@ function onlyReads(call, argument) {
   }
 
   return name !== null && (READ_ONLY_CALLS.has(name) || name.startsWith('console.'));
-}
-
-/**
- * Whether a member expression is the target of a destructuring or of a `for` head: `[a.x] = list`,
- * `({ k: a.x } = bag)`, `[...a.x] = list`, `({ a.x = 1 } = bag)` is not valid, and `for (a.x of list)`.
- *
- * @param {object} path NodePath of the member expression.
- * @returns {boolean} `true` when the expression is written.
- */
-function isPatternTarget(path) {
-  const parent = path.parent?.node;
-
-  switch (parent?.type) {
-    case 'ArrayPattern':
-    case 'RestElement':
-      return true;
-    case 'AssignmentPattern':
-    case 'ForInStatement':
-    case 'ForOfStatement':
-      return parent.left === path.node;
-    case 'ObjectProperty':
-    case 'Property':
-      return parent.value === path.node && path.parent.parent?.node.type === 'ObjectPattern';
-    default:
-      return false;
-  }
 }
 
 /**

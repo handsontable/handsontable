@@ -6,7 +6,7 @@
  * @module lib/type-rules
  */
 
-import { isFunctionNode, memberName } from './ast.mjs';
+import { isFunctionNode, memberName, stringValue } from './ast.mjs';
 import { collectHotBindings } from './hot-bindings.mjs';
 import {
   findDynamicImports,
@@ -272,7 +272,8 @@ const TRANSPARENT_WRAPPERS = new Set(['AwaitExpression', 'ParenthesizedExpressio
   'TSAsExpression', 'TSSatisfiesExpression', 'TypeCastExpression']);
 
 /**
- * Whether an object pattern names one of the wanted keys.
+ * Whether an object pattern names one of the wanted keys. A computed key is a name only when it is a string literal
+ * (`{ ['Name']: x }`): `{ [Name]: x }` reads the property that the variable `Name` holds.
  *
  * @param {object|null|undefined} pattern A pattern node.
  * @param {Set<string>} wanted The names.
@@ -280,7 +281,7 @@ const TRANSPARENT_WRAPPERS = new Set(['AwaitExpression', 'ParenthesizedExpressio
  */
 function destructuresWanted(pattern, wanted) {
   return pattern?.type === 'ObjectPattern' && pattern.properties.some((property) => {
-    const key = property.key?.name ?? property.key?.value;
+    const key = property.computed ? stringValue(property.key) : (property.key?.name ?? property.key?.value);
 
     return typeof key === 'string' && wanted.has(key);
   });

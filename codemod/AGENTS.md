@@ -22,6 +22,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   `test-codemod` flag or a manual dispatch and not on run-all. The job is advisory (`continue-on-error`, plus a warning annotation and a job summary on failure): a red
   run does not fail the Develop run, so it cannot hold the `experimental` publish. On a pull request the suite is a real
   gate. `codemod/test/workflow-gates.test.mjs` and `.github/scripts/__tests__/codemod-workflow.test.mjs` pin it.
+- `test/other-receivers.test.mjs` pins the claimed objects (every report path ignores an object that `updateSettings()`,
+  `setCellMeta()`, or `setCellMetaObject()` of another receiver takes, and keeps an unresolved receiver) and the
+  `receiver: "grid"` call matcher of `19.0.0/update-settings-data-provider`.
 - The `test` script lists its files literally. `test/test-list.test.mjs` fails until the list and the `test/`
   directory name the same `*.test.mjs` files, so a new test file must be added to the script.
 - Smoke test: `node codemod/bin/handsontable-codemod.mjs migrate --list --from 17 --to 18.1`. The last line counts the
@@ -45,8 +48,8 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   it: run 3 is run only where run 2 changed the text. Keep it that way, because this file was the longest in the suite.
 - `test/idempotency-nested.test.mjs` is the three-run matrix for a call that shares its line with other code: wrappers
   (function, method, arrow with a block, object method, Vue options object, `if` block, callback argument, immediately
-  invoked function, nested twice, arrow in a property, and the statements without braces: `for`, `while`, `do`, `if`,
-  `else`, a label) times the kinds of TODO (a method call, a removed option in a one-line array element, an option kept
+  invoked function, nested twice, arrow in a property, a block that is a statement of its own (alone, nested, in a function,
+  in a `switch` case), and the statements without braces: `for`, `while`, `do`, `if`, `else`, a label) times the kinds of TODO (a method call, a removed option in a one-line array element, an option kept
   next to a custom reader, a JSX element) times the neighbor layouts (statements before and after, a one-line object
   that the run edits before and after). Every shape runs three times and must change nothing in runs 2 and 3. A new
   kind that leaves a TODO adds a body there, with a plan of its own rule and the rule that edits the object
@@ -228,7 +231,8 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    every dot-directory and `BUILD_OUTPUT_DIRECTORIES`, and reports a skipped directory that holds a readable file
    (`kind: 'directory'`, found by `holdsCandidate()`). A directory the walk cannot read (below the start: `EACCES`, a race
    with a removal) goes to `skipped` with `kind: 'unreadable'` and the error code as `reason`, and the walk goes on; the
-   directory the walk starts from rethrows. A path argument is read in the letter case the file system stores
+   directory the walk starts from rethrows, and `discover()` turns that into a `UsageError` (exit 2) that names the path and
+   the reason (`readFailure()`). A path argument is read in the letter case the file system stores
    (`realpathNative()`), with a note. `discover()` fills `notes` and `reasons`: when no file is found at all, `run()`
    adds "No files to migrate." and the reasons to `result.notes` and `report.notes` (exit code 0, justified in the
    README). It drops
@@ -240,8 +244,10 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    list that no adapter handles with `lstat`, and the fs walk checks every entry. A path
    check uses `leavesDirectory()`, so a directory named `..odd` is inside the project. Before a write, `run()` asks
    `resolvesInside()`: the real path of the file must be inside the real project directory. `--report` is refused
-   (exit 2) when its target is a symbolic link or sits below one (`linkOnReportPath()`, the components below the
-   directory that the project and the target share), a file git tracks, a file the run migrates, an existing file of a
+   (exit 2) when its target is a symbolic link or sits below one (`linkOnReportPath()`: a link at or below the project
+   directory, the target itself, or a link outside the project that makes the directory of a path spelled outside land
+   inside it; a link on the part outside the project, `/tmp` on macOS, is the system's business and never refused; the
+   message names the link as typed, absolute for an absolute path), a file git tracks, a file the run migrates, an existing file of a
    type the tool handles, a directory, an existing file that cannot be written, or a file in a directory that does not
    exist or cannot be written (`assertReportTarget()`, before any file changes). The same file is decided by
    `isSameFile()`: the real path as the file system stores it (`realpathNative()`) or the same device and inode, so
@@ -425,7 +431,7 @@ binding yet (see step 6), and its exports diff compares 18.1.2 with the `experim
   resize-state methods (removed in 19.0), the two `Formulas` shortcut methods (no-ops), and the two type aliases
   `Settings` of `handsontable/plugins/exportFile` and `DataProviderOptions` of `handsontable/plugins/dataProvider`.
 - **Reports:** one `detect` rule per change that has a pattern in user code (a hook set to `null`, the frozen column
-  drag and the unfreeze hooks, an `updateSettings()` call in a file with a `dataProvider` among them), and
+  drag and the unfreeze hooks, an `updateSettings()` call on a grid (`receiver: "grid"`) in a file with a `dataProvider` among them), and
   `19.0.0/helper-sanitize`. The latter
   is a `callUnwrap` with `safe: false` on purpose. The guide says to remove the call, and from 18.1 that is right,
   because the helper returned its input unchanged. In a chained run from 17.x the 18.0 rule has already left the
@@ -543,7 +549,11 @@ Two writers leave a marker. A transform that knows the exact node calls `ctx.tod
 entry): `createContext()` collects them and `applyMarkers()` places them after all transforms ran, so a line still
 names the node it was taken from. The anchor is the outermost node that starts on the line (a function body on the line
 of its signature never takes it), then `markerTargets()` climbs to a property, array element, or statement on lines of
-its own, a JSX element, or a declaration; a `BlockStatement` is never an anchor. A run is idempotent because
+its own, a JSX element, or a declaration; a `BlockStatement` is never an anchor. A block that opens the line has no
+statement above it to take the marker when it stands among the statements of a program or another block (`{ a();
+hot.undo(); }`), so `createMarkerIndex()` falls back to the outermost node of that line that is not a block, the first
+statement inside it, and the marker lands in front of that statement. A shape with no anchor at all stays report-only,
+and `marked` and the summary count say so. A run is idempotent because
 `hasJsTodo()` looks for the same comment on every place of that chain (an earlier run, or a rewrite of the element,
 can have spread a one-line object over lines, which turns a property into one with its own line), and `addCssTodo()`
 looks through the run of comments before the node. The same spreading moves the code after the object to a line of its
@@ -828,7 +838,13 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   show (a global, a parameter, a call result, a `this` member the class never sets or sets from a call) gives a medium
   one in a hot file (reported, rewritten under `--aggressive`), and a receiver the file shows to be something else (a
   local object, class, or import, a plugin from `getPlugin()`, `this`, a `this` member that holds only local values)
-  gives none and `claimed`, so the key heuristic does not take the object either.
+  gives none and `claimed`, so the key heuristic does not take the object either. `analyzeOptionObjects()` returns the
+  claimed object literals next to the option objects (those that no grid takes too), and `isClaimed(path, claimed)` is
+  true for a node in one, at any depth. Every path that reports on an object honors it: `reportUnrecognized()` in
+  `options.mjs`, the `property` matcher of `detect` (with or without `in`; `hook` goes through it), and the method
+  sites of `reportDynamicOptions()` and the dynamic `property` matcher (`setCellMeta()` and `setCellMetaObject()` on a
+  receiver `receiverOfGrid()` calls `other`). An assignment (`x.numericFormat = ...`) is kept, because a local object
+  literal is often a column that the file builds. A new reporting path needs the same check.
 - A `methodRemove` rule's `advice` may use `{name}` too, so the TODO of a call that was not confirmed (the receiver may be
   another object) names the method in its first sentence: `19.0.0/resize-state-methods` starts with "Replace {name} with
   your own store". `18.0.0/resize-state-methods` does not, so its TODO text is unchanged. A `methodRemove` rule's
@@ -886,7 +902,9 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   option is deprecated in 17.1 and removed in 19.0, and only the 19.0 guide has a section for it.
 - **`detect` rule shape:** `{ id, kind: "detect", severity?: "manual" | "warning", files: ["js" | "css" | "template"],
   requires?: "hot-file" | "option-object" | "none", emitsFact?, unlessFileMatches?, mergeKey?, match, message, guide }`.
-  `message` and `files` are required by `validateDetectRule()`, which runs when the manifests load (the shape check
+  `message` and `files` are required by `validateDetectRule()`, which runs when the manifests load, and which rejects an
+  empty list, an empty name, and a non-string in every list-valued matcher field (`import`, `call`, `hook`, `property`,
+  `annotatedObject`, `namespaceMember`, `whenAnyKey`): an empty list passes `every()` and would match nothing (the shape check
   only requires `match`). `unlessFileMatches` is a regex on the part text, and `mergeKey` makes the reports of two
   rules on one line collapse into the later one. `requires` defaults to
   `hot-file`: a js part must import or use Handsontable. `option-object` makes `property` and `hook` matchers sit in
@@ -896,7 +914,8 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 - **`detect` matchers** (js only unless noted): `import` (module or `module/...`, import, re-export, `require`,
   `import()`), `property` (dotted path; `withKey`, `valueMatches` on literal strings only, `valueIs` for the other
   values: `true`, `false`, `null`, `"array"`, `"function"`, `"object"`, `in: "option-object"`),
-  `call` (`argMatches` reads every string inside the arguments, `receiver` is `"instance"` or the receiver text),
+  `call` (`argMatches` reads every string inside the arguments, `receiver` is `"instance"`, `"grid"` (a confirmed instance or
+  a receiver the file does not show, never one it shows to be another object), or the receiver text),
   `hook` (option key, JSX prop, `addHook`, `addHookOnce`, `Handsontable.hooks.add`/`once`), `string`, `selector` and
   `regex` (also css and template; modifiers `in: "strings"` and `code: true`, see the traps of the 19.0 draft),
   `pluginRegistration` (`withoutPlugin`), `missingOption` (`whenAnyKey`, `whenValueMatches`, `unlessFileMatches`). `selector`
@@ -1000,8 +1019,11 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   a computed key in it (an unreadable spread or key on an enclosing settings object says nothing, because
   `{ columns: [...], ...extra }` is too common); a built-in name that the file registers again with
   `registerCellType`, `registerEditor`, `registerRenderer`, or `registerValidator`; and a read of the option anywhere in
-  the file (`.correctFormat`, `['datePickerConfig']`, a destructuring, an optional read; for `numericFormat.culture`
-  also `as`, parentheses, the left side of `??`/`||`, and a nested destructuring). The four name lists come from the
+  the file (`.correctFormat`, `['datePickerConfig']`, a destructuring, an optional read, `'key' in object`; for
+  `numericFormat.culture` also `as`, parentheses, the left side of `??`/`||`, and a nested destructuring). Only a read
+  counts: `isWriteOnly()` in `lib/ast.mjs` is `true` for the target of a plain `=`, the operand of `delete`, and a
+  destructuring or `for` head target (through parentheses and `as`), and such a member is skipped. A compound
+  assignment (`+=`, `||=`) and `++` read the value too, so they count, and an object literal key is no member at all. The four name lists come from the
   `*_TYPE` constants of the 17.1.0 and 18.1.2 packages and of `develop` (`handsontable/src/editors`, `renderers`,
   `validators`, `cellTypes`): re-derive them when a release adds a name. The TODO names the reader without a line
   number (a comment is compared as text on the next run, and the layout moves a line), and the report entry adds the

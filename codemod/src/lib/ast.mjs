@@ -219,3 +219,60 @@ export function typeArguments(node) {
 
   return holder?.params ?? [];
 }
+
+/**
+ * Whether an expression is the target of a destructuring or of a `for` head: `[a.x] = list`, `({ k: a.x } = bag)`,
+ * `[...a.x] = list`, and `for (a.x of list)`. (`({ a.x = 1 } = bag)` is not valid.)
+ *
+ * @param {object} path NodePath of the expression.
+ * @returns {boolean} `true` when the expression is written.
+ */
+export function isPatternTarget(path) {
+  const parent = path.parent?.node;
+
+  switch (parent?.type) {
+    case 'ArrayPattern':
+    case 'RestElement':
+      return true;
+    case 'AssignmentPattern':
+    case 'ForInStatement':
+    case 'ForOfStatement':
+      return parent.left === path.node;
+    case 'ObjectProperty':
+    case 'Property':
+      return parent.value === path.node && path.parent.parent?.node.type === 'ObjectPattern';
+    default:
+      return false;
+  }
+}
+
+/**
+ * Whether an expression is only written, never read, where it stands: the target of a plain `=` assignment, the
+ * operand of `delete`, or a destructuring or `for` head target, through parentheses and type assertions
+ * (`(a.x as T) = 1`). A compound assignment (`a.x += 1`, `a.x ||= 1`) and an update (`a.x++`) read the value too,
+ * so they are not write-only.
+ *
+ * @param {object} path NodePath of the expression, usually a member expression.
+ * @returns {boolean} `true` when the code at this place never reads the value.
+ */
+export function isWriteOnly(path) {
+  let current = path;
+
+  while (current.parent && WRAPPER_TYPES.has(current.parent.node.type)
+    && current.parent.node.expression === current.node) {
+    current = current.parent;
+  }
+
+  const parent = current.parent?.node;
+
+  switch (parent?.type) {
+    case undefined:
+      return false;
+    case 'AssignmentExpression':
+      return parent.operator === '=' && parent.left === current.node;
+    case 'UnaryExpression':
+      return parent.operator === 'delete';
+    default:
+      return isPatternTarget(current);
+  }
+}

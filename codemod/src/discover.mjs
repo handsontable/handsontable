@@ -100,6 +100,24 @@ async function holdsCandidate(dir, cwd) {
 }
 
 /**
+ * Say why a directory could not be read, for a sentence that names the directory first.
+ *
+ * @param {Error & {code?: string}} error The error of `readdir`.
+ * @returns {string} A short phrase with the error code, for example `permission denied (EACCES)`.
+ */
+function readFailure(error) {
+  const reasons = {
+    EACCES: 'permission denied',
+    EPERM: 'permission denied',
+    ENOENT: 'it was removed',
+    ENOTDIR: 'it is not a directory',
+  };
+  const code = error?.code ?? 'ERROR';
+
+  return `${reasons[code] ?? 'the read failed'} (${code})`;
+}
+
+/**
  * Walk a directory without git, skipping the skipped directories. A symbolic link is never followed: a link to a
  * file that a rule could edit, or to a directory, is handed to `onLink`.
  *
@@ -107,7 +125,7 @@ async function holdsCandidate(dir, cwd) {
  * it holds a file the walk would otherwise read. A directory below the first that cannot be read (permission denied,
  * removed during the walk) is handed to `onUnreadable`, and the walk goes on, so one bad directory does not cost the
  * work of the others. The directory the walk starts from is different: when it cannot be read there is nothing to
- * migrate, and the error is the answer.
+ * migrate, and the error is thrown for `discover()` to turn into a usage error that names the directory.
  *
  * @param {string} dir Absolute directory path.
  * @param {string} cwd Project directory that paths are made relative to.
@@ -431,11 +449,17 @@ export async function discover({ cwd, paths = [], skipped = [], notes = [], reas
           : `git lists no file under ${label}.`);
       }
     } else {
-      await walk(absolute, cwd, candidates, {
-        onLink: noteLink,
-        onDirectory: file => noteSkipped(file, 'directory'),
-        onUnreadable: (file, code) => noteSkipped(file, 'unreadable', code),
-      });
+      try {
+        await walk(absolute, cwd, candidates, {
+          onLink: noteLink,
+          onDirectory: file => noteSkipped(file, 'directory'),
+          onUnreadable: (file, code) => noteSkipped(file, 'unreadable', code),
+        });
+      } catch (error) {
+        // The directory the walk starts from cannot be read: there is nothing to migrate, and the reason is the answer.
+        throw new UsageError(`${label} could not be read: ${readFailure(error)}. Fix the permissions, or choose `
+          + 'another path.');
+      }
       listed = candidates.length;
 
       if (listed === 0) {

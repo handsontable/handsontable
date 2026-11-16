@@ -130,7 +130,8 @@ not show the changes. Outside git the tool walks the directory and also skips ev
 output from source. A skipped directory that holds files the tool would read is listed under "Skipped files" with the
 command that includes it (`migrate .storybook`). A directory it cannot read (permission denied) is skipped with
 everything below it and listed there with the error code, and the walk goes on, so one locked directory does not stop
-the run. A path argument is read in the letter case the file system stores.
+the run. The directory the run starts from (a path argument, or the project directory) is different: when it cannot be
+read there is nothing to migrate, and the tool exits with code 2 and a sentence that names the path and the reason. A path argument is read in the letter case the file system stores.
 
 A run that finds no file to read is not an error (exit code 0, so a loop over packages goes on), and it does not look
 like a run that found nothing to change: the tool prints "No files to migrate." with the reason on standard error and
@@ -185,9 +186,12 @@ to use on the package. Source files under it still get the selected rules.
 The last line sums up the run: files changed, rewrites applied, manual steps, and warnings. The file from `--report`
 has a title with the versions and the date, then the same line, every location, one checkbox per entry, and a link to
 the migration guide section of each rule. The tool refuses a `--report` path that is a symbolic link or sits below
-one, a file git tracks, a file it migrates (found by what the file system says, so another letter case or a hard link
+one inside the project directory, one that is spelled outside the project and reaches it through a link, a file git
+tracks, a file it migrates (found by what the file system says, so another letter case or a hard link
 does not get past the check), an existing file of a type the tool migrates, a directory, an existing file you cannot
-write, or a file in a directory that does not exist or cannot be written. It checks the path before it changes any file.
+write, or a file in a directory that does not exist or cannot be written. A link on the part of the path outside the
+project directory does not matter (`/tmp` is a link on macOS), and a refusal names the link as you typed it. It checks
+the path before it changes any file.
 A control character in a file name or a source line (an escape sequence) is printed as `\x1b`, in the console, the
 report file, and the diff, so a project cannot rewrite your terminal. The user information of a URL (`//user:TOKEN@host`) is shown as `//***@host` in
 the console, the report file, and the `--dry-run` diff, so a dependency spec with a credential never reaches a log.
@@ -298,7 +302,8 @@ is a cell object with high confidence, like a return of `cells()`.
 `updateSettings()` is also a method of other libraries, so the receiver decides. A receiver the file does not show
 (a parameter, a global, the result of a call) gives medium confidence: the options are reported, and rewritten only
 under `--aggressive`. A receiver the file shows to be something else (a local object, an imported form library, a
-plugin from `getPlugin()`, `this`) is left alone and not reported.
+plugin from `getPlugin()`, `this`) is left alone and not reported: no rule reports an option in the object it takes, at
+any depth, and the same goes for `setCellMeta()` and `setCellMetaObject()` on such a receiver.
 
 A `cells` function can also be passed by name, in a settings object or as a prop: `cells={plainCells}`, `cells: fmtCells`,
 or `cells={cells}` where `cells` holds `useCallback(() => ({ ... }), [])`. The tool follows the name one hop inside
@@ -333,7 +338,9 @@ An option is also not moved or deleted when custom code may read it. `numericFor
 object, or the element sets an `editor`, `renderer`, or `validator` that is not a built-in name (a function, an
 identifier, or a string such as `'nwm.signedAmount'`), or a `type` that is not a built-in cell type; when the object has
 a spread or a computed key the tool cannot read; when the file registers a built-in name again; and when the file reads
-the option, in a member read or a destructuring. A validator or an editor of your own that reads `correctFormat` or
+the option, in a member read, a destructuring, or an `in` test. A write is not a read: an assignment (`columns[2].correctFormat = true`), `delete`,
+a destructuring or `for` head target, and a key in an object literal do not count, while `+=`, `||=`, and `++` read the
+value first, so they do. A validator or an editor of your own that reads `correctFormat` or
 `datePickerConfig`, or a renderer that reads `culture`, keeps working only if you handle the option and the code
 together. This holds under `--aggressive` too. A reader in another file is not seen.
 
@@ -353,7 +360,9 @@ rules only, as a `.css` file does. In a JavaScript file with no other sign of Ha
    git grep -n "TODO(handsontable-codemod"
    ```
 
-   Every manual step in a script, a TypeScript file, a Vue `<script>`, or a stylesheet gets a marker at its line, except
+   Every manual step in a script, a TypeScript file, a Vue `<script>`, or a stylesheet gets a marker at its line (for code
+   in a one-line block `{ a(); hot.undo(); }` that stands among statements, before the first statement of that line),
+   except
    the notes that hold for the whole run, a grid with no `licenseKey`, and test code that dispatches a synthetic header
    event. Each marker names its rule and, for a rule that has a guide section, links to it. A step in an HTML page (its
    `<style>` blocks included), in the `<template>` of a Vue file or an inline Angular template, or in `package.json`
