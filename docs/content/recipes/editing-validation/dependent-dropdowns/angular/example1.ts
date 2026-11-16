@@ -52,13 +52,13 @@ export class AppComponent {
       }
       this.render();
     },
-    afterChange(this: Handsontable, changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) {
+    afterChange(this: Handsontable, changes: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) {
       if (source === 'loadData' || !changes) {
         return;
       }
       for (const change of changes) {
         const [row, prop, oldVal, newVal] = change;
-        if (prop !== CATEGORY_COL || oldVal === newVal) {
+        if (row === null || prop !== CATEGORY_COL || oldVal === newVal) {
           continue;
         }
         const next = optionsForCategory(String(newVal));

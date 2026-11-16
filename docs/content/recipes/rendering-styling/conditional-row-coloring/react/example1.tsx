@@ -78,7 +78,7 @@ const ExampleComponent = () => {
         this: Handsontable,
         isValid: boolean,
         _value: Handsontable.CellValue,
-        row: number,
+        row: number | null,
         prop: string | number,
       ): void {
         if (isValid) {
@@ -87,8 +87,8 @@ const ExampleComponent = () => {
 
         const col = this.propToCol(prop);
 
-        // Skip a property that names no column.
-        if (col === null) {
+        // Skip a record a filter hid while it was validated, and a property that names no column.
+        if (row === null || col === null) {
           return;
         }
 

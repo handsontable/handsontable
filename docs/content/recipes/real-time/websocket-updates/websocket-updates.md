@@ -132,6 +132,10 @@ hot.addHook('afterChange', (changes, source) => {
   }
 
   changes.forEach(([row]) => {
+    if (row === null) {
+      return;
+    }
+
     [2, 3].forEach((col) => {
       const td = hot.getCell(row, col);
 
@@ -149,6 +153,7 @@ hot.addHook('afterChange', (changes, source) => {
 **What's happening:**
 
 - The guard `source !== 'external'` skips all changes that the user makes themselves. Without this guard, every keystroke in a cell would also trigger the flash animation.
+- A `null` row means the record is not in the visual rows, for example because a filter hid it, so there is no cell to flash.
 - `hot.getCell(row, col)` returns the live `<td>` DOM element. It returns `null` when the row is outside the current viewport (virtual rendering), so the `if (td)` check is required.
 - Removing the class, forcing a reflow (`void td.offsetWidth`), and then re-adding it restarts the CSS animation even if the cell was already flashing from a previous update.
 - The `{ once: true }` event listener option automatically removes the listener after the animation ends, preventing memory leaks when cells update repeatedly.
