@@ -1,18 +1,13 @@
 import {
-  type LicenseGrants,
-  hasCapability,
-  HANDSONTABLE_PRODUCT,
-} from '../entitlementLicenseKey';
-import {
-  XLSX_ALL_CAPABILITY,
   XLSX_CAPABILITY_IDS,
   XLSX_FLAG_BY_ID,
+  XLSX_TIERS_BY_ID,
 } from './licenseCapabilities';
 
 /**
- * What the license unlocks of the XLSX engine. One flag per capability token, plus the ids of the
- * tokens the license does not grant. `importReport` is always `true`: `xlsx:import_report` is a
- * `core` feature, granted to every key, and never listed in `missing`.
+ * What the license unlocks of the XLSX engine. One flag per feature id, plus the ids of the
+ * features the license does not unlock. `importReport` is always `true`: `xlsx:import_report` is
+ * never gated, and never listed in `missing`.
  */
 export interface XlsxEntitlement {
   import: boolean;
@@ -55,24 +50,22 @@ export const UNRESTRICTED_XLSX_ENTITLEMENT: XlsxEntitlement = Object.freeze({
 });
 
 /**
- * Resolves what the license unlocks of the XLSX engine from its grants, as `_getLicenseState`
- * (`helpers/mixed.ts`) resolves them. That is where the flag rule lives: a legacy, missing or invalid
- * key, a key that does not grant Handsontable, and a Handsontable entry without the
- * `listed-capabilities` flag (every key issued before the tokens existed) all resolve to unrestricted
- * grants, and so to the unrestricted entitlement here. With the flag, only the listed tokens unlock,
- * and `xlsx:all` unlocks every one of them.
+ * Resolves what the license unlocks of the XLSX engine from the tiers the key names, as
+ * `_getLicenseState` (`helpers/mixed.ts`) reads them. A key that names no tier (`tiers` is `null`) - a
+ * legacy, missing or invalid key, a key that does not grant Handsontable, and every key issued before
+ * tiers existed - resolves to the unrestricted entitlement. A key that names tiers unlocks a feature
+ * only when the feature's tier list contains one of them; any feature id or flag beside the tiers is
+ * ignored.
  *
- * @param {LicenseGrants} grants The resolved grants.
+ * @param {string[]|null} [tiers] The tiers the key names, or `null` (or `undefined`) when it names none.
+ * @param {object} [tiersById] The tiers that unlock each feature.
  * @returns {XlsxEntitlement}
  */
-export function resolveXlsxEntitlement(grants: LicenseGrants): XlsxEntitlement {
-  if (grants.unrestricted) {
-    return UNRESTRICTED_XLSX_ENTITLEMENT;
-  }
-
-  // A flagged key that lists `xlsx:all` is still restricted by its flag, but the namespace grant
-  // unlocks every xlsx feature, so its flags are the unrestricted ones and nothing is missing.
-  if (hasCapability(grants, HANDSONTABLE_PRODUCT, XLSX_ALL_CAPABILITY)) {
+export function resolveXlsxEntitlement(
+  tiers: readonly string[] | null | undefined,
+  tiersById: Readonly<Record<string, readonly string[]>> = XLSX_TIERS_BY_ID,
+): XlsxEntitlement {
+  if (tiers === null || tiers === undefined) {
     return UNRESTRICTED_XLSX_ENTITLEMENT;
   }
 
@@ -80,7 +73,7 @@ export function resolveXlsxEntitlement(grants: LicenseGrants): XlsxEntitlement {
   const missing: string[] = [];
 
   XLSX_CAPABILITY_IDS.forEach((id) => {
-    const granted = hasCapability(grants, HANDSONTABLE_PRODUCT, id);
+    const granted = (tiersById[id] ?? []).some(tier => tiers.includes(tier));
 
     flags[XLSX_FLAG_BY_ID[id] as XlsxFlagName] = granted;
 

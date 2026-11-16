@@ -18,7 +18,7 @@
       "id": "read-notice",
       "action": {"read": "previous"},
       "expect": [["expired"]],
-      "note": "The reader's own cursor moves back from the link to the notice's text, which says the key expired and is not valid for the installed version. Required: that it expired. NVDA and VoiceOver with Chromium read the whole sentence."
+      "note": "The reader's own cursor moves back from the link to the notice's text, which says the key expired and is not valid for the installed version. Required: that it expired. Both NVDA lanes stop at `installed`; VoiceOver with Chromium reads the whole sentence, with the version, `18.1.0`. That version is `HOT_VERSION` in `hot.config.js`, which the build bakes in and a release bumps, not `handsontable/package.json`'s version, so after a release the vo-chromium golden differs here by the version alone: record the golden again, it is not a regression."
     },
     {
       "id": "tab-to-sales",

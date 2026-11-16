@@ -9,7 +9,11 @@
       "description": "Hides rows while keeping their data.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

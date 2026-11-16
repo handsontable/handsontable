@@ -133,6 +133,9 @@ export class SelectUI extends BaseUI {
     this.#menu = new Menu(hot, {
       className: 'htSelectUI htFiltersConditionsMenu',
       keepInViewport: false,
+      // The list opens under its select and is placed by it, so it is moved up into the viewport and capped to it
+      // by this option: `keepInViewport: true` would also flip it above or beside the select.
+      scrollInViewport: true,
       standalone: true,
       container: this.options.menuContainer,
     });

@@ -9,7 +9,11 @@
       "description": "Turns URLs in the rendered cell text into links.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

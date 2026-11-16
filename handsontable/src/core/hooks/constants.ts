@@ -2252,6 +2252,213 @@ export const REGISTERED_HOOKS = [
   'afterRender',
 
   /**
+   * Fired by {@link Core#suspendExecution} before it suspends the execution (the index cache updates).
+   * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend the
+   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   *
+   * The hook fires only when the execution changes from resumed to suspended: a nested call fires nothing.
+   * Its return value cannot cancel the suspension, but a listener that throws stops it, and the error
+   * reaches the caller. The hook does not fire while the instance is being destroyed.
+   *
+   * A listener can suspend and resume the execution of the same instance (for example, with
+   * [`batch()`](@/api/core.md#batch)). Those calls belong to the suspension in progress, so they fire no
+   * execution hooks.
+   *
+   * @event Hooks#beforeSuspendExecution
+   * @since 19.0.0
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeSuspendExecution() {
+   *     console.log(this.isExecutionSuspended()); // false
+   *   },
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeSuspendExecution={() => {
+   *     console.log('The execution is about to be suspended');
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   beforeSuspendExecution: () => {
+   *     console.log('The execution is about to be suspended');
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
+   */
+  'beforeSuspendExecution',
+
+  /**
+   * Fired by {@link Core#suspendExecution} after it suspends the execution (the index cache updates).
+   * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) suspend the
+   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   *
+   * The hook fires only when the execution changes from resumed to suspended: a nested call fires nothing.
+   * When a listener throws, the execution is resumed (the `beforeResumeExecution` and
+   * `afterResumeExecution` hooks fire) and the error reaches the caller. The hook does not fire while the
+   * instance is being destroyed.
+   *
+   * @event Hooks#afterSuspendExecution
+   * @since 19.0.0
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   afterSuspendExecution() {
+   *     console.log(this.isExecutionSuspended()); // true
+   *   },
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   afterSuspendExecution={() => {
+   *     console.log('The execution is suspended');
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   afterSuspendExecution: () => {
+   *     console.log('The execution is suspended');
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
+   */
+  'afterSuspendExecution',
+
+  /**
+   * Fired by {@link Core#resumeExecution} before it resumes the execution and updates the index cache.
+   * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) resume the
+   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   *
+   * The hook fires only when the execution changes from suspended to resumed: a nested call, a forced
+   * nested call, and a call while the execution is not suspended fire nothing. It cannot cancel the resume.
+   * When a listener throws, the execution still resumes, `afterResumeExecution` still fires, and the error
+   * reaches the caller. The hook does not fire while the instance is being destroyed.
+   *
+   * A listener can suspend and resume the execution of the same instance. Those calls belong to the resume in
+   * progress, so they fire no execution hooks. A listener that leaves the execution suspended keeps it
+   * suspended. `beforeResumeExecution` then fires again, and `afterResumeExecution` fires, with the call that
+   * ends it.
+   *
+   * @event Hooks#beforeResumeExecution
+   * @since 19.0.0
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeResumeExecution() {
+   *     console.log(this.isExecutionSuspended()); // true
+   *   },
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeResumeExecution={() => {
+   *     console.log('The execution is about to be resumed');
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   beforeResumeExecution: () => {
+   *     console.log('The execution is about to be resumed');
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
+   */
+  'beforeResumeExecution',
+
+  /**
+   * Fired by {@link Core#resumeExecution} after it resumes the execution and updates the index cache, so
+   * the index changes made while the execution was suspended are already applied.
+   * [`batch()`](@/api/core.md#batch) and [`batchExecution()`](@/api/core.md#batchexecution) resume the
+   * execution the same way, and so does Handsontable itself (for example, to size columns on a render).
+   * `batch()` resumes rendering after this hook.
+   *
+   * The hook fires only when the execution changes from suspended to resumed: a nested call, a forced
+   * nested call, and a call while the execution is not suspended fire nothing. It fires even when a
+   * `beforeResumeExecution` listener or the index cache update throws. The hook does not fire while the
+   * instance is being destroyed. A listener that suspends the execution again, directly or through a render,
+   * starts a new cycle, which fires all four hooks again, this one included.
+   *
+   * @event Hooks#afterResumeExecution
+   * @since 19.0.0
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   afterResumeExecution() {
+   *     console.log(this.isExecutionSuspended()); // false
+   *   },
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   afterResumeExecution={() => {
+   *     console.log('The execution is resumed');
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   afterResumeExecution: () => {
+   *     console.log('The execution is resumed');
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
+   */
+  'afterResumeExecution',
+
+  /**
    * When the focus position is moved to the next or previous row caused by the {@link Options#autoWrapRow} option
    * the hook is triggered.
    *
@@ -4537,8 +4744,11 @@ export const REGISTERED_HOOKS = [
   'beforeDialogShow',
 
   /**
-   * Fired by {@link Dialog} plugin before focusing the previous element. This hook is fired when {@link Options#dialog}
-   * option is enabled.
+   * Fired by {@link Dialog} plugin when the user presses <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> while focus is
+   * inside the open dialog. This hook is fired when {@link Options#dialog} option is enabled.
+   *
+   * The hook runs once per key press, after the browser handled the key. It receives no arguments.
+   * To find out which element has the focus, read `document.activeElement` in the callback.
    *
    * @since 16.1.0
    * @event Hooks#dialogFocusPreviousElement
@@ -4546,8 +4756,11 @@ export const REGISTERED_HOOKS = [
   'dialogFocusPreviousElement',
 
   /**
-   * Fired by {@link Dialog} plugin before focusing the next element. This hook is fired when {@link Options#dialog}
-   * option is enabled.
+   * Fired by {@link Dialog} plugin when the user presses <kbd>**Tab**</kbd> while focus is inside the open dialog.
+   * This hook is fired when {@link Options#dialog} option is enabled.
+   *
+   * The hook runs once per key press, after the browser handled the key. It receives no arguments.
+   * To find out which element has the focus, read `document.activeElement` in the callback.
    *
    * @since 16.1.0
    * @event Hooks#dialogFocusNextElement

@@ -139,10 +139,22 @@ describe('Formulas deferred resync', () => {
   it('rebuilds the sheet once on a settings update that leaves the row count alone', () => {
     const { engine, writes } = buildFlat();
 
+    // Changed in place, so the resync has data to write (an unchanged sheet is not written, DEV-3972).
+    hot.getSettings().data[0][0] = 3;
     writes.mockClear();
     hot.updateSettings({ readOnly: true });
 
     expect(writes).toHaveBeenCalledTimes(1);
+    expect(sheetContent(engine)).toEqual([[3, '=A1+10'], [2, '=A2+10']]);
+  });
+
+  it('does not rewrite the sheet on a settings update that leaves the data unchanged (DEV-3972)', () => {
+    const { engine, writes } = buildFlat();
+
+    writes.mockClear();
+    hot.updateSettings({ readOnly: true });
+
+    expect(writes).not.toHaveBeenCalled();
     expect(sheetContent(engine)).toEqual([[1, '=A1+10'], [2, '=A2+10']]);
   });
 
@@ -290,6 +302,7 @@ describe('Formulas deferred resync', () => {
       seen.push(writes.mock.calls.length);
     }, 2);
 
+    hot.getSettings().data[0][0] = 3;
     writes.mockClear();
     hot.updateSettings({ readOnly: true });
 
@@ -333,7 +346,9 @@ describe('Formulas deferred resync', () => {
     writes.mockClear();
     hot.updateSettings({ nestedRows: true });
 
-    expect(writes).toHaveBeenCalledTimes(2);
+    // The early drain reads the tree the sheet already holds, so it writes nothing (DEV-3972); the late
+    // listener sees the row count moved and rescans.
+    expect(writes).toHaveBeenCalledTimes(1);
     expect(sheetContent(engine)).toEqual([
       ['Root A', ''],
       ['A-1', '=UPPER(A2)'],

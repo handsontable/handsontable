@@ -9,7 +9,11 @@
       "description": "Sets row heights from the content of each row.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

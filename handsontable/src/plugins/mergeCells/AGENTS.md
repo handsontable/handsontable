@@ -294,7 +294,30 @@ hooks). Six rules keep it narrow:
   from the move snapshot (the moved axis) and the merge's own span on the other axis, which a move does not
   change, and cleans the cells the lookup matrix no longer holds a merge for. A merge replaced by one block of
   the same size is skipped: it covers the same cells and its top-left is handled by the pass above. It runs only
-  while no row is trimmed.
+  while no row is trimmed. While a row is trimmed the footprint cannot be rebuilt from the visual coordinates,
+  so `#settleMergesAfterAxisMove` compares the cells every merge covers before and after the move
+  (`#coveredBeforeMove`, `#snapshotCoveredCells()`: the anchor's physical rows, trimmed ones too, in the
+  physical columns under the merge's visual columns) and removes `hidden` and `copyable` from the cells that
+  no merge covers any more (`#clearCoveredFlagsOfCellsNoLongerCovered()`). A merge whose rows are all trimmed
+  (purged) is in the set on a column move: its anchor rows and its columns still describe it, and the move
+  splits it like any other. The set is limited to the merges the move can reach (`MoveWindow`, the visual
+  indexes between the lowest of the moved and dropped indexes and the highest), because a move permutes only
+  those, so the cost follows the merges in the window and not every merge on the grid; a freeze has no window.
+  Undo and redo do not run it, because `restoreState()` runs after UndoRedo restored the index maps: the
+  visual columns of a live merge name the wrong physical columns, and a set built from them cannot see the
+  cell a redo takes out of a merge. They compare the two sides of the step by their recorded merges instead
+  (`#clearCoveredFlagsOfCellsReleasedByStep()`): each captured merge carries its anchor rows and its
+  `physicalColumns`, so the cells the other side covered and the restored side does not are known without
+  reading a live merge's columns. Only the merges the step changed are walked, and a cell the restored side's
+  changed merges cover is skipped. A cell an unchanged merge covers is not looked at, so it may be cleaned and
+  `afterGetCellMeta` stores the flags again on the next read. Never build the released set from the live
+  merges' visual columns. A guard that reads the live lookup was tried and dropped: no test needed it, and the
+  recorded sides already hold the answer. It does nothing
+  without a recorded other side (no `context.other`), for a merge captured with no `physicalColumns`, or when
+  the replay inserted or removed rows or columns (`context.reordered`): the recorded physical indexes are
+  numbered like the grid before that replay. A row move's redo was already clean, because dropping the live merge cleans it by the
+  anchor's physical rows. Pinned by the `after the undo and the redo` cases of
+  `__tests__/reanchoredTopLeftMeta.unit.js` and `tests/e2e/merge-cells-column-move-redo.spec.ts`.
 - **The cell a merge is no longer drawn from loses its span keys.** `afterGetCellMeta` stores `spanned`,
   `rowspan` and `colspan` on whichever cell is the top-left, and nothing took them off when a move or a freeze
   made another cell the top-left, so `getCellMeta()` reported a span nothing backs (DEV-3990). The same pass
@@ -309,20 +332,62 @@ hooks). Six rules keep it narrow:
   on the cell, and a `cells` function applies its own again on the next read. **Known limits:** a recorded
   `rowspan` or `colspan` on a former top-left holds the merge's span, because the hook overwrote the user's
   value while the merge was drawn there (the same trade-off as `copyable: true` above), so `getCellMeta()` still
-  reports it. And like the pass above, this one runs only while no row is trimmed: after a move or a freeze on a
-  filtered or trimmed grid the former top-left keeps its span keys. It does not run on the restore path either:
-  `restoreState()` only re-anchors the merges to the visible rows, so after an undo or a redo of a move the cell
-  that stops being the top-left keeps its span keys. Nothing records which cell a merge was drawn from before the
-  restore, so a fix needs that record first.
+  reports it. And like the pass above, the move pass runs only while no row is trimmed. The three paths it does
+  not reach clean the span keys by another mechanism, below.
+- **A trim lifted, a move while a row is trimmed, and an undo clean the span keys by a before/after diff of cells
+  (DEV-3991).** The merge is drawn from another cell while a row is trimmed (the next visible one), and the
+  re-anchor, a move on a trimmed grid and `restoreState()` all change which cell it is drawn from without a
+  record of the old one. The fix compares two sets of physical cells, taken before and after the change, and calls
+  `#clearSpanKeysOfCell` on `before - after` (`#snapshotDrawnFromCells()`,
+  `#clearSpanKeysOfCellsNoLongerDrawnFrom()`). Never key it on the merge object: `translateAfterAxisMove` and the
+  full rebuild of `restoreState()` replace the merges and `#mergeAnchors`, so a per-merge record is lost on
+  exactly the paths that need it. Five rules keep it right:
+  - **The cell comes from the anchor, not from the merge's visual coordinates** (`#getDrawnFromCellKey()`): the
+    first anchor row with a visual index and the anchor column. `#getTopLeftPhysicalRow()` is the one rule for
+    it: the re-anchor, the purge (`#hasVisibleTopLeft()`) and this recording all call it, so a change to how the
+    top-left row is picked changes all three, and the diff cannot miss the real top-left. The visual coordinates of a purged merge are
+    stale, and `restoreState()` runs after UndoRedo restored the index maps but before the merges are, so the
+    live merges' visual coordinates name the wrong cell there. A merge with no anchor has only its visual
+    coordinates, and they are used.
+  - **The set after the change holds the cell of every merge**, so a cell another merge is drawn from now is
+    never cleaned. A merge with no visible cell (purged) has none, so the cell it was drawn from before is
+    cleaned: trim row 1, then rows 2 and 3, and the merge is purged while physical (2, 4) still holds the keys.
+  - **The recording is taken while the old state is valid and the diff runs after the new one is in place:** the
+    row index mapper's `beforeCacheUpdate` (only when `trimmedIndexesChanged`: a sort, a hidden row and a forced
+    update leave the first visible row of every anchor where it was) and `cacheUpdated` (skipped for the
+    `insert` and `remove` change sources), the move handlers' `before*` hooks and
+    `#settleMergesAfterAxisMove` (only while a row is trimmed), and the top and bottom of `restoreState()`. UndoRedo replays the cell meta journal before it restores plugin states, so the cleanup is
+    not overwritten by a replayed `spanned`.
+  - **It cleans only where `#clearSpanKeysOfCell` does** (an own `spanned`), so a cell that was never a top-left
+    is untouched whatever ends up in the diff, and a stale recording mostly misses a cleanup.
+  - **An intermediate diff can clean a cell the final state draws from, and the next read puts the keys back.**
+    UndoRedo restores the index maps, which fires the mapper diff against the merges that are not restored yet,
+    and a row move runs that diff before `translateAfterAxisMove` replaces the anchors. `afterGetCellMeta`
+    writes the span keys again on the next meta read, and every move handler and `restoreState()` ends with a
+    render, so the loss lasts until then. A recorded `rowspan` or `colspan` is kept in any case.
+  - **A nested `updateCache` overwrites the outer recording**, as for the foreign rows: the outer update then
+    cleans less.
+  - **An insert or a remove skips the diff, and the row count cannot tell.** `insertIndexes()` and
+    `removeIndexes()` change the sequence under `suspendOperations()`, so `getNumberOfIndexes()` already returns
+    the new count when `beforeCacheUpdate` fires, and a comparison of counts is always equal. The change source
+    of `cacheUpdated` (`insert`, `remove`) is what tells them apart. Without the skip the diff reads the anchors
+    before `#onAfterCreateRow` or `#onAfterRemoveRow` shifted them, and can clean the keys of a live top-left
+    until the next meta read (two specs pin it, with the render suspended so the hook cannot write them back).
+    The foreign-rows recording next to it still compares counts.
 - **It does not live in `afterGetCellMeta`.** That hook runs on every meta read; clearing there would delete a
   user's `copyable` on every read and pay for the check on every cell.
 - **It costs one meta manager lookup per merge per re-anchor**, next to the pass over the merge's anchor rows
   that the re-anchor makes already, and no lookup in the merge collection, so the counts pinned by
   `__tests__/mergeCountScaling.unit.js` stay flat. An axis move adds one meta manager lookup and one collection
   lookup per merge (the cell it was drawn from), plus the footprint of each merge it splits or drops. That file
-  pins the merge and restore paths, not the moves.
+  pins the merge and restore paths, not the moves. The span-key diff (the bullet above) adds one anchor walk per merge
+  on each side of a trim or a filter change, of a move or a freeze while a row is trimmed, and of a restore.
+  Those walks are index translations, with no meta manager and no collection lookup. The meta manager is asked once
+  for each cell that stopped being a top-left. The covered-flag comparison of a trimmed move builds one set entry
+  per covered cell of each merge in the move's window, before and after it, which is the cost to watch on a grid
+  with many large merges and a filter on.
 
-Pinned by `__tests__/reanchoredTopLeftMeta.unit.js` (the move, freeze and released-cell cases are in its `after a move or a freeze that splits the merge` block, the span keys in `span keys after a move or a freeze`) and `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
+Pinned by `__tests__/reanchoredTopLeftMeta.unit.js` (the move, freeze and released-cell cases are in its `after a move or a freeze that splits the merge` block, the span keys in `span keys after a move or a freeze`, and the trim, trimmed-move and undo cases in `span keys after a trim is lifted, a move while a row is trimmed, and an undo`) and `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
 
 **While rows are trimmed, `updatePlugin()` keeps the merge of an area it cannot place.** Settings describe
 visual positions. An area that fits the rows on screen is applied to them, exactly as before and as the
@@ -738,12 +803,11 @@ with the others. Three things are derived per pane, and each has its own owner:
     then grows the wrapper toward the wrong side, so a right-aligned number shows in neither pane. The block's
     remaining columns lie on the same side of the pane whatever the cell's direction is (`leftOutside` and
     `rightOutside` come from `hot.isRtl()`), and the width is `100%` plus both.
-  - **No compensation for the end clone's freeze-line border.** Mid-scroll the clone's first cell draws the
-    freeze line as a 1px border of its own and the master's cell of the block has none, so the wrapper starts 1px
-    later than a master copy would. Mid-scroll the clone is pinned elsewhere and the two copies line up with
-    nothing; at the junction, where they overlap, `htFreezeLineShared` zeroes that border and the drift is 0
-    (pinned to the pixel by the end-of-scroll spec). Do not add the border to the wrapper's overhang: the class
-    is toggled after the draw, so a paint-time read is one draw stale in exactly the state that matters.
+  - **No compensation for the end clone's freeze-line border.** The end clone's first column is rendered 1px
+    wider and its first cell carries the freeze line as a 1px border of its own (walkontable `AGENTS.md`, the end
+    freeze line), so the cell's content box starts where the master's copy of that column starts, at every scroll
+    offset, and the drift is 0 (pinned to the pixel by the end-of-scroll spec). Do not add the border to the
+    wrapper's overhang.
   - **The renderer's `before()` (`beforeRenderer`) puts the content back before every paint**
     (`releaseContentWindow`), and `after()` wraps it again. The wrapper of each cell is kept in a `WeakMap` keyed
     by the cell, so it is found wherever it sits (a hook that wrapped the cell's whole content in a link after

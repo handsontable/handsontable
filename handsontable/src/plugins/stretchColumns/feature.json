@@ -9,7 +9,11 @@
       "description": "Stretches columns to fill the width of the grid.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

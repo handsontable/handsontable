@@ -7,11 +7,8 @@ import { SUBSCRIPTION_KEY } from '../../handsontable/src/utils/entitlementLicens
 
 export {
   ALL_XLSX_TOKENS,
-  LISTED_CAPABILITIES_FLAG,
-  keyWith,
-  keyWithAll,
-  keyWithout,
-  keyWithoutFlag,
+  keyWithoutTier,
+  keyWithTier,
 } from '../../handsontable/src/utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 
 /**
@@ -24,6 +21,6 @@ export const INVALID_KEY = 'non-commercial-and-evaluation';
 
 /**
  * A current subscription key with the `core` capability only, as the real generator issued it. It
- * carries no `listed-capabilities` flag, so it is unrestricted for the whole family.
+ * names no tier, so it is unrestricted for the whole family.
  */
 export const CORE_ONLY_KEY: string = SUBSCRIPTION_KEY;

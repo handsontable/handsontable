@@ -22,6 +22,27 @@ export const DOCS_BASELINE_FILE = 'a11y/docs/docs-baseline.json';
 export const A11Y_SUITE_IDS = ['product', 'docs'];
 
 /**
+ * A suite whose `locate()` passes the URL each scan opened, so a page that needs one (see
+ * `PRODUCT_SUITE.locate()`) links to what was scanned.
+ *
+ * @param {object} suite The suite.
+ * @param {object[]} [scans] The completed scans: `page`, `theme`, `url`.
+ * @returns {object} The suite, or the same one when there is no scan.
+ */
+export function withScannedUrls(suite, scans = []) {
+  if (scans.length === 0) {
+    return suite;
+  }
+
+  const urlOf = new Map(scans.map(scan => [`${scan.page}|${scan.theme}`, scan.url]));
+
+  return Object.freeze({
+    ...suite,
+    locate: (page, theme) => suite.locate(page, theme, urlOf.get(`${page.id}|${theme}`)),
+  });
+}
+
+/**
  * The product scan.
  */
 export const PRODUCT_SUITE = Object.freeze({
@@ -41,12 +62,18 @@ export const PRODUCT_SUITE = Object.freeze({
   /**
    * Where a page is and how to reach its state.
    *
+   * A page with a `licensePreset` needs a key `pages.mjs` cannot build, so its link takes the URL the scan
+   * opened (`scannedPath`, a scan's `url`) when the caller has one; without it the link opens the fixture
+   * with no license key.
+   *
    * @param {object} page The page.
    * @param {string} theme The theme.
+   * @param {string} [scannedPath] The URL the scan of this page and theme opened.
    * @returns {{path: string, href: string, steps: string|undefined}} The fixture path, the link and the steps.
    */
-  locate(page, theme) {
-    const path = fixtureUrl(page, theme);
+  locate(page, theme, scannedPath) {
+    const path = page.licensePreset && typeof scannedPath === 'string' && scannedPath.startsWith('/tests/fixtures/demo/')
+      ? scannedPath : fixtureUrl(page, theme);
 
     return { path, href: `${FIXTURE_SERVER}${path}`, steps: stateSteps(page) };
   },

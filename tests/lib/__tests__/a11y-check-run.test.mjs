@@ -4,8 +4,20 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareViolations } from '../a11y-baseline.mjs';
-import { CHECK_RUN_NAME, annotationBatches, baselineLines, buildCheckRun, pageLines } from '../a11y-check-run.mjs';
+import {
+  CHECK_RUN_NAME,
+  DOCS_SCAN,
+  PRODUCT_SCAN,
+  annotationBatches,
+  baselineLines,
+  buildCheckRun,
+  docsPageLines,
+  pageLines,
+} from '../a11y-check-run.mjs';
+import { AXE_SCAN_CHECK, DOCS_SCAN_CHECK, ISSUES_FILE, compileIssuesCatalog, trackedBy } from '../a11y-issues.mjs';
+import { DOCS_BASELINE_FILE, suiteFor } from '../a11y-suites.mjs';
 import { A11Y_PAGES } from '../../a11y/pages.mjs';
+import { DOCS_PAGES, EXTRA_PAGES } from '../../a11y/docs/pages.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const ISSUES = [{ id: 'grid-roles', title: 'The grid root holds children its role does not allow' }, { id: 'menu-roles', title: 'Menu items' }];
@@ -159,4 +171,170 @@ test('annotationBatches splits by the Checks API limit and always yields one bat
   assert.deepEqual(annotationBatches([]), [[]]);
   assert.deepEqual(annotationBatches([1, 2, 3], 2), [[1, 2], [3]]);
   assert.equal(annotationBatches(Array.from({ length: 120 }, (_, index) => index)).map(batch => batch.length).join(','), '50,50,20');
+});
+
+// The docs site scan's check run, `A11y / docs-axe report`: the same builder over the docs comparison, with its own
+// name, files and catalog source (tests/AGENTS.md, "A11y: the docs site scan").
+const DOCS = DOCS_SCAN;
+const DOCS_ISSUES = [{ id: 'framework-tab-name', title: 'Framework tabs' }, { id: 'prose-link-color-only', title: 'Prose links' }];
+const DOCS_ENTRIES = [
+  { page: 'js-introduction', theme: 'dark', rule: 'link-in-text-block', target: 'a', impact: 'serious', nodes: 2, issue: 'prose-link-color-only' },
+  { page: 'js-introduction', theme: 'light', rule: 'label-content-name-mismatch', target: 'button[role="tab"]', impact: 'serious', nodes: 1,
+    issue: 'framework-tab-name' },
+];
+const DOCS_BASELINE_SOURCE = `{\n  "axeCoreVersion": "4.14.0",\n  "issues": [],\n  "entries": [\n${DOCS_ENTRIES.map(item => `    ${JSON.stringify(item)}`).join(',\n')}\n  ]\n}\n`;
+const DOCS_PAGES_SOURCE = [
+  "import { DOCS_THEMES } from './constants.mjs';",
+  '',
+  'export function guidePages(frameworks = DOCS_FRAMEWORKS) {',
+  '  return [];',
+  '}',
+  '',
+  'export const EXTRA_PAGES = [',
+  "  { id: 'chrome-versions-menu', path: '/javascript-data-grid/', state: 'versions-menu',",
+  "    surface: 'the version menu' },",
+  '];',
+].join('\n');
+
+/**
+ * A docs comparison as the reporter writes it with `suite: 'docs'`.
+ *
+ * @param {object[]} violations The findings.
+ * @returns {object} The comparison.
+ */
+function docsComparison(violations) {
+  const scanned = [{ page: 'js-introduction', theme: 'dark' }, { page: 'js-introduction', theme: 'light' }, { page: 'chrome-versions-menu', theme: 'dark' }];
+
+  return { ...compareViolations({ baseline: DOCS_ENTRIES, issues: DOCS_ISSUES, violations, scanned, mode: 'warn', baselineFile: DOCS_BASELINE_FILE }),
+    problems: [], notes: [] };
+}
+
+const docsFinding = overrides => ({ page: 'js-introduction', theme: 'dark', rule: 'link-in-text-block', target: 'a', impact: 'serious',
+  help: 'h', helpUrl: 'https://dequeuniversity.com/x', wcag: ['1.4.1'], nodes: 1, ...overrides });
+const docsKnown = [docsFinding(), docsFinding(),
+  docsFinding({ theme: 'light', rule: 'label-content-name-mismatch', target: 'button[role="tab"]', wcag: ['2.5.3'] })];
+const buildDocs = (value, extra = {}) => buildCheckRun({ comparison: value, pages: docsPageLines(DOCS_PAGES_SOURCE, ['js-introduction', 'chrome-versions-menu']),
+  baseline: baselineLines(DOCS_BASELINE_SOURCE), runUrl: 'https://github.com/o/r/actions/runs/1', scan: DOCS, ...extra });
+
+test('each scan names the files lib/a11y-suites.mjs gives it, and reads its findings under the ledger\'s source', () => {
+  for (const [id, scan] of [['product', PRODUCT_SCAN], ['docs', DOCS_SCAN]]) {
+    const suite = suiteFor(id);
+
+    assert.equal(scan.title, suite.title, `${id}: the summary's heading is the job summary's`);
+    assert.equal(scan.pagesFile, suite.pagesFile, `${id}: a new finding is annotated on the scan's page list`);
+    assert.equal(scan.baselineFile, `tests/${suite.baselineFile}`, `${id}: a known finding is annotated on the scan's baseline`);
+    assert.equal(scan.comparison, `${suite.outputDir}/comparison.json`, `${id}: the poster reads what the reporter wrote`);
+  }
+  assert.deepEqual([PRODUCT_SCAN.name, PRODUCT_SCAN.source, PRODUCT_SCAN.check], [CHECK_RUN_NAME, 'axe', AXE_SCAN_CHECK]);
+  assert.deepEqual([DOCS.name, DOCS.source, DOCS.check], ['A11y / docs-axe report', 'docs', DOCS_SCAN_CHECK],
+    'a docs finding is read the way the ledger reads it (source docs, check docs-axe), never as the product scan\'s');
+});
+
+test('docsPageLines finds every docs page: an extra page on its entry, a guide page on the function that builds it', () => {
+  const lines = docsPageLines(DOCS_PAGES_SOURCE, ['js-introduction', 'chrome-versions-menu']);
+
+  assert.deepEqual([...lines].sort(), [['chrome-versions-menu', 8], ['js-introduction', 3]]);
+
+  const source = readFileSync(path.join(TESTS_ROOT, 'a11y/docs/pages.mjs'), 'utf8');
+  const committed = docsPageLines(source, DOCS_PAGES.map(page => page.id));
+  const text = source.split('\n');
+  const baseline = JSON.parse(readFileSync(path.join(TESTS_ROOT, DOCS_BASELINE_FILE), 'utf8'));
+
+  assert.deepEqual(DOCS_PAGES.filter(page => !committed.has(page.id)).map(page => page.id), [], 'every docs page has a line to annotate');
+  for (const page of EXTRA_PAGES) {
+    assert.match(text[committed.get(page.id) - 1], new RegExp(`\\{ id: '${page.id}'`), `${page.id}: annotated on its own entry`);
+  }
+  for (const page of DOCS_PAGES.filter(entry => !EXTRA_PAGES.includes(entry))) {
+    assert.match(text[committed.get(page.id) - 1], /^export function guidePages\(/, `${page.id}: a guide page is built by guidePages()`);
+  }
+  assert.equal(baselineLines(readFileSync(path.join(TESTS_ROOT, DOCS_BASELINE_FILE), 'utf8')).size, baseline.entries.length,
+    'one docs baseline entry per line, every one found');
+});
+
+test('the docs check run on a change run counts only what is new or grown, annotated on the docs files', () => {
+  const clean = buildDocs(docsComparison(docsKnown));
+
+  assert.equal(clean.name, 'A11y / docs-axe report');
+  assert.equal(clean.conclusion, 'success', 'the docs baseline is known debt on a pull request');
+  assert.deepEqual(clean.annotations, []);
+  assert.match(clean.summary, /^\*\*Verdict: green\.\*\*/);
+  assert.match(clean.summary, /^## A11y \/ docs axe$/m, 'the summary is the docs scan\'s');
+
+  const changed = buildDocs(docsComparison([...docsKnown, docsFinding(), docsFinding({ page: 'chrome-versions-menu', rule: 'aria-allowed-attr',
+    target: 'button.version-select', impact: 'critical', wcag: ['4.1.2'] })]));
+
+  assert.equal(changed.conclusion, 'failure');
+  assert.equal(changed.title, `✖ Red: 1 critical, 1 serious, 0 moderate, 0 minor ${RULE} · 1 new, 1 grown (warn mode)`);
+  assert.deepEqual(changed.annotations.map(item => [item.path, item.start_line, item.annotation_level, item.title]), [
+    ['tests/a11y/docs/pages.mjs', 3, 'failure', 'Grown accessibility finding (serious): link-in-text-block'],
+    ['tests/a11y/docs/pages.mjs', 8, 'failure', 'New accessibility finding (critical): aria-allowed-attr'],
+  ]);
+  assert.match(changed.annotations[1].message, /tests\/a11y\/docs\/docs-baseline\.json/, 'the remedy names the docs baseline');
+});
+
+test('a docs audit counts every open finding, annotated on its docs baseline entry', () => {
+  const payload = buildDocs(docsComparison(docsKnown), { scope: 'audit', tracked: () => true });
+
+  assert.equal(payload.conclusion, 'failure', 'a dispatch on develop says the truth about the docs site');
+  assert.equal(payload.title, `✖ Red: 0 critical, 2 serious, 0 moderate, 0 minor ${RULE} · No new accessibility findings: 2 known, in 2 known issues`);
+  assert.deepEqual(payload.annotations.map(item => [item.path, item.start_line, item.title]), [
+    ['tests/a11y/docs/docs-baseline.json', 5, 'Known accessibility finding (serious): link-in-text-block'],
+    ['tests/a11y/docs/docs-baseline.json', 6, 'Known accessibility finding (serious): label-content-name-mismatch'],
+  ]);
+  assert.match(payload.summary, /\*\*Audit run\*\* \(a schedule or a dispatch\): every open finding counts, tracked or not\./);
+});
+
+test('a docs finding is tracked through the docs source, never through a product cluster', () => {
+  const seen = [];
+  const recorded = buildDocs(docsComparison([...docsKnown, docsFinding({ rule: 'color-contrast', target: 'code' })]), {
+    tracked: (source, check, item) => {
+      seen.push([source, check, item.rule]);
+
+      return false;
+    },
+  });
+
+  assert.deepEqual(seen, [['docs', DOCS_SCAN_CHECK, 'color-contrast']]);
+  assert.equal(recorded.conclusion, 'failure');
+
+  // A product cluster with a tracker for the same rule: read as the product scan's, the docs finding would
+  // borrow it and turn a warning. Through the docs source it meets the docs cluster, which has none.
+  const catalog = compileIssuesCatalog({
+    schema: 1,
+    triageLimit: 0,
+    clusters: [
+      { id: 'product-contrast', title: 'Product contrast', tracker: 'TASK-1', match: [{ source: 'axe', rules: ['color-contrast'] }] },
+      { id: 'docs-contrast', title: 'Docs contrast', match: [{ source: 'docs', rules: ['color-contrast'] }] },
+      { id: 'docs-tabs', title: 'Docs tabs', tracker: 'TASK-2', match: [{ source: 'docs', axeIssues: ['framework-tab-name'] }] },
+    ],
+  });
+  const contrast = buildDocs(docsComparison([...docsKnown, docsFinding({ rule: 'color-contrast', target: 'code' })]), { tracked: trackedBy(catalog) });
+
+  assert.equal(contrast.conclusion, 'failure', 'the docs cluster has no tracker, so the serious finding stays red');
+  assert.equal(contrast.annotations[0].annotation_level, 'failure');
+
+  const tabs = buildDocs(docsComparison([...docsKnown, docsFinding({ page: 'chrome-versions-menu', theme: 'light', rule: 'label-content-name-mismatch',
+    target: 'button[role="tab"]', wcag: ['2.5.3'] })]), { tracked: trackedBy(catalog) });
+
+  assert.equal(tabs.conclusion, 'neutral', 'a new location of a tracked docs issue is a warning on a change run');
+  assert.match(tabs.title, /· 1 warning only ·/);
+});
+
+test('the committed catalog reads a docs finding through its docs rules', () => {
+  const catalog = compileIssuesCatalog(JSON.parse(readFileSync(path.join(TESTS_ROOT, ISSUES_FILE), 'utf8')));
+  const tracked = trackedBy(catalog);
+  const grid = { page: 'js-introduction', theme: 'light', rule: 'aria-required-children', target: 'div.ht-wrapper[role="treegrid"]',
+    wcag: ['1.3.1'], issue: 'example-grid-roles' };
+
+  assert.equal(tracked(DOCS.source, DOCS.check, grid), true, 'the example grids\' roles are the product\'s tracked grid-roles cluster, through its docs rule');
+  assert.equal(tracked(DOCS.source, DOCS.check, { ...grid, issue: 'prose-link-color-only', rule: 'link-in-text-block', target: 'a' }), false,
+    'a docs cluster with no tracker counts at its severity');
+});
+
+test('a docs run that wrote no comparison is a red tooling failure that names the docs file', () => {
+  const payload = buildDocs(null);
+
+  assert.equal(payload.name, DOCS.name);
+  assert.equal(payload.conclusion, 'failure');
+  assert.match(payload.summary, /The docs axe job ended without `tests\/test-results\/a11y-docs\/comparison\.json`/);
 });

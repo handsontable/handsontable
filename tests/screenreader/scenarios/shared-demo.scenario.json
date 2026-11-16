@@ -13,14 +13,14 @@
     {
       "id": "arrow-right-past-hidden",
       "action": {"press": "ArrowRight"},
-      "expect": [["1/1/20", "1 slash 1 slash 20"], ["sell date"]],
-      "note": "The setup hides the Name column (the hiddenColumns plugin, with indicators) and selects Tagcat 1. ArrowRight skips the hidden column to Sell date, `1/1/20`. The ARIA column index stays contiguous: Sell date is column 3, counting the row headers, as if Name did not exist. Required: the value and the column's name. VoiceOver with WebKit says nothing on this first key after it enters the page, as on other pages."
+      "expect": [["1/1/20", "1 slash 1 slash 20"], ["sell date"], ["column 3"]],
+      "note": "The setup hides the Name column (the hiddenColumns plugin, with indicators) and selects Tagcat 1. ArrowRight skips the hidden column to Sell date, `1/1/20`. The ARIA column index stays contiguous: Sell date is column 3, counting the row headers, as if Name did not exist. Required: the value, the column's name and its position, which a column index that counted the hidden column would make `column 4`; both NVDA lanes say `column 3`. VoiceOver with Chromium says `column 2`, one lower, the overlay clones' finding `grid-core` records on `arrow-right`, and VoiceOver with WebKit says nothing on this first key after it enters the page, as on other pages."
     },
     {
       "id": "up-to-header",
       "action": {"press": "ArrowUp"},
-      "expect": [["sell date"]],
-      "note": "ArrowUp moves to the Sell date header (navigableHeaders), not sorted yet (`aria-sort` none)."
+      "expect": [["sell date column header", "sell date menu"]],
+      "note": "ArrowUp moves to the Sell date header (navigableHeaders), not sorted yet (`aria-sort` none). Required: the header's name with its role (NVDA `column header`) or its menu button (VoiceOver `menu pop up`): the name alone is also what the cell below reads as its column."
     },
     {
       "id": "sort-ascending",
@@ -31,8 +31,8 @@
     {
       "id": "right-to-in-stock",
       "action": {"press": "ArrowRight"},
-      "expect": [["in stock"]],
-      "note": "ArrowRight moves to the In stock header."
+      "expect": [["in stock column header", "in stock menu"]],
+      "note": "ArrowRight moves to the In stock header. Required: its name with its role or menu button, as on Sell date: VoiceOver with Chromium also reads every header's name in the row on Sell date."
     },
     {
       "id": "add-to-sort",
@@ -44,9 +44,9 @@
     {
       "id": "left-to-first-sort",
       "action": {"press": "ArrowLeft"},
-      "expect": [["sell date"], ["ascending", "sort up", "upsort up"], ["1"]],
+      "expect": [["sell date column header", "sell date 1 column header", "sell date menu", "sell date 1 menu"], ["ascending", "sort up", "upsort up"], ["1"]],
       "severity": {"1": "moderate"},
-      "note": "Back on Sell date, still sorted ascending and first in the order, `1`. Required: its name, state and order; every reader reads them (`Sell date 1, column header, sub Menu, sorted ascending`)."
+      "note": "Back on Sell date, still sorted ascending and first in the order, `1`. Required: its name with its role or menu button, its state and its order; every reader reads them (`Sell date 1, column header, sub Menu, sorted ascending`)."
     }
   ]
 }

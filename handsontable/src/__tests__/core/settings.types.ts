@@ -628,6 +628,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRowsMutationError: (operation, error, payload) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  afterResumeExecution: () => {},
   afterRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible,
                      successfullyCollapsed) => {},
   afterRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible,
@@ -682,6 +683,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSheetTabRename: (sheetId, oldName, newName, source) => {},
   afterSheetTabStateCapture: (sheetId, viewState) => {},
   afterSheetTabStateRestore: (sheetId, viewState) => {},
+  afterSuspendExecution: () => {},
   afterTrimRow: (rows) => {},
   afterUndo: (action) => {},
   afterUndoStackChange: (doneActionsBefore, doneActionsAfter) => {},
@@ -850,6 +852,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   beforeRender: (isForced) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  beforeResumeExecution: () => {},
   beforeRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible) => {},
   beforeRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
@@ -891,6 +894,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _stretchedWidth: number = stretchedWidth;
     const _column: number = column;
   },
+  beforeSuspendExecution: () => {},
   beforeTouchScroll: () => {},
   beforeTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeUndo: (action) => {},

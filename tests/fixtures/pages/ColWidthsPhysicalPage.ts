@@ -41,6 +41,31 @@ export class ColWidthsPhysicalPage {
     }, [from, to]);
   }
 
+  /** Right-click a data cell and pick a context menu item by its label, the way a user does. */
+  async pickContextMenuItem(row: number, col: number, label: string): Promise<void> {
+    await this.cell(row, col).click({ button: 'right' });
+
+    const item = this.page.locator('.htContextMenu td').filter({ hasText: new RegExp(`^\\s*${label}\\s*$`) });
+
+    await expect(item).toBeVisible();
+    await item.click();
+  }
+
+  /** Select a cell and press the undo shortcut. */
+  async undo(): Promise<void> {
+    await this.cell(0, 0).click();
+    await this.page.keyboard.press('ControlOrMeta+z');
+  }
+
+  /** Whether `getSettings().colWidths` is still the array the fixture passed, with its values unchanged. */
+  async declaredArrayIsUntouched(): Promise<boolean> {
+    return this.page.evaluate(() => {
+      const w = window as any;
+
+      return w.hot.getSettings().colWidths === w.declaredWidths && w.declaredWidths.join() === '100,160,220';
+    });
+  }
+
   /** Assert the rendered width of the cell at a visual position. */
   async expectWidth(col: number, width: number): Promise<void> {
     await expect.poll(async() => (await this.cell(0, col).boundingBox())?.width).toBeCloseTo(width, 0);

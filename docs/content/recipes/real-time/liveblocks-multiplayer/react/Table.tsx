@@ -4,7 +4,7 @@ import { shallow } from "@liveblocks/client";
 import { HotTable } from "@handsontable/react-wrapper";
 import { registerAllModules } from "handsontable/registry";
 import { textRenderer } from "handsontable/renderers";
-import type { CellChange, ChangeSource } from "handsontable/common";
+import type { CellChange, ChangeSource } from "handsontable";
 import {
   useMutation,
   useOthersListener,

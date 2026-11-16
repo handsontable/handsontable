@@ -55,8 +55,8 @@
     {
       "id": "tab-to-grid",
       "action": {"press": "Tab"},
-      "expect": [["1"]],
-      "note": "Tab leaves the bar for the grid, on A1, the cell the focus left from. There is no keyboard trap."
+      "expect": [["1"], ["table", "tree grid", "grid"]],
+      "note": "Tab leaves the bar for the grid, on A1, the cell the focus left from. There is no keyboard trap. Required: the value and the grid's role, which every reader says as the focus enters the grid; the value alone is also what the bar's editor and the address box read, so it cannot tell that the focus left the bar."
     }
   ]
 }

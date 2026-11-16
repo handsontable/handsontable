@@ -13,14 +13,14 @@
     {
       "id": "down-past-hidden-row",
       "action": {"press": "ArrowDown"},
-      "expect": [["emily wilson"]],
-      "note": "The setup hides Robert Johnson's row (the hiddenRows plugin, with indicators) and selects Jane Smith's Name. ArrowDown skips the hidden row to Emily Wilson. The ARIA row index stays contiguous: Emily Wilson is row 7, after the four header rows, as if the hidden row did not exist. Required: the value. Every reader reads this scenario's groups; NVDA with Chromium names wrong rows and headers for the frozen row and the header levels (`row 30`, `B E I`), the overlay clones' known finding."
+      "expect": [["emily wilson"], ["row 7"]],
+      "note": "The setup hides Robert Johnson's row (the hiddenRows plugin, with indicators) and selects Jane Smith's Name. ArrowDown skips the hidden row to Emily Wilson. The ARIA row index stays contiguous: Emily Wilson is row 7, after the four header rows, as if the hidden row did not exist. Required: the value and its position, which a row index that counted the hidden row would make `row 8`; both NVDA lanes say `row 7`, and VoiceOver names no row number on a cell move, as `grid-core` records. Every reader reads this scenario's groups; NVDA with Chromium names wrong rows and headers for the frozen row and the header levels (`row 30`, `B E I`), the overlay clones' known finding."
     },
     {
       "id": "up-past-hidden-row",
       "action": {"press": "ArrowUp"},
-      "expect": [["jane smith"]],
-      "note": "ArrowUp skips the hidden row back to Jane Smith, whose cell holds a comment."
+      "expect": [["jane smith"], ["row 6"]],
+      "note": "ArrowUp skips the hidden row back to Jane Smith, whose cell holds a comment. Required: the value and its position, `row 6`."
     },
     {
       "id": "up-to-frozen-row",
@@ -31,25 +31,25 @@
     {
       "id": "up-to-header",
       "action": {"press": "ArrowUp"},
-      "expect": [["name"]],
-      "note": "ArrowUp moves to the column's own header, the lowest of four levels (navigableHeaders)."
+      "expect": [["name column header", "name menu"]],
+      "note": "ArrowUp moves to the column's own header, the lowest of four levels (navigableHeaders). Required: its name with its role (NVDA `column header`) or its menu button (VoiceOver `menu pop up`): NVDA reads `name` as the column's header on every cell of it too."
     },
     {
       "id": "up-to-group-i",
       "action": {"press": "ArrowUp"},
-      "expect": [["i"], ["expanded"]],
-      "note": "The third level: group I, over two columns, which collapses (collapsibleColumns, `aria-expanded` true). Required: its label and its state."
+      "expect": [["i column header", "i expanded"], ["expanded"]],
+      "note": "The third level: group I, over two columns, which collapses (collapsibleColumns, `aria-expanded` true). Required: its label, anchored to its role (NVDA `I column header`) or its state (VoiceOver `I expanded`), and its state. The label alone also matches the other group headers, on which NVDA reads the ancestor headers' labels (`E column header ... B I Name`)."
     },
     {
       "id": "up-to-group-e",
       "action": {"press": "ArrowUp"},
-      "expect": [["e"], ["expanded"]],
+      "expect": [["e column header", "e expanded"], ["expanded"]],
       "note": "The second level: group E, over four columns."
     },
     {
       "id": "up-to-group-b",
       "action": {"press": "ArrowUp"},
-      "expect": [["b"], ["expanded"]],
+      "expect": [["b column header", "b expanded"], ["expanded"]],
       "note": "The top level: group B, over eight columns."
     }
   ]

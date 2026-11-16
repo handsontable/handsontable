@@ -9,7 +9,11 @@
       "description": "Copies, cuts, and pastes cells through the clipboard.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

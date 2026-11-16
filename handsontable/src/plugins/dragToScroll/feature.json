@@ -9,7 +9,11 @@
       "description": "Scrolls the grid when a drag reaches its edge.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

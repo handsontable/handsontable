@@ -11,11 +11,9 @@ import { loadFixture as fixture } from '../../../utils/xlsxEngine/__tests__/help
 import * as consoleHelpers from '../../../helpers/console';
 import {
   ALL_XLSX_TOKENS,
-  keyWith,
-  keyWithAll,
-  keyWithout,
-  keyWithoutFlag,
+  keyWithoutTier,
 } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { resetTierKeys, tierKeyWithout } from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 
 /**
  * An arbitrary subset of the xlsx tokens, chosen so a key both grants some import features and lacks
@@ -27,6 +25,17 @@ const PARTIAL_TOKENS = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:lay
  * The tokens a key listing `PARTIAL_TOKENS` lacks, in declaration order.
  */
 const MISSING_TOKENS = ALL_XLSX_TOKENS.filter(id => !PARTIAL_TOKENS.includes(id));
+
+/**
+ * Builds a key that unlocks every plugin and, of the xlsx family, exactly `tokens`.
+ *
+ * @param {string[]} tokens The xlsx tokens the key unlocks.
+ * @param {string[]} [flags] The product flags.
+ * @returns {string}
+ */
+function xlsxKeyWith(tokens, flags = []) {
+  return tierKeyWithout(ALL_XLSX_TOKENS.filter(id => !tokens.includes(id)), flags);
+}
 /**
  * Of `MISSING_TOKENS`, the ones the import gates: `xlsx:number_formats` restricts the export only.
  */
@@ -620,10 +629,11 @@ describe('ImportFile license report', () => {
 
   afterEach(() => {
     warnSpy.mockRestore();
+    resetTierKeys();
   });
 
   it('keeps the full report on a key that lacks some tokens, with the license entries of the import only', async() => {
-    const full = await pluginFor(keyWith(ALL_XLSX_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
+    const full = await pluginFor(tierKeyWithout([])).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
     // The file carries lossy content: proven on a full key before the partial key reports it too.
     expect(full.dropped).toContain('richText');
@@ -631,7 +641,7 @@ describe('ImportFile license report', () => {
 
     warnSpy.mockClear();
 
-    const partial = await pluginFor(keyWith(PARTIAL_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
+    const partial = await pluginFor(xlsxKeyWith(PARTIAL_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
     expect(partial.dropped).toEqual(PARTIAL_LOSSY_DROPPED);
     expect(partial.dropped).not.toContain('license:xlsx:number_formats');
@@ -642,47 +652,24 @@ describe('ImportFile license report', () => {
     ]);
   });
 
-  it('treats an xlsx:import_report token as granting nothing more', async() => {
-    const listed = await pluginFor(keyWith([...PARTIAL_TOKENS, 'xlsx:import_report']))
-      .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
-
-    expect(listed.dropped).toEqual(PARTIAL_LOSSY_DROPPED);
-  });
-
   it('never names an export-only token on import', async() => {
-    const exportOnlyMissing = await pluginFor(keyWith(ALL_XLSX_TOKENS.filter(id => id !== 'xlsx:number_formats'
-      && id !== 'xlsx:export'))).plugin.importFromArrayBuffer('xlsx', fixture('values'));
+    const exportOnlyMissing = await pluginFor(tierKeyWithout(['xlsx:number_formats', 'xlsx:export']))
+      .plugin.importFromArrayBuffer('xlsx', fixture('values'));
 
     expect(licenseEntriesOf(exportOnlyMissing.dropped)).toEqual([]);
     expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
   });
 
-  it('imports like a full key, and says nothing, for a flagged key that lists xlsx:all', async() => {
-    const full = await pluginFor(keyWith(ALL_XLSX_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
-
-    warnSpy.mockClear();
-
-    const all = await pluginFor(keyWithAll()).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
-
-    expect(all).toEqual(full);
-    expect(licenseEntriesOf(all.dropped)).toEqual([]);
-    expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
-
-    await pluginFor(keyWithAll(['no-console-warns'])).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
-
-    expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
-  });
-
-  it('leaves a key without the listed-capabilities flag unrestricted, whatever it lists', async() => {
+  it('leaves a key that names no tier unrestricted, whatever it lists', async() => {
     const legacy = await pluginFor('non-commercial-and-evaluation')
       .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
     warnSpy.mockClear();
 
-    const unflagged = await pluginFor(keyWithoutFlag(PARTIAL_TOKENS))
+    const noTier = await pluginFor(keyWithoutTier(PARTIAL_TOKENS))
       .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
-    expect(unflagged).toEqual(legacy);
+    expect(noTier).toEqual(legacy);
     expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
   });
 
@@ -690,14 +677,15 @@ describe('ImportFile license report', () => {
     const licenseWarnings = () => warnSpy.mock.calls
       .map(([message]) => message)
       .filter(message => message.startsWith('The xlsx import skipped'));
-    const asked = await pluginFor(keyWithout('xlsx:layout')).plugin.importFromArrayBuffer('xlsx', fixture('layout'));
+    const asked = await pluginFor(tierKeyWithout(['xlsx:layout']))
+      .plugin.importFromArrayBuffer('xlsx', fixture('layout'));
 
     expect(licenseEntriesOf(asked.dropped)).toEqual(['license:xlsx:layout']);
     expect(licenseWarnings()).toEqual(['The xlsx import skipped features your license does not unlock: xlsx:layout.']);
 
     warnSpy.mockClear();
 
-    const notAsked = await pluginFor(keyWithout('xlsx:layout'))
+    const notAsked = await pluginFor(tierKeyWithout(['xlsx:layout']))
       .plugin.importFromArrayBuffer('xlsx', fixture('layout'), { importLayout: false });
 
     expect(licenseEntriesOf(notAsked.dropped)).toEqual([]);
@@ -705,14 +693,14 @@ describe('ImportFile license report', () => {
   });
 
   it('says nothing about the license for a values-only file on a key that lacks some tokens', async() => {
-    const result = await pluginFor(keyWith(PARTIAL_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('values'));
+    const result = await pluginFor(xlsxKeyWith(PARTIAL_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('values'));
 
     expect(licenseEntriesOf(result.dropped)).toEqual([]);
     expect(warnSpy.mock.calls.filter(([message]) => message.startsWith('The xlsx import skipped'))).toEqual([]);
   });
 
   it('warns once with the missing tokens, and stays silent under no-console-warns', async() => {
-    await pluginFor(keyWith(PARTIAL_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
+    await pluginFor(xlsxKeyWith(PARTIAL_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
     const licenseWarnings = () => warnSpy.mock.calls
       .map(([message]) => message)
@@ -724,14 +712,14 @@ describe('ImportFile license report', () => {
 
     warnSpy.mockClear();
 
-    const silenced = await pluginFor(keyWith(PARTIAL_TOKENS, ['no-console-warns']))
+    const silenced = await pluginFor(xlsxKeyWith(PARTIAL_TOKENS, ['no-console-warns']))
       .plugin.importFromArrayBuffer('xlsx', fixture('lossy'));
 
     expect(licenseWarnings()).toEqual([]);
     expect(licenseEntriesOf(silenced.dropped)).toEqual(['license:xlsx:protection']);
 
     warnSpy.mockClear();
-    await pluginFor(keyWith(ALL_XLSX_TOKENS)).plugin.importFromArrayBuffer('xlsx', fixture('values'));
+    await pluginFor(tierKeyWithout([])).plugin.importFromArrayBuffer('xlsx', fixture('values'));
 
     expect(licenseWarnings()).toEqual([]);
   });
