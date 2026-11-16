@@ -335,7 +335,8 @@ function writeChangeRow(change: CellChange, visualRow: number | null): void {
 
 /**
  * Told about the rows inserted into or removed from the visual space, by the visual row of the first one and their
- * count. A removal is told after its rows are gone, an insert after its rows are in.
+ * count, and about a change of the number of trimmed rows. A removal is told after its rows are gone, an insert
+ * after its rows are in.
  */
 export interface RowShiftListener {
   /**
@@ -346,6 +347,11 @@ export interface RowShiftListener {
    * Called after rows are removed from a visual row.
    */
   rowsRemoved(visualRow: number, amount: number): void;
+  /**
+   * Called after a trimming map (a filter, `trimRows`, a collapse) changed the number of trimmed rows, with the
+   * difference (positive when more rows are trimmed).
+   */
+  trimmedRowsChanged(difference: number): void;
 }
 
 /**
@@ -367,6 +373,17 @@ export interface WaitingChangeRecords {
    * Notes the stored cell meta a validated change's cell has, which tells its record apart later.
    */
   noteMeta(change: CellChange, meta: object, physicalColumn: number): void;
+  /**
+   * Keeps the `visualRow` of the cell meta a validator call of a change past the last row gets on the visual row
+   * that change has while it waits, so a validator that corrects through `this.visualRow` writes to the row the
+   * change creates, not to the record a shift brought to its old row.
+   */
+  notePastEndMeta(change: CellChange, meta: object): void;
+  /**
+   * Returns the visual row a change past the last row has now while it waits, or `undefined` for any other
+   * change.
+   */
+  getPastEndRow(change: CellChange): number | undefined;
   /**
    * Tells whether the set captured a record for any change. A set no validator waited on captures none.
    */
@@ -433,8 +450,20 @@ export function createWaitingChangeRecords(
   const anchors = new Set<RecordAnchor>();
   const settledRows = new Map<object, number>();
   const pastEndRows = new Map<CellChange, number>();
+  const pastEndMetas = new Map<CellChange, object[]>();
   let stopObservingRows: (() => void) | null = null;
   let captured = false;
+
+  /**
+   * Puts a change past the last row on another visual row, and the cell meta of its validator calls with it.
+   *
+   * @param {Array} change The change.
+   * @param {number} visualRow The visual row.
+   */
+  const movePastEnd = (change: CellChange, visualRow: number) => {
+    pastEndRows.set(change, visualRow);
+    pastEndMetas.get(change)?.forEach(meta => Reflect.set(meta, 'visualRow', visualRow));
+  };
 
   /**
    * Moves the rows of the changes past the last row by the rows inserted at or above them, unless the rows are
@@ -450,7 +479,7 @@ export function createWaitingChangeRecords(
 
     pastEndRows.forEach((row, change) => {
       if (visualRow <= row) {
-        pastEndRows.set(change, row + amount);
+        movePastEnd(change, row + amount);
       }
     });
   };
@@ -464,9 +493,21 @@ export function createWaitingChangeRecords(
   const shiftOnRemove = (visualRow: number, amount: number) => {
     pastEndRows.forEach((row, change) => {
       if (visualRow < row) {
-        pastEndRows.set(change, row - Math.min(amount, row - visualRow));
+        movePastEnd(change, row - Math.min(amount, row - visualRow));
       }
     });
+  };
+
+  /**
+   * Keeps the changes past the last row on the physical rows they create when the number of trimmed rows changes.
+   * Such a change creates the physical row `rows + visualRow - visibleRows`, and a trim changes the visible rows
+   * only, so the visual row moves by the difference: a filter applied in the wait would otherwise create filler
+   * rows up to the old visual row, and a cleared one write into the record the untrim brought to it.
+   *
+   * @param {number} difference The change of the number of trimmed rows.
+   */
+  const shiftOnTrim = (difference: number) => {
+    pastEndRows.forEach((row, change) => movePastEnd(change, row - difference));
   };
 
   /**
@@ -512,7 +553,11 @@ export function createWaitingChangeRecords(
       });
 
       if (pastEndRows.size > 0) {
-        stopObservingRows = observeRowShifts({ rowsInserted: shiftOnInsert, rowsRemoved: shiftOnRemove });
+        stopObservingRows = observeRowShifts({
+          rowsInserted: shiftOnInsert,
+          rowsRemoved: shiftOnRemove,
+          trimmedRowsChanged: shiftOnTrim,
+        });
       }
     },
     noteMeta(change, meta, physicalColumn) {
@@ -522,6 +567,17 @@ export function createWaitingChangeRecords(
         anchor.meta = meta;
         anchor.metaColumn = physicalColumn;
       }
+    },
+    notePastEndMeta(change, meta) {
+      const row = pastEndRows.get(change);
+
+      if (row !== undefined) {
+        pastEndMetas.set(change, [...(pastEndMetas.get(change) ?? []), meta]);
+        Reflect.set(meta, 'visualRow', row);
+      }
+    },
+    getPastEndRow(change) {
+      return pastEndRows.get(change);
     },
     getRecord(change) {
       return anchorsByChange.get(change)?.record;
@@ -601,6 +657,7 @@ export function createWaitingChangeRecords(
       settledRows.clear();
       stopShifting();
       pastEndRows.clear();
+      pastEndMetas.clear();
     },
   };
 

@@ -397,6 +397,29 @@ describe('Core validation of a change while its record moves', () => {
       expect(validAt(7)).toBe(true);
     });
 
+    it('should create one row for a change past the last one when a trim hides rows while it waits', async() => {
+      createGrid();
+
+      hot.setDataAtCell(6, 0, 'new');
+      hot.getPlugin('trimRows').trimRows([1, 2]);
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'new']);
+      expect(applied).toEqual([[[4, 0, null, 'new']]]);
+    });
+
+    it('should create a row for a change past the last one instead of writing a record an untrim shows', async() => {
+      createGrid();
+
+      hot.getPlugin('trimRows').trimRows([1, 2]);
+      hot.setDataAtCell(4, 0, 'new');
+      hot.getPlugin('trimRows').untrimAll();
+      await answerAll();
+
+      expect(sourceNames()).toEqual(['p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'new']);
+      expect(applied).toEqual([[[6, 0, null, 'new']]]);
+    });
+
     it('should create the row of a change past the last one after a row above it was removed', async() => {
       createGrid();
 
@@ -749,6 +772,17 @@ describe('Core validation of a change while its record moves', () => {
       hot.resumeRender();
 
       expect(sourceNames()).toEqual([null, 'p0', 'ZZZ', 'p2', 'p3', 'p4', 'p5']);
+    });
+
+    it('should write the correction made through this.visualRow to the created row of a change past the last one after an insert above', async() => {
+      createCorrectingGrid();
+
+      hot.setDataAtCell(6, 0, 'zzz');
+      hot.alter('insert_row_above', 0);
+      await answerAll();
+      await answerAll();
+
+      expect(sourceNames()).toEqual([null, 'p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'ZZZ']);
     });
 
     it('should write the correction made through a null this.visualRow to the edited record a trim took out', async() => {

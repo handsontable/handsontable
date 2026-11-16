@@ -533,19 +533,35 @@ export default function Core(
   };
   /**
    * Tells a waiting change of a row past the last one about the rows `alter()`, a write past the last row or
-   * a spare-row option inserts or removes, by their visual rows, see `core/waitingRecords.ts`.
+   * a spare-row option inserts or removes, by their visual rows, and about a change of the number of trimmed rows
+   * (read on every `cacheUpdated` of the row index mapper), see `core/waitingRecords.ts`.
    *
    * @param {object} listener The listener.
    * @returns {Function} Stops telling the listener.
    */
   const observeRowShifts: RowShiftObserver = (listener) => {
+    const rowIndexMapper = instance.rowIndexMapper;
+    const countTrimmedRows = () => rowIndexMapper.getNumberOfIndexes() - rowIndexMapper.getNotTrimmedIndexesLength();
+    let trimmedRows = countTrimmedRows();
     const onAfterCreateRow = (visualRow: number, amount: number) => listener.rowsInserted(visualRow, amount);
     const onAfterRemoveRow = (visualRow: number, amount: number) => listener.rowsRemoved(visualRow, amount);
+    const onCacheUpdated = () => {
+      const previousTrimmedRows = trimmedRows;
+
+      trimmedRows = countTrimmedRows();
+
+      if (trimmedRows !== previousTrimmedRows) {
+        listener.trimmedRowsChanged(trimmedRows - previousTrimmedRows);
+      }
+    };
 
     instance.addHook('afterCreateRow', onAfterCreateRow);
     instance.addHook('afterRemoveRow', onAfterRemoveRow);
+    rowIndexMapper.addLocalHook('cacheUpdated', onCacheUpdated);
 
     return () => {
+      rowIndexMapper.removeLocalHook('cacheUpdated', onCacheUpdated);
+
       if (instance) {
         instance.removeHook('afterCreateRow', onAfterCreateRow);
         instance.removeHook('afterRemoveRow', onAfterRemoveRow);
@@ -3630,7 +3646,7 @@ export default function Core(
 
       const record = records.getRecord(change);
 
-      return record === undefined ? visualRow !== null && change[0] === visualRow :
+      return record === undefined ? visualRow !== null && (records.getPastEndRow(change) ?? change[0]) === visualRow :
         record.physicalRow !== null && record.physicalRow === physicalRow;
     });
 
@@ -3851,6 +3867,7 @@ export default function Core(
 
         if (row >= visibleRowsCount) {
           pendingRowMetas.push(cellProperties as { row?: number, valid?: boolean });
+          records.notePastEndMeta(changes[i], cellProperties);
 
         } else if (Number.isInteger(cellProperties.col)) {
           records.noteMeta(changes[i], cellProperties, cellProperties.col as number);
