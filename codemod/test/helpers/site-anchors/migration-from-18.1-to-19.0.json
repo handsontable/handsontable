@@ -1096,6 +1096,11 @@
       "level": 3,
       "markdown": "How to migrate",
       "id": "how-to-migrate-53"
+    },
+    {
+      "level": 2,
+      "markdown": "61. Writing past the last column of an object data source is deprecated",
+      "id": "writing-past-the-last-column-of-an-object-data-source-is-deprecated"
     }
   ]
 }
