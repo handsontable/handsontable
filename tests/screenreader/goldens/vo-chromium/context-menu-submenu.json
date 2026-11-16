@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "context-menu-submenu",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:58:00.156Z"
+  },
+  "steps": {
+    "down-to-alignment": "alignment collapsed menu item group table",
+    "open-submenu": "alignment expanded menu item group 1 of 1",
+    "down-to-center": "center menu item group table",
+    "close-submenu": "context menu checked items e2e fixture web content",
+    "close-menu": ""
+  }
+}

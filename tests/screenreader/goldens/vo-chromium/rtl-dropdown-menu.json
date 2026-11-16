@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "rtl-dropdown-menu",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:59:02.197Z"
+  },
+  "steps": {
+    "open-menu": "",
+    "end-to-alignment": "",
+    "open-submenu": "",
+    "close-submenu": "",
+    "close-menu": ""
+  }
+}
