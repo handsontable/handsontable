@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "datetime-editor",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:09:13.029Z"
+  },
+  "steps": {
+    "open-editor": "",
+    "type-date": "1",
+    "commit-datetime": "1 month stepper",
+    "back-to-committed": "datetime 01 10 2024 09 30 00",
+    "reopen-editor": "1 month stepper",
+    "cancel-edit": ""
+  }
+}
