@@ -233,6 +233,13 @@ import { AGENT_NOTE_HTML_COMMENT } from '../agent-note.mjs';
 </script>
 
 <script>
+  // Cookiebot's implied-consent listener stops the first click and replays it two seconds later.
+  import { installFirstClickReplay } from '../lib/cookiebot-first-click.mjs';
+
+  installFirstClickReplay();
+</script>
+
+<script>
   import '../scripts/example-runner';
 </script>
 
