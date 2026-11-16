@@ -259,6 +259,25 @@ describe.each([
     expect(region('polite')).toBe('Sorted by Age, ascending');
   });
 
+  it('should announce the order of the pressed column when visual and physical columns differ', () => {
+    buildGrid();
+    hot.columnIndexMapper.setIndexesSequence([2, 0, 1]);
+    hot.render();
+
+    clickHeader(0);
+    settle();
+
+    expect(region('polite')).toBe('Sorted by Tag, ascending');
+    expect(hot.getCell(-1, 0).getAttribute('aria-sort')).toBe('ascending');
+
+    clickHeader(0);
+    settle();
+
+    expect(region('polite')).toBe('Sorted by Tag, descending');
+    expect(hot.getCell(-1, 0).getAttribute('aria-sort')).toBe('descending');
+    expect(hot.getCell(-1, 1).getAttribute('aria-sort')).toBe('none');
+  });
+
   it('should name the column by its letter when the header label is empty', () => {
     buildGrid({ colHeaders: ['Name', '', 'Tag'] });
 
