@@ -61,6 +61,36 @@ test('keeps the second section when shortening the first one is enough', () => {
   assert.match(body, /- Fixed thing 1499 /);
 });
 
+const withBreaking = (fixed, breaking) => [
+  '### Added',
+  '',
+  '- Added thing',
+  '',
+  '### Fixed',
+  '',
+  ...Array.from({ length: fixed }, (_, i) => (i < breaking
+    ? `- **Breaking change**: Fixed thing ${i} ${'x'.repeat(40)}`
+    : `- Fixed thing ${i} ${'x'.repeat(40)}`)),
+].join('\n');
+
+test('a shortened section keeps its breaking changes', () => {
+  const body = buildRelease('19.0.0', '19.0.0', withBreaking(3000, 16));
+
+  assert.match(body, /### Fixed\n\n3000 entries, too many for a GitHub release\. Only the 16 breaking changes are listed here\./);
+  assert.equal(body.match(/^- \*\*Breaking change\*\*: Fixed thing/gm).length, 16);
+  assert.doesNotMatch(body, /^- Fixed thing/m);
+  assert.match(body, /- Added thing\n/);
+  assert.ok(body.includes('/blob/19.0.0/CHANGELOG.md'));
+});
+
+test('a shortened section drops its breaking changes when they do not fit, and says how many', () => {
+  const body = buildRelease('19.0.0', '19.0.0', withBreaking(3000, 2500));
+
+  assert.ok(body.length <= MAX_BODY_LENGTH);
+  assert.match(body, /### Fixed\n\n3000 entries, too many for a GitHub release\. 2500 of them are breaking changes\./);
+  assert.doesNotMatch(body, /^- \*\*Breaking change/m);
+});
+
 test('the CLI prints the section of the requested version', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'release-notes-'));
   const file = path.join(dir, 'CHANGELOG.md');
