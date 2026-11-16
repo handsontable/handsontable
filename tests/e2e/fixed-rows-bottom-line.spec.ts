@@ -79,6 +79,125 @@ for (const rtl of [false, true]) {
   });
 }
 
+test.describe('fixedRowsBottom freeze line around the lined-up state', { tag: ['@core', THEMES_TAG] }, () => {
+  let grid: FixedRowsBottomLinePage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new FixedRowsBottomLinePage(page, theme, bundle);
+  });
+
+  test('draws the edge of a range on the line and keeps its fill handle above the bottom rows', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1 });
+
+    const row = await grid.arrowToBandEdge(1, 2);
+
+    // A range that ends on the lined-up row: its bottom edge and its fill handle are the `area` border's.
+    await grid.selectRange(row - 2, 2, row, 2);
+
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 2)).toEqual({
+      onLine: expect.stringMatching(/^ht_clone_bottom\/div\.wtBorder area/),
+      inside: expect.stringMatching(/^(ht_master|ht_clone_bottom)\/div\.wtBorder area/),
+      handleOnTop: true,
+      handleAboveBand: true,
+    });
+  });
+
+  test('draws the line pixel of a cell in a frozen start column in the bottom start corner', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, fixedColumnsStart: 2 });
+
+    const row = await grid.arrowToBandEdge(1, 0);
+
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 0)).toMatchObject({
+      onLine: expect.stringMatching(/^ht_clone_bottom_inline_start_corner\/div\.wtBorder current/),
+      handleOnTop: true,
+      handleAboveBand: true,
+    });
+  });
+
+  test('draws the edge of a range across the frozen start columns on the line in both parts', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, fixedColumnsStart: 2 });
+
+    const row = await grid.arrowToBandEdge(1, 0);
+
+    // Column 1 is frozen, columns 2 and 3 scroll.
+    await grid.selectRange(row, 1, row, 3);
+
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 1)).toMatchObject({
+      onLine: expect.stringMatching(/^ht_clone_bottom_inline_start_corner\/div\.wtBorder (current|area)/),
+    });
+    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 3)).toMatchObject({
+      onLine: expect.stringMatching(/^ht_clone_bottom\/div\.wtBorder area/),
+      handleOnTop: true,
+      handleAboveBand: true,
+    });
+  });
+
+  test('gives the line back to the bottom rows when the grid scrolls on', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1 });
+
+    const row = await grid.arrowToBandEdge(1, 2);
+
+    // Precondition: the bottom clone draws the selection's line pixel.
+    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 2)).toMatchObject({
+      onLine: expect.stringMatching(/^ht_clone_bottom\/div\.wtBorder current/),
+    });
+
+    await grid.scrollDownBy(5);
+
+    // The row no longer ends on the line, so the line's pixel is the bottom row's own border again.
+    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 2)).toMatchObject({
+      onLine: expect.stringMatching(/^ht_clone_bottom\/td/),
+    });
+  });
+
+  test('gives the line back to the bottom rows when the selection moves up a row', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1 });
+
+    const row = await grid.arrowToBandEdge(1, 2);
+    const scrollTop = await grid.scrollTop();
+
+    await grid.page.keyboard.press('ArrowUp');
+
+    // The grid did not scroll, so the row the selection left still ends on the line, with no selection on it.
+    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 2)).toMatchObject({
+      onLine: expect.stringMatching(/^ht_clone_bottom\/td/),
+      handleOnTop: true,
+    });
+    expect(await grid.scrollTop()).toBe(scrollTop);
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+  });
+
+  test('fills down from the handle of a lined-up row with a real drag', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1 });
+
+    const row = await grid.arrowToBandEdge(1, 2);
+    const scrollTop = await grid.scrollTop();
+
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+
+    // Half of the handle used to sit under the bottom rows. The drag ends on the first frozen bottom row.
+    await grid.dragFillHandleOntoBottomRow(2);
+
+    const value = `R${row + 1}C3`;
+
+    expect((await grid.columnValues(2)).slice(row)).toEqual(Array.from({ length: ROWS - row }, () => value));
+    expect(await grid.scrollTop()).toBe(scrollTop);
+  });
+
+  test('ends a row the down arrow scrolls to one pixel above the viewport edge without bottom rows', async () => {
+    // Without frozen bottom rows the scroll target keeps its extra pixel in every grid shape.
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 0 });
+
+    const row = await grid.arrowToBandEdge(1, 2);
+
+    expect(row).toBeLessThan(ROWS - 1);
+    expect(await grid.cellBottomInsetFromViewport(row, 2)).toBe(1);
+  });
+});
+
 test.describe('fixedRowsBottom freeze line in other grid shapes', { tag: ['@core', THEMES_TAG] }, () => {
   let grid: FixedRowsBottomLinePage;
 

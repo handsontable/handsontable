@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt } from '../bundle';
+import { dragFillHandle } from '../gestures';
 
 /**
  * Query params of the `fixed-columns-end-line.html` fixture this page object uses.
@@ -9,6 +10,7 @@ export interface FixedRowsBottomLineOptions {
   rows?: number;
   cols?: number;
   fixedRowsBottom?: number;
+  fixedColumnsStart?: number;
   /** `false` builds the grid without column headers. */
   colHeaders?: boolean;
   autoRowSize?: boolean;
@@ -29,10 +31,12 @@ export interface BottomFreezeLineMeasure {
 
 interface HotLike {
   selectCell(row: number, col: number): void;
+  selectCells(ranges: number[][], scrollToCell: boolean): void;
+  getDataAtCol(column: number): unknown[];
   deselectCell(): void;
   scrollViewportTo(options: object): boolean;
   updateSettings(settings: object): void;
-  getCell(row: number, col: number): HTMLElement;
+  getCell(row: number, col: number, topmost?: boolean): HTMLElement;
   getSelectedRangeLast(): { to: { row: number } };
 }
 
@@ -137,10 +141,87 @@ export class FixedRowsBottomLinePage {
     const selectedRow = await this.page.evaluate(
       () => (window as unknown as { hot: HotLike }).hot.getSelectedRangeLast().to.row);
 
-    await expect(this.master.locator(`td[data-testid="cell-${selectedRow}-${column}"]`)).toBeAttached();
+    // In whichever overlay draws it: a cell of a frozen start column is not always in the master.
+    await expect(this.page.locator(`td[data-testid="cell-${selectedRow}-${column}"]`).first()).toBeAttached();
     await this.#settle();
 
     return selectedRow;
+  }
+
+  /**
+   * Selects a range through the API without scrolling to it, and waits for the draw that follows.
+   *
+   * @param {number} fromRow The first visual row.
+   * @param {number} fromColumn The first visual column.
+   * @param {number} toRow The last visual row.
+   * @param {number} toColumn The last visual column.
+   */
+  async selectRange(fromRow: number, fromColumn: number, toRow: number, toColumn: number): Promise<void> {
+    await this.page.evaluate((range) => {
+      (window as unknown as { hot: HotLike }).hot.selectCells([range], false);
+    }, [fromRow, fromColumn, toRow, toColumn]);
+    await this.#settle();
+  }
+
+  /**
+   * Scrolls the master holder down by a few pixels, and waits until no master row ends at the freeze line
+   * any more: the clones follow the scroll on a later frame.
+   *
+   * @param {number} pixels How far to scroll.
+   */
+  async scrollDownBy(pixels: number): Promise<void> {
+    await this.page.evaluate((delta) => {
+      (document.querySelector('.ht_master .wtHolder') as HTMLElement).scrollTop += delta;
+    }, pixels);
+    await expect.poll(() => this.masterRowEndsAtLine()).toBe(false);
+    await this.#settle();
+  }
+
+  /**
+   * The master holder's vertical scroll offset.
+   */
+  async scrollTop(): Promise<number> {
+    return this.page.evaluate(() => (document.querySelector('.ht_master .wtHolder') as HTMLElement).scrollTop);
+  }
+
+  /**
+   * How far above the master viewport's bottom edge a cell ends: `0` on the edge itself.
+   *
+   * @param {number} row The visual row.
+   * @param {number} column The visual column.
+   */
+  async cellBottomInsetFromViewport(row: number, column: number): Promise<number> {
+    return this.page.evaluate(([r, c]) => {
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement;
+      const viewportBottom = holder.getBoundingClientRect().top + holder.clientHeight;
+      const cell = (window as unknown as { hot: HotLike }).hot.getCell(r, c).getBoundingClientRect();
+
+      return Math.round(viewportBottom - cell.bottom);
+    }, [row, column] as const);
+  }
+
+  /**
+   * Drags the selection's fill handle with the real pointer onto the first frozen bottom row, in the given
+   * column, and releases.
+   *
+   * @param {number} column The visual column to end the drag in.
+   */
+  async dragFillHandleOntoBottomRow(column: number): Promise<void> {
+    const handle = this.page.locator('.ht_master .wtBorder.current.corner:visible');
+    const target = this.page.locator('.ht_clone_bottom tbody tr:first-child')
+      .locator(`td[data-testid$="-${column}"]`);
+
+    await dragFillHandle(this.page, handle, target);
+    await this.#settle();
+  }
+
+  /**
+   * Every value of a column, by visual row.
+   *
+   * @param {number} column The visual column.
+   */
+  async columnValues(column: number): Promise<unknown[]> {
+    return this.page.evaluate(c => (window as unknown as { hot: HotLike }).hot.getDataAtCol(c), column);
   }
 
   /**
@@ -209,7 +290,8 @@ export class FixedRowsBottomLinePage {
   }> {
     return this.page.evaluate(([r, c]) => {
       const { hot } = window as unknown as { hot: HotLike };
-      const cell = hot.getCell(r, c).getBoundingClientRect();
+      // The topmost copy: a cell of a frozen start column is drawn by the inline-start clone.
+      const cell = hot.getCell(r, c, true).getBoundingClientRect();
       const line = (document.querySelector('.ht_clone_bottom tbody tr:first-child > td') as HTMLElement)
         .getBoundingClientRect().top;
       const x = cell.left + (cell.width / 2);
@@ -219,7 +301,8 @@ export class FixedRowsBottomLinePage {
 
         return `${overlay}/${el?.tagName.toLowerCase()}.${el?.className ?? ''}`;
       };
-      const corner = Array.from(document.querySelectorAll('.wtBorder.current.corner'))
+      // A single cell has its handle on the `current` border, a range on the `area` border.
+      const corner = Array.from(document.querySelectorAll('.wtBorder.current.corner, .wtBorder.area.corner'))
         .find(el => getComputedStyle(el).display !== 'none');
       let handleOnTop = false;
       let handleAboveBand = false;

@@ -161,6 +161,37 @@ export class MobileHandlesPage {
   }
 
   /**
+   * Where the bottom handle and a cell end against the top edge of the frozen bottom rows, in one read:
+   * `cellEnd` is the cell's bottom edge minus that edge (`1` for a row lined up with the bottom rows, whose
+   * border lies under their first pixel row), `handleEnd` the same for the bottom handle's box.
+   *
+   * @param {number} row The visual row of the cell.
+   * @param {number} col The visual column of the cell.
+   */
+  async bottomHandleAgainstBottomRows(row: number, col: number): Promise<{ cellEnd: number; handleEnd: number }> {
+    const handle = await this.bottomHandle().boundingBox();
+
+    if (!handle) {
+      throw new Error('The bottom handle is not rendered.');
+    }
+
+    return this.page.evaluate(({ r, c, handleBottom }) => {
+      const band = document.querySelector('.ht_clone_bottom tbody tr:first-child > td');
+
+      if (!band) {
+        throw new Error('No frozen bottom row is rendered.');
+      }
+
+      const edge = band.getBoundingClientRect().top;
+
+      return {
+        cellEnd: Math.round(window.hot.getCell(r, c)!.getBoundingClientRect().bottom - edge),
+        handleEnd: Math.round(handleBottom - edge),
+      };
+    }, { r: row, c: col, handleBottom: handle.y + handle.height });
+  }
+
+  /**
    * Returns whether the bottom handle owns the pixels at the center of its visible marker.
    */
   async isBottomHandleHitAreaAtHandleCenter(): Promise<boolean> {
