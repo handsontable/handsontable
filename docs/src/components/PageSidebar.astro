@@ -20,10 +20,14 @@ const { actions, prompt: userPrompt } = config;
 const { pageActions } = (Astro.locals as any).starlightRoute.entry.data;
 const showActions = pageActions || typeof pageActions === 'undefined';
 
-const prompt = userPrompt?.includes('{url}')
-  ? userPrompt?.replace('{url}', currentUrl)
-  : `${userPrompt} ${currentUrl}`;
-const encodedPrompt = encodeURIComponent(prompt as string);
+// `prompt` is optional in starlight-page-actions and has no default in the
+// plugin's config, so fall back to its injected translation. Without this the
+// template literal below stringifies `undefined` into every "Open in ..." link.
+const promptTemplate = userPrompt ?? Astro.locals.t('prompt.default');
+const prompt = promptTemplate.includes('{url}')
+  ? promptTemplate.replace('{url}', currentUrl)
+  : `${promptTemplate} ${currentUrl}`;
+const encodedPrompt = encodeURIComponent(prompt);
 
 interface ActionLink {
   label: string;
