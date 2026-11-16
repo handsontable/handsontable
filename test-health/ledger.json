@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-13T16:29:08.690Z",
+  "updatedAt": "2026-11-16T13:00:53.557Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-horizon-min",
+      "file": "e2e/formula-builder-picking.spec.ts",
+      "line": 672,
+      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page and extends the range",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(locator).toBeInViewport() failed",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "43864708557",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43864708557",
+      "workflow": "Tests",
+      "branch": "feature/DEV-4034_Pending-write-follows-column",
+      "headSha": "6a39f9c64365b5b17d59519b90c6f11adb2926fe",
+      "event": "pull_request",
+      "seenAt": "2026-11-16T13:00:05Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-firefox",

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-16T09:33:45.457Z",
+  "generatedAt": "2026-11-16T13:00:53.557Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 449,
-    "needsTicket": 6,
+    "needsTicket": 7,
     "quarantined": 0,
-    "entries": 2307
+    "entries": 2308
   },
   "rows": [
     {
@@ -224,6 +224,41 @@
         "leg": "UMD (theme: horizon)",
         "status": "failed",
         "error": "Expected 94 to be 97.",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page and extends the range",
+      "tier": "playwright",
+      "file": "e2e/formula-builder-picking.spec.ts",
+      "line": 672,
+      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page and extends the range",
+      "count7": 1,
+      "count30": 2,
+      "countAll": 2,
+      "runs30": 2,
+      "flakyRuns30": 1,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "e2e-firefox",
+        "e2e-horizon-min"
+      ],
+      "statuses": [
+        "failed",
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-16T13:00:05Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/43864708557",
+        "branch": "feature/DEV-4034_Pending-write-follows-column",
+        "leg": "e2e-horizon-min",
+        "status": "flaky",
+        "error": "Error: expect(locator).toBeInViewport() failed",
         "source": "ci"
       },
       "needsTicket": true
@@ -1598,39 +1633,6 @@
         "leg": "UMD (theme: main)",
         "status": "failed",
         "error": "Expected 2 to equal 1.",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/formula-builder-picking.spec.ts|formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page and extends the range",
-      "tier": "playwright",
-      "file": "e2e/formula-builder-picking.spec.ts",
-      "line": 504,
-      "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page and extends the range",
-      "count7": 0,
-      "count30": 1,
-      "countAll": 1,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-firefox"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-29T16:16:11Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/40885499249",
-        "branch": "feature/DEV-3633_Formula-builder-final-fixes",
-        "leg": "e2e-firefox",
-        "status": "failed",
-        "error": "Error: expect(received).toBeGreaterThan(expected)",
         "source": "ci"
       },
       "needsTicket": false
