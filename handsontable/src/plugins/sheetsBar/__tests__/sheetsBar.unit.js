@@ -1901,7 +1901,12 @@ describe('SheetsBar plugin', () => {
     expect(tabs[1].getAttribute('aria-expanded')).toBe(null);
     expect(tabs[0].querySelector('.ht-sheets-bar__tab-label').dir).toBe('auto');
 
-    hot.updateSettings({ ariaTags: false, sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] } });
+    hot.destroy();
+    hot = new Handsontable(container, {
+      ariaTags: false,
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']] }] },
+      licenseKey: TEST_LICENSE_KEY,
+    });
     tabs = hot.rootWrapperElement.querySelectorAll('.ht-sheets-bar__tab');
 
     expect(tabs[0].getAttribute('role')).toBe(null);
@@ -1909,6 +1914,96 @@ describe('SheetsBar plugin', () => {
     expect(tabs[0].tabIndex).toBe(0);
     expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar__tabs').getAttribute('role')).toBe(null);
     expect(hot.rootWrapperElement.querySelector('.ht-sheets-bar__add').getAttribute('aria-label')).toBe('Add sheet');
+  });
+
+  it('builds a grid whose opening sheet sets an init-only option, as the grid is still being built', () => {
+    expect(() => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a']], settings: { renderAllRows: true } },
+            { name: 'B', data: [['b']] },
+          ],
+        },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+    }).not.toThrow();
+    expect(hot.getSettings().renderAllRows).toBe(true);
+  });
+
+  it('switches away from and back to an opening sheet that set an init-only option', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a']], settings: { renderAllRows: true } },
+          { name: 'B', data: [['b']] },
+        ],
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+    const plugin = hot.getPlugin('sheetsBar');
+
+    expect(() => plugin.setActiveSheet('B')).not.toThrow();
+    expect(() => plugin.setActiveSheet('A')).not.toThrow();
+    expect(hot.getSettings().renderAllRows).toBe(true);
+  });
+
+  it('switches sheets from an `afterInit` listener when the opening sheet set an init-only option', () => {
+    expect(() => {
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a']], settings: { renderAllRows: true } },
+            { name: 'B', data: [['b']] },
+          ],
+        },
+        afterInit() {
+          this.getPlugin('sheetsBar').setActiveSheet('B');
+        },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+    }).not.toThrow();
+    expect(hot.getPlugin('sheetsBar').getSheets().find(sheet => sheet.isActive).name).toBe('B');
+  });
+
+  it('turns the bar off after an opening sheet set an init-only option, and keeps the option', () => {
+    hot = new Handsontable(container, {
+      sheetsBar: { sheets: [{ name: 'A', data: [['a']], settings: { renderAllRows: true } }] },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    expect(() => hot.updateSettings({ sheetsBar: false })).not.toThrow();
+    expect(hot.getSettings().renderAllRows).toBe(true);
+  });
+
+  it('skips an init-only option in the settings of a sheet that opens after the grid was built, and warns once', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      sheetsBar: {
+        sheets: [
+          { name: 'A', data: [['a']] },
+          { name: 'B', data: [['b']], settings: { renderAllRows: true, colHeaders: true } },
+        ],
+      },
+      licenseKey: TEST_LICENSE_KEY,
+    });
+    const plugin = hot.getPlugin('sheetsBar');
+
+    expect(() => plugin.setActiveSheet('B')).not.toThrow();
+    expect(plugin.getSheets().find(sheet => sheet.isActive).name).toBe('B');
+    expect(hot.getSettings().renderAllRows).toBe(false);
+    expect(hot.getSettings().colHeaders).toBe(true);
+
+    expect(() => plugin.setActiveSheet('A')).not.toThrow();
+    expect(() => plugin.setActiveSheet('B')).not.toThrow();
+
+    const initOnlyWarnings = warnSpy.mock.calls
+      .filter(([message]) => /`renderAllRows` option can only be set/.test(message));
+
+    expect(initOnlyWarnings).toHaveLength(1);
+
+    warnSpy.mockRestore();
   });
 
   it('registers every formula-bound sheet in the shared engine before it is visited', () => {

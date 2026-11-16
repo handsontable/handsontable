@@ -357,12 +357,11 @@ export class ContextMenu extends BasePlugin {
    *
    * When no cells are selected, `executeCommand()` doesn't do anything.
    *
-   * You can execute all predefined commands:
+   * You can execute the predefined commands that the default `contextMenu` items register:
    *  * `'row_above'` - Insert row above
    *  * `'row_below'` - Insert row below
    *  * `'col_left'` - Insert column left
    *  * `'col_right'` - Insert column right
-   *  * `'clear_column'` - Clear selected column
    *  * `'remove_row'` - Remove row
    *  * `'remove_col'` - Remove column
    *  * `'undo'` - Undo last action
@@ -374,6 +373,10 @@ export class ContextMenu extends BasePlugin {
    *  * `'alignment:bottom'` - Alignment to the bottom
    *  * `'alignment:middle'` - Alignment to the middle
    *  * `'alignment:center'` - Alignment to the center (justify).
+   *
+   * Any other predefined command, such as `'clear_column'`, works only when you list it in
+   * the [`contextMenu`](@/api/options.md#contextmenu) option. Running a command that the menu doesn't register
+   * throws an error.
    *
    * Or you can execute command registered in settings where `key` is your command name.
    *

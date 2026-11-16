@@ -659,7 +659,7 @@ export class MoveCells extends BasePlugin {
     const targetBottom = targetRow + (toRow - fromRow);
     const targetRight = targetCol + (toCol - fromCol);
     const sourceMeta = collectMovableMeta(this.hot, fromRow, fromCol, toRow, toCol);
-    const targetMeta = collectMovableMeta(this.hot, targetRow, targetCol, targetBottom, targetRight);
+    const targetMeta = collectMovableMeta(this.hot, targetRow, targetCol, targetBottom, targetRight, true);
     const sourceByCoord = new Map(sourceMeta.map(({ row, col, meta }) => [`${row}:${col}`, meta]));
 
     sourceMeta.forEach(({ row, col, meta }) => {

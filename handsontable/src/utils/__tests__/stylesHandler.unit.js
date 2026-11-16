@@ -971,6 +971,32 @@ describe('StylesHandler', () => {
 
       expect(handler.getDefaultRowHeight()).toBeCloseTo(31.25, 3);
     });
+
+    describe('getMaxDefaultRowOvergrowth', () => {
+      it('should be what the border inflation can add to a default row at the ratio of now', () => {
+        const { handler } = setUpHandler('border-bottom-width: 1px;');
+
+        setDevicePixelRatio(0.9);
+
+        expect(handler.getMaxDefaultRowOvergrowth()).toBeCloseTo(0.111, 3);
+
+        setDevicePixelRatio(0.8);
+
+        expect(handler.getMaxDefaultRowOvergrowth()).toBeCloseTo(0.25, 3);
+      });
+
+      it('should be 0 at or above 100%, where nothing is inflated', () => {
+        const { handler } = setUpHandler('border-bottom-width: 1px;');
+
+        setDevicePixelRatio(1);
+
+        expect(handler.getMaxDefaultRowOvergrowth()).toBe(0);
+
+        setDevicePixelRatio(1.5);
+
+        expect(handler.getMaxDefaultRowOvergrowth()).toBe(0);
+      });
+    });
   });
 
   describe('clearCache', () => {

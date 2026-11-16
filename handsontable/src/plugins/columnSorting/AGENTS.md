@@ -105,11 +105,86 @@ Everything about that machinery is load-bearing:
   and **the listener order is not fixed** — re-enabling `columnSorting` after `manualColumnMove` appends
   this listener last. Running first, the drag is still in progress (`#isColumnBeingDragged()`); running
   second, the move has already fired (`consumedByMove`, set from `afterColumnMove`). Either one cancels.
-- **A mid-edit cell must finish validating before the rows move under it.** The `postAfterValidate` promise
+- **A mid-edit cell must finish validating before the rows move under it.** The `postAfterValidate` listener
   is subscribed on **press**, not on release: selecting the column closes the editor and its validation runs
-  in a microtask, so it is already over by mouse-up — and reading `awaitsValidation` on release is wrong
+  in a microtask, so it is already over by mouse-up — and reading the editor's state on release is wrong
   too, because by then the new selection has opened an editor on the highlighted cell. The wait happens in
   `#resolvePendingSort`, not in `applyHeaderClickSort`, so subclasses overriding that seam still get it.
+- **The wait ends on the editor's own answer, not on any answer** (`#waitForEditor()`). After each
+  `postAfterValidate` it asks the editor captured at press time `isWaiting()`, and it also waits until core
+  has written or dropped every change set an editor save made that waited for its validators at press time
+  (snapshot of `getWaitingEditorSaveChangeSets()` from `src/editors/baseEditor/editorSaveChangeSets.ts`, re-read
+  per answer; BaseEditor marks the sets its save makes, at the save). Core applies a Ctrl+Enter fill only once every cell of it
+  answered, after the edited cell's own answer ended the editor's wait, so a sort on that answer moved the rows
+  and core then wrote the rest of the fill by visual row onto other records. The sets come from the grid, never
+  from an editor: the press's selection change has already prepared the clicked column's editor (another
+  instance when its class differs, e.g. a `numeric` column B), and a later save on the same editor must not make
+  the sort forget a set. Only an editor save's sets count, and sets made after the press do not. An API write
+  (`setDataAtCell()` with an async validator) does not hold the sort, and lands by visual row
+  after it (known limit); waiting for it let a validator that never answers block every later header sort until
+  `loadData()`. A set leaves core's list right before its last answer's
+  `postAfterValidate`, so the listener sees it gone in that same run. A press takes a wait when the editor
+  validates or any set waits. It reads the validator from `activeEditor.cellProperties`, the meta the save
+  validates: a `modifyGetCellCoords` listener can redirect the save to a validated cell from one without a
+  validator, and reading the press cell's validator took no wait there. Known limit: an editor save's set
+  whose validator never answers, or throws asynchronously, never leaves core's list, so every header sort
+  pressed while it waits stays queued until the set is written or dropped (`loadData()`). That holds also when
+  the editor is already closed: a Ctrl+Enter fill whose edited cell answered closes the editor while another
+  filled cell still waits, and each later press snapshots the same set again. Sorting earlier would let core
+  write the late cell by visual row onto another record. Once the set is written, the queued sorts run once
+  each, in press order. Pinned by "should keep every later header sort queued while a closed editor's fill
+  waits for one cell (known limit)". The listener sits at
+  `orderIndex: Number.MAX_SAFE_INTEGER` as a defensive measure, so an editor listener added after it would
+  still decide first. It is not pinned: in the unit flows measured (a changed and an unchanged edit) the editor
+  is already done before `postAfterValidate` runs (core's `onQueueEmpty` cancels it, or the validation callback
+  finishes it), or its listener was added during the column selection, before the press's, so the order cannot
+  be observed today. An unrelated
+  validation that answers first (a Formulas dependent cell, a `validateCells()` batch, the batch's validation
+  of the edited cell's old value) leaves the editor `WAITING` and the rows in place. Waiting on the first
+  answer of any cell, as before, sorted the rows before the edit landed, and core wrote the edit by visual row
+  onto another record. Do not match the cell here: the editor already owns the rules (the edited cell by its
+  meta's `visualRow` and `prop`, the sources its save validated with, any answer when its save validated no
+  cell yet, `acceptsAnyAnswer`), and a copy would drift from them. So the sort follows the editor on every
+  edge: an unchanged edit waits for its stored value's answer; a save a `beforeChange` veto drops cancels the
+  editor before the press reads it, so the sort runs on release; a single-cell save moved to another cell
+  ends both waits on the first answer among the cells it validated (the sort also waits for its set); a
+  `saveValue()` that writes later ends both waits on the first answer of any cell. **The wait is checked on
+  three signals, not on `postAfterValidate` alone**, because an edit can end with no validation at all (a
+  `beforeChange` veto, Escape, a wait canceled without an answer by `beforeDialogShow`): each
+  `postAfterValidate`, each finish of the editor (`BaseEditor#_addFinishListener()`, run from
+  `discardEditor()`), and the release itself (`#checkEditorWait()` in `#resolvePendingSort`). Listening to
+  `postAfterValidate` only left such a sort queued until an unrelated validation answered, maybe minutes later.
+  The check is the same on every signal: the press-time editor no longer waits and no marked set is pending.
+  The release adds one condition: the press-time editor is not open. An editor the press did not close (a
+  `beforeOnCellMouseDown` that keeps the selection) has not saved yet, and releasing then sorted the rows
+  before the save; its save's answer or its finish ends the wait instead. **The check itself holds such an
+  editor too** (`isEditorUnsaved` in `#waitForEditor()`): open and not waiting at the press, it has made no
+  save, so it neither waits nor has a set, and an unrelated `postAfterValidate` in that window (a Formulas
+  dependent, a `validateCells()` batch) passed the check and sorted under the open editor, before or after the
+  release. The flag is cleared by the editor's next finish (its own listener, `onFinish`: the save's answer, a
+  rejection that reopens it, Escape, a veto), never by `isOpened()` alone: an editor stays open while it waits and
+  after a rejection under `allowInvalid: false`, and a plain `isOpened()` guard would leave those sorts queued. An
+  editor without `_addFinishListener()` is not held this way.
+  Each waiting press owns one entry (`#editorWaitListeners`: the check, registered on both the hook and the
+  editor), removed when its wait settles, when the press turns into a drag, when a new press replaces a stale
+  one, and by every drop below. Pinned by
+  `__tests__/headerSortWaitsForEditedCell.unit.js` (both plugins), and the "waits for the edited cell when an
+  unrelated validation answers first" and "waits for the whole Ctrl+Enter fill" cases of
+  `tests/e2e/column-sorting-waiting-header-sort.spec.ts`.
+- **The waiting sorts are plugin state, and every reset drops them.** Release takes the press out of
+  `#pendingHeaderSort`, so a sort that waits for the validator sits in the `#awaitingHeaderSorts` set, and its wait
+  runs it only while the set still holds it. It is a set, not one field: the editor stays open until the answer, so
+  a second header press during the wait waits too, and one field let the second release overwrite the first (two
+  clicks on a header ended `asc` instead of `desc`, and MultiColumnSorting kept only the last Ctrl+click). The waits
+  resolve on the same `postAfterValidate`, in press order. `disablePlugin()`, `destroy()`, `afterLoadData` and an
+  `'init'` column order reset clear the set (`#dropHeaderSorts()`). Without that a sort waiting through
+  `updateSettings({ columnSorting: false })` threw `Cannot read properties of null (reading 'getSortStates')`, and
+  one waiting through `loadData()` sorted the loaded rows. `updateData()` keeps the sorts on purpose: the wrappers
+  call it with the same records while an edit waits, and dropping there would lose the click. The plugin cannot
+  tell the same records from other ones, so an `updateData()` with other records keeps them too and they sort
+  those records, the same way core still writes the waiting edit into them. Core still writes a waiting change
+  by visual row, so this wait is what keeps a header sort from moving another record under it; once core keeps
+  a waiting change on its record, the wait can go.
 
 `applyHeaderClickSort(press)` is the extension seam: MultiColumnSorting overrides it to build a different
 sort config for the same gesture without repeating any of the click-versus-drag handling.
@@ -407,13 +482,48 @@ declared there, not in the core-package file).
 it, and with `headerAction: false` no indicator is rendered at all (18.1 painted the arrow only through
 `.columnSorting.sortAction.ascending::before`), so there is nothing to reserve.
 
+## The sort markup is cleared on every header level, for the instance's life
+
+A column header is reused between renders: `TableView#appendColHeader` keeps the `div.relative` and the
+`span.colHeader` and resets only the container's class list, so the sort classes on the label and the
+`ht-sort-indicator` element survive a render unless this plugin removes them. A `nestedHeaders` change moves
+the previous bottom row up, so a header that was sorted becomes a group header. Two paths clear it, both
+through `#clearSortMarkup()`:
+
+- **While the plugin is on**, `#onAfterGetColHeader` clears every header that is not the bottom level
+  instead of returning early. Returning early left `sortAction` on the group label (the CSS keyed on it
+  shrank and shifted the label) when `nestedHeaders` was added to a sorted grid.
+- **While the plugin is off**, `#onAfterGetColHeaderWhileDisabled` runs. It is registered in the
+  constructor with `this.hot.addHook()` (the `require-tracked-hook-in-enable` rule bans that inside
+  `enablePlugin()`) and does nothing until the first enable sets `#mayHaveMarkedHeaders`, so a grid that
+  never sorted pays one boolean check per header. `destroy()` removes it, or a plugin destroyed on a live
+  grid keeps running it against a `hot` that `BasePlugin#destroy()` nulled (pinned by
+  `__tests__/disabledHeaderCleanup.unit.js`). It replaced a hook `disablePlugin()` added and removed
+  after the first `afterViewRender`: that one cleared the bottom level only, and only on one render, so
+  `{ columnSorting: false, nestedHeaders }` in one call, or removing `nestedHeaders` later, kept the classes.
+
+**Do not skip the clear on a header without the `columnSorting` class.** `#syncIcon` is
+`createTrackedIconSync()` per instance: it removes the indicator only from a container this instance
+filled. With ColumnSorting turned off and MultiColumnSorting turned off later, both instances' disabled hooks
+run; ColumnSorting's runs first, strips the classes and cannot see MultiColumnSorting's indicator. A
+"nothing to clear" check on the class then made MultiColumnSorting skip its own indicator, which stayed.
+
+**While another sorting plugin is on (`pluginConflictsState`), the disabled hook clears on one render only.**
+That plugin cannot remove what this one drew: its `#syncIcon` does not know this instance's indicators, and
+ColumnSorting's `getClassesToRemove()` has no `sort-N` badge. So `disablePlugin()` sets `#clearsUnderConflict`,
+and an `afterViewRender` hook added once resets it: one update that switches the two plugins
+(`{ multiColumnSorting: false, columnSorting: true }`, or the other way) clears the old plugin's markup on the
+render that follows. After that render the hook skips again. Clearing on every render under the other plugin
+removes its indicator each time and it draws a new element, so the `<i>` is replaced on every `render()`.
+Pinned by `tests/e2e/header-plugin-markup-all-rows.spec.ts` and `__tests__/disabledHeaderCleanup.unit.js`.
+
 ## The indicator is a real element, and it still needs the ghost-table `*` stand-in
 
 `#onAfterGetColHeader` keys `syncIcon(this.hot, container, 'ht-sort-indicator', iconName)` on the sort
 order, the `indicator` setting, and the `headerAction` setting: ascending → `arrowNarrowUp`, descending →
 `arrowNarrowDown`, anything else (no sort, `indicator: false`, `headerAction: false` — 18.1 parity, the
-column keeps its `aria-sort` but shows no arrow — or the whole plugin disabled via `disablePlugin()`'s
-`clearColHeader`) →
+column keeps its `aria-sort` but shows no arrow — or the whole plugin disabled, through
+`#clearSortMarkup()`, see the section above) →
 `null`, which removes the slot. `syncIcon` guarantees exactly one `<i class="ht-icon
 ht-sort-indicator">` in the container regardless of how many times a render calls this hook.
 

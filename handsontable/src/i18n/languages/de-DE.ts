@@ -94,7 +94,7 @@ const dictionary = {
   [C.FILTERS_VALUES_BLANK_CELLS]: 'Leere Zellen',
 
   [C.FILTERS_DIVS_FILTER_BY_CONDITION]: 'Per Bedingung filtern',
-  [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Nach Zahlen filtern',
+  [C.FILTERS_DIVS_FILTER_BY_VALUE]: 'Nach Werten filtern',
 
   [C.FILTERS_LABELS_CONJUNCTION]: 'Und',
   [C.FILTERS_LABELS_DISJUNCTION]: 'Oder',

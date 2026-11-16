@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "select-editor",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T14:48:51.710Z"
+  },
+  "steps": {
+    "open-editor": "",
+    "arrow-down-first": "option a",
+    "arrow-down-second": "option b",
+    "commit-option": "d d2 column 4 row unchecked b2 c2 d2",
+    "back-to-committed": "d option b column 4 row unchecked b1 c1 option b"
+  }
+}

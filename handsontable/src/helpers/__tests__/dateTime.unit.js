@@ -10,6 +10,7 @@ import {
   parseToLocalDateTime,
   isValidISODateTime,
   getDateTimeFormat,
+  formatLocalDate,
 } from 'handsontable/helpers/dateTime';
 import Handsontable from 'handsontable';
 
@@ -527,5 +528,104 @@ describe('dateTime datetime helpers', () => {
 
       expect(() => getDateTimeFormat('', options)).toThrowError(RangeError);
     });
+  });
+});
+
+describe('formatLocalDate', () => {
+  const dateOf = (year, month, day, hours = 0, minutes = 0) => {
+    const date = new Date(2000, 0, 1);
+
+    date.setFullYear(year, month - 1, day);
+    date.setHours(hours, minutes, 0, 0);
+
+    return date;
+  };
+  const numericDate = { year: 'numeric', month: '2-digit', day: '2-digit' };
+
+  it('formats years from 1 up like the plain formatter', () => {
+    [1, 99, 100, 1900, 2024].forEach((year) => {
+      const date = dateOf(year, 6, 15);
+
+      expect(formatLocalDate('en-US', numericDate, date))
+        .toBe(getDateTimeFormat('en-US', numericDate).format(date));
+    });
+  });
+
+  it('shows the era of year 0 so that it differs from year 1', () => {
+    const yearZero = formatLocalDate('en-US', numericDate, dateOf(0, 1, 1));
+    const yearOne = formatLocalDate('en-US', numericDate, dateOf(1, 1, 1));
+
+    expect(yearZero).toBe('01/01/1 BC');
+    expect(yearOne).toBe('01/01/1');
+  });
+
+  it('keeps the time part of a year 0 datetime', () => {
+    const options = { ...numericDate, hour: '2-digit', minute: '2-digit', hour12: false };
+
+    const formatted = formatLocalDate('en-GB', options, dateOf(0, 1, 1, 14, 30));
+
+    expect(formatted).toContain('14:30');
+    expect(formatted).toContain('BC');
+  });
+
+  it('keeps the era the format asks for', () => {
+    const date = dateOf(0, 1, 1);
+    const options = { ...numericDate, era: 'long' };
+
+    expect(formatLocalDate('en-US', options, date)).toBe(getDateTimeFormat('en-US', options).format(date));
+  });
+
+  it('shows the era when the format sets no date field and falls back to a numeric year', () => {
+    [{}, { timeZone: 'UTC' }, { hour12: false }, { timeZoneName: 'short' }].forEach((options) => {
+      const yearZero = formatLocalDate('en-US', options, dateOf(0, 6, 15, 12));
+      const yearOne = formatLocalDate('en-US', options, dateOf(1, 6, 15, 12));
+
+      expect(yearZero).toContain('BC');
+      expect(yearOne).not.toContain('BC');
+    });
+  });
+
+  it('leaves a format that prints no year alone', () => {
+    const date = dateOf(0, 6, 15);
+
+    [{ month: 'long', day: 'numeric' }, { hour: '2-digit', minute: '2-digit' }].forEach((options) => {
+      expect(formatLocalDate('en-US', options, date)).toBe(getDateTimeFormat('en-US', options).format(date));
+    });
+  });
+
+  it('does not throw for dateStyle or timeStyle, which print no year field and cannot carry an era', () => {
+    const date = dateOf(0, 6, 15);
+
+    [{ dateStyle: 'medium' }, { timeStyle: 'short' }].forEach((options) => {
+      expect(() => formatLocalDate('en-US', options, date)).not.toThrow();
+      expect(formatLocalDate('en-US', options, date)).toBe(getDateTimeFormat('en-US', options).format(date));
+    });
+  });
+
+  it('leaves a non-Gregorian calendar alone, where year 0 does not collide with year 1', () => {
+    const date = dateOf(0, 6, 15);
+    const options = { year: 'numeric' };
+
+    expect(formatLocalDate('en-US-u-ca-buddhist', options, date))
+      .toBe(getDateTimeFormat('en-US-u-ca-buddhist', options).format(date));
+  });
+
+  it('shows the era for an array of locales and in the locale of the format', () => {
+    expect(formatLocalDate(['de-DE', 'en-US'], numericDate, dateOf(0, 6, 15))).toBe('15.06.1 v. Chr.');
+  });
+
+  it('reuses the cached formatter for repeated year 0 values', () => {
+    const date = dateOf(0, 1, 1);
+
+    formatLocalDate('en-US', numericDate, date);
+
+    const constructorSpy = jest.spyOn(Intl, 'DateTimeFormat');
+
+    for (let i = 0; i < 50; i++) {
+      formatLocalDate('en-US', numericDate, date);
+    }
+
+    expect(constructorSpy).not.toHaveBeenCalled();
+    constructorSpy.mockRestore();
   });
 });

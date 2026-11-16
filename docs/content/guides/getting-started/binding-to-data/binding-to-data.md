@@ -558,6 +558,28 @@ To avoid this scenario, copy the data before you pass it to the grid. To change 
 can use our API methods. For example, a change being made will be displayed immediately on the screen after calling
 the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
+::: only-for vue
+
+Pass a new array to replace the data. Assigning `data.value = newArray`, passing a new `data` prop, or setting a new
+`settings.data` loads the new array into the grid, as the [`updateData()`](@/api/core.md#updatedata) method does.
+The grid keeps the sorted row order, the trimmed rows, and the cell and column states. It places the new values
+through the row order of the sort and doesn't sort them again. When you also change the
+[`columns`](@/api/options.md#columns) in the same update and the column layout changes, the grid clears the sort and
+the filters and starts the column state over.
+
+Each replacement fires the [`afterChange`](@/api/hooks.md#afterchange) hook with `null` as `changes` and
+`"updateData"` as `source`. If an `afterChange` handler writes the grid's data back to your ref, check `source`
+first, or the replacement triggers another one. A handler that reads `changes` needs to skip a `null` value.
+
+After you replace the array, edits of the new array (`push()`, `splice()`, or a cell write) show up in the grid
+without another replacement. To change values from outside the grid, use the API methods below.
+
+Don't build the array in the template (`:data="rows.map(...)"`, or a literal that holds reactive values). Vue builds
+a new array on every render of the parent component, so the grid reloads its data each time, and edits made in the
+grid are lost. Keep the array in a `ref()`, or in a constant.
+
+:::
+
 ::: only-for javascript
 
 ::: example #example10 --js 1 --ts 2
@@ -722,7 +744,7 @@ hot.loadData(newDataset);
 
 **[`updateData()`](@/api/core.md#updatedata)**
 
-Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata) keeps the state of rows, columns, and cells -- for example row order, moved and hidden rows and columns, filters, and cell metadata -- so you can use it to replace just the data and leave the rest of the table intact. It also clears the undo and redo history.
+Replaces the data used in Handsontable with the dataset provided as the method argument. Unlike [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata) keeps the state of rows, columns, and cells -- for example row order, moved and hidden rows and columns, filters, and cell metadata -- so you can use it to replace just the data and leave the rest of the table intact. It clears the undo and redo history, unless the new data is what the grid shows already: the same array, a copy of it, or rows that hold the same values.
 
 ```js
 hot.updateData(newDataset);
@@ -753,7 +775,7 @@ You can also use the built-in mechanism of the Angular wrapper to update data. W
 
 ::: only-for react
 
-The React wrapper sends the `data` prop to the grid through [`updateSettings()`](@/api/core.md#updatesettings) on every render. Pass `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. If you write the array inline in JSX, every render creates a new array, and the grid replaces its data with it. Any change the user made to the previous array is lost.
+The React wrapper sends the `data` prop to the grid through [`updateSettings()`](@/api/core.md#updatesettings) on every render. Pass `data` as a stable reference: a constant declared outside the component, a `useState` value, or a `useMemo` result. If you write the array inline in JSX, every render creates a new array, and the grid replaces its data with it. Any change the user made to the previous array is lost, and so is the undo and redo history. A copy of the array, such as `rows.slice()` in a state update, keeps the history. So does a new object for the edited row, as an immutable row update gives, because its values equal what the grid shows. Data with other values replaces the grid's data and clears the history.
 
 ```jsx
 // Replaces the data on every render
@@ -787,7 +809,7 @@ The table lists what happens to each kind of state when you replace a dataset of
 | Cell metadata from the `cell` option | Cleared, although `getSettings().cell` still lists it. Metadata from `columns` stays. | Kept |
 | Validation results | Cleared | Kept -- a cell can still be marked invalid for a value that is gone |
 | Merged cells | Kept | Kept |
-| Undo and redo history | Cleared | Cleared |
+| Undo and redo history | Cleared | Cleared -- except when the new data is what the grid shows already (the same array, a copy of it, or rows that hold the same values). Then it is kept. |
 
 After `updateData()`, call [`validateCells()`](@/api/core.md#validatecells) if you need the validation results to match the new data.
 

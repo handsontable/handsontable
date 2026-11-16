@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - nested rows header alignment</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back: a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Fixture for the vertical alignment of a NestedRows row header: the collapse button must sit on the
+    label's first line, at the top of the row like the cell text, whatever height the row has. Rows
+    (physical): 0 a parent with an exact 100px height (`rowHeights`, AutoRowSize off), 1 its child,
+    2 a parent whose wrapped text grows it, 3 its child, 4 a parent at the default height, 5 its child.
+    ?mode=minimum turns AutoRowSize on, so `rowHeights` is a minimum and no row is exact.
+    ?labels=long gives the rows two-line labels.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Fail loud like ?theme= and ?bundle=: a mistyped mode must not quietly test the exact layout.
+    const minimum = htPick({ exact: false, minimum: true }, new URLSearchParams(location.search).get('mode'),
+      'exact', 'mode');
+    const longLabels = htPick({ short: false, long: true }, new URLSearchParams(location.search).get('labels'),
+      'short', 'labels');
+
+    window.hot = new Handsontable(container, {
+      data: [
+        { name: 'Engineering', __children: [{ name: 'Ana García' }] },
+        { name: 'Customer success and support operations team', __children: [{ name: 'Li Wei' }] },
+        { name: 'Marketing', __children: [{ name: 'James Okafor' }] },
+      ],
+      columns: [{ data: 'name', width: 120 }],
+      rowHeights: [100],
+      autoRowSize: minimum,
+      wordWrap: true,
+      rowHeaders: longLabels ? row => `Group<br>${row + 1}` : true,
+      colHeaders: ['Department'],
+      nestedRows: true,
+      width: 400,
+      height: 'auto',
+      licenseKey: window.htTestLicenseKey,
+    });
+  </script>
+</body>
+</html>

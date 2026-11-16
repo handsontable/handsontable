@@ -42,7 +42,9 @@
       "version": "macOS 26",
       "platform": "macOS",
       "browsers": ["WebKit (Playwright)", "Chromium"],
-      "howTested": ["automated-nightly"]
+      "howTested": ["automated-nightly"],
+      "scenarios": 40,
+      "unsupported": []
     },
     {
       "name": "VoiceOver",
@@ -61,7 +63,9 @@
       "version": "2026.2",
       "platform": "Windows Server 2025",
       "browsers": ["Chromium", "Firefox (Playwright)"],
-      "howTested": ["automated-nightly"]
+      "howTested": ["automated-nightly"],
+      "scenarios": 40,
+      "unsupported": ["read in"]
     },
     {
       "name": "JAWS",
@@ -75,6 +79,12 @@
     { "name": "Firefox", "version": "143.0.4" }
   ],
   "knownLimitations": [
+    {
+      "id": "formula-builder-contrast",
+      "text": "Some text colors of the formula builder (error values, unknown function names, comments, named expressions, and references) are below a 4.5:1 contrast ratio in every theme.",
+      "criteria": ["1.4.3"],
+      "reportRef": null
+    },
     {
       "id": "sorting-not-announced",
       "text": "Sorting state changes are not announced to screen readers.",
@@ -174,6 +184,6 @@
   ],
   "notes": {
     "mobile": "VoiceOver on iOS was part of the last audit. Mobile screen readers are checked by hand once per major release.",
-    "automation": "An automated nightly run drives a real screen reader through the grid's keyboard scenarios and records what it announces. A screen reader joins the list above as an automated nightly run once its run is in place."
+    "automation": "An automated run drives a real screen reader through the grid's keyboard scenarios and records what it announces. A screen reader joins the list above as an automated run once its run is in place."
   }
 }

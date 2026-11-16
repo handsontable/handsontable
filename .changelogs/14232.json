@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed Space not toggling the checkboxes of a column or row selected through its header when `navigableHeaders` is enabled.",
+  "type": "fixed",
+  "issueOrPR": 14232,
+  "breaking": false,
+  "framework": "none"
+}

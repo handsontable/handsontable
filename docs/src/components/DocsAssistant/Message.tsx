@@ -1,18 +1,42 @@
 import { useState } from 'react';
-import { AGENT_LABEL } from './constants';
+import { AGENT_LABEL, SUPPORT_UI } from './constants';
 import type { ChatMessage } from './useAssistant';
 import { MarkdownRenderer } from './MarkdownRenderer';
-import { IconCheck, IconCopy, IconRetry, IconThumbDown, IconThumbUp, LoaderBoxes } from './icons';
+import {
+  IconCheck,
+  IconCopy,
+  IconReply,
+  IconRetry,
+  IconThumbDown,
+  IconThumbUp,
+  LoaderBoxes,
+} from './icons';
 
 interface Props {
   message: ChatMessage;
   isLastAssistant: boolean;
+  /**
+   * Show Retry under this answer. Off once the reader wrote again after it: Retry would redo that message.
+   */
+  canRetry: boolean;
   streaming: boolean;
+  /** Show "Reply to Support" under a Support message. Off while the reader already writes to Support. */
+  canReplyToSupport: boolean;
+  onReplyToSupport: () => void;
   onRetry: () => void;
   onFeedback: (id: string, feedback: 'up' | 'down') => void;
 }
 
-export function Message({ message, isLastAssistant, streaming, onRetry, onFeedback }: Props) {
+export function Message({
+  message,
+  isLastAssistant,
+  canRetry,
+  streaming,
+  canReplyToSupport,
+  onReplyToSupport,
+  onRetry,
+  onFeedback,
+}: Props) {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -29,6 +53,7 @@ export function Message({ message, isLastAssistant, streaming, onRetry, onFeedba
     return (
       <div className="da-msg da-msg-user">
         <div className="da-bubble">{message.content}</div>
+        {message.supportSent && <div className="da-support-note">{SUPPORT_UI.sentNote}</div>}
       </div>
     );
   }
@@ -42,6 +67,11 @@ export function Message({ message, isLastAssistant, streaming, onRetry, onFeedba
         <div className="da-assistant-body da-agent-body">
           <MarkdownRenderer content={message.content} />
         </div>
+        {canReplyToSupport && (
+          <button type="button" className="da-reply-support" onClick={onReplyToSupport}>
+            <IconReply /> {SUPPORT_UI.replyButton}
+          </button>
+        )}
       </div>
     );
   }
@@ -85,7 +115,7 @@ export function Message({ message, isLastAssistant, streaming, onRetry, onFeedba
           >
             <IconThumbDown />
           </button>
-          {isLastAssistant && (
+          {canRetry && (
             <button type="button" className="da-action" aria-label="Retry" onClick={onRetry}>
               <IconRetry />
             </button>

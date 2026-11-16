@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "nested-headers",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T11:03:05.072Z"
+  },
+  "steps": {
+    "arrow-up-to-header": "this is a very long header title column header selected sub menu row 10 through 11 header title column 2",
+    "arrow-up-to-group": "header title column header selected expanded row 9 this is a very long header title column 2 through 9",
+    "arrow-right-next-group": "i slash j column header selected expanded row 9 i 2 column 10 through row 10 column 11",
+    "arrow-down-into-group": "i 2 column header sub menu row 11 i slash j column 10",
+    "arrow-left-lowest-level": "h 2 column header sub menu row 11 header title h column 9",
+    "arrow-up-middle-level": "h column header row 10 header title h 2 column 9",
+    "arrow-down-lowest-again": "h 2 column header sub menu row 11 header title h column 9",
+    "arrow-down-to-cell": "h 1 h 2 row 4 header title g g 2 column 9"
+  }
+}

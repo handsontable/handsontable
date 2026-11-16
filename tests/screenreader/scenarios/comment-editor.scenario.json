@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "id": "comment-editor",
+  "surface": "A commented cell and the comment editor opened from the keyboard: its name, typing into it, saving with Ctrl+Enter, closing with Escape, and the grid's keys after it closes.",
+  "group": "menus",
+  "page": "comments",
+  "state": "comment",
+  "criteria": ["1.3.1", "2.1.1", "2.4.3", "4.1.2"],
+  "setup": [{"updateSettings": {"cell": [{"row": 1, "col": 1, "comment": {"value": "Check the totals before Friday."}}, {"row": 3, "col": 0, "comment": {"value": "Ask the supplier about delivery."}}]}}, {"selectCell": [0, 0]}],
+  "steps": [
+    {
+      "id": "arrow-right-plain-cell",
+      "action": {"press": "ArrowRight"},
+      "expect": [["b1", "b 1"]],
+      "note": "B1, a cell without a comment, before the commented one. The setup gives both comments texts without the word `comment`, so the comment group of the later steps passes only on a reader that names the comment, never on its text. NVDA spells a cell value such as `B1` as `B 1`. Finding: VoiceOver with WebKit says nothing on this first arrow key."
+    },
+    {
+      "id": "arrow-down-commented-cell",
+      "action": {"press": "ArrowDown"},
+      "expect": [["b2", "b 2"], ["comment"]],
+      "note": "B2 carries a comment. The grid draws it as a corner mark (the `htCommentCell` class) with nothing in the accessibility tree, so a reader should say the cell has a comment before a user opens it. Finding: no reader says the cell has a comment; all four read B2 as a plain cell."
+    },
+    {
+      "id": "open-comment-editor",
+      "action": {"press": "Control+Alt+M"},
+      "after": {"visible": ".htComments .htCommentTextArea"},
+      "expect": [["check the totals before friday"], ["edit", "editable", "text area", "multi line", "text entry area"], ["comment"]],
+      "note": "Ctrl+Alt+M opens the comment editor on the selected cell and focuses its text field: the comment's text, the field's editable role (NVDA `edit, multi line`, VoiceOver `text entry area`) and its name, which says the field is a comment. Finding: no reader names the field; it has no accessible name (the axe baseline's `editor-input-names`), so a user hears an unnamed text field holding the comment."
+    },
+    {
+      "id": "type-in-comment",
+      "action": {"type": " Call Ana."},
+      "expect": [],
+      "note": "Text typed at the end of the comment. Nothing is required: a reader's echo of typed keys is its own setting, not the grid's (VoiceOver with WebKit echoes `Ana .`, the others say nothing). The reopen step proves the text was taken."
+    },
+    {
+      "id": "save-with-control-enter",
+      "action": {"press": "ControlOrMeta+Enter"},
+      "after": {"hidden": ".htComments .htCommentTextArea"},
+      "expect": [["b2", "b 2"]],
+      "note": "Ctrl+Enter (Cmd+Enter on macOS) closes the editor and saves the comment, and the focus should return to the commented cell. Finding: the focus lands on the document body (a local probe: `document.activeElement` is `body` while the grid still listens, and the next arrow key brings the focus back to a cell). NVDA reads the document (`Handsontable e2e fixture — comment editor resize, document`), VoiceOver with Chromium says `group`, and VoiceOver with WebKit says nothing."
+    },
+    {
+      "id": "reopen-saved-comment",
+      "action": {"press": "Control+Alt+M"},
+      "after": {"visible": ".htComments .htCommentTextArea"},
+      "expect": [["call ana", "ana"]],
+      "note": "Ctrl+Alt+M again: the editor holds the saved comment, the typed text included. NVDA reads only the line at the caret of a multi-line field, and the narrow editor wraps the comment so that its last line is `Ana.`: `ana` is the same fact in NVDA's reading. VoiceOver reads the whole comment."
+    },
+    {
+      "id": "close-with-escape",
+      "action": {"press": "Escape"},
+      "after": {"hidden": ".htComments .htCommentTextArea"},
+      "expect": [["b2", "b 2"]],
+      "note": "Escape closes the editor without saving, and the focus should return to the commented cell. Finding: as after Ctrl+Enter, the focus lands on the document body; NVDA reads the document, VoiceOver with Chromium says `group`, and VoiceOver with WebKit says nothing."
+    },
+    {
+      "id": "arrow-down-after-close",
+      "action": {"press": "ArrowDown"},
+      "expect": [["b3", "b 3"]],
+      "note": "The grid answers the arrow keys after the editor closed: every reader reads B3, NVDA and VoiceOver after announcing the table again."
+    },
+    {
+      "id": "arrow-down-again",
+      "action": {"press": "ArrowDown"},
+      "expect": [["b4", "b 4"]]
+    },
+    {
+      "id": "arrow-left-second-comment",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["a4", "a 4"], ["comment"]],
+      "note": "A4, the second commented cell, reached after the editor closed. Finding: as on B2, no reader says the cell has a comment."
+    }
+  ]
+}

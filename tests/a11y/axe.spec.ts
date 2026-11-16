@@ -13,6 +13,7 @@ import {
 } from '../lib/a11y-baseline.mjs';
 import { A11Y_PAGES } from './pages.mjs';
 import { PORTAL, emulate, openTarget, reachState } from './harness';
+import { WCAG_TAGS, measureNodes } from './axe-scan';
 
 /**
  * The axe scan: every page of `pages.mjs` on every theme, through `@axe-core/playwright`,
@@ -39,7 +40,6 @@ import { PORTAL, emulate, openTarget, reachState } from './harness';
  * `tests/AGENTS.md`, "A11y: the axe scan and its baseline".
  */
 
-const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 // The outline colors of the screenshot marks, matching the report's numbered legend: new is the
 // critical red, grown a dark orange, a pictured known issue a dark blue. Each carries its number in
 // white, so each clears 4.5:1 against white.
@@ -133,33 +133,6 @@ for (const theme of A11Y_THEMES) {
       });
     } else {
       test(title, scan);
-    }
-  }
-}
-
-/**
- * Adds each violating node's box on the page (`box`, page coordinates, or `null` when the node
- * has none: hidden, collapsed or gone) to the axe results, in place, in one round trip.
- *
- * @param page The page.
- * @param violations The axe violations.
- */
-async function measureNodes(page: Page, violations: Array<{ nodes: Array<{ target: unknown[]; box?: NodeBox | null }> }>): Promise<void> {
-  const selectors = violations.flatMap(violation => violation.nodes.map(node => node.target.at(-1)));
-  const boxes = await page.evaluate(list => list.map((css) => {
-    const node = typeof css === 'string' ? document.querySelector(css) : null;
-    const rect = node?.getBoundingClientRect();
-
-    return rect && rect.width > 0 && rect.height > 0
-      ? { x: Math.round(rect.left + window.scrollX), y: Math.round(rect.top + window.scrollY), width: Math.round(rect.width), height: Math.round(rect.height) }
-      : null;
-  }), selectors);
-  let index = 0;
-
-  for (const violation of violations) {
-    for (const node of violation.nodes) {
-      node.box = boxes[index];
-      index += 1;
     }
   }
 }

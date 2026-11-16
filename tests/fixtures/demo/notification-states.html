@@ -51,7 +51,8 @@
     the toast's own texts stay English, as the demo's do. `pager=1` adds the pagination bar under the
     grid, which the demo does not have, to place a bottom-corner toast against a bottom slot, and
     `animation=1` turns the toasts' enter animation on (it is off by default, so every state is reached
-    without waiting on a transition).
+    without waiting on a transition). `window.htShowToast()` shows the same toast again from a top-level
+    name, for a screen reader scenario's `call` step: a toast that appears while the user works in the grid.
   -->
   <div data-testid="grid"></div>
 
@@ -93,7 +94,7 @@
         licenseKey: window.htTestLicenseKey,
       });
 
-      window.hot.getPlugin('notification').showMessage({
+      window.htShowToast = () => window.hot.getPlugin('notification').showMessage({
         title: window.htPosition.replace(/-/g, ' '),
         message: 'Notification visual test.',
         position: window.htPosition,
@@ -105,6 +106,7 @@
           { label: 'Action', type: 'secondary', callback: () => {} },
         ],
       });
+      window.htShowToast();
     } catch (error) {
       window.htBuildError = String(error && error.stack || error);
     }

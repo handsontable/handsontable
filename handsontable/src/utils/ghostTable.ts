@@ -3,6 +3,7 @@ import type { CellProperties } from '../settings';
 import type { BaseRenderer } from '../renderers/baseRenderer';
 import { renderCell } from '../renderers/renderCell';
 import { addClass } from './../helpers/dom/element';
+import { snapToLayoutUnit } from './../helpers/dom/layoutUnit';
 import { arrayEach } from './../helpers/array';
 import { throwWithCause } from '../helpers/errors';
 import { colToPropOrIndex } from '../helpers/columnProp';
@@ -35,6 +36,10 @@ interface SampleString {
   col?: number;
   row?: number;
   value: unknown;
+  /**
+   * The merged block the value belongs to, when it is sampled on a covered cell that the block is drawn on.
+   */
+  block?: { row: number; col: number; colspan: number };
 }
 
 /**
@@ -254,15 +259,12 @@ class GhostTable {
     }
 
     arrayEach(this.rows, (row: Record<string, unknown>) => {
-      // Use getBoundingClientRect() instead of offsetHeight for sub-pixel precision.
-      // Math.round is used instead of Math.ceil to avoid over-rounding at non-100% browser zoom
-      // levels (e.g. 90%), where fractional BCR values like 28.88 would ceil to 29 but
-      // a default-height row should remain at 29, not be inflated to 30.
-      // For genuinely taller rows the fractional part is typically >= 0.5, so round still
-      // produces the correct ceiling.
+      // Use getBoundingClientRect() instead of offsetHeight for sub-pixel precision. The height is
+      // handed over snapped to the layout grid and NOT rounded: how a fraction rounds depends on the
+      // row (a default-height row and a taller one need different rounding), which the caller knows.
       const { height } = (row.table as HTMLTableElement).getBoundingClientRect();
 
-      callback(row.row, Math.round(height));
+      callback(row.row, snapToLayoutUnit(height));
     });
   }
 
@@ -347,7 +349,7 @@ class GhostTable {
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        fragment.appendChild(this.createColElement(string.col!, row!));
+        fragment.appendChild(this.createColElement(string.col!, row!, string.block?.colspan));
       });
     });
 
@@ -373,14 +375,16 @@ class GhostTable {
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        const column = string.col!;
-        const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(row, column);
+        // The grid paints a block drawn on a covered cell with the top-left cell's own coordinates and meta
+        // (`modifyGetCellCoords`), so the ghost cell is rendered the way the grid renders it.
+        const source = string.block ?? { row, col: string.col! };
+        const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(source.row, source.col);
         const td = rootDocument.createElement('td');
 
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
         td.setAttribute('ghost-table', '1');
-        this.#renderCell(td, row, column, string.value, cellProperties);
+        this.#renderCell(td, source.row, source.col, string.value, cellProperties);
         fragment.appendChild(td);
       });
     });
@@ -535,13 +539,19 @@ class GhostTable {
    *
    * @param {number} column Visual column index.
    * @param {number} row Visual row index.
+   * @param {number} [sampledColspan] The number of columns the sampled value spans, when the cell's own
+   * meta cannot say it. A merged block drawn from a cell it covers (its first row or column is hidden) is
+   * sampled on that cell, which carries no `colspan` of its own.
    * @returns {HTMLElement}
    */
-  createColElement(column: number, row: number) {
+  createColElement(column: number, row: number, sampledColspan?: number) {
     const col = this.hot!.rootDocument.createElement('col');
     let colspan = 0;
 
-    if (row >= 0 && column >= 0) {
+    if (sampledColspan !== undefined) {
+      colspan = sampledColspan;
+
+    } else if (row >= 0 && column >= 0) {
       colspan = Number(this.hot!.getCellMetaTransient(row, column).colspan);
     }
 

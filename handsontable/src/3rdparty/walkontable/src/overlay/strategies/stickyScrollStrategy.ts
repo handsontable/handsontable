@@ -83,20 +83,25 @@ export class StickyScrollStrategy {
   }
 
   /**
-   * Registers mousedown/mouseup listeners for scrollbar drag detection.
-   * Called from `Overlays.registerListeners()`.
+   * Discards the sticky state left from the previous scrollable element, so a stale `deactivate()`
+   * cannot compute a wrong scroll. Called whenever the scrollable elements are re-picked.
    */
-  registerListeners() {
-    const { eventManager, rootDocument } = this.#deps;
-
-    // Scrollable elements may have changed (e.g. updateSettings). Discard any
-    // leftover sticky state so a stale deactivate() cannot compute a wrong scroll.
+  resetForScrollableElementChange() {
     if (this.#active) {
       this.#active = false;
       this.#applySpreaderStyles('relative', 0, 0);
     }
 
     this.#mouseDown = false;
+  }
+
+  /**
+   * Registers mousedown/mouseup listeners for scrollbar drag detection. They are bound to the
+   * document, so they are registered once, when the overlays are built, and survive a change of
+   * the scrollable element.
+   */
+  registerListeners() {
+    const { eventManager, rootDocument } = this.#deps;
 
     eventManager.addEventListener(rootDocument, 'mousedown', (event) => {
       if (event instanceof MouseEvent) {

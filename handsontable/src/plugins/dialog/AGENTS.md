@@ -7,9 +7,14 @@ It is a **shared surface an application legitimately uses**, and that shapes eve
 
 ## Root instances only
 
-`isEnabled()` is `isRootInstance(this.hot) && !!getSettings()[PLUGIN_KEY]`. A nested grid (the
-`handsontable` cell type) never gets a dialog. `../emptyDataState/`, `../notification/` and `../loading/`
-all gate the same way.
+`isEnabled()` is `isRootInstance(this.hot) && (!!getSettings()[PLUGIN_KEY] || hot._isPluginRequired(PLUGIN_KEY))`.
+A nested grid (the `handsontable` cell type) never gets a dialog. `../emptyDataState/`, `../notification/` and
+`../loading/` all gate the same way.
+
+- **`isEnabled()` also answers `true` while another plugin requires Dialog** (core's `_isPluginRequired('dialog')`,
+  see "A plugin that needs another plugin running" in `../base/AGENTS.md`). Loading requires it while enabled, so
+  `getSettings().dialog` can be `false` on an enabled Dialog. Code that asks whether Dialog runs reads
+  `plugin.enabled`, never the option. Dialog does not know who requires it; keep it that way.
 
 ## It lives in `ht-overlay`, not in a layout slot
 
@@ -204,6 +209,18 @@ not listening (`activeGuid` starts `null` in `core.ts`), and `methods/focus.spec
 does **not** take the focus when a dialog opens — a deliberate "don't steal focus from a page the user has
 not touched" rule that predates the focus-scope rewrite. It is also a WAI-ARIA APG deviation, since APG
 moves focus into a modal in all circumstances; re-deciding it is a product call, not a bug fix.
+
+### `dialogFocusNextElement` / `dialogFocusPreviousElement` fire AFTER the native Tab move
+
+The Tab shortcut is registered with `preventDefault: false` and runs the hook inside `_registerTimeout`, so the
+browser has already moved the focus when the hook runs, and the hook gets no arguments. A handler reads
+`document.activeElement`. It fires for a Tab pressed while the focus is inside the dialog, including the press
+that leaves it, and not for a press that brings the focus in from the page. The hook JSDoc once said "before focusing", which is wrong; do not restore that
+wording, and do not pass an element or move the timing without a product call (public hooks).
+
+A report of "Safari does not Tab to the buttons" (DEV-1118) is the browser's default: Safari skips buttons on
+Tab unless "Press Tab to highlight each item" is on (or Option+Tab). Playwright's WebKit does the same, so a
+cross-browser spec walks inputs only (`tests/e2e/dialog-focus-hooks.spec.ts`).
 
 ### The container carries `tabindex="-1"` for EVERY template
 

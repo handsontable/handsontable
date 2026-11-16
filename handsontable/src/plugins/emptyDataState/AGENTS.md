@@ -34,6 +34,13 @@ through the `cols === 0` case, and it is only ever true with `cols > 0`. It runs
 `afterRow/ColumnSequenceCacheUpdate` during a fetch's `loadData()`, so a resize there only buys a forced
 reflow per index update (measured: six per fetch) and a line no test can pin.
 
+## Pagination keeps the same 150 px open when this plugin is off
+
+`MIN_HEIGHT` (`ui.ts`) is the height of the placeholder this plugin appends into the holder. The pagination plugin
+appends an identical one for a free-height grid with no rows (DEV-1103) and steps aside while this plugin is
+enabled, so the pager sits at the same place either way. Change `MIN_HEIGHT` and `EMPTY_BODY_RESERVE_HEIGHT` in
+`../pagination/ui.ts` together, or toggling this plugin moves the pager.
+
 ## The overlay height is capped at the root's own box
 
 `computeEmptyDataStateHeight()` starts from `view.getWorkspaceHeight()` / `getViewportHeight()`, which the

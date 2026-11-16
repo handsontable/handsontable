@@ -37,7 +37,7 @@
       {
         "region": "grid",
         "role": "gridcell",
-        "name": "user link",
+        "name": "user anchor",
         "cell": [
           0,
           3
@@ -126,7 +126,7 @@
       {
         "region": "grid",
         "role": "gridcell",
-        "name": "user link",
+        "name": "user anchor",
         "cell": [
           0,
           3

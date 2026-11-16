@@ -27,6 +27,10 @@ describe('Walkontable.Renderer.ColGroupRenderer', () => {
     getAriaColumnHeaderIdPrefix() {
       return '';
     }
+
+    getFreezeLineOverlap() {
+      return 0;
+    }
   }
 
   class ColumnUtilsMock {

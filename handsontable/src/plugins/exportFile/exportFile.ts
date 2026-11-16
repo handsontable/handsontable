@@ -39,13 +39,6 @@ export interface SheetOptions {
    */
   colHeaders?: boolean;
   /**
-   * Include column headers.
-   *
-   * @deprecated Since 17.1.0, renamed to `colHeaders`. Still accepted as an alias; it will be
-   * removed in 19.0.0. Use `colHeaders` instead.
-   */
-  columnHeaders?: boolean;
-  /**
    * Include row headers.
    */
   rowHeaders?: boolean;
@@ -198,13 +191,6 @@ export interface ExportOptions {
    */
   colHeaders?: boolean;
   /**
-   * Include column headers.
-   *
-   * @deprecated Since 17.1.0, renamed to `colHeaders`. Still accepted as an alias; it will be
-   * removed in 19.0.0. Use `colHeaders` instead.
-   */
-  columnHeaders?: boolean;
-  /**
    * Include row headers.
    */
   rowHeaders?: boolean;
@@ -292,11 +278,6 @@ export interface ExportFileSettings {
   engines?: Record<string, object | null | undefined>;
 }
 
-/**
- * @deprecated Since 18.0.0, renamed to `ExportFileSettings`. This alias will be removed in 19.0.0.
- * Use {@link ExportFileSettings} instead.
- */
-export type Settings = ExportFileSettings;
 export const PLUGIN_PRIORITY = 240;
 
 /**
@@ -562,7 +543,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range to export: `[startRow, startColumn, endRow, endColumn]` (visual indexes).
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Controls the sanitization of cell values (CSV only).
    * @returns {string}
-   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
+   * @throws {Error} When the license key names tiers and none of them includes Export to file.
    */
   exportAsString(format: string, options: ExportOptions | Record<string, unknown> = {}): string {
     assertLicensedCall(this.hot, LICENSE);
@@ -599,7 +580,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {Blob}
-   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
+   * @throws {Error} When the license key names tiers and none of them includes Export to file.
    */
   exportAsBlob(format: string, options: ExportOptions | Record<string, unknown> = {}): Blob {
     assertLicensedCall(this.hot, LICENSE);
@@ -648,7 +629,7 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<Blob>}
    * @since 17.1.0
-   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Export to file.
+   * @throws {Error} The returned promise rejects when the license key names tiers and none of them includes Export to file.
    */
   async exportAsBlobAsync(format: string, options: ExportOptions | Record<string, unknown> = {}): Promise<Blob> {
     assertLicensedCall(this.hot, LICENSE);
@@ -678,7 +659,7 @@ export class ExportFile extends BasePlugin {
    * @param {number[]} [options.range=[]] Cell range: `[startRow, startColumn, endRow, endColumn]`.
    * @param {boolean|RegExp|Function} [options.sanitizeValues=false] Sanitization (CSV only).
    * @returns {void}
-   * @throws {Error} When the license key lists the features it unlocks and leaves out Export to file.
+   * @throws {Error} When the license key names tiers and none of them includes Export to file.
    */
   downloadFile(format: string, options: ExportOptions | Record<string, unknown> = {}): void {
     assertLicensedCall(this.hot, LICENSE);
@@ -732,7 +713,7 @@ export class ExportFile extends BasePlugin {
    * @param {string} [options.protection.password] The sheet password, at most 255 characters. An empty one sets no password.
    * @returns {Promise<void>}
    * @since 17.1.0
-   * @throws {Error} The returned promise rejects when the license key lists the features it unlocks and leaves out Export to file.
+   * @throws {Error} The returned promise rejects when the license key names tiers and none of them includes Export to file.
    */
   async downloadFileAsync(format: string, options: ExportOptions | Record<string, unknown> = {}) {
     assertLicensedCall(this.hot, LICENSE);
@@ -851,11 +832,10 @@ export class ExportFile extends BasePlugin {
    * because it needs no engine. `'xlsx'` can through the built-in xlsx engine or through the one
    * configured in `engines`; an engine of unknown shape writes nothing and answers `false`, which
    * is the same answer `ImportFile#supportsImportFormat` gives for that configuration. `'xlsx'` also
-   * answers `false` whenever an xlsx export would throw for the license: when the license key lists
-   * its features without `feat:export_file`, the plugin's own token, and when it carries the
-   * `listed-capabilities` flag without listing `xlsx:export`. A key without that flag is not
-   * restricted. `'csv'` does not read the license here, although the export methods still need
-   * `feat:export_file` for it.
+   * answers `false` whenever an xlsx export would throw for the license: when the license key names
+   * tiers and none of them includes `feat:export_file`, the plugin's own feature, or none includes
+   * `xlsx:export`. A key that names no tier is not restricted. `'csv'` does not read the license here, although the
+   * export methods still need `feat:export_file` for it.
    *
    * @param {string} format Export format — `'csv'` or `'xlsx'`.
    * @returns {boolean}

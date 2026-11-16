@@ -140,6 +140,35 @@
         }
       }
     }
+
+    // A header cell can hold the dropdown menu button and the collapse indicator side by side. Both
+    // extend their box past their slot by `(hit area - icon) / 2 - 1px` on each side, which the
+    // flex gap does not make up for, so the two hit areas overlap. The dropdown button is stacked
+    // above the indicator, so it took the whole strip they share. The indicator takes the stacking
+    // order and gives up half the strip on its facing edge, so each button keeps half of it.
+    // `clip-path` clips what the pointer reaches as well as what paints. The clip is always
+    // narrower than the padding around the icon, so the visible icon and its ring stay untouched.
+    // The 4px is the base 2px gap plus the `1px` in each button's margin. A sorted column widens
+    // the gap (`_column-sorting.scss`), so the hit areas no longer touch and the rule stays off.
+    // `z-index: 1` is enough: the indicator comes after the dropdown button in the DOM, and the
+    // next header cell's button comes after both.
+    .relative:not(.has-sort-indicator) > .changeType ~ .collapsibleIndicator {
+      // Internal to this rule, not a theme token.
+      --ht-collapse-button-hit-area-overlap: max(
+        0px,
+        calc(var(--ht-icon-button-hit-area-size) - var(--ht-icon-size) - 4px)
+      );
+
+      z-index: 1;
+      clip-path: inset(0 0 0 calc(var(--ht-collapse-button-hit-area-overlap) / 2));
+
+      // `clip-path` has no logical keywords, so the facing edge is spelled out for a right to left
+      // grid. `:dir()` reads the nearest direction, the grid root's own, so a left to right grid
+      // inside a right to left page keeps the left to right rule.
+      &:dir(rtl) {
+        clip-path: inset(0 calc(var(--ht-collapse-button-hit-area-overlap) / 2) 0 0);
+      }
+    }
   }
 
 }

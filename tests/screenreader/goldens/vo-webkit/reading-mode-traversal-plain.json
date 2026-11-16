@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "scenario": "reading-mode-traversal-plain",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-03T19:25:18.349Z"
+  },
+  "steps": {
+    "to-grid": "table 4 columns",
+    "enter-grid": "in table no selection column 1 of 4 alpha a1 column 1 of 4 row 2 column 2 of 4",
+    "read-1": "alpha bravo b1 column 3 of 4",
+    "read-2": "bravo charlie c1 column 4 of 4",
+    "read-3": "row 3 2 column 1 of 4 alpha a2 column 2 of 4",
+    "read-4": "alpha bravo b2 column 3 of 4",
+    "read-5": "bravo charlie c2 column 4 of 4",
+    "read-6": "row 4 3 column 1 of 4 alpha a3 column 2 of 4",
+    "read-7": "alpha bravo b3 column 3 of 4",
+    "read-8": "bravo charlie c3 column 4 of 4",
+    "read-9": "row 1 blank column 1 of 4",
+    "read-10": "alpha column 2 of 4",
+    "read-11": "bravo column 3 of 4",
+    "read-12": "charlie column 4 of 4",
+    "read-13": "row 2 select whole grid 1 column 1 of 4",
+    "read-14": "row 3 2 column 1 of 4",
+    "read-15": "row 4 3 column 1 of 4",
+    "read-16": "row 1 blank column 1 of 4",
+    "read-17": "end of table",
+    "read-18": "after the grid button",
+    "read-19": "after the grid button",
+    "read-20": "after the grid button",
+    "read-21": "after the grid button",
+    "read-22": "after the grid button",
+    "read-23": "after the grid button",
+    "past-grid": "after the grid button"
+  }
+}

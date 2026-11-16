@@ -270,6 +270,10 @@ The `dateTimeFormat` option accepts properties of [`Intl.DateTimeFormat` options
 
 For a complete reference, see the [`dateTimeFormat` API documentation](@/api/options.md#datetimeformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
 
+**Year 0000**
+
+ISO 8601 uses year `0000` for 1 BC. A value in year `0000` is valid, and it sorts before `0001-01-01T00:00:00`. `Intl.DateTimeFormat` prints that year as `1`, the same as year `0001`. To tell them apart, Handsontable adds the era to the display of year `0000`. It does so when the format prints a year and sets no `era` of its own. For example, `0000-01-01T00:00:00` shows as `01/01/1 BC, 00:00:00` and `0001-01-01T00:00:00` shows as `01/01/1, 00:00:00`. The era text follows the locale. A format that uses `dateStyle` or `timeStyle` cannot carry an era, so it still prints year `0000` as `1`.
+
 ### Editor behavior
 
 Clicking an `intl-datetime` cell opens the browser's native [`datetime-local`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local) picker. The editor shows the value in the `YYYY-MM-DDTHH:mm:ss` form the native input expects; on commit, the value is stored back in that ISO form. The `dateTimeFormat` option only affects the rendered display, not the stored value.

@@ -40,4 +40,5 @@ Current recipes:
 - [Server-side data with Ruby on Rails](@/recipes/data-management/server-side-rails/server-side-rails.md)
 - [Server-side data with Spring Boot](@/recipes/data-management/server-side-spring/server-side-spring.md)
 - [Server-side data with Symfony](@/recipes/data-management/server-side-symfony/server-side-symfony.md)
+- [Query a million rows in the browser with DuckDB-Wasm](@/recipes/data-management/duckdb-wasm/duckdb-wasm.md)
 </div>

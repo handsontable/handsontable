@@ -467,6 +467,23 @@ export class GridLayoutsPage {
   }
 
   /**
+   * Passes the grid the rows it already holds again, the way a wrapper does on a re-render: through
+   * `updateSettings({ data })`, with the same array or with a shallow copy of it.
+   *
+   * @param {'same-array' | 'copy'} how Whether to pass the grid's own array or a copy of it.
+   */
+  async passRowsAgain(how: 'same-array' | 'copy'): Promise<void> {
+    await this.page.evaluate((mode) => {
+      const { hot } = window as unknown as {
+        hot: { getSettings(): { data: unknown[] }, updateSettings(settings: { data: unknown[] }): void },
+      };
+      const { data } = hot.getSettings();
+
+      hot.updateSettings({ data: mode === 'copy' ? data.slice() : data });
+    }, how);
+  }
+
+  /**
    * Whether the grid's validator accepted a cell's value: `getCellMeta().valid`, which a cell that
    * failed validation keeps as `false` (and draws with `htInvalid`).
    *

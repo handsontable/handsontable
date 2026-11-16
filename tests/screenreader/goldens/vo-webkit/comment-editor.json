@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "comment-editor",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T14:09:50.425Z"
+  },
+  "steps": {
+    "arrow-right-plain-cell": "",
+    "arrow-down-commented-cell": "b b2",
+    "open-comment-editor": "text entry area check the totals before friday insertion on word check between characters and",
+    "type-in-comment": "ana",
+    "save-with-control-enter": "",
+    "reopen-saved-comment": "text entry area check the totals before friday call ana insertion on word check between characters and",
+    "close-with-escape": "",
+    "arrow-down-after-close": "b b3 table 7 columns",
+    "arrow-down-again": "b b4",
+    "arrow-left-second-comment": "a a4"
+  }
+}

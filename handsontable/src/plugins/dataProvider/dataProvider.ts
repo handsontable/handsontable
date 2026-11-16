@@ -189,12 +189,6 @@ export interface DataProviderFetchOptions {
   signal: AbortSignal;
 }
 
-/**
- * @deprecated Since 18.0.0, renamed to `DataProviderFetchOptions`. This alias will be removed in
- * 19.0.0. Use {@link DataProviderFetchOptions} instead.
- */
-export type DataProviderOptions = DataProviderFetchOptions;
-
 export interface RowsCreatePayload {
   position: 'above' | 'below';
   referenceRowId?: unknown;

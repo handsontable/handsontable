@@ -3,7 +3,7 @@ import { IndexMap, type IndexMapOptions } from './indexMap';
 import { IndexesSequence } from './indexesSequence';
 import { LinkedPhysicalIndexToValueMap } from './linkedPhysicalIndexToValueMap';
 import { PhysicalIndexToValueMap } from './physicalIndexToValueMap';
-import { TrimmingMap } from './trimmingMap';
+import { TrimmingMap, type TrimmingMapOptions } from './trimmingMap';
 import { throwWithCause } from '../../helpers/errors';
 
 export * from './indexesSequence';
@@ -32,10 +32,15 @@ const availableIndexMapTypes = new Map<string, typeof IndexMap>([
  * @param {*} [initValueOrFn=null] Initial value or function for index map.
  * @param {object} [options] Map behavior options (see {@link IndexMapOptions}), e.g.
  *   `skipUnchangedWrites` for maps holding scalar values. The `hiding` and `trimming` types
- *   enable that behavior themselves regardless of the passed options.
+ *   enable that behavior themselves regardless of the passed options. A `trimming` map also reads
+ *   the internal `keepsRowsInFilterScope` flag.
  * @returns {IndexMap}
  */
-export function createIndexMap(mapType: string, initValueOrFn: unknown = null, options: IndexMapOptions = {}) {
+export function createIndexMap(
+  mapType: string,
+  initValueOrFn: unknown = null,
+  options: IndexMapOptions & TrimmingMapOptions = {},
+) {
   if (!availableIndexMapTypes.has(mapType)) {
     throwWithCause(`The provided map type ("${mapType}") does not exist.`);
   }

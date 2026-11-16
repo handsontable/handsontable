@@ -187,7 +187,7 @@ export function buildLlmsIndex(pageMeta, sections) {
     '',
     '## Licensing',
     '',
-    `- [License key guide](${SITE_URL}/docs/${CANONICAL_PREFIX}/license-key/): How to apply a trial, sponsored, or commercial license key`,
+    `- [License key guide](${SITE_URL}/docs/${CANONICAL_PREFIX}/license-key/): How to apply a trial, free non-commercial, or commercial license key`,
     `- [Pricing](${SITE_URL}/pricing): Commercial plans`,
     `- [Contact sales](${SITE_URL}/get-a-quote): Get a quote for commercial use`,
     '',

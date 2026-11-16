@@ -35,6 +35,11 @@ Two real differences worth knowing:
 The marker class is applied for `this.isHidden(row - 1)` — the class describes the **neighbor**
 relationship, so an off-by-one there is a real bug.
 
+**`afterHideRows` fires during `new Handsontable()` too, before `hot.view` exists**, once, for `hiddenRows: true`
+(empty configuration) as well as for `{ rows: [1] }`. Same cause and same rules as
+`afterHideColumns`: see "The `init` local hook has to be replayed by hand" in `../hiddenColumns/AGENTS.md`.
+Pinned by `src/__tests__/core/viewGettersBeforeView.unit.js`.
+
 ## The indicator's BOX stops at the header edge; its GLYPH does not move
 
 `../../styles/components/plugins/_hidden-rows.scss` used to lay the arrow's box out at `bottom: -2px` on

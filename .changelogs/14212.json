@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed viewport getters, data getters, `getCoords()`, `getCell()`, `scrollViewportTo()`, `setDataAtCell()`, `updateData()`, and the `select*()` methods throwing a `TypeError` inside hooks that fire during initialization, such as `afterHideColumns`, `afterHideRows`, and the initial `afterLoadData`.",
+  "type": "fixed",
+  "issueOrPR": 14212,
+  "breaking": false,
+  "framework": "none"
+}

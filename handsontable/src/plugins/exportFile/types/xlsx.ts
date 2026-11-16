@@ -6,7 +6,7 @@ import type { SourceLabel } from '../../../utils/cellSource';
 import ExportDataProvider from '../dataProvider';
 import type { ArrayFormulaSize, EngineCellFacts } from '../dataProvider';
 import BaseType from './_base';
-import { normalizeExportOptions } from '../utils';
+import { warnRemovedColumnHeadersOption } from '../utils';
 import { matchCheckboxTemplate } from '../../../utils/checkboxColumn';
 import {
   buildSummaryFormula,
@@ -875,11 +875,13 @@ class Xlsx extends BaseType {
 
       sheets.forEach((sheetConfig) => {
         const dp = new ExportDataProvider(sheetConfig.instance);
-        // Promote the deprecated `columnHeaders` alias on the per-sheet config before it is merged
-        // with the already-normalized top-level options, which carry `colHeaders` either way.
         // `protection` is a workbook-wide option: only the top-level value, checked by
         // `assertProtectionOption()` above, applies, so a per-sheet one is dropped before the merge.
-        const { protection: _ignoredProtection, ...perSheetConfig } = normalizeExportOptions(sheetConfig);
+        const { protection: _ignoredProtection, ...perSheetConfig } = sheetConfig;
+
+        // A sheet entry bypasses `_mergeOptions()`, so the removed-option check runs here too.
+        warnRemovedColumnHeadersOption(perSheetConfig);
+
         const sheetOptions = { ...this.options, ...perSheetConfig };
 
         dp.setOptions(sheetOptions);

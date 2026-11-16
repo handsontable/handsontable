@@ -45,6 +45,24 @@ For significant deprecations (especially those affecting many users), we will pr
 
 For more details about our versioning policy please visit [Versioning policy](@/guides/upgrade-and-migration/versioning-policy/versioning-policy.md)
 
+## Removed in version 19.0
+
+### APIs
+
+| Removed | Deprecated in | Replacement | Migration guide |
+| ------- | ------------- | ----------- | --------------- |
+| `saveManualColumnWidths()` and `loadManualColumnWidths()` (`ManualColumnResize`) | 18.0 | None. Both do nothing and log a deprecation warning. Persist widths in your application code, and restore them by passing an array to `manualColumnResize`. | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
+| `saveManualRowHeights()` and `loadManualRowHeights()` (`ManualRowResize`) | 18.0 | None. Both do nothing and log a deprecation warning. Persist heights in your application code, and restore them by passing an array to `manualRowResize`. | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
+| `Handsontable.helper.sanitize()` | 18.0 | The `sanitizer` option. The helper returned its input unchanged since 18.0. | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
+| `columnHeaders` (export options of the `exportFile` plugin) | 17.1 | `colHeaders` -- rename the key; the value keeps its meaning. | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
+
+### TypeScript types
+
+| Removed | Deprecated in | Replacement | Migration guide |
+| ------- | ------------- | ----------- | --------------- |
+| `Settings` (exported from `handsontable/plugins/exportFile`) | 18.0 | `ExportFileSettings` | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
+| `DataProviderOptions` (exported from `handsontable/plugins/dataProvider`) | 18.0 | `DataProviderFetchOptions` | [Migrate from 18.1 to 19.0 -> Removed deprecated APIs](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#removed-deprecated-apis) |
+
 ## Removed in version 18.0
 
 ### Dependencies
@@ -64,7 +82,7 @@ The following dependencies were deprecated in version 17.0 and removed in versio
 | ------- | ------------- | ----------- | --------------- |
 | `correctFormat` and `datePickerConfig` options | 17.0 | `valueParser` and `valueSetter` | [Migrate from 17.1 to 18.0 -> `correctFormat` option](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#correctformat-option) |
 | `numericFormat.pattern` and `numericFormat.culture` | 17.0 | `Intl.NumberFormat` options and the `locale` option | [Migrate from 17.1 to 18.0 -> Numeric formatting](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat) |
-| `handsontable/common` import subpath | -- (never documented) | `handsontable` or `handsontable/base` | [Migrate from 17.1 to 18.0 -> Imports](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#replace-handsontablecommon-imports) |
+| `handsontable/common` import subpath | -- (not in the API reference) | `handsontable`, `handsontable/base`, or `handsontable/settings`, depending on the type. Four types are removed | [Migrate from 17.1 to 18.0 -> Imports](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#replace-handsontablecommon-imports) |
 
 ## Removed in version 17.0
 
@@ -72,7 +90,7 @@ The following dependencies were deprecated in version 17.0 and removed in versio
 
 | Removed | Deprecated in | Replacement | Migration guide |
 | ------- | ------------- | ----------- | --------------- |
-| `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks | 16.1 | Persist state in your application code. The `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` methods that relied on the plugin are deprecated (see below). | [Changelog 17.x](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
+| `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks | 16.1 | Persist state in your application code. The `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` methods that relied on the plugin were deprecated in 18.0 and removed in 19.0 (see [Removed in version 19.0](#removed-in-version-19-0)). | [Changelog 17.x](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
 | `hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, and `hot.undoRedo` | Before 16.0 | `hot.getPlugin('undoRedo')` | [Changelog 17.x](@/guides/upgrade-and-migration/changelog-17/changelog-17.md) |
 
 ## List of current deprecations
@@ -89,11 +107,6 @@ The following APIs are deprecated. They keep working and print a one-time consol
 
 | Deprecated | Deprecated in | Removal | Replacement | Migration guide |
 | ---------- | ------------- | ------- | ----------- | --------------- |
-| `saveManualColumnWidths()` (`ManualColumnResize`) | 18.0 | 19.0 | No-op. Persist widths in your application code. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
-| `loadManualColumnWidths()` (`ManualColumnResize`) | 18.0 | 19.0 | No-op. Pass an array to `manualColumnResize`. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
-| `saveManualRowHeights()` (`ManualRowResize`) | 18.0 | 19.0 | No-op. Persist heights in your application code. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
-| `loadManualRowHeights()` (`ManualRowResize`) | 18.0 | 19.0 | No-op. Pass an array to `manualRowResize`. | [Migrate from 17.1 to 18.0 -> Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
-| `Handsontable.helper.sanitize()` | 18.0 | 19.0 | Pass-through. Use the `sanitizer` option. | [`sanitizer` option](@/api/options.md#sanitizer) |
 | `registerShortcuts()` (`Formulas`) | 19.0 | 20.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 19.0 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#formulas-shortcut-methods) |
 | `unregisterShortcuts()` (`Formulas`) | 19.0 | 20.0 | No-op. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid shortcut. Remove the call. | [Migrate from 18.1 to 19.0 -> Formulas shortcut methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#formulas-shortcut-methods) |
 | `spliceCol()` (`Core`) | 19.0 | 20.0 | Read the column, splice it, and write it back with `populateFromArray()`; or use `alter()` for whole columns. | [Migrate from 18.1 to 19.0 -> spliceCol and spliceRow](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#splicecol-and-splicerow-are-deprecated) |
@@ -103,12 +116,6 @@ The following APIs are deprecated. They keep working and print a one-time consol
 | `getTopMostRowIndex()` (`MergedCellsCollection`) | 19.0 | 20.0 | None. The selection steps over merged cells by itself. Remove the call. | [Migrate from 18.1 to 19.0 -> `MergedCellsCollection` methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#four-mergedcellscollection-methods-are-deprecated) |
 | `getBottomMostRowIndex()` (`MergedCellsCollection`) | 19.0 | 20.0 | None. The selection steps over merged cells by itself. Remove the call. | [Migrate from 18.1 to 19.0 -> `MergedCellsCollection` methods](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#four-mergedcellscollection-methods-are-deprecated) |
 | `iconsMap()` (`handsontable/themes/static/variables/helpers/iconsMap`) | 19.0 | 20.0 | `iconStyles(icons, scopeSelector)` from `handsontable/themes/static/variables/helpers/iconStyles`. `iconsMap()` already returns its output. | [Migrate from 18.1 to 19.0 -> Icons are rendered as `<i>` elements](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#icons-are-rendered-as-i-elements) |
-
-### Options
-
-| Deprecated | Deprecated in | Removal | Replacement | Migration guide |
-| ---------- | ------------- | ------- | ----------- | --------------- |
-| `columnHeaders` (export options of the `exportFile` plugin) | 17.1 | 19.0 | `colHeaders` -- rename the key; the value keeps its meaning. | [Export to CSV -> Options](@/guides/accessories-and-menus/export-to-csv/export-to-csv.md#options) |
 
 ### Language codes
 
@@ -123,15 +130,6 @@ A constant does not print a console warning. Your editor shows it as deprecated.
 | Deprecated | Deprecated in | Removal | Replacement | Migration guide |
 | ---------- | ------------- | ------- | ----------- | --------------- |
 | `NON_COMMERCIAL_LICENSE` (`@handsontable/angular-wrapper`) | 19.0 | 20.0 | Your own license key, passed as `license` in `HOT_GLOBAL_CONFIG`. The key the constant holds reads as invalid since 19.0. | [Migrate from 18.1 to 19.0 -> The `non-commercial-and-evaluation` license key](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#the-non-commercial-and-evaluation-license-key-no-longer-works) |
-
-### TypeScript types
-
-Type aliases do not print console warnings. Your editor shows them as deprecated.
-
-| Deprecated | Deprecated in | Removal | Replacement |
-| ---------- | ------------- | ------- | ----------- |
-| `Settings` (exported from `handsontable/plugins/exportFile`) | 18.0 | 19.0 | `ExportFileSettings` |
-| `DataProviderOptions` (exported from `handsontable/plugins/dataProvider`) | 18.0 | 19.0 | `DataProviderFetchOptions` |
 
 ## Related
 

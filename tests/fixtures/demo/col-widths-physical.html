@@ -39,7 +39,8 @@
 <body>
   <!--
     Fixture for `colWidths` addressed by the physical column index. The array and the function
-    form must keep a width with its column after the column is moved. ?form=function switches
+    form must keep a width with its column after the column is moved, inserted next to, or removed
+    and brought back with undo, without the array being changed. ?form=function switches
     from the array to the function form. Cells carry data-testid="cell-<row>-<col>" by visual
     position.
   -->
@@ -53,7 +54,8 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    const widths = [100, 160, 220];
+    // Exposed so a spec can check that the grid never changes the array it was given.
+    const widths = window.declaredWidths = [100, 160, 220];
     const useFunction = new URLSearchParams(location.search).get('form') === 'function';
 
     const testIdRenderer = function(instance, td, row, col) {
@@ -66,6 +68,8 @@
       colWidths: useFunction ? (physicalColumn) => widths[physicalColumn] : widths,
       colHeaders: true,
       manualColumnMove: true,
+      contextMenu: true,
+      undo: true,
       renderer: testIdRenderer,
       licenseKey: window.htTestLicenseKey,
     });

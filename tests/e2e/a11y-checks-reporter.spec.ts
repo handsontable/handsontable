@@ -8,7 +8,7 @@ import { expect, test } from '@playwright/test';
 /**
  * The proof that the reporter of the checks beyond axe (`reporters/a11y-checks.ts`) turns what a run's
  * tests attached into the evidence document `tests/AGENTS.md` describes ("A11y: the checks beyond
- * axe"), and that the report script posts it as a check run that is never a failure. The merge itself
+ * axe"), and that the report script posts it as a check run, red for a check that left nothing readable. The merge itself
  * is unit-tested in `lib/__tests__/a11y-evidence.test.mjs`; this is the step around it that only a real
  * run shows: which attempt is read, a failed test recorded as a target that was not measured, a test
  * that passed on a retry flagged, a test that never ran or left an unreadable part recorded the same
@@ -221,11 +221,12 @@ test.describe('the reporter of the checks beyond axe', () => {
     expect(doc.problems[0]).toMatch(/^grid on main did not measure: .*the page threw no error while it was measured/);
   });
 
-  test('the report script turns a document it cannot validate into a neutral check run, never a failure', async() => {
+  test('the report script turns a document it cannot validate, and a named check that left none, into red tooling check runs, titled as such', async() => {
     const { evidenceDir } = runSyntheticCheck('script', checkTest('grid on main', 'grid', []));
+    // `keyboard-walker` is a real check of the registry, named as a subset; the synthetic run left it no document.
     const child = spawnSync(process.execPath, [reportScript, '--dry-run'], {
       cwd: testsRoot,
-      env: { ...childEnv(), A11Y_EVIDENCE_DIR: evidenceDir, A11Y_CHECKS: 'demo-check,missing-check' },
+      env: { ...childEnv(), A11Y_EVIDENCE_DIR: evidenceDir, A11Y_CHECKS: 'keyboard-walker' },
       encoding: 'utf8',
       timeout: 30_000,
     });
@@ -235,12 +236,51 @@ test.describe('the reporter of the checks beyond axe', () => {
     const payloads = JSON.parse(child.stdout.slice(child.stdout.indexOf('[')));
 
     // `demo-check` is registered only in the synthetic reporter's options, so the script, which reads
-    // the real registry, cannot validate its document: a tooling check run, neutral.
+    // the real registry, cannot validate its document: a tooling failure, red for its own reason
+    // (tests/AGENTS.md, "A11y: the verdict of a check run"). The script still exits 0: the check run
+    // reports, it never fails the step.
     expect(payloads.map((payload: { name: string; conclusion: string; title: string }) => [payload.name, payload.conclusion, payload.title])).toEqual([
-      ['A11y / demo-check report', 'neutral', '⚠ Tooling: demo-check.json: check "demo-check" is not in EVIDENCE_CHECKS'],
-      ['A11y / missing-check report', 'neutral',
-        '⚠ Tooling: the missing-check check left no test-results/a11y-checks/missing-check.json: no test of it ran to the end'],
+      ['A11y / demo-check report', 'failure', '✖ Tooling failure: demo-check.json: check "demo-check" is not in EVIDENCE_CHECKS'],
+      ['A11y / keyboard-walker report', 'failure',
+        '✖ Tooling failure: the keyboard-walker check left no test-results/a11y-checks/keyboard-walker.json: no test of it ran to the end'],
     ]);
+  });
+
+  test('the report script names a subset run in the job summary, and a subset that names no check ends it before a check run is posted', async() => {
+    const { evidenceDir } = runSyntheticCheck('subset', checkTest('grid on main', 'grid', []));
+    const summaryFile = path.join(evidenceDir, '..', 'step-summary.md');
+    const report = (checks: string, ...args: string[]) => spawnSync(process.execPath, [reportScript, ...args], {
+      cwd: testsRoot,
+      env: { ...childEnv(), A11Y_EVIDENCE_DIR: evidenceDir, A11Y_CHECKS: checks, GITHUB_STEP_SUMMARY: summaryFile },
+      encoding: 'utf8',
+      timeout: 30_000,
+    });
+
+    writeFileSync(summaryFile, '');
+
+    const subset = report('reflow,keyboard-walker,keyboard-walker');
+
+    expect(subset.status, subset.stderr).toBe(0);
+    // Read the way the config read it (checksForRun()): once per check, in registry order.
+    expect(readFileSync(summaryFile, 'utf8')).toContain(
+      'A subset run: keyboard-walker, reflow (the `checks` input). The other checks did not run and measured nothing.');
+    expect(subset.stdout).toContain('a11y-evidence-report: A11y / keyboard-walker report (failure)');
+    expect(subset.stdout).toContain('a11y-evidence-report: A11y / reflow report (failure)');
+    expect(subset.stdout).not.toContain('tree-snapshots');
+
+    writeFileSync(summaryFile, '');
+
+    const full = report('');
+
+    expect(full.status).toBe(0);
+    expect(readFileSync(summaryFile, 'utf8')).not.toContain('A subset run');
+
+    // A typo is refused as the config refuses it, before anything is posted: no `A11y / nope report`.
+    const typo = report('keyboard-walker,nope', '--check-run');
+
+    expect(typo.status).toBe(1);
+    expect(typo.stderr).toMatch(/^a11y-evidence-report: A11Y_CHECKS names no check "nope" \(comma-separated, no spaces\); the checks are /);
+    expect(typo.stdout).toBe('');
   });
 
   test('the report script tries every check run when the API refuses one', async() => {
@@ -248,7 +288,7 @@ test.describe('the reporter of the checks beyond axe', () => {
     const child = spawnSync(process.execPath, [reportScript, '--check-run'], {
       cwd: testsRoot,
       env: {
-        ...childEnv(), A11Y_EVIDENCE_DIR: evidenceDir, A11Y_CHECKS: 'demo-check,missing-check',
+        ...childEnv(), A11Y_EVIDENCE_DIR: evidenceDir, A11Y_CHECKS: 'keyboard-walker',
         // fetch refuses port 1, so every post fails, the way one the API refuses does.
         GITHUB_TOKEN: 'token', GITHUB_REPOSITORY: 'o/r', A11Y_HEAD_SHA: 'abc1234', GITHUB_API_URL: 'http://127.0.0.1:1',
       },
@@ -258,6 +298,6 @@ test.describe('the reporter of the checks beyond axe', () => {
 
     expect(child.status, 'a refused post still ends the step red').toBe(1);
     expect(child.stderr).toContain('"A11y / demo-check report" was not posted');
-    expect(child.stderr).toContain('"A11y / missing-check report" was not posted');
+    expect(child.stderr).toContain('"A11y / keyboard-walker report" was not posted');
   });
 });

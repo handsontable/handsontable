@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "scenario": "filters-by-condition",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T11:20:32.938Z"
+  },
+  "steps": {
+    "open-menu": "",
+    "tab-to-condition": "list box table",
+    "open-conditions": "none menu item group table",
+    "arrow-down-is-empty": "is empty menu item group table",
+    "arrow-down-is-not-empty": "is not empty menu item group table",
+    "arrow-down-is-equal-to": "is equal to menu item group table",
+    "choose-condition": "value edit text blank table",
+    "type-value": "90 18",
+    "shift-tab-to-select": "list box table",
+    "shift-tab-to-menu": "clear column menu item group table",
+    "shift-tab-to-cancel": "cancel button table",
+    "shift-tab-to-ok": "ok button table",
+    "apply-filter": "price 1890 column 3 row mountain frame frames 1890 4 tree grid 5 columns 5 rows"
+  }
+}

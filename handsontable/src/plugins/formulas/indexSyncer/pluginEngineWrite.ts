@@ -131,3 +131,40 @@ export function holdPluginEngineWritePaints(engine: object): void {
     write.held = true;
   }
 }
+
+const probesByEngine = new WeakMap<object, number>();
+
+/**
+ * Runs a write the plugin takes back before it returns (the Formulas validation probe). Every grid on the
+ * engine asks `isPluginEngineProbe()` in its `valuesUpdated` listener and ignores the events of such a
+ * write, so no `afterFormulasValuesUpdate` fires anywhere for values that never land.
+ *
+ * @param {object} engine The engine being written.
+ * @param {Function} fn The write and its take-back.
+ * @returns {*} What `fn` returns.
+ */
+export function withPluginEngineProbe<T>(engine: object, fn: () => T): T {
+  probesByEngine.set(engine, (probesByEngine.get(engine) ?? 0) + 1);
+
+  try {
+    return fn();
+  } finally {
+    const depth = (probesByEngine.get(engine) ?? 1) - 1;
+
+    if (depth > 0) {
+      probesByEngine.set(engine, depth);
+    } else {
+      probesByEngine.delete(engine);
+    }
+  }
+}
+
+/**
+ * Tells whether a write `withPluginEngineProbe()` runs is in progress on the engine.
+ *
+ * @param {object|null|undefined} engine The engine.
+ * @returns {boolean}
+ */
+export function isPluginEngineProbe(engine: object | null | undefined): boolean {
+  return engine !== null && engine !== undefined && probesByEngine.has(engine);
+}

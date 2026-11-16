@@ -129,6 +129,8 @@ This distinction is load-bearing. Choose the wrong one and either the data leaks
 
 Note on DeepWiki: the DeepWiki page groups "Filtering" under the renderable tier alongside hiding and pagination. The repository contradicts this. `Filters` registers a `TrimmingMap` (`handsontable/src/plugins/filters/filters.ts`), so filtering affects the **visual** tier and removes indexes from the `DataMap`. Pagination registers a hiding map (`createAndRegisterIndexMap(name, 'hiding', false)` in `handsontable/src/plugins/pagination/pagination.ts`) and affects the renderable tier. The repository is authoritative.
 
+**Landmine: `keepsRowsInFilterScope` is an internal flag of trimming maps.** It is the 4th argument option of `createAndRegisterIndexMap()` for `'trimming'` maps. The Filters plugin keeps the rows such a map trims in the scope of its "Filter by value" list, and reads the flag without naming the plugin (the NestedRows collapse map is the one user). Read `isAllDefault()` before `getValues()` on such a map, so a map with nothing trimmed does not materialize an array.
+
 ## Map collections and aggregation
 
 `handsontable/src/translations/mapCollections/`:

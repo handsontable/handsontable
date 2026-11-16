@@ -95,12 +95,15 @@ test('a matrix entry tested in its own browsers names them, and only a tested en
   assert.deepEqual(nightly('NVDA')?.browsers, ['Chromium', 'Firefox (Playwright)'],
     'the NVDA nightly runs in Chromium and Playwright\'s Firefox, not in the audit\'s browsers');
   assert.match(matrixList(data),
-    /^- VoiceOver on macOS 26, in WebKit \(Playwright\) and Chromium: automated nightly run\.$/m,
-    'the list says which browsers the nightly ran in, so it never reads as the audit\'s Chrome and Firefox');
+    /^- VoiceOver on macOS 26, in WebKit \(Playwright\) and Chromium: automated run\.$/m,
+    'the list says which browsers the automated run ran in, so it never reads as the audit\'s Chrome and Firefox');
   assert.match(matrixList(data),
-    /^- NVDA 2026\.2 on Windows Server 2025, in Chromium and Firefox \(Playwright\): automated nightly run\.$/m);
+    /^- NVDA 2026\.2 on Windows Server 2025, in Chromium and Firefox \(Playwright\): automated run\.$/m);
   assert.match(matrixTable(data),
-    /^\| VoiceOver \| macOS 26 \| macOS \(WebKit \(Playwright\) and Chromium\) \| Automated nightly run \|$/m);
+    /^\| VoiceOver \| macOS 26 \| macOS \(WebKit \(Playwright\) and Chromium\) \| Automated run \|$/m);
+  assert.doesNotMatch(`${matrixList(data)}\n${matrixTable(data)}\n${data.notes.automation}`, /nightly/i,
+    'the public text claims no nightly: the screen reader workflow runs on a dispatch, not a schedule '
+    + '(tests/AGENTS.md, "A11y: the audit and the proof runs")');
   assert.match(matrixList(data), /^- NVDA 2025\.3 on Windows 11: external audit/m,
     'an entry without browsers renders as before');
   assert.equal(screenReadersSentence(data), 'VoiceOver (macOS and iOS) and NVDA (Windows)',
@@ -108,8 +111,8 @@ test('a matrix entry tested in its own browsers names them, and only a tested en
 
   const auditList = accessibilityTemplateValues(data)['matrix.auditList'];
 
-  assert.doesNotMatch(auditList, /automated nightly/,
-    'the report\'s list keeps the audited entries only, so a nightly never reads as a source of its verdicts');
+  assert.doesNotMatch(auditList, /automated run/,
+    'the report\'s list keeps the audited entries only, so an automated run never reads as a source of its verdicts');
   assert.equal(auditList.split('\n').length,
     data.matrix.filter(entry => entry.howTested.includes('audit')).length, 'every audited entry, one line each');
 
@@ -129,6 +132,41 @@ test('a matrix entry tested in its own browsers names them, and only a tested en
 
   assert.ok(validateAccessibilityData(untested).some(e => e.includes(`matrix[${jaws}].browsers names browsers`)),
     'a not-tested entry is never rendered, so it names no browsers');
+});
+
+test('an automated entry says what its scenarios ran and could not drive, and only an automated entry may', () => {
+  const nightly = name => data.matrix
+    .find(entry => entry.name === name && entry.howTested.includes('automated-nightly'));
+
+  // tests/AGENTS.md, "Screen readers": the coverage test of the scenarios keeps these equal to the
+  // committed scenario set; here only their shape is checked.
+  assert.ok(Number.isInteger(nightly('NVDA')?.scenarios) && Array.isArray(nightly('NVDA')?.unsupported),
+    'the NVDA nightly entry carries its scenario count and its unsupported primitives');
+  assert.ok(Number.isInteger(nightly('VoiceOver')?.scenarios) && Array.isArray(nightly('VoiceOver')?.unsupported),
+    'the VoiceOver nightly entry carries its scenario count and its unsupported primitives');
+  assert.deepEqual(validateAccessibilityData(data), []);
+
+  const audited = structuredClone(data);
+  const audit = audited.matrix.findIndex(entry => entry.howTested.includes('audit'));
+
+  audited.matrix[audit].scenarios = 3;
+  audited.matrix[audit].unsupported = [];
+  assert.ok(validateAccessibilityData(audited)
+    .some(e => e.includes(`matrix[${audit}].scenarios and unsupported describe an automated run`)),
+  'an audited entry ran no scenarios');
+
+  const shapes = [[0, []], [1.5, []], ['8', []], [8, 'read in'], [8, ['']], [8, undefined], [undefined, []]];
+
+  shapes.forEach(([scenarios, unsupported]) => {
+    const broken = structuredClone(data);
+    const entry = broken.matrix.find(item => item.howTested.includes('automated-nightly'));
+
+    entry.scenarios = scenarios;
+    entry.unsupported = unsupported;
+
+    assert.ok(validateAccessibilityData(broken).length > 0, `scenarios ${JSON.stringify(scenarios)} with unsupported `
+      + `${JSON.stringify(unsupported)} is rejected: a positive count and a list of names, together`);
+  });
 });
 
 test('report.next.sentence is empty when no next version is planned, and limitations cite the report ref', () => {

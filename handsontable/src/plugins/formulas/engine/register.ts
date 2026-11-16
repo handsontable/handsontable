@@ -161,16 +161,24 @@ export function registerEngine(
 }
 
 /**
+ * Returns every Handsontable instance linked to the engine, including grids bound to the same sheet, which
+ * `getRegisteredHotInstances()` collapses into one entry.
+ *
+ * @param {object} engine The engine instance.
+ * @returns {Handsontable[]} The linked instances.
+ */
+export function getRegisteredHotInstanceList(engine: HyperFormulaEngine): HotInstance[] {
+  return Array.from(getEngineRelationshipRegistry().get(engine) ?? []) as HotInstance[];
+}
+
+/**
  * Returns the list of the Handsontable instances linked to the specific engine instance.
  *
  * @param {object} engine The engine instance.
  * @returns {Map<number, Handsontable>} Returns Map with Handsontable instances.
  */
 export function getRegisteredHotInstances(engine: HyperFormulaEngine): Map<number | null, HotInstance> {
-  const engineRegistry = getEngineRelationshipRegistry();
-  const hotInstances = engineRegistry.size === 0 ? [] : Array.from(engineRegistry.get(engine) ?? []);
-
-  return new Map(hotInstances.map((hot) => {
+  return new Map(getRegisteredHotInstanceList(engine).map((hot) => {
     const hotInstance = hot as HotInstance;
 
     return [hotInstance.getPlugin('formulas').sheetId, hotInstance];

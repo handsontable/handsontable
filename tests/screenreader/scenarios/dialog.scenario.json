@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "id": "dialog",
+  "group": "status",
+  "surface": "A confirm dialog the application opens while the user is in the grid: its name and description, the focus inside it, Escape, and the focus it gives back.",
+  "page": "dialog",
+  "start": "page",
+  "criteria": ["2.1.1", "2.1.2", "2.4.3", "4.1.2"],
+  "setup": [{"call": ["htHideDialog"]}, {"selectCell": [1, 1]}],
+  "steps": [
+    {
+      "id": "dialog-opens",
+      "action": {"call": ["htShowDialog"]},
+      "expect": [["confirm"], ["this is a confirm"], ["cancel"], ["dialog"]],
+      "note": "The application opens the confirm dialog (closable, so Escape closes it) while the grid has the focus. The dialog takes the focus to its first button: a reader says the dialog's name, `Confirm`, its description, the button and the dialog role (`dialog`, VoiceOver `alert dialog`). The page's own dialog, shown on load before the user touched the grid, does not take the focus, by design. The scenario starts on the page (`start: page`): the page's first item is the `Input` field. VoiceOver with WebKit said nothing on this first step in some runs, and read the same dialog when it opened again."
+    },
+    {
+      "id": "tab-ok",
+      "action": {"press": "Tab"},
+      "expect": [["ok"]],
+      "note": "Tab moves to OK."
+    },
+    {
+      "id": "tab-past-ok",
+      "action": {"press": "Tab"},
+      "expect": [["cancel"]],
+      "note": "A modal dialog keeps Tab inside it, back to its first button. Finding: Tab walks out of the dialog to the `Input 2` field behind it (known: `dialogs-leak-tab` in the findings ledger)."
+    },
+    {
+      "id": "shift-tab-ok",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["ok"]],
+      "note": "Shift+Tab goes back to OK."
+    },
+    {
+      "id": "escape-closes",
+      "action": {"press": "Escape"},
+      "expect": [["country 1"]],
+      "note": "Escape closes the dialog and gives the focus back to the cell the user was on, `Country 1`."
+    },
+    {
+      "id": "arrow-down-after-close",
+      "action": {"press": "ArrowDown"},
+      "expect": [["country 2"]],
+      "note": "The grid has the keyboard again."
+    },
+    {
+      "id": "dialog-opens-again",
+      "action": {"call": ["htShowDialog"]},
+      "expect": [["confirm"], ["cancel"], ["dialog"]],
+      "note": "The application opens the dialog again: its name, the button and the dialog role."
+    },
+    {
+      "id": "tab-ok-again",
+      "action": {"press": "Tab"},
+      "expect": [["ok"]],
+      "note": "Tab moves to OK."
+    },
+    {
+      "id": "enter-ok",
+      "action": {"press": "Enter"},
+      "expect": [["country 2"]],
+      "note": "OK closes the dialog, and the focus goes back to the cell, `Country 2`."
+    }
+  ]
+}

@@ -17,8 +17,9 @@ import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
-import { getEditorAnchorHeight, getEditorAnchorWidth } from './utils';
+import { getEditorAnchorHeight, getEditorAnchorWidth, getSelectionBorderOverhang } from './utils';
 import {
+  EDITOR_TOP_OVERLAP,
   META_COMMENT,
   META_COMMENT_VALUE,
   META_STYLE,
@@ -883,6 +884,7 @@ export class Comments extends BasePlugin {
     const mergedBorderCompensation = metaColspan > 1 ? 1 : 0;
     let x = left + rootWindow.scrollX + lastColWidth - mergedBorderCompensation;
     let y = top + rootWindow.scrollY + lastRowHeight;
+    let isFlippedUp = false;
 
     if (this.hot.isRtl()) {
       x -= (editorWidth + lastColWidth);
@@ -898,6 +900,7 @@ export class Comments extends BasePlugin {
 
     if (top + editorHeight > innerHeight - horizontalScrollbarWidth) {
       y -= (editorHeight - (blockHeight ?? cellHeight) + 1);
+      isFlippedUp = true;
     }
 
     // Cap the display size to the viewport. This setSize MUST happen before
@@ -925,7 +928,15 @@ export class Comments extends BasePlugin {
       }
     );
 
-    this.#editor.setPosition(clamped.x, clamped.y);
+    // The editor's top edge goes up to the top edge of the cell's selection border, which is drawn up to
+    // `EDITOR_TOP_OVERLAP` above the cell's box. Only a box that sits on its own cell does: a flipped or clamped one
+    // has its own placement, and one anchored to a neighbor of a hidden row or column has no border of its own to
+    // reach. The box never goes above the window's top edge, where the clamp would move it a margin down.
+    const sitsOnCell = !isFlippedUp && !targetingPreviousRow && !targetingOtherColumn && clamped.y === y;
+    const reach = sitsOnCell ?
+      Math.min(getSelectionBorderOverhang(TD, EDITOR_TOP_OVERLAP), y - rootWindow.scrollY) : 0;
+
+    this.#editor.setPosition(clamped.x, clamped.y - reach);
     this.#editor.setReadOnlyState(this.getCommentMeta(visualRow, visualColumn, META_READONLY) ?? false);
     this.#editor.observeSize();
   }

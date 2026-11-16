@@ -184,20 +184,222 @@ export function getPassedHookKeys(props: HotTableProps): string[] {
 }
 
 /**
+ * What the wrapper last knew about a setting: the prop value it synced, a copy of its content, and the value the
+ * grid held right after. The copy is needed because core edits an array it was given in place (`alter()` splices
+ * `colHeaders`), so the prop itself no longer shows what was synced.
+ */
+export type SettingBaseline = { prop: unknown, copy: unknown, live: unknown };
+
+/**
+ * Check if a value is a plain object, one made by an object literal or with no prototype. A class instance is not.
+ *
+ * @param {unknown} value The value to check.
+ * @returns {boolean}
+ */
+function isLiteralObject(value: unknown): value is Record<string, unknown> {
+  if (Object.prototype.toString.call(value) !== '[object Object]') {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === Object.prototype || prototype === null;
+}
+
+/**
+ * Copy the plain objects and arrays of a settings value, and keep every other value (functions, class instances)
+ * by reference. The copy is what the next change is compared with, so a value the app edits in place reads as
+ * changed. Reactive proxies are unwrapped, and a value with a cycle is copied with the same cycle.
+ *
+ * @param {unknown} value The value to copy.
+ * @param {WeakMap<object, unknown>} [copies] The copies made so far, by original.
+ * @returns {unknown} The copy.
+ */
+function copySettingsValue(value: unknown, copies: WeakMap<object, unknown> = new WeakMap()): unknown {
+  const raw = toRaw(value);
+
+  if (!Array.isArray(raw) && !isLiteralObject(raw)) {
+    return raw;
+  }
+
+  if (copies.has(raw)) {
+    return copies.get(raw);
+  }
+
+  if (Array.isArray(raw)) {
+    const arrayCopy: unknown[] = [];
+
+    copies.set(raw, arrayCopy);
+    raw.forEach((item) => {
+      arrayCopy.push(copySettingsValue(item, copies));
+    });
+
+    return arrayCopy;
+  }
+
+  const objectCopy: Record<string, unknown> = {};
+
+  copies.set(raw, objectCopy);
+  Object.keys(raw).forEach((key) => {
+    objectCopy[key] = copySettingsValue(raw[key], copies);
+  });
+
+  return objectCopy;
+}
+
+/**
+ * Compare a copy made by `copySettingsValue()` with a value: plain objects and arrays by content, a `RegExp` by
+ * its source and flags, anything else by reference. A pair already being compared higher up reads as equal,
+ * so a value with a cycle ends.
+ *
+ * @param {unknown} copied The copy.
+ * @param {unknown} value The value to compare it with.
+ * @param {WeakMap<object, WeakSet<object>>} [visited] The object pairs on the current comparison path.
+ * @returns {boolean} `true` if they hold the same content.
+ */
+function isSameAsCopy(
+  copied: unknown,
+  value: unknown,
+  visited: WeakMap<object, WeakSet<object>> = new WeakMap()
+): boolean {
+  const raw = toRaw(value);
+
+  if (copied === raw) {
+    return true;
+  }
+
+  if (copied instanceof RegExp || raw instanceof RegExp) {
+    return copied instanceof RegExp && raw instanceof RegExp &&
+      copied.source === raw.source && copied.flags === raw.flags;
+  }
+
+  const bothArrays = Array.isArray(copied) && Array.isArray(raw);
+
+  if (!bothArrays && !(isLiteralObject(copied) && isLiteralObject(raw))) {
+    return false;
+  }
+
+  const copiedObject = copied as Record<string, unknown>;
+  const rawObject = raw as Record<string, unknown>;
+  const comparedWith = visited.get(copiedObject);
+
+  if (comparedWith?.has(rawObject)) {
+    return true;
+  }
+
+  if (comparedWith) {
+    comparedWith.add(rawObject);
+  } else {
+    visited.set(copiedObject, new WeakSet([rawObject]));
+  }
+
+  const keys = Object.keys(copiedObject);
+
+  return keys.length === Object.keys(rawObject).length &&
+    keys.every(key => hasOwnProperty(rawObject, key) && isSameAsCopy(copiedObject[key], rawObject[key], visited));
+}
+
+/**
+ * The settings by name, as `SettingBaseline`s. `HotTable` keeps one per instance.
+ */
+export type SettingBaselines = Record<string, SettingBaseline>;
+
+/**
+ * Settings the baseline rule leaves alone. The sizes are re-sent whenever they differ from the grid's value,
+ * because the user can change them by dragging and the prop re-declares them (the React wrapper does the
+ * same). `data` has its own path in `HotTable`, and a baseline would keep the previous array alive.
+ */
+const BASELINE_EXEMPT_KEYS = ['data', 'colWidths', 'rowHeights', 'minRowHeights', 'themeName'];
+
+/**
+ * Settings whose baseline holds the reference only, with no copy of the content. `sheetsBar` carries every sheet's
+ * `data`, which a copy on each reactive change would walk again (`isEqualSetting()` avoids the same walk).
+ */
+const REFERENCE_ONLY_KEYS = ['sheetsBar'];
+
+/**
+ * Check if the app replaced the value of a setting through the instance (`hot.updateSettings()`) since the
+ * wrapper last synced the prop, while the prop itself stayed the same. Such a prop is not sent again: it did
+ * not change, and sending it would take back what the app set.
+ *
+ * @param {string} key The setting name.
+ * @param {unknown} propValue The value passed through the props.
+ * @param {Handsontable.GridSettings} currentSettings The grid's current settings.
+ * @param {SettingBaselines} [baselines] What the wrapper last synced.
+ * @returns {boolean} `true` if the app overrode the setting.
+ */
+function isOverriddenByApp(
+  key: string,
+  propValue: unknown,
+  currentSettings?: Handsontable.GridSettings,
+  baselines?: SettingBaselines
+): boolean {
+  const baseline = baselines?.[key];
+
+  // The cheap check goes first: the content compare runs only for a setting the app replaced.
+  return !!currentSettings && !!baseline && !BASELINE_EXEMPT_KEYS.includes(key) &&
+    !Object.is(currentSettings[key], baseline.live) &&
+    (isSameReference(baseline.prop, propValue) ||
+      (!REFERENCE_ONLY_KEYS.includes(key) && isSameAsCopy(baseline.copy, propValue)));
+}
+
+/**
+ * Record the props the wrapper has just synced with the grid, for the next change to compare with. A setting the
+ * app overrode (`overriddenKeys`) keeps its previous baseline, so the override outlives the next changes and
+ * is given up only when the prop itself changes.
+ *
+ * @param {SettingBaselines} baselines What the wrapper last synced. It is updated in place.
+ * @param {HotTableProps} props The props passed to the component.
+ * @param {Handsontable.GridSettings} currentSettings The grid's current settings.
+ * @param {string[]} [overriddenKeys] The settings `prepareSettings()` left out because the app overrode them.
+ */
+export function recordSettingBaselines(
+  baselines: SettingBaselines,
+  props: HotTableProps,
+  currentSettings: Handsontable.GridSettings,
+  overriddenKeys: string[] = []
+): void {
+  const passedProps: VueProps<HotTableProps> = filterPassedProps(props);
+
+  Object.keys(baselines).forEach((key) => {
+    if (!hasOwnProperty(passedProps, key)) {
+      delete baselines[key];
+    }
+  });
+
+  Object.keys(passedProps).forEach((key) => {
+    if (!overriddenKeys.includes(key) && !BASELINE_EXEMPT_KEYS.includes(key)) {
+      baselines[key] = {
+        prop: toRaw(passedProps[key]),
+        copy: REFERENCE_ONLY_KEYS.includes(key) ? undefined : copySettingsValue(passedProps[key]),
+        live: currentSettings[key],
+      };
+    }
+  });
+}
+
+/**
  * Prepare the settings object to be used as the settings for Handsontable, based on the props provided to the component.
  *
  * A hook listed in `previousHookKeys` that the props no longer pass a callback for (the prop is removed or
  * `undefined`) is sent as `null`, which removes the callback the props registered.
  *
+ * A prop that is the same value the wrapper last synced (`baselines`) is left out when the grid's value for it
+ * was replaced since, through `hot.updateSettings()`: the app's value stays until the prop changes.
+ *
  * @param {HotTableProps} props The props passed to the component.
  * @param {Handsontable.GridSettings} currentSettings The current Handsontable settings.
  * @param {string[]} previousHookKeys The hooks the previous props passed a callback for.
+ * @param {SettingBaselines} [baselines] What the wrapper last synced.
+ * @param {string[]} [overriddenKeys] Receives the names of the props left out because the app overrode them.
  * @returns {Handsontable.GridSettings} An object containing the properties, ready to be used within Handsontable.
  */
 export function prepareSettings(
   props: HotTableProps,
   currentSettings?: Handsontable.GridSettings,
-  previousHookKeys: string[] = []
+  previousHookKeys: string[] = [],
+  baselines?: SettingBaselines,
+  overriddenKeys: string[] = []
 ): HotTableProps {
   const assignedProps: VueProps<HotTableProps> = filterPassedProps(props);
   const hotSettingsInProps: Handsontable.GridSettings = props.settings ? props.settings : assignedProps;
@@ -205,6 +407,17 @@ export function prepareSettings(
   const initOnlySettingKeys: string[] =
     (currentSettings as any)?._initOnlySettings || [];
   const newSettings: Handsontable.GridSettings = {};
+  const isOverridden = (key: string, value: unknown): boolean => {
+    // A direct prop wins over the same key in the `settings` prop, and the baseline holds the winner.
+    const effectiveValue = hasOwnProperty(assignedProps, key) ? assignedProps[key] : value;
+    const overridden = isOverriddenByApp(key, effectiveValue, currentSettings, baselines);
+
+    if (overridden && !overriddenKeys.includes(key)) {
+      overriddenKeys.push(key);
+    }
+
+    return overridden;
+  };
 
   // eslint-disable-next-line no-restricted-syntax
   for (const key in hotSettingsInProps) {
@@ -212,6 +425,7 @@ export function prepareSettings(
       hasOwnProperty(hotSettingsInProps, key) &&
       hotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
+      !isOverridden(key, hotSettingsInProps[key]) &&
       ((currentSettings && key !== 'data')
         ? !isEqualSetting(key, currentSettings[key], hotSettingsInProps[key], currentSettings) : true)
     ) {
@@ -227,6 +441,7 @@ export function prepareSettings(
       key !== 'settings' &&
       additionalHotSettingsInProps[key] !== undefined &&
       !initOnlySettingKeys.includes(key) &&
+      !isOverridden(key, additionalHotSettingsInProps[key]) &&
       ((currentSettings && key !== 'data')
         ? !isEqualSetting(key, currentSettings[key], additionalHotSettingsInProps[key], currentSettings) : true)
     ) {

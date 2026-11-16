@@ -53,7 +53,8 @@ stands in for the flow: it cannot see focus.
   gap means adding its page, baselining what the page finds that already existed under an issue,
   and lowering the limit.
 - **In CI**, the `A11y / axe` job runs the scan on every PR that touches core or `tests/`. Read the
-  `A11y / axe report` check run (`neutral` = something needs action; its annotations sit on the
+  `A11y / axe report` check run (red = a new or grown critical or serious finding, neutral = a
+  moderate or minor one, by `tests/AGENTS.md`, "A11y: the verdict of a check run"; its annotations sit on the
   line to change) or the sticky comment, and download `a11y-findings.json` from the
   `a11y-axe-results` artifact for the detail.
 

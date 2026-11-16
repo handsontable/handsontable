@@ -363,11 +363,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     vertical-align: top;
-    font-size: inherit;
-    line-height: inherit;
-    font-weight: inherit;
-    letter-spacing: inherit;
-    font-family: inherit;
+
+    @include mixins.inherit-text-metrics;
+
     margin: 0;
     padding: 0;
     border: 0;

@@ -16,7 +16,8 @@
  * section draws. A durations.json it cannot read is left as it is, with a
  * warning, and never stops the ledger. The fifth family, the accessibility
  * nightlies' evidence (`a11y-checks-evidence`, `a11y-axe-results`,
- * `screenreader-transcripts-*`), goes to `a11y.json`, from the two nightlies'
+ * `screenreader-transcripts-*`) and the docs site scan's findings
+ * (`docs-a11y-axe-results`), goes to `a11y.json`, from those workflows'
  * develop runs only (`isA11yRun`): one row per finding across nights, sorted
  * into root-cause clusters by the catalog `--catalog` names
  * (`tests/a11y/issues.json`), which the page's "Accessibility" section draws.
@@ -303,14 +304,14 @@ try {
       }
       a11yPage = a11yView(doc, catalog);
     } else {
-      // Only the two nightlies' runs on develop are recorded: a pull request's evidence, a fork's included, comes
-      // from the pull request's own code and stays in its own run.
+      // Only the two nightlies' and the docs site scan's runs on develop are recorded: a pull request's evidence, a
+      // fork's included, comes from the pull request's own code and stays in its own run.
       assertA11yVersion(previousA11y);
       a11yPage = a11yView(previousA11y, catalog);
 
       if (a11yFiles.length > 0) {
         notes.push(`${a11yFiles.length} accessibility artifact file(s) not recorded: only the A11y and Screen reader nightlies `
-          + 'on develop are, and this run keeps its own');
+          + 'and the docs site scan on develop are, and this run keeps its own');
       }
     }
   }

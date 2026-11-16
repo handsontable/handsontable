@@ -599,3 +599,43 @@ describe('DataMap with a `dataSchema` and no `columns` option', () => {
     expect(hot.countRows()).toBe(2);
   });
 });
+
+describe('DataMap column modification errors', () => {
+  const CREATE_COLUMN_ERROR =
+    'Cannot create a new column when the data source holds objects or the "columns" option is set. ' +
+    'You can only have as many columns as defined in the first data row, the data schema, ' +
+    'or the "columns" setting. To add new columns, use an array data source without the "columns" option.';
+  const REMOVE_COLUMN_ERROR =
+    'Cannot remove a column when the data source holds objects or the "columns" option is set.';
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot.destroy();
+    hot = null;
+    container.remove();
+  });
+
+  describe.each([
+    ['an array of objects', { data: [{ name: 'a' }, { name: 'b' }], columns: [{ data: 'name' }] }],
+    ['an array of arrays with the `columns` option', { data: [['a'], ['b']], columns: [{}] }],
+  ])('with %s', (name, settings) => {
+    beforeEach(() => {
+      hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, ...settings });
+    });
+
+    it('should explain why a column cannot be created', () => {
+      expect(() => hot.alter('insert_col_end')).toThrow(CREATE_COLUMN_ERROR);
+      expect(() => hot.alter('insert_col_start', 0)).toThrow(CREATE_COLUMN_ERROR);
+    });
+
+    it('should explain why a column cannot be removed', () => {
+      expect(() => hot.alter('remove_col', 0)).toThrow(REMOVE_COLUMN_ERROR);
+    });
+  });
+});

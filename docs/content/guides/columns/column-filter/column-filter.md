@@ -609,6 +609,10 @@ the levels above don't get a filter menu of their own.
 
 :::
 
+## Filtering with parent-child rows
+
+The [`Filters`](@/api/filters.md) plugin works together with the [`NestedRows`](@/api/nestedRows.md) plugin. A row that matches the filter stays visible with all its parent rows, and a parent row that matches stays visible with all its child rows. The **Filter by value** list shows the values of every row that the other columns' filters keep, including rows inside collapsed parents. For details, see [Filtering](@/guides/rows/row-parent-child/row-parent-child.md#filtering) in the parent-child rows guide.
+
 ## Choose the conditions the filter menu offers
 
 To change which operators the **Filter by condition** lists offer, use the `availableConditions`

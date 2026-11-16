@@ -158,20 +158,22 @@ function popSeparators(items: MenuItemLike[], separator: string) {
 /**
  * Removes duplicated menu separators from the context menu items collection.
  *
+ * Only a separator that follows another separator is dropped. Items are never compared by their
+ * display name, so two neighboring items may share one label.
+ *
  * @param {object[]} items The context menu items collection.
+ * @param {string} separator The string which identifies the context menu separator item.
  * @returns {object[]}
  */
-function removeDuplicatedSeparators(items: MenuItemLike[]) {
+function removeDuplicatedSeparators(items: MenuItemLike[], separator: string) {
   const result: MenuItemLike[] = [];
 
-  arrayEach(items, (value: unknown, index: unknown) => {
+  arrayEach(items, (value: unknown) => {
     const item = value as MenuItemLike;
+    const previous = result[result.length - 1];
+    const isRepeatedSeparator = previous !== undefined && item.name === separator && previous.name === separator;
 
-    if ((index as number) > 0) {
-      if (result[result.length - 1].name !== item.name) {
-        result.push(item);
-      }
-    } else {
+    if (!isRepeatedSeparator) {
       result.push(item);
     }
   });
@@ -191,7 +193,7 @@ export function filterSeparators(items: MenuItemLike[], separator: string = SEPA
 
   result = shiftSeparators(result, separator);
   result = popSeparators(result, separator);
-  result = removeDuplicatedSeparators(result);
+  result = removeDuplicatedSeparators(result, separator);
 
   return result;
 }

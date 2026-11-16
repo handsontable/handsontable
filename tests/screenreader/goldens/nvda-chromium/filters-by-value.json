@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "filters-by-value",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T10:51:45.151Z"
+  },
+  "steps": {
+    "open-menu": "table insert column left",
+    "tab-to-condition": "list",
+    "tab-to-search": "search edit blank",
+    "type-search": "",
+    "arrow-into-list": "checked green row 1 column 1",
+    "arrow-down-next": "checked red row 2",
+    "space-uncheck": "",
+    "tab-to-ok": "ok button",
+    "apply-filter": "table green color row 2 name column 3",
+    "arrow-down-filtered": "blue color row 3 name column 3"
+  }
+}

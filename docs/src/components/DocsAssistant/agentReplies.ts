@@ -10,6 +10,70 @@ export interface AgentMessageBase {
   role: 'user' | 'assistant' | 'agent';
   content: string;
   ts: number;
+  /** A reader's message written to Support, not to the bot (SU-1118). */
+  toSupport?: boolean;
+}
+
+/**
+ * The marker the backend reads at the start of a message meant for Support. The reader never sees or
+ * types it: the "Reply to Support" button makes the panel add it to the request (SU-1118).
+ */
+export const SUPPORT_REPLY_PREFIX = '!reply';
+
+/** The text sent to the backend for a message written to Support. */
+export function toSupportApiText(text: string): string {
+  return `${SUPPORT_REPLY_PREFIX} ${text}`;
+}
+
+// Same rule as the backend: the prefix is followed by a space, a comma or a colon, or by nothing, so
+// `!replying` is a normal question.
+const SUPPORT_PREFIX_RE = /^\s*!reply(?![\w])[:,]?\s*/i;
+
+/**
+ * The text after a typed `!reply`, or `null` when the message does not start with it. A reader who
+ * types the marker by hand gets the same result as the button: the backend would otherwise skip the
+ * bot while the panel waited for a bot answer that never comes.
+ */
+export function stripSupportPrefix(text: string): string | null {
+  const match = SUPPORT_PREFIX_RE.exec(text);
+  return match ? text.slice(match[0].length).trim() : null;
+}
+
+/**
+ * What a message from the composer sends, or `null` when it sends nothing. The form and the hook both
+ * ask this, so a bare `!reply` cannot clear the composer while the hook sends nothing.
+ *
+ * `toSupport` is the composer's "To Support" chip. A typed marker writes to Support only while the
+ * conversation has a live Support thread (`canWriteToSupport`); without one it is ordinary text.
+ */
+export function outgoingMessage(
+  text: string,
+  { toSupport, canWriteToSupport }: { toSupport: boolean; canWriteToSupport: boolean }
+): { toSupport: boolean; body: string } | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  if (toSupport) {
+    // A marker typed on top of the chip is dropped, so the backend never sees it twice.
+    const body = stripSupportPrefix(trimmed) ?? trimmed;
+    return canWriteToSupport && body ? { toSupport: true, body } : null;
+  }
+  const typed = canWriteToSupport ? stripSupportPrefix(trimmed) : null;
+  if (typed === null) return { toSupport: false, body: trimmed };
+  return typed ? { toSupport: true, body: typed } : null;
+}
+
+/**
+ * The id of the bot answer that can be retried: the last one, unless the reader wrote again after it.
+ * Retry redoes the reader's last message, so after a message to Support it would send that message to
+ * Support a second time instead of regenerating the answer. A Support reply does not count as a
+ * message of the reader.
+ */
+export function retryableAssistantId(messages: AgentMessageBase[]): string | undefined {
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    if (messages[i].role === 'user') return undefined;
+    if (messages[i].role === 'assistant') return messages[i].id;
+  }
+  return undefined;
 }
 
 /** What the panel needs to poll one conversation: the thread, its token, and the last reply shown. */
@@ -99,13 +163,15 @@ export function mergeReplies<T extends AgentMessageBase>(
 
 /**
  * The history sent to the model. A Support reply is not part of the bot's conversation, so it never
- * goes back to the model as the assistant's own words.
+ * goes back to the model as the assistant's own words. A reader's message written to Support never
+ * goes back either: the bot did not answer it, and the model must not take it for a question.
  */
 export function messagesForApi<T extends AgentMessageBase>(
   messages: T[]
 ): { role: 'user' | 'assistant'; content: string }[] {
   const out: { role: 'user' | 'assistant'; content: string }[] = [];
   for (const m of messages) {
+    if (m.role === 'user' && m.toSupport) continue;
     if (m.role === 'user' || m.role === 'assistant') out.push({ role: m.role, content: m.content });
   }
   return out;

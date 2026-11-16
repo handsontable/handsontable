@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, BasePlugin } from 'handsontable/plugins';
 import { registerConflict } from '../conflictRegistry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const OWNER_SETTING = 'hardConflictOwnerOnUpdateTest';
 const BLOCKED_SETTING = 'hardConflictBlockedOnUpdateTest';
@@ -55,6 +56,7 @@ describe('BasePlugin#onUpdateSettings hard conflict', () => {
   it('should disable an enabled blocked plugin when the owner activates without the blocked key in the payload', () => {
     const hot = new Handsontable(document.createElement('div'), {
       [BLOCKED_SETTING]: true,
+      licenseKey: TEST_LICENSE_KEY,
     });
     const blocked = hot.getPlugin(BLOCKED_SETTING);
 

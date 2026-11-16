@@ -10,10 +10,11 @@
  *
  * Semantics (standard "coverage on new code"): the denominator is added lines
  * that are INSTRUMENTED (executable — present in the lcov DA map); comments,
- * blank lines, and type-only lines are not counted. The CI run instruments all
- * of `src` (`--collectCoverageFrom`), so a changed file that no test exercises
- * still appears in the lcov with its executable lines at hits=0 — i.e. counted
- * as uncovered, not silently skipped.
+ * blank lines, and type-only lines are not counted. The CI run instruments
+ * every changed source file (`unit.yml` passes one `--collectCoverageFrom` per
+ * file of the diff), so a changed file that no test exercises still appears in
+ * the lcov with its executable lines at hits=0 — i.e. counted as uncovered, not
+ * silently skipped.
  */
 
 /**

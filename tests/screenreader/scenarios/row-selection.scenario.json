@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "id": "row-selection",
+  "group": "selection",
+  "surface": "Row selection bound to a checkbox column: a row's checkbox, the select all checkbox in the column header with its count and mixed state, and the announcements of each change.",
+  "page": "row-selection",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2", "4.1.3"],
+  "setup": [{"selectCell": [1, 1]}],
+  "steps": [
+    {
+      "id": "arrow-up-unchecked",
+      "action": {"press": "ArrowUp"},
+      "expect": [["unchecked", "not checked"], ["done"]],
+      "note": "The Done column is the selection (checkboxLocation: { column: 'done' }); Task 1's row starts selected. ArrowUp reads Task 0's cell, unchecked. Finding: VoiceOver says nothing on this first arrow key, on both browsers, as on every scenario of this page (checkbox-cell too)."
+    },
+    {
+      "id": "space-select-row",
+      "action": {"press": "Space"},
+      "expect": [["row 1 selected"]],
+      "note": "Space checks Task 0's cell, which selects its row, and the plugin announces it (`Row 1 selected`, on every reader). NVDA with Firefox also reads the cell again."
+    },
+    {
+      "id": "arrow-up-to-header",
+      "action": {"press": "ArrowUp"},
+      "expect": [["select all rows"], ["2 of 5 selected"], ["mixed", "half checked", "partially checked"]],
+      "note": "The column header holds the select all checkbox, named with the count of the selectable rows (Task 2 is read only, so 5): `Select all rows (2 of 5 selected)`, mixed. Finding: no reader says the mixed state: the header cell holds the focus, and its name carries only the count."
+    },
+    {
+      "id": "space-select-all",
+      "action": {"press": "Space"},
+      "expect": [["5 of 5 rows selected"]],
+      "note": "Space on a mixed select all selects every row, and the plugin announces the count, on every reader."
+    },
+    {
+      "id": "space-clear-all",
+      "action": {"press": "Space"},
+      "expect": [["0 of 5 rows selected"]],
+      "note": "Space again clears the selection."
+    },
+    {
+      "id": "arrow-down-cleared",
+      "action": {"press": "ArrowDown"},
+      "expect": [["unchecked", "not checked"], ["done"]],
+      "note": "Task 0's cell, unchecked again."
+    },
+    {
+      "id": "arrow-down-cleared-next",
+      "action": {"press": "ArrowDown"},
+      "expect": [["unchecked", "not checked"], ["done"]],
+      "note": "Task 1's cell, which started checked, is unchecked after the clear."
+    }
+  ]
+}

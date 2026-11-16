@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "empty-data",
+  "group": "status",
+  "surface": "A grid with no rows: the column headers, the empty data message a Tab reaches after them, and the way out of the grid.",
+  "page": "empty-data",
+  "start": "page",
+  "criteria": ["1.3.1", "2.1.1", "2.4.3", "4.1.2"],
+  "setup": [{"sentinels": true}, {"selectCell": [-1, 5]}],
+  "steps": [
+    {
+      "id": "tab-last-header",
+      "action": {"press": "Tab"},
+      "expect": [["qty"]],
+      "note": "With no rows, Tab moves along the column headers, from `In stock` to the last one, `Qty`."
+    },
+    {
+      "id": "tab-empty-message",
+      "action": {"press": "Tab"},
+      "expect": [["no data available"], ["nothing to display yet"]],
+      "note": "Tab after the last header reaches the empty data message, `No data available. There's nothing to display yet.` Finding: NVDA with Firefox reads only `section`, and VoiceOver with WebKit reads the title and not the description (`No data available and 1 more item`)."
+    },
+    {
+      "id": "tab-out",
+      "action": {"press": "Tab"},
+      "expect": [["after the grid"]],
+      "note": "Tab leaves the grid for the button after it."
+    },
+    {
+      "id": "shift-tab-empty-message",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["no data available"]],
+      "note": "Shift+Tab comes back to the message. Finding: NVDA with Firefox reads only `section`, as on the way in."
+    },
+    {
+      "id": "shift-tab-header",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["qty"]],
+      "note": "Shift+Tab goes back to the last column header."
+    },
+    {
+      "id": "arrow-left-header",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["in stock"]],
+      "note": "The arrow keys move along the headers; there is no row to move down to."
+    }
+  ]
+}

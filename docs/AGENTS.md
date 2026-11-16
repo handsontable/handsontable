@@ -359,7 +359,7 @@ Content for React only.
 
 ### Vue example rules
 
-- **Swapping in a new `data` array does not reload the grid.** The `@handsontable/vue3` `$props` watcher assumes data is synchronized by reference and deletes `data` from the update unless column modification is disallowed *and* the source column count changed. So an example that replaces its dataset (an import, a "load sample" button) gets new `colHeaders` and `columns` over the old rows, or over empty cells when the keys change. Remount the grid with `:key` bumped on every load, as `recipes/import-export/import-csv-excel/vue/example1.vue` does, or call `hotInstance.loadData()` through a template ref.
+- **A new `data` array reloads the grid, an in-place edit does not need to.** The `@handsontable/vue3` `$props` watcher compares the array's identity (`toRaw()`) with the one it was last given. A new array goes to `updateSettings({ data })`, which runs core's `updateData()`, so an example that replaces its dataset (an import, a "load sample" button) can assign `data.value = newRows` and change `colHeaders` and `columns` in the same tick. While the columns stay the same, `updateData()` keeps the sorted row order and the cell and column states; a changed column layout resets the column state and the sort. Keep the array in a `ref()`: an array built in the template (`rows.map(...)`, a literal with reactive values) is new on every render and reloads the grid each time. The `:key` remount in `recipes/import-export/import-csv-excel/vue/example1.vue` still works and is the choice when the old state must go, as `loadData()` through a template ref is.
 - **Async results need no zone workaround.** Refs set after an `await` (a Web Worker, a `Promise` from a parser) re-render the template like any other change. Angular needs the component marked dirty for the same write (`markForCheck()`, see the Angular rules above). Vue needs nothing extra.
 
 ### Angular component rules (standalone pattern)
@@ -605,7 +605,7 @@ Copy and complete this checklist in your PR description:
 
 **Production, staging, and PR previews are all served by Cloudflare Pages.** Netlify has been fully removed - see `README-DEPLOYMENT.md` for the current platform table.
 
-When you rename a page's `permalink` (or remove a page), add a redirect rule to `cloudflare/_worker.js` - the **sole**, hand-maintained authority for every redirect rule. Cloudflare Pages ignores `_redirects` when a `_worker.js` is present. Add old-slug-to-new-slug exact-path entries to its `crossFramework` map (matched before the static-asset fallthrough), one per framework prefix. Never point a `:major.:minor` versioned wildcard at the new slug; that wildcard matches frozen older versions where the page still lives at the old slug.
+When you rename a page's `permalink` (or remove a page), add a redirect rule to `cloudflare/_worker.js` - the **sole**, hand-maintained authority for every redirect rule. Cloudflare Pages ignores `_redirects` when a `_worker.js` is present. Add old-slug-to-new-slug exact-path entries to its `CROSS_FRAMEWORK_PAGES` map (matched before the static-asset fallthrough), one per framework prefix. Never point a `:major.:minor` versioned wildcard at the new slug; that wildcard matches frozen older versions where the page still lives at the old slug.
 
 Only versions from 9.0 up are deployed, and worker rule 12b sends every older version's URL to the current docs. The floor is declared twice - `OLDEST_DEPLOYED_DOCS_MAJOR` in `cloudflare/_worker.js` and `MIN_DOCS_VERSION` in `deploy/getListOrPreviousVersions.mjs` - so raise both together, or the dropped versions answer 404 (`cloudflare/README.md`).
 
@@ -784,13 +784,19 @@ reads like ordinary Markdown.
 between a `:start` and an `:end` marker, edit the generator's source instead, then re-run the
 generator and commit its output.
 
-The one page in this shape today:
+The pages in this shape today:
 
 | Page | Markers | Edit instead | Regenerate with |
 |---|---|---|---|
 | `guides/configuration/configuration-option-levels/configuration-option-levels.md` | `<!-- option-levels:start -->` / `<!-- option-levels:end -->` | levels: the `@configScope` tag on the option in `handsontable/src/dataMap/metaManager/metaSchema.ts`; Notes column: the `NOTES` map in `handsontable/scripts/utils/option-levels.js` | `npm run generate:option-levels --prefix handsontable` |
+| `guides/getting-started/license-key/license-key.md` | `<!-- license-tiers:start -->` / `<!-- license-tiers:end -->` | the feature-to-tier matrix: the `tiers` of each sold entry in the feature manifest sources (`feature.json`, `features.json`) and the tier names in `handsontable/src/featureManifest/tiers.json`; the row names: the `name` of each entry, prefixed by `toMatrixName()`; the layout: `renderTierMatrix()`, both in `handsontable/scripts/utils/feature-manifest.js` | `npm run generate:feature-manifest --prefix handsontable` |
 
-Two things make this easy to get wrong, and both cost a red pipeline:
+The tier matrix is checked twice: by `should keep the committed generated files in sync with the sources` in
+`handsontable/test/__tests__/featureManifest.unit.js`, and by `scripts/__tests__/license-tiers-matrix.test.mjs` in the
+root `test:tooling`, which runs on a pull request that changes only the page. The rows name features, never ids, and
+the prose around the block names no tier's contents; a change to a tier is a manifest source edit.
+
+The option-levels page has more traps, and each costs a red pipeline:
 
 - **The levels and the Notes column have different sources.** The `@configScope` tag is levels-only
   by design, so prose caveats live in the `NOTES` map in the generator's utility, not in
@@ -1095,7 +1101,7 @@ as tested.
 |---|---|---|
 | `target` | `standard`, `version`, `level`, `url`, and `wording.long` / `wording.short` | each wording starts with "targets" (the validator rejects anything else) |
 | `report` | `title`, `version`, `date`, `slug`, `url`, `docsPath` (an `@/...md` link), `template`, `evaluatedProductVersion` (a string, or `null` while the report does not state it), `audit` (`auditor`, `period`, `coverage`), `next` (`version`, `status`, `scope`, or `null`) | `url` is the JavaScript docs URL; the READMEs derive their framework-prefixed form from `slug` |
-| `matrix[]` | one entry per screen reader, version and platform: `name`, `version` (`null` only when `howTested` is `not-tested`), `platform`, `howTested[]`, and optionally `browsers[]` | `howTested` values: `audit` (the external audit in `report.audit`), `automated-nightly`, `manual-per-major`, `not-tested`; `not-tested` stands alone. An entry whose only value is `not-tested` records a decision and is never rendered - its name is what public text must not use. `browsers[]` names the browsers an entry was tested in when they are not the audit's (`browsers`), as an automated run's are (`["WebKit (Playwright)", "Chromium"]` for the VoiceOver nightly); the list and the table render them beside the platform, so the entry never reads as tested in the audit's browsers. A not-tested entry names none |
+| `matrix[]` | one entry per screen reader, version and platform: `name`, `version` (`null` only when `howTested` is `not-tested`), `platform`, `howTested[]`, optionally `browsers[]`, and on an automated entry `scenarios` with `unsupported[]` | `howTested` values: `audit` (the external audit in `report.audit`), `automated-nightly`, `manual-per-major`, `not-tested`; `not-tested` stands alone. An entry whose only value is `not-tested` records a decision and is never rendered - its name is what public text must not use. `browsers[]` names the browsers an entry was tested in when they are not the audit's (`browsers`), as an automated run's are (`["WebKit (Playwright)", "Chromium"]` for the VoiceOver nightly); the list and the table render them beside the platform, so the entry never reads as tested in the audit's browsers. A not-tested entry names none. `scenarios` (a positive integer) and `unsupported[]` (the reader primitives the run cannot drive, such as `read in`; empty when none) go together and only on an `automated-nightly` entry, so the report states what the run covered; nothing renders them yet, and `tests/lib/__tests__/screenreader-coverage.test.mjs` keeps both equal to the committed scenarios (`tests/AGENTS.md`, "Screen readers") |
 | `browsers[]` | `name`, `version` (full) | sentences use the major version |
 | `knownLimitations[]` | `id`, `text` (Markdown), `criteria[]` (WCAG numbers), `reportRef` (the report's own "Ref." column, such as `#2375`, or `null`) | ids are unique; the order is the rendered order. `reportRef` is not a GitHub issue number (`#2375` on GitHub is an unrelated issue), so it renders as "ref. #2375 in the report" |
 | `notes` | `mobile`, `automation` | one sentence or two each; rendered verbatim |

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "scenario": "filters-by-condition",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T10:51:10.513Z"
+  },
+  "steps": {
+    "open-menu": "table clear column",
+    "tab-to-condition": "list",
+    "open-conditions": "table none",
+    "arrow-down-is-empty": "is empty",
+    "arrow-down-is-not-empty": "is not empty",
+    "arrow-down-is-equal-to": "is equal to",
+    "choose-condition": "list value edit blank",
+    "type-value": "",
+    "shift-tab-to-select": "list",
+    "shift-tab-to-menu": "clear column",
+    "shift-tab-to-cancel": "cancel button",
+    "shift-tab-to-ok": "ok button",
+    "apply-filter": "table 1890 price row 2 category column 4"
+  }
+}

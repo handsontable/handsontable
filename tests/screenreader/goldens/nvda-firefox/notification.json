@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "notification",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T13:53:40.964Z"
+  },
+  "steps": {
+    "toast-appears": "alert bottom end notification visual test action button action button close button",
+    "f6-into-toast": "alert bottom end notification visual test action button",
+    "tab-second-action": "action button",
+    "tab-close": "close button",
+    "escape-to-grid": "table company 0 company name row 2 column 2",
+    "arrow-down-after-escape": "company 1 company name row 3 column 2",
+    "f6-again": "alert bottom end notification visual test action button",
+    "tab-second-action-again": "action button",
+    "tab-close-again": "close button",
+    "enter-close": "alert bottom end notification visual test action button"
+  }
+}

@@ -12,13 +12,18 @@
  * each document into the job summary and the `A11y / <check> report` check run
  * (`buildEvidenceCheckRun()`).
  *
- * Report-only: a finding is a row in the summary, an annotation and a `neutral` check run, never a
- * red job, and a check run is never `failure`. A test fails only for tooling (a fixture that does not
- * load, a state the keyboard did not reach), and that failure is recorded in the document as a
- * target with `status: 'error'` and as a problem: flakiness is a finding against the check, not the
- * product. The policy is `tests/AGENTS.md`, "A11y: the checks beyond axe". No I/O in here.
+ * Report-only: a finding never fails a test or the job. The check run follows the severity verdict every
+ * accessibility check run follows (`lib/a11y-verdict.mjs`): red on a critical or serious finding that names a
+ * WCAG 2.2 A or AA criterion, neutral with a warning on a moderate or minor one (and on one that names no A or
+ * AA criterion, or, on a change run, one whose cluster has a tracker), green on none, and red for a check that
+ * did not measure everything. A test fails only for tooling (a fixture that does not load, a state the
+ * keyboard did not reach), and that failure is recorded in the document as a target with `status: 'error'`
+ * and as a problem: flakiness is a finding against the check, not the product. The policy is
+ * `tests/AGENTS.md`, "A11y: the checks beyond axe" and "A11y: the verdict of a check run". No I/O in here.
  */
 import { escapeMarkdownText as escape, isSafeLink } from './a11y-baseline.mjs';
+import { namedSubset } from './a11y-subset.mjs';
+import { annotationLevel, capAnnotations, renderVerdict, verdictOf, verdictTitle } from './a11y-verdict.mjs';
 
 export const EVIDENCE_SCHEMA = 1;
 /**
@@ -38,7 +43,7 @@ export const SEVERITIES = ['critical', 'serious', 'moderate', 'minor', 'advisory
 export const TARGET_STATUSES = ['measured', 'error'];
 export const PAGES_FILE = 'tests/a11y/pages.mjs';
 // How many findings the summary lists, and how many annotations a check run carries; both say how
-// many more the JSON holds.
+// many more the JSON holds. The annotations kept are the worst (`capAnnotations()`).
 const SUMMARY_FINDINGS = 60;
 const ANNOTATIONS = 100;
 // How many tooling problems a summary lists; it says how many more the JSON holds.
@@ -204,7 +209,8 @@ export const EVIDENCE_CHECKS = Object.freeze({
 });
 /**
  * Which checks a run covers: `pull-request` (the short suite: the checks with `pullRequest`) or
- * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check.
+ * `nightly` (every check). Read from `HOT_A11Y_CHECKS_SUITE`; a run without it covers every check, and
+ * a run with `A11Y_CHECKS` covers the checks it names instead (`checksForRun()`).
  */
 export const CHECK_SUITES = ['pull-request', 'nightly'];
 
@@ -221,6 +227,23 @@ export function checksForSuite(suite, checks = EVIDENCE_CHECKS) {
   }
 
   return Object.entries(checks).filter(([, check]) => suite !== 'pull-request' || check.pullRequest === true).map(([id]) => id);
+}
+
+/**
+ * The checks a run covers: the ones `A11Y_CHECKS` names (a subset run, the A11y nightly's `checks`
+ * input: comma-separated, no spaces, each entry a check id exactly, `namedSubset()`), otherwise the
+ * suite `HOT_A11Y_CHECKS_SUITE` picks. The config builds its projects from this, so an entry the
+ * registry does not know is refused before a test runs; the report script expects a document of each,
+ * and the run verdict a check run of each, read through the same function.
+ *
+ * @param {Record<string, string|undefined>} env The environment (`A11Y_CHECKS`, `HOT_A11Y_CHECKS_SUITE`).
+ * @param {Record<string, {pullRequest?: boolean}>} [checks] The registry; defaults to `EVIDENCE_CHECKS`.
+ * @returns {string[]} The check ids, in registry order.
+ */
+export function checksForRun(env, checks = EVIDENCE_CHECKS) {
+  const suite = checksForSuite(env.HOT_A11Y_CHECKS_SUITE, checks);
+
+  return namedSubset(env.A11Y_CHECKS, Object.keys(checks), { label: 'A11Y_CHECKS', noun: 'check' }) ?? suite;
 }
 
 /**
@@ -388,7 +411,8 @@ export function validatePart(part, { triage = false } = {}) {
  * @param {object[]} input.parts The evidence parts of the tests that measured their target.
  * @param {Array<{title: string, target: object|null, error: string, flaky?: boolean}>} [input.failures]
  *   The tests that did not measure (`error`), and the ones that measured only on a retry (`flaky`).
- * @param {object} [input.run] The run's metadata: commit, ref, runUrl, startedAt, durationMs.
+ * @param {object} [input.run] The run's metadata: commit, ref, runUrl, startedAt, durationMs, and for a site check the
+ *   deploy it read (`baseUrl`).
  * @param {string[]} [input.problems] Tooling problems found while reading.
  * @param {Record<string, {title: string, criteria: string[], triage?: boolean}>} [input.checks] The registry; defaults to `EVIDENCE_CHECKS`.
  * @returns {object} The evidence document.
@@ -511,6 +535,9 @@ export function mergeEvidence({ check, parts, failures = [], run = {}, problems 
       runUrl: run.runUrl ?? null,
       startedAt: run.startedAt ?? null,
       durationMs: run.durationMs ?? null,
+      // A site check's documents say which deploy they read (`siteBaseUrl()` of the site config), so the findings
+      // ledger records the develop deploy's only; a product check's carry no such field.
+      ...(run.baseUrl ? { baseUrl: run.baseUrl } : {}),
       project: check,
       browser: environment.browser ?? null,
       browserVersion: environment.browserVersion ?? null,
@@ -661,7 +688,7 @@ export function evidenceHeadline(doc) {
  * @returns {string} Markdown.
  */
 export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
-  const lines = [`### ${escape(doc.title)} (\`${escape(doc.check)}\`)`, '', `**${escape(evidenceHeadline(doc))}.** Report-only: a finding never fails the job.`, ''];
+  const lines = [`### ${escape(doc.title)} (\`${escape(doc.check)}\`)`, '', `**${escape(evidenceHeadline(doc))}.** Report-only: a finding never fails a test or the job.`, ''];
   const links = [
     isSafeLink(artifactUrl) ? `[The evidence JSON](${artifactUrl})` : '',
     isSafeLink(runUrl) ? `[The workflow run](${runUrl})` : '',
@@ -723,10 +750,12 @@ export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
 }
 
 /**
- * The `A11y / <check> report` check run of one document. `neutral` when anything needs a look (a
- * finding, an advisory difference, a target that was not measured, a malformed document), `success`
- * when nothing does, and never `failure`: these checks are report-only, so a check run never turns a
- * pull request red. One annotation per finding, up to a hundred, on the page's line in
+ * The `A11y / <check> report` check run of one document, by the severity verdict (`lib/a11y-verdict.mjs`).
+ * A finding counts at its severity when it names a WCAG 2.2 A or AA criterion, the target level; one that
+ * names none (an AAA criterion alone, a best-practice record of the discovery run) is a warning at most, and
+ * so, on a change run, is one whose cluster in `tests/a11y/issues.json` has a tracker. A check that left no
+ * readable document, a target not measured or a tooling problem in the document is a tooling failure: red,
+ * and titled as one. One annotation per finding, the worst hundred, on the page's line in
  * `tests/a11y/pages.mjs`, or on the file and line the finding names (`file`, `line`).
  *
  * @param {object} input The input.
@@ -736,53 +765,82 @@ export function renderEvidenceSummary(doc, { runUrl, artifactUrl } = {}) {
  * @param {Map<string, number>} [input.pages] The page lines (`pageLines()` of `lib/a11y-check-run.mjs`).
  * @param {string} [input.runUrl] The workflow run's URL.
  * @param {string} [input.artifactUrl] The evidence artifact's URL.
- * @returns {{name: string, conclusion: 'success'|'neutral', title: string, summary: string, annotations: object[]}} The payload.
+ * @param {'audit'|'change'} [input.scope] What the run counts (`countingScope()` of `lib/a11y-verdict.mjs`).
+ * @param {(source: string, check: string, finding: object) => boolean} [input.tracked] Whether a finding's
+ * cluster has a tracker (`trackedBy()` of `lib/a11y-issues.mjs`); read on a change run only.
+ * @param {string} [input.pagesFile] The page list a finding's annotation goes on: the product catalog, or a site's.
+ * @param {string} [input.source] The finding source the catalog files the check's findings under: `checks` for a
+ * product check, `<site>-checks` for a site check.
+ * @returns {{name: string, conclusion: 'success'|'neutral'|'failure', title: string, summary: string, annotations: object[]}} The payload.
  */
-export function buildEvidenceCheckRun({ doc, check, problems = [], pages = new Map(), runUrl, artifactUrl }) {
+export function buildEvidenceCheckRun({
+  doc, check, problems = [], pages = new Map(), runUrl, artifactUrl, scope = 'change', tracked = () => false, pagesFile = PAGES_FILE, source = 'checks',
+}) {
   const name = checkRunName(doc?.check ?? check ?? 'unknown');
 
   if (!doc || problems.length > 0) {
-    const reason = problems[0] ?? 'the check left no evidence document';
+    const verdict = verdictOf({ tooling: problems.length > 0 ? problems : ['the check left no evidence document'] });
 
     return {
       name,
-      conclusion: 'neutral',
-      title: `⚠ Tooling: ${reason}`.slice(0, 250),
+      conclusion: verdict.conclusion,
+      title: verdictTitle(verdict, ''),
       summary: capSummary([
-        'Report-only: this check run is never a failure. The check did not leave a document the report generator can read, which is a problem with the check, not a finding on the product.',
+        renderVerdict(verdict, { scope }),
         '',
-        ...problemLines(problems, ''),
+        'The check did not leave a document the report generator can read.',
         isSafeLink(runUrl) ? `\n[The workflow run](${runUrl})` : '',
       ].join('\n'), 'the evidence artifact holds the document'),
       annotations: [],
     };
   }
 
-  const attention = doc.findings.length > 0 || doc.problems.length > 0 || doc.summary.errors > 0;
-  const headline = evidenceHeadline(doc);
-  const summary = capSummary(renderEvidenceSummary(doc, { runUrl, artifactUrl }), 'the job summary and the JSON hold the rest');
-
-  const annotations = doc.findings.slice(0, ANNOTATIONS).map((finding) => {
-    const path = finding.file ?? PAGES_FILE;
+  const tooling = doc.problems.length > 0 || doc.summary.errors > 0
+    ? (doc.problems.length > 0 ? doc.problems : [`${doc.summary.errors} ${doc.summary.errors === 1 ? 'target' : 'targets'} not measured`])
+    : [];
+  const findings = doc.findings.map(finding => ({
+    finding,
+    severity: finding.severity,
+    warningOnly: finding.severity !== 'advisory'
+      && (!atTargetLevel(finding) || (scope === 'change' && Boolean(tracked(source, doc.check, finding)))),
+  }));
+  const verdict = verdictOf({ findings, tooling });
+  const { annotations, omitted } = capAnnotations(findings.map(({ finding, severity, warningOnly }) => {
+    const path = finding.file ?? pagesFile;
     const line = finding.line ?? (finding.file ? 1 : pages.get(finding.page) ?? 1);
 
     return {
       path,
       start_line: line,
       end_line: line,
-      annotation_level: finding.severity === 'advisory' || finding.severity === 'minor' ? 'notice' : 'warning',
+      annotation_level: annotationLevel({ severity, warningOnly }),
       title: `${finding.criteria.length > 0 ? `${finding.criteria.join(', ')} ` : ''}${finding.kind}${finding.rule ? ` ${finding.rule}` : ''}`.slice(0, 250),
       message: `${finding.page} on ${finding.theme}${finding.variant ? ` (${finding.variant})` : ''}: ${findingText(finding)}${locationText(finding)}`,
     };
-  });
+  }), ANNOTATIONS);
+  const lead = [
+    renderVerdict(verdict, { scope, listTooling: doc.problems.length === 0 }),
+    omitted > 0 ? `The check run carries the ${annotations.length} worst annotations; ${omitted} more are in the summary below and the JSON.` : '',
+  ].filter(Boolean).join('\n\n');
 
   return {
     name,
-    conclusion: attention ? 'neutral' : 'success',
-    title: `${attention ? '⚠' : '✔'} ${headline}${doc.problems.length > 0 ? ` · ${doc.problems.length} tooling ${doc.problems.length === 1 ? 'problem' : 'problems'}` : ''}`.slice(0, 250),
-    summary,
+    conclusion: verdict.conclusion,
+    title: verdictTitle(verdict, evidenceHeadline(doc)),
+    summary: capSummary(`${lead}\n\n${renderEvidenceSummary(doc, { runUrl, artifactUrl })}`, 'the job summary and the JSON hold the rest'),
     annotations,
   };
+}
+
+/**
+ * Whether a finding names a criterion at the target level, WCAG 2.2 A or AA. A finding that names none (an
+ * AAA criterion alone, a best-practice record) is a warning at most, whatever its severity.
+ *
+ * @param {{criteria: string[]}} finding The finding.
+ * @returns {boolean} The verdict.
+ */
+function atTargetLevel(finding) {
+  return finding.criteria.some(id => ['A', 'AA'].includes(WCAG_CRITERIA[id]?.level));
 }
 
 /**

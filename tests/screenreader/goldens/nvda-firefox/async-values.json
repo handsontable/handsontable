@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "async-values",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T13:51:32.094Z"
+  },
+  "steps": {
+    "arrow-right-pending": "old a loading selected busy name row 2 column 3",
+    "value-resolves": "new a name row 2 column 3",
+    "arrow-down-pending": "old b loading selected busy name row 3 column 3",
+    "request-fails": "old b price service unavailable selected invalid entry name row 3 column 3 price service unavailable",
+    "arrow-up-resolved": "new a name row 2 column 3",
+    "arrow-down-failed": "old b price service unavailable selected invalid entry name row 3 column 3"
+  }
+}

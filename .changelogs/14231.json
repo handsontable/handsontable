@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Vue 3 wrapper taking back a setting, such as `colHeaders`, that an app set with `updateSettings()`. An unchanged prop is no longer sent again after the app replaced its value, so the `alter()` then `updateSettings({ colHeaders })` flow keeps the new headers.",
+  "type": "fixed",
+  "issueOrPR": 14231,
+  "breaking": false,
+  "framework": "vue"
+}

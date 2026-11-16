@@ -11,7 +11,9 @@ and several methods that look usable but are not.
 `collapsedRowsMap` is a `TrimmingMap`, created in `enablePlugin()`:
 
 ```ts
-this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming');
+this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming', false, {
+  keepsRowsInFilterScope: true,
+});
 ```
 
 A trimmed row is dropped from the DataMap and from `countRows()`, so **it has no visual index at
@@ -26,6 +28,12 @@ row keeps its visual index. That single difference explains the whole public API
 
 `trimRows` is physical throughout for the same reason. When you add anything to this plugin, decide
 the index type from *whether the row can be trimmed*, not from the house rule alone.
+
+The map is created with `keepsRowsInFilterScope: true` (the internal fourth argument of
+`createAndRegisterIndexMap()`). A collapse only folds rows away, and Filters still evaluates them, so
+the Filters plugin keeps their values in its "Filter by value" list; it reads the flag off the map and
+never names this plugin (DEV-512, `filters/AGENTS.md`). Drop the flag and a collapsed child's value
+vanishes from that list while it still filters.
 
 ## Files
 
@@ -108,6 +116,18 @@ They are written in different places and can drift. Keep this in mind:
   `ht_nestingLevel_empty` spacers come before it). Scope any new rule there the same way. Pinned by
   `tests/e2e/icon-elements.spec.ts` ("renderer markup inside the nested rows button gets no row-header
   label padding").
+- **In a row with an exact height, the row header's label and button are aligned to the TOP; every
+  other row keeps them centered.** The header's inner `.relative` is a flex row with
+  `align-items: center`. A row with an exact `rowHeights` height (`tr.htExactRow`, DEV-2791) stretches
+  the `.rowHeader` span to the whole row so a long label clips instead of growing the row, and its text
+  then starts at the top, like the cells: centered, the button stayed in the middle, 30px and more
+  below the label. So `tr.htExactRow > th.ht_nestingLevels` switches to `align-items: flex-start` and
+  gives the button a top margin (`(--ht-line-height - --ht-icon-button-hit-area-size) / 2`) that
+  centers the 24px button on the label's first line. Plain `flex-start` is not enough: the button's
+  negative margins (meant for centering) then lift it above the label, 3.5px on `classic`, out of the
+  row. The rule is scoped to exact rows so a row that grows with its content keeps the 18.1 layout (a
+  label that wraps keeps the button centered on it). Pinned by
+  `tests/e2e/nested-rows-header-alignment.spec.ts` on every theme.
 - **`disablePlugin()` has to strip the header decoration itself, because nothing else ever will.**
   The only code that removes the `+`/`-` button and the `ht_nestingLevel_empty` spacers from a row
   header's inner `div` is `HeadersUI#appendLevelIndicators()`, which runs from `afterGetRowHeader` —
@@ -189,7 +209,8 @@ They are written in different places and can drift. Keep this in mind:
   `addChildAtIndex()` build the insert by hand — splice, `rewriteCache()`,
   `rowIndexMapper.insertIndexes()`, `shiftCellsMeta()` (physical), then the hooks. Three things come
   with that. `disableCoreAPIModifiers()` around such an insert is not a safety measure but the thing
-  that **hid** the mistake: with the modifiers off, `Core#countSourceRows()` reports the top-level
+  that **hid** the mistake (the parent branch no longer wraps its write; see the next bullet): with the
+  modifiers off, `Core#countSourceRows()` reports the top-level
   count, so a grid-row index above it is silently clamped instead of failing. The `beforeAlter` and
   `beforeDataSplice` hooks no longer fire for a top-level insert, which neither the parent branch nor
   `addChild()` ever fired either. And `beforeCreateRow`'s **veto has to keep being honored** in any
@@ -201,6 +222,29 @@ They are written in different places and can drift. Keep this in mind:
   which `#onAfterAddChild` already tolerates) to close that stash. **The parent branch and
   `addChild()` still ignore that veto** — pre-existing, and a separate behavior change to fix, because
   a cancel there would start actually cancelling. (DEV-2625, following #7727 / DEV-2605.)
+- **A source write addressed by a flattened row index must run with the plugin's modifiers ON.**
+  `disableCoreAPIModifiers()` turns off `modifyRowData` and `modifySourceLength`, so the source data is
+  the top-level array alone and `setSourceDataAtCell(parentIndex, '__children', …)` addresses a
+  TOP-LEVEL position by a flattened number. The parent branch of `addChildAtIndex()` did exactly that
+  around its write: for a parent whose flattened row was a valid top-level position too (a nested parent
+  at row 2 of a three-row tree) it handed the parent's `__children` to an unrelated top-level row, so
+  the same row objects sat in the tree twice, undo left the grid a row short, and a following
+  `detachFromParent()` duplicated rows. A flattened row at or past the top-level count made the write a
+  silent no-op, which is why the defect hid. The write runs with the modifiers on now, so it resolves
+  `parentIndex` through the flattened tree to the parent itself: it assigns the list the parent already
+  holds, and the payload's old value is that same array, where it used to be another row's list or
+  nothing. This is the parent branch only. `syncRowWithRawSource()` addresses a TOP-LEVEL position
+  (`getRowIndexWithinParent()` of the upmost parent) and correctly keeps the modifiers off, so do not
+  generalize this to "always on". A parent object the cache does not know (one an app kept across
+  a data load) makes `addChildAtIndex()` warn once per grid and return before any hook: the old `?? 0`
+  fallback wrote its children onto the first top-level row and left an index slot with no data row
+  behind it. **The parent's row is read AFTER `beforeAddChild`**, not before: a listener may move the
+  parent (add or remove a row above it), and a number read earlier would aim the write, `insertIndexes()`
+  and `afterCreateRow` at whatever row holds that position now. If a listener removed the parent
+  itself, `afterAddChild` still fires with a `null` element, because `beforeAddChild` opened the
+  collapsed-rows stash and only that hook closes it. A test of the write needs a parent whose flattened
+  row is below the top-level count, or the write is dropped and the test passes on the broken code. Pinned by
+  `__tests__/addChildAtIndexNestedParent.unit.js` and `tests/e2e/nested-rows-undo.spec.ts`.
 - **Only the top-level branch translates its index for `insertIndexes()`.** `insertIndexes()` takes a
   **visual** index and resolves it through `getNotTrimmedIndexes()[arg]`, but the parent branch passes
   `finalChildIndex` and `addChild()` passes `getRowIndex(childElement)` — both **physical**. With a
@@ -247,10 +291,11 @@ They are written in different places and can drift. Keep this in mind:
   user saw as top-level. Every other insert with no index - `minSpareRows`/`minRows` (`auto`), a paste
   or an edit past the last row, a host's bare `alter('insert_row_below')` - still appends a top-level
   row, because an app may rely on that to add a new parent. (2) **Autofill must keep passing no index.**
-  An explicit `alter('insert_row_below', X)` makes the Core move row X's index map values (a hidden
-  flag, a manual row height) onto the new row - a Core defect on every grid, measured in 18.1.2 - so
-  the fill handle passing the last row's index would have regressed every grid whose last row is hidden
-  or resized. The source string is the contract; the Autofill `AGENTS.md` says the same from its side.
+  An explicit `alter('insert_row_below', X)` used to make the Core move row X's index map values (a
+  hidden flag, a manual row height) onto the new row - a Core defect on every grid in 18.1.2, fixed in
+  19.0 by `DataMap#createRow()` passing the insert mode to the index mapper (DEV-508) - so the fill
+  handle passing the last row's index would have regressed every grid whose last row is hidden or
+  resized. The source string is still the contract; the Autofill `AGENTS.md` says the same from its side.
   (3) **The anchor is honored only when the splice is a pure append AND the last row of the flattened
   tree is the anchor or one of its descendants** (`#endsWithSubtreeOf()`). That is exactly when every
   level lands at the flattened end, where the Core already put the index maps and the cell meta. A last
@@ -270,7 +315,21 @@ They are written in different places and can drift. Keep this in mind:
   hooks by hand. So
   stored meta (comments, `className`, everything) stays on the old physical rows and lands on the
   wrong cells: #7727 for the insert side, DEV-2626 for the detach side, same context menu. Use
-  `dataManager.shiftCellsMeta()` for an insert and `dataManager.moveCellsMeta()` for a move. Both
+  `dataManager.shiftCellsMeta()` for an insert and `dataManager.moveCellsMeta()` for a move. The
+  declared row heights need less: an array `rowHeights` or `minRowHeights` is read through a core row
+  index map (`core/rowSizeSettings.ts`, DEV-508), which `insertIndexes()` and `removeIndexes()` keep
+  aligned on their own, so a parent removal needs nothing here. An insert almost does: the parent branch of
+  `addChildAtIndex()` hands `insertIndexes()` a position inside the parent, so its slot lands rows above the
+  data (the context menu's "Insert row above/below" on a nested child), or one past the last row for an
+  index past the child count, which the maps read as an append, and `shiftCellsMeta()`, which has the real
+  physical index, calls `Core#_alignInsertedRowSizes()` to move it there, with no entry unless the row ends
+  the rows. A detach and a row move
+  renumber rows without the index mapper, so both wrap the tree rewrite in
+  `dataManager.captureRowSizeOrigins()`: it records each row OBJECT's declared entry before the rewrite
+  and writes it back at the object's new physical index after `rewriteCache()`. Keyed by object, never
+  by index arithmetic, because `RowMoveController#moveRows()` moves each row object on its own, in the
+  order of the dragged indexes, so a block formula swapped heights on an unsorted multi-row drag (pinned
+  by `__tests__/rowHeightsPhysical.unit.js`). Both
   take **physical** indexes, which is what `getRowIndex()` already returns, so never pass the result
   through `toPhysicalRow()` and never use `hot.spliceCellsMeta()`, which takes a **visual** index and
   would translate a second time. Qualify the class when you name the mover: `RowMoveController` has
@@ -691,13 +750,22 @@ row semantics. Six things look simpler than they are.
   commit (all pinned in `tests/e2e/nested-rows-treegrid-a11y.spec.ts`).
   A grid without `rowHeaders` therefore gets no row attributes at all - it has no button and no
   focusable header either - and every overlay copy of a row gets identical attributes.
+- **`getRowSetPosition()` counts only the siblings that no trimming map hides.** While any trimming map
+  (a filter, `TrimRows`, a collapse) is active, `aria-posinset`/`aria-setsize` count the untrimmed
+  siblings under the same parent, so a screen reader hears "1 of 2" for two surviving rows, not "1 of 5".
+  Rows `HiddenRows` hides are not trimmed, so they still count. With nothing trimmed it returns the
+  cached structural answer.
 - **The sibling position comes from the flatten cache, never from `indexOf`, and it counts the
   data.** `#cacheSiblings()` records `position` and `setSize` in `nodeInfo`, counting only object
-  entries (a `null` among the children is not a row), so the per-row read during a render is O(1).
-  An `indexOf` over a 10k-row top level, per rendered row, per overlay copy, is millions of
-  comparisons per scroll. The cost of the cache: siblings that `HiddenRows` or `TrimRows` takes out
-  of view are still counted. That limit is documented in the guide; lifting it means recounting on
-  every hiding or trimming change.
+  entries (a `null` among the children is not a row). While rows are trimmed, `getRowSetPosition()`
+  makes one pass per sibling list and keeps the untrimmed positions in `#reachableSiblings`, so the
+  per-row read during a render is O(1) after that pass. The cache is dropped by
+  `invalidateSetPositions()`, which the plugin calls from the row index mapper's `cacheUpdated` local
+  hook (`#onRowIndexCacheUpdated`, added in `enablePlugin()`, removed in `disablePlugin()`; the removal
+  is pinned in `__tests__/filtering.unit.js`) and `rewriteCache()` calls on a tree
+  change. NestedRows never names the Filters plugin. An `indexOf` over a 10k-row top level, per
+  rendered row, per overlay copy, is millions of comparisons per scroll. Pinned in
+  `__tests__/data/dataManager.unit.js` and `tests/e2e/nested-rows-treegrid-a11y.spec.ts`.
 - **Only user gestures announce.** `toggleParentByUser()` (the button, <kbd>Enter</kbd>, the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords)
   wraps the choke point and announces through the shared announcer's POLITE region
   (`announce(message, 'polite')`). Both regions are created in `install()`: some screen readers ignore
@@ -760,8 +828,20 @@ row semantics. Six things look simpler than they are.
   sorting and filtering limitations in the guide are prose only.
 - **MergeCells** detects a collapse by watching the row trimming map, because no hook existed when it
   was written. The new hooks are a better signal — worth migrating.
-- **Filters** are hijacked: the `filterData` hook physically splices `__children` and rewrites the
-  cache, so filtering **mutates the nested source structure** instead of trimming indexes.
+- **Filters keep the tree whole (DEV-512).** The plugin listens to the public
+  `modifyFiltersMatchedRows` hook and returns `DataManager#getRowsToKeepForMatches()`: every
+  matching row, all its ancestors, and its whole subtree (a matching parent keeps every descendant,
+  matching or not). **A row in the hook's second argument (`blankMatchedRows`: every conditioned
+  column reads empty) keeps its ancestors but never its subtree.** Parents often hold empty cells,
+  so with "(Blank cells)" checked in a by-value list every parent matched and pulled back each child
+  the user had just unchecked; a parent matching a real value still keeps its subtree. The walk
+  reads the flatten cache (descendants = the following rows deeper than the match), never the live
+  `__children`, for the same drift reason as `#collectDescendants()`. Filters calls the hook once
+  per pass on the final match set, so a row another column rejects stays out unless it is an
+  ancestor or descendant of a row that matched every column. Kept ancestors carry no special class
+  or announcement. A collapse still folds kept rows (Filters' trim and the collapse trim combine),
+  so a filtered `collapseAll()` shows the kept top-level parents. (The `filterData` hook is NOT
+  filtering: it is the row-removal splice, named after `DataMap#filterData`.)
 - **ManualRowMove is cancelled outright.** `rowMoveController.onBeforeRowMove` returns `false`, does
   its own `__children` restructuring, and then fires `afterRowMove` by hand. So a nested-rows move is
   a source-data change, not an index permutation — `IndexesSequence` is untouched, and visual and
@@ -835,6 +915,8 @@ row semantics. Six things look simpler than they are.
 | `tests/e2e/nested-rows-autofill.spec.ts` | Playwright: the fill handle dragged past the last row adds children to the dragged row's parent, undo, and a collapsed top-level parent |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
 | `tests/e2e/nested-rows-treegrid-a11y.spec.ts` | Playwright: the treegrid row attributes on a three-level tree (also across `TR` recycling, a data replacement, and the plugin switched off), the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords and <kbd>Enter</kbd> on a row header (LTR and RTL, never the grid's jump there, Enter with every column hidden), plain arrows left to navigation, the cleanup when `rowHeaders` is switched off, the HiddenRows cases (a hidden parent, rendered-row counting), and the polite announcements (gestures only, never the API or an `ariaTags: false` grid; named by the header's rendered text, HTML included) |
+| `__tests__/filtering.unit.js` | Filtering keeps ancestors and subtrees, widens once per pass, survives collapse/undo, and the hook's normalization on a plain grid (DEV-512) |
+| `tests/e2e/filters-nested-rows.spec.ts` | Playwright: the Filter by value list of a nested grid, and the parent chain and subtree a filter keeps |
 | `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse and the selection, undoes in one step (Formulas included, with a listener removing rows mid-clear, and when every visible cell is read-only), survives a validator and a listener that removes rows, keeps the caller's range, enables the item when only hidden cells are editable, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |
 
 Physical layouts of the shared fixtures, which the specs depend on:

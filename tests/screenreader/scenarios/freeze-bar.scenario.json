@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "id": "freeze-bar",
+  "group": "structure",
+  "surface": "The freeze bars: F6 from the grid to a bar, its name and frozen count, the arrows moving it, Home, and Escape back to the grid.",
+  "page": "freeze-bar",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [2, 2]}],
+  "steps": [
+    {
+      "id": "f6-to-first-bar",
+      "action": {"press": "F6"},
+      "expect": [["frozen columns at the start"], ["2"]],
+      "note": "F6 in the grid moves the focus to the first freeze bar, a separator next to the grid named by its edge, with the frozen count as its value (2 columns, 2 rows on this page). Finding (known): VoiceOver with Chromium says nothing on the first key of the page. Finding: VoiceOver with WebKit reads the name without the value in some runs, and nothing in others."
+    },
+    {
+      "id": "arrow-grow",
+      "action": {"press": "ArrowRight"},
+      "expect": [["3"]],
+      "note": "ArrowRight moves the start bar one column on: 3 columns frozen. Finding (the grid's): VoiceOver reads the value as a percentage of the bar's range (`43%`, `38%`), never the frozen count: the separator has `aria-valuenow` with a range and no `aria-valuetext`. NVDA reads the count."
+    },
+    {
+      "id": "arrow-shrink",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["2"]],
+      "note": "ArrowLeft moves it back. Finding (the grid's): VoiceOver reads a percentage here too, as on arrow-grow: the separator has no aria-valuetext."
+    },
+    {
+      "id": "f6-to-next-bar",
+      "action": {"press": "F6"},
+      "expect": [["frozen rows at the top"], ["2"]],
+      "note": "F6 on a bar moves to the next one, the top bar. Finding: VoiceOver with Chromium reads `horizontal splitter` without the bar's name; VoiceOver with WebKit reads the name in some runs, and nothing in others."
+    },
+    {
+      "id": "arrow-down-grow",
+      "action": {"press": "ArrowDown"},
+      "expect": [["3"]],
+      "note": "ArrowDown moves the top bar one row down: 3 rows frozen. Finding (the grid's): VoiceOver reads a percentage here too, as on arrow-grow: the separator has no aria-valuetext."
+    },
+    {
+      "id": "home-unfreeze",
+      "action": {"press": "Home"},
+      "expect": [["0"]],
+      "note": "Home unfreezes every row of the edge."
+    },
+    {
+      "id": "escape-to-grid",
+      "action": {"press": "Escape"},
+      "expect": [["c3", "c 3"]],
+      "note": "Escape gives the focus back to the grid, on the selected cell. VoiceOver with WebKit says nothing here in some runs."
+    }
+  ]
+}

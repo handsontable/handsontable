@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "async-values",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:51:09.709Z"
+  },
+  "steps": {
+    "arrow-right-pending": "name old a loading website cell busy column 2 row a 100 old a loading 30",
+    "value-resolves": "",
+    "arrow-down-pending": "name old b loading website cell busy column 2 row b 200 old b loading 10",
+    "request-fails": "price service unavailable",
+    "arrow-up-resolved": "name new a column 2 row a 100 new a 30",
+    "arrow-down-failed": "name old b price service unavailable invalid data column 2 row b 200 old b price service unavailable 10"
+  }
+}

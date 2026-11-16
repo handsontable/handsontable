@@ -1,3 +1,5 @@
+@use "sass:list";
+
 @mixin user-select-none {
   user-select: none;
   -webkit-tap-highlight-color: transparent;
@@ -73,6 +75,36 @@ $font-family-stack: var(--ht-font-family), -apple-system, BlinkMacSystemFont, "S
 
 @mixin box-shadow {
   box-shadow: box-shadow-value();
+}
+
+$text-metrics-properties: font-size, line-height, font-weight, letter-spacing, font-family;
+
+@mixin inherit-text-metrics($except: ()) {
+  @each $property in $text-metrics-properties {
+    @if not list.index($except, $property) {
+      #{$property}: inherit;
+    }
+  }
+}
+
+@mixin revert-host-box {
+  padding: revert;
+  margin: revert;
+  border: revert;
+  height: revert;
+}
+
+@mixin revert-host-text-metrics {
+  @each $property in $text-metrics-properties {
+    #{$property}: revert;
+  }
+}
+
+$host-guard-weight: ":not(p):not(p)";
+
+@mixin revert-host-element {
+  @include revert-host-box;
+  @include revert-host-text-metrics;
 }
 
 @mixin scrollbar-styles {

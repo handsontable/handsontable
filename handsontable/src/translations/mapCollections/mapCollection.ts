@@ -2,9 +2,21 @@ import { isUndefined } from '../../helpers/mixed';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import type { IndexMap } from '../maps/indexMap';
+import { IndexesSequence } from '../maps/indexesSequence';
 
 // Counter for checking if there is a memory leak.
 let registeredMaps = 0;
+
+/**
+ * Tells whether an index map holds an order of indexes, which an insert places by position, rather than a value
+ * for each physical index.
+ *
+ * @param {IndexMap} indexMap The index map.
+ * @returns {boolean}
+ */
+function isIndexesSequence(indexMap: IndexMap): boolean {
+  return indexMap instanceof IndexesSequence;
+}
 
 /**
  * Collection of index maps having unique names. It allow us to perform bulk operations such as init, remove, insert on all index maps that have been registered in the collection.
@@ -127,10 +139,13 @@ export class MapCollection {
    * @private
    * @param {number} insertionIndex Position inside the actual list.
    * @param {Array} insertedIndexes List of inserted indexes.
+   * @param {Array} [sequenceIndexes] The inserted indexes for a map that holds an order of indexes (an
+   * `IndexesSequence`), when they differ from `insertedIndexes`. Such a map mirrors the row index mapper's own
+   * sequence, so it takes the indexes the sequence takes.
    */
-  insertToEvery(insertionIndex: number, insertedIndexes: number[]) {
+  insertToEvery(insertionIndex: number, insertedIndexes: number[], sequenceIndexes = insertedIndexes) {
     this.collection.forEach((indexMap) => {
-      indexMap.insert(insertionIndex, insertedIndexes);
+      indexMap.insert(insertionIndex, isIndexesSequence(indexMap) ? sequenceIndexes : insertedIndexes);
     });
   }
 

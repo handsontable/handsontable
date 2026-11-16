@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed year 0000 in date and datetime cells showing the same text as year 0001. The display now adds the era, for example 01/01/1 BC.",
+  "type": "fixed",
+  "issueOrPR": 14216,
+  "breaking": false,
+  "framework": "none"
+}

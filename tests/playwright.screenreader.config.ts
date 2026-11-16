@@ -7,7 +7,7 @@ import base from './playwright.config';
  * Guidepup over the scenarios of `screenreader/scenarios/`, one Playwright project per screen reader
  * and browser, and writes a transcript per scenario (`tests/AGENTS.md`, "Screen readers: the NVDA
  * and VoiceOver lanes"). Report-only: a missing token group or a golden difference is a row in the job
- * summary and a neutral check run, never a red job.
+ * summary, never a red job; the check run follows the severity rule ("A11y: the verdict of a check run").
  *
  * A separate config, the way the a11y and engines configs are: the base config's project list is
  * pinned by `e2e/leg-declarations.spec.ts` and `.github/scripts/__tests__/e2e-legs.test.mjs`, and the

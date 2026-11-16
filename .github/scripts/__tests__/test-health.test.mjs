@@ -421,7 +421,7 @@ test('the ledger chains on the orchestrators and the visual nightly, takes a run
   // legs, where a spec that runs on an axis it did not declare first turns red, and the frozen Jasmine
   // suite on six, where a theme- or bundle-only red first shows (e2e-legs.test.mjs pins the workflow). `Visual seed`
   // must stay out – its differences are the merge's own.
-  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly'\]/);
+  assert.match(workflow, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly', 'Docs a11y'\]/);
   // The visual ticket line counts runs of this workflow by name, so the name must be the real one.
   assert.ok(workflow.includes(`'${VISUAL_NIGHTLY_WORKFLOW}'`));
   assert.match(readFileSync(path.join(repoRoot(), '.github/workflows/visual-nightly.yml'), 'utf8'),

@@ -1,0 +1,53 @@
+{
+  "schema": 1,
+  "id": "collapsible-headers",
+  "group": "structure",
+  "surface": "A collapsible column group: its header's expanded state, Enter collapsing and expanding it, and the columns that hide and come back.",
+  "page": "collapsible-headers",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"updateSettings": {"navigableHeaders": true}}, {"selectCell": [0, 1]}],
+  "steps": [
+    {
+      "id": "arrow-up-to-lower-header",
+      "action": {"press": "ArrowUp"},
+      "expect": [["b"], ["column header"]],
+      "note": "The page's grid has no navigable headers, so the setup turns them on: the keyboard path to a collapse is through the header. ArrowUp from B1 reaches the lower header of column B, `b`. Finding (known): VoiceOver says nothing on the first arrow key of the page in some runs. VoiceOver says no header role, as in grid-core: VoiceOver's behavior."
+    },
+    {
+      "id": "arrow-up-to-group",
+      "action": {"press": "ArrowUp"},
+      "expect": [["b"], ["expanded"]],
+      "note": "ArrowUp reaches the group header `B` over columns B to E, which is collapsible and expanded."
+    },
+    {
+      "id": "enter-collapse",
+      "action": {"press": "Enter"},
+      "expect": [["collapsed"]],
+      "note": "Enter collapses the group: columns C to E hide, and the header's state changes to collapsed."
+    },
+    {
+      "id": "arrow-right-after-collapse",
+      "action": {"press": "ArrowRight"},
+      "expect": [["f"]],
+      "note": "With the group collapsed, ArrowRight moves past the hidden columns to the next group, `F`."
+    },
+    {
+      "id": "arrow-left-back",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["b"], ["collapsed"]],
+      "note": "Back on the collapsed group."
+    },
+    {
+      "id": "enter-expand",
+      "action": {"press": "Enter"},
+      "expect": [["expanded"]],
+      "note": "Enter expands it again. Finding (the grid's): VoiceOver with WebKit says nothing when Enter expands the group, though it reads the collapse; the other three read `expanded`. A plain header put through the same redraw (its role and states set again, its colspan, and the group's columns removed and added back) reads `expanded` with WebKit too."
+    },
+    {
+      "id": "arrow-down-to-lower",
+      "action": {"press": "ArrowDown"},
+      "expect": [["b"]],
+      "note": "ArrowDown to the lower header of column B."
+    }
+  ]
+}

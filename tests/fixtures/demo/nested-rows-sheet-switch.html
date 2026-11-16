@@ -35,7 +35,9 @@
     DEV-3042: a two-sheet workbook with NestedRows on. A sheet switch runs `loadData()`, which
     drops the NestedRows collapsed state, so the bar has to carry each sheet's collapsed parents
     across the switch itself. The third sheet holds arrays, which NestedRows cannot handle, so it
-    turns itself off there and has to come back on with the next tree.
+    turns itself off there and has to come back on with the next tree. The two sheets declared
+    without data start blank: the first gets empty object rows, so NestedRows stays on, and the
+    second turns NestedRows off in its own settings, so it keeps the default blank grid.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -80,6 +82,13 @@
           {
             name: 'Flat',
             data: [['Row 1'], ['Row 2']],
+          },
+          {
+            name: 'Blank',
+          },
+          {
+            name: 'Blank flat',
+            settings: { nestedRows: false },
           },
         ],
       },

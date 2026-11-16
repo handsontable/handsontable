@@ -50,6 +50,8 @@ import {
 } from './sortService';
 import type { PositionComparatorFactory } from './sortService';
 import type { HotInstance } from '../../core/types';
+import type { CellChange } from '../../settings';
+import { getWaitingEditorSaveChangeSets } from '../../editors/baseEditor/editorSaveChangeSets';
 import { A11Y_SORT } from '../../helpers/a11y';
 import { LICENSE } from './feature.generated';
 
@@ -118,12 +120,26 @@ export interface HeaderSortPress {
   column: number;
   isCtrlPressed: boolean;
   /**
-   * Settles once the cell that was being edited at press time has finished validating, or `null`
-   * when nothing was being edited.
+   * Settles once the editor that was open at press time has stopped waiting for its validator and core has
+   * written or dropped every change set that waited for its validators at press time, read after each
+   * `postAfterValidate`, or `null` when nothing was waiting.
    */
   validation: Promise<void> | null;
-  /** Set when ManualColumnMove ran its move before this press was resolved. */
+  /**
+   * Set when ManualColumnMove ran its move before this press was resolved.
+   */
   consumedByMove: boolean;
+}
+
+/**
+ * The editor a header press waits for: its wait for its validator, and the `@private` listener of its finish,
+ * which a `BaseEditor` provides.
+ */
+interface EditorToWaitFor {
+  isWaiting(): boolean;
+  isOpened(): boolean;
+  _addFinishListener?(listener: () => void): void;
+  _removeFinishListener?(listener: () => void): void;
 }
 
 export interface SortConfig {
@@ -234,6 +250,19 @@ export class ColumnSorting extends BasePlugin {
    */
   #pendingHeaderSort: HeaderSortPress | null = null;
   /**
+   * Sorts of released header presses that wait for a mid-edit cell to finish validating, in press order. A wait
+   * runs its press only while the set still holds it, so turning the plugin off, a data load, and a column order
+   * reset drop them all, and a second press made during the wait keeps the first.
+   */
+  #awaitingHeaderSorts = new Set<HeaderSortPress>();
+  /**
+   * The `postAfterValidate` listener of each press that waits for the editor, removed when the wait
+   * settles or the press is dropped.
+   */
+  #editorWaitListeners: Map<HeaderSortPress, {
+    check: () => void, onFinish: () => void, editor: EditorToWaitFor | null,
+  }> = new Map();
+  /**
    * `true` from an `enablePlugin()` until the settings sort of that enable runs in the ready step.
    * `onDataReady()` sorts itself, so it clears it too.
    */
@@ -246,6 +275,21 @@ export class ColumnSorting extends BasePlugin {
    * @type {Function}
    */
   #syncIcon = createTrackedIconSync();
+  /**
+   * Whether the plugin has been on at least once, so a header can still hold its sort markup. Until
+   * then the header hook that clears the markup while the plugin is off has nothing to do.
+   *
+   * @type {boolean}
+   */
+  #mayHaveMarkedHeaders = false;
+  /**
+   * Whether the header hook clears the sort markup even while another sorting plugin is on. It is set
+   * when the plugin turns off and reset after the next view render: the plugin that turns on in the same
+   * update removes only the markup it drew itself, so this plugin clears its own once.
+   *
+   * @type {boolean}
+   */
+  #clearsUnderConflict = false;
   /**
    * Main settings key designed for the plugin.
    *
@@ -270,6 +314,19 @@ export class ColumnSorting extends BasePlugin {
    * @type {null|IndexesSequence}
    */
   #sortedRowOrder: IndexesSequence | null = null;
+
+  /**
+   * Registers the header hook that clears the sort markup while the plugin is off. It outlives every
+   * disable, because a header the plugin marked can be drawn again at any later render, also on another
+   * header level. `destroy()` removes it.
+   *
+   * @param {HotInstance} hotInstance The Handsontable instance.
+   */
+  constructor(hotInstance: HotInstance) {
+    super(hotInstance);
+
+    this.hot.addHook('afterGetColHeader', this.#onAfterGetColHeaderWhileDisabled);
+  }
 
   /**
    * Returns the value each column property an object setting sets takes when the object leaves it out: an
@@ -323,6 +380,8 @@ export class ColumnSorting extends BasePlugin {
 
     pluginConflictsState.set(this.hot, this.pluginKey);
 
+    this.#mayHaveMarkedHeaders = true;
+
     this.columnStatesManager = new ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
     this.columnMetaCache = this.hot.columnIndexMapper.createAndRegisterIndexMap(
       `${this.pluginKey}.columnMeta`,
@@ -366,32 +425,14 @@ export class ColumnSorting extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin(): void {
-    const clearColHeader = (column: number, TH: HTMLTableCellElement) => {
-      const headerSpanElement = getHeaderSpanElement(TH);
-
-      if (isFirstLevelColumnHeader(column, TH) === false || headerSpanElement === null) {
-        return;
-      }
-
-      this.updateHeaderClasses(headerSpanElement);
-      this.#syncIndicatorReserve(headerSpanElement);
-
-      const container = headerSpanElement.parentElement;
-
-      if (container) {
-        this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, null);
-      }
-    };
-
     if (pluginConflictsState.get(this.hot) === this.pluginKey) {
       pluginConflictsState.delete(this.hot);
     }
 
-    // Changing header width and removing indicator.
-    this.hot.addHook('afterGetColHeader', clearColHeader);
-    this.hot.addHookOnce('afterViewRender', () => {
-      this.hot.removeHook('afterGetColHeader', clearColHeader);
-    });
+    if (this.#mayHaveMarkedHeaders) {
+      this.#clearsUnderConflict = true;
+      this.hot.addHookOnce('afterViewRender', this.#onAfterViewRenderAfterDisable);
+    }
 
     this.hot.batchExecution(() => {
       if (this.indexesSequenceCache !== null) {
@@ -408,7 +449,7 @@ export class ColumnSorting extends BasePlugin {
     this.columnStatesManager?.destroy();
     this.columnMetaCache = null;
     this.columnStatesManager = null;
-    this.#pendingHeaderSort = null;
+    this.#dropHeaderSorts();
 
     this.unregisterShortcuts();
     super.disablePlugin();
@@ -1189,7 +1230,13 @@ export class ColumnSorting extends BasePlugin {
   #onAfterGetColHeader = (column: number, TH: HTMLTableCellElement) => {
     const headerSpanElement = getHeaderSpanElement(TH);
 
-    if (isFirstLevelColumnHeader(column, TH) === false || headerSpanElement === null) {
+    if (column < 0 || headerSpanElement === null) {
+      return;
+    }
+
+    if (isFirstLevelColumnHeader(column, TH) === false) {
+      this.#clearSortMarkup(headerSpanElement);
+
       return;
     }
 
@@ -1232,6 +1279,59 @@ export class ColumnSorting extends BasePlugin {
       setAttribute(TH, ...A11Y_SORT(currentSortState ? `${currentSortState}ending` : 'none'));
     }
   };
+
+  /**
+   * Callback for the `afterGetColHeader` hook while the plugin is off. Clears the sort markup a
+   * header keeps from the time the plugin was on. A header is reused between renders, and a
+   * `nestedHeaders` change moves the previous bottom level up, so every header level is cleared.
+   * Another sorting plugin that is on owns the same classes, so nothing is cleared then, except on the
+   * first render after this plugin turned off (`#clearsUnderConflict`).
+   *
+   * @param {number} column Visual column index.
+   * @param {HTMLTableCellElement} TH The header element.
+   */
+  #onAfterGetColHeaderWhileDisabled = (column: number, TH: HTMLTableCellElement) => {
+    if (!this.#mayHaveMarkedHeaders || this.enabled || column < 0) {
+      return;
+    }
+
+    if (pluginConflictsState.has(this.hot) && !this.#clearsUnderConflict) {
+      return;
+    }
+
+    const headerSpanElement = getHeaderSpanElement(TH);
+
+    if (headerSpanElement !== null) {
+      this.#clearSortMarkup(headerSpanElement);
+    }
+  };
+
+  /**
+   * Callback for the first `afterViewRender` hook after the plugin turns off. Ends the render in which
+   * the header hook clears the sort markup under another sorting plugin.
+   */
+  #onAfterViewRenderAfterDisable = () => {
+    this.#clearsUnderConflict = false;
+  };
+
+  /**
+   * Removes the sort classes, the indicator reserve, and the sort indicator from a header. The
+   * indicator is removed only from a header this instance drew it in (`#syncIcon` tracks them), so
+   * the clear must not be skipped when another sorting plugin's instance already removed the
+   * classes: the indicator that instance cannot see is this one's.
+   *
+   * @param {HTMLElement} headerSpanElement The header label element.
+   */
+  #clearSortMarkup(headerSpanElement: HTMLElement) {
+    this.updateHeaderClasses(headerSpanElement);
+    this.#syncIndicatorReserve(headerSpanElement);
+
+    const container = headerSpanElement.parentElement;
+
+    if (container) {
+      this.#syncIcon(this.hot, container, SORT_INDICATOR_SLOT_CLASS, null);
+    }
+  }
 
   /**
    * Update header classes.
@@ -1367,7 +1467,8 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Callback for the `afterLoadData` hook. Sorts the rows an `init` listener loads: that load replaces the rows
+   * Callback for the `afterLoadData` hook. Drops the header sorts waiting for a validator, because the presses
+   * were made on the rows the load replaced. Sorts the rows an `init` listener loads: that load replaces the rows
    * the ready step sorted, and it skips the load's own ready step pass. Only that load has a truthy
    * `initialLoad` while the view exists; the load made before the view and every load after init pass by.
    *
@@ -1375,6 +1476,8 @@ export class ColumnSorting extends BasePlugin {
    * @param {boolean|Array} initialLoad Whether the load is made during init.
    */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: unknown) => {
+    this.#dropAwaitingHeaderSorts();
+
     if (initialLoad && this.hot.view) {
       this.#loadOrSortBySettings();
     }
@@ -1434,7 +1537,7 @@ export class ColumnSorting extends BasePlugin {
     // Drop any press whose release never arrived - e.g. the window lost focus while the button
     // was held. Without this a stale press would resolve on the next unrelated release and sort
     // a column out of nowhere.
-    this.#pendingHeaderSort = null;
+    this.#dropPendingHeaderSort();
 
     if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
@@ -1474,23 +1577,37 @@ export class ColumnSorting extends BasePlugin {
     }
 
     const activeEditor = this.hot.getActiveEditor();
-    const awaitsValidation = !!(
-      activeEditor?.isOpened() &&
-      this.hot.getCellValidator(activeEditor.row!, activeEditor.col!)
-    );
-
-    this.#pendingHeaderSort = {
+    const press: HeaderSortPress = {
       column: coords.col,
       isCtrlPressed,
-      // Subscribed on press, not on release: selecting the column closes the editor and its
-      // validation runs in a microtask, so it is already over before mouse up. Reading
-      // `awaitsValidation` on release is wrong too - by then the new selection has opened an
-      // editor on the highlighted cell.
-      validation: awaitsValidation ? new Promise<void>((resolve) => {
-        this.hot.addHookOnce('postAfterValidate', () => resolve());
-      }) : null,
+      validation: null,
       consumedByMove: false,
     };
+
+    // Subscribed on press, not on release: selecting the column closes the editor and its
+    // validation runs in a microtask, so it is already over before mouse up. Reading
+    // the editor's state on release is wrong too - by then the new selection has opened an
+    // editor on the highlighted cell.
+    //
+    // The validator is read from the editor's cell meta, the cell its save validates: a
+    // `modifyGetCellCoords` listener can redirect the save away from the cell the editor was opened on.
+    //
+    // The editor saves core still holds unwritten are read from the grid, not from an editor: the press has
+    // already prepared the clicked column's editor, which can be another instance than the one that saved,
+    // and core applies a Ctrl+Enter fill only once every cell of it answered, after the edited cell's own
+    // answer closed the editor. A set that waits is written by visual row, so the sort waits for it. Only sets
+    // an editor save made count (marked at the save): an API write waits for nobody, as before, so its
+    // never-answering validator cannot block every later sort.
+    const editorToWaitFor = activeEditor?.isOpened() && this.hot.getCellValidator(activeEditor.cellProperties) ?
+      activeEditor : null;
+    const waitingSets = getWaitingEditorSaveChangeSets(this.hot);
+
+    if (editorToWaitFor !== null || waitingSets.length > 0) {
+      press.validation = this.#waitForEditor(press, editorToWaitFor, waitingSets);
+    }
+
+    this.#dropPendingHeaderSort();
+    this.#pendingHeaderSort = press;
   }
 
   /**
@@ -1527,6 +1644,8 @@ export class ColumnSorting extends BasePlugin {
     // last. Running first, the drag is still in progress; running second, the move has already
     // fired. Either one cancels the sort.
     if (pending.consumedByMove || this.#isColumnBeingDragged()) {
+      this.#stopWaitingForEditor(pending);
+
       return;
     }
 
@@ -1538,8 +1657,152 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    void pending.validation.then(() => this.applyHeaderClickSort(pending));
+    this.#awaitingHeaderSorts.add(pending);
+
+    void pending.validation.then(() => {
+      if (!this.#awaitingHeaderSorts.delete(pending)) {
+        return;
+      }
+
+      this.applyHeaderClickSort(pending);
+    });
+
+    this.#checkEditorWait(pending);
   };
+
+  /**
+   * Waits until the editor open at press time stops waiting for its validator, and core has written or
+   * dropped every change set an editor save made that waited for its validators at press time
+   * (`getWaitingEditorSaveChangeSets()`).
+   *
+   * The editor decides which answer is its own: the edited cell's, the first one among the cells a
+   * single-cell save validated when that never was the edited cell, or the first one of any cell when its
+   * save validated no cell yet. So the sort waits for that same answer, and an unrelated validation that
+   * answers first leaves the editor waiting and the rows where they are.
+   *
+   * The sets are read from the grid at press time, not from the editor: a Ctrl+Enter fill is written only
+   * once every cell of it answered, after the edited cell's answer ended the editor's wait, the press has
+   * already prepared the clicked column's editor (another instance when the editor class differs), and a
+   * later save must not make the sort forget a set. The sets are marked at the save, so the editor that is
+   * active at press time does not matter. An API write's set does not hold the sort, as before: a validator
+   * of one that never answers would block every later sort. A set leaves core's list before its last
+   * answer's `postAfterValidate`, so this listener sees it gone in that run. Sets made after the press do
+   * not hold the sort.
+   *
+   * The listener's `orderIndex` is the highest as a defensive measure, so an editor listener added after
+   * this one would still decide first. In the flows measured the editor is already done before
+   * `postAfterValidate` runs (core cancels or finishes it from the validation callback), or its listener
+   * was added first, so no test can tell the order apart. Matching the cell here instead would restate the
+   * editor's rules and drift from them.
+   *
+   * @param {HeaderSortPress} press The press that waits.
+   * @param {BaseEditor|null} editor The editor that was open at press time and validates, or `null`.
+   * @param {Array[]} waitingSets The editor saves' change sets core held unwritten at press time.
+   * @returns {Promise}
+   */
+  #waitForEditor(
+    press: HeaderSortPress, editor: EditorToWaitFor | null, waitingSets: CellChange[][]
+  ): Promise<void> {
+    let setsToWaitFor = waitingSets;
+    // An editor the press did not close (a `beforeOnCellMouseDown` that keeps the selection) is open and has
+    // not saved yet, so it does not wait and no set of its save exists: an unrelated validation that answers
+    // then must not end the wait. Its next finish (its save's answer, a rejection that reopens it, Escape, a
+    // veto) does. An editor without the finish listener cannot report that, so it is not held this way.
+    let isEditorUnsaved = !!editor && !editor.isWaiting() && typeof editor._addFinishListener === 'function';
+
+    return new Promise<void>((resolve) => {
+      const check = () => {
+        // An earlier `postAfterValidate` listener destroyed the grid; the plugin's destroy drops this wait.
+        if (!this.hot || this.hot.isDestroyed || editor?.isWaiting() || (isEditorUnsaved && editor?.isOpened())) {
+          return;
+        }
+
+        if (setsToWaitFor.length > 0) {
+          const stillWaiting = new Set(this.hot._getWaitingChangeSets().map(({ changes }) => changes));
+
+          setsToWaitFor = setsToWaitFor.filter(changes => stillWaiting.has(changes));
+
+          if (setsToWaitFor.length > 0) {
+            return;
+          }
+        }
+
+        this.#stopWaitingForEditor(press);
+        resolve();
+      };
+
+      const onFinish = () => {
+        isEditorUnsaved = false;
+        check();
+      };
+
+      this.#editorWaitListeners.set(press, { check, onFinish, editor });
+      this.hot.addHook('postAfterValidate', check, Number.MAX_SAFE_INTEGER);
+      // An edit can end with no validation at all (a `beforeChange` veto, Escape, a wait canceled without an
+      // answer), so the editor's finish checks the wait as well.
+      editor?._addFinishListener?.(onFinish);
+    });
+  }
+
+  /**
+   * Checks at once whether the wait of a press is over (the editor no longer waits and no change set of an
+   * editor save is pending), and resolves it then. The release calls it, so an edit that ended with no
+   * validation between the press and the release does not leave the sort queued. An editor the press found
+   * that is still open has not saved yet (the press did not close it), so the release leaves that wait to the
+   * editor's save or finish.
+   *
+   * @param {HeaderSortPress} press The press.
+   */
+  #checkEditorWait(press: HeaderSortPress): void {
+    const wait = this.#editorWaitListeners.get(press);
+
+    if (wait === undefined || wait.editor?.isOpened()) {
+      return;
+    }
+
+    wait.check();
+  }
+
+  /**
+   * Removes the `postAfterValidate` listener of a press that waits for the editor, if it has one.
+   *
+   * @param {HeaderSortPress} press The press.
+   */
+  #stopWaitingForEditor(press: HeaderSortPress): void {
+    const wait = this.#editorWaitListeners.get(press);
+
+    if (wait) {
+      this.#editorWaitListeners.delete(press);
+      this.hot.removeHook('postAfterValidate', wait.check);
+      wait.editor?._removeFinishListener?.(wait.onFinish);
+    }
+  }
+
+  /**
+   * Drops the queued press, and its wait for the editor.
+   */
+  #dropPendingHeaderSort(): void {
+    if (this.#pendingHeaderSort !== null) {
+      this.#stopWaitingForEditor(this.#pendingHeaderSort);
+      this.#pendingHeaderSort = null;
+    }
+  }
+
+  /**
+   * Drops every sort that waits for a validator, and their waits for the editor.
+   */
+  #dropAwaitingHeaderSorts(): void {
+    this.#awaitingHeaderSorts.forEach(press => this.#stopWaitingForEditor(press));
+    this.#awaitingHeaderSorts.clear();
+  }
+
+  /**
+   * Drops the queued press and every sort that waits for a validator.
+   */
+  #dropHeaderSorts(): void {
+    this.#dropPendingHeaderSort();
+    this.#dropAwaitingHeaderSorts();
+  }
 
   /**
    * Marks a queued press as spent once ManualColumnMove has moved the column.
@@ -1551,15 +1814,15 @@ export class ColumnSorting extends BasePlugin {
   };
 
   /**
-   * Drops a queued press when the column order starts over (`loadData()`, `updateSettings()` with `columns`,
-   * or new data with another column layout). The press names a column of the order it was made on, so the
-   * release would sort another column.
+   * Drops a queued press and a sort waiting for a validator when the column order starts over (`loadData()`,
+   * `updateSettings()` with `columns`, or new data with another column layout). The press names a column of the
+   * order it was made on, so the release would sort another column.
    *
    * @param {string} source The source of the sequence change.
    */
   #onAfterColumnSequenceChange = (source: string) => {
     if (source === 'init') {
-      this.#pendingHeaderSort = null;
+      this.#dropHeaderSorts();
     }
   };
 
@@ -1578,7 +1841,9 @@ export class ColumnSorting extends BasePlugin {
   destroy(): void {
     // `BasePlugin.destroy` nulls enumerable own properties, which cannot reach a `#private`
     // field, so drop the queued press here.
-    this.#pendingHeaderSort = null;
+    this.#dropHeaderSorts();
+
+    this.hot.removeHook('afterGetColHeader', this.#onAfterGetColHeaderWhileDisabled);
 
     // TODO: Probably not supported yet by ESLint: https://github.com/eslint/eslint/issues/11045
     // eslint-disable-next-line no-unused-expressions

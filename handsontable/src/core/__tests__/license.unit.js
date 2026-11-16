@@ -2,9 +2,13 @@ import { getLicenseState, getXlsxEntitlement } from '../license';
 import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../utils/xlsxEngine/xlsxEntitlement';
 import { buildTestKey } from '../../utils/entitlementLicenseKey/__tests__/buildTestKey';
 import { SUBSCRIPTION_KEY } from '../../utils/entitlementLicenseKey/__tests__/fixtures';
-import { keyWithAll } from '../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+import { resetTierKeys, tierKeyWith } from '../../utils/entitlementLicenseKey/__tests__/tierKeys';
 
-const standardPayload = {
+/**
+ * A key that lists feature ids and carries the retired `listed-capabilities` flag, but names no tier:
+ * it unlocks everything.
+ */
+const flaggedPayload = {
   products: {
     handsontable: {
       capabilities: ['core', 'xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'],
@@ -17,11 +21,22 @@ const standardPayload = {
 };
 const unflaggedPayload = {
   products: {
-    handsontable: { ...standardPayload.products.handsontable, flags: [] },
+    handsontable: { ...flaggedPayload.products.handsontable, flags: [] },
   },
 };
 
+/**
+ * The xlsx features the restricted test key unlocks.
+ *
+ * @type {string[]}
+ */
+const RESTRICTED_XLSX_FEATURES = ['xlsx:import', 'xlsx:export', 'xlsx:formulas', 'xlsx:layout'];
+
 describe('core/license', () => {
+  afterEach(() => {
+    resetTierKeys();
+  });
+
   it('resolves the descriptor once per instance', () => {
     const hot = { getSettings: () => ({ licenseKey: SUBSCRIPTION_KEY }) };
 
@@ -30,41 +45,41 @@ describe('core/license', () => {
   });
 
   it('keeps instances apart', () => {
-    const standard = { getSettings: () => ({ licenseKey: buildTestKey(standardPayload) }) };
+    const restricted = { getSettings: () => ({ licenseKey: tierKeyWith(RESTRICTED_XLSX_FEATURES) }) };
     // An invalid key (the non-commercial key is one since 19.0) restricts nothing.
     const invalid = { getSettings: () => ({ licenseKey: 'non-commercial-and-evaluation' }) };
 
-    expect(getXlsxEntitlement(standard).styles).toBe(false);
+    expect(getXlsxEntitlement(restricted).styles).toBe(false);
     expect(getXlsxEntitlement(invalid)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
   });
 
-  it('reads the listed-capabilities flag from the key', () => {
-    const unflagged = { getSettings: () => ({ licenseKey: buildTestKey(unflaggedPayload) }) };
+  it('ignores the retired listed-capabilities flag and the ids a key lists without a tier', () => {
+    const flagged = { getSettings: () => ({ licenseKey: buildTestKey(flaggedPayload) }) };
 
-    expect(getXlsxEntitlement(unflagged)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
+    expect(getXlsxEntitlement(flagged)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
   });
 
-  it('trims the key before reading the flag, as the license state does', () => {
-    const padded = { getSettings: () => ({ licenseKey: `  ${buildTestKey(standardPayload)}\n` }) };
+  it('trims the key before reading it, as the license state does', () => {
+    const padded = { getSettings: () => ({ licenseKey: `  ${tierKeyWith(RESTRICTED_XLSX_FEATURES)}\n` }) };
 
     expect(getXlsxEntitlement(padded).styles).toBe(false);
     expect(getXlsxEntitlement(padded).import).toBe(true);
   });
 
   it('follows a key passed later, so the entitlement and the license state read the current key', () => {
-    const standardKey = buildTestKey(standardPayload);
-    const allKey = keyWithAll();
-    const settings = { licenseKey: standardKey };
+    const restrictedKey = tierKeyWith(RESTRICTED_XLSX_FEATURES);
+    const allKey = buildTestKey(flaggedPayload);
+    const settings = { licenseKey: restrictedKey };
     const hot = { getSettings: () => settings };
 
     expect(getXlsxEntitlement(hot).styles).toBe(false);
-    expect(getLicenseState(hot).grants.unrestricted).toBe(false);
+    expect(getLicenseState(hot).tiers).not.toBe(null);
 
     settings.licenseKey = allKey;
 
     expect(getXlsxEntitlement(hot)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
 
-    settings.licenseKey = standardKey;
+    settings.licenseKey = restrictedKey;
 
     expect(getXlsxEntitlement(hot).styles).toBe(false);
     expect(getXlsxEntitlement(hot).import).toBe(true);
@@ -72,11 +87,11 @@ describe('core/license', () => {
     settings.licenseKey = buildTestKey(unflaggedPayload);
 
     expect(getXlsxEntitlement(hot)).toBe(UNRESTRICTED_XLSX_ENTITLEMENT);
-    expect(getLicenseState(hot).grants.unrestricted).toBe(true);
+    expect(getLicenseState(hot).tiers).toBe(null);
   });
 
   it('reads a key that is not a string as unrestricted', () => {
-    const settings = { licenseKey: buildTestKey(standardPayload) };
+    const settings = { licenseKey: tierKeyWith(RESTRICTED_XLSX_FEATURES) };
     const hot = { getSettings: () => settings };
 
     expect(getXlsxEntitlement(hot).styles).toBe(false);
@@ -87,7 +102,7 @@ describe('core/license', () => {
   });
 
   it('shares one entitlement between instances with the same key', () => {
-    const key = buildTestKey(standardPayload);
+    const key = tierKeyWith(RESTRICTED_XLSX_FEATURES);
     const first = { getSettings: () => ({ licenseKey: key }) };
     const second = { getSettings: () => ({ licenseKey: key }) };
 

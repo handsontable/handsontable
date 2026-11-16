@@ -30,13 +30,16 @@ export const ACCESSIBILITY_DATA_FILE = resolve(__dirname, '../../content/data/ac
 
 /**
  * How a matrix entry was tested, and the label each value renders as. `audit` renders with the
- * auditor and the period from `report.audit`, so its label here is a template.
+ * auditor and the period from `report.audit`, so its label here is a template. `automated-nightly`
+ * keeps its key (the data file and its consumers read it) and renders as an automated run: the screen
+ * reader workflow runs on a dispatch, not a schedule, so the public text claims no nightly
+ * (`tests/AGENTS.md`, "A11y: the audit and the proof runs").
  *
  * @type {Record<string, string>}
  */
 export const HOW_TESTED = {
   audit: 'External audit ({auditor}, {period})',
-  'automated-nightly': 'Automated nightly run',
+  'automated-nightly': 'Automated run',
   'manual-per-major': 'Manual check once per major release',
   'not-tested': 'Not tested',
 };
@@ -156,6 +159,24 @@ export function validateAccessibilityData(data) {
           errors.push(`matrix[${i}].browsers must be a non-empty array of non-empty strings when present`);
         } else if (notTested) {
           errors.push(`matrix[${i}].browsers names browsers for an entry that was not tested`);
+        }
+      }
+
+      // Optional, on an automated run's entry only, and always together: how many screen reader
+      // scenarios the run reads (`scenarios`) and the reader primitives it cannot drive (`unsupported`,
+      // empty when it drives them all), so the report states what the run actually covered. The tooling
+      // test of the scenarios (tests/lib/__tests__/screenreader-coverage.test.mjs) keeps both equal to the
+      // committed scenario set.
+      if (entry.scenarios !== undefined || entry.unsupported !== undefined) {
+        if (!Array.isArray(entry.howTested) || !entry.howTested.includes('automated-nightly')) {
+          errors.push(`matrix[${i}].scenarios and unsupported describe an automated run, and this entry has none`);
+        }
+        if (!Number.isInteger(entry.scenarios) || entry.scenarios < 1) {
+          errors.push(`matrix[${i}].scenarios must be a positive integer, with unsupported beside it`);
+        }
+        if (!Array.isArray(entry.unsupported)
+          || entry.unsupported.some(primitive => typeof primitive !== 'string' || primitive === '')) {
+          errors.push(`matrix[${i}].unsupported must be an array of primitive names (empty when none), with scenarios beside it`);
         }
       }
     });

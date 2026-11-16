@@ -107,7 +107,7 @@ For all the ways to size a grid, see [Grid size](@/guides/getting-started/grid-s
 
 A grid that builds its theme with the Theme API adds its own `<style>` element with that theme, about 45 KB. A grid does that when you pass a theme object in [`theme`](@/api/options.md#theme), or when it has no theme set at all: no `theme`, no [`themeName`](@/api/options.md#themename), and no `ht-theme-*` class on its container. With 100 grids, that is about 4.5 MB of CSS. The core styles are different: Handsontable adds them once for the page, however many grids it has.
 
-On a page with many grids, load the theme's CSS files once and give each grid the theme's name, for example `themeName: 'ht-theme-main'`. Each grid then adds no styles of its own. In a test with 20 grids, this cut the setup time from about 5.6 ms to about 2 ms per grid. If your page loads the core CSS file too, also set [`injectCoreCss: false`](@/api/options.md#injectcorecss). To change colors and sizes, use the `--ht-*` CSS variables.
+On a page with many grids, load the theme's CSS files once and give each grid the theme's name, for example `themeName: 'ht-theme-main'`. Each grid then adds no styles of its own. If your page loads the core CSS file too, also set [`injectCoreCss: false`](@/api/options.md#injectcorecss). To change colors and sizes, use the `--ht-*` CSS variables.
 
 For how to load the CSS files, see [Themes: Using CSS files](@/guides/styling/themes/themes.md#option-2-using-css-files).
 
@@ -285,12 +285,12 @@ To change which columns a grid shows, update the existing grid instead of creati
 - Hide the columns you don't need, with the [`HiddenColumns`](@/guides/columns/column-hiding/column-hiding.md) plugin.
 - Pass a new [`columns`](@/api/options.md#columns) array.
 
-Both cost about the same. How much faster they are than recreating the grid depends on the rendering options and the column widths. In a test with fixed column widths and the default rendering options, they were 2 to 3 times faster in JavaScript and about 1.5 times faster in React. With `renderAllColumns` or a large rendering offset, the gap almost disappeared. In React, updating in place also keeps the cell components of component renderers mounted, while recreating the grid mounts every one of them again.
+Hiding columns is usually a little cheaper. A new `columns` array makes the `AutoColumnSize` plugin measure the visible columns again, so it costs more when the column widths are automatic. Set [`colWidths`](@/api/options.md#colwidths) and the two cost about the same. Updating in place skips the cost of creating the grid, so it is usually faster than recreating it. The gain shrinks as the grid renders more cells. With [`renderAllColumns`](@/api/options.md#renderallcolumns) and a large [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset), the gain in JavaScript can be small, and in React a new `columns` array can even be slower than recreating the grid. Measure it with your own settings. In React, updating in place also keeps the cell components of component renderers mounted, while recreating the grid mounts every one of them again.
 
 The two differ in what they keep:
 
 - Hidden columns stay part of the grid. They are still in [`getData()`](@/api/core.md#getdata), they are copied to the clipboard by default, and their validators still run. Sorting, filters, and the columns that users moved or resized stay as they are.
-- A new `columns` array removes the other columns from `getData()` and from copied data. It also resets sorting, filters, and the columns that users moved, hid, or resized, apart from what the plugin options declare. To keep that state, hide columns instead.
+- A new `columns` array removes the other columns from `getData()` and from copied data. It also resets sorting, filters, and the rows and columns that users moved, hid, or resized. The `hiddenColumns` option applies again, but a sort that `initialConfig` declares does not. If the update also carries `data`, as every update from the React and Angular wrappers does, only the column state resets (sorting, order, hiding, and width), and only when the columns changed. The rows keep their order, hiding, and trimming. A new array with the same columns, or with columns added or removed at the end, keeps the column state. To keep that state in every case, hide columns instead.
 
 If you pass a new `columns` array, give each column its header in its own [`title`](@/api/options.md#title). A [`colHeaders`](@/api/options.md#colheaders) array is matched to the columns by position, so after you remove a column, the headers no longer match the columns below them.
 

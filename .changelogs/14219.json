@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed row headers that were shorter than their rows when `autoRowSize` met a merged cell whose first row or column is hidden.",
+  "type": "fixed",
+  "issueOrPR": 14219,
+  "breaking": false,
+  "framework": "none"
+}

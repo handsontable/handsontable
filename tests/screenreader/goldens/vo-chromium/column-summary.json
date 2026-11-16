@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "column-summary",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T14:08:44.241Z"
+  },
+  "steps": {
+    "arrow-down-data-row": "",
+    "arrow-down-summary-cell": "a 10 column 1 row 10 100 e",
+    "enter-on-read-only-summary": "",
+    "arrow-right-editable-summary": "b 100 column 2 row 10 100 e",
+    "arrow-up-source-cell": "b 40 column 2 row 4 40 d",
+    "open-editor": "text entry area 40 insertion at end of text",
+    "select-all": "",
+    "type-new-value": "0 50",
+    "commit-to-summary": "b 110 column 2 row 10 110 e"
+  }
+}

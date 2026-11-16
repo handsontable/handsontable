@@ -185,3 +185,91 @@ test('undoes and redoes a context-menu child detach as one action', async({ page
   ]);
   expect(nestedRows.pageErrors).toEqual([]);
 });
+
+/**
+ * DEV-3967: inserting a child into a parent below the top level must change that parent only. The
+ * fixture's nested parent (`Child 13`, row 14) sits at a flattened row that is also a valid top-level
+ * position, which is where the insert used to copy its `__children` to the last top-level row.
+ */
+test('inserting a child into a nested parent leaves the other rows alone, and undo restores the grid', async({
+  page, theme, bundle,
+}) => {
+  const nestedRows = new NestedRowsUndoPage(page, theme, bundle);
+
+  await nestedRows.goto();
+  await nestedRows.addChildAtIndex(14, 0, 'NEW');
+
+  const insertedState = await nestedRows.state();
+
+  expect(insertedState.error).toBeUndefined();
+  expect(insertedState.visibleNames).toEqual([
+    ...EXPECTED_NAMES.slice(0, 15),
+    'NEW',
+    ...EXPECTED_NAMES.slice(15),
+  ]);
+  expect(insertedState.sourceData).toEqual([
+    ...Array.from({ length: 13 }, (_, index) => ({ name: `Leaf ${index}` })),
+    {
+      name: 'Parent 13',
+      __children: [{
+        name: 'Child 13',
+        __children: [{ name: 'NEW' }, { name: 'Grandchild 13' }],
+      }],
+    },
+    { name: 'After 13' },
+  ]);
+
+  await nestedRows.undoViaPlugin();
+
+  const undoneState = await nestedRows.state();
+
+  expect(undoneState.countRows).toBe(EXPECTED_NAMES.length);
+  expect(undoneState.visibleNames).toEqual(EXPECTED_NAMES);
+  expect(undoneState.sourceData).toEqual([
+    ...Array.from({ length: 13 }, (_, index) => ({ name: `Leaf ${index}` })),
+    {
+      name: 'Parent 13',
+      __children: [{
+        name: 'Child 13',
+        __children: [{ name: 'Grandchild 13' }],
+      }],
+    },
+    { name: 'After 13' },
+  ]);
+  expect(nestedRows.pageErrors).toEqual([]);
+});
+
+/**
+ * DEV-3967: "Insert row above" on the only child of a nested parent reaches `addChildAtIndex()` through
+ * `addSibling()`, so the context menu must not touch any other row's children either.
+ */
+test('inserting a row above a grandchild leaves the last top-level row alone, and undo restores the grid', async({
+  page, theme, bundle,
+}) => {
+  const nestedRows = new NestedRowsUndoPage(page, theme, bundle);
+
+  await nestedRows.goto();
+  await nestedRows.insertRowAboveViaContextMenu(15);
+
+  const insertedState = await nestedRows.state();
+
+  expect(insertedState.error).toBeUndefined();
+  expect(insertedState.countRows).toBe(EXPECTED_NAMES.length + 1);
+  expect(insertedState.sourceData?.at(-1)).toEqual({ name: 'After 13' });
+  expect(insertedState.sourceData?.at(-2)).toMatchObject({
+    name: 'Parent 13',
+    __children: [{
+      name: 'Child 13',
+      __children: [{ name: null }, { name: 'Grandchild 13' }],
+    }],
+  });
+
+  await nestedRows.undoViaPlugin();
+
+  const undoneState = await nestedRows.state();
+
+  expect(undoneState.countRows).toBe(EXPECTED_NAMES.length);
+  expect(undoneState.visibleNames).toEqual(EXPECTED_NAMES);
+  expect(undoneState.sourceData?.at(-1)).toEqual({ name: 'After 13' });
+  expect(nestedRows.pageErrors).toEqual([]);
+});

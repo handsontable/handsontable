@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, ComponentRef, CUSTOM_ELEMENTS_SCHEMA, NgZone, SimpleChange } from '@angular/core';
 import Handsontable from 'handsontable/base';
-import { registerPlugin, SheetsBar } from 'handsontable/plugins';
+import { Formulas, registerPlugin, SheetsBar } from 'handsontable/plugins';
+import { HyperFormula } from 'hyperformula';
 import { HotTableModule } from './hot-table.module';
 import { HotTableComponent } from './hot-table.component';
 import { HotCellRendererComponent } from './renderer/hot-cell-renderer.component';
@@ -10,6 +11,7 @@ import { GridSettings } from './models/grid-settings';
 import { TEST_LICENSE_KEY } from './test-helpers/license-key';
 
 registerPlugin(SheetsBar);
+registerPlugin(Formulas);
 
 /**
  * A renderer component a sheet declares in its own `settings`.
@@ -842,6 +844,41 @@ describe('HotTableComponent with a sheets bar', () => {
       subscription.unsubscribe();
 
       expect(turns).toBe(0);
+    });
+  });
+
+  describe('a `sheetsBar: true` grid on a formula engine', () => {
+    it('should show a tab per engine sheet and keep a renamed tab when the `settings` input changes', () => {
+      const hf = HyperFormula.buildFromSheets({
+        Data: [[1, 2]],
+        Report: [['=SUM(Data!A1:B1)']],
+      }, { licenseKey: 'internal-use-in-handsontable' });
+      const settings = () => ({
+        licenseKey: TEST_LICENSE_KEY,
+        formulas: { engine: hf },
+        sheetsBar: true,
+      });
+
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = settings();
+      fixture.detectChanges();
+
+      const component = fixture.componentInstance;
+      const plugin = sheetsBarOf(component.hotInstance);
+
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['Data', 'Report']);
+
+      const ids = plugin.getSheets().map(sheet => sheet.id);
+
+      plugin.renameSheet(ids[1], 'Totals');
+
+      const next = settings();
+
+      component.settings = next;
+      component.ngOnChanges({ settings: new SimpleChange(null, next, false) });
+
+      expect(plugin.getSheets().map(sheet => sheet.name)).toEqual(['Data', 'Totals']);
+      expect(plugin.getSheets().map(sheet => sheet.id)).toEqual(ids);
     });
   });
 

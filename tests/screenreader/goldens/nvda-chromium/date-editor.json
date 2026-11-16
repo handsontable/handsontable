@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "date-editor",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T14:21:27.053Z"
+  },
+  "steps": {
+    "open-editor": "date edit month spin button 06",
+    "type-date": "01 year spin button 2020",
+    "commit-date": "year spin button 2024",
+    "back-to-committed": "1 slash 1 slash 20 start row 2 event column 3",
+    "reopen-editor": "date edit month spin button 01",
+    "cancel-edit": ""
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "handsontable-editor",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T14:19:39.251Z"
+  },
+  "steps": {
+    "open-editor": "al",
+    "arrow-down-first": "",
+    "arrow-down-second": "",
+    "arrow-down-third": "",
+    "commit-row": "a al",
+    "back-to-committed": "a alto"
+  }
+}

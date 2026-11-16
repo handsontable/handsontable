@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "scenario": "filters-by-condition",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T10:09:24.866Z"
+  },
+  "steps": {
+    "open-menu": "table clear column row 6 column 1 menu",
+    "tab-to-condition": "list",
+    "open-conditions": "table none row 1 column 1 menu",
+    "arrow-down-is-empty": "table is empty row 3",
+    "arrow-down-is-not-empty": "is not empty row 4",
+    "arrow-down-is-equal-to": "is equal to row 6",
+    "choose-condition": "list value edit has auto complete blank",
+    "type-value": "",
+    "shift-tab-to-select": "list",
+    "shift-tab-to-menu": "clear column row 6 column 1",
+    "shift-tab-to-cancel": "cancel button",
+    "shift-tab-to-ok": "ok button",
+    "apply-filter": "table 1890 price row 2 column 4"
+  }
+}

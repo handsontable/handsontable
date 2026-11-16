@@ -3,9 +3,17 @@ import { throwWithCause } from '../helpers/errors';
 import { rangeEach } from './../helpers/number';
 import { stringify } from './../helpers/mixed';
 
-type DataFactoryResult = false | { value: unknown; bundleSeed?: string };
+/**
+ * A merged block that a sampled value belongs to, when the sampled cell is not the block's top-left cell: the
+ * block's top-left cell, and the number of columns it spans from the sampled cell on.
+ */
+type SampleBlock = { row: number; col: number; colspan: number };
+type DataFactoryResult = false | { value: unknown; bundleSeed?: string; block?: SampleBlock };
 type DataFactory = (row: number, col: number, instance: SamplesGenerator) => DataFactoryResult;
-type SampleEntry = { needed: number; strings: Array<{ value: unknown; col?: number; row?: number }> };
+type SampleEntry = {
+  needed: number;
+  strings: Array<{ value: unknown; col?: number; row?: number; block?: SampleBlock }>;
+};
 type SampleRange = { from: number; to: number } | number[];
 type SamplingOptions = { samplingRatio: unknown; allowDuplicates: boolean };
 
@@ -213,7 +221,7 @@ class SamplesGenerator {
         return;
       }
 
-      this.#collectSample(samples, sampledValues, computedKey, index, data.value, data.bundleSeed);
+      this.#collectSample(samples, sampledValues, computedKey, index, data.value, data.bundleSeed, data.block);
     };
 
     if (Array.isArray(range)) {
@@ -243,7 +251,7 @@ class SamplesGenerator {
     const sampledValues: unknown[] = [];
 
     entries.forEach(({ index, value }) => {
-      this.#collectSample(samples, sampledValues, computedKey, index, value, undefined);
+      this.#collectSample(samples, sampledValues, computedKey, index, value, undefined, undefined);
     });
 
     return samples;
@@ -270,6 +278,8 @@ class SamplesGenerator {
    * @param {number} index The opposite-axis index the value belongs to.
    * @param {*} value The value to bucket.
    * @param {string|undefined} bundleSeed A custom bucket seed provided by the data factory.
+   * @param {object|undefined} block The merged block the value belongs to, from the data factory. Kept on the
+   * sample string when the sampled cell is a covered one that the block is drawn on, which cannot say it.
    */
   #collectSample(
     samples: Map<string, SampleEntry>,
@@ -277,7 +287,8 @@ class SamplesGenerator {
     computedKey: string,
     index: number,
     value: unknown,
-    bundleSeed: string | undefined
+    bundleSeed: string | undefined,
+    block: SampleBlock | undefined
   ) {
     const customBundleSeed = typeof bundleSeed === 'string' && bundleSeed.length > 0 ? bundleSeed : null;
     const hasCustomBundleSeed = customBundleSeed !== null;
@@ -308,9 +319,20 @@ class SamplesGenerator {
       const duplicate = sampledValues.indexOf(value) > -1;
 
       if (!duplicate || this.allowDuplicates || hasCustomBundleSeed) {
-        sample.strings.push({ value, [computedKey]: index });
-        sampledValues.push(value);
+        const sampleString: SampleEntry['strings'][number] = { value, [computedKey]: index };
+
+        if (block !== undefined) {
+          sampleString.block = block;
+        }
+
+        sample.strings.push(sampleString);
         sample.needed -= 1;
+
+        // A block's text has a bucket of its own and is not a value of the row's cells: listed as sampled, it
+        // would make a cell beside it with the same text a duplicate and leave that cell out.
+        if (block === undefined) {
+          sampledValues.push(value);
+        }
       }
     }
   }

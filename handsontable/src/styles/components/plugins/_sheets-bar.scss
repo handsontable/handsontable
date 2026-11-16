@@ -468,11 +468,9 @@ $all-sheets-visible-items: 8;
         border: none;
         background: transparent;
         color: inherit;
-        font-size: inherit;
-        line-height: inherit;
-        font-weight: inherit;
-        letter-spacing: inherit;
-        font-family: inherit;
+
+        @include mixins.inherit-text-metrics;
+
         cursor: pointer;
         padding: 0;
         margin: 0;
@@ -564,11 +562,8 @@ $all-sheets-visible-items: 8;
       // The input is a transparent window into the tab's own surface — every visual belongs to
       // the tab above, so the field spans the full tab however wide the typed name grows.
       .ht-sheets-bar__tab-rename {
-        font-size: inherit;
-        line-height: inherit;
-        font-weight: inherit;
-        letter-spacing: inherit;
-        font-family: inherit;
+        @include mixins.inherit-text-metrics;
+
         color: inherit;
         background: transparent;
         user-select: text;
@@ -600,11 +595,9 @@ $all-sheets-visible-items: 8;
         visibility: hidden;
         pointer-events: none;
         white-space: pre;
-        font-size: inherit;
-        line-height: inherit;
-        font-weight: inherit;
-        letter-spacing: inherit;
-        font-family: inherit;
+
+        @include mixins.inherit-text-metrics;
+
         padding: 0;
         margin: 0;
         border: none;

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "grid-core-single-tab-stop",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-03T19:29:13.977Z"
+  },
+  "steps": {
+    "tab-out-forward": "",
+    "shift-tab-back-in": "age 28",
+    "arrow-left": "name bruno",
+    "tab-out-backward": "before the grid button",
+    "tab-back-in": "name bruno table 4 columns"
+  }
+}

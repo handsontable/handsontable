@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the column headers, the pagination bar, and the Filters menu growing when the host page styles bare `span` or `input` elements.",
+  "type": "fixed",
+  "issueOrPR": 14220,
+  "breaking": false,
+  "framework": "none"
+}

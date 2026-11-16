@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "multiselect-editor",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T14:20:42.257Z"
+  },
+  "steps": {
+    "open-editor": "search options search search options edit text",
+    "arrow-down-first": "alpha checked checkbox select options group",
+    "arrow-down-second": "alfa unchecked checkbox select options group",
+    "space-check": "checked alfa checkbox",
+    "arrow-down-third": "",
+    "commit-selection": "cell dropdown arrow fixture web content",
+    "back-to-committed": "a alpha alfa table 3 columns"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "data-provider-sheets-bar",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T13:51:53.062Z"
+  },
+  "steps": {
+    "tab-loading-overlay": "loading data please wait section busy",
+    "tab-add-sheet": "add sheet button",
+    "tab-all-sheets": "all sheets menu button collapsed sub menu",
+    "tab-active-sheet": "sheets grouping orders menu button collapsed sub menu current",
+    "end-last-sheet": "customers button",
+    "enter-switch-sheet": "collapsed sub menu current sheet customers activated",
+    "server-fails": "alert could not load data cus failed refetch button close button",
+    "f6-refetch": "alert could not load data cus failed refetch button",
+    "enter-refetch": "sheets grouping customers menu button collapsed sub menu current",
+    "server-answers": "customers table cus 01 id row 2 column 2 page 1 of 5"
+  }
+}

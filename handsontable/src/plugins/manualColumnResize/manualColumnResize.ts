@@ -1,6 +1,5 @@
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
-import { deprecatedWarnOnce } from '../../helpers/console';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { COLUMN_RESIZE_AXIS } from '../../utils/manualResize/axis';
 import { ResizeGesture } from '../../utils/manualResize/resizeGesture';
@@ -202,35 +201,6 @@ export class ManualColumnResize extends BasePlugin {
     this.#config = this.#columnWidthsMap.getValues();
     this.hot.columnIndexMapper.unregisterMap(this.pluginName!);
     super.disablePlugin();
-  }
-
-  /**
-   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op.
-   *
-   * @deprecated Since 18.0.0. The `PersistentState` plugin was removed in 17.0.0, so this method
-   * does nothing. It will be removed in 19.0.0. Persist column widths yourself with
-   * the `afterColumnResize` hook and the `manualColumnResize` option.
-   */
-  saveManualColumnWidths(): void {
-    deprecatedWarnOnce('ManualColumnResize.saveManualColumnWidths',
-      '`saveManualColumnWidths()` is deprecated and will be removed in Handsontable 19.0.0. ' +
-      'The PersistentState plugin has been removed.');
-  }
-
-  /**
-   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op.
-   *
-   * @deprecated Since 18.0.0. The `PersistentState` plugin was removed in 17.0.0, so this method
-   * returns an empty array. It will be removed in 19.0.0. Restore column widths yourself
-   * by passing an array to the `manualColumnResize` option.
-   * @returns {Array}
-   */
-  loadManualColumnWidths(): Array<number | null> {
-    deprecatedWarnOnce('ManualColumnResize.loadManualColumnWidths',
-      '`loadManualColumnWidths()` is deprecated and will be removed in Handsontable 19.0.0. ' +
-      'The PersistentState plugin has been removed.');
-
-    return [];
   }
 
   /**

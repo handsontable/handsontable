@@ -842,7 +842,7 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   re-imports) `background-color:<hex>` alone, with no leading `color:`.
 - **`layoutDirection` is init-only, so the import reports it instead of applying it.** `core.ts:545`
   resolves it from the merged user settings while the instance is built and `isRtl()` closes over the
-  result; `metaSchema.ts` documents that a later `updateSettings` is ignored. `mapLayout` therefore puts
+  result; `metaSchema.ts` documents that a later `updateSettings` throws. `mapLayout` therefore puts
   `'rtl'`/`'ltr'` on `result.layoutDirection` under `importLayout`, `applier.ts#toSettings` deliberately
   keeps it out of the carried-keys list, and `importFile.ts#recordLayoutDirectionMismatch` records
   `layoutDirection` in `dropped` when the sheet and the target grid disagree - before `dropped.warn()`,
@@ -894,14 +894,15 @@ The plugin only exposes it. The rules and traps live in `../../utils/columnTypeI
 
 ## The license check: every public method that does work
 
-The plugin is on unless `importFile: false`, so a license key that lists its features is checked when it is
+The plugin is on unless `importFile: false`, so a license key that names tiers is checked when it is
 used, not at enable (`gate: 'call'` in `feature.json`). `inferColumnTypes()`, `convertToInferredTypes()`,
 `importFromArrayBuffer()` and `importFromBlob()` call `assertLicensedCall(this.hot, LICENSE)` first, before
 `#assertEnabled()`: a key that does not cover `feat:import_file` writes the license message and throws it (the
 async methods reject). `supportsImportFormat()` writes no message, but for `'xlsx'` it reads the same token with
 `hasLicenseCapability(this.hot, LICENSE.capability)` before the `xlsx:import` entitlement, so it answers `false`
-whenever an xlsx import would throw, for either token. Pinned by "on a key that lists its features" in
-`__tests__/importFile.unit.js`, which builds keys without `feat:all` and registers the fake grid as a root instance
+whenever an xlsx import would throw, for either token. Pinned by "on a key that unlocks only the features it names" in
+`__tests__/importFile.unit.js`, which builds its keys with `tierKeyWith()` (a made-up tier that includes only the
+given ids) and registers the fake grid as a root instance
 (`registerAsRootInstance`), because a non-root grid is never checked. The SheetsBar calls only the `_`-prefixed members,
 which are not checked. The import asks Formulas, Comments and CustomBorders whether they RUN (`.enabled`),
 never whether their option is on: a plugin a license key keeps off keeps its option, and an import that read the

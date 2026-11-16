@@ -42,6 +42,58 @@ export function getEditorAnchorHeight(rowspan: number, cellHeight: number): numb
 }
 
 /**
+ * Get how far the top edge of the active selection border reaches above a cell's own top edge.
+ *
+ * The border is drawn around the active highlight, `0` to a pixel outside the cell's box: the border moves back onto
+ * the cell's top edge under a column header, on a cell that draws its own top border, and under an overlay. Reading
+ * the drawn border instead of repeating those conditions keeps the editor flush with what the user sees. It answers
+ * `0` when the cell is not the active highlight (a comment opened by a hover, or a selection elsewhere).
+ *
+ * @param {HTMLTableCellElement} TD The rendered table cell the editor is anchored to.
+ * @param {number} maxOverhang The most, in pixels, the answer can be.
+ * @returns {number} The gap in pixels, from `0` to `maxOverhang`.
+ */
+export function getSelectionBorderOverhang(TD: HTMLTableCellElement, maxOverhang: number): number {
+  // The borders of a table sit in one holder, next to its `table` in the spreader. The focus highlight is the
+  // only `current` border, and its corner handle is not part of its edge.
+  const edges = TD.closest('.wtSpreader')
+    ?.querySelector(':scope > .htBorders')
+    ?.querySelectorAll('.wtBorder.current:not(.corner)');
+
+  if (!edges || edges.length === 0) {
+    return 0;
+  }
+
+  let left = Infinity;
+  let top = Infinity;
+  let right = -Infinity;
+  let bottom = -Infinity;
+
+  edges.forEach((edge) => {
+    const rect = edge.getBoundingClientRect();
+
+    // A hidden edge has no box.
+    if (rect.width > 0 && rect.height > 0) {
+      left = Math.min(left, rect.left);
+      top = Math.min(top, rect.top);
+      right = Math.max(right, rect.right);
+      bottom = Math.max(bottom, rect.bottom);
+    }
+  });
+
+  const cell = TD.getBoundingClientRect();
+  const centerX = cell.left + (cell.width / 2);
+  const centerY = cell.top + (cell.height / 2);
+
+  // The border of another cell (or of none) is not this cell's.
+  if (centerX < left || centerX > right || centerY < top || centerY > bottom) {
+    return 0;
+  }
+
+  return Math.min(Math.max(cell.top - top, 0), maxOverhang);
+}
+
+/**
  * The cell meta fields the comment menu items read.
  */
 export type CommentCellMeta = { [META_COMMENT]?: CommentObject; hidden?: boolean };

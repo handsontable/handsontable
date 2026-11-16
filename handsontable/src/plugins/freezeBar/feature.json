@@ -9,7 +9,11 @@
       "description": "Adds bars the user drags to set how many rows and columns are frozen.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

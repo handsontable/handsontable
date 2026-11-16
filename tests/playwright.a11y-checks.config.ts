@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import base from './playwright.config';
-import { EVIDENCE_CHECKS, checksForSuite } from './lib/a11y-evidence.mjs';
+import { EVIDENCE_CHECKS, checksForRun } from './lib/a11y-evidence.mjs';
 
 /**
  * The accessibility checks beyond axe: one project per check, each a spec under `a11y/checks/`, and
@@ -8,7 +8,9 @@ import { EVIDENCE_CHECKS, checksForSuite } from './lib/a11y-evidence.mjs';
  * (`test-results/a11y-checks/<check>.json`; policy in `tests/AGENTS.md`, "A11y: the checks beyond
  * axe"). The projects are the checks of `EVIDENCE_CHECKS` in `lib/a11y-evidence.mjs`, one each, named by
  * the check: `HOT_A11Y_CHECKS_SUITE=pull-request` keeps the short suite (the ones with `pullRequest`),
- * `nightly` or no value keeps them all (`checksForSuite()`).
+ * `nightly` or no value keeps them all, and `A11Y_CHECKS=keyboard-walker,reflow` (the nightly's `checks`
+ * input, a subset run) keeps the named ones instead (`checksForRun()`; an unknown id is refused here,
+ * before a test runs).
  *
  * A separate config, the way the axe scan's is: the e2e config's project list is pinned by
  * `e2e/leg-declarations.spec.ts` and `.github/scripts/__tests__/e2e-legs.test.mjs`, and the
@@ -34,7 +36,7 @@ export default defineConfig({
   reporter: process.env.CI
     ? [['list'], ['./reporters/a11y-checks.ts']]
     : [['list'], ['html', { outputFolder: 'playwright-report/a11y-checks', open: 'never' }], ['./reporters/a11y-checks.ts']],
-  projects: checksForSuite(process.env.HOT_A11Y_CHECKS_SUITE).map(name => ({
+  projects: checksForRun(process.env).map(name => ({
     name,
     testMatch: EVIDENCE_CHECKS[name].spec,
     use: { ...devices['Desktop Chrome'] },

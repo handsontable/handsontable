@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the overlapping hit areas of the collapse button and the dropdown menu button in nested headers.",
+  "type": "fixed",
+  "issueOrPR": 14229,
+  "breaking": false,
+  "framework": "none"
+}

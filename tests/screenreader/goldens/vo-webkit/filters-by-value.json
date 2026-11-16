@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "filters-by-value",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T11:10:33.116Z"
+  },
+  "steps": {
+    "open-menu": "",
+    "tab-to-condition": "none group table 1 column 14 rows",
+    "tab-to-search": "search",
+    "type-search": "e re",
+    "arrow-into-list": "green checked and 1 more item level 2 table 1 column",
+    "arrow-down-next": "red checked and 1 more item level 2 table 1 column",
+    "space-uncheck": "red unchecked and 1 more item level 2 table 1 column",
+    "tab-to-ok": "ok button table 1 column 14 rows",
+    "apply-filter": "color green table 3 columns",
+    "arrow-down-filtered": "color blue"
+  }
+}

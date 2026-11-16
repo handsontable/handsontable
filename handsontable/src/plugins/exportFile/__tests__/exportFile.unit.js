@@ -4,23 +4,18 @@ import { ExportFile } from '../exportFile';
 import { Dialog } from '../../dialog/dialog';
 import ExportDataProvider from '../dataProvider';
 import BaseType from '../types/_base';
-import { normalizeExportOptions } from '../utils';
 import { detectXlsxEngine } from '../../../utils/xlsxEngine/detect';
-import { _resetDeprecationWarnings } from '../../../helpers/console';
+import { ALL_XLSX_TOKENS } from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
 import {
-  LISTED_CAPABILITIES_FLAG,
-  keyWith,
-  keyWithoutFlag,
-} from '../../../utils/entitlementLicenseKey/__tests__/xlsxLicenseKeys';
+  resetTierKeys,
+  tierKeyWith,
+  tierKeyWithout,
+} from '../../../utils/entitlementLicenseKey/__tests__/tierKeys';
 import XLSX_FEATURES from '../../../utils/xlsxEngine/features.json';
 import { SUBSCRIPTION_KEY } from '../../../utils/entitlementLicenseKey/__tests__/fixtures';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
-
-beforeEach(() => {
-  // `deprecatedWarnOnce` records printed warnings module-globally, so without this the
-  // `columnHeaders` assertions below would depend on the order the specs run in.
-  _resetDeprecationWarnings();
-});
+import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import { _resetDeprecationWarnings } from '../../../helpers/console';
 
 function fakeCtx(exportFileSettings) {
   return { hot: { getSettings: () => ({ exportFile: exportFileSettings }) } };
@@ -207,100 +202,75 @@ describe('ExportFile#_createBlob', () => {
   });
 });
 
-describe('ExportDataProvider#setOptions', () => {
-  it('should print a one-time deprecation warning when `columnHeaders` is used', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const dataProvider = new ExportDataProvider({});
-
-    dataProvider.setOptions({ columnHeaders: true });
-    dataProvider.setOptions({ columnHeaders: false });
-
-    const deprecationCalls = warnSpy.mock.calls
-      .filter(([message]) => String(message).includes('`columnHeaders`'));
-
-    expect(deprecationCalls.length).toBe(1);
-    expect(deprecationCalls[0][0]).toMatch(/^Deprecated: .*`columnHeaders`.*`colHeaders`/);
-
-    warnSpy.mockRestore();
-  });
-
-  it('should support the deprecated `columnHeaders` alias', () => {
-    const dataProvider = new ExportDataProvider({});
-
-    dataProvider.setOptions({ columnHeaders: true });
-
-    expect(dataProvider.options.colHeaders).toBe(true);
-  });
-
-  it('should prefer `colHeaders` when both aliases are provided', () => {
-    const dataProvider = new ExportDataProvider({});
-
-    dataProvider.setOptions({ columnHeaders: true, colHeaders: false });
-
-    expect(dataProvider.options.colHeaders).toBe(false);
-  });
-});
-
-describe('normalizeExportOptions', () => {
-  it('should print a one-time deprecation warning when `columnHeaders` is used', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-    normalizeExportOptions({ columnHeaders: true });
-    normalizeExportOptions({ columnHeaders: false });
-
-    const deprecationCalls = warnSpy.mock.calls
-      .filter(([message]) => String(message).includes('`columnHeaders`'));
-
-    expect(deprecationCalls.length).toBe(1);
-    expect(deprecationCalls[0][0]).toMatch(/^Deprecated: .*`columnHeaders`.*`colHeaders`/);
-
-    warnSpy.mockRestore();
-  });
-
-  it('should not warn and not copy the object when `columnHeaders` is absent', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const options = { colHeaders: true };
-
-    expect(normalizeExportOptions(options)).toBe(options);
-    expect(warnSpy).not.toHaveBeenCalled();
-
-    warnSpy.mockRestore();
-  });
-
-  it('should promote `columnHeaders` to `colHeaders`', () => {
-    expect(normalizeExportOptions({ columnHeaders: true }).colHeaders).toBe(true);
-  });
-
-  it('should prefer an explicit `colHeaders`', () => {
-    expect(normalizeExportOptions({ columnHeaders: true, colHeaders: false }).colHeaders).toBe(false);
-  });
-
-  it('should tolerate a missing options object', () => {
-    expect(normalizeExportOptions(undefined)).toBe(undefined);
-  });
-});
-
 describe('BaseType#_mergeOptions', () => {
-  it('should warn once and promote the deprecated `columnHeaders` alias', () => {
-    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-    const merged = BaseType.prototype._mergeOptions.call(
-      { constructor: BaseType },
-      { columnHeaders: true }
-    );
-
-    const deprecationCalls = warnSpy.mock.calls
-      .filter(([message]) => String(message).includes('`columnHeaders`'));
-
-    expect(deprecationCalls.length).toBe(1);
-    expect(merged.colHeaders).toBe(true);
-
-    warnSpy.mockRestore();
-  });
-
-  it('should keep the default `colHeaders` when neither alias is passed', () => {
+  it('should keep the default `colHeaders` when none is passed', () => {
     const merged = BaseType.prototype._mergeOptions.call({ constructor: BaseType }, {});
 
     expect(merged.colHeaders).toBe(false);
+  });
+});
+
+describe('ExportFile removed `columnHeaders` option', () => {
+  const REMOVED_MESSAGE = 'The `columnHeaders` export option was removed in Handsontable 19.0.0 and is ignored. '
+    + 'Use `colHeaders` instead.';
+  let container;
+  let hot;
+  let warnSpy;
+
+  beforeAll(() => {
+    registerPlugin(ExportFile);
+  });
+
+  beforeEach(() => {
+    // The warning prints once per page, so each case starts with a clean record.
+    _resetDeprecationWarnings();
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    hot = new Handsontable(container, {
+      data: [['a', 1], ['b', 2]],
+      colHeaders: ['X', 'Y'],
+      exportFile: true,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+  });
+
+  afterEach(() => {
+    hot.destroy();
+    container.remove();
+    warnSpy.mockRestore();
+  });
+
+  const removedWarnings = () => warnSpy.mock.calls.filter(([message]) => message === REMOVED_MESSAGE);
+
+  it('should ignore `columnHeaders` and warn once that it was removed', () => {
+    const plugin = hot.getPlugin('exportFile');
+
+    expect(plugin.exportAsString('csv', { columnHeaders: true })).toBe('\uFEFFa,1\r\nb,2');
+    expect(removedWarnings()).toHaveLength(1);
+
+    plugin.exportAsString('csv', { columnHeaders: true });
+
+    expect(removedWarnings()).toHaveLength(1);
+  });
+
+  it('should not warn for `colHeaders`', () => {
+    expect(hot.getPlugin('exportFile').exportAsString('csv', { colHeaders: true })).toBe('\uFEFF"X","Y"\r\na,1\r\nb,2');
+    expect(removedWarnings()).toHaveLength(0);
+  });
+
+  it('should warn for `columnHeaders` on a `sheets` entry of an XLSX export', async() => {
+    const writeSpy = jest.spyOn(nativeAdapter, 'write').mockResolvedValue(new Uint8Array());
+
+    try {
+      await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
+        sheets: [{ instance: hot, name: 'Sheet', columnHeaders: true }],
+      });
+    } finally {
+      writeSpy.mockRestore();
+    }
+
+    expect(removedWarnings()).toHaveLength(1);
   });
 });
 
@@ -506,7 +476,16 @@ describe('ExportFile license capabilities', () => {
     hot?.destroy();
     hot = null;
     container.remove();
+    resetTierKeys();
   });
+
+  /**
+   * Builds a key that unlocks every plugin and, of the xlsx family, exactly `tokens`.
+   *
+   * @param {string[]} tokens The xlsx tokens the key unlocks.
+   * @returns {string}
+   */
+  const xlsxKeyWith = tokens => tierKeyWithout(ALL_XLSX_TOKENS.filter(id => !tokens.includes(id)));
 
   it('exposes the license tokens it gates, each one features.json assigns to it', () => {
     expect(ExportFile.CAPABILITIES).toContain('xlsx:export');
@@ -520,7 +499,7 @@ describe('ExportFile license capabilities', () => {
   });
 
   it('refuses an xlsx export and reports no xlsx support when the key lacks xlsx:export', async() => {
-    const plugin = createGrid(keyWith(['xlsx:import']));
+    const plugin = createGrid(xlsxKeyWith(['xlsx:import']));
     const message = 'ExportFile: the license does not unlock "xlsx:export".';
 
     expect(plugin.supportsExportFormat('xlsx')).toBe(false);
@@ -534,17 +513,16 @@ describe('ExportFile license capabilities', () => {
   });
 
   it('keeps xlsx support for a key with xlsx:export, a key with no xlsx token and an invalid key', () => {
-    expect(createGrid(keyWith(['xlsx:export'])).supportsExportFormat('xlsx')).toBe(true);
+    expect(createGrid(xlsxKeyWith(['xlsx:export'])).supportsExportFormat('xlsx')).toBe(true);
     hot.destroy();
     expect(createGrid(SUBSCRIPTION_KEY).supportsExportFormat('xlsx')).toBe(true);
     hot.destroy();
     expect(createGrid('non-commercial-and-evaluation').supportsExportFormat('xlsx')).toBe(true);
   });
 
-  describe('on a key that lists its features (no feat:all)', () => {
-    // `keyWith()` always adds `feat:all`, so these keys are built without it: the plugin's own token
-    // (`feat:export_file`) and the xlsx token are then checked one after the other.
-    const listedKey = tokens => keyWithoutFlag(tokens, [LISTED_CAPABILITIES_FLAG]);
+  describe('on a key that unlocks only the features it names', () => {
+    // The plugin's own token (`feat:export_file`) and the xlsx token are checked one after the other.
+    const listedKey = tokens => tierKeyWith(tokens);
     const pluginMessage = 'The license key for Handsontable does not include these features: '
       + 'Export to file (feat:export_file).';
     const xlsxMessage = 'ExportFile: the license does not unlock "xlsx:export".';

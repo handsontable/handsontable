@@ -1,0 +1,276 @@
+name: Docs a11y
+
+# The docs site scan (tests/a11y/docs/; tests/AGENTS.md, "A11y: the docs site scan"): axe-core over
+# every page the docs page list enumerates, in the site's light and dark color schemes, compared with
+# the committed docs baseline (tests/a11y/docs/docs-baseline.json). Beside it, the docs site checks
+# beyond axe (tests/a11y/sites/; tests/AGENTS.md, "A11y: the site checks beyond axe"): the page
+# structure, a keyboard walk, focus and contrast, reflow, forced colors and motion. Both read a deployed
+# docs site, so they need no build: the staging deploy of develop by default, or the deploy a dispatch
+# names.
+#
+# Report-only: a finding never turns a scan or a check job red. Each posts its check run by the severity
+# rule (`A11y / docs-axe report`, one `A11y / docs-<check> report` per check), and the `verdict` job then
+# follows the worst of them, the way the A11y nightly ends. A red scan or checks job is a tooling failure
+# (a page that did not answer, an example that never loaded, a color scheme that did not apply, a menu the
+# keyboard did not open).
+#
+# On demand, no schedule: a full scan takes several minutes, more than a docs pull request should wait
+# for, so a change to the docs never starts it. A pull request that changes the scan itself does (its
+# own files below): that run is the change's proof, and a workflow that exists only on a branch cannot
+# be dispatched. The checks run on a dispatch or a call only: a full run is twenty minutes of runner time,
+# and a dispatch from a branch is a change's proof (`checks` names a subset). A dispatch on develop is the
+# audit, recorded in the findings ledger (`test-health.yml`, `isA11yRun`), and runs every check: the
+# `check-inputs` job refuses a subset there. A dispatch from a branch and a pull request's run are not
+# recorded. Another workflow that runs
+# every accessibility scan at once calls this one (`workflow_call`), and lists the `docs` source for
+# its own name in `SOURCES_OF_WORKFLOW` (.github/scripts/lib/a11y-ledger.mjs).
+on:
+  workflow_dispatch:
+    inputs:
+      base-url:
+        description: "The docs deploy to scan, /docs included (a pull request's preview). Empty: the develop staging deploy."
+        type: string
+        required: false
+        default: ''
+      checks:
+        description: "A proof run of some docs site checks, comma-separated, no spaces (docs-keyboard,docs-reflow). Empty: every check. Refused on develop."
+        type: string
+        required: false
+        default: ''
+  # The scan's own code: its spec, pages and baseline, the code it shares with the product scan (the rule
+  # set, the comparator, the reporter, the reports, the findings, the check run's builder, verdict and poster,
+  # and the catalog the verdict reads its trackers from, with every module those import), and the page list it
+  # reads. Not the docs: a full run is too long for every docs pull request.
+  pull_request:
+    paths:
+      - '.github/workflows/docs-a11y.yml'
+      - 'tests/a11y/docs/**'
+      - 'tests/a11y/axe-scan.ts'
+      - 'tests/a11y/issues.json'
+      - 'tests/playwright.a11y-docs.config.ts'
+      - 'tests/reporters/a11y.ts'
+      - 'tests/lib/a11y-baseline.*'
+      - 'tests/lib/a11y-findings.*'
+      - 'tests/lib/a11y-report.*'
+      - 'tests/lib/a11y-suites.*'
+      - 'tests/lib/a11y-check-run.*'
+      - 'tests/lib/a11y-docs-drift.*'
+      - 'tests/lib/a11y-issues.*'
+      - 'tests/lib/a11y-evidence.*'
+      - 'tests/lib/a11y-site-checks.*'
+      - 'tests/lib/a11y-subset.*'
+      - 'tests/lib/a11y-verdict.*'
+      - 'tests/lib/a11y-verdict-inputs.*'
+      - 'tests/lib/github-check-run.*'
+      - 'tests/scripts/a11y-check-run.mjs'
+      - 'docs/tests/paths.js'
+  workflow_call:
+    inputs:
+      base-url:
+        description: "The docs deploy to scan, /docs included. Empty: the develop staging deploy."
+        type: string
+        required: false
+        default: ''
+      checks:
+        description: "Some docs site checks, comma-separated, no spaces. Empty: every check."
+        type: string
+        required: false
+        default: ''
+
+# NO workflow-level permissions block: a caller validates the job-level grants below against the token
+# it hands down (the parity rule of a11y-nightly.yml and screenreader-nightly.yml).
+
+concurrency:
+  # Static prefix, never the workflow-name expression (a called workflow resolves it to the caller's).
+  group: docs-a11y-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # Refuses a subset on develop (the dispatch there is the audit, which runs every check) and an entry of
+  # `checks` that is no docs site check, before a runner is spent (tests/lib/a11y-dispatch.mjs).
+  check-inputs:
+    name: Check the dispatch inputs
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tests/lib
+            tests/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Check the inputs
+        env:
+          A11Y_CHECKS: ${{ inputs.checks }}
+        run: node tests/scripts/a11y-dispatch-inputs.mjs --ref "$GITHUB_REF" --site docs --site-checks "$A11Y_CHECKS"
+
+  scan:
+    name: docs axe
+    needs: [ check-inputs ]
+    runs-on: ubuntu-26.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+    # A tooling failure turns the job red and never a caller's run.
+    continue-on-error: true
+    timeout-minutes: 30
+    # `checks: write` posts `A11y / docs-axe report`; `actions: read` reads when the staging deploy last finished, which
+    # the check run compares with the develop audit it reads baseline drift from. Nothing else goes through the API.
+    permissions:
+      contents: read
+      checks: write
+      actions: read
+    env:
+      # Through the environment, never interpolated into a script: a dispatch input is free text. The
+      # spec refuses anything but an https URL (or a local http preview).
+      DOCS_A11Y_BASE_URL: ${{ inputs.base-url }}
+      A11Y_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+        name: Install pnpm
+      - name: Install the Playwright test package
+        run: pnpm install --filter handsontable-tests
+      # The reporter (tests/reporters/a11y.ts, suite `docs`) writes the job summary, the HTML report,
+      # comparison.json and a11y-findings.json, and decides the exit status from the mode. The step times
+      # out before the job, so the uploads below still run.
+      - name: Run the docs site scan
+        timeout-minutes: 20
+        run: cd tests && npx playwright test --config playwright.a11y-docs.config.ts
+      # Every run, red or green: the raw axe result per page and color scheme (`scans/`), the comparison
+      # with the baseline and the findings document the ledger reads at the artifact's root.
+      - name: Upload the scan results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: docs-a11y-axe-results
+          path: tests/test-results/a11y-docs
+          if-no-files-found: ignore
+          retention-days: 7
+          overwrite: true
+      # One file, unzipped, so the browser opens it from the run page; the artifact is named after the
+      # file, which is why it is not the product report's `a11y-report.html`.
+      - name: Upload the HTML report
+        id: report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          path: tests/test-results/a11y-docs/docs-a11y-report.html
+          archive: false
+          if-no-files-found: ignore
+          retention-days: 7
+          overwrite: true
+      - name: Link the HTML report in the job summary
+        if: ${{ !cancelled() && steps.report.outputs.artifact-url != '' }}
+        env:
+          REPORT_URL: ${{ steps.report.outputs.artifact-url }}
+        run: printf '\n📊 [Open the HTML report](%s)\n' "$REPORT_URL" >> "$GITHUB_STEP_SUMMARY"
+      # `A11y / docs-axe report` on the run's head commit, by the severity rule: on an audit every open finding
+      # counts, on a change a new or grown one, a warning at most when develop's latest docs audit saw it too
+      # (baseline drift, tests/lib/a11y-docs-drift.mjs). A fork's or Dependabot's token cannot write checks, so the
+      # canonical guard skips it there; the summary and the report still carry everything.
+      - name: Post the docs axe check run
+        if: ${{ !cancelled() && (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')) }}
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          A11Y_REPORT_URL: ${{ steps.report.outputs.artifact-url }}
+        run: node tests/scripts/a11y-check-run.mjs --suite docs
+
+  # The docs site checks beyond axe: one Playwright project per check of SITE_CHECKS
+  # (tests/lib/a11y-site-checks.mjs), against the same deploy as the scan. On a dispatch or a call only.
+  checks:
+    name: docs checks
+    needs: [ check-inputs ]
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-26.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+    # Report-only, like the scan: a tooling failure turns this job red and never a caller's run.
+    continue-on-error: true
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      checks: write
+    env:
+      DOCS_A11Y_BASE_URL: ${{ inputs.base-url }}
+      HOT_A11Y_SITE: docs
+      # A subset run names its checks; empty runs every one. The config refuses an entry that is no check id.
+      A11Y_CHECKS: ${{ inputs.checks }}
+      A11Y_HEAD_SHA: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # https://github.com/pnpm/action-setup/releases/tag/v6.0.8
+        name: Install pnpm
+      - name: Install the Playwright test package
+        run: pnpm install --filter handsontable-tests
+      # The reporter (tests/reporters/a11y-checks.ts, with the docs registry) writes one evidence document per
+      # check into tests/test-results/a11y-docs-checks/. The step times out before the job, so the evidence, the
+      # summary and the check runs below still come.
+      - name: Run the docs site checks
+        timeout-minutes: 30
+        run: cd tests && npx playwright test --config playwright.a11y-sites.config.ts
+      # The documents at the artifact's root, where the findings ledger reads them, with every target's detail.
+      # An audit's run of every check is what the conformance report cites, so it is kept for 30 days; a subset's
+      # (a proof run on a branch) cites nothing and keeps 7.
+      - name: Upload the evidence
+        id: evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: docs-a11y-checks-evidence
+          path: tests/test-results/a11y-docs-checks
+          if-no-files-found: warn
+          retention-days: ${{ inputs.checks == '' && 30 || 7 }}
+          overwrite: true
+      - name: Write the job summary
+        if: ${{ !cancelled() }}
+        env:
+          A11Y_EVIDENCE_URL: ${{ steps.evidence.outputs.artifact-url }}
+        run: node tests/scripts/a11y-evidence-report.mjs
+      # One `A11y / docs-<check> report` check run per check, by the severity rule; a check that left nothing
+      # readable is a red tooling check run.
+      - name: Post the docs check runs
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          A11Y_EVIDENCE_URL: ${{ steps.evidence.outputs.artifact-url }}
+        run: node tests/scripts/a11y-evidence-report.mjs --check-run
+
+  # The run's verdict: the worst of the check runs this run posted (tests/scripts/a11y-run-verdict.mjs), red when
+  # any is red or one the run should have posted is missing. After every job (`!cancelled()`), never on a pull
+  # request's run, whose checks job does not run.
+  verdict:
+    name: Verdict
+    needs: [ scan, checks ]
+    if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tests/lib
+            tests/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Follow the worst check run of this run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.sha }}
+          A11Y_CHECKS: ${{ inputs.checks }}
+        run: node tests/scripts/a11y-run-verdict.mjs --prefix "A11y / docs-" --expect "A11y / docs-axe report" --ref "$GITHUB_REF" --site docs --site-checks "$A11Y_CHECKS"

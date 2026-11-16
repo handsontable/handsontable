@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where changing the columns together with the data kept manual column widths, hidden columns, and sorting on the wrong column.",
+  "type": "fixed",
+  "issueOrPR": 14200,
+  "breaking": false,
+  "framework": "none"
+}

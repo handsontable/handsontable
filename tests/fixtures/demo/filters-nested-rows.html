@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — filters nested rows</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    // Null-prototype maps, so an inherited key ('constructor', 'toString', ...) cannot pass as a value.
+    const htThemes = Object.assign(Object.create(null), { main: 'main', horizon: 'horizon', classic: 'classic' });
+    const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
+
+    window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // `?scheme=dark` adds the theme's dark class (`ht-theme-<theme>-dark`), which the theme stylesheet
+    // already carries; the default is the light scheme. An unknown value throws, like the theme's.
+    window.htScheme = ({ light: '', dark: '-dark' })[htParams.get('scheme') ?? 'light'];
+    if (window.htScheme === undefined) {
+      throw new Error('Unknown ?scheme= value: ' + JSON.stringify(htParams.get('scheme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = htBundles[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    E2E fixture for the "filter by value" list over nested rows. Cells are stamped with
+    data-testid via a renderer (data-testid="cell-<row>-<col>") so the spec
+    can read the filtered result without structural selectors.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}${window.htScheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const sourceDataObject = [
+        {
+            category: 'Best Rock Performance',
+            artist: null,
+            title: null,
+            label: null,
+            __children: [
+                {
+                    category: 'Major label releases',
+                    artist: null,
+                    title: null,
+                    label: null,
+                    __children: [
+                        {
+                            title: "Don't Wanna Fight",
+                            artist: 'Alabama Shakes',
+                            label: 'ATO Records',
+                        },
+                        {
+                            title: 'What Kind Of Man',
+                            artist: 'Florence & The Machine',
+                            label: 'Republic',
+                        },
+                        {
+                            title: 'Something From Nothing',
+                            artist: 'Foo Fighters',
+                            label: 'RCA Records',
+                        },
+                    ],
+                },
+                {
+                    category: 'Independent releases',
+                    artist: null,
+                    title: null,
+                    label: null,
+                    __children: [
+                        {
+                            title: 'Moaning Lisa Smile',
+                            artist: 'Wolf Alice',
+                            label: 'RCA Records/Dirty Hit',
+                        },
+                        {
+                            title: "Ex's & Oh's",
+                            artist: 'Elle King',
+                            label: 'RCA Records',
+                        },
+                    ],
+                },
+            ],
+        },
+        {
+            category: 'Best Metal Performance',
+            __children: [
+                {
+                    title: 'Cirice',
+                    artist: 'Ghost',
+                    label: 'Loma Vista Recordings',
+                },
+                {
+                    title: 'Identity',
+                    artist: 'August Burns Red',
+                    label: 'Fearless Records',
+                },
+                {
+                    title: '512',
+                    artist: 'Lamb Of God',
+                    label: 'Epic Records',
+                },
+                {
+                    title: 'Thank You',
+                    artist: 'Sevendust',
+                    label: '7Bros Records',
+                },
+                {
+                    title: 'Custer',
+                    artist: 'Slipknot',
+                    label: 'Roadrunner Records',
+                },
+            ],
+        },
+        {
+            category: 'Best Rock Song',
+            __children: [
+                {
+                    title: "Don't Wanna Fight",
+                    artist: 'Alabama Shakes',
+                    label: 'ATO Records',
+                },
+                {
+                    title: "Ex's & Oh's",
+                    artist: 'Elle King',
+                    label: 'RCA Records',
+                },
+                {
+                    title: 'Hold Back The River',
+                    artist: 'James Bay',
+                    label: 'Republic',
+                },
+                {
+                    title: 'Lydia',
+                    artist: 'Highly Suspect',
+                    label: '300 Entertainment',
+                },
+                {
+                    title: 'What Kind Of Man',
+                    artist: 'Florence & The Machine',
+                    label: 'Republic',
+                },
+            ],
+        },
+        {
+            category: 'Best Rock Album',
+            __children: [
+                {
+                    title: 'Drones',
+                    artist: 'Muse',
+                    label: 'Warner Bros. Records',
+                },
+                {
+                    title: 'Chaos And The Calm',
+                    artist: 'James Bay',
+                    label: 'Republic',
+                },
+                {
+                    title: 'Kintsugi',
+                    artist: 'Death Cab For Cutie',
+                    label: 'Atlantic',
+                },
+                {
+                    title: 'Mister Asylum',
+                    artist: 'Highly Suspect',
+                    label: '300 Entertainment',
+                },
+                {
+                    title: '.5: The Gray Chapter',
+                    artist: 'Slipknot',
+                    label: 'Roadrunner Records',
+                },
+            ],
+        },
+    ];
+
+    // Exposed so a spec can drive the plugin APIs directly.
+    window.hot = new Handsontable(container, {
+      data: sourceDataObject,
+      nestedRows: true,
+      filters: true,
+      dropdownMenu: true,
+      ariaTags: true,
+      rowHeaders: true,
+      colHeaders: ['Category', 'Artist', 'Title', 'Label'],
+      columns: [{ data: 'category' }, { data: 'artist' }, { data: 'title' }, { data: 'label' }],
+      renderer: testIdRenderer,
+      afterGetRowHeader(row, TH) {
+        TH.setAttribute('data-testid', `row-header-${row}`);
+      },
+      width: 600,
+      height: 300,
+      licenseKey: window.htTestLicenseKey,
+    });
+  </script>
+</body>
+</html>

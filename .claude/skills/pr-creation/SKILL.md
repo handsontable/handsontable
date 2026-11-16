@@ -172,7 +172,7 @@ The changelog gate is path-aware: a PR confined to docs, tests, `.github/`, `.ai
 
 Leave the ClickUp task status to the GitHub integration: it moves the task to **"code review"** when the PR opens, and onward on merge.
 
-When the PR touches anything a user can see or operate, read the `A11y / axe report` check once CI has run: `neutral` means a finding needs action, and the sticky comment and `a11y-findings.json` say which (`handsontable-a11y` skill).
+When the PR touches anything a user can see or operate, read the `A11y / axe report` check once CI has run: red means a new or grown critical or serious finding, neutral a moderate or minor one (`tests/AGENTS.md`, "A11y: the verdict of a check run"), and the sticky comment and `a11y-findings.json` say which (`handsontable-a11y` skill).
 
 ## 8. Merge strategy
 

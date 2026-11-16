@@ -4,15 +4,23 @@
  * into `test-results/screenreader/transcripts/`).
  *
  * The job itself is green whatever the announcements were (`continue-on-error`, and the test never
- * fails on a token group in report mode), so this check run is the visible verdict: `neutral` when a
- * token group is missing, a golden differs or none is recorded yet, `success` when every step carries
- * its tokens and matches its golden, `failure` for a tooling failure (no transcript for a scenario,
- * none at all, a scenario that stopped at a step) or, in gate mode, a missing token group. Its
- * annotations sit on the step's line in the scenario file. Pure: `scripts/screenreader-report.mjs`
- * reads the files and posts.
+ * fails on a token group in report mode), so this check run is the visible verdict, by the severity rule
+ * every accessibility check run follows (`lib/a11y-verdict.mjs`). A step missing a token group is a finding
+ * at the severity of the worst group it missed: serious unless the step declares another (`severity` in the
+ * scenario, keyed by the group's first synonym). A reading traversal that read an item twice, never or out
+ * of order is a serious finding. Red on a critical or serious finding, neutral with a warning on a moderate
+ * or minor one, green on none; on a change run a finding whose cluster in `tests/a11y/issues.json` has a
+ * tracker is a warning at most. A golden that differs or is not recorded yet is advisory and never raises
+ * the verdict. A tooling failure (no transcript for a scenario, none at all, a scenario that stopped at a
+ * step) is red and titled as one; in gate mode any missing token group is red. A step the lane does not
+ * drive (`unsupported`) is a declared gap: listed per scenario and per primitive, never a finding. Its
+ * annotations sit on the step's line in the scenario file (the base's file for a variant). Pure:
+ * `scripts/screenreader-report.mjs` reads the files and posts.
  */
 import { escapeMarkdownText, isSafeLink } from './a11y-baseline.mjs';
-import { SCREENREADER_MODE, describeAction, transcriptCounts } from './screenreader-transcript.mjs';
+import { READER_TOKEN_MISSING, READER_TRAVERSAL_OFF, READER_TRAVERSAL_WHERE } from './a11y-issues.mjs';
+import { annotationLevel, capAnnotations, renderVerdict, verdictOf, verdictTitle } from './a11y-verdict.mjs';
+import { DEFAULT_TOKEN_SEVERITY, SCREENREADER_MODE, TOKEN_SEVERITIES, describeAction, transcriptCounts } from './screenreader-transcript.mjs';
 
 export const CHECK_RUN_PREFIX = 'Screen reader / ';
 export const SCENARIOS_DIR = 'tests/screenreader/scenarios';
@@ -20,13 +28,14 @@ export const SCENARIOS_DIR = 'tests/screenreader/scenarios';
 const SUMMARY_LIMIT = 65000;
 
 /**
- * The check run's name for a project.
+ * The check run's name for a project and the scenario group its job ran.
  *
  * @param {string} project The Playwright project (`nvda-chromium`).
- * @returns {string} The name.
+ * @param {string} [group] The scenario group (`keyboard`), when the job ran one.
+ * @returns {string} The name (`Screen reader / nvda-chromium keyboard report`).
  */
-export function checkRunName(project) {
-  return `${CHECK_RUN_PREFIX}${project} report`;
+export function checkRunName(project, group) {
+  return `${CHECK_RUN_PREFIX}${project}${group ? ` ${group}` : ''} report`;
 }
 
 /**
@@ -58,18 +67,25 @@ export function stepLines(source) {
  * @param {object[]} input.transcripts The transcripts found.
  * @param {string[]} [input.expectedScenarios] The scenario ids the run should have produced.
  * @param {string} [input.project] The project the job ran; defaults to the transcripts' project.
+ * @param {string} [input.group] The scenario group the job ran, for the check run's name.
  * @param {string} [input.mode] The mode; defaults to `SCREENREADER_MODE`.
  * @param {string[]} [input.problems] Tooling problems found while reading.
  * @param {string} [input.reportUrl] The Playwright report's URL.
  * @param {string} [input.runUrl] The workflow run's URL.
  * @param {Map<string, Map<string, number>>} [input.lines] Step lines per scenario id, for the annotations.
+ * @param {Map<string, string>} [input.files] The file a scenario's steps are in, by scenario id, when it is
+ * not the scenario's own (a variant's steps are its base's).
+ * @param {'audit'|'change'} [input.scope] What the run counts (`countingScope()` of `lib/a11y-verdict.mjs`).
+ * @param {(source: string, check: string, item: object) => boolean} [input.tracked] Whether a finding's cluster has
+ * a tracker (`trackedBy()` of `lib/a11y-issues.mjs`), asked with `{scenario, step, kind}`; read on a change run only.
  * @returns {{name: string, conclusion: string, title: string, headline: string, summary: string, annotations: object[], counts: object}} The report.
  */
 export function buildReport({
-  transcripts, expectedScenarios = [], project, mode = SCREENREADER_MODE, problems = [], reportUrl, runUrl, lines = new Map(),
+  transcripts, expectedScenarios = [], project, group, mode = SCREENREADER_MODE, problems = [], reportUrl, runUrl, lines = new Map(), files = new Map(),
+  scope = 'change', tracked = () => false,
 }) {
   const sorted = [...transcripts].sort((a, b) => a.scenario.localeCompare(b.scenario));
-  const name = checkRunName(project ?? sorted[0]?.project ?? 'unknown');
+  const name = checkRunName(project ?? sorted[0]?.project ?? 'unknown', group);
   const found = new Set(sorted.map(item => item.scenario));
   const missing = expectedScenarios.filter(id => !found.has(id));
   const tooling = [
@@ -80,25 +96,33 @@ export function buildReport({
     ...(sorted.length === 0 && missing.length === 0 ? ['the run left no transcript'] : []),
   ];
   const counts = countAll(sorted);
-  let conclusion = 'success';
-
-  if (tooling.length > 0 || (mode === 'gate' && counts.tokenFailures > 0)) {
-    conclusion = 'failure';
-  } else if (counts.tokenFailures > 0 || counts.goldenDifferences > 0 || counts.goldenMissing > 0) {
-    conclusion = 'neutral';
-  }
-
+  const failed = failedSteps(sorted, scope, tracked);
+  const traversals = failedTraversals(sorted, scope, tracked);
+  const verdict = verdictOf({
+    findings: [
+      ...[...failed, ...traversals].map(({ severity, warningOnly }) => ({ severity, warningOnly })),
+      // A golden that differs or is not recorded is a wording to review, never a missing fact.
+      ...Array.from({ length: counts.goldenDifferences + counts.goldenMissing }, () => ({ severity: 'advisory' })),
+    ],
+    tooling,
+  });
+  const gating = mode === 'gate' && tooling.length === 0 && counts.tokenFailures > 0;
+  const conclusion = gating ? 'failure' : verdict.conclusion;
   const headline = tooling.length > 0 ? `Tooling failure: ${tooling[0]}` : headlineOf(counts, mode);
-  const icon = { success: '✔', neutral: '⚠', failure: '✖' }[conclusion];
+  const { annotations, omitted } = capAnnotations(annotationsOf(failed, lines, files, mode));
   const lead = [
+    gating
+      ? '**Verdict: red, gate mode.** A missing token group fails this check and the test, whatever its severity.'
+      : renderVerdict(verdict, { scope, counting: 'every step missing a token group counts', listTooling: false }),
     mode === 'gate'
       ? '**Gate mode:** a missing token group fails this check and the test; a golden difference stays advisory.'
-      : '**Report mode:** this check is neutral when a token group is missing or a golden differs, and never blocks anything; the job is green either way.',
+      : '**Report mode:** the test and the job never fail on an announcement; this check run\'s verdict says what the lane found.',
     runUrl && isSafeLink(runUrl) ? `[The workflow run](${runUrl})` : '',
+    omitted > 0 ? `The check run carries the ${annotations.length} worst annotations; ${omitted} more steps are in the tables below.` : '',
     reportUrl && isSafeLink(reportUrl) ? `📊 [Open the Playwright report](${reportUrl})` : '',
     ...tooling.map(problem => `> Tooling problem: ${escapeMarkdownText(problem)}`),
   ].filter(Boolean).join('\n\n');
-  let summary = `${lead}\n\n${renderScenarios(sorted)}${renderGoldenDifferences(sorted)}${renderTiming(sorted)}`;
+  let summary = `${lead}\n\n${renderUnsupported(sorted)}${renderScenarios(sorted, lines)}${renderGoldenDifferences(sorted)}${renderTiming(sorted)}`;
 
   if (summary.length > SUMMARY_LIMIT) {
     summary = `${summary.slice(0, SUMMARY_LIMIT)}\n\n… cut at ${SUMMARY_LIMIT} characters; the transcripts hold the rest.`;
@@ -107,19 +131,57 @@ export function buildReport({
   return {
     name,
     conclusion,
-    title: `${icon} ${headline}`.slice(0, 250),
+    title: gating ? `✖ Gate: ${headline}`.slice(0, 250) : verdictTitle(verdict, headline),
     headline,
     summary,
-    annotations: annotations(sorted, lines, mode),
+    annotations,
     counts: { ...counts, missing: missing.length, tooling: tooling.length },
   };
+}
+
+/**
+ * Every step missing a token group, at the severity of the worst group it missed: the one its scenario
+ * declares for the group, or serious. A transcript written before groups carried a severity reads as serious.
+ * On a change run a step whose cluster has a tracker is a warning at most.
+ *
+ * @param {object[]} transcripts The transcripts.
+ * @param {'audit'|'change'} scope The scope.
+ * @param {Function} tracked The tracker predicate.
+ * @returns {Array<{transcript: object, step: object, severity: string, warningOnly: boolean}>} The failed steps.
+ */
+function failedSteps(transcripts, scope, tracked) {
+  return transcripts.flatMap(transcript => transcript.steps.filter(step => !step.tokens.passed).map((step) => {
+    const severity = step.tokens.groups.filter(group => group.matched === null)
+      .map(group => (TOKEN_SEVERITIES.includes(group.severity) ? group.severity : DEFAULT_TOKEN_SEVERITY))
+      .reduce((worst, next) => (TOKEN_SEVERITIES.indexOf(next) < TOKEN_SEVERITIES.indexOf(worst) ? next : worst), TOKEN_SEVERITIES.at(-1));
+    const item = { scenario: transcript.scenario, step: step.id, kind: READER_TOKEN_MISSING };
+
+    return { transcript, step, severity, warningOnly: scope === 'change' && Boolean(tracked('reader', transcript.project, item)) };
+  }));
+}
+
+/**
+ * Every reading traversal that read an item twice, never or out of order: a serious finding, as a step
+ * missing a fact is by default. On a change run one whose cluster has a tracker is a warning at most.
+ *
+ * @param {object[]} transcripts The transcripts.
+ * @param {'audit'|'change'} scope The scope.
+ * @param {Function} tracked The tracker predicate.
+ * @returns {Array<{transcript: object, severity: string, warningOnly: boolean}>} The failed traversals.
+ */
+function failedTraversals(transcripts, scope, tracked) {
+  return transcripts.filter(transcript => transcript.traversal && !transcript.traversal.passed).map((transcript) => {
+    const item = { scenario: transcript.scenario, step: READER_TRAVERSAL_WHERE, kind: READER_TRAVERSAL_OFF };
+
+    return { transcript, severity: DEFAULT_TOKEN_SEVERITY, warningOnly: scope === 'change' && Boolean(tracked('reader', transcript.project, item)) };
+  });
 }
 
 /**
  * The counts over every transcript.
  *
  * @param {object[]} transcripts The transcripts.
- * @returns {{scenarios: number, steps: number, tokenFailures: number, goldenDifferences: number, goldenMissing: number, goldenRecorded: number, durationMs: number}} The counts.
+ * @returns {{scenarios: number, steps: number, tokenFailures: number, traversalFailures: number, unsupported: number, goldenDifferences: number, goldenMissing: number, goldenRecorded: number, durationMs: number}} The counts.
  */
 function countAll(transcripts) {
   return transcripts.reduce((total, transcript) => {
@@ -129,12 +191,14 @@ function countAll(transcripts) {
       scenarios: total.scenarios + 1,
       steps: total.steps + counts.steps,
       tokenFailures: total.tokenFailures + counts.tokenFailures,
+      traversalFailures: total.traversalFailures + (counts.traversalFailed ? 1 : 0),
+      unsupported: total.unsupported + counts.unsupported,
       goldenDifferences: total.goldenDifferences + counts.goldenDifferences,
       goldenMissing: total.goldenMissing + (counts.goldenStatus === 'missing' ? 1 : 0),
       goldenRecorded: total.goldenRecorded + (counts.goldenStatus === 'recorded' ? 1 : 0),
       durationMs: total.durationMs + counts.durationMs,
     };
-  }, { scenarios: 0, steps: 0, tokenFailures: 0, goldenDifferences: 0, goldenMissing: 0, goldenRecorded: 0, durationMs: 0 });
+  }, { scenarios: 0, steps: 0, tokenFailures: 0, traversalFailures: 0, unsupported: 0, goldenDifferences: 0, goldenMissing: 0, goldenRecorded: 0, durationMs: 0 });
 }
 
 /**
@@ -161,6 +225,9 @@ function headlineOf(counts, mode) {
   if (counts.tokenFailures > 0) {
     parts.push(`${counts.tokenFailures} step${counts.tokenFailures === 1 ? '' : 's'} missing a token group`);
   }
+  if (counts.traversalFailures > 0) {
+    parts.push(`${counted(counts.traversalFailures, 'reading traversal')} off`);
+  }
   if (counts.goldenDifferences > 0) {
     parts.push(`${counts.goldenDifferences} golden difference${counts.goldenDifferences === 1 ? '' : 's'}`);
   }
@@ -170,19 +237,23 @@ function headlineOf(counts, mode) {
   if (parts.length === 0) {
     const goldens = counts.scenarios > 0 && counts.goldenRecorded === counts.scenarios ? 'goldens recorded' : 'every golden matched';
 
-    return `${counted(counts.scenarios, 'scenario')}, ${counted(counts.steps, 'step')}: every token group present, ${goldens}`;
+    const gaps = counts.unsupported > 0 ? `, ${counted(counts.unsupported, 'step')} not driven on this lane` : '';
+
+    return `${counted(counts.scenarios, 'scenario')}, ${counted(counts.steps, 'step')}: every token group present, ${goldens}${gaps}`;
   }
 
   return `${parts.join(', ')} (${mode} mode)`;
 }
 
 /**
- * One section per scenario: its environment, then a table with a row per step.
+ * One section per scenario: its environment, then a table with a row per step, the captured and the
+ * unsupported ones in the scenario's order.
  *
  * @param {object[]} transcripts The transcripts.
+ * @param {Map<string, Map<string, number>>} [lines] The step lines per scenario, which give that order.
  * @returns {string} Markdown.
  */
-function renderScenarios(transcripts) {
+function renderScenarios(transcripts, lines) {
   return transcripts.map((transcript) => {
     const counts = transcriptCounts(transcript);
     const golden = {
@@ -212,9 +283,76 @@ function renderScenarios(transcripts) {
 
       return `| ${escapeMarkdownText(step.id)} | ${escapeMarkdownText(describeAction(step.action))} | ${escapeMarkdownText(step.spoken) || '*(nothing)*'} | ${tokens} | ${goldenCell} | ${step.durationMs} |`;
     });
+    const skipped = (transcript.unsupported ?? []).map(step => `| ${escapeMarkdownText(step.id)} | ${escapeMarkdownText(describeAction(step.action))} | *(not driven on this lane: ${escapeMarkdownText(step.reason)})* | – | – | – |`);
+    // In the scenario's order, so the table lines up with the scenario file and the golden: a step's line in
+    // its file orders it, and a step without one keeps its place after the others (a stable sort).
+    const stepLine = lines?.get(transcript.scenario);
+    const at = id => stepLine?.get(id) ?? Number.MAX_SAFE_INTEGER;
+    const ordered = [...transcript.steps.map((step, index) => ({ id: step.id, row: rows[index] })),
+      ...(transcript.unsupported ?? []).map((step, index) => ({ id: step.id, row: skipped[index] }))]
+      .sort((a, b) => at(a.id) - at(b.id));
 
-    return `${head}\n\n| Step | Action | Announcement | Token groups | Golden | ms |\n|---|---|---|---|---|---:|\n${rows.join('\n')}\n\n`;
+    return `${head}${renderTraversal(transcript)}\n\n| Step | Action | Announcement | Token groups | Golden | ms |\n|---|---|---|---|---|---:|\n${ordered.map(entry => entry.row).join('\n')}\n\n`;
   }).join('');
+}
+
+/**
+ * The traversal verdict of a reading scenario, as a sentence after its header: every item read once in
+ * order, or the items read twice, never, or out of order.
+ *
+ * @param {object} transcript The transcript.
+ * @returns {string} Markdown, empty without a traversal.
+ */
+function renderTraversal(transcript) {
+  const traversal = transcript.traversal;
+
+  if (!traversal) {
+    return '';
+  }
+
+  const span = `${escapeMarkdownText(traversal.steps[0] ?? '')} to ${escapeMarkdownText(traversal.steps.at(-1) ?? '')}`;
+
+  if (traversal.passed) {
+    return `\n\nReading traversal (${span}): ✔ each of the ${traversal.items.length} items read once, in order.`;
+  }
+
+  const twice = traversal.items.filter(entry => entry.count > 1).map(entry => `${escapeMarkdownText(entry.item)} ×${entry.count}`);
+  const never = traversal.items.filter(entry => entry.count === 0).map(entry => escapeMarkdownText(entry.item));
+  const parts = [
+    twice.length ? `read more than once: ${twice.join(', ')}` : '',
+    never.length ? `never read: ${never.join(', ')}` : '',
+    traversal.outOfOrder.length ? `out of order: ${traversal.outOfOrder.map(item => escapeMarkdownText(item)).join(', ')}` : '',
+  ].filter(Boolean);
+
+  return `\n\nReading traversal (${span}): ✖ ${parts.join('; ')}.`;
+}
+
+/**
+ * The steps this lane did not drive, by primitive: the gaps the lane declares (`unsupported`), which the
+ * coverage ratchet and the accessibility data file list too.
+ *
+ * @param {object[]} transcripts The transcripts.
+ * @returns {string} Markdown, empty when the lane drove every step.
+ */
+function renderUnsupported(transcripts) {
+  const byPrimitive = new Map();
+
+  transcripts.forEach(transcript => (transcript.unsupported ?? []).forEach((step) => {
+    const primitive = describeAction(step.action);
+    const entry = byPrimitive.get(primitive) ?? { steps: [], reasons: new Set() };
+
+    entry.steps.push(`${transcript.scenario} / ${step.id}`);
+    entry.reasons.add(step.reason);
+    byPrimitive.set(primitive, entry);
+  }));
+
+  if (byPrimitive.size === 0) {
+    return '';
+  }
+
+  const rows = [...byPrimitive].sort(([a], [b]) => a.localeCompare(b)).map(([primitive, entry]) => `| ${escapeMarkdownText(primitive)} | ${entry.steps.length} | ${escapeMarkdownText([...entry.reasons].join(' / '))} |`);
+
+  return `### Not driven on this lane\n\nSteps whose primitive this screen reader cannot drive, as the scenarios declare (\`unsupported\`): a gap, not a pass.\n\n| Primitive | Steps | Why |\n|---|---:|---|\n${rows.join('\n')}\n\n`;
 }
 
 /**
@@ -257,31 +395,30 @@ function renderTiming(transcripts) {
 }
 
 /**
- * One annotation per step missing a token group, on the step's line in its scenario file.
+ * One annotation per step missing a token group, on the step's line in its scenario file (the base's file
+ * for a variant, whose steps live there), at the level its severity gives it (every one a failure in gate
+ * mode).
  *
- * @param {object[]} transcripts The transcripts.
+ * @param {object[]} failed The failed steps (`failedSteps()`).
  * @param {Map<string, Map<string, number>>} lines The step lines per scenario.
+ * @param {Map<string, string>} files The file a scenario's steps are in, when not its own.
  * @param {string} mode The mode.
  * @returns {object[]} The annotations.
  */
-function annotations(transcripts, lines, mode) {
-  const level = mode === 'gate' ? 'failure' : 'warning';
+function annotationsOf(failed, lines, files, mode) {
+  return failed.map(({ transcript, step, severity, warningOnly }) => {
+    const line = lines.get(transcript.scenario)?.get(step.id) ?? 1;
+    const missing = step.tokens.groups.filter(group => group.matched === null).map(group => `[${group.synonyms.join(' | ')}]`).join(', ');
 
-  return transcripts.flatMap(transcript => transcript.steps
-    .filter(step => !step.tokens.passed)
-    .map((step) => {
-      const line = lines.get(transcript.scenario)?.get(step.id) ?? 1;
-      const missing = step.tokens.groups.filter(group => group.matched === null).map(group => `[${group.synonyms.join(' | ')}]`).join(', ');
-
-      return {
-        path: `${SCENARIOS_DIR}/${transcript.scenario}.scenario.json`,
-        start_line: line,
-        end_line: line,
-        annotation_level: level,
-        title: `Announcement missing a token group: ${transcript.scenario} / ${step.id}`,
-        message: `${transcript.project} spoke ${JSON.stringify(step.spoken)} for ${describeAction(step.action)}; missing ${missing}.`,
-      };
-    }));
+    return {
+      path: `${SCENARIOS_DIR}/${files.get(transcript.scenario) ?? `${transcript.scenario}.scenario.json`}`,
+      start_line: line,
+      end_line: line,
+      annotation_level: mode === 'gate' ? 'failure' : annotationLevel({ severity, warningOnly }),
+      title: `Announcement missing a token group (${severity}): ${transcript.scenario} / ${step.id}`,
+      message: `${transcript.project} spoke ${JSON.stringify(step.spoken)} for ${describeAction(step.action)}; missing ${missing}.`,
+    };
+  });
 }
 
 /**

@@ -1,5 +1,7 @@
 import {
+  trimTrailingEmptyCells,
   coalesceIndexesToSpans,
+  insertEmptyRows,
   isEscapedFormulaExpression,
   unescapeFormulaExpression,
   isDateValid,
@@ -15,6 +17,10 @@ import {
   isEngineEscapedValue,
   unescapeEngineBoundValue,
   padRowsToWidestRow,
+  widestRowLength,
+  hasContentPast,
+  areSheetContentsEqual,
+  setSheetSnapshotCell,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -331,5 +337,129 @@ describe('Formulas utils', () => {
       expect(padRowsToWidestRow([])).toEqual([]);
       expect(padRowsToWidestRow([[], []])).toEqual([[], []]);
     });
+  });
+
+  describe('widestRowLength', () => {
+    it('should return the length of the longest row', () => {
+      expect(widestRowLength([['a'], ['b', 'c', 'd'], []])).toBe(3);
+    });
+
+    it('should return 0 for no rows', () => {
+      expect(widestRowLength([])).toBe(0);
+    });
+  });
+
+  describe('hasContentPast', () => {
+    it('should ask about every index of the range until one holds content', () => {
+      const asked: number[] = [];
+
+      expect(hasContentPast(2, 6, (index) => {
+        asked.push(index);
+
+        return index === 4;
+      })).toBe(true);
+      expect(asked).toEqual([2, 3, 4]);
+    });
+
+    it('should return false for a range with no content, and for an empty range', () => {
+      expect(hasContentPast(0, 3, () => false)).toBe(false);
+      expect(hasContentPast(3, 3, () => true)).toBe(false);
+      expect(hasContentPast(4, 2, () => true)).toBe(false);
+    });
+  });
+
+  describe('areSheetContentsEqual', () => {
+    it('should compare the sheets cell by cell', () => {
+      expect(areSheetContentsEqual([['a', 1], []], [['a', 1], []])).toBe(true);
+      expect(areSheetContentsEqual([['a', 1]], [['a', '1']])).toBe(false);
+      expect(areSheetContentsEqual([['a', 1]], [['a', 1, null]])).toBe(false);
+      expect(areSheetContentsEqual([['a']], [['a'], []])).toBe(false);
+    });
+  });
+
+  describe('setSheetSnapshotCell', () => {
+    it('should set a cell and add the rows and cells it lacks', () => {
+      const rows = [['a']];
+
+      setSheetSnapshotCell(rows, 2, 1, 5);
+
+      expect(rows).toEqual([['a'], [], [null, 5]]);
+    });
+
+    it('should drop the trailing empty cells and rows an emptied cell leaves, as the engine does', () => {
+      const rows = [['a', 'b'], [null, 5]];
+
+      setSheetSnapshotCell(rows, 1, 1, null);
+
+      expect(rows).toEqual([['a', 'b']]);
+
+      setSheetSnapshotCell(rows, 0, 1, undefined);
+
+      expect(rows).toEqual([['a']]);
+    });
+
+    it('should keep an empty cell in the middle of a row, and leave an empty cell past the sheet out', () => {
+      const rows = [['a', 'b', 'c']];
+
+      setSheetSnapshotCell(rows, 0, 1, null);
+      setSheetSnapshotCell(rows, 4, 4, null);
+
+      expect(rows).toEqual([['a', null, 'c']]);
+    });
+  });
+
+  describe('trimTrailingEmptyCells', () => {
+    it('should return the same array for empty input', () => {
+      const rows: unknown[][] = [];
+
+      expect(trimTrailingEmptyCells(rows)).toBe(rows);
+    });
+
+    it('should return the same array when no row ends in an empty cell', () => {
+      const rows = [['a', null, 'c'], [1, 2], []];
+
+      expect(trimTrailingEmptyCells(rows)).toBe(rows);
+    });
+
+    it('should drop trailing null and undefined cells of each row on its own', () => {
+      expect(trimTrailingEmptyCells([['a', null, null], [1, 2, undefined], ['x', undefined, null, 'y', null]]))
+        .toEqual([['a'], [1, 2], ['x', undefined, null, 'y']]);
+    });
+
+    it('should keep an empty string, which is a value', () => {
+      expect(trimTrailingEmptyCells([['a', ''], ['', null]])).toEqual([['a', ''], ['']]);
+    });
+
+    it('should turn a row of empty cells into an empty row and keep the row count', () => {
+      expect(trimTrailingEmptyCells([[null, undefined], ['a']])).toEqual([[], ['a']]);
+    });
+
+    it('should not change the rows it was given', () => {
+      const rows = [['a', null], ['b']];
+
+      trimTrailingEmptyCells(rows);
+
+      expect(rows).toEqual([['a', null], ['b']]);
+    });
+  });
+});
+
+describe('insertEmptyRows', () => {
+  it('inserts the rows at the given place', () => {
+    const rows: unknown[][] = [[1], [2]];
+
+    insertEmptyRows(rows, 1, 2);
+
+    expect(rows).toEqual([[1], [], [], [2]]);
+  });
+
+  it('inserts more rows than a call can take as arguments', () => {
+    const rows: unknown[][] = [[1], [2]];
+
+    expect(() => insertEmptyRows(rows, 1, 300000)).not.toThrow();
+    expect(rows.length).toBe(300002);
+    expect(rows[0]).toEqual([1]);
+    expect(rows[300001]).toEqual([2]);
+    expect(rows[1]).not.toBe(rows[2]);
   });
 });

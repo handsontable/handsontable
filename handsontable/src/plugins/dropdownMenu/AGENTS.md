@@ -54,6 +54,17 @@ per header. The mousedown gate in `#onBeforeOnCellMouseDown` matches the button 
 Pinned by "a runtime icons remap reaches the reused header button, filters select, and select editor
 icons" in `tests/e2e/icon-elements.spec.ts`.
 
+## The button is removed from every header level it does not belong to
+
+`#onAfterGetColHeader` is registered in the constructor, so it runs while the plugin is off too. The header
+cell is reused between renders and `TableView#appendColHeader` keeps its children, so a button stays until
+this hook removes it. A `nestedHeaders` change moves the previous bottom row up: the button that was on it is
+now in a group header. The hook therefore creates and refreshes the button on the bottom level only, and
+removes it on every other level and on every level while the plugin is off. Gating the whole hook on
+`isBottomMostColumnHeader()`, as it was, left 8 dead buttons in the group row after
+`updateSettings({ dropdownMenu: false, nestedHeaders })`, and a second set of buttons there after adding
+`nestedHeaders` with the plugin on. Pinned by `tests/e2e/header-plugin-markup-all-rows.spec.ts`.
+
 ## `aria-haspopup` is set on every header render, not only with the button
 
 Core strips every `aria-*` attribute off a column header cell on each render (`columnHeaders.ts`), and

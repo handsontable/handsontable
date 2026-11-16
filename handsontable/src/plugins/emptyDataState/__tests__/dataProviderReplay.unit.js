@@ -25,7 +25,6 @@ describe('EmptyDataState loading overlay and a replayed DataProvider response', 
     }));
 
     hot = new Handsontable(container, {
-      data: [],
       columns: [{ data: 'id' }],
       emptyDataState: true,
       dataProvider: {

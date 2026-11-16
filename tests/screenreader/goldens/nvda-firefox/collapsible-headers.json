@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "collapsible-headers",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T11:01:54.792Z"
+  },
+  "steps": {
+    "arrow-up-to-lower-header": "b column header selected sub menu row 2 b column 2",
+    "arrow-up-to-group": "b column header selected expanded row 1 column 2",
+    "enter-collapse": "b column header collapsed row 1 column 2",
+    "arrow-right-after-collapse": "f column header selected row 1 column 3",
+    "arrow-left-back": "b column header selected collapsed row 1 column 2",
+    "enter-expand": "b column header expanded row 1 column 2",
+    "arrow-down-to-lower": "b column header selected sub menu row 2 b column 2"
+  }
+}

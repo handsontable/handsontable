@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "freeze-bar",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T11:03:26.629Z"
+  },
+  "steps": {
+    "f6-to-first-bar": "",
+    "arrow-grow": "43",
+    "arrow-shrink": "29",
+    "f6-to-next-bar": "horizontal splitter",
+    "arrow-down-grow": "43",
+    "home-unfreeze": "0",
+    "escape-to-grid": "c c3 column 2 row b3 c3 d3 e3 f3 g3 h3 i3 j3 tree grid 16 columns 23 rows"
+  }
+}

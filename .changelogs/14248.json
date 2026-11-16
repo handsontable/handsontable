@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a dropdown or context menu taller than the viewport being cut off and unscrollable on touch devices, which now scroll it inside itself.",
+  "type": "fixed",
+  "issueOrPR": 14248,
+  "breaking": false,
+  "framework": "none"
+}

@@ -63,12 +63,31 @@ export function prepareHorizontalAlignClass(className: string | string[] | undef
 }
 
 /**
+ * Picks the alignment class names out of a cell `className`, leaving every other class name behind.
+ *
+ * The class names are compared token by token, so a custom class that merely contains an alignment
+ * name (`htTopBar`) is not an alignment one. The original order is kept.
+ *
+ * @param {string|string[]|undefined} className The full cell class name.
+ * @returns {string|undefined} The alignment class names joined by a space, or `undefined` when the cell has none.
+ */
+export function getAlignmentClassNames(className: string | string[] | undefined): string | undefined {
+  const alignmentClassNames = normalizeClassNames(className).filter(name =>
+    HORIZONTAL_ALIGNMENT_CLASS_NAMES.includes(name) || VERTICAL_ALIGNMENT_CLASS_NAMES.includes(name));
+
+  return alignmentClassNames.length > 0 ? alignmentClassNames.join(' ') : undefined;
+}
+
+/**
  * @param {CellRange[]} ranges An array of the cell ranges.
  * @param {Function} callback The callback function.
  * @returns {object}
  */
-export function getAlignmentClasses(ranges: CellRangeLike[], callback: (row: number, col: number) => string) {
-  const classes: Record<number, string[]> = {};
+export function getAlignmentClasses<T = string>(
+  ranges: CellRangeLike[],
+  callback: (row: number, col: number) => T
+) {
+  const classes: Record<number, T[]> = {};
 
   arrayEach(ranges, (range: CellRangeLike) => {
     range.forAll((row: number, col: number) => {
