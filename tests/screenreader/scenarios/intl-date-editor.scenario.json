@@ -33,13 +33,13 @@
       "id": "commit-date",
       "action": {"press": "Enter"},
       "expect": [["01/05/2024", "01 slash 05 slash 2024"], ["row 2"]],
-      "note": "Enter commits the date and moves the selection one row down (enterMoves), to the next row's date, drawn as `01/05/2024`. The grid has no column headers, so the second data row is row 2. Required: that cell's value and its row. Finding: no reader reads the cell; the focus stays in the input, and NVDA and VoiceOver read a segment of it (`Year, spin button, 2024`, `1 month stepper`), or nothing."
+      "note": "Enter commits the date and moves the selection one row down (enterMoves), to the next row's date, drawn as `01/05/2024`. The grid has no column headers, so the second data row is row 2. Required: that cell's value and its row. Finding: no reader reads the cell; the focus stays in the input, and every reader reads a segment of it instead: `Year, spin button, 2024` (NVDA with Chromium), `2024` (NVDA with Firefox), `2024 Year stepper` (VoiceOver with Chromium) and `1 month stepper` (VoiceOver with WebKit)."
     },
     {
       "id": "back-to-committed",
       "action": {"press": "ArrowUp"},
       "expect": [["01/01/2020", "01 slash 01 slash 2020"]],
-      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2020`. NVDA reads the cell, then the hidden input again. Finding: VoiceOver reads the cell in one run and only the input's month segment (`01 Month stepper`), or nothing, in another, for the same race as on arrival."
+      "note": "ArrowUp moves to the edited cell, drawn as `01/01/2020`. NVDA reads the cell, then the hidden input again. Finding: VoiceOver races the focus as on arrival. With Chromium it reads the cell in one run and only the input's month segment (`01 Month stepper`) in another; with WebKit it reads only the month segment, `12 month stepper`, because the typed digits all land in WebKit's month segment (see the typing step), and in one run nothing."
     }
   ]
 }
