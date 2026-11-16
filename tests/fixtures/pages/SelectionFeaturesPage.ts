@@ -1758,21 +1758,26 @@ export class SelectionFeaturesPage {
 
   /**
    * Rests the pointer inside the master holder, the given distance from its inline-end edge (the right
-   * one in LTR) and at half its height. The pointer arrives in two steps, so the grid sees a move there.
+   * one in LTR, the left one in RTL) and at half its height. The pointer arrives in two steps, so the grid
+   * sees a move there.
    *
    * @param {number} distance The distance from the holder's inline-end edge, in pixels.
    */
   async restPointerFromInlineEndEdge(distance: number): Promise<void> {
-    const box = await this.grid.locator('.ht_master .wtHolder').boundingBox();
+    const holder = this.grid.locator('.ht_master .wtHolder');
+    const box = await holder.boundingBox();
 
     if (!box) {
       throw new Error('The master holder is not rendered.');
     }
 
+    const isRtl = await holder.evaluate(element => getComputedStyle(element).direction === 'rtl');
     const y = box.y + (box.height / 2);
+    // The x of a point that many pixels inside the holder, measured from its inline-end edge.
+    const fromInlineEnd = (inset: number) => (isRtl ? box.x + inset : box.x + box.width - inset);
 
-    await this.page.mouse.move(box.x + box.width - distance - 40, y);
-    await this.page.mouse.move(box.x + box.width - distance, y);
+    await this.page.mouse.move(fromInlineEnd(distance + 40), y);
+    await this.page.mouse.move(fromInlineEnd(distance), y);
   }
 
   /**

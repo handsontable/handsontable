@@ -22,6 +22,9 @@ test.describe('fill handle next to an overlay scrollbar', { tag: [THEMES_TAG, CR
   // The strip `axisScrollbarClearance()` keeps clear for an overlay scrollbar
   // (`OVERLAY_SCROLLBAR_CLEARANCE` in walkontable's `overlay/constants.ts`).
   const SCROLLBAR_STRIP = 16;
+  // How long an open band waits before it closes: `OVERLAY_SCROLLBAR_FADE_DELAY` in Walkontable's
+  // `overlay/constants.ts`, in milliseconds.
+  const BAND_FADE_DELAY = 1000;
 
   const dataOf = (rows: number, cols: number) => Array.from({ length: rows }, (_, row) =>
     Array.from({ length: cols }, (__, col) => `R${row + 1}C${col + 1}`));
@@ -119,16 +122,18 @@ test.describe('fill handle next to an overlay scrollbar', { tag: [THEMES_TAG, CR
   test('holds the band over a fixed end column while the pointer rests on the scrollbar strip', async() => {
     await grid.initGrid({ data: WIDE_TALL_DATA, width: 500, height: 300, fixedColumnsEnd: 1 });
     await grid.restPointerFromInlineEndEdge(SCROLLBAR_STRIP / 2);
-
-    const scrolledAt = Date.now();
-
     await grid.selectCells(25, 19, 25, 19);
 
-    // Read after the fade delay (1s) has passed: the band is still open, because the pointer is on the strip.
+    // Precondition: the band opened. The fade delay is counted from here.
+    await expect.poll(() => grid.inlineEndCloneClip()).toBe(`inset(0px ${SCROLLBAR_STRIP}px 0px 0px)`);
+
+    const openedAt = Date.now();
+
+    // Read after the fade delay has passed: the band is still open, because the pointer is on the strip.
     await expect.poll(async() => {
       const clip = await grid.inlineEndCloneClip();
 
-      return Date.now() - scrolledAt > 1500 ? clip : 'before the fade delay';
+      return Date.now() - openedAt > BAND_FADE_DELAY + 500 ? clip : 'before the fade delay';
     }).toBe(`inset(0px ${SCROLLBAR_STRIP}px 0px 0px)`);
 
     // Positive control for the hold: once the pointer leaves the strip, the same band closes.

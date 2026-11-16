@@ -267,6 +267,26 @@ describe('ScrollbarVisibility', () => {
     expect(tracker.visible.vertical).toBe(false);
   });
 
+  it('should not hold the horizontal band from above it either', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(60, 0);
+    tracker.notifyPointerMoved(200, SCROLLPORT.bottom - OVERLAY_SCROLLBAR_CLEARANCE - 1);
+    fadeAll();
+
+    expect(tracker.visible.horizontal).toBe(false);
+  });
+
+  it('should hold the horizontal band from a pointer on the band itself', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(60, 0);
+    tracker.notifyPointerMoved(200, SCROLLPORT.bottom - OVERLAY_SCROLLBAR_CLEARANCE + 1);
+    fadeAll();
+
+    expect(tracker.visible.horizontal).toBe(true);
+  });
+
   it('should hold the vertical band from a pointer on the band itself', () => {
     const { tracker, scrollBy, fadeAll } = build();
 
