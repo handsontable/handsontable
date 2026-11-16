@@ -494,7 +494,9 @@ export const REGISTERED_HOOKS = [
    * Fired after retrieving information about a column header and appending it to the table header.
    *
    * @event Hooks#afterGetColHeader
-   * @param {number} column Visual column index.
+   * @param {number} column Visual column index. In a grid scrolled horizontally, the corner of the main
+   *                        table and of the top overlay gets the index of the column before the first
+   *                        rendered one, not a negative index.
    * @param {HTMLTableCellElement} TH Header's TH element.
    * @param {number} [headerLevel=0] (Since 12.2.0) Header level index. Accepts positive (0 to n)
    *                                 and negative (-1 to -n) values. For positive values, 0 points to the

@@ -161,7 +161,10 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
 - **The row header column is pushed last** in `afterGetRowHeaderRenderers`, next to the data, and its
   column coordinate is `#rowHeaderRendererIndex - view.getRowHeadersCount()` (`-1` unless a plugin
   enabled after this one adds a column). The corner above it gets the same coordinate in
-  `afterGetColHeader`. Do not hard-code `-1`.
+  `afterGetColHeader`, except in a grid scrolled horizontally, where the engine offsets every corner's
+  index. `#isCheckboxHeader()` therefore finds that corner by its position among the corners
+  (`TableView#getColumnHeaderCornerIndex()`), so with two row header columns the checkbox stays in the
+  second one. Do not hard-code `-1`.
 - **NestedRows: `groupSelects` decides the tree's rules** (`#resolveGroupSelects()`), and a wrong guess about
   it breaks the parent's state. With `'descendants'` (the default) **only the leaves store a selection**: a
   parent's checked / mixed / unchecked state and whether it can be selected are computed from the leaves

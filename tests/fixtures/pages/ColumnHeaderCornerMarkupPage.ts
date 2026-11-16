@@ -15,11 +15,12 @@ interface FixtureWindow {
     render(): void;
     scrollViewportTo(coords: { col: number; horizontalSnap: 'start' }): boolean;
     getFirstRenderedVisibleColumn(): number | null;
+    getPlugin(name: 'collapsibleColumns'): { collapseSection(coords: { row: number; col: number }): boolean };
   };
 }
 
 export type CornerFixturePlugin = 'dropdownMenu' | 'filters' | 'columnSorting' | 'multiColumnSorting' |
-  'hiddenColumns' | 'checkboxHeader' | 'rowSelectionColumn' | 'rowSelection';
+  'hiddenColumns' | 'checkboxHeader' | 'rowSelectionColumn' | 'rowSelection' | 'collapsibleColumns';
 
 /**
  * Everything the header plugins draw: the elements and label classes they add inside a header cell, and
@@ -28,6 +29,7 @@ export type CornerFixturePlugin = 'dropdownMenu' | 'filters' | 'columnSorting' |
 const PLUGIN_MARKUP_INSIDE = [
   '.changeType', '.columnSorting', '.sortAction', '.ascending', '.descending', '.ht-sort-indicator',
   '.ht-hidden-indicator-start', '.ht-hidden-indicator-end', '.htCheckboxHeaderBox', '.htRowSelectionCheckboxBox',
+  '.collapsibleIndicator',
 ].join(', ');
 const PLUGIN_MARKUP_ON_HEADER = [
   '.htFiltersActive', '.beforeHiddenColumn', '.afterHiddenColumn', '.htCheckboxHeader', '.htRowSelectionHeader',
@@ -126,6 +128,38 @@ export class ColumnHeaderCornerMarkupPage {
 
       return count;
     }, [PLUGIN_MARKUP_INSIDE, PLUGIN_MARKUP_ON_HEADER]);
+  }
+
+  /**
+   * Collapses the nested header group that contains the given header cell.
+   */
+  async collapseSection(row: number, col: number): Promise<void> {
+    await this.page.evaluate(([headerRow, column]) => {
+      (window as unknown as FixtureWindow).hot.getPlugin('collapsibleColumns')
+        .collapseSection({ row: headerRow, col: column });
+    }, [row, col]);
+  }
+
+  /**
+   * Lists the positions, among the row header columns a header row starts with, that hold the "select all"
+   * checkbox of the RowSelection plugin, across every header row of every table of the grid.
+   */
+  async rowSelectionCheckboxCornerPositions(): Promise<number[]> {
+    return this.page.evaluate(() => {
+      const { hot } = window as unknown as FixtureWindow;
+      const rowHeadersCount = hot.view.getRowHeadersCount();
+      const positions = new Set<number>();
+
+      hot.rootElement.querySelectorAll('thead tr').forEach((row) => {
+        Array.from(row.children).slice(0, rowHeadersCount).forEach((corner, position) => {
+          if (corner.querySelector('.htRowSelectionCheckboxBox')) {
+            positions.add(position);
+          }
+        });
+      });
+
+      return Array.from(positions);
+    });
   }
 
   /**

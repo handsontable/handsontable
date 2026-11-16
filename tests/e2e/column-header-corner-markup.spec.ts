@@ -75,4 +75,31 @@ test.describe('Plugin markup and the column header corner', () => {
       expect(await grid.columnHeaderMarkupCount()).toBeGreaterThan(0);
     });
   }
+
+  test('collapsibleColumns: the corner of a grid scrolled past a collapsed group gets no indicator', async({ page, theme, bundle }) => {
+    const grid = new ColumnHeaderCornerMarkupPage(page, theme, bundle);
+
+    await grid.goto('collapsibleColumns');
+    await grid.collapseSection(-2, 1);
+
+    const [step] = await grid.cornerMarkupWhileScrolledTo([7]);
+
+    expect(step.firstRendered, 'the grid is scrolled past the collapsed group').toBeGreaterThan(3);
+    expect(step.markup).toEqual([]);
+    expect(await grid.columnHeaderMarkupCount()).toBeGreaterThan(0);
+  });
+
+  test('rowSelection: the "select all" checkbox stays in its own corner of a grid scrolled horizontally', async({ page, theme, bundle }) => {
+    const grid = new ColumnHeaderCornerMarkupPage(page, theme, bundle);
+
+    await grid.goto('rowSelection');
+
+    expect(await grid.rowSelectionCheckboxCornerPositions()).toEqual([1]);
+
+    for (const column of [2, 3, 4]) {
+      await grid.cornerMarkupWhileScrolledTo([column]);
+
+      expect(await grid.rowSelectionCheckboxCornerPositions(), `scrolled to column ${column}`).toEqual([1]);
+    }
+  });
 });

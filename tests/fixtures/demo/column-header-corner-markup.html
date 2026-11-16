@@ -51,6 +51,13 @@
       checkboxHeader: { columns: checkboxColumns({ headerCheckbox: true }) },
       rowSelectionColumn: { columns: checkboxColumns({}), rowSelection: { checkboxLocation: { column: 3 } } },
       rowSelection: { rowSelection: true },
+      collapsibleColumns: {
+        nestedHeaders: [
+          ['A', { label: 'G1', colspan: 3 }, { label: 'G2', colspan: 3 }, { label: 'G3', colspan: 3 }, 'K', 'L'],
+          plainColumns.map((column, index) => `c${index}`),
+        ],
+        collapsibleColumns: true,
+      },
     })[htParams.get('plugin') ?? 'dropdownMenu'];
     const rowHeaders = ({ 0: false, 1: true })[htParams.get('rowHeaders') ?? '1'];
 

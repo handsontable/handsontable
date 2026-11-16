@@ -3174,32 +3174,45 @@ class TableView {
   }
 
   /**
-   * Checks whether a column header element is a corner: one of the row header columns its table draws
-   * first in every header row. The rendering engine offsets a corner's negative index by the first
-   * rendered column, so in a table scrolled horizontally `afterGetColHeader` gets the corner with the
-   * index of the column before the first rendered one. A hook that draws into column headers tells the
-   * corner by this check, not by a negative index alone.
+   * Gets the position of a column header element among the corners of its table: the index of the row
+   * header column it sits in, or `-1` when it is not a corner. A corner is one of the row header columns
+   * its table draws first in every header row. The rendering engine offsets a corner's negative index by
+   * the first rendered column, so in a table scrolled horizontally `afterGetColHeader` gets the corner
+   * with the index of the column before the first rendered one. A hook that draws into column headers
+   * tells the corner by this position, not by a negative index alone.
+   *
+   * @private
+   * @param {HTMLTableCellElement} TH The table header element.
+   * @returns {number}
+   */
+  getColumnHeaderCornerIndex(TH: HTMLTableCellElement): number {
+    const headerRow = TH.parentNode;
+
+    if (!headerRow) {
+      return -1;
+    }
+
+    for (let index = 0; index < this.#rowHeadersCount; index++) {
+      if (headerRow.childNodes[index] === TH) {
+        const { wtTable } = this.#getOwningWt(TH);
+        const isCorner = headerRow.parentNode === wtTable.THEAD && index < (wtTable.columnFilter?.countTH ?? 0);
+
+        return isCorner ? index : -1;
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * Checks whether a column header element is a corner. See {@link TableView#getColumnHeaderCornerIndex}.
    *
    * @private
    * @param {HTMLTableCellElement} TH The table header element.
    * @returns {boolean}
    */
   isColumnHeaderCorner(TH: HTMLTableCellElement): boolean {
-    const headerRow = TH.parentNode;
-
-    if (!headerRow) {
-      return false;
-    }
-
-    for (let index = 0; index < this.#rowHeadersCount; index++) {
-      if (headerRow.childNodes[index] === TH) {
-        const { wtTable } = this.#getOwningWt(TH);
-
-        return headerRow.parentNode === wtTable.THEAD && index < (wtTable.columnFilter?.countTH ?? 0);
-      }
-    }
-
-    return false;
+    return this.getColumnHeaderCornerIndex(TH) >= 0;
   }
 
   /**
