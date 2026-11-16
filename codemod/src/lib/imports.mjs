@@ -9,8 +9,14 @@
  * @module lib/imports
  */
 
-import { stringValue } from './ast.mjs';
+import { importedName, stringValue } from './ast.mjs';
 import { findReferences, invalidateScope, lookup, moduleBindings, referenceSpace } from './scope.mjs';
+
+/**
+ * What a name that is written as an identifier looks like. A string literal import name that does not match is not
+ * moved, because `j.identifier()` would print it as invalid code.
+ */
+const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
 
 /**
  * A module specifier test: an exact module name, or a predicate on the name.
@@ -112,7 +118,7 @@ export function getImportedBindings(j, root, source) {
         imported = '*';
         form = 'namespace';
       } else if (specifierNode.type === 'ImportSpecifier') {
-        imported = specifierNode.imported.name ?? stringValue(specifierNode.imported);
+        imported = importedName(specifierNode);
         form = 'named';
       }
 
@@ -462,8 +468,9 @@ export function removeNamedImport(j, root, declaration, specifier) {
  * @param {object} [options] Options.
  * @param {string} [options.imported] Exported name in the target module. Defaults to the current one.
  * @param {boolean} [options.typeOnly] Force the target kind. Defaults to the specifier's own kind.
- * @returns {{moved: boolean, reason?: 'not-named'|'collision'|'not-found'}} The outcome. Nothing
- * changes when `moved` is `false`.
+ * @returns {{moved: boolean, reason?: 'not-named'|'collision'|'not-found'|'same'}} The outcome. Nothing
+ * changes when `moved` is `false`. `same` means the declaration already imports from `targetSource`: that is no move,
+ * and the specifier stays where it is.
  */
 export function moveNamedImport(j, root, declaration, specifier, targetSource, options = {}) {
   const declarationResolved = declarationPath(j, root, declaration);
@@ -479,8 +486,18 @@ export function moveNamedImport(j, root, declaration, specifier, targetSource, o
     return { moved: false, reason: 'not-named' };
   }
 
+  if (stringValue(declarationResolved.node.source) === targetSource) {
+    return { moved: false, reason: 'same' };
+  }
+
   const local = specifierNode.local.name;
-  const importedTarget = options.imported ?? specifierNode.imported.name;
+  const importedNow = importedName(specifierNode);
+  const importedTarget = options.imported ?? importedNow;
+
+  if (importedTarget === null || !IDENTIFIER.test(importedTarget)) {
+    return { moved: false, reason: 'not-named' };
+  }
+
   const kind = bindingKind(declarationResolved.node, specifierNode);
   let targetKind = kind;
 
@@ -495,7 +512,7 @@ export function moveNamedImport(j, root, declaration, specifier, targetSource, o
     && !findMergeTarget(j, root, targetSource, kind)) {
     declarationResolved.node.source = j.literal(targetSource);
 
-    if (importedTarget !== specifierNode.imported.name) {
+    if (importedTarget !== importedNow) {
       specifierResolved.replace(j.importSpecifier(j.identifier(importedTarget), j.identifier(local)));
     }
 
@@ -556,7 +573,7 @@ export function renameBinding(j, root, target, newImportedName) {
     return { renamed: false, reason: 'not-named' };
   }
 
-  const oldImported = specifierNode.imported.name;
+  const oldImported = importedName(specifierNode);
 
   if (oldImported === newImportedName) {
     return { renamed: false, reason: 'same' };

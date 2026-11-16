@@ -40,6 +40,19 @@ export function stringValue(node) {
 }
 
 /**
+ * The name an import specifier takes from the module: `Name` for `import { Name }` and `import { Name as Local }`,
+ * and the decoded text for a string literal name (`import { 'Name' as Local }`, which ES2022 allows for any name).
+ *
+ * @param {object|null|undefined} specifier An `ImportSpecifier` node.
+ * @returns {string|null} The imported name, or `null` when the node has none.
+ */
+export function importedName(specifier) {
+  const imported = specifier?.imported;
+
+  return imported ? imported.name ?? stringValue(imported) : null;
+}
+
+/**
  * Name of a property-like node (`ObjectProperty`, `ObjectMethod`, `ClassProperty`, `TSPropertySignature` and
  * friends). A computed key has no name, even when it holds a string literal.
  *

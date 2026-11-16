@@ -8,6 +8,11 @@ import { insideRelative, leavesDirectory, realpathNative, toPosix } from './lib/
 export { leavesDirectory };
 
 /**
+ * How many paths one batch of `lstat` calls holds.
+ */
+const FILE_CHECK_CHUNK = 256;
+
+/**
  * Directory names discovery never enters or lists.
  */
 export const SKIPPED_DIRECTORIES = new Set(['node_modules', 'dist', 'build', 'coverage', '.git']);
@@ -60,7 +65,8 @@ export function isSkipped(filePath) {
  *
  * @typedef {object} SkippedLink
  * @property {string} file Project-relative path with forward slashes of the link, repository, or directory itself.
- * @property {'link'|'repository'|'directory'} [kind] What it is. Defaults to `link`.
+ * @property {'link'|'repository'|'directory'|'unreadable'} [kind] What it is. Defaults to `link`.
+ * @property {string} [reason] For `unreadable`, the error code of the failed read (`EACCES`).
  */
 
 /**
@@ -98,7 +104,10 @@ async function holdsCandidate(dir, cwd) {
  * file that a rule could edit, or to a directory, is handed to `onLink`.
  *
  * A dot-directory or a build output name (`isWalkSkipped()`) is not entered either, and `onDirectory` hears of it when
- * it holds a file the walk would otherwise read.
+ * it holds a file the walk would otherwise read. A directory below the first that cannot be read (permission denied,
+ * removed during the walk) is handed to `onUnreadable`, and the walk goes on, so one bad directory does not cost the
+ * work of the others. The directory the walk starts from is different: when it cannot be read there is nothing to
+ * migrate, and the error is the answer.
  *
  * @param {string} dir Absolute directory path.
  * @param {string} cwd Project directory that paths are made relative to.
@@ -107,10 +116,25 @@ async function holdsCandidate(dir, cwd) {
  * @param {(file: string) => void} hooks.onLink Called with the project-relative path of a link that was left out.
  * @param {(file: string) => void} hooks.onDirectory Called with the project-relative path of a directory that was
  * skipped and holds readable files.
+ * @param {(file: string, code: string) => void} hooks.onUnreadable Called with the project-relative path of a
+ * directory below the start that could not be read, and the error code.
+ * @param {boolean} [top] `true` for the directory the walk starts from.
  * @returns {Promise<void>}
  */
-async function walk(dir, cwd, out, hooks) {
-  const entries = await readdir(dir, { withFileTypes: true });
+async function walk(dir, cwd, out, hooks, top = true) {
+  let entries;
+
+  try {
+    entries = await readdir(dir, { withFileTypes: true });
+  } catch (error) {
+    if (top) {
+      throw error;
+    }
+
+    hooks.onUnreadable(toPosix(relative(cwd, dir)), error.code ?? 'ERROR');
+
+    return;
+  }
 
   for (const entry of entries) {
     const path = join(dir, entry.name);
@@ -128,7 +152,7 @@ async function walk(dir, cwd, out, hooks) {
         continue;
       }
 
-      await walk(path, cwd, out, hooks);
+      await walk(path, cwd, out, hooks, false);
     } else if (entry.isFile()) {
       out.push(toPosix(relative(cwd, path)));
     } else if (entry.isSymbolicLink()) {
@@ -162,8 +186,8 @@ async function unhandledEntries(cwd, files) {
   const links = [];
   const repositories = [];
 
-  for (let start = 0; start < unhandled.length; start += 256) {
-    const batch = unhandled.slice(start, start + 256);
+  for (let start = 0; start < unhandled.length; start += FILE_CHECK_CHUNK) {
+    const batch = unhandled.slice(start, start + FILE_CHECK_CHUNK);
     const results = await Promise.all(batch.map(async(file) => {
       const path = join(cwd, file.replace(/\/$/, ''));
       const info = await lstat(path).catch(() => null);
@@ -210,6 +234,36 @@ async function isFile(path, onLink) {
     // A path git still lists but that is gone from disk (deleted, not yet staged) is not a file to migrate.
     return false;
   }
+}
+
+/**
+ * Check the candidates among some project-relative paths with `isFile()`, in chunks of `FILE_CHECK_CHUNK` at once,
+ * because a repository lists tens of thousands of files and one round trip after another is slow on a network
+ * mount or on Windows. The results keep the order of the list, so the links are reported in that order.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string[]} files Project-relative paths with forward slashes.
+ * @returns {Promise<Array<{file: string, regular: boolean, isLink: boolean}>>} One result per path that the file
+ * filter keeps, in order: whether it is an existing regular file, and whether it is a symbolic link.
+ */
+async function checkFiles(cwd, files) {
+  const wanted = files.filter(file => isCandidate(file) && !isSkipped(file));
+  const results = [];
+
+  for (let start = 0; start < wanted.length; start += FILE_CHECK_CHUNK) {
+    const batch = wanted.slice(start, start + FILE_CHECK_CHUNK);
+
+    results.push(...await Promise.all(batch.map(async(file) => {
+      let isLink = false;
+      const regular = await isFile(join(cwd, file), () => {
+        isLink = true;
+      });
+
+      return { file, regular, isLink };
+    })));
+  }
+
+  return results;
 }
 
 /**
@@ -301,10 +355,10 @@ export async function discover({ cwd, paths = [], skipped = [], notes = [], reas
   const links = new Set();
   const repo = await isGitRepo(cwd);
   let tracked = repo ? await listFiles(cwd) : null;
-  const noteSkipped = (file, kind) => {
+  const noteSkipped = (file, kind, reason) => {
     if (!links.has(file)) {
       links.add(file);
-      skipped.push({ file, kind });
+      skipped.push(reason === undefined ? { file, kind } : { file, kind, reason });
     }
   };
   const noteLink = file => noteSkipped(file, 'link');
@@ -377,7 +431,11 @@ export async function discover({ cwd, paths = [], skipped = [], notes = [], reas
           : `git lists no file under ${label}.`);
       }
     } else {
-      await walk(absolute, cwd, candidates, { onLink: noteLink, onDirectory: file => noteSkipped(file, 'directory') });
+      await walk(absolute, cwd, candidates, {
+        onLink: noteLink,
+        onDirectory: file => noteSkipped(file, 'directory'),
+        onUnreadable: (file, code) => noteSkipped(file, 'unreadable', code),
+      });
       listed = candidates.length;
 
       if (listed === 0) {
@@ -385,8 +443,12 @@ export async function discover({ cwd, paths = [], skipped = [], notes = [], reas
       }
     }
 
-    for (const file of candidates) {
-      if (isCandidate(file) && !isSkipped(file) && (await isFile(join(cwd, file), () => noteLink(file)))) {
+    for (const { file, regular, isLink } of await checkFiles(cwd, candidates)) {
+      if (isLink) {
+        noteLink(file);
+      }
+
+      if (regular) {
         found.add(file);
       }
     }

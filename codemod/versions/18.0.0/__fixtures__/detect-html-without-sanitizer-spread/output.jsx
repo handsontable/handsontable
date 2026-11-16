@@ -21,6 +21,7 @@ const plain = { colHeaders: ['A', 'B'] };
 // TODO(handsontable-codemod 18.0.0/html-without-sanitizer): Add a sanitizer option if any of the markup in this grid is untrusted. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-built-in-dompurify-with-a-custom-sanitizer
 new Handsontable(document.body, { ...shared, licenseKey: 'x' });
 new Handsontable(document.body, { ...withSanitizer });
+// TODO(handsontable-codemod 18.0.0/html-without-sanitizer): Check that one of the spread ...remote sets a sanitizer option, because the tool could not see... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-built-in-dompurify-with-a-custom-sanitizer
 new Handsontable(document.body, { ...chained });
 // TODO(handsontable-codemod 18.0.0/html-without-sanitizer): Check that one of the spread ...remote sets a sanitizer option, because the tool could not see... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-built-in-dompurify-with-a-custom-sanitizer
 new Handsontable(document.body, { ...remote, ...shared });

@@ -156,6 +156,45 @@ describe('an inline Angular template', () => {
     }
   });
 
+  it('keeps the lines of a template literal whose expressions span lines, and reads text after each of them', async() => {
+    const lines = [
+      'import { Component } from \'@angular/core\';',
+      '@Component({',
+      '  template: `<p>${',
+      '    first +',
+      '    second',
+      '  }</p>',
+      '  <hot-table [correctFormat]="true"></hot-table>',
+      ['  <b>${', ' one }${'].join(''),
+      '    two }</b>',
+      '  <hot-column [correctFormat]="true"></hot-column>`,',
+      '})',
+      'class A {}',
+      '',
+    ];
+
+    for (const eol of ['\n', '\r\n']) {
+      const source = lines.join(eol);
+      const { output, entries } = await run(source);
+
+      assert.equal(output, source);
+      assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line]),
+        [['18.0.0/correct-format-removed', 7], ['18.0.0/correct-format-removed', 10]], JSON.stringify(eol));
+    }
+  });
+
+  it('never prints a template part: an edit of its content changes nothing in the file', async() => {
+    const { default: adapter } = await import('../src/adapters/js.mjs');
+    const source = `${ANGULAR}@Component({ template: \`<p>\${a}</p>\` })\nclass A {}\n`;
+    const handle = adapter.parse(source, 'a.component.ts');
+    const template = handle.parts.find(part => part.fileKind === 'template');
+
+    template.root.content = '<edited></edited>';
+    template.changed = true;
+
+    assert.equal(adapter.print(handle, source), source);
+  });
+
   it('never edits the template, and adds no marker to it', async() => {
     const source = `${ANGULAR}@Component({ template: \`<hot-table [correctFormat]="true" `
       + '[numericFormat]="{ culture: \'de\' }">'

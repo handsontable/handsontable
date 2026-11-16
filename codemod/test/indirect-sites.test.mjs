@@ -338,6 +338,46 @@ describe('html without a sanitizer, with settings the tool cannot read', () => {
     assert.deepEqual([noMarkup.entries.length, sanitized.entries.length, hidden.entries.length], [0, 0, 0]);
   });
 
+  it('follows a local that holds markup and a spread the tool cannot read, one hop or two', async() => {
+    const local = `${head}const held = { ...remote, colHeaders: ['<i>A</i>'] };\n`;
+    const direct = await run('18.0.0', 'a.js', `${local}new Handsontable(el, { ...held });\n`, [RULE]);
+    const twice = await run('18.0.0', 'a.js',
+      `${local}const outer = { ...held, rowHeaders: ['x'] };\nnew Handsontable(el, { ...outer });\n`, [RULE]);
+
+    for (const result of [direct, twice]) {
+      assert.equal(result.entries.length, 1);
+      assert.match(result.entries[0].message, /^Check that one of the spread \.\.\.remote sets a sanitizer option/);
+    }
+  });
+
+  it('stays silent for such a local when it, or the object that holds it, sets a sanitizer', async() => {
+    const inner = await run('18.0.0', 'a.js', `${head}const held = { ...remote, ...markup, sanitizer: s };\n`
+      + 'new Handsontable(el, { ...held });\n', [RULE]);
+    const outer = await run('18.0.0', 'a.js', `${head}const held = { ...remote, ...markup };\n`
+      + 'new Handsontable(el, { ...held, sanitizer: s });\n', [RULE]);
+    const none = await run('18.0.0', 'a.js', `${head}const held = { ...remote, ...none };\n`
+      + 'new Handsontable(el, { ...held });\n', [RULE]);
+
+    assert.deepEqual([inner.entries.length, outer.entries.length, none.entries.length], [0, 0, 0]);
+  });
+
+  it('reads the element of a wrapper the same way', async() => {
+    const result = await run('18.0.0', 'a.jsx', 'import { HotTable } from \'@handsontable/react-wrapper\';\n'
+      + 'const held = { ...remote, colHeaders: [\'<i>A</i>\'] };\n'
+      + 'export const A = () => <HotTable {...held} />;\n', [RULE]);
+
+    assert.equal(result.entries.length, 1);
+    assert.match(result.entries[0].message, /^Check that one of the spread \.\.\.remote sets/);
+  });
+
+  it('ends on objects that spread each other', async() => {
+    const result = await run('18.0.0', 'a.js', `${IMPORT}const a = { ...b, colHeaders: ['<i>A</i>'] };\n`
+      + 'const b = { ...a };\nnew Handsontable(el, { ...a });\n', [RULE]);
+
+    assert.equal(result.entries.length, 1);
+    assert.match(result.entries[0].message, /^Check that one of the spread \.\.\.(a|b) sets/);
+  });
+
   it('does not hedge the license key check, which has no markup to see', async() => {
     const result = await run('18.1.0', 'a.js', `${IMPORT}new Handsontable(el, { ...props });\n`,
       ['18.1.0/license-key-missing']);

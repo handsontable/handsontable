@@ -22,6 +22,7 @@ import {
   typeArguments,
   unwrapPath,
 } from './ast.mjs';
+import { receiverOfGrid } from './hot-bindings.mjs';
 import { findReferences, invalidateScope, lookup } from './scope.mjs';
 
 /**
@@ -60,6 +61,14 @@ import { findReferences, invalidateScope, lookup } from './scope.mjs';
 export const KNOWN_OPTIONS = new Set(
   JSON.parse(readFileSync(new URL('./known-options.json', import.meta.url), 'utf8'))
 );
+
+/**
+ * How strong a confidence is, for the upgrade of an object that two passes reach.
+ *
+ * @type {Record<'high'|'medium', number>}
+ */
+const CONFIDENCE_RANK = { medium: 0, high: 1 };
+const MEMBER_NODE_TYPES = new Set(['MemberExpression', 'OptionalMemberExpression']);
 
 /**
  * Option names too common in unrelated objects to count as evidence on their own. The `medium` heuristic needs
@@ -628,7 +637,17 @@ export function findOptionObjects(j, root, bindings) {
   };
 
   addObject = (objectPath, role, origin, confidence) => {
-    if (found.has(objectPath.node)) {
+    const known = found.get(objectPath.node);
+
+    if (known) {
+      // The passes run in a fixed order, not in order of strength, so a later pass may know more. A higher
+      // confidence takes over the role and the origin that came with it, and what hangs below follows. A tie
+      // keeps the first discovery: the role only names the level for the spreads below the object.
+      if (CONFIDENCE_RANK[confidence] > CONFIDENCE_RANK[known.confidence]) {
+        Object.assign(known, { confidence, role, origin });
+        expand(objectPath, role, confidence);
+      }
+
       return;
     }
 
@@ -637,19 +656,20 @@ export function findOptionObjects(j, root, bindings) {
   };
 
   /**
-   * Add every object an expression stands for as a high-confidence option object.
+   * Add every object an expression stands for as an option object.
    *
    * @param {object|undefined} path NodePath of the expression.
    * @param {string} role Role of the object.
    * @param {string} origin Origin label.
+   * @param {'high'|'medium'} [confidence] Confidence of the object, `high` by default.
    */
-  const addFrom = (path, role, origin) => {
+  const addFrom = (path, role, origin, confidence = 'high') => {
     if (!path || !role) {
       return;
     }
 
     resolveObjects(path).forEach(({ objectPath, viaIdentifier }) => {
-      addObject(objectPath, role, viaIdentifier ? `${origin}:identifier` : origin, 'high');
+      addObject(objectPath, role, viaIdentifier ? `${origin}:identifier` : origin, confidence);
     });
   };
 
@@ -686,14 +706,29 @@ export function findOptionObjects(j, root, bindings) {
     }
   });
 
-  root.find(j.CallExpression).forEach((path) => {
-    if (memberName(path.node.callee) === 'updateSettings' && path.node.arguments.length > 0) {
-      addFrom(path.get('arguments', 0), 'grid', 'updateSettings');
-    }
-  });
-
   const claimed = new Set();
   const calls = new Set();
+
+  // `updateSettings()` is answered by the grid, and so is a form library, a store, or a chart. The receiver decides:
+  // a confirmed instance gives a high object, a receiver the file does not show gives a medium one (reported, and
+  // rewritten only under `--aggressive`), and a receiver the file shows to be something else gives none, and the
+  // key heuristic must not pick the object up either.
+  root.find(j.CallExpression).forEach((path) => {
+    if (memberName(path.node.callee) !== 'updateSettings' || path.node.arguments.length === 0) {
+      return;
+    }
+
+    const callee = unwrapPath(path.get('callee'));
+    const kind = MEMBER_NODE_TYPES.has(callee.node.type) ? receiverOfGrid(callee.get('object'), bindings) : 'other';
+
+    if (kind === 'instance') {
+      addFrom(path.get('arguments', 0), 'grid', 'updateSettings');
+    } else if (kind === 'unknown' && bindings.isHotFile) {
+      addFrom(path.get('arguments', 0), 'grid', 'updateSettings', 'medium');
+    } else {
+      resolveObjects(path.get('arguments', 0)).forEach(({ objectPath }) => claimed.add(objectPath.node));
+    }
+  });
 
   [...root.find(j.CallExpression).paths(), ...root.find(j.OptionalCallExpression).paths()].forEach((path) => {
     const callee = path.node.callee;

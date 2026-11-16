@@ -497,6 +497,68 @@ describe('type rule transforms', () => {
     assert.ok(result.entries.some(entry => entry.severity === 'manual' && /already declared/.test(entry.message)));
   });
 
+  it('moves a name whose new name is taken and keeps the old local name, alone or with other specifiers', async() => {
+    const only = [`${VERSION}/type-multicolumnsorting-config`];
+    const target = 'handsontable/plugins/columnSorting';
+    const old = 'handsontable/plugins/multiColumnSorting';
+
+    for (const [specifiers, left] of [['Config', ''], ['Config, Other', `import type { Other } from '${old}';\n`]]) {
+      const source = `import type { ${specifiers} } from '${old}';\nconst ColumnSortingConfig = 1;\nlet a: Config;\n`;
+      const result = await run('a.ts', source, only);
+
+      assert.equal(result.output,
+        `${left}import type { ColumnSortingConfig as Config } from '${target}';\n`
+        + 'const ColumnSortingConfig = 1;\nlet a: Config;\n', specifiers);
+      assert.ok(result.entries.some(entry => entry.severity === 'changed'
+        && entry.message.includes('The local name Config stays')), specifiers);
+      assert.equal((await run('a.ts', result.output, only)).changed, false, 'a second run changes nothing');
+    }
+  });
+
+  it('keeps an import when a rule names the module the name already comes from as its target', async() => {
+    const source = 'import { Config } from \'handsontable/plugins/columnSorting\';\nlet a: Config;\n';
+    const same = {
+      id: `${VERSION}/same-module`,
+      kind: 'importSource',
+      version: VERSION,
+      safe: true,
+      guideUrl: null,
+      from: 'handsontable/plugins/columnSorting',
+      exports: { Config: { to: 'handsontable/plugins/columnSorting' } },
+    };
+    const renameInPlace = {
+      id: `${VERSION}/rename-in-place`,
+      kind: 'exportRename',
+      version: VERSION,
+      safe: true,
+      guideUrl: null,
+      source: ['handsontable/plugins/columnSorting'],
+      from: 'Config',
+      to: 'ColumnSortingConfig',
+      toSource: 'handsontable/plugins/columnSorting',
+    };
+
+    for (const rule of [same, renameInPlace]) {
+      const plain = buildPlan([{ version: VERSION, rules: [rule] }]);
+      const first = await transformFile({ filePath: 'a.ts', source, plan: plain, options: { markers: false } });
+      const second = await transformFile({
+        filePath: 'a.ts',
+        source: first.output,
+        plan: plain,
+        options: { markers: false },
+      });
+
+      for (const output of [first.output, second.output]) {
+        assert.match(output,
+          /import \{ (?:Config|ColumnSortingConfig(?: as Config)?) \} from 'handsontable\/plugins\/columnSorting';/,
+          rule.id);
+        assert.match(output, /let a: (?:Config|ColumnSortingConfig);/, rule.id);
+      }
+
+      assert.equal(second.changed, false, rule.id);
+    }
+  });
+
   it('adds a type import for an aliased namespace and leaves the namespace value alone', async() => {
     const result = await run('a.ts', [
       'import HOT from \'handsontable\';',

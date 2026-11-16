@@ -518,6 +518,105 @@ describe('a project outside git: the walk leaves build output and hidden folders
   });
 });
 
+describe('discovery checks a long list of files in batches', () => {
+  it('finds every file and every link of a list longer than one batch, as a short list would', async(context) => {
+    const files = {};
+
+    for (let index = 0; index < 700; index += 1) {
+      files[`src/f${String(index).padStart(4, '0')}.js`] = SOURCE;
+    }
+
+    await inPlainProject(files, async(dir) => {
+      try {
+        await symlink(join(dir, 'src', 'f0000.js'), join(dir, 'src', 'link-early.js'));
+        await symlink(join(dir, 'src', 'f0699.js'), join(dir, 'src', 'link-late.js'));
+      } catch {
+        context.skip('this platform cannot make a symbolic link');
+
+        return;
+      }
+
+      const skipped = [];
+      const found = await discover({ cwd: dir, skipped });
+
+      assert.deepEqual(found, Object.keys(files));
+      assert.deepEqual(skipped.map(item => item.file).sort(), ['src/link-early.js', 'src/link-late.js']);
+    });
+  });
+});
+
+describe('a project outside git: a directory that cannot be read', () => {
+  const unreadable = () => !POSIX || process.getuid?.() === 0;
+
+  it('is skipped and named, and the other directories are still migrated', async(context) => {
+    if (unreadable()) {
+      context.skip('permissions cannot deny a read on this platform or for this user');
+
+      return;
+    }
+
+    await inPlainProject({ 'src/a.js': SOURCE, 'locked/deep/b.js': SOURCE, 'zeta/c.js': SOURCE }, async(dir) => {
+      await chmod(join(dir, 'locked'), 0o000);
+
+      try {
+        const result = await run({ cwd: dir, ...RANGE });
+
+        assert.deepEqual(result.changedFiles, ['src/a.js', 'zeta/c.js']);
+
+        const [entry, ...others] = result.report.skipped();
+
+        assert.deepEqual(others, []);
+        assert.equal(entry.file, 'locked');
+        assert.match(entry.message,
+          /^The tool could not read this directory \(EACCES\), so it skipped it and everything below it\./);
+        assert.match(entry.message, /migrate locked$/);
+      } finally {
+        await chmod(join(dir, 'locked'), 0o755);
+      }
+    });
+  });
+
+  it('is an error when it is the directory the run starts from', async(context) => {
+    if (unreadable()) {
+      context.skip('permissions cannot deny a read on this platform or for this user');
+
+      return;
+    }
+
+    await inPlainProject({ 'locked/b.js': SOURCE }, async(dir) => {
+      await chmod(join(dir, 'locked'), 0o000);
+
+      try {
+        await assert.rejects(discover({ cwd: dir, paths: ['locked'] }), { code: 'EACCES' });
+      } finally {
+        await chmod(join(dir, 'locked'), 0o755);
+      }
+    });
+  });
+
+  it('is skipped by discover() with the error code for the report to name', async(context) => {
+    if (unreadable()) {
+      context.skip('permissions cannot deny a read on this platform or for this user');
+
+      return;
+    }
+
+    await inPlainProject({ 'a/x.js': SOURCE, 'a/locked/y.js': SOURCE }, async(dir) => {
+      await chmod(join(dir, 'a', 'locked'), 0o000);
+
+      try {
+        const skipped = [];
+        const files = await discover({ cwd: dir, skipped });
+
+        assert.deepEqual(files, ['a/x.js']);
+        assert.deepEqual(skipped, [{ file: 'a/locked', kind: 'unreadable', reason: 'EACCES' }]);
+      } finally {
+        await chmod(join(dir, 'a', 'locked'), 0o755);
+      }
+    });
+  });
+});
+
 describe('the tests read the monorepo files they depend on, or fail', () => {
   it('fails inside the monorepo when a file is missing, and passes for a file that is there', () => {
     assert.equal(IN_MONOREPO, true, 'this suite runs in the monorepo, where pnpm-workspace.yaml is two levels up');

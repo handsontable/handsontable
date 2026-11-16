@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { dirtyPaths, isGitRepo, isTracked, listFiles } from '../src/git.mjs';
 import { migrate } from './helpers/plain-project.mjs';
-import { createSampleProject, git } from './helpers/sample-project.mjs';
+import { createSampleProject, git, removeSampleProject } from './helpers/sample-project.mjs';
 
 // The configuration is shell text, which a Windows shell reads differently. The program only has to create a file.
 const SKIP = process.platform === 'win32';
@@ -26,7 +26,7 @@ async function projectWithProgram(key) {
 
   const cleanup = async() => {
     await rm(outside, { recursive: true, force: true });
-    await rm(dir, { recursive: true, force: true });
+    await removeSampleProject(dir);
   };
 
   return { dir, marker, cleanup };
@@ -99,7 +99,7 @@ describe('the configuration of the project runs no program', { skip: SKIP }, () 
       assert.equal(await isTracked(dir, join(dir, 'new.js')), false);
       assert.equal(await isTracked(dir, join(dir, 'package.json')), true);
     } finally {
-      await rm(dir, { recursive: true, force: true });
+      await removeSampleProject(dir);
     }
   });
 });

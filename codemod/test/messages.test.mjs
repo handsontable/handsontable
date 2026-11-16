@@ -44,6 +44,17 @@ describe('handsontable/common that is re-exported, typeof-imported, or loaded at
     assert.match(message, /NumbroFormatOptions: Use `Intl\.NumberFormatOptions` instead/);
   });
 
+  it('reports a re-export of any name from the removed module, listed or not', async() => {
+    for (const name of ['CellValue', 'NeverExportedName']) {
+      const result = await run(`export { ${name} } from 'handsontable/common';\n`, 'a.ts');
+
+      assert.equal(messages(result).length, 1, name);
+      assert.match(messages(result)[0], /This re-export reads from "handsontable\/common"/, name);
+    }
+
+    assert.equal(messages(await run('export { Other } from \'handsontable/other\';\n', 'a.ts')).length, 0);
+  });
+
   it('keeps redirecting a named import of a name that was never exported', async() => {
     const result = await run('import type { GridSettings } from \'handsontable/common\';\nlet a: GridSettings;\n',
       'a.ts');
@@ -68,6 +79,60 @@ describe('handsontable/common that is re-exported, typeof-imported, or loaded at
 
     assert.deepEqual(messages(dynamic), [advice]);
     assert.deepEqual(messages(required), [advice]);
+  });
+});
+
+describe('a runtime import() of a module that survives, read for a name that moved', () => {
+  const ID = '18.0.0/theme-registry-imports-main';
+  const reports = async(source) => {
+    const result = await run(source, 'a.ts', ['18.0.0'], [ID]);
+
+    // Nothing is rewritten: the only edit a report can make is its TODO comment.
+    assert.equal(result.output.replace(/^\/\/ TODO\(handsontable-codemod [^\n]*\n/gm, '')
+      .replace(/\/\* TODO[^*]*\*\/ ?/g, ''), source);
+
+    return result.entries.filter(entry => entry.ruleId === ID);
+  };
+
+  it('reports a member read, an awaited read, a destructuring, and a name that holds the module', async() => {
+    for (const source of [
+      'const a = import(\'handsontable\').registerTheme;\n',
+      'async function f() { return (await import(\'handsontable\')).registerTheme; }\n',
+      'async function f() { const { registerTheme } = await import(\'handsontable\'); }\n',
+      'async function f() { const { registerTheme: add, Core } = await import(\'handsontable\'); }\n',
+      'async function f() { const ns = await import(\'handsontable\'); ns.registerTheme(1); }\n',
+      'async function f() { const ns = await import(\'handsontable\') as any; return ns.registerTheme; }\n',
+    ]) {
+      const entries = await reports(source);
+
+      assert.equal(entries.length, 1, source);
+      assert.match(entries[0].message, /This code loads "handsontable"/, source);
+    }
+  });
+
+  it('reports a then() callback that destructures the name or reads it from its parameter', async() => {
+    for (const source of [
+      'import(\'handsontable\').then(({ registerTheme }) => registerTheme(1));\n',
+      'import(\'handsontable\').then(function(m) { return m.registerTheme; });\n',
+      'import(\'handsontable\').then(m => m.registerTheme(1));\n',
+    ]) {
+      assert.equal((await reports(source)).length, 1, source);
+    }
+  });
+
+  it('stays quiet for a bare import, other names, a name read from another object, and a shadowed parameter', async() => {
+    for (const source of [
+      'const mod = import(\'handsontable\');\n',
+      'async function f() { const { Core } = await import(\'handsontable\'); return Core; }\n',
+      'async function f() { return (await import(\'handsontable\')).Core; }\n',
+      'async function f() { const ns = await import(\'handsontable\'); other.registerTheme(ns); return ns.Core; }\n',
+      'async function f() { const ns = await import(\'handsontable\'); return (ns) => ns.registerTheme; }\n',
+      'import(\'handsontable\').then(m => m.Core);\n',
+      'import(\'handsontable\').then(m => other.registerTheme(m));\n',
+      'import(\'handsontable\').then(callback);\n',
+    ]) {
+      assert.deepEqual(await reports(source), [], source);
+    }
   });
 });
 

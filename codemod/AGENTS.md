@@ -28,6 +28,8 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   rules that rewrite and the rules that only report.
 - `test/cli.e2e.test.mjs` spawns the real bin on a temp git project built by `test/helpers/sample-project.mjs`
   (`SAMPLE_FILES`, `createSampleProject()`). Add a file kind there when a transform starts to handle one.
+  A test removes its project with `removeSampleProject()` in a `finally`, and the process removes what a test forgot when it
+  ends. `CODEMOD_KEEP_PROJECTS=1` keeps every sample project and prints the paths, for a look at a failing test.
 - `test/readme.test.mjs` compares the rule counts in the README tables with `describeRules()`. A change to a rule's
   `safe`, or a new rule, changes a count, so update the two tables in `README.md`.
 - `test/safety.test.mjs` pins the `safe` contract: the runner guard, the shipped data, one case per kind that flips
@@ -155,7 +157,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/validate.mjs` | `problemsOf()` and `assertRenameOrRemoval()`, the helpers behind the `validate(rule)` hook of a transform. |
 | `src/lib/rename-key.mjs` | `renameKey()` and `removalAdvice()`, shared by the option, theme token, and CSS transforms. |
 | `src/lib/resolve.mjs` | `createHop()`: the one-hop resolver of a file. `hop()` follows an identifier or a member read (`PRESET.chf`) to the value a `const` of the same file holds, through `as const`; `stringOf()` reads the string behind it; `spreadsOf()` resolves the spreads of an object, and `{ exact: true }` answers `null` for an object the file changes. Nothing else is followed (see Traps). |
-| `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, `valuesOf()`, ...) and `isUnresolvedReceiver()`. Every question about a name is answered from its whole history (see Traps). |
+| `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, `isPlugin()`, `valuesOf()`, ...), `isUnresolvedReceiver()`, and `receiverOfGrid()` (`instance`, `other`, or `unknown`, for a call that only the grid answers to). Every question about a name is answered from its whole history (see Traps). |
 | `src/lib/custom-reader.mjs` | `createReaderFinder()`: the one check "could custom code read this option of this object or element" behind `readerAdvice` (see Traps). |
 | `src/lib/facts.mjs` | `addFact(ctx, name, line)`, `hasFactFor(ctx, name)`, and `factSite(ctx, name)`: facts keyed by name and directory, with the file and line of the first sighting (see Traps). |
 | `src/lib/marker.mjs` | Where a generic TODO marker goes: `createMarkerIndex()` (a report line to its anchor and the nodes above it, `anchorsAbove()`), `markerTargets()` (the climb from a node to a property, array element, statement, or JSX element), and `cssTargetAt()`. |
@@ -224,7 +226,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    says so (`git diff` will not show the changes). A git entry that no adapter handles and that is a directory is a
    submodule or an embedded repository: it goes to `skipped` with `kind: 'repository'`. Outside git the walk also skips
    every dot-directory and `BUILD_OUTPUT_DIRECTORIES`, and reports a skipped directory that holds a readable file
-   (`kind: 'directory'`, found by `holdsCandidate()`). A path argument is read in the letter case the file system stores
+   (`kind: 'directory'`, found by `holdsCandidate()`). A directory the walk cannot read (below the start: `EACCES`, a race
+   with a removal) goes to `skipped` with `kind: 'unreadable'` and the error code as `reason`, and the walk goes on; the
+   directory the walk starts from rethrows. A path argument is read in the letter case the file system stores
    (`realpathNative()`), with a note. `discover()` fills `notes` and `reasons`: when no file is found at all, `run()`
    adds "No files to migrate." and the reasons to `result.notes` and `report.notes` (exit code 0, justified in the
    README). It drops
@@ -367,8 +371,9 @@ across kinds. Every kind also takes the common fields, and `safe` is required ex
 | `custom` | `module*`, plus whatever the module reads (`mode`) |
 
 `dependency` item fields: `bump` maps a package name to a target version. `replaced` maps a package name to the
-manual text that names its replacement. `add` items take `name*`, `range*`, `whenFact`, `onlyIfDependsOn` (a package
-name or a list; the item applies when the `package.json` declares one of them). `reportMissing` items (the package
+manual text that names its replacement. `add` items take `name*`, `range*`, `onlyIfDependsOn*` (a package
+name or a non-empty list; the item applies when the `package.json` declares one of them, and the section it adds to
+is the one that holds the first of them), `whenFact`. `reportMissing` items (the package
 is not declared) take `name*`, `whenFact`, `onlyIfDependsOn`, `message`. `reportPresent` items (the package is
 declared) take `name*`, `message*`, `whenFact`, `onlyIfDependsOn`. `whenFact` names a fact that phase 1 found for the
 project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `{ import: "<module>" }` or
@@ -818,8 +823,12 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   hands out new binding objects. The same history decides `isUnresolvedReceiver(path, bindings)`, the option object
   that a variable stands for (`createResolver()` in `lib/option-objects.mjs` follows a name only when it holds one
   value), and the theme variables of `theme-tokens.mjs` (every value a theme, and a `require` binding that the file
-  sets again stops counting). `updateSettings()` objects stay receiver-agnostic by design: a hot file's
-  `x.updateSettings({ ... })` argument is a high-confidence grid object whatever `x` is.
+  sets again stops counting). The first argument of `updateSettings()` is judged by its receiver (`receiverOfGrid()` in
+  `lib/hot-bindings.mjs`): a receiver `isInstance()` confirms gives a high grid object, a receiver the file does not
+  show (a global, a parameter, a call result, a `this` member the class never sets or sets from a call) gives a medium
+  one in a hot file (reported, rewritten under `--aggressive`), and a receiver the file shows to be something else (a
+  local object, class, or import, a plugin from `getPlugin()`, `this`, a `this` member that holds only local values)
+  gives none and `claimed`, so the key heuristic does not take the object either.
 - A `methodRemove` rule's `advice` may use `{name}` too, so the TODO of a call that was not confirmed (the receiver may be
   another object) names the method in its first sentence: `19.0.0/resize-state-methods` starts with "Replace {name} with
   your own store". `18.0.0/resize-state-methods` does not, so its TODO text is unchanged. A `methodRemove` rule's
@@ -854,6 +863,10 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   (default: the plugin name with a lower-case first letter, `null` for a plugin with no option, which then uses
   `noKeyAdvice`). Within one run the first matching rule wins for `exportRemoved` and `namespaceType`, so a specific
   rule goes before the wildcard, or the wildcard lists it in `except`.
+- `reportOpaqueReferences()` (without `all`) also reads a runtime `import()` of a module that survives: a member read of
+  it (`import('m').Name`, `(await import('m')).Name`), a destructuring of the awaited module, a name that holds it and is
+  read as `ns.Name`, and a `.then()` callback that destructures the name or reads it from its parameter. A bare
+  `import('m')` and a read of other names stay quiet.
 - The four transforms never delete a name they cannot replace. `importSource` leaves a removed name in a residual
   import from the old module with one TODO per declaration, `exportRemoved` keeps the import and adds a TODO, and a
   removed `namespaceType` member gets a TODO on the enclosing statement or member. A name collision, a global
@@ -1018,7 +1031,8 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `hook` resolves the name through `stringOf()`, accepts `add()`/`once()` on a `const` alias of `Handsontable.hooks`
   (`isHooksRegistry()`; `new Set().add()` stays out), and matches a prop of a component that is not a known wrapper
   when it passes the corroboration bar (`matchHookOnElements()`). `missingOption` merges a spread of a same-file object
-  literal with no spread of its own (`resolveSpread()`); a spread of anything else, a prop included, makes the
+  literal (`resolveSpread()`), and the spreads of that literal the same way, to any depth (`readKeys()` keeps the
+  objects it is reading, so objects that spread each other end); a spread of anything else, a prop included, makes the
   configuration unknown, and an unknown configuration is silent. The exception is a matcher with `reportUnresolved`
   (needs `whenAnyKey`): when the markup is visible in the keys the tool read, no visible key sets the option, and a source is
   unread, `applyRule()` reports the rule's `unresolvedMessage` with the unread sources named (`markUnknown()` collects
@@ -1054,8 +1068,8 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   none, while the later rule still reports its entry. A rule that repeats an older one adds the id to `twins`.
 - **An inline Angular template is a `template` part.** `adapters/js.mjs` (`inlineTemplateParts()`) adds one read-only
   part for the `template` property of the object passed to `Component(...)` (a decorator or a call), when the file
-  names `@angular/core`, as a string or a template literal (an expression `${}` is joined with a space, so a line after a
-  multi-line expression can drift). Its `lineOffset` is the line of the opening quote, so every rule that reads
+  names `@angular/core`, as a string or a template literal (an expression `${}` becomes a space plus the line breaks it spans, so the lines
+  after it stay the lines of the file, and the expression is never read). Its `lineOffset` is the line of the opening quote, so every rule that reads
   templates (`optionRename`, `optionMove`, `optionRemove` in `reportTemplateOptions()`, the `detect` matchers that list
   `template`, the report-only `cssVariable` branch) reports on it with the lines of the `.ts` file. It is report only
   and has no marker. The adapter's precheck also lets a file through that opens `<hot-table>`, `<hot-column>`,

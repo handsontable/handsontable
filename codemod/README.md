@@ -128,7 +128,9 @@ not show the changes. Outside git the tool walks the directory and also skips ev
 (`.next`, `.nuxt`, `.output`, `.svelte-kit`, `.angular`, `.cache`, `.turbo`, `.vercel`, `.storybook`) and `out`,
 `storybook-static`, `bower_components`, `jspm_packages`, and `_site`, because without ignore rules it cannot tell build
 output from source. A skipped directory that holds files the tool would read is listed under "Skipped files" with the
-command that includes it (`migrate .storybook`). A path argument is read in the letter case the file system stores.
+command that includes it (`migrate .storybook`). A directory it cannot read (permission denied) is skipped with
+everything below it and listed there with the error code, and the walk goes on, so one locked directory does not stop
+the run. A path argument is read in the letter case the file system stores.
 
 A run that finds no file to read is not an error (exit code 0, so a loop over packages goes on), and it does not look
 like a run that found nothing to change: the tool prints "No files to migrate." with the reason on standard error and
@@ -284,13 +286,19 @@ styles that are left in a theme, in a stylesheet, or in the inline `<style>` of 
 ## How confidence works
 
 The tool recognizes a Handsontable settings object by what the file shows. An object passed to
-`new Handsontable()` or `updateSettings()`, an object in a `settings` prop, an object with a `GridSettings`
+`new Handsontable()` or to `updateSettings()` on a grid instance the file shows (`const hot = new Handsontable(...)`,
+`ref.current.hotInstance`), an object in a `settings` prop, an object with a `GridSettings`
 annotation, and the `columns`, `cell`, and `cells` below them have high confidence. So do the objects in the
 `columns`, `cell`, and `cells` props of a wrapper component, because a prop of `<HotTable>` is an option like a key of
 a settings object: `columns={[{ ... }]}`, `columns={(index) => ({ ... })}`, and `columns={columnDefs}`, where
 `columnDefs` is an array in the same file, or a `useMemo(() => [...], [])` call with a single `return`. The object
 argument of `setCellMetaObject(row, col, { ... })` on a grid instance the file shows (`const hot = new Handsontable(...)`)
 is a cell object with high confidence, like a return of `cells()`.
+
+`updateSettings()` is also a method of other libraries, so the receiver decides. A receiver the file does not show
+(a parameter, a global, the result of a call) gives medium confidence: the options are reported, and rewritten only
+under `--aggressive`. A receiver the file shows to be something else (a local object, an imported form library, a
+plugin from `getPlugin()`, `this`) is left alone and not reported.
 
 A `cells` function can also be passed by name, in a settings object or as a prop: `cells={plainCells}`, `cells: fmtCells`,
 or `cells={cells}` where `cells` holds `useCallback(() => ({ ... }), [])`. The tool follows the name one hop inside
@@ -347,9 +355,10 @@ rules only, as a `.css` file does. In a JavaScript file with no other sign of Ha
 
    Every manual step in a script, a TypeScript file, a Vue `<script>`, or a stylesheet gets a marker at its line, except
    the notes that hold for the whole run, a grid with no `licenseKey`, and test code that dispatches a synthetic header
-   event. Each marker names its rule and, for a rule that has a guide section, links to it. A step in an HTML page, a
-   template, or `package.json` has no marker: the report lists it. The full text of the advice is in the report. Pass
-   `--no-todo` to run without markers.
+   event. Each marker names its rule and, for a rule that has a guide section, links to it. A step in an HTML page (its
+   `<style>` blocks included), in the `<template>` of a Vue file or an inline Angular template, or in `package.json`
+   has no marker, because the tool leaves no comment there: the report lists it. The full text of the advice is in the
+   report. Pass `--no-todo` to run without markers.
 4. Delete a comment when you have done what it says. The tool does not add it again, and a second run changes
    nothing.
 

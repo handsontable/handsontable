@@ -1,8 +1,33 @@
 import { execFileSync } from 'node:child_process';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { rmSync } from 'node:fs';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { isolatedGitEnv } from './git-env.mjs';
+
+const KEEP = Boolean(process.env.CODEMOD_KEEP_PROJECTS);
+
+/**
+ * The projects `createSampleProject()` made and nobody removed. A test that forgets `removeSampleProject()` does not
+ * leave a repository in the temp directory: the process removes what is left when it ends.
+ *
+ * @type {Set<string>}
+ */
+const projects = new Set();
+
+process.on('exit', () => {
+  if (KEEP) {
+    if (projects.size > 0) {
+      process.stderr.write(`Sample projects kept (CODEMOD_KEEP_PROJECTS):\n${[...projects].join('\n')}\n`);
+    }
+
+    return;
+  }
+
+  for (const dir of projects) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 /**
  * Files of a small project that is on Handsontable 17.1: the vanilla, React, Angular, and Vue wrappers, a type
@@ -151,10 +176,28 @@ export async function writeFiles(dir, files) {
 export async function createSampleProject(extra = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'codemod-e2e-'));
 
+  projects.add(dir);
   await writeFiles(dir, { ...SAMPLE_FILES, ...extra });
   git(dir, ['init', '-q']);
   git(dir, ['add', '-A']);
   git(dir, ['commit', '-q', '-m', 'init']);
 
   return dir;
+}
+
+/**
+ * Remove a sample project. A test calls it in a `finally`, so the project of a failing test goes too, unless the
+ * environment variable `CODEMOD_KEEP_PROJECTS` is set: then every project stays on disk for a look, and the paths
+ * are printed when the process ends.
+ *
+ * @param {string} dir The directory `createSampleProject()` returned.
+ * @returns {Promise<void>}
+ */
+export async function removeSampleProject(dir) {
+  if (KEEP) {
+    return;
+  }
+
+  projects.delete(dir);
+  await rm(dir, { recursive: true, force: true });
 }

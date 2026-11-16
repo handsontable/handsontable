@@ -20,7 +20,7 @@ import {
   getImportedBindings,
 } from '../lib/imports.mjs';
 import { createLineCounter, scanScripts } from '../lib/inline-script.mjs';
-import { GENERIC_OPTIONS, KNOWN_OPTIONS, findOptionObjects, hasSpread } from '../lib/option-objects.mjs';
+import { GENERIC_OPTIONS, KNOWN_OPTIONS, findOptionObjects } from '../lib/option-objects.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import { printTree } from '../lib/print.mjs';
 import { createHop, isReference } from '../lib/resolve.mjs';
@@ -165,6 +165,23 @@ function validateMatch(spec, files, where) {
 
   if (key === 'missingOption' && typeof spec.missingOption !== 'string') {
     problems.push(`${where}.missingOption must be a key name`);
+  }
+
+  if (spec.whenAnyKey !== undefined && (!Array.isArray(spec.whenAnyKey) || spec.whenAnyKey.length === 0
+    || spec.whenAnyKey.some(item => typeof item !== 'string' || !item))) {
+    problems.push(`${where}.whenAnyKey must be a non-empty array of key names`);
+  }
+
+  if (['import', 'call', 'hook'].includes(key) && !listOf(spec[key]).every(item => typeof item === 'string' && item)) {
+    problems.push(`${where}.${key} must be a name or a list of names`);
+  }
+
+  if (spec.withKey !== undefined && (typeof spec.withKey !== 'string' || !spec.withKey)) {
+    problems.push(`${where}.withKey must be a key name`);
+  }
+
+  if (spec.receiver !== undefined && (typeof spec.receiver !== 'string' || !spec.receiver)) {
+    problems.push(`${where}.receiver must be "instance" or the text of the receiver`);
   }
 
   if (['string', 'selector', 'regex'].includes(key) && typeof spec[key] !== 'string') {
@@ -1639,23 +1656,28 @@ function markUnknown(env, candidate, source) {
 
 /**
  * Read the keys of an object literal into a candidate. A spread is read when it stands for an object literal of
- * this file (one hop, through a `const` or a member of one) that has no spread of its own: its keys count, so the
- * keys of the merged object are fully known. Any other spread marks the candidate unknown, because it may set the key.
+ * this file (one hop, through a `const` or a member of one): its keys count, and its own spreads are read the same
+ * way, so a local that holds markup and a spread of something unknown marks the candidate unknown with the markup
+ * visible. Any spread that does not resolve, and a spread that leads back to an object being read, marks the
+ * candidate unknown, because it may set the key.
  *
  * @param {Env} env Part state.
  * @param {object} objectNode An `ObjectExpression` node.
  * @param {Candidate} candidate The candidate to fill.
  * @param {object|null} [objectPath] NodePath of the object, which lets its spreads resolve.
+ * @param {Set<object>} [reading] The object literals being read, from the outermost to this one.
  * @returns {void}
  */
-function readKeys(env, objectNode, candidate, objectPath = null) {
+function readKeys(env, objectNode, candidate, objectPath = null, reading = new Set([objectNode])) {
   objectNode.properties.forEach((property, index) => {
     if (property.type === 'SpreadElement' || property.type === 'SpreadProperty'
       || property.type === 'ExperimentalSpreadProperty') {
       const spread = objectPath ? resolveSpread(env, objectPath.get('properties', index, 'argument')) : null;
 
-      if (spread) {
-        readKeys(env, spread.node, candidate);
+      if (spread && !reading.has(spread.node)) {
+        reading.add(spread.node);
+        readKeys(env, spread.node, candidate, spread, reading);
+        reading.delete(spread.node);
       } else {
         markUnknown(env, candidate, `the spread ...${printTree(env.j, property.argument)}`);
       }
@@ -1678,8 +1700,7 @@ function readKeys(env, objectNode, candidate, objectPath = null) {
 }
 
 /**
- * The object literal a spread argument stands for, when it is written there or one hop away, and has no spread of its
- * own.
+ * The object literal a spread argument stands for, when it is written there or one hop away.
  *
  * @param {Env} env Part state.
  * @param {object} argumentPath NodePath of the spread argument.
@@ -1689,7 +1710,7 @@ function resolveSpread(env, argumentPath) {
   const target = unwrapPath(argumentPath);
   const resolved = target.node.type === 'ObjectExpression' ? target : env.resolver().hop(target, { exact: true });
 
-  return resolved?.node.type === 'ObjectExpression' && !hasSpread(resolved) ? resolved : null;
+  return resolved?.node.type === 'ObjectExpression' ? resolved : null;
 }
 
 /**
@@ -1714,7 +1735,7 @@ function describeElement(env, elementPath) {
       const spread = resolveSpread(env, elementPath.get('openingElement', 'attributes', index, 'argument'));
 
       if (spread) {
-        readKeys(env, spread.node, candidate);
+        readKeys(env, spread.node, candidate, spread);
       } else {
         markUnknown(env, candidate, `the spread ...${printTree(env.j, attribute.argument)}`);
       }

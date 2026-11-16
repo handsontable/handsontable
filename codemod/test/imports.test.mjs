@@ -300,6 +300,58 @@ describe('moveNamedImport', () => {
     assert.equal(print(root), 'import { a as other, a } from \'new\';\n');
   });
 
+  for (const parser of ALL_PARSERS) {
+    it(`moves a string literal import name next to the old one, with the same name and alias (${parser})`, () => {
+      const { j, root } = parse('import { \'a\' as alias, b } from \'old\';\n', parser);
+      const [binding] = getImportedBindings(j, root, 'old');
+
+      assert.deepEqual(moveNamedImport(j, root, binding.declaration, binding.specifier, 'new'), { moved: true });
+      assert.equal(print(root), 'import { b } from \'old\';\nimport { a as alias } from \'new\';\n');
+    });
+
+    it(`moves an only string literal import name in place, and renames it when asked (${parser})`, () => {
+      const same = parse('import { \'a\' as alias } from \'old\';\n', parser);
+      const [sameBinding] = getImportedBindings(same.j, same.root, 'old');
+      const renamed = parse('import { \'a\' as alias } from \'old\';\n', parser);
+      const [renamedBinding] = getImportedBindings(renamed.j, renamed.root, 'old');
+
+      moveNamedImport(same.j, same.root, sameBinding.declaration, sameBinding.specifier, 'new');
+      moveNamedImport(renamed.j, renamed.root, renamedBinding.declaration, renamedBinding.specifier, 'new',
+        { imported: 'A' });
+
+      assert.equal(print(same.root), 'import { \'a\' as alias } from \'new\';\n');
+      assert.equal(print(renamed.root), 'import { A as alias } from \'new\';\n');
+    });
+
+    it(`leaves a string literal import name that is not an identifier where it is (${parser})`, () => {
+      const source = 'import { \'not-a-name\' as x, b } from \'old\';\n';
+      const { j, root } = parse(source, parser);
+      const [binding] = getImportedBindings(j, root, 'old');
+
+      assert.deepEqual(moveNamedImport(j, root, binding.declaration, binding.specifier, 'new'),
+        { moved: false, reason: 'not-named' });
+      assert.equal(print(root), source);
+    });
+  }
+
+  for (const source of [
+    'import { a } from \'old\';\nuse(a);\n',
+    'import { a, b } from \'old\';\nuse(a);\n',
+    'import { a as alias } from "old";\n',
+    'import type { T } from \'old\';\nlet t: T;\n',
+  ]) {
+    it(`does not move a specifier to the module it already comes from, and deletes nothing: ${JSON.stringify(source)}`, () => {
+      const { j, root } = parse(source, 'tsx');
+      const [binding] = getImportedBindings(j, root, 'old');
+
+      assert.deepEqual(moveNamedImport(j, root, binding.declaration, binding.specifier, 'old'),
+        { moved: false, reason: 'same' });
+      assert.deepEqual(moveNamedImport(j, root, binding.declaration, binding.specifier, 'old', { imported: 'A' }),
+        { moved: false, reason: 'same' });
+      assert.equal(print(root), source);
+    });
+  }
+
   it('refuses a default or namespace specifier', () => {
     const { j, root } = parse('import H from \'old\';\n');
     const [binding] = getImportedBindings(j, root, 'old');
@@ -310,6 +362,21 @@ describe('moveNamedImport', () => {
 });
 
 describe('renameBinding', () => {
+  for (const parser of ALL_PARSERS) {
+    it(`renames a string literal import name, with or without the same local name (${parser})`, () => {
+      const aliased = parse('import { \'a\' as local } from \'src\';\nlocal();\n', parser);
+      const [aliasedBinding] = getImportedBindings(aliased.j, aliased.root, 'src');
+      const plain = parse('import { \'a\' as a } from \'src\';\na();\n', parser);
+      const [plainBinding] = getImportedBindings(plain.j, plain.root, 'src');
+
+      assert.equal(renameBinding(aliased.j, aliased.root, aliasedBinding.specifier, 'B').renamed, true);
+      assert.equal(renameBinding(plain.j, plain.root, plainBinding.specifier, 'B').renamed, true);
+      assert.equal(print(aliased.root), 'import { B as local } from \'src\';\nlocal();\n');
+      // The specifier was written with `as`, so the printer keeps it, and the references follow the local name.
+      assert.equal(print(plain.root), 'import { B as B } from \'src\';\nB();\n');
+    });
+  }
+
   /**
    * Rename the single specifier of the first import of `x`.
    *

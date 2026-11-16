@@ -119,8 +119,8 @@ function firstLine(message) {
  * What the report says about something discovery left out. A symbolic link whose target is inside the project says
  * where it points, and whether the run migrates the target as its own file. A link to a place outside the project, or
  * to nothing, keeps the general advice: a link can point outside, and that project is migrated on its own. A
- * submodule or an embedded repository says to run the tool inside it, and a directory the walk skipped says how to
- * include it.
+ * submodule or an embedded repository says to run the tool inside it, a directory the walk skipped says how to
+ * include it, and a directory it could not read names the error.
  *
  * @param {string} cwd Project directory.
  * @param {import('./discover.mjs').SkippedLink} item What was left out.
@@ -132,6 +132,11 @@ async function skippedMessage(cwd, item, files) {
 
   if (item.kind === 'repository') {
     return 'This is a submodule or an embedded git repository, so the tool did not read it. Run the tool inside it.';
+  }
+
+  if (item.kind === 'unreadable') {
+    return `The tool could not read this directory (${item.reason ?? 'error'}), so it skipped it and everything below `
+      + `it. Fix the permissions and run the tool again, or name the directory: migrate ${file}`;
   }
 
   if (item.kind === 'directory') {

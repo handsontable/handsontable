@@ -131,7 +131,7 @@ describe('object property helpers', () => {
 
 describe('findOptionObjects: high confidence seeds', () => {
   for (const parser of ALL_PARSERS) {
-    it(`finds new <namespace>(el, {...}) and updateSettings on any receiver (${parser})`, () => {
+    it(`finds new <namespace>(el, {...}) and updateSettings on a confirmed instance (${parser})`, () => {
       const found = describeObjects(`${IMPORT}`
         + 'const hot = new Handsontable(el, { colHeaders: true });\n'
         + 'hot.updateSettings({ rowHeaders: true });\n'
@@ -144,7 +144,7 @@ describe('findOptionObjects: high confidence seeds', () => {
         'high grid new [colHeaders]',
         'high grid new [second]',
         'high grid updateSettings [rowHeaders]',
-        'high grid updateSettings [x]',
+        'medium grid updateSettings [x]',
         'high grid updateSettings [y]',
       ]);
     });
@@ -154,7 +154,7 @@ describe('findOptionObjects: high confidence seeds', () => {
         + 'const a = { colHeaders: true };\n'
         + 'let b = { rowHeaders: true };\n'
         + 'const chained = a;\n'
-        + 'new Handsontable(el, a);\n'
+        + 'const hot = new Handsontable(el, a);\n'
         + 'hot.updateSettings(b);\n'
         + 'hot.updateSettings(chained);\n'
         + 'function f(param) { hot.updateSettings(param); }\n'
@@ -171,7 +171,7 @@ describe('findOptionObjects: high confidence seeds', () => {
       const found = describeObjects(`${IMPORT}`
         + 'const colB = { data: \'b\' };\n'
         + 'const list = [{ data: \'c\' }];\n'
-        + 'new Handsontable(el, {\n'
+        + 'const hot = new Handsontable(el, {\n'
         + '  columns: [{ type: \'text\' }, colB, ...others],\n'
         + '  cell: [{ row: 0, col: 0, readOnly: true }],\n'
         + '  cells(row, col) { if (row) { return { className: \'x\' }; } return { readOnly: true }; },\n'
@@ -303,7 +303,7 @@ describe('findOptionObjects: high confidence seeds', () => {
       const found = describeObjects(`${IMPORT}`
         + 'const fmtCells = () => ({ numericFormat: { culture: \'de-DE\' } });\n'
         + 'function dateCells() { return { dateFormat: \'DD/MM/YYYY\' }; }\n'
-        + 'new Handsontable(el, { cells: fmtCells });\n'
+        + 'const hot = new Handsontable(el, { cells: fmtCells });\n'
         + 'hot.updateSettings({ cells: dateCells });\n', 'babylon');
 
       assert.deepEqual(found, [
@@ -529,5 +529,111 @@ describe('finders do not edit the tree', () => {
     findJsxOptionAttributes(j, root, bindings);
 
     assert.equal(print(root), source);
+  });
+});
+
+describe('findOptionObjects: the receiver of updateSettings', () => {
+  const REACT = 'import { HotTable } from \'@handsontable/react-wrapper\';\n';
+  const SHAPES = [
+    ['a confirmed instance', `${IMPORT}const hot = new Handsontable(el);\nhot.updateSettings({ a: 1 });\n`, 'high'],
+    ['a React hotInstance chain', `${REACT}ref.current?.hotInstance?.updateSettings({ a: 1 });\n`, 'high'],
+    ['a name set from hotInstance', `${REACT}const grid = ref.current.hotInstance;\ngrid.updateSettings({ a: 1 });\n`,
+      'high'],
+    ['a class member set from new', `${IMPORT}class A { init() { this.hot = new Handsontable(el); }\n`
+      + '  go() { this.hot.updateSettings({ a: 1 }); } }\n', 'high'],
+    ['a parameter', `${IMPORT}function f(grid) { grid.updateSettings({ a: 1 }); }\n`, 'medium'],
+    ['a global', `${IMPORT}hot.updateSettings({ a: 1 });\n`, 'medium'],
+    ['the result of a call', `${IMPORT}registry.getInstance(id).updateSettings({ a: 1 });\n`, 'medium'],
+    ['a class member the class does not set', `${IMPORT}class A { go() { this.hot.updateSettings({ a: 1 }); } }\n`,
+      'medium'],
+    ['a class member set from a call', `${IMPORT}class A { init() { this.hot = registry.get(); }\n`
+      + '  go() { this.hot.updateSettings({ a: 1 }); } }\n', 'medium'],
+    ['a name set once from new and once from a call', `${IMPORT}let hot = new Handsontable(el);\n`
+      + 'hot = registry.get();\nhot.updateSettings({ a: 1 });\n', 'medium'],
+    ['a local object', `${IMPORT}const store = { updateSettings() {} };\nstore.updateSettings({ a: 1 });\n`, null],
+    ['an instance of another class', `${IMPORT}const form = new Form();\nform.updateSettings({ a: 1 });\n`, null],
+    ['an import', `${IMPORT}import form from './form';\nform.updateSettings({ a: 1 });\n`, null],
+    ['a class member that holds an object', `${IMPORT}class A { store = { updateSettings() {} };\n`
+      + '  go() { this.store.updateSettings({ a: 1 }); } }\n', null],
+    ['this', `${IMPORT}class A { go() { this.updateSettings({ a: 1 }); } }\n`, null],
+    ['super', `${IMPORT}class A extends B { go() { super.updateSettings({ a: 1 }); } }\n`, null],
+    ['a plugin looked up by key', `${IMPORT}hot.getPlugin('filters').updateSettings({ a: 1 });\n`, null],
+    ['a name set from a plugin',
+      `${IMPORT}const plugin = hot.getPlugin('filters');\nplugin.updateSettings({ a: 1 });\n`, null],
+  ];
+
+  for (const [name, source, expected] of SHAPES) {
+    it(`gives ${expected ?? 'no'} confidence for ${name}`, () => {
+      const found = describeObjects(source, 'tsx').filter(line => line.endsWith('[a]'));
+
+      assert.deepEqual(found, expected ? [`${expected} grid updateSettings [a]`] : []);
+    });
+  }
+
+  it('never lets the key heuristic take the argument of a receiver the file shows to be something else', () => {
+    const settings = '{ correctFormat: true, colHeaders: true, rowHeaders: true }';
+
+    for (const receiver of ['store', 'hot.getPlugin(\'filters\')']) {
+      const found = describeObjects(`${IMPORT}const store = { updateSettings() {} };\n`
+        + `${receiver}.updateSettings(${settings});\n`);
+
+      assert.deepEqual(found, [], receiver);
+    }
+
+    // An unresolved receiver keeps the object as a medium grid object, with no heuristic duplicate.
+    assert.deepEqual(describeObjects(`${IMPORT}other.updateSettings(${settings});\n`),
+      ['medium grid updateSettings [correctFormat,colHeaders,rowHeaders]']);
+  });
+
+  it('does not make a medium object of a call in a file that never names Handsontable', () => {
+    assert.deepEqual(describeObjects('function f(grid) { grid.updateSettings({ a: 1 }); }\n'), []);
+  });
+
+  it('follows an identifier argument to the object the receiver check applies to', () => {
+    const found = describeObjects(`${IMPORT}const opts = { a: 1 };\nconst store = {};\n`
+      + 'store.updateSettings(opts);\nfn(grid).updateSettings(opts);\n');
+
+    assert.deepEqual(found, ['medium grid updateSettings:identifier [a]']);
+  });
+});
+
+describe('findOptionObjects: the highest confidence wins', () => {
+  it('upgrades an object a later pass annotates, and what hangs below it', () => {
+    const source = `${IMPORT}const opts: Handsontable.GridSettings = { columns: [{ data: 'a' }] };\n`
+      + 'other.updateSettings(opts);\n';
+
+    assert.deepEqual(describeObjects(source, 'ts'), [
+      'high grid annotation [columns]',
+      'high column columns [data]',
+    ]);
+  });
+
+  it('upgrades an object reached through a mutable cells function, then annotated', () => {
+    const source = `${IMPORT}let make = (row) => ({ readOnly: true });\n`
+      + 'const cellOptions: Handsontable.CellProperties = { readOnly: false };\n'
+      + 'let pick = () => cellOptions;\n'
+      + 'new Handsontable(el, { cells: pick });\n'
+      + 'new Handsontable(el, { cells: make });\n';
+
+    assert.deepEqual(describeObjects(source, 'ts'), [
+      'high grid new [cells]',
+      'high cell annotation [readOnly]',
+      'high grid new [cells]',
+      'medium cell cells():identifier [readOnly]',
+    ]);
+  });
+
+  it('keeps the first discovery when two passes tie', () => {
+    const source = `${IMPORT}const opts: Handsontable.ColumnSettings = { data: 'a' };\n`
+      + 'const hot = new Handsontable(el, opts);\n';
+
+    assert.deepEqual(describeObjects(source, 'ts'), ['high grid new:identifier [data]']);
+  });
+
+  it('does not lower an object a later pass reaches with less confidence', () => {
+    const source = `${IMPORT}const opts = { data: 'a' };\nconst hot = new Handsontable(el, opts);\n`
+      + 'other.updateSettings(opts);\n';
+
+    assert.deepEqual(describeObjects(source, 'ts'), ['high grid new:identifier [data]']);
   });
 });

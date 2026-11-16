@@ -120,6 +120,72 @@ hot.updateSettings({ oldName: 4 });
   });
 });
 
+describe('optionRename and the receiver of updateSettings', () => {
+  const FORMAT = { ...REMOVE, id: '18.0.0/correct-format', name: 'correctFormat' };
+  const call = (receiver, preamble = '') => `${IMPORT}${preamble}${receiver}.updateSettings({ oldName: 1 });\n`;
+
+  it('rewrites a confirmed instance, a hotInstance chain, and a class member set from new', async() => {
+    for (const source of [
+      call('hot', 'const hot = new Handsontable(el);\n'),
+      call('ref.current?.hotInstance'),
+      call('grid', 'const grid = ref.current.hotInstance;\n'),
+      `${IMPORT}class A {\n  init() { this.hot = new Handsontable(el); }\n`
+        + '  go() { this.hot.updateSettings({ oldName: 1 }); }\n}\n',
+    ]) {
+      const result = await run(source, [RENAME]);
+
+      assert.match(result.output, /newName: 1/, source);
+    }
+  });
+
+  it('leaves the argument of another API alone, even under --aggressive, with no entry', async() => {
+    for (const source of [
+      call('store', 'const store = { updateSettings() {} };\n'),
+      call('form', 'import form from \'./form\';\n'),
+      call('plugin', 'const plugin = hot.getPlugin(\'filters\');\n'),
+      call('hot.getPlugin(\'filters\')'),
+      `${IMPORT}class A {\n  store = { updateSettings() {} };\n`
+        + '  go() { this.store.updateSettings({ oldName: 1 }); }\n}\n',
+    ]) {
+      for (const aggressive of [false, true]) {
+        const result = await run(source, [RENAME], { aggressive });
+
+        assert.equal(result.changed, false, source);
+        assert.deepEqual(result.entries, [], source);
+      }
+    }
+  });
+
+  it('leaves the removable key of a store alone, whatever the other keys say', async() => {
+    const source = `${IMPORT}const store = { updateSettings() {} };\n`
+      + 'store.updateSettings({ correctFormat: true, colHeaders: true, rowHeaders: true });\n';
+
+    for (const aggressive of [false, true]) {
+      const result = await run(source, [FORMAT], { aggressive });
+
+      assert.equal(result.changed, false);
+      assert.deepEqual(result.entries, []);
+    }
+  });
+
+  it('reports an unresolved receiver, and rewrites it under --aggressive', async() => {
+    for (const source of [
+      `${IMPORT}function f(grid) {\n  grid.updateSettings({ oldName: 1 });\n}\n`,
+      call('registry.getInstance(id)'),
+      call('hot'),
+    ]) {
+      const plain = await run(source, [RENAME]);
+      const aggressive = await run(source, [RENAME], { aggressive: true });
+
+      assert.equal(plain.changed, false, source);
+      assert.equal(plain.entries.length, 1, source);
+      assert.equal(plain.entries[0].severity, 'manual', source);
+      assert.match(plain.entries[0].message, /--aggressive/, source);
+      assert.match(aggressive.output, /newName: 1/, source);
+    }
+  });
+});
+
 describe('optionRename confidence bar', () => {
   const heuristic = `${IMPORT}const settings = { oldName: 1, colHeaders: true, rowHeaders: true };\n`;
 

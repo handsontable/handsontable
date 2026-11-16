@@ -6,7 +6,7 @@
  * @module lib/type-rules
  */
 
-import { memberName } from './ast.mjs';
+import { isFunctionNode, memberName } from './ast.mjs';
 import { collectHotBindings } from './hot-bindings.mjs';
 import {
   findDynamicImports,
@@ -15,6 +15,7 @@ import {
   findRequires,
   getImportedBindings,
 } from './imports.mjs';
+import { lookup } from './scope.mjs';
 
 /**
  * Turn a rule field that holds one string or a list of strings into a list.
@@ -267,14 +268,107 @@ export function describeNames(rule) {
     .filter(Boolean).join(' ') || (rule.advice ?? '');
 }
 
+const TRANSPARENT_WRAPPERS = new Set(['AwaitExpression', 'ParenthesizedExpression', 'TSNonNullExpression',
+  'TSAsExpression', 'TSSatisfiesExpression', 'TypeCastExpression']);
+
+/**
+ * Whether an object pattern names one of the wanted keys.
+ *
+ * @param {object|null|undefined} pattern A pattern node.
+ * @param {Set<string>} wanted The names.
+ * @returns {boolean} `true` for an object pattern that destructures a wanted name.
+ */
+function destructuresWanted(pattern, wanted) {
+  return pattern?.type === 'ObjectPattern' && pattern.properties.some((property) => {
+    const key = property.key?.name ?? property.key?.value;
+
+    return typeof key === 'string' && wanted.has(key);
+  });
+}
+
+/**
+ * Whether code reads a wanted name from a binding: a member read `local.Name` of the binding that `idNode` declares.
+ *
+ * @param {object} j The jscodeshift API.
+ * @param {object} scope A NodePath that holds the reads (the file, or a callback body).
+ * @param {object} idNode The declaring identifier node of the binding.
+ * @param {Set<string>} wanted The names.
+ * @returns {boolean} `true` when some member read of the binding names a wanted name.
+ */
+function readsMemberOfBinding(j, scope, idNode, wanted) {
+  return scope.find(j.MemberExpression).some((path) => {
+    const { object } = path.node;
+
+    return object.type === 'Identifier' && object.name === idNode.name && wanted.has(memberName(path.node))
+      && lookup(path.get('object'), object.name, 'value')?.idNode === idNode;
+  });
+}
+
+/**
+ * Whether the result of a runtime dynamic import is read for one of the wanted names. The import may be wrapped in
+ * `await`, parentheses, or a type assertion. The reads that count: a member read of the result, a destructuring
+ * of it, a name that holds it and is read with a member, and a `.then()` callback that does one of those with its
+ * parameter. A bare `import('module')`, and a destructuring of other names, do not count.
+ *
+ * @param {object} j The jscodeshift API.
+ * @param {object} root The parsed Collection.
+ * @param {object} importPath NodePath of the `import()` expression.
+ * @param {Set<string>} wanted The names.
+ * @returns {boolean} `true` when the import is read for a wanted name.
+ */
+function readsWantedName(j, root, importPath, wanted) {
+  let current = importPath;
+
+  while (current.parent && TRANSPARENT_WRAPPERS.has(current.parent.node.type)) {
+    current = current.parent;
+  }
+
+  const { parent } = current;
+
+  if (!parent) {
+    return false;
+  }
+
+  const { node } = parent;
+
+  if ((node.type === 'MemberExpression' || node.type === 'OptionalMemberExpression') && node.object === current.node) {
+    if (memberName(node) !== 'then') {
+      return wanted.has(memberName(node));
+    }
+
+    const call = parent.parent;
+    const callback = call?.node.type === 'CallExpression' && call.node.callee === node
+      ? call.get('arguments', 0) : null;
+
+    if (!callback || !isFunctionNode(callback.node)) {
+      return false;
+    }
+
+    const [param] = callback.node.params;
+
+    return destructuresWanted(param, wanted)
+      || (param?.type === 'Identifier' && readsMemberOfBinding(j, j(callback), param, wanted));
+  }
+
+  if (node.type === 'VariableDeclarator' && node.init === current.node) {
+    return destructuresWanted(node.id, wanted)
+      || (node.id.type === 'Identifier' && readsMemberOfBinding(j, root, node.id, wanted));
+  }
+
+  return false;
+}
+
 /**
  * Report, as `manual`, the references to a module that a rewrite cannot follow. Nothing is edited.
  *
  * With `all` (the module is gone) every such reference counts: `import * as ns` and default imports, `export ...
  * from` and `export *`, dynamic `import()`, and `require()`. Without it (the module still exists and only some
  * names left) a reference counts only when it names one of `names`: a member read of a namespace import
- * (`ns.Name`, `ns.Name` in a type), an `export { Name } from`, a `require` destructured to `Name`, and
- * `import('module').Name`. A bare `export *`, `require('handsontable')`, or `import('handsontable')` stays quiet.
+ * (`ns.Name`, `ns.Name` in a type), an `export { Name } from`, a `require` destructured to `Name`, and a dynamic
+ * import that is read for `Name`: `import('module').Name`, `(await import('module')).Name`, `const { Name } = await
+ * import('module')`, a name that holds the awaited module and is read as `ns.Name`, and a `.then()` callback that
+ * destructures `Name` or reads it from its parameter. A bare `export *`, `require('handsontable')`, or
+ * `import('handsontable')` stays quiet.
  *
  * @param {import('../types.mjs').Ctx} ctx The transform context of a `js` part.
  * @param {object} options Options.
@@ -328,7 +422,7 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
     const { node } = path;
     const named = (node.specifiers ?? []).filter(specifier => wanted.has(specifier.local?.name));
 
-    if ((all && node.type === 'ExportAllDeclaration') || named.length > 0) {
+    if (all || named.length > 0) {
       report(node, 'This re-export reads from', String(node.source.value));
     }
   });
@@ -340,7 +434,8 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
 
     if (runtimeAdvice && all && node.type !== 'TSImportType') {
       ctx.report({ ruleId, severity: 'manual', line: node.loc?.start?.line, message: runtimeAdvice });
-    } else if (all || (node.type === 'TSImportType' && wanted.has(node.qualifier?.name))) {
+    } else if (all || (node.type === 'TSImportType' && wanted.has(node.qualifier?.name))
+      || (node.type !== 'TSImportType' && readsWantedName(j, root, path, wanted))) {
       report(node, 'This code loads', String(value));
     }
   });

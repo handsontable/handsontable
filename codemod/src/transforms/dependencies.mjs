@@ -790,6 +790,17 @@ function assertItems(rule) {
           throw new Error(`Rule ${rule.id}: "${list}[${index}].${field}" must be a string.`);
         }
       }
+
+      // An `add` item picks the section of the package it adds to from the packages it depends on, so without
+      // `onlyIfDependsOn` it would claim the project lists Handsontable as a peer dependency only.
+      const hosts = item.onlyIfDependsOn;
+      const named = typeof hosts === 'string' ? [hosts] : hosts;
+
+      if ((hosts !== undefined || list === 'add') && (!Array.isArray(named) || named.length === 0
+        || named.some(host => typeof host !== 'string' || host === ''))) {
+        throw new Error(`Rule ${rule.id}: "${list}[${index}].onlyIfDependsOn" must be a package name or a non-empty `
+          + 'list of package names.');
+      }
     });
   }
 

@@ -57,6 +57,8 @@ function registryName(key) {
  * plugin of one of the keys: a direct `<x>.getPlugin('<key>')` call (optional chaining included), or a variable
  * or `this` member that the file sets from such a call. One hop, and every value the name is set from must be a
  * listed plugin.
+ * @property {(path: object) => boolean} isPlugin Whether an expression NodePath is a plugin of any key: a direct
+ * `<x>.getPlugin('<key>')` call, or a variable or `this` member that the file sets only from such calls.
  * @property {(path: object, keys: string[]) => boolean} isPartlyPlugin Whether a name or `this` member is set from a
  * `getPlugin()` call of one of the keys somewhere, whether or not every value is. A rule reports such a receiver.
  * @property {(path: object) => ({values: object[], opaque: boolean, variable: boolean}|null)} valuesOf Everything the
@@ -210,6 +212,49 @@ export function isUnresolvedReceiver(path, bindings) {
   }
 
   return !(binding.init && LOCAL_VALUE_TYPES.has(unwrapNode(binding.init).type));
+}
+
+/**
+ * What the file shows about the receiver of a call that only the grid answers to (`updateSettings()`):
+ *
+ * - `instance`: `isInstance()` confirms it.
+ * - `other`: the file shows it is something else. A plugin (a `getPlugin()` call, or a name set only from such
+ *   calls), `this` and `super` themselves, a `this` member whose every value is a local object, class, or literal,
+ *   a local object, class, function, or import.
+ * - `unknown`: nothing shows it. A global, a parameter, the result of a call, a name with a value the file does not
+ *   show, a `this` member the class never sets, and a longer chain below `this`.
+ *
+ * @param {object} path The receiver NodePath.
+ * @param {HotBindings} bindings The bindings of the file.
+ * @returns {'instance'|'other'|'unknown'} The kind.
+ */
+export function receiverOfGrid(path, bindings) {
+  const target = unwrapPath(path);
+
+  if (bindings.isInstance(target)) {
+    return 'instance';
+  }
+
+  if (bindings.isPlugin(target)) {
+    return 'other';
+  }
+
+  let root = target;
+
+  while (MEMBER_TYPES.has(root.node.type)) {
+    root = unwrapPath(root.get('object'));
+  }
+
+  if (root.node.type === 'ThisExpression' && root.node !== target.node) {
+    const direct = unwrapPath(target.get('object')).node === root.node;
+    const history = direct ? bindings.valuesOf(target) : null;
+    const local = Boolean(history?.variable) && !history.opaque && history.values.length > 0
+      && history.values.every(value => LOCAL_VALUE_TYPES.has(unwrapNode(value.node).type));
+
+    return local ? 'other' : 'unknown';
+  }
+
+  return isUnresolvedReceiver(target, bindings) ? 'unknown' : 'other';
 }
 
 /**
@@ -1080,6 +1125,24 @@ export function collectHotBindings(j, root) {
   };
 
   /**
+   * The plugin keys a name or `this` member is set from, or `null` when some value is not a `getPlugin()` call.
+   *
+   * @param {object} target Unwrapped expression NodePath.
+   * @returns {string[]|null} The plugin keys.
+   */
+  const pluginKeysAt = (target) => {
+    if (target.node.type === 'Identifier') {
+      const binding = lookup(target, target.node.name, 'value');
+
+      return binding ? pluginKeysOf(bindingHistories.get(canonicalOf(binding).canonical.idNode)) : null;
+    }
+
+    const member = memberOf(target);
+
+    return member ? pluginKeysOf(memberHistories.get(member.classNode)?.get(member.key)) : null;
+  };
+
+  /**
    * Whether an expression is a plugin of one of the given keys: a direct `<x>.getPlugin('<key>')` call, or a
    * variable or `this` member that the file sets from such a call. Every value the name can hold, the
    * initializer and every assignment anywhere, must be a listed plugin. `getPlugin()` upper-cases the first
@@ -1098,19 +1161,22 @@ export function collectHotBindings(j, root) {
       return allowed.has(registryName(direct));
     }
 
-    let found = null;
-
-    if (target.node.type === 'Identifier') {
-      const binding = lookup(target, target.node.name, 'value');
-
-      found = binding ? pluginKeysOf(bindingHistories.get(canonicalOf(binding).canonical.idNode)) : null;
-    } else {
-      const member = memberOf(target);
-
-      found = member ? pluginKeysOf(memberHistories.get(member.classNode)?.get(member.key)) : null;
-    }
+    const found = pluginKeysAt(target);
 
     return Boolean(found) && found.every(key => allowed.has(registryName(key)));
+  };
+
+  /**
+   * Whether an expression is a plugin of any key: a direct `getPlugin()` call, or a name or `this` member that the
+   * file sets only from such calls.
+   *
+   * @param {object} path Expression NodePath.
+   * @returns {boolean} `true` when the file shows the expression is a plugin.
+   */
+  const isPlugin = (path) => {
+    const target = unwrapPath(path);
+
+    return pluginKeyOf(target.node) !== null || pluginKeysAt(target) !== null;
   };
 
   /**
@@ -1206,6 +1272,7 @@ export function collectHotBindings(j, root) {
     isModular: valueSources.has('base') && !valueSources.has('handsontable'),
     isInstance: path => classify(path),
     isPluginReceiver,
+    isPlugin,
     isPartlyPlugin,
     valuesOf,
     resolveNamespaceMember,

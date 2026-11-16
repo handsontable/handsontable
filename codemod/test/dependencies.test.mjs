@@ -906,7 +906,25 @@ describe('reportMissing and reportPresent', () => {
     assert.match(problems({ reportPresent: [{ name: 'a' }] })[0], /"reportPresent\[0\]\.message" must be a string/);
     assert.match(problems({ reportMissing: [{ message: 'm' }] })[0], /"reportMissing\[0\]\.name" must be a string/);
     assert.match(problems({ add: [{ name: 'a' }] })[0], /"add\[0\]\.range" must be a string/);
+    assert.deepEqual(problems({ add: [{ name: 'a', range: '^1', onlyIfDependsOn: 'handsontable' }] }), []);
+    assert.deepEqual(problems({ add: [{ name: 'a', range: '^1', onlyIfDependsOn: ['handsontable', 'x'] }] }), []);
+    assert.deepEqual(problems({ reportMissing: [{ name: 'a' }] }), []);
     assert.match(problems({ reportOnly: [{ name: 'a' }] })[0], /"reportOnly" is now "reportMissing"/);
+  });
+
+  it('wants onlyIfDependsOn on an add item, because it picks the section, and a valid one wherever it is set', () => {
+    const problems = fields => createRegistry([dependencies]).validate(rule(fields));
+
+    for (const onlyIfDependsOn of [undefined, '', [], [''], [1], 1, null]) {
+      assert.match(problems({ add: [{ name: 'a', range: '^1', onlyIfDependsOn }] })[0],
+        /"add\[0\]\.onlyIfDependsOn" must be a package name or a non-empty list/, JSON.stringify(onlyIfDependsOn));
+    }
+
+    for (const list of ['reportMissing', 'reportPresent']) {
+      const [problem] = problems({ [list]: [{ name: 'a', message: 'm', onlyIfDependsOn: [] }] });
+
+      assert.ok(problem.includes(`"${list}[0].onlyIfDependsOn" must be`), problem);
+    }
   });
 });
 

@@ -407,6 +407,22 @@ describe('literals in other kinds of files', () => {
   });
 });
 
+describe('printedLiterals reads the string literals of every parser the tool prints with', () => {
+  // The printed text is parsed by plain babel for every file type, which gives `StringLiteral` (never an ESTree
+  // `Literal`), so a string with a line continuation in a .ts or .tsx part is listed like one in a .js part.
+  for (const parser of ['babylon', 'ts', 'tsx']) {
+    it(`lists a string with a line continuation, a JSX attribute string, and a template (${parser})`, () => {
+      const text = 'const a = \'x \\\n  y\';\nconst b = `p\n q`;\n'
+        + `${parser === 'ts' ? '' : 'const c = <b title="m\n  n" />;\n'}`;
+      const found = printedLiterals(parser, text);
+
+      assert.deepEqual(found.map(item => item.kind),
+        parser === 'ts' ? ['string', 'template'] : ['string', 'template', 'string']);
+      assert.deepEqual(found.map(item => text.slice(item.start, item.end)), found.map(item => item.text));
+    });
+  }
+});
+
 describe('guardLiterals', () => {
   const parser = 'babylon';
   const lineTerminator = '\n';

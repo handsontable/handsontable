@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -8,7 +9,7 @@ import { describe, it } from 'node:test';
 import { buildPlan } from '../src/manifest.mjs';
 import { MAX_FILE_BYTES, run, transformFile } from '../src/runner.mjs';
 import { loadReleasedManifests } from './helpers/manifests.mjs';
-import { createSampleProject, git } from './helpers/sample-project.mjs';
+import { createSampleProject, git, removeSampleProject } from './helpers/sample-project.mjs';
 
 const BIN = fileURLToPath(new URL('../bin/handsontable-codemod.mjs', import.meta.url));
 const RANGE = ['--from', '17.1', '--to', '18.1'];
@@ -192,7 +193,7 @@ describe('the CLI around a run', () => {
       assert.ok(report.indexOf('## 18.0.0/') < report.indexOf('## 18.1.0/'), 'sections follow the version order');
       await rm(join(dir, '..', 'report.md'), { force: true });
     } finally {
-      await rm(dir, { recursive: true, force: true });
+      await removeSampleProject(dir);
     }
   });
 
@@ -224,7 +225,7 @@ describe('the CLI around a run', () => {
       assert.match(again.stdout, /^Summary: 0 files changed, /m);
       assert.equal(migrate(dir, RANGE).status, 2, 'without --report the untracked report is a change');
     } finally {
-      await rm(dir, { recursive: true, force: true });
+      await removeSampleProject(dir);
     }
   });
 
@@ -251,7 +252,7 @@ describe('the CLI around a run', () => {
       assert.match(both.stderr, /Pass --from/);
       assert.equal(migrate(dir, ['packages/a', 'packages/b', ...RANGE, '--dry-run']).status, 0);
     } finally {
-      await rm(dir, { recursive: true, force: true });
+      await removeSampleProject(dir);
     }
   });
 
@@ -279,5 +280,47 @@ describe('the CLI around a run', () => {
 
       assert.equal(migrate(dir, [...RANGE, '--max-file-size', '10']).status, 0);
     });
+  });
+});
+
+describe('the sample project of the tests does not outlive them', () => {
+  const HELPER = new URL('./helpers/sample-project.mjs', import.meta.url).href;
+  const SCRIPT = `import { createSampleProject } from ${JSON.stringify(HELPER)};\n`
+    + 'process.stdout.write(await createSampleProject());\n';
+
+  /**
+   * Make a sample project in a child process that never removes it, and say where it was.
+   *
+   * @param {Record<string, string>} env Extra environment variables.
+   * @returns {{dir: string, stderr: string}} The directory the child made and what it wrote to standard error.
+   */
+  function forgetful(env) {
+    const child = spawnSync(process.execPath, ['--input-type=module', '-e', SCRIPT], {
+      encoding: 'utf8',
+      env: { ...process.env, CODEMOD_KEEP_PROJECTS: '', ...env },
+    });
+
+    assert.equal(child.status, 0, child.stderr);
+
+    return { dir: child.stdout, stderr: child.stderr };
+  }
+
+  it('is removed when the process ends, although the test forgot to remove it', () => {
+    const { dir, stderr } = forgetful({});
+
+    assert.match(dir, /codemod-e2e-/);
+    assert.equal(existsSync(dir), false);
+    assert.equal(stderr, '');
+  });
+
+  it('stays with CODEMOD_KEEP_PROJECTS set, and the path is printed for a look', async() => {
+    const { dir, stderr } = forgetful({ CODEMOD_KEEP_PROJECTS: '1' });
+
+    try {
+      assert.equal(existsSync(dir), true);
+      assert.ok(stderr.includes(dir), stderr);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });

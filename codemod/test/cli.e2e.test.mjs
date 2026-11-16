@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFile, rm, writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
-import { SAMPLE_FILES, createSampleProject, git } from './helpers/sample-project.mjs';
+import { SAMPLE_FILES, createSampleProject, git, removeSampleProject } from './helpers/sample-project.mjs';
 
 const BIN = fileURLToPath(new URL('../bin/handsontable-codemod.mjs', import.meta.url));
 const RANGE = ['--from', '17.1', '--to', '18.1'];
@@ -86,7 +86,7 @@ async function withProject(body, extra) {
   try {
     await body(dir);
   } finally {
-    await rm(dir, { recursive: true, force: true });
+    await removeSampleProject(dir);
   }
 }
 

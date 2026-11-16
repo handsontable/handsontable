@@ -43,6 +43,31 @@ How versions are chosen:
 
 ### Fixed
 
+- `updateSettings()` is judged by its receiver. The object of `store.updateSettings({ ... })` on a local object, an
+  imported library, a plugin from `getPlugin()`, or `this` is no longer taken for grid options, so `correctFormat` and the
+  other keys in it are not rewritten or reported. A receiver the file does not show (a parameter, a global, the result
+  of a call) gives medium confidence: reported, and rewritten only under `--aggressive`. A grid instance the file shows
+  (`new Handsontable()`, `.hotInstance`, a typed instance) rewrites as before.
+- An object that two passes reach keeps the higher confidence. An object that a mutable `cells` function returns and a
+  `ColumnSettings` or `CellProperties` annotation also names is now rewritten, not only reported.
+- `html-without-sanitizer` follows a local that holds markup and a spread the tool cannot read, one hop or more, and
+  reports it like the same object written inline.
+- A runtime `import()` of a module that still exists, read for a name that moved (`import('handsontable').Name`,
+  `const { Name } = await import(...)`, a `.then()` callback), gets a `manual` entry like the type form always did.
+- A string literal import name (`import { 'Name' as Local } from 'handsontable'`) moves with its module when the
+  declaration has other specifiers. Before, the file ended as a `transform-error`.
+- A directory that cannot be read (permission denied) outside git no longer stops the run. It is listed under "Skipped
+  files" with the error code, and the other directories are migrated.
+- A `detect` rule whose `whenAnyKey`, `withKey`, `receiver`, or matcher name has the wrong type, and a `dependency` `add`
+  item with no `onlyIfDependsOn`, fail when the manifests load instead of during a run.
+- A re-export (`export { Name } from`) of any name from a module that no longer exists gets a `manual` entry, not only
+  the names the rule lists, as the documentation says.
+- `moveNamedImport()` to the module the specifier already comes from moves nothing and deletes nothing (`same`). It
+  used to delete the specifier, and the whole declaration when it was the only one.
+- The lines of an inline Angular template written as a template literal with `${...}` stay the lines of the file when an
+  expression spans lines. The expression is not read, and the part is still never printed.
+- The candidate files of a long list are checked in batches of 256, as the git entries already were.
+- The README says that a step in an HTML page (its `<style>` block included) or in a template has no marker.
 - A `--ht-` name in a `url()`, a quoted string, or outside `var()` in a stylesheet value is no longer renamed, and gets
   a `manual` entry: `url(--ht-wrapper-border-radius.png)` is a file name. The definition of the variable and `var()`
   references are renamed as before.

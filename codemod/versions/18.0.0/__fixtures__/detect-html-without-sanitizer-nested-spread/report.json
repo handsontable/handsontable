@@ -1,0 +1,7 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/html-without-sanitizer", "severity": "manual", "line": 11 },
+    { "ruleId": "18.0.0/html-without-sanitizer", "severity": "manual", "line": 12 }
+  ]
+}

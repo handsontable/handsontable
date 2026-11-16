@@ -139,6 +139,36 @@ describe('validateDetectRule', () => {
     assert.match(validateDetectRule(rule({ match: { string: 'a', flags: 'g' } })).join(), /flags may hold only/);
   });
 
+  it('checks the type of every modifier a matcher reads, so a typo fails at load and not in a file', () => {
+    const missing = extra => rule({ match: { missingOption: 'sanitizer', ...extra } });
+
+    assert.deepEqual(validateDetectRule(missing({ whenAnyKey: ['strict'] })), []);
+    assert.deepEqual(validateDetectRule(rule({ match: { property: 'a', withKey: 'b' } })), []);
+    assert.deepEqual(validateDetectRule(rule({ match: { call: 'a', receiver: 'instance' } })), []);
+
+    for (const whenAnyKey of ['strict', [], [1], [''], {}, null]) {
+      assert.match(validateDetectRule(missing({ whenAnyKey })).join(), /whenAnyKey must be a non-empty array/,
+        JSON.stringify(whenAnyKey));
+    }
+
+    for (const withKey of [1, '', ['b'], null]) {
+      assert.match(validateDetectRule(rule({ match: { property: 'a', withKey } })).join(), /withKey must be a key name/,
+        JSON.stringify(withKey));
+    }
+
+    for (const receiver of [1, '', ['instance'], null]) {
+      assert.match(validateDetectRule(rule({ match: { call: 'a', receiver } })).join(), /receiver must be/,
+        JSON.stringify(receiver));
+    }
+
+    for (const key of ['import', 'call', 'hook']) {
+      for (const value of [1, '', [1], [''], null]) {
+        assert.match(validateDetectRule(rule({ match: { [key]: value } })).join(), /must be a name or a list of names/,
+          `${key} ${JSON.stringify(value)}`);
+      }
+    }
+  });
+
   it('makes the transform throw on an invalid rule', async() => {
     const result = await run(rule({ match: { property: 'a', nope: 1 } }), `${HOT}const a = { a: 1 };\n`);
 

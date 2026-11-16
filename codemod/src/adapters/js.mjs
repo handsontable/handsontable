@@ -233,6 +233,23 @@ function stripStraySemicolons(part, printed, source) {
 }
 
 /**
+ * The text of a template literal for the rules that read a template: the static parts, with one space where each
+ * `${...}` was, and a line break for every line break the expression spans (counted from the lines of the quasis on
+ * both sides), so the lines after an interpolation are the lines of the file. The expression is not read.
+ *
+ * @param {object} literal A `TemplateLiteral` node.
+ * @returns {string} The content.
+ */
+function templateContent(literal) {
+  return literal.quasis.map((quasi, index) => {
+    const next = literal.quasis[index + 1];
+    const spanned = next && quasi.loc && next.loc ? Math.max(0, next.loc.start.line - quasi.loc.end.line) : 0;
+
+    return next ? `${quasi.value.raw} ${'\n'.repeat(spanned)}` : quasi.value.raw;
+  }).join('');
+}
+
+/**
  * The `template` parts of the inline templates of an Angular component: the string or template literal that the
  * `template` property of the object passed to `@Component({...})` (or `Component({...})`) holds. A template part is
  * read only, as the one of a Vue file or an `.html` page is, so the rules that report on a template report on it.
@@ -264,7 +281,7 @@ function inlineTemplateParts(part) {
       if (value?.type === 'StringLiteral' || (value?.type === 'Literal' && typeof value.value === 'string')) {
         content = value.value;
       } else if (value?.type === 'TemplateLiteral') {
-        content = value.quasis.map(quasi => quasi.value.raw).join(' ');
+        content = templateContent(value);
       }
 
       if (content !== null && value.loc) {
