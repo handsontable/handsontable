@@ -70,7 +70,10 @@ const INVENTORY_FILE = 'tests/a11y/checks/keyboard-shortcuts.mjs';
 const INVENTORY_LINES = inventoryLines(readFileSync(new URL('./keyboard-shortcuts.mjs', import.meta.url), 'utf8'));
 const DOCS_ROWS = parseShortcutTables(readFileSync(new URL('../../../docs/content/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md', import.meta.url), 'utf8'));
 const WALK_CRITERIA = ['2.1.1', '2.1.2', '2.4.3', '3.2.1', '3.2.2'];
-const POPUP_STATES = new Set(['context-menu', 'context-menu-submenu', 'dropdown-menu', 'editor', 'comment', 'formula-suggestions', 'formula-function-help']);
+const POPUP_STATES = new Set([
+  'context-menu', 'context-menu-submenu', 'dropdown-menu', 'editor', 'comment', 'formula-suggestions', 'formula-function-help',
+  'formula-named-suggestion',
+]);
 const REST_STATES = new Set(['none', 'selection', 'data-provider']);
 // A popup the keyboard enters with a key of its own once the state has opened it: the formula function help
 // takes the focus on F6, while Tab commits the edit instead of entering it.

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "intl-time-editor",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T12:10:33.232Z"
+  },
+  "steps": {
+    "arrive-on-time": "09 30 am row 1 column 3 hours spin button 09",
+    "open-editor": "hours spin button 09",
+    "type-time": "11 am slash pm spin button am",
+    "commit-time": "am slash pm spin button am",
+    "back-to-committed": "11 45 am row 1 column 3 hours spin button 11"
+  }
+}

@@ -48,6 +48,7 @@
       checkboxes: 'checkboxes',
       hyperlink: 'hyperlink',
       'theme-engine': 'theme-engine',
+      'design-colors': 'design-colors',
     })[htParams.get('variant') ?? 'default'];
     if (!window.htVariant) {
       throw new Error('Unknown ?variant= value: ' + JSON.stringify(htParams.get('variant')));
@@ -71,7 +72,8 @@
     workspace) and injected into the plugin via the `builder` setting.
 
     `?variant=` picks one of the grid configurations in VARIANTS; an absent param is
-    the default grid (formula bar on, formulas in column C), which the a11y scan uses too.
+    the default grid (formula bar on, formulas in column C), which the a11y scan uses too, and the
+    `design-colors` variant puts every text color of the design on screen for the scan.
     The text field before the grid is where a keyboard user starts: Tab from it enters
     the formula bar, and Shift+Tab out of the bar lands back on it. It is a text field,
     not a link or a button, because WebKit leaves those out of the Tab order by default.
@@ -185,6 +187,28 @@
           ],
           columns: [{}, {}, {}, { type: 'checkbox', headerCheckbox: true, renderer: testIdCheckboxRenderer }],
           rowSelection: { enableClickSelection: true },
+        },
+      },
+      /**
+       * Every text color of the design on screen at once, for the a11y scan: error values (`#DIV/0!` in
+       * B2, `#NAME?` in C3 and A5), a formula with an unknown function name and a comment in C3, and a
+       * named expression that is the only suggestion for `=SUMM`. Wide columns give the formula bar room
+       * for the whole formula on one line.
+       */
+      'design-colors': {
+        settings: {
+          colWidths: 160,
+          formulas: {
+            engine: HyperFormula,
+            namedExpressions: [{ name: 'SUMMARY', expression: '=1' }],
+          },
+          data: [
+            [1, 2, '=A1+B1'],
+            [3, '=A2/0', '=A2+B1'],
+            [5, 6, '=NOPE(A3)+N("check")'],
+            ['', '', ''],
+            ['=UNKNOWN()', '', ''],
+          ],
         },
       },
     };

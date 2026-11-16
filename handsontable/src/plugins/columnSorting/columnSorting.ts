@@ -1230,11 +1230,11 @@ export class ColumnSorting extends BasePlugin {
   #onAfterGetColHeader = (column: number, TH: HTMLTableCellElement) => {
     const headerSpanElement = getHeaderSpanElement(TH);
 
-    if (column < 0 || headerSpanElement === null) {
+    if (headerSpanElement === null) {
       return;
     }
 
-    if (isFirstLevelColumnHeader(column, TH) === false) {
+    if (this.hot.view.isColumnHeaderCorner(TH) || isFirstLevelColumnHeader(column, TH) === false) {
       this.#clearSortMarkup(headerSpanElement);
 
       return;
@@ -1291,7 +1291,7 @@ export class ColumnSorting extends BasePlugin {
    * @param {HTMLTableCellElement} TH The header element.
    */
   #onAfterGetColHeaderWhileDisabled = (column: number, TH: HTMLTableCellElement) => {
-    if (!this.#mayHaveMarkedHeaders || this.enabled || column < 0) {
+    if (!this.#mayHaveMarkedHeaders || this.enabled) {
       return;
     }
 
