@@ -842,7 +842,8 @@ export default defineConfig({
         // automatically, so adding `beforeSend` does not disturb the rest of the setup.
         //
         // `release` (`handsontable-docs@<core version>`) is set on production builds only,
-        // from `src/lib/sentry-release.mjs`, so events can be tied to a docs version.
+        // from `src/lib/sentry-release.mjs`, and at runtime only on handsontable.com, so
+        // events can be tied to a docs version.
         //
         // Seven classes of expected errors are dropped:
         //
@@ -941,7 +942,10 @@ export default defineConfig({
     }
   })();
 
-  var release = ${JSON.stringify(sentryRelease)};
+  // The build-time release also reaches RC staging, which builds in production mode
+  // but is served from *.pages.dev. Only the live site reports under a release.
+  var isLiveSite = /^(www\\.)?handsontable\\.com$/.test(window.location.hostname);
+  var release = isLiveSite ? ${JSON.stringify(sentryRelease)} : null;
 
   Sentry.init({
     release: release || undefined,

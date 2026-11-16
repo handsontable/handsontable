@@ -6,6 +6,9 @@
  * events under a release that real readers report too. The `package@version` form is parsed
  * by Sentry as semver, which its "new in release" views need.
  *
+ * RC staging builds in production mode too, so the inline script also checks the hostname
+ * at runtime before it uses the release.
+ *
  * @param {object} options - Build facts the release derives from.
  * @param {string} [options.buildMode] - The `BUILD_MODE` of the docs build.
  * @param {string} [options.version] - The Handsontable core version, `''` when unreadable.

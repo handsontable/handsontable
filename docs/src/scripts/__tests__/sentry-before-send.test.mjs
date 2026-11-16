@@ -17,10 +17,11 @@ assert.ok(loaderScript, 'astro.config.mjs must inline a window.sentryOnLoad Sent
  *
  * @param {string | null} [sentryRelease] - The build-time value that `astro.config.mjs`
  * interpolates into the script, under the same name.
+ * @param {string} [hostname] - The host the page is served from.
  * @returns {object} The options object passed to `Sentry.init`.
  */
-function loadInitOptions(sentryRelease = null) {
-  const window = {};
+function loadInitOptions(sentryRelease = null, hostname = 'handsontable.com') {
+  const window = { location: { hostname } };
   let options = null;
   const context = vm.createContext({
     window,
@@ -47,8 +48,21 @@ function loadInitOptions(sentryRelease = null) {
 
 const beforeSend = loadInitOptions().beforeSend;
 
-test('passes the build-time release to Sentry.init', () => {
+test('passes the build-time release to Sentry.init on the live site', () => {
   assert.equal(loadInitOptions('handsontable-docs@18.1.2').release, 'handsontable-docs@18.1.2');
+  assert.equal(
+    loadInitOptions('handsontable-docs@18.1.2', 'www.handsontable.com').release,
+    'handsontable-docs@18.1.2'
+  );
+});
+
+test('passes no release from an RC staging deploy that was built in production mode', () => {
+  const release = 'handsontable-docs@19.0.0';
+
+  assert.equal(loadInitOptions(release, 'rc-19-0-0.handsontable-docs-staging.pages.dev').release, undefined);
+  assert.equal(loadInitOptions(release, 'dev.handsontable.com').release, undefined);
+  assert.equal(loadInitOptions(release, 'handsontable.com.evil.example').release, undefined);
+  assert.equal(loadInitOptions(release, 'localhost').release, undefined);
 });
 
 test('derives the release from the build mode and the core version', () => {
