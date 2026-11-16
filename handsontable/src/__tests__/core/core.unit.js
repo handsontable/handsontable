@@ -767,6 +767,25 @@ describe('Core.setDataAtCell past the last column', () => {
     core.destroy();
   });
 
+  it('should not warn when a `beforeChange` listener redirects the change to a numeric property a column declares', () => {
+    const data = [{ 5: 'a', 7: 'b' }];
+    const core = build({
+      data,
+      columns: [{ data: 5 }, { data: 7 }],
+      beforeChange: (changes) => {
+        changes[0][1] = 5;
+      },
+    });
+
+    core.setDataAtCell(0, 2, 'x');
+
+    // `5` is past the column count, but it is the property of the first column, not a column index.
+    expect(data[0]).toEqual({ 5: 'x', 7: 'b' });
+    expect(pastLastColumnWarnings()).toHaveLength(0);
+
+    core.destroy();
+  });
+
   it('should still move an existing value that a `shift_right` paste pushes past the last column', () => {
     const data = [{ id: 1, name: 'Ted Right' }];
     const core = build({ data, dataSchema: { id: null, name: null } });
