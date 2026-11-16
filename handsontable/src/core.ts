@@ -130,8 +130,6 @@ import {
   captureRecord, createWaitingChangeRecords, followReplacedRecords, resolveRecord,
 } from './core/waitingRecords';
 import { createWaitingMetaStamps } from './core/waitingMetaStamps';
-import { createColumnTracker } from './core/columnTracker';
-import type { ColumnTracking, TrackedColumn } from './core/columnTracker';
 import type { StampedMeta } from './core/waitingMetaStamps';
 import type {
   RecordAnchor, RecordReader, RowShiftObserver, TrackedRecordHandle, WaitingChangeRecords,
@@ -499,14 +497,6 @@ export default function Core(
    */
   const recordTracker = createRecordTracker(() => instance.rowIndexMapper);
   /**
-   * Follows the physical columns a change that waits for its validator is made at, see `core/columnTracker.ts`.
-   */
-  const columnTracking: ColumnTracking = {
-    tracker: createColumnTracker(() => instance.columnIndexMapper),
-    toTrackedPhysicalColumn: prop => getTrackedPhysicalColumn(prop),
-    toProp: physicalColumn => physicalColumn,
-  };
-  /**
    * Keeps the `row` and `visualRow` of the stored cell meta of every validator call made for a change on the
    * rows its record has, so `this.visualRow` in a validator and the row of `afterValidate` name the record
    * whatever moved it while the validator ran, see `core/waitingMetaStamps.ts`.
@@ -514,11 +504,6 @@ export default function Core(
   const waitingMetaStamps = createWaitingMetaStamps<Record<string, unknown> & StampedMeta>(
     () => instance.rowIndexMapper,
     physicalRow => instance.toVisualRow(physicalRow),
-    {
-      getIndexMapper: () => instance.columnIndexMapper,
-      toVisualColumn: physicalColumn => instance.toVisualColumn(physicalColumn),
-      toProp: physicalColumn => physicalColumn,
-    },
   );
   /**
    * The stored cell metas of waiting validator calls whose record `updateData()` moved to another physical row
@@ -3635,35 +3620,6 @@ export default function Core(
   }
 
   /**
-   * Returns the physical column a change property names when the property is that column's physical index, which
-   * is what an array data source without a `columns` option addresses its columns by. A column inserted or removed
-   * before it while the change waits for its validator moves it, so such a change follows its column. Any other
-   * property (a field name, a `columns[].data` entry, an accessor) names its column on its own, and a property of a
-   * column that does not exist yet has nothing to follow.
-   *
-   * @private
-   * @param {*} prop The property of a change.
-   * @returns {number|null} The physical column, or `null` for a property that is not followed.
-   */
-  function getTrackedPhysicalColumn(prop: unknown): number | null {
-    if (
-      !Number.isInteger(prop) ||
-      instance.dataType !== 'array' ||
-      (tableMeta.columns && (tableMeta.columns as unknown[]).length !== 0)
-    ) {
-      return null;
-    }
-
-    const visualColumn = datamap.propToCol(prop as number);
-
-    if (typeof visualColumn !== 'number') {
-      return null;
-    }
-
-    return instance.toPhysicalColumn(visualColumn) === prop ? prop as number : null;
-  }
-
-  /**
    * Writes a validator's correction into the change of a waiting set it corrects: the change of the same property
    * whose record holds the corrected physical row, or, for a change no record was captured for, the change made at
    * the corrected visual row.
@@ -3684,7 +3640,7 @@ export default function Core(
     value: unknown,
   ) {
     const idx = changes.findIndex((change) => {
-      if (records.getProp(change) !== prop) {
+      if (change[1] !== prop) {
         return false;
       }
 
@@ -3711,19 +3667,6 @@ export default function Core(
    */
   function isUnplacedCorrection(visualRow: number | null, source: string | undefined) {
     return visualRow === null && isValidatorCorrection(source);
-  }
-
-  /**
-   * Tells whether a write of a change to a `null` property is a validator's correction for a column a removal took
-   * while its validator call waits. The validator writes it through `this.prop`, which is `null` then. A grid with a
-   * column declared `{ data: null }` writes through that property, so it never counts there.
-   *
-   * @param {*} prop The property of the change.
-   * @param {string} [source] The change source.
-   * @returns {boolean}
-   */
-  function isRemovedColumnCorrection(prop: unknown, source: string | undefined) {
-    return prop === null && isValidatorCorrection(source) && !(datamap.colToPropCache as unknown[]).includes(null);
   }
 
   /**
@@ -3932,15 +3875,10 @@ export default function Core(
 
         const structureVersion = metaManager.getStructureVersion();
         const record = records.getRecord(changes[i]);
-        const trackedColumn = records.getColumn(changes[i]);
 
         ledger?.register(
           changes[i],
-          getCellWriteKey(
-            record === undefined ? `v${row}` : `r${record.id}`,
-            trackedColumn === undefined ? prop : `t${trackedColumn.id}`,
-            visualCol,
-          ),
+          getCellWriteKey(record === undefined ? `v${row}` : `r${record.id}`, prop, visualCol),
           cellProperties as LedgerCellMeta,
           structureVersion,
         );
@@ -4444,8 +4382,7 @@ export default function Core(
       // When the column data accessor is a function, cellProperties.prop holds the accessor
       // function itself — not a usable column reference. Fall back to the visual column index
       // so hook listeners always receive a number or a property string, never a function.
-      const getColArg = () => (isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop);
-      const colArg = getColArg();
+      const colArg = isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop;
       // All captured before `beforeValidate`: a listener of that hook can load other data, and then the
       // answer must neither mark a loaded record nor be taken for the answer to a later call; and it can sort,
       // move or insert rows, and the call then follows the record it was made for, not the one on its row.
@@ -4454,14 +4391,11 @@ export default function Core(
       const validatedPhysicalRow = isChangeCall ?
         getPhysicalRowOfExistingRow(cellProperties.visualRow as number) : null;
       const validatedRecord = validatedPhysicalRow === null ? null : recordTracker.track(validatedPhysicalRow);
-      const validatedPhysicalColumn = validatedRecord === null ? null : getTrackedPhysicalColumn(cellProperties.prop);
-      const validatedColumn: TrackedColumn | null = validatedPhysicalColumn === null ? null :
-        columnTracking.tracker.track(validatedPhysicalColumn);
 
       displacedMetas.delete(cellProperties);
 
       const releaseMetaStamp = validatedRecord === null ? () => {} :
-        waitingMetaStamps.add(validatedRecord, cellProperties, validatedColumn ?? undefined);
+        waitingMetaStamps.add(validatedRecord, cellProperties);
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
 
@@ -4488,10 +4422,6 @@ export default function Core(
             releaseMetaStamp();
             releaseValidatorGeneration(validatedRecord, validatedProp, loadGeneration);
             recordTracker.release(validatedRecord);
-
-            if (validatedColumn !== null) {
-              columnTracking.tracker.release(validatedColumn);
-            }
           }
         }
 
@@ -4537,7 +4467,7 @@ export default function Core(
                 const answerMeta = readAnswerMeta(cellProperties, validatedRecord);
 
                 valid = instance
-                  .runHooks('afterValidate', valid, value, answerMeta.visualRow, getColArg(), source);
+                  .runHooks('afterValidate', valid, value, answerMeta.visualRow, colArg, source);
 
                 // Every call into user code can destroy the grid (an `afterValidate` listener here, the
                 // callback in `done()` below), and nothing after it may read the destroyed instance.
@@ -4565,7 +4495,7 @@ export default function Core(
 
                 try {
                   instance.runHooks(
-                    'postAfterValidate', valid, value, answerMeta.visualRow, getColArg(), source
+                    'postAfterValidate', valid, value, answerMeta.visualRow, colArg, source
                   );
                 } finally {
                   isAnsweringStaleValidation = wasAnsweringStaleValidation;
@@ -4785,11 +4715,6 @@ export default function Core(
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, visualColumn, newValue] = input[i];
-
-      if (visualColumn === null && isValidatorCorrection(changeSource)) {
-        continue;
-      }
-
       const visualColumnIndex = getSetDataAtCellColumn(input[i]);
 
       if (visualColumnIndex >= this.countCols()) {
@@ -4897,7 +4822,6 @@ export default function Core(
     const hold = operationScope.hold();
     const records = createWaitingChangeRecords(
       recordTracker, recordReader, getPhysicalRowOfExistingRow, waitingChangeRecords, observeRowShifts,
-      columnTracking,
     );
 
     if (loadGeneration === validationLoadGeneration) {
@@ -4993,10 +4917,6 @@ export default function Core(
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, inputProp, newValue] = input[i];
-
-      if (isRemovedColumnCorrection(inputProp, changeSource)) {
-        continue;
-      }
 
       if (isUnplacedCorrection(visualRow, changeSource)) {
         foldUnplacedCorrection(inputProp, newValue, changeSource);
@@ -7090,7 +7010,7 @@ export default function Core(
    * @param {number} visualRow The visual row of the record.
    * @returns {object|null} The handle, or `null` for a visual row that holds no record.
    */
-  this._trackRecord = function(visualRow: number, visualColumn?: number): TrackedRecordHandle | null {
+  this._trackRecord = function(visualRow: number): TrackedRecordHandle | null {
     const physicalRow = getPhysicalRowOfExistingRow(visualRow);
 
     if (physicalRow === null) {
@@ -7098,9 +7018,6 @@ export default function Core(
     }
 
     let anchor: RecordAnchor | null = captureRecord(recordTracker, recordReader, physicalRow);
-    const prop = visualColumn === undefined ? null : datamap.colToProp(visualColumn);
-    const physicalColumn = prop === null ? null : getTrackedPhysicalColumn(prop);
-    let column: TrackedColumn | null = physicalColumn === null ? null : columnTracking.tracker.track(physicalColumn);
     const getPhysicalRow = () => (anchor === null ? null : resolveRecord(recordReader, anchor));
 
     return {
@@ -7110,36 +7027,10 @@ export default function Core(
 
         return row === null ? null : instance.toVisualRow(row);
       },
-      getVisualColumn() {
-        if (visualColumn === undefined) {
-          return undefined;
-        }
-
-        if (prop === null) {
-          return visualColumn;
-        }
-
-        if (column !== null) {
-          return column.physicalColumn === null ? null : instance.toVisualColumn(column.physicalColumn);
-        }
-
-        const followedColumn = datamap.propToCol(prop as string | number);
-
-        if (typeof followedColumn === 'number') {
-          return followedColumn;
-        }
-
-        return followedColumn === null ? null : visualColumn;
-      },
       release() {
         if (anchor !== null) {
           recordTracker.release(anchor.record);
           anchor = null;
-        }
-
-        if (column !== null) {
-          columnTracking.tracker.release(column);
-          column = null;
         }
       },
     };

@@ -71,9 +71,6 @@ The extra shortcut is registered in the `grid` context, positioned **before** th
 `false` to suppress the default Enter behavior (move to the next row in the selection). It uses
 `APPEND_COLUMN_CONFIG_STRATEGY`, which is what makes it *add* to the sort rather than replace it.
 
-It sorts through `sortByUser()`, like the header press in `applyHeaderClickSort()`, so the gesture is announced
-(`../columnSorting/AGENTS.md`, "A sort the user makes is announced"). A new gesture of this plugin does the same.
-
 `runOnlyIf` requires a single, visible, header highlight. `unregisterShortcuts()` removes the group — a
 subclass that adds a shortcut must remove it in the matching override, or `disablePlugin()` leaves it live.
 

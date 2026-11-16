@@ -44,9 +44,7 @@ export function isFormulaValue(value: unknown): value is string {
  * Maps Handsontable summary types to their Excel equivalents:
  * `sum` → `SUM`, `min` → `MIN`, `max` → `MAX`, `count` → `COUNT`,
  * `average` → `AVERAGE`. Returns `null` for `custom` and any unrecognized
- * type so the caller can fall back to the pre-calculated static value. It returns `null` for a
- * summary with `includeSummaryResults` too: the source ranges leave every summary destination out,
- * so the formula would not count the results the summary includes.
+ * type so the caller can fall back to the pre-calculated static value.
  *
  * @private
  * @param {object} summary Summary descriptor from {@link ExportDataProvider#getColumnSummaries}.
@@ -55,13 +53,13 @@ export function isFormulaValue(value: unknown): value is string {
  * @returns {{ formula: string }|null}
  */
 export function buildSummaryFormula(
-  summary: { type: string; sourceCol: number; sourceRanges: [number, number][]; includesSummaryResults?: boolean },
+  summary: { type: string; sourceCol: number; sourceRanges: [number, number][] },
   dataRowOffset: number,
   dataColOffset: number
 ): { formula: string } | null {
   const excelFn = SUMMARY_TYPE_TO_EXCEL_FN[summary.type];
 
-  if (!excelFn || summary.includesSummaryResults === true) {
+  if (!excelFn) {
     return null;
   }
 

@@ -193,11 +193,6 @@ export const NESTED_ROWS_NAMESPACE = 'NestedRows:';
 export const NESTED_ROWS_ANNOUNCEMENT_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.expanded`;
 export const NESTED_ROWS_ANNOUNCEMENT_COLLAPSED = `${NESTED_ROWS_NAMESPACE}announcement.collapsed`;
 
-export const COLUMN_SORTING_NAMESPACE = 'ColumnSorting:';
-export const COLUMN_SORTING_ANNOUNCEMENT_ASCENDING = `${COLUMN_SORTING_NAMESPACE}announcement.ascending`;
-export const COLUMN_SORTING_ANNOUNCEMENT_DESCENDING = `${COLUMN_SORTING_NAMESPACE}announcement.descending`;
-export const COLUMN_SORTING_ANNOUNCEMENT_REMOVED = `${COLUMN_SORTING_NAMESPACE}announcement.removed`;
-
 export const FORMULA_BUILDER_NAMESPACE = 'FormulaBuilder:';
 export const FORMULA_BUILDER_EDITOR = `${FORMULA_BUILDER_NAMESPACE}labels.formulaEditor`;
 export const FORMULA_BUILDER_INPUT = `${FORMULA_BUILDER_NAMESPACE}labels.formulaInput`;

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 
 // Usage: node prepend-docs-changelog.mjs <version> [docs-path]
 //
-// Changelog content is read from the CHANGELOG_CONTENT environment variable.
+// Changelog content is read from the file named by CHANGELOG_FILE, or from the CHANGELOG_CONTENT environment variable.
 //
 // If CHANGELOG_CONTENT is set:
 //   - Same base version at top → replace the entire section
@@ -60,7 +60,8 @@ function buildEntry(ver, content, majorMinor) {
 // ---------------------------------------------------------------------------
 
 const { base, majorMinor } = parseVersion(version);
-const trimmedContent = process.env.CHANGELOG_CONTENT?.trim();
+const changelogFile = process.env.CHANGELOG_FILE;
+const trimmedContent = (changelogFile ? fs.readFileSync(changelogFile, 'utf8') : process.env.CHANGELOG_CONTENT)?.trim();
 const lines = fs.readFileSync(docsPath, 'utf8').split('\n');
 
 // Find the topmost ## section header
