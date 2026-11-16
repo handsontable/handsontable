@@ -83,6 +83,7 @@ export class PendingEditFollowsRecordPage {
    * Replaces the text of the open editor with a value and confirms it with Enter.
    */
   async retypeAndConfirm(value: string): Promise<void> {
+    await expect(this.editorInput).toBeFocused();
     await this.page.keyboard.press('ControlOrMeta+A');
     await this.page.keyboard.type(value);
     await expect(this.editorInput).toHaveValue(value);

@@ -117,6 +117,7 @@ test.describe('a rejected edit when the rows changed order while it waited', () 
       selected: [4, 0],
     });
     await expect(grid.editorInput).toBeVisible();
+    await expect(grid.editorInput).toBeFocused();
     await expect(grid.editorInput).toHaveValue('bad');
     expect(await grid.sourceData()).toEqual(SOURCE);
 
