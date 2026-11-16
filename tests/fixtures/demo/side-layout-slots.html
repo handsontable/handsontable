@@ -235,6 +235,8 @@
 
     /**
      * Creates a plain, non-positioned button that counts its clicks in `window.slotButtonClicks`.
+     * It carries an explicit `tabindex`, because macOS WebKit leaves a button without one out of
+     * the Tab order unless the system's keyboard navigation setting is on.
      *
      * @param {string} key The button key, also its test id suffix.
      * @returns {HTMLButtonElement}
@@ -243,6 +245,7 @@
       const button = document.createElement('button');
 
       button.type = 'button';
+      button.tabIndex = 0;
       button.textContent = key;
       button.setAttribute('data-testid', `button-${key}`);
       window.slotButtonClicks[key] = 0;

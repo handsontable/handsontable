@@ -43,6 +43,7 @@ export interface SideSlotGeometry {
   documentScrollWidth: number;
   documentClientWidth: number;
   viewportWidth: number;
+  windowScrollX: number;
   holder: Box;
   startSlot: Box;
   endSlot: Box;
@@ -435,6 +436,60 @@ export class SideLayoutSlotsPage {
   }
 
   /**
+   * Builds a grid inside a registered panel and returns the grid-area variables its own root
+   * wrapper resolves, next to the outer wrapper's.
+   */
+  async nestedGridAreaVariables(panelKey: string): Promise<{ outer: string[], nested: string[] }> {
+    return this.page.evaluate((key) => {
+      const panel = document.querySelector(`[data-testid="panel-${key}"]`) as HTMLElement;
+      const host = document.createElement('div');
+
+      host.style.height = '120px';
+      panel.appendChild(host);
+
+      const { Handsontable: GridConstructor, htLicenseKey } = window as unknown as {
+        Handsontable: new (element: Element, options: object) => { rootWrapperElement: HTMLElement },
+        htLicenseKey: string,
+      };
+      const nested = new GridConstructor(host, { data: [['a', 'b']], licenseKey: htLicenseKey });
+      const read = (element: Element) => {
+        const style = getComputedStyle(element);
+
+        return ['--ht-grid-inset-inline-start', '--ht-grid-inline-size']
+          .map(name => style.getPropertyValue(name).trim());
+      };
+
+      return {
+        outer: read(window.hot.rootWrapperElement),
+        nested: read(nested.rootWrapperElement),
+      };
+    }, panelKey);
+  }
+
+  /**
+   * Changes the widths of several registered panels in one task, so no render runs between them.
+   */
+  async resizePanels(widths: Record<string, number>): Promise<void> {
+    await this.page.evaluate((entries) => {
+      Object.entries(entries).forEach(([key, width]) => {
+        (document.querySelector(`[data-testid="panel-${key}"]`) as HTMLElement).style.width = `${width}px`;
+      });
+    }, widths);
+  }
+
+  /**
+   * Unregisters a panel from one side slot and registers a panel of the same key on the other
+   * side in one task, so the grid moves sideways without a render in between.
+   */
+  async movePanel(from: SideSlot, to: SideSlot, key: string, width: number): Promise<void> {
+    await this.page.evaluate(([f, t, k, w]) => {
+      window.removeSidePanel(f, k);
+      window.addSidePanel(t, k, w);
+    }, [from, to, key, width] as const);
+    await expect(this.grid.locator(`.ht-slot-${to} [data-testid="panel-${key}"]`)).toBeVisible();
+  }
+
+  /**
    * Polls until the grid's root element (`.ht-wrapper`) is `width` pixels wide (within 1px), so a
    * `width` re-applied after a side panel change has landed before the spec measures.
    */
@@ -504,6 +559,7 @@ export class SideLayoutSlotsPage {
         documentScrollWidth: document.documentElement.scrollWidth,
         documentClientWidth: document.documentElement.clientWidth,
         viewportWidth: window.innerWidth,
+        windowScrollX: window.scrollX,
         holder: toBox(holder),
         startSlot: toBox(wrapper.querySelector(':scope > .ht-slot-start')),
         endSlot: toBox(wrapper.querySelector(':scope > .ht-slot-end')),

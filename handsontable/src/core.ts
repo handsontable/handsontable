@@ -3037,7 +3037,10 @@ export default function Core(
         const isWindowAxis = view.isHorizontallyScrollableByWindow();
         let width = isWindowAxis ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-        if ((width === 0 || (isWindowAxis && instance.countRenderedCols() <= 0)) && instance.rootWrapperElement) {
+        const isZeroWithoutSidePanels = width === 0 && getSideSlotsWidth(instance) === 0;
+        const hasNoRenderedColumns = isWindowAxis && instance.countRenderedCols() <= 0;
+
+        if ((isZeroWithoutSidePanels || hasNoRenderedColumns) && instance.rootWrapperElement) {
           width = instance.rootWrapperElement.offsetWidth;
         }
 
@@ -3074,8 +3077,15 @@ export default function Core(
 
       instance.addHook('afterRender', syncEdgeSlotsWidth);
 
-      const gridInsets = { start: '', end: '' };
+      const gridArea = { start: '', size: '' };
 
+      /**
+       * Writes where the grid area sits inside the root wrapper as two custom properties: the
+       * distance from the wrapper's inline-start edge to the grid, and the grid's inline size.
+       * Neither depends on the free space past the `end` panel of a fixed-width component, which
+       * changes with the container without a render; the stylesheet derives the inline-end inset
+       * from them.
+       */
       const syncGridInsets = () => {
         if (!instance || instance.isDestroyed) {
           return;
@@ -3083,19 +3093,20 @@ export default function Core(
 
         const { rootWrapperElement: wrapper, rootGridElement: grid } = instance;
         const hasSideSlots = getSideSlotsWidth(instance) > 0;
-        const before = hasSideSlots ? grid.offsetLeft : 0;
-        const after = hasSideSlots ? wrapper.clientWidth - grid.offsetLeft - grid.offsetWidth : 0;
-        const start = hasSideSlots ? `${Math.max(0, instance.isRtl() ? after : before)}px` : '';
-        const end = hasSideSlots ? `${Math.max(0, instance.isRtl() ? before : after)}px` : '';
+        const startOffset = instance.isRtl()
+          ? wrapper.clientWidth - grid.offsetLeft - grid.offsetWidth
+          : grid.offsetLeft;
+        const start = hasSideSlots ? `${Math.max(0, startOffset)}px` : '';
+        const size = hasSideSlots ? `${grid.offsetWidth}px` : '';
 
-        if (start !== gridInsets.start) {
-          gridInsets.start = start;
+        if (start !== gridArea.start) {
+          gridArea.start = start;
           wrapper.style.setProperty('--ht-grid-inset-inline-start', start);
         }
 
-        if (end !== gridInsets.end) {
-          gridInsets.end = end;
-          wrapper.style.setProperty('--ht-grid-inset-inline-end', end);
+        if (size !== gridArea.size) {
+          gridArea.size = size;
+          wrapper.style.setProperty('--ht-grid-inline-size', size);
         }
       };
 
@@ -11592,6 +11603,20 @@ export default function Core(
 
   let sideSlotsSyncScheduled = false;
   let lastSideSlotsWidth = 0;
+  let lastSideSlotsLayout = '';
+
+  /**
+   * Describes where the side panels leave the grid: the combined side slot width and the `start`
+   * slot's own width. Two panels that trade widths keep the combined width but move the grid.
+   *
+   * @returns {string}
+   */
+  const measureSideSlotsLayout = () => {
+    const startSlot = instance.rootSlotStartElement;
+    const startWidth = startSlot.childElementCount ? startSlot.offsetWidth : 0;
+
+    return `${getSideSlotsWidth(instance)}:${startWidth}`;
+  };
 
   const scheduleSideSlotsSync = () => {
     if (sideSlotsSyncScheduled) {
@@ -11606,7 +11631,11 @@ export default function Core(
         return;
       }
 
-      syncSideSlotsWidth();
+      if (getSideSlotsWidth(instance) !== lastSideSlotsWidth) {
+        syncSideSlotsWidth();
+      }
+
+      lastSideSlotsLayout = measureSideSlotsLayout();
       instance.render();
     });
   };
@@ -11633,7 +11662,7 @@ export default function Core(
   const observeSideSlotElements = () => {
     if (!sideSlotsResizeObserver && instance.rootWindow.ResizeObserver) {
       sideSlotsResizeObserver = new instance.rootWindow.ResizeObserver(() => {
-        if (instance && !instance.isDestroyed && getSideSlotsWidth(instance) !== lastSideSlotsWidth) {
+        if (instance && !instance.isDestroyed && measureSideSlotsLayout() !== lastSideSlotsLayout) {
           scheduleSideSlotsSync();
         }
       });

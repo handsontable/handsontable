@@ -1,4 +1,4 @@
-import { test, expect, THEMES_TAG } from '../fixtures/test';
+import { test, expect, THEMES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
 import {
   SideLayoutSlotsPage, type Box, type PanelSeam, type SideSlotGeometry,
 } from '../fixtures/pages/SideLayoutSlotsPage';
@@ -55,6 +55,27 @@ async function geometryWhenOverlayMatches(
 }
 
 /**
+ * Reads the geometry once an overlays-layer element's inline edges have caught up with the
+ * target box. The trial badge spans the wrapper's full height, so only its inline edges follow
+ * the grid area.
+ */
+async function geometryWhenInlineEdgesMatch(
+  page: SideLayoutSlotsPage,
+  overlay: (geometry: SideSlotGeometry) => Box | null,
+  target: (geometry: SideSlotGeometry) => Box,
+): Promise<SideSlotGeometry> {
+  await expect.poll(async () => {
+    const geometry = await page.geometry();
+    const box = overlay(geometry);
+    const expected = target(geometry);
+
+    return box !== null && near(box.left, expected.left) && near(box.right, expected.right);
+  }).toBe(true);
+
+  return page.geometry();
+}
+
+/**
  * The one panel registered into a side slot.
  */
 function onlyPanel(panels: Box[]): Box {
@@ -63,7 +84,7 @@ function onlyPanel(panels: Box[]): Box {
   return panels[0];
 }
 
-test.describe('side layout slots', { tag: THEMES_TAG }, () => {
+test.describe('side layout slots', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, () => {
   let grid: SideLayoutSlotsPage;
 
   test.beforeEach(async ({ page, theme, bundle }) => {
@@ -509,6 +530,17 @@ test.describe('side layout slots', { tag: THEMES_TAG }, () => {
       expectNear(panel.right, geometry.table.left);
       expect(overlaps(panel, geometry.table)).toBe(false);
       expect(geometry.documentScrollWidth).toBeGreaterThan(geometry.documentClientWidth);
+
+      await grid.scrollWindowToInlineEnd(LAST_COLUMN);
+
+      const scrolled = await grid.geometry();
+      const scrolledPanel = onlyPanel(scrolled.endPanels);
+
+      expect(scrolled.windowScrollX).toBeLessThan(0);
+      expect(scrolledPanel.left).toBeGreaterThanOrEqual(0);
+      expect(scrolledPanel.right).toBeLessThanOrEqual(scrolled.documentClientWidth + 1);
+      expectNear(scrolledPanel.right, scrolled.table.left);
+      expect(overlaps(scrolledPanel, scrolled.table)).toBe(false);
     });
 
     test('keeps the grid spanning the wrapper when no side slot is filled (control)', async () => {
@@ -831,6 +863,31 @@ test.describe('side layout slots', { tag: THEMES_TAG }, () => {
     });
   });
 
+  test.describe('overlays over a wide window-scrolled table', () => {
+    test('lets the dialog span from the start panel to the end panel past the table', async () => {
+      await grid.rebuild({
+        cols: 20, containerHeight: 'auto', sizeOptions: 'unset', overrides: { dialog: { animation: false } },
+      });
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+      await expect.poll(async () => (await grid.geometry()).wrapperClasses).toContain('ht-grid-width-follows-content');
+      await grid.showDialog();
+
+      const geometry = await geometryWhenOverlayMatches(grid, g => g.dialog, g => ({
+        ...g.dialog!,
+        left: g.startPanels[0]?.left ?? NaN,
+        right: g.endPanels[0]?.right ?? NaN,
+      }));
+      const start = onlyPanel(geometry.startPanels);
+      const end = onlyPanel(geometry.endPanels);
+
+      expect(geometry.table.width).toBeGreaterThan(geometry.wrapper.width);
+      expectNear(geometry.dialog!.left, start.left);
+      expectNear(geometry.dialog!.right, end.right);
+      expectNear(end.left, geometry.table.right);
+    });
+  });
+
   test.describe('seams between the panels and the grid', () => {
     /**
      * The physical `left`/`right` of a panel, as seen from the grid: under RTL the start side is
@@ -910,7 +967,12 @@ test.describe('side layout slots', { tag: THEMES_TAG }, () => {
         await grid.addPanelButton('nav', 'navAction');
         await grid.addPanel('end', 'details', END_WIDTH);
         await grid.addPanelButton('details', 'endAction');
+        await grid.addTopButton('toolbar');
         await grid.focusButton('navAction');
+
+        await grid.page.keyboard.press('Tab');
+
+        await expect.poll(async () => (await grid.focusState()).focused).toBe('button-toolbar');
 
         await grid.page.keyboard.press('Tab');
 
@@ -918,7 +980,15 @@ test.describe('side layout slots', { tag: THEMES_TAG }, () => {
 
         await grid.page.keyboard.press('Shift+Tab');
 
+        await expect.poll(async () => (await grid.focusState()).focused).toBe('button-toolbar');
+
+        await grid.page.keyboard.press('Shift+Tab');
+
         await expect.poll(async () => (await grid.focusState()).focused).toBe('button-navAction');
+
+        await grid.page.keyboard.press('Tab');
+
+        await expect.poll(async () => (await grid.focusState()).focused).toBe('button-toolbar');
 
         await grid.page.keyboard.press('Tab');
 
@@ -974,6 +1044,144 @@ test.describe('side layout slots', { tag: THEMES_TAG }, () => {
 
       expectNear(geometry.notification!.left, onlyPanel(geometry.startPanels).right);
       expectNear(geometry.notification!.right, onlyPanel(geometry.endPanels).left);
+    });
+
+    test('keeps the notification toast container over the grid area under RTL', async () => {
+      await grid.rebuild({ overrides: { notification: true, layoutDirection: 'rtl' } });
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+      await grid.showToast();
+
+      const geometry = await geometryWhenOverlayMatches(grid, g => g.notification, g => g.grid);
+
+      expectNear(geometry.notification!.right, onlyPanel(geometry.startPanels).left);
+      expectNear(geometry.notification!.left, onlyPanel(geometry.endPanels).right);
+    });
+
+    test('keeps the badge over the grid of a fixed-width component when its container narrows', async () => {
+      await grid.gotoDuringTrial();
+      await grid.rebuild({ overrides: { width: 600 } });
+      await grid.resizeContainer(1000);
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', 200);
+      await grid.waitForRootWidth(600 - START_WIDTH - 200);
+      await geometryWhenInlineEdgesMatch(grid, g => g.badge, g => g.grid);
+      await grid.resizeContainer(700);
+
+      const geometry = await geometryWhenInlineEdgesMatch(grid, g => g.badge, g => g.grid);
+
+      expect(geometry.wrapperClasses).toContain('ht-grid-fixed-width');
+      expectNear(geometry.wrapper.width, 700);
+      expect(geometry.badge!.width).toBeGreaterThan(0);
+      expectNear(geometry.badge!.left, onlyPanel(geometry.startPanels).right);
+      expectNear(geometry.badge!.right, onlyPanel(geometry.endPanels).left);
+    });
+
+    test('gives the badge and the toast container the wrapper edges back once both panels unregister', async () => {
+      await grid.gotoDuringTrial();
+      await grid.rebuild({ overrides: { notification: true } });
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+      await grid.showToast();
+      await geometryWhenInlineEdgesMatch(grid, g => g.badge, g => g.grid);
+
+      await grid.removePanel('start', 'nav');
+      await grid.removePanel('end', 'details');
+
+      const geometry = await geometryWhenInlineEdgesMatch(grid, g => g.badge, g => g.wrapper);
+
+      await geometryWhenOverlayMatches(grid, g => g.notification, g => ({
+        ...g.wrapper, top: g.root.top, bottom: g.root.bottom, height: g.root.height,
+      }));
+      expect(geometry.wrapperClasses).not.toContain('ht-slot-start-filled');
+      expect(geometry.wrapperClasses).not.toContain('ht-slot-end-filled');
+    });
+
+    test('moves the badge\'s inline-end edge with a resized end panel', async () => {
+      await grid.gotoDuringTrial();
+      await grid.rebuild({});
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+      await geometryWhenInlineEdgesMatch(grid, g => g.badge, g => g.grid);
+
+      await grid.resizePanel('details', 200);
+
+      const geometry = await geometryWhenInlineEdgesMatch(grid, g => g.badge, g => g.grid);
+      const end = onlyPanel(geometry.endPanels);
+
+      expectNear(end.width, 200);
+      expectNear(geometry.badge!.right, end.left);
+    });
+
+    test('keeps a grid nested in a side panel from inheriting the outer grid-area variables', async () => {
+      await grid.addPanel('start', 'nav', START_WIDTH);
+      await grid.addPanel('end', 'details', END_WIDTH);
+      await grid.waitForRootWidth(720 - START_WIDTH - END_WIDTH);
+
+      const { outer, nested } = await grid.nestedGridAreaVariables('nav');
+
+      expect(outer).toEqual([`${START_WIDTH}px`, `${720 - START_WIDTH - END_WIDTH}px`]);
+      expect(nested).toEqual(['0px', '100%']);
+    });
+
+    test('moves the toast container with the grid when a panel moves to the other side', async () => {
+      await grid.rebuild({ overrides: { notification: true } });
+      await grid.addPanel('end', 'details', START_WIDTH);
+      await grid.showToast();
+      await geometryWhenOverlayMatches(grid, g => g.notification, g => g.grid);
+
+      const before = await grid.geometry();
+
+      await grid.movePanel('end', 'start', 'details', START_WIDTH);
+
+      const geometry = await geometryWhenOverlayMatches(grid, g => g.notification, g => g.grid);
+
+      expectNear(geometry.grid.width, before.grid.width);
+      expectNear(geometry.notification!.left, onlyPanel(geometry.startPanels).right);
+    });
+
+    test('moves the badge and the toast container when two panels trade widths', async () => {
+      await grid.gotoDuringTrial();
+      await grid.rebuild({ overrides: { notification: true } });
+      await grid.addPanel('start', 'nav', 100);
+      await grid.addPanel('end', 'details', 60);
+      await grid.showToast();
+      await geometryWhenOverlayMatches(grid, g => g.notification, g => g.grid);
+
+      const before = await grid.geometry();
+
+      await grid.resizePanels({ nav: 60, details: 100 });
+
+      await geometryWhenOverlayMatches(grid, g => g.notification, g => g.grid);
+
+      const geometry = await geometryWhenInlineEdgesMatch(grid, g => g.badge, g => g.grid);
+
+      expectNear(geometry.grid.width, before.grid.width);
+      expectNear(geometry.grid.left, onlyPanel(geometry.startPanels).right);
+      expectNear(onlyPanel(geometry.startPanels).width, 60);
+    });
+  });
+
+  test.describe('side panels as wide as a pixel `width`', () => {
+    test('keeps the panels next to each other and the component no wider than them', async () => {
+      await grid.rebuild({ overrides: { width: 600 } });
+      await grid.resizeContainer(1000);
+      await grid.addPanel('start', 'nav', 400);
+      await grid.addPanel('end', 'details', 400);
+
+      await expect.poll(async () => {
+        const geometry = await grid.geometry();
+
+        return near(onlyPanel(geometry.endPanels).left, onlyPanel(geometry.startPanels).right);
+      }).toBe(true);
+
+      const geometry = await grid.geometry();
+      const start = onlyPanel(geometry.startPanels);
+      const end = onlyPanel(geometry.endPanels);
+
+      expectNear(end.right - start.left, 800);
+      expectNear(geometry.grid.width, 0);
+      expect(geometry.documentScrollWidth).toBeLessThanOrEqual(geometry.documentClientWidth);
     });
   });
 

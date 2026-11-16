@@ -64,9 +64,9 @@ hot.getLayoutManager().register('toolbar', toolbar, { side: 'top', weight: 100 }
 
 ### Add a side panel
 
-Register the element in the `start` or `end` slot. A side slot spans the full height of the root element, so it sits beside the `top` slot, the grid, and the `bottom` slot. Pagination and other `top` or `bottom` UI stay aligned with the grid, between the side panels.
+Register the element in the `start` or `end` slot. The `start` and `end` slots are available since 19.0.0. A side slot spans the full height of the root element, so it sits beside the `top` slot, the grid, and the `bottom` slot. Pagination and other `top` or `bottom` UI stay aligned with the grid, between the side panels.
 
-The element sets its own width, either inline or through its own CSS class. The grid takes the remaining width and scrolls horizontally when its columns do not fit. Handsontable sets no minimum or maximum width on a side slot.
+The element sets its own width, either inline or through its own CSS class. The grid takes the remaining width. With a fixed `width` or a `height` it scrolls its own columns, otherwise the page scrolls them (see the next section). Handsontable sets no minimum or maximum width on a side slot.
 
 The element stretches to the height of the grid block, and its content never makes the grid taller. When the content is taller than the grid, set `overflow: auto` on the element so it scrolls.
 
@@ -164,7 +164,7 @@ Style your own slot UI through the `ht-slot-element` class so it matches this fr
 
 The `.ht-root-wrapper` element renders its slot and layer elements in this order: `ht-slot-start`, `ht-slot-top`, `ht-grid`, `ht-slot-bottom`, `ht-slot-end`, `ht-overlay`. The DOM order sets the Tab order, so keyboard focus reaches a `start` panel before the grid, and an `end` panel after the `bottom` slot.
 
-The `ht-slot-start` and `ht-slot-end` elements are in the DOM only while a side panel is docked in them. Without side panels, the DOM and the layout of `.ht-root-wrapper` are the same as without layout slots: a flex column of `ht-slot-top`, `ht-grid`, `ht-slot-bottom`, and `ht-overlay`.
+The `ht-slot-start` and `ht-slot-end` elements are in the DOM only while a side panel is docked in them. Without side panels, the DOM and the layout of `.ht-root-wrapper` are the same as before the `start` and `end` slots were added: a flex column of `ht-slot-top`, `ht-grid`, `ht-slot-bottom`, and `ht-overlay`.
 
 While a side slot holds at least one element, `.ht-root-wrapper` carries the `ht-slot-start-filled` or `ht-slot-end-filled` class and switches to a CSS grid layout, in which each slot is a separate grid area. Use class-based selectors to target the slots. Do not rely on the position of a child element.
 

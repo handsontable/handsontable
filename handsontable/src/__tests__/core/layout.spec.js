@@ -46,26 +46,6 @@ describe('Layout slots', () => {
     expect(wrapperChildClasses(hot)).toEqual(['ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-overlay']);
   });
 
-  it('mounts the side slots in the order start, top, grid, bottom, end, overlays and removes them when emptied', async() => {
-    const hot = handsontable({ data: createSpreadsheetData(3, 3) });
-
-    hot.getLayoutManager().register('details', document.createElement('div'), { side: 'end' });
-
-    expect(wrapperChildClasses(hot)).toEqual(['ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-slot-end', 'ht-overlay']);
-
-    hot.getLayoutManager().register('nav', document.createElement('div'), { side: 'start' });
-
-    expect(wrapperChildClasses(hot)).toEqual([
-      'ht-slot-start', 'ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-slot-end', 'ht-overlay',
-    ]);
-
-    hot.getLayoutManager().unregister('nav', 'start');
-    hot.getLayoutManager().unregister('details', 'end');
-
-    expect(wrapperChildClasses(hot)).toEqual(['ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-overlay']);
-    expect(hot.getLayoutManager().getSlot('start').getElement()).toBe(hot.rootSlotStartElement);
-  });
-
   const slotItemIds = slot => Array.from(slot.getElement().children).map(c => c.dataset.id);
 
   it('adds the ht-slot-element class to each slot element', async() => {

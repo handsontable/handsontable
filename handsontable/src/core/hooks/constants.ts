@@ -1899,8 +1899,8 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before the width of the table is changed.
    *
-   * With side panels docked in the `start` and `end` layout slots, the hook runs again whenever
-   * a side panel mounts, unmounts, or changes its width.
+   * With side panels docked in the `start` and `end` layout slots and the `width` option set,
+   * the hook runs again whenever a side panel mounts, unmounts, or changes its width.
    *
    * @since 16.1.0
    * @event Hooks#beforeWidthChange

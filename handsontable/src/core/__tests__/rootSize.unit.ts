@@ -531,14 +531,14 @@ describe('root size options', () => {
       expect(sidePanelWarnings()).toEqual([]);
     });
 
-    it('should warn for a fractional pixel width the side panels cover', () => {
+    it('should warn for a fractional pixel width the wider side panels cover', () => {
       const grid = buildGrid({});
 
-      stubSideSlots(grid, 900.5, 0);
+      stubSideSlots(grid, 901, 0);
       applyRootSize(grid, { width: '900.5px' }, false);
 
       expect(sidePanelWarnings()).toHaveLength(1);
-      expect(sidePanelWarnings()[0]).toContain('side panels (900.5px)');
+      expect(sidePanelWarnings()[0]).toContain('side panels (901px)');
       expect(sidePanelWarnings()[0]).toContain('(900.5px)');
     });
 

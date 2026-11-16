@@ -5053,6 +5053,7 @@ export default (): Record<string, unknown> => {
      * by their default weight. The grid and the overlays layer (the
      * modal layer, such as the dialog) are not orderable through this option. The license
      * notification is not orderable either; it always renders last in the `bottom` slot.
+     * The `start` and `end` slots are available since 19.0.0.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -9559,8 +9560,8 @@ export default (): Record<string, unknown> => {
      *
      * With side panels docked in the
      * [`start` and `end` layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md),
-     * the width includes them, and the grid fills the rest. A function `width` then runs again
-     * whenever a side panel mounts, unmounts, or changes its width.
+     * the width includes them, and the grid fills the rest. When `width` is set, a function `width`
+     * runs again whenever a side panel mounts, unmounts, or changes its width.
      *
      * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
      * element. The grid then follows the width of its parent container, like a plain block
