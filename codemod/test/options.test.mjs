@@ -694,6 +694,67 @@ export function Other() {
   });
 });
 
+describe('a spread after the key', () => {
+  const COMPONENT = 'import { HotTable } from \'@handsontable/react-wrapper\';\n';
+
+  it('keeps a key that a later spread can set again, in an object, and reports it', async() => {
+    const source = grid('{ oldName: 1, ...rest, colHeaders: true }');
+    const result = await run(source, [RENAME]);
+
+    assert.equal(result.output, source);
+    assert.deepEqual(summary(result.entries), ['2:manual']);
+    assert.match(result.entries[0].message,
+      /^Rename oldName to newName by hand: a spread after it can set oldName again/);
+  });
+
+  it('still renames a key that stands after the spread, and in an object with no spread', async() => {
+    assert.equal((await run(grid('{ ...rest, oldName: 1 }'), [RENAME])).output, grid('{ ...rest, newName: 1 }'));
+    assert.equal((await run(grid('{ oldName: 1, colHeaders: true }'), [RENAME])).output,
+      grid('{ newName: 1, colHeaders: true }'));
+  });
+
+  it('keeps an attribute that a later spread attribute can set again, and renames one after it', async() => {
+    const before = `${COMPONENT}export const A = () => <HotTable oldName {...rest} />;\n`;
+    const after = `${COMPONENT}export const A = () => <HotTable {...rest} oldName />;\n`;
+    const kept = await run(before, [RENAME], { filePath: 'a.jsx' });
+    const renamed = await run(after, [RENAME], { filePath: 'a.jsx' });
+
+    assert.equal(kept.output, before);
+    assert.deepEqual(summary(kept.entries), ['2:manual']);
+    assert.equal(renamed.output, after.replace('oldName', 'newName'));
+  });
+
+  it('keeps the export option in the argument of an export call', async() => {
+    const call = (argument, extra = '') => `${IMPORT}const hot = new Handsontable(el, {});\n`
+      + `hot.getPlugin('exportFile').downloadFile('csv', ${argument});\n${extra}`;
+    const kept = await run(call('{ columnHeaders: false, ...opts }'), [CALLS]);
+    const renamed = await run(call('{ ...opts, columnHeaders: false }'), [CALLS]);
+
+    assert.equal(kept.output, call('{ columnHeaders: false, ...opts }'));
+    assert.deepEqual(summary(kept.entries), ['3:manual']);
+    assert.equal(renamed.output, call('{ ...opts, colHeaders: false }'));
+  });
+
+  it('keeps a nested key that a later spread can set again, and moves one that stands after the spread', async() => {
+    const column = nested => grid(`{ columns: [{ numericFormat: ${nested} }] }`);
+    const kept = await run(column('{ culture: \'ja-JP\', ...base }'), [MOVE]);
+    const moved = await run(column('{ ...base, culture: \'ja-JP\' }'), [MOVE]);
+
+    assert.equal(kept.output, column('{ culture: \'ja-JP\', ...base }'));
+    assert.deepEqual(summary(kept.entries), ['2:manual']);
+    assert.match(kept.entries[0].message, /^Move numericFormat\.culture to locale by hand: a spread after culture/);
+    assert.match(moved.output, /locale: 'ja-JP'/);
+  });
+
+  it('keeps a nested key on a wrapper element when a spread follows it', async() => {
+    const source = `${COMPONENT}export const A = () => <HotTable numericFormat={{ culture: 'ja-JP', ...base }} />;\n`;
+    const result = await run(source, [MOVE], { filePath: 'a.jsx' });
+
+    assert.equal(result.output, source);
+    assert.deepEqual(summary(result.entries), ['2:manual']);
+  });
+});
+
 describe('option rules in all parsers', () => {
   it('produces output that parses again', async() => {
     const source = grid('{ columns: [{ gone: true, numericFormat: { culture: \'de-DE\' } }], oldName: 1 }');

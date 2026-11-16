@@ -333,6 +333,49 @@
         ]
       },
       "message": "Check that no afterRender hook calls this on every render. Handsontable 19.0 repaints the grids that use the HyperFormula engine after every engine write, so an afterRender hook that writes each time repaints until the call stack overflows. Write only when the value differs, for example when engine.getCellValue(address) is not the new value. Wrapping the write in engine.batch() does not stop the loop."
+    },
+    {
+      "id": "19.0.0/hook-set-to-null",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js", "template"],
+      "requires": "option-object",
+      "guide": "a-hook-set-to-null-through-updatesettings-is-removed",
+      "match": { "property": "<hook>", "valueIs": null },
+      "message": "Leave the hook out of the settings, or pass the callback again, if it has to keep running. Handsontable 19.0 removes every callback that the settings passed for a hook set to null, including the ones of an array passed earlier, and getSettings() returns null for it. In 18.1 null did nothing and the callback kept running. A wrapper prop such as afterChange={tracking ? logChange : null} does the same when it turns null."
+    },
+    {
+      "id": "19.0.0/frozen-columns-drag-and-unfreeze-hooks",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "frozen-columns-can-be-dragged-and-the-unfreeze-hooks-get-a-target",
+      "match": {
+        "anyOf": [
+          { "hook": ["beforeColumnUnfreeze", "afterColumnUnfreeze", "afterColumnFreeze"] },
+          { "allOf": [{ "property": "manualColumnFreeze" }, { "property": "manualColumnMove" }] }
+        ]
+      },
+      "message": "Check what this code assumes about frozen columns. Handsontable 19.0 lets users drag a frozen column out of the frozen area and drop another column in front of it, where 18.1 refused both moves. A drag changes the frozen columns without firing the freeze hooks, so also read them in afterColumnMove, and the unfreeze hooks get a third argument, finalIndex. To keep the lock, return false from beforeColumnMove for a move in front of the frozen columns or of a frozen column."
+    },
+    {
+      "id": "19.0.0/update-settings-data-provider",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "updatesettings-keeps-the-rows-of-a-server-backed-grid",
+      "match": {
+        "allOf": [
+          { "call": "updateSettings" },
+          { "property": "dataProvider" }
+        ]
+      },
+      "message": "Check what this updateSettings() call expects from a grid with a dataProvider. Handsontable 19.0 ignores data, keeps the rows when the same dataProvider object is passed again, and fetches the rows again when the call passes pagination, columnSorting, filters, or columns, where 18.1 emptied the grid or sent no request. To load the rows again, call hot.getPlugin('dataProvider').fetchData()."
     }
   ]
 }

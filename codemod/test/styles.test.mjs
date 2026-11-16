@@ -109,6 +109,53 @@ describe('cssVariable in css', () => {
   });
 });
 
+describe('cssVariable in css: only a reference to the custom property is rewritten', () => {
+  const NAME = '--ht-wrapper-border-radius';
+
+  it('keeps a name in a url(), a quoted string, and outside var(), and reports it', async() => {
+    const source = `.a {\n  background: url(${NAME}.png);\n  background: url("${NAME}.png");\n  content: "${NAME}";\n`
+      + `  content: '${NAME} and \\' more';\n  transition-property: ${NAME};\n}\n`;
+    const { output, entries, changed } = await run('a.css', source);
+
+    assert.equal(changed, false);
+    assert.equal(output, source);
+    assert.deepEqual(entries.map(entry => [entry.severity, entry.line]),
+      [['manual', 2], ['manual', 3], ['manual', 4], ['manual', 5], ['manual', 6]]);
+    assert.match(entries[0].message, /^Check this text by hand: it names --ht-wrapper-border-radius in a string/);
+  });
+
+  it('still renames the property, var(), a fallback var(), and the references next to a string', async() => {
+    const source = `.a {\n  ${NAME}: 1px;\n  border-radius: var(${NAME}, 2px);\n`
+      + `  margin: var(--x, var(${NAME}));\n  content: "${NAME}" var(${NAME});\n`
+      + `  width: calc(var( ${NAME} ) * 2);\n}\n`;
+    const { output } = await run('a.scss', source);
+
+    assert.equal(output, source.replace(`  ${NAME}: 1px`, '  --ht-border-radius: 1px')
+      .replace('var(--ht-wrapper-border-radius, 2px)', 'var(--ht-border-radius, 2px)')
+      .replace('var(--x, var(--ht-wrapper-border-radius))', 'var(--x, var(--ht-border-radius))')
+      .replace(`"${NAME}" var(${NAME})`, `"${NAME}" var(--ht-border-radius)`)
+      .replace('var( --ht-wrapper-border-radius )', 'var( --ht-border-radius )'));
+  });
+
+  it('leaves a removed variable in a string without a TODO, and still marks its reference', async() => {
+    const source = '.a {\n  content: "--ht-wrapper-border-width";\n'
+      + '  box-shadow: 0 0 0 var(--ht-wrapper-border-width) red;\n}\n';
+    const { output, entries } = await run('a.css', source);
+
+    assert.equal(output.match(/TODO\(handsontable-codemod/g).length, 1);
+    assert.deepEqual(entries.map(entry => [entry.ruleId, entry.line]), [[WIDTH, 2], [WIDTH, 3]]);
+  });
+
+  it('is stable over a second run', async() => {
+    const source = `.a {\n  background: url(${NAME}.png);\n  border-radius: var(${NAME});\n}\n`;
+    const first = await run('a.css', source);
+    const second = await run('a.css', first.output);
+
+    assert.equal(second.output, first.output);
+    assert.equal(second.changed, false);
+  });
+});
+
 describe('cssVariable edits a stylesheet by offset and keeps every other byte', () => {
   const OLD = '--ht-wrapper-border-radius';
   const NEW = '--ht-border-radius';
@@ -259,7 +306,7 @@ describe('cssVariable in js', () => {
   it('keeps the quote style of each string and never touches identifiers', async() => {
     const source = 'import H from \'handsontable\';\n'
       + 'a.setProperty("--ht-wrapper-border-radius", \'1px\');\n'
-      + 'const wrapperBorderRadius = { \'--ht-wrapper-border-radius\': "2px" };\n';
+      + 'const wrapperStyle = { \'--ht-wrapper-border-radius\': "2px" };\n';
     const { output } = await run('a.ts', source);
 
     assert.equal(output, source.replace(/--ht-wrapper-border-radius/g, '--ht-border-radius'));
@@ -304,6 +351,66 @@ describe('cssVariable in js', () => {
 
     assert.equal(output, source);
     assert.deepEqual(entries.map(entry => [entry.ruleId, entry.severity, entry.line]), [[WIDTH, 'manual', 2]]);
+  });
+});
+
+describe('cssVariable on a key of an object that is not a style', () => {
+  const NAME = '--ht-wrapper-border-radius';
+  const renamedInOutput = async(source, file = 'a.jsx') => (await run(file, source)).output
+    .includes('--ht-border-radius');
+
+  it('reports the key of a map and a computed member key, and edits neither', async() => {
+    const source = `import H from 'handsontable';\nconst cssVars = { '${NAME}': '4px' };\n`
+      + `const x = cssVars['${NAME}'];\nconst y = this.tokens?.['${NAME}'];\nconst z = { ...base, "${NAME}": 1 };\n`;
+    const { output, entries } = await run('a.js', source);
+
+    assert.equal(output.replace(/^\/\/ TODO.*\n/gm, ''), source);
+    assert.deepEqual(entries.map(entry => [entry.severity, entry.line]),
+      [['manual', 2], ['manual', 3], ['manual', 4], ['manual', 5]]);
+    assert.match(entries[0].message, /^Rename --ht-wrapper-border-radius to --ht-border-radius here by hand/);
+  });
+
+  it('renames the key of a style: a style prop, an object a style name holds, and a style type', async() => {
+    for (const source of [
+      `const e = <div style={{ '${NAME}': '1px' }} />;`,
+      `const e = <div style={{ ...rest, '${NAME}': '1px' } as React.CSSProperties} />;`,
+      `const wrapperStyle = { '${NAME}': '1px' };`,
+      `const styles = { '${NAME}': '1px' };`,
+      `const s: React.CSSProperties = { '${NAME}': '1px' };`,
+      `const o = { style: { '${NAME}': '1px' } };`,
+      `const o = { cardStyle: { '${NAME}': '1px' } };`,
+      `el.style = { '${NAME}': '1px' };`,
+      `Object.assign(el.style, { '${NAME}': '1px' });`,
+      `$(el).css({ '${NAME}': '1px' });`,
+      `el.style['${NAME}'] = '1px';`,
+      `getComputedStyle(el)['${NAME}'];`,
+      `this.style['${NAME}'];`,
+    ]) {
+      assert.ok(await renamedInOutput(`import H from 'handsontable';\n${source}\n`, 'a.tsx'), source);
+    }
+  });
+
+  it('keeps renaming a string that is not a key', async() => {
+    const source = `import H from 'handsontable';\nel.style.setProperty('${NAME}', '1px');\n`
+      + `getComputedStyle(el).getPropertyValue('${NAME}');\nconst css = \`a { r: var(${NAME}); }\`;\n`
+      + `const name = '${NAME}';\nfoo('${NAME}');\nstyled.div\`${NAME}: 2px;\`;\n`;
+    const { output, entries } = await run('a.js', source);
+
+    assert.equal(output, source.replaceAll(NAME, '--ht-border-radius'));
+    assert.ok(entries.every(entry => entry.severity === 'changed'));
+  });
+
+  it('is stable over three runs', async() => {
+    const source = `import H from 'handsontable';\nconst cssVars = { '${NAME}': '4px' };\n`
+      + `el.style.setProperty('${NAME}', 1);\n`;
+    const first = await run('a.js', source);
+    const second = await run('a.js', first.output);
+    const third = await run('a.js', second.output);
+
+    assert.equal(second.output, first.output);
+    assert.equal(third.output, first.output);
+    assert.equal(first.entries.filter(entry => entry.severity === 'manual').length, 1);
+    assert.equal(second.entries.filter(entry => entry.severity === 'manual').length, 1);
   });
 });
 

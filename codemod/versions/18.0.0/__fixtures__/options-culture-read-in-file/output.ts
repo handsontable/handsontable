@@ -15,7 +15,7 @@ export function patternAndCulture(cellProperties: CellProperties) {
 
 new Handsontable(document.body, {
   columns: [
-    // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Move numericFormat.culture to locale and update the renderer in the same change. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
+    // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Move numericFormat.culture to locale and update the code that reads it in the same change. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
     { data: 'amount', type: 'numeric', numericFormat: { culture: 'de-CH' } },
   ],
 });

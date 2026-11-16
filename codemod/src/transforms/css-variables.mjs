@@ -1,3 +1,4 @@
+import { calleeName, edgeKey, memberName, propertyName, unwrapNode } from '../lib/ast.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { removalAdvice } from '../lib/rename-key.mjs';
 import { templateRaw } from '../lib/literals.mjs';
@@ -132,6 +133,52 @@ function declares(container, name) {
 }
 
 /**
+ * The parts of a declaration value where a name is not a reference to a custom property: the inside of a quoted string
+ * and the inside of `url(...)`, quoted or not. `url(--ht-x.png)` is a file name and `content: "--ht-x"` is text.
+ *
+ * @param {string} text A declaration value.
+ * @returns {Array<[number, number]>} Start (inclusive) and end (exclusive) of each such part.
+ */
+function textRanges(text) {
+  const ranges = [];
+
+  for (let at = 0; at < text.length; at += 1) {
+    const char = text[at];
+
+    if (char === '"' || char === '\'') {
+      let end = at + 1;
+
+      while (end < text.length && text[end] !== char) {
+        end += text[end] === '\\' ? 2 : 1;
+      }
+
+      ranges.push([at, Math.min(end + 1, text.length)]);
+      at = end;
+    } else if (/^url\(/i.test(text.slice(at, at + 4)) && !/[\w-]/.test(text[at - 1] ?? '')) {
+      const end = text.indexOf(')', at);
+
+      ranges.push([at, end === -1 ? text.length : end + 1]);
+      at = end === -1 ? text.length : end;
+    }
+  }
+
+  return ranges;
+}
+
+/**
+ * Whether an occurrence of a name in a declaration value is a custom property reference: it is the first argument of a
+ * `var()` call outside every string and `url()`.
+ *
+ * @param {string} value The declaration value.
+ * @param {number} offset Where the name starts.
+ * @returns {boolean} `true` for a `var(--name ...)` reference.
+ */
+function isReference(value, offset) {
+  return /\bvar\(\s*$/i.test(value.slice(0, offset))
+    && !textRanges(value).some(([start, end]) => offset >= start && offset < end);
+}
+
+/**
  * Rename or flag the variable in one declaration.
  *
  * @param {import('../types.mjs').Ctx} ctx Context of a `css` part.
@@ -143,9 +190,23 @@ function applyToDeclaration(ctx, declaration, entry) {
   const { rule, removed, test, all } = entry;
   const line = declaration.source?.start?.line;
   const inProp = test.test(declaration.prop);
-  const inValue = test.test(declaration.value);
+  const hits = [...declaration.value.matchAll(all)].map(match => match.index);
+  const references = hits.filter(at => isReference(declaration.value, at));
 
-  if (!inProp && !inValue) {
+  if (!inProp && hits.length === 0) {
+    return;
+  }
+
+  // A name in a string, in `url()`, or outside `var()` is no reference to the variable, and is left alone.
+  if (!inProp && references.length === 0) {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      line,
+      message: `Check this text by hand: it names ${rule.from} in a string, a url(), or outside var(), so the tool `
+        + 'did not change it.',
+    });
+
     return;
   }
 
@@ -173,7 +234,9 @@ function applyToDeclaration(ctx, declaration, entry) {
     return;
   }
 
-  const edited = ctx.css.replaceInDeclaration(declaration, all, rule.to);
+  const prop = declaration.prop;
+  const edited = ctx.css.replaceInDeclaration(declaration, all,
+    (match, offset, text) => (text === prop || isReference(text, offset) ? rule.to : match));
 
   if (edited === null) {
     return;
@@ -231,6 +294,116 @@ function applyToAtRule(ctx, atRule, entry) {
     line: atRule.source?.start?.line,
     message: `Renamed ${rule.from} to ${rule.to}.`,
   });
+}
+
+const STYLE_NAME = /style/i;
+const STYLE_TYPE = /(?:CSSProperties|CSSStyleDeclaration|StyleDeclaration|CSSStyleSheet)$/;
+const TS_WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'ParenthesizedExpression']);
+const MEMBER_TYPES = new Set(['MemberExpression', 'OptionalMemberExpression']);
+
+/**
+ * Whether an expression is a style object by its form: `el.style`, a name that has "style" in it, or
+ * `getComputedStyle(el)`.
+ *
+ * @param {object|null|undefined} node An expression node.
+ * @returns {boolean} `true` for something the code uses as a style.
+ */
+function isStyleLike(node) {
+  const target = node ? unwrapNode(node) : null;
+
+  if (!target) {
+    return false;
+  }
+
+  if (target.type === 'Identifier') {
+    return STYLE_NAME.test(target.name);
+  }
+
+  if (MEMBER_TYPES.has(target.type)) {
+    return STYLE_NAME.test(memberName(target) ?? '');
+  }
+
+  return target.type === 'CallExpression' && calleeName(target.callee) === 'getComputedStyle';
+}
+
+/**
+ * Whether a type annotation names a CSS style type (`React.CSSProperties`, `CSSStyleDeclaration`).
+ *
+ * @param {object|null|undefined} annotation A type annotation node or the type inside it.
+ * @returns {boolean} `true` for a style type.
+ */
+function isStyleType(annotation) {
+  const type = annotation?.type === 'TSTypeAnnotation' ? annotation.typeAnnotation : annotation;
+  const name = type?.type === 'TSTypeReference' ? type.typeName : null;
+  const last = name?.type === 'TSQualifiedName' ? name.right.name : name?.name;
+
+  return typeof last === 'string' && STYLE_TYPE.test(last);
+}
+
+/**
+ * Whether an object literal holds styles: the value of a `style` prop or key, an object a style-named variable
+ * holds, an `as` or `satisfies` of a style type, or the argument of `Object.assign(<style>, ...)` or `.css({ ... })`.
+ *
+ * @param {object} objectPath NodePath of the `ObjectExpression`.
+ * @returns {boolean} `true` when the object is a style.
+ */
+function isStyleObject(objectPath) {
+  let current = objectPath;
+
+  while (current.parent && TS_WRAPPERS.has(current.parent.node.type)) {
+    if (isStyleType(current.parent.node.typeAnnotation)) {
+      return true;
+    }
+
+    current = current.parent;
+  }
+
+  const parent = current.parent?.node;
+
+  switch (parent?.type) {
+    case 'JSXExpressionContainer': {
+      const attribute = current.parent.parent?.node;
+
+      return attribute?.type === 'JSXAttribute' && STYLE_NAME.test(attribute.name.name ?? '');
+    }
+    case 'ObjectProperty':
+    case 'Property':
+      return parent.value === current.node && STYLE_NAME.test(propertyName(parent) ?? '');
+    case 'VariableDeclarator':
+      return parent.init === current.node && parent.id.type === 'Identifier'
+        && (STYLE_NAME.test(parent.id.name) || isStyleType(parent.id.typeAnnotation));
+    case 'AssignmentExpression':
+      return parent.right === current.node && isStyleLike(parent.left);
+    case 'CallExpression':
+    case 'OptionalCallExpression':
+      return parent.arguments.includes(current.node) && (calleeName(parent.callee) === 'css'
+        || (calleeName(parent.callee) === 'assign' && parent.arguments[0] !== current.node
+          && isStyleLike(parent.arguments[0])));
+    default:
+      return false;
+  }
+}
+
+/**
+ * Whether a string literal is a key that the project's own code reads by name: the key of an object literal that is
+ * not a style, or the computed member key of an object that is not a style (`cssVars['--ht-x']`). A variable name
+ * written as the key of a style (`style: { '--ht-x': 1 }`, `el.style['--ht-x']`) is not.
+ *
+ * @param {object} path NodePath of a string `Literal`.
+ * @returns {boolean} `true` for the key of an object that is not a style.
+ */
+function isOwnKey(path) {
+  const parent = path.parent?.node;
+
+  if ((parent?.type === 'ObjectProperty' || parent?.type === 'Property') && edgeKey(path) === 'key') {
+    return path.parent.parent?.node.type === 'ObjectExpression' && !isStyleObject(path.parent.parent);
+  }
+
+  if (MEMBER_TYPES.has(parent?.type) && parent.computed && parent.property === path.node) {
+    return !isStyleLike(parent.object);
+  }
+
+  return false;
 }
 
 /**
@@ -308,6 +481,19 @@ function applyToJs(ctx, entries) {
 
     const line = node.loc?.start?.line;
     const matched = hits(node.value);
+
+    if (isOwnKey(path)) {
+      // A map of the project is read by name somewhere else, in code the tool does not see.
+      matched.forEach(hit => ctx.report({
+        ruleId: hit.rule.id,
+        severity: 'manual',
+        line,
+        message: `Rename ${hit.rule.from} to ${hit.rule.to} here by hand if this key names the CSS variable. It is the `
+          + 'key of an object that is not a style, which other code may read by the old name, so it was left alone.',
+      }));
+
+      return;
+    }
 
     replaceStringLiteral(j, path, edit);
     matched.forEach(hit => note(hit, line));
@@ -488,8 +674,10 @@ function reportInterpolatedNames(ctx, rules) {
  *   `--from-extra` is left alone. When one rule already defines both the old and the new name, none of that
  *   rule's declarations that mention the old name is renamed, and each gets a `manual` entry.
  * - `js` parts (JavaScript, TypeScript, Vue script blocks): string literals and template literal text, such as
- *   `style.setProperty('--from', v)`, `'var(--from)'`, and `'--from': '4px'` object keys. Identifiers never
- *   change. The original quote style is kept.
+ *   `style.setProperty('--from', v)`, `'var(--from)'`, and `'--from': '4px'` keys of a style (`style={{ ... }}`,
+ *   `el.style['--from']`). Identifiers never change. The original quote style is kept. A string that is the key of an
+ *   object that is not a style (`cssVars['--from']`, `{ '--from': 1 }` in a map of the project) is reported, because
+ *   the code that reads the map is not in sight.
  * - `template` parts: report only.
  *
  * A removed variable (`removed: true`) is never deleted. In CSS it gets a TODO comment with the rule's advice,

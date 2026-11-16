@@ -8,10 +8,10 @@ import {
   unwrapNode,
   unwrapPath,
 } from '../lib/ast.mjs';
+import { createReaderFinder, describeReader, describeReaderLine } from '../lib/custom-reader.mjs';
 import { collectHotBindings, isUnresolvedReceiver } from '../lib/hot-bindings.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import {
-  BUILT_IN_RENDERERS,
   GENERIC_OPTIONS,
   KNOWN_OPTIONS,
   findJsxOptionAttributes,
@@ -44,8 +44,12 @@ const MEMBER_CALLS = new Set(['MemberExpression', 'OptionalMemberExpression']);
  * @property {string[]|null} keys Known option names of the `heuristic` object being handled, or `null` for any
  * other object. Set by `apply()` before each handler call.
  * @property {ReturnType<import('../lib/resolve.mjs').createHop>} resolver The one-hop resolver of the file.
- * @property {Map<string, boolean>} reads Per rule id: whether the file reads the nested key of its `optionMove`
- * (`x.numericFormat.culture`), computed once.
+ * @property {ReturnType<import('../lib/custom-reader.mjs').createReaderFinder>} readers The finder of the code that
+ * may read an option a rule deletes or moves.
+ */
+
+/**
+ * @typedef {import('../lib/custom-reader.mjs').Reader} Reader
  */
 
 /**
@@ -429,6 +433,20 @@ function adviseRemoval(env, target, line, what, reason) {
   ctx.todo(target, rule.id, advice);
 }
 
+const SPREAD_NODES = /^(?:Spread|ExperimentalSpread|JSXSpread)/;
+
+/**
+ * Whether a spread follows a node in a list of properties or attributes. A later spread can set the key again and
+ * win, so a rewrite of the key would change which value the code ends with.
+ *
+ * @param {object[]} list The `properties` of an object literal or the `attributes` of an element.
+ * @param {object} node The property or attribute.
+ * @returns {boolean} `true` when a spread stands after the node.
+ */
+function spreadFollows(list, node) {
+  return list.slice(list.indexOf(node) + 1).some(item => SPREAD_NODES.test(item.type));
+}
+
 /**
  * Handle `optionRename` for one options object.
  *
@@ -465,6 +483,18 @@ function renameInObject(env, objectPath, confidence) {
       severity: 'manual',
       line,
       message: `Remove ${rule.from} by hand: both ${rule.from} and ${rule.to} are set in this object.`,
+    });
+
+    return;
+  }
+
+  if (spreadFollows(objectPath.node.properties, property.node)) {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      line,
+      message: `Rename ${rule.from} to ${rule.to} by hand: a spread after it can set ${rule.from} again and win, `
+        + 'so it was left alone.',
     });
 
     return;
@@ -508,6 +538,18 @@ function renameOnElement(env, openingPath) {
       severity: 'manual',
       line: lineOfNode(attribute),
       message: `Remove ${rule.from} by hand: both ${rule.from} and ${rule.to} are set on this element.`,
+    });
+
+    return;
+  }
+
+  if (spreadFollows(attributes, attribute)) {
+    ctx.report({
+      ruleId: rule.id,
+      severity: 'manual',
+      line: lineOfNode(attribute),
+      message: `Rename the ${rule.from} attribute to ${rule.to} by hand: a spread after it can set ${rule.from} `
+        + 'again and win, so it was left alone.',
     });
 
     return;
@@ -595,7 +637,7 @@ function renameInCallArguments(env) {
       if (receiver) {
         const property = getProperty(objectPath, rule.from);
 
-        if (property && bindings.isHotFile && isUnresolvedReceiver(receiver)) {
+        if (property && bindings.isHotFile && isUnresolvedReceiver(receiver, bindings)) {
           env.ctx.report({
             ruleId: rule.id,
             severity: 'manual',
@@ -653,6 +695,15 @@ function removeInObject(env, objectPath, confidence) {
       continue;
     }
 
+    const reader = readerOf(env, rule.readerAdvice === undefined ? null : env.readers.ofObject(objectPath));
+
+    if (reader) {
+      adviseRemoval(env, hasOwnLines(objectPath.node, node) ? node : enclosingAnchor(objectPath), lineOfNode(node),
+        `the ${rule.name} property`, readerReason(rule, reader));
+
+      continue;
+    }
+
     if (!isInertValue(node.value)) {
       adviseRemoval(env, hasOwnLines(objectPath.node, node) ? node : enclosingAnchor(objectPath), lineOfNode(node),
         `the ${rule.name} property`, `${rule.name} is computed here, so it was kept.`);
@@ -693,6 +744,15 @@ function removeOnElement(env, openingPath) {
     return;
   }
 
+  const reader = found.length > 0 && rule.readerAdvice !== undefined
+    ? readerOf(env, env.readers.ofElement(openingPath)) : null;
+
+  if (reader) {
+    adviseRemoval(env, openingPath, lineOfNode(found[0]), `the ${rule.name} attribute`, readerReason(rule, reader));
+
+    return;
+  }
+
   for (const attribute of found) {
     const line = lineOfNode(attribute);
     const text = removalAdvice(rule, rule.name);
@@ -724,133 +784,59 @@ function removeOnElement(env, openingPath) {
 }
 
 /**
- * Whether a `renderer` value names a renderer the project wrote or registered: a function, an identifier, a member
- * read, or a string that is not one of Handsontable's own renderer names. A built-in name, an absent value, and
- * `undefined` or `null` are not custom.
- *
- * @param {object|null|undefined} value The value node of the property or attribute, `null` for a bare attribute.
- * @returns {boolean} `true` when the renderer is the project's own.
- */
-function isCustomRenderer(value) {
-  const node = value ? unwrapNode(value) : null;
-
-  if (!node) {
-    return false;
-  }
-
-  const text = stringValue(node);
-
-  if (text !== null) {
-    return !BUILT_IN_RENDERERS.has(text);
-  }
-
-  const empty = (node.type === 'Identifier' && node.name === 'undefined') || node.type === 'NullLiteral'
-    || (node.type === 'Literal' && node.value === null);
-
-  return !empty;
-}
-
-/**
- * Whether an object literal sets a custom renderer.
- *
- * @param {object} objectPath NodePath of an `ObjectExpression`.
- * @returns {boolean} `true` for a `renderer` property that is not a built-in name.
- */
-function objectHasCustomRenderer(objectPath) {
-  const property = getProperty(objectPath, 'renderer');
-
-  return Boolean(property) && (property.node.type === 'ObjectMethod' || isCustomRenderer(property.node.value));
-}
-
-/**
- * Whether a wrapper element sets a custom renderer.
- *
- * @param {object[]} attributes The attributes of a `JSXOpeningElement`.
- * @returns {boolean} `true` for a `renderer` attribute that is not a built-in name.
- */
-function elementHasCustomRenderer(attributes) {
-  const attribute = attributes.find(item => attributeName(item) === 'renderer');
-
-  return Boolean(attribute) && isCustomRenderer(attributeValue(attribute));
-}
-
-/**
- * Whether a file reads `<parent>.<child>` anywhere: `numericFormat.culture`, `cellProperties.numericFormat?.culture`,
- * `(x.numericFormat ?? {}).culture`, and a destructuring of the child out of the parent, through `as` and
- * parentheses. A project that reads the key itself has code (a renderer, an exporter) that reads the old name.
- *
- * @param {object} j The jscodeshift API.
- * @param {object} root The parsed Collection.
- * @param {string} parentKey The option, for example `numericFormat`.
- * @param {string} childKey The nested key, for example `culture`.
- * @returns {boolean} `true` when the file reads the key.
- */
-function fileReadsNestedKey(j, root, parentKey, childKey) {
-  const isParent = (expression) => {
-    let node = expression ? unwrapNode(expression) : null;
-
-    while (node?.type === 'LogicalExpression' && (node.operator === '??' || node.operator === '||')) {
-      node = unwrapNode(node.left);
-    }
-
-    if (!node) {
-      return false;
-    }
-
-    return node.type === 'Identifier' ? node.name === parentKey
-      : MEMBER_CALLS.has(node.type) && memberName(node) === parentKey;
-  };
-  let found = false;
-
-  [j.MemberExpression, j.OptionalMemberExpression].filter(Boolean).forEach(type => root.find(type).forEach((path) => {
-    found = found || (memberName(path.node) === childKey && isParent(path.node.object));
-  }));
-
-  root.find(j.ObjectPattern).forEach((path) => {
-    const names = path.node.properties.map(property => (property.type === 'RestElement' ? null
-      : propertyName(property)));
-
-    if (!names.includes(childKey)) {
-      return;
-    }
-
-    const owner = path.parent?.node;
-
-    if (owner?.type === 'VariableDeclarator' && owner.id === path.node) {
-      found = found || isParent(owner.init);
-    } else if (owner?.type === 'AssignmentExpression' && owner.left === path.node) {
-      found = found || isParent(owner.right);
-    } else if ((owner?.type === 'ObjectProperty' || owner?.type === 'Property') && owner.value === path.node) {
-      found = found || propertyName(owner) === parentKey;
-    }
-  });
-
-  return found;
-}
-
-/**
- * The reason a `culture`-style move must not run on an object or element: custom code may read the nested key. The
- * move is for a rule with `readerAdvice`, and the code is a custom renderer on the same object or element, or a
- * read of the key anywhere in the file.
+ * The custom code that may read the key a rule is about to move, or the option it is about to delete. Only a rule
+ * with `readerAdvice` asks for the check. See `lib/custom-reader.mjs` for what counts.
  *
  * @param {Env} env The state.
- * @param {boolean} customRenderer Whether the holder of the option sets a custom renderer.
- * @returns {boolean} `true` when the move must not run.
+ * @param {Reader|null} own The reader of the object or element and of everything that encloses it.
+ * @returns {Reader|null} The reader that makes the rule report, or `null` when the rule may edit.
  */
-function readerMayExist(env, customRenderer) {
+function readerOf(env, own) {
   const { rule } = env;
 
   if (typeof rule.readerAdvice !== 'string') {
-    return false;
+    return null;
   }
 
-  if (!env.reads.has(rule.id)) {
-    const [parentKey, childKey] = rule.from.split('.');
-
-    env.reads.set(rule.id, fileReadsNestedKey(env.j, env.ctx.root, parentKey, childKey));
+  if (own) {
+    return own;
   }
 
-  return customRenderer || env.reads.get(rule.id);
+  return rule.kind === 'optionMove' ? env.readers.readsNested(...rule.from.split('.')) : env.readers.reads(rule.name);
+}
+
+/**
+ * The reason a removal was kept, as the lead of its TODO: it starts with what to check.
+ *
+ * @param {import('../types.mjs').Rule} rule The `optionRemove` rule.
+ * @param {Reader} reader The code that may read the option.
+ * @returns {string} The text, followed by the rule's `readerAdvice`.
+ */
+function readerReason(rule, reader) {
+  return `Check ${describeReader(reader, rule.name)} before you delete ${rule.name}.${describeReaderLine(reader)} ${
+    rule.readerAdvice}`;
+}
+
+/**
+ * Report a key that was kept because custom code may read it, and say what that code is. The entry starts with the
+ * rule's `readerAdvice`, then names the code.
+ *
+ * @param {Env} env The state.
+ * @param {Reader} reader The reader.
+ * @param {number|undefined} line Line of the key.
+ * @returns {void}
+ */
+function reportReader(env, reader, line) {
+  const { ctx, rule } = env;
+  const option = rule.kind === 'optionMove' ? rule.from : rule.name;
+
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    line,
+    message: `${rule.readerAdvice} The tool kept ${option} because of ${describeReader(reader, option)}.${
+      describeReaderLine(reader)}`,
+  });
 }
 
 /**
@@ -871,7 +857,7 @@ function nestedKeyState(env, objectPath, childKey) {
     return 'clear';
   }
 
-  const spreads = env.resolver.spreadsOf(objectPath);
+  const spreads = env.resolver.spreadsOf(objectPath, { exact: true });
 
   if (spreads === null || spreads.some(isSpreadObject)) {
     return 'unknown';
@@ -903,7 +889,7 @@ function reportNestedHolder(env, holder, node, hasDestination) {
     return;
   }
 
-  const resolved = reference ? env.resolver.hop(holder) : holder;
+  const resolved = reference ? env.resolver.hop(holder, { exact: true }) : holder;
 
   if (resolved && resolved.node.type !== 'ObjectExpression') {
     return;
@@ -1049,6 +1035,27 @@ function keyLike(j, model, name) {
 }
 
 /**
+ * Report a nested key that was left in place because a spread after it can set it again.
+ *
+ * @param {Env} env The state.
+ * @param {object} child The node of the nested key.
+ * @param {string} parentKey The option that holds it.
+ * @param {string} childKey The nested key.
+ * @returns {void}
+ */
+function reportLaterSpread(env, child, parentKey, childKey) {
+  const { ctx, rule } = env;
+
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    line: lineOfNode(child),
+    message: `Move ${rule.from} to ${rule.to} by hand: a spread after ${childKey} in ${parentKey} can set `
+      + `${childKey} again and win, so it was left alone.`,
+  });
+}
+
+/**
  * Handle `optionMove` for one options object: take `<option>.<key>` out of the object that `<option>` holds and
  * put it beside `<option>`.
  *
@@ -1081,14 +1088,22 @@ function moveInObject(env, objectPath, confidence) {
     return;
   }
 
-  if (readerMayExist(env, objectHasCustomRenderer(objectPath))) {
-    ctx.report({ ruleId: rule.id, severity: 'manual', line: lineOfNode(child.node), message: rule.readerAdvice });
+  const reader = readerOf(env, rule.readerAdvice === undefined ? null : env.readers.ofObject(objectPath));
+
+  if (reader) {
+    reportReader(env, reader, lineOfNode(child.node));
 
     return;
   }
 
   if (!clearsBar(env, confidence)) {
     reportBelowBar(env, child.node, `${rule.from} is set.`);
+
+    return;
+  }
+
+  if (spreadFollows(holder.node.properties, child.node)) {
+    reportLaterSpread(env, child.node, parentKey, childKey);
 
     return;
   }
@@ -1173,8 +1188,16 @@ function moveOnElement(env, openingPath) {
     return;
   }
 
-  if (readerMayExist(env, elementHasCustomRenderer(attributes))) {
-    ctx.report({ ruleId: rule.id, severity: 'manual', line: lineOfNode(child.node), message: rule.readerAdvice });
+  const reader = readerOf(env, rule.readerAdvice === undefined ? null : env.readers.ofElement(openingPath));
+
+  if (reader) {
+    reportReader(env, reader, lineOfNode(child.node));
+
+    return;
+  }
+
+  if (spreadFollows(holder.node.properties, child.node)) {
+    reportLaterSpread(env, child.node, parentKey, childKey);
 
     return;
   }
@@ -1427,11 +1450,14 @@ function reportDynamicOptions(ctx, rules) {
  *   the `Intl.NumberFormat` defaults (grouping on) for an empty object. A value that is not an object literal (a
  *   variable, a member read such as `PRESET.chf`) and an object literal that spreads another object are resolved one
  *   hop in the same file: when the key is set there, or the source cannot be read, the option is only reported.
- *   A rule with `readerAdvice` does not move the key when custom code may read it: the object or element sets a
- *   `renderer` that is not a built-in name, or the file reads the nested key (`numericFormat.culture`). It reports
- *   `readerAdvice` instead, at every confidence and under `--aggressive`. An optional `report` text is added as a
+ *   A rule with `readerAdvice` does not move the key when custom code may read it (see `lib/custom-reader.mjs`): the
+ *   object, an enclosing option object, or the element sets an editor, renderer, validator, or cell type that is not a
+ *   built-in name, has a spread or a computed key the tool cannot read, or the file reads the nested key
+ *   (`numericFormat.culture`). It reports `readerAdvice` instead, at every confidence and under `--aggressive`. An optional `report` text is added as a
  *   `manual` entry after every move.
- * - `optionRemove` (`name`, `todo`, `advice`): every property or attribute of that name goes. Unless `todo` is
+ * - `optionRemove` (`name`, `todo`, `advice`, `readerAdvice`): every property or attribute of that name goes, unless
+ *   the rule has `readerAdvice` and custom code may read the option (the same check as for a move): the property
+ *   stays and a TODO says what to check. Unless `todo` is
  *   `false`, a TODO comment with the advice is left before the next property (else the previous one, else the
  *   enclosing property, statement, or array element). A run that finds no such property adds nothing, so the
  *   comment is never written twice. Comments on the removed property go with it, except a section header
@@ -1494,10 +1520,15 @@ const options = {
     const targets = collectTargets(j, ctx.root, bindings);
     const handled = new Set(targets.filter(target => target.type === 'object').map(target => target.path.node));
     const resolver = createHop(j, ctx.root);
-    const reads = new Map();
+    const readers = createReaderFinder({
+      j,
+      root: ctx.root,
+      resolver,
+      optionNodes: new Set(targets.filter(target => target.type === 'object').map(target => target.path.node)),
+    });
 
     for (const rule of active) {
-      const env = { ctx, j, rule, aggressive, keys: null, resolver, reads };
+      const env = { ctx, j, rule, aggressive, keys: null, resolver, readers };
 
       if (rule.kind === 'optionRename' && rule.context) {
         renameInCallArguments(env);

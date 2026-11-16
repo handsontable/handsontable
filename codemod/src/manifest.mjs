@@ -51,6 +51,7 @@ export const COMMON_FIELDS = {
     minConfidence: 'string',
     message: 'string',
     advice: 'string',
+    twins: 'strings',
   },
 };
 
@@ -96,7 +97,7 @@ export const RULE_KINDS = {
   },
   optionRename: { required: { from: 'string', to: 'string' }, optional: { context: 'object' } },
   optionMove: { required: { from: 'string', to: 'string' }, optional: { report: 'string', readerAdvice: 'string' } },
-  optionRemove: { required: { name: 'string' }, optional: { todo: 'boolean' } },
+  optionRemove: { required: { name: 'string' }, optional: { todo: 'boolean', readerAdvice: 'string' } },
   methodRemove: { required: { methods: 'strings', receiver: 'stringOrObject' }, optional: {} },
   methodMove: {
     required: { methods: 'object', via: 'object', receiver: 'stringOrObject' },

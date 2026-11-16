@@ -7,7 +7,8 @@ const hot = new Handsontable(document.body, { undo: true });
 hot.getPlugin('undoRedo').undo();
 hot?.getPlugin('undoRedo').redo();
 const canUndo = hot.getPlugin('undoRedo').isUndoAvailable();
-const canRedo = hot.getPlugin('undoRedo').isRedoAvailable?.();
+// TODO(handsontable-codemod 18.0.0/core-undo-methods): isRedoAvailable?.() is an optional call, which the tool does not rewrite: the plugin method...
+const canRedo = hot.isRedoAvailable?.();
 hot.getPlugin('undoRedo').clear();
 const history = hot.getPlugin('undoRedo');
 hot?.getPlugin('undoRedo')?.clear();

@@ -146,8 +146,8 @@ function textBetween(comment, node, source) {
 }
 
 /**
- * Whether a comment sits directly in front of a node: nothing but white space, commas, and a closing `}` (the end
- * of a JSX comment container) lies between them in the source. Where the parser attached the comment (to the node,
+ * Whether a comment sits directly in front of a node: nothing but white space, commas, other comments, and a closing
+ * `}` (the end of a JSX comment container) lies between them in the source. Where the parser attached the comment (to the node,
  * to the property before it, or to the one after) does not matter.
  *
  * @param {{start?: number, end?: number}} comment A comment with source offsets.
@@ -160,7 +160,8 @@ function sitsBefore(comment, node, source) {
     return false;
   }
 
-  return /^[\s,}]*$/.test(textBetween(comment, node, source));
+  // Several markers stand in a row in front of one node, so the comments in between do not count.
+  return /^[\s,}]*$/.test(textBetween(comment, node, source).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, ''));
 }
 
 /**
@@ -199,6 +200,23 @@ export function hasEarlierTodo(node, ruleId, text, guideUrl, scan) {
 
   return Boolean(scan) && scan.comments()
     .some(comment => comment.value.trim() === body && sitsBefore(comment, node, scan.source));
+}
+
+/**
+ * Whether a node carries the TODO of one of the twin rules of a rule: a comment in front of it, from this run or from
+ * the source, that starts with `TODO(handsontable-codemod <twin id>)`. The twin is named by the rule's data, so the text
+ * after the id does not matter.
+ *
+ * @param {object} node An AST node.
+ * @param {string[]} twinIds Ids of the earlier rules that report the same spot.
+ * @param {CommentScan|null} scan The part's comments, or `null` to look at the node only.
+ * @returns {boolean} `true` when a twin's comment is in front of the node.
+ */
+export function hasTwinTodo(node, twinIds, scan) {
+  const isTwin = comment => twinIds.some(id => comment.value.trim().startsWith(`${TODO_PREFIX} ${id}):`));
+
+  return (node.comments ?? []).some(isTwin)
+    || (Boolean(scan) && scan.comments().some(comment => isTwin(comment) && sitsBefore(comment, node, scan.source)));
 }
 
 const JSX_TARGETS = new Set(['JSXElement', 'JSXOpeningElement']);
@@ -248,6 +266,34 @@ function isTodoContainer(child, body) {
 }
 
 /**
+ * The comment-only containers in the run right in front of a JSX child, nearest first. Several markers of one element
+ * stand in a row, and blank text between them does not end the run.
+ *
+ * @param {object} parent The `JSXElement` or `JSXFragment` that holds the child.
+ * @param {number} index Index of the child in `parent.children`.
+ * @returns {object[]} The containers.
+ */
+function commentRunBefore(parent, index) {
+  const isBlank = child => child?.type === 'JSXText' && child.value.trim() === '';
+  const isComment = child => child?.type === 'JSXExpressionContainer' && child.expression.type === 'JSXEmptyExpression';
+  const run = [];
+
+  for (const child of parent.children.slice(0, index).reverse()) {
+    if (isBlank(child)) {
+      continue;
+    }
+
+    if (!isComment(child)) {
+      break;
+    }
+
+    run.push(child);
+  }
+
+  return run;
+}
+
+/**
  * Leave a TODO in front of a JSX element: a JSX comment `{/* ... *\/}` when the element is (or sits inside an
  * expression that is) a child of another element, so it lands right before the element. For an element that is a
  * statement's value, a `//` comment on the enclosing statement when that statement starts at most three lines above
@@ -267,10 +313,8 @@ function addJsxTodo(j, path, body, scan) {
   if (site) {
     const { parent, child } = site;
     const index = parent.children.indexOf(child);
-    const isBlank = node => node?.type === 'JSXText' && node.value.trim() === '';
-    const before = parent.children.slice(0, index).reverse().find(node => !isBlank(node));
 
-    if (hasTodo(child, body, scan) || isTodoContainer(before, body)) {
+    if (hasTodo(child, body, scan) || commentRunBefore(parent, index).some(item => isTodoContainer(item, body))) {
       return false;
     }
 
@@ -342,26 +386,11 @@ export function hasJsTodo(target, ruleId, text, guideUrl = null, scan = null) {
 
   if (site) {
     const index = site.parent.children.indexOf(site.child);
-    const isBlank = child => child?.type === 'JSXText' && child.value.trim() === '';
-    const isComment = child => child?.type === 'JSXExpressionContainer'
-      && child.expression.type === 'JSXEmptyExpression';
-    const before = [];
 
     // Several markers of one element stand in a row, so the run of comment containers in front of it is searched, not
-    // just the nearest one.
-    for (const child of site.parent.children.slice(0, index).reverse()) {
-      if (isBlank(child)) {
-        continue;
-      }
-
-      if (!isComment(child)) {
-        break;
-      }
-
-      before.push(child);
-    }
-
-    return hasTodo(site.child, body, scan) || before.some(child => isTodoContainer(child, body));
+    // just the nearest one. `addJsxTodo()` searches the same run.
+    return hasTodo(site.child, body, scan)
+      || commentRunBefore(site.parent, index).some(item => isTodoContainer(item, body));
   }
 
   const statement = enclosingAnchor(elementPath);

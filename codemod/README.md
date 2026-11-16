@@ -176,7 +176,7 @@ Each migration follows one page of the Handsontable migration guide, and each ru
 
 | Migration | Rules | Rewrite | Report |
 |---|---|---|---|
-| 17.x to 18.0 | 103 | 41 | 62 |
+| 17.x to 18.0 | 105 | 41 | 64 |
 | 18.0 to 18.1 | 8 | 1 | 7 |
 
 `npm run test --prefix codemod` fails when these numbers differ from the output of `--list`. A rule is a `rewrite`
@@ -196,7 +196,7 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 | `callUnwrap` | 0 | 1 | A call that is a pass-through now. The 17.x call did work, so it is reported. |
 | `cssVariable` | 1 | 2 | CSS custom properties that were renamed or removed. |
 | `themeToken` | 1 | 2 | Theme tokens that were renamed or removed. |
-| `detect` | 0 | 12 | Code that needs a decision. It only reports. |
+| `detect` | 0 | 14 | Code that needs a decision. It only reports. |
 | `dependency` | 3 | 3 | `package.json` ranges, packages to add, and packages to replace or drop. |
 | `custom` | 0 | 2 | Checks that a rule file implements in code. Both report. |
 
@@ -227,8 +227,9 @@ The tool rewrites:
   another shape, such as `SummaryEndpoint`, the tool still renames and reports one note per run that says what
   changed in the shape.
 - `numericFormat.culture` to the `locale` option, in option objects, `<HotTable>` props, and `<HotColumn>` props.
-- The removed `correctFormat` and `datePickerConfig` options. Handsontable 18.0 ignores both, so deleting them keeps
-  the behavior. A TODO comment stays where the option was.
+- The removed `correctFormat` and `datePickerConfig` options. The built-in cell types of Handsontable 18.0 ignore
+  both, so deleting them keeps the behavior. A TODO comment stays where the option was. The tool keeps the option and
+  reports it when custom code may read it (see "How confidence works").
 - `columnHeaders` to `colHeaders` in the arguments of the export methods.
 - The `--ht-wrapper-border-radius` custom property and the `wrapperBorderRadius` theme token, also in the arguments of
   `Handsontable.themes.registerTheme(...).params(...)`, which is the registry that `handsontable/themes` exports.
@@ -239,7 +240,8 @@ The tool rewrites:
 
 The tool reports:
 
-- Numbro.js patterns, Moment.js date and time formats, and the packages behind them.
+- Numbro.js patterns, Moment.js date and time formats, a `date` or `time` column that sets no format (17.1 read
+  `DD/MM/YYYY` and `h:mm:ss a` by default, 18.0 reads ISO 8601), and the packages behind them.
 - Grids that pass HTML to a surface that used to be sanitized, and `Handsontable.helper.sanitize()` calls.
 - CSS selectors and DOM queries that depend on the old wrapper structure.
 - Pikaday leftovers.
@@ -289,11 +291,20 @@ would have changed, because a missed option fails silently at run time: an objec
 (a re-exported `HotTable` under another name, with `columns`, `data`, and similar props) that sets an option a rule
 changes or removes. A DOM tag never counts.
 
-A key is also not moved when custom code may read it. `numericFormat.culture` stays where it is, with a report that
-names the renderer, when the same object or element sets a `renderer` that is not a built-in name (a function, an
-identifier, or a string such as `'nwm.signedAmount'`), and when the file itself reads `numericFormat.culture`, in a
-member read or a destructuring. A renderer of your own that read `culture` keeps working only if you move the key and
-update the renderer together. This holds under `--aggressive` too.
+A grid instance, a plugin, or a theme that a variable or a `this` member stands for counts only when every value it
+can hold qualifies: the initializer and every later assignment, in any scope. A write of `null` or `undefined` does not count against it. A name that is also set to something
+else, set by a destructuring or a `for` head, or declared as a parameter is not rewritten on. A call on it is reported
+when it may still be the grid or the plugin. In a class, `this` must be the instance: a `this` inside a function or an
+object method is not.
+
+An option is also not moved or deleted when custom code may read it. `numericFormat.culture`, `correctFormat`, and
+`datePickerConfig` stay where they are, with a report that names the reader, when the object, an enclosing settings
+object, or the element sets an `editor`, `renderer`, or `validator` that is not a built-in name (a function, an
+identifier, or a string such as `'nwm.signedAmount'`), or a `type` that is not a built-in cell type; when the object has
+a spread or a computed key the tool cannot read; when the file registers a built-in name again; and when the file reads
+the option, in a member read or a destructuring. A validator or an editor of your own that reads `correctFormat` or
+`datePickerConfig`, or a renderer that reads `culture`, keeps working only if you handle the option and the code
+together. This holds under `--aggressive` too. A reader in another file is not seen.
 
 Every rule kind needs a Handsontable import or global in the file, with one exception. `--ht-` is Handsontable's own
 CSS variable namespace, so a file that names a `--ht-` variable counts as Handsontable usage for the CSS variable
@@ -359,10 +370,13 @@ the tool reads the version from `package.json`, which the run raised, and answer
   TODO on the statement, and recast prints that statement over two lines: `if (ready)`, then the call indented. The
   array element and the property of a one-line object keep their layout, because a marker on them goes in as text
   after printing. A statement does not, so run your formatter, or add the braces first.
-- A receiver it cannot confirm as a grid instance is not rewritten. A generic name such as `editor.undo()` is
+- A receiver it cannot confirm as a grid instance is not rewritten. A name that holds a grid on one path and something
+  else on another is not confirmed either, and neither is a `this.x` inside a function, an object method, or a nested
+  class, or in a class that assigns members by a computed key. A generic name such as `editor.undo()` is
   silent. The same holds for a plugin: it rewrites `saveManualColumnWidths()` and `downloadFile({ columnHeaders })`
   only on `hot.getPlugin('<key>')` or a variable the file sets from it, and a call on any other receiver is
-  reported or left alone. A call whose receiver or arguments can have effects of their own is kept, with a TODO.
+  reported or left alone. A call whose receiver or arguments can have effects of their own is kept, with a TODO. An
+  optional call (`hot.undo?.()`) is reported, not moved, because the plugin method always exists.
 - A JavaScript or TypeScript file with mixed line endings is written in the line ending most of its lines use. The
   value of a string or template literal does not change, because JavaScript reads every line break in a template
   literal as a line feed.
@@ -396,6 +410,26 @@ the tool reads the version from `package.json`, which the run raised, and answer
   literal that the printer re-indented is put back as it was. When a literal is lost or cannot be put back, the tool
   reports a `transform-error` and leaves the file alone. A literal that a rule does edit (a `--ht-` variable
   renamed inside a template literal) changes only the renamed name.
+- An Angular inline template (the `template` of `@Component`) is read like an `.html` page: its options are reported
+  and nothing in it is edited. A template with an expression (`${}`) is read with the expressions as spaces, so a
+  reported line after a multi-line expression can be off. A template that another module builds is not read.
+- A `--ht-` name inside `url()`, a quoted string, or outside `var()` in a stylesheet value is reported and not renamed.
+  The variable definition and every `var(--ht-...)` are renamed.
+- In a run that crosses a migration and the one after it, a spot that both report is reported once, under the earlier
+  migration, with one TODO. When you run the later migration over code the earlier one marked, the spot is reported
+  again and no second TODO is added.
+- A key that a spread follows is not renamed or moved, because the spread can set it again and win
+  (`{ columnHeaders: false, ...opts }`). A key after the spread is.
+- A `--ht-` string that is the key of an object that is not a style (`cssVars['--ht-wrapper-border-radius']`, a map of
+  your own) is reported and not renamed, because the code that reads the map is not in sight. The keys of a `style`
+  prop, of an object named for styles, and of `el.style[...]` are renamed, and so is every string that is not a key.
+- A `date` or `time` column with no format is found in script code, not in a template, and only when no spread of
+  something the tool cannot read could set the format.
+- A TODO next to a JSX element never changes the text the JSX renders: the printer's trimming of white space and decoding
+  of entities is undone for every text that is not blank. A text it cannot match to its source makes the tool leave
+  the file alone with a `transform-error`.
+- `hyperformula` is not added to a package when a `package.json` above it declares it at a range that does not allow
+  `^3.0.0`. The report names that file, which the tool does not edit.
 - A `cells` function the tool cannot read (see "How confidence works") is not checked. A `cells` function from another
   file, or one handed in as a parameter, may still set removed options, so search for them by hand.
 - After a rewrite, a default import can become unused. The tool does not remove an import that may be needed for its side

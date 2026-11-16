@@ -13,6 +13,7 @@
  * can never undo a rewrite.
  */
 
+import { jsxTextsOf } from './literals.mjs';
 import { printTree } from './print.mjs';
 
 const SENTINEL_PREFIX = '__codemodMarker';
@@ -108,9 +109,13 @@ export class MarkerCarriers {
       this.prefix += 'X';
     }
 
-    /** @type {Map<object, {array: object, text: string, bodies: string[]}>} */
+    /**
+     * @type {Map<object, {array: object, text: string, bodies: string[]}>}
+     */
     this.pending = new Map();
-    /** @type {Array<{sentinel: string, bodies: string[]}>} */
+    /**
+     * @type {Array<{sentinel: string, bodies: string[], texts: object[]}>}
+     */
     this.committed = [];
   }
 
@@ -165,7 +170,8 @@ export class MarkerCarriers {
       }
 
       array.elements[array.elements.indexOf(node)] = carrier;
-      this.committed.push({ sentinel, bodies });
+      // The element leaves the tree, and its JSX texts are printed back with it (see `intendedLiterals()`).
+      this.committed.push({ sentinel, bodies, texts: jsxTextsOf(node) });
     }
 
     this.pending.clear();

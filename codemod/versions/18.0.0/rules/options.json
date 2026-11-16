@@ -7,7 +7,7 @@
       "guide": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat",
       "from": "numericFormat.culture",
       "to": "locale",
-      "readerAdvice": "Move numericFormat.culture to locale and update the renderer in the same change. A custom renderer may read numericFormat.culture, but 18.0 formats with locale, so the renderer would fall back to its default culture if only the key moved."
+      "readerAdvice": "Move numericFormat.culture to locale and update the code that reads it in the same change. A custom renderer, editor, or validator may read numericFormat.culture, but 18.0 formats with locale, so that code would fall back to its default culture if only the key moved."
     },
     {
       "id": "18.0.0/correct-format-removed",
@@ -16,6 +16,7 @@
       "guide": "correctformat-option",
       "name": "correctFormat",
       "todo": true,
+      "readerAdvice": "The built-in cell types ignore correctFormat in 18.0, but a custom validator, editor, or renderer can still read it, so delete it only when no such code does.",
       "advice": "Use valueParser or valueSetter to correct entered values. 18.0 removed correctFormat. The date, time, intl-date, and intl-time cell types work with ISO 8601 values and do not reformat input."
     },
     {
@@ -25,6 +26,7 @@
       "guide": "datepickerconfig-option",
       "name": "datePickerConfig",
       "todo": true,
+      "readerAdvice": "The built-in date cell types ignore datePickerConfig in 18.0, but a custom editor (a Pikaday or Moment.js recipe) reads it from the cell properties, so delete it only when no such code does.",
       "advice": "Check the native date input, which replaces Pikaday. The date and intl-date cell types use it, and 18.0 removed datePickerConfig."
     },
     {

@@ -1,15 +1,20 @@
 /**
  * One hop in the same file: what an identifier or a member read such as `PRESET.chf` stands for, when a `const`
  * in this file holds it. It is the resolution limit of the tool. An import, a parameter, a destructured name, a
- * `let`, and a `var` are never followed, because they may hold another value at run time.
+ * `let`, and a `var` are never followed, because they may hold another value at run time. A `const` that holds an
+ * object or an array is followed, but a caller that must know what the object does not hold asks for an exact answer
+ * (`{ exact: true }`), and gets `null` when the file writes to a member of it or passes it to a call
+ * (`fmt.culture = x`, `Object.assign(fmt, base)`): `const` fixes the binding, not what the object holds. A caller
+ * that reports what it found does not ask, because a value it finds is there however it changes later.
  *
  * @module lib/resolve
  */
 
 import { memberName, propertyName, stringValue, unwrapPath } from './ast.mjs';
-import { lookup } from './scope.mjs';
+import { findReferences, lookup } from './scope.mjs';
 
 const MEMBERS = new Set(['MemberExpression', 'OptionalMemberExpression']);
+const CALLS = new Set(['CallExpression', 'OptionalCallExpression']);
 
 /**
  * The reference shapes a resolver follows: an identifier, or a member read of one.
@@ -22,18 +27,118 @@ export function isReference(node) {
 }
 
 /**
+ * The built-ins that read the objects they get and never change them, as written (`Object.keys`).
+ */
+const READ_ONLY_CALLS = new Set([
+  'Object.keys', 'Object.values', 'Object.entries', 'Object.getOwnPropertyNames', 'Object.hasOwn', 'Object.freeze',
+  'Object.isFrozen', 'Object.is', 'Object.fromEntries', 'JSON.stringify', 'structuredClone', 'Array.isArray',
+  'String', 'Number', 'Boolean',
+]);
+
+/**
+ * Whether a call only reads an argument: a built-in that never changes it, `Object.assign` for any argument but the
+ * first (the target), and `console` methods.
+ *
+ * @param {object} call The `CallExpression` node.
+ * @param {object} argument The argument node.
+ * @returns {boolean} `true` when the call cannot change what the argument holds.
+ */
+function onlyReads(call, argument) {
+  const { callee } = call;
+  let name = callee.type === 'Identifier' ? callee.name : null;
+
+  if (MEMBERS.has(callee.type) && callee.object.type === 'Identifier' && memberName(callee) !== null) {
+    name = `${callee.object.name}.${memberName(callee)}`;
+  }
+
+  if (name === 'Object.assign') {
+    return call.arguments[0] !== argument;
+  }
+
+  return name !== null && (READ_ONLY_CALLS.has(name) || name.startsWith('console.'));
+}
+
+/**
+ * Whether a member expression is the target of a destructuring or of a `for` head: `[a.x] = list`,
+ * `({ k: a.x } = bag)`, `[...a.x] = list`, `({ a.x = 1 } = bag)` is not valid, and `for (a.x of list)`.
+ *
+ * @param {object} path NodePath of the member expression.
+ * @returns {boolean} `true` when the expression is written.
+ */
+function isPatternTarget(path) {
+  const parent = path.parent?.node;
+
+  switch (parent?.type) {
+    case 'ArrayPattern':
+    case 'RestElement':
+      return true;
+    case 'AssignmentPattern':
+    case 'ForInStatement':
+    case 'ForOfStatement':
+      return parent.left === path.node;
+    case 'ObjectProperty':
+    case 'Property':
+      return parent.value === path.node && path.parent.parent?.node.type === 'ObjectPattern';
+    default:
+      return false;
+  }
+}
+
+/**
  * Build the one-hop resolver of a file.
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
- * @returns {{hop: (path: object) => object|null, stringOf: (path: object) => string|null,
- * spreadsOf: (objectPath: object) => object[]|null}} The resolver. `hop()` returns the NodePath of the value behind a
- * reference (type assertions stripped), or `null` when the reference is not resolved. `stringOf()` returns the string
+ * @returns {{hop: (path: object, options?: {exact?: boolean}) => object|null, stringOf: (path: object) => string|null,
+ * spreadsOf: (objectPath: object, options?: {exact?: boolean}) => object[]|null}} The resolver. `hop()` returns the
+ * NodePath of the value behind a reference (type assertions stripped), or `null` when the reference is not resolved
+ * (with `exact`, also when the object it holds may have been changed). `stringOf()` returns the string
  * a literal or a resolved reference holds, else `null`. `spreadsOf()` returns the object literals that the spread
  * elements of an object stand for, or `null` when any spread is not an object literal or a resolved reference to one.
  */
 export function createHop(j, root) {
   let declarators = null;
+  const mutated = new Map();
+
+  /**
+   * Whether the file may change the object or array a `const` holds: it writes to a member of the binding
+   * (assignment, update, `delete`, a destructuring target), or passes the binding to a call (not `new`, which the
+   * grid itself is: `new Handsontable(el, config)` reads the object).
+   *
+   * @param {object} binding The binding of the `const`.
+   * @returns {boolean} `true` when the contents can differ from the literal.
+   */
+  const isMutated = (binding) => {
+    if (!mutated.has(binding.idNode)) {
+      mutated.set(binding.idNode, findReferences(j, root, binding).some((reference) => {
+        const parent = reference.parent?.node;
+
+        if (CALLS.has(parent?.type)) {
+          return parent.callee !== reference.node && !onlyReads(parent, reference.node);
+        }
+
+        if (!MEMBERS.has(parent?.type) || parent.object !== reference.node) {
+          return false;
+        }
+
+        // `fmt.a.b = x` writes below `fmt` too, so climb the member chain to the node that is written or deleted.
+        let top = reference.parent;
+
+        while (MEMBERS.has(top.parent?.node.type) && top.parent.node.object === top.node) {
+          top = top.parent;
+        }
+
+        const holder = top.parent?.node;
+
+        return (holder?.type === 'AssignmentExpression' && holder.left === top.node)
+          || holder?.type === 'UpdateExpression'
+          || (holder?.type === 'UnaryExpression' && holder.operator === 'delete')
+          || isPatternTarget(top);
+      }));
+    }
+
+    return mutated.get(binding.idNode);
+  };
 
   const declaratorOf = (node) => {
     if (declarators === null) {
@@ -50,9 +155,11 @@ export function createHop(j, root) {
    * The value behind a reference, one hop.
    *
    * @param {object} path NodePath of an expression.
+   * @param {{exact?: boolean}} [options] `exact` gives `null` for an object that the file may change.
    * @returns {object|null} NodePath of the value (type assertions stripped), or `null`.
    */
-  const hop = (path) => {
+  const hop = (path, options = {}) => {
+    const { exact = false } = options;
     const target = unwrapPath(path);
     const { node } = target;
 
@@ -64,13 +171,15 @@ export function createHop(j, root) {
       }
 
       const declarator = declaratorOf(binding.node);
+      const value = declarator?.node.id.type === 'Identifier' ? unwrapPath(declarator.get('init')) : null;
 
-      return declarator?.node.id.type === 'Identifier' ? unwrapPath(declarator.get('init')) : null;
+      return exact && value && ['ObjectExpression', 'ArrayExpression'].includes(value.node.type)
+        && isMutated(binding) ? null : value;
     }
 
     if (MEMBERS.has(node.type)) {
       const name = memberName(node);
-      const holder = name === null ? null : hop(target.get('object'));
+      const holder = name === null ? null : hop(target.get('object'), options);
 
       if (holder?.node.type !== 'ObjectExpression') {
         return null;
@@ -100,7 +209,7 @@ export function createHop(j, root) {
     return resolved ? stringValue(resolved.node) : null;
   };
 
-  const spreadsOf = (objectPath) => {
+  const spreadsOf = (objectPath, options) => {
     const objects = [];
 
     for (let index = 0; index < objectPath.node.properties.length; index++) {
@@ -112,7 +221,7 @@ export function createHop(j, root) {
       }
 
       const argument = unwrapPath(objectPath.get('properties', index, 'argument'));
-      const resolved = argument.node.type === 'ObjectExpression' ? argument : hop(argument);
+      const resolved = argument.node.type === 'ObjectExpression' ? argument : hop(argument, options);
 
       if (resolved?.node.type !== 'ObjectExpression') {
         return null;

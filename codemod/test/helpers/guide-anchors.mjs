@@ -13,8 +13,27 @@ export function headingTextOf(text) {
     .replace(/^\d+\.\s+/, '')
     .split(/(`[^`]*`)/)
     .map(part => (part.startsWith('`') && part.endsWith('`') && part.length > 1 ? part.slice(1, -1)
-      : part.replace(/<\/?[A-Za-z][^>]*>/g, '').replace(/-{2,3}/g, '~')))
+      : withoutTags(part).replace(/-{2,3}/g, '~')))
     .join('');
+}
+
+/**
+ * Drop the inline tags of a heading and keep their text. The removal repeats until nothing changes, so a tag that
+ * only appears once another one is gone (`<<kbd>kbd>`) is dropped too.
+ *
+ * @param {string} text Heading text outside a code span.
+ * @returns {string} The text without tags.
+ */
+function withoutTags(text) {
+  let current = text;
+  let previous;
+
+  do {
+    previous = current;
+    current = current.replace(/<\/?[A-Za-z][^>]*>/g, '');
+  } while (current !== previous);
+
+  return current;
 }
 
 /**

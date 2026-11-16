@@ -23,7 +23,7 @@ amount (EUR)`
           title: `FX
     rate`,
 
-          validator: () => <b title="Rate
+          source: () => <b title="Rate
    in EUR">rate</b>
         },
       ]}

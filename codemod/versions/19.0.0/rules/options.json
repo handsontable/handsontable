@@ -4,6 +4,7 @@
       "id": "19.0.0/export-column-headers",
       "kind": "optionRename",
       "safe": true,
+      "twins": ["18.0.0/export-column-headers"],
       "guide": "removed-deprecated-apis",
       "from": "columnHeaders",
       "to": "colHeaders",

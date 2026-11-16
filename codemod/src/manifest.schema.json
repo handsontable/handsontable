@@ -88,7 +88,12 @@
         "safe": { "type": "boolean", "description": "true: the tool applies the rewrite by default. false: the tool never edits code for the rule. It reports manual entries and may leave a TODO comment. Required for every kind except detect and exportRemoved, which only report and take false or no value." },
         "minConfidence": { "enum": ["high", "medium"] },
         "message": { "type": "string" },
-        "advice": { "type": "string" }
+        "advice": { "type": "string" },
+        "twins": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Ids of the rules of earlier migrations that report the same spot. When one of them already marked a node, this rule leaves no second marker, and in a run that holds both it reports the spot once, under the earliest."
+        }
       },
       "additionalProperties": true,
       "if": { "properties": { "kind": { "enum": ["detect", "exportRemoved"] } }, "required": ["kind"] },
@@ -198,7 +203,7 @@
               "report": { "type": "string", "description": "Text of a manual entry added after every move." },
               "readerAdvice": {
                 "type": "string",
-                "description": "Text of the manual entry that replaces a move when custom code may read the nested key: a custom renderer on the same object or element, or a read of the key in the file."
+                "description": "Text of the manual entry that replaces a move when custom code may read the nested key: a custom editor, renderer, or validator, a cell type that is not built in, an unreadable spread, or a read of the key in the file."
               }
             }
           }
@@ -209,7 +214,11 @@
             "required": ["name"],
             "properties": {
               "name": { "type": "string", "description": "Option name to delete." },
-              "todo": { "type": "boolean", "description": "Leave a TODO comment with the advice where the option stood. Default true." }
+              "todo": { "type": "boolean", "description": "Leave a TODO comment with the advice where the option stood. Default true." },
+              "readerAdvice": {
+                "type": "string",
+                "description": "Asks for the custom reader check. When custom code may read the option (a custom editor, renderer, or validator, a cell type that is not built in, an unreadable spread, or a read of the option in the file), the option stays and this text is added to the TODO."
+              }
             }
           }
         },

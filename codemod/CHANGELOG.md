@@ -16,6 +16,17 @@ How versions are chosen:
 
 ### Added
 
+- Two rules of the 17.x to 18.0 migration, `18.0.0/date-default-format` and `18.0.0/time-default-format`: a `date` or
+  `time` column with no `dateFormat` or `timeFormat` is reported, because 17.1 read `DD/MM/YYYY` and `h:mm:ss a` by
+  default and 18.0 reads ISO 8601. A format set on the grid or on a wrapper element above the column counts.
+- Three rules of the 19.0 draft: a hook set to `null`, the frozen column drag with the unfreeze hooks, and an
+  `updateSettings()` call in a file with a `dataProvider`. The `notAutomated` reasons of the draft say what the tool does.
+- An inline Angular template (the `template` property of `@Component`) is read like an `.html` page, report only, with
+  the lines of the `.ts` file. Before, `[correctFormat]` there was not reported while the `styles` of the same component
+  were rewritten.
+- A rule can name the rules of earlier migrations that report the same spot (`twins`). In a run that holds both, the
+  earliest reports the spot once and leaves the one marker, and a later migration leaves no second marker on code the
+  earlier one marked. The 19.0 `resize-state-methods`, `helper-sanitize`, and `export-column-headers` use it.
 - The 18.1 to 19.0 migration, as a draft: it runs only with `--include-draft` and its rules can change before the
   release of Handsontable 19.0.
 - A `notAutomated` list in a manifest for the changes that have no rule. `--list` prints how many there are.
@@ -32,6 +43,36 @@ How versions are chosen:
 
 ### Fixed
 
+- A `--ht-` name in a `url()`, a quoted string, or outside `var()` in a stylesheet value is no longer renamed, and gets
+  a `manual` entry: `url(--ht-wrapper-border-radius.png)` is a file name. The definition of the variable and `var()`
+  references are renamed as before.
+- A second run no longer adds a TODO above the property of an object argument that the first run reprinted over lines
+  (`hot.updateSettings({ numericFormat: { culture }, datePickerConfig: cfg() })`). A TODO that `ctx.todo()` leaves
+  now looks above its target too.
+- A name counts as a grid instance, a plugin, or a theme only when every value it can hold qualifies. Before, one
+  assignment of a plugin made a variable the plugin everywhere, so a variable that was later set to another object
+  lost its `saveManualColumnWidths()` call, and one `new Handsontable()` made `widget.undo()` a plugin call. A name set
+  by a destructuring, a `for` head, a compound assignment, or a parameter, a name shadowed by a `var` in a namespace or
+  a static block, and a `this.x` read inside a function, an object method, or a nested class are not receivers. The
+  same history decides which object a variable stands for.
+- `hyperformula` is not added to a package when a `package.json` above it declares a range that does not allow the new
+  one: the tool reports it and names that file.
+- `correctFormat` and `datePickerConfig` stay in code that may read them (a custom editor, renderer, or validator,
+  an unreadable spread, a read of the option in the file) and are reported, where they were deleted. The same check
+  now guards `numericFormat.culture`, and it knows `editor`, `validator`, `type`, and the registration of a built-in
+  name. The Pikaday and Moment.js recipes of the docs are no longer broken by a run.
+- A TODO next to a JSX element no longer changes the text the element renders (the space after `{count}`, an entity),
+  and two TODOs on one element no longer multiply on every run. A TODO on a one-line array element no longer gets a
+  second comment in the next run.
+- A `--ht-` string that is the key of a map of your own is reported and not renamed. An optional call
+  (`hot.undo?.()`) is reported and not moved. A key that a later spread can set again is reported and not renamed or
+  moved. A `const` object that the file changes is no longer read as certainly lacking a key.
+- A type reference in `import('./mine').Config`, a Flow object type key, and the parameter patterns of a function type
+  are no longer renamed with an import. `export { type Config }` keeps its `type`. A `var` is hoisted out of a
+  namespace body and a static block.
+- `ssh://`, scp-style, and Windows path specs in `package.json` are sources, not versions. A range with a prerelease on
+  its upper or exact bound is reported and not kept.
+- The advice of `18.0.0/resize-state-methods` names `colWidths`, not `columnWidths`.
 - A detect rule no longer matches the TODO comment the tool wrote, which repeated the guide link and the first
   sentence of the rule: the second run reported the key of the license check again and, in JSX, added a second
   comment. The license key check now reads the string whose whole value is the key, not a URL or a sentence that holds

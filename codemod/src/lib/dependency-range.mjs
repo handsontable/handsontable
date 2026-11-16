@@ -1,7 +1,8 @@
 const SIMPLE_RANGE = /^([\^~]?)(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/;
-const PROTOCOL_SPEC = /^(?:workspace|file|link|portal|patch|git|git\+[a-z]+|github|gitlab|bitbucket|https?):/i;
-const REMOTE_PROTOCOL_SPEC = /^(?:git|git\+[a-z]+|github|gitlab|bitbucket|https?):/i;
-const PATH_SPEC = /^(?:\.{1,2}\/|\/|~\/)/;
+const PROTOCOL_SPEC = /^(?:workspace|file|link|portal|patch|git|git\+[a-z]+|github|gitlab|bitbucket|https?|ssh):/i;
+const REMOTE_PROTOCOL_SPEC = /^(?:git|git\+[a-z]+|github|gitlab|bitbucket|https?|ssh):/i;
+const PATH_SPEC = /^(?:\.{1,2}[\\/]|\/|~\/|[A-Za-z]:[\\/]|\\\\)/;
+const SCP_SPEC = /^[\w.-]+@[\w.-]+:\S/;
 const REPOSITORY_SPEC = /^[\w-]+\/[\w.-]+(?:#.*)?$/;
 const DIST_TAG = /^[a-z][a-z-]*$/i;
 const CATALOG_SPEC = /^catalog:/i;
@@ -9,10 +10,11 @@ const NPM_ALIAS = /^npm:((?:@[\w.-]+\/)?[\w.-]+)@(.+)$/;
 
 /**
  * Tell whether a dependency spec points at a source instead of naming a version range: a protocol (`workspace:`,
- * `file:`, `link:`, `portal:`, `patch:`, `git:`, `git+...:`, `github:`, `gitlab:`, `bitbucket:`, `http:`, `https:`), a
- * pnpm `catalog:`, a path (`./x`, `../x`, `/x`, `~/x`), or a `owner/repo` shorthand. Digits in such a spec belong to a
- * file name, a tag, or a branch, so nothing may read a version out of it. An `npm:` alias is not a source: it names a
- * range.
+ * `file:`, `link:`, `portal:`, `patch:`, `git:`, `git+...:`, `github:`, `gitlab:`, `bitbucket:`, `http:`, `https:`,
+ * `ssh:`), an scp-style repository (`git@host:org/repo.git#17.1.0`), a pnpm `catalog:`, a path (`./x`, `../x`, `.\\x`,
+ * `/x`, `~/x`, `C:\\libs\\x`, `\\\\server\\share`), or a `owner/repo` shorthand. Digits in such a spec belong to a file
+ * name, a port, a tag, or a branch, so nothing may read a version out of it. An `npm:` alias is not a source: it names a
+ * range. This is the one predicate of `planRange()` and of `minimumOfRange()` in `versions.mjs`.
  *
  * @param {string} spec The spec as written in `package.json`.
  * @returns {boolean} `true` for a source spec.
@@ -20,12 +22,12 @@ const NPM_ALIAS = /^npm:((?:@[\w.-]+\/)?[\w.-]+)@(.+)$/;
 export function isSourceSpec(spec) {
   const text = String(spec).trim();
 
-  return [PROTOCOL_SPEC, PATH_SPEC, REPOSITORY_SPEC, CATALOG_SPEC].some(pattern => pattern.test(text));
+  return [PROTOCOL_SPEC, PATH_SPEC, SCP_SPEC, REPOSITORY_SPEC, CATALOG_SPEC].some(pattern => pattern.test(text));
 }
 
 /**
  * Tell whether a dependency spec installs from a repository or a URL: `git:`, `git+...:`, `github:`, `gitlab:`,
- * `bitbucket:`, `http:`, `https:`, or an `owner/repo` shorthand. Such a spec names a ref or a file, not a version
+ * `bitbucket:`, `http:`, `https:`, `ssh:`, an scp-style `git@host:org/repo.git`, or an `owner/repo` shorthand. Such a spec names a ref or a file, not a version
  * range, so nothing can bump it, but it is not local code either: the project can still be on the old release. A
  * `workspace:`, `file:`, `link:`, `portal:`, or `patch:` spec and a path are local, and a `catalog:` spec has its own report.
  *
@@ -35,7 +37,7 @@ export function isSourceSpec(spec) {
 export function isRemoteSource(spec) {
   const text = String(spec).trim();
 
-  return REMOTE_PROTOCOL_SPEC.test(text) || REPOSITORY_SPEC.test(text);
+  return REMOTE_PROTOCOL_SPEC.test(text) || SCP_SPEC.test(text) || REPOSITORY_SPEC.test(text);
 }
 
 /**
@@ -97,7 +99,7 @@ function compareVersions(left, leftPre, right) {
 
 const PART = '(\\d+|[xX*])';
 const COMPARATOR = new RegExp(`^(>=|<=|>|<|=|\\^|~)?v?${PART}(?:\\.${PART})?(?:\\.${PART})?`
-  + '(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$');
+  + '(?:-([0-9A-Za-z.-]+))?(?:\\+[0-9A-Za-z.-]+)?$');
 
 /**
  * Compare two versions of three numbers.
@@ -125,7 +127,19 @@ function admitsComparator(token, version) {
   }
 
   const [, operator = '', ...rest] = match;
+  const prerelease = rest[3];
   const parts = [];
+
+  // A prerelease sorts below the release it leads up to, so on an upper or an exact bound the answer is not the one
+  // of the bare numbers. An exact prerelease is never a release, and an upper bound with one is not read. A
+  // prerelease on a lower bound or a caret is the lowest version it allows, which the numbers already say.
+  if (prerelease && (operator === '=' || operator === '')) {
+    return false;
+  }
+
+  if (prerelease && (operator === '<' || operator === '<=')) {
+    return null;
+  }
 
   for (const text of rest.slice(0, 3)) {
     if (text === undefined || /^[xX*]$/.test(text)) {
@@ -172,7 +186,9 @@ function admitsComparator(token, version) {
 
 /**
  * Tell whether a version range already allows a version. It understands comparators (`>=17.0.0 <19`), `||`,
- * hyphen ranges, x-ranges, `*`, caret, and tilde. A prerelease tag on a bound is ignored.
+ * hyphen ranges, x-ranges, `*`, caret, and tilde. A prerelease tag on a lower bound is ignored. An exact prerelease
+ * (`=18.0.0-beta.2`) allows no release, and one on an upper bound (`<=18.0.0-rc.2`) gives `null`, because the tool
+ * does not guess how it sorts against the release it leads up to.
  *
  * @param {string} range The range as written in `package.json`.
  * @param {string} version A full `MAJOR.MINOR.PATCH` version.

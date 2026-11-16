@@ -117,6 +117,8 @@ function isThemeReceiver(path, ids, bindings) {
 
 /**
  * Add the variables that hold a theme to the theme bindings of a file, one hop: `const theme = registerTheme(...)`.
+ * A variable counts only when every value it can hold is a theme: the initializer and every assignment, in any
+ * scope. A `require('handsontable/themes')` binding that the file sets again stops counting too.
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The file's Collection.
@@ -126,12 +128,31 @@ function isThemeReceiver(path, ids, bindings) {
  */
 function addThemeVariables(j, root, ids, bindings) {
   const found = [];
+  const dropped = [];
 
   root.find(j.VariableDeclarator).forEach((path) => {
-    if (path.node.id.type === 'Identifier' && path.node.init && isThemeReceiver(path.get('init'), ids, bindings)) {
-      found.push(path.node.id);
+    const id = path.node.id;
+
+    if (id.type !== 'Identifier') {
+      return;
+    }
+
+    const history = bindings.valuesOf(path.get('id'));
+
+    if (ids.has(id)) {
+      if (history && (history.opaque || history.values.length > 1)) {
+        dropped.push(id);
+      }
+
+      return;
+    }
+
+    if (path.node.init && history?.variable && !history.opaque && history.values.length > 0
+      && history.values.every(value => isThemeReceiver(value, ids, bindings))) {
+      found.push(id);
     }
   });
+  dropped.forEach(id => ids.delete(id));
   found.forEach(id => ids.add(id));
 }
 

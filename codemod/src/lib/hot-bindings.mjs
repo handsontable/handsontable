@@ -11,6 +11,8 @@
 
 import {
   calleeName,
+  edgeKey,
+  isFunctionNode,
   memberName,
   pluginKeyOf,
   propertyName,
@@ -19,7 +21,7 @@ import {
   unwrapNode,
   unwrapPath,
 } from './ast.mjs';
-import { invalidateScope, lookup, moduleBindings, referenceSpace } from './scope.mjs';
+import { declarationsOf, invalidateScope, lookup, moduleBindings, referenceSpace } from './scope.mjs';
 
 /**
  * The name `getPlugin()` looks a plugin up by: it upper-cases the first letter of its argument.
@@ -48,11 +50,19 @@ function registryName(key) {
  * (optional chains included), a variable, parameter, or class property annotated `Handsontable`,
  * `Handsontable.Core`, or a `Core` or `HotInstance` type imported from Handsontable, `this.x` assigned from
  * `new <namespace>(...)`, and `ref.current` or `ref.value` of a `useRef`, `createRef`, or `ref` holder typed as
- * one of those. An unrelated `.undo()` receiver gives `false`.
+ * one of those. A name that is not annotated counts only when every value it can hold is an instance (the
+ * initializer and every assignment, in any scope), and `this.x` only when `this` is the instance of the class and
+ * every assignment to the member in the class is one. An unrelated `.undo()` receiver gives `false`.
  * @property {(path: object, keys: string[]) => boolean} isPluginReceiver Whether an expression NodePath is a
  * plugin of one of the keys: a direct `<x>.getPlugin('<key>')` call (optional chaining included), or a variable
  * or `this` member that the file sets from such a call. One hop, and every value the name is set from must be a
  * listed plugin.
+ * @property {(path: object, keys: string[]) => boolean} isPartlyPlugin Whether a name or `this` member is set from a
+ * `getPlugin()` call of one of the keys somewhere, whether or not every value is. A rule reports such a receiver.
+ * @property {(path: object) => ({values: object[], opaque: boolean, variable: boolean}|null)} valuesOf Everything the
+ * file sets a name or a `this` member from: the NodePaths of the initializer and of every assignment in any scope
+ * (a write of `null`, `undefined`, or `void 0` is no value), and whether some write is one the file does not show (a compound assignment, a destructuring target, a `for`
+ * head, an update). `null` for a global. A parameter, an import, a function, and a class are not `variable`.
  * @property {(path: object) => string|null} resolveNamespaceMember For a `MemberExpression`,
  * `OptionalMemberExpression`, or `TSQualifiedName` chain rooted at a namespace binding, the dotted path after
  * the root (`helper.sanitize`, `plugins.ColumnSorting.Settings`). `null` for any other expression, for a
@@ -76,8 +86,27 @@ const HOT_TYPE_NAMES = new Set(['Core', 'HotInstance']);
 const HOLDER_CALLEES = new Set(['useRef', 'createRef', 'ref', 'shallowRef']);
 const HOLDER_TYPES = new Set(['RefObject', 'MutableRefObject', 'Ref', 'ShallowRef']);
 const COMPONENT_NAMES = new Set(['HotTable', 'HotColumn']);
-const MAX_PASSES = 5;
 const MAX_DEPTH = 8;
+const MEMBER_TYPES = new Set(['MemberExpression', 'OptionalMemberExpression']);
+const VARIABLE_KINDS = new Set(['var', 'let', 'const']);
+
+/**
+ * The assignment operators that can leave the right side in the variable: `=` and the three logical ones. Any
+ * other operator (`+=`, `**=`) makes a value the file does not show.
+ */
+const VALUE_OPERATORS = new Set(['=', '||=', '&&=', '??=']);
+
+/**
+ * Calls that set members of their first argument by name. `Object.assign(this, x)` can set any member of the class.
+ */
+const SETS_MEMBERS = new Set([
+  'Object.assign',
+  'Object.defineProperty',
+  'Object.defineProperties',
+  'Object.setPrototypeOf',
+  'Reflect.set',
+  'Reflect.defineProperty',
+]);
 
 /**
  * Whether a module name is a Handsontable package or a subpath of one.
@@ -138,12 +167,15 @@ const LOCAL_VALUE_TYPES = new Set([
 /**
  * Whether a receiver is unresolved: the file shows neither what it is nor that it is something else. A `this` or
  * `super` receiver, a member chain rooted at one, a local object, class, function, or import, and a plugin
- * looked up by key are resolved. A global, a parameter, and the result of another call are not.
+ * looked up by key are resolved. A global, a parameter, and the result of another call are not. A variable is
+ * resolved only when every value it can hold is a local value: with `bindings`, an assignment anywhere counts, and
+ * one that is not a local value (or one the file does not show) leaves the variable unresolved.
  *
  * @param {object} path The receiver NodePath.
+ * @param {HotBindings} [bindings] The bindings of the file, which know every assignment of a variable.
  * @returns {boolean} `true` when a call on it may still be on the thing a rule is about.
  */
-export function isUnresolvedReceiver(path) {
+export function isUnresolvedReceiver(path, bindings) {
   let current = unwrapPath(path);
 
   while (current.node.type === 'MemberExpression' || current.node.type === 'OptionalMemberExpression') {
@@ -168,6 +200,13 @@ export function isUnresolvedReceiver(path) {
 
   if (['function', 'class', 'import'].includes(binding.kind)) {
     return false;
+  }
+
+  const history = binding.kind !== 'param' ? bindings?.valuesOf(current) : null;
+
+  if (history?.variable) {
+    return history.opaque || history.values.length === 0
+      || !history.values.every(value => LOCAL_VALUE_TYPES.has(unwrapNode(value.node).type));
   }
 
   return !(binding.init && LOCAL_VALUE_TYPES.has(unwrapNode(binding.init).type));
@@ -463,14 +502,32 @@ export function collectHotBindings(j, root) {
     return HOLDER_TYPES.has(name) && isHotType(typeArguments(node)[0]);
   };
 
-  const trackedIds = new Set();
-  const holderIds = new Set();
-  let additions = 0;
-  const classTracked = new WeakMap();
-  const classHolders = new WeakMap();
+  /**
+   * What one name can hold, over its whole life: the initializer and every later write, in any scope. A write the
+   * tool cannot read (a compound assignment, a destructuring target, a `for` head, an update) makes the history
+   * opaque, and an opaque name is never trusted.
+   *
+   * @typedef {object} History
+   * @property {object[]} values NodePaths of every expression the name is set from.
+   * @property {boolean} opaque A write of a value the file does not show.
+   * @property {boolean} variable A `var`, `let`, `const`, or a class member (not a parameter, import, or function).
+   * @property {object|null} guard For a class member, the class node whose members the file may set in a way it
+   * cannot name (`this[key] = x`, `Object.assign(this, x)`).
+   * @property {boolean} qualified Every value is a grid instance (the fixpoint of `settle()`).
+   */
+
+  const seededIds = new Set();
+  const holderSeededIds = new Set();
+  // Keyed by the declaring identifier node: a scope cache that is rebuilt hands out new binding objects.
+  const bindingHistories = new Map();
+  const memberHistories = new WeakMap();
+  const memberSeeds = new WeakMap();
+  const holderMemberSeeds = new WeakMap();
+  const unreadableClasses = new WeakSet();
+  const histories = [];
 
   /**
-   * The class node that encloses a path, for `this.x` lookups.
+   * The class node that encloses a path, for member declarations.
    *
    * @param {object} path A NodePath.
    * @returns {object|null} The `ClassDeclaration` or `ClassExpression` node.
@@ -485,43 +542,285 @@ export function collectHotBindings(j, root) {
     return null;
   };
 
-  const classHas = (table, path, name) => {
-    const classNode = enclosingClass(path);
+  /**
+   * The class a `this` expression stands for, and whether it is the class itself (a static member) or an instance.
+   * An arrow function keeps the `this` of its parent. A function, an object method, and a getter or setter of an
+   * object literal have a `this` of their own, which the file does not show, so they have no owner.
+   *
+   * @param {object} thisPath NodePath of a `ThisExpression`.
+   * @returns {{classNode: object, isStatic: boolean}|null} The owner, or `null`.
+   */
+  const thisOwner = (thisPath) => {
+    let child = thisPath;
 
-    return Boolean(classNode && table.get(classNode)?.has(name));
+    for (let current = thisPath.parent; current; child = current, current = current.parent) {
+      const { type } = current.node;
+      const edge = edgeKey(child);
+
+      if (type === 'ArrowFunctionExpression') {
+        continue;
+      }
+
+      if (type === 'ClassMethod' || type === 'ClassPrivateMethod') {
+        if (edge === 'body' || edge === 'params') {
+          return { classNode: current.parent.parent.node, isStatic: Boolean(current.node.static) };
+        }
+
+        continue;
+      }
+
+      if (type === 'ClassProperty' || type === 'ClassPrivateProperty' || type === 'ClassAccessorProperty') {
+        if (edge === 'value') {
+          return { classNode: current.parent.parent.node, isStatic: Boolean(current.node.static) };
+        }
+
+        continue;
+      }
+
+      if (type === 'StaticBlock') {
+        return { classNode: current.parent.parent.node, isStatic: true };
+      }
+
+      if (isFunctionNode(current.node) || type === 'ClassDeclaration' || type === 'ClassExpression'
+        || type === 'Program') {
+        return null;
+      }
+    }
+
+    return null;
   };
 
   /**
-   * Add a name to a per-class set.
+   * The class and member key a `this.x` member expression names.
+   *
+   * @param {object} path NodePath of a member expression.
+   * @returns {{classNode: object, key: string}|null} The class and the key (`static ` prefix for a static one),
+   * or `null` when the object is not the `this` of a class or the name is computed.
+   */
+  const memberOf = (path) => {
+    if (!MEMBER_TYPES.has(path.node.type)) {
+      return null;
+    }
+
+    const object = unwrapPath(path.get('object'));
+    const name = memberName(path.node);
+    const owner = object.node.type === 'ThisExpression' && name !== null ? thisOwner(object) : null;
+
+    return owner ? { classNode: owner.classNode, key: `${owner.isStatic ? 'static ' : ''}${name}` } : null;
+  };
+
+  /**
+   * The history of a class member, created on the first sighting.
+   *
+   * @param {object} classNode The class node.
+   * @param {string} key The member key.
+   * @returns {History} The history.
+   */
+  const memberHistory = (classNode, key) => {
+    if (!memberHistories.has(classNode)) {
+      memberHistories.set(classNode, new Map());
+    }
+
+    const table = memberHistories.get(classNode);
+
+    if (!table.has(key)) {
+      const history = { values: [], opaque: false, variable: true, guard: classNode, qualified: false };
+
+      table.set(key, history);
+      histories.push(history);
+    }
+
+    return table.get(key);
+  };
+
+  /**
+   * Add a key to a per-class set.
    *
    * @param {WeakMap<object, Set<string>>} table Per-class sets.
    * @param {object} classNode The class node.
-   * @param {string} name The property name.
+   * @param {string} key The member key.
    */
-  const classAdd = (table, classNode, name) => {
+  const addSeed = (table, classNode, key) => {
     if (!table.has(classNode)) {
       table.set(classNode, new Set());
     }
 
-    if (!table.get(classNode).has(name)) {
-      table.get(classNode).add(name);
-      additions += 1;
+    table.get(classNode).add(key);
+  };
+
+  /**
+   * The binding every declaration of a name in one scope stands for: the first one. `var` can declare a name
+   * twice. A name that a parameter, a function, or a class also declares is not a plain variable.
+   *
+   * @param {object} binding A binding found by `lookup`.
+   * @returns {{canonical: object, mixed: boolean}} The first value binding and whether kinds are mixed.
+   */
+  const canonicalOf = (binding) => {
+    const list = binding.scope ? declarationsOf(binding.scope).get(binding.name) ?? [] : [];
+    const own = list.filter(item => item.space === 'both' || item.space === 'value');
+
+    return { canonical: own[0] ?? binding, mixed: own.length > 1 && own.some(item => item.kind !== 'var') };
+  };
+
+  /**
+   * The history of a binding, created on the first sighting.
+   *
+   * @param {object} binding A binding found by `lookup`.
+   * @returns {History} The history.
+   */
+  const bindingHistory = (binding) => {
+    const { canonical, mixed } = canonicalOf(binding);
+
+    if (!bindingHistories.has(canonical.idNode)) {
+      const history = {
+        values: [],
+        opaque: false,
+        variable: VARIABLE_KINDS.has(canonical.kind) && !mixed,
+        guard: null,
+        qualified: false,
+      };
+
+      bindingHistories.set(canonical.idNode, history);
+      histories.push(history);
+    }
+
+    return bindingHistories.get(canonical.idNode);
+  };
+
+  /**
+   * Whether an expression is `null`, `undefined` (the global), or `void 0`. A method call on such a value throws
+   * before and after a rewrite alike, so a write of one tells nothing about what the name is.
+   *
+   * @param {object} path Expression NodePath.
+   * @returns {boolean} `true` for a value that is no object.
+   */
+  const isNeutral = (path) => {
+    const node = unwrapNode(path.node);
+
+    switch (node.type) {
+      case 'NullLiteral':
+        return true;
+      case 'Literal':
+        return node.value === null && !node.regex;
+      case 'Identifier':
+        return node.name === 'undefined' && lookup(unwrapPath(path), 'undefined', 'value') === null;
+      case 'UnaryExpression':
+        return node.operator === 'void' && node.argument.type !== 'CallExpression';
+      default:
+        return false;
     }
   };
 
   /**
-   * Record a binding as a grid instance.
+   * Record a write to a binding or a `this` member.
    *
-   * @param {object} idNode The declaring identifier node.
+   * @param {object} targetPath NodePath of the write target.
+   * @param {object|null} valuePath NodePath of the value, `null` when the file does not show it.
    */
-  const track = (idNode) => {
-    if (!trackedIds.has(idNode)) {
-      trackedIds.add(idNode);
-      additions += 1;
+  const noteWrite = (targetPath, valuePath) => {
+    const target = unwrapPath(targetPath);
+    let history = null;
+
+    if (target.node.type === 'Identifier') {
+      const binding = lookup(target, target.node.name, 'value');
+
+      history = binding ? bindingHistory(binding) : null;
+    } else if (MEMBER_TYPES.has(target.node.type)) {
+      const object = unwrapPath(target.get('object'));
+      const member = memberOf(target);
+
+      if (member) {
+        history = memberHistory(member.classNode, member.key);
+      } else if (object.node.type === 'ThisExpression' && memberName(target.node) === null) {
+        // `this[key] = value` can set any member.
+        const owner = thisOwner(object);
+
+        if (owner) {
+          unreadableClasses.add(owner.classNode);
+        }
+      }
+    }
+
+    if (!history || (valuePath && isNeutral(valuePath))) {
+      return;
+    }
+
+    if (valuePath) {
+      history.values.push(valuePath);
+    } else {
+      history.opaque = true;
     }
   };
 
+  /**
+   * The targets a destructuring or plain assignment target writes.
+   *
+   * @param {object} path NodePath of a target or pattern.
+   * @param {object[]} [out] Accumulator.
+   * @returns {object[]} NodePaths of identifiers and member expressions.
+   */
+  const targetsOf = (path, out = []) => {
+    const target = unwrapPath(path);
+
+    switch (target.node.type) {
+      case 'Identifier':
+      case 'MemberExpression':
+      case 'OptionalMemberExpression':
+        out.push(target);
+        break;
+      case 'ObjectPattern':
+        target.node.properties.forEach((property, index) => targetsOf(property.type === 'RestElement'
+          || property.type === 'RestProperty' ? target.get('properties', index, 'argument')
+          : target.get('properties', index, 'value'), out));
+        break;
+      case 'ArrayPattern':
+        target.node.elements.forEach((element, index) => element && targetsOf(target.get('elements', index), out));
+        break;
+      case 'AssignmentPattern':
+        targetsOf(target.get('left'), out);
+        break;
+      case 'RestElement':
+        targetsOf(target.get('argument'), out);
+        break;
+      default:
+        break;
+    }
+
+    return out;
+  };
+
+  /**
+   * Record a write of a value the file does not show to every target of a pattern.
+   *
+   * @param {object} path NodePath of a target or pattern.
+   * @returns {void}
+   */
+  const noteOpaque = path => targetsOf(path).forEach(target => noteWrite(target, null));
+
   let isHolder;
+
+  /**
+   * Whether an initializer expression creates a ref holder typed as a grid instance, such as
+   * `useRef<Handsontable>(null)`.
+   *
+   * @param {object|null} init The initializer node.
+   * @returns {boolean} `true` for a typed holder call.
+   */
+  const isHolderCall = (init) => {
+    const node = init ? unwrapNode(init) : null;
+
+    return Boolean(node && (node.type === 'CallExpression' || node.type === 'OptionalCallExpression')
+      && HOLDER_CALLEES.has(calleeName(node.callee)) && isHotType(typeArguments(node)[0]));
+  };
+
+  /**
+   * Whether a history qualifies as a grid instance holder, once its values are known.
+   *
+   * @param {History|undefined} history The history.
+   * @returns {boolean} `true` when every value was set from a holder call.
+   */
+  const holdsOnlyHolders = history => Boolean(history && history.variable && !history.opaque
+    && history.values.length > 0 && history.values.every(path => isHolderCall(path.node)));
 
   /**
    * Classify an expression path as a grid instance.
@@ -557,12 +856,26 @@ export function collectHotBindings(j, root) {
           return isHolder(target.get('object'), depth + 1);
         }
 
-        return node.object.type === 'ThisExpression' && name !== null && classHas(classTracked, target, name);
+        const member = memberOf(target);
+
+        if (!member || unreadableClasses.has(member.classNode)) {
+          return false;
+        }
+
+        return Boolean(memberSeeds.get(member.classNode)?.has(member.key)
+          || memberHistories.get(member.classNode)?.get(member.key)?.qualified);
       }
       case 'Identifier': {
         const binding = lookup(target, node.name, 'value');
 
-        return Boolean(binding && trackedIds.has(binding.idNode));
+        if (!binding) {
+          return false;
+        }
+
+        const { canonical } = canonicalOf(binding);
+
+        return seededIds.has(binding.idNode) || seededIds.has(canonical.idNode)
+          || Boolean(bindingHistories.get(canonical.idNode)?.qualified);
       }
       case 'AssignmentExpression':
         return node.operator === '=' && classify(target.get('right'), depth + 1);
@@ -578,31 +891,24 @@ export function collectHotBindings(j, root) {
     if (node.type === 'Identifier') {
       const binding = lookup(target, node.name, 'value');
 
-      return Boolean(binding && holderIds.has(binding.idNode));
+      if (!binding) {
+        return false;
+      }
+
+      const { canonical } = canonicalOf(binding);
+
+      return holderSeededIds.has(binding.idNode) || holderSeededIds.has(canonical.idNode)
+        || holdsOnlyHolders(bindingHistories.get(canonical.idNode));
     }
 
-    if ((node.type === 'MemberExpression' || node.type === 'OptionalMemberExpression')
-      && node.object.type === 'ThisExpression') {
-      const name = memberName(node);
+    const member = memberOf(target);
 
-      return name !== null && classHas(classHolders, target, name);
+    if (!member || unreadableClasses.has(member.classNode)) {
+      return false;
     }
 
-    return false;
-  };
-
-  /**
-   * Whether an initializer expression creates a ref holder typed as a grid instance, such as
-   * `useRef<Handsontable>(null)`.
-   *
-   * @param {object|null} init The initializer node.
-   * @returns {boolean} `true` for a typed holder call.
-   */
-  const isHolderCall = (init) => {
-    const node = init ? unwrapNode(init) : null;
-
-    return Boolean(node && (node.type === 'CallExpression' || node.type === 'OptionalCallExpression')
-      && HOLDER_CALLEES.has(calleeName(node.callee)) && isHotType(typeArguments(node)[0]));
+    return Boolean(holderMemberSeeds.get(member.classNode)?.has(member.key)
+      || holdsOnlyHolders(memberHistories.get(member.classNode)?.get(member.key)));
   };
 
   root.find(j.Identifier).forEach((path) => {
@@ -613,184 +919,171 @@ export function collectHotBindings(j, root) {
     }
 
     if (isHotType(node.typeAnnotation)) {
-      track(node);
+      seededIds.add(node);
     } else if (isHolderType(node.typeAnnotation)) {
-      holderIds.add(node);
+      holderSeededIds.add(node);
     }
   });
 
-  const declarators = root.find(j.VariableDeclarator).paths();
-  const assignments = root.find(j.AssignmentExpression).paths();
-  const classProperties = root.find(j.ClassProperty).paths();
-  const parameterProperties = root.find(j.TSParameterProperty).paths();
-
-  declarators.forEach((path) => {
-    if (path.node.id.type === 'Identifier' && isHolderCall(path.node.init)) {
-      holderIds.add(path.node.id);
+  // Every write of the file is read once. A name is trusted only when every value it can hold is shown.
+  root.find(j.VariableDeclarator).forEach((path) => {
+    if (path.node.id.type === 'Identifier') {
+      if (path.node.init) {
+        noteWrite(path.get('id'), path.get('init'));
+      }
+    } else {
+      noteOpaque(path.get('id'));
     }
   });
 
-  classProperties.forEach((path) => {
+  root.find(j.AssignmentExpression).forEach((path) => {
+    const left = unwrapPath(path.get('left'));
+    const plain = left.node.type === 'Identifier' || MEMBER_TYPES.has(left.node.type);
+
+    if (plain && VALUE_OPERATORS.has(path.node.operator)) {
+      noteWrite(left, path.get('right'));
+    } else {
+      noteOpaque(left);
+    }
+  });
+
+  root.find(j.UpdateExpression).forEach(path => noteOpaque(path.get('argument')));
+
+  [...root.find(j.ForInStatement).paths(), ...root.find(j.ForOfStatement).paths()].forEach((path) => {
+    if (path.node.left.type === 'VariableDeclaration') {
+      path.node.left.declarations.forEach((declarator, index) => noteOpaque(path.get('left', 'declarations', index,
+        'id')));
+    } else {
+      noteOpaque(path.get('left'));
+    }
+  });
+
+  root.find(j.CallExpression).forEach((path) => {
+    const callee = unwrapNode(path.node.callee);
+    const name = MEMBER_TYPES.has(callee?.type) && callee.object?.type === 'Identifier'
+      ? `${callee.object.name}.${memberName(callee)}` : null;
+
+    if (name && SETS_MEMBERS.has(name) && path.node.arguments.length > 0) {
+      const subject = unwrapPath(path.get('arguments', 0));
+      const owner = subject.node.type === 'ThisExpression' ? thisOwner(subject) : null;
+
+      if (owner) {
+        unreadableClasses.add(owner.classNode);
+      }
+    }
+  });
+
+  root.find(j.ClassProperty).forEach((path) => {
     const classNode = enclosingClass(path);
     const name = propertyName(path.node);
 
-    if (!classNode || name === null) {
+    if (!classNode) {
       return;
     }
 
-    if (isHolderType(path.node.typeAnnotation) || isHolderCall(path.node.value)) {
-      classAdd(classHolders, classNode, name);
+    if (name === null) {
+      unreadableClasses.add(classNode);
+
+      return;
+    }
+
+    const key = `${path.node.static ? 'static ' : ''}${name}`;
+
+    if (path.node.value && !isNeutral(path.get('value'))) {
+      memberHistory(classNode, key).values.push(path.get('value'));
+    }
+
+    if (isHolderType(path.node.typeAnnotation)) {
+      addSeed(holderMemberSeeds, classNode, key);
     }
 
     if (isHotType(path.node.typeAnnotation)) {
-      classAdd(classTracked, classNode, name);
+      addSeed(memberSeeds, classNode, key);
     }
   });
 
-  parameterProperties.forEach((path) => {
+  [...root.find(j.ClassMethod).paths(), ...root.find(j.ClassPrivateMethod).paths()].forEach((path) => {
+    const classNode = enclosingClass(path);
+    const name = path.node.type === 'ClassMethod' ? propertyName(path.node) : null;
+
+    if (!classNode || path.node.kind === 'constructor') {
+      return;
+    }
+
+    if (name === null) {
+      if (path.node.type === 'ClassMethod') {
+        unreadableClasses.add(classNode);
+      }
+
+      return;
+    }
+
+    // A method or an accessor of the same name stands in for the member.
+    memberHistory(classNode, `${path.node.static ? 'static ' : ''}${name}`).opaque = true;
+  });
+
+  root.find(j.TSParameterProperty).forEach((path) => {
     const classNode = enclosingClass(path);
     const parameter = path.node.parameter?.type === 'AssignmentPattern' ? path.node.parameter.left
       : path.node.parameter;
 
-    if (classNode && parameter?.type === 'Identifier' && isHotType(parameter.typeAnnotation)) {
-      classAdd(classTracked, classNode, parameter.name);
+    if (!classNode || parameter?.type !== 'Identifier') {
+      return;
+    }
+
+    if (isHotType(parameter.typeAnnotation)) {
+      addSeed(memberSeeds, classNode, parameter.name);
+    } else if (isHolderType(parameter.typeAnnotation)) {
+      addSeed(holderMemberSeeds, classNode, parameter.name);
+    } else {
+      memberHistory(classNode, parameter.name).opaque = true;
     }
   });
 
-  for (let pass = 0; pass < MAX_PASSES; pass++) {
-    const before = additions;
+  /**
+   * Mark every history whose values are all grid instances. A name that is set from another name counts once the
+   * other one does, and a cycle never does.
+   */
+  const settle = () => {
+    for (let changed = true; changed;) {
+      changed = false;
 
-    declarators.forEach((path) => {
-      const id = path.node.id;
-
-      if (id.type === 'Identifier' && path.node.init && classify(path.get('init'))) {
-        track(id);
-      }
-    });
-
-    classProperties.forEach((path) => {
-      const classNode = enclosingClass(path);
-      const name = propertyName(path.node);
-
-      if (classNode && name !== null && path.node.value && classify(path.get('value'))) {
-        classAdd(classTracked, classNode, name);
-      }
-    });
-
-    assignments.forEach((path) => {
-      if (path.node.operator !== '=') {
-        return;
-      }
-
-      const left = unwrapPath(path.get('left'));
-
-      if (!classify(path.get('right'))) {
-        return;
-      }
-
-      if (left.node.type === 'Identifier') {
-        const binding = lookup(left, left.node.name, 'value');
-
-        if (binding) {
-          track(binding.idNode);
-        }
-      } else if ((left.node.type === 'MemberExpression' || left.node.type === 'OptionalMemberExpression')
-        && left.node.object.type === 'ThisExpression') {
-        const classNode = enclosingClass(left);
-        const name = memberName(left.node);
-
-        if (classNode && name !== null) {
-          classAdd(classTracked, classNode, name);
+      for (const history of histories) {
+        if (!history.qualified && history.variable && !history.opaque && history.values.length > 0
+          && !(history.guard && unreadableClasses.has(history.guard))
+          && history.values.every(value => classify(value))) {
+          history.qualified = true;
+          changed = true;
         }
       }
-    });
-
-    if (additions === before) {
-      break;
     }
-  }
+  };
+
+  settle();
 
   /**
-   * Plugin keys each binding and each `this` member is set from, filled on the first query.
+   * The plugin keys a history is set from, or `null` when any value is not a `getPlugin()` call, the history is
+   * opaque, or the name is not a plain variable.
    *
-   * @type {{ids: Map<object, Set<string>>, members: WeakMap<object, Map<string, Set<string>>>}|null}
+   * @param {History|undefined} history The history.
+   * @returns {string[]|null} The plugin keys.
    */
-  let pluginTable = null;
+  const pluginKeysOf = (history) => {
+    if (!history || !history.variable || history.opaque || history.values.length === 0
+      || (history.guard && unreadableClasses.has(history.guard))) {
+      return null;
+    }
 
-  /**
-   * Fill `pluginTable` from the declarators, assignments, and class properties of the file.
-   *
-   * @returns {{ids: Map<object, Set<string>>, members: WeakMap<object, Map<string, Set<string>>>}} The table.
-   */
-  const buildPluginTable = () => {
-    const ids = new Map();
-    const members = new WeakMap();
-    const note = (table, key, pluginKey) => {
-      if (!table.has(key)) {
-        table.set(key, new Set());
-      }
+    const keys = history.values.map(value => pluginKeyOf(value.node));
 
-      table.get(key).add(pluginKey);
-    };
-    const noteMember = (classNode, name, pluginKey) => {
-      if (!members.has(classNode)) {
-        members.set(classNode, new Map());
-      }
-
-      note(members.get(classNode), name, pluginKey);
-    };
-
-    declarators.forEach((path) => {
-      const pluginKey = pluginKeyOf(path.node.init);
-
-      if (path.node.id.type === 'Identifier' && pluginKey !== null) {
-        note(ids, path.node.id, pluginKey);
-      }
-    });
-
-    assignments.forEach((path) => {
-      const pluginKey = path.node.operator === '=' ? pluginKeyOf(path.node.right) : null;
-      const left = unwrapPath(path.get('left'));
-
-      if (pluginKey === null) {
-        return;
-      }
-
-      if (left.node.type === 'Identifier') {
-        const binding = lookup(left, left.node.name, 'value');
-
-        if (binding) {
-          note(ids, binding.idNode, pluginKey);
-        }
-      } else if ((left.node.type === 'MemberExpression' || left.node.type === 'OptionalMemberExpression')
-        && left.node.object.type === 'ThisExpression') {
-        const classNode = enclosingClass(left);
-        const name = memberName(left.node);
-
-        if (classNode && name !== null) {
-          noteMember(classNode, name, pluginKey);
-        }
-      }
-    });
-
-    classProperties.forEach((path) => {
-      const classNode = enclosingClass(path);
-      const name = propertyName(path.node);
-      const pluginKey = pluginKeyOf(path.node.value);
-
-      if (classNode && name !== null && pluginKey !== null) {
-        noteMember(classNode, name, pluginKey);
-      }
-    });
-
-    return { ids, members };
+    return keys.every(key => key !== null) ? keys : null;
   };
 
   /**
    * Whether an expression is a plugin of one of the given keys: a direct `<x>.getPlugin('<key>')` call, or a
-   * variable or `this` member that the file sets from such a call. Every value the name
-   * is set from must be a listed plugin. `getPlugin()` upper-cases the first letter of its argument, so
-   * `'exportFile'` and `'ExportFile'` name the same plugin.
+   * variable or `this` member that the file sets from such a call. Every value the name can hold, the
+   * initializer and every assignment anywhere, must be a listed plugin. `getPlugin()` upper-cases the first
+   * letter of its argument, so `'exportFile'` and `'ExportFile'` name the same plugin.
    *
    * @param {object} path Expression NodePath.
    * @param {string[]} keys Plugin keys the receiver may be.
@@ -805,23 +1098,71 @@ export function collectHotBindings(j, root) {
       return allowed.has(registryName(direct));
     }
 
-    pluginTable = pluginTable ?? buildPluginTable();
-
     let found = null;
 
     if (target.node.type === 'Identifier') {
       const binding = lookup(target, target.node.name, 'value');
 
-      found = binding ? pluginTable.ids.get(binding.idNode) : null;
-    } else if ((target.node.type === 'MemberExpression' || target.node.type === 'OptionalMemberExpression')
-      && target.node.object.type === 'ThisExpression') {
-      const classNode = enclosingClass(target);
-      const name = memberName(target.node);
+      found = binding ? pluginKeysOf(bindingHistories.get(canonicalOf(binding).canonical.idNode)) : null;
+    } else {
+      const member = memberOf(target);
 
-      found = classNode && name !== null ? pluginTable.members.get(classNode)?.get(name) : null;
+      found = member ? pluginKeysOf(memberHistories.get(member.classNode)?.get(member.key)) : null;
     }
 
-    return Boolean(found) && [...found].every(key => allowed.has(registryName(key)));
+    return Boolean(found) && found.every(key => allowed.has(registryName(key)));
+  };
+
+  /**
+   * Everything the file sets a name or a `this` member from.
+   *
+   * @param {object} path NodePath of an `Identifier`, or of a member expression on `this`.
+   * @returns {{values: object[], opaque: boolean, variable: boolean}|null} The history, or `null` for a global
+   * and for an expression that is neither.
+   */
+  const valuesOf = (path) => {
+    const target = unwrapPath(path);
+
+    if (target.node.type === 'Identifier') {
+      const binding = lookup(target, target.node.name, 'value');
+
+      if (!binding) {
+        return null;
+      }
+
+      const history = bindingHistories.get(canonicalOf(binding).canonical.idNode);
+
+      return history ? { values: history.values, opaque: history.opaque, variable: history.variable }
+        : { values: [], opaque: false, variable: VARIABLE_KINDS.has(binding.kind) };
+    }
+
+    const member = memberOf(target);
+    const history = member ? memberHistories.get(member.classNode)?.get(member.key) : null;
+
+    return history ? {
+      values: history.values,
+      opaque: history.opaque || unreadableClasses.has(member.classNode),
+      variable: true,
+    } : null;
+  };
+
+  /**
+   * Whether a name or `this` member is a plugin of one of the keys on at least one path, without being one on
+   * every path. A call on it may be on the plugin, so a rule reports it instead of leaving it silent.
+   *
+   * @param {object} path Expression NodePath.
+   * @param {string[]} keys Plugin keys.
+   * @returns {boolean} `true` when some value of the name is a `getPlugin()` call of a listed key.
+   */
+  const isPartlyPlugin = (path, keys) => {
+    const allowed = new Set(keys.map(registryName));
+    const history = valuesOf(path);
+
+    return Boolean(history?.variable) && history.values.some((value) => {
+      const key = pluginKeyOf(value.node);
+
+      return key !== null && allowed.has(registryName(key));
+    });
   };
 
   const getComponent = (path) => {
@@ -865,6 +1206,8 @@ export function collectHotBindings(j, root) {
     isModular: valueSources.has('base') && !valueSources.has('handsontable'),
     isInstance: path => classify(path),
     isPluginReceiver,
+    isPartlyPlugin,
+    valuesOf,
     resolveNamespaceMember,
     isNamespaceIdentifier,
     getComponent,

@@ -164,6 +164,15 @@ describe('minimumOfRange', () => {
       '/opt/handsontable-17.1.0',
       '~/handsontable-17',
       'patch:handsontable@17.1.0#./fix.patch',
+      'ssh://git@host:2222/handsontable.git',
+      'ssh://git@host/handsontable.git#semver:^17.0.0',
+      'git@host:example/handsontable.git#17.1.0',
+      'deploy@build.example.com:handsontable-17.git',
+      'C:\\libs\\hot-16.0.0',
+      'C:/libs/hot-16.0.0',
+      '.\\libs\\hot-16.0.0',
+      '..\\libs\\hot-16.0.0',
+      '\\\\server\\share\\hot-16',
     ]) {
       assert.equal(minimumOfRange(range), null, range);
     }

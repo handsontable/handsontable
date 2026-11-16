@@ -36,12 +36,23 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   and a rewrite can drop the note about its own spot, so only a `detect` rule is held to equality. A run that changed
   nothing hands the same text to the next one, and `transformFile()` is a pure function, so the sweep does not repeat
   it: run 3 is run only where run 2 changed the text. Keep it that way, because this file was the longest in the suite.
-- `test/idempotency-nested.test.mjs` is the three-run matrix for a call that shares its line with other code: ten
-  wrappers (function, method, arrow with a block, object method, Vue options object, `if` block, callback argument,
-  immediately invoked function, nested twice, arrow in a property) times six kinds of TODO times six neighbor layouts
-  (statements before and after, a one-line object that the run edits before and after). Every shape runs three times
-  and must change nothing in runs 2 and 3. A new kind that leaves a TODO adds a body there, with a plan of its own rule
-  and the rule that edits the object (`planFor()`), which keeps each run cheap.
+- `test/idempotency-nested.test.mjs` is the three-run matrix for a call that shares its line with other code: wrappers
+  (function, method, arrow with a block, object method, Vue options object, `if` block, callback argument, immediately
+  invoked function, nested twice, arrow in a property, and the statements without braces: `for`, `while`, `do`, `if`,
+  `else`, a label) times the kinds of TODO (a method call, a removed option in a one-line array element, an option kept
+  next to a custom reader, a JSX element) times the neighbor layouts (statements before and after, a one-line object
+  that the run edits before and after). Every shape runs three times and must change nothing in runs 2 and 3. A new
+  kind that leaves a TODO adds a body there, with a plan of its own rule and the rule that edits the object
+  (`planFor()`), which keeps each run cheap. A body that is a declaration says `declaration: true`, because a
+  statement without braces cannot hold one.
+- `test/receiver-history.test.mjs` is the table behind the receiver rule (see Traps): for every rule that rewrites on a
+  receiver (a method move on an instance, a method removal on a plugin, an option rename in the argument of a plugin call,
+  an option removal in the object of `setCellMetaObject`, a theme token rename) it runs the same histories of the name
+  (`const`, a later assignment in a branch or a closure, a destructuring target, a `for` head, a parameter, a shadowing
+  `var` in a namespace or a static block, a `this` member set in a nested object, a nested function, or a getter) and
+  expects a rewrite for a name whose every value qualifies and none for any other.
+  `test/custom-reader.test.mjs` pins the custom reader check, `test/jsx-todo.test.mjs` the JSX text guard, and
+  `test/scope.test.mjs` `referenceSpace()` and the hoisting of `var`.
 - `test/encoding.test.mjs` (a non-UTF-8 file of every kind is skipped with its bytes kept, a byte order mark stays in a
   script, a stylesheet, and a `package.json`, a file that cannot be written is a `write-error`),
   `test/redaction.test.mjs` (a token in a dependency spec never reaches the console, the report file, `--dry-run`,
@@ -96,12 +107,12 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/manifest.mjs`, `src/manifest.schema.json` | Manifest loading and validation, `RULE_KINDS`. |
 | `src/types.mjs` | JSDoc typedefs for the contracts below. No runtime code. |
 | `src/transforms/index.mjs` | The registry: `KIND_ORDER`, `PHASE_TWO_KINDS`, the module list. |
-| `src/adapters/*.mjs` | File type to parts and back. `template.mjs` gives an `.html` or `.htm` file one read-only `template` part. `vue.mjs` splits a `.vue` file (see Traps). |
+| `src/adapters/*.mjs` | File type to parts and back. `js.mjs` also gives a read-only `template` part to each inline Angular template (see Traps). `template.mjs` gives an `.html` or `.htm` file one read-only `template` part. `vue.mjs` splits a `.vue` file (see Traps). |
 | `src/transforms/detect.mjs` | The `detect` kind: report-only matchers (vocabulary in Traps). `validateDetectRule()` checks a rule. |
 | `versions/18.1.0/custom/sanitizer-source.mjs` | Two `custom` rules for the `sanitizer` option, picked by the rule's `mode` (see Traps). |
 | `src/transforms/css-variables.mjs`, `theme-tokens.mjs` | `cssVariable` (css, js strings, template report) and `themeToken` kinds. |
 | `src/lib/string-literal.mjs` | `replaceStringLiteral()`: edit a string literal and keep its quote style. |
-| `src/lib/literals.mjs` | The literal guard of `printJsPart()`: `intendedLiterals()` (what the final tree holds), `guardLiterals()` (compare with the printed text, repair or throw), `linesInsideLiterals()` (for `restoreTabs()`), and `templateRaw()` / `stringRaw()`, which a transform uses to read the text of a literal it edits (see Traps). |
+| `src/lib/literals.mjs` | The literal guard of `printJsPart()`: `intendedLiterals()` (what the final tree holds, JSX texts included), `keepJsxEntities()` (the raw spelling of an unedited JSX text, before printing), `guardLiterals()` (compare with the printed text, repair or throw), `linesInsideLiterals()` (for `restoreTabs()`), and `templateRaw()` / `stringRaw()`, which a transform uses to read the text of a literal it edits (see Traps). |
 | `src/lib/tool-comments.mjs` | `blankToolComments()` (the `TODO(handsontable-codemod ...)` comments of the tool, as spaces, line breaks kept) and `blankCodeComments()` (every comment of a js part, read with the parser on the original text, so the offsets are real in a tab-indented file). |
 | `src/lib/todo.mjs` | The writer of TODO comments in the AST, and the only source of their text (`formatTodo()`; `carrier.mjs` places the same text after printing): `shortenAdvice()`, `formatTodo()`, `addJsTodo()` (a `//` comment, or a JSX comment for a `JSXElement` path), `addCssTodo()`, and `collectComments()` for the dedupe. |
 | `src/lib/text-file.mjs` | `readUtf8()`, `decodeUtf8()`, and `stripBom()`: every file the tool reads as text goes through the strict decoder, which throws `NotUtf8Error` (the runner turns it into a `skipped-file` warning) and keeps a leading byte order mark as `U+FEFF`. |
@@ -115,8 +126,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/css-edit.mjs` | `CssDocument`: edits a stylesheet by offset (`replaceInDeclaration()`, `replaceInAtRule()`, `insertCommentBefore()`) and prints the original text with the edits spliced in. `print()` parses the result again and compares it with the postcss model. |
 | `src/lib/validate.mjs` | `problemsOf()` and `assertRenameOrRemoval()`, the helpers behind the `validate(rule)` hook of a transform. |
 | `src/lib/rename-key.mjs` | `renameKey()` and `removalAdvice()`, shared by the option, theme token, and CSS transforms. |
-| `src/lib/resolve.mjs` | `createHop()`: the one-hop resolver of a file. `hop()` follows an identifier or a member read (`PRESET.chf`) to the value a `const` of the same file holds, through `as const`; `stringOf()` reads the string behind it; `spreadsOf()` resolves the spreads of an object. Nothing else is followed (see Traps). |
-| `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, ...) and `isUnresolvedReceiver()`. |
+| `src/lib/resolve.mjs` | `createHop()`: the one-hop resolver of a file. `hop()` follows an identifier or a member read (`PRESET.chf`) to the value a `const` of the same file holds, through `as const`; `stringOf()` reads the string behind it; `spreadsOf()` resolves the spreads of an object, and `{ exact: true }` answers `null` for an object the file changes. Nothing else is followed (see Traps). |
+| `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, `valuesOf()`, ...) and `isUnresolvedReceiver()`. Every question about a name is answered from its whole history (see Traps). |
+| `src/lib/custom-reader.mjs` | `createReaderFinder()`: the one check "could custom code read this option of this object or element" behind `readerAdvice` (see Traps). |
 | `src/lib/facts.mjs` | `addFact(ctx, name, line)`, `hasFactFor(ctx, name)`, and `factSite(ctx, name)`: facts keyed by name and directory, with the file and line of the first sighting (see Traps). |
 | `src/lib/marker.mjs` | Where a generic TODO marker goes: `createMarkerIndex()` (a report line to its anchor and the nodes above it, `anchorsAbove()`), `markerTargets()` (the climb from a node to a property, array element, statement, or JSX element), and `cssTargetAt()`. |
 | `src/lib/carrier.mjs` | `MarkerCarriers` and `spliceCarriers()`: a generic marker on an untouched one-line array element is added as text after printing, so recast does not reprint the element (see "TODO comments"). |
@@ -241,6 +253,7 @@ of its earliest kind in `KIND_ORDER`.
 | `css` | For a `css` part (a stylesheet or a Vue `<style>` block), the `CssDocument` that edits the text by offset and keeps `root` in step. A transform reads the postcss `root` and edits only through `replaceInDeclaration(declaration, pattern, replacement)`, `replaceInAtRule()`, and `todo()`/`comment()`. Each replace returns `null` (no match), `true`, or `false` (the text at the node's offsets is not what the model says, or the value holds a comment): on `false` the transform reports `manual` and edits nothing. A transform never assigns `decl.prop`, `decl.value`, or `params` itself and never stringifies `root`. `null` for every other kind. |
 | `cssScope`, `lineOffset`, `fromText` | `'scoped'`, `'module'`, or `null` for the Vue `<style>` block of a `css` part; the part's zero-based line offset (add it by hand when a line is stored outside `report()`); the run's `--from` as text. |
 | `catalog` | For a `package.json` in phase 2 that holds a `catalog:` spec: `{ file, catalogs }` of the nearest `pnpm-workspace.yaml` (`catalogs` maps a catalog name, `''` for the default, to package ranges), else `null`. The runner reads it, so a transform stays free of file reads. |
+| `ancestors` | For a `package.json` in phase 2: the `package.json` files of the project above it, nearest first, parsed (`[{ file, manifest }]`). A fixture has none. |
 | `facts` | A `Set` shared across the run. Add `uses-formulas` style keys in phase 1, read them in phase 2. |
 | `options` | `{ aggressive, dryRun, todo }`. `todo: false` (`--no-todo`) makes `todo()` and `comment()` write nothing and switches the generic markers off. `markers: false` (tests use it) switches off only the generic markers. Never write to disk from a transform. |
 | `markChanged()` | Call after every edit of `root`. An untouched part is never printed, so the file keeps its exact bytes. |
@@ -259,7 +272,7 @@ Rules for transforms:
 ## Rule kinds and manifest fields
 
 `RULE_KINDS` in `src/manifest.mjs` is the validator's table: required and optional fields per kind, on top of
-the common fields (`id`, `kind`, optional `guide`, `safe`, `minConfidence`, `message`, `advice`). `safe` is
+the common fields (`id`, `kind`, optional `guide`, `safe`, `minConfidence`, `message`, `advice`, `twins`). `safe` is
 required for every kind except `detect` and `exportRemoved` (see "The `safe` contract"). The field sets
 are provisional. The author of a kind's transform owns its row: add the fields the transform reads and mirror the
 change in `src/manifest.schema.json`. Extra properties on a rule are allowed. `test/manifest.test.mjs` pins the
@@ -350,11 +363,15 @@ binding yet (see step 6), and its exports diff compares 18.1.2 with the `experim
 - **Rewrites (`safe: true`):** the four package ranges, `columnHeaders` to `colHeaders` in the export calls, the four
   resize-state methods (removed in 19.0), the two `Formulas` shortcut methods (no-ops), and the two type aliases
   `Settings` of `handsontable/plugins/exportFile` and `DataProviderOptions` of `handsontable/plugins/dataProvider`.
-- **Reports:** one `detect` rule per change that has a pattern in user code, and `19.0.0/helper-sanitize`. The latter
+- **Reports:** one `detect` rule per change that has a pattern in user code (a hook set to `null`, the frozen column
+  drag and the unfreeze hooks, an `updateSettings()` call in a file with a `dataProvider` among them), and
+  `19.0.0/helper-sanitize`. The latter
   is a `callUnwrap` with `safe: false` on purpose. The guide says to remove the call, and from 18.1 that is right,
   because the helper returned its input unchanged. In a chained run from 17.x the 18.0 rule has already left the
   call, because 17.x sanitized, and a rewriting 19.0 rule would delete it.
-- **`notAutomated`:** the sections with no pattern (a behavior change, a compiler error, a default).
+- **`notAutomated`:** the sections with no pattern (a behavior change, a compiler error, a default). A reason says what
+  is true of the tool: `the-minimum-browser-versions-are-higher` says the tool reads no `browserslist` key, no
+  `.browserslistrc`, and no bundler target. Drop an entry when a rule starts to cover its section.
 
 Traps of this draft:
 
@@ -453,8 +470,10 @@ the rule, for example a longer name that shares a prefix. Fixture directories ar
   "Read once". Keep a type rename report-only (`safe: false`, `todo: true`) only when the successor is not the same
   concept.
 - `optionRemove` is `safe: true` only when the removed option is ignored at runtime in the target version.
-  `correctFormat` (no code reads it in 18.0.0, 18.1 warns) and `datePickerConfig` (`DateEditor#prepare` warns and
-  ignores it) qualify. Its comment says `Deleted <name> here.` only on a deletion.
+  `correctFormat` (no built-in code reads it in 18.0.0, 18.1 warns) and `datePickerConfig` (`DateEditor#prepare` warns
+  and ignores it) qualify, but only for the built-in cell types: a custom editor, renderer, or validator can still read
+  them. So both rules carry `readerAdvice`, which asks for the custom reader check (see Traps) and keeps the option
+  when it cannot rule a reader out. Its comment says `Deleted <name> here.` only on a deletion.
 
 ## TODO comments
 
@@ -690,13 +709,38 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 - **`receiver: { plugin }`** (`methodRemove` and `methodMove`, and `context.receiver` of `optionRename`) names the
   plugin key or keys the receiver must be. `isPluginReceiver(path, keys)` in `lib/hot-bindings.mjs` says yes for
   `<x>.getPlugin('<key>')` (any `x`, optional chaining included) and for a variable or `this` member that the file
-  sets from such a call, one hop, when every value of the name is a listed plugin. `getPlugin()` upper-cases the first
+  sets from such a call, one hop, when every value of the name is a listed plugin (see "A name is a receiver only when
+  every value it can hold qualifies" below). `getPlugin()` upper-cases the first
   letter of its argument, so `'exportFile'` and `'ExportFile'` are the same key here too (`registryName()`). Anything else is never edited. A
   report `manual` happens only when the receiver is unresolved (`isUnresolvedReceiver()`: a global, a parameter, or the
   result of another call) and is not `this`, `super`, a member chain rooted at one, a local object or class, an import,
   or the plugin of another key. `18.0.0/resize-state-methods` uses it, so `storage.saveManualColumnWidths()` and
   `super.loadManualRowHeights()` stay untouched. `receiver: "any"` remains for a `methodRemove` rule whose names are
-  unique to Handsontable, and it skips a name the file declares itself.
+  unique to Handsontable, and it skips a name the file declares itself. A name that is a listed plugin on one path and
+  something else on another (`isPartlyPlugin()`) is reported, like an unresolved receiver.
+- **A name is a receiver only when every value it can hold qualifies (`lib/hot-bindings.mjs`).** `isInstance()`,
+  `isPluginReceiver()`, and the holders of a `useRef` read the whole history of a name: the initializer and every
+  later write anywhere in the file, in any scope (`valuesOf()` gives it). A plain, `||=`, `&&=`, or `??=` assignment adds
+  a value, unless the value is `null`, `undefined`, or `void 0`: a method call on those throws before and after a rewrite,
+  so such a write (`this.hot = null` in a teardown, `let hot = null`) is neutral. A name with only neutral writes has no
+  value and is no receiver. Any other write makes the history opaque: a compound or update operator, a destructuring target, a `for`
+  head, a parameter, a catch parameter, a name that a function or a class also declares, and a `var` declared twice
+  with another kind of declaration. An opaque name, a name with no value, and a name with one foreign value are not a
+  receiver. A declaration with no initializer and one qualifying assignment is. A type annotation (`Handsontable`,
+  `Core`, `HotInstance`) is the other way in, because the compiler holds every value to it. Instances are settled by a
+  least fixpoint, so a name set from another name counts once that one does, and a cycle never does. A `this.x` member
+  is the same, keyed by class and by `static`: `this` must be the instance of the class, so the walk up from it stops at
+  a function, an object method, a getter or setter of an object literal, and a nested class, and passes an arrow
+  function; a static method, property, and block read the static members. A class that assigns `this[key]`, passes
+  `this` to `Object.assign`/`defineProperty`/`defineProperties`/`setPrototypeOf`/`Reflect.set`, or has a computed
+  member has unreadable members, and none of its members counts. A method or accessor of the same name makes the member
+  opaque. `var` is hoisted to a namespace body and a class static block too (`declarationsOf()`), and bindings carry
+  the node of their scope. The histories are keyed by the declaring identifier node, because a rebuilt scope cache
+  hands out new binding objects. The same history decides `isUnresolvedReceiver(path, bindings)`, the option object
+  that a variable stands for (`createResolver()` in `lib/option-objects.mjs` follows a name only when it holds one
+  value), and the theme variables of `theme-tokens.mjs` (every value a theme, and a `require` binding that the file
+  sets again stops counting). `updateSettings()` objects stay receiver-agnostic by design: a hot file's
+  `x.updateSettings({ ... })` argument is a high-confidence grid object whatever `x` is.
 - A `methodRemove` rule's `advice` may use `{name}` too, so the TODO of a call that was not confirmed (the receiver may be
   another object) names the method in its first sentence: `19.0.0/resize-state-methods` starts with "Replace {name} with
   your own store". `18.0.0/resize-state-methods` does not, so its TODO text is unchanged. A `methodRemove` rule's
@@ -785,9 +829,11 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   to set another key too (`pattern` beside `culture`), and `annotatedObject` finds an object literal that a type
   annotation, `as`, or `satisfies` names. Neither reads templates.
 - A `handsontable` or wrapper dependency whose spec installs from a repository or a URL (`isRemoteSource()`: `git:`,
-  `git+...:`, `github:`, `gitlab:`, `bitbucket:`, `http(s):`, `owner/repo`) is never bumped, but it is one `manual` entry that
+  `git+...:`, `github:`, `gitlab:`, `bitbucket:`, `http(s):`, `ssh:`, scp-style `git@host:org/repo.git`, `owner/repo`)
+  is never bumped, but it is one `manual` entry that
   says the tool cannot tell its version (`planRange()` still returns `skip`). `workspace:`, `file:`, `link:`, `portal:`,
-  `patch:`, a path, and a dist-tag stay silent. The note about a pin of `overrides`, `resolutions`, or `pnpm.overrides`
+  `patch:`, a path (`./x`, `../x`, `.\\x`, `/x`, `C:\\x`, `\\\\server\\x`), and a dist-tag stay silent. `isSourceSpec()` is the one
+  predicate of `planRange()` and `minimumOfRange()`, so a port or a tag of such a spec is never read as a version. The note about a pin of `overrides`, `resolutions`, or `pnpm.overrides`
   names its own section.
 - Dependency ranges (`planRange()`, `rangeAdmits()`): a compound or open range that already allows the target
   (`>=17.1.0 <19`, `*`, `18`, an `npm:` alias to a new enough version) is `keep` and produces no entry. A simple caret,
@@ -834,20 +880,46 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   initializer and `X.key` to a property of a `const` object literal, through `as const` and `satisfies`. A `let`, a `var`, an
   import, a parameter, a destructured name, and a second hop are `null`, and each caller treats `null` as "unknown", never
   as "absent". The `options` and `detect` transforms share it. `cells` functions keep their own resolver in
-  `lib/option-objects.mjs`, which also reads `this.x` and `useMemo`.
+  `lib/option-objects.mjs`, which also reads `this.x` and `useMemo`. `const` fixes the binding, not what the object
+  holds: a caller that concludes from what the object lacks asks `hop(path, { exact: true })` (and `spreadsOf()` the
+  same), which answers `null` when the file writes to a member of the object (assignment, update, `delete`, a
+  destructuring or `for` target, at any depth) or passes it to a call that may change it (`Object.assign(fmt, x)`,
+  `configure(fmt)`; `new X(fmt)`, `Object.keys`, `Object.freeze`, `JSON.stringify`, `console.*`, and `Object.assign`
+  as a source do not count). A caller that reports what it finds does not ask. `reportNestedHolder()`,
+  `nestedKeyState()`, the `missingOption` merge, `withoutSiblingKey`, and the custom reader check ask.
 - **`optionMove` and the value of the parent option.** When `numericFormat` is not an object literal that sets `culture`,
   `reportNestedHolder()` decides: a reference or a spread that resolves to an object that sets the key gets "... comes from
   a variable that sets culture"; one that resolves to an object that certainly lacks it (no spread of its own) is silent;
   one that does not resolve gets "... by hand if it sets culture", at any confidence of the object, because nothing is
   rewritten. The whole rule is skipped for a file that never writes `culture` (`mentions()`), so the cross-file case
-  stays a documented limitation. A literal with its own `culture` and a spread still moves, as before.
-- **A key that custom code may read is not moved (`readerAdvice` on an `optionMove` rule).** `18.0.0/numeric-format-culture`
-  reports instead of moving when the object or wrapper element sets a `renderer` that is not in `BUILT_IN_RENDERERS`
-  (`lib/option-objects.mjs`, from `RENDERER_TYPE` of the 17.1 and 18.x packages: re-derive it when a release adds a
-  renderer), or when the file reads `numericFormat.culture` (`fileReadsNestedKey()`: a member read, an optional read,
-  `as`, parentheses, the left side of `??`/`||`, a destructuring, a nested destructuring). It applies at every
-  confidence and under `--aggressive`. A `renderer` of `undefined` or `null` is not custom. A renderer registered by name
-  in another file is custom too, because only the built-in names are known.
+  stays a documented limitation. A literal with its own `culture` moves, unless a spread follows the key in the same
+  object (`spreadFollows()`): the spread can set `culture` again and win, so the move is reported. A spread before the
+  key moves as before. `optionRename` does the same for a later spread in the object or among the attributes of an
+  element (`{ columnHeaders: false, ...opts }` is reported).
+- **An option that custom code may read is neither moved nor deleted (`readerAdvice`, `lib/custom-reader.mjs`).** A rule
+  with `readerAdvice` (the `optionMove` `18.0.0/numeric-format-culture`, the `optionRemove` rules
+  `18.0.0/correct-format-removed` and `18.0.0/date-picker-config-removed`) reports instead of editing when
+  `createReaderFinder()` cannot rule a reader out, at every confidence and under `--aggressive`. A reader is: an
+  `editor`, `renderer`, `validator`, or `hotEditor`/`hotRenderer` prop that is anything but a built-in name (a function, an
+  identifier, a string that is not in `BUILT_IN_EDITORS`, `BUILT_IN_RENDERERS`, or `BUILT_IN_VALIDATORS`; `undefined`,
+  `null`, `false`, and a regular expression validator are not), or a `type` that is not in `BUILT_IN_CELL_TYPES`, on the
+  object or element or on an enclosing option object or element (merged settings reach every cell below them); a
+  spread of the object itself that does not resolve (one hop, `exact`) or resolves to an object that holds a reader, and
+  a computed key in it (an unreadable spread or key on an enclosing settings object says nothing, because
+  `{ columns: [...], ...extra }` is too common); a built-in name that the file registers again with
+  `registerCellType`, `registerEditor`, `registerRenderer`, or `registerValidator`; and a read of the option anywhere in
+  the file (`.correctFormat`, `['datePickerConfig']`, a destructuring, an optional read; for `numericFormat.culture`
+  also `as`, parentheses, the left side of `??`/`||`, and a nested destructuring). The four name lists come from the
+  `*_TYPE` constants of the 17.1.0 and 18.1.2 packages and of `develop` (`handsontable/src/editors`, `renderers`,
+  `validators`, `cellTypes`): re-derive them when a release adds a name. The TODO names the reader without a line
+  number (a comment is compared as text on the next run, and the layout moves a line), and the report entry adds the
+  line. A reader in another file is out of reach, so a cell type that another module registers under its own name is
+  custom, but a reader attached to the grid elsewhere is not seen. Per rule: `numeric-format-culture`,
+  `correct-format-removed`, and `date-picker-config-removed` use the check. `export-column-headers` (both
+  versions) does not: it renames a key in the literal argument of an export call on the plugin, an object that nothing
+  but the plugin reads. The theme token and CSS variable rules do not either: a token is a key of the object passed to
+  the theme API, and a variable name in a string is renamed together with the stylesheet (a key of an object that is not
+  a style is reported, see below).
 - **Option rules report code they cannot place (`reportUnrecognized()`), and never rewrite it.** In a file that uses
   Handsontable: an `optionMove` rule reports `<option>: { <key> }` in an object literal that `findOptionObjects` did not
   return, and on a component element that is not a known wrapper (the pair is distinctive on its own); `optionRename` and
@@ -884,7 +956,69 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   like a binding of `handsontable/themes`, because 17.1 and 18.x set `Handsontable.themes` (with `registerTheme`,
   `getTheme`, `reinitTheme`) on the namespace at run time. A chain from another object (`kit.themes.registerTheme()`) is not.
 - **Several TODO markers on one JSX element are deduplicated across the whole run of comments before it.**
-  `hasJsTodo()` looks at every comment container in a row, not only the nearest, or a second run would add the first
-  marker again.
+  `hasJsTodo()` and `addJsxTodo()` walk the same run of comment containers (`commentRunBefore()`), not only the nearest,
+  or a second run would add the first marker again. `sitsBefore()` looks through other comments between a comment and
+  the node, so several markers in a row in front of one node all count.
+- **`ctx.todo()` and `ctx.comment()` look above the target too.** A transform picks the node by the layout it sees, and a
+  comment on a one-line array element or object spreads it over lines, which gives a property a line of its own in the
+  next run. So `comment()` in `runner.mjs` asks `anchorsAbove()` for every anchor above the target (a node target gets
+  its path from a lazy index of the part) and treats a comment of an earlier run in front of any of them as the
+  comment. The cost is the one of the generic markers: a spot deep in a statement that already carries the same comment
+  gets none.
+- **Twin rules report one spot once (`twins`).** A rule of a later migration that repeats a rule of an earlier one
+  (`19.0.0/resize-state-methods`, `helper-sanitize`, `export-column-headers`) lists the earlier ids in `twins`, which
+  `test/twin-rules.test.mjs` checks (an earlier rule of the same kind). `createContext()` in `runner.mjs` then gives the
+  entries of the pair one merge key per line (`twin:<earliest id>:<line>`, policy `earliest`), so in a run that holds
+  both the earliest rule owns the entry, and a later rule's `ctx.todo()` and generic marker are skipped. When only the
+  later migration runs, over code the earlier one marked, `ctx.comment()` and `applyMarkers()` look for a comment that
+  starts `TODO(handsontable-codemod <twin id>)` on the target and the anchors above it (`hasTwinTodo()`) and leave
+  none, while the later rule still reports its entry. A rule that repeats an older one adds the id to `twins`.
+- **An inline Angular template is a `template` part.** `adapters/js.mjs` (`inlineTemplateParts()`) adds one read-only
+  part for the `template` property of the object passed to `Component(...)` (a decorator or a call), when the file
+  names `@angular/core`, as a string or a template literal (an expression `${}` is joined with a space, so a line after a
+  multi-line expression can drift). Its `lineOffset` is the line of the opening quote, so every rule that reads
+  templates (`optionRename`, `optionMove`, `optionRemove` in `reportTemplateOptions()`, the `detect` matchers that list
+  `template`, the report-only `cssVariable` branch) reports on it with the lines of the `.ts` file. It is report only
+  and has no marker. The adapter's precheck also lets a file through that opens `<hot-table>`, `<hot-column>`,
+  `<HotTable>`, or `<HotColumn>` and never names Handsontable.
+- **`cssVariable` rewrites a custom property reference in a stylesheet, not any text that holds the name.** In a
+  declaration value the name counts only as the first argument of `var()`, outside every quoted string and `url()`
+  (`isReference()`), and the property of a declaration is the variable itself. Any other occurrence (`url(--ht-x.png)`,
+  `content: "--ht-x"`, `transition-property: --ht-x`) gets a `manual` entry and no edit. `CssDocument` takes a
+  replacer function as well as a string, so the check runs per match.
+- **A TODO never changes what JSX renders.** recast prints the children of a JSX element it prints again with every text
+  trimmed and every entity decoded (`&lt;` becomes `<`, which is not valid JSX). `printJsPart()` calls
+  `intendedLiterals()`, which lists every JSX text that is not blank (a text of white space and a line break is layout,
+  and JSX drops it) from the final tree, reading an unedited one from the original source, then `keepJsxEntities()`, which
+  gives a text with an entity its raw spelling as the value, and `guardLiterals()` puts back the bytes recast trimmed.
+  The texts are matched by what they say apart from white space (the decoded value), in groups, and a lost or added
+  text throws, so `transformFile()` leaves the file alone. The carriers of marker comments keep the texts of the
+  element they take out of the tree (`jsxTextsOf()`). A CRLF source compares with the line breaks normalized.
+- **`referenceSpace()` knows what is not a reference:** the qualifier of `import('./mine').Config`, a Flow object type key
+  and function type parameter name, and the pattern of a parameter of a function type, a construct or call signature, a
+  method signature, and a declared function (`{ Config }: any` in `type G = ({ Config }: any) => void`). A rename never
+  touches them.
+- **A package add reads the `package.json` files above it (`ctx.ancestors`).** `18.0.0/dependency-hyperformula` does not add
+  `hyperformula` to a package when a `package.json` above it declares it at a range whose lowest version the new range
+  does not allow (or at a spec with no version: `catalog:`, `workspace:`): it reports `Update hyperformula in <file> to
+  <range>`, and names the nearest such file. A declaration above that allows it still gets the add. The runner reads the
+  files above (`packageFilesAbove()` in `lib/facts.mjs`) once per run.
+- **`cssVariable` renames the strings of a style, not the keys of the project's own maps.** A string that is the key of an
+  object literal, or a computed member key, is renamed only when the object is a style: a `style` prop or key, a variable
+  or key with `style` in its name, a `CSSProperties`-typed or `as`/`satisfies` object, `Object.assign(<style>, {...})`,
+  `.css({...})`, and `el.style[...]`, `getComputedStyle(el)[...]`. Any other key gets a `manual` entry, because the code
+  that reads the map is not in sight. A string that is not a key (`style.setProperty('--ht-x')`, `var(--ht-x)`, a
+  template literal of CSS-in-JS) is renamed as before.
+- **`methodMove` does not rewrite an optional call.** `hot.undo?.()` is reported: the plugin method always exists, so the
+  rewritten call would run where the old one did nothing (`hot.undo?.() ?? hot.getPlugin('undoRedo').undo()` would undo
+  twice). `hot?.undo()` still moves, because the optional link is the member.
+- **`detect` vocabulary added with the 19.0 rules.** `property` takes `<hook>` for every hook the core registers
+  (`lib/hook-names.json`, a copy of the `REGISTERED_HOOKS` of `handsontable/src/core/hooks/constants.ts`; only `19.0.0/hook-set-to-null` uses it, and the test that compares the copy with the core prints a diagnostic and never fails, because another team changes that list: it fails only for a hook that a rule names and the copy lacks), and
+  `valueIs: null` also matches a conditional with a `null` branch and `a ?? null`. `withoutSiblingKey` (one-segment path,
+  not with `siblingKey`) wants an object or element that certainly lacks a key: no such key, no computed key, no spread
+  that does not resolve (`exact`) or that holds it. It reads js and JSX, not templates and not assignments.
+  `18.0.0/date-default-format` and `time-default-format` use it: 17.1.0 defaults `dateFormat` to `'DD/MM/YYYY'` and
+  `timeFormat` to `'h:mm:ss a'` (`metaSchema.js` of the 17.1.0 package), and 18.0 reads ISO 8601 only, so a column
+  with `type: 'date'` or `'time'` and no format key needs its data checked.
 - Detect negative fixtures must pass the adapter precheck, or they prove nothing: put the word Handsontable in a
   comment. `report.json` is matched as a subset, so `test/detect.test.mjs` asserts the empty reports.

@@ -85,6 +85,39 @@ export const BUILT_IN_RENDERERS = new Set([
   'intl-time', 'multiselect', 'numeric', 'password', 'select', 'text', 'time',
 ]);
 
+/**
+ * The editor names that Handsontable registers (`EDITOR_TYPE` of every built-in editor in the 17.1, 18.x, and
+ * `develop` sources).
+ *
+ * @type {Set<string>}
+ */
+export const BUILT_IN_EDITORS = new Set([
+  'autocomplete', 'base', 'checkbox', 'date', 'dropdown', 'handsontable', 'intl-date', 'intl-datetime', 'intl-time',
+  'multiselect', 'numeric', 'password', 'select', 'text', 'time',
+]);
+
+/**
+ * The validator names that Handsontable registers (`VALIDATOR_TYPE` of every built-in validator in the 17.1, 18.x,
+ * and `develop` sources).
+ *
+ * @type {Set<string>}
+ */
+export const BUILT_IN_VALIDATORS = new Set([
+  'autocomplete', 'checkbox', 'date', 'dropdown', 'intl-date', 'intl-datetime', 'intl-time', 'multiselect', 'numeric',
+  'time',
+]);
+
+/**
+ * The cell type names that Handsontable registers (`CELL_TYPE` of every built-in cell type in the 17.1, 18.x, and
+ * `develop` sources).
+ *
+ * @type {Set<string>}
+ */
+export const BUILT_IN_CELL_TYPES = new Set([
+  'autocomplete', 'checkbox', 'date', 'dropdown', 'handsontable', 'intl-date', 'intl-datetime', 'intl-time',
+  'multiselect', 'numeric', 'password', 'select', 'text', 'time',
+]);
+
 const IGNORED_ATTRIBUTES = new Set(['settings', 'ref', 'key']);
 const TYPE_WRAPPERS = new Set(['Partial', 'Readonly', 'Required', 'Omit', 'Pick']);
 const HOT_TYPE_ROLES = new Map([
@@ -195,9 +228,10 @@ export function getNestedProperty(objectPath, dottedPath) {
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
+ * @param {import('./hot-bindings.mjs').HotBindings} bindings Result of `collectHotBindings`.
  * @returns {object} The resolver functions.
  */
-function createResolver(j, root) {
+function createResolver(j, root, bindings) {
   const declarators = new Map();
   const declarations = new Map();
 
@@ -239,54 +273,24 @@ function createResolver(j, root) {
   };
 
   /**
-   * The class property initializer behind `this.name`.
-   *
-   * @param {object} path NodePath of a `this.name` member expression.
-   * @param {string} name Property name.
-   * @returns {object|null} NodePath of the initializer, or `null`.
-   */
-  const classPropertyValue = (path, name) => {
-    let current = path.parent;
-
-    while (current && current.node.type !== 'ClassBody') {
-      current = current.parent;
-    }
-
-    if (!current) {
-      return null;
-    }
-
-    const index = current.node.body.findIndex(member => member.type === 'ClassProperty' && propertyName(member) === name
-      && member.value);
-
-    return index === -1 ? null : current.get('body', index, 'value');
-  };
-
-  /**
-   * The initializer behind an identifier or `this.name`: one hop.
+   * The value behind an identifier or `this.name`: one hop. The name must hold that one value for its whole
+   * life: an initializer or a single assignment, and no other write anywhere in the file. A name the file sets
+   * twice, or sets in a way it does not show, stands for no known object.
    *
    * @param {object} path NodePath of the reference.
-   * @returns {object|null} NodePath of the initializer expression, or `null`.
+   * @returns {object|null} NodePath of the value, or `null`.
    */
   const hop = (path) => {
     const node = path.node;
 
-    if (node.type === 'Identifier') {
-      const binding = lookup(path, node.name, 'value');
-      const declarator = binding?.init && ['const', 'let', 'var'].includes(binding.kind)
-        ? declarators.get(binding.node) : null;
-
-      return declarator ? declarator.get('init') : null;
+    if (node.type !== 'Identifier' && !((node.type === 'MemberExpression' || node.type === 'OptionalMemberExpression')
+      && node.object.type === 'ThisExpression')) {
+      return null;
     }
 
-    if ((node.type === 'MemberExpression' || node.type === 'OptionalMemberExpression')
-      && node.object.type === 'ThisExpression') {
-      const name = memberName(node);
+    const history = bindings.valuesOf(path);
 
-      return name === null ? null : classPropertyValue(path, name);
-    }
-
-    return null;
+    return history?.variable && !history.opaque && history.values.length === 1 ? history.values[0] : null;
   };
 
   /**
@@ -463,7 +467,7 @@ function createResolver(j, root) {
  * @returns {OptionObject[]} The objects in source order of discovery, each once, at its highest confidence.
  */
 export function findOptionObjects(j, root, bindings) {
-  const { returned, resolveObjects, resolveArray, resolveFunction } = createResolver(j, root);
+  const { returned, resolveObjects, resolveArray, resolveFunction } = createResolver(j, root, bindings);
   const found = new Map();
 
   /**
@@ -803,7 +807,7 @@ export function findOptionObjects(j, root, bindings) {
  * @returns {JsxOptionAttribute[]} The attributes in source order.
  */
 export function findJsxOptionAttributes(j, root, bindings) {
-  const { resolveObjects } = createResolver(j, root);
+  const { resolveObjects } = createResolver(j, root, bindings);
   const entries = [];
 
   root.find(j.JSXElement).forEach((path) => {

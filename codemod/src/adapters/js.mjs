@@ -1,7 +1,8 @@
 import { extname } from 'node:path';
 import jscodeshift from 'jscodeshift';
+import { calleeName, propertyName, unwrapNode } from '../lib/ast.mjs';
 import { spliceCarriers } from '../lib/carrier.mjs';
-import { guardLiterals, intendedLiterals, linesInsideLiterals } from '../lib/literals.mjs';
+import { guardLiterals, intendedLiterals, keepJsxEntities, linesInsideLiterals } from '../lib/literals.mjs';
 
 const TYPESCRIPT_EXTENSIONS = new Set(['.ts', '.mts', '.cts']);
 
@@ -106,6 +107,12 @@ function restoreTabs(printed, source, lineTerminator, insideLiterals) {
 export const JS_PRECHECK = /handsontable|--ht-/i;
 
 /**
+ * The precheck of a file of the adapter: `JS_PRECHECK`, or a wrapper tag, because an Angular component whose module is
+ * declared elsewhere can hold `<hot-table>` in its inline template and never name Handsontable.
+ */
+const FILE_PRECHECK = new RegExp(`${JS_PRECHECK.source}|<hot-(?:table|column)\\b|<Hot(?:Table|Column)\\b`, 'i');
+
+/**
  * Parse JavaScript or TypeScript text into a `js` part.
  *
  * @param {string} source Text to parse.
@@ -140,7 +147,8 @@ function dominantTerminator(source) {
  *
  * The steps, in this order:
  *
- * 1. Read the intended text of every literal that spans lines from the final tree (`intendedLiterals()`).
+ * 1. Read the intended text of every literal that spans lines, and of every JSX text, from the final tree
+ * (`intendedLiterals()`), then give the JSX texts nobody edited their raw spelling (`keepJsxEntities()`).
  * 2. Print, splice the marker carriers in (a sentinel is not valid code, so nothing can be parsed before this), and
  * remove a stray `;`.
  * 3. Parse the text with a plain parser and put back any literal that printing changed (`guardLiterals()`). It
@@ -161,6 +169,9 @@ export function printJsPart(part, source) {
   const tabs = usesTabs(source);
   const parser = part.parser ?? 'babylon';
   const intended = intendedLiterals(part);
+
+  keepJsxEntities(part);
+
   const printed = part.root.toSource({
     quote: detectQuote(source),
     lineTerminator,
@@ -213,25 +224,80 @@ function stripStraySemicolons(part, printed, source) {
 }
 
 /**
- * Adapter for JavaScript and TypeScript. The whole file is one `js` part. Printing goes through recast, which
+ * The `template` parts of the inline templates of an Angular component: the string or template literal that the
+ * `template` property of the object passed to `@Component({...})` (or `Component({...})`) holds. A template part is
+ * read only, as the one of a Vue file or an `.html` page is, so the rules that report on a template report on it.
+ * Its `lineOffset` is the line of the opening quote, which is part line 1, and nothing prints it.
+ *
+ * @param {import('../types.mjs').Part} part The `js` part of the file.
+ * @returns {import('../types.mjs').Part[]} The template parts, in source order.
+ */
+function inlineTemplateParts(part) {
+  if (!part.source.includes('@angular/core') || !/\btemplate\b/.test(part.source)) {
+    return [];
+  }
+
+  const { j } = part;
+  const found = [];
+
+  part.root.find(j.CallExpression).forEach((path) => {
+    const argument = unwrapNode(path.node.arguments[0]);
+
+    if (calleeName(path.node.callee) !== 'Component' || argument?.type !== 'ObjectExpression') {
+      return;
+    }
+
+    for (const property of argument.properties) {
+      const value = property.type === 'ObjectProperty' && propertyName(property) === 'template'
+        ? unwrapNode(property.value) : null;
+      let content = null;
+
+      if (value?.type === 'StringLiteral' || (value?.type === 'Literal' && typeof value.value === 'string')) {
+        content = value.value;
+      } else if (value?.type === 'TemplateLiteral') {
+        content = value.quasis.map(quasi => quasi.value.raw).join(' ');
+      }
+
+      if (content !== null && value.loc) {
+        found.push({
+          fileKind: 'template',
+          source: content,
+          root: { content },
+          j: null,
+          lineOffset: part.lineOffset + value.loc.start.line - 1,
+          changed: false,
+        });
+      }
+    }
+  });
+
+  return found;
+}
+
+/**
+ * Adapter for JavaScript and TypeScript. The file is one `js` part, plus a read-only `template` part for each inline
+ * Angular template. Printing goes through recast, which
  * reprints only the nodes a transform touched, so an edited file keeps its formatting elsewhere.
  *
  * @type {import('../types.mjs').Adapter}
  */
 const jsAdapter = {
   fileKind: 'js',
-  fileKinds: ['js'],
+  fileKinds: ['js', 'template'],
   extensions: ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.mts', '.cts'],
   implemented: true,
-  precheck: JS_PRECHECK,
+  precheck: FILE_PRECHECK,
 
   /**
    * @param {string} source File text.
    * @param {string} filePath File path, used to choose the parser.
-   * @returns {import('../types.mjs').ParseHandle} Handle with one part.
+   * @returns {import('../types.mjs').ParseHandle} Handle with the `js` part first, then one read-only `template` part
+   * for each inline Angular template.
    */
   parse(source, filePath) {
-    return { parts: [createJsPart(source, parserFor(filePath))] };
+    const part = createJsPart(source, parserFor(filePath));
+
+    return { parts: [part, ...inlineTemplateParts(part)] };
   },
 
   /**

@@ -25,14 +25,8 @@ new Handsontable(document.body, {
     { data: 'g', numericFormat: PRESET.plain },
     { data: 'h', numericFormat: PLAIN },
     { data: 'i', numericFormat: { ...PLAIN, currency: 'EUR' } },
-    {
-      data: 'j',
-      locale: 'pl-PL',
-
-      numericFormat: {
-        ...PLAIN
-      }
-    },
+    // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Move numericFormat.culture to locale by hand: a spread after culture in numericFormat can set... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
+    { data: 'j', numericFormat: { culture: 'pl-PL', ...PLAIN } },
     { data: 'k', locale: 'de-DE', numericFormat: { ...FMT.amount } },
     { data: 'l', locale: 'de-DE', numericFormat: FMT.amount },
   ],

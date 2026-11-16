@@ -173,7 +173,7 @@ export class CssDocument {
    *
    * @param {object} declaration A postcss declaration.
    * @param {RegExp} pattern A global pattern.
-   * @param {string} replacement The replacement text.
+   * @param {string|function(string, number, string): string} replacement The replacement text, or a replacer function.
    * @returns {boolean|null} `null` when nothing matches, `true` when the declaration was edited, and `false` when
    * the text at the declaration's offsets is not what the model says (nothing is edited then).
    */
@@ -219,7 +219,7 @@ export class CssDocument {
    *
    * @param {object} atRule A postcss at-rule.
    * @param {RegExp} pattern A global pattern.
-   * @param {string} replacement The replacement text.
+   * @param {string|function(string, number, string): string} replacement The replacement text, or a replacer function.
    * @returns {boolean|null} `null` when nothing matches, `true` when the at-rule was edited, and `false` when the text
    * at its offsets is not what the model says (nothing is edited then).
    */

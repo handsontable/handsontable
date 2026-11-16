@@ -42,6 +42,17 @@ const WRAPPERS = [
   // The statements share one line, but inside a block that has lines of its own.
   { name: 'block with a line of its own', code: 'function f() {\n  {{BODY}}\n}' },
   { name: 'nested block indented with tabs', code: 'function f() {\n\tif (ready) {\n\t\t{{BODY}}\n\t}\n}' },
+  // The body is a statement without braces. A comment on the statement makes the printer move the body to its own
+  // line, so the statement the second run anchors on is the body, inside the one the first run commented.
+  { name: 'for without braces', code: 'for (;;) {{BODY}}', braceless: true },
+  { name: 'while without braces', code: 'while (ready) {{BODY}}', braceless: true },
+  { name: 'do without braces', code: 'do {{BODY}} while (ready);', braceless: true },
+  { name: 'if without braces', code: 'if (ready) {{BODY}}', braceless: true },
+  { name: 'if with an else without braces', code: 'if (ready) {{BODY}} else other();', braceless: true },
+  { name: 'else without braces', code: 'if (ready) other(); else {{BODY}}', braceless: true },
+  { name: 'labeled statement', code: 'outer: {{BODY}}', braceless: true },
+  { name: 'for of without braces', code: 'for (const item of list) {{BODY}}', braceless: true },
+  { name: 'nested without braces', code: 'if (ready) while (more) {{BODY}}', braceless: true },
 ];
 
 /**
@@ -61,6 +72,7 @@ const BODIES = [
     file: 'a.ts',
     plan: planFor('18.0.0/ns-nestedheaders-settings'),
     code: 'let x: Handsontable.plugins.NestedHeaders.Settings;',
+    declaration: true,
   },
   {
     name: 'themeToken',
@@ -73,6 +85,37 @@ const BODIES = [
     file: 'a.js',
     plan: planFor('19.0.0/non-commercial-license-key'),
     code: 'new Handsontable(el, { licenseKey: \'non-commercial-and-evaluation\', rowHeights: 20 });',
+  },
+  {
+    name: 'optionRemove kept in a one-line array element',
+    file: 'a.js',
+    plan: planFor(OBJECT_RULE),
+    code: 'new Handsontable(el, { columns: [{ type: \'date\', correctFormat: x() }, { type: \'text\' }] });',
+  },
+  {
+    name: 'optionRemove kept next to a custom reader',
+    file: 'a.js',
+    plan: planFor(OBJECT_RULE),
+    code: 'new Handsontable(el, { columns: [{ type: \'date\', correctFormat: true, validator: v }, { a: 1 }] });',
+  },
+  {
+    name: 'optionMove kept next to a custom renderer',
+    file: 'a.js',
+    plan: planFor('18.0.0/numeric-format-culture'),
+    code: 'new Handsontable(el, { columns: [{ renderer: r, numericFormat: { culture: \'de-DE\' } }, { a: 1 }] });',
+  },
+  {
+    name: 'optionRemove kept in an object argument that another rule rewrites',
+    file: 'a.js',
+    plan: buildPlan(manifests, ['18.0.0/date-picker-config-removed', '18.0.0/numeric-format-culture']),
+    code: 'hot.updateSettings({ numericFormat: { culture: \'nb-NO\' }, datePickerConfig: cfg() });',
+  },
+  {
+    name: 'JSX element with a TODO',
+    file: 'a.jsx',
+    plan: planFor(OBJECT_RULE),
+    header: 'import { HotTable } from \'@handsontable/react-wrapper\';\n',
+    code: 'return <HotTable licenseKey="k" correctFormat={x()} />;',
   },
 ];
 
@@ -94,6 +137,8 @@ const NEIGHBORS = [
     after: ' this.hot = new Handsontable(this.$el, { correctFormat: true, data: [] });',
   },
 ];
+
+const BRACELESS_NEIGHBORS = new Set(['alone', 'before a one-line object that the run edits']);
 
 /**
  * Transform a text three times, each run on the output of the one before.
@@ -139,11 +184,16 @@ const count = text => text.split(TODO).length - 1;
 describe('a call that shares its line with other code stays stable across three runs', () => {
   for (const body of BODIES) {
     describe(body.name, () => {
-      for (const wrapper of WRAPPERS) {
-        for (const neighbor of NEIGHBORS) {
+      // A declaration is no body for a statement without braces, and a statement without braces takes the neighbors
+      // that stand around the whole wrapper, two of which show the shift of a line that a one-line object causes.
+      for (const wrapper of WRAPPERS.filter(item => !(item.braceless && body.declaration))) {
+        for (const neighbor of NEIGHBORS.filter(item => !wrapper.braceless || BRACELESS_NEIGHBORS.has(item.name))) {
           it(`${wrapper.name}, ${neighbor.name}`, async() => {
-            const statements = `${neighbor.before}${body.code}${neighbor.after}`;
-            const source = `${HEADER}${wrapper.code.replace('{{BODY}}', statements)}\n`;
+            // A statement without braces holds one statement, so the neighbors stand around the whole wrapper.
+            const inside = wrapper.braceless ? body.code : `${neighbor.before}${body.code}${neighbor.after}`;
+            const shape = wrapper.code.replace('{{BODY}}', inside);
+            const around = wrapper.braceless ? `${neighbor.before}${shape}${neighbor.after}` : shape;
+            const source = `${HEADER}${body.header ?? ''}${around}\n`;
             const [one, two, three] = await threeRuns(body, source);
 
             assert.ok(count(one.output) > 0, `run 1 left no TODO comment:\n${one.output}`);
@@ -162,6 +212,16 @@ describe('a call that shares its line with other code stays stable across three 
       }
     });
   }
+
+  it('adds no second comment above a property of the object argument of a top-level call', async() => {
+    const body = BODIES.find(item => item.name.startsWith('optionRemove kept in an object argument'));
+    const source = `${HEADER}const hot = new Handsontable(el, { licenseKey: 'k' });\n${body.code}\n`;
+    const [one, two, three] = await threeRuns(body, source);
+
+    assert.equal(count(one.output), 1, one.output);
+    assert.equal(two.changed, false, two.output);
+    assert.equal(three.changed, false);
+  });
 
   it('keeps one comment for each of two calls that stand on different lines of one function', async() => {
     const body = BODIES[0];

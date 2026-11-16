@@ -479,6 +479,38 @@ describe('renameBinding', () => {
   });
 });
 
+describe('renameBinding on an export specifier', () => {
+  /**
+   * Rename `Comp` to `Widget` and return the printed source after the import.
+   *
+   * @param {string} body Statements after the import.
+   * @param {string} parser Parser name.
+   * @returns {string} Printed source.
+   */
+  function renamedExports(body, parser) {
+    const { j, root } = parse(`import { Comp } from 'x';\n${body}`, parser);
+    const [binding] = getImportedBindings(j, root, 'x');
+
+    renameBinding(j, root, binding.specifier, 'Widget');
+
+    return print(root).replace('import { Widget } from \'x\';\n', '');
+  }
+
+  for (const parser of TS_PARSERS) {
+    it(`keeps the type modifier of an export specifier (${parser})`, () => {
+      assert.equal(renamedExports('export { type Comp };', parser), 'export { type Widget as Comp };');
+      assert.equal(renamedExports('export { type Comp as Other };', parser), 'export { type Widget as Other };');
+      assert.equal(renamedExports('export type { Comp };', parser), 'export type { Widget as Comp };');
+    });
+
+    it(`gives a value export no modifier (${parser})`, () => {
+      assert.equal(renamedExports('export { Comp };', parser), 'export { Widget as Comp };');
+      assert.equal(renamedExports('type Other = 1;\nexport { Comp, type Other };', parser),
+        'type Other = 1;\nexport { Widget as Comp, type Other };');
+    });
+  }
+});
+
 describe('renameBinding scope edge cases', () => {
   /**
    * Rename `Comp` to `Widget` and return the printed source.

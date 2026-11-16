@@ -85,10 +85,6 @@
       "reason": "It depends on the theme values and the column widths users reach at run time."
     },
     {
-      "guide": "frozen-columns-can-be-dragged-and-the-unfreeze-hooks-get-a-target",
-      "reason": "It changes which columns a drag freezes, and the unfreeze hooks gain an argument that a listener with two parameters ignores."
-    },
-    {
       "guide": "license-keys-are-checked-more-strictly",
       "reason": "It depends on the form of the entitlement key that you pass, and the tool never reads or changes a license key."
     },
@@ -125,10 +121,6 @@
       "reason": "The TypeScript compiler reports it: an option with a wrong type or a null value stops compiling."
     },
     {
-      "guide": "a-hook-set-to-null-through-updatesettings-is-removed",
-      "reason": "It applies when a hook is set to null through updateSettings() or a wrapper prop, and no matcher reads the arguments of that call."
-    },
-    {
       "guide": "plugins-apply-their-settings-before-the-first-render",
       "reason": "It changes when the hooks of several plugins fire while the grid is built, and the tool cannot tell which listeners read the drawn grid."
     },
@@ -141,16 +133,12 @@
       "reason": "It changes what SHEET() returns after a sheet is removed, which depends on the formulas in your workbook."
     },
     {
-      "guide": "updatesettings-keeps-the-rows-of-a-server-backed-grid",
-      "reason": "It applies to an updateSettings() call on a grid with a dataProvider, and no matcher reads the arguments of that call."
-    },
-    {
       "guide": "the-react-and-angular-wrappers-pass-only-the-settings-that-changed",
       "reason": "It changes which settings the React and Angular wrappers pass on a render, and no pattern in your code marks a reliance on the old reset."
     },
     {
       "guide": "the-minimum-browser-versions-are-higher",
-      "reason": "It concerns the browsers your app supports, which the tool reads from no file it handles, such as a Browserslist config."
+      "reason": "It concerns the browsers your app supports, and the tool does not compare them with the new minimum: it reads no browserslist key of a package.json, no .browserslistrc file, and no bundler target."
     },
     {
       "guide": "rowheights-and-minrowheights-address-rows-by-physical-index",

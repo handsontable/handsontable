@@ -13,7 +13,7 @@
         "loadManualRowHeights"
       ],
       "message": "{name} is a no-op.",
-      "advice": "Store the columnWidths and rowHeights values yourself to keep column widths or row heights across page loads, for example in localStorage, and pass them back as settings when the grid initializes. In 18.0 the method is deprecated and logs a warning, and 19.0 removes it."
+      "advice": "Store the colWidths and rowHeights values yourself to keep column widths or row heights across page loads, for example in localStorage, and pass them back as settings when the grid initializes. In 18.0 the method is deprecated and logs a warning, and 19.0 removes it."
     },
     {
       "id": "18.0.0/core-undo-methods",

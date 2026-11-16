@@ -93,7 +93,7 @@ describe('numeric-format-culture: custom code that reads the key', () => {
 
     assert.equal(result.changed, false);
     assert.deepEqual(result.entries.map(entry => entry.severity), ['manual', 'manual', 'manual', 'manual']);
-    assert.match(result.entries[0].message, /^Move numericFormat\.culture to locale and update the renderer/);
+    assert.match(result.entries[0].message, /^Move numericFormat\.culture to locale and update the code that reads it/);
   });
 
   it('applies under --aggressive to a guessed object too', async() => {
@@ -180,6 +180,55 @@ describe('numeric-format-culture: a value the tool cannot read', () => {
     const result = await run('18.0.0', 'a.tsx', source, ['18.0.0/correct-format-removed', CULTURE]);
 
     assert.deepEqual(result.entries, []);
+  });
+});
+
+describe('numeric-format-culture: a const object that the file changes', () => {
+  const cases = [
+    ['a member write', 'fmt.culture = \'de-DE\';'],
+    ['a member write below the object', 'fmt.nested = {};\nfmt.nested.culture = \'de-DE\';'],
+    ['a string key write', 'fmt[\'culture\'] = \'de-DE\';'],
+    ['a delete', 'delete fmt.pattern; // culture'],
+    ['an update', 'fmt.count++; // culture'],
+    ['a destructuring target', '({ culture: fmt.culture } = bag);'],
+    ['an assign of another object', 'Object.assign(fmt, base); // culture is in base'],
+    ['a call that receives it', 'configure(fmt); // culture is set in configure'],
+  ];
+
+  for (const [label, change] of cases) {
+    it(`reports it after ${label}, as a value it cannot read`, async() => {
+      const result = await move('{ numericFormat: fmt }', `const fmt = { pattern: '0,0' };\n${change}`);
+
+      assert.equal(result.changed, false);
+      assert.deepEqual(result.entries.map(entry => entry.severity), ['manual']);
+      assert.match(result.entries[0].message, /by hand if it sets culture/);
+    });
+  }
+
+  it('stays silent for an object that nothing changes, and for one that only reads or hands over a copy', async() => {
+    const reads = 'const fmt = { pattern: \'0,0\' };\nuse(fmt.pattern);\nconst copy = { ...fmt };\nlog({ ...fmt });\n'
+      + 'const keys = Object.keys(fmt);\nconst twin = Object.assign({}, fmt);\nconsole.log(fmt);\n'
+      + 'JSON.stringify(fmt);\n// culture is elsewhere.';
+    const result = await move('{ numericFormat: fmt }', reads);
+
+    assert.deepEqual(result.entries, []);
+  });
+
+  it('keeps an object passed to new, which is how a grid reads its settings', async() => {
+    const result = await move('{ numericFormat: fmt }',
+      'const fmt = { pattern: \'0,0\' };\nnew Widget(fmt);\n// culture');
+
+    assert.deepEqual(result.entries, []);
+  });
+
+  it('answers an exact question with null and a plain one with the object', () => {
+    const { j, root } = parse('const fmt = { a: 1 };\nfmt.b = 2;\nconst fine = { a: 1 };\nuse(fmt, fine);', 'ts');
+    const { hop } = createHop(j, root);
+    const call = root.find(j.CallExpression).paths()[0];
+
+    assert.equal(hop(call.get('arguments', 0)).node.type, 'ObjectExpression');
+    assert.equal(hop(call.get('arguments', 0), { exact: true }), null);
+    assert.equal(hop(call.get('arguments', 1), { exact: true }), null, 'use(fine) hands the object to a call');
   });
 });
 

@@ -44,6 +44,28 @@
       "message": "Replace the string timeFormat with an Intl.DateTimeFormat object. Handsontable 18.0 removed Moment.js, so a string no longer works with the built-in time cell types. Use, for example, { hour: 'numeric', minute: '2-digit', hour12: true }, and the locale option picks the style. The source data must be in 24-hour format, such as '14:30:00'."
     },
     {
+      "id": "18.0.0/date-default-format",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "option-object",
+      "guide": "migrate-date-and-time-cells-to-iso-8601-format",
+      "match": { "property": "type", "valueMatches": "^date$", "withoutSiblingKey": "dateFormat" },
+      "message": "Check the source data of this date column, which sets no dateFormat. Handsontable 17.1 read it in the default DD/MM/YYYY format, and 18.0 reads ISO 8601 (YYYY-MM-DD) only. Convert the values to ISO 8601, and set a dateFormat object and a locale to keep the display, for example { year: 'numeric', month: '2-digit', day: '2-digit' } with locale: 'en-GB'."
+    },
+    {
+      "id": "18.0.0/time-default-format",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "option-object",
+      "guide": "migrate-date-and-time-cells-to-iso-8601-format",
+      "match": { "property": "type", "valueMatches": "^time$", "withoutSiblingKey": "timeFormat" },
+      "message": "Check the source data of this time column, which sets no timeFormat. Handsontable 17.1 read it in the default h:mm:ss a format, and 18.0 reads 24-hour values such as '14:30:00' only. Convert the values, and set a timeFormat object and a locale to keep the display, for example { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true } with locale: 'en-US'."
+    },
+    {
       "id": "18.0.0/html-without-sanitizer",
       "kind": "detect",
       "safe": false,

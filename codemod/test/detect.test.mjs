@@ -84,12 +84,14 @@ describe('shipped detect rules', () => {
       .filter(item => item.kind === 'detect' || item.id.includes('sanitizer')).map(item => item.id).sort();
 
     assert.deepEqual(await ids('18.0.0'), [
+      '18.0.0/date-default-format',
       '18.0.0/helper-typings-only',
       '18.0.0/html-without-sanitizer',
       '18.0.0/moment-date-format',
       '18.0.0/moment-time-format',
       '18.0.0/numbro-pattern',
       '18.0.0/pikaday-leftovers',
+      '18.0.0/time-default-format',
       '18.0.0/wrapper-dom-selectors',
     ]);
     assert.deepEqual(await ids('18.1.0'), [
@@ -396,6 +398,86 @@ describe('siblingKey and annotatedObject matchers', () => {
     ].join('\n');
 
     assert.deepEqual((await run(annotated, source)).lines, [2, 3, 4]);
+  });
+});
+
+const listOfHooks = value => (Array.isArray(value) ? value : [value]);
+
+describe('withoutSiblingKey, the <hook> property, and a conditional null', () => {
+  const lacking = rule({ match: { property: 'type', valueMatches: '^date$', withoutSiblingKey: 'dateFormat' } });
+  const hookNull = rule({ match: { property: '<hook>', valueIs: null } });
+
+  it('matches an object or element that certainly lacks the key, and not one a spread may fill', async() => {
+    const source = `${HOT}const base = { width: 1 };\nconst withFormat = { dateFormat: 'x' };\n`
+      + 'const a = { type: \'date\' };\nconst b = { type: \'date\', dateFormat: \'x\' };\n'
+      + 'const c = { type: \'date\', ...base };\nconst d = { type: \'date\', ...withFormat };\n'
+      + 'const e = { type: \'date\', ...unknown };\nconst f = { type: \'date\', [key]: 1 };\n'
+      + 'const g = <Col type="date" />;\nconst h = <Col type="date" dateFormat="x" />;\n'
+      + 'const i = <Col type="date" {...p} />;\n';
+
+    assert.deepEqual((await run(lacking, source, 'a.tsx')).lines, [4, 6, 10]);
+  });
+
+  it('does not match a column inside a grid or an element that sets the key for all of them', async() => {
+    const grid = `${HOT}new Handsontable(el, { dateFormat: 'x', columns: [{ type: 'date' }] });\n`
+      + 'new Handsontable(el, { columns: [{ type: \'date\' }] });\n'
+      + 'const a = <HotTable dateFormat="x"><HotColumn type="date" /></HotTable>;\n'
+      + 'const b = <HotTable><HotColumn type="date" /></HotTable>;\n';
+
+    assert.deepEqual((await run(rule({ requires: 'hot-file', match: lacking.match }), grid, 'a.tsx')).lines, [3, 5]);
+  });
+
+  it('does not read a template, an assignment, or a dotted path, and says so', async() => {
+    assert.deepEqual((await run(rule({ files: ['js', 'template'], match: lacking.match }),
+      '<hot-column type="date"></hot-column>\n', 'a.html')).lines, []);
+    assert.deepEqual((await run(lacking, `${HOT}column.type = 'date';\n`)).lines, []);
+    assert.match(validateDetectRule(rule({ match: { property: 'a.b', withoutSiblingKey: 'c' } })).join(),
+      /withoutSiblingKey/);
+    assert.match(validateDetectRule(rule({ match: { property: 'a', siblingKey: 'b', withoutSiblingKey: 'c' } })).join(),
+      /withoutSiblingKey/);
+  });
+
+  it('stops at a const object that the file changes, because the spread may then carry the key', async() => {
+    const source = `${HOT}const base = { width: 1 };\nbase.dateFormat = 'x';\nconst a = { type: 'date', ...base };\n`;
+
+    assert.deepEqual((await run(lacking, source)).lines, []);
+  });
+
+  it('takes <hook> for every registered hook, with a null or a conditional that can be null', async() => {
+    const source = `${HOT}const a = { afterChange: null };\nconst b = { beforeKeyDown: on ? fn : null };\n`
+      + 'const c = { afterSelection: fn ?? null };\nconst d = { afterChange: fn };\nconst e = { colHeaders: null };\n'
+      + 'const f = { notAHook: null };\nconst g = { afterRender: undefined };\n';
+
+    assert.deepEqual((await run({ ...hookNull, requires: 'hot-file' }, source)).lines, [2, 3, 4]);
+  });
+
+  it('keeps a hook list that is well formed and holds every hook a rule names', async(t) => {
+    const names = JSON.parse(await readFile(new URL('../src/lib/hook-names.json', import.meta.url), 'utf8'));
+    const hooksOf = match => [...listOfHooks(match.hook ?? []), ...(match.anyOf ?? match.allOf ?? []).flatMap(hooksOf)];
+    const named = (await loadManifests(VERSIONS_DIR)).flatMap(manifest => manifest.rules)
+      .filter(item => item.kind === 'detect').flatMap(item => hooksOf(item.match));
+
+    assert.ok(names.length > 100 && names.every(name => /^[a-z][A-Za-z]+$/.test(name)));
+    assert.equal(new Set(names).size, names.length);
+    assert.deepEqual(named.filter(name => !names.includes(name)), [], 'a rule names a hook that the list lacks');
+
+    // The list is a copy of `REGISTERED_HOOKS` in the core, which another team changes. A difference is a note for
+    // whoever keeps the copy, never a failure here.
+    const constants = await readFile(new URL('../../handsontable/src/core/hooks/constants.ts', import.meta.url), 'utf8')
+      .catch(() => null);
+    const registered = constants === null ? null : /REGISTERED_HOOKS = \[([\s\S]*?)\](?: as const)?;/.exec(constants);
+
+    if (registered) {
+      const listed = [...registered[1].matchAll(/^\s*'([A-Za-z]+)',/gm)].map(match => match[1]);
+      const missing = listed.filter(name => !names.includes(name));
+      const extra = names.filter(name => !listed.includes(name));
+
+      if (missing.length > 0 || extra.length > 0) {
+        t.diagnostic(`hook-names.json differs from REGISTERED_HOOKS of the core. Missing: ${missing.join(', ') || '-'}.`
+          + ' '
+          + `Not registered any more: ${extra.join(', ') || '-'}. Update the copy when convenient.`);
+      }
+    }
   });
 });
 

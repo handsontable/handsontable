@@ -273,7 +273,7 @@ describe('transformFile and the transform contract', () => {
     }, { filePath: 'dir/a.css', facts, options: { aggressive: true } });
 
     assert.deepEqual(Object.keys(seen).sort(), [
-      'catalog', 'comment', 'css', 'cssScope', 'facts', 'fileKind', 'filePath', 'fromText', 'j', 'json',
+      'ancestors', 'catalog', 'comment', 'css', 'cssScope', 'facts', 'fileKind', 'filePath', 'fromText', 'j', 'json',
       'lineOffset', 'markChanged', 'options', 'parser', 'report', 'root', 'source', 'todo',
     ]);
     assert.equal(seen.parser, null);

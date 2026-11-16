@@ -45,6 +45,11 @@ describe('methodRemove', () => {
     assert.deepEqual(REMOVE.receiver, { plugin: ['manualColumnResize', 'manualRowResize'] });
   });
 
+  it('names the option that exists in its advice: colWidths, not columnWidths', () => {
+    assert.match(REMOVE.advice, /\bcolWidths\b/);
+    assert.doesNotMatch(REMOVE.advice, /columnWidths/);
+  });
+
   it('never deletes on a receiver that is not one of the two resize plugins', async() => {
     const source = `${HEAD}${[
       'class B extends Base { save() { this.saveManualColumnWidths(); super.loadManualRowHeights(); } }',
@@ -324,8 +329,8 @@ describe('methodMove', () => {
     ].join('\n')}\n`);
   });
 
-  it('keeps optional chaining semantics', async() => {
-    const { output } = await move([
+  it('keeps optional chaining semantics, and reports an optional call without rewriting it', async() => {
+    const { output, entries } = await move([
       'hot?.undo();',
       'hot.undo?.();',
       'hot?.undo?.();',
@@ -338,14 +343,23 @@ describe('methodMove', () => {
 
     assert.deepEqual(output.split('\n').slice(2, 10), [
       'hot?.getPlugin(\'undoRedo\').undo();',
-      'hot.getPlugin(\'undoRedo\').undo?.();',
-      'hot?.getPlugin(\'undoRedo\').undo?.();',
+      'hot.undo?.();',
+      'hot?.undo?.();',
       'a?.b.hotInstance.getPlugin(\'undoRedo\').undo();',
       'a?.hotInstance?.getPlugin(\'undoRedo\').undo();',
       'hot?.getPlugin(\'undoRedo\');',
       'hot?.getPlugin(\'undoRedo\').undo();',
       'hot.getPlugin(\'undoRedo\')?.undo();',
     ]);
+    assert.deepEqual(entries.filter(entry => entry.severity === 'manual').map(entry => entry.line), [4, 5]);
+    assert.match(entries.find(entry => entry.severity === 'manual').message, /^undo\?\.\(\) is an optional call/);
+  });
+
+  it('does not make two undos of `hot.undo?.() ?? hot.getPlugin(\'undoRedo\').undo()`', async() => {
+    const line = 'hot.undo?.() ?? hot.getPlugin(\'undoRedo\').undo();';
+    const { output } = await move(line);
+
+    assert.ok(output.includes(`\n${line}\n`), output);
   });
 
   it('keeps the quote style of the file', async() => {

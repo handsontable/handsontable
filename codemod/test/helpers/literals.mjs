@@ -116,3 +116,23 @@ export function multilineStringValues(text, parser) {
 
   return found;
 }
+
+/**
+ * The source text of every JSX text that is not blank (a blank one is layout, and the compiler drops it), with line
+ * terminators written as `\n`, in the order the parser finds them. The printer must never trim or decode these.
+ *
+ * @param {string} text File text.
+ * @param {'babylon'|'ts'|'tsx'} parser Parser name.
+ * @returns {string[]} The raw texts.
+ */
+export function jsxTexts(text, parser) {
+  const found = [];
+
+  walk(PARSERS[parser]().parse(text), (node) => {
+    if (node.type === 'JSXText' && /\S/.test(node.value)) {
+      found.push(text.slice(node.start, node.end).replace(LINE_BREAKS, '\n'));
+    }
+  });
+
+  return found;
+}

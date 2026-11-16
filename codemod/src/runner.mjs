@@ -8,14 +8,14 @@ import { discover, resolvesInside } from './discover.mjs';
 import { insideRelative } from './lib/paths.mjs';
 import { redact } from './lib/redact.mjs';
 import { dirtyPaths, isGitRepo, isTracked } from './git.mjs';
-import { registerPackageDir } from './lib/facts.mjs';
+import { packageFilesAbove, registerPackageDir } from './lib/facts.mjs';
 import { findCatalog } from './lib/pnpm-catalog.mjs';
 import { NotUtf8Error, readUtf8, stripBom } from './lib/text-file.mjs';
 import { modeOf, rewrites } from './lib/safety.mjs';
 import { MarkerCarriers } from './lib/carrier.mjs';
-import { arrayOfTarget, createMarkerIndex, cssTargetAt } from './lib/marker.mjs';
+import { anchorsAbove, arrayOfTarget, createMarkerIndex, cssTargetAt } from './lib/marker.mjs';
 import {
-  addCssTodo, addJsTodo, collectComments, formatTodo, hasEarlierTodo, hasJsTodo, lineOf,
+  addCssTodo, addJsTodo, collectComments, formatTodo, hasEarlierTodo, hasJsTodo, hasTwinTodo, lineOf,
 } from './lib/todo.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests, matchesOnly } from './manifest.mjs';
 import { Report, SKIPPED_RULE_ID, plural } from './report.mjs';
@@ -288,12 +288,20 @@ function wantsMarker(entry, owner) {
  * @param {Set<string>} args.facts Shared facts.
  * @param {{aggressive: boolean, dryRun: boolean, todo: boolean}} args.options Run options.
  * @param {import('./types.mjs').CatalogInfo|null} args.catalog The pnpm catalogs of a `package.json`, or `null`.
+ * @param {import('./types.mjs').AncestorManifest[]} args.ancestors The `package.json` files above this one.
  * @returns {{ctx: import('./types.mjs').Ctx, marks: Mark[]}} The context, and the markers its `manual` entries ask
  * for. `applyMarkers()` places them once every transform has run.
  */
-function createContext({ filePath, part, plan, entries, facts, options, catalog }) {
+function createContext({ filePath, part, plan, entries, facts, options, catalog, ancestors }) {
   const merged = new Map();
   const marks = [];
+  const twinTargets = new Set([...plan.rulesById.values()].flatMap(rule => rule.twins ?? []));
+  // Rules of different migrations that report one spot share a key: the earliest owns the entry and the marker.
+  const twinKeyOf = (rule, line) => {
+    const root = rule?.twins?.[0] ?? (twinTargets.has(rule?.id) ? rule.id : null);
+
+    return root && Number.isInteger(line) ? `twin:${root}:${line}` : undefined;
+  };
   const annotatable = part.fileKind === 'js' || part.fileKind === 'css';
   const store = (entry, { mark }) => {
     if (typeof entry?.ruleId !== 'string' || !SEVERITIES.has(entry.severity) || typeof entry.message !== 'string') {
@@ -301,6 +309,8 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog 
     }
 
     const owner = plan.rulesById.get(entry.ruleId);
+    const key = entry.mergeKey ?? twinKeyOf(owner, entry.line);
+    const policy = entry.mergeKey === undefined && key ? 'earliest' : entry.merge;
 
     if (entry.severity === 'changed' && owner && !rewrites(owner)) {
       throw new Error(`Rule ${entry.ruleId} is not safe, so it must not edit code: ${entry.message}`);
@@ -317,22 +327,22 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog 
       ...(Array.isArray(entry.lines) ? { lines: entry.lines.map(line => line + part.lineOffset) } : {}),
     };
 
-    if (typeof entry.mergeKey === 'string' && merged.has(entry.mergeKey)) {
+    if (typeof key === 'string' && merged.has(key)) {
       // A later step of the run says the same thing about the same spot. By default the net result replaces the
       // first entry (a range bump from the range the user wrote to the latest target). An entry that says
       // `merge: 'earliest'` keeps the first one, so the rule of the earliest migration owns the id, the message, and
       // the guide link, and its marker.
-      if (entry.merge !== 'earliest') {
-        Object.assign(merged.get(entry.mergeKey), stored);
+      if (policy !== 'earliest') {
+        Object.assign(merged.get(key), stored);
       }
 
-      return merged.get(entry.mergeKey);
+      return merged.get(key);
     }
 
     entries.push(stored);
 
-    if (typeof entry.mergeKey === 'string') {
-      merged.set(entry.mergeKey, stored);
+    if (typeof key === 'string') {
+      merged.set(key, stored);
     }
 
     const markersOn = options.todo !== false && options.markers !== false;
@@ -354,6 +364,22 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog 
     part.changed = true;
   };
 
+  // The paths of the nodes of a js part, built when a transform names a node and not a path: the TODO writer climbs
+  // the ancestors of a target, which a node alone does not give.
+  let pathIndex = null;
+  const pathOf = (target) => {
+    if (target.node) {
+      return target;
+    }
+
+    if (pathIndex === null) {
+      pathIndex = new Map();
+      part.root.find(part.j.Node).forEach(path => pathIndex.set(path.node, path));
+    }
+
+    return pathIndex.get(target) ?? null;
+  };
+
   const comment = (target, ruleId, text) => {
     if (options.todo === false) {
       return false;
@@ -364,7 +390,18 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog 
     let inserted = false;
 
     if (part.fileKind === 'js') {
-      inserted = addJsTodo(part.j, target, ruleId, text, guideUrl, commentScan(part));
+      // A transform picks the node by the layout it sees. A run that wrote the comment can have changed that layout
+      // (a comment on a one-line object spreads it over lines, so a property that had no line of its own has one),
+      // and the next run then picks a node inside the one that holds the comment. The comment of an earlier run in
+      // front of any anchor above the target is the same comment.
+      const scan = commentScan(part);
+      const path = pathOf(target);
+      const twins = owner?.twins ?? [];
+      const earlier = path !== null && anchorsAbove(path)
+        .some(node => hasEarlierTodo(node, ruleId, text, guideUrl, scan)
+          || (twins.length > 0 && hasTwinTodo(node, twins, scan)));
+
+      inserted = !earlier && addJsTodo(part.j, target, ruleId, text, guideUrl, scan);
     } else if (part.fileKind === 'css') {
       inserted = addCssTodo(target, ruleId, text, guideUrl, part.document);
     }
@@ -377,6 +414,13 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog 
   };
 
   const todo = (target, ruleId, text, shortText) => {
+    const twinKey = twinKeyOf(plan.rulesById.get(ruleId), lineOf(target) ?? undefined);
+
+    // A rule of an earlier migration already reports this spot in this run, and it owns the marker.
+    if (twinKey && merged.has(twinKey)) {
+      return false;
+    }
+
     const inserted = comment(target, ruleId, shortText ?? text);
     const stored = store({ ruleId, severity: 'manual', line: lineOf(target) ?? undefined, message: text },
       { mark: false });
@@ -407,6 +451,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog 
     facts,
     options,
     catalog,
+    ancestors,
     markChanged,
   };
 
@@ -465,8 +510,10 @@ function applyMarkers(part, marks, plan) {
         // run before this one, because that run saw the code on the same line as the node that took the comment.
         const scan = commentScan(part);
         const body = formatTodo(mark.ruleId, mark.text, guideUrl);
+        const twins = owner?.twins ?? [];
         const there = targets.some(target => hasJsTodo(target, mark.ruleId, mark.text, guideUrl, scan))
           || above.some(node => hasEarlierTodo(node, mark.ruleId, mark.text, guideUrl, scan))
+          || (twins.length > 0 && [...targets, ...above].some(item => hasTwinTodo(item.node ?? item, twins, scan)))
           || carriers.has(targets[0], body);
 
         // An untouched array element takes its comment as text, so the printer leaves its layout alone.
@@ -509,6 +556,8 @@ function applyMarkers(part, marks, plan) {
  * @param {1|2} [args.phase] Phase number. Defaults to 1.
  * @param {Set<string>} [args.projectFiles] The project files the run reads, for a `src` block that points at one.
  * @param {import('./types.mjs').CatalogInfo|null} [args.catalog] The pnpm catalogs that apply to a `package.json`.
+ * @param {import('./types.mjs').AncestorManifest[]} [args.ancestors] The `package.json` files above this one, nearest
+ * first, parsed. A fixture has none.
  * @returns {Promise<{output: string, changed: boolean, entries: import('./types.mjs').ReportEntry[],
  * skipped: string|null}>} The new text, whether it differs, the report entries, and why the file was skipped.
  */
@@ -522,6 +571,7 @@ export async function transformFile({
   phase = 1,
   projectFiles,
   catalog = null,
+  ancestors = [],
 }) {
   const unchanged = skipped => ({ output: source, changed: false, entries: [], skipped });
   const adapter = adapterFor(filePath);
@@ -588,7 +638,9 @@ export async function transformFile({
 
   try {
     for (const part of handle.parts) {
-      const { ctx, marks } = createContext({ filePath, part, plan, entries, facts, options: fullOptions, catalog });
+      const { ctx, marks } = createContext({
+        filePath, part, plan, entries, facts, options: fullOptions, catalog, ancestors,
+      });
 
       for (const step of steps) {
         if (stepFileKinds(step).includes(part.fileKind)) {
@@ -1082,6 +1134,30 @@ export async function run({
    * @param {1|2} phase Phase number.
    * @returns {Promise<void>}
    */
+  const manifests = new Map();
+
+  /**
+   * The `package.json` files above one, parsed, nearest first. One that cannot be read or parsed is left out.
+   *
+   * @param {string} file Project-relative path of a `package.json`.
+   * @returns {Promise<import('./types.mjs').AncestorManifest[]>} The manifests.
+   */
+  const ancestorsOf = async(file) => {
+    const found = [];
+
+    for (const above of packageFilesAbove(facts, file)) {
+      if (!manifests.has(above)) {
+        manifests.set(above, await readUtf8(join(cwd, above)).then(text => JSON.parse(text)).catch(() => null));
+      }
+
+      if (manifests.get(above) !== null && typeof manifests.get(above) === 'object') {
+        found.push({ file: above, manifest: manifests.get(above) });
+      }
+    }
+
+    return found;
+  };
+
   const visit = async(file, phase) => {
     let source;
 
@@ -1128,6 +1204,7 @@ export async function run({
       phase,
       projectFiles,
       catalog: phase === 2 && source.includes('catalog:') ? await findCatalog(cwd, file) : null,
+      ancestors: phase === 2 ? await ancestorsOf(file) : [],
     });
 
     report.addAll(outcome.entries);

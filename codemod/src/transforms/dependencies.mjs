@@ -223,6 +223,54 @@ function declares(manifest, name) {
 }
 
 /**
+ * Pad a partial version (`2`, `2.1`) to three numbers.
+ *
+ * @param {string|null} version The version text.
+ * @returns {string|null} `MAJOR.MINOR.PATCH`, or `null` when there is no version.
+ */
+function fullVersion(version) {
+  return version === null ? null : [...version.split('-')[0].split('.'), '0', '0'].slice(0, 3).join('.');
+}
+
+/**
+ * Whether two ranges of one package can resolve to the same version: one admits the lowest version of the other.
+ * `^3.4.0` and `^3.0.0` can, `>=2.0.0` and `^3.0.0` can, `^2.7.0` and `^3.0.0` cannot, and a spec that names no
+ * version (`catalog:`, `workspace:*`) is not known to. The lowest version that a text reads out of an upper bound only
+ * (`<3` gives 3) is not in its own range, so it does not count.
+ *
+ * @param {string} declared The range a `package.json` above declares.
+ * @param {string} wanted The range the rule would add.
+ * @returns {boolean} `true` when the two overlap.
+ */
+function compatible(declared, wanted) {
+  const lowestDeclared = fullVersion(minimumOfRange(declared));
+  const lowestWanted = fullVersion(minimumOfRange(wanted));
+
+  return (lowestWanted !== null && rangeAdmits(declared, lowestWanted) === true)
+    || (lowestDeclared !== null && rangeAdmits(declared, lowestDeclared) === true
+      && rangeAdmits(wanted, lowestDeclared) === true);
+}
+
+/**
+ * The nearest `package.json` above this one that declares a package, with the range it gives.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
+ * @param {string} name Package name.
+ * @returns {{file: string, range: string}|null} The file and the range, or `null` when no file above declares it.
+ */
+function declaredAbove(ctx, name) {
+  for (const { file, manifest } of ctx.ancestors ?? []) {
+    const section = SECTIONS.find(candidate => name in sectionOf(manifest, candidate));
+
+    if (section) {
+      return { file, range: String(sectionOf(manifest, section)[name]) };
+    }
+  }
+
+  return null;
+}
+
+/**
  * Tell whether the `package.json` declares at least one package of a list.
  *
  * @param {object} manifest The parsed `package.json`.
@@ -645,6 +693,21 @@ function addPackages(ctx, rule) {
   for (const item of Array.isArray(rule.add) ? rule.add : []) {
     if (declares(ctx.root, item.name) || !dependsOnAny(ctx.root, item.onlyIfDependsOn)
       || (item.whenFact && !hasFactFor(ctx, item.whenFact))) {
+      continue;
+    }
+
+    // A package of a monorepo can take the package from the root, so a declaration above this one counts. When it
+    // shares no version with the new range, the install may end with two versions, and the tool does not edit the
+    // other file.
+    const above = declaredAbove(ctx, item.name);
+
+    if (above && !compatible(above.range, item.range)) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        message: `Update ${item.name} in ${above.file} to ${item.range}. It is declared there as "${above.range}", `
+          + `which does not allow ${item.range}, so the tool did not add ${item.name} to this package.json.`,
+      });
       continue;
     }
 

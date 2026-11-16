@@ -12,7 +12,8 @@ import { VERSIONS_DIR, loadManifests } from '../src/manifest.mjs';
 const ACTION = new Set(['Use', 'Replace', 'Remove', 'Delete', 'Deleted', 'Move', 'Rename', 'Add', 'Check', 'Set',
   'Pass', 'Import', 'Keep', 'Update', 'Install', 'Edit', 'Draw', 'Describe', 'Return', 'Get', 'Store', 'Select',
   'Style', 'Widen', 'Call', 'Give', 'Declare', 'Narrow', 'Drop', 'Type', 'Wrap', 'Write', 'Do', 'Treat', 'Ignore',
-  'Read', 'Find', 'Dispatch', 'Change', 'Load', 'Create', 'Open', 'Review', 'Test', 'Choose', 'Put', 'Run', 'Turn']);
+  'Read', 'Leave', 'Find', 'Dispatch', 'Change', 'Load', 'Create', 'Open', 'Review', 'Test', 'Choose', 'Put', 'Run',
+  'Turn']);
 
 /**
  * A first sentence that only says something was removed.
@@ -52,8 +53,10 @@ function todoTexts(rule) {
   }
 
   // The lead of a kept method call is built in code ("Remove x() by hand."), so a methodRemove message only explains.
+  // The `readerAdvice` of a removal is the second half of a sentence that code builds ("Check ... before you delete").
   const found = [['advice', rule.advice], ['message', rule.kind === 'methodRemove' ? null : rule.message],
-    ['noKeyAdvice', rule.noKeyAdvice], ['fallback.advice', rule.fallback?.advice]];
+    ['noKeyAdvice', rule.noKeyAdvice], ['readerAdvice', rule.kind === 'optionRemove' ? null : rule.readerAdvice],
+    ['fallback.advice', rule.fallback?.advice]];
 
   Object.entries(rule.exports ?? {}).forEach(([name, entry]) => found.push([`exports.${name}.advice`, entry.advice]));
 

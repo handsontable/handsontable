@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import {
   attributeName,
   calleeName,
@@ -46,7 +47,7 @@ const VALUE_KINDS = [true, false, null, 'array', 'function', 'object'];
  */
 const MODIFIERS = {
   import: [],
-  property: ['withKey', 'siblingKey', 'valueMatches', 'viaReference', 'valueIs', 'in', 'flags'],
+  property: ['withKey', 'siblingKey', 'withoutSiblingKey', 'valueMatches', 'viaReference', 'valueIs', 'in', 'flags'],
   annotatedObject: ['recordEntries', 'withKey', 'flags'],
   call: ['argMatches', 'receiver', 'flags'],
   hook: [],
@@ -58,10 +59,28 @@ const MODIFIERS = {
   missingOption: ['whenAnyKey', 'whenValueMatches', 'reportUnresolved', 'unlessFileMatches', 'flags'],
 };
 
+/**
+ * The `property` name that stands for every hook Handsontable registers (`REGISTERED_HOOKS`, kept in
+ * `lib/hook-names.json`), so a rule can ask for a hook set to a value without listing the names.
+ */
+const ANY_HOOK = '<hook>';
+const HOOK_NAMES = JSON.parse(readFileSync(new URL('../lib/hook-names.json', import.meta.url), 'utf8'));
+
 const WRAPPERS = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSTypeAssertion',
   'ParenthesizedExpression']);
 const MEMBERS = new Set(['MemberExpression', 'OptionalMemberExpression']);
 const MAX_STRING_DEPTH = 8;
+
+/**
+ * The key paths a `property` matcher looks for, as segment lists. `<hook>` is every registered hook.
+ *
+ * @param {{property: string|string[]}} spec A `property` matcher.
+ * @returns {string[][]} The paths.
+ */
+function propertyPaths(spec) {
+  return listOf(spec.property).flatMap(dotted => (dotted === ANY_HOOK ? HOOK_NAMES.map(name => [name])
+    : [dotted.split('.')]));
+}
 
 /**
  * Turn a manifest field that holds one value or a list into a list.
@@ -153,7 +172,7 @@ function validateMatch(spec, files, where) {
   }
 
   if (key === 'property' && !listOf(spec.property).every(item => typeof item === 'string' && item)) {
-    problems.push(`${where}.property must be a dotted key path or a list of them`);
+    problems.push(`${where}.property must be a dotted key path or a list of them (${ANY_HOOK} is every hook)`);
   }
 
   if (key === 'annotatedObject' && !listOf(spec.annotatedObject).every(item => typeof item === 'string' && item)) {
@@ -163,6 +182,12 @@ function validateMatch(spec, files, where) {
   if (spec.siblingKey !== undefined && (typeof spec.siblingKey !== 'string' || !spec.siblingKey
     || listOf(spec.property).some(item => item.includes('.')))) {
     problems.push(`${where}.siblingKey must be a key name, and goes with a property of one segment`);
+  }
+
+  if (spec.withoutSiblingKey !== undefined && (typeof spec.withoutSiblingKey !== 'string' || !spec.withoutSiblingKey
+    || listOf(spec.property).some(item => item.includes('.')) || spec.siblingKey !== undefined)) {
+    problems.push(`${where}.withoutSiblingKey must be a key name, and goes with a property of one segment and no `
+      + 'siblingKey');
   }
 
   if (key === 'pluginRegistration' && (typeof spec.pluginRegistration !== 'string' || !spec.pluginRegistration)) {
@@ -760,6 +785,27 @@ function valuePathOf(path) {
 }
 
 /**
+ * Whether an expression is `null`, or can be: a branch of a conditional (`on ? log : null`) or an operand of `??`,
+ * `||`, and `&&` (`log ?? null`) is.
+ *
+ * @param {object} node An expression node.
+ * @returns {boolean} `true` when the expression is or can be `null`.
+ */
+function isNullIn(node) {
+  const target = unwrapNode(node);
+
+  if (target.type === 'ConditionalExpression') {
+    return isNullIn(target.consequent) || isNullIn(target.alternate);
+  }
+
+  if (target.type === 'LogicalExpression') {
+    return isNullIn(target.left) || isNullIn(target.right);
+  }
+
+  return target.type === 'NullLiteral' || (target.type === 'Literal' && target.value === null && !target.regex);
+}
+
+/**
  * Whether the value of a property is of the kind a `valueIs` modifier asks for.
  *
  * @param {object|null} property The `ObjectProperty`, `ObjectMethod`, or `JSXAttribute` node, `null` for an
@@ -787,11 +833,88 @@ function isValueKind(property, value, expected) {
     case 'function':
       return node.type === 'ArrowFunctionExpression' || node.type === 'FunctionExpression';
     case null:
-      return node.type === 'NullLiteral' || (node.type === 'Literal' && node.value === null && !node.regex);
+      return isNullIn(node);
     default:
       return (node.type === 'BooleanLiteral' || (node.type === 'Literal' && typeof node.value === 'boolean'))
         && node.value === expected;
   }
+}
+
+/**
+ * Whether an object literal or a JSX element certainly does not set a key: no property or attribute of that name, and
+ * no spread whose source cannot be read (one hop, in the same file) or that sets it.
+ *
+ * @param {Env} env Part state.
+ * @param {{object?: object, element?: object}} origin The object or element a property belongs to.
+ * @param {string} key Key name.
+ * @returns {boolean} `true` when the key is certainly not set.
+ */
+function certainlyLacks(env, origin, key) {
+  return lacksOwn(env, origin, key) && !enclosingSets(env, origin.element ?? origin.object, key);
+}
+
+/**
+ * Whether an option object or a wrapper element that encloses a path sets a key, which every column inside it reads
+ * (`<HotTable dateFormat="..."><HotColumn type="date" /></HotTable>`, `{ dateFormat, columns: [{ type: 'date' }] }`).
+ *
+ * @param {Env} env Part state.
+ * @param {object} path NodePath of the object or element whose enclosers are read. It is not read itself.
+ * @param {string} key Key name.
+ * @returns {boolean} `true` when an encloser names the key.
+ */
+function enclosingSets(env, path, key) {
+  for (let current = path.parent; current; current = current.parent) {
+    const { node } = current;
+
+    if (node.type === 'ObjectExpression' && env.optionNodes().has(node)
+      && node.properties.some(item => propertyName(item) === key)) {
+      return true;
+    }
+
+    let attributes = [];
+
+    if (node.type === 'JSXOpeningElement') {
+      attributes = node.attributes;
+    } else if (node.type === 'JSXElement') {
+      attributes = node.openingElement.attributes;
+    }
+
+    if (attributes.some(item => item.type === 'JSXAttribute' && attributeName(item) === key)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Whether the object or element itself, with its spreads, certainly lacks a key.
+ *
+ * @param {Env} env Part state.
+ * @param {{object?: object, element?: object}} origin The object or element a property belongs to.
+ * @param {string} key Key name.
+ * @returns {boolean} `true` when the key is certainly not set there.
+ */
+function lacksOwn(env, origin, key) {
+  if (origin.element) {
+    const attributes = origin.element.node.attributes;
+
+    return !attributes.some(item => item.type === 'JSXSpreadAttribute'
+      || (item.type === 'JSXAttribute' && attributeName(item) === key));
+  }
+
+  const own = origin.object.node.properties.some(item => propertyName(item) === key);
+  // A computed key can be the key, and a spread can carry it.
+  const computed = origin.object.node.properties
+    .some(item => (item.type === 'ObjectProperty' || item.type === 'ObjectMethod') && propertyName(item) === null);
+  const spreads = own || computed ? null : env.resolver().spreadsOf(origin.object, { exact: true });
+
+  // A source with a spread of its own, a computed key, or the key itself may set it.
+  return !own && !computed && spreads !== null && spreads.every(spread => spread.node.properties.every((item) => {
+    const name = item.type === 'ObjectProperty' || item.type === 'ObjectMethod' ? propertyName(item) : null;
+
+    return name !== null && name !== key;
+  }));
 }
 
 /**
@@ -808,7 +931,7 @@ function matchProperty(env, node) {
 
   const { j, root } = env;
   const { spec, re } = node;
-  const paths = listOf(spec.property).map(dotted => dotted.split('.'));
+  const paths = propertyPaths(spec);
   const optionOnly = (spec.in ?? (env.requires === 'option-object' ? 'option-object' : null)) === 'option-object';
   const seen = new Set();
   const matches = [];
@@ -852,6 +975,10 @@ function matchProperty(env, node) {
         if (!siblings.includes(spec.siblingKey)) {
           continue;
         }
+      }
+
+      if (spec.withoutSiblingKey !== undefined && !certainlyLacks(env, origin, spec.withoutSiblingKey)) {
+        continue;
       }
 
       if (spec.withKey !== undefined) {
@@ -926,11 +1053,11 @@ function objectHasKey(value, key) {
 function matchDynamicProperty(env, node) {
   const { spec, re } = node;
 
-  if (!env.bindings().isHotFile || spec.siblingKey !== undefined) {
+  if (!env.bindings().isHotFile || spec.siblingKey !== undefined || spec.withoutSiblingKey !== undefined) {
     return [];
   }
 
-  const paths = listOf(spec.property).map(dotted => dotted.split('.'));
+  const paths = propertyPaths(spec);
 
   return dynamicOptionSites(env.j, env.root).filter(site => paths.some((segments) => {
     const last = segments[segments.length - 1];
@@ -974,10 +1101,10 @@ function matchDynamicProperty(env, node) {
 function matchTemplateProperty(env, node) {
   const { spec, re } = node;
 
-  if (spec.siblingKey !== undefined) {
+  if (spec.siblingKey !== undefined || spec.withoutSiblingKey !== undefined) {
     return [];
   }
-  const paths = listOf(spec.property).map(dotted => dotted.split('.'));
+  const paths = propertyPaths(spec);
   const named = word => new RegExp(`(?<![\\w$])${word}(?![\\w$])`);
 
   return templateOptionSites(env.source, paths.map(segments => segments[0]))
@@ -1560,7 +1687,7 @@ function readKeys(env, objectNode, candidate, objectPath = null) {
  */
 function resolveSpread(env, argumentPath) {
   const target = unwrapPath(argumentPath);
-  const resolved = target.node.type === 'ObjectExpression' ? target : env.resolver().hop(target);
+  const resolved = target.node.type === 'ObjectExpression' ? target : env.resolver().hop(target, { exact: true });
 
   return resolved?.node.type === 'ObjectExpression' && !hasSpread(resolved) ? resolved : null;
 }
@@ -1614,7 +1741,7 @@ function describeElement(env, elementPath) {
     let resolvedPath = resolved?.type === 'ObjectExpression' ? unwrapPath(valuePath) : null;
 
     if (resolved?.type === 'Identifier') {
-      resolvedPath = env.resolver().hop(valuePath);
+      resolvedPath = env.resolver().hop(valuePath, { exact: true });
       resolved = resolvedPath ? resolvedPath.node : unwrapNode(lookup(valuePath, resolved.name)?.init);
     }
 

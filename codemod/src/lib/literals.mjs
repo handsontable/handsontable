@@ -31,8 +31,11 @@ const SKIPPED_KEYS = new Set([
 
 /**
  * @typedef {object} Literal
- * @property {'template'|'string'} kind What the literal is.
+ * @property {'template'|'string'|'jsx'} kind What the literal is. `jsx` is the text between the tags of a JSX
+ * element.
  * @property {string} text Raw text, line terminators written as `\n`. A string literal includes its quotes.
+ * @property {string} [key] What the literal says apart from white space, when the raw text cannot tell: a JSX text
+ * is compared by its decoded value, because the printer writes an entity as the character it stands for.
  */
 
 /**
@@ -92,6 +95,26 @@ export function stringRaw(node) {
 }
 
 /**
+ * The literal a `JSXText` node stands for. recast prints the children of a JSX element it prints again with every text
+ * trimmed and every entity decoded, so `Showing {count} rows` loses the space after the expression and `&nbsp;` turns
+ * into the character. A text that holds only white space and a line break is no part of what JSX renders (the
+ * compiler drops it), so the printer may lay it out as it likes and it is not a literal here. Every other text is.
+ *
+ * @param {object} node A `JSXText` node.
+ * @param {string} raw The raw text a print should produce.
+ * @returns {Literal|null} The literal, or `null` for a layout-only text.
+ */
+function jsxLiteral(node, raw) {
+  const { value } = node;
+
+  if (typeof value !== 'string' || (!/\S/.test(value) && /\n/.test(value))) {
+    return null;
+  }
+
+  return { kind: 'jsx', key: `jsx:${value.replace(/\s+/g, '')}`, text: normalize(raw) };
+}
+
+/**
  * Call `visit` for every node below a node, in field order.
  *
  * @param {*} value A node, an array, or anything else.
@@ -139,9 +162,32 @@ function normalize(text) {
  */
 export function intendedLiterals(part) {
   const found = [];
+  const carried = part.carriers?.committed ?? [];
 
   walk(part.root.paths()[0].node, (node) => {
     let literal = null;
+
+    if (node.type === 'JSXText') {
+      // A text nobody edited is read from the original source, so the entities and the white space stay as written.
+      const unedited = node.original && node.original.value === node.value;
+      const raw = unedited ? (sourceText(node) ?? node.extra?.raw) : node.extra?.raw;
+      const jsx = jsxLiteral(node, typeof raw === 'string' ? raw : node.value);
+
+      if (jsx) {
+        found.push(jsx);
+      }
+
+      return;
+    }
+
+    if (node.type === 'Identifier' && carried.length > 0) {
+      // The element a carrier stands for is not in the tree, but its text is printed back.
+      const carrier = carried.find(item => node.name.startsWith(item.sentinel));
+
+      found.push(...carrier?.texts ?? []);
+
+      return;
+    }
 
     if (node.type === 'TemplateElement') {
       literal = { kind: 'template', text: templateRaw(node) };
@@ -172,7 +218,13 @@ export function printedLiterals(parser, text) {
   const found = [];
 
   walk(PARSERS[parser]().parse(text), (node) => {
-    if (node.type === 'TemplateElement' || node.type === 'StringLiteral') {
+    if (node.type === 'JSXText') {
+      const jsx = jsxLiteral(node, text.slice(node.start, node.end));
+
+      if (jsx) {
+        found.push({ ...jsx, start: node.start, end: node.end, text: text.slice(node.start, node.end) });
+      }
+    } else if (node.type === 'TemplateElement' || node.type === 'StringLiteral') {
       const raw = text.slice(node.start, node.end);
 
       if (HAS_TERMINATOR.test(raw)) {
@@ -199,7 +251,7 @@ function groupByContent(literals) {
   const groups = new Map();
 
   for (const literal of literals) {
-    const key = `${literal.kind}:${normalize(literal.text).replace(/\s+/g, '')}`;
+    const key = literal.key ?? `${literal.kind}:${normalize(literal.text).replace(/\s+/g, '')}`;
 
     groups.set(key, [...groups.get(key) ?? [], literal]);
   }
@@ -318,4 +370,49 @@ export function linesInsideLiterals(text, literals, lineTerminator) {
   });
 
   return inside;
+}
+
+/**
+ * The JSX texts inside a node, as `intendedLiterals()` would list them, in the order of the tree. A marker carrier
+ * calls it for the element it takes out of the tree, because the printed text holds that element again.
+ *
+ * @param {object} node A node of the tree that recast parsed.
+ * @returns {Literal[]} The texts.
+ */
+export function jsxTextsOf(node) {
+  const found = [];
+
+  walk(node, (item) => {
+    if (item.type === 'JSXText') {
+      const unedited = item.original && item.original.value === item.value;
+      const raw = unedited ? (sourceText(item) ?? item.extra?.raw) : item.extra?.raw;
+      const jsx = jsxLiteral(item, typeof raw === 'string' ? raw : item.value);
+
+      if (jsx) {
+        found.push(jsx);
+      }
+    }
+  });
+
+  return found;
+}
+
+/**
+ * Make the printer write the JSX texts that nobody edited as they were written. recast prints the `value` of a text,
+ * which has its entities decoded (`&lt;` is `<`, and `<` in a text is not valid JSX), so a text with an entity gets its
+ * raw spelling as the value. The white space recast trims is put back by `guardLiterals()`. Call it after
+ * `intendedLiterals()`, which reads the decoded values.
+ *
+ * @param {import('../types.mjs').Part} part A `js` part, after every transform and marker.
+ * @returns {void}
+ */
+export function keepJsxEntities(part) {
+  walk(part.root.paths()[0].node, (node) => {
+    const raw = typeof node.extra?.raw === 'string' ? normalize(node.extra.raw) : null;
+
+    // The parser reads a line break as `\n` in the value, so only a text with an entity differs from its raw text.
+    if (node.type === 'JSXText' && node.original?.value === node.value && raw !== null && raw !== node.value) {
+      node.value = raw;
+    }
+  });
 }

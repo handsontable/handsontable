@@ -111,3 +111,82 @@ describe('template adapter', () => {
     });
   });
 });
+
+const MANIFEST = await loadManifest(join(VERSIONS_DIR, '18.0.0'));
+
+describe('an inline Angular template', () => {
+  const ANGULAR = 'import { Component } from \'@angular/core\';\n';
+  const RULES = ['18.0.0/correct-format-removed', '18.0.0/css-wrapper-border-radius', '18.0.0/numeric-format-culture'];
+  /**
+   * Run the 18.0 option and style rules over a component file.
+   *
+   * @param {string} source File text.
+   * @param {string[]} [rules] Rule ids.
+   * @param {string} [filePath] File name.
+   * @returns {Promise<{output: string, changed: boolean, entries: object[]}>} The result.
+   */
+  const run = (source, rules = RULES, filePath = 'grid.component.ts') => transformFile({
+    filePath, source, plan: buildPlan([MANIFEST], rules), options: {},
+  });
+
+  it('reports the option of a template literal and keeps its line, next to the rewritten styles', async() => {
+    const source = `${ANGULAR}@Component({\n  selector: 'app-g',\n  template: \`<hot-table [settings]="s"\n`
+      + '    [correctFormat]="true"></hot-table>`,\n  styles: [`:host { --ht-wrapper-border-radius: 4px; }`],\n})\n'
+      + 'export class G {}\n';
+    const { output, entries } = await run(source);
+    const manual = entries.filter(entry => entry.severity === 'manual');
+
+    assert.equal(output, source.replace('--ht-wrapper-border-radius', '--ht-border-radius'));
+    assert.deepEqual(manual.map(entry => [entry.ruleId, entry.line]), [['18.0.0/correct-format-removed', 5]]);
+    assert.equal(entries.filter(entry => entry.severity === 'changed').length, 1);
+  });
+
+  it('reads a string literal, the call form, and a template with an expression', async() => {
+    for (const source of [
+      `${ANGULAR}@Component({ template: '<hot-table [correctFormat]="true"></hot-table>' })\nclass A {}\n`,
+      `${ANGULAR}@Component({ template: "<hot-column [correctFormat]=\\"true\\"></hot-column>" })\nclass A {}\n`,
+      `${ANGULAR}const A = Component({ template: \`<hot-table [correctFormat]="true"></hot-table>\` })(class {});\n`,
+      `${ANGULAR}@Component({ template: \`<hot-table [correctFormat]="\${on}"></hot-table>\` })\nclass A {}\n`,
+    ]) {
+      const { output, entries } = await run(source);
+
+      assert.equal(output, source);
+      assert.deepEqual(entries.map(entry => [entry.ruleId, entry.severity, entry.line]),
+        [['18.0.0/correct-format-removed', 'manual', 2]], source);
+    }
+  });
+
+  it('never edits the template, and adds no marker to it', async() => {
+    const source = `${ANGULAR}@Component({ template: \`<hot-table [correctFormat]="true" `
+      + '[numericFormat]="{ culture: \'de\' }">'
+      + '</hot-table>` })\nclass A {}\n';
+    const { output, entries } = await run(source, ['18.0.0/correct-format-removed', '18.0.0/numeric-format-culture']);
+
+    assert.equal(output, source);
+    assert.equal(entries.length, 2);
+  });
+
+  it('leaves alone a file that is no Angular component, a template property of another call, and a templateUrl', async() => {
+    for (const source of [
+      'import { Component } from \'./mine\';\n'
+        + 'Component({ template: `<hot-table [correctFormat]="true"></hot-table>` });\n',
+      `${ANGULAR}other({ template: \`<hot-table [correctFormat]="true"></hot-table>\` });\n`,
+      `${ANGULAR}@Component({ templateUrl: './g.html', t2: \`<hot-table [correctFormat]="1">\` })\nclass A {}\n`,
+      `${ANGULAR}@Component({ template: \`<div [correctFormat]="true"></div>\` })\nclass A {}\n`,
+    ]) {
+      const { entries } = await run(source);
+
+      assert.deepEqual(entries, [], source);
+    }
+  });
+
+  it('is stable over a second run', async() => {
+    const source = `${ANGULAR}@Component({ template: \`<hot-table [correctFormat]="true"></hot-table>\` })\n`
+      + 'class A {}\n';
+    const first = await run(source);
+    const second = await run(first.output);
+
+    assert.equal(second.changed, false);
+    assert.deepEqual(second.entries.map(entry => entry.line), first.entries.map(entry => entry.line));
+  });
+});

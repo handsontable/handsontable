@@ -83,6 +83,8 @@
  * @property {'high'|'medium'} [minConfidence] Lowest option-object confidence the rule rewrites at.
  * @property {string} [message] Text for report entries.
  * @property {string} [advice] Text for TODO comments and manual entries.
+ * @property {string[]} [twins] Ids of the rules of earlier migrations that report the same spot. The earliest owns the
+ * marker and the entry (see `createContext()` in `runner.mjs`).
  * @property {string} [modulePath] Absolute path of the module of a `custom` rule.
  */
 
@@ -110,6 +112,14 @@
  * selected manifests.
  * @property {string} [fromText] The `--from` of the run as text (given or detected). Absent in a plan built without
  * a range, as the fixture tests do.
+ */
+
+/**
+ * A `package.json` above the one being transformed.
+ *
+ * @typedef {object} AncestorManifest
+ * @property {string} file Project-relative path, forward slashes.
+ * @property {object} manifest The parsed file.
  */
 
 /**
@@ -157,6 +167,8 @@
  * code that records a line elsewhere (a fact) adds it by hand.
  * @property {string} fromText The `--from` of the run as text, or an empty string when the context has no range. A
  * rule that bumps a dependency compares it with the version line of the range it finds.
+ * @property {AncestorManifest[]} ancestors The `package.json` files of the project above this one, nearest first, parsed.
+ * Empty outside phase 2, for a file in the project root, and in a fixture.
  * @property {CatalogInfo|null} catalog The pnpm catalogs that apply to this `package.json`, read in phase 2 for a file
  * that holds a `catalog:` spec. `null` for any other part and when no `pnpm-workspace.yaml` lies between the file and
  * the project directory.

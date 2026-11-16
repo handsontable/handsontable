@@ -25,6 +25,8 @@ import { edgeKey, isFunctionNode } from './ast.mjs';
  * identity.
  * @property {object} node The declaring node: the specifier, declarator, function, class, or statement.
  * @property {object|null} init The initializer expression of a variable declarator, otherwise `null`.
+ * @property {object} [scope] The node whose declarations hold the binding (`Program`, a function, a block, a
+ * `TSModuleBlock`, ...). Set when the declarations of the node are built.
  */
 
 const NO_BINDINGS = new Map();
@@ -311,12 +313,14 @@ function buildDeclarations(node) {
 
   if (ROOT_SCOPE_TYPES.has(node.type)) {
     declareLexical(map, node.body);
-
-    if (node.type === 'Program') {
-      node.body.forEach(statement => hoistVars(map, statement));
-    }
+    // A `var` is hoisted to the program, a function, a namespace body, or a class static block.
+    node.body.forEach(statement => hoistVars(map, statement));
   } else if (LEXICAL_BLOCK_TYPES.has(node.type)) {
     declareLexical(map, node.body);
+
+    if (node.type === 'StaticBlock') {
+      node.body.forEach(statement => hoistVars(map, statement));
+    }
   } else if (node.type === 'SwitchStatement') {
     declareLexical(map, node.cases.flatMap(item => item.consequent));
   } else if (node.type === 'CatchClause') {
@@ -350,6 +354,9 @@ function buildDeclarations(node) {
   }
 
   declareTypeParameters(map, node);
+  map.forEach(list => list.forEach((binding) => {
+    binding.scope = node;
+  }));
 
   return map.size === 0 ? NO_BINDINGS : map;
 }
@@ -407,6 +414,17 @@ export function moduleBindings(programNode) {
   return declarationsOf(programNode);
 }
 
+const SIGNATURE_PARAMETER_PARENTS = new Set([
+  'TSIndexSignature',
+  'TSFunctionType',
+  'TSConstructorType',
+  'TSCallSignatureDeclaration',
+  'TSConstructSignatureDeclaration',
+  'TSMethodSignature',
+  'TSDeclareFunction',
+  'TSDeclareMethod',
+]);
+
 const BINDING_CONTAINER_PARENTS = new Set(['ObjectPattern', 'ArrayPattern', 'RestElement', 'TSParameterProperty']);
 
 /**
@@ -434,6 +452,7 @@ function isDeclaringPattern(path) {
     } else {
       return (type === 'VariableDeclarator' && key === 'id')
         || (isFunctionNode(parent.node) && key === 'params')
+        || (SIGNATURE_PARAMETER_PARENTS.has(type) && (key === 'parameters' || key === 'params'))
         || (type === 'CatchClause' && key === 'param');
     }
   }
@@ -469,22 +488,12 @@ const DECLARING_ID_PARENTS = new Set([
   'TSNamespaceExportDeclaration',
 ]);
 
-const SIGNATURE_PARAMETER_PARENTS = new Set([
-  'TSIndexSignature',
-  'TSFunctionType',
-  'TSConstructorType',
-  'TSCallSignatureDeclaration',
-  'TSConstructSignatureDeclaration',
-  'TSMethodSignature',
-  'TSDeclareFunction',
-  'TSDeclareMethod',
-]);
-
 /**
  * Namespace of a qualified name chain such as `A.B.C`, decided by what the chain's top node is.
  *
  * @param {object} path A NodePath of a `TSQualifiedName`.
- * @returns {'value'|'type'} `value` inside `typeof A.B`, otherwise `type`.
+ * @returns {'value'|'type'|null} `value` inside `typeof A.B`, `null` in the qualifier of `import('x').A.B`, otherwise
+ * `type`.
  */
 function qualifiedNameSpace(path) {
   let top = path;
@@ -494,6 +503,11 @@ function qualifiedNameSpace(path) {
   }
 
   const parent = top.parent?.node.type;
+
+  // `import('./mine').Config` names a member of another module, never a binding of this file.
+  if (parent === 'TSImportType') {
+    return null;
+  }
 
   return parent === 'TSTypeQuery' || parent === 'TSImportEqualsDeclaration' ? 'value' : 'type';
 }
@@ -547,6 +561,13 @@ export function referenceSpace(path) {
   }
 
   if (parentType === 'TSEnumMember' && key === 'id') {
+    return null;
+  }
+
+  // The qualifier of `import('./mine').Config`, the key of a Flow object type, and the name of a Flow function type
+  // parameter are names of members and parameters, not references.
+  if ((parentType === 'TSImportType' && key === 'qualifier') || (parentType === 'ObjectTypeProperty' && key === 'key')
+    || (parentType === 'FunctionTypeParam' && key === 'name')) {
     return null;
   }
 

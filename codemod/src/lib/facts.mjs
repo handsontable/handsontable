@@ -131,3 +131,19 @@ export function hasFactFor(ctx, name) {
 export function registerPackageDir(facts, filePath) {
   facts.add(`${PACKAGE_FACT}@${dirOf(filePath)}`);
 }
+
+/**
+ * The recorded `package.json` files that sit above a file, the nearest first. A `package.json` is not above itself.
+ *
+ * @param {Set<string>} facts The shared facts.
+ * @param {string} filePath Project-relative path of a `package.json`.
+ * @returns {string[]} Project-relative paths with forward slashes.
+ */
+export function packageFilesAbove(facts, filePath) {
+  const own = dirOf(filePath);
+
+  return directoriesOf(facts, PACKAGE_FACT)
+    .filter(dir => dir !== own && isInside(own, dir))
+    .sort((a, b) => (b === '.' ? 0 : b.length) - (a === '.' ? 0 : a.length))
+    .map(dir => (dir === '.' ? 'package.json' : `${dir}/package.json`));
+}

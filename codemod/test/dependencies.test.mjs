@@ -89,6 +89,27 @@ describe('planRange', () => {
     assert.deepEqual(planRange('^18.1.0-rc1', '18.0.0'), { action: 'keep' });
   });
 
+  it('does not guess a range whose upper or exact bound is a prerelease', () => {
+    for (const spec of ['>=17.0.0 <=18.0.0-rc.2', '>=17.0.0 <18.0.0-0', '>=17.0.0 <18.0.1-rc.1', '<=18.0.0-rc.2',
+      '=18.0.0-beta.2', '17.1.0 - 18.0.0-rc.2', '^17.0.0 || =18.0.0-rc.1']) {
+      assert.equal(planRange(spec, '18.0.0').action, 'manual', spec);
+    }
+  });
+
+  it('still reads a prerelease on a lower bound, and a plain prerelease pin', () => {
+    assert.deepEqual(planRange('>=18.0.0-rc.1', '18.0.0'), { action: 'keep' });
+    assert.deepEqual(planRange('>=17.0.0-rc.1 <19', '18.0.0'), { action: 'keep' });
+    assert.deepEqual(planRange('18.0.0-beta.2', '18.0.0'), { action: 'rewrite', value: '18.0.0' });
+    assert.deepEqual(planRange('~18.0.0-rc.1', '18.0.0'), { action: 'rewrite', value: '~18.0.0' });
+  });
+
+  it('leaves a repository over ssh, an scp-style repository, and a Windows path alone', () => {
+    for (const spec of ['ssh://git@host:2222/x.git', 'git+ssh://git@host/x.git#17.1.0', 'git@host:org/repo.git#17.1.0',
+      'C:\\libs\\hot-16.0.0', '.\\libs\\hot', '..\\libs\\hot', '\\\\server\\share\\hot']) {
+      assert.deepEqual(planRange(spec, '18.0.0'), { action: 'skip' }, spec);
+    }
+  });
+
   it('leaves sources and tags alone without a report', () => {
     for (const spec of ['workspace:*', 'workspace:^17.0.0', 'file:../handsontable', 'link:../hot', 'portal:../hot',
       'git+https://github.com/handsontable/handsontable.git', 'github:handsontable/handsontable#develop',
@@ -239,6 +260,28 @@ describe('ranges, overrides, and aliases in a chained run', () => {
 
       assert.equal(manual.length, 1);
       assert.match(manual[0].message, /Point it at 19\.0\.0 by hand\.$/);
+    });
+  });
+});
+
+describe('a spec over ssh or in scp style names a repository, and a Windows path names a folder', () => {
+  it('reports the repository specs once, and edits nothing, without reading a port or a tag as the version', async() => {
+    const input = pkg({
+      dependencies: {
+        handsontable: 'ssh://git@host:2222/handsontable.git',
+        '@handsontable/react-wrapper': 'git@host:org/react-wrapper.git#17.1.0',
+        '@handsontable/vue3': 'C:\\libs\\vue3-16.0.0',
+      },
+    });
+
+    await migrate({ 'package.json': input }, { to: '18.0', from: '17.1' }, async({ result, read }) => {
+      const manual = result.report.entries.filter(entry => entry.severity === 'manual').map(entry => entry.message);
+
+      assert.equal(await read('package.json'), input);
+      assert.equal(manual.length, 2);
+      assert.ok(manual.some(text => text.startsWith('handsontable "ssh://***@host:2222/handsontable.git"')));
+      assert.ok(manual.some(text => text.startsWith('@handsontable/react-wrapper "git@host:org/react-wrapper.git')));
+      assert.ok(result.report.entries.every(entry => entry.ruleId !== 'below-from'));
     });
   });
 });
@@ -659,6 +702,81 @@ describe('adding HyperFormula', () => {
       assert.equal(JSON.parse(await read('packages/a/package.json')).dependencies.hyperformula, '^3.0.0');
       assert.equal(JSON.parse(await read('packages/b/package.json')).dependencies.hyperformula, undefined);
       assert.equal(await read('package.json'), pkg({ name: 'root', private: true }));
+    });
+  });
+
+  it('reports instead of adding it when a package.json above declares a range that does not allow it', async() => {
+    const manifest = pkg({ dependencies: { handsontable: '^17.1.0' } });
+
+    for (const section of ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']) {
+      await migrate({
+        'package.json': pkg({ name: 'root', private: true, [section]: { hyperformula: '^2.7.0' } }),
+        'packages/b/package.json': manifest,
+        'packages/b/src/grid.js': app,
+      }, { to: '18.0' }, async({ result, read }) => {
+        const entry = result.report.entries.find(item => item.ruleId === '18.0.0/dependency-hyperformula');
+
+        assert.equal(JSON.parse(await read('packages/b/package.json')).dependencies.hyperformula, undefined, section);
+        assert.equal(entry.severity, 'manual', section);
+        assert.match(entry.message,
+          /^Update hyperformula in package\.json to \^3\.0\.0\. It is declared there as "\^2\.7\.0"/);
+        assert.equal(entry.file, 'packages/b/package.json');
+        assert.equal(await read('package.json'),
+          pkg({ name: 'root', private: true, [section]: { hyperformula: '^2.7.0' } }));
+      });
+    }
+  });
+
+  it('reports for a declaration that names no version, and takes the nearest package.json that declares it', async() => {
+    const manifest = pkg({ dependencies: { handsontable: '^17.1.0' } });
+
+    for (const range of ['catalog:', 'workspace:*', 'file:../h', '<3', '2', '~2.9']) {
+      await migrate({
+        'package.json': pkg({ name: 'root', devDependencies: { hyperformula: range } }),
+        'packages/b/package.json': manifest,
+        'packages/b/src/grid.js': app,
+      }, { to: '18.0' }, async({ result }) => {
+        assert.match(result.report.entries.find(item => item.ruleId === '18.0.0/dependency-hyperformula').message,
+          new RegExp(`declared there as "${range.replace('*', '\\*')}"`));
+      });
+    }
+
+    await migrate({
+      'package.json': pkg({ name: 'root', devDependencies: { hyperformula: '^2.7.0' } }),
+      'packages/package.json': pkg({ name: 'group', devDependencies: { hyperformula: '^2.9.0' } }),
+      'packages/b/package.json': manifest,
+      'packages/b/src/grid.js': app,
+    }, { to: '18.0' }, async({ result }) => {
+      assert.match(result.report.entries.find(item => item.ruleId === '18.0.0/dependency-hyperformula').message,
+        /in packages\/package\.json to \^3\.0\.0\. It is declared there as "\^2\.9\.0"/);
+    });
+  });
+
+  it('still adds it when a package.json above declares a range that allows it, or none declares it', async() => {
+    const manifest = pkg({ dependencies: { handsontable: '^17.1.0' } });
+
+    for (const above of [{ hyperformula: '^3.4.0' }, { hyperformula: '~3.0.5' }, { hyperformula: '>=2.0.0' },
+      { hyperformula: '>=3' }, { other: '^1.0.0' }]) {
+      await migrate({
+        'package.json': pkg({ name: 'root', devDependencies: above }),
+        'packages/b/package.json': manifest,
+        'packages/b/src/grid.js': app,
+      }, { to: '18.0' }, async({ read }) => {
+        assert.equal(JSON.parse(await read('packages/b/package.json')).dependencies.hyperformula, '^3.0.0',
+          JSON.stringify(above));
+      });
+    }
+  });
+
+  it('does not read a package.json that sits beside it or below it', async() => {
+    await migrate({
+      'package.json': pkg({ name: 'root', private: true }),
+      'packages/a/package.json': pkg({ name: 'a', dependencies: { handsontable: '^17.1.0' } }),
+      'packages/a/src/grid.js': app,
+      'packages/a/inner/package.json': pkg({ name: 'inner', devDependencies: { hyperformula: '^2.7.0' } }),
+      'packages/c/package.json': pkg({ name: 'c', devDependencies: { hyperformula: '^2.7.0' } }),
+    }, { to: '18.0' }, async({ read }) => {
+      assert.equal(JSON.parse(await read('packages/a/package.json')).dependencies.hyperformula, '^3.0.0');
     });
   });
 

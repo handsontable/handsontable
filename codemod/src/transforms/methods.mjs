@@ -198,7 +198,8 @@ function isViaCall(path, spec) {
  * @param {Spec} spec The rule.
  * @param {string} name The member name.
  * @param {object} receiver The receiver NodePath.
- * @param {{isInstance: Function}} bindings Bindings of the file.
+ * @param {{isInstance: Function, isPluginReceiver: Function, isPartlyPlugin: Function}} bindings Bindings of the
+ * file.
  * @param {Set<string>} declared Names the file declares itself.
  * @returns {'rewrite'|'manual'|'skip'} The decision.
  */
@@ -212,7 +213,13 @@ function decide(spec, name, receiver, bindings, declared) {
       return 'rewrite';
     }
 
-    return !declared.has(name) && isUnresolvedReceiver(receiver) ? 'manual' : 'skip';
+    if (declared.has(name)) {
+      return 'skip';
+    }
+
+    // A name that is a listed plugin on one path and something else on another is still the plugin sometimes.
+    return isUnresolvedReceiver(receiver, bindings) || bindings.isPartlyPlugin(receiver, spec.pluginKeys)
+      ? 'manual' : 'skip';
   }
 
   if (bindings.isInstance(receiver)) {
@@ -371,7 +378,8 @@ function moveMethod(j, member, spec, newName, quote) {
  * @param {import('../types.mjs').Ctx} ctx Context.
  * @param {object} path The `VariableDeclarator` NodePath whose `id` is an object pattern.
  * @param {Spec[]} specs Prepared rules.
- * @param {{isInstance: Function}} bindings Bindings of the file.
+ * @param {{isInstance: Function, isPluginReceiver: Function, isPartlyPlugin: Function}} bindings Bindings of the
+ * file.
  * @param {Set<string>} declared Names the file declares itself.
  * @returns {void}
  */
@@ -453,6 +461,15 @@ function act(ctx, { path, spec, name, decision, usage }, quote) {
 
   if (spec.type === 'remove') {
     removeCall(ctx, path, usage, spec, name);
+
+    return;
+  }
+
+  // `hot.undo?.()` runs only where the method exists, and the plugin method always does, so the rewritten call would
+  // run where the old one did nothing (`hot.undo?.() ?? hot.getPlugin('undoRedo').undo()` would undo twice).
+  if (usage.role === 'call' && usage.call.node.type === 'OptionalCallExpression' && usage.call.node.optional === true) {
+    manual(`${name}?.() is an optional call, which the tool does not rewrite: the plugin method always exists, so the `
+      + `new call would run where this one does not. ${guidance(spec, name)}`);
 
     return;
   }

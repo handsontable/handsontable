@@ -8,6 +8,7 @@ import { guardLiterals, linesInsideLiterals, printedLiterals } from '../src/lib/
 import { listFixtures } from './helpers/fixtures.mjs';
 import {
   cookedTemplates,
+  jsxTexts,
   multilineLiterals,
   multilineStringValues,
   parserOf,
@@ -119,7 +120,7 @@ const SHAPES = {
   'template with an expression': `{ data: 'a', ${CULTURE_KEY}, title: \`x\${ 1 + 1 }y\nz\${ 2 }\n  w\` }`,
   'tagged template': `{ data: 'a', ${CULTURE_KEY}, title: tag\`z\n  w\` }`,
   'String.raw': `{ data: 'a', ${CULTURE_KEY}, title: String.raw\`C:\\x\n   y\` }`,
-  'template in a function': `{ data: 'a', ${CULTURE_KEY}, validator: () => \`\n  <b>  keep  </b>\` }`,
+  'template in a function': `{ data: 'a', ${CULTURE_KEY}, source: () => \`\n  <b>  keep  </b>\` }`,
   'string with a line continuation': `{ data: 'a', ${CULTURE_KEY}, title: 'Net\\\n  amount    two' }`,
   'two templates': `{ data: 'a', ${CULTURE_KEY}, title: \`one\n  two\`, hint: \`three\n    four\` }`,
 };
@@ -314,7 +315,7 @@ describe('literals in other kinds of files', () => {
       'export const Ledger = () => (',
       '  <HotTable',
       '    licenseKey="k"',
-      `    columns={[{ data: 'net', ${CULTURE_KEY}, validator: () => <b title="p`,
+      `    columns={[{ data: 'net', ${CULTURE_KEY}, source: () => <b title="p`,
       '   q">text</b>, title: `a',
       '  b` }]}',
       '  />',
@@ -505,6 +506,37 @@ describe('guardLiterals', () => {
   });
 });
 
+describe('guardLiterals on JSX text', () => {
+  const jsx = (key, text) => ({ kind: 'jsx', key: `jsx:${key}`, text });
+  const base = { parser: 'tsx', source: '', lineTerminator: '\n' };
+
+  it('puts back the white space a reprint trimmed', () => {
+    const { text } = guardLiterals({ ...base,
+      intended: [jsx('Showing', ' Showing '), jsx('rows', ' rows\n  ')],
+      text: 'const a = <p>Showing {n}rows<b /></p>;' });
+
+    assert.equal(text, 'const a = <p> Showing {n} rows\n  <b /></p>;');
+  });
+
+  it('puts back an entity that was written as the character', () => {
+    const { text } = guardLiterals({ ...base, intended: [jsx('a&b', 'a &amp; b')], text: 'const a = <p>a & b</p>;' });
+
+    assert.equal(text, 'const a = <p>a &amp; b</p>;');
+  });
+
+  it('does not compare a text that holds only white space and a line break', () => {
+    const { text } = guardLiterals({ ...base, intended: [], text: 'const a = <p>\n  <b />\n</p>;' });
+
+    assert.equal(text, 'const a = <p>\n  <b />\n</p>;');
+  });
+
+  it('throws when a text was lost or added', () => {
+    assert.throws(() => guardLiterals({ ...base, intended: [jsx('x', 'x')], text: 'const a = <p><b /></p>;' }),
+      /lost or added/);
+    assert.throws(() => guardLiterals({ ...base, intended: [], text: 'const a = <p>x<b /></p>;' }), /lost or added/);
+  });
+});
+
 describe('linesInsideLiterals', () => {
   it('lists the lines that begin inside a literal and no others', () => {
     const text = 'const a = `x\n  y\n  z`;\nconst b = 1;\n';
@@ -536,6 +568,7 @@ describe('every fixture keeps the literals no rule edited', () => {
         [cookedTemplates, 'a template literal'],
         [multilineStringValues, 'a multi-line string'],
         [multilineLiterals, 'the bytes of a multi-line literal'],
+        [jsxTexts, 'the bytes of a JSX text'],
       ];
 
       for (const [read, what] of kinds) {

@@ -600,10 +600,17 @@ export function renameBinding(j, root, target, newImportedName) {
     }
 
     if (parent.type === 'ExportSpecifier') {
-      path.parent.replace(j.exportSpecifier.from({
+      const replacement = j.exportSpecifier.from({
         local: j.identifier(newImportedName),
         exported: j.identifier(parent.exported.name),
-      }));
+      });
+
+      // `export { type Config }` stays a type export, which `isolatedModules` and `verbatimModuleSyntax` require.
+      if (parent.exportKind) {
+        replacement.exportKind = parent.exportKind;
+      }
+
+      path.parent.replace(replacement);
 
       return;
     }
