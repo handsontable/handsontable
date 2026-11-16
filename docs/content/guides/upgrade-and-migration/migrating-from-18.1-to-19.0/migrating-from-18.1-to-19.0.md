@@ -3576,7 +3576,8 @@ In 19.0, the change is written into the record it was made on:
   so does the row of [`afterValidate`](@/api/hooks.md#aftervalidate). When a filter or `trimRows` took the record
   out of the visual space, or the record was removed, `this.visualRow` and the `afterValidate` row are `null`. A
   validator that corrects the value with `this.instance.setDataAtCell(this.visualRow, this.visualCol, value,
-  'myValidator')` writes the correction into the edited record, also when `this.visualRow` is `null`. Handsontable
+  'myValidator')` writes the correction into the edited record, also when `this.visualRow` is `null`. When a column
+  removal took the edited column, `this.visualCol` is `null` and Handsontable drops the correction. Handsontable
   drops the correction and writes the entered value when it can't tell which record the correction is for: two
   records out of the visual space wait for the same column, and the validator corrects after it returns. A
   correction written after the validator called back is dropped too, because the entered value has already landed.
@@ -3591,6 +3592,18 @@ In 19.0, the change is written into the record it was made on:
   [`Pagination`](@/api/pagination.md) page, that page is shown first. When you changed the page yourself while
   the validator ran, the page stays and the editor closes without saving. When the record is gone, filtered out,
   or hidden with [`hiddenRows`](@/api/options.md#hiddenrows), the editor closes without saving too.
+- The change also stays on its column. An array data source without a [`columns`](@/api/options.md#columns)
+  option addresses a column by its physical index. A column inserted or removed before the edited one no longer
+  sends the saved value to a neighbor column. A column move, insert, or removal no longer sends the correction
+  made through `this.visualCol`, or the reopened editor, to a neighbor column. A column move never changed where
+  the saved value landed, because it doesn't change physical indexes. The `prop` that `afterChange` reports is the
+  column's physical index when the value lands.
+- In the validator, `this.col`, `this.visualCol`, and `this.prop` name the column the edit holds when the
+  validator answers. When the column was removed in the meantime, the change is dropped, all three are `null`,
+  Handsontable drops a validator correction written through them, and the editor closes without saving. When
+  `hiddenColumns` hid the column, the value is still written and the editor closes without saving.
+- Object data and `columns[].data` already name the column by a property, so they are unchanged. A numeric `prop`
+  under a `columns` option isn't followed, and keeps the earlier behavior.
 
 The TypeScript types follow: the `changes` of `afterChange` and `beforeChangeRender` are `AppliedCellChange[]`,
 whose row is `number | null`, and the `row` of `modifyData` and `afterValidate` is `number | null`. `CellChange`
@@ -3605,6 +3618,8 @@ is unchanged, so [`beforeChange`](@/api/hooks.md#beforechange) and the `afterSet
   `beforeChangeRender`, or `modifyData` callback uses the row as a number. It can now be `null`.
 - Your validator uses `this.visualRow` as a number other than to pass it to `setDataAtCell()`, or your
   `afterValidate` callback uses the row as a number, and you use filters or `trimRows`. It can now be `null`.
+- Your validator uses `this.col`, `this.visualCol`, or `this.prop` as a number, you use an array data source
+  without `columns`, and columns can be removed while an edit waits for its validator. They can now be `null`.
 - You call `updateData()` with copies of the rows in a new order while an edit waits for its validator, and you
   don't set `rowId`. Set it, so the edit follows its record.
 - You use TypeScript and type the `changes` parameter of `afterChange` or `beforeChangeRender` as

@@ -242,6 +242,12 @@ export class BaseEditor {
    */
   #answeredRow: number | null | undefined = undefined;
   /**
+   * The visual column the waited-on edited column had when the validator answered, or `undefined` when no answer
+   * was recorded or no column was followed. A column a removal took or a trim hid makes `#answeredRow` `null`.
+   * Read once by `discardEditor()`.
+   */
+  #answeredColumn: number | undefined = undefined;
+  /**
    * Brings the waited-on record into view when a rejected value reopens the editor on it, prepared when the wait
    * started (`Core#_prepareRowReveal()`), so a feature that hides the record can tell a reorder that carried it off
    * screen from the user moving away. `null` when no record is followed.
@@ -866,7 +872,10 @@ export class BaseEditor {
 
       this.#validationWait = null;
       this.#validationWaitListener = null;
-      this.#answeredRow = this.#readWaitRecordRow();
+      const answeredColumn = this.#readWaitRecordColumn();
+
+      this.#answeredRow = answeredColumn === null ? null : this.#readWaitRecordRow();
+      this.#answeredColumn = answeredColumn ?? undefined;
       this.#releaseWaitRecord();
       this.state = EDITOR_STATE.FINISHED;
       onAnswer(result);
@@ -894,7 +903,8 @@ export class BaseEditor {
     this.#removeValidationWaitListener();
     this.#releaseWaitRecord();
     this.#answeredRow = undefined;
-    this.#waitRecord = this.row === null ? null : this.hot._trackRecord(this.row);
+    this.#answeredColumn = undefined;
+    this.#waitRecord = this.row === null ? null : this.hot._trackRecord(this.row, this.col ?? undefined);
     this.#rowReveal = this.#waitRecord === null ? null : this.hot._prepareRowReveal();
     this.#validationWait = wait;
     this.#validationWaitListener = onPostAfterValidate;
@@ -957,16 +967,37 @@ export class BaseEditor {
   }
 
   /**
-   * Points the open editor at the row its record moved to while it waited for the validator, so the next confirm
-   * writes to that record. The value the editor holds stays; the cell, its meta and its position are read again.
+   * Reads the visual column the waited-on column has now: `null` when a removal took it, a trim hid it, or it is
+   * hidden (a hidden column cannot show the editor), and `undefined` when no column is followed.
+   *
+   * @returns {number|null|undefined}
+   */
+  #readWaitRecordColumn(): number | null | undefined {
+    if (this.#waitRecord === null) {
+      return undefined;
+    }
+
+    const column = this.#waitRecord.getVisualColumn();
+
+    if (typeof column === 'number' && this.hot.columnIndexMapper.getRenderableFromVisualIndex(column) === null) {
+      return null;
+    }
+
+    return column;
+  }
+
+  /**
+   * Points the open editor at the cell its record and column moved to while it waited for the validator, so the
+   * next confirm writes to that cell. The value the editor holds stays; the cell, its meta and its position are
+   * read again.
    *
    * @param {number} row The visual row the record has now.
-   * @param {number} col The visual column of the edited cell.
+   * @param {number} col The visual column the edited column has now.
    */
-  #moveToRow(row: number, col: number): void {
+  #moveToCell(row: number, col: number): void {
     const td = this.hot.getCell(row, col, true);
 
-    this.prepare(row, col, this.prop!, td ?? this.TD!, this.originalValue,
+    this.prepare(row, col, this.hot.colToProp(col) ?? this.prop!, td ?? this.TD!, this.originalValue,
       this.hot.getCellMeta(row, col));
 
     if ('refreshDimensions' in this && typeof this.refreshDimensions === 'function') {
@@ -1058,25 +1089,27 @@ export class BaseEditor {
     const isRejected = result === false && this.cellProperties.allowInvalid !== true;
     const rowReveal = this.#rowReveal;
     const answeredRow = this.#answeredRow;
+    const answeredColumn = this.#answeredColumn;
 
     this.#answeredRow = undefined;
+    this.#answeredColumn = undefined;
     this.#rowReveal = null;
 
     if (!isRejected || typeof answeredRow !== 'number' || rowReveal === null) {
-      this.#finishEdit(isRejected, answeredRow);
+      this.#finishEdit(isRejected, answeredRow, answeredColumn);
 
       return;
     }
 
     if (this.hot.rowIndexMapper.getRenderableFromVisualIndex(answeredRow) !== null) {
-      this.#finishEdit(isRejected, rowReveal(answeredRow) ? answeredRow : null);
+      this.#finishEdit(isRejected, rowReveal(answeredRow) ? answeredRow : null, answeredColumn);
 
       return;
     }
 
     this.hot._runAfterValidatorAnswer(() => {
       if (this.state === EDITOR_STATE.FINISHED) {
-        this.#finishEdit(isRejected, rowReveal(answeredRow) ? answeredRow : null);
+        this.#finishEdit(isRejected, rowReveal(answeredRow) ? answeredRow : null, answeredColumn);
       }
     });
   }
@@ -1112,10 +1145,12 @@ export class BaseEditor {
    * @param {boolean} isRejected Whether the validator rejected the value under `allowInvalid: false`.
    * @param {number|null|undefined} answeredRow The visual row of the record (`null` when no cell of it can be
    * shown), or `undefined` when no record was followed.
+   * @param {number|undefined} answeredColumn The visual column of the edited column, or `undefined` when no column
+   * was followed.
    */
-  #finishEdit(isRejected: boolean, answeredRow: number | null | undefined): void {
+  #finishEdit(isRejected: boolean, answeredRow: number | null | undefined, answeredColumn?: number): void {
     try {
-      this.#settleAnswer(isRejected, answeredRow);
+      this.#settleAnswer(isRejected, answeredRow, answeredColumn);
     } finally {
       if (!this.hot.isDestroyed) {
         [...this.#finishListeners].forEach(listener => listener());
@@ -1133,20 +1168,23 @@ export class BaseEditor {
    * @param {boolean} isRejected Whether the validator rejected the value under `allowInvalid: false`.
    * @param {number|null|undefined} answeredRow The visual row of the record (`null` when no cell of it can be
    * shown), or `undefined` when no record was followed.
+   * @param {number|undefined} answeredColumn The visual column of the edited column, or `undefined` when no column
+   * was followed.
    */
-  #settleAnswer(isRejected: boolean, answeredRow: number | null | undefined): void {
+  #settleAnswer(isRejected: boolean, answeredRow: number | null | undefined, answeredColumn?: number): void {
     if (isRejected && answeredRow !== null) {
       const row = answeredRow ?? this.row;
+      const col = answeredColumn ?? this.col;
 
-      if (row === null || this.col === null) {
+      if (row === null || col === null) {
         return;
       }
 
-      if (row !== this.row) {
-        this.#moveToRow(row, this.col);
+      if (row !== this.row || col !== this.col) {
+        this.#moveToCell(row, col);
       }
 
-      this.hot.selectCell(row, this.col);
+      this.hot.selectCell(row, col);
       this.focus();
       this.state = EDITOR_STATE.EDITING;
       this._fireCallbacks(false);
