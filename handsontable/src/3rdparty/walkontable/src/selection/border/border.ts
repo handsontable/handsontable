@@ -1181,6 +1181,7 @@ class Border {
    * `fixedColumnsStart` freeze line: the selection starts at the first track after the frozen ones
    * ({@link Border#isFrozenBoundaryEdge}), or at a later track that scrolling lined up with the frozen area.
    * The master and the frozen overlay then draw the edge's two halves around the line, as for the first track.
+   * Never true for a custom border: the frozen overlays draw no copy of it, so its edge is not on the line.
    *
    * @private
    * @param {'row'|'column'} axis The freeze axis to test.
@@ -1192,8 +1193,12 @@ class Border {
 
     // A custom border has no copy in the frozen overlays (the selection manager draws it only where its cell is
     // rendered), so nothing would draw its half on the line: it keeps the shift onto its cell.
-    return fixedCount > 0 && (fromIndex === fixedCount ||
-      (fromIndex > fixedCount && !this.isCustomBorder() && this.isTrackLinedUpWithFreezeLine(axis, 0, fromIndex)));
+    if (fixedCount <= 0 || this.isCustomBorder()) {
+      return false;
+    }
+
+    return fromIndex === fixedCount ||
+      (fromIndex > fixedCount && this.isTrackLinedUpWithFreezeLine(axis, 0, fromIndex));
   }
 
   /**
@@ -2563,8 +2568,9 @@ class Border {
       this.topStyle!.display = 'none';
     }
     // Only by index: for a column that scrolling lined up, the frozen overlay's holder clips the edge at the line,
-    // so the master keeps the half inside it.
-    if (this.isFrozenBoundaryEdge('column', originalFromColumn) &&
+    // so the master keeps the half inside it. Not for a custom border (see `isEdgeOnStartFreezeLine`): the frozen
+    // overlays do not draw it, so the master's copy is the only one.
+    if (this.isFrozenBoundaryEdge('column', originalFromColumn) && !this.isCustomBorder() &&
         (wtTable.isMaster || overlayName === 'top' || overlayName === 'bottom')) {
       this.startStyle!.display = 'none';
     }

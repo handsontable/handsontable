@@ -315,6 +315,14 @@ the strips. Shifting one axis only would put the handle back under the other scr
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.
 
+## A custom border has no copy in the frozen overlays, so the freeze-line hides skip it
+
+The "edge on a freeze line" rules (`isFrozenBoundaryEdge`, `isEdgeOnStartFreezeLine`, and the `display: none` they drive in `Border#appear`) assume the frozen overlay re-draws the edge it hides (`drawFrozenBoundaryEdge`). A selection has a border in every overlay. A `customBorders` range does not: the selection manager draws it only in the overlay that renders its cell. A custom border on the first column after the frozen ones (column C with `fixedColumnsStart: 2`) is rendered by the master and the `top` and `bottom` clones only, so a hide there leaves nothing on screen.
+
+- `isEdgeOnStartFreezeLine` is false for a custom border on both axes, so the edge takes the 1px shift off the overlay's last pixel like any other custom border. `appear` hides the start edge by index only when the border is not a custom one (the row-axis hide goes through `isEdgeOnStartFreezeLine`, so it follows the same rule). The two checks are written apart, so keep them in step.
+- On the row axis the same gap hid the top edge of the first row after the frozen rows: the top overlay (z-index 160) covers the line pixel in a scrollable column, and in a frozen column both the master and the `inline_start` clone hid it, so nothing drew it.
+- A new freeze-line rule must say whether a custom border takes part. The "Border ownership" rules below describe the selection. Pinned by `test/unit/selection/border/frozenStartBoundary.unit.ts` and the "edges on the first track after the frozen ones" block of `tests/e2e/customBorders.spec.ts`, which reads pixels (`CustomBordersLabPage#edgePixelCount`) because the clone holder answers a hit test over the cell.
+
 ## The master table must remain a stacking context below overlay clones
 
 `.ht_master` is `position: relative` with `z-index: 0`. The explicit zero is load-bearing: it traps
