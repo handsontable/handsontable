@@ -3411,17 +3411,20 @@ export class AsyncValues extends BasePlugin {
    * plugin so. Ends the flight of every tuple the plugin wrote as failed, like a rejected one, so its call
    * can finalize and its row state is released. The last validator's answer drops the set before its own
    * `postAfterValidate` runs, and a tuple that answer rejected was already spliced out of the array. So every
-   * flight that holds this array (`flight.changes`) is ended, not only the flights of the tuples still in it.
+   * flight that holds this array (`flight.changes`) is ended, not only the flights of the tuples still in it. A set
+   * whose record core removed or no longer finds comes as a new array of the tuples core took out of the set, so a
+   * flight whose own tuple (`flight.change`) is in it is ended too.
    *
    * @param {Array[]} changes The dropped change array.
    */
   readonly #onChangesDropped = (changes: CellChange[]): void => {
     const dropped: Flight[] = [];
+    const droppedTuples = new Set<CellChange>(changes);
 
     this.#states.forEach((state) => {
       state.flights.forEach((flights) => {
         flights.forEach((flight) => {
-          if (flight.changes === changes) {
+          if (flight.changes === changes || (flight.change !== null && droppedTuples.has(flight.change))) {
             dropped.push(flight);
           }
         });
@@ -3891,9 +3894,12 @@ export class AsyncValues extends BasePlugin {
   /**
    * Returns the physical row a captured row state belongs on after a data replacement: the row that holds
    * the same id now, or, without ids, none for `loadData()` (a new dataset), and for `updateData()` the row
-   * that holds the same row object now, the way core finds the record of a waiting change, or the same
-   * physical row when no row holds it (the data was replaced by copies, and `updateData()` keeps cell meta by
-   * physical row). A row object two rows hold names no row.
+   * that holds the same row object now, as core finds the record of a waiting change, or the same physical row
+   * when no row holds it (the data was replaced by copies, and `updateData()` keeps cell meta by physical row).
+   * A row object two rows hold names no row. Core is stricter for copies: it keeps a waiting change on its
+   * physical row only while that row still stores the cell meta its validator call used, and drops it
+   * otherwise. A state also stands for requests no change waits on yet, which core has no record of, so it
+   * keeps the row; a change core drops reaches `#onChangesDropped`, which ends its flight.
    *
    * @param {object} row The captured row.
    * @param {boolean} isLoad Whether the data was replaced with `loadData()`.

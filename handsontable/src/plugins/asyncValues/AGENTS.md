@@ -227,11 +227,17 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   `-1`) puts each back: on the row that holds the same id now, or, without ids, nowhere for `loadData()` (a new
   dataset, `'dataReplaced'`) and, for `updateData()`, on the row that holds the source row object its row held
   (`#readRowObject()`, the raw row through `_getDataSource().modifyRowData()`, never the `getSourceDataAtRow()`
-  copy), else on the same physical row (copies; core's convention for cell meta and generated ids). That is how
-  core finds the record of a change waiting for its validator (`resolveUnkeyedRecord()` in
+  copy), else on the same physical row (copies; core's convention for cell meta and generated ids). The row
+  object step is how core finds the record of a change waiting for its validator (`resolveUnkeyedRecord()` in
   `core/waitingRecords.ts`, whose `createIndexedLocator()` the plugin reuses): kept on its physical row while core
   followed the moved object, a state never saw the landing or the overtaking of its write, so the call never
-  finalized and the state was never released. A row object two rows hold names no row. A state whose row still
+  finalized and the state was never released. The copies step is not core's: core keeps a waiting change on its
+  physical row only while the row still stores the cell meta its validator call used, so it drops a change of a
+  cell no validator checked (no meta was noted for its record). The plugin cannot follow that rule, because a
+  state also stands for requests no change waits on yet, which core holds no record of. A change core drops there
+  reaches `#onChangesDropped` in a new array of the removed tuples, and the flight whose `flight.change` is in it
+  ends (pinned by "should record a call whose write core dropped for a record updateData() replaced with
+  copies"). A row object two rows hold names no row. A state whose row still
   holds its object reads no other row, so the wrapper's per-commit `updateData()` builds no index. A row not found
   cancels its requests with `'rowRemoved'`. Settled requests waiting for the
   flush keep their place, so a result that lands after the replacement still reaches its record. With
@@ -259,8 +265,8 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   row whose id survives the load the flight stayed queued, its kept write stayed unlanded, and an
   `undo: 'record'` call never finalized: no step, even for the cells that landed. `#onChangesDropped`,
   added through the Core's `@private` `_addDroppedChangesListener()` in `enablePlugin()` and removed in
-  `disablePlugin()` and `destroy()`, ends every queued flight whose `flight.changes` is the dropped array,
-  the way a rejection does. Walking the tuples still in the array is not enough: the last answer drops the
+  `disablePlugin()` and `destroy()`, ends every queued flight whose `flight.changes` is the dropped array, or
+  whose own tuple is in it (a set core resolved without a record comes as a new array), the way a rejection does. Walking the tuples still in the array is not enough: the last answer drops the
   set before its own `postAfterValidate` runs, and a tuple that answer rejected under `allowInvalid: false`
   was already spliced out.
   The call's promise still reports `resolved` (the value was passed to the grid), as for a rejected value.
