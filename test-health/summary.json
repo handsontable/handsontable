@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-16T08:03:59.639Z",
+  "generatedAt": "2026-11-16T08:50:33.871Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1540,7 +1540,7 @@
       "file": "e2e/manual-row-move-no-columns.spec.ts",
       "line": 35,
       "title": "moving a row by its header while columns are hidden › still moves the row through its header when every column is hidden",
-      "count7": 1,
+      "count7": 0,
       "count30": 1,
       "countAll": 1,
       "runs30": 1,
