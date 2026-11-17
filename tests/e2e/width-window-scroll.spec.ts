@@ -520,6 +520,27 @@ test.describe('width-only grid: holder scrolls columns, window scrolls rows', { 
       expect(state.windowScrollY).toBe(0);
     });
 
+    // The option can move after init: the holder is boxed by the parent while it is on, and goes back
+    // to the page's layout when it is switched off, the way the horizontal twin does above.
+    test('moves the vertical axis between the parent and the window with `updateSettings()`', async () => {
+      expect((await grid.axisOwners()).verticalByWindow).toBe(false);
+
+      await grid.updateSettings({ preventOverflow: false });
+
+      const released = await grid.verticalState();
+
+      expect((await grid.axisOwners()).verticalByWindow).toBe(true);
+      expect(released.holderClientHeight).toBeGreaterThan(PARENT_HEIGHT);
+
+      await grid.updateSettings({ preventOverflow: 'vertical' });
+
+      const boxed = await grid.verticalState();
+
+      expect((await grid.axisOwners()).verticalByWindow).toBe(false);
+      expect(boxed.holderClientHeight).toBeGreaterThan(PARENT_HEIGHT / 2);
+      expect(boxed.holderClientHeight).toBeLessThanOrEqual(PARENT_HEIGHT);
+    });
+
     // Control: without the option the same parent holds nothing. The window owns the axis and the
     // grid grows past the parent's box, so the layouts above are the option's doing.
     test('control: without the option the same parent does not hold the rows', async () => {
