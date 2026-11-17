@@ -1043,6 +1043,47 @@ For the full argument type reference, error handling patterns, and advanced opti
 function aliases and async functions, see the
 [HyperFormula custom functions guide](https://hyperformula.handsontable.com/guide/custom-functions.html).
 
+### Keep legacy function names
+
+Handsontable versions before 9.0 used a different formula engine. Some of its function names, such as `ADD` and `MULTIPLY`, don't exist in HyperFormula, so a formula that uses them returns `#NAME?`. For the full list and the replacements, see the [8.4 to 9.0 migration guide](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0.md#available-functions).
+
+Rewriting the formulas is the cleanest fix. To keep stored formulas working without rewriting them, register a custom function with the legacy name. A plugin can alias only its own functions, so the custom function implements the calculation itself:
+
+```javascript
+import { FunctionPlugin, FunctionArgumentType, HyperFormula } from 'hyperformula';
+
+class LegacyMathPlugin extends FunctionPlugin {
+  add(ast, state) {
+    return this.runFunction(ast.args, state, this.metadata('ADD'), (a, b) => a + b);
+  }
+
+  multiply(ast, state) {
+    return this.runFunction(ast.args, state, this.metadata('MULTIPLY'), (a, b) => a * b);
+  }
+}
+
+const twoNumbers = [
+  { argumentType: FunctionArgumentType.NUMBER },
+  { argumentType: FunctionArgumentType.NUMBER },
+];
+
+LegacyMathPlugin.implementedFunctions = {
+  ADD: { method: 'add', parameters: twoNumbers },
+  MULTIPLY: { method: 'multiply', parameters: twoNumbers },
+};
+
+// Call this before new Handsontable(...) or HyperFormula.buildEmpty().
+HyperFormula.registerFunctionPlugin(LegacyMathPlugin, {
+  enGB: { ADD: 'ADD', MULTIPLY: 'MULTIPLY' },
+});
+```
+
+With this plugin registered, `=ADD(1,2)` returns `3` and `=MULTIPLY(3,4)` returns `12`.
+
+The translation object has one entry per language pack. If the grid uses a language other than `enGB`, add the name to that language too, or the formula still returns `#NAME?`.
+
+For a function that HyperFormula renames, for example `PERCENTILEINC` (now `PERCENTILE.INC`), you can instead rewrite the stored formula text before you pass the data to the grid. The migration guide lists the new name of each function.
+
 ## Change the formula language
 
 HyperFormula ships with built-in language packs that translate function names and control
