@@ -2096,9 +2096,9 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   when a scan read another deploy than staging, or when a new finding's rule and target belong to no issue
   yet: name that issue, add the listed entries under it, and run it again. The file stays in the order and
   form the script writes (`lib/__tests__/a11y-docs-baseline.test.mjs`), so a refresh diff holds the changed
-  lines only. Refresh from a develop dispatch with no staging deploy in flight
-  (`gh run list --workflow docs-staging.yml`): a deploy between that run and the pull request's own scan
-  reads as new findings again.
+  lines only. Refresh from an audit run on develop (the weekly schedule or a dispatch) with no staging
+  deploy in flight (`gh run list --workflow docs-staging.yml`): a deploy between that run and the pull
+  request's own scan reads as new findings again.
 - **The checks beyond axe of the docs are their own tier.** The keyboard, the structure, focus and contrast,
   reflow, forced colors and motion of the docs site are "A11y: the site checks beyond axe" below; they open a
   page the way this scan does (`a11y/docs/docs-site.ts`: the blocked hosts, the color scheme, `settle()`, the
