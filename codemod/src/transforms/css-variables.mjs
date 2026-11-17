@@ -308,6 +308,26 @@ function followsVarOpen(value, offset) {
 }
 
 /**
+ * Say that a name stays in a string or a `url()` of a value the tool did edit or would edit. The note is the same
+ * whether the value held a reference too or not, so a second run, which sees only the text, finds its TODO already
+ * there and changes nothing.
+ *
+ * @param {import('../types.mjs').Ctx} ctx Context of a `css` part.
+ * @param {import('../types.mjs').Rule} rule The rename rule.
+ * @param {number|undefined} line One-based line.
+ * @returns {void}
+ */
+function reportTextOnly(ctx, rule, line) {
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    line,
+    message: `Check this text by hand: it names ${rule.from} in a string, a url(), or outside var(), so the tool `
+      + 'did not change it.',
+  });
+}
+
+/**
  * Rename or flag the variable in one declaration.
  *
  * @param {import('../types.mjs').Ctx} ctx Context of a `css` part.
@@ -328,13 +348,7 @@ function applyToDeclaration(ctx, declaration, entry) {
 
   // A name in a string, in `url()`, or outside `var()` is no reference to the variable, and is left alone.
   if (!inProp && references.length === 0) {
-    ctx.report({
-      ruleId: rule.id,
-      severity: 'manual',
-      line,
-      message: `Check this text by hand: it names ${rule.from} in a string, a url(), or outside var(), so the tool `
-        + 'did not change it.',
-    });
+    reportTextOnly(ctx, rule, line);
 
     return;
   }
@@ -385,6 +399,12 @@ function applyToDeclaration(ctx, declaration, entry) {
   renamed(declaration.parent, prop, declaration.prop);
   ctx.markChanged();
   ctx.report({ ruleId: rule.id, severity: 'changed', line, message: `Renamed ${rule.from} to ${rule.to}.` });
+
+  // The name that is left in a string of the same value is no reference. Say so now, so the second run, which sees only
+  // that text, has nothing new to add.
+  if (hits.length > references.length) {
+    reportTextOnly(ctx, rule, line);
+  }
 }
 
 /**
@@ -406,14 +426,10 @@ function applyToAtRule(ctx, atRule, entry) {
   // As in a declaration value, a name in a string or in `url()` is text, and the tool leaves it alone.
   const ranges = textRanges(atRule.params);
 
-  if ([...atRule.params.matchAll(all)].every(match => insideText(ranges, match.index))) {
-    ctx.report({
-      ruleId: rule.id,
-      severity: 'manual',
-      line,
-      message: `Check this text by hand: it names ${rule.from} in a string, a url(), or outside var(), so the tool `
-        + 'did not change it.',
-    });
+  const matches = [...atRule.params.matchAll(all)];
+
+  if (matches.every(match => insideText(ranges, match.index))) {
+    reportTextOnly(ctx, rule, line);
 
     return;
   }
@@ -441,6 +457,10 @@ function applyToAtRule(ctx, atRule, entry) {
 
   ctx.markChanged();
   ctx.report({ ruleId: rule.id, severity: 'changed', line, message: `Renamed ${rule.from} to ${rule.to}.` });
+
+  if (matches.some(match => insideText(ranges, match.index))) {
+    reportTextOnly(ctx, rule, line);
+  }
 }
 
 const STYLE_NAME = /style/i;

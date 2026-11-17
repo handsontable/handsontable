@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import templateAdapter from '../src/adapters/template.mjs';
 import { createLineCounter, scanScripts } from '../src/lib/inline-script.mjs';
+import { templateOptionSites } from '../src/lib/option-sites.mjs';
 import { blankToolComments } from '../src/lib/tool-comments.mjs';
 import { buildPlan, VERSIONS_DIR, loadManifests } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
@@ -332,5 +333,35 @@ describe('a file with a long run of white space, many names in one value, or man
     const result = await transformed('a.css', css(2000));
 
     assert.equal(result.output.split('var(--ht-border-radius)').length - 1, 2000, 'only the var() references change');
+  });
+});
+
+describe('templateOptionSites() reads the text of a template once', () => {
+  const template = attributes => `<hot-table\n${Array.from({ length: attributes },
+    (_, index) => `  :unrelated-${index}="x"\n`).join('')}  :numeric-format="f"\n></hot-table>\n`;
+
+  it('one wrapper tag with thousands of attributes', async() => {
+    await measureGrowth({
+      input: template,
+      run: async(source) => {
+        templateOptionSites(source, ['numericFormat']);
+      },
+      size: 500,
+    });
+    assert.deepEqual(templateOptionSites(template(8000), ['numericFormat']).map(site => site.line), [8002]);
+  });
+
+  it('many wrapper tags, each with a few attributes', async() => {
+    const tag = '<hot-column\n  :a="1"\n  :numeric-format="f"\n/>\n';
+    const many = tags => tag.repeat(tags);
+
+    await measureGrowth({
+      input: many,
+      run: async(source) => {
+        templateOptionSites(source, ['numericFormat']);
+      },
+      size: 500,
+    });
+    assert.deepEqual(templateOptionSites(many(3), ['numericFormat']).map(site => site.line), [3, 7, 11]);
   });
 });

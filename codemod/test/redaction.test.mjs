@@ -23,6 +23,29 @@ describe('redact()', () => {
     assert.equal(redact('https://tok@en@host?mail=a@b#c@d'), 'https://***@host?mail=a@b#c@d');
   });
 
+  it('hides the value of a query parameter named like a secret and keeps its name', () => {
+    assert.equal(redact('https://host.example/h.tgz?token=TOKQ&x=1'), 'https://host.example/h.tgz?token=***&x=1');
+    assert.equal(redact('https://h.example/a.tgz?x=1&access_token=TOKQ'),
+      'https://h.example/a.tgz?x=1&access_token=***');
+    assert.equal(redact('https://h.example/a?auth=A&key=B&password=C&secret=D&sig=E'),
+      'https://h.example/a?auth=***&key=***&password=***&secret=***&sig=***');
+    assert.equal(redact('https://h.example/a?TOKEN=A&Api_Key=B&X-Amz-Signature=C'),
+      'https://h.example/a?TOKEN=***&Api_Key=***&X-Amz-Signature=***');
+    assert.equal(redact('a "https://h.example/a?token=TOKQ" in dependencies'),
+      'a "https://h.example/a?token=***" in dependencies');
+  });
+
+  it('hides a credential in the fragment, alone or after another parameter', () => {
+    assert.equal(redact('https://h.example/a.tgz#access_token=TOKQ'), 'https://h.example/a.tgz#access_token=***');
+    assert.equal(redact('https://h.example/a.tgz#v=1&token=TOKQ&w=2'), 'https://h.example/a.tgz#v=1&token=***&w=2');
+    assert.equal(redact('git+https://h.example/r.git?ref=main#key=TOKQ'),
+      'git+https://h.example/r.git?ref=main#key=***');
+  });
+
+  it('hides the user information and a query credential of one URL together', () => {
+    assert.equal(redact('https://user:pw@h.example/a?token=TOKQ'), 'https://***@h.example/a?token=***');
+  });
+
   it('leaves everything else as it was', () => {
     for (const text of [
       '//cdn.example.com/npm/@scope/pkg',
@@ -36,6 +59,9 @@ describe('redact()', () => {
       'https://example.com/path?mail=user@example.com',
       'npm:handsontable@^17.0.0',
       'file:../handsontable',
+      'https://example.com/a?monkey=1&tokens=2&keyboard=3&author=me',
+      'https://example.com/a?page=2#section=token',
+      'https://example.com/a?token=&x=1',
     ]) {
       assert.equal(redact(text), text);
     }
@@ -81,6 +107,30 @@ describe('a credential in a dependency spec never reaches the output', () => {
       });
     });
   }
+
+  it('a token in the query or the fragment of a spec is hidden in the console, report file, stderr, and dry-run',
+    async() => {
+      const packageJson = `{
+  "dependencies": {
+    "handsontable": "https://host.example/h.tgz?token=${TOKEN}&x=1",
+    "@handsontable/react-wrapper": "https://host.example/react.tgz#access_token=${TOKEN}",
+    "private-lib": "https://host.example/p.tgz?x=1&Secret=${TOKEN}"
+  }
+}
+`;
+
+      await inPlainProject({ 'package.json': packageJson }, async(dir) => {
+        for (const extra of [[], ['--dry-run']]) {
+          const result = await migrate(dir, [...RANGE, ...extra, '--report', 'report.md', '.']);
+          const report = await readFile(join(dir, 'report.md'), 'utf8');
+
+          assert.equal(result.stdout.includes(TOKEN), false, `stdout leaked: ${result.stdout}`);
+          assert.equal(result.stderr.includes(TOKEN), false, `stderr leaked: ${result.stderr}`);
+          assert.equal(report.includes(TOKEN), false, `the report leaked: ${report}`);
+          assert.match(result.stdout + report, /h\.tgz\?token=\*\*\*&x=1/, 'the spec is named, without its token');
+        }
+      });
+    });
 
   it('a credential on the hyperformula spec of a parent package.json is hidden in the entry, report, and console',
     async() => {

@@ -137,6 +137,33 @@ export function getImportedBindings(j, root, source) {
 }
 
 /**
+ * Find the TypeScript import-equals declarations of a module: `import NS = require('src')`. They bind the whole module
+ * to a name that code reads as a namespace (`NS.Name`, also in a type), like `import * as NS from 'src'`. An alias of
+ * an entity (`import A = B.C`) names no module and is not listed.
+ *
+ * @param {object} j The jscodeshift API.
+ * @param {object} root The parsed Collection.
+ * @param {SourceMatcher} source Module name or predicate on it.
+ * @returns {Array<{local: string, source: string, node: object}>} The local name, the module, and the declaration node.
+ */
+export function findImportEquals(j, root, source) {
+  const matches = matchSource(source);
+  const found = [];
+
+  root.find(j.TSImportEqualsDeclaration).forEach((path) => {
+    const { node } = path;
+    const reference = node.moduleReference;
+    const value = reference?.type === 'TSExternalModuleReference' ? stringValue(reference.expression) : null;
+
+    if (value !== null && node.id?.type === 'Identifier' && matches(value)) {
+      found.push({ local: node.id.name, source: value, node });
+    }
+  });
+
+  return found;
+}
+
+/**
  * Find the paths of the re-exports of a module: `export { X } from 'src'`, `export * from 'src'`,
  * `export * as ns from 'src'`, and `export type { X } from 'src'`.
  *
@@ -656,6 +683,14 @@ export function renameBinding(j, root, target, newImportedName) {
     if (parent.type === 'ObjectProperty' && parent.shorthand && parent.value === path.node) {
       parent.shorthand = false;
       parent.key = j.identifier(oldImported);
+    }
+
+    if (parent.type === 'ExportSpecifier' && parent.exported.type !== 'Identifier') {
+      // `export { X as 'public name' }`: the public name is a string with a range of its own, so the local name can
+      // change in place. The builder of a specifier takes an identifier only.
+      parent.local = j.identifier(newImportedName);
+
+      return;
     }
 
     if (parent.type === 'ExportSpecifier') {

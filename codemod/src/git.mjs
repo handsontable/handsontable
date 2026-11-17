@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { realpath, stat } from 'node:fs/promises';
+import { lstat, realpath, stat } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { findExecutable } from './lib/find-executable.mjs';
@@ -152,10 +152,11 @@ async function git(args, cwd) {
  * Tell whether a directory is inside a git work tree.
  *
  * @param {string} cwd Directory.
- * @returns {Promise<boolean>} `true` inside a work tree. `false` when the directory is not in one, or when there is no
- * git program to ask and no `.git` entry at or above the directory.
+ * @returns {Promise<boolean>} `true` inside a work tree. `false` when no `.git` entry stands at or above the directory
+ * and git says it is not a work tree, cannot be started, or is not there.
  * @throws {GitNotFoundError} When there is no git program and a `.git` entry stands at or above the directory.
- * @throws {GitError} When git ran and failed for another reason, with what it said.
+ * @throws {GitError} When git ran and failed for another reason, with what it said, when it cannot be started or says
+ * "not a git repository" while a `.git` entry stands at or above the directory.
  */
 export async function isGitRepo(cwd) {
   try {
@@ -173,15 +174,30 @@ export async function isGitRepo(cwd) {
       return false;
     }
 
-    // A git that cannot start (a string code such as `EACCES`): there is nothing to guard with.
+    // A git that cannot start (a string code such as `EACCES`): there is nothing to guard with, unless a `.git` entry
+    // says that a repository is there.
     if (typeof error.code === 'string') {
+      const directory = await directoryWithGitEntry(cwd);
+
+      if (directory !== null) {
+        throw new GitError(`git could not be started (${error.code}), and ${directory} holds a .git entry.`);
+      }
+
       return false;
     }
 
     const said = String(error.stderr ?? '').trim();
 
-    // `git rev-parse` exits 128 with this sentence outside a repository, which is no failure.
+    // `git rev-parse` exits 128 with this sentence outside a repository, which is no failure. Git says it for a broken
+    // repository too (a corrupt `.git/HEAD`, a `GIT_COMMON_DIR` that does not exist), so a `.git` entry at or above
+    // the directory turns it into one.
     if (/not a git repository/i.test(said)) {
+      const directory = await directoryWithGitEntry(cwd);
+
+      if (directory !== null) {
+        throw new GitError(`git says this is not a git repository, but ${directory} holds a .git entry.`);
+      }
+
       return false;
     }
 
@@ -246,6 +262,34 @@ export async function dirtyPaths(cwd, { ignoreUntracked = [] } = {}) {
   }
 
   return lines;
+}
+
+/**
+ * List the tracked files under a directory that git is told not to look at, and that exist on disk: marked
+ * `assume-unchanged` (`git update-index --assume-unchanged`) or `skip-worktree`. `git status` leaves them out whatever
+ * their content, so an edit to one of them passes the clean-tree guard and is not in the diff of the migration.
+ * `git ls-files -v` tags them with a lowercase letter or with `S`. A tagged file that is not on disk (a sparse checkout
+ * keeps every path outside its cone this way) is no risk, because the tool never reads it.
+ *
+ * @param {string} cwd Directory.
+ * @returns {Promise<Array<{path: string, flag: 'assume-unchanged'|'skip-worktree'}>>} The files, relative to `cwd`.
+ */
+export async function hiddenPaths(cwd) {
+  const output = await git(['ls-files', '-v', '-z', '--', '.'], cwd);
+  const hidden = [];
+
+  for (const field of output.split('\0').filter(Boolean)) {
+    const tag = field[0];
+    const path = field.slice(2);
+
+    if (tag === 'S' || (tag >= 'a' && tag <= 'z')) {
+      if (await lstat(resolve(cwd, path)).then(() => true, () => false)) {
+        hidden.push({ path, flag: tag === 'S' ? 'skip-worktree' : 'assume-unchanged' });
+      }
+    }
+  }
+
+  return hidden;
 }
 
 /**

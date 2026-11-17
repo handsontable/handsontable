@@ -446,7 +446,12 @@ export async function discover({ cwd, paths = [], skipped = [], notes = [], reas
       const { links: directoryLinks, repositories } = await unhandledEntries(cwd, inside);
 
       listed = inside.length;
-      candidates.push(...inside);
+
+      // A loop, not a spread: a list of more than about a hundred thousand names is too many arguments for one call.
+      for (const file of inside) {
+        candidates.push(file);
+      }
+
       directoryLinks.forEach(noteLink);
       repositories.forEach(file => noteSkipped(file, 'repository'));
 

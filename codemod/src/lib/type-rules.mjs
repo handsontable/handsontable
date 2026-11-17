@@ -10,12 +10,14 @@ import { isFunctionNode, memberName, stringValue } from './ast.mjs';
 import { collectHotBindings } from './hot-bindings.mjs';
 import {
   findDynamicImports,
+  findImportEquals,
   findImports,
   findReExports,
   findRequires,
   getImportedBindings,
 } from './imports.mjs';
 import { lookup } from './scope.mjs';
+import { collectComments } from './todo.mjs';
 
 /**
  * Turn a rule field that holds one string or a list of strings into a list.
@@ -377,6 +379,46 @@ export function isWildcardReExport(node) {
 }
 
 /**
+ * Report, as `manual`, the JSDoc types of a file that read a name through the module: `@typedef {import('m').Name} T`,
+ * `@param {Array<import('m').Name>} x`. They are comments, so the tool never edits them. One entry for each such
+ * type, on the line of the comment that holds it.
+ *
+ * @param {import('../types.mjs').Ctx} ctx The transform context of a `js` part.
+ * @param {object} options Options.
+ * @param {string} options.ruleId Id of the rule that reports.
+ * @param {(moduleName: string) => boolean} options.matches Whether a module is one the rule is about.
+ * @param {string[]} options.names Exported names the rule is about.
+ * @param {(name: string, source: string) => string} options.text What to say about a name read from a module.
+ */
+export function reportJsdocImportTypes(ctx, { ruleId, matches, names, text }) {
+  const wanted = new Set(names);
+  const type = /@\w+\s*\{[^\n]*/;
+  const read = /import\(\s*(['"])([^'"\n]+)\1\s*\)\s*\.\s*([A-Za-z_$][\w$]*)/g;
+
+  for (const comment of collectComments(ctx.root.get().node)) {
+    if (!comment.loc || comment.type !== 'CommentBlock' || !comment.value.includes('import')) {
+      continue;
+    }
+
+    comment.value.split('\n').forEach((lineText, index) => {
+      const declared = type.exec(lineText);
+
+      for (const [, , source, name] of declared ? declared[0].matchAll(read) : []) {
+        if (wanted.has(name) && matches(source)) {
+          ctx.report({
+            ruleId,
+            severity: 'manual',
+            line: comment.loc.start.line + index,
+            message: `Replace ${name} in the type of this comment by hand. ${text(name, source)} The codemod does `
+              + 'not edit comments.',
+          });
+        }
+      }
+    });
+  }
+}
+
+/**
  * Report, as `manual`, the references to a module that a rewrite cannot follow. Nothing is edited.
  *
  * With `all` (the module is gone) every such reference counts: `import * as ns` and default imports, `export ...
@@ -410,27 +452,36 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
     message: `Replace "${source}" here by hand. ${what} "${source}", and the codemod does not rewrite it. ${hint}`,
   });
 
-  getImportedBindings(j, root, matches).filter(binding => binding.form !== 'named').forEach((binding) => {
-    const source = String(binding.declaration.node.source.value);
+  // `import * as ns from 'm'` and `import ns = require('m')` bind the whole module, and the code reads it as `ns.Name`.
+  const wholeModules = [
+    ...getImportedBindings(j, root, matches).filter(binding => binding.form !== 'named').map(binding => ({
+      local: binding.local,
+      namespace: binding.form === 'namespace',
+      source: String(binding.declaration.node.source.value),
+      node: binding.declaration.node,
+    })),
+    ...findImportEquals(j, root, matches).map(equals => ({ ...equals, namespace: true })),
+  ];
 
+  wholeModules.forEach(({ local, namespace, source, node }) => {
     if (all) {
-      report(binding.declaration.node, 'This file imports as a whole', source);
+      report(node, 'This file imports as a whole', source);
 
       return;
     }
 
-    if (binding.form !== 'namespace') {
+    if (!namespace) {
       return;
     }
 
     root.find(j.TSQualifiedName).forEach((path) => {
-      if (path.node.left.type === 'Identifier' && path.node.left.name === binding.local
+      if (path.node.left.type === 'Identifier' && path.node.left.name === local
         && wanted.has(path.node.right.name)) {
         report(path.node, 'This code reads a name through a namespace import of', source);
       }
     });
     root.find(j.MemberExpression).forEach((path) => {
-      if (path.node.object.type === 'Identifier' && path.node.object.name === binding.local
+      if (path.node.object.type === 'Identifier' && path.node.object.name === local
         && wanted.has(memberName(path.node))) {
         report(path.node, 'This code reads a name through a namespace import of', source);
       }

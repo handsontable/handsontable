@@ -201,7 +201,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/tool-comments.mjs` | `blankToolComments()` (the `TODO(handsontable-codemod ...)` comments of the tool, as spaces, line breaks kept) and `blankCodeComments()` (every comment of a js part, read with the parser on the original text, so the offsets are real in a tab-indented file). |
 | `src/lib/todo.mjs` | The writer of TODO comments in the AST, and the only source of their text (`formatTodo()`; `carrier.mjs` places the same text after printing): `shortenAdvice()`, `formatTodo()`, `addJsTodo()` (a `//` comment, or a JSX comment for a `JSXElement` path), `addCssTodo()`, and `collectComments()` for the dedupe. |
 | `src/lib/text-file.mjs` | `readUtf8()`, `decodeUtf8()`, and `stripBom()`: every file the tool reads as text goes through the strict decoder, which throws `NotUtf8Error` (the runner turns it into a `skipped-file` warning) and keeps a leading byte order mark as `U+FEFF`. |
-| `src/lib/redact.mjs` | `redact()`: `//user:TOKEN@` becomes `//***@`. Applied where a dependency spec is named in a message, and again to everything `cli.mjs` writes and to both renderers, so a new message cannot leak. |
+| `src/lib/redact.mjs` | `redact()`: `//user:TOKEN@` becomes `//***@`, and the value of a query or fragment parameter named like a secret (`?token=`, `&access_token=`, `#key=`) becomes `***`. Applied where a dependency spec is named in a message, and again to everything `cli.mjs` writes and to both renderers, so a new message cannot leak. |
 | `src/lib/inline-script.mjs` | `scanScripts()` (the `<script>` elements of an HTML text, found with indexes and a memo, not a backtracking expression; an optional `stats` object counts its steps for `scan-complexity.test.mjs`) and `createLineCounter()` (lines for offsets that grow, one read of the text). Used by `adapters/template.mjs` and the `missingOption` check of `detect.mjs`. |
 | `src/lib/anchor.mjs` | Where a comment about a property can go: `enclosingAnchor()`, `hasOwnLines()`, `anchorForProperty()`. |
 | `src/lib/option-sites.mjs` | `templateOptionSites()` (wrapper tag attributes in template text) and `dynamicOptionSites()` (assignments and `setCellMeta()`), shared by `options.mjs` and the `detect` `property` matcher. |
@@ -277,10 +277,15 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 2. The git guard refuses a dirty tree (exit 2) unless `--allow-dirty`. `status` lists untracked files one by one,
    whatever `status.showUntrackedFiles` says. It does not apply to `--dry-run`,
    `--list`, `write: false`, or a directory outside a git repository, where `onWarning` gets a one-line notice before
-   the first write. An untracked file at the `--report` path (`reportPath`) is not a change. `isGitRepo()` answers `false`
-   for git's "not a git repository", and for no git program when no `.git` entry (a directory, or the file of a linked
-   work tree or a submodule) stands at or above the directory. It throws `GitNotFoundError` (a `GitError`) for no git
-   program with such an entry, and `GitError` (git's own message) for any other failure of `rev-parse`: `run()` then
+   the first write. An untracked file at the `--report` path (`reportPath`) is not a change. After the status check,
+   `hiddenPaths()` (`git ls-files -v`: a lowercase tag or `S`) refuses a tracked file under the directory that is flagged
+   `assume-unchanged` or `skip-worktree` and exists on disk, because `git status` never lists an edit to it (a flagged
+   path that is not on disk, as a sparse checkout leaves, is no risk); `--allow-dirty` overrides it. `isGitRepo()` answers `false`
+   for git's "not a git repository", for a git that cannot start, and for no git program, each only when no `.git` entry
+   (a directory, or the file of a linked work tree or a submodule) stands at or above the directory (`directoryWithGitEntry()`:
+   git also says "not a git repository" for a corrupt `.git/HEAD` or a `GIT_COMMON_DIR` that does not exist). It throws
+   `GitNotFoundError` (a `GitError`) for no git program with such an entry, and `GitError` for a git that cannot start
+   or says "not a git repository" with such an entry, and for any other failure of `rev-parse` (git's own message): `run()` then
    refuses a write unless `--allow-dirty` (exit 2, the message says that git was not found, or what git said), and
    otherwise reads the files without git and adds a note. Git runs with `LC_ALL=C`, because that one message is matched
    as text.

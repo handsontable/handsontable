@@ -35,7 +35,8 @@ a `--ht-` CSS variable, which counts as Handsontable usage for the CSS variable 
 - Node.js 20 or later.
 - A clean git tree. The tool refuses to run when `git status` shows uncommitted changes, so the migration is one
   clean diff that you can review and revert. Untracked files count, whatever `status.showUntrackedFiles` says in your
-  git configuration. Pass `--allow-dirty` to run anyway. An untracked file at the path of
+  git configuration. A tracked file under the directory that is flagged `assume-unchanged` or `skip-worktree` also
+  stops the run, because `git status` never shows an edit to it. Pass `--allow-dirty` to run anyway. An untracked file at the path of
   `--report` does not count, so a report from the previous run does not block the next one. Keep the report out
   of the tree, or delete it when you are done. A directory outside a git repository has no such check, and the tool
   warns before it writes there.
@@ -502,8 +503,9 @@ the tool reads the version from `package.json`, which the run raised, and answer
   Windows a `git.exe` in the project would otherwise run first). When git says that the directory is not a repository,
   it behaves as outside a repository, and so it does when no git is found and no `.git` entry (a directory, or the file
   of a linked work tree or a submodule) stands in the directory or above it. A git that runs and fails for another
-  reason (`detected dubious ownership` in a container, a corrupt repository), and no git on `PATH` inside a repository,
-  are different: the tool cannot tell a clean tree from a dirty one, so a run that writes stops with exit code 2 and
+  reason (`detected dubious ownership` in a container, a corrupt repository), a git that cannot be started, a "not a
+  git repository" answer where a `.git` entry stands in the directory or above it (a corrupt `.git/HEAD`), and no git
+  on `PATH` inside a repository, are different: the tool cannot tell a clean tree from a dirty one, so a run that writes stops with exit code 2 and
   says what happened (git's message, or that git was not found). `--allow-dirty` runs without the check, and
   `--dry-run` previews; both read the files without git and say so. It asks git in English (`LC_ALL=C`), so a
   translated message is not read as a failure.

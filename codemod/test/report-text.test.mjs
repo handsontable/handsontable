@@ -87,6 +87,14 @@ describe('markdownText()', () => {
     assert.equal(markdownText('--ht-x is removed.'), '--ht-x is removed.');
   });
 
+  it('leaves the text inside a code span alone when the span runs over a line break', () => {
+    assert.equal(markdownText('Use `first\n# second\n- third\n1. fourth` here.'),
+      'Use `first\n# second\n- third\n1. fourth` here.');
+    assert.equal(markdownText('Use `a\n--- b` here.\n# real\n- item'), 'Use `a\n--- b` here.\n\\# real\n\\- item');
+    assert.equal(markdownText('- `x\n# y` end'), '\\- `x\n# y` end', 'the line start of the prose is escaped');
+    assert.equal(markdownText('Say: a`b\n# c', ['a`b\n# c']), 'Say: ``a`b # c``', 'a quoted fragment is one line');
+  });
+
   it('spells out a control character instead of passing it on', () => {
     // The backslash of the spelled-out escape is itself escaped, so a viewer shows `\x1b`.
     assert.equal(markdownText(`a${ESC}[31mb`), 'a\\\\x1b\\[31mb');

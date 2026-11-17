@@ -841,6 +841,86 @@ describe('run', () => {
     });
   });
 
+  describe('the clean-tree guard sees a tracked file that git is told not to look at', () => {
+    const FLAGS = [
+      ['assume-unchanged', 'assume-unchanged', '--assume-unchanged'],
+      ['skip-worktree', 'skip-worktree', '--skip-worktree'],
+    ];
+
+    for (const [label, flag, option] of FLAGS) {
+      it(`refuses an edited file marked ${label}, names the file and the flag, and changes no byte`, async() => {
+        await withProject({ 'a.css': RADIUS_CSS, 'other.css': 'b { color: red; }\n' }, async(dir) => {
+          git(dir, ['update-index', option, 'other.css']);
+          await writeFile(join(dir, 'other.css'), 'b { color: blue; }\n');
+
+          const result = await run({ cwd: dir, from: '17', to: '18' });
+
+          assert.equal(result.exitCode, 2, 'git status shows nothing, and the run was not refused');
+          assert.match(result.error,
+            new RegExp(`^1 file under this directory is flagged .*: other\\.css \\(${flag}\\)\\.`));
+          assert.match(result.error, /--allow-dirty/);
+          assert.deepEqual(result.changedFiles, []);
+          assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), RADIUS_CSS);
+          assert.equal(await readFile(join(dir, 'other.css'), 'utf8'), 'b { color: blue; }\n');
+        });
+      });
+
+      it(`refuses an unedited file marked ${label} too, because the next edit would stay hidden`, async() => {
+        await withProject({ 'a.css': RADIUS_CSS, 'other.css': 'b { color: red; }\n' }, async(dir) => {
+          git(dir, ['update-index', option, 'other.css']);
+
+          assert.equal((await run({ cwd: dir, from: '17', to: '18' })).exitCode, 2);
+        });
+      });
+
+      it(`runs with --allow-dirty and previews with a dry run when a file is marked ${label}`, async() => {
+        await withProject({ 'a.css': RADIUS_CSS, 'other.css': 'b { color: red; }\n' }, async(dir) => {
+          git(dir, ['update-index', option, 'other.css']);
+
+          assert.equal((await run({ cwd: dir, from: '17', to: '18', dryRun: true })).exitCode, 0);
+          assert.equal((await run({ cwd: dir, from: '17', to: '18', allowDirty: true })).exitCode, 0);
+          assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), RADIUS_CSS_DONE);
+        });
+      });
+    }
+
+    it('lists the first files, counts the rest, and names the flag of each', async() => {
+      const files = Object.fromEntries(Array.from({ length: 7 },
+        (_, index) => [`f${index}.css`, 'b { color: red; }\n']));
+
+      await withProject({ 'a.css': RADIUS_CSS, ...files }, async(dir) => {
+        git(dir, ['update-index', '--assume-unchanged', 'f0.css', 'f1.css', 'f2.css', 'f3.css', 'f4.css', 'f5.css']);
+        git(dir, ['update-index', '--skip-worktree', 'f6.css']);
+
+        const { error } = await run({ cwd: dir, from: '17', to: '18' });
+
+        assert.match(error, /^7 files under this directory are flagged /);
+        assert.match(error, /f0\.css \(assume-unchanged\), f1\.css/);
+        assert.match(error, /and 2 more\./);
+      });
+    });
+
+    it('ignores a flagged file outside the directory of the run and a flagged file that is not on disk', async() => {
+      await withProject({ 'app/a.css': RADIUS_CSS, 'outside.css': 'b { color: red; }\n', 'app/gone.css': 'c {}\n' },
+        async(dir) => {
+          git(dir, ['update-index', '--assume-unchanged', 'outside.css']);
+          git(dir, ['update-index', '--skip-worktree', 'app/gone.css']);
+          await rm(join(dir, 'app', 'gone.css'));
+
+          const result = await run({ cwd: join(dir, 'app'), from: '17', to: '18' });
+
+          assert.equal(result.exitCode, 0, result.error);
+          assert.deepEqual(result.changedFiles, ['a.css']);
+        });
+    });
+
+    it('still runs on a tree with no flagged file', async() => {
+      await withProject({ 'a.css': RADIUS_CSS }, async(dir) => {
+        assert.equal((await run({ cwd: dir, from: '17', to: '18' })).exitCode, 0);
+      });
+    });
+  });
+
   it('runs on a clean tree, writes changed files only, and a second run changes nothing', async() => {
     await withProject({ 'a.css': RADIUS_CSS, 'b.css': 'b { color: red; }\n', 'c.txt': 'text' }, async(dir) => {
       const first = await run({ cwd: dir, from: '17', to: '18' });

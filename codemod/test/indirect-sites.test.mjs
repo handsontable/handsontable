@@ -254,6 +254,47 @@ describe('numeric-format-culture: a const object that the file changes', () => {
   });
 });
 
+describe('resolve: a method call on a const object or array is a possible change', () => {
+  /**
+   * Resolve the identifier read at the end of a file exactly.
+   *
+   * @param {string} body Statements before the last one, which reads `value`.
+   * @returns {boolean} `true` when the exact answer is the literal.
+   */
+  const resolvesExactly = (body) => {
+    const { j, root } = parse(`${body}\nexport const out = [value];\n`, 'ts');
+    const { hop } = createHop(j, root);
+    const out = root.find(j.ArrayExpression).paths().pop();
+
+    return hop(out.get('elements', 0), { exact: true }) !== null;
+  };
+
+  for (const [label, body] of [
+    ['push', 'const value = [];\nvalue.push(1);'],
+    ['sort', 'const value = [2, 1];\nvalue.sort();'],
+    ['splice on a member', 'const value = { list: [1, 2] };\nvalue.list.splice(0, 1);'],
+    ['an optional call', 'const value = [];\nvalue?.push(1);'],
+    ['a method of the object itself', 'const value = { reset() {} };\nvalue.reset();'],
+    ['a computed method name', 'const value = [];\nvalue[\'push\'](1);'],
+  ]) {
+    it(`gives null for an exact answer after ${label}`, () => {
+      assert.equal(resolvesExactly(body), false, body);
+    });
+  }
+
+  for (const [label, body] of [
+    ['map and filter', 'const value = [1, 2];\nvalue.map(String);\nvalue.filter(Boolean);'],
+    ['slice, join, and includes', 'const value = [1, 2];\nvalue.slice(1).join(\',\');\nvalue.includes(1);'],
+    ['forEach', 'const value = [1];\nvalue.forEach(item => item);'],
+    ['hasOwnProperty', 'const value = { a: 1 };\nvalue.hasOwnProperty(\'a\');'],
+    ['a read of a member', 'const value = { a: [1] };\nconst first = value.a[0];'],
+  ]) {
+    it(`keeps the exact answer when the file only reads: ${label}`, () => {
+      assert.equal(resolvesExactly(body), true, body);
+    });
+  }
+});
+
 describe('selectors in component styles', () => {
   it('takes the scoping wrappers out of a selector', () => {
     assert.equal(normalizeSelector('.a :deep(.ht-grid) > b'), '.a .ht-grid > b');

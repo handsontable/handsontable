@@ -3,9 +3,10 @@
  * in this file holds it. It is the resolution limit of the tool. An import, a parameter, a destructured name, a
  * `let`, and a `var` are never followed, because they may hold another value at run time. A `const` that holds an
  * object or an array is followed, but a caller that must know what the object does not hold asks for an exact answer
- * (`{ exact: true }`), and gets `null` when the file writes to a member of it or passes it to a call
- * (`fmt.culture = x`, `Object.assign(fmt, base)`): `const` fixes the binding, not what the object holds. A caller
- * that reports what it found does not ask, because a value it finds is there however it changes later.
+ * (`{ exact: true }`), and gets `null` when the file writes to a member of it, calls a method on it that may change it,
+ * or passes it to a call (`fmt.culture = x`, `list.push(x)`, `Object.assign(fmt, base)`): `const` fixes the binding,
+ * not what the object holds. A caller that reports what it found does not ask, because a value it finds is there
+ * however it changes later.
  *
  * @module lib/resolve
  */
@@ -33,6 +34,18 @@ const READ_ONLY_CALLS = new Set([
   'Object.keys', 'Object.values', 'Object.entries', 'Object.getOwnPropertyNames', 'Object.hasOwn', 'Object.freeze',
   'Object.isFrozen', 'Object.is', 'Object.fromEntries', 'JSON.stringify', 'structuredClone', 'Array.isArray',
   'String', 'Number', 'Boolean',
+]);
+
+/**
+ * The methods of arrays, strings, and objects that read the value they are called on and never change it. A method
+ * call on a binding that is not one of these (`list.push(x)`, `list.sort()`, a method of the object itself) may change
+ * what the binding holds.
+ */
+const READ_ONLY_METHODS = new Set([
+  'at', 'concat', 'entries', 'every', 'filter', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flat', 'flatMap',
+  'forEach', 'hasOwnProperty', 'includes', 'indexOf', 'isPrototypeOf', 'join', 'keys', 'lastIndexOf', 'map',
+  'propertyIsEnumerable', 'reduce', 'reduceRight', 'slice', 'some', 'toLocaleString', 'toReversed', 'toSorted',
+  'toSpliced', 'toString', 'valueOf', 'values',
 ]);
 
 /**
@@ -76,7 +89,8 @@ export function createHop(j, root) {
 
   /**
    * Whether the file may change the object or array a `const` holds: it writes to a member of the binding
-   * (assignment, update, `delete`, a destructuring target), or passes the binding to a call (not `new`, which the
+   * (assignment, update, `delete`, a destructuring target), calls a method on it that is not a known read
+   * (`push`, `sort`, `reset`), or passes the binding to a call (not `new`, which the
    * grid itself is: `new Handsontable(el, config)` reads the object).
    *
    * @param {object} binding The binding of the `const`.
@@ -103,6 +117,11 @@ export function createHop(j, root) {
         }
 
         const holder = top.parent?.node;
+
+        // `list.push(x)`: a method call on the binding or on a member of it, unless the method only reads.
+        if (CALLS.has(holder?.type) && holder.callee === top.node) {
+          return !READ_ONLY_METHODS.has(memberName(top.node));
+        }
 
         return (holder?.type === 'AssignmentExpression' && holder.left === top.node)
           || holder?.type === 'UpdateExpression'

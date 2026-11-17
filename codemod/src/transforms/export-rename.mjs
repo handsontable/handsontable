@@ -1,7 +1,14 @@
 import { getImportedBindings, moveNamedImport, renameBinding } from '../lib/imports.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { collectComments } from '../lib/todo.mjs';
-import { WILDCARD_EXPORT, chooseSource, lazyModular, reportOpaqueReferences, toList } from '../lib/type-rules.mjs';
+import {
+  WILDCARD_EXPORT,
+  chooseSource,
+  lazyModular,
+  reportJsdocImportTypes,
+  reportOpaqueReferences,
+  toList,
+} from '../lib/type-rules.mjs';
 import { problemsOf } from '../lib/validate.mjs';
 
 /**
@@ -218,6 +225,12 @@ const exportRename = {
         sources: toList(rule.source),
         names: [rule.from],
         hint: `${rule.from} is now ${rule.to}${rule.toSource ? ` in ${toList(rule.toSource)[0]}` : ''}.`,
+      });
+      reportJsdocImportTypes(ctx, {
+        ruleId: rule.id,
+        matches: module => toList(rule.source).includes(module),
+        names: [rule.from],
+        text: () => `${rule.from} is now ${rule.to}${rule.toSource ? ` in ${toList(rule.toSource)[0]}` : ''}.`,
       });
     }
   },

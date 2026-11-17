@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { VERSIONS_DIR, buildPlan, loadManifests } from '../src/manifest.mjs';
-import { transformFile } from '../src/runner.mjs';
+import { run as runTool, transformFile } from '../src/runner.mjs';
 import { listFixtures } from './helpers/fixtures.mjs';
+import './helpers/git-env.mjs';
 import { loadReleasedManifests } from './helpers/manifests.mjs';
 
 const TODO = 'TODO(handsontable-codemod';
@@ -160,6 +162,32 @@ const ONE_LINE_CASES = [
     todos: 1,
     source: '.ht-theme-main { --ht-wrapper-border-width: 1px; color: red; }\n',
   },
+  {
+    name: 'cssVariable rename next to the same name in a string, in one scss map',
+    file: 'a.scss',
+    todos: 1,
+    source: '$map: (radius: var(--ht-wrapper-border-radius), "--ht-wrapper-border-radius": 1);\n'
+      + 'a { border-radius: var(--ht-wrapper-border-radius); }\n',
+  },
+  {
+    name: 'cssVariable rename next to the same name in a string, in one css value',
+    file: 'a.css',
+    todos: 1,
+    source: 'a { content: "--ht-wrapper-border-radius" var(--ht-wrapper-border-radius); }\n',
+  },
+  {
+    name: 'cssVariable rename of a property whose value holds the name in a string',
+    file: 'a.css',
+    todos: 1,
+    source: ':root { --ht-wrapper-border-radius: "--ht-wrapper-border-radius"; }\n'
+      + 'a { margin: 0 var(--ht-wrapper-border-radius); }\n',
+  },
+  {
+    name: 'cssVariable rename next to the same name in a string, in the parameters of an at-rule',
+    file: 'a.scss',
+    todos: 1,
+    source: '@include foo("--ht-wrapper-border-radius", var(--ht-wrapper-border-radius));\n',
+  },
 ];
 
 describe('idempotency of TODO comments', () => {
@@ -185,6 +213,30 @@ describe('idempotency of TODO comments', () => {
       });
     });
   }
+
+  it('a rename that leaves the name in a string changes zero files in the second run of the tool', async() => {
+    const dir = await mkdtemp(join(tmpdir(), 'codemod-idem-'));
+
+    try {
+      await writeFile(join(dir, 'package.json'), '{ "dependencies": { "handsontable": "^17.1.0" } }\n');
+      await writeFile(join(dir, 'theme.scss'), '$map: (radius: var(--ht-wrapper-border-radius), '
+        + '"--ht-wrapper-border-radius": 1);\na { border-radius: var(--ht-wrapper-border-radius); }\n');
+
+      const first = await runTool({ cwd: dir, from: '17.1', to: '18.0', allowDirty: true });
+      const afterFirst = await readFile(join(dir, 'theme.scss'), 'utf8');
+
+      assert.deepEqual(first.changedFiles.sort(), ['package.json', 'theme.scss']);
+      assert.match(afterFirst, /\$map: \(radius: var\(--ht-border-radius\), "--ht-wrapper-border-radius": 1\)/);
+      assert.match(afterFirst, /^\/\* TODO\(handsontable-codemod 18\.0\.0\/css-wrapper-border-radius\)/);
+
+      const second = await runTool({ cwd: dir, from: '17.1', to: '18.0', allowDirty: true });
+
+      assert.deepEqual(second.changedFiles, []);
+      assert.equal(await readFile(join(dir, 'theme.scss'), 'utf8'), afterFirst);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
 
   it('lets a different object with the same removed token keep its own comment', async() => {
     const source = 'import { registerTheme, mainTheme } from \'handsontable/themes\';\n'

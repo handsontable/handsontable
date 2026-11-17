@@ -798,7 +798,7 @@ describe('type rule transforms', () => {
     const IMPORT = 'import { Config } from \'handsontable/plugins/columnSorting\';\n';
     const only = ['18.0.0/type-columnsorting-config'];
     const stale = result => result.entries.filter(entry => entry.severity === 'manual'
-      && /type of this comment/.test(entry.message)).map(entry => entry.line);
+      && /^Rename .* in the type of this comment/.test(entry.message)).map(entry => entry.line);
 
     it('is reported at its line, once per line, and the comment is not edited', async() => {
       const source = `${IMPORT}\n/**\n * Sort.\n * @param {Config} first The first.\n`
@@ -821,6 +821,49 @@ describe('type rule transforms', () => {
 
       assert.deepEqual(stale(await run('a.js', quiet, only)), []);
       assert.deepEqual(stale(await run('a.js', aliased, only)), []);
+    });
+  });
+
+  describe('a JSDoc type that reads a name through import() of its module', () => {
+    const RENAMED = 'handsontable/plugins/columnSorting';
+    const REMOVED = 'handsontable/plugins/nestedHeaders';
+    const viaImport = (result, ruleId) => result.entries.filter(entry => entry.ruleId === ruleId
+      && /^Replace \w+ in the type of this comment by hand/.test(entry.message));
+
+    it('reports a renamed name in a typedef, a param, and a generic, at its line, and edits no comment', async() => {
+      const source = `/** @typedef {import('${RENAMED}').Config} Cfg */\n/**\n`
+        + ` * @param {import("${RENAMED}").Config} s The settings.\n`
+        + ` * @param {Array< import( '${RENAMED}' ).Config >} list The list.\n`
+        + ` * @returns {import('${RENAMED}').Other} Another name.\n */\nexport function f(s, list) {}\n`;
+      const result = await run('a.js', source, ['18.0.0/type-columnsorting-config']);
+      const entries = viaImport(result, '18.0.0/type-columnsorting-config');
+
+      assert.deepEqual(entries.map(entry => [entry.severity, entry.line]),
+        [['manual', 1], ['manual', 3], ['manual', 4]]);
+      assert.match(entries[0].message, /Config is now ColumnSortingConfig/);
+      assert.match(entries[0].message, /does not edit comments/);
+      assert.equal(result.output, source);
+    });
+
+    it('reports a removed name, with the advice of its rule', async() => {
+      const source = `/**\n * @param {import('${REMOVED}').Settings} s\n */\nexport function f(s) {}\n`;
+      const result = await run('a.js', source, ['18.0.0/type-nestedheaders-settings']);
+      const entries = viaImport(result, '18.0.0/type-nestedheaders-settings');
+
+      assert.deepEqual(entries.map(entry => entry.line), [2]);
+      assert.match(entries[0].message, /Settings is no longer exported from "handsontable\/plugins\/nestedHeaders"/);
+      assert.equal(result.output, source);
+    });
+
+    it('stays quiet for another module, another name, prose, a line comment, and code', async() => {
+      const source = '/**\n * @param {import(\'other-lib\').Config} a Another module.\n'
+        + ` * @param {import('${RENAMED}').Other} b Another name.\n`
+        + ` * The type import('${RENAMED}').Config is mentioned in prose only.\n */\n`
+        + `// @param {import('${RENAMED}').Config} c\n`
+        + `export type T = import('${RENAMED}').Other;\n`;
+      const result = await run('a.ts', source, ['18.0.0/type-columnsorting-config']);
+
+      assert.deepEqual(viaImport(result, '18.0.0/type-columnsorting-config'), []);
     });
   });
 
@@ -921,6 +964,43 @@ describe('type rule transforms', () => {
 
         if (reported) {
           assert.match(entries[0].message, /This code loads "handsontable\/plugins\/columnSorting"/);
+        }
+      });
+    }
+  });
+
+  describe('a name of a renamed or removed export that is read through an import-equals declaration', () => {
+    const RENAMED = 'handsontable/plugins/columnSorting';
+    const REMOVED = 'handsontable/plugins/nestedHeaders';
+
+    for (const [label, source, ruleId, name, reported] of [
+      ['a type read of a renamed name', `import CS = require('${RENAMED}');\nlet c: CS.Config;\n`,
+        '18.0.0/type-columnsorting-config', 'Config', true],
+      ['a value read of a renamed name', `import CS = require('${RENAMED}');\nconst c = CS.Config;\n`,
+        '18.0.0/type-columnsorting-config', 'Config', true],
+      ['an exported import-equals', `export import CS = require('${RENAMED}');\nlet c: CS.Config;\n`,
+        '18.0.0/type-columnsorting-config', 'Config', true],
+      ['a type read of a removed name', `import NH = require('${REMOVED}');\nlet c: NH.Settings;\n`,
+        '18.0.0/type-nestedheaders-settings', 'Settings', true],
+      ['another name of the module', `import CS = require('${RENAMED}');\nlet c: CS.Other;\n`,
+        '18.0.0/type-columnsorting-config', 'Config', false],
+      ['the same member of another object', `import CS = require('${RENAMED}');\nlet c: Mine.Config;\n`,
+        '18.0.0/type-columnsorting-config', 'Config', false],
+      ['an alias of an entity, which names no module', 'import CS = Handsontable.plugins;\nlet c: CS.Config;\n',
+        '18.0.0/type-columnsorting-config', 'Config', false],
+      ['a module that no rule names', 'import CS = require(\'other-lib\');\nlet c: CS.Config;\n',
+        '18.0.0/type-columnsorting-config', 'Config', false],
+    ]) {
+      it(`${reported ? 'reports' : 'stays quiet for'} ${label}, and edits nothing`, async() => {
+        const result = await run('a.ts', source, [ruleId]);
+        const entries = result.entries.filter(entry => entry.ruleId === ruleId);
+
+        assert.equal(result.changed, false);
+        assert.equal(result.output, source);
+        assert.deepEqual(entries.map(entry => [entry.severity, entry.line]), reported ? [['manual', 2]] : [], name);
+
+        if (reported) {
+          assert.match(entries[0].message, new RegExp(`"${RENAMED.replace('columnSorting', '')}`));
         }
       });
     }

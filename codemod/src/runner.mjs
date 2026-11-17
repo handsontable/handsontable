@@ -8,7 +8,7 @@ import { discover, firstLinkOn, resolvesInside } from './discover.mjs';
 import { insideRelative, leavesDirectory, realpathNative, toPosix } from './lib/paths.mjs';
 import { StaleFileError, writeFileSafely } from './lib/safe-write.mjs';
 import { redact } from './lib/redact.mjs';
-import { GitError, GitNotFoundError, dirtyPaths, isGitRepo, isTracked } from './git.mjs';
+import { GitError, GitNotFoundError, dirtyPaths, hiddenPaths, isGitRepo, isTracked } from './git.mjs';
 import { packageFilesAbove, registerPackageDir } from './lib/facts.mjs';
 import { findCatalog } from './lib/pnpm-catalog.mjs';
 import { NotUtf8Error, readUtf8, stripBom } from './lib/text-file.mjs';
@@ -1293,6 +1293,20 @@ export async function run({
         throw new UsageError(`The git tree has ${plural(dirty.length, 'uncommitted change')}. `
           + `Commit or stash ${dirty.length === 1 ? 'it' : 'them'} so the migration shows up as one clean diff, `
           + 'or pass --allow-dirty.');
+      }
+
+      const hidden = await hiddenPaths(cwd);
+
+      if (hidden.length > 0) {
+        const shown = hidden.slice(0, 5).map(({ path, flag }) => `${path} (${flag})`);
+        const more = hidden.length > shown.length ? `, and ${hidden.length - shown.length} more` : '';
+
+        const one = hidden.length === 1;
+
+        throw new UsageError(`${plural(hidden.length, 'file')} under this directory ${one ? 'is' : 'are'} `
+          + `flagged assume-unchanged or skip-worktree, so git status cannot show an edit to ${one ? 'it' : 'them'}: `
+          + `${shown.join(', ')}${more}. Clear the flag (git update-index --no-assume-unchanged <file> or `
+          + '--no-skip-worktree <file>) so the migration shows up as one clean diff, or pass --allow-dirty.');
       }
     }
 

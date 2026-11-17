@@ -622,6 +622,15 @@ describe('renameBinding on an export specifier', () => {
       assert.equal(renamedExports('export type { Comp };', parser), 'export type { Widget as Comp };');
     });
 
+    it(`keeps a string as the public name of an export specifier (${parser})`, () => {
+      assert.equal(renamedExports('export { Comp as \'my config\' };', parser),
+        'export { Widget as \'my config\' };');
+      assert.equal(renamedExports('export { type Comp as \'my config\' };', parser),
+        'export { type Widget as \'my config\' };');
+      assert.equal(renamedExports('export { Comp as \'a-b\', Comp };', parser),
+        'export { Widget as \'a-b\', Widget as Comp };');
+    });
+
     it(`gives a value export no modifier (${parser})`, () => {
       assert.equal(renamedExports('export { Comp };', parser), 'export { Widget as Comp };');
       assert.equal(renamedExports('type Other = 1;\nexport { Comp, type Other };', parser),

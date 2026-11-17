@@ -162,6 +162,57 @@ function returnsUnknown(expression) {
 }
 
 /**
+ * Whether a call installs a reader on the cell meta by key: `setCellMeta(row, col, 'editor', X)`,
+ * `Object.defineProperty(meta, 'validator', { value: X })` (a getter counts as a function), and
+ * `Reflect.set()` or `Reflect.defineProperty()` with the same arguments. A call that carries an object literal
+ * (`setCellMetaObject()`, `Object.assign()`) is already read through the keys of that literal.
+ *
+ * @param {object} call A `CallExpression` or `OptionalCallExpression` node.
+ * @param {(key: string, value: object|null) => boolean} isReader Whether a key and a value make a reader.
+ * @returns {boolean} `true` when the call sets a custom reader.
+ */
+function installsReader(call, isReader) {
+  const callee = unwrapNode(call.callee);
+  const method = calleeName(callee);
+  const host = MEMBER_TYPES.has(callee.type) ? unwrapNode(callee.object) : null;
+  const hostName = host?.type === 'Identifier' ? host.name : null;
+  const keyOf = argument => (argument ? stringValue(argument) : null);
+
+  if (method === 'setCellMeta') {
+    const key = keyOf(call.arguments[2]);
+
+    return key !== null && isReader(key, call.arguments[3] ?? null);
+  }
+
+  if (hostName === 'Reflect' && method === 'set') {
+    const key = keyOf(call.arguments[1]);
+
+    return key !== null && isReader(key, call.arguments[2] ?? null);
+  }
+
+  if ((hostName === 'Object' || hostName === 'Reflect') && method === 'defineProperty') {
+    const key = keyOf(call.arguments[1]);
+    const descriptor = call.arguments[2] ? unwrapNode(call.arguments[2]) : null;
+
+    if (key === null || descriptor?.type !== 'ObjectExpression') {
+      return false;
+    }
+
+    return descriptor.properties.some((property) => {
+      const field = propertyName(property);
+
+      if (field === 'value') {
+        return isReader(key, property.value);
+      }
+
+      return field === 'get' && isReader(key, { type: 'FunctionExpression' });
+    });
+  }
+
+  return false;
+}
+
+/**
  * Create the reader finder of one file.
  *
  * @param {object} args The file.
@@ -297,6 +348,8 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
       } else if (current.type === 'AssignmentExpression' && current.operator === '='
         && MEMBER_TYPES.has(current.left.type)) {
         found = isReader(memberName(current.left) ?? '', current.right);
+      } else if (current.type === 'CallExpression' || current.type === 'OptionalCallExpression') {
+        found = installsReader(current, isReader);
       } else if (name === 'cells' && FUNCTION_NODES.has(current.type) && current.type !== 'FunctionDeclaration') {
         found = current.body.type === 'BlockStatement' ? false : returnsUnknown(current.body);
       } else if (name === 'cells' && current.type === 'ReturnStatement') {

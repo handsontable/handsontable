@@ -1,4 +1,5 @@
 import { memberName, propertyName, stringValue, unwrapNode, unwrapPath } from './ast.mjs';
+import { createLineCounter } from './inline-script.mjs';
 
 /**
  * Wrapper tags whose attributes are grid or column options: Vue and Angular `<hot-table>` and `<hot-column>`, and
@@ -48,23 +49,6 @@ export function optionOfAttribute(attribute) {
 }
 
 /**
- * One-based line of a character offset.
- *
- * @param {string} source Text.
- * @param {number} index Offset.
- * @returns {number} The line.
- */
-function lineAt(source, index) {
-  let line = 1;
-
-  for (let at = source.indexOf('\n'); at !== -1 && at < index; at = source.indexOf('\n', at + 1)) {
-    line += 1;
-  }
-
-  return line;
-}
-
-/**
  * Find the attributes of `<hot-table>`, `<hot-column>`, `<HotTable>`, and `<HotColumn>` tags in template text that
  * set one of the options. An attribute counts when its name binds the option (see `optionOfAttribute`), or when it
  * is a `settings` or `v-bind` binding whose value names the option as a word. The text is never parsed: the match
@@ -77,6 +61,7 @@ function lineAt(source, index) {
 export function templateOptionSites(source, names) {
   const wanted = new Set(names);
   const sites = [];
+  const lineAt = createLineCounter(source);
 
   for (const tag of source.matchAll(OPENING_TAG)) {
     const attributesStart = tag.index + 1 + tag[1].length;
@@ -87,7 +72,7 @@ export function templateOptionSites(source, names) {
       const written = split[1];
       const value = split[2] === undefined ? null : split[2].replace(/^(["'])([\s\S]*)\1$/, '$2');
       const name = optionOfAttribute(written);
-      const line = lineAt(source, attributesStart + attribute.index);
+      const line = lineAt(attributesStart + attribute.index);
 
       if (wanted.has(name)) {
         sites.push({ name, line, tag: tag[1], attribute: written, value });

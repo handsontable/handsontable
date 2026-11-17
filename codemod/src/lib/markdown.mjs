@@ -126,19 +126,25 @@ export function markdownText(text, quoted = []) {
   }
 
   const pieces = [];
+  const spans = [];
   let cursor = 0;
 
+  // A code span of the message stands as a placeholder while the line starts are escaped, so a `#`, `-`, or `1.` that
+  // opens a line inside a span that runs over a break stays as written.
   for (const match of work.matchAll(CODE_SPAN)) {
-    pieces.push(escapeProse(work.slice(cursor, match.index)), match[0]);
+    pieces.push(escapeProse(work.slice(cursor, match.index)), `\u0002${spans.length}\u0002`);
+    spans.push(match[0]);
     cursor = match.index + match[0].length;
   }
 
   pieces.push(escapeProse(work.slice(cursor)));
 
   return pieces.join('')
-    // eslint-disable-next-line no-control-regex -- the placeholder of a quoted fragment, after `plainText()` removed any
-    .replace(/\u0001(\d+)\u0001/g, (_, index) => holders[Number(index)])
     // A line that opens a heading, a list item, an ordered list, or a rule gets its first character escaped.
     .replace(/(^|\n)([ \t]*)(#{1,6}(?=\s|$)|[-+](?=\s)|-{3,}[ \t]*(?=\n|$)|={3,}[ \t]*(?=\n|$))/g, '$1$2\\$3')
-    .replace(/(^|\n)([ \t]*\d+)([.)])(?=\s)/g, '$1$2\\$3');
+    .replace(/(^|\n)([ \t]*\d+)([.)])(?=\s)/g, '$1$2\\$3')
+    // eslint-disable-next-line no-control-regex -- the placeholders of a code span, after `plainText()` removed any
+    .replace(/\u0002(\d+)\u0002/g, (_, index) => spans[Number(index)])
+    // eslint-disable-next-line no-control-regex -- the placeholder of a quoted fragment, after `plainText()` removed any
+    .replace(/\u0001(\d+)\u0001/g, (_, index) => holders[Number(index)]);
 }

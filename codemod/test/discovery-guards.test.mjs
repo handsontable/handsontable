@@ -405,6 +405,159 @@ describe('a git that runs and fails is not the same as no repository', { skip: !
   });
 });
 
+describe('a repository that git cannot read is not the same as no repository', () => {
+  /**
+   * Run a body with environment variables set, and put them back.
+   *
+   * @param {Record<string, string>} variables The variables.
+   * @param {() => Promise<void>} body The body.
+   * @returns {Promise<void>}
+   */
+  async function withVariables(variables, body) {
+    const before = Object.fromEntries(Object.keys(variables).map(name => [name, process.env[name]]));
+
+    Object.assign(process.env, variables);
+
+    try {
+      await body();
+    } finally {
+      for (const [name, value] of Object.entries(before)) {
+        if (value === undefined) {
+          delete process.env[name];
+        } else {
+          process.env[name] = value;
+        }
+      }
+    }
+  }
+
+  /**
+   * Run a body with a `git` on `PATH` whose interpreter does not exist, so that starting it fails.
+   *
+   * @param {() => Promise<void>} body The body.
+   * @returns {Promise<void>}
+   */
+  async function withBrokenGit(body) {
+    const bin = await mkdtemp(join(tmpdir(), 'codemod-brokengit-'));
+
+    try {
+      await writeFile(join(bin, 'git'), '#!/nonexistent/interpreter\n');
+      await chmod(join(bin, 'git'), 0o755);
+      await withVariables({ PATH: bin }, body);
+    } finally {
+      await rm(bin, { recursive: true, force: true });
+    }
+  }
+
+  /**
+   * Check that a run refuses, names git and `--allow-dirty`, and changes nothing, and that the same project still
+   * runs with `--allow-dirty` and on `--dry-run`.
+   *
+   * @param {string} dir Project directory.
+   * @param {string} file The file a rule would migrate, relative to `dir`.
+   * @param {RegExp} said What the refusal says about git.
+   * @returns {Promise<void>}
+   */
+  async function assertGuarded(dir, file, said) {
+    const refused = await migrate(dir, ['--from', '17.1', '--to', '18.0']);
+
+    assert.equal(refused.status, 2, refused.stdout + refused.stderr);
+    assert.match(refused.stderr, /git failed in this directory/);
+    assert.match(refused.stderr, said);
+    assert.match(refused.stderr, /--allow-dirty/);
+    assert.doesNotMatch(refused.stderr, /Not a git repository/);
+    assert.equal(await readFile(join(dir, file), 'utf8'), CSS, 'nothing was migrated');
+
+    const preview = await migrate(dir, ['--from', '17.1', '--to', '18.0', '--dry-run']);
+
+    assert.equal(preview.status, 0, preview.stdout + preview.stderr);
+    assert.equal(await readFile(join(dir, file), 'utf8'), CSS);
+
+    const forced = await migrate(dir, ['--from', '17.1', '--to', '18.0', '--allow-dirty']);
+
+    assert.equal(forced.status, 0, forced.stdout + forced.stderr);
+    assert.equal(await readFile(join(dir, file), 'utf8'), CSS_DONE);
+  }
+
+  it('refuses a repository with a corrupt .git/HEAD, which git reports as "not a git repository"', async() => {
+    const project = await repo({ 'a.css': CSS });
+
+    try {
+      await writeFile(join(project, '.git', 'HEAD'), 'this is not a reference\n');
+
+      await assert.rejects(isGitRepo(project), (error) => {
+        assert.equal(error instanceof GitError, true);
+        assert.match(error.message, /holds a \.git entry/);
+
+        return true;
+      });
+      await assertGuarded(project, 'a.css', /not a git repository, but .* holds a \.git entry/);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses the same way from a folder below the repository', async() => {
+    const project = await repo({ 'packages/app/a.css': CSS });
+
+    try {
+      await writeFile(join(project, '.git', 'HEAD'), 'this is not a reference\n');
+      await assertGuarded(join(project, 'packages', 'app'), 'a.css', /holds a \.git entry/);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses when GIT_COMMON_DIR names a directory that does not exist', async() => {
+    const project = await repo({ 'a.css': CSS });
+
+    try {
+      await withVariables({ GIT_COMMON_DIR: join(project, 'no-such-common-dir') }, async() => {
+        await assert.rejects(isGitRepo(project), /holds a \.git entry/);
+        await assertGuarded(project, 'a.css', /holds a \.git entry/);
+      });
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses when git cannot be started because its interpreter is missing', { skip: !POSIX }, async() => {
+    const project = await repo({ 'a.css': CSS });
+
+    try {
+      await withBrokenGit(async() => {
+        await assert.rejects(isGitRepo(project), (error) => {
+          assert.equal(error instanceof GitError, true);
+          assert.equal(error instanceof GitNotFoundError, false, 'git was found: it failed');
+          assert.match(error.message, /git could not be started \(\w+\), and .* holds a \.git entry/);
+
+          return true;
+        });
+        await assertGuarded(project, 'a.css', /git could not be started/);
+      });
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('still treats a directory with no .git entry above it as outside git, whatever git says', { skip: !POSIX },
+    async() => {
+      await inPlainProject({ 'a.css': CSS }, async(dir) => {
+        await withBrokenGit(async() => {
+          assert.equal(await isGitRepo(dir), false);
+
+          const result = await migrate(dir, ['--from', '17.1', '--to', '18.0']);
+
+          assert.equal(result.status, 0, result.stdout + result.stderr);
+          assert.match(result.stderr, /Not a git repository/);
+        });
+        await withVariables({ GIT_COMMON_DIR: join(dir, 'no-such-common-dir') }, async() => {
+          assert.equal(await isGitRepo(dir), false);
+        });
+      });
+    });
+});
+
 describe('the clean-tree guard does not depend on the user\'s git configuration', () => {
   it('sees an untracked file although status.showUntrackedFiles is no', async() => {
     const project = await repo({ 'a.css': CSS });
@@ -935,6 +1088,36 @@ describe('discovery drops a link to a file on its own, before the write-time che
       }
     } finally {
       await rm(outside, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('a repository with a very large file list', () => {
+  it('lists more files than a function call can take as arguments, and still migrates the real ones', async() => {
+    const project = await repo({ 'real.css': CSS });
+    const count = 150000;
+
+    try {
+      // Entries that point at the empty blob: the index lists them, and no file is created for any of them.
+      const blob = execFileSync('git', ['hash-object', '-w', '--stdin'], {
+        cwd: project,
+        env: isolatedGitEnv(),
+        encoding: 'utf8',
+        input: '',
+      }).trim();
+      const lines = Array.from({ length: count }, (_, index) => `100644 ${blob}\tbulk/f${index}.css\n`).join('');
+
+      execFileSync('git', ['update-index', '--add', '--index-info'], {
+        cwd: project,
+        env: isolatedGitEnv(),
+        input: lines,
+      });
+
+      const files = await discover({ cwd: project });
+
+      assert.deepEqual(files, ['real.css']);
+    } finally {
+      await rm(project, { recursive: true, force: true });
     }
   });
 });

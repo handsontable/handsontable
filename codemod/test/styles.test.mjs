@@ -161,7 +161,9 @@ describe('cssVariable in css', () => {
 
     assert.equal(output, '@include theme((--ht-border-radius: 1px, label: "--ht-wrapper-border-radius"));\n'
       + '@include box(var(--ht-border-radius), url(--ht-wrapper-border-radius.png));\n');
-    assert.deepEqual(entries.map(entry => [entry.severity, entry.line]), [['changed', 1], ['changed', 2]]);
+    // Each at-rule also keeps the name in a string or a url(), so the note is made now and the second run adds nothing.
+    assert.deepEqual(entries.map(entry => [entry.severity, entry.line]),
+      [['changed', 1], ['manual', 1], ['changed', 2], ['manual', 2]]);
   });
 
   it('inserts one TODO per rule and declaration, also when two removed variables share a declaration', async() => {
@@ -681,4 +683,34 @@ describe('a Sass map key next to an interpolated variable name', () => {
     assert.deepEqual(entries.filter(entry => entry.ruleId === WIDTH), []);
     assert.equal(entries.filter(entry => entry.ruleId === RADIUS).length, 1);
   });
+});
+
+describe('a TODO comment in a stylesheet that mixes line endings', () => {
+  const DECLARATION = '  border-width: var(--ht-wrapper-border-width);';
+  const todoOf = output => output.split(/(?<=\n)/).find(line => line.includes('TODO(handsontable-codemod'));
+  const runMarked = source => transformFile({ filePath: 'a.css', source, plan, options: { markers: true } });
+
+  for (const [label, source, ending] of [
+    ['a CRLF region after an LF first line', `.a {\n  color: red;\r\n${DECLARATION}\r\n}\r\n`, '\r\n'],
+    ['an LF region after a CRLF first line', `.a {\r\n  color: red;\n${DECLARATION}\n}\n`, '\n'],
+    ['a CRLF rule after an LF line', `a { color: red }\n.a {\r\n${DECLARATION}\r\n}\r\n`, '\r\n'],
+    ['a first line that is the declaration, in CRLF', `${DECLARATION.trim()}\r\n`, '\r\n'],
+  ]) {
+    it(`ends the comment with the ending of its own line in ${label}`, async() => {
+      const first = await runMarked(source);
+      const line = todoOf(first.output);
+
+      assert.ok(line, first.output);
+      assert.equal(line.endsWith(ending), true, JSON.stringify(first.output));
+      // The comment adds one line break, and every break of the file keeps the ending it had.
+      const crlf = text => text.split('\r\n').length - 1;
+
+      assert.equal(crlf(first.output), crlf(source) + (ending === '\r\n' ? 1 : 0));
+      assert.equal(first.output.split('\n').length - 1, source.split('\n').length);
+
+      const second = await runMarked(first.output);
+
+      assert.equal(second.output, first.output, 'run 2 changed the file');
+    });
+  }
 });

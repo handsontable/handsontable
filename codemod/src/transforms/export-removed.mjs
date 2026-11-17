@@ -1,10 +1,11 @@
-import { findReExports, getImportedBindings } from '../lib/imports.mjs';
+import { findImportEquals, findReExports, getImportedBindings } from '../lib/imports.mjs';
 import {
   WILDCARD_EXPORT,
   expandAdvice,
   isWildcardReExport,
   moduleMatcher,
   pluginOfModule,
+  reportJsdocImportTypes,
   toList,
 } from '../lib/type-rules.mjs';
 import { problemsOf } from '../lib/validate.mjs';
@@ -114,13 +115,27 @@ function applyRule(ctx, rule, handled) {
       });
   });
 
-  getImportedBindings(j, root, matches).filter(binding => binding.form === 'namespace').forEach((binding) => {
-    const source = String(binding.declaration.node.source.value);
+  // `import * as NS from 'm'` and `import NS = require('m')` are read the same way: `NS.Name`.
+  const namespaces = [
+    ...getImportedBindings(j, root, matches).filter(binding => binding.form === 'namespace').map(binding => ({
+      local: binding.local,
+      source: String(binding.declaration.node.source.value),
+    })),
+    ...findImportEquals(j, root, matches),
+  ];
 
+  reportJsdocImportTypes(ctx, {
+    ruleId: rule.id,
+    matches,
+    names: [...names],
+    text: (name, source) => todoText(rule, name, source),
+  });
+
+  namespaces.forEach(({ local, source }) => {
     root.find(j.TSQualifiedName).forEach((path) => {
       const { left, right } = path.node;
 
-      if (left.type === 'Identifier' && left.name === binding.local && names.has(right.name)) {
+      if (left.type === 'Identifier' && left.name === local && names.has(right.name)) {
         ctx.report({
           ruleId: rule.id,
           severity: 'manual',

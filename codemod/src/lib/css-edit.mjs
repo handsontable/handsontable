@@ -68,6 +68,29 @@ function lineEnding(source) {
 }
 
 /**
+ * The line ending that goes with the line an offset is on: the break in front of the line, or the one that ends it
+ * for the first line of the text. A file with mixed endings gets the ending of the place the edit lands in.
+ *
+ * @param {string} source The text.
+ * @param {number} lineStart Offset where the line starts.
+ * @param {number} at An offset on the line.
+ * @returns {string} `\r\n` or `\n`.
+ */
+function endingAround(source, lineStart, at) {
+  if (lineStart > 0 && source[lineStart - 1] === '\n') {
+    return source[lineStart - 2] === '\r' ? '\r\n' : '\n';
+  }
+
+  const index = source.indexOf('\n', at);
+
+  if (index === -1) {
+    return lineEnding(source);
+  }
+
+  return source[index - 1] === '\r' ? '\r\n' : '\n';
+}
+
+/**
  * Order two edits for splicing from the end of the text to its start. At one offset a replacement goes first (it
  * starts there and keeps its place), then the insertions, the latest first, so the earliest ends up in front.
  *
@@ -273,7 +296,7 @@ export class CssDocument {
     let text = this.lineComments && onOwnLine ? `// ${body}` : `/* ${body} */`;
 
     if (onOwnLine) {
-      text += lineEnding(this.source) + indent;
+      text += endingAround(this.source, lineStart, at) + indent;
     } else if (/\s$/.test(indent)) {
       text += ' ';
     }
