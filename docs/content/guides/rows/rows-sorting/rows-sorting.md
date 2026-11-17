@@ -621,6 +621,22 @@ Run code before or after sorting using the following [Handsontable hooks](@/guid
 - [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) — fires before sorting. Return `false` to cancel the sort and keep the current order.
 - [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) — fires after sorting completes.
 
+Both hooks receive the same three arguments:
+
+| Argument | Description |
+|---|---|
+| `currentSortConfig` | The sort configuration from before the sort. In `afterColumnSort`, it is still the previous configuration, not the one the grid is sorted by now. |
+| `destinationSortConfigs` | The sort configuration that the sort applies. |
+| `sortPossible` | `false` when the destination configuration is not valid, for example when it names a column that does not exist. No sort happens then, and `afterColumnSort` receives `currentSortConfig` as `destinationSortConfigs`. |
+
+Each sort configuration is an array with one object for each sorted column. The `column` property is a visual column index, and `sortOrder` is `'asc'` or `'desc'`. An empty array means that no column is sorted. With [`multiColumnSorting`](@/api/options.md#multicolumnsorting), the array holds one object for each sorted column, in the order of sort priority.
+
+```js
+// the grid is sorted by the first column, and the user clicks the header of the third column
+currentSortConfig = [{ column: 0, sortOrder: 'asc' }];
+destinationSortConfigs = [{ column: 2, sortOrder: 'asc' }];
+```
+
 A common use of `beforeColumnSort` is server-side sorting: cancel the client-side sort, send the sort configuration to a server, and reload the data. The following example simulates this: it cancels the front-end sort, "asks a server" to sort the rows, and loads the sorted rows back into the grid.
 
 A common use of `afterColumnSort` is excluding specific rows from the sorted result — see the [`afterColumnSort` example](#exclude-rows-that-are-not-frozen) in the next section. Frozen rows need no hook at all: they [stay out of the sort by default](#frozen-rows-stay-out-of-the-sort-by-default).
