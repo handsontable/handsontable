@@ -6,6 +6,16 @@ import config from './scenario.config.mjs';
 
 const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
 
+/**
+ * Pastes the prepared clipboard text on the selected last row. A named function declaration, not an
+ * inline arrow: script run straight from `page.evaluate` counts as scripting only on a named frame.
+ */
+function pasteClipboardBlock() {
+  const win = window as any;
+
+  win.__hot.getPlugin('copyPaste').paste(win.__pasteText, '');
+}
+
 test(config.name, async({ page }) => {
   await page.goto(`file://${fixturePath}`);
   await page.waitForFunction(() => (window as any).__hot, undefined, { polling: 100 });
@@ -32,12 +42,7 @@ test(config.name, async({ page }) => {
       await injectHookTimer(page, 'beforePaste', 'afterPaste');
     },
     actionFn: async() => {
-      // A named function: script run straight from `page.evaluate` counts only on a named frame.
-      await page.evaluate(() => {
-        const win = window as any;
-
-        win.__hot.getPlugin('copyPaste').paste(win.__pasteText, '');
-      });
+      await page.evaluate(pasteClipboardBlock);
     },
     // Read back after the window closes -- this is a CDP round trip. It also fails the run when the
     // paste wrote nothing or did not grow the grid, which would otherwise read as a fast paste.
