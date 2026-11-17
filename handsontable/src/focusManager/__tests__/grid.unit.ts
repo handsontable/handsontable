@@ -116,3 +116,216 @@ describe('FocusGridManager outside-click exemption registry', () => {
     expect(manager.isPathOutsideClickExempt([document, window])).toBe(false);
   });
 });
+
+type HookCallback = (...args: unknown[]) => unknown;
+
+/**
+ * Builds a manager over a minimal instance whose hooks are real enough to count: `addHook`,
+ * `addHookOnce` and `removeHook` keep a registry, and the highlighted cell is not rendered until the
+ * test says so.
+ *
+ * @returns {object} The manager, the fake instance's controls and a `td` standing for the rendered cell.
+ */
+function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
+  const root = document.createElement('div');
+  const td = document.createElement('td');
+  const listeners = new Map<string, HookCallback[]>();
+  const onceListeners = new Set<HookCallback>();
+  const state = {
+    highlight: { row: 50, col: 0 } as { row: number | null, col: number | null } | null,
+    rendered: false,
+    destroyed: false,
+    requested: [] as Array<[number, number]>,
+  };
+
+  root.className = 'handsontable';
+  document.body.append(root, td);
+  jest.spyOn(td, 'focus');
+
+  const add = (key: string, callback: HookCallback) => {
+    listeners.set(key, [...(listeners.get(key) ?? []), callback]);
+  };
+  const hot = {
+    rootElement: root,
+    rootWrapperElement: null,
+    rootPortalElement: null,
+    rootDocument: document,
+    get isDestroyed() {
+      return state.destroyed;
+    },
+    selection: { isCellVisible: () => true },
+    getSettings: () => ({ imeFastEdit: settings.imeFastEdit ?? false }),
+    getSelectedRangeActive: () => (state.highlight ? { highlight: state.highlight } : undefined),
+    getActiveEditor: () => undefined,
+    getCell: (row: number, col: number) => {
+      state.requested.push([row, col]);
+
+      return state.rendered ? td : null;
+    },
+    runHooks: (key: string, row: number, col: number, element: HTMLElement | null) => element,
+    addHook: add,
+    addHookOnce: (key: string, callback: HookCallback) => {
+      onceListeners.add(callback);
+      add(key, callback);
+    },
+    removeHook: (key: string, callback: HookCallback) => {
+      listeners.set(key, (listeners.get(key) ?? []).filter(listener => listener !== callback));
+    },
+  } as unknown as HotInstance;
+  const manager = new FocusGridManager(hot);
+
+  manager.init();
+
+  return {
+    manager,
+    td,
+    state,
+    count: (key: string) => listeners.get(key)?.length ?? 0,
+    run: (key: string) => {
+      (listeners.get(key) ?? []).slice().forEach((listener) => {
+        listener();
+
+        // The real hook list drops a once listener after its callback returned.
+        if (onceListeners.delete(listener)) {
+          listeners.set(key, (listeners.get(key) ?? []).filter(entry => entry !== listener));
+        }
+      });
+    },
+  };
+}
+
+describe('FocusGridManager deferred focus', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+  });
+
+  it('keeps one afterScroll listener however often the same unrendered cell is asked for', () => {
+    const grid = makeDeferredFocusGrid();
+
+    for (let i = 0; i < 20; i++) {
+      grid.manager.focusOnHighlightedCell();
+    }
+
+    expect(grid.count('afterScroll')).toBe(1);
+  });
+
+  it('replaces the listener when the highlight moves to another unrendered cell', () => {
+    const grid = makeDeferredFocusGrid();
+
+    for (let row = 50; row < 70; row++) {
+      grid.state.highlight = { row, col: 0 };
+      grid.manager.focusOnHighlightedCell();
+    }
+
+    expect(grid.count('afterScroll')).toBe(1);
+
+    grid.state.rendered = true;
+    grid.state.requested.length = 0;
+    grid.run('afterScroll');
+
+    expect(grid.state.requested).toEqual([[69, 0]]);
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('focuses the cell after the scroll when the highlight is still on it', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.manager.focusOnHighlightedCell();
+    grid.state.rendered = true;
+    grid.run('afterScroll');
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+    expect(grid.count('afterScroll')).toBe(0);
+  });
+
+  it('runs nothing after the scroll when the highlight moved to another cell', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.manager.focusOnHighlightedCell();
+    grid.state.highlight = { row: 0, col: 0 };
+    grid.state.rendered = true;
+    grid.run('afterScroll');
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+
+  it.each(['afterSelection', 'afterSelectionFocusSet'])(
+    'removes the listener when %s reports a highlight on another cell',
+    (hookName) => {
+      const grid = makeDeferredFocusGrid();
+
+      grid.manager.focusOnHighlightedCell();
+      grid.state.highlight = { row: 0, col: 0 };
+      grid.run(hookName);
+
+      expect(grid.count('afterScroll')).toBe(0);
+    },
+  );
+
+  it.each(['afterSelection', 'afterSelectionFocusSet'])(
+    'keeps the listener when %s reports the highlight on the same cell',
+    (hookName) => {
+      const grid = makeDeferredFocusGrid();
+
+      grid.manager.focusOnHighlightedCell();
+      grid.run(hookName);
+
+      expect(grid.count('afterScroll')).toBe(1);
+    },
+  );
+
+  it('runs a repeated ask of the same caller once, with its latest callback', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.manager.focusOnHighlightedCell();
+    grid.manager.focusOnHighlightedCell();
+    grid.manager.focusOnHighlightedCell();
+    grid.state.rendered = true;
+    grid.run('afterScroll');
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['the cell focus is asked for before the editor refocus', ['afterRender', 'afterSelectionEnd']],
+    ['the editor refocus is asked for before the cell focus', ['afterSelectionEnd', 'afterRender']],
+  ])('keeps both the cell focus and the editor refocus when %s', (name, hookOrder) => {
+    const grid = makeDeferredFocusGrid({ imeFastEdit: true });
+    const refocus = jest.spyOn(grid.manager, 'refocusToEditorTextarea').mockImplementation(() => {});
+
+    grid.run('afterSelection');
+    hookOrder.forEach(hookName => grid.run(hookName));
+
+    expect(grid.count('afterScroll')).toBe(1);
+    expect(grid.td.focus).not.toHaveBeenCalled();
+    expect(refocus).not.toHaveBeenCalled();
+
+    grid.state.rendered = true;
+    grid.run('afterScroll');
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+    expect(refocus).toHaveBeenCalledTimes(1);
+  });
+
+  it('removes the listener when the selection is cleared', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.manager.focusOnHighlightedCell();
+    grid.state.highlight = null;
+    grid.run('afterDeselect');
+
+    expect(grid.count('afterScroll')).toBe(0);
+  });
+
+  it('runs nothing after the grid was destroyed', () => {
+    const grid = makeDeferredFocusGrid();
+
+    grid.manager.focusOnHighlightedCell();
+    grid.state.rendered = true;
+    grid.state.destroyed = true;
+    grid.run('afterScroll');
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+});
