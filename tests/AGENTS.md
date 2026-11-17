@@ -591,6 +591,20 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   "extend the selection past the edge" — drag-to-scroll fires and the selection overshoots the
   intended range. This class of spec ships green by luck and breaks on a 1px browser row-metric
   shift (the Playwright 1.62 bump broke exactly one theme this way). Pattern: `FormulasGridPage`.
+- **A press on a cell the holder shows only part of scrolls the holder, and on Firefox the runner's
+  load decides how far.** `hover()` and `click()` aim at the cell's centre, so Playwright scrolls a
+  clipped centre into view first: Chromium and WebKit to the nearest edge, Firefox to the middle of
+  the holder. When that attempt's hit test fails, the retry scrolls again with
+  `scrollIntoView({ block: 'end', inline: 'end' })`. An open editor follows a holder scroll from the
+  `scroll` event, a frame later, and until then it covers its old place. So on Firefox the first
+  attempt fails on a quiet machine (the editor is still in the way, and the retry leaves the cell at
+  the holder's end edge) and gets through on a loaded one (the frame ran first, and the cell stays
+  centred). A coordinate read from a box before such a press is over another column after it: the
+  picking spec's `split-scroll` drag read `=B1:C28` for `=B1:B28` that way, on a loaded runner
+  only. Press on a part of the cell that is already in view (`hover({ position })`), so the press
+  scrolls nothing, and assert what the pointer is over before the gesture's outcome
+  (`FormulaBuilderPage.cellTestIdAtPoint()`), so a stale coordinate fails as one. Pattern:
+  `holdDragBelowViewport()` in `e2e/formula-builder-picking.spec.ts`.
 - After a drag-select, assert the achieved range (`getSelectedRangeLast()` via `page.evaluate`).
   Wheel by the EXACT remaining distance — a fixed step turns the poll budget into a hidden reach
   cap, and a fixed minimum over-corrects few-px overflows and ping-pongs when nearby targets need
