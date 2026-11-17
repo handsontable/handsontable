@@ -709,11 +709,6 @@ export class TableRenderer {
       // row count so a table with nothing to render still touches nothing.
       const mayHaveExactRows = rowsToRender > 0 && rowUtils.mayHaveExactRows();
       const firstRowTopBorder = firstRowDrawsTopBorder(this.rootNode.tHead);
-      const firstRowBorderOutsideHeight = firstRowTopBorderOutsideHeight(
-        this.activeOverlayName,
-        this.rootNode.tHead,
-        this.stylesHandler.areCellsBorderBox(),
-      );
 
       for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
         const TR = rows!.getRenderedNode(visibleRowIndex);
@@ -721,16 +716,18 @@ export class TableRenderer {
         if (TR) {
           const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
           const isExact = mayHaveExactRows && rowUtils.isExact(sourceRowIndex);
+          const isBorderBox = this.stylesHandler.areCellsBorderBox();
 
           applyRowHeight(
             TR,
             rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName, isExact),
             isExact,
-            this.stylesHandler.areCellsBorderBox(),
+            isBorderBox,
             rowUtils,
             sourceRowIndex,
             visibleRowIndex === 0 && firstRowTopBorder,
-            visibleRowIndex === 0 && firstRowBorderOutsideHeight,
+            visibleRowIndex === 0 &&
+              firstRowTopBorderOutsideHeight(this.activeOverlayName, this.rootNode.tHead, isBorderBox),
           );
         }
       }
