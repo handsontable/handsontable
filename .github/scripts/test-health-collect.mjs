@@ -25,8 +25,7 @@
  * (`tests/a11y/issues.json`), which the page's "Accessibility" section draws.
  * A stored a11y.json of an older version is migrated on the way in
  * (`migrateA11yLedger`) and written in the current one with the next recorded
- * night, never by itself. The fix progress table prints a task id, as a link,
- * only when `--tracker-url` gives the address the trackers live at.
+ * night, never by itself.
  * A row that matches two clusters, or a night with more triage shapes than the
  * catalog's `triageLimit`, raises a `::warning`. An a11y.json it cannot read,
  * or a catalog that does not validate, is left as it is, with a warning, and
@@ -48,7 +47,6 @@
  *     [--seed .github/test-health/seed.json]
  *     [--template .github/test-health/index.template.html]
  *     [--catalog tests/a11y/issues.json]   # without it, accessibility findings are not recorded
- *     [--tracker-url https://tracker.example/t/]   # a task id is appended; without it the page names no task
  *     [--page-url https://handsontable.github.io/handsontable/test-health/]
  *     [--now 2026-09-08T12:00:00Z]   # for tests
  */
@@ -269,7 +267,6 @@ try {
   // Migrated on the way in, so the page is drawn from a document of this code's version whether or not this run
   // records a night; the file itself is rewritten only when one is.
   const previousA11y = existsSync(a11yPath) ? migrateA11yLedger(JSON.parse(readFileSync(a11yPath, 'utf8'))) : null;
-  const viewOptions = { trackerUrl: options['tracker-url'] ?? null };
 
   if (!options.catalog) {
     assertA11yVersion(previousA11y);
@@ -314,12 +311,12 @@ try {
       } else {
         assertA11yVersion(previousA11y);
       }
-      a11yPage = a11yView(doc, catalog, viewOptions);
+      a11yPage = a11yView(doc, catalog);
     } else {
       // Only the recorded workflows' runs on develop are (`isA11yRun`): a pull request's evidence, a fork's included,
       // comes from the pull request's own code and stays in its own run.
       assertA11yVersion(previousA11y);
-      a11yPage = a11yView(previousA11y, catalog, viewOptions);
+      a11yPage = a11yView(previousA11y, catalog);
 
       if (a11yFiles.length > 0) {
         notes.push(`${a11yFiles.length} accessibility artifact file(s) not recorded: only runs of ${recordedWorkflows()} `

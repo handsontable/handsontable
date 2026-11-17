@@ -2145,63 +2145,42 @@ function compareIds(a, b) {
 }
 
 /**
- * The fix progress as the page inlines it. A task id is printed only when the page is given the address its trackers
- * live at (`trackerUrl`, the collector's `--tracker-url`); without one the page names no task. A tracker's row is then
- * named by its clusters, and the trackers that own the same clusters, whose rows would read alike, are one row that
- * says how many tasks it stands for.
+ * The fix progress as the page inlines it, without a task id: the page is public, and a tracker is code in the
+ * catalog, never printed there. A tracker's row is named by its clusters, and the trackers that own the same clusters,
+ * whose rows would read alike, are one row that says how many tasks it stands for. The headline keeps counting tasks.
  *
  * @param {object|null} progress The progress (`fixProgress()`).
- * @param {string|null} trackerUrl The address a task id is appended to, or `null`.
  * @returns {object|null} The view.
  */
-function fixView(progress, trackerUrl) {
+function fixView(progress) {
   if (progress === null) {
     return null;
   }
 
   const { trackers, others, ...head } = progress;
-  const named = trackers.map(({ sharedWith, ...item }) => ({ ...item, tasks: 1, sharedWith: trackerUrl ? sharedWith : [], shared: sharedWith.length }));
-  const rows = [];
+  const byClusters = new Map();
 
-  if (trackerUrl) {
-    rows.push(...named);
-  } else {
-    const byClusters = new Map();
+  for (const { tracker, sharedWith, ...item } of trackers) {
+    const key = item.clusters.map(cluster => cluster.id).join('|');
+    const row = byClusters.get(key);
 
-    for (const item of named) {
-      const key = item.clusters.map(cluster => cluster.id).join('|');
-      const first = byClusters.get(key);
-
-      if (first) {
-        first.tasks += 1;
-        // The tasks folded into the row no longer count as other tasks sharing its clusters.
-        first.shared = Math.max(0, first.shared - 1);
-      } else {
-        byClusters.set(key, { ...item, tracker: null });
-        rows.push(byClusters.get(key));
-      }
+    if (row) {
+      row.tasks += 1;
+      // A task folded into the row no longer counts as another task sharing its clusters.
+      row.shared = Math.max(0, row.shared - 1);
+    } else {
+      byClusters.set(key, { ...item, tasks: 1, shared: sharedWith.length });
     }
   }
 
-  return { ...head, trackerUrl, rows: [...rows, ...others.map(item => ({ ...item, tasks: 0, shared: 0 }))] };
-}
-
-/**
- * The address the trackers live at, as the page may link it: https, with nothing that could close an attribute. A task
- * id is appended to it.
- *
- * @param {unknown} value The address.
- * @returns {string|null} The address, or `null`.
- */
-export function trackerAddress(value) {
-  return typeof value === 'string' && /^https:\/\/[\w.-]+(?:\/[\w./-]*)?$/.test(value) && value.length <= 200 ? value : null;
+  return { ...head, rows: [...byClusters.values(), ...others.map(({ tracker, sharedWith, ...item }) => ({ ...item, tasks: 0, shared: 0 }))] };
 }
 
 /**
  * What the page inlines: the clusters with their counts and trend, the criteria, the latest reader
  * verdicts, the triage queue, the nights and the fix progress, all derived from the ledger so the page needs no
- * fetch. No task id is in it unless the page is given the trackers' address (`trackerUrl`): without one the page
- * says whether a cluster has a tracker, never which.
+ * fetch. No task id is in it: the page says whether a cluster has a tracker, never which, and the fix progress names
+ * a task's row by its clusters (`fixView()`).
  *
  * A cluster's trend has one series per source its rules or rows come from, over that source's nights only:
  * the two nightlies run an hour apart, and one series over both would draw a reader-only cluster at zero on
@@ -2209,12 +2188,9 @@ export function trackerAddress(value) {
  *
  * @param {object|null} doc The ledger.
  * @param {object} catalog The compiled cluster catalog.
- * @param {object} [options] Options.
- * @param {string|null} [options.trackerUrl] The address a task id is appended to (`trackerAddress()`); the page prints
- * task ids and links them only with it.
  * @returns {object|null} The view, or `null` before any night was recorded.
  */
-export function a11yView(doc, catalog, { trackerUrl = null } = {}) {
+export function a11yView(doc, catalog) {
   if (!doc || !Array.isArray(doc.nights) || doc.nights.length === 0) {
     return null;
   }
@@ -2396,7 +2372,7 @@ export function a11yView(doc, catalog, { trackerUrl = null } = {}) {
     checks,
     reader,
     triage: { total: triageRows.length, shapes: triageShapes.length, rows: triageShapes.slice(0, A11Y_TRIAGE_SHOWN) },
-    fix: fixView(fixProgress(doc, catalog), trackerAddress(trackerUrl)),
+    fix: fixView(fixProgress(doc, catalog)),
   };
 }
 

@@ -1828,26 +1828,13 @@ test('renderPage inlines the accessibility view escaped, the template reads it, 
   const section = code[0].slice(code[0].indexOf('a11y-body'));
 
   assert.ok(!/\.href = (?!href;)/.test(section), 'every link the accessibility section sets comes from a helper\'s address');
-  // The fix progress block links through one function, and only to what the two address helpers return.
+  // The fix progress block links through one function, and only to a run's page: no task is linked or named.
   const linked = [...section.matchAll(/linkTo\(([\w.]+)\(/g)].map(([, helper]) => helper);
 
-  assert.deepEqual([...new Set(linked)].sort(), ['runPage', 'trackerPage'], 'a link is a run page or a task page, never a string from the data');
+  assert.deepEqual([...new Set(linked)], ['runPage'], 'a link is a run page, never a string from the data');
   assert.equal((section.match(/linkTo\(/g) ?? []).length, linked.length + 1, 'every call but the declaration names its helper in place');
+  assert.ok(!/clickup|row\.tracker|trackerUrl/i.test(code[0]), 'the page has no way to print a task id or a tracker\'s address');
   assert.ok(!/innerHTML|insertAdjacentHTML|outerHTML/.test(code[0]), 'the page never builds markup from strings');
-
-  // The task page helper: an https address and a plain task id, or no link at all.
-  const context = vm.createContext({});
-
-  vm.runInContext(`${code[0].slice(code[0].indexOf('var trackerPage = '), code[0].indexOf('}());', code[0].indexOf('var trackerPage = ')) + 5)}`, context);
-
-  const trackerPage = context.trackerPage;
-
-  assert.equal(trackerPage('https://tracker.example/t/1234/', 'DEV-3603'), 'https://tracker.example/t/1234/DEV-3603');
-  for (const [base, id] of [['http://tracker.example/t/', 'DEV-1'], ['javascript:alert(1)//', 'DEV-1'], ['https://tracker.example/t/"x', 'DEV-1'],
-    [null, 'DEV-1'], ['https://tracker.example/t/', 'DEV-1/../../x'], ['https://tracker.example/t/', 'dev-1'], ['https://tracker.example/t/', null],
-    ['https://tracker.example/t/', 'DEV-1?x=<script>']]) {
-    assert.equal(trackerPage(base, id), null, `${base} + ${id}`);
-  }
 });
 
 test('the rendered accessibility section is accessible markup: tables with header cells, headings in order, every chart named', () => {
@@ -1969,7 +1956,7 @@ function collectorSandbox() {
 
       return root;
     },
-    collect(run, artifactsDir, now, { catalog = path.join(repoRoot(), 'tests/a11y/issues.json'), args = [] } = {}) {
+    collect(run, artifactsDir, now, { catalog = path.join(repoRoot(), 'tests/a11y/issues.json') } = {}) {
       const runFile = path.join(dir, `run-${run.id}-${run.run_attempt}.json`);
 
       writeFileSync(runFile, JSON.stringify(run));
@@ -1981,7 +1968,6 @@ function collectorSandbox() {
         '--template', path.join(repoRoot(), '.github/test-health/index.template.html'),
         ...(catalog ? ['--catalog', catalog] : []),
         '--now', now,
-        ...args,
       ], { cwd: repoRoot(), encoding: 'utf8', env: { ...process.env, GITHUB_RUN_ID: '', GITHUB_RUN_ATTEMPT: '' } });
 
       return { status: result.status, stdout: result.stdout, stderr: result.stderr };
@@ -2037,7 +2023,7 @@ test('the collector records a develop nightly into a11y.json and the page, and a
   }
 });
 
-test('the collector reads a version 1 a11y.json through the migration: it leaves the file alone until a night is recorded, and draws the fix progress either way', () => {
+test('the collector reads a version 1 a11y.json through the migration: it leaves the file alone until a night is recorded, and draws the fix progress, without a task id, either way', () => {
   const sandbox = collectorSandbox();
   const stored = readFileSync(path.join(repoRoot(), '.github/scripts/__tests__/fixtures/a11y-ledger-v1.json'), 'utf8');
   const dataOf = (page) => {
@@ -2061,20 +2047,10 @@ test('the collector reads a version 1 a11y.json through the migration: it leaves
     const plain = dataOf(readFileSync(path.join(sandbox.ledgerDir, 'index.html'), 'utf8'));
 
     assert.equal(plain.fix.headline.audits, 13, 'the page reads the audits out of the history the migration rebuilt');
-    assert.ok(plain.fix.rows.some(row => row.kind === 'tracker') && plain.fix.rows.every(row => row.tracker === null));
-    assert.ok(!/"[A-Z]+-\d+"/.test(JSON.stringify(plain)), 'and names no task without the trackers\' address');
-
-    // With the address, the same run draws the tasks by id.
-    const linked = sandbox.collect({ ...PULL_REQUEST, id: 41644897456 }, sandbox.artifacts('none-again', []), '2026-11-18T06:10:00Z',
-      { args: ['--tracker-url', 'https://tracker.example/t/1234/'] });
-
-    assert.equal(linked.status, 0, linked.stderr);
-
-    const named = dataOf(readFileSync(path.join(sandbox.ledgerDir, 'index.html'), 'utf8'));
-
-    assert.equal(named.fix.trackerUrl, 'https://tracker.example/t/1234/');
-    assert.ok(named.fix.rows.filter(row => row.kind === 'tracker').every(row => /^[A-Z]+-\d+$/.test(row.tracker)));
-    assert.equal(readFileSync(path.join(sandbox.ledgerDir, 'a11y.json'), 'utf8'), stored, 'still unwritten');
+    assert.ok(plain.fix.rows.some(row => row.kind === 'tracker'), 'with its fix tasks');
+    // The stored rows carry their trackers; the page built from them names none.
+    assert.ok(/"tracker":\["?[A-Z]+-\d+/.test(stored) || /"tracker":"[A-Z]+-\d+"/.test(stored), 'the fixture\'s rows do name tasks');
+    assert.ok(!/[A-Z]{2,}-\d{3,}/.test(JSON.stringify(plain)), 'and no task id reaches the page');
 
     // The next night of the A11y nightly writes the file, in this version, with the rebuilt history and its own entry.
     const night = sandbox.collect({ ...NIGHTLY, id: 45000000001, updated_at: '2026-11-24T05:44:30Z' }, sandbox.artifacts('nightly', nightlyFiles()),
