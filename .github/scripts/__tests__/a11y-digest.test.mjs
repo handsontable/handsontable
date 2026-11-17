@@ -435,10 +435,33 @@ test('a11y-digest.yml runs weekly and on demand, posts only from a schedule or a
   // Monday morning, after the weekly audit and its collection; a dispatch is a dry run unless it asks to post.
   assert.match(workflow, /^ {2}schedule:\n {4}- cron: '0 8 \* \* 1'$/m, `${WORKFLOW}: Mondays at 08:00 UTC`);
   assert.match(workflow, /^ {6}dry-run:\n(?: {8}.*\n)* {8}type: boolean\n {8}default: true$/m, 'a dispatch posts nothing unless dry-run is turned off');
-  assert.match(workflow, /^ {2}pull_request:\n {4}paths:\n(?: {6}- .*\n)+/m, 'a pull request that touches the digest runs it as a dry run');
-  for (const file of ['.github/workflows/a11y-digest.yml', '.github/scripts/a11y-digest.mjs', '.github/scripts/lib/a11y-digest.mjs', '.github/scripts/lib/a11y-ledger.mjs']) {
-    assert.ok(workflow.includes(`      - '${file}'`), `the pull request trigger lists ${file}`);
-  }
+  // A pull request that touches anything the job runs or reads gets the dry run: the workflow, the catalog, and every
+  // module the script imports, directly or not. A module left out would let a change that breaks the digest pass its
+  // pull request and first show on a Monday.
+  const [, listed = ''] = /^ {2}pull_request:\n {4}paths:\n((?: {6}- .*\n)+)/m.exec(workflow) ?? [];
+  const paths = [...listed.matchAll(/- '([^']+)'/g)].map(([, file]) => file);
+  const imported = new Set();
+  const walk = (file) => {
+    if (imported.has(file)) {
+      return;
+    }
+    imported.add(file);
+
+    for (const [, specifier] of readFileSync(path.join(repoRoot(), file), 'utf8').matchAll(/^(?:import|export)\s+(?:[\w*{}\s,$]+?\s+from\s+)?['"]([^'"]+)['"]/gm)) {
+      if (specifier.startsWith('.')) {
+        walk(path.posix.normalize(path.posix.join(path.posix.dirname(file), specifier)));
+      }
+    }
+  };
+
+  walk('.github/scripts/a11y-digest.mjs');
+  assert.ok(imported.has('.github/scripts/lib/a11y-ledger.mjs') && imported.has('tests/lib/a11y-issues.mjs') && imported.size > 10, 'walked the imports');
+  assert.deepEqual([...paths].sort(), [WORKFLOW, 'tests/a11y/issues.json', ...imported].sort(),
+    'the pull request trigger lists the workflow, the catalog and every module the digest script imports, and nothing else');
+  assert.match(build, /--catalog tests\/a11y\/issues\.json/, 'the catalog the trigger lists is the one the job reads');
+  // A pull request's newer push replaces its dry run; the schedule and a dispatch never cancel each other, so a dry-run
+  // dispatch on a Monday cannot cancel that week's post.
+  assert.match(workflow, /^concurrency:\n {2}group: a11y-digest-\$\{\{ github\.ref \}\}\n {2}cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}$/m);
   // Read-only: the digest reads the repository, gh-pages and its own earlier runs, and writes nowhere but Slack.
   assert.match(workflow, /^permissions:\n {2}contents: read\n {2}actions: read {3}# .*\n\n/m);
   assert.ok(!/: write\b/.test(workflow), 'no write scope of any kind');

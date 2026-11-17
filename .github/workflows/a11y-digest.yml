@@ -39,21 +39,39 @@ on:
         type: string
         default: '7'
   # A pull request that touches the digest runs it once, as a dry run, against the published ledger: the job has no
-  # other run before it merges, and a broken step would first show on a Monday.
+  # other run before it merges, and a broken step would first show on a Monday. The list is this file, the catalog the
+  # job reads, and every module its script imports, directly or not; `a11y-digest.test.mjs` walks the imports and
+  # fails when one is missing here.
   pull_request:
     paths:
       - '.github/workflows/a11y-digest.yml'
+      - 'tests/a11y/issues.json'
       - '.github/scripts/a11y-digest.mjs'
       - '.github/scripts/lib/a11y-digest.mjs'
       - '.github/scripts/lib/a11y-ledger.mjs'
+      - 'tests/a11y/docs/constants.mjs'
+      - 'tests/a11y/pages.mjs'
+      - 'tests/a11y/website/constants.mjs'
+      - 'tests/lib/a11y-baseline.mjs'
+      - 'tests/lib/a11y-evidence.mjs'
+      - 'tests/lib/a11y-issues.mjs'
+      - 'tests/lib/a11y-site-checks.mjs'
+      - 'tests/lib/a11y-subset.mjs'
+      - 'tests/lib/a11y-verdict.mjs'
+      - 'tests/lib/screenreader-matrix.mjs'
+      - 'tests/lib/screenreader-scenario.mjs'
+      - 'tests/lib/screenreader-transcript.mjs'
 
 permissions:
   contents: read
   actions: read   # the previous scheduled run's start time, where a scheduled digest's window begins
 
+# A newer push replaces a pull request's dry run. The schedule and a dispatch on develop share a group too, and neither
+# cancels the other: a dry-run dispatch started while the Monday run is in flight would cancel that week's post, and a
+# scheduled start would cancel a dispatch that was posting. They queue instead.
 concurrency:
   group: a11y-digest-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   PAGE_URL: https://handsontable.github.io/handsontable/test-health/#a11y-fix-title
