@@ -39,7 +39,8 @@
 <body>
   <!--
     Fixture for `loadData()` on a grid with frozen bottom rows. Query params: `rows` (initial row count),
-    `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`, `fixedColumnsEnd`. Every cell holds "<row>-<col>", so a cell read back from the
+    `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`, `fixedColumnsEnd`, `hiddenRows` (comma-separated rows
+    to hide). Every cell holds "<row>-<col>", so a cell read back from the
     DOM names the record it shows.
   -->
   <div id="grid" data-testid="grid"></div>
@@ -69,6 +70,14 @@
       return parsed;
     };
 
+    // `?hiddenRows=8,9` hides those rows through the HiddenRows plugin.
+    const hiddenRowsParam = htParams.get('hiddenRows');
+    const hiddenRows = hiddenRowsParam === null ? [] : hiddenRowsParam.split(',').map(Number);
+
+    if (hiddenRows.some(Number.isNaN)) {
+      throw new Error('Unknown ?hiddenRows= value: ' + JSON.stringify(hiddenRowsParam));
+    }
+
     window.createGridData = n => Array.from({ length: n }, (_, r) => Array.from({ length: 5 }, (_, c) => `${r}-${c}`));
 
     // A constructor throw is captured for `awaitFixtureBuilt()`, so a bad setting is a red test with the
@@ -80,6 +89,7 @@
         fixedRowsBottom: count('fixedRowsBottom', 0),
         fixedColumnsStart: count('fixedColumnsStart', 0),
         fixedColumnsEnd: count('fixedColumnsEnd', 0),
+        hiddenRows: hiddenRows.length > 0 ? { rows: hiddenRows, indicators: false } : false,
         height: 'auto',
         licenseKey: window.htTestLicenseKey,
       });

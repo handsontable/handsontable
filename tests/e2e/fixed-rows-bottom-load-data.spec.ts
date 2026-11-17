@@ -159,6 +159,17 @@ test.describe('loadData() and row removal on a grid with fixedRowsBottom', () =>
     expect(await grid.topmostCellText(4)).toBe('4-0');
   });
 
+  test('keeps resolving the pinned cells at rest when a hidden row sits in the frozen bottom band', async() => {
+    // The band counts renderable rows and not hidden frozen ones, as the clone's TBODY does, so a clone that is up
+    // to date is never mistaken for a stale one.
+    await grid.goto({ rows: 10, fixedRowsBottom: 3, hiddenRows: '8' });
+
+    await expect(grid.bottomCloneRows).toHaveCount(2);
+    expect(await grid.topmostCellText(9)).toBe('9-0');
+    expect(await grid.topmostCellText(7)).toBe('7-0');
+    expect(await grid.topmostCellText(8)).toBeNull();
+  });
+
   test('control: loads the data with no frozen bottom rows', async() => {
     await grid.goto({ rows: 10 });
     await grid.selectCell(9, 0);
