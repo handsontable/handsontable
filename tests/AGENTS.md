@@ -2599,6 +2599,9 @@ queue, what is outstanding per surface, and the page's headline numbers. The pur
 - **Every text that reaches Slack is escaped for it** (`slackText()`), a title is cut to `DIGEST_TITLE`, a
   list names `DIGEST_LISTED` clusters and sums up the rest, and a task is linked only with an https address
   (`trackerAddress()`). The workflow sends the message from a payload file, never through a YAML string.
+- **The digest names the fix tasks; the page does not.** The message goes to the team's Slack, so it names
+  each task by the id the catalog gives it and links it (`TRACKER_URL` in the workflow). The test-health
+  page is public and names none ("A11y: fix progress over time").
 - **No tracker token.** The digest links the fix tasks by the ids the catalog names. A task's status, owner
   and closed date are not read: CI holds no ClickUp secret, and none is to be added for this.
 - **Locally:** `gh api -H 'Accept: application/vnd.github.raw'

@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { DIGEST_DAYS, DIGEST_LISTED, DIGEST_PAGE_URL, DIGEST_TITLE, a11yDigest, renderA11yDigest, slackText } from '../lib/a11y-digest.mjs';
+import { DIGEST_DAYS, DIGEST_LISTED, DIGEST_PAGE_URL, DIGEST_TITLE, a11yDigest, renderA11yDigest, slackText, trackerAddress } from '../lib/a11y-digest.mjs';
 import { nightMeasured, serializeA11yLedger } from '../lib/a11y-ledger.mjs';
 import { repoRoot } from '../lib/repo-root.mjs';
 import { job, steps } from '../lib/workflow-text.mjs';
@@ -287,11 +287,14 @@ test('every text that reaches Slack is escaped for it, a long title is cut, and 
   assert.equal(line, `      ◦ 1 · Menus &lt;@channel&gt; &amp; ${'x'.repeat(DIGEST_TITLE - 20)}… (<${TRACKERS}TASK-8|TASK-8>)`,
     'a title cannot mention a channel or open a link, and is cut to its limit before it is escaped');
 
-  for (const bad of ['http://tracker.example/t/', 'javascript:alert(1)', 'https://tracker.example/t/|x>', '']) {
+  for (const bad of ['http://tracker.example/t/', 'javascript:alert(1)', 'https://tracker.example/t/|x>', 'https://tracker.example/?q=', '', null, 7,
+    `https://tracker.example/${'a'.repeat(200)}`]) {
     const plain = renderA11yDigest(digest, { trackerUrl: bad });
 
+    assert.equal(trackerAddress(bad), null, String(bad));
     assert.ok(plain.includes('(TASK-8)') && !plain.includes('TASK-8|'), `${bad}: the task is named, never linked to an address the digest cannot trust`);
   }
+  assert.equal(trackerAddress(TRACKERS), TRACKERS);
   // The page link is the caller's own option, the workflow's constant.
   assert.ok(renderA11yDigest(digest, { pageUrl: 'https://example.test/page' }).endsWith('<https://example.test/page|Fix progress on the test-health page>'));
 });

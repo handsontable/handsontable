@@ -19,7 +19,8 @@
  * - Both states are read with the catalog as it is today, so a cluster renamed or split between the two is one cluster
  *   in both, and a row is compared with itself by its key.
  * - Findings in clusters the catalog marks as not a defect are counted apart, like on the page.
- * - A task id is linked only with the trackers' address, and every text that reaches Slack is escaped for it.
+ * - A task id is named here and nowhere public: the digest goes to the team's Slack, and the test-health page names
+ *   no task. It is linked only with the trackers' address, and every text that reaches Slack is escaped for it.
  *
  * No I/O in here. `scripts/a11y-digest.mjs` reads the two files and writes the payload; `.github/workflows/a11y-digest.yml`
  * runs it. The policy is `tests/AGENTS.md`, "A11y: the weekly digest".
@@ -35,7 +36,6 @@ import {
   nightMeasured,
   nightSourceOf,
   surfaceOf,
-  trackerAddress,
 } from './a11y-ledger.mjs';
 import { TRIAGE_ID, clusterOf, findingShape } from '../../../tests/lib/a11y-issues.mjs';
 
@@ -250,6 +250,17 @@ export function a11yDigest(beforeDoc, afterDoc, catalog, { days = DIGEST_DAYS } 
     surfaces,
     headline: fixProgress(after, catalog).headline,
   };
+}
+
+/**
+ * The address the trackers live at, as the message may link it: https, with nothing that could close a link. A task
+ * id is appended to it. The digest goes to the team's Slack; the test-health page is public and names no task.
+ *
+ * @param {unknown} value The address.
+ * @returns {string|null} The address, or `null`.
+ */
+export function trackerAddress(value) {
+  return typeof value === 'string' && /^https:\/\/[\w.-]+(?:\/[\w./-]*)?$/.test(value) && value.length <= 200 ? value : null;
 }
 
 /**
