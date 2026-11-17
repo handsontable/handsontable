@@ -246,6 +246,32 @@ test('the history keeps its own retention, far past the rows\'', () => {
   assert.equal(fixProgress(later, CATALOG).trackers.some(item => item.tracker === 'TASK-1'), false, 'a task with nothing on record is not listed');
 });
 
+test('an entry counts what the ledger holds after the merge: a row that leaves unresolved is no longer open, and a resolution is kept even when its row leaves at once', () => {
+  // Audits a long way apart. Page a's finding is seen in January; the walker then stops measuring page a.
+  const stale = record(null, [
+    [101, '2026-01-05T05:00:00Z', a11yNight([walker('focus-lost', 'a'), walker('focus-lost', 'b')])],
+    [111, '2026-02-02T05:00:00Z', a11yNight([walker('focus-lost', 'b')], ['b', 'c'])],
+    // More than 90 days after page a was last seen: its row leaves the ledger, unresolved.
+    [121, '2026-04-20T05:00:00Z', a11yNight([walker('focus-lost', 'b')], ['b', 'c'])],
+  ]).doc;
+
+  assert.deepEqual(stale.rows.map(row => row.page), ['b']);
+  assert.deepEqual(historyOf(stale, 111).clusters, { 'focus-lost': [2, 0, 0, 0] }, 'unmeasured, so still open');
+  assert.deepEqual(historyOf(stale, 121).clusters, { 'focus-lost': [1, 0, 0, 0] }, 'the row that left is not counted open by the night it left on');
+
+  // The next audit comes five months later and finds page b's finding gone. The row was last seen more than 90 days
+  // before, so it leaves in the same merge: the history is the only place that keeps the fix.
+  const { doc } = record(stale, [[131, '2026-09-21T05:00:00Z', a11yNight([], ['b', 'c'])]]);
+
+  assert.deepEqual(doc.rows, []);
+  assert.deepEqual(historyOf(doc, 131).clusters, { 'focus-lost': [0, 0, 1, 0] });
+
+  const task = fixProgress(doc, CATALOG).trackers.find(item => item.tracker === 'TASK-1');
+
+  assert.deepEqual([task.open, task.peak, task.resolved], [0, 2, 1]);
+  assert.deepEqual(task.clearedAt, { seenAt: '2026-09-21T05:00:00Z', runId: '131', source: 'a11y' });
+});
+
 test('a11yAudits groups the nights that complete within half a day into one audit, and a full audit holds all four sources', () => {
   const entry = (runId, source, seenAt) => ({ runId: String(runId), source, seenAt, headSha: 'abc', clusters: {} });
   const audits = a11yAudits([

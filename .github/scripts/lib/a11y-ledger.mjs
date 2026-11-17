@@ -1709,7 +1709,11 @@ export function mergeA11yLedger(previous, night, run, catalog, {
   // catalog moved, and its own, longer retention.
   const historyCutoff = now.getTime() - (historyDays * DAY_MS);
   const earlierHistory = (prior.history ?? []).filter(entry => entry.runId !== run.runId || entry.source !== source);
-  const keptHistory = sortNights([...rekeyHistory(earlierHistory, moves), historyEntryOf(record, rows.values())])
+  // Tonight's entry counts the rows the ledger keeps, and the rows tonight resolved even when they leave at once: a
+  // row last seen past the rows' retention is dropped by the merge that resolves it, and the history is then the only
+  // record of the fix. A row that leaves unresolved, because nothing measured it for that long, is not open any more.
+  const counted = [...rows.values()].filter(row => Date.parse(row.lastSeen) >= cutoff || (row.status === 'resolved' && row.resolvedAt === at));
+  const keptHistory = sortNights([...rekeyHistory(earlierHistory, moves), historyEntryOf(record, counted)])
     .filter(entry => Date.parse(entry.seenAt) >= historyCutoff);
 
   if (droppedRows > 0) {
@@ -1982,14 +1986,14 @@ function progressOf(ids, rows, points) {
   const lastOpen = series.findLastIndex(count => count > 0);
   // The first night that recorded any of it: a row's own first sighting while the row is kept, the history's after.
   const recorded = points.find(point => entryCount(point.entry, ids, 0) > 0 || entryCount(point.entry, ids, 1) > 0);
-  const firstMs = Math.min(...rows.map(row => Date.parse(row.firstSeen)), recorded ? recorded.at : Infinity);
+  const firstMs = rows.reduce((first, row) => Math.min(first, Date.parse(row.firstSeen)), recorded ? recorded.at : Infinity);
   // Cleared by the first night after the last one that left a finding open, and only while the rows agree.
   const cleared = openRows.length === 0 && lastOpen !== -1 && lastOpen < points.length - 1 ? points[lastOpen + 1] : null;
 
   return {
     open: openRows.length,
     atTarget: openRows.filter(countsAtTarget).length,
-    peak: Math.max(openRows.length, ...series),
+    peak: series.reduce((most, count) => Math.max(most, count), openRows.length),
     // What the nights resolved, less what came back: a finding resolved twice is one finding.
     resolved: Math.max(0, points.reduce((sum, point) => sum + entryCount(point.entry, ids, 2) - entryCount(point.entry, ids, 3), 0)),
     firstSeen: Number.isFinite(firstMs) ? new Date(firstMs).toISOString().replace('.000Z', 'Z') : null,
