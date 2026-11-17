@@ -1969,3 +1969,75 @@ test.describe('CustomBorders added from the context menu', { tag: THEMES_TAG }, 
     expect(ratio).toBeGreaterThanOrEqual(NON_TEXT_RATIO);
   });
 });
+
+test.describe('CustomBorders edges on the first track after the frozen ones', { tag: THEMES_TAG }, () => {
+  const EDGE_COLOR = 'rgb(224, 0, 0)';
+  const FROZEN_COLUMNS = 2;
+  const FROZEN_ROWS = 2;
+  const ROW_COUNT = 7;
+
+  /**
+   * Builds the ticket's grid: frozen columns, frozen top and bottom rows, and one `side` edge of `width`
+   * on every cell of the first eight columns. The frozen columns put the grid's own (0, 0) in the
+   * inline-start clone, which `CustomBordersLabPage#createGrid` does not wait for.
+   */
+  async function createFrozenGrid(
+    page: Page, lab: CustomBordersLabPage, direction: 'ltr' | 'rtl', side: 'start' | 'top', width: number,
+  ): Promise<void> {
+    const customBorders = [];
+
+    for (let row = 0; row < ROW_COUNT; row++) {
+      for (let col = 0; col < 8; col++) {
+        customBorders.push({ row, col, [side]: { width, color: EDGE_COLOR } });
+      }
+    }
+
+    await lab.goto();
+    await page.evaluate(settings => (window as any).createHot(settings), {
+      dataRows: ROW_COUNT,
+      dataCols: 20,
+      fixedColumnsStart: FROZEN_COLUMNS,
+      fixedRowsTop: FROZEN_ROWS,
+      fixedRowsBottom: 1,
+      layoutDirection: direction,
+      customBorders,
+    });
+    await expect(page.locator('.ht_clone_inline_start').getByTestId('cell-0-0')).toBeVisible();
+  }
+
+  for (const direction of ['ltr', 'rtl'] as const) {
+    for (const width of [1, 3]) {
+      test(`draws the whole start edge of every cell in the first scrollable column, ${width}px (${direction})`, async({ page, theme, bundle }) => {
+        const lab = new CustomBordersLabPage(page, theme, bundle);
+
+        await createFrozenGrid(page, lab, direction, 'start', width);
+
+        // Rows 0 and 1 are frozen at the top and the last row at the bottom, so the clones draw those
+        // cells; the rest come from the master.
+        for (let row = 0; row < ROW_COUNT; row++) {
+          // The first column past the frozen ones: its edge lies on the freeze line, next to the clone.
+          await expect.poll(() => lab.edgePixelCount(row, FROZEN_COLUMNS, 'start', EDGE_COLOR, direction === 'rtl'),
+            { message: `row ${row}, first scrollable column` }).toBe(width);
+          // Control: the next column draws its edge in full, with nothing on the freeze line.
+          await expect.poll(() => lab.edgePixelCount(row, FROZEN_COLUMNS + 1, 'start', EDGE_COLOR, direction === 'rtl'),
+            { message: `row ${row}, second scrollable column` }).toBe(width);
+        }
+      });
+    }
+  }
+
+  test('draws the top edge of every cell in the first row after the frozen rows', async({ page, theme, bundle }) => {
+    const lab = new CustomBordersLabPage(page, theme, bundle);
+
+    await createFrozenGrid(page, lab, 'ltr', 'top', 2);
+
+    // The frozen columns (0 and 1) are drawn by the inline-start clone, the rest by the master.
+    for (let col = 0; col < 6; col++) {
+      await expect.poll(() => lab.edgePixelCount(FROZEN_ROWS, col, 'top', EDGE_COLOR),
+        { message: `first scrollable row, column ${col}` }).toBe(2);
+      // Control: the row after it draws its edge in full too.
+      await expect.poll(() => lab.edgePixelCount(FROZEN_ROWS + 1, col, 'top', EDGE_COLOR),
+        { message: `second scrollable row, column ${col}` }).toBe(2);
+    }
+  });
+});
