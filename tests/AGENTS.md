@@ -2535,7 +2535,9 @@ screen readers (`docs/AGENTS.md` 2.20).
 - **A scenario is data, not code**: `screenreader/scenarios/<surface>.scenario.json`, one file per
   surface. The header: `id`, `surface`, `criteria` (the WCAG 2.2 criteria the scenario evidences, which
   the evidence records carry so the report generator can cite a step), exactly one of `page` (a page of
-  `a11y/pages.mjs`, whose fixture, query and root container it opens: reuse the catalog) or `fixture` (a
+  `a11y/pages.mjs`, whose fixture, query and root container it opens: reuse the catalog; for a page with a
+  `licensePreset` the spec adds the preset's tiers and key, which `scenarioUrl()` refuses to leave out
+  because the grid would open without its key) or `fixture` (a
   file under `fixtures/demo/`, for a grid the catalog does not hold, as `grid-core`'s, with the catalog pages
   it stands for as `catalogPages`, the pages `screenreader/coverage.mjs` lists it under), a `state` when the
   page has one in the catalog (the runner opens the page at rest and never sets up its state or its

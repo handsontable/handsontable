@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "license-bar",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T15:22:49.159Z"
+  },
+  "steps": {
+    "tab-to-renew": "link renew",
+    "read-notice": "the license key for handsontable expired on may 24 2011 and is not valid for the installed version 18.1.0",
+    "tab-to-sales": "link sales handsontable com",
+    "shift-tab-to-renew": "link renew",
+    "shift-tab-to-grid": "b b1 column 2 row a1 b1 tree grid 3 columns 9 rows"
+  }
+}

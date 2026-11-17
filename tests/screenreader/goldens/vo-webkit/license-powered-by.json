@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "scenario": "license-powered-by",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T15:16:50.233Z"
+  },
+  "steps": {
+    "tab-to-badge": "",
+    "shift-tab-to-grid": "c c1",
+    "tab-to-badge-again": "link powered by handsontable datagrid"
+  }
+}
