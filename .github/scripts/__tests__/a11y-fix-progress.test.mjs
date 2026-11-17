@@ -19,7 +19,6 @@ import {
   migrateA11yLedger,
   serializeA11yLedger,
   surfaceOf,
-  trackerAddress,
 } from '../lib/a11y-ledger.mjs';
 import { runContextFromRun } from '../lib/test-health.mjs';
 import { TRIAGE_ID } from '../../../tests/lib/a11y-issues.mjs';
@@ -417,42 +416,42 @@ test('countsAtTarget draws the check runs\' line: advisory never counts, a findi
     ['grid', 'grid', 'grid', 'docs', 'docs', 'website', 'website']);
 });
 
-test('the page names no task unless it is given the trackers\' address, and folds the tasks that own the same clusters into one row', () => {
+test('the page names no task: a row is named by its clusters, and the tasks that own the same clusters are one row', () => {
   const doc = threeAudits();
-  const plain = a11yView(doc, CATALOG).fix;
+  const view = a11yView(doc, CATALOG);
 
-  assert.ok(!/TASK-\d/.test(JSON.stringify(a11yView(doc, CATALOG))), 'no task id reaches the page');
-  assert.equal(plain.trackerUrl, null);
-  assert.deepEqual(plain.rows.map(item => [item.kind, item.tracker, item.tasks, item.shared, item.clusters.map(cluster => cluster.id).join()]), [
+  // The page is public, and a tracker is code in the catalog: no task id is in what the page inlines.
+  assert.ok(!/TASK-\d/.test(JSON.stringify(view)), 'no task id reaches the page');
+  assert.ok(view.fix.rows.every(row => !('tracker' in row) && !('sharedWith' in row)), 'not even as an empty field a later change could fill');
+  assert.deepEqual(view.fix.rows.map(item => [item.kind, item.tasks, item.shared, item.clusters.map(cluster => cluster.id).join()]), [
     // The two owners of the menu cluster would read alike without their ids, so they are one row that stands for two tasks.
-    ['tracker', null, 2, 0, 'menu-roles'],
-    ['tracker', null, 1, 0, 'site-contrast'],
-    ['tracker', null, 1, 0, 'focus-lost'],
-    ['untracked', null, 0, 0, 'target-small'],
-    ['triage', null, 0, 0, TRIAGE_ID],
-    ['not-defect', null, 0, 0, 'reader-wording'],
+    ['tracker', 2, 0, 'menu-roles'],
+    ['tracker', 1, 0, 'site-contrast'],
+    ['tracker', 1, 0, 'focus-lost'],
+    ['untracked', 0, 0, 'target-small'],
+    ['triage', 0, 0, TRIAGE_ID],
+    ['not-defect', 0, 0, 'reader-wording'],
   ]);
-  assert.deepEqual(plain.headline.trackers, { total: 4, clear: 1 }, 'the headline still counts tasks');
+  assert.deepEqual(view.fix.headline.trackers, { total: 4, clear: 1 }, 'the headline still counts tasks');
 
-  const linked = a11yView(doc, CATALOG, { trackerUrl: 'https://tracker.example/t/1234/' }).fix;
+  const menu = view.fix.rows[0];
 
-  assert.equal(linked.trackerUrl, 'https://tracker.example/t/1234/');
-  assert.deepEqual(linked.rows.map(item => [item.kind, item.tracker, item.tasks, item.shared, item.sharedWith]), [
-    ['tracker', 'TASK-2', 1, 1, ['TASK-3']],
-    ['tracker', 'TASK-3', 1, 1, ['TASK-2']],
-    ['tracker', 'TASK-4', 1, 0, []],
-    ['tracker', 'TASK-1', 1, 0, []],
-    ['untracked', null, 0, 0, []],
-    ['triage', null, 0, 0, []],
-    ['not-defect', null, 0, 0, []],
+  assert.deepEqual([menu.open, menu.atTarget, menu.peak, menu.resolved, menu.notDefect, menu.clearedAt], [3, 2, 3, 0, null, null], 'with the numbers of either task');
+  assert.equal(view.fix.rows.find(item => item.kind === 'not-defect').notDefect, 'reader-behavior', 'a class is not a task id, and is named');
+
+  // A task that shares only some of its clusters keeps a row of its own and says how many tasks it shares with.
+  const partial = catalogOf([{ id: 'menu-roles-docs', title: 'Menu roles on the docs site', tracker: ['TASK-2', 'TASK-5'],
+    match: [{ source: 'docs', rules: ['aria-required-parent'] }] }]);
+  const rows = a11yView(record(null, threeAuditNights().map(([id, at, night]) => [id, at, night, { catalog: partial }])).doc, partial).fix.rows;
+
+  assert.deepEqual(rows.filter(item => item.kind === 'tracker').map(item => [item.clusters.map(cluster => cluster.id).join(), item.open, item.tasks, item.shared]), [
+    // Most open first, a tie in the order of the task ids the page does not print. One task owns both menu clusters,
+    // three findings, and shares them with two others.
+    ['menu-roles-docs,menu-roles', 3, 1, 2],
+    ['site-contrast', 3, 1, 0],
+    ['menu-roles', 2, 1, 1],
+    ['menu-roles-docs', 1, 1, 1],
+    ['focus-lost', 0, 1, 0],
   ]);
-  assert.equal(a11yView(null, CATALOG, { trackerUrl: 'https://tracker.example/t/' }), null);
-
-  // An address the page could not safely link is no address: the ids stay off the page.
-  for (const bad of ['http://tracker.example/t/', 'javascript:alert(1)', 'https://tracker.example/t/"onclick="x', 'https://tracker.example/?q=', '', null, 7,
-    `https://tracker.example/${'a'.repeat(200)}`]) {
-    assert.equal(trackerAddress(bad), null, String(bad));
-    assert.ok(!/TASK-\d/.test(JSON.stringify(a11yView(doc, CATALOG, { trackerUrl: bad }))), String(bad));
-  }
-  assert.equal(trackerAddress('https://app.clickup.com/t/9015210959/'), 'https://app.clickup.com/t/9015210959/');
+  assert.equal(a11yView(null, CATALOG), null);
 });

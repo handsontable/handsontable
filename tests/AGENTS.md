@@ -2418,9 +2418,8 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
 - **The catalog sorts every row into one root-cause cluster, and every merge re-sorts.** `a11y/issues.json`
   extends the axe baseline's issue catalog: a cluster has a stable kebab-case `id`, a `title` that says what
   the problem is, an optional `tracker` (a task id, or a list when several tasks own parts of the fix; code,
-  printed on the page only when the page is built with the trackers' address, "A11y: fix progress over time"
-  below), or instead an optional `notDefect` (the class that says why its findings are not a defect), and
-  `match` rules. A rule names its
+  never printed on the page, which says only that a cluster is tracked), or instead an optional `notDefect`
+  (the class that says why its findings are not a defect), and `match` rules. A rule names its
   `source` (`checks`, `axe` or `reader`) and any of `checks` (check ids, or reader projects), `kinds`,
   `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria`, `pages` (patterns
   anchored to the page id, or the scenario), `themes`, `where` (patterns searched in the finding's `where`)
@@ -2541,12 +2540,12 @@ outstanding. The "Fix progress" block of the page says that, from `fixProgress()
 - **A fix time is only as fine as the gap between audits, and the page says so.** A task is cleared by the
   first night after the last one that left a finding of it open, so a finding fixed the day after an audit
   reads as fixed at the next one. Never present the days as the time the fix took.
-- **A task id reaches the page only with the trackers' address.** The collector's `--tracker-url` is the
-  address a task id is appended to (`trackerAddress()` takes https only). With it the table names each task
-  by its id, as a link. Without it the page names no task: a row is named by its clusters, and the tasks
-  that own the same clusters, whose rows would read alike, are one row that says how many tasks it stands
-  for. The page links only through its two address helpers (`runPage`, `trackerPage`), never to a string
-  from a night's data.
+- **The page names no task.** The page is public, and a tracker is code in the catalog, so no task id
+  reaches what the page inlines (`fixView()`), in the fix progress table as in the cluster table. A fix
+  task's row is named by its clusters, and the tasks that own the same clusters, whose rows would read
+  alike, are one row that says how many tasks it stands for; the headline still counts tasks.
+  `fixProgress()` itself returns the ids, for a reader that is not public. The page links only to a run's
+  page, built from the run's number (`runPage`), never to a string from a night's data.
 - **A version bump ships its migration.** `a11y.json` is version `A11Y_VERSION`; `migrateA11yLedger()` is
   the only reader of an older file and rebuilds what the new version adds from what the old one holds (the
   history, from the rows and nights). The collector migrates in memory on every collection and writes the
