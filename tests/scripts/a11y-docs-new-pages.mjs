@@ -36,7 +36,15 @@ try {
   const file = path.join(folder, 'paths.cjs');
 
   writeFileSync(file, source);
-  process.stdout.write(`${newGuidePageIds(createRequire(import.meta.url)(file)).join(',')}\n`);
+
+  const lists = createRequire(import.meta.url)(file);
+  const missing = ['jsPaths', 'reactPaths', 'angularPaths', 'vuePaths'].filter(key => !Array.isArray(lists[key]));
+
+  // A list the base file lacks would read as a framework whose every page is new.
+  if (missing.length > 0) {
+    throw new Error(`the base file exports no list ${missing.join(', ')}`);
+  }
+  process.stdout.write(`${newGuidePageIds(lists).join(',')}\n`);
 } catch (error) {
   console.error(`a11y-docs-new-pages: ${PATHS_FILE} at ${values.base} was not read, so no page is skipped: ${String(error.stderr || error.message).trim().split('\n')[0]}`);
 } finally {

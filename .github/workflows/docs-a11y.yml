@@ -140,16 +140,17 @@ jobs:
         run: pnpm install --filter handsontable-tests
       # A pull request's run reads the staging deploy of develop, which has none of the pages the pull request
       # adds to the docs page list. Those are left out of the scan and named in the summary, instead of failing on
-      # every head until the merge. Not when a dispatch or a call names a deploy: that one may hold them. A base
-      # that cannot be read leaves the list empty, so every page is scanned, as before (the script says why).
+      # every head until the merge. Not when a dispatch or a call names a deploy: that one may hold them. The base
+      # is the first parent of the checked-out merge commit, the develop tip the merge was built on, never the
+      # payload's base.sha, which a re-run leaves behind (.ai/CI.md, the diff-scoped gate trap). Anything that
+      # cannot be read leaves the list empty, so every page is scanned, as before (the script says why).
       - name: Name the pages this pull request adds
         if: ${{ github.event_name == 'pull_request' && env.DOCS_A11Y_BASE_URL == '' }}
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git fetch --no-tags --depth=1 origin "$BASE_SHA" || echo "::warning::The base commit was not fetched, so no new page is skipped."
-          echo "DOCS_A11Y_SKIP_PAGES=$(node tests/scripts/a11y-docs-new-pages.mjs --base "$BASE_SHA")" >> "$GITHUB_ENV"
+          git fetch --no-tags --depth=2 origin "$GITHUB_SHA" || echo "::warning::The merge commit's parent was not fetched, so no new page is skipped."
+          BASE=$(git rev-list --parents -n 1 "$GITHUB_SHA" | awk 'NF == 3 { print $2 }')
+          echo "DOCS_A11Y_SKIP_PAGES=$([ -n "$BASE" ] && node tests/scripts/a11y-docs-new-pages.mjs --base "$BASE")" >> "$GITHUB_ENV"
       # The reporter (tests/reporters/a11y.ts, suite `docs`) writes the job summary, the HTML report,
       # comparison.json and a11y-findings.json, and decides the exit status from the mode. The step times
       # out before the job, so the uploads below still run.

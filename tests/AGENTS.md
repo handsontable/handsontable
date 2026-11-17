@@ -2009,11 +2009,15 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   `DOCS_A11Y_SKIP_PAGES`. The spec opens none of them and annotates `not-scanned`; the reporter names them in the
   summary. They are skipped on a pull request run only, and not when a dispatch or a call names a `base-url`,
   because that deploy may hold them. A fork's pull request needs no other path: the base commit is fetched from the
-  base repository. Failing to read the base leaves the list empty and every page scanned (a red page, as before),
-  never a page hidden. A page new in one framework's list but present in another's is not new (its id is the
-  first framework's), and the accessibility pages are never new (all four variants are in the list whatever the
-  lists hold). Scanning the pull request's preview instead is not done: the preview is built by `docs.yml`, a fork has
-  none, and the baseline is the staging deploy's.
+  base repository. The base is the first parent of the checked-out merge commit, never the payload's `base.sha`
+  (the diff-scoped gate trap in `.ai/CI.md`). A base that cannot be read, or whose file lacks one of the four lists,
+  leaves the list empty and every page scanned (a red page, as before). A page's id carries the first framework
+  whose list names it, so a slug that an earlier framework's list now names reads as new, and the accessibility pages
+  are never new (all four variants are in the list whatever the lists hold). Two gaps stay: a changed `permalink`
+  under an unchanged list entry is not seen, and a page merged to develop minutes ago is in the base list while the
+  staging deploy may not hold it yet (`docs-staging.yml` is still running), so run the job again once it is done.
+  Scanning the pull request's preview instead is not done: the preview is built by `docs.yml`, a fork has none, and the
+  baseline is the staging deploy's.
 - **Taking or refreshing the baseline.** Run the whole scan with `DOCS_A11Y_SCREENSHOTS=0`: with an empty or
   stale baseline every finding is new, every scan would be photographed, and the HTML report runs to
   hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;

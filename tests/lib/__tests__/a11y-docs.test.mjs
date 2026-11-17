@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -204,7 +204,7 @@ test('a11y-docs-new-pages.mjs prints the guide pages new since a base commit, an
   const repo = mkdtempSync(path.join(tmpdir(), 'docs-new-pages-'));
   const guide = 'guides/getting-started/saving-data/saving-data';
   const id = `js-${servedSlug(guide).replace(/[^a-z0-9-]+/g, '-')}`;
-  const git = (...args) => execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { encoding: 'utf8' });
+  const git = (...args) => execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', ...args], { encoding: 'utf8' });
   const script = path.join(TESTS_ROOT, 'scripts/a11y-docs-new-pages.mjs');
   const run = (...args) => execFileSync('node', [script, '--repo', repo, ...args], { encoding: 'utf8' });
 
@@ -220,7 +220,20 @@ test('a11y-docs-new-pages.mjs prints the guide pages new since a base commit, an
     git('commit', '-q', '-am', 'the page lands');
     assert.equal(run('--base', 'HEAD').trim(), '');
     // A base that cannot be read leaves every page scanned, as today: nothing printed, the reason on stderr.
-    assert.equal(run('--base', 'no-such-commit').trim(), '');
+    const unreadable = spawnSync('node', [script, '--repo', repo, '--base', 'no-such-commit'], { encoding: 'utf8' });
+
+    assert.equal(unreadable.status, 0);
+    assert.equal(unreadable.stdout.trim(), '');
+    assert.match(unreadable.stderr, /no-such-commit was not read, so no page is skipped/);
+
+    // A base file that lacks a framework's list would make every page of it new: refused the same way.
+    writeFileSync(path.join(repo, 'docs/tests/paths.js'), `module.exports = ${JSON.stringify({ ...VISUAL_PATHS, reactPaths: undefined })};\n`);
+    git('commit', '-q', '-am', 'a list goes missing');
+
+    const missing = spawnSync('node', [script, '--repo', repo, '--base', 'HEAD'], { encoding: 'utf8' });
+
+    assert.equal(missing.stdout.trim(), '');
+    assert.match(missing.stderr, /exports no list reactPaths/);
   } finally {
     rmSync(repo, { recursive: true, force: true });
   }

@@ -165,8 +165,10 @@ export const DOCS_PAGES = [...guidePages(), ...EXTRA_PAGES];
 
 /**
  * The guide pages the visual list holds now and a base list did not: the pages a pull request adds. The
- * staging deploy of develop, which a pull request's run reads, has none of them yet. A page's id is the same
- * whichever lists name it, so the difference of the two id sets is the answer.
+ * staging deploy of develop, which a pull request's run reads, has none of them yet. A page's id carries the first
+ * framework whose list names it, so the difference of the two id sets is the answer, and a page that an earlier
+ * framework's list now names reads as new. A guide whose `permalink` changes under an unchanged list entry is not
+ * seen: only the lists come from the base.
  *
  * @param {Record<string, ReadonlyArray<{path: string}>>} baseLists The base's lists, in the shape `docs/tests/paths.js` exports.
  * @param {typeof DOCS_FRAMEWORKS} [frameworks] The frameworks with their current page lists.
