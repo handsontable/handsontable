@@ -8141,6 +8141,12 @@ export default function Core(
     selection.updateHighlightClassNames();
     instance.renderChangeTracker.markAllChanged();
     instance.runHooks('afterUpdateSettings', settings);
+
+    // After the hook, so a plugin a listener turned on or off is picked up too. A scroll draw that a suspended
+    // render does not stop must already know who measures the rows. A listener may have destroyed the grid.
+    if (instance && !instance.isDestroyed && instance.view) {
+      instance.view.syncExternalRowCalculator();
+    }
   }
 
   /**

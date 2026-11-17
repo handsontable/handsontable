@@ -468,6 +468,7 @@ class TableView {
       this.#reservedSlotHeight = null;
       // Before the frozen counts are measured: they sum row heights, and those depend on the mode.
       this.syncRowHeightMode();
+      this.syncExternalRowCalculator();
       this.#refreshEffectiveFixed(isFullRender);
 
       this.#drawRenderedCells = false;
@@ -1741,8 +1742,8 @@ class TableView {
       rtlMode: this.hot.isRtl(),
       // `enabled`, not `isEnabled()`: a plugin the license key leaves out keeps its setting but measures nothing,
       // and the engine must then measure the rows itself. Plugins are enabled before the view is built.
-      externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
-        this.hot.getPlugin('autoRowSize').enabled,
+      // `syncExternalRowCalculator()` keeps it in step when `updateSettings()` turns the plugin on or off.
+      externalRowCalculator: (this.#externalRowCalculator = this.#isAutoRowSizeMeasuring()),
       // Single-pass rendering is on by default; the `modifySinglePassLayout` hook lets a plugin or
       // user code force the legacy measure-then-render path by returning `false` (e.g. `mergeCells`,
       // whose virtualized row heights depend on the viewport the layout is computing). Evaluated per
@@ -3063,6 +3064,47 @@ class TableView {
       this.#resolvedRowHeightMode = mode;
       this._wt.wtSettings.update('rowHeightMode', mode);
       this.invalidateRowHeightCache();
+    }
+  }
+
+  /**
+   * Whether the engine was last told that the AutoRowSize plugin measures the rows (its
+   * `externalRowCalculator` setting).
+   *
+   * @type {boolean}
+   */
+  #externalRowCalculator = false;
+
+  /**
+   * Whether the AutoRowSize plugin measures the rows, so the engine must not measure them itself.
+   *
+   * @returns {boolean}
+   */
+  #isAutoRowSizeMeasuring(): boolean {
+    const autoRowSize = this.hot.getPlugin('autoRowSize');
+
+    return Boolean(autoRowSize) && autoRowSize.enabled;
+  }
+
+  /**
+   * Tells the engine who measures the rows, before a draw. `updateSettings()` can turn the AutoRowSize
+   * plugin on or off, and the engine read the answer only when it was built: a plugin turned on later left
+   * the engine measuring next to it, and a plugin turned off later left nobody measuring, so a row taller
+   * than the default no longer grew the scroll range.
+   *
+   * A change drops every height the engine recorded. The plugin's heights replace them, or the engine
+   * starts measuring from nothing.
+   *
+   * `render()` runs it, and so does `updateSettings()` after its `afterUpdateSettings` hook: with rendering
+   * suspended a scroll still draws, and that draw has to know who measures the rows.
+   */
+  syncExternalRowCalculator() {
+    const isExternal = this.#isAutoRowSizeMeasuring();
+
+    if (this.#externalRowCalculator !== isExternal) {
+      this.#externalRowCalculator = isExternal;
+      this._wt.wtSettings.update('externalRowCalculator', isExternal);
+      this._wt.wtViewport.resetAllOversizedRows();
     }
   }
 
