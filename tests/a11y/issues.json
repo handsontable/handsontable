@@ -509,8 +509,9 @@
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["sheets-bar"], "where": ["^(type-name|enter-rename)$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["golden-differs"], "pages": ["datetime-editor"], "where": ["^open-editor$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["nested-rows", "row-selection-corner"], "where": ["^(expand-parent|space-select-row)$"] },
-        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["context-menu-checkable", "grid-core"], "where": ["^(up-to-read-only-comment|menu-arrow-down-again)$"] },
-        { "source": "reader", "checks": ["nvda-chromium"], "kinds": ["golden-differs"], "pages": ["grid-core"], "where": ["^open-context-menu$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["context-menu-checkable"], "where": ["^up-to-read-only-comment$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["grid-core(-horizon)?"], "where": ["^(open-context-menu|menu-arrow-down|menu-arrow-down-again)$"] },
+        { "source": "reader", "checks": ["nvda-chromium"], "kinds": ["golden-differs"], "pages": ["grid-core(-horizon)?"], "where": ["^open-context-menu$"] },
         { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["golden-differs"], "pages": ["grid-core-horizon"], "where": ["^(menu-arrow-down|close-context-menu)$"] }
       ]
     },
