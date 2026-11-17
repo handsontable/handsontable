@@ -382,11 +382,13 @@ test('the CLI prints the digest of two ledger files and writes the Slack payload
 
 test('the digest comes after the audit it reports: later than the screen reader run\'s latest start, its run and its collection', () => {
   // The weekly audit's workflows get their crons from the audit's own schedule; until a workflow has one, there is
-  // nothing to come after. The screen reader run is the long one: a scheduled run waits up to 180 minutes for an
-  // earlier run still in flight, takes about 150 minutes, and its night is collected a few minutes later.
+  // nothing to come after. The screen reader run is the long one: a scheduled run waits for an earlier run still in
+  // flight, up to the bound its wait step names (180 minutes as planned), takes about 150 minutes, and its night is
+  // collected a few minutes later.
+  const READER = '.github/workflows/screenreader-nightly.yml';
+  const code = file => readFileSync(path.join(repoRoot(), file), 'utf8').split('\n').filter(line => !line.trimStart().startsWith('#')).join('\n');
   const minutesOf = (file) => {
-    const source = readFileSync(path.join(repoRoot(), file), 'utf8').split('\n').filter(line => !line.trimStart().startsWith('#')).join('\n');
-    const cron = source.match(/^ {4}- cron: '(\d+) (\d+) \* \* (\d)'/m);
+    const cron = code(file).match(/^ {4}- cron: '(\d+) (\d+) \* \* (\d)'/m);
 
     return cron ? { minutes: (Number(cron[2]) * 60) + Number(cron[1]), day: Number(cron[3]) } : null;
   };
@@ -394,7 +396,9 @@ test('the digest comes after the audit it reports: later than the screen reader 
 
   assert.deepEqual(digest, { minutes: 8 * 60, day: 1 }, 'Mondays at 08:00 UTC');
 
-  const waits = { '.github/workflows/screenreader-nightly.yml': 180 + 150 + 15, '.github/workflows/a11y-nightly.yml': 60, '.github/workflows/docs-a11y.yml': 60,
+  // The wait's bound is read from the workflow that owns it, so a longer wait there moves this check with it.
+  const bound = Number(code(READER).match(/--bound-minutes (\d+)/)?.[1] ?? 0);
+  const waits = { [READER]: bound + 150 + 15, '.github/workflows/a11y-nightly.yml': 60, '.github/workflows/docs-a11y.yml': 60,
     '.github/workflows/website-a11y.yml': 60 };
 
   for (const [file, minutes] of Object.entries(waits)) {
@@ -406,10 +410,13 @@ test('the digest comes after the audit it reports: later than the screen reader 
         `${file} starts at ${audit.minutes} minutes past midnight UTC and needs up to ${minutes} to reach the ledger: the digest at ${digest.minutes} would report a week without it`);
     }
   }
-  // The bound holds for the audit's planned start, 01:07 UTC, and the reader run may start as late as 02:15 before it breaks.
-  assert.ok(((1 * 60) + 7) + waits['.github/workflows/screenreader-nightly.yml'] <= digest.minutes);
-  assert.ok(((2 * 60) + 15) + waits['.github/workflows/screenreader-nightly.yml'] <= digest.minutes);
-  assert.ok(((2 * 60) + 16) + waits['.github/workflows/screenreader-nightly.yml'] > digest.minutes);
+  // With the planned 180-minute bound the digest's hour holds for the audit's planned start, 01:07 UTC, and the reader
+  // run may start as late as 02:15 before it breaks.
+  const planned = 180 + 150 + 15;
+
+  assert.ok(((1 * 60) + 7) + planned <= digest.minutes);
+  assert.ok(((2 * 60) + 15) + planned <= digest.minutes);
+  assert.ok(((2 * 60) + 16) + planned > digest.minutes);
 });
 
 test('a11y-digest.yml runs weekly and on demand, posts only from a schedule or a dispatch that asks, and reads gh-pages with a read-only token', () => {
