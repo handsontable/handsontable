@@ -51,3 +51,5 @@ export function guidePages(frameworks?: readonly DocsFramework[]): DocsPage[];
 export function docsBaseUrl(value: string | undefined): string;
 export function docsUrl(page: Pick<DocsPage, 'path'>, theme?: string, baseUrl?: string): string;
 export function docsStateSteps(page: Pick<DocsPage, 'state' | 'viewport'>, theme?: string): string;
+export function newGuidePageIds(baseLists: Readonly<Record<string, ReadonlyArray<{ path: string }>>>, frameworks?: readonly DocsFramework[]): string[];
+export function parseSkipPages(value: string | undefined, pages?: ReadonlyArray<Pick<DocsPage, 'id'>>): Set<string>;
