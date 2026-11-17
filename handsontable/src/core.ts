@@ -11380,6 +11380,9 @@ export default function Core(
    * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @param {Function} [callback] The callback function to call after the viewport is scrolled.
+   * The callback runs once per call, unless the grid has no view yet. When nothing is scrolled, including when the `row` or `col` index
+   * cannot be resolved (it is out of range, or every row or column on that axis is hidden or trimmed),
+   * it runs in a microtask right after the call instead of after a scroll.
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise, including when the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.scrollViewportTo = function(
@@ -11421,6 +11424,11 @@ export default function Core(
       const resolved = resolveRenderableScrollTarget(row, col);
 
       if (resolved === false) {
+        if (isFunction(callback)) {
+          this.removeHook('afterScroll', callback);
+          this._registerMicrotask(() => callback());
+        }
+
         return false;
       }
 
