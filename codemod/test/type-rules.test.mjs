@@ -990,6 +990,19 @@ describe('type rule transforms', () => {
         '18.0.0/type-columnsorting-config', 'Config', false],
       ['a module that no rule names', 'import CS = require(\'other-lib\');\nlet c: CS.Config;\n',
         '18.0.0/type-columnsorting-config', 'Config', false],
+      ['a parameter that shadows the import-equals name',
+        `import CS = require('${RENAMED}');\nfunction f(CS: any) { return CS.Config; }\n`,
+        '18.0.0/type-columnsorting-config', 'Config', false],
+      ['a local that shadows the namespace import name',
+        `import * as CS from '${RENAMED}';\nfunction f() { const CS = other(); return CS.Config; }\n`,
+        '18.0.0/type-columnsorting-config', 'Config', false],
+      ['a local namespace that shadows the namespace import name in a type',
+        `import * as NH from '${REMOVED}';\n`
+        + 'function f() { namespace NH { export type Settings = 1; } let c: NH.Settings; }\n',
+        '18.0.0/type-nestedheaders-settings', 'Settings', false],
+      ['a namespace import that nothing shadows',
+        `import * as CS from '${RENAMED}';\nfunction f() { return CS.Config; }\n`,
+        '18.0.0/type-columnsorting-config', 'Config', true],
     ]) {
       it(`${reported ? 'reports' : 'stays quiet for'} ${label}, and edits nothing`, async() => {
         const result = await run('a.ts', source, [ruleId]);

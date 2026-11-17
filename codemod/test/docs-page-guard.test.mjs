@@ -26,7 +26,9 @@ export function guardProblems(manifest, page) {
     if (!notice) {
       problems.push('the package is private, so the page needs the "not on npm yet" warning');
     } else {
-      if (notice.index > page.indexOf('\n## ')) {
+      const firstSection = page.indexOf('\n## ');
+
+      if (firstSection !== -1 && notice.index > firstSection) {
         problems.push('the warning stands below the first section, not at the top');
       }
 
@@ -79,6 +81,14 @@ describe('the guide page of a package that is not published', () => {
 
   it('fails a published package whose page still carries the warning', () => {
     assert.match(guardProblems({}, withNotice)[0], /must not say it is not on npm yet/);
+  });
+
+  it('accepts the warning on a page that has no level-2 heading, and still wants it above any heading', () => {
+    const flat = `---\ntitle: T\n---\n\n${noticeText}\nIntro.\n\n### Detail\n`;
+    const flatBelow = `---\ntitle: T\n---\n\nIntro.\n\n${noticeText}`;
+
+    assert.deepEqual(guardProblems({ private: true }, flat), []);
+    assert.deepEqual(guardProblems({ private: true }, flatBelow), [], 'with no section, nothing stands below one');
   });
 
   it('fails a warning that stands below the first section, or that gives no command', () => {

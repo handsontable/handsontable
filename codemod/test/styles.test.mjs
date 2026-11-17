@@ -714,3 +714,39 @@ describe('a TODO comment in a stylesheet that mixes line endings', () => {
     });
   }
 });
+
+describe('a TODO comment in a stylesheet whose advice holds a comment end', () => {
+  const rules = [{
+    id: '18.0.0/css-x',
+    kind: 'cssVariable',
+    from: '--ht-x',
+    removed: true,
+    safe: false,
+    version: '18.0.0',
+    guide: 'x',
+    guideUrl: 'https://example.com/g',
+    advice: 'Use styles/*/file.css */ body { color: red } instead.',
+  }];
+  const synthetic = buildPlan([{ version: '18.0.0', rules }]);
+  const runSynthetic = source => transformFile({
+    filePath: 'a.css',
+    source,
+    plan: synthetic,
+    options: { markers: true },
+  });
+
+  it('writes a comment that ends where the tool ends it, and a second run adds nothing', async() => {
+    const source = 'a { color: var(--ht-x); }\n';
+    const first = await runSynthetic(source);
+
+    assert.equal(first.changed, true, JSON.stringify(first.entries));
+    assert.equal(first.entries.some(entry => entry.severity === 'warning'), false, JSON.stringify(first.entries));
+    assert.equal(first.output.split('*/').length - 1, 1, 'one comment end, the one the tool writes');
+    assert.match(first.output, /Use styles\/\* \/file\.css \* \/ body \{ color: red \} instead\./);
+
+    const second = await runSynthetic(first.output);
+
+    assert.equal(second.changed, false);
+    assert.equal(second.output, first.output);
+  });
+});

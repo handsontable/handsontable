@@ -854,6 +854,22 @@ describe('a project outside git: the walk leaves build output and hidden folders
     });
   });
 
+  it('does not name a skipped directory whose files sit only in a nested directory the walk skips too', async() => {
+    await inPlainProject({
+      'src/a.js': SOURCE,
+      '.storybook/.cache/x.js': SOURCE,
+      '.next/out/app.js': SOURCE,
+      '.kept/nested/main.js': SOURCE,
+    }, async(dir) => {
+      const skipped = [];
+
+      assert.deepEqual(await discover({ cwd: dir, skipped }), ['src/a.js']);
+      assert.deepEqual(skipped.map(item => item.file), ['.kept'], 'naming .storybook or .next would read nothing');
+      assert.deepEqual(await discover({ cwd: dir, paths: ['.storybook', '.next'], skipped: [] }), []);
+      assert.deepEqual(await discover({ cwd: dir, paths: ['.kept'], skipped: [] }), ['.kept/nested/main.js']);
+    });
+  });
+
   it('reads one of them when the path argument names it', async() => {
     await inPlainProject(FILES, async(dir) => {
       const result = await run({ cwd: dir, ...RANGE, paths: ['.storybook', 'src'] });

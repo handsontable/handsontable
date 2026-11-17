@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { MarkerCarriers } from '../src/lib/carrier.mjs';
 import { removeNamedImport } from '../src/lib/imports.mjs';
 import { formatTodo } from '../src/lib/todo.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
 import { createRegistry } from '../src/transforms/index.mjs';
+import { parse } from './helpers/parse.mjs';
 
 const manifests = await loadManifests(VERSIONS_DIR);
 const TEXT = 'Check this by hand.';
@@ -497,4 +499,54 @@ describe('a failure of the carriers leaves the file as it was', () => {
         && /could not be placed/.test(entry.message)), true, JSON.stringify(result.entries));
     });
   }
+});
+
+describe('MarkerCarriers.commit() with an element that left its array after its comment was queued', () => {
+  const SOURCE = 'const xs = [1, 2, 3];\n';
+
+  /**
+   * Parse the array and queue a comment for the element `2` and, when asked, for `3`.
+   *
+   * @param {boolean} both Whether `3` gets a comment too.
+   * @returns {{array: object, two: object, carriers: MarkerCarriers}} The pieces.
+   */
+  function queued(both) {
+    const { j, root } = parse(SOURCE, 'ts');
+    const carriers = new MarkerCarriers(j, SOURCE, root);
+    const array = root.find(j.ArrayExpression).get().node;
+    const [, two, three] = array.elements;
+
+    assert.equal(carriers.add(array, two, 'TODO a'), true);
+
+    if (both) {
+      assert.equal(carriers.add(array, three, 'TODO b'), true);
+    }
+
+    return { array, two, carriers };
+  }
+
+  it('writes nothing at index -1 and keeps no record for the element that left', () => {
+    const { array, two, carriers } = queued(false);
+
+    array.elements.splice(array.elements.indexOf(two), 1);
+    carriers.commit();
+
+    assert.equal(array.elements.length, 2);
+    assert.deepEqual(Object.keys(array.elements), ['0', '1']);
+    assert.deepEqual(carriers.committed, []);
+    assert.equal(carriers.pending.size, 0);
+  });
+
+  it('still carries the comment of an element that stays', () => {
+    const { array, two, carriers } = queued(true);
+
+    array.elements.splice(array.elements.indexOf(two), 1);
+    carriers.commit();
+
+    assert.equal(carriers.committed.length, 1);
+    assert.deepEqual(Object.keys(array.elements), ['0', '1']);
+    assert.equal(array.elements[1].type, 'Identifier');
+    assert.equal(array.elements[1].name.startsWith(carriers.prefix), true);
+    assert.deepEqual(carriers.committed[0].bodies, ['TODO b']);
+  });
 });

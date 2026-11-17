@@ -1,4 +1,5 @@
 import { findImportEquals, findReExports, getImportedBindings } from '../lib/imports.mjs';
+import { lookup } from '../lib/scope.mjs';
 import {
   WILDCARD_EXPORT,
   expandAdvice,
@@ -120,8 +121,9 @@ function applyRule(ctx, rule, handled) {
     ...getImportedBindings(j, root, matches).filter(binding => binding.form === 'namespace').map(binding => ({
       local: binding.local,
       source: String(binding.declaration.node.source.value),
+      idNode: binding.specifier.node.local,
     })),
-    ...findImportEquals(j, root, matches),
+    ...findImportEquals(j, root, matches).map(equals => ({ ...equals, idNode: equals.node.id })),
   ];
 
   reportJsdocImportTypes(ctx, {
@@ -131,11 +133,13 @@ function applyRule(ctx, rule, handled) {
     text: (name, source) => todoText(rule, name, source),
   });
 
-  namespaces.forEach(({ local, source }) => {
+  namespaces.forEach(({ local, source, idNode }) => {
     root.find(j.TSQualifiedName).forEach((path) => {
       const { left, right } = path.node;
 
-      if (left.type === 'Identifier' && left.name === local && names.has(right.name)) {
+      // A local that shadows the name is another object.
+      if (left.type === 'Identifier' && left.name === local && names.has(right.name)
+        && lookup(path.get('left'), local, 'value')?.idNode === idNode) {
         ctx.report({
           ruleId: rule.id,
           severity: 'manual',

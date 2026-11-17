@@ -47,6 +47,36 @@ function directoriesOf(facts, name) {
 const SITE_PREFIX = 'site:';
 
 /**
+ * The `site:` prefixes already recorded in a set of facts, so asking whether a fact has a site for a directory is one
+ * lookup and not a scan of every fact of the run.
+ *
+ * @type {WeakMap<Set<string>, Set<string>>}
+ */
+const recordedSites = new WeakMap();
+
+/**
+ * The recorded site prefixes of a set of facts.
+ *
+ * @param {Set<string>} facts The shared facts.
+ * @returns {Set<string>} The prefixes (`site:<name>@<dir>=`) that have a key.
+ */
+function sitesOf(facts) {
+  if (!recordedSites.has(facts)) {
+    const known = new Set();
+
+    for (const fact of facts) {
+      if (fact.startsWith(SITE_PREFIX)) {
+        known.add(fact.slice(0, fact.indexOf('=') + 1));
+      }
+    }
+
+    recordedSites.set(facts, known);
+  }
+
+  return recordedSites.get(facts);
+}
+
+/**
  * Record a fact for the directory of the file being transformed. It adds two keys: `name`, for code that only
  * asks whether the fact exists anywhere, and `name@<dir>`, for `hasFactFor`. With a `line`, the first sighting in
  * that directory also gets a `site:` key (`factSite` reads it), which holds the file and the line in the file.
@@ -64,7 +94,8 @@ export function addFact(ctx, name, line) {
 
   const prefix = `${SITE_PREFIX}${name}@${dir}=`;
 
-  if (Number.isInteger(line) && ![...ctx.facts].some(fact => fact.startsWith(prefix))) {
+  if (Number.isInteger(line) && !sitesOf(ctx.facts).has(prefix)) {
+    sitesOf(ctx.facts).add(prefix);
     ctx.facts.add(`${prefix}${ctx.filePath}:${line + (ctx.lineOffset ?? 0)}`);
   }
 }

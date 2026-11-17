@@ -459,11 +459,12 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
       namespace: binding.form === 'namespace',
       source: String(binding.declaration.node.source.value),
       node: binding.declaration.node,
+      idNode: binding.specifier.node.local,
     })),
-    ...findImportEquals(j, root, matches).map(equals => ({ ...equals, namespace: true })),
+    ...findImportEquals(j, root, matches).map(equals => ({ ...equals, namespace: true, idNode: equals.node.id })),
   ];
 
-  wholeModules.forEach(({ local, namespace, source, node }) => {
+  wholeModules.forEach(({ local, namespace, source, node, idNode }) => {
     if (all) {
       report(node, 'This file imports as a whole', source);
 
@@ -474,15 +475,18 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
       return;
     }
 
+    // A local that shadows the name (`const ns = ...`, a parameter, a namespace) is another object.
+    const isTheImport = path => lookup(path, local, 'value')?.idNode === idNode;
+
     root.find(j.TSQualifiedName).forEach((path) => {
       if (path.node.left.type === 'Identifier' && path.node.left.name === local
-        && wanted.has(path.node.right.name)) {
+        && wanted.has(path.node.right.name) && isTheImport(path.get('left'))) {
         report(path.node, 'This code reads a name through a namespace import of', source);
       }
     });
     root.find(j.MemberExpression).forEach((path) => {
       if (path.node.object.type === 'Identifier' && path.node.object.name === local
-        && wanted.has(memberName(path.node))) {
+        && wanted.has(memberName(path.node)) && isTheImport(path.get('object'))) {
         report(path.node, 'This code reads a name through a namespace import of', source);
       }
     });

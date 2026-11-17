@@ -276,6 +276,8 @@ describe('resolve: a method call on a const object or array is a possible change
     ['an optional call', 'const value = [];\nvalue?.push(1);'],
     ['a method of the object itself', 'const value = { reset() {} };\nvalue.reset();'],
     ['a computed method name', 'const value = [];\nvalue[\'push\'](1);'],
+    ['merge of a settings object', 'const value = { a: 1 };\nvalue.merge(base);'],
+    ['set on a member of the object', 'const value = { entries: [] };\nvalue.entries.set(key, 1);'],
   ]) {
     it(`gives null for an exact answer after ${label}`, () => {
       assert.equal(resolvesExactly(body), false, body);

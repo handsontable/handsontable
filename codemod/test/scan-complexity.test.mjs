@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import templateAdapter from '../src/adapters/template.mjs';
+import { addFact, factSite } from '../src/lib/facts.mjs';
 import { createLineCounter, scanScripts } from '../src/lib/inline-script.mjs';
 import { templateOptionSites } from '../src/lib/option-sites.mjs';
 import { blankToolComments } from '../src/lib/tool-comments.mjs';
@@ -363,5 +364,40 @@ describe('templateOptionSites() reads the text of a template once', () => {
       size: 500,
     });
     assert.deepEqual(templateOptionSites(many(3), ['numericFormat']).map(site => site.line), [3, 7, 11]);
+  });
+});
+
+describe('addFact() does not read the facts it already holds', () => {
+  const record = async(count) => {
+    const ctx = { facts: new Set(), filePath: 'src/a.js', lineOffset: 0 };
+
+    for (let index = 0; index < count; index += 1) {
+      addFact(ctx, `fact-${index}`, 1);
+    }
+  };
+
+  it('thousands of facts with a line each', async() => {
+    // A linear version reads almost nothing, so the work meter's floor for `measureGrowth()` does not apply.
+    const small = await measureWork(() => record(500));
+    const large = await measureWork(() => record(2000));
+
+    assert.ok(large <= (small * 5) + 100, `the work grew from ${small} to ${large} for 4 times the facts`);
+  });
+
+  it('keeps the first line of a fact for a directory, and one site per directory', () => {
+    const ctx = { facts: new Set(), filePath: 'a/x.js', lineOffset: 2 };
+
+    addFact(ctx, 'seen');
+    addFact(ctx, 'seen', 4);
+    addFact(ctx, 'seen', 9);
+    ctx.filePath = 'a/y.js';
+    addFact(ctx, 'seen', 1);
+    ctx.filePath = 'b/z.js';
+    addFact(ctx, 'seen', 7);
+
+    const sites = [...ctx.facts].filter(fact => fact.startsWith('site:seen@'));
+
+    assert.deepEqual(sites, ['site:seen@a=a/x.js:6', 'site:seen@b=b/z.js:9']);
+    assert.equal(factSite({ facts: ctx.facts, filePath: 'a/package.json' }, 'seen'), 'a/x.js:6');
   });
 });

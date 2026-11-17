@@ -84,7 +84,8 @@ async function holdsCandidate(dir, cwd) {
     const path = join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      if (!SKIPPED_DIRECTORIES.has(entry.name) && await holdsCandidate(path, cwd)) {
+      // The walk skips the same names below the first directory, so a file only there is not one it would read.
+      if (!SKIPPED_DIRECTORIES.has(entry.name) && !isWalkSkipped(entry.name) && await holdsCandidate(path, cwd)) {
         return true;
       }
     } else if (entry.isFile()) {

@@ -502,7 +502,9 @@ export function addJsTodo(j, target, ruleId, text, guideUrl = null, scan = null)
  * @returns {boolean} `true` when a comment was inserted, `false` when an identical one was already there.
  */
 export function addCssTodo(target, ruleId, text, guideUrl = null, document = null, twinIds = []) {
-  const body = formatTodo(ruleId, text, guideUrl);
+  // A `*/` in the advice would end the block comment early, and what follows would be CSS. A second run reads the
+  // comment as written, so the same text is compared and inserted.
+  const body = formatTodo(ruleId, text, guideUrl).replace(/\*\//g, '* /');
   const isTwin = comment => twinIds.some(id => comment.startsWith(`${TODO_PREFIX} ${id}):`));
 
   // Two rules can leave a comment before one node, so look through the whole run of comments right before it.

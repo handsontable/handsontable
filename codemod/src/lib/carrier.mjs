@@ -462,6 +462,14 @@ export class MarkerCarriers {
    */
   commit() {
     for (const [node, { array, text, bodies }] of this.pending) {
+      const index = array.elements.indexOf(node);
+
+      // The element left its array after the comment was queued, so there is nothing to carry the comment, and a
+      // record without a sentinel in the tree would fail the splice.
+      if (index === -1) {
+        continue;
+      }
+
       const sentinel = this.nextSentinel();
       const carrier = this.j.identifier(`${sentinel}${text}`);
 
@@ -470,7 +478,7 @@ export class MarkerCarriers {
         carrier.comments = node.comments;
       }
 
-      array.elements[array.elements.indexOf(node)] = carrier;
+      array.elements[index] = carrier;
       // The element leaves the tree, and its JSX texts are printed back with it (see `intendedLiterals()`).
       this.keep({ kind: 'element', sentinel, bodies, texts: jsxTextsOf(node) });
     }
