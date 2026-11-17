@@ -162,6 +162,47 @@ test('validateIssuesCatalog accepts the documented shape and names every problem
     /no match rule/);
 });
 
+test('a cluster is a defect a task may own, or not a defect for a class of reason, never both', () => {
+  const rule = [{ source: 'checks', kinds: ['x'] }];
+
+  assert.deepEqual(validateIssuesCatalog(catalogOf(
+    ['owned', rule, { tracker: 'DEV-3491' }],
+    ['unowned', rule],
+    ['reader-own', rule, { notDefect: 'reader-behavior' }],
+  )), []);
+
+  const compiled = compileIssuesCatalog(catalogOf(['owned', rule, { tracker: 'DEV-3491' }], ['unowned', rule],
+    ['reader-own', rule, { notDefect: 'reader-behavior' }]));
+
+  assert.deepEqual(compiled.clusters.map(cluster => [cluster.id, cluster.tracker, cluster.notDefect]),
+    [['owned', 'DEV-3491', null], ['unowned', null, null], ['reader-own', null, 'reader-behavior']],
+    'the compiled cluster carries the class, and null for a defect');
+
+  const problems = validateIssuesCatalog(catalogOf(
+    ['both', rule, { tracker: 'DEV-1', notDefect: 'reader-behavior' }],
+    ['bad-class', rule, { notDefect: 'Reader behavior' }],
+    ['flag', rule, { notDefect: true }],
+    ['empty', rule, { notDefect: '' }],
+  ));
+  const expect = (pattern) => assert.ok(problems.some(problem => pattern.test(problem)),
+    `expected a problem matching ${pattern}; got:\n${problems.join('\n')}`);
+
+  // A cluster with both would count its findings under a fix task and outside the fix count at once.
+  expect(/"both".*never both/);
+  expect(/"bad-class".*notDefect.*kebab-case/);
+  // A bare flag says nothing about why: the page groups the findings that are not a defect by their class.
+  expect(/"flag".*notDefect/);
+  expect(/"empty".*notDefect/);
+  assert.equal(problems.length, 4, problems.join('\n'));
+
+  // A class changes where the page counts a finding, never which cluster it lands in or whether a task tracks it.
+  const catalog = compileIssuesCatalog(catalogOf(['reader-own', [{ source: 'checks', kinds: ['focus-not-returned'] }], { notDefect: 'reader-behavior' }]));
+
+  assert.deepEqual(clusterOf(finding({}), catalog), { id: 'reader-own', tracker: null, ambiguous: [] });
+  assert.equal(trackedBy(catalog)('checks', 'keyboard-walker', { kind: 'focus-not-returned', page: 'grid', theme: 'main', step: 'Escape' }), false,
+    'a cluster that is not a defect has no tracker, so a change run counts its finding at its severity as before');
+});
+
 test('validateIssuesCatalog reads the triage list: one entry per queued shape, each with a reason, and the limit is its length', () => {
   const shape = 'reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid';
   const base = catalogOf(['x', [{ source: 'checks', kinds: ['x'] }]]);
@@ -411,6 +452,13 @@ test('the committed catalog validates against the live baseline issues and scree
       }
     }
   }
+  // No cluster is both owned by a task and not a defect, and the classes are the ones the fix progress table groups by.
+  const notDefect = catalog.clusters.filter(cluster => cluster.notDefect !== null);
+
+  assert.ok(notDefect.length > 0, 'the catalog marks the clusters whose findings are not a defect');
+  assert.deepEqual(notDefect.filter(cluster => cluster.tracker !== null).map(cluster => cluster.id), []);
+  assert.equal(catalog.clusters.find(cluster => cluster.id === 'reader-golden-drift').notDefect, 'reader-behavior');
+  assert.equal(catalog.clusters.find(cluster => cluster.id === 'menu-semantics').notDefect, null, 'a defect cluster carries no class');
   // The clusters the task started with, by id: a rename here is a rename for the skill lessons and the debt triage.
   for (const id of ['overlay-clones-split-tree', 'focus-not-returned-after-escape', 'unnamed-controls', 'menu-semantics',
     'contrast-and-focus-visibility', 'drag-and-press-activation', 'reflow-and-motion', 'status-messages', 'dialogs-leak-tab',

@@ -839,7 +839,7 @@ export function buildEvidenceCheckRun({
  * @param {{criteria: string[]}} finding The finding.
  * @returns {boolean} The verdict.
  */
-function atTargetLevel(finding) {
+export function atTargetLevel(finding) {
   return finding.criteria.some(id => ['A', 'AA'].includes(WCAG_CRITERIA[id]?.level));
 }
 

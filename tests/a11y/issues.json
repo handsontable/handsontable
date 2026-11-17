@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "about": "The root-cause clusters of the accessibility findings ledger (lib/a11y-issues.mjs; tests/AGENTS.md, A11y: the findings ledger and the cluster catalog). A cluster has id, title, an optional tracker (a task id, or a list of them; code, never printed on the page) and match rules: source, then any of checks, kinds, rules, causes, criteria, pages, themes, where, axeIssues. Values in a field are ORed, fields in a rule ANDed, rules in a cluster ORed. A where pattern reads the finding's masked selector, its step, or both joined as '<masked selector> @ <step>'. A finding no rule matches lands in needs-triage; one that two rules match fails lib/__tests__/a11y-issues.test.mjs. triage lists every sampled finding shape (findingShape()) left in needs-triage, each with why it is neither a known cause nor the reader's own behavior yet; its length is the triage limit, exact: a shape leaves the list when it is sorted into a cluster, and joins it only visibly, with its reason, in the change that adds it.",
+  "about": "The root-cause clusters of the accessibility findings ledger (lib/a11y-issues.mjs; tests/AGENTS.md, A11y: the findings ledger and the cluster catalog). A cluster has id, title, an optional tracker (a task id, or a list of them; code, printed on the page only when it is built with the trackers' address) or an optional notDefect (the class that says why its findings are not a defect, never beside a tracker), and match rules: source, then any of checks, kinds, rules, causes, criteria, pages, themes, where, axeIssues. Values in a field are ORed, fields in a rule ANDed, rules in a cluster ORed. A where pattern reads the finding's masked selector, its step, or both joined as '<masked selector> @ <step>'. A finding no rule matches lands in needs-triage; one that two rules match fails lib/__tests__/a11y-issues.test.mjs. triage lists every sampled finding shape (findingShape()) left in needs-triage, each with why it is neither a known cause nor the reader's own behavior yet; its length is the triage limit, exact: a shape leaves the list when it is sorted into a cluster, and joins it only visibly, with its reason, in the change that adds it.",
   "triage": [
     { "shape": "reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid", "reason": "NVDA with Firefox names the grid by the sheet's old name, where both Chromium readers say the new one: a stale name kept by Firefox or a name the grid sets on another element, not told apart yet." }
   ],
@@ -146,6 +146,7 @@
     {
       "id": "formula-suggestion-tab",
       "title": "Tab in the formula editor accepts the highlighted suggestion and keeps the focus in the editor, as the formula builder intends: the keyboard walker reads it as a Tab that stays",
+      "notDefect": "intended-formula-tab",
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-keeps-focus"], "where": ["^textarea\\.hfe-editor__input"] }
       ]
@@ -314,6 +315,7 @@
     {
       "id": "focusable-separator-review",
       "title": "axe's experimental focus-order-semantics rule lists the freeze bars for review: a focusable separator is the window splitter pattern, which the rule does not take as a widget",
+      "notDefect": "fp-separator",
       "match": [
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["^div\\[role=\"separator\"\\]$"] }
       ]
@@ -339,6 +341,7 @@
     {
       "id": "voiceover-cell-position",
       "title": "VoiceOver names no row number on a cell move, no column number in WebKit and no header role on a header, on a well-formed grid too: the screen reader's behavior, not the grid's (the scenario notes record it)",
+      "notDefect": "reader-behavior",
       "match": [
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "where": ["^(arrow-right|arrow-down|arrow-left|arrow-up|reselect-cell)$"] },
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["default-mode", "handsontable-editor", "select-editor", "virtualization", "nested-headers"], "where": ["^(tab-into-grid|to-row-end|to-row-start|commit-row|commit-option|page-down-again|to-first-row|arrow-up-to-header)$"] },
@@ -350,6 +353,7 @@
     {
       "id": "voiceover-unchecked-state-silent",
       "title": "VoiceOver says checked for a checked menu item and nothing for an unchecked one, on a well-formed menu too: the screen reader's behavior, not the grid's (the Read only item reads checked once its column is read only)",
+      "notDefect": "reader-behavior",
       "match": [
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-menu"], "where": ["^arrow-down-read-only$"] }
       ]
@@ -372,6 +376,7 @@
     {
       "id": "voiceover-webkit-select-change-silent",
       "title": "VoiceOver with WebKit says nothing when the keys change the option of a closed select, on a plain select too, whether a script changes it as the select editor does or its own type-ahead does: the screen reader's behavior, not the grid's",
+      "notDefect": "reader-behavior",
       "match": [
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["select-editor"], "where": ["^arrow-down-(first|second)$"] }
       ]
@@ -386,6 +391,7 @@
     {
       "id": "reader-silent-step",
       "title": "A screen reader says nothing on a step whose surface it reads on later steps or in other runs: VoiceOver on the first key after the runner enters the page above all, on cells, headers, menus, editors and page buttons alike, which points at the reader's start-up, not at the surface; a golden difference belongs here only where this run was the silent one",
+      "notDefect": "reader-behavior",
       "match": [
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["async-values", "auto-link", "checkbox-header", "collapsible-headers", "column-summary", "comment-editor", "dialog", "empty-data", "freeze-bar", "grid-core-single-tab-stop", "loading", "merge-cells", "pagination", "sheets-bar", "virtualization"], "where": ["^(arrow-right-pending|arrow-up-plain-url|arrow-up-to-header|arrow-up-to-lower-header|arrow-down-data-row|arrow-right-plain-cell|dialog-opens|tab-last-header|f6-to-first-bar|tab-out-forward|loading-shows|arrow-down-into-merge|tab-page-size|tab-add-sheet|page-down)$"] },
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["checkbox-cell", "row-selection"], "where": ["^arrow-up-unchecked$"] },
@@ -414,6 +420,7 @@
     {
       "id": "reader-golden-drift",
       "title": "An announcement or an accessibility tree differs from its golden with no defect behind it: reader wording that varies between runs (the echo of typed characters catches more or fewer of them, and a status message can cut short the header VoiceOver reads before it), a golden that recorded a start-up silence the run did not repeat, a reading golden recorded a phrase late, and dropdown editor goldens older than its empty highlight on open, since re-recorded (drop the two dropdown-editor rules when the sample is next refreshed from an audit); record the golden again",
+      "notDefect": "reader-behavior",
       "match": [
         { "source": "reader", "kinds": ["golden-differs"], "pages": ["auto-link", "autocomplete-editor", "comment-editor", "data-provider-sheets-bar", "dialog", "grid-core(-horizon)?", "nested-rows", "pagination", "sheets-bar"], "where": ["^(open-link|commit-choice|type-narrow|type-in-comment|enter-switch-sheet|server-answers|tab-ok|reselect-cell|collapse-parent|enter-first-page|enter-last-page|enter-sheet-menu)$"] },
         { "source": "reader", "kinds": ["golden-differs"], "pages": ["dropdown-editor"], "where": ["^(open-editor|arrow-down-second|arrow-down-third|back-to-committed)$"] },
@@ -438,6 +445,7 @@
     {
       "id": "scenario-expectation-outdated",
       "title": "A screen reader scenario expected what the grid no longer does on purpose: the dropdown editor opens with no choice highlighted when the cell's value equals none of its choices, so the scenario's later choices were one step off; the scenario is fixed and these rows resolve on the next audit (remove this cluster when the sample is next refreshed from an audit, or a real dropdown miss would be filed here)",
+      "notDefect": "reader-behavior",
       "match": [
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox", "vo-chromium"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^open-editor$"] },
         { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["dropdown-editor"], "where": ["^(arrow-down-second|arrow-down-third)$"] },
@@ -447,6 +455,7 @@
     {
       "id": "tab-walk-wraps-rows",
       "title": "With autoWrapRow a Tab walk wraps rows and leaves the grid through Ctrl+End then Tab, as the shortcut guide documents",
+      "notDefect": "documented-tab-wrap",
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-walk-needs-shortcut"] }
       ]
@@ -454,6 +463,7 @@
     {
       "id": "goldens-missing",
       "title": "A page has no tab-order or accessibility-tree golden recorded yet",
+      "notDefect": "tooling-goldens",
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["tab-order-golden-missing"] },
         { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["tree-golden-missing"] }
@@ -470,6 +480,7 @@
     {
       "id": "hidden-clone-content",
       "title": "axe's experimental hidden-content rule lists every hidden element for review: the overlay clones' hidden rows, the closed editors and menus",
+      "notDefect": "tool-hidden-content",
       "match": [
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["hidden-content"] }
       ]
@@ -477,6 +488,7 @@
     {
       "id": "scrollable-holder-not-focusable",
       "title": "The scrolling holder is not keyboard focusable, though every cell in it is: axe cannot tell and lists it for review",
+      "notDefect": "fp-scrollable-holder",
       "match": [
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["scrollable-region-focusable"] }
       ]
