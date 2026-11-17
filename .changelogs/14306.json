@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed a bare boolean attribute, such as `<HotTable readOnly rowHeaders />`, to turn the option on instead of passing an empty string that left it off.",
+  "type": "changed",
+  "issueOrPR": 14306,
+  "breaking": true,
+  "framework": "vue"
+}
