@@ -76,8 +76,8 @@ on:
     # are triaged. Its durations artifacts are never recorded (a schedule event is not a develop push).
     # 'A11y nightly' and 'Screen reader nightly' feed the accessibility findings ledger (a11y.json), on
     # develop: every check's evidence and the axe findings, and every reader lane's transcripts.
-    # 'Docs a11y' and 'Website a11y' add the docs site's and the website's findings, from a dispatch on develop (they
-    # have no schedule).
+    # 'Docs a11y' and 'Website a11y' add the docs site's and the website's findings. All four run on develop once a
+    # week on a schedule, or on a dispatch there.
     workflows: ['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly', 'Docs a11y', 'Website a11y']
     types: [completed]
   workflow_dispatch:

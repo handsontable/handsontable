@@ -192,12 +192,12 @@ export const READER_NIGHTLY_WORKFLOW = 'Screen reader nightly';
 export const DOCS_A11Y_WORKFLOW = 'Docs a11y';
 export const WEBSITE_A11Y_WORKFLOW = 'Website a11y';
 /**
- * The events a run is recorded from: a dispatch (on the two nightlies the audit, on develop with no inputs:
- * their `check-inputs` job refuses a subset dispatch there, because the page draws the latest night of each
- * source and a subset night would show what it skipped as gone; the docs and website site scans run by dispatch only)
- * and a schedule, which the two nightlies do not have today and which is kept here for the day a tier
- * brings a cron back (`.ai/CI.md`). All three workflows also run on a pull request that touches them, to
- * validate their graph; such a run is never recorded.
+ * The events a run is recorded from: a schedule (the weekly audit: each recorded workflow runs on develop once a
+ * week while the accessibility debt is being fixed, `tests/AGENTS.md`, "A11y: the audit and the proof runs") and
+ * a dispatch (on develop with no inputs, the same audit started by a person: each workflow's `check-inputs` job
+ * refuses a subset dispatch there, because the page draws the latest night of each source and a subset night
+ * would show what it skipped as gone). All four workflows also run on a pull request that touches them, to
+ * validate their graph or to prove a change to a scan; such a run is never recorded.
  */
 export const A11Y_EVENTS = ['schedule', 'workflow_dispatch'];
 
