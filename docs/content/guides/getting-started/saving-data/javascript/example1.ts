@@ -17,7 +17,7 @@ const hot = new Handsontable(container, {
   colHeaders: true,
   height: 'auto',
   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
-  afterChange(change: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) {
+  afterChange(change: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) {
     if (source === 'loadData') {
       return; // don't save this change
     }

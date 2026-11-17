@@ -1937,11 +1937,12 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * Queues the cells affected by the incoming changes, keyed by their visual column, so the
    * width-determiner probe can decide before the next render whether each column's width
-   * actually needs a refresh.
+   * actually needs a refresh. A change whose row is `null` landed on a record trimmed out of the visual space
+   * while it waited for its validator, and has no visible width to measure.
    */
   #onBeforeChange = (changes: CellChange[]) => {
     changes.forEach(([row, columnProperty, oldValue]) => {
-      if (typeof columnProperty === 'function') {
+      if (typeof columnProperty === 'function' || row === null) {
         return;
       }
 

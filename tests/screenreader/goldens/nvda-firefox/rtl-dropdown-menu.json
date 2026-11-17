@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "rtl-dropdown-menu",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T12:57:16.217Z"
+  },
+  "steps": {
+    "open-menu": "table insert column left row 1 column 1 menu",
+    "end-to-alignment": "table alignment collapsed row 10",
+    "open-submenu": "table left row 1 column 1 menu",
+    "close-submenu": "narrow header with a menu button e 2e fixture document",
+    "close-menu": ""
+  }
+}

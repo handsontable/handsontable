@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "time-editor",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:12:20.443Z"
+  },
+  "steps": {
+    "open-editor": "",
+    "type-time": "45",
+    "commit-time": "10 hour stepper",
+    "back-to-committed": "time 12 30 am",
+    "reopen-editor": "12 hour stepper",
+    "cancel-edit": ""
+  }
+}

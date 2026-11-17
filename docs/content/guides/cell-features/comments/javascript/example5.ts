@@ -30,8 +30,8 @@ new Handsontable(container, {
   afterValidate(isValid, value, row, prop) {
     const column = this.propToCol(prop);
 
-    // Skip a property that names no column.
-    if (column === null) {
+    // Skip a record a filter hid while it was validated, and a property that names no column.
+    if (row === null || column === null) {
       return;
     }
 

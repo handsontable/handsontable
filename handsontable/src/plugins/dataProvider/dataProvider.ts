@@ -2182,7 +2182,9 @@ export class DataProvider extends BasePlugin {
   };
 
   /**
-   * After a valid edit applies locally, queues `onRowsUpdate`. On failure, cells revert to previous values.
+   * After a valid edit applies locally, queues `onRowsUpdate`. On failure, cells revert to previous values. The
+   * payloads are read now, while the change tuples name the rows the edit landed on: an update queued behind
+   * another save's refetch runs after that refetch has put other records at those visual rows.
    *
    * @param {Array} changes `[visualRow, prop, oldVal, newVal][]`.
    * @param {string} [source] Change source.
@@ -2200,9 +2202,9 @@ export class DataProvider extends BasePlugin {
     }
 
     const binding = this.#currentBinding();
-    const prepared = binding !== null && binding.context !== null
-      ? prepareUpdateFromChanges(this.hot, binding.config.rowId, valid, { validateNow: true })
-      : undefined;
+    const prepared = prepareUpdateFromChanges(this.hot, binding?.config.rowId ?? this.#getRowIdOption(), valid, {
+      validateNow: binding !== null && binding.context !== null,
+    });
 
     void this.#enqueueMutation(() => {
       if (!this.hot) {

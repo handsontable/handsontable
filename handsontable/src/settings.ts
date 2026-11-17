@@ -48,6 +48,16 @@ export interface ColumnDataGetterSetterFunction {
 export type CellChange = [number, string | number | ColumnDataGetterSetterFunction, CellValue, CellValue];
 
 /**
+ * A cell change as the `afterChange` and `beforeChangeRender` hooks report it once it is applied:
+ * `[row, prop, oldValue, newValue]`. `row` is the visual row the changed record has when the value lands. It is
+ * `null` for a change that waited for its validator and landed on a record that a filter or another trimming
+ * feature took out of the visual space in the meantime.
+ */
+export type AppliedCellChange = [
+  number | null, string | number | ColumnDataGetterSetterFunction, CellValue, CellValue,
+];
+
+/**
  * The default sources for which the table triggers hooks.
  */
 export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'populateFromArray' | 'spliceCol' |

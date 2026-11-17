@@ -59,7 +59,7 @@ export class AppComponent {
     autoWrapCol: true,
 
     afterChange: (
-      change: Handsontable.CellChange[] | null,
+      change: Handsontable.AppliedCellChange[] | null,
       source: Handsontable.ChangeSource
     ) => {
       if (source === 'loadData') {

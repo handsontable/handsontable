@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "formula-function-help",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T13:56:38.629Z"
+  },
+  "steps": {
+    "open-editor": "formula editor combo box collapsed has auto complete multi line editable equals a 1 plus b 1",
+    "select-all": "equals a 1 plus b 1 selected",
+    "type-sum": "selection removed list item handsontable formula builder e 2e fixture nightly handsontable formula builder e 2e fixture nightly handsontable formula builder e 2e fixture document table formula editor combo box collapsed has auto complete multi line editable sum function help equals sum",
+    "type-range": "",
+    "type-comma": "",
+    "type-close": "",
+    "commit-formula": "7 c row 3 column 4",
+    "back-to-committed": "11 c row 2 column 4"
+  }
+}

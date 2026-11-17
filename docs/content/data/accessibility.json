@@ -43,7 +43,7 @@
       "platform": "macOS",
       "browsers": ["WebKit (Playwright)", "Chromium"],
       "howTested": ["automated-nightly"],
-      "scenarios": 40,
+      "scenarios": 50,
       "unsupported": []
     },
     {
@@ -64,7 +64,7 @@
       "platform": "Windows Server 2025",
       "browsers": ["Chromium", "Firefox (Playwright)"],
       "howTested": ["automated-nightly"],
-      "scenarios": 40,
+      "scenarios": 50,
       "unsupported": ["read in"]
     },
     {
@@ -84,12 +84,6 @@
       "text": "Some text colors of the formula builder (error values, unknown function names, comments, named expressions, and references) are below a 4.5:1 contrast ratio in every theme.",
       "criteria": ["1.4.3"],
       "reportRef": null
-    },
-    {
-      "id": "sorting-not-announced",
-      "text": "Sorting state changes are not announced to screen readers.",
-      "criteria": ["4.1.3"],
-      "reportRef": "#2375"
     },
     {
       "id": "range-selection-not-announced",

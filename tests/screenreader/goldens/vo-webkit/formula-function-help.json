@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "formula-function-help",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T13:57:22.975Z"
+  },
+  "steps": {
+    "open-editor": "",
+    "select-all": "",
+    "type-sum": "collapsed sum sum",
+    "type-range": "3 a3",
+    "type-comma": "",
+    "type-close": "1 b1",
+    "commit-formula": "c 7",
+    "back-to-committed": "c 11"
+  }
+}

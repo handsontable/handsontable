@@ -1002,6 +1002,9 @@ function snapshotSelectionVisibleRange(table: Table, wtOverlays: Overlays): void
       partial: [table.getFirstPartiallyVisibleColumn(), table.getLastPartiallyVisibleColumn()],
       full: [table.getFirstVisibleColumn(), table.getLastVisibleColumn()],
     },
+    // Left open here: the bottom clone renders inside `refresh()`, after this snapshot, and its height is
+    // read on the first ask after that (`Overlays#bottomCloneCoversLinedUpRow`).
+    bottomCloneCoversLinedUpRow: null,
   };
 }
 
