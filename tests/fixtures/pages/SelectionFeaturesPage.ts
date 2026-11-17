@@ -1449,6 +1449,15 @@ export class SelectionFeaturesPage {
     return this.page.locator('.ht_clone_inline_end .wtBorder.current.corner:visible');
   }
 
+  /**
+   * Drag the fill handle of a `fixedColumnsEnd` cell with the real pointer onto another cell of the end
+   * columns and release. The inline-end clone draws both the handle and the cells.
+   */
+  async dragEndCloneFillHandleTo(row: number, col: number): Promise<void> {
+    await dragFillHandle(this.page, this.endCloneFillHandle(),
+      this.page.locator('.ht_clone_inline_end').getByTestId(`cell-${row}-${col}`));
+  }
+
   /** Whether the Autofill plugin still believes the fill handle is pressed. */
   async isFillHandlePressed(): Promise<boolean> {
     return this.page.evaluate(() => window.hot.getPlugin('autofill').mouseDownOnCellCorner);
