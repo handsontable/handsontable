@@ -708,6 +708,7 @@
     {
       "id": "website-grid-scroll-viewport",
       "title": "The demo grids' scroll viewport on handsontable.com scrolls but cannot be reached or scrolled from the keyboard",
+      "notDefect": "fp-scrollable-holder",
       "match": [
         { "source": "website", "axeIssues": ["grid-scroll-viewport-keyboard"] }
       ]
