@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a row scrolled to the bottom edge ending 1–2px under the frozen bottom rows in a grid with AutoRowSize and no column headers.",
+  "type": "fixed",
+  "issueOrPR": 14313,
+  "breaking": false,
+  "framework": "none"
+}
