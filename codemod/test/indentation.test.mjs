@@ -129,6 +129,35 @@ describe('indentation of an edited file', () => {
     assert.ok(output.split('\n').every(line => !/^ /.test(line)), `a line starts with a space:\n${output}`);
   });
 
+  it('keeps a space-aligned continuation line of a tab-indented file as it was', async() => {
+    const aligned = '\t\t           \'b\'),';
+    const source = [
+      'import Handsontable from \'handsontable\';',
+      '',
+      'export function mount(el) {',
+      '\tconst hot = new Handsontable(el, {',
+      '\t\tlicenseKey: \'k\',',
+      '\t\tdata: build(\'a\',',
+      aligned,
+      '\t\tcolumns: [',
+      '\t\t\t{ type: \'date\', correctFormat: true, dateFormat: \'YYYY-MM-DD\' },',
+      '\t\t],',
+      '\t});',
+      '',
+      '\treturn hot;',
+      '}',
+      '',
+    ].join('\n');
+    const { output, changed } = await transform(source, 'grid.js', ['18.0.0/correct-format-removed']);
+    const lines = output.split('\n');
+
+    assert.equal(changed, true);
+    assert.equal(lines[6], aligned, 'the aligned line is byte for byte what it was');
+    assert.equal(lines.filter(line => /^ /.test(line)).length, 0);
+    // The lines the run printed again take tabs only.
+    assert.equal(lines.filter(line => /^\t* +\S/.test(line)).length, 1, 'only the aligned line holds spaces');
+  });
+
   it('prints a file with mixed line endings with the ending each line had (see line-endings.test.mjs)', async() => {
     const { source, removedLine } = removalModule('  ');
     const mostlyLf = source.replace('hot.render();\n', 'hot.render();\r\n');

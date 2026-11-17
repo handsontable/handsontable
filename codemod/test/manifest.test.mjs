@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { ManifestError } from '../src/errors.mjs';
 import { PACKAGE_ROOT, RULE_KINDS, buildPlan, loadManifest, loadManifests, validateRule } from '../src/manifest.mjs';
+import { transformFile } from '../src/runner.mjs';
 import { KIND_ORDER, registry } from '../src/transforms/index.mjs';
 import { anchorsOf, checkAnchors, slugOf } from './helpers/guide-anchors.mjs';
 import { guidePath, skipWithoutGuides } from './helpers/guide-source.mjs';
@@ -412,6 +413,77 @@ describe('loadManifest', () => {
       assert.equal(manifest.rules[0].version, '18.0.0');
     });
   });
+});
+
+describe('a custom rule module', () => {
+  const SOURCE = 'import Handsontable from \'handsontable\';\nnew Handsontable(el, {});\n';
+  const STYLE = 'a { color: var(--ht-foreground-color); }\n';
+
+  /**
+   * Write a version with one custom rule whose module has the given text, and run files through it.
+   *
+   * @param {string} moduleText The text of `custom/x.mjs`.
+   * @param {Array<[string, string]>} files File names and texts to transform.
+   * @returns {Promise<Array<{entries: object[]}>>} The results, in order.
+   */
+  async function runModule(moduleText, files) {
+    let results = [];
+
+    await withVersionsDir(async(root) => {
+      const dir = await writeVersion(root, '18.1.0', {
+        rules: [{ id: '18.1.0/c', kind: 'custom', module: 'custom/x.mjs', safe: false }],
+      }, { 'custom/x.mjs': moduleText });
+      const plan = buildPlan([await loadManifest(dir)]);
+
+      results = await Promise.all(files.map(([filePath, source]) => transformFile({
+        filePath, source, plan, options: { markers: false },
+      })));
+    });
+
+    return results;
+  }
+
+  const REPORTING = [
+    'export default {',
+    '  fileKinds: ["css"],',
+    '  apply(ctx, rule) {',
+    // eslint-disable-next-line no-template-curly-in-string
+    '    ctx.report({ ruleId: rule.id, severity: "manual", message: "ran on " + ctx.fileKind });',
+    '  },',
+    '};',
+  ].join('\n');
+
+  it('runs only on the part kinds it lists', async() => {
+    const [js, css, both] = await Promise.all([
+      runModule(REPORTING, [['a.js', SOURCE]]),
+      runModule(REPORTING, [['a.css', STYLE]]),
+      runModule(REPORTING.replace('["css"]', '["css", "js"]'), [['a.js', SOURCE], ['a.css', STYLE]]),
+    ]);
+
+    assert.deepEqual(js[0].entries, [], 'a css module did not run on a js part');
+    assert.deepEqual(css[0].entries.map(entry => entry.message), ['ran on css']);
+    assert.deepEqual(both.map(result => result.entries.map(entry => entry.message)), [['ran on js'], ['ran on css']]);
+  });
+
+  for (const [label, moduleText] of [
+    ['has no default export', 'export const x = 1;'],
+    ['exports null', 'export default null;'],
+    ['has no fileKinds', 'export default { apply() {} };'],
+    ['lists its fileKinds as a string', 'export default { fileKinds: "js", apply() {} };'],
+    ['has no apply', 'export default { fileKinds: ["js"] };'],
+    ['has an apply that is no function', 'export default { fileKinds: ["js"], apply: 1 };'],
+  ]) {
+    it(`turns a module that ${label} into one transform-error that names the rule and leaves the file alone`,
+      async() => {
+        const [result] = await runModule(moduleText, [['a.js', SOURCE]]);
+
+        assert.equal(result.changed, false);
+        assert.equal(result.output, SOURCE);
+        assert.deepEqual(result.entries.map(entry => entry.ruleId), ['transform-error']);
+        assert.match(result.entries[0].message,
+          /18\.1\.0\/c: custom\/x\.mjs must default-export \{ fileKinds: string\[\], apply\(ctx, rule\) \}\./);
+      });
+  }
 });
 
 describe('buildPlan', () => {

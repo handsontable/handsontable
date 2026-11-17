@@ -5,6 +5,7 @@ import { createLineCounter, scanScripts } from '../src/lib/inline-script.mjs';
 import { blankToolComments } from '../src/lib/tool-comments.mjs';
 import { buildPlan, VERSIONS_DIR, loadManifests } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
+import { measureGrowth, measureWork } from './helpers/work-meter.mjs';
 
 // The expressions the scanners replaced, kept as the oracle for what they must still return.
 const LEGACY_SCRIPT = /<script\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script\b[^>]*>/gid;
@@ -12,8 +13,6 @@ const LEGACY_TOOL_COMMENT = (
   /\/\/[ \t]*TODO\(handsontable-codemod [^\r\n]*|\/\*[ \t]*TODO\(handsontable-codemod [\s\S]*?\*\//g
 );
 const MIB = 1024 * 1024;
-// Linear code finishes these inputs in tens of milliseconds. The expressions took a minute.
-const BUDGET_MS = 2000;
 
 /**
  * A deterministic generator, so a failure names a seed that repeats.
@@ -32,20 +31,6 @@ function random(seed) {
   };
 }
 
-/**
- * Run a function and return how long it took.
- *
- * @param {() => void} body What to run.
- * @returns {number} Milliseconds.
- */
-function timed(body) {
-  const start = process.hrtime.bigint();
-
-  body();
-
-  return Number(process.hrtime.bigint() - start) / 1e6;
-}
-
 const legacyScripts = source => [...source.matchAll(LEGACY_SCRIPT)].map(match => ({
   index: match.index,
   attributes: match[1],
@@ -53,6 +38,38 @@ const legacyScripts = source => [...source.matchAll(LEGACY_SCRIPT)].map(match =>
   bodyStart: match.indices[2][0],
   end: match.index + match[0].length,
 }));
+
+describe('the work meter', () => {
+  it('counts a scan that starts again for each item as quadratic, and a single pass as linear', async() => {
+    const text = bytes => 'ab\n'.repeat(bytes / 3);
+    const again = async(bytes) => {
+      const source = text(bytes);
+
+      for (let at = 0; at < source.length; at += 3) {
+        source.slice(0, at).split('\n');
+      }
+    };
+    const once = async(bytes) => {
+      const source = text(bytes);
+
+      for (let at = source.indexOf('\n'); at !== -1; at = source.indexOf('\n', at + 1)) {
+        source.slice(at, at + 3);
+      }
+    };
+
+    await assert.rejects(measureGrowth({ input: bytes => bytes, run: again, size: 3000 }), /grew \d+\.\d times/);
+    await measureGrowth({ input: bytes => bytes, run: once, size: 3000 });
+  });
+
+  it('restores the built-ins it wrapped, also when the function throws', async() => {
+    const before = [String.prototype.slice, String.prototype.indexOf, RegExp.prototype.exec];
+
+    await assert.rejects(measureWork(() => {
+      throw new Error('boom');
+    }), /boom/);
+    assert.deepEqual([String.prototype.slice, String.prototype.indexOf, RegExp.prototype.exec], before);
+  });
+});
 
 describe('scanScripts() returns what the regular expression returned', () => {
   const FRAGMENTS = [
@@ -111,20 +128,34 @@ describe('scanScripts() returns what the regular expression returned', () => {
 
 describe('the scan of a page with many unclosed or odd tags is linear', () => {
   const inputs = {
-    'unclosed <script> tags': '<script>'.repeat(MIB / 8),
-    'start tags with no >': '<script '.repeat(MIB / 8),
-    'start tags with a quote that never closes': '<script "'.repeat(MIB / 9),
-    'start tags with quotes that close in the next tag': '<script \'>'.repeat(MIB / 10),
-    'one quote per tag, alternating': '<script " <script \' '.repeat(MIB / 20),
-    'complete elements': '<script>x</script>'.repeat(MIB / 18),
-    'end tags with no > after them': '<script>a'.repeat(MIB / 16) + '</script'.repeat(MIB / 16),
+    'unclosed <script> tags': bytes => '<script>'.repeat(bytes / 8),
+    'start tags with no >': bytes => '<script '.repeat(bytes / 8),
+    'start tags with a quote that never closes': bytes => '<script "'.repeat(bytes / 9),
+    'start tags with quotes that close in the next tag': bytes => '<script \'>'.repeat(bytes / 10),
+    'one quote per tag, alternating': bytes => '<script " <script \' '.repeat(bytes / 20),
+    'complete elements': bytes => '<script>x</script>'.repeat(bytes / 18),
+    'end tags with no > after them': bytes => '<script>a'.repeat(bytes / 16) + '</script'.repeat(bytes / 16),
   };
 
-  for (const [name, source] of Object.entries(inputs)) {
-    it(`${name}, 1 MiB`, () => {
-      const ms = timed(() => scanScripts(source));
+  for (const [name, input] of Object.entries(inputs)) {
+    it(`${name}: four times the text is four times the work`, async() => {
+      await measureGrowth({ input, run: scanScripts, size: MIB / 128 });
+    });
 
-      assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
+    // The scanner walks its own arrays, which the built-ins count cannot see, so it reports its steps.
+    it(`${name}: four times the text is four times the steps of the scan`, () => {
+      const stepsFor = (bytes) => {
+        const stats = { steps: 0 };
+
+        scanScripts(input(bytes), stats);
+
+        return stats.steps;
+      };
+      const small = stepsFor(MIB / 128);
+      const large = stepsFor(MIB / 32);
+
+      assert.equal(small > 1000, true, `${small} steps`);
+      assert.equal(large <= small * 5, true, `${small} steps for the text, ${large} for four times the text`);
     });
   }
 
@@ -132,24 +163,25 @@ describe('the scan of a page with many unclosed or odd tags is linear', () => {
     assert.equal(scanScripts('<script>x</script>'.repeat(5000)).length, 5000);
   });
 
-  it('reads a page through the adapter in the same bound, with a Handsontable call in every script', () => {
-    const page = '<script>new Handsontable(el, {});'.repeat(MIB / 33);
-    const ms = timed(() => templateAdapter.skipNotes(page));
-
-    assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
+  it('reads a page through the adapter in the same bound, with a Handsontable call in every script', async() => {
+    await measureGrowth({
+      input: bytes => '<script>new Handsontable(el, {});'.repeat(bytes / 33),
+      run: page => templateAdapter.skipNotes(page),
+      size: MIB / 128,
+    });
   });
 
-  it('runs the detect rule that reads inline scripts over a page of unclosed tags in the same bound', async() => {
-    const manifests = await loadManifests(VERSIONS_DIR);
-    const plan = buildPlan(manifests, ['18.0.0/html-without-sanitizer']);
-    const source = `<!-- Handsontable -->\n${'<script>new Handsontable(el, {});</script>\n'.repeat(MIB / 90)}`;
-    const start = process.hrtime.bigint();
-    const result = await transformFile({ filePath: 'a.html', source, plan });
-    const ms = Number(process.hrtime.bigint() - start) / 1e6;
+  it('runs the detect rule that reads inline scripts over a page of unclosed tags in the same bound',
+    async() => {
+      const manifests = await loadManifests(VERSIONS_DIR);
+      const plan = buildPlan(manifests, ['18.0.0/html-without-sanitizer']);
+      const script = '<script>new Handsontable(el, {});</script>\n';
+      const page = bytes => `<!-- Handsontable -->\n${script.repeat(bytes / 41)}`;
+      const run = source => transformFile({ filePath: 'a.html', source, plan });
 
-    assert.ok(ms < BUDGET_MS * 5, `${ms.toFixed(0)} ms`);
-    assert.ok(result.entries.length > 0);
-  });
+      await measureGrowth({ input: page, run, size: MIB / 128 });
+      assert.ok((await run(page(MIB / 16))).entries.length > 0);
+    });
 });
 
 describe('createLineCounter()', () => {
@@ -161,6 +193,20 @@ describe('createLineCounter()', () => {
     for (const offset of [0, 1, 2, 3, 5, 6, 7, 10, 11, 4, 0, 11]) {
       assert.equal(lineAt(offset), expected(offset), `offset ${offset}`);
     }
+  });
+
+  it('reads the text once for the lines of many growing offsets', async() => {
+    await measureGrowth({
+      input: bytes => 'line\n'.repeat(bytes / 5),
+      run: (source) => {
+        const lineAt = createLineCounter(source);
+
+        for (let offset = 0; offset < source.length; offset += 5) {
+          lineAt(offset);
+        }
+      },
+      size: MIB / 128,
+    });
   });
 });
 
@@ -204,81 +250,87 @@ describe('blankToolComments() returns what the regular expression returned', () 
     assert.match(blankToolComments(source), /open/);
   });
 
-  it('reads 1 MB of openings that never close in a bounded time', () => {
-    const source = '/* TODO(handsontable-codemod x) '.repeat(MIB / 32);
-    const ms = timed(() => blankToolComments(source));
-
-    assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
+  it('reads openings that never close in linear work', async() => {
+    await measureGrowth({
+      input: bytes => '/* TODO(handsontable-codemod x) '.repeat(bytes / 32),
+      run: blankToolComments,
+      size: MIB / 128,
+    });
   });
 
-  it('reads 1 MB of comments that do close in a bounded time', () => {
-    const source = '/* TODO(handsontable-codemod x) */\n'.repeat(MIB / 35);
-    const ms = timed(() => blankToolComments(source));
-
-    assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
-    assert.doesNotMatch(blankToolComments(source), /TODO/);
+  it('reads comments that do close in linear work', async() => {
+    await measureGrowth({
+      input: bytes => '/* TODO(handsontable-codemod x) */\n'.repeat(bytes / 35),
+      run: blankToolComments,
+      size: MIB / 128,
+    });
+    assert.doesNotMatch(blankToolComments('/* TODO(handsontable-codemod x) */\n'.repeat(1000)), /TODO/);
   });
 
-  it('reads 1 MB of line comments in a bounded time', () => {
-    const source = '// TODO(handsontable-codemod x): y\n'.repeat(MIB / 35);
-    const ms = timed(() => blankToolComments(source));
-
-    assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
+  it('reads line comments in linear work', async() => {
+    await measureGrowth({
+      input: bytes => '// TODO(handsontable-codemod x): y\n'.repeat(bytes / 35),
+      run: blankToolComments,
+      size: MIB / 128,
+    });
   });
 });
 
-describe('a file with a long run of white space, many names in one value, or many edits is read in linear time', () => {
+describe('a file with a long run of white space, many names in one value, or many edits is read in linear work', () => {
   /**
-   * Run a whole file through the default rules and return how long it took.
+   * Run a whole file through the default rules.
    *
    * @param {string} filePath File name, which picks the adapter.
    * @param {string} source File text.
-   * @returns {Promise<{ms: number, result: Awaited<ReturnType<typeof transformFile>>}>} The time and the outcome.
+   * @returns {Promise<Awaited<ReturnType<typeof transformFile>>>} The outcome.
    */
-  async function timedFile(filePath, source) {
+  async function transformed(filePath, source) {
     const plan = buildPlan((await loadManifests(VERSIONS_DIR)).filter(manifest => manifest.status === 'released'));
-    const start = process.hrtime.bigint();
-    const result = await transformFile({ filePath, source, plan, options: {}, facts: new Set(), phase: 1 });
 
-    return { ms: Number(process.hrtime.bigint() - start) / 1e6, result };
+    return transformFile({ filePath, source, plan, options: {}, facts: new Set(), phase: 1 });
   }
 
-  it('a Vue script block that holds 120,000 spaces in a row (the edges of a block were read with /\\s*$/)', async() => {
-    // The run sits inside the block, followed by code: `/\s*$/` fails at the end of it from every position of the run.
-    const source = `<script>\nimport Handsontable from 'handsontable';\nconst a = 1;${' '.repeat(120000)}const b = 2;\n`
-      + 'new Handsontable(el, { correctFormat: true });\n</script>\n';
-    const { ms, result } = await timedFile('a.vue', source);
-
-    assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
-    assert.equal(result.changed, true);
-    assert.equal(result.output.includes(`const a = 1;${' '.repeat(120000)}const b = 2;`), true,
-      'the white space is kept');
-  });
-
-  it('one declaration that names the variable 4,000 times', async() => {
-    const value = 'var(--ht-wrapper-border-radius), '.repeat(4000);
-    const { ms, result } = await timedFile('a.css', `a { box-shadow: ${value}0 0 red; }\n`);
-
-    assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
-    assert.equal(result.output.split('--ht-border-radius').length - 1, 4000);
-  });
-
-  it('1.5 MB of declarations that are all renamed (the edits were spliced into the whole text one by one)',
+  it('a Vue script block that holds 120,000 spaces in a row (the edges of a block were read with /\\s*$/)',
     async() => {
-      const source = `a {\n${'  border-radius: var(--ht-wrapper-border-radius);\n'.repeat(30000)}}\n`;
-      const { ms, result } = await timedFile('a.css', source);
+      // The run sits inside the block, followed by code: `/\s*$/` fails at the end of it from every position of the run.
+      const block = spaces => `<script>\nimport Handsontable from 'handsontable';\nconst a = 1;${' '.repeat(spaces)}`
+        + 'const b = 2;\nnew Handsontable(el, { correctFormat: true });\n</script>\n';
 
-      assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
-      assert.equal(result.output.split('--ht-border-radius').length - 1, 30000);
-      assert.equal(result.output.length, source.length - (30000 * 'wrapper-'.length));
+      await measureGrowth({ input: block, run: source => transformed('a.vue', source), size: 30000 });
+
+      const result = await transformed('a.vue', block(120000));
+
+      assert.equal(result.changed, true);
+      assert.equal(result.output.includes(`const a = 1;${' '.repeat(120000)}const b = 2;`), true,
+        'the white space is kept');
     });
 
-  it('names that sit between strings and url() are decided by position, in the same bound', async() => {
-    const value = 'url(--ht-wrapper-border-radius.png) "--ht-wrapper-border-radius" var(--ht-wrapper-border-radius) '
-      .repeat(2000).trim();
-    const { ms, result } = await timedFile('a.css', `a { background: ${value}; }\n`);
+  it('one declaration that names the variable 4,000 times', async() => {
+    const css = names => `a { box-shadow: ${'var(--ht-wrapper-border-radius), '.repeat(names)}0 0 red; }\n`;
 
-    assert.ok(ms < BUDGET_MS, `${ms.toFixed(0)} ms`);
+    await measureGrowth({ input: css, run: source => transformed('a.css', source), size: 500 });
+    assert.equal((await transformed('a.css', css(4000))).output.split('--ht-border-radius').length - 1, 4000);
+  });
+
+  it('declarations that are all renamed (the edits were spliced into the whole text one by one)', async() => {
+    const css = count => `a {\n${'  border-radius: var(--ht-wrapper-border-radius);\n'.repeat(count)}}\n`;
+
+    await measureGrowth({ input: css, run: source => transformed('a.css', source), size: 1000 });
+
+    const result = await transformed('a.css', css(30000));
+
+    assert.equal(result.output.split('--ht-border-radius').length - 1, 30000);
+    assert.equal(result.output.length, css(30000).length - (30000 * 'wrapper-'.length));
+  });
+
+  it('names that sit between strings and url() are decided by position, in the same bound', async() => {
+    const unit = 'url(--ht-wrapper-border-radius.png) "--ht-wrapper-border-radius" var(--ht-wrapper-border-radius) ';
+    const css = count => `a { background: ${unit.repeat(count).trim()}; }\n`;
+
+    await measureGrowth({ input: css, run: source => transformed('a.css', source), size: 250 });
+
+    const result = await transformed('a.css', css(2000));
+
     assert.equal(result.output.split('var(--ht-border-radius)').length - 1, 2000, 'only the var() references change');
   });
 });

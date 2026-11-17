@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { chmod, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it } from 'node:test';
 import { inPlainProject, migrate } from './helpers/plain-project.mjs';
+import { git, writeFiles } from './helpers/sample-project.mjs';
 
 const RANGE = ['--from', '17.1', '--to', '18.0', '--allow-dirty'];
 const SOURCE = 'import Handsontable from \'handsontable\';\nnew Handsontable(el, { data: [], correctFormat: true });\n';
@@ -54,6 +56,83 @@ describe('the report target is checked before any file is migrated', () => {
       assert.equal(result.status, 2, result.stdout + result.stderr);
       assert.match(result.stderr, /is not writable/);
       assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE);
+    });
+  });
+});
+
+describe('a file that git tracks is never overwritten by the report', () => {
+  /**
+   * Run a callback in a committed git repository with a tracked file the tool does not migrate.
+   *
+   * @param {Record<string, string>} files File text by project-relative path.
+   * @param {(dir: string) => Promise<void>} body Test body.
+   * @returns {Promise<void>}
+   */
+  async function inRepository(files, body) {
+    const dir = await mkdtemp(join(tmpdir(), 'codemod-tracked-'));
+
+    try {
+      await writeFiles(dir, files);
+      git(dir, ['init', '-q']);
+      git(dir, ['add', '-A']);
+      git(dir, ['commit', '-q', '-m', 'init']);
+      await body(dir);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  }
+
+  const FILES = { 'a.js': SOURCE, LICENSE: 'the license\n', 'notes.txt': 'my notes\n', 'docs/guide.txt': 'a guide\n' };
+
+  for (const target of ['LICENSE', 'notes.txt', './notes.txt', 'docs/guide.txt']) {
+    it(`refuses --report ${target}, exits 2, and changes no byte`, async() => {
+      await inRepository(FILES, async(dir) => {
+        const result = await migrate(dir, ['--from', '17.1', '--to', '18.0', '--report', target, '.']);
+
+        assert.equal(result.status, 2, result.stdout + result.stderr);
+        assert.match(result.stderr, /would overwrite a project file/);
+
+        for (const [name, text] of Object.entries(FILES)) {
+          assert.equal(await readFile(join(dir, name), 'utf8'), text, name);
+        }
+      });
+    });
+  }
+
+  it('refuses an absolute path to a tracked file', async() => {
+    await inRepository(FILES, async(dir) => {
+      const result = await migrate(dir, ['--from', '17.1', '--to', '18.0', '--report', join(dir, 'notes.txt'), '.']);
+
+      assert.equal(result.status, 2, result.stdout + result.stderr);
+      assert.match(result.stderr, /would overwrite a project file/);
+      assert.equal(await readFile(join(dir, 'notes.txt'), 'utf8'), FILES['notes.txt']);
+      assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE);
+    });
+  });
+
+  it('refuses the same file in another letter case on a case-insensitive file system', async(context) => {
+    await inRepository(FILES, async(dir) => {
+      if (!existsSync(join(dir, 'notes.TXT'))) {
+        context.skip('this file system tells notes.txt from notes.TXT');
+
+        return;
+      }
+
+      const result = await migrate(dir, ['--from', '17.1', '--to', '18.0', '--report', 'notes.TXT', '.']);
+
+      assert.equal(result.status, 2, result.stdout + result.stderr);
+      assert.match(result.stderr, /would overwrite a project file/);
+      assert.equal(await readFile(join(dir, 'notes.txt'), 'utf8'), FILES['notes.txt']);
+    });
+  });
+
+  it('writes a report next to the tracked files when the target is new', async() => {
+    await inRepository(FILES, async(dir) => {
+      const result = await migrate(dir, ['--from', '17.1', '--to', '18.0', '--report', 'migration-report.md', '.']);
+
+      assert.equal(result.status, 0, result.stdout + result.stderr);
+      assert.match(await readFile(join(dir, 'migration-report.md'), 'utf8'), /^# Handsontable migration report/);
+      assert.equal(await readFile(join(dir, 'notes.txt'), 'utf8'), FILES['notes.txt']);
     });
   });
 });

@@ -145,7 +145,7 @@ describe('path decisions on every platform', () => {
     assert.equal(insideRelative('/work/proj', '/work/other/x.css', posix), null);
   });
 
-  it('a short 8.3 name is a different path until realpath expands it, so callers compare real paths', () => {
+  it('insideRelative keeps a short 8.3 name and its long path apart, so a caller expands them first', () => {
     const short = 'C:\\Users\\RUNNER~1\\proj';
     const long = 'C:\\Users\\runneradmin\\proj';
 

@@ -2,11 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { buildPlan } from '../src/manifest.mjs';
+import { buildPlan, loadManifests } from '../src/manifest.mjs';
 import { transformFile } from '../src/runner.mjs';
 import { skipWithoutFile } from './helpers/guide-source.mjs';
 import { parse } from './helpers/parse.mjs';
 
+const shippedManifests = await loadManifests();
 const IMPORT = 'import Handsontable from \'handsontable\';\n';
 const RENAME = { id: '18.0.0/rename', kind: 'optionRename', from: 'oldName', to: 'newName' };
 const MOVE = {
@@ -236,6 +237,24 @@ describe('optionRename confidence bar', () => {
     assert.match(removed.entries[0].message, /fewer than two other known options/);
   });
 
+  it('needs one of the two other known options to be a distinctive one, even under --aggressive', async() => {
+    // `locale`, `width`, `height`, `data`, and `language` also appear in objects that are not grid settings.
+    for (const company of ['locale: \'pl\', width: 100', 'locale: \'pl\', height: 100', 'data: [], width: 100',
+      'locale: \'pl\', language: \'en\'']) {
+      const source = `${IMPORT}const s = { correctFormat: true, ${company} };\n`;
+      const result = await run(source, [REMOVE_FORMAT], { aggressive: true });
+
+      assert.equal(result.changed, false, company);
+      assert.equal(result.output, source, company);
+      assert.deepEqual(result.entries.map(entry => entry.severity), ['manual'], company);
+    }
+
+    const distinctive = await run(`${IMPORT}const s = { correctFormat: true, locale: 'pl', colHeaders: true };\n`,
+      [REMOVE_FORMAT], { aggressive: true });
+
+    assert.equal(distinctive.changed, true);
+  });
+
   it('rewrites a hot-file object that has two other known options under --aggressive', async() => {
     const source = `${IMPORT}const s = { colHeaders: true, rowHeaders: true, correctFormat: true };\n`;
     const result = await run(source, [REMOVE_FORMAT], { aggressive: true });
@@ -367,7 +386,7 @@ describe('optionMove', () => {
     assert.match(jsx.output, /numericFormat=\{\{\}\}/);
   });
 
-  it('keeps the empty numericFormat because the renderer reads {} and an absent value differently', (context) => {
+  it('still holds in the core source: the numeric renderer reads {} and an absent value differently', (context) => {
     const path = new URL('../../handsontable/src/renderers/numericRenderer/utils.ts', import.meta.url);
 
     if (skipWithoutFile(context, fileURLToPath(path), 'the numeric renderer source')) {
@@ -630,6 +649,74 @@ describe('optionRemove', () => {
 
     assert.equal(inert.output.includes('gone:'), false);
     assert.equal(inert.entries.filter(entry => entry.severity === 'changed').length, 1);
+  });
+
+  describe('a removed option whose value has an effect keeps its property, and an inert twin is deleted', () => {
+    // Each pair is an effect and its inert twin. The twin is the same shape with nothing to run.
+    const PAIRS = [
+      ['a call', 'track()', 'tracked'],
+      ['a call in the right side of a logical expression', 'a || track()', 'a || b'],
+      ['a call in the left side of a logical expression', 'track() ?? a', 'a ?? b'],
+      ['a call in the right side of a binary expression', '1 + track()', '1 + a'],
+      ['a call in the left side of a binary expression', 'track() + 1', 'a + 1'],
+      ['a call in the test of a conditional', 'track() ? 1 : 2', 'c ? 1 : 2'],
+      ['a call in the consequent of a conditional', 'c ? track() : 1', 'c ? 1 : 2'],
+      ['a call in the alternate of a conditional', 'c ? 1 : track()', 'c ? 1 : 2'],
+      // eslint-disable-next-line no-template-curly-in-string
+      ['a call in a template literal', '`${track()}`', '`${x}`'],
+      ['a delete', 'delete x.y', 'typeof x.y'],
+      ['a call in a computed member', 'o[track()]', 'o[k]'],
+      ['a call as the object of a member', 'track().x', 'a.x'],
+      ['a call in an optional computed member', 'o?.[track()]', 'o?.[k]'],
+      ['a call under a unary operator', '-track()', '-x'],
+      ['a call in a spread of an object', '{ ...track() }', '{ ...a }'],
+      ['a call in a property value of an object', '{ k: track() }', '{ k: a }'],
+      ['a call in a computed key of an object', '{ [track()]: 1 }', '{ [k]: 1 }'],
+      ['a call in a computed key of an object method', '{ [track()]() {} }', '{ [k]() {} }'],
+      ['a call in an array', '[1, track()]', '[1, a]'],
+      ['a call in a spread of an array', '[...track()]', '[...a]'],
+      ['a new expression', 'new Thing()', 'Thing'],
+      ['an await', 'await load()', 'load'],
+      ['a tagged template', 'tag`x`', '`x`'],
+      ['an update expression', 'i++', '-i'],
+      ['an assignment', '(x = 1)', 'x'],
+      ['a sequence', '(a, b)', 'b'],
+    ];
+
+    it('has a pair for every shape the rule tells apart', () => {
+      assert.equal(PAIRS.length >= 26, true);
+    });
+
+    for (const [label, effect, inert] of PAIRS) {
+      it(`keeps the property for ${label}: ${effect}`, async() => {
+        const result = await run(grid(`{\n  a: 1,\n  gone: ${effect},\n  b: 2,\n}`), [REMOVE]);
+
+        assert.equal(result.output.includes(`gone: ${effect}`), true, result.output);
+        assert.match(result.output, /TODO\(handsontable-codemod 18\.0\.0\/remove\): gone is computed/);
+        assert.equal(result.entries.filter(entry => entry.severity === 'changed').length, 0);
+        assert.equal(result.entries.filter(entry => entry.severity === 'manual').length, 1);
+      });
+
+      it(`deletes the property for its inert twin: ${inert}`, async() => {
+        const result = await run(grid(`{\n  a: 1,\n  gone: ${inert},\n  b: 2,\n}`), [REMOVE]);
+
+        assert.equal(result.output.includes('gone:'), false, result.output);
+        assert.equal(result.entries.filter(entry => entry.severity === 'changed').length, 1);
+        assert.equal(result.entries.filter(entry => entry.severity === 'manual').length, 0);
+      });
+    }
+
+    it('keeps a JSX attribute that holds an effect inside an expression, and deletes an inert one', async() => {
+      const jsx = value => 'import { HotColumn } from \'@handsontable/react-wrapper\';\n'
+        + `export const App = () => <HotColumn gone={${value}} />;\n`;
+      const effect = await run(jsx('a || track()'), [REMOVE], { filePath: 'a.tsx' });
+      const inert = await run(jsx('a || b'), [REMOVE], { filePath: 'a.tsx' });
+
+      assert.match(effect.output, /gone=\{a \|\| track\(\)\}/);
+      assert.equal(effect.entries.filter(entry => entry.severity === 'changed').length, 0);
+      assert.equal(inert.output.includes('gone='), false);
+      assert.equal(inert.entries.filter(entry => entry.severity === 'changed').length, 1);
+    });
   });
 
   it('keeps an attribute whose value is a call', async() => {
@@ -1038,4 +1125,64 @@ other.unrelated = 1;
 
     assert.deepEqual(result.entries, []);
   });
+});
+
+describe('the export rules name every method of the plugin that takes export options', () => {
+  // The public methods of ExportFile that take the options object, from its API reference.
+  const METHODS = ['exportAsString', 'exportAsBlob', 'exportAsBlobAsync', 'downloadFile', 'downloadFileAsync'];
+  const RULES = [['18.0.0', '18.0.0/export-column-headers'], ['19.0.0', '19.0.0/export-column-headers']];
+
+  /**
+   * Run one shipped rule over a source text.
+   *
+   * @param {string} version The manifest version.
+   * @param {string} id The rule id.
+   * @param {string} source File text.
+   * @returns {Promise<{output: string, changed: boolean, entries: object[]}>} The `transformFile` result.
+   */
+  function runShipped(version, id, source) {
+    const plan = buildPlan(shippedManifests.filter(manifest => manifest.version === version), [id]);
+
+    return transformFile({ filePath: 'a.js', source, plan, options: { markers: false } });
+  }
+
+  it('lists the methods that the core plugin has', (context) => {
+    const path = fileURLToPath(new URL('../../handsontable/src/plugins/exportFile/exportFile.ts', import.meta.url));
+
+    if (skipWithoutFile(context, path, 'the ExportFile plugin source')) {
+      return;
+    }
+
+    const declared = [...readFileSync(path, 'utf8').matchAll(/^ {2}(?:async )?(exportAs\w+|downloadFile\w*)\(/gm)]
+      .map(match => match[1]).sort();
+
+    assert.deepEqual(declared, [...METHODS].sort());
+  });
+
+  for (const [version, id] of RULES) {
+    for (const method of METHODS) {
+      it(`${id} renames columnHeaders in ${method}() of the plugin, and in no look-alike`, async() => {
+        const call = `hot.getPlugin('exportFile').${method}('xlsx', { columnHeaders: true });`;
+        const plugin = `${IMPORT}const hot = new Handsontable(el, {});\n${call}\n`;
+        const other = `${IMPORT}chart.${method}({ columnHeaders: true });\n`;
+        const optional = plugin.replace('hot.getPlugin(\'exportFile\').', 'hot.getPlugin(\'exportFile\')?.');
+        const renamed = await runShipped(version, id, plugin);
+        const renamedOptional = await runShipped(version, id, optional);
+        const kept = await runShipped(version, id, other);
+
+        assert.equal(renamed.output, plugin.replace('columnHeaders', 'colHeaders'));
+        assert.equal(renamed.entries.filter(entry => entry.severity === 'changed').length, 1);
+        assert.notEqual(optional, plugin);
+        assert.equal(renamedOptional.output, optional.replace('columnHeaders', 'colHeaders'));
+        assert.equal(kept.changed, false);
+        assert.equal(kept.output, other);
+      });
+    }
+
+    it(`${id} names exactly those methods`, () => {
+      const rule = shippedManifests.find(manifest => manifest.version === version).rules.find(item => item.id === id);
+
+      assert.deepEqual([...rule.context.callArg].sort(), [...METHODS].sort());
+    });
+  }
 });

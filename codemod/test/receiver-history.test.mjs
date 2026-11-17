@@ -16,6 +16,8 @@ const manifests = await loadManifests();
  * @property {string} head Statements before the history.
  * @property {string} good An expression that is the receiver the rule needs.
  * @property {string} foreign An expression that is not.
+ * @property {string} [otherPlugin] For a rule on a plugin: an expression that is another plugin of the same grid, which
+ * is a plugin but not the one the rule needs.
  * @property {(receiver: string) => string} use The call the rule rewrites.
  * @property {(output: string) => boolean} rewritten Whether the output shows the rewrite.
  * @property {boolean} [typed] The rule needs a grid instance, so a `Handsontable` annotation counts.
@@ -59,6 +61,7 @@ const SETUPS = [
     only: ['18.0.0/resize-state-methods'],
     head: GRID_HEAD,
     good: 'hot.getPlugin(\'manualColumnResize\')',
+    otherPlugin: 'hot.getPlugin(\'contextMenu\')',
     foreign: 'new ServerWidthStore()',
     use: receiver => `${receiver}.saveManualColumnWidths();`,
     rewritten: output => !output.includes('saveManualColumnWidths'),
@@ -68,6 +71,7 @@ const SETUPS = [
     only: ['18.0.0/export-column-headers'],
     head: GRID_HEAD,
     good: 'hot.getPlugin(\'exportFile\')',
+    otherPlugin: 'hot.getPlugin(\'contextMenu\')',
     foreign: 'makeExporter()',
     use: receiver => `${receiver}.downloadFile('csv', { columnHeaders: true });`,
     rewritten: output => output.includes('colHeaders: true') && !output.includes('columnHeaders: true'),
@@ -102,6 +106,7 @@ const TWINS = [
     only: ['19.0.0/resize-state-methods'],
     head: GRID_HEAD,
     good: 'hot.getPlugin(\'manualRowResize\')',
+    otherPlugin: 'hot.getPlugin(\'contextMenu\')',
     foreign: 'new ServerHeightStore()',
     use: receiver => `${receiver}.loadManualRowHeights();`,
     rewritten: output => !output.includes('loadManualRowHeights'),
@@ -112,6 +117,7 @@ const TWINS = [
     only: ['19.0.0/formulas-shortcut-methods'],
     head: GRID_HEAD,
     good: 'hot.getPlugin(\'formulas\')',
+    otherPlugin: 'hot.getPlugin(\'contextMenu\')',
     foreign: 'makeFormulas()',
     use: receiver => `${receiver}.registerShortcuts();`,
     rewritten: output => !output.includes('registerShortcuts'),
@@ -122,6 +128,7 @@ const TWINS = [
     only: ['19.0.0/export-column-headers'],
     head: GRID_HEAD,
     good: 'hot.getPlugin(\'exportFile\')',
+    otherPlugin: 'hot.getPlugin(\'contextMenu\')',
     foreign: 'makeExporter()',
     use: receiver => `${receiver}.exportAsString('csv', { columnHeaders: true });`,
     rewritten: output => output.includes('colHeaders: true') && !output.includes('columnHeaders: true'),
@@ -148,6 +155,9 @@ const VARIABLE_HISTORIES = [
   ['reset to undefined after use', 'let r = V; USE(r); r = undefined;', true],
   ['reset to void 0 after use', 'let r = V; USE(r); r = void 0;', true],
   ['reset to null in a closure', 'let r = V; const reset = () => { r = null; }; USE(r);', true],
+  ['reset to a block-scoped undefined that holds a foreign value',
+    'let r = V; { const undefined = F; r = undefined; } USE(r);', false],
+  ['reset to an undefined that is a parameter', 'let r = V; function f(undefined) { r = undefined; } USE(r);', false],
   ['only null', 'let r = null; USE(r);', false],
   ['null, then foreign', 'let r = null; r = F; USE(r);', false],
   ['qualifying, null, then foreign', 'let r = V; r = null; r = F; USE(r);', false],
@@ -260,6 +270,22 @@ const MEMBER_HISTORIES = [
 ];
 
 /**
+ * Histories for a rule that needs one plugin, with a second plugin of the same grid (`P`) in the name. Both values are
+ * plugins, but a name that can hold either is no receiver for the rule: every value must be the plugin it needs.
+ */
+const PLUGIN_HISTORIES = [
+  ['the plugin, then another plugin in a branch', 'let r = V; if (c) { r = P; } USE(r);', false],
+  ['another plugin, then the plugin', 'let r = P; r = V; USE(r);', false],
+  ['the plugin, then another plugin in a closure', 'let r = V; const swap = () => { r = P; }; USE(r);', false],
+  ['another plugin only', 'const r = P; USE(r);', false],
+  ['the plugin on both paths', 'let r = V; if (c) { r = V; } USE(r);', true],
+  ['a member set from the plugin and another plugin', 'class A { r = V; m() { this.r = P; } n() { USE(this.r); } }',
+    false],
+  ['a member set from another plugin only', 'class A { r = P; m() { USE(this.r); } }', false],
+  ['a member set from the plugin on both paths', 'class A { r = V; m() { this.r = V; } n() { USE(this.r); } }', true],
+];
+
+/**
  * Histories that need a grid instance, so a type annotation says it.
  */
 const TYPED_HISTORIES = [
@@ -297,7 +323,8 @@ async function assertStable(plan, output, options) {
 async function rewriteOf(setup, template) {
   const receiver = template.includes('this.r') ? 'this.r' : 'r';
   const body = template.replace(/USE\((?:this\.)?r\)/g, () => setup.use(receiver).replace(/;$/, ''))
-    .replace(/\bV\b/g, setup.good).replace(/\bF\b/g, setup.foreign);
+    .replace(/\bV\b/g, setup.good).replace(/\bF\b/g, setup.foreign)
+    .replace(/\bP\b/g, setup.otherPlugin ?? 'P');
   const source = `${setup.head}${body}\n`;
   const plan = buildPlan(manifests.filter(manifest => manifest.version === (setup.version ?? '18.0.0')), setup.only);
   const options = { markers: true };
@@ -311,7 +338,10 @@ async function rewriteOf(setup, template) {
 describe('a receiver counts only when every value it can hold qualifies', () => {
   for (const setup of [...SETUPS, ...TWINS]) {
     describe(setup.name, () => {
-      const histories = [...VARIABLE_HISTORIES, ...MEMBER_HISTORIES, ...(setup.typed ? TYPED_HISTORIES : [])];
+      const histories = [...VARIABLE_HISTORIES, ...MEMBER_HISTORIES, ...(setup.typed ? TYPED_HISTORIES : []),
+        ...(setup.otherPlugin ? PLUGIN_HISTORIES : [])];
+
+      assert.equal(histories.length > 40, true, 'the histories of a setup were not collected');
 
       for (const [label, template, expected] of histories) {
         // Typed histories speak of a grid instance, so a plugin or theme receiver never takes them.

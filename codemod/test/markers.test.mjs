@@ -409,15 +409,22 @@ describe('the closing lines of the CLI', () => {
       files[`src/f${index}.js`] = `${HOT}new Handsontable(el, { licenseKey: 'k', columns: [{ dateFormat: 'D' }] });\n`;
     }
 
-    await inProject(files, async(dir) => {
-      const without = await cli(['migrate', '--from', '17.1', '--to', '18.1', '--dry-run'], dir);
-      const withFile = await cli(['migrate', '--from', '17.1', '--to', '18.1', '--dry-run', '--report',
-        join(tmpdir(), 'codemod-markers-report.md')], dir);
+    // A directory of its own: a fixed name in the temporary directory is shared by every run of the suite.
+    const holder = await mkdtemp(join(tmpdir(), 'codemod-markers-'));
 
-      assert.match(without.out, /\+\d+ more \(use --report <file> for the full list\)/);
-      assert.doesNotMatch(withFile.out, /use --report <file>/);
-      assert.match(withFile.out, /\+\d+ more in .*codemod-markers-report\.md/);
-    });
+    try {
+      await inProject(files, async(dir) => {
+        const without = await cli(['migrate', '--from', '17.1', '--to', '18.1', '--dry-run'], dir);
+        const withFile = await cli(['migrate', '--from', '17.1', '--to', '18.1', '--dry-run', '--report',
+          join(holder, 'codemod-markers-report.md')], dir);
+
+        assert.match(without.out, /\+\d+ more \(use --report <file> for the full list\)/);
+        assert.doesNotMatch(withFile.out, /use --report <file>/);
+        assert.match(withFile.out, /\+\d+ more in .*codemod-markers-report\.md/);
+      });
+    } finally {
+      await rm(holder, { recursive: true, force: true });
+    }
   });
 
   it('prints a summary line on stderr when a file could not be read, and keeps the report on stdout', async() => {

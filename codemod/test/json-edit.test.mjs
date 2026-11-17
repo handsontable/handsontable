@@ -137,6 +137,48 @@ describe('JsonDocument.addMember', () => {
   });
 });
 
+describe('JsonDocument.commit, the last check before the text is kept', () => {
+  const text = '{\n  "dependencies": {\n    "a": "1"\n  }\n}\n';
+  const addB = (model) => {
+    model.dependencies.b = '3';
+  };
+
+  it('keeps the text and the model when the text is the intended model', () => {
+    const document = open(text);
+    const edited = '{\n  "dependencies": {\n    "a": "1",\n    "b": "3"\n  }\n}\n';
+
+    assert.equal(document.commit(edited, addB), true);
+    assert.equal(document.text, edited);
+    assert.deepEqual(document.model, { dependencies: { a: '1', b: '3' } });
+  });
+
+  it('refuses a text that parses to another value than the edit intends, and changes nothing', () => {
+    const document = open(text);
+    const other = '{\n  "dependencies": {\n    "a": "1",\n    "b": "4"\n  }\n}\n';
+
+    assert.equal(document.commit(other, addB), false);
+    assert.equal(document.text, text);
+    assert.deepEqual(document.model, { dependencies: { a: '1' } });
+  });
+
+  it('refuses a text that does not parse, and changes nothing', () => {
+    const document = open(text);
+
+    assert.equal(document.commit('{\n  "dependencies": {\n    "a": "1",\n    "b": "3"\n  }\n', addB), false);
+    assert.equal(document.commit('{ "dependencies": { "a": "1", "b": 3, } }', addB), false);
+    assert.equal(document.text, text);
+    assert.deepEqual(document.model, { dependencies: { a: '1' } });
+  });
+
+  it('refuses a text that left out the edit', () => {
+    const document = open(text);
+
+    assert.equal(document.commit(text, addB), false);
+    assert.equal(document.text, text);
+    assert.deepEqual(document.model, { dependencies: { a: '1' } });
+  });
+});
+
 describe('the dependency rules on a package.json', () => {
   /**
    * Run the 18.0.0 dependency rules over a package.json in phase 2 with the formulas fact set.

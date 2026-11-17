@@ -96,10 +96,18 @@ function nextMark(marks, position) {
  * List the `<script>` elements of a text, in order.
  *
  * @param {string} source HTML text.
+ * @param {{steps: number}} [stats] Receives the number of steps the scan took (a pass of a loop that reads the text),
+ * so a test can check that four times the text takes four times the steps. Production code passes nothing.
  * @returns {ScriptElement[]} The elements. A start tag with no `>`, an attribute quote that never closes, or no end
  * tag after it gives no element.
  */
-export function scanScripts(source) {
+export function scanScripts(source, stats = null) {
+  const step = () => {
+    if (stats !== null) {
+      stats.steps += 1;
+    }
+  };
+
   const lower = asciiLower(source);
 
   if (!lower.includes(OPEN)) {
@@ -109,6 +117,7 @@ export function scanScripts(source) {
   const marks = { '>': [], '"': [], '\'': [] };
 
   for (let index = 0; index < source.length; index += 1) {
+    step();
     marks[source[index]]?.push(index);
   }
 
@@ -118,6 +127,8 @@ export function scanScripts(source) {
   const closerEnds = new Map();
 
   for (let at = lower.indexOf(CLOSE); at !== -1; at = lower.indexOf(CLOSE, at + 1)) {
+    step();
+
     const tagEnd = firstFrom(marks['>'], at + CLOSE.length);
 
     if (tagEnd === -1) {
@@ -139,6 +150,8 @@ export function scanScripts(source) {
     let result = -1;
 
     for (;;) {
+      step();
+
       if (memo.has(position)) {
         result = memo.get(position);
         break;
@@ -177,6 +190,8 @@ export function scanScripts(source) {
   let from = 0;
 
   for (let open = lower.indexOf(OPEN, from); open !== -1; open = lower.indexOf(OPEN, from)) {
+    step();
+
     const afterName = open + OPEN.length;
     const gt = isWordAt(lower, afterName) ? -1 : tagEndFrom(afterName);
 

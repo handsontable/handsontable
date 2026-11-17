@@ -103,3 +103,93 @@ describe('the configuration of the project runs no program', { skip: SKIP }, () 
     }
   });
 });
+
+describe('a run inside a git hook or with a stray repository variable still looks at the project', () => {
+  /**
+   * Set environment variables for the duration of a callback. The tool builds the environment of git from
+   * `process.env` on every call, so the variables reach it, as they would from a hook.
+   *
+   * @param {Record<string, string>} variables Variables to set.
+   * @param {() => Promise<void>} body Test body.
+   * @returns {Promise<void>}
+   */
+  async function withVariables(variables, body) {
+    const before = Object.fromEntries(Object.keys(variables).map(name => [name, process.env[name]]));
+
+    Object.assign(process.env, variables);
+
+    try {
+      await body();
+    } finally {
+      for (const [name, value] of Object.entries(before)) {
+        if (value === undefined) {
+          delete process.env[name];
+        } else {
+          process.env[name] = value;
+        }
+      }
+    }
+  }
+
+  /**
+   * Make the other repository differ from the project, so a git that read it instead would call the project dirty.
+   *
+   * @param {string} other Project directory of the other repository.
+   * @returns {Promise<void>}
+   */
+  async function commitWithoutPackage(other) {
+    git(other, ['rm', '-q', 'package.json']);
+    git(other, ['commit', '-q', '-m', 'drop the manifest']);
+  }
+
+  const SPELLINGS = [
+    ['GIT_DIR', other => ({ GIT_DIR: join(other, '.git') })],
+    ['GIT_WORK_TREE', other => ({ GIT_WORK_TREE: other })],
+    ['GIT_INDEX_FILE', other => ({ GIT_INDEX_FILE: join(other, 'not-an-index') })],
+  ];
+
+  for (const [name, variables] of SPELLINGS) {
+    it(`sees a dirty project and refuses it although ${name} points elsewhere`, async() => {
+      const dir = await createSampleProject();
+      const other = await createSampleProject();
+
+      try {
+        await commitWithoutPackage(other);
+        await writeFile(join(other, 'not-an-index'), 'this is not a git index');
+        await writeFile(join(dir, 'untracked.js'), 'x\n');
+
+        await withVariables(variables(other), async() => {
+          const result = await migrate(dir, ['--from', '17.1', '--to', '18.1']);
+
+          assert.equal(result.status, 2, result.stdout + result.stderr);
+          assert.match(result.stderr, /The git tree has 1 uncommitted change\./);
+        });
+      } finally {
+        await removeSampleProject(dir);
+        await removeSampleProject(other);
+      }
+    });
+
+    it(`migrates a clean project without a note about a missing repository although ${name} points elsewhere`,
+      async() => {
+        const dir = await createSampleProject();
+        const other = await createSampleProject();
+
+        try {
+          await commitWithoutPackage(other);
+          await writeFile(join(other, 'not-an-index'), 'this is not a git index');
+
+          await withVariables(variables(other), async() => {
+            const result = await migrate(dir, ['--from', '17.1', '--to', '18.1']);
+
+            assert.equal(result.status, 0, result.stdout + result.stderr);
+            assert.doesNotMatch(result.stderr, /git repository|git failed/i);
+            assert.match(await readFile(join(dir, 'package.json'), 'utf8'), /"handsontable": "\^18\.1\.0"/);
+          });
+        } finally {
+          await removeSampleProject(dir);
+          await removeSampleProject(other);
+        }
+      });
+  }
+});

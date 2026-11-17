@@ -191,6 +191,31 @@ describe('cssVariable in css: only a reference to the custom property is rewritt
     assert.match(entries[0].message, /^Check this text by hand: it names --ht-wrapper-border-radius in a string/);
   });
 
+  it('keeps a string that holds var(), even a var() inside url(), and reports each', async() => {
+    const source = `.a {\n  content: "var(${NAME})";\n  background: url("x?var(${NAME})");\n`
+      + `  content: 'a var(${NAME}, 1px) b';\n}\n`;
+    const first = await run('a.css', source);
+    const second = await run('a.css', first.output);
+
+    assert.equal(first.changed, false);
+    assert.equal(first.output, source);
+    assert.deepEqual(first.entries.map(entry => [entry.severity, entry.line]),
+      [['manual', 2], ['manual', 3], ['manual', 4]]);
+    assert.equal(second.changed, false);
+  });
+
+  it('reads url( as the function only at a word start: image-url() and a name that ends in url are not it', async() => {
+    const source = (name) => {
+      return `.a {\n  margin: image-url(var(${name}));\n  margin: my_url(var(${name}));\n`
+        + `  margin: url(x.png) var(${name});\n}\n`;
+    };
+    const { output, entries } = await run('a.scss', source(NAME));
+
+    assert.equal(output, source('--ht-border-radius'));
+    assert.deepEqual(entries.map(entry => [entry.severity, entry.line]),
+      [['changed', 2], ['changed', 3], ['changed', 4]]);
+  });
+
   it('still renames the property, var(), a fallback var(), and the references next to a string', async() => {
     const source = `.a {\n  ${NAME}: 1px;\n  border-radius: var(${NAME}, 2px);\n`
       + `  margin: var(--x, var(${NAME}));\n  content: "${NAME}" var(${NAME});\n`
@@ -404,6 +429,38 @@ describe('cssVariable in js', () => {
     assert.deepEqual(entries.map(entry => [entry.ruleId, entry.severity, entry.line]), [[RADIUS, 'changed', 1]]);
   });
 
+  it('reads a .cts and a .mts file as TypeScript, so a file with a type assertion is migrated and not skipped', async() => {
+    const source = [
+      'export const radius = 1 as number;',
+      'el.style.setProperty(\'--ht-wrapper-border-radius\', String(radius));',
+      '',
+    ].join('\n');
+
+    for (const name of ['a.cts', 'a.mts']) {
+      const { output, entries } = await run(name, source);
+
+      assert.equal(output, source.replace('--ht-wrapper-border-radius', '--ht-border-radius'), name);
+      assert.deepEqual(entries.map(entry => [entry.severity, entry.line]), [['changed', 2]], name);
+    }
+  });
+
+  it('keeps the comments of a string it renames', async() => {
+    const source = [
+      'import H from \'handsontable\';',
+      'el.style.setProperty(/* the radius */ "--ht-wrapper-border-radius", \'8px\');',
+      '// the radius, read back',
+      'const read = \'var(--ht-wrapper-border-radius)\'; // trailing',
+      '',
+    ].join('\n');
+    const { output, entries } = await run('a.js', source);
+
+    assert.equal(output, source.split('--ht-wrapper-border-radius').join('--ht-border-radius'));
+    assert.equal(output.includes('/* the radius */'), true);
+    assert.equal(output.includes('// the radius, read back'), true);
+    assert.equal(output.includes('// trailing'), true);
+    assert.deepEqual(entries.map(entry => [entry.severity, entry.line]), [['changed', 2], ['changed', 4]]);
+  });
+
   it('does not rename a --ht- look-alike inside a longer name', async() => {
     const source = 'a.setProperty(\'--ht-wrapper-border-radius-extra\', \'4px\');\n';
     const { output, entries } = await run('not-handsontable.js', source);
@@ -583,6 +640,33 @@ describe('themeToken', () => {
 });
 
 describe('a Sass map key next to an interpolated variable name', () => {
+  it('finds a key that follows a url() with a scheme on the same line, because // there starts no comment', async() => {
+    const source = [
+      '$tokens: (\'logo\': url(http://example.com/logo.png), \'wrapper-border-radius\': 6px);',
+      '@each $name, $value in $tokens { .x { --ht-#{$name}: #{$value}; } }',
+      '',
+    ].join('\n');
+    const { entries } = await run('tokens.scss', source);
+
+    assert.deepEqual(entries.filter(entry => entry.ruleId === RADIUS).map(entry => [entry.severity, entry.line]),
+      [['manual', 1]]);
+  });
+
+  it('does not report a key behind a real // comment on the same line', async() => {
+    const source = [
+      '$tokens: (',
+      '  \'logo\': 1px, // \'wrapper-border-radius\': 6px,',
+      '  \'wrapper-border-width\': 1px,',
+      ');',
+      '@each $name, $value in $tokens { .x { --ht-#{$name}: #{$value}; } }',
+      '',
+    ].join('\n');
+    const { entries } = await run('tokens.scss', source);
+
+    assert.deepEqual(entries.filter(entry => entry.ruleId === RADIUS), []);
+    assert.equal(entries.filter(entry => entry.ruleId === WIDTH).length, 1);
+  });
+
   it('does not report a key in a comment that follows a string ending in an escaped backslash', async() => {
     const source = [
       '$tokens: (',

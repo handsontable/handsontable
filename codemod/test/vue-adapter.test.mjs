@@ -113,6 +113,44 @@ describe('vue adapter parse', () => {
     assert.equal(part.root.find(part.j.TSTypeAnnotation).length > 0, true);
   });
 
+  it('parses a script of every language the adapter lists with the parser of that language, and lists the others', () => {
+    const jsx = 'import \'handsontable\';\nexport default { render: () => <div /> };\n';
+    const typed = 'import \'handsontable\';\nexport const a: number = 1 as number;\n';
+
+    for (const [lang, body] of [['tsx', jsx], ['jsx', jsx], ['ts', typed], ['js', 'import \'handsontable\';\n']]) {
+      const handle = vueAdapter.parse(`<script lang="${lang}">\n${body}</script>\n`, 'App.vue');
+
+      assert.deepEqual(handle.parts.map(part => part.fileKind), ['js'], lang);
+      assert.deepEqual(handle.skippedBlocks, [], lang);
+    }
+
+    const unknown = vueAdapter.parse('<script lang="coffee">\nimport \'handsontable\'\n</script>\n', 'App.vue');
+
+    assert.deepEqual(unknown.parts, []);
+    assert.equal(unknown.skippedBlocks.length, 1);
+  });
+
+  it('migrates the style key of a JSX render function in a lang="tsx" script', async() => {
+    const manifest = await loadManifest(join(VERSIONS_DIR, '18.0.0'));
+    const source = [
+      '<script lang="tsx">',
+      'export default {',
+      '  render: () => <div style={{ \'--ht-wrapper-border-radius\': \'4px\' }} />,',
+      '};',
+      '</script>',
+      '',
+    ].join('\n');
+    const result = await transformFile({
+      filePath: 'App.vue',
+      source,
+      plan: buildPlan([manifest], ['18.0.0/css-wrapper-border-radius']),
+      options: { markers: false },
+    });
+
+    assert.equal(result.output, source.replace('--ht-wrapper-border-radius', '--ht-border-radius'));
+    assert.equal(result.entries.some(entry => entry.ruleId === 'skipped-file'), false, JSON.stringify(result.entries));
+  });
+
   it('gives both script blocks a part, in source order', () => {
     const source = '<script setup>\nimport \'handsontable\';\nconst a = 1;\n</script>\n\n'
       + '<script>\nimport \'handsontable\';\nexport default {};\n</script>\n';

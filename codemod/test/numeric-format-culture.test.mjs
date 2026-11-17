@@ -56,6 +56,23 @@ describe('numeric-format-culture leaves a culture that can be empty, or that is 
     });
   }
 
+  for (const [label, member] of [
+    ['a method', 'culture() { return \'de-DE\'; }'],
+    ['a getter', 'get culture() { return \'de-DE\'; }'],
+    ['an async method', 'async culture() { return \'de-DE\'; }'],
+  ]) {
+    it(`does not move culture written as ${label}, which is no value, and reports it`, async() => {
+      const source = column(member);
+      const result = await threeRuns(source, 'grid.ts');
+      const manual = result.entries.filter(entry => entry.severity === 'manual');
+
+      assert.equal(result.output.replace(/\/\/ TODO.*\n\s*/g, ''), source, result.output);
+      assert.equal(result.entries.filter(entry => entry.severity === 'changed').length, 0);
+      assert.equal(manual.length, 1, JSON.stringify(result.entries));
+      assert.match(manual[0].message, /^Move numericFormat\.culture to locale by hand\./);
+    });
+  }
+
   for (const value of [
     '\'de-DE\'',
     'isDe ? \'de-DE\' : \'en-US\'',

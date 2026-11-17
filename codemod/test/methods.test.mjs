@@ -243,17 +243,21 @@ describe('methodRemove', () => {
     assert.deepEqual(entries, []);
   });
 
-  it('does not touch a name that the file declares itself', async() => {
-    const source = `${HEAD}${[
+  it('does not touch a name that the file declares itself, also on a receiver it cannot resolve', async() => {
+    const declaration = [
       'class Mine {',
       '  saveManualColumnWidths() {}',
       '  run() { this.saveManualColumnWidths(); }',
       '}',
-    ].join('\n')}\n`;
-    const { changed, entries } = await run(source, rules);
+    ];
+    const call = 'function f(store) { store.saveManualColumnWidths(); }';
+    const declared = await run(`${HEAD}${declaration.join('\n')}\n${call}\n`, rules);
+    const undeclared = await run(`${HEAD}${call}\n`, rules);
 
-    assert.equal(changed, false);
-    assert.deepEqual(entries, []);
+    assert.equal(declared.changed, false);
+    assert.deepEqual(declared.entries, []);
+    // Without the declaration the same call on a parameter is one the tool cannot place, so it reports it.
+    assert.deepEqual(undeclared.entries.map(entry => entry.severity), ['manual']);
   });
 
   it('does not touch a bare function call or a name that only shares a prefix', async() => {
@@ -440,6 +444,15 @@ describe('methodMove', () => {
     assert.match(output, /hot\.getPlugin\('undoRedo'\)\.clear\(\);/);
     assert.match(output, /hot\.getPlugin\('undoRedo'\)\.isUndoAvailable\(\);/);
     assert.match(output, /hot\?\.getPlugin\('undoRedo'\)\.redo\(\);/);
+  });
+
+  it('does not turn a call of the undoRedo property into a call of the plugin: it was no function on 17.x', async() => {
+    const { output, entries } = await move('hot.undoRedo();\nawait hot?.undoRedo();');
+
+    assert.equal(output.includes('getPlugin'), false, output);
+    assert.equal(entries.filter(entry => entry.severity === 'changed').length, 0);
+    assert.deepEqual(entries.filter(entry => entry.severity === 'manual').map(entry => entry.line), [3, 4]);
+    assert.match(entries[0].message, /undoRedo is used in a form the tool does not rewrite\./);
   });
 
   it('keeps a read of the undoRedo property that is used as a value: it was undefined on 17.x', async() => {
@@ -809,6 +822,20 @@ describe('callUnwrap', () => {
 
     assert.match(output, /const a = x \+ y \+ z;/);
     assert.match(output, /const \{ sanitize \} = Handsontable\.helper;/);
+  });
+
+  it('does not follow a let or var alias, which the file can set again, and still follows the const one', async() => {
+    const source = [
+      head,
+      'let clean = Handsontable.helper.sanitize;\n',
+      'var older = Handsontable.helper.sanitize;\n',
+      'const kept = Handsontable.helper.sanitize;\n',
+      'const a = clean(x) + older(y) + kept(z);\n',
+    ].join('');
+    const { output, changed } = await run(source, rules);
+
+    assert.equal(changed, true);
+    assert.match(output, /const a = clean\(x\) \+ older\(y\) \+ z;/);
   });
 
   it('reports instead of editing extra arguments, spreads, optional calls, and references', async() => {

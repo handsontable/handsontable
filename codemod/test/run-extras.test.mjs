@@ -116,6 +116,11 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
         + 'loading title and description markup, sanitizer source values.',
     }]);
     assert.deepEqual(await skippedOf('a.html', '<script>var x = 1;</script>\n<div class="ht-theme-main"></div>\n'), []);
+    // A browser runs the file of a script that has a src and ignores its body, so the body is no code of the page.
+    assert.deepEqual(await skippedOf('c.html', '<script src="a.js">new Handsontable(a, {});</script>\n'), []);
+    assert.deepEqual(
+      await skippedOf('d.html', '<script type="module" SRC = "a.js">new Handsontable(a, {});</script>\n'), []);
+    assert.equal((await skippedOf('e.html', '<script type="module">new Handsontable(a, {});</script>\n')).length, 1);
     assert.deepEqual(
       await skippedOf('b.html', '<script>new Handsontable(a, {});</script\t\n bar>\n'
         + '<script>new Handsontable(b, {});</script>\n'),
@@ -186,9 +191,13 @@ describe('the CLI around a run', () => {
       'src/page.html': '<script>new Handsontable(el, {});</script>\n',
     });
 
+    // A directory of its own next to the project: a fixed name in the temporary directory is shared by every run.
+    const holder = await mkdtemp(join(tmpdir(), 'codemod-report-'));
+    const reportFile = join(holder, 'report.md');
+
     try {
-      const result = migrate(dir, [...RANGE, '--report', '../report.md']);
-      const report = await readFile(join(dir, '..', 'report.md'), 'utf8');
+      const result = migrate(dir, [...RANGE, '--report', reportFile]);
+      const report = await readFile(reportFile, 'utf8');
 
       assert.equal(result.status, 0, result.stderr);
       assert.match(result.stdout, /^Read once \(\d+\)$/m);
@@ -200,8 +209,8 @@ describe('the CLI around a run', () => {
       assert.match(report, /^## Skipped files$/m);
       assert.ok(report.includes(result.stdout.match(/^Summary: .*$/m)[0]), 'the report repeats the console summary');
       assert.ok(report.indexOf('## 18.0.0/') < report.indexOf('## 18.1.0/'), 'sections follow the version order');
-      await rm(join(dir, '..', 'report.md'), { force: true });
     } finally {
+      await rm(holder, { recursive: true, force: true });
       await removeSampleProject(dir);
     }
   });

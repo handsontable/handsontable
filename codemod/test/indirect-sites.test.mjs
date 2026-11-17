@@ -75,6 +75,19 @@ describe('resolve: one hop in the same file', () => {
   });
 });
 
+describe('resolve: a key that an object literal repeats', () => {
+  const source = 'const MAP = { date: \'first\', other: \'x\', date: \'last\' };\n'
+    + 'export const read = [MAP.date, MAP.other];\n';
+  const { j, root } = parse(source, 'babylon');
+  const { stringOf } = createHop(j, root);
+  const items = root.find(j.ArrayExpression).paths()[0];
+
+  it('takes the last value, as the language does', () => {
+    assert.equal(stringOf(items.get('elements', 0)), 'last');
+    assert.equal(stringOf(items.get('elements', 1)), 'x');
+  });
+});
+
 describe('numeric-format-culture: custom code that reads the key', () => {
   it('moves the key for a built-in renderer, for none, and for undefined', async() => {
     const result = await move('{ renderer: \'numeric\', numericFormat: { culture: \'de-DE\' } }, '
@@ -112,6 +125,12 @@ describe('numeric-format-culture: custom code that reads the key', () => {
     ['a read of the bare name', 'const c = numericFormat.culture;'],
     ['a destructuring with a default', 'const { culture = \'en\' } = (cellProperties.numericFormat ?? {}) as Fmt;'],
     ['a nested destructuring', 'const { numericFormat: { culture } } = cellProperties;'],
+    ['a read of a nullish default', 'const c = (cp.numericFormat ?? {}).culture;'],
+    ['a read of a falsy default', 'const c = (cp.numericFormat || {}).culture;'],
+    ['a destructuring of a nullish default', 'const { culture } = cp.numericFormat ?? {};'],
+    ['a destructuring of a falsy default', 'const { culture } = cp.numericFormat || {};'],
+    ['a read of a bare name with a falsy default', 'const c = (numericFormat || {}).culture;'],
+    ['a chain of defaults', 'const c = (cp.numericFormat || fallback || {}).culture;'],
   ]) {
     it(`keeps the key when the file reads it: ${name}`, async() => {
       const result = await run('18.0.0', 'grid.ts', `${IMPORT}${read}\n`
@@ -119,6 +138,7 @@ describe('numeric-format-culture: custom code that reads the key', () => {
 
       assert.equal(result.changed, false);
       assert.deepEqual(result.entries.map(entry => entry.severity), ['manual']);
+      assert.match(result.entries[0].message, /the code in this file that reads numericFormat\.culture/);
     });
   }
 

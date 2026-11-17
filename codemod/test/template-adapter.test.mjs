@@ -156,6 +156,24 @@ describe('an inline Angular template', () => {
     }
   });
 
+  it('reads an expression as a separator, so the attribute after it is not glued to the tag or to the one before it',
+    async() => {
+      for (const template of [
+        '<hot-table#[correctFormat]="true"></hot-table>',
+        '<hot-table [settings]="s"#[correctFormat]="true"></hot-table>',
+        '<hot-table [settings]="s" #[correctFormat]="true"></hot-table>',
+      ]) {
+        // The `#` stands for an expression of the template literal.
+        const literal = template.replace('#', ['$', '{extra}'].join(''));
+        const source = `${ANGULAR}@Component({ template: \`${literal}\` })\nclass A {}\n`;
+        const { output, entries } = await run(source);
+
+        assert.equal(output, source);
+        assert.deepEqual(entries.map(entry => [entry.ruleId, entry.severity, entry.line]),
+          [['18.0.0/correct-format-removed', 'manual', 2]], template);
+      }
+    });
+
   it('keeps the lines of a template literal whose expressions span lines, and reads text after each of them', async() => {
     const lines = [
       'import { Component } from \'@angular/core\';',

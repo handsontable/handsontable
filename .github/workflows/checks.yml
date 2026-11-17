@@ -328,10 +328,17 @@ jobs:
             # anchors to a heading of its guide, and the anchor tests read the guide, so
             # a pull request that renames a heading must run them. The `develop.yml`
             # codemod job reads this flag as well, so the same edit is checked after the merge.
+            # The core sources its tests read are in scope for the same reason: a core PR that changes the
+            # hook list, the option schema, the numeric renderer, or the ExportFile methods must run them.
             test-codemod:
               - './codemod/**'
               - './pnpm-lock.yaml'
+              - './LICENSE.txt'
               - './docs/content/guides/upgrade-and-migration/**'
+              - './handsontable/src/core/hooks/constants.ts'
+              - './handsontable/src/dataMap/metaManager/metaSchema.ts'
+              - './handsontable/src/renderers/numericRenderer/utils.ts'
+              - './handsontable/src/plugins/exportFile/exportFile.ts'
 
       # Build the Integration wrapper matrix from the scope flags (run-all → all
       # three). Emitting it here means the wrapper job fans out with no extra

@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
 import { discover, isSkipped, resolvesInside } from '../src/discover.mjs';
 import { buildPlan } from '../src/manifest.mjs';
 import { describeRules, formatSize, resolvePlan, run, transformFile } from '../src/runner.mjs';
-import { createRegistry } from '../src/transforms/index.mjs';
+import { KIND_ORDER, createRegistry, registry as defaultRegistry } from '../src/transforms/index.mjs';
 import { isolatedGitEnv } from './helpers/git-env.mjs';
 
 const RADIUS_CSS = 'a {\n  border-radius: var(--ht-wrapper-border-radius, 4px);\n}\n';
@@ -111,6 +111,18 @@ function planOf(rules) {
   return buildPlan([{ version: '18.0.0', rules: full }]);
 }
 
+/**
+ * A report-only detect rule of one matcher, for the tests of the order of the kinds.
+ *
+ * @param {string} id Rule id.
+ * @param {object} match The matcher.
+ * @param {string} message The message.
+ * @returns {object} The rule, without `version` and `guideUrl`.
+ */
+function detectRule(id, match, message) {
+  return { id, kind: 'detect', safe: false, severity: 'manual', files: ['js'], requires: 'hot-file', match, message };
+}
+
 describe('transformFile with the default registry', () => {
   const plan = planOf([{
     id: '18.0.0/r',
@@ -119,6 +131,55 @@ describe('transformFile with the default registry', () => {
     from: '--ht-wrapper-border-radius',
     to: '--ht-border-radius',
   }]);
+
+  it('runs the kinds of one version in the order the docs give, whatever the order of the manifest', () => {
+    assert.deepEqual(KIND_ORDER, [
+      'importSource',
+      'exportRename',
+      'namespaceType',
+      'exportRemoved',
+      'optionRename',
+      'optionMove',
+      'optionRemove',
+      'methodRemove',
+      'methodMove',
+      'callUnwrap',
+      'cssVariable',
+      'themeToken',
+      'detect',
+      'custom',
+      'dependency',
+    ]);
+    assert.deepEqual([...defaultRegistry.order], KIND_ORDER);
+    assert.deepEqual([...defaultRegistry.phaseTwo], ['dependency']);
+  });
+
+  it('lets a detect rule see the code that the rewrites of the same version produced', async() => {
+    const rules = [
+      // The detect rules come first in the manifest. The order of the kinds, not the order of the file, decides.
+      detectRule('18.0.0/sees-new', { property: 'newName' }, 'Check newName, which the rename just wrote.'),
+      detectRule('18.0.0/sees-old', { property: 'oldName' }, 'Check oldName, which the rename took away.'),
+      { id: '18.0.0/rename', kind: 'optionRename', from: 'oldName', to: 'newName' },
+    ];
+    const source = 'import Handsontable from \'handsontable\';\nnew Handsontable(el, { oldName: 1 });\n';
+    const result = await transformFile({ filePath: 'a.js', source, plan: planOf(rules), options: { markers: false } });
+
+    assert.equal(result.output, source.replace('oldName', 'newName'));
+    assert.deepEqual(result.entries.map(entry => [entry.ruleId, entry.severity]),
+      [['18.0.0/rename', 'changed'], ['18.0.0/sees-new', 'manual']]);
+  });
+
+  it('lets a detect rule see the variable a cssVariable rule just wrote', async() => {
+    const rules = [
+      detectRule('18.0.0/sees-color', { string: '--ht-new-name' }, 'Check the new variable.'),
+      { id: '18.0.0/css', kind: 'cssVariable', from: '--ht-old-name', to: '--ht-new-name' },
+    ];
+    const source = 'import Handsontable from \'handsontable\';\nel.style.setProperty(\'--ht-old-name\', \'1px\');\n';
+    const result = await transformFile({ filePath: 'a.js', source, plan: planOf(rules), options: { markers: false } });
+
+    assert.equal(result.output, source.replace('--ht-old-name', '--ht-new-name'));
+    assert.deepEqual(result.entries.map(entry => entry.ruleId), ['18.0.0/css', '18.0.0/sees-color']);
+  });
 
   it('rewrites a CSS file and reports the rewrite with the guide link', async() => {
     const result = await transformFile({ filePath: 'a.css', source: RADIUS_CSS, plan });
@@ -688,6 +749,98 @@ describe('run', () => {
     });
   });
 
+  describe('the clean-tree guard sees every way a tracked project can be dirty', () => {
+    const CASES = [
+      ['an edited tracked file', async(dir) => {
+        await writeFile(join(dir, 'other.css'), 'b { color: blue; }\n');
+      }],
+      ['a staged edit of a tracked file', async(dir) => {
+        await writeFile(join(dir, 'other.css'), 'b { color: blue; }\n');
+        git(dir, ['add', 'other.css']);
+      }],
+      ['a staged new file', async(dir) => {
+        await writeFile(join(dir, 'added.css'), 'c { color: green; }\n');
+        git(dir, ['add', 'added.css']);
+      }],
+      ['a rename with git mv', async(dir) => {
+        git(dir, ['mv', 'other.css', 'moved.css']);
+      }],
+      ['a deleted tracked file', async(dir) => {
+        await rm(join(dir, 'other.css'));
+      }],
+      ['an untracked file', async(dir) => {
+        await writeFile(join(dir, 'untracked.css'), 'd { color: black; }\n');
+      }],
+    ];
+
+    /**
+     * Read every file of a project but the git directory, as a snapshot to compare byte for byte.
+     *
+     * @param {string} dir Project directory.
+     * @returns {Promise<Record<string, string>>} File contents by name.
+     */
+    async function snapshot(dir) {
+      const files = (await readdir(dir, { recursive: true }))
+        .filter(name => !name.split(/[\\/]/).includes('.git')).sort();
+      const contents = {};
+
+      for (const name of files) {
+        if ((await stat(join(dir, name))).isFile()) {
+          contents[name] = await readFile(join(dir, name), 'utf8');
+        }
+      }
+
+      return contents;
+    }
+
+    for (const [label, makeDirty] of CASES) {
+      it(`refuses ${label} with exit code 2 and changes no byte`, async() => {
+        await withProject({ 'a.css': RADIUS_CSS, 'other.css': 'b { color: red; }\n' }, async(dir) => {
+          await makeDirty(dir);
+
+          const before = await snapshot(dir);
+          const result = await run({ cwd: dir, from: '17', to: '18' });
+
+          assert.equal(result.exitCode, 2, label);
+          assert.match(result.error, /^The git tree has 1 uncommitted change\./, label);
+          assert.deepEqual(result.changedFiles, []);
+          assert.deepEqual(await snapshot(dir), before);
+          assert.equal(before['a.css'], RADIUS_CSS, 'the file the rule would migrate is untouched');
+        });
+      });
+    }
+
+    it('counts one change per file for a mix of the states', async() => {
+      await withProject({ 'a.css': RADIUS_CSS, 'other.css': 'b { color: red; }\n' }, async(dir) => {
+        await writeFile(join(dir, 'other.css'), 'b { color: blue; }\n');
+        await writeFile(join(dir, 'added.css'), 'c { color: green; }\n');
+        git(dir, ['add', 'added.css']);
+        await writeFile(join(dir, 'untracked.css'), 'd { color: black; }\n');
+
+        const result = await run({ cwd: dir, from: '17', to: '18' });
+
+        assert.equal(result.exitCode, 2);
+        assert.match(result.error, /^The git tree has 3 uncommitted changes\./);
+      });
+    });
+
+    it('leaves out the report file the user asked for, and still counts an edited tracked file', async() => {
+      await withProject({ 'a.css': RADIUS_CSS, 'other.css': 'b { color: red; }\n' }, async(dir) => {
+        await writeFile(join(dir, 'report.md'), 'an earlier report\n');
+
+        const clean = await run({ cwd: dir, from: '17', to: '18', reportPath: 'report.md', dryRun: false });
+
+        assert.equal(clean.exitCode, 0, 'an untracked report file of an earlier run is not a change');
+
+        // The run above migrated a.css, so that edit is the one tracked change now.
+        const edited = await run({ cwd: dir, from: '17', to: '18', reportPath: 'report.md' });
+
+        assert.equal(edited.exitCode, 2);
+        assert.match(edited.error, /^The git tree has 1 uncommitted change\./);
+      });
+    });
+  });
+
   it('runs on a clean tree, writes changed files only, and a second run changes nothing', async() => {
     await withProject({ 'a.css': RADIUS_CSS, 'b.css': 'b { color: red; }\n', 'c.txt': 'text' }, async(dir) => {
       const first = await run({ cwd: dir, from: '17', to: '18' });
@@ -776,6 +929,54 @@ describe('run', () => {
       assert.deepEqual(result.changedFiles, ['good.css']);
       assert.ok(result.report.entries.some(entry => entry.ruleId === 'parse-error' && entry.file === 'broken.css'));
       assert.equal(await readFile(join(dir, 'broken.css'), 'utf8'), 'a { --ht-wrapper-border-radius: 1px;\n');
+    });
+  });
+
+  it('exits 1 for a file whose transform failed, leaves it alone, and still migrates the others', async() => {
+    // The edit sits between two blank lines that end in different ways, so the printer cannot tell which ending the
+    // file keeps, and the tool refuses to guess (see line-endings.test.mjs).
+    const mixed = [
+      'import Handsontable from \'handsontable\';\n',
+      'const hot = new Handsontable(el, {});\n',
+      '\r\n',
+      'hot.getPlugin(\'manualColumnResize\').saveManualColumnWidths();\n',
+      '\n',
+      'hot.render();\r\n',
+    ].join('');
+
+    await withProject({ 'mixed.js': mixed, 'good.css': RADIUS_CSS }, async(dir) => {
+      const result = await run({ cwd: dir, from: '17', to: '18' });
+
+      assert.equal(result.exitCode, 1);
+      assert.deepEqual(result.changedFiles, ['good.css']);
+      const failed = result.report.entries.filter(entry => entry.ruleId === 'transform-error');
+
+      assert.deepEqual(failed.map(entry => entry.file), ['mixed.js']);
+      assert.equal(await readFile(join(dir, 'mixed.js'), 'utf8'), mixed);
+      assert.equal(await readFile(join(dir, 'good.css'), 'utf8'), RADIUS_CSS_DONE);
+    });
+  });
+
+  it('exits 1 for a file that cannot be read, leaves the rest alone, and still migrates the others', async() => {
+    await withProject({ 'good.css': RADIUS_CSS }, async(dir) => {
+      // A listed file that is gone by the time the tool reads it: a race with a removal, or a permission.
+      const hooks = { discover: async() => ['gone.js', 'good.css'] };
+      const result = await run({ cwd: dir, from: '17', to: '18', hooks });
+
+      assert.equal(result.exitCode, 1);
+      assert.deepEqual(result.changedFiles, ['good.css']);
+      assert.deepEqual(result.report.entries.filter(entry => entry.ruleId === 'read-error').map(entry => entry.file),
+        ['gone.js']);
+      assert.equal(await readFile(join(dir, 'good.css'), 'utf8'), RADIUS_CSS_DONE);
+    });
+  });
+
+  it('exits 0 when every file was read, parsed, transformed, and written', async() => {
+    await withProject({ 'good.css': RADIUS_CSS }, async(dir) => {
+      const result = await run({ cwd: dir, from: '17', to: '18' });
+
+      assert.equal(result.exitCode, 0);
+      assert.deepEqual(result.report.entries.filter(entry => entry.severity === 'warning'), []);
     });
   });
 

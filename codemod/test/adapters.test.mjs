@@ -90,6 +90,25 @@ describe('js adapter', () => {
     assert.match(jsAdapter.print(handle, source), /import 'handsontable\/base';/);
   });
 
+  it('picks the parser by extension: ts for .ts, .mts, and .cts, tsx for .tsx, babylon for the rest', () => {
+    for (const [name, parser] of [
+      ['a.ts', 'ts'], ['a.mts', 'ts'], ['a.cts', 'ts'], ['a.CTS', 'ts'], ['a.tsx', 'tsx'],
+      ['a.js', 'babylon'], ['a.jsx', 'babylon'], ['a.mjs', 'babylon'], ['a.cjs', 'babylon'],
+    ]) {
+      assert.equal(parserFor(name), parser, name);
+    }
+  });
+
+  it('parses TypeScript syntax in a .cts and a .mts file, and refuses it in a .cjs file', () => {
+    const source = 'import Handsontable = require(\'handsontable\');\nexport const n = 1 as number;\n';
+
+    for (const name of ['a.cts', 'a.mts', 'a.ts']) {
+      assert.equal(jsAdapter.parse(source, name).parts[0].fileKind, 'js', name);
+    }
+
+    assert.throws(() => jsAdapter.parse(source, 'a.cjs'));
+  });
+
   it('detects the quote style', () => {
     assert.equal(detectQuote('import a from \'a\';\nimport b from \'b\';'), 'single');
     assert.equal(detectQuote('import a from "a";'), 'double');

@@ -911,6 +911,20 @@ describe('sanitizer custom rules', () => {
     }
   });
 
+  it('says nothing about a dialog branch for a sanitizer that has a source parameter and never reads it', async() => {
+    const unread = '(content, source) => stripTags(content)';
+    const reads = '(content, source) => (source === "dialog" ? keep(content) : stripTags(content))';
+    const readsLater = '(content, source) => { log(source); return stripTags(content); }';
+    const withoutSource = '(content) => stripTags(content)';
+    const entriesOf = async sanitizer => (await runSanitizer(grid(sanitizer))).entries
+      .filter(entry => entry.ruleId === SOURCE && /'dialog' branch/.test(entry.message));
+
+    assert.deepEqual(await entriesOf(unread), []);
+    assert.deepEqual(await entriesOf(withoutSource), []);
+    assert.equal((await entriesOf(reads)).length, 1);
+    assert.equal((await entriesOf(readsLater)).length, 1);
+  });
+
   it('tells what header content arrives with, by where the function handles header', async() => {
     const innerHtml = async(sanitizer) => {
       const result = await runSanitizer(grid(sanitizer));

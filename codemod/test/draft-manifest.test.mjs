@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -7,7 +8,8 @@ import { main } from '../src/cli.mjs';
 import { UsageError } from '../src/errors.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifest, loadManifests } from '../src/manifest.mjs';
 import { resolvePlan } from '../src/runner.mjs';
-import { checkAnchors, missingAnchors } from './helpers/guide-anchors.mjs';
+import { anchorListOf, checkAnchors, missingAnchors } from './helpers/guide-anchors.mjs';
+import { guidePath } from './helpers/guide-source.mjs';
 
 const GUIDE = '## 1. Keep this\n\n## Rename me later\n';
 
@@ -304,17 +306,76 @@ describe('notAutomated', () => {
     assert.doesNotMatch(old.out, /Changes with no rule/);
   });
 
-  it('names every guide section of the 19.0.0 manifest that has no rule, and none that has one', async(context) => {
-    const manifest = (await loadManifests()).find(item => item.version === '19.0.0');
+  describe('the map of the 19.0.0 guide: every section has a rule or a notAutomated entry, and nothing is listed twice',
+    () => {
+      // The headings of the guide as the built site gave them (see guide-anchors.test.mjs). The live guide is edited by
+      // other people, and a new section there must not fail this package's CI, so the checks below read the snapshot,
+      // which only changes when someone refreshes it. A refresh that adds a section then needs a rule or an entry.
+      const SNAPSHOT = new URL('./helpers/site-anchors/migration-from-18.1-to-19.0.json', import.meta.url);
 
-    context.diagnostic(`${manifest.notAutomated.length} entries`);
+      /**
+       * The 19.0.0 manifest and the ids of the headings in the snapshot of its guide.
+       *
+       * @returns {Promise<{manifest: object, sections: string[], headings: string[], covered: Set<string>}>} The data.
+       */
+      async function mapOf() {
+        const manifest = (await loadManifests()).find(item => item.version === '19.0.0');
+        const snapshot = JSON.parse(await readFile(SNAPSHOT, 'utf8'));
+        const sections = snapshot.headings.filter(heading => heading.level === 2).map(heading => heading.id);
+        const headings = snapshot.headings.map(heading => heading.id);
+        const covered = new Set([
+          ...manifest.rules.map(rule => rule.guide),
+          ...manifest.notAutomated.map(item => item.guide),
+        ].filter(Boolean));
 
-    const withRule = new Set(manifest.rules.map(rule => rule.guide).filter(Boolean));
-    const listed = manifest.notAutomated.map(item => item.guide).filter(Boolean);
+        return { manifest, sections, headings, covered };
+      }
 
-    assert.deepEqual(listed.filter(anchor => withRule.has(anchor)), []);
-    assert.ok(manifest.notAutomated.every(item => item.reason.endsWith('.') && !/[\u2013\u2014]/.test(item.reason)));
-  });
+      it('has a rule or a notAutomated entry for every h2 section of the guide', async() => {
+        const { sections, covered } = await mapOf();
+
+        assert.equal(sections.length >= 50, true, 'the snapshot holds the sections of the guide');
+        assert.deepEqual(sections.filter(anchor => !covered.has(anchor)), [],
+          'sections with neither a rule nor a notAutomated entry (the map of what the tool leaves to the user)');
+      });
+
+      it('names no section that the guide does not have, in a rule or in an entry', async() => {
+        const { headings, covered } = await mapOf();
+
+        assert.deepEqual([...covered].filter(anchor => !headings.includes(anchor)), []);
+      });
+
+      it('lists no section twice, and none that a rule covers', async() => {
+        const { manifest } = await mapOf();
+        const withRule = new Set(manifest.rules.map(rule => rule.guide).filter(Boolean));
+        const listed = manifest.notAutomated.map(item => item.guide).filter(Boolean);
+        const titled = manifest.notAutomated.filter(item => !item.guide).map(item => item.title);
+
+        assert.deepEqual(listed.filter(anchor => withRule.has(anchor)), []);
+        assert.equal(new Set(listed).size, listed.length, 'a section is listed twice');
+        assert.equal(new Set(titled).size, titled.length, 'a change without a section is listed twice');
+        assert.equal(manifest.notAutomated.every(item => Boolean(item.guide) !== Boolean(item.title)), true,
+          'an entry names a guide section or a title, not both and not neither');
+        assert.ok(manifest.notAutomated.every(item => item.reason.endsWith('.') && !/[–—]/.test(item.reason)));
+      });
+
+      it('says, as a diagnostic, how far the live guide has moved from the snapshot', async(context) => {
+        const { manifest, sections, covered } = await mapOf();
+
+        context.diagnostic(`${manifest.notAutomated.length} entries, ${covered.size} sections with a rule or an entry`);
+
+        if (!existsSync(guidePath(manifest))) {
+          return;
+        }
+
+        const live = anchorListOf(await readFile(guidePath(manifest), 'utf8'));
+        const added = live.filter(anchor => !sections.includes(anchor) && !covered.has(anchor));
+
+        // Not an assertion: another team edits the guide. Refresh the snapshot and cover what is new.
+        context.diagnostic(`${added.length} headings of the live guide are not in the snapshot and have no rule or `
+          + `entry${added.length > 0 ? `: ${added.join(', ')}` : ''}`);
+      });
+    });
 });
 
 describe('the fixtures of every shipped draft', () => {

@@ -21,7 +21,16 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   `develop.yml` has its own `codemod` job (the same legs plus the Linux leg on the Node of `.nvmrc`), gated on the
   `test-codemod` flag or a manual dispatch and not on run-all. The job is advisory (`continue-on-error`, plus a warning annotation and a job summary on failure): a red
   run does not fail the Develop run, so it cannot hold the `experimental` publish. On a pull request the suite is a real
-  gate. `codemod/test/workflow-gates.test.mjs` and `.github/scripts/__tests__/codemod-workflow.test.mjs` pin it.
+  gate. `codemod/test/workflow-gates.test.mjs` and `.github/scripts/__tests__/codemod-workflow.test.mjs` pin it. Only
+  the second runs in every pull request (the root `test:tooling`), so it holds the gates of `lint.yml` (the gated
+  `Codemod tests` step and its prefix, the `codemod` job, its `if`, its three legs, `fail-fast`, the install filter),
+  the `run-codemod` input, and the `test-codemod` filter; a pull request that edits only a workflow is checked by it.
+  The filter also names the core sources that a codemod test reads (`hooks/constants.ts`, `metaSchema.ts`,
+  `numericRenderer/utils.ts`, `exportFile.ts`) and the root `LICENSE.txt`: add a path there when a test reads a new one.
+- `test/option-object-gate.test.mjs` pins `requires: "option-object"`: for every `detect` rule that sets it (a table
+  with one entry per rule, checked against the shipped manifests in both directions) a grid object that sets the key is
+  reported, and a plain object of the project that sets the same key in a file that also creates a grid is not. A new
+  rule with the gate adds a sample there.
 - `test/other-receivers.test.mjs` pins the claimed objects (every report path ignores an object that `updateSettings()`,
   `setCellMeta()`, or `setCellMetaObject()` of another receiver takes, and keeps an unresolved receiver) and the
   `receiver: "grid"` call matcher of `19.0.0/update-settings-data-provider`.
@@ -33,6 +42,11 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   (`SAMPLE_FILES`, `createSampleProject()`). Add a file kind there when a transform starts to handle one.
   A test removes its project with `removeSampleProject()` in a `finally`, and the process removes what a test forgot when it
   ends. `CODEMOD_KEEP_PROJECTS=1` keeps every sample project and prints the paths, for a look at a failing test.
+- `test/runner.test.mjs` holds the clean-tree guard to every way a tracked project can be dirty (an edited file, a staged
+  edit, a staged new file, `git mv`, a deleted file, an untracked file, each with exit code 2 and no byte changed), the
+  exit code 1 of a parse, transform, and read error with the good files still migrated, and `KIND_ORDER` as the docs
+  give it (with a detect rule that must see what a rewrite of the same version wrote). `test/cli.test.mjs` holds the
+  crash path of `main()` (a throw that is not a `UsageError` exits 1 and prints the stack, also after files were written).
 - `test/readme.test.mjs` compares the rule counts in the README tables with `describeRules()`. A change to a rule's
   `safe`, or a new rule, changes a count, so update the two tables in `README.md`.
 - `test/safety.test.mjs` pins the `safe` contract: the runner guard, the shipped data, one case per kind that flips
@@ -60,7 +74,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   an option removal in the object of `setCellMetaObject`, a theme token rename) it runs the same histories of the name
   (`const`, a later assignment in a branch or a closure, a destructuring target, a `for` head, a parameter, a shadowing
   `var` in a namespace or a static block, a `this` member set in a nested object, a nested function, or a getter) and
-  expects a rewrite for a name whose every value qualifies and none for any other. It also runs the writes of a `this`
+  expects a rewrite for a name whose every value qualifies and none for any other. A rule on a plugin also gets the
+  histories of a name that holds two plugin keys (`otherPlugin`), because every value must be the plugin the rule
+  needs, not only a plugin. It also runs the writes of a `this`
   member from outside its class (`a.r = v`, `a['r'] = v`, `Object.assign(a, { r })`, a subclass, a field of another
   class, `defineProperty`), and has a block for `.hotInstance` (the wrapper shapes that must still rewrite, and the
   definitions that end the trust) and one for the host of `getPlugin()` (an instance, a name like a grid, a global, a
@@ -77,16 +93,28 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   `test/redaction.test.mjs` (a token in a dependency spec never reaches the console, the report file, `--dry-run`,
   or standard error), `test/report-target.test.mjs` (a `--report` target is checked before any file changes, and a
   report that fails after the run does not hide the summary), `test/git-config.test.mjs` (a repository whose
-  configuration names a program for `core.fsmonitor` or a pager runs none), and `test/scan-complexity.test.mjs` (the
+  configuration names a program for `core.fsmonitor` or a pager runs none, and `GIT_DIR`, `GIT_WORK_TREE`, and
+  `GIT_INDEX_FILE` in the environment of the run, as a git hook sets them, do not point the guard at another repository;
+  `GIT_PREFIX` has no effect on the commands the tool runs that a test can see), and `test/scan-complexity.test.mjs` (the
   `<script>` scanner and `blankToolComments()` return what the expressions they replaced returned, on random text, and
-  finish 1 MiB of adversarial text in a bounded time) are the CLI-level pins. They spawn the real bin through
+  four times the adversarial text is four times the work, counted and not timed: see below) are the CLI-level pins. They spawn the real bin through
   `test/helpers/plain-project.mjs` (`inPlainProject()`, `migrate()`).
-- `test/write-safety.test.mjs` pins the write: `writeFileSafely()` (temporary file and rename, the mode kept, a file
+- `test/scan-complexity.test.mjs` counts, it never times. `test/helpers/work-meter.mjs` (`measureWork()`,
+  `measureGrowth()`) wraps the methods of `String.prototype` and `RegExp.prototype` and adds up what each call reads or
+  copies, so a scan that starts again for each item grows with the square of the input and a linear one with the input
+  (four times the text must cost at most five times the work). It cannot see a loop that indexes a string or a
+  catastrophic pattern, so `scanScripts(source, stats)` also reports its own steps, and a pattern that backtracks is
+  held by the comparison with the expression it replaced. A new scanner adds its adversarial shapes there, at the
+  small sizes the counts need (a quadratic scan must fail the count and not read a megabyte first). A wall-clock limit
+  fails a loaded runner and passes a regression that is only a few times slower, so none belongs in this suite.
+- `test/write-safety.test.mjs` pins the write: `writeFileSafely()` (temporary file and rename, the mode kept exactly under a
+  umask that would cut it, a file
   that changed after the read refused, a link or a read-only file refused, no temporary file left), a failed or refused
   write not counted as a rewrite, the `resolvesInside()` check at its call site in `run()` (an injected
   `hooks.discover` list that holds a link to a file or directory outside the project, and a file that becomes a link
   between the read and the write), and the `--report` target as the file system sees it (hard link, letter case, an
-  existing file of a handled type, a link on the path). `hooks.discover` and `hooks.beforeRename(file)` of `run()` are
+  existing file of a handled type, a link on the path), and a project reached through another spelling of its path (a link).
+  `test/report-target.test.mjs` also holds that a file git tracks, in any directory and spelling, is never the report. `hooks.discover` and `hooks.beforeRename(file)` of `run()` are
   the injection points of these tests and exist for nothing else.
   `test/discovery-guards.test.mjs` pins `findExecutable()` with an injected `PATH`, `PATHEXT`, and file system, git
   started from `PATH` and never from the project, the clean-tree guard under `status.showUntrackedFiles=no`, the ignore
@@ -131,9 +159,13 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   A missing anchor fails for a `released` manifest. For a `draft` one it is a test diagnostic (a line in the test
   output), because the guide of a draft is still edited by other people and a renamed heading there must not fail this
   package's CI. `test/draft-manifest.test.mjs` pins both halves with a temporary manifest and guide, and also pins
-  that a draft stays out of a default run and of the default `--to`, the `notAutomated` list, and that every rule of a
+  that a draft stays out of a default run and of the default `--to`, that every `h2` section of the 19.0.0 guide has a
+  rule or a `notAutomated` entry and no entry names a section the guide lacks (read from the snapshot of the headings in
+  `test/helpers/site-anchors/`, not from the live guide, which other people edit: refreshing the snapshot is what makes a
+  new section need a rule or an entry, and the test prints the live guide's distance from the snapshot as a diagnostic), and that every rule of a
   draft is named by the `report.json` of some fixture. `type-rules.test.mjs` reads one guide of its own (the first
-  manifest with type rules), so it does not cover a draft.
+  manifest with type rules), so it does not cover a draft. It also holds every module that a type rule writes an import
+  from to an entry point the exports diff found a replacement in, and runs each `namespaceType` rule once per `to.source`.
 - A test that checks the behavior of a released range builds its plan from `loadReleasedManifests()`
   (`test/helpers/manifests.mjs`), not from `loadManifests()`: the latter includes every draft, and a draft's rules
   would join the run. `idempotency.test.mjs` keeps the draft rules in a plan of their own (`draftPlan`).
@@ -159,7 +191,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/todo.mjs` | The writer of TODO comments in the AST, and the only source of their text (`formatTodo()`; `carrier.mjs` places the same text after printing): `shortenAdvice()`, `formatTodo()`, `addJsTodo()` (a `//` comment, or a JSX comment for a `JSXElement` path), `addCssTodo()`, and `collectComments()` for the dedupe. |
 | `src/lib/text-file.mjs` | `readUtf8()`, `decodeUtf8()`, and `stripBom()`: every file the tool reads as text goes through the strict decoder, which throws `NotUtf8Error` (the runner turns it into a `skipped-file` warning) and keeps a leading byte order mark as `U+FEFF`. |
 | `src/lib/redact.mjs` | `redact()`: `//user:TOKEN@` becomes `//***@`. Applied where a dependency spec is named in a message, and again to everything `cli.mjs` writes and to both renderers, so a new message cannot leak. |
-| `src/lib/inline-script.mjs` | `scanScripts()` (the `<script>` elements of an HTML text, found with indexes and a memo, not a backtracking expression) and `createLineCounter()` (lines for offsets that grow, one read of the text). Used by `adapters/template.mjs` and the `missingOption` check of `detect.mjs`. |
+| `src/lib/inline-script.mjs` | `scanScripts()` (the `<script>` elements of an HTML text, found with indexes and a memo, not a backtracking expression; an optional `stats` object counts its steps for `scan-complexity.test.mjs`) and `createLineCounter()` (lines for offsets that grow, one read of the text). Used by `adapters/template.mjs` and the `missingOption` check of `detect.mjs`. |
 | `src/lib/anchor.mjs` | Where a comment about a property can go: `enclosingAnchor()`, `hasOwnLines()`, `anchorForProperty()`. |
 | `src/lib/option-sites.mjs` | `templateOptionSites()` (wrapper tag attributes in template text) and `dynamicOptionSites()` (assignments and `setCellMeta()`), shared by `options.mjs` and the `detect` `property` matcher. |
 | `src/adapters/unsupported-style.mjs` | `.less`, `.styl`, `.stylus`, `.sass`: never parsed, only reported through `skipReason`. |

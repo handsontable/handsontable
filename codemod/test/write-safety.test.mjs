@@ -206,6 +206,33 @@ describe('a write that fails or is refused is not a rewrite', () => {
     });
   });
 
+  it('keeps the exact mode of a file under a umask that would cut it', { skip: !POSIX }, async() => {
+    const before = process.umask(0o022);
+
+    try {
+      for (const [mode, expected] of [[0o664, '664'], [0o775, '775'], [0o666, '666'], [0o640, '640']]) {
+        await inPlainProject({ 'a.js': 'old\n' }, async(dir) => {
+          await chmod(join(dir, 'a.js'), mode);
+          await writeFileSafely(join(dir, 'a.js'), 'old\n', 'new\n');
+
+          assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), 'new\n');
+          assert.equal(permissionsOf(await lstat(join(dir, 'a.js'))), expected, `mode ${mode.toString(8)}`);
+        });
+      }
+
+      process.umask(0o077);
+
+      await inPlainProject({ 'a.js': 'old\n' }, async(dir) => {
+        await chmod(join(dir, 'a.js'), 0o644);
+        await writeFileSafely(join(dir, 'a.js'), 'old\n', 'new\n');
+
+        assert.equal(permissionsOf(await lstat(join(dir, 'a.js'))), '644', 'the strict umask did not narrow the mode');
+      });
+    } finally {
+      process.umask(before);
+    }
+  });
+
   it('keeps the mode of a file it rewrites', { skip: !POSIX }, async() => {
     await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
       await chmod(join(dir, 'a.js'), 0o750);
@@ -318,6 +345,34 @@ describe('the write-time check that a file resolves inside the project', () => {
       });
     } finally {
       await rm(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('migrates a project that is reached through another spelling of its path, as a short name or a link is', async(context) => {
+    const holder = await mkdtemp(join(tmpdir(), 'codemod-alias-'));
+
+    try {
+      await inPlainProject({ 'a.js': SOURCE, 'src/b.js': SOURCE }, async(dir) => {
+        const alias = join(holder, 'alias');
+
+        if (!await tryLink(dir, alias, 'dir')) {
+          context.skip('this platform cannot make a symbolic link');
+
+          return;
+        }
+
+        const result = await run({ cwd: alias, ...RANGE });
+
+        assert.deepEqual(result.changedFiles.sort(), ['a.js', 'src/b.js']);
+        assert.equal(result.report.has('write-error'), false, JSON.stringify(result.report.entries));
+        assert.equal(result.exitCode, 0);
+
+        for (const name of ['a.js', 'src/b.js']) {
+          assert.doesNotMatch(await readFile(join(dir, name), 'utf8'), /correctFormat: true/, name);
+        }
+      });
+    } finally {
+      await rm(holder, { recursive: true, force: true });
     }
   });
 });

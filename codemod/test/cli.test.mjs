@@ -383,6 +383,59 @@ describe('cli', () => {
   });
 });
 
+describe('a crash that is not a usage error', () => {
+  /**
+   * Run the CLI with a standard output that throws, as a closed pipe does, and capture standard error.
+   *
+   * @param {string[]} argv Arguments.
+   * @param {string} cwd Working directory.
+   * @returns {Promise<{code: number, err: string}>} Exit code and standard error.
+   */
+  async function withBrokenOutput(argv, cwd) {
+    let err = '';
+    const code = await main(argv, {
+      cwd,
+      stdout: () => {
+        throw new Error('boom: the output is closed');
+      },
+      stderr: (text) => {
+        err += text;
+      },
+    });
+
+    return { code, err };
+  }
+
+  it('exits 1 and prints the stack when the run is over and the output fails, after files were written', async() => {
+    const dir = await makeProject(true);
+
+    try {
+      const { code, err } = await withBrokenOutput(['migrate', '--from', '17', '--to', '18'], dir);
+
+      assert.equal(code, 1);
+      assert.match(err, /Error: boom: the output is closed\n\s+at /);
+      assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS.replace('wrapper-', ''),
+        'the run had written the file before it crashed');
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('exits 1 and prints the stack for a crash while listing the rules', async() => {
+    const { code, err } = await withBrokenOutput(['migrate', '--list', '--from', '17', '--to', '18'], tmpdir());
+
+    assert.equal(code, 1);
+    assert.match(err, /Error: boom: the output is closed\n\s+at /);
+  });
+
+  it('exits 2, and not 1, for a usage error', async() => {
+    const { code, err } = await cli(['migrate', '--from', 'banana']);
+
+    assert.equal(code, 2);
+    assert.doesNotMatch(err, /\n\s+at /);
+  });
+});
+
 describe('bin', () => {
   it('is executable, has a shebang, and sets the exit code without calling process.exit', async() => {
     const source = await readFile(BIN, 'utf8');

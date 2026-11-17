@@ -194,6 +194,24 @@ describe('ranges, overrides, and aliases in a chained run', () => {
     });
   });
 
+  it('does not call an override that points at the dependency of the project a pin', async() => {
+    const input = pkg({
+      dependencies: { handsontable: '^17.1.0', '@handsontable/vue3': '^17.1.0' },
+      overrides: {
+        'a-lib': { handsontable: '$handsontable' },
+        'b-lib': { handsontable: { '.': '$handsontable' } },
+        '@handsontable/vue3': '$@handsontable/vue3',
+        'c-lib': { handsontable: '17.0.0' },
+      },
+    });
+
+    await migrate({ 'package.json': input }, {}, async({ result }) => {
+      const pins = result.report.entries.filter(entry => / pins /.test(entry.message)).map(entry => entry.message);
+
+      assert.deepEqual(pins.map(text => text.split(' pins ')[0]), ['overrides["c-lib"].handsontable'], pins.join('\n'));
+    });
+  });
+
   it('reads a yarn path to the package and ignores a scoped package that only ends in its name', async() => {
     const input = pkg({
       dependencies: { handsontable: '^17.1.0' },
