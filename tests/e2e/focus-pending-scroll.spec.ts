@@ -131,4 +131,30 @@ test.describe('deferred focus after a scroll', () => {
     await expect(grid.cell(50, 0)).toBeVisible();
     await expect(grid.externalInput).toBeFocused();
   });
+
+  test('a deselect with a pending cell keeps the focus on an outside input through a later scroll', async({
+    page,
+    theme,
+    bundle,
+  }) => {
+    const grid = new FocusPendingScrollPage(page, theme, bundle);
+
+    await grid.goto();
+
+    // No selection moves after the cell is left pending, so only the deselect can drop it.
+    await grid.selectWithoutScrolling(50, 0);
+    await expect(grid.cell(50, 0)).toHaveCount(0);
+    await grid.externalInput.focus();
+    await expect(grid.externalInput).toBeFocused();
+    await grid.deselect();
+
+    await grid.scrollHolderAndSettle();
+
+    await expect(grid.cell(50, 0)).toBeVisible();
+    await expect(grid.externalInput).toBeFocused();
+
+    await grid.select(1, 0);
+
+    await expect(grid.cell(1, 0)).toBeFocused();
+  });
 });

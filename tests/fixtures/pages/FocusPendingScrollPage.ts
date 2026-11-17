@@ -9,6 +9,7 @@ import { type Bundle, assertKnownBundle, awaitBundle, awaitFixtureBuilt } from '
 interface PendingScrollWindow {
   hot: {
     selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean): boolean;
+    deselectCell(): void;
     addHookOnce(key: 'afterScroll', callback: () => void): void;
   };
 }
@@ -87,6 +88,15 @@ export class FocusPendingScrollPage {
     await this.page.evaluate(([selectRow, selectCol]) => {
       (window as unknown as PendingScrollWindow).hot.selectCell(selectRow, selectCol);
     }, [row, col]);
+  }
+
+  /**
+   * Clears the selection through the API.
+   */
+  async deselect(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as PendingScrollWindow).hot.deselectCell();
+    });
   }
 
   /**
