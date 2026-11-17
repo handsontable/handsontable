@@ -20,8 +20,10 @@
 name: A11y digest
 
 on:
-  # Mondays, 08:00 UTC: after the weekly audit, which takes about two and a half hours, and its collection by
-  # test-health.yml. A schedule fires on the default branch only.
+  # Mondays, 08:00 UTC: after the weekly audit and its collection by test-health.yml. The audit's four workflows start
+  # shortly after 01:00 UTC; the screen reader run may wait up to 180 minutes for an earlier one and then takes about
+  # two and a half hours, so its night can land as late as about 06:45. A night that lands later still is not lost: the
+  # window of a scheduled digest starts where the previous one started. A schedule fires on the default branch only.
   schedule:
     - cron: '0 8 * * 1'
   # On demand, from any ref. A dispatch is a dry run unless it turns `dry-run` off: it prints the digest to the run's
@@ -33,7 +35,7 @@ on:
         type: boolean
         default: true
       days:
-        description: 'How many days back the state to compare with is taken from'
+        description: 'How many days back the state to compare with is taken from (a dispatch only)'
         type: string
         default: '7'
   # A pull request that touches the digest runs it once, as a dry run, against the published ledger: the job has no
@@ -47,6 +49,7 @@ on:
 
 permissions:
   contents: read
+  actions: read   # the previous scheduled run's start time, where a scheduled digest's window begins
 
 concurrency:
   group: a11y-digest-${{ github.ref }}
@@ -74,10 +77,15 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      # The published file now, and the same file at the last gh-pages commit that is at least the window old. Through
-      # the API, so there is no Pages cache between the job and the file and no clone of gh-pages. The raw media type,
+      # The published file now, and the same file at the last gh-pages commit before the window began. Through the
+      # API, so there is no Pages cache between the job and the file and no clone of gh-pages. The raw media type,
       # because the file is over the 1 MB the default one returns. No commit that old (a ledger younger than the
       # window) leaves no earlier state, and the digest says where things stand.
+      #
+      # Where the window begins: on a schedule, where the previous successful scheduled digest started, so the windows
+      # of two digests meet and a night that lands minutes after one digest is in the next one's. A fixed "7 days
+      # ago" would open a gap whenever this run starts later in its Monday than the last one did, and a night landing
+      # in the gap would be in neither digest. With no earlier scheduled run, and on a dispatch, it is `days` ago.
       - name: Read the two ledger states from gh-pages
         env:
           GH_TOKEN: ${{ github.token }}
@@ -86,7 +94,18 @@ jobs:
           case "$DAYS" in
             ''|*[!0-9]*) echo "::error title=A11y digest::days must be a whole number, got '${DAYS}'"; exit 1 ;;
           esac
-          since=$(date -u -d "${DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
+          since=''
+          if [ "$GITHUB_EVENT_NAME" = 'schedule' ]; then
+            since=$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/a11y-digest.yml/runs?event=schedule&status=success&per_page=1" --jq '.workflow_runs[0].run_started_at // empty')
+          fi
+          if [ -z "$since" ]; then
+            since=$(date -u -d "${DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
+          fi
+          # The window in whole days, for the digest's wording: at least one, at most a year.
+          window=$(( ($(date -u +%s) - $(date -u -d "$since" +%s) + 43200) / 86400 ))
+          if [ "$window" -lt 1 ]; then window=1; fi
+          if [ "$window" -gt 366 ]; then window=366; fi
+          echo "WINDOW_DAYS=${window}" >> "$GITHUB_ENV"
           gh api -H 'Accept: application/vnd.github.raw' "repos/${GITHUB_REPOSITORY}/contents/test-health/a11y.json?ref=gh-pages" > "$RUNNER_TEMP/after.json"
           before_sha=$(gh api "repos/${GITHUB_REPOSITORY}/commits?sha=gh-pages&path=test-health/a11y.json&until=${since}&per_page=1" --jq '.[0].sha // empty')
           if [ -n "$before_sha" ]; then
@@ -98,14 +117,12 @@ jobs:
 
       # The text goes to a payload file, never through a YAML string: a cluster title can hold any character.
       - name: Build the digest
-        env:
-          DAYS: ${{ inputs.days || '7' }}
         run: |
           node .github/scripts/a11y-digest.mjs \
             --after "$RUNNER_TEMP/after.json" \
             --before "$RUNNER_TEMP/before.json" \
             --catalog tests/a11y/issues.json \
-            --days "$DAYS" \
+            --days "$WINDOW_DAYS" \
             --page-url "$PAGE_URL" \
             --tracker-url "$TRACKER_URL" \
             --payload "$RUNNER_TEMP/slack-payload.json" \

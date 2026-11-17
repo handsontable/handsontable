@@ -380,6 +380,38 @@ test('the CLI prints the digest of two ledger files and writes the Slack payload
   }
 });
 
+test('the digest comes after the audit it reports: later than the screen reader run\'s latest start, its run and its collection', () => {
+  // The weekly audit's workflows get their crons from the audit's own schedule; until a workflow has one, there is
+  // nothing to come after. The screen reader run is the long one: a scheduled run waits up to 180 minutes for an
+  // earlier run still in flight, takes about 150 minutes, and its night is collected a few minutes later.
+  const minutesOf = (file) => {
+    const source = readFileSync(path.join(repoRoot(), file), 'utf8').split('\n').filter(line => !line.trimStart().startsWith('#')).join('\n');
+    const cron = source.match(/^ {4}- cron: '(\d+) (\d+) \* \* (\d)'/m);
+
+    return cron ? { minutes: (Number(cron[2]) * 60) + Number(cron[1]), day: Number(cron[3]) } : null;
+  };
+  const digest = minutesOf(WORKFLOW);
+
+  assert.deepEqual(digest, { minutes: 8 * 60, day: 1 }, 'Mondays at 08:00 UTC');
+
+  const waits = { '.github/workflows/screenreader-nightly.yml': 180 + 150 + 15, '.github/workflows/a11y-nightly.yml': 60, '.github/workflows/docs-a11y.yml': 60,
+    '.github/workflows/website-a11y.yml': 60 };
+
+  for (const [file, minutes] of Object.entries(waits)) {
+    const audit = minutesOf(file);
+
+    if (audit !== null) {
+      assert.equal(audit.day, digest.day, `${file} runs on the digest's day, before it`);
+      assert.ok(audit.minutes + minutes <= digest.minutes,
+        `${file} starts at ${audit.minutes} minutes past midnight UTC and needs up to ${minutes} to reach the ledger: the digest at ${digest.minutes} would report a week without it`);
+    }
+  }
+  // The bound holds for the audit's planned start, 01:07 UTC, and the reader run may start as late as 02:15 before it breaks.
+  assert.ok(((1 * 60) + 7) + waits['.github/workflows/screenreader-nightly.yml'] <= digest.minutes);
+  assert.ok(((2 * 60) + 15) + waits['.github/workflows/screenreader-nightly.yml'] <= digest.minutes);
+  assert.ok(((2 * 60) + 16) + waits['.github/workflows/screenreader-nightly.yml'] > digest.minutes);
+});
+
 test('a11y-digest.yml runs weekly and on demand, posts only from a schedule or a dispatch that asks, and reads gh-pages with a read-only token', () => {
   const workflow = readFileSync(path.join(repoRoot(), WORKFLOW), 'utf8');
   const digest = job(workflow, 'digest');
@@ -397,9 +429,9 @@ test('a11y-digest.yml runs weekly and on demand, posts only from a schedule or a
   for (const file of ['.github/workflows/a11y-digest.yml', '.github/scripts/a11y-digest.mjs', '.github/scripts/lib/a11y-digest.mjs', '.github/scripts/lib/a11y-ledger.mjs']) {
     assert.ok(workflow.includes(`      - '${file}'`), `the pull request trigger lists ${file}`);
   }
-  // Read-only: the digest reads the repository and gh-pages and writes nowhere but Slack.
-  assert.match(workflow, /^permissions:\n {2}contents: read\n\n/m);
-  assert.ok(!/contents: write|pull-requests: write|checks: write/.test(workflow));
+  // Read-only: the digest reads the repository, gh-pages and its own earlier runs, and writes nowhere but Slack.
+  assert.match(workflow, /^permissions:\n {2}contents: read\n {2}actions: read {3}# .*\n\n/m);
+  assert.ok(!/: write\b/.test(workflow), 'no write scope of any kind');
   assert.match(digest, /^ {4}runs-on: ubuntu-26\.04$/m);
 
   // Both states come through the API: the published file now, and the last commit of it at least the window old.
@@ -407,6 +439,12 @@ test('a11y-digest.yml runs weekly and on demand, posts only from a schedule or a
   assert.ok(read.includes('commits?sha=gh-pages&path=test-health/a11y.json&until=${since}&per_page=1'));
   assert.ok(read.includes("Accept: application/vnd.github.raw"), 'the file is over the 1 MB the default media type returns');
   assert.match(read, /case "\$DAYS" in\n\s+''\|\*\[!0-9\]\*\)/, 'the window is checked to be a number before a command reads it');
+  // A scheduled digest's window starts where the previous successful scheduled one started, so two windows meet: with
+  // a fixed "7 days ago", a night landing between this Monday's read and next Monday's later start would be in
+  // neither digest. A dispatch, and the first scheduled run, take `days`.
+  assert.match(read, /if \[ "\$GITHUB_EVENT_NAME" = 'schedule' \]; then\n\s+since=\$\(gh api "repos\/\$\{GITHUB_REPOSITORY\}\/actions\/workflows\/a11y-digest\.yml\/runs\?event=schedule&status=success&per_page=1" --jq '\.workflow_runs\[0\]\.run_started_at \/\/ empty'\)\n\s+fi\n\s+if \[ -z "\$since" \]; then\n\s+since=\$\(date -u -d "\$\{DAYS\} days ago" \+%Y-%m-%dT%H:%M:%SZ\)\n\s+fi/);
+  assert.ok(read.includes('echo "WINDOW_DAYS=${window}" >> "$GITHUB_ENV"') && build.includes('--days "$WINDOW_DAYS"'),
+    'the digest words the window it was given, in whole days');
   assert.ok(!/\$\{\{ *inputs\./.test(read.replace(/^ {8}env:\n(?: {10}.*\n)+/m, '')), 'an input reaches the script through the environment, never interpolated into it');
 
   assert.ok(build.includes('node .github/scripts/a11y-digest.mjs') && build.includes('--catalog tests/a11y/issues.json')

@@ -2566,10 +2566,19 @@ queue, what is outstanding per surface, and the page's headline numbers. The pur
 `.ai/CI.md`.
 
 - **The digest compares two published states of the ledger:** `test-health/a11y.json` as it is now, and as
-  it was at the last `gh-pages` commit at least the window (7 days) old. Two files, so a row is compared
-  with itself by its key, and the digest needs no state of its own. No file that old is a first digest: it
-  says where things stand. Either file may be of an older ledger version; the lib reads it through
+  it was at the last `gh-pages` commit before the window began. Two files, so a row is compared with itself
+  by its key, and the digest needs no state of its own. No file that old is a first digest: it says where
+  things stand. Either file may be of an older ledger version; the lib reads it through
   `migrateA11yLedger()`.
+- **A scheduled digest's window begins where the previous one started,** never a fixed number of days ago:
+  the earlier state is the last commit before the previous successful scheduled run started. The windows of
+  two digests then meet, and a night that lands after one digest is in the next one's: a screen reader
+  night can come hours late, and a scheduled run can start late too. A fixed "7 days ago" opens a gap
+  whenever one Monday's run starts later than the last, and a night landing in it is in neither digest. A
+  night that lands in the seconds between a run's start and its read is named twice, which is the safe
+  side. A dispatch, and the first scheduled run, take `days`. The cron sits after the audit: later than the
+  screen reader run's start plus its wait for an earlier run, its run time and its collection, which
+  `a11y-digest.test.mjs` pins against every audit workflow that has a cron.
 - **It names what it compared, and never assumes the audit ran.** The first line names the latest night of
   each workflow in both states, by run and date. A workflow with no new night was not audited in the window:
   it is named so, and its rows are left out of improved and declined, because nothing measured them. With no
