@@ -49,38 +49,46 @@ export interface CellAccess {
 }
 
 /**
- * Tells whether a bottom clone's last draw no longer matches the band its live settings describe. The filter
- * is built from the same `getFirstRenderedRow()` and `totalRows` in every draw, so they agree at rest and differ
- * only between a change of `totalRows` or `fixedRowsBottom` and the draw that follows it. The first row alone
- * is not enough: it stays the same while the band grows at its end (every row pinned, or the rows and the pinned
- * rows growing by the same amount), so the total of rows is compared too.
+ * Tells whether a bottom clone's last draw no longer matches the band its live settings describe. A clone that
+ * was never drawn holds nothing. Otherwise the filter is built from the same `getFirstRenderedRow()` in every
+ * draw, so its offset agrees with the live one at rest and differs only between a change of `totalRows` or
+ * `fixedRowsBottom` and the draw that follows it. The first row alone is not enough: it stays the same while the
+ * band grows at its end (every row pinned, or the rows and the pinned rows growing by the same amount), so the
+ * rows the clone holds are counted against the rows the live band names too.
  *
  * @param {Table} table The table to check.
  * @returns {boolean}
  */
 function hasStaleBottomBand(table: Table): boolean {
-  if (!BOTTOM_CLONE_TYPES.includes(table.name) || table.rowFilter === null) {
+  if (!BOTTOM_CLONE_TYPES.includes(table.name)) {
     return false;
   }
 
+  if (table.rowFilter === null || table.TBODY === null) {
+    return true;
+  }
+
   return Math.max(table.getFirstRenderedRow(), 0) !== table.rowFilter.offset ||
-    table.wtSettings.getSetting<number>('totalRows') !== table.rowFilter.total;
+    table.TBODY.childNodes.length < table.getRenderedRowsCount();
 }
 
 /**
  * Tells whether a top clone has no row in its TBODY for the given body row yet. The clone's rendered rows
  * count follows the live settings (`stickyRowsTop`), so after the number of rows grew past the rows of the last
- * draw and before the render that follows, the count names rows the clone has not drawn. Shrinking is not
- * affected: the rows the clone still holds are the rows it should hold.
+ * draw and before the render that follows, the count names rows the clone has not drawn. A clone that was never
+ * drawn holds none. Shrinking is not affected: the rows the clone still holds are the rows it should hold.
  *
  * @param {Table} table The table to check.
  * @param {number} row The body row index.
  * @returns {boolean}
  */
 function isBeyondDrawnTopRows(table: Table, row: number): boolean {
-  return TOP_CLONE_TYPES.includes(table.name) &&
-    table.rowFilter !== null &&
-    table.TBODY !== null &&
+  if (!TOP_CLONE_TYPES.includes(table.name)) {
+    return false;
+  }
+
+  return table.rowFilter === null ||
+    table.TBODY === null ||
     table.rowFilter.sourceToRendered(row) >= table.TBODY.childNodes.length;
 }
 
@@ -155,7 +163,7 @@ const cellAccess = {
     // before the render that follows, the band names rows the clone's DOM does not hold yet: the lookup below
     // would throw, or answer the cell of another row. The row is not rendered as far as the DOM is concerned.
     if (row >= 0 && hasStaleBottomBand(this)) {
-      return row < this.rowFilter!.offset ? -1 : -2;
+      return this.rowFilter !== null && row < this.rowFilter.offset ? -1 : -2;
     }
 
     // The same for a top clone, whose count of rows follows the live settings while its DOM is the last draw's.

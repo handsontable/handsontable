@@ -114,10 +114,36 @@ test.describe('loadData() and row removal on a grid with fixedRowsBottom', () =>
     await grid.selectCell(9, 0);
     await grid.probeTopmostCellsIn('afterSelectionEnd', [10]);
 
-    expect(await grid.updateDataAndFixedRowsBottomExpectingError(12, 4)).toBeNull();
+    expect(await grid.updateDataAndSettingsExpectingError(12, { fixedRowsBottom: 4 })).toBeNull();
 
     expect(await grid.probedCells()).toEqual({ 10: null });
     expect(await grid.topmostCellText(10)).toBe('10-0');
+  });
+
+  test('loads the data when the bottom rows are frozen in the same call that shrinks it', async() => {
+    // The wrappers send `data` and the frozen count together. The bottom clone of a grid built without frozen
+    // rows was never drawn, so it has no filter to compare with.
+    await grid.goto({ rows: 10 });
+    await grid.selectCell(9, 0);
+
+    expect(await grid.updateDataAndSettingsExpectingError(3, { fixedRowsBottom: 1 })).toBeNull();
+
+    expect(await grid.countRows()).toBe(3);
+    await expect(grid.masterRows).toHaveCount(3);
+    await expect(grid.bottomCloneRows.first().locator('td').first()).toHaveText('2-0');
+    expect(await grid.selected()).toEqual([[2, 0, 2, 0]]);
+  });
+
+  test('answers null for a frozen top row of a clone that was never drawn', async() => {
+    // No frozen top rows and no column headers: the top clone has not drawn anything yet.
+    await grid.goto({ rows: 3 });
+    await grid.selectCell(2, 0);
+    await grid.probeTopmostCellsIn('afterSelectionEnd', [4]);
+
+    expect(await grid.updateDataAndSettingsExpectingError(8, { fixedRowsTop: 5 })).toBeNull();
+
+    expect(await grid.probedCells()).toEqual({ 4: null });
+    expect(await grid.topmostCellText(4)).toBe('4-0');
   });
 
   test('answers null for a frozen top row the grid has not drawn yet when the data grew', async() => {

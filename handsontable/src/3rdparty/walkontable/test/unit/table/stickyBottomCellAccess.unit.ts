@@ -224,6 +224,18 @@ describe('Table#getCell on the bottom clones between a change of the data and th
       expect((cell as HTMLElement).textContent).toBe('row 2');
     });
 
+    it.each(['top', 'top_inline_start_corner', 'top_inline_end_corner'])(
+      'should answer "not rendered" for the %s clone that was never drawn',
+      (name) => {
+        // No frozen top rows and no column headers at first: the clone has no filter and no TBODY rows.
+        const table = createTopTable(name, 8, 0);
+
+        table.rowFilter = null;
+
+        expect(cellAt(table, 4)).toBe(-2);
+      },
+    );
+
     it('should keep returning the drawn frozen rows after the data shrank', () => {
       // The clone still holds the rows it drew, and they are the rows it should hold.
       const cell = cellAt(createTopTable('top', 2, 3), 1);
@@ -233,18 +245,48 @@ describe('Table#getCell on the bottom clones between a change of the data and th
     });
   });
 
-  it.each(['master', 'top', 'inline_start'])('should leave the %s table to its own band', (name) => {
-    // Only the bottom clones read their band from the live settings. For any other table the live first row and
-    // the filter can differ (the first row is 2 here, the filter was built at 0) without the DOM lagging behind.
+  it.each(['bottom', 'bottom_inline_start_corner', 'bottom_inline_end_corner'])(
+    'should answer "not rendered" for the %s clone that was never drawn',
+    (name) => {
+      // `updateSettings({ data, fixedRowsBottom })` on a grid built without frozen rows: the clone has no filter.
+      const table = createTable(name,
+        { totalRows: 3, fixedRowsBottom: 1, drawnTotal: 0, drawnOffset: 0, drawnRows: 0 });
+
+      table.rowFilter = null;
+
+      expectNotRendered(cellAt(table, 2));
+    },
+  );
+
+  it('should answer "not rendered" for a bottom clone that holds no rows although its band names one', () => {
+    // A one-row grid whose frozen row was released and is frozen again before a render: the first row of the
+    // band (0) and the filter's offset (0) agree, and only the empty TBODY tells the clone is behind.
+    const table = createTable('bottom',
+      { totalRows: 1, fixedRowsBottom: 1, drawnTotal: 1, drawnOffset: 0, drawnRows: 0 });
+
+    expectNotRendered(cellAt(table, 0));
+  });
+
+  it.each(['master', 'inline_start'])('should not apply the bottom guard to the %s table', (name) => {
+    // Only the bottom clones read their band from the live settings. For any other table the live first row (2
+    // here) and the filter (built at 0) can differ without the DOM lagging behind: the cell is returned.
     const table = createTable(name,
-      { totalRows: 3, fixedRowsBottom: 1, drawnTotal: 10, drawnOffset: 0, drawnRows: 3 });
-
-    table.getFirstRenderedRow = () => 0;
-    table.getLastRenderedRow = () => 2;
-
-    const cell = cellAt(table, 1);
+      { totalRows: 3, fixedRowsBottom: 1, drawnTotal: 3, drawnOffset: 0, drawnRows: 3 });
+    const cell = cellAt(table, 2);
 
     expect(cell).toBeInstanceOf(HTMLElement);
-    expect((cell as HTMLElement).textContent).toBe('row 1');
+    expect((cell as HTMLElement).textContent).toBe('row 2');
+  });
+
+  it.each(['master', 'inline_start'])('should keep the loud throw of the %s table for a row it has no TR for', (name) => {
+    // The guards answer for the frozen clones only. A table that is not one of them keeps throwing when the band
+    // names a row its DOM does not hold, which is the signal for a real desync.
+    const table = createTable(name,
+      { totalRows: 3, fixedRowsBottom: 1, drawnTotal: 3, drawnOffset: 0, drawnRows: 3 });
+
+    table.getFirstRenderedRow = () => 0;
+    table.getLastRenderedRow = () => 3;
+
+    expect(() => cellAt(table, 3)).toThrow('TR was expected to be rendered but is not');
   });
 });

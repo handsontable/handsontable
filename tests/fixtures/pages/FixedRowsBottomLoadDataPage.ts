@@ -92,21 +92,21 @@ export class FixedRowsBottomLoadDataPage {
   }
 
   /**
-   * Run `updateSettings()` with a fresh dataset of `rows` rows and a new `fixedRowsBottom`, and return the message
-   * of the error it threw, or `null` when it did not throw.
+   * Run `updateSettings()` with a fresh dataset of `rows` rows and the given settings in one call, the way the
+   * wrappers send them, and return the message of the error it threw, or `null` when it did not throw.
    */
-  async updateDataAndFixedRowsBottomExpectingError(rows: number, fixedRowsBottom: number): Promise<string | null> {
-    return this.page.evaluate(([count, fixed]) => {
+  async updateDataAndSettingsExpectingError(rows: number, settings: object): Promise<string | null> {
+    return this.page.evaluate(([count, newSettings]) => {
       const win = window as unknown as FixtureWindow & { hot: HotLike & { updateSettings(s: object): void } };
 
       try {
-        win.hot.updateSettings({ data: win.createGridData(count), fixedRowsBottom: fixed });
+        win.hot.updateSettings({ data: win.createGridData(count as number), ...(newSettings as object) });
       } catch (error) {
         return (error as Error).message;
       }
 
       return null;
-    }, [rows, fixedRowsBottom]);
+    }, [rows, settings] as const);
   }
 
   /**
