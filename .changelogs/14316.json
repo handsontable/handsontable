@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `loadData()` throwing \"TR was expected to be rendered but is not\" when the selection lands on a `fixedRowsBottom` row, and `getCell()` returning the cell of another row there while the grid was updating.",
+  "type": "fixed",
+  "issueOrPR": 14316,
+  "breaking": false,
+  "framework": "none"
+}
