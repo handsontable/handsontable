@@ -15,6 +15,36 @@ export interface FixedRowsBottomLineOptions {
   colHeaders?: boolean;
   autoRowSize?: boolean;
   minRowHeights?: number;
+  rowHeights?: number;
+  /** The height ManualRowResize gives the grid's last row. */
+  manualRowResizeLast?: number;
+  /** Long, line-broken text in the last row, which makes it taller than the default height. */
+  wrapLastRow?: boolean;
+  fixedColumnsEnd?: number;
+  /** The visual row the HiddenRows plugin hides. */
+  hiddenRow?: number;
+  /** The height a `modifyRowHeightByOverlayName` hook gives the grid's last row in the `bottom` overlay only. */
+  bottomOverlayHeight?: number;
+}
+
+/**
+ * The heights of the bottom clone and of the first row of its tables, against what the row calculators count.
+ */
+export interface BottomCloneMetrics {
+  /** The summed heights of the frozen bottom rows as the row calculators count them. */
+  counted: number;
+  /** The drawn height of the bottom clone's table. */
+  clone: number;
+  /** The drawn heights of the clone's rows, from the first. */
+  rows: number[];
+  /** The drawn heights of the rows of the bottom start corner, from the first; empty without frozen start columns. */
+  cornerRows: number[];
+  /** The drawn heights of the rows of the bottom end corner, from the first; empty without frozen end columns. */
+  cornerEndRows: number[];
+  /** The drawn heights of the first three rows the master renders. */
+  masterRows: number[];
+  /** The height recorded for the grid's last row from what it renders; `null` when nothing is recorded. */
+  recordedLastRow: number | null;
 }
 
 /**
@@ -389,6 +419,109 @@ export class FixedRowsBottomLinePage {
         return rect.height > 0 && (Math.abs(rect.bottom - edge) < 0.5 || Math.abs(rect.bottom - (edge + 1)) < 0.5);
       });
     });
+  }
+
+  /**
+   * The drawn heights of the bottom clone and of its rows, with the height the row calculators count for the
+   * frozen bottom rows. The clone is one pixel taller than counted wherever its first row draws the freeze line.
+   *
+   * @param {number} fixedRowsBottom The number of frozen bottom rows the grid was built with.
+   */
+  async bottomCloneMetrics(fixedRowsBottom: number): Promise<BottomCloneMetrics> {
+    return this.page.evaluate((frozen) => {
+      const hot = (window as unknown as {
+        hot: {
+          countRows(): number;
+          view: {
+            _wt: {
+              wtViewport: {
+                sumRowHeights(from: number, to: number): number;
+                oversizedRows: Record<number, number | undefined>;
+              };
+            };
+          };
+        };
+      }).hot;
+      const rowHeights = (selector: string) => Array.from(document.querySelectorAll(`${selector} tbody tr`))
+        .map(row => row.getBoundingClientRect().height);
+      const cloneTable = document.querySelector('.ht_clone_bottom table');
+
+      if (!cloneTable) {
+        throw new Error('No bottom clone');
+      }
+
+      const total = hot.countRows();
+
+      return {
+        counted: hot.view._wt.wtViewport.sumRowHeights(total - frozen, total),
+        clone: cloneTable.getBoundingClientRect().height,
+        rows: rowHeights('.ht_clone_bottom'),
+        cornerRows: rowHeights('.ht_clone_bottom_inline_start_corner'),
+        cornerEndRows: rowHeights('.ht_clone_bottom_inline_end_corner'),
+        masterRows: rowHeights('.ht_master').slice(0, 3),
+        recordedLastRow: hot.view._wt.wtViewport.oversizedRows[total - 1] ?? null,
+      };
+    }, fixedRowsBottom);
+  }
+
+  /**
+   * Drags the row resize handle of a frozen bottom row's header with the real mouse and releases it.
+   *
+   * @param {number} rowInCorner The place of the row among the frozen bottom rows, from 0.
+   * @param {number} deltaY The distance to drag, positive to grow the row.
+   * @returns {Promise<number>} The height the plugin stores for the last row, read after the release.
+   */
+  async dragBottomRowHandle(rowInCorner: number, deltaY: number): Promise<number> {
+    const header = this.page.locator('.ht_clone_bottom_inline_start_corner tbody tr th').nth(rowInCorner);
+    const box = await header.boundingBox();
+
+    if (!box) {
+      throw new Error(`Frozen bottom row ${rowInCorner} has no row header to hover`);
+    }
+
+    await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
+    await this.page.mouse.move(box.x + (box.width / 2), box.y + box.height - 3);
+
+    const handle = this.page.locator('.manualRowResizer');
+
+    await expect(handle).toBeVisible();
+
+    const handleBox = await handle.boundingBox();
+
+    if (!handleBox) {
+      throw new Error('The row resize handle has no box');
+    }
+
+    const x = handleBox.x + (handleBox.width / 2);
+    const y = handleBox.y + (handleBox.height / 2);
+
+    await this.page.mouse.move(x, y);
+    await this.page.mouse.down();
+    await this.page.mouse.move(x, y + deltaY, { steps: 4 });
+    await this.page.mouse.up();
+
+    return this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: { countRows(): number; getRowHeight(row: number): number } }).hot;
+
+      return hot.getRowHeight(hot.countRows() - 1);
+    });
+  }
+
+  /**
+   * Renders the grid again, one render per animation frame, and waits for the last draw to settle.
+   *
+   * @param {number} times The number of renders.
+   */
+  async renderAgain(times: number): Promise<void> {
+    await this.page.evaluate(async(count) => {
+      const hot = (window as unknown as { hot: { render(): void } }).hot;
+
+      for (let render = 0; render < count; render++) {
+        hot.render();
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      }
+    }, times);
+    await this.#settle();
   }
 
   /**

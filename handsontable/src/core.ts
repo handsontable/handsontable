@@ -10629,6 +10629,9 @@ export default function Core(
    * A row is exact when `rowHeights` resolves to a positive number for it and the AutoRowSize plugin is
    * off. The `minRowHeights` option is never exact.
    *
+   * The one exception to "exactly" is the first row of the frozen bottom rows: it is drawn one pixel taller,
+   * because that pixel is the freeze line above it, which is not part of the height the grid counts for the row.
+   *
    * @private
    * @memberof Core#
    * @function _isRowHeightExact

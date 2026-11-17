@@ -16,7 +16,7 @@ import { isHTMLElement } from '../../../../helpers/dom/element';
 import { isHeightBelow, resolveFractionalHeight } from '../../../../helpers/dom/layoutUnit';
 import { CLONE_BOTTOM } from '../overlay';
 import { applyRowHeight } from '../render/exactRowHeight';
-import { firstRowDrawsTopBorder } from './boxModel';
+import { firstRowDrawsTopBorder, firstRowTopBorderOutsideHeight } from './boxModel';
 import type { default as Table } from '../table/baseTable';
 
 /**
@@ -204,6 +204,7 @@ function applyRowHeightsToRenderedRows(table: Table): void {
 
   const borderBoxSizing = table.wtSettings.getSetting('stylesHandler').areCellsBorderBox();
   const firstRowTopBorder = firstRowDrawsTopBorder(table.THEAD);
+  const firstRowBorderOutsideHeight = firstRowTopBorderOutsideHeight(table.name, table.THEAD, borderBoxSizing);
   const renderedRows = TBODY.childNodes;
   // Once per call rather than once per row (see `RowUtils#mayHaveExactRows`).
   const mayHaveExactRows = table.rowUtils.mayHaveExactRows();
@@ -226,6 +227,7 @@ function applyRowHeightsToRenderedRows(table: Table): void {
       table.rowUtils,
       sourceRowIndex,
       renderedRowIndex === 0 && firstRowTopBorder,
+      renderedRowIndex === 0 && firstRowBorderOutsideHeight,
     );
   }
 }
@@ -698,6 +700,10 @@ export function markOversizedRows(
     : (element: HTMLElement) => table.deps.geometryReader.innerHeight(element);
   const borderCompensation = borderBoxSizing ? 0 : 1;
   const firstRowBorderCompensation = (borderBoxSizing && drawsFirstRowTopBorder) ? 1 : 0;
+  // The first row of the bottom tables is drawn one pixel above the height counted for it (see
+  // `firstRowTopBorderOutsideHeight`): that pixel is the freeze line, not content, and it must never be
+  // recorded, or the counted height would grow by it and the clone would be no taller than counted again.
+  const firstRowOutsideBorder = firstRowTopBorderOutsideHeight(table.name, table.THEAD, borderBoxSizing) ? 1 : 0;
   let previousRowHeight;
   let rowCurrentHeight;
   let sourceRowIndex;
@@ -758,6 +764,8 @@ export function markOversizedRows(
     // border-top: 1px whatever its source identity — but only in a table that renders no head
     // row, which `firstRowBorderCompensation` already accounts for.
     const topBorderCompensation = rowCount === 0 ? firstRowBorderCompensation : 0;
+    // The pixel the row is drawn above its counted height, taken off what the row measures.
+    const outsideBorder = rowCount === 0 ? firstRowOutsideBorder : 0;
 
     if (rowHeader) {
       rowCurrentHeight = rowHeightFn(rowHeader);
@@ -782,7 +790,7 @@ export function markOversizedRows(
       !previousRowHeight &&
       stylesHandler.getDefaultRowHeight() < rowCurrentHeight - topBorderCompensation ||
       (previousRowHeight !== undefined && (borderBoxSizing ?
-        isHeightBelow(previousRowHeight, usedHeight ?? rowCurrentHeight) :
+        isHeightBelow(previousRowHeight, (usedHeight ?? rowCurrentHeight) - outsideBorder) :
         previousRowHeight < rowCurrentHeight))
     ) {
       if (!borderBoxSizing) {
@@ -791,7 +799,8 @@ export function markOversizedRows(
         // Content-box cells keep the whole pixel: their `clientHeight` read and the `+ 1` above have no
         // computed-style twin. A border-box row takes the height read above, or reads it now when it
         // had no height to compare with.
-        rowCurrentHeight = usedHeight ?? readUsedRowHeight(table, rowHeader ?? currentTr, rowCurrentHeight);
+        rowCurrentHeight = (usedHeight ?? readUsedRowHeight(table, rowHeader ?? currentTr, rowCurrentHeight)) -
+          outsideBorder;
       }
 
       wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;

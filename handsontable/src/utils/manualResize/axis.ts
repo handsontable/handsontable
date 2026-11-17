@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { IndexMapper } from '../../translations';
 import { closest } from '../../helpers/dom/element';
+import { firstRowTopBorderOutsideHeight } from '../../3rdparty/walkontable/src/axisSizing/boxModel';
 
 /**
  * The direction a resize drag moves the header edge in. A row is resized vertically, a column
@@ -85,9 +86,10 @@ export interface ResizeAxis {
    */
   isAnchoredAtInlineEnd?(hot: HotInstance, header: HTMLElement): boolean;
   /**
-   * Returns how many pixels the header renders wider than its track, over the freeze line of the end band: the
-   * band's first header reaches over the border of the column before it. `0` for every other header. Optional:
-   * an axis without an end band leaves it out.
+   * Returns how many pixels the header renders larger than its track, over a freeze line: the first header of the
+   * end band reaches over the border of the column before it, and the first row header of the frozen bottom rows is
+   * drawn one pixel above its height, which is the freeze line. `0` for every other header. Optional: an axis
+   * without such a header leaves it out.
    */
   getFreezeLineOverlap?(hot: HotInstance, header: HTMLElement): number;
   /**
@@ -151,6 +153,21 @@ export const ROW_RESIZE_AXIS: ResizeAxis = {
       topInlineStartCornerOverlay.clone?.wtTable.TBODY,
       bottomInlineStartCornerOverlay.clone?.wtTable.TBODY,
     ].includes(tbody as HTMLTableSectionElement);
+  },
+
+  getFreezeLineOverlap(hot, header) {
+    // The first row of the bottom start corner is drawn one pixel above its height when the engine puts the freeze
+    // line outside that height (`firstRowTopBorderOutsideHeight()`). That pixel is not part of the size the plugin
+    // stores, so a drag of that header must not store it.
+    const cornerTable = hot.view._wt.wtOverlays.bottomInlineStartCornerOverlay.clone?.wtTable;
+    const row = header.parentElement;
+
+    if (!cornerTable || row === null || row !== cornerTable.TBODY?.firstElementChild) {
+      return 0;
+    }
+
+    return firstRowTopBorderOutsideHeight(cornerTable.name, cornerTable.THEAD, hot.stylesHandler.areCellsBorderBox()) ?
+      1 : 0;
   },
 
   canResizeHeader() {

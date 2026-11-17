@@ -258,6 +258,7 @@ function getExactCarrierHeight(
   isBorderBox: boolean,
   ownHeights?: OwnRowHeights,
   sourceIndex?: number,
+  extraHeight = 0,
 ): string {
   if (canCarryHeight(firstChild) || ownHeights === undefined || sourceIndex === undefined) {
     return pixelHeight;
@@ -265,7 +266,8 @@ function getExactCarrierHeight(
 
   const ownHeight = ownHeights.getHeight(sourceIndex);
 
-  return ownHeight !== undefined && ownHeight > 0 ? toRowElementHeight(ownHeight, isBorderBox) : pixelHeight;
+  return ownHeight !== undefined && ownHeight > 0 ?
+    toRowElementHeight(ownHeight + extraHeight, isBorderBox) : pixelHeight;
 }
 
 /**
@@ -284,6 +286,9 @@ function getExactCarrierHeight(
  * @param {number} [sourceIndex] The row's source index, for `ownHeights`.
  * @param {boolean} [drawsTopBorder] Whether this row is the first row of a table that draws its own 1px top
  *   border (see `firstRowDrawsTopBorder`). The caller knows the row's position and the table's head row.
+ * @param {boolean} [topBorderOutsideHeight] Whether that border is drawn on top of the row's height instead of
+ *   inside it (the first row of the bottom tables, see `firstRowTopBorderOutsideHeight`): the row is written one
+ *   pixel above its logical height.
  */
 export function applyRowHeight(
   TR: HTMLElement,
@@ -293,6 +298,7 @@ export function applyRowHeight(
   ownHeights?: OwnRowHeights,
   sourceIndex?: number,
   drawsTopBorder = false,
+  topBorderOutsideHeight = false,
 ): void {
   const firstChild = TR.firstChild;
 
@@ -303,10 +309,17 @@ export function applyRowHeight(
   // Convert the logical row height to the pixel height written to the DOM. In content-box mode
   // 1px is "replaced" by the row's 1px top border; the shared helper keeps that constant in one
   // place (see axisSizing/boxModel.ts).
-  const pixelHeight = rowHeight ? `${getBoxAdjustedRowHeight(rowHeight, isBorderBox)}px` : '';
+  const extraHeight = topBorderOutsideHeight ? 1 : 0;
+
+  // A border drawn outside the height is a border the row draws: a caller cannot name the first without the second.
+  const rowDrawsTopBorder = drawsTopBorder || topBorderOutsideHeight;
+  const pixelHeight = rowHeight ? `${getBoxAdjustedRowHeight(rowHeight + extraHeight, isBorderBox)}px` : '';
 
   if (isExact && rowHeight) {
-    applyExactShape(TR, getExactCarrierHeight(firstChild, pixelHeight, isBorderBox, ownHeights, sourceIndex));
+    applyExactShape(
+      TR,
+      getExactCarrierHeight(firstChild, pixelHeight, isBorderBox, ownHeights, sourceIndex, extraHeight)
+    );
 
     return;
   }
@@ -328,7 +341,7 @@ export function applyRowHeight(
   if (!canCarryHeight(firstChild) && ownHeights !== undefined && sourceIndex !== undefined) {
     const providedHeight = ownHeights.getHeight(sourceIndex);
     const ownHeight = providedHeight !== undefined && providedHeight > 0 ?
-      providedHeight : (ownHeights.getDefaultHeight() ?? 0) + (drawsTopBorder ? 1 : 0);
+      providedHeight + extraHeight : (ownHeights.getDefaultHeight() ?? 0) + (rowDrawsTopBorder ? 1 : 0);
     const rowElementHeight = toRowElementHeight(ownHeight, isBorderBox);
 
     if (pinnedRows.get(TR) !== rowElementHeight) {

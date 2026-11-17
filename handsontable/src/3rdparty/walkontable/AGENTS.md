@@ -818,20 +818,24 @@ Five rules ride along:
   still works; clearing `tr.style.height` for every row whose first cell can carry the height would have wiped it
   on every draw.
 - **The pin is the row's OWN height, not the hooked one** (`RowUtils#getHeight`): the inflated height would make
-  the row as tall as the block.
+  the row as tall as the block. In the first row of a bottom table it is the own height plus the freeze line's
+  pixel (`topBorderOutsideHeight`, see the bottom freeze line paragraph in "Border ownership").
 - **A row without a height of its own is pinned at the default height, plus the first row's border pixel.** A
   row the block covers entirely has no cell to size it, and the browser hands the whole span to whichever row it
   likes (measured: 29.5/29.5 for a 30/29 pair). The first row of a table whose head row is empty draws its own
   1px top border (`thead:not(:empty) + tbody > tr:first-child`), so it is the default plus one. The question is
   asked in ONE place, `firstRowDrawsTopBorder(thead)` (`axisSizing/boxModel.ts`), which `markOversizedRows`
   shares; the callers hand `applyRowHeight` the answer for the row (`isFirstRow && drawsTopBorder`) rather than
-  letting it sniff the DOM. A recorded or provided height already includes that pixel. The host's inflation has to stay: pinning alone, with no inflated span, collapsed
+  letting it sniff the DOM. A recorded or provided height already includes that pixel, except in the bottom
+  tables, where the first row's pixel is the freeze line and is added on top (`topBorderOutsideHeight`). The host's inflation has to stay: pinning alone, with no inflated span, collapsed
   rows a block covers entirely and broke seven legacy MergeCells specs.
 - **Clear the pin as soon as the first cell can carry the height again.** A row height is a minimum in CSS table
   layout, and the row elements are recycled across rows, so one left behind would stop an ordinary row
   shrinking. The write is skipped when the value is unchanged.
-- **The exact shape is untouched.** It picks its own carrier among all the cells and already falls back to the
-  `tr`. The same box adjustment as the exact shape applies to the pin.
+- **The exact shape is untouched, apart from the freeze line.** It picks its own carrier among all the cells and
+  already falls back to the `tr`. The same box adjustment as the exact shape applies to the pin. The first row of
+  a bottom table is written one pixel above its height in the exact shape too (`getExactCarrierHeight` adds it to
+  the row's own height), so an exact `rowHeights` row there renders at `height + 1`.
 
 Pinned by `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts` (all panes agree at rest and scrolled, with
 AutoRowSize, `rowHeights`, and measured heights; rows inside a block keep their own heights; a hidden first row;
@@ -1155,22 +1159,36 @@ Consequences worth knowing:
   header alone brings the double line back for AutoRowSize without column headers. For a lined-up row the
   bottom clone and its corners draw the selection's line pixel, the fill handle and the mobile bottom handle
   are pulled inside the cell as on the last scrollable row, and a custom border, which no frozen overlay draws,
-  ends 1px higher. Two limits. (1) The clone is 1px taller than counted only while its first row has no height
-  of its own. A first bottom row with one (`rowHeights`, `minRowHeights`, ManualRowResize, a recorded content
-  height) holds its top border inside that height, so a lined-up row ends at the clone's top edge with both
-  borders showing, as in 18.1.2. `Overlays#bottomCloneCoversLinedUpRow()` answers
+  ends 1px higher. The clone is always 1px taller than counted, whether or not the first bottom row has a height
+  of its own. A row without one gets the pixel from the default height (counted without the top border, drawn
+  with it). A row with one (`rowHeights`, `minRowHeights`, ManualRowResize, a recorded content height) would
+  hold the border inside that height, so a lined-up row ended at the clone's top edge with both borders
+  showing, as in 18.1.2. `firstRowTopBorderOutsideHeight()` (`axisSizing/boxModel.ts`) names the tables
+  where the first row is therefore written one pixel above its height (`applyRowHeight`'s
+  `topBorderOutsideHeight`: the `bottom` clone and its two corners, border-box cells, no head row), and
+  `markOversizedRows` takes that pixel off what it measures for that row. Without that, the measured `+1`
+  would be recorded as the row's height, the counted height would grow with it, and the double line would
+  return. The pixel is never counted, so the scroll range and the hider do not change. The corners get it
+  too, or their first row would sit 1px off the clone's. Content-box cells are left alone (their row height
+  already leaves the border out). `Overlays#bottomCloneCoversLinedUpRow()` answers
   it from the clone's drawn height against the counted one, once per draw: on the first ask, which the bottom
   overlay makes right after it rendered (it is the first overlay `refresh()` renders), and then from the
   draw's snapshot. Reading it with the snapshot, before `refresh()`, used the clone of the previous draw, so
   a `fixedRowsBottom` or `minRowHeights` change was one draw late. `Border#isRowLinedUpWithBottomFreezeLine`
   is false without it: the row's selection and custom border are
   drawn on the row's own gridline, as for any row. An AutoRowSize plugin turned on through `updateSettings()`
-  used to put every grid in this case: the host read `externalRowCalculator` only when it built the engine, so
+  used to put every grid in that state: the host read `externalRowCalculator` only when it built the engine, so
   the engine kept measuring and recorded the clone's first row with its border (`syncExternalRowCalculator()`
-  in `tableView.ts`, see `src/plugins/autoRowSize/AGENTS.md`). (2) Where the nudge is kept (no column header, AutoRowSize
-  off), the row below is one pixel inside the calculators' viewport, so the snapshot does not report the row as
-  lined up. The line is one border high there, but the selection is drawn as for any row and the fill handle
-  is partly under the bottom rows, as before DEV-3984. Pinned by `tests/e2e/fixed-rows-bottom-line.spec.ts` and
+  in `tableView.ts`, see `src/plugins/autoRowSize/AGENTS.md`). Two limits. (1) Where the nudge is kept (no
+  column header, AutoRowSize off), the row below is one pixel inside the calculators' viewport, so the snapshot
+  does not report the row as lined up. The line is one border high there, but the selection is drawn as for any
+  row and the fill handle is partly under the bottom rows, as it was before the bottom freeze line rule. (2) The nudge cannot tell a first
+  row with a height of its own from one without: `getHiderHeightCompensation()` reads settings only, and the
+  hider and the layout prediction read the same helper, so it cannot be changed for the scroll target alone.
+  With no column header and a first row that has a height of its own, the nudge still moves a lined-up row
+  1px above where the clone's border is: measured 0px between the row's bottom edge and the clone's top edge,
+  so the two borders sit side by side, where a grid with column headers has the clone covering the row's
+  border. Pinned by `tests/e2e/fixed-rows-bottom-line.spec.ts` and
   `test/unit/selection/border/frozenBottomLine.unit.ts`. A cell of the inline-start clone and of the corners is in
   the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
   brings a column next to the overlay moves its edge too. Pinned by

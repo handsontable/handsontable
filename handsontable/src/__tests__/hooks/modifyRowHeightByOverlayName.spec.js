@@ -55,9 +55,10 @@ describe('Hook', () => {
       // inline start overlay (row 2, hook returns 40)
       expect(getCell(2, 0, true).clientHeight)
         .toBe(Math.max(40 - layout.cellBorderWidth, layout.cellContentHeight));
-      // bottom inline start corner (row 3, first rendered row, hook returns 45)
+      // bottom inline start corner (row 3, first rendered row, hook returns 45). The first row of the bottom
+      // tables draws the freeze line one pixel above the height it was given.
       expect(getCell(3, 0, true).clientHeight)
-        .toBe(Math.max(45 - (2 * layout.cellBorderWidth), layout.cellContentHeight));
+        .toBe(Math.max(45 - layout.cellBorderWidth, layout.cellContentHeight));
       // bottom overlay (row 4, not first rendered row, hook returns 50)
       expect(getCell(4, 2, true).clientHeight)
         .toBe(Math.max(50 - layout.cellBorderWidth, layout.cellContentHeight));

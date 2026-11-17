@@ -275,24 +275,246 @@ test.describe('fixedRowsBottom freeze line in other grid shapes', { tag: ['@core
     await expect.poll(() => grid.customBottomBorderAgainstBand()).toEqual({ height: 1, underBand: 0 });
   });
 
-  test('leaves a row above a bottom row with a height of its own drawn as any other row', async () => {
-    // A frozen bottom row with a height of its own holds its top border inside that height, so the bottom
-    // clone does not cover the border of the row that ends on it. The selection and a custom border of that
-    // row are then drawn on the row's own gridline, and the bottom clone draws no part of the selection.
+  test('draws the selection edge on the line and keeps a custom border in view with a bottom row height of its own', async () => {
+    // A frozen bottom row with a height of its own is drawn one pixel taller than the height counted for it,
+    // like a row without one, so the bottom clone covers the border of the row that ends on it and draws the
+    // selection's line pixel.
     await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, minRowHeights: 40 });
 
     const row = await grid.arrowToBandEdge(1, 2);
 
     expect(row).toBeLessThan(LAST_SCROLLABLE_ROW);
     expect(await grid.masterRowEndsAtLine()).toBe(true);
-    // Only the line's own pixel is read: a hit test half a pixel above a collapsed border answers either table.
-    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 2)).toMatchObject({
-      onLine: expect.stringMatching(/^ht_clone_bottom\/td/),
+    await expect.poll(() => grid.bottomEdgeAcrossLine(row, 2)).toEqual({
+      onLine: expect.stringMatching(/^ht_clone_bottom\/div\.wtBorder current/),
+      inside: expect.stringMatching(/^(ht_master|ht_clone_bottom)\/div\.wtBorder current/),
+      handleOnTop: true,
+      handleAboveBand: true,
     });
 
     await grid.addCustomBottomBorder(row, 2);
 
-    await expect.poll(() => grid.customBottomBorderOffGridline(row, 2)).toBe(0);
+    expect(await grid.masterRowEndsAtLine()).toBe(true);
+    await expect.poll(() => grid.customBottomBorderAgainstBand()).toEqual({ height: 1, underBand: 0 });
+  });
+});
+
+/**
+ * A first frozen bottom row with a height of its own (`rowHeights`, `minRowHeights`, ManualRowResize, content
+ * taller than the default) used to hold the freeze line's border inside that height. The bottom clone was then
+ * as tall as the heights counted for it, and a row lined up with the bottom rows ended beside the clone's border
+ * with its own, a line two pixels high. The first row of the bottom tables is now drawn one pixel above its
+ * height, as the default height is, and that pixel is not counted.
+ */
+const OWN_HEIGHT_GRIDS = [
+  { name: 'rowHeights', options: { rowHeights: 40 }, firstRowHeight: 40 },
+  { name: 'minRowHeights', options: { minRowHeights: 40 }, firstRowHeight: 40 },
+  { name: 'ManualRowResize', options: { manualRowResizeLast: 50 }, firstRowHeight: 50 },
+  { name: 'content taller than the default', options: { wrapLastRow: true }, firstRowHeight: null },
+  {
+    name: 'AutoRowSize and content taller than the default',
+    options: { autoRowSize: true, wrapLastRow: true },
+    firstRowHeight: null,
+  },
+] as const;
+
+for (const rtl of [false, true]) {
+  const direction = rtl ? 'RTL' : 'LTR';
+
+  test.describe(
+    `fixedRowsBottom freeze line with a first bottom row height of its own (${direction})`,
+    { tag: ['@core', THEMES_TAG] },
+    () => {
+      let grid: FixedRowsBottomLinePage;
+
+      test.beforeEach(({ page, theme, bundle }) => {
+        grid = new FixedRowsBottomLinePage(page, theme, bundle);
+      });
+
+      for (const { name, options, firstRowHeight } of OWN_HEIGHT_GRIDS) {
+        test(`is one border high under a row a bottom snap lines up, with ${name}`, async () => {
+          await grid.open({ rtl, rows: ROWS, cols: COLS, fixedRowsBottom: 1, ...options });
+          await grid.scrollRowToBandEdge(20);
+
+          // Precondition: a master row really ends at the line, so two borders could meet there.
+          expect(await grid.masterRowEndsAtLine()).toBe(true);
+          expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
+
+          const metrics = await grid.bottomCloneMetrics(1);
+
+          // The extra pixel is the line, outside the counted height.
+          expect(metrics.clone - metrics.counted).toBe(1);
+
+          if (firstRowHeight !== null) {
+            expect(metrics.counted).toBe(firstRowHeight);
+          } else {
+            // Precondition: the row is taller than the default really, so the case measures content.
+            expect(metrics.counted).toBeGreaterThan(40);
+          }
+        });
+
+        test(`is one border high under a row the down arrow lines up, with ${name}`, async () => {
+          await grid.open({ rtl, rows: ROWS, cols: COLS, fixedRowsBottom: 1, ...options });
+
+          const row = await grid.arrowToBandEdge(1, 2);
+
+          expect(row).toBeLessThan(LAST_SCROLLABLE_ROW);
+          expect(await grid.masterRowEndsAtLine()).toBe(true);
+          expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
+        });
+      }
+
+      test('draws one extra pixel on the first of two frozen bottom rows only', async () => {
+        await grid.open({ rtl, rows: ROWS, cols: COLS, fixedRowsBottom: 2, rowHeights: 40 });
+        await grid.scrollRowToBandEdge(20);
+
+        const metrics = await grid.bottomCloneMetrics(2);
+
+        expect(metrics.counted).toBe(80);
+        expect(metrics.rows).toEqual([41, 40]);
+        expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
+      });
+
+      test('draws the first row of the bottom start corner as tall as the bottom clone does', async () => {
+        await grid.open({ rtl, rows: ROWS, cols: COLS, fixedRowsBottom: 1, fixedColumnsStart: 2, rowHeights: 40 });
+        await grid.scrollRowToBandEdge(20);
+
+        const metrics = await grid.bottomCloneMetrics(1);
+
+        expect(metrics.rows).toEqual([41]);
+        expect(metrics.cornerRows).toEqual([41]);
+      });
+    }
+  );
+}
+
+test.describe('fixedRowsBottom with a first bottom row height of its own keeps what is counted', { tag: ['@core', THEMES_TAG] }, () => {
+  let grid: FixedRowsBottomLinePage;
+
+  test.beforeEach(({ page, theme, bundle }) => {
+    grid = new FixedRowsBottomLinePage(page, theme, bundle);
+  });
+
+  // The pixel above the row is never recorded: a record that kept it would grow the counted height on every draw.
+  // Content taller than the default is the one case the engine measures, so it is read over repeated renders, and
+  // with frozen start columns, where the frozen-column row sync measures the bottom start corner as well.
+  for (const { name, options } of [
+    { name: 'rowHeights', options: { rowHeights: 40 } },
+    { name: 'minRowHeights', options: { minRowHeights: 40 } },
+    { name: 'content taller than the default', options: { wrapLastRow: true } },
+  ] as const) {
+    test(`does not grow the counted bottom height over repeated renders, with ${name} and frozen start columns`,
+      async () => {
+        await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, fixedColumnsStart: 2, ...options });
+        await grid.scrollRowToBandEdge(20);
+
+        const first = await grid.bottomCloneMetrics(1);
+
+        await grid.renderAgain(3);
+
+        const later = await grid.bottomCloneMetrics(1);
+
+        expect(later.counted).toBe(first.counted);
+        expect(later.clone - later.counted).toBe(1);
+        expect(later.rows).toEqual(first.rows);
+        expect(later.cornerRows).toEqual(first.rows);
+
+        // A height set by an option is no record of what the row rendered, so the freeze line's pixel cannot be
+        // in one. Content the engine measured is recorded at the counted height, which has no such pixel.
+        expect(later.recordedLastRow).toBe(name === 'content taller than the default' ? later.counted : null);
+      });
+  }
+
+  test('draws the first row of the bottom end corner as tall as the bottom clone does', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, fixedColumnsEnd: 2, rowHeights: 40 });
+    await grid.scrollRowToBandEdge(20);
+
+    const metrics = await grid.bottomCloneMetrics(1);
+
+    expect(metrics.rows).toEqual([41]);
+    expect(metrics.cornerEndRows).toEqual([41]);
+  });
+
+  test('leaves the rows of the master as tall as their height', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, rowHeights: 40 });
+    await grid.scrollRowToBandEdge(20);
+
+    // The master draws no freeze line of its own at its first rendered row: that row keeps its height.
+    expect((await grid.bottomCloneMetrics(1)).masterRows).toEqual([40, 40, 40]);
+  });
+
+  test('draws the extra pixel on the first row that is shown when the first bottom row is hidden', async () => {
+    // Rows 38 and 39 are frozen. Row 38 is hidden, so row 39 is the first row the bottom clone renders.
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 2, rowHeights: 40, hiddenRow: ROWS - 2 });
+    await grid.scrollRowToBandEdge(20);
+
+    const metrics = await grid.bottomCloneMetrics(2);
+
+    expect(metrics.rows).toEqual([41]);
+    expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
+  });
+
+  test('draws the first row of the bottom clone one pixel above the height a hook gives it for that overlay', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, bottomOverlayHeight: 45 });
+
+    await expect.poll(async () => (await grid.bottomCloneMetrics(1)).rows).toEqual([46]);
+  });
+
+  test('counts the same bottom height whether or not the grid is scrolled to a lined-up row', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, rowHeights: 40 });
+
+    // The bottom clone renders with the grid, but read it the way every other probe here does: until it settles.
+    await expect.poll(async () => (await grid.bottomCloneMetrics(1)).counted).toBe(40);
+
+    const atTop = await grid.bottomCloneMetrics(1);
+
+    await grid.scrollRowToBandEdge(20);
+
+    const lined = await grid.bottomCloneMetrics(1);
+
+    expect(atTop.counted).toBe(40);
+    expect(lined.counted).toBe(40);
+    expect(atTop.clone).toBe(41);
+    expect(lined.clone).toBe(41);
+  });
+
+  // A resize drag stores the size it was dragged by. The freeze line's pixel is drawn above the row, so it is not
+  // part of the header's size, or every drag of that row would store one pixel more than the pointer moved.
+  for (const rtl of [false, true]) {
+    for (const delta of [20, -10]) {
+      test(`stores the dragged distance when the first bottom row header is dragged by ${delta}px (${rtl ? 'RTL' : 'LTR'})`,
+        async () => {
+          await grid.open({
+            rtl, rows: ROWS, cols: COLS, fixedRowsBottom: 1, fixedColumnsStart: 2, manualRowResizeLast: 50,
+          });
+
+          const stored = await grid.dragBottomRowHandle(0, delta);
+
+          expect(stored).toBe(50 + delta);
+          await expect.poll(async () => (await grid.bottomCloneMetrics(1)).counted).toBe(50 + delta);
+          expect((await grid.bottomCloneMetrics(1)).clone).toBe(51 + delta);
+        });
+    }
+  }
+
+  test('stores the dragged distance when the second of two bottom rows is dragged, which carries no pixel', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 2, fixedColumnsStart: 2, manualRowResizeLast: 50 });
+
+    const stored = await grid.dragBottomRowHandle(1, 20);
+
+    expect(stored).toBe(70);
+    // The first row is the default height and carries the line's pixel; the dragged row has none.
+    await expect.poll(async () => (await grid.bottomCloneMetrics(2)).rows.at(-1)).toBe(70);
+  });
+
+  test('keeps the default height rows as they were', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1 });
+    await grid.scrollRowToBandEdge(20);
+
+    const metrics = await grid.bottomCloneMetrics(1);
+
+    // The default height already counts one pixel less than the row draws: no second pixel is added.
+    expect(metrics.clone - metrics.counted).toBe(1);
   });
 });
 
