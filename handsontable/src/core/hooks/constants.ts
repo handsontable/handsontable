@@ -2865,41 +2865,24 @@ export const REGISTERED_HOOKS = [
    *
    * This hook is fired when {@link Options#columnSorting} or {@link Options#multiColumnSorting} option is enabled.
    *
-   * Both sort configurations are arrays of objects, one object for each sorted column:
-   * - `column`: the visual index of the sorted column.
-   * - `sortOrder`: the sort order, `'asc'` or `'desc'`.
-   *
-   * An empty array means that no column is sorted. With {@link Options#columnSorting}, an array holds at most
-   * one object. With {@link Options#multiColumnSorting}, it holds one object for each sorted column, in the
-   * order of sort priority.
+   * Each sort configuration is an array with one `{ column, sortOrder }` object for each sorted column, where
+   * `column` is a visual column index and `sortOrder` is `'asc'` or `'desc'`. An empty array means that no
+   * column is sorted. With {@link Options#multiColumnSorting}, the objects follow the sort priority.
    *
    * @event Hooks#beforeColumnSort
-   * @param {Array} currentSortConfig Sort configuration that is in force before the sort
-   *                                  (for all sorted columns).
+   * @param {Array} currentSortConfig Sort configuration from before the sort (for all sorted columns).
    * @param {Array} destinationSortConfigs Sort configuration that the sort is about to apply
    *                                       (for all sorted columns).
    * @param {boolean} sortPossible Indicates if it's possible to sort the table with the provided configuration.
    * @returns {boolean | undefined} If `false` the column will not be sorted, `true` otherwise.
    * @example
    * ```js
-   * // A grid sorted by the first column, ascending. The user clicks the header of the third column.
+   * // the grid is sorted by the first column, and the user clicks the header of the third column
    * new Handsontable(element, {
    *   columnSorting: true,
-   *   beforeColumnSort: (currentSortConfig, destinationSortConfigs, sortPossible) => {
+   *   beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {
    *     // currentSortConfig: [{ column: 0, sortOrder: 'asc' }]
    *     // destinationSortConfigs: [{ column: 2, sortOrder: 'asc' }]
-   *     // sortPossible: true
-   *   }
-   * });
-   *
-   * // The same grid with `multiColumnSorting`. The user holds Ctrl (Cmd on macOS)
-   * // and clicks the header of the third column.
-   * new Handsontable(element, {
-   *   multiColumnSorting: true,
-   *   beforeColumnSort: (currentSortConfig, destinationSortConfigs, sortPossible) => {
-   *     // currentSortConfig: [{ column: 0, sortOrder: 'asc' }]
-   *     // destinationSortConfigs: [{ column: 0, sortOrder: 'asc' }, { column: 2, sortOrder: 'asc' }]
-   *     // sortPossible: true
    *   }
    * });
    * ```
@@ -2910,36 +2893,14 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins after sorting the column. This hook is fired when {@link Options#columnSorting}
    * or {@link Options#multiColumnSorting} option is enabled.
    *
-   * Both sort configurations are arrays of objects, one object for each sorted column:
-   * - `column`: the visual index of the sorted column.
-   * - `sortOrder`: the sort order, `'asc'` or `'desc'`.
-   *
-   * An empty array means that no column is sorted. With {@link Options#columnSorting}, an array holds at most
-   * one object. With {@link Options#multiColumnSorting}, it holds one object for each sorted column, in the
-   * order of sort priority.
-   *
-   * The hook receives the same arguments as {@link Hooks#beforeColumnSort}, so `currentSortConfig` is the
-   * configuration from before the sort, not the one the grid is sorted by now. The configuration in force
-   * after the sort is `destinationSortConfigs`.
+   * The hook receives the same arguments as {@link Hooks#beforeColumnSort}, in the same format.
    *
    * @event Hooks#afterColumnSort
-   * @param {Array} currentSortConfig Sort configuration that was in force before the sort
-   *                                  (for all sorted columns).
+   * @param {Array} currentSortConfig Sort configuration from before the sort (for all sorted columns),
+   *                                  not the one the grid is sorted by now.
    * @param {Array} destinationSortConfigs Sort configuration that the sort applied (for all sorted columns).
    *                                       It repeats `currentSortConfig` when `sortPossible` is `false`.
    * @param {boolean} sortPossible Indicates if it was possible to sort the table with the provided configuration.
-   * @example
-   * ```js
-   * // A grid sorted by the first column, ascending. The user clicks the header of the third column.
-   * new Handsontable(element, {
-   *   columnSorting: true,
-   *   afterColumnSort: (currentSortConfig, destinationSortConfigs, sortPossible) => {
-   *     // currentSortConfig: [{ column: 0, sortOrder: 'asc' }]
-   *     // destinationSortConfigs: [{ column: 2, sortOrder: 'asc' }]
-   *     // sortPossible: true
-   *   }
-   * });
-   * ```
    */
   'afterColumnSort',
 
