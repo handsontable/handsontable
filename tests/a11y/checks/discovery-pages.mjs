@@ -1,8 +1,10 @@
 /**
  * The states the axe discovery run scans beyond the catalog (`../pages.mjs`): surfaces a keyboard or a
  * pointer reaches that no catalog page holds still. Same shape as a catalog entry; `state` names an
- * opener of `DISCOVERY_STATES` in `axe-discovery.spec.ts` (or one of the harness's `STATES`). The
- * gating scan never reads this list, so a page here adds nothing to its baseline.
+ * opener of `DISCOVERY_STATES` in `discovery-targets.ts` (or one of the harness's `STATES`). The
+ * gating scan never reads this list, so a page here adds nothing to its baseline; the pull request's
+ * guard (`../discovery-targets.spec.ts`) opens every page here, so a state that is not reached fails
+ * on the pull request that adds it.
  */
 export const DISCOVERY_PAGES = [
   { id: 'focused-cell', fixture: 'grid.html', state: 'focused-cell',
