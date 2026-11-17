@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-17T14:16:34.996Z",
+  "generatedAt": "2026-11-17T14:40:43.966Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 449,
+    "tests": 450,
     "needsTicket": 7,
     "quarantined": 0,
-    "entries": 2311
+    "entries": 2312
   },
   "rows": [
     {
@@ -1565,6 +1565,39 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to equal <textarea data-hot-input tabindex=\"-1\" class=\"handsontableInput\" style=\"width: 50px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif; resize: none; min-w...",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/side-layout-slots.spec.ts|side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
+      "tier": "playwright",
+      "file": "e2e/side-layout-slots.spec.ts",
+      "line": 518,
+      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 1,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-17T14:39:48Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44100238908",
+        "branch": "feature/DEV-3995_Migration-Codemod-MVP",
+        "leg": "e2e-webkit",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
