@@ -753,6 +753,47 @@ The invalidation is therefore explicit, in one place for both axes: `onIndexMapp
 
 Before trusting a size cache across an operation, ask whether the operation changes the item count. If it does not, nothing invalidates for you.
 
+## A frozen clone's band is live, its DOM is not: `getCell` answers "not rendered" in between
+
+The three bottom clones (`bottom`, `bottom_inline_start_corner`, `bottom_inline_end_corner`, `BOTTOM_CLONE_TYPES`)
+take their rendered band from the live `totalRows` and `fixedRowsBottom` settings (`stickyRowsBottom`), while
+`Table#getCell` resolves the element through the `rowFilter` and the TBODY of the LAST draw. The two agree at rest
+and part between a change of the row count and the draw that follows it. `loadData()` is the case that shows it: it
+refreshes the selection before it renders, and `afterSelectionEnd` listeners (the focus manager, a user hook)
+call `hot.getCell(row, col, true)`. With 10 rows and one frozen bottom row, a load of 3 rows put the live band on
+row 2 while the clone still held row 9, so the row passed the "is it rendered" gate and the lookup threw
+`TR was expected to be rendered but is not` (GitHub #14315). With two or more frozen rows the same mismatch
+returned the cell of ANOTHER row, with no error.
+
+`hasStaleBottomBand()` in `table/cellAccess.ts` asks three questions. A clone that was never drawn (no `rowFilter`, no
+TBODY) holds nothing: a grid built without frozen rows, then given `data` and `fixedRowsBottom` in one
+`updateSettings()` call, which is how the wrappers send them. The filter's `offset` against the live first rendered
+row (`buildRenderFilters` builds it from the same getter, so they agree after every draw) catches a band that moved
+(`loadData()` to fewer rows, a removal, a new `fixedRowsBottom` with the same row count). The rows in the clone's TBODY
+against `getRenderedRowsCount()` catches a band that only grew at its end, where the first row stays put: every row
+pinned, or rows and pinned rows growing by the same amount. When any of them says stale, `getCell` returns `-1` for a
+row before the rows the clone drew and `-2` from there on. `TableView#getCellAtCoords` maps both to `null`, the
+documented answer for a cell that is not rendered. Two rules:
+
+- **Do not turn the `throwWithCause` in `getCell` into a `null` for every table instead.** That throw is the loud
+  signal for the desync class `restoreRenderedStateIfSafe` fixes on the master, and it would keep the
+  wrong-cell answer above.
+- **A new reader of a bottom clone's rendered range that runs between a data change and the render needs the same
+  question answered**, or it sees a band the DOM does not hold. The master's band comes from its calculators,
+  which are stale but consistent with its DOM, so `getCell` does not throw there. It answers the cell the DOM
+  holds, which still shows the data from before the change (with two frozen bottom rows, `getCell(3, 0, true)` in
+  `afterRemoveRow` after `alter('remove_row', 0)` returns the cell showing the old row 3 until the render).
+
+The top clones (`TOP_CLONE_TYPES`) count their rows from the live settings too (`stickyRowsTop`), but start at row 0,
+so only GROWTH opens the gap: with `fixedRowsTop: 5`, a grid drawn with 3 rows and loaded with 8 names rows 3 and 4
+before the clone has a TR for them, and a top clone that was never drawn (no frozen top rows and no column headers
+yet) has no TR for any row. `isBeyondDrawnTopRows()` answers `-2` for a body row past the clone's TBODY, which is
+exactly what used to throw. Shrinking needs nothing: the rows the clone still holds are the rows it should
+hold, so a guard on the row count there would hide correct cells.
+
+Pinned by `test/unit/table/stickyBottomCellAccess.unit.ts` (bottom and top clones) and
+`tests/e2e/fixed-rows-bottom-load-data.spec.ts`.
+
 ## Content-driven sizes the master never renders
 
 The master renders a **contiguous** column band starting at the column under the horizontal scroll offset, so as soon as that band starts past column 0 it does not render the frozen (inline-start) columns at all — the inline-start overlays are the only tables holding that content. Any size measured from the master's rendered DOM therefore misses it. Two syncs in `axisSizing/oversizedRows.ts` close that gap, both called from `runMasterDrawCycle` **after** `wtOverlays.refresh(false)`:

@@ -29,6 +29,25 @@ const FOCUS_MODES = Object.freeze({
  */
 type FocusMode = 'cell' | 'mixed';
 
+/**
+ * Which caller waits for the selected cell to be rendered. A caller that asks again for the same
+ * cell replaces its own earlier callback.
+ */
+type PendingScrollPurpose = 'focusCell' | 'focusEditorElement' | 'focusOnHighlightedCell';
+
+type SelectedCellCallback = (element: HTMLTableCellElement | null) => void;
+
+/**
+ * The work that waits for the next `afterScroll` because the highlighted cell was not rendered when
+ * it was asked for.
+ */
+interface PendingScroll {
+  row: number;
+  col: number;
+  callbacks: Map<PendingScrollPurpose, SelectedCellCallback>;
+  hook: () => void;
+}
+
 interface ActiveEditorInstance {
   TEXTAREA?: HTMLTextAreaElement;
   isOpened?: () => boolean;
@@ -101,6 +120,15 @@ export class FocusGridManager {
    */
   #pendingFocus: boolean | null = null;
   /**
+   * The callbacks waiting for the next `afterScroll` because the highlighted cell is not rendered.
+   * There is at most one entry, and its single `afterScroll` listener is removed as soon as the
+   * highlight moves to another cell or the selection is cleared, so a scroll that comes later never
+   * runs work for a cell the user has left. `null` means nothing is waiting.
+   *
+   * @type {PendingScroll | null}
+   */
+  #pendingScroll: PendingScroll | null = null;
+  /**
    * Flag indicating whether automatic focus management for the upcoming selection cycle is suspended.
    * When `true`, `#focusCell` does not steal an externally focused input/textarea/select element,
    * and `#focusEditorElement` does not refocus the editor textarea. Set with `suspend()` and
@@ -136,6 +164,7 @@ export class FocusGridManager {
       (...args: unknown[]) => this.#onUpdateSettings(args[0] as Record<string, unknown>));
     this.#hot.addHook('afterSelection', (...args: unknown[]) => this.#onAfterSelectionChange());
     this.#hot.addHook('afterSelectionFocusSet', (...args: unknown[]) => this.#onAfterSelectionChange());
+    this.#hot.addHook('afterDeselect', () => this.#cancelPendingScroll());
     this.#hot.addHook('afterSelectionEnd', (...args: unknown[]) => this.#focusEditorElement());
     this.#hot.addHook('afterRender', (...args: unknown[]) => this.#onAfterRender());
 
@@ -389,7 +418,7 @@ export class FocusGridManager {
     if (selectedCell) {
       focusElement(selectedCell);
     } else {
-      this.#getSelectedCell(element => focusElement(element));
+      this.#getSelectedCell('focusOnHighlightedCell', element => focusElement(element));
     }
   }
 
@@ -427,11 +456,14 @@ export class FocusGridManager {
   }
 
   /**
-   * Get and return the currently selected and highlighted cell/header element.
+   * Get and return the currently selected and highlighted cell/header element. When the cell is not
+   * rendered yet, the callback waits for the next scroll, and only runs if the highlight still sits
+   * on that cell by then.
    *
+   * @param {PendingScrollPurpose} purpose Which caller asks. A repeated ask of the same caller replaces its callback.
    * @param {Function} callback Callback function to be called after the cell element is retrieved.
    */
-  #getSelectedCell(callback: (element: HTMLTableCellElement | null) => void): void {
+  #getSelectedCell(purpose: PendingScrollPurpose, callback: SelectedCellCallback): void {
     const highlight = this.#hot.getSelectedRangeActive()?.highlight;
 
     if (!highlight || !this.#hot.selection.isCellVisible(highlight)) {
@@ -450,13 +482,91 @@ export class FocusGridManager {
     const cell = this.#hot.getCell(row, col, true);
 
     if (cell === null) {
-      this.#hot.addHookOnce('afterScroll', () => {
-        callback(this.#hot.getCell(row, col, true));
-      });
+      this.#deferUntilScroll(row, col, purpose, callback);
 
     } else {
       callback(cell);
     }
+  }
+
+  /**
+   * Keeps the callback until the next scroll, for the cell at the given coordinates. Callers waiting for
+   * the same cell share one `afterScroll` listener, and a call for another cell drops the listener of the
+   * previous one.
+   *
+   * @param {number} row Visual row of the highlighted cell.
+   * @param {number} col Visual column of the highlighted cell.
+   * @param {PendingScrollPurpose} purpose Which caller asks.
+   * @param {Function} callback Callback function to be called after the cell element is retrieved.
+   */
+  #deferUntilScroll(row: number, col: number, purpose: PendingScrollPurpose, callback: SelectedCellCallback): void {
+    if (this.#pendingScroll === null || this.#pendingScroll.row !== row || this.#pendingScroll.col !== col) {
+      this.#cancelPendingScroll();
+
+      const pending: PendingScroll = {
+        row,
+        col,
+        callbacks: new Map(),
+        hook: () => this.#flushPendingScroll(pending),
+      };
+
+      this.#pendingScroll = pending;
+      this.#hot.addHookOnce('afterScroll', pending.hook);
+    }
+
+    this.#pendingScroll.callbacks.set(purpose, callback);
+  }
+
+  /**
+   * Runs the waiting callbacks after a scroll, unless the grid is gone or the highlight is no longer on
+   * the cell they were registered for.
+   *
+   * @param {PendingScroll} pending The entry whose `afterScroll` listener fired.
+   */
+  #flushPendingScroll(pending: PendingScroll): void {
+    if (this.#pendingScroll !== pending) {
+      return;
+    }
+
+    this.#pendingScroll = null;
+
+    if (this.#hot.isDestroyed || !this.#isHighlightAt(pending.row, pending.col)) {
+      return;
+    }
+
+    const cell = this.#hot.getCell(pending.row, pending.col, true);
+
+    pending.callbacks.forEach(callback => callback(cell));
+  }
+
+  /**
+   * Drops the waiting callbacks and their `afterScroll` listener.
+   */
+  #cancelPendingScroll(): void {
+    if (this.#pendingScroll === null) {
+      return;
+    }
+
+    // A destroyed instance has dropped its listeners, and `removeHook()` throws on it. The hook run keeps
+    // walking its listeners after an earlier one destroyed the grid.
+    if (!this.#hot.isDestroyed) {
+      this.#hot.removeHook('afterScroll', this.#pendingScroll.hook);
+    }
+
+    this.#pendingScroll = null;
+  }
+
+  /**
+   * Checks whether the active highlight sits on the given cell.
+   *
+   * @param {number} row Visual row.
+   * @param {number} col Visual column.
+   * @returns {boolean}
+   */
+  #isHighlightAt(row: number, col: number): boolean {
+    const highlight = this.#hot.getSelectedRangeActive()?.highlight;
+
+    return highlight !== undefined && highlight.row === row && highlight.col === col;
   }
 
   /**
@@ -465,7 +575,7 @@ export class FocusGridManager {
    * @param {boolean} suspended Whether focus management was suspended when the selection changed.
    */
   #focusCell(suspended: boolean) {
-    this.#getSelectedCell((selectedCell) => {
+    this.#getSelectedCell('focusCell', (selectedCell) => {
       const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
       const activeElement = isHTMLElement(deepActiveElement) ? deepActiveElement : null;
 
@@ -493,6 +603,11 @@ export class FocusGridManager {
    * Manage the browser's focus after cell selection end.
    */
   #focusEditorElement() {
+    // A listener that ran before this one can destroy the grid, and the hook run keeps walking its listeners.
+    if (this.#hot.isDestroyed) {
+      return;
+    }
+
     // When focus management is suspended and an external focusable element (outside Handsontable)
     // currently owns the browser focus, skip the `imeFastEdit` refocus - otherwise the debounced
     // `select()` on the editor textarea would steal that external focus. When no external element
@@ -507,7 +622,7 @@ export class FocusGridManager {
       }
     }
 
-    this.#getSelectedCell((selectedCell) => {
+    this.#getSelectedCell('focusEditorElement', (selectedCell) => {
       if (
         this.getFocusMode() === FOCUS_MODES.MIXED &&
         selectedCell?.nodeName === 'TD'
@@ -521,7 +636,17 @@ export class FocusGridManager {
    * Handle the after selection change event.
    */
   #onAfterSelectionChange() {
+    // A listener that ran before this one can destroy the grid, and the hook run keeps walking its listeners.
+    if (this.#hot.isDestroyed) {
+      return;
+    }
+
     this.#pendingFocus = this.#isSuspended;
+
+    // Work waiting for another cell is stale now. A selection that stays on the same cell keeps it.
+    if (this.#pendingScroll !== null && !this.#isHighlightAt(this.#pendingScroll.row, this.#pendingScroll.col)) {
+      this.#cancelPendingScroll();
+    }
   }
 
   /**
