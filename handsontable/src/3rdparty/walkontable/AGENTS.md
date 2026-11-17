@@ -753,7 +753,7 @@ The invalidation is therefore explicit, in one place for both axes: `onIndexMapp
 
 Before trusting a size cache across an operation, ask whether the operation changes the item count. If it does not, nothing invalidates for you.
 
-## A bottom clone's band is live, its DOM is not: `getCell` answers "not rendered" in between
+## A frozen clone's band is live, its DOM is not: `getCell` answers "not rendered" in between
 
 The three bottom clones (`bottom`, `bottom_inline_start_corner`, `bottom_inline_end_corner`, `BOTTOM_CLONE_TYPES`)
 take their rendered band from the live `totalRows` and `fixedRowsBottom` settings (`stickyRowsBottom`), while
@@ -765,10 +765,14 @@ row 2 while the clone still held row 9, so the row passed the "is it rendered" g
 `TR was expected to be rendered but is not` (GitHub #14315). With two or more frozen rows the same mismatch
 returned the cell of ANOTHER row, with no error.
 
-`hasStaleBottomBand()` in `table/cellAccess.ts` compares the filter's `offset` with the live first rendered row
-(`buildRenderFilters` builds the filter from the same getter, so they are equal after every draw) and, when they
-differ, `getCell` returns the exit code `-1` or `-2` for a body row. `TableView#getCellAtCoords` maps it to `null`,
-the documented answer for a cell that is not rendered. Two rules:
+`hasStaleBottomBand()` in `table/cellAccess.ts` asks two questions, and the filter is built from the same getter and
+`totalRows` in every draw (`buildRenderFilters`), so both agree after every draw. The filter's `offset` against the
+live first rendered row catches a band that moved (`loadData()` to fewer rows, a removal, a new
+`fixedRowsBottom` with the same row count). The filter's `total` against the live `totalRows` catches a band that
+only grew at its end: first row 0 with every row pinned, or rows and pinned rows growing by the same amount, where the
+first row stays put. When either differs, `getCell` returns `-1` for a row before the rows the clone drew and `-2`
+from there on. `TableView#getCellAtCoords` maps both to `null`, the documented answer for a cell that is not rendered.
+Two rules:
 
 - **Do not turn the `throwWithCause` in `getCell` into a `null` for every table instead.** That throw is the loud
   signal for the desync class `restoreRenderedStateIfSafe` fixes on the master, and it would keep the

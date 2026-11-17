@@ -13,15 +13,25 @@ const call = <T>(mixin: object, name: string, self: Self, ...args: unknown[]): T
 
 describe('Table#getCell on the bottom clones between a change of the data and the next draw', () => {
   interface Shape {
-    /** The live number of rows. */
+    /**
+     * The live number of rows.
+     */
     totalRows: number;
-    /** The live number of frozen bottom rows. */
+    /**
+     * The live number of frozen bottom rows.
+     */
     fixedRowsBottom: number;
-    /** The number of rows the last draw saw. */
+    /**
+     * The number of rows the last draw saw.
+     */
     drawnTotal: number;
-    /** The first row the last draw rendered. */
+    /**
+     * The first row the last draw rendered.
+     */
     drawnOffset: number;
-    /** How many rows the last draw rendered. */
+    /**
+     * How many rows the last draw rendered.
+     */
     drawnRows: number;
   }
 
@@ -84,27 +94,45 @@ describe('Table#getCell on the bottom clones between a change of the data and th
     expect(answer).toBeLessThan(0);
   };
 
-  it('should answer "not rendered" for the new pinned row while the clone still draws the old one', () => {
+  it('should answer "before the drawn rows" for the new pinned row while the clone still draws the old one', () => {
     // 10 rows with one frozen bottom row were drawn; `loadData()` made it 3, so the live band is row 2.
     const table = createTable('bottom',
       { totalRows: 3, fixedRowsBottom: 1, drawnTotal: 10, drawnOffset: 9, drawnRows: 1 });
 
-    expectNotRendered(cellAt(table, 2));
+    expect(cellAt(table, 2)).toBe(-1);
   });
 
-  it('should answer "not rendered" for a row past the drawn band when the data grew', () => {
+  it('should answer "after the drawn rows" for a row past the drawn band when the data grew', () => {
     const table = createTable('bottom',
       { totalRows: 20, fixedRowsBottom: 1, drawnTotal: 10, drawnOffset: 9, drawnRows: 1 });
 
-    expectNotRendered(cellAt(table, 19));
+    expect(cellAt(table, 19)).toBe(-2);
   });
 
-  it('should not return the cell of another row when the band moved by less than its size', () => {
+  it('should answer "not rendered" when the band moved and the number of rows did not', () => {
+    // `updateSettings({ fixedRowsBottom: 3 })` on 10 rows drawn with one frozen row: the live band is rows 7 to 9,
+    // the filter was built at row 9, and only the first row of the band tells the clone is behind.
+    const table = createTable('bottom',
+      { totalRows: 10, fixedRowsBottom: 3, drawnTotal: 10, drawnOffset: 9, drawnRows: 1 });
+
+    expect(cellAt(table, 8)).toBe(-1);
+  });
+
+  it('should not throw for the first pinned row when the band moved by less than its size', () => {
     // A row was removed above two frozen rows: the live band is rows 7 and 8, the DOM holds the old 8 and 9.
+    // Row 7 is before the rows the clone holds, and without the guard the lookup throws.
     const table = createTable('bottom',
       { totalRows: 9, fixedRowsBottom: 2, drawnTotal: 10, drawnOffset: 8, drawnRows: 2 });
 
     expectNotRendered(cellAt(table, 7));
+  });
+
+  it('should not return the cell of another row when the band moved by less than its size', () => {
+    // The same removal, for row 8: the clone holds the old row 8 at that place, and without the guard the lookup
+    // returns it instead of the row that is now pinned there.
+    const table = createTable('bottom',
+      { totalRows: 9, fixedRowsBottom: 2, drawnTotal: 10, drawnOffset: 8, drawnRows: 2 });
+
     expectNotRendered(cellAt(table, 8));
   });
 
