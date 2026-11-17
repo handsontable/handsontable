@@ -45,6 +45,7 @@ export const SR_PAGE_COVERAGE = {
   'license-bar': { scenarios: ['license-bar'] },
   'license-powered-by': { scenarios: ['license-powered-by'] },
   'license-missing-features': { scenarios: ['license-missing-features'] },
+  'side-layout-slots': { none: 'the layout slots add role-less containers, borders and corner radii, nothing in the accessibility tree: a reader meets the panels\' own content, which the page owns, and the grid the grid page reads' },
   'context-menu': { scenarios: ['context-menu-checkable'] },
   'context-menu-submenu': { scenarios: ['context-menu-submenu'] },
   'dropdown-menu': { scenarios: ['dropdown-menu', 'filters-by-value'] },

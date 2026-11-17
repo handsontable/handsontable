@@ -7,6 +7,7 @@ import { isHTMLElement, isDocumentFragment, getDeepActiveElement } from '../../h
 import { isButtonType } from '../../helpers/uiButton';
 import { getSanitizer } from '../../utils/sanitizer';
 import { isRootInstance } from '../../utils/rootInstance';
+import { getOverlayLayerWidth } from '../../core/layout/overlayWidth';
 import * as C from '../../i18n/constants';
 import type { SelectionState } from '../../selection/types';
 import { fitSelectionToGrid } from './selectionFit';
@@ -1072,15 +1073,11 @@ export class Dialog extends BasePlugin {
   }
 
   /**
-   * Called after the rendering of the table is completed. It updates the width and
-   * height of the dialog container to the same size as the table.
+   * Called after the rendering of the table is completed. It updates the width of the dialog
+   * container so it covers the table and the `start`/`end` side slots.
    */
   #onAfterViewRender() {
-    const { view } = this.hot;
-    const width = view.isHorizontallyScrollableByWindow()
-      ? view.getTotalTableWidth() : view.getWorkspaceWidth();
-
-    this.#ui!.updateWidth(width);
+    this.#ui!.updateWidth(getOverlayLayerWidth(this.hot));
   }
 
   /**
