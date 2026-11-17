@@ -31,7 +31,7 @@ const kinds = entries => entries.map(entry => entry.severity);
 
 describe('numeric-format-culture leaves a culture that can be empty, or that is not a value', () => {
   const column = culture => `${HEAD}new Handsontable(el, { locale: 'pl-PL', `
-    + `columns: [{ numericFormat: { ${culture} } }] });\n`;
+    + `columns: [{ type: 'numeric', numericFormat: { ${culture} } }] });\n`;
 
   for (const value of [
     'undefined',
@@ -102,9 +102,11 @@ describe('numeric-format-culture leaves a culture that can be empty, or that is 
 describe('numeric-format-culture moves the key only where one column or cell reads it', () => {
   it('moves it in a column and in a cell, and reports a grid-level key without moving it', async() => {
     const result = await threeRuns(`${HEAD}const hot = new Handsontable(el, {});\n`
-      + 'new Handsontable(el, { columns: [{ numericFormat: { culture: \'de-DE\', pattern: \'0,0\' } }] });\n'
+      + 'new Handsontable(el, { columns: [{ type: \'numeric\', '
+      + 'numericFormat: { culture: \'de-DE\', pattern: \'0,0\' } }] });\n'
       + 'new Handsontable(el, { numericFormat: { culture: \'de-DE\', pattern: \'0,0\' } });\n'
-      + 'hot.setCellMetaObject(0, 0, { numericFormat: { culture: \'de-DE\', pattern: \'0,0\' } });\n');
+      + 'hot.setCellMetaObject(0, 0, { type: \'numeric\', '
+      + 'numericFormat: { culture: \'de-DE\', pattern: \'0,0\' } });\n');
 
     assert.match(result.output, /locale: 'de-DE',\s+numericFormat: \{\s+pattern: '0,0'\s+\}/, result.output);
     assert.match(result.output, /new Handsontable\(el, \{ numericFormat: \{ culture: 'de-DE', pattern: '0,0' \} \}\);/,
@@ -143,10 +145,10 @@ describe('numeric-format-culture moves the key only where one column or cell rea
 
   it('moves the key in the elements of columns and cell, and in the object a cells function returns', async() => {
     const cases = [
-      'new Handsontable(el, { columns: [{ numericFormat: { culture: \'de-DE\' } }] });',
-      'new Handsontable(el, { cell: [{ row: 0, col: 0, numericFormat: { culture: \'de-DE\' } }] });',
-      'new Handsontable(el, { cells: () => ({ numericFormat: { culture: \'de-DE\' } }) });',
-      'const col: Handsontable.ColumnSettings = { numericFormat: { culture: \'de-DE\' } };',
+      'new Handsontable(el, { columns: [{ type: \'numeric\', numericFormat: { culture: \'de-DE\' } }] });',
+      'new Handsontable(el, { cell: [{ row: 0, col: 0, type: \'numeric\', numericFormat: { culture: \'de-DE\' } }] });',
+      'new Handsontable(el, { cells: () => ({ type: \'numeric\', numericFormat: { culture: \'de-DE\' } }) });',
+      'const col: Handsontable.ColumnSettings = { type: \'numeric\', numericFormat: { culture: \'de-DE\' } };',
     ];
 
     for (const body of cases) {
@@ -159,7 +161,8 @@ describe('numeric-format-culture moves the key only where one column or cell rea
 
   it('moves the key of a HotColumn and reports the one of a HotTable', async() => {
     const column = await threeRuns(
-      `${REACT}export const A = () => <HotColumn numericFormat={{ culture: 'de-DE' }} />;\n`, 'grid.tsx');
+      `${REACT}export const A = () => <HotColumn type="numeric" numericFormat={{ culture: 'de-DE' }} />;\n`,
+      'grid.tsx');
     const table = await threeRuns(`${REACT}export const B = () => <HotTable numericFormat={{ culture: 'de-DE' }} />;\n`,
       'grid.tsx');
     const settings = await threeRuns(
@@ -179,7 +182,7 @@ describe('numeric-format-culture tells what 17.1 showed for a culture without a 
 
   it('adds the note, and names the Intl options that keep the 17.1 output', async() => {
     const result = await threeRuns(
-      `${HEAD}new Handsontable(el, { columns: [{ numericFormat: { culture: 'de-DE' } }] });\n`);
+      `${HEAD}new Handsontable(el, { columns: [{ type: 'numeric', numericFormat: { culture: 'de-DE' } }] });\n`);
     const entry = result.entries.find(item => item.severity === 'manual');
 
     assert.match(entry.message, note);
@@ -192,21 +195,24 @@ describe('numeric-format-culture tells what 17.1 showed for a culture without a 
 
   it('adds the note when other Intl options stay beside the culture', async() => {
     const result = await threeRuns(
-      `${HEAD}new Handsontable(el, { columns: [{ numericFormat: { culture: 'de-DE', style: 'percent' } }] });\n`);
+      `${HEAD}new Handsontable(el, { columns: [{ type: 'numeric', `
+      + 'numericFormat: { culture: \'de-DE\', style: \'percent\' } }] });\n');
 
     assert.deepEqual(kinds(result.entries), ['changed', 'manual']);
   });
 
   it('adds no note when a pattern stays: the numbro-pattern rule speaks about it', async() => {
     const result = await threeRuns(
-      `${HEAD}new Handsontable(el, { columns: [{ numericFormat: { culture: 'de-DE', pattern: '0,0' } }] });\n`);
+      `${HEAD}new Handsontable(el, { columns: [{ type: 'numeric', `
+      + 'numericFormat: { culture: \'de-DE\', pattern: \'0,0\' } }] });\n');
 
     assert.deepEqual(kinds(result.entries), ['changed']);
   });
 
   it('adds the note when the locale is already set to the same value and only the culture goes', async() => {
     const result = await threeRuns(
-      `${HEAD}new Handsontable(el, { columns: [{ locale: 'de-DE', numericFormat: { culture: 'de-DE' } }] });\n`);
+      `${HEAD}new Handsontable(el, { columns: [{ type: 'numeric', locale: 'de-DE', `
+      + 'numericFormat: { culture: \'de-DE\' } }] });\n');
 
     assert.deepEqual(kinds(result.entries), ['changed', 'manual']);
     assert.match(result.entries[1].message, note);
@@ -214,7 +220,8 @@ describe('numeric-format-culture tells what 17.1 showed for a culture without a 
 
   it('adds the note to the moved attribute of a HotColumn', async() => {
     const result = await threeRuns(
-      `${REACT}export const A = () => <HotColumn numericFormat={{ culture: 'de-DE' }} />;\n`, 'grid.tsx');
+      `${REACT}export const A = () => <HotColumn type="numeric" numericFormat={{ culture: 'de-DE' }} />;\n`,
+      'grid.tsx');
 
     assert.match(result.entries.find(item => item.severity === 'manual').message, note);
   });
@@ -223,5 +230,112 @@ describe('numeric-format-culture tells what 17.1 showed for a culture without a 
     const result = await threeRuns(`${HEAD}new Handsontable(el, { numericFormat: { culture: 'de-DE' } });\n`);
 
     assert.ok(!result.entries.some(entry => note.test(entry.message)));
+  });
+});
+
+describe('numeric-format-culture moves the key only for a numeric column', () => {
+  const COLUMN = 'numericFormat: { culture: \'de-DE\' }';
+  const moved = result => result.entries.some(entry => entry.severity === 'changed');
+
+  const REPORTED = [
+    ['a text column', `new Handsontable(el, { columns: [{ type: 'text', ${COLUMN} }] });`],
+    ['a column with no type', `new Handsontable(el, { columns: [{ data: 'a', ${COLUMN} }] });`],
+    ['a date column', `new Handsontable(el, { columns: [{ type: 'date', ${COLUMN} }] });`],
+    ['a column under a grid of another type',
+      `new Handsontable(el, { type: 'text', columns: [{ data: 'a', ${COLUMN} }] });`],
+    ['a text column under a numeric grid',
+      `new Handsontable(el, { type: 'numeric', columns: [{ type: 'text', ${COLUMN} }] });`],
+    ['a column whose type is not a literal', `new Handsontable(el, { columns: [{ type: kind, ${COLUMN} }] });`],
+    ['a column that spreads an object that may set the type',
+      `new Handsontable(el, { type: 'numeric', columns: [{ ...base, ${COLUMN} }] });`],
+    ['a column that sets the type before a spread',
+      `new Handsontable(el, { columns: [{ type: 'numeric', ...base, ${COLUMN} }] });`],
+    ['a column of a variable the tool cannot place',
+      `const col = { data: 'a', ${COLUMN} }; new Handsontable(el, { columns: [col] });`],
+    ['a cell with no type', `new Handsontable(el, { cell: [{ row: 0, col: 0, ${COLUMN} }] });`],
+    ['a cell of a text column', `new Handsontable(el, { type: 'text', cell: [{ row: 0, col: 0, ${COLUMN} }] });`],
+    ['an object a cells function returns, with no type', `new Handsontable(el, { cells: () => ({ ${COLUMN} }) });`],
+    ['a cell set by setCellMetaObject, with no type',
+      `const hot = new Handsontable(el, {}); hot.setCellMetaObject(0, 0, { ${COLUMN} });`],
+  ];
+
+  for (const [label, body] of REPORTED) {
+    it(`reports and keeps the key of ${label}`, async() => {
+      const result = await threeRuns(`${HEAD}${body}\n`, 'grid.ts');
+      const entry = result.entries.find(item => item.severity === 'manual');
+
+      assert.ok(!moved(result), result.output);
+      assert.ok(entry, result.output);
+      // A type the tool cannot read is also a reader of the key, which speaks first.
+      assert.match(entry.message,
+        /^Move numericFormat\.culture to locale (by hand if this column is numeric|and update the code that reads it)/);
+      assert.ok(result.output.includes('culture: \'de-DE\''), result.output);
+      assert.ok(!result.output.includes('locale:'), result.output);
+    });
+  }
+
+  const MOVED = [
+    ['a numeric column', `new Handsontable(el, { columns: [{ type: 'numeric', ${COLUMN} }] });`],
+    ['a column under a numeric grid',
+      `new Handsontable(el, { type: 'numeric', columns: [{ data: 'a', ${COLUMN} }] });`],
+    ['a numeric column under a text grid',
+      `new Handsontable(el, { type: 'text', columns: [{ type: 'numeric', ${COLUMN} }] });`],
+    ['a column that renders with the numeric renderer',
+      `new Handsontable(el, { columns: [{ renderer: 'numeric', ${COLUMN} }] });`],
+    ['a text column that renders with the numeric renderer',
+      `new Handsontable(el, { columns: [{ type: 'text', renderer: 'numeric', ${COLUMN} }] });`],
+    ['a numeric column whose type is set before the key in a wrapped annotation',
+      `const col = { type: 'numeric', ${COLUMN} } as Handsontable.ColumnSettings;`],
+    ['a cell of a numeric column', `new Handsontable(el, { cell: [{ row: 0, col: 0, type: 'numeric', ${COLUMN} }] });`],
+    ['a cell under a numeric grid',
+      `new Handsontable(el, { type: 'numeric', cell: [{ row: 0, col: 0, ${COLUMN} }] });`],
+    ['a cells function that returns a numeric object',
+      `new Handsontable(el, { cells: () => ({ type: 'numeric', ${COLUMN} }) });`],
+  ];
+
+  for (const [label, body] of MOVED) {
+    it(`still moves the key of ${label}`, async() => {
+      const result = await threeRuns(`${HEAD}${body}\n`, 'grid.ts');
+
+      assert.ok(moved(result), result.output);
+      assert.ok(result.output.includes('locale: \'de-DE\''), result.output);
+    });
+  }
+
+  it('reads the type of a wrapper element and of the HotTable it sits in', async() => {
+    const cases = [
+      ['<HotColumn type="text" numericFormat={{ culture: \'de-DE\' }} />', false],
+      ['<HotColumn numericFormat={{ culture: \'de-DE\' }} />', false],
+      ['<HotColumn type={kind} numericFormat={{ culture: \'de-DE\' }} />', false],
+      ['<HotColumn {...rest} numericFormat={{ culture: \'de-DE\' }} />', false],
+      ['<HotColumn type="numeric" numericFormat={{ culture: \'de-DE\' }} />', true],
+      ['<HotColumn type={\'numeric\'} numericFormat={{ culture: \'de-DE\' }} />', true],
+      ['<HotColumn renderer="numeric" numericFormat={{ culture: \'de-DE\' }} />', true],
+    ];
+
+    for (const [element, expected] of cases) {
+      const result = await threeRuns(`${REACT}export const A = () => <HotTable>${element}</HotTable>;\n`, 'grid.tsx');
+
+      assert.equal(moved(result), expected, element);
+    }
+
+    const under = await threeRuns(`${REACT}export const A = () => <HotTable type="numeric"><HotColumn `
+      + 'numericFormat={{ culture: \'de-DE\' }} /></HotTable>;\n', 'grid.tsx');
+    const text = await threeRuns(`${REACT}export const A = () => <HotTable type="text"><HotColumn `
+      + 'numericFormat={{ culture: \'de-DE\' }} /></HotTable>;\n', 'grid.tsx');
+
+    assert.ok(moved(under), under.output);
+    assert.ok(!moved(text), text.output);
+  });
+
+  it('says what to do and why, and leaves the text column\'s culture for the user to delete or move', async() => {
+    const result = await threeRuns(`${HEAD}new Handsontable(el, { columns: [{ type: 'text', ${COLUMN} }] });\n`);
+    const [entry] = result.entries;
+
+    assert.equal(result.entries.length, 1);
+    assert.match(entry.message, /delete it if it is not/);
+    assert.match(entry.message, /numericFormat does nothing in a column of another type/);
+    assert.match(entry.message, /18\.0 reads locale for text sorting, filtering, and search/);
+    assert.ok(result.output.includes(TODO), result.output);
   });
 });

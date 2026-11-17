@@ -189,6 +189,21 @@
     },
     {
       "level": 2,
+      "markdown": "10. Import the theme functions from the themes entry point",
+      "id": "import-the-theme-functions-from-the-themes-entry-point"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-9"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-8"
+    },
+    {
+      "level": 2,
       "markdown": "Deprecated APIs",
       "id": "deprecated-apis"
     },
@@ -200,12 +215,12 @@
     {
       "level": 4,
       "markdown": "Who is affected",
-      "id": "who-is-affected-9"
+      "id": "who-is-affected-10"
     },
     {
       "level": 4,
       "markdown": "How to migrate",
-      "id": "how-to-migrate-8"
+      "id": "how-to-migrate-9"
     },
     {
       "level": 2,

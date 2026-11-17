@@ -194,6 +194,54 @@ describe('ranges, overrides, and aliases in a chained run', () => {
     });
   });
 
+  it('reports an override that installs from a repository or a URL, as it does a dependency', async() => {
+    const git = 'git+https://github.com/handsontable/handsontable.git#17.1.0';
+    const input = pkg({
+      dependencies: { handsontable: git },
+      overrides: {
+        handsontable: git,
+        '@handsontable/vue3': 'https://example.com/vue3.tgz',
+        nested: { handsontable: git },
+      },
+      resolutions: { handsontable: 'github:handsontable/handsontable#17.1.0' },
+      pnpm: { overrides: { handsontable: 'git@github.com:handsontable/handsontable.git' } },
+    });
+
+    await migrate({ 'package.json': input }, {}, async({ result, read }) => {
+      const manual = result.report.entries.filter(entry => entry.severity === 'manual').map(entry => entry.message);
+      const tail = ' installs from a repository or a URL, so the tool cannot tell its version. '
+        + 'Point it at 18.1.0 by hand.';
+
+      assert.equal(manual.length, 6, manual.join('\n'));
+      assert.ok(manual.some(text => text.startsWith(`handsontable "${git}" in dependencies${tail.slice(0, -1)}`)));
+      assert.ok(manual.some(text => text.startsWith(`overrides["handsontable"] pins handsontable to "${git}", which`
+        + `${tail}`)));
+      assert.ok(manual.some(text => text.startsWith('overrides["@handsontable/vue3"] pins @handsontable/vue3 to '
+        + '"https://example.com/vue3.tgz"')));
+      assert.ok(manual.some(text => text.startsWith('overrides["nested"].handsontable pins handsontable')));
+      assert.ok(manual.some(text => text.startsWith('resolutions["handsontable"] pins handsontable to '
+        + '"github:handsontable/handsontable#17.1.0"')));
+      assert.ok(manual.some(text => text.startsWith('pnpm.overrides["handsontable"] pins handsontable to '
+        + '"git@github.com:handsontable/handsontable.git"')));
+      assert.equal(await read('package.json'), input);
+    });
+  });
+
+  it('stays silent for an override that is a reference or a workspace link', async() => {
+    const input = pkg({
+      dependencies: { handsontable: '^18.1.0' },
+      overrides: {
+        handsontable: '$handsontable',
+        '@handsontable/vue3': 'workspace:*',
+        '@handsontable/react-wrapper': 'file:../x',
+      },
+    });
+
+    await migrate({ 'package.json': input }, {}, async({ result }) => {
+      assert.equal(result.report.entries.length, 0);
+    });
+  });
+
   it('does not call an override that points at the dependency of the project a pin', async() => {
     const input = pkg({
       dependencies: { handsontable: '^17.1.0', '@handsontable/vue3': '^17.1.0' },
@@ -450,19 +498,22 @@ describe('dependency rules on package.json', () => {
     });
   });
 
-  it('bumps peer and optional dependencies too', async() => {
+  it('bumps an optional dependency, and only reports a peer one', async() => {
     const input = pkg({
       name: 'lib',
       peerDependencies: { handsontable: '^17.0.0' },
       optionalDependencies: { '@handsontable/angular-wrapper': '^17.0.0' },
     });
 
-    await migrate({ 'package.json': input }, { to: '18.0' }, async({ read }) => {
+    await migrate({ 'package.json': input }, { to: '18.0' }, async({ read, result }) => {
       assert.equal(await read('package.json'), pkg({
         name: 'lib',
-        peerDependencies: { handsontable: '^18.0.0' },
+        peerDependencies: { handsontable: '^17.0.0' },
         optionalDependencies: { '@handsontable/angular-wrapper': '^18.0.0' },
       }));
+      assert.deepEqual(result.report.entries.map(entry => entry.severity).sort(), ['changed', 'manual']);
+      assert.match(result.report.entries.find(entry => entry.severity === 'manual').message,
+        /^handsontable "\^17\.0\.0" in peerDependencies is below \^18\.0\.0, and the tool left it/);
     });
   });
 

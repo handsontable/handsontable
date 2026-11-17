@@ -691,6 +691,75 @@ describe('a run that reads no file says so', () => {
     }
   });
 
+  it('refuses an explicit file that git ignores, as it refuses the directory, and keeps its bytes', async() => {
+    const project = await repo({ '.gitignore': 'gen/\nsecret.js\n', 'a.css': CSS });
+
+    try {
+      await mkdir(join(project, 'gen'));
+      await writeFile(join(project, 'gen', 'x.css'), CSS);
+      await writeFile(join(project, 'secret.js'), SOURCE);
+
+      for (const file of ['gen/x.css', 'secret.js']) {
+        const result = await run({ cwd: project, ...RANGE, paths: [file], allowDirty: true });
+
+        assert.equal(result.exitCode, 0, file);
+        assert.deepEqual(result.changedFiles, [], file);
+        assert.ok(result.notes.some(note => note.includes(`"${file}" is ignored by git, and the tool reads no `
+          + 'ignored file')), JSON.stringify(result.notes));
+      }
+
+      assert.equal(await readFile(join(project, 'gen', 'x.css'), 'utf8'), CSS);
+      assert.equal(await readFile(join(project, 'secret.js'), 'utf8'), SOURCE);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('still reads an explicit file that git tracks although a pattern ignores it', async() => {
+    const project = await repo({ 'a.css': CSS });
+
+    try {
+      await writeFile(join(project, '.gitignore'), 'forced.css\n');
+      await writeFile(join(project, 'forced.css'), CSS);
+      git(project, ['add', '-f', 'forced.css']);
+      git(project, ['commit', '-q', '-m', 'forced']);
+
+      const result = await run({ cwd: project, ...RANGE, paths: ['forced.css'], allowDirty: true });
+
+      assert.deepEqual(result.changedFiles, ['forced.css']);
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses an explicit file below node_modules, in a repository and outside one', async() => {
+    const files = {
+      'node_modules/dep/package.json': '{ "dependencies": { "handsontable": "^17.1.0" } }\n',
+      'node_modules/dep/index.js': SOURCE,
+      'a.css': CSS,
+    };
+    const project = await repo(files);
+
+    try {
+      await inPlainProject(files, async(plain) => {
+        for (const dir of [project, plain]) {
+          for (const file of ['node_modules/dep/package.json', 'node_modules/dep/index.js']) {
+            const result = await run({ cwd: dir, ...RANGE, paths: [file], allowDirty: true });
+
+            assert.deepEqual(result.changedFiles, [], file);
+            assert.ok(result.notes.some(note => /is below node_modules, and the tool reads no file there/.test(note)),
+              JSON.stringify(result.notes));
+          }
+
+          assert.equal(await readFile(join(dir, 'node_modules/dep/index.js'), 'utf8'), SOURCE);
+          assert.match(await readFile(join(dir, 'node_modules/dep/package.json'), 'utf8'), /\^17\.1\.0/);
+        }
+      });
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  });
+
   it('does not add the note to a run that found a file', async() => {
     await inPlainProject({ 'a.css': CSS }, async(dir) => {
       const result = await run({ cwd: dir, ...RANGE });

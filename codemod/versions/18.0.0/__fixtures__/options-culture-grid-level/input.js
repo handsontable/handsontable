@@ -11,7 +11,7 @@ const grid = new Handsontable(document.body, {
 new Handsontable(document.body, {
   licenseKey: 'non-commercial-and-evaluation',
   columns: [{ type: 'numeric', numericFormat: { culture: 'pl-PL', pattern: '0,0' } }, { type: 'intl-date' }],
-  cell: [{ row: 0, col: 0, numericFormat: { culture: 'ja-JP', pattern: '0,0' } }],
+  cell: [{ row: 0, col: 0, type: 'numeric', numericFormat: { culture: 'ja-JP', pattern: '0,0' } }],
 });
 
 // The same settings through updateSettings() on a grid.

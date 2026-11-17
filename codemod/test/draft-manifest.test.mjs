@@ -301,9 +301,12 @@ describe('notAutomated', () => {
     assert.match(lines.at(-3), /^Changes with no rule, to read in the guide: \d+ in 19\.0\.0\.$/);
     assert.equal(lines.at(-2), '');
 
+    const none = await cli(['migrate', '--list', '--from', '18.0', '--to', '18.1']);
     const old = await cli(['migrate', '--list', '--from', '17', '--to', '18.1']);
 
-    assert.doesNotMatch(old.out, /Changes with no rule/);
+    // A range whose manifests list nothing prints no line. The 18.0 manifest lists one change with no pattern.
+    assert.doesNotMatch(none.out, /Changes with no rule/);
+    assert.match(old.out, /^Changes with no rule, to read in the guide: 1 in 18\.0\.0\.$/m);
   });
 
   describe('the map of the 19.0.0 guide: every section has a rule or a notAutomated entry, and nothing is listed twice',

@@ -97,10 +97,6 @@
       "reason": "The TypeScript compiler reports it, and a hook passed to HotColumn never ran, so only code that passes one is affected."
     },
     {
-      "guide": "changing-dataschema-resets-the-grids-index-state",
-      "reason": "It applies to an updateSettings() call that changes dataSchema, and no matcher reads the arguments of that call."
-    },
-    {
       "guide": "colwidths-addresses-columns-by-physical-index",
       "reason": "It applies when columns can move or be inserted or removed, which depends on how users and code treat the grid at run time."
     },

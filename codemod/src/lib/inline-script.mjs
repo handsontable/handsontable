@@ -223,6 +223,29 @@ export function scanScripts(source, stats = null) {
 }
 
 /**
+ * One attribute of a tag: the name, then an optional value in double quotes, single quotes, or none.
+ */
+const ATTRIBUTE = /([^\s"'<>/=]+)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]+))?/g;
+
+/**
+ * Tell whether the attributes of a tag include one name. The name is compared whole and without regard to letter
+ * case, and a value never counts: `data-src="x"` is not `src`, and neither is `title="src=1"`.
+ *
+ * @param {string} attributes The text between the tag name and the closing `>`, as `scanScripts()` returns it.
+ * @param {string} name The attribute name in lower case.
+ * @returns {boolean} `true` when the tag has the attribute, with a value or without.
+ */
+export function hasAttribute(attributes, name) {
+  for (const match of attributes.matchAll(ATTRIBUTE)) {
+    if (match[1].toLowerCase() === name) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * A line counter for offsets that only grow, so asking for the line of each of many matches reads the text once
  * and not once per match.
  *

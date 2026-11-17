@@ -8,7 +8,7 @@ const IMPORTS = 'import Handsontable from \'handsontable\';\nimport formKit from
 const TODO = 'TODO(handsontable-codemod';
 const CULTURE = '{ numericFormat: { pattern: \'0,0\', culture: \'de-DE\' } }';
 // The same format in a column: a grid-level culture is only reported, because a grid-level locale reaches every column.
-const COLUMN_CULTURE = '{ columns: [{ numericFormat: { pattern: \'0,0\', culture: \'de-DE\' } }] }';
+const COLUMN_CULTURE = '{ columns: [{ type: \'numeric\', numericFormat: { pattern: \'0,0\', culture: \'de-DE\' } }] }';
 
 /**
  * Run a plan over a file three times, as the idempotency contract does, and return the first run.
@@ -126,7 +126,7 @@ describe('an object that another receiver than the grid takes is not Handsontabl
     const calls = [
       'form.setCellMeta(0, 1, \'correctFormat\', true);',
       'form.setCellMetaObject(0, 1, { correctFormat: true });',
-      'form.setCellMetaObject(0, 1, { numericFormat: { culture: \'de-DE\' } });',
+      'form.setCellMetaObject(0, 1, { type: \'numeric\', numericFormat: { culture: \'de-DE\' } });',
     ];
 
     for (const call of calls) {

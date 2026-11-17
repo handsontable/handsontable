@@ -102,7 +102,7 @@ Keep the report file out of the git tree, or delete it when you are done.
 The console report groups the entries by rule and lists each location as `file:line`. The last line sums up the run: files changed, rewrites applied, manual steps, and warnings. The report also contains these sections:
 
 - **Read once.** Notes that hold for every file appear one time, with the files they apply to.
-- **Skipped files.** Files and blocks the codemod did not analyze, such as Less, Stylus, and Sass files. Check them by hand.
+- **Skipped files.** Files and blocks the codemod did not analyze, such as Less, Stylus, Sass, PostCSS, Svelte, Astro, and MDX files, and files with a very long line. Check them by hand.
 
 The file from `--report` is a Markdown checklist with one checkbox per manual step.
 
@@ -185,6 +185,7 @@ Pass `--help` to see the full list.
 - It does not rewrite a receiver it cannot confirm as a grid instance or a plugin. It reports or skips the call. A call on a variable that can hold something other than the grid, for example one that is also assigned another object, is reported, not rewritten.
 - It reports template code, the inline `template` of an Angular component, and the inline scripts of an HTML page, and does not rewrite them.
 - It does not edit `catalog:` specs, `overrides`, `resolutions`, `pnpm.overrides`, or CDN URLs. It reports the ones that hold Handsontable or a wrapper below the target version.
+- It does not edit `peerDependencies`. Raising a peer range drops the older versions for every consumer of your package, so the codemod reports the range and you widen it by hand.
 - A file that does not parse is skipped and reported, and the run exits with code 1.
 - When a rewrite adds or removes a key, the codemod reprints that object. A one-line object can spread over several lines, and a trailing comma can go. Run your formatter afterward.
 

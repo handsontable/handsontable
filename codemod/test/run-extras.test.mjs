@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { buildPlan } from '../src/manifest.mjs';
-import { MAX_FILE_BYTES, run, transformFile } from '../src/runner.mjs';
+import { MAX_FILE_BYTES, MAX_LINE_LENGTH, run, transformFile } from '../src/runner.mjs';
 import { loadReleasedManifests } from './helpers/manifests.mjs';
 import { createSampleProject, git, removeSampleProject } from './helpers/sample-project.mjs';
 
@@ -65,13 +65,42 @@ function migrate(dir, args) {
 }
 
 describe('files the tool cannot analyze are listed, not dropped', () => {
-  it('warns about a Less, Stylus, or Sass file that mentions a theme variable or Handsontable', async() => {
-    for (const name of ['a.less', 'a.styl', 'a.stylus', 'a.sass']) {
+  it('warns about a Less, Stylus, Sass, or PostCSS file that mentions a theme variable or Handsontable', async() => {
+    for (const name of ['a.less', 'a.styl', 'a.stylus', 'a.sass', 'a.pcss', 'a.postcss', 'A.PCSS']) {
       const [entry] = await skippedOf(name, '.grid\n  --ht-border-radius: 4px\n');
 
-      assert.match(entry.message, /Less, Stylus, or Sass file was not analyzed/, name);
+      assert.match(entry.message, /Less, Stylus, Sass, or PostCSS file was not analyzed/, name);
       assert.equal(entry.line, null);
     }
+  });
+
+  it('warns about a Svelte, Astro, or MDX file that names a theme variable or Handsontable, and only then', async() => {
+    const style = '<style>\n.grid { border-radius: var(--ht-wrapper-border-radius); }\n</style>\n';
+    const fence = '# Theme\n\n```css\n.grid { border-radius: var(--ht-wrapper-border-radius); }\n```\n';
+
+    for (const [name, text] of [['App.svelte', style], ['Page.astro', `---\n---\n${style}`], ['doc.mdx', fence],
+      ['Grid.svelte', '<script>import Handsontable from \'handsontable\';</script>\n']]) {
+      const [entry] = await skippedOf(name, text);
+
+      assert.match(entry.message, /does not read Svelte, Astro, or MDX files, so this file was not analyzed/, name);
+      assert.equal(entry.line, null);
+    }
+
+    for (const name of ['App.svelte', 'Page.astro', 'doc.mdx']) {
+      assert.deepEqual(await skippedOf(name, '<h1>Hello</h1>\n<style>.a { color: red; }</style>\n'), [], name);
+    }
+  });
+
+  it('lists these files in a run, in a project that has nothing else to migrate', async() => {
+    await inPlainProject({
+      'src/App.svelte': '<style>.a { border-radius: var(--ht-wrapper-border-radius); }</style>\n',
+      'src/theme.pcss': '.a { border-radius: var(--ht-wrapper-border-radius); }\n',
+    }, async(dir) => {
+      const result = await run({ cwd: dir, from: '17.1', to: '18.1' });
+
+      assert.deepEqual(result.report.skipped().map(entry => entry.file).sort(), ['src/App.svelte', 'src/theme.pcss']);
+      assert.deepEqual(result.changedFiles, []);
+    });
   });
 
   it('stays silent about one that says nothing about Handsontable', async() => {
@@ -134,6 +163,37 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
     );
   });
 
+  it('treats a script as external only when its attribute is named src, whole', async() => {
+    const body = 'new Handsontable(a, {});';
+    const inline = attributes => skippedOf('p.html', `<script${attributes}>${body}</script>\n`);
+
+    for (const attributes of ['', ' data-src="x"', ' data-src=x', ' title="src=1"', ' nosrc = "a.js"', ' x-src',
+      ' data-src="a.js" type="module"', '\ttype="module"\n\tdata-src=\'y\'']) {
+      assert.equal((await inline(attributes)).length, 1, `${JSON.stringify(attributes)} is an inline script`);
+    }
+
+    for (const attributes of [' src="a.js"', ' SRC="a.js"', ' SRC = "a.js"', ' data-src="x" src="a.js"', ' src=a.js',
+      ' type="module" src', ' src\n=\n\'a.js\'']) {
+      assert.deepEqual(await inline(attributes), [], `${JSON.stringify(attributes)} is an external script`);
+    }
+  });
+
+  it('reads the same attribute for the missing-option check of an inline script', async() => {
+    const manifests = await loadReleasedManifests();
+    const only = buildPlan(manifests, ['18.1.0/license-key-missing']);
+    const reported = async(attributes) => {
+      const source = `<script${attributes}>new Handsontable(el, { data: [] });</script>\n`;
+
+      return (await transformFile({ filePath: 'p.html', source, plan: only })).entries
+        .filter(entry => entry.ruleId === '18.1.0/license-key-missing').length;
+    };
+
+    assert.equal(await reported(' data-src="x"'), 1, 'a data-src script is inline');
+    assert.equal(await reported(' SRC="a.js"'), 0, 'a SRC script is external');
+    assert.equal(await reported(' src="a.js"'), 0, 'a src script is external');
+    assert.equal(await reported(''), 1);
+  });
+
   it('skips a file above the size limit with a warning, and reads one at the limit', async() => {
     const small = 'import Handsontable from \'handsontable\';\nnew Handsontable(el, { correctFormat: true });\n';
 
@@ -151,6 +211,61 @@ describe('files the tool cannot analyze are listed, not dropped', () => {
 
   it('has a limit of 1 MB by default', () => {
     assert.equal(MAX_FILE_BYTES, 1024 * 1024);
+  });
+
+  describe('a file with a very long line', () => {
+    const IMPORT = 'import Handsontable from \'handsontable\';\n';
+    const CALL = 'new Handsontable(el, { correctFormat: true });\n';
+
+    it('is skipped with the reason, and its bytes stay, whether the line is valid code or not', async() => {
+      // A minified bundle (valid) and a blob that would not parse: a parse-error would show that the tool read it.
+      const bundle = `${IMPORT}${CALL.trim()};var d=[${'1,'.repeat(MAX_LINE_LENGTH / 2)}0];\n`;
+      const blob = `// handsontable\n${'x = ;'.repeat((MAX_LINE_LENGTH / 4) + 1)}\n`;
+      const lines = { 'bundle.js': bundle, 'blob.ts': blob, 'ok.js': `${IMPORT}${CALL}` };
+
+      await inPlainProject(lines, async(dir) => {
+        const result = await run({ cwd: dir, from: '17.1', to: '18.1' });
+
+        assert.equal(result.exitCode, 0, JSON.stringify(result.report.entries));
+        assert.deepEqual(result.report.skipped().map(entry => entry.file).sort(), ['blob.ts', 'bundle.js']);
+        assert.match(result.report.skipped()[0].message, /has a line of more than 20,000 characters.*not analyzed/);
+        assert.deepEqual(result.changedFiles, ['ok.js']);
+        assert.equal(await readFile(join(dir, 'bundle.js'), 'utf8'), bundle);
+        assert.equal(await readFile(join(dir, 'blob.ts'), 'utf8'), blob);
+      });
+    });
+
+    it('is read when no line is over the limit, and counts every kind of line break', async() => {
+      // Comments keep the parse cheap. A line of exactly the limit passes, and one more character skips the file.
+      const exact = `// ${'a'.repeat(MAX_LINE_LENGTH - 3)}`;
+      const over = `// ${'a'.repeat(MAX_LINE_LENGTH - 2)}`;
+      const cases = {
+        'lf.js': `${IMPORT}${CALL}${exact}\n${exact}\n`,
+        'crlf.js': `${IMPORT}${CALL}${exact}\r\n${exact}\r\n`,
+        'cr.js': `${IMPORT}${CALL}${exact}\r${exact}`,
+        'over-crlf.js': `${IMPORT}${CALL}${exact}\r\n${over}\r\n`,
+        'over-last.js': `${IMPORT}${CALL}${over}`,
+      };
+
+      await inPlainProject(cases, async(dir) => {
+        const result = await run({ cwd: dir, from: '17.1', to: '18.1' });
+
+        assert.deepEqual(result.report.skipped().map(entry => entry.file).sort(), ['over-crlf.js', 'over-last.js']);
+        assert.deepEqual(result.changedFiles, ['cr.js', 'crlf.js', 'lf.js']);
+      });
+    });
+
+    it('does not apply to a package.json', async() => {
+      const pad = ' '.repeat(MAX_LINE_LENGTH + 5);
+      const text = `{"dependencies":{"handsontable":"^17.1.0"},"pad":"${pad}"}\n`;
+
+      await inPlainProject({ 'package.json': text }, async(dir) => {
+        const result = await run({ cwd: dir, from: '17.1', to: '18.1' });
+
+        assert.deepEqual(result.changedFiles, ['package.json']);
+        assert.match(await readFile(join(dir, 'package.json'), 'utf8'), /\^18\.1\.0/);
+      });
+    });
   });
 
   it('reports progress at the interval it is given', async() => {

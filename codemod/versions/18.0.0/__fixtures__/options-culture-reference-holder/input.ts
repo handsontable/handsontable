@@ -9,6 +9,7 @@ const FORMAT = { culture: 'de-CH' };
 const PLAIN = { style: 'percent' };
 
 new Handsontable(document.body, {
+  type: 'numeric',
   columns: [
     { data: 'a', numericFormat: PRESET.eur },
     { data: 'b', numericFormat: FMT.amount },

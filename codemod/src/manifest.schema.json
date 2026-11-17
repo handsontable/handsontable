@@ -85,6 +85,7 @@
           ]
         },
         "guide": { "type": "string", "description": "Anchor in the migration guide, without the #." },
+        "inGuide": { "type": "boolean", "description": "false: the guide does not describe this change, so entries of the rule carry no guide link. Do not combine with guide." },
         "safe": { "type": "boolean", "description": "true: the tool applies the rewrite by default. false: the tool never edits code for the rule. It reports manual entries and may leave a TODO comment. Required for every kind except detect and exportRemoved, which only report and take false or no value." },
         "minConfidence": { "enum": ["high", "medium"] },
         "message": { "type": "string" },
@@ -209,6 +210,13 @@
                 "description": "The levels at which the key may move: grid (a settings object, a HotTable element), column (an element of columns, a HotColumn element), cell (a cells return, an element of cell). At any other level the key stays and levelAdvice is reported."
               },
               "levelAdvice": { "type": "string", "description": "Text of the manual entry reported instead of a move at a level that levels does not list." },
+              "onlyTypes": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 },
+                "minItems": 1,
+                "description": "The cell types at which the key may move. The type is the type of the column or cell itself, else the one of the settings object or HotTable element it sits in. For any other type, or when the tool finds none, the key stays and typeAdvice is reported."
+              },
+              "typeAdvice": { "type": "string", "description": "Text of the manual entry reported instead of a move for a cell type that onlyTypes does not list." },
               "readerAdvice": {
                 "type": "string",
                 "description": "Text of the manual entry that replaces a move when custom code may read the nested key: a custom editor, renderer, or validator, a cell type that is not built in, an unreadable spread, or a read of the key in the file."

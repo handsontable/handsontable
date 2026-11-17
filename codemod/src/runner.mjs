@@ -1,5 +1,5 @@
 import { constants } from 'node:fs';
-import { access, lstat, realpath, stat } from 'node:fs/promises';
+import { access, lstat, open, realpath, stat } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, parse, posix, relative, resolve, sep } from 'node:path';
 import { adapterFor, isCandidate } from './adapters/index.mjs';
 import { unifiedDiff } from './diff.mjs';
@@ -20,7 +20,7 @@ import {
   addCssTodo, addJsTodo, collectComments, formatTodo, hasEarlierTodo, hasJsTodo, hasTwinTodo, lineOf,
 } from './lib/todo.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests, matchesOnly } from './manifest.mjs';
-import { Report, SKIPPED_RULE_ID, plural } from './report.mjs';
+import { REPORT_TITLE, Report, SKIPPED_RULE_ID, plural } from './report.mjs';
 import { registry as defaultRegistry } from './transforms/index.mjs';
 import {
   compareVersions,
@@ -42,6 +42,39 @@ const SEVERITIES = new Set(['changed', 'manual', 'warning']);
  * changes it.
  */
 export const MAX_FILE_BYTES = 1024 * 1024;
+
+/**
+ * Longest line, in characters, of a file the run analyzes. A minified bundle or a data blob that names Handsontable
+ * costs a full parse and a walk of the whole tree although it is no source to migrate, and the size cap alone does not
+ * stop it (a single line of 800 KB is under it). A file with a longer line is skipped and reported, as a file above
+ * `MAX_FILE_BYTES` is. The longest line of any example in the documentation is about 1,500 characters, and of any
+ * fixture about 600. A `package.json` is exempt: it is edited by offset and never parsed into a tree.
+ */
+export const MAX_LINE_LENGTH = 20000;
+
+/**
+ * Tell whether a text has a line longer than `MAX_LINE_LENGTH`. One pass, no copy.
+ *
+ * @param {string} text The file text.
+ * @returns {boolean} `true` when `MAX_LINE_LENGTH + 1` characters in a row hold no line break.
+ */
+function hasVeryLongLine(text) {
+  let start = 0;
+
+  for (let index = 0; index <= text.length; index += 1) {
+    const code = index === text.length ? 10 : text.charCodeAt(index);
+
+    if (code === 10 || code === 13) {
+      if (index - start > MAX_LINE_LENGTH) {
+        return true;
+      }
+
+      start = index + 1;
+    }
+  }
+
+  return false;
+}
 
 /**
  * Milliseconds between progress reports while a run visits files.
@@ -825,12 +858,49 @@ async function isSameFile(left, right) {
     && leftInfo.dev === rightInfo.dev;
 }
 
+const REPORT_HEADER = `# ${REPORT_TITLE}`;
+
+/**
+ * Tell whether an existing file is a previous report of the tool, or empty. Only the start of the file is read.
+ *
+ * @param {string} target Absolute path of an existing file.
+ * @returns {Promise<boolean>} `true` for an empty file and for a file whose first line is the report header.
+ */
+async function isPreviousReport(target) {
+  const handle = await open(target, 'r');
+
+  try {
+    const buffer = Buffer.alloc(REPORT_HEADER.length + 8);
+    const { bytesRead } = await handle.read(buffer, 0, buffer.length, 0);
+
+    return bytesRead === 0 || stripBom(buffer.toString('utf8', 0, bytesRead)).startsWith(REPORT_HEADER);
+  } finally {
+    await handle.close();
+  }
+}
+
+/**
+ * Tell whether a path has a `.git` component, in the folder of the project or below it, or anywhere in an absolute path
+ * outside it.
+ *
+ * @param {string} cwd Project directory.
+ * @param {string} target Absolute path.
+ * @returns {boolean} `true` when the path names something inside a `.git` directory (or a `.git` file).
+ */
+function insideGitDirectory(cwd, target) {
+  const rel = relative(cwd, target);
+  const parts = (leavesDirectory(rel) ? relative(parse(target).root, target) : rel).split(sep);
+
+  return parts.some(part => part.toLowerCase() === '.git');
+}
+
 /**
  * Refuse a report path that would overwrite something that is not a previous report: a file git tracks, a file the
  * run is about to migrate, a file with an extension the tool handles (it may be a source file the run did not list,
  * and a report has no business there), a symbolic link on the way, which `writeFile` would follow, or a file the user
- * cannot write. A file that does not exist, or an untracked file that is not a project file (the report of the
- * previous run), is fine.
+ * cannot write, a path inside a `.git` directory, or an existing file that is not a previous report (its first line is
+ * not the report header, `isPreviousReport()`; an empty file passes). A file that does not exist, or the report of the
+ * previous run, is fine, inside the project directory or outside it.
  *
  * Files are compared as the file system sees them (`isSameFile()`), so a different letter case or a hard link does not
  * get past the check.
@@ -852,6 +922,11 @@ async function assertReportTarget(cwd, reportPath, files, repo) {
   if (!folderInfo?.isDirectory()) {
     throw new UsageError(`--report ${reportPath}: the directory ${relative(cwd, folder) || '.'} does not exist. `
       + 'Create it, or choose a file in an existing directory.');
+  }
+
+  if (insideGitDirectory(cwd, target)) {
+    throw new UsageError(`--report ${reportPath} is inside the .git directory, and the report would damage the `
+      + 'repository. Choose another file, for example migration-report.md.');
   }
 
   const link = await linkOnReportPath(cwd, target);
@@ -897,6 +972,11 @@ async function assertReportTarget(cwd, reportPath, files, repo) {
   await access(target, constants.W_OK).catch(() => {
     throw new UsageError(`--report ${reportPath} exists and is not writable. Choose another file.`);
   });
+
+  if (!(await isPreviousReport(target).catch(() => false))) {
+    throw new UsageError(`--report ${reportPath} exists and is not a report of this tool (its first line is not `
+      + `"${REPORT_HEADER}"), so it would be overwritten. Choose another file, for example migration-report.md.`);
+  }
 }
 
 /**
@@ -1192,7 +1272,7 @@ export function describeRules(plan, registry = defaultRegistry) {
  * @param {string[]} [options.paths] Files or directories to migrate, relative to `cwd`.
  * @param {string} [options.from] Version the project is on.
  * @param {string} [options.to] Version to migrate to.
- * @param {boolean} [options.dryRun] Collect diffs and write nothing.
+ * @param {boolean} [options.dryRun] Collect diffs and write nothing. `diffs` of the result is empty without it.
  * @param {string[]} [options.only] Rule ids to run.
  * @param {boolean} [options.aggressive] Lower the option-object confidence bar.
  * @param {boolean} [options.todo] Leave TODO comments in the code. Defaults to `true`. `false` (the CLI's `--no-todo`)
@@ -1215,8 +1295,9 @@ export function describeRules(plan, registry = defaultRegistry) {
  * @param {object} [options.hooks] Injection points for tests. `discover` replaces the file search, and
  * `beforeRename(file)` runs after the temporary file of a write is complete, before it replaces the original.
  * @returns {Promise<{changedFiles: string[], report: Report, diffs: Array<{file: string, diff: string}>,
- * exitCode: number, notes: string[], error: string|null}>} The outcome. `exitCode` is 0 on success, 1 when a
- * file could not be parsed, read, or transformed, and 2 for a usage error or a refused dirty tree.
+ * exitCode: number, notes: string[], error: string|null, from: string, to: string, usedDraft: boolean}>} The outcome.
+ * `exitCode` is 0 on success, 1 when a file could not be parsed, read, or transformed, and 2 for a usage error or a
+ * refused dirty tree. `usedDraft` is `true` when a draft migration was in the run.
  */
 export async function run({
   cwd = process.cwd(),
@@ -1241,7 +1322,9 @@ export async function run({
   hooks = {},
 } = {}) {
   const report = new Report();
-  const result = { changedFiles: [], report, diffs: [], exitCode: 0, notes: [], error: null, from: '', to: '' };
+  const result = {
+    changedFiles: [], report, diffs: [], exitCode: 0, notes: [], error: null, from: '', to: '', usedDraft: false,
+  };
   let files;
   let resolved;
 
@@ -1250,6 +1333,7 @@ export async function run({
     result.notes = resolved.notes;
     result.from = resolved.fromText;
     result.to = resolved.selected[resolved.selected.length - 1].version;
+    result.usedDraft = resolved.selected.some(manifest => manifest.status === 'draft');
     report.notes.push(...resolved.reportNotes);
 
     let repo;
@@ -1417,6 +1501,18 @@ export async function run({
       return;
     }
 
+    if (basename(file) !== 'package.json' && hasVeryLongLine(source)) {
+      if (phase === 1) {
+        const limit = MAX_LINE_LENGTH.toLocaleString('en-US');
+
+        report.add(skippedEntry(file, null, `The file has a line of more than ${limit} characters, so it looks `
+          + 'minified or generated, and it was not analyzed. Migrate it by hand, or format it and run the tool '
+          + 'again.'));
+      }
+
+      return;
+    }
+
     const outcome = await transformFile({
       filePath: file,
       source,
@@ -1465,7 +1561,11 @@ export async function run({
 
     report.addAll(outcome.entries);
     result.changedFiles.push(file);
-    result.diffs.push({ file, diff: unifiedDiff(file, source, outcome.output) });
+
+    // The diff is only for a preview, and it costs time in the size of the change, so a run that writes does not build it.
+    if (dryRun) {
+      result.diffs.push({ file, diff: unifiedDiff(file, source, outcome.output) });
+    }
   };
 
   const packageFiles = files.filter(candidate => basename(candidate) === 'package.json');

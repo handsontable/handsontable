@@ -38,6 +38,16 @@ function isWalkSkipped(name) {
 }
 
 /**
+ * Tell whether a project-relative path sits below a `node_modules` directory.
+ *
+ * @param {string} filePath Project-relative path with forward slashes.
+ * @returns {boolean} `true` when a directory of the path is named `node_modules`.
+ */
+function underNodeModules(filePath) {
+  return filePath.split('/').slice(0, -1).includes('node_modules');
+}
+
+/**
  * Tell whether a project-relative path is generated or vendored output: it sits under a skipped directory,
  * is a minified file, or is a type declaration file.
  *
@@ -429,7 +439,15 @@ export async function discover({ cwd, paths = [], skipped = [], notes = [], reas
 
     if (info.isFile()) {
       if (isCandidate(rel)) {
-        found.add(rel);
+        // The directory form never reaches these files, so naming one must not either: git hides an ignored file from
+        // `git status`, and a dependency's files are not the project's to migrate.
+        if (underNodeModules(rel)) {
+          reasons.push(`${label} is below node_modules, and the tool reads no file there.`);
+        } else if (tracked && await isIgnored(cwd, rel)) {
+          reasons.push(`${label} is ignored by git, and the tool reads no ignored file.`);
+        } else {
+          found.add(rel);
+        }
       } else {
         reasons.push(`${label} is not a type of file the tool reads.`);
       }

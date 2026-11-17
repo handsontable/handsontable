@@ -19,5 +19,7 @@
   { "ruleId": "18.0.0/ns-helper-types", "severity": "manual", "line": 20 },
   { "ruleId": "18.0.0/ns-helper-types", "severity": "manual", "line": 21 },
   { "ruleId": "18.0.0/ns-intl-celltype", "severity": "manual", "line": 22 },
-  { "ruleId": "18.0.0/ns-intl-celltype", "severity": "manual", "line": 23 }
+  { "ruleId": "18.0.0/ns-intl-celltype", "severity": "manual", "line": 23 },
+  { "ruleId": "18.0.0/ns-languages-types", "severity": "manual", "line": 24 },
+  { "ruleId": "18.0.0/ns-languages-types", "severity": "manual", "line": 25 }
 ]

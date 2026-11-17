@@ -42,11 +42,12 @@
       "kind": "detect",
       "safe": false,
       "severity": "manual",
+      "todo": false,
       "files": ["js"],
       "requires": "hot-file",
       "guide": "update-code-that-reacts-to-a-column-header-click",
       "match": { "hook": ["beforeColumnMove", "afterColumnMove"] },
-      "message": "Move header-click logic from this hook to afterColumnSort or afterOnCellMouseUp. In 18.1 beforeColumnMove and afterColumnMove run only when the pointer drags a column. They no longer run on a plain header click."
+      "message": "Move header-click logic from this hook to afterColumnSort or afterOnCellMouseUp, if the hook detects a header click. In 18.1 beforeColumnMove and afterColumnMove run only when the pointer drags a column, and no longer on a plain header click. A hook that reacts to column moves only needs no change."
     },
     {
       "id": "18.1.0/loading-markup",
@@ -59,10 +60,16 @@
       "match": {
         "anyOf": [
           { "property": "loading.title", "valueMatches": "<[A-Za-z/!]" },
-          { "property": "loading.description", "valueMatches": "<[A-Za-z/!]" }
+          { "property": "loading.description", "valueMatches": "<[A-Za-z/!]" },
+          {
+            "allOf": [
+              { "call": ["show", "update"], "argMatches": "<[A-Za-z/!]" },
+              { "regex": "getPlugin\\(\\s*['\"]loading['\"]", "flags": "i", "code": true }
+            ]
+          }
         ]
       },
-      "message": "Drop the markup and style .ht-loading__title and .ht-loading__description with CSS. In 18.1 the loading plugin renders title and description as text, so this markup now shows up literally. The icon option is the one slot that still takes markup."
+      "message": "Drop the markup and style .ht-loading__title and .ht-loading__description with CSS. In 18.1 the loading plugin renders title and description as text, whether they come from the loading option or from the show() and update() methods, so this markup now shows up literally. The icon option is the one slot that still takes markup."
     },
     {
       "id": "18.1.0/pikaday-theme-leftovers",

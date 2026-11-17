@@ -9,6 +9,7 @@ export const A: ColumnSettings[] = [
   // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
   {
     data: 'a',
+    type: 'numeric',
     locale: 'de-DE',
     numericFormat: {}
   },
@@ -18,6 +19,7 @@ export const B: readonly ColumnSettings[] = [
   // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
   {
     data: 'b',
+    type: 'numeric',
     locale: 'de-DE',
     numericFormat: {}
   },
@@ -27,6 +29,7 @@ export const C: Array<ColumnSettings> = [
   // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
   {
     data: 'c',
+    type: 'numeric',
     locale: 'de-DE',
     numericFormat: {}
   },
@@ -36,6 +39,7 @@ export const D = [
   // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
   {
     data: 'd',
+    type: 'numeric',
     locale: 'de-DE',
     numericFormat: {}
   },
@@ -45,6 +49,7 @@ export const E = [
   // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
   {
     data: 'e',
+    type: 'numeric',
     locale: 'de-DE',
     numericFormat: {}
   },
@@ -54,6 +59,7 @@ export const F: Handsontable.ColumnSettings[] = [
   // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
   {
     data: 'f',
+    type: 'numeric',
     locale: 'de-DE',
     numericFormat: {}
   },

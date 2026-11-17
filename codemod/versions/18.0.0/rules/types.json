@@ -96,7 +96,8 @@
       "safe": true,
       "source": "handsontable/plugins/dataProvider",
       "from": "DataProviderOptions",
-      "to": "DataProviderFetchOptions"
+      "to": "DataProviderFetchOptions",
+      "reason": "DataProviderOptions is deprecated in 18.0 and removed in 19.0. It is the type of the options argument of fetchRows."
     },
     {
       "id": "18.0.0/type-filters-operationtype",
@@ -746,6 +747,15 @@
       "from": ["Handsontable.helper.Comparator", "Handsontable.helper.DebouncedFunction"],
       "removed": true,
       "advice": "Remove this reference or describe the shape inline, because 18.0 removed it from the Handsontable namespace with no replacement. `Comparator` was `(a: any, b: any) => -1 | 0 | 1`. `DebouncedFunction` was `{ (...args: any[]): any; cancel(): void }`."
+    },
+    {
+      "id": "18.0.0/ns-languages-types",
+      "kind": "namespaceType",
+      "guide": "replace-removed-handsontable-namespace-types",
+      "safe": false,
+      "from": "Handsontable.languages.*",
+      "removed": true,
+      "advice": "Remove this reference or describe the shape inline, because 18.0 removed it from the Handsontable namespace with no replacement, and using it as a type fails with TS2749. The languages object stays as a value, but its dictionaryKeys member is typed unknown, so read the keys at run time."
     },
     {
       "id": "18.0.0/ns-eventmanager",

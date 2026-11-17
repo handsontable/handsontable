@@ -289,6 +289,31 @@ describe('cli', () => {
     }
   });
 
+  it('points at the release candidate when a draft migration rewrote a package.json', async() => {
+    const dir = await makeProject(false);
+    const input = '{ "dependencies": { "handsontable": "^18.1.0" } }\n';
+
+    try {
+      await writeFile(join(dir, 'package.json'), input);
+
+      const draft = await cli(['migrate', '--from', '18.1', '--include-draft', '--allow-dirty'], dir);
+
+      assert.equal(draft.code, 0, draft.err);
+      assert.match(draft.out, /^Next: install the new package ranges/m);
+      assert.match(draft.out,
+        /^Next: the range \^19\.0\.0 matches no published version yet.*npm install handsontable@rc$/m);
+
+      await writeFile(join(dir, 'package.json'), '{ "dependencies": { "handsontable": "^17.1.0" } }\n');
+
+      const released = await cli(['migrate', '--from', '17', '--to', '18', '--allow-dirty'], dir);
+
+      assert.match(released.out, /^Next: install the new package ranges/m);
+      assert.doesNotMatch(released.out, /@rc/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it('says to install when it edited a package.json, and not otherwise', async() => {
     const withPackage = await makeProject(false);
     const cssOnly = await makeProject(false);
@@ -348,7 +373,7 @@ describe('cli', () => {
     const dir = await makeProject(true);
 
     try {
-      await writeFile(join(dir, 'report.md'), 'old report\n');
+      await writeFile(join(dir, 'report.md'), '# Handsontable migration report: 17 to 18 (2026-01-01)\n\nold report\n');
 
       const again = await cli(['migrate', '--from', '17', '--to', '18', '--report', 'report.md'], dir);
 

@@ -21,3 +21,6 @@ export let comparator: Handsontable.helper.Comparator;
 export let debounced: Handsontable.helper.DebouncedFunction;
 export let intlDate: Handsontable.cellTypes.intlDate.cellType;
 export let intlTime: Handsontable.cellTypes.intlTime.cellType;
+export let dictionary: Handsontable.languages.dictionaryKeys;
+export let other: Handsontable.languages.languageDictionary;
+export const loaded = Handsontable.languages.getLanguageDictionary('en-US');

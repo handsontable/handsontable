@@ -3,6 +3,7 @@ import cssAdapter from './css.mjs';
 import jsAdapter from './js.mjs';
 import jsonAdapter from './json.mjs';
 import templateAdapter from './template.mjs';
+import unsupportedMarkupAdapter from './unsupported-markup.mjs';
 import unsupportedStyleAdapter from './unsupported-style.mjs';
 import vueAdapter from './vue.mjs';
 
@@ -11,7 +12,9 @@ import vueAdapter from './vue.mjs';
  *
  * @type {import('../types.mjs').Adapter[]}
  */
-export const ADAPTERS = [jsAdapter, cssAdapter, vueAdapter, jsonAdapter, templateAdapter, unsupportedStyleAdapter];
+export const ADAPTERS = [
+  jsAdapter, cssAdapter, vueAdapter, jsonAdapter, templateAdapter, unsupportedStyleAdapter, unsupportedMarkupAdapter,
+];
 
 /**
  * Find the adapter for a file by its extension.

@@ -91,8 +91,8 @@ describe('resolve: a key that an object literal repeats', () => {
 describe('numeric-format-culture: custom code that reads the key', () => {
   it('moves the key for a built-in renderer, for none, and for undefined', async() => {
     const result = await move('{ renderer: \'numeric\', numericFormat: { culture: \'de-DE\' } }, '
-      + '{ renderer: \'text\', numericFormat: { culture: \'de-DE\' } }, '
-      + '{ renderer: undefined, numericFormat: { culture: \'de-DE\' } }');
+      + '{ type: \'numeric\', renderer: \'text\', numericFormat: { culture: \'de-DE\' } }, '
+      + '{ type: \'numeric\', renderer: undefined, numericFormat: { culture: \'de-DE\' } }');
 
     assert.equal(result.entries.filter(entry => entry.severity === 'changed').length, 3);
     assert.doesNotMatch(result.output, /culture/);
@@ -134,7 +134,8 @@ describe('numeric-format-culture: custom code that reads the key', () => {
   ]) {
     it(`keeps the key when the file reads it: ${name}`, async() => {
       const result = await run('18.0.0', 'grid.ts', `${IMPORT}${read}\n`
-        + 'new Handsontable(el, { columns: [{ numericFormat: { culture: \'de-DE\' } }] });\n', [CULTURE]);
+        + 'new Handsontable(el, { columns: [{ type: \'numeric\', numericFormat: { culture: \'de-DE\' } }] });\n',
+      [CULTURE]);
 
       assert.equal(result.changed, false);
       assert.deepEqual(result.entries.map(entry => entry.severity), ['manual']);
@@ -145,7 +146,8 @@ describe('numeric-format-culture: custom code that reads the key', () => {
   it('moves the key when the file reads another key or another object', async() => {
     const result = await run('18.0.0', 'grid.ts', `${IMPORT}const a = cellProperties.numericFormat.pattern;\n`
       + 'const b = config.culture;\nconst { pattern } = cellProperties.numericFormat;\n'
-      + 'new Handsontable(el, { columns: [{ numericFormat: { culture: \'de-DE\' } }] });\n', [CULTURE]);
+      + 'new Handsontable(el, { columns: [{ type: \'numeric\', numericFormat: { culture: \'de-DE\' } }] });\n',
+    [CULTURE]);
 
     assert.equal(result.entries.filter(entry => entry.severity === 'changed').length, 1);
     assert.match(result.output, /locale: 'de-DE'/);

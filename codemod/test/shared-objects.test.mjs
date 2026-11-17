@@ -119,7 +119,8 @@ describe('an object that something else holds is edited only when every use is t
   }
 
   it('reports the reviewed case: another consumer would lose the deleted key and the moved culture', async() => {
-    const source = `${HEAD}const cfg = { correctFormat: true, columns: [{ numericFormat: { culture: 'de-DE' } }] };\n`
+    const source = `${HEAD}const cfg = { correctFormat: true, `
+      + 'columns: [{ type: \'numeric\', numericFormat: { culture: \'de-DE\' } }] };\n'
       + 'new Handsontable(el, cfg);\nlegacyFormatter.configure(cfg);\n';
     const result = await threeRuns(source, [...CORRECT_FORMAT, ...CULTURE]);
 
@@ -200,7 +201,7 @@ describe('an object that another object spreads is edited only when the receiver
   });
 
   it('moves the key of an object that stays out of every spread', async() => {
-    const result = await threeRuns(`${HEAD}const base = { numericFormat: { culture: 'de-DE' } };\n`
+    const result = await threeRuns(`${HEAD}const base = { type: 'numeric', numericFormat: { culture: 'de-DE' } };\n`
       + 'new Handsontable(el, { columns: [base] });\n', CULTURE);
 
     assert.deepEqual(kinds(result.entries), ['changed', 'manual']);
@@ -267,4 +268,166 @@ describe('an object that another object spreads is edited only when the receiver
     assert.deepEqual(kinds(result.entries), ['manual']);
     assert.match(result.entries[0].message, /spread into another one/);
   });
+});
+
+describe('a part of the object that goes to other code holds the object too', () => {
+  const NESTED = '{ columns: [{ type: \'date\', correctFormat: true }], title: \'t\' }';
+  const head = `${HEAD}const cfg = ${NESTED};\nnew Handsontable(el, cfg);\n`;
+
+  const ESCAPES = [
+    ['an element passed to a call', 'legacy(cfg.columns[0]);', /passed to `legacy\(\)`/],
+    ['a member passed to a call', 'legacy(cfg.columns);', /passed to `legacy\(\)`/],
+    ['a destructured member passed to a call', 'const { columns } = cfg; legacy(columns);', /passed to `legacy\(\)`/],
+    ['an element of a callback of forEach', 'cfg.columns.forEach(c => legacy(c));', /passed to `legacy\(\)`/],
+    ['an element of a loop', 'for (const c of cfg.columns) { legacy(c); }', /passed to `legacy\(\)`/],
+    ['a member under another name', 'const cols = cfg.columns; legacy(cols);', /passed to `legacy\(\)`/],
+    ['a member assigned to another name later', 'let cols; cols = cfg.columns; legacy(cols);',
+      /passed to `legacy\(\)`/],
+    ['a destructured element of a callback', 'cfg.columns.forEach(({ type }, i, all) => legacy(all));',
+      /passed to `legacy\(\)`/],
+    ['a find result', 'legacy(cfg.columns.find(c => c.type === \'date\'));', /passed to `legacy\(\)`/],
+    ['a filter result', 'const some = cfg.columns.filter(c => c.type); legacy(some);', /passed to `legacy\(\)`/],
+    ['an element returned from a map callback', 'legacy(cfg.columns.map(c => c));', /passed to `legacy\(\)`/],
+    ['a member stored in an object of the project', 'registry.set({ cols: cfg.columns });',
+      /stored in an object that is not Handsontable options/],
+    ['a member returned', 'function cols() { return cfg.columns; }', /returned/],
+    ['a member exported through a declaration', 'export const cols = cfg.columns;', /assigned to|exported/],
+    ['a member spread into a call', 'legacy(...cfg.columns);', /spread here/],
+    ['an element spread into an object of the project', 'legacy({ ...cfg.columns[0] });',
+      /spread into an object that is not Handsontable options/],
+    ['a member called as a method of the object', 'cfg.columns.custom(1);', /called as/],
+    ['a copy of the array', 'legacy(cfg.columns.slice());', /passed to `legacy\(\)`/],
+    ['an element handed to a named callback', 'cfg.columns.forEach(handler);',
+      /handed to a callback by `cfg\.columns\.forEach\(\)`/],
+  ];
+
+  for (const [label, use, message] of ESCAPES) {
+    it(`keeps the key and names the use when ${label}`, async() => {
+      const result = await threeRuns(`${head}${use}\n`, CORRECT_FORMAT);
+      const entry = result.entries.find(item => item.severity === 'manual');
+
+      assert.ok(entry, result.output);
+      assert.match(entry.message, message);
+      assert.ok(result.output.includes('correctFormat: true'), result.output);
+      assert.ok(!result.entries.some(item => item.severity === 'changed'), result.output);
+    });
+  }
+
+  it('holds the moved culture too when an element of a column list escapes', async() => {
+    const source = `${HEAD}const cfg = { columns: [{ type: 'numeric', numericFormat: { culture: 'de-DE' } }] };\n`
+      + 'new Handsontable(el, cfg);\nlegacy(cfg.columns[0]);\ncfg.columns.forEach(c => legacy(c));\n';
+    const result = await threeRuns(source, CULTURE);
+
+    assert.deepEqual(kinds(result.entries).filter(kind => kind === 'changed'), []);
+    assert.ok(result.output.includes('culture: \'de-DE\''), result.output);
+    assert.ok(!result.output.includes('locale: \'de-DE\''), result.output);
+  });
+
+  const READS = [
+    // eslint-disable-next-line no-template-curly-in-string
+    ['a property read in an expression', 'const t = cfg.title + \'!\'; const u = `${cfg.title}`;'],
+    ['a length and a comparison', 'if (cfg.columns.length > 1) { go(); } const n = cfg.columns.length;'],
+    ['a destructured member that is only read',
+      'const { columns, title } = cfg; const n = columns.length + title.length;'],
+    ['an alias of a member that is only read',
+      'const cols = cfg.columns; const n = cols.length; const first = cols[0].type;'],
+    ['an iteration whose callback only reads',
+      'let total = 0; cfg.columns.forEach(c => { total += c.width; if (c.type === \'date\') { total++; } });'],
+    ['a loop that only reads', 'let n = 0; for (const c of cfg.columns) { n += c.width; }'],
+    ['a map to values that are joined', 'const names = cfg.columns.map(c => c.type).join(\',\');'],
+    ['a read in a log call', 'console.log(cfg.title, cfg.columns.length);'],
+    ['a test on a find result',
+      'const hasDate = cfg.columns.some(c => c.type === \'date\') && cfg.columns.every(c => c.type);'],
+    ['a push of a new element', 'cfg.columns.push({ type: \'text\' });'],
+    ['a write to a member', 'cfg.title = \'x\'; cfg.columns[0].type = \'text\';'],
+    ['a read in a JSX child', 'const A = () => <div>{cfg.title}</div>;'],
+  ];
+
+  for (const [label, use] of READS) {
+    it(`deletes the key when the part is only used as ${label}`, async() => {
+      const result = await threeRuns(`${head}${use}\n`, CORRECT_FORMAT);
+
+      assert.ok(result.entries.some(entry => entry.severity === 'changed'), result.output);
+      assert.ok(!result.output.includes('correctFormat: true'), result.output);
+    });
+  }
+
+  it('holds an object that a class member names when an element of it escapes', async() => {
+    const source = `${HEAD}class A { cfg = ${NESTED}; go() {\n  new Handsontable(el, this.cfg);\n`
+      + '  legacy(this.cfg.columns[0]);\n} }\n';
+    const result = await threeRuns(source, CORRECT_FORMAT);
+
+    assert.deepEqual(kinds(result.entries), ['manual']);
+  });
+
+  it('follows a spread of an element into another options object', async() => {
+    const source = `${HEAD}const cfg = { columns: [{ numericFormat: { culture: 'de-DE' } }] };\n`
+      + 'new Handsontable(el, cfg);\n'
+      + 'cfg.columns.forEach(c => new Handsontable(el2, { ...c, locale: \'en-US\' }));\n';
+    const result = await threeRuns(source, CULTURE);
+
+    assert.deepEqual(kinds(result.entries), ['manual']);
+    assert.match(result.entries[0].message, /spread into another one/);
+  });
+});
+
+describe('an object that a type of the project names keeps its keys', () => {
+  const TYPED = [
+    ['an annotated variable', 'interface Mine { correctFormat?: boolean }\nconst cfg: Mine = { correctFormat: true };\n'
+      + 'new Handsontable(el, cfg);', /typed as `Mine`/],
+    ['an `as` cast', 'const cfg = { correctFormat: true } as Mine;\nnew Handsontable(el, cfg);', /typed as `Mine`/],
+    ['a `satisfies` clause', 'const cfg = { correctFormat: true } satisfies Mine;\nnew Handsontable(el, cfg);',
+      /typed as `Mine`/],
+    ['a column cast inline', 'new Handsontable(el, { columns: [{ type: \'date\', correctFormat: true } as Mine] });',
+      /typed as `Mine`/],
+    ['an array of the type',
+      'const cols: Mine[] = [{ correctFormat: true }];\nnew Handsontable(el, { columns: cols });',
+      /typed as `Mine\[\]`/],
+    ['a helper over the type', 'const cfg: Partial<Mine> = { correctFormat: true };\nnew Handsontable(el, cfg);',
+      /typed as `Partial<Mine>`/],
+    ['an inline object type', 'const cfg: { correctFormat: boolean } = { correctFormat: true };\n'
+      + 'new Handsontable(el, cfg);', /typed as `\{ correctFormat: boolean \}`/],
+    ['a class member', 'class A { cfg: Mine = { correctFormat: true }; go() { new Handsontable(el, this.cfg); } }',
+      /typed as `Mine`/],
+  ];
+
+  for (const [label, body, message] of TYPED) {
+    it(`reports and keeps the key of ${label}`, async() => {
+      const result = await threeRuns(`${HEAD}${body}\n`, CORRECT_FORMAT);
+      const entry = result.entries.find(item => item.severity === 'manual');
+
+      assert.ok(entry, result.output);
+      assert.match(entry.message, message);
+      assert.ok(result.output.includes('correctFormat: true'), result.output);
+      assert.ok(!result.entries.some(item => item.severity === 'changed'), result.output);
+    });
+  }
+
+  it('keeps the moved culture of a typed column too', async() => {
+    const source = `${HEAD}const col: Mine = { type: 'numeric', numericFormat: { culture: 'de-DE' } };\n`
+      + 'new Handsontable(el, { columns: [col] });\n';
+    const result = await threeRuns(source, CULTURE);
+
+    assert.deepEqual(kinds(result.entries), ['manual']);
+    assert.ok(result.output.includes('culture: \'de-DE\''), result.output);
+  });
+
+  const HANDSONTABLE = [
+    ['GridSettings', 'const cfg: Handsontable.GridSettings = { correctFormat: true };\nnew Handsontable(el, cfg);'],
+    ['ColumnSettings[]', 'const cols: Handsontable.ColumnSettings[] = [{ correctFormat: true }];\n'
+      + 'new Handsontable(el, { columns: cols });'],
+    ['a cast to GridSettings', 'const cfg = { correctFormat: true } as Handsontable.GridSettings;\n'
+      + 'new Handsontable(el, cfg);'],
+    ['any', 'const cfg: any = { correctFormat: true };\nnew Handsontable(el, cfg);'],
+    ['as const', 'const cfg = { correctFormat: true } as const;\nnew Handsontable(el, cfg);'],
+  ];
+
+  for (const [label, body] of HANDSONTABLE) {
+    it(`still deletes the key of an object typed ${label}`, async() => {
+      const result = await threeRuns(`${HEAD}${body}\n`, CORRECT_FORMAT);
+
+      assert.deepEqual(kinds(result.entries), ['changed'], result.output);
+      assert.ok(!result.output.includes('correctFormat: true'), result.output);
+    });
+  }
 });

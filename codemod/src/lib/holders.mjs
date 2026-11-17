@@ -9,10 +9,10 @@
  * @module lib/holders
  */
 
-import { attributeName, isFunctionNode, memberName, propertyName, unwrapPath } from './ast.mjs';
+import { attributeName, isFunctionNode, memberName, propertyName, typeArguments, unwrapPath } from './ast.mjs';
 import { receiverOfGrid } from './hot-bindings.mjs';
 import { printTree } from './print.mjs';
-import { findReferences, lookup } from './scope.mjs';
+import { findReferences, lookup, patternIdentifiers } from './scope.mjs';
 
 const MEMBERS = new Set(['MemberExpression', 'OptionalMemberExpression']);
 const CALLS = new Set(['CallExpression', 'OptionalCallExpression']);
@@ -27,7 +27,29 @@ const WRAPPERS = new Set([
 ]);
 const SPREADS = new Set(['SpreadElement', 'SpreadProperty', 'ExperimentalSpreadProperty']);
 const MEMO_CALLEES = new Set(['useMemo', 'useCallback']);
+const CAST_TYPES = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSTypeAssertion']);
+// Type helpers that name their first type argument's shape (`Partial<T>`), and the one that names its second.
+const SHAPE_HELPERS = new Set(['Partial', 'Readonly', 'Required', 'Omit', 'Pick', 'Array', 'ReadonlyArray']);
+const NEUTRAL_TYPES = new Set(['TSAnyKeyword', 'TSUnknownKeyword', 'TSNeverKeyword']);
 const READ_OPERATORS = new Set(['==', '!=', '===', '!==', 'in', 'instanceof']);
+// Methods that walk the elements of a value read from the object and hand each one to an inline callback. The numbers
+// are the parameters that carry the elements (the element, and the array itself).
+const ITERATION = new Map([
+  ['forEach', [0, 2]], ['some', [0, 2]], ['every', [0, 2]], ['find', [0, 2]], ['findIndex', [0, 2]],
+  ['findLast', [0, 2]], ['findLastIndex', [0, 2]], ['filter', [0, 2]], ['map', [0, 2]], ['flatMap', [0, 2]],
+]);
+// Iteration methods whose answer is some of the elements, or something made from them: the answer goes on.
+const ITERATION_RESULT = new Set(['find', 'findLast', 'filter', 'map', 'flatMap']);
+// Methods that answer with a part of the value they are called on.
+const VALUE_METHODS = new Set(['at', 'slice', 'concat', 'pop', 'shift', 'splice', 'reverse', 'sort', 'flat']);
+// Methods that answer with a boolean, a number, a string, or nothing, and give no element to anyone.
+const QUIET_METHODS = new Set([
+  'push', 'unshift', 'includes', 'indexOf', 'lastIndexOf', 'join', 'hasOwnProperty', 'toString', 'toLowerCase',
+  'toUpperCase', 'trim', 'startsWith', 'endsWith',
+]);
+const QUIET_GLOBALS = new Set(['String', 'Number', 'Boolean', 'parseInt', 'parseFloat', 'isNaN', 'isFinite']);
+const QUIET_MEMBERS = new Set(['Math', 'console']);
+const QUIET_PAIRS = new Set(['JSON.stringify', 'Array.isArray', 'Object.keys', 'Number.isInteger', 'Number.isFinite']);
 
 /**
  * One use of the variable that holds an object.
@@ -38,6 +60,8 @@ const READ_OPERATORS = new Set(['==', '!=', '===', '!==', 'in', 'instanceof']);
  * @property {number|undefined} line Line of the use.
  * @property {object|null} spreadInto For a spread into an object or an element, the NodePath of the receiver
  * (`ObjectExpression` or `JSXOpeningElement`) and the spread node, else `null`.
+ * @property {object[]} [alsoSpreadInto] More spreads of the same kind, found in the uses of a part of the object that
+ * the code copied into a name (a destructured member, a callback parameter).
  */
 
 /**
@@ -98,12 +122,83 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
   root.find(j.JSXOpeningElement).forEach(path => noteReceivers(path.node.attributes, attributeName));
 
   /**
+   * Whether a type node names a type of the project, one that Handsontable does not export: `MyOptions`,
+   * `MyOptions[]`, `Partial<MyOptions>`, an inline object type. An object held to such a type may be read as that
+   * type elsewhere, so a rule must not change its keys. `GridSettings` and the other types of Handsontable, `any`,
+   * `unknown`, and `as const` are not.
+   *
+   * @param {object|null|undefined} typeNode The type node, or a type annotation.
+   * @returns {boolean} `true` for a type of the project.
+   */
+  const isForeignType = (typeNode) => {
+    const node = typeNode?.type === 'TSTypeAnnotation' || typeNode?.type === 'TSParenthesizedType'
+      ? typeNode.typeAnnotation : typeNode;
+
+    if (!node || NEUTRAL_TYPES.has(node.type)) {
+      return false;
+    }
+
+    switch (node.type) {
+      case 'TSUnionType':
+      case 'TSIntersectionType':
+        return node.types.filter(item => item.type !== 'TSNullKeyword' && item.type !== 'TSUndefinedKeyword')
+          .some(isForeignType);
+      case 'TSArrayType':
+        return isForeignType(node.elementType);
+      case 'TSTypeOperator':
+        return isForeignType(node.typeAnnotation);
+      case 'TSTypeLiteral':
+        return true;
+      case 'TSTypeReference': {
+        const { typeName } = node;
+
+        if (bindings.resolveTypeName(typeName) !== null) {
+          return false;
+        }
+
+        if (typeName.type === 'Identifier') {
+          const args = typeArguments(node);
+
+          if (typeName.name === 'const') {
+            return false;
+          }
+
+          if (SHAPE_HELPERS.has(typeName.name)) {
+            return isForeignType(args[0]);
+          }
+
+          if (typeName.name === 'Record') {
+            return isForeignType(args[1]);
+          }
+        }
+
+        return true;
+      }
+      default:
+        return false;
+    }
+  };
+
+  /**
+   * The text of a type node for a message, `MyOptions`.
+   *
+   * @param {object} typeNode The type node, or a type annotation.
+   * @returns {string} The type as text.
+   */
+  const typeText = (typeNode) => {
+    const text = printTree(j, typeNode?.type === 'TSTypeAnnotation' ? typeNode.typeAnnotation : typeNode)
+      .replace(/\s+/g, ' ').trim();
+
+    return text.length > 40 ? `${text.slice(0, 37)}...` : text;
+  };
+
+  /**
    * What the object a path stands for is stored in: climb through the shapes that keep the object inside a bigger
    * value (a type assertion, an array, a property of another object, a conditional, a `useMemo` callback) to the
    * declaration, assignment, or export that names it.
    *
    * @param {object} objectPath NodePath of an object literal.
-   * @returns {{key: object, kind: 'binding'|'member'|'exported', name?: string, declarator?: object}|null} The
+   * @returns {{key: object, kind: 'binding'|'member'|'exported'|'typed', name?: string, declarator?: object}|null} The
    * holder, or `null` for an object that is handed on inline.
    */
   const holderOf = (objectPath) => {
@@ -117,6 +212,12 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
       }
 
       const { node } = parent;
+
+      // A cast or an annotation to a type of the project: the object is that type's too, and every reader of the type
+      // sees the keys. A type of Handsontable is handled above (`isAnnotated`), or leaves the check to the references.
+      if (CAST_TYPES.has(node.type) && node.expression === current.node && isForeignType(node.typeAnnotation)) {
+        return { key: node, kind: 'typed', type: typeText(node.typeAnnotation), line: node.loc?.start?.line };
+      }
 
       if (WRAPPERS.has(node.type) || node.type === 'ArrayExpression' || SPREADS.has(node.type)
         || (node.type === 'ObjectExpression' && SPREADS.has(current.node.type))) {
@@ -153,11 +254,19 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
       } else if (node.type === 'VariableDeclarator' && node.init === current.node && node.id.type === 'Identifier') {
         const declaration = parent.parent;
 
+        if (isForeignType(node.id.typeAnnotation)) {
+          return { key: node, kind: 'typed', type: typeText(node.id.typeAnnotation), line: node.loc?.start?.line };
+        }
+
         return declaration?.parent?.node.type === 'ExportNamedDeclaration'
           ? { key: node, kind: 'exported' }
           : { key: node, kind: 'binding', name: node.id.name, declarator: parent };
       } else if (node.type === 'ClassProperty' && node.value === current.node && !node.computed
         && node.key.type === 'Identifier') {
+        if (isForeignType(node.typeAnnotation)) {
+          return { key: node, kind: 'typed', type: typeText(node.typeAnnotation), line: node.loc?.start?.line };
+        }
+
         return { key: node, kind: 'member', name: node.key.name };
       } else if (node.type === 'AssignmentExpression' && node.right === current.node && node.operator === '=') {
         const left = unwrapPath(parent.get('left'));
@@ -215,14 +324,85 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
     return text.length > 40 ? `${text.slice(0, 37)}...` : text;
   };
 
+  let classify;
+
+  /**
+   * The uses of the names that take a part of the object (a destructured member, an alias of a member read, the
+   * parameter of a callback): the first one the tool does not understand wins, and every spread is kept.
+   *
+   * @param {string[]} names The declared names.
+   * @param {object} scopePath A path inside the scope that declares them.
+   * @param {number|undefined} line Line of the use that copied the part.
+   * @param {Set<object>} seen The bindings already followed, so a cycle ends.
+   * @returns {Use} The use.
+   */
+  const followNames = (names, scopePath, line, seen) => {
+    const spreads = [];
+
+    for (const name of names) {
+      const binding = lookup(scopePath, name, 'value');
+
+      if (!binding) {
+        return { other: 'used here', line, spreadInto: null };
+      }
+
+      if (seen.has(binding.idNode)) {
+        continue;
+      }
+
+      seen.add(binding.idNode);
+
+      for (const reference of findReferences(j, root, binding)) {
+        const use = classify(reference, true, seen);
+
+        if (use.other !== null) {
+          return use;
+        }
+
+        if (use.spreadInto) {
+          spreads.push(use.spreadInto);
+        }
+
+        spreads.push(...use.alsoSpreadInto ?? []);
+      }
+    }
+
+    return { other: null, line, spreadInto: spreads[0] ?? null, alsoSpreadInto: spreads.slice(1) };
+  };
+
+  /**
+   * Whether a call is one that only reads what it is given (`console.log()`, `Number()`, `JSON.stringify()`).
+   *
+   * @param {object} callee NodePath of the callee.
+   * @returns {boolean} `true` for a call that gives its arguments to no one.
+   */
+  const isQuietCall = (callee) => {
+    const { node } = callee;
+
+    if (node.type === 'Identifier') {
+      return QUIET_GLOBALS.has(node.name) && !lookup(callee, node.name, 'value');
+    }
+
+    if (!MEMBERS.has(node.type) || node.object.type !== 'Identifier' || lookup(callee, node.object.name, 'value')) {
+      return false;
+    }
+
+    return QUIET_MEMBERS.has(node.object.name) || QUIET_PAIRS.has(`${node.object.name}.${memberName(node)}`);
+  };
+
   /**
    * Whether a reference to the object is a use of the grid's own settings, and what it is when not.
    *
    * @param {object} reference NodePath of the reference (an identifier or a member expression).
+   * @param {boolean} [read] Whether the reference is a value that was read from the object (a member, an element, a
+   * destructured part) and not the object itself. Such a value is the object's too, because it is the same
+   * object, but a read that ends in an expression gives no object to anyone (`cfg.title + 'x'`).
+   * @param {Set<object>} [seen] The bindings followed so far.
    * @returns {Use} The use.
    */
-  const classify = (reference) => {
+  classify = (reference, read = false, seen = new Set()) => {
     let current = reference;
+    let reads = read;
 
     while (current.parent && WRAPPERS.has(current.parent.node.type)
       && current.parent.node.expression === current.node) {
@@ -232,6 +412,11 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
     const line = current.node.loc?.start?.line;
     const other = what => ({ other: what, line, spreadInto: null });
     const fine = { other: null, line, spreadInto: null };
+    const skipWrappers = () => {
+      while (current.parent && WRAPPERS.has(current.parent.node.type)) {
+        current = current.parent;
+      }
+    };
 
     for (;;) {
       const parent = current.parent;
@@ -245,20 +430,46 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
       switch (node.type) {
         case 'MemberExpression':
         case 'OptionalMemberExpression':
-          return node.object === current.node ? fine : other('used here');
+          if (node.object !== current.node) {
+            return other('used here');
+          }
+
+          // A member of the object is the object's too: it goes wherever the read goes.
+          reads = true;
+          current = parent;
+          skipWrappers();
+
+          continue;
         case 'ExpressionStatement':
           return fine;
         case 'UnaryExpression':
-          // A read that only asks about the value (`typeof x`, `!x`, `void x`) never gives the object to anyone.
-          return ['typeof', '!', 'void'].includes(node.operator) ? fine : other('used here');
+          // A read that only asks about the value (`typeof x`, `!x`, `void x`) never gives the object to anyone, and a
+          // member read ends in a primitive under any other operator (`delete cfg.key`, `-cfg.size`).
+          return reads || ['typeof', '!', 'void'].includes(node.operator) ? fine : other('used here');
+        case 'UpdateExpression':
+          return reads ? fine : other('used here');
         case 'BinaryExpression':
           // A comparison, `'key' in x`, and `x instanceof Y` give a boolean, not the object.
-          return READ_OPERATORS.has(node.operator) ? fine : other('used here');
+          return reads || READ_OPERATORS.has(node.operator) ? fine : other('used here');
+        case 'TemplateLiteral':
+          return reads ? fine : other('used here');
         case 'IfStatement':
         case 'WhileStatement':
         case 'DoWhileStatement':
         case 'ForStatement':
           return node.test === current.node ? fine : other('used here');
+        case 'ForInStatement':
+          // The loop gets the keys.
+          return node.right === current.node ? fine : other('used here');
+        case 'ForOfStatement': {
+          if (!reads || node.right !== current.node || node.left.type !== 'VariableDeclaration') {
+            return other('used here');
+          }
+
+          const names = patternIdentifiers(node.left.declarations[0]?.id).map(id => id.name);
+
+          return followNames(names, parent.get('body'), line, seen);
+        }
         case 'LogicalExpression':
           // `x && y` gives `y` when `x` is an object, so `x` on the left is a test. Any other operand can be the value
           // of the whole expression, which then goes wherever the expression goes.
@@ -267,28 +478,96 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
           }
 
           current = parent;
-
-          while (current.parent && WRAPPERS.has(current.parent.node.type)) {
-            current = current.parent;
-          }
+          skipWrappers();
 
           continue;
-        case 'AssignmentExpression':
-          return node.left === current.node
-            ? fine : other(`assigned to \`${printTree(j, node.left).trim()}\``);
-        case 'VariableDeclarator':
-          return node.id.type === 'ObjectPattern' ? fine : other(`assigned to \`${printTree(j, node.id).trim()}\``);
+        case 'AssignmentExpression': {
+          if (node.left === current.node) {
+            return fine;
+          }
+
+          // `total += c.width` makes a number. `w = cfg.width` puts the part under another name.
+          if (reads && !['=', '||=', '&&=', '??='].includes(node.operator)) {
+            return fine;
+          }
+
+          return reads && node.operator === '=' && node.left.type === 'Identifier'
+            ? followNames([node.left.name], parent, line, seen)
+            : other(`assigned to \`${printTree(j, node.left).trim()}\``);
+        }
+        case 'VariableDeclarator': {
+          if (node.init !== current.node) {
+            return other('used here');
+          }
+
+          // The object itself under another name is a second holder. A part of it, a destructured member or a
+          // member read, is the same object under that name, so every use of the name counts.
+          if (node.id.type === 'Identifier' && !reads) {
+            return other(`assigned to \`${printTree(j, node.id).trim()}\``);
+          }
+
+          if (parent.parent?.parent?.node.type === 'ExportNamedDeclaration') {
+            return other('exported');
+          }
+
+          return followNames(patternIdentifiers(node.id).map(id => id.name), parent, line, seen);
+        }
         case 'NewExpression':
           return node.callee !== current.node && bindings.isInstance(parent) ? fine
             : other(`passed to \`new ${calleeText(node)}()\``);
         case 'CallExpression':
         case 'OptionalCallExpression': {
           if (node.callee === current.node) {
+            const method = reads && MEMBERS.has(current.node.type) ? memberName(current.node) : null;
+
+            if (method !== null && ITERATION.has(method) && isFunctionNode(node.arguments[0])) {
+              const callback = parent.get('arguments', 0);
+              const indexes = ITERATION.get(method);
+              const names = callback.node.params
+                .filter((param, index) => indexes.includes(index))
+                .flatMap(param => patternIdentifiers(param).map(id => id.name));
+              const use = followNames(names, callback.get('body'), line, seen);
+
+              if (use.other !== null || !ITERATION_RESULT.has(method)) {
+                return use;
+              }
+
+              // `find()`, `filter()`, and `map()` answer with the elements or what the callback made of them.
+              current = parent;
+              skipWrappers();
+
+              const rest = classify(current, true, seen);
+              const spreads = [use.spreadInto, ...use.alsoSpreadInto ?? [], rest.spreadInto,
+                ...rest.alsoSpreadInto ?? []].filter(Boolean);
+
+              return rest.other !== null ? rest
+                : { ...rest, spreadInto: spreads[0] ?? null, alsoSpreadInto: spreads.slice(1) };
+            }
+
+            if (method !== null && ITERATION.has(method)) {
+              return other(`handed to a callback by \`${calleeText(node)}()\``);
+            }
+
+            if (method !== null && QUIET_METHODS.has(method)) {
+              return fine;
+            }
+
+            if (method !== null && VALUE_METHODS.has(method)) {
+              current = parent;
+              skipWrappers();
+
+              continue;
+            }
+
             return other(`called as \`${calleeText(node)}()\``);
           }
 
           if (node.callee.type === 'Identifier' && node.callee.name === 'Boolean' && node.arguments[0] === current.node
             && !lookup(parent.get('callee'), 'Boolean', 'value')) {
+            return fine;
+          }
+
+          if (reads && isQuietCall(unwrapPath(parent.get('callee')))) {
             return fine;
           }
 
@@ -316,6 +595,13 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
               : other('spread into an object that is not Handsontable options');
           }
 
+          if (receiver?.node.type === 'ArrayExpression') {
+            current = receiver;
+            skipWrappers();
+
+            continue;
+          }
+
           return other('spread here');
         }
         case 'JSXSpreadAttribute': {
@@ -328,6 +614,10 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
         case 'JSXExpressionContainer': {
           const attribute = parent.parent;
           const element = attribute?.node.type === 'JSXAttribute' ? attribute.parent : null;
+
+          if (reads && !element && ['JSXElement', 'JSXFragment'].includes(attribute?.node.type)) {
+            return fine;
+          }
 
           return element && bindings.getComponent(element)
             ? fine : other('passed to a component that is not a Handsontable wrapper');
@@ -346,19 +636,39 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
           }
 
           current = parent;
-
-          while (current.parent && WRAPPERS.has(current.parent.node.type)) {
-            current = current.parent;
-          }
+          skipWrappers();
 
           continue;
         case 'ExportSpecifier':
         case 'ExportDefaultDeclaration':
           return other('exported');
         case 'ReturnStatement':
+        case 'ArrowFunctionExpression': {
+          let fn = parent;
+
+          while (fn && !isFunctionNode(fn.node)) {
+            fn = fn.parent;
+          }
+
+          const call = reads && fn ? fn.parent : null;
+          const method = call && CALLS.has(call.node.type) && call.node.arguments[0] === fn.node
+            && MEMBERS.has(unwrapPath(call.get('callee')).node.type) ? memberName(call.node.callee) : null;
+
+          if (method !== null && ITERATION.has(method)) {
+            if (!ITERATION_RESULT.has(method) || method === 'filter' || method === 'find') {
+              // The callback's answer is a test or is dropped.
+              return fine;
+            }
+
+            // `map()` and `flatMap()` collect what the callback returns.
+            current = call;
+            skipWrappers();
+
+            continue;
+          }
+
           return other('returned');
-        case 'ArrowFunctionExpression':
-          return other('returned');
+        }
         default:
           return other('used here');
       }
@@ -391,6 +701,14 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
     if (!cache.has(holder.key)) {
       const held = { other: null, otherLine: undefined, spreads: [] };
 
+      if (holder.kind === 'typed') {
+        held.other = `typed as \`${holder.type}\``;
+        held.otherLine = holder.line;
+        cache.set(holder.key, held);
+
+        return held;
+      }
+
       if (holder.kind === 'exported') {
         held.other = 'exported';
       }
@@ -403,8 +721,8 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
           held.otherLine = use.line;
         }
 
-        if (use.spreadInto) {
-          held.spreads.push({ ...use.spreadInto, names: around.get(use.spreadInto.spread) });
+        for (const spread of [use.spreadInto, ...use.alsoSpreadInto ?? []].filter(Boolean)) {
+          held.spreads.push({ ...spread, names: around.get(spread.spread) });
         }
       }
 

@@ -118,7 +118,9 @@ handsontable-codemod migrate [paths...] [options]
 
 `paths` are files or directories, relative to the current directory. The default is the current directory. The tool
 skips `node_modules`, `dist`, `build`, `coverage`, `.git`, minified files, and `.d.ts` files. A file you name on the
-command line skips the generated-output filter.
+command line skips the generated-output filter, but not the other rules: a file below `node_modules`, and a file git
+ignores, is left alone when you name it, as it is when you name its directory, and the "No files to migrate." note says
+why.
 
 Inside a git repository the tool reads the files git lists: tracked files, and untracked files that git does not
 ignore. "Ignored" is what git says, so the `.gitignore` files above the project, `.git/info/exclude`, and your global
@@ -175,10 +177,11 @@ about the run itself, such as a `--to` above every known migration, come first. 
 
 - **Read once.** A note that holds for every file, such as "CellValue is now `unknown`", appears one time with the
   files it applies to, not once per file.
-- **Skipped files.** Files and blocks the tool did not analyze: Less, Stylus, and Sass files, Vue `<style>` blocks in
-  those languages or with `src=`, HTML pages with inline scripts that use Handsontable, files that are not valid UTF-8
-  (the tool reads and writes UTF-8 only, so it leaves such a file as it is), and files above `--max-file-size`. Check
-  them by hand.
+- **Skipped files.** Files and blocks the tool did not analyze: Less, Stylus, Sass, and PostCSS (`.pcss`, `.postcss`)
+  files, Svelte, Astro, and MDX files, Vue `<style>` blocks in those languages or with `src=`, HTML pages with inline
+  scripts that use Handsontable, files that are not valid UTF-8 (the tool reads and writes UTF-8 only, so it leaves
+  such a file as it is), files above `--max-file-size`, and files with a line of more than 20,000 characters (a minified
+  or generated file costs a full parse and is no source to migrate; a `package.json` is exempt). Check them by hand.
 
 A package whose `handsontable` range is below `--from` is not raised, because the steps from its own version were not
 selected. The tool warns once for that `package.json` (also on standard error, with exit code 0) and names the `--from`
@@ -189,8 +192,10 @@ has a title with the versions and the date, then the same line, every location, 
 the migration guide section of each rule. The tool refuses a `--report` path that is a symbolic link or sits below
 one inside the project directory, one that is spelled outside the project and reaches it through a link, a file git
 tracks, a file it migrates (found by what the file system says, so another letter case or a hard link
-does not get past the check), an existing file of a type the tool migrates, a directory, an existing file you cannot
-write, or a file in a directory that does not exist or cannot be written. A link on the part of the path outside the
+does not get past the check), an existing file of a type the tool migrates, a path inside a `.git` directory, a
+directory, an existing file you cannot write, an existing file whose first line is not the report title
+(`# Handsontable migration report`, so the file of a previous run is replaced and any other file is not, inside the
+project or outside it), or a file in a directory that does not exist or cannot be written. A link on the part of the path outside the
 project directory does not matter (`/tmp` is a link on macOS), and a refusal names the link as you typed it. It checks
 the path before it changes any file.
 A control character in a file name or a source line (an escape sequence) is printed as `\x1b`, in the console, the
@@ -206,7 +211,7 @@ Each migration follows one page of the Handsontable migration guide, and each ru
 
 | Migration | Rules | Rewrite | Report |
 |---|---|---|---|
-| 17.x to 18.0 | 105 | 41 | 64 |
+| 17.x to 18.0 | 106 | 41 | 65 |
 | 18.0 to 18.1 | 8 | 1 | 7 |
 
 `npm run test --prefix codemod` fails when these numbers differ from the output of `--list`. A rule is a `rewrite`
@@ -216,7 +221,7 @@ rule when its manifest entry says `safe: true`, and a `report` rule otherwise.
 |---|---|---|---|
 | `importSource` | 3 | 0 | Named imports that moved to another entry point, such as `handsontable/common`. |
 | `exportRename` | 13 | 0 | Type names that changed. A rename to a type of another shape is applied, and its rule reports one note that says what changed in the shape. |
-| `namespaceType` | 15 | 12 | `Handsontable.X` types that became named imports, and the ones that were removed. |
+| `namespaceType` | 15 | 13 | `Handsontable.X` types that became named imports, and the ones that were removed. |
 | `exportRemoved` | 0 | 35 | Names that an entry point no longer exports. The import stays and gets a TODO. |
 | `optionRename` | 1 | 0 | An option that changed its name. |
 | `optionMove` | 1 | 0 | An option that moved, such as `numericFormat.culture` to `locale`. |
@@ -250,7 +255,8 @@ The 19.0 draft follows `19.0.0-rc1`, the first release candidate (the `rc` tag o
 against that package, and the type changes it covers come from the difference between 18.1.2 and `19.0.0-rc1`. The
 19.0 scope is frozen, but the draft stays a draft until 19.0 is released as stable. A run writes `^19.0.0` for
 `handsontable` and the three wrappers, and no published version satisfies that range yet, because a release
-candidate never matches it. Until then, install the candidate with `npm install handsontable@rc`.
+candidate never matches it. Until then, install the candidate with `npm install handsontable@rc`. A run that includes a
+draft migration and rewrites a `package.json` prints this advice under its "Next:" lines.
 
 ### 17.x to 18.0
 
@@ -516,7 +522,8 @@ the tool reads the version from `package.json`, which the run raised, and answer
   the inserted `/* TODO(...) */` comments differ: comments, strings, and spacing keep their bytes. A declaration whose
   value holds a comment is reported, not edited.
 - A `.vue` file is read block by block. `less`, `stylus`, `sass`, and `src=` blocks are not read. They are listed
-  under "Skipped files", and so are Less, Stylus, and Sass files.
+  under "Skipped files", and so are Less, Stylus, Sass, PostCSS, Svelte, Astro, and MDX files that name Handsontable or
+  a theme variable.
 - A file that does not parse is skipped and reported, and the run exits with code 1.
 - It handles `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, `.cts`, `.vue`, `.css`, `.scss`, `.html`, `.htm`,
   and `package.json`.
@@ -594,7 +601,11 @@ the tool reads the version from `package.json`, which the run raised, and answer
 - Assignments such as `column.numericFormat = {...}`, `setCellMeta(row, col, 'correctFormat', ...)` calls, and
   `setCellMetaObject()` calls on a receiver the tool cannot confirm as a grid instance are reported and not rewritten.
 - It does not edit `overrides`, `resolutions`, `pnpm.overrides`, `npm:` aliases, or CDN URLs. It reports the ones that
-  hold Handsontable or a wrapper below the target version.
+  hold Handsontable or a wrapper below the target version, and the ones that install it from a git repository or a URL,
+  as it does for a dependency with such a spec.
+- It does not edit `peerDependencies`. A peer range is the contract of a package with its consumers, and raising it
+  drops the older versions for every one of them, so the report names the range and says how to widen it. A peer range
+  that already allows the target gets no entry.
 - It does not edit a `catalog:` or `catalog:<name>` spec, or `pnpm-workspace.yaml`. The range lives in the catalog, so
   the report says to set it in the `catalog` (or `catalogs.<name>`) section of the nearest `pnpm-workspace.yaml`, not
   in `package.json`, where it would take the package out of the catalog. It reads that file with a line scan for the

@@ -8,5 +8,11 @@
   },
   "inlineScriptChecks": ["numeric and date formats", "removed options", "HTML that needs a sanitizer"],
   "include": ["rules/dependencies.json", "rules/styles.json", "rules/options.json", "rules/methods.json", "rules/imports.json", "rules/types.json", "rules/detect.json"],
-  "rules": []
+  "rules": [],
+  "notAutomated": [
+    {
+      "title": "Handsontable.version is typed string | undefined",
+      "reason": "It fails to compile only where a TypeScript build dereferences the value, and no matcher can tell a typed read from the same read in a plain JavaScript file."
+    }
+  ]
 }

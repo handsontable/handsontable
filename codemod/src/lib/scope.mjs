@@ -629,10 +629,11 @@ export function referenceSpace(path) {
  * @param {object} j The jscodeshift API.
  * @param {object} root A Collection or NodePath to search in.
  * @param {Binding} binding The binding.
+ * @param {Map<string, object[]>} [index] The result of `identifierIndex()` for this tree. With it the search reads only
+ * the identifiers of the binding's name, and does not traverse the tree.
  * @returns {object[]} NodePaths of the `Identifier` and `JSXIdentifier` nodes that refer to the binding.
  */
-export function findReferences(j, root, binding) {
-  const collection = typeof root.find === 'function' ? root : j(root);
+export function findReferences(j, root, binding, index) {
   const found = [];
   const visit = (path) => {
     // ast-types lets `find(j.Identifier)` match a `TSTypeParameter` too, which is a declaration.
@@ -648,8 +649,48 @@ export function findReferences(j, root, binding) {
     }
   };
 
+  if (index) {
+    (index.get(binding.name) ?? []).forEach(visit);
+
+    return found;
+  }
+
+  const collection = typeof root.find === 'function' ? root : j(root);
+
   collection.find(j.Identifier).forEach(visit);
   collection.find(j.JSXIdentifier).forEach(visit);
 
   return found;
+}
+
+/**
+ * Group every identifier of a tree by name, in one traversal, for `findReferences()`. A caller that asks about many
+ * bindings of one tree passes the result as the `index` argument, so each question reads the identifiers of its own
+ * name and not the whole tree. The index holds the paths of the tree as it is now: build it only for a tree that is not
+ * edited while the index is in use.
+ *
+ * @param {object} j The jscodeshift API.
+ * @param {object} root The parsed Collection, or a node.
+ * @returns {Map<string, object[]>} NodePaths of the `Identifier` and `JSXIdentifier` nodes by name, `Identifier` paths
+ * first, each group in tree order, the order `findReferences()` returns without an index.
+ */
+export function identifierIndex(j, root) {
+  const collection = typeof root.find === 'function' ? root : j(root);
+  const index = new Map();
+
+  for (const type of [j.Identifier, j.JSXIdentifier]) {
+    collection.find(type).forEach((path) => {
+      if (path.node.type === 'Identifier' || path.node.type === 'JSXIdentifier') {
+        const list = index.get(path.node.name);
+
+        if (list) {
+          list.push(path);
+        } else {
+          index.set(path.node.name, [path]);
+        }
+      }
+    });
+  }
+
+  return index;
 }

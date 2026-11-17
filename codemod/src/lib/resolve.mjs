@@ -12,7 +12,7 @@
  */
 
 import { isPatternTarget, memberName, propertyName, stringValue, unwrapPath } from './ast.mjs';
-import { findReferences, lookup } from './scope.mjs';
+import { findReferences, identifierIndex, lookup } from './scope.mjs';
 
 const MEMBERS = new Set(['MemberExpression', 'OptionalMemberExpression']);
 const CALLS = new Set(['CallExpression', 'OptionalCallExpression']);
@@ -87,6 +87,11 @@ function onlyReads(call, argument) {
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
+ * @param {object} [options] Options.
+ * @param {boolean} [options.stable] The caller never edits the tree while it uses the resolver (a report-only transform
+ * such as `detect`). The identifiers of the tree are then indexed by name once, and `exact` answers for any number of
+ * bindings cost one traversal and not one each. Leave it off when the tree is edited, because the index holds the
+ * paths of the tree as it was when it was built.
  * @returns {{hop: (path: object, options?: {exact?: boolean}) => object|null, stringOf: (path: object) => string|null,
  * spreadsOf: (objectPath: object, options?: {exact?: boolean}) => object[]|null}} The resolver. `hop()` returns the
  * NodePath of the value behind a reference (type assertions stripped), or `null` when the reference is not resolved
@@ -94,8 +99,9 @@ function onlyReads(call, argument) {
  * a literal or a resolved reference holds, else `null`. `spreadsOf()` returns the object literals that the spread
  * elements of an object stand for, or `null` when any spread is not an object literal or a resolved reference to one.
  */
-export function createHop(j, root) {
+export function createHop(j, root, { stable = false } = {}) {
   let declarators = null;
+  let identifiers = null;
   const mutated = new Map();
 
   /**
@@ -109,7 +115,9 @@ export function createHop(j, root) {
    */
   const isMutated = (binding) => {
     if (!mutated.has(binding.idNode)) {
-      mutated.set(binding.idNode, findReferences(j, root, binding).some((reference) => {
+      const index = stable ? (identifiers ??= identifierIndex(j, root)) : undefined;
+
+      mutated.set(binding.idNode, findReferences(j, root, binding, index).some((reference) => {
         const parent = reference.parent?.node;
 
         if (CALLS.has(parent?.type)) {

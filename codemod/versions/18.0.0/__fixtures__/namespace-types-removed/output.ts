@@ -42,3 +42,8 @@ export let debounced: Handsontable.helper.DebouncedFunction;
 export let intlDate: Handsontable.cellTypes.intlDate.cellType;
 // TODO(handsontable-codemod 18.0.0/ns-intl-celltype): Remove this reference or describe the shape inline, because 18.0 removed it from the... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-removed-handsontable-namespace-types
 export let intlTime: Handsontable.cellTypes.intlTime.cellType;
+// TODO(handsontable-codemod 18.0.0/ns-languages-types): Remove this reference or describe the shape inline, because 18.0 removed it from the... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-removed-handsontable-namespace-types
+export let dictionary: Handsontable.languages.dictionaryKeys;
+// TODO(handsontable-codemod 18.0.0/ns-languages-types): Remove this reference or describe the shape inline, because 18.0 removed it from the... See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#replace-removed-handsontable-namespace-types
+export let other: Handsontable.languages.languageDictionary;
+export const loaded = Handsontable.languages.getLanguageDictionary('en-US');

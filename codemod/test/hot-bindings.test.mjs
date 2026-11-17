@@ -259,6 +259,26 @@ describe('isInstance', () => {
 
       assert.deepEqual(answers, [true, true]);
     });
+
+    it(`does not take a grid for the instance when a cast or an annotation names a type of the project (${parser})`, () => {
+      const answers = probes([
+        'import Handsontable from \'handsontable\';',
+        'const a = new Handsontable(el, {}) as MyUndo;',
+        'const b: MyUndo = new Handsontable(el, {});',
+        'let c: MyUndo; c = new Handsontable(el, {});',
+        'const e = (new Handsontable(el, {}) as MyUndo)!;',
+        'const f = new Handsontable(el, {}) as unknown as MyUndo;',
+        'const g = new Handsontable(el, {}) satisfies Handsontable;',
+        'const h = new Handsontable(el, {}) as unknown as Handsontable;',
+        'const i: Handsontable = new Handsontable(el, {});',
+        'const k: any = new Handsontable(el, {});',
+        'a.probe(); b.probe(); c.probe(); e.probe(); f.probe(); g.probe(); h.probe(); i.probe(); k.probe();',
+        '(new Handsontable(el, {}) as MyUndo).probe();',
+        'class A { hot: MyUndo = new Handsontable(el, {}); run() { this.hot.probe(); } }',
+      ].join('\n'), parser);
+
+      assert.deepEqual(answers, [false, false, false, false, false, true, true, true, true, false, false]);
+    });
   }
 });
 

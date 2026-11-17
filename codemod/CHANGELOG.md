@@ -46,6 +46,11 @@ How versions are chosen:
 - Reports for `Handsontable.helper.sanitize` read through a destructured helper (`const { helper } = Handsontable`),
   and for an exported alias or reference of the function.
 
+- Two rules: `19.0.0/update-settings-data-schema` and `18.0.0/ns-languages-types`. The 18.0 manifest lists
+  `Handsontable.version` as `string | undefined` under `notAutomated`. The reason of `18.0.0/type-dataprovider-options`
+  names why the type is renamed. The 17.1 to 18.0 guide has a section on importing
+  the theme functions from `handsontable/themes`, which the two theme registry rules link.
+
 ### Changed
 
 - The 19.0 draft follows `19.0.0-rc1`. Its exports diff is made from `handsontable` 18.1.2 and `19.0.0-rc1` (the
@@ -55,6 +60,22 @@ How versions are chosen:
   headings holds the sections up to 62.
 - The test diagnostic that counts the headings of the live 19.0 guide missing from the snapshot compares every heading
   level with the snapshot, and no longer lists the `Who is affected` and `How to migrate` subsections as new.
+
+- `peerDependencies` is no longer rewritten. A peer range below the target gets one `manual` entry that says how to
+  widen it, because raising it drops the older versions for every consumer of the package, and a range that already
+  allows the target gets none. An `overrides`, `resolutions`, or `pnpm.overrides` entry that installs Handsontable
+  from a git repository or a URL gets an entry, as the same spec in `dependencies` does.
+- `18.0.0/numeric-format-culture` moves `numericFormat.culture` to `locale` only in a numeric column (a `type: 'numeric'`
+  of the column or of the settings above it, or the numeric renderer). A text column, a column with no type, and a type
+  the file does not show get a report instead, because `numericFormat` is ignored there and `locale` is not.
+- `themeToken` rules read the keys of the `tokens` object only. A key of `colors`, `icons`, `sizing`, or `density` that
+  is spelled like a token is no token.
+- `18.1.0/column-move-hooks` leaves no TODO in the code, and says that it matters only to code that detects a header
+  click. `18.1.0/loading-markup` also reads the `title` and `description` of `show()` and `update()` on the loading
+  plugin. `18.0.0/helper-sanitize` says that 19.0 removes the helper.
+- A part of a settings object that goes to other code (`legacy(cfg.columns[0])`, a destructured member, an iteration
+  callback parameter), and an object typed with a type of the project, hold the object like a use of the whole object:
+  the options in it are reported and not rewritten. A grid cast or declared as a type of the project is not an instance.
 
 ### Fixed
 

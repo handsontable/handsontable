@@ -376,6 +376,22 @@
         ]
       },
       "message": "Check what this updateSettings() call expects from a grid with a dataProvider. Handsontable 19.0 ignores data, keeps the rows when the same dataProvider object is passed again, and fetches the rows again when the call passes pagination, columnSorting, filters, or columns, where 18.1 emptied the grid or sent no request. To load the rows again, call hot.getPlugin('dataProvider').fetchData()."
+    },
+    {
+      "id": "19.0.0/update-settings-data-schema",
+      "kind": "detect",
+      "safe": false,
+      "severity": "manual",
+      "files": ["js"],
+      "requires": "hot-file",
+      "guide": "changing-dataschema-resets-the-grids-index-state",
+      "match": {
+        "allOf": [
+          { "call": "updateSettings", "receiver": "grid" },
+          { "property": "dataSchema" }
+        ]
+      },
+      "message": "Check whether this updateSettings() call changes dataSchema on a grid that sets no columns. Handsontable 19.0 compares the columns the new schema defines with the grid's columns, and when they differ it re-initializes the row and column index mappers, which resets the order of columns and rows that users or the API changed, sorting and filtering, hidden and trimmed rows and columns, and the sizes users dragged. A call that sends data alone keeps that state. To keep it, read it before the call and apply it again after it, for example with getSortConfig() and sort()."
     }
   ]
 }

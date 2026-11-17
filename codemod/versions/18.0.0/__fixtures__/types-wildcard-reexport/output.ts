@@ -14,7 +14,7 @@ export * as nested from 'handsontable/plugins/nestedHeaders';
 export type * from 'handsontable/plugins/filters';
 // TODO(handsontable-codemod 18.0.0/type-registry-maps): Check CellTypes, Editors, Renderers, Validators, which this export * may pass on.
 export * from 'handsontable/editors';
-// TODO(handsontable-codemod 18.0.0/theme-registry-imports-main): Replace "handsontable" here by hand.
+// TODO(handsontable-codemod 18.0.0/theme-registry-imports-main): Replace "handsontable" here by hand. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#import-the-theme-functions-from-the-themes-entry-point
 export * from 'handsontable';
 
 // Another module, and a file of the project: nothing to say.

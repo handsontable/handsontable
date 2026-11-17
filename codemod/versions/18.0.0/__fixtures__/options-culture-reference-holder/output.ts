@@ -9,6 +9,7 @@ const FORMAT = { culture: 'de-CH' };
 const PLAIN = { style: 'percent' };
 
 new Handsontable(document.body, {
+  type: 'numeric',
   columns: [
     // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Move numericFormat.culture to locale by hand: numericFormat comes from a variable that sets culture. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
     { data: 'a', numericFormat: PRESET.eur },

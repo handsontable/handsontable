@@ -163,6 +163,16 @@ describe('the wording of the report entries', () => {
       + 'ExportFileSettings. Settings is deprecated in 18.0 and removed in 19.0.');
   });
 
+  it('says why DataProviderOptions is renamed to DataProviderFetchOptions', async() => {
+    const rename = await run('import type { DataProviderOptions } from \'handsontable/plugins/dataProvider\';\n'
+      + 'let o: DataProviderOptions;\n', 'a.ts');
+    const [entry] = rename.entries.filter(item => item.ruleId === '18.0.0/type-dataprovider-options');
+
+    assert.equal(entry.message, 'Renamed the DataProviderOptions import from "handsontable/plugins/dataProvider" to '
+      + 'DataProviderFetchOptions. DataProviderOptions is deprecated in 18.0 and removed in 19.0. It is the type of '
+      + 'the options argument of fetchRows.');
+  });
+
   it('names the exported name of a namespace type, and the local alias only as "available here as"', async() => {
     const plain = await run('import Handsontable from \'handsontable\';\n'
       + 'let s: Handsontable.plugins.ExportFile.Settings;\n', 'a.ts');
@@ -189,7 +199,8 @@ describe('the wording of the report entries', () => {
 
   it('says what 18.0 does with a locale and culture that differ', async() => {
     const result = await run('import Handsontable from \'handsontable\';\n'
-      + 'new Handsontable(el, { columns: [{ locale: \'fr-FR\', numericFormat: { culture: \'de-DE\' } }] });\n', 'a.js');
+      + 'new Handsontable(el, { columns: [{ type: \'numeric\', locale: \'fr-FR\', '
+      + 'numericFormat: { culture: \'de-DE\' } }] });\n', 'a.js');
     const [entry] = result.entries.filter(item => item.ruleId === '18.0.0/numeric-format-culture');
 
     assert.equal(entry.message, 'Set locale to \'de-DE\' if that was intended, then remove culture. 18.0 formats '

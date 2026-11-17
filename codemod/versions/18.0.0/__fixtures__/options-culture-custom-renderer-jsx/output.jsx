@@ -10,7 +10,7 @@ export function Grid({ rows, quoteRenderer }) {
       {/* TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat */}
       <HotColumn data="c" renderer="numeric" locale="pl-PL" numericFormat={{}} />
       {/* TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat */}
-      <HotColumn data="d" locale="en-GB" numericFormat={{}} />
+      <HotColumn data="d" type="numeric" locale="en-GB" numericFormat={{}} />
     </HotTable>
   );
 }

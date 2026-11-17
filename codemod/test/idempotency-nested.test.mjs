@@ -135,7 +135,7 @@ const BODIES = [
     plan: buildPlan(manifests, ['18.0.0/date-picker-config-removed', '18.0.0/numeric-format-culture']),
     // A cell object, because the move of a grid-level culture is only reported. The pattern keeps the note about the
     // number format out, so the object holds one TODO.
-    code: 'hot.setCellMetaObject(0, 0, { numericFormat: { culture: \'nb-NO\', pattern: \'0,0\' }, '
+    code: 'hot.setCellMetaObject(0, 0, { type: \'numeric\', numericFormat: { culture: \'nb-NO\', pattern: \'0,0\' }, '
       + 'datePickerConfig: cfg() });',
   },
   {

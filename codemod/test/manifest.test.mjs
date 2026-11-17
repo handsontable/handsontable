@@ -329,6 +329,60 @@ describe('loadManifest', () => {
     });
   });
 
+  it('rejects a from that is not a string, with a manifest error and not a TypeError', async() => {
+    await withVersionsDir(async(root) => {
+      for (const [version, from] of [['18.0.0', 17], ['19.0.0', 17.1], ['20.0.0', ['17']], ['21.0.0', null],
+        ['22.0.0', { line: 17 }]]) {
+        const dir = await writeVersion(root, version, { from });
+
+        await assert.rejects(loadManifest(dir), (error) => {
+          return error instanceof ManifestError && /"from" must name the version line/.test(error.message);
+        }, JSON.stringify(from));
+      }
+    });
+  });
+
+  it('fails when the versions directory holds a directory that is not named for a full semver version', async() => {
+    await withVersionsDir(async(root) => {
+      await writeVersion(root, '18.0.0', {});
+      await writeVersion(root, '19.0', {});
+      await writeVersion(root, 'v19.0.0', {});
+      await mkdir(join(root, '.cache'));
+
+      await assert.rejects(loadManifests(root), (error) => {
+        return error instanceof ManifestError
+          && /not named for a full semver version.*"19\.0", "v19\.0\.0"/.test(error.message)
+          && !/\.cache/.test(error.message);
+      });
+    });
+  });
+
+  it('fails for a twin that names no rule, and loads one that names a rule of another manifest', async() => {
+    await withVersionsDir(async(root) => {
+      const rule = (id, extra = {}) => ({
+        id, kind: 'detect', files: ['js'], message: 'm', match: { string: 'a' }, ...extra,
+      });
+
+      await writeVersion(root, '18.0.0', { rules: [rule('18.0.0/a')] });
+      await writeVersion(root, '19.0.0', { rules: [rule('19.0.0/a', { twins: ['18.0.0/a'] })] });
+      assert.equal((await loadManifests(root)).length, 2);
+
+      await writeVersion(root, '20.0.0', { rules: [rule('20.0.0/a', { twins: ['19.0.0/a', '19.0.0/typo'] })] });
+      await assert.rejects(loadManifests(root), (error) => {
+        return error instanceof ManifestError
+          && /20\.0\.0\/a lists the twin "19\.0\.0\/typo", which is no rule/.test(error.message)
+          && !/"19\.0\.0\/a"/.test(error.message);
+      });
+    });
+  });
+
+  it('loads the shipped manifests, drafts included', async() => {
+    const manifests = await loadManifests();
+
+    assert.ok(manifests.some(manifest => manifest.status === 'draft'));
+    assert.ok(manifests.flatMap(manifest => manifest.rules).some(rule => rule.twins?.length > 0));
+  });
+
   it('ships a from for every released migration', async() => {
     const manifests = await loadManifests();
 
@@ -403,12 +457,14 @@ describe('loadManifest', () => {
         rules: [
           { id: '18.0.0/a', kind: 'optionRemove', name: 'a', safe: true, guide: '_1-step' },
           { id: '18.0.0/b', kind: 'optionRemove', name: 'b', safe: true },
+          { id: '18.0.0/c', kind: 'optionRemove', name: 'c', safe: true, inGuide: false },
         ],
       });
       const manifest = await loadManifest(dir);
 
       assert.equal(manifest.rules[0].guideUrl, 'https://example.com/guide#_1-step');
       assert.equal(manifest.rules[1].guideUrl, 'https://example.com/guide');
+      assert.equal(manifest.rules[2].guideUrl, null);
       assert.equal(manifest.rules[0].safe, true);
       assert.equal(manifest.rules[0].version, '18.0.0');
     });

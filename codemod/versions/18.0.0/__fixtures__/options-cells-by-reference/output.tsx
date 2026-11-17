@@ -11,6 +11,7 @@ function namedCells() {
 const expressionCells = function(row: number, col: number) {
   // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
   return col === 1 ? {
+    type: 'numeric',
     locale: 'de-DE',
     numericFormat: {}
   } : { readOnly: true };
@@ -21,6 +22,7 @@ function dateCells() {
 }
 // TODO(handsontable-codemod 18.0.0/numeric-format-culture): Check the numbers this column shows. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat
 const vanillaCells = () => ({
+  type: 'numeric',
   locale: 'pl-PL',
   numericFormat: {}
 });

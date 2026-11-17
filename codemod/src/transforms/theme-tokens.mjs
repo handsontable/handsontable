@@ -1,5 +1,5 @@
 import { anchorForProperty } from '../lib/anchor.mjs';
-import { calleeName, isFunctionNode, propertyName, unwrapNode, unwrapPath } from '../lib/ast.mjs';
+import { calleeName, propertyName, unwrapNode, unwrapPath } from '../lib/ast.mjs';
 import { collectHotBindings } from '../lib/hot-bindings.mjs';
 import { removalAdvice, renameKey } from '../lib/rename-key.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
@@ -14,6 +14,7 @@ import { assertRenameOrRemoval, problemsOf } from '../lib/validate.mjs';
  */
 const DEFAULT_CALLEES = ['registerTheme', 'reinitTheme', 'params'];
 
+const NON_TOKEN_SECTIONS = new Set(['colors', 'icons', 'sizing', 'density']);
 const HANDSONTABLE_SOURCE = /^(?:@handsontable\/|handsontable(?:\/|$))/;
 const THEMES_SOURCE = /^handsontable\/themes(?:\/|$)/;
 
@@ -157,16 +158,69 @@ function addThemeVariables(j, root, ids, bindings) {
 }
 
 /**
- * Whether an object node sits inside a function that is nested in the argument, which is code that runs later and
- * is not the theme configuration itself.
+ * The theme config objects an argument stands for: the object itself, through a type assertion, and both branches of a
+ * conditional or a logical expression. Anything else (a call, a name) is not read.
+ *
+ * @param {object} path NodePath of an argument.
+ * @returns {object[]} NodePaths of object literals.
+ */
+function configObjects(path) {
+  const target = unwrapPath(path);
+
+  switch (target.node.type) {
+    case 'ObjectExpression':
+      return [target];
+    case 'ConditionalExpression':
+      return [...configObjects(target.get('consequent')), ...configObjects(target.get('alternate'))];
+    case 'LogicalExpression':
+      return [...configObjects(target.get('left')), ...configObjects(target.get('right'))];
+    default:
+      return [];
+  }
+}
+
+/**
+ * The properties that name a theme token in the argument of a theme call. The theme API takes
+ * `{ name, sizing, density, icons, colors, tokens, colorScheme }` and holds every token in `tokens`
+ * (`handsontable/src/themes/types.ts`, `ThemeParams`), so a key of `colors`, `icons`, `sizing`, or `density` that
+ * spells a token name is a palette entry, an icon slot, or a size, and no token.
+ *
+ * @param {object} argument NodePath of an argument of a theme call.
+ * @returns {object[]} NodePaths of the properties of every `tokens` object.
+ */
+function tokenProperties(argument) {
+  const found = [];
+
+  for (const config of configObjects(argument)) {
+    config.node.properties.forEach((property, index) => {
+      if (!['ObjectProperty', 'Property'].includes(property.type) || propertyName(property) !== 'tokens') {
+        return;
+      }
+
+      for (const tokens of configObjects(config.get('properties', index, 'value'))) {
+        tokens.node.properties.forEach((token, position) => {
+          if (['ObjectProperty', 'Property'].includes(token.type)) {
+            found.push(tokens.get('properties', position));
+          }
+        });
+      }
+    });
+  }
+
+  return found;
+}
+
+/**
+ * Whether a property is a value of `colors`, `icons`, `sizing`, or `density`, the parts of a theme config that hold no
+ * token.
  *
  * @param {object} property NodePath of a property.
- * @param {object} argument NodePath of the argument that holds it.
- * @returns {boolean} `true` when a function lies between the property and the argument.
+ * @returns {boolean} `true` when an enclosing property has one of those names.
  */
-function insideNestedFunction(property, argument) {
-  for (let current = property.parent; current && current.node !== argument.node; current = current.parent) {
-    if (isFunctionNode(current.node)) {
+function inNonTokenSection(property) {
+  for (let current = property.parent?.parent; current; current = current.parent) {
+    if (['ObjectProperty', 'Property'].includes(current.node.type)
+      && NON_TOKEN_SECTIONS.has(propertyName(current.node))) {
       return true;
     }
   }
@@ -177,10 +231,10 @@ function insideNestedFunction(property, argument) {
 /**
  * Renames and removes theme tokens (`wrapperBorderRadius` to `borderRadius`, removal of `wrapperBorderWidth`).
  *
- * It rewrites a property key only inside an object that is an argument, at any depth, of a call to
+ * It rewrites a property key only in the `tokens` object of an object that is an argument of a call to
  * `registerTheme`, `reinitTheme`, or `.params()` (a rule may list other names in `callees`). A `.params()` call
  * needs a theme receiver: a call chain rooted at a binding of `handsontable/themes`, or a variable that holds
- * one. The search stops at a function nested in the argument. The call must sit
+ * one. The call must sit
  * in a file that imports a `handsontable` module or mentions the `Handsontable` global. The same key anywhere
  * else is never rewritten. It is only reported (`manual`) when the file imports `handsontable/themes`, because
  * the object may reach the theme API through a variable.
@@ -290,9 +344,8 @@ const themeTokens = {
 
         for (const rule of entries.filter(entry => (entry.callees ?? DEFAULT_CALLEES).includes(name))) {
           for (const argument of call.get('arguments').map(path => path)) {
-            propertiesIn(argument)
-              .filter(property => propertyName(property.node) === rule.from && !handled.has(property.node)
-                && !insideNestedFunction(property, argument))
+            tokenProperties(argument)
+              .filter(property => propertyName(property.node) === rule.from && !handled.has(property.node))
               .forEach(property => handle(rule, property));
           }
         }
@@ -307,7 +360,7 @@ const themeTokens = {
       const name = propertyName(property.node);
       const rule = entries.find(entry => entry.from === name);
 
-      if (!rule || handled.has(property.node)) {
+      if (!rule || handled.has(property.node) || inNonTokenSection(property)) {
         continue;
       }
 

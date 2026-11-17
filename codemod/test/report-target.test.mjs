@@ -198,3 +198,117 @@ describe('a report that cannot be written', () => {
       });
     });
 });
+
+describe('the report replaces only a previous report', () => {
+  const HEADER = '# Handsontable migration report: 17.1 to 18.0 (2026-01-01)\n\nold body\n';
+
+  it('replaces an existing file whose first line is the report header', async() => {
+    await inPlainProject({ 'a.js': SOURCE, 'r.md': HEADER }, async(dir) => {
+      const result = await migrate(dir, [...RANGE, '--report', 'r.md', '.']);
+
+      assert.equal(result.status, 0, result.stderr);
+      assert.doesNotMatch(await readFile(join(dir, 'r.md'), 'utf8'), /old body/);
+    });
+  });
+
+  it('replaces an existing report that starts with a byte order mark or ends its lines with CRLF', async() => {
+    await inPlainProject({ 'a.js': SOURCE, 'r.md': `\uFEFF${HEADER.replace(/\n/g, '\r\n')}` }, async(dir) => {
+      const result = await migrate(dir, [...RANGE, '--report', 'r.md', '.']);
+
+      assert.equal(result.status, 0, result.stderr);
+      assert.doesNotMatch(await readFile(join(dir, 'r.md'), 'utf8'), /old body/);
+    });
+  });
+
+  it('replaces an existing empty file', async() => {
+    await inPlainProject({ 'a.js': SOURCE, 'r.md': '' }, async(dir) => {
+      const result = await migrate(dir, [...RANGE, '--report', 'r.md', '.']);
+
+      assert.equal(result.status, 0, result.stderr);
+      assert.match(await readFile(join(dir, 'r.md'), 'utf8'), /^# Handsontable migration report/);
+    });
+  });
+
+  for (const target of ['notes.txt', 'out/f.txt', 'data.bin']) {
+    it(`refuses an existing file that is not a report (${target}), exits 2, and changes no byte`, async() => {
+      const text = target === 'data.bin' ? Buffer.from([0, 1, 2, 255]) : 'my notes\n';
+
+      await inPlainProject({ 'a.js': SOURCE, [target]: text }, async(dir) => {
+        const result = await migrate(dir, [...RANGE, '--report', target, '.']);
+
+        assert.equal(result.status, 2, result.stdout + result.stderr);
+        assert.match(result.stderr, new RegExp(`--report ${target.replace('.', '\\.')} exists and is not a report`));
+        assert.deepEqual(await readFile(join(dir, target)), Buffer.from(text));
+        assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE, 'a file was migrated');
+      });
+    });
+  }
+
+  it('refuses a file whose header is not on its first line', async() => {
+    await inPlainProject({ 'a.js': SOURCE, 'notes.txt': `intro\n${HEADER}` }, async(dir) => {
+      const result = await migrate(dir, [...RANGE, '--report', 'notes.txt', '.']);
+
+      assert.equal(result.status, 2, result.stdout + result.stderr);
+      assert.equal(await readFile(join(dir, 'notes.txt'), 'utf8'), `intro\n${HEADER}`);
+    });
+  });
+
+  it('refuses an existing file outside the project that is not a report, and keeps it', async() => {
+    const outside = await mkdtemp(join(tmpdir(), 'codemod-outside-'));
+
+    try {
+      await writeFile(join(outside, 'f.txt'), 'precious\n');
+      await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
+        const result = await migrate(dir, [...RANGE, '--report', join(outside, 'f.txt'), '.']);
+
+        assert.equal(result.status, 2, result.stdout + result.stderr);
+        assert.match(result.stderr, /exists and is not a report/);
+        assert.equal(await readFile(join(outside, 'f.txt'), 'utf8'), 'precious\n');
+        assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE);
+      });
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('writes a new report outside the project, and replaces a previous one there', async() => {
+    const outside = await mkdtemp(join(tmpdir(), 'codemod-outside-'));
+
+    try {
+      await inPlainProject({ 'a.js': SOURCE }, async(dir) => {
+        const target = join(outside, 'r.md');
+
+        assert.equal((await migrate(dir, [...RANGE, '--report', target, '.'])).status, 0);
+        assert.match(await readFile(target, 'utf8'), /^# Handsontable migration report/);
+        await writeFile(join(dir, 'b.js'), SOURCE);
+        assert.equal((await migrate(dir, [...RANGE, '--report', target, '.'])).status, 0);
+      });
+    } finally {
+      await rm(outside, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses a target inside .git, new or existing, and leaves the repository alone', async() => {
+    const dir = await mkdtemp(join(tmpdir(), 'codemod-gitdir-'));
+
+    try {
+      await writeFiles(dir, { 'a.js': SOURCE });
+      git(dir, ['init', '-q']);
+
+      const config = await readFile(join(dir, '.git', 'config'), 'utf8');
+
+      for (const target of ['.git/config', '.git/new-report.md', './.git/config', 'sub/../.git/config']) {
+        const result = await migrate(dir, [...RANGE, '--report', target, '.']);
+
+        assert.equal(result.status, 2, `${target}: ${result.stdout}${result.stderr}`);
+        assert.match(result.stderr, /inside the \.git directory/, target);
+      }
+
+      assert.equal(await readFile(join(dir, '.git', 'config'), 'utf8'), config);
+      assert.equal(existsSync(join(dir, '.git', 'new-report.md')), false);
+      assert.equal(await readFile(join(dir, 'a.js'), 'utf8'), SOURCE);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});

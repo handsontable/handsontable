@@ -8,6 +8,8 @@
       "from": "numericFormat.culture",
       "to": "locale",
       "levels": ["column", "cell"],
+      "onlyTypes": ["numeric"],
+      "typeAdvice": "Move numericFormat.culture to locale by hand if this column is numeric, and delete it if it is not. The tool kept it because it found no type: 'numeric' here or in the settings above. numericFormat does nothing in a column of another type, but 18.0 reads locale for text sorting, filtering, and search, and for date and time columns, so a moved culture would change how this column behaves.",
       "levelAdvice": "Set locale on the numeric columns that used numericFormat.culture, or on the grid if every column should use it, then delete culture. The tool kept numericFormat.culture here because a grid-level locale reaches every other column too: date, time, intl-date, intl-time, and intl-datetime columns format with it, and text sorting, filtering, and search lower-case with it.",
       "reportWithout": "pattern",
       "report": "Check the numbers this column shows. With a culture and no pattern, 17.1 formatted them with the Numbro pattern '0': every decimal and no grouping, so 1234.56 showed as 1234,56 for de-DE. In 18.0 the object goes to Intl.NumberFormat, which groups the digits and keeps three decimals unless the options say otherwise: 1.234,56 for de-DE, and 1234.5678 becomes 1.234,568. Add useGrouping: false and maximumFractionDigits: 20 to numericFormat to keep the 17.1 output.",
@@ -36,6 +38,7 @@
     {
       "id": "18.0.0/export-column-headers",
       "kind": "optionRename",
+      "inGuide": false,
       "safe": true,
       "from": "columnHeaders",
       "to": "colHeaders",

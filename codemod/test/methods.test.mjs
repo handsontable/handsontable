@@ -396,6 +396,26 @@ describe('methodMove', () => {
     ].join('\n')}\n`);
   });
 
+  it('leaves a grid that a cast or an annotation names as a type of the project', async() => {
+    const { output, entries } = await run([
+      'import Handsontable from \'handsontable\';',
+      'const typed = new Handsontable(el, {}) as MyUndo;',
+      'typed.undo();',
+      'const declared: MyUndo = new Handsontable(el, {});',
+      'declared.undo();',
+      'const hot: Handsontable = new Handsontable(el, {});',
+      'hot.undo();',
+      'const viaUnknown = new Handsontable(el, {}) as unknown as Handsontable;',
+      'viaUnknown.undo();',
+    ].join('\n'), rules);
+
+    assert.match(output, /typed\.undo\(\);/);
+    assert.match(output, /declared\.undo\(\);/);
+    assert.match(output, /hot\.getPlugin\('undoRedo'\)\.undo\(\);/);
+    assert.match(output, /viaUnknown\.getPlugin\('undoRedo'\)\.undo\(\);/);
+    assert.equal(entries.filter(entry => entry.severity === 'changed').length, 2);
+  });
+
   it('keeps optional chaining semantics, and reports an optional call without rewriting it', async() => {
     const { output, entries } = await move([
       'hot?.undo();',

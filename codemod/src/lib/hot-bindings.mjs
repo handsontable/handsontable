@@ -91,6 +91,16 @@ const COMPONENT_NAMES = new Set(['HotTable', 'HotColumn']);
 const MAX_DEPTH = 8;
 const MEMBER_TYPES = new Set(['MemberExpression', 'OptionalMemberExpression']);
 const VARIABLE_KINDS = new Set(['var', 'let', 'const']);
+const NEUTRAL_TYPES = new Set(['TSAnyKeyword', 'TSUnknownKeyword', 'TSNeverKeyword']);
+const WRAPPER_NODES = new Set([
+  'TSAsExpression',
+  'TSSatisfiesExpression',
+  'TSNonNullExpression',
+  'TSTypeAssertion',
+  'TSInstantiationExpression',
+  'ParenthesizedExpression',
+  'TypeCastExpression',
+]);
 
 /**
  * The assignment operators that can leave the right side in the variable: `=` and the three logical ones. Any
@@ -616,6 +626,51 @@ export function collectHotBindings(j, root) {
   };
 
   /**
+   * Whether a type node names a type of the project, one that is neither a grid instance type nor a ref holder of
+   * one nor a type that says nothing (`any`, `unknown`, `never`, `as const`). A value that the compiler holds to such a
+   * type is read through that type, so `hot.undo()` on a `MyUndo` is the project's method and not the grid's.
+   *
+   * @param {object|null|undefined} typeNode The type node, or a type annotation.
+   * @returns {boolean} `true` for a type of the project.
+   */
+  const isForeignType = (typeNode) => {
+    const node = typeNode?.type === 'TSTypeAnnotation' || typeNode?.type === 'TSParenthesizedType'
+      ? typeNode.typeAnnotation : typeNode;
+
+    if (!node || NEUTRAL_TYPES.has(node.type)) {
+      return false;
+    }
+
+    if (node.type === 'TSTypeReference' && node.typeName.type === 'Identifier' && node.typeName.name === 'const') {
+      return false;
+    }
+
+    return !isHotType(node) && !isHolderType(node);
+  };
+
+  /**
+   * Whether an expression is cast to a type of the project on its way to the value: `new Handsontable(el) as MyUndo`,
+   * also under other wrappers (`(x as MyUndo)!`). `satisfies` does not change the type of the value and is passed.
+   *
+   * @param {object} node An expression node.
+   * @returns {boolean} `true` when a cast of the chain names a type of the project.
+   */
+  const castsToForeign = (node) => {
+    let current = node;
+
+    while (current && WRAPPER_NODES.has(current.type)) {
+      if ((current.type === 'TSAsExpression' || current.type === 'TSTypeAssertion')
+        && isForeignType(current.typeAnnotation)) {
+        return true;
+      }
+
+      current = current.expression;
+    }
+
+    return false;
+  };
+
+  /**
    * What one name can hold, over its whole life: the initializer and every later write, in any scope. A write the
    * tool cannot read (a compound assignment, a destructuring target, a `for` head, an update) makes the history
    * opaque, and an opaque name is never trusted.
@@ -623,6 +678,8 @@ export function collectHotBindings(j, root) {
    * @typedef {object} History
    * @property {object[]} values NodePaths of every expression the name is set from.
    * @property {boolean} opaque A write of a value the file does not show.
+   * @property {boolean} foreign The name is declared with a type of the project, so it is never a grid instance, but
+   * its values are still the values of the name (`valuesOf()`).
    * @property {boolean} variable A `var`, `let`, `const`, or a class member (not a parameter, import, or function).
    * @property {object|null} guard For a class member, the class node whose members the file may set in a way it
    * cannot name (`this[key] = x`, `Object.assign(this, x)`).
@@ -745,6 +802,7 @@ export function collectHotBindings(j, root) {
         variable: true,
         guard: classNode,
         qualified: false,
+        foreign: false,
         member: key.replace(/^static /, ''),
       };
 
@@ -800,6 +858,7 @@ export function collectHotBindings(j, root) {
         variable: VARIABLE_KINDS.has(canonical.kind) && !mixed,
         guard: null,
         qualified: false,
+        foreign: false,
       };
 
       bindingHistories.set(canonical.idNode, history);
@@ -1026,6 +1085,10 @@ export function collectHotBindings(j, root) {
       return false;
     }
 
+    if (castsToForeign(path.node)) {
+      return false;
+    }
+
     const target = unwrapPath(path);
     const node = target.node;
 
@@ -1123,6 +1186,15 @@ export function collectHotBindings(j, root) {
       if (path.node.init) {
         noteWrite(path.get('id'), path.get('init'));
       }
+
+      // The compiler holds every value of the name to its type: a type of the project makes the name the project's.
+      if (isForeignType(path.node.id.typeAnnotation)) {
+        const binding = lookup(path.get('id'), path.node.id.name, 'value');
+
+        if (binding) {
+          bindingHistory(binding).foreign = true;
+        }
+      }
     } else {
       noteOpaque(path.get('id'));
     }
@@ -1196,6 +1268,8 @@ export function collectHotBindings(j, root) {
 
     if (isHotType(path.node.typeAnnotation)) {
       addSeed(memberSeeds, classNode, key);
+    } else if (isForeignType(path.node.typeAnnotation)) {
+      memberHistory(classNode, key).foreign = true;
     }
   });
 
@@ -1281,8 +1355,8 @@ export function collectHotBindings(j, root) {
       changed = false;
 
       for (const history of histories) {
-        if (!history.qualified && history.variable && !history.opaque && history.values.length > 0
-          && !(history.guard && unreadableClasses.has(history.guard))
+        if (!history.qualified && history.variable && !history.opaque && !history.foreign
+          && history.values.length > 0 && !(history.guard && unreadableClasses.has(history.guard))
           && !(history.member && blockedNames.has(history.member))
           && history.values.every(value => classify(value))) {
           history.qualified = true;

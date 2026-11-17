@@ -6,27 +6,27 @@ interface Chip {
 }
 
 export const A: ColumnSettings[] = [
-  { data: 'a', numericFormat: { culture: 'de-DE' } },
+  { data: 'a', type: 'numeric', numericFormat: { culture: 'de-DE' } },
 ];
 
 export const B: readonly ColumnSettings[] = [
-  { data: 'b', numericFormat: { culture: 'de-DE' } },
+  { data: 'b', type: 'numeric', numericFormat: { culture: 'de-DE' } },
 ];
 
 export const C: Array<ColumnSettings> = [
-  { data: 'c', numericFormat: { culture: 'de-DE' } },
+  { data: 'c', type: 'numeric', numericFormat: { culture: 'de-DE' } },
 ];
 
 export const D = [
-  { data: 'd', numericFormat: { culture: 'de-DE' } },
+  { data: 'd', type: 'numeric', numericFormat: { culture: 'de-DE' } },
 ] as const satisfies readonly ColumnSettings[];
 
 export const E = [
-  { data: 'e', numericFormat: { culture: 'de-DE' } },
+  { data: 'e', type: 'numeric', numericFormat: { culture: 'de-DE' } },
 ] satisfies ColumnSettings[];
 
 export const F: Handsontable.ColumnSettings[] = [
-  { data: 'f', numericFormat: { culture: 'de-DE' } },
+  { data: 'f', type: 'numeric', numericFormat: { culture: 'de-DE' } },
 ];
 
 export const G: Chip[] = [

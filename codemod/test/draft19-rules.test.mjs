@@ -441,3 +441,26 @@ export const b = new HT(document.body, {});
     assert.deepEqual(lines(first, RULE), []);
   });
 });
+
+describe('Handsontable.helper.sanitize in a run that holds both migrations', () => {
+  const OLD = '18.0.0/helper-sanitize';
+  const NEW = '19.0.0/helper-sanitize';
+  const source = `${HOT}export const clean = Handsontable.helper.sanitize('<b>x</b>');\n`;
+
+  it('reports the spot once, and the entry of the earlier rule says that 19.0 removes the helper', async() => {
+    const [first] = await runs('a.js', source, [OLD, NEW]);
+    const entries = first.entries.filter(entry => entry.severity === 'manual');
+
+    assert.equal(entries.length, 1);
+    assert.equal(entries[0].ruleId, OLD);
+    assert.match(entries[0].message, /Handsontable 19\.0 removes the helper, so the call throws a TypeError there\./);
+  });
+
+  it('still says what 19.0 does in a run of the 19.0 migration alone', async() => {
+    const [first] = await runs('a.js', source, [NEW]);
+    const [entry] = first.entries.filter(item => item.severity === 'manual');
+
+    assert.equal(entry.ruleId, NEW);
+    assert.match(entry.message, /19\.0 removes it, so the call throws a TypeError\./);
+  });
+});

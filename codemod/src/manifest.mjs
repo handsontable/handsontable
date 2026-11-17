@@ -47,6 +47,7 @@ export const COMMON_FIELDS = {
   required: { id: 'string', kind: 'string' },
   optional: {
     guide: 'string',
+    inGuide: 'boolean',
     safe: 'boolean',
     minConfidence: 'string',
     message: 'string',
@@ -292,7 +293,7 @@ function validateHeader(raw, dirName) {
     problems.push(`"status" must be one of ${STATUSES.join(', ')}`);
   }
 
-  if (!FROM_PATTERN.test(String(raw.from))) {
+  if (typeof raw.from !== 'string' || !FROM_PATTERN.test(raw.from)) {
     problems.push('"from" must name the version line the migration starts from, such as "17" or "18.0"');
   } else if (SEMVER.test(dirName)
     && compareParts(raw.from.split('.').map(Number), dirName.split('.').map(Number)) >= 0) {
@@ -425,11 +426,12 @@ export async function loadManifest(dir) {
   const guideUrl = raw.guide?.url ?? null;
 
   const loadedRules = await Promise.all(rules.map(async(rule) => {
+    const sectionUrl = guideUrl && rule?.guide ? `${guideUrl}#${rule.guide}` : guideUrl;
     const loaded = {
       ...(rule?.kind && REPORT_ONLY_KINDS.includes(rule.kind) ? { safe: false } : {}),
       ...rule,
       version: dirName,
-      guideUrl: guideUrl && rule?.guide ? `${guideUrl}#${rule.guide}` : guideUrl,
+      guideUrl: rule?.inGuide === false ? null : sectionUrl,
     };
 
     if (rule?.kind === 'custom' && typeof rule.module === 'string') {
@@ -471,20 +473,40 @@ export async function loadManifest(dir) {
  */
 export async function loadManifests(versionsDir = VERSIONS_DIR) {
   const entries = await readdir(versionsDir, { withFileTypes: true });
-  const dirs = entries.filter(entry => entry.isDirectory() && SEMVER.test(entry.name)).map(entry => entry.name);
+  const directories = entries.filter(entry => entry.isDirectory() && !entry.name.startsWith('.'));
+  const dirs = directories.filter(entry => SEMVER.test(entry.name)).map(entry => entry.name);
+  const stray = directories.filter(entry => !SEMVER.test(entry.name)).map(entry => `"${entry.name}"`);
   const manifests = [];
+
+  // A manifest in a directory with another name would never load, and its rules would be missing from every run.
+  if (stray.length > 0) {
+    const one = stray.length === 1;
+
+    throw new ManifestError(`${versionsDir} holds ${one ? 'a directory' : 'directories'} that ${one ? 'is' : 'are'} `
+      + `not named for a full semver version (major.minor.patch): ${stray.join(', ')}. `
+      + `Rename ${one ? 'it' : 'them'} or move ${one ? 'it' : 'them'} out of the versions directory.`);
+  }
 
   for (const name of dirs) {
     manifests.push(await loadManifest(join(versionsDir, name)));
   }
 
   const numeric = version => version.split('.').map(Number);
-
-  return manifests.sort((a, b) => {
+  const sorted = manifests.sort((a, b) => {
     const [x, y] = [numeric(a.version), numeric(b.version)];
 
     return x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
   });
+  const ids = new Set(sorted.flatMap(manifest => manifest.rules.map(rule => rule.id)));
+  const unknown = sorted.flatMap(manifest => manifest.rules.flatMap(rule => (rule.twins ?? [])
+    .filter(twin => !ids.has(twin)).map(twin => `${rule.id} lists the twin "${twin}", which is no rule`)));
+
+  // A twin that names no rule never takes part in the merge of a spot, so the repeated report would go unnoticed.
+  if (unknown.length > 0) {
+    throw new ManifestError(unknown.join('\n'));
+  }
+
+  return sorted;
 }
 
 /**

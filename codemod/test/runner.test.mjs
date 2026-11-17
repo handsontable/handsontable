@@ -826,7 +826,7 @@ describe('run', () => {
 
     it('leaves out the report file the user asked for, and still counts an edited tracked file', async() => {
       await withProject({ 'a.css': RADIUS_CSS, 'other.css': 'b { color: red; }\n' }, async(dir) => {
-        await writeFile(join(dir, 'report.md'), 'an earlier report\n');
+        await writeFile(join(dir, 'report.md'), '# Handsontable migration report: 17 to 18\n');
 
         const clean = await run({ cwd: dir, from: '17', to: '18', reportPath: 'report.md', dryRun: false });
 
@@ -942,6 +942,15 @@ describe('run', () => {
       await writeFile(join(dir, 'untracked.txt'), 'x');
 
       assert.equal((await run({ cwd: dir, from: '17', to: '18', allowDirty: true })).exitCode, 0);
+    });
+  });
+
+  it('builds no diff for a run that writes', async() => {
+    await withProject({ 'a.css': RADIUS_CSS }, async(dir) => {
+      const result = await run({ cwd: dir, from: '17', to: '18' });
+
+      assert.deepEqual(result.changedFiles, ['a.css']);
+      assert.deepEqual(result.diffs, []);
     });
   });
 

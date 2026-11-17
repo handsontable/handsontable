@@ -18,6 +18,7 @@
     {
       "id": "18.0.0/core-undo-methods",
       "kind": "methodMove",
+      "inGuide": false,
       "safe": true,
       "receiver": "instance",
       "via": { "method": "getPlugin", "args": ["undoRedo"] },
@@ -39,7 +40,7 @@
       "safe": false,
       "callee": "Handsontable.helper.sanitize",
       "arg": 0,
-      "advice": "Pass a sanitizer through the sanitizer option, or call DOMPurify.sanitize() yourself. In 17.x this called DOMPurify, and in 18.0 it returns its input unchanged and is deprecated, so removing the call would drop the sanitization your code relies on."
+      "advice": "Pass a sanitizer through the sanitizer option, or call DOMPurify.sanitize() yourself. In 17.x this called DOMPurify, and in 18.0 it returns its input unchanged and is deprecated, so removing the call would drop the sanitization your code relies on. Handsontable 19.0 removes the helper, so the call throws a TypeError there."
     }
   ]
 }

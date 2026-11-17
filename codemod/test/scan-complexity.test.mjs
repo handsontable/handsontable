@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 import { describe, it } from 'node:test';
 import templateAdapter from '../src/adapters/template.mjs';
 import { addFact, factSite } from '../src/lib/facts.mjs';
@@ -15,6 +16,34 @@ const LEGACY_TOOL_COMMENT = (
   /\/\/[ \t]*TODO\(handsontable-codemod [^\r\n]*|\/\*[ \t]*TODO\(handsontable-codemod [\s\S]*?\*\//g
 );
 const MIB = 1024 * 1024;
+const { PathVisitor } = createRequire(createRequire(import.meta.url).resolve('jscodeshift'))('ast-types');
+
+/**
+ * Count the traversals of a syntax tree that a function makes (one for each `root.find()` and each walk of the tree).
+ * The work meter counts string operations and cannot see a walk of the tree, which is the cost of a rule that asks the
+ * whole file a question for each item.
+ *
+ * @param {() => Promise<void>} body The function to run.
+ * @returns {Promise<number>} The number of walks it started.
+ */
+async function countTraversals(body) {
+  const visit = PathVisitor.prototype.visit;
+  let count = 0;
+
+  PathVisitor.prototype.visit = function(...args) {
+    count += 1;
+
+    return visit.apply(this, args);
+  };
+
+  try {
+    await body();
+  } finally {
+    PathVisitor.prototype.visit = visit;
+  }
+
+  return count;
+}
 
 /**
  * A deterministic generator, so a failure names a seed that repeats.
@@ -399,5 +428,62 @@ describe('addFact() does not read the facts it already holds', () => {
 
     assert.deepEqual(sites, ['site:seen@a=a/x.js:6', 'site:seen@b=b/z.js:9']);
     assert.equal(factSite({ facts: ctx.facts, filePath: 'a/package.json' }, 'seen'), 'a/x.js:6');
+  });
+});
+
+describe('a js part is walked a fixed number of times, whatever the number of rules or of grids', () => {
+  it('detect rules of one kind share the walks: 20 copies of each matcher cost what 2 copies cost', async() => {
+    const matchers = [
+      { property: 'correctFormat' },
+      { call: 'updateSettings' },
+      { hook: 'afterChange' },
+      { string: 'x' },
+      { namespaceMember: 'helper.sanitize' },
+      { missingOption: 'licenseKey' },
+    ];
+    const planOf = copies => buildPlan([{
+      version: '1.0.0',
+      rules: Array.from({ length: copies }, (_, index) => matchers.map((match, kind) => ({
+        id: `1.0.0/r${index}-${kind}`,
+        kind: 'detect',
+        version: '1.0.0',
+        safe: false,
+        guideUrl: null,
+        files: ['js'],
+        message: 'm',
+        match,
+      }))).flat(),
+    }]);
+    const source = 'import Handsontable from \'handsontable\';\n'
+      + 'const hot = new Handsontable(el, { columns: [{ correctFormat: true }] });\n'
+      + 'hot.updateSettings({ colHeaders: true });\nhot.addHook(\'afterChange\', () => {});\n'
+      + 'const s = Handsontable.helper.sanitize(\'x\');\nconst text = `x`;\n';
+    const walks = copies => countTraversals(async() => {
+      const { entries } = await transformFile({ filePath: 'a.js', source, plan: planOf(copies) });
+
+      // A rule that threw would end the part early, and the count would say nothing.
+      assert.deepEqual(entries.filter(entry => entry.ruleId === 'transform-error'), []);
+      assert.equal(entries.length >= copies, true, 'every copy of the rules ran');
+    });
+    const few = await walks(2);
+    const many = await walks(20);
+
+    assert.ok(many <= few + 2, `${few} walks for 2 copies of each rule, ${many} for 20`);
+  });
+
+  it('a spread of a different constant in every grid reads the identifiers of the file once', async() => {
+    const manifests = await loadManifests(VERSIONS_DIR);
+    const plan = buildPlan(manifests, ['18.1.0/license-key-missing', '18.0.0/html-without-sanitizer']);
+    const grid = index => `const base${index} = { rowHeaders: true };\n`
+      + `new Handsontable(el${index}, { ...base${index}, data: [] });\n`;
+    const sourceOf = grids => `import Handsontable from 'handsontable';\n${
+      Array.from({ length: grids }, (_, index) => grid(index)).join('')}`;
+    const walks = grids => countTraversals(async() => {
+      await transformFile({ filePath: 'a.js', source: sourceOf(grids), plan });
+    });
+    const few = await walks(10);
+    const many = await walks(80);
+
+    assert.ok(many <= few + 2, `${few} walks for 10 grids, ${many} for 80`);
   });
 });

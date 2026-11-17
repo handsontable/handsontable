@@ -52,18 +52,34 @@ const MONOREPO = {
   'packages/new/package.json': pkg({ name: 'new', dependencies: { handsontable: '18.0.0' } }),
 };
 
-describe('a raised peer range', () => {
-  it('stays raised and gets one manual entry that says it drops the older line', async() => {
+describe('a peer range that sits below the target', () => {
+  it('stays as it is and gets one manual entry that says how to widen it', async() => {
     await migrate({
       'package.json': pkg({ name: 'lib', peerDependencies: { handsontable: '^17.1.0' } }),
     }, { from: '17.1' }, async({ result, read }) => {
-      assert.equal(JSON.parse(await read('package.json')).peerDependencies.handsontable, '^18.1.0');
+      assert.equal(JSON.parse(await read('package.json')).peerDependencies.handsontable, '^17.1.0');
+      assert.deepEqual(result.changedFiles, []);
+      assert.equal(result.report.entries.filter(entry => entry.severity === 'changed').length, 0);
 
       const notes = result.report.entries.filter(entry => entry.severity === 'manual');
 
       assert.equal(notes.length, 1);
-      assert.equal(notes[0].message, 'Raised the peer range of handsontable to ^18.1.0. This drops 17.x for consumers '
-        + 'of this package. Widen it by hand if you still support older versions.');
+      assert.equal(notes[0].message, 'handsontable "^17.1.0" in peerDependencies is below ^18.1.0, and the tool left '
+        + 'it. Raising a peer range drops the older versions for every consumer of this package, so widen it by hand '
+        + 'to cover the versions you still support, or set it to ^18.1.0 when you do not. '
+        + 'For example "^17.1.0 || ^18.1.0".');
+    });
+  });
+
+  it('is left alone and not mentioned when it already admits the target', async() => {
+    const input = pkg({
+      name: 'lib',
+      peerDependencies: { handsontable: '^17.1.0 || ^18.0.0', '@handsontable/react-wrapper': '>=17.0.0 <19' },
+    });
+
+    await migrate({ 'package.json': input }, { from: '17.1' }, async({ result, read }) => {
+      assert.equal(await read('package.json'), input);
+      assert.equal(result.report.entries.length, 0);
     });
   });
 

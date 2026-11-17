@@ -354,25 +354,29 @@ function reportBelowFrom(ctx, found) {
 }
 
 /**
- * Tell the user that a raised peer range drops the older line for the consumers of this package. The raise stays
- * (the code was migrated to the new API), but a library that still supports older versions has to widen it.
+ * Report a peer range that sits below the target, and leave it alone. A peer range is the contract a package makes with
+ * its consumers: raising it drops the older versions for every project that installs the package, and the code of the
+ * package may still run on them. The tool does not know which versions the package supports, so the entry says how to
+ * widen it and when to raise it.
  *
  * @param {import('../types.mjs').Ctx} ctx The transform context of the `package.json`.
- * @param {import('../types.mjs').Rule} rule The `dependency` rule that raised the range.
- * @param {{name: string, original: string, value: string}} change The package, the range the user wrote, and the
- * new range.
+ * @param {import('../types.mjs').Rule} rule The `dependency` rule that found the range.
+ * @param {{name: string, original: string, value: string, mergeKey: string}} change The package, the range the user
+ * wrote, the range a bump would write, and the merge key of the spot.
  * @returns {void}
  */
-function reportPeerRaised(ctx, rule, { name, original, value }) {
-  const minimum = minimumOfRange(original);
-  const dropped = minimum ? `${minimum.split('.')[0]}.x` : 'the older versions';
+function reportPeerBelow(ctx, rule, { name, original, value, mergeKey }) {
+  const [major] = (minimumOfRange(original) ?? '').split('.');
+  const [targetMajor] = value.replace(/^\D*/, '').split('.');
+  const widened = major && major !== targetMajor ? ` For example "${redact(original)} || ${value}".` : '';
 
   ctx.report({
     ruleId: rule.id,
     severity: 'manual',
-    mergeKey: `peer:${name}`,
-    message: `Raised the peer range of ${name} to ${value}. This drops ${dropped} for consumers of this package. `
-      + 'Widen it by hand if you still support older versions.',
+    mergeKey,
+    message: `${name} "${redact(original)}" in peerDependencies is below ${value}, and the tool left it. `
+      + 'Raising a peer range drops the older versions for every consumer of this package, so widen it by hand '
+      + `to cover the versions you still support, or set it to ${value} when you do not.${widened}`,
   });
 }
 
@@ -456,7 +460,12 @@ function bump(ctx, rule) {
         continue;
       }
 
-      if (plan.action === 'rewrite' && !rewrites(rule)) {
+      if (plan.action === 'rewrite' && section === 'peerDependencies') {
+        // A peer range that admits the target needs nothing: the consumers of the package can already install it.
+        if (rangeAdmits(current, target) !== true) {
+          reportPeerBelow(ctx, rule, { name, original: current, value: plan.value, mergeKey });
+        }
+      } else if (plan.action === 'rewrite' && !rewrites(rule)) {
         ctx.report({
           ruleId: rule.id,
           severity: 'manual',
@@ -480,10 +489,6 @@ function bump(ctx, rule) {
           mergeKey,
           message: `Updated ${name} in ${section} from "${redact(original)}" to "${plan.value}".`,
         });
-
-        if (section === 'peerDependencies') {
-          reportPeerRaised(ctx, rule, { name, original, value: plan.value });
-        }
       } else if (plan.action === 'manual') {
         ctx.report({
           ruleId: rule.id,
@@ -570,7 +575,16 @@ function reportPins(ctx, rule) {
       return;
     }
 
-    if (name && below(value, name)) {
+    if (name && typeof value === 'string' && isRemoteSource(value)) {
+      ctx.report({
+        ruleId: rule.id,
+        severity: 'manual',
+        mergeKey: `pin:${label}`,
+        message: `${label} pins ${name} to "${redact(value)}", which installs from a repository or a URL, so the tool `
+          + `cannot tell its version. Point it at ${bumps[name]} by hand. `
+          + `The tool does not edit ${label.replace(/\[.*$/s, '')}.`,
+      });
+    } else if (name && below(value, name)) {
       ctx.report({
         ruleId: rule.id,
         severity: 'manual',

@@ -19,7 +19,7 @@ import {
   findRequires,
   getImportedBindings,
 } from '../lib/imports.mjs';
-import { createLineCounter, scanScripts } from '../lib/inline-script.mjs';
+import { createLineCounter, hasAttribute, scanScripts } from '../lib/inline-script.mjs';
 import { GENERIC_OPTIONS, KNOWN_OPTIONS, analyzeOptionObjects, isClaimed } from '../lib/option-objects.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import { printTree } from '../lib/print.mjs';
@@ -573,12 +573,16 @@ function receiverText(node) {
  * @property {string} source Text of the part.
  * @property {object|null} j The jscodeshift API.
  * @property {object} root The parsed form of the part.
+ * @property {(type: object) => object} find `root.find(type)` of a js part, computed once per type. A detect rule never
+ * edits the tree, and the state lives for one `apply()` call, so nothing can make a cached result stale.
  * @property {string} requires The `requires` of the rule being evaluated.
  * @property {() => import('../lib/hot-bindings.mjs').HotBindings} bindings Hot bindings of the part.
  * @property {() => import('../lib/option-objects.mjs').OptionObject[]} optionList Option objects of the part.
  * @property {() => Set<object>} optionNodes The nodes of those objects.
  * @property {() => Set<object>} claimedNodes The object literals that another receiver than the grid takes
  * (`analyzeOptionObjects()`). A `property` matcher skips a key in one.
+ * @property {() => import('../lib/option-sites.mjs').DynamicSite[]} dynamicSites The assignments and `setCellMeta()`
+ * calls of the part (`dynamicOptionSites()`), read once for every rule.
  * @property {() => ReturnType<import('../lib/resolve.mjs').createHop>} resolver The one-hop resolver of the part.
  * @property {() => string} clean The text of the part without the comments the tool wrote.
  * @property {() => string} code The text of a js part without any comment.
@@ -596,13 +600,24 @@ function createEnv(ctx) {
   const optionList = memo(() => analysis().objects);
   const optionNodes = memo(() => new Set(optionList().map(item => item.path.node)));
   const claimedNodes = memo(() => analysis().claimed);
-  const resolver = memo(() => createHop(ctx.j, ctx.root));
+  const resolver = memo(() => createHop(ctx.j, ctx.root, { stable: true }));
+  const dynamicSites = memo(() => dynamicOptionSites(ctx.j, ctx.root));
+  const found = new Map();
+  const find = (type) => {
+    if (!found.has(type)) {
+      found.set(type, ctx.root.find(type));
+    }
+
+    return found.get(type);
+  };
 
   return {
     ctx,
     source: ctx.source,
     j: ctx.j,
     root: ctx.root,
+    find,
+    dynamicSites,
     requires: 'hot-file',
     bindings,
     optionList,
@@ -964,7 +979,7 @@ function matchProperty(env, node) {
     return matchTemplateProperty(env, node);
   }
 
-  const { j, root } = env;
+  const { j } = env;
   const { spec, re } = node;
   const paths = propertyPaths(spec);
   const optionOnly = (spec.in ?? (env.requires === 'option-object' ? 'option-object' : null)) === 'option-object';
@@ -1063,7 +1078,7 @@ function matchProperty(env, node) {
 
   [j.ObjectProperty, j.Property, j.ObjectMethod, j.JSXAttribute]
     .filter(Boolean)
-    .forEach(type => root.find(type).forEach(visit));
+    .forEach(type => env.find(type).forEach(visit));
 
   return spec.in === 'menu-item' ? matches : [...matches, ...matchDynamicProperty(env, node)];
 }
@@ -1126,7 +1141,7 @@ function matchDynamicProperty(env, node) {
     return true;
   };
 
-  return dynamicOptionSites(env.j, env.root)
+  return env.dynamicSites()
     // A call on a receiver the file shows to be another object (not the grid) sets nothing of ours.
     .filter(site => !site.receiver || receiverOfGrid(site.receiver, bindings) !== 'other')
     .filter(site => paths.some(segments => matches(site, segments)))
@@ -1186,7 +1201,7 @@ function matchTemplateProperty(env, node) {
  * @returns {Match[]} The matches, at the object.
  */
 function matchAnnotatedObject(env, node) {
-  const { j, root } = env;
+  const { j } = env;
   const names = new Set(listOf(node.spec.annotatedObject));
   const records = node.spec.recordEntries === true;
   const lastName = (type) => {
@@ -1226,7 +1241,7 @@ function matchAnnotatedObject(env, node) {
     }
   };
 
-  root.find(j.VariableDeclarator).forEach((path) => {
+  env.find(j.VariableDeclarator).forEach((path) => {
     const init = path.node.init ? unwrapNode(path.node.init) : null;
 
     if (init?.type === 'ObjectExpression' && named(path.node.id.typeAnnotation)) {
@@ -1235,7 +1250,7 @@ function matchAnnotatedObject(env, node) {
   });
 
   [j.TSAsExpression, j.TSSatisfiesExpression].filter(Boolean).forEach((type) => {
-    root.find(type).forEach((path) => {
+    env.find(type).forEach((path) => {
       const expression = records ? unwrapNode(path.node.expression) : path.node.expression;
 
       if (expression.type === 'ObjectExpression' && named(path.node.typeAnnotation)) {
@@ -1255,12 +1270,12 @@ function matchAnnotatedObject(env, node) {
  * @returns {Match[]} The matches.
  */
 function matchCall(env, node) {
-  const { j, root } = env;
+  const { j } = env;
   const { spec, re } = node;
   const names = listOf(spec.call);
   const matches = [];
 
-  [j.CallExpression, j.OptionalCallExpression].filter(Boolean).forEach(type => root.find(type).forEach((path) => {
+  [j.CallExpression, j.OptionalCallExpression].filter(Boolean).forEach(type => env.find(type).forEach((path) => {
     if (!names.includes(calleeName(path.node.callee))) {
       return;
     }
@@ -1335,7 +1350,7 @@ function findPluginRegistrations(env, name) {
     .map(binding => binding.local)]);
   const matches = [];
 
-  [j.CallExpression, j.OptionalCallExpression].filter(Boolean).forEach(type => root.find(type).forEach((path) => {
+  [j.CallExpression, j.OptionalCallExpression].filter(Boolean).forEach(type => env.find(type).forEach((path) => {
     const [argument] = path.node.arguments;
 
     if (!argument || !registrars.has(calleeName(path.node.callee))) {
@@ -1420,7 +1435,7 @@ function matchHookOnElements(env, names) {
 
   const matches = [];
 
-  env.root.find(env.j.JSXElement).forEach((path) => {
+  env.find(env.j.JSXElement).forEach((path) => {
     const opening = path.node.openingElement;
     const isComponent = opening.name.type === 'JSXMemberExpression'
       || (opening.name.type === 'JSXIdentifier' && /^[A-Z]/.test(opening.name.name));
@@ -1467,7 +1482,7 @@ function matchHook(env, node) {
   });
   const calls = [];
 
-  [env.j.CallExpression, env.j.OptionalCallExpression].filter(Boolean).forEach(type => env.root.find(type)
+  [env.j.CallExpression, env.j.OptionalCallExpression].filter(Boolean).forEach(type => env.find(type)
     .forEach((path) => {
       const callee = unwrapNode(path.node.callee);
       const name = calleeName(callee);
@@ -1502,7 +1517,7 @@ function matchNamespaceMember(env, node) {
   const names = listOf(node.spec.namespaceMember);
   const matches = [];
 
-  [env.j.MemberExpression, env.j.OptionalMemberExpression].filter(Boolean).forEach(type => env.root.find(type)
+  [env.j.MemberExpression, env.j.OptionalMemberExpression].filter(Boolean).forEach(type => env.find(type)
     .forEach((path) => {
       if (names.includes(env.bindings().resolveNamespaceMember(path))) {
         matches.push({ line: lineOfNode(path.node) });
@@ -1522,14 +1537,14 @@ function matchNamespaceMember(env, node) {
  */
 function matchStrings(env, pattern, normalize = text => text) {
   const matches = [];
-  const { j, root } = env;
+  const { j } = env;
 
-  root.find(j.Literal).forEach((path) => {
+  env.find(j.Literal).forEach((path) => {
     if (typeof path.node.value === 'string' && pattern.test(normalize(path.node.value))) {
       matches.push({ line: lineOfNode(path.node) });
     }
   });
-  root.find(j.TemplateElement).forEach((path) => {
+  env.find(j.TemplateElement).forEach((path) => {
     if (pattern.test(normalize(path.node.value.cooked ?? path.node.value.raw))) {
       matches.push({ line: lineOfNode(path.node) });
     }
@@ -1862,7 +1877,7 @@ function matchInlineMissingOption(env, node) {
   const lineOfOffset = createLineCounter(env.source);
 
   for (const script of scanScripts(env.source)) {
-    if (/\bsrc\s*=/i.test(script.attributes)) {
+    if (hasAttribute(script.attributes, 'src')) {
       continue;
     }
 
@@ -1914,7 +1929,7 @@ function matchMissingOption(env, node) {
       return candidate;
     });
 
-  env.root.find(env.j.JSXElement).forEach((path) => {
+  env.find(env.j.JSXElement).forEach((path) => {
     if (env.bindings().getComponent(path) === 'HotTable') {
       candidates.push(describeElement(env, path));
     }

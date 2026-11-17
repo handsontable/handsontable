@@ -107,7 +107,7 @@ const STYLES = {
   'tabs and crlf': { unit: '\t', eol: '\r\n' },
 };
 
-const CULTURE_KEY = 'numericFormat: { culture: \'de-DE\' }';
+const CULTURE_KEY = 'type: \'numeric\', numericFormat: { culture: \'de-DE\' }';
 
 /**
  * Column objects that hold a literal which spans lines, each a shape recast can mangle when it reprints the object.
@@ -151,7 +151,7 @@ describe('the reported cases', () => {
       '  return new Handsontable(el, {',
       '    licenseKey: \'k\',',
       '    columns: [',
-      '      { data: \'a\', numericFormat: { culture: \'de-DE\' }, title: `Net',
+      '      { data: \'a\', type: \'numeric\', numericFormat: { culture: \'de-DE\' }, title: `Net',
       'amount` },',
       '    ],',
       '  });',
@@ -173,6 +173,7 @@ describe('the reported cases', () => {
       '    columns: [',
       '      {',
       '        data: \'a\',',
+      '        type: \'numeric\',',
       '        locale: \'de-DE\',',
       '        numericFormat: {},',
       '',

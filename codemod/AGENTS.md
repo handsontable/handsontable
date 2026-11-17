@@ -118,6 +118,10 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   held by the comparison with the expression it replaced. A new scanner adds its adversarial shapes there, at the
   small sizes the counts need (a quadratic scan must fail the count and not read a megabyte first). A wall-clock limit
   fails a loaded runner and passes a regression that is only a few times slower, so none belongs in this suite.
+  A walk of the syntax tree is counted too (`countTraversals()` wraps `PathVisitor#visit` of ast-types), because the work
+  meter cannot see it: the tests compare a part with 2 and with 20 copies of each detect matcher, and a file with 10 and
+  with 80 grids that each spread a different constant. A test of a very long line proves the file was not read by a
+  syntax error that would show as a `parse-error`, never by a clock.
 - `test/write-safety.test.mjs` pins the write: `writeFileSafely()` (temporary file and rename, the mode kept exactly under a
   umask that would cut it, a file
   that changed after the read refused, a link or a read-only file refused, no temporary file left), a failed or refused
@@ -160,6 +164,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   literals and multi-line strings of every fixture input with its output. It reads literals through
   `test/helpers/literals.mjs`, a plain parser walk that does not use `src/lib/literals.mjs`.
 - `test/indirect-sites.test.mjs` pins the code that holds options without showing it: the one-hop resolver, the custom renderer and file-read guards of `numericFormat.culture`, references and spreads as the value, the unrecognized-holder reports, wrapped selectors, indirect column-move hooks, dates from variables, and the marker of an entry inside a template literal.
+- A rule for a change that the migration guide does not describe sets `"inGuide": false`. Its entries and TODO comments then carry no guide link (`18.0.0/core-undo-methods`, `18.0.0/export-column-headers`). A rule with neither `guide` nor `inGuide: false` links the guide page without an anchor.
 - `test/manifest.test.mjs` checks every rule's `guide` anchor against the headings of the guide page with
   `checkAnchors()` in `test/helpers/guide-anchors.mjs`, which owns the one slug function of the tests (`anchorsOf()`,
   `anchorListOf()`), and checks the `notAutomated` entries too. `slugOf()` strips inline tags and turns a double hyphen
@@ -189,7 +194,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/cli.mjs` | Argument parsing, `--list`, rendering, exit codes. |
 | `src/runner.mjs` | `run()` (disk), `transformFile()` (pure), `resolvePlan()`, `describeRules()`. |
 | `src/versions.mjs` | Version parsing, range selection, `--from` auto-detect. |
-| `src/manifest.mjs`, `src/manifest.schema.json` | Manifest loading and validation, `RULE_KINDS`. |
+| `src/manifest.mjs`, `src/manifest.schema.json` | Manifest loading and validation, `RULE_KINDS`. `loadManifests()` also fails for a directory of the versions directory that is not named for a full semver version (a dot-directory is ignored) and for a `twins` id that is no rule of any manifest. |
 | `src/types.mjs` | JSDoc typedefs for the contracts below. No runtime code. |
 | `src/transforms/index.mjs` | The registry: `KIND_ORDER`, `PHASE_TWO_KINDS`, the module list. |
 | `src/adapters/*.mjs` | File type to parts and back. `js.mjs` also gives a read-only `template` part to each inline Angular template (see Traps). `template.mjs` gives an `.html` or `.htm` file one read-only `template` part. `vue.mjs` splits a `.vue` file (see Traps). |
@@ -205,13 +210,13 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/inline-script.mjs` | `scanScripts()` (the `<script>` elements of an HTML text, found with indexes and a memo, not a backtracking expression; an optional `stats` object counts its steps for `scan-complexity.test.mjs`) and `createLineCounter()` (lines for offsets that grow, one read of the text). Used by `adapters/template.mjs` and the `missingOption` check of `detect.mjs`. |
 | `src/lib/anchor.mjs` | Where a comment about a property can go: `enclosingAnchor()`, `hasOwnLines()`, `anchorForProperty()`. |
 | `src/lib/option-sites.mjs` | `templateOptionSites()` (wrapper tag attributes in template text) and `dynamicOptionSites()` (assignments and `setCellMeta()`), shared by `options.mjs` and the `detect` `property` matcher. |
-| `src/adapters/unsupported-style.mjs` | `.less`, `.styl`, `.stylus`, `.sass`: never parsed, only reported through `skipReason`. |
+| `src/adapters/unsupported-style.mjs`, `unsupported-markup.mjs` | `.less`, `.styl`, `.stylus`, `.sass`, `.pcss`, `.postcss`, and `.svelte`, `.astro`, `.mdx`: never parsed, only reported through `skipReason` when the text names Handsontable or a theme variable. |
 | `src/lib/safety.mjs` | The meaning of `safe`: `rewrites(rule)`, `modeOf(rule)`, `requiresSafe(kind)`, `reportInstead()`. |
 | `src/lib/json-edit.mjs` | `JsonDocument`: edits a `package.json` by offset (`setString()`, `addMember()`), `scanJson()`, `memberPosition()`. Every edit is verified against the parsed model. |
 | `src/lib/css-edit.mjs` | `CssDocument`: edits a stylesheet by offset (`replaceInDeclaration()`, `replaceInAtRule()`, `insertCommentBefore()`) and prints the original text with the edits spliced in. `print()` parses the result again and compares it with the postcss model. |
 | `src/lib/validate.mjs` | `problemsOf()` and `assertRenameOrRemoval()`, the helpers behind the `validate(rule)` hook of a transform. |
 | `src/lib/rename-key.mjs` | `renameKey()` and `removalAdvice()`, shared by the option, theme token, and CSS transforms. |
-| `src/lib/resolve.mjs` | `createHop()`: the one-hop resolver of a file. `hop()` follows an identifier or a member read (`PRESET.chf`) to the value a `const` of the same file holds, through `as const`; `stringOf()` reads the string behind it; `spreadsOf()` resolves the spreads of an object, and `{ exact: true }` answers `null` for an object the file changes. Nothing else is followed (see Traps). |
+| `src/lib/resolve.mjs` | `createHop()`: the one-hop resolver of a file. `hop()` follows an identifier or a member read (`PRESET.chf`) to the value a `const` of the same file holds, through `as const`; `stringOf()` reads the string behind it; `spreadsOf()` resolves the spreads of an object, and `{ exact: true }` answers `null` for an object the file changes. `createHop(j, root, { stable: true })` is for a caller that never edits the tree (`detect`): the identifiers are then indexed by name once (`identifierIndex()` in `scope.mjs`), so asking about many bindings costs one walk. Leave it off in a transform that edits, because the index holds the paths as they were. Nothing else is followed (see Traps). |
 | `src/lib/hot-bindings.mjs` | What a file binds to Handsontable: `collectHotBindings()` (`isInstance()`, `isPluginReceiver()`, `isPlugin()`, `valuesOf()`, ...), `isUnresolvedReceiver()`, and `receiverOfGrid()` (`instance`, `other`, or `unknown`, for a call that only the grid answers to). Every question about a name is answered from its whole history (see Traps). |
 | `src/lib/holders.mjs` | `createHolders()`: `heldBy(objectPath)`, the other uses of the variable, member, or export that holds an options object, and the objects that spread it (see Traps). |
 | `src/lib/custom-reader.mjs` | `createReaderFinder()`: the one check "could custom code read this option of this object or element" behind `readerAdvice` (see Traps). |
@@ -273,7 +278,8 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    A `dependency` range below `--from` (`lineBelowFrom()`: an earlier line that does not admit the `--from` version)
    is never bumped. `dependencies.mjs` reports one `below-from` warning per `package.json` (`reportBelowFrom()`), the CLI
    repeats it on stderr after the report, and the exit code stays 0. A CDN URL below `--from` gets a sentence in its own
-   entry. A raised `peerDependencies` range also gets a `manual` entry (`reportPeerRaised()`).
+   entry. A `peerDependencies` range below the target is never rewritten: it gets a `manual` entry that says how to widen it
+   (`reportPeerBelow()`), and none when it already admits the target.
 2. The git guard refuses a dirty tree (exit 2) unless `--allow-dirty`. `status` lists untracked files one by one,
    whatever `status.showUntrackedFiles` says. It does not apply to `--dry-run`,
    `--list`, `write: false`, or a directory outside a git repository, where `onWarning` gets a one-line notice before
@@ -304,7 +310,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    README). It drops
    `node_modules`, `dist`, `build`, `coverage`, `.git`, `*.min.*`, `*.d.ts`, files deleted on disk, and any
    extension no adapter handles. JSON is limited to `package.json`. A file named on the command line bypasses the
-   generated-output filter. It never follows a symbolic link: a link to a file or a directory, a path argument that
+   generated-output filter (`dist`, `*.min.*`, `*.d.ts`), but not the two rules of the directory form: a file below
+   `node_modules`, and a file that git ignores in a repository (`isIgnored()`), is never read, and the reason goes to
+   `reasons` as for a directory. It never follows a symbolic link: a link to a file or a directory, a path argument that
    is one or sits below one, goes to its `skipped` list and the report shows it under "Skipped files". Git lists a
    link to a directory as one entry without a handled extension, so `directoryLinks()` checks the entries of the git
    list that no adapter handles with `lstat`, and the fs walk checks every entry. A path
@@ -314,8 +322,10 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    directory, the target itself, or a link outside the project that makes the directory of a path spelled outside land
    inside it; a link on the part outside the project, `/tmp` on macOS, is the system's business and never refused; the
    message names the link as typed, absolute for an absolute path), a file git tracks, a file the run migrates, an existing file of a
-   type the tool handles, a directory, an existing file that cannot be written, or a file in a directory that does not
-   exist or cannot be written (`assertReportTarget()`, before any file changes). The same file is decided by
+   type the tool handles, a path with a `.git` component, a directory, an existing file that cannot be written, an
+   existing file that is not empty and whose first line is not the report title (`REPORT_TITLE` in `report.mjs`,
+   `isPreviousReport()`: only the file of an earlier run is replaced, inside the project or outside it), or a file in a
+   directory that does not exist or cannot be written (`assertReportTarget()`, before any file changes). The same file is decided by
    `isSameFile()`: the real path as the file system stores it (`realpathNative()`) or the same device and inode, so
    another letter case and a hard link do not get past `files.includes()` or `git ls-files`, which compare strings. Every git
    command goes through `git()` in `git.mjs`, which adds `--no-pager` and `-c core.fsmonitor=false`: a repository can
@@ -328,7 +338,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    parse once, run versions ascending and kinds in `KIND_ORDER`, print only parts that called `markChanged()`.
    Parse and transform failures become `parse-error` and `transform-error` warning entries, the file is left
    byte for byte alone, and the run ends with exit code 1. A file above `MAX_FILE_BYTES` (1 MB, `--max-file-size`) is
-   not read and becomes a `skipped-file` warning, as does a file that is not valid UTF-8 (`readUtf8()` in
+   not read and becomes a `skipped-file` warning, as does a file with a line of more than `MAX_LINE_LENGTH` (20,000)
+   characters (`hasVeryLongLine()`, phase 1, a `package.json` exempt), because the size cap does not bound the cost of
+   a one-line bundle, and as does a file that is not valid UTF-8 (`readUtf8()` in
    `lib/text-file.mjs`, phase 1 only). A write goes through `writeFileSafely()`: a temporary file in the directory, a last read of the target that must still
    be the text the tool started from (else a `write-error` that says the file changed while the tool ran), `rename`,
    the mode kept. A write that fails or is refused is a `write-error` warning, the file is not counted as changed, its
@@ -503,7 +515,8 @@ guide is a fix and not new scope. The status stays `draft` until 19.0 is release
   resize-state methods (removed in 19.0), the two `Formulas` shortcut methods (no-ops), and the two type aliases
   `Settings` of `handsontable/plugins/exportFile` and `DataProviderOptions` of `handsontable/plugins/dataProvider`.
 - **Reports:** one `detect` rule per change that has a pattern in user code (a hook set to `null`, the frozen column
-  drag and the unfreeze hooks, an `updateSettings()` call on a grid (`receiver: "grid"`) in a file with a `dataProvider` among them), and
+  drag and the unfreeze hooks, an `updateSettings()` call on a grid (`receiver: "grid"`) in a file with a `dataProvider` or a `dataSchema` among them; the matcher does not read the arguments, so every
+  `updateSettings()` call of a grid in such a file is reported), and
   `19.0.0/helper-sanitize`. The latter
   is a `callUnwrap` with `safe: false` on purpose. The guide says to remove the call, and from 18.1 that is right,
   because the helper returned its input unchanged. In a chained run from 17.x the 18.0 rule has already left the
@@ -645,7 +658,8 @@ It reads the original source only, so a marker this run writes for one spot neve
 call added later, deep inside a function whose enclosing statement already carries the same comment, gets none, and
 stays in the report (`marked` is then true for it). `idempotency-nested.test.mjs` is the guard. The default is on for a `manual` entry in a js or css part. It is
 off for a `scope: 'run'` note, an entry with `todo: false`, a rule with `todo: false` (`18.1.0/license-key-missing`, whose advice holds for every environment, and
-`18.1.0/synthetic-header-mousedown`, which flags test code), and any part that cannot hold comments (templates, HTML,
+`18.1.0/synthetic-header-mousedown`, which flags test code, and `18.1.0/column-move-hooks`, which matters only to code that
+detects a header click), and any part that cannot hold comments (templates, HTML,
 `package.json`). `stored.marked` says a marker is in the code, `counts().marked` totals them, and the CLI prints
 "N of M are marked in the code" from it. The first sentence of every advice or message starts with an action verb:
 `test/advice.test.mjs` checks the rule files, and the TODO text of every fixture output.
@@ -814,8 +828,13 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `registerTheme`, `reinitTheme`, and `.params()` (a rule can set `callees`); `createTheme` is not public API. A
   `.params()` call needs a theme receiver (`isThemeReceiver()`): a call chain rooted at a binding of
   `handsontable/themes` (import, namespace import, or `require`), or a variable that holds one (`addThemeVariables()`,
-  one hop). `axios.get(url).params({ ... })` stays untouched. The search for keys stops at a function nested in the
-  argument (`insideNestedFunction()`), because code that runs later is not the theme configuration.
+  one hop). `axios.get(url).params({ ... })` stays untouched. A token is a key of the `tokens` object of the config
+  (`tokenProperties()`: the argument, or a branch of a conditional or logical expression, then its `tokens` property).
+  The theme API takes `{ name, sizing, density, icons, colors, tokens, colorScheme }` and holds every token in `tokens`
+  (`ThemeParams` in `handsontable/src/themes/types.ts`; any other top-level key only gets a warning from
+  `validateKeys()`), so a key of `colors`, `icons`, `sizing`, or `density` that is spelled like a token is a palette entry,
+  an icon slot, or a size. The generic note for a file that imports `handsontable/themes` skips those sections too
+  (`inNonTokenSection()`).
 - A `cssVariable` rule edits a `--ht-` string in a js part without the `isHotFile` guard on purpose: `--ht-` is
   Handsontable's own namespace, so a file that names such a variable uses Handsontable styling, like a `.css` file with
   no imports. That is the only exception. Every other rule kind needs a Handsontable import or global, and
@@ -978,7 +997,12 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   head, a parameter, a catch parameter, a name that a function or a class also declares, and a `var` declared twice
   with another kind of declaration. An opaque name, a name with no value, and a name with one foreign value are not a
   receiver. A declaration with no initializer and one qualifying assignment is. A type annotation (`Handsontable`,
-  `Core`, `HotInstance`) is the other way in, because the compiler holds every value to it. Instances are settled by a
+  `Core`, `HotInstance`) is the other way in, because the compiler holds every value to it. A type of the project is the
+  other way out (`isForeignType()`: an annotation of a name or a class field, or a cast with `as` or `<T>`, to a type
+  that is not a grid instance type, a ref holder, `any`, `unknown`, `never`, or `const`): `new Handsontable(el) as MyUndo`
+  is not an instance, and a name declared `hot: MyUndo` is never one (`History.foreign` blocks the fixpoint, and
+  `valuesOf()` still answers, so a settings object typed that way is still found). `satisfies` does not change the type
+  of the value and is passed. Instances are settled by a
   least fixpoint, so a name set from another name counts once that one does, and a cycle never does. A `this.x` member
   is the same, keyed by class and by `static`: `this` must be the instance of the class, so the walk up from it stops at
   a function, an object method, a getter or setter of an object literal, and a nested class, and passes an arrow
@@ -1098,7 +1122,11 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   have rules. The 17.1.0 typings also declared the theme registry (`registerTheme`, `mainTheme`, ...) on the `handsontable`
   and `handsontable/base` entry points although the runtime exported them only from `handsontable/themes`.
 - Rules whose guide has no section (`18.0.0/core-undo-methods`, `18.0.0/export-column-headers`) omit `guide`: the
-  anchor must exist on the page of the manifest. The core undo methods were already gone from runtime and typings in
+  anchor must exist on the page of the manifest. Neither is a change of 18.0, which is why the page has no section: the
+  core undo methods never existed in 17.x or 18.x, and the export option `columnHeaders` was renamed in 17.1 (deprecated
+  since then, removed in 19.0). Their entries still link the page itself, because a rule with no `guide` gets the
+  page URL. The theme registry import rules (`theme-registry-imports-main` and `-base`) do have a section, "Import the
+  theme functions from the themes entry point", because the 18.0 typings did drop those names. The core undo methods were already gone from runtime and typings in
   17.0 (`hot.undo`, `hot.undoRedo`, `clearUndo`, `isUndoAvailable`, `isRedoAvailable` are in none of `core.js`,
   `core.d.ts`, or the undo plugin of the 17.0.0 and 17.1.0 packages, and the plugin never sets them on the
   instance; 16.2.0 had `isUndoAvailable` and `undoRedo` on `core.js`). So a call on 17.x threw a `TypeError`, and the
@@ -1114,6 +1142,12 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   is reported and guards nothing else. `methods-undo-guarded` and the `methodMove: a member that code tests` block of
   `methods.test.mjs` pin it. The `columnHeaders` export
   option is deprecated in 17.1 and removed in 19.0, and only the 19.0 guide has a section for it.
+- **`detect` reads each node type once per part.** `createEnv()` hands every matcher `env.find(type)`, a cache of
+  `root.find(type)`, and `env.dynamicSites()`, the assignments and `setCellMeta()` calls. The state lives for one
+  `apply()` call and a `detect` rule never edits the tree, so nothing makes an entry stale. A matcher that needs a node
+  type calls `env.find(type)`, never `root.find(type)`: the state is rebuilt for each version, which is why a part is
+  walked once per type and version, not once per rule. `test/scan-complexity.test.mjs` counts the walks
+  (`countTraversals()`) for 2 and for 20 copies of each matcher.
 - **`detect` rule shape:** `{ id, kind: "detect", severity?: "manual" | "warning", files: ["js" | "css" | "template"],
   requires?: "hot-file" | "option-object" | "none", emitsFact?, unlessFileMatches?, mergeKey?, match, message, guide }`.
   `message` and `files` are required by `validateDetectRule()`, which runs when the manifests load, and which rejects an
@@ -1159,7 +1193,8 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   says the tool cannot tell its version (`planRange()` still returns `skip`). `workspace:`, `file:`, `link:`, `portal:`,
   `patch:`, a path (`./x`, `../x`, `.\\x`, `/x`, `C:\\x`, `\\\\server\\x`), and a dist-tag stay silent. `isSourceSpec()` is the one
   predicate of `planRange()` and `minimumOfRange()`, so a port or a tag of such a spec is never read as a version. The note about a pin of `overrides`, `resolutions`, or `pnpm.overrides`
-  names its own section.
+  names its own section. An entry of those sections with such a spec gets the same entry (`reportPins()`), and a
+  `peerDependencies` range is never edited (see "Run model").
 - Dependency ranges (`planRange()`, `rangeAdmits()`): a compound or open range that already allows the target
   (`>=17.1.0 <19`, `*`, `18`, an `npm:` alias to a new enough version) is `keep` and produces no entry. A simple caret,
   tilde, or exact range whose lowest version is below the target is raised to the target, even when it admits it
@@ -1239,8 +1274,17 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   6)"). Not every shape is named: an unknown parent says "used here". **A type names the holder:** an object found
   through `annotated` (an annotation, `as`, or `satisfies` of `GridSettings` and the like, whichever pass found it
   first), and everything inside it, is never held, because the compiler holds every other consumer to that type
-  (`isAnnotated`). The nested object that a consumer receives through a member read (`legacy.use(cfg.columns)`) is not
-  followed. A spread into another object is `spreadInto`, with the names the receiver set **before any rule edited
+  (`isAnnotated`). **A type of the project holds it** (`isForeignType()`: an annotation, `as`, or `satisfies` to a type that
+  Handsontable does not export, `MyOptions`, `MyOptions[]`, `Partial<MyOptions>`, an inline object type; `any`, `unknown`,
+  and `as const` do not count): any reader of that type sees the keys, so `heldBy()` answers "typed as `MyOptions`".
+  **A part of the object that goes to other code holds the object too.** A member read (`cfg.columns`, `cfg.columns[0]`),
+  a destructured name, an alias of a member, and the element parameter of an inline callback of `forEach`, `map`,
+  `filter`, `find`, `some`, `every`, or a `for...of` loop are followed to their own uses (`classify(reference, true)`,
+  `followNames()`). A member that only ends in an expression (`cfg.title + '!'`, `cfg.columns.length`, a template
+  literal, a comparison, a write, `console.log()`, `Number()`) gives no object to anyone. `find`, `filter`, `map`,
+  `slice`, `at`, and the like answer with the elements, so their result is followed on. A callback that is not written
+  inline, an element returned from a callback that is not an iteration callback, and a method of the object that is not
+  in the lists are `other`. A spread into another object is `spreadInto`, with the names the receiver set **before any rule edited
   it** (`around`, taken when the analysis is built): the answer must not depend on which object a rule reaches first.
   A move (`optionMove`) always conflicts, a rename when the receiver sets the new name or the old one after the spread,
   and a removal never does, because the removed option does nothing in the target version, and a check on the
@@ -1248,7 +1292,15 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 - **`optionMove` takes `levels` and `reportWithout`.** `levels` (`grid`, `column`, `cell`) lists where the key may move;
   `Target.level` is the role of the object (`item.role` of `findOptionObjects`) or the component of the element
   (`HotTable` is `grid`, `HotColumn` is `column`). At any other level `reportWrongLevel()` reports `levelAdvice` and
-  moves nothing. `18.0.0/numeric-format-culture` lists `column` and `cell`: a grid-level `locale` is read by the
+  moves nothing. `onlyTypes` (a list of cell types) and `typeAdvice` do the same for the cell type: `moveInObject()` and
+  `moveOnElement()` read the cell type of the object or element (`objectCellType()`, `elementCellType()`: its own `type`
+  or `renderer` string, else the `type` of the settings object or `HotTable` element it sits in, through the array of
+  `columns` or `cell` and a type assertion), and move only for a listed type. A `renderer` that is a listed name makes
+  the column one too, because the numeric renderer formats with `numericFormat` whatever the type. A type that is not a
+  string the file shows, a spread that can set it, an object that sits in no object the tool can see, and a column with
+  no type anywhere are `unknown` and report `typeAdvice`. `numericFormat` is ignored in a text column and `locale` is
+  not (it sets the collation of sorting and filtering), so `18.0.0/numeric-format-culture` lists `numeric`. The shared
+  object check comes first. `18.0.0/numeric-format-culture` lists `column` and `cell`: a grid-level `locale` is read by the
   date, time, `intl-date`, `intl-time`, `intl-datetime`, and checkbox renderers, the autocomplete and multiselect
   editors, the text sort, the filter conditions, `search`, and the xlsx export (the `locale` readers of the 18.1.2
   package), so it would change every other column. `reportWithout` names a key of the holder that makes the `report`

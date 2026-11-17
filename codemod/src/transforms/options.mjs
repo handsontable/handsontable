@@ -34,6 +34,13 @@ const REPORT_BELOW_BAR = 'This object only looks like a Handsontable options obj
 const REPORT_UNCORROBORATED = 'This object only looks like a Handsontable options object and sets fewer than two '
   + 'other known options, so it was not changed. Edit by hand.';
 const MEMBER_CALLS = new Set(['MemberExpression', 'OptionalMemberExpression']);
+const WRAPPER_NODES = new Set([
+  'TSAsExpression',
+  'TSSatisfiesExpression',
+  'TSNonNullExpression',
+  'TSTypeAssertion',
+  'ParenthesizedExpression',
+]);
 
 /**
  * Per-rule state passed between the helpers below.
@@ -100,6 +107,15 @@ function assertRule(rule) {
   if (rule.levels !== undefined && (!Array.isArray(rule.levels) || rule.levels.length === 0
     || !rule.levels.every(level => ['grid', 'column', 'cell'].includes(level)))) {
     throw new Error(`Rule ${rule.id}: "levels" must be a non-empty list of "grid", "column", or "cell".`);
+  }
+
+  if (rule.onlyTypes !== undefined && (!Array.isArray(rule.onlyTypes) || rule.onlyTypes.length === 0
+    || !rule.onlyTypes.every(type => typeof type === 'string' && type))) {
+    throw new Error(`Rule ${rule.id}: "onlyTypes" must be a non-empty list of cell type names.`);
+  }
+
+  if (rule.typeAdvice !== undefined && typeof rule.typeAdvice !== 'string') {
+    throw new Error(`Rule ${rule.id}: "typeAdvice" must be a string.`);
   }
 
   if (rule.kind === 'optionRename' && rule.context !== undefined && !Array.isArray(rule.context.callArg)) {
@@ -1263,6 +1279,209 @@ function reportWrongLevel(env, child) {
 }
 
 /**
+ * What a `type` value says about a column: the cell type is one the rule names, another one, or not known here.
+ *
+ * @param {Env} env The state.
+ * @param {object|null} valuePath NodePath of the value, `null` for a bare attribute.
+ * @returns {'match'|'other'|'unknown'} `match` for a type the rule lists, `other` for any other string.
+ */
+function typeOfValue(env, valuePath) {
+  const text = valuePath ? env.resolver.stringOf(unwrapPath(valuePath)) : null;
+
+  if (text === null) {
+    return 'unknown';
+  }
+
+  return env.rule.onlyTypes.includes(text) ? 'match' : 'other';
+}
+
+/**
+ * The `type` that an object sets for itself.
+ *
+ * @param {Env} env The state.
+ * @param {object} objectPath NodePath of an `ObjectExpression`.
+ * @returns {'match'|'other'|'unknown'|null} `null` when the object sets no type and nothing in it can.
+ */
+function ownObjectType(env, objectPath) {
+  const list = objectPath.node.properties;
+  const stateOf = (name) => {
+    const property = getProperty(objectPath, name);
+
+    if (!property) {
+      return null;
+    }
+
+    return property.node.type === 'ObjectProperty' ? typeOfValue(env, property.get('value')) : 'unknown';
+  };
+  const states = [stateOf('type'), stateOf('renderer')];
+  const keyed = ['type', 'renderer'].map(name => getProperty(objectPath, name)).filter(Boolean);
+  const laterSpread = keyed.some(property => list.some((item, index) => /^(Spread|ExperimentalSpread)/.test(item.type)
+    && index > list.indexOf(property.node)));
+  const spreads = list.some(item => /^(Spread|ExperimentalSpread)/.test(item.type));
+
+  // A spread can set the type, and one after the key can replace it.
+  if (laterSpread || (keyed.length === 0 && spreads)) {
+    return 'unknown';
+  }
+
+  // The numeric renderer formats with `numericFormat` in a column of any type, so a renderer the rule names makes the
+  // column one. A renderer it does not name says nothing about the type, which may still come from above.
+  if (states.includes('match')) {
+    return 'match';
+  }
+
+  if (states.includes('unknown')) {
+    return 'unknown';
+  }
+
+  return states[0] === null ? null : 'other';
+}
+
+/**
+ * The object an element of `columns` or `cell` sits in, found in the text: the element is in an array that is the
+ * value of the key.
+ *
+ * @param {object} objectPath NodePath of the element.
+ * @returns {object|null} NodePath of the object that holds the array, or `null` when the element does not sit in one.
+ */
+function ownerOfElement(objectPath) {
+  const above = (path) => {
+    let current = path.parent;
+
+    while (current && WRAPPER_NODES.has(current.node.type)) {
+      current = current.parent;
+    }
+
+    return current;
+  };
+  const array = above(objectPath);
+  const property = array?.node.type === 'ArrayExpression' ? above(array) : null;
+  const owner = property && (property.node.type === 'ObjectProperty' || property.node.type === 'Property')
+    ? property.parent : null;
+
+  return owner?.node.type === 'ObjectExpression' && ['columns', 'cell'].includes(propertyName(property.node))
+    ? owner : null;
+}
+
+/**
+ * The cell type an object stands for. A column with no `type` of its own takes the one of the settings object it sits
+ * in, so the object is read first and then the objects around it. Nothing else is followed: an element that is
+ * reached through a variable has no object around it that the tool can see.
+ *
+ * @param {Env} env The state.
+ * @param {object} objectPath NodePath of an options object.
+ * @returns {'match'|'other'|'unknown'} The state. An object that sets no type anywhere is `unknown`, because the
+ * cell type of a column may come from the code the tool cannot see.
+ */
+function objectCellType(env, objectPath) {
+  let current = objectPath;
+
+  for (let depth = 0; current && depth < 4; depth += 1) {
+    const own = ownObjectType(env, current);
+
+    if (own !== null) {
+      return own;
+    }
+
+    current = ownerOfElement(current);
+  }
+
+  return 'unknown';
+}
+
+/**
+ * The cell type of a wrapper element: its `type` attribute, else the one of the `HotTable` it sits in.
+ *
+ * @param {Env} env The state.
+ * @param {object} openingPath NodePath of a `JSXOpeningElement`.
+ * @returns {'match'|'other'|'unknown'} The state.
+ */
+function elementCellType(env, openingPath) {
+  /**
+   * The state one attribute of an opening element says.
+   *
+   * @param {object} opening NodePath of the opening element.
+   * @param {string} name The attribute name.
+   * @returns {'match'|'other'|'unknown'|null} `null` when the element has no such attribute.
+   */
+  const stateOf = (opening, name) => {
+    const { attributes } = opening.node;
+    const index = attributes.findIndex(item => attributeName(item) === name);
+
+    if (index === -1) {
+      return null;
+    }
+
+    const value = opening.get('attributes', index, 'value');
+
+    if (attributes[index].type !== 'JSXAttribute' || !value.node) {
+      return 'unknown';
+    }
+
+    return typeOfValue(env, value.node.type === 'JSXExpressionContainer'
+      ? opening.get('attributes', index, 'value', 'expression') : value);
+  };
+  let opening = openingPath;
+
+  for (let depth = 0; opening && depth < 3; depth += 1) {
+    if (opening.node.attributes.some(item => item.type === 'JSXSpreadAttribute')) {
+      return 'unknown';
+    }
+
+    const states = [stateOf(opening, 'type'), stateOf(opening, 'renderer')];
+
+    if (states.includes('match')) {
+      return 'match';
+    }
+
+    if (states.includes('unknown')) {
+      return 'unknown';
+    }
+
+    if (states[0] !== null) {
+      return 'other';
+    }
+
+    let parent = opening.parent?.parent;
+
+    while (parent && !['JSXElement', 'JSXFragment'].includes(parent.node.type)) {
+      parent = parent.parent;
+    }
+
+    opening = parent?.node.type === 'JSXElement' ? parent.get('openingElement') : null;
+  }
+
+  return 'unknown';
+}
+
+/**
+ * Report a move that was left alone because the key means something only for some cell types (`onlyTypes`), and the
+ * column is not one of them or the tool cannot tell: `numericFormat` is ignored by a text column, and `locale` is not.
+ *
+ * @param {Env} env The state.
+ * @param {'match'|'other'|'unknown'} state The cell type of the object or element.
+ * @param {object} child The node of the nested key.
+ * @returns {boolean} `true` when the move is wrong for this cell type and was reported.
+ */
+function reportWrongType(env, state, child) {
+  const { ctx, rule } = env;
+
+  if (!rule.onlyTypes || state === 'match') {
+    return false;
+  }
+
+  ctx.report({
+    ruleId: rule.id,
+    severity: 'manual',
+    line: lineOfNode(child),
+    message: rule.typeAdvice ?? `Move ${rule.from} to ${rule.to} by hand if the cell type is `
+      + `${rule.onlyTypes.join(' or ')}: the tool did not find one here.`,
+  });
+
+  return true;
+}
+
+/**
  * Quote a new key the way a neighboring key is quoted.
  *
  * @param {object} j The jscodeshift API.
@@ -1357,6 +1576,10 @@ function moveInObject(env, objectPath, confidence) {
   }
 
   if (reportSharedObject(env, objectPath, child.node)) {
+    return;
+  }
+
+  if (rule.onlyTypes && reportWrongType(env, objectCellType(env, objectPath), child.node)) {
     return;
   }
 
@@ -1455,6 +1678,10 @@ function moveOnElement(env, openingPath) {
   }
 
   if (reportWrongLevel(env, child.node)) {
+    return;
+  }
+
+  if (rule.onlyTypes && reportWrongType(env, elementCellType(env, openingPath), child.node)) {
     return;
   }
 

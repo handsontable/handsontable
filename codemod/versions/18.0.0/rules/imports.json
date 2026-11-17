@@ -60,6 +60,7 @@
       "id": "18.0.0/theme-registry-imports-main",
       "kind": "importSource",
       "safe": true,
+      "guide": "import-the-theme-functions-from-the-themes-entry-point",
       "reason": "17.x declared {name} on \"{from}\" in its typings only.",
       "from": "handsontable",
       "exports": {
@@ -78,6 +79,7 @@
       "id": "18.0.0/theme-registry-imports-base",
       "kind": "importSource",
       "safe": true,
+      "guide": "import-the-theme-functions-from-the-themes-entry-point",
       "reason": "17.x declared {name} on \"{from}\" in its typings only.",
       "from": "handsontable/base",
       "exports": {

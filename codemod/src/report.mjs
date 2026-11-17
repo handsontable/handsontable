@@ -2,6 +2,12 @@ import { codeSpan, markdownText, plainName, plainText } from './lib/markdown.mjs
 import { redact } from './lib/redact.mjs';
 
 /**
+ * First line of the Markdown report, up to the versions and the date. `assertReportTarget()` in `runner.mjs` replaces an
+ * existing file only when it starts with this text.
+ */
+export const REPORT_TITLE = 'Handsontable migration report';
+
+/**
  * Rule id of the entry that says a file was not analyzed. These entries are not rule results: both renderers
  * list them in a "Skipped files" section.
  */
@@ -449,7 +455,7 @@ export function renderMarkdown(report, {
   dryRun = false,
 } = {}) {
   const range = from && to ? `: ${from} to ${to}` : '';
-  const heading = title ?? `Handsontable migration report${range}${date ? ` (${date})` : ''}`;
+  const heading = title ?? `${REPORT_TITLE}${range}${date ? ` (${date})` : ''}`;
   const lines = [`# ${heading}`, ''];
 
   report.notes.forEach(note => lines.push(markdownText(note), ''));

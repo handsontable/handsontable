@@ -13,6 +13,7 @@ const RADIUS = '18.0.0/css-wrapper-border-radius';
 const WIDTH = '18.0.0/css-wrapper-border-width';
 const TOKEN_RADIUS = '18.0.0/theme-token-wrapper-border-radius';
 const TOKEN_WIDTH = '18.0.0/theme-token-wrapper-border-width';
+const TOKEN_COLOR = '18.0.0/theme-token-wrapper-border-color';
 
 /**
  * Run a file through the real 18.0.0 rules.
@@ -582,19 +583,50 @@ describe('themeToken', () => {
       + 'import { registerTheme, getTheme, mainTheme } from \'handsontable/themes\';\n'
       + 'import * as themes from \'handsontable/themes\';\n'
       + 'const bound = registerTheme(\'b\', {});\n'
-      + 'registerTheme(\'t\', {}).params({ wrapperBorderRadius: 1 });\n'
-      + 'getTheme(\'main\')?.params({ wrapperBorderRadius: 2 });\n'
-      + 'mainTheme.params({ wrapperBorderRadius: 3 });\n'
-      + 'themes.getTheme(\'x\').params({ wrapperBorderRadius: 4 });\n'
-      + 'bound.params({ wrapperBorderRadius: 5 });\n'
-      + 'axios.get(url).params({ wrapperBorderRadius: 6 });\n'
-      + 'router.params({ wrapperBorderRadius: 7 });\n';
+      + 'registerTheme(\'t\', {}).params({ tokens: { wrapperBorderRadius: 1 } });\n'
+      + 'getTheme(\'main\')?.params({ tokens: { wrapperBorderRadius: 2 } });\n'
+      + 'mainTheme.params({ tokens: { wrapperBorderRadius: 3 } });\n'
+      + 'themes.getTheme(\'x\').params({ tokens: { wrapperBorderRadius: 4 } });\n'
+      + 'bound.params({ tokens: { wrapperBorderRadius: 5 } });\n'
+      + 'axios.get(url).params({ tokens: { wrapperBorderRadius: 6 } });\n'
+      + 'router.params({ tokens: { wrapperBorderRadius: 7 } });\n';
     const { output } = await run('a.js', source);
     const renamed = [...output.matchAll(/borderRadius: (\d)/g)].map(match => match[0]);
 
-    assert.equal(output.includes('axios.get(url).params({ wrapperBorderRadius: 6 })'), true);
-    assert.equal(output.includes('router.params({ wrapperBorderRadius: 7 })'), true);
+    assert.equal(output.includes('axios.get(url).params({ tokens: { wrapperBorderRadius: 6 } })'), true);
+    assert.equal(output.includes('router.params({ tokens: { wrapperBorderRadius: 7 } })'), true);
     assert.equal(renamed.filter(text => !text.startsWith('wrapper')).length, 5);
+  });
+
+  it('rewrites a token only in the tokens object, the one part of a theme config that holds tokens', async() => {
+    const unrelated = [
+      'mainTheme.params({ colors: { wrapperBorderColor: \'#000\' } });',
+      'mainTheme.params({ icons: { wrapperBorderRadius: \'x\' }, sizing: { wrapperBorderWidth: \'1px\' } });',
+      'registerTheme(\'t\', { colors: { palette: { wrapperBorderRadius: \'#fff\' } } });',
+    ];
+    const source = ['import { mainTheme, registerTheme } from \'handsontable/themes\';', ...unrelated,
+      'mainTheme.params({ wrapperBorderRadius: 1, tokens: { wrapperBorderRadius: 2, wrapperBorderColor: \'#000\' } });',
+      ''].join('\n');
+    const { output, entries } = await run('a.ts', source);
+
+    unrelated.forEach(line => assert.ok(output.includes(`${line}\n`), line));
+    assert.ok(output.includes('{ wrapperBorderRadius: 1, tokens: { borderRadius: 2, wrapperBorderColor'), output);
+    assert.equal(output.match(/TODO\(handsontable-codemod/g).length, 1);
+    // The top-level key is no token, so only the generic note about an unplaced key reaches it.
+    assert.deepEqual(entries.map(entry => [entry.ruleId, entry.severity, entry.line]), [
+      [TOKEN_RADIUS, 'changed', 5],
+      [TOKEN_COLOR, 'manual', 5],
+      [TOKEN_RADIUS, 'manual', 5],
+    ]);
+  });
+
+  it('reads the tokens of both branches of a conditional config', async() => {
+    const source = 'import { registerTheme } from \'handsontable/themes\';\n'
+      + 'registerTheme(\'t\', dark ? { tokens: { wrapperBorderRadius: 1 } } : '
+      + '{ tokens: { wrapperBorderRadius: 2 } });\n';
+    const { output } = await run('a.ts', source);
+
+    assert.equal(output, source.replaceAll('wrapperBorderRadius', 'borderRadius'));
   });
 
   it('does not descend into function bodies inside a theme argument', async() => {

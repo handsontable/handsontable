@@ -1,5 +1,5 @@
 /**
- * Adapter for the stylesheet languages the tool has no parser for: Less, Stylus, and the indented Sass syntax. It
+ * Adapter for the stylesheet languages the tool has no parser for: Less, Stylus, the indented Sass syntax, and PostCSS files (`.pcss`, `.postcss`). It
  * never parses a file. `transformFile` asks it only for `skipReason`: a file that mentions a theme variable or
  * Handsontable gets one `skipped-file` warning, because the tool cannot rename or report anything inside it, and
  * every other file of these types is left alone without a word.
@@ -9,10 +9,10 @@
 const unsupportedStyleAdapter = {
   fileKind: 'skipped',
   fileKinds: [],
-  extensions: ['.less', '.styl', '.stylus', '.sass'],
+  extensions: ['.less', '.styl', '.stylus', '.sass', '.pcss', '.postcss'],
   implemented: true,
   precheck: /--ht-|\bht-|[Hh]andsontable|\.pika-/,
-  skipReason: 'The tool reads CSS and SCSS only, so this Less, Stylus, or Sass file was not analyzed. '
+  skipReason: 'The tool reads CSS and SCSS only, so this Less, Stylus, Sass, or PostCSS file was not analyzed. '
     + 'Search it for --ht- variables and Handsontable selectors by hand.',
 
   /**

@@ -1,4 +1,4 @@
-import { createLineCounter, scanScripts } from '../lib/inline-script.mjs';
+import { createLineCounter, hasAttribute, scanScripts } from '../lib/inline-script.mjs';
 
 /**
  * Cheap test on raw template text: does it mention the Handsontable package, a wrapper element or component, a
@@ -40,7 +40,7 @@ const templateAdapter = {
    */
   skipNotes(source, checks = []) {
     const scripts = scanScripts(source)
-      .filter(script => !/\bsrc\s*=/i.test(script.attributes) && /handsontable/i.test(script.body));
+      .filter(script => !hasAttribute(script.attributes, 'src') && /handsontable/i.test(script.body));
 
     if (scripts.length === 0) {
       return [];

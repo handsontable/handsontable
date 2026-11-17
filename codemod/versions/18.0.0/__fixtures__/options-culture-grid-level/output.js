@@ -22,6 +22,7 @@ new Handsontable(document.body, {
   cell: [{
     row: 0,
     col: 0,
+    type: 'numeric',
     locale: 'ja-JP',
 
     numericFormat: {
