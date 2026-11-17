@@ -267,7 +267,7 @@
     },
     {
       "id": "status-messages",
-      "title": "A range extension, Ctrl+A selecting every cell, a sort, a column added to a multi-column sort with its place in the order, and a nested row's level are not announced: no status message reaches the screen reader",
+      "title": "A range extension, Ctrl+A selecting every cell, a sort, the place in the order of a column added to a multi-column sort, and a nested row's level are not announced: no status message reaches the screen reader",
       "tracker": "DEV-2957",
       "match": [
         { "source": "reader", "kinds": ["token-missing"], "where": ["^(extend-range|extend-range-again|sort-ascending|sort-descending|into-parent-cell|down-to-child)$"] },
@@ -413,7 +413,7 @@
     },
     {
       "id": "reader-golden-drift",
-      "title": "An announcement or an accessibility tree differs from its golden with no defect behind it: reader wording that varies between runs (the echo of typed characters catches more or fewer of them), a golden that recorded a start-up silence the run did not repeat, a reading golden recorded a phrase late, and dropdown editor goldens older than its empty highlight on open, since re-recorded (drop the two dropdown-editor rules when the sample is next refreshed from an audit); record the golden again",
+      "title": "An announcement or an accessibility tree differs from its golden with no defect behind it: reader wording that varies between runs (the echo of typed characters catches more or fewer of them, and a status message can cut short the header VoiceOver reads before it), a golden that recorded a start-up silence the run did not repeat, a reading golden recorded a phrase late, and dropdown editor goldens older than its empty highlight on open, since re-recorded (drop the two dropdown-editor rules when the sample is next refreshed from an audit); record the golden again",
       "match": [
         { "source": "reader", "kinds": ["golden-differs"], "pages": ["auto-link", "autocomplete-editor", "comment-editor", "data-provider-sheets-bar", "dialog", "grid-core(-horizon)?", "nested-rows", "pagination", "sheets-bar"], "where": ["^(open-link|commit-choice|type-narrow|type-in-comment|enter-switch-sheet|server-answers|tab-ok|reselect-cell|collapse-parent|enter-first-page|enter-last-page|enter-sheet-menu)$"] },
         { "source": "reader", "kinds": ["golden-differs"], "pages": ["dropdown-editor"], "where": ["^(open-editor|arrow-down-second|arrow-down-third|back-to-committed)$"] },
@@ -431,7 +431,8 @@
         { "source": "reader", "kinds": ["golden-differs"], "pages": ["date-editor"], "where": ["^type-date$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["date-editor"], "where": ["^(open-editor|back-to-committed)$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["multiselect-editor"], "where": ["^arrow-down-third$"] },
-        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["golden-differs"], "pages": ["formula-builder"], "where": ["^(type-function-prefix|type-named-prefix|open-function-help)$"] }
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["golden-differs"], "pages": ["formula-builder"], "where": ["^(type-function-prefix|type-named-prefix|open-function-help)$"] },
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["shared-demo"], "where": ["^(sort-ascending|add-to-sort)$"] }
       ]
     },
     {
