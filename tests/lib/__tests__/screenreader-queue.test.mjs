@@ -252,12 +252,15 @@ test('the wait script waits for an earlier run, then starts the lanes and notes 
 });
 
 test('the wait script fails at the bound with an error annotation that says what to do, and on a list it cannot read', async() => {
+  // The bound is a few hundred milliseconds of real time, so how many reads fit under it depends on the machine:
+  // the fake clock above pins the reads, and this pins what the script says and how it exits at the bound.
   const bound = await waitScript([{ status: 200, body: { workflow_runs: [run(4900, 'in_progress'), run(4800, 'queued')] } }]);
 
   assert.equal(bound.status, 1);
-  assert.match(bound.stdout, /\n::error title=Screen reader lanes::the scheduled audit waited 0 minutes and run 4900 and run 4800 of screenreader-nightly\.yml did not finish\. One screen reader run at a time, so the lanes did not start\. Re-run this job once the lanes are free: it starts the audit on the commit the schedule read \(tests\/AGENTS\.md, "A11y: the audit and the proof runs"\)\.\n$/);
+  assert.match(bound.stdout, /^::error title=Screen reader lanes::the scheduled audit waited 0 minutes and run 4900 and run 4800 of screenreader-nightly\.yml did not finish\. One screen reader run at a time, so the lanes did not start\. Re-run this job once the lanes are free: it starts the audit on the commit the schedule read \(tests\/AGENTS\.md, "A11y: the audit and the proof runs"\)\.$/m);
   assert.match(bound.stderr, /^screenreader-wait: the scheduled audit waited 0 minutes and run 4900 and run 4800/);
-  assert.ok(bound.requests.length >= 2, 'it read the list again before giving up');
+  assert.ok(bound.requests.length >= 1, 'it read the list before giving up');
+  assert.doesNotMatch(bound.stdout, /the lanes can start/, 'it never says the lanes are free');
 
   const forbidden = await waitScript([{ status: 403, body: { message: 'Resource not accessible by integration' } }],
     { args: ['--workflow', 'screenreader-nightly.yml', '--bound-minutes', '1', '--interval-seconds', '0.05'] });

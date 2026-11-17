@@ -4,11 +4,11 @@ name: Screen reader nightly
 # NVDA on Windows and VoiceOver on macOS over the scenarios of tests/screenreader/scenarios/;
 # tests/AGENTS.md, "Screen readers: the NVDA and VoiceOver lanes"). The schedule is the weekly audit:
 # while the accessibility debt is being fixed, the findings ledger needs an audit a week to show what
-# each fix cleared, and when; a headed Windows and macOS runner per browser every night would tell it
-# nothing more (tests/AGENTS.md, "A11y: the audit and the proof runs"). The weekly schedule ends when
-# the debt epic closes, and the tiers then decide the cadence: axe on a pull request, a semi-lite set
-# on a nightly, the full set on a release candidate and a stable release. The name stays: the ledger,
-# the Slack text and the docs know this workflow as the Screen reader nightly.
+# each fix cleared, and when; a run every night would spend a headed Windows and macOS runner per
+# browser seven times as often (tests/AGENTS.md, "A11y: the audit and the proof runs"). The weekly
+# schedule ends when the debt epic closes, and the tiers then decide the cadence: axe on a pull
+# request, a semi-lite set on a nightly, the full set on a release candidate and a stable release. The
+# name stays: the ledger, the Slack text and the docs know this workflow as the Screen reader nightly.
 # Report-only: nothing here gates a pull request, the called jobs carry `continue-on-error`, and the
 # verdict is each job's `Screen reader / <project> <group> report` check run and summary, by the
 # severity rule (tests/AGENTS.md, "A11y: the verdict of a check run"): a step missing a token group is

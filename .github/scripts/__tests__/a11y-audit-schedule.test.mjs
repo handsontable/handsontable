@@ -91,7 +91,7 @@ test('each workflow of the audit has one weekly cron, on Monday, and the ledger 
     assert.equal(workflow.match(/cron:/g)?.length, 1, `${file}: no cron under another key.`);
     assert.match(crons(file)[0], /^\d{1,2} \d{1,2} \* \* 1$/,
       `${file}: once a week, on Monday. While the accessibility debt is being fixed the ledger needs an audit a week to show what each fix cleared; `
-      + `a run every night would tell it nothing more. ${DOC}`);
+      + `a run every night would spend seven times the compute. ${DOC}`);
   }
   assert.deepEqual(AUDIT.map(({ name }) => name).sort(), Object.keys(SOURCES_OF_WORKFLOW).sort(),
     `the scheduled workflows are the recorded ones (SOURCES_OF_WORKFLOW): a workflow that joins the ledger says here whether the weekly audit runs it. ${DOC}`);

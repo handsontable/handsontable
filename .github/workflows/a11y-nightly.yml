@@ -4,11 +4,11 @@ name: A11y nightly
 # every check beyond axe (a11y.yml with `checks: true` and `nightly: true`; tests/AGENTS.md, "A11y: the
 # checks beyond axe"). The schedule is the weekly audit: while the accessibility debt is being fixed,
 # the findings ledger needs an audit a week to show what each fix cleared, and when; a run every night
-# would tell it nothing more (tests/AGENTS.md, "A11y: the audit and the proof runs"). The weekly
-# schedule ends when the debt epic closes, and the tiers then decide the cadence: axe on a pull request
-# (test.yml today), a semi-lite set on a nightly, the full set on a release candidate and a stable
-# release. The name stays: the ledger, the Slack text and the docs know this workflow as the A11y
-# nightly.
+# would spend seven times the compute (tests/AGENTS.md, "A11y: the audit and the proof runs"). The
+# weekly schedule ends when the debt epic closes, and the tiers then decide the cadence: axe on a pull
+# request (test.yml today), a semi-lite set on a nightly, the full set on a release candidate and a
+# stable release. The name stays: the ledger, the Slack text and the docs know this workflow as the
+# A11y nightly.
 # This is the only run of the checks beyond axe: the pull-request Tests pipeline runs the axe scan
 # alone, because the checks are report-only and the accessibility program is still building its
 # picture, so a pull request learned nothing from them it could act on. The evidence is kept 30 days,

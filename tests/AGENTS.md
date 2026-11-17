@@ -2476,14 +2476,14 @@ The audit is four workflows: `Screen reader nightly` (`.github/workflows/screenr
 (`website-a11y.yml`). Each runs once a week on a schedule, on develop, and on `workflow_dispatch` from any
 ref; the `pull_request` trigger of each still validates the file or proves a change to a scan. The rule:
 the weekly schedule and a dispatch on develop with no inputs are the audit, a proof run on a branch is a
-subset dispatch, and a subset on develop is refused. The schedule is weekly because the findings ledger
-shows what each fix cleared, and when, only as finely as the audits are spaced, and the accessibility debt
-is being fixed week by week; a run every night would spend a headed Windows and macOS runner per browser
-to tell the ledger nothing more. The schedule ends when the accessibility debt epic closes. The tiers then
-decide the cadence: a pull request runs the axe scan (today's `test.yml`), a nightly runs a semi-lite set
-chosen then, and a release candidate and a stable release run the full set. The names stay: the ledger,
-the Slack text and this file know the two product workflows as nightlies. The CI mechanics are in
-`.ai/CI.md`; this section is the procedure.
+subset dispatch, and a subset on develop is refused. The schedule is there because the findings ledger
+shows what each fix cleared, and when, only as finely as the audits are spaced. It is weekly because a
+week is fine enough while the accessibility debt is being fixed, and a run every night would spend a
+headed Windows and macOS runner per browser seven times as often. The schedule ends when the
+accessibility debt epic closes. The tiers then decide the cadence: a pull request runs the axe scan
+(today's `test.yml`), a nightly runs a semi-lite set chosen then, and a release candidate and a stable
+release run the full set. The names stay: the ledger, the Slack text and this file know the two product
+workflows as nightlies. The CI mechanics are in `.ai/CI.md`; this section is the procedure.
 
 - **The weekly audit starts itself: early on Monday, UTC, the screen reader run first.** The four crons
   are five minutes apart, in the order above, so the four read one develop commit: a schedule runs on the
