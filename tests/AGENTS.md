@@ -2557,6 +2557,49 @@ outstanding. The "Fix progress" block of the page says that, from `fixProgress()
   the collector over it with the payload of a run it does not record (a `Tests` pull request run) and an
   empty artifacts directory. It draws the page from the migrated document and leaves the file as it was.
 
+## A11y: the weekly digest
+
+The page says how the findings fared; nothing told anyone when that changed. `A11y digest`
+(`.github/workflows/a11y-digest.yml`) posts it to Slack once a week: what improved, what declined, the triage
+queue, what is outstanding per surface, and the page's headline numbers. The pure half is
+`.github/scripts/lib/a11y-digest.mjs`, the CLI `.github/scripts/a11y-digest.mjs`; the CI mechanics are in
+`.ai/CI.md`.
+
+- **The digest compares two published states of the ledger:** `test-health/a11y.json` as it is now, and as
+  it was at the last `gh-pages` commit at least the window (7 days) old. Two files, so a row is compared
+  with itself by its key, and the digest needs no state of its own. No file that old is a first digest: it
+  says where things stand. Either file may be of an older ledger version; the lib reads it through
+  `migrateA11yLedger()`.
+- **It names what it compared, and never assumes the audit ran.** The first line names the latest night of
+  each workflow in both states, by run and date. A workflow with no new night was not audited in the window:
+  it is named so, and its rows are left out of improved and declined, because nothing measured them. With no
+  new night at all, the digest says no audit was collected, in place of lists of zeros that would read as a
+  quiet week.
+- **A new finding is a decline only when the earlier audit had measured its target and found nothing
+  there.** The earlier state's latest night of each workflow keeps its coverage (`nightMeasured()`), and a
+  finding on a target it had not measured (a workflow's first night, a new check, scenario or page, a target
+  with a tooling problem then) is newly measured: a baseline, listed apart. Without this, the week a check
+  lands reads as hundreds of regressions. Where the earlier state does not say what it measured, the
+  finding counts as a decline, so nothing is hidden. An axe scan covers every page or none, so a page added
+  to a scan reads as measured: its first findings count as new.
+- **Improved is what the window resolved; declined is what is new or back.** A finding resolved and seen
+  again within the window is open in both states and counts as neither. A fix task is cleared when it had
+  an open finding then and has none now, and has findings again only through a finding that declined.
+- **Both states are read under today's catalog** (`clusterOf()` on every row of both), so a cluster renamed
+  or split between the two is the same cluster in both, and the task the catalog names today is the one the
+  digest speaks of. Findings in clusters marked `notDefect` are counted apart, like on the page.
+- **Every text that reaches Slack is escaped for it** (`slackText()`), a title is cut to `DIGEST_TITLE`, a
+  list names `DIGEST_LISTED` clusters and sums up the rest, and a task is linked only with an https address
+  (`trackerAddress()`). The workflow sends the message from a payload file, never through a YAML string.
+- **No tracker token.** The digest links the fix tasks by the ids the catalog names. A task's status, owner
+  and closed date are not read: CI holds no ClickUp secret, and none is to be added for this.
+- **Locally:** `gh api -H 'Accept: application/vnd.github.raw'
+  'repos/handsontable/handsontable/contents/test-health/a11y.json?ref=gh-pages' > after.json`, the same
+  with an older commit's SHA for `before.json`, then `node .github/scripts/a11y-digest.mjs --before
+  before.json --after after.json --catalog tests/a11y/issues.json` prints the message. To see a regression
+  in it, merge one more night into a copy of `after.json` (`mergeA11yLedger()`), as
+  `a11y-digest.test.mjs` does.
+
 ## A11y: the audit and the proof runs
 
 The two accessibility workflows, `A11y nightly` (`.github/workflows/a11y-nightly.yml`) and
