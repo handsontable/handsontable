@@ -47,7 +47,7 @@ const ExampleComponent = () => {
   }
 
   function afterChange(
-    changes: Handsontable.CellChange[] | null,
+    changes: Handsontable.AppliedCellChange[] | null,
     source: Handsontable.ChangeSource
   ): void {
     const hot = hotRef.current?.hotInstance;
@@ -59,7 +59,7 @@ const ExampleComponent = () => {
     for (const change of changes) {
       const [row, prop, oldVal, newVal] = change;
 
-      if (prop !== CATEGORY_COL || oldVal === newVal) {
+      if (row === null || prop !== CATEGORY_COL || oldVal === newVal) {
         continue;
       }
 

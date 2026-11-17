@@ -25,6 +25,9 @@ export class FiltersMenuKeyboardPage extends FiltersValueListPage {
   readonly selectAllLink: Locator;
   readonly clearLink: Locator;
   readonly activeFilterHeaders: Locator;
+  readonly separatorRows: Locator;
+  /** The uncaught errors the page raised since the page object was built. */
+  readonly pageErrors: string[] = [];
 
   /**
    * Builds the page object for one fixture, theme and bundle.
@@ -46,6 +49,25 @@ export class FiltersMenuKeyboardPage extends FiltersValueListPage {
     this.clearLink = this.menu.locator('.htUIClearAll a');
     // The class the plugin puts on the header cell of a filtered column.
     this.activeFilterHeaders = page.locator('.ht_clone_top th.htFiltersActive');
+    this.separatorRows = this.menu.locator(':scope > .ht_master .htCore tbody td.htSeparator');
+    page.on('pageerror', (error) => { this.pageErrors.push(error.message); });
+  }
+
+  /**
+   * Taps the center of a separator row with a finger. The row is 1px tall, so a mouse click lands on
+   * a neighboring row, while a touch tap resolves to the separator; that is the only gesture that
+   * selects it. The page needs `hasTouch`.
+   *
+   * @param {number} [index] Which separator of the menu, top to bottom.
+   */
+  async tapSeparator(index = 0): Promise<void> {
+    const box = await this.separatorRows.nth(index).boundingBox();
+
+    if (!box) {
+      throw new Error(`Separator ${index} of the menu is not rendered.`);
+    }
+
+    await this.page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
   }
 
   /**

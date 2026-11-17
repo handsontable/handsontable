@@ -1493,6 +1493,17 @@ These header-focused shortcuts work only when a column header is focused. Enable
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Sort by the focused column, cycling through ascending, descending, and original order | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Append the focused column to the active sort criteria. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin. | &cross; | &cross; |
 
+## Screen reader announcements
+
+When a user sorts a column by pressing its header or by using the keyboard shortcuts above, Handsontable announces the result in a polite live region. The message names the column and its new order, for example `Sorted by Age, ascending`, `Sorted by Age, descending`, or `Sorting removed from Age`.
+
+- The name of the column is the text of its header. A column with an empty header is named by its letter, such as `B`.
+- With `MultiColumnSorting`, the message names the column that the user pressed, not the whole sort queue.
+- A sort made through the API (`sort()`, `setSortConfig()`, `clearSort()`) or through the `initialConfig` option is not announced.
+- A [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) hook that returns `false` without changing the sort states is not announced. A hook that writes the states with `setSortConfig()` and then returns `false`, as server-side sorting does, is announced.
+- A grid with [`ariaTags`](@/api/options.md#ariatags) set to `false` announces nothing, the same as it writes no `aria-sort` attribute.
+- The messages are language phrases, so [`language`](@/api/options.md#language) translates them.
+
 ## Known limitations
 
 - Sorting a column of [`Formulas`](@/api/formulas.md) (HyperFormula) cells can produce `#REF!`. Handsontable does not rewrite those addresses to follow sorted rows, and a later sort does not restore the formulas. Keep summary formulas on a [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) row, and leave [`sortFixedRows`](#configure-sorting) at `false` so the footer stays out of the sort. See [Sorting formula cells](@/guides/formulas/formula-calculation/formula-calculation.md#sorting-formula-cells).

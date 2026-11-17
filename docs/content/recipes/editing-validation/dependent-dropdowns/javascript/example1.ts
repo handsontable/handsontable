@@ -52,7 +52,7 @@ const hot = new Handsontable(container, {
     }
     for (const change of changes) {
       const [row, prop, oldVal, newVal] = change;
-      if (prop !== CATEGORY_COL || oldVal === newVal) {
+      if (row === null || prop !== CATEGORY_COL || oldVal === newVal) {
         continue;
       }
       const next = optionsForCategory(String(newVal));

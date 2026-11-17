@@ -258,6 +258,13 @@ const rowId: unknown = hot.getRowId(123);
 const visualRowById: number | null = hot.getVisualRowById(rowId);
 const physicalRowById: number | null = hot.getPhysicalRowById('id');
 const physicalRowId: unknown = hot.getRowIdAtPhysicalRow(3);
+
+hot.addHook('afterChange', (changes) => {
+  changes?.forEach((change) => {
+    const physicalRowOfChange: number | null = hot.getPhysicalRowOfChange(change);
+  });
+});
+const physicalRowOfMadeChange: number | null = hot.getPhysicalRowOfChange([0, 'name', 'a', 'b']);
 const rowIds: unknown[] = hot.getRowIds([0, 1]);
 const allRowIds: unknown[] = hot.getRowIds();
 const visualRowsByIds: Array<number | null> = hot.getVisualRowsByIds(['a', 1]);

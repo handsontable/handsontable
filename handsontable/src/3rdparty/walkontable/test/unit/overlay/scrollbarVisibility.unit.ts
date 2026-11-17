@@ -1,5 +1,5 @@
 import { ScrollbarVisibility } from '../../../src/overlay/scrollbarVisibility';
-import { OVERLAY_SCROLLBAR_PROXIMITY } from '../../../src/overlay/constants';
+import { OVERLAY_SCROLLBAR_CLEARANCE, OVERLAY_SCROLLBAR_PROXIMITY } from '../../../src/overlay/constants';
 
 describe('ScrollbarVisibility', () => {
   const SCROLLPORT = { top: 100, right: 500, bottom: 300, left: 100 };
@@ -254,12 +254,65 @@ describe('ScrollbarVisibility', () => {
     expect(tracker.visible.horizontal).toBe(true);
   });
 
+  it('should not hold a band from beside it: the reach ends where the band does (DEV-3975)', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    // The pin has no timer, so a reach wider than the band held it from the visible part of the last column.
+    expect(OVERLAY_SCROLLBAR_PROXIMITY).toBe(OVERLAY_SCROLLBAR_CLEARANCE);
+
+    scrollBy(0, 60);
+    tracker.notifyPointerMoved(SCROLLPORT.right - OVERLAY_SCROLLBAR_CLEARANCE - 1, 200);
+    fadeAll();
+
+    expect(tracker.visible.vertical).toBe(false);
+  });
+
+  it('should not hold the horizontal band from above it either', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(60, 0);
+    tracker.notifyPointerMoved(200, SCROLLPORT.bottom - OVERLAY_SCROLLBAR_CLEARANCE - 1);
+    fadeAll();
+
+    expect(tracker.visible.horizontal).toBe(false);
+  });
+
+  it('should hold the horizontal band from a pointer on the band itself', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(60, 0);
+    tracker.notifyPointerMoved(200, SCROLLPORT.bottom - OVERLAY_SCROLLBAR_CLEARANCE + 1);
+    fadeAll();
+
+    expect(tracker.visible.horizontal).toBe(true);
+  });
+
+  it('should hold the vertical band from a pointer on the band itself', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(0, 60);
+    tracker.notifyPointerMoved(SCROLLPORT.right - OVERLAY_SCROLLBAR_CLEARANCE + 1, 200);
+    fadeAll();
+
+    expect(tracker.visible.vertical).toBe(true);
+  });
+
   it('should pin the vertical band from the inline-end edge, not the opposite one', () => {
     const { tracker, scrollBy, fadeAll } = build();
 
     scrollBy(0, 60);
     // LTR: the left edge is the row-header side, nowhere near the vertical scrollbar.
     tracker.notifyPointerMoved(SCROLLPORT.left + 2, 200);
+    fadeAll();
+
+    expect(tracker.visible.vertical).toBe(false);
+  });
+
+  it('should not hold the vertical band from beside it in RTL', () => {
+    const { tracker, scrollBy, fadeAll } = build();
+
+    scrollBy(0, 60);
+    tracker.notifyPointerMoved(SCROLLPORT.left + OVERLAY_SCROLLBAR_CLEARANCE + 1, 200, true);
     fadeAll();
 
     expect(tracker.visible.vertical).toBe(false);

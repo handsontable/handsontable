@@ -124,6 +124,18 @@ import DataMap from './dataMap/dataMap';
 import { RowIdentity } from './core/rowIdentity/rowIdentity';
 import { createWriteLedger, getCellWriteKey, isValidatorCorrection } from './core/writeLedger';
 import type { LedgerCellMeta, WriteLedgerCall } from './core/writeLedger';
+import { createRecordTracker } from './core/recordTracker';
+import type { TrackedRecord } from './core/recordTracker';
+import {
+  captureRecord, createWaitingChangeRecords, followReplacedRecords, resolveRecord,
+} from './core/waitingRecords';
+import { createWaitingMetaStamps } from './core/waitingMetaStamps';
+import { createColumnTracker } from './core/columnTracker';
+import type { ColumnTracking, TrackedColumn } from './core/columnTracker';
+import type { StampedMeta } from './core/waitingMetaStamps';
+import type {
+  RecordAnchor, RecordReader, RowShiftObserver, TrackedRecordHandle, WaitingChangeRecords,
+} from './core/waitingRecords';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
 
@@ -481,6 +493,96 @@ export default function Core(
 
   const eventManager = new EventManager(instance);
   const openWriteLedger = createWriteLedger();
+  /**
+   * Follows the records that something waits on (a change that waits for its validator, an editor that waits
+   * for the answer) by their physical rows, see `core/recordTracker.ts`.
+   */
+  const recordTracker = createRecordTracker(() => instance.rowIndexMapper);
+  /**
+   * Follows the physical columns a change that waits for its validator is made at, see `core/columnTracker.ts`.
+   */
+  const columnTracking: ColumnTracking = {
+    tracker: createColumnTracker(() => instance.columnIndexMapper),
+    toTrackedPhysicalColumn: prop => getTrackedPhysicalColumn(prop),
+    toProp: physicalColumn => physicalColumn,
+  };
+  /**
+   * Keeps the `row` and `visualRow` of the stored cell meta of every validator call made for a change on the
+   * rows its record has, so `this.visualRow` in a validator and the row of `afterValidate` name the record
+   * whatever moved it while the validator ran, see `core/waitingMetaStamps.ts`.
+   */
+  const waitingMetaStamps = createWaitingMetaStamps<Record<string, unknown> & StampedMeta>(
+    () => instance.rowIndexMapper,
+    physicalRow => instance.toVisualRow(physicalRow),
+    {
+      getIndexMapper: () => instance.columnIndexMapper,
+      toVisualColumn: physicalColumn => instance.toVisualColumn(physicalColumn),
+      toProp: physicalColumn => physicalColumn,
+    },
+  );
+  /**
+   * The stored cell metas of waiting validator calls whose record `updateData()` moved to another physical row
+   * while the meta stays stored at the row it was read from (`updateData()` keeps cell meta by physical row). The
+   * meta there belongs to the record now at that row, so the answer of such a call is written only to the meta at
+   * the record's row (`persistValidationResult()`), never on the call's own meta object. Each maps to the tracked
+   * record of its call. A meta leaves the map when the next validator call starts on it.
+   */
+  const displacedMetas = new WeakMap<object, TrackedRecord>();
+  /**
+   * What the record resolution reads from the grid, see `core/waitingRecords.ts`.
+   */
+  const recordReader: RecordReader = {
+    countPhysicalRows: () => instance.rowIndexMapper.getNumberOfIndexes(),
+    countVisualRows: () => instance.countRows(),
+    readRowObject: physicalRow => dataSource.modifyRowData(physicalRow),
+    getStoredMeta: (physicalRow, physicalColumn) => metaManager.getCellMetaIfExists(physicalRow, physicalColumn),
+    readKeyedRowId: physicalRow => rowIdentity.getKeyedRowIdAtPhysicalRow(physicalRow),
+    findPhysicalRowById: (id) => {
+      try {
+        return rowIdentity.getPhysicalRowById(id);
+
+      } catch {
+        return null;
+      }
+    },
+  };
+  /**
+   * Tells a waiting change of a row past the last one about the rows `alter()`, a write past the last row or
+   * a spare-row option inserts or removes, by their visual rows, and about a change of the number of trimmed rows
+   * (read on every `cacheUpdated` of the row index mapper), see `core/waitingRecords.ts`.
+   *
+   * @param {object} listener The listener.
+   * @returns {Function} Stops telling the listener.
+   */
+  const observeRowShifts: RowShiftObserver = (listener) => {
+    const rowIndexMapper = instance.rowIndexMapper;
+    const countTrimmedRows = () => rowIndexMapper.getNumberOfIndexes() - rowIndexMapper.getNotTrimmedIndexesLength();
+    let trimmedRows = countTrimmedRows();
+    const onAfterCreateRow = (visualRow: number, amount: number) => listener.rowsInserted(visualRow, amount);
+    const onAfterRemoveRow = (visualRow: number, amount: number) => listener.rowsRemoved(visualRow, amount);
+    const onCacheUpdated = () => {
+      const previousTrimmedRows = trimmedRows;
+
+      trimmedRows = countTrimmedRows();
+
+      if (trimmedRows !== previousTrimmedRows) {
+        listener.trimmedRowsChanged(trimmedRows - previousTrimmedRows);
+      }
+    };
+
+    instance.addHook('afterCreateRow', onAfterCreateRow);
+    instance.addHook('afterRemoveRow', onAfterRemoveRow);
+    rowIndexMapper.addLocalHook('cacheUpdated', onCacheUpdated);
+
+    return () => {
+      rowIndexMapper.removeLocalHook('cacheUpdated', onCacheUpdated);
+
+      if (instance) {
+        instance.removeHook('afterCreateRow', onAfterCreateRow);
+        instance.removeHook('afterRemoveRow', onAfterRemoveRow);
+      }
+    };
+  };
   let datamap: DataMapInstance;
   let dataSource: DataSourceInstance;
   let grid: GridHelperInstance;
@@ -576,7 +678,30 @@ export default function Core(
    * `_getWaitingChangeSets()`). A set leaves when its validators have answered, written or dropped, and every
    * set leaves on `loadData()`, which drops them all; a set whose validator never answers leaves then too.
    */
-  const waitingChangeSets: Map<CellChange[], string | undefined> = new Map();
+  /**
+   * The functions that can bring a row a hiding feature of their own keeps off screen into view (see
+   * `_addRowRevealer()`).
+   */
+  const rowRevealers: Array<() => (visualRow: number) => boolean> = [];
+  const waitingChangeSets: Map<CellChange[], { source: string | undefined, records: WaitingChangeRecords }> =
+    new Map();
+  /**
+   * The record bookkeeping of every change a waiting set captured a record for, read by `getPhysicalRowOfChange()`
+   * in O(1). An entry lives from the capture until the set has dispatched its `afterChange` (or was dropped), when
+   * `WaitingChangeRecords#release()` takes it out, so a listener of `beforeChangeRender` or `afterChange` can still
+   * find the record of a change whose row reads `null`. Weak, so it holds no change alive.
+   */
+  const waitingChangeRecords: WeakMap<object, WaitingChangeRecords> = new WeakMap();
+  /**
+   * How many validator answers run right now, nested: the microtask that calls a validator, and the callback the
+   * validator answers with (which runs inside that microtask when the validator answers synchronously).
+   */
+  let validatorAnswerDepth = 0;
+  /**
+   * The functions `_runAfterValidatorAnswer()` queued while a validator answer ran. They run when the outermost
+   * answer has released its hold on the transaction of the change it answers (see `leaveValidatorAnswer()`).
+   */
+  const afterValidatorAnswer: Array<() => void> = [];
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -622,57 +747,63 @@ export default function Core(
    */
   let runningValidatorLoadGeneration: number | null = null;
   /**
+   * The cell meta of the validator call whose validator runs now, or `null` outside one. A correction the validator
+   * writes to a `null` row (its record has no visual row) belongs to the change this call validates first.
+   */
+  let runningValidatorMeta: (Record<string, unknown> & StampedMeta) | null = null;
+  /**
    * The `validationLoadGeneration` of every validator call made for a change that has not answered yet, counted
    * in `_hasPendingValidation()` or not (a call a `beforeValidate` load overtook is not counted, but its validator
-   * still runs and can still correct), by the cell it validates (property, then visual row, as the validator's
-   * cell meta names them), oldest first. A
-   * validator that writes its correction later than its own synchronous run (after a timer or a request) is no
-   * longer inside `runningValidatorLoadGeneration`, so the correction finds the call it corrects here. An entry
+   * still runs and can still correct), by the cell it validates (property, then the tracked record of its row),
+   * oldest first. The record is tracked (`recordTracker`), so a sort, a move or an insert made while the call
+   * waits leaves the entry on the record the call validates. A validator that writes its correction later than
+   * its own synchronous run (after a timer or a request) is no longer inside `runningValidatorLoadGeneration`, so
+   * the correction finds the call it corrects here, by the record its row holds when it is written. An entry
    * leaves when its call answers or throws; a load leaves the entries in place, because the calls they stand for
    * are still out and their corrections still belong to the data they were made on.
    */
-  const unansweredValidatorGenerations: Map<unknown, Map<number, number[]>> = new Map();
+  const unansweredValidatorGenerations: Map<unknown, Map<TrackedRecord, number[]>> = new Map();
 
   /**
    * Records an unanswered validator call made for a change, until `releaseValidatorGeneration()`.
    *
-   * @param {number} row The visual row the validator checks.
+   * @param {object} record The tracked record of the row the validator checks.
    * @param {*} prop The property the validator checks.
    * @param {number} generation The `validationLoadGeneration` of the call.
    */
-  const recordValidatorGeneration = (row: number, prop: unknown, generation: number) => {
+  const recordValidatorGeneration = (record: TrackedRecord, prop: unknown, generation: number) => {
     if (!unansweredValidatorGenerations.has(prop)) {
       unansweredValidatorGenerations.set(prop, new Map());
     }
 
-    const rows = unansweredValidatorGenerations.get(prop)!;
+    const records = unansweredValidatorGenerations.get(prop)!;
 
-    rows.set(row, [...(rows.get(row) ?? []), generation]);
+    records.set(record, [...(records.get(record) ?? []), generation]);
   };
 
   /**
    * Forgets one unanswered validator call `recordValidatorGeneration()` recorded.
    *
-   * @param {number} row The visual row the validator checks.
+   * @param {object} record The tracked record of the row the validator checks.
    * @param {*} prop The property the validator checks.
    * @param {number} generation The `validationLoadGeneration` of the call.
    */
-  const releaseValidatorGeneration = (row: number, prop: unknown, generation: number) => {
-    const rows = unansweredValidatorGenerations.get(prop);
-    const generations = rows?.get(row);
+  const releaseValidatorGeneration = (record: TrackedRecord, prop: unknown, generation: number) => {
+    const records = unansweredValidatorGenerations.get(prop);
+    const generations = records?.get(record);
     const index = generations?.indexOf(generation) ?? -1;
 
-    if (!rows || !generations || index === -1) {
+    if (!records || !generations || index === -1) {
       return;
     }
 
     generations.splice(index, 1);
 
     if (generations.length === 0) {
-      rows.delete(row);
+      records.delete(record);
     }
 
-    if (rows.size === 0) {
+    if (records.size === 0) {
       unansweredValidatorGenerations.delete(prop);
     }
   };
@@ -681,9 +812,10 @@ export default function Core(
    * Returns the `validationLoadGeneration` a change set made now addresses: the current one, or, for a
    * validator's correction (`isValidatorCorrection()`), the one of the validator call that writes it. A
    * correction written while its validator runs takes `runningValidatorLoadGeneration`. One written later takes
-   * the oldest unanswered call on the cells it writes: when calls from before and after a load wait on one cell,
-   * the older one's correction must not land in the loaded rows, and a newer call's correction dropped by mistake
-   * loses a correction, which is the lesser harm. A correction for a cell no call waits on takes the current one.
+   * the oldest unanswered call on the cells it writes, found by the record the correction's row holds now: when
+   * calls from before and after a load wait on one cell, the older one's correction must not land in the loaded
+   * rows, and a newer call's correction dropped by mistake loses a correction, which is the lesser harm. A
+   * correction for a cell no call waits on takes the current one.
    *
    * @param {string} [source] The change source.
    * @param {Array} [changes] The changes, in the form `[row, prop, ...]`.
@@ -701,7 +833,9 @@ export default function Core(
     let generation = validationLoadGeneration;
 
     changes.forEach(([row, prop]) => {
-      const oldest = unansweredValidatorGenerations.get(prop)?.get(row)?.[0];
+      const physicalRow = Number.isInteger(row) ? getPhysicalRowOfExistingRow(row) : null;
+      const record = physicalRow === null ? undefined : recordTracker.find(physicalRow);
+      const oldest = record === undefined ? undefined : unansweredValidatorGenerations.get(prop)?.get(record)?.[0];
 
       if (oldest !== undefined && oldest < generation) {
         generation = oldest;
@@ -3422,21 +3556,33 @@ export default function Core(
    * @returns {object} The cell properties object.
    */
   function getCellMetaOfChange(row: number, column: number, stored = false) {
-    let physicalRow = instance.toPhysicalRow(row);
+    const physicalRow = getPhysicalRowOfChange(row);
     const physicalColumn = instance.toPhysicalColumn(column) ?? column;
-
-    if (physicalRow === null) {
-      const visibleRowsCount = instance.rowIndexMapper.getNotTrimmedIndexesLength();
-
-      physicalRow = row >= visibleRowsCount ?
-        instance.rowIndexMapper.getNumberOfIndexes() + row - visibleRowsCount : row;
-    }
-
     const options = { visualRow: row, visualColumn: column };
 
     return stored ?
       metaManager.getCellMeta(physicalRow, physicalColumn, options) :
       metaManager.getCellMetaTransient(physicalRow, physicalColumn, options);
+  }
+
+  /**
+   * Returns the physical row a change's visual row addresses: the row's own, or, for a row past the last one,
+   * the physical index the row WILL take when the write creates it (see `getCellMetaOfChange()`).
+   *
+   * @private
+   * @param {number} row The visual row index of the change.
+   * @returns {number}
+   */
+  function getPhysicalRowOfChange(row: number): number {
+    const physicalRow = instance.toPhysicalRow(row);
+
+    if (physicalRow !== null) {
+      return physicalRow;
+    }
+
+    const visibleRowsCount = instance.rowIndexMapper.getNotTrimmedIndexesLength();
+
+    return row >= visibleRowsCount ? instance.rowIndexMapper.getNumberOfIndexes() + row - visibleRowsCount : row;
   }
 
   /**
@@ -3473,8 +3619,137 @@ export default function Core(
    * @param {number} structureVersion The structure version captured when validation started.
    */
   function restoreValidity(cellMeta: LedgerCellMeta, valid: boolean, structureVersion: number) {
-    cellMeta.valid = valid;
-    persistValidationResult(cellMeta as Parameters<typeof persistValidationResult>[0], valid, structureVersion);
+    const answerMeta = readAnswerMeta(
+      cellMeta as Parameters<typeof persistValidationResult>[0], displacedMetas.get(cellMeta) ?? null,
+    );
+
+    if (answerMeta === cellMeta) {
+      if (cellMeta.valid === valid) {
+        return;
+      }
+
+      cellMeta.valid = valid;
+    }
+
+    persistValidationResult(answerMeta, valid, structureVersion);
+  }
+
+  /**
+   * Returns the physical column a change property names when the property is that column's physical index, which
+   * is what an array data source without a `columns` option addresses its columns by. A column inserted or removed
+   * before it while the change waits for its validator moves it, so such a change follows its column. Any other
+   * property (a field name, a `columns[].data` entry, an accessor) names its column on its own, and a property of a
+   * column that does not exist yet has nothing to follow.
+   *
+   * @private
+   * @param {*} prop The property of a change.
+   * @returns {number|null} The physical column, or `null` for a property that is not followed.
+   */
+  function getTrackedPhysicalColumn(prop: unknown): number | null {
+    if (
+      !Number.isInteger(prop) ||
+      instance.dataType !== 'array' ||
+      (tableMeta.columns && (tableMeta.columns as unknown[]).length !== 0)
+    ) {
+      return null;
+    }
+
+    const visualColumn = datamap.propToCol(prop as number);
+
+    if (typeof visualColumn !== 'number') {
+      return null;
+    }
+
+    return instance.toPhysicalColumn(visualColumn) === prop ? prop as number : null;
+  }
+
+  /**
+   * Writes a validator's correction into the change of a waiting set it corrects: the change of the same property
+   * whose record holds the corrected physical row, or, for a change no record was captured for, the change made at
+   * the corrected visual row.
+   *
+   * @param {Array} changes The changes of the waiting set.
+   * @param {object} records The records of the set's changes.
+   * @param {string|number|Function} prop The property of the corrected cell.
+   * @param {number|null} physicalRow The physical row of the corrected cell, or `null` when it has none.
+   * @param {number|null} visualRow The visual row of the corrected cell, or `null` when it has none.
+   * @param {*} value The corrected value.
+   */
+  function foldValidatorCorrection(
+    changes: CellChange[],
+    records: WaitingChangeRecords,
+    prop: CellChange[1],
+    physicalRow: number | null,
+    visualRow: number | null,
+    value: unknown,
+  ) {
+    const idx = changes.findIndex((change) => {
+      if (records.getProp(change) !== prop) {
+        return false;
+      }
+
+      const record = records.getRecord(change);
+
+      return record === undefined ? visualRow !== null && (records.getPastEndRow(change) ?? change[0]) === visualRow :
+        record.physicalRow !== null && record.physicalRow === physicalRow;
+    });
+
+    if (idx !== -1) {
+      changes[idx][3] = value;
+    }
+  }
+
+  /**
+   * Tells whether a write of a change to a `null` row is a validator's correction for a record a filter or a trim
+   * took out of the visual space while its validator call waits. The validator writes it through `this.visualRow`,
+   * which is `null` then. It does not depend on a waiting validator call: a correction written after its own call
+   * answered has no change left to fold into, and is dropped the same way.
+   *
+   * @param {number|null} visualRow The visual row of the change.
+   * @param {string} [source] The change source.
+   * @returns {boolean}
+   */
+  function isUnplacedCorrection(visualRow: number | null, source: string | undefined) {
+    return visualRow === null && isValidatorCorrection(source);
+  }
+
+  /**
+   * Tells whether a write of a change to a `null` property is a validator's correction for a column a removal took
+   * while its validator call waits. The validator writes it through `this.prop`, which is `null` then. A grid with a
+   * column declared `{ data: null }` writes through that property, so it never counts there.
+   *
+   * @param {*} prop The property of the change.
+   * @param {string} [source] The change source.
+   * @returns {boolean}
+   */
+  function isRemovedColumnCorrection(prop: unknown, source: string | undefined) {
+    return prop === null && isValidatorCorrection(source) && !(datamap.colToPropCache as unknown[]).includes(null);
+  }
+
+  /**
+   * Folds a validator's correction written to a `null` row into the waiting change of the record it corrects, which
+   * has no visual row to write it through. The record is the one of the validator call that runs now, or, for a
+   * correction written later (after a timer or a request), the only record whose waiting validator call has a `null`
+   * row for the property. A correction no record can be told for is dropped, and the change it corrects lands as it
+   * was.
+   *
+   * @param {string|number} prop The property of the corrected cell.
+   * @param {*} value The corrected value.
+   * @param {string} [source] The change source.
+   */
+  function foldUnplacedCorrection(prop: string | number, value: unknown, source: string | undefined) {
+    const target = waitingMetaStamps.findUnplaced(prop, runningValidatorMeta);
+    const physicalRow = target?.record.physicalRow ?? null;
+
+    if (target === null || physicalRow === null) {
+      return;
+    }
+
+    const correctedValue = getValueSetterValue(value, target.meta, source);
+
+    waitingChangeSets.forEach(({ records }, changes) => {
+      foldValidatorCorrection(changes, records, prop, physicalRow, null, correctedValue);
+    });
   }
 
   /**
@@ -3484,13 +3759,20 @@ export default function Core(
    * @param {number} loadGeneration The `validationLoadGeneration` the changes were made against. A set a
    *   later `loadData()` dropped does not cancel the active editor: editors are reused, so the editor open
    *   now can be one the user opened on the loaded data.
-   * @param {Function} callback The callback function fot async validation.
+   * @param {object} records The records of the set's changes, captured before the first validator is called
+   *   and resolved when the queue drains (`core/waitingRecords.ts`).
+   * @param {Function} callback The callback function fot async validation. It receives the changes a validator
+   *   rejected under `allowInvalid: false` and the changes whose record was removed while the set waited.
    */
   function validateChanges(
-    changes: CellChange[], source: string | undefined, loadGeneration: number, callback: Function
+    changes: CellChange[],
+    source: string | undefined,
+    loadGeneration: number,
+    records: WaitingChangeRecords,
+    callback: (rejectedChanges: CellChange[], removedChanges: CellChange[]) => void,
   ) {
     if (!changes.length) {
-      callback([]);
+      callback([], []);
 
       return;
     }
@@ -3516,11 +3798,9 @@ export default function Core(
     // values applied by applyChanges(). Custom validators that correct values must follow this
     // convention by passing a source ending in 'Validator' to their setDataAtCell call.
     const applyValidatorCorrection = ([changedRow, changedProp, , correctedValue]: CellChange) => {
-      const idx = changes.findIndex(([row, prop]) => row === changedRow && prop === changedProp);
+      const changedPhysicalRow = changedRow === null ? null : instance.toPhysicalRow(changedRow);
 
-      if (idx !== -1) {
-        changes[idx][3] = correctedValue;
-      }
+      foldValidatorCorrection(changes, records, changedProp, changedPhysicalRow, changedRow, correctedValue);
     };
     const onAfterChange = (afterChanges: CellChange[] | null | undefined, afterSource: unknown) => {
       if (!isValidatorCorrection(afterSource)) {
@@ -3535,7 +3815,13 @@ export default function Core(
     waitingForValidator.onQueueEmpty = () => {
       instance.removeHook('afterChange', onAfterChange);
 
+      let removedChanges: CellChange[] = [];
+
       try {
+        if (loadGeneration === validationLoadGeneration) {
+          removedChanges = records.settle(changes, physicalRow => instance.toVisualRow(physicalRow));
+        }
+
         ledger?.claim(changes, restoreValidity);
 
         if (
@@ -3548,7 +3834,7 @@ export default function Core(
           activeEditor.cancelChanges();
         }
 
-        callback(rejectedChanges); // called when async validators are resolved and beforeChange was not async
+        callback(rejectedChanges, removedChanges);
         ledger?.settle(changes);
       } finally {
         ledger?.release();
@@ -3557,7 +3843,9 @@ export default function Core(
     };
 
     try {
-      queueValidators(changes, source, loadGeneration, waitingForValidator, pendingRowMetas, ledger, (change) => {
+      queueValidators(changes, source, loadGeneration, waitingForValidator, pendingRowMetas, ledger, records, (
+        change,
+      ) => {
         shouldBeCanceled = false;
         rejectedChanges.push(change);
       });
@@ -3588,6 +3876,8 @@ export default function Core(
    * @param {Array<object>} pendingRowMetas Collects the cell meta of the cells validated in rows that do
    *   not exist yet.
    * @param {object|null} ledger Orders the writes to one cell, or `null` for a validator's correction.
+   * @param {object} records The records of the set's changes. Captured right before the first validator is
+   *   called, so a set no validator waits on captures nothing.
    * @param {Function} onRejected Called with each rejected change, before it is taken out of the list.
    */
   function queueValidators(
@@ -3597,6 +3887,7 @@ export default function Core(
     waitingForValidator: ReturnType<typeof ValidatorsQueue>,
     pendingRowMetas: Array<{ row?: number, valid?: boolean }>,
     ledger: WriteLedgerCall | null,
+    records: WaitingChangeRecords,
     onRejected: (change: CellChange) => void,
   ) {
     const visibleRowsCount = instance.countRows();
@@ -3629,16 +3920,27 @@ export default function Core(
       if (instance.getCellValidator(cellProperties)) {
         /* eslint-disable no-loop-func */
         waitingForValidator.addValidatorToQueue();
+        records.capture(changes);
 
         if (row >= visibleRowsCount) {
           pendingRowMetas.push(cellProperties as { row?: number, valid?: boolean });
+          records.notePastEndMeta(changes[i], cellProperties);
+
+        } else if (Number.isInteger(cellProperties.col)) {
+          records.noteMeta(changes[i], cellProperties, cellProperties.col as number);
         }
 
         const structureVersion = metaManager.getStructureVersion();
+        const record = records.getRecord(changes[i]);
+        const trackedColumn = records.getColumn(changes[i]);
 
         ledger?.register(
           changes[i],
-          getCellWriteKey(row, prop, visualCol),
+          getCellWriteKey(
+            record === undefined ? `v${row}` : `r${record.id}`,
+            trackedColumn === undefined ? prop : `t${trackedColumn.id}`,
+            visualCol,
+          ),
           cellProperties as LedgerCellMeta,
           structureVersion,
         );
@@ -3663,10 +3965,17 @@ export default function Core(
                 }
 
                 // we canceled the change, so cell value is still valid
-                cellPropertiesReference.valid = true;
+                if (!displacedMetas.has(cellPropertiesReference)) {
+                  cellPropertiesReference.valid = true;
+                }
+
                 // ...and the stored meta has to hear about it too, or a cache clear that landed while
                 // the validator was running leaves the kept value wearing the rejected edit's mark.
-                persistValidationResult(cellPropertiesReference, true, structureVersion);
+                persistValidationResult(
+                  readAnswerMeta(cellPropertiesReference, displacedMetas.get(cellPropertiesReference) ?? null),
+                  true,
+                  structureVersion,
+                );
               }
 
               ledger?.answered(change, result);
@@ -3692,13 +4001,20 @@ export default function Core(
    * @param {string|number} prop The column property.
    * @param {*} value The value to write.
    * @param {ReversedCellRun} run The `writeChangesToData()` call the write belongs to.
+   * @param {number} [recordRow] The physical row of the record a change that waited for its validator was
+   *   resolved to. The write goes to that row, whatever visual row (or none, for a trimmed record) it has.
    */
-  function writeChange(visualRow: number, prop: string | number, value: unknown, run: ReversedCellRun) {
-    const physicalRow: number | null =
-      operationScope.getRecordingTransaction() === null ? null : instance.toPhysicalRow(visualRow);
+  function writeChange(
+    visualRow: number, prop: string | number, value: unknown, run: ReversedCellRun, recordRow?: number,
+  ) {
+    let physicalRow: number | null = null;
+
+    if (operationScope.getRecordingTransaction() !== null) {
+      physicalRow = recordRow ?? instance.toPhysicalRow(visualRow);
+    }
 
     if (physicalRow === null || !Number.isInteger(physicalRow)) {
-      datamap.set(visualRow, prop, value);
+      writeValue(visualRow, prop, value, recordRow);
 
       return;
     }
@@ -3707,7 +4023,7 @@ export default function Core(
     // `CellDelta` for why neither the change tuple nor a hooked read would do.
     const oldValue = detachValue(dataSource.getRawAtCellByProp(physicalRow, prop));
 
-    datamap.set(visualRow, prop, value);
+    writeValue(visualRow, prop, value, recordRow);
 
     // `writeChangesToData()` writes its changes from the last one to the first. A write of the value
     // the cell already held is journaled too: an edit is a step even when it changed nothing, as it
@@ -3718,6 +4034,24 @@ export default function Core(
       oldValue,
       newValue: detachValue(dataSource.getRawAtCellByProp(physicalRow, prop)),
     }, run);
+  }
+
+  /**
+   * Writes one value into the data set: by the visual row, or by the physical row of the record a change that
+   * waited for its validator was resolved to.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {string|number} prop The column property.
+   * @param {*} value The value to write.
+   * @param {number} [recordRow] The physical row of the record, for a change that waited for its validator.
+   */
+  function writeValue(visualRow: number, prop: string | number, value: unknown, recordRow?: number) {
+    if (recordRow === undefined) {
+      datamap.set(visualRow, prop, value);
+
+    } else {
+      datamap.setAtPhysicalRow(recordRow, prop, value, visualRow);
+    }
   }
 
   /**
@@ -3751,8 +4085,13 @@ export default function Core(
    *
    * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
+   * @param {Function} [getRecordRow] Returns the physical row of the record a change that waited for its
+   *   validator was resolved to, or `undefined` for a change that is written by its visual row. Left out for a
+   *   set that captured no record, so a set no validator waited on pays no lookup per change.
    */
-  function writeChangesToData(changes: CellChange[]) {
+  function writeChangesToData(
+    changes: CellChange[], getRecordRow?: (change: CellChange) => number | undefined,
+  ) {
     const run: ReversedCellRun = { op: null };
 
     for (let i = changes.length - 1; i >= 0; i--) {
@@ -3769,7 +4108,9 @@ export default function Core(
         continue;
       }
 
-      if (tableMeta.allowInsertRow) {
+      const recordRow = getRecordRow === undefined ? undefined : getRecordRow(changes[i]);
+
+      if (tableMeta.allowInsertRow && recordRow === undefined) {
         // Create the whole missing range in one call - one index-mapper insert and one hook
         // round instead of one per row. Creating row by row made a paste reaching far below
         // the last row quadratic in the gap size. The loop re-checks the count so a partial
@@ -3815,7 +4156,7 @@ export default function Core(
         continue;
       }
 
-      writeChange(changes[i][0], changes[i][1] as string | number, changes[i][3], run);
+      writeChange(changes[i][0], changes[i][1] as string | number, changes[i][3], run, recordRow);
     }
   }
 
@@ -3825,13 +4166,16 @@ export default function Core(
    * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
    * @param {string} source String that identifies how this change will be described in changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks).
+   * @param {Function} [getRecordRow] Returns the physical row of the record a waiting change was resolved to.
    * @fires Hooks#beforeChangeRender
    * @fires Hooks#afterChange
    */
-  function applyChanges(changes: CellChange[], source: string | undefined) {
+  function applyChanges(
+    changes: CellChange[], source: string | undefined, getRecordRow?: (change: CellChange) => number | undefined,
+  ) {
     // The rows and columns created to fit the changes are not an `alter()`'s own change - see
     // `runInShiftScope()`.
-    runInShiftScope(() => writeChangesToData(changes), false);
+    runInShiftScope(() => writeChangesToData(changes, getRecordRow), false);
 
     const hasChanges = changes.length > 0;
     // The editor manager does not exist yet inside a hook that fires while the grid is being built.
@@ -4009,6 +4353,36 @@ export default function Core(
   }
 
   /**
+   * Returns the coordinates the answer of a validator call is written and reported at: the call's own cell meta,
+   * or, for a meta displaced by `updateData()` (`displacedMetas`), the cell of the call's record, whose row the
+   * meta no longer names.
+   *
+   * @private
+   * @param {object} cellProperties The cell meta the validator was handed.
+   * @param {object|null} record The tracked record of the call, or `null`.
+   * @returns {object}
+   */
+  function readAnswerMeta<M extends Record<string, unknown> & { visualRow?: number, visualCol?: number }>(
+    cellProperties: M,
+    record: TrackedRecord | null,
+  ): M {
+    if (record === null || !displacedMetas.has(cellProperties)) {
+      return cellProperties;
+    }
+
+    const { physicalRow } = record;
+
+    return {
+      ...cellProperties,
+      row: physicalRow ?? undefined,
+      col: cellProperties.col,
+      visualRow: physicalRow === null ? null : instance.toVisualRow(physicalRow),
+      visualCol: cellProperties.visualCol,
+      hidden: cellProperties.hidden,
+    };
+  }
+
+  /**
    * Validate a single cell.
    *
    * @memberof Core#
@@ -4038,8 +4412,9 @@ export default function Core(
      * @function done
      * @param {boolean} valid Indicates if the validation was successful.
      * @param {boolean} [canBeValidated=true] Flag which controls the validation process.
+     * @param {object} [answerMeta] The coordinates of the cell the answer is for.
      */
-    function done(valid: boolean, canBeValidated = true) {
+    function done(valid: boolean, canBeValidated = true, answerMeta: typeof cellProperties = cellProperties) {
       // Fixes GH#3903
       if (!canBeValidated || cellProperties.hidden === true) {
         callback(valid);
@@ -4047,8 +4422,8 @@ export default function Core(
         return;
       }
 
-      const col = cellProperties.visualCol as number;
-      const row = cellProperties.visualRow as number;
+      const col = answerMeta.visualCol as number;
+      const row = answerMeta.visualRow as number;
       const td = instance.getCell(row, col, true);
 
       if (td && td.nodeName !== 'TH') {
@@ -4069,11 +4444,24 @@ export default function Core(
       // When the column data accessor is a function, cellProperties.prop holds the accessor
       // function itself — not a usable column reference. Fall back to the visual column index
       // so hook listeners always receive a number or a property string, never a function.
-      const colArg = isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop;
-      // Both captured before `beforeValidate`: a listener of that hook can load other data, and then the
-      // answer must neither mark a loaded record nor be taken for the answer to a later call.
+      const getColArg = () => (isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop);
+      const colArg = getColArg();
+      // All captured before `beforeValidate`: a listener of that hook can load other data, and then the
+      // answer must neither mark a loaded record nor be taken for the answer to a later call; and it can sort,
+      // move or insert rows, and the call then follows the record it was made for, not the one on its row.
       const structureVersion = metaManager.getStructureVersion();
       const loadGeneration = validationLoadGeneration;
+      const validatedPhysicalRow = isChangeCall ?
+        getPhysicalRowOfExistingRow(cellProperties.visualRow as number) : null;
+      const validatedRecord = validatedPhysicalRow === null ? null : recordTracker.track(validatedPhysicalRow);
+      const validatedPhysicalColumn = validatedRecord === null ? null : getTrackedPhysicalColumn(cellProperties.prop);
+      const validatedColumn: TrackedColumn | null = validatedPhysicalColumn === null ? null :
+        columnTracking.tracker.track(validatedPhysicalColumn);
+
+      displacedMetas.delete(cellProperties);
+
+      const releaseMetaStamp = validatedRecord === null ? () => {} :
+        waitingMetaStamps.add(validatedRecord, cellProperties, validatedColumn ?? undefined);
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
 
@@ -4091,12 +4479,20 @@ export default function Core(
       const isCountedCall = isChangeCall && loadGeneration === validationLoadGeneration;
       let answered = !isCountedCall;
       let isGenerationReleased = !isChangeCall;
-      const validatedRow = cellProperties.visualRow as number;
       const validatedProp = cellProperties.prop;
       const countAnswer = () => {
         if (!isGenerationReleased) {
           isGenerationReleased = true;
-          releaseValidatorGeneration(validatedRow, validatedProp, loadGeneration);
+
+          if (validatedRecord !== null) {
+            releaseMetaStamp();
+            releaseValidatorGeneration(validatedRecord, validatedProp, loadGeneration);
+            recordTracker.release(validatedRecord);
+
+            if (validatedColumn !== null) {
+              columnTracking.tracker.release(validatedColumn);
+            }
+          }
         }
 
         if (!answered) {
@@ -4108,8 +4504,8 @@ export default function Core(
         }
       };
 
-      if (isChangeCall) {
-        recordValidatorGeneration(validatedRow, validatedProp, loadGeneration);
+      if (validatedRecord !== null) {
+        recordValidatorGeneration(validatedRecord, validatedProp, loadGeneration);
       }
 
       if (isCountedCall) {
@@ -4119,8 +4515,11 @@ export default function Core(
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
         const previousRunningGeneration = runningValidatorLoadGeneration;
+        const previousRunningMeta = runningValidatorMeta;
 
         runningValidatorLoadGeneration = loadGeneration;
+        runningValidatorMeta = cellProperties;
+        validatorAnswerDepth += 1;
 
         try {
           hold.resume(() => validator.call(cellProperties, value, (valid: boolean) => {
@@ -4131,10 +4530,14 @@ export default function Core(
               return;
             }
 
+            validatorAnswerDepth += 1;
+
             try {
               hold.resume(() => {
+                const answerMeta = readAnswerMeta(cellProperties, validatedRecord);
+
                 valid = instance
-                  .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
+                  .runHooks('afterValidate', valid, value, answerMeta.visualRow, getColArg(), source);
 
                 // Every call into user code can destroy the grid (an `afterValidate` listener here, the
                 // callback in `done()` below), and nothing after it may read the destroyed instance.
@@ -4142,13 +4545,15 @@ export default function Core(
                   return;
                 }
 
-                cellProperties.valid = valid;
-                markCellMetaChanged(cellProperties);
+                if (answerMeta === cellProperties) {
+                  cellProperties.valid = valid;
+                  markCellMetaChanged(cellProperties);
+                }
 
-                persistValidationResult(cellProperties, valid, structureVersion);
+                persistValidationResult(answerMeta, valid, structureVersion);
                 countAnswer();
 
-                done(valid);
+                done(valid, true, answerMeta);
 
                 if (!instance) {
                   return;
@@ -4160,7 +4565,7 @@ export default function Core(
 
                 try {
                   instance.runHooks(
-                    'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
+                    'postAfterValidate', valid, value, answerMeta.visualRow, getColArg(), source
                   );
                 } finally {
                   isAnsweringStaleValidation = wasAnsweringStaleValidation;
@@ -4169,6 +4574,7 @@ export default function Core(
             } finally {
               countAnswer();
               hold.release();
+              leaveValidatorAnswer();
             }
           }));
         } catch (error) {
@@ -4177,6 +4583,8 @@ export default function Core(
           throw error;
         } finally {
           runningValidatorLoadGeneration = previousRunningGeneration;
+          runningValidatorMeta = previousRunningMeta;
+          leaveValidatorAnswer();
         }
       });
 
@@ -4302,11 +4710,9 @@ export default function Core(
    * [`getSourceData()`](@/api/core.md#getsourcedata) returns it while the grid never displays it.
    *
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
-   * the change is **skipped** from 20.0.0 on, after its deprecation in 19.0.0: the value cannot become a column
-   * there, so it would only add a property the schema never declared. No value is written, and no
-   * {@link Hooks#beforeChange} or {@link Hooks#afterChange} entry is reported for it. A one-time console warning
-   * says so. {@link Hooks#afterSetDataAtCell} still fires, with the changes that were not skipped – an empty array
-   * when every change was. To write a field the grid shows no column for, address it by property name with
+   * that write is **deprecated as of 19.0.0** and will be ignored from 20.0.0 on: the value cannot become a column
+   * there, so it only adds a property the schema never declared. A one-time console warning says so. To write a
+   * field the grid shows no column for, address it by property name with
    * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead. A grid that declares no columns at all is
    * exempt – there every index is past the last column, and writing is how an empty dataset gets bootstrapped.
    *
@@ -4371,13 +4777,19 @@ export default function Core(
 
     const input = setDataInputToArray(row, column, value);
     const changes: CellChange[] = [];
-    let changeSource = source;
+    const changeSource = !source && typeof row === 'object' ? column as string : source;
     let i;
     let ilen;
     let prop;
+    let writesPastLastColumn = false;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, visualColumn, newValue] = input[i];
+
+      if (visualColumn === null && isValidatorCorrection(changeSource)) {
+        continue;
+      }
+
       const visualColumnIndex = getSetDataAtCellColumn(input[i]);
 
       if (visualColumnIndex >= this.countCols()) {
@@ -4388,17 +4800,10 @@ export default function Core(
         // function `dataSchema`.) The index then travels on as the property name, so
         // `dataMap.set()` mints a positional key on a row whose other fields are named:
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
-        // serializes the row. Deprecated in 19.0.0, skipped from 20.0.0 on. The rule, and why it
+        // serializes the row. Deprecated in 19.0.0; the write is skipped from 20.0.0 on. The rule, and why it
         // reads `!== 'array'` and exempts a grid with no columns, is in `utils/pastLastColumn.ts`.
-        if (isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex)) {
-          removedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
-            'Writing past the last column of an object data source was removed in Handsontable 20.0.0. ' +
-            'The value is not written, and no change is reported for it. Use `setDataAtRowProp()` to ' +
-            'write a field the grid shows no column for.');
-
-          continue;
-        }
-
+        // The warning waits for `beforeChange`, see below.
+        writesPastLastColumn ||= isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex);
         prop = visualColumnIndex;
 
       } else {
@@ -4408,16 +4813,18 @@ export default function Core(
         prop = colToPropOrIndex(instance, visualColumnIndex) as string | number;
       }
 
+      if (isUnplacedCorrection(visualRow, changeSource)) {
+        foldUnplacedCorrection(prop, newValue, changeSource);
+
+        continue;
+      }
+
       changes.push([
         visualRow,
         prop,
         dataSource.getAtCell(this.toPhysicalRow(visualRow), visualColumn),
         newValue,
       ]);
-    }
-
-    if (!changeSource && typeof row === 'object') {
-      changeSource = column as string;
     }
 
     // Every requested change was skipped above, so there is nothing left to report or apply.
@@ -4433,6 +4840,21 @@ export default function Core(
 
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
+
+    // The deprecation warning says the value lands on a property named after the column index, so it
+    // is decided by what `beforeChange` left: a listener that drops such a change, vetoes the call
+    // or redirects it to a named field (the #5409 workarounds) is told nothing, and one that
+    // replaces the entry with another past the last column still is. A numeric property that a
+    // column declares (`columns: [{ data: 5 }]`) resolves to that column and does not count.
+    if (writesPastLastColumn && processedChanges.some(([, changeProp]) => Number.isInteger(changeProp) &&
+        isSkippedPastLastColumn(instance.dataType, this.countCols(), changeProp as number) &&
+        datamap.propToCol(changeProp as number) === null)) {
+      deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
+        'Writing past the last column of an object data source is deprecated and will be ' +
+        'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +
+        'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
+        'field the grid shows no column for.');
+    }
 
     // `beforeChange` and `afterSetDataAtCell` listeners can destroy the grid, and nothing after them
     // may read the destroyed instance.
@@ -4473,30 +4895,54 @@ export default function Core(
    */
   function validateAndApplyChanges(changes: CellChange[], source: string | undefined, loadGeneration: number) {
     const hold = operationScope.hold();
+    const records = createWaitingChangeRecords(
+      recordTracker, recordReader, getPhysicalRowOfExistingRow, waitingChangeRecords, observeRowShifts,
+      columnTracking,
+    );
 
     if (loadGeneration === validationLoadGeneration) {
-      waitingChangeSets.set(changes, source);
+      waitingChangeSets.set(changes, { source, records });
     }
 
     try {
-      validateChanges(changes, source, loadGeneration, (rejectedChanges: CellChange[]) => {
+      validateChanges(changes, source, loadGeneration, records, (rejectedChanges, removedChanges) => {
         waitingChangeSets.delete(changes);
 
         try {
           if (loadGeneration === validationLoadGeneration) {
-            hold.resume(() => applyChanges(changes, source));
+            const getRecordRow = records.hasRecords() ?
+              (change: CellChange) => records.getSettledPhysicalRow(change) : undefined;
+
+            hold.resume(() => applyChanges(changes, source, getRecordRow));
+
+            if (removedChanges.length > 0 && instance) {
+              droppedChangesListeners.slice().forEach(listener => listener(removedChanges, source, []));
+            }
           } else {
             droppedChangesListeners.slice().forEach(listener => listener(changes, source, rejectedChanges));
           }
         } finally {
+          records.release();
           hold.release();
         }
       });
     } catch (error) {
       waitingChangeSets.delete(changes);
+      records.release();
       hold.release();
       throw error;
     }
+  }
+
+  /**
+   * Returns the physical row of a visual row that exists, or `null` for a row past the last one, which a write
+   * creates and which therefore has no record to follow.
+   *
+   * @param {number} visualRow The visual row index.
+   * @returns {number|null}
+   */
+  function getPhysicalRowOfExistingRow(visualRow: number): number | null {
+    return visualRow >= 0 && visualRow < instance.countRows() ? instance.toPhysicalRow(visualRow) : null;
   }
 
   /**
@@ -4539,12 +4985,24 @@ export default function Core(
 
     const input = setDataInputToArray(row, prop, value);
     const changes: CellChange[] = [];
-    let changeSource = source;
+    // TODO: I don't think `prop` should be used as `changeSource` here, but removing it would be a breaking change.
+    // We should remove it with the next major release.
+    const changeSource = !source && typeof row === 'object' ? prop as string : source;
     let i;
     let ilen;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, inputProp, newValue] = input[i];
+
+      if (isRemovedColumnCorrection(inputProp, changeSource)) {
+        continue;
+      }
+
+      if (isUnplacedCorrection(visualRow, changeSource)) {
+        foldUnplacedCorrection(inputProp, newValue, changeSource);
+
+        continue;
+      }
 
       changes.push([
         visualRow,
@@ -4556,10 +5014,12 @@ export default function Core(
       ]);
     }
 
-    // TODO: I don't think `prop` should be used as `changeSource` here, but removing it would be a breaking change.
-    // We should remove it with the next major release.
-    if (!changeSource && typeof row === 'object') {
-      changeSource = prop as string;
+    // Every requested change was a correction folded above, so there is nothing left to report or apply, the same
+    // as for `setDataAtCell()`.
+    if (input.length > 0 && changes.length === 0) {
+      instance.runHooks('afterSetDataAtRowProp', [], changeSource);
+
+      return;
     }
 
     const loadGeneration = getChangeLoadGeneration(changeSource, changes);
@@ -5770,6 +6230,7 @@ export default function Core(
             instance.rowIndexMapper.fitToLength(instance.countSourceRows());
           }
 
+          followWaitingRecordsAfterUpdate();
           grid.adjustRowsAndCols();
           selection.markSource('updateData');
 
@@ -5795,6 +6256,31 @@ export default function Core(
         firstRun,
         beforeRender: () => runOwedReadySteps(1),
       }));
+  }
+
+  /**
+   * Moves the records of the waiting change sets to the rows that hold them after `updateData()` replaced the data
+   * (`followReplacedRecords()`), so the stamps of their validator calls (`this.visualRow`, the row of
+   * `afterValidate`) and the answers follow them, and marks a call's meta that stays stored at the row it was read
+   * from as displaced (`displacedMetas`).
+   *
+   * @private
+   */
+  function followWaitingRecordsAfterUpdate() {
+    if (waitingChangeSets.size === 0) {
+      return;
+    }
+
+    const sets = Array.from(waitingChangeSets.values(), ({ records }) => records);
+    const moved = followReplacedRecords(recordTracker, recordReader, sets);
+
+    if (moved.size === 0) {
+      return;
+    }
+
+    waitingMetaStamps.followRelocated(moved, (meta, physicalRow) => (
+      !Number.isInteger(meta.col) || metaManager.getCellMetaIfExists(physicalRow, meta.col as number) === meta
+    )).forEach(({ record, meta }) => displacedMetas.set(meta, record));
   }
 
   /**
@@ -5878,6 +6364,7 @@ export default function Core(
   function applyLoadData(data: unknown[][][] | object[], source: string) {
     pendingValidatorAnswers = 0;
     validationLoadGeneration += 1;
+    waitingChangeSets.forEach(({ records }) => records.release());
     waitingChangeSets.clear();
 
     const finishEndedValidationWait = editorManager?.getActiveEditor()?._endValidationWait() ?? null;
@@ -6500,7 +6987,162 @@ export default function Core(
    * @returns {Array<{ changes: Array, source: string|undefined }>}
    */
   this._getWaitingChangeSets = function() {
-    return [...waitingChangeSets].map(([changes, source]) => ({ changes, source }));
+    return [...waitingChangeSets].map(([changes, { source }]) => ({ changes, source }));
+  };
+
+  /**
+   * Returns the physical index of the row a change was written to.
+   *
+   * Use it in the [`afterChange`](@/api/hooks.md#afterchange) and
+   * [`beforeChangeRender`](@/api/hooks.md#beforechangerender) hooks to find the record of a change whose `row` is
+   * `null`. A change to a cell with a [`validator`](@/api/options.md#validator) is written to the record it was
+   * made on when the validator answers. When a filter or another trimming feature took that record out of the
+   * visual space in the meantime, the record has no visual index, so the hooks report `row` as `null`, and only
+   * the physical index still names the record. Pass the physical index to
+   * [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow) to read the record, or to
+   * [`getRowIdAtPhysicalRow()`](@/api/core.md#getrowidatphysicalrow) to read its id.
+   *
+   * The method answers for a change that waited for its validator until the `afterChange` hook that reports it
+   * has run: while the change waits, it returns the physical row of its record now (`null` once the record was
+   * removed), and in `beforeChangeRender` and `afterChange` it returns the physical row the change was written
+   * to. After the `afterChange` hook, the grid no longer follows the record, so read the physical index (or the
+   * row's id) inside the hook, and keep it if you need it later. For any other change, and for a change after its
+   * `afterChange` hook, the method returns the physical index of the change's visual `row` now, or `null` when
+   * `row` is `null`.
+   *
+   * @memberof Core#
+   * @function getPhysicalRowOfChange
+   * @since 19.0.0
+   * @param {Array} change A change, as the [`afterChange`](@/api/hooks.md#afterchange) or
+   * [`beforeChangeRender`](@/api/hooks.md#beforechangerender) hook passes it: `[row, prop, oldValue, newValue]`.
+   * Pass the array the hook passes, not a copy.
+   * @returns {number|null} The physical row index, or `null` when the change addresses no row.
+   * @example
+   * ```js
+   * hot.addHook('afterChange', (changes, source) => {
+   *   changes?.forEach((change) => {
+   *     const physicalRow = hot.getPhysicalRowOfChange(change);
+   *
+   *     if (physicalRow !== null) {
+   *       save(hot.getSourceDataAtRow(physicalRow));
+   *     }
+   *   });
+   * });
+   * ```
+   */
+  this.getPhysicalRowOfChange = function(change: readonly unknown[]): number | null {
+    const recordRow = waitingChangeRecords.get(change)?.getPhysicalRow(change);
+
+    if (recordRow !== undefined) {
+      return recordRow;
+    }
+
+    return typeof change[0] === 'number' ? instance.toPhysicalRow(change[0]) : null;
+  };
+
+  /**
+   * Leaves a validator answer. When the outermost one ends, its hold on the transaction of the change it answers
+   * is released, so the functions `_runAfterValidatorAnswer()` queued run as operations of their own. A grid a
+   * listener destroyed meanwhile runs none of them.
+   */
+  function leaveValidatorAnswer(): void {
+    validatorAnswerDepth -= 1;
+
+    if (validatorAnswerDepth > 0) {
+      return;
+    }
+
+    while (afterValidatorAnswer.length > 0) {
+      const callback = afterValidatorAnswer.shift()!;
+
+      if (instance) {
+        callback();
+      }
+    }
+  }
+
+  /**
+   * Runs a function once the validator answer that runs now has released its hold on the transaction of the
+   * change it answers, in the same task, or at once when no answer runs. An answer runs inside that transaction
+   * (`operationScope.hold()`), so an operation started there (a Pagination page change) joins the change's undo
+   * step. The editor uses it to show the page of a record a rejected value reopens it on.
+   *
+   * @private
+   * @param {Function} callback The function to run.
+   */
+  this._runAfterValidatorAnswer = function(callback: () => void): void {
+    if (validatorAnswerDepth === 0) {
+      callback();
+
+      return;
+    }
+
+    afterValidatorAnswer.push(callback);
+  };
+
+  /**
+   * Starts to follow the record at a visual row while something waits on it, the way core follows a change that
+   * waits for its validator: by its physical row, kept current on row inserts and removals, verified by its stored
+   * cell meta or its source row object, and found again by its row id or its row object when that fails. The
+   * editor uses it to reopen on the record a rejected value was typed into.
+   *
+   * @private
+   * @param {number} visualRow The visual row of the record.
+   * @returns {object|null} The handle, or `null` for a visual row that holds no record.
+   */
+  this._trackRecord = function(visualRow: number, visualColumn?: number): TrackedRecordHandle | null {
+    const physicalRow = getPhysicalRowOfExistingRow(visualRow);
+
+    if (physicalRow === null) {
+      return null;
+    }
+
+    let anchor: RecordAnchor | null = captureRecord(recordTracker, recordReader, physicalRow);
+    const prop = visualColumn === undefined ? null : datamap.colToProp(visualColumn);
+    const physicalColumn = prop === null ? null : getTrackedPhysicalColumn(prop);
+    let column: TrackedColumn | null = physicalColumn === null ? null : columnTracking.tracker.track(physicalColumn);
+    const getPhysicalRow = () => (anchor === null ? null : resolveRecord(recordReader, anchor));
+
+    return {
+      getPhysicalRow,
+      getVisualRow() {
+        const row = getPhysicalRow();
+
+        return row === null ? null : instance.toVisualRow(row);
+      },
+      getVisualColumn() {
+        if (visualColumn === undefined) {
+          return undefined;
+        }
+
+        if (prop === null) {
+          return visualColumn;
+        }
+
+        if (column !== null) {
+          return column.physicalColumn === null ? null : instance.toVisualColumn(column.physicalColumn);
+        }
+
+        const followedColumn = datamap.propToCol(prop as string | number);
+
+        if (typeof followedColumn === 'number') {
+          return followedColumn;
+        }
+
+        return followedColumn === null ? null : visualColumn;
+      },
+      release() {
+        if (anchor !== null) {
+          recordTracker.release(anchor.record);
+          anchor = null;
+        }
+
+        if (column !== null) {
+          columnTracking.tracker.release(column);
+          column = null;
+        }
+      },
+    };
   };
 
   /**
@@ -6539,6 +7181,66 @@ export default function Core(
     if (index !== -1) {
       droppedChangesListeners.splice(index, 1);
     }
+  };
+
+  /**
+   * Adds a function that can bring a row a hiding feature of its own keeps off screen back into view, the
+   * Pagination plugin's page change. Core calls it when a reveal is prepared (`_prepareRowReveal()`), and it
+   * returns the function that does the reveal later: that one receives a visual row and returns `true` when it
+   * changed what is shown so the row can be rendered. The feature decides there whether the reveal still applies
+   * to what it showed when the reveal was prepared. Adding a function that is already there changes nothing.
+   *
+   * @private
+   * @param {Function} revealer The function to add.
+   */
+  this._addRowRevealer = function(revealer: () => (visualRow: number) => boolean) {
+    if (!rowRevealers.includes(revealer)) {
+      rowRevealers.push(revealer);
+    }
+  };
+
+  /**
+   * Removes a function `_addRowRevealer()` added. Removing one that is not there changes nothing.
+   *
+   * @private
+   * @param {Function} revealer The function to remove.
+   */
+  this._removeRowRevealer = function(revealer: () => (visualRow: number) => boolean) {
+    const index = rowRevealers.indexOf(revealer);
+
+    if (index !== -1) {
+      rowRevealers.splice(index, 1);
+    }
+  };
+
+  /**
+   * Prepares a reveal of a row with the functions `_addRowRevealer()` added, each told what is shown now. The
+   * returned function asks them, in the order they were added, to bring a visual row into view until the row can
+   * be rendered. Only an editor that waits for its validator prepares one (`BaseEditor`), when the wait starts, and
+   * uses it when a rejected value reopens the editor on its record: a plain `selectCell()` on a row off screen keeps
+   * doing what it did.
+   *
+   * @private
+   * @returns {Function} Takes a visual row and returns whether that row can be rendered now.
+   */
+  this._prepareRowReveal = function(): (visualRow: number) => boolean {
+    const reveals = rowRevealers.map(revealer => revealer());
+
+    return (visualRow: number): boolean => {
+      const isRenderable = () => instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow) !== null;
+
+      if (isRenderable()) {
+        return true;
+      }
+
+      for (const reveal of reveals) {
+        if (reveal(visualRow) && isRenderable()) {
+          return true;
+        }
+      }
+
+      return false;
+    };
   };
 
   /**

@@ -856,6 +856,21 @@ a validated D3 made `=C3*D3` read -105 instead of 465), and kept them after a re
   without a rejectable cell is written here too (the set applies synchronously, inside `setDataAtCell()`):
   it used to wait for `afterChange`, through a listener keyed by the change array (`#outOfBoundsWrites`),
   which is gone, so its `afterFormulasValuesUpdate` now fires before the render instead of after it.
+- **The apply reads the row the Core resolved, and a `null` row by its record.** The Core writes a waiting
+  change to its record and hands `beforeChangeRender` the record's current visual row, so a sort or a move in
+  the window is already in `change[0]` when `#writeChangesToEngine()` writes it. A record a filter or a collapse
+  trimmed meanwhile arrives with a `null` row: `#writeTrimmedRecordChange()` addresses it by physical row
+  (`getPhysicalRowOfChange()`), which the engine still holds. Like every other cell write it notes the cell as
+  its own (`#noteOwnCellWrite()`), or a formula it writes reads as a foreign change (`#foreignSheetChange`) and
+  the next `updateSettings()` of a grid built from an engine sheet reloads with `loadData()`, dropping the sort,
+  the meta, the filters and the waiting edits; and it records the cell in `#syncedContent`
+  (`#recordSyncedCell()`), or the next resync takes the write for a change of the data and writes the whole
+  sheet. It reads the meta through `getCellMetaTransient()`, so the `cells` function and the meta hooks apply
+  (`preserveTextValue` keeps `'007'` text), and puts back the stamps that read writes on a stored meta
+  (`#keepingStoredMetaStamps()`): that meta is the `this` of the record's validator, whose `visualRow` the Core
+  keeps `null` while the record is trimmed, and a stamp left there sent a late correction to the record at the
+  visual row equal to the physical one. Pinned in `__tests__/validatedWriteResync.unit.js`. A record removed meanwhile is dropped by the Core and reaches
+  `#onChangesDropped` in a new array, which matches no awaiting set.
 - **Nothing takes a rejected change back any more.** The previous repair (`#onChangesRejected`, fed by a
   `@private` core `_addRejectedChangesListener()`, both removed) restored the engine after a rejection;
   with nothing written early for a cell the Core can reject, none of it is needed.
@@ -982,14 +997,9 @@ the restore gone, the engine keeps the rejected value until the next full write.
 **Known limit (held dependents are engine addresses).** `heldDependents` keeps the engine addresses the
 early write found. A row or column inserted or removed while a deferred change waits for its validator
 moves the real dependent, so the apply validates the cell now at the old address and the moved dependent
-is not validated. The Core has the same limit for the change itself, and it decides where the edit lands:
-the waiting set is applied at its old visual coordinates, so after `alter('insert_row_above', 0)` an edit of
-row 1 writes the record now at row 1 (the old row 0), and the apply's validation of the held dependent at
-the old address validates the cell that write reaches (checked, insert above and remove
-above). Translating only the held addresses through the structural change would validate the moved record,
-which the edit no longer touches, and leave the cell it does reach unvalidated. The fix belongs to the Core:
-move a waiting set with its records (row identity) or drop it on a structural change, as on a `loadData()`;
-the dependents then follow by being read again at the apply.
+is not validated. The change itself does not have this limit: the Core writes a waiting set to its records
+(`core/waitingRecords.ts`), and the apply writes the engine at the row the record has then. The fix is to read
+the dependents again at the apply from the cells the write reaches, instead of keeping their addresses.
 
 **Known limit (a deferred cell past the last row starts no walk).** `#splitDependentsOfDeferred()` walks
 from deferred cells the engine already holds. A deferred change past the last row has no engine cell yet,

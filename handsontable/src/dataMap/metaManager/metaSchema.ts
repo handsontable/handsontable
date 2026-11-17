@@ -435,10 +435,10 @@ export default (): Record<string, unknown> => {
      * This option does not decide whether the value reaches the source data – the write path does. A paste or an
      * autofill stops at the last column, so nothing is written there at all. A direct
      * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
-     * writes the value whatever this option is set to, except on an object [`data`](#data) source, where
-     * [`setDataAtCell()`](@/api/core.md#setdataatcell) skips the change outright from 20.0.0 on (it was deprecated in
-     * 19.0.0). See that method, which owns the rule; `setDataAtRowProp()` is not affected, because the property you
-     * pass names the field to write.
+     * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
+     * deprecated as of 19.0.0 and will be ignored from 20.0.0 on. See [`setDataAtCell()`](@/api/core.md#setdataatcell),
+     * which owns that rule; `setDataAtRowProp()` is not affected, because the property you pass names the field to
+     * write.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -1537,6 +1537,7 @@ export default (): Record<string, unknown> => {
      * | `suppressDataTypeErrors` | `true`  \| `false`                                                      | [Suppress data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors)                                    |
      * | `readOnly`               | `true`  \| `false`                                                      | Make summary cell [read-only](@/api/options.md#readonly)                                                                                           |
      * | `roundFloat`             | `true`  \| `false`  \| A number                                         | [Round summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result)                                  |
+     * | `includeSummaryResults`  | `true`  \| `false`                                                      | [Include other summary results](@/guides/columns/column-summary/column-summary.md#include-nested-summary-results)                        |
      * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function)                         |
      *
      * Read more:

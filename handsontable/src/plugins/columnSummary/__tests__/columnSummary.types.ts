@@ -9,6 +9,7 @@ interface Endpoint {
   suppressDataTypeErrors: boolean;
   readOnly: boolean;
   roundFloat: number | false | 'auto';
+  includeSummaryResults: boolean;
   ranges: number[][];
   sourceColumn: number;
   type: string;
@@ -23,7 +24,8 @@ const hot = new Handsontable(document.createElement('div'), {
       type: 'sum',
       destinationRow: 3,
       destinationColumn: 0,
-      forceNumeric: true
+      forceNumeric: true,
+      includeSummaryResults: true,
     },
     {
       sourceColumn: 1,
@@ -68,7 +70,8 @@ new Handsontable(document.createElement('div'), {
         type: 'sum',
         destinationRow: this.hot.countRows() - 1,
         destinationColumn: this.hot.countCols() - 1,
-        forceNumeric: true
+        forceNumeric: true,
+        includeSummaryResults: false,
       },
     ];
   }
@@ -82,6 +85,7 @@ const endpoint: SummaryEndpoint = {
   suppressDataTypeErrors: false,
   readOnly: true,
   roundFloat: 4,
+  includeSummaryResults: true,
   ranges: [[1, 1, 2, 2]],
   sourceColumn: 0,
   type: 'sum',

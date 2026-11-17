@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable/base';
-import { registerPlugin, AutoRowSize } from 'handsontable/plugins';
+import { registerPlugin, AutoRowSize, TrimRows } from 'handsontable/plugins';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(AutoRowSize);
@@ -342,5 +342,39 @@ describe('AutoRowSize default settings', () => {
   it('should still declare the settings it does read', () => {
     expect(AutoRowSize.DEFAULT_SETTINGS.samplingRatio).toBe(null);
     expect(AutoRowSize.DEFAULT_SETTINGS.allowSampleDuplicates).toBe(false);
+  });
+});
+
+describe('AutoRowSize and a change written to a trimmed record', () => {
+  it('should drop the cached height of a record a trim took out of the visual rows while its change waited', async() => {
+    registerPlugin(TrimRows);
+
+    const answers: Array<(valid: boolean) => void> = [];
+    const hot = buildGrid({
+      trimRows: true,
+      validator: (value: unknown, callback: (valid: boolean) => void) => {
+        answers.push(callback);
+      },
+    });
+    const plugin = hot.getPlugin('autoRowSize');
+
+    plugin.rowHeightsMap.setValueAtIndex(1, 80);
+    hot.setDataAtCell(1, 0, 'tall');
+
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve();
+    }
+
+    hot.getPlugin('trimRows').trimRow(1);
+    answers.splice(0).forEach(answer => answer(true));
+
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve();
+    }
+
+    expect(hot.getSourceDataAtCell(1, 0)).toBe('tall');
+    expect(plugin.rowHeightsMap.getValueAtIndex(1)).toBeNull();
+
+    hot.destroy();
   });
 });

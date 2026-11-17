@@ -16,18 +16,31 @@ const masterData = [
   { firstName: 'Sophia', lastName: 'Lee', plan: 'Business', seats: 22, pricePerSeat: 21, lastActive: '2026-03-05' },
   { firstName: 'James', lastName: 'Patel', plan: 'Team', seats: 14, pricePerSeat: 24, lastActive: '2026-03-12' },
   { firstName: 'Isabella', lastName: 'Rossi', plan: 'Starter', seats: 6, pricePerSeat: 29, lastActive: '2026-03-04' },
-  { firstName: 'Benjamin', lastName: 'Garcia', plan: 'Enterprise', seats: 41, pricePerSeat: 19, lastActive: '2026-03-03' },
-  { firstName: 'Charlotte', lastName: 'Nguyen', plan: 'Business', seats: 19, pricePerSeat: 21, lastActive: '2026-03-02' },
+  {
+    firstName: 'Benjamin',
+    lastName: 'Garcia',
+    plan: 'Enterprise',
+    seats: 41,
+    pricePerSeat: 19,
+    lastActive: '2026-03-03',
+  },
+  {
+    firstName: 'Charlotte',
+    lastName: 'Nguyen',
+    plan: 'Business',
+    seats: 19,
+    pricePerSeat: 21,
+    lastActive: '2026-03-02',
+  },
   { firstName: 'Elijah', lastName: 'Brown', plan: 'Team', seats: 11, pricePerSeat: 24, lastActive: '2026-03-01' },
 ];
 /* end:skip-in-preview */
 
-const normalizePlanLabel = (plan) => typeof plan === 'string' ? plan.toUpperCase() : 'N/A';
+const normalizePlanLabel = (plan) => (typeof plan === 'string' ? plan.toUpperCase() : 'N/A');
 
 const normalizeCustomer = (firstName, lastName) => [firstName, lastName].filter(Boolean).join(' ');
 
-const normalizeMonthlyRevenue = (seats, pricePerSeat) =>
-  `$${((seats ?? 0) * (pricePerSeat ?? 0)).toFixed(2)}`;
+const normalizeMonthlyRevenue = (seats, pricePerSeat) => `$${((seats ?? 0) * (pricePerSeat ?? 0)).toFixed(2)}`;
 
 const toDetailRow = (row) => ({
   customer: normalizeCustomer(row.firstName, row.lastName),
@@ -88,11 +101,14 @@ const detailColumnMap = {
 const syncDetailRow = (rowIndex, rowData) => {
   const detailRow = toDetailRow(rowData);
 
-  // Batch updates to avoid multiple render cycles for one row sync.
-  const detailChanges = Object.entries(detailColumnMap)
-    .map(([prop, columnIndex]) => [rowIndex, columnIndex, detailRow[prop]]);
+  // Batch updates into one call to avoid multiple render passes.
+  const updates = Object.entries(detailColumnMap).map(([prop, columnIndex]) => [
+    rowIndex,
+    columnIndex,
+    detailRow[prop],
+  ]);
 
-  detailHot.setDataAtCell(detailChanges, SOURCE_SYNC_FROM_MASTER);
+  detailHot.setDataAtCell(updates, SOURCE_SYNC_FROM_MASTER);
 };
 
 const masterHot = new Handsontable(masterContainer, {
@@ -103,7 +119,12 @@ const masterHot = new Handsontable(masterContainer, {
     { data: 'lastName', type: 'text', width: 120 },
     { data: 'plan', type: 'dropdown', source: ['Starter', 'Team', 'Business', 'Enterprise'], width: 130 },
     { data: 'seats', type: 'numeric', width: 70 },
-    { data: 'pricePerSeat', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 105 },
+    {
+      data: 'pricePerSeat',
+      type: 'numeric',
+      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 },
+      width: 105,
+    },
     { data: 'lastActive', type: 'date', width: 130 },
   ],
   rowHeaders: true,
@@ -119,9 +140,11 @@ const masterHot = new Handsontable(masterContainer, {
 
     const changedRows = new Set();
 
-    changes.forEach(([row]) => {
-      if (typeof row === 'number') {
-        changedRows.add(row);
+    changes.forEach((change) => {
+      const physicalRow = masterHot.getPhysicalRowOfChange(change);
+
+      if (physicalRow !== null) {
+        changedRows.add(physicalRow);
       }
     });
 

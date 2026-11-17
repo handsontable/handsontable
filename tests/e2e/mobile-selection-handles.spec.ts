@@ -204,6 +204,21 @@ test.describe('mobile selection handles', { tag: THEMES_TAG }, () => {
     await expect.poll(() => mobileGrid.isBottomHandleHitAreaAtHandleCenter()).toBe(true);
   });
 
+  test('keep the bottom handle above the bottom rows for a cell lined up with them', async () => {
+    await mobileGrid.goto({ frozenBottom: true, rows: 'tall' });
+    await mobileGrid.tapCell(1, 1);
+    // Selecting a row below the viewport scrolls it up to the frozen bottom rows, as an arrow key does.
+    await mobileGrid.selectRange(20, 1, 20, 1);
+
+    await expect(mobileGrid.bottomHandle()).toBeVisible();
+    // The row is lined up (its border is under the bottom rows' first pixel row), and the handle's box ends
+    // above the bottom rows, where it takes the touch.
+    await expect.poll(() => mobileGrid.bottomHandleAgainstBottomRows(20, 1))
+      .toEqual({ cellEnd: 1, handleEnd: expect.any(Number) });
+    expect((await mobileGrid.bottomHandleAgainstBottomRows(20, 1)).handleEnd).toBeLessThanOrEqual(1);
+    await expect.poll(() => mobileGrid.isBottomHandleHitAreaAtHandleCenter()).toBe(true);
+  });
+
   test('keep the top handle interactive when a range starts at the frozen-pane boundaries', async () => {
     await mobileGrid.goto({ frozen: true });
     await mobileGrid.tapCell(1, 1);

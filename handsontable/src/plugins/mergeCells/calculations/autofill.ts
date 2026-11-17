@@ -167,6 +167,54 @@ class AutofillCalculations {
   }
 
   /**
+   * Records the physical rows and columns of the area a fill covers, so that
+   * {@link AutofillCalculations#recreateAfterDataPopulation} can tell whether the area still sits where the fill
+   * was made. A fill whose changes wait for a validator lands after a sort, a move or a trim made during the wait.
+   *
+   * @private
+   * @param {number[]} fillArea The base area extended by the drag area (`[startRow, startColumn, endRow, endColumn]`).
+   */
+  captureFillArea(fillArea: number[]) {
+    const [startRow, startColumn, endRow, endColumn] = fillArea;
+    const { hot } = this.plugin;
+    const physicalRows = [];
+    const physicalColumns = [];
+
+    for (let row = startRow; row <= endRow; row += 1) {
+      physicalRows.push(hot.toPhysicalRow(row));
+    }
+
+    for (let column = startColumn; column <= endColumn; column += 1) {
+      physicalColumns.push(hot.toPhysicalColumn(column));
+    }
+
+    this.updateCurrentFillCache({ fillArea, physicalRows, physicalColumns });
+  }
+
+  /**
+   * Checks whether every row and column of the filled area still has the visual index it had when the fill was
+   * made. A fill made without {@link AutofillCalculations#captureFillArea} is taken as in place.
+   *
+   * @private
+   * @param {object} fillData The current fill cache.
+   * @returns {boolean}
+   */
+  isFillAreaInPlace(fillData: Record<string, unknown>) {
+    const fillArea = fillData.fillArea as number[] | undefined;
+
+    if (!fillArea) {
+      return true;
+    }
+
+    const { hot } = this.plugin;
+    const physicalRows = fillData.physicalRows as number[];
+    const physicalColumns = fillData.physicalColumns as number[];
+
+    return physicalRows.every((row, index) => hot.toVisualRow(row) === fillArea[0] + index) &&
+      physicalColumns.every((column, index) => hot.toVisualColumn(column) === fillArea[1] + index);
+  }
+
+  /**
    * Get the "length" of the drag area.
    *
    * @private
@@ -291,12 +339,20 @@ class AutofillCalculations {
   }
 
   /**
-   * Recreate the merged cells after the autofill process.
+   * Recreate the merged cells after the autofill process. The merges are recreated only when the filled area still
+   * sits where the fill was made: the merges are copies of the base area's merges at the fill-time offsets, so once a
+   * sort, a move or a trim during a validator's wait has moved the filled records, those offsets name other records.
    *
    * @param {Array} changes Changes made.
    */
   recreateAfterDataPopulation(changes: unknown[][]) {
     if (!this.currentFillData) {
+      return;
+    }
+
+    if (!this.isFillAreaInPlace(this.currentFillData)) {
+      this.currentFillData = null;
+
       return;
     }
 
@@ -385,7 +441,8 @@ class AutofillCalculations {
   }
 
   /**
-   * Get the drag range from the changes made.
+   * Get the drag range from the changes made. A change whose row is `null` (a record trimmed out of the visual
+   * space while the change waited for its validator) is outside every visible range and is skipped.
    *
    * @private
    * @param {Array} changes The changes made.
@@ -399,6 +456,11 @@ class AutofillCalculations {
 
     arrayEach(changes, (change) => {
       const changeArr = change as unknown[];
+
+      if (changeArr[0] === null) {
+        return;
+      }
+
       const rowIndex = changeArr[0] as number;
       // Falls back to the prop. Skipping the change instead would drop its row from the bounds
       // too, shrinking the range vertically and moving merged areas over the wrong rows.
