@@ -147,6 +147,7 @@ test('the a11y spec scans the grid root and the portal with the WCAG 2.2 A and A
 });
 
 const CHECKS_DOC = 'See tests/AGENTS.md, "A11y: the checks beyond axe".';
+const AUDIT_DOC = 'See tests/AGENTS.md, "A11y: the audit and the proof runs".';
 const CHECKS_CONFIG = 'tests/playwright.a11y-checks.config.ts';
 const NIGHTLY = '.github/workflows/a11y-nightly.yml';
 
@@ -234,15 +235,14 @@ test('the checks config builds on the e2e config, takes its projects from the re
     `${CONFIG}: the axe config collects its one spec, never the checks in a11y/checks/. ${CHECKS_DOC}`);
 });
 
-test('the A11y nightly builds the UMD bundle and calls the module with every check, on a dispatch and never a cron', () => {
+test('the A11y nightly builds the UMD bundle and calls the module with every check, on its weekly schedule and on a dispatch', () => {
   const workflow = stripYamlComments(read(NIGHTLY));
 
   assert.deepEqual(jobIds(workflow), ['check-inputs', 'build', 'a11y', 'verdict', 'notify'],
     `${NIGHTLY}: the input guard, build, the module, the run verdict, the Slack ping. ${CHECKS_DOC}`);
-  assert.doesNotMatch(workflow, /^ {2}schedule:$/m,
-    `${NIGHTLY}: manual trigger only. The accessibility program runs one audit, fixes, and re-audits; a cron would spend the compute on nights nobody reads. The tiers (axe on a pull request, a semi-lite set on a nightly, the full set on a release candidate and a stable release) come back with the schedule, not before. ${CHECKS_DOC}`);
-  assert.doesNotMatch(workflow, /cron/, `${NIGHTLY}: no cron, under any key. ${CHECKS_DOC}`);
-  assert.match(workflow, /^ {2}workflow_dispatch:$/m, `${NIGHTLY}: a dispatch from any ref is the audit and the proof run. ${CHECKS_DOC}`);
+  assert.match(workflow, /^ {2}schedule:\n {4}- cron: '12 1 \* \* 1'$/m,
+    `${NIGHTLY}: the weekly audit, Monday 01:12 UTC on develop, five minutes after the screen reader run (a11y-audit-schedule.test.mjs pins the four audit workflows' order and what a schedule's empty inputs give). While the accessibility debt is being fixed the ledger needs an audit a week to show what each fix cleared; a run every night would tell it nothing more. The schedule ends when the debt epic closes, and the tiers (axe on a pull request, a semi-lite set on a nightly, the full set on a release candidate and a stable release) then decide the cadence. ${AUDIT_DOC}`);
+  assert.match(workflow, /^ {2}workflow_dispatch:$/m, `${NIGHTLY}: a dispatch on develop is the audit too, and a dispatch from a branch is the proof run. ${CHECKS_DOC}`);
   assert.match(workflow, /^ {2}pull_request:\n {4}paths: \[ '\.github\/workflows\/a11y-nightly\.yml' \]$/m,
     `${NIGHTLY}: the self-validating trigger stays; without it a broken workflow_call graph first runs after merging. ${CHECKS_DOC}`);
 
@@ -251,15 +251,15 @@ test('the A11y nightly builds the UMD bundle and calls the module with every che
   assert.match(a11y, /^ {4}needs: \[ build \]$/m);
   assert.match(a11y, /^ {4}uses: \.\/\.github\/workflows\/a11y\.yml$/m);
   assert.match(a11y, /^ {6}nightly: \$\{\{ inputs\.suite != 'pull-request' \}\}$/m,
-    `${NIGHTLY}: every check on a plain dispatch; a dispatch that asks for the short suite (suite: pull-request) runs the checks a developer runs locally. ${CHECKS_DOC}`);
+    `${NIGHTLY}: every check on the schedule (the inputs hold nothing there) and on a plain dispatch; a dispatch that asks for the short suite (suite: pull-request) runs the checks a developer runs locally. ${CHECKS_DOC}`);
   assert.match(workflow, /^ {2}workflow_dispatch:\n {4}inputs:\n {6}suite:\n(?: {8}.*\n)*? {8}options: \[ nightly, pull-request \]$/m,
     `${NIGHTLY}: a dispatch picks the suite, every check by default. ${CHECKS_DOC}`);
   assert.match(workflow, /^ {8}default: nightly$/m,
     `${NIGHTLY}: a plain dispatch runs every check, as tests/AGENTS.md and .ai/CI.md say; only a dispatch that asks for the short suite runs it. ${CHECKS_DOC}`);
   assert.match(workflow, /^ {6}checks:\n(?: {8}.*\n)*? {8}type: string\n(?: {8}.*\n)*? {8}default: ''$/m,
     `${NIGHTLY}: the checks input names the checks beyond axe to run, comma-separated, and its default, empty, runs the suite: a proof run on a branch dispatches the changed check alone. ${CHECKS_DOC}`);
-  assert.match(a11y, /^ {6}check-ids: \$\{\{ inputs\.checks \}\}$/m,
-    `${NIGHTLY}: the checks input is forwarded as the module's check-ids input, which reaches the config as A11Y_CHECKS. ${CHECKS_DOC}`);
+  assert.match(a11y, /^ {6}check-ids: \$\{\{ inputs\.checks \|\| '' \}\}$/m,
+    `${NIGHTLY}: the checks input is forwarded as the module's check-ids input, which reaches the config as A11Y_CHECKS. The inputs hold nothing on the schedule, so \`|| ''\` hands the module a string on every event, and an empty one runs the suite. ${AUDIT_DOC}`);
   assert.doesNotMatch(a11y, /secrets: inherit/, `${NIGHTLY}: the called workflow reads only GITHUB_TOKEN.`);
   assert.match(job(workflow, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the checks consume the UMD build artifact.`);
   assert.match(job(workflow, 'build'), /^ {4}needs: \[ check-inputs \]$/m,

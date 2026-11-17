@@ -6,8 +6,10 @@
  * whole-name match cannot trim while the verdict still expects it.
  *
  * Run by the `check-inputs` job of `.github/workflows/a11y-nightly.yml` (`--suite`, `--checks`),
- * `screenreader-nightly.yml` (`--projects`, `--groups`) and `docs-a11y.yml` (`--site docs --site-checks`); the
- * `verdict` job reads the same inputs through the same function, so both ends of the run read them one way.
+ * `screenreader-nightly.yml` (`--projects`, `--groups`), `docs-a11y.yml` (`--site docs --site-checks`) and
+ * `website-a11y.yml` (`--site website --site-checks`); the `verdict` job reads the same inputs through the same
+ * function, so both ends of the run read them one way. On the weekly schedule every input arrives empty, and the
+ * run passes as the audit a dispatch on develop with no inputs is.
  *
  * Arguments: `--ref <github.ref>` and the inputs as dispatched, `--suite`, `--checks`, `--projects`, `--groups`,
  * and a site workflow's `--site` with its `checks` input as `--site-checks` (an empty value is no input). Prints

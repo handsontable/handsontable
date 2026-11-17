@@ -69,7 +69,7 @@ const NOW = new Date('2026-11-03T12:00:00Z');
 const DAY = 24 * 60 * 60 * 1000;
 const night = offset => new Date(NOW.getTime() + (offset * DAY)).toISOString();
 
-// The A11y nightly on develop: a schedule, never a push, which is why the rule names the workflow and the event.
+// The A11y nightly on develop: its weekly schedule, never a push, which is why the rule names the workflow and the event.
 const NIGHTLY = {
   id: 41584742628,
   run_attempt: 1,
@@ -83,7 +83,7 @@ const NIGHTLY = {
 };
 const READER_RUN = { ...NIGHTLY, id: 41579067604, name: READER_NIGHTLY_WORKFLOW, updated_at: '2026-11-03T05:20:00Z' };
 const PULL_REQUEST = { ...NIGHTLY, id: 41644897455, name: 'Tests', head_branch: 'feature/X-1_Branch', event: 'pull_request' };
-// The docs site scan on develop: a dispatch, since it has no schedule.
+// The docs site scan on develop, dispatched: the audit a person starts between two weekly schedules.
 const DOCS_RUN = { ...NIGHTLY, id: 41700000001, name: DOCS_A11Y_WORKFLOW, event: 'workflow_dispatch', updated_at: '2026-11-03T07:10:00Z' };
 
 const CATALOG = compileIssuesCatalog({
@@ -445,6 +445,13 @@ test('the website is a night of its own: its scan and checks of production only,
   const merged = mergeA11yLedger(null, website, runContextFromRun(WEBSITE_RUN), CATALOG, { now: NOW });
 
   assert.deepEqual(merged.doc.latest.website, { runId: '41750000001', seenAt: WEBSITE_RUN.updated_at });
+
+  // The weekly schedule records the same night a dispatch on develop does: the ledger reads the event, never the clock.
+  const scheduled = mergeA11yLedger(null, website, runContextFromRun({ ...WEBSITE_RUN, event: 'schedule' }), CATALOG, { now: NOW });
+
+  assert.deepEqual(scheduled.notes, []);
+  assert.deepEqual(scheduled.doc.rows.map(row => [row.key, row.status]), merged.doc.rows.map(row => [row.key, row.status]));
+  assert.deepEqual(scheduled.doc.nights.map(entry => [entry.source, entry.event]), [['website', 'schedule']]);
   assert.equal(merged.doc.rows.filter(row => row.source === 'docs' || row.source === 'docs-checks').length, 0, 'no docs row');
   assert.ok(a11yView(merged.doc, CATALOG).checks.some(entry => entry.check === WEBSITE_SCAN_CHECK && entry.title === 'website axe scan'));
 
@@ -480,7 +487,13 @@ test('isA11yRun takes the two nightlies and the site scans on develop by schedul
     assert.ok(recordedWorkflows().includes(workflow), `the recorded workflows name ${workflow}`);
   }
   assert.equal(recordedWorkflows({ 'A11y nightly': ['a11y'] }), 'A11y nightly');
-  assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'workflow_dispatch' })), true, 'a proof run, or a missed night run again');
+  assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'workflow_dispatch' })), true, 'an audit dispatched on develop, or a missed night run again');
+  // The weekly audit: each recorded workflow runs on develop by its schedule, and a dispatch there is an audit too.
+  for (const workflow of Object.keys(SOURCES_OF_WORKFLOW)) {
+    assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, name: workflow, event: 'schedule' })), true, `${workflow}, by its weekly schedule`);
+    assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, name: workflow, event: 'workflow_dispatch' })), true, `${workflow}, dispatched on develop`);
+    assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, name: workflow, event: 'workflow_call' })), false, `${workflow}, called by another workflow`);
+  }
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'push' })), false);
   assert.equal(isA11yRun(runContextFromRun({ ...NIGHTLY, event: 'pull_request' })), false, 'the nightly validating its own graph');
   assert.equal(isA11yRun(runContextFromRun(PULL_REQUEST)), false);
@@ -1345,8 +1358,8 @@ test('a reader night touches only reader rows, and the two sources keep their ow
 });
 
 test('a subset night, were one recorded, is a night of its subset only: one check resolves nothing of the other checks, one project nothing of the other projects', () => {
-  // The nightlies have no schedule: a dispatch on develop is the audit, and their check-inputs job refuses the
-  // `checks` (A11y nightly) and `projects` and `groups` (Screen reader nightly) subsets there, so a recorded
+  // The weekly schedule has no inputs, and on a dispatch on develop the check-inputs job refuses the
+  // `checks` (A11y nightly) and `projects` and `groups` (Screen reader nightly) subsets, so a recorded
   // night is a full one. This pins what the rows would do with a subset night anyway: coverage is per check
   // document and per project and scenario transcript, so it covers its subset and nothing else. (The page's
   // "latest" panels and trends would still read it as the latest night, which is why the guard exists.)
@@ -1974,6 +1987,18 @@ test('the collector records a develop nightly into a11y.json and the page, and a
     assert.equal(again.status, 0, again.stderr);
     assert.deepEqual(sandbox.snapshot(), after, 'collecting the same run again changes no published byte');
     assert.match(again.stdout, /already recorded/);
+
+    // The docs site scan's weekly schedule is collected like the nightlies': with no dispatch, and whatever its
+    // verdict job concluded (red by design while a critical or serious finding is open).
+    const docs = sandbox.collect({ ...DOCS_RUN, event: 'schedule', conclusion: 'failure' }, sandbox.artifacts('docs', docsFiles()), '2026-11-03T07:30:00Z');
+
+    assert.equal(docs.status, 0, docs.stderr);
+    assert.match(docs.stdout, /Accessibility: docs night 41700000001 recorded 3 findings/);
+
+    const ledger = JSON.parse(readFileSync(path.join(sandbox.ledgerDir, 'a11y.json'), 'utf8'));
+
+    assert.deepEqual(ledger.nights.filter(entry => entry.source === 'docs').map(entry => entry.event), ['schedule']);
+    assert.equal(ledger.rows.filter(row => row.source === 'docs').length, 3);
   } finally {
     sandbox.remove();
   }

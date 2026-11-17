@@ -7,7 +7,7 @@ import { job, jobIds, steps } from '../lib/workflow-text.mjs';
 import { DOCS_A11Y_WORKFLOW, DOCS_AXE_ARTIFACT, DOCS_CHECKS_ARTIFACT, sourcesOfWorkflow } from '../lib/a11y-ledger.mjs';
 
 // tests/AGENTS.md ("A11y: the docs site scan" and "A11y: the site checks beyond axe"): the docs site scan and
-// the docs site checks are report-only jobs, run on demand or by a workflow that calls it, never on a schedule;
+// the docs site checks are report-only jobs, run once a week on a schedule, on demand, or by a workflow that calls it;
 // a pull request that changes the scan runs the scan alone. Each link fails silently when it breaks: a workflow
 // renamed away from the name the findings ledger records, an artifact renamed away from the one it downloads, a
 // report renamed into the product report's artifact name, a dispatch input interpolated into a script, or a
@@ -24,7 +24,7 @@ const A11Y = '.github/workflows/a11y.yml';
 const CONFIG = 'tests/playwright.a11y-docs.config.ts';
 const DOC = 'See tests/AGENTS.md, "A11y: the docs site scan".';
 
-test('docs-a11y.yml is the Docs a11y workflow the ledger records, started by a dispatch, a caller, or a change to the scan itself', () => {
+test('docs-a11y.yml is the Docs a11y workflow the ledger records, started by its weekly schedule, a dispatch, a caller, or a change to the scan itself', () => {
   const workflow = stripYamlComments(read(DOCS));
   const [, triggers] = /^on:\n([\s\S]*?)^\S/m.exec(workflow) ?? [];
 
@@ -32,8 +32,10 @@ test('docs-a11y.yml is the Docs a11y workflow the ledger records, started by a d
     `${DOCS}: the name is what isA11yRun and test-health.yml's trigger list read. ${DOC}`);
   assert.deepEqual(sourcesOfWorkflow(DOCS_A11Y_WORKFLOW), ['docs']);
   assert.ok(triggers, `${DOCS}: lost the on: block`);
-  assert.deepEqual([...triggers.matchAll(/^ {2}([a-z_]+):/gm)].map(([, name]) => name), ['workflow_dispatch', 'pull_request', 'workflow_call'],
-    `${DOCS}: on demand, from a caller, and on a change to the scan itself; the scan has no schedule. ${DOC}`);
+  assert.deepEqual([...triggers.matchAll(/^ {2}([a-z_]+):/gm)].map(([, name]) => name), ['schedule', 'workflow_dispatch', 'pull_request', 'workflow_call'],
+    `${DOCS}: once a week on a schedule, on demand, from a caller, and on a change to the scan itself. ${DOC}`);
+  assert.match(triggers, /^ {2}schedule:\n {4}- cron: '17 1 \* \* 1'$/m,
+    `${DOCS}: the weekly audit, Monday 01:17 UTC on develop, five minutes after the A11y nightly (a11y-audit-schedule.test.mjs pins the four audit workflows' order and what a schedule's empty inputs give). See tests/AGENTS.md, "A11y: the audit and the proof runs".`);
   const [, paths = ''] = /^ {2}pull_request:\n {4}paths:\n((?: {6}- .*\n)+)/m.exec(triggers) ?? [];
 
   assert.deepEqual([...paths.matchAll(/- '([^']+)'/g)].map(([, file]) => file),
