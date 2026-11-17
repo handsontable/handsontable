@@ -707,6 +707,26 @@ stays non-passive, JavaScript then scrolls the page itself, and nothing can tear
 only the clones a leg can see — with the clones unpinned they all stand at the table's top, where the
 top clone covers the bottom one, so the control names the two it scans.
 
+**A re-pin writes each style property once, with its final value.** On a window-scrolled grid every
+draw re-pins every clone a rail holds (`resetFixedPosition()` → `OverlayRail#pin()`), and the reads of
+the same draw (`getTotalWidth()` in the
+`pin()` argument, `adjustRootElementSize()`) sit between the overlays' writes. Clearing an inset and
+setting it back (`bottom: ''` then `bottom: 0`), or removing a margin and adding it again, leaves the
+same state behind, but each write marks the layout dirty, so the read after it forces a synchronous
+style recalculation and layout. That cost was most of a window scroll's layouts with frozen panes:
+290 style recalculations and 240 layouts over 40 wheel steps of the `?tall=1&frozen=1` fixture, against
+50 and 80 once the churn was gone. A write of the value already there is free, so `pin()` may rewrite
+every property on every draw, as long as no write passes through another value. The rail owns the
+clone's insets and flow margins, so an overlay must not set one to another value before calling `pin()`
+(the `style.top = ''` the bottom overlays write first is harmless only because a pinned clone's `top` is
+already empty). The margins are cleared with `removeProperty()`, not by assigning `''`: jsdom 16, the
+unit environment, ignores an empty assignment to a margin. Pinned by the "a draw leaves the pinned
+clones' inline style alone" block of the same spec (a `MutationObserver` on the clone roots and rails
+sees each passing write, where the end state hides it, beside the master spreader's changes as the
+in-test control that the draws were observed) and by the repeated-pin cases in
+`test/unit/overlay/overlayRail.unit.ts`. The fixture has no `fixedColumnsEnd`, so the inline-end
+margins are covered by the unit cases only.
+
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.

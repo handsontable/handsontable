@@ -59,6 +59,26 @@ export function railCarriesAxis(rail: OverlayRail | null, axis: 'inline' | 'bloc
 }
 
 /**
+ * Sets one margin to `auto`, or removes it, in a single write. Removing a margin that is not set
+ * changes nothing, so the layout is not dirtied on a draw that keeps the placement.
+ *
+ * @param {CSSStyleDeclaration} style The style to write.
+ * @param {'margin-top' | 'margin-left' | 'margin-right'} property The margin.
+ * @param {boolean} auto Whether the margin is `auto`.
+ */
+function setAutoMargin(
+  style: CSSStyleDeclaration,
+  property: 'margin-top' | 'margin-left' | 'margin-right',
+  auto: boolean
+): void {
+  if (auto) {
+    style.setProperty(property, 'auto');
+  } else {
+    style.removeProperty(property);
+  }
+}
+
+/**
  * Keeps an overlay clone at the viewport's edge with CSS while the WINDOW scrolls the grid
  * (DEV-127 for the inline axis, DEV-126 for the block axis).
  *
@@ -188,14 +208,16 @@ export class OverlayRail {
     // one too, so the rail carries that axis's place itself.
     cloneStyle[start] = inline && !atInlineEnd ? '0' : '';
     cloneStyle[end] = inline && atInlineEnd ? '0' : '';
-    cloneStyle.top = '';
-    cloneStyle.bottom = '';
+    // Each property is written once, with its final value: the clone is re-pinned on every draw, and
+    // a value cleared and then set back marks the layout dirty although nothing changed, so the next
+    // geometry read of the draw forces a synchronous reflow.
+    cloneStyle.top = block.pinned && block.edge === 'top' ? '0' : '';
+    cloneStyle.bottom = block.pinned && block.edge === 'bottom' ? '0' : '';
 
     if (block.pinned) {
       railStyle.top = '0';
       railStyle.bottom = '';
       railStyle.height = `${height}px`;
-      cloneStyle[block.edge] = '0';
 
     } else if (block.edge === 'top') {
       railStyle.top = '0';
@@ -277,13 +299,10 @@ export class OverlayRail {
     railStyle.display = flows ? 'flex' : '';
     railStyle.flexDirection = atBottom ? 'column' : '';
     railStyle.alignItems = flows ? 'flex-start' : '';
-    cloneStyle.marginTop = atBottom ? 'auto' : '';
-    cloneStyle.removeProperty('margin-left');
-    cloneStyle.removeProperty('margin-right');
-
-    if (atInlineEnd) {
-      cloneStyle[start === 'left' ? 'marginLeft' : 'marginRight'] = 'auto';
-    }
+    // One write per margin, with its final value, for the reason given in `pin()`.
+    setAutoMargin(cloneStyle, 'margin-top', atBottom);
+    setAutoMargin(cloneStyle, 'margin-left', atInlineEnd && start === 'left');
+    setAutoMargin(cloneStyle, 'margin-right', atInlineEnd && start === 'right');
   }
 
   /**
