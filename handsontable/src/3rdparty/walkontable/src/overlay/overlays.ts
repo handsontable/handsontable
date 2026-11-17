@@ -1038,11 +1038,13 @@ class Overlays {
 
   /**
    * Tells whether the bottom clone is taller than the height the row calculators count for the frozen bottom
-   * rows. Its first row draws its own top border, the freeze line. While that row has no height of its own
-   * the border is one pixel on top of the counted height, so the clone covers the bottom border of a row that
-   * scrolling lined up with it. A first row with a height of its own (`rowHeights`, `minRowHeights`, a
-   * resized row, a recorded content height) holds the border inside that height: the clone is as tall as
-   * counted, and a lined-up row ends at its top edge with its own border in view.
+   * rows. Its first row draws its own top border, the freeze line, one pixel on top of the counted height, so
+   * the clone covers the bottom border of a row that scrolling lined up with it. With border-box cells that
+   * holds for every first row, whether it has a height of its own (`rowHeights`, `minRowHeights`, a resized
+   * row, a recorded content height) or not: such a row is drawn one pixel above its height
+   * (`firstRowTopBorderOutsideHeight()`). With content-box cells a first row with a height of its own holds
+   * the border inside that height: the clone is as tall as counted, and a lined-up row ends at its top edge
+   * with its own border in view.
    *
    * The answer is read once per draw and kept in the draw's snapshot, so every overlay decides on the same
    * one. It is read on the first ask and not with the snapshot, because the snapshot is taken before

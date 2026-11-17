@@ -1,4 +1,8 @@
-import { getHiderHeightCompensation, addContentHeightSlack } from '../../../src/axisSizing/hiderCompensation';
+import {
+  getHiderHeightCompensation,
+  addContentHeightSlack,
+  heightsCarryFirstRowPixel,
+} from '../../../src/axisSizing/hiderCompensation';
 
 /**
  * Builds a settings double exposing only the two keys the compensation reads.
@@ -191,5 +195,39 @@ describe('addContentHeightSlack', () => {
 
   it('should pass a non-finite value through', () => {
     expect(addContentHeightSlack(NaN)).toBeNaN();
+  });
+});
+
+describe('heightsCarryFirstRowPixel', () => {
+  it('should be true when an external calculator supplies the heights and no column header is rendered', () => {
+    expect(heightsCarryFirstRowPixel(settingsMock({ externalRowCalculator: true }))).toBe(true);
+  });
+
+  it('should be true when the grid declares no column headers setting at all', () => {
+    expect(heightsCarryFirstRowPixel(settingsMock({
+      externalRowCalculator: true,
+      noColumnHeadersSetting: true,
+    }))).toBe(true);
+  });
+
+  it('should be false when a column header owns the top gridline', () => {
+    expect(heightsCarryFirstRowPixel(settingsMock({
+      externalRowCalculator: true,
+      columnHeaderLevels: 1,
+    }))).toBe(false);
+  });
+
+  it('should be false when the engine measures the rows itself', () => {
+    expect(heightsCarryFirstRowPixel(settingsMock({ externalRowCalculator: false }))).toBe(false);
+  });
+
+  // The two answers split the no-header grid between them: the engine's own heights leave the pixel out
+  // (the compensation adds it), an external calculator's heights hold it (the compensation is 0).
+  it('should be the grid that has no compensation although it renders no column header', () => {
+    const external = settingsMock({ externalRowCalculator: true });
+    const own = settingsMock({ externalRowCalculator: false });
+
+    expect([getHiderHeightCompensation(external), heightsCarryFirstRowPixel(external)]).toEqual([0, true]);
+    expect([getHiderHeightCompensation(own), heightsCarryFirstRowPixel(own)]).toEqual([1, false]);
   });
 });

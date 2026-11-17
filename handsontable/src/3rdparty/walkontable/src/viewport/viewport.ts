@@ -16,11 +16,18 @@ import {
   RenderedRowsCalculationType,
 } from '../calculator';
 import { PositionCache } from '../axisSizing/positionCache';
+import { heightsCarryFirstRowPixel } from '../axisSizing/hiderCompensation';
 import { workspaceSize, type WorkspaceSize } from './workspaceSize';
 import { calculatorFactory, type CalculatorFactory } from './calculatorFactory';
 import { createLayoutDeps, gatherLayoutInput, type LayoutDeps } from './boxLayout/gatherLayoutInput';
 import { resolveLayout } from './boxLayout/resolveLayout';
 import type { LayoutSnapshot } from './boxLayout/layoutSnapshot';
+
+/**
+ * The height, in pixels, of the first rendered body row's own `border-top` that an external row
+ * calculator adds to that row's height (`AutoRowSize#getRowHeight`).
+ */
+const FIRST_ROW_PIXEL = 1;
 
 /**
  * Assembles the Viewport module's dependencies from the engine composition context.
@@ -404,6 +411,56 @@ class Viewport {
     });
 
     return sum;
+  }
+
+  /**
+   * The pixel a row sum still misses when the sum is meant for the layout AFTER the band has moved so
+   * that its first rendered row lies above `to`.
+   *
+   * When the row heights carry the first rendered row's `border-top` pixel (see
+   * `heightsCarryFirstRowPixel`), {@link Viewport#sumRowHeights} holds it only if the row that is first
+   * rendered NOW lies in `[from, to)`. A scroll target is the layout the grid will have once it has
+   * scrolled, and that band always starts above the target, so the pixel is owed whichever band the grid
+   * is in at the time. This answers `1` exactly when the sum left it out, `0` otherwise, so adding it
+   * gives a sum that does not depend on the current band.
+   *
+   * @param {number} from Start row index (inclusive).
+   * @param {number} to End row index (exclusive).
+   * @returns {number} The pixel to add to the sum, in pixels.
+   */
+  getFirstRowPixelMissingFrom(from: number, to: number): number {
+    if (!heightsCarryFirstRowPixel(this.wtSettings)) {
+      return 0;
+    }
+
+    const firstRenderedRow = this.wtTable.getFirstRenderedRow();
+
+    return firstRenderedRow >= from && firstRenderedRow < to ? 0 : FIRST_ROW_PIXEL;
+  }
+
+  /**
+   * The offset of the first row of a rendered band, which is what the band's spreader is moved by.
+   *
+   * The row-height cache holds the first rendered row's `border-top` pixel at the row that was first
+   * rendered when it was built (`#rowFirstRenderedAtBuild`), and that row is not necessarily the one
+   * that is first now. An offset read from the cache for a band that starts below that row therefore
+   * counts the pixel, although the band's own first row is the one that draws it, after its top
+   * edge. Subtract it, or the band is drawn that pixel too low against the scroll position.
+   *
+   * @param {number} startRow The first row of the band.
+   * @returns {number} The offset of the row's top edge, in pixels.
+   */
+  getRowBandStartOffset(startRow: number): number {
+    this.rowHeightCache.ensureBuilt();
+
+    const offset = this.rowHeightCache.getOffset(startRow);
+    const bakedAt = this.#rowFirstRenderedAtBuild;
+
+    if (bakedAt >= 0 && bakedAt < startRow && heightsCarryFirstRowPixel(this.wtSettings)) {
+      return offset - FIRST_ROW_PIXEL;
+    }
+
+    return offset;
   }
 
   /**

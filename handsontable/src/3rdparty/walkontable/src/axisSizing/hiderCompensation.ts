@@ -29,6 +29,39 @@ export function renderedBottomBorderWidth(
 }
 
 /**
+ * Whether the grid renders at least one column header row.
+ *
+ * Read defensively: a standalone Walkontable host may not declare `columnHeaders` at all, the same
+ * reason the styles-handler read in `getHiderHeightCompensation` is guarded.
+ *
+ * @param {Settings} wtSettings The Walkontable settings accessor.
+ * @returns {boolean}
+ */
+function rendersColumnHeaders(wtSettings: Settings): boolean {
+  const columnHeaders = wtSettings.getSetting<unknown[] | undefined>('columnHeaders');
+
+  return Array.isArray(columnHeaders) && columnHeaders.length > 0;
+}
+
+/**
+ * Whether the row heights themselves carry the pixel of the first rendered body row's own `border-top`.
+ *
+ * That pixel exists when no column header owns the top gridline. Row heights the engine sums leave it out,
+ * which `getHiderHeightCompensation` adds back. Row heights an external calculator supplies (AutoRowSize)
+ * put it into the height of whichever row is the first rendered one, so a sum over rows holds it only when
+ * the first rendered row lies in the summed range, and it moves to another row when the band does. This is
+ * the one place that asks which of the two a grid is. It is the third case of the compensation: the one
+ * where `getHiderHeightCompensation` answers `0` because the external calculator already counts the pixel,
+ * not because there is none.
+ *
+ * @param {Settings} wtSettings The Walkontable settings accessor.
+ * @returns {boolean}
+ */
+export function heightsCarryFirstRowPixel(wtSettings: Settings): boolean {
+  return wtSettings.getSetting<boolean>('externalRowCalculator') && !rendersColumnHeaders(wtSettings);
+}
+
+/**
  * The compensation added to the summed row heights to get the height the table actually renders at.
  *
  * The summed row heights fall one whole pixel short of the band the table renders, because the
@@ -80,12 +113,7 @@ export function getHiderHeightCompensation(wtSettings: Settings): number {
   //
   // The sub-pixel inflation is not carried over into this branch. The header's own fractional share
   // is accounted separately, by `Viewport#getColumnHeaderHeightFraction()` at both call sites.
-  //
-  // Read defensively: a standalone Walkontable host may not declare `columnHeaders` at all, the same
-  // reason the styles-handler read below is guarded.
-  const columnHeaders = wtSettings.getSetting<unknown[] | undefined>('columnHeaders');
-
-  if (Array.isArray(columnHeaders) && columnHeaders.length > 0) {
+  if (rendersColumnHeaders(wtSettings)) {
     return 0;
   }
 

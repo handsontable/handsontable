@@ -15,6 +15,36 @@ export interface FixedRowsBottomLineOptions {
   colHeaders?: boolean;
   autoRowSize?: boolean;
   minRowHeights?: number;
+  rowHeights?: number;
+  /** The height ManualRowResize gives the grid's last row. */
+  manualRowResizeLast?: number;
+  /** Long, line-broken text in the last row, which makes it taller than the default height. */
+  wrapLastRow?: boolean;
+  fixedColumnsEnd?: number;
+  /** The visual row the HiddenRows plugin hides. */
+  hiddenRow?: number;
+  /** The height a `modifyRowHeightByOverlayName` hook gives the grid's last row in the `bottom` overlay only. */
+  bottomOverlayHeight?: number;
+}
+
+/**
+ * The heights of the bottom clone and of the first row of its tables, against what the row calculators count.
+ */
+export interface BottomCloneMetrics {
+  /** The summed heights of the frozen bottom rows as the row calculators count them. */
+  counted: number;
+  /** The drawn height of the bottom clone's table. */
+  clone: number;
+  /** The drawn heights of the clone's rows, from the first. */
+  rows: number[];
+  /** The drawn heights of the rows of the bottom start corner, from the first; empty without frozen start columns. */
+  cornerRows: number[];
+  /** The drawn heights of the rows of the bottom end corner, from the first; empty without frozen end columns. */
+  cornerEndRows: number[];
+  /** The drawn heights of the first three rows the master renders. */
+  masterRows: number[];
+  /** The height recorded for the grid's last row from what it renders; `null` when nothing is recorded. */
+  recordedLastRow: number | null;
 }
 
 /**
@@ -36,8 +66,10 @@ interface HotLike {
   deselectCell(): void;
   scrollViewportTo(options: object): boolean;
   updateSettings(settings: object): void;
+  setDataAtCell(row: number, col: number, value: string): void;
   getCell(row: number, col: number, topmost?: boolean): HTMLElement;
   getSelectedRangeLast(): { to: { row: number } };
+  view: { invalidateRowHeightCache(): void };
 }
 
 /**
@@ -117,6 +149,73 @@ export class FixedRowsBottomLinePage {
   }
 
   /**
+   * How far a row reaches under the bottom clone: its bottom edge minus the top edge of the clone's first
+   * row. `1` is the aligned state, where the row's bottom border lies under the clone's first pixel row.
+   *
+   * @param {number} row The visual row.
+   * @param {number} [column] The visual column to measure.
+   */
+  async rowOverlapWithBottomRows(row: number, column = 1): Promise<number> {
+    return this.page.evaluate(([r, c]) => {
+      const cell = (window as unknown as { hot: HotLike }).hot.getCell(r, c).getBoundingClientRect();
+      const band = (document.querySelector('.ht_clone_bottom tbody tr:first-child > td') as HTMLElement)
+        .getBoundingClientRect();
+
+      return Math.round((cell.bottom - band.top) * 100) / 100;
+    }, [row, column] as const);
+  }
+
+  /**
+   * Snaps each row to the bottom rows in turn and reads how far it reaches under them.
+   *
+   * @param {number[]} rows The visual rows, in the order they are snapped.
+   * @param {{ invalidateCache?: boolean, column?: number }} [options] With `invalidateCache`, the engine's row
+   * height cache is dropped after each snap and the same row is snapped again, so the cache is rebuilt at the band
+   * the previous snap left. That is what a measuring pass does when a scroll moves the band. `column` is the visual
+   * column to measure in (1 by default).
+   * @returns {Promise<number[]>} The overlap of each row, from the last snap of that row.
+   */
+  async snapOverlaps(
+    rows: number[],
+    options: { invalidateCache?: boolean; column?: number } = {}
+  ): Promise<number[]> {
+    const overlaps: number[] = [];
+
+    for (const row of rows) {
+      await this.scrollRowToBandEdge(row);
+
+      if (options.invalidateCache) {
+        await this.page.evaluate(() => {
+          (window as unknown as { hot: HotLike }).hot.view.invalidateRowHeightCache();
+        });
+        await this.scrollRowToBandEdge(row);
+      }
+
+      overlaps.push(await this.rowOverlapWithBottomRows(row, options.column));
+    }
+
+    return overlaps;
+  }
+
+  /**
+   * Snaps each row to the bottom edge of the viewport in turn and reads how far above that edge the row ends.
+   * For a grid without frozen bottom rows, where `1` is the extra pixel the scroll target keeps.
+   *
+   * @param {number[]} rows The visual rows, in the order they are snapped.
+   * @returns {Promise<number[]>} The distance of each row's bottom edge from the viewport's bottom edge.
+   */
+  async snapViewportInsets(rows: number[]): Promise<number[]> {
+    const insets: number[] = [];
+
+    for (const row of rows) {
+      await this.scrollRowToBandEdge(row);
+      insets.push(await this.cellBottomInsetFromViewport(row, 1));
+    }
+
+    return insets;
+  }
+
+  /**
    * Selects a cell and presses the down arrow until the grid scrolls, the way a user reaches the bottom rows
    * from the keyboard: the selected row then ends on the bottom rows' top edge.
    *
@@ -146,6 +245,55 @@ export class FixedRowsBottomLinePage {
     await this.#settle();
 
     return selectedRow;
+  }
+
+  /**
+   * Turns the AutoRowSize plugin on or off through `updateSettings()`, and waits until the grid root carries
+   * (or dropped) the plugin's class name, which the plugin toggles when it is enabled and disabled.
+   *
+   * @param {boolean} enabled The plugin state to set.
+   */
+  async setAutoRowSize(enabled: boolean): Promise<void> {
+    await this.page.evaluate((autoRowSize) => {
+      (window as unknown as { hot: HotLike }).hot.updateSettings({ autoRowSize });
+    }, enabled);
+    await expect(this.page.locator('.ht-wrapper.htAutoRowSize')).toHaveCount(enabled ? 1 : 0);
+    await this.#settle();
+  }
+
+  /**
+   * Writes a text that wraps to several lines into a cell, and waits until its row is drawn taller than the
+   * row above it.
+   *
+   * @param {number} row The visual row, below the first one.
+   * @param {number} column The visual column.
+   */
+  async fillWithWrappingText(row: number, column: number): Promise<void> {
+    await this.page.evaluate(([r, c]) => {
+      (window as unknown as { hot: HotLike }).hot.setDataAtCell(r, c, 'a b c d e f g h i j k l m n o p q r s t');
+    }, [row, column] as const);
+
+    await expect.poll(async() => (await this.rowGrowthAndScrollRange(row, column)).rowGrowth).toBeGreaterThan(10);
+  }
+
+  /**
+   * By how many pixels a row is taller than the row above it, and the height of the master's scroll range
+   * (the element that gives the holder its scroll height), read in one go so both come from the same layout.
+   *
+   * @param {number} row The visual row, below the first one.
+   * @param {number} column The visual column to measure the rows in.
+   */
+  async rowGrowthAndScrollRange(row: number, column: number): Promise<{ rowGrowth: number; scrollRange: number }> {
+    return this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as { hot: HotLike };
+      const height = (visualRow: number) => hot.getCell(visualRow, c).getBoundingClientRect().height;
+      const hider = document.querySelector('.ht_master .wtHider') as HTMLElement;
+
+      return {
+        rowGrowth: height(r) - height(r - 1),
+        scrollRange: hider.getBoundingClientRect().height,
+      };
+    }, [row, column] as const);
   }
 
   /**
@@ -271,6 +419,109 @@ export class FixedRowsBottomLinePage {
         return rect.height > 0 && (Math.abs(rect.bottom - edge) < 0.5 || Math.abs(rect.bottom - (edge + 1)) < 0.5);
       });
     });
+  }
+
+  /**
+   * The drawn heights of the bottom clone and of its rows, with the height the row calculators count for the
+   * frozen bottom rows. The clone is one pixel taller than counted wherever its first row draws the freeze line.
+   *
+   * @param {number} fixedRowsBottom The number of frozen bottom rows the grid was built with.
+   */
+  async bottomCloneMetrics(fixedRowsBottom: number): Promise<BottomCloneMetrics> {
+    return this.page.evaluate((frozen) => {
+      const hot = (window as unknown as {
+        hot: {
+          countRows(): number;
+          view: {
+            _wt: {
+              wtViewport: {
+                sumRowHeights(from: number, to: number): number;
+                oversizedRows: Record<number, number | undefined>;
+              };
+            };
+          };
+        };
+      }).hot;
+      const rowHeights = (selector: string) => Array.from(document.querySelectorAll(`${selector} tbody tr`))
+        .map(row => row.getBoundingClientRect().height);
+      const cloneTable = document.querySelector('.ht_clone_bottom table');
+
+      if (!cloneTable) {
+        throw new Error('No bottom clone');
+      }
+
+      const total = hot.countRows();
+
+      return {
+        counted: hot.view._wt.wtViewport.sumRowHeights(total - frozen, total),
+        clone: cloneTable.getBoundingClientRect().height,
+        rows: rowHeights('.ht_clone_bottom'),
+        cornerRows: rowHeights('.ht_clone_bottom_inline_start_corner'),
+        cornerEndRows: rowHeights('.ht_clone_bottom_inline_end_corner'),
+        masterRows: rowHeights('.ht_master').slice(0, 3),
+        recordedLastRow: hot.view._wt.wtViewport.oversizedRows[total - 1] ?? null,
+      };
+    }, fixedRowsBottom);
+  }
+
+  /**
+   * Drags the row resize handle of a frozen bottom row's header with the real mouse and releases it.
+   *
+   * @param {number} rowInCorner The place of the row among the frozen bottom rows, from 0.
+   * @param {number} deltaY The distance to drag, positive to grow the row.
+   * @returns {Promise<number>} The height the plugin stores for the last row, read after the release.
+   */
+  async dragBottomRowHandle(rowInCorner: number, deltaY: number): Promise<number> {
+    const header = this.page.locator('.ht_clone_bottom_inline_start_corner tbody tr th').nth(rowInCorner);
+    const box = await header.boundingBox();
+
+    if (!box) {
+      throw new Error(`Frozen bottom row ${rowInCorner} has no row header to hover`);
+    }
+
+    await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
+    await this.page.mouse.move(box.x + (box.width / 2), box.y + box.height - 3);
+
+    const handle = this.page.locator('.manualRowResizer');
+
+    await expect(handle).toBeVisible();
+
+    const handleBox = await handle.boundingBox();
+
+    if (!handleBox) {
+      throw new Error('The row resize handle has no box');
+    }
+
+    const x = handleBox.x + (handleBox.width / 2);
+    const y = handleBox.y + (handleBox.height / 2);
+
+    await this.page.mouse.move(x, y);
+    await this.page.mouse.down();
+    await this.page.mouse.move(x, y + deltaY, { steps: 4 });
+    await this.page.mouse.up();
+
+    return this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: { countRows(): number; getRowHeight(row: number): number } }).hot;
+
+      return hot.getRowHeight(hot.countRows() - 1);
+    });
+  }
+
+  /**
+   * Renders the grid again, one render per animation frame, and waits for the last draw to settle.
+   *
+   * @param {number} times The number of renders.
+   */
+  async renderAgain(times: number): Promise<void> {
+    await this.page.evaluate(async(count) => {
+      const hot = (window as unknown as { hot: { render(): void } }).hot;
+
+      for (let render = 0; render < count; render++) {
+        hot.render();
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+      }
+    }, times);
+    await this.#settle();
   }
 
   /**

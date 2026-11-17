@@ -42,7 +42,7 @@ test('docs-a11y.yml is the Docs a11y workflow the ledger records, started by a d
       'tests/lib/a11y-report.*', 'tests/lib/a11y-suites.*', 'tests/lib/a11y-check-run.*', 'tests/lib/a11y-docs-drift.*',
       'tests/lib/a11y-issues.*', 'tests/lib/a11y-evidence.*', 'tests/lib/a11y-site-checks.*', 'tests/lib/a11y-subset.*',
       'tests/lib/a11y-verdict.*', 'tests/lib/a11y-verdict-inputs.*', 'tests/lib/github-check-run.*', 'tests/lib/website-pages.*',
-      'tests/scripts/a11y-check-run.mjs', 'docs/tests/paths.js'],
+      'tests/scripts/a11y-check-run.mjs', 'tests/scripts/a11y-docs-new-pages.mjs', 'docs/tests/paths.js'],
     `${DOCS}: a pull request runs the scan only when it changes the scan's own code; a full scan is too long for every docs pull request. ${DOC}`);
   // Every module of tests/lib the spec, its reporter and the check run's poster reach, import by import, is in the
   // list, so a change to the scan's code, its verdict or its poster runs the scan.
@@ -93,6 +93,17 @@ test('docs-a11y.yml runs the docs config in the Playwright container, report-onl
     `${DOCS}: a dispatch input is free text; it is never interpolated into a script.`);
   assert.match(step('Run the docs site scan'), /^ {8}run: cd tests && npx playwright test --config playwright\.a11y-docs\.config\.ts$/m,
     `${DOCS}: the run step runs the docs config and nothing else. ${DOC}`);
+
+  const newPages = step('Name the pages this pull request adds');
+
+  assert.match(newPages, /^ {8}if: \$\{\{ github\.event_name == 'pull_request' && env\.DOCS_A11Y_BASE_URL == '' \}\}$/m,
+    `${DOCS}: a pull request's run skips the pages it adds, and a run that names a deploy skips none. ${DOC}`);
+  assert.match(newPages, /git rev-list --parents -n 1 "\$GITHUB_SHA"/,
+    `${DOCS}: the base is the first parent of the merge commit, never the payload's base.sha (.ai/CI.md, the diff-scoped gate trap).`);
+  assert.doesNotMatch(newPages, /base\.sha/, `${DOCS}: the payload's base.sha is stale after a re-run.`);
+  assert.match(newPages, /a11y-docs-new-pages\.mjs --base "\$BASE"/, `${DOCS}: the script names the pages new since the base.`);
+  assert.match(newPages, />> "\$GITHUB_ENV"/, `${DOCS}: the spec and the reporter read DOCS_A11Y_SKIP_PAGES from the environment.`);
+  assert.ok(stepsOf.indexOf(newPages) < stepsOf.indexOf(step('Run the docs site scan')), `${DOCS}: the pages are named before the scan runs.`);
 
   const upload = step('Upload the scan results');
 

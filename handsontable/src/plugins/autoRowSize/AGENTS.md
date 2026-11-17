@@ -127,6 +127,26 @@ the text (DEV-986). The measurement was not lost: the hidden top-left row was me
   in `../mergeCells/AGENTS.md`), so the sampler sees an ordinary cell. Pinned by
   `tests/e2e/auto-row-size-merged-reanchored-origin.spec.ts`.
 
+## The engine is told who measures the rows before every draw
+
+Walkontable's `externalRowCalculator` setting says that this plugin measures the rows, so the engine does not
+(`markOversizedRows` returns at once, and the hider gets no first-row compensation). `TableView` used to read
+`plugin.enabled` for it only when it built the engine, so a later `updateSettings({ autoRowSize })` left the
+setting on its first value. Both directions were wrong:
+
+- **Turned on later:** the engine kept measuring next to the plugin. With `fixedRowsBottom` it recorded the
+  bottom clone's first row with its top border, the row calculators counted one pixel more, and a row lined up
+  with the bottom rows showed a double line.
+- **Turned off later:** nobody measured. A row that grew was drawn taller, but the scroll range kept its height.
+
+`TableView#render()` now calls `syncExternalRowCalculator()`, and so does `updateSettings()` after its
+`afterUpdateSettings` hook (a scroll draw is not stopped by `suspendRender()`). It compares `plugin.enabled` with the value
+it last gave the engine. On a change it updates the setting and drops every height the engine recorded
+(`resetAllOversizedRows()`): the records belong to the other owner. Read `enabled`, not `isEnabled()`: a
+plugin the license key leaves out keeps its setting and measures nothing. Pinned by
+`src/__tests__/core/externalRowCalculatorSync.unit.js` and the runtime-switch cases of
+`tests/e2e/fixed-rows-bottom-line.spec.ts`.
+
 ## `updateSettings` does not recalculate — with one exception
 
 Changing `wordWrap`, `textEllipsis` or a renderer changes row heights, but `updateSettings()` alone does not

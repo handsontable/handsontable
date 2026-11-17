@@ -53,6 +53,77 @@ export class WidthWindowScrollPage {
   }
 
   /**
+   * Rebuilds the grid inside a parent that declares a `height` (the legacy `preventOverflow:
+   * 'vertical'` leg). The parent is the element the grid is built in; it gets no `overflow` unless
+   * `overflowY` says so.
+   */
+  async rebuildInHeightParent(
+    overrides: Record<string, unknown>,
+    height: string,
+    overflowY = '',
+  ): Promise<void> {
+    await this.page.evaluate(
+      ([o, h, v]) => window.initGrid(o, '', h, v),
+      [overrides, height, overflowY] as const,
+    );
+    await this.waitForRender();
+  }
+
+  /**
+   * Appends a block of `height` px after the grid's parent, so the page has a vertical scroll range
+   * the grid itself does not provide.
+   */
+  async addPageSpacer(height: number): Promise<void> {
+    await this.page.evaluate((h) => {
+      const spacer = document.createElement('div');
+
+      spacer.style.height = `${h}px`;
+      document.body.appendChild(spacer);
+    }, height);
+  }
+
+  /**
+   * What the vertical axis looks like, read in ONE evaluation: the box of the grid's root element
+   * (`hot.rootElement`, the element the vertical `preventOverflow` forces to own the axis, which
+   * takes the parent's height through the root wrapper chain), the master holder's client and scroll
+   * heights, and the top clone (the column headers). One call, because the grid recycles its nodes
+   * and a read split across round trips can see two draws.
+   */
+  async verticalState(): Promise<{
+    rootTop: number,
+    rootBottom: number,
+    holderClientHeight: number,
+    holderScrollHeight: number,
+    holderScrollTop: number,
+    headerTop: number,
+    headerBottom: number,
+    windowScrollY: number,
+  }> {
+    return this.page.evaluate(() => {
+      const holder = document.querySelector('.ht_master .wtHolder') as HTMLElement | null;
+      const top = document.querySelector('.ht_clone_top') as HTMLElement | null;
+
+      if (!holder || !top) {
+        throw new Error('the grid is not rendered');
+      }
+
+      const rootBox = window.hot.rootElement.getBoundingClientRect();
+      const topBox = top.getBoundingClientRect();
+
+      return {
+        rootTop: rootBox.top,
+        rootBottom: rootBox.bottom,
+        holderClientHeight: holder.clientHeight,
+        holderScrollHeight: holder.scrollHeight,
+        holderScrollTop: holder.scrollTop,
+        headerTop: topBox.top,
+        headerBottom: topBox.bottom,
+        windowScrollY: window.scrollY,
+      };
+    });
+  }
+
+  /**
    * Waits for the frozen corner to render. The master never renders the
    * frozen columns, so cell (0,0) exists only in the corner clone.
    */

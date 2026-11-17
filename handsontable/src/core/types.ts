@@ -375,6 +375,8 @@ export interface HotInstance {
   rootGridElement: HTMLElement;
   rootGridContentElement: HTMLElement;
   rootSlotBottomElement: HTMLElement;
+  rootSlotStartElement: HTMLElement;
+  rootSlotEndElement: HTMLElement;
   rootOverlaysElement: HTMLElement;
   rootWrapperElement: HTMLElement;
   rootContainer: HTMLElement;

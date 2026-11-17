@@ -194,3 +194,187 @@ describe('Layout slot height reservation', () => {
     });
   });
 });
+
+describe('Side slot teardown', () => {
+  let container;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+    container.remove();
+  });
+
+  /**
+   * Builds a ROOT grid with one panel registered in each side slot.
+   *
+   * @returns {Handsontable}
+   */
+  function createGridWithPanels() {
+    const hot = new Handsontable(container, {
+      data: [['a']],
+      licenseKey: TEST_LICENSE_KEY,
+    });
+
+    hot.getLayoutManager().register('nav', document.createElement('div'), { side: 'start' });
+    hot.getLayoutManager().register('details', document.createElement('div'), { side: 'end' });
+
+    return hot;
+  }
+
+  it('should schedule a side slot pass when a panel registers on a live grid (control)', () => {
+    const hot = new Handsontable(container, {
+      data: [['a']],
+      licenseKey: TEST_LICENSE_KEY,
+    });
+    const registerTimeoutSpy = jest.spyOn(hot, '_registerTimeout');
+
+    hot.getLayoutManager().register('nav', document.createElement('div'), { side: 'start' });
+
+    expect(registerTimeoutSpy).toHaveBeenCalledTimes(1);
+
+    hot.destroy();
+  });
+
+  it('should schedule no side slot pass and construct no ResizeObserver while destroying', () => {
+    jest.useFakeTimers();
+
+    const hot = createGridWithPanels();
+
+    jest.runOnlyPendingTimers();
+
+    const registerTimeoutSpy = jest.spyOn(hot, '_registerTimeout');
+
+    hot.getLayoutManager().unregister('details', 'end');
+
+    expect(registerTimeoutSpy).toHaveBeenCalledTimes(1);
+
+    jest.runOnlyPendingTimers();
+    registerTimeoutSpy.mockClear();
+
+    const resizeObserverSpy = jest.spyOn(hot.rootWindow, 'ResizeObserver');
+
+    hot.destroy();
+
+    expect(registerTimeoutSpy).not.toHaveBeenCalled();
+    expect(resizeObserverSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('Side slot width pass', () => {
+  const originalOffsetWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetWidth');
+  let widths;
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    widths = { 'ht-slot-start': 0, 'ht-slot-end': 0, 'ht-root-wrapper': 0 };
+
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', {
+      configurable: true,
+      get() {
+        const key = Object.keys(widths).find(className => this.classList.contains(className));
+
+        return key ? widths[key] : 0;
+      },
+    });
+
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    hot?.destroy();
+    hot = null;
+    jest.useRealTimers();
+    container.remove();
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', originalOffsetWidth);
+  });
+
+  /**
+   * Builds a ROOT grid whose `width` is a function counting its calls.
+   *
+   * @returns {Function} Returns how many times the `width` function ran.
+   */
+  function createGridWithWidthFunction() {
+    let calls = 0;
+
+    hot = new Handsontable(container, {
+      data: [['a']],
+      licenseKey: TEST_LICENSE_KEY,
+      width: () => {
+        calls += 1;
+
+        return 600;
+      },
+    });
+    jest.runOnlyPendingTimers();
+
+    return () => calls;
+  }
+
+  it('should run a function `width` once when a panel registers and keeps its width', () => {
+    const widthCalls = createGridWithWidthFunction();
+    const callsBefore = widthCalls();
+
+    widths['ht-slot-end'] = 200;
+    hot.getLayoutManager().register('details', document.createElement('div'), { side: 'end' });
+    jest.runOnlyPendingTimers();
+
+    expect(widthCalls() - callsBefore).toBe(1);
+    expect(hot.rootElement.style.width.replace(/\s+/g, '')).toBe('calc(600px-200px)');
+  });
+
+  it('should run it once more when the panel width changes before the scheduled pass', () => {
+    const widthCalls = createGridWithWidthFunction();
+    const callsBefore = widthCalls();
+
+    widths['ht-slot-end'] = 200;
+    hot.getLayoutManager().register('details', document.createElement('div'), { side: 'end' });
+    widths['ht-slot-end'] = 240;
+    jest.runOnlyPendingTimers();
+
+    expect(widthCalls() - callsBefore).toBe(2);
+    expect(hot.rootElement.style.width.replace(/\s+/g, '')).toBe('calc(600px-240px)');
+  });
+
+  it('should keep the top and bottom slots at a zero-width grid when the side panels take the whole `width`', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    hot = new Handsontable(container, {
+      data: [['a']],
+      licenseKey: TEST_LICENSE_KEY,
+      width: 600,
+    });
+    widths['ht-root-wrapper'] = 1368;
+    widths['ht-slot-start'] = 400;
+    widths['ht-slot-end'] = 400;
+    hot.getLayoutManager().register('nav', document.createElement('div'), { side: 'start' });
+    hot.getLayoutManager().register('details', document.createElement('div'), { side: 'end' });
+    jest.runOnlyPendingTimers();
+
+    expect(hot.rootSlotTopElement.style.width).toBe('0px');
+    expect(hot.rootSlotBottomElement.style.width).toBe('0px');
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('take up the whole `width`'));
+
+    warnSpy.mockRestore();
+  });
+
+  it('should give the top and bottom slots the wrapper width for a zero-width grid without side panels (control)', () => {
+    hot = new Handsontable(container, {
+      data: [['a']],
+      licenseKey: TEST_LICENSE_KEY,
+      width: 600,
+    });
+    widths['ht-root-wrapper'] = 1368;
+    hot.render();
+
+    expect(hot.rootSlotTopElement.style.width).toBe('1368px');
+    expect(hot.rootSlotBottomElement.style.width).toBe('1368px');
+  });
+});

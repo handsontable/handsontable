@@ -32,7 +32,7 @@ import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DOCS_SCAN, PRODUCT_SCAN, WEBSITE_SCAN, baselineLines, buildCheckRun, pageLinesOf } from '../lib/a11y-check-run.mjs';
-import { LEDGER_URL, driftNotes, driftOf, siteAudit } from '../lib/a11y-docs-drift.mjs';
+import { LEDGER_URL, auditStaleness, driftNotes, driftOf, siteAudit } from '../lib/a11y-docs-drift.mjs';
 import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
 
@@ -77,12 +77,19 @@ if (scan !== PRODUCT_SCAN && scope === 'change' && comparison) {
   } catch (error) {
     problem = `${source}: ${error instanceof Error ? error.message : String(error)}`;
   }
-  drift = driftOf(audit, comparison);
   // The docs staging deploy's time is read from this repository's runs; production's website deploys are not.
   const deployedAt = suite === 'docs' ? await stagingDeployedAt() : null;
 
+  // The ledger keeps when an audit finished; a deploy inside the run is what makes it stale, so read when it started.
+  const staleness = await auditStaleness({ audit, deployedAt, readStart: auditStartedAt });
+
+  audit = staleness.audit;
+  drift = driftOf(audit, comparison, { stale: staleness.stale });
+
+  const grownCounted = (comparison.grown ?? []).filter(item => !drift(item));
+
   driftLines.push(...driftNotes({ audit, problem, drift: counted.filter(drift).length, counted: counted.length,
-    grown: (comparison.grown ?? []).filter(item => !drift(item)).length, deployedAt, site: suite }));
+    grown: grownCounted.length, grownItems: grownCounted, deployedAt, site: suite }));
 }
 
 const payload = buildCheckRun({
@@ -143,6 +150,28 @@ async function readLedger(source) {
   }
 
   return response.json();
+}
+
+/**
+ * When an audit's run started (`run_started_at` of the run, the latest attempt's start on a re-run), so the check run can
+ * tell a deploy that landed during the audit from one that landed after it. `null` without a token or when the API does
+ * not answer: the finish time the ledger keeps then decides, as before.
+ *
+ * @param {string} runId The audit's run id, from the ledger.
+ * @returns {Promise<string|null>} The time, ISO 8601.
+ */
+async function auditStartedAt(runId) {
+  if (!env.GITHUB_TOKEN || !env.GITHUB_REPOSITORY || !/^\d+$/.test(String(runId))) {
+    return null;
+  }
+  try {
+    const response = await fetch(`${env.GITHUB_API_URL || 'https://api.github.com'}/repos/${env.GITHUB_REPOSITORY}/actions/runs/${runId}`,
+      { headers: { Authorization: `Bearer ${env.GITHUB_TOKEN}`, Accept: 'application/vnd.github+json' } });
+
+    return response.ok ? ((await response.json()).run_started_at ?? null) : null;
+  } catch {
+    return null;
+  }
 }
 
 /**

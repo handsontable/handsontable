@@ -591,6 +591,20 @@ text instead, `span.colHeader` matched with `getByText(label, { exact: true })`,
   "extend the selection past the edge" — drag-to-scroll fires and the selection overshoots the
   intended range. This class of spec ships green by luck and breaks on a 1px browser row-metric
   shift (the Playwright 1.62 bump broke exactly one theme this way). Pattern: `FormulasGridPage`.
+- **A press on a cell the holder shows only part of scrolls the holder, and on Firefox the runner's
+  load decides how far.** `hover()` and `click()` aim at the cell's centre, so Playwright scrolls a
+  clipped centre into view first: Chromium and WebKit to the nearest edge, Firefox to the middle of
+  the holder. When that attempt's hit test fails, the retry scrolls again with
+  `scrollIntoView({ block: 'end', inline: 'end' })`. An open editor follows a holder scroll from the
+  `scroll` event, a frame later, and until then it covers its old place. So on Firefox the first
+  attempt fails on a quiet machine (the editor is still in the way, and the retry leaves the cell at
+  the holder's end edge) and gets through on a loaded one (the frame ran first, and the cell stays
+  centred). A coordinate read from a box before such a press is over another column after it: the
+  picking spec's `split-scroll` drag read `=B1:C28` for `=B1:B28` that way, on a loaded runner
+  only. Press on a part of the cell that is already in view (`hover({ position })`), so the press
+  scrolls nothing, and assert what the pointer is over before the gesture's outcome
+  (`FormulaBuilderPage.cellTestIdAtPoint()`), so a stale coordinate fails as one. Pattern:
+  `holdDragBelowViewport()` in `e2e/formula-builder-picking.spec.ts`.
 - After a drag-select, assert the achieved range (`getSelectedRangeLast()` via `page.evaluate`).
   Wheel by the EXACT remaining distance — a fixed step turns the poll budget into a hidden reach
   cap, and a fixed minimum over-corrects few-px overflows and ping-pongs when nearby targets need
@@ -1998,14 +2012,50 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   the run's count is the same sum (one location's growth is not hidden by a sibling's nodes). Past the audit's count the growth is the change's and
   keeps its severity, and so does growth on a row recorded before the ledger kept counts; the summary says which.
   When develop's docs grew a finding after the audit, dispatch the audit and re-run the job. A finding the audit did
-  not see keeps its severity: this change made it, or the docs gained it after the audit, and when the staging
-  deploy is newer than the audit the summary says so and names the dispatch that measures it (`gh workflow run
-  docs-a11y.yml --ref develop`). A ledger that cannot be read, or holds no docs night that read the scan, leaves
+  not see keeps its severity: this change made it, or the docs gained it after the audit. **Two things decide the
+  severity, and neither is the finish time of the audit.** (1) The **tracker**: a finding whose cluster in
+  `a11y/issues.json` has a `tracker` is a warning at most on a change run, drift or not ("A11y: the verdict of a check
+  run"), and every `docs-*` cluster carries its debt task, so owned docs debt never turns a pull request red; a new
+  docs cluster ships with its tracker (`lib/__tests__/a11y-issues.test.mjs` fails until it has one). (2) **Whether a
+  deploy landed after the audit STARTED.** An audit scans for minutes, so a staging deploy inside that window may or
+  may not be in what it read, and the ledger's finish time (`seenAt`) says nothing about it: a docs change deployed at
+  12:03 inside an audit that ran 11:51 to 12:05 added a link, and the run counted it, because the guard compared 12:03
+  with 12:05. The ledger keeps no start time, so the check run reads the audit's `run_started_at` from the run
+  (`auditStartedAt()` in `scripts/a11y-check-run.mjs`; the finish time decides only when the API does not answer).
+  When the deploy is newer (`auditIsStale()` in `lib/a11y-docs-drift.mjs`), a grown finding the audit saw is drift
+  whatever its node count, a new finding the audit never saw still counts (a stale audit cannot clear a rule the scan
+  code added), and the summary says so and names the dispatch that measures it (`gh workflow run docs-a11y.yml --ref
+  develop`). The summary's grown line names the findings that count, so it never reads as if every new row were red.
+  A ledger that cannot be read, or holds no docs night that read the scan, leaves
   every finding at its severity and says why. An audit run (a dispatch) counts every open finding, drift or not.
+- **A pull request does not scan the pages it adds.** The staging deploy has no page the pull request adds to
+  `docs/tests/paths.js`, so a scan of it would fail on every head until the merge. The `scan` job names those
+  pages before the run (`tests/scripts/a11y-docs-new-pages.mjs --base <base sha>`: `newGuidePageIds()` in
+  `a11y/docs/pages.mjs` compares the page list of the base commit with the working tree's) and passes them as
+  `DOCS_A11Y_SKIP_PAGES`. The spec opens none of them and annotates `not-scanned`; the reporter names them in the
+  summary. They are skipped on a pull request run only, and not when a dispatch or a call names a `base-url`,
+  because that deploy may hold them. A fork's pull request needs no other path: the base commit is fetched from the
+  base repository. The base is the first parent of the checked-out merge commit, never the payload's `base.sha`
+  (the diff-scoped gate trap in `.ai/CI.md`). A base that cannot be read, or whose file lacks one of the four lists,
+  leaves the list empty and every page scanned (a red page, as before). A page's id carries the first framework
+  whose list names it, so a slug that an earlier framework's list now names reads as new (a guide removed from
+  `jsPaths` and kept in `reactPaths` becomes `react-<slug>`, and the base had `js-<slug>`), and the accessibility
+  pages are never new (all four variants are in the list whatever the lists hold). Three gaps stay. A changed
+  `permalink` under an unchanged list entry is not seen. A guide whose source file is renamed, with a `permalink`
+  that differs from the list's last path segment, reads as new although staging serves it: `servedSlug()` reads the
+  working tree, so the base entry falls back to the segment and the ids differ. A page merged to develop minutes ago
+  is in the base list while the staging deploy may not hold it yet (`docs-staging.yml` is still running), so run
+  the job again once it is done. The skipped pages are named in the summary, and their first scan is the develop
+  audit after the merge, where their findings land as new with no pull request attached: the summary tells the
+  author to run `gh workflow run docs-a11y.yml --ref develop` once staging has deployed them.
+  Scanning the pull request's preview instead is not done: the preview is built by `docs.yml`, a fork has none, and the
+  baseline is the staging deploy's.
 - **Taking or refreshing the baseline.** Run the whole scan with `DOCS_A11Y_SCREENSHOTS=0`: with an empty or
   stale baseline every finding is new, every scan would be photographed, and the HTML report runs to
   hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;
-  a `tracker` waits until someone files the task. Findings on the docs site are recorded here and fixed in
+  an issue's `tracker` in the baseline waits until someone files the task. That is not the cluster's tracker in
+  `a11y/issues.json`, which decides a change run's severity: a new docs cluster there ships with its debt task, and
+  `lib/__tests__/a11y-issues.test.mjs` fails until it has one. Findings on the docs site are recorded here and fixed in
   `docs/`, never in the change that adds or refreshes the scan.
 - **A refresh is one command, never a hand edit.** Every docs merge can add or remove findings, so the
   baseline drifts with the docs. `node tests/scripts/a11y-docs-baseline.mjs --run <run-id>` rewrites it from
@@ -2535,7 +2585,9 @@ screen readers (`docs/AGENTS.md` 2.20).
 - **A scenario is data, not code**: `screenreader/scenarios/<surface>.scenario.json`, one file per
   surface. The header: `id`, `surface`, `criteria` (the WCAG 2.2 criteria the scenario evidences, which
   the evidence records carry so the report generator can cite a step), exactly one of `page` (a page of
-  `a11y/pages.mjs`, whose fixture, query and root container it opens: reuse the catalog) or `fixture` (a
+  `a11y/pages.mjs`, whose fixture, query and root container it opens: reuse the catalog; for a page with a
+  `licensePreset` the spec adds the preset's tiers and key, which `scenarioUrl()` refuses to leave out
+  because the grid would open without its key) or `fixture` (a
   file under `fixtures/demo/`, for a grid the catalog does not hold, as `grid-core`'s, with the catalog pages
   it stands for as `catalogPages`, the pages `screenreader/coverage.mjs` lists it under), a `state` when the
   page has one in the catalog (the runner opens the page at rest and never sets up its state or its

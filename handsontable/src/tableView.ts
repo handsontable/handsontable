@@ -57,6 +57,16 @@ import { parsePixelSize } from './utils/pixelSize';
 import { describeValue } from './utils/describeValue';
 import { isPageTextSelectionKept } from './utils/pageTextSelection';
 import { warnOnce } from './helpers/console';
+import { getSideSlotsWidth } from './core/rootSize';
+
+/**
+ * Class mirrored onto the root wrapper while the window scrolls the grid's columns, a side slot is
+ * filled, and the table is wider than the space the side panels leave. The stylesheet then sizes the
+ * grid track to the table, so the table never paints over an `end` panel and the panel follows the
+ * table's last column instead. A table that fits keeps the flexible track, so `stretchH` still fills
+ * the space between the panels and follows the container when it resizes.
+ */
+const GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME = 'ht-grid-width-follows-content';
 
 /**
  * The most redraws `TableView#onCellContentSettled` requests for one row inside one window.
@@ -468,6 +478,7 @@ class TableView {
       this.#reservedSlotHeight = null;
       // Before the frozen counts are measured: they sum row heights, and those depend on the mode.
       this.syncRowHeightMode();
+      this.syncExternalRowCalculator();
       this.#refreshEffectiveFixed(isFullRender);
 
       this.#drawRenderedCells = false;
@@ -1741,8 +1752,8 @@ class TableView {
       rtlMode: this.hot.isRtl(),
       // `enabled`, not `isEnabled()`: a plugin the license key leaves out keeps its setting but measures nothing,
       // and the engine must then measure the rows itself. Plugins are enabled before the view is built.
-      externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
-        this.hot.getPlugin('autoRowSize').enabled,
+      // `syncExternalRowCalculator()` keeps it in step when `updateSettings()` turns the plugin on or off.
+      externalRowCalculator: (this.#externalRowCalculator = this.#isAutoRowSizeMeasuring()),
       // Single-pass rendering is on by default; the `modifySinglePassLayout` hook lets a plugin or
       // user code force the legacy measure-then-render path by returning `false` (e.g. `mergeCells`,
       // whose virtualized row heights depend on the viewport the layout is computing). Evaluated per
@@ -3067,6 +3078,47 @@ class TableView {
   }
 
   /**
+   * Whether the engine was last told that the AutoRowSize plugin measures the rows (its
+   * `externalRowCalculator` setting).
+   *
+   * @type {boolean}
+   */
+  #externalRowCalculator = false;
+
+  /**
+   * Whether the AutoRowSize plugin measures the rows, so the engine must not measure them itself.
+   *
+   * @returns {boolean}
+   */
+  #isAutoRowSizeMeasuring(): boolean {
+    const autoRowSize = this.hot.getPlugin('autoRowSize');
+
+    return Boolean(autoRowSize) && autoRowSize.enabled;
+  }
+
+  /**
+   * Tells the engine who measures the rows, before a draw. `updateSettings()` can turn the AutoRowSize
+   * plugin on or off, and the engine read the answer only when it was built: a plugin turned on later left
+   * the engine measuring next to it, and a plugin turned off later left nobody measuring, so a row taller
+   * than the default no longer grew the scroll range.
+   *
+   * A change drops every height the engine recorded. The plugin's heights replace them, or the engine
+   * starts measuring from nothing.
+   *
+   * `render()` runs it, and so does `updateSettings()` after its `afterUpdateSettings` hook: with rendering
+   * suspended a scroll still draws, and that draw has to know who measures the rows.
+   */
+  syncExternalRowCalculator() {
+    const isExternal = this.#isAutoRowSizeMeasuring();
+
+    if (this.#externalRowCalculator !== isExternal) {
+      this.#externalRowCalculator = isExternal;
+      this._wt.wtSettings.update('externalRowCalculator', isExternal);
+      this._wt.wtViewport.resetAllOversizedRows();
+    }
+  }
+
+  /**
    * Discards the row heights measured from theme values that were cached while the grid's root
    * element resolved no computed styles, on the first draw that finds them resolvable again.
    *
@@ -3878,10 +3930,16 @@ class TableView {
       removeClass(rootElement, 'htHasScrollX');
     }
 
-    if (this.isHorizontallyScrollableByWindow()) {
+    const isHorizontallyScrollableByWindow = this.isHorizontallyScrollableByWindow();
+
+    if (isHorizontallyScrollableByWindow) {
       addClass(rootElement, 'htHorizontallyScrollableByWindow');
     } else {
       removeClass(rootElement, 'htHorizontallyScrollableByWindow');
+    }
+
+    if (rootWrapperElement) {
+      this.#updateGridWidthFollowsContent(rootWrapperElement, isHorizontallyScrollableByWindow);
     }
 
     if (getScrollbarWidth() === 0) {
@@ -3889,6 +3947,57 @@ class TableView {
     } else {
       removeClass(rootElement, 'htScrollbarHidden');
     }
+  }
+
+  /**
+   * Toggles `GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME` on the root wrapper. The class changes the grid
+   * track's width after the engine has measured it, so a change schedules one follow-up render.
+   *
+   * @param {HTMLElement} rootWrapperElement The root wrapper element.
+   * @param {boolean} isHorizontallyScrollableByWindow Whether the window scrolls the grid's columns.
+   */
+  #updateGridWidthFollowsContent(rootWrapperElement: HTMLElement, isHorizontallyScrollableByWindow: boolean) {
+    const isFollowingContent = hasClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME);
+    const followsContent = isHorizontallyScrollableByWindow &&
+      this.#isTableWiderThanSideSlotTrack(rootWrapperElement, isFollowingContent);
+
+    if (isFollowingContent === followsContent) {
+      return;
+    }
+
+    if (followsContent) {
+      addClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME);
+    } else {
+      removeClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME);
+    }
+
+    this.hot._registerTimeout(() => {
+      if (!this.hot.isDestroyed) {
+        this.hot.render();
+      }
+    });
+  }
+
+  /**
+   * Checks whether a side slot is filled and the table is wider than the space the side panels
+   * leave in the root wrapper. The class itself changes that space in a shrink-to-fit host (an
+   * `inline-block` or `flex: 1` container sizes to the table while the class is on), so a grid that
+   * already follows its content keeps doing so while the table still fills the space exactly.
+   * Without that hysteresis the class would flip on every render.
+   *
+   * @param {HTMLElement} rootWrapperElement The root wrapper element.
+   * @param {boolean} isFollowingContent Whether the class is currently on.
+   * @returns {boolean}
+   */
+  #isTableWiderThanSideSlotTrack(rootWrapperElement: HTMLElement, isFollowingContent: boolean): boolean {
+    if (!hasClass(rootWrapperElement, 'ht-slot-start-filled') && !hasClass(rootWrapperElement, 'ht-slot-end-filled')) {
+      return false;
+    }
+
+    const tableWidth = this.getTotalTableWidth();
+    const trackWidth = rootWrapperElement.clientWidth - getSideSlotsWidth(this.hot);
+
+    return isFollowingContent ? tableWidth >= trackWidth - 1 : tableWidth > trackWidth;
   }
 
   /**

@@ -34,6 +34,8 @@ Both `width` and `height` could be defined as inline styles or as a CSS class pr
 
 A container with a CSS `height` but no `overflow` does not size the grid. The grid then follows the window and grows past that container. Handsontable's own bars (the pagination bar, the sheets bar) share the scrollable container with the grid, and the grid leaves room for them.
 
+Side panels docked in the `start` and `end` [layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md#add-a-side-panel) count toward the `width` option. The grid fills the width that remains.
+
 ::: tip
 
 Handsontable doesn't observe CSS changes for containers out of the box.

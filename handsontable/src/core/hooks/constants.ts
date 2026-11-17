@@ -1922,6 +1922,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired before the width of the table is changed.
    *
+   * With side panels docked in the `start` and `end` layout slots and the `width` option set,
+   * the hook runs again whenever a side panel mounts, unmounts, or changes its width.
+   *
    * @since 16.1.0
    * @event Hooks#beforeWidthChange
    * @param {number | string} width Table width.
@@ -2736,6 +2739,9 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired when a row height is about to be modified by a callback function. The hook allows to change the row height
    * for the specified overlay type.
+   *
+   * The first row of the frozen bottom rows is drawn one pixel taller than the height the hook returns for it,
+   * because that pixel is the freeze line above the row.
    *
    * @since 14.5.0
    * @event Hooks#modifyRowHeightByOverlayName

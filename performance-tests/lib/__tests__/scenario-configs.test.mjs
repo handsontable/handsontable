@@ -23,6 +23,7 @@ const FIVE_ITERATIONS = [
   'checkbox-header-toggle',
   'filtering',
   'initial-load',
+  'paste-extend-rows',
   'row-selection-deselect-all',
   'row-selection-select-all',
   'sheetsbar-structural-ops',

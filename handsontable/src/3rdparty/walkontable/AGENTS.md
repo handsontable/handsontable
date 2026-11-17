@@ -707,6 +707,26 @@ stays non-passive, JavaScript then scrolls the page itself, and nothing can tear
 only the clones a leg can see — with the clones unpinned they all stand at the table's top, where the
 top clone covers the bottom one, so the control names the two it scans.
 
+**A re-pin writes each style property once, with its final value.** On a window-scrolled grid every
+draw re-pins every clone a rail holds (`resetFixedPosition()` → `OverlayRail#pin()`), and the reads of
+the same draw (`getTotalWidth()` in the
+`pin()` argument, `adjustRootElementSize()`) sit between the overlays' writes. Clearing an inset and
+setting it back (`bottom: ''` then `bottom: 0`), or removing a margin and adding it again, leaves the
+same state behind, but each write marks the layout dirty, so the read after it forces a synchronous
+style recalculation and layout. That cost was most of a window scroll's layouts with frozen panes:
+290 style recalculations and 240 layouts over 40 wheel steps of the `?tall=1&frozen=1` fixture, against
+50 and 80 once the churn was gone. A write of the value already there is free, so `pin()` may rewrite
+every property on every draw, as long as no write passes through another value. The rail owns the
+clone's insets and flow margins, so an overlay must not set one to another value before calling `pin()`
+(the `style.top = ''` the bottom overlays write first is harmless only because a pinned clone's `top` is
+already empty). The margins are cleared with `removeProperty()`, not by assigning `''`: jsdom 16, the
+unit environment, ignores an empty assignment to a margin. Pinned by the "a draw leaves the pinned
+clones' inline style alone" block of the same spec (a `MutationObserver` on the clone roots and rails
+sees each passing write, where the end state hides it, beside the master spreader's changes as the
+in-test control that the draws were observed) and by the repeated-pin cases in
+`test/unit/overlay/overlayRail.unit.ts`. The fixture has no `fixedColumnsEnd`, so the inline-end
+margins are covered by the unit cases only.
+
 ## Naming gotcha: `moveCells` grid option vs. HyperFormula engine method
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.
@@ -732,6 +752,47 @@ The invalidation is therefore explicit, in one place for both axes: `onIndexMapp
 **The position cache is not the only reorder-blind cache.** `wtViewport.oversizedRows` is keyed by renderable row too, and `resetOversizedRows` (`axisSizing/oversizedRows.ts`) deliberately wipes only the rendered band, so on a reorder every index outside that band keeps the previous order's measurement and the rebuilt prefix sums inherit it. That matters when walkontable measures the rows itself rather than a `modifyRowHeight` provider supplying them; `resetAllOversizedRows()` is the call that clears it. Not addressed by DEV-2823 and not yet reproduced — flagged here so the next person does not assume invalidating the position cache is sufficient.
 
 Before trusting a size cache across an operation, ask whether the operation changes the item count. If it does not, nothing invalidates for you.
+
+## A frozen clone's band is live, its DOM is not: `getCell` answers "not rendered" in between
+
+The three bottom clones (`bottom`, `bottom_inline_start_corner`, `bottom_inline_end_corner`, `BOTTOM_CLONE_TYPES`)
+take their rendered band from the live `totalRows` and `fixedRowsBottom` settings (`stickyRowsBottom`), while
+`Table#getCell` resolves the element through the `rowFilter` and the TBODY of the LAST draw. The two agree at rest
+and part between a change of the row count and the draw that follows it. `loadData()` is the case that shows it: it
+refreshes the selection before it renders, and `afterSelectionEnd` listeners (the focus manager, a user hook)
+call `hot.getCell(row, col, true)`. With 10 rows and one frozen bottom row, a load of 3 rows put the live band on
+row 2 while the clone still held row 9, so the row passed the "is it rendered" gate and the lookup threw
+`TR was expected to be rendered but is not` (GitHub #14315). With two or more frozen rows the same mismatch
+returned the cell of ANOTHER row, with no error.
+
+`hasStaleBottomBand()` in `table/cellAccess.ts` asks three questions. A clone that was never drawn (no `rowFilter`, no
+TBODY) holds nothing: a grid built without frozen rows, then given `data` and `fixedRowsBottom` in one
+`updateSettings()` call, which is how the wrappers send them. The filter's `offset` against the live first rendered
+row (`buildRenderFilters` builds it from the same getter, so they agree after every draw) catches a band that moved
+(`loadData()` to fewer rows, a removal, a new `fixedRowsBottom` with the same row count). The rows in the clone's TBODY
+against `getRenderedRowsCount()` catches a band that only grew at its end, where the first row stays put: every row
+pinned, or rows and pinned rows growing by the same amount. When any of them says stale, `getCell` returns `-1` for a
+row before the rows the clone drew and `-2` from there on. `TableView#getCellAtCoords` maps both to `null`, the
+documented answer for a cell that is not rendered. Two rules:
+
+- **Do not turn the `throwWithCause` in `getCell` into a `null` for every table instead.** That throw is the loud
+  signal for the desync class `restoreRenderedStateIfSafe` fixes on the master, and it would keep the
+  wrong-cell answer above.
+- **A new reader of a bottom clone's rendered range that runs between a data change and the render needs the same
+  question answered**, or it sees a band the DOM does not hold. The master's band comes from its calculators,
+  which are stale but consistent with its DOM, so `getCell` does not throw there. It answers the cell the DOM
+  holds, which still shows the data from before the change (with two frozen bottom rows, `getCell(3, 0, true)` in
+  `afterRemoveRow` after `alter('remove_row', 0)` returns the cell showing the old row 3 until the render).
+
+The top clones (`TOP_CLONE_TYPES`) count their rows from the live settings too (`stickyRowsTop`), but start at row 0,
+so only GROWTH opens the gap: with `fixedRowsTop: 5`, a grid drawn with 3 rows and loaded with 8 names rows 3 and 4
+before the clone has a TR for them, and a top clone that was never drawn (no frozen top rows and no column headers
+yet) has no TR for any row. `isBeyondDrawnTopRows()` answers `-2` for a body row past the clone's TBODY, which is
+exactly what used to throw. Shrinking needs nothing: the rows the clone still holds are the rows it should
+hold, so a guard on the row count there would hide correct cells.
+
+Pinned by `test/unit/table/stickyBottomCellAccess.unit.ts` (bottom and top clones) and
+`tests/e2e/fixed-rows-bottom-load-data.spec.ts`.
 
 ## Content-driven sizes the master never renders
 
@@ -798,20 +859,24 @@ Five rules ride along:
   still works; clearing `tr.style.height` for every row whose first cell can carry the height would have wiped it
   on every draw.
 - **The pin is the row's OWN height, not the hooked one** (`RowUtils#getHeight`): the inflated height would make
-  the row as tall as the block.
+  the row as tall as the block. In the first row of a bottom table it is the own height plus the freeze line's
+  pixel (`topBorderOutsideHeight`, see the bottom freeze line paragraph in "Border ownership").
 - **A row without a height of its own is pinned at the default height, plus the first row's border pixel.** A
   row the block covers entirely has no cell to size it, and the browser hands the whole span to whichever row it
   likes (measured: 29.5/29.5 for a 30/29 pair). The first row of a table whose head row is empty draws its own
   1px top border (`thead:not(:empty) + tbody > tr:first-child`), so it is the default plus one. The question is
   asked in ONE place, `firstRowDrawsTopBorder(thead)` (`axisSizing/boxModel.ts`), which `markOversizedRows`
   shares; the callers hand `applyRowHeight` the answer for the row (`isFirstRow && drawsTopBorder`) rather than
-  letting it sniff the DOM. A recorded or provided height already includes that pixel. The host's inflation has to stay: pinning alone, with no inflated span, collapsed
+  letting it sniff the DOM. A recorded or provided height already includes that pixel, except in the bottom
+  tables, where the first row's pixel is the freeze line and is added on top (`topBorderOutsideHeight`). The host's inflation has to stay: pinning alone, with no inflated span, collapsed
   rows a block covers entirely and broke seven legacy MergeCells specs.
 - **Clear the pin as soon as the first cell can carry the height again.** A row height is a minimum in CSS table
   layout, and the row elements are recycled across rows, so one left behind would stop an ordinary row
   shrinking. The write is skipped when the value is unchanged.
-- **The exact shape is untouched.** It picks its own carrier among all the cells and already falls back to the
-  `tr`. The same box adjustment as the exact shape applies to the pin.
+- **The exact shape is untouched, apart from the freeze line.** It picks its own carrier among all the cells and
+  already falls back to the `tr`. The same box adjustment as the exact shape applies to the pin. The first row of
+  a bottom table is written one pixel above its height in the exact shape too (`getExactCarrierHeight` adds it to
+  the row's own height), so an exact `rowHeights` row there renders at `height + 1`.
 
 Pinned by `tests/e2e/walkontable/merged-rows-frozen-columns.spec.ts` (all panes agree at rest and scrolled, with
 AutoRowSize, `rowHeights`, and measured heights; rows inside a block keep their own heights; a hidden first row;
@@ -1135,19 +1200,36 @@ Consequences worth knowing:
   header alone brings the double line back for AutoRowSize without column headers. For a lined-up row the
   bottom clone and its corners draw the selection's line pixel, the fill handle and the mobile bottom handle
   are pulled inside the cell as on the last scrollable row, and a custom border, which no frozen overlay draws,
-  ends 1px higher. Two limits. (1) The clone is 1px taller than counted only while its first row has no height
-  of its own. A first bottom row with one (`rowHeights`, `minRowHeights`, ManualRowResize, a recorded content
-  height) holds its top border inside that height, so a lined-up row ends at the clone's top edge with both
-  borders showing, as in 18.1.2. `Overlays#bottomCloneCoversLinedUpRow()` answers
+  ends 1px higher. The clone is always 1px taller than counted, whether or not the first bottom row has a height
+  of its own. A row without one gets the pixel from the default height (counted without the top border, drawn
+  with it). A row with one (`rowHeights`, `minRowHeights`, ManualRowResize, a recorded content height) would
+  hold the border inside that height, so a lined-up row ended at the clone's top edge with both borders
+  showing, as in 18.1.2. `firstRowTopBorderOutsideHeight()` (`axisSizing/boxModel.ts`) names the tables
+  where the first row is therefore written one pixel above its height (`applyRowHeight`'s
+  `topBorderOutsideHeight`: the `bottom` clone and its two corners, border-box cells, no head row), and
+  `markOversizedRows` takes that pixel off what it measures for that row. Without that, the measured `+1`
+  would be recorded as the row's height, the counted height would grow with it, and the double line would
+  return. The pixel is never counted, so the scroll range and the hider do not change. The corners get it
+  too, or their first row would sit 1px off the clone's. Content-box cells are left alone (their row height
+  already leaves the border out). `Overlays#bottomCloneCoversLinedUpRow()` answers
   it from the clone's drawn height against the counted one, once per draw: on the first ask, which the bottom
   overlay makes right after it rendered (it is the first overlay `refresh()` renders), and then from the
   draw's snapshot. Reading it with the snapshot, before `refresh()`, used the clone of the previous draw, so
   a `fixedRowsBottom` or `minRowHeights` change was one draw late. `Border#isRowLinedUpWithBottomFreezeLine`
   is false without it: the row's selection and custom border are
-  drawn on the row's own gridline, as for any row. (2) Where the nudge is kept (no column header, AutoRowSize
-  off), the row below is one pixel inside the calculators' viewport, so the snapshot does not report the row as
-  lined up. The line is one border high there, but the selection is drawn as for any row and the fill handle
-  is partly under the bottom rows, as before DEV-3984. Pinned by `tests/e2e/fixed-rows-bottom-line.spec.ts` and
+  drawn on the row's own gridline, as for any row. An AutoRowSize plugin turned on through `updateSettings()`
+  used to put every grid in that state: the host read `externalRowCalculator` only when it built the engine, so
+  the engine kept measuring and recorded the clone's first row with its border (`syncExternalRowCalculator()`
+  in `tableView.ts`, see `src/plugins/autoRowSize/AGENTS.md`). Two limits. (1) Where the nudge is kept (no
+  column header, AutoRowSize off), the row below is one pixel inside the calculators' viewport, so the snapshot
+  does not report the row as lined up. The line is one border high there, but the selection is drawn as for any
+  row and the fill handle is partly under the bottom rows, as it was before the bottom freeze line rule. (2) The nudge cannot tell a first
+  row with a height of its own from one without: `getHiderHeightCompensation()` reads settings only, and the
+  hider and the layout prediction read the same helper, so it cannot be changed for the scroll target alone.
+  With no column header and a first row that has a height of its own, the nudge still moves a lined-up row
+  1px above where the clone's border is: measured 0px between the row's bottom edge and the clone's top edge,
+  so the two borders sit side by side, where a grid with column headers has the clone covering the row's
+  border. Pinned by `tests/e2e/fixed-rows-bottom-line.spec.ts` and
   `test/unit/selection/border/frozenBottomLine.unit.ts`. A cell of the inline-start clone and of the corners is in
   the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
   brings a column next to the overlay moves its edge too. Pinned by
@@ -1175,6 +1257,31 @@ Consequences worth knowing:
   the twin of `standsBehindRowHeader` — the cell is the first `<tr>` of a `tbody` whose previous
   sibling is a NON-empty `thead` — and `Border#appear` moves the top edge onto the cell's own boundary
   for it. Same blind spot: the edge is present, just painted over.
+- **Under AutoRowSize the first-row pixel moves with the band, and two readers must not depend on which band
+  the grid was in (DEV-4050).** AutoRowSize puts the grid's top-border pixel in the height of the row that is
+  first rendered NOW, and the engine's row-height cache bakes it at the row that was first rendered when the
+  cache was built (`#rowFirstRenderedAtBuild`). With no column header that is the case
+  `heightsCarryFirstRowPixel()` (`axisSizing/hiderCompensation.ts`) answers; ask it there, never a fifth copy
+  of the question.
+  - **A bottom-snap target sums for the layout AFTER the scroll.** `TopOverlay#scrollTo` sums `[0, row + 1)`,
+    and `Viewport#sumRowHeights` holds the pixel only when the current first rendered row is in that range, but
+    the band that will exist after the scroll starts above the row. `Viewport#getFirstRowPixelMissingFrom()`
+    adds the pixel when the current band left it out. Without it a snap from a band below the target ended
+    1px low, and the result followed the scroll history (the ticket's 1, 1, 2, 2, 1). With no frozen bottom
+    rows the target keeps its extra pixel after it, so that shape now ends one pixel above the viewport edge
+    from every band, as it already did from the ones that held the pixel.
+  - **A band start is not read raw from the cache.** Every published rendered-band `startPosition` (the
+    calculator build through `rowBandStartOffsetFn`, and the two band-extension sites in
+    `viewport/calculatorFactory.ts`) goes through `Viewport#getRowBandStartOffset()`, which takes the baked
+    pixel out for a band that starts below the baked row. A cache rebuilt at one band and then read for another
+    drew the band a pixel low (`startPosition` 871 against 870 live). The fully and partially visible
+    calculators still read the cache directly, on purpose: that keeps their borderline answers unchanged.
+  - A top-edge snap under AutoRowSize shows the same 0 or 1px alternation of `scrollTop` and renders
+    identically, so it was left alone.
+  - Pinned by the `bottom snap with AutoRowSize` blocks of `tests/e2e/fixed-rows-bottom-line.spec.ts` (the
+    cache-rebuild case fails without the band-start rule, the sequence cases without the target rule),
+    `test/unit/viewport/firstRowPixel.unit.ts`, `test/unit/calculator/viewportRows.unit.ts`,
+    `test/unit/viewport/calculatorFactory.unit.js` and `test/unit/overlay/topOverlayScrollTarget.unit.ts`.
 - **The active-header accent on the first rendered row moves to the CORNER.** `-row-seam-bottom` /
   `-row-seam-top` colour the row *above* an active one, and row 0 has none — the accent used to come
   from the row's own `border-top`, which is now 0px wide. `SelectionManager` therefore tags the last
@@ -1331,7 +1438,11 @@ Nine rules follow.
   `overflow-x: clip` inline on the root of a root instance under `'horizontal'`, the same clip a definite
   `width` gets, so the scroll spacer and the overlay rails cannot reach through the root and widen the
   page. It only reads and writes the inline style, so an inline `overflow` on the root is left alone and
-  a stylesheet `overflow-x` on `.handsontable` is overridden. Pinned by the last case of `tests/e2e/width-window-scroll.spec.ts`.
+  a stylesheet `overflow-x` on `.handsontable` is overridden. Pinned by the `'horizontal'` cases of `tests/e2e/width-window-scroll.spec.ts`.
+  The forced `y` branch of `resolveAxisOwner()` has its own pin in the same file: the `'vertical'`
+  alias in a parent with a `height` and no `overflow`. The forced owner there is the grid's root
+  element (`ht_master`'s parent), which gets the parent's height through the root wrapper chain, so
+  the cases measure `hot.rootElement` and not the element the height is written on.
 - **Never ask `instanceof HTMLElement` whether an axis owner is an element — use `isHTMLElement()`.**
   `resolveAxisOwner` takes its realm from `ownerDocument`, so it correctly hands back an iframe's
   element to a parent-realm caller; `instanceof` then fails to recognize it against the parent's

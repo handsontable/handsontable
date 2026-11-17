@@ -157,6 +157,34 @@ test.describe('walkontable window-scroll pinned overlays', { tag: ['@walkontable
     expect(Math.abs(corner.x)).toBeLessThanOrEqual(PLACEMENT_TOLERANCE);
   });
 
+  test.describe('a draw leaves the pinned clones\' inline style alone', () => {
+    // Each draw re-pins every clone. Writing an inset to a passing value and back changes nothing on
+    // screen, but marks the layout dirty, and the geometry reads between the two writes then force a
+    // synchronous style recalculation and layout on every scroll step.
+    test('the observer sees a clone whose style the scroll does change (positive control)', async() => {
+      // Without frozen bottom rows the bottom-inline-start corner renders nothing and stays out of its
+      // rail, so the listener moves it with a `bottom` inset on every vertical scroll step.
+      await wt.goto({ tall: true });
+
+      const { cloneChanges } = await wt.recordCloneStyleChanges('vertical');
+
+      expect(cloneChanges).toContain('ht_clone_bottom_inline_start_corner');
+    });
+
+    for (const axis of ['vertical', 'horizontal'] as const) {
+      test(`scrolling the page ${axis === 'vertical' ? 'up and down' : 'sideways'} writes no style on a pinned clone or its rail`, async() => {
+        await wt.goto({ frozen: true, tall: axis === 'vertical' });
+
+        const { cloneChanges, masterSpreaderChanges, rails } = await wt.recordCloneStyleChanges(axis);
+
+        // The same observer saw the draws the scroll made, and the rails it filters for were there.
+        expect(masterSpreaderChanges).toBeGreaterThan(0);
+        expect(rails).toBeGreaterThan(0);
+        expect(cloneChanges).toEqual([]);
+      });
+    }
+  });
+
   test.describe('scrolling the page up and down', () => {
     test('a clone left behind by the scroll reads as torn on the painted frames (positive control)', async() => {
       await wt.goto({ frozen: true, tall: true, unpinned: true });

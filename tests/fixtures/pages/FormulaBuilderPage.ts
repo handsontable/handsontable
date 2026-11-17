@@ -369,6 +369,30 @@ export class FormulaBuilderPage {
   }
 
   /**
+   * The test id of the cell drawn at a viewport point, or `null` when no cell is there. A pointer
+   * gesture aimed at coordinates asserts this first, so a coordinate that went stale (the grid
+   * scrolled after it was read) fails as one, not as a wrong reference several steps later. The read
+   * looks through what is painted over the cell, such as a selection border.
+   *
+   * @param {number} x The horizontal viewport coordinate.
+   * @param {number} y The vertical viewport coordinate.
+   * @returns {Promise<string | null>}
+   */
+  async cellTestIdAtPoint(x: number, y: number): Promise<string | null> {
+    return this.page.evaluate(([pointX, pointY]) => {
+      for (const element of document.elementsFromPoint(pointX, pointY)) {
+        const cell = element.closest('td[data-testid]');
+
+        if (cell) {
+          return cell.getAttribute('data-testid');
+        }
+      }
+
+      return null;
+    }, [x, y]);
+  }
+
+  /**
    * Open the formula editor on a cell via double click.
    *
    * @param {number} row The visual row index.

@@ -635,7 +635,7 @@ test.describe('formulaBuilder picking next to other plugins\' controls', { tag: 
 // row heights decide how many rows fit the viewport. Engines: a pointer held past the window edge.
 test.describe('formulaBuilder picking in a window-scrolled grid', { tag: [THEMES_TAG, BUNDLES_TAG, CROSS_BROWSER_TAG] }, () => {
   /**
-   * Starts a reference drag on B1 and holds the pointer 40px below the viewport.
+   * Starts a reference drag on B1 and holds the pointer 40px below the viewport, over column B.
    *
    * @param {Page} page The page.
    * @param {FormulaBuilderPage} grid The grid page object.
@@ -645,13 +645,21 @@ test.describe('formulaBuilder picking in a window-scrolled grid', { tag: [THEMES
     const viewport = page.viewportSize();
     const start = await grid.cell(0, 1).boundingBox();
     const pointerX = (start?.x ?? 0) + 10;
+    const lastPixelRow = (viewport?.height ?? 0) - 1;
     const belowViewport = (viewport?.height ?? 0) + 40;
 
-    await grid.cell(0, 1).hover();
+    // The press lands 10px inside B1's start edge, on the X the pointer keeps for the whole drag. Every
+    // variant shows that part of B1, so the press scrolls nothing. A press on the cell's centre scrolls
+    // the columns first where the holder shows only the start of B1 (`split-scroll`), by 150px or by
+    // 200px depending on which of Playwright's attempts gets through, and at 200px an X read before the
+    // press is over column C.
+    await grid.cell(0, 1).hover({ position: { x: 10, y: (start?.height ?? 0) / 2 } });
     await page.mouse.down();
     // The drag runs to the viewport's last pixel row: the auto-scroller does nothing there, since its
     // edge zone starts past the viewport's bottom edge.
-    await page.mouse.move(pointerX, (viewport?.height ?? 0) - 1, { steps: 10 });
+    await page.mouse.move(pointerX, lastPixelRow, { steps: 10 });
+    // The pointer rests on a cell of column B, so the range can only end in that column.
+    expect(await grid.cellTestIdAtPoint(pointerX, lastPixelRow)).toMatch(/^cell-\d+-1$/);
 
     if (browserName === 'firefox') {
       // Playwright's Firefox delivers a held-button move past the viewport edge as `clientY: -85`
@@ -707,21 +715,22 @@ test.describe('formulaBuilder picking in a window-scrolled grid', { tag: [THEMES
     await page.keyboard.press('=');
     await expect(grid.editorInput).toBeFocused();
 
+    const holder = grid.grid.locator('.ht_master .wtHolder');
     const scrollY = () => page.evaluate(() => window.scrollY);
     const endRow = async() => Number((await grid.editorInput.inputValue()).match(/^=B1:B(\d+)$/)?.[1] ?? 0);
 
     expect(await scrollY()).toBe(0);
     // The window scrolls the rows; the holder is as tall as the table and scrolls only the columns.
     expect(await page.evaluate(() => document.documentElement.scrollHeight > window.innerHeight)).toBe(true);
-    expect(await grid.grid.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollHeight > holder.clientHeight))
-      .toBe(false);
-    expect(await grid.grid.locator('.ht_master .wtHolder').evaluate(holder => holder.scrollWidth > holder.clientWidth))
-      .toBe(true);
+    expect(await holder.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(false);
+    expect(await holder.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
 
     await holdDragBelowViewport(page, grid, browserName);
 
     await expect.poll(scrollY).toBeGreaterThan(0);
     await expect(grid.cell(25, 1)).toBeInViewport();
+    // The pointer is held inside the holder's inline edges, so the page scrolled and the columns did not.
+    expect(await holder.evaluate(element => element.scrollLeft)).toBe(0);
 
     await page.mouse.up();
     await expect(grid.editorInput).toHaveValue(/^=B1:B\d{2}$/);

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the scroll performance of a grid the page scrolls, with frozen rows or columns, by removing the forced reflows from each draw.",
+  "type": "changed",
+  "issueOrPR": 14311,
+  "breaking": false,
+  "framework": "none"
+}

@@ -218,6 +218,46 @@ test.describe('fill handle and frozen panes', { tag: THEMES_TAG }, () => {
     });
   });
 
+  for (const layoutDirection of ['ltr', 'rtl'] as const) {
+    test(`fills along a frozen end column with a drag inside that column (${layoutDirection})`, async () => {
+      await grid.initGrid({ data: WIDE_DATA, width: 500, fixedColumnsEnd: 1, layoutDirection });
+      await grid.selectCells(5, 39, 5, 39);
+
+      const rowBefore = await grid.rowValues(5);
+
+      // The end column is drawn over scrollable columns. The pointer used to resolve to the column lying
+      // under it, so the fill ran along the row and nothing was filled.
+      await grid.dragEndCloneFillHandleTo(3, 39);
+
+      expect((await grid.columnValues(39)).slice(2, 7)).toEqual(['R3C40', 'R6C40', 'R6C40', 'R6C40', 'R7C40']);
+      // No other cell of the selected row changed.
+      expect(await grid.rowValues(5)).toEqual(rowBefore);
+    });
+  }
+
+  test('fills down a frozen end column with a drag inside that column', async () => {
+    await grid.initGrid({ data: WIDE_DATA, width: 500, fixedColumnsEnd: 2 });
+    await grid.selectCells(3, 38, 3, 38);
+
+    await grid.dragEndCloneFillHandleTo(5, 38);
+
+    expect((await grid.columnValues(38)).slice(2, 7)).toEqual(['R3C39', 'R4C39', 'R4C39', 'R4C39', 'R7C39']);
+    expect((await grid.columnValues(39)).slice(2, 7)).toEqual(['R3C40', 'R4C40', 'R5C40', 'R6C40', 'R7C40']);
+  });
+
+  test('fills along a frozen end column when maxCols leaves source columns after it', async () => {
+    // 40 source columns, 30 drawn: the end column is column 29, not the last source column.
+    await grid.initGrid({ data: WIDE_DATA, width: 500, fixedColumnsEnd: 1, maxCols: 30 });
+    await grid.selectCells(5, 29, 5, 29);
+
+    const rowBefore = await grid.rowValues(5);
+
+    await grid.dragEndCloneFillHandleTo(3, 29);
+
+    expect((await grid.columnValues(29)).slice(2, 7)).toEqual(['R3C30', 'R6C30', 'R6C30', 'R6C30', 'R7C30']);
+    expect(await grid.rowValues(5)).toEqual(rowBefore);
+  });
+
   test('hides the fill handle behind the bottom frozen rows when the cell scrolls under them', async () => {
     await grid.initGrid({ fixedRowsBottom: 2, height: 150 });
     await grid.selectCells(3, 1, 3, 1);
