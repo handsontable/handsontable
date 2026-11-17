@@ -6,9 +6,10 @@ import { DISCOVERY_SCANS, openDiscoveryTarget } from './checks/discovery-targets
 /**
  * The pull request's guard for the axe discovery run (`checks/axe-discovery.spec.ts`). That run opens
  * every page of the catalog and of `checks/discovery-pages.mjs` in the dark scheme, right to left and
- * on a second phone, and it runs on a dispatch only. So a page whose fixture does not build a variant,
- * or whose state the keyboard does not reach in one, used to fail first in the next audit, as a target
- * that was not measured, long after the pull request that added it had merged.
+ * on a second phone, and it runs in the audit only (its weekly schedule or a dispatch). So a page
+ * whose fixture does not build a variant, or whose state the keyboard does not reach in one, used to
+ * fail first in the next audit, as a target that was not measured, long after the pull request that
+ * added it had merged.
  *
  * This spec opens the same targets the same way (`openDiscoveryTarget()`, the function the discovery
  * run calls) and scans nothing: the fixture builds, the variant applies, the state is reached, and the
