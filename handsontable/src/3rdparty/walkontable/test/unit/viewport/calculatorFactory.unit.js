@@ -157,6 +157,9 @@ describe('extendRenderedRowsBandTo', () => {
     return {
       rowsRenderCalculator: band,
       rowHeightCache: { getOffset: row => row * ROW_HEIGHT },
+      // One pixel off the cache offset, as it is for a band the baked first-row pixel sits above, so a site that
+      // reads the cache directly is told apart from one that asks the viewport.
+      getRowBandStartOffset: row => (row * ROW_HEIGHT) - 1,
       wtSettings: { getSetting: () => totalRows },
     };
   }
@@ -176,7 +179,7 @@ describe('extendRenderedRowsBandTo', () => {
     expect(band.count).toBe(16);
     expect(band.rowStartOffset).toBe(5);
     expect(band.rowEndOffset).toBe(0);
-    expect(band.startPosition).toBe(5 * ROW_HEIGHT);
+    expect(band.startPosition).toBe((5 * ROW_HEIGHT) - 1);
   });
 
   it('should union both edges when the range sticks out on both sides', () => {
@@ -193,7 +196,7 @@ describe('extendRenderedRowsBandTo', () => {
     expect(band.count).toBe(18);
     expect(band.rowStartOffset).toBe(2);
     expect(band.rowEndOffset).toBe(5);
-    expect(band.startPosition).toBe(8 * ROW_HEIGHT);
+    expect(band.startPosition).toBe((8 * ROW_HEIGHT) - 1);
   });
 
   it('should clamp the end edge to the last row of the dataset', () => {
@@ -293,8 +296,24 @@ describe('createRowsCalculator `proposeOnly` option', () => {
         getOffset: row => row * ROW_HEIGHT,
         getSizeAt: () => ROW_HEIGHT,
       },
+      getRowBandStartOffset: row => row * ROW_HEIGHT,
     };
   }
+
+  it('should publish the band start the viewport resolves for the rendered band', () => {
+    const viewport = createFactoryViewportStub();
+
+    // One pixel off the cache offset: the start the viewport gives once it took the baked first-row pixel out.
+    viewport.getRowBandStartOffset = row => (row * ROW_HEIGHT) - 1;
+    viewport.deps.getTopOverlay = () => ({ getScrollPosition: () => 460, getTableParentOffset: () => 0 });
+
+    const band = calculatorFactory.createRowsCalculator
+      .call(viewport, ['rendered'], 'visible').getResultsFor('rendered');
+
+    // Precondition: a band that starts below the first row, where the cache offset and the answer differ.
+    expect(band.startRow).toBeGreaterThan(0);
+    expect(band.startPosition).toBe((band.startRow * ROW_HEIGHT) - 1);
+  });
 
   it('should reset the `rowHeaderWidth` memo on a default build', () => {
     const viewport = createFactoryViewportStub();
@@ -313,5 +332,40 @@ describe('createRowsCalculator `proposeOnly` option', () => {
     expect(viewport.rowHeaderWidth).toBe(120);
     // The build itself still computes a real band.
     expect(calculator.getResultsFor('rendered').endRow).not.toBeNull();
+  });
+});
+
+describe('applyRenderedRowsBandOverscan', () => {
+  const ROW_HEIGHT = 23;
+
+  function createBand({ startRow, endRow, scrollOffset }) {
+    const band = new RenderedRowsCalculationType();
+
+    band.startRow = startRow;
+    band.endRow = endRow;
+    band.count = endRow - startRow + 1;
+    band.rowStartOffset = 1;
+    band.rowEndOffset = 1;
+    band.scrollOffset = scrollOffset;
+    band.startPosition = startRow * ROW_HEIGHT;
+
+    return band;
+  }
+
+  it('should read the start of a band that grew upward from the viewport, not from the cache', () => {
+    const previousBand = createBand({ startRow: 40, endRow: 50, scrollOffset: 900 });
+    const renderedRows = createBand({ startRow: 30, endRow: 40, scrollOffset: 700 });
+    const viewport = {
+      rowsRenderCalculator: previousBand,
+      rowHeightCache: { getOffset: row => row * ROW_HEIGHT },
+      getRowBandStartOffset: row => (row * ROW_HEIGHT) - 1,
+      wtSettings: { getSetting: key => (key === 'totalRows' ? 100 : true) },
+    };
+
+    calculatorFactory.applyRenderedRowsBandOverscan.call(viewport, renderedRows);
+
+    // Precondition: the scroll toward the start extended the band at its start.
+    expect(renderedRows.startRow).toBeLessThan(30);
+    expect(renderedRows.startPosition).toBe((renderedRows.startRow * ROW_HEIGHT) - 1);
   });
 });

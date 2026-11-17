@@ -245,6 +245,15 @@ test.describe('fixedRowsBottom freeze line in other grid shapes', { tag: ['@core
     expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
   });
 
+  test('ends the row a down arrow lines up with the bottom rows one border under them, with AutoRowSize', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, colHeaders: false, autoRowSize: true });
+
+    const row = await grid.arrowToBandEdge(1, 2);
+
+    expect(row).toBeLessThan(LAST_SCROLLABLE_ROW);
+    expect(await grid.rowOverlapWithBottomRows(row, 2)).toBe(1);
+  });
+
   test('draws the selection edge on the line and keeps a custom border in view with AutoRowSize', async () => {
     await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, autoRowSize: true });
 
@@ -322,5 +331,61 @@ test.describe('fixedRowsBottom freeze line after AutoRowSize is switched at runt
 
       return { rowGrew: rowGrowth > 10, rangeShortBy: rowGrowth - (scrollRange - rangeBefore) };
     }).toEqual({ rowGrew: true, rangeShortBy: 0 });
+  });
+});
+
+/**
+ * A bottom snap must end the row the same way whatever band the grid was in before it. The row's bottom border
+ * lies under the first pixel row of the bottom clone, so the row reaches exactly 1px under it. The rows are
+ * far enough apart that the band moves with every snap, and they alternate between a first rendered row
+ * above and below the next target.
+ */
+test.describe('fixedRowsBottom bottom snap with AutoRowSize', { tag: ['@core', THEMES_TAG] }, () => {
+  const SNAP_ROWS = [40, 60, 41, 20, 40];
+  const ALIGNED = SNAP_ROWS.map(() => 1);
+  let grid: FixedRowsBottomLinePage;
+
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new FixedRowsBottomLinePage(page, theme, bundle);
+  });
+
+  test('ends every snapped row one border under the bottom rows when the grid has column headers', async () => {
+    await grid.open({ rows: 100, cols: COLS, fixedRowsBottom: 1, autoRowSize: true });
+
+    expect(await grid.snapOverlaps(SNAP_ROWS)).toEqual(ALIGNED);
+  });
+
+  test('ends every snapped row one border under the bottom rows without column headers', async () => {
+    await grid.open({ rows: 100, cols: COLS, fixedRowsBottom: 1, colHeaders: false, autoRowSize: true });
+
+    expect(await grid.snapOverlaps(SNAP_ROWS)).toEqual(ALIGNED);
+  });
+
+  test('ends every snapped row one border under the bottom rows when AutoRowSize is turned on later', async () => {
+    await grid.open({ rows: 100, cols: COLS, fixedRowsBottom: 1, colHeaders: false });
+    await grid.setAutoRowSize(true);
+
+    expect(await grid.snapOverlaps(SNAP_ROWS)).toEqual(ALIGNED);
+  });
+
+  test('ends every snapped row one border under the bottom rows in a grid with frozen start columns', async () => {
+    await grid.open({
+      rows: 100, cols: COLS, fixedRowsBottom: 1, fixedColumnsStart: 2, colHeaders: false, autoRowSize: true,
+    });
+
+    expect(await grid.snapOverlaps(SNAP_ROWS, { column: 3 })).toEqual(ALIGNED);
+  });
+
+  test('ends every snapped row one pixel above the viewport edge when there are no bottom rows', async () => {
+    // Without frozen bottom rows the scroll target keeps one extra pixel, whichever band the grid came from.
+    await grid.open({ rows: 100, cols: COLS, fixedRowsBottom: 0, colHeaders: false, autoRowSize: true });
+
+    expect(await grid.snapViewportInsets(SNAP_ROWS)).toEqual(ALIGNED);
+  });
+
+  test('ends every snapped row one border under the bottom rows after the row heights were measured again', async () => {
+    await grid.open({ rows: 100, cols: COLS, fixedRowsBottom: 1, colHeaders: false, autoRowSize: true });
+
+    expect(await grid.snapOverlaps(SNAP_ROWS, { invalidateCache: true })).toEqual(ALIGNED);
   });
 });

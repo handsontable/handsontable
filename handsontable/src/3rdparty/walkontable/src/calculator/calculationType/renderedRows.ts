@@ -39,6 +39,7 @@ export class RenderedRowsCalculationType extends PartiallyVisibleRowsCalculation
       overrideFn,
       totalRows,
       positionCache,
+      rowBandStartOffsetFn,
     } = viewportCalculator;
 
     this.scrollOffset = viewportCalculator.zeroBasedScrollOffset;
@@ -57,7 +58,12 @@ export class RenderedRowsCalculationType extends PartiallyVisibleRowsCalculation
       this.startRow = 0;
     }
 
-    this.startPosition = this.startRow !== null && positionCache ? positionCache.getOffset(this.startRow) : null;
+    if (this.startRow !== null && positionCache) {
+      this.startPosition = rowBandStartOffsetFn ?
+        rowBandStartOffsetFn(this.startRow) : positionCache.getOffset(this.startRow);
+    } else {
+      this.startPosition = null;
+    }
 
     if (this.endRow !== null && totalRows < this.endRow) {
       this.endRow = totalRows - 1;

@@ -13,6 +13,8 @@ import { ViewportBaseCalculator } from './viewportBase';
  * @property {Function} overrideFn Function that allows to adjust the `startRow` and `endRow` parameters.
  * @property {number} horizontalScrollbarHeight The scrollbar height.
  * @property {PositionCache} rowHeightCache A built prefix sum cache. The single source of truth for row sizes.
+ * @property {Function} [rowBandStartOffsetFn] Resolves the offset of the first row of a rendered band. Defaults to
+ * the cache's own offset, which is right unless the host keeps position-dependent heights in the cache.
  */
 export interface ViewportRowsCalculatorOptions {
   calculationTypes: Array<[string, CalculationTypeLike]>;
@@ -22,6 +24,7 @@ export interface ViewportRowsCalculatorOptions {
   overrideFn: ((calc: unknown) => void) | null;
   horizontalScrollbarHeight?: number;
   rowHeightCache: PositionCache;
+  rowBandStartOffsetFn?: (row: number) => number;
 }
 
 /**
@@ -75,6 +78,10 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
    */
   positionCache: PositionCache | null = null;
   /**
+   * @type {((row: number) => number) | null}
+   */
+  rowBandStartOffsetFn: ((row: number) => number) | null = null;
+  /**
    * @type {number}
    */
   lastProcessedIndex: number = -1;
@@ -90,6 +97,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     overrideFn,
     horizontalScrollbarHeight,
     rowHeightCache,
+    rowBandStartOffsetFn,
   }: ViewportRowsCalculatorOptions) {
     super(calculationTypes);
     this.viewportHeight = viewportHeight;
@@ -100,6 +108,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
     this.horizontalScrollbarHeight = horizontalScrollbarHeight ?? 0;
     this.innerViewportHeight = this.zeroBasedScrollOffset + this.viewportHeight - this.horizontalScrollbarHeight;
     this.positionCache = rowHeightCache;
+    this.rowBandStartOffsetFn = rowBandStartOffsetFn ?? null;
 
     this.calculate();
   }

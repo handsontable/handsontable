@@ -1198,6 +1198,31 @@ Consequences worth knowing:
   the twin of `standsBehindRowHeader` — the cell is the first `<tr>` of a `tbody` whose previous
   sibling is a NON-empty `thead` — and `Border#appear` moves the top edge onto the cell's own boundary
   for it. Same blind spot: the edge is present, just painted over.
+- **Under AutoRowSize the first-row pixel moves with the band, and two readers must not depend on which band
+  the grid was in (DEV-4050).** AutoRowSize puts the grid's top-border pixel in the height of the row that is
+  first rendered NOW, and the engine's row-height cache bakes it at the row that was first rendered when the
+  cache was built (`#rowFirstRenderedAtBuild`). With no column header that is the case
+  `heightsCarryFirstRowPixel()` (`axisSizing/hiderCompensation.ts`) answers; ask it there, never a fifth copy
+  of the question.
+  - **A bottom-snap target sums for the layout AFTER the scroll.** `TopOverlay#scrollTo` sums `[0, row + 1)`,
+    and `Viewport#sumRowHeights` holds the pixel only when the current first rendered row is in that range, but
+    the band that will exist after the scroll starts above the row. `Viewport#getFirstRowPixelMissingFrom()`
+    adds the pixel when the current band left it out. Without it a snap from a band below the target ended
+    1px low, and the result followed the scroll history (the ticket's 1, 1, 2, 2, 1). With no frozen bottom
+    rows the target keeps its extra pixel after it, so that shape now ends one pixel above the viewport edge
+    from every band, as it already did from the ones that held the pixel.
+  - **A band start is not read raw from the cache.** Every published rendered-band `startPosition` (the
+    calculator build through `rowBandStartOffsetFn`, and the two band-extension sites in
+    `viewport/calculatorFactory.ts`) goes through `Viewport#getRowBandStartOffset()`, which takes the baked
+    pixel out for a band that starts below the baked row. A cache rebuilt at one band and then read for another
+    drew the band a pixel low (`startPosition` 871 against 870 live). The fully and partially visible
+    calculators still read the cache directly, on purpose: that keeps their borderline answers unchanged.
+  - A top-edge snap under AutoRowSize shows the same 0 or 1px alternation of `scrollTop` and renders
+    identically, so it was left alone.
+  - Pinned by the `bottom snap with AutoRowSize` blocks of `tests/e2e/fixed-rows-bottom-line.spec.ts` (the
+    cache-rebuild case fails without the band-start rule, the sequence cases without the target rule),
+    `test/unit/viewport/firstRowPixel.unit.ts`, `test/unit/calculator/viewportRows.unit.ts`,
+    `test/unit/viewport/calculatorFactory.unit.js` and `test/unit/overlay/topOverlayScrollTarget.unit.ts`.
 - **The active-header accent on the first rendered row moves to the CORNER.** `-row-seam-bottom` /
   `-row-seam-top` colour the row *above* an active one, and row 0 has none — the accent used to come
   from the row's own `border-top`, which is now 0px wide. `SelectionManager` therefore tags the last
