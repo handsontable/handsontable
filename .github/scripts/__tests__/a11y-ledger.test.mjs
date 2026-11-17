@@ -2004,6 +2004,32 @@ test('the collector records a develop nightly into a11y.json and the page, and a
   }
 });
 
+test('a scheduled run that never reached its lanes records no night, and the re-run of its failed job records it', () => {
+  const sandbox = collectorSandbox();
+
+  try {
+    // The scheduled screen reader run waited out its bound behind another run: red in check-inputs, no artifact.
+    const waited = sandbox.collect({ ...READER_RUN, conclusion: 'failure' }, sandbox.artifacts('none', []), '2026-11-03T04:30:00Z');
+
+    assert.equal(waited.status, 0, waited.stderr);
+    assert.doesNotMatch(waited.stdout, /Accessibility: reader night/, 'a run with no transcript is no night: nothing is resolved by silence');
+    assert.equal(Object.hasOwn(sandbox.snapshot(), 'a11y.json'), false);
+
+    // Re-running the failed job keeps the run id, the event and the commit, and this time the lanes upload.
+    const rerun = sandbox.collect({ ...READER_RUN, run_attempt: 2, updated_at: '2026-11-03T07:20:00Z' }, sandbox.artifacts('reader', readerFiles()),
+      '2026-11-03T07:30:00Z');
+
+    assert.equal(rerun.status, 0, rerun.stderr);
+    assert.match(rerun.stdout, /Accessibility: reader night 41579067604 recorded 5 findings/);
+
+    const ledger = JSON.parse(readFileSync(path.join(sandbox.ledgerDir, 'a11y.json'), 'utf8'));
+
+    assert.deepEqual(ledger.nights.map(entry => [entry.source, entry.event, entry.runAttempt]), [['reader', 'schedule', 2]]);
+  } finally {
+    sandbox.remove();
+  }
+});
+
 test('a pull request run with accessibility artifacts records nothing, and a run without them leaves the files alone', () => {
   const sandbox = collectorSandbox();
 
