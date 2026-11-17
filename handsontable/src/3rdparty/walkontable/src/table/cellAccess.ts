@@ -28,6 +28,7 @@ import {
   CLONE_TOP_INLINE_END_CORNER,
   CLONE_BOTTOM_INLINE_END_CORNER,
   INLINE_END_CLONE_TYPES,
+  BOTTOM_CLONE_TYPES,
 } from '../overlay';
 import type { default as Table } from './baseTable';
 import type CellCoords from '../cell/coords';
@@ -46,6 +47,25 @@ export interface CellAccess {
   getTrForRow(row: number): HTMLTableRowElement;
 }
 
+/**
+ * Tells whether a bottom clone's last draw no longer matches the band its live settings describe. The filter
+ * is built from the same `getFirstRenderedRow()` and `totalRows` in every draw, so they agree at rest and differ
+ * only between a change of `totalRows` or `fixedRowsBottom` and the draw that follows it. The first row alone
+ * is not enough: it stays the same while the band grows at its end (every row pinned, or the rows and the pinned
+ * rows growing by the same amount), so the total of rows is compared too.
+ *
+ * @param {Table} table The table to check.
+ * @returns {boolean}
+ */
+function hasStaleBottomBand(table: Table): boolean {
+  if (!BOTTOM_CLONE_TYPES.includes(table.name) || table.rowFilter === null) {
+    return false;
+  }
+
+  return Math.max(table.getFirstRenderedRow(), 0) !== table.rowFilter.offset ||
+    table.wtSettings.getSetting<number>('totalRows') !== table.rowFilter.total;
+}
+
 const cellAccess = {
   /**
    * Returns the TD element for the provided coordinates (from the rendered DOM) if it is rendered on
@@ -60,6 +80,9 @@ const cellAccess = {
    *  -2 row after viewport
    *  -3 column before viewport
    *  -4 column after viewport.
+   * A bottom clone that has not been redrawn since the number of rows or of frozen bottom rows changed also
+   * answers -1 or -2 for a body row, as its DOM does not hold the band yet. Any negative code means "not
+   * rendered".
    * @this Table
    */
   getCell(this: Table, coords: { row: number | null; col: number | null }): HTMLElement | number {
@@ -107,6 +130,14 @@ const cellAccess = {
       ) {
         column = this.getFirstRenderedColumn();
       }
+    }
+
+    // The bottom clones derive their rendered band from the live settings (`stickyRowsBottom`), but the element
+    // is resolved through the filter and the TBODY of the last draw. After `loadData()` or a row removal, and
+    // before the render that follows, the band names rows the clone's DOM does not hold yet: the lookup below
+    // would throw, or answer the cell of another row. The row is not rendered as far as the DOM is concerned.
+    if (row >= 0 && hasStaleBottomBand(this)) {
+      return row < this.rowFilter!.offset ? -1 : -2;
     }
 
     if (this.isRowBeforeRenderedRows(row)) {
