@@ -32,6 +32,16 @@ export const INLINE_END_CLONE_TYPES = [
 ];
 
 /**
+ * The clones that render the first rows of the grid (`fixedRowsTop`). Their rendered rows count comes from
+ * the live `totalRows` and `fixedRowsTop` settings (`stickyRowsTop`), not from the last draw.
+ */
+export const TOP_CLONE_TYPES = [
+  CLONE_TOP,
+  CLONE_TOP_INLINE_START_CORNER,
+  CLONE_TOP_INLINE_END_CORNER,
+];
+
+/**
  * The clones that render the last rows of the grid (`fixedRowsBottom`). Their rendered band comes from
  * the live `totalRows` and `fixedRowsBottom` settings, not from the last draw (`stickyRowsBottom`).
  */

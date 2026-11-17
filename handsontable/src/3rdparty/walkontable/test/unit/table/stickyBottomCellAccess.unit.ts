@@ -158,6 +158,53 @@ describe('Table#getCell on the bottom clones between a change of the data and th
     expect(cellAt(table, 0)).toBe(-2);
   });
 
+  describe('top clones', () => {
+    /**
+     * Builds a stub of a top clone with `fixedRowsTop: 5`: its live band is the first `min(totalRows, 5)` rows,
+     * while its TBODY holds the `drawnRows` rows of the last draw.
+     *
+     * @param {string} name The overlay name.
+     * @param {number} totalRows The live number of rows.
+     * @param {number} drawnRows The number of rows the last draw rendered.
+     * @returns {object}
+     */
+    function createTopTable(name: string, totalRows: number, drawnRows: number) {
+      const table = createTable(name,
+        { totalRows, fixedRowsBottom: 0, drawnTotal: drawnRows, drawnOffset: 0, drawnRows });
+
+      table.getFirstRenderedRow = () => 0;
+      table.getLastRenderedRow = () => Math.min(totalRows, 5) - 1;
+
+      return table;
+    }
+
+    it.each(['top', 'top_inline_start_corner', 'top_inline_end_corner'])(
+      'should answer "not rendered" for a frozen row the %s clone has not drawn after the data grew',
+      (name) => {
+        // 3 rows were drawn, 8 are loaded: the 5 frozen rows name rows 3 and 4, which have no TR yet.
+        const table = createTopTable(name, 8, 3);
+
+        expect(cellAt(table, 4)).toBe(-2);
+        expect(cellAt(table, 3)).toBe(-2);
+      },
+    );
+
+    it('should return the cell of a frozen row the clone has drawn', () => {
+      const cell = cellAt(createTopTable('top', 8, 3), 2);
+
+      expect(cell).toBeInstanceOf(HTMLElement);
+      expect((cell as HTMLElement).textContent).toBe('row 2');
+    });
+
+    it('should keep returning the drawn frozen rows after the data shrank', () => {
+      // The clone still holds the rows it drew, and they are the rows it should hold.
+      const cell = cellAt(createTopTable('top', 2, 3), 1);
+
+      expect(cell).toBeInstanceOf(HTMLElement);
+      expect((cell as HTMLElement).textContent).toBe('row 1');
+    });
+  });
+
   it.each(['master', 'top', 'inline_start'])('should leave the %s table to its own band', (name) => {
     // Only the bottom clones read their band from the live settings. For any other table the live first row and
     // the filter can differ (the first row is 2 here, the filter was built at 0) without the DOM lagging behind.

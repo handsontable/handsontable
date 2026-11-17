@@ -777,7 +777,14 @@ the documented answer for a cell that is not rendered. Two rules:
   question answered**, or it sees a band the DOM does not hold. The master's band comes from its calculators,
   which are stale but consistent with its DOM, so it does not have this gap.
 
-Pinned by `test/unit/table/stickyBottomCellAccess.unit.ts` and `tests/e2e/fixed-rows-bottom-load-data.spec.ts`.
+The top clones (`TOP_CLONE_TYPES`) count their rows from the live settings too (`stickyRowsTop`), but start at row 0,
+so only GROWTH opens the gap: with `fixedRowsTop: 5`, a grid drawn with 3 rows and loaded with 8 names rows 3 and 4
+before the clone has a TR for them. `isBeyondDrawnTopRows()` answers `-2` for a body row past the clone's TBODY,
+which is exactly what used to throw. Shrinking needs nothing: the rows the clone still holds are the rows it should
+hold, so a guard on the row count there would hide correct cells.
+
+Pinned by `test/unit/table/stickyBottomCellAccess.unit.ts` (bottom and top clones) and
+`tests/e2e/fixed-rows-bottom-load-data.spec.ts`.
 
 ## Content-driven sizes the master never renders
 

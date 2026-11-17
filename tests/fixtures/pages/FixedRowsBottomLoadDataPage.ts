@@ -6,6 +6,7 @@ import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
  */
 export interface FixedRowsBottomLoadDataOptions {
   rows?: number;
+  fixedRowsTop?: number;
   fixedRowsBottom?: number;
   fixedColumnsStart?: number;
   fixedColumnsEnd?: number;

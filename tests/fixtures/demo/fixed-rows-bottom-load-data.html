@@ -39,7 +39,7 @@
 <body>
   <!--
     Fixture for `loadData()` on a grid with frozen bottom rows. Query params: `rows` (initial row count),
-    `fixedRowsBottom`, `fixedColumnsStart`, `fixedColumnsEnd`. Every cell holds "<row>-<col>", so a cell read back from the
+    `fixedRowsTop`, `fixedRowsBottom`, `fixedColumnsStart`, `fixedColumnsEnd`. Every cell holds "<row>-<col>", so a cell read back from the
     DOM names the record it shows.
   -->
   <div id="grid" data-testid="grid"></div>
@@ -76,6 +76,7 @@
     try {
       window.hot = new Handsontable(container, {
         data: window.createGridData(count('rows', 10)),
+        fixedRowsTop: count('fixedRowsTop', 0),
         fixedRowsBottom: count('fixedRowsBottom', 0),
         fixedColumnsStart: count('fixedColumnsStart', 0),
         fixedColumnsEnd: count('fixedColumnsEnd', 0),

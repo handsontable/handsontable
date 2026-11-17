@@ -29,6 +29,7 @@ import {
   CLONE_BOTTOM_INLINE_END_CORNER,
   INLINE_END_CLONE_TYPES,
   BOTTOM_CLONE_TYPES,
+  TOP_CLONE_TYPES,
 } from '../overlay';
 import type { default as Table } from './baseTable';
 import type CellCoords from '../cell/coords';
@@ -66,6 +67,23 @@ function hasStaleBottomBand(table: Table): boolean {
     table.wtSettings.getSetting<number>('totalRows') !== table.rowFilter.total;
 }
 
+/**
+ * Tells whether a top clone has no row in its TBODY for the given body row yet. The clone's rendered rows
+ * count follows the live settings (`stickyRowsTop`), so after the number of rows grew past the rows of the last
+ * draw and before the render that follows, the count names rows the clone has not drawn. Shrinking is not
+ * affected: the rows the clone still holds are the rows it should hold.
+ *
+ * @param {Table} table The table to check.
+ * @param {number} row The body row index.
+ * @returns {boolean}
+ */
+function isBeyondDrawnTopRows(table: Table, row: number): boolean {
+  return TOP_CLONE_TYPES.includes(table.name) &&
+    table.rowFilter !== null &&
+    table.TBODY !== null &&
+    table.rowFilter.sourceToRendered(row) >= table.TBODY.childNodes.length;
+}
+
 const cellAccess = {
   /**
    * Returns the TD element for the provided coordinates (from the rendered DOM) if it is rendered on
@@ -81,8 +99,8 @@ const cellAccess = {
    *  -3 column before viewport
    *  -4 column after viewport.
    * A bottom clone that has not been redrawn since the number of rows or of frozen bottom rows changed also
-   * answers -1 or -2 for a body row, as its DOM does not hold the band yet. Any negative code means "not
-   * rendered".
+   * answers -1 or -2 for a body row, as its DOM does not hold the band yet, and so does a top clone for a row
+   * it has not drawn since the number of rows grew. Any negative code means "not rendered".
    * @this Table
    */
   getCell(this: Table, coords: { row: number | null; col: number | null }): HTMLElement | number {
@@ -138,6 +156,11 @@ const cellAccess = {
     // would throw, or answer the cell of another row. The row is not rendered as far as the DOM is concerned.
     if (row >= 0 && hasStaleBottomBand(this)) {
       return row < this.rowFilter!.offset ? -1 : -2;
+    }
+
+    // The same for a top clone, whose count of rows follows the live settings while its DOM is the last draw's.
+    if (row >= 0 && isBeyondDrawnTopRows(this, row)) {
+      return -2;
     }
 
     if (this.isRowBeforeRenderedRows(row)) {

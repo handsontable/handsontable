@@ -120,6 +120,19 @@ test.describe('loadData() and row removal on a grid with fixedRowsBottom', () =>
     expect(await grid.topmostCellText(10)).toBe('10-0');
   });
 
+  test('answers null for a frozen top row the grid has not drawn yet when the data grew', async() => {
+    // The top clone also reads its band from the live row count: 3 rows were drawn, 8 are loaded, and the
+    // 5 frozen top rows then name rows 3 and 4, which the clone has no TR for until the render.
+    await grid.goto({ rows: 3, fixedRowsTop: 5 });
+    await grid.selectCell(2, 0);
+    await grid.probeTopmostCellsIn('afterSelectionEnd', [4]);
+
+    expect(await grid.loadDataExpectingError(8)).toBeNull();
+
+    expect(await grid.probedCells()).toEqual({ 4: null });
+    expect(await grid.topmostCellText(4)).toBe('4-0');
+  });
+
   test('control: loads the data with no frozen bottom rows', async() => {
     await grid.goto({ rows: 10 });
     await grid.selectCell(9, 0);
