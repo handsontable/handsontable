@@ -486,7 +486,7 @@
       "title": "The docs header's \"Ask AI\" button has an accessible name that does not contain its visible text",
       "tracker": "DEV-4015",
       "match": [
-        { "source": "docs", "axeIssues": ["assistant-button-name"] }
+        { "source": "docs", "rules": ["label-content-name-mismatch"], "where": ["^button\\.header-assistant-btn"] }
       ]
     },
     {
@@ -494,7 +494,7 @@
       "title": "The docs framework switcher's tabs have accessible names that do not contain their visible text",
       "tracker": "DEV-4015",
       "match": [
-        { "source": "docs", "axeIssues": ["framework-tab-name"] }
+        { "source": "docs", "rules": ["label-content-name-mismatch"], "where": ["^a\\.fw-tab"] }
       ]
     },
     {
