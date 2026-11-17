@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [19.0.0-rc1] - 2026-11-16
+## [19.0.0-rc2] - 2026-11-17
 
 ### Added
 - **Breaking change**: Added treegrid accessibility to the NestedRows plugin: tree attributes on rows, Ctrl/Cmd+arrow keys on a row header to expand, collapse, or move to the parent row, and screen reader announcements. On a row header, Ctrl/Cmd+arrow keys no longer jump to the edge of the row, and Enter no longer toggles while an overlay covers the grid. [#13759](https://github.com/handsontable/handsontable/pull/13759)
@@ -492,6 +492,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: Fixed a bug where a component-based renderer in a frozen row or column left the cell empty in one of the two tables the grid draws it in, which made the frozen area stop lining up with the rest of the rows. [#9063](https://github.com/handsontable/handsontable/issues/9063)
 - Angular: Fixed a bug where the grid rendered at zero height when the `height` option was relative (for example `'100%'`) and the `<hot-table>` sat in a parent with a fixed height, which also showed up as the grid disappearing inside a CSS-transformed ancestor. [#13690](https://github.com/handsontable/handsontable/pull/13690)
 - Angular: Fixed an error logged on every server request when the grid renders on the server, and an error logged on click after the page hydrates. [#14007](https://github.com/handsontable/handsontable/pull/14007)
+- Fixed `customBorders` edges that were not drawn on the first column and the first row after the frozen ones. [#14294](https://github.com/handsontable/handsontable/pull/14294)
 
 ## [18.1.2] - 2026-10-07
 

@@ -26,9 +26,9 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 19.0.0-rc1
+## 19.0.0-rc2
 
-Released on November 16th, 2026
+Released on November 17th, 2026
 
 For more information about this release, see:
 - [Documentation (19.0)](https://handsontable.com/docs/19.0)
@@ -514,6 +514,7 @@ For more information about this release, see:
 - React: Fixed a bug where a component-based renderer in a frozen row or column left the cell empty in one of the two tables the grid draws it in, which made the frozen area stop lining up with the rest of the rows. [#9063](https://github.com/handsontable/handsontable/issues/9063)
 - Angular: Fixed a bug where the grid rendered at zero height when the `height` option was relative (for example `'100%'`) and the `<hot-table>` sat in a parent with a fixed height, which also showed up as the grid disappearing inside a CSS-transformed ancestor. [#13690](https://github.com/handsontable/handsontable/pull/13690)
 - Angular: Fixed an error logged on every server request when the grid renders on the server, and an error logged on click after the page hydrates. [#14007](https://github.com/handsontable/handsontable/pull/14007)
+- Fixed `customBorders` edges that were not drawn on the first column and the first row after the frozen ones. [#14294](https://github.com/handsontable/handsontable/pull/14294)
 
 ## 18.1.2
 
