@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "complex-demo",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T14:39:27.266Z"
+  },
+  "steps": {
+    "down-past-hidden-row": "emily wilson name row 7 column 3",
+    "up-past-hidden-row": "jane smith name row 6 column 3",
+    "up-to-frozen-row": "john doe selected name 1 row 5 name i e b column 3",
+    "up-to-header": "name column header selected sub menu row 4 i e b column 3",
+    "up-to-group-i": "i column header selected expanded row 3 e b column 3",
+    "up-to-group-e": "e column header selected expanded row 2 b column 3",
+    "up-to-group-b": "b column header selected expanded row 1 column 3"
+  }
+}

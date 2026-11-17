@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "read-only",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T14:48:27.128Z"
+  },
+  "steps": {
+    "arrow-right-read-only": "",
+    "enter-on-read-only": "b b2",
+    "type-on-read-only": "",
+    "delete-on-read-only": "",
+    "arrow-down-read-only": "b b3",
+    "arrow-up-unchanged": "b b2"
+  }
+}
