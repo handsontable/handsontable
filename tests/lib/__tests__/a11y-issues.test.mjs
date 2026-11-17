@@ -464,6 +464,17 @@ test('clusterOf names the cluster and its tracker, sends an unmatched finding to
   assert.deepEqual(clusterOf(finding({}), catalog), { id: 'one', tracker: 'DEV-3603', ambiguous: ['one', 'two'] });
 });
 
+test('every docs cluster of the committed catalog has a tracker, so a change run counts tracked docs debt as a warning at most', () => {
+  // The debt tasks of the docs site exist (the accessibility debt epic); a docs cluster with no tracker makes a pull request
+  // that touches no docs red for debt it did not cause. `grid-refocus-on-settings-update` is a grid defect that only the docs
+  // checks reach: it belongs to the product, not to the docs site.
+  const untracked = readCatalog().clusters
+    .filter(cluster => cluster.id.startsWith('docs-') && !cluster.tracker)
+    .map(cluster => cluster.id);
+
+  assert.deepEqual(untracked, [], 'a docs cluster without a tracker: link its debt task in tests/a11y/issues.json');
+});
+
 test('the committed catalog validates against the live baseline issues and screen reader projects, and keeps its cluster ids', () => {
   const doc = readCatalog();
 
