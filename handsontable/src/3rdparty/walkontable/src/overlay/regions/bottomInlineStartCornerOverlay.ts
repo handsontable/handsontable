@@ -130,8 +130,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
       if (railed && rail) {
         // A rail that spans the block axis reaches the table's painted bottom, so the clone rests
-        // there; one that does not hangs from its own bottom edge at the offset.
-        overlayRoot.style.bottom = '';
+        // there; one that does not hangs from its own bottom edge at the offset. The rail writes the
+        // clone's insets itself, so `bottom` is not cleared here first (see `BottomOverlay`).
         rail.pin({
           isRtl: this.isRtl(),
           width: wtTable.getTotalWidth(),
