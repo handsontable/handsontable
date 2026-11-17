@@ -13,7 +13,7 @@ export interface GridSettings {
   hiddenRows?: { rows: number[] };
   autoColumnSize?: { syncLimit: number };
   stretchH?: 'all' | 'last' | 'none';
-  width?: number;
+  width?: number | string;
   manualColumnResize?: boolean;
   manualColumnMove?: boolean;
   columnSorting?: boolean;
