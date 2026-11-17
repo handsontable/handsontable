@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-17T13:39:13.321Z",
+  "generatedAt": "2026-11-17T14:03:05.729Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -1472,7 +1472,7 @@
       "file": "handsontable/src/editors/autocompleteEditor/__tests__/autocompleteEditor.spec.js",
       "line": null,
       "title": "AutocompleteEditor disallow html mode should strip html from strings provided in source (sync mode)",
-      "count7": 1,
+      "count7": 0,
       "count30": 2,
       "countAll": 2,
       "runs30": 1,
