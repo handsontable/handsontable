@@ -29,3 +29,35 @@ export function clampMoveTarget({
     col: Math.min(Math.max(0, rawCol), maxCol),
   };
 }
+
+/**
+ * Cuts an index range down to its part that is drawn. A grid draws its rows or columns in up to three
+ * bands: the frozen ones at the start, the ones the scrolled table renders, and the frozen ones at the end.
+ * The frozen bands are drawn at every scroll position, so a range that reaches into one has cells there
+ * even when the scrolled table renders none of it.
+ *
+ * @param {number} from The first index of the range.
+ * @param {number} to The last index of the range.
+ * @param {Array<Array<number>>} bands The drawn bands, each as `[first, last]`. A band with `last < first`
+ *   is empty.
+ * @returns {{ first: number, last: number } | null} The first and the last drawn index inside the range, or
+ *   `null` when none of it is drawn.
+ */
+export function clampToDrawnBands(
+  from: number, to: number, bands: Array<[number, number]>,
+): { first: number, last: number } | null {
+  let first: number | null = null;
+  let last: number | null = null;
+
+  bands.forEach(([bandFirst, bandLast]) => {
+    const start = Math.max(from, bandFirst);
+    const end = Math.min(to, bandLast);
+
+    if (start <= end) {
+      first = first === null ? start : Math.min(first, start);
+      last = last === null ? end : Math.max(last, end);
+    }
+  });
+
+  return first === null || last === null ? null : { first, last };
+}
