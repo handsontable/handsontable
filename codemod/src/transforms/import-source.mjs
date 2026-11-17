@@ -142,7 +142,8 @@ function applyRule(ctx, rule) {
       continue;
     }
 
-    const result = moveNamedImport(j, root, binding.declaration, binding.specifier, target);
+    const result = moveNamedImport(j, root, binding.declaration, binding.specifier, target,
+      { cut: ctx.removeStatement });
 
     if (result.moved) {
       ctx.markChanged();

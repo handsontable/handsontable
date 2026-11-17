@@ -447,13 +447,31 @@ describe('Handsontable.helper.sanitize in a run that holds both migrations', () 
   const NEW = '19.0.0/helper-sanitize';
   const source = `${HOT}export const clean = Handsontable.helper.sanitize('<b>x</b>');\n`;
 
-  it('reports the spot once, and the entry of the earlier rule says that 19.0 removes the helper', async() => {
+  it('reports the spot once, under the earlier rule, with what the later rule says', async() => {
     const [first] = await runs('a.js', source, [OLD, NEW]);
     const entries = first.entries.filter(entry => entry.severity === 'manual');
 
     assert.equal(entries.length, 1);
     assert.equal(entries[0].ruleId, OLD);
-    assert.match(entries[0].message, /Handsontable 19\.0 removes the helper, so the call throws a TypeError there\./);
+    assert.match(entries[0].message, /19\.0 removes it, so the call throws a TypeError\./);
+    assert.match(entries[0].message, /came from 17\.x relied on the sanitizing/);
+  });
+
+  it('does not talk about 19.0 in a run of the 18.0 migration alone', async() => {
+    const [first] = await runs('a.js', source, [OLD]);
+    const [entry] = first.entries.filter(item => item.severity === 'manual');
+
+    assert.equal(entry.ruleId, OLD);
+    assert.doesNotMatch(entry.message, /19\.0|TypeError/);
+  });
+
+  it('leaves the marker of the earlier rule and changes nothing in runs 2 and 3', async() => {
+    const [first, second, third] = await runs('a.js', source, [OLD, NEW]);
+
+    assert.equal((first.output.match(/TODO\(handsontable-codemod/g) ?? []).length, 1, first.output);
+    assert.ok(first.output.includes(`TODO(handsontable-codemod ${OLD}):`), first.output);
+    assert.equal(second.changed, false);
+    assert.equal(third.changed, false);
   });
 
   it('still says what 19.0 does in a run of the 19.0 migration alone', async() => {

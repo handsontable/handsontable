@@ -54,6 +54,9 @@
  * @property {number} [markLine] The line the TODO marker is placed from, when `line` names a spot inside a literal
  * that no marker can sit on: a line of a multi-line template literal, or of a map in a stylesheet declaration. The
  * report keeps `line`. Defaults to `line`.
+ * @property {number} [markColumn] The zero-based column of the spot, for a js part: where several JSX elements share
+ * `line`, the marker goes in front of the element that holds the spot. Without it, the first element of the line.
+ * @property {Array<number|undefined>} [markColumns] The columns of a collapsed group, in the order of `lines`.
  * @property {'run'} [scope] `run` for a note that is the same in every file (a rule's `note`), so the report shows
  * it once with the list of files.
  * @property {string} [mergeKey] A later entry of the same part with the same key replaces this one instead of adding
@@ -157,6 +160,9 @@
  * @property {(target: object, ruleId: string, text: string) => boolean} comment The comment half of `todo`: leave
  * the TODO comment, with `text` as its source, and add no report entry. A transform whose own entry already carries
  * the advice (a removal) uses it, so the report says it once. Returns whether a comment was inserted.
+ * @property {(key: string, compute: () => any) => any} derived What a transform reads from the tree of the part, kept
+ * while no edit is recorded: it returns the value of `compute()` for a key, and calls it again only when `markChanged()`
+ * ran since the value was made. The value must be a pure function of the tree, and the caller must not change it.
  * @property {(path: object) => boolean} removeStatement Remove the expression statement at a NodePath of a statement
  * list, and return `true`. The statement is cut out of the printed text, so the statements around it keep their
  * layout and its comments stay where they stood. It returns `false`, and changes nothing, for a statement that is not

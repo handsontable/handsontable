@@ -9,7 +9,7 @@ import {
   unwrapPath,
 } from '../lib/ast.mjs';
 import { createReaderFinder, describeReader, describeReaderLine } from '../lib/custom-reader.mjs';
-import { collectHotBindings, isUnresolvedReceiver, receiverOfGrid } from '../lib/hot-bindings.mjs';
+import { hotBindingsOf, isUnresolvedReceiver, receiverOfGrid } from '../lib/hot-bindings.mjs';
 import { dynamicOptionSites, templateOptionSites } from '../lib/option-sites.mjs';
 import {
   GENERIC_OPTIONS,
@@ -798,7 +798,7 @@ function renameInCallArguments(env) {
   const { j, rule } = env;
   const names = rule.context.callArg;
   const pluginKeys = receiverKeys(rule);
-  const bindings = pluginKeys ? collectHotBindings(j, env.ctx.root) : null;
+  const bindings = pluginKeys ? hotBindingsOf(env.ctx) : null;
   const seen = new Set();
   const calls = [...env.ctx.root.find(j.CallExpression).paths(), ...env.ctx.root.find(j.OptionalCallExpression).paths()]
     .filter(call => !seen.has(call.node) && seen.add(call.node));
@@ -1893,7 +1893,7 @@ function reportDynamicOptions(ctx, rules) {
   const targets = rules.map(rule => ({ rule, site: siteOf(rule) }))
     .filter(item => item.site && ctx.source.includes(item.site.name));
 
-  const bindings = targets.length === 0 ? null : collectHotBindings(ctx.j, ctx.root);
+  const bindings = targets.length === 0 ? null : hotBindingsOf(ctx);
 
   if (!bindings?.isHotFile) {
     return;
@@ -2013,7 +2013,7 @@ const options = {
 
     const { j } = ctx;
     const aggressive = Boolean(ctx.options?.aggressive);
-    const bindings = collectHotBindings(j, ctx.root);
+    const bindings = hotBindingsOf(ctx);
     const { targets, claimed } = collectTargets(j, ctx.root, bindings);
     const handled = new Set(targets.filter(target => target.type === 'object').map(target => target.path.node));
     const resolver = createHop(j, ctx.root);

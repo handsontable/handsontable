@@ -207,6 +207,11 @@ export function validateRule(rule, version) {
     }
   }
 
+  if (rule.inGuide === false && 'guide' in rule) {
+    problems.push('"inGuide": false says the guide does not describe the change, so the rule cannot also name a '
+      + '"guide" anchor: drop one of them');
+  }
+
   if (kindSpec && requiresSafe(rule.kind) && !('safe' in rule)) {
     problems.push('missing required field "safe" (true: the tool applies the rewrite, false: it only reports)');
   }

@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import { buildPlan, loadManifests } from '../src/manifest.mjs';
 import { compareVersions, parseVersion } from '../src/versions.mjs';
 import { transformFile } from '../src/runner.mjs';
+import { createRegistry } from '../src/transforms/index.mjs';
 
 const manifests = await loadManifests();
 const HEAD = 'import Handsontable from \'handsontable\';\nconst hot = new Handsontable(el, {});\n';
@@ -206,5 +207,114 @@ describe('twin rules of two migrations report one spot once', () => {
         assert.ok(order < 0, `${id} is not earlier than ${rule.id}`);
       }
     }
+  });
+});
+
+/**
+ * Run two fake rules, `18.0.0/a` and its twin `19.0.0/a`, that each say something of their own about a statement.
+ *
+ * @param {object} args Arguments.
+ * @param {string} args.source File text.
+ * @param {string[]} [args.versions] The migrations in the plan.
+ * @param {'todo'|'report'} args.how How the rules leave their note: `ctx.todo()` on the statement, or a `manual` entry
+ * on its line that gets a generic marker.
+ * @returns {Promise<{output: string, changed: boolean, entries: object[]}>} The outcome.
+ */
+async function runChain({ source, versions = ['18.0.0', '19.0.0'], how }) {
+  const TEXTS = { '18.0.0/a': 'Check the early thing. It is early.', '19.0.0/a': 'Check the late thing. It is late.' };
+  const transform = {
+    kinds: ['detect'],
+    fileKinds: ['js'],
+    apply(ctx, rules) {
+      for (const rule of rules) {
+        const [statement] = ctx.root.find(ctx.j.ExpressionStatement).paths();
+
+        if (how === 'todo') {
+          ctx.todo(statement.node, rule.id, TEXTS[rule.id]);
+        } else {
+          ctx.report({ ruleId: rule.id,
+            severity: 'manual',
+            line: statement.node.loc.start.line,
+            message: TEXTS[rule.id] });
+        }
+      }
+    },
+    rescue: rules => rules,
+  };
+  const manifestsOf = versions.map(version => ({
+    version,
+    rules: [{
+      id: `${version}/a`,
+      kind: 'detect',
+      safe: true,
+      version,
+      guide: 'x',
+      guideUrl: `https://example.com/${version}`,
+      ...(version === '19.0.0' ? { twins: ['18.0.0/a'] } : {}),
+    }],
+  }));
+
+  return transformFile({
+    filePath: 'a.js',
+    source,
+    plan: buildPlan(manifestsOf),
+    registry: createRegistry([transform], ['detect'], new Set()),
+    options: {},
+  });
+}
+
+describe('a chained run keeps the earlier twin and says what the later one says', () => {
+  const source = 'call();\n';
+
+  for (const how of ['todo', 'report']) {
+    describe(`a note left through ${how === 'todo' ? 'ctx.todo()' : 'a report entry and a generic marker'}`, () => {
+      it('puts the later text in the entry and the comment, under the id and link of the earlier rule', async() => {
+        const first = await runChain({ source, how });
+        const [entry, ...others] = first.entries.filter(item => item.severity === 'manual');
+
+        assert.equal(others.length, 0);
+        assert.equal(entry.ruleId, '18.0.0/a');
+        assert.equal(entry.message, 'Check the late thing. It is late.');
+        assert.equal(entry.guideUrl, 'https://example.com/18.0.0');
+        assert.equal(entry.marked, true);
+        assert.equal(first.output,
+          '// TODO(handsontable-codemod 18.0.0/a): Check the late thing. It is late. See https://example.com/18.0.0\n'
+          + 'call();\n');
+      });
+
+      it('changes nothing in runs 2 and 3, and adds no second marker', async() => {
+        const first = await runChain({ source, how });
+        const second = await runChain({ source: first.output, how });
+        const third = await runChain({ source: second.output, how });
+
+        assert.equal(second.changed, false, second.output);
+        assert.equal(third.changed, false, third.output);
+        assert.equal(todos(third.output), 1);
+        assert.equal(second.entries.filter(item => item.severity === 'manual')[0].message,
+          'Check the late thing. It is late.');
+      });
+
+      it('adds no second marker when the later migration alone runs over the marked code', async() => {
+        const first = await runChain({ source, how });
+        const later = await runChain({ source: first.output, how, versions: ['19.0.0'] });
+
+        assert.equal(later.changed, false, later.output);
+        assert.equal(todos(later.output), 1);
+      });
+
+      it('says only what the earlier rule says in a run of its migration alone', async() => {
+        const early = await runChain({ source, how, versions: ['18.0.0'] });
+
+        assert.equal(early.entries[0].message, 'Check the early thing. It is early.');
+        assert.ok(early.output.includes('Check the early thing. It is early.'), early.output);
+      });
+    });
+  }
+
+  it('leaves the entry of a migration that lies after the spot alone: two spots, two entries', async() => {
+    const result = await runChain({ source: 'call();\ncall();\n', how: 'report' });
+    const entries = result.entries.filter(item => item.severity === 'manual');
+
+    assert.equal(entries.length, 1, 'both rules look at the first statement only');
   });
 });

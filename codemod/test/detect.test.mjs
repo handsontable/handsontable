@@ -156,6 +156,15 @@ describe('validateDetectRule', () => {
         JSON.stringify(withKey));
     }
 
+    assert.deepEqual(validateDetectRule(rule({ match: { call: 'a', receiver: { plugin: 'loading' } } })), []);
+    assert.deepEqual(validateDetectRule(rule({ match: { call: 'a', receiver: { plugin: ['loading', 'dialog'] } } })),
+      []);
+
+    for (const plugin of [1, '', [], [''], null, undefined]) {
+      assert.match(validateDetectRule(rule({ match: { call: 'a', receiver: { plugin } } })).join(),
+        /receiver\.plugin must be a plugin key/, JSON.stringify(plugin));
+    }
+
     for (const receiver of [1, '', ['instance'], null]) {
       assert.match(validateDetectRule(rule({ match: { call: 'a', receiver } })).join(), /receiver must be/,
         JSON.stringify(receiver));
@@ -554,6 +563,31 @@ describe('call matcher', () => {
 
     assert.deepEqual((await run(byText, text)).lines, [2]);
     assert.deepEqual((await run(byInstance, instance)).lines, [3]);
+  });
+
+  it('checks the receiver by the plugin it holds', async() => {
+    const matcher = rule({ match: { call: 'show', receiver: { plugin: 'loading' } } });
+    const source = `${HOT}const hot = new Handsontable(el, {});\n`
+      + 'const loading = hot.getPlugin(\'loading\');\nconst dialog = hot.getPlugin(\'dialog\');\n'
+      + 'loading.show(1);\n'
+      + 'dialog.show(2);\n'
+      + 'hot.getPlugin(\'loading\').show(3);\n'
+      + 'hot.getPlugin(\'Loading\')?.show(4);\n'
+      + 'hot.getPlugin(\'dialog\').show(5);\n'
+      + 'toast.show(6);\n'
+      + 'show(7);\n'
+      + 'let maybe = flag ? hot.getPlugin(\'loading\') : other;\nmaybe.show(8);\n'
+      + 'class A { constructor() { this.loading = hot.getPlugin(\'loading\'); } run() { this.loading.show(9); } }\n';
+
+    assert.deepEqual((await run(matcher, source)).lines, [5, 7, 8, 13, 14]);
+  });
+
+  it('takes a list of plugin keys in the receiver', async() => {
+    const matcher = rule({ match: { call: 'show', receiver: { plugin: ['loading', 'dialog'] } } });
+    const source = `${HOT}const hot = new Handsontable(el, {});\nhot.getPlugin('dialog').show(1);\n`
+      + 'hot.getPlugin(\'loading\').show(2);\nhot.getPlugin(\'copyPaste\').show(3);\n';
+
+    assert.deepEqual((await run(matcher, source)).lines, [3, 4]);
   });
 });
 

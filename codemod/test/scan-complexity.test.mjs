@@ -471,6 +471,50 @@ describe('a js part is walked a fixed number of times, whatever the number of ru
     assert.ok(many <= few + 2, `${few} walks for 2 copies of each rule, ${many} for 20`);
   });
 
+  it('reads the tree for the rules of three migrations as it does for the same rules of one', async() => {
+    const matchers = [
+      { property: 'correctFormat' },
+      { call: 'updateSettings' },
+      { hook: 'afterChange' },
+      { import: 'handsontable/common' },
+      { namespaceMember: 'helper.sanitize' },
+      { missingOption: 'licenseKey' },
+    ];
+    const ruleOf = (version, match, index) => ({
+      id: `${version}/r${index}`,
+      kind: 'detect',
+      version,
+      safe: false,
+      guideUrl: null,
+      files: ['js'],
+      message: 'm',
+      match,
+    });
+    const split = buildPlan(['1.0.0', '1.1.0', '1.2.0'].map((version, at) => ({
+      version,
+      rules: matchers.filter((_, index) => index % 3 === at).map((match, index) => ruleOf(version, match, index)),
+    })));
+    const joined = buildPlan([{
+      version: '1.0.0',
+      rules: matchers.map((match, index) => ruleOf('1.0.0', match, index)),
+    }]);
+    const source = 'import Handsontable from \'handsontable\';\n'
+      + 'const hot = new Handsontable(el, { columns: [{ correctFormat: true }] });\n'
+      + 'hot.updateSettings({ colHeaders: true });\nhot.addHook(\'afterChange\', () => {});\n'
+      + 'const s = Handsontable.helper.sanitize(\'x\');\n';
+    const walks = plan => countTraversals(async() => {
+      const { entries } = await transformFile({ filePath: 'a.js', source, plan });
+
+      assert.deepEqual(entries.filter(entry => entry.ruleId === 'transform-error'), []);
+      assert.equal(entries.length >= 4, true, 'the rules ran');
+    });
+    const one = await walks(joined);
+    const three = await walks(split);
+
+    // What the bindings and the option objects read stays valid from one version to the next while nothing is edited.
+    assert.ok(three <= one + 2, `${one} walks for the rules of one migration, ${three} for the same rules in three`);
+  });
+
   it('a spread of a different constant in every grid reads the identifiers of the file once', async() => {
     const manifests = await loadManifests(VERSIONS_DIR);
     const plan = buildPlan(manifests, ['18.1.0/license-key-missing', '18.0.0/html-without-sanitizer']);

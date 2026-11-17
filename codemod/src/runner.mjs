@@ -17,7 +17,8 @@ import { modeOf, rewrites } from './lib/safety.mjs';
 import { MarkerCarriers } from './lib/carrier.mjs';
 import { anchorsAbove, arrayOfTarget, createMarkerIndex, cssTargetAt } from './lib/marker.mjs';
 import {
-  addCssTodo, addJsTodo, collectComments, formatTodo, hasEarlierTodo, hasJsTodo, hasTwinTodo, lineOf,
+  addCssTodo, addJsTodo, collectComments, formatTodo, hasEarlierRuleTodo, hasEarlierTodo, hasJsTodo, hasTwinTodo,
+  lineOf, restateTodo,
 } from './lib/todo.mjs';
 import { VERSIONS_DIR, buildPlan, loadManifests, matchesOnly } from './manifest.mjs';
 import { REPORT_TITLE, Report, SKIPPED_RULE_ID, plural } from './report.mjs';
@@ -384,6 +385,26 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     return root && Number.isInteger(line) ? `twin:${root}:${line}` : undefined;
   };
   const annotatable = part.fileKind === 'js' || part.fileKind === 'css';
+  const inChain = rule => Boolean(rule) && ((rule.twins ?? []).length > 0 || twinTargets.has(rule.id));
+  // The comments `todo()` wrote into the tree, by report entry, so a later twin can restate them.
+  const written = new Map();
+  // A rule of a chain keeps its id, its link, and its marker, and says what the latest twin of the plan says: the entry
+  // gets the message of the later twin, and so does the marker, as long as it is not placed yet or is a comment this
+  // run wrote. A comment of an earlier run stays as it was.
+  const adopt = (existing, ruleId, commentText, message) => {
+    if (existing.severity !== 'manual' || existing.ruleId === ruleId) {
+      return;
+    }
+
+    existing.message = message;
+    marks.filter(mark => mark.stored === existing).forEach((mark) => {
+      mark.text = message;
+    });
+
+    const own = written.get(existing);
+
+    own?.comments.forEach(item => restateTodo(item, formatTodo(own.ruleId, commentText, own.guideUrl)));
+  };
   const store = (entry, { mark }) => {
     if (typeof entry?.ruleId !== 'string' || !SEVERITIES.has(entry.severity) || typeof entry.message !== 'string') {
       throw new Error(`Invalid report entry: ${JSON.stringify(entry)}`);
@@ -409,6 +430,10 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     };
 
     if (typeof key === 'string' && merged.has(key)) {
+      if (policy === 'earliest' && entry.mergeKey === undefined) {
+        adopt(merged.get(key), entry.ruleId, entry.message, entry.message);
+      }
+
       // A later step of the run says the same thing about the same spot. By default the net result replaces the
       // first entry (a range bump from the range the user wrote to the latest target). An entry that says
       // `merge: 'earliest'` keeps the first one, so the rule of the earliest migration owns the id, the message, and
@@ -429,9 +454,17 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     const markersOn = options.todo !== false && options.markers !== false;
 
     if (mark && annotatable && markersOn && wantsMarker(entry, owner)) {
-      const lines = [...new Set([entry.markLine ?? entry.line, ...(entry.lines ?? [])].filter(Number.isInteger))];
+      const found = [{ line: entry.markLine ?? entry.line, column: entry.markColumn },
+        ...(entry.lines ?? []).map((line, index) => ({ line, column: entry.markColumns?.[index] }))];
+      const sites = [];
 
-      marks.push({ stored, ruleId: entry.ruleId, text: entry.message, lines });
+      for (const site of found.filter(item => Number.isInteger(item.line))) {
+        if (!sites.some(item => item.line === site.line && item.column === site.column)) {
+          sites.push(site);
+        }
+      }
+
+      marks.push({ stored, ruleId: entry.ruleId, text: entry.message, sites });
     }
 
     return stored;
@@ -443,6 +476,24 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
 
   const markChanged = () => {
     part.changed = true;
+    part.revision = (part.revision ?? 0) + 1;
+  };
+
+  // What a transform derives from the tree of a part, kept for the next transform and the next version while no edit
+  // was recorded. `markChanged()` is the one place that records an edit, so the revision it counts is the key: a value
+  // of an older revision is dropped on the next call.
+  const derived = (key, compute) => {
+    const revision = part.revision ?? 0;
+
+    if (part.derived?.revision !== revision) {
+      part.derived = { revision, values: new Map() };
+    }
+
+    if (!part.derived.values.has(key)) {
+      part.derived.values.set(key, compute());
+    }
+
+    return part.derived.values.get(key);
   };
 
   // The paths of the nodes of a js part, built when a transform names a node and not a path: the TODO writer climbs
@@ -461,7 +512,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     return pathIndex.get(target) ?? null;
   };
 
-  const comment = (target, ruleId, text) => {
+  const commentInto = (target, ruleId, text, sink) => {
     if (options.todo === false) {
       return false;
     }
@@ -480,11 +531,12 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
       const twins = owner?.twins ?? [];
       const earlier = path !== null && anchorsAbove(path)
         .some(node => hasEarlierTodo(node, ruleId, text, guideUrl, scan)
-          || (twins.length > 0 && hasTwinTodo(node, twins, scan)));
+          || (twins.length > 0 && hasTwinTodo(node, twins, scan))
+          || (inChain(owner) && hasEarlierRuleTodo(node, ruleId, scan)));
 
       // The comment goes into the tree, so every later rule sees it and can move it with a node. `commit()` of the
       // carriers takes it out again, after the last rule, when its statement is still as it was parsed.
-      inserted = !earlier && addJsTodo(part.j, target, ruleId, text, guideUrl, scan);
+      inserted = !earlier && addJsTodo(part.j, target, ruleId, text, guideUrl, scan, sink);
     } else if (part.fileKind === 'css') {
       inserted = addCssTodo(target, ruleId, text, guideUrl, part.document, owner?.twins ?? []);
     }
@@ -496,17 +548,29 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     return inserted;
   };
 
+  const comment = (target, ruleId, text) => commentInto(target, ruleId, text, null);
+
   const todo = (target, ruleId, text, shortText) => {
     const twinKey = twinKeyOf(plan.rulesById.get(ruleId), lineOf(target) ?? undefined);
 
-    // A rule of an earlier migration already reports this spot in this run, and it owns the marker.
+    // A rule of an earlier migration already reports this spot in this run, and it owns the marker. It says what this
+    // later rule says.
     if (twinKey && merged.has(twinKey)) {
+      adopt(merged.get(twinKey), ruleId, shortText ?? text, text);
+
       return false;
     }
 
-    const inserted = comment(target, ruleId, shortText ?? text);
+    const sink = [];
+    const inserted = commentInto(target, ruleId, shortText ?? text, sink);
     const stored = store({ ruleId, severity: 'manual', line: lineOf(target) ?? undefined, message: text },
       { mark: false });
+
+    if (sink.length > 0) {
+      const owner = plan.rulesById.get(ruleId);
+
+      written.set(stored, { ruleId, guideUrl: owner?.guide ? owner.guideUrl : null, comments: sink });
+    }
 
     // The comment is in the code, put there now or by an earlier run, unless markers are off or the part holds none.
     if (annotatable && options.todo !== false) {
@@ -516,7 +580,15 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     return inserted;
   };
 
-  const removeStatement = path => part.fileKind === 'js' && carriersOf(part).removeStatement(path);
+  const removeStatement = (path, removal) => {
+    const removed = part.fileKind === 'js' && carriersOf(part).removeStatement(path, removal);
+
+    if (removed) {
+      part.revision = (part.revision ?? 0) + 1;
+    }
+
+    return removed;
+  };
 
   const ctx = {
     filePath,
@@ -531,6 +603,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     todo,
     comment,
     removeStatement,
+    derived,
     cssScope: cssScopeOf(part),
     lineOffset: part.lineOffset,
     fromText: plan.fromText ?? '',
@@ -552,7 +625,8 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
  * marker is in the code.
  * @property {string} ruleId Id of the rule.
  * @property {string} text The message of the entry. The comment keeps its first sentence.
- * @property {number[]} lines Lines of the entry inside the part, `line` first, then every line of a collapsed group.
+ * @property {Array<{line: number, column?: number}>} sites Places of the entry inside the part, `line` first, then every
+ * line of a collapsed group. A column picks one of several JSX elements that share the line.
  */
 
 /**
@@ -575,14 +649,17 @@ function applyMarkers(part, marks, plan) {
   const isJs = part.fileKind === 'js';
   const find = isJs ? createMarkerIndex(part.j, part.root) : line => cssTargetAt(part.root, line);
   const carriers = isJs ? carriersOf(part) : null;
+  const twinTargets = new Set([...plan.rulesById.values()].flatMap(rule => rule.twins ?? []));
 
   for (const mark of marks) {
     const owner = plan.rulesById.get(mark.ruleId);
+    const chained = (owner?.twins ?? []).length > 0 || twinTargets.has(mark.ruleId);
     const guideUrl = owner?.guide ? owner.guideUrl : null;
     let placed = false;
 
-    for (const line of mark.lines) {
-      const { targets, above } = isJs ? find(line) : { targets: [find(line)].flat().filter(Boolean), above: [] };
+    for (const { line, column } of mark.sites) {
+      const { targets, above } = isJs ? find(line, column)
+        : { targets: [find(line)].flat().filter(Boolean), above: [] };
 
       if (targets.length === 0) {
         continue;
@@ -600,6 +677,7 @@ function applyMarkers(part, marks, plan) {
         const there = targets.some(target => hasJsTodo(target, mark.ruleId, mark.text, guideUrl, scan))
           || above.some(node => hasEarlierTodo(node, mark.ruleId, mark.text, guideUrl, scan))
           || (twins.length > 0 && [...targets, ...above].some(item => hasTwinTodo(item.node ?? item, twins, scan)))
+          || (chained && [...targets, ...above].some(item => hasEarlierRuleTodo(item.node ?? item, mark.ruleId, scan)))
           || carriers.has(targets[0], body);
 
         // An untouched array element takes its comment as text, so the printer leaves its layout alone. A statement

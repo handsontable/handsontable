@@ -68,6 +68,14 @@ export function formatTodo(ruleId, text, guideUrl = null) {
   return `${TODO_PREFIX} ${ruleId}): ${shortenAdvice(text)}${guideUrl ? ` See ${guideUrl}` : ''}`;
 }
 
+/**
+ * A comment of the tool that a call wrote into the tree, kept so a later twin of the rule can restate its text.
+ *
+ * @typedef {object} WrittenComment
+ * @property {{value: string}} comment The comment node.
+ * @property {boolean} block `true` for a JSX block comment, `false` for a `//` line.
+ */
+
 const COMMENT_KEYS = new Set(['comments', 'leadingComments', 'trailingComments', 'innerComments']);
 
 /**
@@ -219,6 +227,22 @@ export function hasTwinTodo(node, twinIds, scan) {
     || (Boolean(scan) && scan.comments().some(comment => isTwin(comment) && sitsBefore(comment, node, scan.source)));
 }
 
+/**
+ * Whether the source already holds a TODO of one rule in front of a node, whatever follows the id. A chained run may
+ * restate the text of a TODO with the text of a later twin (see `restateTodo()`), so the next run, whose earlier rule
+ * words the comment its own way, must still find it. Only comments of the source count, never one the current run
+ * wrote, so two different spots of one rule that share a statement keep one comment each.
+ *
+ * @param {object} node An AST node.
+ * @param {string} ruleId Id of the rule.
+ * @param {CommentScan|null} scan The part's comments, or `null` for none.
+ * @returns {boolean} `true` when a comment of the rule from an earlier run is in front of the node.
+ */
+export function hasEarlierRuleTodo(node, ruleId, scan) {
+  return Boolean(scan) && scan.comments().some(comment => comment.value.trim().startsWith(`${TODO_PREFIX} ${ruleId}):`)
+    && sitsBefore(comment, node, scan.source));
+}
+
 const JSX_TARGETS = new Set(['JSXElement', 'JSXOpeningElement']);
 const JSX_PARENTS = new Set(['JSXElement', 'JSXFragment']);
 const CLIMB_STOPS = /^(?:Program|File)$|(?:Statement|Declaration)$/;
@@ -304,9 +328,10 @@ function commentRunBefore(parent, index) {
  * @param {object} path NodePath of a `JSXElement` or its `JSXOpeningElement`.
  * @param {string} body Text of the comment, as `formatTodo()` builds it.
  * @param {CommentScan|null} scan The part's comments.
+ * @param {WrittenComment[]|null} sink Receives the comment this call writes.
  * @returns {boolean} `true` when a comment was inserted.
  */
-function addJsxTodo(j, path, body, scan) {
+function addJsxTodo(j, path, body, scan, sink) {
   const elementPath = path.node.type === 'JSXOpeningElement' ? path.parent : path;
   const site = jsxChildSite(elementPath);
 
@@ -323,6 +348,7 @@ function addJsxTodo(j, path, body, scan) {
     const indent = spacer?.type === 'JSXText' ? spacer.value.slice(spacer.value.lastIndexOf('\n')) : '';
 
     empty.comments = [j.commentBlock(` ${body.replace(/\*\//g, '* /')} `, false, true)];
+    sink?.push({ comment: empty.comments[0], block: true });
     parent.children.splice(index, 0, j.jsxExpressionContainer(empty), ...(/^\n[ \t]*$/.test(indent)
       ? [j.jsxText(indent)] : []));
 
@@ -334,7 +360,7 @@ function addJsxTodo(j, path, body, scan) {
   const near = !line || !statement.loc || line - statement.loc.start.line <= NEAR_STATEMENT_LINES;
   const attribute = elementPath.node.openingElement.attributes[0];
 
-  return insertLineComment(j, near || !attribute ? statement : attribute, body, scan);
+  return insertLineComment(j, near || !attribute ? statement : attribute, body, scan, sink);
 }
 
 /**
@@ -402,9 +428,10 @@ export function isToolComment(comment) {
  * @param {object} node An AST node.
  * @param {string} body Text of the comment, as `formatTodo()` builds it.
  * @param {CommentScan|null} scan The part's comments.
+ * @param {WrittenComment[]|null} [sink] Receives the comment this call writes.
  * @returns {boolean} `true` when a comment was inserted.
  */
-function insertLineComment(j, node, body, scan) {
+function insertLineComment(j, node, body, scan, sink = null) {
   if (hasTodo(node, body, scan)) {
     return false;
   }
@@ -414,6 +441,7 @@ function insertLineComment(j, node, body, scan) {
   const comment = j.commentLine(` ${body}`, true, false);
 
   TOOL_COMMENTS.add(comment);
+  sink?.push({ comment, block: false });
 
   // The TODO goes after the leading comments and before a trailing one, so a note at the end of the line stays there.
   // A directive for the next line keeps that line: the TODO goes above it.
@@ -474,17 +502,31 @@ export function hasJsTodo(target, ruleId, text, guideUrl = null, scan = null) {
  * @param {string|null} [guideUrl] Link to the guide section, or `null` for none.
  * @param {CommentScan|null} [scan] The part's comments, so a comment that the parser attached to a neighboring node
  * on the previous run is still found.
+ * @param {WrittenComment[]|null} [sink] Receives the comment this call writes, for `restateTodo()`.
  * @returns {boolean} `true` when a comment was inserted, `false` when an identical one was already there.
  */
-export function addJsTodo(j, target, ruleId, text, guideUrl = null, scan = null) {
+export function addJsTodo(j, target, ruleId, text, guideUrl = null, scan = null, sink = null) {
   const node = target.node ?? target;
   const body = formatTodo(ruleId, text, guideUrl);
 
   if (target.node && JSX_TARGETS.has(node.type)) {
-    return addJsxTodo(j, target, body, scan);
+    return addJsxTodo(j, target, body, scan, sink);
   }
 
-  return insertLineComment(j, node, body, scan);
+  return insertLineComment(j, node, body, scan, sink);
+}
+
+/**
+ * Give a comment that `addJsTodo()` wrote in this run another text. A chained run does it when a later twin of the
+ * rule reports the same spot: the comment keeps the id and the link of the earlier rule and says what the later one
+ * says.
+ *
+ * @param {WrittenComment} written The comment, from the `sink` of `addJsTodo()`.
+ * @param {string} body Text of the comment, as `formatTodo()` builds it.
+ * @returns {void}
+ */
+export function restateTodo(written, body) {
+  written.comment.value = written.block ? ` ${body.replace(/\*\//g, '* /')} ` : ` ${body}`;
 }
 
 /**

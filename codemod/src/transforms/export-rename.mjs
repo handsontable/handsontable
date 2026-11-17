@@ -129,7 +129,7 @@ function renameInModule(ctx, rule, source, isModular, noted) {
 
     if (moves) {
       const moved = moveNamedImport(j, root, binding.declaration, binding.specifier, target,
-        renames && aliased ? { imported: rule.to } : {});
+        { cut: ctx.removeStatement, ...(renames && aliased ? { imported: rule.to } : {}) });
 
       if (!moved.moved) {
         ctx.report({

@@ -9,7 +9,9 @@
  * @module lib/holders
  */
 
-import { attributeName, isFunctionNode, memberName, propertyName, typeArguments, unwrapPath } from './ast.mjs';
+import {
+  attributeName, isFunctionNode, memberName, propertyName, typeArguments, typeMembers, unwrapPath,
+} from './ast.mjs';
 import { receiverOfGrid } from './hot-bindings.mjs';
 import { printTree } from './print.mjs';
 import { findReferences, lookup, patternIdentifiers } from './scope.mjs';
@@ -141,8 +143,7 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
     switch (node.type) {
       case 'TSUnionType':
       case 'TSIntersectionType':
-        return node.types.filter(item => item.type !== 'TSNullKeyword' && item.type !== 'TSUndefinedKeyword')
-          .some(isForeignType);
+        return typeMembers(node).some(isForeignType);
       case 'TSArrayType':
         return isForeignType(node.elementType);
       case 'TSTypeOperator':
@@ -234,7 +235,7 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
           && call.node.arguments[0] === node) {
           current = call;
         } else {
-          return null;
+          return { key: node, kind: 'factory', fn: parent };
         }
       } else if (node.type === 'ReturnStatement') {
         let fn = parent.parent;
@@ -249,7 +250,7 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
           && call.node.arguments[0] === fn.node) {
           current = call;
         } else {
-          return null;
+          return fn ? { key: fn.node, kind: 'factory', fn } : null;
         }
       } else if (node.type === 'VariableDeclarator' && node.init === current.node && node.id.type === 'Identifier') {
         const declaration = parent.parent;
@@ -325,6 +326,7 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
   };
 
   let classify;
+  let heldBy;
 
   /**
    * The uses of the names that take a part of the object (a destructured member, an alias of a member read, the
@@ -691,7 +693,242 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
     return holder.kind === 'member' ? membersByName().get(holder.name) ?? [] : [];
   };
 
-  const heldBy = (objectPath) => {
+  /**
+   * Whether an expression is the initializer of a declaration of one name.
+   *
+   * @param {object} path NodePath of the expression.
+   * @returns {boolean} `true` for `const name = <expression>`.
+   */
+  const isNamedInit = path => path.parent?.node.type === 'VariableDeclarator' && path.parent.node.init === path.node
+    && path.parent.node.id.type === 'Identifier';
+
+  /**
+   * The path above the type assertions and parentheses around an expression.
+   *
+   * @param {object} path NodePath of the expression.
+   * @returns {object} NodePath of the outermost wrapper, or the path itself.
+   */
+  const outsideWrappers = (path) => {
+    let current = path;
+
+    while (current.parent && WRAPPERS.has(current.parent.node.type)
+      && current.parent.node.expression === current.node) {
+      current = current.parent;
+    }
+
+    return current;
+  };
+
+  /**
+   * The first use the tool does not understand among several, and every spread.
+   *
+   * @param {Use[]} uses The uses.
+   * @param {number|undefined} line Line to report when there is no use.
+   * @returns {Use} One use.
+   */
+  const mergeUses = (uses, line) => {
+    const spreads = uses.flatMap(use => [use.spreadInto, ...use.alsoSpreadInto ?? []]).filter(Boolean);
+    const other = uses.find(use => use.other !== null);
+
+    return other ? { ...other, spreadInto: spreads[0] ?? null, alsoSpreadInto: spreads.slice(1) }
+      : { other: null, line, spreadInto: spreads[0] ?? null, alsoSpreadInto: spreads.slice(1) };
+  };
+
+  /**
+   * Whether a use is the grid's own, as `classify()` says, for the value a call or a name stands for: the object that
+   * a factory returns, or an array of them. A call that is the value of a declaration with a name follows every use of
+   * that name, as the object of a declaration does.
+   *
+   * @param {object} path NodePath of the call (or of the factory).
+   * @param {Set<object>} seen The bindings followed so far.
+   * @returns {Use} The use.
+   */
+  const classifyValue = (path, seen) => {
+    const current = outsideWrappers(path);
+
+    const parent = current.parent;
+
+    if (parent?.node.type !== 'VariableDeclarator' || parent.node.init !== current.node
+      || parent.node.id.type !== 'Identifier') {
+      return classify(path, false, seen);
+    }
+
+    const line = current.node.loc?.start?.line;
+
+    if (parent.parent?.parent?.node.type === 'ExportNamedDeclaration') {
+      return { other: 'exported', line, spreadInto: null };
+    }
+
+    const binding = lookup(parent.get('id'), parent.node.id.name, 'value');
+
+    if (!binding) {
+      return { other: 'used here', line, spreadInto: null };
+    }
+
+    if (seen.has(binding.idNode)) {
+      return { other: null, line, spreadInto: null };
+    }
+
+    seen.add(binding.idNode);
+
+    return mergeUses(findReferences(j, root, binding).map(reference => classify(reference, false, seen)), line);
+  };
+
+  /**
+   * Whether a use of a factory by name is the grid's own: a call gives the object to whatever the call goes to, and any
+   * other reference is the function itself (`cells: make`), which the same rules read.
+   *
+   * @param {object} reference NodePath of the reference.
+   * @param {Set<object>} seen The bindings followed so far.
+   * @returns {Use} The use.
+   */
+  const classifyFactoryReference = (reference, seen) => {
+    const current = outsideWrappers(reference);
+
+    const parent = current.parent;
+
+    return parent && CALLS.has(parent.node.type) && parent.node.callee === current.node
+      ? classifyValue(parent, seen) : classify(reference, false, seen);
+  };
+
+  /**
+   * Whether the object that holds a function or a class member is handed on to code the file does not show: it is
+   * exported, assigned to a member of another object (`module.exports = {...}`), or named in an `export` later.
+   *
+   * @param {object} ownerPath NodePath of the object literal or the class.
+   * @returns {boolean} `true` when other modules can reach it.
+   */
+  const isExposed = (ownerPath) => {
+    let current = ownerPath;
+
+    while (current.parent && WRAPPERS.has(current.parent.node.type)) {
+      current = current.parent;
+    }
+
+    const parent = current.parent;
+    const type = parent?.node.type;
+
+    if (type === 'ExportDefaultDeclaration' || type === 'ExportNamedDeclaration' || type === 'AssignmentExpression') {
+      return true;
+    }
+
+    let named = current.node.type === 'ClassDeclaration' ? current.node.id : null;
+
+    if (isNamedInit(current)) {
+      named = parent.node.id;
+    }
+
+    if (!named) {
+      return false;
+    }
+
+    if (parent.parent?.parent?.node.type === 'ExportNamedDeclaration') {
+      return true;
+    }
+
+    const binding = lookup(type === 'VariableDeclarator' ? parent.get('id') : current.get('id'), named.name, 'value');
+
+    const hands = reference => ['ExportSpecifier', 'ExportDefaultDeclaration'].includes(reference.parent?.node.type)
+      || (reference.parent?.node.type === 'AssignmentExpression' && reference.parent.node.right === reference.node);
+
+    return Boolean(binding) && findReferences(j, root, binding).some(hands);
+  };
+
+  /**
+   * What a function that returns an options object is handed to. The objects it returns reach whatever the function,
+   * or its calls, reach: `cells: make` and `new Handsontable(el, make())` are the grid's own, and `legacy(make())`,
+   * `export const make`, `register(make)`, and a method of an exported object are not.
+   *
+   * @param {object} fnPath NodePath of the function.
+   * @returns {Held} What holds the objects the function returns.
+   */
+  const factoryHeld = (fnPath) => {
+    // A function that sits in an options object is the grid's own (`cells() {}`), unless that object is held.
+    const heldOwner = (ownerPath) => {
+      const owner = heldBy(ownerPath);
+
+      return { other: owner?.other ?? null, line: owner?.otherLine, spreadInto: null };
+    };
+    const seen = new Set();
+    const line = fnPath.node.loc?.start?.line;
+    const exposed = { other: 'exported', line, spreadInto: null };
+    const uses = [];
+    const current = outsideWrappers(fnPath);
+
+    const { node } = current;
+    const parent = current.parent;
+    const byName = (name, scopePath) => {
+      const binding = lookup(scopePath, name, 'value');
+
+      if (!binding) {
+        return [{ other: 'used here', line, spreadInto: null }];
+      }
+
+      seen.add(binding.idNode);
+
+      return findReferences(j, root, binding).map(reference => classifyFactoryReference(reference, seen));
+    };
+    const byMember = name => (membersByName().get(name) ?? [])
+      .map(reference => classifyFactoryReference(reference, seen));
+
+    if (node.type === 'FunctionDeclaration') {
+      if (['ExportDefaultDeclaration', 'ExportNamedDeclaration'].includes(parent?.node.type) || !node.id) {
+        uses.push(exposed);
+      } else {
+        uses.push(...byName(node.id.name, current.get('id')));
+      }
+    } else if (['ObjectMethod', 'ClassMethod', 'ClassPrivateMethod'].includes(node.type) && !node.computed
+      && (node.key?.type === 'Identifier' || node.key?.type === 'PrivateName')) {
+      const owner = parent?.node.type === 'ClassBody' ? parent.parent : parent;
+      const name = node.key.name ?? node.key.id?.name;
+
+      if (owner?.node.type === 'ObjectExpression' && isOptionObject(owner.node)) {
+        uses.push(heldOwner(owner));
+      } else if (!owner || isExposed(owner)) {
+        uses.push(exposed);
+      } else {
+        uses.push(...byMember(name));
+      }
+    } else if (isNamedInit(current)) {
+      if (parent.parent?.parent?.node.type === 'ExportNamedDeclaration') {
+        uses.push(exposed);
+      } else {
+        uses.push(...byName(parent.node.id.name, parent.get('id')));
+      }
+    } else if (['ObjectProperty', 'Property'].includes(parent?.node.type) && parent.node.value === node
+      && parent.parent?.node.type === 'ObjectExpression' && isOptionObject(parent.parent.node)) {
+      uses.push(heldOwner(parent.parent));
+    } else if (['ObjectProperty', 'Property'].includes(parent?.node.type) && parent.node.value === node
+      && parent.parent?.node.type === 'ObjectExpression' && !isOptionObject(parent.parent.node)
+      && propertyName(parent.node) !== null) {
+      uses.push(isExposed(parent.parent) ? exposed : mergeUses(byMember(propertyName(parent.node)), line));
+    } else if (parent?.node.type === 'ClassProperty' && parent.node.value === node && !parent.node.computed
+      && parent.node.key.type === 'Identifier') {
+      uses.push(isExposed(parent.parent.parent) ? exposed : mergeUses(byMember(parent.node.key.name), line));
+    } else if (parent && CALLS.has(parent.node.type) && parent.node.callee === node) {
+      uses.push(classifyValue(parent, seen));
+    } else if (parent && CALLS.has(parent.node.type) && parent.node.arguments[0] === node
+      && MEMBERS.has(unwrapPath(parent.get('callee')).node.type) && ITERATION.has(memberName(parent.node.callee))) {
+      // A callback of `map()` makes the elements of the array that the call answers with. The others drop the answer.
+      const method = memberName(parent.node.callee);
+      const collects = method === 'map' || method === 'flatMap';
+
+      uses.push(collects ? classifyValue(parent, seen) : { other: null, line, spreadInto: null });
+    } else {
+      uses.push(classify(current, false, seen));
+    }
+
+    const merged = mergeUses(uses.flat(), line);
+    const held = { other: merged.other, otherLine: merged.line, spreads: [] };
+
+    for (const spread of [merged.spreadInto, ...merged.alsoSpreadInto ?? []].filter(Boolean)) {
+      held.spreads.push({ ...spread, names: around.get(spread.spread) });
+    }
+
+    return held;
+  };
+
+  heldBy = (objectPath) => {
     const holder = holderOf(objectPath);
 
     if (!holder) {
@@ -707,6 +944,14 @@ export function createHolders({ j, root, bindings, isOptionObject, isAnnotated =
         cache.set(holder.key, held);
 
         return held;
+      }
+
+      if (holder.kind === 'factory') {
+        const result = factoryHeld(holder.fn);
+
+        cache.set(holder.key, result);
+
+        return result;
       }
 
       if (holder.kind === 'exported') {

@@ -279,6 +279,29 @@ describe('isInstance', () => {
 
       assert.deepEqual(answers, [false, false, false, false, false, true, true, true, true, false, false]);
     });
+
+    it(`keeps a grid an instance when its type is a union with null or undefined (${parser})`, () => {
+      const answers = probes([
+        'import Handsontable, { Core } from \'handsontable\';',
+        'import type { RefObject } from \'react\';',
+        'let a: Handsontable | undefined; a = new Handsontable(el, {});',
+        'let b: Core | null; b = new Handsontable(el, {});',
+        'let c: Handsontable | null | undefined; c = new Handsontable(el, {});',
+        'let d: (Handsontable | null) = new Handsontable(el, {});',
+        'let e: Handsontable | MyUndo; e = new Handsontable(el, {});',
+        'let f: MyUndo | null; f = new Handsontable(el, {});',
+        'const g = new Handsontable(el, {}) as Handsontable | undefined;',
+        'const h = new Handsontable(el, {}) as MyUndo | undefined;',
+        'let i: Handsontable & { extra: number }; i = new Handsontable(el, {});',
+        'declare const ref: RefObject<Handsontable | null> | null;',
+        'declare const other: RefObject<Handsontable | null> | MyUndo;',
+        'declare const mine: RefObject<MyUndo> | null;',
+        'a.probe(); b.probe(); c.probe(); d.probe(); e.probe(); f.probe(); g.probe(); h.probe(); i.probe();',
+        'ref.current.probe(); other.current.probe(); mine.current.probe();',
+      ].join('\n'), parser);
+
+      assert.deepEqual(answers, [true, true, true, true, false, false, true, false, false, true, false, false]);
+    });
   }
 });
 

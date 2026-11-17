@@ -208,13 +208,14 @@ function sharedLineSiblings(path) {
  *
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed Collection.
- * @returns {(line: number) => {targets: object[], above: object[]}} A function from a one-based line to the marker
- * targets, nearest first (see `markerTargets()`), and the nodes above them where an earlier run may have left the same
+ * @returns {(line: number, column?: number) => {targets: object[], above: object[]}} A function from a one-based line,
+ * and a zero-based column that picks the node when several start on the line, to the marker targets, nearest first (see `markerTargets()`), and the nodes above them where an earlier run may have left the same
  * comment (see `anchorsAbove()`).
  */
 export function createMarkerIndex(j, root) {
   const outermost = new Map();
   const outermostInBlock = new Map();
+  const outermostAt = new Map();
 
   root.find(j.Node).forEach((path) => {
     const line = path.node.loc?.start?.line;
@@ -224,6 +225,11 @@ export function createMarkerIndex(j, root) {
     }
 
     const depth = depthOf(path);
+    const at = `${line}:${path.node.loc.start.column}`;
+
+    if (!outermostAt.has(at) || outermostAt.get(at).depth > depth) {
+      outermostAt.set(at, { path, depth });
+    }
 
     if (!outermost.has(line) || outermost.get(line).depth > depth) {
       outermost.set(line, { path, depth });
@@ -236,12 +242,15 @@ export function createMarkerIndex(j, root) {
     }
   });
 
-  return (line) => {
+  return (line, column) => {
     if (!outermost.has(line)) {
       return { targets: [], above: [] };
     }
 
-    const { path } = outermost.get(line);
+    // A JSX element of a line that holds several of them is found by its column. A column that no node starts at (the
+    // text moved) falls back to the line.
+    const exact = Number.isInteger(column) ? outermostAt.get(`${line}:${column}`) : undefined;
+    const { path } = exact ?? outermost.get(line);
     const targets = markerTargets(path);
 
     // A block that opens the line has no statement above it to take the comment (`{ a(); b(); }` among the statements

@@ -31,6 +31,7 @@ const SENTINEL_PREFIX = '__codemodMarker';
 const LINE_BREAK = /[\n\r\u2028\u2029]/;
 const STATEMENT = /(?:Statement|Declaration)$/;
 const BLANK = /^[ \t]*$/;
+const BLANK_OR_MARK = /^[ \t\uFEFF]*$/;
 const BYTE_ORDER_MARK = new RegExp(String.fromCharCode(0xfeff), 'g');
 const NOT_NODES = new Set(['loc', 'tokens', 'comments', 'extra', 'leadingComments', 'trailingComments', 'innerComments',
   'original']);
@@ -399,23 +400,34 @@ export class MarkerCarriers {
    * it, on their lines or sharing one, keep their text. `spliceCarriers()` cuts the sentinel out. The comments of the
    * statement stay where they stand.
    *
-   * @param {object} path NodePath of the statement.
+   * @param {object} path NodePath of the statement: an expression statement, or an import declaration.
+   * @param {object} [options] Options.
+   * @param {boolean} [options.keepComments] `false` when the caller gave the comments of an import declaration to
+   * another node, so the stand-in must not hold them. Defaults to `true`.
    * @returns {boolean} `true` when the statement was swapped. `false` leaves the removal to the caller: the statement
-   * is not an expression statement of the original text, a rule changed its comments, or it is not an item of a list.
+   * is not an expression statement or an import of the original text, a rule changed its comments, or it is not an
+   * item of a list.
    */
-  removeStatement(path) {
+  removeStatement(path, { keepComments = true } = {}) {
     const { node } = path;
+    const isImport = node.type === 'ImportDeclaration';
 
-    if (node.type !== 'ExpressionStatement' || !node.original?.loc || !Array.isArray(path.parentPath?.value)
-      || typeof path.name !== 'number' || !sameComments(node)) {
+    // A removed import hands its comments to another declaration before it goes (`removeNamedImport()`), so the list
+    // of its comments is no longer the original one.
+    if ((node.type !== 'ExpressionStatement' && !isImport) || !node.original?.loc
+      || !Array.isArray(path.parentPath?.value) || typeof path.name !== 'number'
+      || (!isImport && !sameComments(node))) {
       return false;
     }
 
     const list = path.parentPath.value;
     const sentinel = this.nextSentinel();
-    const standIn = this.j.expressionStatement(this.j.identifier(sentinel));
+    // An import is swapped for an import, which recast patches into the range of the old one, as an expression
+    // statement is for another one. A statement of another type would make it print the whole list again.
+    const standIn = isImport ? this.j.importDeclaration([], this.j.literal(sentinel))
+      : this.j.expressionStatement(this.j.identifier(sentinel));
 
-    if (node.comments) {
+    if (node.comments && keepComments) {
       // The same comment objects: recast then leaves the comments around the statement in the text.
       standIn.comments = node.comments;
     }
@@ -438,6 +450,7 @@ export class MarkerCarriers {
       sentinel,
       // A file without semicolons: the line before would run on into the line after.
       keepSemicolon: startsWithContinuation(staying(1)) && endsUnterminated(staying(-1)),
+      ...(isImport ? { isImport } : {}),
     });
 
     return true;
@@ -492,9 +505,9 @@ export class MarkerCarriers {
     statements.forEach(node => this.commitStatement(node));
 
     // A removed statement that left the tree with its container has no sentinel to cut.
-    for (const { node, sentinel, keepSemicolon } of this.removals) {
+    for (const { node, sentinel, keepSemicolon, isImport } of this.removals) {
       if (removed.has(node)) {
-        this.keep({ kind: 'removal', sentinel, keepSemicolon, bodies: [], texts: [] });
+        this.keep({ kind: 'removal', sentinel, keepSemicolon, isImport, bodies: [], texts: [] });
       }
     }
 
@@ -685,21 +698,36 @@ function insertComments(lines, index, anchor, bodies, eol) {
  * @param {string} sentinel The sentinel.
  * @param {boolean} keepSemicolon A file without semicolons would run the line before into the line after, so a `;`
  * stays where the statement was.
+ * @param {boolean} [isImport] The stand-in is an import declaration: `import "sentinel";`, so the cut starts at its
+ * keyword and ends after its closing quote.
  * @returns {void}
  */
-function cutRemoved(lines, index, at, sentinel, keepSemicolon) {
+function cutRemoved(lines, index, at, sentinel, keepSemicolon, isImport = false) {
   const line = lines.body[index];
+  let start = at;
+  let end = at + sentinel.length;
+
+  if (isImport) {
+    // The stand-in prints as `import "sentinel";`, in whatever quotes the printer uses.
+    const open = /import\s*["']$/.exec(line.slice(0, at));
+
+    start = at - (open ? open[0].length : 0);
+    end += 1;
+  }
+
   // The printer ends the statement with a `;` after the sentinel.
-  const end = line[at + sentinel.length] === ';' ? at + sentinel.length + 1 : at + sentinel.length;
-  const before = line.slice(0, at);
+  end += line[end] === ';' ? 1 : 0;
+
+  const before = line.slice(0, start);
   const after = line.slice(end);
 
   if (keepSemicolon) {
     lines.body[index] = `${before};${after}`;
-  } else if (BLANK.test(before) && BLANK.test(after)) {
+  } else if (BLANK_OR_MARK.test(before) && BLANK.test(after)) {
+    // A byte order mark inside the text is white space to the parser, and goes with its line.
     lines.cut[index] = true;
   } else if (BLANK.test(after)) {
-    lines.body[index] = line.slice(0, at - /[ \t]*$/.exec(before)[0].length);
+    lines.body[index] = line.slice(0, start - /[ \t]*$/.exec(before)[0].length);
   } else {
     lines.body[index] = before + after.slice(/^[ \t]*/.exec(after)[0].length);
   }
@@ -748,7 +776,7 @@ export function spliceCarriers(carriers, printed, eol) {
     const at = line.indexOf(sentinel);
 
     if (kind === 'removal') {
-      cutRemoved(lines, index, at, sentinel, record.keepSemicolon === true);
+      cutRemoved(lines, index, at, sentinel, record.keepSemicolon === true, record.isImport === true);
 
       continue;
     }

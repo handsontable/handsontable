@@ -1,4 +1,4 @@
-import { attributeName, propertyName } from '../lib/ast.mjs';
+import { attributeName, findOf, propertyName } from '../lib/ast.mjs';
 import { isRemoteSource, parseCatalogSpec, planRange, rangeAdmits } from '../lib/dependency-range.mjs';
 import { addFact, dirOf, factSite, hasFactFor } from '../lib/facts.mjs';
 import { memberPosition } from '../lib/json-edit.mjs';
@@ -57,12 +57,13 @@ function isModulePath(path, name) {
  * @param {object} j The jscodeshift API.
  * @param {object} root The parsed file, a jscodeshift Collection.
  * @param {string} name Module name.
+ * @param {(type: object) => object} [find] Finds the paths of a node type (see `findOf()`).
  * @returns {object|null} The first such statement in source order, or `null` when none names the module.
  */
-function firstImport(j, root, name) {
+function firstImport(j, root, name, find = type => root.find(type)) {
   const isRequire = callee => (callee.type === 'Identifier' && callee.name === 'require') || callee.type === 'Import';
   const found = [];
-  const collect = (type, test) => Boolean(type) && root.find(type).forEach((path) => {
+  const collect = (type, test) => Boolean(type) && find(type).forEach((path) => {
     if (test(path.node)) {
       found.push(path.node);
     }
@@ -116,13 +117,14 @@ function objectHasKey(node, key) {
  * @param {object} root The parsed file, a jscodeshift Collection.
  * @param {string} name Property name.
  * @param {string} [withKey] When set, the value must be an object that has this key.
+ * @param {(type: object) => object} [find] Finds the paths of a node type (see `findOf()`).
  * @returns {object|null} The first such property or attribute in source order, or `null` when there is none.
  */
-function firstProperty(j, root, name, withKey) {
+function firstProperty(j, root, name, withKey, find = type => root.find(type)) {
   const valueOf = node => (node.type === 'JSXAttribute' ? node.value?.expression : node.value);
   const found = [];
 
-  [j.ObjectProperty, j.Property, j.JSXAttribute].filter(Boolean).forEach(type => root.find(type).forEach((path) => {
+  [j.ObjectProperty, j.Property, j.JSXAttribute].filter(Boolean).forEach(type => find(type).forEach((path) => {
     if (keyName(path.node) === name && (withKey === undefined || objectHasKey(valueOf(path.node), withKey))) {
       found.push(path.node);
     }
@@ -156,16 +158,17 @@ export function matchesWhen(j, root, when) {
  * @param {object} j The jscodeshift API bound to the file's parser.
  * @param {object} root The parsed file, a jscodeshift Collection.
  * @param {object} when The condition: `{ import }` or `{ property, withKey }`.
+ * @param {(type: object) => object} [find] Finds the paths of a node type (see `findOf()`).
  * @returns {{line: number|undefined}|null} The line of the first match (`undefined` for a node with no position),
  * or `null` when the file does not match.
  */
-export function findWhen(j, root, when) {
+export function findWhen(j, root, when, find = undefined) {
   let node = null;
 
   if (typeof when?.import === 'string') {
-    node = firstImport(j, root, when.import);
+    node = firstImport(j, root, when.import, find);
   } else if (typeof when?.property === 'string') {
-    node = firstProperty(j, root, when.property, when.withKey);
+    node = firstProperty(j, root, when.property, when.withKey, find);
   }
 
   return node === null ? null : { line: node.loc?.start?.line };
@@ -182,6 +185,7 @@ export function findWhen(j, root, when) {
 function collectFacts(ctx, rules) {
   const mentionsHandsontable = /handsontable/i.test(ctx.source);
   const dir = dirOf(ctx.filePath);
+  const find = findOf(ctx);
 
   for (const rule of rules) {
     for (const fact of Array.isArray(rule.facts) ? rule.facts : []) {
@@ -191,7 +195,7 @@ function collectFacts(ctx, rules) {
         continue;
       }
 
-      const found = findWhen(ctx.j, ctx.root, fact.when);
+      const found = findWhen(ctx.j, ctx.root, fact.when, find);
 
       if (found) {
         addFact(ctx, fact.name, found.line);

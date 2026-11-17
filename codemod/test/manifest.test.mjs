@@ -471,6 +471,27 @@ describe('loadManifest', () => {
   });
 });
 
+describe('a rule that names the guide and says it is not in it', () => {
+  it('is rejected, because the link the author wrote would be dropped without a word', async() => {
+    await withVersionsDir(async(root) => {
+      const dir = await writeVersion(root, '18.0.0', {
+        rules: [{ id: '18.0.0/a', kind: 'optionRemove', name: 'a', safe: true, guide: 'step', inGuide: false }],
+      });
+
+      await assert.rejects(loadManifest(dir), /18\.0\.0\/a.*"inGuide": false.*cannot also name a "guide" anchor/s);
+    });
+  });
+
+  it('is reported by validateRule, and each field alone is fine', () => {
+    const base = { id: '18.0.0/a', kind: 'optionRemove', name: 'a', safe: true };
+
+    assert.match(validateRule({ ...base, guide: 'step', inGuide: false }, '18.0.0').join(), /inGuide/);
+    assert.deepEqual(validateRule({ ...base, guide: 'step' }, '18.0.0'), []);
+    assert.deepEqual(validateRule({ ...base, inGuide: false }, '18.0.0'), []);
+    assert.deepEqual(validateRule({ ...base, guide: 'step', inGuide: true }, '18.0.0'), []);
+  });
+});
+
 describe('a custom rule module', () => {
   const SOURCE = 'import Handsontable from \'handsontable\';\nnew Handsontable(el, {});\n';
   const STYLE = 'a { color: var(--ht-foreground-color); }\n';

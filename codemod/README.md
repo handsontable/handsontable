@@ -476,6 +476,16 @@ the tool reads the version from `package.json`, which the run raised, and answer
   map. A variable name built in JavaScript (`` `--ht-${token}` ``) is not found.
 - The line of a report entry inside a multi-line template literal is the line of the variable. Its TODO marker goes on
   the statement that holds the literal, because a comment cannot sit inside the literal.
+- Two JSX elements on one line that a rule flags each get their own `{/* TODO(...) */}` marker, in front of each
+  element. The report shows the rule once for the line.
+- When a chained run holds two migrations that report one spot (a rule and its twin in a later migration), the entry
+  keeps the id, the guide link, and the marker of the earlier rule and says what the later rule says. A marker that an
+  earlier run wrote keeps the words it has.
+- A factory that builds an options object (`const make = () => ({ ... })`, `function make() { return { ... }; }`, a
+  method that returns one) is edited only when every use of it is the grid's: `cells: make`, a call whose result goes
+  to `new Handsontable()`, or a `cells()` method of an options object. A result that goes to another function, an export
+  (`export const make`, `export { make }`, `module.exports.make = make`), a method of an exported object or class, or
+  an unknown call that takes the factory (`register(make)`) keeps the object as it is, and the entry names the use.
 - A TODO on a statement that stands on one line, that the run did not change, and that starts its line
   (`if (ready) plugin.saveManualColumnWidths();`, a `for`, a `while`, a label, a declaration, an `export`) goes on the line
   above, and the statement stays as it was, byte for byte. So does a TODO on an array element or a property of a
@@ -555,10 +565,12 @@ the tool reads the version from `package.json`, which the run raised, and answer
   held nothing else is left with its two braces on lines of their own, and a blank line around the statement stays. When
   another change makes the printer lay out the same list again (an import split in two, say), the printer puts two
   statements that shared a line on lines of their own.
-- When an import goes away because it was merged into another, the printer reprints the statements after it in the same
-  list, and two statements that shared a line (`a(); b();`) come out without the space between them (`a();b();`). The
-  code is the same. Run your formatter. The comments of a removed import (a line above it, a trailing note, a JSDoc
-  block) move to the import that took its name.
+- When an import goes away because it was merged into another, it is cut out of the text like a removed statement:
+  the statements around it keep their bytes, blank lines, comments, and the style of their semicolons, and statements
+  that shared its line stay as written (`a(); import x from 'y'; b();` becomes `a(); b();`). The comments of the removed
+  import (a line above it, a trailing note, a JSDoc block) move to the import that took its name. When another change
+  makes the printer lay out the same list again (an import split in two, say), the printer puts two statements that
+  shared a line on lines of their own.
 - A wildcard re-export (`export * from 'handsontable/plugins/columnSorting'`, `export * as ns from ...`) of a module
   whose names a rule renames or removes gets one entry per rule: every file that imports from the barrel gets the new
   names. The files that import from the barrel are not read. A JSDoc type (`@param {Config}`) that still says the

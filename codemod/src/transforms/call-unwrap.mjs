@@ -1,5 +1,5 @@
 import { memberName, propertyName, unwrapPath } from '../lib/ast.mjs';
-import { collectHotBindings } from '../lib/hot-bindings.mjs';
+import { hotBindingsOf } from '../lib/hot-bindings.mjs';
 import { rewrites } from '../lib/safety.mjs';
 import { lookup, referenceSpace } from '../lib/scope.mjs';
 import { problemsOf } from '../lib/validate.mjs';
@@ -241,7 +241,7 @@ const callUnwrap = {
       return;
     }
 
-    const bindings = collectHotBindings(j, root);
+    const bindings = hotBindingsOf(ctx);
 
     if (!bindings.isHotFile) {
       return;

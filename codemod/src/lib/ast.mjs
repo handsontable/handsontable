@@ -5,6 +5,9 @@
  * @module lib/ast
  */
 
+import { createRequire } from 'node:module';
+
+const matchNode = createRequire(import.meta.url)('jscodeshift/src/matchNode');
 const WRAPPER_TYPES = new Set([
   'TSAsExpression',
   'TSSatisfiesExpression',
@@ -312,4 +315,49 @@ export function isWriteOnly(path) {
     default:
       return isPatternTarget(current);
   }
+}
+
+/**
+ * A function that finds the paths of one node type in the part, once for each type while no edit is recorded: the
+ * Collection that `root.find(type)` returns goes to every transform and every version that asks (see `ctx.derived()`).
+ * The caller reads the Collection and never edits through it. A context without `derived` finds each time.
+ *
+ * @param {object} ctx The transform context of a js part.
+ * @returns {(type: object) => object} A function from a node type of `ctx.j` to the Collection of its paths.
+ */
+export function findOf(ctx) {
+  const found = ctx.derived ? ctx.derived('find', () => new Map()) : new Map();
+
+  return (type) => {
+    if (!found.has(type)) {
+      found.set(type, ctx.root.find(type));
+    }
+
+    return found.get(type);
+  };
+}
+
+/**
+ * An object that answers `find(type, filter)` like a jscodeshift Collection, from the paths of a type that `find`
+ * already holds, so a scan that asks for a type with a filter reads the tree once for the type (see `findOf()`). The
+ * filter is the object pattern jscodeshift matches against a node.
+ *
+ * @param {(type: object) => object} find A function from a node type to the Collection of its paths.
+ * @returns {{find: (type: object, filter?: object) => object}} The stand-in for the root Collection.
+ */
+export function rootFrom(find) {
+  return {
+    find: (type, filter) => (filter ? find(type).filter(path => matchNode(path.value, filter)) : find(type)),
+  };
+}
+
+/**
+ * The members of a union or intersection type that say something: `null` and `undefined` are left out, because a
+ * value that may also be absent is still held to the other members.
+ *
+ * @param {object} typeNode A `TSUnionType` or `TSIntersectionType` node.
+ * @returns {object[]} The other member type nodes.
+ */
+export function typeMembers(typeNode) {
+  return typeNode.types.filter(item => item.type !== 'TSNullKeyword' && item.type !== 'TSUndefinedKeyword');
 }

@@ -62,10 +62,9 @@
           { "property": "loading.title", "valueMatches": "<[A-Za-z/!]" },
           { "property": "loading.description", "valueMatches": "<[A-Za-z/!]" },
           {
-            "allOf": [
-              { "call": ["show", "update"], "argMatches": "<[A-Za-z/!]" },
-              { "regex": "getPlugin\\(\\s*['\"]loading['\"]", "flags": "i", "code": true }
-            ]
+            "call": ["show", "update"],
+            "argMatches": "<[A-Za-z/!]",
+            "receiver": { "plugin": "loading" }
           }
         ]
       },

@@ -333,8 +333,8 @@ describe('transformFile and the transform contract', () => {
     }, { filePath: 'dir/a.css', facts, options: { aggressive: true } });
 
     assert.deepEqual(Object.keys(seen).sort(), [
-      'ancestors', 'catalog', 'comment', 'css', 'cssScope', 'facts', 'fileKind', 'filePath', 'fromText', 'j', 'json',
-      'lineOffset', 'markChanged', 'options', 'parser', 'removeStatement', 'report', 'root', 'source', 'todo',
+      'ancestors', 'catalog', 'comment', 'css', 'cssScope', 'derived', 'facts', 'fileKind', 'filePath', 'fromText', 'j',
+      'json', 'lineOffset', 'markChanged', 'options', 'parser', 'removeStatement', 'report', 'root', 'source', 'todo',
     ]);
     assert.equal(seen.parser, null);
     assert.equal(seen.catalog, null);
@@ -421,6 +421,39 @@ describe('transformFile and the transform contract', () => {
     assert.equal(result.entries[0].line, 2);
     assert.deepEqual(result.entries[0].lines, [2, 4]);
     assert.equal(result.entries[0].scope, 'run');
+  });
+
+  it('keeps what ctx.derived() read for the next transform until an edit is recorded', async() => {
+    const seen = [];
+    const step = (kind, behavior) => ({
+      kinds: [kind], fileKinds: ['js'], apply: ctx => behavior(ctx), rescue: rules => rules,
+    });
+    const registry = createRegistry([
+      step('detect', (ctx) => {
+        seen.push(['detect', ctx.derived('x', () => `made ${seen.length}`), ctx.derived('x', () => 'again')]);
+      }),
+      step('optionRename', (ctx) => {
+        seen.push(['rename', ctx.derived('x', () => 'unused')]);
+        ctx.markChanged();
+        seen.push(['after edit', ctx.derived('x', () => `made ${seen.length}`)]);
+      }),
+    ], ['detect', 'optionRename']);
+    const plan = buildPlan([{ version: '18.0.0',
+      rules: ['detect', 'optionRename'].map(kind => ({
+        id: `18.0.0/${kind}`, kind, safe: true, version: '18.0.0', guideUrl: null,
+      })) }, { version: '18.1.0',
+      rules: [{
+        id: '18.1.0/detect', kind: 'detect', safe: false, version: '18.1.0', guideUrl: null,
+      }] }]);
+
+    await transformFile({ filePath: 'a.js', source: 'const handsontable = 1;\n', plan, registry });
+
+    assert.deepEqual(seen, [
+      ['detect', 'made 0', 'made 0'],
+      ['rename', 'made 0'],
+      ['after edit', 'made 2'],
+      ['detect', 'made 2', 'made 2'],
+    ]);
   });
 
   it('leaves a TODO once, reports manual every time, and marks the part changed', async() => {
@@ -1022,29 +1055,38 @@ describe('run', () => {
   });
 
   it('exits 1 for a file whose transform failed, leaves it alone, and still migrates the others', async() => {
-    // The edit removes an import between two blank lines that end in different ways, so the printer cannot tell which
-    // ending the file keeps, and the tool refuses to guess (see line-endings.test.mjs).
-    const mixed = [
-      'import Handsontable from \'handsontable\';\n',
-      '\r\n',
-      'import { CellChange } from \'handsontable/common\';\n',
-      '\n',
-      'export function f(change: CellChange) {\r\n',
-      '  return change;\r\n',
-      '}\r\n',
-    ].join('');
-
-    await withProject({ 'mixed.ts': mixed, 'good.css': RADIUS_CSS }, async(dir) => {
-      const result = await run({ cwd: dir, from: '17', to: '18' });
-
-      assert.equal(result.exitCode, 1);
-      assert.deepEqual(result.changedFiles, ['good.css']);
-      const failed = result.report.entries.filter(entry => entry.ruleId === 'transform-error');
-
-      assert.deepEqual(failed.map(entry => entry.file), ['mixed.ts']);
-      assert.equal(await readFile(join(dir, 'mixed.ts'), 'utf8'), mixed);
-      assert.equal(await readFile(join(dir, 'good.css'), 'utf8'), RADIUS_CSS_DONE);
+    // A custom rule that throws on a script: the file is left as it was, and the stylesheet is still migrated.
+    const versionsDir = await makeVersionsDir({
+      '18.0.0': { rules: [
+        { id: '18.0.0/boom', kind: 'custom', module: 'custom/boom.mjs', safe: true },
+        { id: '18.0.0/radius',
+          kind: 'cssVariable',
+          from: '--ht-wrapper-border-radius',
+          to: '--ht-border-radius',
+          safe: true },
+      ] },
     });
+    const script = 'import Handsontable from \'handsontable\';\r\n\nnew Handsontable(el, {});\r\n';
+
+    await mkdir(join(versionsDir, '18.0.0', 'custom'), { recursive: true });
+    await writeFile(join(versionsDir, '18.0.0', 'custom', 'boom.mjs'),
+      'export default { fileKinds: [\'js\'], apply(ctx) { ctx.markChanged(); throw new Error(\'boom\'); } };\n');
+
+    try {
+      await withProject({ 'mixed.ts': script, 'good.css': RADIUS_CSS }, async(dir) => {
+        const result = await run({ cwd: dir, from: '17', to: '18', versionsDir });
+
+        assert.equal(result.exitCode, 1);
+        assert.deepEqual(result.changedFiles, ['good.css']);
+        const failed = result.report.entries.filter(entry => entry.ruleId === 'transform-error');
+
+        assert.deepEqual(failed.map(entry => entry.file), ['mixed.ts']);
+        assert.equal(await readFile(join(dir, 'mixed.ts'), 'utf8'), script);
+        assert.equal(await readFile(join(dir, 'good.css'), 'utf8'), RADIUS_CSS_DONE);
+      });
+    } finally {
+      await rm(versionsDir, { recursive: true, force: true });
+    }
   });
 
   it('exits 1 for a file that cannot be read, leaves the rest alone, and still migrates the others', async() => {

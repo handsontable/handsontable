@@ -18,6 +18,7 @@ import {
   propertyName,
   stringValue,
   typeArguments,
+  typeMembers,
   unwrapNode,
   unwrapPath,
 } from './ast.mjs';
@@ -614,7 +615,15 @@ export function collectHotBindings(j, root) {
    * @returns {boolean} `true` for a ref type whose first argument is a grid instance type.
    */
   const isHolderType = (typeNode) => {
-    const node = typeNode?.type === 'TSTypeAnnotation' ? typeNode.typeAnnotation : typeNode;
+    const node = typeNode?.type === 'TSTypeAnnotation' || typeNode?.type === 'TSParenthesizedType'
+      ? typeNode.typeAnnotation : typeNode;
+
+    // A holder that may also be absent (`RefObject<Handsontable | null> | null`) is a holder.
+    if (node?.type === 'TSUnionType') {
+      const members = typeMembers(node);
+
+      return members.length > 0 && members.every(isHolderType);
+    }
 
     if (node?.type !== 'TSTypeReference') {
       return false;
@@ -643,6 +652,12 @@ export function collectHotBindings(j, root) {
 
     if (node.type === 'TSTypeReference' && node.typeName.type === 'Identifier' && node.typeName.name === 'const') {
       return false;
+    }
+
+    // The same reading of a union and an intersection as `createHolders()` has: what may be absent is held to the
+    // members that are not.
+    if (node.type === 'TSUnionType' || node.type === 'TSIntersectionType') {
+      return typeMembers(node).some(isForeignType);
     }
 
     return !isHotType(node) && !isHolderType(node);
@@ -1795,4 +1810,18 @@ export function collectHotBindings(j, root) {
   };
 
   return api;
+}
+
+/**
+ * The bindings of a part, read once while no edit is recorded: the same value goes to every transform and every
+ * version that asks (see `ctx.derived()`). A caller that edits the tree calls `ctx.markChanged()`, and the next call
+ * reads the tree again. A context without `derived` (a test that builds its own) reads it each time.
+ *
+ * @param {object} ctx The transform context of a js part.
+ * @returns {HotBindings} What the file binds to Handsontable.
+ */
+export function hotBindingsOf(ctx) {
+  const compute = () => collectHotBindings(ctx.j, ctx.root);
+
+  return ctx.derived ? ctx.derived('hotBindings', compute) : compute();
 }

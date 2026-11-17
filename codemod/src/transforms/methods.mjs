@@ -8,7 +8,7 @@ import {
   stringValue,
   unwrapNode,
 } from '../lib/ast.mjs';
-import { collectHotBindings, isGridNamed, isUnresolvedReceiver } from '../lib/hot-bindings.mjs';
+import { hotBindingsOf, isGridNamed, isUnresolvedReceiver } from '../lib/hot-bindings.mjs';
 import { rewrites } from '../lib/safety.mjs';
 import { problemsOf } from '../lib/validate.mjs';
 
@@ -852,7 +852,7 @@ const methods = {
       return;
     }
 
-    const bindings = collectHotBindings(j, root);
+    const bindings = hotBindingsOf(ctx);
 
     if (!bindings.isHotFile) {
       return;

@@ -482,6 +482,9 @@ function giveComments(comments, target, atTop) {
  * @param {object} specifier NodePath or node of the specifier to remove.
  * @param {object} [options] Options.
  * @param {object} [options.commentsTo] NodePath or node of the declaration that now holds the specifier.
+ * @param {(path: object, options: {keepComments: boolean}) => boolean} [options.cut] Removes the declaration as a cut
+ * of the printed text (`ctx.removeStatement()`), so the statements around it keep their bytes. It returns `false` for
+ * a declaration it cannot cut, which then leaves the tree and lets the printer lay the list out again.
  * @returns {{removed: boolean, declarationRemoved: boolean}} What was removed.
  */
 export function removeNamedImport(j, root, declaration, specifier, options = {}) {
@@ -502,6 +505,7 @@ export function removeNamedImport(j, root, declaration, specifier, options = {})
   const siblings = declarationResolved.parent.node.body;
   const index = siblings.indexOf(declarationResolved.node);
   const comments = declarationResolved.node.comments ?? [];
+  let handedOn = false;
 
   if (comments.length > 0) {
     const kept = options.commentsTo?.node ?? options.commentsTo ?? null;
@@ -509,7 +513,9 @@ export function removeNamedImport(j, root, declaration, specifier, options = {})
 
     if (target || siblings[index + 1]) {
       giveComments(comments, target ?? siblings[index + 1], target === null);
+      handedOn = true;
     } else if (index > 0) {
+      handedOn = true;
       comments.forEach((comment) => {
         comment.leading = false;
         comment.trailing = true;
@@ -518,7 +524,10 @@ export function removeNamedImport(j, root, declaration, specifier, options = {})
     }
   }
 
-  declarationResolved.prune();
+  if (!options.cut?.(declarationResolved, { keepComments: !handedOn })) {
+    declarationResolved.prune();
+  }
+
   invalidateScope();
 
   return { removed: true, declarationRemoved: true };
@@ -537,6 +546,8 @@ export function removeNamedImport(j, root, declaration, specifier, options = {})
  * @param {object} [options] Options.
  * @param {string} [options.imported] Exported name in the target module. Defaults to the current one.
  * @param {boolean} [options.typeOnly] Force the target kind. Defaults to the specifier's own kind.
+ * @param {(path: object, options: {keepComments: boolean}) => boolean} [options.cut] Cuts a declaration that goes away
+ * out of the printed text (see `removeNamedImport()`).
  * @returns {{moved: boolean, reason?: 'not-named'|'collision'|'not-found'|'same'}} The outcome. Nothing
  * changes when `moved` is `false`. `same` means the declaration already imports from `targetSource`: that is no move,
  * and the specifier stays where it is.
@@ -603,7 +614,8 @@ export function moveNamedImport(j, root, declaration, specifier, targetSource, o
     return { moved: false, reason: 'collision' };
   }
 
-  removeNamedImport(j, root, declarationResolved, specifierResolved, { commentsTo: result.declaration });
+  removeNamedImport(j, root, declarationResolved, specifierResolved,
+    { commentsTo: result.declaration, cut: options.cut });
 
   return { moved: true };
 }

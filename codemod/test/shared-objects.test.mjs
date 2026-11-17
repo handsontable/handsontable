@@ -431,3 +431,115 @@ describe('an object that a type of the project names keeps its keys', () => {
     });
   }
 });
+
+describe('an object that a factory returns is edited only when every use of the factory is the grid\'s own', () => {
+  const OPT = 'type: \'date\', dateFormat: \'DD/MM\', correctFormat: true';
+  const CULTURE_OPT = 'type: \'numeric\', numericFormat: { culture: \'de-DE\' }';
+  const arrow = opt => `const mk = () => ({ ${opt} });\n`;
+  const grid = 'new Handsontable(el, { cells: mk });\n';
+  const rows = opt => ({
+    kept: [
+      ['a call whose result goes to another function', `${arrow(opt)}${grid}legacy(mk());\n`, /`legacy\(\)`/],
+      ['a call whose result is named and then goes on', `${arrow(opt)}${grid}const o = mk(); legacy(o);\n`,
+        /`legacy\(\)`/],
+      ['an exported declaration', `export ${arrow(opt)}${grid}`, /exported/],
+      ['an export list', `${arrow(opt)}${grid}export { mk };\n`, /exported/],
+      ['an exported function declaration',
+        `export function mk() { return { ${opt} }; }\n${grid}`, /exported/],
+      ['a default export of a function', `export default function mk() { return { ${opt} }; }\n${grid}`, /exported/],
+      ['an exported function expression', `export const mk = function() { return { ${opt} }; };\n${grid}`,
+        /exported/],
+      ['an assignment to module.exports', `${arrow(opt)}${grid}module.exports.mk = mk;\n`, /module\.exports\.mk/],
+      ['the factory handed to an unknown call', `${arrow(opt)}${grid}register(mk);\n`, /`register\(\)`/],
+      ['a function declaration whose result goes on',
+        `function mk() { return { ${opt} }; }\n${grid}legacy(mk());\n`, /`legacy\(\)`/],
+      ['a method of an options object that is exported',
+        `export const settings = { cells() { return { ${opt} }; } };\nnew Handsontable(el, settings);\n`, /exported/],
+      ['a method of an options object that goes on',
+        `const s = { cells() { return { ${opt} }; } };\nnew Handsontable(el, s);\nlegacy(s);\n`, /`legacy\(\)`/],
+      ['an inline factory handed to another function', `legacy(() => ({ ${opt} }));\n`, /`legacy\(\)`/],
+      ['the result of an immediately invoked factory', `legacy((() => ({ ${opt} }))());\n`, /`legacy\(\)`/],
+    ],
+    rewritten: [
+      ['a factory that is only the cells option', `${arrow(opt)}${grid}`],
+      ['a function declaration that is only the cells option', `function mk() { return { ${opt} }; }\n${grid}`],
+      ['a call whose result names the object and goes to the grid',
+        `${arrow(opt)}${grid}const o = mk(); new Handsontable(el, o);\n`],
+      ['a call whose result goes to the grid', `${arrow(opt)}${grid}new Handsontable(el, { ...mk() });\n`],
+      ['an inline cells function', `new Handsontable(el, { cells: () => ({ ${opt} }) });\n`],
+      ['a cells method of an options object', `new Handsontable(el, { cells() { return { ${opt} }; } });\n`],
+      ['a cells method of a local options object',
+        `const s = { cells() { return { ${opt} }; } };\nnew Handsontable(el, s);\n`],
+      ['a callback of useCallback', `const mk = useCallback(() => ({ ${opt} }), []);\n${grid}`],
+    ],
+  });
+
+  const AGGRESSIVE_KEPT = [
+    ['a method of an exported object', opt => `export const api = { make() { return { ${opt} }; } };\n`],
+    ['a method of an exported class', opt => `export class Cfg { make() { return { ${opt} }; } }\n`],
+    ['a method of the object that module.exports takes',
+      opt => `module.exports = { make() { return { ${opt} }; } };\n`],
+  ];
+
+  for (const [label, source, message] of rows(OPT).kept) {
+    it(`keeps correctFormat and names the use: ${label}`, async() => {
+      const result = await threeRuns(`${HEAD}${source}`, CORRECT_FORMAT, { aggressive: true });
+      const entry = result.entries.find(item => item.severity === 'manual');
+
+      assert.ok(entry, result.output);
+      assert.match(entry.message, message);
+      assert.ok(result.output.includes('correctFormat: true'), result.output);
+      assert.ok(!result.entries.some(item => item.severity === 'changed'), result.output);
+    });
+  }
+
+  for (const [label, source] of rows(OPT).rewritten) {
+    it(`deletes correctFormat when the only use is the grid's: ${label}`, async() => {
+      const result = await threeRuns(`${HEAD}${source}`, CORRECT_FORMAT, { aggressive: true });
+
+      assert.ok(result.entries.some(entry => entry.severity === 'changed'), result.output);
+      assert.ok(!result.output.includes('correctFormat: true'), result.output);
+    });
+  }
+
+  for (const [label, make] of AGGRESSIVE_KEPT) {
+    it(`keeps correctFormat of an object that ${label} returns, under --aggressive`, async() => {
+      const result = await threeRuns(`${HEAD}${make(OPT)}`, CORRECT_FORMAT, { aggressive: true });
+
+      assert.ok(result.output.includes('correctFormat: true'), result.output);
+      assert.ok(!result.entries.some(item => item.severity === 'changed'), result.output);
+    });
+  }
+
+  it('deletes correctFormat of an object that a method of a local class returns, under --aggressive', async() => {
+    const source = `${HEAD}class Cfg { make() { return { ${OPT} }; } }\n`
+      + 'new Handsontable(el, { columns: [new Cfg().make()] });\n';
+    const result = await threeRuns(source, CORRECT_FORMAT, { aggressive: true });
+
+    assert.ok(!result.output.includes('correctFormat: true'), result.output);
+  });
+
+  for (const [label, source] of rows(CULTURE_OPT).kept.filter(([, text]) => text.includes('cells: mk')
+    || text.includes('legacy'))) {
+    it(`keeps numericFormat.culture where it is, and names the use: ${label}`, async() => {
+      const result = await threeRuns(`${HEAD}${source}`, CULTURE, { aggressive: true });
+
+      assert.ok(result.output.includes('culture: \'de-DE\''), result.output);
+      assert.ok(!/locale:/.test(result.output), result.output);
+      assert.ok(!result.entries.some(item => item.severity === 'changed'), result.output);
+    });
+  }
+
+  // A spread into options never takes a move, so that row stays out.
+  const movable = rows(CULTURE_OPT).rewritten.filter(([, text]) => !text.includes('...mk()'));
+
+  for (const [label, source] of movable) {
+    it(`moves numericFormat.culture to locale when the only use is the grid's: ${label}`, async() => {
+      const result = await threeRuns(`${HEAD}${source}`, CULTURE, { aggressive: true });
+
+      assert.ok(/locale: 'de-DE'/.test(result.output), result.output);
+      assert.ok(!/culture: 'de-DE'/.test(result.output.replace(/TODO[^\n]*/g, '')), result.output);
+      assert.ok(result.entries.some(entry => entry.severity === 'changed'), result.output);
+    });
+  }
+});

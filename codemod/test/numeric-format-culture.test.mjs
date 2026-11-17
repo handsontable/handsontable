@@ -339,3 +339,26 @@ describe('numeric-format-culture moves the key only for a numeric column', () =>
     assert.ok(result.output.includes(TODO), result.output);
   });
 });
+
+describe('numeric-format-culture reads the cell type of a column the same way in every parser', () => {
+  const cases = [
+    ['a numeric type', 'type: \'numeric\'', ['changed', 'manual'], 'locale: \'de-DE\''],
+    ['the numeric renderer', 'renderer: \'numeric\'', ['changed', 'manual'], 'locale: \'de-DE\''],
+    ['a text type', 'type: \'text\'', ['manual'], 'culture: \'de-DE\''],
+    ['a type the file does not show', 'type: kind', ['manual'], 'culture: \'de-DE\''],
+    ['no type', 'width: 100', ['manual'], 'culture: \'de-DE\''],
+  ];
+
+  for (const file of ['grid.js', 'grid.ts', 'grid.tsx']) {
+    for (const [label, key, severities, kept] of cases) {
+      it(`${label} in a column of ${file}`, async() => {
+        const source = `${HEAD}const kind = pick();\nnew Handsontable(el, `
+          + `{ columns: [{ ${key}, numericFormat: { culture: 'de-DE' } }] });\n`;
+        const result = await threeRuns(source, file);
+
+        assert.deepEqual(kinds(result.entries), severities, result.output);
+        assert.ok(result.output.includes(kept), result.output);
+      });
+    }
+  }
+});

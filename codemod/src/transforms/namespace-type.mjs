@@ -1,4 +1,4 @@
-import { collectHotBindings } from '../lib/hot-bindings.mjs';
+import { hotBindingsOf } from '../lib/hot-bindings.mjs';
 import { addNamedImport, getImportedBindings } from '../lib/imports.mjs';
 import { reportInstead, rewrites } from '../lib/safety.mjs';
 import { lookup, referenceSpace } from '../lib/scope.mjs';
@@ -294,7 +294,7 @@ const namespaceType = {
     rules.forEach(assertRule);
 
     const { j, root } = ctx;
-    const bindings = collectHotBindings(j, root);
+    const bindings = hotBindingsOf(ctx);
 
     if (bindings.namespace.length === 0) {
       return;

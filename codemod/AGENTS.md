@@ -79,7 +79,9 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   a later rule that rewrites the statement, a TODO that moves with an import, a twin chain, and the shapes that stay with
   the printer. Each runs three times. It runs fake rules through `createRegistry()` (the texts never say Handsontable,
   so the fake transform has a `rescue()`), and the failure paths through `hooks.afterCommit`.
-  `test/statement-removal.test.mjs` pins the cut of a removed statement, with the whole output text.
+  `test/statement-removal.test.mjs` pins the cut of a removed statement, with the whole output text, and
+  `test/import-removal.test.mjs` the cut of an import that was merged into another (one-line neighbors, blank lines,
+  comments, CRLF, a byte order mark, a license comment, a shebang, three runs each).
 - `test/receiver-history.test.mjs` is the table behind the receiver rule (see Traps): for every rule that rewrites on a
   receiver (a method move on an instance, a method removal on a plugin, an option rename in the argument of a plugin call,
   an option removal in the object of `setCellMetaObject`, a theme token rename) it runs the same histories of the name
@@ -164,7 +166,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   literals and multi-line strings of every fixture input with its output. It reads literals through
   `test/helpers/literals.mjs`, a plain parser walk that does not use `src/lib/literals.mjs`.
 - `test/indirect-sites.test.mjs` pins the code that holds options without showing it: the one-hop resolver, the custom renderer and file-read guards of `numericFormat.culture`, references and spreads as the value, the unrecognized-holder reports, wrapped selectors, indirect column-move hooks, dates from variables, and the marker of an entry inside a template literal.
-- A rule for a change that the migration guide does not describe sets `"inGuide": false`. Its entries and TODO comments then carry no guide link (`18.0.0/core-undo-methods`, `18.0.0/export-column-headers`). A rule with neither `guide` nor `inGuide: false` links the guide page without an anchor.
+- A rule for a change that the migration guide does not describe sets `"inGuide": false`. Its entries and TODO comments then carry no guide link (`18.0.0/core-undo-methods`, `18.0.0/export-column-headers`). A rule with neither `guide` nor `inGuide: false` links the guide page without an anchor. A rule that sets both is a manifest error (`validateRule()`).
 - `test/manifest.test.mjs` checks every rule's `guide` anchor against the headings of the guide page with
   `checkAnchors()` in `test/helpers/guide-anchors.mjs`, which owns the one slug function of the tests (`anchorsOf()`,
   `anchorListOf()`), and checks the `notAutomated` entries too. `slugOf()` strips inline tags and turns a double hyphen
@@ -394,7 +396,7 @@ of its earliest kind in `KIND_ORDER`.
 | `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. `merge: 'earliest'` keeps the first entry instead: two merge policies exist. `latest` (the default, used by `dependency` bumps) reports the net change with the latest target. `earliest` (used by `detect` rules that share a `mergeKey`) lets the rule of the earliest migration own the id, the message, and the guide link. `todo: false` keeps one `manual` entry out of the code. `markLine` is the line the generic marker is placed from when `line` names a spot inside a literal that cannot hold a comment (a line of a multi-line template literal, a key of a Sass map): the report keeps `line`. |
 | `todo(target, ruleId, text, comment?)` | Leave `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` before a js node or path or a postcss node, once, and add a `manual` entry with the whole `text`. `comment` replaces `text` as the source of the comment when the caller has a better short form. The link is added only for a rule with a `guide` anchor. Returns whether a comment was inserted. It calls `markChanged()` itself. `json` gets the entry only. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX comment `{/* ... */}` before the element (or before the expression that holds it) when the element is a child of another element, else a `//` comment on the enclosing statement when it starts at most 3 lines above, else on the element's first attribute. |
 | `comment(target, ruleId, text)` | The comment half of `todo()`: the same TODO comment, no report entry. A removal uses it, so its one `changed` entry carries the advice. |
-| `removeStatement(path)` | Remove the expression statement at a NodePath of a statement list, and return `true`. The statement is cut out of the printed text, so the statements around it keep their layout (see "TODO comments"). It returns `false` and does nothing for a statement that is not an expression statement of the parsed text, that a rule gave a comment, or that is not an item of a list: the caller then removes it from the tree and moves its comments. `false` for a part that is not `js`. |
+| `removeStatement(path)` | Remove the expression statement, or the import declaration that `removeNamedImport()` emptied (its `cut` option), at a NodePath of a statement list, and return `true`. The statement is cut out of the printed text, so the statements around it keep their layout (see "TODO comments"). It returns `false` and does nothing for a statement that is not an expression statement of the parsed text, that a rule gave a comment, or that is not an item of a list: the caller then removes it from the tree and moves its comments. `false` for a part that is not `js`. |
 | `json` | For a `json` part, the `JsonDocument` that edits the text by offset: `setString(section, name, value)` and `addMember(section, name, value)` return `false` and change nothing when the scan of the text and the parsed file disagree, and the transform then reports `manual`. `null` for every other kind. A transform never prints a `package.json` with `JSON.stringify`. |
 | `css` | For a `css` part (a stylesheet or a Vue `<style>` block), the `CssDocument` that edits the text by offset and keeps `root` in step. A transform reads the postcss `root` and edits only through `replaceInDeclaration(declaration, pattern, replacement)`, `replaceInAtRule()`, and `todo()`/`comment()`. Each replace returns `null` (no match), `true`, or `false` (the text at the node's offsets is not what the model says, or the value holds a comment): on `false` the transform reports `manual` and edits nothing. A transform never assigns `decl.prop`, `decl.value`, or `params` itself and never stringifies `root`. `null` for every other kind. |
 | `cssScope`, `lineOffset`, `fromText` | `'scoped'`, `'module'`, or `null` for the Vue `<style>` block of a `css` part; the part's zero-based line offset (add it by hand when a line is stored outside `report()`); the run's `--from` as text. |
@@ -402,6 +404,7 @@ of its earliest kind in `KIND_ORDER`.
 | `ancestors` | For a `package.json` in phase 2: the `package.json` files of the project above it, nearest first, parsed (`[{ file, manifest }]`, `manifest` is `null` for a file that cannot be read as JSON). A fixture has none. |
 | `facts` | A `Set` shared across the run. Add `uses-formulas` style keys in phase 1, read them in phase 2. |
 | `options` | `{ aggressive, dryRun, todo }`. `todo: false` (`--no-todo`) makes `todo()` and `comment()` write nothing and switches the generic markers off. `markers: false` (tests use it) switches off only the generic markers. Never write to disk from a transform. |
+| `derived(key, compute)` | What a transform reads from the tree, kept for the next transform and the next version until `markChanged()` ran: it returns `compute()` for a key, and calls it again only after an edit. `compute()` must be a pure function of the tree, and the caller must not change the value (see Traps). |
 | `markChanged()` | Call after every edit of `root`. An untouched part is never printed, so the file keeps its exact bytes. |
 
 Report line numbers are one-based and relative to the part's own source. The `todo` entry is reported on every
@@ -727,8 +730,11 @@ so `const o = {}` before a removed call and a line that starts with `(` is still
 guard does not cover it. `commit()` drops a stand-in that
 left the tree with its container. When another rule changed the length of the same list the printer lays the list out
 again, and the stand-in prints on a line of its own (no `loc`), so the cut still holds and a shared line is split. The
-removal of an import (`removeNamedImport()`) is not cut as text: the specifier is edited first, and its comments move to
-another declaration. `spliceCarriers()` reads the printed text once as lines (`sentinelLines()`) and edits the line a
+removal of an import declaration (`removeNamedImport()` with `cut: ctx.removeStatement`) is cut as text too: the specifier
+is edited first, its comments move to another declaration, and the declaration is swapped for `import "sentinel";`, an
+`ImportDeclaration` with no specifier (same type as the old node, so recast patches it into the old range), which
+`cutRemoved()` takes out with its keyword and quote. A byte order mark that stands alone on the line goes with it. The
+comments of the declaration are not kept on the stand-in when they moved (`keepComments: false`). `spliceCarriers()` reads the printed text once as lines (`sentinelLines()`) and edits the line a
 sentinel is on, and `intendedLiterals()` finds the record of a carrier identifier through `recordOf()`, a map: a file with
 thousands of sentinels (a removal of every call of a generated file) costs a few times the print and not its square, as
 a search of the whole text and a scan of all carriers for each identifier did. The comment text always comes from
@@ -765,9 +771,9 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 - **The comments of a removed import go to the import that took its name.** `removeNamedImport(j, root, declaration, specifier,
   { commentsTo })` appends them (as leading comments, after the target's own) to `commentsTo`, which `moveNamedImport()` sets to
   the declaration that now holds the specifier. A removed first statement still gives its comments to the next statement,
-  before the ones that statement had, so a license header stays on top. recast reprints the statements after a removed
-  declaration and writes two statements that shared a line without the space between them; that is the limit (README,
-  Limitations). An import is the one removal that is not cut as text (see "TODO comments").
+  before the ones that statement had, so a license header stays on top. The declaration itself is cut out of the printed
+  text (`options.cut`, see "TODO comments"), so its neighbors keep their bytes. The one case left with the printer is a
+  list that another rule also changed in length (README, Limitations).
 - **Line endings.** The printer writes one terminator for a part (`workingTerminator()`: `\r\n` when CRLF is at least as
   common as bare LF, else `\n`). `printJsPart()` then calls `restoreLineEndings()`. A source with one kind of break gets
   it back everywhere (a lone `\r` too). A source that mixes kinds is aligned with the printed text by the longest
@@ -1143,11 +1149,33 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `methods.test.mjs` pin it. The `columnHeaders` export
   option is deprecated in 17.1 and removed in 19.0, and only the 19.0 guide has a section for it.
 - **`detect` reads each node type once per part.** `createEnv()` hands every matcher `env.find(type)`, a cache of
-  `root.find(type)`, and `env.dynamicSites()`, the assignments and `setCellMeta()` calls. The state lives for one
-  `apply()` call and a `detect` rule never edits the tree, so nothing makes an entry stale. A matcher that needs a node
-  type calls `env.find(type)`, never `root.find(type)`: the state is rebuilt for each version, which is why a part is
-  walked once per type and version, not once per rule. `test/scan-complexity.test.mjs` counts the walks
-  (`countTraversals()`) for 2 and for 20 copies of each matcher.
+  `root.find(type)`, and `env.dynamicSites()`, the assignments and `setCellMeta()` calls. A `detect` rule never edits the
+  tree, so nothing makes an entry stale. A matcher that needs a node type calls `env.find(type)`, never
+  `root.find(type)`. `test/scan-complexity.test.mjs` counts the walks (`countTraversals()`) for 2 and for 20 copies of
+  each matcher, and for the same rules in one migration and in three.
+- **What a transform derives from the tree is kept between transforms and versions while no edit is recorded
+  (`ctx.derived(key, compute)`).** `markChanged()` is the one place that records an edit: it counts a revision on the
+  part, and a value of an older revision is dropped on the next call (`ctx.removeStatement()` counts one too). The
+  bindings of a file (`hotBindingsOf(ctx)`, which every transform that reads them uses), the option analysis, the
+  resolver, the dynamic sites, and `findOf(ctx)` (the Collection of one node type) of `detect`, and the fact scan of the
+  `dependency` module go through it, so a file is read once for them and not once per version. A caller never changes
+  what it gets. A transform that edits the tree calls `ctx.markChanged()` after the edit, as the contract says, or a
+  later reader sees the old tree. `matchImport()` of `detect` reads through `rootFrom(env.find)`, which answers
+  `find(type, filter)` from the cached Collection. What is left (the import scans of the transforms that edit, one set
+  of walks per rule) would need an index that every transform keeps in step, and was left alone.
+- **Two flagged JSX elements on one line get a marker each.** A `detect` match for a JSX attribute carries the column of
+  the attribute and its element (`matchAt()`), and `uniqueByLine()` keeps one match per line and element. The report
+  input has `markColumn` (and `markColumns` for a collapsed group), the mark keeps `sites` of line and column, and the
+  marker index answers `find(line, column)` with the outermost node that starts there, so `markerTargets()` climbs from
+  the attribute to its own element. A column no node starts at falls back to the line.
+- **A factory is held by the uses of the factory (`factoryHeld()` in `lib/holders.mjs`).** An object that a function
+  returns (an arrow body, a `return`, not a `useMemo`/`useCallback` callback, which stays the object's own) is held by
+  the uses of the function: `cells: make` and `{ cells() {} }` of an options object (held only when that object is held),
+  and calls whose result goes to the grid or to a name whose uses are all the grid's, are the grid's own. An export of the
+  function, a method of an exported class or object (`isExposed()`: `export`, `module.exports = ...`, an export list), a
+  call result or the function handed to another call, an alias, and a return keep the object and name the use. A
+  `map()` callback follows the array it answers with, the other iteration callbacks drop the answer, and an immediately
+  invoked function follows its call.
 - **`detect` rule shape:** `{ id, kind: "detect", severity?: "manual" | "warning", files: ["js" | "css" | "template"],
   requires?: "hot-file" | "option-object" | "none", emitsFact?, unlessFileMatches?, mergeKey?, match, message, guide }`.
   `message` and `files` are required by `validateDetectRule()`, which runs when the manifests load, and which rejects an
@@ -1163,7 +1191,9 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `import()`), `property` (dotted path; `withKey`, `valueMatches` on literal strings only, `valueIs` for the other
   values: `true`, `false`, `null`, `"array"`, `"function"`, `"object"`, `in: "option-object"`),
   `call` (`argMatches` reads every string inside the arguments, `receiver` is `"instance"`, `"grid"` (a confirmed instance or
-  a receiver the file does not show, never one it shows to be another object), or the receiver text),
+  a receiver the file does not show, never one it shows to be another object), `{ plugin: key }` (`x.getPlugin('<key>')`, or
+  a name or `this` member set from it, also when it is the plugin on some paths only: `18.1.0/loading-markup` uses it so a
+  `show()` of another object in a file that uses the loading plugin stays quiet), or the receiver text),
   `hook` (option key, JSX prop, `addHook`, `addHookOnce`, `Handsontable.hooks.add`/`once`), `string`, `selector` and
   `regex` (also css and template; modifiers `in: "strings"` and `code: true`, see the traps of the 19.0 draft),
   `pluginRegistration` (`withoutPlugin`), `missingOption` (`whenAnyKey`, `whenValueMatches`, `unlessFileMatches`). `selector`
@@ -1400,7 +1430,17 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   stylesheet marker is found the same way (`addCssTodo()` takes the twin ids and looks through the run of comments before the
   node), so the Pikaday rules of 18.0 and 18.1, which also share a `mergeKey`, leave one marker in a stepwise run.
   `test/twin-rules.test.mjs` derives a signature for every kind (`exportRename`: source, from, to; `detect`: `mergeKey`) and
-  fails for a rule that repeats an earlier signature without listing it, so the next pair cannot be missed.
+  fails for a rule that repeats an earlier signature without listing it, so the next pair cannot be missed. **The kept
+  entry says what the latest twin of the plan says.** When a later twin reports the spot the earlier one already owns
+  (`adopt()` in `createContext()`), a `manual` entry from a twin path (a `mergeKey` is not one: the Pikaday pair keeps
+  the earlier text on purpose) takes the later message, the pending marker takes it too (`mark.text`), and a comment that
+  `ctx.todo()` wrote into the tree in this run is restated (`restateTodo()`, from the `sink` of `addJsTodo()`). Id, guide
+  link, and anchor stay those of the earlier rule. A CSS comment and a comment of an earlier run keep their words, so the
+  entry and a marker of an earlier run can differ in the first sentence. A rule of a chain finds its own marker of an
+  earlier run whatever words follow the id (`hasEarlierRuleTodo()`, source comments only, so two spots of one rule on one
+  statement keep a comment each), which is what keeps a second run quiet when the first restated the text. A plan with
+  only the earlier migration does not know the chain, so it matches the exact words as before. The 18.0 rule says nothing
+  about 19.0 where the 19.0 twin says it (`helper-sanitize`).
 - **An inline Angular template is a `template` part.** `adapters/js.mjs` (`inlineTemplateParts()`) adds one read-only
   part for the `template` property of the object passed to `Component(...)` (a decorator or a call), when the file
   names `@angular/core`, as a string or a template literal (an expression `${}` becomes a space plus the line breaks it spans, so the lines

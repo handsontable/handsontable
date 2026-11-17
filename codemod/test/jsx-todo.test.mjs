@@ -242,6 +242,84 @@ describe('every flagged JSX child on a line of its own gets a marker of its own'
   });
 });
 
+describe('every flagged JSX child of one line gets a marker of its own', () => {
+  const plan19 = buildPlan(manifests.filter(manifest => manifest.version === '19.0.0'), ['19.0.0/col-widths-null']);
+  const flagged = '<HotTable data={[]} colWidths={null} />';
+  const clean = '<HotTable data={[]} />';
+  const wrap = body => `${IMPORT}export const a = (\n  <div>\n    ${body}\n  </div>\n);\n`;
+
+  /**
+   * Run the rule three times: runs 2 and 3 must change nothing, and the text must stay valid JSX.
+   *
+   * @param {string} text A tsx source.
+   * @returns {Promise<{output: string, entries: object[]}>} Run 1.
+   */
+  async function stable(text) {
+    const runs = [];
+    let current = text;
+
+    for (let run = 0; run < 3; run += 1) {
+      const result = await transformFile({ filePath: 'grid.tsx', source: current, plan: plan19, options: {} });
+
+      assert.equal(result.entries.some(entry => /error$/.test(entry.ruleId)), false, JSON.stringify(result.entries));
+      runs.push(result);
+      current = result.output;
+    }
+
+    assert.equal(runs[1].output, runs[0].output, 'run 2 changed the file');
+    assert.equal(runs[2].output, runs[0].output, 'run 3 changed the file');
+    assert.doesNotThrow(() => tsxParser().parse(runs[0].output), `the output is not valid JSX:\n${runs[0].output}`);
+
+    return runs[0];
+  }
+
+  const todosIn = text => text.split(TODO).length - 1;
+
+  it('puts a marker in front of each of two siblings on one line', async() => {
+    const { output, entries } = await stable(wrap(`${flagged}${flagged}`));
+    const [row] = output.split('\n').filter(line => line.includes('<HotTable data={[]} colWidths={null} />{/*'));
+
+    assert.equal(todosIn(output), 2, output);
+    assert.ok(row, output);
+    assert.ok(entries.filter(entry => entry.severity === 'manual').every(entry => entry.marked === true));
+  });
+
+  it('puts a marker in front of a sibling and of a conditional child on one line', async() => {
+    const { output } = await stable(wrap(`${flagged} {ok && ${flagged}}`));
+
+    assert.equal(todosIn(output), 2, output);
+    assert.match(output, /\/> \{\/\* TODO\(handsontable-codemod 19\.0\.0\/col-widths-null\)[^}]*\*\/\}\{ok &&/);
+  });
+
+  it('marks only the flagged one of two siblings', async() => {
+    const first = await stable(wrap(`${flagged}${clean}`));
+    const second = await stable(wrap(`${clean}${flagged}`));
+
+    assert.equal(todosIn(first.output), 1, first.output);
+    assert.equal(todosIn(second.output), 1, second.output);
+    assert.match(second.output, /<HotTable data=\{\[\]\} \/>\{\/\* TODO[^}]*\*\/\}<HotTable data=\{\[\]\} colWidths/);
+  });
+
+  it('leaves one marker for two flagged attributes of one element', async() => {
+    const { output } = await stable(wrap('<HotTable colWidths={null} data={[]} licenseKey="k" colWidths={null} />'));
+
+    assert.equal(todosIn(output), 1, output);
+  });
+
+  it('marks each of seven siblings, which the report collapses into one entry', async() => {
+    const { output, entries } = await stable(wrap(flagged.repeat(7)));
+
+    assert.equal(todosIn(output), 7, output);
+    assert.equal(entries.filter(entry => entry.severity === 'manual').length, 1);
+  });
+
+  it('marks the first one of siblings that sit in a fragment with a text between them', async() => {
+    const { output } = await stable(`${IMPORT}export const a = <>${flagged} and ${flagged}</>;\n`);
+
+    assert.equal(todosIn(output), 2, output);
+  });
+});
+
 describe('two TODOs on one JSX child do not multiply', () => {
   it('holds in a parent element', async() => {
     await check(`${IMPORT}const a = <div><HotTable ${TWO} /></div>;\n`, 2);

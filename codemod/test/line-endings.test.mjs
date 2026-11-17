@@ -121,27 +121,39 @@ describe('line endings of an edited JavaScript file', () => {
     assert.equal(output.includes('const unknown = other();\n'), true, 'the LF line keeps its ending');
   });
 
-  it('refuses to guess when an edit sits next to a repeated line that ends in two ways, and leaves the file alone',
-    async() => {
-      // The edit removes an import declaration between two blank lines that end in different ways, and the printer
-      // keeps one of them. Which one the file keeps is not in the text, so the tool does not pick. (A removed
-      // expression statement is cut out of the text instead, so it never gets here: see the next test.)
-      const source = [
-        'import Handsontable from \'handsontable\';\n',
-        '\r\n',
-        'import { CellChange } from \'handsontable/common\';\n',
-        '\n',
-        'export function f(change: CellChange) {\r\n',
-        '  return change;\r\n',
-        '}\r\n',
-      ].join('');
-      const { output, changed, entries } = await transform(source, ['18.0.0/common-imports'], 'grid.ts');
+  it('refuses to guess when a printed line could have come from lines that end in different ways', () => {
+    // A blank line that the file repeats, once with each ending, and a printer that kept one of them: which one the file
+    // keeps is not in the text, so the tool does not pick.
+    const source = 'a();\n\r\nb();\n\nc();\r\n';
 
-      assert.equal(changed, false);
-      assert.equal(output, source);
-      assert.ok(entries.some(entry => entry.ruleId === 'transform-error'
-        && /cannot tell which line ending/.test(entry.message)), JSON.stringify(entries));
-    });
+    assert.throws(() => restoreLineEndings(source, 'a();\n\nc();\n', '\n'), /cannot tell which line ending/);
+  });
+
+  it('cuts a removed import out between two blank lines that end in different ways, and keeps both', async() => {
+    // The import is merged into the first one. The printer used to lay the statements out again, and it could not say
+    // which of the two blank lines the file kept, so the file was left alone. The cut leaves both lines as they were.
+    const source = [
+      'import Handsontable from \'handsontable\';\n',
+      '\r\n',
+      'import { CellChange } from \'handsontable/common\';\n',
+      '\n',
+      'export function f(change: CellChange) {\r\n',
+      '  return change;\r\n',
+      '}\r\n',
+    ].join('');
+    const { output, changed, entries } = await transform(source, ['18.0.0/common-imports'], 'grid.ts');
+
+    assert.equal(changed, true, JSON.stringify(entries));
+    assert.equal(entries.some(entry => entry.ruleId === 'transform-error'), false, JSON.stringify(entries));
+    assert.equal(output, [
+      'import Handsontable, { CellChange } from \'handsontable\';\r\n',
+      '\r\n',
+      '\n',
+      'export function f(change: CellChange) {\r\n',
+      '  return change;\r\n',
+      '}\r\n',
+    ].join(''));
+  });
 
   it('cuts a removed statement out between two blank lines that end in different ways, and keeps both', async() => {
     const source = [

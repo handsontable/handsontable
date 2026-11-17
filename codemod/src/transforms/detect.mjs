@@ -2,16 +2,18 @@ import { readFileSync } from 'node:fs';
 import {
   attributeName,
   calleeName,
+  findOf,
   lineOfNode,
   memberName,
   propertyName,
+  rootFrom,
   stringValue,
   typeArguments,
   unwrapNode,
   unwrapPath,
 } from '../lib/ast.mjs';
 import { addFact } from '../lib/facts.mjs';
-import { collectHotBindings, receiverOfGrid } from '../lib/hot-bindings.mjs';
+import { hotBindingsOf, receiverOfGrid } from '../lib/hot-bindings.mjs';
 import {
   findDynamicImports,
   findImports,
@@ -193,8 +195,13 @@ function validateMatch(spec, files, where) {
     problems.push(`${where}.withKey must be a key name`);
   }
 
-  if (spec.receiver !== undefined && (typeof spec.receiver !== 'string' || !spec.receiver)) {
-    problems.push(`${where}.receiver must be "instance", "grid", or the text of the receiver`);
+  if (spec.receiver !== undefined && !isPluginReceiverSpec(spec.receiver) && (typeof spec.receiver !== 'string'
+    || !spec.receiver)) {
+    problems.push(`${where}.receiver must be "instance", "grid", the text of the receiver, or { "plugin": key }`);
+  }
+
+  if (isPluginReceiverSpec(spec.receiver) && !isNameList(spec.receiver.plugin)) {
+    problems.push(`${where}.receiver.plugin must be a plugin key or a non-empty list of keys`);
   }
 
   if (['string', 'selector', 'regex'].includes(key) && typeof spec[key] !== 'string') {
@@ -595,21 +602,17 @@ function receiverText(node) {
  * @returns {Env} The state.
  */
 function createEnv(ctx) {
-  const bindings = memo(() => collectHotBindings(ctx.j, ctx.root));
-  const analysis = memo(() => analyzeOptionObjects(ctx.j, ctx.root, bindings()));
+  // A `detect` rule never edits the tree, so what it reads stays valid for the next version and the next transform
+  // until an edit is recorded (see `ctx.derived()`).
+  const shared = (key, compute) => memo(() => (ctx.derived ? ctx.derived(`detect:${key}`, compute) : compute()));
+  const bindings = memo(() => hotBindingsOf(ctx));
+  const analysis = shared('analysis', () => analyzeOptionObjects(ctx.j, ctx.root, bindings()));
   const optionList = memo(() => analysis().objects);
-  const optionNodes = memo(() => new Set(optionList().map(item => item.path.node)));
+  const optionNodes = shared('optionNodes', () => new Set(optionList().map(item => item.path.node)));
   const claimedNodes = memo(() => analysis().claimed);
-  const resolver = memo(() => createHop(ctx.j, ctx.root, { stable: true }));
-  const dynamicSites = memo(() => dynamicOptionSites(ctx.j, ctx.root));
-  const found = new Map();
-  const find = (type) => {
-    if (!found.has(type)) {
-      found.set(type, ctx.root.find(type));
-    }
-
-    return found.get(type);
-  };
+  const resolver = shared('resolver', () => createHop(ctx.j, ctx.root, { stable: true }));
+  const dynamicSites = shared('dynamicSites', () => dynamicOptionSites(ctx.j, ctx.root));
+  const find = findOf(ctx);
 
   return {
     ctx,
@@ -634,7 +637,30 @@ function createEnv(ctx) {
  *
  * @typedef {object} Match
  * @property {number|undefined} line One-based line inside the part.
+ * @property {number} [column] Zero-based column of a JSX attribute, so the marker of the match finds its element when
+ * several elements share the line.
+ * @property {object} [element] The JSX element of the attribute. Two matches on one line count as one when they sit in
+ * one element, and as two when they sit in different ones.
  */
+
+/**
+ * The match for a node. A JSX attribute also names its element and its column, because elements can share a line.
+ *
+ * @param {object} path NodePath of the node.
+ * @param {object} [extra] More fields of the match.
+ * @returns {Match} The match.
+ */
+function matchAt(path, extra = {}) {
+  const { node } = path;
+  const element = node.type === 'JSXAttribute' && path.parent?.node.type === 'JSXOpeningElement'
+    ? path.parent.node : null;
+
+  return {
+    line: lineOfNode(node),
+    ...(element && node.loc?.start ? { column: node.loc.start.column, element } : {}),
+    ...extra,
+  };
+}
 
 /**
  * Find the matches of an `import` matcher: imports, re-exports, `require()`, and `import()` of a module or a
@@ -647,7 +673,9 @@ function createEnv(ctx) {
 function matchImport(env, node) {
   const names = listOf(node.spec.import);
   const isMatch = moduleName => names.some(name => moduleName === name || moduleName.startsWith(`${name}/`));
-  const { j, root } = env;
+  const { j } = env;
+  // Every rule with an `import` matcher asks the same four questions, so the tree is read once for each node type.
+  const root = rootFrom(env.find);
 
   return [findImports, findReExports, findDynamicImports, findRequires]
     .flatMap(find => find(j, root, isMatch))
@@ -1072,7 +1100,7 @@ function matchProperty(env, node) {
         continue;
       }
 
-      matches.push({ line: lineOfNode(path.node), ...(variable ? { variable: true } : {}) });
+      matches.push(matchAt(path, variable ? { variable: true } : {}));
     }
   };
 
@@ -1263,6 +1291,16 @@ function matchAnnotatedObject(env, node) {
 }
 
 /**
+ * Whether the `receiver` of a `call` matcher names a plugin: `{ "plugin": "loading" }`.
+ *
+ * @param {unknown} receiver The `receiver` field.
+ * @returns {boolean} `true` for an object with a `plugin` field.
+ */
+function isPluginReceiverSpec(receiver) {
+  return typeof receiver === 'object' && receiver !== null && !Array.isArray(receiver) && 'plugin' in receiver;
+}
+
+/**
  * Find the matches of a `call` matcher: calls of a method or function by name.
  *
  * @param {Env} env Part state.
@@ -1290,7 +1328,13 @@ function matchCall(env, node) {
       const receiver = path.get('callee', 'object');
       let isMatch = receiverText(callee.object) === spec.receiver;
 
-      if (spec.receiver === 'instance') {
+      if (isPluginReceiverSpec(spec.receiver)) {
+        // `x.getPlugin('<key>')`, or a name or `this` member the file sets from it. A receiver that is the plugin on
+        // some paths and something else on others counts too, as it does for the method rules.
+        const keys = listOf(spec.receiver.plugin);
+
+        isMatch = env.bindings().isPluginReceiver(receiver, keys) || env.bindings().isPartlyPlugin(receiver, keys);
+      } else if (spec.receiver === 'instance') {
         isMatch = env.bindings().isInstance(receiver);
       } else if (spec.receiver === 'grid') {
         // A confirmed instance, or a receiver the file does not show (a parameter, a global, a call result).
@@ -1453,7 +1497,10 @@ function matchHookOnElements(env, names) {
         const others = known.filter(name => name !== hook);
 
         if (others.length >= 2 && others.some(name => !GENERIC_OPTIONS.has(name))) {
-          matches.push({ line: lineOfNode(attribute) });
+          matches.push({
+            line: lineOfNode(attribute),
+            ...(attribute.loc?.start ? { column: attribute.loc.start.column, element: opening } : {}),
+          });
         }
       }
     }
@@ -2012,14 +2059,21 @@ function evaluate(env, node) {
  */
 function uniqueByLine(matches) {
   const seen = new Set();
+  const elements = new Map();
   const unique = matches.filter((match) => {
     if (match.line === undefined) {
       return true;
     }
 
-    const fresh = !seen.has(match.line);
+    // Two JSX elements on one line are two spots: each gets its own marker.
+    if (match.element && !elements.has(match.element)) {
+      elements.set(match.element, elements.size);
+    }
 
-    seen.add(match.line);
+    const key = match.element ? `${match.line}:${elements.get(match.element)}` : match.line;
+    const fresh = !seen.has(key);
+
+    seen.add(key);
 
     return fresh;
   });
@@ -2083,6 +2137,7 @@ function applyRule(env, rule) {
       ruleId: rule.id,
       severity: compiled.severity,
       line: match.line,
+      ...(match.column !== undefined ? { markColumn: match.column } : {}),
       message: messageOf(rule, match),
       ...(rule.mergeKey && match.line !== undefined
         ? { mergeKey: `${rule.mergeKey}:${match.line}`, merge: 'earliest' } : {}),
@@ -2096,6 +2151,7 @@ function applyRule(env, rule) {
     severity: compiled.severity,
     line: matches[0].line,
     lines: matches.map(match => match.line),
+    ...(matches.some(match => match.column !== undefined) ? { markColumns: matches.map(match => match.column) } : {}),
     message: `${rule.variableMessage && matches.every(match => match.variable) ? rule.variableMessage : rule.message} `
       + `This part has ${matches.length} matches.`,
   });
@@ -2127,7 +2183,8 @@ function applyRule(env, rule) {
  * - `call`: a method or function name, or a list. `argMatches` is tested against every string literal inside the
  *   arguments, also inside `new MouseEvent('mousedown')`. `receiver` is `"instance"` (a confirmed grid instance),
  *   `"grid"` (a confirmed instance or a receiver the file does not show, never one it shows to be another object),
- *   or the text of the receiver, such as `fireEvent`.
+ *   `{ plugin: key }` (`x.getPlugin('<key>')`, or a name or `this` member set from it), or the text of the receiver, such
+ *   as `fireEvent`.
  * - `hook`: a hook name, or a list, used as an option key in an option object (also one annotated `Events` or
  *   `Partial<Events>`), as a prop of a `<HotTable>` or of a component that sets other known options, in `addHook()` and
  *   `addHookOnce()`, or in `add()` and `once()` on `Handsontable.hooks` or a `const` alias of it. The name may be a
