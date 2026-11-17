@@ -2419,7 +2419,8 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   extends the axe baseline's issue catalog: a cluster has a stable kebab-case `id`, a `title` that says what
   the problem is, an optional `tracker` (a task id, or a list when several tasks own parts of the fix; code,
   never printed on the page, which says only that a cluster is tracked), or instead an optional `notDefect`
-  (the class that says why its findings are not a defect), and `match` rules. A rule names its
+  (the class that says why its findings are not a defect), optional `formerIds` (the ids it had before a
+  rename, so its history follows it: "A11y: fix progress over time" below), and `match` rules. A rule names its
   `source` (`checks`, `axe` or `reader`) and any of `checks` (check ids, or reader projects), `kinds`,
   `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria`, `pages` (patterns
   anchored to the page id, or the scenario), `themes`, `where` (patterns searched in the finding's `where`)
@@ -2529,8 +2530,21 @@ outstanding. The "Fix progress" block of the page says that, from `fixProgress()
   past, with no migration. And a row the catalog moves to another cluster takes its counts along, in the
   entry of every night the row counted in (`rekeyHistory()`): a split, a rename and a triage shape sorted
   into a cluster would otherwise read as that many findings fixed in one cluster and new in another. A
-  catalog change is never a fix. Two limits: a row that was resolved and came back reads, for the earlier
-  nights, as open since its first sighting, and an entry older than a row's first sighting is untouched.
+  catalog change is never a fix.
+- **A renamed cluster names its former ids.** A row moves only its own counts, and a resolved row leaves
+  the ledger after 90 days, so a rename later than that would strand every older resolution, and the
+  cluster's peak, under an id the catalog no longer has: listed as a cluster no tracker owns, and missing
+  from the fix task it belongs to. So the cluster that takes over lists the old id in `formerIds`, and
+  whatever an entry still counts under a former id, after the rows moved theirs, goes to that cluster. A
+  former id is one no cluster uses any more, and one cluster names it: the validator refuses an id still
+  in use and an id two clusters claim. Add `formerIds` in the change that renames a cluster. A split names
+  the old id on the cluster that should keep the unattributable past, or leaves it unnamed.
+- **A row keeps its latest return.** A row that comes back after being resolved keeps the resolution the
+  sighting undid and when it came back (`lastResolvedAt`, `backAt`), because its other fields then say
+  neither. The history of the nights in between is counted from the pair, so a moved row takes its
+  resolution along with its return and the old cluster keeps no fix it did not make. One pair per row: an
+  earlier return of the same row is gone, and a row that came back before it kept the pair reads as open
+  since its first sighting.
 - **An audit is the nights that complete within `A11Y_AUDIT_WINDOW_HOURS` of its first one, and a full
   audit holds a night of every source** (`a11yAudits()`). The ledger records nights, one per workflow run
   and source; an audit is one dispatch of each workflow, and its nights complete minutes to hours apart.
@@ -2540,6 +2554,10 @@ outstanding. The "Fix progress" block of the page says that, from `fixProgress()
 - **A fix time is only as fine as the gap between audits, and the page says so.** A task is cleared by the
   first night after the last one that left a finding of it open, so a finding fixed the day after an audit
   reads as fixed at the next one. Never present the days as the time the fix took.
+- **Only a night that measured a finding gone clears a task.** A finding nothing measures for the rows'
+  retention leaves the ledger unresolved, and the task's open count then drops to zero with nothing fixed.
+  The night it left on is no clearing night: the task reads as having no open finding and no clearing
+  night on record, never as fixed after that many days.
 - **The page names no task.** The page is public, and a tracker is code in the catalog, so no task id
   reaches what the page inlines (`fixView()`), in the fix progress table as in the cluster table. A fix
   task's row is named by its clusters, and the tasks that own the same clusters, whose rows would read

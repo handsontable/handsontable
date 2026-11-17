@@ -1866,7 +1866,7 @@ test('the rendered accessibility section is accessible markup: tables with heade
     'a trend chart is an image named after its cluster and its nightly');
   assert.ok(code.includes("name.scope = 'row'") && code.includes("th.scope = 'rowgroup'"), 'a task\'s name is its row\'s header, and each part of the table has a group header');
   // A cleared task says so in words, and an empty cell says why it is empty.
-  assert.ok(code.includes("badge('cleared', 'cleared')") && code.includes("'not cleared'") && code.includes("'none on record'"));
+  assert.ok(code.includes("badge('cleared', 'cleared')") && code.includes("'not cleared'") && code.includes("'no clearing night on record'"));
   // A task's clusters fold into a native disclosure, which the keyboard opens without a line of script.
   assert.ok(code.includes("document.createElement('details')") && code.includes("text('summary', plural(row.clusters.length, 'cluster', 'clusters'))"));
 });

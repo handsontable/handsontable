@@ -1256,8 +1256,11 @@ function assemble(head, nights, history, rows) {
 /**
  * What a row adds to the history entry of one night of its source: whether it was open after that night, new on it,
  * resolved by it, and back on it after having been resolved. Read from the row as it is now, which is exact for the
- * night being merged. For an earlier night it is what the row still says: a row that was resolved and came back reads
- * as open since its first sighting, and that earlier resolution and return are no longer in its fields.
+ * night being merged. For an earlier night it is what the row still says. A row keeps its latest return and the
+ * resolution that return undid (`backAt`, `lastResolvedAt`), so it reads as resolved by that night, closed until it
+ * came back, and back on the night it did; an earlier resolution and return of the same row are no longer in its
+ * fields. A row that came back before it kept the pair reads as open since its first sighting, and back on its last
+ * night when that night was its return.
  *
  * @param {object} row The row.
  * @param {{runId: string, seenAt: string}} night The night, or its history entry.
@@ -1266,12 +1269,15 @@ function assemble(head, nights, history, rows) {
  */
 function historyContribution(row, night, at) {
   const resolvedBy = row.status === 'resolved' && Date.parse(row.resolvedAt) <= at;
+  const keepsReturn = typeof row.backAt === 'string' && typeof row.lastResolvedAt === 'string';
+  // Between the resolution its return undid and the return, the row was not open.
+  const closedThen = keepsReturn && Date.parse(row.lastResolvedAt) <= at && at < Date.parse(row.backAt);
 
   return [
-    Number(Date.parse(row.firstSeen) <= at && !resolvedBy),
+    Number(Date.parse(row.firstSeen) <= at && !resolvedBy && !closedThen),
     Number(row.firstRun === night.runId),
-    Number(row.status === 'resolved' && row.resolvedAt === night.seenAt),
-    Number(row.lastRun === night.runId && row.gaps > 0 && row.seenSinceGap === 1),
+    Number((row.status === 'resolved' && row.resolvedAt === night.seenAt) || (keepsReturn && row.lastResolvedAt === night.seenAt)),
+    Number(keepsReturn ? row.backAt === night.seenAt : (row.lastRun === night.runId && row.gaps > 0 && row.seenSinceGap === 1)),
   ];
 }
 
@@ -1323,12 +1329,20 @@ function historyEntryOf(night, rows) {
  * (`historyContribution()`), so a cluster never goes below zero for a row that came back; an entry older than the
  * row's first sighting is untouched.
  *
+ * A row the ledger no longer holds cannot move anything, and its counts would stay under the id its cluster had.
+ * So a renamed cluster names that id (`formerIds` in the catalog), and whatever an entry still counts under a former
+ * id, after the rows have moved theirs, goes to the cluster that names it: the past of a renamed cluster follows
+ * it for as long as the history is kept, not only for as long as its rows are.
+ *
  * @param {object[]} history The history entries.
  * @param {Array<{row: object, from: string, to: string}>} moves The rows the catalog moved, with both clusters.
- * @returns {object[]} The history, with the entries a move touched replaced.
+ * @param {{clusters: Array<{id: string, formerIds?: string[]}>}} catalog The compiled cluster catalog.
+ * @returns {object[]} The history, with the entries a move or a rename touched replaced.
  */
-function rekeyHistory(history, moves) {
-  if (moves.length === 0) {
+function rekeyHistory(history, moves, catalog) {
+  const renamed = new Map(catalog.clusters.flatMap(cluster => (cluster.formerIds ?? []).map(id => [id, cluster.id])));
+
+  if (moves.length === 0 && renamed.size === 0) {
     return history;
   }
 
@@ -1357,6 +1371,20 @@ function rekeyHistory(history, moves) {
       });
       clusters.set(from, left);
       clusters.set(to, joined);
+    }
+    for (const [formerId, id] of renamed) {
+      const left = clusters === null ? own(entry.clusters, formerId) : clusters.get(formerId);
+
+      if (left === undefined) {
+        continue;
+      }
+      clusters ??= new Map(Object.keys(entry.clusters).map(key => [key, [...entry.clusters[key]]]));
+
+      const joined = clusters.get(id) ?? [0, 0, 0, 0];
+
+      left.forEach((count, index) => { joined[index] += count; });
+      clusters.set(id, joined);
+      clusters.delete(formerId);
     }
 
     return clusters === null ? entry : { ...entry, clusters: storedClusters(clusters) };
@@ -1616,6 +1644,12 @@ export function mergeA11yLedger(previous, night, run, catalog, {
       continue;
     }
 
+    // A row that comes back keeps the resolution this sighting undoes, and when it came back: the history of the
+    // nights in between is counted from them, and a row the catalog later moves takes both along.
+    if (row.status === 'resolved') {
+      row.lastResolvedAt = row.resolvedAt;
+      row.backAt = at;
+    }
     // A resolved row's `seenSinceGap` is 0 (the resolution set it), so the count restarts at 1 on its comeback.
     Object.assign(row, latestFields, {
       lastSeen: at,
@@ -1713,7 +1747,7 @@ export function mergeA11yLedger(previous, night, run, catalog, {
   // row last seen past the rows' retention is dropped by the merge that resolves it, and the history is then the only
   // record of the fix. A row that leaves unresolved, because nothing measured it for that long, is not open any more.
   const counted = [...rows.values()].filter(row => Date.parse(row.lastSeen) >= cutoff || (row.status === 'resolved' && row.resolvedAt === at));
-  const keptHistory = sortNights([...rekeyHistory(earlierHistory, moves), historyEntryOf(record, counted)])
+  const keptHistory = sortNights([...rekeyHistory(earlierHistory, moves, catalog), historyEntryOf(record, counted)])
     .filter(entry => Date.parse(entry.seenAt) >= historyCutoff);
 
   if (droppedRows > 0) {
@@ -1987,8 +2021,11 @@ function progressOf(ids, rows, points) {
   // The first night that recorded any of it: a row's own first sighting while the row is kept, the history's after.
   const recorded = points.find(point => entryCount(point.entry, ids, 0) > 0 || entryCount(point.entry, ids, 1) > 0);
   const firstMs = rows.reduce((first, row) => Math.min(first, Date.parse(row.firstSeen)), recorded ? recorded.at : Infinity);
-  // Cleared by the first night after the last one that left a finding open, and only while the rows agree.
-  const cleared = openRows.length === 0 && lastOpen !== -1 && lastOpen < points.length - 1 ? points[lastOpen + 1] : null;
+  // Cleared by the first night after the last one that left a finding open, while the rows agree, and only when that
+  // night measured a finding of it gone: a finding nothing measured for the rows' retention leaves the ledger
+  // unresolved, and the night it left on fixed nothing.
+  const next = lastOpen !== -1 && lastOpen < points.length - 1 ? points[lastOpen + 1] : null;
+  const cleared = openRows.length === 0 && next !== null && entryCount(next.entry, ids, 2) > 0 ? next : null;
 
   return {
     open: openRows.length,
@@ -2016,8 +2053,9 @@ function progressOf(ids, rows, points) {
  *   The headline counts leave the last kind out.
  * - The past comes from the history, which is keyed by cluster, and the clusters' trackers from the catalog as it is
  *   now: a tracker written into the catalog today owns its clusters' whole past.
- * - A tracker is cleared by the first night after the last one that left any of its findings open. A fix time is
- *   therefore only as fine as the gap between audits.
+ * - A tracker is cleared by the first night after the last one that left any of its findings open, when that night
+ *   measured a finding of it gone; findings that left the ledger unmeasured clear nothing. A fix time is therefore
+ *   only as fine as the gap between audits.
  * - The first full audit (`a11yAudits()`) is what "open then" is counted at; new coverage after it (a check, a
  *   scenario) adds findings, which is why the chain names what came new since.
  *

@@ -21,9 +21,10 @@ export const HEAD_SHA = '6db6aee0147010789d9a6ff43fa9280f7337a060';
  * not a defect.
  *
  * @param {object[]} [extra] Clusters to put first, so their rules win.
+ * @param {string[]} [without] Ids of the clusters to leave out, for a catalog that renamed or dropped one.
  * @returns {object} The compiled catalog.
  */
-export function catalogOf(extra = []) {
+export function catalogOf(extra = [], without = []) {
   return compileIssuesCatalog({
     schema: ISSUES_SCHEMA,
     triageLimit: 0,
@@ -36,7 +37,7 @@ export function catalogOf(extra = []) {
       { id: 'target-small', title: 'Targets under 24 px', match: [{ source: 'checks', kinds: ['target-small'] }] },
       { id: 'reader-wording', title: 'The reader words it its own way', notDefect: 'reader-behavior',
         match: [{ source: 'reader', kinds: ['golden-differs'] }] },
-    ],
+    ].filter(cluster => !without.includes(cluster.id)),
   });
 }
 

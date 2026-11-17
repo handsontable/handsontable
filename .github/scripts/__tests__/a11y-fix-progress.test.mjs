@@ -149,6 +149,99 @@ test('a row the catalog moves to another cluster takes its past along: a split, 
     'and a task named today owns its cluster\'s whole past');
 });
 
+test('a renamed cluster names its former id, and takes the past of rows the ledger no longer holds', () => {
+  // Page a's lost focus is seen in January and measured gone a week later; by April its row has left the ledger.
+  const before = record(null, [
+    [101, '2026-01-05T05:00:00Z', a11yNight([walker('focus-lost', 'a'), walker('focus-lost', 'b')])],
+    [111, '2026-01-12T05:00:00Z', a11yNight([walker('focus-lost', 'b')])],
+    [121, '2026-04-20T05:00:00Z', a11yNight([walker('focus-lost', 'b')])],
+  ]).doc;
+  const taskOf = (doc, catalog) => fixProgress(doc, catalog).trackers.find(item => item.tracker === 'TASK-1');
+
+  assert.deepEqual(before.rows.map(row => row.page), ['b'], 'the resolved row is gone, and only the history remembers it');
+  assert.deepEqual([taskOf(before, CATALOG).open, taskOf(before, CATALOG).peak, taskOf(before, CATALOG).resolved], [1, 2, 1]);
+
+  // The catalog renames the cluster, same rule and same tracker, and the new cluster names what it was.
+  const renamed = formerIds => catalogOf([{ id: 'focus-leaves-grid', title: 'The focus leaves the grid', tracker: 'TASK-1', ...(formerIds ? { formerIds } : {}),
+    match: [{ source: 'checks', kinds: ['focus-lost'] }] }], ['focus-lost']);
+  const night = [131, '2026-04-27T05:00:00Z', a11yNight([walker('focus-lost', 'b')])];
+  const withFormer = renamed(['focus-lost']);
+  const { doc } = record(before, [[...night, { catalog: withFormer }]]);
+
+  assert.deepEqual(historyOf(doc, 101).clusters, { 'focus-leaves-grid': [2, 2, 0, 0] });
+  assert.deepEqual(historyOf(doc, 111).clusters, { 'focus-leaves-grid': [1, 0, 1, 0] }, 'the resolution of the row that left follows the rename');
+  assert.ok(doc.history.every(entry => !Object.hasOwn(entry.clusters, 'focus-lost')), 'nothing is left under the former id');
+
+  const task = taskOf(doc, withFormer);
+
+  assert.deepEqual([task.open, task.peak, task.resolved, task.firstSeen], [1, 2, 1, '2026-01-05T05:00:00Z'], 'the task reads as it did before the rename');
+  assert.deepEqual(fixProgress(doc, withFormer).others.find(item => item.kind === 'untracked').clusters.map(cluster => cluster.id), ['target-small'],
+    'and the former id is not listed as a cluster no tracker owns');
+
+  // Without the former id the rename takes along only what the rows still say: the limit the field exists for.
+  const plain = renamed(null);
+  const lost = record(before, [[...night, { catalog: plain }]]).doc;
+
+  assert.deepEqual(historyOf(lost, 111).clusters, { 'focus-leaves-grid': [1, 0, 0, 0], 'focus-lost': [0, 0, 1, 0] });
+  assert.deepEqual([taskOf(lost, plain).peak, taskOf(lost, plain).resolved], [1, 0]);
+});
+
+test('a task is cleared only by a night that measured a finding of it gone: findings that left the ledger unmeasured clear nothing', () => {
+  const { doc } = record(null, [
+    [101, '2026-01-01T05:00:00Z', a11yNight([walker('focus-lost', 'c')])],
+    // Page c is not measured again, and after 90 days its row leaves the ledger, unresolved.
+    [111, '2026-01-02T05:00:00Z', a11yNight([], ['a', 'b'])],
+    [121, '2026-04-15T05:00:00Z', a11yNight([], ['a', 'b'])],
+  ]);
+  const task = fixProgress(doc, CATALOG).trackers.find(item => item.tracker === 'TASK-1');
+
+  assert.deepEqual(doc.rows, []);
+  assert.deepEqual([task.open, task.peak, task.resolved], [0, 1, 0]);
+  assert.deepEqual([task.clearedAt, task.days], [null, null], 'no audit looked at the finding again, so no night fixed it and no fix took 104 days');
+  assert.deepEqual(fixProgress(doc, CATALOG).headline.trackers, { total: 1, clear: 1 }, 'it has no open finding, which is all the headline says');
+});
+
+test('a moved row that had come back takes its earlier resolution along with its return', () => {
+  const before = record(null, [
+    [101, '2026-11-03T05:00:00Z', a11yNight([walker('focus-lost', 'a')])],
+    [111, '2026-11-10T05:00:00Z', a11yNight([])],
+    [121, '2026-11-17T05:00:00Z', a11yNight([walker('focus-lost', 'a')])],
+  ]).doc;
+  const row = before.rows[0];
+
+  // The row keeps the resolution its return undid, and when it returned: its other fields say neither any more.
+  assert.deepEqual([row.status, row.resolvedAt, row.lastResolvedAt, row.backAt], ['flapping', null, '2026-11-10T05:00:00Z', '2026-11-17T05:00:00Z']);
+  assert.deepEqual([historyOf(before, 111).clusters, historyOf(before, 121).clusters], [{ 'focus-lost': [0, 0, 1, 0] }, { 'focus-lost': [1, 0, 0, 1] }]);
+
+  // The catalog moves page a's finding to a cluster of another task, and a docs night is the next to be recorded.
+  const moved = catalogOf([{ id: 'focus-lost-on-a', title: 'The focus is lost on page a', tracker: 'TASK-6',
+    match: [{ source: 'checks', kinds: ['focus-lost'], pages: ['a'] }] }]);
+  const { doc } = record(before, [[122, '2026-11-17T06:00:00Z', siteNight('docs', 'aria-required-parent', []), { catalog: moved }]]);
+
+  assert.deepEqual([historyOf(doc, 101).clusters, historyOf(doc, 111).clusters, historyOf(doc, 121).clusters],
+    [{ 'focus-lost-on-a': [1, 1, 0, 0] }, { 'focus-lost-on-a': [0, 0, 1, 0] }, { 'focus-lost-on-a': [1, 0, 0, 1] }],
+    'the first sighting, the resolution and the return all moved: the old cluster keeps no fix it did not make');
+
+  const progress = fixProgress(doc, moved);
+
+  assert.equal(progress.trackers.some(item => item.tracker === 'TASK-1'), false, 'the old task has nothing on record');
+  assert.deepEqual(progress.trackers.filter(item => item.tracker === 'TASK-6').map(item => [item.open, item.peak, item.resolved]), [[1, 1, 0]]);
+
+  // The return stays on its night when the row is seen again before the catalog moves it.
+  const seenAgain = record(before, [[128, '2026-11-24T05:00:00Z', a11yNight([walker('focus-lost', 'a')])]]).doc;
+  const later = record(seenAgain, [[129, '2026-11-24T06:00:00Z', siteNight('docs', 'aria-required-parent', []), { catalog: moved }]]).doc;
+
+  assert.deepEqual([historyOf(later, 111).clusters, historyOf(later, 121).clusters, historyOf(later, 128).clusters],
+    [{ 'focus-lost-on-a': [0, 0, 1, 0] }, { 'focus-lost-on-a': [1, 0, 0, 1] }, { 'focus-lost-on-a': [1, 0, 0, 0] }]);
+
+  // A row that returned before it kept the pair reads the old way: open since its first sighting, back on its last night.
+  const { lastResolvedAt, backAt, ...legacy } = row;
+  const old = record({ ...before, rows: [legacy] }, [[122, '2026-11-17T06:00:00Z', siteNight('docs', 'aria-required-parent', []), { catalog: moved }]]).doc;
+
+  assert.deepEqual([historyOf(old, 101).clusters, historyOf(old, 111).clusters, historyOf(old, 121).clusters],
+    [{ 'focus-lost-on-a': [1, 1, 0, 0] }, { 'focus-lost': [0, 0, 1, 0], 'focus-lost-on-a': [1, 0, 0, 0] }, { 'focus-lost-on-a': [1, 0, 0, 1] }]);
+});
+
 test('migrateA11yLedger rebuilds the history of a version 1 file from its rows, and returns a current document as it is', () => {
   // A cut of the published file of 2026-11-17 (24 nights, 88 of 8,432 rows: a third of the resolved or returned rows
   // and an even sample of the open ones), in the published version 1 shape.
