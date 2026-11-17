@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "scenario": "license-missing-features",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T15:23:11.337Z"
+  },
+  "steps": {
+    "tab-to-sales": "",
+    "read-notice": "column 1 of 3 name alpha column 2 of 3",
+    "read-back-to-link": "name value 10 column 3 of 3",
+    "shift-tab-to-grid": ""
+  }
+}

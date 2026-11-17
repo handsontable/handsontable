@@ -42,9 +42,9 @@ export const SR_PAGE_COVERAGE = {
   pagination: { scenarios: ['pagination'] },
   dialog: { scenarios: ['dialog'] },
   notification: { scenarios: ['notification'] },
-  'license-bar': { gap: 'the license notice under an unlicensed grid is page text a reader meets, read by no scenario' },
-  'license-powered-by': { gap: 'the Powered by badge under a grid with a sponsored key is a link a reader meets, read by no scenario' },
-  'license-missing-features': { gap: 'the notice naming the features a license key leaves out, and its link, are read by no scenario' },
+  'license-bar': { scenarios: ['license-bar'] },
+  'license-powered-by': { scenarios: ['license-powered-by'] },
+  'license-missing-features': { scenarios: ['license-missing-features'] },
   'side-layout-slots': { none: 'the layout slots add role-less containers, borders and corner radii, nothing in the accessibility tree: a reader meets the panels\' own content, which the page owns, and the grid the grid page reads' },
   'context-menu': { scenarios: ['context-menu-checkable'] },
   'context-menu-submenu': { scenarios: ['context-menu-submenu'] },
@@ -162,4 +162,4 @@ export const SR_FEATURE_COVERAGE = {
  * The number of `gap` entries in both maps. It only goes down: closing a gap lowers it in the same
  * change, and a new gap fails the coverage test until another gap is closed.
  */
-export const SR_GAP_LIMIT = 5;
+export const SR_GAP_LIMIT = 2;
