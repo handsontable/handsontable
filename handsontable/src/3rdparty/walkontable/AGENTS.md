@@ -1201,8 +1201,8 @@ Consequences worth knowing:
     identically, so it was left alone.
   - Pinned by the `bottom snap with AutoRowSize` blocks of `tests/e2e/fixed-rows-bottom-line.spec.ts` (the
     cache-rebuild case fails without the band-start rule, the sequence cases without the target rule),
-    `test/unit/viewport/firstRowPixel.unit.ts`, `test/unit/calculator/viewportRows.unit.ts` and
-    `test/unit/viewport/calculatorFactory.unit.js`.
+    `test/unit/viewport/firstRowPixel.unit.ts`, `test/unit/calculator/viewportRows.unit.ts`,
+    `test/unit/viewport/calculatorFactory.unit.js` and `test/unit/overlay/topOverlayScrollTarget.unit.ts`.
 - **The active-header accent on the first rendered row moves to the CORNER.** `-row-seam-bottom` /
   `-row-seam-top` colour the row *above* an active one, and row 0 has none — the accent used to come
   from the row's own `border-top`, which is now 0px wide. `SelectionManager` therefore tags the last
