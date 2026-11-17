@@ -350,8 +350,8 @@ test('the committed catalog reads a docs finding through its docs rules', () => 
     wcag: ['1.3.1'], issue: 'example-grid-roles' };
 
   assert.equal(tracked(DOCS.source, DOCS.check, grid), true, 'the example grids\' roles are the product\'s tracked grid-roles cluster, through its docs rule');
-  assert.equal(tracked(DOCS.source, DOCS.check, { ...grid, issue: 'prose-link-color-only', rule: 'link-in-text-block', target: 'a' }), false,
-    'a docs cluster with no tracker counts at its severity');
+  assert.equal(tracked(DOCS.source, DOCS.check, { ...grid, issue: null, rule: 'duplicate-id-aria', target: 'div.unclustered' }), false,
+    'a docs finding no cluster claims counts at its severity');
 });
 
 test('a docs run that wrote no comparison is a red tooling failure that names the docs file', () => {
