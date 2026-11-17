@@ -147,9 +147,14 @@ export default class A11yReporter implements Reporter {
     });
     const scannedPages = new Set(scans.map(scan => scan.page)).size;
     const scannedThemes = new Set(scans.map(scan => scan.theme)).size;
+    // The docs scan of a pull request leaves out the pages the pull request adds (`DOCS_A11Y_SKIP_PAGES`).
+    const skippedPages = suite.id === 'docs'
+      ? (process.env.DOCS_A11Y_SKIP_PAGES ?? '').split(',').map(id => id.trim()).filter(id => pages.includes(id))
+      : [];
     const summary = [
       renderSummary(verdict, { title: suite.title }),
       `${scans.length} scans completed (${scannedPages} pages × ${scannedThemes} themes); axe-core ${engines.join(', ') || 'none'}.`,
+      ...(skippedPages.length > 0 ? ['', `Not scanned, new in this pull request (the staging deploy of develop has no such page yet): ${skippedPages.join(', ')}.`] : []),
       ...notes.map(note => `\n> ${note}`),
       ...(problems.length > 0 ? ['', '### Tooling problems', '', ...problems.map(problem => `- ${problem}`)] : []),
       '',

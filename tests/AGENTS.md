@@ -2002,6 +2002,18 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   deploy is newer than the audit the summary says so and names the dispatch that measures it (`gh workflow run
   docs-a11y.yml --ref develop`). A ledger that cannot be read, or holds no docs night that read the scan, leaves
   every finding at its severity and says why. An audit run (a dispatch) counts every open finding, drift or not.
+- **A pull request does not scan the pages it adds.** The staging deploy has no page the pull request adds to
+  `docs/tests/paths.js`, so a scan of it would fail on every head until the merge. The `scan` job names those
+  pages before the run (`tests/scripts/a11y-docs-new-pages.mjs --base <base sha>`: `newGuidePageIds()` in
+  `a11y/docs/pages.mjs` compares the page list of the base commit with the working tree's) and passes them as
+  `DOCS_A11Y_SKIP_PAGES`. The spec opens none of them and annotates `not-scanned`; the reporter names them in the
+  summary. They are skipped on a pull request run only, and not when a dispatch or a call names a `base-url`,
+  because that deploy may hold them. A fork's pull request needs no other path: the base commit is fetched from the
+  base repository. Failing to read the base leaves the list empty and every page scanned (a red page, as before),
+  never a page hidden. A page new in one framework's list but present in another's is not new (its id is the
+  first framework's), and the accessibility pages are never new (all four variants are in the list whatever the
+  lists hold). Scanning the pull request's preview instead is not done: the preview is built by `docs.yml`, a fork has
+  none, and the baseline is the staging deploy's.
 - **Taking or refreshing the baseline.** Run the whole scan with `DOCS_A11Y_SCREENSHOTS=0`: with an empty or
   stale baseline every finding is new, every scan would be photographed, and the HTML report runs to
   hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;

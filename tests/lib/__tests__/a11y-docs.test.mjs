@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compareViolations, renderSummary, validateBaseline } from '../a11y-baseline.mjs';
@@ -19,6 +21,8 @@ import {
   docsStateSteps,
   docsUrl,
   guidePages,
+  newGuidePageIds,
+  parseSkipPages,
   servedSlug,
 } from '../../a11y/docs/pages.mjs';
 
@@ -160,4 +164,64 @@ test('the comparator, the summary, the HTML report and the findings run through 
   assert.match(html, /<title>Docs site accessibility report/);
   assert.ok(html.includes('href="https://example.dev/docs/javascript-data-grid/"'), 'a page links to the deploy the run read');
   assert.ok(!html.includes('localhost:8123'), 'never the fixture server');
+});
+
+// tests/AGENTS.md, "A11y: the docs site scan": a pull request scans the staging deploy of develop, which has no page the
+// pull request adds, so the pages new in the pull request are skipped and named instead of failing every head.
+
+/**
+ * The lists of `docs/tests/paths.js`, without the entries of one guide.
+ *
+ * @param {string} guide The visual list's path of the guide.
+ * @param {string[]} [only] The list keys to drop it from; every list when absent.
+ * @returns {object} The lists, in the shape of `docs/tests/paths.js`.
+ */
+function listsWithout(guide, only = Object.keys(VISUAL_PATHS)) {
+  return Object.fromEntries(Object.entries(VISUAL_PATHS)
+    .map(([key, list]) => [key, only.includes(key) ? list.filter(({ path: file }) => file !== guide) : list]));
+}
+
+test('newGuidePageIds names the guide pages a pull request adds to the visual list, and nothing else', () => {
+  const guide = 'guides/getting-started/saving-data/saving-data';
+  const id = `js-${servedSlug(guide).replace(/[^a-z0-9-]+/g, '-')}`;
+
+  assert.deepEqual(newGuidePageIds(VISUAL_PATHS), [], 'no change, no new page');
+  assert.deepEqual(newGuidePageIds(listsWithout(guide)), [id], 'a guide the base list lacks is new');
+  // The accessibility pages are scanned in every framework whatever the lists hold, so they are never new.
+  assert.deepEqual(newGuidePageIds(listsWithout('guides/accessibility/accessibility/accessibility')), []);
+  // The chrome and API pages are not in the visual list, so they are never new.
+  assert.ok(newGuidePageIds({ jsPaths: [], reactPaths: [], angularPaths: [], vuePaths: [] }).every(item => !item.startsWith('chrome-')));
+});
+
+test('parseSkipPages reads the ids a pull request run skips, and refuses an id that is no page', () => {
+  assert.deepEqual([...parseSkipPages('js-introduction, vue-accessibility,,')], ['js-introduction', 'vue-accessibility']);
+  assert.equal(parseSkipPages(undefined).size, 0);
+  assert.equal(parseSkipPages('').size, 0);
+  assert.throws(() => parseSkipPages('js-no-such-page'), /js-no-such-page/);
+});
+
+test('a11y-docs-new-pages.mjs prints the guide pages new since a base commit, and nothing when none is', () => {
+  const repo = mkdtempSync(path.join(tmpdir(), 'docs-new-pages-'));
+  const guide = 'guides/getting-started/saving-data/saving-data';
+  const id = `js-${servedSlug(guide).replace(/[^a-z0-9-]+/g, '-')}`;
+  const git = (...args) => execFileSync('git', ['-C', repo, '-c', 'user.name=t', '-c', 'user.email=t@t', ...args], { encoding: 'utf8' });
+  const script = path.join(TESTS_ROOT, 'scripts/a11y-docs-new-pages.mjs');
+  const run = (...args) => execFileSync('node', [script, '--repo', repo, ...args], { encoding: 'utf8' });
+
+  try {
+    mkdirSync(path.join(repo, 'docs/tests'), { recursive: true });
+    git('init', '-q');
+    writeFileSync(path.join(repo, 'docs/tests/paths.js'), `module.exports = ${JSON.stringify(listsWithout(guide))};\n`);
+    git('add', '.');
+    git('commit', '-q', '-m', 'base');
+    assert.equal(run('--base', 'HEAD').trim(), id);
+
+    writeFileSync(path.join(repo, 'docs/tests/paths.js'), `module.exports = ${JSON.stringify(VISUAL_PATHS)};\n`);
+    git('commit', '-q', '-am', 'the page lands');
+    assert.equal(run('--base', 'HEAD').trim(), '');
+    // A base that cannot be read leaves every page scanned, as today: nothing printed, the reason on stderr.
+    assert.equal(run('--base', 'no-such-commit').trim(), '');
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+  }
 });

@@ -94,6 +94,15 @@ test('docs-a11y.yml runs the docs config in the Playwright container, report-onl
   assert.match(step('Run the docs site scan'), /^ {8}run: cd tests && npx playwright test --config playwright\.a11y-docs\.config\.ts$/m,
     `${DOCS}: the run step runs the docs config and nothing else. ${DOC}`);
 
+  const newPages = step('Name the pages this pull request adds');
+
+  assert.match(newPages, /^ {8}if: \$\{\{ github\.event_name == 'pull_request' && env\.DOCS_A11Y_BASE_URL == '' \}\}$/m,
+    `${DOCS}: a pull request's run skips the pages it adds, and a run that names a deploy skips none. ${DOC}`);
+  assert.match(newPages, /^ {10}BASE_SHA: \$\{\{ github\.event\.pull_request\.base\.sha \}\}$/m, `${DOCS}: the base commit reaches the script through the environment.`);
+  assert.match(newPages, /a11y-docs-new-pages\.mjs --base "\$BASE_SHA"/, `${DOCS}: the script names the pages new since the base.`);
+  assert.match(newPages, />> "\$GITHUB_ENV"/, `${DOCS}: the spec and the reporter read DOCS_A11Y_SKIP_PAGES from the environment.`);
+  assert.ok(stepsOf.indexOf(newPages) < stepsOf.indexOf(step('Run the docs site scan')), `${DOCS}: the pages are named before the scan runs.`);
+
   const upload = step('Upload the scan results');
 
   assert.match(upload, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${DOCS}: the results upload on a red run too.`);
