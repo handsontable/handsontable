@@ -74,6 +74,17 @@ what `GHOST_BORDER_WIDTH = '1px'` is for — a fallback mirroring the `main` the
 inside the grid (`maxRow = totalRows − rangeHeight`). Clamping the pointer instead would let the block hang
 off the edge.
 
+## The drag preview is drawn over frozen rows and columns too
+
+`#positionGhost` cuts the target range down to the cells that are drawn, then measures the first and the last
+one. "Drawn" is three bands per axis, not one: the frozen tracks at the start, the tracks the scrolled table
+renders (`getFirstRenderedVisibleColumn()` to `getLastRenderedVisibleColumn()`), and the frozen tracks at the end
+(`clampToDrawnBands()` in `helpers.ts`). The first version looked at the scrolled table's band only, so the
+preview was hidden over a `fixedColumnsEnd` column, and over a `fixedColumnsStart` column once the grid was
+scrolled sideways, while the drop still landed there. The cells are read with `getCell(row, col, true)`, which
+answers from the overlay that draws them. Pinned by the two `frozen` cases of `tests/e2e/move-zone.spec.ts` and
+`__tests__/helpers.unit.js`.
+
 ## A drag ends when the data is replaced
 
 `beforeLoadData` ends a held drag through `#endDrag(false, null)`, the path Escape and

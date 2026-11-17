@@ -538,6 +538,60 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * The box of a cell in whichever overlay draws it on top: a cell of a frozen column is not always in the
+   * master table.
+   */
+  async #topmostCellBox(row: number, col: number): Promise<{ x: number, y: number, width: number, height: number }> {
+    const box = await this.page.evaluate(([r, c]) => {
+      const cell = window.hot.getCell(r, c, true);
+
+      if (!cell) {
+        return null;
+      }
+
+      const rect = cell.getBoundingClientRect();
+
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    }, [row, col] as const);
+
+    if (!box) {
+      throw new Error('The target cell is not rendered.');
+    }
+
+    return box;
+  }
+
+  /**
+   * Press the first visible move-zone band and move the pointer over a cell of a frozen column, without
+   * releasing. The pointer arrives in two steps, so the grid sees a move over the cell.
+   */
+  async startMoveZoneDragOverFrozenCell(row: number, col: number): Promise<void> {
+    await this.#pressFirstMoveZone();
+
+    const box = await this.#topmostCellBox(row, col);
+
+    await this.page.mouse.move(box.x + (box.width / 2) - 4, box.y + (box.height / 2), { steps: 4 });
+    await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
+  }
+
+  /**
+   * Whether the move ghost overlaps a cell of a frozen column, in the overlay that draws it.
+   */
+  async isMoveGhostOverFrozenCell(row: number, col: number): Promise<boolean> {
+    const ghostBox = await this.moveGhost().boundingBox();
+    const cellBox = await this.#topmostCellBox(row, col);
+
+    if (!ghostBox) {
+      return false;
+    }
+
+    return ghostBox.x + ghostBox.width > cellBox.x &&
+      ghostBox.x < cellBox.x + cellBox.width &&
+      ghostBox.y + ghostBox.height > cellBox.y &&
+      ghostBox.y < cellBox.y + cellBox.height;
+  }
+
+  /**
    * Drag a range by grabbing it at a specific cell's bottom-end corner, then drop on a target cell.
    *
    * The grab offset MoveCells applies is derived from the pointer coordinates, not from which band
