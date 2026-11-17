@@ -2965,6 +2965,38 @@ class TableView {
   }
 
   /**
+   * Drops the row heights that were measured before the browser zoom changed, when it did.
+   *
+   * Below 100% the cells' border renders wider than the 1px the theme declares, so every row renders taller, and
+   * the styles handler sizes rows from that only when the border it cached was already inflated. A grid built at
+   * 100% and zoomed out afterwards kept the declared height and every sum of row heights fell short per row: the
+   * guideline of `ManualRowMove`, the scroll range, the row-header clone (GitHub #14330). The handler re-reads the
+   * border and, when it moved, the row-height cache is dropped here, so the next render measures the rows again.
+   * The oversized-row records stay: without `AutoRowSize` nothing else knows the height of a tall row outside the
+   * rendered band, and a render measures the rows it draws. The column width cache is left alone too, because a
+   * measured width (`AutoColumnSize`) does not depend on the border.
+   *
+   * A grid nobody can see is skipped. The browser reports the inflated border of a hidden grid, but a row of
+   * it renders at no height, so the grid would measure the declared one against the new border and keep it once
+   * shown. The resize that follows the reveal (`Core#refreshDimensions()`, which the container observer or the
+   * application calls) then finds the border moved and refreshes.
+   *
+   * `Core#refreshDimensions()` calls it after the `beforeRefreshDimensions` hook let the resize through and
+   * renders when it returns `true`, so a resize that a listener blocked stays blocked.
+   *
+   * @returns {boolean} `true` when the zoom changed what a row measures, and the caller has to render.
+   */
+  refreshZoomDependentSizes(): boolean {
+    if (!isVisible(this.hot.rootElement) || !this.hot.stylesHandler.refreshZoomDependentValues()) {
+      return false;
+    }
+
+    this.invalidateRowHeightCache();
+
+    return true;
+  }
+
+  /**
    * Renders when a resize of the window changed the counts that fit. A grid that the window scrolls keeps the size of
    * its root when the window is resized (its height follows its content), so `refreshDimensions()` finds no change
    * and does not render, while the room the frozen bands share is the size of the window.
