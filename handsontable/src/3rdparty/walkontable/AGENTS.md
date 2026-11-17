@@ -1334,7 +1334,11 @@ Nine rules follow.
   `overflow-x: clip` inline on the root of a root instance under `'horizontal'`, the same clip a definite
   `width` gets, so the scroll spacer and the overlay rails cannot reach through the root and widen the
   page. It only reads and writes the inline style, so an inline `overflow` on the root is left alone and
-  a stylesheet `overflow-x` on `.handsontable` is overridden. Pinned by the last case of `tests/e2e/width-window-scroll.spec.ts`.
+  a stylesheet `overflow-x` on `.handsontable` is overridden. Pinned by the `'horizontal'` cases of `tests/e2e/width-window-scroll.spec.ts`.
+  The forced `y` branch of `resolveAxisOwner()` has its own pin in the same file: the `'vertical'`
+  alias in a parent with a `height` and no `overflow`. The forced owner there is the grid's root
+  element (`ht_master`'s parent), which gets the parent's height through the root wrapper chain, so
+  the cases measure `hot.rootElement` and not the element the height is written on.
 - **Never ask `instanceof HTMLElement` whether an axis owner is an element — use `isHTMLElement()`.**
   `resolveAxisOwner` takes its realm from `ownerDocument`, so it correctly hands back an iframe's
   element to a parent-realm caller; `instanceof` then fails to recognize it against the parent's

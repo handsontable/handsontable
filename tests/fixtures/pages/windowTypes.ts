@@ -422,10 +422,16 @@ declare global {
     };
     /**
      * Rebuilds the formulas fixture grid with the given dataset, or – the width-window-scroll
-     * fixture's overload – rebuilds its grid with setting overrides and an optional parent width.
+     * fixture's overload – rebuilds its grid with setting overrides, an optional parent width and an
+     * optional height and `overflow-y` for the element the grid is built in.
      */
     initGrid(data: CellValue[][], overrides?: Record<string, unknown>): boolean;
-    initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
+    initGrid(
+      overrides?: Record<string, unknown>,
+      containerWidth?: string,
+      containerHeight?: string,
+      containerOverflowY?: string,
+    ): boolean;
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
     /** `afterScroll` calls since `SelectionViewportScrollPage#countAfterScroll()` started counting. */
