@@ -85,8 +85,9 @@ Each scenario measures a specific user interaction pattern:
 | **undo-sort** | 100000 x 100 | `undo()` of a `columnSorting.sort()` | Hook timing: beforeUndo -> afterUndo. The index-map restore path (the 100000-row order) |
 | **undo-remove-rows** | 100000 x 100 | `undo()` of `alter('remove_row', 1000, 100)` | Hook timing: beforeUndo -> afterUndo. The structural path: physical-order replay, rows re-created, maps restored |
 | **sheetsbar-structural-ops** | 10 sheets x 10000 x 10 | `alter('insert_row_above', 100, 1)` then `alter('remove_row', 100, 1)` in the visible sheet | SheetsBar workbook on one shared HyperFormula engine. Each wrapped structural engine call lists the formulas of the other sheets that name the visible one; the per-sheet cache skips a sheet with none, so the warmup scan fills it and the window measures the cached path |
+| **paste-extend-rows** | 100 x 10, pasted to 10099 x 10 | `copyPaste.paste()` of a 10000 x 10 block on the last row | Hook timing: beforePaste -> afterPaste. The paste writes past the last row, so the grid creates the 9999 missing rows in one batch; creating them one at a time made this paste quadratic |
 
-Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing. Twelve scenarios (filtering, sorting, initial-load, source-data-validator-load, undo-edit, undo-sort, undo-remove-rows, row-selection-select-all, row-selection-deselect-all, checkbox-header-toggle, checkbox-column-set-data, sheetsbar-structural-ops) run **5**; each states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations cost seconds next to the fixture load. The runner forces a full GC before every measured iteration, so garbage from the previous reset is never collected inside the next window, and reads the live heap after every end mark (`jsHeapAfterGcBytes`, recorded beside the windowed extrema).
+Each scenario runs **1 warmup iteration** (discarded) followed by **3 measured iterations** with CDP tracing. Thirteen scenarios (filtering, sorting, initial-load, source-data-validator-load, undo-edit, undo-sort, undo-remove-rows, row-selection-select-all, row-selection-deselect-all, checkbox-header-toggle, checkbox-column-set-data, sheetsbar-structural-ops, paste-extend-rows) run **5**; each states its own reason in its `scenario.config.mjs` (short windows on a 300 to 350 MB heap where one GC pause moves a mean of three by 10 to 20%; for `source-data-validator-load`, a 20% run-to-run spread after removing the runner factor), and their iterations cost seconds next to the fixture load. The runner forces a full GC before every measured iteration, so garbage from the previous reset is never collected inside the next window, and reads the live heap after every end mark (`jsHeapAfterGcBytes`, recorded beside the windowed extrema).
 
 ## Project structure
 
@@ -470,7 +471,7 @@ and lists only the scenarios that need attention; the full table and the hook ti
 under `<details>`. A quiet run:
 
 ```
-## ⚡ Performance: ✅ all 19 scenarios within tolerance
+## ⚡ Performance: ✅ all 20 scenarios within tolerance
 
 <sub>Gate: a scenario fails above +10% and +2 ms of active time, or +5% of JS heap (…), and is
 watched above +5%. …</sub>
@@ -479,13 +480,13 @@ watched above +5%. …</sub>
 
 📊 **[Full interactive report →](https://handsontable.github.io/handsontable/performance-reports/my-branch/)**
 
-<details><summary>All 19 scenarios</summary> … </details>
+<details><summary>All 20 scenarios</summary> … </details>
 ```
 
 A regression, in block mode:
 
 ```
-## ⚡ Performance: ❌ 1 of 19 scenarios regressed
+## ⚡ Performance: ❌ 1 of 20 scenarios regressed
 
 Waiting for approval: if the slowdown is intended, a reviewer approves the pending
 `performance-approval` deployment on the [workflow run](…); otherwise push a fix. …
