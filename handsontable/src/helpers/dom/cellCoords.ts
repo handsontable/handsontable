@@ -34,8 +34,6 @@ function createCellMeasurer(hotInstance: HotInstance): CellMeasurer {
  * @param {Handsontable} hotInstance The Handsontable instance.
  * @param {CellMeasurer} measurer The measurer of the instance.
  * @param {number} x The horizontal position, in viewport coordinates.
- * @param {number} fixedColumnsStart The number of not hidden frozen start columns, which the end band never
- *   takes over.
  * @param {number} referenceRowStart The first row a reference row may be taken from.
  * @param {number} referenceRowEnd The last row a reference row may be taken from.
  * @returns {number|null} The visual column, or `null` when the position is not over the end columns.
@@ -44,23 +42,25 @@ function findColumnInEndBand(
   hotInstance: HotInstance,
   measurer: CellMeasurer,
   x: number,
-  fixedColumnsStart: number,
   referenceRowStart: number,
   referenceRowEnd: number,
 ): number | null {
   const { view, columnIndexMapper } = hotInstance;
-  const totalColumns = columnIndexMapper.getNotHiddenIndexesLength();
-  // The start band has priority over the end band, as in the engine.
-  const fixedColumnsEnd = Math.min(view.countNotHiddenFixedColumnsEnd(), totalColumns - fixedColumnsStart);
+  // The band is the last columns of `countCols()`, the total the renderer uses: `maxCols` can leave source
+  // columns after it. The count is visual (hidden columns included) and already cut down by the start band.
+  const totalColumns = hotInstance.countCols();
+  const fixedColumnsEnd = view.countFixedColumnsEnd();
 
   if (!(fixedColumnsEnd > 0)) {
     return null;
   }
 
-  const firstEndColumn = columnIndexMapper.getVisualFromRenderableIndex(totalColumns - fixedColumnsEnd);
-  const lastEndColumn = columnIndexMapper.getVisualFromRenderableIndex(totalColumns - 1);
+  // The first and the last column of the band that are drawn: a hidden column has no cell to measure.
+  const firstEndColumn = columnIndexMapper.getNearestNotHiddenIndex(totalColumns - fixedColumnsEnd, 1);
+  const lastEndColumn = columnIndexMapper.getNearestNotHiddenIndex(totalColumns - 1, -1);
 
-  if (firstEndColumn === null || lastEndColumn === null) {
+  if (firstEndColumn === null || lastEndColumn === null || firstEndColumn > lastEndColumn ||
+      firstEndColumn < totalColumns - fixedColumnsEnd) {
     return null;
   }
 
@@ -196,7 +196,7 @@ export function getCellCoordsFromMousePosition(
   // The frozen end columns cover the scrollable ones, so a pointer over them is theirs.
   if (foundColumn === null) {
     foundColumn = findColumnInEndBand(
-      hotInstance, measurer, clampedX, numberOfFixedColumnsStart, columnReferenceRowStart, columnReferenceRowEnd);
+      hotInstance, measurer, clampedX, columnReferenceRowStart, columnReferenceRowEnd);
   }
 
   // If not in fixed columns, check scrollable columns (main table)

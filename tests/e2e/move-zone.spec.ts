@@ -285,6 +285,42 @@ test.describe('moveCells edge move bands', { tag: THEMES_TAG }, () => {
     await grid.releasePointer();
   });
 
+  test('renders the ghost preview over a frozen end column and drops there', async () => {
+    const wideData = Array.from({ length: 10 }, (_, row) =>
+      Array.from({ length: 40 }, (__, col) => `R${row + 1}C${col + 1}`));
+
+    await grid.initGrid({ data: wideData, width: 500, fixedColumnsEnd: 2 });
+    await grid.selectCells(3, 2, 3, 2);
+
+    // The end columns are drawn over the scrollable ones, outside the columns the scrolled table renders.
+    await grid.startMoveZoneDragOverFrozenCell(5, 38);
+
+    await expect(grid.moveGhost()).toBeVisible();
+    expect(await grid.isMoveGhostOverFrozenCell(5, 38)).toBe(true);
+
+    await grid.releasePointer();
+
+    expect((await grid.columnValues(38))[5]).toBe('R4C3');
+  });
+
+  test('renders the ghost preview over a frozen start column while the grid is scrolled sideways', async () => {
+    const wideData = Array.from({ length: 10 }, (_, row) =>
+      Array.from({ length: 40 }, (__, col) => `R${row + 1}C${col + 1}`));
+
+    await grid.initGrid({ data: wideData, width: 500, fixedColumnsStart: 2 });
+    // Selecting a far column scrolls the grid, so the scrolled table no longer renders the first columns.
+    await grid.selectCells(3, 30, 3, 30);
+
+    await grid.startMoveZoneDragOverFrozenCell(5, 0);
+
+    await expect(grid.moveGhost()).toBeVisible();
+    expect(await grid.isMoveGhostOverFrozenCell(5, 0)).toBe(true);
+
+    await grid.releasePointer();
+
+    expect((await grid.columnValues(0))[5]).toBe('R4C31');
+  });
+
   test('renders the ghost preview over the drop target in an RTL layout', async () => {
     await grid.initGrid({ layoutDirection: 'rtl' });
     await grid.selectCells(2, 2, 3, 3);
