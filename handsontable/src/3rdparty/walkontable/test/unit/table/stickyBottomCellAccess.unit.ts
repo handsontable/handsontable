@@ -52,9 +52,14 @@ describe('Table#getCell on the bottom clones between a change of the data and th
       tr.insertCell().textContent = `row ${drawnOffset + r}`;
     }
 
+    const thead = document.createElement('thead');
+
+    thead.insertRow().appendChild(document.createElement('th')).textContent = 'header';
+
     const self: Self = {
       name,
       isMaster: false,
+      THEAD: thead,
       TBODY: tbody,
       wtSettings: new Settings({
         facade: () => {},
@@ -69,6 +74,8 @@ describe('Table#getCell on the bottom clones between a change of the data and th
         offset: drawnOffset,
         total: drawnTotal,
         sourceToRendered: (row: number) => row - drawnOffset,
+        // One column header row: `-1` is the first (and only) row of the THEAD.
+        sourceRowToVisibleColHeadedRow: (row: number) => row - drawnOffset + 1,
       },
       columnFilter: { sourceColumnToVisibleRowHeadedColumn: (column: number) => column },
       getFirstRenderedRow: () => call(stickyRowsBottom, 'getFirstRenderedRow', self),
@@ -236,6 +243,24 @@ describe('Table#getCell on the bottom clones between a change of the data and th
       },
     );
 
+    it('should answer "not rendered" for a top clone that has no TBODY', () => {
+      const table = createTopTable('top', 8, 3);
+
+      table.TBODY = null;
+
+      expect(cellAt(table, 1)).toBe(-2);
+    });
+
+    it('should leave a header row to the regular lookup on a top clone that was never drawn', () => {
+      // A negative row names a header row. The clone has no header to show before its first draw, and the answer
+      // is the one for a header that is not rendered, not the "after the drawn rows" code of a body row.
+      const table = createTopTable('top', 8, 0);
+
+      table.rowFilter = null;
+
+      expect(cellAt(table, -1)).toBe(-1);
+    });
+
     it('should keep returning the drawn frozen rows after the data shrank', () => {
       // The clone still holds the rows it drew, and they are the rows it should hold.
       const cell = cellAt(createTopTable('top', 2, 3), 1);
@@ -265,6 +290,29 @@ describe('Table#getCell on the bottom clones between a change of the data and th
       { totalRows: 1, fixedRowsBottom: 1, drawnTotal: 1, drawnOffset: 0, drawnRows: 0 });
 
     expectNotRendered(cellAt(table, 0));
+  });
+
+  it('should answer "not rendered" for a bottom clone that has no TBODY', () => {
+    const table = createTable('bottom',
+      { totalRows: 3, fixedRowsBottom: 1, drawnTotal: 3, drawnOffset: 2, drawnRows: 1 });
+
+    table.TBODY = null;
+
+    expectNotRendered(cellAt(table, 2));
+  });
+
+  it('should leave a header row to the regular lookup on a stale bottom clone', () => {
+    // Every row is pinned and a 4th row was added: the clone is behind by count. A negative row names a header
+    // row, which the body band says nothing about, so it resolves to the header cell as it always did.
+    const table = createTable('bottom',
+      { totalRows: 4, fixedRowsBottom: 5, drawnTotal: 3, drawnOffset: 0, drawnRows: 3 });
+
+    table.isRowHeaderRendered = () => true;
+
+    const cell = cellAt(table, -1);
+
+    expect(cell).toBeInstanceOf(HTMLElement);
+    expect((cell as HTMLElement).textContent).toBe('header');
   });
 
   it.each(['master', 'inline_start'])('should not apply the bottom guard to the %s table', (name) => {
