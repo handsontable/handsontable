@@ -2040,7 +2040,7 @@ export class Formulas extends BasePlugin {
    *
    * @deprecated Since 19.0.0. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid
    * shortcut now, registered for every grid, so the plugin has nothing to register. The method does
-   * nothing and will be removed in 19.0.0.
+   * nothing and will be removed in 20.0.0.
    */
   registerShortcuts(): void {
     deprecatedWarnOnce('Formulas.registerShortcuts', toSingleLine`The "registerShortcuts" method of\x20
@@ -2054,7 +2054,7 @@ export class Formulas extends BasePlugin {
    *
    * @deprecated Since 19.0.0. The `Alt`+`Enter` shortcut that opens a cell's link is a core grid
    * shortcut now, registered for every grid, so the plugin has nothing to unregister. The method does
-   * nothing and will be removed in 19.0.0.
+   * nothing and will be removed in 20.0.0.
    */
   unregisterShortcuts(): void {
     deprecatedWarnOnce('Formulas.unregisterShortcuts', toSingleLine`The "unregisterShortcuts" method\x20
