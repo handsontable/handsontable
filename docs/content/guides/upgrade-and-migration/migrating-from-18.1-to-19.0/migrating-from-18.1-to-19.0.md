@@ -2676,14 +2676,16 @@ may be `null`, which removes its callback. `HotColumn` takes the types of the co
 only, and core reads `getValue` from the table settings only, so `HotColumn`
 has neither.
 
-One thing changes at runtime. `handsontable` is now a prop of `HotTable` and `HotColumn`, and `getValue`
+Two things change at runtime, for every Vue 3 app, whether or not you type-check. First, a bare attribute
+on a boolean option, such as `<HotTable readOnly />`, now turns the option on (see
+[Boolean attributes without a value](#boolean-attributes-without-a-value)). Second, `handsontable` is now a prop of `HotTable` and `HotColumn`, and `getValue`
 is now a prop of `HotTable`. In 18.1, `<HotColumn :handsontable="...">` never reached the column
 settings, and `<HotTable :handsontable="...">` and `<HotTable :getValue="...">` fell through as
 attributes on the root `div`. They now reach the grid settings, so a template that passed one of them and
 relied on it being ignored behaves differently. A `getValue` on a `HotColumn` still has no effect.
 
-Apart from those props, this section applies only if you type-check your templates with `vue-tsc`, or your
-`h()` calls with `tsc`.
+Apart from those two changes, this section applies only if you type-check your templates with `vue-tsc`,
+or your `h()` calls with `tsc`.
 
 ### Who is affected
 
@@ -2703,23 +2705,37 @@ Your code stops compiling in one of these cases:
 
 A prop that you leave out is still optional.
 
+The bare-attribute change affects you if a template writes a boolean option without a value, such as
+`<HotTable readOnly rowHeaders />`, or binds an empty string to one.
+
 ### Boolean attributes without a value
 
-A bare attribute, such as `<HotTable readOnly>`, passes the type check, but it does not set the option
-to `true`. The wrapper does not cast attributes to booleans, so the grid gets an empty string, which is
-falsy. This was already the case in 18.1. Write the value instead:
+A bare attribute on a boolean option, such as `<HotTable readOnly rowHeaders />`, now turns the option
+on, the way Vue treats a prop declared with `type: Boolean`. In 18.1 the wrapper passed an empty string,
+which is falsy, so the option stayed off and nothing warned you. The cast covers `HotTable` and
+`HotColumn`, in `readOnly` and `read-only` spelling. It covers every option typed `boolean`, alone or
+with other types that are not `string`, such as `rowHeaders`, `contextMenu`, and `columnSorting`.
 
 ```vue
-<!-- Before: compiles, and does nothing -->
+<!-- 18.1: compiled, and did nothing. 19.0: turns both options on -->
 <HotTable readOnly rowHeaders />
 
-<!-- After -->
+<!-- The same in every version -->
 <HotTable :readOnly="true" :rowHeaders="true" />
 ```
 
+This changes a template that already has a bare boolean attribute: the option, off until now, turns on.
+An empty string bound on purpose, such as `:rowHeaders="''"`, now also means `true`, because the wrapper
+cannot tell it from a bare attribute. A bare attribute on an option whose type also takes a `string` still
+passes the empty string, which the grid treats as off: `fillHandle`, `editor`, `rowId`,
+`disableVisualSelection`, `fragmentSelection`, `bindRowsWithHeaders`, and `preventOverflow`. Write
+`:fillHandle="true"` for those. The values inside the `settings` prop are not cast.
+
+To keep an option off, bind `false` (`:readOnly="false"`) or leave the attribute out.
+
 ### How to migrate
 
-Fix the value, or cast it when a type is wrong for your case:
+For a value of the wrong type, fix the value, or cast it when a type is wrong for your case:
 
 ```vue
 <!-- Before: compiled, and failed at runtime -->

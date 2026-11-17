@@ -48,6 +48,106 @@ type HotTablePropSchema = PropSchema<Handsontable.SettingsUpdate> & {
 };
 
 /**
+ * The options a bare attribute turns on: those typed `boolean`, or `boolean` and other types except `string`
+ * (`<HotTable readOnly rowHeaders />`). The runtime props carry no `type`, so Vue passes a bare attribute on
+ * as `''`, which is falsy. A runtime `type: Boolean` is not an option: Vue then type-checks every prop, absent
+ * ones included, and warns in development for the unassigned symbol and for an option that holds an array.
+ * An option typed with a plain `string` stays out (`fillHandle`, `editor`, `rowId`, `disableVisualSelection`,
+ * `fragmentSelection`, `bindRowsWithHeaders`, `preventOverflow`): the types cannot say that `''` is not a
+ * value there, so a bare attribute on one of them still reaches the grid as `''`, which is off.
+ * `test/propSchemaKeys.spec.ts` compares this list with the option types, so a new option goes red until listed.
+ */
+export const BOOLEAN_OPTIONS: ReadonlySet<string> = new Set([
+  'allowEmpty',
+  'allowHtml',
+  'allowInsertColumn',
+  'allowInsertRow',
+  'allowInvalid',
+  'allowRemoveColumn',
+  'allowRemoveRow',
+  'ariaTags',
+  'asyncValues',
+  'autoColumnSize',
+  'autoLink',
+  'autoRowHeaderSize',
+  'autoRowSize',
+  'autoWrapCol',
+  'autoWrapRow',
+  'colHeaders',
+  'collapsibleColumns',
+  'columnSorting',
+  'comments',
+  'contextMenu',
+  'copyPaste',
+  'copyable',
+  'customBorders',
+  'customBordersProgressive',
+  'dataDotNotation',
+  'dialog',
+  'dragToScroll',
+  'dropdownMenu',
+  'emptyDataState',
+  'enterBeginsEditing',
+  'enterCommits',
+  'exportFile',
+  'filter',
+  'filterSelectedItems',
+  'filteringCaseSensitive',
+  'filters',
+  'formulaBuilder',
+  'formulas',
+  'freezeBar',
+  'headerCheckbox',
+  'hiddenColumns',
+  'hiddenRows',
+  'imeFastEdit',
+  'importFile',
+  'injectCoreCss',
+  'limitFixedToViewport',
+  'loading',
+  'manualColumnFreeze',
+  'manualColumnMove',
+  'manualColumnResize',
+  'manualRowMove',
+  'manualRowResize',
+  'mergeCells',
+  'moveCells',
+  'multiColumnSorting',
+  'navigableHeaders',
+  'nestedRows',
+  'notification',
+  'observeDOMVisibility',
+  'outsideClickDeselects',
+  'pagination',
+  'parsePastedValue',
+  'preserveNumericLiteral',
+  'preserveTextValue',
+  'preventWheel',
+  'readOnly',
+  'readOnlyStyling',
+  'renderAllColumns',
+  'renderAllRows',
+  'rowHeaders',
+  'rowSelection',
+  'search',
+  'searchInput',
+  'selectionHandles',
+  'sheetsBar',
+  'skipColumnOnPaste',
+  'skipRowOnPaste',
+  'sortByRelevance',
+  'strict',
+  'tabNavigation',
+  'textEllipsis',
+  'textExtractor',
+  'trimDropdown',
+  'trimRows',
+  'trimWhitespace',
+  'undo',
+  'wordWrap',
+]);
+
+/**
  * Message for the warning thrown if the Handsontable instance has been destroyed.
  */
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' +
@@ -137,7 +237,8 @@ export function generateContainerId(): string {
 }
 
 /**
- * Filter out all of the unassigned props, and return only the one passed to the component.
+ * Filter out all of the unassigned props, and return only the one passed to the component. A bare attribute
+ * on a boolean option (`BOOLEAN_OPTIONS`) becomes `true`. The values of the `settings` prop are not cast.
  *
  * @param {object} props Object containing all the possible props.
  * @returns {object} Object containing only used props.
@@ -158,7 +259,9 @@ export function filterPassedProps(props) {
   // eslint-disable-next-line no-restricted-syntax
   for (const propName in props) {
     if (hasOwnProperty(props, propName) && propName !== 'settings' && props[propName] !== unassignedPropSymbol) {
-      filteredProps[propName] = props[propName];
+      // A bare attribute (`<HotTable readOnly />`) reaches the component as `''`: it means `true`, as for a
+      // Vue prop declared with `type: Boolean`.
+      filteredProps[propName] = props[propName] === '' && BOOLEAN_OPTIONS.has(propName) ? true : props[propName];
     }
   }
 

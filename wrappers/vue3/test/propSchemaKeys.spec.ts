@@ -4,7 +4,7 @@ import { nextTick } from 'vue';
 import { registerAllCellTypes } from 'handsontable/registry';
 import HotTable from '../src/HotTable.vue';
 import HotColumn from '../src/HotColumn.vue';
-import { propFactory } from '../src/helpers';
+import { BOOLEAN_OPTIONS, propFactory } from '../src/helpers';
 import { createSampleData, mockClientDimensions } from './_helpers';
 
 declare const __dirname: string;
@@ -29,6 +29,11 @@ const DEAD_HOOKS = ['afterChangesObserved'];
  */
 let settingsTypeNames: (typeName: string) => string[];
 
+/**
+ * The option names of a settings type that hold a boolean, alone or with other types, but never a string.
+ */
+let settingsBooleanNames: (typeName: string) => string[];
+
 beforeAll(() => {
   const settingsFile = `${__dirname}/../node_modules/handsontable/settings.d.ts`;
   const program = ts.createProgram([settingsFile], {
@@ -44,6 +49,23 @@ beforeAll(() => {
     const typeSymbol = exportedSymbols.find(symbol => symbol.name === typeName) as ts.Symbol;
 
     return checker.getPropertiesOfType(checker.getDeclaredTypeOfSymbol(typeSymbol)).map(symbol => symbol.name);
+  };
+
+  settingsBooleanNames = (typeName) => {
+    const typeSymbol = exportedSymbols.find(symbol => symbol.name === typeName) as ts.Symbol;
+    const isBoolean = (type: ts.Type) => type.getFlags() === ts.TypeFlags.Boolean ||
+      type.getFlags() === ts.TypeFlags.BooleanLiteral;
+    const isString = (type: ts.Type) => type.isStringLiteral() || type.getFlags() === ts.TypeFlags.String;
+
+    return checker.getPropertiesOfType(checker.getDeclaredTypeOfSymbol(typeSymbol))
+      .filter((symbol) => {
+        const declaration = symbol.declarations?.[0] as ts.Declaration;
+        const type = checker.getNonNullableType(checker.getTypeOfSymbolAtLocation(symbol, declaration));
+        const members = type.isUnion() ? type.types : [type];
+
+        return members.some(isBoolean) && !members.some(isString);
+      })
+      .map(symbol => symbol.name);
   };
 }, 30000);
 
@@ -91,6 +113,16 @@ describe('props schema', () => {
 
     expect(typedOptions.length).toBeGreaterThan(400);
     expect(typedOptions.filter(name => !runtimeProps.includes(name))).toEqual([]);
+  });
+
+  it('should list every option that takes a boolean and no string in `BOOLEAN_OPTIONS`', () => {
+    const typedBooleans = [...new Set([
+      ...settingsBooleanNames('SettingsUpdate'),
+      ...settingsBooleanNames('ColumnSettings'),
+    ])].sort();
+
+    expect(typedBooleans.length).toBeGreaterThan(60);
+    expect([...BOOLEAN_OPTIONS].sort()).toEqual(typedBooleans);
   });
 
   it('should pass the `handsontable` option of a column to the grid', async() => {
