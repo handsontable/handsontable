@@ -72,7 +72,7 @@
     {
       "id": "focus-not-returned-after-escape",
       "title": "The focus is not returned to the cell after Escape, Enter, Tab or a shortcut closes an editor, a menu or the comment editor, or an arrow key closes a submenu: it stays on the closed editor's field or falls to the document, and a screen reader does not announce the cell or the parent item",
-      "tracker": ["DEV-3603", "DEV-3604"],
+      "tracker": ["DEV-3603", "DEV-3604", "DEV-4008"],
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-not-returned", "focus-lost", "shortcut-moves-focus-out"] },
         { "source": "reader", "kinds": ["token-missing"], "where": ["^(close-editor|close-context-menu)$"] },
@@ -121,7 +121,7 @@
     {
       "id": "unnamed-controls",
       "title": "Controls without an accessible name or role: the editor inputs, the native date and time inputs, the select editor, the comment textarea, the filter condition select and the filter listbox, the autocomplete list, and the focus catchers",
-      "tracker": ["DEV-3492", "DEV-2970"],
+      "tracker": ["DEV-3492", "DEV-2970", "DEV-3491", "DEV-4001", "DEV-2953"],
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-stop-unnamed"] },
         { "source": "checks", "checks": ["tree-snapshots"], "kinds": ["unnamed-control"] },
@@ -284,10 +284,10 @@
     },
     {
       "id": "contrast-and-focus-visibility",
-      "title": "Text, icon, checkbox, grid line and focus indicator contrast under 4.5:1 or 3:1 per theme, and a focus indicator that does not show",
-      "tracker": ["DEV-2946", "DEV-3494"],
+      "title": "Text, icon, checkbox, grid line, selection and focus indicator contrast under 4.5:1 or 3:1 per theme",
+      "tracker": ["DEV-4003", "DEV-3494", "DEV-2946", "DEV-3989"],
       "match": [
-        { "source": "checks", "checks": ["focus-contrast"], "kinds": ["focus-not-visible", "focus-indicator-contrast", "icon-contrast", "checkbox-contrast", "gridline-contrast", "selection-contrast"] },
+        { "source": "checks", "checks": ["focus-contrast"], "kinds": ["focus-indicator-contrast", "icon-contrast", "checkbox-contrast", "gridline-contrast", "selection-contrast"] },
         { "source": "axe", "axeIssues": ["classic-contrast", "horizon-contrast"] },
         { "source": "axe", "rules": ["color-contrast"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["color-contrast", "color-contrast-enhanced"] }
@@ -295,18 +295,18 @@
     },
     {
       "id": "drag-and-press-activation",
-      "title": "Drags without a single-pointer or keyboard alternative that does all the drag does, and controls that act on the press or after the pointer left",
-      "tracker": "DEV-1018",
+      "title": "Drags without a single-pointer or keyboard alternative, and controls that act on the press or after the pointer left",
+      "tracker": ["DEV-4002", "DEV-4005", "DEV-4010", "DEV-1018", "DEV-4007"],
       "match": [
-        { "source": "checks", "checks": ["pointer"], "kinds": ["drag-without-single-pointer-alternative", "drag-without-keyboard-alternative", "alternative-does-not-work", "gesture-without-single-pointer-alternative", "activates-on-press", "completes-after-pointer-left"] }
+        { "source": "checks", "checks": ["pointer"], "kinds": ["drag-without-single-pointer-alternative", "drag-without-keyboard-alternative", "activates-on-press", "completes-after-pointer-left"] }
       ]
     },
     {
       "id": "reflow-and-motion",
-      "title": "Content cut off or needing a sideways scroll at 320 px or 200 %, hover content that does not dismiss, controls drawn over each other, a locked orientation, and motion that runs on or ignores the reduced-motion preference",
+      "title": "Content cut off or pushed out of view at 320 px or 200 %, hover content that does not dismiss, and motion that runs on or ignores the reduced-motion preference",
       "tracker": ["DEV-4008", "DEV-4011", "DEV-2970", "DEV-4007", "DEV-4014"],
       "match": [
-        { "source": "checks", "checks": ["reflow"], "kinds": ["text-clipped", "text-truncated", "outside-viewport", "needs-horizontal-scroll", "controls-overlap", "orientation-locked", "hover-content-not-dismissible", "hover-content-not-hoverable", "hover-content-not-persistent"] },
+        { "source": "checks", "checks": ["reflow"], "kinds": ["text-clipped", "text-truncated", "outside-viewport", "hover-content-not-dismissible"] },
         { "source": "checks", "checks": ["forced-colors-motion"], "kinds": ["motion-despite-reduced-motion"] },
         { "source": "checks", "checks": ["forced-colors-motion"], "kinds": ["moves-over-five-seconds"], "pages": ["async-values"] }
       ]
@@ -320,16 +320,16 @@
     },
     {
       "id": "forced-colors",
-      "title": "In forced colors the focus, the selected range, the highlighted menu item, the header icons or the grid lines are not drawn",
+      "title": "In forced colors the highlighted menu item or the header icons are not drawn",
       "tracker": "DEV-4003",
       "match": [
-        { "source": "checks", "checks": ["forced-colors-motion"], "kinds": ["focus-lost-in-forced-colors", "selection-lost-in-forced-colors", "menu-highlight-lost-in-forced-colors", "icon-lost-in-forced-colors", "gridlines-lost-in-forced-colors"] }
+        { "source": "checks", "checks": ["forced-colors-motion"], "kinds": ["menu-highlight-lost-in-forced-colors", "icon-lost-in-forced-colors"] }
       ]
     },
     {
       "id": "status-messages",
       "title": "A range extension, Ctrl+A selecting every cell, the place in the order of a column added to a multi-column sort, and a nested row's level are not announced: no status message reaches the screen reader",
-      "tracker": "DEV-2957",
+      "tracker": ["DEV-2957", "DEV-2954", "DEV-4013"],
       "match": [
         { "source": "reader", "kinds": ["token-missing"], "where": ["^(extend-range|extend-range-again|into-parent-cell|down-to-child)$"] },
         { "source": "reader", "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^select-all-cells$"] },
@@ -604,7 +604,7 @@
     {
       "id": "docs-embeds-and-example-fields",
       "title": "Docs embeds have no frame title, custom renderer images have no text alternative, and some example fields have no label",
-      "tracker": "DEV-4020",
+      "tracker": ["DEV-4020", "DEV-3492"],
       "match": [
         { "source": "docs", "axeIssues": ["embed-frame-title", "example-image-alt", "example-unlabeled-fields"] }
       ]
@@ -636,7 +636,7 @@
     {
       "id": "docs-example-grid-holds-focus",
       "title": "An example grid keeps the Tab key, and the documented way out (Ctrl+End, then Tab) does not leave it",
-      "tracker": "DEV-4020",
+      "tracker": "DEV-4082",
       "match": [
         { "source": "docs-checks", "kinds": ["grid-holds-focus"] }
       ]
