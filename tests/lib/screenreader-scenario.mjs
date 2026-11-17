@@ -765,6 +765,13 @@ export function scenarioPlace(scenario) {
       throw new Error(`Scenario page "${scenario.page}" is not in tests/a11y/pages.mjs.`);
     }
 
+    // Such a page needs a key only the TypeScript `fixtureUrl()` of `a11y/harness.ts` can build. Opened
+    // without it, the grid has no license bar, and the scenario would describe another page.
+    if (entry.licensePreset !== undefined) {
+      throw new Error(`Scenario page "${scenario.page}" names a license preset, which this lane cannot open yet: ` +
+        'its fixture needs the preset\'s tiers and key.');
+    }
+
     return { fixture: entry.fixture, pageQuery: entry.query, root: entry.root ?? DEFAULT_ROOT };
   }
 

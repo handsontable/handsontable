@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { CellChange } from 'handsontable';
+import { AppliedCellChange } from 'handsontable';
 
 const products: Record<string, string> = {
   'A-100': 'Desk lamp',
@@ -62,9 +62,9 @@ export class AppComponent {
     height: 'auto',
     asyncValues: true,
     // Look the product up again when its SKU changes.
-    afterChange: (changes: CellChange[] | null) => {
+    afterChange: (changes: AppliedCellChange[] | null) => {
       changes?.forEach(([row, prop]) => {
-        if (prop === 'sku') {
+        if (row !== null && prop === 'sku') {
           this.lookUpRows(row, row);
         }
       });

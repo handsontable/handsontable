@@ -43,17 +43,15 @@ describe('feature manifest against the registries', () => {
   });
 
   it('should give every plugin class a key can name the LICENSE its entry declares, and no other class one', () => {
-    const byId = new Map(entries.map(entry => [entry.id, entry]));
-
     entries.filter(entry => entry.kind === 'plugin').forEach((entry) => {
-      const expected = entry.licensing === 'token' ? toPluginLicense(entry, byId) : undefined;
+      const expected = entry.licensing === 'token' ? toPluginLicense(entry) : undefined;
       const license = getPlugin(entry.module).LICENSE;
 
       expect({ plugin: entry.module, license }).toEqual({ plugin: entry.module, license: expected });
 
       if (license !== undefined) {
         expect(Object.isFrozen(license)).toBe(true);
-        expect(Object.isFrozen(license.implies)).toBe(true);
+        expect(Object.isFrozen(license.tiers)).toBe(true);
       }
     });
   });

@@ -76,7 +76,7 @@ export default class A11yReporter implements Reporter {
     const suiteId = options.suite ?? 'product';
 
     if (A11Y_SUITE_IDS.includes(suiteId)) {
-      this.#scan = suiteFor(suiteId, { docsBaseUrl: process.env.DOCS_A11Y_BASE_URL });
+      this.#scan = suiteFor(suiteId, { docsBaseUrl: process.env.DOCS_A11Y_BASE_URL, websiteBaseUrl: process.env.WEBSITE_A11Y_BASE_URL });
     } else {
       this.#scan = suiteFor('product');
       this.#optionProblem = `the reporter's suite option ${JSON.stringify(options.suite)} is not one of ${A11Y_SUITE_IDS.join(', ')}`;
@@ -166,7 +166,7 @@ export default class A11yReporter implements Reporter {
       suite,
     }));
     writeFileSync(path.join(this.#outputDir, 'a11y-findings.json'),
-      `${JSON.stringify(agentFindings({ verdict, problems, suite }), null, 2)}\n`);
+      `${JSON.stringify(agentFindings({ verdict, problems, suite, scans }), null, 2)}\n`);
     process.stdout.write(`\n${summary}\nHTML report: ${path.join(this.#outputDir, this.#scan.reportFile)}\n`);
 
     if (process.env.GITHUB_ACTIONS === 'true') {

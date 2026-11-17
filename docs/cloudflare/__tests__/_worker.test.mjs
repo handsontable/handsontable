@@ -1871,6 +1871,24 @@ test('an old Vue page name without a framework prefix redirects to the Vue data 
   );
 });
 
+test('the removed 19.0 to 20.0 migration guide redirects to the 18.1 to 19.0 guide in every framework', async() => {
+  const worker = loadWorker();
+
+  for (const framework of ['javascript', 'react', 'angular', 'vue']) {
+    await assertRedirect(
+      worker,
+      `/docs/${framework}-data-grid/migration-from-19.0-to-20.0/`,
+      `/docs/${framework}-data-grid/migration-from-18.1-to-19.0/`,
+    );
+    // Without the trailing slash too.
+    await assertRedirect(
+      worker,
+      `/docs/${framework}-data-grid/migration-from-19.0-to-20.0`,
+      `/docs/${framework}-data-grid/migration-from-18.1-to-19.0/`,
+    );
+  }
+});
+
 test('an unprefixed live vue- page is not redirected by the Vue legacy rule', async() => {
   const worker = loadWorker();
 

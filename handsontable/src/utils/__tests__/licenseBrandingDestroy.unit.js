@@ -8,7 +8,7 @@ jest.mock('../../helpers/mixed', () => ({
   _getLicenseState: jest.fn(() => ({
     lifecycle: { state: 'trial_valid', isTrial: true, daysRemaining: 5, licensedUntil: null },
     channels: { console: false, ui: true },
-    grants: { unrestricted: false, products: {} },
+    tiers: null,
     badge: false,
   })),
 }));

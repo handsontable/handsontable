@@ -6,8 +6,6 @@ import {
   getProductCapabilities,
   hasCapability,
 } from '../grants';
-import { KNOWN_CAPABILITIES } from '../constants';
-import { XLSX_CAPABILITY_IDS } from '../../xlsxEngine/licenseCapabilities';
 import { buildTestKey } from './buildTestKey';
 import { SUBSCRIPTION_KEY, HF_ONLY_KEY, MIXED_KEY } from './fixtures';
 
@@ -113,12 +111,6 @@ describe('entitlementLicenseKey/grants', () => {
     it('should be frozen so a consumer cannot widen or narrow it', () => {
       expect(Object.isFrozen(UNRESTRICTED_GRANTS)).toBe(true);
       expect(Object.isFrozen(UNRESTRICTED_GRANTS.products)).toBe(true);
-    });
-  });
-
-  describe('the known capability tokens', () => {
-    it('should list core, the xlsx tokens and the xlsx:all namespace grant', () => {
-      expect(KNOWN_CAPABILITIES).toEqual(['core', ...XLSX_CAPABILITY_IDS, 'xlsx:all']);
     });
   });
 });

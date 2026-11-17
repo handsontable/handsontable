@@ -9,7 +9,11 @@
       "description": "Fills cells by dragging the fill handle at the corner of the selection.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

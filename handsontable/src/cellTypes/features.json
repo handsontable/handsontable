@@ -8,7 +8,12 @@
       "name": "Text",
       "description": "Plain text. The default cell type.",
       "status": "stable",
-      "licensing": "core",
+      "licensing": "token",
+      "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:text",
@@ -25,6 +30,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:numeric",
@@ -42,6 +51,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:date",
@@ -59,6 +72,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:time",
@@ -76,6 +93,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:intl_date",
@@ -93,6 +114,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:intl_time",
@@ -110,6 +135,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:intl_datetime",
@@ -127,6 +156,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:checkbox",
@@ -143,6 +176,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:select",
@@ -159,6 +196,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:dropdown",
@@ -176,6 +217,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:autocomplete",
@@ -193,6 +238,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:handsontable",
@@ -209,6 +258,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:password",
@@ -225,6 +278,10 @@
       "status": "stable",
       "licensing": "token",
       "gate": "report",
+      "tiers": [
+        "standard",
+        "professional"
+      ],
       "requires": {
         "allOf": [
           "editor:multiselect",

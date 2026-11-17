@@ -655,6 +655,46 @@ hyperformulaInstance.batch(() => {
 Don't write to the engine unconditionally from an `afterRender` hook. Each write repaints the grid,
 which runs the hook again. Check that the value differs first.
 
+#### Validation and the engine's undo history
+
+Handsontable also writes to your engine when it validates a change that it can reject. That is a
+cell with a validator and [`allowInvalid`](@/api/options.md#allowinvalid) set to `false`. The
+validator needs the formula's result, so Handsontable writes the formulas into your engine, reads
+the results, and takes the write back in the same task. Nothing paints the result, and no
+[`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook fires for it. The
+exception is a volatile function (`RAND()`, `NOW()`, or `TODAY()`) in your engine: the values it
+recalculated during the write are reported once to every grid on the engine, and those grids repaint.
+This happens whether the validator accepts the change or not.
+
+HyperFormula records each write as an undo entry, and the probe adds up to two entries to the stack
+and takes them back. When your engine's `undoLimit` is reached, HyperFormula drops its oldest
+entries, so the probe can remove up to two of your own undo entries. The grid's own undo and redo
+don't use your engine's stack. If `undoLimit` is lower than 2, Handsontable doesn't write a probe,
+and the validator gets each formula's result calculated on its own.
+
+#### A grid built from an engine sheet
+
+When you build a grid from a sheet your engine already holds, and you don't pass `data`, the grid reads
+its data from that sheet. Each [`updateSettings()`](@/api/core.md#updatesettings) call reloads the sheet
+into the grid. The React and Vue wrappers call `updateSettings()` on every re-render, so a re-render
+reloads it too.
+
+A reload of a sheet that only the grid changed updates the data in place:
+
+- It fires [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and
+  [`afterUpdateData`](@/api/hooks.md#afterupdatedata), not `beforeLoadData` and `afterLoadData`.
+- It fires [`afterChange`](@/api/hooks.md#afterchange) with the `'updateData'` source, not `'loadData'`.
+- The grid keeps its cell meta, its sort state, and its moved, hidden, and trimmed rows and columns.
+- An edit that waits for an async validator stays open, and its value is written when the validator
+  accepts it.
+
+If anything else changed the sheet since the grid loaded it - your code through the engine API, or
+another grid bound to the same sheet - the reload replaces the data instead. It fires the load hooks, and
+it drops the cell meta, the sort state, and the waiting edits, because the rows can hold other records.
+
+If you rebuild your own state in `afterLoadData`, or check for the `'loadData'` source in `afterChange`,
+listen to `afterUpdateData` or the `'updateData'` source as well.
+
 ## Available options and methods
 
 For the full list of configuration options and plugin methods, see the
@@ -848,6 +888,11 @@ On macOS this is still <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd>, not <kbd>**Cmd**</k
 This hook fires whenever the calculation engine recomputes cell values - including cells that
 changed directly and all dependent formula cells. Use it to react to recalculations outside of the
 normal `afterChange` flow.
+
+The hook fires when the engine recomputes the values. For a cell that has a validator and
+[`allowInvalid: false`](@/api/options.md#allowinvalid), that is after validation: Handsontable
+writes the change to the engine only when it applies the change, and a rejected value never reaches
+the engine. For any other cell, the write and the hook happen at once.
 
 ::: only-for javascript
 
@@ -1338,6 +1383,47 @@ each sales representative's commission amount.
 For the full argument type reference, error handling patterns, and advanced options such as
 function aliases and async functions, see the
 [HyperFormula custom functions guide](https://handsontable.com/docs/hyperformula/guide/custom-functions.html).
+
+### Keep legacy function names
+
+Handsontable versions before 9.0 used a different formula engine. Some of its function names, such as `ADD` and `MULTIPLY`, don't exist in HyperFormula, so a formula that uses them returns `#NAME?`. For the full list and the replacements, see the [8.4 to 9.0 migration guide](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0.md#available-functions).
+
+Rewriting the formulas is the cleanest fix. To keep stored formulas working without rewriting them, register a custom function with the legacy name. A plugin can alias only its own functions, so the custom function implements the calculation itself:
+
+```javascript
+import { FunctionPlugin, FunctionArgumentType, HyperFormula } from 'hyperformula';
+
+class LegacyMathPlugin extends FunctionPlugin {
+  add(ast, state) {
+    return this.runFunction(ast.args, state, this.metadata('ADD'), (a, b) => a + b);
+  }
+
+  multiply(ast, state) {
+    return this.runFunction(ast.args, state, this.metadata('MULTIPLY'), (a, b) => a * b);
+  }
+}
+
+const twoNumbers = [
+  { argumentType: FunctionArgumentType.NUMBER },
+  { argumentType: FunctionArgumentType.NUMBER },
+];
+
+LegacyMathPlugin.implementedFunctions = {
+  ADD: { method: 'add', parameters: twoNumbers },
+  MULTIPLY: { method: 'multiply', parameters: twoNumbers },
+};
+
+// Call this before new Handsontable(...) or HyperFormula.buildEmpty().
+HyperFormula.registerFunctionPlugin(LegacyMathPlugin, {
+  enGB: { ADD: 'ADD', MULTIPLY: 'MULTIPLY' },
+});
+```
+
+With this plugin registered, `=ADD(1,2)` returns `3` and `=MULTIPLY(3,4)` returns `12`.
+
+The translation object has one entry per language pack. If the grid uses a language other than `enGB`, add the name to that language too, or the formula still returns `#NAME?`.
+
+For a function that HyperFormula renames, for example `PERCENTILEINC` (now `PERCENTILE.INC`), you can instead rewrite the stored formula text before you pass the data to the grid. The migration guide lists the new name of each function.
 
 ## Change the formula language
 

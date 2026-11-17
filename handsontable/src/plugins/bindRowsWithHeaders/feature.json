@@ -9,7 +9,11 @@
       "description": "Keeps each row header label with its row when rows are moved or hidden.",
       "status": "stable",
       "licensing": "token",
-      "gate": "enable"
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
     }
   ]
 }

@@ -236,6 +236,27 @@ export function unescapeEngineBoundValue(
 }
 
 /**
+ * Drops the trailing empty (`null` or `undefined`) cells of each row, the way the engine's
+ * `getSheetSerialized()` writes a sheet. Returns the same array when no row ends in one.
+ *
+ * @param {Array<Array<*>>} rows Sheet content.
+ * @returns {Array<Array<*>>} The trimmed content.
+ */
+export function trimTrailingEmptyCells(rows: unknown[][]): unknown[][] {
+  const trimRow = (row: unknown[]) => {
+    let length = row.length;
+
+    while (length > 0 && (row[length - 1] === null || row[length - 1] === undefined)) {
+      length -= 1;
+    }
+
+    return length === row.length ? row : row.slice(0, length);
+  };
+
+  return rows.some(row => row.length > 0 && trimRow(row) !== row) ? rows.map(trimRow) : rows;
+}
+
+/**
  * Pads every row of a sheet array with `null` up to the length of its longest row.
  *
  * The engine's `getSheetSerialized()` trims the trailing empty cells of each row on its own, so
@@ -276,6 +297,88 @@ export function padRowsToWidestRow(rows: unknown[][]): unknown[][] {
 
     return padded;
   });
+}
+
+/**
+ * Returns the length of the longest row of a sheet array, `0` for no rows.
+ *
+ * @param {Array<Array<*>>} rows Sheet content.
+ * @returns {number}
+ */
+export function widestRowLength(rows: unknown[][]): number {
+  return rows.reduce((widest, row) => Math.max(widest, row.length), 0);
+}
+
+/**
+ * Tells whether any index from `from` (inclusive) to `to` (exclusive) holds content, as `hasContent` answers.
+ * Stops at the first one that does.
+ *
+ * @param {number} from The first index.
+ * @param {number} to The index past the last one.
+ * @param {Function} hasContent Tells whether an index holds content.
+ * @returns {boolean}
+ */
+export function hasContentPast(from: number, to: number, hasContent: (index: number) => boolean): boolean {
+  for (let index = from; index < to; index += 1) {
+    if (hasContent(index)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Tells whether two sheet arrays hold the same cells, compared with `===`.
+ *
+ * @param {Array<Array<*>>} left One sheet.
+ * @param {Array<Array<*>>} right The other sheet.
+ * @returns {boolean}
+ */
+export function areSheetContentsEqual(left: unknown[][], right: unknown[][]): boolean {
+  return left.length === right.length && left.every((row, rowIndex) => {
+    const other = right[rowIndex];
+
+    return row.length === other.length && row.every((value, column) => value === other[column]);
+  });
+}
+
+/**
+ * Sets one cell of a sheet array kept in the shape `getSheetSerialized()` returns, and keeps that shape: the rows
+ * and cells it lacks are added (`[]` for a row, `null` for a cell), and the trailing empty cells of the row and the
+ * trailing empty rows of the sheet, which `getSheetSerialized()` leaves out, are dropped. Changes `rows` in place.
+ *
+ * @param {Array<Array<*>>} rows The sheet array.
+ * @param {number} row The row index.
+ * @param {number} column The column index.
+ * @param {*} value The cell's serialized content, `null` or `undefined` for an empty cell.
+ */
+export function setSheetSnapshotCell(rows: unknown[][], row: number, column: number, value: unknown): void {
+  const isEmpty = (cell: unknown) => cell === null || cell === undefined;
+
+  if (isEmpty(value) && (row >= rows.length || column >= rows[row].length)) {
+    return;
+  }
+
+  while (rows.length <= row) {
+    rows.push([]);
+  }
+
+  const cells = rows[row];
+
+  while (cells.length <= column) {
+    cells.push(null);
+  }
+
+  cells[column] = isEmpty(value) ? null : value;
+
+  while (cells.length > 0 && isEmpty(cells[cells.length - 1])) {
+    cells.pop();
+  }
+
+  while (rows.length > 0 && rows[rows.length - 1].length === 0) {
+    rows.pop();
+  }
 }
 
 /**

@@ -89,8 +89,15 @@ export interface HyperFormulaEngine {
   resumeEvaluation(): unknown[];
   isEvaluationSuspended(): boolean;
   addNamedExpression(name: unknown, expression: unknown, scope: unknown, options: unknown): void;
-  undo(): void;
+  /**
+   * Returns the changes the undo made (HyperFormula's `ExportedChange[]`).
+   */
+  undo(): unknown[] | void;
   redo(): void;
+  /**
+   * Optional, like `calculateFormula`: the validation probe calls it when the engine has it.
+   */
+  clearRedoStack?(): void;
   destroy(): void;
   rebuildAndRecalculate(): void;
   clearUndoStack(): void;

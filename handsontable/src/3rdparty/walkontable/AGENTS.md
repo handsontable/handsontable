@@ -282,7 +282,17 @@ keeps the handle out of the strip the frozen overlays already keep clear (`axisS
   `fixedRowsBottom` the last track is drawn by an end clone, and a frozen row's or column's handle by
   the `top` or `inline_start` clone. Those clones are clipped out of the strip while its band is open
   (the clip-path `InlineEndOverlay` / `BottomOverlay` publish), so a handle they draw on the last track
-  is cut, not covered; that case is not handled here.
+  is cut, not covered; that case is not handled here. The cut lasts only while the band is open: a pointer
+  holds the band open with no timer, and only from the band itself (`OVERLAY_SCROLLBAR_PROXIMITY` equals
+  `OVERLAY_SCROLLBAR_CLEARANCE`, DEV-3975). A wider reach (it was 26px) held the band from the visible part
+  of a `fixedColumnsEnd` column, so its last 16px stayed cut for as long as the pointer rested on the cell.
+  Keep the two constants equal, and mirror a change in `visual-tests/src/test-runner.ts`. Known limit:
+  Chromium's non-Fluent overlay scrollbars (ChromeOS, Linux with the overlay scrollbar flag) keep the thumb
+  up from further away than the band: the thumb expands within 25px of it and fades in within 30px of the
+  scrollbar (`cc/input/single_scrollbar_animation_controller_thinning.cc`; both are 0 for Fluent). A pointer
+  resting 17 to 30px from the edge there keeps a thumb on screen after the band closed, under a frozen
+  overlay (#10370). Read from the Chromium source, not measured on such a device. macOS, Fluent, and Gecko
+  keep the thumb up only from the 16px the band covers.
 - **A grid the window scrolls is not covered.** `holderOwnsAxisScrollbar` gates the clearance, so an
   axis the window owns (a grid with no `height`) gets 0, while the page's own overlay scrollbar can
   still sit over a last column that reaches the viewport edge. The changelog names the holder case
@@ -314,6 +324,14 @@ the strips. Shifting one axis only would put the handle back under the other scr
 ## Custom border `width: 0` is a real value (DEV-1137)
 
 `getBorderSettingsProperty` in `src/selection/border/utils.ts` reads per-side settings with `??`, not a truthy check. `width: 0` must stay 0 so the edge paints at 0px. A truthy `posSettings[property] ? … : settings.border[property]` falls back to the default 1px and the zero-width border reappears. The same helper keeps an explicit empty `style: ''` rather than inheriting `settings.border.style`; `Border#createBorders` then takes the solid-fill `else` path (`if (borderStyle)` is false). Omitting the key, or setting `null`/`undefined`, still falls through. Do not special-case `style`; keep `??` for every property on this helper, because a truthy check would resurrect the width-0 bug.
+
+## A custom border has no copy in the frozen overlays, so the freeze-line hides skip it
+
+The "edge on a freeze line" rules (`isFrozenBoundaryEdge`, `isEdgeOnStartFreezeLine`, and the `display: none` they drive in `Border#appear`) assume the frozen overlay re-draws the edge it hides (`drawFrozenBoundaryEdge`). A selection has a border in every overlay. A `customBorders` range does not: the selection manager draws it only in the overlay that renders its cell. A custom border on the first column after the frozen ones (column C with `fixedColumnsStart: 2`) is rendered by the master and the `top` and `bottom` clones only, so a hide there leaves nothing on screen.
+
+- `isEdgeOnStartFreezeLine` is false for a custom border on both axes, so the edge takes the 1px shift off the overlay's last pixel like any other custom border. `appear` hides the start edge by index only when the border is not a custom one (the row-axis hide goes through `isEdgeOnStartFreezeLine`, so it follows the same rule). The two checks are written apart, so keep them in step.
+- On the row axis the same gap hid the top edge of the first row after the frozen rows: the top overlay (z-index 160) covers the line pixel in a scrollable column, and in a frozen column both the master and the `inline_start` clone hid it, so nothing drew it.
+- A new freeze-line rule must say whether a custom border takes part. The "Border ownership" rules below describe the selection. Pinned by `test/unit/selection/border/frozenStartBoundary.unit.ts` and the "edges on the first track after the frozen ones" block of `tests/e2e/customBorders.spec.ts`, which reads pixels (`CustomBordersLabPage#edgePixelCount`) because the clone holder answers a hit test over the cell.
 
 ## The master table must remain a stacking context below overlay clones
 
@@ -1104,8 +1122,33 @@ Consequences worth knowing:
   as at any gridline, and `frozenBoundaryEdge.spec.js` pins that a shift would break it. Moving such an edge off
   the line instead shows a gray line beside it. The master's copy is hidden only in the index case; for a lined-up
   track the frozen overlay's holder clips its copy at the line, so the master keeps the inside half. The bottom
-  line has no lined-up case yet: the bottom clone is 1px taller than the row calculators count (its first row
-  draws its own top border, a second gridline under the row's), so a lined-up row reads as partly covered. A cell of the inline-start clone and of the corners is in
+  line has its own lined-up case (`Border#isEdgeOnBottomFreezeLine`, DEV-3984): the bottom clone is 1px taller
+  than the height the row calculators count (its first row draws its own top border), so the bottom border of
+  a row that ends at the calculators' boundary lies under the clone's first pixel row, and that pixel is the
+  freeze line. `TopOverlay#scrollTo` adds its bottom-edge `+ 1` above frozen bottom rows only
+  when the summed row heights leave out the top border the first body row draws
+  (`getHiderHeightCompensation() > 0`). They do not leave it out in two cases: a column header owns that
+  gridline (DEV-2786), or AutoRowSize measures the rows (`externalRowCalculator`) and counts the border in the
+  first rendered row's height. There the nudge put a row that an arrow key or a bottom snap lined up 1px above
+  the clone, so its border and the clone's showed as a double line (the maximum scroll, which the browser
+  clamps, never had it). Without frozen bottom rows the nudge is unchanged. Gating the nudge on the column
+  header alone brings the double line back for AutoRowSize without column headers. For a lined-up row the
+  bottom clone and its corners draw the selection's line pixel, the fill handle and the mobile bottom handle
+  are pulled inside the cell as on the last scrollable row, and a custom border, which no frozen overlay draws,
+  ends 1px higher. Two limits. (1) The clone is 1px taller than counted only while its first row has no height
+  of its own. A first bottom row with one (`rowHeights`, `minRowHeights`, ManualRowResize, a recorded content
+  height) holds its top border inside that height, so a lined-up row ends at the clone's top edge with both
+  borders showing, as in 18.1.2. `Overlays#bottomCloneCoversLinedUpRow()` answers
+  it from the clone's drawn height against the counted one, once per draw: on the first ask, which the bottom
+  overlay makes right after it rendered (it is the first overlay `refresh()` renders), and then from the
+  draw's snapshot. Reading it with the snapshot, before `refresh()`, used the clone of the previous draw, so
+  a `fixedRowsBottom` or `minRowHeights` change was one draw late. `Border#isRowLinedUpWithBottomFreezeLine`
+  is false without it: the row's selection and custom border are
+  drawn on the row's own gridline, as for any row. (2) Where the nudge is kept (no column header, AutoRowSize
+  off), the row below is one pixel inside the calculators' viewport, so the snapshot does not report the row as
+  lined up. The line is one border high there, but the selection is drawn as for any row and the fill handle
+  is partly under the bottom rows, as before DEV-3984. Pinned by `tests/e2e/fixed-rows-bottom-line.spec.ts` and
+  `test/unit/selection/border/frozenBottomLine.unit.ts`. A cell of the inline-start clone and of the corners is in
   the overlay's own layer and draws its edge itself. The decision is made on each draw, so a scroll that
   brings a column next to the overlay moves its edge too. Pinned by
   `tests/e2e/selection-start-edge-row-header.spec.ts`, which measures how much of the edge lies inside
@@ -2359,6 +2402,20 @@ the range `[total - N, total)`, queried through `table/rangeQuery/stickyColumnsE
   master can also grow a row on that same scroll when a new column holds a taller cell. If you add the twin,
   gate it on "no frozen-derived rows are being synced and no row height changed in this draw", and keep a
   test that a vertical scroll, a data change and `updateSettings` still redraw the clone.
+- **`bottomFastDraw` is gated on the column band, not on the scroll direction alone.** The `bottom` overlay
+  renders the master's column band, and a vertical scroll can move that band. Small horizontal scrolls are
+  fast draws while every column they show is already rendered, so the master keeps an old band. The next
+  vertical scroll that moves the master's row band runs a full master draw, and that draw resolves the
+  column band again for the current horizontal offset, often one column away. A fast-drawn `bottom` clone
+  then kept the cells of the old band behind the spreader offset of the new one, and the `fixedRowsBottom`
+  row stood a whole column off its headers until the next horizontal re-render. `Overlays#refresh` records
+  the master's band (first rendered column and count) each time the `bottom` clone renders, and lets it
+  fast-draw only while the band is the same. The bottom corners keep the direction-only rule
+  (`bottomCornersFastDraw`): they render the frozen columns, which no scroll moves. Do not reach for
+  `clone.wtTable.getFirstRenderedColumn()` to learn what the clone holds: a clone reads the master's
+  calculators, so it answers with the new band while its DOM still holds the old one. Pinned by
+  `tests/e2e/bottom-row-column-band-scroll.spec.ts`, which also counts the bottom row's renders on a
+  vertical scroll that keeps the band (0), so the fix cannot turn into a full redraw on every scroll.
 - **Header heights only grow, with or without the end corners.** The render-size probe measures the master's
   THEAD, which already carries the height it was given, so a column header row never shrinks until the grid
   is rebuilt (same with `fixedColumnsStart` alone). The two-sided sync in

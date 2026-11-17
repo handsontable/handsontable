@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { TrackedRecordHandle } from '../../core/waitingRecords';
 import type { CellProperties } from '../../settings';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import { stringify } from '../../helpers/mixed';
@@ -18,8 +19,67 @@ import {
 } from '../../helpers/dom/element';
 import { getValueGetterValue } from '../../utils/valueAccessors';
 import { collectSelectionFillChanges, selectionFillsOtherCells } from '../../selection/fillSelection';
+import { markEditorSaveChangeSets } from './editorSaveChangeSets';
 
 export const EDITOR_TYPE = 'base';
+
+/**
+ * The source every editor write and validation runs with. The validation wait tells the editor's own
+ * answer from another validation of the same cell (a `validateCells()` batch) by it.
+ */
+const EDIT_SOURCE = 'edit';
+
+/**
+ * A wait for the validator that decides whether the editor closes.
+ */
+interface ValidationWait {
+  /**
+   * The sources the edited cell was validated with during the editor's own save. A third-party editor
+   * whose `saveValue()` override writes with another source (or none) validates with that source.
+   */
+  sources: Set<string | undefined>;
+  /**
+   * `true` when the save validated no cell at all (a `saveValue()` override that writes later, after a
+   * timer or a request): the wait then ends on the first answer, whatever cell, as it did before it
+   * matched the edited cell.
+   */
+  acceptsAnyAnswer: boolean;
+  /**
+   * The cells a single-cell save validated when it never validated the edited cell (a `saveValue()` override
+   * or a `beforeChange` listener moved the write to another cell), each as its stored cell meta with the source
+   * it was validated with. The wait then ends on the first answer among them. `null` otherwise.
+   */
+  validatedCells: Array<{ meta: CellProperties, source: string | undefined }> | null;
+}
+
+/**
+ * A cell a save asked to validate, as `beforeValidate` names it: by its visual row and by its property (or
+ * its visual column for a data accessor function), with the validation source.
+ */
+interface ValidatedCell {
+  row: number;
+  col: number | string;
+  source: string | undefined;
+}
+
+/**
+ * Tells whether a validation hook's cell (`beforeValidate` or `postAfterValidate`) is the cell of a stored
+ * cell meta. The hooks name the cell the way `Core#validateCell` does: by the meta's `visualRow`, and by its
+ * `prop`, or its `visualCol` when the property is a data accessor function.
+ *
+ * @param {CellProperties} meta The stored cell meta.
+ * @param {number} row The visual row of the hook.
+ * @param {number|string} col The column property of the hook, or the visual column for an accessor.
+ * @returns {boolean}
+ */
+function isCellOfMeta(meta: CellProperties, row: number, col: number | string): boolean {
+  if (row !== meta.visualRow) {
+    return false;
+  }
+
+  return typeof meta.prop === 'function' ? col === meta.visualCol : col === meta.prop;
+}
+
 export const EDITOR_STATE = Object.freeze({
   VIRGIN: 'STATE_VIRGIN', // before editing
   EDITING: 'STATE_EDITING',
@@ -166,16 +226,51 @@ export class BaseEditor {
   /**
    * The wait for the validator that decides whether the editor closes. Each wait gets a new object,
    * and its `postAfterValidate` listener acts only while that object is still the current one, so a
-   * wait ended early by `_endValidationWait()` cannot reopen the editor when its validator answers.
+   * wait ended early by `_endValidationWait()` or `cancelChanges()` cannot reopen the editor when its
+   * validator answers.
    */
-  #validationWait: object | null = null;
+  #validationWait: ValidationWait | null = null;
+  /**
+   * The record the editor saved its value to, followed while the editor waits for the validator (core's
+   * `_trackRecord()`), so a sort, a move, a filter, or an insert or removal made meanwhile cannot make a rejected
+   * value reopen the editor on another record.
+   */
+  #waitRecord: TrackedRecordHandle | null = null;
+  /**
+   * The visual row the waited-on record had when the validator answered: a number, `null` when the record is
+   * gone or not rendered, or `undefined` when no answer was recorded. Read once by `discardEditor()`.
+   */
+  #answeredRow: number | null | undefined = undefined;
+  /**
+   * The visual column the waited-on edited column had when the validator answered, or `undefined` when no answer
+   * was recorded or no column was followed. A column a removal took or a trim hid makes `#answeredRow` `null`.
+   * Read once by `discardEditor()`.
+   */
+  #answeredColumn: number | undefined = undefined;
+  /**
+   * Brings the waited-on record into view when a rejected value reopens the editor on it, prepared when the wait
+   * started (`Core#_prepareRowReveal()`), so a feature that hides the record can tell a reorder that carried it off
+   * screen from the user moving away. `null` when no record is followed.
+   *
+   * @type {Function|null}
+   */
+  #rowReveal: ((visualRow: number) => boolean) | null = null;
 
   /**
-   * The `postAfterValidate` listener of the current wait, removed with the wait. It removes itself on its
-   * first answer that is not stale, and the answer of a dropped call is stale, so a wait ended early would
-   * keep it until another validation in the grid answers.
+   * The `postAfterValidate` listener of the current wait. It removes itself on the editor's own first
+   * answer that is not stale, and it is removed when the wait is ended (`_endValidationWait()`,
+   * `cancelChanges()`) or replaced by the next one. A wait ended early cannot count on its own answer to
+   * remove it, because the answer of a dropped call is stale.
    */
-  #validationWaitListener: ((result: boolean) => void) | null = null;
+  #validationWaitListener: (
+    (result: boolean, value: unknown, row: number, col: number | string, source?: string) => void
+  ) | null = null;
+
+  /**
+   * The functions run each time the editor finishes an edit (`discardEditor()`): it closes, or reopens on a
+   * rejection. See `_addFinishListener()`.
+   */
+  #finishListeners: Set<() => void> = new Set();
 
   /**
    * Re-arms the unchanged-edit guard after the editor's content has been reloaded from the data
@@ -359,7 +454,7 @@ export class BaseEditor {
     }
 
     // Saving values using the modified coordinates.
-    this.hot.populateFromArray(visualRow as number, visualColumn as number, value, null, null, 'edit');
+    this.hot.populateFromArray(visualRow as number, visualColumn as number, value, null, null, EDIT_SOURCE);
   }
 
   /**
@@ -387,7 +482,7 @@ export class BaseEditor {
     const changes = collectSelectionFillChanges(this.hot, cellValue, selectedRanges);
 
     if (changes.length > 0) {
-      this.hot.setDataAtCell(changes, null, null, 'edit');
+      this.hot.setDataAtCell(changes, null, null, EDIT_SOURCE);
     }
   }
 
@@ -538,7 +633,7 @@ export class BaseEditor {
       this.state = EDITOR_STATE.WAITING;
 
       if (!this.hot.getCellValidator(this.cellProperties)) {
-        this.saveValue([[value]], ctrlDown);
+        markEditorSaveChangeSets(this.hot, () => this.saveValue([[value]], ctrlDown));
 
         // A listener of the save (`beforeChange`, `afterChange`, ...) destroyed the grid, and the
         // editor's DOM went with it.
@@ -552,11 +647,143 @@ export class BaseEditor {
         return;
       }
 
-      this.#waitForValidation((result) => {
+      const finishWait = this.#waitForValidation((result) => {
         this.discardEditor(result);
       });
-      this.saveValue([[value]], ctrlDown);
+      const { validatesEditedCell, validatedCells, writtenCells, startsWrite } =
+        this.#saveValueValidatingEditedCell(value, ctrlDown);
+
+      // A listener of the save destroyed the grid, and the editor's DOM went with it.
+      if (this.hot.isDestroyed) {
+        return;
+      }
+
+      if (validatesEditedCell || !this.isWaiting()) {
+        return;
+      }
+
+      if (validatedCells.length > 0 && fillsOtherCells) {
+        // A `beforeChange` listener took the edited cell out of a Ctrl+Enter fill, so no answer of the editor's
+        // own will ever come. The editor closes as on a save the listener chose not to write: a rejection of
+        // another cell of the fill must not reopen it on a cell the listener refuses to write (re-confirming
+        // would loop). A veto of the whole write has already canceled the editor (`isWaiting()` is false).
+        finishWait(true);
+
+      } else if (validatedCells.length > 0) {
+        if (this.#validationWait) {
+          // A single-cell save validated another cell but never the edited one: a `saveValue()` override or a
+          // `beforeChange` listener moved the write. The first answer among the cells the save wrote ends the
+          // wait, and a rejection under `allowInvalid: false` reopens the editor. A cell the save validated
+          // without writing it (a Formulas dependent of the moved write) is not the save's answer. The cells
+          // are kept as their stored meta, whose `visualRow` follows the record, as `#isEditedCell()` does.
+          const ownCells = validatedCells.filter(cell => writtenCells.some(
+            ([row, prop]) => row === cell.row && (prop === cell.col || prop === this.hot.colToProp(cell.col as number))
+          ));
+
+          if (ownCells.length === 0) {
+            // The save validated only cells it did not write (dependents of a write to a cell without a
+            // validator), so nothing the save wrote can be rejected and no answer is the save's own.
+            finishWait(true);
+
+          } else {
+            this.#validationWait.validatedCells = ownCells.map(({ row, col, source }) => ({
+              meta: this.#getMetaOfValidatedCell(row, col),
+              source,
+            }));
+          }
+        }
+
+      } else if (startsWrite) {
+        // The save wrote, but nothing it wrote has a validator (a `beforeChange` listener took the edited cell
+        // out of a Ctrl+Enter fill whose other cells have none, or moved the write to such a cell), so no
+        // answer will ever come.
+        finishWait(true);
+
+      } else if (this.#validationWait) {
+        // The save validated nothing yet: a `saveValue()` override that writes later. Its answer cannot be
+        // told from a foreign one, so the first answer ends the wait.
+        this.#validationWait.acceptsAnyAnswer = true;
+      }
     }
+  }
+
+  /**
+   * Saves the editor value and tells whether the save asked for the edited cell's own validation. The
+   * request is seen on `beforeValidate`, which `Core#validateCell` runs synchronously, so the answer is
+   * known when `saveValue()` returns. The source of every validation of the edited cell made during the
+   * save is recorded on the wait, so the answer of a `saveValue()` override that writes with another
+   * source (or none, as a bare `setDataAtCell(row, column, value)` does) still counts as the editor's own.
+   *
+   * It also lists every cell the save asked to validate, which a save that writes later leaves empty, and
+   * the cells of the change sets the save made that wait for their validators (`[visualRow, prop]`, copied
+   * before any answer takes a rejected change out of its set). And it tells whether the save started a write
+   * (`beforeChange` ran during it), which a save that writes later does not.
+   *
+   * @param {*} value The value to save.
+   * @param {boolean} [ctrlDown] If `true`, applies the value to each cell in every selected range.
+   * @returns {{ validatesEditedCell: boolean, validatedCells: ValidatedCell[], writtenCells: Array[], startsWrite: boolean }}
+   */
+  #saveValueValidatingEditedCell(value: unknown, ctrlDown?: boolean): {
+    validatesEditedCell: boolean,
+    validatedCells: ValidatedCell[],
+    writtenCells: Array<[number, unknown]>,
+    startsWrite: boolean,
+  } {
+    let validatesEditedCell = false;
+    let startsWrite = false;
+    const onBeforeChange = () => {
+      startsWrite = true;
+    };
+    const validatedCells: ValidatedCell[] = [];
+    const onBeforeValidate = (cellValue: unknown, row: number, col: number | string, source?: string) => {
+      validatedCells.push({ row, col, source });
+
+      if (this.#isEditedCell(row, col)) {
+        validatesEditedCell = true;
+        this.#validationWait?.sources.add(source);
+      }
+    };
+
+    this.hot.addHook('beforeValidate', onBeforeValidate);
+    this.hot.addHook('beforeChange', onBeforeChange);
+
+    let writtenCells: Array<[number, unknown]> = [];
+
+    try {
+      writtenCells = markEditorSaveChangeSets(this.hot, () => this.saveValue([[value]], ctrlDown))
+        .flatMap(changes => changes.map(([row, prop]): [number, unknown] => [row, prop]));
+    } finally {
+      if (!this.hot.isDestroyed) {
+        this.hot.removeHook('beforeValidate', onBeforeValidate);
+        this.hot.removeHook('beforeChange', onBeforeChange);
+      }
+    }
+
+    return { validatesEditedCell, validatedCells, writtenCells, startsWrite };
+  }
+
+  /**
+   * Returns the stored cell meta of a cell a validation hook names. The hook names the column by its `prop`:
+   * the physical column for array data, a key for object data, so the visual column comes from
+   * `propToCol()`. Only for a data accessor function is it the visual column itself, so that is the fallback
+   * when the column `propToCol()` finds is not the cell the hook names.
+   *
+   * @param {number} row The visual row the hook names.
+   * @param {number|string} col The column property the hook names, or the visual column for an accessor.
+   * @returns {CellProperties}
+   */
+  #getMetaOfValidatedCell(row: number, col: number | string): CellProperties {
+    const visualColumn = this.hot.propToCol(col);
+
+    if (typeof visualColumn === 'number') {
+      const meta = this.hot.getCellMeta(row, visualColumn);
+
+      if (isCellOfMeta(meta, row, col)) {
+        return meta;
+      }
+    }
+
+    return this.hot.getCellMeta(row, col as number);
   }
 
   /**
@@ -610,7 +837,7 @@ export class BaseEditor {
       this.hot.view.render();
     });
 
-    this.hot.validateCell(this.originalValue, this.cellProperties, () => {}, 'edit');
+    this.hot.validateCell(this.originalValue, this.cellProperties, () => {}, EDIT_SOURCE);
   }
 
   /**
@@ -621,11 +848,41 @@ export class BaseEditor {
    * this wait's answer it closed the editor before its own value was validated, or reopened it. The answer
    * is ignored once the wait has been ended or replaced.
    *
+   * The wait also ends on the editor's own answer only: the edited cell (`#isEditedCell()`), validated with
+   * the editor's source or a source its save validated the cell with (`#saveValueValidatingEditedCell()`),
+   * unless the save validated no cell at all (`ValidationWait#acceptsAnyAnswer`). `postAfterValidate` is
+   * instance-wide: the Formulas plugin validates
+   * the cells that depend on the edited one, and a `validateCells()` batch can still be in flight, also for
+   * the edited cell itself (its old value), so another answer often arrives first. Taken as this wait's
+   * answer, a `true` closed the editor and the own rejection under `allowInvalid: false` then landed on
+   * nothing, and a `false` reopened it. Such an answer is skipped and the listener stays registered.
+   *
    * @param {Function} onAnswer Called with the validation result once the editor is `FINISHED`.
+   * @returns {Function} Finishes the wait with a result, as its own answer would. Does nothing once the wait
+   *   has been ended or replaced.
    */
-  #waitForValidation(onAnswer: (result: boolean) => void): void {
-    const wait = {};
-    const onPostAfterValidate = (result: boolean) => {
+  #waitForValidation(onAnswer: (result: boolean) => void): (result: boolean) => void {
+    const wait: ValidationWait = { sources: new Set(), acceptsAnyAnswer: false, validatedCells: null };
+    const finish = (result: boolean) => {
+      this.hot.removeHook('postAfterValidate', onPostAfterValidate);
+
+      if (this.#validationWait !== wait) {
+        return;
+      }
+
+      this.#validationWait = null;
+      this.#validationWaitListener = null;
+      const answeredColumn = this.#readWaitRecordColumn();
+
+      this.#answeredRow = answeredColumn === null ? null : this.#readWaitRecordRow();
+      this.#answeredColumn = answeredColumn ?? undefined;
+      this.#releaseWaitRecord();
+      this.state = EDITOR_STATE.FINISHED;
+      onAnswer(result);
+    };
+    const onPostAfterValidate = (
+      result: boolean, value: unknown, row: number, col: number | string, source?: string
+    ) => {
       // An earlier `postAfterValidate` listener destroyed the grid. The hook registry still reaches
       // this listener, and every method of the destroyed instance throws.
       if (this.hot.isDestroyed) {
@@ -636,22 +893,124 @@ export class BaseEditor {
         return;
       }
 
-      this.hot.removeHook('postAfterValidate', onPostAfterValidate);
-
-      if (this.#validationWait !== wait) {
+      if (!wait.acceptsAnyAnswer && !this.#isAnswerOfWait(wait, row, col, source)) {
         return;
       }
 
-      this.#validationWait = null;
-      this.#validationWaitListener = null;
-      this.state = EDITOR_STATE.FINISHED;
-      onAnswer(result);
+      finish(result);
     };
 
     this.#removeValidationWaitListener();
+    this.#releaseWaitRecord();
+    this.#answeredRow = undefined;
+    this.#answeredColumn = undefined;
+    this.#waitRecord = this.row === null ? null : this.hot._trackRecord(this.row, this.col ?? undefined);
+    this.#rowReveal = this.#waitRecord === null ? null : this.hot._prepareRowReveal();
     this.#validationWait = wait;
     this.#validationWaitListener = onPostAfterValidate;
     this.hot.addHook('postAfterValidate', onPostAfterValidate);
+
+    return finish;
+  }
+
+  /**
+   * Tells whether an answer belongs to the wait: the edited cell's, validated with the editor's source or a
+   * source the save validated the cell with, or, when a single-cell save never validated the edited cell, an
+   * answer for one of the cells it validated, with the source it validated that cell with.
+   *
+   * @param {ValidationWait} wait The wait.
+   * @param {number} row The visual row the answer is for.
+   * @param {number|string} col The column property the answer is for, or the visual column for an accessor.
+   * @param {string} [source] The validation source.
+   * @returns {boolean}
+   */
+  #isAnswerOfWait(wait: ValidationWait, row: number, col: number | string, source?: string): boolean {
+    if (wait.validatedCells !== null) {
+      return wait.validatedCells.some(cell => cell.source === source && isCellOfMeta(cell.meta, row, col));
+    }
+
+    return this.#isEditedCell(row, col) && (source === EDIT_SOURCE || wait.sources.has(source));
+  }
+
+  /**
+   * Tells whether a validation (its `beforeValidate` request or its `postAfterValidate` answer) is for the
+   * cell this editor edits. The hooks name the cell the way `Core#validateCell` does: by the meta's
+   * `visualRow`, and by its `prop`, or its `visualCol` when the property is a data accessor function.
+   *
+   * The comparison is with the cell meta the editor holds, never with `this.row`/`this.prop`. The meta is
+   * the stored object the save validates, and its `visualRow` follows the record when a row is inserted or
+   * removed above it during the wait, while `EditorManager` rebinds the editor's coordinates only before
+   * the save (a waiting editor kept the old row and took its own answer for a foreign one). The meta also
+   * names the cell a `modifyGetCellCoords` listener redirected the save to.
+   *
+   * @param {number} row The visual row the validation is for.
+   * @param {number|string} col The column property the validation is for, or the visual column for an accessor.
+   * @returns {boolean}
+   */
+  #isEditedCell(row: number, col: number | string): boolean {
+    return isCellOfMeta(this.cellProperties, row, col);
+  }
+
+  /**
+   * Reads the visual row the waited-on record has now: `null` when the record is gone or trimmed out of the visual
+   * space, and `undefined` when no record is followed. A hidden record keeps its visual row; whether it can be
+   * shown again is decided when the editor reopens (`discardEditor()`).
+   *
+   * @returns {number|null|undefined}
+   */
+  #readWaitRecordRow(): number | null | undefined {
+    if (this.#waitRecord === null) {
+      return undefined;
+    }
+
+    return this.#waitRecord.getVisualRow();
+  }
+
+  /**
+   * Reads the visual column the waited-on column has now: `null` when a removal took it, a trim hid it, or it is
+   * hidden (a hidden column cannot show the editor), and `undefined` when no column is followed.
+   *
+   * @returns {number|null|undefined}
+   */
+  #readWaitRecordColumn(): number | null | undefined {
+    if (this.#waitRecord === null) {
+      return undefined;
+    }
+
+    const column = this.#waitRecord.getVisualColumn();
+
+    if (typeof column === 'number' && this.hot.columnIndexMapper.getRenderableFromVisualIndex(column) === null) {
+      return null;
+    }
+
+    return column;
+  }
+
+  /**
+   * Points the open editor at the cell its record and column moved to while it waited for the validator, so the
+   * next confirm writes to that cell. The value the editor holds stays; the cell, its meta and its position are
+   * read again.
+   *
+   * @param {number} row The visual row the record has now.
+   * @param {number} col The visual column the edited column has now.
+   */
+  #moveToCell(row: number, col: number): void {
+    const td = this.hot.getCell(row, col, true);
+
+    this.prepare(row, col, this.hot.colToProp(col) ?? this.prop!, td ?? this.TD!, this.originalValue,
+      this.hot.getCellMeta(row, col));
+
+    if ('refreshDimensions' in this && typeof this.refreshDimensions === 'function') {
+      this.refreshDimensions();
+    }
+  }
+
+  /**
+   * Stops following the waited-on record.
+   */
+  #releaseWaitRecord(): void {
+    this.#waitRecord?.release();
+    this.#waitRecord = null;
   }
 
   /**
@@ -687,6 +1046,7 @@ export class BaseEditor {
     this._closeCallback = null;
     this.#validationWait = null;
     this.#removeValidationWaitListener();
+    this.#releaseWaitRecord();
     this.cancelChanges();
 
     return closeCallback ? () => closeCallback(false) : null;
@@ -696,12 +1056,27 @@ export class BaseEditor {
    * Finishes editing without saving value.
    */
   cancelChanges(): void {
+    // A canceled wait is over: its answer, or another validation of the cell, must not close or reopen
+    // the editor later.
+    this.#validationWait = null;
+    this.#removeValidationWaitListener();
+    this.#releaseWaitRecord();
     this.state = EDITOR_STATE.FINISHED;
     this.discardEditor();
   }
 
   /**
    * Verifies result of validation or closes editor if user's canceled changes.
+   *
+   * A value the validator rejected under `allowInvalid: false` reopens the editor on the record the value was
+   * typed into, at the visual row that record has when the validator answers (a sort, a move, a filter, or an
+   * insert or removal can move it while the editor waits). A record a feature that can show it again keeps off
+   * screen (a sort moved it to another Pagination page) is brought back first, through the reveal prepared when the
+   * wait started (`Core#_prepareRowReveal()`), and the editor reopens there with the typed text. A page the user
+   * moved to while the editor waited is kept, and the editor closes. When the record is gone, trimmed out of the
+   * visual space (a filter, a collapse), or hidden for good (`hiddenRows`), the editor closes instead: no cell of
+   * that record can be shown.
+   * Nothing was written, so the close callbacks receive `false`.
    *
    * @param {boolean|undefined} result If `false` and the cell using allowInvalid option,
    *                                   then an editor won't be closed until validation is passed.
@@ -711,13 +1086,105 @@ export class BaseEditor {
       return;
     }
 
-    // validator was defined and failed
-    if (result === false && this.cellProperties.allowInvalid !== true) {
-      if (this.row === null || this.col === null) {
+    const isRejected = result === false && this.cellProperties.allowInvalid !== true;
+    const rowReveal = this.#rowReveal;
+    const answeredRow = this.#answeredRow;
+    const answeredColumn = this.#answeredColumn;
+
+    this.#answeredRow = undefined;
+    this.#answeredColumn = undefined;
+    this.#rowReveal = null;
+
+    if (!isRejected || typeof answeredRow !== 'number' || rowReveal === null) {
+      this.#finishEdit(isRejected, answeredRow, answeredColumn);
+
+      return;
+    }
+
+    if (this.hot.rowIndexMapper.getRenderableFromVisualIndex(answeredRow) !== null) {
+      this.#finishEdit(isRejected, rowReveal(answeredRow) ? answeredRow : null, answeredColumn);
+
+      return;
+    }
+
+    this.hot._runAfterValidatorAnswer(() => {
+      if (this.state === EDITOR_STATE.FINISHED) {
+        this.#finishEdit(isRejected, rowReveal(answeredRow) ? answeredRow : null, answeredColumn);
+      }
+    });
+  }
+
+  /**
+   * Adds a function run each time the editor finishes an edit: it closes (saved, canceled by Escape or by a
+   * `beforeChange` veto, or its wait canceled without an answer) or reopens on a rejection. An edit can end
+   * with no validation at all, so code that waits for the editor (a header sort) cannot rely on
+   * `postAfterValidate` alone. Adding a function that is already there changes nothing.
+   *
+   * @private
+   * @param {Function} listener The function to add.
+   */
+  _addFinishListener(listener: () => void): void {
+    this.#finishListeners.add(listener);
+  }
+
+  /**
+   * Removes a function `_addFinishListener()` added.
+   *
+   * @private
+   * @param {Function} listener The function to remove.
+   */
+  _removeFinishListener(listener: () => void): void {
+    this.#finishListeners.delete(listener);
+  }
+
+  /**
+   * Reopens or closes the finished editor (`#settleAnswer()`), then runs the finish listeners
+   * (`_addFinishListener()`). A rejection whose reveal waits for the validator's answer to release its hold
+   * finishes the edit only then, so a listener never sees the editor between the answer and its reopen.
+   *
+   * @param {boolean} isRejected Whether the validator rejected the value under `allowInvalid: false`.
+   * @param {number|null|undefined} answeredRow The visual row of the record (`null` when no cell of it can be
+   * shown), or `undefined` when no record was followed.
+   * @param {number|undefined} answeredColumn The visual column of the edited column, or `undefined` when no column
+   * was followed.
+   */
+  #finishEdit(isRejected: boolean, answeredRow: number | null | undefined, answeredColumn?: number): void {
+    try {
+      this.#settleAnswer(isRejected, answeredRow, answeredColumn);
+    } finally {
+      if (!this.hot.isDestroyed) {
+        [...this.#finishListeners].forEach(listener => listener());
+      }
+    }
+  }
+
+  /**
+   * Reopens the editor on the row of its record after a rejected value, or closes it. A reveal that changes what a
+   * feature shows (Pagination's page) runs as an operation of its own, so `discardEditor()` calls this method for
+   * such a reveal through `Core#_runAfterValidatorAnswer()`, once the validator's answer released its hold on the
+   * transaction of the change it answers (`operationScope.hold()`): a page change made inside it joined that
+   * transaction, so UndoRedo recorded the page change as part of an empty change step.
+   *
+   * @param {boolean} isRejected Whether the validator rejected the value under `allowInvalid: false`.
+   * @param {number|null|undefined} answeredRow The visual row of the record (`null` when no cell of it can be
+   * shown), or `undefined` when no record was followed.
+   * @param {number|undefined} answeredColumn The visual column of the edited column, or `undefined` when no column
+   * was followed.
+   */
+  #settleAnswer(isRejected: boolean, answeredRow: number | null | undefined, answeredColumn?: number): void {
+    if (isRejected && answeredRow !== null) {
+      const row = answeredRow ?? this.row;
+      const col = answeredColumn ?? this.col;
+
+      if (row === null || col === null) {
         return;
       }
 
-      this.hot.selectCell(this.row, this.col);
+      if (row !== this.row || col !== this.col) {
+        this.#moveToCell(row, col);
+      }
+
+      this.hot.selectCell(row, col);
       this.focus();
       this.state = EDITOR_STATE.EDITING;
       this._fireCallbacks(false);
@@ -735,7 +1202,7 @@ export class BaseEditor {
       this.#seededString = null;
       this.#seededCellValue = null;
       this.state = EDITOR_STATE.VIRGIN;
-      this._fireCallbacks(true);
+      this._fireCallbacks(!isRejected);
 
       const shortcutManager = this.hot.getShortcutManager();
 

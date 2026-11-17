@@ -1,6 +1,6 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
-import { A11Y_PAGES, fixtureUrl, type A11yPage } from '../pages.mjs';
-import { emulate, openTarget, reachState, releaseParkedFetches, selectCell, type OpenedTarget } from '../harness';
+import { A11Y_PAGES, type A11yPage } from '../pages.mjs';
+import { fixtureUrl, emulate, openTarget, reachState, releaseParkedFetches, selectCell, type OpenedTarget } from '../harness';
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import { A11Y_THEMES } from '../../lib/a11y-baseline.mjs';
 import { dominantColor, indicatorChange, isDrawn, strongestPixel } from '../../lib/contrast.mjs';

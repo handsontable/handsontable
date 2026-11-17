@@ -173,11 +173,14 @@ class Overlays {
    * and the clones render their selections before the master does, with a possible
    * `createVisibleCalculators()` in between. Reading the live range there would let the clones and the
    * master decide on different ranges, drawing a handle twice or not at all. `null` until the first
-   * snapshot.
+   * snapshot. `bottomCloneCoversLinedUpRow` belongs to the same draw, and is `null` until the first ask
+   * (see {@link Overlays#bottomCloneCoversLinedUpRow}).
    *
-   * @type {{row: AxisVisibleRange, column: AxisVisibleRange}|null}
+   * @type {{row: AxisVisibleRange, column: AxisVisibleRange, bottomCloneCoversLinedUpRow: boolean|null}|null}
    */
-  selectionVisibleRange: { row: AxisVisibleRange, column: AxisVisibleRange } | null = null;
+  selectionVisibleRange: {
+    row: AxisVisibleRange, column: AxisVisibleRange, bottomCloneCoversLinedUpRow: boolean | null,
+  } | null = null;
 
   /**
    * Binds the native DOM input listeners (scroll, wheel, key, resize) and translates them into the
@@ -407,6 +410,12 @@ class Overlays {
    * The band sizes currently drawn, so a press landing in one can be swallowed (#10370).
    */
   #bandSizes = { bottom: 0, inlineEnd: 0 };
+
+  /**
+   * The master's column band the `bottom` clone rendered last (`null` before its first render, or while it
+   * renders nothing), so a fast draw is taken only over the cells the clone holds.
+   */
+  #bottomColumnsBand: { start: number, count: number } | null = null;
 
   /**
    * Whether the press being handled started as a touch, so the compatibility `mousedown`/`click`/
@@ -1028,6 +1037,57 @@ class Overlays {
   }
 
   /**
+   * Tells whether the bottom clone is taller than the height the row calculators count for the frozen bottom
+   * rows. Its first row draws its own top border, the freeze line. While that row has no height of its own
+   * the border is one pixel on top of the counted height, so the clone covers the bottom border of a row that
+   * scrolling lined up with it. A first row with a height of its own (`rowHeights`, `minRowHeights`, a
+   * resized row, a recorded content height) holds the border inside that height: the clone is as tall as
+   * counted, and a lined-up row ends at its top edge with its own border in view.
+   *
+   * The answer is read once per draw and kept in the draw's snapshot, so every overlay decides on the same
+   * one. It is read on the first ask and not with the snapshot, because the snapshot is taken before
+   * `refresh()` and the clone's height is only current after the bottom overlay rendered. That overlay is
+   * the first one `refresh()` renders, and it asks while it draws its own selections, so no overlay reads a
+   * height from the previous draw (a `minRowHeights` or `fixedRowsBottom` change would otherwise be one
+   * draw late).
+   *
+   * @returns {boolean}
+   */
+  bottomCloneCoversLinedUpRow(): boolean {
+    const snapshot = this.selectionVisibleRange;
+
+    if (snapshot === null) {
+      return false;
+    }
+
+    if (snapshot.bottomCloneCoversLinedUpRow === null) {
+      snapshot.bottomCloneCoversLinedUpRow = this.#isBottomCloneTallerThanCountedRows();
+    }
+
+    return snapshot.bottomCloneCoversLinedUpRow;
+  }
+
+  /**
+   * Compares the bottom clone's drawn height with the summed heights of the frozen bottom rows.
+   *
+   * @returns {boolean}
+   */
+  #isBottomCloneTallerThanCountedRows(): boolean {
+    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
+    const cloneTable = this.bottomOverlay?.clone?.wtTable.TABLE;
+
+    if (fixedRowsBottom === 0 || !cloneTable) {
+      return false;
+    }
+
+    const totalRows = this.wtSettings.getSetting('totalRows') ?? 0;
+    const countedHeight = this.wot.wtViewport.sumRowHeights(totalRows - fixedRowsBottom, totalRows);
+
+    // Half a pixel, not zero: below 100% zoom the two heights differ by a fraction of a pixel anyway.
+    return this.#deps.geometryReader.outerHeight(cloneTable) - countedHeight > 0.5;
+  }
+
+  /**
    * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
    *                                   rendering anyway.
@@ -1039,13 +1099,16 @@ class Overlays {
     // fully re-render and size the overlays rather than treat this as a scroll.
     const isScrollTriggered = this.isScrollDrivenDraw &&
       (this.verticalScrolling || this.horizontalScrolling);
-    // On a pure vertical scroll the bottom overlay (and its inline-start corner) render the same fixed
-    // rows over the same visible columns, so their DOM is unchanged - a full re-render is wasted work and
-    // forces an expensive style/layout/paint of the clone subtree on every scroll frame. Reposition them
-    // (fast draw) instead. Any horizontal scroll changes the visible columns, and a non-scroll redraw
-    // (data, settings, resize) is not scroll-driven, so those paths still trigger a full re-render.
-    const bottomFastDraw = fastDraw ||
+    // On a pure vertical scroll the bottom overlay (and its corners) render the same fixed rows, so a full
+    // re-render is wasted work and forces an expensive style/layout/paint of the clone subtree on every
+    // scroll frame. Reposition them (fast draw) instead. Any horizontal scroll changes the visible columns,
+    // and a non-scroll redraw (data, settings, resize) is not scroll-driven, so those paths still trigger a
+    // full re-render. The corners render the frozen columns only, which no scroll moves.
+    const bottomCornersFastDraw = fastDraw ||
       (this.isScrollDrivenDraw && this.verticalScrolling && !this.horizontalScrolling);
+    const columnsBand = this.#readMasterColumnsBand();
+    const bottomFastDraw = bottomCornersFastDraw && this.#bottomColumnsBand !== null &&
+      this.#bottomColumnsBand.start === columnsBand.start && this.#bottomColumnsBand.count === columnsBand.count;
 
     if (isScrollTriggered) {
       this.#postponedAdjustElementsSize();
@@ -1055,6 +1118,7 @@ class Overlays {
 
     if (this.bottomOverlay.clone) {
       this.bottomOverlay.refresh(bottomFastDraw);
+      this.#bottomColumnsBand = this.bottomOverlay.needFullRender ? columnsBand : null;
     }
 
     this.inlineStartOverlay.refresh(fastDraw);
@@ -1066,12 +1130,25 @@ class Overlays {
     }
 
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
-      this.bottomInlineStartCornerOverlay.refresh(bottomFastDraw);
+      this.bottomInlineStartCornerOverlay.refresh(bottomCornersFastDraw);
     }
 
     // The end corners render the same fixed rows over the same fixed end columns, like their start twins.
     this.topInlineEndCornerOverlay.refresh(fastDraw);
-    this.bottomInlineEndCornerOverlay.refresh(bottomFastDraw);
+    this.bottomInlineEndCornerOverlay.refresh(bottomCornersFastDraw);
+  }
+
+  /**
+   * Reads the column band the master renders in the current draw: its first rendered column and how many
+   * columns it renders.
+   *
+   * @returns {{ start: number, count: number }}
+   */
+  #readMasterColumnsBand(): { start: number, count: number } {
+    return {
+      start: this.wtTable.getFirstRenderedColumn(),
+      count: this.wtTable.getRenderedColumnsCount(),
+    };
   }
 
   /**

@@ -20,6 +20,14 @@ Consequence: a grid configured with an array reverts a row the user had since dr
 runs again. The manual *resize* plugins hit the same class of problem and document it in detail —
 `../../utils/manualResize/AGENTS.md`.
 
+Formulas reloading the engine sheet a grid built without `data` is bound to (every `updateSettings()`) does
+not trigger the replay: it reloads through `updateData()`, which keeps the index maps and fires no
+`afterLoadData`. When anything but the grid changed the sheet since the grid loaded it (the host through the
+engine API, another grid on the sheet), it falls back to `loadData()`, and then it holds the replay from the engine and puts the
+grid's previous order back after the load
+(`../formulas/AGENTS.md`, "A reload of the sheet the syncers are synced with keeps the grid's order"). It reads
+this plugin's state through nothing but the index mapper; the same holds for ManualColumnMove.
+
 ## A press another listener claimed arms no move
 
 `#onBeforeOnCellMouseDown` skips a press whose `isImmediatePropagationStopped(event)` is set, the way DragToScroll does: that listener owns the gesture. The FormulaBuilder header pick is the case it was added for. A pick dragged across the headers of a header-selected row armed a move, drew the guideline, scrolled the viewport on each `mousemove` next to the pick's own auto-scroller, and moved the range on release, which closed the edit. A pick that ended without a `mouseup` (a window blur) also left the move pressed for the next release on the page. The check depends on the claiming listener running first in the same hook: FormulaBuilder registers with order index `-1`. The other in-tree claimers (CheckboxHeader, RowSelection, CollapsibleColumns) register after this plugin, so their presses arm as before, until an `updatePlugin()` of this plugin moves its hook to the tail of the list.

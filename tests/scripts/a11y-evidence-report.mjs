@@ -28,7 +28,7 @@ import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { escapeMarkdownText } from '../lib/a11y-baseline.mjs';
-import { docsPageLines, pageLines } from '../lib/a11y-check-run.mjs';
+import { pageLinesOf } from '../lib/a11y-check-run.mjs';
 import { EVIDENCE_CHECKS, PAGES_FILE, buildEvidenceCheckRun, checksForRun, renderEvidenceSummary, validateEvidence } from '../lib/a11y-evidence.mjs';
 import { siteChecks, siteOf, siteOutputDir } from '../lib/a11y-site-checks.mjs';
 import { VERDICT_RULE } from '../lib/a11y-verdict.mjs';
@@ -53,11 +53,9 @@ const runUrl = env.GITHUB_SERVER_URL && env.GITHUB_REPOSITORY && env.GITHUB_RUN_
   : undefined;
 const artifactUrl = env.A11Y_EVIDENCE_URL || undefined;
 const pagesSource = readFileSync(path.join(TESTS_ROOT, PAGE_LIST.replace(/^tests\//, '')), 'utf8');
-// The docs build most pages in `guidePages()`, with no `id:` line of their own: those are annotated on that line, as
-// the docs scan's check run annotates them (`docsPageLines()`).
-const pages = site === 'docs'
-  ? docsPageLines(pagesSource, (await import('../a11y/docs/pages.mjs')).DOCS_PAGES.map(page => page.id))
-  : pageLines(pagesSource);
+// A page is annotated on the line its site's scan annotates it on (`pageLinesOf()`): the docs build most pages in
+// `guidePages()`, and most website pages take their id from the route, so neither has an `id:` line of its own.
+const pages = pageLinesOf(site ?? 'product', pagesSource, site === 'docs' ? (await import('../a11y/docs/pages.mjs')).DOCS_PAGES.map(page => page.id) : []);
 // Playwright keeps its own `.last-run.json` in the same folder; a check's document never starts with a dot.
 const files = existsSync(OUTPUT_DIR) ? readdirSync(OUTPUT_DIR).filter(name => name.endsWith('.json') && !name.startsWith('.')).sort() : [];
 // The checks the run covered, read the way the config read them (`checksForRun()`: the ones `A11Y_CHECKS`

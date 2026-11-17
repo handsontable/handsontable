@@ -997,6 +997,38 @@ describe('MergeCells re-anchored top-left cell meta', () => {
         expect(hot.getCopyableText(visualRow, 4, visualRow, 4)).toBe(TEXT);
       });
 
+      it('should clear the covered flags from a cell a column move took out of a merge after the undo and the redo', () => {
+        createGrid({
+          undo: true,
+          trimRows: true,
+          manualColumnMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        trimRowEight();
+        hot.getPlugin('manualColumnMove').moveColumn(5, 8);
+
+        expectNoCoveredFlags(1, 5);
+
+        hot.getPlugin('undoRedo').undo();
+        hot.render();
+
+        // The undone merge covers the cell again, and reading its meta stores the flags on it.
+        hot.getCellMeta(1, hot.toVisualColumn(5));
+
+        expect(hasStoredFlag(1, 5, 'hidden')).toBe(true);
+
+        hot.getPlugin('undoRedo').redo();
+
+        expectNoCoveredFlags(1, 5);
+
+        hot.setSourceDataAtCell(1, 5, TEXT);
+
+        const visualColumn = hot.toVisualColumn(5);
+
+        expect(hot.getCopyableText(1, visualColumn, 1, visualColumn)).toBe(TEXT);
+      });
+
       it('should keep the covered flags on the cells the merge still covers', () => {
         createGrid({
           trimRows: true,
@@ -1035,6 +1067,78 @@ describe('MergeCells re-anchored top-left cell meta', () => {
         expect(hasAnySpanKey(1, 4)).toBe(false);
         expect(hot.getCellMeta(1, 4).rowspan).toBe(3);
         expectSpanKeysOnlyOnTopLefts();
+      });
+
+      it('should clear the covered flags from a cell a column move took out of a merge after the undo and the redo', () => {
+        createGrid({
+          undo: true,
+          manualColumnMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumn(5, 8);
+        hot.getPlugin('undoRedo').undo();
+        hot.render();
+
+        // The undone merge covers the cell again, and reading its meta stores the flags on it.
+        hot.getCellMeta(1, 5);
+
+        expect(hasStoredFlag(1, 5, 'hidden')).toBe(true);
+        expect(hasStoredFlag(1, 5, 'copyable')).toBe(true);
+
+        hot.getPlugin('undoRedo').redo();
+
+        const visualColumn = hot.toVisualColumn(5);
+
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.get(1, visualColumn)).toBe(false);
+        expect(hasStoredFlag(1, 5, 'hidden')).toBe(false);
+        expect(hasStoredFlag(1, 5, 'copyable')).toBe(false);
+
+        hot.setSourceDataAtCell(1, 5, 'released');
+
+        expect(hot.getCopyableText(1, visualColumn, 1, visualColumn)).toBe('released');
+      });
+
+      it('should keep the covered flags on the cells the merge still covers after the undo and the redo of `moveColumn()`', () => {
+        createGrid({
+          undo: true,
+          manualColumnMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        hot.getPlugin('manualColumnMove').moveColumn(5, 8);
+        hot.getPlugin('undoRedo').undo();
+        hot.getPlugin('undoRedo').redo();
+
+        // Nothing has read the meta since the redo, so these are the flags the restore left stored. Physical
+        // column 6 stays in the merge, and column 5 left it.
+        expect(hot.getPlugin('mergeCells').mergedCellsCollection.get(1, hot.toVisualColumn(6))).not.toBe(false);
+        expect(hasStoredFlag(1, 6, 'hidden')).toBe(true);
+        expect(hasStoredFlag(1, 6, 'copyable')).toBe(true);
+        expect(hasStoredFlag(1, 5, 'hidden')).toBe(false);
+        expect(hasStoredFlag(1, 4, 'hidden')).toBe(false);
+      });
+
+      it('should clear the covered flags from a cell that leaves a merge whose geometry a move did not change', () => {
+        createGrid({
+          undo: true,
+          manualColumnMove: true,
+          mergeCells: [{ row: 1, col: 4, rowspan: 1, colspan: 3 }],
+        });
+
+        // Column 8 comes into the merge and pushes physical column 6 out, so the merge keeps its three columns.
+        hot.getPlugin('manualColumnMove').moveColumn(8, 6);
+        hot.getPlugin('undoRedo').undo();
+        hot.render();
+        hot.getCellMeta(1, 6);
+
+        expect(hasStoredFlag(1, 6, 'hidden')).toBe(true);
+
+        hot.getPlugin('undoRedo').redo();
+
+        expect(hot.toPhysicalColumn(6)).toBe(8);
+        expect(hasStoredFlag(1, 6, 'hidden')).toBe(false);
+        expect(hasStoredFlag(1, 6, 'copyable')).toBe(false);
       });
 
       it('should clear the span keys from the former top-left after the undo and the redo of `moveRow()`', () => {

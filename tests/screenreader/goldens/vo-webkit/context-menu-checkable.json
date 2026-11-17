@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "context-menu-checkable",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:57:00.646Z"
+  },
+  "steps": {
+    "open-menu": "insert row above menu item group 1 of 1",
+    "read-next-item": "a b b1 column 3 of 6",
+    "read-next-separator": "b c c1 column 4 of 6",
+    "end-to-borders": "borders collapsed menu item group table 1 column 26 rows",
+    "up-to-cut": "cut menu item group table 1 column 26 rows",
+    "up-to-copy": "copy menu item group table 1 column 26 rows",
+    "up-to-read-only-comment": "read only comment checked menu item table 1 column 26 rows"
+  }
+}
