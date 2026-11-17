@@ -39,6 +39,7 @@ interface HotLike {
   setDataAtCell(row: number, col: number, value: string): void;
   getCell(row: number, col: number, topmost?: boolean): HTMLElement;
   getSelectedRangeLast(): { to: { row: number } };
+  view: { invalidateRowHeightCache(): void };
 }
 
 /**
@@ -115,6 +116,73 @@ export class FixedRowsBottomLinePage {
     }, row);
     await expect(this.master.locator(`td[data-testid="cell-${row}-1"]`)).toBeAttached();
     await this.#settle();
+  }
+
+  /**
+   * How far a row reaches under the bottom clone: its bottom edge minus the top edge of the clone's first
+   * row. `1` is the aligned state, where the row's bottom border lies under the clone's first pixel row.
+   *
+   * @param {number} row The visual row.
+   * @param {number} [column] The visual column to measure.
+   */
+  async rowOverlapWithBottomRows(row: number, column = 1): Promise<number> {
+    return this.page.evaluate(([r, c]) => {
+      const cell = (window as unknown as { hot: HotLike }).hot.getCell(r, c).getBoundingClientRect();
+      const band = (document.querySelector('.ht_clone_bottom tbody tr:first-child > td') as HTMLElement)
+        .getBoundingClientRect();
+
+      return Math.round((cell.bottom - band.top) * 100) / 100;
+    }, [row, column] as const);
+  }
+
+  /**
+   * Snaps each row to the bottom rows in turn and reads how far it reaches under them.
+   *
+   * @param {number[]} rows The visual rows, in the order they are snapped.
+   * @param {{ invalidateCache?: boolean, column?: number }} [options] With `invalidateCache`, the engine's row
+   * height cache is dropped after each snap and the same row is snapped again, so the cache is rebuilt at the band
+   * the previous snap left. That is what a measuring pass does when a scroll moves the band. `column` is the visual
+   * column to measure in (1 by default).
+   * @returns {Promise<number[]>} The overlap of each row, from the last snap of that row.
+   */
+  async snapOverlaps(
+    rows: number[],
+    options: { invalidateCache?: boolean; column?: number } = {}
+  ): Promise<number[]> {
+    const overlaps: number[] = [];
+
+    for (const row of rows) {
+      await this.scrollRowToBandEdge(row);
+
+      if (options.invalidateCache) {
+        await this.page.evaluate(() => {
+          (window as unknown as { hot: HotLike }).hot.view.invalidateRowHeightCache();
+        });
+        await this.scrollRowToBandEdge(row);
+      }
+
+      overlaps.push(await this.rowOverlapWithBottomRows(row, options.column));
+    }
+
+    return overlaps;
+  }
+
+  /**
+   * Snaps each row to the bottom edge of the viewport in turn and reads how far above that edge the row ends.
+   * For a grid without frozen bottom rows, where `1` is the extra pixel the scroll target keeps.
+   *
+   * @param {number[]} rows The visual rows, in the order they are snapped.
+   * @returns {Promise<number[]>} The distance of each row's bottom edge from the viewport's bottom edge.
+   */
+  async snapViewportInsets(rows: number[]): Promise<number[]> {
+    const insets: number[] = [];
+
+    for (const row of rows) {
+      await this.scrollRowToBandEdge(row);
+      insets.push(await this.cellBottomInsetFromViewport(row, 1));
+    }
+
+    return insets;
   }
 
   /**

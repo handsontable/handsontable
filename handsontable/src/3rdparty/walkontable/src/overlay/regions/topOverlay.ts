@@ -418,6 +418,10 @@ export class TopOverlay extends Overlay {
       const totalRows = wtSettings.getSetting<number>('totalRows');
 
       newY += this.sumCellSizes(0, sourceRow + 1);
+      // The row after the scroll is laid out with the band moved, so its first rendered row lies above it. A sum
+      // taken now holds that row's top border only when the first rendered row of the CURRENT band is in range:
+      // add it when it is not, or the row ends a pixel low after a scroll that came from below the target.
+      newY += wot.wtViewport.getFirstRowPixelMissingFrom(0, sourceRow + 1);
       newY -= wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
 
       // The summed row heights leave out the top border the first body row draws when no column header owns

@@ -259,6 +259,7 @@ export const calculatorFactory: CalculatorFactory = {
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       horizontalScrollbarHeight: scrollbarHeight,
       rowHeightCache: this.rowHeightCache,
+      rowBandStartOffsetFn: row => this.getRowBandStartOffset(row),
     });
   },
 
@@ -661,7 +662,7 @@ export const calculatorFactory: CalculatorFactory = {
       renderedRows.startRow -= plan.extension;
       renderedRows.count += plan.extension;
       renderedRows.rowStartOffset += plan.extension;
-      renderedRows.startPosition = this.rowHeightCache.getOffset(renderedRows.startRow);
+      renderedRows.startPosition = this.getRowBandStartOffset(renderedRows.startRow);
     }
   },
 
@@ -722,7 +723,7 @@ export const calculatorFactory: CalculatorFactory = {
       band.startRow -= extension;
       band.count += extension;
       band.rowStartOffset += extension;
-      band.startPosition = this.rowHeightCache.getOffset(band.startRow);
+      band.startPosition = this.getRowBandStartOffset(band.startRow);
     }
 
     const lastRow = this.wtSettings.getSetting<number>('totalRows') - 1;
