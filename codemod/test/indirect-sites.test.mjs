@@ -290,11 +290,52 @@ describe('resolve: a method call on a const object or array is a possible change
     ['forEach', 'const value = [1];\nvalue.forEach(item => item);'],
     ['hasOwnProperty', 'const value = { a: 1 };\nvalue.hasOwnProperty(\'a\');'],
     ['a read of a member', 'const value = { a: [1] };\nconst first = value.a[0];'],
+    ['trim of a string member', 'const value = { pattern: \' 0.0 \' };\nvalue.pattern.trim();'],
+    ['startsWith and endsWith of a string member',
+      'const value = { pattern: \'0.0\' };\nvalue.pattern.startsWith(\'0\');\nvalue.pattern.endsWith(\'0\');'],
+    ['case and replace of a string member',
+      'const value = { name: \'a-b\' };\nvalue.name.toLowerCase().replace(\'-\', \'_\').split(\'_\');'],
+    ['padding, repeat, and match of a string member',
+      'const value = { name: \'a\' };\nvalue.name.padStart(3).repeat(2).match(/a/);\nvalue.name.localeCompare(\'b\');'],
+    ['substring and char reads of a string member',
+      'const value = { name: \'abc\' };\nvalue.name.substring(1);\nvalue.name.charAt(0);\nvalue.name.normalize();'],
+    ['get and has of a map member',
+      'const value = { cache: new Map() };\nvalue.cache.get(key);\nvalue.cache.has(key);'],
+    ['has of a set member', 'const value = { seen: new Set() };\nvalue.seen.has(key);'],
+    ['number formatting of a member', 'const value = { size: 1.5 };\nvalue.size.toFixed(1);'],
+    ['toJSON and with on a member', 'const value = { list: [1] };\nvalue.list.toJSON();\nvalue.list.with(0, 2);'],
   ]) {
     it(`keeps the exact answer when the file only reads: ${label}`, () => {
       assert.equal(resolvesExactly(body), true, body);
     });
   }
+});
+
+describe('resolve: a const that the file only reads through string and map methods keeps its exact answer', () => {
+  const REMOVAL = ['18.0.0/correct-format-removed'];
+
+  it('still deletes correctFormat next to a spread of a const that is trimmed and tested', async() => {
+    const source = `${IMPORT}const base = { colHeaders: true, label: ' a ', cache: new Map() };\n`
+      + 'const label = base.label.trim().toUpperCase();\nconst seen = base.cache.has(label);\n'
+      + 'new Handsontable(el, { columns: [{ ...base, type: \'date\', correctFormat: true }] });\n';
+    const result = await run('18.0.0', 'a.js', source, REMOVAL);
+
+    const changed = result.entries.filter(entry => entry.severity === 'changed');
+
+    assert.equal(changed.length, 1, JSON.stringify(result.entries));
+    assert.doesNotMatch(result.output, /correctFormat: true/);
+  });
+
+  it('keeps correctFormat and reports it when the same const is changed through a method', async() => {
+    const source = `${IMPORT}const base = { colHeaders: true, cache: new Map() };\nbase.cache.set(key, 1);\n`
+      + 'new Handsontable(el, { columns: [{ ...base, type: \'date\', correctFormat: true }] });\n';
+    const result = await run('18.0.0', 'a.js', source, REMOVAL);
+
+    const changed = result.entries.filter(entry => entry.severity === 'changed');
+
+    assert.equal(changed.length, 0, JSON.stringify(result.entries));
+    assert.match(result.output, /correctFormat: true/);
+  });
 });
 
 describe('selectors in component styles', () => {

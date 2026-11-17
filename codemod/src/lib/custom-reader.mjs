@@ -12,7 +12,9 @@
  * - the object has a spread or a computed key that the tool cannot read, since either can carry any of those;
  * - the object, or an enclosing one, sets `cells`, `cell`, `afterGetCellMeta`, or `beforeGetCellMeta`, and what it holds
  *   sets or may set one of them: a function that returns an object with a custom `editor`, `renderer`, `validator`,
- *   or `type`, or something the tool cannot see; a hook that assigns one to the cell meta; or a function from another
+ *   or `type`, or something the tool cannot see; a hook that assigns one to the cell meta, by assignment or by a call
+ *   (`setCellMeta()`, `Object.defineProperty()`, `Object.assign()`), or that makes such a call with a key, a
+ *   descriptor, or a source object it cannot read (a variable, a spread, a computed key); or a function from another
  *   file;
  * - the file registers a cell type, editor, renderer, or validator under a built-in name again; or
  * - the file reads the option as a member (`.correctFormat`, `['correctFormat']`), destructures it, or tests it with `in`.
@@ -162,43 +164,80 @@ function returnsUnknown(expression) {
 }
 
 /**
- * Whether a call installs a reader on the cell meta by key: `setCellMeta(row, col, 'editor', X)`,
- * `Object.defineProperty(meta, 'validator', { value: X })` (a getter counts as a function), and
- * `Reflect.set()` or `Reflect.defineProperty()` with the same arguments. A call that carries an object literal
- * (`setCellMetaObject()`, `Object.assign()`) is already read through the keys of that literal.
+ * Whether a node is an object literal whose keys the tool can all read: no spread, and no computed key that is not a
+ * string. Any other value may carry a reader.
+ *
+ * @param {object|null|undefined} node An expression node.
+ * @returns {boolean} `true` for a fully readable object literal.
+ */
+function isReadableLiteral(node) {
+  const target = node ? unwrapNode(node) : null;
+
+  return target?.type === 'ObjectExpression' && !target.properties.some(property => SPREADS.has(property.type)
+    || (property.computed && stringValue(property.key) === null));
+}
+
+/**
+ * Whether a call installs a reader on the cell meta, or may. As in the rest of the check, what the tool cannot read
+ * counts as a reader:
+ *
+ * - `setCellMeta(row, col, key, value)` and `Reflect.set(meta, key, value)`: a key that is not a string literal, or a
+ *   literal reader key with a custom value.
+ * - `Object.defineProperty(meta, key, descriptor)` and `Reflect.defineProperty()`: a key that is not a literal, or
+ *   a reader key whose descriptor is not a readable object literal, or whose `value` is custom (a getter counts as a
+ *   function). A literal key that is no reader key is no reader, whatever the descriptor holds.
+ * - `Object.defineProperties(meta, descriptors)`, `Object.assign(meta, ...sources)`, and `setCellMetaObject(row, col,
+ *   settings)`: an argument that is not a readable object literal. The keys of a literal are read by the walk over
+ *   the whole hook.
  *
  * @param {object} call A `CallExpression` or `OptionalCallExpression` node.
  * @param {(key: string, value: object|null) => boolean} isReader Whether a key and a value make a reader.
- * @returns {boolean} `true` when the call sets a custom reader.
+ * @param {(key: string) => boolean} isReaderKey Whether a key names an editor, a renderer, a validator, or a type.
+ * @returns {boolean} `true` when the call sets a custom reader, or may.
  */
-function installsReader(call, isReader) {
+function installsReader(call, isReader, isReaderKey) {
   const callee = unwrapNode(call.callee);
   const method = calleeName(callee);
   const host = MEMBER_TYPES.has(callee.type) ? unwrapNode(callee.object) : null;
   const hostName = host?.type === 'Identifier' ? host.name : null;
+  const args = call.arguments;
   const keyOf = argument => (argument ? stringValue(argument) : null);
 
-  if (method === 'setCellMeta') {
-    const key = keyOf(call.arguments[2]);
+  if (method === 'setCellMeta' || (hostName === 'Reflect' && method === 'set')) {
+    const at = method === 'setCellMeta' ? 2 : 1;
+    const key = keyOf(args[at]);
 
-    return key !== null && isReader(key, call.arguments[3] ?? null);
+    return key === null || isReader(key, args[at + 1] ?? null);
   }
 
-  if (hostName === 'Reflect' && method === 'set') {
-    const key = keyOf(call.arguments[1]);
+  if (method === 'setCellMetaObject') {
+    return !isReadableLiteral(args[2]);
+  }
 
-    return key !== null && isReader(key, call.arguments[2] ?? null);
+  if (hostName === 'Object' && method === 'assign') {
+    return args.slice(1).some(source => !isReadableLiteral(source));
+  }
+
+  if (hostName === 'Object' && method === 'defineProperties') {
+    return !isReadableLiteral(args[1]);
   }
 
   if ((hostName === 'Object' || hostName === 'Reflect') && method === 'defineProperty') {
-    const key = keyOf(call.arguments[1]);
-    const descriptor = call.arguments[2] ? unwrapNode(call.arguments[2]) : null;
+    const key = keyOf(args[1]);
 
-    if (key === null || descriptor?.type !== 'ObjectExpression') {
+    if (key === null) {
+      return true;
+    }
+
+    if (!isReaderKey(key)) {
       return false;
     }
 
-    return descriptor.properties.some((property) => {
+    if (!isReadableLiteral(args[2])) {
+      return true;
+    }
+
+    return unwrapNode(args[2]).properties.some((property) => {
       const field = propertyName(property);
 
       if (field === 'value') {
@@ -328,6 +367,7 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
       return true;
     }
 
+    const isReaderKey = key => BUILT_INS.has(WRAPPER_ALIASES.get(key) ?? key);
     const isReader = (key, valueNode) => {
       const kind = WRAPPER_ALIASES.get(key) ?? key;
 
@@ -349,7 +389,10 @@ export function createReaderFinder({ j, root, resolver, optionNodes }) {
         && MEMBER_TYPES.has(current.left.type)) {
         found = isReader(memberName(current.left) ?? '', current.right);
       } else if (current.type === 'CallExpression' || current.type === 'OptionalCallExpression') {
-        found = installsReader(current, isReader);
+        found = installsReader(current, isReader, isReaderKey);
+      } else if (current.type === 'ObjectExpression') {
+        // A spread or a computed key can carry any key of the cell meta, an editor among them.
+        found = !isReadableLiteral(current);
       } else if (name === 'cells' && FUNCTION_NODES.has(current.type) && current.type !== 'FunctionDeclaration') {
         found = current.body.type === 'BlockStatement' ? false : returnsUnknown(current.body);
       } else if (name === 'cells' && current.type === 'ReturnStatement') {

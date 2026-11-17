@@ -37,15 +37,26 @@ const READ_ONLY_CALLS = new Set([
 ]);
 
 /**
- * The methods of arrays, strings, and objects that read the value they are called on and never change it. A method
- * call on a binding that is not one of these (`list.push(x)`, `list.sort()`, a method of the object itself) may change
- * what the binding holds.
+ * The methods of arrays, strings, maps, sets, numbers, and objects that read the value they are called on and never
+ * change it. A method call on a binding that is not one of these (`list.push(x)`, `list.sort()`, a method of the
+ * object itself) may change what the binding holds.
  */
 const READ_ONLY_METHODS = new Set([
+  // Arrays and typed arrays.
   'at', 'concat', 'entries', 'every', 'filter', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flat', 'flatMap',
-  'forEach', 'hasOwnProperty', 'includes', 'indexOf', 'isPrototypeOf', 'join', 'keys', 'lastIndexOf', 'map',
-  'propertyIsEnumerable', 'reduce', 'reduceRight', 'slice', 'some', 'toLocaleString', 'toReversed', 'toSorted',
-  'toSpliced', 'toString', 'valueOf', 'values',
+  'forEach', 'includes', 'indexOf', 'join', 'keys', 'lastIndexOf', 'map', 'reduce', 'reduceRight', 'slice', 'some',
+  'toReversed', 'toSorted', 'toSpliced', 'values', 'with',
+  // Strings.
+  'charAt', 'charCodeAt', 'codePointAt', 'endsWith', 'isWellFormed', 'localeCompare', 'match', 'matchAll', 'normalize',
+  'padEnd', 'padStart', 'repeat', 'replace', 'replaceAll', 'search', 'split', 'startsWith', 'substr', 'substring',
+  'toLocaleLowerCase', 'toLocaleUpperCase', 'toLowerCase', 'toUpperCase', 'toWellFormed', 'trim', 'trimEnd',
+  'trimStart',
+  // Maps and sets. `set`, `add`, `delete`, and `clear` change them and are not here.
+  'difference', 'get', 'has', 'intersection', 'isDisjointFrom', 'isSubsetOf', 'isSupersetOf', 'symmetricDifference',
+  'union',
+  // Numbers, dates, and every object.
+  'getTime', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'toExponential', 'toFixed', 'toISOString',
+  'toJSON', 'toLocaleString', 'toPrecision', 'toString', 'valueOf',
 ]);
 
 /**
