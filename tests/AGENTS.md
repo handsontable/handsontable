@@ -2012,9 +2012,21 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   the run's count is the same sum (one location's growth is not hidden by a sibling's nodes). Past the audit's count the growth is the change's and
   keeps its severity, and so does growth on a row recorded before the ledger kept counts; the summary says which.
   When develop's docs grew a finding after the audit, dispatch the audit and re-run the job. A finding the audit did
-  not see keeps its severity: this change made it, or the docs gained it after the audit, and when the staging
-  deploy is newer than the audit the summary says so and names the dispatch that measures it (`gh workflow run
-  docs-a11y.yml --ref develop`). A ledger that cannot be read, or holds no docs night that read the scan, leaves
+  not see keeps its severity: this change made it, or the docs gained it after the audit. **Two things decide the
+  severity, and neither is the finish time of the audit.** (1) The **tracker**: a finding whose cluster in
+  `a11y/issues.json` has a `tracker` is a warning at most on a change run, drift or not ("A11y: the verdict of a check
+  run"), and every `docs-*` cluster carries its debt task, so owned docs debt never turns a pull request red; a new
+  docs cluster ships with its tracker (`lib/__tests__/a11y-issues.test.mjs` fails until it has one). (2) **Whether a
+  deploy landed after the audit STARTED.** An audit scans for minutes, so a staging deploy inside that window may or
+  may not be in what it read, and the ledger's finish time (`seenAt`) says nothing about it: a docs change deployed at
+  12:03 inside an audit that ran 11:51 to 12:05 added a link, and the run counted it, because the guard compared 12:03
+  with 12:05. The ledger keeps no start time, so the check run reads the audit's `run_started_at` from the run
+  (`auditStartedAt()` in `scripts/a11y-check-run.mjs`; the finish time decides only when the API does not answer).
+  When the deploy is newer (`auditIsStale()` in `lib/a11y-docs-drift.mjs`), a grown finding the audit saw is drift
+  whatever its node count, a new finding the audit never saw still counts (a stale audit cannot clear a rule the scan
+  code added), and the summary says so and names the dispatch that measures it (`gh workflow run docs-a11y.yml --ref
+  develop`). The summary's grown line names the findings that count, so it never reads as if every new row were red.
+  A ledger that cannot be read, or holds no docs night that read the scan, leaves
   every finding at its severity and says why. An audit run (a dispatch) counts every open finding, drift or not.
 - **A pull request does not scan the pages it adds.** The staging deploy has no page the pull request adds to
   `docs/tests/paths.js`, so a scan of it would fail on every head until the merge. The `scan` job names those
@@ -2041,7 +2053,9 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
 - **Taking or refreshing the baseline.** Run the whole scan with `DOCS_A11Y_SCREENSHOTS=0`: with an empty or
   stale baseline every finding is new, every scan would be photographed, and the HTML report runs to
   hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;
-  a `tracker` waits until someone files the task. Findings on the docs site are recorded here and fixed in
+  an issue's `tracker` in the baseline waits until someone files the task. That is not the cluster's tracker in
+  `a11y/issues.json`, which decides a change run's severity: a new docs cluster there ships with its debt task, and
+  `lib/__tests__/a11y-issues.test.mjs` fails until it has one. Findings on the docs site are recorded here and fixed in
   `docs/`, never in the change that adds or refreshes the scan.
 - **A refresh is one command, never a hand edit.** Every docs merge can add or remove findings, so the
   baseline drifts with the docs. `node tests/scripts/a11y-docs-baseline.mjs --run <run-id>` rewrites it from
