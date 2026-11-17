@@ -245,6 +245,12 @@ handsontable-codemod migrate --list --from 18.1 --to 19.0 --include-draft
 Its manifest lists the sections of the guide that no rule covers, with the reason, under `notAutomated`. `--list`
 prints how many there are on the line before the counts.
 
+The 19.0 draft follows `19.0.0-rc1`, the first release candidate (the `rc` tag on npm): every rewrite was checked
+against that package, and the type changes it covers come from the difference between 18.1.2 and `19.0.0-rc1`. The
+19.0 scope is frozen, but the draft stays a draft until 19.0 is released as stable. A run writes `^19.0.0` for
+`handsontable` and the three wrappers, and no published version satisfies that range yet, because a release
+candidate never matches it. Until then, install the candidate with `npm install handsontable@rc`.
+
 ### 17.x to 18.0
 
 The tool rewrites:

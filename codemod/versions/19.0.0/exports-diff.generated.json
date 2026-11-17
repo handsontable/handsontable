@@ -7,7 +7,7 @@
   },
   "new": {
     "name": "handsontable",
-    "version": "0.0.0-next-755eba9-20261112",
+    "version": "19.0.0-rc1",
     "entryPointCount": 169
   },
   "rules": [],
@@ -855,6 +855,11 @@
         "removed": [],
         "added": [
           {
+            "name": "AppliedCellChange",
+            "kind": "type",
+            "space": "type"
+          },
+          {
             "name": "ColumnDataGetterSetterFunction",
             "kind": "interface",
             "space": "type"
@@ -904,6 +909,11 @@
       "handsontable/base": {
         "removed": [],
         "added": [
+          {
+            "name": "AppliedCellChange",
+            "kind": "type",
+            "space": "type"
+          },
           {
             "name": "ColumnDataGetterSetterFunction",
             "kind": "interface",
@@ -1195,6 +1205,11 @@
         "removed": [],
         "added": [
           {
+            "name": "AppliedCellChange",
+            "kind": "type",
+            "space": "type"
+          },
+          {
             "name": "HookSettingKey",
             "kind": "type",
             "space": "type"
@@ -1262,6 +1277,11 @@
       }
     ],
     "added": [
+      {
+        "path": "Handsontable.AppliedCellChange",
+        "kind": "type",
+        "space": "type"
+      },
       {
         "path": "Handsontable.BaseEditorInstance",
         "kind": "type",
@@ -1795,7 +1815,7 @@
       },
       "new": {
         "name": "@handsontable/react-wrapper",
-        "version": "0.0.0-next-755eba9-20261112",
+        "version": "19.0.0-rc1",
         "entryPointCount": 1
       },
       "entryPoints": {
@@ -1816,7 +1836,7 @@
       },
       "new": {
         "name": "@handsontable/vue3",
-        "version": "0.0.0-next-755eba9-20261112",
+        "version": "19.0.0-rc1",
         "entryPointCount": 1
       },
       "entryPoints": {
@@ -1865,7 +1885,7 @@
       },
       "new": {
         "name": "@handsontable/angular-wrapper",
-        "version": "0.0.0-next-755eba9-20261112",
+        "version": "19.0.0-rc1",
         "entryPointCount": 1
       },
       "entryPoints": {

@@ -477,8 +477,8 @@ project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `
    **Flipping a draft to `released` makes the anchors binding**: every `guide` anchor of a rule must then be a heading
    of the guide, or the manifest test fails. The flip also needs three more changes: the "Supported migrations"
    row of the README, and the kind table counts; a fresh `exports-diff.generated.json` made from the released
-   tarballs (the draft's diff compares the last release with the `experimental` build, whose version is a moving
-   tag such as `0.0.0-next-<sha>-<date>`); and the removal of the draft-only test of that manifest
+   tarballs (the draft's diff compares the last release with `19.0.0-rc1`, so the flip needs a diff made from
+   `19.0.0`, and a release candidate that changed the typings since needs its removed names covered first); and the removal of the draft-only test of that manifest
    (`is what the 19.0.0 manifest is until its guide is final` in `draft-manifest.test.mjs`).
    `notAutomated` (optional, top level) lists the guide sections that no rule covers, as `{ guide, reason }`, or
    `{ title, reason }` for a change the guide has no section for (a row of the deprecation table). It changes
@@ -490,7 +490,9 @@ project (`imports-numbro`). `facts` items are `{ name, when }` where `when` is `
 ### The 19.0 draft
 
 `versions/19.0.0/` is a draft (`status: "draft"`, `from: "18.1"`). Its guide is not final, so its `guide` anchors are not
-binding yet (see step 6), and its exports diff compares 18.1.2 with the `experimental` build of `develop`. The rules:
+binding yet (see step 6), and its exports diff compares 18.1.2 with `19.0.0-rc1` (the first release candidate, the `rc` tag
+on npm; the three wrappers are packed from the same two releases). The 19.0 scope is frozen, so a new section of the
+guide is a fix and not new scope. The status stays `draft` until 19.0 is released as stable. The rules:
 
 - **Rewrites (`safe: true`):** the four package ranges, `columnHeaders` to `colHeaders` in the export calls, the four
   resize-state methods (removed in 19.0), the two `Formulas` shortcut methods (no-ops), and the two type aliases
@@ -507,6 +509,11 @@ binding yet (see step 6), and its exports diff compares 18.1.2 with the `experim
 
 Traps of this draft:
 
+- The `dependency` rule writes `^19.0.0` while only `19.0.0-rc1` exists, and that range matches no published version
+  (`npm view 'handsontable@^19.0.0' version` finds none, because a range without a prerelease tag skips every
+  prerelease). It stays: the wrappers of the candidate declare `handsontable: ^19.0.0` as their own peer range, so the
+  range is what the release carries, and a prerelease range would be wrong the day 19.0.0 ships. A run on a project that
+  must install the candidate says `npm install handsontable@rc`, as the README does.
 - A rule that exists in two migrations (`resize-state-methods`, `export-column-headers`, `helper-sanitize`) is repeated
   with its own id, because a run from 18.1 never loads the 18.0 manifest. A chained run from 17.x therefore leaves one
   TODO per version on a call that stays (the first sentence names the version of the rule).

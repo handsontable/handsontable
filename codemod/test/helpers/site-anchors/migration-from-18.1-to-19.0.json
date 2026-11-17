@@ -1101,6 +1101,36 @@
       "level": 2,
       "markdown": "61. Writing past the last column of an object data source is deprecated",
       "id": "writing-past-the-last-column-of-an-object-data-source-is-deprecated"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-53"
+    },
+    {
+      "level": 3,
+      "markdown": "Why this changed",
+      "id": "why-this-changed-1"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-54"
+    },
+    {
+      "level": 2,
+      "markdown": "62. A change that waits for its validator stays on its record",
+      "id": "a-change-that-waits-for-its-validator-stays-on-its-record"
+    },
+    {
+      "level": 3,
+      "markdown": "Who is affected",
+      "id": "who-is-affected-54"
+    },
+    {
+      "level": 3,
+      "markdown": "How to migrate",
+      "id": "how-to-migrate-55"
     }
   ]
 }

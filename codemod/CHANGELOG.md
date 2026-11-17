@@ -46,6 +46,16 @@ How versions are chosen:
 - Reports for `Handsontable.helper.sanitize` read through a destructured helper (`const { helper } = Handsontable`),
   and for an exported alias or reference of the function.
 
+### Changed
+
+- The 19.0 draft follows `19.0.0-rc1`. Its exports diff is made from `handsontable` 18.1.2 and `19.0.0-rc1` (the
+  three wrappers too), where it compared 18.1.2 with the `experimental` build. The lists of removed exports and removed
+  namespace members are the same, and the new type `AppliedCellChange` is the one added name. The `notAutomated` list
+  gained the section "A change that waits for its validator stays on its record", and the snapshot of the guide
+  headings holds the sections up to 62.
+- The test diagnostic that counts the headings of the live 19.0 guide missing from the snapshot compares every heading
+  level with the snapshot, and no longer lists the `Who is affected` and `How to migrate` subsections as new.
+
 ### Fixed
 
 - A TODO on a statement that stands on one line and that no rule changed (`if (ready) call();`, a `for`, a `while`, a

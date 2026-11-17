@@ -360,7 +360,7 @@ describe('notAutomated', () => {
       });
 
       it('says, as a diagnostic, how far the live guide has moved from the snapshot', async(context) => {
-        const { manifest, sections, covered } = await mapOf();
+        const { manifest, headings, covered } = await mapOf();
 
         context.diagnostic(`${manifest.notAutomated.length} entries, ${covered.size} sections with a rule or an entry`);
 
@@ -369,7 +369,7 @@ describe('notAutomated', () => {
         }
 
         const live = anchorListOf(await readFile(guidePath(manifest), 'utf8'));
-        const added = live.filter(anchor => !sections.includes(anchor) && !covered.has(anchor));
+        const added = live.filter(anchor => !headings.includes(anchor) && !covered.has(anchor));
 
         // Not an assertion: another team edits the guide. Refresh the snapshot and cover what is new.
         context.diagnostic(`${added.length} headings of the live guide are not in the snapshot and have no rule or `

@@ -155,6 +155,10 @@
     {
       "guide": "writing-past-the-last-column-of-an-object-data-source-is-deprecated",
       "reason": "No pattern in your code shows a write past the last column of an object data source: it depends on the data and on what a user pastes at run time. 19.0 warns once in the console and still writes the value, and 20.0 will skip the write."
+    },
+    {
+      "guide": "a-change-that-waits-for-its-validator-stays-on-its-record",
+      "reason": "It depends on a sort, move, filter, or insert that lands while an edit waits for its validator, every afterChange or modifyData callback reads a row, and the TypeScript part is reported by the compiler, so no pattern marks the affected code."
     }
   ]
 }
