@@ -52,10 +52,11 @@ type Violation = typeof KNOWN;
  *
  * @param title The test title.
  * @param violations What the scan found.
+ * @param where The page and color scheme scanned; the product scan's `grid` on `main` when absent.
  * @returns The test's source.
  */
-function scanTest(title: string, violations: Violation[]): string {
-  const scan = { page: 'grid', theme: 'main', fixture: 'grid.html', axeCoreVersion: '4.14.0', screenshot: null, violations };
+function scanTest(title: string, violations: Violation[], where = { page: 'grid', theme: 'main' }): string {
+  const scan = { ...where, fixture: 'grid.html', axeCoreVersion: '4.14.0', screenshot: null, violations };
 
   return [
     `test(${JSON.stringify(title)}, async({}, testInfo) => {`,
@@ -74,13 +75,15 @@ function scanTest(title: string, violations: Violation[]): string {
  * @param options.specSource The synthetic spec's tests; `test`, `expect` and `writeFileSync` are imported.
  * @param options.baseline The baseline the reporter reads (an object, or raw text).
  * @param options.mode The reporter's `mode` option.
+ * @param options.suite The reporter's `suite` option; the product scan when absent.
  * @param options.env Extra environment for the child.
  * @returns The child's exit status and combined output.
  */
-function runSyntheticProject(name: string, { specSource, baseline = BASELINE, mode = 'warn', env: extraEnv = {} }: {
+function runSyntheticProject(name: string, { specSource, baseline = BASELINE, mode = 'warn', suite, env: extraEnv = {} }: {
   specSource: string;
   baseline?: object | string;
   mode?: string;
+  suite?: string;
   env?: Record<string, string>;
 }) {
   // The directory carries the project and worker of the running test, so a full-matrix run, which
@@ -97,7 +100,7 @@ function runSyntheticProject(name: string, { specSource, baseline = BASELINE, mo
     `  outputDir: ${JSON.stringify(path.join(dir, 'output'))},`,
     '  retries: 0,',
     '  workers: 1,',
-    `  reporter: [['dot'], [${JSON.stringify(reporterPath)}, ${JSON.stringify({ baseline: baselineFile, mode })}]],`,
+    `  reporter: [['dot'], [${JSON.stringify(reporterPath)}, ${JSON.stringify({ baseline: baselineFile, mode, ...(suite ? { suite } : {}) })}]],`,
     '};',
     '',
   ].join('\n'));
@@ -166,6 +169,27 @@ test.describe('a11y reporter exit status', () => {
 
     expect(broken.output).toContain('is not valid JSON');
     expect(broken.status).toBe(1);
+  });
+
+  test('the docs scan names the pages a pull request run left out, and only when it was told to', async() => {
+    const docs = { axeCoreVersion: '4.14.0', issues: [], entries: [] };
+    const specSource = scanTest('scan', [], { page: 'js-introduction', theme: 'light' });
+    const skipped = runSyntheticProject('docs-skipped', { specSource, baseline: docs, suite: 'docs', env: { DOCS_A11Y_SKIP_PAGES: 'js-demo,no-such-page' } });
+
+    expect(skipped.output).toContain('Not scanned, new in this pull request');
+    expect(skipped.output).toContain('js-demo.');
+    expect(skipped.output).not.toContain('no-such-page');
+    expect(skipped.status).toBe(0);
+
+    const plain = runSyntheticProject('docs-plain', { specSource, baseline: docs, suite: 'docs' });
+
+    expect(plain.output).not.toContain('Not scanned, new in this pull request');
+    expect(plain.status).toBe(0);
+
+    // The product scan reads no such variable: the same environment names nothing there.
+    const product = runSyntheticProject('product-skip-env', { specSource: scanTest('scan', [KNOWN]), env: { DOCS_A11Y_SKIP_PAGES: 'js-demo' } });
+
+    expect(product.output).not.toContain('Not scanned, new in this pull request');
   });
 
   test('block mode fails the run on a new finding, and passes it when every finding is known', async() => {
