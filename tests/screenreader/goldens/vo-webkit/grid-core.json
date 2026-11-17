@@ -3,10 +3,10 @@
   "scenario": "grid-core",
   "project": "vo-webkit",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-10-27T09:24:04.208Z"
+    "at": "2026-11-17T14:14:37.575Z"
   },
   "steps": {
     "arrow-right": "age 34",
@@ -27,7 +27,7 @@
     "extend-range": "",
     "extend-range-again": "",
     "up-to-header-for-sort": "name",
-    "sort-ascending": "",
-    "sort-descending": ""
+    "sort-ascending": "sorted by name ascending",
+    "sort-descending": "sorted by name descending"
   }
 }
