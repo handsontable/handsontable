@@ -197,14 +197,18 @@ test('a scheduled run passes every check-inputs guard and runs everything, as a 
 test('no job or step tells a schedule from a dispatch, but the wait for the lanes and the golden recorder', () => {
   const comparisons = file => [...new Set([...stripYamlComments(read(file)).matchAll(/github\.event_name\s*(==|!=)\s*'([a-z_]+)'/g)]
     .map(([, operator, event]) => `${operator} ${event}`))].sort();
+  // A comparison with `pull_request`, either way, tells a pull request's run from every other, and a schedule and
+  // a dispatch land on the same side of it. Any other comparison could tell the two apart.
+  const tellsApart = file => comparisons(file).filter(comparison => !comparison.endsWith(' pull_request'));
   const why = 'Everything else asks only whether the run is a pull request\'s, so a scheduled run takes every path a dispatch takes.';
 
-  assert.deepEqual(comparisons(READER), ['!= pull_request', '== schedule', '== workflow_dispatch'], `${READER}: ${why} ${DOC}`);
-  assert.deepEqual(comparisons(NIGHTLY), ['!= pull_request'], `${NIGHTLY}: ${why} ${DOC}`);
-  assert.deepEqual(comparisons(DOCS), ['!= pull_request'], `${DOCS}: ${why} ${DOC}`);
-  assert.deepEqual(comparisons(WEBSITE), ['!= pull_request'], `${WEBSITE}: ${why} ${DOC}`);
+  assert.deepEqual(tellsApart(READER), ['== schedule', '== workflow_dispatch'], `${READER}: ${why} ${DOC}`);
+  for (const file of [NIGHTLY, DOCS, WEBSITE]) {
+    assert.ok(comparisons(file).length > 0, `${file}: read the comparisons`);
+    assert.deepEqual(tellsApart(file), [], `${file}: ${why} ${DOC}`);
+  }
   for (const file of CALLED) {
-    assert.ok(comparisons(file).every(comparison => comparison.endsWith(' pull_request')), `${file}: a called workflow reads its caller's event. ${why}`);
+    assert.deepEqual(tellsApart(file), [], `${file}: a called workflow reads its caller's event. ${why}`);
   }
 
   const reader = stripYamlComments(read(READER));
