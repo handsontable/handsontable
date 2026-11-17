@@ -1,5 +1,6 @@
 import { FocusGridManager } from '../grid';
 import type { HotInstance } from '../../core/types';
+import { Hooks } from '../../core/hooks';
 
 /**
  * Builds the DOM shape the grid renders: a root wrapper hosting layout slots and
@@ -120,17 +121,16 @@ describe('FocusGridManager outside-click exemption registry', () => {
 type HookCallback = (...args: unknown[]) => unknown;
 
 /**
- * Builds a manager over a minimal instance whose hooks are real enough to count: `addHook`,
- * `addHookOnce` and `removeHook` keep a registry, and the highlighted cell is not rendered until the
- * test says so.
+ * Builds a manager over a minimal instance whose hooks are the real `Hooks` list, so the registration
+ * and removal rules of `addHookOnce` and `removeHook` are the product's own. The highlighted cell is
+ * not rendered until the test says so.
  *
  * @returns {object} The manager, the fake instance's controls and a `td` standing for the rendered cell.
  */
 function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
   const root = document.createElement('div');
   const td = document.createElement('td');
-  const listeners = new Map<string, HookCallback[]>();
-  const onceListeners = new Set<HookCallback>();
+  const hooks = Hooks.getSingleton();
   const state = {
     highlight: { row: 50, col: 0 } as { row: number | null, col: number | null } | null,
     rendered: false,
@@ -142,9 +142,6 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
   document.body.append(root, td);
   jest.spyOn(td, 'focus');
 
-  const add = (key: string, callback: HookCallback) => {
-    listeners.set(key, [...(listeners.get(key) ?? []), callback]);
-  };
   const hot = {
     rootElement: root,
     rootWrapperElement: null,
@@ -163,14 +160,9 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
       return state.rendered ? td : null;
     },
     runHooks: (key: string, row: number, col: number, element: HTMLElement | null) => element,
-    addHook: add,
-    addHookOnce: (key: string, callback: HookCallback) => {
-      onceListeners.add(callback);
-      add(key, callback);
-    },
-    removeHook: (key: string, callback: HookCallback) => {
-      listeners.set(key, (listeners.get(key) ?? []).filter(listener => listener !== callback));
-    },
+    addHook: (key: string, callback: HookCallback) => hooks.add(key, callback, hot as never),
+    addHookOnce: (key: string, callback: HookCallback) => hooks.once(key, callback, hot as never),
+    removeHook: (key: string, callback: HookCallback) => hooks.remove(key, callback, hot as never),
   } as unknown as HotInstance;
   const manager = new FocusGridManager(hot);
 
@@ -180,16 +172,9 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
     manager,
     td,
     state,
-    count: (key: string) => listeners.get(key)?.length ?? 0,
+    count: (key: string) => hooks.getBucket(hot as never).getHooks(key).length,
     run: (key: string) => {
-      (listeners.get(key) ?? []).slice().forEach((listener) => {
-        listener();
-
-        // The real hook list drops a once listener after its callback returned.
-        if (onceListeners.delete(listener)) {
-          listeners.set(key, (listeners.get(key) ?? []).filter(entry => entry !== listener));
-        }
-      });
+      hooks.run(hot as never, key);
     },
   };
 }
