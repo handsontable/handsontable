@@ -2737,6 +2737,9 @@ export const REGISTERED_HOOKS = [
    * Fired when a row height is about to be modified by a callback function. The hook allows to change the row height
    * for the specified overlay type.
    *
+   * The first row of the frozen bottom rows is drawn one pixel taller than the height the hook returns for it,
+   * because that pixel is the freeze line above the row.
+   *
    * @since 14.5.0
    * @event Hooks#modifyRowHeightByOverlayName
    * @param {number} height Row height.

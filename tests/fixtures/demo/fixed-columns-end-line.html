@@ -83,6 +83,21 @@
       settings.minRowHeights = number('minRowHeights', 0);
     }
 
+    if (htParams.has('rowHeights')) {
+      settings.rowHeights = number('rowHeights', 0);
+    }
+
+    if (htParams.has('manualRowResizeLast')) {
+      const heights = [];
+
+      heights[rows - 1] = number('manualRowResizeLast', 0);
+      settings.manualRowResize = heights;
+    }
+
+    if (htParams.get('wrapLastRow') === '1') {
+      data[rows - 1][1] = 'A long text that wraps over several lines';
+    }
+
     window.hot = new Handsontable(container, settings);
     } catch (error) {
       // A build failure is reported by the page object's goto(), not as a mute timeout.
