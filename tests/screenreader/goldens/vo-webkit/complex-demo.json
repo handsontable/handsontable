@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "complex-demo",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T14:39:11.836Z"
+  },
+  "steps": {
+    "down-past-hidden-row": "name emily wilson",
+    "up-past-hidden-row": "name jane smith",
+    "up-to-frozen-row": "name john doe",
+    "up-to-header": "name menu pop up",
+    "up-to-group-i": "i expanded",
+    "up-to-group-e": "e expanded",
+    "up-to-group-b": "b expanded"
+  }
+}
