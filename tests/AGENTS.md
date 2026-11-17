@@ -2012,10 +2012,16 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   base repository. The base is the first parent of the checked-out merge commit, never the payload's `base.sha`
   (the diff-scoped gate trap in `.ai/CI.md`). A base that cannot be read, or whose file lacks one of the four lists,
   leaves the list empty and every page scanned (a red page, as before). A page's id carries the first framework
-  whose list names it, so a slug that an earlier framework's list now names reads as new, and the accessibility pages
-  are never new (all four variants are in the list whatever the lists hold). Two gaps stay: a changed `permalink`
-  under an unchanged list entry is not seen, and a page merged to develop minutes ago is in the base list while the
-  staging deploy may not hold it yet (`docs-staging.yml` is still running), so run the job again once it is done.
+  whose list names it, so a slug that an earlier framework's list now names reads as new (a guide removed from
+  `jsPaths` and kept in `reactPaths` becomes `react-<slug>`, and the base had `js-<slug>`), and the accessibility
+  pages are never new (all four variants are in the list whatever the lists hold). Three gaps stay. A changed
+  `permalink` under an unchanged list entry is not seen. A guide whose source file is renamed, with a `permalink`
+  that differs from the list's last path segment, reads as new although staging serves it: `servedSlug()` reads the
+  working tree, so the base entry falls back to the segment and the ids differ. A page merged to develop minutes ago
+  is in the base list while the staging deploy may not hold it yet (`docs-staging.yml` is still running), so run
+  the job again once it is done. The skipped pages are named in the summary, and their first scan is the develop
+  audit after the merge, where their findings land as new with no pull request attached: the summary tells the
+  author to run `gh workflow run docs-a11y.yml --ref develop` once staging has deployed them.
   Scanning the pull request's preview instead is not done: the preview is built by `docs.yml`, a fork has none, and the
   baseline is the staging deploy's.
 - **Taking or refreshing the baseline.** Run the whole scan with `DOCS_A11Y_SCREENSHOTS=0`: with an empty or

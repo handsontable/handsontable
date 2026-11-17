@@ -64,6 +64,7 @@ on:
       - 'tests/lib/github-check-run.*'
       - 'tests/lib/website-pages.*'
       - 'tests/scripts/a11y-check-run.mjs'
+      - 'tests/scripts/a11y-docs-new-pages.mjs'
       - 'docs/tests/paths.js'
   workflow_call:
     inputs:
