@@ -94,6 +94,19 @@
       settings.manualRowResize = heights;
     }
 
+    if (htParams.has('hiddenRow')) {
+      settings.hiddenRows = { rows: [number('hiddenRow', 0)], indicators: false };
+    }
+
+    if (htParams.has('bottomOverlayHeight')) {
+      // The height the hook gives the grid's last row in the `bottom` overlay only.
+      const bottomOverlayHeight = number('bottomOverlayHeight', 0);
+
+      settings.modifyRowHeightByOverlayName = (height, row, overlayName) => (
+        row === rows - 1 && overlayName === 'bottom' ? bottomOverlayHeight : height
+      );
+    }
+
     if (htParams.get('wrapLastRow') === '1') {
       data[rows - 1][1] = 'A long text that wraps over several lines';
     }

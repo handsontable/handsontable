@@ -365,10 +365,10 @@ where the freeze bar sits. Both are 0 when nothing precedes the band. Pinned by
 `tests/e2e/freeze-bar.spec.ts` (the pills around the end bar).
 
 **The row axis has the same hook, for the frozen bottom rows.** The first row of the bottom tables is drawn one
-pixel above its height, and that pixel is the freeze line (walkontable `AGENTS.md`, the DEV-3984 paragraph).
+pixel above its height, and that pixel is the freeze line (walkontable `AGENTS.md`, the bottom freeze line paragraph in "Border ownership").
 `ROW_RESIZE_AXIS.getFreezeLineOverlap()` answers 1 for that row's header in the bottom start corner, on the same
 rule the engine uses (`firstRowTopBorderOutsideHeight()`), and the gesture subtracts it from the start size like the
 column's. Without it every drag of that row stored one pixel more than the pointer moved
-(`tests/e2e/manual-resize-guide-geometry.spec.ts`, the bottom-start corner case, and
-`tests/e2e/fixed-rows-bottom-line.spec.ts`, the drag cases). The hook reads `wtTable.name` of the corner clone, so a
+(`tests/e2e/fixed-rows-bottom-line.spec.ts`, the drag cases, pins the stored height;
+`tests/e2e/manual-resize-guide-geometry.spec.ts` pins the handle and guide geometry against the row boundary). The hook reads `wtTable.name` of the corner clone, so a
 new bottom table needs it added to the list in `axisSizing/boxModel.ts`.

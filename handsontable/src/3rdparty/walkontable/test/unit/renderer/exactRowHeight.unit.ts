@@ -149,6 +149,16 @@ describe('applyRowHeight', () => {
       expect(TR.style.height).toBe('71px');
     });
 
+    it('should count a border drawn outside the height as a border the row draws, whatever the other flag says', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+
+      cellsOf(TR)[0].setAttribute('rowspan', '2');
+      // A pinned row with no height of its own: the default height plus the border it draws.
+      applyRowHeight(TR, 59, false, true, { getHeight: () => undefined, getDefaultHeight: () => 29 }, 0, false, true);
+
+      expect(TR.style.height).toBe('30px');
+    });
+
     it('should not add the pixel to a first row without a height, whose default already carries it', () => {
       const TR = createRow(['a', 'b'], { rowHeader: false });
 

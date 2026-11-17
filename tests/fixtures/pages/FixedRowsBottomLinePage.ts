@@ -20,6 +20,11 @@ export interface FixedRowsBottomLineOptions {
   manualRowResizeLast?: number;
   /** Long, line-broken text in the last row, which makes it taller than the default height. */
   wrapLastRow?: boolean;
+  fixedColumnsEnd?: number;
+  /** The visual row the HiddenRows plugin hides. */
+  hiddenRow?: number;
+  /** The height a `modifyRowHeightByOverlayName` hook gives the grid's last row in the `bottom` overlay only. */
+  bottomOverlayHeight?: number;
 }
 
 /**
@@ -34,6 +39,12 @@ export interface BottomCloneMetrics {
   rows: number[];
   /** The drawn heights of the rows of the bottom start corner, from the first; empty without frozen start columns. */
   cornerRows: number[];
+  /** The drawn heights of the rows of the bottom end corner, from the first; empty without frozen end columns. */
+  cornerEndRows: number[];
+  /** The drawn heights of the first three rows the master renders. */
+  masterRows: number[];
+  /** The height recorded for the grid's last row from what it renders; `null` when nothing is recorded. */
+  recordedLastRow: number | null;
 }
 
 /**
@@ -353,7 +364,14 @@ export class FixedRowsBottomLinePage {
       const hot = (window as unknown as {
         hot: {
           countRows(): number;
-          view: { _wt: { wtViewport: { sumRowHeights(from: number, to: number): number } } };
+          view: {
+            _wt: {
+              wtViewport: {
+                sumRowHeights(from: number, to: number): number;
+                oversizedRows: Record<number, number | undefined>;
+              };
+            };
+          };
         };
       }).hot;
       const rowHeights = (selector: string) => Array.from(document.querySelectorAll(`${selector} tbody tr`))
@@ -371,22 +389,26 @@ export class FixedRowsBottomLinePage {
         clone: cloneTable.getBoundingClientRect().height,
         rows: rowHeights('.ht_clone_bottom'),
         cornerRows: rowHeights('.ht_clone_bottom_inline_start_corner'),
+        cornerEndRows: rowHeights('.ht_clone_bottom_inline_end_corner'),
+        masterRows: rowHeights('.ht_master').slice(0, 3),
+        recordedLastRow: hot.view._wt.wtViewport.oversizedRows[total - 1] ?? null,
       };
     }, fixedRowsBottom);
   }
 
   /**
-   * Drags the row resize handle of the first frozen bottom row's header with the real mouse and releases it.
+   * Drags the row resize handle of a frozen bottom row's header with the real mouse and releases it.
    *
+   * @param {number} rowInCorner The place of the row among the frozen bottom rows, from 0.
    * @param {number} deltaY The distance to drag, positive to grow the row.
    * @returns {Promise<number>} The height the plugin stores for the last row, read after the release.
    */
-  async dragFirstBottomRowHandle(deltaY: number): Promise<number> {
-    const header = this.page.locator('.ht_clone_bottom_inline_start_corner tbody tr:first-child th').first();
+  async dragBottomRowHandle(rowInCorner: number, deltaY: number): Promise<number> {
+    const header = this.page.locator('.ht_clone_bottom_inline_start_corner tbody tr th').nth(rowInCorner);
     const box = await header.boundingBox();
 
     if (!box) {
-      throw new Error('The first frozen bottom row has no row header to hover');
+      throw new Error(`Frozen bottom row ${rowInCorner} has no row header to hover`);
     }
 
     await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));

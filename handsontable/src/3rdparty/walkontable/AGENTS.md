@@ -799,7 +799,7 @@ Five rules ride along:
   on every draw.
 - **The pin is the row's OWN height, not the hooked one** (`RowUtils#getHeight`): the inflated height would make
   the row as tall as the block. In the first row of a bottom table it is the own height plus the freeze line's
-  pixel (`topBorderOutsideHeight`, see the DEV-3984 paragraph in "Border ownership").
+  pixel (`topBorderOutsideHeight`, see the bottom freeze line paragraph in "Border ownership").
 - **A row without a height of its own is pinned at the default height, plus the first row's border pixel.** A
   row the block covers entirely has no cell to size it, and the browser hands the whole span to whichever row it
   likes (measured: 29.5/29.5 for a 30/29 pair). The first row of a table whose head row is empty draws its own
@@ -1162,7 +1162,7 @@ Consequences worth knowing:
   in `tableView.ts`, see `src/plugins/autoRowSize/AGENTS.md`). Two limits. (1) Where the nudge is kept (no
   column header, AutoRowSize off), the row below is one pixel inside the calculators' viewport, so the snapshot
   does not report the row as lined up. The line is one border high there, but the selection is drawn as for any
-  row and the fill handle is partly under the bottom rows, as before DEV-3984. (2) The nudge cannot tell a first
+  row and the fill handle is partly under the bottom rows, as it was before the bottom freeze line rule. (2) The nudge cannot tell a first
   row with a height of its own from one without: `getHiderHeightCompensation()` reads settings only, and the
   hider and the layout prediction read the same helper, so it cannot be changed for the scroll target alone.
   With no column header and a first row that has a height of its own, the nudge still moves a lined-up row

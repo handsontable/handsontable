@@ -409,8 +409,47 @@ test.describe('fixedRowsBottom with a first bottom row height of its own keeps w
         expect(later.clone - later.counted).toBe(1);
         expect(later.rows).toEqual(first.rows);
         expect(later.cornerRows).toEqual(first.rows);
+
+        // A height set by an option is no record of what the row rendered, so the freeze line's pixel cannot be
+        // in one. Content the engine measured is recorded at the counted height, which has no such pixel.
+        expect(later.recordedLastRow).toBe(name === 'content taller than the default' ? later.counted : null);
       });
   }
+
+  test('draws the first row of the bottom end corner as tall as the bottom clone does', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, fixedColumnsEnd: 2, rowHeights: 40 });
+    await grid.scrollRowToBandEdge(20);
+
+    const metrics = await grid.bottomCloneMetrics(1);
+
+    expect(metrics.rows).toEqual([41]);
+    expect(metrics.cornerEndRows).toEqual([41]);
+  });
+
+  test('leaves the rows of the master as tall as their height', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, rowHeights: 40 });
+    await grid.scrollRowToBandEdge(20);
+
+    // The master draws no freeze line of its own at its first rendered row: that row keeps its height.
+    expect((await grid.bottomCloneMetrics(1)).masterRows).toEqual([40, 40, 40]);
+  });
+
+  test('draws the extra pixel on the first row that is shown when the first bottom row is hidden', async () => {
+    // Rows 38 and 39 are frozen. Row 38 is hidden, so row 39 is the first row the bottom clone renders.
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 2, rowHeights: 40, hiddenRow: ROWS - 2 });
+    await grid.scrollRowToBandEdge(20);
+
+    const metrics = await grid.bottomCloneMetrics(2);
+
+    expect(metrics.rows).toEqual([41]);
+    expect(await grid.bottomLine()).toEqual({ own: 1, neighbour: 0, total: 1 });
+  });
+
+  test('draws the first row of the bottom clone one pixel above the height a hook gives it for that overlay', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, bottomOverlayHeight: 45 });
+
+    await expect.poll(async () => (await grid.bottomCloneMetrics(1)).rows).toEqual([46]);
+  });
 
   test('counts the same bottom height whether or not the grid is scrolled to a lined-up row', async () => {
     await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, rowHeights: 40 });
@@ -432,17 +471,32 @@ test.describe('fixedRowsBottom with a first bottom row height of its own keeps w
 
   // A resize drag stores the size it was dragged by. The freeze line's pixel is drawn above the row, so it is not
   // part of the header's size, or every drag of that row would store one pixel more than the pointer moved.
-  for (const delta of [20, -10]) {
-    test(`stores the dragged distance when the first bottom row header is dragged by ${delta}px`, async () => {
-      await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, fixedColumnsStart: 2, manualRowResizeLast: 50 });
+  for (const rtl of [false, true]) {
+    for (const delta of [20, -10]) {
+      test(`stores the dragged distance when the first bottom row header is dragged by ${delta}px (${rtl ? 'RTL' : 'LTR'})`,
+        async () => {
+          await grid.open({
+            rtl, rows: ROWS, cols: COLS, fixedRowsBottom: 1, fixedColumnsStart: 2, manualRowResizeLast: 50,
+          });
 
-      const stored = await grid.dragFirstBottomRowHandle(delta);
+          const stored = await grid.dragBottomRowHandle(0, delta);
 
-      expect(stored).toBe(50 + delta);
-      await expect.poll(async () => (await grid.bottomCloneMetrics(1)).counted).toBe(50 + delta);
-      expect((await grid.bottomCloneMetrics(1)).clone).toBe(51 + delta);
-    });
+          expect(stored).toBe(50 + delta);
+          await expect.poll(async () => (await grid.bottomCloneMetrics(1)).counted).toBe(50 + delta);
+          expect((await grid.bottomCloneMetrics(1)).clone).toBe(51 + delta);
+        });
+    }
   }
+
+  test('stores the dragged distance when the second of two bottom rows is dragged, which carries no pixel', async () => {
+    await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 2, fixedColumnsStart: 2, manualRowResizeLast: 50 });
+
+    const stored = await grid.dragBottomRowHandle(1, 20);
+
+    expect(stored).toBe(70);
+    // The first row is the default height and carries the line's pixel; the dragged row has none.
+    await expect.poll(async () => (await grid.bottomCloneMetrics(2)).rows.at(-1)).toBe(70);
+  });
 
   test('keeps the default height rows as they were', async () => {
     await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1 });

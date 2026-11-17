@@ -44,7 +44,7 @@ Two options set row heights, and they differ in what happens when the content do
 | [`rowHeights`](@/api/options.md#rowheights)     | Exactly the height you set, even below default   | Clipped                       |
 | [`minRowHeights`](@/api/options.md#minrowheights) | At least the height you set, never below default | Grows the row to fit          |
 
-The first row of the [frozen bottom rows](@/guides/rows/row-freezing/row-freezing.md) is drawn one pixel taller than the height you set. That pixel is the freeze line above the row, and the grid doesn't count it as part of the row's height.
+There is one exception to these heights. In the built-in themes, the first row of the [frozen bottom rows](@/guides/rows/row-freezing/row-freezing.md) is drawn one pixel taller than the height you set, whichever of the two options sets it. That pixel is the freeze line above the row, and the grid doesn't count it as part of the row's height.
 
 Both options accept a [number](#set-row-heights-to-a-number), an [array](#set-row-heights-with-an-array), or a [function](#set-row-heights-with-a-function). You can set both: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others. When you enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin, `rowHeights` is a minimum too, because the plugin lets each row grow to fit its content.
 
