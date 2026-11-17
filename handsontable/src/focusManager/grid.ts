@@ -547,7 +547,12 @@ export class FocusGridManager {
       return;
     }
 
-    this.#hot.removeHook('afterScroll', this.#pendingScroll.hook);
+    // A destroyed instance has dropped its listeners, and `removeHook()` throws on it. The hook run keeps
+    // walking its listeners after an earlier one destroyed the grid.
+    if (!this.#hot.isDestroyed) {
+      this.#hot.removeHook('afterScroll', this.#pendingScroll.hook);
+    }
+
     this.#pendingScroll = null;
   }
 
@@ -626,6 +631,11 @@ export class FocusGridManager {
    * Handle the after selection change event.
    */
   #onAfterSelectionChange() {
+    // A listener that ran before this one can destroy the grid, and the hook run keeps walking its listeners.
+    if (this.#hot.isDestroyed) {
+      return;
+    }
+
     this.#pendingFocus = this.#isSuspended;
 
     // Work waiting for another cell is stale now. A selection that stays on the same cell keeps it.

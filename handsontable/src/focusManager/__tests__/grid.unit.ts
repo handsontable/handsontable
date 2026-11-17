@@ -152,7 +152,13 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
     },
     selection: { isCellVisible: () => true },
     getSettings: () => ({ imeFastEdit: settings.imeFastEdit ?? false }),
-    getSelectedRangeActive: () => (state.highlight ? { highlight: state.highlight } : undefined),
+    getSelectedRangeActive: () => {
+      if (state.destroyed) {
+        throw new Error('The "getSelectedRangeActive" method cannot be called on a destroyed instance');
+      }
+
+      return state.highlight ? { highlight: state.highlight } : undefined;
+    },
     getActiveEditor: () => undefined,
     getCell: (row: number, col: number) => {
       state.requested.push([row, col]);
@@ -162,7 +168,13 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
     runHooks: (key: string, row: number, col: number, element: HTMLElement | null) => element,
     addHook: (key: string, callback: HookCallback) => hooks.add(key, callback, hot as never),
     addHookOnce: (key: string, callback: HookCallback) => hooks.once(key, callback, hot as never),
-    removeHook: (key: string, callback: HookCallback) => hooks.remove(key, callback, hot as never),
+    removeHook: (key: string, callback: HookCallback) => {
+      if (state.destroyed) {
+        throw new Error('The "removeHook" method cannot be called on a destroyed instance');
+      }
+
+      return hooks.remove(key, callback, hot as never);
+    },
   } as unknown as HotInstance;
   const manager = new FocusGridManager(hot);
 
@@ -173,6 +185,7 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
     td,
     state,
     count: (key: string) => hooks.getBucket(hot as never).getHooks(key).length,
+    addFirst: (key: string, callback: HookCallback) => hooks.add(key, callback, hot as never, -1),
     run: (key: string) => {
       hooks.run(hot as never, key);
     },
@@ -302,6 +315,20 @@ describe('FocusGridManager deferred focus', () => {
 
     expect(grid.count('afterScroll')).toBe(0);
   });
+
+  it.each(['afterSelection', 'afterSelectionFocusSet', 'afterDeselect'])(
+    'does not throw when a listener that ran before %s destroyed the grid',
+    (hookName) => {
+      const grid = makeDeferredFocusGrid();
+
+      grid.manager.focusOnHighlightedCell();
+      grid.addFirst(hookName, () => {
+        grid.state.destroyed = true;
+      });
+
+      expect(() => grid.run(hookName)).not.toThrow();
+    },
+  );
 
   it('runs nothing after the grid was destroyed', () => {
     const grid = makeDeferredFocusGrid();

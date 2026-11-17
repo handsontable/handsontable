@@ -98,4 +98,37 @@ test.describe('deferred focus after a scroll', () => {
     await expect(grid.cell(50, 0)).toBeVisible();
     await expect(grid.editorTextarea).toBeFocused();
   });
+
+  test('Ctrl+End moves the focus to the last cell once the scroll renders it', async({ page, theme, bundle }) => {
+    const grid = new FocusPendingScrollPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.select(0, 0);
+    await expect(grid.cell(0, 0)).toBeFocused();
+    await expect(grid.cell(99, 4)).toHaveCount(0);
+
+    await page.keyboard.press('ControlOrMeta+End');
+
+    await expect(grid.cell(99, 4)).toBeFocused();
+  });
+
+  test('Shift+Tab out of the grid keeps the focus outside through a later scroll', async({ page, theme, bundle }) => {
+    const grid = new FocusPendingScrollPage(page, theme, bundle);
+
+    await grid.goto();
+
+    await grid.selectWithoutScrolling(50, 0);
+    await expect(grid.cell(50, 0)).toHaveCount(0);
+    await grid.select(0, 0);
+    await expect(grid.cell(0, 0)).toBeFocused();
+
+    await page.keyboard.press('Shift+Tab');
+    await expect(grid.externalInput).toBeFocused();
+
+    await grid.scrollHolderAndSettle();
+
+    await expect(grid.cell(50, 0)).toBeVisible();
+    await expect(grid.externalInput).toBeFocused();
+  });
 });
