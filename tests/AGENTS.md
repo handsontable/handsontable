@@ -1701,8 +1701,9 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
   apply (no dark class on the grid, or a grid still left to right) fails its test before axe runs, a
   tooling error the document lists as a target not measured, so it never reads as a clean pass.
 - **A pull request opens the run's targets, so a page that does not build a variant fails there.** The
-  run is dispatch only: without a guard, a page added to the catalog meets its dark and right-to-left
-  variants first in the next audit, as a target not measured. `a11y/discovery-targets.spec.ts` runs in
+  run is the audit's alone (its weekly schedule or a dispatch, never a pull request): without a guard, a
+  page added to the catalog meets its dark and right-to-left variants first in the next audit, as a
+  target not measured. `a11y/discovery-targets.spec.ts` runs in
   the axe scan's job (`playwright.a11y.config.ts` collects it) and opens, on the main theme, every target
   no pull request builds otherwise: each page in each variant, and the pages of `discovery-pages.mjs` as
   they load. It scans nothing. It calls `openDiscoveryTarget()` (`a11y/checks/discovery-targets.ts`),
