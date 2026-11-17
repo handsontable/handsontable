@@ -468,7 +468,7 @@ class TableView {
       this.#reservedSlotHeight = null;
       // Before the frozen counts are measured: they sum row heights, and those depend on the mode.
       this.syncRowHeightMode();
-      this.#syncExternalRowCalculator();
+      this.syncExternalRowCalculator();
       this.#refreshEffectiveFixed(isFullRender);
 
       this.#drawRenderedCells = false;
@@ -1742,7 +1742,7 @@ class TableView {
       rtlMode: this.hot.isRtl(),
       // `enabled`, not `isEnabled()`: a plugin the license key leaves out keeps its setting but measures nothing,
       // and the engine must then measure the rows itself. Plugins are enabled before the view is built.
-      // `#syncExternalRowCalculator()` keeps it in step when `updateSettings()` turns the plugin on or off.
+      // `syncExternalRowCalculator()` keeps it in step when `updateSettings()` turns the plugin on or off.
       externalRowCalculator: (this.#externalRowCalculator = this.#isAutoRowSizeMeasuring()),
       // Single-pass rendering is on by default; the `modifySinglePassLayout` hook lets a plugin or
       // user code force the legacy measure-then-render path by returning `false` (e.g. `mergeCells`,
@@ -3094,8 +3094,11 @@ class TableView {
    *
    * A change drops every height the engine recorded. The plugin's heights replace them, or the engine
    * starts measuring from nothing.
+   *
+   * `render()` runs it, and so does `updateSettings()` after its `afterUpdateSettings` hook: with rendering
+   * suspended a scroll still draws, and that draw has to know who measures the rows.
    */
-  #syncExternalRowCalculator() {
+  syncExternalRowCalculator() {
     const isExternal = this.#isAutoRowSizeMeasuring();
 
     if (this.#externalRowCalculator !== isExternal) {

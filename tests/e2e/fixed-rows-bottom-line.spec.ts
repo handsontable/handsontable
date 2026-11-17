@@ -310,12 +310,17 @@ test.describe('fixedRowsBottom freeze line after AutoRowSize is switched at runt
     await grid.open({ rows: ROWS, cols: COLS, fixedRowsBottom: 1, autoRowSize: true });
     await grid.setAutoRowSize(false);
 
-    const rangeBefore = await grid.scrollRangeHeight();
+    const rangeBefore = (await grid.rowGrowthAndScrollRange(2, 1)).scrollRange;
 
     // Nobody measured the rows any more: the engine still left it to the plugin, so the row that grew was
     // drawn taller while the scroll range kept its height.
-    const growth = await grid.fillWithWrappingText(2, 1);
+    await grid.fillWithWrappingText(2, 1);
 
-    await expect.poll(async () => await grid.scrollRangeHeight() - rangeBefore).toBe(growth);
+    // The row's growth and the scroll range are read together: the range grew by exactly what the row gained.
+    await expect.poll(async () => {
+      const { rowGrowth, scrollRange } = await grid.rowGrowthAndScrollRange(2, 1);
+
+      return { rowGrew: rowGrowth > 10, rangeShortBy: rowGrowth - (scrollRange - rangeBefore) };
+    }).toEqual({ rowGrew: true, rangeShortBy: 0 });
   });
 });

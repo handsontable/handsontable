@@ -139,7 +139,8 @@ setting on its first value. Both directions were wrong:
   with the bottom rows showed a double line.
 - **Turned off later:** nobody measured. A row that grew was drawn taller, but the scroll range kept its height.
 
-`TableView#render()` now calls `#syncExternalRowCalculator()`, which compares `plugin.enabled` with the value
+`TableView#render()` now calls `syncExternalRowCalculator()`, and so does `updateSettings()` after its
+`afterUpdateSettings` hook (a scroll draw is not stopped by `suspendRender()`). It compares `plugin.enabled` with the value
 it last gave the engine. On a change it updates the setting and drops every height the engine recorded
 (`resetAllOversizedRows()`): the records belong to the other owner. Read `enabled`, not `isEnabled()`: a
 plugin the license key leaves out keeps its setting and measures nothing. Pinned by

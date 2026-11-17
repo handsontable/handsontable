@@ -169,27 +169,33 @@ export class FixedRowsBottomLinePage {
    *
    * @param {number} row The visual row, below the first one.
    * @param {number} column The visual column.
-   * @returns {Promise<number>} By how many pixels the row is taller than the row above it.
    */
-  async fillWithWrappingText(row: number, column: number): Promise<number> {
+  async fillWithWrappingText(row: number, column: number): Promise<void> {
     await this.page.evaluate(([r, c]) => {
       (window as unknown as { hot: HotLike }).hot.setDataAtCell(r, c, 'a b c d e f g h i j k l m n o p q r s t');
     }, [row, column] as const);
 
-    const height = (r: number) => this.master.locator(`td[data-testid="cell-${r}-${column}"]`)
-      .evaluate(cell => cell.getBoundingClientRect().height);
-    const growth = async() => await height(row) - await height(row - 1);
-
-    await expect.poll(growth).toBeGreaterThan(10);
-
-    return growth();
+    await expect.poll(async() => (await this.rowGrowthAndScrollRange(row, column)).rowGrowth).toBeGreaterThan(10);
   }
 
   /**
-   * The height of the master's scroll range: the element that gives the holder its scroll height.
+   * By how many pixels a row is taller than the row above it, and the height of the master's scroll range
+   * (the element that gives the holder its scroll height), read in one go so both come from the same layout.
+   *
+   * @param {number} row The visual row, below the first one.
+   * @param {number} column The visual column to measure the rows in.
    */
-  async scrollRangeHeight(): Promise<number> {
-    return this.master.locator('.wtHider').evaluate(hider => hider.getBoundingClientRect().height);
+  async rowGrowthAndScrollRange(row: number, column: number): Promise<{ rowGrowth: number; scrollRange: number }> {
+    return this.page.evaluate(([r, c]) => {
+      const { hot } = window as unknown as { hot: HotLike };
+      const height = (visualRow: number) => hot.getCell(visualRow, c).getBoundingClientRect().height;
+      const hider = document.querySelector('.ht_master .wtHider') as HTMLElement;
+
+      return {
+        rowGrowth: height(r) - height(r - 1),
+        scrollRange: hider.getBoundingClientRect().height,
+      };
+    }, [row, column] as const);
   }
 
   /**

@@ -75,6 +75,34 @@ describe('The engine\'s `externalRowCalculator` setting', () => {
     expect(isExternal()).toBe(false);
   });
 
+  it('should follow `updateSettings()` while rendering is suspended, when a scroll can still draw', () => {
+    createGrid({ autoRowSize: false });
+
+    hot.suspendRender();
+    hot.updateSettings({ autoRowSize: true });
+
+    expect(isExternal()).toBe(true);
+
+    hot.updateSettings({ autoRowSize: false });
+
+    expect(isExternal()).toBe(false);
+
+    hot.resumeRender();
+  });
+
+  it('should pick up a plugin that an `afterUpdateSettings` listener turned on', () => {
+    createGrid({ autoRowSize: false });
+
+    hot.suspendRender();
+    hot.addHookOnce('afterUpdateSettings', () => hot.getPlugin('autoRowSize').enablePlugin());
+    hot.updateSettings({ colWidths: 80 });
+
+    expect(hot.getPlugin('autoRowSize').enabled).toBe(true);
+    expect(isExternal()).toBe(true);
+
+    hot.resumeRender();
+  });
+
   it('should drop the heights the engine recorded when the plugin state changes', () => {
     createGrid({ autoRowSize: false });
 
