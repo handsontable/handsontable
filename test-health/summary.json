@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-16T14:17:35.295Z",
+  "generatedAt": "2026-11-17T07:43:43.297Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -306,7 +306,7 @@
       "file": "handsontable/src/__tests__/core/layout.spec.js",
       "line": null,
       "title": "Layout slots applies the filled-slot holder styling through the state class (not `:has()`)",
-      "count7": 2,
+      "count7": 0,
       "count30": 6,
       "countAll": 6,
       "runs30": 3,
