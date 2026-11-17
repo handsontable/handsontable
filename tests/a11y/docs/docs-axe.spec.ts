@@ -16,6 +16,7 @@ import {
   DOCS_PAGES,
   DOCS_THEMES,
   docsBaseUrl,
+  parseSkipPages,
   type DocsPage,
 } from './pages.mjs';
 
@@ -41,6 +42,9 @@ import {
  */
 
 const BASE_URL = docsBaseUrl(process.env.DOCS_A11Y_BASE_URL);
+// The pages a pull request adds: the staging deploy of develop has none of them yet, so they are not opened
+// (`tests/scripts/a11y-docs-new-pages.mjs` names them, the workflow passes them).
+const SKIPPED_PAGES = parseSkipPages(process.env.DOCS_A11Y_SKIP_PAGES);
 // `DOCS_A11Y_SCREENSHOTS=0` photographs nothing: the run that builds a baseline marks every finding new,
 // and a screenshot per scan would make the HTML report hundreds of megabytes.
 const SCREENSHOTS = process.env.DOCS_A11Y_SCREENSHOTS !== '0';
@@ -87,6 +91,14 @@ for (const theme of DOCS_THEMES) {
 async function scan(page: Page, testInfo: TestInfo, entry: DocsPage, theme: string): Promise<void> {
   const started = Date.now();
   const pageErrors: string[] = [];
+
+  // No scan is attached, so the reporter reads the page as not scanned, as for a control a build lacks.
+  if (SKIPPED_PAGES.has(entry.id)) {
+    testInfo.annotations.push({ type: 'not-scanned', description: `${entry.id}: new in this pull request, the staging deploy has no such page yet` });
+
+    return;
+  }
+
   const { url } = await openDocsPage(page, entry, { theme, baseUrl: BASE_URL, pageErrors });
 
   // A control only production builds render: on any other deploy the page is not scanned. The test attaches

@@ -164,6 +164,44 @@ export const EXTRA_PAGES = [
 export const DOCS_PAGES = [...guidePages(), ...EXTRA_PAGES];
 
 /**
+ * The guide pages the visual list holds now and a base list did not: the pages a pull request adds. The
+ * staging deploy of develop, which a pull request's run reads, has none of them yet. A page's id carries the first
+ * framework whose list names it, so the difference of the two id sets is the answer, and a page that an earlier
+ * framework's list now names reads as new. A guide whose `permalink` changes under an unchanged list entry is not
+ * seen: only the lists come from the base.
+ *
+ * @param {Record<string, ReadonlyArray<{path: string}>>} baseLists The base's lists, in the shape `docs/tests/paths.js` exports.
+ * @param {typeof DOCS_FRAMEWORKS} [frameworks] The frameworks with their current page lists.
+ * @returns {string[]} The new page ids, in page list order.
+ */
+export function newGuidePageIds(baseLists, frameworks = DOCS_FRAMEWORKS) {
+  const base = new Set(guidePages(frameworks.map(framework => ({ ...framework, paths: baseLists[`${framework.prefix}Paths`] ?? [] })))
+    .map(page => page.id));
+
+  return guidePages(frameworks).map(page => page.id).filter(id => !base.has(id));
+}
+
+/**
+ * The page ids a run skips, from `DOCS_A11Y_SKIP_PAGES` (comma-separated). A pull request's run names the pages
+ * it adds (`tests/scripts/a11y-docs-new-pages.mjs`). An id that is no page is refused, so a typo skips nothing
+ * in silence.
+ *
+ * @param {string|undefined} value The configured ids.
+ * @param {ReadonlyArray<{id: string}>} [pages] The page list the ids must belong to.
+ * @returns {Set<string>} The ids.
+ */
+export function parseSkipPages(value, pages = DOCS_PAGES) {
+  const ids = new Set((value ?? '').split(',').map(id => id.trim()).filter(Boolean));
+  const unknown = [...ids].filter(id => !pages.some(page => page.id === id));
+
+  if (unknown.length > 0) {
+    throw new Error(`DOCS_A11Y_SKIP_PAGES names ${unknown.join(', ')}, which ${unknown.length === 1 ? 'is' : 'are'} no page of the docs page list`);
+  }
+
+  return ids;
+}
+
+/**
  * The docs base URL a run reads: the deploy `DOCS_A11Y_BASE_URL` names, or the develop staging deploy. A
  * dispatch input lands here, so anything but an https URL (or a local preview over http) is refused before a
  * page loads.
