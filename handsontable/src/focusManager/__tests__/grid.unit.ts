@@ -316,7 +316,7 @@ describe('FocusGridManager deferred focus', () => {
     expect(grid.count('afterScroll')).toBe(0);
   });
 
-  it.each(['afterSelection', 'afterSelectionFocusSet', 'afterDeselect'])(
+  it.each(['afterSelection', 'afterSelectionFocusSet', 'afterSelectionEnd', 'afterDeselect'])(
     'does not throw when a listener that ran before %s destroyed the grid',
     (hookName) => {
       const grid = makeDeferredFocusGrid();

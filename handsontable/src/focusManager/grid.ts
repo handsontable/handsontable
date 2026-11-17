@@ -603,6 +603,11 @@ export class FocusGridManager {
    * Manage the browser's focus after cell selection end.
    */
   #focusEditorElement() {
+    // A listener that ran before this one can destroy the grid, and the hook run keeps walking its listeners.
+    if (this.#hot.isDestroyed) {
+      return;
+    }
+
     // When focus management is suspended and an external focusable element (outside Handsontable)
     // currently owns the browser focus, skip the `imeFastEdit` refocus - otherwise the debounced
     // `select()` on the editor textarea would steal that external focus. When no external element
