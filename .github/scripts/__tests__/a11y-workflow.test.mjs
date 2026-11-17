@@ -230,8 +230,9 @@ test('the checks config builds on the e2e config, takes its projects from the re
   assert.match(config, /failOnFlakyTests: false/, `${CHECKS_CONFIG}: a flaky check is a finding against the check, recorded, never a red run. ${CHECKS_DOC}`);
   assert.match(config, /\['\.\/reporters\/a11y-checks\.ts'\]\s*,?\s*\]/, `${CHECKS_CONFIG}: the checks reporter writes the documents. ${CHECKS_DOC}`);
   assert.doesNotMatch(config, /quarantine/, `${CHECKS_CONFIG}: no quarantine reporter in a check. ${CHECKS_DOC}`);
-  assert.match(stripTsComments(read(CONFIG)), /testMatch: 'axe\.spec\.ts'/,
-    `${CONFIG}: the axe config collects its one spec, never the checks in a11y/checks/. ${CHECKS_DOC}`);
+  assert.match(stripTsComments(read(CONFIG)), /testMatch: \['axe\.spec\.ts', 'discovery-targets\.spec\.ts'\]/,
+    `${CONFIG}: the axe config collects the scan and the guard that opens the axe discovery run's targets on every pull request, `
+    + `never the checks in a11y/checks/. ${CHECKS_DOC}`);
 });
 
 test('the A11y nightly builds the UMD bundle and calls the module with every check, on a dispatch and never a cron', () => {

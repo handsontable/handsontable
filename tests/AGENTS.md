@@ -1101,7 +1101,10 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   reporter resolves the baseline from its own location, not from `config.rootDir`, which is the
   config's `testDir` (`a11y/`), one level below the package. It reads screenshots from the spec's
   `scans/` folder, never from beside an attachment: Playwright copies an attached file into its
-  own attachments folder.
+  own attachments folder. The config collects one more spec, `a11y/discovery-targets.spec.ts`, the
+  pull request's guard for the axe discovery run ("The axe discovery run" below). Its tests attach no
+  scan, and the reporter fails a run that completed none, so run the guard alone with
+  `npm --prefix tests run test:a11y-targets`, which leaves that reporter out.
 - **Every opener drives the keyboard.** Shift+F10 for the context menu, Shift+Alt+ArrowDown for
   the dropdown menu, Enter for an editor, Ctrl+Alt+M for the comment editor (which also focuses
   it; `showAtCell()` would only show it), ArrowDown and ArrowRight to reach a submenu, after
@@ -1216,7 +1219,10 @@ fixture contract above: the `?theme=`/`?bundle=` block, `window.htBuildError` or
 every finding the new page reproduces is new, and the report says which known issue each one
 belongs to. The tooling test refuses an entry whose page is not in the list, so removing a page
 means deleting its entries (and an issue left without any) in the same change. List the new page
-under the plugin or editor it scans in `a11y/coverage.mjs`.
+under the plugin or editor it scans in `a11y/coverage.mjs`. The same run opens the new page in the
+dark scheme and right to left (`a11y/discovery-targets.spec.ts`), as the axe discovery run will: a
+fixture or an opener that does not build a variant fails there ("The axe discovery run" below has
+the two rules that make one build).
 
 ### Coverage: every plugin and editor is accounted for
 
@@ -1413,8 +1419,9 @@ criterion.
   the keyboard (`STATES`) and marks the grid's own portal (`PORTAL`). A check therefore measures the DOM
   a keyboard user reaches, the one the axe scan reads. A state a check needs and the catalog lacks gets
   an opener in `STATES`, keyboard first. The axe discovery run's extra states are the one exception: no
-  other check scans their pages, so their openers sit beside them in its spec (`DISCOVERY_STATES`), and
-  one moves to `STATES` when a catalog page needs it. A state whose popups mount in a portal of their own
+  other check scans their pages, so their openers sit with its targets (`DISCOVERY_STATES` in
+  `a11y/checks/discovery-targets.ts`), and one moves to `STATES` when a catalog page needs it. A state
+  whose popups mount in a portal of their own
   marks that one too (see the scan's own rule above), and it comes after the grid's in `body`, so a check
   reads the marked portals with `querySelectorAll()`: a `querySelector()` sees the grid's portal only and
   measures the page without the popup the state opened. The `test()` calls stay in the spec, never in a
@@ -1680,7 +1687,8 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
   and a column move and a column resize mid-drag, scanned with the pointer still held because their
   guides exist only then. A page added there never reaches the gating scan's baseline, and its records
   name its entry there (`file`, `line`), so the check run annotates them on it rather than on
-  `a11y/pages.mjs`. The openers are `DISCOVERY_STATES` in the spec; the catalog's come from the harness.
+  `a11y/pages.mjs`. The openers are `DISCOVERY_STATES` in `a11y/checks/discovery-targets.ts`; the
+  catalog's come from the harness.
   They press keys where a key reaches the state, and use the API or the pointer where the surface, not
   the path to it, is what the scan needs: a hover, a drag, a second range, a renamed sheet tab, a dialog
   holding the focus.
@@ -1692,6 +1700,24 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
   `rightToLeftQuery()`). The phone page runs on a Pixel 7 beside the iPhone 13. A variant that did not
   apply (no dark class on the grid, or a grid still left to right) fails its test before axe runs, a
   tooling error the document lists as a target not measured, so it never reads as a clean pass.
+- **A pull request opens the run's targets, so a page that does not build a variant fails there.** The
+  run is dispatch only: without a guard, a page added to the catalog meets its dark and right-to-left
+  variants first in the next audit, as a target not measured. `a11y/discovery-targets.spec.ts` runs in
+  the axe scan's job (`playwright.a11y.config.ts` collects it) and opens, on the main theme, every target
+  no pull request builds otherwise: each page in each variant, and the pages of `discovery-pages.mjs` as
+  they load. It scans nothing. It calls `openDiscoveryTarget()` (`a11y/checks/discovery-targets.ts`),
+  the function the run itself opens a target with, so the two cannot drift: the targets, the variants
+  and the openers are in that one module, and the `test()` calls stay in the two specs. A failed test
+  there is a tooling failure of the scan's job, which the CI gate reads. One theme is enough, because a
+  theme is a stylesheet and decides neither what a fixture reads nor which key reaches a state.
+- **Two rules make a page build right to left.** A fixture that sets the document's direction itself
+  takes it from a `?dir=` query through the fail-loud allowlist (`side-layout-slots.html`): the run
+  serves the page with `dir="rtl"` on `<html>`, and a fixture that writes `ltr` over it builds a
+  left-to-right grid. And an opener that presses ArrowLeft or ArrowRight to mean a column or a submenu,
+  not a side of the screen, picks the key with `isRightToLeft()` (the harness): the arrow keys act in
+  the direction they point on the screen, so the previous column is ArrowRight in a right-to-left grid,
+  and from a cell in the last column Shift+ArrowLeft extends nothing (the `formula-error-range` opener;
+  `context-menu-submenu` is the same rule for a submenu).
 
 ### Focus appearance and non-text contrast
 
