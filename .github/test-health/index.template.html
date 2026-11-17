@@ -202,7 +202,7 @@
     <div class="wrap">
       <table id="a11y-fix">
         <caption>
-          One row per fix task, the task a cluster of the catalog names, with every finding of its clusters. A row is named by its clusters; the task ids stay in the catalog. Tasks that own the same clusters share one row, and a cluster that several tasks own counts in the row of each, so the rows add up to more than the open findings. <em>At the target level</em> leaves out what is for review (a result axe could not decide, a golden that moved) and what names no WCAG 2.2 A or AA criterion. <em>Resolved</em> counts resolutions less the findings that came back. <em>Cleared at</em> is the first night after the last one that left a finding open. The past is kept <span id="a11y-history-days"></span> days, long after the rows are gone, and follows a finding the catalog moves to another cluster.
+          One row per fix task, the task a cluster of the catalog names, with every finding of its clusters. A row is named by its clusters; the task ids stay in the catalog. Tasks that own the same clusters share one row, and a cluster that several tasks own counts in the row of each, so the rows add up to more than the open findings. <em>At the target level</em> leaves out what is for review (a result axe could not decide, a golden that moved) and what names no WCAG 2.2 A or AA criterion. <em>Resolved</em> counts resolutions less the findings that came back. <em>Cleared at</em> is the first night after the last one that left a finding open, when that night measured a finding gone: a task whose last findings left the ledger unmeasured has none. The past is kept <span id="a11y-history-days"></span> days, long after the rows are gone, and follows a finding the catalog moves to another cluster.
         </caption>
         <thead><tr><th scope="col">Fix task</th><th scope="col" class="num">Open now</th><th scope="col" class="num">At the target level</th><th scope="col" class="num">Most it had</th><th scope="col" class="num">Resolved</th><th scope="col">First seen</th><th scope="col">Cleared at</th><th scope="col" class="num">Days to clear</th></tr></thead>
         <tbody></tbody>
@@ -948,7 +948,8 @@ var runPage = (function() {
         cleared.appendChild(linkTo(runPage(row.clearedAt.runId), when(row.clearedAt.seenAt)));
         cleared.appendChild(text('div', (own(SOURCE_NAMES, row.clearedAt.source) || row.clearedAt.source) + ' run ' + row.clearedAt.runId, 'legs'));
       } else {
-        cleared.textContent = row.open > 0 ? 'not cleared' : 'none on record';
+        // Nothing open and no clearing night: its findings left the ledger unmeasured, or it never had one.
+        cleared.textContent = row.open > 0 ? 'not cleared' : 'no clearing night on record';
       }
       cell(tr, row.days === null ? '–' : row.days, 'num');
       fixBody.appendChild(tr);

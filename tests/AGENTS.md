@@ -2012,9 +2012,21 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   the run's count is the same sum (one location's growth is not hidden by a sibling's nodes). Past the audit's count the growth is the change's and
   keeps its severity, and so does growth on a row recorded before the ledger kept counts; the summary says which.
   When develop's docs grew a finding after the audit, dispatch the audit and re-run the job. A finding the audit did
-  not see keeps its severity: this change made it, or the docs gained it after the audit, and when the staging
-  deploy is newer than the audit the summary says so and names the dispatch that measures it (`gh workflow run
-  docs-a11y.yml --ref develop`). A ledger that cannot be read, or holds no docs night that read the scan, leaves
+  not see keeps its severity: this change made it, or the docs gained it after the audit. **Two things decide the
+  severity, and neither is the finish time of the audit.** (1) The **tracker**: a finding whose cluster in
+  `a11y/issues.json` has a `tracker` is a warning at most on a change run, drift or not ("A11y: the verdict of a check
+  run"), and every `docs-*` cluster carries its debt task, so owned docs debt never turns a pull request red; a new
+  docs cluster ships with its tracker (`lib/__tests__/a11y-issues.test.mjs` fails until it has one). (2) **Whether a
+  deploy landed after the audit STARTED.** An audit scans for minutes, so a staging deploy inside that window may or
+  may not be in what it read, and the ledger's finish time (`seenAt`) says nothing about it: a docs change deployed at
+  12:03 inside an audit that ran 11:51 to 12:05 added a link, and the run counted it, because the guard compared 12:03
+  with 12:05. The ledger keeps no start time, so the check run reads the audit's `run_started_at` from the run
+  (`auditStartedAt()` in `scripts/a11y-check-run.mjs`; the finish time decides only when the API does not answer).
+  When the deploy is newer (`auditIsStale()` in `lib/a11y-docs-drift.mjs`), a grown finding the audit saw is drift
+  whatever its node count, a new finding the audit never saw still counts (a stale audit cannot clear a rule the scan
+  code added), and the summary says so and names the dispatch that measures it (`gh workflow run docs-a11y.yml --ref
+  develop`). The summary's grown line names the findings that count, so it never reads as if every new row were red.
+  A ledger that cannot be read, or holds no docs night that read the scan, leaves
   every finding at its severity and says why. An audit run (a dispatch) counts every open finding, drift or not.
 - **A pull request does not scan the pages it adds.** The staging deploy has no page the pull request adds to
   `docs/tests/paths.js`, so a scan of it would fail on every head until the merge. The `scan` job names those
@@ -2041,7 +2053,9 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
 - **Taking or refreshing the baseline.** Run the whole scan with `DOCS_A11Y_SCREENSHOTS=0`: with an empty or
   stale baseline every finding is new, every scan would be photographed, and the HTML report runs to
   hundreds of megabytes. Group the findings into issues whose titles say what is wrong, with no task id;
-  a `tracker` waits until someone files the task. Findings on the docs site are recorded here and fixed in
+  an issue's `tracker` in the baseline waits until someone files the task. That is not the cluster's tracker in
+  `a11y/issues.json`, which decides a change run's severity: a new docs cluster there ships with its debt task, and
+  `lib/__tests__/a11y-issues.test.mjs` fails until it has one. Findings on the docs site are recorded here and fixed in
   `docs/`, never in the change that adds or refreshes the scan.
 - **A refresh is one command, never a hand edit.** Every docs merge can add or remove findings, so the
   baseline drifts with the docs. `node tests/scripts/a11y-docs-baseline.mjs --run <run-id>` rewrites it from
@@ -2419,7 +2433,8 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   extends the axe baseline's issue catalog: a cluster has a stable kebab-case `id`, a `title` that says what
   the problem is, an optional `tracker` (a task id, or a list when several tasks own parts of the fix; code,
   never printed on the page, which says only that a cluster is tracked), or instead an optional `notDefect`
-  (the class that says why its findings are not a defect), and `match` rules. A rule names its
+  (the class that says why its findings are not a defect), optional `formerIds` (the ids it had before a
+  rename, so its history follows it: "A11y: fix progress over time" below), and `match` rules. A rule names its
   `source` (`checks`, `axe` or `reader`) and any of `checks` (check ids, or reader projects), `kinds`,
   `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria`, `pages` (patterns
   anchored to the page id, or the scenario), `themes`, `where` (patterns searched in the finding's `where`)
@@ -2529,8 +2544,21 @@ outstanding. The "Fix progress" block of the page says that, from `fixProgress()
   past, with no migration. And a row the catalog moves to another cluster takes its counts along, in the
   entry of every night the row counted in (`rekeyHistory()`): a split, a rename and a triage shape sorted
   into a cluster would otherwise read as that many findings fixed in one cluster and new in another. A
-  catalog change is never a fix. Two limits: a row that was resolved and came back reads, for the earlier
-  nights, as open since its first sighting, and an entry older than a row's first sighting is untouched.
+  catalog change is never a fix.
+- **A renamed cluster names its former ids.** A row moves only its own counts, and a resolved row leaves
+  the ledger after 90 days, so a rename later than that would strand every older resolution, and the
+  cluster's peak, under an id the catalog no longer has: listed as a cluster no tracker owns, and missing
+  from the fix task it belongs to. So the cluster that takes over lists the old id in `formerIds`, and
+  whatever an entry still counts under a former id, after the rows moved theirs, goes to that cluster. A
+  former id is one no cluster uses any more, and one cluster names it: the validator refuses an id still
+  in use and an id two clusters claim. Add `formerIds` in the change that renames a cluster. A split names
+  the old id on the cluster that should keep the unattributable past, or leaves it unnamed.
+- **A row keeps its latest return.** A row that comes back after being resolved keeps the resolution the
+  sighting undid and when it came back (`lastResolvedAt`, `backAt`), because its other fields then say
+  neither. The history of the nights in between is counted from the pair, so a moved row takes its
+  resolution along with its return and the old cluster keeps no fix it did not make. One pair per row: an
+  earlier return of the same row is gone, and a row that came back before it kept the pair reads as open
+  since its first sighting.
 - **An audit is the nights that complete within `A11Y_AUDIT_WINDOW_HOURS` of its first one, and a full
   audit holds a night of every source** (`a11yAudits()`). The ledger records nights, one per workflow run
   and source; an audit is one dispatch of each workflow, and its nights complete minutes to hours apart.
@@ -2540,6 +2568,10 @@ outstanding. The "Fix progress" block of the page says that, from `fixProgress()
 - **A fix time is only as fine as the gap between audits, and the page says so.** A task is cleared by the
   first night after the last one that left a finding of it open, so a finding fixed the day after an audit
   reads as fixed at the next one. Never present the days as the time the fix took.
+- **Only a night that measured a finding gone clears a task.** A finding nothing measures for the rows'
+  retention leaves the ledger unresolved, and the task's open count then drops to zero with nothing fixed.
+  The night it left on is no clearing night: the task reads as having no open finding and no clearing
+  night on record, never as fixed after that many days.
 - **The page names no task.** The page is public, and a tracker is code in the catalog, so no task id
   reaches what the page inlines (`fixView()`), in the fix progress table as in the cluster table. A fix
   task's row is named by its clusters, and the tasks that own the same clusters, whose rows would read

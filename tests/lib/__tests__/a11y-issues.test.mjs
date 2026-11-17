@@ -203,6 +203,42 @@ test('a cluster is a defect a task may own, or not a defect for a class of reaso
     'a cluster that is not a defect has no tracker, so a change run counts its finding at its severity as before');
 });
 
+test('a renamed cluster names the ids it had, each once in the catalog and none still in use', () => {
+  const rule = [{ source: 'checks', kinds: ['x'] }];
+
+  assert.deepEqual(validateIssuesCatalog(catalogOf(
+    ['focus-leaves-grid', rule, { formerIds: ['focus-lost', 'focus-escapes'] }],
+    ['menu-roles', rule],
+  )), []);
+  assert.deepEqual(compileIssuesCatalog(catalogOf(['focus-leaves-grid', rule, { formerIds: ['focus-lost'] }], ['menu-roles', rule]))
+    .clusters.map(cluster => [cluster.id, cluster.formerIds]), [['focus-leaves-grid', ['focus-lost']], ['menu-roles', []]]);
+
+  const problems = validateIssuesCatalog(catalogOf(
+    ['still-used', rule, { formerIds: ['menu-roles'] }],
+    ['menu-roles', rule],
+    ['own-id', rule, { formerIds: ['own-id'] }],
+    ['first-claim', rule, { formerIds: ['shared-past'] }],
+    ['second-claim', rule, { formerIds: ['shared-past'] }],
+    ['not-a-list', rule, { formerIds: 'focus-lost' }],
+    ['empty-list', rule, { formerIds: [] }],
+    ['bad-id', rule, { formerIds: ['Focus Lost'] }],
+    ['triage-past', rule, { formerIds: ['needs-triage'] }],
+  ));
+  const expect = (pattern) => assert.ok(problems.some(problem => pattern.test(problem)),
+    `expected a problem matching ${pattern}; got:\n${problems.join('\n')}`);
+
+  // An id still in use has a history of its own: folding it into another cluster would merge two clusters' pasts.
+  expect(/"still-used".*former id "menu-roles" is the id of a cluster in the catalog/);
+  expect(/"own-id".*former id "own-id" is the id of a cluster in the catalog/);
+  // Two claims on one past would hand it to whichever cluster the catalog lists first.
+  expect(/"second-claim".*former id "shared-past" is already named by cluster "first-claim"/);
+  expect(/"not-a-list".*formerIds/);
+  expect(/"empty-list".*formerIds/);
+  expect(/"bad-id".*formerIds.*kebab-case/);
+  expect(/"triage-past".*formerIds/);
+  assert.equal(problems.length, 7, problems.join('\n'));
+});
+
 test('validateIssuesCatalog reads the triage list: one entry per queued shape, each with a reason, and the limit is its length', () => {
   const shape = 'reader|nvda-firefox|token-missing|||sheets-bar|shift-tab-grid';
   const base = catalogOf(['x', [{ source: 'checks', kinds: ['x'] }]]);
@@ -426,6 +462,17 @@ test('clusterOf names the cluster and its tracker, sends an unmatched finding to
     { id: TRIAGE_ID, tracker: null, ambiguous: [] });
   // The first cluster in catalog order wins, and the caller is told, so a tooling test can refuse the catalog.
   assert.deepEqual(clusterOf(finding({}), catalog), { id: 'one', tracker: 'DEV-3603', ambiguous: ['one', 'two'] });
+});
+
+test('every docs cluster of the committed catalog has a tracker, so a change run counts tracked docs debt as a warning at most', () => {
+  // The debt tasks of the docs site exist (the accessibility debt epic); a docs cluster with no tracker makes a pull request
+  // that touches no docs red for debt it did not cause. `grid-refocus-on-settings-update` is a grid defect that only the docs
+  // checks reach: it belongs to the product, not to the docs site.
+  const untracked = readCatalog().clusters
+    .filter(cluster => cluster.id.startsWith('docs-') && !cluster.tracker)
+    .map(cluster => cluster.id);
+
+  assert.deepEqual(untracked, [], 'a docs cluster without a tracker: link its debt task in tests/a11y/issues.json');
 });
 
 test('the committed catalog validates against the live baseline issues and screen reader projects, and keeps its cluster ids', () => {
