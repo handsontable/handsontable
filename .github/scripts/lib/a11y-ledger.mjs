@@ -1103,7 +1103,7 @@ export function migrateA11yLedger(doc) {
  * @param {{source: string}} row The row or finding.
  * @returns {'a11y'|'reader'|'docs'|'website'} The source.
  */
-function nightSourceOf(row) {
+export function nightSourceOf(row) {
   return SOURCE_OF_NIGHT[row.source];
 }
 
@@ -1188,6 +1188,19 @@ function covered(row, index) {
   }
 
   return (row.kind === READER_GOLDEN_DIFFERS ? index.golden : index.reader).has(`${row.check}|${row.page}`);
+}
+
+/**
+ * Whether a recorded night measured a row's target: what tells a finding that is new because something broke from one
+ * that is new because nothing had looked there before (a new check, scenario or page, or a target with a tooling
+ * problem that night). Only the latest night of a source keeps its coverage; a night without it answers `null`.
+ *
+ * @param {object|null} night The night's record.
+ * @param {object} row The row or finding, of the night's source.
+ * @returns {boolean|null} The verdict, or `null` when the night does not say.
+ */
+export function nightMeasured(night, row) {
+  return isObject(night?.coverage) ? covered(row, coverageIndex(night.coverage)) : null;
 }
 
 /**
