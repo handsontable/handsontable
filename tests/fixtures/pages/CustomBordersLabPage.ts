@@ -270,6 +270,56 @@ export class CustomBordersLabPage {
     }, [row, col] as const);
   }
 
+  /**
+   * How many pixels of `color` are on screen in an 8px strip across a cell's `start` (inline-start) or
+   * `top` boundary, read from a screenshot of the topmost copy of the cell. A hit test cannot tell: the
+   * inline-start clone's holder answers `elementFromPoint` over the cell it covers, and a border's
+   * element is in the DOM whether or not it is painted. A 1px edge counts 1 and a 3px edge 3, so an edge
+   * the freeze line's overlay covers part of reads short, and one that is not drawn reads 0.
+   */
+  async edgePixelCount(
+    row: number, col: number, edge: 'start' | 'top', color: string, isRtl = false,
+  ): Promise<number> {
+    const cell = await this.page.evaluate(([r, c]) => {
+      const rect = (window as any).hot.getCell(r, c, true).getBoundingClientRect();
+
+      return { left: rect.left, right: rect.right, top: rect.top, middleX: rect.left + rect.width / 2, middleY: rect.top + rect.height / 2 };
+    }, [row, col] as const);
+    const isStart = edge === 'start';
+    const boundary = Math.round(isStart ? (isRtl ? cell.right : cell.left) : cell.top);
+    const clip = isStart ?
+      { x: boundary - 4, y: Math.floor(cell.middleY), width: 8, height: 1 } :
+      { x: Math.floor(cell.middleX), y: boundary - 4, width: 1, height: 8 };
+    const shot = await this.page.screenshot({ clip, scale: 'css' });
+
+    return this.page.evaluate(async([base64, wanted]) => {
+      const image = new Image();
+
+      image.src = `data:image/png;base64,${base64}`;
+      await image.decode();
+
+      const canvas = document.createElement('canvas');
+
+      canvas.width = image.width;
+      canvas.height = image.height;
+
+      const context = canvas.getContext('2d')!;
+
+      context.drawImage(image, 0, 0);
+
+      const { data } = context.getImageData(0, 0, image.width, image.height);
+      let count = 0;
+
+      for (let i = 0; i < data.length; i += 4) {
+        if (`rgb(${data[i]}, ${data[i + 1]}, ${data[i + 2]})` === wanted) {
+          count += 1;
+        }
+      }
+
+      return count;
+    }, [shot.toString('base64'), color]);
+  }
+
   /** How many times `afterCustomBordersUpdate` has fired since the grid was created. */
   async bordersUpdateCount(): Promise<number> {
     return this.page.evaluate(() => (window as any).bordersUpdateCount);

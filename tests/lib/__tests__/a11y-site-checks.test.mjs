@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import {
   SITES,
+  SITE_TITLES,
   SITE_CHECKS,
   SITE_CHECK_KINDS,
   siteCheckId,
@@ -21,8 +22,11 @@ import { EVIDENCE_CHECKS, WCAG_CRITERIA, checksForRun, mergeEvidence, validateEv
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 test('a site check is named by its site and kind, and never shares an id with a product check', () => {
-  assert.deepEqual(SITES, ['docs']);
+  assert.deepEqual(SITES, ['docs', 'website']);
   assert.deepEqual(Object.keys(siteChecks('docs')), ['docs-structure', 'docs-keyboard', 'docs-focus-contrast', 'docs-reflow', 'docs-forced-colors-motion']);
+  // The forms check is the website's alone: the docs site has no form.
+  assert.deepEqual(Object.keys(siteChecks('website')), ['website-structure', 'website-keyboard', 'website-focus-contrast', 'website-reflow',
+    'website-forced-colors-motion', 'website-forms']);
   assert.equal(siteCheckId('docs', 'keyboard'), 'docs-keyboard');
 
   for (const id of Object.keys(SITE_CHECKS)) {
@@ -40,7 +44,7 @@ test('every site check names a spec that exists, WCAG 2.2 criteria, and stays ou
     for (const criterion of check.criteria) {
       assert.ok(Object.hasOwn(WCAG_CRITERIA, criterion), `${id}: ${criterion} is not a WCAG 2.2 criterion`);
     }
-    assert.ok(check.title.startsWith('Docs site: '), `${id}: the title names its site`);
+    assert.ok(check.title.startsWith(`${SITE_TITLES[check.site]}: `), `${id}: the title names its site`);
   }
   for (const [kind, definition] of Object.entries(SITE_CHECK_KINDS)) {
     assert.ok(definition.sites.every(site => SITES.includes(site)), `${kind} names a site this tier does not have`);

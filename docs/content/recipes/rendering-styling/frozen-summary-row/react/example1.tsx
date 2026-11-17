@@ -117,7 +117,7 @@ const ExampleComponent = () => {
       }}
       afterChange={function (
         this: Handsontable,
-        changes: Handsontable.CellChange[] | null,
+        changes: Handsontable.AppliedCellChange[] | null,
         source: Handsontable.ChangeSource,
       ): void {
         if (!changes || source === SUMMARY_SOURCE) {

@@ -337,6 +337,7 @@ interface ColumnSummaryDescriptor {
   destCol: number;
   sourceCol: number;
   sourceRanges: [number, number][];
+  includesSummaryResults?: boolean;
 }
 
 /**

@@ -10,7 +10,7 @@ import {
   walkProblem,
   walkVerdict,
 } from '../site-keyboard.mjs';
-import { boundaryFindings, orientationFindings, pageReflowFindings, stateLostFindings } from '../site-visual.mjs';
+import { boundaryFindings, isFieldShape, isFieldStop, orientationFindings, pageReflowFindings, stateLostFindings } from '../site-visual.mjs';
 
 // tests/AGENTS.md ("A11y: the site checks beyond axe"): the verdicts of the keyboard walk on a site (2.1.1, 2.1.2,
 // 2.1.4, 2.4.1, 2.4.3, 3.2.1, 3.2.2, 4.1.2) and the visual judges the site checks add (1.4.10, 1.3.4, 1.4.11, 1.4.1).
@@ -39,7 +39,8 @@ test('a walk ends at the sentinel after the page, cycles when it comes back to a
   assert.match(walkProblem('budget', 100), /ran out of its 100 presses/);
   assert.match(walkProblem('stopped', 100), /nothing past an embedded grid/);
   assert.equal(walkProblem('complete', 100), null);
-  assert.equal(walkProblem('cycle', 100), null, 'a cycle walked the page and is judged as a finding');
+  assert.match(walkProblem('cycle', 100), /stops past the cycle were not walked/,
+    'a cycle is a finding, and the stops past it were never reached, so its target is not measured either');
 });
 
 test('2.1.2: a cycle Escape does not break is a trap; one it breaks is advisory', () => {
@@ -104,11 +105,16 @@ test('a popup: items no key reaches, a modal the focus leaves, Escape ignored, t
 
 test('2.1.4: a printable key that acts with nothing focused; 3.2.2: an input that changes the context', () => {
   const shortcuts = shortcutFindings([
-    { key: 'a', navigated: false, dialogOpened: false, focused: null },
-    { key: '/', navigated: false, dialogOpened: false, focused: 'input#docsearch-input' },
+    { key: 'a', navigated: false, dialogOpened: false, focused: null, repeated: null },
+    { key: '/', navigated: false, dialogOpened: false, focused: 'input#docsearch-input', repeated: true },
+    { key: 'r', navigated: true, dialogOpened: false, focused: null, to: 'https://example.test/?r', repeated: false },
+    { key: 'g', navigated: true, dialogOpened: false, focused: null, to: 'https://example.test/guides/', repeated: true },
   ]);
 
-  assert.deepEqual(shortcuts.map(item => [item.kind, item.step, item.severity]), [['single-key-shortcut', 'key "/"', 'serious']]);
+  assert.deepEqual(shortcuts.map(item => [item.kind, item.step, item.severity]),
+    [['single-key-shortcut', 'key "/"', 'serious'], ['single-key-shortcut', 'key "g"', 'serious']],
+    'an effect the second press did not repeat came from the page, not the key');
+  assert.equal(shortcuts[1].measured.to, 'https://example.test/guides/', 'a navigation says where it went');
 
   const inputs = inputFindings([
     { selector: 'select.theme', key: 'ArrowDown', navigated: false, dialogOpened: false, focusMoved: false },
@@ -158,6 +164,30 @@ test('1.4.11: a text field whose edge and fill both stand under 3:1 from the pag
 
   assert.equal(finding.kind, 'control-boundary-contrast');
   assert.deepEqual(finding.measured, { boundary: 1.99, fill: 1.05, around: 'rgb(255, 255, 255)' });
+});
+
+test('1.4.11 measures every field stop, a plain one named inside its ancestor too, and nothing else', () => {
+  for (const shape of ['input', 'input.search', 'textarea', 'select.ht-select', 'input[role="combobox"]',
+    'label.option-label input', 'span.slider input', 'div.form textarea']) {
+    assert.equal(isFieldShape(shape), true, shape);
+  }
+  // An ancestor's or an element's class named like a field, a custom element, and a role word are not fields.
+  for (const shape of ['div.input button', 'div.select', 'input-group', 'a.link', 'div.copy button', 'button[role="input"]']) {
+    assert.equal(isFieldShape(shape), false, shape);
+  }
+});
+
+test('1.4.11 judges a field\'s own box only when the tree gives it a field\'s role, never a toggle\'s or a choice\'s', () => {
+  for (const [shape, role] of [['input', 'textbox'], ['input.search', 'searchbox'], ['select.ht-select', 'combobox'],
+    ['input[role="combobox"]', 'combobox'], ['select', 'listbox'], ['input', 'spinbutton'], ['div.form textarea', 'textbox']]) {
+    assert.equal(isFieldStop({ shape, role }), true, `${shape} as ${role}`);
+  }
+  // A styled toggle, radio button or range draws its look in a sibling, so its own box reads as a field with no edge;
+  // a role read as nothing is no field either, and a field's role on a shape that is no field is the shape's call.
+  for (const [shape, role] of [['span.slider input', 'switch'], ['span.slider input', 'checkbox'], ['label.option-label input', 'radio'],
+    ['input.range', 'slider'], ['input', ''], ['div[role="textbox"]', 'textbox']]) {
+    assert.equal(isFieldStop({ shape, role }), false, `${shape} as ${role || 'no role'}`);
+  }
 });
 
 test('1.4.1 in forced colors: a state that differed only in colors forced colors replaces', () => {

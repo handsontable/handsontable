@@ -360,7 +360,7 @@ test('the E2E nightly runs the full matrix on develop every weeknight, validates
 test('test-health.yml chains on the E2E nightly, by the name the workflow carries', () => {
   const health = read(TEST_HEALTH);
 
-  assert.match(health, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly', 'Docs a11y'\]/,
+  assert.match(health, /workflows: \['Tests', 'Develop', 'Publish', 'Visual nightly', 'E2E nightly', 'A11y nightly', 'Screen reader nightly', 'Docs a11y', 'Website a11y'\]/,
     `${TEST_HEALTH} must collect the E2E nightly's flaky and failed tests: a nightly-only red is the signal a spec runs on an `
     + `axis it did not declare, and the ledger is where it is triaged. ${DOC}`);
   assert.ok(health.includes(`'${NIGHTLY_NAME}'`));

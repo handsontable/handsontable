@@ -66,7 +66,57 @@ See other available initialization methods [here](@/guides/formulas/formula-calc
 
 ## Available functions
 
-[The list of available functions can be found here](https://github.com/handsontable/hyperformula/tree/master/src/interpreter/plugin).
+HyperFormula has its own set of built-in functions, so it doesn't support every function name that the legacy formula engine did. A formula that uses a missing name returns `#NAME?`.
+
+The legacy engine supported 382 function names. As of HyperFormula 3.3, 57 of them have no built-in function with the same name. The [list of functions HyperFormula supports](https://handsontable.com/docs/hyperformula/guide/built-in-functions.html) is the reference for everything else.
+
+### Functions with a new name or an operator
+
+Rewrite formulas that use these names. The operator-style functions also exist in HyperFormula under an `HF.` prefix, for example `HF.ADD(a, b)`.
+
+| Legacy function                  | Use instead                        |
+| -------------------------------- | ---------------------------------- |
+| `ADD(a, b)`                      | `a + b` or `HF.ADD(a, b)`          |
+| `MINUS(a, b)`                    | `a - b` or `HF.MINUS(a, b)`        |
+| `MULTIPLY(a, b)`                 | `a * b` or `HF.MULTIPLY(a, b)`     |
+| `DIVIDE(a, b)`                   | `a / b` or `HF.DIVIDE(a, b)`       |
+| `EQ(a, b)`, `NE(a, b)`           | `a = b`, `a <> b`                  |
+| `GTE(a, b)`                      | `a >= b`                           |
+| `LT(a, b)`, `LTE(a, b)`          | `a < b`, `a <= b`                  |
+| `POW(a, b)`                      | `POWER(a, b)`                      |
+| `E()`                            | `EXP(1)`                           |
+| `CEILINGMATH`, `CEILINGPRECISE`  | `CEILING.MATH`, `CEILING.PRECISE`  |
+| `PERCENTILEINC`, `PERCENTILEEXC` | `PERCENTILE.INC`, `PERCENTILE.EXC` |
+| `QUARTILEINC`, `QUARTILEEXC`     | `QUARTILE.INC`, `QUARTILE.EXC`     |
+
+### Functions without a built-in equivalent
+
+HyperFormula doesn't ship a function for these names:
+
+`ACCRINT`, `AGGREGATE`, `ARGS2ARRAY`, `AVERAGEIFS`, `BINOM.DIST.RANGE`, `CONVERT`, `COUNTIN`, `FLATTEN`, `FORECAST`, `FREQUENCY`, `GESTEP`, `GROWTH`, `HTML2TEXT`, `INTERCEPT`, `JOIN`, `KURT`, `LINEST`, `LOGEST`, `MODE.MULT`, `MODE.SNGL`, `MODEMULT`, `MODESNGL`, `NUMBERS`, `PERCENTRANKEXC`, `PERCENTRANKINC`, `PERMUT`, `PERMUTATIONA`, `PROB`, `RANK.AVG`, `RANK.EQ`, `RANKAVG`, `RANKEQ`, `REFERENCE`, `REGEXEXTRACT`, `REGEXMATCH`, `REGEXREPLACE`, `TREND`, `TRIMMEAN`, `UNIQUE`, `XIRR`.
+
+To keep a formula that uses one of these names working, you can [implement it as a custom function](@/guides/formulas/formula-calculation/formula-calculation.md#keep-legacy-function-names) with the same name. Functions that take ranges or arrays, such as `LINEST` or `UNIQUE`, need more work than scalar ones.
+
+### Formula syntax
+
+Two more differences affect formulas that worked before 9.0:
+
+- HyperFormula separates function arguments with a comma. `=ROUND(1.7;2)` returns an error, and `=ROUND(1.7,2)` works. To keep the semicolon, set the HyperFormula [`functionArgSeparator`](https://handsontable.com/docs/hyperformula/api/interfaces/configparams.html#functionargseparator) option to `';'` in the [`engine` configuration](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods):
+
+  ```js
+  formulas: {
+    engine: {
+      hyperformula: HyperFormula,
+      functionArgSeparator: ';',
+    },
+  },
+  ```
+
+- `CEILING` requires two arguments. Change `=CEILING(56.2)` to `=CEILING(56.2,1)`.
+
+### Migrate formulas that are already stored
+
+If your application stores formulas, for example in a database, rewrite the functions from the first table before you load the data into the grid. Replace each legacy name with its new form. If you can't change the stored text, register a custom function with the legacy name instead, for any name in this section.
 
 ## Autofill hooks
 

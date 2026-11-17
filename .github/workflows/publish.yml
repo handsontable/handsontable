@@ -313,19 +313,11 @@ jobs:
         run: npm run changelog consume < /dev/null
 
       - name: Extract changelog for this version
-        id: changelog
-        run: |
-          RC_VERSION='${{ steps.version.outputs.rc-version }}'
-          CONTENT=$(node .github/scripts/extract-changelog.mjs "$RC_VERSION")
-          {
-            echo "content<<EOF"
-            printf '%s\n' "$CONTENT"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+        run: node .github/scripts/extract-changelog.mjs '${{ steps.version.outputs.rc-version }}' > "$RUNNER_TEMP/changelog.md"
 
       - name: Update docs changelog
         env:
-          CHANGELOG_CONTENT: ${{ steps.changelog.outputs.content }}
+          CHANGELOG_FILE: ${{ runner.temp }}/changelog.md
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.rc-version }}'
 
       - name: Generate version highlights scaffold
@@ -383,13 +375,12 @@ jobs:
       - name: Update GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_NOTES: ${{ steps.changelog.outputs.content }}
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           RC_VERSION="${VERSION}-rc1"
           RELEASE_TAG="${VERSION}-rc"
 
-          printf '%s' "$RELEASE_NOTES" > /tmp/release-notes.md
+          node .github/scripts/release-notes.mjs "${RC_VERSION}" "${RC_VERSION}" > /tmp/release-notes.md
           gh release edit "${RELEASE_TAG}" --tag "${RC_VERSION}" --repo "${{ github.repository }}" --notes-file /tmp/release-notes.md
           echo "Updated release '${RELEASE_TAG}' to point to tag '${RC_VERSION}'"
 
@@ -823,19 +814,11 @@ jobs:
           fi
 
       - name: Extract changelog for this version
-        id: changelog
-        run: |
-          RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
-          CONTENT=$(node .github/scripts/extract-changelog.mjs "$RC_VERSION")
-          {
-            echo "content<<EOF"
-            printf '%s\n' "$CONTENT"
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
+        run: node .github/scripts/extract-changelog.mjs '${{ steps.rc-version.outputs.rc-version }}' > "$RUNNER_TEMP/changelog.md"
 
       - name: Update docs changelog
         env:
-          CHANGELOG_CONTENT: ${{ steps.changelog.outputs.content }}
+          CHANGELOG_FILE: ${{ runner.temp }}/changelog.md
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.rc-version.outputs.rc-version }}'
 
       - name: Generate version highlights scaffold
@@ -868,14 +851,13 @@ jobs:
       - name: Update GitHub release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_NOTES: ${{ steps.changelog.outputs.content }}
         run: |
           VERSION='${{ steps.version.outputs.version }}'
           RC_VERSION='${{ steps.rc-version.outputs.rc-version }}'
           RC_NUMBER=$(echo "$RC_VERSION" | sed -n "s/^${VERSION}-rc\([0-9]\+\)$/\1/p")
           PREVIOUS_TAG="${VERSION}-rc$((RC_NUMBER - 1))"
 
-          printf '%s' "$RELEASE_NOTES" > /tmp/release-notes.md
+          node .github/scripts/release-notes.mjs "${RC_VERSION}" "${RC_VERSION}" > /tmp/release-notes.md
           gh release edit "${PREVIOUS_TAG}" --tag "${RC_VERSION}" --repo "${{ github.repository }}" --notes-file /tmp/release-notes.md
           echo "Updated release '${PREVIOUS_TAG}' to point to tag '${RC_VERSION}'"
 
@@ -1319,8 +1301,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION='${{ steps.version.outputs.version }}'
-          CONTENT=$(node .github/scripts/extract-changelog.mjs "$VERSION")
-          printf '%s' "$CONTENT" > /tmp/release-notes.md
+          node .github/scripts/release-notes.mjs "$VERSION" "$VERSION" > /tmp/release-notes.md
           gh release edit "${VERSION}" --repo "${{ github.repository }}" --notes-file /tmp/release-notes.md
           echo "Updated release description for ${VERSION}"
 
@@ -1764,12 +1745,7 @@ jobs:
       - name: Extract changelog for docs
         id: docs-changelog-content
         continue-on-error: true
-        run: |
-          VERSION='${{ needs.stable-build.outputs.version }}'
-          CONTENT=$(node .github/scripts/extract-changelog.mjs "$VERSION")
-          echo "content<<DOCS_CHANGELOG_EOF" >> $GITHUB_OUTPUT
-          echo "$CONTENT" >> $GITHUB_OUTPUT
-          echo "DOCS_CHANGELOG_EOF" >> $GITHUB_OUTPUT
+        run: node .github/scripts/extract-changelog.mjs '${{ needs.stable-build.outputs.version }}' > "$RUNNER_TEMP/changelog.md"
 
       - name: Install dependencies
         id: docs-deps
@@ -1954,7 +1930,7 @@ jobs:
         id: docs-changelog
         continue-on-error: true
         env:
-          CHANGELOG_CONTENT: ${{ steps.docs-changelog-content.outputs.content }}
+          CHANGELOG_FILE: ${{ runner.temp }}/changelog.md
         run: node .github/scripts/update-docs-changelog.mjs '${{ needs.stable-build.outputs.version }}'
 
       # DEV-2925: on a PATCH release the docs branch is checked out, not re-cut from

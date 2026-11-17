@@ -147,6 +147,10 @@ function detectChanged(hot, changes, source) {
   let changed = false;
 
   changes.forEach(([row, prop]) => {
+    if (row === null) {
+      return;
+    }
+
     // A column can be addressed by a function in `data`. Detection skips those.
     if (typeof prop === 'function') {
       return;

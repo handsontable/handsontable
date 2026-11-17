@@ -132,7 +132,8 @@ afterChange: (changes, source) => {
     return;
   }
 
-  changes.forEach(([row, prop, _oldValue, newValue]) => {
+  changes.forEach((change) => {
+    const physicalRow = masterHot.getPhysicalRowOfChange(change);
     // Update only mapped columns.
   });
 }
@@ -143,7 +144,7 @@ The source check prevents re-entrant updates if synced writes trigger hooks, and
 ## How it works - complete flow
 
 1. You edit a value in the master grid.
-2. `afterChange` receives row, column, and new value.
+2. `afterChange` receives the changes, and `getPhysicalRowOfChange()` finds the record each one was written to.
 3. The handler updates only mapped fields in the detail row.
 4. The detail grid receives updates via `setDataAtCell(..., 'sync-from-master')`.
 5. The source guard ignores sync-originated updates, so no infinite loop occurs.

@@ -1,16 +1,12 @@
-"use client";
+'use client';
 
-import { shallow } from "@liveblocks/client";
-import { HotTable } from "@handsontable/react-wrapper";
-import { registerAllModules } from "handsontable/registry";
-import { textRenderer } from "handsontable/renderers";
-import {
-  useMutation,
-  useOthersListener,
-  useStorage,
-} from "@liveblocks/react/suspense";
-import { useCallback, useRef } from "react";
-import { GRID_COLS, GRID_ROWS } from "./liveblocks.config";
+import { shallow } from '@liveblocks/client';
+import { HotTable } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers';
+import { useMutation, useOthersListener, useStorage } from '@liveblocks/react/suspense';
+import { useCallback, useRef } from 'react';
+import { GRID_COLS } from './liveblocks.config';
 
 registerAllModules();
 
@@ -19,16 +15,13 @@ export function Table() {
 
   // Get the realtime grid contents from Liveblocks Storage
   const data = useStorage(
-    (root) =>
-      root.grid.map((row) =>
-        Array.from({ length: GRID_COLS }, (_, c) => String(row[c] ?? ""))
-      ),
-    shallow
+    (root) => root.grid.map((row) => Array.from({ length: GRID_COLS }, (_, c) => String(row[c] ?? ''))),
+    shallow,
   );
 
   // Update a cell's value
   const updateCell = useMutation(({ storage }, rowIndex, colIndex, value) => {
-    const grid = storage.get("grid");
+    const grid = storage.get('grid');
     const row = grid.get(rowIndex);
     if (row) {
       row.set(colIndex, value);
@@ -38,23 +31,22 @@ export function Table() {
   // Update the grid when a cell is changed
   const afterChange = useCallback(
     (changes, source) => {
-      if (!changes || source === "loadData") {
+      if (!changes || source === 'loadData') {
         return;
       }
 
-      for (const [row, prop, , newVal] of changes) {
-        if (typeof prop !== "number") {
+      for (const change of changes) {
+        const [, prop, , newVal] = change;
+        const physicalRow = hotRef.current?.hotInstance?.getPhysicalRowOfChange(change) ?? null;
+
+        if (physicalRow === null || typeof prop !== 'number') {
           continue;
         }
 
-        updateCell(
-          row,
-          prop,
-          newVal === null || newVal === undefined ? "" : String(newVal)
-        );
+        updateCell(physicalRow, prop, newVal === null || newVal === undefined ? '' : String(newVal));
       }
     },
-    [updateCell]
+    [updateCell],
   );
 
   // Sync selected cell to presence
@@ -75,25 +67,21 @@ export function Table() {
 
     // Find users who have selected this cell
     const selectedOthers = others.filter(
-      (o) =>
-        o.presence.selectedCell?.row === row &&
-        o.presence.selectedCell?.col === col
+      (o) => o.presence.selectedCell?.row === row && o.presence.selectedCell?.col === col,
     );
 
     if (!selectedOthers.length) {
-      td.style.boxShadow = "";
+      td.style.boxShadow = '';
       return;
     }
 
     // Add inner borders for selected users
-    td.style.boxShadow = selectedOthers
-      .map((p, i) => `inset 0 0 0 ${2 + i * 2}px ${p.info.color}`)
-      .join(", ");
+    td.style.boxShadow = selectedOthers.map((p, i) => `inset 0 0 0 ${2 + i * 2}px ${p.info.color}`).join(', ');
   }, []);
 
   // Re-render the table when others update their presence
   useOthersListener(({ type }) => {
-    if (type === "update") {
+    if (type === 'update') {
       hotRef.current?.hotInstance?.render();
     }
   });

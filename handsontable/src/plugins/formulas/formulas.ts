@@ -7449,8 +7449,16 @@ export class Formulas extends BasePlugin {
 
     const engine = this.engine!;
     const dependentCells = this.#writeOwnSheet(engine, () => runEngineBatch(engine, () => {
-      changes.forEach(([visualRow, prop, oldValue, newValue]) => {
+      changes.forEach((change) => {
+        const [visualRow, prop, oldValue, newValue] = change;
+
         if (typeof prop !== 'string' && typeof prop !== 'number') {
+          return;
+        }
+
+        if (visualRow === null) {
+          this.#writeTrimmedRecordChange(change, writtenCells, changedCells);
+
           return;
         }
 
@@ -7496,6 +7504,85 @@ export class Formulas extends BasePlugin {
     }
 
     return { dependentCells, changedCells, writtenCells };
+  }
+
+  /**
+   * Writes into the engine a change whose row reads `null`: a change that waited for its validator and landed
+   * on a record a trimming map (a filter, a collapse) took out of the visual space meanwhile. The engine keeps
+   * trimmed rows, so the record is addressed by its physical row (`getPhysicalRowOfChange()`).
+   *
+   * @param {Array} change The change.
+   * @param {Array} writtenCells Collects the cells written.
+   * @param {Array} changedCells Collects the addresses written.
+   */
+  #writeTrimmedRecordChange(change: CellChange, writtenCells: WrittenCell[], changedCells: unknown[]) {
+    const [, prop, oldValue, value] = change;
+    const physicalRow = this.hot.getPhysicalRowOfChange(change);
+    const visualColumn = this.hot.propToCol(prop as string | number);
+    const physicalColumn = visualColumn === null ? null : this.hot.toPhysicalColumn(visualColumn);
+
+    if (physicalRow === null || visualColumn === null || physicalColumn === null) {
+      return;
+    }
+
+    const address = {
+      row: this.rowAxisSyncer!.getHfIndexFromPhysicalIndex(physicalRow),
+      col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+      sheet: this.sheetId,
+    };
+
+    if (!this.engine!.isItPossibleToSetCellContents(address)) {
+      return;
+    }
+
+    const newValue = this.#keepingStoredMetaStamps(physicalRow, physicalColumn, () => {
+      const valueGetterValue = this.#getValueGetterValue(physicalRow, physicalColumn, value);
+
+      if (typeof valueGetterValue !== 'string') {
+        return valueGetterValue;
+      }
+
+      return this.#escapeEngineBoundValue(valueGetterValue, this.hot._getMetaManager().getCellMetaTransient(
+        physicalRow, physicalColumn, { visualRow: physicalRow, visualColumn },
+      ));
+    });
+
+    this.#noteOwnCellWrite(address);
+    this.engine!.setCellContents(address, newValue);
+    this.#recordSyncedCell(physicalRow, visualColumn, newValue);
+    writtenCells.push({
+      address, physicalRow, physicalColumn, visualRow: physicalRow, visualColumn, oldValue, writtenContent: undefined,
+    });
+    changedCells.push({ address });
+  }
+
+  /**
+   * Runs a read of a cell's meta that stamps coordinates on it (`getCellMetaTransient()` stamps the stored meta
+   * object), and puts the stamps of the stored meta back afterwards. The stored meta of a record a trim took out of
+   * the visual space is the `this` of a validator call that waits on it, whose `visualRow` the Core keeps `null`
+   * for as long as the record has no visual row, so a correction the validator writes through it is dropped instead
+   * of landing on the record at the visual row equal to the physical one.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {Function} read The read.
+   * @returns {*} What the read returns.
+   */
+  #keepingStoredMetaStamps<T>(physicalRow: number, physicalColumn: number, read: () => T): T {
+    const storedMeta = this.hot._getMetaManager().getCellMetaIfExists(physicalRow, physicalColumn);
+
+    if (storedMeta === undefined) {
+      return read();
+    }
+
+    const { row, col, visualRow, visualCol } = storedMeta;
+
+    try {
+      return read();
+
+    } finally {
+      Object.assign(storedMeta, { row, col, visualRow, visualCol });
+    }
   }
 
   /**

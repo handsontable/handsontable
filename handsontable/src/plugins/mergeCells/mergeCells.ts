@@ -3874,8 +3874,12 @@ export class MergeCells extends BasePlugin {
       return fullArea;
     }
 
-    return this.autofillCalculations
+    const fillArea = this.autofillCalculations
       .snapDragArea(baseArea, fullArea, dragDirection, mergedCellsWithinSelectionArea);
+
+    this.autofillCalculations.captureFillArea(fillArea);
+
+    return fillArea;
   };
 
   /**

@@ -114,7 +114,7 @@ the text (DEV-986). The measurement was not lost: the hidden top-left row was me
   commit. The mapper callback only sets the flag: clearing from inside it would write the height map in the middle of a
   cache update. A grid with no merge pays nothing.
 - **A change of data re-measures the carrier rows.** `#onBeforeChange` queues the rows of the changes, and a block
-  drawn on a covered cell takes its text from another cell, so it queues every row of `#blockCarriers` as well.
+  drawn on a covered cell takes its text from another cell, so it queues every row of `#blockCarriers` as well. A change whose row is `null` (a validated change written to a record a trim took out of the visual rows while it waited) has no row to queue, so its record's cached height is dropped by the physical row `getPhysicalRowOfChange()` names, and the row is measured again when it is shown (`__tests__/rowHeightsInteraction.unit.ts`).
 - **A merge with nothing hidden is unchanged**: the top-left row takes the whole measured height and the rows it covers
   keep the default, as before. Pinned by `__tests__/mergedBlockSamples.unit.ts` and
   `tests/e2e/auto-row-size-merged-hidden-origin.spec.ts`. The E2E block below the fold is the case that fails without

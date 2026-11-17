@@ -25,4 +25,6 @@ export const A11Y_SUITE_IDS: readonly string[];
 export function withScannedUrls(suite: A11ySuite, scans?: readonly { page: string; theme: string; url?: string }[]): A11ySuite;
 export const PRODUCT_SUITE: A11ySuite;
 export function docsSuite(baseUrl?: string): A11ySuite;
-export function suiteFor(id: string, options?: { docsBaseUrl?: string }): A11ySuite;
+export function suiteFor(id: string, options?: { docsBaseUrl?: string; websiteBaseUrl?: string }): A11ySuite;
+export function websiteSuite(baseUrl?: string): A11ySuite;
+export const WEBSITE_BASELINE_FILE: string;
