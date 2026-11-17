@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-17T14:57:09.292Z",
+  "generatedAt": "2026-11-17T15:24:31.414Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -713,7 +713,7 @@
       "file": "visual-tests/tests/js-only/row-selection/row-selection-checkbox-states.spec.ts",
       "line": null,
       "title": "js-only/row-selection/row-selection-checkbox-states-1",
-      "count7": 2,
+      "count7": 0,
       "count30": 4,
       "countAll": 4,
       "runs30": 2,
