@@ -378,6 +378,23 @@ function insertionIndex(comments) {
 }
 
 /**
+ * The comments this run wrote into a tree as `//` lines, so `MarkerCarriers` can tell them from the comments of the
+ * file when it moves them out of the tree.
+ */
+const TOOL_COMMENTS = new WeakSet();
+
+/**
+ * Whether a comment node is one this run wrote with `addJsTodo()` (a `//` line before a node), as against a comment of
+ * the file or a JSX comment.
+ *
+ * @param {object} comment A comment node.
+ * @returns {boolean} `true` for a comment of the tool.
+ */
+export function isToolComment(comment) {
+  return TOOL_COMMENTS.has(comment);
+}
+
+/**
  * Add a `//` comment before a node, after its leading comments and before a trailing one, unless the same
  * comment is already in front of it.
  *
@@ -394,9 +411,13 @@ function insertLineComment(j, node, body, scan) {
 
   node.comments = node.comments ?? [];
 
+  const comment = j.commentLine(` ${body}`, true, false);
+
+  TOOL_COMMENTS.add(comment);
+
   // The TODO goes after the leading comments and before a trailing one, so a note at the end of the line stays there.
   // A directive for the next line keeps that line: the TODO goes above it.
-  node.comments.splice(insertionIndex(node.comments), 0, j.commentLine(` ${body}`, true, false));
+  node.comments.splice(insertionIndex(node.comments), 0, comment);
 
   return true;
 }
@@ -441,7 +462,7 @@ export function hasJsTodo(target, ruleId, text, guideUrl = null, scan = null) {
 /**
  * Leave a TODO comment before a JavaScript or TypeScript AST node, unless the same comment is already in front
  * of it. This module and `addCssTodo` write TODO comments into a tree. `MarkerCarriers` places the same text after
- * printing, for an untouched array element.
+ * printing, for an untouched array element or statement.
  *
  * The comment is a `//` line comment before the node. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX
  * comment next to the element instead (see `addJsxTodo`).

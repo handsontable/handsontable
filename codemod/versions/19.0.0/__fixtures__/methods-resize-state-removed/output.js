@@ -4,7 +4,9 @@ const hot = new Handsontable(document.querySelector('#grid'), { manualColumnResi
 const columns = hot.getPlugin('manualColumnResize');
 const rows = hot.getPlugin('manualRowResize');
 
-hot.addHook('afterColumnResize', () => {});
+hot.addHook('afterColumnResize', () => {
+});
+
 
 // TODO(handsontable-codemod 19.0.0/resize-state-methods): Remove loadManualRowHeights() by hand: its result is used here, so the call was kept. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#removed-deprecated-apis
 const widths = rows.loadManualRowHeights();

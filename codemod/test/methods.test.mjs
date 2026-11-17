@@ -138,7 +138,7 @@ describe('methodRemove', () => {
 
     const only = await removal('function f() {\n  // about the call\n  plugin.saveManualColumnWidths();\n}');
 
-    assert.match(only.output, /\/\/ about the call\nfunction f\(\) \{\}/);
+    assert.match(only.output, /function f\(\) \{\n {2}\/\/ about the call\n\}/);
 
     const alone = await run('import Handsontable from \'handsontable\';\n'
       + 'hot.getPlugin(\'manualColumnResize\').saveManualColumnWidths(); // trailing\n', rules);

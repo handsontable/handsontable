@@ -4,7 +4,8 @@ const hot = new Handsontable(document.querySelector('#grid'), { manualColumnResi
 const columns = hot.getPlugin('manualColumnResize');
 const rows = hot.getPlugin('manualRowResize');
 
-hot.addHook('afterColumnResize', () => {});
+hot.addHook('afterColumnResize', () => {
+});
 
 // restore the sizes on load
 // persist
@@ -13,8 +14,7 @@ hot.addHook('afterColumnResize', () => {});
 const widths = columns.loadManualColumnWidths();
 
 // TODO(handsontable-codemod 18.0.0/resize-state-methods): Remove saveManualRowHeights() by hand: it has no braces, so the call was kept. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#stop-calling-deprecated-resize-state-methods
-if (widths.length)
-  rows.saveManualRowHeights();
+if (widths.length) rows.saveManualRowHeights();
 
 // TODO(handsontable-codemod 18.0.0/resize-state-methods): Remove saveManualColumnWidths() by hand: its result is used here, so the call was kept. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#stop-calling-deprecated-resize-state-methods
 const persist = () => columns.saveManualColumnWidths();

@@ -174,7 +174,7 @@ export function save() {
 describe('a kept call that is the whole body of a statement without braces', () => {
   const RULE = '19.0.0/resize-state-methods';
 
-  it('gets its TODO above the statement, which recast prints over two lines (a documented limitation), and stays stable', async() => {
+  it('gets its TODO on the line above and keeps the statement on its own line, and stays stable', async() => {
     const source = `${HOT}export function save(ready) {
   const hot = new Handsontable(document.body, {});
   const columns = hot.getPlugin('manualColumnResize');
@@ -186,8 +186,9 @@ describe('a kept call that is the whole body of a statement without braces', () 
     const rows = results[0].output.split('\n');
     const at = rows.findIndex(row => row.includes(`${TODO} ${RULE})`));
 
-    assert.equal(rows[at + 1], '  if (ready)');
-    assert.equal(rows[at + 2], '    columns.saveManualColumnWidths();');
+    assert.equal(rows[at - 1], '');
+    assert.equal(rows[at + 1], '  if (ready) columns.saveManualColumnWidths();');
+    assert.equal(rows[at + 2], '}');
     assert.equal(results[1].changed, false);
     assert.equal(results[2].changed, false);
   });

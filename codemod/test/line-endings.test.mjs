@@ -123,23 +123,40 @@ describe('line endings of an edited JavaScript file', () => {
 
   it('refuses to guess when an edit sits next to a repeated line that ends in two ways, and leaves the file alone',
     async() => {
-      // The edit removes the statement between two blank lines that end in different ways, and the printer keeps one
-      // of them. Which one the file keeps is not in the text, so the tool does not pick.
+      // The edit removes an import declaration between two blank lines that end in different ways, and the printer
+      // keeps one of them. Which one the file keeps is not in the text, so the tool does not pick. (A removed
+      // expression statement is cut out of the text instead, so it never gets here: see the next test.)
       const source = [
         'import Handsontable from \'handsontable\';\n',
-        'const hot = new Handsontable(el, {});\n',
         '\r\n',
-        'hot.getPlugin(\'manualColumnResize\').saveManualColumnWidths();\n',
+        'import { CellChange } from \'handsontable/common\';\n',
         '\n',
-        'hot.render();\r\n',
+        'export function f(change: CellChange) {\r\n',
+        '  return change;\r\n',
+        '}\r\n',
       ].join('');
-      const { output, changed, entries } = await transform(source);
+      const { output, changed, entries } = await transform(source, ['18.0.0/common-imports'], 'grid.ts');
 
       assert.equal(changed, false);
       assert.equal(output, source);
       assert.ok(entries.some(entry => entry.ruleId === 'transform-error'
         && /cannot tell which line ending/.test(entry.message)), JSON.stringify(entries));
     });
+
+  it('cuts a removed statement out between two blank lines that end in different ways, and keeps both', async() => {
+    const source = [
+      'import Handsontable from \'handsontable\';\n',
+      'const hot = new Handsontable(el, {});\n',
+      '\r\n',
+      'hot.getPlugin(\'manualColumnResize\').saveManualColumnWidths();\n',
+      '\n',
+      'hot.render();\r\n',
+    ].join('');
+    const { output, changed } = await transform(source);
+
+    assert.equal(changed, true);
+    assert.equal(output, source.replace('hot.getPlugin(\'manualColumnResize\').saveManualColumnWidths();\n', ''));
+  });
 
   it('does not refuse when the repeated lines end the same way', async() => {
     const source = [

@@ -7,7 +7,7 @@ import { delimiter, dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { discover } from '../src/discover.mjs';
-import { GitError, dirtyPaths, gitExecutable, isGitRepo, listFiles } from '../src/git.mjs';
+import { GitError, GitNotFoundError, dirtyPaths, gitExecutable, isGitRepo, listFiles } from '../src/git.mjs';
 import { findExecutable } from '../src/lib/find-executable.mjs';
 import { run } from '../src/runner.mjs';
 import { GIT_ISOLATION, isolatedGitEnv } from './helpers/git-env.mjs';
@@ -168,19 +168,140 @@ describe('git runs from PATH, not from the project directory', () => {
       }
     });
 
-  it('behaves as "not a git repository" when git is not on PATH, and resolves once per PATH', async() => {
+  it('behaves as "not a git repository" when git is not on PATH and no .git entry stands above, and resolves once '
+    + 'per PATH', async() => {
     const project = await repo({ 'a.js': 'x\n' });
+    const plain = await mkdtemp(join(tmpdir(), 'codemod-guards-plain-'));
 
     try {
       await withPath(join(project, 'nowhere'), async() => {
         assert.equal(await gitExecutable(), null);
-        assert.equal(await isGitRepo(project), false);
+        assert.equal(await isGitRepo(plain), false);
       });
       assert.equal(await isGitRepo(project), true, 'the answer follows the PATH of the moment');
       assert.equal(await gitExecutable(), await gitExecutable(), 'one answer per PATH');
     } finally {
       await rm(project, { recursive: true, force: true });
+      await rm(plain, { recursive: true, force: true });
     }
+  });
+
+  it('throws GitNotFoundError when git is not on PATH and a .git directory or file stands at or above the directory',
+    async() => {
+      const project = await repo({ 'src/a.js': 'x\n' });
+      // The shape of a linked work tree and of a submodule: `.git` is a file.
+      const linked = await mkdtemp(join(tmpdir(), 'codemod-guards-linked-'));
+
+      try {
+        await writeFile(join(linked, '.git'), 'gitdir: /elsewhere/.git/worktrees/linked\n');
+        await mkdir(join(linked, 'packages', 'app'), { recursive: true });
+
+        // The directory to ask from, and the directory that holds the `.git` entry.
+        const cases = [
+          [project, project],
+          [join(project, 'src'), project],
+          [linked, linked],
+          [join(linked, 'packages', 'app'), linked],
+        ];
+
+        await withPath(join(project, 'nowhere'), async() => {
+          for (const [directory, holder] of cases) {
+            await assert.rejects(isGitRepo(directory), (error) => {
+              assert.equal(error instanceof GitNotFoundError, true, directory);
+              assert.equal(error instanceof GitError, true, 'a GitError too, so discover() walks the files');
+              assert.match(error.message, /git was not found on PATH/);
+              assert.equal(error.directory, holder);
+
+              return true;
+            });
+          }
+        });
+      } finally {
+        await rm(project, { recursive: true, force: true });
+        await rm(linked, { recursive: true, force: true });
+      }
+    });
+});
+
+describe('no git program inside a repository is not the same as no repository', () => {
+  const NO_GIT = join(tmpdir(), 'codemod-no-git-here');
+
+  /**
+   * Run a body with a `PATH` that holds no git.
+   *
+   * @param {() => Promise<void>} body The body.
+   * @returns {Promise<void>}
+   */
+  async function withoutGit(body) {
+    const before = process.env.PATH;
+
+    process.env.PATH = NO_GIT;
+
+    try {
+      await body();
+    } finally {
+      process.env.PATH = before;
+    }
+  }
+
+  it('refuses a run that writes, names git and --allow-dirty, and changes nothing', async() => {
+    await inPlainProject({ 'a.css': CSS, '.git/HEAD': 'ref: refs/heads/main\n' }, async(dir) => {
+      await withoutGit(async() => {
+        const result = await migrate(dir, ['--from', '17.1', '--to', '18.0']);
+
+        assert.equal(result.status, 2, result.stdout + result.stderr);
+        assert.match(result.stderr, /git was not found on PATH/);
+        assert.match(result.stderr, /--allow-dirty/);
+        assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS);
+      });
+    });
+  });
+
+  it('refuses the same way for a .git file, and from a folder below the repository', async() => {
+    await inPlainProject({ 'packages/app/a.css': CSS, '.git': 'gitdir: /elsewhere/.git/worktrees/x\n' }, async(dir) => {
+      await withoutGit(async() => {
+        const result = await migrate(join(dir, 'packages', 'app'), ['--from', '17.1', '--to', '18.0']);
+
+        assert.equal(result.status, 2, result.stdout + result.stderr);
+        assert.match(result.stderr, /git was not found on PATH/);
+        assert.equal(await readFile(join(dir, 'packages', 'app', 'a.css'), 'utf8'), CSS);
+      });
+    });
+  });
+
+  it('runs without the check when --allow-dirty is passed, and says so', async() => {
+    await inPlainProject({ 'a.css': CSS, '.git/HEAD': 'ref: refs/heads/main\n' }, async(dir) => {
+      await withoutGit(async() => {
+        const result = await migrate(dir, ['--from', '17.1', '--to', '18.0', '--allow-dirty']);
+
+        assert.equal(result.status, 0, result.stdout + result.stderr);
+        assert.match(result.stdout, /git was not found on PATH/);
+        assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS_DONE);
+      });
+    });
+  });
+
+  it('previews on --dry-run, because nothing is written', async() => {
+    await inPlainProject({ 'a.css': CSS, '.git/HEAD': 'ref: refs/heads/main\n' }, async(dir) => {
+      await withoutGit(async() => {
+        const result = await migrate(dir, ['--from', '17.1', '--to', '18.0', '--dry-run']);
+
+        assert.equal(result.status, 0, result.stdout + result.stderr);
+        assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS);
+      });
+    });
+  });
+
+  it('keeps the old behavior with no .git entry anywhere above: a project outside git, with the old warning', async() => {
+    await inPlainProject({ 'a.css': CSS }, async(dir) => {
+      await withoutGit(async() => {
+        const result = await migrate(dir, ['--from', '17.1', '--to', '18.0']);
+
+        assert.equal(result.status, 0, result.stdout + result.stderr);
+        assert.match(result.stderr, /Not a git repository/);
+        assert.equal(await readFile(join(dir, 'a.css'), 'utf8'), CSS_DONE);
+      });
+    });
   });
 });
 

@@ -463,10 +463,13 @@ the tool reads the version from `package.json`, which the run raised, and answer
   map. A variable name built in JavaScript (`` `--ht-${token}` ``) is not found.
 - The line of a report entry inside a multi-line template literal is the line of the variable. Its TODO marker goes on
   the statement that holds the literal, because a comment cannot sit inside the literal.
-- A kept call that is the whole body of a statement without braces (`if (ready) plugin.saveManualColumnWidths();`) gets its
-  TODO on the statement, and recast prints that statement over two lines: `if (ready)`, then the call indented. The
-  array element and the property of a one-line object keep their layout, because a marker on them goes in as text
-  after printing. A statement does not, so run your formatter, or add the braces first.
+- A TODO on a statement that stands on one line, that the run did not change, and that starts its line
+  (`if (ready) plugin.saveManualColumnWidths();`, a `for`, a `while`, a label, a declaration, an `export`) goes on the line
+  above, and the statement stays as it was, byte for byte. So does a TODO on an array element or a property of a
+  one-line object. The printer still lays out three kinds of statement when they get a TODO: one that shares its line
+  with other code (`{ call(); }`, `function f() { call(); }`, `a(); call();`), a brace-less `if` with an `else`, or a label,
+  that spans lines (`if (a) b();` then `else c();` is printed on four lines), and a statement that a rule changed. Run
+  your formatter, or add the braces first.
 - A receiver it cannot confirm as a grid instance is not rewritten. A name that holds a grid on one path and something
   else on another is not confirmed either, and neither is a `this.x` inside a function, an object method, or a nested
   class, or in a class that assigns members by a computed key. A generic name such as `editor.undo()` is
@@ -490,10 +493,12 @@ the tool reads the version from `package.json`, which the run raised, and answer
   link. The new file has a new inode, so a hard link to the old file keeps the old text. A failed or refused write is
   not counted as a rewrite in the summary.
 - It runs the `git` found in the directories of `PATH` by absolute path, and never one in the project directory (on
-  Windows a `git.exe` in the project would otherwise run first). When git is not found, or says that the directory is
-  not a repository, it behaves as outside a repository. A git that runs and fails for another reason (`detected
-  dubious ownership` in a container, a corrupt repository) is different: the tool cannot tell a clean tree from a
-  dirty one, so a run that writes stops with exit code 2 and git's message. `--allow-dirty` runs without the check, and
+  Windows a `git.exe` in the project would otherwise run first). When git says that the directory is not a repository,
+  it behaves as outside a repository, and so it does when no git is found and no `.git` entry (a directory, or the file
+  of a linked work tree or a submodule) stands in the directory or above it. A git that runs and fails for another
+  reason (`detected dubious ownership` in a container, a corrupt repository), and no git on `PATH` inside a repository,
+  are different: the tool cannot tell a clean tree from a dirty one, so a run that writes stops with exit code 2 and
+  says what happened (git's message, or that git was not found). `--allow-dirty` runs without the check, and
   `--dry-run` previews; both read the files without git and say so. It asks git in English (`LC_ALL=C`), so a
   translated message is not read as a failure.
 - It edits `package.json` by text offset, so only the changed values and one added line differ. When it cannot
@@ -529,10 +534,16 @@ the tool reads the version from `package.json`, which the run raised, and answer
   the printed file with the source, and when a comment or a directive of that start is lost or reordered it leaves the
   file unchanged and reports a `transform-error`. A comment the tool adds goes after them, or above a directive for the
   next line (`// eslint-disable-next-line`, `// @ts-expect-error`, `// prettier-ignore`), which keeps its line.
-- When a statement goes away (a removed call, an import merged into another), the printer reprints the statements after
-  it in the same list, and two statements that shared a line (`a(); b();`) come out without the space between them
-  (`a();b();`). The code is the same. Run your formatter. The comments of a removed import (a line above it, a trailing
-  note, a JSDoc block) move to the import that took its name.
+- A removed call that is a whole statement is cut out of the text, so the statements around it keep their lines, their
+  blank lines, and their spaces. Its line goes with it when it stood alone. When it shared a line, it goes with the run of
+  spaces that set it apart (`a(); call(); b();` becomes `a(); b();`). Its comments stay where they stood, so a block that
+  held nothing else is left with its two braces on lines of their own, and a blank line around the statement stays. When
+  another change makes the printer lay out the same list again (an import split in two, say), the printer puts two
+  statements that shared a line on lines of their own.
+- When an import goes away because it was merged into another, the printer reprints the statements after it in the same
+  list, and two statements that shared a line (`a(); b();`) come out without the space between them (`a();b();`). The
+  code is the same. Run your formatter. The comments of a removed import (a line above it, a trailing note, a JSDoc
+  block) move to the import that took its name.
 - A wildcard re-export (`export * from 'handsontable/plugins/columnSorting'`, `export * as ns from ...`) of a module
   whose names a rule renames or removes gets one entry per rule: every file that imports from the barrel gets the new
   names. The files that import from the barrel are not read. A JSDoc type (`@param {Config}`) that still says the

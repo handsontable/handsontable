@@ -771,7 +771,12 @@ function removeCall(ctx, path, usage, spec, name) {
   if (statement && !effects) {
     const line = lineOfNode(statement.node);
 
-    pruneKeepingComments(statement);
+    // The statement is cut out of the printed text when it can be, so its neighbors keep their lines, and its comments
+    // stay where they stand. Otherwise it leaves the tree and its comments move on.
+    if (!ctx.removeStatement(statement)) {
+      pruneKeepingComments(statement);
+    }
+
     ctx.markChanged();
     ctx.report({
       ruleId: rule.id,

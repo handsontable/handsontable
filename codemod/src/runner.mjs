@@ -8,7 +8,7 @@ import { discover, firstLinkOn, resolvesInside } from './discover.mjs';
 import { insideRelative, leavesDirectory, realpathNative, toPosix } from './lib/paths.mjs';
 import { StaleFileError, writeFileSafely } from './lib/safe-write.mjs';
 import { redact } from './lib/redact.mjs';
-import { GitError, dirtyPaths, isGitRepo, isTracked } from './git.mjs';
+import { GitError, GitNotFoundError, dirtyPaths, isGitRepo, isTracked } from './git.mjs';
 import { packageFilesAbove, registerPackageDir } from './lib/facts.mjs';
 import { findCatalog } from './lib/pnpm-catalog.mjs';
 import { NotUtf8Error, readUtf8, stripBom } from './lib/text-file.mjs';
@@ -285,6 +285,19 @@ function commentScan(part) {
 }
 
 /**
+ * The carriers of a `js` part: the comments and removals that are made as text after printing (see `MarkerCarriers`).
+ * Made on the first call and kept on the part, where `printJsPart()` reads them.
+ *
+ * @param {import('./types.mjs').Part} part A `js` part.
+ * @returns {MarkerCarriers} The carriers.
+ */
+function carriersOf(part) {
+  part.carriers = part.carriers ?? new MarkerCarriers(part.j, part.source, part.root);
+
+  return part.carriers;
+}
+
+/**
  * Which kind of Vue style block a css part comes from.
  *
  * @param {import('./types.mjs').Part} part The part.
@@ -436,6 +449,8 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
         .some(node => hasEarlierTodo(node, ruleId, text, guideUrl, scan)
           || (twins.length > 0 && hasTwinTodo(node, twins, scan)));
 
+      // The comment goes into the tree, so every later rule sees it and can move it with a node. `commit()` of the
+      // carriers takes it out again, after the last rule, when its statement is still as it was parsed.
       inserted = !earlier && addJsTodo(part.j, target, ruleId, text, guideUrl, scan);
     } else if (part.fileKind === 'css') {
       inserted = addCssTodo(target, ruleId, text, guideUrl, part.document, owner?.twins ?? []);
@@ -468,6 +483,8 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     return inserted;
   };
 
+  const removeStatement = path => part.fileKind === 'js' && carriersOf(part).removeStatement(path);
+
   const ctx = {
     filePath,
     fileKind: part.fileKind,
@@ -480,6 +497,7 @@ function createContext({ filePath, part, plan, entries, facts, options, catalog,
     report,
     todo,
     comment,
+    removeStatement,
     cssScope: cssScopeOf(part),
     lineOffset: part.lineOffset,
     fromText: plan.fromText ?? '',
@@ -523,7 +541,7 @@ function applyMarkers(part, marks, plan) {
 
   const isJs = part.fileKind === 'js';
   const find = isJs ? createMarkerIndex(part.j, part.root) : line => cssTargetAt(part.root, line);
-  const carriers = isJs ? new MarkerCarriers(part.j, part.source) : null;
+  const carriers = isJs ? carriersOf(part) : null;
 
   for (const mark of marks) {
     const owner = plan.rulesById.get(mark.ruleId);
@@ -551,7 +569,8 @@ function applyMarkers(part, marks, plan) {
           || (twins.length > 0 && [...targets, ...above].some(item => hasTwinTodo(item.node ?? item, twins, scan)))
           || carriers.has(targets[0], body);
 
-        // An untouched array element takes its comment as text, so the printer leaves its layout alone.
+        // An untouched array element takes its comment as text, so the printer leaves its layout alone. A statement
+        // gets it in the tree, and `commit()` of the carriers takes it out again when it can.
         inserted = !there && (carriers.add(arrayOfTarget(targets[0]), targets[0], body)
           || addJsTodo(part.j, targets[0], mark.ruleId, mark.text, guideUrl, scan));
       } else {
@@ -565,11 +584,6 @@ function applyMarkers(part, marks, plan) {
     if (placed) {
       mark.stored.marked = true;
     }
-  }
-
-  if (carriers) {
-    carriers.commit();
-    part.carriers = carriers;
   }
 }
 
@@ -593,6 +607,9 @@ function applyMarkers(part, marks, plan) {
  * @param {import('./types.mjs').CatalogInfo|null} [args.catalog] The pnpm catalogs that apply to a `package.json`.
  * @param {import('./types.mjs').AncestorManifest[]} [args.ancestors] The `package.json` files above this one, nearest
  * first, parsed. A fixture has none.
+ * @param {object} [args.hooks] Injection point for tests. `afterCommit(part)` runs for each part once its carriers
+ * committed and before it is printed, so a test can break a sentinel and watch the file stay as it was. It exists for
+ * nothing else.
  * @returns {Promise<{output: string, changed: boolean, entries: import('./types.mjs').ReportEntry[],
  * skipped: string|null}>} The new text, whether it differs, the report entries, and why the file was skipped.
  */
@@ -607,6 +624,7 @@ export async function transformFile({
   projectFiles,
   catalog = null,
   ancestors = [],
+  hooks = {},
 }) {
   const unchanged = skipped => ({ output: source, changed: false, entries: [], skipped });
   const adapter = adapterFor(filePath);
@@ -685,6 +703,12 @@ export async function transformFile({
       }
 
       applyMarkers(part, marks, plan);
+
+      // After the last mark: the comments and removals that are made as text become sentinels in the tree.
+      if (part.fileKind === 'js' && part.changed) {
+        carriersOf(part).commit();
+        hooks.afterCommit?.(part);
+      }
     }
   } catch (error) {
     return {
@@ -1237,13 +1261,20 @@ export async function run({
         throw error;
       }
 
-      // git ran and failed, so there may be a repository and uncommitted edits in it that the tool cannot see.
+      // git ran and failed, or is not there although a repository is, so there may be uncommitted edits that the tool
+      // cannot see.
+      const missing = error instanceof GitNotFoundError;
+
       if (write && !allowDirty) {
-        throw new UsageError('git failed in this directory, so the tool cannot check for uncommitted changes: '
-          + `${error.message} Fix that, or pass --allow-dirty to run without the check.`);
+        throw new UsageError(missing
+          ? `${error.message} The tool cannot check for uncommitted changes without git. Install git or fix PATH, `
+            + 'or pass --allow-dirty to run without the check.'
+          : 'git failed in this directory, so the tool cannot check for uncommitted changes: '
+            + `${error.message} Fix that, or pass --allow-dirty to run without the check.`);
       }
 
-      const note = `git failed in this directory (${error.message}), so the tool read the files without it.`;
+      const note = missing ? `${error.message} The tool read the files without it.`
+        : `git failed in this directory (${error.message}), so the tool read the files without it.`;
 
       repo = false;
       report.notes.push(note);

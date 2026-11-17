@@ -157,6 +157,11 @@
  * @property {(target: object, ruleId: string, text: string) => boolean} comment The comment half of `todo`: leave
  * the TODO comment, with `text` as its source, and add no report entry. A transform whose own entry already carries
  * the advice (a removal) uses it, so the report says it once. Returns whether a comment was inserted.
+ * @property {(path: object) => boolean} removeStatement Remove the expression statement at a NodePath of a statement
+ * list, and return `true`. The statement is cut out of the printed text, so the statements around it keep their
+ * layout and its comments stay where they stood. It returns `false`, and changes nothing, for a statement that is not
+ * an expression statement of the parsed text, that has a comment a rule added, or that is not an item of a list, and
+ * for a part that is not `js`: the caller then removes the node from the tree and moves its comments.
  * @property {import('./lib/json-edit.mjs').JsonDocument|null} json For a `json` part, the document that edits the
  * text by offset and keeps `root` in step: `setString()` and `addMember()`. `null` for every other kind.
  * @property {import('./lib/css-edit.mjs').CssDocument|null} css For a `css` part, the document that edits the text
@@ -231,8 +236,9 @@
  * @property {number} [start] Offset of the part's text inside the file. Set by the Vue adapter.
  * @property {number} [end] Offset where the part's text ends inside the file. Set by the Vue adapter.
  * @property {boolean} changed Set by `ctx.markChanged()`.
- * @property {import('./lib/carrier.mjs').MarkerCarriers} [carriers] The array elements of a `js` part whose markers
- * `printJsPart()` splices in as text. Set by `applyMarkers()`.
+ * @property {import('./lib/carrier.mjs').MarkerCarriers} [carriers] The array elements and statements of a `js` part
+ * whose markers `printJsPart()` splices in as text, and the statements it cuts out. Made by the runner on first use and
+ * committed after the last transform.
  */
 
 /**

@@ -182,7 +182,7 @@ export function intendedLiterals(part) {
 
     if (node.type === 'Identifier' && carried.length > 0) {
       // The element a carrier stands for is not in the tree, but its text is printed back.
-      const carrier = carried.find(item => node.name.startsWith(item.sentinel));
+      const carrier = part.carriers.recordOf(node.name);
 
       found.push(...carrier?.texts ?? []);
 

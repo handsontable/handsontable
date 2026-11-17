@@ -48,6 +48,19 @@ How versions are chosen:
 
 ### Fixed
 
+- A TODO on a statement that stands on one line and that no rule changed (`if (ready) call();`, a `for`, a `while`, a
+  label, a declaration, an `export`) goes on the line above, and the statement keeps its line, byte for byte. Before, the
+  printer put the body of a brace-less `if` or loop on a line of its own, and a label's statement lost its indent.
+- A call that is removed as a whole statement is cut out of the text. The statements around it keep their lines, blank
+  lines, and spaces, and its comments stay where they stood. Before, the printer reprinted the list: two statements that
+  shared a line were fused (`a();b();`), a blank line after the last statement of a block was dropped, and a block
+  that held only the call was printed as `{}`. A file mixing line endings is no longer refused when a statement is
+  removed between two blank lines that end differently. An import that goes away because it was merged into another is
+  still printed the old way.
+- A directory inside a git repository, run with no `git` on `PATH`, is refused with exit code 2 when the run writes
+  (`--allow-dirty` runs without the check, `--dry-run` previews), like a git that runs and fails. Before, the tool
+  answered "not a repository" and skipped the clean-tree guard in silence. A `.git` directory or file at or above the
+  directory counts. With none, nothing changes.
 - A `this` member is a grid or a plugin only when every write of its name in the file qualifies, on any object:
   `wrapper.hot = mock`, `wrapper['hot'] = mock`, `Object.assign(wrapper, { hot: mock })`, an object literal key, a
   field, getter, or method of that name in any class, a subclass that sets it, and `Object.defineProperty`. Before,

@@ -61,6 +61,8 @@ const WRAPPERS = [
   { name: 'nested without braces', code: 'if (ready) while (more) {{BODY}}', braceless: true },
 ];
 
+const PLUGIN_HEADER = 'const hot = new Handsontable(el, {});\nconst plugin = hot.getPlugin(\'manualColumnResize\');\n';
+
 /**
  * One kind of TODO per body: the call, option, detect, type, and theme rules, each with the plan that holds it.
  */
@@ -71,6 +73,23 @@ const BODIES = [
     file: 'a.js',
     plan: planFor(OBJECT_RULE),
     code: 'new Handsontable(el, { data: [], correctFormat: true });',
+  },
+  // The two bodies that reach the statement carriers: a kept call, whose TODO is the comment of a statement, and a bare
+  // call, which a statement without braces keeps with a TODO and a block removes (the text of the statement is cut out).
+  {
+    name: 'methodRemove kept: the result is used',
+    file: 'a.js',
+    plan: planFor('18.0.0/resize-state-methods'),
+    header: PLUGIN_HEADER,
+    code: 'check(plugin.saveManualColumnWidths());',
+  },
+  {
+    name: 'methodRemove: a bare call',
+    file: 'a.js',
+    plan: planFor('18.0.0/resize-state-methods'),
+    header: PLUGIN_HEADER,
+    code: 'plugin.saveManualColumnWidths();',
+    removedInBlocks: true,
   },
   { name: 'detect', file: 'a.js', plan: planFor('18.0.0/helper-typings-only'), code: 'Handsontable.helper.isIE();' },
   {
@@ -205,7 +224,15 @@ describe('a call that shares its line with other code stays stable across three 
             const source = `${HEADER}${body.header ?? ''}${around}\n`;
             const [one, two, three] = await threeRuns(body, source);
 
-            assert.ok(count(one.output) > 0, `run 1 left no TODO comment:\n${one.output}`);
+            // A block removes a bare call, so there is no comment to count, and the call is gone from the text.
+            const removed = body.removedInBlocks && !wrapper.braceless;
+
+            if (removed) {
+              assert.equal(one.output.includes('saveManualColumnWidths'), false, `the call stayed:\n${one.output}`);
+            } else {
+              assert.ok(count(one.output) > 0, `run 1 left no TODO comment:\n${one.output}`);
+            }
+
             assert.equal(two.changed, false, `run 2 changed the file:\n${one.output}\n--- run 2\n${two.output}`);
             assert.equal(three.changed, false, `run 3 changed the file:\n${three.output}`);
             assert.equal(count(two.output), count(one.output), 'run 2 changed the number of TODO comments');

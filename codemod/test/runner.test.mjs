@@ -334,7 +334,7 @@ describe('transformFile and the transform contract', () => {
 
     assert.deepEqual(Object.keys(seen).sort(), [
       'ancestors', 'catalog', 'comment', 'css', 'cssScope', 'facts', 'fileKind', 'filePath', 'fromText', 'j', 'json',
-      'lineOffset', 'markChanged', 'options', 'parser', 'report', 'root', 'source', 'todo',
+      'lineOffset', 'markChanged', 'options', 'parser', 'removeStatement', 'report', 'root', 'source', 'todo',
     ]);
     assert.equal(seen.parser, null);
     assert.equal(seen.catalog, null);
@@ -933,26 +933,27 @@ describe('run', () => {
   });
 
   it('exits 1 for a file whose transform failed, leaves it alone, and still migrates the others', async() => {
-    // The edit sits between two blank lines that end in different ways, so the printer cannot tell which ending the
-    // file keeps, and the tool refuses to guess (see line-endings.test.mjs).
+    // The edit removes an import between two blank lines that end in different ways, so the printer cannot tell which
+    // ending the file keeps, and the tool refuses to guess (see line-endings.test.mjs).
     const mixed = [
       'import Handsontable from \'handsontable\';\n',
-      'const hot = new Handsontable(el, {});\n',
       '\r\n',
-      'hot.getPlugin(\'manualColumnResize\').saveManualColumnWidths();\n',
+      'import { CellChange } from \'handsontable/common\';\n',
       '\n',
-      'hot.render();\r\n',
+      'export function f(change: CellChange) {\r\n',
+      '  return change;\r\n',
+      '}\r\n',
     ].join('');
 
-    await withProject({ 'mixed.js': mixed, 'good.css': RADIUS_CSS }, async(dir) => {
+    await withProject({ 'mixed.ts': mixed, 'good.css': RADIUS_CSS }, async(dir) => {
       const result = await run({ cwd: dir, from: '17', to: '18' });
 
       assert.equal(result.exitCode, 1);
       assert.deepEqual(result.changedFiles, ['good.css']);
       const failed = result.report.entries.filter(entry => entry.ruleId === 'transform-error');
 
-      assert.deepEqual(failed.map(entry => entry.file), ['mixed.js']);
-      assert.equal(await readFile(join(dir, 'mixed.js'), 'utf8'), mixed);
+      assert.deepEqual(failed.map(entry => entry.file), ['mixed.ts']);
+      assert.equal(await readFile(join(dir, 'mixed.ts'), 'utf8'), mixed);
       assert.equal(await readFile(join(dir, 'good.css'), 'utf8'), RADIUS_CSS_DONE);
     });
   });

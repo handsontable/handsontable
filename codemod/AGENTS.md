@@ -69,6 +69,17 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
   kind that leaves a TODO adds a body there, with a plan of its own rule and the rule that edits the object
   (`planFor()`), which keeps each run cheap. A body that is a declaration says `declaration: true`, because a
   statement without braces cannot hold one.
+  The bodies `methodRemove kept: the result is used` and `methodRemove: a bare call` reach the statement carriers: the
+  first leaves a TODO on a statement, the second is kept with a TODO by a wrapper without braces and cut out of the text
+  by a block (`removedInBlocks`).
+- `test/statement-carriers.test.mjs` pins a TODO on a statement of one line: the exact output for every statement kind
+  (js, ts, tsx, and a js shape in a ts and a tsx file), inside a function indented with spaces and with tabs, in CRLF,
+  mixed endings, a file with no line break at its end, after a shebang, a directive prologue, a license comment, and a byte
+  order mark, in a Vue `<script setup>` and `<script>`, with a trailing comment, below a next-line directive, two TODOs,
+  a later rule that rewrites the statement, a TODO that moves with an import, a twin chain, and the shapes that stay with
+  the printer. Each runs three times. It runs fake rules through `createRegistry()` (the texts never say Handsontable,
+  so the fake transform has a `rescue()`), and the failure paths through `hooks.afterCommit`.
+  `test/statement-removal.test.mjs` pins the cut of a removed statement, with the whole output text.
 - `test/receiver-history.test.mjs` is the table behind the receiver rule (see Traps): for every rule that rewrites on a
   receiver (a method move on an instance, a method removal on a plugin, an option rename in the argument of a plugin call,
   an option removal in the object of `setCellMetaObject`, a theme token rename) it runs the same histories of the name
@@ -206,7 +217,7 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
 | `src/lib/custom-reader.mjs` | `createReaderFinder()`: the one check "could custom code read this option of this object or element" behind `readerAdvice` (see Traps). |
 | `src/lib/facts.mjs` | `addFact(ctx, name, line)`, `hasFactFor(ctx, name)`, and `factSite(ctx, name)`: facts keyed by name and directory, with the file and line of the first sighting (see Traps). |
 | `src/lib/marker.mjs` | Where a generic TODO marker goes: `createMarkerIndex()` (a report line to its anchor and the nodes above it, `anchorsAbove()`), `markerTargets()` (the climb from a node to a property, array element, statement, or JSX element), and `cssTargetAt()`. |
-| `src/lib/carrier.mjs` | `MarkerCarriers` and `spliceCarriers()`: a generic marker on an untouched one-line array element is added as text after printing, so recast does not reprint the element (see "TODO comments"). |
+| `src/lib/carrier.mjs` | `MarkerCarriers` and `spliceCarriers()`: the edits that recast would lay out again are made as text after printing. A marker on an untouched one-line array element, a marker on an untouched one-line statement, and the removal of an expression statement (see "TODO comments"). |
 | `src/lib/dependency-range.mjs` | `planRange(spec, target)`: rewrite, keep, skip, or report a `package.json` range. `isSourceSpec()` (a path, URL, git, `workspace:`, `catalog:` spec: no version in it), `parseCatalogSpec()`, and `aliasRange()` are shared with `versions.mjs`. |
 | `src/lib/pnpm-catalog.mjs` | `parseCatalogs()` (a line scan of the `catalog:` and `catalogs:` blocks of a `pnpm-workspace.yaml`, no YAML dependency) and `findCatalog()` (the nearest workspace file between a `package.json` and the project directory). |
 | `src/transforms/import-source.mjs`, `export-rename.mjs`, `namespace-type.mjs`, `export-removed.mjs` | `importSource`, `exportRename`, `namespaceType`, and `exportRemoved` (rule shapes in Traps). |
@@ -267,9 +278,12 @@ It is deliberately not in the root `package.json` `workspaces`, and not in the `
    whatever `status.showUntrackedFiles` says. It does not apply to `--dry-run`,
    `--list`, `write: false`, or a directory outside a git repository, where `onWarning` gets a one-line notice before
    the first write. An untracked file at the `--report` path (`reportPath`) is not a change. `isGitRepo()` answers `false`
-   for no git program and for git's "not a git repository", and throws `GitError` (git's own message) for any other
-   failure of `rev-parse`: `run()` then refuses a write unless `--allow-dirty` (exit 2), and otherwise reads the files
-   without git and adds a note. Git runs with `LC_ALL=C`, because that one message is matched as text.
+   for git's "not a git repository", and for no git program when no `.git` entry (a directory, or the file of a linked
+   work tree or a submodule) stands at or above the directory. It throws `GitNotFoundError` (a `GitError`) for no git
+   program with such an entry, and `GitError` (git's own message) for any other failure of `rev-parse`: `run()` then
+   refuses a write unless `--allow-dirty` (exit 2, the message says that git was not found, or what git said), and
+   otherwise reads the files without git and adds a note. Git runs with `LC_ALL=C`, because that one message is matched
+   as text.
 3. `discover()` lists files (`git ls-files -z --cached --others --exclude-standard`, or an fs walk). "Ignored" is what
    git says, so the global ignore file counts and the file list agrees with `git status`. A project directory that an
    outer repository ignores gets an empty list, and `git check-ignore` confirms it, so the directory is walked and a note
@@ -329,7 +343,10 @@ The runner calls it only for such a file and then runs the module with the retur
 keeps the guard. `detect` is the only user (see the `precheck` field).
 
 `transformFile({ filePath, source, plan, options, facts, registry, phase })` reads and writes nothing. The run
-loop and the fixture tests both call it, so a fixture needs no temp directory, no git, and no discovery.
+loop and the fixture tests both call it, so a fixture needs no temp directory, no git, and no discovery. Its `hooks`
+argument has one injection point, `afterCommit(part)`, which runs for each `js` part after its carriers committed and
+before it is printed: a test uses it to break a sentinel and to see the file stay as it was. It exists for nothing else,
+like the `hooks` of `run()`.
 
 ## The transform contract
 
@@ -360,6 +377,7 @@ of its earliest kind in `KIND_ORDER`.
 | `report(entry)` | Add `{ ruleId, severity: 'changed' or 'manual' or 'warning', line?, message, lines?, scope?, mergeKey? }`. The runner fills `file`, `guideUrl`, and adds the part's `lineOffset` to `line` and `lines`. Identical entries collapse. `lines` lists every match of a collapsed group, and the renderers print them. `scope: 'run'` marks a note that is the same in every file (a rule's `note`): the `Report` keeps it once with the list of files, under "Read once". A later entry with the same `mergeKey` in the same part replaces the earlier one, so two migration steps that touch one spot report the net result once. `merge: 'earliest'` keeps the first entry instead: two merge policies exist. `latest` (the default, used by `dependency` bumps) reports the net change with the latest target. `earliest` (used by `detect` rules that share a `mergeKey`) lets the rule of the earliest migration own the id, the message, and the guide link. `todo: false` keeps one `manual` entry out of the code. `markLine` is the line the generic marker is placed from when `line` names a spot inside a literal that cannot hold a comment (a line of a multi-line template literal, a key of a Sass map): the report keeps `line`. |
 | `todo(target, ruleId, text, comment?)` | Leave `TODO(handsontable-codemod <ruleId>): <first sentence of text> See <guide link>` before a js node or path or a postcss node, once, and add a `manual` entry with the whole `text`. `comment` replaces `text` as the source of the comment when the caller has a better short form. The link is added only for a rule with a `guide` anchor. Returns whether a comment was inserted. It calls `markChanged()` itself. `json` gets the entry only. A NodePath of a `JSXElement` or `JSXOpeningElement` gets a JSX comment `{/* ... */}` before the element (or before the expression that holds it) when the element is a child of another element, else a `//` comment on the enclosing statement when it starts at most 3 lines above, else on the element's first attribute. |
 | `comment(target, ruleId, text)` | The comment half of `todo()`: the same TODO comment, no report entry. A removal uses it, so its one `changed` entry carries the advice. |
+| `removeStatement(path)` | Remove the expression statement at a NodePath of a statement list, and return `true`. The statement is cut out of the printed text, so the statements around it keep their layout (see "TODO comments"). It returns `false` and does nothing for a statement that is not an expression statement of the parsed text, that a rule gave a comment, or that is not an item of a list: the caller then removes it from the tree and moves its comments. `false` for a part that is not `js`. |
 | `json` | For a `json` part, the `JsonDocument` that edits the text by offset: `setString(section, name, value)` and `addMember(section, name, value)` return `false` and change nothing when the scan of the text and the parsed file disagree, and the transform then reports `manual`. `null` for every other kind. A transform never prints a `package.json` with `JSON.stringify`. |
 | `css` | For a `css` part (a stylesheet or a Vue `<style>` block), the `CssDocument` that edits the text by offset and keeps `root` in step. A transform reads the postcss `root` and edits only through `replaceInDeclaration(declaration, pattern, replacement)`, `replaceInAtRule()`, and `todo()`/`comment()`. Each replace returns `null` (no match), `true`, or `false` (the text at the node's offsets is not what the model says, or the value holds a comment): on `false` the transform reports `manual` and edits nothing. A transform never assigns `decl.prop`, `decl.value`, or `params` itself and never stringifies `root`. `null` for every other kind. |
 | `cssScope`, `lineOffset`, `fromText` | `'scoped'`, `'module'`, or `null` for the Vue `<style>` block of a `css` part; the part's zero-based line offset (add it by hand when a line is stored outside `report()`); the run's `--from` as text. |
@@ -635,12 +653,59 @@ before and is reprinted. A sentinel that is missing or stands twice throws, and 
 `transform-error` that leaves the file alone. When only white space and single-line block comments precede the sentinel on its line (`/* fx */ { ... },`), the
 comment lines go above that line, at its indentation, so the element keeps the comments it had; anything else before
 the sentinel keeps the older placement. The second run finds the marker because the parser attaches both comments to
-the element. Only an array element takes this path: a property keeps its children's text when it
-is printed again, so its comment never moves anything. A statement does not: a TODO on the `if` statement of a kept call
-that is the whole body of a statement without braces (`if (c) call();`, from `ctx.todo()` in `methods.mjs`) makes recast
-print the statement as `if (c)` and the call indented on the next line. The carrier would have to stand for a whole
-statement, with its trailing `;` and a `ctx.todo()` that places the comment at once, not after the last transform, so
-this is a documented limitation (README, Limitations) and not a fix. The comment text always comes from
+the element. A property keeps its children's text when it is printed again, so its comment never moves anything and
+takes no carrier.
+
+**A statement takes its comment as text too, through the tree first.** A comment on the `if` statement of a kept call
+that is the whole body of a statement without braces (`if (c) call();`, from `ctx.todo()` in `methods.mjs`) made recast
+print `if (c)` and the call indented on the next line, a label lost the indent of its statement, and `for (;;)` came
+out as `for (; ; )`. recast patches a node of another type that is an expression into the range of the old one, but a
+statement of another type it cannot patch, so it prints the whole list of statements again. A swap of the statement
+itself is therefore no carrier, and the TODO is not queued either: `ctx.todo()`, `ctx.comment()`, and `applyMarkers()`
+write the comment into the tree as before (`addJsTodo()`), so every later rule sees it (`hasJsTodo()`, the twin check)
+and a rule that removes a declaration moves it with the declaration's other comments. The comment objects of
+`insertLineComment()` are remembered (`isToolComment()`). After the last rule, `MarkerCarriers.commit()` reads the
+tree once (`scanTree()`), and for every statement that holds such a comment, wherever it ended up, it takes the comments
+of the tool off and tries to carry them. A statement is carried when it is a `Statement` or `Declaration` of the parse
+(it has an `original`), has the comments the parser found (once the tool's own are off) and none of them turned into
+a trailing one, stands on one line, starts its line (white space, or a byte order mark, before it), and prints as its
+original text (`statementText()`). Then the first expression of the statement in the text, the one with the smallest
+start column (the outermost where two start together), outside any JSX element, on one line, with no parentheses of its
+own, is swapped for an identifier named by a sentinel and the text of that expression (`swapSite()`,
+`carryStatement()`). That swap is a patch of the range of the expression alone, so the statement prints as it was with
+the sentinel in it, and the printed copy of the statement is compared with `prefix + sentinel + the rest of the text`
+before the swap is kept. A statement that fails any step keeps the comments in the tree and prints as before. After
+printing, `spliceCarriers()` finds the sentinel, checks that the text from `sentinel - prefix` has the statement
+exactly, removes the sentinel, and puts the comment lines above the line, above a run of next-line directives, at the
+indentation of the line. So a later rule that rewrites the statement wins on its own (the print check fails and the
+comment stays in the tree), a second TODO of another rule lands in the same place, and a twin chain leaves one comment.
+Shapes that stay with the printer: a statement that shares its line with other code (`{ call(); }`, `function f() {
+call(); }`, `a(); call();`), a brace-less `if` with an `else`, or a label, that spans lines (a multi-line statement
+whose layout the printer keeps otherwise: a block, a call with its arguments on lines, an object, a template literal), a
+statement with no expression in it (`debugger;`), and a JSX statement. Reading the multi-line claim: a comment on a
+multi-line statement keeps the layout, except where a clause stands on the line of its keyword inside it
+(`if (a) b();` then `else c();`, `label:` then its loop).
+
+**A removed expression statement is cut out of the text.** `ctx.removeStatement(path)` (`methods.mjs`,
+`pruneKeepingComments()` is the fallback) swaps the statement in its list for another expression statement whose
+expression is a sentinel identifier. recast patches a statement of the same type into the range of the old one (the
+statement's own `;` included) and leaves the list the same length, so the statements around it are neither reprinted nor
+joined. The comments of the statement go onto the stand-in as the same objects, so they print where they stood, and
+`removeStatement()` refuses a statement whose comments a rule changed. After printing, `cutRemoved()` removes the
+sentinel with its `;`: the whole line with its break when nothing else stands on it (the break before it when it is the
+last line and has none), else the statement and one run of spaces, the one after it, or the one before it when nothing
+follows. A file without semicolons would run the line before into a line that starts with `(`, `[`, a template, or an
+operator, so a `;` stays in that case (`startsWithContinuation()`, `endsUnterminated()`; a run of removed statements is one
+gap, the stand-ins are skipped to reach the statements that stay). A previous statement that ends in `}` counts as ended,
+so `const o = {}` before a removed call and a line that starts with `(` is still joined, as it was on the old path: the
+guard does not cover it. `commit()` drops a stand-in that
+left the tree with its container. When another rule changed the length of the same list the printer lays the list out
+again, and the stand-in prints on a line of its own (no `loc`), so the cut still holds and a shared line is split. The
+removal of an import (`removeNamedImport()`) is not cut as text: the specifier is edited first, and its comments move to
+another declaration. `spliceCarriers()` reads the printed text once as lines (`sentinelLines()`) and edits the line a
+sentinel is on, and `intendedLiterals()` finds the record of a carrier identifier through `recordOf()`, a map: a file with
+thousands of sentinels (a removal of every call of a generated file) costs a few times the print and not its square, as
+a search of the whole text and a scan of all carriers for each identifier did. The comment text always comes from
 `formatTodo()`, and `hasJsTodo()` and `MarkerCarriers.has()` are the two dedupes of one run.
 
 A TODO comment is `TODO(handsontable-codemod <ruleId>): <first sentence of the advice> See <guide link>`. The advice
@@ -674,8 +739,9 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 - **The comments of a removed import go to the import that took its name.** `removeNamedImport(j, root, declaration, specifier,
   { commentsTo })` appends them (as leading comments, after the target's own) to `commentsTo`, which `moveNamedImport()` sets to
   the declaration that now holds the specifier. A removed first statement still gives its comments to the next statement,
-  before the ones that statement had, so a license header stays on top. recast reprints the statements after a removed one
-  and writes two statements that shared a line without the space between them; that is the limit (README, Limitations).
+  before the ones that statement had, so a license header stays on top. recast reprints the statements after a removed
+  declaration and writes two statements that shared a line without the space between them; that is the limit (README,
+  Limitations). An import is the one removal that is not cut as text (see "TODO comments").
 - **Line endings.** The printer writes one terminator for a part (`workingTerminator()`: `\r\n` when CRLF is at least as
   common as bare LF, else `\n`). `printJsPart()` then calls `restoreLineEndings()`. A source with one kind of break gets
   it back everywhere (a lone `\r` too). A source that mixes kinds is aligned with the printed text by the longest
@@ -951,10 +1017,12 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
 - `methodRemove` deletes a call only when it is a whole expression statement (`await` and `void` allowed), the call
   has no arguments, and the receiver chain is made of identifiers, `this`, member reads, and `getPlugin('<literal>')`
   (`isSimpleReceiver()`): `createGrid().getPlugin(...)` and `(await init()).getPlugin(...)` keep the call, because the
-  statement has effects of its own. The comments of a removed statement are never dropped (`pruneKeepingComments()`):
-  they move to the next statement, else the previous one, else the enclosing statement, and a license header on the
-  first statement survives. A used result, an arrow expression body, and the body of a braceless `if` or loop keep the
-  call and get a TODO on the enclosing statement. A removal can leave an empty block, which stays.
+  statement has effects of its own. The statement is cut out of the printed text (`ctx.removeStatement()`), so its comments
+  stay where they stood, a license header on the first statement survives, and a block that held only the call keeps its
+  braces on lines of their own. The comments of a removed statement are never dropped when the cut is refused
+  (`pruneKeepingComments()`, the fallback): they move to the next statement, else the previous one, else the enclosing
+  statement. A used result, an arrow expression body, and the body of a braceless `if` or loop keep the call and get a
+  TODO on the enclosing statement. A removal can leave an empty block, which stays.
 - `methodMove` rule shape: `methods` maps the old name to the new one, `via` is the call that reaches the new home,
   `properties` lists names that become the `via` call (`undoRedo: null`). Optional chaining is kept by building the
   new links as optional-chain nodes: the first link takes over the `?.`. Computed access (`hot['undo']()`),

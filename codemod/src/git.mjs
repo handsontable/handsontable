@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
-import { realpath } from 'node:fs/promises';
-import { basename, dirname, resolve } from 'node:path';
+import { realpath, stat } from 'node:fs/promises';
+import { basename, dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { findExecutable } from './lib/find-executable.mjs';
 
@@ -23,9 +23,44 @@ export class GitError extends Error {
 }
 
 /**
+ * Raised when there is no git program to run and a `.git` entry (a directory, or the file of a linked work tree or a
+ * submodule) stands at or above the directory, so there is a repository whose uncommitted changes the tool cannot see.
+ * Without such an entry no git program means nothing to guard, and `isGitRepo()` answers `false`.
+ */
+export class GitNotFoundError extends GitError {
+  /**
+   * @param {string} directory The directory that holds the `.git` entry.
+   */
+  constructor(directory) {
+    super(`git was not found on PATH, and ${directory} holds a .git entry.`);
+
+    this.name = 'GitNotFoundError';
+    this.directory = directory;
+  }
+}
+
+/**
  * Raised when there is no git program to run, which behaves as outside a repository.
  */
 class GitMissing extends Error {}
+
+/**
+ * The nearest directory at or above a directory that holds a `.git` entry, of any kind.
+ *
+ * @param {string} cwd Directory.
+ * @returns {Promise<string|null>} The directory, or `null` when no directory above holds one.
+ */
+async function directoryWithGitEntry(cwd) {
+  for (let directory = resolve(cwd); ; directory = dirname(directory)) {
+    if (await stat(join(directory, '.git')).then(() => true, () => false)) {
+      return directory;
+    }
+
+    if (dirname(directory) === directory) {
+      return null;
+    }
+  }
+}
 
 /**
  * Environment for git child processes. A run started from inside a git hook inherits `GIT_DIR` and friends,
@@ -118,15 +153,28 @@ async function git(args, cwd) {
  *
  * @param {string} cwd Directory.
  * @returns {Promise<boolean>} `true` inside a work tree. `false` when the directory is not in one, or when there is no
- * git program to ask.
+ * git program to ask and no `.git` entry at or above the directory.
+ * @throws {GitNotFoundError} When there is no git program and a `.git` entry stands at or above the directory.
  * @throws {GitError} When git ran and failed for another reason, with what it said.
  */
 export async function isGitRepo(cwd) {
   try {
     return (await git(['rev-parse', '--is-inside-work-tree'], cwd)).trim() === 'true';
   } catch (error) {
-    // No git on PATH, or a git that cannot start (a string code such as `EACCES`): there is nothing to guard with.
-    if (error instanceof GitMissing || typeof error.code === 'string') {
+    if (error instanceof GitMissing) {
+      // No git on PATH: with no repository around, there is nothing to guard. With one, the guard cannot run, and that
+      // must not look like a project that has none.
+      const directory = await directoryWithGitEntry(cwd);
+
+      if (directory !== null) {
+        throw new GitNotFoundError(directory);
+      }
+
+      return false;
+    }
+
+    // A git that cannot start (a string code such as `EACCES`): there is nothing to guard with.
+    if (typeof error.code === 'string') {
       return false;
     }
 

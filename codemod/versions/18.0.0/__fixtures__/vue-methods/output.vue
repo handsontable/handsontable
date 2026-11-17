@@ -17,6 +17,7 @@ export default {
     },
     save() {
       const plugin = this.$refs.hotRef.hotInstance.getPlugin('manualColumnResize');
+
     },
   },
 };
