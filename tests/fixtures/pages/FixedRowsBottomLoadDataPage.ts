@@ -10,7 +10,9 @@ export interface FixedRowsBottomLoadDataOptions {
   fixedRowsBottom?: number;
   fixedColumnsStart?: number;
   fixedColumnsEnd?: number;
-  /** Comma-separated visual rows to hide, for example `'8,9'`. */
+  /**
+   * Comma-separated visual rows to hide, for example `'8,9'`.
+   */
   hiddenRows?: string;
 }
 
