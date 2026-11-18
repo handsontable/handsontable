@@ -326,6 +326,12 @@ class TableView {
    * @type {boolean}
    */
   #measuringContentColumnHeader = false;
+
+  /**
+   * Answers whether a header's label holds text a user typed (an `EditableHeaders` rename), which must be
+   * written as text and never parsed as HTML. `null` while no plugin registered one.
+   */
+  #plainTextHeaderResolver: ((axis: 'column' | 'row', visualIndex: number) => boolean) | null = null;
   /**
    * Whether a check of the frozen counts is queued after a column width change that did not render.
    *
@@ -3374,6 +3380,18 @@ class TableView {
   }
 
   /**
+   * Registers the function that answers whether a header's label must be written as text, or removes it
+   * with `null`. A label a user typed reaches the header through the value hooks, and the default write
+   * parses a label that looks like markup as HTML.
+   *
+   * @private
+   * @param {Function|null} resolver Called with the axis (`'column'` or `'row'`) and the visual index.
+   */
+  setPlainTextHeaderResolver(resolver: ((axis: 'column' | 'row', visualIndex: number) => boolean) | null) {
+    this.#plainTextHeaderResolver = resolver;
+  }
+
+  /**
    * Updates header cell content.
    *
    * @private
@@ -3401,8 +3419,15 @@ class TableView {
 
     if (renderedIndex > -1) {
       removeClass(element, 'cornerHeader');
-      fastInnerHTML(element, String(content(index, headerLevel)), getSanitizer(this.hot),
-        'header', this.hot.rootElement);
+
+      const label = String(content(index, headerLevel));
+      const axis = hasClass(element, 'rowHeader') ? 'row' : 'column';
+
+      if (this.#plainTextHeaderResolver?.(axis, index)) {
+        fastInnerText(element, label);
+      } else {
+        fastInnerHTML(element, label, getSanitizer(this.hot), 'header', this.hot.rootElement);
+      }
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946

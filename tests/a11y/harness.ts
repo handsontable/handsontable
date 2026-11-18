@@ -381,6 +381,13 @@ export const STATES: Record<A11yState, (page: Page, entry: A11yPage, root: strin
       .toBeVisible();
     await markFormulaPopups(page);
   },
+  // F2 on a focused column header (the page's `cell` is the header) opens the EditableHeaders input, which takes
+  // the focus.
+  'header-editor': async(page, _entry, root, cell) => {
+    await selectCell(page, root, cell);
+    await page.keyboard.press('F2');
+    await expect(page.getByRole('textbox', { name: 'Header name' })).toBeFocused();
+  },
   // The fixture fills the cell from a promise it never settles, so the cell stays pending: the
   // indicator, the pending message and `aria-busy` are what the scan sees.
   'async-pending': async(page, _entry, root, [row, col]) => {
