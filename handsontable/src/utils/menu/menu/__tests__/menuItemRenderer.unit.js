@@ -1,5 +1,6 @@
 import { createMenuItemRenderer } from 'handsontable/utils/menu/menu/menuItemRenderer';
 import { isItemChecked, isItemCheckable } from 'handsontable/utils/menu/menu/utils';
+import { SEPARATOR } from 'handsontable/utils/menu/predefinedItems';
 
 const CHECK_MARK = String.fromCharCode(10003);
 const MIXED_MARK = String.fromCharCode(8211);
@@ -307,6 +308,45 @@ describe('menuItemRenderer', () => {
       expect(TD.getAttribute('aria-disabled')).toBe(null);
       expect(TD.getAttribute('tabindex')).toBe('-1');
       expect(TD.classList.contains('htDisabled')).toBe(false);
+    });
+  });
+
+  describe('a separator', () => {
+    it('should be exposed as a separator with no name and no tab stop', () => {
+      const { TD } = renderItem({ name: SEPARATOR }, { ariaTags: true });
+
+      expect(TD.getAttribute('role')).toBe('separator');
+      expect(TD.hasAttribute('aria-label')).toBe(false);
+      expect(TD.hasAttribute('tabindex')).toBe(false);
+      expect(TD.classList.contains('htSeparator')).toBe(true);
+    });
+
+    it('should drop the item attributes a reused cell carried from an earlier item', () => {
+      const separator = { name: SEPARATOR };
+      const item = { key: 'a', name: 'Top', checked: true, disabled: true, submenu: { items: [] } };
+      const TD = document.createElement('td');
+      let current = item;
+      const { mainTableHot, menuHot } = createInstances(item, { ariaTags: true });
+      const render = createMenuItemRenderer(mainTableHot);
+
+      menuHot.getSourceDataAtRow = () => current;
+      render(menuHot, TD, 0, 0, '0', item.name, {});
+      current = separator;
+      render(menuHot, TD, 0, 0, '0', separator.name, {});
+
+      expect(TD.getAttribute('role')).toBe('separator');
+      expect(TD.hasAttribute('aria-label')).toBe(false);
+      expect(TD.hasAttribute('aria-checked')).toBe(false);
+      expect(TD.hasAttribute('aria-disabled')).toBe(false);
+      expect(TD.hasAttribute('aria-expanded')).toBe(false);
+    });
+
+    it('should write no ARIA when `ariaTags` is off', () => {
+      const { TD } = renderItem({ name: SEPARATOR }, { ariaTags: false });
+
+      expect(TD.hasAttribute('role')).toBe(false);
+      expect(TD.hasAttribute('aria-label')).toBe(false);
+      expect(TD.classList.contains('htSeparator')).toBe(true);
     });
   });
 });
