@@ -28,6 +28,12 @@
     if (!window.htPanels) {
       throw new Error('Unknown ?panels= value: ' + JSON.stringify(htParams.get('panels')));
     }
+    // The direction of the document the page loads with, which the grid inherits. A rebuild names its
+    // own (`documentDir`), so only the first build reads it.
+    window.htDir = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'];
+    if (!window.htDir) {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
+    }
   </script>
   <style>
     body { font-family: sans-serif; margin: 0; padding: 20px; }
@@ -299,7 +305,7 @@
     };
 
     try {
-      window.initSideSlotGrid();
+      window.initSideSlotGrid({ documentDir: window.htDir });
 
       if (window.htPanels === 'both') {
         window.addSidePanel('start', 'filters', 200);

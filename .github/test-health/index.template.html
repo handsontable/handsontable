@@ -48,6 +48,17 @@
   .a11y .reader-table th.step, .a11y .reader-table td.step { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
   .a11y .cluster { max-width: 480px; }
   .a11y .surface select { font: inherit; margin: 0 6px; max-width: 100%; }
+  /* The fix progress table: a caption, row headers that read as cells (the page's header style is for a head row),
+     and group rows that name each part of the table. A cleared task is a word in a badge, never a color alone. */
+  .a11y .note { color: #374151; margin-bottom: 12px; max-width: 980px; }
+  .a11y .totals small { display: block; font-size: 12px; color: #374151; }
+  .a11y caption { caption-side: top; text-align: left; padding: 0 10px 8px; color: #374151; }
+  .a11y tbody th { position: static; background: none; white-space: normal; font-weight: 400; max-width: 480px; }
+  .a11y tbody th.group { font-weight: 600; padding-top: 16px; max-width: none; }
+  .a11y .task { font-weight: 600; }
+  .a11y details ul { margin: 4px 0 0; padding-left: 18px; }
+  .a11y summary { cursor: pointer; }
+  .badge.cleared { background: #dcfce7; color: #166534; }
   .legs { font-size: 12px; color: #374151; }
   .error { color: #6b7280; font-size: 12px; max-width: 360px; overflow-wrap: anywhere; }
   tr.ticket td:first-child { border-left: 3px solid #dc2626; }
@@ -78,6 +89,7 @@
     th, td { border-color: #374151; }
     .badge.tier { background: #374151; color: #e5e7eb; }
     .legs, .error { color: #9ca3af; }
+    .a11y .note, .a11y .totals small, .a11y caption { color: #9ca3af; }
     .viz { --series-develop: #3987e5; --grid: #374151; --axis: #9ca3af; }
     .multiple, .tip { border-color: #374151; }
     .multiple .stat { color: #9ca3af; }
@@ -181,9 +193,24 @@
       <span id="a11y-surface-status" role="status"></span>
       <div>A surface hides the clusters with no open finding on it, and the checks, triage shapes and nights of the others. Every count on the page, a shown cluster's included, is the count of every surface.</div>
     </div>
+    <h3 id="a11y-fix-title">Fix progress</h3>
+    <div class="note" id="a11y-fix-meta">
+      How the findings are dealt with over time: what is fixed, in what time, and what is outstanding. A row of the ledger is a finding at one place (a page, a theme, an element), not an issue: one defect shows as many rows, and the fix task is the issue. The numbers count defect findings, each once, and leave out the findings the catalog marks as not a defect. A fix time is only as fine as the gap between audits: a finding fixed the day after an audit is found gone by the next one.
+    </div>
+    <div class="totals" id="a11y-fix-totals"></div>
+    <div class="note" id="a11y-fix-audits"></div>
+    <div class="wrap">
+      <table id="a11y-fix">
+        <caption>
+          One row per fix task, the task a cluster of the catalog names, with every finding of its clusters. A row is named by its clusters; the task ids stay in the catalog. Tasks that own the same clusters share one row, and a cluster that several tasks own counts in the row of each, so the rows add up to more than the open findings. <em>At the target level</em> leaves out what is for review (a result axe could not decide, a golden that moved) and what names no WCAG 2.2 A or AA criterion. <em>Resolved</em> counts resolutions less the findings that came back. <em>Cleared at</em> is the first night after the last one that left a finding open, when that night measured a finding gone: a task whose last findings left the ledger unmeasured has none. The past is kept <span id="a11y-history-days"></span> days, long after the rows are gone, and follows a finding the catalog moves to another cluster.
+        </caption>
+        <thead><tr><th scope="col">Fix task</th><th scope="col" class="num">Open now</th><th scope="col" class="num">At the target level</th><th scope="col" class="num">Most it had</th><th scope="col" class="num">Resolved</th><th scope="col">First seen</th><th scope="col">Cleared at</th><th scope="col" class="num">Days to clear</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
     <h3>Clusters</h3>
     <div class="meta">
-      One row per root cause. <em>Open</em> counts the rows not resolved yet (new, persisting or flapping): a row whose check did not run on its source's latest night stays open, because nothing measured it gone. <em>Nights seen</em> counts the recorded nights that showed the cluster; the trend draws, per nightly the cluster comes from, the findings seen on each of its last <span id="a11y-trend-nights"></span> nights, with the night's new and resolved counts in the chart's name. <em>Tracked</em> says a task owns the fix; the task itself is in the catalog, not on this page.
+      One row per root cause. <em>Open</em> counts the rows not resolved yet (new, persisting or flapping): a row whose check did not run on its source's latest night stays open, because nothing measured it gone. <em>Nights seen</em> counts the recorded nights that showed the cluster; the trend draws, per nightly the cluster comes from, the findings seen on each of its last <span id="a11y-trend-nights"></span> nights, with the night's new and resolved counts in the chart's name. <em>Tracked</em> says a task owns the fix; the task itself is in the catalog, not on this page, and the fix progress table above has its row.
     </div>
     <div class="wrap">
       <table id="a11y-clusters">
@@ -237,7 +264,7 @@
   A <em>quarantined</em> Playwright test still runs and reports; its flaky verdict does not fail the leg until the entry's expiry (<code>tests/AGENTS.md</code>, Quarantine).
   A <em>visual</em> row is a screenshot capture: the file is its spec, the legs are the variants it differed on, and <em>failed</em> means it differed from its golden record beyond <code>regconfig.json</code>'s tolerances. It needs a ticket once it differed on <span id="visual-threshold"></span>+ <code>Visual nightly</code> runs, or on that many distinct branches (the nightly counts as develop): nothing in that tier is ever flaky, and a pull request's own intended change, recorded before approval, stays on one branch however often it is pushed. A quarantined capture is listed in <code>visual-tests/visual-quarantine.json</code> (<code>visual-tests/AGENTS.md</code>, Guardrails); an entry names the legs it covers, so a row shows its most recent entry and only the legs outside it count toward the ticket.
   Entries older than <span id="retention"></span> days drop off. Source: <code>.github/workflows/test-health.yml</code>.
-  <br>Accessibility: a finding is keyed by its check, kind, page, theme, state and a masked selector or step (a generated instance id, a positional index and a state class are masked out), so it keeps its identity across nights; a row is resolved only when its target was measured again and the finding was gone, so a check that did not run, a target that errored or reported a tooling problem, a finding the collector could not read, an incomplete axe scan, a transcript that stopped and a golden that was not compared resolve nothing; a resolved row that comes back is flapping until it has been seen <span id="a11y-flap-nights"></span> nights in a row, the night it came back included. A re-run attempt of a night fills in what the recorded attempt did not measure. The clusters are the catalog <code>tests/a11y/issues.json</code> (<code>tests/AGENTS.md</code>, A11y: the findings ledger and the cluster catalog); a cluster's tracker is code there and never printed here. Rows stay <span id="a11y-retention"></span> days from their last sighting; past the file's cap the oldest resolved rows go first. A reader row carries no criterion: the lanes are report-only evidence of what a screen reader announces. Only the <code>A11y nightly</code>, the <code>Screen reader nightly</code>, the docs site scan (<code>Docs a11y</code>) and the website scan (<code>Website a11y</code>) on develop are recorded, by schedule or dispatch; a pull request's evidence comes from its own code and stays in its own run. Source: <code>.github/scripts/lib/a11y-ledger.mjs</code>.
+  <br>Accessibility: a finding is keyed by its check, kind, page, theme, state and a masked selector or step (a generated instance id, a positional index and a state class are masked out), so it keeps its identity across nights; a row is resolved only when its target was measured again and the finding was gone, so a check that did not run, a target that errored or reported a tooling problem, a finding the collector could not read, an incomplete axe scan, a transcript that stopped and a golden that was not compared resolve nothing; a resolved row that comes back is flapping until it has been seen <span id="a11y-flap-nights"></span> nights in a row, the night it came back included. A re-run attempt of a night fills in what the recorded attempt did not measure. The clusters are the catalog <code>tests/a11y/issues.json</code> (<code>tests/AGENTS.md</code>, A11y: the findings ledger and the cluster catalog); a cluster's tracker is code there and never printed here: the fix progress names a task by its clusters. Rows stay <span id="a11y-retention"></span> days from their last sighting; past the file's cap the oldest resolved rows go first. Fix progress reads the history, one entry per night with each cluster's open, new, resolved and returned findings, counted from the rows, so a target that was not measured resolves nothing there either; an audit is the nights that complete within <span id="a11y-audit-hours"></span> hours of its first, and a full audit holds a night of every workflow. A reader row carries no criterion: the lanes are report-only evidence of what a screen reader announces. Only the <code>A11y nightly</code>, the <code>Screen reader nightly</code>, the docs site scan (<code>Docs a11y</code>) and the website scan (<code>Website a11y</code>) on develop are recorded, by schedule or dispatch; a pull request's evidence comes from its own code and stays in its own run. Source: <code>.github/scripts/lib/a11y-ledger.mjs</code>.
   <br>Where the time goes: a leg's wall-clock is what the leg paid, retries included; a leg that runs in shards is one record whose wall-clock is its longest shard (what the leg costs when the shards start together), whose tests add up, and whose parts are listed under each run with the span from the first shard's start to the last shard's end when they queued (a push with a shard missing is left out of the budget and keeps the rows it had). Runs stay 30 days. The per-test rows come from each leg's latest develop push and give each test its time from a run where it passed on its first attempt: a test that failed or was flaky in the latest run keeps its time from the run before, because its own time is retries and timeouts, which the table above tracks. Only develop pushes are recorded: a pull request's leg files stay in its own run's artifacts for 3 days.
 </footer>
 <script id="summary" type="application/json">__SUMMARY_JSON__</script>
@@ -797,6 +824,148 @@ var runPage = (function() {
     wrap.appendChild(chart);
     return wrap;
   }
+
+  // Fix progress: the headline numbers, the audits they speak of, and one row per fix task.
+  (function() {
+    var fix = view.fix;
+    var fixBody = document.querySelector('#a11y-fix tbody');
+    var COLUMNS = 8;
+    if (!fix) {
+      noneRow(fixBody, COLUMNS, 'No night recorded yet.');
+      return;
+    }
+    var headline = fix.headline;
+    document.getElementById('a11y-history-days').textContent = fix.historyDays;
+    document.getElementById('a11y-audit-hours').textContent = fix.auditWindowHours;
+
+    function plural(count, one, many) { return count + ' ' + (count === 1 ? one : many); }
+    function day(iso) { return iso ? iso.slice(0, 10) : '?'; }
+    // A link to a run's page, built by runPage from the run's number, or plain text without one.
+    function linkTo(href, label) {
+      if (!href) { return document.createTextNode(label); }
+      var link = document.createElement('a');
+      link.href = href;
+      link.textContent = label;
+      return link;
+    }
+
+    var boxes = document.getElementById('a11y-fix-totals');
+    [
+      [headline.trackers.clear + ' of ' + headline.trackers.total, 'Fix tasks with no open finding', null],
+      [headline.open, 'Open defect findings', headline.atTarget + ' at the target level, ' + headline.notDefect + ' more not a defect'],
+      [headline.latestAudit ? headline.latestAudit.resolved : 0, 'Resolved by the latest audit',
+        headline.latestAudit ? day(headline.latestAudit.startedAt) : null],
+      [headline.recent.resolved, 'Resolved in the last ' + fix.recentDays + ' days', null],
+      [headline.cameBack, 'Came back after being resolved', 'open now'],
+      [headline.medianDays === null ? 'none yet' : headline.medianDays, 'Median days from first seen to resolved',
+        'over ' + plural(headline.resolvedRows, 'resolved finding', 'resolved findings')]
+    ].forEach(function(entry) {
+      var box = document.createElement('div');
+      box.appendChild(text('b', entry[0]));
+      box.appendChild(document.createTextNode(entry[1]));
+      if (entry[2]) { box.appendChild(text('small', entry[2])); }
+      boxes.appendChild(box);
+    });
+
+    // The audits in words: the first full one as a chain to today, then the latest and the gap before it.
+    var audits = document.getElementById('a11y-fix-audits');
+    function sourcesOf(audit) {
+      return audit.sources.map(function(source) { return own(SOURCE_NAMES, source) || source; }).join(', ');
+    }
+    var baseline = headline.baseline;
+    audits.appendChild(text('div', baseline
+      ? 'Against the first full audit (' + day(baseline.startedAt) + '): ' + baseline.open + ' open then, ' + baseline.new + ' new since, '
+        + baseline.back + ' came back, ' + baseline.resolved + ' resolved, ' + headline.open + ' open now. New coverage, a check or a scenario added since, counts as new.'
+      : 'No audit has held a night of all four workflows yet, so there is no first full audit to count against.'));
+    if (headline.latestAudit) {
+      var latest = headline.latestAudit;
+      audits.appendChild(text('div', 'The latest audit (' + when(latest.startedAt) + (latest.endedAt !== latest.startedAt ? ' to ' + when(latest.endedAt) : '')
+        + ': ' + sourcesOf(latest) + (latest.full ? '' : '; not a full audit') + ') resolved ' + plural(latest.resolved, 'finding', 'findings')
+        + ', found ' + latest.new + ' new and ' + latest.back + ' that came back.'
+        + (headline.gapDays === null ? '' : ' The audit before it (' + day(headline.previousAudit.startedAt) + ': ' + sourcesOf(headline.previousAudit)
+          + ') was ' + plural(headline.gapDays, 'day', 'days') + ' earlier, which is as fine as a fix time reads.')));
+    }
+
+    function groupRow(label) {
+      var tr = document.createElement('tr');
+      var th = text('th', label, 'group');
+      th.scope = 'rowgroup';
+      th.colSpan = COLUMNS;
+      tr.appendChild(th);
+      fixBody.appendChild(tr);
+    }
+
+    function taskRow(row) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-surfaces', row.surfaces.join(' '));
+      var name = document.createElement('th');
+      name.scope = 'row';
+      var title = text('div', '', 'task');
+      // A fix task is named by what it fixes: its task id is code in the catalog and is not printed on this page.
+      if (row.kind === 'tracker') {
+        title.textContent = row.clusters.length === 1 ? row.clusters[0].title : row.clusters[0].title + ', and ' + (row.clusters.length - 1) + ' more';
+      } else if (row.kind === 'untracked') {
+        title.textContent = 'Defect clusters with no tracker';
+      } else if (row.kind === 'triage') {
+        title.textContent = 'Needs triage: not sorted into a cluster yet';
+      } else {
+        title.appendChild(text('code', row.notDefect));
+      }
+      if (row.open === 0 && row.clearedAt) {
+        title.appendChild(document.createTextNode(' '));
+        title.appendChild(badge('cleared', 'cleared'));
+      }
+      name.appendChild(title);
+      // What the row stands for: its one cluster by title, or its clusters behind a disclosure, so a task that owns
+      // ten clusters is still one line to scan.
+      var titled = row.kind === 'tracker' && row.clusters.length === 1;
+      if (row.kind === 'untracked') {
+        name.appendChild(text('div', plural(row.clusters.length, 'cluster', 'clusters') + ', listed in the table below without the tracked mark', 'legs'));
+      } else if (row.kind !== 'triage' && row.clusters.length === 1 && !titled) {
+        name.appendChild(text('div', row.clusters[0].title, 'legs'));
+      } else if (row.kind !== 'triage' && row.clusters.length > 1) {
+        var more = document.createElement('details');
+        more.className = 'legs';
+        more.appendChild(text('summary', plural(row.clusters.length, 'cluster', 'clusters')));
+        var list = document.createElement('ul');
+        row.clusters.forEach(function(cluster) { list.appendChild(text('li', cluster.title)); });
+        more.appendChild(list);
+        name.appendChild(more);
+      }
+      if (row.tasks > 1) {
+        name.appendChild(text('div', row.tasks + ' tasks own these findings together', 'legs'));
+      } else if (row.shared > 0) {
+        name.appendChild(text('div', 'findings shared with ' + plural(row.shared, 'other task', 'other tasks'), 'legs'));
+      }
+      tr.appendChild(name);
+      cell(tr, row.open, 'num');
+      cell(tr, row.atTarget, 'num');
+      cell(tr, row.peak, 'num');
+      cell(tr, row.resolved, 'num');
+      cell(tr, row.firstSeen ? when(row.firstSeen) : 'never seen');
+      var cleared = cell(tr, '');
+      if (row.clearedAt) {
+        cleared.appendChild(linkTo(runPage(row.clearedAt.runId), when(row.clearedAt.seenAt)));
+        cleared.appendChild(text('div', (own(SOURCE_NAMES, row.clearedAt.source) || row.clearedAt.source) + ' run ' + row.clearedAt.runId, 'legs'));
+      } else {
+        // Nothing open and no clearing night: its findings left the ledger unmeasured, or it never had one.
+        cleared.textContent = row.open > 0 ? 'not cleared' : 'no clearing night on record';
+      }
+      cell(tr, row.days === null ? '–' : row.days, 'num');
+      fixBody.appendChild(tr);
+    }
+
+    var tasks = fix.rows.filter(function(row) { return row.kind === 'tracker'; });
+    groupRow('Fix tasks');
+    tasks.forEach(taskRow);
+    if (!tasks.length) { noneRow(fixBody, COLUMNS, 'No cluster of the catalog names a tracker yet.'); }
+    groupRow('Not owned by a task');
+    fix.rows.filter(function(row) { return row.kind === 'untracked' || row.kind === 'triage'; }).forEach(taskRow);
+    var others = fix.rows.filter(function(row) { return row.kind === 'not-defect'; });
+    groupRow('Not a defect, by class: outside the numbers above');
+    others.forEach(taskRow);
+    if (!others.length) { noneRow(fixBody, COLUMNS, 'The catalog marks no cluster as not a defect.'); }
+  }());
 
   var clustersBody = document.querySelector('#a11y-clusters tbody');
   view.clusters.forEach(function(cluster) {

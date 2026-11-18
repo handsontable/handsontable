@@ -19,8 +19,10 @@ export default defineConfig({
   ...base,
   testDir: 'a11y',
   // The checks beyond axe live in `a11y/checks/` and run under their own config
-  // (`playwright.a11y-checks.config.ts`), so the scan collects its one spec only.
-  testMatch: 'axe.spec.ts',
+  // (`playwright.a11y-checks.config.ts`), so the scan collects its two specs only: the scan, and the
+  // guard that opens the axe discovery run's targets (`a11y/discovery-targets.spec.ts`), which attaches
+  // no scan and fails for tooling only, like a scan that did not load its page.
+  testMatch: ['axe.spec.ts', 'discovery-targets.spec.ts'],
   outputDir: 'test-results/a11y',
   // A scan of a big fixture (the complex demo on a slow worker) takes longer than a functional
   // test; axe itself is a few seconds on such a page.
