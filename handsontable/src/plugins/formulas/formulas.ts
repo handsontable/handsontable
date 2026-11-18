@@ -649,6 +649,10 @@ const REF_ERROR_PATTERN = /#REF!/;
 // It is also the marker that keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
 const HYPERLINK_CLASS_NAME = 'ht-hyperlink';
 
+// Class name of the left-to-right span that wraps a formula error value (`#DIV/0!`) in a right-to-left grid.
+// It is also the marker that keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
+const ERROR_VALUE_CLASS_NAME = 'ht-formula-error';
+
 // `warnOnce` key for a `HYPERLINK` URL refused by the protocol allowlist. Warning per cell would
 // flood the console on every render pass.
 const HYPERLINK_WARN_KEY = 'formulas-hyperlink-refused';
@@ -1937,6 +1941,7 @@ export class Formulas extends BasePlugin {
     this.addHook('afterMoveCells', this.#onAfterMoveCells);
 
     this.addHook('afterRenderer', this.#onAfterRenderer);
+    this.addHook('afterRenderer', this.#onIsolateErrorValue);
     // Positive `orderIndex`: must run after every default-order `afterRenderer` listener (this
     // plugin's own above, and AutoLink's) - see `#onPaintFormulaText`'s own doc for why.
     this.addHook('afterRenderer', this.#onPaintFormulaText, 1);
@@ -6625,6 +6630,73 @@ export class Formulas extends BasePlugin {
     // containing markup stays text.
     wrapCellContent(TD, link);
   };
+
+  /**
+   * `afterRenderer` hook callback. In a right-to-left grid, wraps the rendered content of a cell whose
+   * engine value is an error in a `span` with `dir="ltr"`. An error value is left-to-right text that
+   * starts and ends with punctuation, and the bidi algorithm places such punctuation by the cell's
+   * direction, so `#DIV/0!` showed as `!DIV/0#`. The span isolates the text and keeps the cell's own
+   * direction, so its alignment and borders stay those of a right-to-left cell. The text content is
+   * unchanged, so copy and assistive technology read the same value.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string|number} prop The column property.
+   * @param {*} value The rendered value.
+   */
+  #onIsolateErrorValue = (
+    TD: HTMLTableCellElement,
+    row: number,
+    column: number,
+    prop: string | number,
+    value: unknown,
+  ) => {
+    // Walkontable recycles TD elements, so a span from a previous render is taken out first.
+    unwrapLinks(TD, `span.${ERROR_VALUE_CLASS_NAME}`);
+
+    if (
+      !this.hot.isRtl() ||
+      this.#internalOperationPending ||
+      this.#showFormulasFlag ||
+      typeof value !== 'string' ||
+      !value.startsWith('#') ||
+      !this.#isErrorValueCell(row, column)
+    ) {
+      return;
+    }
+
+    const span = this.hot.rootDocument.createElement('span');
+
+    span.className = ERROR_VALUE_CLASS_NAME;
+    span.dir = 'ltr';
+
+    wrapCellContent(TD, span);
+  };
+
+  /**
+   * Returns `true` when the engine value of the cell is an error. A string that only looks like one
+   * (`'#tag!'`) is not, and stays in the cell's own direction.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {boolean}
+   */
+  #isErrorValueCell(row: number, column: number): boolean {
+    if (!this.#hasOwnSheet()) {
+      return false;
+    }
+
+    const engineCell = this.#toEngineAddress(row, column);
+
+    if (engineCell === null) {
+      return false;
+    }
+
+    this.#flushEvaluation();
+
+    return hasValueProperty(this.engine!.getCellValue(engineCell.address));
+  }
 
   /**
    * `afterRenderer` hook callback, registered with a positive `orderIndex` so it always runs after
