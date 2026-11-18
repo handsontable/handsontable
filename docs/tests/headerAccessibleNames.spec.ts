@@ -88,6 +88,7 @@ test('names the "Ask AI" button by its visible text and opens the assistant from
 
   await expect(askAi).toBeVisible();
   await expect(askAi).toHaveAccessibleName('Ask AI');
+  await expect(askAi).toHaveAttribute('title', 'Ask AI');
   await expect(page.getByRole('button', { name: 'Ask AI', exact: true })).toBeVisible();
 
   await askAi.focus();
@@ -103,4 +104,5 @@ test('gives the phone header\'s assistant button the same name', async ({ page, 
 
   await expect(askAi).toBeVisible();
   await expect(askAi).toHaveAccessibleName('Ask AI');
+  await expect(askAi).toHaveAttribute('title', 'Ask AI');
 });
