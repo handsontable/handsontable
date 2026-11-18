@@ -78,7 +78,7 @@ side — the queued press, the two release signals, the two cancel checks — is
 `#onBeforeOnCellMouseDown` returns through `#cancelDrag()` while `hot.selection.isNonContiguous()` is true
 (Ctrl/Cmd+click headers, or `selectCells()` with several ranges). The press used to arm a drag of the
 active range alone and leave the other ranges where they were (DEV-541). With the move not armed, the press
-falls through to the ordinary selection, so it selects the pressed column and a second press can drag it.
+falls through to the ordinary selection.
 `moveColumns()` and `dragColumns()` are untouched: the guard is about the gesture. `#onMouseUp` adds the
 `after-selection--columns` class (the grab cursor on the selected headers) only while the selection is a
 single range, so no header advertises a drag the guard refuses. `../manualRowMove/` has the same guard and

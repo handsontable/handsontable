@@ -31,7 +31,7 @@ this plugin's state through nothing but the index mapper; the same holds for Man
 ## A selection of several ranges arms no move
 
 `#onBeforeOnCellMouseDown` resets the drag state and returns while `hot.selection.isNonContiguous()` is true,
-as the column plugin does (DEV-541): the press selects the pressed row instead of moving the active range
+as the column plugin does (DEV-541): the press no longer moves the active range
 alone. Full rule: `../manualColumnMove/AGENTS.md`, "A selection of several ranges arms no move".
 
 ## A press another listener claimed arms no move
