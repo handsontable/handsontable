@@ -1,5 +1,6 @@
 import { type Locator, type Page, expect } from '@playwright/test';
 import { FiltersValueListPage, escapeRegExp } from './FiltersValueListPage';
+import { chooseConditionWithKeyboard } from './filtersMenuKeyboard';
 
 /**
  * Page Object for keyboard navigation inside the filters dropdown menu: the Tab and Shift+Tab order
@@ -166,24 +167,7 @@ export class FiltersMenuKeyboardPage extends FiltersValueListPage {
    * @param {string} label The condition's visible label, e.g. `Contains`.
    */
   async chooseConditionWithKeyboard(label: string): Promise<void> {
-    const wanted = new RegExp(`^${escapeRegExp(label)}$`);
-    const highlighted = this.conditionsMenu.locator('td.current');
-
-    await this.page.keyboard.press('Enter');
-    await expect(this.conditionsMenu).toBeVisible();
-
-    for (let i = 0; i < 20; i++) {
-      if ((await highlighted.count()) === 1 && wanted.test((await highlighted.innerText()).trim())) {
-        await this.page.keyboard.press('Enter');
-        await expect(this.conditionsMenu).toBeHidden();
-
-        return;
-      }
-
-      await this.page.keyboard.press('ArrowDown');
-    }
-
-    throw new Error(`ArrowDown never reached the ${JSON.stringify(label)} condition`);
+    await chooseConditionWithKeyboard(this.page, this.conditionsMenu, label);
   }
 
   /**

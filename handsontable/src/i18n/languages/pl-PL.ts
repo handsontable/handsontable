@@ -78,6 +78,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Brak',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Komórka jest pusta',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Komórka nie jest pusta',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Jest zaznaczone',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Nie jest zaznaczone',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Jest równe',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Jest różne od',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Tekst zaczyna się od',

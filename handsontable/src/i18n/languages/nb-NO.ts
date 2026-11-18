@@ -71,6 +71,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Ingen',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Er tom',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Er ikke tom',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Er avkrysset',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Er ikke avkrysset',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Er lik',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Er ikke lik',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Begynner med',

@@ -8,6 +8,8 @@ import { warn } from '../../helpers/console';
 import { addClass, isBottomMostColumnHeader, isHTMLElement, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
+import { getCheckboxCellMeta, isCheckboxMeta } from '../../utils/checkboxColumn';
+import type { CheckboxMeta } from '../../utils/checkboxColumn';
 import { createObjectPropListener, deepClone, hasOwnProperty, isObject } from '../../helpers/object';
 import type { ObjectPropListener } from '../../helpers/object';
 import { SEPARATOR } from '../../utils/menu/predefinedItems';
@@ -50,7 +52,10 @@ import getOptionsList, {
   OPERATION_OR,
   OPERATION_OR_THEN_VARIABLE,
   TYPES,
+  TYPE_CHECKBOX,
+  TYPE_TEXT,
   getConditionListType,
+  getStockConditionNames,
 } from './constants';
 import type { TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
@@ -124,7 +129,9 @@ export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
 const AVAILABLE_CONDITIONS_KEY = 'availableConditions';
 const DATA_TYPES = Object.keys(TYPES);
-const KNOWN_CONDITION_NAMES = new Set(Object.values(TYPES).flat().filter(name => name !== SEPARATOR));
+const KNOWN_CONDITION_NAMES = new Set(
+  [...DATA_TYPES, TYPE_CHECKBOX].flatMap(getStockConditionNames).filter(name => name !== SEPARATOR)
+);
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
@@ -487,6 +494,19 @@ export class Filters extends BasePlugin {
    */
   #isDataProviderActive(): boolean {
     return this.hot.runHooks('hasExternalDataSource') === true;
+  }
+
+  /**
+   * Gets the data type whose stock condition list a column offers. While a DataProvider backs the grid, a
+   * `checkbox` column offers the plain `text` list, without "Is checked" and "Is unchecked": the server
+   * evaluates the conditions, and a backend written before those two existed would ignore them and return
+   * every row under a filter the header shows as active.
+   *
+   * @param {string} type The column's data type.
+   * @returns {string}
+   */
+  #getStockListType(type: string): string {
+    return type === TYPE_CHECKBOX && this.#isDataProviderActive() ? TYPE_TEXT : type;
   }
 
   /**
@@ -956,7 +976,7 @@ export class Filters extends BasePlugin {
    * in a valid `availableConditions` value.
    */
   #warnAboutAvailableConditionsProblems(setting: unknown) {
-    findAvailableConditionsProblems(setting, TYPES, SEPARATOR).forEach((problem) => {
+    findAvailableConditionsProblems(setting, TYPES, SEPARATOR, [...KNOWN_CONDITION_NAMES]).forEach((problem) => {
       if (problem.kind === 'unknownName') {
         warnAboutUnknownCondition(this.hot.rootElement, problem.name);
       } else {
@@ -983,7 +1003,7 @@ export class Filters extends BasePlugin {
     const listType = getConditionListType(columnType);
     const rule = resolveAvailableConditionsRule(setting, listType);
 
-    findOffListNames(rule, TYPES[listType], SEPARATOR)
+    findOffListNames(rule, getStockConditionNames(this.#getStockListType(columnType)), SEPARATOR)
       .filter(name => KNOWN_CONDITION_NAMES.has(name))
       .forEach(name => warnAboutUnavailableCondition(this.hot.rootElement, name, columnType, listType));
   }
@@ -1291,6 +1311,7 @@ export class Filters extends BasePlugin {
    * | `begins_with` | Begins with | `[value: string]`, e.g. `['de']` |
    * | `between` | Between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
    * | `by_value` | By value | `[[...values: Array]]`, e.g. `[['ing', 'ed', 'as']]`. The outer array wraps a single inner array that contains all values to **keep** (show) after filtering. |
+   * | `checked` | Is checked, for a `checkbox` column: the value matches the cell's `checkedTemplate` (`true` by default), ignoring letter case. With a `dataProvider`, your server must handle this name | `[]` |
    * | `contains` | Contains | `[value: string]`, e.g. `['ing']` |
    * | `date_after` | After a date (exclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
    * | `date_after_or_equal` | After or equal to a date (inclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
@@ -1322,6 +1343,7 @@ export class Filters extends BasePlugin {
    * | `not_contains` | Not contains | `[value: string]`, e.g. `['ing']` |
    * | `not_empty` | Not empty | `[]` |
    * | `neq` | Not equal | `[value: string\|number]`, e.g. `['John']`. On `date` and `intl-date` columns, pass an ISO 8601 date string, e.g. `['2023-01-01']`. |
+   * | `unchecked` | Is unchecked, for a `checkbox` column: the value matches the cell's `uncheckedTemplate` (`false` by default), ignoring letter case. An empty cell does not match unless the template is itself empty; use `empty` for it. With a `dataProvider`, your server must handle this name | `[]` |
    *
    * Possible operations on collection of conditions:
    *  * `conjunction` - [**Conjunction**](https://en.wikipedia.org/wiki/Logical_conjunction) on conditions collection (by default), i.e. for such operation: <br/> c1 AND c2 AND c3 AND c4 ... AND cn === TRUE, where c1 ... cn are conditions.
@@ -1930,7 +1952,7 @@ export class Filters extends BasePlugin {
       }
 
       types.add(type);
-      getOptionsList(type, setting).forEach(({ key }) => {
+      getOptionsList(this.#getStockListType(type), setting).forEach(({ key }) => {
         if (typeof key === 'string' && key !== CONDITION_NONE) {
           names.add(key);
         }
@@ -2030,7 +2052,8 @@ export class Filters extends BasePlugin {
    * Gets the filter conditions that a column offers, in the order the "Filter by condition" menu lists them.
    *
    * The list follows the column's data type (`text`, `numeric`, `date`, `intl-date`, `intl-time`, or
-   * `intl-datetime`, where any other type and a column whose cells have different types use the `text` list)
+   * `intl-datetime`, where any other type and a column whose cells have different types use the `text` list; a
+   * `checkbox` column adds `checked` and `unchecked` to it, unless a data provider backs the grid)
    * and the [`availableConditions`](@/api/options.md#filters) setting that applies to the column. It is the
    * list the column's menu shows, without the separators and without the "None" entry, which clears a filter
    * rather than adding one. Like the menu, it reads the data type from the rows no filter trims, so in a column
@@ -2364,8 +2387,16 @@ export class Filters extends BasePlugin {
       values.push(toEmptyString(value));
     }
 
+    // A checkbox condition decides its whole result from the cell's templates, which a `cells()` function
+    // can set per row. The column meta never runs that function, so a checkbox column resolves each row
+    // without stored meta through the cell's own transient meta (rows another filter trimmed included).
+    const resolveUnstoredMeta = visualColumn !== null &&
+      isCheckboxMeta(metaManager.getColumnMeta(physicalColumn) as CheckboxMeta) ?
+      (physicalRow: number) => getCheckboxCellMeta(this.hot, physicalRow, visualColumn) as CellProperties :
+      () => metaManager.createTransientColumnMeta(physicalColumn);
+
     return new ColumnDataMap(rows, values, physicalColumn,
-      (index: number) => resolvedMetas[index] ?? metaManager.createTransientColumnMeta(physicalColumn));
+      (index: number) => resolvedMetas[index] ?? resolveUnstoredMeta(rows[index]));
   }
 
   /**
@@ -2915,7 +2946,7 @@ export class Filters extends BasePlugin {
    * @returns {object[]}
    */
   _getConditionOptions(column: number, dataType = this._getColumnDataType(column)): Record<string, unknown>[] {
-    return getOptionsList(dataType, this._getAvailableConditionsSetting(column));
+    return getOptionsList(this.#getStockListType(dataType), this._getAvailableConditionsSetting(column));
   }
 
   /**
