@@ -484,6 +484,7 @@
     {
       "id": "docs-assistant-button-name",
       "title": "The docs header's \"Ask AI\" button has an accessible name that does not contain its visible text",
+      "tracker": "DEV-4015",
       "match": [
         { "source": "docs", "axeIssues": ["assistant-button-name"] }
       ]
@@ -491,6 +492,7 @@
     {
       "id": "docs-framework-tab-name",
       "title": "The docs framework switcher's tabs have accessible names that do not contain their visible text",
+      "tracker": "DEV-4015",
       "match": [
         { "source": "docs", "axeIssues": ["framework-tab-name"] }
       ]
@@ -498,6 +500,7 @@
     {
       "id": "docs-hidden-focusable",
       "title": "An off-screen copy of the docs navigation is hidden from screen readers but still holds focusable links",
+      "tracker": "DEV-4016",
       "match": [
         { "source": "docs", "axeIssues": ["sidebar-hidden-focusable"] }
       ]
@@ -505,6 +508,7 @@
     {
       "id": "docs-link-color-only",
       "title": "Links in the docs prose are told apart from the surrounding text by color alone",
+      "tracker": "DEV-4017",
       "match": [
         { "source": "docs", "axeIssues": ["prose-link-color-only"] }
       ]
@@ -512,6 +516,7 @@
     {
       "id": "docs-contrast",
       "title": "Docs code block line numbers in the dark theme, and cell text in some examples, fall below 4.5:1 contrast",
+      "tracker": ["DEV-4018", "DEV-4020"],
       "match": [
         { "source": "docs", "axeIssues": ["code-line-number-contrast", "example-cell-contrast"] }
       ]
@@ -519,6 +524,7 @@
     {
       "id": "docs-scrollable-blocks",
       "title": "Scrollable code blocks and tables in the docs cannot be scrolled from the keyboard",
+      "tracker": "DEV-4022",
       "match": [
         { "source": "docs", "axeIssues": ["scrollable-block-keyboard"] }
       ]
@@ -526,6 +532,7 @@
     {
       "id": "docs-embeds-and-example-fields",
       "title": "Docs embeds have no frame title, custom renderer images have no text alternative, and some example fields have no label",
+      "tracker": "DEV-4020",
       "match": [
         { "source": "docs", "axeIssues": ["embed-frame-title", "example-image-alt", "example-unlabeled-fields"] }
       ]
@@ -533,6 +540,7 @@
     {
       "id": "docs-assistant-closed-tab-stops",
       "title": "The closed docs assistant keeps its controls in the Tab order, off screen",
+      "tracker": "DEV-4021",
       "match": [
         { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden"], "where": ["^(button|textarea)\\.da-"] }
       ]
@@ -540,6 +548,7 @@
     {
       "id": "docs-copy-button-hidden-focus",
       "title": "A code block's copy button stays invisible when it has the keyboard focus",
+      "tracker": "DEV-4018",
       "match": [
         { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden"], "where": ["^div\\.copy button$"] }
       ]
@@ -547,6 +556,7 @@
     {
       "id": "docs-hidden-nav-link-focusable",
       "title": "A link in a hidden copy of the navigation takes the keyboard focus, off screen and hidden from screen readers",
+      "tracker": "DEV-4016",
       "match": [
         { "source": "docs-checks", "checks": ["docs-keyboard"], "kinds": ["focus-stop-hidden", "focus-stop-aria-hidden"], "where": ["^a\\.active$"] }
       ]
@@ -554,6 +564,7 @@
     {
       "id": "docs-example-grid-holds-focus",
       "title": "An example grid keeps the Tab key, and the documented way out (Ctrl+End, then Tab) does not leave it",
+      "tracker": "DEV-4020",
       "match": [
         { "source": "docs-checks", "kinds": ["grid-holds-focus"] }
       ]
@@ -561,6 +572,7 @@
     {
       "id": "docs-code-region-unnamed",
       "title": "A code block that scrolls is a focusable region with no name",
+      "tracker": "DEV-4022",
       "match": [
         { "source": "docs-checks", "kinds": ["focus-stop-without-role"], "where": ["pre\\[role=\"region\"\\]"] }
       ]
@@ -568,6 +580,7 @@
     {
       "id": "docs-search-slash-shortcut",
       "title": "The / key opens the docs search with nothing focused, and nothing turns it off",
+      "tracker": "DEV-4021",
       "match": [
         { "source": "docs-checks", "kinds": ["single-key-shortcut"] }
       ]
@@ -575,6 +588,7 @@
     {
       "id": "docs-popup-focus-not-returned",
       "title": "Closing the docs assistant or the search does not give the focus back to the control that opened it",
+      "tracker": "DEV-4021",
       "match": [
         { "source": "docs-checks", "kinds": ["focus-not-returned"] }
       ]
@@ -589,6 +603,7 @@
     {
       "id": "docs-sticky-header-hides-focus",
       "title": "The sticky header hides a focused link when Shift+Tab scrolls it to the top of the window",
+      "tracker": "DEV-4018",
       "match": [
         { "source": "docs-checks", "kinds": ["focus-obscured"] }
       ]
@@ -596,6 +611,7 @@
     {
       "id": "docs-focus-indicator-contrast",
       "title": "A focus indicator in the docs stands under 3:1 from the colors next to it",
+      "tracker": "DEV-4018",
       "match": [
         { "source": "docs-checks", "kinds": ["focus-indicator-contrast"] }
       ]
@@ -603,6 +619,7 @@
     {
       "id": "docs-example-field-boundary",
       "title": "An example's text field has no edge or fill that stands 3:1 from the page",
+      "tracker": "DEV-4018",
       "match": [
         { "source": "docs-checks", "kinds": ["control-boundary-contrast"] }
       ]
@@ -610,6 +627,7 @@
     {
       "id": "docs-current-state-forced-colors",
       "title": "In forced colors, the current breadcrumb and the current table-of-contents entry look like the others",
+      "tracker": "DEV-4018",
       "match": [
         { "source": "docs-checks", "kinds": ["state-lost-in-forced-colors"] }
       ]
@@ -617,6 +635,7 @@
     {
       "id": "docs-titles-truncate",
       "title": "Sidebar and card titles are cut off with an ellipsis at 320 px, at 200% zoom and under text spacing",
+      "tracker": "DEV-4023",
       "match": [
         { "source": "docs-checks", "kinds": ["text-truncated"], "where": ["^span\\.title "] }
       ]
@@ -624,6 +643,7 @@
     {
       "id": "docs-phone-breadcrumbs-truncate",
       "title": "The phone breadcrumbs are cut off with an ellipsis at 320 px",
+      "tracker": "DEV-4023",
       "match": [
         { "source": "docs-checks", "kinds": ["text-truncated"], "where": ["^nav\\.mobile-breadcrumbs "] }
       ]
@@ -631,6 +651,7 @@
     {
       "id": "docs-phone-subheader-cut",
       "title": "The phone subheader reaches past the viewport at 320 px, where the page cannot scroll to it",
+      "tracker": "DEV-4023",
       "match": [
         { "source": "docs-checks", "kinds": ["outside-viewport"], "where": ["^div\\.mobile-subheader "] }
       ]
@@ -638,6 +659,7 @@
     {
       "id": "docs-content-reflow",
       "title": "Content that does not wrap (inline code, keys, a link in a callout, the not-found page's game) makes docs pages wider than 320 px",
+      "tracker": "DEV-4023",
       "match": [
         { "source": "docs-checks", "kinds": ["page-scrolls-sideways"] }
       ]
@@ -645,6 +667,7 @@
     {
       "id": "docs-example-reflow",
       "title": "Examples overlap the page's controls, clip their text and cut their labels at 320 px, at 200% zoom and under text spacing",
+      "tracker": "DEV-4023",
       "match": [
         { "source": "docs-checks", "kinds": ["controls-overlap"], "where": ["^div\\.example-container "] },
         { "source": "docs-checks", "kinds": ["text-clipped"], "where": ["^div\\.hot-example "] },
@@ -654,6 +677,7 @@
     {
       "id": "docs-footer-overlap",
       "title": "Footer links overlap each other at 200% zoom",
+      "tracker": "DEV-4023",
       "match": [
         { "source": "docs-checks", "kinds": ["controls-overlap"], "where": ["^nav\\.hot-footer__nav a × ", "^a\\.hot-footer__[\\w-]+ × a\\.hot-footer__"] }
       ]
@@ -661,6 +685,7 @@
     {
       "id": "docs-repeated-landmark-names",
       "title": "Each callout is a complementary landmark named by its type, and the two pagination navigations share a name, so the landmark list repeats names",
+      "tracker": "DEV-4019",
       "match": [
         { "source": "docs-checks", "kinds": ["landmark-name-repeated"] }
       ]
@@ -668,6 +693,7 @@
     {
       "id": "docs-heading-skips",
       "title": "Docs pages skip heading levels inside the main content",
+      "tracker": "DEV-4019",
       "match": [
         { "source": "docs-checks", "kinds": ["heading-level-skipped"] }
       ]
@@ -675,6 +701,7 @@
     {
       "id": "docs-framework-shared-titles",
       "title": "The framework variants of a docs page share one title",
+      "tracker": "DEV-4019",
       "match": [
         { "source": "docs-checks", "kinds": ["page-title-duplicate"] }
       ]
@@ -682,6 +709,7 @@
     {
       "id": "docs-generic-link-names",
       "title": "Some docs links are named \"here\", \"read more\" or \"learn more\", which says nothing out of context",
+      "tracker": "DEV-4019",
       "match": [
         { "source": "docs-checks", "kinds": ["link-name-generic"] }
       ]
@@ -689,6 +717,7 @@
     {
       "id": "docs-not-found-title",
       "title": "The not-found page's title does not hold its heading",
+      "tracker": "DEV-4019",
       "match": [
         { "source": "docs-checks", "kinds": ["page-title-differs-from-heading"] }
       ]

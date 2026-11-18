@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `loadData()` throwing \"TR was expected to be rendered but is not\" when the selection lands on a `fixedRowsBottom` row. `getCell()` now returns `null` for a frozen row the grid has not drawn yet, instead of throwing or returning the cell of another row.",
+  "type": "fixed",
+  "issueOrPR": 14316,
+  "breaking": false,
+  "framework": "none"
+}
