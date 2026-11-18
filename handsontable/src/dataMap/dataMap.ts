@@ -1177,9 +1177,10 @@ class DataMap {
    * resolves them once per call and reuses them for every cell.
    *
    * A hook listener counted absent in `mode`, or a column `valueGetter` counted absent in `column`, is
-   * not run for the rest of the call, so one added by user code running inside a bulk read (a
-   * `valueGetter`, an accessor, a hook listener) takes effect from the next call. `getAtColumnForRows()`
-   * reads its answers the same way.
+   * not run for the rest of the call, so one added by user code running inside the read (a
+   * `valueGetter`, an accessor, a hook listener) takes effect from the next call. That holds for a
+   * single-cell `get()` too: a `modifyData` listener a `valueGetter` adds does not run for that same
+   * cell. `getAtColumnForRows()` reads its answers the same way.
    *
    * @param {number} row Visual row index.
    * @param {number} physicalRow The physical index of `row`.
