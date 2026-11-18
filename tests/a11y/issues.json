@@ -210,13 +210,12 @@
       "tracker": "DEV-3491",
       "match": [
         { "source": "axe", "axeIssues": ["menu-roles"] },
-        { "source": "axe", "rules": ["aria-required-parent"], "where": ["^td\\.htSeparator\\[role=\"menuitem\"\\]$"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-required-parent", "aria-allowed-attr"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["^div\\.htMenu\\[role=\"menu\"\\]$"] },
         { "source": "reader", "kinds": ["token-missing"], "where": ["^open-context-menu$"] },
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["dropdown-menu", "filters-by-value", "filters-by-condition"], "where": ["^open-menu$"] },
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["context-menu-checkable", "rtl-dropdown-menu"], "where": ["^open-menu$"] },
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["context-menu-checkable"], "where": ["^read-next-separator$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["context-menu-checkable"], "where": ["^read-next-separator$"] },
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["context-menu-checkable"], "where": ["^read-next-item$"] }
       ]
     },

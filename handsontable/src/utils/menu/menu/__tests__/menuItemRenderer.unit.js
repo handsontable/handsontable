@@ -341,6 +341,26 @@ describe('menuItemRenderer', () => {
       expect(TD.hasAttribute('aria-expanded')).toBe(false);
     });
 
+    it('should drop the tab stop a reused cell carried from an enabled item', () => {
+      const separator = { name: SEPARATOR };
+      const item = { key: 'b', name: 'Enabled' };
+      const TD = document.createElement('td');
+      let current = item;
+      const { mainTableHot, menuHot } = createInstances(item, { ariaTags: true });
+      const render = createMenuItemRenderer(mainTableHot);
+
+      menuHot.getSourceDataAtRow = () => current;
+      render(menuHot, TD, 0, 0, '0', item.name, {});
+
+      expect(TD.getAttribute('tabindex')).toBe('-1');
+
+      current = separator;
+      render(menuHot, TD, 0, 0, '0', separator.name, {});
+
+      expect(TD.getAttribute('role')).toBe('separator');
+      expect(TD.hasAttribute('tabindex')).toBe(false);
+    });
+
     it('should write no ARIA when `ariaTags` is off', () => {
       const { TD } = renderItem({ name: SEPARATOR }, { ariaTags: false });
 

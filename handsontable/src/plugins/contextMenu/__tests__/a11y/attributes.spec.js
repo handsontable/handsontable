@@ -152,10 +152,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await waitForNextAnimationFrames(19);
 
+    const separators = cMenu.container.querySelectorAll('td.htSeparator');
     const ariaLabelledCells = [...cMenu.container.querySelectorAll('td')]
-      .filter(el => el.ariaLabel !== undefined);
+      .filter(el => el.hasAttribute('aria-label'));
 
-    expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows());
+    expect(separators.length).toBeGreaterThan(0);
+    expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows() - separators.length);
 
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert row above');
   });

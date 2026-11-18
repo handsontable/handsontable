@@ -171,8 +171,8 @@ export class MenuSeparatorRolePage {
   }
 
   /**
-   * The visible text of the rows directly above and below the first separator that follows the
-   * item with the given text.
+   * The visible text of the row directly below the first separator that follows the item with the
+   * given text.
    *
    * @param {string} menuSelector The menu container selector.
    * @param {string} above The visible text of the item right above a separator.
