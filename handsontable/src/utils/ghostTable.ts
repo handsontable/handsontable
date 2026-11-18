@@ -393,7 +393,8 @@ class GhostTable {
   }
 
   /**
-   * Creates DOM elements for headers and appends them to the THEAD element of the table.
+   * Creates DOM elements for headers and appends them to the THEAD element of the table, and fills
+   * them with the grid's first-level column header renderer.
    */
   appendColumnHeadersRow() {
     const rootDocument = this.hot!.rootDocument;
@@ -423,11 +424,27 @@ class GhostTable {
     // Appending DOM elements for headers
     this.table!.tHead.appendChild(headersRow);
 
+    // The row is filled by the renderer the grid draws its first header level with, not by
+    // `appendColHeader()` alone: a plugin's renderer can do more than write the label. The
+    // NestedHeaders one spans a group header over its columns (`colspan`) and hides the cells the
+    // group covers. Filled with the label alone, a group label was measured inside its first column
+    // and a label allowed to wrap made the header row several times taller than the drawn label.
+    // For a grid without such a plugin the renderer is `appendColHeader()` itself.
+    const { columnIndexMapper } = this.hot!;
+    const [firstLevelRenderer] = this.hot!.view._wt.getSetting('columnHeaders') as
+      ((renderedColumnIndex: number, TH: HTMLTableCellElement) => void)[];
+
     arrayEach(columnHeaders, (columnHeader: [number, HTMLTableCellElement]) => {
       const [column, th] = columnHeader;
+      const renderedColumn = column >= 0 ? columnIndexMapper.getRenderableFromVisualIndex(column) : null;
 
-      // Using source method for filling a header with value.
-      this.hot!.view.appendColHeader(column, th);
+      if (firstLevelRenderer && renderedColumn !== null) {
+        firstLevelRenderer(renderedColumn, th);
+
+      } else {
+        // The corner above the row headers, and a column that is not rendered (hidden).
+        this.hot!.view.appendColHeader(column, th);
+      }
     });
   }
 

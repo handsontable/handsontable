@@ -367,6 +367,31 @@ init, and CollapsibleColumns (290) enables after this plugin (280), so `.enabled
 shrink the measured headers. The cost: a license key that keeps one of them off leaves a little unused room in
 the header width.
 
+## A label the application lets wrap is measured at its narrowest, never at one line
+
+An application lets header labels wrap with `.handsontable thead th .colHeader { white-space: normal; }`. Two
+measurements used to ignore that, and both have to stay fixed for a long group label to wrap inside its columns.
+
+- **The ghost table's labels are `width: min-content`** (`_base.scss`, `.htGhostTable.htNestedHeaders .colHeader`).
+  The ghost is an auto-width table, so without it every label counted at its max-content width, the one-line width
+  whatever `white-space` said, and `#onModifyColWidth` widened the group to it. `min-content` follows `white-space`:
+  a `nowrap` label (the default) still measures its full line, so default widths are unchanged to the pixel. The rule
+  is ghost-only on purpose: on the drawn header it would squeeze every label to its longest word.
+- **Core's ghost header row renders through the grid's first-level header renderer**
+  (`GhostTable#appendColumnHeadersRow`, `utils/ghostTable.ts`), which is this plugin's `headerRendererFactory(0)`.
+  That row is how `TableView`'s pre-draw probe and AutoRowSize measure the header height. Filled with
+  `appendColHeader()` alone it had no `colspan`, so the group label was measured inside its first column, the header
+  row came out several times taller than the drawn label, and the height stuck: the `columnHeaderHeight` funnel
+  writes the larger value onto the `<th>`, and the post-draw probe reads it back on every render. The ghost `<th>` is
+  in no overlay, so two cases still measure off and the post-draw probe settles them: a first draw that starts
+  inside a group draws its placeholder (under-measured), and a group that crosses `fixedColumnsStart` is measured at
+  its full width while the corner clone draws it clamped (over-measured, about one line).
+- **AutoRowSize applies one header height to every level** (its `modifyColumnHeaderHeight` returns a number, and
+  the `columnHeaderHeight` funnel in `tableView.ts` uses it as the floor of each level). With a wrapped group label
+  the bottom level is padded to the group's height. That is AutoRowSize's limit, not this plugin's; the docs say so.
+
+`tests/e2e/nested-headers-label-wrap.spec.ts` covers both, and the control case without the CSS.
+
 ## Testing
 
 - E2E: `npm run test:e2e --prefix handsontable -- --testPathPattern='nestedHeaders'`
@@ -378,6 +403,10 @@ the header width.
 - Ghost-table growth and the column-width cache:
   `npm --prefix tests run test:e2e -- e2e/nested-headers-grown-widths.spec.ts` (scrolled to the right edge,
   the last column's cell must lie inside the holder's visible area).
+- A group label the application lets wrap:
+  `npm --prefix tests run test:e2e -- e2e/nested-headers-label-wrap.spec.ts` (the group keeps its columns'
+  widths, and the header holds no more space than a one-line header's borders, after a full render and a
+  data load too). It declares `THEMES_TAG`; a stylesheet change needs both bundles rebuilt first.
 - Move/reparent behavior: `__tests__/plugins/manualColumnMove/` — `general.spec.js` (cooperation:
   follow-data, collapse coordination, insert/remove, freeze) plus one file per `columnDropMode`
   strategy (`adopt.spec.js`, `split.spec.js`). **Add a new drop strategy's tests in its own
