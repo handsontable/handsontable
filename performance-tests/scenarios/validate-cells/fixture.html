@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Validate cells</title>
+  <link rel="stylesheet" href="../../fixtures/handsontable.css">
+  <script src="../../fixtures/handsontable.full.js"></script>
+  <script src="../../fixtures/test-license-key.js"></script>
+</head>
+<body>
+  <div id="hot"></div>
+  <script>
+    const el = document.getElementById('hot');
+    const COLS = 20;
+    // Data and column settings are built once, outside the traced window. The values are strings
+    // such as "B1", so every `numeric` cell fails validation: the window covers the invalid path too.
+    const data = Handsontable.helper.createSpreadsheetData(5000, COLS);
+    const columns = Array.from({ length: COLS }, (_, col) => ({ type: col % 2 ? 'numeric' : 'text' }));
+
+    window.__build = function () {
+      if (window.__hot) {
+        window.__hot.destroy();
+        window.__hot = null;
+      }
+
+      window.__hot = new Handsontable(el, {
+        data,
+        columns,
+        rowHeaders: true,
+        colHeaders: true,
+        width: 1280,
+        height: 600,
+        autoRowSize: false,
+        autoColumnSize: false,
+        licenseKey: window.htTestLicenseKey,
+      });
+    };
+
+    // A named function, not an arrow: the parser bills script run straight from `page.evaluate` by
+    // CPU samples, and drops samples whose frame has no name.
+    window.__validateAll = function validateAll() {
+      return new Promise(function onValidated(resolve) {
+        window.__hot.validateCells(resolve);
+      });
+    };
+
+    window.__build();
+  </script>
+</body>
+</html>

@@ -32,6 +32,7 @@ const FIVE_ITERATIONS = [
   'undo-edit',
   'undo-remove-rows',
   'undo-sort',
+  'validate-cells',
 ];
 
 /**
