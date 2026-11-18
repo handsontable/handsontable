@@ -12,13 +12,13 @@
       "id": "arrow-up-to-header",
       "action": {"press": "ArrowUp"},
       "expect": [["price"]],
-      "note": "Navigable headers let ArrowUp enter the Price column header."
+      "note": "Navigable headers let ArrowUp enter the Price column header. VoiceOver with WebKit says nothing on this first arrow key, as on the first key of other scenarios."
     },
     {
       "id": "f2-open-field",
       "action": {"press": "F2"},
       "expect": [["header name"], ["price"]],
-      "note": "F2 opens the field over the header, named `Header name`, holding the name selected."
+      "note": "F2 opens the field over the header, named `Header name`, holding the name selected. Finding: VoiceOver with WebKit says nothing when the field takes the focus."
     },
     {
       "id": "type-name",
