@@ -250,6 +250,28 @@ is part of the undo, and a recorded step there would empty the redo stack the un
   hands the value to a validator. `updatePlugin()` re-reads it only when the payload has an `undo`
   key, drops the steps past a lowered limit at once, and a redo trims too - with `0` a push is
   trimmed away right after it.
+- **Every recorded action pays for two captures and a push, so none of them may walk anything that grows.**
+  A loop of 50,000 `setCellMeta()` calls outside `batch()` took 2.2 s against 28 ms with undo off (DEV-4091),
+  because each capture rebuilt the sorted registry list and looked up every plugin by name, and each push
+  copied the whole undo stack three times (quadratic in a long run). Three rules keep it flat:
+  - `GridStateTracker` resolves the grid plugins that implement `captureState`/`captureSourceStructure`
+    once (`#getCapturingPlugins()`, re-resolved only when `countRegisteredPlugins()` moves: a grid creates
+    its plugins in its constructor) and reads `plugin.enabled` on every capture, because a plugin can be
+    turned on or off between two actions. The restore walks the same lists, so the order stays the
+    plugin priority order. Do not memoize the exported `getPluginsNames()` instead: it has other callers,
+    and a shared array would be handed out mutable.
+  - The stack hook pairs take their copies only when a listener exists (`#copyForStackHooks()`): the
+    "before" copy is the first argument of BOTH hooks, so it is taken when either hook of the pair
+    listens - gating it on the `before` hook alone handed an `after`-only listener nothing. With no
+    listener nothing can read a copy or veto, so the hooks are not run at all. The inline pairs of
+    `undo()`/`redo()` and the legacy custom-action paths keep their copies: user code runs between the
+    two halves there, and they run once per undo, not once per action.
+  - A `change` step's `changes` field is built on its first read (`defineLazyChanges()` in `entry.ts`).
+    Built eagerly it held a second copy of every changed cell next to the journal, about half of a bulk
+    write's memory (DEV-3747). The visual rows and columns are resolved WHEN THE STEP IS RECORDED
+    (`indexChangedCells()`: an `Int32Array` of rows, one column per prop) and the values are read from
+    the journal, so a sort or a move made before the first read does not change what the step reports.
+    Never resolve them at read time. On the first read or write the field becomes a plain data property.
 - **Every drop of a step announces itself** (`#dropSteps`): the `before`/`after` stack hook pair of
   each stack that changes, not vetoable (the return value is ignored). `#resetHistory` goes through
   it, so a toolbar that follows the hooks never keeps an Undo button for a history that is gone. The

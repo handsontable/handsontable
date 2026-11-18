@@ -1,6 +1,8 @@
 import type { HotInstance } from '../../core/types';
 import type { OperationTransaction } from '../../core/operationScope';
-import type { JournalOp, RemoveColumnsJournalOp, RemoveRowsJournalOp } from '../../dataMap/dataJournal';
+import type {
+  CellDelta, JournalOp, RemoveColumnsJournalOp, RemoveRowsJournalOp,
+} from '../../dataMap/dataJournal';
 import type { GridStateSnapshot } from './snapshot/gridState';
 
 /**
@@ -82,33 +84,131 @@ function toVisualRowOrNull(hot: HotInstance, physicalRow: number): number | null
 }
 
 /**
- * Collects the `changes` field of a `change` step: `[visualRow, visualColumn, oldValue, newValue]` per
- * changed cell, in the order the cells were written.
- *
- * @param {HotInstance} hot The Handsontable instance.
- * @param {JournalOp[]} journal The step journal.
- * @returns {Array}
+ * The visual position of every changed cell of a `change` step, resolved when the step is recorded.
+ * The values stay in the journal, so a step holds one number per cell until its `changes` field is
+ * read, not a tuple per cell.
  */
-function collectChanges(hot: HotInstance, journal: JournalOp[]): unknown[][] {
-  const changes: unknown[][] = [];
+interface ChangedCellsIndex {
+  /**
+   * The visual row of each changed cell, in the `changes` order. `-1` stands for `null`.
+   */
+  readonly rows: Int32Array;
+  /**
+   * The visual column of each written prop, as `propToCol()` answered it.
+   */
+  readonly columns: ReadonlyMap<CellDelta['prop'], unknown>;
+}
+
+/**
+ * Calls the callback for every changed cell of a journal, in the order the cells were written: a
+ * reversed run is read backwards (see `CellsJournalOp#reversed`).
+ *
+ * @param {JournalOp[]} journal The step journal.
+ * @param {Function} callback Called with the change and its position in the `changes` order.
+ */
+function forEachChangedCell(journal: JournalOp[], callback: (delta: CellDelta, index: number) => void) {
+  let index = 0;
 
   journal.forEach((op) => {
     if (op.type !== 'cells') {
       return;
     }
 
-    const deltas = op.reversed === true ? op.changes.slice().reverse() : op.changes;
+    const { changes } = op;
 
-    deltas.forEach(({ physicalRow, prop, oldValue, newValue }) => {
+    if (op.reversed === true) {
+      for (let deltaIndex = changes.length - 1; deltaIndex >= 0; deltaIndex -= 1) {
+        callback(changes[deltaIndex], index);
+        index += 1;
+      }
+    } else {
+      changes.forEach((delta) => {
+        callback(delta, index);
+        index += 1;
+      });
+    }
+  });
+}
+
+/**
+ * Resolves the visual position of every changed cell of a journal now, while the index maps still
+ * describe the grid the step was recorded on: a later sort or move must not change what the step
+ * reports.
+ *
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {JournalOp[]} journal The step journal.
+ * @returns {ChangedCellsIndex}
+ */
+function indexChangedCells(hot: HotInstance, journal: JournalOp[]): ChangedCellsIndex {
+  const count = journal.reduce((sum, op) => (op.type === 'cells' ? sum + op.changes.length : sum), 0);
+  const rows = new Int32Array(count);
+  const columns = new Map<CellDelta['prop'], unknown>();
+
+  forEachChangedCell(journal, ({ physicalRow, prop }, index) => {
+    rows[index] = toVisualRowOrNull(hot, physicalRow) ?? -1;
+
+    if (!columns.has(prop)) {
       // A `columns[].data` accessor has no public prop-to-column translation; it reports `null`,
       // as a trimmed row does.
-      const visualColumn = typeof prop === 'function' ? null : hot.propToCol(prop);
+      columns.set(prop, typeof prop === 'function' ? null : hot.propToCol(prop));
+    }
+  });
 
-      changes.push([toVisualRowOrNull(hot, physicalRow), visualColumn, oldValue, newValue]);
-    });
+  return { rows, columns };
+}
+
+/**
+ * Builds the `changes` field of a `change` step: `[visualRow, visualColumn, oldValue, newValue]` per
+ * changed cell, in the order the cells were written.
+ *
+ * @param {JournalOp[]} journal The step journal.
+ * @param {ChangedCellsIndex} index The positions resolved when the step was recorded.
+ * @returns {Array}
+ */
+function buildChanges(journal: JournalOp[], { rows, columns }: ChangedCellsIndex): unknown[][] {
+  const changes = new Array<unknown[]>(rows.length);
+
+  forEachChangedCell(journal, ({ prop, oldValue, newValue }, index) => {
+    const visualRow = rows[index];
+
+    changes[index] = [visualRow === -1 ? null : visualRow, columns.get(prop), oldValue, newValue];
   });
 
   return changes;
+}
+
+/**
+ * Turns the `changes` field of a step into one that is built on its first read. Most steps are never
+ * inspected, and a tuple per changed cell doubled the memory of a bulk write's step. On the first read
+ * or write the field becomes a plain writable property, so a listener sees and sets an ordinary array.
+ *
+ * @param {UndoRedoStep} step The step, which already holds a `changes` key (the key order stays).
+ * @param {Function} build Builds the list.
+ */
+function defineLazyChanges(step: UndoRedoStep, build: () => unknown[][]) {
+  let built: unknown[][] | null = null;
+
+  // A step an application froze or sealed (a store that freezes what it holds) keeps the accessor,
+  // which then serves the list it built once.
+  const settle = (target: UndoRedoStep, value: unknown) => {
+    if (Object.getOwnPropertyDescriptor(target, 'changes')?.configurable === true) {
+      Object.defineProperty(target, 'changes', { value, writable: true, enumerable: true, configurable: true });
+    }
+  };
+
+  Object.defineProperty(step, 'changes', {
+    enumerable: true,
+    configurable: true,
+    get(this: UndoRedoStep) {
+      built ??= build();
+      settle(this, built);
+
+      return built;
+    },
+    set(this: UndoRedoStep, value: unknown) {
+      settle(this, value);
+    },
+  });
 }
 
 /**
@@ -242,18 +342,27 @@ function isIndexList(value: unknown): value is number[] {
  * Returns the ranges a change step selects: the selection it started with when it wrote more than
  * one cell, and the written cell otherwise – the `selected` field the replaced action exposed.
  *
- * @param {Array} changes The `changes` field of the step.
+ * @param {JournalOp[]} journal The step journal.
+ * @param {ChangedCellsIndex} index The positions of the changed cells.
  * @param {Array} selectionAtOpen The selection when the step started.
  * @returns {Array|undefined}
  */
-function selectChangedCells(changes: unknown[][], selectionAtOpen: SelectionSnapshot): number[][] | undefined {
-  if (changes.length > 1) {
+function selectChangedCells(
+  journal: JournalOp[], { rows, columns }: ChangedCellsIndex, selectionAtOpen: SelectionSnapshot,
+): number[][] | undefined {
+  if (rows.length > 1) {
     return selectionAtOpen;
   }
 
-  const [row, column] = changes[0] ?? [];
+  let column: unknown;
 
-  return typeof row === 'number' && typeof column === 'number' ? [[row, column]] : undefined;
+  forEachChangedCell(journal, ({ prop }) => {
+    column = columns.get(prop);
+  });
+
+  const row = rows.length === 1 && rows[0] !== -1 ? rows[0] : null;
+
+  return row !== null && typeof column === 'number' ? [[row, column]] : undefined;
 }
 
 /**
@@ -338,15 +447,12 @@ export function createStep(
   before: GridStateSnapshot,
   selectionAtOpen: SelectionSnapshot,
 ): { step: UndoRedoStep, selection: StepSelection } {
-  let fields: Record<string, unknown>;
-
-  if (transaction.name === 'change') {
-    const changes = collectChanges(hot, transaction.journal);
-
-    fields = { changes, selected: selectChangedCells(changes, selectionAtOpen) };
-  } else {
-    fields = describeStructuralStep(hot, transaction, before);
-  }
+  const { journal } = transaction;
+  const changedCells = transaction.name === 'change' ? indexChangedCells(hot, journal) : null;
+  const fields: Record<string, unknown> = changedCells === null ?
+    describeStructuralStep(hot, transaction, before) :
+    // `changes` holds its place in the key order and is defined below.
+    { changes: undefined, selected: selectChangedCells(journal, changedCells, selectionAtOpen) };
 
   const step: UndoRedoStep = {
     ...transaction.details,
@@ -356,6 +462,10 @@ export function createStep(
     operations: transaction.operations.slice(),
     sources: transaction.sources.slice(),
   };
+
+  if (changedCells !== null) {
+    defineLazyChanges(step, () => buildChanges(journal, changedCells));
+  }
 
   return { step, selection: describeStepSelection(step) };
 }

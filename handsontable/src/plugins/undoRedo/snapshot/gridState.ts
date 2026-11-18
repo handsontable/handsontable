@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import type { BasePlugin } from '../../base';
-import { getPluginsNames } from '../../registry';
+import { countRegisteredPlugins, getPluginsNames } from '../../registry';
 import {
   IndexMapperStateTracker,
   type IndexMapperSnapshot,
@@ -113,6 +113,16 @@ function areMapsEqual(left: ReadonlyMap<string, unknown>, right: ReadonlyMap<str
 }
 
 /**
+ * The method a plugin implements to take part in a snapshot.
+ */
+type CaptureMethodName = 'captureState' | 'captureSourceStructure';
+
+/**
+ * The grid plugins that implement one capture method, by registered name, in the plugin priority order.
+ */
+type CapturingPlugins = ReadonlyArray<readonly [string, BasePlugin]>;
+
+/**
  * Captures and restores the grid state UndoRedo snapshots. See `GridStateSnapshot`.
  */
 export class GridStateTracker {
@@ -132,6 +142,16 @@ export class GridStateTracker {
    * The previous capture.
    */
   #last: GridStateSnapshot | null = null;
+  /**
+   * The grid plugins that implement each capture method, resolved once: a grid creates its plugins when
+   * it is constructed, so the list changes only when the registry does. A capture runs twice per
+   * recorded action, and walking every registered plugin there dominated a loop of cheap actions.
+   */
+  #capturingPlugins: Map<CaptureMethodName, CapturingPlugins> | null = null;
+  /**
+   * The registered plugin count `#capturingPlugins` was resolved at.
+   */
+  #capturingPluginsRegistryCount = -1;
 
   /**
    * Starts tracking the grid.
@@ -197,7 +217,7 @@ export class GridStateTracker {
    * @param {GridStateSnapshot} [changedFrom] The snapshot from the other side of the step.
    */
   restoreSourceStructures(snapshot: GridStateSnapshot, changedFrom?: GridStateSnapshot) {
-    this.#forEachEnabledPlugin(snapshot.sourceStructures, (plugin, state, name) => {
+    this.#forEachEnabledPlugin('captureSourceStructure', snapshot.sourceStructures, (plugin, state, name) => {
       if (typeof plugin.restoreSourceStructure === 'function' && changedFrom?.sourceStructures.get(name) !== state) {
         plugin.restoreSourceStructure(state);
       }
@@ -245,7 +265,7 @@ export class GridStateTracker {
       length: rowCount === 0 ? this.#hot.columnIndexMapper.getNumberOfIndexes() : this.#hot.getInitialColumnCount(),
     });
 
-    this.#forEachEnabledPlugin(snapshot.plugins, (plugin, state, name) => {
+    this.#forEachEnabledPlugin('captureState', snapshot.plugins, (plugin, state, name) => {
       if (typeof plugin.restoreState !== 'function') {
         return;
       }
@@ -324,6 +344,7 @@ export class GridStateTracker {
     this.#rows.destroy();
     this.#columns.destroy();
     this.#last = null;
+    this.#capturingPlugins = null;
   }
 
   /**
@@ -385,16 +406,16 @@ export class GridStateTracker {
    * @returns {Map<string, *>}
    */
   #capturePlugins(
-    methodName: 'captureState' | 'captureSourceStructure',
+    methodName: CaptureMethodName,
     previous: ReadonlyMap<string, unknown> | undefined,
   ): ReadonlyMap<string, unknown> {
     const states = new Map<string, unknown>();
 
-    getPluginsNames().forEach((pluginName) => {
-      const plugin: BasePlugin | undefined = this.#hot.getPlugin(pluginName);
-      const capture = plugin?.[methodName];
+    this.#getCapturingPlugins(methodName).forEach(([pluginName, plugin]) => {
+      const capture = plugin[methodName];
 
-      if (plugin === undefined || !plugin.enabled || typeof capture !== 'function') {
+      // Enabled is read on every capture: a plugin can be turned on or off between two actions.
+      if (!plugin.enabled || typeof capture !== 'function') {
         return;
       }
 
@@ -409,24 +430,61 @@ export class GridStateTracker {
   }
 
   /**
+   * Returns the grid plugins that implement a capture method, in the plugin priority order. The lists
+   * are resolved on the first call and again only after a plugin was registered.
+   *
+   * @param {string} methodName `captureState` or `captureSourceStructure`.
+   * @returns {Array}
+   */
+  #getCapturingPlugins(methodName: CaptureMethodName): CapturingPlugins {
+    const registryCount = countRegisteredPlugins();
+
+    if (this.#capturingPlugins === null || this.#capturingPluginsRegistryCount !== registryCount) {
+      const byMethod = new Map<CaptureMethodName, Array<readonly [string, BasePlugin]>>([
+        ['captureState', []],
+        ['captureSourceStructure', []],
+      ]);
+
+      getPluginsNames().forEach((pluginName) => {
+        const plugin: BasePlugin | undefined = this.#hot.getPlugin(pluginName);
+
+        if (plugin === undefined) {
+          return;
+        }
+
+        byMethod.forEach((plugins, method) => {
+          if (typeof plugin[method] === 'function') {
+            plugins.push([pluginName, plugin]);
+          }
+        });
+      });
+
+      this.#capturingPlugins = byMethod;
+      this.#capturingPluginsRegistryCount = registryCount;
+    }
+
+    return this.#capturingPlugins.get(methodName) ?? [];
+  }
+
+  /**
    * Calls the callback for every plugin a snapshot recorded a state for that is still enabled. A
    * plugin disabled or unregistered since is skipped – its part of the grid is restored anyway.
    *
+   * @param {string} methodName The capture method that recorded the states.
    * @param {Map} states The recorded states, by plugin name.
    * @param {Function} callback Called with the plugin, its state and its name.
    */
   #forEachEnabledPlugin(
+    methodName: CaptureMethodName,
     states: ReadonlyMap<string, unknown>,
     callback: (plugin: BasePlugin, state: unknown, pluginName: string) => void,
   ) {
-    getPluginsNames().forEach((pluginName) => {
-      if (!states.has(pluginName)) {
-        return;
-      }
+    if (states.size === 0) {
+      return;
+    }
 
-      const plugin = this.#hot.getPlugin(pluginName);
-
-      if (plugin?.enabled) {
+    this.#getCapturingPlugins(methodName).forEach(([pluginName, plugin]) => {
+      if (states.has(pluginName) && plugin.enabled) {
         callback(plugin, states.get(pluginName), pluginName);
       }
     });
