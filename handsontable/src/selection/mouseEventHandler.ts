@@ -246,8 +246,11 @@ export function mouseUp({ isLeftClick, selection, cellRangeMapper }: MouseUpOpti
 
       if (!isTogglingOff) {
         // `findAll` walks the layers in order, so every copy but the last one is stale. Keeping
-        // the last one keeps the focus on the cell the user clicked.
+        // the last one keeps the focus on the cell the user clicked. `refresh()` keeps the active
+        // layer by index, and the removal above shifts the indexes, so the last layer is made the
+        // active one first.
         selectionRange.removeLayers(duplicateLayerIndexes.slice(0, -1));
+        sel.setActiveSelectionLayerIndex(selectionRange.size() - 1);
         refreshLayers(selection);
 
         return;
@@ -261,6 +264,8 @@ export function mouseUp({ isLeftClick, selection, cellRangeMapper }: MouseUpOpti
         selection.deselect();
       } else {
         selectionRange.removeLayers(duplicateLayerIndexes);
+        // As above: the removal shifts the layer indexes `refresh()` keeps.
+        sel.setActiveSelectionLayerIndex(selectionRange.size() - 1);
         refreshLayers(selection);
       }
 

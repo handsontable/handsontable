@@ -718,6 +718,70 @@ They are written in different places and can drift. Keep this in mind:
   visual index down until the stored one sits past the last row. Selecting B-1 and collapsing an
   earlier section is the second shape — the record is still on screen, and moving the user onto the
   parent of a section they never collapsed is a bug. Start the walk at the anchor row itself.
+- **A user's collapse or expand moves the selection with its rows (DEV-509), and only that path
+  does.** The selection holds visual rows, so a toggle above or inside it used to leave it on other
+  records: B, C, and D selected, B expanded, and the selection covered B and its first two children,
+  with no selection hook to say so. `#applyCollapsedRowsChange()` therefore runs the trim inside
+  `hot.selection.followRecordsWhile('row', …)` when `shouldRunHooks` is `true`, the same opt-in
+  gate as the anchor: a hook-silent replay and both stash paths never reach it, so the stash's
+  transient expand moves nothing. It is NOT gated on `isListening()`, unlike the anchor, because it
+  takes no focus and does not scroll. The rules of the mode (one range between its two corner rows,
+  a single row stays single, a trimmed focus drops the selection) live in `handsontable/AGENTS.md`,
+  "A trimming index map can strand the selection". Two things to keep. The follow needs the trim to
+  land INSIDE the wrapped call, which `trimRows()`/`untrimRows()` guarantee with
+  `batchExecution(…, true)`; a path that defers its trim is not followed. And the anchor repair
+  below still owns the case the follow gives up on: the focused row itself was collapsed away, the
+  core drops the selection, and `#restoreSelection()` walks to the nearest visible ancestor.
+  **Undo and redo of a collapse or an expand follow too**, from UndoRedo's side: the plugin declares
+  its map in `getShownRowsTrimmingMaps()`, and UndoRedo wraps the row-map restore of such a step in
+  the same scope, with this plugin's `restoreState()` run first (`../undoRedo/AGENTS.md`). It cannot be done from `restoreState()`: the row maps
+  are restored, and the index cache updated, before any plugin state. Without it the wrong state
+  only moved: the collapse left the selection right and the undo left it on other rows.
+  **The stash windows are NOT followed through the index mapper. They keep the selection by row
+  OBJECT instead.** An insert, a removal and a detach rewrite the tree, so neither the
+  visual nor the physical row of a selected record survives: the stash expands every parent, the
+  operation shifts the selection by a number measured in that expanded space (and `alter()` counts
+  a removed parent as ONE row, whatever its subtree, so a selection below a removed parent was on
+  other rows even with nothing collapsed), and the re-collapse runs afterwards, for a removal a
+  tick later. `stash()` therefore records the row object under every corner of every layer and the
+  selection itself (`#captureSelectionRecords()`, only by the `stash()` that opens the bracket),
+  and `applyStash()` ends by reading where those objects are now and handing the rows to
+  `Selection#relayRows()`, which re-lays under `shift` when a row moved. Rules, each with a case
+  behind it:
+  - **A corner whose row is gone or collapsed away aborts the whole restore.** What the operation
+    left is then the answer: removing the selected rows through the context menu keeps the
+    selection at the place of the removed rows, as before.
+  - **A selection the operation stranded is put back** (`relayRows()` takes the exported
+    selection). With B collapsed, removing a row above it left a selection below with nothing
+    selected, though every selected row was still there: the default repair dropped it in the
+    expanded state the removal passes through.
+  - **A change the user or the app made in between wins**, and it is told apart by SOURCE, never by a
+    time window. A removal's `applyStash()` runs in a timeout, and a listener of the operation's own
+    hooks can run before the plugin's (a global hook, or any listener after a settings update
+    re-registered the plugin's), so a window ending in the plugin's `afterRemoveRow` let an app's
+    deselect be undone. So: a new selection (`afterSelection` with any source but `shift` and
+    `refresh`) drops the recorded rows; a drop (`afterDeselect`) drops them unless its source is
+    `trim` (the core's stranded repair, tagged by `Selection#deselectStranded()`) or `shift`; a focus
+    move drops them, read from `afterSelectionFocusSet` AND `beforeKeyDown`, because `alter()` leaves
+    the selection in progress and a focus move then fires no `afterSelectionFocusSet`; a disable
+    drops them, and `#restoreSelectionRecords()` also bails while the plugin is disabled.
+    `nested-rows-collapse-selection.spec.ts` ("a collapsed-state stash restore does not move the
+    selection") and the `operationSelection.unit.js` cases pin each one.
+  - **A row move is left out.** `RowMoveController` selects the moved rows itself after
+    `applyStash(false)`, so it drops the records first; a restore there only added a selection hook
+    pair and a render before `afterRowMove`.
+  - **A stash a throw leaves open keeps its records**, as it keeps the expanded grid (a pre-existing
+    state of the stash). That is harmless for the selection: the records are row OBJECTS, so a later
+    restore still names the rows the user selected, and any selection change made since dropped them.
+  - **A layer whose row extent tracks the grid is left to the grid-tracking repair** (`relayRows()`
+    skips it), so the DEV-152 hold and grow are untouched.
+  - **Do not replace this with a hook-silent `followRecordsWhile()` around the stash's expand and
+    re-collapse.** That was the first cut: it broke four specs, one with `TR was expected to be
+    rendered but is not` on a row removal under a whole-column selection (the restore re-pinned
+    the layer onto the transient height the hold exists to keep it off), and two in the
+    clear-column path.
+  Pinned by `__tests__/operationSelection.unit.js` and the removal and add-child cases of
+  `tests/e2e/nested-rows-toggle-selection.spec.ts`.
 - **Do not assert `document.activeElement` straight after clicking the collapse button.** The nesting
   button is not focusable, so a real pointer press on it leaves focus on `<body>` even when the grid
   is working perfectly — a synthetic `dispatchEvent` does not, which makes the two disagree and a
@@ -913,6 +977,9 @@ row semantics. Six things look simpler than they are.
 | `tests/e2e/nested-rows-undo.spec.ts` | Playwright: undo restores a removed parent and its descendants |
 | `__tests__/insertBelowLastRow.unit.js` | Which inserts below the last row join the last row's parent and which stay top-level, including hidden last rows (DEV-139) |
 | `tests/e2e/nested-rows-autofill.spec.ts` | Playwright: the fill handle dragged past the last row adds children to the dragged row's parent, undo, and a collapsed top-level parent |
+| `tests/e2e/nested-rows-toggle-selection.spec.ts` | Playwright: the selection stays on its rows across a collapse or an expand (row-header ranges, separate rows, cell ranges, the hooks, the API, a batch, a blocked expand) |
+| `__tests__/toggleSelection.unit.js` | The same follow through the public API, and the paths that must NOT follow: a hook-silent replay and another plugin's trim (DEV-509) |
+| `__tests__/operationSelection.unit.js` | The selection stays on its rows across a row removal, an added child and a detach, with and without a collapsed parent; a removed selected row, a selection changed in between and a whole column keep their own rules (DEV-509) |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
 | `tests/e2e/nested-rows-treegrid-a11y.spec.ts` | Playwright: the treegrid row attributes on a three-level tree (also across `TR` recycling, a data replacement, and the plugin switched off), the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords and <kbd>Enter</kbd> on a row header (LTR and RTL, never the grid's jump there, Enter with every column hidden), plain arrows left to navigation, the cleanup when `rowHeaders` is switched off, the HiddenRows cases (a hidden parent, rendered-row counting), and the polite announcements (gestures only, never the API or an `ariaTags: false` grid; named by the header's rendered text, HTML included) |
 | `__tests__/filtering.unit.js` | Filtering keeps ancestors and subtrees, widens once per pass, survives collapse/undo, and the hook's normalization on a plain grid (DEV-512) |

@@ -1601,10 +1601,16 @@ export default function Core(
 
     if (!this.selection.deselectIfHighlightStranded({ unresolvableOnly: hadOpenEditor })) {
       this.selection.recaptureHighlightRecord();
+      // A restore that followed records (a NestedRows collapse or expand, DEV-509) committed the
+      // moved ranges without the selection hooks, which must not run before the public hooks above.
+      this.selection.notifyFollowedRecords(axis);
       // The test above repairs a SHRINK only - it fires on a corner left past the last index. An
       // untrim leaves every corner in range, so a full-column selection or a select-all is grown
       // back to the whole axis here instead (DEV-152).
       this.selection.fitGridTrackingExtents(axis);
+    } else {
+      // The selection is gone, so the call only drops the debt of a restore that followed records.
+      this.selection.notifyFollowedRecords(axis);
     }
   };
 

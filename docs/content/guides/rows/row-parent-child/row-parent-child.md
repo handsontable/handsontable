@@ -182,6 +182,18 @@ Each _parent_ row header contains a `+`/`-` button. It is used to collapse or ex
 The child row headers have a bigger indentation, to enable the user to clearly recognize the child and parent elements. In the example above, the
 `Best Metal Performance` category loads collapsed so you can see the expand/collapse controls right away.
 
+### Selection
+
+Collapsing or expanding a row changes which rows are visible, not which rows are selected. The selection stays on the rows you selected, and it moves with them:
+
+- A selected range keeps its first and last row. Rows that an expand reveals between them join the range, and rows that a collapse folds away leave it.
+- A single selected row stays a single row. When you expand it, its child rows are not added to the selection.
+- When you collapse the parent of the focused row while you work in the grid, the selection moves to the nearest visible parent row. When your code collapses it while the grid does not have the focus, the selection is cleared.
+
+The same applies when you undo or redo a collapse or an expand, and when you insert, remove, or detach rows above the selection: the selection stays on the rows you selected. When you remove a selected row, the selection stays at its place. When you move rows, the moved rows are selected.
+
+The [`afterSelection`](@/api/hooks.md#afterselection) and [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) hooks run when a collapse or an expand moves the selection. The grid does not scroll to the moved selection.
+
 ### Context menu
 
 The context menu has been extended with a few Nested Rows related options, such as:
