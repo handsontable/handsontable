@@ -4,7 +4,7 @@ import { runTracedScenario } from '../../lib/trace-runner.mjs';
 import config from './scenario.config.mjs';
 
 const fixturePath = path.resolve(import.meta.dirname, 'fixture.html');
-const CALLS = 5000;
+const CALLS = 50000;
 
 /**
  * Sets one meta key on `calls` cells, row by row, one undo step per call. A named function: script run
@@ -43,7 +43,7 @@ test(config.name, async({ page }) => {
         throw new Error(`${config.name}: expected ${CALLS} undo steps, got ${steps}`);
       }
     },
-    // The same 5000 steps on an empty stack in every window: a stack that grows across iterations
+    // The same 50000 steps on an empty stack in every window: a stack that grows across iterations
     // would measure each one on a longer history.
     resetFn: async() => {
       await page.evaluate((calls: number) => {
