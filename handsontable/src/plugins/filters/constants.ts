@@ -47,6 +47,8 @@ import { CONDITION_NAME as CONDITION_INTL_DATETIME_TOMORROW } from './condition/
 import { CONDITION_NAME as CONDITION_INTL_DATETIME_TODAY } from './condition/intlDatetime/today';
 import { CONDITION_NAME as CONDITION_INTL_DATETIME_YESTERDAY } from './condition/intlDatetime/yesterday';
 import { CONDITION_NAME as CONDITION_FALSE } from './condition/false';
+import { CONDITION_NAME as CONDITION_CHECKED } from './condition/checked';
+import { CONDITION_NAME as CONDITION_UNCHECKED } from './condition/unchecked';
 
 export { CONDITION_NAME as CONDITION_BY_VALUE } from './condition/byValue';
 export { CONDITION_NAME as CONDITION_TRUE } from './condition/true';
@@ -79,6 +81,8 @@ export {
   CONDITION_TODAY,
   CONDITION_YESTERDAY,
   CONDITION_FALSE,
+  CONDITION_CHECKED,
+  CONDITION_UNCHECKED,
   OPERATION_AND,
   OPERATION_OR,
   OPERATION_OR_THEN_VARIABLE
@@ -90,6 +94,7 @@ export const TYPE_DATE = 'date';
 export const TYPE_INTL_DATE = 'intl-date';
 export const TYPE_INTL_TIME = 'intl-time';
 export const TYPE_INTL_DATETIME = 'intl-datetime';
+export const TYPE_CHECKBOX = 'checkbox';
 /**
  * Default types and order for filter conditions.
  *
@@ -219,6 +224,36 @@ export function getConditionListType(type: string): string {
 }
 
 /**
+ * The conditions a checkbox column offers on top of its list type's own (`text`). They are in no `TYPES`
+ * list; `getStockConditionNames()` is the only reader.
+ */
+const CHECKBOX_CONDITION_NAMES = [CONDITION_CHECKED, CONDITION_UNCHECKED];
+
+/**
+ * Gets the stock condition list a column of the given data type offers, separators included. A
+ * `checkbox` column uses the `text` list (and follows its `availableConditions` key) with "Is checked" and
+ * "Is unchecked" added before "Is equal to". Every read of a column's stock list, and the set of known
+ * condition names, goes through this function, so the menu, the `availableConditions` checks, and the
+ * restore check cannot disagree.
+ *
+ * @private
+ * @param {string} type The column's data type.
+ * @returns {string[]}
+ */
+export function getStockConditionNames(type: string): string[] {
+  const names = TYPES[getConditionListType(type)];
+
+  if (type !== TYPE_CHECKBOX) {
+    return names;
+  }
+
+  const equalIndex = names.indexOf(CONDITION_EQUAL);
+  const insertAt = equalIndex === -1 ? names.length : equalIndex;
+
+  return [...names.slice(0, insertAt), ...CHECKBOX_CONDITION_NAMES, SEPARATOR, ...names.slice(insertAt)];
+}
+
+/**
  * Get options list for conditional filter by data type (e.q: `'text'`, `'numeric'`, `'date'`).
  *
  * @private
@@ -230,7 +265,8 @@ export default function getOptionsList(type: string, availableConditions?: unkno
   const items: Record<string, unknown>[] = [];
   const typeName = getConditionListType(type);
   const rule = resolveAvailableConditionsRule(availableConditions, typeName);
-  const names = rule ? applyAvailableConditionsRule(TYPES[typeName], rule, SEPARATOR) : TYPES[typeName];
+  const stockNames = getStockConditionNames(type);
+  const names = rule ? applyAvailableConditionsRule(stockNames, rule, SEPARATOR) : stockNames;
 
   arrayEach(names, (typeValue) => {
     let option: Record<string, unknown>;

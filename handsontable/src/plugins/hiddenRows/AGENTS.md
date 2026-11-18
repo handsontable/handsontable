@@ -90,6 +90,12 @@ and not something to slip into a Phase-2 migration without its own design ticket
 one-shot `afterGetRowHeader` cleanup hook (registered in `disablePlugin()`, self-removing on the next
 `afterViewRender`) a caret rendered before the disable is orphaned in the DOM forever.
 
+## Hide row covers every header range of a Ctrl/Cmd+click selection
+
+`hideRow.ts` collects its rows with `collectHeaderSelectedIndexes(hot, 'row')`, the helper the column item
+shares, so a Ctrl/Cmd+click selection of several row headers hides all of them and a cell range beside
+them is left out (DEV-538). Full rule: `../hiddenColumns/AGENTS.md`, "Hide column covers every header range".
+
 ## Hide row suppresses itself when no row is rendered
 
 `contextMenuItem/hideRow.ts` `hidden()` mirrors `../hiddenColumns/` `hideColumn.ts` (DEV-164): after the

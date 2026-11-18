@@ -3543,7 +3543,8 @@ export class MergeCells extends BasePlugin {
       callback: () => {
         const range = this.hot.getSelectedRangeActive();
 
-        if (range && !range.isSingleHeader()) {
+        // A selection of several ranges has no one block to merge, as the context menu item says.
+        if (range && !range.isSingleHeader() && !this.hot.selection.isNonContiguous()) {
           this.toggleMerge(range);
           this.hot.render();
         }

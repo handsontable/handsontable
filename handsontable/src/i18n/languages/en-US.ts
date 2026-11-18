@@ -75,6 +75,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'None',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Is empty',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Is not empty',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Is checked',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Is unchecked',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Is equal to',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Is not equal to',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Begins with',

@@ -197,7 +197,7 @@ describe('MergeCells keyboard shortcut', () => {
       expect(getDataAtCell(0, 1)).toBe(null);
     });
 
-    it('should merge selected cells only for the active selection layer', async() => {
+    it('should merge nothing when the selection holds several layers, whichever layer is active', async() => {
       handsontable({
         data: createSpreadsheetData(6, 6),
         mergeCells: true,
@@ -212,11 +212,11 @@ describe('MergeCells keyboard shortcut', () => {
       await keyDownUp(['shift', 'tab']); // move focus to the previous layer (C4)
       await keyDownUp(['control', 'm']);
 
-      const cell = getCell(2, 2);
-
-      expect(cell.rowSpan).toBe(2);
-      expect(cell.colSpan).toBe(2);
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 3,3']);
+      // Several ranges make no one block to merge, as the disabled context menu item says.
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(getCell(2, 2).rowSpan).toBe(1);
+      expect(getCell(2, 2).colSpan).toBe(1);
+      expect(getSelectedRange().length).toBe(3);
     });
 
     it('should toggle the selected cells to merged/unmerged/merged state', async() => {

@@ -77,6 +77,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Geen',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Is leeg',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Is niet leeg',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Is aangevinkt',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Is niet aangevinkt',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Is gelijk aan',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Is niet gelijk aan',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Begint met',

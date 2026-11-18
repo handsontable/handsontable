@@ -6295,8 +6295,11 @@ export default function Core(
    * call: Handsontable re-measures its rows and columns when the document finishes loading a font.
    *
    * The method renders when the measured size changed. It also renders unconditionally when the grid scrolls
-   * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. To repaint
-   * the cells without re-measuring the container, use [render()](@/api/core.md#render) instead.
+   * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. And it
+   * renders when a change of the browser zoom moved the border of the cells, which changes the height of every
+   * row even though the container kept its size: the [afterRefreshDimensions](@/api/hooks.md#afterrefreshdimensions)
+   * hook then receives `false` for its `stateChanged` argument. To repaint the cells without re-measuring the
+   * container, use [render()](@/api/core.md#render) instead.
    *
    * When the size changed while a cell editor is open, the editor moves onto its cell. If the cell was not fully
    * in view, the grid first scrolls it into view and renders once more, which fires
@@ -6332,7 +6335,11 @@ export default function Core(
       return;
     }
 
-    if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
+    // A browser zoom change fires the window `resize` this runs on, and it moves what a row measures even
+    // when the root keeps its size (a pixel `width` and `height`), so it renders on its own.
+    const isZoomChanged = view.refreshZoomDependentSizes();
+
+    if (isZoomChanged || isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
       instance.render();
     } else {

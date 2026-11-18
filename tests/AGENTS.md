@@ -2462,7 +2462,9 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
 - **The catalog sorts every row into one root-cause cluster, and every merge re-sorts.** `a11y/issues.json`
   extends the axe baseline's issue catalog: a cluster has a stable kebab-case `id`, a `title` that says what
   the problem is, an optional `tracker` (a task id, or a list when several tasks own parts of the fix; code,
-  never printed on the page, which says only that a cluster is tracked) and `match` rules. A rule names its
+  never printed on the page, which says only that a cluster is tracked), or instead an optional `notDefect`
+  (the class that says why its findings are not a defect), optional `formerIds` (the ids it had before a
+  rename, so its history follows it: "A11y: fix progress over time" below), and `match` rules. A rule names its
   `source` (`checks`, `axe` or `reader`) and any of `checks` (check ids, or reader projects), `kinds`,
   `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria`, `pages` (patterns
   anchored to the page id, or the scenario), `themes`, `where` (patterns searched in the finding's `where`)
@@ -2531,6 +2533,145 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   --template .github/test-health/index.template.html --catalog tests/a11y/issues.json`: it writes
   `a11y.json` and the page into the scratch directory and prints the night's counts and clusters. Never
   dispatch `test-health.yml` with a run id to try a change: that publishes to the live site.
+
+## A11y: fix progress over time
+
+The ledger's rows say what is open today. They count places, not issues, and they leave 90 days after their
+last sighting, so they cannot say how the findings are dealt with: what is fixed, in what time, and what is
+outstanding. The "Fix progress" block of the page says that, from `fixProgress()` in
+`.github/scripts/lib/a11y-ledger.mjs`, and the ledger keeps a history for it.
+
+- **A row is a finding at one place, and the fix task is the issue.** One defect shows as many rows (a page, a
+  theme, an element each), so the table has one row per tracker, the task a cluster names, with the rows of
+  every cluster that names it: open now, the most it had, resolved (resolutions less the findings that came
+  back, so a finding resolved twice is one), first seen, and the night that cleared it. A cluster with
+  several trackers counts in the row of each, because the catalog does not say which task owns which
+  finding; the headline numbers count each finding once. When the tasks own different findings, split the
+  cluster by its match rules.
+- **Three kinds of rows stand apart from the fix tasks:** the defect clusters no tracker owns, so a missing
+  tracker shows; the triage queue; and the clusters the catalog marks as not a defect, one row per class.
+  The headline numbers leave the last kind out. `notDefect` is a kebab-case class on the cluster
+  (`reader-behavior`, `tool-hidden-content`) and excludes `tracker`: a cluster is wholly a defect or wholly
+  not. When only some of a cluster's findings are not a defect, split it by its match rules; a flag on part
+  of a cluster would count the same row under a fix task and outside the fix count.
+- **Open is counted twice: every open row, and the rows at the target level** (`countsAtTarget()`). The
+  line is the check runs' own ("A11y: the verdict of a check run"): an advisory row (a result axe could not
+  decide, a golden that moved) and a row that names no WCAG 2.2 A or AA criterion are for review, and a
+  screen reader row, which carries no criterion by design, counts at its severity. Without the second count
+  a task whose cluster holds mostly review rows reads as that much work to fix. A task is still cleared only
+  when nothing of it is open.
+- **The history outlives the rows.** `history` in `a11y.json` holds one entry per night: per cluster, the
+  rows of the night's source that are open after it, new on it, resolved by it and back on it after having
+  been resolved (`[open, new, resolved, back]`), for `A11Y_HISTORY_DAYS`. Past the size cap it goes last,
+  after the resolved rows and the nights: it is the smallest part and the only one nothing can rebuild. An
+  entry holds its own source's rows, so a cluster's total at a point in time is the latest entry of each
+  source up to it.
+- **An entry is counted from the rows after the merge, never kept as a running total.** A later attempt of
+  a night recounts its entry, and the history resolves nothing a row does not: a target that was not
+  measured leaves its findings open in both ("A row is resolved by evidence of absence" above).
+- **The history is keyed by cluster and read with today's catalog.** The catalog names a cluster's
+  trackers when the page is drawn, so a tracker written into the catalog later owns its cluster's whole
+  past, with no migration. And a row the catalog moves to another cluster takes its counts along, in the
+  entry of every night the row counted in (`rekeyHistory()`): a split, a rename and a triage shape sorted
+  into a cluster would otherwise read as that many findings fixed in one cluster and new in another. A
+  catalog change is never a fix.
+- **A renamed cluster names its former ids.** A row moves only its own counts, and a resolved row leaves
+  the ledger after 90 days, so a rename later than that would strand every older resolution, and the
+  cluster's peak, under an id the catalog no longer has: listed as a cluster no tracker owns, and missing
+  from the fix task it belongs to. So the cluster that takes over lists the old id in `formerIds`, and
+  whatever an entry still counts under a former id, after the rows moved theirs, goes to that cluster. A
+  former id is one no cluster uses any more, and one cluster names it: the validator refuses an id still
+  in use and an id two clusters claim. Add `formerIds` in the change that renames a cluster. A split names
+  the old id on the cluster that should keep the unattributable past, or leaves it unnamed.
+- **A row keeps its latest return.** A row that comes back after being resolved keeps the resolution the
+  sighting undid and when it came back (`lastResolvedAt`, `backAt`), because its other fields then say
+  neither. The history of the nights in between is counted from the pair, so a moved row takes its
+  resolution along with its return and the old cluster keeps no fix it did not make. One pair per row: an
+  earlier return of the same row is gone, and a row that came back before it kept the pair reads as open
+  since its first sighting.
+- **An audit is the nights that complete within `A11Y_AUDIT_WINDOW_HOURS` of its first one, and a full
+  audit holds a night of every source** (`a11yAudits()`). The ledger records nights, one per workflow run
+  and source; an audit is one dispatch of each workflow, and its nights complete minutes to hours apart.
+  Audits come at uneven gaps, and nothing assumes a rhythm. "Open then" is counted at the first full audit,
+  and the chain to today names what came new since, because new coverage (a check, a scenario) adds
+  findings that are not regressions.
+- **A fix time is only as fine as the gap between audits, and the page says so.** A task is cleared by the
+  first night after the last one that left a finding of it open, so a finding fixed the day after an audit
+  reads as fixed at the next one. Never present the days as the time the fix took.
+- **Only a night that measured a finding gone clears a task.** A finding nothing measures for the rows'
+  retention leaves the ledger unresolved, and the task's open count then drops to zero with nothing fixed.
+  The night it left on is no clearing night: the task reads as having no open finding and no clearing
+  night on record, never as fixed after that many days.
+- **The page names no task.** The page is public, and a tracker is code in the catalog, so no task id
+  reaches what the page inlines (`fixView()`), in the fix progress table as in the cluster table. A fix
+  task's row is named by its clusters, and the tasks that own the same clusters, whose rows would read
+  alike, are one row that says how many tasks it stands for; the headline still counts tasks.
+  `fixProgress()` itself returns the ids, for a reader that is not public. The page links only to a run's
+  page, built from the run's number (`runPage`), never to a string from a night's data.
+- **A version bump ships its migration.** `a11y.json` is version `A11Y_VERSION`; `migrateA11yLedger()` is
+  the only reader of an older file and rebuilds what the new version adds from what the old one holds (the
+  history, from the rows and nights). The collector migrates in memory on every collection and writes the
+  file with the next recorded night, never by itself: a collection that records nothing must leave the
+  published file byte-identical, because every push to `gh-pages` starts a Pages build. Test a migration
+  on a cut of the published file (`.github/scripts/__tests__/fixtures/a11y-ledger-v1.json`), and dry-run
+  it on the whole file: download `test-health/a11y.json` into a scratch `test-health/` directory, then run
+  the collector over it with the payload of a run it does not record (a `Tests` pull request run) and an
+  empty artifacts directory. It draws the page from the migrated document and leaves the file as it was.
+
+## A11y: the weekly digest
+
+The page says how the findings fared; nothing told anyone when that changed. `A11y digest`
+(`.github/workflows/a11y-digest.yml`) posts it to Slack once a week: what improved, what declined, the triage
+queue, what is outstanding per surface, and the page's headline numbers. The pure half is
+`.github/scripts/lib/a11y-digest.mjs`, the CLI `.github/scripts/a11y-digest.mjs`; the CI mechanics are in
+`.ai/CI.md`.
+
+- **The digest compares two published states of the ledger:** `test-health/a11y.json` as it is now, and as
+  it was at the last `gh-pages` commit before the window began. Two files, so a row is compared with itself
+  by its key, and the digest needs no state of its own. No file that old is a first digest: it says where
+  things stand. Either file may be of an older ledger version; the lib reads it through
+  `migrateA11yLedger()`.
+- **A scheduled digest's window begins where the previous one started,** never a fixed number of days ago:
+  the earlier state is the last commit before the previous successful scheduled run started. The windows of
+  two digests then meet, and a night that lands after one digest is in the next one's: a screen reader
+  night can come hours late, and a scheduled run can start late too. A fixed "7 days ago" opens a gap
+  whenever one Monday's run starts later than the last, and a night landing in it is in neither digest. A
+  night that lands in the seconds between a run's start and its read is named twice, which is the safe
+  side. A dispatch, and the first scheduled run, take `days`. The cron sits after the audit: later than the
+  screen reader run's start plus its wait for an earlier run, its run time and its collection, which
+  `a11y-digest.test.mjs` pins against every audit workflow that has a cron.
+- **It names what it compared, and never assumes the audit ran.** The first line names the latest night of
+  each workflow in both states, by run and date. A workflow with no new night was not audited in the window:
+  it is named so, and its rows are left out of improved and declined, because nothing measured them. With no
+  new night at all, the digest says no audit was collected, in place of lists of zeros that would read as a
+  quiet week.
+- **A new finding is a decline only when the earlier audit had measured its target and found nothing
+  there.** The earlier state's latest night of each workflow keeps its coverage (`nightMeasured()`), and a
+  finding on a target it had not measured (a workflow's first night, a new check, scenario or page, a target
+  with a tooling problem then) is newly measured: a baseline, listed apart. Without this, the week a check
+  lands reads as hundreds of regressions. Where the earlier state does not say what it measured, the
+  finding counts as a decline, so nothing is hidden. An axe scan covers every page or none, so a page added
+  to a scan reads as measured: its first findings count as new.
+- **Improved is what the window resolved; declined is what is new or back.** A finding resolved and seen
+  again within the window is open in both states and counts as neither. A fix task is cleared when it had
+  an open finding then and has none now, and has findings again only through a finding that declined.
+- **Both states are read under today's catalog** (`clusterOf()` on every row of both), so a cluster renamed
+  or split between the two is the same cluster in both, and the task the catalog names today is the one the
+  digest speaks of. Findings in clusters marked `notDefect` are counted apart, like on the page.
+- **Every text that reaches Slack is escaped for it** (`slackText()`), a title is cut to `DIGEST_TITLE`, a
+  list names `DIGEST_LISTED` clusters and sums up the rest, and a task is linked only with an https address
+  (`trackerAddress()`). The workflow sends the message from a payload file, never through a YAML string.
+- **The digest names the fix tasks; the page does not.** The message goes to the team's Slack, so it names
+  each task by the id the catalog gives it and links it (`TRACKER_URL` in the workflow). The test-health
+  page is public and names none ("A11y: fix progress over time").
+- **No tracker token.** The digest links the fix tasks by the ids the catalog names. A task's status, owner
+  and closed date are not read: CI holds no ClickUp secret, and none is to be added for this.
+- **Locally:** `gh api -H 'Accept: application/vnd.github.raw'
+  'repos/handsontable/handsontable/contents/test-health/a11y.json?ref=gh-pages' > after.json`, the same
+  with an older commit's SHA for `before.json`, then `node .github/scripts/a11y-digest.mjs --before
+  before.json --after after.json --catalog tests/a11y/issues.json` prints the message. To see a regression
+  in it, merge one more night into a copy of `after.json` (`mergeA11yLedger()`), as
+  `a11y-digest.test.mjs` does.
 
 ## A11y: the audit and the proof runs
 

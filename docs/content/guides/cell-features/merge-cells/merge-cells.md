@@ -23,6 +23,8 @@ Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or
 
 By merging, you can combine two or more adjacent cells into a single cell that spans several rows or columns.
 
+You merge or unmerge one range at a time. When the selection holds several ranges (made with <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+click), the **Merge cells** (or **Unmerge cells**) item of the context menu is disabled, and <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> does nothing.
+
 Handsontable merges cells in the same way as Microsoft Excel: keeps only the upper-left value of the selected range and clears other values. This clearing happens in the underlying data, not just on screen -- see [Effect on the underlying data](#effect-on-the-underlying-data).
 
 ## How to merge cells

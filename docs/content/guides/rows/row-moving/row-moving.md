@@ -25,6 +25,8 @@ To enable row moving, set the [`manualRowMove`](@/api/options.md#manualrowmove) 
 
 A draggable move handle appears above the selected row header. You can click and drag it to any location in the row header body.
 
+You can drag one range of rows at a time. When the selection holds several ranges (made with <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+click), a drag on a header moves nothing.
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2

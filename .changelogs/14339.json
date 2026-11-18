@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added \"Is checked\" and \"Is unchecked\" conditions to the \"Filter by condition\" list of checkbox columns in the Filters plugin. A grid backed by a data provider keeps the text conditions only.",
+  "type": "added",
+  "issueOrPR": 14339,
+  "breaking": false,
+  "framework": "none"
+}

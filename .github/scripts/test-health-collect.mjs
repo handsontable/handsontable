@@ -23,6 +23,9 @@
  * develop runs only (`isA11yRun`): one row per finding across nights, sorted
  * into root-cause clusters by the catalog `--catalog` names
  * (`tests/a11y/issues.json`), which the page's "Accessibility" section draws.
+ * A stored a11y.json of an older version is migrated on the way in
+ * (`migrateA11yLedger`) and written in the current one with the next recorded
+ * night, never by itself.
  * A row that matches two clusters, or a night with more triage shapes than the
  * catalog's `triageLimit`, raises a `::warning`. An a11y.json it cannot read,
  * or a catalog that does not validate, is left as it is, with a warning, and
@@ -62,6 +65,7 @@ import {
   assertA11yVersion,
   isA11yRun,
   mergeA11yLedger,
+  migrateA11yLedger,
   readA11yArtifacts,
   recordedWorkflows,
   serializeA11yLedger,
@@ -260,7 +264,9 @@ const a11yWarnings = [];
 // a file it cannot read. On any error a11y.json stays as it is, the page and the step summary name the error,
 // and a warning flags the run.
 try {
-  const previousA11y = existsSync(a11yPath) ? JSON.parse(readFileSync(a11yPath, 'utf8')) : null;
+  // Migrated on the way in, so the page is drawn from a document of this code's version whether or not this run
+  // records a night; the file itself is rewritten only when one is.
+  const previousA11y = existsSync(a11yPath) ? migrateA11yLedger(JSON.parse(readFileSync(a11yPath, 'utf8'))) : null;
 
   if (!options.catalog) {
     assertA11yVersion(previousA11y);

@@ -53,7 +53,9 @@ export default function toggleMergeItem(plugin: MergeCellsPluginRef) {
     disabled(this: HotInstance) {
       const selection = this.getSelectedActive();
 
-      if (!selection) {
+      // Several ranges (Ctrl/Cmd+click) make no one block to merge, and merging the active range
+      // alone would ignore the others without a word.
+      if (!selection || this.selection.isNonContiguous()) {
         return true;
       }
 

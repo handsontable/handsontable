@@ -209,7 +209,7 @@ These keyboard shortcuts work when the [`MergeCells`](@/api/mergeCells.md) plugi
 
 | Windows                              | macOS                                | Action                              |  Excel  | Sheets  |
 | ------------------------------------ | ------------------------------------ | ----------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells (does nothing while several ranges are selected) | &cross; | &cross; |
 
 ### Undo and redo keyboard shortcuts
 
@@ -448,7 +448,7 @@ Didn't find what you need? Try this:
 
 - [View related topics](https://github.com/handsontable/handsontable/issues) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Start a discussion](https://forum.handsontable.com/c/questions/12) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>

@@ -299,7 +299,7 @@ The {{$a11y.report.link}} lists the ones that carry a reference and a success cr
 
 ## Result
 
-Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell, the menus, and a sort that a user makes; a range selection is not announced yet (see [Known limitations](#known-limitations)).
+Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell and a sort that a user makes. A range selection is not announced yet, and some screen readers announce the menus as a table (see [Known limitations](#known-limitations)).
 
 ## API reference
 
@@ -339,7 +339,7 @@ Didn't find what you need? Try this:
 
 - [View related topics](https://github.com/handsontable/handsontable/labels/Accessibility) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Start a discussion](https://forum.handsontable.com/c/questions/12) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>

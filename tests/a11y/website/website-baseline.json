@@ -1,10 +1,10 @@
 {
   "axeCoreVersion": "4.14.0",
   "issues": [
-    {"id":"grid-treegrid-children","title":"The Handsontable grid root has role treegrid but holds presentation children the role does not allow"},
-    {"id":"grid-scroll-viewport-keyboard","title":"The Handsontable scroll viewport scrolls but cannot be reached or scrolled from the keyboard"},
-    {"id":"grid-editor-label","title":"The Handsontable cell editor (its textarea) has no accessible name"},
-    {"id":"clients-band-label-contrast","title":"The \"Trusted by\" label of the clients band falls below 4.5:1 contrast on the support call page at the phone width"}
+    {"id":"grid-treegrid-children","title":"The Handsontable grid root has role treegrid but holds presentation children the role does not allow","tracker":"DEV-2964"},
+    {"id":"grid-scroll-viewport-keyboard","title":"axe finds no tab stop in the demo grids' scroll viewport; Tab reaches the grid's cells, and moving between them scrolls it, so this is not a defect"},
+    {"id":"grid-editor-label","title":"The Handsontable cell editor (its textarea) has no accessible name","tracker":"DEV-3492"},
+    {"id":"clients-band-label-contrast","title":"The \"Trusted by\" label of the clients band falls below 4.5:1 contrast on the support call page at the phone width","tracker":"DEV-3979"}
   ],
   "entries": [
     {"page":"about","theme":"desktop","rule":"aria-required-children","target":"div.ht-wrapper[role=\"treegrid\"]","impact":"critical","nodes":1,"issue":"grid-treegrid-children"},
