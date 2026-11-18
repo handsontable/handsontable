@@ -265,8 +265,6 @@ describe('UndoRedo plugin', () => {
     expect(seen).toEqual([true, 1]);
   });
 
-  // A vetoed undo keeps its step, as a vetoed redo does, so it can be retried once the condition that
-  // vetoed it is gone. The stacks do not change, so no stack hook fires.
   describe('the stack copies the stack hooks receive', () => {
     it('should not copy the undo stack for a step no stack hook listens to', () => {
       hot = new Handsontable(container, {
@@ -285,6 +283,44 @@ describe('UndoRedo plugin', () => {
 
       expect(slice).not.toHaveBeenCalled();
       expect(plugin.doneActions.length).toBe(3);
+    });
+
+    it('should not copy the undo stack to pop, put back or drop a step no stack hook listens to', () => {
+      const veto = () => false;
+
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data: [['A1'], ['A2'], ['A3']],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.setDataAtCell(0, 0, 'a');
+      hot.alter('insert_row_above', 1, 1);
+      hot.setDataAtCell(0, 0, 'b');
+
+      const slice = jest.spyOn(plugin.doneActions, 'slice');
+
+      // A pop.
+      plugin.undo();
+      plugin.redo();
+      slice.mockClear();
+      plugin.undo();
+
+      expect(plugin.doneActions.length).toBe(2);
+
+      // A put-back: the replay of the row insert is vetoed.
+      hot.addHook('beforeRemoveRow', veto);
+      plugin.undo();
+      hot.removeHook('beforeRemoveRow', veto);
+
+      expect(plugin.doneActions.length).toBe(2);
+
+      // A drop.
+      hot.updateSettings({ undo: { maxHistory: 1 } });
+
+      expect(plugin.doneActions.length).toBe(1);
+      expect(slice).not.toHaveBeenCalled();
     });
 
     it('should give a listener of only `afterUndoStackChange` the stack before and after a push', () => {
@@ -373,6 +409,8 @@ describe('UndoRedo plugin', () => {
     });
   });
 
+  // A vetoed undo keeps its step, as a vetoed redo does, so it can be retried once the condition that
+  // vetoed it is gone. The stacks do not change, so no stack hook fires.
   describe('an undo vetoed by `beforeUndo`', () => {
     it('should keep a recorded step on the undo stack and undo it on a retry', () => {
       const stackHooks = jest.fn();

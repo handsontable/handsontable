@@ -178,6 +178,23 @@ function buildChanges(journal: JournalOp[], { rows, columns }: ChangedCellsIndex
 }
 
 /**
+ * Up to this many changed cells, a step's `changes` field is built at once: the list is smaller than
+ * what deferring it holds (the index, the accessor and its closures), and one-cell edits are the most
+ * common steps.
+ */
+const EAGER_CHANGES_LIMIT = 16;
+
+/**
+ * Defines the `changes` field as a plain writable data property, the shape it always had.
+ *
+ * @param {object} target The object to define it on.
+ * @param {*} value The value.
+ */
+function defineChangesValue(target: object, value: unknown) {
+  Object.defineProperty(target, 'changes', { value, writable: true, enumerable: true, configurable: true });
+}
+
+/**
  * Turns the `changes` field of a step into one that is built on its first read. Most steps are never
  * inspected, and a tuple per changed cell doubled the memory of a bulk write's step. On the first read
  * or write the field becomes a plain writable property, so a listener sees and sets an ordinary array.
@@ -186,27 +203,37 @@ function buildChanges(journal: JournalOp[], { rows, columns }: ChangedCellsIndex
  * @param {Function} build Builds the list.
  */
 function defineLazyChanges(step: UndoRedoStep, build: () => unknown[][]) {
-  let built: unknown[][] | null = null;
-
-  // A step an application froze or sealed (a store that freezes what it holds) keeps the accessor,
-  // which then serves the list it built once.
-  const settle = (target: UndoRedoStep, value: unknown) => {
-    if (Object.getOwnPropertyDescriptor(target, 'changes')?.configurable === true) {
-      Object.defineProperty(target, 'changes', { value, writable: true, enumerable: true, configurable: true });
-    }
-  };
+  // A step an application froze or sealed before the first read (a store that freezes what it holds)
+  // keeps the accessor, which then serves this value.
+  let value: unknown = null;
+  let isBuilt = false;
 
   Object.defineProperty(step, 'changes', {
     enumerable: true,
     configurable: true,
-    get(this: UndoRedoStep) {
-      built ??= build();
-      settle(this, built);
+    get(this: object) {
+      if (!isBuilt) {
+        value = build();
+        isBuilt = true;
+      }
 
-      return built;
+      if (Object.getOwnPropertyDescriptor(this, 'changes')?.configurable === true) {
+        defineChangesValue(this, value);
+      }
+
+      return value;
     },
-    set(this: UndoRedoStep, value: unknown) {
-      settle(this, value);
+    set(this: object, newValue: unknown) {
+      const own = Object.getOwnPropertyDescriptor(this, 'changes');
+
+      // An object that inherits from the step gets a property of its own, as an assignment always gave it.
+      if (own === undefined ? Object.isExtensible(this) : own.configurable === true) {
+        defineChangesValue(this, newValue);
+      } else if (this === step && !Object.isFrozen(step)) {
+        // A sealed step: its data property would have taken the value.
+        value = newValue;
+        isBuilt = true;
+      }
     },
   });
 }
@@ -463,7 +490,9 @@ export function createStep(
     sources: transaction.sources.slice(),
   };
 
-  if (changedCells !== null) {
+  if (changedCells !== null && changedCells.rows.length <= EAGER_CHANGES_LIMIT) {
+    defineChangesValue(step, buildChanges(journal, changedCells));
+  } else if (changedCells !== null) {
     defineLazyChanges(step, () => buildChanges(journal, changedCells));
   }
 

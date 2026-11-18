@@ -46,18 +46,17 @@ test(config.name, async({ page }) => {
     // The same 5000 steps on an empty stack in every window: a stack that grows across iterations
     // would measure each one on a longer history.
     resetFn: async() => {
-      await page.evaluate(() => {
+      await page.evaluate((calls: number) => {
         const hot = (window as any).__hot;
+        const columns = hot.countCols();
 
         hot.batch(() => {
-          for (let row = 0; row < 100; row++) {
-            for (let column = 0; column < hot.countCols(); column++) {
-              hot.removeCellMeta(row, column, 'className');
-            }
+          for (let index = 0; index < calls; index++) {
+            hot.removeCellMeta(Math.floor(index / columns), index % columns, 'className');
           }
         });
         hot.getPlugin('undoRedo').clear();
-      });
+      }, CALLS);
     },
   });
 });

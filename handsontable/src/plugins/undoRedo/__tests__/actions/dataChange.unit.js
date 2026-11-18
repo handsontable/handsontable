@@ -704,6 +704,7 @@ describe('UndoRedo -> DataChange action', () => {
     it('should list the cells of a block write in the order they were passed', () => {
       const undoRedo = createGrid();
 
+      hot.selectCell(1, 0, 2, 1);
       hot.populateFromArray(1, 0, [['x1', 'y1'], ['x2', 'y2']]);
 
       expect(topStep(undoRedo).changes).toEqual([
@@ -712,7 +713,7 @@ describe('UndoRedo -> DataChange action', () => {
         [2, 0, 'A3', 'x2'],
         [2, 1, 'B3', 'y2'],
       ]);
-      expect(topStep(undoRedo).selected).toEqual(hot.getSelected());
+      expect(topStep(undoRedo).selected).toEqual([[1, 0, 2, 1]]);
     });
 
     it('should list a write an `afterChange` listener makes after the cells that triggered it', () => {
@@ -771,25 +772,42 @@ describe('UndoRedo -> DataChange action', () => {
     });
 
     it('should keep the row and column indexes the cells had when the step was recorded', () => {
-      const undoRedo = createGrid();
-
-      hot.setDataAtCell([[0, 0, 'a'], [3, 2, 'b']]);
+      const undoRedo = writeBulk();
 
       const step = topStep(undoRedo);
 
-      hot.rowIndexMapper.setIndexesSequence([3, 2, 1, 0]);
+      hot.rowIndexMapper.setIndexesSequence([5, 4, 3, 2, 1, 0]);
       hot.columnIndexMapper.setIndexesSequence([2, 1, 0]);
 
-      expect(step.changes).toEqual([
-        [0, 0, 'A1', 'a'],
-        [3, 2, 'C4', 'b'],
-      ]);
+      expect(step.changes[0]).toEqual([0, 0, 'A1', 'v00']);
+      expect(step.changes[17]).toEqual([5, 2, 'C6', 'v52']);
     });
 
-    it('should build the list only when it is read, and then keep it', () => {
-      const undoRedo = createGrid();
+    /**
+     * Creates a 6 x 3 grid and writes into every cell in one call: 18 cells, past the count under which
+     * a step builds its list at once.
+     *
+     * @returns {UndoRedo}
+     */
+    function writeBulk() {
+      const undoRedo = createGrid({
+        data: Array.from({ length: 6 }, (rowValue, row) => ['A', 'B', 'C'].map(column => `${column}${row + 1}`)),
+      });
+      const changes = [];
 
-      hot.populateFromArray(0, 0, [['x', 'y']]);
+      for (let row = 0; row < 6; row++) {
+        for (let column = 0; column < 3; column++) {
+          changes.push([row, column, `v${row}${column}`]);
+        }
+      }
+
+      hot.setDataAtCell(changes);
+
+      return undoRedo;
+    }
+
+    it('should build the list of a bulk write only when it is read, and then keep it', () => {
+      const undoRedo = writeBulk();
 
       const step = topStep(undoRedo);
 
@@ -798,14 +816,45 @@ describe('UndoRedo -> DataChange action', () => {
 
       const changes = step.changes;
 
+      expect(changes).toHaveLength(18);
+      expect(changes[0]).toEqual([0, 0, 'A1', 'v00']);
+      expect(changes[17]).toEqual([5, 2, 'C6', 'v52']);
       expect(step.changes).toBe(changes);
       expect(Object.getOwnPropertyDescriptor(step, 'changes').value).toBe(changes);
     });
 
-    it('should read the field of a step an application froze before reading it', () => {
+    it('should build the list of a small write at once, as a plain property', () => {
       const undoRedo = createGrid();
 
-      hot.setDataAtCell([[0, 0, 'a'], [1, 1, 'b']]);
+      hot.setDataAtCell(0, 0, 'a');
+
+      expect(Object.getOwnPropertyDescriptor(topStep(undoRedo), 'changes')).toEqual({
+        value: [[0, 0, 'A1', 'a']],
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
+    });
+
+    it('should keep a value assigned to the field of a sealed step, and to an object built on a step', () => {
+      const undoRedo = writeBulk();
+
+      const step = topStep(undoRedo);
+      const derived = Object.create(step);
+
+      derived.changes = ['derived'];
+
+      expect(derived.changes).toEqual(['derived']);
+      expect(Object.hasOwn(derived, 'changes')).toBe(true);
+
+      Object.seal(step);
+      step.changes = ['sealed'];
+
+      expect(step.changes).toEqual(['sealed']);
+    });
+
+    it('should read the field of a step an application froze before reading it', () => {
+      const undoRedo = writeBulk();
 
       const step = topStep(undoRedo);
 
@@ -813,9 +862,10 @@ describe('UndoRedo -> DataChange action', () => {
       // reads its fields.
       Object.freeze(step);
 
-      expect(step.changes).toEqual([[0, 0, 'A1', 'a'], [1, 1, 'B2', 'b']]);
+      expect(step.changes).toHaveLength(18);
+      expect(step.changes[0]).toEqual([0, 0, 'A1', 'v00']);
       expect(step.changes).toBe(step.changes);
-      expect(JSON.parse(JSON.stringify(step)).changes).toEqual([[0, 0, 'A1', 'a'], [1, 1, 'B2', 'b']]);
+      expect(JSON.parse(JSON.stringify(step)).changes).toEqual(step.changes);
     });
 
     it('should keep a value a listener assigns to the field', () => {

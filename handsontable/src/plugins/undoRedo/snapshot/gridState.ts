@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import type { BasePlugin } from '../../base';
-import { countRegisteredPlugins, getPluginsNames } from '../../registry';
+import { getPluginsNames } from '../../registry';
 import {
   IndexMapperStateTracker,
   type IndexMapperSnapshot,
@@ -143,15 +143,12 @@ export class GridStateTracker {
    */
   #last: GridStateSnapshot | null = null;
   /**
-   * The grid plugins that implement each capture method, resolved once: a grid creates its plugins when
-   * it is constructed, so the list changes only when the registry does. A capture runs twice per
-   * recorded action, and walking every registered plugin there dominated a loop of cheap actions.
+   * The grid plugins that implement each capture method, resolved on the first capture. A grid creates
+   * all its plugins in its constructor (a plugin registered later never gets an instance on it), so the
+   * list never changes. A capture runs twice per recorded action, and walking every registered plugin
+   * there dominated a loop of cheap actions.
    */
   #capturingPlugins: Map<CaptureMethodName, CapturingPlugins> | null = null;
-  /**
-   * The registered plugin count `#capturingPlugins` was resolved at.
-   */
-  #capturingPluginsRegistryCount = -1;
 
   /**
    * Starts tracking the grid.
@@ -431,15 +428,13 @@ export class GridStateTracker {
 
   /**
    * Returns the grid plugins that implement a capture method, in the plugin priority order. The lists
-   * are resolved on the first call and again only after a plugin was registered.
+   * are resolved on the first call. A plugin takes part only through the methods its class defines.
    *
    * @param {string} methodName `captureState` or `captureSourceStructure`.
    * @returns {Array}
    */
   #getCapturingPlugins(methodName: CaptureMethodName): CapturingPlugins {
-    const registryCount = countRegisteredPlugins();
-
-    if (this.#capturingPlugins === null || this.#capturingPluginsRegistryCount !== registryCount) {
+    if (this.#capturingPlugins === null) {
       const byMethod = new Map<CaptureMethodName, Array<readonly [string, BasePlugin]>>([
         ['captureState', []],
         ['captureSourceStructure', []],
@@ -460,7 +455,6 @@ export class GridStateTracker {
       });
 
       this.#capturingPlugins = byMethod;
-      this.#capturingPluginsRegistryCount = registryCount;
     }
 
     return this.#capturingPlugins.get(methodName) ?? [];
