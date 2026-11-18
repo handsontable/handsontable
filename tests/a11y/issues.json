@@ -276,15 +276,6 @@
       ]
     },
     {
-      "id": "filters-nested-buttons",
-      "title": "The Filters \"Select all\" and \"Select none\" controls are buttons nested inside buttons",
-      "tracker": "DEV-3493",
-      "match": [
-        { "source": "axe", "axeIssues": ["filters-nested-buttons"] },
-        { "source": "checks", "checks": ["axe-discovery"], "rules": ["nested-interactive"] }
-      ]
-    },
-    {
       "id": "contrast-and-focus-visibility",
       "title": "Text, icon, checkbox, grid line, selection and focus indicator contrast under 4.5:1 or 3:1 per theme",
       "tracker": ["DEV-4003", "DEV-3494", "DEV-2946", "DEV-3989"],
