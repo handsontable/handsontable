@@ -52,14 +52,23 @@ export function spreadsheetColumnIndex(label: string): number {
  */
 export function createSpreadsheetData(rows: number = 100, columns: number = 4): string[][] {
   const _rows = [];
+  const labels: string[] = [];
   let i;
   let j;
+
+  // Built only when the row loop runs, so the columns are walked exactly when they were before the labels
+  // were cached (`createSpreadsheetData(0, Infinity)` still returns at once).
+  if (rows > 0) {
+    for (j = 0; j < columns; j++) {
+      labels.push(spreadsheetColumnLabel(j));
+    }
+  }
 
   for (i = 0; i < rows; i++) {
     const row = [];
 
     for (j = 0; j < columns; j++) {
-      row.push(spreadsheetColumnLabel(j) + (i + 1));
+      row.push(labels[j] + (i + 1));
     }
     _rows.push(row);
   }
@@ -76,14 +85,24 @@ export function createSpreadsheetData(rows: number = 100, columns: number = 4): 
  */
 export function createSpreadsheetObjectData(rows: number = 100, colCount: number = 4): Record<string, string>[] {
   const _rows = [];
+  const props: string[] = [];
+  const labels: string[] = [];
   let i;
   let j;
+
+  // Built only when the row loop runs, as in `createSpreadsheetData()`.
+  if (rows > 0) {
+    for (j = 0; j < colCount; j++) {
+      props.push(`prop${j}`);
+      labels.push(spreadsheetColumnLabel(j));
+    }
+  }
 
   for (i = 0; i < rows; i++) {
     const row: Record<string, string> = {};
 
     for (j = 0; j < colCount; j++) {
-      row[`prop${j}`] = spreadsheetColumnLabel(j) + (i + 1);
+      row[props[j]] = labels[j] + (i + 1);
     }
     _rows.push(row);
   }
