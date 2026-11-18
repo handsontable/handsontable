@@ -43,7 +43,7 @@ export function stripSupportPrefix(text: string): string | null {
  * What a message from the composer sends, or `null` when it sends nothing. The form and the hook both
  * ask this, so a bare `!reply` cannot clear the composer while the hook sends nothing.
  *
- * `toSupport` is the composer's "To Support" chip. A typed marker writes to Support only while the
+ * `toSupport` is the composer's "Writing to Support" strip. A typed marker writes to Support only while the
  * conversation has a live Support thread (`canWriteToSupport`); without one it is ordinary text.
  */
 export function outgoingMessage(
