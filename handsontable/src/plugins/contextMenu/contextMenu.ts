@@ -378,6 +378,9 @@ export class ContextMenu extends BasePlugin {
    * the [`contextMenu`](@/api/options.md#contextmenu) option. Running a command that the menu doesn't register
    * throws an error.
    *
+   * A command whose menu item is disabled for the current selection does nothing. For example,
+   * `'mergeCells'` does nothing while the selection holds several ranges (made with Ctrl/Cmd+click).
+   *
    * Or you can execute command registered in settings where `key` is your command name.
    *
    * @param {string} commandName The command name to be executed.

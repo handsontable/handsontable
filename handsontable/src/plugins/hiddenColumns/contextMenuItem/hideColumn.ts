@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
+import { collectHeaderSelectedIndexes } from '../../../utils/hiddenIndexes';
 
 /**
  * @param {HiddenColumns} hiddenColumnsPlugin The plugin instance.
@@ -9,38 +10,17 @@ export default function hideColumnItem(hiddenColumnsPlugin: Record<string, Funct
   return {
     key: 'hidden_columns_hide',
     name(this: HotInstance): string {
-      const selection = this.getSelectedActive();
-      let pluralForm = 0;
-
-      if (Array.isArray(selection)) {
-        const [, fromColumn, , toColumn] = selection;
-
-        if (fromColumn - toColumn !== 0) {
-          pluralForm = 1;
-        }
-      }
+      // Every range selected by its column header counts, so a Ctrl/Cmd+click selection of two
+      // single columns reads "Hide columns".
+      const pluralForm = collectHeaderSelectedIndexes(this, 'col', 2).length > 1 ? 1 : 0;
 
       return (this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_COLUMN, pluralForm) as string);
     },
     callback(this: HotInstance) {
-      const selectedRange = this.getSelectedRangeActive();
+      const columnsToHide = collectHeaderSelectedIndexes(this, 'col');
 
-      if (!selectedRange) {
+      if (columnsToHide.length === 0) {
         return;
-      }
-
-      const { from, to } = selectedRange;
-
-      if (from.col === null || to.col === null) {
-        return;
-      }
-
-      const start = Math.max(Math.min(from.col, to.col), 0);
-      const end = Math.max(from.col, to.col);
-      const columnsToHide = [];
-
-      for (let visualColumn = start; visualColumn <= end; visualColumn += 1) {
-        columnsToHide.push(visualColumn);
       }
 
       hiddenColumnsPlugin.hideColumns(columnsToHide);
@@ -59,7 +39,9 @@ export default function hideColumnItem(hiddenColumnsPlugin: Record<string, Funct
     },
     disabled: false,
     hidden(this: HotInstance) {
-      if (!(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner())) {
+      // Any range selected by its column header shows the item, whichever range was added last, so the
+      // click order of a Ctrl/Cmd+click selection does not decide it.
+      if (collectHeaderSelectedIndexes(this, 'col', 1).length === 0) {
         return true;
       }
 

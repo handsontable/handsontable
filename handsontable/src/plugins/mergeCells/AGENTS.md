@@ -1002,8 +1002,9 @@ there made header, Ctrl+click a cell, Enter, Shift+ArrowRight jump to the merge 
 layer, so the active one cut a merge: A2, Ctrl+click F6, Enter, Shift+ArrowRight left A2:B2 over the
 merge B1:B2 (DEV-161, pinned by `tests/e2e/merge-cells-selection-rules.spec.ts`). Known limits:
 `isSelectedByCorner()` inside the flag getters still looks at the last layer, and the flags follow
-`selection.clear()` and the `removeLayers` plus `refresh()` path in `mouseEventHandler.ts`, which can
-leave them on a layer index they no longer describe. A flag is set only when a header is rendered, so
+`selection.clear()`, which can leave them on a layer index they no longer describe. The Ctrl/Cmd+click
+removal in `mouseEventHandler.ts` goes through `Selection#removeLayers()`, which moves the flags onto the
+layers that stay (it used to drop the ranges alone). A flag is set only when a header is rendered, so
 Ctrl+A on a grid with column headers but no row headers sets one flag and is skipped, while the same grid
 with no headers snaps.
 
@@ -1151,6 +1152,18 @@ documents that split and carries a TODO. `colToProp()` translates the column aga
 differ (`manualColumnMove`, a hiding map plus a move). `#getStoredValueAt` is the correct pattern.
 `mergeRange()` must match it when it copies the anchor value for `populateFromArray` (DEV-2669).
 Do not "fix" `#getStoredValueAt` back to a physical column.
+
+## A selection of several ranges merges nothing
+
+The **Merge cells** context menu item (`contextMenuItem/toggleMerge.ts`, `disabled()`) and the `Ctrl`+`M`
+shortcut (`registerShortcuts()`) both refuse a selection whose `hot.selection.isNonContiguous()` is true
+(DEV-539). They used to merge the active range alone, so the other ranges were ignored without a word. The
+legacy `keyboardShortcuts/ctrlM.spec.js` pinned that old answer (Ctrl+M after Shift+Tab to an earlier layer
+merged that layer); it now pins that nothing merges. The item is a toggle, so **Unmerge cells** is
+disabled too, and `Ctrl`+`M` unmerges nothing, when the active range is a merged block beside another
+range: one range at a time, both ways. `merge()`, `mergeSelection()` and `toggleMerge()`
+through the API still take a range and are unchanged. Pinned by
+`tests/e2e/non-contiguous-selection-interop.spec.ts`.
 
 ## Pagination cannot coexist with this plugin
 

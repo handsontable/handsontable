@@ -1696,6 +1696,55 @@ class Selection {
   }
 
   /**
+   * Tells whether the selection consists of more than one range (Ctrl/Cmd+click, or `selectCells()`
+   * with several ranges). Features that act on one block refuse such a selection, as in spreadsheet
+   * applications: the fill handle is hidden (Autofill fills from the last range only, so a handle
+   * would silently ignore the others), and merging cells and moving columns or rows by their headers
+   * do nothing. `isMultiple()` cannot answer this – it asks whether the ACTIVE range spans more than
+   * one cell.
+   *
+   * @returns {boolean}
+   */
+  isNonContiguous() {
+    return this.selectedRange.size() > 1;
+  }
+
+  /**
+   * Tells whether a selection layer was made by `selectAll()` (a corner click, Ctrl/Cmd+A). The header
+   * flags cannot answer this: `selectAll()` sets one only for a header the grid renders, so on a grid with
+   * column headers alone a select-all layer looks like a plain column-header range. `selectAll()` always
+   * marks the layer as spanning the grid on both axes, which no other selection does.
+   *
+   * @private
+   * @param {number} layerLevel The selection layer.
+   * @returns {boolean}
+   */
+  isSelectAllLayer(layerLevel: number): boolean {
+    return this.#rowExtentSpansGrid.has(layerLevel) && this.#columnExtentSpansGrid.has(layerLevel);
+  }
+
+  /**
+   * Removes selection layers by their indexes and moves the layer-keyed flags (which layer was made from a
+   * row or column header, and which layer spans the whole grid) onto the layers that stay. Removing the
+   * ranges alone left every flag on its old index, so after a Ctrl/Cmd+click removed a layer, a header
+   * range lost its flag and a cell range could take one over. Call `refresh()` afterwards to repaint.
+   *
+   * @private
+   * @param {number[]} layerIndexes The indexes of the layers to remove.
+   */
+  removeLayers(layerIndexes: number[]): void {
+    const keptLayers = this.selectedRange.ranges
+      .map((range, originalLayerIndex) => ({ range, originalLayerIndex }))
+      .filter(({ originalLayerIndex }) => !layerIndexes.includes(originalLayerIndex));
+
+    this.selectedRange.removeLayers(layerIndexes);
+    this.selectedByRowHeader = this.#remapLayerSet(this.selectedByRowHeader, keptLayers);
+    this.selectedByColumnHeader = this.#remapLayerSet(this.selectedByColumnHeader, keptLayers);
+    this.#rowExtentSpansGrid = this.#remapLayerSet(this.#rowExtentSpansGrid, keptLayers);
+    this.#columnExtentSpansGrid = this.#remapLayerSet(this.#columnExtentSpansGrid, keptLayers);
+  }
+
+  /**
    * Registers the source of the blocks (merged cells) a cell range must cover whole. Pass `null` to
    * stop growing ranges. There is one slot, and MergeCells overwrites it whenever it is enabled.
    *
@@ -2405,23 +2454,11 @@ class Selection {
    * @returns {boolean}
    */
   #isFillHandleAvailable() {
-    if (!this.settings.fillHandle || this.tableProps.isEditorOpened() || this.#isNonContiguous()) {
+    if (!this.settings.fillHandle || this.tableProps.isEditorOpened() || this.isNonContiguous()) {
       return false;
     }
 
     return !this.tableProps.isPluginRegistered('autofill') || this.tableProps.isPluginEnabled('autofill');
-  }
-
-  /**
-   * Tells whether the selection consists of more than one range (Ctrl/Cmd+click, or `selectCells()`
-   * with several ranges). The fill handle is hidden then (DEV-540), as in spreadsheet applications:
-   * Autofill fills from the last range only, so a handle there would silently ignore every other one.
-   * `isMultiple()` cannot answer this – it asks whether the ACTIVE range spans more than one cell.
-   *
-   * @returns {boolean}
-   */
-  #isNonContiguous() {
-    return this.selectedRange.size() > 1;
   }
 
   /**
