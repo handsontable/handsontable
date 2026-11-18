@@ -195,6 +195,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: '[cell] 中出现错误: [message]。',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '另有 [count] 个单元格现在包含错误。',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '另有 [count] 个单元格现在包含错误。',
+  [C.EDITOR_INPUT_LABEL]: '[column]，第 [row] 行',
+  [C.COMMENTS_EDITOR_LABEL]: '[column]，第 [row] 行的批注',
 };
 
 export default dictionary;

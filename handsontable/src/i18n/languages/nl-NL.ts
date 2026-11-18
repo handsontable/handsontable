@@ -198,6 +198,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Fout in [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Nog [count] cel bevat nu een fout.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Nog [count] cellen bevatten nu fouten.',
+  [C.EDITOR_INPUT_LABEL]: '[column], rij [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Opmerking bij [column], rij [row]',
 };
 
 export default dictionary;

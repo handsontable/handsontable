@@ -192,6 +192,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: '[cell] 發生錯誤: [message]。',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '另有 [count] 個儲存格現在包含錯誤。',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '另有 [count] 個儲存格現在包含錯誤。',
+  [C.EDITOR_INPUT_LABEL]: '[column]，第 [row] 列',
+  [C.COMMENTS_EDITOR_LABEL]: '[column]，第 [row] 列的評論',
 };
 
 export default dictionary;

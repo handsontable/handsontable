@@ -220,3 +220,9 @@ export const FORMULA_BUILDER_CELL_UNAVAILABLE = `${FORMULA_BUILDER_NAMESPACE}ann
 export const FORMULA_BUILDER_CELL_ERROR = `${FORMULA_BUILDER_NAMESPACE}announce.cellError`;
 export const FORMULA_BUILDER_DEPENDENT_ERROR = `${FORMULA_BUILDER_NAMESPACE}announce.dependentCellError`;
 export const FORMULA_BUILDER_DEPENDENT_ERRORS = `${FORMULA_BUILDER_NAMESPACE}announce.dependentCellErrors`;
+
+export const EDITOR_NAMESPACE = 'Editor:';
+export const EDITOR_INPUT_LABEL = `${EDITOR_NAMESPACE}labels.cellInput`;
+
+export const COMMENTS_NAMESPACE = 'Comments:';
+export const COMMENTS_EDITOR_LABEL = `${COMMENTS_NAMESPACE}labels.editor`;

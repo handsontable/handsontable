@@ -192,6 +192,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Ошибка в [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Ещё [count] ячейка теперь содержит ошибку.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Число других ячеек с ошибкой: [count].',
+  [C.EDITOR_INPUT_LABEL]: '[column], строка [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Комментарий к [column], строка [row]',
 };
 
 export default dictionary;
