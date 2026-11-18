@@ -3,10 +3,10 @@
   "scenario": "grid-core-horizon",
   "project": "vo-chromium",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "chromium 151.0.7922.34",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-03T19:36:46.181Z"
+    "at": "2026-11-17T13:56:43.500Z"
   },
   "steps": {
     "arrow-right": "age 34 column 2 row alice 34 oslo",
@@ -23,11 +23,11 @@
     "menu-arrow-down": "insert row below menu item group table",
     "menu-arrow-down-again": "insert column left menu item group table",
     "close-context-menu": "handsontable screen reader fixture web content",
-    "reselect-cell": "name alice column 1 row alice 34 oslo tree grid 4 columns 13 rows",
+    "reselect-cell": "alice name alice column 1 row alice 34 oslo tree grid 4 columns 13 rows",
     "extend-range": "",
     "extend-range-again": "",
     "up-to-header-for-sort": "name column 2 row select whole grid name age city",
-    "sort-ascending": "",
-    "sort-descending": ""
+    "sort-ascending": "sorted by name ascending",
+    "sort-descending": "sorted by name descending"
   }
 }

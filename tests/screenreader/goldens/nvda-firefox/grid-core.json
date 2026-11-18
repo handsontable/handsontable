@@ -6,7 +6,7 @@
     "screenReader": "NVDA 0.2.1-2026.2",
     "browser": "firefox 153.0",
     "platform": "win32 10.0.26100",
-    "at": "2026-10-22T14:20:35.799Z"
+    "at": "2026-11-17T13:56:08.607Z"
   },
   "steps": {
     "arrow-right": "34 age row 2 column 3",
@@ -27,7 +27,7 @@
     "extend-range": "",
     "extend-range-again": "",
     "up-to-header-for-sort": "name column header selected row 1 column 2",
-    "sort-ascending": "name column header sorted ascending row 1 column 2",
-    "sort-descending": "name column header sorted descending row 1 column 2"
+    "sort-ascending": "name column header sorted ascending row 1 column 2 sorted by name ascending",
+    "sort-descending": "name column header sorted descending row 1 column 2 sorted by name descending"
   }
 }
