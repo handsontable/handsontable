@@ -1696,6 +1696,20 @@ class Selection {
   }
 
   /**
+   * Tells whether the selection consists of more than one range (Ctrl/Cmd+click, or `selectCells()`
+   * with several ranges). Features that act on one block refuse such a selection, as in spreadsheet
+   * applications: the fill handle is hidden (Autofill fills from the last range only, so a handle
+   * would silently ignore the others), and merging cells and moving columns or rows by their headers
+   * do nothing. `isMultiple()` cannot answer this – it asks whether the ACTIVE range spans more than
+   * one cell.
+   *
+   * @returns {boolean}
+   */
+  isNonContiguous() {
+    return this.selectedRange.size() > 1;
+  }
+
+  /**
    * Registers the source of the blocks (merged cells) a cell range must cover whole. Pass `null` to
    * stop growing ranges. There is one slot, and MergeCells overwrites it whenever it is enabled.
    *
@@ -2405,23 +2419,11 @@ class Selection {
    * @returns {boolean}
    */
   #isFillHandleAvailable() {
-    if (!this.settings.fillHandle || this.tableProps.isEditorOpened() || this.#isNonContiguous()) {
+    if (!this.settings.fillHandle || this.tableProps.isEditorOpened() || this.isNonContiguous()) {
       return false;
     }
 
     return !this.tableProps.isPluginRegistered('autofill') || this.tableProps.isPluginEnabled('autofill');
-  }
-
-  /**
-   * Tells whether the selection consists of more than one range (Ctrl/Cmd+click, or `selectCells()`
-   * with several ranges). The fill handle is hidden then (DEV-540), as in spreadsheet applications:
-   * Autofill fills from the last range only, so a handle there would silently ignore every other one.
-   * `isMultiple()` cannot answer this – it asks whether the ACTIVE range spans more than one cell.
-   *
-   * @returns {boolean}
-   */
-  #isNonContiguous() {
-    return this.selectedRange.size() > 1;
   }
 
   /**

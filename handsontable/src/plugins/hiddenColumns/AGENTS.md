@@ -283,6 +283,32 @@ duplicate trips Sonar CPD on new code.
 
 Non-adjacent hidden columns stay out of the item (hidden `[1]`, select column 3: no Show column).
 
+## Hide column covers every header range of a Ctrl/Cmd+click selection
+
+`hideColumn.ts` used to read `getSelectedRangeActive()` alone, so with columns B and D selected by
+Ctrl/Cmd+clicking their headers it hid D and left B (DEV-538). Its `name()` and `callback()` now read
+`collectHeaderSelectedIndexes(hot, 'col')` (`../../../utils/hiddenIndexes.ts`): the columns of every layer
+selected by its column header, or every layer of a corner select-all, sorted and deduplicated. A cell range
+Ctrl/Cmd+clicked beside them is left out on purpose, because the item hides what the user selected as
+columns. Three rules ride along:
+
+- **A layer counts only when its flag AND its geometry agree.** The flags
+  (`isSelectedByColumnHeader(layerLevel)`) are keyed by layer index and are not remapped when a
+  Ctrl/Cmd+click removes a layer (`mouseEventHandler.ts`, `removeLayers()`), so a flag can name a cell
+  range; hiding through it took a column the user never selected as one. The helper also requires the
+  range to start in the header row (a negative row index; the header column for rows).
+- **`hidden()` asks the same helper, for any layer.** Asking `isSelectedByColumnHeader()` with no argument
+  reads the most recently added layer, so header B, header D, then a cell range dropped the item while
+  the same three in another order kept it.
+- **`name()` passes a limit of 2 and `hidden()` a limit of 1.** Both only ask "one or more", and the menu
+  renders `name()` on every hover: a corner select-all on a 1M-row grid built and sorted a 1M Set each time.
+
+`showColumn.ts` (and `showRow.ts`) still read the active range only; a Show item over a Ctrl/Cmd+click
+selection reveals the hidden columns next to that range alone. That asymmetry is known and was left out of
+this change on purpose (low impact, and showing needs a decision on what to select afterwards).
+`hideRow.ts` mirrors all of it with `'row'`. Pinned by `tests/e2e/non-contiguous-selection-interop.spec.ts`
+and `utils/__tests__/hiddenIndexes.unit.ts`.
+
 ## Hide column suppresses itself when no column is rendered
 
 `contextMenuItem/hideColumn.ts` `hidden()` used to key on the selection *type* alone

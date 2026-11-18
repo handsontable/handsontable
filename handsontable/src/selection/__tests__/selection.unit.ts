@@ -99,6 +99,26 @@ describe('Selection', () => {
     });
   });
 
+  describe('#isNonContiguous', () => {
+    it('should answer `true` only while the selection holds more than one range', () => {
+      const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());
+
+      expect(selection.isNonContiguous()).toBe(false);
+
+      selection.selectCells([[1, 1, 2, 2]]);
+
+      expect(selection.isNonContiguous()).toBe(false);
+
+      selection.selectCells([[1, 1, 2, 2], [4, 3, 4, 3]]);
+
+      expect(selection.isNonContiguous()).toBe(true);
+
+      selection.selectCells([[4, 3, 4, 3]]);
+
+      expect(selection.isNonContiguous()).toBe(false);
+    });
+  });
+
   describe('fill handle with a non-contiguous selection (DEV-540)', () => {
     // `multiple` is the grid's default selection mode; the shared `createSettings()` uses `range`,
     // which keeps one range only.

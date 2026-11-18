@@ -1,4 +1,8 @@
-import { collectAdjacentHiddenPhysicalIndexes } from 'handsontable/utils/hiddenIndexes';
+import {
+  collectAdjacentHiddenPhysicalIndexes,
+  collectHeaderSelectedIndexes,
+} from 'handsontable/utils/hiddenIndexes';
+import type { HotInstance } from 'handsontable/core/types';
 
 describe('collectAdjacentHiddenPhysicalIndexes', () => {
   const identityMap = (count: number): number[] => {
@@ -101,5 +105,116 @@ describe('collectAdjacentHiddenPhysicalIndexes', () => {
     expect(result).toHaveLength(50000);
     expect(result[0]).toBe(0);
     expect(result[result.length - 1]).toBe(49999);
+  });
+});
+
+describe('collectHeaderSelectedIndexes', () => {
+  type Layer = {
+    from: [number | null, number | null],
+    to: [number | null, number | null],
+    byColumnHeader?: boolean,
+    byRowHeader?: boolean,
+  };
+
+  /**
+   * A stand-in for the instance with the selection layers given, in layer order.
+   *
+   * @param {Layer[]} layers The selection layers.
+   * @param {boolean} [byCorner=false] Whether the selection was made from the corner.
+   * @returns {HotInstance}
+   */
+  const createHot = (layers: Layer[], byCorner = false): HotInstance => ({
+    getSelectedRange: () => (layers.length === 0 ? undefined : layers.map(({ from, to }) => ({
+      from: { row: from[0], col: from[1] },
+      to: { row: to[0], col: to[1] },
+    }))),
+    selection: {
+      isSelectedByCorner: () => byCorner,
+      isSelectedByColumnHeader: (layer: number) => !byCorner && !!layers[layer]?.byColumnHeader,
+      isSelectedByRowHeader: (layer: number) => !byCorner && !!layers[layer]?.byRowHeader,
+    },
+  }) as unknown as HotInstance;
+
+  it('should return an empty array when nothing is selected', () => {
+    expect(collectHeaderSelectedIndexes(createHot([]), 'col')).toEqual([]);
+  });
+
+  it('should collect the columns of a single header range', () => {
+    const hot = createHot([{ from: [-1, 2], to: [7, 4], byColumnHeader: true }]);
+
+    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([2, 3, 4]);
+  });
+
+  it('should collect the columns of every header range, sorted and without duplicates', () => {
+    const hot = createHot([
+      { from: [-1, 5], to: [7, 5], byColumnHeader: true },
+      { from: [-1, 3], to: [7, 1], byColumnHeader: true },
+      { from: [-1, 3], to: [7, 3], byColumnHeader: true },
+    ]);
+
+    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([1, 2, 3, 5]);
+  });
+
+  it('should leave out a cell range selected beside the header ranges', () => {
+    const hot = createHot([
+      { from: [-1, 1], to: [7, 1], byColumnHeader: true },
+      { from: [5, 4], to: [5, 4] },
+      { from: [-1, 3], to: [7, 3], byColumnHeader: true },
+    ]);
+
+    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([1, 3]);
+  });
+
+  it('should read the asked axis only', () => {
+    const hot = createHot([
+      { from: [1, -1], to: [1, 5], byRowHeader: true },
+      { from: [4, -1], to: [3, 5], byRowHeader: true },
+    ]);
+
+    expect(collectHeaderSelectedIndexes(hot, 'row')).toEqual([1, 3, 4]);
+    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([]);
+  });
+
+  it('should leave out a cell range whose header flag is stale', () => {
+    // The flags are keyed by layer index and survive a removed layer, so a flag can name a cell range.
+    const hot = createHot([
+      { from: [-1, 2], to: [7, 2], byColumnHeader: true },
+      { from: [0, 0], to: [0, 0], byColumnHeader: true },
+    ]);
+
+    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([2]);
+  });
+
+  it('should skip a range whose coordinates on the axis are not set', () => {
+    const hot = createHot([
+      { from: [-1, null], to: [7, null], byColumnHeader: true },
+      { from: [-1, 3], to: [7, 3], byColumnHeader: true },
+    ]);
+
+    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([3]);
+  });
+
+  it('should stop once it found as many indexes as the limit', () => {
+    const hot = createHot([
+      { from: [-1, 0], to: [7, 4], byColumnHeader: true },
+      { from: [-1, 9], to: [7, 9], byColumnHeader: true },
+    ]);
+
+    expect(collectHeaderSelectedIndexes(hot, 'col', 1)).toEqual([0]);
+    expect(collectHeaderSelectedIndexes(hot, 'col', 2)).toEqual([0, 1]);
+    expect(collectHeaderSelectedIndexes(hot, 'col', 1)).toHaveLength(1);
+  });
+
+  it('should stop at the limit on a long corner selection', () => {
+    const hot = createHot([{ from: [-1, -1], to: [999999, 5] }], true);
+
+    expect(collectHeaderSelectedIndexes(hot, 'row', 2)).toEqual([0, 1]);
+  });
+
+  it('should collect every range of a corner selection, without the header index', () => {
+    const hot = createHot([{ from: [-1, -1], to: [7, 5] }], true);
+
+    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(collectHeaderSelectedIndexes(hot, 'row')).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
   });
 });

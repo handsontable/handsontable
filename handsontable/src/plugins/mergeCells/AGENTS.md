@@ -1152,6 +1152,18 @@ differ (`manualColumnMove`, a hiding map plus a move). `#getStoredValueAt` is th
 `mergeRange()` must match it when it copies the anchor value for `populateFromArray` (DEV-2669).
 Do not "fix" `#getStoredValueAt` back to a physical column.
 
+## A selection of several ranges merges nothing
+
+The **Merge cells** context menu item (`contextMenuItem/toggleMerge.ts`, `disabled()`) and the `Ctrl`+`M`
+shortcut (`registerShortcuts()`) both refuse a selection whose `hot.selection.isNonContiguous()` is true
+(DEV-539). They used to merge the active range alone, so the other ranges were ignored without a word. The
+legacy `keyboardShortcuts/ctrlM.spec.js` pinned that old answer (Ctrl+M after Shift+Tab to an earlier layer
+merged that layer); it now pins that nothing merges. The item is a toggle, so **Unmerge cells** is
+disabled too, and `Ctrl`+`M` unmerges nothing, when the active range is a merged block beside another
+range: one range at a time, both ways. `merge()`, `mergeSelection()` and `toggleMerge()`
+through the API still take a range and are unchanged. Pinned by
+`tests/e2e/non-contiguous-selection-interop.spec.ts`.
+
 ## Pagination cannot coexist with this plugin
 
 `registerConflict('pagination', ['mergeCells', …])` — Pagination is the plugin that stays disabled. See
