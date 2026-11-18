@@ -8,6 +8,8 @@ import { warn } from '../../helpers/console';
 import { addClass, isBottomMostColumnHeader, isHTMLElement, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
+import { getCheckboxCellMeta, isCheckboxMeta } from '../../utils/checkboxColumn';
+import type { CheckboxMeta } from '../../utils/checkboxColumn';
 import { createObjectPropListener, deepClone, hasOwnProperty, isObject } from '../../helpers/object';
 import type { ObjectPropListener } from '../../helpers/object';
 import { SEPARATOR } from '../../utils/menu/predefinedItems';
@@ -1309,7 +1311,7 @@ export class Filters extends BasePlugin {
    * | `begins_with` | Begins with | `[value: string]`, e.g. `['de']` |
    * | `between` | Between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
    * | `by_value` | By value | `[[...values: Array]]`, e.g. `[['ing', 'ed', 'as']]`. The outer array wraps a single inner array that contains all values to **keep** (show) after filtering. |
-   * | `checked` | Is checked, for a `checkbox` column: the value matches the cell's `checkedTemplate` (`true` by default), ignoring letter case | `[]` |
+   * | `checked` | Is checked, for a `checkbox` column: the value matches the cell's `checkedTemplate` (`true` by default), ignoring letter case. With a `dataProvider`, your server must handle this name | `[]` |
    * | `contains` | Contains | `[value: string]`, e.g. `['ing']` |
    * | `date_after` | After a date (exclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
    * | `date_after_or_equal` | After or equal to a date (inclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
@@ -1341,7 +1343,7 @@ export class Filters extends BasePlugin {
    * | `not_contains` | Not contains | `[value: string]`, e.g. `['ing']` |
    * | `not_empty` | Not empty | `[]` |
    * | `neq` | Not equal | `[value: string\|number]`, e.g. `['John']`. On `date` and `intl-date` columns, pass an ISO 8601 date string, e.g. `['2023-01-01']`. |
-   * | `unchecked` | Is unchecked, for a `checkbox` column: the value matches the cell's `uncheckedTemplate` (`false` by default), ignoring letter case. An empty cell does not match unless the template is itself empty; use `empty` for it | `[]` |
+   * | `unchecked` | Is unchecked, for a `checkbox` column: the value matches the cell's `uncheckedTemplate` (`false` by default), ignoring letter case. An empty cell does not match unless the template is itself empty; use `empty` for it. With a `dataProvider`, your server must handle this name | `[]` |
    *
    * Possible operations on collection of conditions:
    *  * `conjunction` - [**Conjunction**](https://en.wikipedia.org/wiki/Logical_conjunction) on conditions collection (by default), i.e. for such operation: <br/> c1 AND c2 AND c3 AND c4 ... AND cn === TRUE, where c1 ... cn are conditions.
@@ -2385,8 +2387,16 @@ export class Filters extends BasePlugin {
       values.push(toEmptyString(value));
     }
 
+    // A checkbox condition decides its whole result from the cell's templates, which a `cells()` function
+    // can set per row. The column meta never runs that function, so a checkbox column resolves each row
+    // without stored meta through the cell's own transient meta (rows another filter trimmed included).
+    const resolveUnstoredMeta = visualColumn !== null &&
+      isCheckboxMeta(metaManager.getColumnMeta(physicalColumn) as CheckboxMeta) ?
+      (physicalRow: number) => getCheckboxCellMeta(this.hot, physicalRow, visualColumn) as CellProperties :
+      () => metaManager.createTransientColumnMeta(physicalColumn);
+
     return new ColumnDataMap(rows, values, physicalColumn,
-      (index: number) => resolvedMetas[index] ?? metaManager.createTransientColumnMeta(physicalColumn));
+      (index: number) => resolvedMetas[index] ?? resolveUnstoredMeta(rows[index]));
   }
 
   /**

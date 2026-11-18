@@ -1,6 +1,6 @@
 import { type Locator, type Page, expect } from '@playwright/test';
 import { FiltersValueListPage, escapeRegExp } from './FiltersValueListPage';
-import { chooseConditionWithKeyboard } from './filtersConditionSelect';
+import { chooseConditionWithKeyboard } from './filtersMenuKeyboard';
 
 /**
  * Page Object for keyboard navigation inside the filters dropdown menu: the Tab and Shift+Tab order

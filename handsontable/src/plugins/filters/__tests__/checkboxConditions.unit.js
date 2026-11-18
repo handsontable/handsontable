@@ -76,4 +76,40 @@ describe('Filters "checked" and "unchecked" conditions', () => {
 
     expect(filterColumn(settings, 'unchecked')).toEqual(['b']);
   });
+
+  it('reads the templates a `cells()` function sets, on rows that were never rendered', () => {
+    const rowsCount = 500;
+    const settings = {
+      data: Array.from({ length: rowsCount }, (_, row) => [row % 2 === 0 ? 'Y' : 'N', `row ${row}`]),
+      columns: [{ type: 'checkbox' }, {}],
+      cells: (row, column) => (column === 0 ? { checkedTemplate: 'Y', uncheckedTemplate: 'N' } : {}),
+      height: 200,
+    };
+
+    expect(filterColumn(settings, 'checked')).toHaveLength(rowsCount / 2);
+
+    hot.destroy();
+
+    expect(filterColumn(settings, 'unchecked')).toHaveLength(rowsCount / 2);
+  });
+
+  it('reads the templates a `cells()` function sets on rows another column\'s filter hides', () => {
+    const settings = {
+      data: [['Y', 'keep'], ['Y', 'drop'], ['N', 'keep'], ['Y', 'keep']],
+      columns: [{ type: 'checkbox' }, {}],
+      cells: (row, column) => (column === 0 ? { checkedTemplate: 'Y', uncheckedTemplate: 'N' } : {}),
+    };
+
+    hot = new Handsontable(container, { filters: true, licenseKey: TEST_LICENSE_KEY, ...settings });
+
+    const filters = hot.getPlugin('filters');
+
+    filters.addCondition(1, 'eq', ['drop']);
+    filters.filter();
+    filters.removeConditions(1);
+    filters.addCondition(0, 'checked', []);
+    filters.filter();
+
+    expect(hot.getDataAtCol(1)).toEqual(['keep', 'drop', 'keep']);
+  });
 });

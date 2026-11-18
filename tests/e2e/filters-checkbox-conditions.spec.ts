@@ -89,6 +89,20 @@ test.describe('filters: checkbox conditions', () => {
     expect(grid.pageErrors).toEqual([]);
   });
 
+  test('reads templates a cells() function sets on rows that were never rendered', async() => {
+    await grid.rebuildWithCellTemplates(500);
+    await grid.filterThroughApi(1, 'checked', []);
+
+    // Every other row holds 'Y', and the grid draws only a few of the 500 rows.
+    await expect.poll(() => grid.rowCount()).toBe(250);
+
+    await grid.rebuildWithCellTemplates(500);
+    await grid.filterThroughApi(1, 'unchecked', []);
+
+    await expect.poll(() => grid.rowCount()).toBe(250);
+    expect(grid.pageErrors).toEqual([]);
+  });
+
   test('accepts the conditions through addCondition()', async() => {
     await grid.filterThroughApi(1, 'checked', []);
 
