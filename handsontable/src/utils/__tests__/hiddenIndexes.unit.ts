@@ -114,11 +114,12 @@ describe('collectHeaderSelectedIndexes', () => {
     to: [number | null, number | null],
     byColumnHeader?: boolean,
     byRowHeader?: boolean,
+    selectAll?: boolean,
   };
 
   /**
-   * A stand-in for the instance with the selection layers given, in layer order. A select-all layer
-   * carries both header flags.
+   * A stand-in for the instance with the selection layers given, in layer order. `selectAll` marks a
+   * layer made by `selectAll()`; it carries the header flag of each header the grid renders.
    *
    * @param {Layer[]} layers The selection layers.
    * @param {number} [activeLayer] The active layer; the last one when omitted.
@@ -127,8 +128,13 @@ describe('collectHeaderSelectedIndexes', () => {
   const createHot = (layers: Layer[], activeLayer = layers.length - 1): HotInstance => {
     const selectedByColumnHeader = new Set<number>();
     const selectedByRowHeader = new Set<number>();
+    const selectAllLayers = new Set<number>();
 
-    layers.forEach(({ byColumnHeader, byRowHeader }, layer) => {
+    layers.forEach(({ byColumnHeader, byRowHeader, selectAll }, layer) => {
+      if (selectAll) {
+        selectAllLayers.add(layer);
+      }
+
       if (byColumnHeader) {
         selectedByColumnHeader.add(layer);
       }
@@ -147,6 +153,7 @@ describe('collectHeaderSelectedIndexes', () => {
         selectedByColumnHeader,
         selectedByRowHeader,
         getActiveSelectionLayerIndex: () => activeLayer,
+        isSelectAllLayer: (layer: number) => selectAllLayers.has(layer),
       },
     } as unknown as HotInstance;
   };
@@ -212,7 +219,7 @@ describe('collectHeaderSelectedIndexes', () => {
   });
 
   it('should collect every index of a select-all, without the header index', () => {
-    const hot = createHot([{ from: [-1, -1], to: [7, 5], byColumnHeader: true, byRowHeader: true }]);
+    const hot = createHot([{ from: [-1, -1], to: [7, 5], byColumnHeader: true, byRowHeader: true, selectAll: true }]);
 
     expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([0, 1, 2, 3, 4, 5]);
     expect(collectHeaderSelectedIndexes(hot, 'row')).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
@@ -220,7 +227,7 @@ describe('collectHeaderSelectedIndexes', () => {
 
   it('should leave out a select-all layer that is not the active layer', () => {
     const layers: Layer[] = [
-      { from: [-1, -1], to: [7, 5], byColumnHeader: true, byRowHeader: true },
+      { from: [-1, -1], to: [7, 5], byColumnHeader: true, byRowHeader: true, selectAll: true },
       { from: [-1, 3], to: [7, 3], byColumnHeader: true },
     ];
 
@@ -228,6 +235,30 @@ describe('collectHeaderSelectedIndexes', () => {
     expect(collectHeaderSelectedIndexes(createHot(layers), 'col')).toEqual([3]);
     // The focus moved back onto the select-all layer: every column.
     expect(collectHeaderSelectedIndexes(createHot(layers, 0), 'col')).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
+  it('should leave out an inactive select-all layer on a grid that renders one header', () => {
+    // With column headers only, `selectAll()` sets the column flag alone.
+    const columnsOnly: Layer[] = [
+      { from: [-1, 0], to: [7, 5], byColumnHeader: true, selectAll: true },
+      { from: [-1, 3], to: [7, 3], byColumnHeader: true },
+    ];
+    // With row headers only, it sets the row flag alone.
+    const rowsOnly: Layer[] = [
+      { from: [0, -1], to: [7, 5], byRowHeader: true, selectAll: true },
+      { from: [4, -1], to: [4, 5], byRowHeader: true },
+    ];
+
+    expect(collectHeaderSelectedIndexes(createHot(columnsOnly), 'col')).toEqual([3]);
+    expect(collectHeaderSelectedIndexes(createHot(rowsOnly), 'row')).toEqual([4]);
+  });
+
+  it('should leave out a select-all layer on the axis whose header the grid does not render', () => {
+    // A grid with column headers only: the select-all carries no row flag, so it hides no rows.
+    const hot = createHot([{ from: [-1, 0], to: [7, 5], byColumnHeader: true, selectAll: true }]);
+
+    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(collectHeaderSelectedIndexes(hot, 'row')).toEqual([]);
   });
 
   it('should stop once it found as many indexes as the limit', () => {
@@ -241,7 +272,9 @@ describe('collectHeaderSelectedIndexes', () => {
   });
 
   it('should stop at the limit on a long select-all', () => {
-    const hot = createHot([{ from: [-1, -1], to: [999999, 5], byColumnHeader: true, byRowHeader: true }]);
+    const hot = createHot([
+      { from: [-1, -1], to: [999999, 5], byColumnHeader: true, byRowHeader: true, selectAll: true },
+    ]);
 
     expect(collectHeaderSelectedIndexes(hot, 'row', 2)).toEqual([0, 1]);
   });

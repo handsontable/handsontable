@@ -1710,6 +1710,20 @@ class Selection {
   }
 
   /**
+   * Tells whether a selection layer was made by `selectAll()` (a corner click, Ctrl/Cmd+A). The header
+   * flags cannot answer this: `selectAll()` sets one only for a header the grid renders, so on a grid with
+   * column headers alone a select-all layer looks like a plain column-header range. `selectAll()` always
+   * marks the layer as spanning the grid on both axes, which no other selection does.
+   *
+   * @private
+   * @param {number} layerLevel The selection layer.
+   * @returns {boolean}
+   */
+  isSelectAllLayer(layerLevel: number): boolean {
+    return this.#rowExtentSpansGrid.has(layerLevel) && this.#columnExtentSpansGrid.has(layerLevel);
+  }
+
+  /**
    * Removes selection layers by their indexes and moves the layer-keyed flags (which layer was made from a
    * row or column header, and which layer spans the whole grid) onto the layers that stay. Removing the
    * ranges alone left every flag on its old index, so after a Ctrl/Cmd+click removed a layer, a header

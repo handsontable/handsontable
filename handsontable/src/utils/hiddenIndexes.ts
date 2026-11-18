@@ -5,9 +5,10 @@ type SelectionAxis = 'row' | 'col';
 
 /**
  * Tells whether the "Hide column" or "Hide row" item acts on a selection layer. A layer made from the
- * header of `axis` counts. A select-all layer (made from the corner, so it carries both header flags)
- * counts only while it is the active layer: select-all followed by a Ctrl/Cmd+click on one header
- * hides that header's column, not the whole grid, as it did before multi-range hiding.
+ * header of `axis` counts. A select-all layer (a corner click, Ctrl/Cmd+A) counts only while it is the
+ * active layer: select-all followed by a Ctrl/Cmd+click on one header hides that header's column, not the
+ * whole grid, as it did before multi-range hiding. The select-all test reads `isSelectAllLayer()`, not the
+ * header flags, because on a grid that renders one header a select-all layer carries one flag only.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {SelectionAxis} axis The axis whose header is asked about.
@@ -16,14 +17,15 @@ type SelectionAxis = 'row' | 'col';
  */
 function isLayerSelectedByHeader(hot: HotInstance, axis: SelectionAxis, layerLevel: number): boolean {
   const { selection } = hot;
-  const byColumnHeader = selection.selectedByColumnHeader.has(layerLevel);
-  const byRowHeader = selection.selectedByRowHeader.has(layerLevel);
+  const byHeader = axis === 'col'
+    ? selection.selectedByColumnHeader.has(layerLevel)
+    : selection.selectedByRowHeader.has(layerLevel);
 
-  if (byColumnHeader && byRowHeader) {
-    return layerLevel === selection.getActiveSelectionLayerIndex();
+  if (!byHeader) {
+    return false;
   }
 
-  return axis === 'col' ? byColumnHeader : byRowHeader;
+  return !selection.isSelectAllLayer(layerLevel) || layerLevel === selection.getActiveSelectionLayerIndex();
 }
 
 /**

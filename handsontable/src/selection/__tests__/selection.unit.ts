@@ -119,6 +119,20 @@ describe('Selection', () => {
     });
   });
 
+  describe('#isSelectAllLayer', () => {
+    it('should mark a layer made by selectAll() and no other layer', () => {
+      const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());
+
+      selection.selectAll();
+
+      expect(selection.isSelectAllLayer(0)).toBe(true);
+
+      selection.selectCells([[0, 1, 4, 1]]);
+
+      expect(selection.isSelectAllLayer(0)).toBe(false);
+    });
+  });
+
   describe('#removeLayers', () => {
     it('should move the header flags onto the layers that stay', () => {
       const selection = new Selection(createSettings({ selectionMode: 'multiple' }), createTableProps());

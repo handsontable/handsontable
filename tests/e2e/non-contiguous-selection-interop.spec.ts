@@ -94,6 +94,30 @@ test.describe('features that read a selection of several ranges', { tag: CROSS_B
       expect(await grid.hiddenColumns()).toEqual([3]);
     });
 
+    test('hides only the clicked column after Ctrl/Cmd+A on a grid with column headers alone', async({ page }) => {
+      // With one header rendered, the select-all carries one header flag only. The move plugin is off: with
+      // it on, a press on a header inside a header-flagged range arms a column move instead of selecting.
+      await grid.initGrid({ rowHeaders: false, manualColumnMove: false });
+      await grid.cell(0, 0).click();
+      await page.keyboard.press('ControlOrMeta+a');
+      await grid.columnHeader(3).click({ modifiers: ['ControlOrMeta'] });
+      await grid.openContextMenuOn(grid.columnHeader(3));
+      await grid.clickContextMenuItem('Hide column');
+
+      expect(await grid.hiddenColumns()).toEqual([3]);
+    });
+
+    test('hides only the clicked row after Ctrl/Cmd+A on a grid with row headers alone', async({ page }) => {
+      await grid.initGrid({ colHeaders: false, manualRowMove: false });
+      await grid.cell(0, 0).click();
+      await page.keyboard.press('ControlOrMeta+a');
+      await grid.rowHeader(4).click({ modifiers: ['ControlOrMeta'] });
+      await grid.openContextMenuOn(grid.rowHeader(4));
+      await grid.clickContextMenuItem('Hide row');
+
+      expect(await grid.hiddenRows()).toEqual([4]);
+    });
+
     test('hides a column on a grid that renders no column headers', async({ page }) => {
       await grid.initGrid({ colHeaders: false });
       await grid.cell(1, 2).click();

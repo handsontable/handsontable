@@ -299,9 +299,12 @@ columns. Three rules ride along:
   because `Selection#removeLayers()` moves them onto the layers that stay when a Ctrl/Cmd+click removes a
   layer (`mouseEventHandler.ts`); `SelectionRange#removeLayers()` alone left them on the old indexes, so a
   header range lost its flag and a cell range took one over.
-- **A select-all layer counts only while it is the active layer.** A corner click carries both flags. Select-all
-  followed by a Ctrl/Cmd+click on header D hides D alone, as before multi-range hiding; counting the select-all
-  layer there hid every column.
+- **A select-all layer counts only while it is the active layer.** Select-all followed by a Ctrl/Cmd+click on
+  header D hides D alone, as before multi-range hiding; counting the select-all layer there hid every column.
+  Tell a select-all apart with `Selection#isSelectAllLayer()` (both grid-extent sets), never with "both header
+  flags": `selectAll()` sets a header flag only for a header the grid renders, so on a grid with column headers
+  alone the select-all layer carries one flag and read as a plain column range (caught in review). A layer still
+  needs this axis's header flag to count, so Ctrl/Cmd+A on a grid without headers shows no Hide item, as before.
 - **`hidden()` asks the same helper, for any layer.** Asking `isSelectedByColumnHeader()` with no argument
   reads the most recently added layer, so header B, header D, then a cell range dropped the item while
   the same three in another order kept it.
