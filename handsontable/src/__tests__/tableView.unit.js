@@ -454,3 +454,75 @@ describe('TableView frozen counts with limitFixedToViewport', () => {
     expect(view.countNotHiddenFixedRowsBottom()).toEqual({ visualIndex: 58, incrementBy: 1 });
   });
 });
+
+describe('TableView#refreshZoomDependentSizes', () => {
+  let container;
+  let core;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    core = new Core(container, {
+      theme: 'ht-theme-main',
+      data: spreadsheetData(20, 5),
+      width: 300,
+      height: 200,
+      colHeaders: true,
+      licenseKey: TEST_LICENSE_KEY,
+    });
+    core.init();
+  });
+
+  afterEach(() => {
+    core.destroy();
+    core = null;
+    container.remove();
+  });
+
+  const spyOnCaches = () => {
+    const viewport = core.view._wt.wtViewport;
+
+    spyOn(viewport, 'invalidateRowHeightCache').and.callThrough();
+    spyOn(viewport, 'resetAllOversizedRows');
+
+    return viewport;
+  };
+
+  it('should drop the row-height cache, and keep the oversized-row records, when the border moved', () => {
+    const viewport = spyOnCaches();
+
+    spyOn(core.stylesHandler, 'refreshZoomDependentValues').and.returnValue(true);
+
+    expect(core.view.refreshZoomDependentSizes()).toBe(true);
+    expect(viewport.invalidateRowHeightCache).toHaveBeenCalledTimes(1);
+    // Without AutoRowSize nothing else knows how tall a row outside the rendered band is.
+    expect(viewport.resetAllOversizedRows).not.toHaveBeenCalled();
+  });
+
+  it('should leave every cache alone when the border did not move', () => {
+    const viewport = spyOnCaches();
+
+    spyOn(core.stylesHandler, 'refreshZoomDependentValues').and.returnValue(false);
+
+    expect(core.view.refreshZoomDependentSizes()).toBe(false);
+    expect(viewport.invalidateRowHeightCache).not.toHaveBeenCalled();
+    expect(viewport.resetAllOversizedRows).not.toHaveBeenCalled();
+  });
+
+  it('should not look at the border of a grid nobody can see', () => {
+    const viewport = spyOnCaches();
+
+    spyOn(core.stylesHandler, 'refreshZoomDependentValues').and.returnValue(true);
+    container.style.display = 'none';
+
+    expect(core.view.refreshZoomDependentSizes()).toBe(false);
+    // A hidden grid reads the inflated border but renders no row, so refreshing there would cache the
+    // declared height against the new border and keep it once the grid is shown.
+    expect(core.stylesHandler.refreshZoomDependentValues).not.toHaveBeenCalled();
+    expect(viewport.invalidateRowHeightCache).not.toHaveBeenCalled();
+
+    container.style.display = '';
+
+    expect(core.view.refreshZoomDependentSizes()).toBe(true);
+  });
+});

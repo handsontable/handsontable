@@ -388,10 +388,10 @@ export class StylesHandler {
     //   - 0 — a surface that removes the border, such as the Filters by-value list.
     //
     // The border is read from the `#computedStyles` SNAPSHOT, so this decision is taken at init and
-    // retaken only on a theme change or an explicit `clearCache()`. A grid loaded at 100% and then
-    // zoomed out therefore keeps the declared height, and overflows exactly as it did before this
-    // correction existed — the same amount, not a new defect. Following a runtime zoom needs more
-    // than re-reading the border here: with the height corrected by hand, the grid still renders the
+    // retaken on a theme change, an explicit `clearCache()`, or `refreshZoomDependentValues()`, which
+    // the core runs on every window resize. That last one is what follows a zoom made after the grid
+    // was built (Ctrl+minus on an open page): it clears this snapshot, and the caller then drops the
+    // row-height cache and renders, because re-reading the border alone leaves the grid rendering the
     // old sum until the row-height cache AND the hider sizing are invalidated too.
     //
     // `Number.isFinite` first: a `NaN` declared height must never reach the measurement, whose cache
@@ -458,9 +458,9 @@ export class StylesHandler {
    * be painted thinner than one device pixel.
    *
    * It is read from the device pixel ratio the page renders at NOW, not from the default row height,
-   * which follows the zoom only for a grid that was built below 100% (see `#calculateRowHeight()`): a
-   * grid built at 100% and zoomed out afterwards keeps the declared height while its rows render
-   * 0.1px taller at 90%.
+   * which follows a zoom change only after the next window resize has re-read the border (see
+   * `refreshZoomDependentValues()`): between the zoom and that resize a grid built at 100% still has
+   * the declared height while its rows render 0.1px taller at 90%.
    *
    * @returns {number} The overgrowth in pixels, `0` at or above 100%.
    */
@@ -488,9 +488,9 @@ export class StylesHandler {
    * variables read through it are always current — a snapshotted string stays frozen at whatever the
    * unthemed cell measured. Keying the cache on the declared height and the device pixel ratio
    * re-measures once either moves, which covers a late-arriving theme, and a zoom change on a grid
-   * that was ALREADY below 100% when it was built. It does not cover a grid built at 100% and zoomed
-   * out afterwards: the gate in front of this reads the border from the `#computedStyles` snapshot,
-   * so the caller never gets here — see the note there.
+   * that was ALREADY below 100% when it was built. A grid built at 100% and zoomed out afterwards
+   * reaches here once `refreshZoomDependentValues()` has replaced the border snapshot the gate in
+   * front of this reads — see the note there.
    *
    * Only a usable measurement is stored. A probe that resolves no layout — a grid built inside a
    * `display: none` tab, accordion or modal — must not be cached: neither key moves when the container
@@ -668,6 +668,43 @@ export class StylesHandler {
    */
   recacheValuesMeasuredWithoutStyles(): boolean {
     if (!this.#cachedWithoutResolvedStyles || !this.#stylesResolve()) {
+      return false;
+    }
+
+    this.clearCache();
+
+    return true;
+  }
+
+  /**
+   * Re-reads the cell border width the browser renders now and, when a zoom change moved it since the
+   * values were cached, clears them so every size derived from them is measured again.
+   *
+   * Below 100% a browser cannot paint a border thinner than one device pixel, so the cells' 1px border
+   * reads 1.25px at 80% zoom and every row renders taller than the theme declares. The row height
+   * decides whether to account for that from the border cached by `#cacheStylesheetValues()`, which is
+   * taken once. A grid built at 100% and zoomed out afterwards would keep the declared height and sum
+   * every row 0.25px short (GitHub #14330). The caller runs this on a window resize, which is what a
+   * zoom change fires. Above 100% the border snaps the other way (0.8px at 125%), and that is a change
+   * too.
+   *
+   * A border that cannot be read, now or when it was cached (an element outside the flat tree, a
+   * document without styles), says nothing about the zoom, so it changes nothing. Whether the grid can
+   * be seen is the caller's question: the border of a hidden grid reads as it does on screen, but its
+   * rows measure nothing.
+   *
+   * @returns {boolean} `true` when the border changed and the cache was cleared, so sizes derived from
+   *                    the old values have to be discarded too.
+   */
+  refreshZoomDependentValues(): boolean {
+    const cachedBorderWidth = Number.parseFloat(this.getStyleForTD('border-bottom-width') ?? '');
+    const renderedBorderWidth = Number.parseFloat(this.#getStylesForTD(['border-bottom-width'])['border-bottom-width']);
+
+    if (
+      !Number.isFinite(cachedBorderWidth) ||
+      !Number.isFinite(renderedBorderWidth) ||
+      cachedBorderWidth === renderedBorderWidth
+    ) {
       return false;
     }
 
