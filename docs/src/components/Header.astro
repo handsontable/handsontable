@@ -479,15 +479,18 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       setToc(false);
     }
 
-    // --- Sidebar aria-hidden on tablet collapse (Phase 3B) ---
-    function updateSidebarAriaHidden() {
+    // --- Sidebar hidden and inert on tablet collapse ---
+    const tabletQuery = window.matchMedia('(min-width: 50rem) and (max-width: 71.99rem)');
+
+    function updateSidebarHidden() {
       if (!sidebarPane) return;
-      const collapsed = document.body.hasAttribute('data-sidebar-collapsed');
-      if (collapsed) {
+      const hidden = document.body.hasAttribute('data-sidebar-collapsed') && tabletQuery.matches;
+      if (hidden) {
         sidebarPane.setAttribute('aria-hidden', 'true');
       } else {
         sidebarPane.removeAttribute('aria-hidden');
       }
+      sidebarPane.inert = hidden;
     }
 
     // --- Populate ToC from desktop starlight-toc ---
@@ -541,7 +544,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     }, { signal });
 
     // --- Sidebar toggle ---
-    const isTablet = () => window.matchMedia('(min-width: 50rem) and (max-width: 71.99rem)').matches;
+    const isTablet = () => tabletQuery.matches;
 
     sidebarToggle?.addEventListener('click', () => {
       setOverlay(false);
@@ -551,7 +554,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
         document.body.toggleAttribute('data-sidebar-collapsed');
         const collapsed = document.body.hasAttribute('data-sidebar-collapsed');
         sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
-        updateSidebarAriaHidden();
+        updateSidebarHidden();
       } else {
         // Mobile: delegate to Starlight's mobile menu
         if (starlightBtn) starlightBtn.click();
@@ -568,11 +571,12 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     });
     observer.observe(document.body, { attributes: true, attributeFilter: ['data-mobile-menu-expanded'] });
 
-    // Also observe data-sidebar-collapsed for aria-hidden sync
+    // Also observe data-sidebar-collapsed, and the tablet range, for the hidden state
     const collapseObserver = new MutationObserver(() => {
-      updateSidebarAriaHidden();
+      updateSidebarHidden();
     });
     collapseObserver.observe(document.body, { attributes: true, attributeFilter: ['data-sidebar-collapsed'] });
+    tabletQuery.addEventListener('change', updateSidebarHidden, { signal });
 
     // --- ToC toggle ---
     tocToggle?.addEventListener('click', () => {
@@ -608,7 +612,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     setToc(false);
     setInertBehind(false);
     updateBreadcrumbs();
-    updateSidebarAriaHidden();
+    updateSidebarHidden();
 
     // Store cleanup for view transitions
     cleanupPrevious = () => {
