@@ -270,7 +270,6 @@
       "title": "The accessible name of the Filters \"Filter by value\" component does not include its visible text",
       "tracker": "DEV-2948",
       "match": [
-        { "source": "axe", "axeIssues": ["filter-by-value-name"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["label-content-name-mismatch"] }
       ]
     },
