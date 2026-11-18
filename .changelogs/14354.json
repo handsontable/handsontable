@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed cell editor inputs and the comment editor having no accessible name, so screen readers now announce which cell is being edited.",
+  "type": "fixed",
+  "issueOrPR": 14354,
+  "breaking": false,
+  "framework": "none"
+}
