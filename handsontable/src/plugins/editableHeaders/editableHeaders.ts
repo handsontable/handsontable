@@ -280,6 +280,8 @@ export class EditableHeaders extends BasePlugin {
   /**
    * Tells the view to write the renamed headers as text. Runs once the view exists, after every enable and
    * update.
+   *
+   * @private
    */
   onGridReady() {
     this.hot.view.setPlainTextHeaderResolver(this.#isRenamedHeader);

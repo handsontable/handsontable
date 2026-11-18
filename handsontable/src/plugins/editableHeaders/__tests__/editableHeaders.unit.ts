@@ -286,6 +286,17 @@ describe('EditableHeaders', () => {
     destroy();
   });
 
+  it('should copy the renamed headers with the column headers', () => {
+    const { hot, plugin, destroy } = createGrid();
+
+    plugin.setHeader('column', 1, 'Price');
+
+    const copied = hot.getPlugin('copyPaste').getRangedData([{ startRow: -1, startCol: 0, endRow: 0, endCol: 1 }]);
+
+    expect(copied).toEqual([['A1', 'Price'], ['a', 'b']]);
+    destroy();
+  });
+
   it('should keep the input open, with what the user typed, when the option is sent again', () => {
     const { hot, plugin, destroy } = createGrid();
 
