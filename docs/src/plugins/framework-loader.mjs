@@ -520,7 +520,7 @@ function slugFromRelPath(relPath) {
  * @param {string} framework
  * @returns {string}
  */
-function filterOnlyFor(content, framework) {
+export function filterOnlyFor(content, framework) {
   const lines = content.split('\n');
   const result = [];
   // Stack of { keep: boolean, innerDepth: number } — one entry per open only-for block.

@@ -10,6 +10,7 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { replaceTemplateVariables } from './src/plugins/template-variables.mjs';
 import { buildPageMarkdown } from './src/lib/added-in.mjs';
+import { buildFrameworkMarkdownRoutes } from './src/lib/markdown-routes.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
@@ -608,7 +609,8 @@ function commonJsonIntegration() {
  *
  * Scans docs/content/ for .md files, reads their `permalink` frontmatter,
  * and writes cleaned Markdown to public/ (dev) and dist/ (build) for every
- * framework prefix in FRAMEWORK_PREFIXES.
+ * framework prefix in FRAMEWORK_PREFIXES. Each framework's copy keeps only its
+ * own `::: only-for` blocks (src/lib/markdown-routes.mjs).
  *
  * Generated files live under public/ and are gitignored.
  *
@@ -619,7 +621,6 @@ function markdownRoutesIntegration(sidebars) {
   const matter = _require('gray-matter');
   const contentDir = resolve(__dirname, 'content');
   const publicMdDir = resolve(__dirname, 'public', '_md');
-  const PREFIXES = Object.values(FRAMEWORK_PREFIXES);
 
   // One output file = an H1 from the frontmatter title, the "Added in" sentence
   // when the page has `addedIn` (DEV-2877), then the body with its template
@@ -667,12 +668,16 @@ function markdownRoutesIntegration(sidebars) {
         if (!data.permalink) continue;
 
         const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
-        const md = buildMarkdown(data, content);
 
         pageMeta.set(slug, { title: data.title, description: data.description || '' });
 
-        for (const prefix of PREFIXES) {
-          routeMap.set(`${prefix}/${slug}.md`, md);
+        for (const [route, md] of buildFrameworkMarkdownRoutes(
+          slug,
+          content,
+          FRAMEWORK_PREFIXES,
+          (filtered) => buildMarkdown(data, filtered),
+        )) {
+          routeMap.set(route, md);
         }
       }
     }

@@ -357,6 +357,8 @@ Content for React only.
 :::
 ```
 
+The same filter (`filterOnlyFor()` in `src/plugins/framework-loader.mjs`) runs for the HTML pages and for the Markdown copies behind Copy Markdown and `llms-full.txt` (`src/lib/markdown-routes.mjs`). A new output built from page sources must filter per framework too, or one framework's copy carries the others' sections and the raw marker lines.
+
 ### Vue example rules
 
 - **A new `data` array reloads the grid, an in-place edit does not need to.** The `@handsontable/vue3` `$props` watcher compares the array's identity (`toRaw()`) with the one it was last given. A new array goes to `updateSettings({ data })`, which runs core's `updateData()`, so an example that replaces its dataset (an import, a "load sample" button) can assign `data.value = newRows` and change `colHeaders` and `columns` in the same tick. While the columns stay the same, `updateData()` keeps the sorted row order and the cell and column states; a changed column layout resets the column state and the sort. Keep the array in a `ref()`: an array built in the template (`rows.map(...)`, a literal with reactive values) is new on every render and reloads the grid each time. The `:key` remount in `recipes/import-export/import-csv-excel/vue/example1.vue` still works and is the choice when the old state must go, as `loadData()` through a template ref is.
