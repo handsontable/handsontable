@@ -2978,8 +2978,9 @@ class TableView {
    *
    * A grid nobody can see is skipped. The browser reports the inflated border of a hidden grid, but a row of
    * it renders at no height, so the grid would measure the declared one against the new border and keep it once
-   * shown. The resize that follows the reveal (`Core#refreshDimensions()`, which the container observer or the
-   * application calls) then finds the border moved and refreshes.
+   * shown. The next `Core#refreshDimensions()` after the reveal then finds the border moved and refreshes. A grid
+   * with a `height` gets that call from the container observer. A grid the window scrolls gets it from the next
+   * window resize or from the application.
    *
    * `Core#refreshDimensions()` calls it after the `beforeRefreshDimensions` hook let the resize through and
    * renders when it returns `true`, so a resize that a listener blocked stays blocked.
