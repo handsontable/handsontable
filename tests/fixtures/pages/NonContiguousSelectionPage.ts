@@ -27,6 +27,7 @@ interface FixtureWindow {
       getHiddenColumns?(): number[],
       getHiddenRows?(): number[],
       mergedCellsCollection?: { mergedCells: MergedArea[] },
+      executeCommand?(commandName: string): void,
     };
   };
 }
@@ -181,6 +182,19 @@ export class NonContiguousSelectionPage {
   async clickContextMenuItem(name: string): Promise<void> {
     await this.contextMenuItem(name).click();
     await expect(this.contextMenu()).toHaveCount(0);
+  }
+
+  /**
+   * Runs a context menu command through `ContextMenu#executeCommand()`, the way an application does
+   * from its own code, without opening the menu.
+   *
+   * @param {string} commandName The command's key, such as `mergeCells`.
+   */
+  async executeContextMenuCommand(commandName: string): Promise<void> {
+    await this.page.evaluate(
+      name => (window as unknown as FixtureWindow).hot.getPlugin('contextMenu').executeCommand?.(name),
+      commandName,
+    );
   }
 
   /**

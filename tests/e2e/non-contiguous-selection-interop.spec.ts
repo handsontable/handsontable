@@ -97,6 +97,19 @@ test.describe('features that read a selection of several ranges', { tag: CROSS_B
       await expect(grid.contextMenuItem('Merge cells')).toHaveAttribute('aria-disabled', 'true');
     });
 
+    test('merges nothing through executeCommand() for two ranges, and one range on its own', async() => {
+      await grid.selectRanges([[1, 1, 2, 2], [4, 3, 5, 4]]);
+      await grid.executeContextMenuCommand('mergeCells');
+
+      expect(await grid.mergedAreas()).toEqual([]);
+
+      // Control: the same command merges a single range.
+      await grid.selectRanges([[4, 3, 5, 4]]);
+      await grid.executeContextMenuCommand('mergeCells');
+
+      expect(await grid.mergedAreas()).toEqual([{ row: 4, col: 3, rowspan: 2, colspan: 2 }]);
+    });
+
     test('merges nothing on Ctrl+M for two ranges, and the active range on its own', async({ page }) => {
       await grid.selectRanges([[1, 1, 2, 2], [4, 3, 5, 4]]);
       await page.keyboard.press('Control+m');
