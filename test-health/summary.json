@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T12:54:48.998Z",
+  "generatedAt": "2026-11-18T14:35:30.381Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,9 +9,9 @@
   "retentionDays": 90,
   "totals": {
     "tests": 452,
-    "needsTicket": 7,
+    "needsTicket": 8,
     "quarantined": 0,
-    "entries": 2315
+    "entries": 2316
   },
   "rows": [
     {
@@ -224,6 +224,39 @@
         "leg": "js/chromium-theme-main-dark",
         "status": "failed",
         "error": "differs from base/develop (pr tier); render sha256 601bcab03d12",
+        "source": "ci"
+      },
+      "needsTicket": true
+    },
+    {
+      "key": "playwright|e2e/side-layout-slots.spec.ts|side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
+      "tier": "playwright",
+      "file": "e2e/side-layout-slots.spec.ts",
+      "line": 518,
+      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
+      "count7": 3,
+      "count30": 3,
+      "countAll": 3,
+      "runs30": 2,
+      "flakyRuns30": 2,
+      "branches30": 2,
+      "nightlyRuns30": 0,
+      "openBranches30": 2,
+      "legs": [
+        "e2e-webkit"
+      ],
+      "statuses": [
+        "flaky"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-18T14:34:39Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44319342475",
+        "branch": "feature/DEV-2811_Editable-headers",
+        "leg": "e2e-webkit",
+        "status": "flaky",
+        "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": true
@@ -1462,39 +1495,6 @@
         "leg": "e2e-main",
         "status": "failed",
         "error": "Error: expect(received).toBe(expected) // Object.is equality",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "playwright|e2e/side-layout-slots.spec.ts|side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
-      "tier": "playwright",
-      "file": "e2e/side-layout-slots.spec.ts",
-      "line": 518,
-      "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
-      "count7": 2,
-      "count30": 2,
-      "countAll": 2,
-      "runs30": 1,
-      "flakyRuns30": 1,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "e2e-webkit"
-      ],
-      "statuses": [
-        "flaky"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-17T14:56:20Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44100238908/attempts/2",
-        "branch": "feature/DEV-3995_Migration-Codemod-MVP",
-        "leg": "e2e-webkit",
-        "status": "flaky",
-        "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
         "source": "ci"
       },
       "needsTicket": false
