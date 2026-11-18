@@ -209,7 +209,7 @@ These keyboard shortcuts work when the [`MergeCells`](@/api/mergeCells.md) plugi
 
 | Windows                              | macOS                                | Action                              |  Excel  | Sheets  |
 | ------------------------------------ | ------------------------------------ | ----------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells (does nothing while several ranges are selected) | &cross; | &cross; |
 
 ### Undo and redo keyboard shortcuts
 
