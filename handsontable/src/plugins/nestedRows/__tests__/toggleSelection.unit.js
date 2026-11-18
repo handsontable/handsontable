@@ -158,6 +158,68 @@ describe('NestedRows selection across a collapse or an expand', () => {
     expect(hot.getDataAtCell(hot.getSelectedRangeActive().highlight.row, 0)).toBe('B');
   });
 
+  it('reports the range and the level of the active layer last when the focus is not in the last layer', () => {
+    const afterSelection = jest.fn();
+
+    buildGrid({ afterSelection });
+
+    const plugin = hot.getPlugin('nestedRows');
+
+    plugin.collapseParent(0);
+    hot.selectCells([[1, 0, 1, 0], [2, 0, 3, 0]]);
+    // Moves the focus from the last layer (B1) to the first one (B).
+    hot.selection.transformFocus(2, 0);
+
+    expect(hot.getSelectedRangeActive().highlight.row).toBe(1);
+
+    afterSelection.mockClear();
+    plugin.expandParent(0);
+
+    const lastCall = afterSelection.mock.calls.at(-1);
+
+    // The first layer (B) is the active one, so it is laid last and reported with its own level.
+    expect(lastCall.slice(0, 4)).toEqual([3, 0, 3, 0]);
+    expect(lastCall[5]).toBe(0);
+    // Every layer is reported once, each with its own range and level.
+    expect(afterSelection.mock.calls.map(call => [...call.slice(0, 4), call[5]])).toEqual([
+      [4, 0, 5, 0, 1],
+      [3, 0, 3, 0, 0],
+    ]);
+  });
+
+  it('keeps the viewport following later selections when an afterSelection listener throws during a re-lay', () => {
+    buildGrid();
+
+    const plugin = hot.getPlugin('nestedRows');
+
+    plugin.collapseParent(0);
+    hot.selectCells([[1, 0, 1, 0], [2, 0, 3, 0]]);
+    hot.selection.transformFocus(2, 0);
+
+    let shouldThrow = true;
+
+    hot.addHook('afterSelection', () => {
+      if (shouldThrow) {
+        shouldThrow = false;
+
+        throw new Error('listener failure');
+      }
+    });
+
+    expect(() => plugin.expandParent(0)).toThrowError('listener failure');
+
+    const scrollViewportTo = jest.spyOn(hot, 'scrollViewportTo');
+    const afterSelection = jest.fn();
+
+    hot.addHook('afterSelection', afterSelection);
+    hot.selectCell(5, 0);
+
+    // The deferral of the active layer's end is reset, so a new selection is the last layer again:
+    // `afterSelection` reports it at level 0 and the grid scrolls to it.
+    expect(afterSelection).toHaveBeenCalledTimes(1);
+    expect(scrollViewportTo).toHaveBeenCalled();
+  });
+
   it('runs no selection hook for a select-all on a grid capped by maxRows', () => {
     const afterSelectionEnd = jest.fn();
 

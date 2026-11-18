@@ -273,6 +273,14 @@ class Selection {
    */
   #isActiveLayerEndDeferred = false;
   /**
+   * The layer whose end `refresh()` lays last, while it does, or `null`. `setRangeEnd()` reports that
+   * layer through `afterSetRangeEnd`: it is not the last layer, so `current()` would name another
+   * one. Every other `setRangeEnd()` reports the last layer, as it always has.
+   *
+   * @type {number|null}
+   */
+  #deferredEndLayer: number | null = null;
+  /**
    * Whether a record-following restore moved the selection and still owes the selection hooks: one
    * entry per index-mapper update, kept per axis as a stack beside
    * {@link Selection#physicalSelectionSnapshots}. The restore commits highlights without the hooks,
@@ -826,7 +834,14 @@ class Selection {
     const isLastLayer = !this.#isActiveLayerEndDeferred &&
       (this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount);
 
-    this.runLocalHooks('afterSetRangeEnd', coords, isLastLayer);
+    // The reported layer goes with the hook. `refresh()` ends the active layer last, which need not
+    // be the last layer, so for that end the listener must not read the range from `current()`.
+    // Every other end reports the last layer, unchanged.
+    const reportedLayer = this.#deferredEndLayer ?? this.getLayerLevel();
+
+    // Cleared before the hook runs, so a listener's own `setRangeEnd()` reports as usual.
+    this.#deferredEndLayer = null;
+    this.runLocalHooks('afterSetRangeEnd', coords, isLastLayer, reportedLayer);
   }
 
   /**
@@ -3709,8 +3724,8 @@ class Selection {
    * physical rows, so it keeps the row objects and reads their rows afterwards (DEV-509).
    *
    * A layer whose row extent tracks the grid (a whole column, a select-all) keeps its rows: its far
-   * corner follows the axis, not a record. Nothing is moved with an editor open, which owns the
-   * selection, or when the number of layers differs.
+   * corner follows the axis, not a record, so the caller may pass `null` for it. Nothing is moved
+   * with an editor open, which owns the selection, or when the number of layers differs.
    *
    * `dropped` is the selection as it was before the caller's operation (`exportSelection()`). When
    * the operation left no selection at all, the layers are put back from it first: the states the
@@ -3720,12 +3735,13 @@ class Selection {
    * This method is not part of the public API and should not be called by a consumer.
    *
    * @private
-   * @param {Array<{from: number, to: number, highlight: number}>} layers The rows of each layer.
+   * @param {Array<{from: number, to: number, highlight: number}|null>} layers The rows of each layer,
+   * or `null` for a layer whose row extent tracks the grid.
    * @param {SelectionState} [dropped] The selection to put back when none is left.
    * @returns {boolean} Whether any layer moved or came back.
    */
   relayRows(
-    layers: ReadonlyArray<{ from: number, to: number, highlight: number }>,
+    layers: ReadonlyArray<{ from: number, to: number, highlight: number } | null>,
     dropped?: SelectionState,
   ): boolean {
     if (this.tableProps.isEditorOpened()) {
@@ -3757,11 +3773,11 @@ class Selection {
     let isMoved = isPutBack;
 
     ranges.forEach((range, layerIndex) => {
-      if (this.#rowExtentSpansGrid.has(layerIndex)) {
+      const rows = layers[layerIndex];
+
+      if (rows === null || this.#rowExtentSpansGrid.has(layerIndex)) {
         return;
       }
-
-      const rows = layers[layerIndex];
 
       (['from', 'to', 'highlight'] as const).forEach((corner) => {
         if (range[corner].row !== rows[corner]) {
@@ -3821,9 +3837,38 @@ class Selection {
     // `mouseup` on a header button that selects nothing included (DEV-509).
     const lastLayer = ranges.length - 1;
     const keptLayer = activeLayer >= 0 && activeLayer < lastLayer ? activeLayer : lastLayer;
-    let keptLayerEnd: CellCoords | null = null;
 
     this.#isActiveLayerEndDeferred = keptLayer !== lastLayer;
+
+    // Reset in a `finally`: a selection hook listener that throws in one of the `setRangeEnd()` calls
+    // would otherwise leave the flag on, and every later `setRangeEnd()` would report that it is not
+    // the last layer, so the grid would stop scrolling to new selections.
+    try {
+      this.#layRefreshedRanges(ranges, countRows, countColumns, keptLayer);
+    } finally {
+      this.#isActiveLayerEndDeferred = false;
+      this.#deferredEndLayer = null;
+    }
+
+    this.selectedByRowHeader = selectedByRowHeader;
+    this.selectedByColumnHeader = selectedByColumnHeader;
+    this.#rowExtentSpansGrid = rowExtentSpansGrid;
+    this.#columnExtentSpansGrid = columnExtentSpansGrid;
+
+    this.finish();
+    this.markEndSource();
+  }
+
+  /**
+   * Lays the ranges `refresh()` collected, clamped to the grid, and ends the kept layer last.
+   *
+   * @param {CellRange[]} ranges The ranges to lay, one per layer.
+   * @param {number} countRows The number of rows.
+   * @param {number} countColumns The number of columns.
+   * @param {number} keptLayer The layer whose end is laid last.
+   */
+  #layRefreshedRanges(ranges: CellRange[], countRows: number, countColumns: number, keptLayer: number): void {
+    let keptLayerEnd: CellCoords | null = null;
 
     ranges.forEach((range, layerIndex) => {
       const { from, to, highlight } = range;
@@ -3856,16 +3901,9 @@ class Selection {
 
     if (keptLayerEnd !== null) {
       this.#isActiveLayerEndDeferred = false;
+      this.#deferredEndLayer = keptLayer;
       this.setRangeEnd(keptLayerEnd, keptLayer);
     }
-
-    this.selectedByRowHeader = selectedByRowHeader;
-    this.selectedByColumnHeader = selectedByColumnHeader;
-    this.#rowExtentSpansGrid = rowExtentSpansGrid;
-    this.#columnExtentSpansGrid = columnExtentSpansGrid;
-
-    this.finish();
-    this.markEndSource();
   }
 
   /**

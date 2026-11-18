@@ -97,9 +97,18 @@ class CollapsingUI extends BaseUI {
         // `stash()` before `applyStash()` runs on a grid the first one already expanded.
         if (this.lastCollapsedRows === undefined) {
           this.#selectionRecords = this.#captureSelectionRecords();
+          this.lastCollapsedRows = this.collapsedRows.slice(0);
+        } else {
+          // The bracket is already open, so the parents it stashed are expanded and no longer in
+          // `collapsedRows`. Replacing the stash with `collapsedRows` lost them: an `alter()` removing
+          // several groups stashes once per group, and the parents stayed expanded. Only a parent
+          // collapsed since the bracket opened is added.
+          this.collapsedRows.forEach((row) => {
+            if (!this.lastCollapsedRows!.includes(row)) {
+              this.lastCollapsedRows!.push(row);
+            }
+          });
         }
-
-        this.lastCollapsedRows = this.collapsedRows.slice(0);
 
         // The expand below is transient: `applyStash()` collapses the same parents again, after the
         // insert, removal or move it brackets - for a removal a tick later. A whole-column selection
@@ -224,9 +233,19 @@ class CollapsingUI extends BaseUI {
 
       return physicalRow === null ? null : this.hot.toVisualRow(physicalRow);
     };
-    const layers: Array<{ from: number, to: number, highlight: number }> = [];
+    const layers: Array<{ from: number, to: number, highlight: number } | null> = [];
+    const gridTrackingLayers = new Set(records.state.rowExtentSpansGrid);
 
     for (let index = 0; index < records.layers.length; index++) {
+      // A layer whose row extent tracks the grid is left to the grid-tracking repair, so its rows do
+      // not decide the restore: a whole column ends on the last row, and a removal of that row must
+      // not cancel the move of the other layers.
+      if (gridTrackingLayers.has(index)) {
+        layers.push(null);
+
+        continue;
+      }
+
       const from = toVisualRow(records.layers[index].from);
       const to = toVisualRow(records.layers[index].to);
       const highlight = toVisualRow(records.layers[index].highlight);

@@ -217,6 +217,30 @@ describe('NestedRows selection across a row removal, an insert and a detach', ()
     expect(hot.getSelected()[0][2]).toBe(3);
   });
 
+  it('keeps a cell layer on its row when the removal also takes the last row a whole-column layer ends on', async() => {
+    buildGrid();
+    hot.getPlugin('nestedRows').collapseParent(0);
+    // A whole column (layer 0) and C1 (layer 1). The whole column ends on C2, the last row.
+    hot.selectColumns(0);
+    // Adds C1 as a second layer, the way a Ctrl+click does.
+    hot.selection.setRangeStart(hot._createCellCoords(visibleNames().indexOf('C1'), 0), true);
+
+    expect(hot.selection.exportSelection().rowExtentSpansGrid).toEqual([0]);
+    expect(selectedNames()[1]).toEqual(['C1']);
+
+    const relayRows = jest.spyOn(hot.selection, 'relayRows');
+
+    // Removes C2, the row the whole column ends on. The whole column is left to the grid-tracking
+    // repair, so its gone row does not cancel the restore of the cell layer.
+    hot.alter('remove_row', visibleNames().indexOf('C2'), 1);
+    await settle();
+
+    expect(visibleNames()).toEqual(['A', 'B', 'B1', 'B2', 'C', 'C1']);
+    expect(relayRows).toHaveBeenCalledTimes(1);
+    expect(relayRows.mock.calls[0][0]).toEqual([null, { from: 5, to: 5, highlight: 5 }]);
+    expect(selectedNames()).toEqual([['A', 'B', 'B1', 'B2', 'C', 'C1'], ['C1']]);
+  });
+
   it('does not bring back a selection a listener of the removal dropped', async() => {
     buildGrid();
     hot.getPlugin('nestedRows').collapseParent(3);

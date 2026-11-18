@@ -600,6 +600,15 @@ They are written in different places and can drift. Keep this in mind:
   stash/applyStash briefly un-trims all rows. It is used around add child, detach child, row move,
   and filtering. Do not reach for it to let a user-facing command see the hidden rows - see the next
   bullet for why "Clear column" stopped doing exactly that.
+- **A second `stash()` inside an open bracket keeps what the first one stashed.** Only a parent
+  collapsed since is added. It used to replace the stash with `collapsedRows`, which the first
+  `stash()` had already emptied, so the parents stayed expanded. `alter('remove_row', [[i, n], ...])`
+  with several groups is the case that reaches it: it removes the groups one by one, and every
+  removal stashes. The same call is why `Core#alter()` follows the later groups by their PHYSICAL
+  rows (`removeRowsByRecord`, renumbered from the list `DataMap#removeRow()` hands its
+  `onRowsRemoved` callback) and not by an offset counted from the amounts: this plugin widens a
+  parent to its subtree and expands collapsed parents while removing, so the offset pointed the
+  next group at rows nobody named, or past the last row. Pinned by `__tests__/removeRowGroups.unit.js`.
 - **The stash holds the selection's grid-tracking grow for as long as it is open.** `stash()` calls
   `Selection#suspendGridTrackingFits()` and `applyStash()` releases it, so a whole-column selection or
   a select-all does not grow onto the transient expanded height, and is fitted once to the grid the
@@ -750,7 +759,10 @@ They are written in different places and can drift. Keep this in mind:
   behind it:
   - **A corner whose row is gone or collapsed away aborts the whole restore.** What the operation
     left is then the answer: removing the selected rows through the context menu keeps the
-    selection at the place of the removed rows, as before.
+    selection at the place of the removed rows, as before. Only a layer that names records counts:
+    a layer whose row extent tracks the grid is handed to `relayRows()` as `null` and never read,
+    because a whole column ends on the last row, and removing that row cancelled the move of every
+    other layer.
   - **A selection the operation stranded is put back** (`relayRows()` takes the exported
     selection). With B collapsed, removing a row above it left a selection below with nothing
     selected, though every selected row was still there: the default repair dropped it in the
