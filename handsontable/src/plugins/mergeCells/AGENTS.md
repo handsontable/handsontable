@@ -1002,8 +1002,9 @@ there made header, Ctrl+click a cell, Enter, Shift+ArrowRight jump to the merge 
 layer, so the active one cut a merge: A2, Ctrl+click F6, Enter, Shift+ArrowRight left A2:B2 over the
 merge B1:B2 (DEV-161, pinned by `tests/e2e/merge-cells-selection-rules.spec.ts`). Known limits:
 `isSelectedByCorner()` inside the flag getters still looks at the last layer, and the flags follow
-`selection.clear()` and the `removeLayers` plus `refresh()` path in `mouseEventHandler.ts`, which can
-leave them on a layer index they no longer describe. A flag is set only when a header is rendered, so
+`selection.clear()`, which can leave them on a layer index they no longer describe. The Ctrl/Cmd+click
+removal in `mouseEventHandler.ts` goes through `Selection#removeLayers()`, which moves the flags onto the
+layers that stay (it used to drop the ranges alone). A flag is set only when a header is rendered, so
 Ctrl+A on a grid with column headers but no row headers sets one flag and is skipped, while the same grid
 with no headers snaps.
 

@@ -4,37 +4,34 @@ import type { HotInstance } from '../core/types';
 type SelectionAxis = 'row' | 'col';
 
 /**
- * Tells whether a selection layer was made from the header of `axis`. The layer's flag alone is not
- * enough: the header flags are keyed by layer index and are not remapped when a Ctrl/Cmd+click
- * removes a layer, so a flag can name a cell range. A range made from a column header starts in the
- * header row (a negative row index), and one made from a row header in the header column.
+ * Tells whether the "Hide column" or "Hide row" item acts on a selection layer. A layer made from the
+ * header of `axis` counts. A select-all layer (made from the corner, so it carries both header flags)
+ * counts only while it is the active layer: select-all followed by a Ctrl/Cmd+click on one header
+ * hides that header's column, not the whole grid, as it did before multi-range hiding.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {SelectionAxis} axis The axis whose header is asked about.
  * @param {number} layerLevel The selection layer.
- * @param {{ from: { row: number | null, col: number | null } }} range The layer's range.
  * @returns {boolean}
  */
-function isLayerSelectedByHeader(
-  hot: HotInstance,
-  axis: SelectionAxis,
-  layerLevel: number,
-  range: { from: { row: number | null, col: number | null }, to: { row: number | null, col: number | null } },
-): boolean {
-  const isFlagged = axis === 'col'
-    ? hot.selection.isSelectedByColumnHeader(layerLevel)
-    : hot.selection.isSelectedByRowHeader(layerLevel);
-  const crossAxis = axis === 'col' ? 'row' : 'col';
-  const crossStart = Math.min(range.from[crossAxis] ?? 0, range.to[crossAxis] ?? 0);
+function isLayerSelectedByHeader(hot: HotInstance, axis: SelectionAxis, layerLevel: number): boolean {
+  const { selection } = hot;
+  const byColumnHeader = selection.selectedByColumnHeader.has(layerLevel);
+  const byRowHeader = selection.selectedByRowHeader.has(layerLevel);
 
-  return isFlagged && crossStart < 0;
+  if (byColumnHeader && byRowHeader) {
+    return layerLevel === selection.getActiveSelectionLayerIndex();
+  }
+
+  return axis === 'col' ? byColumnHeader : byRowHeader;
 }
 
 /**
  * Collect the visual indexes the "Hide column" or "Hide row" context menu item acts on: every column
  * (or row) of every selection range made from that axis' header, so a Ctrl/Cmd+click selection of
  * several headers hides all of them. A cell range added beside them is left out, because the item
- * hides what the user selected as columns (or rows). A select-all from the corner covers every range.
+ * hides what the user selected as columns (or rows). A select-all counts only while it is the active
+ * layer (`isLayerSelectedByHeader()`).
  *
  * Shared by the HiddenColumns and HiddenRows menu items, which must not import each other.
  *
@@ -47,15 +44,13 @@ function isLayerSelectedByHeader(
  */
 export function collectHeaderSelectedIndexes(hot: HotInstance, axis: SelectionAxis, limit = Infinity): number[] {
   const ranges = hot.getSelectedRange() ?? [];
-  const isSelectedByCorner = hot.selection.isSelectedByCorner();
   const indexes = new Set<number>();
 
   arrayEach(ranges, (range, layerLevel) => {
     const from = range.from[axis];
     const to = range.to[axis];
 
-    if (from === null || to === null ||
-        (!isSelectedByCorner && !isLayerSelectedByHeader(hot, axis, layerLevel, range))) {
+    if (from === null || to === null || !isLayerSelectedByHeader(hot, axis, layerLevel)) {
       return;
     }
 

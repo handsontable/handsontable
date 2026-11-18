@@ -105,6 +105,13 @@ export class NonContiguousSelectionPage {
   }
 
   /**
+   * Clicks the corner header, which selects the whole grid.
+   */
+  async clickCorner(): Promise<void> {
+    await this.page.locator('.ht_clone_top_inline_start_corner thead th').first().click();
+  }
+
+  /**
    * Clicks column headers in turn, holding Ctrl/Cmd from the second one, which adds each column as a
    * range of its own.
    *

@@ -117,23 +117,39 @@ describe('collectHeaderSelectedIndexes', () => {
   };
 
   /**
-   * A stand-in for the instance with the selection layers given, in layer order.
+   * A stand-in for the instance with the selection layers given, in layer order. A select-all layer
+   * carries both header flags.
    *
    * @param {Layer[]} layers The selection layers.
-   * @param {boolean} [byCorner=false] Whether the selection was made from the corner.
+   * @param {number} [activeLayer] The active layer; the last one when omitted.
    * @returns {HotInstance}
    */
-  const createHot = (layers: Layer[], byCorner = false): HotInstance => ({
-    getSelectedRange: () => (layers.length === 0 ? undefined : layers.map(({ from, to }) => ({
-      from: { row: from[0], col: from[1] },
-      to: { row: to[0], col: to[1] },
-    }))),
-    selection: {
-      isSelectedByCorner: () => byCorner,
-      isSelectedByColumnHeader: (layer: number) => !byCorner && !!layers[layer]?.byColumnHeader,
-      isSelectedByRowHeader: (layer: number) => !byCorner && !!layers[layer]?.byRowHeader,
-    },
-  }) as unknown as HotInstance;
+  const createHot = (layers: Layer[], activeLayer = layers.length - 1): HotInstance => {
+    const selectedByColumnHeader = new Set<number>();
+    const selectedByRowHeader = new Set<number>();
+
+    layers.forEach(({ byColumnHeader, byRowHeader }, layer) => {
+      if (byColumnHeader) {
+        selectedByColumnHeader.add(layer);
+      }
+
+      if (byRowHeader) {
+        selectedByRowHeader.add(layer);
+      }
+    });
+
+    return {
+      getSelectedRange: () => (layers.length === 0 ? undefined : layers.map(({ from, to }) => ({
+        from: { row: from[0], col: from[1] },
+        to: { row: to[0], col: to[1] },
+      }))),
+      selection: {
+        selectedByColumnHeader,
+        selectedByRowHeader,
+        getActiveSelectionLayerIndex: () => activeLayer,
+      },
+    } as unknown as HotInstance;
+  };
 
   it('should return an empty array when nothing is selected', () => {
     expect(collectHeaderSelectedIndexes(createHot([]), 'col')).toEqual([]);
@@ -175,14 +191,15 @@ describe('collectHeaderSelectedIndexes', () => {
     expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([]);
   });
 
-  it('should leave out a cell range whose header flag is stale', () => {
-    // The flags are keyed by layer index and survive a removed layer, so a flag can name a cell range.
-    const hot = createHot([
-      { from: [-1, 2], to: [7, 2], byColumnHeader: true },
-      { from: [0, 0], to: [0, 0], byColumnHeader: true },
-    ]);
-
-    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([2]);
+  it('should collect a header range on a grid that renders no header (the range starts at index 0)', () => {
+    // `selectColumns()` anchors the range at row 0 when `colHeaders` is off, and `selectRows()` at
+    // column 0 when `rowHeaders` is off. The flag still says the range is a whole column or row.
+    expect(collectHeaderSelectedIndexes(createHot([
+      { from: [0, 2], to: [7, 2], byColumnHeader: true },
+    ]), 'col')).toEqual([2]);
+    expect(collectHeaderSelectedIndexes(createHot([
+      { from: [3, 0], to: [3, 5], byRowHeader: true },
+    ]), 'row')).toEqual([3]);
   });
 
   it('should skip a range whose coordinates on the axis are not set', () => {
@@ -194,6 +211,25 @@ describe('collectHeaderSelectedIndexes', () => {
     expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([3]);
   });
 
+  it('should collect every index of a select-all, without the header index', () => {
+    const hot = createHot([{ from: [-1, -1], to: [7, 5], byColumnHeader: true, byRowHeader: true }]);
+
+    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(collectHeaderSelectedIndexes(hot, 'row')).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+  });
+
+  it('should leave out a select-all layer that is not the active layer', () => {
+    const layers: Layer[] = [
+      { from: [-1, -1], to: [7, 5], byColumnHeader: true, byRowHeader: true },
+      { from: [-1, 3], to: [7, 3], byColumnHeader: true },
+    ];
+
+    // Select-all, then Ctrl/Cmd+click header D: only D.
+    expect(collectHeaderSelectedIndexes(createHot(layers), 'col')).toEqual([3]);
+    // The focus moved back onto the select-all layer: every column.
+    expect(collectHeaderSelectedIndexes(createHot(layers, 0), 'col')).toEqual([0, 1, 2, 3, 4, 5]);
+  });
+
   it('should stop once it found as many indexes as the limit', () => {
     const hot = createHot([
       { from: [-1, 0], to: [7, 4], byColumnHeader: true },
@@ -202,19 +238,11 @@ describe('collectHeaderSelectedIndexes', () => {
 
     expect(collectHeaderSelectedIndexes(hot, 'col', 1)).toEqual([0]);
     expect(collectHeaderSelectedIndexes(hot, 'col', 2)).toEqual([0, 1]);
-    expect(collectHeaderSelectedIndexes(hot, 'col', 1)).toHaveLength(1);
   });
 
-  it('should stop at the limit on a long corner selection', () => {
-    const hot = createHot([{ from: [-1, -1], to: [999999, 5] }], true);
+  it('should stop at the limit on a long select-all', () => {
+    const hot = createHot([{ from: [-1, -1], to: [999999, 5], byColumnHeader: true, byRowHeader: true }]);
 
     expect(collectHeaderSelectedIndexes(hot, 'row', 2)).toEqual([0, 1]);
-  });
-
-  it('should collect every range of a corner selection, without the header index', () => {
-    const hot = createHot([{ from: [-1, -1], to: [7, 5] }], true);
-
-    expect(collectHeaderSelectedIndexes(hot, 'col')).toEqual([0, 1, 2, 3, 4, 5]);
-    expect(collectHeaderSelectedIndexes(hot, 'row')).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
   });
 });

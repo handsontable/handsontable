@@ -68,6 +68,52 @@ test.describe('features that read a selection of several ranges', { tag: CROSS_B
       expect((await grid.hiddenColumns()).sort()).toEqual([1, 3]);
     });
 
+    test('hides the header range left after a Ctrl/Cmd+click removed a cell range', async() => {
+      // The second click on C3 removes the first C3 layer, so the column range moves to layer 0.
+      await grid.cell(2, 2).click();
+      await grid.columnHeader(3).click({ modifiers: ['ControlOrMeta'] });
+      await grid.cell(2, 2).click({ modifiers: ['ControlOrMeta'] });
+
+      expect(await grid.selected()).toEqual([[-1, 3, 7, 3], [2, 2, 2, 2]]);
+
+      await grid.openContextMenuOn(grid.columnHeader(3));
+      await grid.clickContextMenuItem('Hide column');
+
+      expect(await grid.hiddenColumns()).toEqual([3]);
+    });
+
+    test('hides only the clicked column after a select-all and a Ctrl/Cmd+click on its header', async() => {
+      await grid.clickCorner();
+      await grid.columnHeader(3).click({ modifiers: ['ControlOrMeta'] });
+
+      expect(await grid.selected()).toHaveLength(2);
+
+      await grid.openContextMenuOn(grid.columnHeader(3));
+      await grid.clickContextMenuItem('Hide column');
+
+      expect(await grid.hiddenColumns()).toEqual([3]);
+    });
+
+    test('hides a column on a grid that renders no column headers', async({ page }) => {
+      await grid.initGrid({ colHeaders: false });
+      await grid.cell(1, 2).click();
+      await page.keyboard.press('Control+Space');
+      await grid.openContextMenuOn(grid.cell(1, 2));
+      await grid.clickContextMenuItem('Hide column');
+
+      expect(await grid.hiddenColumns()).toEqual([2]);
+    });
+
+    test('hides a row on a grid that renders no row headers', async({ page }) => {
+      await grid.initGrid({ rowHeaders: false });
+      await grid.cell(3, 1).click();
+      await page.keyboard.press('Shift+Space');
+      await grid.openContextMenuOn(grid.cell(3, 1));
+      await grid.clickContextMenuItem('Hide row');
+
+      expect(await grid.hiddenRows()).toEqual([3]);
+    });
+
     test('hides every row of a Ctrl/Cmd+click header selection', async() => {
       await grid.selectRowHeaders([1, 4]);
 

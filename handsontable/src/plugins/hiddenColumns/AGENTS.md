@@ -292,11 +292,16 @@ selected by its column header, or every layer of a corner select-all, sorted and
 Ctrl/Cmd+clicked beside them is left out on purpose, because the item hides what the user selected as
 columns. Three rules ride along:
 
-- **A layer counts only when its flag AND its geometry agree.** The flags
-  (`isSelectedByColumnHeader(layerLevel)`) are keyed by layer index and are not remapped when a
-  Ctrl/Cmd+click removes a layer (`mouseEventHandler.ts`, `removeLayers()`), so a flag can name a cell
-  range; hiding through it took a column the user never selected as one. The helper also requires the
-  range to start in the header row (a negative row index; the header column for rows).
+- **The layer flags decide, never the range's geometry.** The helper reads `selection.selectedByColumnHeader`
+  (`selectedByRowHeader` for rows) per layer. Do not add a "starts in the header row" check: with
+  `colHeaders` off, `selectColumns()` and Ctrl+Space anchor the range at row 0 while the flag is set, and
+  such a check dropped the item on every grid without headers (caught in review). The flags are trustworthy
+  because `Selection#removeLayers()` moves them onto the layers that stay when a Ctrl/Cmd+click removes a
+  layer (`mouseEventHandler.ts`); `SelectionRange#removeLayers()` alone left them on the old indexes, so a
+  header range lost its flag and a cell range took one over.
+- **A select-all layer counts only while it is the active layer.** A corner click carries both flags. Select-all
+  followed by a Ctrl/Cmd+click on header D hides D alone, as before multi-range hiding; counting the select-all
+  layer there hid every column.
 - **`hidden()` asks the same helper, for any layer.** Asking `isSelectedByColumnHeader()` with no argument
   reads the most recently added layer, so header B, header D, then a cell range dropped the item while
   the same three in another order kept it.
