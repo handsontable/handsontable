@@ -13,6 +13,7 @@ import {
   A11Y_EVIDENCE_ARTIFACT,
   A11Y_FILE_CAP_BYTES,
   A11Y_FLAP_NIGHTS,
+  A11Y_HISTORY_DAYS,
   A11Y_LIMITS,
   A11Y_NIGHTLY_WORKFLOW,
   A11Y_RETENTION_DAYS,
@@ -1243,6 +1244,19 @@ test('mergeA11yLedger records a first night as new rows, each with its cluster a
     },
   });
   assert.deepEqual(doc.latest, { a11y: { runId: '41584742628', seenAt: NIGHTLY.updated_at }, reader: null });
+  // The night's history entry: per cluster [open, new, resolved, back], counted from the rows, with the commit cut
+  // to what a link needs. It is what stays when the rows and the night are gone.
+  assert.equal(doc.historyDays, A11Y_HISTORY_DAYS);
+  assert.deepEqual(doc.history, [{
+    runId: '41584742628', source: 'a11y', seenAt: NIGHTLY.updated_at, headSha: NIGHTLY.head_sha.slice(0, 10),
+    clusters: {
+      'contrast-and-focus-visibility': [2, 2, 0, 0],
+      'focus-not-returned-after-escape': [2, 2, 0, 0],
+      'menu-semantics': [3, 3, 0, 0],
+      'needs-triage': [2, 2, 0, 0],
+      'overlay-clones-split-tree': [2, 2, 0, 0],
+    },
+  }]);
   assert.deepEqual(recorded, { source: 'a11y', runId: '41584742628', runAttempt: 1, amended: false, findings: 11, new: 11, resolved: 0,
     flapping: 0, triage: 2, triageShapes: 2,
     clusters: [['menu-semantics', 3], ['contrast-and-focus-visibility', 2], ['focus-not-returned-after-escape', 2], ['overlay-clones-split-tree', 2], ['needs-triage', 2]] });
@@ -1553,6 +1567,9 @@ test('rows and nights fall out after the retention window, and the cap evicts th
   assert.equal(rowsByKind(late.doc, 'headers-after-data').length, 2, 'seen again on night 3, so the rows stay');
   assert.ok(late.doc.rows.every(row => row.lastSeen === at(100)), 'every row was seen on the last night');
   assert.deepEqual(late.doc.nights.map(item => item.runId), ['41000000100', '41000000010'], 'the first night is 100 days old: gone');
+  assert.deepEqual(late.doc.history.map(item => item.runId), ['41000000100', '41000000010', '41000000000'],
+    'its history entry stays: the history has its own, longer retention');
+  assert.deepEqual(late.doc.history.at(-1).clusters['overlay-clones-split-tree'], [2, 2, 0, 0], 'with what the night counted');
   assert.ok(late.doc.rows.every(row => row.firstSeen === at(0) || row.firstSeen === at(100)), 'a row keeps its first sighting');
 
   // Retention on rows: a row resolved on night 2 and never seen again is gone once its last sighting is 90 days old.
@@ -1617,18 +1634,27 @@ test('rows and nights fall out after the retention window, and the cap evicts th
 
   assert.deepEqual(tiny.doc.nights.map(entry => entry.runId), ['41000000011', '41000000005']);
   assert.deepEqual(tiny.doc.rows, openRows);
-  assert.match(tiny.notes.at(-1), /^a11y\.json: \d+ bytes even without resolved rows and older nights, over the 1000-byte cap$/);
+  // The history goes last, oldest first, and keeps the latest entry of each source like the nights do.
+  assert.deepEqual(evicted.doc.history.map(entry => entry.runId), ['41000000011', '41000000010', '41000000005', '41000000000'],
+    'a cap the rows and one night satisfy leaves the history whole: the night that went keeps its entry');
+  assert.deepEqual(tiny.doc.history.map(entry => entry.runId), ['41000000011', '41000000005']);
+  assert.match(tiny.notes.at(-2), /^a11y\.json: dropped the 2 oldest history entries to stay under 1000 bytes$/);
+  assert.match(tiny.notes.at(-1), /^a11y\.json: \d+ bytes even without resolved rows, older nights and older history, over the 1000-byte cap$/);
 });
 
-test('serializeA11yLedger writes one night and one row per line, and reads back as the same document', () => {
+test('serializeA11yLedger writes one night, one history entry and one row per line, and reads back as the same document', () => {
   const { doc } = mergeA11yLedger(null, nightOf(nightlyFiles()), runContextFromRun(NIGHTLY), CATALOG, { now: NOW });
   const text = serializeA11yLedger(doc);
+  const lines = text.split('\n');
 
   assert.deepEqual(JSON.parse(text), doc);
-  assert.equal(text.split('\n').filter(line => line.startsWith('{"key":')).length, doc.rows.length);
-  assert.equal(text.split('\n').filter(line => line.startsWith('{"runId":')).length, doc.nights.length);
+  assert.equal(lines.filter(line => line.startsWith('{"key":')).length, doc.rows.length);
+  assert.equal(lines.filter(line => /^\{"runId":"\d+","runAttempt":/.test(line)).length, doc.nights.length);
+  assert.equal(lines.filter(line => /^\{"runId":"\d+","source":/.test(line)).length, doc.history.length);
+  assert.deepEqual(lines.filter(line => /^"(nights|history|rows)":\[$/.test(line)), ['"nights":[', '"history":[', '"rows":['],
+    'the three lists, each on lines of its own, in the order a reader meets them');
   assert.ok(text.endsWith('}\n'));
-  assert.throws(() => assertA11yVersion({ version: A11Y_VERSION + 1 }), /a11y\.json has version 2/);
+  assert.throws(() => assertA11yVersion({ version: A11Y_VERSION + 1 }), new RegExp(`a11y\\.json has version ${A11Y_VERSION + 1}`));
   assert.doesNotThrow(() => assertA11yVersion(null));
   assert.doesNotThrow(() => assertA11yVersion(emptyA11yLedger()));
 });
@@ -1814,7 +1840,13 @@ test('renderPage inlines the accessibility view escaped, the template reads it, 
   // Every link the section sets comes from the run-number helper, never from the data.
   const section = code[0].slice(code[0].indexOf('a11y-body'));
 
-  assert.ok(!/\.href = (?!href;)/.test(section), 'every link the accessibility section sets comes from runPage');
+  assert.ok(!/\.href = (?!href;)/.test(section), 'every link the accessibility section sets comes from a helper\'s address');
+  // The fix progress block links through one function, and only to a run's page: no task is linked or named.
+  const linked = [...section.matchAll(/linkTo\(([\w.]+)\(/g)].map(([, helper]) => helper);
+
+  assert.deepEqual([...new Set(linked)], ['runPage'], 'a link is a run page, never a string from the data');
+  assert.equal((section.match(/linkTo\(/g) ?? []).length, linked.length + 1, 'every call but the declaration names its helper in place');
+  assert.ok(!/clickup|row\.tracker|trackerUrl/i.test(code[0]), 'the page has no way to print a task id or a tracker\'s address');
   assert.ok(!/innerHTML|insertAdjacentHTML|outerHTML/.test(code[0]), 'the page never builds markup from strings');
 });
 
@@ -1829,6 +1861,13 @@ test('the rendered accessibility section is accessible markup: tables with heade
   for (const table of section.match(/<table[\s\S]*?<\/table>/g) ?? []) {
     assert.match(table, /<thead><tr>(<th[^>]*>[^<]+<\/th>)+<\/tr><\/thead>/, `a table has a header row: ${table.slice(0, 80)}`);
   }
+  // The fix progress table: a caption that says what a row is, a scope on every header of the head row, and row and
+  // group headers the script builds as header cells.
+  const fix = section.match(/<table id="a11y-fix">[\s\S]*?<\/table>/)?.[0] ?? '';
+
+  assert.match(fix, /<caption>\s*One row per fix task/);
+  assert.ok((fix.match(/<th /g) ?? []).length === 8 && (fix.match(/<th scope="col"/g) ?? []).length === 8, 'every column header names its scope');
+  assert.ok(section.indexOf('<h3 id="a11y-fix-title">Fix progress</h3>') < section.indexOf('<h3>Clusters</h3>'), 'the fix progress comes before the clusters');
   assert.ok((section.match(/<h3/g) ?? []).length >= 4, 'the section has its subsections');
   assert.ok(!section.includes('<h4') || section.includes('<h3'), 'no heading level is skipped');
   // The status of a row is a word in a badge, never a color alone.
@@ -1838,6 +1877,11 @@ test('the rendered accessibility section is accessible markup: tables with heade
 
   assert.ok(code.includes("chart.setAttribute('role', 'img')") && code.includes("chart.setAttribute('aria-label', cluster.title + ', ' + name"),
     'a trend chart is an image named after its cluster and its nightly');
+  assert.ok(code.includes("name.scope = 'row'") && code.includes("th.scope = 'rowgroup'"), 'a task\'s name is its row\'s header, and each part of the table has a group header');
+  // A cleared task says so in words, and an empty cell says why it is empty.
+  assert.ok(code.includes("badge('cleared', 'cleared')") && code.includes("'not cleared'") && code.includes("'no clearing night on record'"));
+  // A task's clusters fold into a native disclosure, which the keyboard opens without a line of script.
+  assert.ok(code.includes("document.createElement('details')") && code.includes("text('summary', plural(row.clusters.length, 'cluster', 'clusters'))"));
 });
 
 test('the page names every workflow the ledger records, in the section\'s intro and in the footer\'s rule', () => {
@@ -2025,6 +2069,53 @@ test('a scheduled run that never reached its lanes records no night, and the re-
     const ledger = JSON.parse(readFileSync(path.join(sandbox.ledgerDir, 'a11y.json'), 'utf8'));
 
     assert.deepEqual(ledger.nights.map(entry => [entry.source, entry.event, entry.runAttempt]), [['reader', 'schedule', 2]]);
+  } finally {
+    sandbox.remove();
+  }
+});
+
+test('the collector reads a version 1 a11y.json through the migration: it leaves the file alone until a night is recorded, and draws the fix progress, without a task id, either way', () => {
+  const sandbox = collectorSandbox();
+  const stored = readFileSync(path.join(repoRoot(), '.github/scripts/__tests__/fixtures/a11y-ledger-v1.json'), 'utf8');
+  const dataOf = (page) => {
+    const open = '<script id="a11y-data" type="application/json">';
+    const start = page.indexOf(open) + open.length;
+
+    return JSON.parse(page.slice(start, page.indexOf('</script>', start)));
+  };
+
+  try {
+    mkdirSync(sandbox.ledgerDir, { recursive: true });
+    writeFileSync(path.join(sandbox.ledgerDir, 'a11y.json'), stored);
+
+    // A pull request's run records no night: the published file keeps its bytes, version 1 included.
+    const idle = sandbox.collect(PULL_REQUEST, sandbox.artifacts('none', []), '2026-11-18T06:00:00Z');
+
+    assert.equal(idle.status, 0, idle.stderr);
+    assert.equal(idle.stderr, '', 'a version 1 file is no longer a file the collector cannot read');
+    assert.equal(readFileSync(path.join(sandbox.ledgerDir, 'a11y.json'), 'utf8'), stored);
+
+    const plain = dataOf(readFileSync(path.join(sandbox.ledgerDir, 'index.html'), 'utf8'));
+
+    assert.equal(plain.fix.headline.audits, 13, 'the page reads the audits out of the history the migration rebuilt');
+    assert.ok(plain.fix.rows.some(row => row.kind === 'tracker'), 'with its fix tasks');
+    // The stored rows carry their trackers; the page built from them names none.
+    assert.ok(/"tracker":\["?[A-Z]+-\d+/.test(stored) || /"tracker":"[A-Z]+-\d+"/.test(stored), 'the fixture\'s rows do name tasks');
+    assert.ok(!/[A-Z]{2,}-\d{3,}/.test(JSON.stringify(plain)), 'and no task id reaches the page');
+
+    // The next night of the A11y nightly writes the file, in this version, with the rebuilt history and its own entry.
+    const night = sandbox.collect({ ...NIGHTLY, id: 45000000001, updated_at: '2026-11-24T05:44:30Z' }, sandbox.artifacts('nightly', nightlyFiles()),
+      '2026-11-24T06:00:00Z');
+
+    assert.equal(night.status, 0, night.stderr);
+    assert.match(night.stdout, /Accessibility: a11y night 45000000001 recorded 11 findings/);
+
+    const written = JSON.parse(readFileSync(path.join(sandbox.ledgerDir, 'a11y.json'), 'utf8'));
+
+    assert.equal(written.version, A11Y_VERSION);
+    assert.equal(written.historyDays, A11Y_HISTORY_DAYS);
+    assert.equal(written.history.length, 25);
+    assert.deepEqual([written.history[0].runId, written.history[0].source], ['45000000001', 'a11y']);
   } finally {
     sandbox.remove();
   }
