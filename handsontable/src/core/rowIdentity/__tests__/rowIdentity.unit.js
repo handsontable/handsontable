@@ -1102,7 +1102,7 @@ describe('Row identity', () => {
       hot.updateData(createRecords(2));
       await flushReports();
 
-      expect(hot.microtasks.length).toBe(0);
+      expect(hot.microtasks.size).toBe(0);
     });
 
     it('should report nothing after the grid is destroyed', async() => {
