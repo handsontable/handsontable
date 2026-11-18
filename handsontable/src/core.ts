@@ -380,7 +380,7 @@ interface CoreInternals {
   executionSuspendedCounter: number;
   isExecutionSuspended(): boolean;
   timeouts: ReturnType<typeof setTimeout>[];
-  microtasks: Array<{ cancelled: boolean }>;
+  microtasks: Set<{ cancelled: boolean }>;
   _validateCells(callback?: (valid: boolean) => void, rows?: number[], columns?: number[]): void;
   selectAll(
     includeRowHeaders?: boolean,
@@ -12169,7 +12169,9 @@ export default function Core(
     });
   };
 
-  this.microtasks = [];
+  // A Set, not an array: microtasks run in the order they were queued, so dropping the oldest entry
+  // from an array would shift every entry after it, making a bulk validation over n cells O(n²).
+  this.microtasks = new Set();
 
   /**
    * Registers a microtask callback.
@@ -12180,19 +12182,15 @@ export default function Core(
   this._registerMicrotask = function(this: HotInstance & CoreInternals, callback: Function) {
     const entry = { cancelled: false };
 
-    this.microtasks.push(entry);
+    this.microtasks.add(entry);
     this.rootWindow.queueMicrotask(() => {
       // A cancelled entry was dropped by `_clearMicrotasks()`, which `destroy()` calls before it clears the instance.
       if (entry.cancelled) {
         return;
       }
 
-      const index = this.microtasks.indexOf(entry);
-
       // Drop the entry once it ran, or every validated edit and every data load keeps one until `destroy()`.
-      if (index !== -1) {
-        this.microtasks.splice(index, 1);
-      }
+      this.microtasks.delete(entry);
 
       callback();
     });
@@ -12204,10 +12202,10 @@ export default function Core(
    * @private
    */
   this._clearMicrotasks = function(this: HotInstance & CoreInternals) {
-    arrayEach(this.microtasks, (entry: { cancelled: boolean }) => {
+    this.microtasks.forEach((entry) => {
       entry.cancelled = true;
     });
-    this.microtasks.length = 0;
+    this.microtasks.clear();
   };
 
   /**
