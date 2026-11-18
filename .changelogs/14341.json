@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the selection moving to other rows when nested rows are collapsed, expanded, inserted, removed, or detached.",
+  "type": "fixed",
+  "issueOrPR": 14341,
+  "breaking": false,
+  "framework": "none"
+}
