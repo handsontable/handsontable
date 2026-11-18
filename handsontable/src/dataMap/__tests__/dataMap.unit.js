@@ -639,3 +639,255 @@ describe('DataMap column modification errors', () => {
     });
   });
 });
+
+describe('DataMap bulk reads through `getRange()`', () => {
+  let container;
+  let hot;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+  });
+
+  afterEach(() => {
+    if (hot) {
+      hot.destroy();
+      hot = null;
+    }
+
+    container.remove();
+  });
+
+  /**
+   * Creates a grid and drops the cell meta its first render stored. In jsdom every cell is rendered,
+   * so without this each cell would carry stored meta - the state only the rendered rows of a large
+   * grid are in.
+   *
+   * @param {object} settings Grid settings.
+   * @returns {Handsontable}
+   */
+  function createUnrenderedGrid(settings) {
+    const instance = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, ...settings });
+
+    instance._getMetaManager().clearCellsCache();
+
+    return instance;
+  }
+
+  it('should not create a cell meta object for a cell with no stored meta and no `valueGetter`', () => {
+    hot = createUnrenderedGrid({ data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']] });
+
+    const createTransientMeta = jest.spyOn(hot._getMetaManager().cellMeta, 'createTransientMeta');
+
+    expect(hot.getData()).toEqual([['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']]);
+    expect(createTransientMeta).not.toHaveBeenCalled();
+  });
+
+  it('should resolve each column\'s property once per read, not once per cell', () => {
+    hot = createUnrenderedGrid({
+      data: [{ a: 1, b: 2 }, { a: 3, b: 4 }, { a: 5, b: 6 }],
+      columns: [{ data: 'a' }, { data: 'b' }],
+    });
+
+    const colToProp = jest.spyOn(hot, 'colToProp');
+
+    expect(hot.getData()).toEqual([[1, 2], [3, 4], [5, 6]]);
+    expect(colToProp).toHaveBeenCalledTimes(2);
+  });
+
+  it('should apply a `valueGetter` declared at the column level', () => {
+    hot = createUnrenderedGrid({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      columns: [{}, { valueGetter: (value, row, column) => `${value}@${row},${column}` }],
+    });
+
+    expect(hot.getData()).toEqual([['A1', 'B1@0,1'], ['A2', 'B2@1,1']]);
+  });
+
+  it('should apply a `valueGetter` declared at the grid level', () => {
+    hot = createUnrenderedGrid({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      valueGetter: value => `<${value}>`,
+    });
+
+    expect(hot.getData()).toEqual([['<A1>', '<B1>'], ['<A2>', '<B2>']]);
+  });
+
+  it('should apply a `valueGetter` stored on a single cell, and only to that cell', () => {
+    hot = createUnrenderedGrid({ data: [['A1', 'B1'], ['A2', 'B2']] });
+    hot.setCellMeta(1, 0, 'valueGetter', (value, row, column) => `${value}@${row},${column}`);
+
+    expect(hot.getData()).toEqual([['A1', 'B1'], ['A2@1,0', 'B2']]);
+  });
+
+  it('should apply a `valueGetter` declared through the `cell` option', () => {
+    // Built without dropping the stored meta: the `cell` option is stored meta, and clearing it would
+    // remove the entry under test.
+    hot = new Handsontable(container, {
+      licenseKey: TEST_LICENSE_KEY,
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      cell: [{ row: 0, col: 1, valueGetter: value => value.toLowerCase() }],
+    });
+
+    expect(hot.getData()).toEqual([['A1', 'b1'], ['A2', 'B2']]);
+  });
+
+  it('should run `modifyData` once per cell with the visual coordinates', () => {
+    const calls = [];
+
+    hot = createUnrenderedGrid({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      modifyData(row, column, valueHolder, ioMode) {
+        calls.push([row, column, valueHolder.value, ioMode]);
+
+        if (row === 1 && column === 1) {
+          valueHolder.value = 'changed';
+        }
+      },
+    });
+
+    calls.length = 0;
+
+    expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'changed']]);
+    expect(calls).toEqual([
+      [0, 0, 'A1', 'get'], [0, 1, 'B1', 'get'],
+      [1, 0, 'A2', 'get'], [1, 1, 'B2', 'get'],
+    ]);
+  });
+
+  it('should run `modifyRowData` once per cell and read through the row it returns', () => {
+    const modifyRowData = jest.fn(physicalRow => (physicalRow === 0 ? ['X1', 'Y1'] : undefined));
+
+    hot = createUnrenderedGrid({ data: [['A1', 'B1'], ['A2', 'B2']], modifyRowData });
+    modifyRowData.mockClear();
+
+    expect(hot.getData()).toEqual([['X1', 'Y1'], ['A2', 'B2']]);
+    expect(modifyRowData).toHaveBeenCalledTimes(4);
+  });
+
+  it('should hand `modifyData` the column the property resolves to when two columns share a property', () => {
+    const columns = [];
+
+    hot = createUnrenderedGrid({
+      data: [{ a: 1 }, { a: 2 }],
+      columns: [{ data: 'a' }, { data: 'a' }],
+      modifyData(row, column) {
+        columns.push(column);
+      },
+    });
+
+    const resolvedColumn = hot.propToCol('a');
+
+    columns.length = 0;
+
+    expect(hot.getData()).toEqual([[1, 1], [2, 2]]);
+    expect(columns).toEqual([resolvedColumn, resolvedColumn, resolvedColumn, resolvedColumn]);
+  });
+
+  it('should read through a `columns[].data` accessor function and a dot-notation property', () => {
+    hot = createUnrenderedGrid({
+      data: [{ name: { first: 'Ann' }, age: 30 }, { name: { first: 'Bob' }, age: 40 }],
+      columns: [{ data: 'name.first' }, { data: row => row.age * 2 }],
+    });
+
+    expect(hot.getData()).toEqual([['Ann', 60], ['Bob', 80]]);
+  });
+
+  it('should follow trimmed rows and moved columns', () => {
+    hot = createUnrenderedGrid({
+      data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2'], ['A3', 'B3', 'C3']],
+      columns: [{}, {}, { valueGetter: value => value.toLowerCase() }],
+    });
+
+    const trimmingMap = hot.rowIndexMapper.createAndRegisterIndexMap('bulkReadTest', 'trimming', false);
+
+    hot.batchExecution(() => {
+      trimmingMap.setValueAtIndex(1, true);
+      hot.columnIndexMapper.setIndexesSequence([2, 0, 1]);
+    }, true);
+    // The batch rendered again, so drop that meta too: the column-level `valueGetter` must be found
+    // through the column layer, not through meta the render stored.
+    hot._getMetaManager().clearCellsCache();
+
+    expect(hot.getData()).toEqual([['c1', 'A1', 'B1'], ['c3', 'A3', 'B3']]);
+  });
+
+  it('should ask whether `modifyData` has a listener once per read, not once per cell', () => {
+    hot = createUnrenderedGrid({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']] });
+
+    const hasHook = jest.spyOn(hot, 'hasHook');
+
+    hot.getData();
+
+    expect(hasHook.mock.calls.filter(([hookName]) => hookName === 'modifyData')).toHaveLength(1);
+  });
+
+  it('should apply a `modifyData` listener added during a read from the next read on', () => {
+    const listener = jest.fn();
+    let added = false;
+
+    hot = createUnrenderedGrid({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      columns: [{
+        valueGetter(value) {
+          if (!added) {
+            added = true;
+            // `this` is the grid: the first render runs this before the constructor returns.
+            this.addHook('modifyData', listener);
+          }
+
+          return value;
+        },
+      }, {}],
+    });
+
+    added = false;
+    hot.removeHook('modifyData', listener);
+    listener.mockClear();
+
+    expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'B2']]);
+    expect(listener).not.toHaveBeenCalled();
+
+    hot.getData();
+
+    expect(listener).toHaveBeenCalledTimes(4);
+  });
+
+  it('should read a header row through its own translation', () => {
+    const modifyRowDataRows = [];
+
+    hot = createUnrenderedGrid({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      modifyRowData(physicalRow) {
+        modifyRowDataRows.push(physicalRow);
+      },
+    });
+
+    modifyRowDataRows.length = 0;
+
+    expect(hot.getData(-1, 0, 0, 1)).toEqual([[null, null], ['A1', 'B1']]);
+    expect(modifyRowDataRows).toEqual([null, null, 0, 0]);
+  });
+
+  it('should read a dotted property as a flat key when `dataDotNotation` is off', () => {
+    hot = createUnrenderedGrid({
+      dataDotNotation: false,
+      data: [{ 'name.first': 'flat', name: { first: 'nested' } }],
+      columns: [{ data: 'name.first' }],
+    });
+
+    expect(hot.getData()).toEqual([['flat']]);
+  });
+
+  it('should leave a cell the `cells` function marks not copyable out of the copied text', () => {
+    hot = createUnrenderedGrid({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      cells(row, column) {
+        return row === 1 && column === 0 ? { copyable: false } : {};
+      },
+    });
+
+    expect(hot.getCopyableText(0, 0, 1, 1)).toBe('A1\tB1\n\tB2');
+    expect(hot.getData(0, 0, 1, 1)).toEqual([['A1', 'B1'], ['A2', 'B2']]);
+  });
+});

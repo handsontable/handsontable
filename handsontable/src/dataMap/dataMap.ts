@@ -48,6 +48,60 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 /**
+ * A column resolved for a cell read: what `get()` derives from the property on every call, and a bulk
+ * read derives once per column.
+ */
+interface ReadColumn {
+  /**
+   * The column property, a `columns[].data` accessor function, or `null`.
+   */
+  prop: string | number | DataAccessorFn | null;
+  /**
+   * The visual column the property resolves to (`propToCol()`), or the property itself when it names
+   * no column. It is not always the column the read was asked for: two columns bound to one property
+   * resolve to the same one.
+   */
+  visualColumn: string | number | DataAccessorFn | null;
+  /**
+   * The physical index of `visualColumn`, or `null` when it names no column.
+   */
+  physicalColumn: number | null;
+  /**
+   * Whether the column meta resolves a function `valueGetter` (set on the column, or inherited from the
+   * table and global layers).
+   *
+   * `getCellMetaUncached()` runs neither the `cells` function nor the `afterGetCellMeta` hook. It returns
+   * the stored meta, or a new object whose prototype is the column meta. So a `valueGetter` can only come
+   * from stored meta or the column layer, and when neither has one, the meta object a read would create
+   * per cell is thrown away unused. `getAtColumnForRows()` gates its fast loop on the same two checks: a
+   * new source for a `valueGetter` must update both.
+   */
+  hasColumnValueGetter: boolean;
+}
+
+/**
+ * The answers a cell read needs that stay the same for every cell of one read call.
+ */
+interface ReadMode {
+  /**
+   * When `true`, the column's `valueGetter` is not applied.
+   */
+  skipValueGetter: boolean;
+  /**
+   * The `dataDotNotation` setting.
+   */
+  dataDotNotation: boolean;
+  /**
+   * Whether the `modifyRowData` hook has a listener.
+   */
+  hasModifyRowData: boolean;
+  /**
+   * Whether the `modifyData` hook has a listener.
+   */
+  hasModifyData: boolean;
+}
+
+/**
  * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names.
  *
  * @todo Refactor arguments of methods getRange, getText to be numbers (not objects).
@@ -1089,18 +1143,62 @@ class DataMap {
    * @returns {*}
    */
   get(row: number, prop: string | number | DataAccessorFn | null, options?: { skipValueGetter?: boolean }) {
-    // Read without a default object: this runs for every cell a render or a data read touches.
-    const skipValueGetter = options?.skipValueGetter === true;
-    const physicalRow = this.hot!.toPhysicalRow(row);
+    // A single read resolves what `getRange()` resolves once per call. The option is read without a
+    // default object, because this runs for every cell a render touches.
+    return this.#readCell(row, this.hot!.toPhysicalRow(row), this.#resolveReadColumn(prop), {
+      skipValueGetter: options?.skipValueGetter === true,
+      dataDotNotation: !!this.hot!.getSettings().dataDotNotation,
+      hasModifyRowData: this.hot!.hasHook('modifyRowData'),
+      hasModifyData: this.hot!.hasHook('modifyData'),
+    });
+  }
 
-    let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
+  /**
+   * Resolves the column a property reads through, the way every cell read needs it.
+   *
+   * @param {number|string|Function|null} prop The column property.
+   * @returns {object}
+   */
+  #resolveReadColumn(prop: string | number | DataAccessorFn | null): ReadColumn {
+    const visualColumn = this.propToCol(prop);
+    const physicalColumn = typeof visualColumn === 'number' ? this.hot!.toPhysicalColumn(visualColumn) : null;
+
+    return {
+      prop,
+      visualColumn,
+      physicalColumn,
+      hasColumnValueGetter: isUnsignedNumber(physicalColumn) &&
+        isFunction(this.metaManager!.getColumnMeta(physicalColumn).valueGetter),
+    };
+  }
+
+  /**
+   * Reads one cell. `get()` resolves the column and the read mode for a single cell, and `getRange()`
+   * resolves them once per call and reuses them for every cell.
+   *
+   * A hook listener counted absent in `mode`, or a column `valueGetter` counted absent in `column`, is
+   * not run for the rest of the call, so one added by user code running inside a bulk read (a
+   * `valueGetter`, an accessor, a hook listener) takes effect from the next call. `getAtColumnForRows()`
+   * reads its answers the same way.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} physicalRow The physical index of `row`.
+   * @param {object} column The resolved column.
+   * @param {object} mode The read mode.
+   * @returns {*}
+   */
+  #readCell(row: number, physicalRow: number, column: ReadColumn, mode: ReadMode) {
+    const { prop, visualColumn, physicalColumn } = column;
+    let dataRow = this.dataSource![physicalRow] as Record<string | number, unknown>;
+
     // TODO: To remove, use 'modifyData' hook instead (see below)
-    const modifiedRowData = this.hot!.runHooks('modifyRowData', physicalRow);
+    if (mode.hasModifyRowData) {
+      const modifiedRowData = this.hot!.runHooks('modifyRowData', physicalRow);
 
-    dataRow = typeof modifiedRowData !== 'number' ? modifiedRowData as Record<string | number, unknown> : dataRow;
-    //
+      dataRow = typeof modifiedRowData !== 'number' ? modifiedRowData as Record<string | number, unknown> : dataRow;
+    }
 
-    const { dataDotNotation } = this.hot!.getSettings();
+    const { dataDotNotation } = mode;
     let value: unknown = null;
 
     // try to get value under property `prop` (includes dot)
@@ -1139,29 +1237,28 @@ class DataMap {
       }
     }
 
-    const visualColumnIndex = this.propToCol(prop);
-    const physicalColumn = typeof visualColumnIndex === 'number'
-      ? this.hot!.toPhysicalColumn(visualColumnIndex)
-      : null;
-
-    if (!skipValueGetter && typeof visualColumnIndex === 'number' &&
-        isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+    if (!mode.skipValueGetter && typeof visualColumn === 'number' &&
+        isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn) &&
+        (column.hasColumnValueGetter ||
+          this.metaManager!.getCellMetaIfExists(physicalRow, physicalColumn) !== undefined)) {
       // The uncached read returns the stored meta when the cell carries persisted overrides and a
       // transient object otherwise - a plain data read must not permanently materialize one meta
       // object per visited cell (a full-table scan such as sorting would retain O(rows) of them).
+      // When neither the column nor the cell can carry a `valueGetter`, the read is skipped (see
+      // `ReadColumn#hasColumnValueGetter`).
       value = getValueGetterValue(
         value,
         this.metaManager!.getCellMetaUncached(physicalRow, physicalColumn, {
           visualRow: row,
-          visualColumn: visualColumnIndex,
+          visualColumn,
         })
       );
     }
 
-    if (this.hot!.hasHook('modifyData')) {
+    if (mode.hasModifyData) {
       const valueHolder = createObjectPropListener(value);
 
-      this.hot!.runHooks('modifyData', row, visualColumnIndex, valueHolder, 'get');
+      this.hot!.runHooks('modifyData', row, visualColumn, valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
@@ -1513,27 +1610,45 @@ class DataMap {
       return [];
     }
 
-    const getFn = destination === DataMap.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
+    const isCopy = destination === DataMap.DESTINATION_CLIPBOARD_GENERATOR;
 
     const rlen = Math.min(Math.max((maxRows ?? Infinity) - 1, 0), Math.max(start.row, end.row));
     const clen = Math.min(Math.max((maxCols ?? Infinity) - 1, 0), Math.max(start.col, end.col));
+    const firstColumn = Math.min(start.col, end.col);
+    // Everything a cell read derives from its column, and from the call, is resolved once here.
+    const columns: ReadColumn[] = [];
+    const mode: ReadMode = {
+      skipValueGetter: false,
+      dataDotNotation: !!this.hot!.getSettings().dataDotNotation,
+      hasModifyRowData: this.hot!.hasHook('modifyRowData'),
+      hasModifyData: this.hot!.hasHook('modifyData'),
+    };
+
+    for (c = firstColumn; c <= clen; c++) {
+      // An index past the last column keeps its index, so it cannot resolve to an unbound column.
+      columns.push(this.#resolveReadColumn(colToPropOrIndex(this.hot!, c)));
+    }
 
     for (r = Math.min(start.row, end.row); r <= rlen; r++) {
-      row = [];
       // We just store indexes for rows without headers.
       const physicalRow = r >= 0 ? this.hot!.toPhysicalRow(r) : r;
 
-      for (c = Math.min(start.col, end.col); c <= clen; c++) {
+      if (physicalRow === null) {
+        continue;
+      }
 
-        if (physicalRow === null) {
-          break;
-        }
-        // An index past the last column keeps its index, so it cannot resolve to an unbound column.
-        row.push(getFn.call(this, r, colToPropOrIndex(this.hot!, c)));
+      // A header row is read through its own translation, as `get()` would read it.
+      const readPhysicalRow = r >= 0 ? physicalRow : this.hot!.toPhysicalRow(r);
+
+      row = [];
+
+      for (let i = 0; i < columns.length; i++) {
+        row.push(isCopy
+          ? this.getCopyable(r, columns[i].prop)
+          : this.#readCell(r, readPhysicalRow, columns[i], mode));
       }
-      if (physicalRow !== null) {
-        output.push(row);
-      }
+
+      output.push(row);
     }
 
     return output;
