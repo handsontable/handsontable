@@ -31,6 +31,7 @@
     window.htWrap = htPick('wrap', { true: true, false: false }, 'false');
     window.htAutoRowSize = htPick('autoRowSize', { true: true, false: false }, 'false');
     window.htHideColumn = htPick('hideColumn', { true: true, false: false }, 'false');
+    window.htWide = htPick('wide', { true: true, false: false }, 'false');
 
     if (window.htWrap) {
       document.write('<style>.handsontable thead th .colHeader { white-space: normal; }</style>');
@@ -56,7 +57,21 @@
     container.className = `ht-theme-${window.htTheme}`;
 
     window.htGroupLabel = 'A very long nested group label that is wider than its columns';
-    window.htFixtureData = () => Array.from({ length: 5 }, (_, row) => Array.from({ length: 6 }, (_, col) => `${row}${col}`));
+
+    // The default grid: one group over four columns, then two single columns. `?wide=true`: 32 columns
+    // in groups of eight, with bottom labels that repeat (`c0`, `c1`, `c2`). AutoRowSize samples the
+    // header row by value and skips repeats, so its ghost row holds three of the first group's eight
+    // columns: the label fits one line over the eight drawn columns and wraps over three.
+    const columnCount = window.htWide ? 32 : 6;
+    const nestedHeaders = window.htWide ? [
+      Array.from({ length: columnCount / 8 }, () => ({ label: window.htGroupLabel, colspan: 8 })),
+      Array.from({ length: columnCount }, (_, col) => `c${col % 3}`),
+    ] : [
+      [{ label: window.htGroupLabel, colspan: 4 }, 'X', 'Y'],
+      ['a', 'b', 'c', 'd', 'e', 'f'],
+    ];
+
+    window.htFixtureData = () => Array.from({ length: 5 }, (_, row) => Array.from({ length: columnCount }, (_, col) => `${row}${col}`));
 
     // Fail loud: a constructor that throws must not leave the page looking like a grid that simply
     // has not rendered yet. `awaitFixtureBuilt()` rethrows the captured message.
@@ -69,10 +84,7 @@
         colWidths: 80,
         autoRowSize: window.htAutoRowSize,
         hiddenColumns: window.htHideColumn ? { columns: [1] } : false,
-        nestedHeaders: [
-          [{ label: window.htGroupLabel, colspan: 4 }, 'X', 'Y'],
-          ['a', 'b', 'c', 'd', 'e', 'f'],
-        ],
+        nestedHeaders,
         licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {

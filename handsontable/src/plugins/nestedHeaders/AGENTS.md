@@ -382,7 +382,11 @@ measurements used to ignore that, and both have to stay fixed for a long group l
   That row is how `TableView`'s pre-draw probe and AutoRowSize measure the header height. Filled with
   `appendColHeader()` alone it had no `colspan`, so the group label was measured inside its first column, the header
   row came out several times taller than the drawn label, and the height stuck: the `columnHeaderHeight` funnel
-  writes the larger value onto the `<th>`, and the post-draw probe reads it back on every render. The ghost `<th>` is
+  writes the larger value onto the `<th>`, and the post-draw probe reads it back on every render. The row also
+  builds its own `<col>`s, in visual column order, and adds the columns a spanned header covers right after it:
+  AutoRowSize samples the header row by value and skips repeated labels, in bucket order, so a sampled row holds a
+  few scattered columns, and a `colspan` laid over the next cells measured the group over the wrong columns (three
+  of four with bottom labels `c0`, `c1`, `c2`). The ghost `<th>` is
   in no overlay, so two cases still measure off and the post-draw probe settles them: a first draw that starts
   inside a group draws its placeholder (under-measured), and a group that crosses `fixedColumnsStart` is measured at
   its full width while the corner clone draws it clamped (over-measured, about one line).

@@ -36,13 +36,14 @@ function expectGroupHeaderFitsItsLabel(geometry: GroupHeaderGeometry) {
 /**
  * With AutoRowSize, every header level takes at least the first level's height (a limit of AutoRowSize,
  * which reports one header height), so the bottom level is padded and cannot serve as the reference for
- * the group's borders. The group still has to fit its label, and no level may be taller than the group.
+ * the group's borders. The group header must still hold nothing but its content box and its own borders
+ * (`+ 1` for sub-pixel rounding), and no level may be taller than the group.
  *
  * @param {GroupHeaderGeometry} geometry The measured headers.
  */
 function expectHeadersFitTheGroupLabelWithAutoRowSize(geometry: GroupHeaderGeometry) {
   expect(geometry.groupHeaderHeight - geometry.groupContentHeight, 'empty space in the group header')
-    .toBeLessThan(geometry.lineHeight);
+    .toBeLessThanOrEqual(geometry.groupBorders + 1);
   expect(geometry.bottomHeaderHeight, 'the bottom level vs the group').toBeLessThanOrEqual(geometry.groupHeaderHeight);
 }
 
@@ -84,6 +85,24 @@ test.describe('a nested group label with wrapping CSS', { tag: [THEMES_TAG, CROS
 
     expect(geometry.spannedColumnsWidth).toBe(4 * COLUMN_WIDTH);
     expect(geometry.labelLines).toBeGreaterThan(1);
+    expectHeadersFitTheGroupLabelWithAutoRowSize(geometry);
+  });
+
+  test('fits the header to the label with AutoRowSize when only some columns are sampled', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new NestedHeadersLabelWrapPage(page, theme, bundle);
+
+    // AutoRowSize measures the header row from a sample of the columns, which skips repeated labels,
+    // so three of the group's eight columns are in the sample. Measured over those three, the label
+    // wraps; drawn over all eight, it fits one line.
+    await grid.goto({ wrap: true, autoRowSize: true, wide: true });
+
+    const geometry = await grid.geometry();
+
+    expect(geometry.spannedColumnsWidth).toBe(8 * COLUMN_WIDTH);
+    expect(geometry.groupWidth).toBeCloseTo(geometry.spannedColumnsWidth, 0);
+    expect(geometry.labelLines).toBe(1);
     expectHeadersFitTheGroupLabelWithAutoRowSize(geometry);
   });
 

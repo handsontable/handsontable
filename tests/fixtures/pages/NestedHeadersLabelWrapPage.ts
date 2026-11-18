@@ -10,11 +10,11 @@ export interface GroupHeaderGeometry {
    */
   groupWidth: number;
   /**
-   * The sum of the widths of the visible columns among the four the group spans, as the grid reports them.
+   * The sum of the widths of the visible columns the first group spans, as the grid reports them.
    */
   spannedColumnsWidth: number;
   /**
-   * How many of the four columns the group spans are visible.
+   * How many of the columns the first group spans are visible.
    */
   visibleSpannedColumns: number;
   /**
@@ -29,6 +29,10 @@ export interface GroupHeaderGeometry {
    * The height of the group header's content box (`div.relative`, which carries the padding).
    */
   groupContentHeight: number;
+  /**
+   * The group header cell's own top and bottom borders, in px.
+   */
+  groupBorders: number;
   /**
    * The same two heights for a one-line header of the bottom level, which sets the cell's own chrome
    * (borders) for this theme.
@@ -50,15 +54,19 @@ export class NestedHeadersLabelWrapPage {
   readonly theme: string;
   readonly bundle: string;
   /**
-   * The group header of the top level, in the top overlay that draws the headers.
+   * The first group header of the top level, in the top overlay that draws the headers.
    */
   readonly groupHeader: Locator;
+  /**
+   * How many columns the first group spans in the loaded fixture.
+   */
+  #groupColspan = 4;
 
   constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
     this.bundle = bundle;
-    this.groupHeader = page.locator('.ht_clone_top thead tr:first-child th[colspan]');
+    this.groupHeader = page.locator('.ht_clone_top thead tr:first-child th[colspan]').first();
   }
 
   /**
@@ -68,12 +76,15 @@ export class NestedHeadersLabelWrapPage {
    * @param {boolean} options.wrap Adds `white-space: normal` to the header labels.
    * @param {boolean} [options.autoRowSize] Turns on AutoRowSize.
    * @param {boolean} [options.hideColumn] Hides the group's second column.
+   * @param {boolean} [options.wide] 32 columns in groups of four, with repeating bottom labels.
    */
-  async goto({ wrap, autoRowSize = false, hideColumn = false }: {
-    wrap: boolean, autoRowSize?: boolean, hideColumn?: boolean,
+  async goto({ wrap, autoRowSize = false, hideColumn = false, wide = false }: {
+    wrap: boolean, autoRowSize?: boolean, hideColumn?: boolean, wide?: boolean,
   }): Promise<void> {
+    this.#groupColspan = wide ? 8 : 4;
     await this.page.goto('/tests/fixtures/demo/nested-headers-label-wrap.html' +
-      `?theme=${this.theme}&bundle=${this.bundle}&wrap=${wrap}&autoRowSize=${autoRowSize}&hideColumn=${hideColumn}`);
+      `?theme=${this.theme}&bundle=${this.bundle}&wrap=${wrap}&autoRowSize=${autoRowSize}` +
+      `&hideColumn=${hideColumn}&wide=${wide}`);
     await awaitBundle(this.page);
     await awaitFixtureBuilt(this.page);
     await expect(this.groupHeader).toBeVisible();
@@ -113,7 +124,7 @@ export class NestedHeadersLabelWrapPage {
    * @returns {Promise<GroupHeaderGeometry>}
    */
   async geometry(): Promise<GroupHeaderGeometry> {
-    return this.page.evaluate(() => {
+    return this.page.evaluate((groupColspan) => {
       const { hot } = window as unknown as {
         hot: {
           getColWidth(column: number): number;
@@ -121,7 +132,7 @@ export class NestedHeadersLabelWrapPage {
           columnIndexMapper: { isHidden(physicalColumn: number): boolean };
         };
       };
-      const spannedColumns = [0, 1, 2, 3]
+      const spannedColumns = Array.from({ length: groupColspan }, (_, column) => column)
         .filter(column => !hot.columnIndexMapper.isHidden(hot.toPhysicalColumn(column)));
       // The top clone draws the headers the user sees; the master's copy sits under it.
       const head = document.querySelector('.ht_clone_top thead') as HTMLElement;
@@ -129,6 +140,7 @@ export class NestedHeadersLabelWrapPage {
       const label = group.querySelector('span.colHeader') as HTMLElement;
       const bottom = head.querySelector('tr:last-child th:last-child') as HTMLElement;
       const lineHeight = Number.parseFloat(getComputedStyle(label).lineHeight);
+      const groupStyle = getComputedStyle(group);
 
       return {
         groupWidth: group.getBoundingClientRect().width,
@@ -137,10 +149,11 @@ export class NestedHeadersLabelWrapPage {
         labelLines: Math.round(label.getBoundingClientRect().height / lineHeight),
         groupHeaderHeight: group.getBoundingClientRect().height,
         groupContentHeight: (group.querySelector('div.relative') as HTMLElement).getBoundingClientRect().height,
+        groupBorders: Number.parseFloat(groupStyle.borderTopWidth) + Number.parseFloat(groupStyle.borderBottomWidth),
         bottomHeaderHeight: bottom.getBoundingClientRect().height,
         bottomContentHeight: (bottom.querySelector('div.relative') as HTMLElement).getBoundingClientRect().height,
         lineHeight,
       };
-    });
+    }, this.#groupColspan);
   }
 }
