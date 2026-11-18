@@ -237,11 +237,15 @@ class CollapsingUI extends BaseUI {
     const gridTrackingLayers = new Set(records.state.rowExtentSpansGrid);
 
     for (let index = 0; index < records.layers.length; index++) {
-      // A layer whose row extent tracks the grid is left to the grid-tracking repair, so its rows do
-      // not decide the restore: a whole column ends on the last row, and a removal of that row must
-      // not cancel the move of the other layers.
+      // A layer whose row extent tracks the grid keeps its extent through the grid-tracking repair, so
+      // its corners do not decide the restore: a whole column ends on the last row, and a removal of
+      // that row must not cancel the move of the other layers. Its focus still names a row and moves
+      // with it (`relayRows()` reads only `highlight` for such a layer); a focus row that is gone
+      // leaves the layer to the default repair.
       if (gridTrackingLayers.has(index)) {
-        layers.push(null);
+        const highlight = toVisualRow(records.layers[index].highlight);
+
+        layers.push(highlight === null ? null : { from: highlight, to: highlight, highlight });
 
         continue;
       }

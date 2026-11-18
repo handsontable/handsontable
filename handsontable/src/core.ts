@@ -1666,10 +1666,9 @@ export default function Core(
       // untrim leaves every corner in range, so a full-column selection or a select-all is grown
       // back to the whole axis here instead (DEV-152).
       this.selection.fitGridTrackingExtents(axis);
-    } else {
-      // The selection is gone, so the call only drops the debt of a restore that followed records.
-      this.selection.notifyFollowedRecords(axis);
     }
+    // When the selection was dropped, a restore that followed records owes nothing: its debt entry
+    // is popped by `discardPhysicalSelectionSnapshot()` on the mapper's `afterCacheUpdate`.
   };
 
   this.columnIndexMapper.addLocalHook(

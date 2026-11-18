@@ -760,9 +760,10 @@ They are written in different places and can drift. Keep this in mind:
   - **A corner whose row is gone or collapsed away aborts the whole restore.** What the operation
     left is then the answer: removing the selected rows through the context menu keeps the
     selection at the place of the removed rows, as before. Only a layer that names records counts:
-    a layer whose row extent tracks the grid is handed to `relayRows()` as `null` and never read,
-    because a whole column ends on the last row, and removing that row cancelled the move of every
-    other layer.
+    a layer whose row extent tracks the grid hands `relayRows()` its focus row alone (its `from` and
+    `to` are never read), or `null` when that row is gone, because a whole column ends on the last
+    row, and removing that row cancelled the move of every other layer. Its focus still moves with
+    its row: skipping the whole layer left the focus of a whole column on another row.
   - **A selection the operation stranded is put back** (`relayRows()` takes the exported
     selection). With B collapsed, removing a row above it left a selection below with nothing
     selected, though every selected row was still there: the default repair dropped it in the

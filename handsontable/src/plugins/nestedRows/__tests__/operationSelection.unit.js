@@ -215,6 +215,44 @@ describe('NestedRows selection across a row removal, an insert and a detach', ()
 
     expect(hot.countRows()).toBe(4);
     expect(hot.getSelected()[0][2]).toBe(3);
+    expect(hot.getDataAtCell(hot.getSelectedRangeActive().highlight.row, 0)).toBe('A');
+  });
+
+  it('keeps the focus of a whole-column selection on its row when a parent above it is removed', async() => {
+    buildGrid();
+    hot.getPlugin('nestedRows').collapseParent(0);
+    // Seven rows: A (collapsed), B, B1, B2, C, C1, C2. The focus sits on C.
+    hot.selectColumns(0, 0, { row: visibleNames().indexOf('C'), col: 0 });
+
+    // Removes B and its children.
+    hot.alter('remove_row', 1, 1);
+    await settle();
+
+    expect(visibleNames()).toEqual(['A', 'C', 'C1', 'C2']);
+    expect(hot.getDataAtCell(hot.getSelectedRangeActive().highlight.row, 0)).toBe('C');
+    expect(hot.getSelected()[0][2]).toBe(3);
+  });
+
+  it('does not move the focus back after a listener moved it inside an add-child bracket', () => {
+    buildGrid();
+    hot.selectCell(visibleNames().indexOf('C'), 0, visibleNames().indexOf('C1'), 0);
+
+    let movedFocus = null;
+
+    // A focus move made from the operation's own hook, with no key press. It is the app's change, so
+    // the stash drops the rows it recorded and leaves the selection as the app left it.
+    hot.addHookOnce('afterCreateRow', () => {
+      hot.selection.transformFocus(1, 0);
+      movedFocus = hot.getSelectedRangeActive().highlight.clone();
+    });
+
+    const relayRows = jest.spyOn(hot.selection, 'relayRows');
+    const { dataManager } = hot.getPlugin('nestedRows');
+
+    dataManager.addChild(dataManager.getDataObject(0));
+
+    expect(relayRows).not.toHaveBeenCalled();
+    expect(hot.getSelectedRangeActive().highlight.row).toBe(movedFocus.row);
   });
 
   it('keeps a cell layer on its row when the removal also takes the last row a whole-column layer ends on', async() => {
@@ -237,7 +275,8 @@ describe('NestedRows selection across a row removal, an insert and a detach', ()
 
     expect(visibleNames()).toEqual(['A', 'B', 'B1', 'B2', 'C', 'C1']);
     expect(relayRows).toHaveBeenCalledTimes(1);
-    expect(relayRows.mock.calls[0][0]).toEqual([null, { from: 5, to: 5, highlight: 5 }]);
+    // The whole column passes its focus row (A) only: its extent is the grid-tracking repair's.
+    expect(relayRows.mock.calls[0][0]).toEqual([{ from: 0, to: 0, highlight: 0 }, { from: 5, to: 5, highlight: 5 }]);
     expect(selectedNames()).toEqual([['A', 'B', 'B1', 'B2', 'C', 'C1'], ['C1']]);
   });
 

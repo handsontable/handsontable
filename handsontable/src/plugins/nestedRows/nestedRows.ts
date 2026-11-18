@@ -293,8 +293,8 @@ export class NestedRows extends BasePlugin {
     // rows that expand brought back. Only AFTER the hooks are gone: a removal's stash window also
     // skips renders (`#skipRender`), and the grow renders.
     this.collapsingUI?.releaseGridTrackingFits(true);
-    // The rows it recorded for the selection belong to a tree this disable flattens.
-    this.collapsingUI?.dropSelectionRecords();
+    // The rows the stash recorded for the selection need no drop here: `#restoreSelectionRecords()`
+    // bails while the plugin is disabled, and an enable builds a new CollapsingUI without them.
 
     this.headersUI!.removeRenderedLevelIndicators();
 

@@ -192,7 +192,7 @@ Collapsing or expanding a row changes which rows are visible, not which rows are
 
 The same applies when you undo or redo a collapse or an expand, and when you insert, remove, or detach rows above the selection: the selection stays on the rows you selected. When you remove a selected row, the selection stays at its place. When you move rows, the moved rows are selected.
 
-The [`afterSelection`](@/api/hooks.md#afterselection) and [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) hooks run when a collapse or an expand moves the selection. The grid does not scroll to the moved selection.
+The [`afterSelection`](@/api/hooks.md#afterselection) and [`afterSelectionEnd`](@/api/hooks.md#afterselectionend) hooks run when a collapse or an expand moves the selection. This includes a collapse or an expand that your code makes, for example with [`collapseAll()`](@/api/nestedRows.md#collapseall) or [`collapseParent()`](@/api/nestedRows.md#collapseparent), also while the grid does not have the focus. The grid does not scroll to the moved selection and does not take the focus. When a collapse removes the focused row from view and the selection is cleared, the [`afterDeselect`](@/api/hooks.md#afterdeselect) hook runs.
 
 ### Context menu
 

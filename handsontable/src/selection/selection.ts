@@ -3760,9 +3760,11 @@ class Selection {
    * NestedRows rewrites its tree around an insert, a removal or a detach, which renumbers the
    * physical rows, so it keeps the row objects and reads their rows afterwards (DEV-509).
    *
-   * A layer whose row extent tracks the grid (a whole column, a select-all) keeps its rows: its far
-   * corner follows the axis, not a record, so the caller may pass `null` for it. Nothing is moved
-   * with an editor open, which owns the selection, or when the number of layers differs.
+   * A layer whose row extent tracks the grid (a whole column, a select-all) keeps its extent: its far
+   * corner follows the axis, not a record. Only its focus row is moved, and its `from` and `to` are
+   * not read. The caller passes `null` for a layer it cannot place, which is then left as it is.
+   * Nothing is moved with an editor open, which owns the selection, or when the number of layers
+   * differs.
    *
    * `dropped` is the selection as it was before the caller's operation (`exportSelection()`). When
    * the operation left no selection at all, the layers are put back from it first: the states the
@@ -3773,7 +3775,7 @@ class Selection {
    *
    * @private
    * @param {Array<{from: number, to: number, highlight: number}|null>} layers The rows of each layer,
-   * or `null` for a layer whose row extent tracks the grid.
+   * or `null` for a layer to leave as it is.
    * @param {SelectionState} [dropped] The selection to put back when none is left.
    * @returns {boolean} Whether any layer moved or came back.
    */
@@ -3812,11 +3814,15 @@ class Selection {
     ranges.forEach((range, layerIndex) => {
       const rows = layers[layerIndex];
 
-      if (rows === null || this.#rowExtentSpansGrid.has(layerIndex)) {
+      if (rows === null) {
         return;
       }
 
-      (['from', 'to', 'highlight'] as const).forEach((corner) => {
+      // A grid-tracking layer keeps its extent, but its focus names a record and moves with it.
+      const corners = this.#rowExtentSpansGrid.has(layerIndex) ?
+        (['highlight'] as const) : (['from', 'to', 'highlight'] as const);
+
+      corners.forEach((corner) => {
         if (range[corner].row !== rows[corner]) {
           range[corner].row = rows[corner];
           isMoved = true;
