@@ -76,12 +76,11 @@ const items = frameworks.map((fw) => {
   <span class="dropdown-title" aria-hidden="true">
     <span class="title">{current.fullName}</span>
   </span>
-  {items.map(({ label, fullName, href, isCurrent, icon }) => (
+  {items.map(({ label, href, isCurrent, icon }) => (
     <a
       href={href}
       class:list={['fw-tab', { 'fw-tab--current': isCurrent }]}
       aria-current={isCurrent ? 'page' : undefined}
-      aria-label={`Switch to ${fullName}`}
     >
       <span class:list={['fw-icon', icon]} aria-hidden="true"></span>
       <span class="fw-tab-label">{label}</span>
@@ -130,7 +129,7 @@ const items = frameworks.map((fw) => {
     background: var(--sl-color-gray-7, var(--sl-color-gray-6));
   }
 
-  /* Below 920px the header runs out of room — show icons only. */
+  /* Below 920px the header runs out of room — show icons only. The label stays the tab's accessible name. */
   @media (max-width: 57.49rem) {
     .fw-tab {
       gap: 0;
@@ -138,7 +137,12 @@ const items = frameworks.map((fw) => {
     }
 
     .fw-tab-label {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
     }
   }
 
