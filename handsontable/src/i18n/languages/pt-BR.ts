@@ -71,6 +71,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Nenhum',
   [C.FILTERS_CONDITIONS_EMPTY]: 'É vazio',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Não é vazio',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Está marcado',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Não está marcado',
   [C.FILTERS_CONDITIONS_EQUAL]: 'É igual a',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'É diferente de',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Começa com',

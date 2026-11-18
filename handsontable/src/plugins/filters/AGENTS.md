@@ -209,7 +209,15 @@ captured when the plugin is enabled.
   names in place and the registry's descriptor is shared. (2) An allow-list may only pick names from
   the column type's STOCK list; any other name is dropped. (3) A per-type key matches the LIST type
   after the `text` fallback (`getConditionListType()`), so `dropdown`, `checkbox`, custom types and
-  `mixed` follow the `text` entry. An unknown key does NOT invalidate the setting - rejecting it
+  `mixed` follow the `text` entry. The STOCK list is a separate question from the key: a `checkbox`
+  column follows the `text` key but its stock list is the `text` list plus `checked`/`unchecked`
+  (inserted before `eq`), and every reader of a column's stock list goes through
+  `getStockConditionNames(type)` (`constants.ts`): `getOptionsList()`, the off-list warning,
+  `KNOWN_CONDITION_NAMES` and `findAvailableConditionsProblems()` (via its `extraNames` argument, since the
+  two names are in no `TYPES` list). Do not give `checkbox` its own `TYPES` entry: the `text` list would
+  then stop applying to checkbox columns, a `text` rule would stop reaching them, and a saved view state
+  carrying a text condition on such a column would lose its filter on restore - a breaking change the
+  additive design avoids. An unknown key does NOT invalidate the setting - rejecting it
   dropped the valid entries next to it - it is ignored and warned. (4) Every warning comes from the
   column scan (`#warnAboutPerColumnSettingsObjects`), never from a menu opening: names no type
   offers (typos, in `exclude` too), off-list names in a column's allow-list (named with the column's

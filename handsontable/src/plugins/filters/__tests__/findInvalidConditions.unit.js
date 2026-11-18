@@ -96,6 +96,16 @@ describe('Filters#_findInvalidConditions', () => {
     }]);
   });
 
+  it('accepts "checked" and "unchecked" on a checkbox column and reports them on a text column', () => {
+    hot.updateSettings({ columns: [{ type: 'checkbox' }, {}] });
+    filters = hot.getPlugin('filters');
+
+    expect(unavailablePaths([
+      entry({ conditions: [{ name: 'checked', args: [] }] }),
+      entry({ column: 1, conditions: [{ name: 'unchecked', args: [] }] }),
+    ])).toEqual(['[1].conditions[0].name']);
+  });
+
   it('reports every entry that names an unavailable condition', () => {
     expect(unavailablePaths([
       entry({ conditions: [{ name: 'gt', args: [1] }] }),

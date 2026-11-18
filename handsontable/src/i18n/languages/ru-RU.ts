@@ -71,6 +71,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Отсутствует',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Пусто',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Не пусто',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Отмечено',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Не отмечено',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Равно',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Не равно',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Начинается на',

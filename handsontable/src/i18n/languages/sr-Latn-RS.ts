@@ -75,6 +75,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Nema',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Je prazno',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Nije prazno',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Označeno',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Nije označeno',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Je jednako',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Nije jednako',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Počinje sa',

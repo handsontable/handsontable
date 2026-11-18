@@ -76,6 +76,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'هیچ',
   [C.FILTERS_CONDITIONS_EMPTY]: 'خالی است',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'خالی نیست',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'انتخاب شده',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'انتخاب نشده',
   [C.FILTERS_CONDITIONS_EQUAL]: 'برابر است با',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'برابر نیست با',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'شروع می شود با',

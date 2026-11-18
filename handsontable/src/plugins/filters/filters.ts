@@ -50,7 +50,9 @@ import getOptionsList, {
   OPERATION_OR,
   OPERATION_OR_THEN_VARIABLE,
   TYPES,
+  CHECKBOX_CONDITION_NAMES,
   getConditionListType,
+  getStockConditionNames,
 } from './constants';
 import type { TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
@@ -124,7 +126,10 @@ export const PLUGIN_KEY = 'filters';
 export const PLUGIN_PRIORITY = 250;
 const AVAILABLE_CONDITIONS_KEY = 'availableConditions';
 const DATA_TYPES = Object.keys(TYPES);
-const KNOWN_CONDITION_NAMES = new Set(Object.values(TYPES).flat().filter(name => name !== SEPARATOR));
+const KNOWN_CONDITION_NAMES = new Set([
+  ...Object.values(TYPES).flat().filter(name => name !== SEPARATOR),
+  ...CHECKBOX_CONDITION_NAMES,
+]);
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 /**
@@ -956,7 +961,7 @@ export class Filters extends BasePlugin {
    * in a valid `availableConditions` value.
    */
   #warnAboutAvailableConditionsProblems(setting: unknown) {
-    findAvailableConditionsProblems(setting, TYPES, SEPARATOR).forEach((problem) => {
+    findAvailableConditionsProblems(setting, TYPES, SEPARATOR, CHECKBOX_CONDITION_NAMES).forEach((problem) => {
       if (problem.kind === 'unknownName') {
         warnAboutUnknownCondition(this.hot.rootElement, problem.name);
       } else {
@@ -983,7 +988,7 @@ export class Filters extends BasePlugin {
     const listType = getConditionListType(columnType);
     const rule = resolveAvailableConditionsRule(setting, listType);
 
-    findOffListNames(rule, TYPES[listType], SEPARATOR)
+    findOffListNames(rule, getStockConditionNames(columnType), SEPARATOR)
       .filter(name => KNOWN_CONDITION_NAMES.has(name))
       .forEach(name => warnAboutUnavailableCondition(this.hot.rootElement, name, columnType, listType));
   }
@@ -1291,6 +1296,7 @@ export class Filters extends BasePlugin {
    * | `begins_with` | Begins with | `[value: string]`, e.g. `['de']` |
    * | `between` | Between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
    * | `by_value` | By value | `[[...values: Array]]`, e.g. `[['ing', 'ed', 'as']]`. The outer array wraps a single inner array that contains all values to **keep** (show) after filtering. |
+   * | `checked` | Is checked, for a `checkbox` column: the value matches the cell's `checkedTemplate` (`true` by default), ignoring letter case | `[]` |
    * | `contains` | Contains | `[value: string]`, e.g. `['ing']` |
    * | `date_after` | After a date (exclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
    * | `date_after_or_equal` | After or equal to a date (inclusive) | `[dateString: string]`, e.g. `['1/1/2023']`. The format must match the column's `dateFormat` option. |
@@ -1322,6 +1328,7 @@ export class Filters extends BasePlugin {
    * | `not_contains` | Not contains | `[value: string]`, e.g. `['ing']` |
    * | `not_empty` | Not empty | `[]` |
    * | `neq` | Not equal | `[value: string\|number]`, e.g. `['John']`. On `date` and `intl-date` columns, pass an ISO 8601 date string, e.g. `['2023-01-01']`. |
+   * | `unchecked` | Is unchecked, for a `checkbox` column: the value matches the cell's `uncheckedTemplate` (`false` by default), ignoring letter case. An empty cell does not match; use `empty` for it | `[]` |
    *
    * Possible operations on collection of conditions:
    *  * `conjunction` - [**Conjunction**](https://en.wikipedia.org/wiki/Logical_conjunction) on conditions collection (by default), i.e. for such operation: <br/> c1 AND c2 AND c3 AND c4 ... AND cn === TRUE, where c1 ... cn are conditions.
@@ -2030,7 +2037,8 @@ export class Filters extends BasePlugin {
    * Gets the filter conditions that a column offers, in the order the "Filter by condition" menu lists them.
    *
    * The list follows the column's data type (`text`, `numeric`, `date`, `intl-date`, `intl-time`, or
-   * `intl-datetime`, where any other type and a column whose cells have different types use the `text` list)
+   * `intl-datetime`, where any other type and a column whose cells have different types use the `text` list; a
+   * `checkbox` column adds `checked` and `unchecked` to it)
    * and the [`availableConditions`](@/api/options.md#filters) setting that applies to the column. It is the
    * list the column's menu shows, without the separators and without the "None" entry, which clears a filter
    * rather than adding one. Like the menu, it reads the data type from the rows no filter trims, so in a column

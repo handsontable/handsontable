@@ -75,6 +75,8 @@ const dictionary = {
   [C.FILTERS_CONDITIONS_NONE]: 'Nekas',
   [C.FILTERS_CONDITIONS_EMPTY]: 'Ir tukšs',
   [C.FILTERS_CONDITIONS_NOT_EMPTY]: 'Nav tukšs',
+  [C.FILTERS_CONDITIONS_CHECKED]: 'Ir atzīmēts',
+  [C.FILTERS_CONDITIONS_UNCHECKED]: 'Nav atzīmēts',
   [C.FILTERS_CONDITIONS_EQUAL]: 'Vienāds ar',
   [C.FILTERS_CONDITIONS_NOT_EQUAL]: 'Nav vienāds ar',
   [C.FILTERS_CONDITIONS_BEGINS_WITH]: 'Sākas ar',

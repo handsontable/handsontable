@@ -198,6 +198,72 @@ export class FiltersAvailableConditionsPage {
   }
 
   /**
+   * Open the dropdown menu of a column from the keyboard: select a cell of it, then Alt+Shift+ArrowDown.
+   *
+   * @param {number} col The visual column index.
+   */
+  async openMenuWithKeyboard(col: number): Promise<void> {
+    await this.page.evaluate(column => window.hot.selectCell(0, column), col);
+    await this.page.keyboard.press('Alt+Shift+ArrowDown');
+    await expect(this.menu).toBeVisible();
+  }
+
+  /**
+   * Move the focus from the menu to the first condition select with Tab.
+   */
+  async focusConditionSelectWithKeyboard(): Promise<void> {
+    await this.page.keyboard.press('Tab');
+    await expect(this.conditionSelects.first()).toBeFocused();
+  }
+
+  /**
+   * Choose a condition in the focused select from the keyboard: Enter opens its list, ArrowDown walks
+   * to the wanted item, Enter accepts it. Fails loudly when ArrowDown never reaches the item.
+   *
+   * @param {string} label The condition's visible label.
+   */
+  async chooseConditionWithKeyboard(label: string): Promise<void> {
+    const highlighted = this.conditionsMenu.locator('td.current');
+
+    await this.page.keyboard.press('Enter');
+    await expect(this.conditionsMenu).toBeVisible();
+
+    for (let i = 0; i < 20; i++) {
+      if ((await highlighted.count()) === 1 && (await highlighted.innerText()).trim() === label) {
+        await this.page.keyboard.press('Enter');
+        await expect(this.conditionsMenu).toBeHidden();
+
+        return;
+      }
+
+      await this.page.keyboard.press('ArrowDown');
+    }
+
+    throw new Error(`ArrowDown never reached the ${JSON.stringify(label)} condition`);
+  }
+
+  /**
+   * Confirm the menu from the keyboard: Tab to the "OK" button, then Enter. Fails loudly when Tab
+   * never reaches the button.
+   */
+  async confirmMenuWithKeyboard(): Promise<void> {
+    const okButton = this.menu.locator('.htUIButtonOK input');
+
+    for (let i = 0; i < 20; i++) {
+      if (await okButton.evaluate(button => button === document.activeElement)) {
+        await this.page.keyboard.press('Enter');
+        await expect(this.menu).toBeHidden();
+
+        return;
+      }
+
+      await this.page.keyboard.press('Tab');
+    }
+
+    throw new Error('Tab never reached the "OK" button');
+  }
+
+  /**
    * Confirm the menu with the "OK" button and wait for it to close.
    */
   async confirmMenu(): Promise<void> {
