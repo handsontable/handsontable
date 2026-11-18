@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of the UndoRedo plugin: recording many separate actions, such as a loop of `setCellMeta()` calls, is up to 17 times faster, and an undo step of a bulk data change keeps about half the memory.",
+  "type": "changed",
+  "issueOrPR": 14351,
+  "breaking": false,
+  "framework": "none"
+}
