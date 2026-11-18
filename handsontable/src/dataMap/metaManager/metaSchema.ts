@@ -3786,8 +3786,9 @@ export default (): Record<string, unknown> => {
      * The condition names are the ones [`addCondition()`](@/api/filters.md#addcondition) takes, for
      * example `'eq'`, `'gt'`, `'between'`, or `'not_between'`. A column whose type has no list of its
      * own (for example `dropdown`) uses the `text` list. A `checkbox` column uses the `text` list with
-     * `'checked'` and `'unchecked'` added, and follows the `text` key of a per-type object. **None** always stays first. A name the
-     * column's data type does not offer is left out. The setting changes the lists only: a condition
+     * `'checked'` and `'unchecked'` added (unless a data provider backs the grid), and follows the
+     * `text` key of a per-type object. **None** always stays first. A name the column's data type does
+     * not offer is left out. The setting changes the lists only: a condition
      * added through [`addCondition()`](@/api/filters.md#addcondition) still filters, and its select
      * still shows it.
      *

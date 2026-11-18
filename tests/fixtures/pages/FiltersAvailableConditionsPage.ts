@@ -1,6 +1,7 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 import { type CellValue } from './windowTypes';
+import { chooseConditionWithKeyboard } from './filtersConditionSelect';
 
 /**
  * The label a separator row reports in `conditionOptions()`.
@@ -217,29 +218,13 @@ export class FiltersAvailableConditionsPage {
   }
 
   /**
-   * Choose a condition in the focused select from the keyboard: Enter opens its list, ArrowDown walks
-   * to the wanted item, Enter accepts it. Fails loudly when ArrowDown never reaches the item.
+   * Choose a condition in the focused select from the keyboard (see `chooseConditionWithKeyboard()` in
+   * `filtersConditionSelect.ts`).
    *
    * @param {string} label The condition's visible label.
    */
   async chooseConditionWithKeyboard(label: string): Promise<void> {
-    const highlighted = this.conditionsMenu.locator('td.current');
-
-    await this.page.keyboard.press('Enter');
-    await expect(this.conditionsMenu).toBeVisible();
-
-    for (let i = 0; i < 20; i++) {
-      if ((await highlighted.count()) === 1 && (await highlighted.innerText()).trim() === label) {
-        await this.page.keyboard.press('Enter');
-        await expect(this.conditionsMenu).toBeHidden();
-
-        return;
-      }
-
-      await this.page.keyboard.press('ArrowDown');
-    }
-
-    throw new Error(`ArrowDown never reached the ${JSON.stringify(label)} condition`);
+    await chooseConditionWithKeyboard(this.page, this.conditionsMenu, label);
   }
 
   /**

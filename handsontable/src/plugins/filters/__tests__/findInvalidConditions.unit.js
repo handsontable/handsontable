@@ -106,6 +106,22 @@ describe('Filters#_findInvalidConditions', () => {
     ])).toEqual(['[1].conditions[0].name']);
   });
 
+  it('still accepts a text condition on a checkbox column', () => {
+    hot.updateSettings({ columns: [{ type: 'checkbox' }, {}] });
+    filters = hot.getPlugin('filters');
+
+    expect(unavailablePaths([entry({ conditions: [{ name: 'contains', args: ['tr'] }] })])).toEqual([]);
+  });
+
+  it('reports "checked" on a checkbox column while a data provider backs the grid', () => {
+    hot.updateSettings({ columns: [{ type: 'checkbox' }, {}] });
+    filters = hot.getPlugin('filters');
+    hot.addHook('hasExternalDataSource', () => true);
+
+    expect(unavailablePaths([entry({ conditions: [{ name: 'checked', args: [] }] })]))
+      .toEqual(['[0].conditions[0].name']);
+  });
+
   it('reports every entry that names an unavailable condition', () => {
     expect(unavailablePaths([
       entry({ conditions: [{ name: 'gt', args: [1] }] }),

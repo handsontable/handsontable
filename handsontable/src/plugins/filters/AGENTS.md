@@ -211,10 +211,15 @@ captured when the plugin is enabled.
   after the `text` fallback (`getConditionListType()`), so `dropdown`, `checkbox`, custom types and
   `mixed` follow the `text` entry. The STOCK list is a separate question from the key: a `checkbox`
   column follows the `text` key but its stock list is the `text` list plus `checked`/`unchecked`
-  (inserted before `eq`), and every reader of a column's stock list goes through
-  `getStockConditionNames(type)` (`constants.ts`): `getOptionsList()`, the off-list warning,
-  `KNOWN_CONDITION_NAMES` and `findAvailableConditionsProblems()` (via its `extraNames` argument, since the
-  two names are in no `TYPES` list). Do not give `checkbox` its own `TYPES` entry: the `text` list would
+  (inserted before `eq`). `getStockConditionNames(type)` (`constants.ts`) is the only place that adds
+  them: `getOptionsList()` and the off-list warning call it per column, and `KNOWN_CONDITION_NAMES` is
+  built from it over every type plus `checkbox` (passed to `findAvailableConditionsProblems()` as its
+  `extraNames`, since the two names are in no `TYPES` list). A new reader of a column's stock list calls
+  it too, never `TYPES[...]`. While a DataProvider backs the grid, `#getStockListType()` maps `checkbox`
+  to `text` at the three per-column call sites (menu and `getAvailableConditions()`, the restore scanner,
+  the off-list warning): the server evaluates the conditions, and a backend written before the two names
+  existed would ignore them and return every row under a filter the header shows as active. Read live,
+  like every other DataProvider check here. Do not give `checkbox` its own `TYPES` entry: the `text` list would
   then stop applying to checkbox columns, a `text` rule would stop reaching them, and a saved view state
   carrying a text condition on such a column would lose its filter on restore - a breaking change the
   additive design avoids. An unknown key does NOT invalidate the setting - rejecting it

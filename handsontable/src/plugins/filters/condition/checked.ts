@@ -12,7 +12,8 @@ type DataRow = {
 
 /**
  * Matches a cell whose value is the checked template of its checkbox, or reads the same as it, ignoring
- * case (see `matchCheckboxTemplate()`). An empty cell and a value that matches neither template do not match.
+ * case (see `matchCheckboxTemplate()`). A value that matches neither template does not match, and neither
+ * does an empty cell unless the template is itself empty.
  *
  * @param {object} dataRow The object which holds and describes the single cell value.
  * @returns {boolean}

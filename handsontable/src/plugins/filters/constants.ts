@@ -225,18 +225,16 @@ export function getConditionListType(type: string): string {
 
 /**
  * The conditions a checkbox column offers on top of its list type's own (`text`). They are in no `TYPES`
- * list, so a reader that collects the known names from `TYPES` adds these.
- *
- * @private
- * @type {string[]}
+ * list; `getStockConditionNames()` is the only reader.
  */
-export const CHECKBOX_CONDITION_NAMES = [CONDITION_CHECKED, CONDITION_UNCHECKED];
+const CHECKBOX_CONDITION_NAMES = [CONDITION_CHECKED, CONDITION_UNCHECKED];
 
 /**
  * Gets the stock condition list a column of the given data type offers, separators included. A
  * `checkbox` column uses the `text` list (and follows its `availableConditions` key) with "Is checked" and
- * "Is unchecked" added before "Is equal to". Every read of a column's stock list goes through this
- * function, so the menu, the `availableConditions` checks, and the restore check cannot disagree.
+ * "Is unchecked" added before "Is equal to". Every read of a column's stock list, and the set of known
+ * condition names, goes through this function, so the menu, the `availableConditions` checks, and the
+ * restore check cannot disagree.
  *
  * @private
  * @param {string} type The column's data type.
@@ -249,7 +247,8 @@ export function getStockConditionNames(type: string): string[] {
     return names;
   }
 
-  const insertAt = names.indexOf(CONDITION_EQUAL);
+  const equalIndex = names.indexOf(CONDITION_EQUAL);
+  const insertAt = equalIndex === -1 ? names.length : equalIndex;
 
   return [...names.slice(0, insertAt), ...CHECKBOX_CONDITION_NAMES, SEPARATOR, ...names.slice(insertAt)];
 }

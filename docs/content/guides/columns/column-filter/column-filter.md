@@ -548,7 +548,11 @@ On a checkbox column, **Is checked** keeps the cells whose value matches the col
 [`checkedTemplate`](@/api/options.md#checkedtemplate), and **Is unchecked** keeps the cells whose value
 matches its [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Letter case is ignored, as the
 checkbox does when it draws the value. An empty cell matches neither operator, even though the checkbox
-draws it unchecked. To find empty cells, use **Is empty**.
+draws it unchecked, unless the template itself is empty. To find empty cells, use **Is empty**.
+
+When a [`dataProvider`](@/api/options.md#dataprovider) backs the grid, your server evaluates the
+conditions, so a checkbox column offers the text operators only, without **Is checked** and
+**Is unchecked**.
 
 To offer only some of these operators, or to change their order, see
 [Choose the conditions the filter menu offers](#choose-the-conditions-the-filter-menu-offers).

@@ -26,6 +26,13 @@ describe('Filters condition (`unchecked`)', () => {
     expect(condition(data(false), [])).toBe(false);
   });
 
+  it('should match an empty cell when the unchecked template is itself empty', () => {
+    const data = dateRowFactory({ type: 'checkbox', uncheckedTemplate: '' });
+
+    expect(condition(data(''), [])).toBe(true);
+    expect(condition(data(null), [])).toBe(true);
+  });
+
   it('should not match an empty cell or a value that matches neither template', () => {
     const data = dateRowFactory({ type: 'checkbox' });
 

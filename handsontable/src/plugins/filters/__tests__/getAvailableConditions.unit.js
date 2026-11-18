@@ -158,6 +158,23 @@ describe('Filters#getAvailableConditions', () => {
       expect(names(filters.getAvailableConditions(0))).toContain('unchecked');
     });
 
+    it('keeps a grid-level "text" allow-list unchanged on a checkbox column', () => {
+      const filters = createCheckboxGrid({ filters: { availableConditions: { text: ['eq', 'contains'] } } });
+
+      expect(names(filters.getAvailableConditions(0))).toEqual(['eq', 'contains']);
+    });
+
+    it('offers the text list alone while a data provider backs the grid', () => {
+      const filters = createCheckboxGrid();
+      const before = names(filters.getAvailableConditions(0));
+
+      // `hasExternalDataSource` is what the DataProvider plugin answers.
+      hot.addHook('hasExternalDataSource', () => true);
+
+      expect(before).toContain('checked');
+      expect(names(filters.getAvailableConditions(0))).toEqual(names(filters.getAvailableConditions(1)));
+    });
+
     it('does not offer the two conditions to a text column whose allow-list names them', () => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const filters = createCheckboxGrid({
