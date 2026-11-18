@@ -194,6 +194,13 @@ export const FREEZE_BAR_COLUMNS_END = `${FREEZE_BAR_NAMESPACE}columns.end`;
 export const NESTED_ROWS_NAMESPACE = 'NestedRows:';
 export const NESTED_ROWS_ANNOUNCEMENT_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.expanded`;
 export const NESTED_ROWS_ANNOUNCEMENT_COLLAPSED = `${NESTED_ROWS_NAMESPACE}announcement.collapsed`;
+export const NESTED_ROWS_ANNOUNCEMENT_LEVEL = `${NESTED_ROWS_NAMESPACE}announcement.level`;
+export const NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED = `${NESTED_ROWS_NAMESPACE}announcement.level.expanded`;
+export const NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED = `${NESTED_ROWS_NAMESPACE}announcement.level.collapsed`;
+
+export const COLLAPSIBLE_COLUMNS_NAMESPACE = 'CollapsibleColumns:';
+export const COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED = `${COLLAPSIBLE_COLUMNS_NAMESPACE}announcement.expanded`;
+export const COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED = `${COLLAPSIBLE_COLUMNS_NAMESPACE}announcement.collapsed`;
 
 export const COLUMN_SORTING_NAMESPACE = 'ColumnSorting:';
 export const COLUMN_SORTING_ANNOUNCEMENT_ASCENDING = `${COLUMN_SORTING_NAMESPACE}announcement.ascending`;

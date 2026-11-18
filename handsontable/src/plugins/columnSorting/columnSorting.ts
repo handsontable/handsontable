@@ -2,7 +2,6 @@ import {
   addClass,
   eventTargetEl,
   hasClass,
-  HTML_CHARACTERS,
   isBottomMostColumnHeader,
   removeClass,
   setAttribute,
@@ -55,7 +54,7 @@ import type { CellChange } from '../../settings';
 import { getWaitingEditorSaveChangeSets } from '../../editors/baseEditor/editorSaveChangeSets';
 import { A11Y_SORT } from '../../helpers/a11y';
 import { spreadsheetColumnLabel } from '../../helpers/data';
-import { htmlToPlainText } from '../../helpers/string';
+import { getHeaderLabelText } from '../../utils/headerLabel';
 import { announce } from '../../utils/a11yAnnouncer';
 import {
   COLUMN_SORTING_ANNOUNCEMENT_ASCENDING,
@@ -636,27 +635,9 @@ export class ColumnSorting extends BasePlugin {
    * @returns {string}
    */
   #getColumnLabel(column: number): string {
-    const TH = this.hot.getCell(-1, column, true);
-    const headerSpan = TH ? getHeaderSpanElement(TH) : null;
-    let rendered = '';
+    const label = getHeaderLabelText(this.hot.getCell(-1, column, true), this.hot.getColHeader(column));
 
-    if (headerSpan) {
-      const copy = headerSpan.cloneNode(true) as HTMLElement;
-
-      copy.querySelectorAll('br').forEach(lineBreak => lineBreak.replaceWith(' '));
-      rendered = (copy.textContent ?? '').replace(/\s+/g, ' ').trim();
-    }
-
-    if (rendered) {
-      return rendered;
-    }
-
-    const header = String(this.hot.getColHeader(column) ?? '').trim();
-
-    const plainHeader = HTML_CHARACTERS.test(header) ?
-      htmlToPlainText(header.replace(/<br\s*\/?>/gi, ' ')).replace(/\s+/g, ' ').trim() : header;
-
-    return plainHeader !== '' ? plainHeader : spreadsheetColumnLabel(column);
+    return label !== '' ? label : spreadsheetColumnLabel(column);
   }
 
   /**

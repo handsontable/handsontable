@@ -238,23 +238,26 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 
 These keyboard shortcuts work in [column groups](@/guides/columns/column-groups/column-groups.md), also known as "nested headers". To activate them, enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
 
-The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd> shortcut works from a data cell or a focused column header, with or without `navigableHeaders`. The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows              | macOS                | Action                              |  Excel  | Sheets  |
 | -------------------- | -------------------- | ----------------------------------- | :-----: | :-----: |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↑**</kbd> | Collapse or expand the collapsible column group closest to the data, over the current column. From a focused column header, toggle that header's group | &cross; | &cross; |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the column group | &cross; | &cross; |
 
 ### Row parent-child keyboard shortcuts
 
 These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child/row-parent-child.md), also known as "nested rows". To activate them, enable the [`NestedRows`](@/api/nestedRows.md) plugin.
 
-These shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> shortcuts work from any data cell of the row or from its row header, with or without `navigableHeaders`. The other shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows              | macOS                | Action                                                                                                 |
 | -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group                                                                       |
 | <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>**→**</kbd> | Expand a collapsed parent row                                                                 |
 | <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>**←**</kbd> | Collapse an expanded parent row. Otherwise, move the focus to the header of the parent row, if any |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**→**</kbd> | Expand the current row, if it is a collapsed parent row |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**←**</kbd> | Collapse the current row, if it is an expanded parent row. Otherwise, move the selection to the parent row, in the same column |
 
 In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the <kbd>**←**</kbd> and <kbd>**→**</kbd> keys swap their actions. The arrow keys without a modifier move the selection, as they do in every grid. On a row header, <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**←**</kbd> and <kbd>**→**</kbd> don't jump to the first or last cell of the row. To move along the row from a row header, use <kbd>**→**</kbd> or <kbd>**End**</kbd>.
 

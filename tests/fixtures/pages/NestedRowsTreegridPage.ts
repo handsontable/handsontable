@@ -37,14 +37,19 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
    *
    * @param options.dir The layout direction of the page and the grid.
    * @param options.aria `off` builds the grid with `ariaTags: false`.
+   * @param options.navigableHeaders `off` builds the grid with `navigableHeaders: false`, the default
+   * of the option, where no header can take the focus.
    */
-  async goto(options: { dir?: 'ltr' | 'rtl'; aria?: 'on' | 'off' } = {}): Promise<void> {
+  async goto(
+    options: { dir?: 'ltr' | 'rtl'; aria?: 'on' | 'off'; navigableHeaders?: 'on' | 'off' } = {}
+  ): Promise<void> {
     const dir = options.dir ?? 'ltr';
     const aria = options.aria ?? 'on';
+    const navigableHeaders = options.navigableHeaders ?? 'on';
+    const query = `theme=${this.theme}&bundle=${this.bundle}&dir=${dir}&aria=${aria}` +
+      `&navigableHeaders=${navigableHeaders}`;
 
-    await this.page.goto(
-      `/tests/fixtures/demo/nested-rows-treegrid.html?theme=${this.theme}&bundle=${this.bundle}&dir=${dir}&aria=${aria}`
-    );
+    await this.page.goto(`/tests/fixtures/demo/nested-rows-treegrid.html?${query}`);
     await awaitBundle(this.page);
     await expect(this.cell(0, 0)).toBeVisible();
   }
@@ -327,6 +332,39 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
       filters.clearConditions();
       filters.filter();
     });
+  }
+
+  /**
+   * Select a range of cells through the API, by visual coordinates.
+   *
+   * @param fromRow Visual row index of the range's start.
+   * @param fromColumn Visual column index of the range's start.
+   * @param toRow Visual row index of the range's end.
+   * @param toColumn Visual column index of the range's end.
+   */
+  async selectRange(fromRow: number, fromColumn: number, toRow: number, toColumn: number): Promise<void> {
+    await this.page.evaluate(
+      ([row, column, row2, column2]) => window.hot.selectCell(row, column, row2, column2),
+      [fromRow, fromColumn, toRow, toColumn]
+    );
+    await expect.poll(() => this.activeRange()).toEqual([fromRow, fromColumn, toRow, toColumn]);
+  }
+
+  /**
+   * Select a cell through the API without handing the keyboard to the grid, the way an application
+   * moves the selection of a grid the user is not working in.
+   *
+   * @param row Visual row index.
+   * @param column Visual column index.
+   */
+  async selectCellWithoutListening(row: number, column: number): Promise<void> {
+    await this.page.evaluate(
+      ([visualRow, visualColumn]) => window.hot.selectCell(
+        visualRow, visualColumn, visualRow, visualColumn, false, false
+      ),
+      [row, column]
+    );
+    await expect.poll(() => this.selectedCell()).toEqual([row, column]);
   }
 
   /**
