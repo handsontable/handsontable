@@ -333,7 +333,7 @@
           "ascending"
         ]
       ],
-      "note": "Enter on a sortable header sorts the column; aria-sort changes on the focused header. Finding: VoiceOver says nothing on both browsers when the sort changes, here and on sort-descending (the committed vo-* goldens are empty)."
+      "note": "Enter on a sortable header sorts the column: aria-sort changes on the focused header, and the sort writes a polite status message, `Sorted by Name, ascending` (`descending` on sort-descending). Every reader reads the message. NVDA reads it after the header's new state (with Chromium `sorted ascending`, with Firefox the whole header, `Name, column header, sorted ascending, row 1, column 2`); VoiceOver reads the message alone on both browsers, because it does not read a state that changes under the focus."
     },
     {
       "id": "sort-descending",

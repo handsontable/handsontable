@@ -957,7 +957,8 @@ export class AutoRowSize extends BasePlugin {
    * pixel taller than the real default as a default-height row and round it down.
    *
    * The margin also takes in what the border inflation adds at the zoom of now: the default height
-   * keeps the value read when the grid was built, so a grid zoomed out afterwards would otherwise read
+   * keeps the value read when the grid was built until the next `refreshDimensions()` re-reads the border (a
+   * zoom fires one, a hidden grid waits for its reveal), so a grid zoomed out afterwards would otherwise read
    * every default row as a taller one and round it up.
    *
    * @param {number} measuredHeight The measured height, snapped to the layout grid.

@@ -3,10 +3,10 @@
   "scenario": "grid-core-horizon",
   "project": "vo-webkit",
   "recorded": {
-    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "screenReader": "VoiceOver (macOS 26.7.2)",
     "browser": "webkit 26.5",
     "platform": "darwin 25.6.0",
-    "at": "2026-11-03T19:26:50.223Z"
+    "at": "2026-11-17T14:11:11.055Z"
   },
   "steps": {
     "arrow-right": "age 34",
@@ -20,14 +20,14 @@
     "open-editor": "alice",
     "close-editor": "",
     "open-context-menu": "insert row above menu item group table 1 column 18 rows",
-    "menu-arrow-down": "insert row below menu item group table 1 column 18 rows",
+    "menu-arrow-down": "insert row below menu item group 1 of 1",
     "menu-arrow-down-again": "insert column left menu item group table 1 column 18 rows",
     "close-context-menu": "handsontable screen reader fixture web content",
     "reselect-cell": "name alice table 4 columns",
     "extend-range": "",
     "extend-range-again": "",
     "up-to-header-for-sort": "name",
-    "sort-ascending": "",
-    "sort-descending": ""
+    "sort-ascending": "sorted by name ascending",
+    "sort-descending": "sorted by name descending"
   }
 }
