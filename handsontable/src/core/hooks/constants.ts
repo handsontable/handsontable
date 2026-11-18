@@ -3417,8 +3417,8 @@ export const REGISTERED_HOOKS = [
   'beforeHeaderChange',
 
   /**
-   * Fired by the {@link EditableHeaders} plugin after a column or row header is renamed. Use it to save the new
-   * value in your application.
+   * Fired by the {@link EditableHeaders} plugin after a column or row header is renamed, and for every header an
+   * undo, a redo or {@link EditableHeaders#clearHeaders} changes. Use it to save the new value in your application.
    *
    * @event Hooks#afterHeaderChange
    * @since 19.0.0

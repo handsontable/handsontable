@@ -26,6 +26,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * The class ColumnSorting puts on a header label whose click sorts the column.
  */
 const SORT_ACTION_CLASS = 'sortAction';
+const AXES: HeaderAxis[] = ['column', 'row'];
 /**
  * Controls inside a header whose own double-click must not open the editor.
  */
@@ -41,6 +42,11 @@ interface EditedHeader {
   axis: HeaderAxis;
   physicalIndex: number;
 }
+
+/**
+ * The renames of both axes by physical index, taken before an undo or a redo.
+ */
+type NamesSnapshot = Record<HeaderAxis, unknown[]>;
 
 /**
  * @plugin EditableHeaders
@@ -64,8 +70,8 @@ interface EditedHeader {
  * [`getRowHeader()`](@/api/core.md#getrowheader), copying with headers, and the exported file all return the new
  * name. One rename is one undo step. To save the new names in your application, use the
  * [`afterHeaderChange`](@/api/hooks.md#afterheaderchange) hook, and save each name by its physical index, which
- * stays with the column or row. An undo, a redo and {@link EditableHeaders#clearHeaders} change the names without
- * running that hook.
+ * stays with the column or row. The hook also runs for every header that an undo, a redo or
+ * {@link EditableHeaders#clearHeaders} changes.
  *
  * A new name is written as plain text, even when it looks like HTML. An emptied input cancels the rename.
  *
@@ -228,6 +234,14 @@ export class EditableHeaders extends BasePlugin {
    * read, so they read this flag instead of the plugin registry.
    */
   #nestedHeadersOn = false;
+  /**
+   * While `true`, the value hooks return the configured header, so the plugin can read it under a rename.
+   */
+  #readingConfigured = false;
+  /**
+   * The renames before the undo or redo in progress, or `null`. Taken only when `afterHeaderChange` has a listener.
+   */
+  #namesBeforeRestore: NamesSnapshot | null = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -264,6 +278,10 @@ export class EditableHeaders extends BasePlugin {
     this.addHook('afterScroll', this.#syncEditor);
     this.addHook('afterDocumentKeyDown', this.#onAfterDocumentKeyDown);
     this.addHook('beforeCompositionStart', this.#onAfterDocumentKeyDown);
+    this.addHook('beforeUndo', this.#onBeforeRestore);
+    this.addHook('beforeRedo', this.#onBeforeRestore);
+    this.addHook('afterUndo', this.#onAfterRestore);
+    this.addHook('afterRedo', this.#onAfterRestore);
     this.eventManager.addEventListener(this.hot.rootElement, 'dblclick', this.#onRootDoubleClick);
 
     registerMenuEntries(this, () => [renameHeaderItem(this)], {
@@ -413,6 +431,7 @@ export class EditableHeaders extends BasePlugin {
 
   /**
    * Drops the names users gave headers, so the headers show the configured values again. One undo step.
+   * Fires {@link Hooks#afterHeaderChange} for every header it changes, and never {@link Hooks#beforeHeaderChange}.
    *
    * @param {string} [axis] `'column'` or `'row'`. Both when left out.
    */
@@ -420,6 +439,8 @@ export class EditableHeaders extends BasePlugin {
     if (!this.enabled) {
       return;
     }
+
+    const before = this.#takeNamesSnapshot();
 
     this.runOperation('header_rename_clear', () => {
       if (axis !== 'row') {
@@ -431,6 +452,7 @@ export class EditableHeaders extends BasePlugin {
       }
     });
     this.hot.render();
+    this.#reportChangedNames(before);
   }
 
   /**
@@ -561,6 +583,70 @@ export class EditableHeaders extends BasePlugin {
       ?.querySelector<HTMLElement>(axis === 'column' ? '.colHeader' : '.rowHeader');
 
     return label?.textContent ?? stringify(this.#readHeader(axis, visualIndex));
+  }
+
+  /**
+   * Copies the renames of both axes, by physical index, when something listens to `afterHeaderChange`.
+   *
+   * @returns {NamesSnapshot|null}
+   */
+  #takeNamesSnapshot(): NamesSnapshot | null {
+    if (!this.hot.hasHook('afterHeaderChange')) {
+      return null;
+    }
+
+    return {
+      column: [...(this.#columnNames?.getValues() ?? [])],
+      row: [...(this.#rowNames?.getValues() ?? [])],
+    };
+  }
+
+  /**
+   * Fires `afterHeaderChange` for every header whose rename differs from `before`. An undo, a redo and
+   * `clearHeaders()` change the maps with no rename of their own, and an application that saves names from the hook
+   * would otherwise keep the names they replaced.
+   *
+   * @param {NamesSnapshot|null} before The renames before the change, or `null` when nothing listens.
+   */
+  #reportChangedNames(before: NamesSnapshot | null) {
+    if (before === null) {
+      return;
+    }
+
+    AXES.forEach((axis) => {
+      const after = this.#getNames(axis)?.getValues() ?? [];
+      const length = Math.max(after.length, before[axis].length);
+
+      for (let physicalIndex = 0; physicalIndex < length; physicalIndex++) {
+        const oldName = before[axis][physicalIndex] ?? null;
+        const newName = after[physicalIndex] ?? null;
+        const visualIndex = this.#toVisual(axis, physicalIndex);
+
+        if (oldName !== newName && visualIndex !== null && this.hot) {
+          const configured = this.#readConfiguredHeader(axis, visualIndex);
+
+          this.hot.runHooks('afterHeaderChange', axis, visualIndex, stringify(newName ?? configured),
+            oldName ?? configured);
+        }
+      }
+    });
+  }
+
+  /**
+   * Returns the header a column or row would show with no rename.
+   *
+   * @param {string} axis The header axis.
+   * @param {number} visualIndex The visual index.
+   * @returns {*}
+   */
+  #readConfiguredHeader(axis: HeaderAxis, visualIndex: number): unknown {
+    this.#readingConfigured = true;
+
+    try {
+      return this.#readHeader(axis, visualIndex);
+    } finally {
+      this.#readingConfigured = false;
+    }
   }
 
   /**
@@ -790,7 +876,7 @@ export class EditableHeaders extends BasePlugin {
    */
   #onModifyColumnHeaderValue = (value: unknown, visualColumn: number): unknown => {
     // `colHeaders: false` hides the headers, and core reports `null` for them then.
-    if (this.#nestedHeadersOn || this.hot.getSettings().colHeaders === false) {
+    if (this.#readingConfigured || this.#nestedHeadersOn || this.hot.getSettings().colHeaders === false) {
       return value;
     }
 
@@ -805,7 +891,7 @@ export class EditableHeaders extends BasePlugin {
    * @returns {*}
    */
   #onModifyRowHeaderValue = (value: unknown, visualRow: number): unknown => {
-    if (!this.hot.hasRowHeaders()) {
+    if (this.#readingConfigured || !this.hot.hasRowHeaders()) {
       return value;
     }
 
@@ -872,6 +958,23 @@ export class EditableHeaders extends BasePlugin {
     }
 
     this.#editor.reposition(rect);
+  };
+
+  /**
+   * Takes the renames before an undo or a redo, so the change can be reported after it.
+   */
+  #onBeforeRestore = () => {
+    this.#namesBeforeRestore = this.#takeNamesSnapshot();
+  };
+
+  /**
+   * Reports the headers an undo or a redo renamed.
+   */
+  #onAfterRestore = () => {
+    const before = this.#namesBeforeRestore;
+
+    this.#namesBeforeRestore = null;
+    this.#reportChangedNames(before);
   };
 
   /**

@@ -131,6 +131,34 @@ describe('EditableHeaders', () => {
     destroy();
   });
 
+  it('should fire afterHeaderChange for every header an undo, a redo or clearHeaders() changes', () => {
+    const afterHeaderChange = jest.fn();
+    const { hot, plugin, destroy } = createGrid({ undo: true, afterHeaderChange });
+    const undoRedo = hot.getPlugin('undoRedo');
+
+    plugin.setHeader('column', 1, 'Price');
+    afterHeaderChange.mockClear();
+
+    undoRedo.undo();
+
+    expect(afterHeaderChange.mock.calls).toEqual([['column', 1, 'B1', 'Price']]);
+
+    afterHeaderChange.mockClear();
+    undoRedo.redo();
+
+    expect(afterHeaderChange.mock.calls).toEqual([['column', 1, 'Price', 'B1']]);
+
+    plugin.setHeader('row', 2, 'Total');
+    afterHeaderChange.mockClear();
+    plugin.clearHeaders();
+
+    expect(afterHeaderChange.mock.calls).toEqual([
+      ['column', 1, 'B1', 'Price'],
+      ['row', 2, '3', 'Total'],
+    ]);
+    destroy();
+  });
+
   it('should undo and redo a rename as one step', () => {
     const { hot, plugin, destroy } = createGrid({ undo: true });
 

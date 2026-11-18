@@ -516,7 +516,7 @@ afterHeaderChange(axis, visualIndex, newValue, oldValue) {
 },
 ```
 
-An undo, a redo, and `clearHeaders()` change the names without running `afterHeaderChange`. To keep your saved names in step, read them again in the [`afterUndo`](@/api/hooks.md#afterundo) and [`afterRedo`](@/api/hooks.md#afterredo) hooks with [`getColHeader()`](@/api/core.md#getcolheader) and [`getRowHeader()`](@/api/core.md#getrowheader).
+`afterHeaderChange` also runs for every header that an undo, a redo, or `clearHeaders()` changes, so your saved names stay in step. `beforeHeaderChange` runs only for a rename: it can't stop an undo or a reset.
 
 To validate or reject a rename, return `false` from the [`beforeHeaderChange`](@/api/hooks.md#beforeheaderchange) hook. The header then keeps its old name, and `afterHeaderChange` doesn't run.
 

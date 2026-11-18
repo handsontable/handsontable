@@ -52,8 +52,11 @@ option, a row header) through an input laid over the header. Read this before to
   `afterRender` and on `afterScroll`: a scroll inside the drawn band moves the overlays with no render, so
   `afterRender` alone left the input behind its column. When the header is no longer drawn it saves and closes,
   in a `_registerTimeout()`, because the save renders and `afterRender` is inside a render.
-- **Undo, redo and `clearHeaders()` do not fire `afterHeaderChange`.** The index maps are restored by
-  UndoRedo with no per-header event. The docs tell apps to read the names again in `afterUndo`/`afterRedo`.
+- **Undo, redo and `clearHeaders()` fire `afterHeaderChange` themselves.** UndoRedo restores the index maps with
+  no per-header event, so `#onBeforeRestore`/`#onAfterRestore` (and `clearHeaders()`) compare the maps before and
+  after by physical index and fire the hook once per changed header, `beforeHeaderChange` never (an undo cannot be
+  vetoed there). The copy is taken only while the hook has a listener (`hasHook()`), because it is O(rows) per
+  undo. The configured value is read with `#readingConfigured` up, which makes the value hooks step aside.
 - **The input carries `data-hot-input`.** Without it `TableView` treats it as a page input
   (`isOutsideInput()`) and unlistens the grid on the `mouseup` that follows: the "Rename header" menu click
   opened the input and the grid then stopped listening, so Enter never reached the plugin context (the
