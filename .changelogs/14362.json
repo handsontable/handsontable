@@ -1,7 +1,7 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed data reads, such as `getData()`, and column sorting ignoring a `valueGetter` or a key/value cell type set through the `cells` function for rows that were not rendered.",
-  "type": "fixed",
+  "title": "Changed `getData()`, the `getDataAt*()` methods, copying, and column sorting to call the `cells` function for every cell they read, so a `valueGetter` or a key/value cell type it sets applies to rows that were not rendered.",
+  "type": "changed",
   "issueOrPR": 14362,
   "breaking": false,
   "framework": "none"

@@ -1012,14 +1012,56 @@ describe('DataMap reads of a `valueGetter` set through the `cells` function', ()
     expect(cells).toHaveBeenCalledTimes(6);
   });
 
-  it('should call the `cells` function once per copied cell', () => {
-    const cells = jest.fn(prefixFirstColumn);
-
-    hot = createUnrenderedGrid({ data: [['A1', 'B1'], ['A2', 'B2']], cells });
-    cells.mockClear();
+  it('should copy the getter output of the rows a copy reads', () => {
+    hot = createUnrenderedGrid({ data: [['A1', 'B1'], ['A2', 'B2']], cells: prefixFirstColumn });
 
     expect(hot.getCopyableText(0, 0, 1, 1)).toBe('XA1\tB1\nXA2\tB2');
-    expect(cells).toHaveBeenCalledTimes(4);
+  });
+
+  it('should copy what `getData()` reads when a meta hook alone adds a getter', () => {
+    hot = createUnrenderedGrid({
+      data: [['A1'], ['A2']],
+      cells: () => ({}),
+      afterGetCellMeta(row, column, cellProperties) {
+        cellProperties.valueGetter = value => `H${value}`;
+      },
+    });
+
+    expect(hot.getCopyableData(1, 0)).toBe(String(hot.getDataAtCell(1, 0)));
+  });
+
+  it('should fire no meta hook for a data read, in a column with a `valueGetter` of its own too', () => {
+    const source = [{ key: 'kg', value: 'Kilogram' }];
+    const hookCalls = { before: 0, after: 0 };
+
+    hot = createUnrenderedGrid({
+      data: [[source[0]], [source[0]]],
+      columns: [{ type: 'dropdown', source }],
+      cells: () => ({}),
+      beforeGetCellMeta() {
+        hookCalls.before += 1;
+      },
+      afterGetCellMeta() {
+        hookCalls.after += 1;
+      },
+    });
+    hookCalls.before = 0;
+    hookCalls.after = 0;
+
+    expect(hot.getDataAtCol(0)).toEqual(['Kilogram', 'Kilogram']);
+    expect(hookCalls).toEqual({ before: 0, after: 0 });
+  });
+
+  it('should leave stored meta as it was after a read', () => {
+    hot = createUnrenderedGrid({ data: [['A1'], ['A2']], cells: () => ({ readOnly: true }) });
+    hot.setCellMeta(0, 0, 'readOnly', false);
+
+    const metaManager = hot._getMetaManager();
+
+    metaManager.invalidateMetaExtensions();
+    hot.getDataAtCell(0, 0);
+
+    expect(metaManager.getCellMetaIfExists(0, 0).readOnly).toBe(false);
   });
 
   it('should not store cell meta for the cells a full read extends', () => {
@@ -1056,27 +1098,30 @@ describe('DataMap reads of a `valueGetter` set through the `cells` function', ()
     expect(hot.getDataAtCell(0, 0)).toBe('XA1');
   });
 
-  it('should not recurse when an `afterGetCellMeta` listener reads the data of the cell', () => {
+  it('should not recurse when an `afterGetCellMeta` listener reads the data of the cell it extends', () => {
     const readValues = [];
 
-    // A column `valueGetter` makes the read run the full extension, meta hooks included.
     hot = createUnrenderedGrid({
       data: [['A1'], ['A2']],
-      columns: [{ valueGetter: value => `Y${value}` }],
-      cells: () => ({}),
+      cells: prefixFirstColumn,
       afterGetCellMeta(row, column) {
         readValues.push(this.getDataAtCell(row, column));
       },
     });
     readValues.length = 0;
 
-    expect(hot.getDataAtCell(1, 0)).toBe('YA2');
-    expect(readValues).toEqual(['YA2']);
+    // The render extends every cell, and the listener's read runs inside that extension. The hook fires
+    // after the `cells()` result is on the stored meta, so the nested read already sees the getter.
     expect(() => hot.render()).not.toThrow();
+    expect(readValues).toEqual(['XA1', 'XA2']);
+    expect(hot.getDataAtCell(1, 0)).toBe('XA2');
   });
 
   it('should create one cell meta object per column for a full read when the `cells` function writes nothing', () => {
-    hot = createUnrenderedGrid({ data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']], cells: () => ({}) });
+    hot = createUnrenderedGrid({
+      data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']],
+      cells: () => ({ readOnly: true }),
+    });
 
     const createTransientMeta = jest.spyOn(hot._getMetaManager().cellMeta, 'createTransientMeta');
 
@@ -1162,11 +1207,46 @@ describe('DataMap reads of a `valueGetter` set through the `cells` function', ()
     expect(hot.getDataAtCell(1, 0)).toBe('XA2');
   });
 
+  it('should run the `cells` function on reads again after it threw inside a meta extension', () => {
+    let throwsForSecondRow = false;
+
+    hot = createUnrenderedGrid({
+      data: [['A1'], ['A2']],
+      cells(row, column) {
+        if (throwsForSecondRow && row === 1) {
+          throw new Error('cells failed');
+        }
+
+        return prefixFirstColumn(row, column);
+      },
+    });
+
+    throwsForSecondRow = true;
+
+    expect(() => hot.getCellMetaTransient(1, 0)).toThrow('cells failed');
+
+    throwsForSecondRow = false;
+
+    expect(hot.getDataAtCell(1, 0)).toBe('XA2');
+  });
+
   it('should sort a column by the output of the getter the `cells` function sets', () => {
     hot = createUnrenderedGrid({
       data: [[1], [2], [3]],
       columnSorting: true,
       cells: () => ({ valueGetter: value => -value }),
+    });
+
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+    expect([0, 1, 2].map(row => hot.toPhysicalRow(row))).toEqual([2, 1, 0]);
+  });
+
+  it('should sort a column by the output of the getter a column-level `cells` function sets', () => {
+    hot = createUnrenderedGrid({
+      data: [[1, 'a'], [2, 'b'], [3, 'c']],
+      columnSorting: true,
+      columns: [{ cells: () => ({ valueGetter: value => -value }) }, {}],
     });
 
     hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
