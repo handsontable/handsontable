@@ -104,6 +104,8 @@ export class EditorListA11yPage {
    * @param {boolean} [options.heldValidator] Give the column a validator that answers only on
    * {@link EditorListA11yPage#releaseValidations}.
    * @param {boolean} [options.passValidator] Give the column a validator that accepts every value.
+   * @param {boolean} [options.rejectValidator] Give the column a validator that rejects every value, with
+   * `allowInvalid: false`.
    * @param {boolean} [options.contextMenu] Turn the context menu on.
    * @param {boolean} [options.outsideClickDeselects] The grid's `outsideClickDeselects` setting.
    * @param {boolean} [options.twoListColumns] Give the `handsontable` list a second column (`Alpha code`).
@@ -112,16 +114,19 @@ export class EditorListA11yPage {
    * @param {boolean} [options.rtl] Build a right-to-left grid in a right-to-left document.
    * @param {boolean} [options.frozen] Freeze the first column of a narrow grid with eight plain columns more, so
    * the grid scrolls sideways.
+   * @param {boolean} [options.imeFastEdit] Turn `imeFastEdit` on.
    */
   async goto({
     longSource = false, asyncSource = false, strict = false, allowHtml = false, ariaTags = true, enterStays = false,
-    heldValidator = false, passValidator = false, contextMenu = false, outsideClickDeselects = true,
-    twoListColumns = false, innerAriaTags = true, rtl = false, frozen = false,
+    heldValidator = false, passValidator = false, rejectValidator = false, contextMenu = false,
+    outsideClickDeselects = true,
+    twoListColumns = false, innerAriaTags = true, rtl = false, frozen = false, imeFastEdit = false,
   }: {
     longSource?: boolean, asyncSource?: boolean, strict?: boolean, allowHtml?: boolean, ariaTags?: boolean,
-    enterStays?: boolean, heldValidator?: boolean, passValidator?: boolean, contextMenu?: boolean,
+    enterStays?: boolean, heldValidator?: boolean, passValidator?: boolean, rejectValidator?: boolean,
+    contextMenu?: boolean,
     outsideClickDeselects?: boolean, twoListColumns?: boolean, innerAriaTags?: boolean, rtl?: boolean,
-    frozen?: boolean,
+    frozen?: boolean, imeFastEdit?: boolean,
   } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
       + (longSource ? '&source=200' : '')
@@ -132,12 +137,14 @@ export class EditorListA11yPage {
       + (enterStays ? '&enterMoves=stay' : '')
       + (heldValidator ? '&validator=held' : '')
       + (passValidator ? '&validator=pass' : '')
+      + (rejectValidator ? '&validator=reject' : '')
       + (contextMenu ? '&contextMenu=true' : '')
       + (outsideClickDeselects ? '' : '&outsideClickDeselects=false')
       + (twoListColumns ? '&columns=2' : '')
       + (innerAriaTags ? '' : '&innerAria=false')
       + (rtl ? '&dir=rtl' : '')
-      + (frozen ? '&frozen=1' : '');
+      + (frozen ? '&frozen=1' : '')
+      + (imeFastEdit ? '&imeFastEdit=true' : '');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);
     await awaitBundle(this.page);
@@ -419,6 +426,28 @@ export class EditorListA11yPage {
   }
 
   /**
+   * The active editor's field state as a screen reader reads it, in one evaluation: `aria-expanded`, the raw
+   * `aria-controls` and `aria-activedescendant` values, and the text of the element `aria-activedescendant`
+   * names, or `null` when it names no element (a missing id) or nothing.
+   */
+  async fieldReferences(): Promise<{
+    expanded: string | null, controls: string | null, activeDescendant: string | null, activeText: string | null,
+  }> {
+    return this.page.evaluate(() => {
+      const input = (window as unknown as FixtureWindow).hot.getActiveEditor()!.TEXTAREA;
+      const activeDescendant = input.getAttribute('aria-activedescendant');
+      const active = activeDescendant === null ? null : input.ownerDocument.getElementById(activeDescendant);
+
+      return {
+        expanded: input.getAttribute('aria-expanded'),
+        controls: input.getAttribute('aria-controls'),
+        activeDescendant,
+        activeText: active === null ? null : active.textContent ?? '',
+      };
+    });
+  }
+
+  /**
    * The roles on the editor's field, the list root, and the list cells, read with `ariaTags: false`.
    */
   async listRoles(): Promise<ListRoles> {
@@ -430,6 +459,24 @@ export class EditorListA11yPage {
         input: editor.TEXTAREA.getAttribute('role'),
         listRoot: listRoot.getAttribute('role'),
         cells: Array.from(listRoot.querySelectorAll('td')).map(td => td.getAttribute('role')),
+      };
+    });
+  }
+
+  /**
+   * The names of every `aria-*` attribute on the editor's field, on the list root, and on the list cells (each
+   * name once), read with `ariaTags: false`.
+   */
+  async ariaAttributeNames(): Promise<{ input: string[], listRoot: string[], cells: string[] }> {
+    return this.page.evaluate(() => {
+      const editor = (window as unknown as FixtureWindow).hot.getActiveEditor()!;
+      const listRoot = editor.htEditor.rootElement;
+      const ariaNames = (element: Element) => element.getAttributeNames().filter(name => name.startsWith('aria-'));
+
+      return {
+        input: ariaNames(editor.TEXTAREA),
+        listRoot: ariaNames(listRoot),
+        cells: [...new Set(Array.from(listRoot.querySelectorAll('td')).flatMap(ariaNames))],
       };
     });
   }

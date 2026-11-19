@@ -25,6 +25,7 @@ export const MULTI_LINE_TEXT = 'Al\npha';
 export interface EditorField {
   tagName: string;
   type: string | null;
+  autocomplete: string | null;
   hotInput: boolean;
   tabIndex: string | null;
   inHolder: boolean;
@@ -50,6 +51,8 @@ interface FixtureWindow {
     getCell(row: number, col: number): HTMLElement | null;
     getActiveEditor(): { isOpened(): boolean; TEXTAREA: HTMLElement } | undefined;
     getPlugin(name: string): { isUndoAvailable(): boolean };
+    getCurrentThemeName(): string | undefined;
+    useTheme(themeName: string): void;
   };
 }
 
@@ -171,6 +174,7 @@ export class ListEditorInputPage {
       return {
         tagName: field.tagName.toLowerCase(),
         type: field.getAttribute('type'),
+        autocomplete: field.getAttribute('autocomplete'),
         hotInput: field.hasAttribute('data-hot-input'),
         tabIndex: field.getAttribute('tabindex'),
         inHolder: field.parentElement?.classList.contains('handsontableInputHolder') ?? false,
@@ -202,6 +206,28 @@ export class ListEditorInputPage {
    */
   async sourceDataAtCell(row: number, col: number): Promise<unknown> {
     return this.page.evaluate(([r, c]) => (window as unknown as FixtureWindow).hot.getSourceDataAtCell(r, c), [row, col]);
+  }
+
+  /**
+   * Switches the grid to a theme other than the one it runs on, through `hot.useTheme()`, after the target
+   * theme's stylesheet has loaded. A theme change closes an open editor without ending its edit.
+   */
+  async switchToAnotherTheme(): Promise<void> {
+    await this.page.evaluate(async() => {
+      const { hot } = window as unknown as FixtureWindow;
+      const current = hot.getCurrentThemeName();
+      const target = ['ht-theme-main', 'ht-theme-horizon', 'ht-theme-classic'].find(name => name !== current)!;
+      const link = document.createElement('link');
+
+      link.rel = 'stylesheet';
+      link.href = `/handsontable/styles/${target}.min.css`;
+      await new Promise<void>((resolve, reject) => {
+        link.onload = () => resolve();
+        link.onerror = () => reject(new Error(`The stylesheet of ${target} did not load`));
+        document.head.appendChild(link);
+      });
+      hot.useTheme(target);
+    });
   }
 
   /**

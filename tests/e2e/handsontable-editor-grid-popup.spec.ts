@@ -179,6 +179,38 @@ test.describe('handsontable editor grid popup', { tag: [THEMES_TAG, CROSS_BROWSE
     expect(await grid.isEditorOpened()).toBe(true);
   });
 
+  for (const key of ['Enter', 'Tab'] as const) {
+    test(`writes the highlighted cell of the second column on ${key}`, async() => {
+      await grid.goto({ twoListColumns: true });
+      await grid.openEditorAt(0, 0);
+      await grid.page.keyboard.press('ArrowDown');
+      await grid.page.keyboard.press('ArrowRight');
+      await expect.poll(() => grid.listSelection()).toEqual([0, 1]);
+
+      await grid.page.keyboard.press(key);
+      await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+      expect(await grid.dataAtCell(0, 0)).toBe('Alpha code');
+    });
+  }
+
+  test('keeps the caret keys in a list of one column while a row is highlighted', async() => {
+    await grid.goto();
+    await grid.openEditorAt(0, 0);
+    await grid.page.keyboard.press('ArrowDown');
+    await expect.poll(() => grid.listSelection()).toEqual([0, 0]);
+    await grid.page.keyboard.press('End');
+    await expect.poll(() => grid.caret()).toEqual({ start: 2, end: 2 });
+
+    await grid.page.keyboard.press('ArrowLeft');
+    await expect.poll(() => grid.caret()).toEqual({ start: 1, end: 1 });
+
+    await grid.page.keyboard.press('ArrowRight');
+    await expect.poll(() => grid.caret()).toEqual({ start: 2, end: 2 });
+    expect(await grid.listSelection()).toEqual([0, 0]);
+    expect(await grid.isEditorOpened()).toBe(true);
+  });
+
   test('moves to the next column with ArrowLeft in a right-to-left grid', async() => {
     await grid.goto({ twoListColumns: true, rtl: true });
     await grid.openEditorAt(0, 0);

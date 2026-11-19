@@ -551,8 +551,8 @@ export class TextEditor extends BaseEditor {
     // UI too. Restoring `_opened` here is required: `hideForScroll()` cleared it, and while it is false
     // `Core#applyChanges()` treats the live edit as closed - the next data change runs `prepareEditor()`,
     // which resets the editor to `VIRGIN` and blanks the value the user typed. It must be set on the way
-    // back, not inside the overrides, because `AutocompleteEditor#showAfterScroll()` does not call
-    // `super`. `open()` clears `#hiddenByScroll` up front, so its own `refreshDimensions()` cannot
+    // back, not inside the overrides, because `AutocompleteEditor#showAfterScroll()` calls `super` only
+    // for a list that holds choices. `open()` clears `#hiddenByScroll` up front, so its own `refreshDimensions()` cannot
     // trigger this; the `!force` gate covers `prepare()`, which calls `refreshDimensions(true)` before
     // any scroll-hide can occur.
     if (!force && this.#hiddenByScroll) {

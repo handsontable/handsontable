@@ -33,6 +33,8 @@ for (const cellType of CELL_TYPES) {
       expect(await grid.editorFieldState()).toEqual({
         tagName: 'input',
         type: 'text',
+        // A text input is a target for the browser's autofill, which a field that edits a cell must not offer.
+        autocomplete: 'off',
         hotInput: true,
         tabIndex: '-1',
         inHolder: true,
@@ -105,6 +107,39 @@ for (const cellType of CELL_TYPES) {
       await grid.expectEditorOpened();
       await page.keyboard.press('Enter');
       await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+      expect(await grid.sourceDataAtCell(1, 0)).toBe(MULTI_LINE_TEXT);
+      expect(await grid.isUndoAvailable()).toBe(false);
+    });
+
+    test('saves an edited multi-line value without its line break', async({ page }) => {
+      await grid.build();
+      await grid.selectCell(1, 0);
+      await page.keyboard.press('Enter');
+      await grid.expectEditorOpened();
+      // The input holds one line: the line break is gone from what the user edits.
+      expect((await grid.editorFieldState()).value).toBe('Alpha');
+      await page.keyboard.press('End');
+      await page.keyboard.type('x');
+      await page.keyboard.press('Enter');
+      await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+      expect(await grid.sourceDataAtCell(1, 0)).toBe('Alphax');
+    });
+
+    test('confirms an untouched multi-line value without writing after a theme change closed the list', async({
+      page,
+    }) => {
+      await grid.build();
+      await grid.selectCell(1, 0);
+      await page.keyboard.press('Enter');
+      await grid.expectEditorOpened();
+      // A theme change closes the editor without ending the edit, so Enter still confirms it.
+      await grid.switchToAnotherTheme();
+      await expect.poll(() => grid.isEditorOpened()).toBe(false);
+      await page.keyboard.press('Enter');
+      // The positive control: the confirm ended the edit and moved the selection down.
+      await expect(grid.cell(2, 0)).toHaveClass(/\bcurrent\b/);
 
       expect(await grid.sourceDataAtCell(1, 0)).toBe(MULTI_LINE_TEXT);
       expect(await grid.isUndoAvailable()).toBe(false);

@@ -108,8 +108,9 @@
 
     // `?validator=held` gives the column a validator that answers only when a spec calls
     // `htReleaseValidations()`, so the editor waits for the answer as long as the spec needs.
-    // `?validator=pass` gives it one that accepts every value at once.
-    const validatorMode = ({ held: 'held', pass: 'pass' })[htParams.get('validator') ?? ''] ?? null;
+    // `?validator=pass` gives it one that accepts every value at once, and `?validator=reject` one that rejects
+    // every value at once, with `allowInvalid: false`, so a commit reopens the editor.
+    const validatorMode = ({ held: 'held', pass: 'pass', reject: 'reject' })[htParams.get('validator') ?? ''] ?? null;
     if (htParams.has('validator') && validatorMode === null) {
       throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
     }
@@ -133,6 +134,13 @@
     const contextMenu = ({ true: true, false: false })[htParams.get('contextMenu') ?? 'false'];
     if (contextMenu === undefined) {
       throw new Error('Unknown ?contextMenu= value: ' + JSON.stringify(htParams.get('contextMenu')));
+    }
+
+    // `?imeFastEdit=true` turns `imeFastEdit` on, so the browser focus rests on the editor's field, not on the
+    // selected cell, between edits.
+    const imeFastEdit = ({ true: true, false: false })[htParams.get('imeFastEdit') ?? 'false'];
+    if (imeFastEdit === undefined) {
+      throw new Error('Unknown ?imeFastEdit= value: ' + JSON.stringify(htParams.get('imeFastEdit')));
     }
 
     // `?columns=2` gives the `handsontable` column's list a second column (`Alpha` | `Alpha code`), so a
@@ -174,10 +182,15 @@
     const validatorByMode = {
       held: heldValidator,
       pass: (value, callback) => callback(true),
+      reject: (value, callback) => callback(false),
     };
     const column = validatorMode === null
       ? columnByCellType[window.htCellType]
-      : { ...columnByCellType[window.htCellType], validator: validatorByMode[validatorMode] };
+      : {
+        ...columnByCellType[window.htCellType],
+        validator: validatorByMode[validatorMode],
+        ...(validatorMode === 'reject' ? { allowInvalid: false } : {}),
+      };
 
     // A fresh value per cell: `multiselect` stores an array, and sharing one instance across cells
     // would let a chip removal in one cell show up in the others.
@@ -231,6 +244,7 @@
       ...(enterMoves ? { enterMoves } : {}),
       ...(contextMenu ? { contextMenu: true } : {}),
       ...(outsideClickDeselects ? {} : { outsideClickDeselects: false }),
+      ...(imeFastEdit ? { imeFastEdit: true } : {}),
       colHeaders: true,
       rowHeaders: true,
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`

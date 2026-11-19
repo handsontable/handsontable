@@ -166,6 +166,13 @@ for (const cellType of CELL_TYPES) {
       await expect(grid.combobox('B, row 2')).toBeFocused();
       await expect(grid.listbox('B, row 2')).toBeVisible();
       expect((await grid.referencedElements()).controls).toEqual({ role: 'listbox', isListRoot: true });
+
+      // The reused editor names an option of the new list, not one of the list it showed before.
+      await grid.page.keyboard.press('ArrowDown');
+      await expect.poll(() => grid.referencedElements()).toEqual({
+        controls: { role: 'listbox', isListRoot: true },
+        activeDescendant: { role: 'option', selected: 'true', text: 'Alpha', inList: true },
+      });
     });
 
     test('writes no role with ariaTags: false', async() => {
@@ -179,9 +186,151 @@ for (const cellType of CELL_TYPES) {
       expect(roles.listRoot).toBeNull();
       expect(roles.cells.every(role => role === null)).toBe(true);
       await expect(grid.editorInput).not.toHaveAttribute('aria-controls');
+
+      // A highlight writes nothing either: no reference on the field, no state or name on the list. (The list is
+      // highlighted through its API: with `ariaTags: false` ArrowDown closes the editor, as on 18.1.)
+      await grid.selectListRow(0);
+      await expect.poll(() => grid.listSelection()).toEqual([0, 0]);
+      // `aria-selected` on the highlighted cell is the core selection's own: every grid writes it whatever its
+      // `ariaTags` (`Selection`'s `cellAttributes`), the root grid's cells too. The editor adds nothing.
+      expect(await grid.ariaAttributeNames()).toEqual({ input: [], listRoot: [], cells: ['aria-selected'] });
+    });
+
+    test('names no option once ArrowUp leaves the list above its first option', async() => {
+      await grid.goto();
+      await grid.openEditorAt(0, 0);
+      await expect(grid.listbox('A, row 1').getByRole('option')).toHaveCount(3);
+      await grid.page.keyboard.press('ArrowDown');
+      await expect.poll(() => grid.fieldReferences()).toMatchObject({ activeText: 'Alpha' });
+
+      // The dropdown highlights a choice on open too, so walk up until the list highlights nothing.
+      for (let i = 0; i < 4 && await grid.listSelection() !== null; i++) {
+        await grid.page.keyboard.press('ArrowUp');
+      }
+
+      expect(await grid.listSelection()).toBeNull();
+      await expect.poll(() => grid.fieldReferences()).toMatchObject({ activeDescendant: null });
+    });
+
+    test('never names a missing option after the wheel scrolls the highlight away', async() => {
+      await grid.goto({ longSource: true });
+      await grid.openEditorAt(0, 0);
+
+      const listbox = grid.listbox('A, row 1');
+
+      await expect(listbox.getByRole('option').first()).toHaveText('Al 001');
+
+      for (let i = 0; i < 3; i++) {
+        await grid.page.keyboard.press('ArrowDown');
+      }
+
+      await expect.poll(() => grid.fieldReferences()).toMatchObject({ activeText: 'Al 003' });
+
+      await grid.wheelOverList(2000);
+      // The precondition: the highlighted option is no longer drawn.
+      await expect(listbox.getByRole('option', { name: 'Al 003', exact: true })).toHaveCount(0);
+
+      // The field names the highlighted option or nothing: never an id no element carries.
+      await expect.poll(async() => {
+        const { activeDescendant, activeText } = await grid.fieldReferences();
+
+        return activeDescendant === null || activeText === 'Al 003';
+      }).toBe(true);
+      expect(await grid.listSelection()).toEqual([2, 0]);
+    });
+
+    test('names nothing while a grid scroll hides the list, also after a key, and names it again on re-show', async() => {
+      await grid.goto({ frozen: true });
+      await grid.openEditorAt(0, 1);
+      await expect(grid.listbox('B, row 1').getByRole('option')).toHaveCount(3);
+      await grid.page.keyboard.press('ArrowDown');
+      await expect.poll(() => grid.fieldReferences()).toMatchObject({ activeText: 'Alpha' });
+
+      await grid.scrollGridToInlineEnd();
+      await expect.poll(() => grid.displayedListCount()).toBe(0);
+      expect(await grid.fieldReferences())
+        .toEqual({ expanded: 'false', controls: null, activeDescendant: null, activeText: null });
+
+      // The list keeps taking keys while hidden.
+      await grid.page.keyboard.press('ArrowDown');
+      await expect.poll(() => grid.listSelection()).toEqual([1, 0]);
+      expect(await grid.fieldReferences())
+        .toEqual({ expanded: 'false', controls: null, activeDescendant: null, activeText: null });
+
+      await grid.scrollGridToInlineStart();
+      await expect.poll(() => grid.displayedListCount()).toBe(1);
+      await expect.poll(() => grid.fieldReferences()).toMatchObject({ expanded: 'true', activeText: 'Alfa' });
+      expect((await grid.referencedElements()).controls).toEqual({ role: 'listbox', isListRoot: true });
+    });
+
+    test('names nothing after a theme change closed the list, also after the list renders', async() => {
+      await grid.goto();
+      await grid.openEditorAt(0, 0);
+      await expect(grid.listbox('A, row 1').getByRole('option')).toHaveCount(3);
+      await grid.page.keyboard.press('ArrowDown');
+      await expect.poll(() => grid.fieldReferences()).toMatchObject({ activeText: 'Alpha' });
+
+      await grid.switchToAnotherTheme();
+      await expect.poll(() => grid.isEditorOpened()).toBe(false);
+      expect(await grid.fieldReferences())
+        .toEqual({ expanded: 'false', controls: null, activeDescendant: null, activeText: null });
+
+      // The closed list keeps its highlight; a render of it must not point the field at it again.
+      expect(await grid.listSelection()).toEqual([0, 0]);
+      await grid.renderList();
+      expect(await grid.fieldReferences())
+        .toEqual({ expanded: 'false', controls: null, activeDescendant: null, activeText: null });
     });
   });
 }
+
+/**
+ * A list with no choice to show is hidden, so the field must not say it is expanded or point at it: an
+ * autocomplete list narrowed to nothing, or one whose function `source` has not answered yet.
+ */
+test.describe('list with nothing to show (autocomplete)', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('collapses the field while the typed text matches nothing, and expands it again', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new EditorListA11yPage(page, theme, bundle, 'autocomplete');
+
+    await grid.goto();
+    await grid.openEditorAt(0, 0);
+    await expect(grid.listbox('A, row 1').getByRole('option')).toHaveCount(3);
+    await page.keyboard.press('ArrowDown');
+    await expect.poll(() => grid.fieldReferences()).toMatchObject({ activeText: 'Alpha' });
+
+    await page.keyboard.type('zzz');
+    await expect.poll(() => grid.listQuery()).toBe('Alzzz');
+    // The positive control: the list is hidden.
+    await expect.poll(() => grid.displayedListCount()).toBe(0);
+    expect(await grid.fieldReferences())
+      .toEqual({ expanded: 'false', controls: null, activeDescendant: null, activeText: null });
+
+    for (let i = 0; i < 3; i++) {
+      await page.keyboard.press('Backspace');
+    }
+
+    await expect(grid.listbox('A, row 1').getByRole('option')).toHaveCount(3);
+    expect(await grid.fieldReferences()).toMatchObject({ expanded: 'true' });
+    expect((await grid.referencedElements()).controls).toEqual({ role: 'listbox', isListRoot: true });
+  });
+
+  test('keeps the field collapsed until a function source answers', async({ page, theme, bundle }) => {
+    const grid = new EditorListA11yPage(page, theme, bundle, 'autocomplete');
+
+    await grid.goto({ asyncSource: true });
+    await grid.openEditorAt(0, 0);
+    await expect.poll(() => grid.pendingQueryCount()).toBe(1);
+    expect(await grid.fieldReferences())
+      .toEqual({ expanded: 'false', controls: null, activeDescendant: null, activeText: null });
+
+    await grid.answerNextQuery();
+    await expect(grid.listbox('A, row 1').getByRole('option')).toHaveCount(3);
+    expect(await grid.fieldReferences()).toMatchObject({ expanded: 'true' });
+    expect((await grid.referencedElements()).controls).toEqual({ role: 'listbox', isListRoot: true });
+  });
+});
 
 /**
  * Typing narrows the autocomplete list without moving the highlight, so `aria-activedescendant` gives a
@@ -443,6 +592,102 @@ for (const cellType of COMMIT_CELL_TYPES) {
     }
   });
 }
+
+/**
+ * The focus rule after a validated commit is the core's, not the list editors': a `text` cell with a validator
+ * waits for its answer too. An accepted value moves the focus to the cell the selection lands on; a rejected one
+ * under `allowInvalid: false` reopens the editor, which keeps the focus.
+ */
+test.describe('focus after a commit (text with a validator)', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, () => {
+  for (const key of ['Enter', 'Tab'] as const) {
+    test(`moves the focus to the next cell when ${key} commits an accepted value`, async({ page, theme, bundle }) => {
+      const grid = new EditorListA11yPage(page, theme, bundle, 'text');
+      const nextCell: [number, number] = key === 'Enter' ? [1, 0] : [0, 1];
+
+      await grid.goto({ heldValidator: true });
+      await grid.openEditorAt(0, 0);
+      await page.keyboard.type('x');
+      await page.keyboard.press(key);
+      await expect.poll(() => grid.heldValidationCount()).toBe(1);
+      expect(await grid.releaseValidations()).toBe(1);
+      await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+      expect(await grid.selectedCell()).toEqual(nextCell);
+      await expect.poll(() => grid.focusTarget()).toEqual({ cell: nextCell });
+      expect(await grid.focusTargetAfterFrames(SETTLE_FRAMES)).toEqual({ cell: nextCell });
+    });
+  }
+
+  test('leaves the focus on the reopened editor when the validator rejects the value', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new EditorListA11yPage(page, theme, bundle, 'text');
+
+    await grid.goto({ rejectValidator: true });
+    await grid.openEditorAt(0, 0);
+    await page.keyboard.type('x');
+    await page.keyboard.press('Enter');
+
+    // The positive control: the rejected value wrote nothing, and the editor is open again on the same cell.
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    expect(await grid.dataAtCell(0, 0)).toBe('Al');
+    expect(await grid.selectedCell()).toEqual([0, 0]);
+    await expect.poll(() => grid.focusTarget()).toEqual({ editorField: true });
+    expect(await grid.focusTargetAfterFrames(SETTLE_FRAMES)).toEqual({ editorField: true });
+  });
+});
+
+/**
+ * With `imeFastEdit` the browser focus rests on the editor's field between edits, so the next composed
+ * character starts the next edit. A commit that waits for its validator must end there too, the way a
+ * commit of a cell without a validator does: the plain `text` cell is the control, and each case asserts
+ * the same end state for it first, in the same test.
+ */
+const IME_CASES: { name: string, cellType: EditorCellType, passValidator?: boolean, heldValidator?: boolean }[] = [
+  { name: 'autocomplete', cellType: 'autocomplete' },
+  { name: 'dropdown', cellType: 'dropdown' },
+  { name: 'text with a validator', cellType: 'text', passValidator: true },
+  // The answer comes on a later task, long after the key moved the selection.
+  { name: 'text with a held validator', cellType: 'text', heldValidator: true },
+  { name: 'autocomplete with a held validator', cellType: 'autocomplete', heldValidator: true },
+];
+
+test.describe('focus after a validated commit with imeFastEdit', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, () => {
+  for (const { name, cellType, passValidator = false, heldValidator = false } of IME_CASES) {
+    for (const key of ['Enter', 'Tab'] as const) {
+      test(`leaves the focus on the editor's field after ${key} commits (${name})`, async({ page, theme, bundle }) => {
+        const nextCell = key === 'Enter' ? [1, 0] : [0, 1];
+        const commitAndRead = async(grid: EditorListA11yPage, held: boolean) => {
+          await grid.openEditorAt(0, 0);
+          await page.keyboard.type('x');
+          await page.keyboard.press(key);
+
+          if (held) {
+            await expect.poll(() => grid.heldValidationCount()).toBe(1);
+            expect(await grid.releaseValidations()).toBe(1);
+          }
+
+          await expect.poll(() => grid.isEditorOpened()).toBe(false);
+          expect(await grid.selectedCell()).toEqual(nextCell);
+          await expect.poll(() => grid.focusTarget()).toEqual({ editorField: true });
+
+          return grid.focusTargetAfterFrames(SETTLE_FRAMES);
+        };
+
+        // The control: a cell without a validator, in the same configuration.
+        const control = new EditorListA11yPage(page, theme, bundle, 'text');
+
+        await control.goto({ imeFastEdit: true });
+        expect(await commitAndRead(control, false)).toEqual({ editorField: true });
+
+        const grid = new EditorListA11yPage(page, theme, bundle, cellType);
+
+        await grid.goto({ imeFastEdit: true, passValidator, heldValidator });
+        expect(await commitAndRead(grid, heldValidator)).toEqual({ editorField: true });
+      });
+    }
+  }
+});
 
 /**
  * The select editor edits in a native `<select>`, not in the text editors' field. With a validator its commit

@@ -12,7 +12,6 @@ import {
   getScrollbarWidth,
   getSelectionEndPosition,
   outerWidth,
-  removeAttribute,
   setAttribute,
   setCaretPosition,
   empty,
@@ -24,7 +23,6 @@ import { textRenderer } from '../../renderers/textRenderer';
 import {
   A11Y_AUTOCOMPLETE,
   A11Y_COMBOBOX,
-  A11Y_CONTROLS,
   A11Y_EXPANDED,
   A11Y_HASPOPUP,
   A11Y_LISTBOX,
@@ -335,11 +333,6 @@ export class AutocompleteEditor extends HandsontableEditor {
           ]);
         }
       },
-      afterSelectionEnd: (startRow: number, startCol: number) => {
-        if (rootInstanceAriaTagsEnabled) {
-          this.pointFieldAtListCell(startRow, startCol);
-        }
-      },
     });
 
     if (rootInstanceAriaTagsEnabled) {
@@ -348,20 +341,22 @@ export class AutocompleteEditor extends HandsontableEditor {
       // every open, and its clones with it, so this runs on every open.
       markOwnTablesAsPresentational(this.htEditor);
 
+      // The editor type keeps the ids of the autocomplete and dropdown lists apart: each editor keeps its
+      // container, and the id it last wrote, while another edits a cell at the same coordinates.
+      const editorType = (this.constructor as typeof AutocompleteEditor).EDITOR_TYPE;
+
       setAttribute(this.htEditor.rootElement, [
         A11Y_LISTBOX(),
-        ['id', `${this.#idPrefix}-listbox-${rowIndex}-${colIndex}`],
+        ['id', `${this.#idPrefix}-${editorType}-listbox-${rowIndex}-${colIndex}`],
       ]);
 
       // The list carries the field's name ("A, row 1"). Not through `aria-labelledby` pointing at the
       // field: a combobox referenced that way is an embedded control, so it lends the list its VALUE
       // (the typed text), not its name. `open()` runs after `prepare()`, so both coordinates are set.
       setCellInputName(this.hot, this.htEditor.rootElement, CELL_EDITOR_PHRASES, rowIndex ?? -1, colIndex ?? -1);
-
-      setAttribute(this.TEXTAREA, [
-        A11Y_EXPANDED('true'),
-        A11Y_CONTROLS(this.htEditor.rootElement.id),
-      ]);
+      // `aria-expanded` and `aria-controls` follow the choices: the list is empty until the first query
+      // answers, and `updateChoicesList()` expands the field once it holds one (`HandsontableEditor` wires the
+      // references to the list and its options).
     }
 
     this.#deferQuery();
@@ -616,8 +611,8 @@ export class AutocompleteEditor extends HandsontableEditor {
     // Ends the edit session. Closing means "no response is wanted any more", and so does a scroll-out
     // of the rendered range (see `hideForScroll()` below, which shares this in-flight cleanup); a late
     // response must not re-show the list or steal focus in either case (DEV-2653/DEV-2676). `afterSetTheme`
-    // also closes the editor (`assignHooks`). `_opened` stays false while the cell is scroll-hidden and
-    // after it scrolls back, so the guards elsewhere key on `state`, not `_opened`.
+    // also closes the editor (`assignHooks`). `_opened` stays false while the cell is scroll-hidden, and
+    // `TextEditor` restores it when the cell scrolls back.
     //
     // Queries this editor deferred are canceled outright; the token below is for the ones already
     // handed to user code, which cannot be.
@@ -630,14 +625,8 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.#dropInFlightQueries();
 
     this.removeHooksByKey('beforeKeyDown');
+    // `HandsontableEditor#close()` lowers `aria-expanded` and removes the references to the list.
     super.close();
-
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TEXTAREA, [
-        A11Y_EXPANDED('false'),
-      ]);
-      this.removeListReferences();
-    }
   }
 
   /**
@@ -659,8 +648,8 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Hides the dropdown because the edited cell scrolled out of the rendered range, without ending the
    * edit. Drops in-flight responses exactly as `close()` does (a late one must not re-show the list or
-   * steal focus), and lowers the combobox `aria-expanded` so a screen reader does not keep announcing
-   * an open listbox while the list is hidden. The inherited `HandsontableEditor#hideForScroll` keeps
+   * steal focus). The inherited `HandsontableEditor#hideForScroll` lowers the combobox `aria-expanded`, so a
+   * screen reader does not keep announcing an open listbox while the list is hidden, and `HandsontableEditor#hideForScroll` keeps
    * `beforeKeyDown` and the already-loaded choices, so the list re-shows populated and typing
    * re-queries once the cell scrolls back.
    *
@@ -670,13 +659,6 @@ export class AutocompleteEditor extends HandsontableEditor {
   hideForScroll(): boolean {
     this.#dropInFlightQueries();
 
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TEXTAREA, [
-        A11Y_EXPANDED('false'),
-      ]);
-      this.removeListReferences();
-    }
-
     return super.hideForScroll();
   }
 
@@ -685,7 +667,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * choices already loaded into the nested grid. Guarded on there being choices to show, so an empty
    * list stays hidden, matching the empty branch of {@link AutocompleteEditor#updateChoicesList}. The
    * re-measure is added to the base flip pass through {@link AutocompleteEditor#reflowDropdown}, and the
-   * combobox `aria-expanded` is raised again.
+   * base re-show raises the combobox `aria-expanded` again and names the highlighted option.
    *
    * Known limitation: a `function` `source` whose response was still in flight when the cell scrolled
    * out was dropped by `hideForScroll()` and is not requested again, so for that one case the list stays
@@ -697,21 +679,18 @@ export class AutocompleteEditor extends HandsontableEditor {
   showAfterScroll(): void {
     if (this.htEditor && this.strippedChoices.length > 0) {
       super.showAfterScroll();
-
-      if (this.hot.getSettings().ariaTags) {
-        setAttribute(this.TEXTAREA, [
-          A11Y_EXPANDED('true'),
-          A11Y_CONTROLS(this.htEditor.rootElement.id),
-        ]);
-
-        // `hideForScroll()` removed the reference to the highlighted option, which the list kept.
-        const highlighted = this.htEditor.getSelectedLast();
-
-        if (highlighted) {
-          this.pointFieldAtListCell(highlighted[0], highlighted[1]);
-        }
-      }
     }
+  }
+
+  /**
+   * Tells whether the list is on screen: the editor is open and the list holds a choice. A list with none (the
+   * typed text matches nothing, or a function `source` has not answered yet) is hidden or empty.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  protected isListShown(): boolean {
+    return super.isListShown() && this.strippedChoices.length > 0;
   }
 
   /**
@@ -855,6 +834,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.loadData(pivot([choices]));
 
     if (choices.length > 0) {
+      if (this.isListShown()) {
+        this.expandListPopup();
+      }
+
       this.updateDropdownDimensions();
       this.flipDropdownVerticallyIfNeeded();
       this.flipDropdownHorizontallyIfNeeded();
@@ -872,7 +855,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       // The list is empty and hidden, so there is nothing left on screen that a pick could refer
       // to. Without this an arrow pick made against an earlier list stays authoritative.
       this.innerSelectionOrigin = null;
-      removeAttribute(this.TEXTAREA, 'aria-activedescendant');
+      this.collapseListPopup();
     }
 
     if (this.#loadingTypedList) {
@@ -1035,12 +1018,8 @@ export class AutocompleteEditor extends HandsontableEditor {
     if (typeof index === 'number') {
       this.htEditor.selectCell(index, 0, undefined, undefined, undefined, false);
     } else {
+      // The list's `afterDeselect` removes the field's reference to the option it highlighted.
       this.htEditor.deselectCell();
-
-      // The input names the highlighted option only through `afterSelectionEnd`, which a deselect
-      // does not fire, so without this it keeps pointing a screen reader at an option nothing
-      // highlights any more.
-      removeAttribute(this.TEXTAREA, 'aria-activedescendant');
     }
   }
 
