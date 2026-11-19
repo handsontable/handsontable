@@ -7651,7 +7651,14 @@ export default (): Record<string, unknown> => {
      *
      * Default `queryMethod` behavior: case-insensitive, locale-aware substring match using `toLocaleLowerCase()` with `cellProperties.locale`.
      *
-     * Default `callback` behavior: sets `instance.getCellMeta(row, col).isSearchResult = testResult` on every cell.
+     * Default `callback` behavior: sets `isSearchResult` to `true` on the cell metadata of every match, and to `false`
+     * on every other cell that already has stored metadata. A non-matching cell without stored metadata is left as it
+     * is, so a query does not store metadata for every cell it scans, and its `isSearchResult` reads `undefined`.
+     * A custom `callback` that calls `getCellMeta()` for every cell stores metadata for every cell; to keep the default
+     * behavior, call the callback that `getCallback()` returns from yours.
+     *
+     * The `cellProperties` object passed to `queryMethod` can be a temporary object that is not stored, so
+     * read from it, but do not write to it.
      *
      * **Per-cell overrides:** `queryMethod` and `callback` can also be set on individual cells, columns, or rows
      * using the cascading configuration model. A cell-level `search.queryMethod` or `search.callback` takes
@@ -7685,15 +7692,6 @@ export default (): Record<string, unknown> => {
      *
      *     return queryStr.toString() === value.toString();
      *   },
-     *   // Count results while preserving default highlighting
-     *   callback(instance, row, col, data, testResult) {
-     *     // Preserve the default isSearchResult flag so highlighting still works
-     *     instance.getCellMeta(row, col).isSearchResult = testResult;
-     *
-     *     if (testResult) {
-     *       // Custom logic: e.g., increment a result counter
-     *     }
-     *   }
      * },
      *
      * // Override queryMethod for a specific column only (per-cell via cascading config)
@@ -7707,6 +7705,22 @@ export default (): Record<string, unknown> => {
      *     }
      *   }
      * ],
+     * ```
+     *
+     * ```js
+     * // Count results while preserving the default highlighting: get the default callback
+     * // before you pass your own, and call it from yours
+     * const searchPlugin = hot.getPlugin('search');
+     * const defaultCallback = searchPlugin.getCallback();
+     * let resultCount = 0;
+     *
+     * searchPlugin.query('He', (instance, row, col, data, testResult) => {
+     *   defaultCallback(instance, row, col, data, testResult);
+     *
+     *   if (testResult) {
+     *     resultCount += 1;
+     *   }
+     * });
      * ```
      */
     search: false,
