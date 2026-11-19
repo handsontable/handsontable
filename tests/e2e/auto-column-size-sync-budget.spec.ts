@@ -1,4 +1,4 @@
-import { test, expect } from '../fixtures/test';
+import { test, expect, THEMES_TAG } from '../fixtures/test';
 import { AutoColumnSizeSyncBudgetPage, type SyncBudgetGrid } from '../fixtures/pages/AutoColumnSizeSyncBudgetPage';
 
 /**
@@ -15,7 +15,7 @@ const GRID: SyncBudgetGrid = { rows: 1000, cols: 30 };
 const BUDGET = 5000;
 const EXACT = { autoColumnSize: { syncLimit: GRID.cols } };
 
-test.describe('AutoColumnSize sync cell budget', () => {
+test.describe('AutoColumnSize sync cell budget', { tag: THEMES_TAG }, () => {
   let grid: AutoColumnSizeSyncBudgetPage;
 
   test.beforeEach(async({ page, theme, bundle }) => {
