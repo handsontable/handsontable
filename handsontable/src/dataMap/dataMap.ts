@@ -80,28 +80,6 @@ interface ReadColumn {
 }
 
 /**
- * The answers a cell read needs that stay the same for every cell of one read call.
- */
-interface ReadMode {
-  /**
-   * When `true`, the column's `valueGetter` is not applied.
-   */
-  skipValueGetter: boolean;
-  /**
-   * The `dataDotNotation` setting.
-   */
-  dataDotNotation: boolean;
-  /**
-   * Whether the `modifyRowData` hook has a listener.
-   */
-  hasModifyRowData: boolean;
-  /**
-   * Whether the `modifyData` hook has a listener.
-   */
-  hasModifyData: boolean;
-}
-
-/**
  * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names.
  *
  * @todo Refactor arguments of methods getRange, getText to be numbers (not objects).
@@ -1143,14 +1121,11 @@ class DataMap {
    * @returns {*}
    */
   get(row: number, prop: string | number | DataAccessorFn | null, options?: { skipValueGetter?: boolean }) {
-    // A single read resolves what `getRange()` resolves once per call. The option is read without a
-    // default object, because this runs for every cell a render touches.
-    return this.#readCell(row, this.hot!.toPhysicalRow(row), this.#resolveReadColumn(prop), {
-      skipValueGetter: options?.skipValueGetter === true,
-      dataDotNotation: !!this.hot!.getSettings().dataDotNotation,
-      hasModifyRowData: this.hot!.hasHook('modifyRowData'),
-      hasModifyData: this.hot!.hasHook('modifyData'),
-    });
+    // A single read resolves the column `getRange()` resolves once per call. The option is read
+    // without a default object, because this runs for every cell a render touches.
+    return this.#readCell(
+      row, this.hot!.toPhysicalRow(row), this.#resolveReadColumn(prop), options?.skipValueGetter === true
+    );
   }
 
   /**
@@ -1173,33 +1148,31 @@ class DataMap {
   }
 
   /**
-   * Reads one cell. `get()` resolves the column and the read mode for a single cell, and `getRange()`
-   * resolves them once per call and reuses them for every cell.
+   * Reads one cell. `get()` resolves the column for a single cell, and `getRange()` resolves each
+   * column once per call and reuses it for every cell of that column.
    *
-   * A hook listener counted absent in `mode`, or a column `valueGetter` counted absent in `column`, is
-   * not run for the rest of the call, so one added by user code running inside the read (a
-   * `valueGetter`, an accessor, a hook listener) takes effect from the next call. That holds for a
-   * single-cell `get()` too: a `modifyData` listener a `valueGetter` adds does not run for that same
-   * cell. `getAtColumnForRows()` reads its answers the same way.
+   * The hooks and the `dataDotNotation` setting are checked per cell, so a listener added by user code
+   * running inside the read (a `valueGetter`, an accessor, a hook listener) runs from the next cell on.
+   * A column `valueGetter` counted absent in `column` is not looked for again during the call.
    *
    * @param {number} row Visual row index.
    * @param {number} physicalRow The physical index of `row`.
    * @param {object} column The resolved column.
-   * @param {object} mode The read mode.
+   * @param {boolean} skipValueGetter When `true`, the column's `valueGetter` is not applied.
    * @returns {*}
    */
-  #readCell(row: number, physicalRow: number, column: ReadColumn, mode: ReadMode) {
+  #readCell(row: number, physicalRow: number, column: ReadColumn, skipValueGetter: boolean) {
     const { prop, visualColumn, physicalColumn } = column;
     let dataRow = this.dataSource![physicalRow] as Record<string | number, unknown>;
 
     // TODO: To remove, use 'modifyData' hook instead (see below)
-    if (mode.hasModifyRowData) {
+    if (this.hot!.hasHook('modifyRowData')) {
       const modifiedRowData = this.hot!.runHooks('modifyRowData', physicalRow);
 
       dataRow = typeof modifiedRowData !== 'number' ? modifiedRowData as Record<string | number, unknown> : dataRow;
     }
 
-    const { dataDotNotation } = mode;
+    const { dataDotNotation } = this.hot!.getSettings();
     let value: unknown = null;
 
     // try to get value under property `prop` (includes dot)
@@ -1238,15 +1211,16 @@ class DataMap {
       }
     }
 
-    if (!mode.skipValueGetter && typeof visualColumn === 'number' &&
+    if (!skipValueGetter && typeof visualColumn === 'number' &&
         isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn) &&
         (column.hasColumnValueGetter ||
-          this.metaManager!.getCellMetaIfExists(physicalRow, physicalColumn) !== undefined)) {
+          isFunction(this.metaManager!.getCellMetaIfExists(physicalRow, physicalColumn)?.valueGetter))) {
       // The uncached read returns the stored meta when the cell carries persisted overrides and a
       // transient object otherwise - a plain data read must not permanently materialize one meta
       // object per visited cell (a full-table scan such as sorting would retain O(rows) of them).
-      // When neither the column nor the cell can carry a `valueGetter`, the read is skipped (see
-      // `ReadColumn#hasColumnValueGetter`).
+      // When neither the column nor the cell's stored meta has a `valueGetter`, the read is skipped
+      // (see `ReadColumn#hasColumnValueGetter`), so a cell with stored meta and no `valueGetter`
+      // costs one lookup, and only a cell with its own `valueGetter` is looked up twice.
       value = getValueGetterValue(
         value,
         this.metaManager!.getCellMetaUncached(physicalRow, physicalColumn, {
@@ -1256,7 +1230,7 @@ class DataMap {
       );
     }
 
-    if (mode.hasModifyData) {
+    if (this.hot!.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(value);
 
       this.hot!.runHooks('modifyData', row, visualColumn, valueHolder, 'get');
@@ -1616,14 +1590,8 @@ class DataMap {
     const rlen = Math.min(Math.max((maxRows ?? Infinity) - 1, 0), Math.max(start.row, end.row));
     const clen = Math.min(Math.max((maxCols ?? Infinity) - 1, 0), Math.max(start.col, end.col));
     const firstColumn = Math.min(start.col, end.col);
-    // Everything a cell read derives from its column, and from the call, is resolved once here.
+    // Everything a cell read derives from its column is resolved once here.
     const columns: ReadColumn[] = [];
-    const mode: ReadMode = {
-      skipValueGetter: false,
-      dataDotNotation: !!this.hot!.getSettings().dataDotNotation,
-      hasModifyRowData: this.hot!.hasHook('modifyRowData'),
-      hasModifyData: this.hot!.hasHook('modifyData'),
-    };
 
     for (c = firstColumn; c <= clen; c++) {
       // An index past the last column keeps its index, so it cannot resolve to an unbound column.
@@ -1646,7 +1614,7 @@ class DataMap {
       for (let i = 0; i < columns.length; i++) {
         row.push(isCopy
           ? this.getCopyable(r, columns[i].prop)
-          : this.#readCell(r, readPhysicalRow, columns[i], mode));
+          : this.#readCell(r, readPhysicalRow, columns[i], false));
       }
 
       output.push(row);

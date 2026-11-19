@@ -683,6 +683,20 @@ describe('DataMap bulk reads through `getRange()`', () => {
     expect(createTransientMeta).not.toHaveBeenCalled();
   });
 
+  it('should look a cell with stored meta and no `valueGetter` up once, without the uncached read', () => {
+    hot = createUnrenderedGrid({ data: [['A1', 'B1'], ['A2', 'B2']] });
+    hot.setCellMeta(0, 0, 'className', 'marked');
+    hot.setCellMeta(1, 1, 'valueGetter', value => value.toLowerCase());
+
+    const metaManager = hot._getMetaManager();
+    const getCellMetaIfExists = jest.spyOn(metaManager, 'getCellMetaIfExists');
+    const getCellMetaUncached = jest.spyOn(metaManager, 'getCellMetaUncached');
+
+    expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'b2']]);
+    expect(getCellMetaIfExists).toHaveBeenCalledTimes(4);
+    expect(getCellMetaUncached.mock.calls.map(([row, column]) => [row, column])).toEqual([[1, 1]]);
+  });
+
   it('should resolve each column\'s property once per read, not once per cell', () => {
     hot = createUnrenderedGrid({
       data: [{ a: 1, b: 2 }, { a: 3, b: 4 }, { a: 5, b: 6 }],
@@ -812,17 +826,7 @@ describe('DataMap bulk reads through `getRange()`', () => {
     expect(hot.getData()).toEqual([['c1', 'A1', 'B1'], ['c3', 'A3', 'B3']]);
   });
 
-  it('should ask whether `modifyData` has a listener once per read, not once per cell', () => {
-    hot = createUnrenderedGrid({ data: [['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']] });
-
-    const hasHook = jest.spyOn(hot, 'hasHook');
-
-    hot.getData();
-
-    expect(hasHook.mock.calls.filter(([hookName]) => hookName === 'modifyData')).toHaveLength(1);
-  });
-
-  it('should apply a `modifyData` listener added during a read from the next read on', () => {
+  it('should run a `modifyData` listener added during a read from that cell on', () => {
     const listener = jest.fn();
     let added = false;
 
@@ -846,11 +850,8 @@ describe('DataMap bulk reads through `getRange()`', () => {
     listener.mockClear();
 
     expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'B2']]);
-    expect(listener).not.toHaveBeenCalled();
-
-    hot.getData();
-
-    expect(listener).toHaveBeenCalledTimes(4);
+    // The first cell's `valueGetter` adds the listener before that cell's `modifyData` check.
+    expect(listener.mock.calls.map(([row, column]) => [row, column])).toEqual([[0, 0], [0, 1], [1, 0], [1, 1]]);
   });
 
   it('should read a header row through its own translation', () => {
