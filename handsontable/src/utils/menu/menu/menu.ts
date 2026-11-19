@@ -25,6 +25,7 @@ import {
   isHTMLElement,
   getParentWindow,
   hasClass,
+  removeAttribute,
   setAttribute,
   outerHeight,
   removeClass,
@@ -37,9 +38,13 @@ import localHooks from '../../../mixins/localHooks';
 import { createMenuItemRenderer } from './menuItemRenderer';
 import {
   A11Y_EXPANDED,
+  A11Y_LABEL,
   A11Y_MENU,
+  A11Y_PRESENTATION,
   A11Y_TABINDEX,
 } from '../../../helpers/a11y';
+import type { Overlay } from '../../../3rdparty/walkontable/src/overlay/regions/_base';
+import type { default as Table } from '../../../3rdparty/walkontable/src/table/baseTable';
 
 const MIN_WIDTH = 215;
 /**
@@ -84,6 +89,7 @@ interface MenuOptions {
   // eslint-disable-next-line no-use-before-define
   parent: Menu | null;
   name: string | null;
+  ariaLabel: string | (() => string) | null;
   className: string;
   keepInViewport: boolean;
   scrollInViewport: boolean;
@@ -96,6 +102,9 @@ interface MenuOptions {
  * @typedef MenuOptions
  * @property {Menu} [parent=null] Instance of {@link Menu}.
  * @property {string} [name=null] Name of the menu.
+ * @property {string|Function} [ariaLabel=null] The accessible name of the menu, or a function that returns it. A
+ * function is called each time the menu opens, so the name follows the current language. With no name the menu
+ * writes no `aria-label`, and a caller that labels the container itself keeps its label.
  * @property {string} [className=''] Custom class name.
  * @property {boolean} [keepInViewport=true] Determine if should be kept in viewport.
  * @property {boolean} [scrollInViewport=false] For a menu that opens under its own anchor and is not kept in the
@@ -320,6 +329,7 @@ export class Menu {
     this.options = {
       parent: null,
       name: null,
+      ariaLabel: null,
       className: '',
       keepInViewport: true,
       scrollInViewport: false,
@@ -745,6 +755,10 @@ export class Menu {
       this.hotMenu = new (
         this.hot.constructor as new (element: HTMLElement, settings: object) => HotInstance
       )(this.container, settings);
+      // The highlighted item holds the DOM focus, and `aria-selected` is not supported on a menu item
+      // role, so the menu grid writes no attribute on its selected cells. Set before `init()`, so the
+      // first draw already reads the empty list.
+      this.hotMenu.selection.highlight.setCellAttributes([]);
       this.hotMenu.addHook('afterInit', () => this.onAfterInit());
       this.hotMenu.init();
 
@@ -999,9 +1013,12 @@ export class Menu {
     }
 
     const dataItem = this.#getSourceDataAtRow<MenuItemConfig>(row)!;
+    const itemName = typeof dataItem.name === 'function' ? dataItem.name.call(this.hot) : dataItem.name;
     const subMenu = new Menu(this.hot, {
       parent: this,
-      name: typeof dataItem.name === 'function' ? dataItem.name.call(this.hot) : dataItem.name,
+      name: itemName,
+      // A submenu is named by the item that opens it.
+      ariaLabel: itemName,
       className: this.options.className,
       keepInViewport: true,
       container: this.options.container,
@@ -1467,11 +1484,61 @@ export class Menu {
 
     // Replace the default accessibility tags with the context menu's
     if (this.hot.getSettings().ariaTags) {
+      const ariaLabel = this.#resolveAriaLabel();
+
       setAttribute(this.hotMenu!.rootElement, [
         A11Y_MENU(),
         A11Y_TABINDEX(-1),
+        // Written only when the menu was given a name: a caller may label the container itself.
+        ...(ariaLabel ? [A11Y_LABEL(ariaLabel)] : []),
       ]);
+
+      this.#markOwnTablesAsPresentational();
     }
+  }
+
+  /**
+   * Resolves the accessible name the menu was given through the `ariaLabel` option.
+   *
+   * @returns {string|null} The name, or `null` when the menu has none.
+   */
+  #resolveAriaLabel(): string | null {
+    const { ariaLabel } = this.options;
+    const resolved: unknown = typeof ariaLabel === 'function' ? ariaLabel() : ariaLabel;
+
+    return typeof resolved === 'string' && resolved !== '' ? resolved : null;
+  }
+
+  /**
+   * Takes the table markup of the menu grid out of the accessibility tree, so the items are the
+   * children of the `menu` role: `role="presentation"` on the `table`, `thead` and `tbody` of the
+   * master table and of every overlay clone, and no `tabindex` on their holders (a focusable element
+   * between a menu and its items is not an allowed child). The elements come from the menu grid's
+   * own Walkontable tables, never from a descendant query, which would also reach a grid nested in
+   * a menu cell (the Filters value list).
+   */
+  #markOwnTablesAsPresentational() {
+    const overlays = this.hotMenu!.view._wt.wtOverlays.getOverlays(true);
+
+    arrayEach(overlays, (overlay: Overlay | Table) => {
+      const wtTable = (overlay as Table).name === 'master'
+        ? (overlay as Table)
+        : (overlay as Overlay).clone?.wtTable;
+
+      if (!wtTable) {
+        return;
+      }
+
+      arrayEach([wtTable.TABLE, wtTable.THEAD, wtTable.TBODY], (element: HTMLElement | null) => {
+        if (element) {
+          setAttribute(element, [A11Y_PRESENTATION()]);
+        }
+      });
+
+      if (wtTable.holder) {
+        removeAttribute(wtTable.holder, 'tabindex');
+      }
+    });
   }
 
   /**

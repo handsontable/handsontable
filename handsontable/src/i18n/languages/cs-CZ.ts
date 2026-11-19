@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Storno',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Žádné volby nejsou dostupné',
+  [C.CONTEXTMENU_LABEL]: 'Kontextová nabídka',
+  [C.DROPDOWNMENU_LABEL]: 'Nabídka sloupce',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Vložit řádek nad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Vložit řádek pod',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Vložit sloupec vlevo',

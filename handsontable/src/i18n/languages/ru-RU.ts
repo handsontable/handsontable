@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Отмена',
 
+  [C.CONTEXTMENU_LABEL]: 'Контекстное меню',
+  [C.DROPDOWNMENU_LABEL]: 'Меню столбца',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Вставить строку выше',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Вставить строку ниже',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Вставить столбец слева',

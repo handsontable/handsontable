@@ -24,6 +24,7 @@ import {
   ALIGNMENT,
   SEPARATOR,
 } from '../../utils/menu/predefinedItems';
+import { CONTEXTMENU_LABEL } from '../../i18n/constants';
 import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
 export type { PredefinedMenuItemKey, MenuItemConfig };
@@ -175,6 +176,8 @@ export class ContextMenu extends BasePlugin {
 
     this.menu = new Menu(this.hot, {
       className: 'htContextMenu',
+      // Resolved on each open, so the name follows a language changed after the plugin was enabled.
+      ariaLabel: () => this.hot.getTranslatedPhrase(CONTEXTMENU_LABEL),
       keepInViewport: true,
       container: (settingsObj?.uiContainer as HTMLElement) || this.hot.rootPortalElement,
     });

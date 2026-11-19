@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: '확인',
   [C.CANCEL]: '취소',
 
+  [C.CONTEXTMENU_LABEL]: '컨텍스트 메뉴',
+  [C.DROPDOWNMENU_LABEL]: '열 메뉴',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '위쪽에 행 삽입',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '아래쪽에 행 삽입',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '왼쪽에 열 삽입',

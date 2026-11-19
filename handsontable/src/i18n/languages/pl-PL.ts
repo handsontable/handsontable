@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Anuluj',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Brak dostępnych opcji',
+  [C.CONTEXTMENU_LABEL]: 'Menu kontekstowe',
+  [C.DROPDOWNMENU_LABEL]: 'Menu kolumny',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Wstaw wiersz powyżej',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Wstaw wiersz poniżej',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Wstaw kolumnę z lewej',

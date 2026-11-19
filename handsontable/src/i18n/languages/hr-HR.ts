@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Odustani',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nema dostupnih mogućnosti',
+  [C.CONTEXTMENU_LABEL]: 'Kontekstni izbornik',
+  [C.DROPDOWNMENU_LABEL]: 'Izbornik stupca',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Umetni redak iznad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Umetni redak ispod',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Umetni stupac lijevo',

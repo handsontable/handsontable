@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: '确认',
   [C.CANCEL]: '取消',
 
+  [C.CONTEXTMENU_LABEL]: '上下文菜单',
+  [C.DROPDOWNMENU_LABEL]: '列菜单',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '上方插入行',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '下方插入行',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '左方插入列',
