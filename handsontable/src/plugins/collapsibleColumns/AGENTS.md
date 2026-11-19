@@ -119,6 +119,69 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   `tests/e2e/collapsible-enter-vs-sorting.spec.ts`, which covers init, either plugin registering again, and this
   plugin registering before any sorting shortcut exists.
 
+## Keyboard and announcements
+
+- **`aria-expanded` stays on the header `TH` and the indicator stays `aria-hidden`; do not turn the
+  indicator into a button.** With `navigableHeaders` the header is the focusable control that carries
+  the state, and a `button` inside it would nest one interactive element in another (two stops, two
+  names for one action). Without `navigableHeaders` (the default) no header takes the focus, so
+  <kbd>Enter</kbd> on a header was unreachable and the plugin was mouse-only; the key below is the way in.
+- **<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowUp</kbd> toggles a group from a data cell or from a header**,
+  with or without `navigableHeaders`. `#getKeyToggleTarget()` resolves the group:
+  from a data cell, the group CLOSEST TO THE DATA among the headers over the cell's column
+  (`findClosestToggleLevel()` in `toggleLevel.ts`, starting at the last header level and walking up);
+  from a column header, that header's own group, or the closest one above it. It never looks below the
+  focused header. With no such group `runOnlyIf` is `false`, so the key is not claimed (no
+  `preventDefault()`). It needs exactly one selection layer (`getSelectedRange().length === 1`), and from
+  a data cell a grid body nothing covers (`isGridBodyCovered()`); a header stays operable under a
+  covering overlay, as <kbd>Enter</kbd> on it does. The chord is the DropdownMenu family
+  (<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowDown</kbd> opens the column menu from a cell) and NestedRows
+  takes the left and right arrows of it, so the four never clash; pinned on one grid with all three.
+- **A collapse by the key keeps the selection inside the collapsed group, from a data cell and from a
+  header alike.** A collapse
+  hides every column of the group but the first shown one, and `#adjustSelectionAfterHide()` moves a
+  highlight that sat on a hidden column to the NEAREST shown column, which is the next group's first
+  column: with `H1` over columns 1 to 2 and `H2` over 3 to 4, the key pressed in column 2 collapsed `H1`,
+  the highlight went to column 3, and the next press toggled `H2`, so the group just collapsed could not
+  be expanded by the same key. A focused header BELOW the group sits over a hidden column the same way:
+  the key pressed on the bottom header of column 4 collapsed `H2`, the focus went to column 5 in the
+  same header row, and the next press toggled the group over column 5. The key callback therefore sets
+  `#keyToggleGroupColumns` (the group's visual range) for the length of the toggle, for a press on a
+  data cell and on a header, and `#getColumnAfterHide()` answers the first column of that range that is
+  still shown; the row is kept, so a header press stays at its header level. It is ONE
+  selection move, made where the move always was: selecting the target before the toggle would move the
+  selection even when `beforeColumnCollapse` vetoes, and selecting it after would be a second move and a
+  second round of selection hooks. The row stays, so NestedRows announces no level for it.
+  <kbd>Enter</kbd> and the indicator leave the field `null` and move the selection as before
+  (measured before and after this rule: <kbd>Enter</kbd> on `Group 1` focused over column 3 leaves the
+  focus on that header at column 1, and an indicator press with the highlight on a hidden data cell
+  moves it to the nearest shown column).
+- **The key honors the gate the indicator is drawn by, `#isGroupToggleable()`**: `collapsible`, more than
+  one column, and neither frozen band (see "`fixedColumnsEnd`" below). `#onAfterGetColHeader` calls the
+  same method, so a group without a visible toggle cannot be collapsed by the key either.
+  <kbd>Enter</kbd> on a header still checks `collapsible` alone, as before.
+- **Only user gestures announce.** `#toggleSectionByUser()` wraps `toggleCollapsibleSection()` for
+  <kbd>Enter</kbd>, a press on the indicator and the new key, and sends a polite
+  "Collapsed column group {label}" / "Expanded column group {label}"
+  (`COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_*`). The public methods stay silent: an application calling them
+  knows what it changed, and `collapseAll()` would queue one message per group. It announces only when
+  the group's `isCollapsed` actually flipped (read from the tree node before and after), so a
+  `beforeColumnCollapse`/`beforeColumnExpand` veto is silent, and never with `ariaTags: false`. The
+  announcement is also what a VoiceOver user on WebKit hears on an expand: that reader stays silent
+  when <kbd>Enter</kbd> expands a group although it reads the collapse. Measured in Playwright WebKit
+  (and Firefox) on three headers: the focused `TH` is the same connected node before and after both
+  directions, no `focusin`/`focusout` fires, and `aria-expanded` is removed and written back in the
+  same draw both ways. The one difference is that an expand ADDS a `TH` to every header row and gives
+  the focused header its `colspan` back, where a collapse removes them. No cause in the grid's focus or
+  DOM handling was found, so nothing was changed there.
+- **The label is read BEFORE the toggle, from the rendered header** (`getHeaderLabelText()` in
+  `src/utils/headerLabel.ts`, shared with ColumnSorting: the `.colHeader` text, `<br>` as a space,
+  markup never spoken), with the tree node's declared `label` as the fallback for a header scrolled out
+  of the viewport, and the spreadsheet letter of the group's first column for a group without a label.
+
+Pinned by `tests/e2e/collapsible-columns-a11y.spec.ts` (Chromium, Firefox, WebKit),
+`__tests__/toggleLevel.unit.ts` and `src/utils/__tests__/headerLabel.unit.ts`.
+
 ## The indicator is a real element, updated in place on every draw
 
 `#onAfterGetColHeader` runs for every collapsible header on every draw, so it must not rebuild the

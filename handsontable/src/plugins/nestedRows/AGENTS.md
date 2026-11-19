@@ -61,7 +61,8 @@ change, then fires `after*` with whether the state really changed, and renders o
 reach it, and they must all keep reaching it or the UI and the API will drift apart:
 
 1. the row header button — `CollapsingUI#toggleState` (a `beforeOnCellMouseDown` listener)
-2. the <kbd>Enter</kbd> and <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow shortcuts — `registerShortcuts()` in `nestedRows.ts`
+2. the <kbd>Enter</kbd>, <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow and <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow shortcuts —
+   `registerShortcuts()` in `nestedRows.ts`
    (1 and 2 go through `NestedRows#toggleParentByUser()`, which adds the announcement)
 3. `collapsingUI.collapseAll()` / `expandAll()`
 4. every public method on `NestedRows`
@@ -843,7 +844,8 @@ row semantics. Six things look simpler than they are.
   change. NestedRows never names the Filters plugin. An `indexOf` over a 10k-row top level, per
   rendered row, per overlay copy, is millions of comparisons per scroll. Pinned in
   `__tests__/data/dataManager.unit.js` and `tests/e2e/nested-rows-treegrid-a11y.spec.ts`.
-- **Only user gestures announce.** `toggleParentByUser()` (the button, <kbd>Enter</kbd>, the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords)
+- **Only user gestures announce.** `toggleParentByUser()` (the button, <kbd>Enter</kbd>, the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow
+  and <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chords)
   wraps the choke point and announces through the shared announcer's POLITE region
   (`announce(message, 'polite')`). Both regions are created in `install()`: some screen readers ignore
   the first update of a live region added to the page a moment earlier, so a region made on the first
@@ -866,8 +868,8 @@ row semantics. Six things look simpler than they are.
   do here. <kbd>Alt</kbd>+arrows, the other common choice among data grids, was rejected because
   <kbd>Alt</kbd>+<kbd>←</kbd> is the browser's Back on Windows and Linux. The chord is the same one the
   grid uses to jump to the row's edge (`Control/Meta`, so <kbd>Cmd</kbd> on macOS), so no further
-  native shortcut is claimed, and it is the reason the tree keys cannot work from a cell: there the
-  jump has to win.
+  native shortcut is claimed, and it is the reason these chords cannot work from a cell: there the
+  jump has to win. The chords that do work from a cell are <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrows, below.
 - **On a row header the chord never falls through to the jump.** `runOnlyIf` asks only whether a row
   header holds the focus, so the group claims the chord there even when `#getTreeArrowCommand()`
   returns `null` (an expanded parent's or a leaf's inline-end chord, a top-level row's inline-start
@@ -897,6 +899,71 @@ row semantics. Six things look simpler than they are.
   sorting plugins on <kbd>Enter</kbd>, is settled in `../collapsibleColumns/AGENTS.md`. A rebuild
   (`updateSettings({ nestedRows })`) unregisters and re-registers the chords, which
   `tests/e2e/nested-rows-treegrid-a11y.spec.ts` pins.
+- **<kbd>Shift</kbd>+<kbd>Alt</kbd>+arrows are the tree keys that work from a cell.** A row header
+  takes the focus only with `navigableHeaders` on, which is off by default, so <kbd>Enter</kbd> and the
+  <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> chords left the tree mouse-only on a default grid.
+  <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowRight</kbd> (inline end) expands the highlighted row when it is
+  a collapsed parent. <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowLeft</kbd> (inline start) collapses an
+  expanded parent, and otherwise moves the selection to the parent row **in the same column** (from a
+  row header: to the parent's header). Both chords share `#getTreeArrowCommand(key, visualRow, column)`
+  with the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> chords, so the RTL mirror and the "parent not rendered, do
+  nothing" guard are one piece of code; the two differ only in the target (`#getTreeKeyTarget()` accepts
+  the highlight on a data cell or a row header, `#getFocusedRowHeader()` the header alone) and in the
+  column the walk keeps. The family is the one DropdownMenu already uses to open its menu from a cell
+  (<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowDown</kbd>), and CollapsibleColumns takes
+  <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowUp</kbd>, so the four arrows of the chord never clash.
+  `runOnlyIf` asks for ONE selection range (`getSelectedRange().length === 1`, as the CollapsibleColumns
+  key does: with several Ctrl/Cmd+click ranges the walk's `selectCell()` would drop the others, so the
+  key is not claimed), for a selection of ONE row (the active range's `from.row` and `to.row` equal the
+  highlight's, so a whole row selected by its header counts and a range over several rows does not) and
+  for a grid body nothing covers (`isGridBodyCovered()`); when it applies the callback returns `false`
+  whether or not the row had anything to do. They go through `toggleParentByUser()`, so they announce.
+  <kbd>Enter</kbd> and the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> chords on a header are unchanged. Pinned by
+  `tests/e2e/nested-rows-tree-keys-a11y.spec.ts`.
+- **`aria-expanded` stays on the row header and the `+`/`-` icon stays `aria-hidden`; do not turn the
+  icon into a button.** With `navigableHeaders` the header is the focusable control that carries the
+  state, and a `button` inside it would nest one interactive element in another (two stops, two names
+  for one action). Without `navigableHeaders` nothing in the header takes the focus, which is what the
+  <kbd>Shift</kbd>+<kbd>Alt</kbd> chords are for.
+- **The level of a row is announced, because no screen reader reads it from a cell.** `aria-level`,
+  `aria-posinset` and `aria-setsize` sit on the `TR`, and the tested readers speak none of them while
+  the focus is on a cell of the row. `#onHighlightChange` (`afterSelection` and
+  `afterSelectionFocusSet`, one arrow-function field for both) therefore sends ONE polite message when
+  the active highlight reaches a row: "Level 2, 1 of 3", with ", expanded" or ", collapsed" for a parent
+  (three whole phrases, `NESTED_ROWS_ANNOUNCEMENT_LEVEL*`, never a concatenation, so a translation can
+  order them). The numbers come from `DataManager#getRowTreePosition()`, the same call
+  `HeadersUI#updateRowAttributes()` writes the attributes from, so the spoken position and the
+  attributes cannot disagree (a filter recounts both). Six rules:
+  - It fires when the highlight's **record** changed, or when it stepped from the row's header into one
+    of its cells. A move between the cells of one row, and a step from a cell back onto its header, are
+    silent. A move onto another row's header announces too.
+  - The previous position is kept as a PHYSICAL row (`#lastHighlight`), not a visual one: a collapse
+    above the highlight shifts its visual index without the user moving, and a visual comparison read
+    that as a new row on the next left/right move.
+  - **Any selection change while `hot.isListening()` announces, not only a key or a pointer.** The
+    selection source would be the clean test, and it is not complete: the arrow and Tab commands mark
+    `keyboard` and the pointer marks `mouse`, but Enter after an edit (`EditorManager`) and
+    `closeAndSaveByArrowKeys` move the highlight under `unknown`, the same source as `selectCell()`. So
+    the gate is `isListening()` plus a short deny list of the sources that only re-lay an existing
+    selection (`shift`, `refresh`, `loadData`, `updateData`, `deselect`). An application calling
+    `selectCell()` on a grid the user works in is therefore announced; on a grid that does not listen
+    it is not, and `selectCell()` starts listening only AFTER the selection is laid, so the first API
+    selection of an idle grid is silent.
+  - **One gesture, one message.** `toggleParentByUser()` raises `#isUserToggleRunning` around the
+    choke point: a collapse that strands the selection re-selects the collapsed parent (the stranded-selection
+    guard), and without the flag that move added a level message on top of "Collapsed row 1". The
+    highlight is still recorded while the flag is up. `announce()` does not coalesce by itself: two
+    calls within its 100 ms write both messages into the region one after the other.
+  - **The stranded-selection restore never announces, whoever collapsed.** A public `collapseParent()`
+    or `collapseAll()` on a grid that listens re-selects the parent the same way, outside
+    `toggleParentByUser()`, and that announced the parent's level although the public methods do not
+    announce. `CollapsingUI#isRestoringSelection()` answers `true` for the length of that
+    `selectCell()`, and `#shouldAnnounceRowLevel()` reads it. It is a flag, not a selection source:
+    marking the restore `shift` would also stop the viewport from scrolling to the parent
+    (`ignoreScrollSources` in `core.ts`) and skip the editor close that every selection move makes.
+  - `afterDeselect` forgets the position, so selecting the same row again announces it.
+  - `ariaTags: false` announces nothing, and `updatePlugin()` keeps `#lastHighlight` (a plugin field,
+    not a `HeadersUI` one), so a React re-render does not repeat the level of the row the user is on.
 
 ## How it interacts with the rest of the grid
 
@@ -995,6 +1062,8 @@ row semantics. Six things look simpler than they are.
 | `__tests__/operationSelection.unit.js` | The selection stays on its rows across a row removal, an added child and a detach, with and without a collapsed parent; a removed selected row, a selection changed in between and a whole column keep their own rules (DEV-509) |
 | `tests/e2e/nested-rows-collapse-selection.spec.ts` | Playwright: where the selection lands when a collapse trims the row holding it |
 | `tests/e2e/nested-rows-treegrid-a11y.spec.ts` | Playwright: the treegrid row attributes on a three-level tree (also across `TR` recycling, a data replacement, and the plugin switched off), the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chords and <kbd>Enter</kbd> on a row header (LTR and RTL, never the grid's jump there, Enter with every column hidden), plain arrows left to navigation, the cleanup when `rowHeaders` is switched off, the HiddenRows cases (a hidden parent, rendered-row counting), and the polite announcements (gestures only, never the API or an `ariaTags: false` grid; named by the header's rendered text, HTML included) |
+| `tests/e2e/nested-rows-tree-keys-a11y.spec.ts` | Playwright (Chromium, Firefox, WebKit): the <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chords from a data cell with `navigableHeaders` off and from a row header with it on, the walk from a child to its parent in the same column, the RTL mirror, a multi-row selection and a covered body left alone, and the level announcement (another row, a collapsed parent, silence between the cells of one row, header into cell, one message per toggle, a grid that does not listen, `ariaTags: false`) |
+| `__tests__/data/dataManager.unit.js` (`getRowTreePosition`) | The level, position and set size the row attributes and the level announcement share |
 | `__tests__/filtering.unit.js` | Filtering keeps ancestors and subtrees, widens once per pass, survives collapse/undo, and the hook's normalization on a plain grid (DEV-512) |
 | `tests/e2e/filters-nested-rows.spec.ts` | Playwright: the Filter by value list of a nested grid, and the parent chain and subtree a filter keeps |
 | `tests/e2e/nested-rows-clear-column.spec.ts` | Playwright: "Clear column" reaches the rows of collapsed parents, keeps the collapse and the selection, undoes in one step (Formulas included, with a listener removing rows mid-clear, and when every visible cell is read-only), survives a validator and a listener that removes rows, keeps the caller's range, enables the item when only hidden cells are editable, works through `executeCommand()` before any open, and leaves a user callback and TrimRows alone |

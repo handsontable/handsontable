@@ -16,6 +16,9 @@ import { isGridBodyCovered } from '../../shortcuts/guards';
 import {
   NESTED_ROWS_ANNOUNCEMENT_COLLAPSED,
   NESTED_ROWS_ANNOUNCEMENT_EXPANDED,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED,
 } from '../../i18n/constants';
 import { LICENSE } from './feature.generated';
 
@@ -26,6 +29,12 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * The source the fill handle inserts its rows with (`Autofill#addRow()`).
  */
 const AUTOFILL_INSERT_SOURCE = 'Autofill.fill';
+
+/**
+ * The selection sources that re-lay a selection the user already has (a structural shift, a clamp, a
+ * data load). The highlight they report is not a move the user made, so it announces no row level.
+ */
+const SILENT_SELECTION_SOURCES = ['shift', 'refresh', 'loadData', 'updateData', 'deselect'];
 
 /**
  * Error message for the wrong data type error.
@@ -46,6 +55,23 @@ interface CollapsedRowCell {
  */
 interface CollapsedParentsState {
   readonly collapsedRows: readonly number[];
+}
+
+/**
+ * Where the active highlight sat when the plugin last looked: the record under it, and whether it was
+ * on a header of that row.
+ */
+interface HighlightPosition {
+  physicalRow: number | null;
+  isHeader: boolean;
+}
+
+/**
+ * The cell a tree key acts on: its visual row, and the column the walk to a parent keeps.
+ */
+interface TreeKeyTarget {
+  row: number;
+  column: number;
 }
 
 /**
@@ -197,6 +223,23 @@ export class NestedRows extends BasePlugin {
   #waitsForObjectData = false;
 
   /**
+   * Where the active highlight sat after the last selection change, or `null` while nothing is
+   * selected. The level announcement compares the next highlight with it, by record and not by visual
+   * row, so a collapse above the highlight does not read as a move.
+   *
+   * @type {HighlightPosition|null}
+   */
+  #lastHighlight: HighlightPosition | null = null;
+
+  /**
+   * `true` while `toggleParentByUser()` changes the tree. A collapse can move the selection onto the
+   * collapsed parent, and that move must not add a level announcement to the one the toggle makes.
+   *
+   * @type {boolean}
+   */
+  #isUserToggleRunning = false;
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
@@ -265,6 +308,9 @@ export class NestedRows extends BasePlugin {
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
+    this.addHook('afterSelection', this.#onHighlightChange);
+    this.addHook('afterSelectionFocusSet', this.#onHighlightChange);
+    this.addHook('afterDeselect', this.#onHighlightDeselect);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -469,12 +515,25 @@ export class NestedRows extends BasePlugin {
       relativeToGroup: GRID_GROUP,
       position: 'before',
     });
+
+    context?.addShortcuts([{
+      keys: [['Shift', 'Alt', 'ArrowRight']],
+      callback: () => this.#runTreeKeyCommand('ArrowRight'),
+    }, {
+      keys: [['Shift', 'Alt', 'ArrowLeft']],
+      callback: () => this.#runTreeKeyCommand('ArrowLeft'),
+    }], {
+      runOnlyIf: () => this.#getTreeKeyTarget() !== null,
+      group: SHORTCUTS_GROUP,
+      relativeToGroup: GRID_GROUP,
+      position: 'before',
+    });
   }
 
   /**
-   * Collapses or expands a parent row in answer to a user gesture - the row header button, or a key
-   * pressed on a focused row header - and announces the result to assistive technologies through a
-   * polite live region.
+   * Collapses or expands a parent row in answer to a user gesture - the row header button, a key
+   * pressed on a focused row header, or <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow pressed on any cell of
+   * the row - and announces the result to assistive technologies through a polite live region.
    *
    * The public methods do not announce: an app calling them knows what it changed and can tell the
    * user itself, and `collapseAll()` would otherwise queue one message per parent.
@@ -486,6 +545,9 @@ export class NestedRows extends BasePlugin {
    * pattern's cell-focus mode: there the arrows only move the focus. The number of rows shown counts
    * rendered rows, so rows the `HiddenRows` plugin hides are left out.
    *
+   * A collapse can move the selection onto the collapsed parent. The level announcement of that move
+   * is held back, so one gesture is confirmed by one message.
+   *
    * @private
    * @param {number} physicalRow Physical index of the parent row.
    * @param {'collapse'|'expand'} action The change to make.
@@ -494,7 +556,15 @@ export class NestedRows extends BasePlugin {
   toggleParentByUser(physicalRow: number, action: 'collapse' | 'expand'): boolean {
     const { rowIndexMapper } = this.hot;
     const rowsBefore = rowIndexMapper.getRenderableIndexesLength();
-    const performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
+    let performed = false;
+
+    this.#isUserToggleRunning = true;
+
+    try {
+      performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
+    } finally {
+      this.#isUserToggleRunning = false;
+    }
 
     if (performed && this.hot.getSettings().ariaTags) {
       const label = this.#getRowLabel(physicalRow);
@@ -1368,23 +1438,71 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Resolves what a <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow chord pressed on a focused row header does,
-   * or `null` when it does nothing. The chord is claimed either way, so it never reaches the grid's
-   * jump to the row's edge from a row header.
+   * Returns the cell a <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chord acts on, or `null` when the chord
+   * does not apply: the highlight of a single selection range of one row, on a data cell or on the row
+   * header, while nothing covers the grid body. Several selected ranges are left alone, because the
+   * walk to a parent would replace them with one cell. Unlike the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> chords, it does not
+   * need the focus on a row header, so the tree can be operated with `navigableHeaders` off.
+   *
+   * @returns {TreeKeyTarget|null}
+   */
+  #getTreeKeyTarget(): TreeKeyTarget | null {
+    const activeRange = this.hot.getSelectedRangeActive();
+    const highlight = activeRange?.highlight;
+
+    if (!highlight || this.hot.getSelectedRange()?.length !== 1 || isGridBodyCovered(this.hot) ||
+        !this.hot.selection.isCellVisible(highlight)) {
+      return null;
+    }
+
+    const { row, col } = highlight;
+
+    if (row === null || col === null || row < 0 ||
+        activeRange.from.row !== row || activeRange.to.row !== row) {
+      return null;
+    }
+
+    return { row, column: col };
+  }
+
+  /**
+   * Runs the treegrid command of a <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chord on the highlighted
+   * row, and claims the chord.
+   *
+   * @param {'ArrowLeft'|'ArrowRight'} key The arrow of the pressed chord.
+   * @returns {boolean} Always `false`, which stops the other shortcuts bound to the key.
+   */
+  #runTreeKeyCommand(key: 'ArrowLeft' | 'ArrowRight'): boolean {
+    const target = this.#getTreeKeyTarget();
+
+    if (target) {
+      this.#getTreeArrowCommand(key, target.row, target.column)?.();
+    }
+
+    return false;
+  }
+
+  /**
+   * Resolves what a tree chord does on a row, or `null` when it does nothing. Two chords share it:
+   * <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+arrow on a focused row header, and <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow
+   * on any cell of the row. Both are claimed either way, so the first never reaches the grid's jump
+   * to the row's edge from a row header.
    *
    * The inline-end chord (`ArrowRight`, or `ArrowLeft` in RTL) expands a collapsed parent. The
    * inline-start chord collapses an expanded parent, and otherwise moves the focus to the parent
-   * row's header. An expanded parent's or a leaf's inline-end chord and a top-level row's
-   * inline-start chord do nothing. So does the walk to a parent that is not rendered (trimmed by
-   * another plugin, or hidden), because a focus moved there would leave the keyboard user with no
-   * visible position.
+   * row, in the column the chord was pressed in. An expanded parent's or a leaf's inline-end chord
+   * and a top-level row's inline-start chord do nothing. So does the walk to a parent that is not
+   * rendered (trimmed by another plugin, or hidden), because a focus moved there would leave the
+   * keyboard user with no visible position.
    *
    * @param {'ArrowLeft'|'ArrowRight'} key The arrow of the pressed chord.
+   * @param {number|null} visualRow The visual row the chord acts on, `null` when there is none.
+   * @param {number} column The visual column the walk to a parent keeps, `-1` for the row header.
    * @returns {Function|null}
    */
-  #getTreeArrowCommand(key: 'ArrowLeft' | 'ArrowRight'): (() => void) | null {
-    const visualRow = this.#getFocusedRowHeader();
-
+  #getTreeArrowCommand(
+    key: 'ArrowLeft' | 'ArrowRight', visualRow: number | null, column: number
+  ): (() => void) | null {
     if (visualRow === null) {
       return null;
     }
@@ -1410,7 +1528,7 @@ export class NestedRows extends BasePlugin {
       return null;
     }
 
-    return () => this.hot.selectCell(parentVisualRow, -1);
+    return () => this.hot.selectCell(parentVisualRow, column);
   }
 
   /**
@@ -1421,7 +1539,7 @@ export class NestedRows extends BasePlugin {
    * @returns {boolean} Always `false`, which stops the other shortcuts bound to the key.
    */
   #runTreeArrowCommand(key: 'ArrowLeft' | 'ArrowRight'): boolean {
-    this.#getTreeArrowCommand(key)?.();
+    this.#getTreeArrowCommand(key, this.#getFocusedRowHeader(), -1)?.();
 
     return false;
   }
@@ -1431,7 +1549,8 @@ export class NestedRows extends BasePlugin {
    * 1-based row number when the header shows nothing. No column is guessed to hold a name - the first
    * one may as well be an ID, a price, or a checkbox. The text is read from the rendered header
    * rather than from `rowHeaders`, because a header configured as HTML would otherwise be announced
-   * with its markup. Every announcing gesture starts on the row's header, so it is rendered.
+   * with its markup. Every announcing gesture starts on the row or on its header, so the header is
+   * rendered whenever the grid shows row headers.
    *
    * @param {number} physicalRow Physical row index.
    * @returns {string}
@@ -1447,6 +1566,88 @@ export class NestedRows extends BasePlugin {
 
     return rowHeader.trim() === '' ? `${visualRow + 1}` : rowHeader.trim();
   }
+
+  /**
+   * Reads where a highlight sits, in the terms the level announcement compares.
+   *
+   * @param {CellCoords} highlight The active highlight.
+   * @returns {HighlightPosition}
+   */
+  #readHighlightPosition(highlight: CellCoords): HighlightPosition {
+    const { row, col } = highlight;
+    const physicalRow = row === null || row < 0 ? null : this.hot.toPhysicalRow(row);
+
+    return { physicalRow, isHeader: col === null || col < 0 };
+  }
+
+  /**
+   * Tells whether a highlight that just changed should announce the level of its row: the grid has
+   * ARIA on and listens to the keyboard, the change is not a re-lay of an existing selection, no
+   * toggle gesture is announcing already, no collapse is putting a stranded selection back on a
+   * parent, and the highlight reached another row or stepped from the
+   * row's header into one of its cells. A move between the cells of one row stays silent.
+   *
+   * @param {HighlightPosition|null} previous Where the highlight sat before.
+   * @param {HighlightPosition} current Where it sits now.
+   * @returns {boolean}
+   */
+  #shouldAnnounceRowLevel(previous: HighlightPosition | null, current: HighlightPosition): boolean {
+    if (this.#isUserToggleRunning || this.collapsingUI!.isRestoringSelection() ||
+        !this.hot.getSettings().ariaTags || !this.hot.isListening() ||
+        SILENT_SELECTION_SOURCES.includes(this.hot.selection.getSelectionSource())) {
+      return false;
+    }
+
+    return previous === null || previous.physicalRow !== current.physicalRow ||
+      (previous.isHeader && !current.isHeader);
+  }
+
+  /**
+   * Announces the level of a row, its position among its siblings, and a parent's state, through the
+   * polite live region. Screen readers do not read `aria-level`, `aria-posinset` and `aria-setsize`
+   * off the row while the focus is on one of its cells, so the same values are spoken here.
+   *
+   * @param {number} physicalRow Physical row index.
+   */
+  #announceRowLevel(physicalRow: number): void {
+    const treePosition = this.dataManager!.getRowTreePosition(physicalRow);
+
+    if (!treePosition) {
+      return;
+    }
+
+    let phrase = NESTED_ROWS_ANNOUNCEMENT_LEVEL;
+
+    if (this.dataManager!.isParent(physicalRow)) {
+      phrase = this.collapsingUI!.areChildrenCollapsed(physicalRow) ?
+        NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED : NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED;
+    }
+
+    announce(String(this.hot.getTranslatedPhrase(phrase, { ...treePosition }) ?? ''), 'polite');
+  }
+
+  /**
+   * `afterSelection` and `afterSelectionFocusSet` hook callback. Records where the highlight sits and
+   * announces the level of its row when it reached another row.
+   */
+  #onHighlightChange = () => {
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
+    const previous = this.#lastHighlight;
+    const current = highlight ? this.#readHighlightPosition(highlight) : null;
+
+    this.#lastHighlight = current;
+
+    if (current && current.physicalRow !== null && this.#shouldAnnounceRowLevel(previous, current)) {
+      this.#announceRowLevel(current.physicalRow);
+    }
+  };
+
+  /**
+   * `afterDeselect` hook callback. Forgets the highlight, so the next selection announces its row.
+   */
+  #onHighlightDeselect = () => {
+    this.#lastHighlight = null;
+  };
 
   /**
    * `afterUpdateSettings` hook callback. The treegrid row attributes are written from
