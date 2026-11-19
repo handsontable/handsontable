@@ -404,3 +404,22 @@ for (const cellType of COMMIT_CELL_TYPES) {
     }
   });
 }
+
+/**
+ * The select editor edits in a native `<select>`, not in the text editors' field. With a validator its commit
+ * waits for the answer too, and the focus must still reach the cell the selection lands on.
+ */
+test.describe('focus after a commit (select with a validator)', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('moves the focus to the next cell when Enter commits', async({ page, theme, bundle }) => {
+    const grid = new EditorListA11yPage(page, theme, bundle, 'select');
+
+    await grid.goto({ passValidator: true });
+    await grid.openEditorAt(0, 0);
+    await page.keyboard.press('ArrowDown');
+    await grid.commitEditor();
+
+    expect(await grid.selectedCell()).toEqual([1, 0]);
+    await expect.poll(() => grid.focusTarget()).toEqual({ cell: [1, 0] });
+    expect(await grid.focusTargetAfterFrames(SETTLE_FRAMES)).toEqual({ cell: [1, 0] });
+  });
+});

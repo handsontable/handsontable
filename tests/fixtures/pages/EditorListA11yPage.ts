@@ -7,7 +7,7 @@ export type ListEditorCellType = 'autocomplete' | 'dropdown';
  * The cell types whose commit moves the browser focus the same way: the two list editors, and the
  * `handsontable` and `text` editors they are compared with.
  */
-export type EditorCellType = ListEditorCellType | 'handsontable' | 'text';
+export type EditorCellType = ListEditorCellType | 'handsontable' | 'text' | 'select';
 
 /**
  * The element holding the browser focus: a data cell by its coordinates, the active editor's field, or
@@ -92,14 +92,15 @@ export class EditorListA11yPage {
    * on the edited cell.
    * @param {boolean} [options.heldValidator] Give the column a validator that answers only on
    * {@link EditorListA11yPage#releaseValidations}.
+   * @param {boolean} [options.passValidator] Give the column a validator that accepts every value.
    * @param {boolean} [options.contextMenu] Turn the context menu on.
    */
   async goto({
     longSource = false, asyncSource = false, strict = false, allowHtml = false, ariaTags = true, enterStays = false,
-    heldValidator = false, contextMenu = false,
+    heldValidator = false, passValidator = false, contextMenu = false,
   }: {
     longSource?: boolean, asyncSource?: boolean, strict?: boolean, allowHtml?: boolean, ariaTags?: boolean,
-    enterStays?: boolean, heldValidator?: boolean, contextMenu?: boolean,
+    enterStays?: boolean, heldValidator?: boolean, passValidator?: boolean, contextMenu?: boolean,
   } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
       + (longSource ? '&source=200' : '')
@@ -109,6 +110,7 @@ export class EditorListA11yPage {
       + (ariaTags ? '' : '&ariaTags=false')
       + (enterStays ? '&enterMoves=stay' : '')
       + (heldValidator ? '&validator=held' : '')
+      + (passValidator ? '&validator=pass' : '')
       + (contextMenu ? '&contextMenu=true' : '');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);

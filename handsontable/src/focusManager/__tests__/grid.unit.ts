@@ -517,6 +517,96 @@ describe('FocusGridManager focus after an editor waiting for its validator', () 
     expect(document.activeElement).toBe(cellInput);
   });
 
+  it('focuses the highlighted cell once a waiting editor without a TEXTAREA closes (a select editor)', () => {
+    const { grid, wrapper } = makeGrid();
+    const select = document.createElement('select');
+    const listeners = new Set<() => void>();
+    const editor = {
+      select,
+      opened: true,
+      waiting: true,
+      isOpened() {
+        return this.opened;
+      },
+      isWaiting() {
+        return this.waiting;
+      },
+      _addFinishListener: (listener: () => void) => listeners.add(listener),
+      _removeFinishListener: (listener: () => void) => listeners.delete(listener),
+    };
+
+    (wrapper.querySelector('.handsontable') as HTMLElement).append(select);
+    select.focus();
+    grid.setActiveEditor(editor);
+    grid.manager.focusOnHighlightedCell();
+    editor.waiting = false;
+    editor.opened = false;
+    [...listeners].forEach(listener => listener());
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('focuses the highlighted cell when the focus fell to the body because the editor hid its element', () => {
+    const { grid, waiting } = makeGrid();
+
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    waiting.field.style.display = 'none';
+    waiting.field.blur();
+    waiting.finish();
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the focus on the body when the editor\'s element is still shown', () => {
+    // Nothing hid the element, so something else took the focus off it: a press on the page.
+    const { grid, waiting } = makeGrid();
+
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    waiting.field.blur();
+    waiting.finish();
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+
+  it('compares with the element focused when the wait began, not when the focus was asked for again', () => {
+    // A right click selects another cell, which asks for the focus again, and the menu it opens takes it.
+    const { grid, waiting, wrapper } = makeGrid();
+    const menuItem = document.createElement('button');
+
+    wrapper.append(menuItem);
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    menuItem.focus();
+    grid.manager.focusOnHighlightedCell();
+    waiting.finish();
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(menuItem);
+  });
+
+  it('does not compare a later edit with the element of a finished wait', () => {
+    const { grid, waiting, wrapper } = makeGrid();
+    const other = document.createElement('input');
+
+    wrapper.append(other);
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    waiting.finish();
+    (grid.td.focus as jest.Mock).mockClear();
+
+    // A second wait that starts with the focus on another element.
+    other.focus();
+    waiting.editor.waiting = true;
+    waiting.editor.opened = true;
+    grid.manager.focusOnHighlightedCell();
+    waiting.field.focus();
+    waiting.finish();
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+
   it('does not wait for an open editor that is not waiting', () => {
     const { grid, waiting } = makeGrid();
 

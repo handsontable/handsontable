@@ -7,6 +7,7 @@ import {
   isHTMLElement,
   isInternalElement,
   isOutsideInput,
+  isVisible,
 } from '../helpers/dom/element';
 import { debounce } from '../helpers/function';
 
@@ -154,6 +155,14 @@ export class FocusGridManager {
    * @type {ActiveEditorInstance | null}
    */
   #waitingEditor: ActiveEditorInstance | null = null;
+  /**
+   * The element that held the browser focus when the wait in `#waitingEditor` began: the editor's own
+   * element (its field, a `<select>`, a custom editor's control) on every commit path. Cleared when the wait
+   * finishes, so a later edit never compares with it.
+   *
+   * @type {Element | null}
+   */
+  #waitingFocus: Element | null = null;
 
   /**
    * Initializes the manager with a reference to the Handsontable instance.
@@ -479,21 +488,54 @@ export class FocusGridManager {
    * then the selection has already moved and its focus was skipped because the editor was open. Without
    * this the browser focus stayed on the closed editor's field. The editor's finish listener runs when the
    * editor closes or reopens on a rejected value; a reopened editor keeps the focus, and the focus moves
-   * only while it is still on the editor's field, where the commit left it.
+   * only while it is still where the wait began (see `#isFocusWhereWaitBegan()`).
    *
    * @param {ActiveEditorInstance} editor The editor waiting for its validator.
    */
   #focusAfterEditorWait(editor: ActiveEditorInstance): void {
-    if (typeof editor._addFinishListener !== 'function') {
+    if (typeof editor._addFinishListener !== 'function' || this.#waitingEditor === editor) {
+      // A second ask during the same wait keeps the element the wait began on: by then a menu opened by the
+      // press that asked again can hold the focus.
       return;
     }
 
-    if (this.#waitingEditor !== null && this.#waitingEditor !== editor) {
+    if (this.#waitingEditor !== null) {
       this.#waitingEditor._removeFinishListener?.(this.#onWaitingEditorFinish);
     }
 
     this.#waitingEditor = editor;
+    this.#waitingFocus = getDeepActiveElement(this.#hot.rootDocument);
     editor._addFinishListener(this.#onWaitingEditorFinish);
+  }
+
+  /**
+   * Checks whether the browser focus is still where the editor's wait began. It is when the same element
+   * holds it, or when it fell to the body because that element was hidden or removed (a closed select
+   * editor hides its `<select>`, and the browser then drops the focus): nobody moved it. A focus on any
+   * other element (a menu, a dialog, a side-slot input, another element of the grid, a page outside it)
+   * was moved there, and so was a focus on the body while the element is still shown. `getDeepActiveElement()`
+   * looks into a shadow root the grid renders in; a sandboxed host that hides the element behind its host
+   * reads as a moved focus, so the focus stays where it is, as it did before.
+   *
+   * @param {Element | null} waitingFocus The element focused when the wait began.
+   * @returns {boolean}
+   */
+  #isFocusWhereWaitBegan(waitingFocus: Element | null): boolean {
+    if (!isHTMLElement(waitingFocus)) {
+      return false;
+    }
+
+    const { rootDocument } = this.#hot;
+    const activeElement = getDeepActiveElement(rootDocument);
+
+    if (activeElement === waitingFocus) {
+      return true;
+    }
+
+    const fellToBody = activeElement === null || activeElement === rootDocument.body ||
+      activeElement === rootDocument.documentElement;
+
+    return fellToBody && (!waitingFocus.isConnected || !isVisible(waitingFocus));
   }
 
   /**
@@ -501,16 +543,13 @@ export class FocusGridManager {
    */
   #onWaitingEditorFinish = (): void => {
     const editor = this.#waitingEditor;
+    const waitingFocus = this.#waitingFocus;
 
     this.#waitingEditor = null;
+    this.#waitingFocus = null;
     editor?._removeFinishListener?.(this.#onWaitingEditorFinish);
 
-    // The focus moves only from where the commit left it, the editor's field. A focus that moved meanwhile, to
-    // a menu, a dialog, a side-slot input, another element of the grid, or out of the grid, is the user's.
-    // `getDeepActiveElement()` looks into a shadow root the grid renders in; a sandboxed host that hides the
-    // field behind its host reads as a moved focus, so the focus stays on the field as it did before.
-    if (this.#hot.isDestroyed || !editor?.TEXTAREA ||
-        getDeepActiveElement(this.#hot.rootDocument) !== editor.TEXTAREA) {
+    if (this.#hot.isDestroyed || !this.#isFocusWhereWaitBegan(waitingFocus)) {
       return;
     }
 
