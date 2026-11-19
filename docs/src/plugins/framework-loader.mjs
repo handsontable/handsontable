@@ -1341,6 +1341,21 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
 // ---------------------------------------------------------------------------
 
 /**
+ * Resolves on the next turn of the event loop, so pending timers and I/O run.
+ *
+ * Rendering a page awaits microtasks and sync file reads only, so the full
+ * content load would otherwise hold the event loop for its whole run (over a
+ * minute). `astro dev` compiles its server app through a Vite module-runner
+ * call with a 60-second timeout while the load runs. A load that never yields
+ * makes that call time out, and every page request then hangs.
+ *
+ * @returns {Promise<void>}
+ */
+function yieldToEventLoop() {
+  return new Promise(resolve => setImmediate(resolve));
+}
+
+/**
  * Creates a custom Astro content loader that generates 3 framework-specific
  * entries for every .md file in the content directory.
  *
@@ -1693,6 +1708,7 @@ export function frameworkLoader({ contentDir }) {
       // Initial full load of every content file.
       for (const absPath of listMdFiles(contentDir)) {
         await syncContentFile(absPath);
+        await yieldToEventLoop();
       }
 
       // ── Dev hot reload ──────────────────────────────────────────────────

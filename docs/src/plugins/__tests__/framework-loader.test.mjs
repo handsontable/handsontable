@@ -972,3 +972,41 @@ test('a fence opened by a line indented up to three spaces keeps the aside and t
   assert.match(code, /<p>Tail\.<\/p>\s*<\/div>\s*<\/aside>\s*<p>After the aside\.<\/p>/, 'text after the fence stays prose');
   assert.equal(code.match(/<pre/g).length, 1, 'the closer does not open a second fence');
 });
+
+test('the initial load gives the event loop a turn after each content file', async () => {
+  const { contentDir, root } = createFixture();
+  const pageCount = 20;
+
+  for (let index = 0; index < pageCount; index += 1) {
+    const pageDir = join(contentDir, 'guides', `page-${index}`);
+
+    mkdirSync(pageDir, { recursive: true });
+    writeFileSync(
+      join(pageDir, `page-${index}.md`),
+      `---\ntitle: Page ${index}\npermalink: /page-${index}\n---\n\nBody ${index}.\n`
+    );
+  }
+
+  let turns = 0;
+  let loading = true;
+
+  const countTurn = () => {
+    if (loading) {
+      turns += 1;
+      setImmediate(countTurn);
+    }
+  };
+
+  try {
+    const { ctx } = createContext();
+
+    setImmediate(countTurn);
+    await frameworkLoader({ contentDir }).load(ctx);
+    loading = false;
+
+    assert.ok(turns >= pageCount, `the event loop turned ${turns} times for ${pageCount} pages`);
+  } finally {
+    loading = false;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
