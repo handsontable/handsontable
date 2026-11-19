@@ -42,21 +42,25 @@ export function getHeaderLabelText(TH: HTMLElement | null, declaredLabel: unknow
 }
 
 /**
- * Reads the name of a column the way a user sees it, with `getHeaderLabelText()`. A header that is not rendered
- * (virtualized out) is read from `getColHeader()` through a configured `textExtractor` (context
- * `'A11y.columnLabel'`) first. A column without a label is named by its spreadsheet letter.
+ * Reads the name of a column the way a user sees it, with `getHeaderLabelText()`. Only a header that is not
+ * rendered (virtualized out), or renders no text, is read from `getColHeader()`, through a configured
+ * `textExtractor` (context `'A11y.columnLabel'`), so neither runs while the rendered header gives the name. A column
+ * without a label is named by its spreadsheet letter.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {number} column Visual column index.
  * @returns {string}
  */
 export function getColumnLabel(hot: HotInstance, column: number): string {
-  const label = getHeaderLabelText(
-    hot.getCell(-1, column, true),
-    extractText(hot, hot.getColHeader(column) ?? '', 'A11y.columnLabel'),
-  );
+  const rendered = getHeaderLabelText(hot.getCell(-1, column, true), '');
 
-  return label !== '' ? label : spreadsheetColumnLabel(column);
+  if (rendered !== '') {
+    return rendered;
+  }
+
+  const declared = getHeaderLabelText(null, extractText(hot, hot.getColHeader(column) ?? '', 'A11y.columnLabel'));
+
+  return declared !== '' ? declared : spreadsheetColumnLabel(column);
 }
 
 /**

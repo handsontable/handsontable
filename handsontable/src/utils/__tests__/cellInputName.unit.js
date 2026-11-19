@@ -85,6 +85,16 @@ describe('getColumnLabel', () => {
     expect(textExtractor).toHaveBeenCalledWith('Price', 'A11y.columnLabel');
   });
 
+  it('reads neither getColHeader() nor the textExtractor when the rendered header has text', () => {
+    const textExtractor = jest.fn(content => content);
+    const hot = createHot({ renderedHeaders: ['Name'], colHeaders: ['Name'], textExtractor });
+    const getColHeader = jest.spyOn(hot, 'getColHeader');
+
+    expect(getColumnLabel(hot, 0)).toBe('Name');
+    expect(getColHeader).not.toHaveBeenCalled();
+    expect(textExtractor).not.toHaveBeenCalled();
+  });
+
   it('names a column without a label by its spreadsheet letter', () => {
     expect(getColumnLabel(createHot({ renderedHeaders: [' ', ' ', ''], colHeaders: [] }), 2)).toBe('C');
   });
