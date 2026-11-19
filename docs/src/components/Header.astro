@@ -451,7 +451,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       }
     }
 
-    function setToc(open: boolean) {
+    function setToc(open: boolean, restoreFocus = true) {
       const wasOpen = tocOpen;
       tocOpen = open;
       if (tocPanel) tocPanel.hidden = !open;
@@ -471,7 +471,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       } else {
         tocTrapCleanup?.();
         tocTrapCleanup = null;
-        if (wasOpen) tocToggle?.focus();
+        if (wasOpen && restoreFocus) tocToggle?.focus();
       }
     }
 
@@ -561,7 +561,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
 
     sidebarToggle?.addEventListener('click', () => {
       setOverlay(false);
-      setToc(false);
+      setToc(false, false);
       if (isTablet()) {
         // Tablet: collapse/expand sidebar via data attribute
         document.body.toggleAttribute('data-sidebar-collapsed');

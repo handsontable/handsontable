@@ -4,6 +4,7 @@ const PAGE_PATH = '/javascript-data-grid/installation/';
 const TABLET = { width: 1000, height: 800 };
 const PHONE = { width: 390, height: 844 };
 const TOGGLE = '.mobile-sidebar-toggle';
+const TOC_TOGGLE = '.mobile-toc-toggle';
 const PANE = '.sidebar-pane';
 const BREADCRUMBS = '.mobile-breadcrumbs';
 
@@ -95,6 +96,21 @@ test.describe('Sidebar toggle at tablet width', () => {
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     await expect(toggle).toBeFocused();
     await expect.poll(() => paneRightEdge(page)).toBeGreaterThan(0);
+  });
+
+  test('keeps the focus on the toggle when it closes an open table of contents', async({ page, baseURL }) => {
+    await openPage(page, baseURL, TABLET);
+    const toggle = page.locator(TOGGLE);
+    const tocToggle = page.locator(TOC_TOGGLE);
+
+    await tocToggle.click();
+    await expect(tocToggle).toHaveAttribute('aria-expanded', 'true');
+
+    await toggle.click();
+
+    await expect(tocToggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(toggle).toBeFocused();
   });
 
   test('reports the open sidebar after the window grows into the tablet range', async({ page, baseURL }) => {
