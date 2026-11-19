@@ -119,8 +119,8 @@ export function getTranslatedPhrase(languageCode: string, dictionaryKey: string,
   }
 
   // Read the registered dictionary directly: the copy `getLanguageDictionary()` makes would cost a full
-  // dictionary clone per lookup, and renderers look phrases up for every painted cell. The built-in
-  // phrase formatters never mutate the phrase propositions they receive (see `registerPhraseFormatter()`).
+  // dictionary clone per lookup, and renderers look phrases up for every painted cell. Plural forms are
+  // copied before formatting, so a formatter that mutates its input cannot change the registry.
   const languageDictionary = getGlobalLanguageDictionary(languageCode) as Record<string, unknown>;
   const phrasePropositions = languageDictionary[dictionaryKey];
 
@@ -128,7 +128,10 @@ export function getTranslatedPhrase(languageCode: string, dictionaryKey: string,
     return null;
   }
 
-  const formattedPhrase = getFormattedPhrase(phrasePropositions, argumentsForFormatters);
+  const formattedPhrase = getFormattedPhrase(
+    Array.isArray(phrasePropositions) ? phrasePropositions.slice() : phrasePropositions,
+    argumentsForFormatters,
+  );
 
   if (Array.isArray(formattedPhrase)) {
     return formattedPhrase[0];

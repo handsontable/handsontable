@@ -13,6 +13,8 @@ import enUS from 'handsontable/i18n/languages/en-US';
 import srLatnRS from 'handsontable/i18n/languages/sr-Latn-RS';
 import srSP from 'handsontable/i18n/languages/sr-SP';
 import { _resetDeprecationWarnings } from 'handsontable/helpers/console';
+import { registerPhraseFormatter } from 'handsontable/i18n/phraseFormatters';
+import pluralize from 'handsontable/i18n/phraseFormatters/pluralize';
 
 describe('i18n registry', () => {
   it('should register automatically default language', () => {
@@ -113,6 +115,27 @@ describe('i18n registry', () => {
         .toBe(plPL[CONTEXTMENU_ITEMS_ROW_ABOVE]);
       expect(getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_REMOVE_ROW, 0)).toBe(singular);
       expect(getLanguageDictionary(plPL.languageCode)[CONTEXTMENU_ITEMS_REMOVE_ROW]).toEqual([singular, plural]);
+    });
+
+    it('should not let a phrase formatter mutate the registered phrase propositions', () => {
+      const [singular, plural] = plPL[CONTEXTMENU_ITEMS_REMOVE_ROW];
+
+      // Replacing a built-in by name keeps its position, so this formatter runs first and gets the raw array.
+      registerPhraseFormatter('pluralize', (phrasePropositions: string[]) => {
+        phrasePropositions[0] = 'changed';
+        phrasePropositions.push('changed');
+
+        return phrasePropositions;
+      });
+
+      try {
+        getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_REMOVE_ROW, undefined);
+      } finally {
+        registerPhraseFormatter('pluralize', pluralize);
+      }
+
+      expect(getLanguageDictionary(plPL.languageCode)[CONTEXTMENU_ITEMS_REMOVE_ROW]).toEqual([singular, plural]);
+      expect(getTranslatedPhrase(plPL.languageCode, CONTEXTMENU_ITEMS_REMOVE_ROW, 0)).toBe(singular);
     });
   });
 
