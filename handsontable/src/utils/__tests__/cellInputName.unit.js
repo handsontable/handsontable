@@ -137,6 +137,18 @@ describe('getRowLabel', () => {
     expect(getRowLabel(hot, 1)).toBe(2);
   });
 
+  it('runs modifyRowHeader once for a row that shows a header', () => {
+    const modifyRowHeader = jest.fn(row => row);
+
+    expect(getRowLabel(createHot({ modifyRowHeader }), 1)).toBe(2);
+    expect(getRowLabel(createHot({ modifyRowHeader, rowHeaders: ['Q1', 'Q2'] }), 1)).toBe('Q2');
+    expect(modifyRowHeader).toHaveBeenCalledTimes(2);
+  });
+
+  it('numbers the row when a modifyRowHeader listener answers nothing', () => {
+    expect(getRowLabel(createHot({ modifyRowHeader: () => undefined, rowHeaders: ['Q1', 'Q2'] }), 1)).toBe(2);
+  });
+
   it('numbers a row whose custom header is empty', () => {
     expect(getRowLabel(createHot({ rowHeaders: ['', ''] }), 1)).toBe(2);
   });

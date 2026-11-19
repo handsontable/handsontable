@@ -71,19 +71,14 @@ export function getColumnLabel(hot: HotInstance, column: number): string {
  * hook (a paged `dataProvider`, `bindRowsWithHeaders`), an array of `rowHeaders` or a `rowHeaders` function, and the
  * `modifyRowHeaderValue` hook (a header renamed with EditableHeaders). A text header comes back as plain text
  * (through a configured `textExtractor`, context `'A11y.rowLabel'`), a numeric one as a number. A grid without row
- * headers, and an empty header, give the row number counted from 1.
+ * headers, and an empty header, give the row number counted from 1, mapped by `modifyRowHeader`. A row that shows
+ * a header runs `modifyRowHeader` once, inside `getRowHeader()`.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {number} row Visual row index.
  * @returns {string|number}
  */
 export function getRowLabel(hot: HotInstance, row: number): string | number {
-  const physicalRow = hot.runHooks('modifyRowHeader', row);
-
-  if (physicalRow === undefined || physicalRow === null) {
-    return row + 1;
-  }
-
   const header: unknown = hot.getRowHeader(row);
 
   if (typeof header === 'number' && Number.isFinite(header)) {
@@ -98,5 +93,9 @@ export function getRowLabel(hot: HotInstance, row: number): string | number {
     }
   }
 
-  return Number(physicalRow) + 1;
+  if (Array.isArray(header)) {
+    return row + 1;
+  }
+
+  return Number(hot.runHooks('modifyRowHeader', row) ?? row) + 1;
 }
