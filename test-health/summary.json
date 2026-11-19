@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-19T10:56:35.347Z",
+  "generatedAt": "2026-11-19T10:59:43.607Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 452,
+    "tests": 453,
     "needsTicket": 9,
     "quarantined": 0,
-    "entries": 2320
+    "entries": 2321
   },
   "rows": [
     {
@@ -1631,6 +1631,39 @@
         "leg": "js/chromium-theme-main",
         "status": "failed",
         "error": "differs from base/develop (full tier); render sha256 082cba487624",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "playwright|e2e/sort-value-getter-guard.spec.ts|the sort read path keeps every `valueGetter` on it › keeps a `valueGetter` a `cells()` function puts on the rendered rows",
+      "tier": "playwright",
+      "file": "e2e/sort-value-getter-guard.spec.ts",
+      "line": 47,
+      "title": "the sort read path keeps every `valueGetter` on it › keeps a `valueGetter` a `cells()` function puts on the rendered rows",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "e2e-main"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-19T10:58:51Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44506099311",
+        "branch": "feature/DEV-4093_cells-valueGetter-unrendered-rows",
+        "leg": "e2e-main",
+        "status": "failed",
+        "error": "Error: expect(received).toBe(expected) // Object.is equality",
         "source": "ci"
       },
       "needsTicket": false
