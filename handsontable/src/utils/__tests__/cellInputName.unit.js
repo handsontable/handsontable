@@ -15,13 +15,14 @@ import plPL from '../../i18n/languages/pl-PL';
  * @param {string} [options.language] The `language` setting.
  * @param {Function} [options.modifyRowHeader] What a `modifyRowHeader` listener answers for a visual row.
  * @param {boolean|Function} [options.textExtractor] The `textExtractor` setting.
+ * @param {Function} [options.modifyRowHeaderValue] What a `modifyRowHeaderValue` listener answers for a header.
  * @returns {object}
  */
 function createHot({
   renderedHeaders = [], colHeaders = [], rowHeaders = true, ariaTags = true, language = 'en-US',
-  modifyRowHeader = row => row, textExtractor = false,
+  modifyRowHeader = row => row, textExtractor = false, modifyRowHeaderValue = value => value,
 } = {}) {
-  return {
+  const hot = {
     runHooks: (hookName, value) => (hookName === 'modifyRowHeader' ? modifyRowHeader(value) : value),
     getSettings: () => ({ ariaTags, textExtractor, rowHeaders }),
     getColHeader: column => colHeaders[column],
@@ -40,7 +41,27 @@ function createHot({
       return TH;
     },
     getTranslatedPhrase: (key, args) => getTranslatedPhrase(language, key, args),
+    getRowHeader(row) {
+      const physicalRow = modifyRowHeader(row);
+      let header = rowHeaders;
+
+      if (physicalRow === undefined) {
+        return [];
+      }
+
+      if (Array.isArray(rowHeaders) && rowHeaders[physicalRow] !== undefined) {
+        header = rowHeaders[physicalRow];
+      } else if (typeof rowHeaders === 'function') {
+        header = rowHeaders(physicalRow);
+      } else if (rowHeaders && typeof rowHeaders !== 'string' && typeof rowHeaders !== 'number') {
+        header = physicalRow + 1;
+      }
+
+      return header ? modifyRowHeaderValue(header, row) : header;
+    },
   };
+
+  return hot;
 }
 
 describe('getColumnLabel', () => {
@@ -107,6 +128,13 @@ describe('getRowLabel', () => {
     expect(getRowLabel(createHot({ rowHeaders: ['<b>North</b><br>region'], textExtractor }), 0))
       .toBe('North region');
     expect(textExtractor).toHaveBeenCalledWith('<b>North</b><br>region', 'A11y.rowLabel');
+  });
+
+  it('reads a row header a modifyRowHeaderValue listener renamed', () => {
+    const hot = createHot({ modifyRowHeaderValue: (value, row) => (row === 2 ? 'Q3' : value) });
+
+    expect(getRowLabel(hot, 2)).toBe('Q3');
+    expect(getRowLabel(hot, 1)).toBe(2);
   });
 
   it('numbers a row whose custom header is empty', () => {

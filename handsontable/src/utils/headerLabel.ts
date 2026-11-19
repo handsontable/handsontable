@@ -1,7 +1,6 @@
 import { HTML_CHARACTERS } from '../helpers/dom/element';
 import { spreadsheetColumnLabel } from '../helpers/data';
 import { htmlToPlainText } from '../helpers/string';
-import { isFunction } from '../helpers/function';
 import { extractText } from './textExtractor';
 import type { HotInstance } from '../core/types';
 import type { TextExtractorContext } from '../core/settings';
@@ -68,27 +67,24 @@ export function getColumnLabel(hot: HotInstance, column: number): string {
 }
 
 /**
- * Reads the label of a row the way its row header shows it, as `Core#getRowHeader()` resolves it: the row passes
- * through the `modifyRowHeader` hook (a paged `dataProvider`, `bindRowsWithHeaders`), then an array of `rowHeaders`
- * or a `rowHeaders` function gives the header. A text header comes back as plain text (through a configured
- * `textExtractor`, context `'A11y.rowLabel'`), a numeric one as a number. The default row headers, a grid without
- * row headers, and an empty custom header give the row number counted from 1.
+ * Reads the label of a row the way its row header shows it, through `Core#getRowHeader()`: the `modifyRowHeader`
+ * hook (a paged `dataProvider`, `bindRowsWithHeaders`), an array of `rowHeaders` or a `rowHeaders` function, and the
+ * `modifyRowHeaderValue` hook (a header renamed with EditableHeaders). A text header comes back as plain text
+ * (through a configured `textExtractor`, context `'A11y.rowLabel'`), a numeric one as a number. A grid without row
+ * headers, and an empty header, give the row number counted from 1.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {number} row Visual row index.
  * @returns {string|number}
  */
 export function getRowLabel(hot: HotInstance, row: number): string | number {
-  const physicalRow = Number(hot.runHooks('modifyRowHeader', row) ?? row);
-  const { rowHeaders } = hot.getSettings();
-  let header: unknown;
+  const physicalRow = hot.runHooks('modifyRowHeader', row);
 
-  if (Array.isArray(rowHeaders)) {
-    header = rowHeaders[physicalRow];
-
-  } else if (isFunction(rowHeaders)) {
-    header = (rowHeaders as (index: number) => unknown)(physicalRow);
+  if (physicalRow === undefined || physicalRow === null) {
+    return row + 1;
   }
+
+  const header: unknown = hot.getRowHeader(row);
 
   if (typeof header === 'number' && Number.isFinite(header)) {
     return header;
@@ -102,5 +98,5 @@ export function getRowLabel(hot: HotInstance, row: number): string | number {
     }
   }
 
-  return physicalRow + 1;
+  return Number(physicalRow) + 1;
 }
