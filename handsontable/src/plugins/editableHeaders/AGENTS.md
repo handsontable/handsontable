@@ -27,7 +27,8 @@ option, a row header) through an input laid over the header. Read this before to
 - **A rename is written as text, never as HTML, and the switch lives in core.** Core writes a header label
   with `fastInnerHTML()`, which parses a label that looks like markup, and an end user types these names: a
   typed `<img onerror>` ran in the grid and in AutoColumnSize's GhostTable, which calls
-  `view.appendColHeader()` directly. Overwriting the label later (an `afterGetColHeader` listener, a wrapped
+  `view.appendColHeader()` directly, and in the copied HTML table (`instanceToTableElement()` in
+  `../../utils/parseTable.ts`), which also asks `TableView#isPlainTextHeader()`. Overwriting the label later (an `afterGetColHeader` listener, a wrapped
   header renderer) is too late: the markup is already parsed, and a detached `<img>` still fires `onerror`. So
   `TableView#updateCellHeader()` asks the resolver this plugin registers in `onGridReady()`
   (`setPlainTextHeaderResolver(#isRenamedHeader)`) and writes a rename with `fastInnerText()`. A configured
@@ -43,7 +44,13 @@ option, a row header) through an input laid over the header. Read this before to
   active, so `EditorManager` opened that cell's editor on the first letter and the name was typed into the
   data. `#onAfterDocumentKeyDown` stops the event (and `beforeCompositionStart`) while the input is open, as
   Comments does. Pinned by the Playwright "keeps the typed name out of the cells" case (`?mode=default`).
-- **An emptied input cancels.** A header with no text has no accessible name. `setHeader('')` through the API
+- **An emptied input cancels, and so does a scroll that moves the header out of view.** A header with no text has
+  no accessible name, and a scroll is no confirmation of a half-typed name.
+- **A `blur` while the input is still the active element is ignored.** Switching windows (or opening the
+  browser's developer tools) fires `blur` on the input and keeps it active; saving there committed a half-typed
+  name.
+- **Names follow the physical index, not the record.** `updateData()` fits the maps to the new length, so a name
+  stays on its position in the new data; `loadData()` re-registers the maps empty. `setHeader('')` through the API
   still stores an empty name verbatim.
 - **A renamed row header follows its row** (it is stored by physical row), while a default row header
   (1, 2, 3) is positional. After a sort, "Total" stays with the row the user named.
@@ -57,6 +64,9 @@ option, a row header) through an input laid over the header. Read this before to
   after by physical index and fire the hook once per changed header, `beforeHeaderChange` never (an undo cannot be
   vetoed there). The copy is taken only while the hook has a listener (`hasHook()`), because it is O(rows) per
   undo. The configured value is read with `#readingConfigured` up, which makes the value hooks step aside.
+  **A step that changes the row or column count reports nothing for that axis**: it renumbers the physical
+  indexes, so the comparison paired one record's name with another's (rename rows 1 and 3, remove row 1, undo:
+  three reports, one with another row's name).
 - **The input carries `data-hot-input`.** Without it `TableView` treats it as a page input
   (`isOutsideInput()`) and unlistens the grid on the `mouseup` that follows: the "Rename header" menu click
   opened the input and the grid then stopped listening, so Enter never reached the plugin context (the

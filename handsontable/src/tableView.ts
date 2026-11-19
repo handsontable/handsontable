@@ -3392,6 +3392,19 @@ class TableView {
   }
 
   /**
+   * Checks whether a header's label must be written as text: a user typed it, so it is never parsed as HTML.
+   * Every place that writes a header label into the DOM asks it (the grid, the GhostTable, the copied HTML table).
+   *
+   * @private
+   * @param {string} axis `'column'` or `'row'`.
+   * @param {number} visualIndex The visual index of the column or row.
+   * @returns {boolean}
+   */
+  isPlainTextHeader(axis: 'column' | 'row', visualIndex: number): boolean {
+    return this.#plainTextHeaderResolver?.(axis, visualIndex) ?? false;
+  }
+
+  /**
    * Updates header cell content.
    *
    * @private
@@ -3423,7 +3436,7 @@ class TableView {
       const label = String(content(index, headerLevel));
       const axis = hasClass(element, 'rowHeader') ? 'row' : 'column';
 
-      if (this.#plainTextHeaderResolver?.(axis, index)) {
+      if (this.isPlainTextHeader(axis, index)) {
         fastInnerText(element, label);
       } else {
         fastInnerHTML(element, label, getSanitizer(this.hot), 'header', this.hot.rootElement);

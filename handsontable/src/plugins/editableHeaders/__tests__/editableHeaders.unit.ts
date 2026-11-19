@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
+import { instanceToTableElement } from '../../../utils/parseTable';
 
 registerAllModules();
 
@@ -163,6 +164,11 @@ describe('EditableHeaders', () => {
     const { hot, plugin, destroy } = createGrid({ undo: true });
 
     plugin.setHeader('column', 0, 'Name');
+    plugin.setHeader('column', 0, 'Item');
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getColHeader(0)).toBe('Name');
+
     hot.getPlugin('undoRedo').undo();
 
     expect(hot.getColHeader(0)).toBe('A1');
@@ -170,6 +176,111 @@ describe('EditableHeaders', () => {
     hot.getPlugin('undoRedo').redo();
 
     expect(hot.getColHeader(0)).toBe('Name');
+    destroy();
+  });
+
+  it('should undo clearHeaders() as one step', () => {
+    const { hot, plugin, destroy } = createGrid({ undo: true });
+
+    plugin.setHeader('column', 0, 'Name');
+    plugin.setHeader('row', 1, 'Middle');
+    plugin.clearHeaders();
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getColHeader(0)).toBe('Name');
+    expect(hot.getRowHeader(1)).toBe('Middle');
+    destroy();
+  });
+
+  it('should not run beforeHeaderChange for an undo, a redo or clearHeaders()', () => {
+    const beforeHeaderChange = jest.fn();
+    const { hot, plugin, destroy } = createGrid({ undo: true, beforeHeaderChange });
+
+    plugin.setHeader('column', 0, 'Name');
+    beforeHeaderChange.mockClear();
+    hot.getPlugin('undoRedo').undo();
+    hot.getPlugin('undoRedo').redo();
+    plugin.clearHeaders();
+
+    expect(beforeHeaderChange).not.toHaveBeenCalled();
+    destroy();
+  });
+
+  it('should report no rename from another record for an undo that brings a removed row back', () => {
+    const afterHeaderChange = jest.fn();
+    const { hot, plugin, destroy } = createGrid({
+      undo: true,
+      afterHeaderChange,
+      data: [['a'], ['b'], ['c'], ['d']],
+      colHeaders: true,
+    });
+
+    plugin.setHeader('row', 1, 'N1');
+    plugin.setHeader('row', 3, 'N3');
+    hot.alter('remove_row', 1, 1);
+    afterHeaderChange.mockClear();
+    hot.getPlugin('undoRedo').undo();
+
+    expect(hot.getRowHeader()).toEqual([1, 'N1', 3, 'N3']);
+    // The rows were renumbered: comparing the renames by physical index would pair one record's name with another's.
+    expect(afterHeaderChange).not.toHaveBeenCalled();
+    destroy();
+  });
+
+  it('should keep a rename on its physical row through updateData() and drop it on loadData()', () => {
+    const { hot, plugin, destroy } = createGrid({ data: [['a'], ['b'], ['c']], colHeaders: true });
+
+    plugin.setHeader('row', 1, 'N1');
+    hot.updateData([['w'], ['x'], ['y'], ['z']]);
+
+    expect(hot.getRowHeader()).toEqual([1, 'N1', 3, 4]);
+
+    hot.loadData([['w'], ['x'], ['y'], ['z']]);
+
+    expect(hot.getRowHeader()).toEqual([1, 2, 3, 4]);
+    destroy();
+  });
+
+  it('should keep a half-typed name in the input when the window loses the focus', () => {
+    const { hot, plugin, destroy } = createGrid();
+
+    plugin.openEditor('column', 1);
+
+    const input = hot.rootElement.querySelector('.htEditableHeaderInput') as HTMLInputElement;
+
+    input.value = 'Pri';
+    // Switching to another window fires `blur` on the input, which stays the document's active element.
+    input.dispatchEvent(new FocusEvent('blur'));
+
+    expect(document.activeElement).toBe(input);
+    expect(plugin.isEditorOpened()).toBe(true);
+    expect(hot.getColHeader(1)).toBe('B1');
+    destroy();
+  });
+
+  it('should copy renamed column and row headers as text in the HTML table', () => {
+    const { hot, plugin, destroy } = createGrid();
+
+    plugin.setHeader('column', 1, '<b>Cost</b>');
+    plugin.setHeader('row', 0, 'a & b');
+
+    const table = instanceToTableElement(hot, document);
+    const headers = Array.from(table.querySelectorAll('th')).map(th => th.textContent);
+
+    expect(table.querySelector('b')).toBeNull();
+    expect(headers).toContain('<b>Cost</b>');
+    expect(headers).toContain('a & b');
+    destroy();
+  });
+
+  it('should export a renamed row header', () => {
+    const { hot, plugin, destroy } = createGrid();
+
+    plugin.setHeader('row', 1, 'Middle');
+
+    const csv = hot.getPlugin('exportFile').exportAsString('csv', { rowHeaders: true });
+
+    expect(csv).toContain('Middle');
     destroy();
   });
 
@@ -244,11 +355,27 @@ describe('EditableHeaders', () => {
   });
 
   it('should draw a renamed header as text, never as HTML, also when measuring it', () => {
-    const { hot, plugin, destroy } = createGrid({ autoColumnSize: true });
+    let measuredHeaders = 0;
+    let markupSeen = false;
+    const { hot, plugin, destroy } = createGrid({
+      autoColumnSize: true,
+      // Runs for the grid's headers and for the ones the GhostTable builds to measure, which it removes again before
+      // the call returns: the check has to happen while the header exists.
+      afterGetColHeader(this: Handsontable, column: number, TH: HTMLTableCellElement) {
+        if (!this.rootElement.contains(TH)) {
+          measuredHeaders += 1;
+        }
+
+        markupSeen ||= TH.querySelector('.pwn') !== null;
+      },
+    });
 
     plugin.setHeader('column', 0, '<img src="x" class="pwn">');
     plugin.setHeader('row', 0, '<b class="pwn">Top</b>');
+    hot.getPlugin('autoColumnSize').calculateAllColumnsWidth();
 
+    expect(measuredHeaders).toBeGreaterThan(0);
+    expect(markupSeen).toBe(false);
     expect(document.querySelector('.pwn')).toBeNull();
     expect(hot.getCell(-1, 0)?.querySelector('.colHeader')?.textContent).toBe('<img src="x" class="pwn">');
     expect(hot.getCell(0, -1)?.querySelector('.rowHeader')?.textContent).toBe('<b class="pwn">Top</b>');

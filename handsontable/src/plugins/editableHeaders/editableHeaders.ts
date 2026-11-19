@@ -73,7 +73,12 @@ type NamesSnapshot = Record<HeaderAxis, unknown[]>;
  * stays with the column or row. The hook also runs for every header that an undo, a redo or
  * {@link EditableHeaders#clearHeaders} changes.
  *
- * A new name is written as plain text, even when it looks like HTML. An emptied input cancels the rename.
+ * A new name is written as plain text, even when it looks like HTML, also in copied data. An emptied input and a
+ * scroll that moves the header out of view cancel the rename.
+ *
+ * A name belongs to a physical column or row: {@link Core#updateData} keeps it on the same position in the new data,
+ * and {@link Core#loadData} drops it. An undo or a redo that also inserts or removes rows or columns runs no
+ * `afterHeaderChange` for that axis.
  *
  * While the [`NestedHeaders`](@/api/nestedHeaders.md) plugin is on, column headers can't be renamed.
  *
@@ -615,9 +620,14 @@ export class EditableHeaders extends BasePlugin {
 
     AXES.forEach((axis) => {
       const after = this.#getNames(axis)?.getValues() ?? [];
-      const length = Math.max(after.length, before[axis].length);
 
-      for (let physicalIndex = 0; physicalIndex < length; physicalIndex++) {
+      // An undo of a row or column insert or removal renumbers the physical indexes, so a comparison by index would
+      // pair one record's name with another's. Such a step reports nothing for that axis.
+      if (after.length !== before[axis].length) {
+        return;
+      }
+
+      for (let physicalIndex = 0; physicalIndex < after.length; physicalIndex++) {
         const oldName = before[axis][physicalIndex] ?? null;
         const newName = after[physicalIndex] ?? null;
         const visualIndex = this.#toVisual(axis, physicalIndex);
@@ -933,9 +943,9 @@ export class EditableHeaders extends BasePlugin {
   }
 
   /**
-   * Keeps the open input over its header after a render or a scroll, and saves and closes it when the header is
-   * no longer drawn. A scroll inside the drawn band moves the overlays with no render, so both hooks call it.
-   * The save is deferred: it renders, and this can run inside a render.
+   * Keeps the open input over its header after a render or a scroll, and closes it without saving when the header
+   * is no longer drawn: a scroll is no confirmation of a half-typed name. A scroll inside the drawn band moves the
+   * overlays with no render, so both hooks call it. The close is deferred, because this can run inside a render.
    */
   #syncEditor = () => {
     const edited = this.#edited;
@@ -950,7 +960,7 @@ export class EditableHeaders extends BasePlugin {
     if (rect === null) {
       this.hot._registerTimeout(() => {
         if (this.#edited === edited) {
-          this.#closeEditor(true, false);
+          this.#closeEditor(false, false);
         }
       });
 

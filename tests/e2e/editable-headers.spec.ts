@@ -203,6 +203,19 @@ test.describe('Editable headers', { tag: THEMES_TAG }, () => {
     await expect(grid.headerInput()).toBeFocused();
   });
 
+  test('drops a half-typed name when the grid scrolls its header out of view', async({ page, theme, bundle }) => {
+    const grid = new EditableHeadersPage(page, theme, bundle);
+
+    await grid.goto('wide');
+    await grid.columnHeader(1).dblclick();
+    await page.keyboard.type('Half');
+    await grid.scrollGridBy(1500);
+
+    await expect(grid.headerInput()).toBeHidden();
+    await grid.scrollGridBy(-1500);
+    await expect(grid.columnHeader(1)).toHaveText('B');
+  });
+
   test('widens an auto-sized column to fit a longer name', async({ page, theme, bundle }) => {
     const grid = new EditableHeadersPage(page, theme, bundle);
 

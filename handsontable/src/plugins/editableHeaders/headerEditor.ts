@@ -1,5 +1,5 @@
 import { A11Y_LABEL } from '../../helpers/a11y';
-import { setAttribute } from '../../helpers/dom/element';
+import { getDeepActiveElement, setAttribute } from '../../helpers/dom/element';
 
 const INPUT_CLASS = 'htEditableHeaderInput';
 
@@ -201,10 +201,11 @@ export class HeaderEditor {
   };
 
   /**
-   * Reports a blur of the open input to the host.
+   * Reports a blur of the open input to the host. A blur while the input is still the active element means the
+   * window lost the focus (another window, the browser's developer tools): the user is not done typing.
    */
   #onBlur = () => {
-    if (this.#opened) {
+    if (this.#opened && getDeepActiveElement(this.#options.rootDocument) !== this.#input) {
       this.#options.onBlur();
     }
   };

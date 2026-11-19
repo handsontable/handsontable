@@ -444,9 +444,11 @@ Users can rename a header in three ways:
 - Focus the header with the keyboard and press <kbd>F2</kbd> or <kbd>Enter</kbd>. To focus a header with the keyboard, set [`navigableHeaders`](@/api/options.md#navigableheaders) to `true`.
 - Select **Rename header** in the context menu or the column menu ([`dropdownMenu`](@/api/options.md#dropdownmenu)).
 
-An input opens over the header. Press <kbd>Enter</kbd> or move the focus away to save the new name. Press <kbd>Esc</kbd> to cancel. An emptied input cancels too, so a header always keeps a name. The new name shows as plain text, even when it looks like HTML. Each rename is one step in the [undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md) history.
+An input opens over the header. Press <kbd>Enter</kbd> or move the focus away to save the new name. Press <kbd>Esc</kbd> to cancel. An emptied input cancels too, so a header always keeps a name, and so does a scroll that moves the header out of view. The new name shows as plain text, even when it looks like HTML, also in copied data. Each rename is one step in the [undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md) history.
 
 The grid keeps the new names in the plugin. It doesn't write them to `colHeaders` or `rowHeaders`. A renamed header follows its column or row when users move, sort, insert, or remove columns and rows. [`getColHeader()`](@/api/core.md#getcolheader), [`getRowHeader()`](@/api/core.md#getrowheader), copying with headers, and exporting all return the new name.
+
+A name belongs to the position of a column or row in your data, not to the values in it. [`updateData()`](@/api/core.md#updatedata) keeps the names on the same positions in the new data. [`loadData()`](@/api/core.md#loaddata) drops every name.
 
 The example below makes both column and row headers renamable. The log under the grid shows the last rename.
 
@@ -516,7 +518,7 @@ afterHeaderChange(axis, visualIndex, newValue, oldValue) {
 },
 ```
 
-`afterHeaderChange` also runs for every header that an undo, a redo, or `clearHeaders()` changes, so your saved names stay in step. `beforeHeaderChange` runs only for a rename: it can't stop an undo or a reset.
+`afterHeaderChange` also runs for every header that an undo, a redo, or `clearHeaders()` changes, so your saved names stay in step. `beforeHeaderChange` runs only for a rename: it can't stop an undo or a reset. An undo or a redo that also adds or removes rows or columns runs no `afterHeaderChange` for that axis, because the positions it would report are renumbered. Read the names again in the [`afterUndo`](@/api/hooks.md#afterundo) and [`afterRedo`](@/api/hooks.md#afterredo) hooks in that case.
 
 To validate or reject a rename, return `false` from the [`beforeHeaderChange`](@/api/hooks.md#beforeheaderchange) hook. The header then keeps its old name, and `afterHeaderChange` doesn't run.
 
