@@ -1,6 +1,7 @@
 import { HTML_CHARACTERS } from '../helpers/dom/element';
 import { spreadsheetColumnLabel } from '../helpers/data';
 import { htmlToPlainText } from '../helpers/string';
+import { extractText } from './textExtractor';
 import type { HotInstance } from '../core/types';
 
 const HEADER_LABEL_SELECTOR = '.colHeader';
@@ -19,8 +20,9 @@ function collapseWhitespace(text: string): string {
 /**
  * Reads the name of a column the way a user sees it: the text of the rendered header, so markup and character
  * references in a header label never reach an accessible name or an announcement. A header that is not rendered
- * (virtualized out) is read from `getColHeader()` and reduced the same way: tags stripped, character references
- * decoded, `<br>` read as a space. A column without a label is named by its spreadsheet letter.
+ * (virtualized out) is read from `getColHeader()`, passed through a configured `textExtractor` (context
+ * `'A11y.columnLabel'`), and reduced the same way: tags stripped, character references decoded, `<br>` read as a
+ * space. A column without a label is named by its spreadsheet letter.
  *
  * @param {HotInstance} hot The Handsontable instance.
  * @param {number} column Visual column index.
@@ -42,7 +44,7 @@ export function getColumnLabel(hot: HotInstance, column: number): string {
     }
   }
 
-  const header = String(hot.getColHeader(column) ?? '').trim();
+  const header = String(extractText(hot, hot.getColHeader(column) ?? '', 'A11y.columnLabel')).trim();
   const plainHeader = HTML_CHARACTERS.test(header) ?
     collapseWhitespace(htmlToPlainText(header.replace(/<br\s*\/?>/gi, ' '))) : header;
 

@@ -9794,8 +9794,10 @@ export default (): Record<string, unknown> => {
      * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
      * to get editor completion on the values below.
      *
-     * The surfaces that pass a context today are `'ExportFile.columnHeader'`, `'ExportFile.rowHeader'`
-     * and `'CopyPaste.columnHeader'`. A plugin may pass a surface of its own, so treat the list as open.
+     * The surfaces that pass a context today are `'ExportFile.columnHeader'`, `'ExportFile.rowHeader'`,
+     * `'CopyPaste.columnHeader'`, and `'A11y.columnLabel'` (a column header read for a cell editor's
+     * accessible name or a sort announcement, when the header is not rendered). A plugin may pass a surface
+     * of its own, so treat the list as open.
      *
      * The built-in extraction runs a configured [`sanitizer`](#sanitizer) first, under the `'header'`
      * surface, then reduces the result to text. That order matters: a sanitizer may remove content

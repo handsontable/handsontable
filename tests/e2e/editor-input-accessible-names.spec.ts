@@ -4,7 +4,7 @@ import { EditorInputAccessibleNamesPage } from '../fixtures/pages/EditorInputAcc
 /**
  * Every control that edits a cell is named after that cell, so a screen reader says which cell the
  * user is editing: `<column>, row <n>` for a cell editor and `Comment for <column>, row <n>` for the
- * comment editor, where `<column>` is the header text a user reads and `<n>` the visual row from 1.
+ * comment editor, where `<column>` is the header text a user reads and `<n>` the number the row header shows.
  * Each test reaches the editor with the keyboard and reads the name the accessibility tree computes.
  */
 test.describe('editor input accessible names', { tag: CROSS_BROWSER_TAG }, () => {
@@ -54,6 +54,23 @@ test.describe('editor input accessible names', { tag: CROSS_BROWSER_TAG }, () =>
 
     await expect.poll(() => grid.isEditorOpened()).toBe(true);
     await expect(page.getByRole('textbox', { name: 'B, row 1', exact: true })).toBeFocused();
+  });
+
+  test('numbers the row the way its row header does when the headers are bound to the rows', async({ page }) => {
+    await grid.build({
+      data: [['Ann'], ['Bob'], ['Cid']],
+      colHeaders: ['Name'],
+      rowHeaders: true,
+      bindRowsWithHeaders: true,
+      columnSorting: { initialConfig: { column: 0, sortOrder: 'desc' } },
+    });
+    await grid.selectCell(0, 0);
+
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    await expect(page.getByRole('rowheader', { name: '3', exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Name, row 3', exact: true })).toBeFocused();
   });
 
   test('names the select editor after its cell', async({ page }) => {
