@@ -522,6 +522,99 @@ export class EditorListA11yPage {
   }
 
   /**
+   * Starts recording every Tab keydown the page receives, in the capture phase on the window, before any
+   * handler of the grid runs. The recorded event objects keep their `defaultPrevented` flag after the
+   * dispatch, so {@link EditorListA11yPage#tabKeysDefaultPrevented} reads what the handlers decided.
+   */
+  async startTabKeyLog(): Promise<void> {
+    await this.page.evaluate(() => {
+      const log: KeyboardEvent[] = [];
+
+      (window as unknown as { htTabKeyLog: KeyboardEvent[] }).htTabKeyLog = log;
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Tab') {
+          log.push(event);
+        }
+      }, true);
+    });
+  }
+
+  /**
+   * Whether each Tab keydown recorded since {@link EditorListA11yPage#startTabKeyLog} had its default
+   * action prevented. A prevented Tab runs no sequential focus navigation of the browser, so no element of
+   * the page, a list's scroll holder included, can take the focus from it.
+   */
+  async tabKeysDefaultPrevented(): Promise<boolean[]> {
+    return this.page.evaluate(() => (window as unknown as { htTabKeyLog: KeyboardEvent[] }).htTabKeyLog
+      .map(event => event.defaultPrevented));
+  }
+
+  /**
+   * How many editor lists (`.handsontableEditor`) the browser renders: `checkVisibility()` is false for an
+   * element under `display: none`, and such an element is never focusable. Zero means no list's scroll
+   * holder can take the focus, whatever its `tabindex`.
+   */
+  async displayedListCount(): Promise<number> {
+    return this.page.evaluate(() => Array.from(document.querySelectorAll<HTMLElement>('.handsontableEditor'))
+      .filter(list => list.checkVisibility()).length);
+  }
+
+  /**
+   * The open list of the editor's cell type, by its accessible name: a `grid` for the `handsontable`
+   * editor, a `listbox` for the others.
+   */
+  openList(name: string): Locator {
+    return this.cellType === 'handsontable' ? this.gridPopup(name) : this.listbox(name);
+  }
+
+  /**
+   * Leaves a list long enough to scroll by every key a user has while it is open, on a fixture opened with
+   * `longSource`: Tab with a choice highlighted, Shift+Tab with none, Tab after the wheel scrolled the
+   * list, and Escape. After each key it asserts that the focus is on the cell the key leads to and that no
+   * list is displayed, and at the end that the page's handlers prevented the default action of every Tab.
+   * Together these leave the browser no moment to run its own sequential focus navigation while a list is
+   * on screen, so no element of a list (a scrolling holder included) can be reached by Tab, whatever the
+   * engine decides about the holders' own focusability.
+   */
+  async leaveScrollingListByEveryKey(): Promise<void> {
+    const item = this.cellType === 'handsontable' ? 'gridcell' : 'option';
+
+    await this.startTabKeyLog();
+
+    // Tab from the field, with a choice highlighted.
+    await this.openEditorAt(0, 0);
+    expect(await this.displayedListCount()).toBe(1);
+    await this.page.keyboard.press('ArrowDown');
+    await this.page.keyboard.press('Tab');
+    await expect.poll(() => this.focusTarget()).toEqual({ cell: [0, 1] });
+    expect(await this.displayedListCount()).toBe(0);
+
+    // Shift+Tab from the field, with nothing highlighted.
+    await this.openEditorAt(0, 1);
+    await this.page.keyboard.press('Shift+Tab');
+    await expect.poll(() => this.focusTarget()).toEqual({ cell: [0, 0] });
+    expect(await this.displayedListCount()).toBe(0);
+
+    // Tab after the wheel scrolled the list: the holder now scrolls and shows other rows.
+    await this.openEditorAt(1, 0);
+    await expect(this.openList('A, row 2').getByRole(item).first()).toHaveText('Al 001');
+    await this.wheelOverList(400);
+    await expect(this.openList('A, row 2').getByRole(item, { name: 'Al 001', exact: true })).toHaveCount(0);
+    expect(await this.isFocusInList()).toBe(false);
+    await this.page.keyboard.press('Tab');
+    await expect.poll(() => this.focusTarget()).toEqual({ cell: [1, 1] });
+    expect(await this.displayedListCount()).toBe(0);
+
+    // Escape.
+    await this.openEditorAt(1, 1);
+    expect(await this.displayedListCount()).toBe(1);
+    await this.cancelEditor();
+    expect(await this.displayedListCount()).toBe(0);
+
+    expect(await this.tabKeysDefaultPrevented()).toEqual([true, true, true]);
+  }
+
+  /**
    * The value a data cell holds.
    */
   async dataAtCell(row: number, col: number): Promise<unknown> {

@@ -136,28 +136,23 @@ for (const cellType of CELL_TYPES) {
       expect(await grid.focusableListElements()).toEqual([]);
     });
 
-    test('keeps the focus out of a list that scrolls on Tab and Shift+Tab', async() => {
+    // Known trade-off: without `tabindex` the list's scrolling holder is a Tab stop to Chromium and Firefox, but no Tab
+    // reaches it: the editor prevents every Tab while the list is shown, and the list is hidden whenever it is not.
+    test('runs no browser Tab navigation while the list is shown, and hides the list whenever the editor closes', async() => {
       await grid.goto({ longSource: true });
+      await grid.leaveScrollingListByEveryKey();
+    });
 
-      // Tab from the field, with an option highlighted.
-      await grid.openEditorAt(0, 0);
-      await grid.page.keyboard.press('ArrowDown');
-      await grid.page.keyboard.press('Tab');
-      await expect.poll(() => grid.focusTarget()).toEqual({ cell: [0, 1] });
-
-      // Shift+Tab from the field, with nothing highlighted.
+    test('hides the list while a grid scroll hides the edited cell', async() => {
+      await grid.goto({ frozen: true });
       await grid.openEditorAt(0, 1);
-      await grid.page.keyboard.press('Shift+Tab');
-      await expect.poll(() => grid.focusTarget()).toEqual({ cell: [0, 0] });
+      expect(await grid.displayedListCount()).toBe(1);
 
-      // Tab after the wheel scrolled the list.
-      await grid.openEditorAt(1, 0);
-      await expect(grid.listbox('A, row 2').getByRole('option').first()).toHaveText('Al 001');
-      await grid.wheelOverList(400);
-      await expect(grid.listbox('A, row 2').getByRole('option', { name: 'Al 001', exact: true })).toHaveCount(0);
-      expect(await grid.isFocusInList()).toBe(false);
-      await grid.page.keyboard.press('Tab');
-      await expect.poll(() => grid.focusTarget()).toEqual({ cell: [1, 1] });
+      await grid.scrollGridToInlineEnd();
+      await expect.poll(() => grid.displayedListCount()).toBe(0);
+
+      await grid.scrollGridToInlineStart();
+      await expect.poll(() => grid.displayedListCount()).toBe(1);
     });
 
     test('renames the list for the next edited cell', async() => {

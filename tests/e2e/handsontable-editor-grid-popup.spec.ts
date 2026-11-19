@@ -110,39 +110,25 @@ test.describe('handsontable editor grid popup', { tag: [THEMES_TAG, CROSS_BROWSE
 
     await grid.scrollGridToInlineEnd();
     await expect(field).toHaveAttribute('aria-expanded', 'false');
+    await expect.poll(() => grid.displayedListCount()).toBe(0);
     await grid.renderList();
     await expect(field).not.toHaveAttribute('aria-activedescendant');
     await expect(field).not.toHaveAttribute('aria-controls');
 
     await grid.scrollGridToInlineStart();
     await expect(field).toHaveAttribute('aria-expanded', 'true');
+    await expect.poll(() => grid.displayedListCount()).toBe(1);
     await expect.poll(() => grid.referencedElements()).toEqual({
       controls: { role: 'grid', isListRoot: true },
       activeDescendant: { role: 'gridcell', selected: 'true', text: 'Alpha', inList: true },
     });
   });
 
-  test('keeps the focus out of a list that scrolls on Tab and Shift+Tab', async() => {
+  // Known trade-off: without `tabindex` the list's scrolling holder is a Tab stop to Chromium and Firefox, but no Tab
+  // reaches it: the editor prevents every Tab while the list is shown, and the list is hidden whenever it is not.
+  test('runs no browser Tab navigation while the list is shown, and hides the list whenever the editor closes', async() => {
     await grid.goto({ twoListColumns: true, longSource: true });
-
-    // Tab from the field, with a row highlighted.
-    await grid.openEditorAt(0, 0);
-    await grid.page.keyboard.press('ArrowDown');
-    await grid.page.keyboard.press('Tab');
-    await expect.poll(() => grid.focusTarget()).toEqual({ cell: [0, 1] });
-
-    // Shift+Tab from the field, with nothing highlighted.
-    await grid.openEditorAt(0, 1);
-    await grid.page.keyboard.press('Shift+Tab');
-    await expect.poll(() => grid.focusTarget()).toEqual({ cell: [0, 0] });
-
-    // Tab after the wheel scrolled the list.
-    await grid.openEditorAt(1, 0);
-    await grid.wheelOverList(400);
-    await expect(grid.gridPopup('B, row 2').getByRole('gridcell', { name: 'Al 001', exact: true })).toHaveCount(0);
-    expect(await grid.isFocusInList()).toBe(false);
-    await grid.page.keyboard.press('Tab');
-    await expect.poll(() => grid.focusTarget()).toEqual({ cell: [1, 1] });
+    await grid.leaveScrollingListByEveryKey();
   });
 
   test('moves across the list columns with ArrowLeft and ArrowRight while a row is highlighted', async() => {
