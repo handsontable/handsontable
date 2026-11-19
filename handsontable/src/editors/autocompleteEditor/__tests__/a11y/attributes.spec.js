@@ -38,9 +38,9 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     await waitForNextAnimationFrames(2);
 
     expect(editorTextarea.getAttribute('aria-expanded')).toEqual('true');
-    expect(editorTextarea.getAttribute('aria-controls')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
+    expect(editorTextarea.getAttribute('aria-controls')).toEqual(`${hot.guid.slice(0, 9)}-autocomplete-listbox-0-0`);
     expect(editorTextarea.getAttribute('aria-activedescendant')).toEqual(
-      `${hot.guid.slice(0, 9)}-listbox-0-0_${
+      `${hot.guid.slice(0, 9)}-autocomplete-listbox-0-0_${
         editor.htEditor.getSelectedLast()[0]
       }-${
         editor.htEditor.getSelectedLast()[1]
@@ -66,12 +66,13 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(choiceDropdownRoot.getAttribute('role')).toEqual('listbox');
     expect(choiceDropdownRoot.getAttribute('aria-live')).toBeNull();
     expect(choiceDropdownRoot.getAttribute('aria-relevant')).toBeNull();
-    expect(choiceDropdownRoot.getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
+    expect(choiceDropdownRoot.getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-autocomplete-listbox-0-0`);
     expect(editorHot.getCell(...editorHot.getSelectedLast()).getAttribute('aria-selected')).toEqual('true');
 
     choices.forEach((option, index) => {
       expect(editorHot.getCell(index, 0).getAttribute('role')).toEqual('option');
-      expect(editorHot.getCell(index, 0).getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0_${index}-0`);
+      expect(editorHot.getCell(index, 0).getAttribute('id'))
+        .toEqual(`${hot.guid.slice(0, 9)}-autocomplete-listbox-0-0_${index}-0`);
       expect(editorHot.getCell(index, 0).getAttribute('aria-setsize')).toEqual(`${choices.length}`);
       expect(editorHot.getCell(index, 0).getAttribute('aria-posinset')).toEqual(`${index + 1}`);
     });
@@ -99,7 +100,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(choiceDropdownRoot.getAttribute('role')).toEqual('listbox');
     expect(choiceDropdownRoot.getAttribute('aria-live')).toBeNull();
     expect(choiceDropdownRoot.getAttribute('aria-relevant')).toBeNull();
-    expect(choiceDropdownRoot.getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
+    expect(choiceDropdownRoot.getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-dropdown-listbox-0-0`);
 
     expect(editorHot.getCell(...editorHot.getSelectedLast()).getAttribute('aria-selected')).toEqual('true');
   });
@@ -122,14 +123,15 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(choiceDropdownRoot.getAttribute('role')).toEqual('listbox');
     expect(choiceDropdownRoot.getAttribute('aria-live')).toBeNull();
     expect(choiceDropdownRoot.getAttribute('aria-relevant')).toBeNull();
-    expect(choiceDropdownRoot.getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
+    expect(choiceDropdownRoot.getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-autocomplete-listbox-0-0`);
     expect(editorHot.getCell(...editorHot.getSelectedLast()).getAttribute('aria-selected')).toEqual('true');
 
     editorHot.getSourceData().forEach((option, index) => {
       option = option[0];
 
       expect(editorHot.getCell(index, 0).getAttribute('role')).toEqual('option');
-      expect(editorHot.getCell(index, 0).getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0_${index}-0`);
+      expect(editorHot.getCell(index, 0).getAttribute('id'))
+        .toEqual(`${hot.guid.slice(0, 9)}-autocomplete-listbox-0-0_${index}-0`);
       expect(editorHot.getCell(index, 0).getAttribute('aria-setsize')).toEqual(null);
       expect(editorHot.getCell(index, 0).getAttribute('aria-posinset')).toEqual(null);
     });
