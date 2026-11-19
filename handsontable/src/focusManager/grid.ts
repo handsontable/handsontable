@@ -515,8 +515,10 @@ export class FocusGridManager {
    * it: the browser drops the focus of a hidden element only at the next rendering update. A focus anywhere
    * else (a menu, a dialog, a side-slot input, another element of the grid, a page outside it, or the body
    * after a press on the page) was moved there. `getDeepActiveElement()` looks into a shadow root the grid
-   * renders in; a sandboxed host that hides the element behind its host reads as a moved focus, so the focus
-   * stays where it is, as it did before.
+   * renders in. A sandboxed host that collapses the active element to its outermost shadow host (Salesforce
+   * Lightning Web Security) reads that same host when the wait begins and when it ends, so the comparison is
+   * equal and the focus moves, also when the user moved it to another control inside the same host during the
+   * wait. That needs `outsideClickDeselects: false` and a slow validator, and is a known limit.
    *
    * @param {Element | null} waitingFocus The element focused when the wait began.
    * @returns {boolean}
@@ -558,6 +560,10 @@ export class FocusGridManager {
     // An editor that reopened on a rejected value is open again, and `focusOnHighlightedCell()` leaves
     // the focus on it.
     this.focusOnHighlightedCell();
+    // With `imeFastEdit` the field takes the focus back, as after a commit without a validator: the
+    // `afterSelectionEnd` refocus skipped it, because the editor was still open then. A reopened editor
+    // keeps the focus, since `refocusToEditorTextarea()` does nothing while the editor is open.
+    this.#focusEditorElement();
   };
 
   /**

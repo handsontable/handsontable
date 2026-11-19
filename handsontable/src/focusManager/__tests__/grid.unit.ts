@@ -407,9 +407,9 @@ describe('FocusGridManager focus after an editor waiting for its validator', () 
    *
    * @returns {object} The grid controls and the waiting editor.
    */
-  function makeGrid(shadowHost?: HTMLElement) {
+  function makeGrid(shadowHost?: HTMLElement, imeFastEdit = false) {
     const wrapper = document.createElement('div');
-    const grid = makeDeferredFocusGrid({ wrapper, shadowHost });
+    const grid = makeDeferredFocusGrid({ wrapper, shadowHost, imeFastEdit });
     const root = wrapper.querySelector('.handsontable') as HTMLElement;
     const waiting = makeWaitingEditor(root);
 
@@ -638,6 +638,61 @@ describe('FocusGridManager focus after an editor waiting for its validator', () 
 
     expect(waiting.listeners.size).toBe(0);
     expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+
+  it('refocuses the editor field with imeFastEdit once the waiting editor closes', () => {
+    // The order a commit without a validator produces: the cell focus, then the editor refocus.
+    const { grid, waiting } = makeGrid(undefined, true);
+    const refocus = jest.spyOn(grid.manager, 'refocusToEditorTextarea').mockImplementation(() => {});
+
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+
+    expect(refocus).not.toHaveBeenCalled();
+
+    waiting.finish();
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+    expect(refocus).toHaveBeenCalledTimes(1);
+    expect((grid.td.focus as jest.Mock).mock.invocationCallOrder[0])
+      .toBeLessThan(refocus.mock.invocationCallOrder[0]);
+  });
+
+  it('does not refocus the editor field without imeFastEdit once the waiting editor closes', () => {
+    const { grid, waiting } = makeGrid();
+    const refocus = jest.spyOn(grid.manager, 'refocusToEditorTextarea').mockImplementation(() => {});
+
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    waiting.finish();
+
+    expect(refocus).not.toHaveBeenCalled();
+  });
+
+  it('does not refocus the editor field with imeFastEdit when the focus moved off it during the wait', () => {
+    const { grid, waiting, wrapper } = makeGrid(undefined, true);
+    const refocus = jest.spyOn(grid.manager, 'refocusToEditorTextarea').mockImplementation(() => {});
+    const menuItem = document.createElement('button');
+
+    wrapper.append(menuItem);
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    menuItem.focus();
+    waiting.finish();
+
+    expect(refocus).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(menuItem);
+  });
+
+  it('refocuses the editor field with imeFastEdit in a grid inside a shadow root', () => {
+    const { grid, waiting } = makeGrid(document.createElement('div'), true);
+    const refocus = jest.spyOn(grid.manager, 'refocusToEditorTextarea').mockImplementation(() => {});
+
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    waiting.finish();
+
+    expect(refocus).toHaveBeenCalledTimes(1);
   });
 
   it('runs nothing when the grid was destroyed during the wait', () => {
