@@ -170,7 +170,7 @@ export class BaseUI {
     if (this.options.tabIndex !== undefined) {
       rootElement.setAttribute('tabindex', String(this.options.tabIndex));
     }
-    if (this.options.role !== undefined) {
+    if (this.options.role !== undefined && !this.options.wrapIt) {
       rootElement.setAttribute('role', this.options.role);
     }
     if (this.options.className) {
@@ -196,10 +196,15 @@ export class BaseUI {
       element.dataset.hotInput = 'true';
 
       objectEach(this.options as Record<string, unknown>, (value: unknown, key: string) => {
-        if (element[key] !== undefined && key !== 'className' && key !== 'tagName' && key !== 'children') {
+        if (element[key] !== undefined && key !== 'className' && key !== 'tagName' && key !== 'children'
+          && key !== 'role') {
           element[key] = this.translateIfPossible(value);
         }
       });
+
+      if (this.options.role !== undefined) {
+        element.setAttribute('role', this.options.role);
+      }
 
       rootElement.appendChild(element);
 

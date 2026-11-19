@@ -1,0 +1,32 @@
+@use "../../base/z-index-map";
+
+// Handsontable Editable Headers: the input laid over a header while it is renamed.
+
+@mixin output {
+  .handsontable .htEditableHeaderInput {
+    @include z-index-map.apply-z-index("ht_editor_visible");
+
+    position: absolute;
+    display: block;
+    margin: 0;
+    padding: 0 calc(var(--ht-cell-horizontal-padding, 8px) + 1px);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: var(--ht-cell-editor-foreground-color);
+    background-color: var(--ht-cell-editor-background-color, #ffffff);
+    box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
+        var(--ht-cell-editor-border-color, #1a42e8),
+      0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
+        var(--ht-cell-editor-shadow-color, transparent);
+    border: none;
+    border-radius: 0;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+    outline-width: 0;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}

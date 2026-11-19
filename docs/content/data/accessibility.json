@@ -43,7 +43,7 @@
       "platform": "macOS",
       "browsers": ["WebKit (Playwright)", "Chromium"],
       "howTested": ["automated-nightly"],
-      "scenarios": 56,
+      "scenarios": 57,
       "unsupported": []
     },
     {
@@ -64,7 +64,7 @@
       "platform": "Windows Server 2025",
       "browsers": ["Chromium", "Firefox (Playwright)"],
       "howTested": ["automated-nightly"],
-      "scenarios": 56,
+      "scenarios": 57,
       "unsupported": ["read in"]
     },
     {
@@ -131,12 +131,6 @@
       "id": "dialog-default-name",
       "text": "The dialog's default accessible name is the word \"Dialog\"; pass `a11y.ariaLabel` in the dialog settings to name it after its content.",
       "criteria": ["4.1.2"],
-      "reportRef": null
-    },
-    {
-      "id": "menu-separators-interactive",
-      "text": "Menu separators are exposed as interactive menu items.",
-      "criteria": ["1.3.1", "4.1.2"],
       "reportRef": null
     },
     {

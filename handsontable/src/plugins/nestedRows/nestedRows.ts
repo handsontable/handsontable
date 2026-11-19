@@ -292,6 +292,10 @@ export class NestedRows extends BasePlugin {
     // saw the parent alone and removed only that row from HyperFormula. See `#onBeforeRemoveRow`.
     this.addHook('beforeRemoveRow', this.#onBeforeRemoveRow, -1);
     this.addHook('afterRemoveRow', this.#onAfterRemoveRow);
+    this.addHook('afterSelection', this.#onAfterSelection);
+    this.addHook('afterDeselect', this.#onAfterDeselect);
+    this.addHook('afterSelectionFocusSet', this.#onUserSelectionInput);
+    this.addHook('beforeKeyDown', this.#onUserSelectionInput);
     this.addHook('beforeAddChild', this.#onBeforeAddChild);
     this.addHook('afterAddChild', this.#onAfterAddChild);
     this.addHook('beforeDetachChild', this.#onBeforeDetachChild);
@@ -306,7 +310,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
     this.addHook('afterSelection', this.#onHighlightChange);
     this.addHook('afterSelectionFocusSet', this.#onHighlightChange);
-    this.addHook('afterDeselect', this.#onAfterDeselect);
+    this.addHook('afterDeselect', this.#onHighlightDeselect);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -335,6 +339,8 @@ export class NestedRows extends BasePlugin {
     // rows that expand brought back. Only AFTER the hooks are gone: a removal's stash window also
     // skips renders (`#skipRender`), and the grow renders.
     this.collapsingUI?.releaseGridTrackingFits(true);
+    // The rows the stash recorded for the selection need no drop here: `#restoreSelectionRecords()`
+    // bails while the plugin is disabled, and an enable builds a new CollapsingUI without them.
 
     this.headersUI!.removeRenderedLevelIndicators();
 
@@ -1278,6 +1284,18 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
+   * The collapse map only changes which rows are shown, not which rows are selected, so an undo or a
+   * redo of a collapse or an expand moves the selection with its rows, as the action itself did
+   * (DEV-509).
+   *
+   * @private
+   * @returns {string[]}
+   */
+  getShownRowsTrimmingMaps(): readonly string[] {
+    return ['nestedRows'];
+  }
+
+  /**
    * The collapsed parents are rows, so a `columns` settings update never makes a collapse unsafe to
    * undo.
    *
@@ -1627,7 +1645,7 @@ export class NestedRows extends BasePlugin {
   /**
    * `afterDeselect` hook callback. Forgets the highlight, so the next selection announces its row.
    */
-  #onAfterDeselect = () => {
+  #onHighlightDeselect = () => {
     this.#lastHighlight = null;
   };
 
@@ -1679,6 +1697,45 @@ export class NestedRows extends BasePlugin {
     }
 
     return Math.max(minimumWidth, rowHeaderWidth);
+  };
+
+  /**
+   * `afterSelection` hook callback. A selection the user or the app makes while the collapsed rows
+   * stash is open (a removal collapses the parents again a tick later) is theirs, so the rows the
+   * stash recorded for the selection are dropped. A re-lay the operation itself makes (`shift`,
+   * `refresh`) keeps them.
+   */
+  #onAfterSelection = () => {
+    const source = this.hot.selection.getSelectionSource();
+
+    if (source !== 'shift' && source !== 'refresh') {
+      this.collapsingUI?.dropSelectionRecords();
+    }
+  };
+
+  /**
+   * `afterDeselect` hook callback. A drop that repairs a trim (`trim`) or that a structural shift made
+   * (`shift`) belongs to the operation: the states the tree passes through can strand a selection
+   * whose rows all survive, and the stash puts it back. Any other drop is the user's or the app's,
+   * also when a listener of the operation's own hooks makes it, so the selection is not brought back.
+   */
+  #onAfterDeselect = () => {
+    const source = this.hot.selection.getSelectionSource();
+
+    if (source !== 'trim' && source !== 'shift') {
+      this.collapsingUI?.dropSelectionRecords();
+    }
+  };
+
+  /**
+   * `afterSelectionFocusSet` and `beforeKeyDown` hook callback. A focus move inside the selection
+   * (Enter, Tab) is the user's, so the stash does not put the focus back on the row it recorded.
+   * The key press is read as well, because a focus move made while the selection is still in
+   * progress (`alter()` leaves it so) fires no `afterSelectionFocusSet`. A key press that starts an
+   * operation (the context menu's "Remove row") runs before that operation's stash records anything.
+   */
+  #onUserSelectionInput = () => {
+    this.collapsingUI?.dropSelectionRecords();
   };
 
   /**

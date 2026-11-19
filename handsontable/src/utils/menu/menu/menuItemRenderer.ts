@@ -13,6 +13,7 @@ import {
   addClass,
   empty,
   fastInnerHTML,
+  removeAttribute,
   setAttribute,
 } from '../../../helpers/dom/element';
 import {
@@ -24,6 +25,7 @@ import {
   A11Y_MENU_ITEM,
   A11Y_TABINDEX,
   A11Y_CHECKED,
+  A11Y_SEPARATOR,
 } from '../../../helpers/a11y';
 import { getSanitizer } from '../../../utils/sanitizer';
 import { createIcon } from '../../../themes/engine/icons';
@@ -40,6 +42,12 @@ const CHECK_MARK = String.fromCharCode(10003);
  * paint the real one from an icon mask, so this is the text a bare, unthemed menu falls back to.
  */
 const MIXED_MARK = String.fromCharCode(8211);
+
+/**
+ * The item attributes a separator must not carry. The menu grid reuses its cells, so a cell that
+ * showed an item before keeps that item's name, tab stop and states until they are removed.
+ */
+const SEPARATOR_DROPPED_ATTRIBUTES = ['aria-label', 'tabindex', 'aria-disabled', 'aria-expanded', 'aria-checked'];
 
 /**
  * Creates the menu renderer function.
@@ -84,7 +92,11 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
 
-    if (mainTableHot.getSettings().ariaTags) {
+    if (mainTableHot.getSettings().ariaTags && isItemSeparator(item)) {
+      removeAttribute(TD, SEPARATOR_DROPPED_ATTRIBUTES);
+      setAttribute(TD, [A11Y_SEPARATOR()]);
+
+    } else if (mainTableHot.getSettings().ariaTags) {
       const isFocusable = !isDisabled &&
         !isItemSelectionDisabled(item) &&
         !isItemSeparator(item);

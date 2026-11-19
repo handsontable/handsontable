@@ -25,7 +25,7 @@
       "id": "read-next-separator",
       "action": {"read": "next"},
       "expect": [["separator"]],
-      "note": "The next row of the menu is a separator: a reader should say a separator, or skip it. Finding: the separator is a menu item named by the dashes the menu draws, so NVDA reads `menu item, ---------` on both browsers. VoiceOver never reaches it (the previous step)."
+      "note": "The next row of the menu is a separator: a reader should say a separator, or skip it. Finding: VoiceOver never reaches it (the previous step)."
     },
     {
       "id": "end-to-borders",

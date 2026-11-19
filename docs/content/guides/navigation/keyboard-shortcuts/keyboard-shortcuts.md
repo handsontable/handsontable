@@ -338,6 +338,21 @@ These shortcuts work only when a column header is focused. Enable [`navigableHea
 | -------------------- | -------------------- | ---------------------------------------------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | Check every checkbox in the column, or uncheck them when all of them are already checked      | &cross; | &cross; |
 
+### Editable headers keyboard shortcuts
+
+These keyboard shortcuts work when you rename a column header or a row header in the grid. To activate them, enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin with the [`editableHeaders`](@/api/options.md#editableheaders) option.
+
+<kbd>**F2**</kbd> and <kbd>**Enter**</kbd> start renaming only when a header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. On a header whose <kbd>**Enter**</kbd> sorts the column, <kbd>**Enter**</kbd> keeps sorting it; use <kbd>**F2**</kbd> instead.
+
+| Windows              | macOS                | Action                                                          |  Excel  | Sheets  |
+| -------------------- | -------------------- | --------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**F2**</kbd>    | <kbd>**F2**</kbd>    | Start renaming the focused header                               | &cross; | &cross; |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Start renaming the focused header                               | &cross; | &cross; |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Save the new header name                                        | &cross; | &cross; |
+| <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | Cancel renaming the header                                     | &cross; | &cross; |
+| <kbd>**Tab**</kbd>   | <kbd>**Tab**</kbd>   | Save the new header name, and move to the next header or cell   | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Save the new header name, and move to the previous header or cell | &cross; | &cross; |
+
 ### Formulas keyboard shortcuts
 
 These keyboard shortcuts work when the [`Formulas`](@/api/formulas.md) plugin is enabled.
