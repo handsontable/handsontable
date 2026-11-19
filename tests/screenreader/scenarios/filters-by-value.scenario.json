@@ -24,8 +24,8 @@
     {
       "id": "tab-to-search",
       "action": {"press": "Tab"},
-      "expect": [["search"], ["edit", "edit text", "text field", "text entry", "textbox"]],
-      "note": "With no condition chosen the operators and the second condition are hidden, so the next Tab stop is the value list's search input (filters-menu-focus-order.spec.ts: select, search input, Select all, Select none, OK, Cancel). Its name is its `Search` placeholder (tree golden: textbox Search); the role words are NVDA's `edit` and VoiceOver's `text field`. VoiceOver with WebKit reads the field's name without its role, as it does for the cell editor in grid-core."
+      "expect": [["filter by value"], ["edit", "edit text", "text field", "text entry", "textbox"]],
+      "note": "With no condition chosen the operators and the second condition are hidden, so the next Tab stop is the value list's search input (filters-menu-focus-order.spec.ts: select, search input, Select all, Select none, OK, Cancel). Its name is the `Filter by value:` heading it is labelled by (tree golden: textbox \"Filter by value:\"); the role words are NVDA's `edit` and VoiceOver's `text field`. VoiceOver with WebKit reads the field's name without its role, as it does for the cell editor in grid-core."
     },
     {
       "id": "type-search",
