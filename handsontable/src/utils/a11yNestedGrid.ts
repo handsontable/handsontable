@@ -33,7 +33,8 @@ export function markOwnTablesAsPresentational(hot: HotInstance): void {
   markTableAsPresentational(wt.wtTable.TABLE);
 
   wt.wtOverlays.getOverlays().forEach((overlay) => {
-    if (overlay.clone) {
+    // `getOverlays()` is typed as `Overlay | Table`, only an overlay owns a clone (absent until it is created).
+    if ('clone' in overlay && overlay.clone) {
       markTableAsPresentational(overlay.clone.wtTable.TABLE);
     }
   });
