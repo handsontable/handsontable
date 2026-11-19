@@ -18,6 +18,23 @@ A `'hiding'` map affects the **renderable** tier, so paginated-away rows keep th
 (The DeepWiki page groups filtering with hiding and pagination; it is wrong. See
 `../../../.ai/INDEX-MAPPING.md`.)
 
+## A page change writes the hiding map once
+
+`#computeAndApplyState()` builds the map's values in `#buildPagedRowsValues()` and writes them with one
+`setValues()` call. Do not go back to a `setValueAtIndex()` per hidden row. Each write fires a `change`
+hook through the hiding collection and the index mapper, even inside a batch. At 100,000 rows that was
+about 99,950 hooks per page change and doubled its cost (about 22 ms against 11 ms per page change,
+measured on a 100,000 x 20 grid with `pageSize: 50`). `performance-tests/scenarios/pagination-next-page/`
+guards it. Size the array from the map's own `getLength()`:
+`BooleanMap#setValues()` resizes the map to the array it gets. Two traps come with it:
+
+- **The `clear()` at the top is load-bearing.** Outside a batch, its `change` rebuilds the index mapper's
+  cache. That rebuild is why the `getRenderableIndexes()` read that follows includes the rows this
+  plugin hid for the previous page. Without the clear, the next page is cut out of the previous page's
+  rows.
+- **`getRenderableIndexes()` returns the mapper's cache array by reference.** Read it, never modify it.
+  The old code `splice()`d the page out of it, which changed the mapper's own cache until the next rebuild.
+
 ## Hard conflicts, declared at module scope in this file
 
 ```js
