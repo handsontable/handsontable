@@ -79,6 +79,7 @@ Each scenario measures a specific user interaction pattern:
 | **sorting** | 100000 x 100 | `columnSorting.sort()` | Hook timing: beforeColumnSort -> afterColumnSort |
 | **cell-editing** | 5000 x 10 | selectCell + Enter + type + Enter x 20 | Sequential cell edits |
 | **initial-load** | 100000 x 100 | `new Handsontable(...)` | Grid construction only |
+| **initial-load-autosize** | 100000 x 50 | `new Handsontable(...)` with the default `autoColumnSize` | The synchronous part of the column sweep. Past its cell budget only the columns on screen are measured before the constructor returns, so the window must not grow with the column count |
 | **source-data-validator-load** | 100000 x 100 | `new Handsontable(...)` with `sourceDataValidator` | Same fixture as initial-load plus the one option |
 | **column-autosize-refill** | 2000 x 200 | `manualColumnResize.setManualSize(2, 320)` + `render()` | 25px columns (~72 rendered), 40 wrapped rows shrink and the row band is refilled in several passes within the draw |
 | **undo-edit** | 100000 x 100 | `undo()` of one `setDataAtCell()` | Hook timing: beforeUndo -> afterUndo. Must not scale with the grid: one journaled cell, every index map shared |
