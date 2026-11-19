@@ -3671,8 +3671,8 @@ The [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cel
 editor and the editors built on it keep the `<textarea>`.
 
 These editors present their field as a combobox: you type into it, and it controls the list of choices. ARIA in
-HTML doesn't allow `role="combobox"` on a `<textarea>`, so assistive technologies could get the role wrong. An input
-is the element the combobox pattern is defined for.
+HTML doesn't allow `role="combobox"` on a `<textarea>`, so the role was invalid there. An input is the element the
+combobox pattern is defined for.
 
 The field keeps its class, `handsontableInput`, its `data-hot-input` and `tabindex="-1"` attributes, and its place in
 the `handsontableInputHolder` element. It covers the edited cell as before. What changes:
@@ -3748,6 +3748,8 @@ With [`ariaTags`](@/api/options.md#ariatags) on, the editor's input is also a co
 list is a `grid` named after the edited cell, and the input names the highlighted cell through
 `aria-activedescendant`. The list follows the main grid's `ariaTags` setting, where it used to be built with
 `ariaTags: false`.
+Its root has the role `grid`, not `treegrid`, and its cells and scroll holders carry no `tabindex`, because the
+focus stays in the input.
 
 ### Who is affected
 
@@ -3755,7 +3757,9 @@ list is a `grid` named after the edited cell, and the input names the highlighte
   after highlighting a row, to move the caret or to leave the cell.
 - Your `beforeKeyDown` hook or custom shortcut expects <kbd>**←**</kbd> or <kbd>**→**</kbd> to reach the grid in that
   state.
-- Your code or CSS relies on the nested grid of a `handsontable` editor having no ARIA roles.
+- Your code or CSS relies on the nested grid of a `handsontable` editor having no ARIA roles, or queries
+  `[role="treegrid"]` or `td[tabindex]` in it.
+- You extend `HandsontableEditor`. Your subclass inherits the combobox role, the grid popup, and the two keys.
 
 ### How to migrate
 
