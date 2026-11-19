@@ -89,5 +89,12 @@ describe('a11yNestedGrid', () => {
 
       expect(table.tBodies[0].rows[0].getAttribute('role')).toBe('presentation');
     });
+
+    it('should do nothing for a cell that is not in a row', () => {
+      const TD = document.createElement('td');
+
+      expect(() => markRowAsPresentational(TD)).not.toThrow();
+      expect(TD.hasAttribute('role')).toBe(false);
+    });
   });
 });

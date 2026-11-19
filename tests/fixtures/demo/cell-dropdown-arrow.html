@@ -36,7 +36,16 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    const CHOICES = ['Alpha', 'Alfa', 'Alto'];
+    // `?source=200` gives `autocomplete` and `dropdown` 200 choices (`Al 001` to `Al 200`), so the list
+    // scrolls and an option a spec moves to is rendered only after that scroll. Every choice starts
+    // with the seeded `Al`, so `autocomplete`, which filters by the cell value, lists them all.
+    const longSource = htParams.get('source') === '200';
+    const CHOICES = longSource
+      ? Array.from({ length: 200 }, (unused, i) => `Al ${String(i + 1).padStart(3, '0')}`)
+      : ['Alpha', 'Alfa', 'Alto'];
+
+    // `?ariaTags=false` turns the grid's ARIA off, which the list editors must follow.
+    const ariaTags = htParams.get('ariaTags') !== 'false';
 
     // Three of the four cell types render the SAME arrow: `dropdownRenderer` and
     // `handsontableRenderer` both delegate to `autocompleteRenderer`, which is where
@@ -105,6 +114,7 @@
 
     window.hot = new Handsontable(container, {
       ...settings,
+      ariaTags,
       colHeaders: true,
       rowHeaders: true,
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`

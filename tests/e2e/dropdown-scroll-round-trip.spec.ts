@@ -81,6 +81,21 @@ test.describe('layered editor — scroll round-trip (DEV-26)', { tag: THEMES_TAG
     await expect(grid.optionByText('Bravo')).toHaveCount(0);
   });
 
+  test('the field names the list only while the list is shown over a scroll round-trip', async () => {
+    await grid.openEditor(2, 1);
+    await expect(grid.options().first()).toBeVisible();
+    expect(await grid.controlsReference()).toBe('list');
+
+    // The list is hidden while the edited cell is out of the rendered range, so the field must not
+    // point at it.
+    await grid.scrollToBottom();
+    expect(await grid.controlsReference()).toBeNull();
+
+    await grid.scrollToTop();
+    expect(await grid.listDisplayed()).toBe(true);
+    expect(await grid.controlsReference()).toBe('list');
+  });
+
   test('plain text editor round-trip is unchanged (negative control)', async () => {
     await grid.openEditor(2, 0);
     await grid.focusEditor();

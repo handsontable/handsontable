@@ -220,6 +220,25 @@ export class DropdownScrollRoundTripPage {
   }
 
   /**
+   * What the editor field's `aria-controls` names, read in one evaluation: `'list'` when it names the
+   * open editor's list root, `'missing'` when it names an element that is not there or another one, and
+   * `null` without the attribute.
+   */
+  async controlsReference(): Promise<'list' | 'missing' | null> {
+    return this.page.evaluate(() => {
+      const editor = (window as FixtureWindow).hot.getActiveEditor() as
+        (EditorHandle & { htEditor?: { rootElement: HTMLElement } }) | undefined;
+      const id = editor?.TEXTAREA?.getAttribute('aria-controls') ?? null;
+
+      if (id === null) {
+        return null;
+      }
+
+      return document.getElementById(id) === editor?.htEditor?.rootElement ? 'list' : 'missing';
+    });
+  }
+
+  /**
    * The row selected inside the inner list grid, or null when nothing is selected. Proves the
    * editor's ArrowUp/ArrowDown shortcut group and the inner grid survived the round trip.
    */

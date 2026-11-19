@@ -29,14 +29,13 @@ import {
   A11Y_EXPANDED,
   A11Y_HASPOPUP,
   A11Y_LISTBOX,
-  A11Y_LIVE,
   A11Y_OPTION,
   A11Y_POSINSET,
-  A11Y_PRESENTATION,
-  A11Y_RELEVANT,
   A11Y_SELECTED,
   A11Y_SETSIZE,
 } from '../../helpers/a11y';
+import { markOwnTablesAsPresentational, markRowAsPresentational } from '../../utils/a11yNestedGrid';
+import { CELL_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
 import { debounce } from '../../helpers/function';
 import { isPlainObject } from '../../helpers/object';
 
@@ -182,11 +181,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
+    // `aria-controls` is written in `open()`, once the list it names exists, and removed when the list
+    // goes away: a closed editor would otherwise point at an element that is not there.
     if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TEXTAREA, [
-        A11Y_EXPANDED('false'),
-        A11Y_CONTROLS(`${this.#idPrefix}-listbox-${row}-${col}`),
-      ]);
+      setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('false'));
     }
 
     this.htOptions = {
@@ -278,6 +276,8 @@ export class AutocompleteEditor extends HandsontableEditor {
         }
 
         if (rootInstanceAriaTagsEnabled) {
+          // The row sits between the option and the listbox, so it must not be exposed as a table row.
+          markRowAsPresentational(TD);
           setAttribute(TD, [
             A11Y_OPTION(),
             // Add `setsize` and `posinset` only if the source is an array.
@@ -317,19 +317,25 @@ export class AutocompleteEditor extends HandsontableEditor {
     });
 
     if (rootInstanceAriaTagsEnabled) {
-      // Add `role=presentation` to the main table to prevent the readers from treating the option list as a table.
-      const a11yPres = A11Y_PRESENTATION();
-
-      setAttribute(this.htEditor.view._wt.wtOverlays.wtTable.TABLE, a11yPres[0], a11yPres[1]);
+      // The list is a nested grid: hide the table markup of its master table and of every overlay clone
+      // from assistive technology, so the listbox owns options only. The nested grid is built anew on
+      // every open, and its clones with it, so this runs on every open.
+      markOwnTablesAsPresentational(this.htEditor);
 
       setAttribute(this.htEditor.rootElement, [
         A11Y_LISTBOX(),
-        A11Y_LIVE('polite'),
-        A11Y_RELEVANT('text'),
         ['id', `${this.#idPrefix}-listbox-${rowIndex}-${colIndex}`],
       ]);
 
-      setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('true'));
+      // The list carries the field's name ("A, row 1"). Not through `aria-labelledby` pointing at the
+      // field: a combobox referenced that way is an embedded control, so it lends the list its VALUE
+      // (the typed text), not its name. `open()` runs after `prepare()`, so both coordinates are set.
+      setCellInputName(this.hot, this.htEditor.rootElement, CELL_EDITOR_PHRASES, rowIndex ?? -1, colIndex ?? -1);
+
+      setAttribute(this.TEXTAREA, [
+        A11Y_EXPANDED('true'),
+        A11Y_CONTROLS(this.htEditor.rootElement.id),
+      ]);
     }
 
     this.#deferQuery();
@@ -604,7 +610,15 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, [
         A11Y_EXPANDED('false'),
       ]);
+      this.#removeListReferences();
     }
+  }
+
+  /**
+   * Removes the field's references to the list and its options, for a list that is no longer shown.
+   */
+  #removeListReferences(): void {
+    removeAttribute(this.TEXTAREA, ['aria-controls', 'aria-activedescendant']);
   }
 
   /**
@@ -641,6 +655,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, [
         A11Y_EXPANDED('false'),
       ]);
+      this.#removeListReferences();
     }
 
     return super.hideForScroll();
@@ -667,6 +682,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       if (this.hot.getSettings().ariaTags) {
         setAttribute(this.TEXTAREA, [
           A11Y_EXPANDED('true'),
+          A11Y_CONTROLS(this.htEditor.rootElement.id),
         ]);
       }
     }

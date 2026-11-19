@@ -41,12 +41,19 @@ export function markOwnTablesAsPresentational(hot: HotInstance): void {
 }
 
 /**
- * Sets `role="presentation"` on the row of a cell.
+ * Sets `role="presentation"` on the row of a cell. A cell with no row is left alone: a renderer also runs
+ * for cells that are not in a table yet, such as the cells AutoColumnSize renders to measure a column.
  *
  * @param {HTMLTableCellElement} TD The cell whose row to mark.
  */
 export function markRowAsPresentational(TD: HTMLTableCellElement): void {
+  const row = TD.parentElement;
+
+  if (row === null) {
+    return;
+  }
+
   const [name, value] = A11Y_PRESENTATION();
 
-  setAttribute(TD.parentElement as HTMLElement, name, value);
+  setAttribute(row, name, value);
 }

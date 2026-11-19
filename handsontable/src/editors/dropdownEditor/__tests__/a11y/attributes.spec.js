@@ -38,12 +38,14 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(editorTextarea.getAttribute('aria-haspopup')).toEqual('listbox');
     expect(editorTextarea.getAttribute('aria-expanded')).toEqual('false');
     expect(editorTextarea.getAttribute('aria-autocomplete')).toEqual('list');
-    expect(editorTextarea.getAttribute('aria-controls')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
+    // The list does not exist until the editor opens, so the field names none yet.
+    expect(editorTextarea.getAttribute('aria-controls')).toBeNull();
 
     await keyDownUp('enter');
     await waitForNextAnimationFrames(2);
 
     expect(editorTextarea.getAttribute('aria-expanded')).toEqual('true');
+    expect(editorTextarea.getAttribute('aria-controls')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
     expect(editorTextarea.getAttribute('aria-activedescendant')).toEqual(
       `${hot.guid.slice(0, 9)}-listbox-0-0_${
         editor.htEditor.getSelectedLast()[0]
@@ -76,8 +78,8 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     const choiceDropdownRoot = editorHot.rootElement;
 
     expect(choiceDropdownRoot.getAttribute('role')).toEqual('listbox');
-    expect(choiceDropdownRoot.getAttribute('aria-live')).toEqual('polite');
-    expect(choiceDropdownRoot.getAttribute('aria-relevant')).toEqual('text');
+    expect(choiceDropdownRoot.getAttribute('aria-live')).toBeNull();
+    expect(choiceDropdownRoot.getAttribute('aria-relevant')).toBeNull();
     expect(choiceDropdownRoot.getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
     expect(editorHot.getCell(...editorHot.getSelectedLast()).getAttribute('aria-selected')).toEqual('true');
 
@@ -112,8 +114,8 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     const choiceDropdownRoot = editorHot.rootElement;
 
     expect(choiceDropdownRoot.getAttribute('role')).toEqual('listbox');
-    expect(choiceDropdownRoot.getAttribute('aria-live')).toEqual('polite');
-    expect(choiceDropdownRoot.getAttribute('aria-relevant')).toEqual('text');
+    expect(choiceDropdownRoot.getAttribute('aria-live')).toBeNull();
+    expect(choiceDropdownRoot.getAttribute('aria-relevant')).toBeNull();
     expect(choiceDropdownRoot.getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
     expect(editorHot.getCell(...editorHot.getSelectedLast()).getAttribute('aria-selected')).toEqual('true');
 
