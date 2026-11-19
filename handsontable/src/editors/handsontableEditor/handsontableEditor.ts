@@ -331,6 +331,13 @@ export class HandsontableEditor extends TextEditor {
           setValue(sourceValue);
         }
         hot.destroyEditor();
+
+        // A click commits without moving the selection, so nothing else moves the browser focus off the
+        // closed editor's field: the focus goes to the edited cell, as after a commit with the keyboard. With
+        // `imeFastEdit` the field keeps the focus by design.
+        if (!hot.isDestroyed && hot.getFocusManager().getFocusMode() === 'cell') {
+          hot.getFocusManager().focusOnHighlightedCell();
+        }
       },
       preventWheel: true,
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',

@@ -4,6 +4,18 @@ import { awaitBundle, assertKnownBundle, type Bundle } from '../bundle';
 export type ListEditorCellType = 'autocomplete' | 'dropdown';
 
 /**
+ * The cell types whose commit moves the browser focus the same way: the two list editors, and the
+ * `handsontable` and `text` editors they are compared with.
+ */
+export type EditorCellType = ListEditorCellType | 'handsontable' | 'text';
+
+/**
+ * The element holding the browser focus: a data cell by its coordinates, the active editor's field, or
+ * anything else by its tag.
+ */
+export type FocusTarget = { cell: [number, number] } | { editorField: true } | { other: string };
+
+/**
  * What the open editor's field points at, resolved in the page: each id reference is followed to the
  * element it names, so a reference to a missing element reads as `null` rather than as a string.
  */
@@ -40,6 +52,8 @@ interface FixtureWindow {
   hot: {
     selectCell(row: number, col: number): boolean;
     getActiveEditor(): FixtureEditor | undefined;
+    getCoords(element: Element): { row: number, col: number } | null;
+    rootElement: HTMLElement;
   };
 }
 
@@ -54,9 +68,9 @@ export class EditorListA11yPage {
   readonly page: Page;
   readonly theme: string;
   readonly bundle: Bundle;
-  readonly cellType: ListEditorCellType;
+  readonly cellType: EditorCellType;
 
-  constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', cellType: ListEditorCellType = 'autocomplete') {
+  constructor(page: Page, theme = 'main', bundle: Bundle = 'umd', cellType: EditorCellType = 'autocomplete') {
     assertKnownBundle(bundle, '(page, theme, bundle, cellType)');
     this.page = page;
     this.theme = theme;
@@ -74,16 +88,22 @@ export class EditorListA11yPage {
    * @param {boolean} [options.strict] Make the `autocomplete` column strict.
    * @param {boolean} [options.allowHtml] Turn `allowHtml` on and wrap each choice in `<b>`.
    * @param {boolean} [options.ariaTags] The grid's `ariaTags` setting.
+   * @param {boolean} [options.enterStays] Set `enterMoves: { row: 0, col: 0 }`, so Enter keeps the selection
+   * on the edited cell.
    */
-  async goto({ longSource = false, asyncSource = false, strict = false, allowHtml = false, ariaTags = true }:
-    { longSource?: boolean, asyncSource?: boolean, strict?: boolean, allowHtml?: boolean, ariaTags?: boolean } = {}):
-    Promise<void> {
+  async goto({
+    longSource = false, asyncSource = false, strict = false, allowHtml = false, ariaTags = true, enterStays = false,
+  }: {
+    longSource?: boolean, asyncSource?: boolean, strict?: boolean, allowHtml?: boolean, ariaTags?: boolean,
+    enterStays?: boolean,
+  } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
       + (longSource ? '&source=200' : '')
       + (asyncSource ? '&source=async' : '')
       + (strict ? '&strict=true' : '')
       + (allowHtml ? '&allowHtml=true' : '')
-      + (ariaTags ? '' : '&ariaTags=false');
+      + (ariaTags ? '' : '&ariaTags=false')
+      + (enterStays ? '&enterMoves=stay' : '');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);
     await awaitBundle(this.page);
@@ -223,6 +243,68 @@ export class EditorListA11yPage {
   async cancelEditor(): Promise<void> {
     await this.page.keyboard.press('Escape');
     await expect.poll(() => this.isEditorOpened()).toBe(false);
+  }
+
+  /**
+   * The element holding the browser focus. A data cell of the grid reads as its coordinates, so a
+   * recycled `td` cannot pass for another cell; the active editor's field reads as such whether it is
+   * a `textarea` or an `input`.
+   */
+  async focusTarget(): Promise<FocusTarget> {
+    return this.page.evaluate(() => {
+      const { hot } = window as unknown as FixtureWindow;
+      const active = document.activeElement;
+
+      if (active !== null && active === hot.getActiveEditor()?.TEXTAREA) {
+        return { editorField: true as const };
+      }
+
+      if (active instanceof HTMLTableCellElement && hot.rootElement.contains(active)) {
+        const coords = hot.getCoords(active);
+
+        if (coords !== null && coords.row >= 0 && coords.col >= 0) {
+          return { cell: [coords.row, coords.col] as [number, number] };
+        }
+      }
+
+      return { other: active === null ? 'null' : active.tagName.toLowerCase() };
+    });
+  }
+
+  /**
+   * The element holding the browser focus once `frames` animation frames have passed, so a focus move a
+   * timer makes after a commit is caught. Pair it with a
+   * positive {@link EditorListA11yPage#focusTarget} poll: on its own, a wait proves nothing.
+   */
+  async focusTargetAfterFrames(frames: number): Promise<FocusTarget> {
+    await this.page.evaluate(count => new Promise<void>((resolve) => {
+      let left = count;
+      const tick = () => {
+        left -= 1;
+
+        if (left <= 0) {
+          resolve();
+        } else {
+          requestAnimationFrame(tick);
+        }
+      };
+
+      requestAnimationFrame(tick);
+    }), frames);
+
+    return this.focusTarget();
+  }
+
+  /**
+   * The active cell of the last selection layer, or `null` without a selection.
+   */
+  async selectedCell(): Promise<[number, number] | null> {
+    return this.page.evaluate(() => {
+      const selected = (window as unknown as { hot: { getSelectedLast(): number[] | undefined } })
+        .hot.getSelectedLast();
+
+      return selected === undefined ? null : [selected[0], selected[1]] as [number, number];
+    });
   }
 
   /**

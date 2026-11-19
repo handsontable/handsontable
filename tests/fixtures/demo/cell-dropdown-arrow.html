@@ -17,7 +17,7 @@
     }
     window.htCellType = ({
       autocomplete: 'autocomplete', dropdown: 'dropdown', handsontable: 'handsontable',
-      multiselect: 'multiselect',
+      multiselect: 'multiselect', text: 'text',
     })[htParams.get('cellType') ?? 'autocomplete'];
     if (!window.htCellType) {
       throw new Error('Unknown ?cellType= value: ' + JSON.stringify(htParams.get('cellType')));
@@ -100,11 +100,19 @@
       throw new Error('Unknown ?strict= value: ' + JSON.stringify(htParams.get('strict')));
     }
 
+    // `?enterMoves=stay` keeps the selection on the edited cell after Enter commits.
+    const enterMoves = ({ stay: { row: 0, col: 0 } })[htParams.get('enterMoves') ?? ''];
+    if (htParams.has('enterMoves') && enterMoves === undefined) {
+      throw new Error('Unknown ?enterMoves= value: ' + JSON.stringify(htParams.get('enterMoves')));
+    }
+
     const columnByCellType = {
       autocomplete: { type: 'autocomplete', source: listSource, strict, allowHtml },
       dropdown: { type: 'dropdown', source: listSource, allowHtml },
       handsontable: { type: 'handsontable', handsontable: { data: CHOICES.map(choice => [choice]) } },
       multiselect: { type: 'multiselect', source: CHOICES },
+      // `text` is the control the list editors' focus after a commit is compared with.
+      text: { type: 'text' },
     };
 
     const column = columnByCellType[window.htCellType];
@@ -157,6 +165,7 @@
     window.hot = new Handsontable(container, {
       ...settings,
       ariaTags,
+      ...(enterMoves ? { enterMoves } : {}),
       colHeaders: true,
       rowHeaders: true,
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`

@@ -51,7 +51,10 @@ interface PendingScroll {
 interface ActiveEditorInstance {
   TEXTAREA?: HTMLTextAreaElement;
   isOpened?: () => boolean;
+  isWaiting?: () => boolean;
   refreshValue?: () => void;
+  _addFinishListener?: (listener: () => void) => void;
+  _removeFinishListener?: (listener: () => void) => void;
   [key: string]: unknown;
 }
 
@@ -144,6 +147,13 @@ export class FocusGridManager {
    * @type {Set<HTMLElement>}
    */
   #outsideClickExemptElements = new Set<HTMLElement>();
+  /**
+   * The editor whose commit waits for a validator's answer while the focus was asked to move to the
+   * highlighted cell (see `#focusAfterEditorWait()`). `null` means nothing is waiting.
+   *
+   * @type {ActiveEditorInstance | null}
+   */
+  #waitingEditor: ActiveEditorInstance | null = null;
 
   /**
    * Initializes the manager with a reference to the Handsontable instance.
@@ -387,7 +397,8 @@ export class FocusGridManager {
   }
 
   /**
-   * Set the browser's focus to the highlighted cell of the last selection.
+   * Set the browser's focus to the highlighted cell of the last selection. An open editor keeps the focus,
+   * and an editor that waits for a validator's answer gives it to the cell once it closes.
    *
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
    */
@@ -407,11 +418,17 @@ export class FocusGridManager {
         elementToBeFocused = element;
       }
 
-      if (
-        elementToBeFocused &&
-        !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened?.()
-      ) {
+      if (!elementToBeFocused) {
+        return;
+      }
+
+      const activeEditor = this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined;
+
+      if (!activeEditor?.isOpened?.()) {
         this.focusElement(elementToBeFocused as HTMLElement, { preventScroll: true });
+
+      } else if (activeEditor.isWaiting?.()) {
+        this.#focusAfterEditorWait(activeEditor);
       }
     };
 
@@ -454,6 +471,48 @@ export class FocusGridManager {
       this.#debouncedSelect.get(delay)();
     }
   }
+
+  /**
+   * Moves the focus to the highlighted cell once the editor's commit is over. A commit that waits for a
+   * validator (any cell with a `validator`, which the autocomplete and dropdown cell types have) keeps the
+   * editor open until the answer comes, a microtask or more after the key that committed it, and by
+   * then the selection has already moved and its focus was skipped because the editor was open. Without
+   * this the browser focus stayed on the closed editor's field. The editor's finish listener runs when the
+   * editor closes or reopens on a rejected value; a reopened editor keeps the focus, and a focus the user
+   * moved out of the grid in the meantime is left alone.
+   *
+   * @param {ActiveEditorInstance} editor The editor waiting for its validator.
+   */
+  #focusAfterEditorWait(editor: ActiveEditorInstance): void {
+    if (typeof editor._addFinishListener !== 'function') {
+      return;
+    }
+
+    if (this.#waitingEditor !== null && this.#waitingEditor !== editor) {
+      this.#waitingEditor._removeFinishListener?.(this.#onWaitingEditorFinish);
+    }
+
+    this.#waitingEditor = editor;
+    editor._addFinishListener(this.#onWaitingEditorFinish);
+  }
+
+  /**
+   * Runs once the editor that waited for its validator finished the edit, see `#focusAfterEditorWait()`.
+   */
+  #onWaitingEditorFinish = (): void => {
+    const editor = this.#waitingEditor;
+
+    this.#waitingEditor = null;
+    editor?._removeFinishListener?.(this.#onWaitingEditorFinish);
+
+    if (this.#hot.isDestroyed || !this.#hasBrowserFocus) {
+      return;
+    }
+
+    // An editor that reopened on a rejected value is open again, and `focusOnHighlightedCell()` leaves
+    // the focus on it.
+    this.focusOnHighlightedCell();
+  };
 
   /**
    * Get and return the currently selected and highlighted cell/header element. When the cell is not

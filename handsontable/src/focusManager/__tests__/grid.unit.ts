@@ -136,6 +136,7 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
     rendered: false,
     destroyed: false,
     requested: [] as Array<[number, number]>,
+    activeEditor: undefined as unknown,
   };
 
   root.className = 'handsontable';
@@ -159,7 +160,7 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
 
       return state.highlight ? { highlight: state.highlight } : undefined;
     },
-    getActiveEditor: () => undefined,
+    getActiveEditor: () => state.activeEditor,
     getCell: (row: number, col: number) => {
       state.requested.push([row, col]);
 
@@ -188,6 +189,9 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
     addFirst: (key: string, callback: HookCallback) => hooks.add(key, callback, hot as never, -1),
     run: (key: string) => {
       hooks.run(hot as never, key);
+    },
+    setActiveEditor: (editor: unknown) => {
+      state.activeEditor = editor;
     },
   };
 }
@@ -337,6 +341,143 @@ describe('FocusGridManager deferred focus', () => {
     grid.state.rendered = true;
     grid.state.destroyed = true;
     grid.run('afterScroll');
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * An editor whose commit waits for a validator: open and waiting until the test finishes the edit, which
+ * closes it, or reopens it as a rejected value does. Its field sits in the grid's root and holds the focus.
+ *
+ * @param {HTMLElement} root The grid's root element.
+ * @returns {object} The fake editor and the function that finishes its edit.
+ */
+function makeWaitingEditor(root: HTMLElement) {
+  const field = document.createElement('input');
+  const listeners = new Set<() => void>();
+  const editor = {
+    TEXTAREA: field,
+    opened: true,
+    waiting: true,
+    isOpened() {
+      return this.opened;
+    },
+    isWaiting() {
+      return this.waiting;
+    },
+    _addFinishListener: (listener: () => void) => listeners.add(listener),
+    _removeFinishListener: (listener: () => void) => listeners.delete(listener),
+  };
+
+  root.append(field);
+  field.focus();
+
+  return {
+    editor,
+    field,
+    listeners,
+    finish(reopened = false) {
+      editor.waiting = false;
+      editor.opened = reopened;
+      [...listeners].forEach(listener => listener());
+    },
+  };
+}
+
+describe('FocusGridManager focus after an editor waiting for its validator', () => {
+  /**
+   * Builds the deferred-focus grid with a rendered cell and an open editor waiting for its validator.
+   *
+   * @returns {object} The grid controls and the waiting editor.
+   */
+  function makeGrid() {
+    const grid = makeDeferredFocusGrid();
+    const root = document.querySelector('.handsontable') as HTMLElement;
+    const waiting = makeWaitingEditor(root);
+
+    grid.state.rendered = true;
+
+    return { grid, waiting };
+  }
+
+  afterEach(() => {
+    document.body.replaceChildren();
+    jest.restoreAllMocks();
+  });
+
+  it('focuses the highlighted cell once the waiting editor closes', () => {
+    const { grid, waiting } = makeGrid();
+
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+    expect(waiting.listeners.size).toBe(1);
+
+    waiting.finish();
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+    expect(waiting.listeners.size).toBe(0);
+  });
+
+  it('adds one finish listener however often the focus is asked for during the wait', () => {
+    const { grid, waiting } = makeGrid();
+
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    grid.manager.focusOnHighlightedCell();
+
+    expect(waiting.listeners.size).toBe(1);
+
+    waiting.finish();
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the focus on the editor that reopened on a rejected value', () => {
+    const { grid, waiting } = makeGrid();
+
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    waiting.finish(true);
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+    expect(waiting.listeners.size).toBe(0);
+  });
+
+  it('leaves a focus the user moved out of the grid during the wait', () => {
+    const { grid, waiting } = makeGrid();
+    const outside = document.createElement('input');
+
+    document.body.append(outside);
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    outside.focus();
+    waiting.finish();
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(outside);
+  });
+
+  it('does not wait for an open editor that is not waiting', () => {
+    const { grid, waiting } = makeGrid();
+
+    waiting.editor.waiting = false;
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+
+    expect(waiting.listeners.size).toBe(0);
+    expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+
+  it('runs nothing when the grid was destroyed during the wait', () => {
+    const { grid, waiting } = makeGrid();
+
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    grid.state.destroyed = true;
+    waiting.finish();
 
     expect(grid.td.focus).not.toHaveBeenCalled();
   });

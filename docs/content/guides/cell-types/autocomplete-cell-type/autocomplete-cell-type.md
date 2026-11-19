@@ -590,6 +590,8 @@ After configuring the autocomplete cell type, cells display a text input that sh
 
 The autocomplete cell editor shares its keyboard shortcuts with the [`handsontable` editor](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#handsontable-editor-keyboard-shortcuts). In strict mode, a few of these shortcuts behave differently -- see [Autocomplete strict mode](#autocomplete-strict-mode).
 
+When <kbd>**Enter**</kbd> confirms a choice, the selection moves to the next cell, as it does after any edit. To keep the selection on the edited cell after a choice, set [`enterMoves`](@/api/options.md#entermoves) to `{ row: 0, col: 0 }`.
+
 ## Related articles
 
 **Related guides**

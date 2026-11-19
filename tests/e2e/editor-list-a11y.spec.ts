@@ -1,5 +1,7 @@
 import { test, expect, THEMES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
-import { EditorListA11yPage, type ListEditorCellType } from '../fixtures/pages/EditorListA11yPage';
+import {
+  EditorListA11yPage, type EditorCellType, type ListEditorCellType,
+} from '../fixtures/pages/EditorListA11yPage';
 
 const CELL_TYPES: ListEditorCellType[] = ['autocomplete', 'dropdown'];
 
@@ -279,3 +281,105 @@ test.describe('narrowed list announcement', { tag: [THEMES_TAG, CROSS_BROWSER_TA
     expect(await grid.announcements()).toEqual([]);
   });
 });
+
+/**
+ * A commit ends the edit, so the browser focus leaves the editor's field for the cell the selection
+ * lands on, and a screen reader reads that cell rather than a collapsed combobox. The `text` and
+ * `handsontable` editors are the controls: each case asserts what they do in the same configuration.
+ * Focus is an engine's to get wrong, so the cases run on Firefox and WebKit too.
+ */
+const COMMIT_CELL_TYPES: EditorCellType[] = ['autocomplete', 'dropdown', 'handsontable', 'text'];
+// A bounded settle after the focus arrived: longer than the list editors' 100 ms debounced refocus.
+const SETTLE_FRAMES = 15;
+
+for (const cellType of COMMIT_CELL_TYPES) {
+  const hasList = cellType !== 'text';
+
+  test.describe(`focus after a commit (${cellType})`, { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, () => {
+    let grid: EditorListA11yPage;
+
+    test.beforeEach(({ page, theme, bundle }) => {
+      grid = new EditorListA11yPage(page, theme, bundle, cellType);
+    });
+
+    /**
+     * Waits for the focus to reach the cell, then proves it stayed there.
+     */
+    async function expectFocusOnCell(row: number, col: number): Promise<void> {
+      await expect.poll(() => grid.focusTarget()).toEqual({ cell: [row, col] });
+      expect(await grid.focusTargetAfterFrames(SETTLE_FRAMES)).toEqual({ cell: [row, col] });
+    }
+
+    test('moves the focus to the next cell when Enter commits a choice', async() => {
+      await grid.goto();
+      await grid.openEditorAt(0, 0);
+
+      if (hasList) {
+        await expect(grid.page.locator('.handsontableEditor .ht_master td').first()).toBeVisible();
+        await grid.page.keyboard.press('ArrowDown');
+      }
+
+      await grid.commitEditor();
+
+      expect(await grid.selectedCell()).toEqual([1, 0]);
+      await expectFocusOnCell(1, 0);
+    });
+
+    test('moves the focus to the next cell when Enter commits typed text', async() => {
+      await grid.goto();
+      await grid.openEditorAt(0, 0);
+      await grid.page.keyboard.type('x');
+      await grid.commitEditor();
+
+      expect(await grid.selectedCell()).toEqual([1, 0]);
+      await expectFocusOnCell(1, 0);
+    });
+
+    test('moves the focus to the cell on the right when Tab commits', async() => {
+      await grid.goto();
+      await grid.openEditorAt(0, 0);
+
+      if (hasList) {
+        await expect(grid.page.locator('.handsontableEditor .ht_master td').first()).toBeVisible();
+        await grid.page.keyboard.press('ArrowDown');
+      }
+
+      await grid.page.keyboard.press('Tab');
+      await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+      expect(await grid.selectedCell()).toEqual([0, 1]);
+      await expectFocusOnCell(0, 1);
+    });
+
+    test('keeps the focus on the edited cell with enterMoves: { row: 0, col: 0 }', async() => {
+      await grid.goto({ enterStays: true });
+      await grid.openEditorAt(0, 0);
+
+      if (hasList) {
+        await expect(grid.page.locator('.handsontableEditor .ht_master td').first()).toBeVisible();
+        await grid.page.keyboard.press('ArrowDown');
+      }
+
+      await grid.commitEditor();
+
+      expect(await grid.selectedCell()).toEqual([0, 0]);
+      await expectFocusOnCell(0, 0);
+    });
+
+    if (hasList) {
+      test('moves the focus to the edited cell when a click commits a choice', async() => {
+        await grid.goto();
+        await grid.openEditorAt(0, 0);
+
+        const option = grid.page.locator('.handsontableEditor .ht_master td').nth(1);
+
+        await expect(option).toHaveText('Alfa');
+        await option.click();
+        await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+        expect(await grid.selectedCell()).toEqual([0, 0]);
+        await expectFocusOnCell(0, 0);
+      });
+    }
+  });
+}

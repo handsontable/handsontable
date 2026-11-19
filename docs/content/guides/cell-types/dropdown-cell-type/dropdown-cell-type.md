@@ -445,6 +445,8 @@ After configuring the dropdown cell type, cells display a button that opens a dr
 
 The dropdown cell editor is an [autocomplete](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) editor with strict mode always on, so it uses the same keyboard shortcuts as [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode). See the [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#dropdown-editor-keyboard-shortcuts) reference for details.
 
+When <kbd>**Enter**</kbd> confirms a choice, the selection moves to the next cell, as it does after any edit. To keep the selection on the edited cell after a choice, set [`enterMoves`](@/api/options.md#entermoves) to `{ row: 0, col: 0 }`.
+
 ## Related articles
 
 **Related guides**
