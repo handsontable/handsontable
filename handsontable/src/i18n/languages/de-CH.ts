@@ -200,6 +200,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Fehler in [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '[count] weitere Zelle enthält jetzt einen Fehler.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '[count] weitere Zellen enthalten jetzt Fehler.',
+  [C.EDITOR_INPUT_LABEL]: '[column], Zeile [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Kommentar zu [column], Zeile [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Kommentar zu [column], [row]',
 };
 
 export default dictionary;

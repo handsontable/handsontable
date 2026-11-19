@@ -27,7 +27,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - combobox [expanded]: Al
+  - combobox "A, row 1" [expanded]: Al
   - listbox:
     - option "Alpha":
       - strong: Al

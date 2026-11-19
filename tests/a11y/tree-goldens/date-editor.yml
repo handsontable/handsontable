@@ -43,7 +43,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox: 2024-06-10
+  - textbox "Start, row 1": 2024-06-10
 # portal
 - status
 - status

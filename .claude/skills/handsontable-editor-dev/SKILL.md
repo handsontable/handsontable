@@ -48,7 +48,7 @@ A new registered editor also needs its entry in `src/editors/features.json` (`ed
 - Call `super` in lifecycle overrides (`super.init()`, `super.close()`, etc.).
 - Release DOM elements and listeners in `close()`; restore focus so keyboard navigation works after closing.
 - Support LTR and RTL: logical CSS properties or `this.hot.isRtl()`.
-- Give the editor's input an accessible name that says which cell it edits, from an i18n phrase, and add the editor to `tests/a11y/coverage.mjs` with a scan page (`handsontable-a11y` skill; the baseline's `editor-input-names` issue is what a missing name looks like).
+- Give the editor's input an accessible name that says which cell it edits, from an i18n phrase, and add the editor to `tests/a11y/coverage.mjs` with a scan page (`handsontable-a11y` skill). Set it in `prepare()` with `setCellInputName()` (`src/utils/cellInputName.ts`), as the built-in editors do.
 
 Reference implementations: `src/editors/textEditor/textEditor.ts` (textarea), `src/editors/selectEditor/selectEditor.ts` (dropdown), `src/editors/baseEditor/baseEditor.ts` (lifecycle and state transitions).
 

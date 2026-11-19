@@ -97,8 +97,8 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox
+  - textbox "B, row 2"
 # portal
-- textbox: A comment that has to stay visible while it is resized.
+- textbox "Comment for B, row 2": A comment that has to stay visible while it is resized.
 - status
 - status

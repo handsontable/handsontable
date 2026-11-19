@@ -43,7 +43,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox
+  - textbox "B, row 2"
 # portal
 - menu:
   - table:

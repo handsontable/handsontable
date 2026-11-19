@@ -27,7 +27,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox: Al
+  - textbox "A, row 1": Al
   - table:
     - rowgroup:
       - row "Alpha":
