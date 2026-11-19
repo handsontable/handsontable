@@ -71,6 +71,7 @@ const ExampleComponent = () => {
           <input
             type="search"
             placeholder="Search tasks"
+            aria-label="Search tasks"
             onInput={handleSearchInput}
           />
         </div>

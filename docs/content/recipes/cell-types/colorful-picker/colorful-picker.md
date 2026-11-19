@@ -90,7 +90,7 @@ export const ColorPickerEditor = () => {
     <EditorComponent>
       {({ value, setValue }) => (
         <div className="color-picker-editor">
-          <input className="color-picker-editor-input" value={value} readOnly />
+          <input className="color-picker-editor-input" value={value} readOnly aria-label="Hex color value" />
           <div className="color-picker-editor-popover">
             <HexColorPicker color={value || '#000000'} onChange={(color) => setValue(color)} />
           </div>
@@ -302,7 +302,7 @@ The example closes the editor on blur. If you prefer explicit confirmation, add 
 <EditorComponent>
   {({ value, setValue, finishEditing }) => (
     <div className="color-picker-editor">
-      <input className="color-picker-editor-input" value={value} readOnly />
+      <input className="color-picker-editor-input" value={value} readOnly aria-label="Hex color value" />
       <div className="color-picker-editor-popover">
         <HexColorPicker color={value || '#000000'} onChange={(color) => setValue(color)} />
       </div>
@@ -400,7 +400,7 @@ export const ColorPickerEditor = () => {
     <EditorComponent>
       {({ value, setValue }) => (
         <div className="color-picker-editor">
-          <input className="color-picker-editor-input" value={value} readOnly />
+          <input className="color-picker-editor-input" value={value} readOnly aria-label="Hex color value" />
           <div className="color-picker-editor-popover">
             <HexColorPicker color={value || '#000000'} onChange={(color) => setValue(color)} />
           </div>

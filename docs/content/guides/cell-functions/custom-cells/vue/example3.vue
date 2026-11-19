@@ -14,6 +14,7 @@ class CustomEditor extends TextEditor {
     this.TEXTAREA = document.createElement('input') as HTMLInputElement & HTMLTextAreaElement;
     this.TEXTAREA.setAttribute('placeholder', 'Type a book title...');
     this.TEXTAREA.setAttribute('data-hot-input', 'true');
+    this.TEXTAREA.setAttribute('aria-label', 'Book title');
     this.textareaStyle = this.TEXTAREA.style;
     this.TEXTAREA_PARENT.innerText = '';
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);

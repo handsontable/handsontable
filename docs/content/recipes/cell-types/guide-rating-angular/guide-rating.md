@@ -117,8 +117,8 @@ export class StarRendererComponent extends HotCellRendererAdvancedComponent<numb
 - `extends HotCellRendererAdvancedComponent<number>` - Inherits base renderer functionality with typed value
 - `value` property - Automatically provided by the base class (1-5 rating)
 - `.rating-cell` - Flex container wrapping the stars (matches the editor layout)
-- `.rating-star` - Base class for each star (gray via CSS token `--ht-background-secondary-color`)
-- `.active` - Filled stars (gold `#facc15`)
+- `.rating-star` - Base class for each star (gray `light-dark(#8c8c8c, #6b6b6b)`)
+- `.active` - Filled stars (amber `light-dark(#b45309, #facc15)`)
 - `[innerHTML]="starSvgMarkup"` - Inline SVG with `fill="currentColor"` so CSS controls the star color
 - `inject(DomSanitizer).bypassSecurityTrustHtml(starSvg)` - Angular sanitizes `[innerHTML]` and strips SVG by default; marking the SVG as trusted allows it to render
 
@@ -140,14 +140,14 @@ Create a separate CSS file for the rating styles. This uses Handsontable CSS cus
 }
 
 .rating-star {
-  color: var(--ht-background-secondary-color, #e0e0e0);
+  color: light-dark(#8c8c8c, #6b6b6b);
   cursor: default;
   display: inline-flex;
   align-items: center;
 }
 
 .rating-star.active {
-  color: #facc15;
+  color: light-dark(#b45309, #facc15);
 }
 
 .rating-editor {
@@ -182,7 +182,6 @@ Create a separate CSS file for the rating styles. This uses Handsontable CSS cus
 
 **Handsontable tokens used:**
 
-- `--ht-background-secondary-color` - Inactive star color (adapts to theme)
 - `--ht-accent-color` - Current star highlight in editor
 - `--ht-cell-editor-border-color` / `--ht-cell-editor-border-width` - Editor border
 - `--ht-cell-editor-background-color` - Editor background

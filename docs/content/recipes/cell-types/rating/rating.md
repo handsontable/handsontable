@@ -129,14 +129,14 @@ Create a separate CSS file for the rating styles. This uses Handsontable CSS cus
 }
 
 .rating-star {
-  color: var(--ht-background-secondary-color, #e0e0e0);
+  color: light-dark(#8c8c8c, #6b6b6b);
   cursor: default;
   display: inline-flex;
   align-items: center;
 }
 
 .rating-star.active {
-  color: #facc15;
+  color: light-dark(#b45309, #facc15);
 }
 
 .rating-editor {
@@ -174,8 +174,8 @@ Create a separate CSS file for the rating styles. This uses Handsontable CSS cus
 - `margin: 3px 0 0 -1px` - Fine-tunes alignment between renderer and editor to prevent visual jump
 
 **Star colors:**
-- `var(--ht-background-secondary-color, #e0e0e0)` - Inactive/unfilled stars (adapts to theme)
-- `#facc15` (gold) - Active/filled stars
+- `light-dark(#8c8c8c, #6b6b6b)` (gray) - Inactive/unfilled stars
+- `light-dark(#b45309, #facc15)` (amber, gold) - Active/filled stars
 - Colors are applied via the CSS `color` property, which the SVG inherits through `fill="currentColor"`
 
 **Current star indicator:**
@@ -183,7 +183,6 @@ Create a separate CSS file for the rating styles. This uses Handsontable CSS cus
 - Makes it clear which star is selected while editing — the current star turns blue (accent color) instead of gold
 
 **Handsontable tokens used:**
-- `--ht-background-secondary-color` - Inactive star color (adapts to theme)
 - `--ht-accent-color` - Current star highlight in editor (blue)
 - `--ht-cell-editor-border-color` / `--ht-cell-editor-border-width` - blue border matching native editors
 - `--ht-cell-editor-background-color` - editor background

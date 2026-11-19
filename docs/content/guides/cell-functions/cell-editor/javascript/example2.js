@@ -12,6 +12,7 @@ class SelectEditor extends BaseEditor {
   }
   prepare(row, col, prop, td, originalValue, cellProperties) {
     super.prepare(row, col, prop, td, originalValue, cellProperties);
+    this.select.setAttribute('aria-label', String(this.hot.getColHeader(col)));
     const rawOptions = this.cellProperties.selectOptions ?? [];
     const options = Array.isArray(rawOptions)
       ? Object.fromEntries(rawOptions.map((v) => [v, v]))

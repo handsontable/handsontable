@@ -172,6 +172,7 @@ onUnmounted(() => {
       type="text"
       name="focusable-text-input"
       placeholder="Focusable top text input"
+      aria-label="Focusable top text input"
     >
 
     <HotTable ref="hotRef" :settings="hotSettings">
@@ -213,6 +214,7 @@ onUnmounted(() => {
       type="text"
       name="focusable-text-input"
       placeholder="Focusable bottom text input"
+      aria-label="Focusable bottom text input"
     >
 
     <strong>Debug information:</strong>

@@ -115,7 +115,7 @@ const ExampleComponent = () => {
           }
         }}
       />
-      <div style={{ padding: '8px', textAlign: 'center', color: '#666', fontSize: '13px' }}>
+      <div style={{ padding: '8px', textAlign: 'center', fontSize: '13px' }}>
         {statusText}
       </div>
     </>
