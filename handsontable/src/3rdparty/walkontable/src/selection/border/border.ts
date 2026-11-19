@@ -23,8 +23,6 @@ const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
  * Everything `Border#paint()` needs, read by `Border#measure()` before any border writes a style.
  */
 interface BorderMeasurement {
-  fromRow: number;
-  fromColumn: number;
   toRow: number;
   toColumn: number;
   toTDEl: HTMLElement;
@@ -1486,8 +1484,6 @@ class Border {
     }
 
     return {
-      fromRow,
-      fromColumn,
       toRow,
       toColumn,
       toTDEl,
