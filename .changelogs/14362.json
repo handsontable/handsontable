@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed data reads, such as `getData()`, and column sorting ignoring a `valueGetter` or a key/value cell type set through the `cells` function for rows that were not rendered.",
+  "type": "fixed",
+  "issueOrPR": 14362,
+  "breaking": false,
+  "framework": "none"
+}
