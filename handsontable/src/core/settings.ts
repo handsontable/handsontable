@@ -204,6 +204,7 @@ export interface GridSettings {
   columns?: ColumnSettings[] | ((column: number) => ColumnSettings);
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
+  applyCellsToDataReads?: boolean;
   source?: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void);
   /**
    * How an `autocomplete` or `dropdown` cell labels a `source` entry whose `value` is an object:
