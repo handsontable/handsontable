@@ -2116,8 +2116,9 @@ write only what differs (DEV-4105):
   `render/cells.ts`). Every attribute whose name contains `aria-` or `role` is removed (the old unanchored
   regexes, so a renderer's `data-role` still goes), except the cell's own `role`, `aria-colindex` and
   `aria-describedby`, which are then set to this draw's values with `tabindex`, each written only when it
-  differs. A vertical scroll and a plain redraw write nothing; a horizontal scroll rewrites the two that
-  follow the column, in place.
+  differs. A vertical scroll and a plain redraw write none of these; a horizontal scroll rewrites the two
+  that follow the column, in place. An attribute the cell renderer adds itself (core's base renderer adds
+  `aria-readonly` and `aria-invalid`) is still cleared and written again on every paint.
 - **A cell renderer therefore starts from core's attributes**: `role="gridcell"`, `tabindex`,
   `aria-colindex` and `aria-describedby`, on a new element and a recycled one alike. Before, it started from
   none of them. Keep that state the same for both: when a fresh element and a recycled one reach the renderer
