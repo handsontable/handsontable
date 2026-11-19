@@ -1115,6 +1115,9 @@ export default (): Record<string, unknown> => {
      * pays that read for every cell, so a full `getData()` of a large grid can take seconds. Turn the
      * option on only for the columns whose `cells` function sets a `valueGetter` or a cell type.
      *
+     * Filtering passes physical row and column indexes to the `valueGetter`, as described in
+     * [`valueGetter`](#valuegetter).
+     *
      * Read more:
      * - [`cells`](#cells)
      * - [`valueGetter`](#valuegetter)
@@ -9268,6 +9271,11 @@ export default (): Record<string, unknown> => {
      * @description
      * The `valueGetter` option configures a function that defines what value will be used when displaying the cell content.
      * It can be used to modify the value of a cell before it is displayed (for example, for object-based data).
+     *
+     * When the [`Filters`](@/api/filters.md) plugin filters a column, it passes the physical row and column
+     * indexes as `row` and `column`. After you sort, move, or filter rows, a `valueGetter` that reads other
+     * cells by these indexes can read different cells while filtering than in
+     * [`getDataAtCell()`](@/api/core.md#getdataatcell).
      *
      * @example
      * ```js
