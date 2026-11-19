@@ -141,3 +141,121 @@ for (const cellType of CELL_TYPES) {
     });
   });
 }
+
+/**
+ * Typing narrows the autocomplete list without moving the highlight, so `aria-activedescendant` gives a
+ * screen reader nothing to read. The editor says how many choices are left, and the first of them,
+ * through the polite live region: once per keystroke that changed the list, never for a list a
+ * highlight already names, never with `ariaTags: false`, and never for a response that lands after the
+ * editor closed. The announcer writes 100 ms after it is called, so the negative cases run the page on
+ * a fake clock: a write the code scheduled is then certain to have run by the time the log is read.
+ */
+test.describe('narrowed list announcement', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, () => {
+  test('announces the choices left after each keystroke that narrows the list', async({ page, theme, bundle }) => {
+    const grid = new EditorListA11yPage(page, theme, bundle, 'autocomplete');
+
+    await grid.goto();
+    await grid.startAnnouncementLog();
+    await page.clock.install();
+    await grid.openEditorAt(0, 0);
+    await page.clock.runFor(1000);
+
+    const listbox = grid.listbox('A, row 1');
+
+    await expect(listbox.getByRole('option')).toHaveCount(3);
+
+    await page.keyboard.type('f');
+    await page.clock.runFor(1000);
+    await expect(listbox.getByRole('option')).toHaveText(['Alfa']);
+
+    await page.keyboard.press('Backspace');
+    await page.clock.runFor(1000);
+    await expect(listbox.getByRole('option')).toHaveCount(3);
+
+    await page.keyboard.type('p');
+    await page.clock.runFor(1000);
+    await expect(listbox.getByRole('option')).toHaveText(['Alpha']);
+
+    // `Alph` keeps the list `Alp` left.
+    await page.keyboard.type('h');
+    await page.clock.runFor(1000);
+    await expect.poll(() => grid.listQuery()).toBe('Alph');
+
+    // Opening the editor announces nothing, each keystroke that changed the list announces once, and the
+    // one that left it as it was announces nothing.
+    expect(await grid.announcements()).toEqual([
+      '1 choice available: Alfa',
+      '3 choices available. First: Alpha',
+      '1 choice available: Alpha',
+    ]);
+    await expect(grid.politeRegion).toHaveText('1 choice available: Alpha');
+  });
+
+  test('announces nothing for a response that lands after the editor closed', async({ page, theme, bundle }) => {
+    const grid = new EditorListA11yPage(page, theme, bundle, 'autocomplete');
+
+    await grid.goto({ asyncSource: true });
+    await grid.startAnnouncementLog();
+    await grid.openEditorAt(0, 0);
+    await grid.answerNextQuery();
+
+    const listbox = grid.listbox('A, row 1');
+
+    await expect(listbox.getByRole('option')).toHaveCount(3);
+
+    await page.keyboard.type('f');
+    await grid.answerNextQuery();
+    await expect(grid.politeRegion).toHaveText('1 choice available: Alfa');
+
+    // A keystroke whose query is still unanswered when Escape closes the editor.
+    await page.keyboard.press('Backspace');
+    await expect.poll(() => grid.pendingQueryCount()).toBe(1);
+    await grid.cancelEditor();
+
+    await page.clock.install();
+    // The late response is delivered (the positive control), and the clock runs past the announcer's delay.
+    expect(await grid.resolveQueries()).toBe(1);
+    await page.clock.runFor(1000);
+
+    expect(await grid.announcements()).toEqual(['1 choice available: Alfa']);
+    await expect(grid.politeRegion).toHaveText('1 choice available: Alfa');
+  });
+
+  test('announces nothing when the typed text moves the highlight', async({ page, theme, bundle }) => {
+    // A strict `autocomplete` narrows the list and highlights the choice the text completes to, which the
+    // field names.
+    const grid = new EditorListA11yPage(page, theme, bundle, 'autocomplete');
+
+    await grid.goto({ strict: true });
+    await grid.startAnnouncementLog();
+    await page.clock.install();
+    await grid.openEditorAt(0, 0);
+    await page.clock.runFor(1000);
+    await expect(grid.listbox('A, row 1').getByRole('option')).toHaveCount(3);
+
+    await page.keyboard.type('f');
+    await page.clock.runFor(1000);
+
+    await expect(grid.listbox('A, row 1').getByRole('option')).toHaveText(['Alfa']);
+    await expect.poll(() => grid.referencedElements())
+      .toMatchObject({ activeDescendant: { role: 'option', text: 'Alfa' } });
+    expect(await grid.announcements()).toEqual([]);
+  });
+
+  test('announces nothing with ariaTags: false', async({ page, theme, bundle }) => {
+    const grid = new EditorListA11yPage(page, theme, bundle, 'autocomplete');
+
+    await grid.goto({ ariaTags: false });
+    await grid.startAnnouncementLog();
+    await page.clock.install();
+    await grid.openEditorAt(0, 0);
+    await page.clock.runFor(1000);
+    await expect.poll(() => grid.listCellCount()).toBe(3);
+
+    await page.keyboard.type('f');
+    await page.clock.runFor(1000);
+
+    await expect.poll(() => grid.listCellCount()).toBe(1);
+    expect(await grid.announcements()).toEqual([]);
+  });
+});

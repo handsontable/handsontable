@@ -209,6 +209,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column]、行 [row]',
   [C.COMMENTS_EDITOR_LABEL]: '[column]、行 [row] のコメント',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column]、[row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: '候補が [count] 件あります: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: '候補が [count] 件あります。最初: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: '[column]、[row] のコメント',
 };
 

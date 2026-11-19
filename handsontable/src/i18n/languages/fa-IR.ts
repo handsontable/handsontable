@@ -211,6 +211,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column]، ردیف [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'کامنت [column]، ردیف [row]',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column]، [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: '[count] گزینه موجود است: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: '[count] گزینه موجود است. اولی: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'کامنت [column]، [row]',
 };
 

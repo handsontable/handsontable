@@ -28,11 +28,15 @@ export interface ListRoles {
 
 interface FixtureEditor {
   isOpened(): boolean;
+  query: string | null;
   TEXTAREA: HTMLInputElement;
   htEditor: { rootElement: HTMLElement };
 }
 
 interface FixtureWindow {
+  htResolveQueries(): number;
+  htPendingQueries: { resolved: boolean }[];
+  htAnnouncements?: string[];
   hot: {
     selectCell(row: number, col: number): boolean;
     getActiveEditor(): FixtureEditor | undefined;
@@ -65,12 +69,17 @@ export class EditorListA11yPage {
    *
    * @param {object} [options] Fixture options.
    * @param {boolean} [options.longSource] Give the list 200 choices, `Al 001` to `Al 200`.
+   * @param {boolean} [options.asyncSource] Give the list its three choices through a function `source`
+   * that answers only on {@link EditorListA11yPage#resolveQueries}.
+   * @param {boolean} [options.strict] Make the `autocomplete` column strict.
    * @param {boolean} [options.ariaTags] The grid's `ariaTags` setting.
    */
-  async goto({ longSource = false, ariaTags = true }: { longSource?: boolean, ariaTags?: boolean } = {}):
-    Promise<void> {
+  async goto({ longSource = false, asyncSource = false, strict = false, ariaTags = true }:
+    { longSource?: boolean, asyncSource?: boolean, strict?: boolean, ariaTags?: boolean } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
       + (longSource ? '&source=200' : '')
+      + (asyncSource ? '&source=async' : '')
+      + (strict ? '&strict=true' : '')
       + (ariaTags ? '' : '&ariaTags=false');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);
@@ -113,6 +122,70 @@ export class EditorListA11yPage {
    */
   get editorInput(): Locator {
     return this.page.locator('.handsontableInputHolder:not(.ht_editor_hidden) .handsontableInput');
+  }
+
+  /**
+   * The announcer's polite live region, which the list editors announce a narrowed list through.
+   */
+  get politeRegion(): Locator {
+    return this.page.locator('.ht-portal [role="status"][aria-live="polite"]');
+  }
+
+  /**
+   * Starts recording every non-empty text written into the polite live region, so a spec can count
+   * announcements rather than read the last one. The announcer clears the region before each message,
+   * so an empty text is not an announcement.
+   */
+  async startAnnouncementLog(): Promise<void> {
+    await this.page.evaluate(() => {
+      const fixtureWindow = window as unknown as FixtureWindow;
+      const region = document.querySelector('.ht-portal [role="status"][aria-live="polite"]')!;
+
+      fixtureWindow.htAnnouncements = [];
+      new MutationObserver(() => {
+        const text = region.textContent ?? '';
+
+        if (text !== '') {
+          fixtureWindow.htAnnouncements!.push(text);
+        }
+      }).observe(region, { childList: true, characterData: true, subtree: true });
+    });
+  }
+
+  /**
+   * The texts recorded since {@link EditorListA11yPage#startAnnouncementLog}, in the order written.
+   */
+  async announcements(): Promise<string[]> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htAnnouncements ?? []);
+  }
+
+  /**
+   * Answers every query the asynchronous `source` holds, and returns how many it answered.
+   */
+  async resolveQueries(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htResolveQueries());
+  }
+
+  /**
+   * The text the active editor last queried its list with.
+   */
+  async listQuery(): Promise<string | null> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getActiveEditor()?.query ?? null);
+  }
+
+  /**
+   * The number of queries the asynchronous `source` holds unanswered.
+   */
+  async pendingQueryCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).htPendingQueries
+      .filter(entry => !entry.resolved).length);
+  }
+
+  /**
+   * Waits for the asynchronous `source` to receive a query, then answers it.
+   */
+  async answerNextQuery(): Promise<void> {
+    await expect.poll(() => this.resolveQueries()).toBeGreaterThan(0);
   }
 
   /**

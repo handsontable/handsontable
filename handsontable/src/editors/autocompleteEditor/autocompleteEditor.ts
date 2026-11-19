@@ -38,10 +38,23 @@ import { markOwnTablesAsPresentational, markRowAsPresentational } from '../../ut
 import { CELL_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
 import { debounce } from '../../helpers/function';
 import { isPlainObject } from '../../helpers/object';
+import { announce } from '../../utils/a11yAnnouncer';
+import { EDITOR_CHOICE_AVAILABLE, EDITOR_CHOICES_AVAILABLE } from '../../i18n/constants';
 
 export const EDITOR_TYPE = 'autocomplete';
 
 type ChoiceArray = unknown[];
+
+/**
+ * Returns the text the list shows for an already stripped choice: a key/value entry's `value` half
+ * (its label), anything else as a string.
+ *
+ * @param {*} choice The stripped choice.
+ * @returns {string}
+ */
+function getListedText(choice: unknown): string {
+  return stringify(isKeyValueEntry(choice) ? choice.value : choice);
+}
 
 /**
  * @private
@@ -105,6 +118,21 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @type {Set}
    */
   #queryTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
+  /**
+   * Whether the next `queryChoices()` call answers a keystroke. Set by the deferred query a keystroke
+   * scheduled, and read and cleared at the start of `queryChoices()`, so a direct call of that public
+   * method never counts as typed.
+   *
+   * @type {boolean}
+   */
+  #nextQueryTyped = false;
+  /**
+   * Raised while `updateChoicesList()` loads the response to a typed query. Only such a list is
+   * announced: the list an open shows, and one a caller loads through the public method, are not.
+   *
+   * @type {boolean}
+   */
+  #loadingTypedList = false;
 
   /**
    * Gets current value from editable element.
@@ -487,9 +515,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       return (a, b) => stringify(a).localeCompare(stringify(b));
     }
 
-    const toText = (choice: unknown): string => stringify(isKeyValueEntry(choice) ? choice.value : choice);
-
-    return (a, b) => toText(a).localeCompare(toText(b));
+    return (a, b) => getListedText(a).localeCompare(getListedText(b));
   }
 
   /**
@@ -501,10 +527,12 @@ export class AutocompleteEditor extends HandsontableEditor {
    * editor closed, and starts a fresh request against a cell nobody is editing.
    *
    * @param {number} [delay] Delay in milliseconds.
+   * @param {boolean} [typed] Whether a keystroke scheduled the query, which makes its list announced.
    */
-  #deferQuery(delay: number = 0): void {
+  #deferQuery(delay: number = 0, typed: boolean = false): void {
     const timeoutId = this.hot._registerTimeout(() => {
       this.#queryTimeouts.delete(timeoutId);
+      this.#nextQueryTyped = typed;
       this.queryChoices(this.TEXTAREA.value);
     }, delay);
 
@@ -741,6 +769,10 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @param {string} query The query.
    */
   queryChoices(query: string): void {
+    const typed = this.#nextQueryTyped;
+
+    this.#nextQueryTyped = false;
+
     // `close()` cancels the queries this editor deferred, so no internal caller reaches here once
     // an edit has ended. This guard is for the public method: `queryChoices()` ships in the type
     // declarations, and calling it while no edit is in progress must not invoke the user's
@@ -789,12 +821,12 @@ export class AutocompleteEditor extends HandsontableEditor {
         }
 
         this.rawChoices = choices;
-        this.updateChoicesList(this.stripValuesIfNeeded(this.#listableChoices(choices)));
+        this.#loadChoices(this.stripValuesIfNeeded(this.#listableChoices(choices)), typed);
       });
 
     } else if (Array.isArray(source)) {
       this.rawChoices = source;
-      this.updateChoicesList(this.stripValuesIfNeeded(this.#listableChoices(source)));
+      this.#loadChoices(this.stripValuesIfNeeded(this.#listableChoices(source)), typed);
 
     } else {
       this.updateChoicesList([]);
@@ -802,7 +834,28 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
+   * Loads a query's response into the list through `updateChoicesList()`, telling it whether the query
+   * answers a keystroke.
+   *
+   * @param {Array} choicesList The stripped choices.
+   * @param {boolean} typed Whether a keystroke scheduled the query.
+   */
+  #loadChoices(choicesList: ChoiceArray, typed: boolean): void {
+    this.#loadingTypedList = typed;
+
+    try {
+      this.updateChoicesList(choicesList);
+    } finally {
+      this.#loadingTypedList = false;
+    }
+  }
+
+  /**
    * Updates list of the possible completions to choose.
+   *
+   * After a keystroke that changed the list without highlighting a choice, says how many choices are
+   * left, and the first of them, through the polite live region: the field names a highlighted choice
+   * through `aria-activedescendant`, so with nothing highlighted a screen reader would hear nothing.
    *
    * @param {Array} choicesList The choices list to process.
    */
@@ -810,6 +863,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const pos = getCaretPosition(this.TEXTAREA);
     const endPos = getSelectionEndPosition(this.TEXTAREA);
     const { choices, highlightIndex } = this.#deriveHighlight(choicesList, this.#editorValue());
+    const previousChoices = this.strippedChoices;
 
     this.strippedChoices = choices;
 
@@ -842,9 +896,40 @@ export class AutocompleteEditor extends HandsontableEditor {
       removeAttribute(this.TEXTAREA, 'aria-activedescendant');
     }
 
+    if (this.#loadingTypedList) {
+      this.#announceNarrowedList(previousChoices, choices);
+    }
+
     this.hot.listen();
 
     setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? undefined : endPos));
+  }
+
+  /**
+   * Announces, through the polite live region, how many choices the list holds and the first of them.
+   * Silent with `ariaTags: false`, for an empty list (it is hidden), while a choice is highlighted
+   * (the field names it), and when the keystroke left the list as it was.
+   *
+   * Called for the response to a typed query only, and a response that arrives after the editor closed
+   * or after a newer query never reaches `updateChoicesList()` (the edit-session and generation tokens
+   * in `queryChoices()`), so a keystroke is announced at most once.
+   *
+   * @param {Array} previousChoices The choices the list held before.
+   * @param {Array} choices The choices the list holds now.
+   */
+  #announceNarrowedList(previousChoices: ChoiceArray, choices: ChoiceArray): void {
+    if (!this.hot.getSettings().ariaTags || choices.length === 0 || this.htEditor.getSelectedLast() ||
+        (previousChoices.length === choices.length &&
+          choices.every((choice, index) => getListedText(choice) === getListedText(previousChoices[index])))) {
+      return;
+    }
+
+    const phrase = choices.length === 1 ? EDITOR_CHOICE_AVAILABLE : EDITOR_CHOICES_AVAILABLE;
+
+    announce(String(this.hot.getTranslatedPhrase(phrase, {
+      count: choices.length,
+      first: getListedText(choices[0]),
+    }) ?? ''), 'polite');
   }
 
   /**
@@ -1167,7 +1252,7 @@ export class AutocompleteEditor extends HandsontableEditor {
         timeOffset += 10;
       }
 
-      this.#deferQuery(timeOffset);
+      this.#deferQuery(timeOffset, true);
     }
   }
 }

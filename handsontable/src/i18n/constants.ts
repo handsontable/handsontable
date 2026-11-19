@@ -233,6 +233,8 @@ export const FORMULA_BUILDER_DEPENDENT_ERRORS = `${FORMULA_BUILDER_NAMESPACE}ann
 export const EDITOR_NAMESPACE = 'Editor:';
 export const EDITOR_INPUT_LABEL = `${EDITOR_NAMESPACE}labels.cellInput`;
 export const EDITOR_INPUT_LABEL_ROW_HEADER = `${EDITOR_NAMESPACE}labels.cellInputWithRowHeader`;
+export const EDITOR_CHOICE_AVAILABLE = `${EDITOR_NAMESPACE}labels.choiceAvailable`;
+export const EDITOR_CHOICES_AVAILABLE = `${EDITOR_NAMESPACE}labels.choicesAvailable`;
 
 export const COMMENTS_NAMESPACE = 'Comments:';
 export const COMMENTS_EDITOR_LABEL = `${COMMENTS_NAMESPACE}labels.editor`;

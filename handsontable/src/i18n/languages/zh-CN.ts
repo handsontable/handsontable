@@ -206,6 +206,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column]，第 [row] 行',
   [C.COMMENTS_EDITOR_LABEL]: '[column]，第 [row] 行的批注',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column]，[row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: '有 [count] 个选项可用：[first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: '有 [count] 个选项可用。第一个：[first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: '[column]，[row] 的批注',
 };
 

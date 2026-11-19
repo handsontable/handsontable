@@ -203,6 +203,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column], Zeile [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Kommentar zu [column], Zeile [row]',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: '[count] Option verfügbar: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: '[count] Optionen verfügbar. Erste: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Kommentar zu [column], [row]',
 };
 

@@ -39,10 +39,38 @@
     // `?source=200` gives `autocomplete` and `dropdown` 200 choices (`Al 001` to `Al 200`), so the list
     // scrolls and an option a spec moves to is rendered only after that scroll. Every choice starts
     // with the seeded `Al`, so `autocomplete`, which filters by the cell value, lists them all.
-    const longSource = htParams.get('source') === '200';
+    // `?source=async` gives them the same three choices through a function `source` that answers only
+    // when a spec calls `htResolveQueries()`, so a spec can let a response land after the editor closed.
+    const sourceMode = ({ 200: 'long', async: 'async' })[htParams.get('source') ?? ''] ?? null;
+    if (htParams.has('source') && sourceMode === null) {
+      throw new Error('Unknown ?source= value: ' + JSON.stringify(htParams.get('source')));
+    }
+    const longSource = sourceMode === 'long';
     const CHOICES = longSource
       ? Array.from({ length: 200 }, (unused, i) => `Al ${String(i + 1).padStart(3, '0')}`)
       : ['Alpha', 'Alfa', 'Alto'];
+
+    window.htPendingQueries = [];
+
+    /**
+     * Answers every query still waiting, oldest first, and returns how many it answered.
+     */
+    window.htResolveQueries = function() {
+      const pending = window.htPendingQueries.filter(entry => !entry.resolved);
+
+      pending.forEach((entry) => {
+        entry.resolved = true;
+        entry.process(CHOICES);
+      });
+
+      return pending.length;
+    };
+
+    const listSource = sourceMode === 'async'
+      ? function(query, process) {
+        window.htPendingQueries.push({ query, process, resolved: false });
+      }
+      : CHOICES;
 
     // `?ariaTags=false` turns the grid's ARIA off, which the list editors must follow.
     const ariaTags = htParams.get('ariaTags') !== 'false';
@@ -58,9 +86,16 @@
     // `multiselect` is the fourth, and it reaches a DIFFERENT element and listener:
     // `.ht-multi-select-arrow`, built by `multiSelectRenderer`. It is covered here anyway so the
     // affordance shared by every list cell type has one home (#13316).
+    // `?strict=true` makes the `autocomplete` column strict, so the list highlights the choice the typed
+    // text completes to while it still narrows the list.
+    const strict = ({ true: true, false: false })[htParams.get('strict') ?? 'false'];
+    if (strict === undefined) {
+      throw new Error('Unknown ?strict= value: ' + JSON.stringify(htParams.get('strict')));
+    }
+
     const columnByCellType = {
-      autocomplete: { type: 'autocomplete', source: CHOICES },
-      dropdown: { type: 'dropdown', source: CHOICES },
+      autocomplete: { type: 'autocomplete', source: listSource, strict },
+      dropdown: { type: 'dropdown', source: listSource },
       handsontable: { type: 'handsontable', handsontable: { data: CHOICES.map(choice => [choice]) } },
       multiselect: { type: 'multiselect', source: CHOICES },
     };
