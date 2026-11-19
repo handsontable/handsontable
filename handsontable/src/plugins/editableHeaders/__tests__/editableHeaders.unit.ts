@@ -327,6 +327,16 @@ describe('EditableHeaders', () => {
     destroy();
   });
 
+  it('should store a typed name equal to a configured HTML label as text', () => {
+    const { hot, plugin, destroy } = createGrid({ colHeaders: ['<b>Name</b>', 'B1', 'C1', 'D1'] });
+
+    expect(plugin.setHeader('column', 0, '<b>Name</b>')).toBe(true);
+    expect(plugin.getHeader('column', 0)).toBe('<b>Name</b>');
+    expect(hot.getCell(-1, 0)?.querySelector('b')).toBeNull();
+    expect(hot.getCell(-1, 0)?.querySelector('.colHeader')?.textContent).toBe('<b>Name</b>');
+    destroy();
+  });
+
   it('should keep the HTML of an extra header row a plugin draws with its own label for a renamed column', () => {
     const { hot, plugin, destroy } = createGrid({
       afterGetColumnHeaderRenderers(this: Handsontable, renderers: Array<(column: number, TH: HTMLElement) => void>) {

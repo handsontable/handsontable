@@ -1,6 +1,11 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
-import { eventTargetEl, isBottomMostColumnHeader, isInternalElement } from '../../helpers/dom/element';
+import {
+  eventTargetEl,
+  HTML_CHARACTERS,
+  isBottomMostColumnHeader,
+  isInternalElement,
+} from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { warnOnce } from '../../helpers/console';
 import { stringify } from '../../helpers/mixed';
@@ -420,8 +425,14 @@ export class EditableHeaders extends BasePlugin {
     const newValue = stringify(value);
     const oldValue = this.#readHeader(axis, visualIndex);
 
-    // The header shows that name already: no hooks, and no undo step that changes nothing.
-    if (newValue === stringify(oldValue)) {
+    // The header shows that name already: no hooks, and no undo step that changes nothing. A configured label that
+    // looks like markup is drawn as HTML, so typing its source is a change: the rename is drawn as text.
+    const renamed = names.getValueAtIndex<string | null>(physicalIndex) ?? null;
+    const unchanged = renamed === null ?
+      newValue === stringify(oldValue) && !HTML_CHARACTERS.test(newValue) :
+      newValue === renamed;
+
+    if (unchanged) {
       return true;
     }
 
