@@ -479,7 +479,7 @@ In the example below, both quarters group three months. **Q1 2025** uses adopt m
 
 ## Screen reader announcements
 
-With [`ariaTags`](@/api/options.md#ariatags) enabled, the `CollapsibleColumns` plugin announces a group toggled by a user through a polite live region: "Expanded column group <label>" or "Collapsed column group <label>". Changes made through the plugin's API methods are not announced. With `ariaTags` set to `false`, nothing is announced.
+With [`ariaTags`](@/api/options.md#ariatags) enabled, the `CollapsibleColumns` plugin announces a group toggled by a user through a polite live region: `Expanded column group [label]` or `Collapsed column group [label]`. Changes made through the plugin's API methods are not announced. With `ariaTags` set to `false`, nothing is announced.
 
 To change the text, override the `CollapsibleColumns:announcement.expanded` and `CollapsibleColumns:announcement.collapsed` keys in your [language dictionary](@/guides/internationalization/language/language.md).
 

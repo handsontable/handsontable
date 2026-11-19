@@ -169,6 +169,43 @@ test.describe('CollapsibleColumns keyboard toggle', { tag: CROSS_BROWSER_TAG }, 
       expect(await columns.hiddenColumns()).toEqual([4]);
     });
 
+  test('a collapse from a focused header of a column the group hides keeps the focus in the group',
+    async({ page, theme, bundle }) => {
+      const columns = new CollapsibleColumnsA11yPage(page, theme, bundle);
+
+      await columns.goto({ navigableHeaders: 'on' });
+      await columns.focusHeader(4, -1);
+
+      await page.keyboard.press('Shift+Alt+ArrowUp');
+
+      await expect(columns.header('Sub 2')).toHaveAttribute('aria-expanded', 'false');
+      expect(await columns.hiddenColumns()).toEqual([4]);
+      expect(await columns.selectedCell()).toEqual([-1, 3]);
+      await expect(columns.header('c3')).toBeFocused();
+      await expect(columns.politeAnnouncer()).toHaveText('Collapsed column group Sub 2');
+
+      await page.keyboard.press('Shift+Alt+ArrowUp');
+
+      await expect(columns.header('Sub 2')).toHaveAttribute('aria-expanded', 'true');
+      await expect(columns.header('Group 2')).toHaveAttribute('aria-expanded', 'true');
+      expect(await columns.hiddenColumns()).toEqual([]);
+      expect(await columns.selectedCell()).toEqual([-1, 3]);
+    });
+
+  test('Enter on a focused group header over a column the collapse hides keeps the focus on that header',
+    async({ page, theme, bundle }) => {
+      const columns = new CollapsibleColumnsA11yPage(page, theme, bundle);
+
+      await columns.goto({ navigableHeaders: 'on' });
+      await columns.focusHeader(3, -3);
+
+      await page.keyboard.press('Enter');
+
+      await expect(columns.header('Group 1')).toHaveAttribute('aria-expanded', 'false');
+      expect(await columns.hiddenColumns()).toEqual([3, 4]);
+      expect(await columns.selectedCell()).toEqual([-3, 1]);
+    });
+
   test('several selected ranges are left alone', async({ page, theme, bundle }) => {
     const columns = new CollapsibleColumnsA11yPage(page, theme, bundle);
 

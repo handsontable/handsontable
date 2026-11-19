@@ -835,7 +835,9 @@ row semantics. Six things look simpler than they are.
   column the walk keeps. The family is the one DropdownMenu already uses to open its menu from a cell
   (<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowDown</kbd>), and CollapsibleColumns takes
   <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowUp</kbd>, so the four arrows of the chord never clash.
-  `runOnlyIf` asks for a selection of ONE row (the active range's `from.row` and `to.row` equal the
+  `runOnlyIf` asks for ONE selection range (`getSelectedRange().length === 1`, as the CollapsibleColumns
+  key does: with several Ctrl/Cmd+click ranges the walk's `selectCell()` would drop the others, so the
+  key is not claimed), for a selection of ONE row (the active range's `from.row` and `to.row` equal the
   highlight's, so a whole row selected by its header counts and a range over several rows does not) and
   for a grid body nothing covers (`isGridBodyCovered()`); when it applies the callback returns `false`
   whether or not the row had anything to do. They go through `toggleParentByUser()`, so they announce.
@@ -875,6 +877,13 @@ row semantics. Six things look simpler than they are.
     guard), and without the flag that move added a level message on top of "Collapsed row 1". The
     highlight is still recorded while the flag is up. `announce()` does not coalesce by itself: two
     calls within its 100 ms write both messages into the region one after the other.
+  - **The stranded-selection restore never announces, whoever collapsed.** A public `collapseParent()`
+    or `collapseAll()` on a grid that listens re-selects the parent the same way, outside
+    `toggleParentByUser()`, and that announced the parent's level although the public methods do not
+    announce. `CollapsingUI#isRestoringSelection()` answers `true` for the length of that
+    `selectCell()`, and `#shouldAnnounceRowLevel()` reads it. It is a flag, not a selection source:
+    marking the restore `shift` would also stop the viewport from scrolling to the parent
+    (`ignoreScrollSources` in `core.ts`) and skip the editor close that every selection move makes.
   - `afterDeselect` forgets the position, so selecting the same row again announces it.
   - `ariaTags: false` announces nothing, and `updatePlugin()` keeps `#lastHighlight` (a plugin field,
     not a `HeadersUI` one), so a React re-render does not repeat the level of the row the user is on.

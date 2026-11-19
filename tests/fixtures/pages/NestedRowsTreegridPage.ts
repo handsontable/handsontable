@@ -351,6 +351,50 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
+   * Select several separate ranges through the API, the way Ctrl/Cmd+click does. The last one is the
+   * active range.
+   *
+   * @param ranges Each range as `[fromRow, fromColumn, toRow, toColumn]`.
+   */
+  async selectRanges(ranges: [number, number, number, number][]): Promise<void> {
+    await this.page.evaluate(coords => window.hot.selectCells(coords), ranges);
+    await expect.poll(() => this.selectedRanges()).toEqual(ranges);
+  }
+
+  /**
+   * Every selected range, in the order it was laid, as `[fromRow, fromColumn, toRow, toColumn]`.
+   */
+  selectedRanges(): Promise<number[][]> {
+    return this.page.evaluate(() => (window.hot.getSelectedRange() ?? []).map(
+      range => [range.from.row!, range.from.col!, range.to.row!, range.to.col!]
+    ));
+  }
+
+  /**
+   * Start recording, for every key press that reaches the page, whether the grid claimed it by
+   * preventing the browser's default action.
+   */
+  async recordKeyClaims(): Promise<void> {
+    await this.page.evaluate(() => {
+      const claims: boolean[] = [];
+
+      (window as unknown as { keyClaims: boolean[] }).keyClaims = claims;
+      window.addEventListener('keydown', (event) => {
+        if (!['Shift', 'Alt', 'Control', 'Meta'].includes(event.key)) {
+          claims.push(event.defaultPrevented);
+        }
+      });
+    });
+  }
+
+  /**
+   * Whether the grid claimed each key pressed since {@link NestedRowsTreegridPage#recordKeyClaims}.
+   */
+  keyClaims(): Promise<boolean[]> {
+    return this.page.evaluate(() => (window as unknown as { keyClaims: boolean[] }).keyClaims);
+  }
+
+  /**
    * Select a cell through the API without handing the keyboard to the grid, the way an application
    * moves the selection of a grid the user is not working in.
    *

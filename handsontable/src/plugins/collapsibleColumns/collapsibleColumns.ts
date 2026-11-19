@@ -293,9 +293,10 @@ export class CollapsibleColumns extends BasePlugin {
   #nestedHeadersCheckOwed = false;
 
   /**
-   * The visual columns of the group a key pressed on a data cell is collapsing, set only while that
-   * toggle runs. When the collapse hides the highlighted column, the selection moves to the first
-   * column of this range that is still shown, so the same key expands the same group again.
+   * The visual columns of the group <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowUp</kbd> is collapsing,
+   * set only while that toggle runs, for a press on a data cell and on a column header alike. When
+   * the collapse hides the highlighted column, the selection moves to the first column of this range
+   * that is still shown, in the row it was in, so the same key expands the same group again.
    *
    * @type {{ from: number, to: number }|null}
    */
@@ -510,7 +511,7 @@ export class CollapsibleColumns extends BasePlugin {
         const target = this.#getKeyToggleTarget();
 
         if (target) {
-          this.#keyToggleGroupColumns = target.dataCellGroupColumns;
+          this.#keyToggleGroupColumns = target.groupColumns;
 
           try {
             this.#toggleSectionByUser(target.coords, target.action);
@@ -1048,16 +1049,16 @@ export class CollapsibleColumns extends BasePlugin {
    * focus. It applies to a single selection range only, and from a data cell only while nothing
    * covers the grid body.
    *
-   * The answer also carries the group's visual column range when the key was pressed on a data cell,
-   * and `null` when it was pressed on a header, whose focus stays where it is.
+   * The answer also carries the group's visual column range. A header below the group can sit over a
+   * column the collapse hides, as a data cell can, and the selection then has to stay in the group.
    *
    * @returns {{ coords: { row: number, col: number }, action: 'collapse'|'expand',
-   * dataCellGroupColumns: { from: number, to: number }|null }|null}
+   * groupColumns: { from: number, to: number } }|null}
    */
   #getKeyToggleTarget(): {
     coords: { row: number, col: number },
     action: 'collapse' | 'expand',
-    dataCellGroupColumns: { from: number, to: number } | null,
+    groupColumns: { from: number, to: number },
   } | null {
     const stateManager = this.headerStateManager;
     const highlight = this.hot.getSelectedRangeActive()?.highlight;
@@ -1091,14 +1092,14 @@ export class CollapsibleColumns extends BasePlugin {
     return {
       coords: { row: headerRow, col: nodeData.columnIndex },
       action: nodeData.isCollapsed ? 'expand' : 'collapse',
-      dataCellGroupColumns: row >= 0 ? { from: nodeData.columnIndex, to: lastColumn } : null,
+      groupColumns: { from: nodeData.columnIndex, to: lastColumn },
     };
   }
 
   /**
    * Returns the column the selection moves to when a toggle hid the highlighted one: the nearest
-   * column that is still shown, or, for a key pressed on a data cell, the first column of the toggled
-   * group that is still shown. The nearest column can belong to the next group, and the key would then
+   * column that is still shown, or, for the <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowUp</kbd> key, the
+   * first column of the toggled group that is still shown. The nearest column can belong to the next group, and the key would then
    * toggle that group on the next press.
    *
    * @param {number} column The visual index of the highlighted column, hidden by the toggle.

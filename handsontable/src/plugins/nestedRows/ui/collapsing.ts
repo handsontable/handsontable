@@ -63,6 +63,11 @@ class CollapsingUI extends BaseUI {
    * Whether this stash holds the selection's grid-tracking grow (see `collapsedRowsStash.stash()`).
    */
   #holdsGridTrackingFits = false;
+  /**
+   * Whether a collapse is putting a selection it stranded back on a row that is still shown (see
+   * `#restoreSelection()`).
+   */
+  #isRestoringSelection = false;
 
   /**
    * Initializes the collapsing UI component and sets up the stash mechanism for preserving collapsed row state across operations.
@@ -705,6 +710,18 @@ class CollapsingUI extends BaseUI {
   }
 
   /**
+   * Tells whether a collapse is, right now, putting a selection it stranded back on a row that is
+   * still shown. That move repairs a selection the user already had, so the plugin announces no row
+   * level for it, whichever entry point collapsed: a user gesture announces the collapse itself, and
+   * the public methods announce nothing.
+   *
+   * @returns {boolean}
+   */
+  isRestoringSelection(): boolean {
+    return this.#isRestoringSelection;
+  }
+
+  /**
    * Collapse all collapsable rows.
    */
   collapseAll() {
@@ -821,7 +838,13 @@ class CollapsingUI extends BaseUI {
       const visualRow = this.hot.toVisualRow(physicalRow);
 
       if (visualRow !== null) {
-        this.hot.selectCell(visualRow, anchor.column);
+        this.#isRestoringSelection = true;
+
+        try {
+          this.hot.selectCell(visualRow, anchor.column);
+        } finally {
+          this.#isRestoringSelection = false;
+        }
 
         return;
       }

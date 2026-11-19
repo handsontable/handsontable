@@ -155,6 +155,27 @@ test.describe('NestedRows tree keys from a cell', { tag: CROSS_BROWSER_TAG }, ()
     await expect.poll(() => nestedRows.visibleNames()).toEqual(A2_COLLAPSED);
   });
 
+  test('several selected ranges are left alone, and the key is left to the browser',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.goto({ navigableHeaders: 'off' });
+      await nestedRows.recordKeyClaims();
+      await nestedRows.cell(0, 0).click();
+      await nestedRows.selectRanges([[2, 0, 2, 0], [6, 1, 6, 1]]);
+
+      await page.keyboard.press('Shift+Alt+ArrowLeft');
+
+      expect(await nestedRows.visibleNames()).toEqual(FULL_TREE);
+      expect(await nestedRows.selectedRanges()).toEqual([[2, 0, 2, 0], [6, 1, 6, 1]]);
+
+      await nestedRows.selectRange(6, 1, 6, 1);
+      await page.keyboard.press('Shift+Alt+ArrowLeft');
+
+      await expect.poll(() => nestedRows.visibleNames()).toEqual(FULL_TREE.slice(0, 7));
+      expect(await nestedRows.keyClaims()).toEqual([false, true]);
+    });
+
   test('the chords do nothing while an overlay covers the grid body', async({ page, theme, bundle }) => {
     const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
 
@@ -319,6 +340,29 @@ test.describe('NestedRows level announcement', { tag: CROSS_BROWSER_TAG }, () =>
       await expect(nestedRows.politeAnnouncer()).toHaveText('Level 1, 2 of 2, expanded');
 
       expect(await nestedRows.announcements()).toEqual(['Collapsed row 1', 'Level 1, 2 of 2, expanded']);
+    });
+
+  test('a collapse through the API that moves the selection onto the parent announces nothing',
+    async({ page, theme, bundle }) => {
+      const nestedRows = new NestedRowsTreegridPage(page, theme, bundle);
+
+      await nestedRows.goto({ navigableHeaders: 'off' });
+      await nestedRows.cell(3, 0).click();
+      await expect(nestedRows.politeAnnouncer()).toHaveText('Level 3, 1 of 2');
+      await nestedRows.recordAnnouncements();
+
+      await nestedRows.callPlugin('collapseParent', 2);
+      await expect.poll(() => nestedRows.visibleNames()).toEqual(A2_COLLAPSED);
+      await expect.poll(() => nestedRows.selectedCell()).toEqual([2, 0]);
+
+      await nestedRows.callPlugin('collapseAll');
+      await expect.poll(() => nestedRows.visibleNames()).toEqual(['Root A', 'Root B']);
+      await expect.poll(() => nestedRows.selectedCell()).toEqual([0, 0]);
+
+      await page.keyboard.press('ArrowDown');
+      await expect(nestedRows.politeAnnouncer()).toHaveText('Level 1, 2 of 2, collapsed');
+
+      expect(await nestedRows.announcements()).toEqual(['Level 1, 2 of 2, collapsed']);
     });
 
   test('the walk to a parent announces the parent row', async({ page, theme, bundle }) => {

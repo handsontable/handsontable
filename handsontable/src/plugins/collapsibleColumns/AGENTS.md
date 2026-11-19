@@ -137,18 +137,25 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   covering overlay, as <kbd>Enter</kbd> on it does. The chord is the DropdownMenu family
   (<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowDown</kbd> opens the column menu from a cell) and NestedRows
   takes the left and right arrows of it, so the four never clash; pinned on one grid with all three.
-- **A collapse by the key from a data cell keeps the selection inside the collapsed group.** A collapse
+- **A collapse by the key keeps the selection inside the collapsed group, from a data cell and from a
+  header alike.** A collapse
   hides every column of the group but the first shown one, and `#adjustSelectionAfterHide()` moves a
   highlight that sat on a hidden column to the NEAREST shown column, which is the next group's first
   column: with `H1` over columns 1 to 2 and `H2` over 3 to 4, the key pressed in column 2 collapsed `H1`,
   the highlight went to column 3, and the next press toggled `H2`, so the group just collapsed could not
-  be expanded by the same key. The key callback therefore sets `#keyToggleGroupColumns` (the group's
-  visual range, only for a press on a data cell) for the length of the toggle, and
-  `#getColumnAfterHide()` answers the first column of that range that is still shown. It is ONE
+  be expanded by the same key. A focused header BELOW the group sits over a hidden column the same way:
+  the key pressed on the bottom header of column 4 collapsed `H2`, the focus went to column 5 in the
+  same header row, and the next press toggled the group over column 5. The key callback therefore sets
+  `#keyToggleGroupColumns` (the group's visual range) for the length of the toggle, for a press on a
+  data cell and on a header, and `#getColumnAfterHide()` answers the first column of that range that is
+  still shown; the row is kept, so a header press stays at its header level. It is ONE
   selection move, made where the move always was: selecting the target before the toggle would move the
   selection even when `beforeColumnCollapse` vetoes, and selecting it after would be a second move and a
-  second round of selection hooks. The row stays, so NestedRows announces no level for it. A press on a
-  header, <kbd>Enter</kbd> and the indicator leave the field `null` and move the selection as before.
+  second round of selection hooks. The row stays, so NestedRows announces no level for it.
+  <kbd>Enter</kbd> and the indicator leave the field `null` and move the selection as before
+  (measured before and after this rule: <kbd>Enter</kbd> on `Group 1` focused over column 3 leaves the
+  focus on that header at column 1, and an indicator press with the highlight on a hidden data cell
+  moves it to the nearest shown column).
 - **The key honors the gate the indicator is drawn by, `#isGroupToggleable()`**: `collapsible`, more than
   one column, and neither frozen band (see "`fixedColumnsEnd`" below). `#onAfterGetColHeader` calls the
   same method, so a group without a visible toggle cannot be collapsed by the key either.

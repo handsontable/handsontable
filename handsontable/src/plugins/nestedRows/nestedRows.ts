@@ -1421,8 +1421,9 @@ export class NestedRows extends BasePlugin {
 
   /**
    * Returns the cell a <kbd>Shift</kbd>+<kbd>Alt</kbd>+arrow chord acts on, or `null` when the chord
-   * does not apply: the highlight of a selection of one row, on a data cell or on the row header,
-   * while nothing covers the grid body. Unlike the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> chords, it does not
+   * does not apply: the highlight of a single selection range of one row, on a data cell or on the row
+   * header, while nothing covers the grid body. Several selected ranges are left alone, because the
+   * walk to a parent would replace them with one cell. Unlike the <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> chords, it does not
    * need the focus on a row header, so the tree can be operated with `navigableHeaders` off.
    *
    * @returns {TreeKeyTarget|null}
@@ -1431,7 +1432,8 @@ export class NestedRows extends BasePlugin {
     const activeRange = this.hot.getSelectedRangeActive();
     const highlight = activeRange?.highlight;
 
-    if (!highlight || isGridBodyCovered(this.hot) || !this.hot.selection.isCellVisible(highlight)) {
+    if (!highlight || this.hot.getSelectedRange()?.length !== 1 || isGridBodyCovered(this.hot) ||
+        !this.hot.selection.isCellVisible(highlight)) {
       return null;
     }
 
@@ -1563,7 +1565,8 @@ export class NestedRows extends BasePlugin {
   /**
    * Tells whether a highlight that just changed should announce the level of its row: the grid has
    * ARIA on and listens to the keyboard, the change is not a re-lay of an existing selection, no
-   * toggle gesture is announcing already, and the highlight reached another row or stepped from the
+   * toggle gesture is announcing already, no collapse is putting a stranded selection back on a
+   * parent, and the highlight reached another row or stepped from the
    * row's header into one of its cells. A move between the cells of one row stays silent.
    *
    * @param {HighlightPosition|null} previous Where the highlight sat before.
@@ -1571,7 +1574,8 @@ export class NestedRows extends BasePlugin {
    * @returns {boolean}
    */
   #shouldAnnounceRowLevel(previous: HighlightPosition | null, current: HighlightPosition): boolean {
-    if (this.#isUserToggleRunning || !this.hot.getSettings().ariaTags || !this.hot.isListening() ||
+    if (this.#isUserToggleRunning || this.collapsingUI!.isRestoringSelection() ||
+        !this.hot.getSettings().ariaTags || !this.hot.isListening() ||
         SILENT_SELECTION_SOURCES.includes(this.hot.selection.getSelectionSource())) {
       return false;
     }
