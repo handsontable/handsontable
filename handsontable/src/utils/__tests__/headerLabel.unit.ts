@@ -39,6 +39,10 @@ describe('getHeaderLabelText', () => {
     expect(getHeaderLabelText(null, '<b>Q1</b><br/>&amp; Q2')).toBe('Q1 & Q2');
   });
 
+  it('should read every line break form of a declared label as one space and trim the result', () => {
+    expect(getHeaderLabelText(null, 'Q1<br>Q2<br />Q3  Q4<br>')).toBe('Q1 Q2 Q3 Q4');
+  });
+
   it('should keep a declared label that only looks like prose as it is', () => {
     expect(getHeaderLabelText(null, 'Smith & Sons; est. 1920')).toBe('Smith & Sons; est. 1920');
   });

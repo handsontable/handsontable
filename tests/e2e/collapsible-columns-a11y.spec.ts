@@ -283,6 +283,28 @@ test.describe('CollapsibleColumns announcements', { tag: CROSS_BROWSER_TAG }, ()
     await expect(columns.politeAnnouncer()).toHaveText('Expanded column group Group 2');
   });
 
+  test('a collapse the application vetoes changes nothing and announces nothing', async({ page, theme, bundle }) => {
+    const columns = new CollapsibleColumnsA11yPage(page, theme, bundle);
+
+    await columns.goto({ navigableHeaders: 'off' });
+    await columns.clickCell(1, 5);
+    await columns.setCollapsesVetoed(true);
+    await columns.recordAnnouncements();
+
+    await page.keyboard.press('Shift+Alt+ArrowUp');
+    await columns.indicator('Sub 1').click();
+
+    await expect(columns.header('Group 2')).toHaveAttribute('aria-expanded', 'true');
+    await expect(columns.header('Sub 1')).toHaveAttribute('aria-expanded', 'true');
+    expect(await columns.hiddenColumns()).toEqual([]);
+
+    await columns.setCollapsesVetoed(false);
+    await page.keyboard.press('Shift+Alt+ArrowUp');
+
+    await expect(columns.politeAnnouncer()).toHaveText('Collapsed column group Group 2');
+    expect(await columns.announcements()).toEqual(['Collapsed column group Group 2']);
+  });
+
   test('the public API changes aria-expanded but does not announce', async({ page, theme, bundle }) => {
     const columns = new CollapsibleColumnsA11yPage(page, theme, bundle);
 

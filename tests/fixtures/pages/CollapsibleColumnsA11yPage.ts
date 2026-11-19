@@ -157,6 +157,28 @@ export class CollapsibleColumnsA11yPage {
   }
 
   /**
+   * Make the grid refuse every collapse, the way an application's `beforeColumnCollapse` listener
+   * that returns `false` does, or let collapses through again.
+   *
+   * @param vetoed Whether a collapse is refused.
+   */
+  async setCollapsesVetoed(vetoed: boolean): Promise<void> {
+    await this.page.evaluate((isVetoed) => {
+      const scope = window as unknown as { htCollapseVeto?: () => boolean };
+
+      if (scope.htCollapseVeto) {
+        window.hot.removeHook('beforeColumnCollapse', scope.htCollapseVeto);
+        scope.htCollapseVeto = undefined;
+      }
+
+      if (isVetoed) {
+        scope.htCollapseVeto = () => false;
+        window.hot.addHook('beforeColumnCollapse', scope.htCollapseVeto);
+      }
+    }, vetoed);
+  }
+
+  /**
    * The text of the first column, top to bottom.
    */
   firstColumn(): Promise<string[]> {
