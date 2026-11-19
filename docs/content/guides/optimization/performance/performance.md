@@ -154,7 +154,7 @@ For more information, see our documentation for [rows](@/api/options.md#autorows
 
 [`autoColumnSize`](@/api/options.md#autocolumnsize) is on by default, and it reads every row of a column to find the widest value. On a large data set, that work grows with the number of rows.
 
-- By default, when the columns that `syncLimit` covers hold more than 1,000,000 cells (for example, 100,000 rows by 50 columns), the grid measures only the columns on screen before the first paint. It measures the other columns in the background, so their widths are final shortly after the grid appears. Until then, [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for those columns.
+- By default, when the columns that `syncLimit` covers hold more than 1,000,000 cells (for example, 100,000 rows by 50 columns), the grid measures only the columns on screen before the first paint. A grid with [`autoRowSize`](@/api/options.md#autorowsize) on still measures all of them, so its rows never change height after the first paint. It measures the other columns in the background, so their widths are final shortly after the grid appears. Until then, [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for those columns.
 - To keep a set number of columns measured before the first paint, set `syncLimit`, for example `autoColumnSize: { syncLimit: 10 }`. The grid then measures those columns before the first paint, whatever the number of rows.
 - To skip the measurement entirely, set `autoColumnSize: false` and give the columns fixed widths with [`colWidths`](@/api/options.md#colwidths).
 

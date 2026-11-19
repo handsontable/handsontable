@@ -69,10 +69,10 @@ type ColumnSamples = ReturnType<SamplesGenerator['generateSample']>;
  * autoColumnSize: {syncLimit: '40%'},
  * ```
  *
- * When `syncLimit` is not set and the columns it covers by default hold more than 1,000,000 cells
- * (`AutoColumnSize.SYNC_CELLS_BUDGET`), only the columns on screen, and the columns their merged cells span, are
- * measured before the first paint, and the other columns are measured asynchronously. An explicit `syncLimit`
- * always measures its columns synchronously.
+ * When `syncLimit` is not set, AutoRowSize is off, and the columns `syncLimit` covers by default hold more than
+ * 1,000,000 cells (`AutoColumnSize.SYNC_CELLS_BUDGET`), only the columns on screen, and the columns their merged
+ * cells span, are measured before the first paint, and the other columns are measured asynchronously. An explicit
+ * `syncLimit` always measures its columns synchronously.
  *
  * The plugin uses {@link GhostTable} and {@link SamplesGenerator} for calculations.
  * First, {@link SamplesGenerator} prepares samples of data with its coordinates.
@@ -825,7 +825,10 @@ export class AutoColumnSize extends BasePlugin {
       reuseSamples: false,
       viewportFirst: false,
       // A `syncLimit` the application set keeps its meaning: those columns are measured before this returns.
-      syncViewport: !this.#hasExplicitSyncLimit() && syncCells > AutoColumnSize.SYNC_CELLS_BUDGET,
+      // So does a grid that measures its rows: AutoRowSize measures them next, against these widths, and a
+      // row in view measured against a fallback width would change its height when the sweep ends.
+      syncViewport: !this.#hasExplicitSyncLimit() && !this.hot.getPlugin('autoRowSize')?.enabled &&
+        syncCells > AutoColumnSize.SYNC_CELLS_BUDGET,
     });
   }
 

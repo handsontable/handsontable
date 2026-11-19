@@ -126,25 +126,19 @@ test.describe('AutoColumnSize sync cell budget', { tag: THEMES_TAG }, () => {
     await expect.poll(() => grid.staleDrawnColumns()).toEqual([]);
   });
 
-  test('measures the rows again once the columns off screen are measured', async() => {
-    // A long text in a column off screen and a row below the fold: measured against the column's fallback
-    // width it wraps onto several lines, and no render measures that row again.
+  test('keeps every column synchronous while AutoRowSize measures the rows', async() => {
+    // A long text in a column off screen, in a row in view: measured against the column's fallback width it
+    // wraps onto several lines, and the row would shrink once the sweep ended.
     const tall: SyncBudgetGrid = {
       ...GRID,
-      values: [{ row: 300, col: 15, value: 'a sentence long enough to wrap in a narrow column' }],
+      values: [{ row: 3, col: 15, value: 'a sentence long enough to wrap in a narrow column' }],
       settings: { autoRowSize: true },
     };
+    const reference = await grid.build({ ...tall, settings: { ...tall.settings, ...EXACT } });
+    const built = await grid.build(tall, BUDGET);
 
-    await grid.build({ ...tall, settings: { ...tall.settings, ...EXACT } });
-    await grid.waitForRowSweepEnd();
-
-    const reference = await grid.rowHeights([300]);
-
-    await grid.build(tall, BUDGET);
-    await grid.waitForSweepEnd();
-    await grid.waitForRowSweepEnd();
-
-    await expect.poll(() => grid.rowHeights([300])).toEqual(reference);
+    expect(built.widths).toEqual(reference.widths);
+    expect(built.rowHeights).toEqual(reference.rowHeights);
   });
 
   test('keeps every column of an explicit syncLimit synchronous', async() => {

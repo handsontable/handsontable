@@ -15,11 +15,12 @@ export interface SyncBudgetGrid {
 
 /**
  * What the constructor did: the visual columns it read cell meta for (the columns measured before the
- * first paint), and every column's width right after it returned.
+ * first paint), every column's width, and the heights of the first ten rows, right after it returned.
  */
 export interface BuildResult {
   constructorColumns: number[];
   widths: number[];
+  rowHeights: Array<number | undefined>;
 }
 
 interface FixtureHot {
@@ -98,6 +99,8 @@ export class AutoColumnSizeSyncBudgetPage {
       return {
         constructorColumns: win.constructorColumns,
         widths: Array.from({ length: win.hot.countCols() }, (_, column) => win.hot.getColWidth(column)),
+        // The rows in view, read before anything after the constructor can measure them again.
+        rowHeights: Array.from({ length: 10 }, (_, row) => win.hot.getRowHeight(row)),
       };
     }, { spec: grid, cellsBudget: budget });
 
@@ -115,26 +118,6 @@ export class AutoColumnSizeSyncBudgetPage {
 
       return Array.from({ length: hot.countCols() }, (_, column) => hot.getColWidth(column));
     });
-  }
-
-  /**
-   * Resolves once AutoRowSize has no sweep in progress.
-   */
-  async waitForRowSweepEnd(): Promise<void> {
-    await expect.poll(() => this.page.evaluate(() => {
-      return (window as unknown as FixtureWindow).hot.getPlugin('autoRowSize').inProgress;
-    })).toBe(false);
-  }
-
-  /**
-   * The height the grid holds for each row.
-   */
-  async rowHeights(rows: number[]): Promise<Array<number | undefined>> {
-    return this.page.evaluate((visualRows) => {
-      const { hot } = window as unknown as FixtureWindow;
-
-      return visualRows.map(row => hot.getRowHeight(row));
-    }, rows);
   }
 
   /**

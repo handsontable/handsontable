@@ -279,19 +279,6 @@ to decide whether the refresh queue is safe to drain. Entry points that can over
 `#onAfterLoadData`, the column-resize gesture, an explicit `recalculateAllRowsHeight()`, and now a
 `clearCache()` that schedules one.
 
-## The rows are measured again when the column sweep of `init` or `loadData()` ends
-
-AutoColumnSize enables first, so its `init` and `afterLoadData` listeners run before this plugin's. On a grid
-past its sync cell budget (`../autoColumnSize/AGENTS.md`, "`syncLimit`, and what 'sync' guarantees"), and on
-any grid wider than its `syncLimit`, they leave columns to idle tasks, and this plugin then measures the rows
-against those columns' fallback width: a long text wraps more there, and a row outside the rendered band
-keeps that height, since a render measures only the band. So `#onInit` and the non-first `#onAfterLoadData`
-set `#rowsOwedToColumnSweep` while the column sweep runs, the same debt the web-font path below uses. A sweep
-past the budget renders once when it ends, which pays it; the idle part of a grid wider than its `syncLimit`
-renders nothing, so there the first render after it ends pays it. Pinned by "measures the rows again once the
-columns off screen are measured" in `tests/e2e/auto-column-size-sync-budget.spec.ts` (189 px against 29 px
-without it).
-
 ## A web font re-measures the rows twice when the columns are still widening (DEV-199)
 
 `#onAfterFontsLoad` runs `recalculateAllRowsHeight()` right away, after AutoColumnSize's listener (both register

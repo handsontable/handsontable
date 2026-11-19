@@ -170,9 +170,9 @@ user sees, and an explicit `syncLimit` keeps its literal meaning.
 **The default split has a cell budget (`SYNC_CELLS_BUDGET`, 1,000,000 cells).** The synchronous part used to
 have a column cap and no cell cap, so a 100k × 50 grid sampled 5M cells, about 2.2 s, before the first paint.
 `calculateAllColumnsWidth()` now passes `syncViewport` to `#sweepColumns()` when `syncLimit` is NOT set
-(`#hasExplicitSyncLimit()`) and `(syncLimit + 1) × rows` exceeds the budget. That sweep measures only the
+(`#hasExplicitSyncLimit()`), AutoRowSize is not enabled, and `(syncLimit + 1) × rows` exceeds the budget. That sweep measures only the
 columns on screen before it returns (about 0.8 s on the same grid) and leaves every other column to idle tasks.
-The final widths are the same, because every column, early or late, samples the whole row range. Six rules
+The final widths are the same, because every column, early or late, samples the whole row range. Seven rules
 hold it together:
 
 - **Before the first draw nothing is "on screen" yet.** `getFirstVisibleColumn()` is -1 inside the `init`
@@ -184,6 +184,11 @@ hold it together:
   `view.getFrozenViewportSize(true)`. Once a draw exists (a `loadData()` on a scrolled grid), the queue is
   `#columnSweepOrder(true)` and the synchronous part is `#onScreenColumns()`. A width of 0 or one the view
   cannot measure falls back to every `syncLimit` column, as without a budget.
+- **A grid with AutoRowSize enabled keeps the exact path.** AutoRowSize measures the rows right after this
+  plugin's `init` and `afterLoadData` listeners, against these widths, so a row in view with a long text in an
+  off-screen column was measured at the fallback width (189 px against 29 px in the probe) and shrank once the
+  sweep ended: a row on screen that moved. That grid opted into an exact init, so it keeps it ("keeps every
+  column synchronous while AutoRowSize measures the rows").
 - **The columns a merge on screen spans are measured with it** (`measureMergeSpans()` in `#sweepColumns()`). A
   multi-column merge needs from its first column the text's width less the other spanned columns, so with
   those at the fallback width the first column was drawn too wide (1076 px against 417 px in the probe) and
@@ -198,7 +203,7 @@ hold it together:
   `<col>`, so the rendered columns past the viewport's edge kept the fallback width the first paint gave
   them. A plain forced render is too much: it overwrites every on-screen width, and the synchronous part's
   samples were dropped (`recalculateAllColumnsWidth()`), so it re-walked every on-screen column over every row
-  from inside an idle task. The same render lets AutoRowSize pay the rows it owes (see the Formulas section).
+  from inside an idle task.
 - **Behavior a tall default grid gets now:** right after the constructor, `getColWidth()` of an off-screen
   column returns the fallback width until the idle sweep reaches it, so a `scrollViewportTo()` or
   `selectCell()` to such a column computes its offset from that width. An edit made while the sweep runs is
@@ -403,9 +408,6 @@ this one), so the sweep sees fresh values and `recalculateAllColumnsWidth()` dis
 visible-columns walk). Keep this listener at the default order: AutoRowSize measures row heights against
 this plugin's widths in its own default-order `afterLoadData` listener, and host `afterLoadData` callbacks
 read `getColWidth()` — both expect the sweep to have run, which is what the plugin enable order gives them.
-On a grid past the sync cell budget (see "`syncLimit`, and what 'sync' guarantees") only the columns on screen
-have run by then, so AutoRowSize owes the rows a second measure when the sweep ends (`#rowsOwedToColumnSweep`
-in `../autoRowSize/autoRowSize.ts`, set from its `init` and `afterLoadData` listeners).
 
 ## The index map is `skipUnchangedWrites`
 
