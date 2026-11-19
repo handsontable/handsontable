@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-19T10:59:43.607Z",
+  "generatedAt": "2026-11-19T11:17:52.324Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -9,7 +9,7 @@
   "retentionDays": 90,
   "totals": {
     "tests": 453,
-    "needsTicket": 9,
+    "needsTicket": 8,
     "quarantined": 0,
     "entries": 2321
   },
@@ -220,43 +220,6 @@
         "leg": "e2e-webkit",
         "status": "flaky",
         "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
-        "source": "ci"
-      },
-      "needsTicket": true
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-2",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
-      "line": null,
-      "title": "js-only/sheetsBar/tabs-2",
-      "count7": 0,
-      "count30": 4,
-      "countAll": 22,
-      "runs30": 2,
-      "flakyRuns30": 0,
-      "branches30": 2,
-      "nightlyRuns30": 0,
-      "openBranches30": 2,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-11-05T09:34:09Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/41930529023",
-        "branch": "feature/DEV-3653_Sheets-bar-retest-fixes",
-        "leg": "js/chromium-theme-main-dark",
-        "status": "failed",
-        "error": "differs from base/develop (pr tier); render sha256 601bcab03d12",
         "source": "ci"
       },
       "needsTicket": true
@@ -913,7 +876,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 26,
       "title": "Row header width resolved per level › keeps the frozen end column on its column with a modifyRowHeaderWidth handler widening every level of two",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -948,7 +911,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 26,
       "title": "Row header width resolved per level › keeps the frozen end column on its column with nested rows with row selection checkboxes",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -983,7 +946,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 26,
       "title": "Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes beside an extra row header level",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -1018,7 +981,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 26,
       "title": "Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes in the row header",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -1053,7 +1016,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 26,
       "title": "Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes with rowHeaderWidth: [60, 40]",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -1088,7 +1051,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 26,
       "title": "Row header width resolved per level › keeps the frozen end column on its column with row selection checkboxes with rowHeaderWidth: 80",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -1123,7 +1086,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 38,
       "title": "Row header width resolved per level › scrolls no further than the table with a modifyRowHeaderWidth handler widening every level of two",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -1158,7 +1121,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 38,
       "title": "Row header width resolved per level › scrolls no further than the table with nested rows with row selection checkboxes",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -1193,7 +1156,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 38,
       "title": "Row header width resolved per level › scrolls no further than the table with row selection checkboxes beside an extra row header level",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -1228,7 +1191,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 38,
       "title": "Row header width resolved per level › scrolls no further than the table with row selection checkboxes in the row header",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -1263,7 +1226,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 38,
       "title": "Row header width resolved per level › scrolls no further than the table with row selection checkboxes with rowHeaderWidth: [60, 40]",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -1298,7 +1261,7 @@
       "file": "e2e/row-header-width-per-level.spec.ts",
       "line": 38,
       "title": "Row header width resolved per level › scrolls no further than the table with row selection checkboxes with rowHeaderWidth: 80",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
@@ -1531,6 +1494,43 @@
       "needsTicket": false
     },
     {
+      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-2",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
+      "line": null,
+      "title": "js-only/sheetsBar/tabs-2",
+      "count7": 0,
+      "count30": 2,
+      "countAll": 22,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-05T09:34:09Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/41930529023",
+        "branch": "feature/DEV-3653_Sheets-bar-retest-fixes",
+        "leg": "js/chromium-theme-main-dark",
+        "status": "failed",
+        "error": "differs from base/develop (pr tier); render sha256 601bcab03d12",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/walkontable/window-scroll-pinned-overlays.spec.ts|walkontable window-scroll pinned overlays › scrolling the page up and down › frozen rows and both corners stay pinned on every painted frame",
       "tier": "playwright",
       "file": "e2e/walkontable/window-scroll-pinned-overlays.spec.ts",
@@ -1594,43 +1594,6 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to equal <textarea data-hot-input tabindex=\"-1\" class=\"handsontableInput\" style=\"width: 50px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif; resize: none; min-w...",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
-      "line": null,
-      "title": "js-only/sheetsBar/tabs-1",
-      "count7": 0,
-      "count30": 2,
-      "countAll": 20,
-      "runs30": 1,
-      "flakyRuns30": 0,
-      "branches30": 1,
-      "nightlyRuns30": 0,
-      "openBranches30": 1,
-      "legs": [
-        "js/chromium",
-        "js/chromium-theme-horizon",
-        "js/chromium-theme-horizon-dark",
-        "js/chromium-theme-main",
-        "js/chromium-theme-main-dark"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-20T11:10:08Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39397571600",
-        "branch": "feature/PRO-1340_Animate-sheet-switching",
-        "leg": "js/chromium-theme-main",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 082cba487624",
         "source": "ci"
       },
       "needsTicket": false
@@ -2109,6 +2072,43 @@
         "leg": "UMD (theme: main)",
         "status": "failed",
         "error": "Expected 50 to be less than 50.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "visual|visual-tests/tests/js-only/sheetsBar/tabs.spec.ts|js-only/sheetsBar/tabs-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/js-only/sheetsBar/tabs.spec.ts",
+      "line": null,
+      "title": "js-only/sheetsBar/tabs-1",
+      "count7": 0,
+      "count30": 0,
+      "countAll": 20,
+      "runs30": 0,
+      "flakyRuns30": 0,
+      "branches30": 0,
+      "nightlyRuns30": 0,
+      "openBranches30": 0,
+      "legs": [
+        "js/chromium",
+        "js/chromium-theme-horizon",
+        "js/chromium-theme-horizon-dark",
+        "js/chromium-theme-main",
+        "js/chromium-theme-main-dark"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-10-20T11:10:08Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/39397571600",
+        "branch": "feature/PRO-1340_Animate-sheet-switching",
+        "leg": "js/chromium-theme-main",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 082cba487624",
         "source": "ci"
       },
       "needsTicket": false
