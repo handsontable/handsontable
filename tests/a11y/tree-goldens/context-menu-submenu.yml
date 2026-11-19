@@ -64,52 +64,52 @@
         - menuitem "Insert row above"
       - row "Insert row below":
         - menuitem "Insert row below"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Insert column left":
         - menuitem "Insert column left"
       - row "Insert column right":
         - menuitem "Insert column right"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Remove row":
         - menuitem "Remove row"
       - row "Remove column":
         - menuitem "Remove column"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Undo":
         - menuitem "Undo" [disabled]
       - row "Redo":
         - menuitem "Redo" [disabled]
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Read only":
         - menuitemcheckbox "Read only"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Alignment":
         - menuitem "Alignment" [expanded]
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Add comment":
         - menuitem "Add comment"
       - row "Delete comment":
         - menuitem "Delete comment" [disabled]
       - row "Read-only comment":
         - menuitemcheckbox "Read-only comment" [disabled]
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Copy":
         - menuitem "Copy"
       - row "Cut":
         - menuitem "Cut"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Merge cells":
         - menuitem "Merge cells" [disabled]
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Borders":
         - menuitem "Borders"
 - status
@@ -125,8 +125,8 @@
         - menuitem "Right"
       - row "Justify":
         - menuitem "Justify"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Top":
         - menuitem "Top"
       - row "Middle":

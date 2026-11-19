@@ -1048,6 +1048,7 @@ export class CopyPaste extends BasePlugin {
     const copiedHeadersCount = this.#countCopiedHeaders(this.copyableRanges);
     // Captured before `beforeCopy`, which may reshape the array. Identity is what survives that.
     const headerRows = new Set(rangedData.slice(0, copiedHeadersCount.columnHeadersCount));
+    const plainTextHeaders = this.#readPlainTextHeaders(headerRows);
     const dataSnapshot = this.hot.hasHook('beforeCopy') ? this.#snapshotRangedData(rangedData) : null;
     const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges, copiedHeadersCount);
 
@@ -1061,7 +1062,8 @@ export class CopyPaste extends BasePlugin {
         event,
         rangedData,
         this.#reconcileSourceData(rangedData, dataSnapshot, rangedSourceData),
-        headerRows
+        headerRows,
+        plainTextHeaders
       );
 
       this.hot.runHooks('afterCopy', rangedData, this.copyableRanges, copiedHeadersCount);
@@ -1426,20 +1428,69 @@ export class CopyPaste extends BasePlugin {
    * `a<b` as HTML would destroy it. Matching on identity keeps the projection on the rows that are
    * still headers, whatever the listener did to the array around them.
    *
+   * A header a user renamed (`EditableHeaders`) is left as it is: it is text already, and projecting it would parse
+   * what they typed. Such a cell is skipped only while it still holds the value it was copied with, at its position,
+   * so a `beforeCopy` listener that reshaped the row gets the usual projection.
+   *
    * @param {Array[]} rangedData The copied data.
    * @param {Set} headerRows The row arrays that were column headers when the copy was assembled.
+   * @param {Map} [plainTextHeaders] Per header row, the renamed cells by their position, with their copied value.
    * @returns {Array[]} The data with its header rows projected into text.
    */
-  #extractHeaderText(rangedData: unknown[][], headerRows: Set<unknown[]>): unknown[][] {
+  #extractHeaderText(
+    rangedData: unknown[][],
+    headerRows: Set<unknown[]>,
+    plainTextHeaders: Map<unknown[], Map<number, unknown>> = new Map()
+  ): unknown[][] {
     if (headerRows.size === 0 || getTextExtractor(this.hot) === false) {
       return rangedData;
     }
 
-    return rangedData.map(row => (
-      headerRows.has(row)
-        ? row.map(value => extractText(this.hot, value, 'CopyPaste.columnHeader'))
-        : row
-    ));
+    return rangedData.map((row) => {
+      if (!headerRows.has(row)) {
+        return row;
+      }
+
+      const plainCells = plainTextHeaders.get(row);
+
+      return row.map((value, index) => (
+        plainCells?.has(index) && plainCells.get(index) === value ?
+          value : extractText(this.hot, value, 'CopyPaste.columnHeader')
+      ));
+    });
+  }
+
+  /**
+   * Records, per copied column header row, the cells that hold a header a user renamed, with their value, before
+   * `beforeCopy` may reshape the rows.
+   *
+   * @param {Set} headerRows The row arrays that are column headers.
+   * @returns {Map} The renamed cells by row, each a map of the position to the copied value.
+   */
+  #readPlainTextHeaders(headerRows: Set<unknown[]>): Map<unknown[], Map<number, unknown>> {
+    const result = new Map<unknown[], Map<number, unknown>>();
+
+    if (headerRows.size === 0 || !this.hot.view) {
+      return result;
+    }
+
+    const { columns } = normalizeRanges(this.copyableRanges);
+
+    headerRows.forEach((row) => {
+      const plainCells = new Map<number, unknown>();
+
+      columns.forEach((column: number, index: number) => {
+        if (this.hot.view.isPlainTextHeader('column', column)) {
+          plainCells.set(index, row[index]);
+        }
+      });
+
+      if (plainCells.size > 0) {
+        result.set(row, plainCells);
+      }
+    });
+
+    return result;
   }
 
   /**
@@ -1506,14 +1557,16 @@ export class CopyPaste extends BasePlugin {
    * @param {Array} rangedData Ranged data to set to the clipboard.
    * @param {Array} rangedSourceData Ranged source data to set to the clipboard.
    * @param {Set} [headerRows] The row arrays of `rangedData` that are column headers.
+   * @param {Map} [plainTextHeaders] The renamed header cells, which `#extractHeaderText()` leaves as they are.
    */
   #setClipboardData(
     event: ClipboardEvent,
     rangedData: unknown[][],
     rangedSourceData: unknown[][],
-    headerRows: Set<unknown[]> = new Set()
+    headerRows: Set<unknown[]> = new Set(),
+    plainTextHeaders: Map<unknown[], Map<number, unknown>> = new Map()
   ) {
-    const projectedData = this.#extractHeaderText(rangedData, headerRows);
+    const projectedData = this.#extractHeaderText(rangedData, headerRows, plainTextHeaders);
     const textPlain = stringify(projectedData);
 
     if (event && event.clipboardData) {

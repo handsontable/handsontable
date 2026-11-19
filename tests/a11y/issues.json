@@ -206,16 +206,16 @@
     },
     {
       "id": "menu-semantics",
-      "title": "Menu items have no menu parent, the highlighted item carries aria-selected, separators are exposed as menu items, and a screen reader hears the context and column menus as a table, NVDA without the word menu, and VoiceOver's next item (VO+Right) moves along the table's row and out of the menu",
-      "tracker": ["DEV-3491", "DEV-2944"],
+      "title": "Menu items have no menu parent, the highlighted item carries aria-selected, and a screen reader hears the context and column menus as a table, NVDA without the word menu, and VoiceOver's next item (VO+Right) moves along the table's row and out of the menu",
+      "tracker": "DEV-3491",
       "match": [
-        { "source": "axe", "axeIssues": ["menu-roles", "menu-separators"] },
+        { "source": "axe", "axeIssues": ["menu-roles"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-required-parent", "aria-allowed-attr"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["^div\\.htMenu\\[role=\"menu\"\\]$"] },
         { "source": "reader", "kinds": ["token-missing"], "where": ["^open-context-menu$"] },
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["dropdown-menu", "filters-by-value", "filters-by-condition"], "where": ["^open-menu$"] },
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["context-menu-checkable", "rtl-dropdown-menu"], "where": ["^open-menu$"] },
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["context-menu-checkable"], "where": ["^read-next-separator$"] },
+        { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["context-menu-checkable"], "where": ["^read-next-separator$"] },
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["context-menu-checkable"], "where": ["^read-next-item$"] }
       ]
     },

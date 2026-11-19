@@ -207,6 +207,20 @@ export const SHORTCUT_PROBES = [
     probe: { page: 'row-selection', setup: 'column-header', at: [-1, 1], press: 'Space', expect: ['value-changes', 'row-selection-changes'] } },
   { section: 'Column header checkbox keyboard shortcuts', keys: 'Space',
     probe: { page: 'checkbox', setup: 'column-header', at: [-1, 1], press: 'Space', expect: 'value-changes' } },
+  // The editable-headers page renames the Price column header (column 1); F2 or Enter on it opens the input, which
+  // takes the focus, and Enter, Escape and Tab in the input hand the focus back to the grid.
+  { section: 'Editable headers keyboard shortcuts', keys: 'F2',
+    probe: { page: 'editable-headers', setup: 'column-header', at: [-1, 1], press: 'F2', expect: 'focus-moves' } },
+  { section: 'Editable headers keyboard shortcuts', keys: 'Enter', ordinal: 1,
+    probe: { page: 'editable-headers', setup: 'column-header', at: [-1, 1], press: 'Enter', expect: 'focus-moves' } },
+  { section: 'Editable headers keyboard shortcuts', keys: 'Enter', ordinal: 2,
+    probe: { page: 'editable-headers', setup: 'column-header', at: [-1, 1], press: [{ key: 'Enter', prepare: ['F2'] }], expect: 'focus-moves' } },
+  { section: 'Editable headers keyboard shortcuts', keys: 'Escape',
+    probe: { page: 'editable-headers', setup: 'column-header', at: [-1, 1], press: [{ key: 'Escape', prepare: ['F2'] }], expect: 'focus-moves' } },
+  { section: 'Editable headers keyboard shortcuts', keys: 'Tab',
+    probe: { page: 'editable-headers', setup: 'column-header', at: [-1, 1], press: [{ key: 'Tab', prepare: ['F2'] }], expect: 'focus-moves' } },
+  { section: 'Editable headers keyboard shortcuts', keys: 'Shift+Tab',
+    probe: { page: 'editable-headers', setup: 'column-header', at: [-1, 1], press: [{ key: 'Shift+Tab', prepare: ['F2'] }], expect: 'focus-moves' } },
   { section: 'Formulas keyboard shortcuts', keys: 'Ctrl+`',
     notProbed: 'Needs HyperFormula, which the plain UMD bundle the walker runs loads only on a formulas fixture; e2e/formulas-show-formulas.spec.ts presses it' },
   // Formula builder: the formula editor on the formula-builder page (A1:C5, formulas in column C, the

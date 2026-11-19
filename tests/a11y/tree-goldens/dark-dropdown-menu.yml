@@ -46,24 +46,24 @@
         - menuitem "Insert column left"
       - row "Insert column right":
         - menuitem "Insert column right"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Remove column":
         - menuitem "Remove column"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Clear column":
         - menuitem "Clear column"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Read only":
         - menuitemcheckbox "Read only"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Alignment":
         - menuitem "Alignment"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Filter by condition:":
         - menuitem "Filter by condition:":
           - text: "Filter by condition:"

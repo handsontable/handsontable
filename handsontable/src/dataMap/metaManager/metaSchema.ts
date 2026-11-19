@@ -3236,6 +3236,59 @@ export default (): Record<string, unknown> => {
     editor: undefined,
 
     /**
+     * The `editableHeaders` option configures the [`EditableHeaders`](@/api/editableHeaders.md) plugin, which lets
+     * users rename column headers, and optionally row headers, the way they edit cells.
+     *
+     * You can set the `editableHeaders` option to one of the following:
+     *
+     * | Setting   | Description                                                                                      |
+     * | --------- | ------------------------------------------------------------------------------------------------ |
+     * | `true`    | Enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin for column headers               |
+     * | `false`   | Disable the [`EditableHeaders`](@/api/editableHeaders.md) plugin                                 |
+     * | An object | Enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin and choose the header axes      |
+     *
+     * The object form accepts the following properties:
+     *
+     * | Property        | Type      | Default | Description                          |
+     * | --------------- | --------- | ------- | ------------------------------------ |
+     * | `columnHeaders` | `boolean` | `true`  | Whether users can rename column headers |
+     * | `rowHeaders`    | `boolean` | `false` | Whether users can rename row headers    |
+     *
+     * To keep one column's header from being renamed, set `editableHeaders: false` for that column in the
+     * [`columns`](#columns) option.
+     *
+     * Read more:
+     * - [Column header](@/guides/columns/column-header/column-header.md#rename-headers-in-the-grid)
+     * - [Plugins: `EditableHeaders`](@/api/editableHeaders.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category EditableHeaders
+     * @configScope grid columns
+     * @since 19.0.0
+     *
+     * @example
+     * ```js
+     * // let users rename column headers
+     * editableHeaders: true,
+     *
+     * // let users rename column headers and row headers
+     * editableHeaders: {
+     *   columnHeaders: true,
+     *   rowHeaders: true,
+     * },
+     *
+     * // keep the first column's header from being renamed
+     * columns: [
+     *   { editableHeaders: false },
+     *   {},
+     * ],
+     * ```
+     */
+    editableHeaders: undefined,
+
+    /**
      * @description
      * The `emptyDataState` option configures the [`EmptyDataState`](@/api/emptyDataState.md) plugin.
      *

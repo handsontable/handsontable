@@ -6,11 +6,11 @@
     "cells",
     "cell"
   ],
-  "total": 186,
+  "total": 187,
   "counts": {
     "grid": 113,
     "grid columns cells cell": 65,
-    "grid columns": 7,
+    "grid columns": 8,
     "columns": 1
   },
   "options": [
@@ -512,6 +512,16 @@
         "grid"
       ],
       "since": null,
+      "note": null
+    },
+    {
+      "name": "editableHeaders",
+      "category": "EditableHeaders",
+      "levels": [
+        "grid",
+        "columns"
+      ],
+      "since": "19.0.0",
       "note": null
     },
     {

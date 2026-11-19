@@ -36,6 +36,8 @@ export const CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX = `${CM_ALIAS}.exportFileXlsx`;
 export const CONTEXTMENU_ITEMS_FREEZE_COLUMN = `${CM_ALIAS}.freezeColumn`;
 export const CONTEXTMENU_ITEMS_UNFREEZE_COLUMN = `${CM_ALIAS}.unfreezeColumn`;
 
+export const CONTEXTMENU_ITEMS_RENAME_HEADER = `${CM_ALIAS}.renameHeader`;
+
 export const CONTEXTMENU_ITEMS_MERGE_CELLS = `${CM_ALIAS}.mergeCells`;
 export const CONTEXTMENU_ITEMS_UNMERGE_CELLS = `${CM_ALIAS}.unmergeCells`;
 
@@ -226,3 +228,7 @@ export const EDITOR_INPUT_LABEL = `${EDITOR_NAMESPACE}labels.cellInput`;
 
 export const COMMENTS_NAMESPACE = 'Comments:';
 export const COMMENTS_EDITOR_LABEL = `${COMMENTS_NAMESPACE}labels.editor`;
+
+export const EDITABLE_HEADERS_NAMESPACE = 'EditableHeaders:';
+export const EDITABLE_HEADERS_INPUT_LABEL = `${EDITABLE_HEADERS_NAMESPACE}inputLabel`;
+export const EDITABLE_HEADERS_RENAMED = `${EDITABLE_HEADERS_NAMESPACE}announcement.renamed`;
