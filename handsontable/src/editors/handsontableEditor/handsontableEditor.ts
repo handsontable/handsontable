@@ -249,7 +249,28 @@ export class HandsontableEditor extends TextEditor {
     // flags still holding the previously edited cell's answers.
     this.refreshDimensions();
     this.#bindScrollFollow();
+    this.#keepListOutOfTabOrder();
     this.#wireGridPopup();
+  }
+
+  /**
+   * Keeps every element of the opened list out of the focus order while the grid's `ariaTags` is on: the
+   * browser focus stays in the field, whether the list is a grid popup or (in `AutocompleteEditor`) a
+   * listbox. The list's engine writes `tabindex="-1"` on its scroll holders (the master table's and each
+   * overlay clone's) and, with the list's own `ariaTags` on, on its drawn cells. A focusable holder under
+   * the presentational table markup is a child neither the `grid` nor the `listbox` role allows, so the
+   * attribute is removed now and after every render and scroll (a scroll draws the list without
+   * `afterRender`). The list grid is built anew on every open, so its hooks go with it.
+   */
+  #keepListOutOfTabOrder(): void {
+    if (!this.hot.getSettings().ariaTags) {
+      return;
+    }
+
+    this.htEditor.addHook('afterRender', this.#removeListTabIndex);
+    this.htEditor.addHook('afterScrollVertically', this.#removeListTabIndex);
+    this.htEditor.addHook('afterScrollHorizontally', this.#removeListTabIndex);
+    this.#removeListTabIndex();
   }
 
   /**
@@ -295,7 +316,6 @@ export class HandsontableEditor extends TextEditor {
     this.htEditor.addHook('afterRender', this.#onListRender);
     this.htEditor.addHook('afterScrollVertically', this.#onListRender);
     this.htEditor.addHook('afterScrollHorizontally', this.#onListRender);
-    this.#removeListTabIndex();
 
     const active = this.htEditor.getSelectedActive();
 
@@ -307,13 +327,11 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * After every render and scroll of the list: removes the `tabindex` its engine wrote, and points the field at the
-   * highlighted cell again while the list is shown. The list draws the rows it scrolls to in the cells it
-   * already has, so the cell the field named may now show another row.
+   * After every render and scroll of the list: points the field at the highlighted cell again while the list
+   * is shown. The list draws the rows it scrolls to in the cells it already has, so the cell the field named
+   * may now show another row.
    */
   #onListRender = (): void => {
-    this.#removeListTabIndex();
-
     const active = this.htEditor.getSelectedActive();
 
     if (active && this.isOpened()) {
@@ -323,14 +341,13 @@ export class HandsontableEditor extends TextEditor {
 
   /**
    * Removes the `tabindex="-1"` the list's engine puts on its drawn cells (with its `ariaTags` on) and on
-   * its scroll holders. The browser focus stays in the field, so nothing in the list takes it, and a
-   * focusable holder under `role="presentation"` is a child the `grid` role does not allow.
+   * its scroll holders (see {@link HandsontableEditor#keepListOutOfTabOrder}).
    */
-  #removeListTabIndex(): void {
+  #removeListTabIndex = (): void => {
     this.htEditor.rootElement.querySelectorAll<HTMLElement>('td[tabindex], .wtHolder[tabindex]').forEach((element) => {
       removeAttribute(element, 'tabindex');
     });
-  }
+  };
 
   /**
    * Removes what the grid popup wiring and the destroyed list grid left on the list's root element,

@@ -512,6 +512,16 @@ export class EditorListA11yPage {
   }
 
   /**
+   * The elements of the active editor's list that carry a `tabindex` (its cells and the scroll holders of
+   * its master table and overlay clones), and so could take the focus, read as a tag and its first class.
+   */
+  async focusableListElements(): Promise<string[]> {
+    return this.page.evaluate(() => Array.from((window as unknown as FixtureWindow).hot.getActiveEditor()!.htEditor
+      .rootElement.querySelectorAll('[tabindex]'))
+      .map(element => `${element.tagName.toLowerCase()}${element.classList[0] ? `.${element.classList[0]}` : ''}`));
+  }
+
+  /**
    * The value a data cell holds.
    */
   async dataAtCell(row: number, col: number): Promise<unknown> {

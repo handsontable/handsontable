@@ -116,6 +116,50 @@ for (const cellType of CELL_TYPES) {
         .toHaveCount(0);
     });
 
+    test('keeps every element of the list out of the tab order, also after it scrolls', async() => {
+      await grid.goto({ longSource: true });
+      await grid.openEditorAt(0, 0);
+
+      const listbox = grid.listbox('A, row 1');
+
+      await expect(listbox.getByRole('option').first()).toHaveText('Al 001');
+      // A focusable scroll holder under the presentational table markup is a child the listbox role does
+      // not allow, and a stop the keyboard could reach inside a popup that keeps the focus in its field.
+      expect(await grid.focusableListElements()).toEqual([]);
+
+      for (let i = 0; i < 30; i++) {
+        await grid.page.keyboard.press('ArrowDown');
+      }
+
+      await expect.poll(() => grid.referencedElements())
+        .toMatchObject({ activeDescendant: { text: 'Al 030' } });
+      expect(await grid.focusableListElements()).toEqual([]);
+    });
+
+    test('keeps the focus out of a list that scrolls on Tab and Shift+Tab', async() => {
+      await grid.goto({ longSource: true });
+
+      // Tab from the field, with an option highlighted.
+      await grid.openEditorAt(0, 0);
+      await grid.page.keyboard.press('ArrowDown');
+      await grid.page.keyboard.press('Tab');
+      await expect.poll(() => grid.focusTarget()).toEqual({ cell: [0, 1] });
+
+      // Shift+Tab from the field, with nothing highlighted.
+      await grid.openEditorAt(0, 1);
+      await grid.page.keyboard.press('Shift+Tab');
+      await expect.poll(() => grid.focusTarget()).toEqual({ cell: [0, 0] });
+
+      // Tab after the wheel scrolled the list.
+      await grid.openEditorAt(1, 0);
+      await expect(grid.listbox('A, row 2').getByRole('option').first()).toHaveText('Al 001');
+      await grid.wheelOverList(400);
+      await expect(grid.listbox('A, row 2').getByRole('option', { name: 'Al 001', exact: true })).toHaveCount(0);
+      expect(await grid.isFocusInList()).toBe(false);
+      await grid.page.keyboard.press('Tab');
+      await expect.poll(() => grid.focusTarget()).toEqual({ cell: [1, 1] });
+    });
+
     test('renames the list for the next edited cell', async() => {
       await grid.goto();
       await grid.openEditorAt(0, 0);
