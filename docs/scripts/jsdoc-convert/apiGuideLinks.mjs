@@ -43,6 +43,7 @@ export const apiGuideLinks = {
   'dialog.md': 'guides/dialog/dialog/dialog.md',
   'dragToScroll.md': 'guides/accessories-and-menus/drag-to-scroll/drag-to-scroll.md',
   'dropdownMenu.md': 'guides/accessories-and-menus/column-menu/column-menu.md',
+  'editableHeaders.md': 'guides/columns/column-header/column-header.md',
   'emptyDataState.md': 'guides/accessories-and-menus/empty-data-state/empty-data-state.md',
   'exportFile.md': [
     'guides/accessories-and-menus/export-to-csv/export-to-csv.md',

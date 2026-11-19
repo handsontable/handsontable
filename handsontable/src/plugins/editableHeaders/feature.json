@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:editable_headers",
+      "kind": "plugin",
+      "module": "EditableHeaders",
+      "name": "Editable headers",
+      "description": "Lets users rename column and row headers in the grid.",
+      "status": "stable",
+      "licensing": "token",
+      "gate": "enable",
+      "tiers": [
+        "standard",
+        "professional"
+      ]
+    }
+  ]
+}

@@ -35,7 +35,10 @@ Three traps make the shortcuts wrong, all measured on issue
 
 **Only strings are projected.** A numeric header must stay a number, and **cell *data* is never projected at
 all** — a value such as `a<b` is data, not a display string, and parsing it as HTML would destroy it. The
-current scope is headers only (column, row, and nested-header tree labels).
+current scope is headers only (column, row, and nested-header tree labels). **A header a user renamed
+(`EditableHeaders`) is not projected**: `getRowHeaders()` and `getColumnHeaders()` ask
+`TableView#isPlainTextHeader()` and write the rename as it is, because it is text already and the extraction
+parsed `a<b>c` into `ac`. The nested-header path needs no check: column renames are off while NestedHeaders is on.
 
 ## The double-`requestAnimationFrame` before a blocking export
 

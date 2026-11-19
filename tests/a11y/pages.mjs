@@ -130,6 +130,8 @@ export const A11Y_PAGES = [
     surface: 'the row selection checkboxes and their select-all checkbox' },
   { id: 'async-values', fixture: 'async-values.html', cell: [0, 1], state: 'async-pending',
     surface: 'a cell whose value is pending: the indicator, the message and aria-busy' },
+  { id: 'editable-headers', fixture: 'editable-headers.html', cell: [-1, 1], state: 'header-editor',
+    surface: 'the input that renames a column header (EditableHeaders), with the header menu buttons' },
   { id: 'time-editor', fixture: 'date-editor.html', cell: [0, 4], state: 'editor',
     surface: 'the open time editor' },
   { id: 'intl-date-editor', fixture: 'intl-date-editor-ime-fast-edit.html', cell: [0, 0], state: 'editor',
@@ -197,6 +199,7 @@ export function stateSteps(page) {
     'formula-function-help': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SUM("`,
     'formula-error-range': `${select}, then press Shift+ArrowUp and Shift+ArrowLeft`,
     'formula-named-suggestion': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SUMM"`,
+    'header-editor': `select the column header of column ${col} (hot.selectCell(${row}, ${col}), with navigableHeaders on), then press F2`,
   }[page.state];
 
   return before && steps ? `${before}, then ${steps}` : steps;

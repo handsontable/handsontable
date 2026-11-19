@@ -161,6 +161,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="disableVisualSelection" data-levels="grid columns cells cell"></span>[`disableVisualSelection`](@/api/options.md#disablevisualselection) | Yes | Yes | Yes | Yes | Core | Row and column headers read the grid-level value only, and so does the check that gates dragging a selection with `moveCells`. |
 | <span data-option="dragToScroll" data-levels="grid"></span>[`dragToScroll`](@/api/options.md#dragtoscroll) | Yes | No | No | No | DragToScroll |  |
 | <span data-option="dropdownMenu" data-levels="grid"></span>[`dropdownMenu`](@/api/options.md#dropdownmenu) | Yes | No | No | No | DropdownMenu |  |
+| <span data-option="editableHeaders" data-levels="grid columns"></span>[`editableHeaders`](@/api/options.md#editableheaders) | Yes | Yes | No | No | EditableHeaders |  |
 | <span data-option="editor" data-levels="grid columns cells cell"></span>[`editor`](@/api/options.md#editor) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="emptyDataState" data-levels="grid"></span>[`emptyDataState`](@/api/options.md#emptydatastate) | Yes | No | No | No | EmptyDataState |  |
 | <span data-option="emptyValue" data-levels="grid columns cells cell"></span>[`emptyValue`](@/api/options.md#emptyvalue) | Yes | Yes | Yes | Yes | Core |  |
