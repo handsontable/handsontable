@@ -66,7 +66,7 @@ In this tutorial, you will add a search input that hides every row without a mat
 
 Set `search` and `hiddenRows` to `true` in the grid settings:
 
-```javascript
+```typescript
 const hot = new Handsontable(container, {
   data,
   search: true,
@@ -78,15 +78,17 @@ const hot = new Handsontable(container, {
 
 When the input changes, pass its value to `query()` and collect the row of each result:
 
-```javascript ins={7-10}
+```typescript ins={7-12}
 const hot = new Handsontable(container, {
   data,
   search: true,
   hiddenRows: true,
 });
 
+type SearchResult = { row: number; col: number; data: unknown };
+
 searchInput.addEventListener('input', () => {
-  const results = hot.getPlugin('search').query(searchInput.value);
+  const results = hot.getPlugin('search').query(searchInput.value) as SearchResult[];
   const matchingRows = new Set(results.map(result => result.row));
 });
 ```
@@ -97,19 +99,21 @@ searchInput.addEventListener('input', () => {
 
 List the rows without a match. Then show the rows that the previous query hid, hide the listed rows, and render the grid:
 
-```javascript ins={11-24}
+```typescript ins={13-26}
 const hot = new Handsontable(container, {
   data,
   search: true,
   hiddenRows: true,
 });
 
+type SearchResult = { row: number; col: number; data: unknown };
+
 searchInput.addEventListener('input', () => {
-  const results = hot.getPlugin('search').query(searchInput.value);
+  const results = hot.getPlugin('search').query(searchInput.value) as SearchResult[];
   const matchingRows = new Set(results.map(result => result.row));
 
   const hiddenRows = hot.getPlugin('hiddenRows');
-  const rowsToHide = [];
+  const rowsToHide: number[] = [];
 
   if (searchInput.value !== '') {
     for (let row = 0; row < hot.countRows(); row += 1) {
@@ -133,15 +137,17 @@ The `HiddenRows` plugin hides rows without removing them from the data. For deta
 
 Each input event checks every cell and renders the grid. For a large dataset, wait until the typing stops before you filter:
 
-```javascript ins={7-14,16,34}
+```typescript ins={9-16,18,36}
 const hot = new Handsontable(container, {
   data,
   search: true,
   hiddenRows: true,
 });
 
-const debounce = (callback, delay = 120) => {
-  let timeoutId;
+type SearchResult = { row: number; col: number; data: unknown };
+
+const debounce = (callback: () => void, delay = 120) => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   return () => {
     clearTimeout(timeoutId);
@@ -150,11 +156,11 @@ const debounce = (callback, delay = 120) => {
 };
 
 searchInput.addEventListener('input', debounce(() => {
-  const results = hot.getPlugin('search').query(searchInput.value);
+  const results = hot.getPlugin('search').query(searchInput.value) as SearchResult[];
   const matchingRows = new Set(results.map(result => result.row));
 
   const hiddenRows = hot.getPlugin('hiddenRows');
-  const rowsToHide = [];
+  const rowsToHide: number[] = [];
 
   if (searchInput.value !== '') {
     for (let row = 0; row < hot.countRows(); row += 1) {
