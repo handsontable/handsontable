@@ -137,7 +137,8 @@ export class AutoColumnSizeSyncBudgetPage {
         const drawn = parseFloat(cols[column - first]?.style.width ?? '');
         const held = hot.getColWidth(column);
 
-        if (Math.abs(drawn - held) > 0.5) {
+        // A `<col>` that is missing or has no inline width reads as NaN, which no comparison would flag.
+        if (!Number.isFinite(drawn) || Math.abs(drawn - held) > 0.5) {
           stale.push(`${column}: ${drawn} vs ${held}`);
         }
       }
