@@ -61,22 +61,34 @@ const hot = new Handsontable(hotContainer, {
   // licenseKey: 'your-license-key', get a key at https://handsontable.com/pricing/
 });
 
-searchInput.addEventListener('input', () => {
-  const results = hot.getPlugin('search').query(searchInput.value);
-  const matchingRows = new Set(results.map((result) => result.row));
+const debounce = (callback, delay = 120) => {
+  let timeoutId;
 
-  const hiddenRows = hot.getPlugin('hiddenRows');
-  const rowsToHide = [];
+  return () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(callback, delay);
+  };
+};
 
-  if (searchInput.value !== '') {
-    for (let row = 0; row < hot.countRows(); row += 1) {
-      if (!matchingRows.has(row)) {
-        rowsToHide.push(row);
+searchInput.addEventListener(
+  'input',
+  debounce(() => {
+    const results = hot.getPlugin('search').query(searchInput.value);
+    const matchingRows = new Set(results.map((result) => result.row));
+
+    const hiddenRows = hot.getPlugin('hiddenRows');
+    const rowsToHide = [];
+
+    if (searchInput.value !== '') {
+      for (let row = 0; row < hot.countRows(); row += 1) {
+        if (!matchingRows.has(row)) {
+          rowsToHide.push(row);
+        }
       }
     }
-  }
 
-  hiddenRows.showRows(hiddenRows.getHiddenRows());
-  hiddenRows.hideRows(rowsToHide);
-  hot.render();
-});
+    hiddenRows.showRows(hiddenRows.getHiddenRows());
+    hiddenRows.hideRows(rowsToHide);
+    hot.render();
+  }),
+);

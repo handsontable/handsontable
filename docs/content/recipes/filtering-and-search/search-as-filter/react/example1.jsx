@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
@@ -26,42 +26,56 @@ const data = [
 
 const colHeaders = ['Name', 'Role', 'Team', 'Location'];
 
+const debounce = (callback, delay = 120) => {
+  let timeoutId;
+
+  return () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(callback, delay);
+  };
+};
+
 const ExampleComponent = () => {
   const hotRef = useRef(null);
+  const searchInputRef = useRef(null);
 
-  const filterRows = (event) => {
-    const hot = hotRef.current?.hotInstance;
+  const filterRows = useMemo(
+    () =>
+      debounce(() => {
+        const hot = hotRef.current?.hotInstance;
+        const searchInput = searchInputRef.current;
 
-    if (!hot) {
-      return;
-    }
-
-    const query = event.currentTarget.value;
-    const results = hot.getPlugin('search').query(query);
-    const matchingRows = new Set(results.map((result) => result.row));
-
-    const hiddenRows = hot.getPlugin('hiddenRows');
-    const rowsToHide = [];
-
-    if (query !== '') {
-      for (let row = 0; row < hot.countRows(); row += 1) {
-        if (!matchingRows.has(row)) {
-          rowsToHide.push(row);
+        if (!hot || !searchInput) {
+          return;
         }
-      }
-    }
 
-    hiddenRows.showRows(hiddenRows.getHiddenRows());
-    hiddenRows.hideRows(rowsToHide);
-    hot.render();
-  };
+        const results = hot.getPlugin('search').query(searchInput.value);
+        const matchingRows = new Set(results.map((result) => result.row));
+
+        const hiddenRows = hot.getPlugin('hiddenRows');
+        const rowsToHide = [];
+
+        if (searchInput.value !== '') {
+          for (let row = 0; row < hot.countRows(); row += 1) {
+            if (!matchingRows.has(row)) {
+              rowsToHide.push(row);
+            }
+          }
+        }
+
+        hiddenRows.showRows(hiddenRows.getHiddenRows());
+        hiddenRows.hideRows(rowsToHide);
+        hot.render();
+      }),
+    [],
+  );
 
   return (
     <div>
       <div className="example-controls-container">
         <div className="controls">
           <label htmlFor="search-filter-input">Filter rows</label>
-          <input id="search-filter-input" type="search" onInput={filterRows} />
+          <input id="search-filter-input" type="search" ref={searchInputRef} onInput={filterRows} />
         </div>
       </div>
       <HotTable

@@ -64,7 +64,16 @@ const hot = new Handsontable(hotContainer, {
   // licenseKey: 'your-license-key', get a key at https://handsontable.com/pricing/
 });
 
-searchInput.addEventListener('input', () => {
+const debounce = (callback: () => void, delay = 120) => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  return () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(callback, delay);
+  };
+};
+
+searchInput.addEventListener('input', debounce(() => {
   const results = hot.getPlugin('search').query(searchInput.value) as SearchResult[];
   const matchingRows = new Set(results.map(result => result.row));
 
@@ -82,4 +91,4 @@ searchInput.addEventListener('input', () => {
   hiddenRows.showRows(hiddenRows.getHiddenRows());
   hiddenRows.hideRows(rowsToHide);
   hot.render();
-});
+}));

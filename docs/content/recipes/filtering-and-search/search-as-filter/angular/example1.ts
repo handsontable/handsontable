@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 /* start:skip-in-preview */
@@ -25,6 +25,15 @@ const data = [
 
 type SearchResult = { row: number; col: number; data: unknown };
 
+const debounce = (callback: () => void, delay = 120) => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  return () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(callback, delay);
+  };
+};
+
 @Component({
   standalone: true,
   imports: [HotTableModule],
@@ -33,7 +42,7 @@ type SearchResult = { row: number; col: number; data: unknown };
     <div class="example-controls-container">
       <div class="controls">
         <label for="search-filter-input">Filter rows</label>
-        <input id="search-filter-input" type="search" (input)="filterRows($event)" />
+        <input #searchInput id="search-filter-input" type="search" (input)="filterRows()" />
       </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
@@ -41,6 +50,8 @@ type SearchResult = { row: number; col: number; data: unknown };
 })
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+  @ViewChild('searchInput') readonly searchInput!: ElementRef<HTMLInputElement>;
 
   readonly data = data;
 
@@ -52,21 +63,21 @@ export class AppComponent {
     hiddenRows: true,
   };
 
-  filterRows(event: Event): void {
+  readonly filterRows = debounce(() => {
     const hot = this.hotTable.hotInstance;
+    const searchInput = this.searchInput.nativeElement;
 
     if (!hot) {
       return;
     }
 
-    const query = (event.target as HTMLInputElement).value;
-    const results = hot.getPlugin('search').query(query) as SearchResult[];
+    const results = hot.getPlugin('search').query(searchInput.value) as SearchResult[];
     const matchingRows = new Set(results.map(result => result.row));
 
     const hiddenRows = hot.getPlugin('hiddenRows');
     const rowsToHide: number[] = [];
 
-    if (query !== '') {
+    if (searchInput.value !== '') {
       for (let row = 0; row < hot.countRows(); row += 1) {
         if (!matchingRows.has(row)) {
           rowsToHide.push(row);
@@ -77,7 +88,7 @@ export class AppComponent {
     hiddenRows.showRows(hiddenRows.getHiddenRows());
     hiddenRows.hideRows(rowsToHide);
     hot.render();
-  }
+  });
 }
 /* end-file */
 

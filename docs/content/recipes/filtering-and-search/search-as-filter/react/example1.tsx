@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
@@ -29,24 +29,34 @@ type SearchResult = { row: number; col: number; data: unknown };
 
 const colHeaders = ['Name', 'Role', 'Team', 'Location'];
 
+const debounce = (callback: () => void, delay = 120) => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  return () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(callback, delay);
+  };
+};
+
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const filterRows = (event: React.FormEvent<HTMLInputElement>) => {
+  const filterRows = useMemo(() => debounce(() => {
     const hot = hotRef.current?.hotInstance;
+    const searchInput = searchInputRef.current;
 
-    if (!hot) {
+    if (!hot || !searchInput) {
       return;
     }
 
-    const query = event.currentTarget.value;
-    const results = hot.getPlugin('search').query(query) as SearchResult[];
+    const results = hot.getPlugin('search').query(searchInput.value) as SearchResult[];
     const matchingRows = new Set(results.map(result => result.row));
 
     const hiddenRows = hot.getPlugin('hiddenRows');
     const rowsToHide: number[] = [];
 
-    if (query !== '') {
+    if (searchInput.value !== '') {
       for (let row = 0; row < hot.countRows(); row += 1) {
         if (!matchingRows.has(row)) {
           rowsToHide.push(row);
@@ -57,14 +67,14 @@ const ExampleComponent = () => {
     hiddenRows.showRows(hiddenRows.getHiddenRows());
     hiddenRows.hideRows(rowsToHide);
     hot.render();
-  };
+  }), []);
 
   return (
     <div>
       <div className="example-controls-container">
         <div className="controls">
           <label htmlFor="search-filter-input">Filter rows</label>
-          <input id="search-filter-input" type="search" onInput={filterRows} />
+          <input id="search-filter-input" type="search" ref={searchInputRef} onInput={filterRows} />
         </div>
       </div>
       <HotTable
