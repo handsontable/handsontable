@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added keyboard shortcuts that expand and collapse nested rows and column groups from data cells, and screen reader announcements for the row level and for column group changes.",
+  "type": "added",
+  "issueOrPR": 14355,
+  "breaking": false,
+  "framework": "none"
+}
