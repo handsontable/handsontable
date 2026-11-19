@@ -168,6 +168,7 @@ For the rarer case of work tracked in a public GitHub issue rather than ClickUp,
 
 - **Never force-push** to `master`, `develop`, or feature branches bound to Pull Requests. Force-pushing diverges history in other clones and makes PR review history incomprehensible.
 - Follow the **Git flow** branching strategy.
+- **Use the `gh` CLI for GitHub operations** (issues, PRs, checks, API calls). The repo configures no GitHub MCP server, and `.claude/settings.json` denies `mcp__github`. `scripts/__tests__/mcp-config.test.mjs` keeps it that way.
 
 ---
 

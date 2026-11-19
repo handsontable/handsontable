@@ -7,13 +7,6 @@
         "x-workspace-id": "9015210959"
       }
     },
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}"
-      }
-    },
     "filesystem_workspace": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "."]

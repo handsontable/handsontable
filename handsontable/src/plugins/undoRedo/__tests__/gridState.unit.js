@@ -196,6 +196,66 @@ describe('GridStateTracker', () => {
     expect(plugin.restored).toEqual([]);
   });
 
+  it('should capture the state of a plugin enabled after the first capture', () => {
+    createGrid({ labelsPlugin: false });
+
+    const before = tracker.capture();
+
+    expect(before.plugins.has('LabelsPlugin')).toBe(false);
+
+    hot.updateSettings({ labelsPlugin: true });
+    hot.getPlugin('labelsPlugin').addLabel('a');
+
+    expect(tracker.capture().plugins.get('LabelsPlugin')).toEqual({ version: 1, labels: ['a'] });
+  });
+
+  it('should drop the state of a plugin disabled after the first capture', () => {
+    createGrid({ labelsPlugin: true });
+
+    expect(tracker.capture().plugins.has('LabelsPlugin')).toBe(true);
+
+    hot.updateSettings({ labelsPlugin: false });
+
+    expect(tracker.capture().plugins.has('LabelsPlugin')).toBe(false);
+  });
+
+  it('should restore the plugin states in the plugin priority order', () => {
+    createGrid({ labelsPlugin: true, pagination: { pageSize: 2 } });
+
+    const labels = hot.getPlugin('labelsPlugin');
+    const pagination = hot.getPlugin('pagination');
+    const calls = [];
+    const base = tracker.capture();
+
+    labels.addLabel('a');
+    pagination.setPage(2);
+
+    const snapshot = tracker.capture();
+
+    jest.spyOn(labels, 'restoreState').mockImplementation(() => calls.push('LabelsPlugin'));
+    jest.spyOn(pagination, 'restoreState').mockImplementation(() => calls.push('Pagination'));
+
+    tracker.restore(snapshot, { changedFrom: base });
+
+    // Pagination has a priority, the test plugin none: prioritized plugins come first.
+    expect(calls).toEqual(['Pagination', 'LabelsPlugin']);
+  });
+
+  it('should not look up the grid plugins again on every capture', () => {
+    createGrid({ labelsPlugin: true });
+
+    tracker.capture();
+
+    const getPlugin = jest.spyOn(hot, 'getPlugin');
+
+    hot.getPlugin('labelsPlugin').addLabel('a');
+    getPlugin.mockClear();
+    tracker.capture();
+    tracker.capture();
+
+    expect(getPlugin).not.toHaveBeenCalled();
+  });
+
   it('should record the Pagination page, not its page map, which the plugin rebuilds', () => {
     createGrid({ pagination: { pageSize: 2 } });
 

@@ -784,9 +784,12 @@ class DataMap {
    * @param {number} [index] Visual index of the row to be removed. If not provided, the last row will be removed.
    * @param {number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed.
    * @param {string} [source] Source of method call.
+   * @param {Function} [onRowsRemoved] Called with the physical rows really removed (the list after
+   * `beforeRemoveRow` widened it), before `afterRemoveRow` runs. `Core#alter()` uses it to follow the
+   * rows of the groups it removes next.
    * @returns {boolean} Returns `false` when action was canceled, otherwise `true`.
    */
-  removeRow(index: number, amount = 1, source: string) {
+  removeRow(index: number, amount = 1, source: string, onRowsRemoved?: (physicalRows: number[]) => void) {
     let rowIndex = Number.isInteger(index) ? index : -amount; // -amount = taking indexes from the end.
     const removedPhysicalIndexes = this.visualRowsToPhysical(rowIndex, amount);
     const visualRowsLength = this.hot!.countRows();
@@ -827,6 +830,8 @@ class DataMap {
     this.#eachDescendingRun(descendingPhysicalRows, (start, runLength) => {
       this.metaManager!.removeRow(start, runLength);
     });
+
+    onRowsRemoved?.(removedPhysicalIndexes.slice());
 
     this.hot!.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
 
