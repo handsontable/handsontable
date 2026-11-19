@@ -92,6 +92,7 @@ export class MultipleSelectUI extends BaseUI {
     this.#searchInput = new InputUI(hotInstance, {
       placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH,
       className: 'htUIMultipleSelectSearch',
+      labelledBy: this.options.searchLabelledBy,
     });
     this.#selectAllUI = new LinkUI(hotInstance, {
       textContent: C.FILTERS_BUTTONS_SELECT_ALL,

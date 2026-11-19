@@ -307,6 +307,31 @@ export default class MetaManager {
   }
 
   /**
+   * Stamps the coordinates on a cell meta object the way `getCellMetaUncached` does, for a caller that
+   * already holds the object (found with `getCellMetaIfExists`, or created with
+   * `createTransientColumnMeta`) and must not look it up again.
+   *
+   * @param {object} cellMeta The cell meta object.
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {object} options Options for the method.
+   * @param {number} options.visualRow The visual row index of the cell.
+   * @param {number} options.visualColumn The visual column index of the cell.
+   * @returns {object}
+   */
+  stampCellMeta(
+    cellMeta: CellProperties, physicalRow: number, physicalColumn: number,
+    options: { visualRow: number; visualColumn: number }
+  ): CellProperties {
+    cellMeta.visualRow = options.visualRow;
+    cellMeta.visualCol = options.visualColumn;
+    cellMeta.row = physicalRow;
+    cellMeta.col = physicalColumn;
+
+    return cellMeta;
+  }
+
+  /**
    * Creates a cell meta object that inherits from the column layer and is not stored anywhere. It
    * carries no per-cell overrides and no coordinate stamps, so it stands for "any cell of this
    * column" until a caller stamps it.
