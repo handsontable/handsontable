@@ -52,34 +52,34 @@
         - menuitem "Insert row above"
       - row "Insert row below":
         - menuitem "Insert row below"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Insert column left":
         - menuitem "Insert column left"
       - row "Insert column right":
         - menuitem "Insert column right"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Remove row":
         - menuitem "Remove row"
       - row "Remove column":
         - menuitem "Remove column"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Undo":
         - menuitem "Undo" [disabled]
       - row "Redo":
         - menuitem "Redo" [disabled]
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Read only":
         - menuitemcheckbox "Read only"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Alignment":
         - menuitem "Alignment"
-      - row "---------":
-        - menuitem "---------"
+      - row:
+        - separator
       - row "Copy":
         - menuitem "Copy"
       - row "Cut":

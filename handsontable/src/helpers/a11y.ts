@@ -12,6 +12,7 @@ export const A11Y_MENU = (): [string, string] => ['role', 'menu'];
 export const A11Y_MENU_ITEM = (): [string, string] => ['role', 'menuitem'];
 export const A11Y_MENU_ITEM_CHECKBOX = (): [string, string] => ['role', 'menuitemcheckbox'];
 export const A11Y_MENU_ITEM_RADIO = (): [string, string] => ['role', 'menuitemradio'];
+export const A11Y_SEPARATOR = (): [string, string] => ['role', 'separator'];
 export const A11Y_COMBOBOX = (): [string, string] => ['role', 'combobox'];
 export const A11Y_LISTBOX = (): [string, string] => ['role', 'listbox'];
 export const A11Y_OPTION = (): [string, string] => ['role', 'option'];

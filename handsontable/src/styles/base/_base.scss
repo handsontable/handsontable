@@ -370,6 +370,14 @@
         border-collapse: collapse;
       }
 
+      // The NestedHeaders ghost table sizes the columns from the labels' max-content width, which
+      // is the one-line width of a label whatever its `white-space` says. `min-content` follows it
+      // instead: a `nowrap` label (the default) still counts at its full line, while a label an
+      // application lets wrap counts at its longest word and wraps inside the columns' own width.
+      &.htNestedHeaders .colHeader {
+        width: min-content;
+      }
+
       table {
         thead {
           th {

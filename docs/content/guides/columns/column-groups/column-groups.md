@@ -19,6 +19,7 @@ vue:
   metaTitle: Column groups | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
 
@@ -190,6 +191,20 @@ nestedHeaders: [
 ```
 
 :::
+
+### Wrap long group labels
+
+By default, a header label stays on one line, and Handsontable widens the columns under a group header until its label fits. To let long labels wrap instead, add this CSS:
+
+```css
+.handsontable thead th .colHeader {
+  white-space: normal;
+}
+```
+
+With wrapping on, a group label wraps inside the width its columns already have. The header row grows to fit the wrapped label. The columns grow only when the longest word of the label does not fit. With [`autoRowSize`](@/api/options.md#autorowsize) enabled, every header row is at least as tall as the first one.
+
+To give the header rows a fixed height instead, set the [`columnHeaderHeight`](@/api/options.md#columnheaderheight) option.
 
 ## Collapsible headers
 

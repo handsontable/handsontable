@@ -672,4 +672,247 @@ describe('UndoRedo -> DataChange action', () => {
       expect(values(data)).toEqual([null, null, null, null]);
     });
   });
+
+  describe('the `changes` field of a step', () => {
+    /**
+     * Creates a grid with the undo plugin and returns the plugin.
+     *
+     * @param {object} settings The extra grid settings.
+     * @returns {UndoRedo}
+     */
+    function createGrid(settings = {}) {
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2'], ['A3', 'B3', 'C3'], ['A4', 'B4', 'C4']],
+        undo: true,
+        ...settings,
+      });
+
+      return hot.getPlugin('undoRedo');
+    }
+
+    /**
+     * Returns the step on top of the undo stack.
+     *
+     * @param {UndoRedo} undoRedo The plugin.
+     * @returns {object}
+     */
+    function topStep(undoRedo) {
+      return undoRedo.doneActions[undoRedo.doneActions.length - 1];
+    }
+
+    it('should list the cells of a block write in the order they were passed', () => {
+      const undoRedo = createGrid();
+
+      hot.selectCell(1, 0, 2, 1);
+      hot.populateFromArray(1, 0, [['x1', 'y1'], ['x2', 'y2']]);
+
+      expect(topStep(undoRedo).changes).toEqual([
+        [1, 0, 'A2', 'x1'],
+        [1, 1, 'B2', 'y1'],
+        [2, 0, 'A3', 'x2'],
+        [2, 1, 'B3', 'y2'],
+      ]);
+      expect(topStep(undoRedo).selected).toEqual([[1, 0, 2, 1]]);
+    });
+
+    it('should list a write an `afterChange` listener makes after the cells that triggered it', () => {
+      const undoRedo = createGrid({
+        afterChange(changes, source) {
+          if (source === 'edit') {
+            this.setDataAtCell(3, 2, 'echo', 'echo');
+          }
+        },
+      });
+
+      hot.setDataAtCell([[0, 0, 'a'], [0, 1, 'b']]);
+
+      expect(topStep(undoRedo).changes).toEqual([
+        [0, 0, 'A1', 'a'],
+        [0, 1, 'B1', 'b'],
+        [3, 2, 'C4', 'echo'],
+      ]);
+    });
+
+    it('should report a `null` row for a cell of a trimmed row', () => {
+      const undoRedo = createGrid({ trimRows: [1] });
+
+      hot.setSourceDataAtCell(1, 0, 'x');
+
+      expect(topStep(undoRedo).changes).toEqual([[null, 0, 'A2', 'x']]);
+    });
+
+    it('should report a `null` column for a cell written through an accessor function', () => {
+      const data = [{ a: 1 }, { a: 2 }];
+      const undoRedo = createGrid({
+        data,
+        columns: [{
+          data(row, value) {
+            if (value === undefined) {
+              return row.a;
+            }
+
+            row.a = value;
+          },
+        }],
+      });
+
+      hot.setDataAtCell(1, 0, 20);
+
+      expect(topStep(undoRedo).changes).toEqual([[1, null, 2, 20]]);
+    });
+
+    it('should report one changed cell as the selection of the step', () => {
+      const undoRedo = createGrid();
+
+      hot.setDataAtCell(2, 1, 'x');
+
+      expect(topStep(undoRedo).changes).toEqual([[2, 1, 'B3', 'x']]);
+      expect(topStep(undoRedo).selected).toEqual([[2, 1]]);
+    });
+
+    it('should keep the row and column indexes the cells had when the step was recorded', () => {
+      const undoRedo = writeBulk();
+
+      const step = topStep(undoRedo);
+
+      hot.rowIndexMapper.setIndexesSequence([5, 4, 3, 2, 1, 0]);
+      hot.columnIndexMapper.setIndexesSequence([2, 1, 0]);
+
+      expect(step.changes[0]).toEqual([0, 0, 'A1', 'v00']);
+      expect(step.changes[17]).toEqual([5, 2, 'C6', 'v52']);
+    });
+
+    /**
+     * Creates a 6 x 3 grid and writes into every cell in one call: 18 cells, past the count under which
+     * a step builds its list at once.
+     *
+     * @returns {UndoRedo}
+     */
+    function writeBulk() {
+      const undoRedo = createGrid({
+        data: Array.from({ length: 6 }, (rowValue, row) => ['A', 'B', 'C'].map(column => `${column}${row + 1}`)),
+      });
+      const changes = [];
+
+      for (let row = 0; row < 6; row++) {
+        for (let column = 0; column < 3; column++) {
+          changes.push([row, column, `v${row}${column}`]);
+        }
+      }
+
+      hot.setDataAtCell(changes);
+
+      return undoRedo;
+    }
+
+    it('should build the list of a bulk write only when it is read, and then keep it', () => {
+      const undoRedo = writeBulk();
+
+      const step = topStep(undoRedo);
+
+      expect(Object.getOwnPropertyDescriptor(step, 'changes').get).toEqual(expect.any(Function));
+      expect(Object.keys(step)).toContain('changes');
+
+      const changes = step.changes;
+
+      expect(changes).toHaveLength(18);
+      expect(changes[0]).toEqual([0, 0, 'A1', 'v00']);
+      expect(changes[17]).toEqual([5, 2, 'C6', 'v52']);
+      expect(step.changes).toBe(changes);
+      expect(Object.getOwnPropertyDescriptor(step, 'changes').value).toBe(changes);
+    });
+
+    it('should build the list of a small write at once, as a plain property', () => {
+      const undoRedo = createGrid();
+
+      hot.setDataAtCell(0, 0, 'a');
+
+      expect(Object.getOwnPropertyDescriptor(topStep(undoRedo), 'changes')).toEqual({
+        value: [[0, 0, 'A1', 'a']],
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
+    });
+
+    it('should keep a value assigned to the field of a sealed step, and to an object built on a step', () => {
+      const undoRedo = writeBulk();
+
+      const step = topStep(undoRedo);
+      const derived = Object.create(step);
+
+      derived.changes = ['derived'];
+
+      expect(derived.changes).toEqual(['derived']);
+      expect(Object.hasOwn(derived, 'changes')).toBe(true);
+
+      Object.seal(step);
+      step.changes = ['sealed'];
+
+      expect(step.changes).toEqual(['sealed']);
+    });
+
+    it('should read the field of a step an application froze before reading it', () => {
+      const undoRedo = writeBulk();
+
+      const step = topStep(undoRedo);
+
+      // A store that freezes what it holds (Immer, Redux Toolkit) freezes the step first and then
+      // reads its fields.
+      Object.freeze(step);
+
+      expect(step.changes).toHaveLength(18);
+      expect(step.changes[0]).toEqual([0, 0, 'A1', 'v00']);
+      expect(step.changes).toBe(step.changes);
+      expect(JSON.parse(JSON.stringify(step)).changes).toEqual(step.changes);
+    });
+
+    // A frozen step keeps the accessor, so an assignment runs its setter, which ignores it. The data
+    // property of an unread step frozen before 19.1 threw a `TypeError` in strict mode instead.
+    it('should ignore a value assigned to the field of a step frozen before it was read', () => {
+      const undoRedo = writeBulk();
+
+      const step = topStep(undoRedo);
+
+      Object.freeze(step);
+
+      expect(() => {
+        step.changes = ['frozen'];
+      }).not.toThrow();
+      expect(step.changes).toHaveLength(18);
+    });
+
+    it('should build the list of a 16-cell step at once and of a 17-cell step on its first read', () => {
+      const undoRedo = createGrid({
+        data: Array.from({ length: 17 }, (rowValue, row) => [`A${row + 1}`]),
+      });
+      const write = count => hot.setDataAtCell(Array.from({ length: count }, (value, row) => [row, 0, `w${count}`]));
+
+      write(16);
+
+      expect(Object.getOwnPropertyDescriptor(topStep(undoRedo), 'changes').value).toHaveLength(16);
+
+      write(17);
+
+      expect(Object.getOwnPropertyDescriptor(topStep(undoRedo), 'changes').get).toEqual(expect.any(Function));
+      expect(topStep(undoRedo).changes).toHaveLength(17);
+    });
+
+    it('should keep a value a listener assigns to the field', () => {
+      const undoRedo = createGrid();
+
+      hot.setDataAtCell(0, 0, 'a');
+
+      const step = topStep(undoRedo);
+
+      step.changes = ['replaced'];
+
+      expect(step.changes).toEqual(['replaced']);
+
+      undoRedo.undo();
+
+      expect(hot.getDataAtCell(0, 0)).toBe('A1');
+    });
+  });
 });

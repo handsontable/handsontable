@@ -3702,6 +3702,9 @@ export const REGISTERED_HOOKS = [
    * | `renderedColumnIndex`  | `number`                | The renderable index of the column.        |
    * | `TH`                   | `HTMLTableCellElement`  | The `<th>` element to modify.              |
    *
+   * Handsontable also calls the first renderer in the array on the `<th>` elements of an off-screen table,
+   * to measure the height of the column headers. Such a `<th>` is not in the grid's overlays.
+   *
    * ```js
    * new Handsontable(container, {
    *   colHeaders: true,

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed menu separators being announced by screen readers as menu items named with dashes.",
+  "type": "fixed",
+  "issueOrPR": 14344,
+  "breaking": false,
+  "framework": "none"
+}

@@ -125,11 +125,14 @@ The `.cursor/mcp.json` and `.mcp.json` files also configure:
 
 | Server | Purpose |
 |---|---|
-| `github` | Read/write GitHub issues, PRs, and checks via `GITHUB_PERSONAL_ACCESS_TOKEN` (the package reads this env var — `GITHUB_TOKEN` is silently ignored) |
 | `filesystem_workspace` | Read/write access to the full repo workspace |
 | `filesystem_docs` | Read/write access to `./docs/content` only |
 | `code-review-graph` | Knowledge graph over the codebase (see above) |
 
+### GitHub: use the `gh` CLI, not an MCP server
+
+The repo configures no GitHub MCP server. The `github` entry used to start `@modelcontextprotocol/server-github` through an unpinned `npx -y`. That package is archived on npm as unmaintained, with no security guarantees. Use the `gh` CLI for issues, PRs, checks, and API calls. `.claude/settings.json` denies `mcp__github`, so Claude Code also blocks a user-level MCP server named `github`. The rule matches the server name only: a server registered under another name, or one that a plugin or connector provides, is not covered. `scripts/__tests__/mcp-config.test.mjs` (root `test:tooling`) fails if either config file gets a GitHub server back or the deny rule goes away.
+
 ### Cursor secret interpolation
 
-All secrets in `.cursor/mcp.json` must use `${env:VARIABLE_NAME}` syntax — not shell-style `${VARIABLE_NAME}`. This applies to both HTTP server `headers` (e.g., ClickUp's `Authorization` header) and `command`-type server `env` blocks (e.g., the GitHub token). Without the `env:` prefix, Cursor treats the value as a literal string and the secret is never resolved.
+All secrets in `.cursor/mcp.json` must use `${env:VARIABLE_NAME}` syntax – not shell-style `${VARIABLE_NAME}`. This applies to both HTTP server `headers` (e.g., ClickUp's `Authorization` header) and `command`-type server `env` blocks. Without the `env:` prefix, Cursor treats the value as a literal string and the secret is never resolved.
