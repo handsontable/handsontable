@@ -164,13 +164,58 @@ the demand. Unit cases for the class: `__tests__/mergedCellsWidths.unit.ts`.
 
 `syncLimit` (a column count, or a percentage string) splits the work: those columns are measured *exactly*,
 over the whole row range, **before the first paint**. Everything past the limit runs asynchronously in
-idle-task chunks (`requestIdleTask`). Do not move work out of the synchronous half to speed up init — the
-`syncLimit` contract is that the first paint is correct for those columns.
+idle-task chunks (`requestIdleTask`). The contract is that the first paint is correct for the columns the
+user sees, and an explicit `syncLimit` keeps its literal meaning.
+
+**The default split has a cell budget (`SYNC_CELLS_BUDGET`, 1,000,000 cells).** The synchronous part used to
+have a column cap and no cell cap, so a 100k × 50 grid sampled 5M cells, about 2.2 s, before the first paint.
+`calculateAllColumnsWidth()` now passes `syncViewport` to `#sweepColumns()` when `syncLimit` is NOT set
+(`#hasExplicitSyncLimit()`) and `(syncLimit + 1) × rows` exceeds the budget. That sweep measures only the
+columns on screen before it returns (about 0.8 s on the same grid) and leaves every other column to idle tasks.
+The final widths are the same, because every column, early or late, samples the whole row range. Six rules
+hold it together:
+
+- **Before the first draw nothing is "on screen" yet.** `getFirstVisibleColumn()` is -1 inside the `init`
+  hook, so `#onScreenColumns()` sees only the frozen bands, and the first render's
+  `calculateVisibleColumnsWidth()` measures nothing either (a pre-draw sweep that deferred everything drew
+  default widths and moved them later). So before a draw the queue is the frozen end columns, then the rest
+  from column 0 (`#preDrawSweepOrder()`), and the sweep measures them one at a time, flushing the ghost table
+  after each, until the widths before the stretch (`getColWidth(column, 'StretchColumns')`) fill
+  `view.getFrozenViewportSize(true)`. Once a draw exists (a `loadData()` on a scrolled grid), the queue is
+  `#columnSweepOrder(true)` and the synchronous part is `#onScreenColumns()`. A width of 0 or one the view
+  cannot measure falls back to every `syncLimit` column, as without a budget.
+- **The columns a merge on screen spans are measured with it** (`measureMergeSpans()` in `#sweepColumns()`). A
+  multi-column merge needs from its first column the text's width less the other spanned columns, so with
+  those at the fallback width the first column was drawn too wide (1076 px against 417 px in the probe) and
+  shrank when the sweep ended: an on-screen column that moved.
+- **No chunk runs in the caller.** The default sweep runs one `CALCULATION_CELLS_BUDGET` chunk synchronously
+  after the exact part; on a grid this tall that is one more off-screen column over every row, so a
+  `syncViewport` sweep goes straight to an idle task.
+- **The last idle chunk renders, in full, with a visible pass that only fills in (`#fillOnlyRender`).** The
+  width map's observer only drops the engine's cache, so without a render the scroll range kept the fallback
+  widths of the deferred columns (`auto-column-size-sync-budget.spec.ts`, "widens the scroll range…", went
+  from 7697 px to 1880 px with it removed). A fast draw (`hot.view.render()`) is not enough: it rewrites no
+  `<col>`, so the rendered columns past the viewport's edge kept the fallback width the first paint gave
+  them. A plain forced render is too much: it overwrites every on-screen width, and the synchronous part's
+  samples were dropped (`recalculateAllColumnsWidth()`), so it re-walked every on-screen column over every row
+  from inside an idle task. The same render lets AutoRowSize pay the rows it owes (see the Formulas section).
+- **Behavior a tall default grid gets now:** right after the constructor, `getColWidth()` of an off-screen
+  column returns the fallback width until the idle sweep reaches it, so a `scrollViewportTo()` or
+  `selectCell()` to such a column computes its offset from that width. An edit made while the sweep runs is
+  refreshed when it ends (`#refreshQueuedColumnsWidth()` waits for `inProgress`), and a column scrolled into
+  view before the sweep reached it is measured by that render, synchronously, over every row (the visible
+  pass fills every missing width), as for any grid wider than `syncLimit` before. Grids under the budget and
+  grids with an explicit `syncLimit` behave exactly as before.
+
+Pinned by `tests/e2e/auto-column-size-sync-budget.spec.ts`, which lowers `SYNC_CELLS_BUDGET` from the page
+(it is a static getter for that reason) so a 1000-row grid takes the tall grid's path, and compares every
+width with a grid measured the exact way. The perf scenario `initial-load-autosize` measures the constructor
+on 100k × 50 with the default plugin.
 
 The async loop must cancel its frame when the instance was destroyed mid-calculation.
 
 Every full sweep goes through `#sweepColumns()`. `calculateAllColumnsWidth()` runs it in ascending order with the
-`syncLimit` columns measured exactly. The web-font re-measure (`#onAfterFontsLoad`, DEV-199) runs it with no exact
+`syncLimit` columns measured exactly, or, past the cell budget above, with the columns on screen first. The web-font re-measure (`#onAfterFontsLoad`, DEV-199) runs it with no exact
 columns, `viewportFirst` (the rendered columns come first in the queue) and `reuseSamples` (a column with cached
 samples is measured from them, at no sampling cost), so the first chunk – one `CALCULATION_STEP` of columns or one
 `CALCULATION_CELLS_BUDGET` of cells, run synchronously – covers what is on screen, and the rest waits for idle tasks.
@@ -255,7 +300,8 @@ measures. The rules that sweep follows, each one a review finding:
   columns to `#calculateColumnsWidth()` with a predicate (overwrite the measured ones, fill in the pending ones),
   so the draw lays out one table and fits the merges once, not once per column.
 - **`measuredColumns` is left alone.** It counts a prefix of the visual columns for `isNeedRecalculate()`, which a
-  sweep in viewport-first order does not extend.
+  sweep in any order but ascending (viewport-first, or frozen end columns first) does not extend. The sweep checks
+  the order of its queue itself (`isAscending`).
 
 **Never pass `reuseSamples` to a sweep that follows a data change**: its cached samples describe the previous data.
 Pinned by `tests/e2e/web-font-load.spec.ts` ("measures the first columns on screen at once...", "measures a frozen
@@ -357,6 +403,9 @@ this one), so the sweep sees fresh values and `recalculateAllColumnsWidth()` dis
 visible-columns walk). Keep this listener at the default order: AutoRowSize measures row heights against
 this plugin's widths in its own default-order `afterLoadData` listener, and host `afterLoadData` callbacks
 read `getColWidth()` — both expect the sweep to have run, which is what the plugin enable order gives them.
+On a grid past the sync cell budget (see "`syncLimit`, and what 'sync' guarantees") only the columns on screen
+have run by then, so AutoRowSize owes the rows a second measure when the sweep ends (`#rowsOwedToColumnSweep`
+in `../autoRowSize/autoRowSize.ts`, set from its `init` and `afterLoadData` listeners).
 
 ## The index map is `skipUnchangedWrites`
 

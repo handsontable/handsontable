@@ -1397,6 +1397,7 @@ export class AutoRowSize extends BasePlugin {
   #onAfterLoadData = (_sourceData: unknown[], isFirstLoad: boolean) => {
     if (!isFirstLoad) {
       this.recalculateAllRowsHeight();
+      this.#rowsOwedToColumnSweep = this.#isColumnSweepRunning();
     }
   };
 
@@ -1483,6 +1484,9 @@ export class AutoRowSize extends BasePlugin {
    */
   #onInit = () => {
     this.recalculateAllRowsHeight();
+    // AutoColumnSize measures first, and on a tall grid it leaves the columns off screen to idle tasks. Rows
+    // measured against their fallback widths wrap more, so they are measured again once it ends.
+    this.#rowsOwedToColumnSweep = this.#isColumnSweepRunning();
     this.#isInitialized = true;
   };
 

@@ -807,8 +807,16 @@ export default (): Record<string, unknown> => {
      *
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
+     * When you don't set `syncLimit` and the columns it covers by default hold more than 1,000,000 cells
+     * together (for example, 100,000 rows by 50 columns), the plugin measures only the columns on screen, and
+     * the columns their merged cells span, before the first paint. It measures the other columns in the
+     * background, and their widths are final when that work ends: until then,
+     * [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for them. Set `syncLimit` to keep
+     * its columns measured before the first paint, whatever the number of rows.
+     *
      * Read more:
      * - [Plugins: `AutoColumnSize`](@/api/autoColumnSize.md)
+     * - [Performance](@/guides/optimization/performance/performance.md)
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
