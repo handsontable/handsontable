@@ -374,6 +374,19 @@ Optional methods, found by `typeof plugin.captureState === 'function'`:
   the recorded physical columns (a redo of a column move), Formulas reads
   the peer rewrites from `other` on undo. No context is passed when the restore puts back a state no
   step changed.
+- `getShownRowsTrimmingMaps()` - the row trimming maps whose change only changes which rows are
+  shown (NestedRows: `['nestedRows']`, a collapse or an expand). `GridStateTracker#restore()`
+  restores the row maps inside `Selection#followRecordsWhile('row', …)`, so the selection moves
+  with its rows on undo and redo as it did on the action itself (DEV-509), only when all of these
+  hold (`#readShownRowsFollowers()`): no row or column insert or removal was replayed (`forceOrder`
+  is `false`), no source shape changed (a NestedRows row move renumbers the rows), and every row
+  trimming map the step changed is declared by an enabled plugin, so a batch that also filtered or
+  called `trimRows()` keeps the default repair. The scope sits around `#rows.restore()` because that
+  is where the index cache updates, before the plugin states; the declaring plugins' states are
+  therefore restored FIRST (and again in the usual loop, which changes nothing), so a selection
+  listener the follow runs reads the restored state, as after the action itself. Filters does not
+  declare its map on purpose: its trim takes rows out of the working set, and a selection naming a
+  row that is gone must drop.
 - `getStateColumns(state, other)` - the physical columns whose state differs between the two sides
   of a step, for the `columns` check above. `null` or no method means "cannot tell" and the step
   drops, with every older one. Pagination, NestedRows, and CustomBorders answer `[]`; Filters the
