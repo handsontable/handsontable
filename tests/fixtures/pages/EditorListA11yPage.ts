@@ -94,13 +94,15 @@ export class EditorListA11yPage {
    * {@link EditorListA11yPage#releaseValidations}.
    * @param {boolean} [options.passValidator] Give the column a validator that accepts every value.
    * @param {boolean} [options.contextMenu] Turn the context menu on.
+   * @param {boolean} [options.outsideClickDeselects] The grid's `outsideClickDeselects` setting.
    */
   async goto({
     longSource = false, asyncSource = false, strict = false, allowHtml = false, ariaTags = true, enterStays = false,
-    heldValidator = false, passValidator = false, contextMenu = false,
+    heldValidator = false, passValidator = false, contextMenu = false, outsideClickDeselects = true,
   }: {
     longSource?: boolean, asyncSource?: boolean, strict?: boolean, allowHtml?: boolean, ariaTags?: boolean,
     enterStays?: boolean, heldValidator?: boolean, passValidator?: boolean, contextMenu?: boolean,
+    outsideClickDeselects?: boolean,
   } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
       + (longSource ? '&source=200' : '')
@@ -111,7 +113,8 @@ export class EditorListA11yPage {
       + (enterStays ? '&enterMoves=stay' : '')
       + (heldValidator ? '&validator=held' : '')
       + (passValidator ? '&validator=pass' : '')
-      + (contextMenu ? '&contextMenu=true' : '');
+      + (contextMenu ? '&contextMenu=true' : '')
+      + (outsideClickDeselects ? '' : '&outsideClickDeselects=false');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);
     await awaitBundle(this.page);

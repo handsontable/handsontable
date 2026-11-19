@@ -546,16 +546,17 @@ describe('FocusGridManager focus after an editor waiting for its validator', () 
     expect(grid.td.focus).toHaveBeenCalledTimes(1);
   });
 
-  it('focuses the highlighted cell when the focus fell to the body because the editor hid its element', () => {
+  it('leaves the focus on the body when it was blurred while shown and the editor hid its element at close', () => {
+    // A press on a non-focusable part of the page blurs the field during the wait; the close then hides it.
     const { grid, waiting } = makeGrid();
 
     grid.setActiveEditor(waiting.editor);
     grid.manager.focusOnHighlightedCell();
-    waiting.field.style.display = 'none';
     waiting.field.blur();
+    waiting.field.style.display = 'none';
     waiting.finish();
 
-    expect(grid.td.focus).toHaveBeenCalledTimes(1);
+    expect(grid.td.focus).not.toHaveBeenCalled();
   });
 
   it('leaves the focus on the body when the editor\'s element is still shown', () => {
@@ -605,6 +606,27 @@ describe('FocusGridManager focus after an editor waiting for its validator', () 
     waiting.finish();
 
     expect(grid.td.focus).not.toHaveBeenCalled();
+  });
+
+  it('does not reuse the element of a wait that ended without its finish listeners running', () => {
+    const { grid, waiting, wrapper } = makeGrid();
+    const other = document.createElement('input');
+
+    wrapper.append(other);
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    // The wait ends without running the finish listeners, and the next edit of the same editor begins.
+    waiting.listeners.clear();
+    waiting.editor.waiting = false;
+    grid.run('afterBeginEditing');
+
+    // The new wait starts, and ends, with the focus on another element of the editor.
+    other.focus();
+    waiting.editor.waiting = true;
+    grid.manager.focusOnHighlightedCell();
+    waiting.finish();
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
   });
 
   it('does not wait for an open editor that is not waiting', () => {

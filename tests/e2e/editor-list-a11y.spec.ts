@@ -422,4 +422,29 @@ test.describe('focus after a commit (select with a validator)', { tag: [THEMES_T
     await expect.poll(() => grid.focusTarget()).toEqual({ cell: [1, 0] });
     expect(await grid.focusTargetAfterFrames(SETTLE_FRAMES)).toEqual({ cell: [1, 0] });
   });
+
+  test('leaves the focus on the page when a press there blurred the editor during the wait', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new EditorListA11yPage(page, theme, bundle, 'select');
+
+    await grid.goto({ heldValidator: true, outsideClickDeselects: false });
+    await grid.openEditorAt(0, 0);
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect.poll(() => grid.heldValidationCount()).toBe(1);
+
+    // A press on the page below the grid, where nothing takes the focus.
+    await page.mouse.click(600, 600);
+    await expect.poll(() => grid.focusTarget()).toEqual({ other: 'body' });
+
+    expect(await grid.releaseValidations()).toBe(1);
+    // The positive control: the answer closed the editor and wrote the value, and the selection is kept.
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    // The seeded `Al` is no option, so any choice written replaces it.
+    await expect(grid.cell(0, 0)).toHaveText(/^Al(pha|fa|to)$/);
+    expect(await grid.selectedCell()).toEqual([1, 0]);
+
+    expect(await grid.focusTargetAfterFrames(SETTLE_FRAMES)).toEqual({ other: 'body' });
+  });
 });

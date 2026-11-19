@@ -124,6 +124,11 @@
     const heldValidator = function(value, callback) {
       window.htHeldValidations.push(callback);
     };
+    // `?outsideClickDeselects=false` keeps the selection when a press lands outside the grid.
+    const outsideClickDeselects = ({ true: true, false: false })[htParams.get('outsideClickDeselects') ?? 'true'];
+    if (outsideClickDeselects === undefined) {
+      throw new Error('Unknown ?outsideClickDeselects= value: ' + JSON.stringify(htParams.get('outsideClickDeselects')));
+    }
     // `?contextMenu=true` turns the context menu on, a surface in the grid's portal.
     const contextMenu = ({ true: true, false: false })[htParams.get('contextMenu') ?? 'false'];
     if (contextMenu === undefined) {
@@ -199,6 +204,7 @@
       ariaTags,
       ...(enterMoves ? { enterMoves } : {}),
       ...(contextMenu ? { contextMenu: true } : {}),
+      ...(outsideClickDeselects ? {} : { outsideClickDeselects: false }),
       colHeaders: true,
       rowHeaders: true,
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`

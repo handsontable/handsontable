@@ -7,7 +7,6 @@ import {
   isHTMLElement,
   isInternalElement,
   isOutsideInput,
-  isVisible,
 } from '../helpers/dom/element';
 import { debounce } from '../helpers/function';
 
@@ -158,7 +157,7 @@ export class FocusGridManager {
   /**
    * The element that held the browser focus when the wait in `#waitingEditor` began: the editor's own
    * element (its field, a `<select>`, a custom editor's control) on every commit path. Cleared when the wait
-   * finishes, so a later edit never compares with it.
+   * finishes and when a new edit begins, so a later edit never compares with it.
    *
    * @type {Element | null}
    */
@@ -186,6 +185,7 @@ export class FocusGridManager {
     this.#hot.addHook('afterDeselect', () => this.#cancelPendingScroll());
     this.#hot.addHook('afterSelectionEnd', (...args: unknown[]) => this.#focusEditorElement());
     this.#hot.addHook('afterRender', (...args: unknown[]) => this.#onAfterRender());
+    this.#hot.addHook('afterBeginEditing', this.#onAfterBeginEditing);
 
     this.#eventManager = new EventManager(this.#hot);
 
@@ -509,34 +509,36 @@ export class FocusGridManager {
   }
 
   /**
-   * Checks whether the browser focus is still where the editor's wait began. It is when the same element
-   * holds it, or when it fell to the body because that element was hidden or removed (a closed select
-   * editor hides its `<select>`, and the browser then drops the focus): nobody moved it. A focus on any
-   * other element (a menu, a dialog, a side-slot input, another element of the grid, a page outside it)
-   * was moved there, and so was a focus on the body while the element is still shown. `getDeepActiveElement()`
-   * looks into a shadow root the grid renders in; a sandboxed host that hides the element behind its host
-   * reads as a moved focus, so the focus stays where it is, as it did before.
+   * Checks whether the browser focus is still on the element that held it when the editor's wait began. On
+   * every commit path that element is the editor's own (its field, a select editor's `<select>`, a custom
+   * editor's control), and it still holds the focus when the finish listeners run, even after `close()` hid
+   * it: the browser drops the focus of a hidden element only at the next rendering update. A focus anywhere
+   * else (a menu, a dialog, a side-slot input, another element of the grid, a page outside it, or the body
+   * after a press on the page) was moved there. `getDeepActiveElement()` looks into a shadow root the grid
+   * renders in; a sandboxed host that hides the element behind its host reads as a moved focus, so the focus
+   * stays where it is, as it did before.
    *
    * @param {Element | null} waitingFocus The element focused when the wait began.
    * @returns {boolean}
    */
   #isFocusWhereWaitBegan(waitingFocus: Element | null): boolean {
-    if (!isHTMLElement(waitingFocus)) {
-      return false;
-    }
-
-    const { rootDocument } = this.#hot;
-    const activeElement = getDeepActiveElement(rootDocument);
-
-    if (activeElement === waitingFocus) {
-      return true;
-    }
-
-    const fellToBody = activeElement === null || activeElement === rootDocument.body ||
-      activeElement === rootDocument.documentElement;
-
-    return fellToBody && (!waitingFocus.isConnected || !isVisible(waitingFocus));
+    return isHTMLElement(waitingFocus) && getDeepActiveElement(this.#hot.rootDocument) === waitingFocus;
   }
+
+  /**
+   * Forgets the editor's wait without running anything. A new edit begins only after the previous wait ended,
+   * so a wait still recorded then ended without running the finish listeners, and its element must not be
+   * compared with the next wait's.
+   */
+  #onAfterBeginEditing = (): void => {
+    if (this.#waitingEditor === null) {
+      return;
+    }
+
+    this.#waitingEditor._removeFinishListener?.(this.#onWaitingEditorFinish);
+    this.#waitingEditor = null;
+    this.#waitingFocus = null;
+  };
 
   /**
    * Runs once the editor that waited for its validator finished the edit, see `#focusAfterEditorWait()`.
