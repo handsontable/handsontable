@@ -929,15 +929,19 @@ describe('DataMap reads of a `valueGetter` set through the `cells` function', ()
   });
 
   /**
-   * Creates a grid and drops the cell meta its first render stored, and the record of which cells were
-   * extended, which is the state of every row a large grid has not rendered, or has evicted after a
-   * scroll.
+   * Creates a grid with `applyCellsToDataReads` on (unless `settings` says otherwise) and drops the
+   * cell meta its first render stored, and the record of which cells were extended, which is the state
+   * of every row a large grid has not rendered, or has evicted after a scroll.
    *
    * @param {object} settings Grid settings.
    * @returns {Handsontable}
    */
   function createUnrenderedGrid(settings) {
-    const instance = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY, ...settings });
+    const instance = new Handsontable(container, {
+      licenseKey: TEST_LICENSE_KEY,
+      applyCellsToDataReads: true,
+      ...settings,
+    });
     const metaManager = instance._getMetaManager();
 
     metaManager.clearCellsCache();
@@ -956,6 +960,51 @@ describe('DataMap reads of a `valueGetter` set through the `cells` function', ()
   function prefixFirstColumn(row, column) {
     return column === 0 ? { valueGetter: value => `X${value}` } : {};
   }
+
+  it('should not call the `cells` function for a data read when `applyCellsToDataReads` is not set', () => {
+    const cells = jest.fn(prefixFirstColumn);
+
+    hot = new Handsontable(container, {
+      licenseKey: TEST_LICENSE_KEY,
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      cells,
+    });
+    hot._getMetaManager().clearCellsCache();
+    hot._getMetaManager().invalidateMetaExtensions();
+    cells.mockClear();
+
+    expect(hot.getSettings().applyCellsToDataReads).toBe(false);
+    expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'B2']]);
+    expect(cells).not.toHaveBeenCalled();
+  });
+
+  it('should call the `cells` function only for the columns that turn `applyCellsToDataReads` on', () => {
+    const cells = jest.fn((row, column) => ({ valueGetter: value => `${column}:${value}` }));
+
+    hot = createUnrenderedGrid({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      applyCellsToDataReads: false,
+      columns: [{ applyCellsToDataReads: true }, {}],
+      cells,
+    });
+    cells.mockClear();
+
+    expect(hot.getData()).toEqual([['0:A1', 'B1'], ['0:A2', 'B2']]);
+    expect(cells.mock.calls.map(call => call[1])).toEqual([0, 0]);
+  });
+
+  it('should keep the raw value of a column with `applyCellsToDataReads` off when sorting', () => {
+    hot = createUnrenderedGrid({
+      data: [[1], [2], [3]],
+      applyCellsToDataReads: false,
+      columnSorting: true,
+      cells: () => ({ valueGetter: value => -value }),
+    });
+
+    hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+    expect([0, 1, 2].map(row => hot.toPhysicalRow(row))).toEqual([0, 1, 2]);
+  });
 
   it('should apply the getter to every read of a row without stored meta', () => {
     hot = createUnrenderedGrid({

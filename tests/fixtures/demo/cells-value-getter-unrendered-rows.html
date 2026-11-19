@@ -29,8 +29,8 @@
 </head>
 <body>
   <!--
-    A `valueGetter` that the `cells` function supplies must apply to every row a data read returns,
-    not only to the rows the grid has rendered. Only a rendered row stores cell meta, and the grid
+    With `applyCellsToDataReads` on, a `valueGetter` that the `cells` function supplies must apply to
+    every row a data read returns, not only to the rows the grid has rendered. Only a rendered row stores cell meta, and the grid
     evicts that meta once the row scrolls out of view, so the read must run the `cells` function
     itself. jsdom renders every row and never evicts, so the scroll part can only be checked here.
 
@@ -58,6 +58,7 @@
         height: 300,
         colHeaders: true,
         columnSorting: true,
+        applyCellsToDataReads: true,
         cells(row, column) {
           if (column === 0) {
             return { valueGetter: value => `X${value}` };

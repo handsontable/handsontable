@@ -107,6 +107,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   currentRowClassName: 'foo',
   customBorders: true,
   customBordersProgressive: oneOf(true, { chunkSize: 5000 }),
+  applyCellsToDataReads: oneOf(true, false),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
   rowId: oneOf('id', 'meta.id', (row: Handsontable.RowObject | unknown[]) => row, true, false),
@@ -183,6 +184,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     columns: [
       {
         type: 'numeric',
+        applyCellsToDataReads: true,
       },
     ],
     cells: () => ({ readOnly: true }),

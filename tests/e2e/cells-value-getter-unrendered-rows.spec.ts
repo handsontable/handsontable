@@ -2,11 +2,12 @@ import { test, expect } from '../fixtures/test';
 import { CellsValueGetterUnrenderedRowsPage } from '../fixtures/pages/CellsValueGetterUnrenderedRowsPage';
 
 /**
- * A `valueGetter` the `cells` function supplies applies to every row a data read returns. Since
- * 18.1.0 a read applied it only to rows with stored cell meta: the rows the grid had rendered and not
- * yet evicted after a scroll. So `getData()` depended on the scroll position, and a header sort put the
- * rows in raw-value order. Only a real browser renders a band of rows and evicts the rest, so the
- * eviction part can only be checked here; the unit cases live in `dataMap.unit.js`.
+ * With `applyCellsToDataReads` on, a `valueGetter` the `cells` function supplies applies to every row a
+ * data read returns. Without it a read applies it only to rows with stored cell meta: the rows the grid
+ * has rendered and not yet evicted after a scroll, so `getData()` depends on the scroll position, and a
+ * header sort puts the rows in raw-value order (`sort-value-getter-guard.spec.ts` pins that default).
+ * Only a real browser renders a band of rows and evicts the rest, so the eviction part can only be
+ * checked here; the unit cases live in `dataMap.unit.js`.
  */
 test.describe('cells() valueGetter on rows the grid has not rendered', () => {
   let grid: CellsValueGetterUnrenderedRowsPage;
