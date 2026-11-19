@@ -253,9 +253,29 @@ export class GridStateTracker {
     // the grid keeps its columns – the replay left them where the step recorded them.
     const rowCount = this.#hot.countSourceRows();
 
-    this.#rows.restore(snapshot.rows, {
+    const restoreRows = () => this.#rows.restore(snapshot.rows, {
       changedFrom: changedFrom?.rows, forceOrder, length: rowCount,
     });
+    const followers = changedFrom !== undefined && !forceOrder ?
+      this.#readShownRowsFollowers(snapshot, changedFrom) : [];
+
+    // The row maps update their cache here, before any plugin state is restored, so this is the one
+    // place the selection can be told to move with its rows. The plugin states that only change which
+    // rows are shown are put back first (again below, which changes nothing), so a selection listener
+    // the follow runs reads the restored state, as it does after the action itself.
+    if (followers.length > 0) {
+      followers.forEach(({ plugin, state, name }) => {
+        plugin.restoreState?.(state, {
+          other: changedFrom!.plugins.get(name),
+          direction,
+          reordered: forceOrder,
+        });
+      });
+      this.#hot.selection.followRecordsWhile('row', restoreRows);
+    } else {
+      restoreRows();
+    }
+
     this.#columns.restore(snapshot.columns, {
       changedFrom: changedFrom?.columns,
       forceOrder,
@@ -458,6 +478,51 @@ export class GridStateTracker {
     }
 
     return this.#capturingPlugins.get(methodName) ?? [];
+  }
+
+  /**
+   * Lists the plugins whose state the step changed when the step changed which rows are shown and
+   * nothing else on the row axis: every row trimming map it changed is declared by an enabled plugin
+   * (`getShownRowsTrimmingMaps()`), and it did not reshape the source. Any other trim the step made
+   * (a filter in the same batch) and any reshape (a row move, which renumbers the rows) keep the
+   * default repair, so the list is empty then.
+   *
+   * @param {GridStateSnapshot} snapshot The snapshot to restore.
+   * @param {GridStateSnapshot} changedFrom The snapshot from the other side of the step.
+   * @returns {Array} The plugins to restore before the row maps, with their states and names.
+   */
+  #readShownRowsFollowers(
+    snapshot: GridStateSnapshot,
+    changedFrom: GridStateSnapshot,
+  ): Array<{ plugin: BasePlugin, state: unknown, name: string }> {
+    const isReshaped = Array.from(snapshot.sourceStructures)
+      .some(([name, state]) => changedFrom.sourceStructures.get(name) !== state);
+
+    if (isReshaped) {
+      return [];
+    }
+
+    const declaredMaps = new Set<string>();
+    const followers: Array<{ plugin: BasePlugin, state: unknown, name: string }> = [];
+
+    this.#forEachEnabledPlugin('captureState', snapshot.plugins, (plugin, state, name) => {
+      const mapNames = plugin.getShownRowsTrimmingMaps?.() ?? [];
+
+      mapNames.forEach(mapName => declaredMaps.add(mapName));
+
+      if (mapNames.length > 0 && changedFrom.plugins.get(name) !== state) {
+        followers.push({ plugin, state, name });
+      }
+    });
+
+    const changedTrimmingMaps = Array.from(snapshot.rows.trimming.keys())
+      .filter(mapName => changedFrom.rows.trimming.get(mapName) !== snapshot.rows.trimming.get(mapName));
+
+    if (changedTrimmingMaps.length === 0 || changedTrimmingMaps.some(mapName => !declaredMaps.has(mapName))) {
+      return [];
+    }
+
+    return followers;
   }
 
   /**
