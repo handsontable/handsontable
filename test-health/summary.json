@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-19T11:57:43.361Z",
+  "generatedAt": "2026-11-19T12:13:33.712Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 453,
     "needsTicket": 8,
     "quarantined": 0,
-    "entries": 2322
+    "entries": 2323
   },
   "rows": [
     {
@@ -197,9 +197,9 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 518,
       "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column under RTL",
-      "count7": 5,
-      "count30": 5,
-      "countAll": 5,
+      "count7": 6,
+      "count30": 6,
+      "countAll": 6,
       "runs30": 3,
       "flakyRuns30": 3,
       "branches30": 3,
@@ -214,8 +214,8 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-11-19T11:56:44Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44512948969",
+        "seenAt": "2026-11-19T12:12:48Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44512948969/attempts/2",
         "branch": "feature/DEV-4093_cells-valueGetter-unrendered-rows",
         "leg": "e2e-webkit",
         "status": "flaky",
