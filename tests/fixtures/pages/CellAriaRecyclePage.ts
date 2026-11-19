@@ -29,6 +29,9 @@ type HotLike = {
   getColHeader(column: number): string;
   scrollViewportTo(options: Record<string, unknown>): boolean;
   render(): void;
+  updateSettings(settings: Record<string, unknown>): void;
+  addHook(name: string, callback: () => void): void;
+  removeHook(name: string, callback: () => void): void;
   rootElement: HTMLElement;
   view: {
     getFirstRenderedVisibleRow(): number;
@@ -130,6 +133,59 @@ export class CellAriaRecyclePage {
   }
 
   /**
+   * Calls `updateSettings()` on the grid.
+   *
+   * @param {object} settings JSON-serializable settings.
+   */
+  async updateSettings(settings: Record<string, unknown>): Promise<void> {
+    await this.page.evaluate(
+      nextSettings => (window as unknown as FixtureWindow).hot.updateSettings(nextSettings),
+      settings,
+    );
+  }
+
+  /**
+   * Counts the `afterGetRowHeaderRenderers` calls one `render()` makes, and the master cells it renders.
+   *
+   * @returns {Promise<{ hookCalls: number, masterCells: number }>}
+   */
+  async countRowHeaderRenderersHookCalls(): Promise<{ hookCalls: number; masterCells: number }> {
+    return this.page.evaluate(() => {
+      const { hot } = window as unknown as FixtureWindow;
+      let hookCalls = 0;
+      const count = () => {
+        hookCalls += 1;
+      };
+
+      hot.addHook('afterGetRowHeaderRenderers', count);
+      hot.render();
+      hot.removeHook('afterGetRowHeaderRenderers', count);
+
+      return { hookCalls, masterCells: hot.rootElement.querySelectorAll('.ht_master tbody td').length };
+    });
+  }
+
+  /**
+   * Reads every column header id in the grid and every data cell's `aria-describedby`, across all
+   * overlays.
+   *
+   * @returns {Promise<{ duplicateIds: string[], unresolved: string[], references: number }>}
+   */
+  async columnHeaderReferences(): Promise<{ duplicateIds: string[]; unresolved: string[]; references: number }> {
+    return this.page.evaluate(() => {
+      const { hot } = window as unknown as FixtureWindow;
+      const prefix = `${hot.guid}-colheader-`;
+      const ids = [...document.querySelectorAll(`[id^="${prefix}"]`)].map(element => element.id);
+      const duplicateIds = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+      const references = [...hot.rootElement.querySelectorAll('td[aria-describedby]')]
+        .map(td => td.getAttribute('aria-describedby') ?? '');
+      const unresolved = [...new Set(references.filter(id => document.querySelectorAll(`[id="${id}"]`).length !== 1))];
+
+      return { duplicateIds, unresolved, references: references.length };
+    });
+  }
+
+  /**
    * Reads the master table's cells of one column.
    *
    * @param {number} column The visual column index.
@@ -207,17 +263,32 @@ export class CellAriaRecyclePage {
   }
 
   /**
+   * Reads the accessibility attributes of the corner header in the master table's last head row.
+   *
+   * @returns {Promise<AriaAttributes | null>}
+   */
+  async masterCorner(): Promise<AriaAttributes | null> {
+    return this.page.evaluate(() => {
+      const { hot, readAria } = window as unknown as FixtureWindow;
+      const corner = hot.rootElement.querySelector('.ht_master thead tr:last-child th:first-child');
+
+      return corner ? readAria(corner) : null;
+    });
+  }
+
+  /**
    * Lists every attribute name, on any cell or header of the grid, that contains `aria-` or `role`, or is
    * `id` on a header.
    *
+   * @param {string} selector The elements to read, within the grid.
    * @returns {Promise<string[]>}
    */
-  async ariaAttributeNamesAnywhere(): Promise<string[]> {
-    return this.page.evaluate(() => {
+  async ariaAttributeNamesAnywhere(selector = 'td, th'): Promise<string[]> {
+    return this.page.evaluate((elementSelector) => {
       const { hot } = window as unknown as FixtureWindow;
       const names = new Set<string>();
 
-      hot.rootElement.querySelectorAll('td, th').forEach((element) => {
+      hot.rootElement.querySelectorAll(elementSelector).forEach((element) => {
         element.getAttributeNames().forEach((name) => {
           if (name.includes('aria-') || name.includes('role') || (name === 'id' && element.tagName === 'TH')) {
             names.add(name);
@@ -226,7 +297,7 @@ export class CellAriaRecyclePage {
       });
 
       return [...names].sort();
-    });
+    }, selector);
   }
 
   /**
@@ -246,11 +317,12 @@ export class CellAriaRecyclePage {
   }
 
   /**
-   * Starts recording every write of an accessibility attribute (`role`, `aria-*`, `tabindex`, `scope`)
-   * on a master cell or header that exists now and that column B's custom branch never painted. A removal
-   * and a write of the same value are mutations too, so a redraw that rewrites what an element already
-   * carries is counted. Elements the draw creates (a taller band) are left out: their first write is not
-   * a rewrite.
+   * Starts recording every write of an accessibility attribute core owns (`role`, `tabindex`, `scope`,
+   * `aria-colindex`, `aria-describedby`, `aria-label`) on a master cell or header that exists now and that
+   * column B's custom branch never painted. A removal and a write of the same value are mutations too, so a
+   * redraw that rewrites what an element already carries is counted. Elements the draw creates (a taller
+   * band) are left out: their first write is not a rewrite. Attributes a renderer adds itself (the header
+   * renderer's `aria-x`) are cleared and set again on every paint by design, so they are not counted.
    */
   async startAriaMutationCounter(): Promise<void> {
     await this.page.evaluate(() => {
@@ -271,7 +343,7 @@ export class CellAriaRecyclePage {
           const target = record.target as Element;
 
           if (
-            (name.includes('aria-') || name.includes('role') || name === 'tabindex' || name === 'scope') &&
+            ['role', 'tabindex', 'scope', 'aria-colindex', 'aria-describedby', 'aria-label'].includes(name) &&
             tracked.has(target) && !fixtureWindow.customPainted.has(target)
           ) {
             fixtureWindow.ariaMutations!.push({ attribute: name, tag: target.tagName });

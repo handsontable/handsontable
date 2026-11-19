@@ -85,6 +85,11 @@ function writeColumnHeaderAriaAttributes(
     ? getCornerAriaAttributes(ariaColIndex)
     : getColumnHeaderAriaAttributes(ariaColIndex));
 
+  if (isCorner) {
+    // A pooled element that showed a column header (before row headers were turned on) carries its `scope`.
+    TH.removeAttribute(SCOPE);
+  }
+
   if (columnHeaderId) {
     setAttributeIfChanged(TH, ID, columnHeaderId);
   } else {

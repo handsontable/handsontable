@@ -28,7 +28,7 @@
     `aria-x` and a `data-role`), and renders every other row as plain text. The spec scrolls those
     elements onto plain rows and reads what they carry. `window.customPainted` holds every element the
     custom branch painted, and `window.entryStates` what each column C cell carried when its renderer
-    started.
+    started. Column headers A-C get an `aria-x` and a `data-role` from an `afterGetColHeader` listener.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -98,6 +98,14 @@
           rowHeaders: true,
           width: 600,
           height: 300,
+          // Column headers A-C get attributes of their own from a header renderer, which a header element
+          // reused for another column must not keep.
+          afterGetColHeader(column, TH) {
+            if (column >= 0 && column < 3) {
+              TH.setAttribute('aria-x', 'header-stray');
+              TH.setAttribute('data-role', 'header-custom');
+            }
+          },
           cells(row, column) {
             if (column === 1) {
               return { renderer: customRenderer };

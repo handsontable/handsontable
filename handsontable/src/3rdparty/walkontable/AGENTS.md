@@ -2109,8 +2109,8 @@ full repaint, an open editor across a scroll).
 
 Every draw repaints recycled TD and TH elements, mostly with the attributes they already carry. The
 renderers used to remove every `aria-*` and `role` attribute (a regex walk) and write the managed ones
-again, a large share of a vertical scroll's script time for a DOM that ended up identical. They now
-write only what differs (DEV-4105):
+again for a DOM that ended up identical. They now write only what differs, which cut the scripting time
+of the `scroll-down` performance scenario by about 13% (DEV-4105):
 
 - **Cells are brought to their start state before the renderer runs** (`prepareCellAriaAttributes` in
   `render/cells.ts`). Every attribute whose name contains `aria-` or `role` is removed (the old unanchored

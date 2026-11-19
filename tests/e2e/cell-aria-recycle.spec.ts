@@ -170,10 +170,59 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
     });
   });
 
-  test('with ariaTags off, no recycled cell keeps an accessibility attribute a renderer set', async() => {
+  test('a header element reused as the corner carries the corner attributes only', async() => {
+    await grid.goto();
+    // Without row headers, the element in the corner slot is column A's header.
+    await grid.updateSettings({ rowHeaders: false });
+
+    expect((await grid.masterCorner())?.role).toBe('columnheader');
+
+    await grid.updateSettings({ rowHeaders: true });
+
+    expect(await grid.masterCorner()).toEqual({
+      role: 'gridcell button',
+      tabindex: '-1',
+      'aria-colindex': '1',
+      'aria-label': 'Select whole grid',
+    });
+  });
+
+  test('a header that stops owning its column id loses it', async() => {
+    await grid.goto();
+
+    const before = await grid.columnHeaderReferences();
+
+    expect(before.duplicateIds).toEqual([]);
+
+    // Columns A and B move to the inline-start overlay, which then owns their ids. The master still
+    // renders them at scroll offset 0 and must drop the ids its headers carried.
+    await grid.updateSettings({ fixedColumnsStart: 2 });
+
+    const after = await grid.columnHeaderReferences();
+
+    expect(after.references).toBeGreaterThan(0);
+    expect(after.duplicateIds).toEqual([]);
+    expect(after.unresolved.filter(id => id !== 'custom-description')).toEqual([]);
+  });
+
+  test('a draw runs the afterGetRowHeaderRenderers hook fewer times than it paints cells', async() => {
+    await grid.goto();
+
+    // The cell renderer used to read the row header count once per painted cell; it now reads it once
+    // per draw of each table.
+    const { hookCalls, masterCells } = await grid.countRowHeaderRenderersHookCalls();
+
+    expect(masterCells).toBeGreaterThan(50);
+    expect(hookCalls).toBeGreaterThan(0);
+    expect(hookCalls).toBeLessThan(masterCells);
+  });
+
+  test('with ariaTags off, no recycled cell or header keeps an accessibility attribute a renderer set', async() => {
     await grid.goto({ ariaTags: false });
 
     expect((await grid.columnCells(1)).filter(cell => cell.customPainted).length).toBeGreaterThan(0);
+    // The header renderer gives columns A-C attributes of their own; those elements show other columns later.
+    expect(await grid.ariaAttributeNamesAnywhere('thead th')).toEqual(['aria-x', 'data-role']);
 
     await grid.scrollToRow(150);
 
