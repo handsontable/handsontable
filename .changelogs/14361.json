@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Improved the performance of a page change in the Pagination plugin: it now hides the rows off the page with one index map write instead of one write per row, which halves the time of a page change on large grids.",
+  "title": "Improved the speed of changing pages in the Pagination plugin on large grids.",
   "type": "changed",
   "issueOrPR": 14361,
   "breaking": false,
