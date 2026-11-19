@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-19T12:13:33.712Z",
+  "generatedAt": "2026-11-19T13:04:36.330Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 453,
+    "tests": 460,
     "needsTicket": 8,
     "quarantined": 0,
-    "entries": 2323
+    "entries": 2330
   },
   "rows": [
     {
@@ -1594,6 +1594,251 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to equal <textarea data-hot-input tabindex=\"-1\" class=\"handsontableInput\" style=\"width: 50px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif; resize: none; min-w...",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/core/getCellMeta.spec.js|Core.getCellMeta \"this\" in cells should point to cellProperties",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/getCellMeta.spec.js",
+      "line": null,
+      "title": "Core.getCellMeta \"this\" in cells should point to cellProperties",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-19T13:03:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44524884767",
+        "branch": "feature/DEV-4093_cells-valueGetter-unrendered-rows",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 50 to be 25.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/core/loadData.spec.js|Core.loadData should not invoke the cells callback multiple times with the same row/col (with overlays, separate `loadData` call)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/loadData.spec.js",
+      "line": null,
+      "title": "Core.loadData should not invoke the cells callback multiple times with the same row/col (with overlays, separate `loadData` call)",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (4 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-19T13:03:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44524884767",
+        "branch": "feature/DEV-4093_cells-valueGetter-unrendered-rows",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 24 to be 12.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/core/loadData.spec.js|Core.loadData should not invoke the cells callback multiple times with the same row/col (with overlays)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/loadData.spec.js",
+      "line": null,
+      "title": "Core.loadData should not invoke the cells callback multiple times with the same row/col (with overlays)",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (4 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-19T13:03:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44524884767",
+        "branch": "feature/DEV-4093_cells-valueGetter-unrendered-rows",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 24 to be 12.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/core/loadData.spec.js|Core.loadData should not invoke the cells callback multiple times with the same row/col (without overlays)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/loadData.spec.js",
+      "line": null,
+      "title": "Core.loadData should not invoke the cells callback multiple times with the same row/col (without overlays)",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (4 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-19T13:03:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44524884767",
+        "branch": "feature/DEV-4093_cells-valueGetter-unrendered-rows",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 24 to be 12.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/core/loadData.spec.js|Core.loadData should not invoke the cells callback multiple times with the same row/col (without overlays) - separate `loadData` call",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/loadData.spec.js",
+      "line": null,
+      "title": "Core.loadData should not invoke the cells callback multiple times with the same row/col (without overlays) - separate `loadData` call",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (4 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-19T13:03:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44524884767",
+        "branch": "feature/DEV-4093_cells-valueGetter-unrendered-rows",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 24 to be 12.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/core/updateData.spec.js|Core.updateData should not invoke the cells callback multiple times with the same row/col (with overlays)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/updateData.spec.js",
+      "line": null,
+      "title": "Core.updateData should not invoke the cells callback multiple times with the same row/col (with overlays)",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (2 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-19T13:03:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44524884767",
+        "branch": "feature/DEV-4093_cells-valueGetter-unrendered-rows",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 24 to be 12.",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/__tests__/core/updateData.spec.js|Core.updateData should not invoke the cells callback multiple times with the same row/col (without overlays)",
+      "tier": "jasmine",
+      "file": "handsontable/src/__tests__/core/updateData.spec.js",
+      "line": null,
+      "title": "Core.updateData should not invoke the cells callback multiple times with the same row/col (without overlays)",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (2 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-19T13:03:45Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44524884767",
+        "branch": "feature/DEV-4093_cells-valueGetter-unrendered-rows",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Expected 24 to be 12.",
         "source": "ci"
       },
       "needsTicket": false
