@@ -103,10 +103,10 @@
     },
     {
       "id": "editor-combobox-markup",
-      "title": "The list editors' combobox field: the autocomplete and dropdown editors put the combobox role on a textarea, which ARIA in HTML does not allow (rows of a sample taken before the field became a text input; they leave when the sample is next refreshed), and axe cannot decide whether the field's aria-controls names an element while the field declares aria-haspopup, a review result it gives every combobox that names its popup",
+      "title": "The autocomplete and dropdown editors put the combobox role on a textarea, which ARIA in HTML does not allow, and axe cannot decide an aria-controls reference on an element that declares aria-haspopup (rows of a sample taken before the field became a text input; they leave when the sample is next refreshed)",
       "tracker": "DEV-2970",
       "match": [
-        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-allowed-role", "aria-valid-attr-value"], "where": ["^(textarea|input)\\.handsontableInput\\[role=\"combobox\"\\]"] }
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-allowed-role", "aria-valid-attr-value"], "where": ["^textarea\\.handsontableInput\\[role=\"combobox\"\\]"] }
       ]
     },
     {

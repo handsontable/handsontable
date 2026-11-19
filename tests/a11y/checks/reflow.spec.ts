@@ -32,9 +32,9 @@ import {
  */
 
 // The plain grid and the pages with a surface of their own around it. Left out: the pages whose surfaces lie
-// inside the grid's box (the freeze bars, the selection handles), the editors with a native control in the cell
-// or the autocomplete's one-column list (the dropdown editor; the handsontable editor's list has two columns, so
-// it is measured), the dark pages, and the right-to-left menu, whose fixture lays several wide grids
+// inside the grid's box (the freeze bars, the selection handles), the editors with a native control in the cell,
+// the dropdown editor, whose list is the autocomplete's one-column list (the handsontable editor's list has two
+// columns, so it is measured), the dark pages, and the right-to-left menu, whose fixture lays several wide grids
 // on one page: tests/AGENTS.md, "Zoom, reflow, text spacing, and hover content".
 const PAGES = ['grid', 'context-menu', 'context-menu-submenu', 'dropdown-menu', 'filters-conditions', 'autocomplete-editor', 'handsontable-editor',
   'multiselect-editor',
