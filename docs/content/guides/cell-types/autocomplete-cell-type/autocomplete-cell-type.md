@@ -40,6 +40,8 @@ In all three modes, the `source` option can be provided in two formats:
 
 In all three modes, validation runs when a value is written to a cell. Values that are already in the data source when the grid loads are not validated. To check and mark them, call [`validateCells()`](@/api/core.md#validatecells) after the grid is created.
 
+The editor's text field is a single-line `<input type="text">`, so it holds one line of text. A stored value with a line break opens without it. If you confirm such a value without typing, the cell keeps it, line break included. If you edit the text, the saved value has no line break. Keep the `source` labels on one line, and use the [`text`](@/guides/cell-types/text-cell-type/text-cell-type.md) cell type for values that need line breaks. Before 19.0 the field was a `<textarea>`; see the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#the-list-editors-edit-in-a-single-line-input).
+
 ## Autocomplete flexible mode
 
 This example uses the `autocomplete` feature in the default flexible mode. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.

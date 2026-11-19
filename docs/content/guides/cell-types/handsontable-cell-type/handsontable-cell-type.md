@@ -31,6 +31,8 @@ HOT-in-HOT opens by any of the following:
 
 While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused at all times.
 
+The editor's text field is a single-line `<input type="text">`, so it holds one line of text. A stored value with a line break opens without it. If you confirm such a value without typing, the cell keeps it, line break included. If you edit the text, the saved value has no line break. Keep the `source` labels on one line, and use the [`text`](@/guides/cell-types/text-cell-type/text-cell-type.md) cell type for values that need line breaks. Before 19.0 the field was a `<textarea>`; see the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#the-list-editors-edit-in-a-single-line-input).
+
 The nested grid is not the main grid, so the options that drive main-grid UI have no effect when you set them inside the `handsontable` option: [`dialog`](@/api/options.md#dialog), [`notification`](@/api/options.md#notification), [`emptyDataState`](@/api/options.md#emptydatastate), [`pagination`](@/api/options.md#pagination), and [`loading`](@/api/options.md#loading). Set them on the main grid instead. The same applies to the nested grid that the [autocomplete](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and [dropdown](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell types open.
 
 ## Basic example

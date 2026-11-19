@@ -115,12 +115,13 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd> + Arrow keys | <kbd>⌘</kbd>+<kbd>⇧</kbd> + Arrow keys        | Extend the selection to the beginning or to the end of the text    | &check; | &check; |
 | <kbd>**Page Up**</kbd>                                | <kbd>**Page Up**</kbd>                                      | Complete the cell entry and move one screen up                     | &check; | &check; |
 | <kbd>**Page Down**</kbd>                              | <kbd>**Page Down**</kbd>                                    | Complete the cell entry and move one screen down                   | &check; | &check; |
-| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>               | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>                  | Insert a line break                                                | &cross; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break<sup>\*\*</sup>                                 | &cross; | &check; |
+| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>               | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>                  | Insert a line break<sup>\*\*\*</sup>                             | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break<sup>\*\*, \*\*\*</sup>                        | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                 | <kbd>**Escape**</kbd>                                       | Cancel the cell entry and exit the editing mode                    | &check; | &check; |
 
 <sup>\*</sup> This action depends on your layout direction.<br>
-<sup>\*\*</sup> This action inserts a line break only when the shortcut has no other cell to write to. If your selection holds any other cell you can edit, across any selection layer, this shortcut saves the edited value into all of those cells instead.
+<sup>\*\*</sup> This action inserts a line break only when the shortcut has no other cell to write to. If your selection holds any other cell you can edit, across any selection layer, this shortcut saves the edited value into all of those cells instead.<br>
+<sup>\*\*\*</sup> The [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) editors hold a single line of text, so this shortcut inserts no line break there. The editor stays open.
 
 ### Checkbox editor keyboard shortcuts
 
