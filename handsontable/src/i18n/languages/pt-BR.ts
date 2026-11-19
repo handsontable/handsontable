@@ -197,6 +197,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Mais [count] células agora contêm erros.',
   [C.EDITOR_INPUT_LABEL]: '[column], linha [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Comentário de [column], linha [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Comentário de [column], [row]',
 };
 
 export default dictionary;

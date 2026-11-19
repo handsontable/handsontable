@@ -200,6 +200,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '另有 [count] 个单元格现在包含错误。',
   [C.EDITOR_INPUT_LABEL]: '[column]，第 [row] 行',
   [C.COMMENTS_EDITOR_LABEL]: '[column]，第 [row] 行的批注',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column]，[row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: '[column]，[row] 的批注',
 };
 
 export default dictionary;

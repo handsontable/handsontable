@@ -203,6 +203,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'ほかに [count] 個のセルがエラーになりました。',
   [C.EDITOR_INPUT_LABEL]: '[column]、行 [row]',
   [C.COMMENTS_EDITOR_LABEL]: '[column]、行 [row] のコメント',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column]、[row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: '[column]、[row] のコメント',
 };
 
 export default dictionary;

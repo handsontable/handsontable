@@ -10,8 +10,7 @@ import {
 import { objectEach } from '../../helpers/object';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
 import { getSanitizer } from '../../utils/sanitizer';
-import { setCellInputName } from '../../utils/cellInputName';
-import { EDITOR_INPUT_LABEL } from '../../i18n/constants';
+import { CELL_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
 import { syncIcon } from '../../themes/engine/icons';
 
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
@@ -170,7 +169,7 @@ export class SelectEditor extends BaseEditor {
     td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
-    setCellInputName(this.hot, this.select, EDITOR_INPUT_LABEL, row, col);
+    setCellInputName(this.hot, this.select, CELL_EDITOR_PHRASES, row, col);
 
     type SelectOpts = (string | number | object)[] | Record<string, string> | undefined;
     const selectOptions = this.cellProperties.selectOptions as SelectOpts;

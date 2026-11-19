@@ -73,6 +73,55 @@ test.describe('editor input accessible names', { tag: CROSS_BROWSER_TAG }, () =>
     await expect(page.getByRole('textbox', { name: 'Name, row 3', exact: true })).toBeFocused();
   });
 
+  test('names the row by the text of a custom row header', async({ page }) => {
+    await grid.build({
+      data: [['Revenue'], ['Costs'], ['Margin']],
+      colHeaders: ['Metric'],
+      rowHeaders: ['Q1', 'Q2', 'Q3'],
+    });
+    await grid.selectCell(0, 0);
+
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    await expect(page.getByRole('rowheader', { name: 'Q2', exact: true }).first()).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Metric, Q2', exact: true })).toBeFocused();
+  });
+
+  test('keeps the name a custom editor gives its own input', async({ page }) => {
+    await grid.registerSelfLabelledEditor('selfLabelled', 'My custom label');
+    await grid.build({
+      data: [['Ann', 'first'], ['Bob', 'second']],
+      colHeaders: ['Name', 'Note'],
+      columns: [{}, { editor: 'selfLabelled' }],
+    });
+    await grid.selectCell(0, 0);
+
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    await expect(page.getByRole('textbox', { name: 'My custom label', exact: true })).toBeFocused();
+  });
+
+  test('keeps the name a custom editor gives its own input with ariaTags disabled', async({ page }) => {
+    await grid.registerSelfLabelledEditor('selfLabelled', 'My custom label');
+    await grid.build({
+      data: [['Ann', 'first'], ['Bob', 'second']],
+      colHeaders: ['Name', 'Note'],
+      columns: [{}, { editor: 'selfLabelled' }],
+      ariaTags: false,
+    });
+    await grid.selectCell(1, 1);
+
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    await expect(page.getByRole('textbox', { name: 'My custom label', exact: true })).toBeFocused();
+  });
+
   test('names the select editor after its cell', async({ page }) => {
     await grid.build({
       data: [['Ann', 'S'], ['Bob', 'M']],

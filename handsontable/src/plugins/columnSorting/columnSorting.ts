@@ -53,7 +53,7 @@ import type { HotInstance } from '../../core/types';
 import type { CellChange } from '../../settings';
 import { getWaitingEditorSaveChangeSets } from '../../editors/baseEditor/editorSaveChangeSets';
 import { A11Y_SORT } from '../../helpers/a11y';
-import { getColumnLabel } from '../../utils/columnLabel';
+import { getColumnLabel } from '../../utils/headerLabel';
 import { announce } from '../../utils/a11yAnnouncer';
 import {
   COLUMN_SORTING_ANNOUNCEMENT_ASCENDING,

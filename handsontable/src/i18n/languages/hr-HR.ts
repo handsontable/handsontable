@@ -213,6 +213,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Broj drugih ćelija s pogreškom: [count].',
   [C.EDITOR_INPUT_LABEL]: '[column], redak [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Komentar za [column], redak [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Komentar za [column], [row]',
 };
 
 export default dictionary;

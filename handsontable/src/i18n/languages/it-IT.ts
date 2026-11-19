@@ -200,6 +200,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Ora [count] altre celle contengono errori.',
   [C.EDITOR_INPUT_LABEL]: '[column], riga [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Commento per [column], riga [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Commento per [column], [row]',
 };
 
 export default dictionary;

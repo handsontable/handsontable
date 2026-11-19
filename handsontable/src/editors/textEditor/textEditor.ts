@@ -19,8 +19,7 @@ import { getCharacterLength, removeCharactersBefore } from '../../helpers/string
 import { isMaxLengthActive } from '../../validators/maxLengthValidator';
 import { updateCaretPosition } from './caretPositioner';
 import { selectionFillsOtherCells } from '../../selection/fillSelection';
-import { setCellInputName } from '../../utils/cellInputName';
-import { EDITOR_INPUT_LABEL } from '../../i18n/constants';
+import { CELL_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
 import {
   A11Y_TABINDEX,
 } from '../../helpers/a11y';
@@ -308,7 +307,7 @@ export class TextEditor extends BaseEditor {
 
     super.prepare(row, col, prop, td, value, cellProperties);
 
-    setCellInputName(this.hot, this.TEXTAREA, EDITOR_INPUT_LABEL, row, col);
+    setCellInputName(this.hot, this.TEXTAREA, CELL_EDITOR_PHRASES, row, col);
 
     if (!cellProperties.readOnly) {
       this.refreshDimensions(true);

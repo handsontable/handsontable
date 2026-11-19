@@ -66,6 +66,31 @@ export class EditorInputAccessibleNamesPage {
   }
 
   /**
+   * Registers, under `editorName`, a custom editor built on `TextEditor` that names its own input with
+   * `aria-label`, the way an application can.
+   *
+   * @param {string} editorName The name the editor is registered under.
+   * @param {string} label The `aria-label` the editor writes on its input.
+   */
+  async registerSelfLabelledEditor(editorName: string, label: string): Promise<void> {
+    await this.page.evaluate(([name, ariaLabel]) => {
+      type TextEditorClass = new (...args: unknown[]) => { TEXTAREA: HTMLElement; createElements(): void };
+      const { editors } = (window as unknown as {
+        Handsontable: { editors: { TextEditor: TextEditorClass; registerEditor: (n: string, e: unknown) => void } };
+      }).Handsontable;
+
+      class SelfLabelledEditor extends editors.TextEditor {
+        createElements() {
+          super.createElements();
+          this.TEXTAREA.setAttribute('aria-label', ariaLabel);
+        }
+      }
+
+      editors.registerEditor(name, SelfLabelledEditor);
+    }, [editorName, label]);
+  }
+
+  /**
    * A data cell, by visual row and column.
    *
    * @param {number} row Visual row index.

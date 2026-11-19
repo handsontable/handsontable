@@ -199,6 +199,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'عدد الخلايا الأخرى التي تحتوي على أخطاء: [count].',
   [C.EDITOR_INPUT_LABEL]: '[column]، الصف [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'تعليق على [column]، الصف [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column]، [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'تعليق على [column]، [row]',
 };
 
 export default dictionary;

@@ -142,6 +142,7 @@ export type TextExtractorContext =
   | 'ExportFile.rowHeader'
   | 'CopyPaste.columnHeader'
   | 'A11y.columnLabel'
+  | 'A11y.rowLabel'
   | (string & {});
 
 /**

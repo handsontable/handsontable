@@ -207,6 +207,8 @@ const dictionary = {
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Liczba innych komórek z błędem: [count].',
   [C.EDITOR_INPUT_LABEL]: '[column], wiersz [row]',
   [C.COMMENTS_EDITOR_LABEL]: 'Komentarz do [column], wiersz [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Komentarz do [column], [row]',
 };
 
 export default dictionary;

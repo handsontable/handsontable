@@ -1,6 +1,5 @@
-import { setCellInputName } from '../cellInputName';
-import { getColumnLabel } from '../columnLabel';
-import { EDITOR_INPUT_LABEL, COMMENTS_EDITOR_LABEL } from '../../i18n/constants';
+import { CELL_EDITOR_PHRASES, COMMENT_EDITOR_PHRASES, setCellInputName } from '../cellInputName';
+import { getColumnLabel, getRowLabel } from '../headerLabel';
 import { getTranslatedPhrase, registerLanguageDictionary } from '../../i18n/registry';
 import enUS from '../../i18n/languages/en-US';
 import plPL from '../../i18n/languages/pl-PL';
@@ -11,6 +10,7 @@ import plPL from '../../i18n/languages/pl-PL';
  * @param {object} options The stub's state.
  * @param {string[]} [options.renderedHeaders] The markup of each rendered column header label, by column.
  * @param {Array} [options.colHeaders] What `getColHeader()` answers, by column.
+ * @param {boolean|Array|Function} [options.rowHeaders] The `rowHeaders` setting.
  * @param {boolean} [options.ariaTags] The `ariaTags` setting.
  * @param {string} [options.language] The `language` setting.
  * @param {Function} [options.modifyRowHeader] What a `modifyRowHeader` listener answers for a visual row.
@@ -18,12 +18,12 @@ import plPL from '../../i18n/languages/pl-PL';
  * @returns {object}
  */
 function createHot({
-  renderedHeaders = [], colHeaders = [], ariaTags = true, language = 'en-US', modifyRowHeader = row => row,
-  textExtractor = false,
+  renderedHeaders = [], colHeaders = [], rowHeaders = true, ariaTags = true, language = 'en-US',
+  modifyRowHeader = row => row, textExtractor = false,
 } = {}) {
   return {
     runHooks: (hookName, value) => (hookName === 'modifyRowHeader' ? modifyRowHeader(value) : value),
-    getSettings: () => ({ ariaTags, textExtractor }),
+    getSettings: () => ({ ariaTags, textExtractor, rowHeaders }),
     getColHeader: column => colHeaders[column],
     getCell(row, column) {
       if (row !== -1 || renderedHeaders[column] === undefined) {
@@ -69,6 +69,51 @@ describe('getColumnLabel', () => {
   });
 });
 
+describe('getRowLabel', () => {
+  it('reads the default row header as the row number', () => {
+    expect(getRowLabel(createHot(), 2)).toBe(3);
+  });
+
+  it('numbers the row through modifyRowHeader, as the row header does', () => {
+    expect(getRowLabel(createHot({ modifyRowHeader: row => row + 20 }), 0)).toBe(21);
+  });
+
+  it('falls back to the visual row when no listener answers modifyRowHeader', () => {
+    expect(getRowLabel(createHot({ modifyRowHeader: () => undefined }), 4)).toBe(5);
+  });
+
+  it('numbers the row when the grid shows no row headers', () => {
+    expect(getRowLabel(createHot({ rowHeaders: false }), 1)).toBe(2);
+  });
+
+  it('reads an array of row headers as the text the header shows', () => {
+    expect(getRowLabel(createHot({ rowHeaders: ['Q1', 'Q2', 'Q3'] }), 1)).toBe('Q2');
+  });
+
+  it('reads a row header function with the row the header passes it', () => {
+    const rowHeaders = jest.fn(row => `Item ${row * 10}`);
+
+    expect(getRowLabel(createHot({ rowHeaders, modifyRowHeader: row => row + 1 }), 0)).toBe('Item 10');
+    expect(rowHeaders).toHaveBeenCalledWith(1);
+  });
+
+  it('keeps a numeric custom row header a number', () => {
+    expect(getRowLabel(createHot({ rowHeaders: row => row * 10 }), 2)).toBe(20);
+  });
+
+  it('reads a row header with markup as plain text, through a configured textExtractor', () => {
+    const textExtractor = jest.fn(content => content);
+
+    expect(getRowLabel(createHot({ rowHeaders: ['<b>North</b><br>region'], textExtractor }), 0))
+      .toBe('North region');
+    expect(textExtractor).toHaveBeenCalledWith('<b>North</b><br>region', 'A11y.rowLabel');
+  });
+
+  it('numbers a row whose custom header is empty', () => {
+    expect(getRowLabel(createHot({ rowHeaders: ['', ''] }), 1)).toBe(2);
+  });
+});
+
 describe('setCellInputName', () => {
   beforeAll(() => {
     registerLanguageDictionary(enUS);
@@ -78,60 +123,96 @@ describe('setCellInputName', () => {
   it('names the control after the column label and the row number counted from 1', () => {
     const input = document.createElement('textarea');
 
-    setCellInputName(createHot({ renderedHeaders: ['Name', 'Age'] }), input, EDITOR_INPUT_LABEL, 2, 1);
+    setCellInputName(createHot({ renderedHeaders: ['Name', 'Age'] }), input, CELL_EDITOR_PHRASES, 2, 1);
 
     expect(input.getAttribute('aria-label')).toBe('Age, row 3');
   });
 
-  it('numbers the row the way the row header does, through modifyRowHeader', () => {
+  it('names the control after a custom row header without the word "row"', () => {
     const input = document.createElement('textarea');
-    const hot = createHot({ renderedHeaders: ['Name'], modifyRowHeader: row => row + 20 });
+    const hot = createHot({ renderedHeaders: ['Metric'], rowHeaders: ['Q1', 'Q2'] });
 
-    setCellInputName(hot, input, EDITOR_INPUT_LABEL, 0, 0);
+    setCellInputName(hot, input, CELL_EDITOR_PHRASES, 1, 0);
 
-    expect(input.getAttribute('aria-label')).toBe('Name, row 21');
+    expect(input.getAttribute('aria-label')).toBe('Metric, Q2');
   });
 
-  it('falls back to the visual row when no listener answers modifyRowHeader', () => {
+  it('uses the phrases it is given', () => {
     const input = document.createElement('textarea');
-    const hot = createHot({ renderedHeaders: ['Name'], modifyRowHeader: () => undefined });
+    const hot = createHot({ renderedHeaders: ['Name'] });
 
-    setCellInputName(hot, input, EDITOR_INPUT_LABEL, 4, 0);
-
-    expect(input.getAttribute('aria-label')).toBe('Name, row 5');
-  });
-
-  it('uses the phrase it is given', () => {
-    const input = document.createElement('textarea');
-
-    setCellInputName(createHot({ renderedHeaders: ['Name'] }), input, COMMENTS_EDITOR_LABEL, 0, 0);
-
+    setCellInputName(hot, input, COMMENT_EDITOR_PHRASES, 0, 0);
     expect(input.getAttribute('aria-label')).toBe('Comment for Name, row 1');
+
+    setCellInputName(createHot({ renderedHeaders: ['Name'], rowHeaders: ['Q1'] }), input, COMMENT_EDITOR_PHRASES, 0, 0);
+    expect(input.getAttribute('aria-label')).toBe('Comment for Name, Q1');
   });
 
   it('uses the grid\'s language', () => {
     const input = document.createElement('textarea');
     const hot = createHot({ renderedHeaders: ['Name'], language: plPL.languageCode });
 
-    setCellInputName(hot, input, EDITOR_INPUT_LABEL, 1, 0);
+    setCellInputName(hot, input, CELL_EDITOR_PHRASES, 1, 0);
 
     expect(input.getAttribute('aria-label')).toBe('Name, wiersz 2');
   });
 
-  it('removes the name with ariaTags off', () => {
+  it('removes the name it wrote when ariaTags is off', () => {
     const input = document.createElement('textarea');
 
-    input.setAttribute('aria-label', 'Name, row 1');
-    setCellInputName(createHot({ renderedHeaders: ['Name'], ariaTags: false }), input, EDITOR_INPUT_LABEL, 0, 0);
+    setCellInputName(createHot({ renderedHeaders: ['Name'] }), input, CELL_EDITOR_PHRASES, 0, 0);
+    setCellInputName(createHot({ renderedHeaders: ['Name'], ariaTags: false }), input, CELL_EDITOR_PHRASES, 0, 0);
 
     expect(input.hasAttribute('aria-label')).toBe(false);
   });
 
-  it('removes the name for a header coordinate', () => {
+  it('removes the name it wrote for a header coordinate', () => {
+    const input = document.createElement('textarea');
+    const hot = createHot({ renderedHeaders: ['Name'] });
+
+    setCellInputName(hot, input, CELL_EDITOR_PHRASES, 0, 0);
+    setCellInputName(hot, input, CELL_EDITOR_PHRASES, -1, 0);
+
+    expect(input.hasAttribute('aria-label')).toBe(false);
+  });
+
+  it('renames the control it named when the selection moves', () => {
+    const input = document.createElement('textarea');
+    const hot = createHot({ renderedHeaders: ['Name', 'Age'] });
+
+    setCellInputName(hot, input, CELL_EDITOR_PHRASES, 0, 0);
+    setCellInputName(hot, input, CELL_EDITOR_PHRASES, 1, 1);
+
+    expect(input.getAttribute('aria-label')).toBe('Age, row 2');
+  });
+
+  it('keeps an aria-label the application wrote, also with ariaTags off', () => {
     const input = document.createElement('textarea');
 
-    input.setAttribute('aria-label', 'Name, row 1');
-    setCellInputName(createHot({ renderedHeaders: ['Name'] }), input, EDITOR_INPUT_LABEL, -1, 0);
+    input.setAttribute('aria-label', 'My custom label');
+    setCellInputName(createHot({ renderedHeaders: ['Name'] }), input, CELL_EDITOR_PHRASES, 0, 0);
+    expect(input.getAttribute('aria-label')).toBe('My custom label');
+
+    setCellInputName(createHot({ renderedHeaders: ['Name'], ariaTags: false }), input, CELL_EDITOR_PHRASES, 0, 0);
+    expect(input.getAttribute('aria-label')).toBe('My custom label');
+  });
+
+  it('keeps an aria-label the application wrote over the name the grid wrote before', () => {
+    const input = document.createElement('textarea');
+    const hot = createHot({ renderedHeaders: ['Name', 'Age'] });
+
+    setCellInputName(hot, input, CELL_EDITOR_PHRASES, 0, 0);
+    input.setAttribute('aria-label', 'My custom label');
+    setCellInputName(hot, input, CELL_EDITOR_PHRASES, 1, 1);
+
+    expect(input.getAttribute('aria-label')).toBe('My custom label');
+  });
+
+  it('writes no aria-label on a control the application names with aria-labelledby', () => {
+    const input = document.createElement('textarea');
+
+    input.setAttribute('aria-labelledby', 'my-label');
+    setCellInputName(createHot({ renderedHeaders: ['Name'] }), input, CELL_EDITOR_PHRASES, 0, 0);
 
     expect(input.hasAttribute('aria-label')).toBe(false);
   });
