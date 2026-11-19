@@ -63,6 +63,12 @@ export default class MetaManager {
   #isInitialized = false;
 
   /**
+   * How many dynamic extensions (the `beforeGetCellMeta` hook, the `cells` function and its `type`, the
+   * `afterGetCellMeta` hook) are running now. Read through `isExtendingCellMeta()`.
+   */
+  #extensionDepth = 0;
+
+  /**
    * The Handsontable instance passed to this manager on construction.
    */
   declare hot: unknown;
@@ -267,10 +273,38 @@ export default class MetaManager {
     cellMeta.col = physicalColumn;
 
     if (!options.skipMetaExtension) {
-      this.runLocalHooks('afterGetCellMeta', cellMeta);
+      this.#runExtensionHook('afterGetCellMeta', cellMeta);
     }
 
     return cellMeta;
+  }
+
+  /**
+   * Tells whether a dynamic extension of some cell meta object is running now: the `beforeGetCellMeta`
+   * hook, the `cells` function, or the `afterGetCellMeta` hook. A data read made from one of them skips
+   * the extension of the cell it reads, because that extension would run the same user code again and,
+   * for the cell being extended, never end.
+   *
+   * @returns {boolean}
+   */
+  isExtendingCellMeta(): boolean {
+    return this.#extensionDepth > 0;
+  }
+
+  /**
+   * Runs the local hook that extends a cell meta object, counting it in `isExtendingCellMeta()`.
+   *
+   * @param {string} hookName The local hook that extends the object.
+   * @param {object} cellMeta The cell meta object to extend.
+   */
+  #runExtensionHook(hookName: 'afterGetCellMeta' | 'extendTransientCellMeta', cellMeta: CellProperties) {
+    this.#extensionDepth += 1;
+
+    try {
+      this.runLocalHooks(hookName, cellMeta);
+    } finally {
+      this.#extensionDepth -= 1;
+    }
   }
 
   /**
@@ -380,7 +414,7 @@ export default class MetaManager {
       storedMeta.row = physicalRow;
       storedMeta.col = physicalColumn;
 
-      this.runLocalHooks('afterGetCellMeta', storedMeta);
+      this.#runExtensionHook('afterGetCellMeta', storedMeta);
 
       return storedMeta;
     }
@@ -392,7 +426,7 @@ export default class MetaManager {
     cellMeta.row = physicalRow;
     cellMeta.col = physicalColumn;
 
-    this.runLocalHooks('extendTransientCellMeta', cellMeta);
+    this.#runExtensionHook('extendTransientCellMeta', cellMeta);
 
     return cellMeta;
   }
