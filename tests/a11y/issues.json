@@ -131,6 +131,7 @@
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["label", "aria-input-field-name", "select-name"] },
         { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["\\[role=\"listbox\"\\]"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["focus-order-semantics"], "where": ["htFocusCatcher"] },
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["label-content-name-mismatch"], "where": ["htFiltersMenuCondition"] },
         { "source": "reader", "kinds": ["token-missing"], "pages": ["comment-editor", "filters-by-condition", "filters-by-value"], "where": ["^(open-comment-editor|tab-to-condition|shift-tab-to-select)$"] }
       ]
     },
@@ -270,8 +271,7 @@
       "title": "The accessible name of the Filters \"Filter by value\" component does not include its visible text",
       "tracker": "DEV-2948",
       "match": [
-        { "source": "axe", "axeIssues": ["filter-by-value-name"] },
-        { "source": "checks", "checks": ["axe-discovery"], "rules": ["label-content-name-mismatch"] }
+        { "source": "checks", "checks": ["axe-discovery"], "rules": ["label-content-name-mismatch"], "where": ["htFiltersMenuValue"] }
       ]
     },
     {

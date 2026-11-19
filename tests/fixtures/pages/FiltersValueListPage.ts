@@ -76,12 +76,14 @@ export class FiltersValueListPage {
    * Navigate to the fixture and wait for the grid to render. The active theme and
    * bundle are passed as query params so the fixture loads the matching stylesheet
    * and Handsontable build.
+   *
+   * @param {string} [query] More query params for the fixture, e.g. `aria=off`.
    */
-  async goto(): Promise<void> {
+  async goto(query = ''): Promise<void> {
     assertKnownBundle(this.bundle, '(page, theme, bundle, fixture)');
 
     await this.page.goto(
-      `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}`);
+      `/tests/fixtures/demo/${this.fixture}?theme=${this.theme}&bundle=${this.bundle}${query ? `&${query}` : ''}`);
     // The bundle first: it is several megabytes and every worker pulls its own copy, so on a cold
     // server the cell assertion alone times out before the grid has a chance to build.
     await awaitBundle(this.page);
