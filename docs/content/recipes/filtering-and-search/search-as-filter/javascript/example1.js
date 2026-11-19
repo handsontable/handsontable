@@ -63,17 +63,20 @@ const hot = new Handsontable(hotContainer, {
 
 searchInput.addEventListener('input', () => {
   const results = hot.getPlugin('search').query(searchInput.value);
-  const matchingRows = results.map((result) => result.row);
+  const matchingRows = new Set(results.map((result) => result.row));
 
   const hiddenRows = hot.getPlugin('hiddenRows');
-  const allRows = hot.getData().map((rowData, row) => row);
-  const rowsToHide = allRows.filter((row) => !matchingRows.includes(row));
-
-  hiddenRows.showRows(hiddenRows.getHiddenRows());
+  const rowsToHide = [];
 
   if (searchInput.value !== '') {
-    hiddenRows.hideRows(rowsToHide);
+    for (let row = 0; row < hot.countRows(); row += 1) {
+      if (!matchingRows.has(row)) {
+        rowsToHide.push(row);
+      }
+    }
   }
 
+  hiddenRows.showRows(hiddenRows.getHiddenRows());
+  hiddenRows.hideRows(rowsToHide);
   hot.render();
 });

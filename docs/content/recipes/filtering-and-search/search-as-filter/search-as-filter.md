@@ -76,7 +76,7 @@ const hot = new Handsontable(container, {
 
 ## Step 2: Find the matching rows
 
-When the input changes, pass its value to `query()` and read the row of each result:
+When the input changes, pass its value to `query()` and collect the row of each result:
 
 ```javascript ins={7-10}
 const hot = new Handsontable(container, {
@@ -87,7 +87,7 @@ const hot = new Handsontable(container, {
 
 searchInput.addEventListener('input', () => {
   const results = hot.getPlugin('search').query(searchInput.value);
-  const matchingRows = results.map(result => result.row);
+  const matchingRows = new Set(results.map(result => result.row));
 });
 ```
 
@@ -95,9 +95,9 @@ searchInput.addEventListener('input', () => {
 
 ## Step 3: Hide the other rows
 
-Show the rows that the previous query hid, hide the rows without a match, and render the grid:
+List the rows without a match. Then show the rows that the previous query hid, hide the listed rows, and render the grid:
 
-```javascript ins={11-21}
+```javascript ins={11-24}
 const hot = new Handsontable(container, {
   data,
   search: true,
@@ -106,30 +106,33 @@ const hot = new Handsontable(container, {
 
 searchInput.addEventListener('input', () => {
   const results = hot.getPlugin('search').query(searchInput.value);
-  const matchingRows = results.map(result => result.row);
+  const matchingRows = new Set(results.map(result => result.row));
 
   const hiddenRows = hot.getPlugin('hiddenRows');
-  const allRows = hot.getData().map((rowData, row) => row);
-  const rowsToHide = allRows.filter(row => !matchingRows.includes(row));
-
-  hiddenRows.showRows(hiddenRows.getHiddenRows());
+  const rowsToHide = [];
 
   if (searchInput.value !== '') {
-    hiddenRows.hideRows(rowsToHide);
+    for (let row = 0; row < hot.countRows(); row += 1) {
+      if (!matchingRows.has(row)) {
+        rowsToHide.push(row);
+      }
+    }
   }
 
+  hiddenRows.showRows(hiddenRows.getHiddenRows());
+  hiddenRows.hideRows(rowsToHide);
   hot.render();
 });
 ```
 
-An empty query matches nothing, so the `if` check skips `hideRows()` and every row stays visible.
+An empty query matches nothing, so the `if` check keeps `rowsToHide` empty and every row stays visible.
 
 The `HiddenRows` plugin hides rows without removing them from the data. For details, see the [Row hiding](@/guides/rows/row-hiding/row-hiding.md) guide.
 
 ## What you learned
 
 - How to enable the `Search` and `HiddenRows` plugins together.
-- How to turn the results of `query()` into a list of matching rows.
+- How to turn the results of `query()` into a set of matching rows.
 - How to hide the other rows with `showRows()` and `hideRows()`, and show all rows when the query is empty.
 
 ## Next steps
