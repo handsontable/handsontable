@@ -37,7 +37,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox
+  - textbox "ID, row 1"
 - button "Add sheet"
 - button "All sheets"
 - group "Sheets":

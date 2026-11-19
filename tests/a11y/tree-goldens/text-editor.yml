@@ -43,7 +43,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox: B2
+  - textbox "B, row 2": B2
 # portal
 - status
 - status

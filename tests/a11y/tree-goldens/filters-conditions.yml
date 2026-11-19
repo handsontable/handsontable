@@ -49,7 +49,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox
+  - textbox "Price, row 1"
 # portal
 - menu:
   - table:
