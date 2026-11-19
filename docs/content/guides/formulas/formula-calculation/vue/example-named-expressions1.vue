@@ -63,6 +63,7 @@ function buttonClickCallback() {
   <div id="example-named-expressions1">
     <div class="example-controls-container">
       <div class="controls">
+        <label for="named-expressions-input">Named expression ADDITIONAL_COST</label>
         <input
           id="named-expressions-input"
           type="text"

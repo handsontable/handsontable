@@ -1585,7 +1585,7 @@ const hotSettings = ref({
 ## View the explainer video
 
 <div class="docs-video-embed">
-  <iframe src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
+  <iframe title="Formula calculation explainer video" src="https://www.youtube.com/embed/JJXUmACTDdk"></iframe>
 </div>
 
 ## Known limitations

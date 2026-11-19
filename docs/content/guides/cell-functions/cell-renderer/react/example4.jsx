@@ -4,6 +4,8 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
+const toPlainText = (html) => new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
+
 const ExampleComponent = () => {
   const data = [
     {
@@ -37,10 +39,11 @@ const ExampleComponent = () => {
     td.innerHTML = value;
   }
 
-  function coverRenderer(_instance, td, _row, _col, _prop, value, _cellProperties) {
+  function coverRenderer(instance, td, row, _col, _prop, value, _cellProperties) {
     const img = document.createElement('img');
 
     img.src = value;
+    img.alt = toPlainText(String(instance.getDataAtRowProp(row, 'title')));
     img.addEventListener('mousedown', (event) => {
       event.preventDefault();
     });

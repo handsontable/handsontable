@@ -2,14 +2,15 @@
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type Handsontable from 'handsontable/base';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
 function imageRenderer(
-  _instance: unknown,
+  instance: Handsontable,
   td: HTMLTableCellElement,
-  _row: number,
+  row: number,
   _col: number,
   _prop: string | number,
   value: unknown
@@ -18,6 +19,7 @@ function imageRenderer(
   const img = document.createElement('img');
 
   img.src = src;
+  img.alt = String(instance.getDataAtCell(row, 0) ?? '');
   img.addEventListener('mousedown', (event) => {
     event.preventDefault();
   });
