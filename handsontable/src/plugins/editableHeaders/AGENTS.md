@@ -28,9 +28,13 @@ option, a row header) through an input laid over the header. Read this before to
   with `fastInnerHTML()`, which parses a label that looks like markup, and an end user types these names: a
   typed `<img onerror>` ran in the grid and in AutoColumnSize's GhostTable, which calls
   `view.appendColHeader()` directly, and in the copied HTML table (`instanceToTableElement()` in
-  `../../utils/parseTable.ts`), which also asks `TableView#isPlainTextHeader()`. Overwriting the label later (an `afterGetColHeader` listener, a wrapped
+  `../../utils/parseTable.ts`), which also asks `TableView#isPlainTextHeader()`. With `textExtractor` on, the
+  CSV and XLSX export (`../exportFile/dataProvider.ts`) and copy with headers (`../copyPaste/copyPaste.ts`,
+  `#readPlainTextHeaders()`) skip the extraction for a rename too: it is text already, and the extraction parsed
+  `a<b>c` into `ac`. Overwriting the label later (an `afterGetColHeader` listener, a wrapped
   header renderer) is too late: the markup is already parsed, and a detached `<img>` still fires `onerror`. So
-  `TableView#updateCellHeader()` asks the resolver this plugin registers in `onGridReady()`
+  `TableView#updateCellHeader()` asks the resolver (only for the default `getColHeader`/`getRowHeader` label: a
+  header row a plugin draws with a label function of its own keeps its markup) this plugin registers in `onGridReady()`
   (`setPlainTextHeaderResolver(#isRenamedHeader)`) and writes a rename with `fastInnerText()`. A configured
   label keeps the HTML path and the `sanitizer` option. `disablePlugin()` removes the resolver.
 - **`updatePlugin()` keeps the renames, and an open input.** It does not run `disablePlugin()` +
@@ -57,8 +61,9 @@ option, a row header) through an input laid over the header. Read this before to
 - **The input is mounted in `rootElement`, not in the header cell.** A header cell is rebuilt on each
   render, which would drop the input and its focus. `#syncEditor` moves the input over the header on
   `afterRender` and on `afterScroll`: a scroll inside the drawn band moves the overlays with no render, so
-  `afterRender` alone left the input behind its column. When the header is no longer drawn it saves and closes,
-  in a `_registerTimeout()`, because the save renders and `afterRender` is inside a render.
+  `afterRender` alone left the input behind its column. When the header is no longer drawn it closes without
+  saving (see the cancel bullet below), in a `_registerTimeout()`: the close moves the focus and the shortcut
+  context, and `afterRender` runs inside a render.
 - **Undo, redo and `clearHeaders()` fire `afterHeaderChange` themselves.** UndoRedo restores the index maps with
   no per-header event, so `#onBeforeRestore`/`#onAfterRestore` (and `clearHeaders()`) compare the maps before and
   after by physical index and fire the hook once per changed header, `beforeHeaderChange` never (an undo cannot be

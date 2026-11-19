@@ -420,6 +420,11 @@ export class EditableHeaders extends BasePlugin {
     const newValue = stringify(value);
     const oldValue = this.#readHeader(axis, visualIndex);
 
+    // The header shows that name already: no hooks, and no undo step that changes nothing.
+    if (newValue === stringify(oldValue)) {
+      return true;
+    }
+
     if (this.hot.runHooks('beforeHeaderChange', axis, visualIndex, newValue, oldValue) === false) {
       return false;
     }

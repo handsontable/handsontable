@@ -273,6 +273,78 @@ describe('EditableHeaders', () => {
     destroy();
   });
 
+  it('should export and copy a renamed header as typed with `textExtractor: true`', () => {
+    const { hot, plugin, destroy } = createGrid({
+      textExtractor: true,
+      colHeaders: ['<b>Name</b>', 'B1', 'C1', 'D1'],
+      rowHeaders: ['<i>One</i>', 'Two', 'Three'],
+    });
+
+    plugin.setHeader('column', 1, 'a<b>c');
+    plugin.setHeader('row', 1, 'R&amp;D');
+
+    const csv = hot.getPlugin('exportFile').exportAsString('csv', { colHeaders: true, rowHeaders: true });
+    const [headerLine, , secondLine] = csv.split('\r\n');
+
+    // A configured header is still projected into text; a rename is the text the user typed.
+    expect(headerLine).toContain('"Name","a<b>c"');
+    expect(secondLine).toBe('R&amp;D,e,f,g,h');
+
+    const copyPaste = hot.getPlugin('copyPaste');
+    const clipboard: Record<string, string> = {};
+
+    hot.selectCell(0, 0, 0, 1);
+    // jsdom has no `execCommand`: `copy()` only sets the mode here, and the event is dispatched by hand below.
+    (document as unknown as { execCommand: () => boolean }).execCommand = () => true;
+    copyPaste.copy('with-column-headers');
+    delete (document as unknown as { execCommand?: unknown }).execCommand;
+    copyPaste.onCopy({
+      clipboardData: {
+        types: [],
+        getData: () => '',
+        setData: (type: string, value: string) => {
+          clipboard[type] = value;
+        },
+      },
+      target: hot.rootElement,
+      preventDefault() {},
+      composedPath: () => [],
+    } as unknown as ClipboardEvent);
+
+    expect(clipboard['text/plain'].split('\n')[0]).toBe('Name\ta<b>c');
+    destroy();
+  });
+
+  it('should change nothing for a setHeader() with the name the header already shows', () => {
+    const beforeHeaderChange = jest.fn();
+    const afterHeaderChange = jest.fn();
+    const { hot, plugin, destroy } = createGrid({ undo: true, beforeHeaderChange, afterHeaderChange });
+
+    expect(plugin.setHeader('column', 1, 'B1')).toBe(true);
+    expect(beforeHeaderChange).not.toHaveBeenCalled();
+    expect(afterHeaderChange).not.toHaveBeenCalled();
+    expect(hot.getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+    destroy();
+  });
+
+  it('should keep the HTML of an extra header row a plugin draws with its own label for a renamed column', () => {
+    const { hot, plugin, destroy } = createGrid({
+      afterGetColumnHeaderRenderers(this: Handsontable, renderers: Array<(column: number, TH: HTMLElement) => void>) {
+        renderers.unshift((column, TH) => {
+          this.view.appendColHeader(column, TH, () => '<b class="own-level">Group</b>', 0);
+        });
+      },
+    });
+
+    plugin.setHeader('column', 1, 'Price');
+
+    const headers = Array.from(hot.rootElement.querySelectorAll('.ht_master thead tr')).map(tr => tr.children[2]);
+
+    expect(headers[0]?.querySelector('b.own-level')).not.toBeNull();
+    expect(headers[1]?.textContent).toBe('Price');
+    destroy();
+  });
+
   it('should export a renamed row header', () => {
     const { hot, plugin, destroy } = createGrid();
 

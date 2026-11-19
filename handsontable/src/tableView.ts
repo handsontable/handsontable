@@ -3435,8 +3435,11 @@ class TableView {
 
       const label = String(content(index, headerLevel));
       const axis = hasClass(element, 'rowHeader') ? 'row' : 'column';
+      // Only the default label can hold a rename. A header row a plugin draws with a label function of its own
+      // keeps its markup.
+      const isDefaultLabel = content === this.hot.getColHeader || content === this.hot.getRowHeader;
 
-      if (this.isPlainTextHeader(axis, index)) {
+      if (isDefaultLabel && this.isPlainTextHeader(axis, index)) {
         fastInnerText(element, label);
       } else {
         fastInnerHTML(element, label, getSanitizer(this.hot), 'header', this.hot.rootElement);
