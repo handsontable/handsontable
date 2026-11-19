@@ -46,9 +46,16 @@
       throw new Error('Unknown ?source= value: ' + JSON.stringify(htParams.get('source')));
     }
     const longSource = sourceMode === 'long';
-    const CHOICES = longSource
+    // `?allowHtml=true` turns `allowHtml` on for `autocomplete` and `dropdown` and wraps each choice in
+    // markup, so a spec can tell the text a choice shows from its raw HTML.
+    const allowHtml = ({ true: true, false: false })[htParams.get('allowHtml') ?? 'false'];
+    if (allowHtml === undefined) {
+      throw new Error('Unknown ?allowHtml= value: ' + JSON.stringify(htParams.get('allowHtml')));
+    }
+    const PLAIN_CHOICES = longSource
       ? Array.from({ length: 200 }, (unused, i) => `Al ${String(i + 1).padStart(3, '0')}`)
       : ['Alpha', 'Alfa', 'Alto'];
+    const CHOICES = allowHtml ? PLAIN_CHOICES.map(choice => `<b>${choice}</b>`) : PLAIN_CHOICES;
 
     window.htPendingQueries = [];
 
@@ -94,8 +101,8 @@
     }
 
     const columnByCellType = {
-      autocomplete: { type: 'autocomplete', source: listSource, strict },
-      dropdown: { type: 'dropdown', source: listSource },
+      autocomplete: { type: 'autocomplete', source: listSource, strict, allowHtml },
+      dropdown: { type: 'dropdown', source: listSource, allowHtml },
       handsontable: { type: 'handsontable', handsontable: { data: CHOICES.map(choice => [choice]) } },
       multiselect: { type: 'multiselect', source: CHOICES },
     };

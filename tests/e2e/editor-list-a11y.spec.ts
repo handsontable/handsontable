@@ -191,6 +191,26 @@ test.describe('narrowed list announcement', { tag: [THEMES_TAG, CROSS_BROWSER_TA
     await expect(grid.politeRegion).toHaveText('1 choice available: Alpha');
   });
 
+  test('announces the text a choice shows, not its markup, with allowHtml', async({ page, theme, bundle }) => {
+    const grid = new EditorListA11yPage(page, theme, bundle, 'autocomplete');
+
+    await grid.goto({ allowHtml: true });
+    await grid.startAnnouncementLog();
+    await page.clock.install();
+    await grid.openEditorAt(0, 0);
+    await page.clock.runFor(1000);
+
+    const listbox = grid.listbox('A, row 1');
+
+    await expect(listbox.getByRole('option')).toHaveCount(3);
+
+    await page.keyboard.type('f');
+    await page.clock.runFor(1000);
+    await expect(listbox.getByRole('option')).toHaveText(['Alfa']);
+
+    expect(await grid.announcements()).toEqual(['1 choice available: Alfa']);
+  });
+
   test('announces nothing for a response that lands after the editor closed', async({ page, theme, bundle }) => {
     const grid = new EditorListA11yPage(page, theme, bundle, 'autocomplete');
 

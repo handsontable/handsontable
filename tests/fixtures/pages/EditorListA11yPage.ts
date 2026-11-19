@@ -72,14 +72,17 @@ export class EditorListA11yPage {
    * @param {boolean} [options.asyncSource] Give the list its three choices through a function `source`
    * that answers only on {@link EditorListA11yPage#resolveQueries}.
    * @param {boolean} [options.strict] Make the `autocomplete` column strict.
+   * @param {boolean} [options.allowHtml] Turn `allowHtml` on and wrap each choice in `<b>`.
    * @param {boolean} [options.ariaTags] The grid's `ariaTags` setting.
    */
-  async goto({ longSource = false, asyncSource = false, strict = false, ariaTags = true }:
-    { longSource?: boolean, asyncSource?: boolean, strict?: boolean, ariaTags?: boolean } = {}): Promise<void> {
+  async goto({ longSource = false, asyncSource = false, strict = false, allowHtml = false, ariaTags = true }:
+    { longSource?: boolean, asyncSource?: boolean, strict?: boolean, allowHtml?: boolean, ariaTags?: boolean } = {}):
+    Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
       + (longSource ? '&source=200' : '')
       + (asyncSource ? '&source=async' : '')
       + (strict ? '&strict=true' : '')
+      + (allowHtml ? '&allowHtml=true' : '')
       + (ariaTags ? '' : '&ariaTags=false');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);

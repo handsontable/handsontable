@@ -57,6 +57,17 @@ function getListedText(choice: unknown): string {
 }
 
 /**
+ * Returns the text a reader sees for an already stripped choice: its listed text without tags, which
+ * an `allowHtml` choice keeps and the list renders as markup.
+ *
+ * @param {*} choice The stripped choice.
+ * @returns {string}
+ */
+function getVisibleText(choice: unknown): string {
+  return stripTags(getListedText(choice));
+}
+
+/**
  * @private
  * @class AutocompleteEditor
  */
@@ -435,7 +446,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     for (let i = 0; i < choices.length; i++) {
       const choice = choices[i];
-      const currentItem = stripTags(stringify(isKeyValueEntry(choice) ? choice.value : choice));
+      const currentItem = getVisibleText(choice);
       const itemToMatch = toComparable(currentItem);
 
       if (itemToMatch.indexOf(valueToMatch) === -1) {
@@ -928,7 +939,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     announce(String(this.hot.getTranslatedPhrase(phrase, {
       count: choices.length,
-      first: getListedText(choices[0]),
+      first: getVisibleText(choices[0]),
     }) ?? ''), 'polite');
   }
 
