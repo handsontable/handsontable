@@ -64,24 +64,19 @@ const hot = new Handsontable(hotContainer, {
   // licenseKey: 'your-license-key', get a key at https://handsontable.com/pricing/
 });
 
-const searchPlugin = hot.getPlugin('search');
-const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
-
 searchInput.addEventListener('input', () => {
-  const query = searchInput.value;
-  const results = searchPlugin.query(query) as SearchResult[];
-  const matchingRows = new Set(results.map(({ row }) => row));
-  const rowsToHide: number[] = [];
+  const results = hot.getPlugin('search').query(searchInput.value) as SearchResult[];
+  const matchingRows = results.map(result => result.row);
 
-  if (query !== '') {
-    for (let row = 0; row < hot.countRows(); row += 1) {
-      if (!matchingRows.has(row)) {
-        rowsToHide.push(row);
-      }
-    }
+  const hiddenRows = hot.getPlugin('hiddenRows');
+  const allRows = hot.getData().map((rowData, row) => row);
+  const rowsToHide = allRows.filter(row => !matchingRows.includes(row));
+
+  hiddenRows.showRows(hiddenRows.getHiddenRows());
+
+  if (searchInput.value !== '') {
+    hiddenRows.hideRows(rowsToHide);
   }
 
-  hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
-  hiddenRowsPlugin.hideRows(rowsToHide);
   hot.render();
 });

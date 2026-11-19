@@ -38,20 +38,18 @@ const ExampleComponent = () => {
 
     const query = event.currentTarget.value;
     const results = hot.getPlugin('search').query(query);
-    const matchingRows = new Set(results.map(({ row }) => row));
-    const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
-    const rowsToHide = [];
+    const matchingRows = results.map((result) => result.row);
+
+    const hiddenRows = hot.getPlugin('hiddenRows');
+    const allRows = hot.getData().map((rowData, row) => row);
+    const rowsToHide = allRows.filter((row) => !matchingRows.includes(row));
+
+    hiddenRows.showRows(hiddenRows.getHiddenRows());
 
     if (query !== '') {
-      for (let row = 0; row < hot.countRows(); row += 1) {
-        if (!matchingRows.has(row)) {
-          rowsToHide.push(row);
-        }
-      }
+      hiddenRows.hideRows(rowsToHide);
     }
 
-    hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
-    hiddenRowsPlugin.hideRows(rowsToHide);
     hot.render();
   };
 
