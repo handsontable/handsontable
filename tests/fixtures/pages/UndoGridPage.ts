@@ -1,6 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import type { CellValue, FixtureSortConfig } from './windowTypes';
-import { dragFillHandle, dragResizeHandle } from '../gestures';
+import { dragFillHandle, dragResizeHandle, pointerLeavesBody } from '../gestures';
 import { awaitBundle } from '../bundle';
 import { clickMenuItem, menuItem, openMenu } from './menuItems';
 
@@ -427,14 +427,11 @@ export class UndoGridPage {
 
   /**
    * Send the `mouseleave` the page body reports when the pointer ends outside its box, such as after a
-   * context menu item is clicked on a page whose body is as short as the grid. A real one lands on a
-   * frame the layout and the engine decide, so the test sends it at a point of its own choosing. The
-   * handlers run before this returns, so a focus they take is already taken when the next assertion reads it.
+   * context menu item is clicked on a page whose body is as short as the grid (`pointerLeavesBody()` in
+   * `fixtures/gestures.ts`).
    */
   async pointerLeavesBody(): Promise<void> {
-    await this.page.evaluate(() => {
-      document.body.dispatchEvent(new MouseEvent('mouseleave'));
-    });
+    await pointerLeavesBody(this.page);
   }
 
   /**

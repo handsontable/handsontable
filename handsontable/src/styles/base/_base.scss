@@ -472,10 +472,16 @@
       border-inline-start-color: var(--ht-cell-horizontal-border-color);
       border-inline-end-color: var(--ht-cell-horizontal-border-color);
 
-      &.invisibleSelection {
+      // The selection CopyPaste's Safari workaround makes (`makeElementContentEditableAndSelectItsContent`).
+      // The attribute is matched as well as the class, because a render rewrites the cell's `className`
+      // while the `contenteditable` attribute and the selection stay. The descendants are matched because
+      // WebKit does not apply an ancestor's `::selection` to them, and every header label is one.
+      &.invisibleSelection,
+      &[contenteditable] {
         outline: none;
 
-        &::selection {
+        &::selection,
+        & *::selection {
           background: transparent;
         }
       }

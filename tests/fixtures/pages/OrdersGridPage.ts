@@ -1,5 +1,6 @@
 import { type Page, type Locator, expect } from '@playwright/test';
 import { assertKnownBundle, awaitBundle } from '../bundle';
+import { pointerLeavesBody } from '../gestures';
 import { FiltersValueListPage } from './FiltersValueListPage';
 
 /**
@@ -26,6 +27,7 @@ type OrdersWindow = {
     getDataAtCell(row: number, column: number): unknown,
     getSourceData(): unknown[][],
     getSelected(): number[][] | undefined,
+    render(): void,
     getPlugin(name: 'hiddenColumns'): { getHiddenColumns(): number[] },
     getPlugin(name: 'multiColumnSorting'): { getSortConfig(): Array<{ column: number, sortOrder: string }> },
     getPlugin(name: 'pagination'): {
@@ -214,6 +216,45 @@ export class OrdersGridPage extends FiltersValueListPage {
    */
   async selected(): Promise<number[][] | undefined> {
     return this.page.evaluate(() => (window as unknown as OrdersWindow).hot.getSelected());
+  }
+
+  /**
+   * Renders the grid, the way a resize, a scroll or a data change does. A render rewrites the class
+   * list of every cell and header it draws.
+   */
+  async render(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as OrdersWindow).hot.render());
+  }
+
+  /**
+   * Makes the page body at least as tall as the window, so the pointer cannot end outside it. The
+   * fixture's body is only as tall as the grid, and the filter menu's OK button sits below it: once the
+   * menu closes, the browser reports a `mouseleave` on the body on a frame of its own choosing, which
+   * the CopyPaste plugin answers in Safari. A test that sends the `mouseleave` itself calls this first,
+   * so that its own is the only one.
+   */
+  async fillWindowWithBody(): Promise<void> {
+    await this.page.evaluate(() => {
+      document.body.style.minHeight = '100vh';
+    });
+  }
+
+  /**
+   * Sends the `mouseleave` the page body reports when the pointer ends outside its box
+   * (`pointerLeavesBody()` in `fixtures/gestures.ts`).
+   */
+  async pointerLeavesBody(): Promise<void> {
+    await pointerLeavesBody(this.page);
+  }
+
+  /**
+   * The text of the browser's own selection, the one its Copy command copies. The grid's cell
+   * selection is not part of it.
+   *
+   * @returns {Promise<string>}
+   */
+  async nativeSelectionText(): Promise<string> {
+    return this.page.evaluate(() => window.getSelection()?.toString() ?? '');
   }
 
   /**

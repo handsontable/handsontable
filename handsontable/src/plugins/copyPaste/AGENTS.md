@@ -127,6 +127,23 @@ test, so the `mouseleave` no longer takes the focus from the editor the user is 
   class turns it red) and `tests/e2e/undo-gestures.spec.ts` (WebKit leg, sends the `mouseleave` itself because
   a real one lands on a frame the layout decides, which is why the old test passed on a race).
 
+**The selection the `mouseleave` workaround makes must never show, and the cell's class cannot hide it
+alone.** `makeElementContentEditableAndSelectItsContent()` adds `invisibleSelection`, and `_base.scss` paints
+that selection transparent. Two things defeat a rule keyed on the class and the cell's own text:
+
+- **A render rewrites the cell's `className`** and drops the class, while `contenteditable` and the selection
+  stay. The pointer can stay outside the body for any length of time, so a render lands in between (the
+  container's `ResizeObserver` after a filter shrank the grid is one). The same render also drops the
+  `aria-hidden` the helper set, which nothing puts back.
+- **A header's label is a nested `span.colHeader`**, and WebKit does not apply an ancestor's `::selection` to
+  its descendants. The highlighted cell is a header after a header click with `navigableHeaders`, and after a
+  column's dropdown menu closes.
+
+So the rule matches `[contenteditable]` as well as the class, and every descendant of the cell as well as the
+cell. Keep the selection itself: Safari's Edit → Copy needs it. Pinned by
+`tests/e2e/clipboard-safari-header-selection.spec.ts` (WebKit leg; it renders once after the `mouseleave`, so
+each half of the rule has a case that fails without it).
+
 ## Ragged clipboard payloads (DEV-2615, #7389)
 
 A clipboard whose rows have unequal length must **not** be narrowed to the first row's width, or cells past
