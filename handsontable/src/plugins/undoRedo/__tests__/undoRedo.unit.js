@@ -323,6 +323,43 @@ describe('UndoRedo plugin', () => {
       expect(slice).not.toHaveBeenCalled();
     });
 
+    it('should not copy the redo stack to pop, put back or drop a step no stack hook listens to', () => {
+      const veto = () => false;
+
+      hot = new Handsontable(container, {
+        licenseKey: TEST_LICENSE_KEY,
+        data: [['A1'], ['A2'], ['A3']],
+        undo: true,
+      });
+      const plugin = hot.getPlugin('undoRedo');
+
+      hot.alter('insert_row_above', 1, 1);
+      hot.setDataAtCell(0, 0, 'a');
+      plugin.undo();
+      plugin.undo();
+
+      // The redo stack holds the edit, under the row insert on top.
+      const slice = jest.spyOn(plugin.undoneActions, 'slice');
+
+      // A pop, and a put-back: the replay of the row insert is vetoed.
+      hot.addHook('beforeCreateRow', veto);
+      plugin.redo();
+      hot.removeHook('beforeCreateRow', veto);
+
+      expect(plugin.undoneActions.length).toBe(2);
+
+      // A pop.
+      plugin.redo();
+
+      expect(plugin.undoneActions.length).toBe(1);
+
+      // A drop: a new dataset drops the whole history.
+      hot.loadData([['B1'], ['B2']]);
+
+      expect(plugin.undoneActions.length).toBe(0);
+      expect(slice).not.toHaveBeenCalled();
+    });
+
     it('should give a listener of only `afterUndoStackChange` the stack before and after a push', () => {
       const afterUndoStackChange = jest.fn();
 

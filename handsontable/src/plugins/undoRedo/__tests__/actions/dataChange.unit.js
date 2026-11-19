@@ -868,6 +868,37 @@ describe('UndoRedo -> DataChange action', () => {
       expect(JSON.parse(JSON.stringify(step)).changes).toEqual(step.changes);
     });
 
+    // A frozen step keeps the accessor, so an assignment runs its setter, which ignores it. The data
+    // property of an unread step frozen before 19.1 threw a `TypeError` in strict mode instead.
+    it('should ignore a value assigned to the field of a step frozen before it was read', () => {
+      const undoRedo = writeBulk();
+
+      const step = topStep(undoRedo);
+
+      Object.freeze(step);
+
+      expect(() => {
+        step.changes = ['frozen'];
+      }).not.toThrow();
+      expect(step.changes).toHaveLength(18);
+    });
+
+    it('should build the list of a 16-cell step at once and of a 17-cell step on its first read', () => {
+      const undoRedo = createGrid({
+        data: Array.from({ length: 17 }, (rowValue, row) => [`A${row + 1}`]),
+      });
+      const write = count => hot.setDataAtCell(Array.from({ length: count }, (value, row) => [row, 0, `w${count}`]));
+
+      write(16);
+
+      expect(Object.getOwnPropertyDescriptor(topStep(undoRedo), 'changes').value).toHaveLength(16);
+
+      write(17);
+
+      expect(Object.getOwnPropertyDescriptor(topStep(undoRedo), 'changes').get).toEqual(expect.any(Function));
+      expect(topStep(undoRedo).changes).toHaveLength(17);
+    });
+
     it('should keep a value a listener assigns to the field', () => {
       const undoRedo = createGrid();
 

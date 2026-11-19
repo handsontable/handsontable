@@ -276,6 +276,9 @@ is part of the undo, and a recorded step there would empty the redo stack the un
     (`indexChangedCells()`: an `Int32Array` of rows, one column per prop) and the values are read from
     the journal, so a sort or a move made before the first read does not change what the step reports.
     Never resolve them at read time. On the first read or write the field becomes a plain data property.
+    A step frozen before its first read keeps the accessor: reads work, and an assignment is ignored
+    (the old data property threw a `TypeError` there in strict mode). The 16/17-cell boundary and the
+    frozen assignment are pinned in `__tests__/actions/dataChange.unit.js`.
 - **Every drop of a step announces itself** (`#dropSteps`): the `before`/`after` stack hook pair of
   each stack that changes, not vetoable (the return value is ignored). `#resetHistory` goes through
   it, so a toolbar that follows the hooks never keeps an Undo button for a history that is gone. The
