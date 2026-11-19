@@ -66,9 +66,10 @@
   - menuitem "Filter by condition:":
     - text: "Filter by condition:"
     - listbox: None
-  - menuitem "Filter by value:":
+  - group "Filter by value:":
     - text: "Filter by value:"
-    - textbox "Search"
+    - textbox "Filter by value:":
+      - /placeholder: Search
     - button "Select all"
     - button "Select none"
     - treegrid:
