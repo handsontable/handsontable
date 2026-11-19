@@ -22,6 +22,7 @@ const FIVE_ITERATIONS = [
   'checkbox-column-set-data',
   'checkbox-header-toggle',
   'filtering',
+  'get-data',
   'initial-load',
   'paste-extend-rows',
   'row-selection-deselect-all',
