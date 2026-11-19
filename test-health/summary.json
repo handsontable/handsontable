@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-19T13:04:36.330Z",
+  "generatedAt": "2026-11-19T14:41:44.149Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 460,
     "needsTicket": 8,
     "quarantined": 0,
-    "entries": 2330
+    "entries": 2331
   },
   "rows": [
     {
@@ -230,11 +230,11 @@
       "file": "e2e/side-layout-slots.spec.ts",
       "line": 492,
       "title": "side layout slots › when the window owns horizontal scrolling › docks the end panel after the table's last column, reachable by scrolling the page",
-      "count7": 3,
-      "count30": 3,
-      "countAll": 3,
-      "runs30": 2,
-      "flakyRuns30": 2,
+      "count7": 4,
+      "count30": 4,
+      "countAll": 4,
+      "runs30": 3,
+      "flakyRuns30": 3,
       "branches30": 2,
       "nightlyRuns30": 0,
       "openBranches30": 2,
@@ -247,9 +247,9 @@
       "isolation": [],
       "quarantine": null,
       "lastSeen": {
-        "seenAt": "2026-11-19T10:55:29Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44499565022/attempts/2",
-        "branch": "feature/DEV-2954_aria-expanded-toggles",
+        "seenAt": "2026-11-19T14:40:46Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44539811333",
+        "branch": "develop",
         "leg": "e2e-webkit",
         "status": "flaky",
         "error": "Error: expect(received).toBeLessThanOrEqual(expected)",
