@@ -62,6 +62,27 @@ test.describe('handsontable editor grid popup', { tag: [THEMES_TAG, CROSS_BROWSE
     });
   });
 
+  test('keeps the field on the highlighted cell while the list scrolls', async() => {
+    await grid.goto({ twoListColumns: true, longSource: true });
+    await grid.openEditorAt(0, 0);
+    await grid.page.keyboard.press('ArrowDown');
+    await grid.page.keyboard.press('ArrowRight');
+    await expect.poll(() => grid.referencedElements()).toMatchObject({
+      activeDescendant: { role: 'gridcell', selected: 'true', text: 'Al 001 code', inList: true },
+    });
+
+    // The list draws other rows in the cells it drew row 1 in: the field must not name one of them.
+    await grid.scrollListToRow(100);
+    await expect(grid.gridPopup('A, row 1').getByRole('gridcell', { name: 'Al 101', exact: true })).toHaveCount(1);
+    expect(await grid.listSelection()).toEqual([0, 1]);
+    expect((await grid.referencedElements()).activeDescendant).toBeNull();
+
+    await grid.scrollListToRow(0);
+    await expect.poll(() => grid.referencedElements()).toMatchObject({
+      activeDescendant: { role: 'gridcell', selected: 'true', text: 'Al 001 code', inList: true },
+    });
+  });
+
   test('moves across the list columns with ArrowLeft and ArrowRight while a row is highlighted', async() => {
     await grid.goto({ twoListColumns: true });
     await grid.openEditorAt(0, 0);

@@ -285,11 +285,11 @@ export class HandsontableEditor extends TextEditor {
 
     this.htEditor.addHook('afterSelectionEnd', (row: number, col: number) => this.pointFieldAtListCell(row, col));
     this.htEditor.addHook('afterDeselect', () => this.#removeActiveDescendant());
-    // With its `ariaTags` on, the list's engine makes every drawn cell focusable (`tabindex="-1"`). The
-    // browser focus stays in the field, so the list's cells take none: the attribute is the only thing
-    // besides roles, names and ids the list's `ariaTags` changes, and it goes after every render.
-    this.htEditor.addHook('afterRender', this.#removeListCellTabIndex);
-    this.#removeListCellTabIndex();
+    // A scroll draws the list without `afterRender`, so the scroll hooks run the same pass.
+    this.htEditor.addHook('afterRender', this.#onListRender);
+    this.htEditor.addHook('afterScrollVertically', this.#onListRender);
+    this.htEditor.addHook('afterScrollHorizontally', this.#onListRender);
+    this.#removeListTabIndex();
 
     const active = this.htEditor.getSelectedActive();
 
@@ -301,13 +301,30 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * Removes the `tabindex` the list's engine writes on its cells while the list's `ariaTags` is on.
+   * After every render and scroll of the list: removes the `tabindex` its engine wrote, and points the field at the
+   * highlighted cell again. The list draws the rows it scrolls to in the cells it already has, so the cell
+   * the field named may now show another row.
    */
-  #removeListCellTabIndex = (): void => {
-    this.htEditor.rootElement.querySelectorAll<HTMLTableCellElement>('td[tabindex]').forEach((TD) => {
-      removeAttribute(TD, 'tabindex');
-    });
+  #onListRender = (): void => {
+    this.#removeListTabIndex();
+
+    const active = this.htEditor.getSelectedActive();
+
+    if (active) {
+      this.pointFieldAtListCell(active[0], active[1]);
+    }
   };
+
+  /**
+   * Removes the `tabindex="-1"` the list's engine puts on its drawn cells (with its `ariaTags` on) and on
+   * its scroll holders. The browser focus stays in the field, so nothing in the list takes it, and a
+   * focusable holder under `role="presentation"` is a child the `grid` role does not allow.
+   */
+  #removeListTabIndex(): void {
+    this.htEditor.rootElement.querySelectorAll<HTMLElement>('td[tabindex], .wtHolder[tabindex]').forEach((element) => {
+      removeAttribute(element, 'tabindex');
+    });
+  }
 
   /**
    * Removes what the grid popup wiring and the destroyed list grid left on the list's root element,
@@ -334,6 +351,12 @@ export class HandsontableEditor extends TextEditor {
   protected pointFieldAtListCell(row: number, col: number): void {
     this.#cancelPendingListCellPoint();
 
+    if (row < 0 || col < 0) {
+      removeAttribute(this.TEXTAREA, 'aria-activedescendant');
+
+      return;
+    }
+
     const listGrid = this.htEditor;
     const TD = listGrid.getCell(row, col, true);
 
@@ -342,6 +365,9 @@ export class HandsontableEditor extends TextEditor {
 
       return;
     }
+
+    // Until the cell is drawn, the field names nothing rather than the cell it named before.
+    removeAttribute(this.TEXTAREA, 'aria-activedescendant');
 
     const callback = () => {
       this.#cancelPendingListCellPoint();
