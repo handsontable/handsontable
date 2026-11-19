@@ -129,14 +129,57 @@ An empty query matches nothing, so the `if` check keeps `rowsToHide` empty and e
 
 The `HiddenRows` plugin hides rows without removing them from the data. For details, see the [Row hiding](@/guides/rows/row-hiding/row-hiding.md) guide.
 
+## Step 4 (optional): Debounce the input
+
+Each input event checks every cell and renders the grid. For a large dataset, wait until the typing stops before you filter:
+
+```javascript ins={7-14,16,34}
+const hot = new Handsontable(container, {
+  data,
+  search: true,
+  hiddenRows: true,
+});
+
+const debounce = (callback, delay = 120) => {
+  let timeoutId;
+
+  return () => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(callback, delay);
+  };
+};
+
+searchInput.addEventListener('input', debounce(() => {
+  const results = hot.getPlugin('search').query(searchInput.value);
+  const matchingRows = new Set(results.map(result => result.row));
+
+  const hiddenRows = hot.getPlugin('hiddenRows');
+  const rowsToHide = [];
+
+  if (searchInput.value !== '') {
+    for (let row = 0; row < hot.countRows(); row += 1) {
+      if (!matchingRows.has(row)) {
+        rowsToHide.push(row);
+      }
+    }
+  }
+
+  hiddenRows.showRows(hiddenRows.getHiddenRows());
+  hiddenRows.hideRows(rowsToHide);
+  hot.render();
+}));
+```
+
+The listener now runs once, 120 ms after the last keystroke.
+
 ## What you learned
 
 - How to enable the `Search` and `HiddenRows` plugins together.
 - How to turn the results of `query()` into a set of matching rows.
 - How to hide the other rows with `showRows()` and `hideRows()`, and show all rows when the query is empty.
+- How to debounce the input so that the filter runs once per pause in typing.
 
 ## Next steps
 
-- Debounce the input for large datasets, as in the [External search box](@/recipes/filtering-and-search/external-search-box/external-search-box.md) recipe.
 - Explore [highlight search matches](@/recipes/filtering-and-search/highlight-search-matches/highlight-search-matches.md) to wrap the matched text in `<mark>` tags.
 - Filter by a separate condition per column with the [Multi-column filter panel](@/recipes/filtering-search/multi-column-filter-panel/multi-column-filter-panel.md) recipe.
