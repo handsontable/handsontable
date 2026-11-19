@@ -105,4 +105,24 @@ test.describe('Sidebar collapsed at tablet width', () => {
     await expect(pane).toHaveAttribute('aria-hidden', 'true');
     expect(await pane.evaluate((element: HTMLElement) => element.inert)).toBe(true);
   });
+
+  test('moves the focus to the toggle when the window narrows into the tablet range with the focus in the sidebar', async({ page }) => {
+    const toggle = page.locator(TOGGLE);
+    const pane = page.locator(PANE);
+    const sidebarLink = pane.locator('a[href]').first();
+
+    await toggle.focus();
+    await page.keyboard.press('Enter');
+    await expect(pane).toHaveAttribute('aria-hidden', 'true');
+
+    await page.setViewportSize(DESKTOP);
+    await expect(pane).not.toHaveAttribute('aria-hidden', /.*/);
+    await sidebarLink.focus();
+    await expect(sidebarLink).toBeFocused();
+
+    await page.setViewportSize(TABLET);
+
+    await expect(pane).toHaveAttribute('aria-hidden', 'true');
+    await expect(toggle).toBeFocused();
+  });
 });

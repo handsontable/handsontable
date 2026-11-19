@@ -490,6 +490,9 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       } else {
         sidebarPane.removeAttribute('aria-hidden');
       }
+      if (hidden && sidebarPane.contains(document.activeElement)) {
+        sidebarToggle?.focus();
+      }
       sidebarPane.inert = hidden;
     }
 
