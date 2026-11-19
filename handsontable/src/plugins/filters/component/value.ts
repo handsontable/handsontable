@@ -65,7 +65,7 @@ export class ValueComponent extends BaseComponent {
   searchMode: unknown;
 
   /**
-   * The id of the element that shows the component's name. It names the menu item group and the search input.
+   * The id of the element that shows the component's name. It names the group inside the menu item and the search input.
    */
   #labelId: string;
 
@@ -376,8 +376,11 @@ export class ValueComponent extends BaseComponent {
 
           if (!isGhostTable && this.hot?.getSettings().ariaTags) {
             label.id = this.#labelId;
+            // The row stays a menu item, the only role a menu may own, and takes its name from its
+            // content. The group is the wrapper inside it: a group that is a child of the menu may
+            // hold menu items only.
             removeAttribute(wrapper.parentNode, 'aria-label');
-            setAttribute(wrapper.parentNode, [A11Y_GROUP(), A11Y_LABELED_BY(this.#labelId)]);
+            setAttribute(wrapper, [A11Y_GROUP(), A11Y_LABELED_BY(this.#labelId)]);
           }
         }
 

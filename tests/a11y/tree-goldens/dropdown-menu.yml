@@ -54,26 +54,27 @@
   - menuitem "Filter by condition:":
     - text: "Filter by condition:"
     - listbox: None
-  - group "Filter by value:":
-    - text: "Filter by value:"
-    - textbox "Filter by value:":
-      - /placeholder: Search
-    - button "Select all"
-    - button "Select none"
-    - treegrid:
-      - rowgroup:
-        - row "Checked Blue":
-          - gridcell "Checked Blue":
-            - checkbox "Checked" [checked]
-            - text: Blue
-        - row "Checked Green":
-          - gridcell "Checked Green":
-            - checkbox "Checked" [checked]
-            - text: Green
-        - row "Checked Red":
-          - gridcell "Checked Red":
-            - checkbox "Checked" [checked]
-            - text: Red
+  - menuitem "Filter by value:":
+    - group "Filter by value:":
+      - text: "Filter by value:"
+      - textbox "Filter by value:":
+        - /placeholder: Search
+      - button "Select all"
+      - button "Select none"
+      - treegrid:
+        - rowgroup:
+          - row "Checked Blue":
+            - gridcell "Checked Blue":
+              - checkbox "Checked" [checked]
+              - text: Blue
+          - row "Checked Green":
+            - gridcell "Checked Green":
+              - checkbox "Checked" [checked]
+              - text: Green
+          - row "Checked Red":
+            - gridcell "Checked Red":
+              - checkbox "Checked" [checked]
+              - text: Red
   - menuitem "Action bar":
     - button "OK"
     - button "Cancel"
