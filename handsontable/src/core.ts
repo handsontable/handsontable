@@ -10438,6 +10438,7 @@ export default function Core(
    * @function getRowHeader
    * @param {number} [row] Visual row index.
    * @fires Hooks#modifyRowHeader
+   * @fires Hooks#modifyRowHeaderValue
    * @returns {Array|string|number} Array of header values / single header value.
    */
   this.getRowHeader = function(row: number) {
@@ -10464,6 +10465,10 @@ export default function Core(
 
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
       rowHeader = physicalRow + 1;
+    }
+
+    if (row !== undefined) {
+      rowHeader = instance.runHooks('modifyRowHeaderValue', rowHeader, row);
     }
 
     return rowHeader as string | string[];

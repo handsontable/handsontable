@@ -205,6 +205,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   limitFixedToViewport: true,
   locale: 'pl-PL',
   freezeBar: { rows: true, columns: false },
+  editableHeaders: { columnHeaders: true, rowHeaders: false },
   manualColumnFreeze: true,
   manualColumnMove: true,
   manualColumnResize: true,
@@ -556,6 +557,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterGetColHeader: (col, TH, headerLevel) => {},
   afterGetColumnHeaderRenderers: (array) => {},
   afterGetRowHeader: (row, TH) => {},
+  afterHeaderChange: (axis, visualIndex, newValue, oldValue) => {
+    const headerAxis: 'column' | 'row' = axis;
+    const name: string = newValue;
+  },
   afterGetRowHeaderRenderers: (array) => {},
   afterHideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterHideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
@@ -791,6 +796,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
+  beforeHeaderChange: (axis, visualIndex, newValue, oldValue) => axis === 'row' && newValue !== '',
   beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => {
     const _column: number = column;
     const _headerLevel: number = headerLevel;
@@ -986,6 +992,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
+  modifyRowHeaderValue: (headerValue, visualRowIndex) => `${headerValue}`,
   modifyRowHeaderWidth: rowHeaderWidth => oneOf(80, [80, 40]),
   modifyRowHeight: (height, row, source) => {
     const _height: number = height;

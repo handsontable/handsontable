@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "id": "editable-headers",
+  "group": "editors",
+  "surface": "Renaming a column header with the keyboard: F2 on a focused header opens a named field holding the name, Enter saves it and announces the new name, and Escape cancels.",
+  "page": "editable-headers",
+  "state": "header-editor",
+  "criteria": ["2.1.1", "2.4.3", "4.1.2", "4.1.3"],
+  "setup": [{"selectCell": [0, 1]}],
+  "steps": [
+    {
+      "id": "arrow-up-to-header",
+      "action": {"press": "ArrowUp"},
+      "expect": [["price"]],
+      "note": "Navigable headers let ArrowUp enter the Price column header. VoiceOver with WebKit says nothing on this first arrow key, as on the first key of other scenarios."
+    },
+    {
+      "id": "f2-open-field",
+      "action": {"press": "F2"},
+      "expect": [["header name"], ["price"]],
+      "note": "F2 opens the field over the header, named `Header name`, holding the name selected. Finding: VoiceOver with WebKit says nothing when the field takes the focus."
+    },
+    {
+      "id": "type-name",
+      "action": {"type": "Cost"},
+      "expect": [],
+      "note": "Typing replaces the selected name. Nothing is required: a reader may echo the keys."
+    },
+    {
+      "id": "enter-save",
+      "action": {"press": "Enter"},
+      "expect": [["header renamed to cost"]],
+      "note": "Enter saves the name, closes the field and puts the focus back on the header, now `Cost`; the plugin announces `Header renamed to Cost` (polite)."
+    },
+    {
+      "id": "f2-open-again",
+      "action": {"press": "F2"},
+      "expect": [["header name"], ["cost"]],
+      "note": "The field opens again, holding the new name."
+    },
+    {
+      "id": "escape-cancel",
+      "action": {"press": "Escape"},
+      "expect": [["cost"]],
+      "note": "Escape closes the field without saving, and the focus is back on the header, still `Cost`."
+    }
+  ]
+}

@@ -253,6 +253,12 @@ rows are copied. Cell values and row headers are **not** projected, and that is 
 `textExtractor` not running on copied cell values is the designed behavior, not a missing call — do not
 "complete" it.
 
+**A header a user renamed (`EditableHeaders`) is not projected either.** It is text already, and the
+extraction parsed `a<b>c` into `ac`. `#readPlainTextHeaders()` records, before `beforeCopy`, which header cells
+`TableView#isPlainTextHeader()` reports and the value each holds; `#extractHeaderText()` leaves such a cell
+alone only while it still holds that value at that position, so a listener that reshaped the row gets the usual
+projection. Pinned in `../editableHeaders/__tests__/editableHeaders.unit.ts`.
+
 ## Hook ordering details
 
 - **`beforePaste` may modify the values, and the original payload is snapshotted first**, so the plugin can

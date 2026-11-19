@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "editable-headers",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-18T13:40:46.752Z"
+  },
+  "steps": {
+    "arrow-up-to-header": "",
+    "f2-open-field": "",
+    "type-name": "t cost",
+    "enter-save": "header renamed to cost",
+    "f2-open-again": "",
+    "escape-cancel": "cost menu pop up"
+  }
+}

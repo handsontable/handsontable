@@ -42,6 +42,7 @@ export const PLUGIN_COVERAGE = {
   dialog: { pages: ['dialog', 'loading'] },
   dragToScroll: { none: 'scrolls the grid while a pointer drags and draws nothing of its own' },
   dropdownMenu: { pages: ['dropdown-menu', 'filters-conditions'] },
+  editableHeaders: { pages: ['editable-headers'] },
   emptyDataState: { pages: ['empty-data'] },
   exportFile: { none: 'writes data to a file and draws no element of its own' },
   filters: { pages: ['dropdown-menu', 'filters-conditions'] },
