@@ -110,6 +110,22 @@ for (const cellType of CELL_TYPES) {
       expect(await grid.isUndoAvailable()).toBe(false);
     });
 
+    if (cellType === 'handsontable') {
+      // The rule above covers a value the input could not hold whole, and nothing more: an untouched
+      // single-line value still goes through `trimWhitespace`, as it did in the textarea. (The autocomplete
+      // and dropdown editors already keep any untouched text, for their key/value labels.)
+      test('still trims an untouched single-line value on confirm', async({ page }) => {
+        await grid.build({ data: [['  Alpha  ', null, null, null]] });
+        await grid.selectCell(0, 0);
+        await page.keyboard.press('Enter');
+        await grid.expectEditorOpened();
+        await page.keyboard.press('Enter');
+        await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+        expect(await grid.sourceDataAtCell(0, 0)).toBe('Alpha');
+      });
+    }
+
     test('keeps its value and stays open on Alt+Enter', async({ page }) => {
       await grid.build();
       await grid.selectCell(0, 0);

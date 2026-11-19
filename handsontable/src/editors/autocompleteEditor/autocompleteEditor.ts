@@ -469,6 +469,23 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
+   * Tells whether the edit being confirmed leaves the cell as it was. Besides the rules of
+   * `HandsontableEditor`, an edit whose text the user never changed and whose list they never picked
+   * from is unchanged: `getValue()` resolves a label into the FIRST entry that carries it, so the base
+   * comparison with the seeded label fails for a key/value cell, and writing would replace an entry
+   * with another one of the same label. Nothing is written then, the cell's value is validated as it
+   * is, and no `afterChange` fires.
+   *
+   * @private
+   * @param {*} held The editor value after `trimWhitespace`.
+   * @param {*} value The value that would be written, after `valueParser`.
+   * @returns {boolean}
+   */
+  protected isEditUnchanged(held: unknown, value: unknown): boolean {
+    return super.isEditUnchanged(held, value) || (this.innerSelectionOrigin !== 'user' && this.holdsOpeningText());
+  }
+
+  /**
    * Returns the comparator the list is sorted with when `sortByRelevance` is `false`.
    *
    * When `sourceLabel` relabels an object `value` in `source`, a key/value entry is compared by

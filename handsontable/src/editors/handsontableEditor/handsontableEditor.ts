@@ -9,6 +9,7 @@ import {
   stopImmediatePropagation,
 } from '../../helpers/dom/event';
 import { extend } from '../../helpers/object';
+import { stringify } from '../../helpers/mixed';
 import { EDITOR_EDIT_GROUP } from '../../shortcuts/contexts';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
@@ -125,6 +126,19 @@ export class HandsontableEditor extends TextEditor {
    * @type {string | null}
    */
   #openedText: string | null = null;
+  /**
+   * Whether the input dropped part of the text the editor opened with (a line break), so the base
+   * unchanged-edit rule, which compares with the seeded value, cannot see that the user typed nothing.
+   *
+   * @type {boolean}
+   */
+  #openedTextIsLossy = false;
+  /**
+   * Whether the input dropped part of the text the last `setValue()` call gave it.
+   *
+   * @type {boolean}
+   */
+  #lastValueIsLossy = false;
 
   /**
    * The value the inner grid contributes to the commit, or `undefined` to leave the typed value
@@ -216,6 +230,7 @@ export class HandsontableEditor extends TextEditor {
     }
 
     this.#openedText = null;
+    this.#openedTextIsLossy = false;
     this.removeHooksByKey('beforeKeyDown');
     super.close();
   }
@@ -358,7 +373,19 @@ export class HandsontableEditor extends TextEditor {
     // against it.
     if (opensOnCellValue && this.isOpened()) {
       this.#openedText = this.TEXTAREA.value;
+      this.#openedTextIsLossy = this.#lastValueIsLossy;
     }
+  }
+
+  /**
+   * Sets the editor value, and notes whether the single-line input dropped part of it (a line break).
+   *
+   * @param {*} [newValue] The value to set.
+   */
+  setValue(newValue?: unknown): void {
+    super.setValue(newValue);
+
+    this.#lastValueIsLossy = stringify(newValue) !== this.TEXTAREA.value;
   }
 
   /**
@@ -375,12 +402,11 @@ export class HandsontableEditor extends TextEditor {
 
   /**
    * Tells whether the edit being confirmed leaves the cell as it was. Besides the base rule, an edit
-   * whose text the user never changed and whose list they never picked from is unchanged. Two cases need
-   * it. The input is single-line, so a stored value with a line break opens without it, and the base
-   * comparison with the seeded value fails although the user typed nothing. And the autocomplete
-   * editor's `getValue()` resolves a label into the FIRST entry that carries it, so the base comparison
-   * fails for a key/value cell, and writing would replace an entry with another one of the same label.
-   * Nothing is written then, the cell's value is validated as it is, and no `afterChange` fires.
+   * that opened on a value the single-line input could not hold whole (a value with a line break), and
+   * whose text and list the user never changed, is unchanged: the input opened without the line break,
+   * so the base comparison with the seeded value fails although the user typed nothing. Nothing is
+   * written then, the cell's value is validated as it is, and no `afterChange` fires. Any other edit
+   * keeps the base rule, so an untouched value still goes through `trimWhitespace` and `valueParser`.
    *
    * @private
    * @param {*} held The editor value after `trimWhitespace`.
@@ -388,7 +414,8 @@ export class HandsontableEditor extends TextEditor {
    * @returns {boolean}
    */
   protected isEditUnchanged(held: unknown, value: unknown): boolean {
-    return super.isEditUnchanged(held, value) || (this.innerSelectionOrigin !== 'user' && this.holdsOpeningText());
+    return super.isEditUnchanged(held, value) ||
+      (this.#openedTextIsLossy && this.innerSelectionOrigin !== 'user' && this.holdsOpeningText());
   }
 
   /**
@@ -401,6 +428,7 @@ export class HandsontableEditor extends TextEditor {
 
     if (this.#openedText !== null) {
       this.#openedText = this.TEXTAREA.value;
+      this.#openedTextIsLossy = this.#lastValueIsLossy;
     }
   }
 
