@@ -106,6 +106,29 @@
       throw new Error('Unknown ?enterMoves= value: ' + JSON.stringify(htParams.get('enterMoves')));
     }
 
+    // `?validator=held` gives the column a validator that answers only when a spec calls
+    // `htReleaseValidations()`, so the editor waits for the answer as long as the spec needs.
+    const validatorMode = ({ held: 'held' })[htParams.get('validator') ?? ''] ?? null;
+    if (htParams.has('validator') && validatorMode === null) {
+      throw new Error('Unknown ?validator= value: ' + JSON.stringify(htParams.get('validator')));
+    }
+    window.htHeldValidations = [];
+    window.htReleaseValidations = function() {
+      const held = window.htHeldValidations.splice(0);
+
+      held.forEach(callback => callback(true));
+
+      return held.length;
+    };
+    const heldValidator = function(value, callback) {
+      window.htHeldValidations.push(callback);
+    };
+    // `?contextMenu=true` turns the context menu on, a surface in the grid's portal.
+    const contextMenu = ({ true: true, false: false })[htParams.get('contextMenu') ?? 'false'];
+    if (contextMenu === undefined) {
+      throw new Error('Unknown ?contextMenu= value: ' + JSON.stringify(htParams.get('contextMenu')));
+    }
+
     const columnByCellType = {
       autocomplete: { type: 'autocomplete', source: listSource, strict, allowHtml },
       dropdown: { type: 'dropdown', source: listSource, allowHtml },
@@ -115,7 +138,9 @@
       text: { type: 'text' },
     };
 
-    const column = columnByCellType[window.htCellType];
+    const column = validatorMode === 'held'
+      ? { ...columnByCellType[window.htCellType], validator: heldValidator }
+      : columnByCellType[window.htCellType];
 
     // A fresh value per cell: `multiselect` stores an array, and sharing one instance across cells
     // would let a chip removal in one cell show up in the others.
@@ -166,6 +191,7 @@
       ...settings,
       ariaTags,
       ...(enterMoves ? { enterMoves } : {}),
+      ...(contextMenu ? { contextMenu: true } : {}),
       colHeaders: true,
       rowHeaders: true,
       // Stamp test ids from `afterRenderer`, not from a grid-level `renderer`: a column `type`

@@ -90,12 +90,16 @@ export class EditorListA11yPage {
    * @param {boolean} [options.ariaTags] The grid's `ariaTags` setting.
    * @param {boolean} [options.enterStays] Set `enterMoves: { row: 0, col: 0 }`, so Enter keeps the selection
    * on the edited cell.
+   * @param {boolean} [options.heldValidator] Give the column a validator that answers only on
+   * {@link EditorListA11yPage#releaseValidations}.
+   * @param {boolean} [options.contextMenu] Turn the context menu on.
    */
   async goto({
     longSource = false, asyncSource = false, strict = false, allowHtml = false, ariaTags = true, enterStays = false,
+    heldValidator = false, contextMenu = false,
   }: {
     longSource?: boolean, asyncSource?: boolean, strict?: boolean, allowHtml?: boolean, ariaTags?: boolean,
-    enterStays?: boolean,
+    enterStays?: boolean, heldValidator?: boolean, contextMenu?: boolean,
   } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
       + (longSource ? '&source=200' : '')
@@ -103,7 +107,9 @@ export class EditorListA11yPage {
       + (strict ? '&strict=true' : '')
       + (allowHtml ? '&allowHtml=true' : '')
       + (ariaTags ? '' : '&ariaTags=false')
-      + (enterStays ? '&enterMoves=stay' : '');
+      + (enterStays ? '&enterMoves=stay' : '')
+      + (heldValidator ? '&validator=held' : '')
+      + (contextMenu ? '&contextMenu=true' : '');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);
     await awaitBundle(this.page);
@@ -293,6 +299,27 @@ export class EditorListA11yPage {
     }), frames);
 
     return this.focusTarget();
+  }
+
+  /**
+   * The number of validations the held validator has not answered yet.
+   */
+  async heldValidationCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { htHeldValidations: unknown[] }).htHeldValidations.length);
+  }
+
+  /**
+   * Answers every validation the held validator holds, and returns how many it answered.
+   */
+  async releaseValidations(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { htReleaseValidations(): number }).htReleaseValidations());
+  }
+
+  /**
+   * Whether the browser focus is inside the open context menu.
+   */
+  async isFocusInContextMenu(): Promise<boolean> {
+    return this.page.evaluate(() => !!document.activeElement?.closest('.htContextMenu'));
   }
 
   /**

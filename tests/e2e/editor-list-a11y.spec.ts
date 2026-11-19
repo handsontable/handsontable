@@ -366,6 +366,27 @@ for (const cellType of COMMIT_CELL_TYPES) {
       await expectFocusOnCell(0, 0);
     });
 
+    test('leaves the focus in a menu opened while the commit waits for its validator', async() => {
+      await grid.goto({ heldValidator: true, contextMenu: true });
+      await grid.openEditorAt(0, 0);
+      await grid.page.keyboard.type('x');
+      await grid.page.keyboard.press('Enter');
+      // The commit waits: the validator holds its answer.
+      await expect.poll(() => grid.heldValidationCount()).toBe(1);
+
+      await grid.cell(1, 1).click({ button: 'right' });
+      await expect(grid.page.locator('.htContextMenu')).toBeVisible();
+      await expect.poll(() => grid.isFocusInContextMenu()).toBe(true);
+
+      expect(await grid.releaseValidations()).toBe(1);
+      // The positive control: the answer closed the editor and wrote the value.
+      await expect.poll(() => grid.isEditorOpened()).toBe(false);
+      await expect(grid.cell(0, 0)).toHaveText(/Alx/);
+
+      await grid.focusTargetAfterFrames(SETTLE_FRAMES);
+      expect(await grid.isFocusInContextMenu()).toBe(true);
+    });
+
     if (hasList) {
       test('moves the focus to the edited cell when a click commits a choice', async() => {
         await grid.goto();

@@ -478,8 +478,8 @@ export class FocusGridManager {
    * editor open until the answer comes, a microtask or more after the key that committed it, and by
    * then the selection has already moved and its focus was skipped because the editor was open. Without
    * this the browser focus stayed on the closed editor's field. The editor's finish listener runs when the
-   * editor closes or reopens on a rejected value; a reopened editor keeps the focus, and a focus the user
-   * moved out of the grid in the meantime is left alone.
+   * editor closes or reopens on a rejected value; a reopened editor keeps the focus, and the focus moves
+   * only while it is still on the editor's field, where the commit left it.
    *
    * @param {ActiveEditorInstance} editor The editor waiting for its validator.
    */
@@ -505,7 +505,12 @@ export class FocusGridManager {
     this.#waitingEditor = null;
     editor?._removeFinishListener?.(this.#onWaitingEditorFinish);
 
-    if (this.#hot.isDestroyed || !this.#hasBrowserFocus) {
+    // The focus moves only from where the commit left it, the editor's field. A focus that moved meanwhile, to
+    // a menu, a dialog, a side-slot input, another element of the grid, or out of the grid, is the user's.
+    // `getDeepActiveElement()` looks into a shadow root the grid renders in; a sandboxed host that hides the
+    // field behind its host reads as a moved focus, so the focus stays on the field as it did before.
+    if (this.#hot.isDestroyed || !editor?.TEXTAREA ||
+        getDeepActiveElement(this.#hot.rootDocument) !== editor.TEXTAREA) {
       return;
     }
 

@@ -127,7 +127,9 @@ type HookCallback = (...args: unknown[]) => unknown;
  *
  * @returns {object} The manager, the fake instance's controls and a `td` standing for the rendered cell.
  */
-function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
+function makeDeferredFocusGrid(
+  settings: { imeFastEdit?: boolean, wrapper?: HTMLElement, shadowHost?: HTMLElement } = {},
+) {
   const root = document.createElement('div');
   const td = document.createElement('td');
   const hooks = Hooks.getSingleton();
@@ -140,12 +142,26 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
   };
 
   root.className = 'handsontable';
-  document.body.append(root, td);
+
+  if (settings.wrapper) {
+    settings.wrapper.append(root);
+    document.body.append(td);
+
+    if (settings.shadowHost) {
+      document.body.append(settings.shadowHost);
+      settings.shadowHost.attachShadow({ mode: 'open' }).append(settings.wrapper);
+    } else {
+      document.body.append(settings.wrapper);
+    }
+  } else {
+    document.body.append(root, td);
+  }
+
   jest.spyOn(td, 'focus');
 
   const hot = {
     rootElement: root,
-    rootWrapperElement: null,
+    rootWrapperElement: settings.wrapper ?? null,
     rootPortalElement: null,
     rootDocument: document,
     get isDestroyed() {
@@ -391,14 +407,15 @@ describe('FocusGridManager focus after an editor waiting for its validator', () 
    *
    * @returns {object} The grid controls and the waiting editor.
    */
-  function makeGrid() {
-    const grid = makeDeferredFocusGrid();
-    const root = document.querySelector('.handsontable') as HTMLElement;
+  function makeGrid(shadowHost?: HTMLElement) {
+    const wrapper = document.createElement('div');
+    const grid = makeDeferredFocusGrid({ wrapper, shadowHost });
+    const root = wrapper.querySelector('.handsontable') as HTMLElement;
     const waiting = makeWaitingEditor(root);
 
     grid.state.rendered = true;
 
-    return { grid, waiting };
+    return { grid, waiting, wrapper };
   }
 
   afterEach(() => {
@@ -419,6 +436,16 @@ describe('FocusGridManager focus after an editor waiting for its validator', () 
 
     expect(grid.td.focus).toHaveBeenCalledTimes(1);
     expect(waiting.listeners.size).toBe(0);
+  });
+
+  it('focuses the highlighted cell once the waiting editor closes in a grid inside a shadow root', () => {
+    const { grid, waiting } = makeGrid(document.createElement('div'));
+
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    waiting.finish();
+
+    expect(grid.td.focus).toHaveBeenCalledTimes(1);
   });
 
   it('adds one finish listener however often the focus is asked for during the wait', () => {
@@ -446,7 +473,7 @@ describe('FocusGridManager focus after an editor waiting for its validator', () 
     expect(waiting.listeners.size).toBe(0);
   });
 
-  it('leaves a focus the user moved out of the grid during the wait', () => {
+  it('leaves the focus on an element outside the grid it moved to during the wait', () => {
     const { grid, waiting } = makeGrid();
     const outside = document.createElement('input');
 
@@ -458,6 +485,36 @@ describe('FocusGridManager focus after an editor waiting for its validator', () 
 
     expect(grid.td.focus).not.toHaveBeenCalled();
     expect(document.activeElement).toBe(outside);
+  });
+
+  it('leaves the focus on an element of the root wrapper it moved to during the wait', () => {
+    // A side-slot input, a menu in the portal, or the dialog: inside the grid's wrapper, off the editor's field.
+    const { grid, waiting, wrapper } = makeGrid();
+    const slotInput = document.createElement('input');
+
+    wrapper.prepend(slotInput);
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    slotInput.focus();
+    waiting.finish();
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(slotInput);
+  });
+
+  it('leaves the focus on another element of the grid it moved to during the wait', () => {
+    // An input of a nested grid or a renderer inside the grid's root element, off the editor's field.
+    const { grid, waiting, wrapper } = makeGrid();
+    const cellInput = document.createElement('input');
+
+    (wrapper.querySelector('.handsontable') as HTMLElement).append(cellInput);
+    grid.setActiveEditor(waiting.editor);
+    grid.manager.focusOnHighlightedCell();
+    cellInput.focus();
+    waiting.finish();
+
+    expect(grid.td.focus).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(cellInput);
   });
 
   it('does not wait for an open editor that is not waiting', () => {
