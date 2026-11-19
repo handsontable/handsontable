@@ -1100,6 +1100,50 @@ export default (): Record<string, unknown> => {
     cells: undefined,
 
     /**
+     * The `applyCellsToDataReads` option makes data reads call the [`cells`](#cells) function for
+     * every cell they read, so a [`valueGetter`](#valuegetter) or a key/value cell type that `cells`
+     * sets applies to every row, rendered or not.
+     *
+     * By default, a data read applies such a `valueGetter` only to the cells the grid has rendered.
+     * The grid keeps the cell meta of the rows around the viewport and drops it when they scroll away,
+     * so without this option, [`getData()`](@/api/core.md#getdata) and the other `getDataAt*()` methods,
+     * copying, and column sorting return the raw value for the other rows.
+     *
+     * With this option on, those reads call `cells` once for every cell they return. A read runs no
+     * `beforeGetCellMeta` or `afterGetCellMeta` hook and stores no cell meta. The cost grows with what
+     * `cells` does: a `cells` function that reads grid data (for example, `this.instance.getDataAtRow(row)`)
+     * pays that read for every cell, so a full `getData()` of a large grid can take seconds. Turn the
+     * option on only for the columns whose `cells` function sets a `valueGetter` or a cell type.
+     *
+     * Read more:
+     * - [`cells`](#cells)
+     * - [`valueGetter`](#valuegetter)
+     * - [Performance: Avoid the `cells` option when possible](@/guides/optimization/performance/performance.md#avoid-the-cells-option-when-possible)
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     * @configScope grid columns
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     // apply the `valueGetter` that `cells` sets to every row a data read returns
+     *     applyCellsToDataReads: true,
+     *   },
+     *   {},
+     * ],
+     * cells(row, column) {
+     *   return column === 0 ? { valueGetter: value => String(value).toUpperCase() } : {};
+     * },
+     * ```
+     */
+    applyCellsToDataReads: false,
+
+    /**
      * The `checkedTemplate` option lets you configure what value
      * a checked [`checkbox`](@/guides/cell-types/checkbox-cell-type/checkbox-cell-type.md) cell has.
      *

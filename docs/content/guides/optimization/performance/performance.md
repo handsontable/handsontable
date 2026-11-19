@@ -164,6 +164,8 @@ Changing your background, font colors, etc., shouldn't lower the performance. Ho
 
 The [`cells`](@/api/options.md#cells) option is a function invoked before each of Handsontable's [rendering cycles](@/guides/optimization/rendering/rendering.md). Because it runs on every render for every visible cell, even a small amount of work inside it adds up quickly and can noticeably slow down the grid.
 
+With [`applyCellsToDataReads`](@/api/options.md#applycellstodatareads) on, data reads call it too, for every cell they return: [`getData()`](@/api/core.md#getdata) and the other `getDataAt*()` methods, copying, and sorting. A full `getData()` of a large grid then calls it for every row, not only the visible ones, and a `cells` function that reads grid data pays that read for every cell. Turn the option on only for the columns whose `cells` function sets a `valueGetter` or a cell type.
+
 Prefer lighter alternatives when they meet your needs:
 
 - [`cell`](@/api/options.md#cell) - a static array of per-cell options, evaluated once.

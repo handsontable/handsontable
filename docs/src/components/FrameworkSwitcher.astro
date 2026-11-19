@@ -129,8 +129,13 @@ const items = frameworks.map((fw) => {
     background: var(--sl-color-gray-7, var(--sl-color-gray-6));
   }
 
-  /* Below 920px the header runs out of room — show icons only. The label stays the tab's accessible name. */
-  @media (max-width: 57.49rem) {
+  /*
+   * Below 1120px the header runs out of room — show icons only. The label
+   * stays the tab's accessible name. The header's Playground link (DEV-2046)
+   * moved this up from 920px: between the two, the labels pushed the version
+   * selector off the edge.
+   */
+  @media (max-width: 69.99rem) {
     .fw-tab {
       gap: 0;
       padding: 0.5rem 0.6rem;
@@ -143,6 +148,13 @@ const items = frameworks.map((fw) => {
       overflow: hidden;
       clip-path: inset(50%);
       white-space: nowrap;
+    }
+  }
+
+  /* Narrow tablets (below 920px): tighter icons, like the header's nav links. */
+  @media (max-width: 57.49rem) {
+    .fw-tab {
+      padding-inline: 0.4rem;
     }
   }
 

@@ -69,11 +69,12 @@ the callbacks called in row order, but a callback that writes data mid-query see
 of its block. `performance-tests/scenarios/search-query` guards the time and fails a run that stores more than
 20000 meta objects.
 
-The value read follows `getDataAtCell()`, so it carries the known 18.1 limit from `../../dataMap/metaManager/AGENTS.md`:
-a `valueGetter` (or key/value cell type) supplied through `cells()` applies only to cells with stored meta. A query
-over a grid like that tests the raw value of an unstored cell and the getter's value of a stored one (rendered, or a
-match of an earlier query). Before, the first query stored meta for every cell, so later queries read every cell
-through the getter. The fix belongs in the read path, not here.
+The value read follows `getDataAtCell()`, so it carries the data-read rule from `../../dataMap/metaManager/AGENTS.md`:
+unless `applyCellsToDataReads` is on, a `valueGetter` (or key/value cell type) supplied through `cells()` applies only
+to cells with stored meta. A query over a grid like that tests the raw value of an unstored cell and the getter's
+value of a stored one (rendered, or a match of an earlier query). Before, the first query stored meta for every cell,
+so later queries read every cell through the getter. Turn the option on for a consistent read; do not store meta here
+to get one.
 
 ## `queryMethod` is locale-aware, and must stay so
 
