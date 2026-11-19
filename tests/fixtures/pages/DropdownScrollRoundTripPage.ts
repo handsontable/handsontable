@@ -150,7 +150,7 @@ export class DropdownScrollRoundTripPage {
   }
 
   /**
-   * The value currently held by the editor (its textarea), whether or not it is shown.
+   * The value currently held by the editor (its input), whether or not it is shown.
    */
   async editorValue(): Promise<string | null> {
     return this.page.evaluate(() => (
@@ -196,15 +196,17 @@ export class DropdownScrollRoundTripPage {
   }
 
   /**
-   * Focuses the editor textarea, so a subsequent `type()` reaches it. The autocomplete requery is
-   * driven by the textarea's own `input` event.
+   * Focuses the open editor's field (the text editor's textarea, or the input of the dropdown and
+   * autocomplete editors), so a subsequent `type()` reaches it. The autocomplete requery is driven by
+   * the field's own `input` event. Every editor keeps its holder in the DOM and only hides it when it
+   * closes, so the open editor's field is the one in a visible holder.
    */
   async focusEditor(): Promise<void> {
-    await this.page.getByTestId('grid').locator('.handsontableInputHolder textarea.handsontableInput').focus();
+    await this.page.getByTestId('grid').locator('.handsontableInputHolder:not(.ht_editor_hidden) .handsontableInput').focus();
   }
 
   /**
-   * Types into the focused editor textarea.
+   * Types into the focused editor field.
    */
   async type(text: string): Promise<void> {
     await this.page.keyboard.type(text);

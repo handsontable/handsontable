@@ -36,7 +36,6 @@ import {
   A11Y_RELEVANT,
   A11Y_SELECTED,
   A11Y_SETSIZE,
-  A11Y_TEXT,
 } from '../../helpers/a11y';
 import { debounce } from '../../helpers/function';
 import { isPlainObject } from '../../helpers/object';
@@ -107,15 +106,6 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @type {Set}
    */
   #queryTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
-  /**
-   * The text the editor opened with when it was seeded from the cell, or `null` when it opened with
-   * text of its own (a fast edit, `beginEditing('x')`) or is closed. While the editor still holds it,
-   * the user has changed nothing, and the strict commit must not replace the cell's value
-   * (`#firstPartialMatch()`).
-   *
-   * @type {string | null}
-   */
-  #openedText: string | null = null;
 
   /**
    * Gets current value from editable element.
@@ -170,7 +160,6 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(this.TEXTAREA, [
-        A11Y_TEXT(),
         A11Y_COMBOBOX(),
         A11Y_HASPOPUP('listbox'),
         A11Y_AUTOCOMPLETE(),
@@ -205,34 +194,6 @@ export class AutocompleteEditor extends HandsontableEditor {
       valueGetter: (cellValue: unknown) => (isKeyValueEntry(cellValue)
         ? cellValue.value : cellValue),
     };
-  }
-
-  /**
-   * Begins editing and remembers the text the editor was seeded with from the cell.
-   *
-   * @param {*} [newInitialValue] The initial editor value. A string is text the user brought (a fast
-   *   edit), anything else opens the editor on the cell's value.
-   * @param {Event} [event] The event that started the edit.
-   */
-  beginEditing(newInitialValue?: unknown, event?: Event): void {
-    // An editor already open is left as it is, as the base class leaves it: a double-click on the
-    // edited cell calls this again, and taking the typed text as the opening text would stop strict
-    // mode from completing it.
-    if (this.state !== EDITOR_STATE.VIRGIN) {
-      super.beginEditing(newInitialValue, event);
-
-      return;
-    }
-
-    const opensOnCellValue = typeof newInitialValue !== 'string' && this.isInFullEditMode();
-
-    this.#openedText = null;
-    super.beginEditing(newInitialValue, event);
-
-    // Read after the seed, before the deferred first query: the query compares against it.
-    if (opensOnCellValue && this.isOpened()) {
-      this.#openedText = this.TEXTAREA.value;
-    }
   }
 
   /**
@@ -504,47 +465,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {number | null}
    */
   #firstPartialMatch(): number | null {
-    return this.#holdsOpeningText() ? null : 0;
-  }
-
-  /**
-   * Tells whether the editor still holds the non-empty text it was seeded with from the cell.
-   *
-   * @returns {boolean}
-   */
-  #holdsOpeningText(): boolean {
-    const openedWith = this.#openedText;
-
-    return openedWith !== null && openedWith !== '' && this.TEXTAREA.value === openedWith;
-  }
-
-  /**
-   * Tells whether the edit being confirmed leaves the cell as it was. Besides the base rule, an edit
-   * whose text the user never changed and whose list they never picked from is unchanged: `getValue()`
-   * resolves a label into the FIRST entry that carries it, so the base comparison with the seeded label
-   * fails for a key/value cell, and writing would replace an entry with another one of the same label.
-   * Nothing is written then, the cell's value is validated as it is, and no `afterChange` fires.
-   *
-   * @private
-   * @param {*} held The editor value after `trimWhitespace`.
-   * @param {*} value The value that would be written, after `valueParser`.
-   * @returns {boolean}
-   */
-  protected isEditUnchanged(held: unknown, value: unknown): boolean {
-    return super.isEditUnchanged(held, value) || (this.innerSelectionOrigin !== 'user' && this.#holdsOpeningText());
-  }
-
-  /**
-   * Re-seeds the unchanged-edit baseline after the open editor took the cell's value again
-   * (`TextEditor#refreshValue()`, after `setSourceDataAtCell()` on the edited cell), and the opening
-   * text with it.
-   */
-  protected resetValueBeforeEdit(): void {
-    super.resetValueBeforeEdit();
-
-    if (this.#openedText !== null) {
-      this.#openedText = this.TEXTAREA.value;
-    }
+    return this.holdsOpeningText() ? null : 0;
   }
 
   /**
@@ -622,7 +543,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     // something here: short-circuiting on `strict` would hand back a pick the typing superseded.
     // Strict mode completes text the user typed. Text they never changed is the cell's own value, which
     // the confirm keeps as it is (`isEditUnchanged()`), even where an entry equals it only without case.
-    if (this.cellProperties.strict !== true || this.#holdsOpeningText()) {
+    if (this.cellProperties.strict !== true || this.holdsOpeningText()) {
       return undefined;
     }
 
@@ -658,7 +579,6 @@ export class AutocompleteEditor extends HandsontableEditor {
     // on scroll-back), while `close()` here is the genuine edit-end teardown that also unhooks and tears
     // down the inner grid.
     this.#dropInFlightQueries();
-    this.#openedText = null;
 
     this.removeHooksByKey('beforeKeyDown');
     super.close();

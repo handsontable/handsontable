@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { TextEditor } from '../textEditor';
+import { EDITOR_STATE } from '../baseEditor';
 import { setCaretPosition, getFixedContainingBlockRect, isHTMLElement } from '../../helpers/dom/element';
 import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
 import { getVerticalRoom, getVisibleVerticalRange } from '../utils/visibleVerticalRange';
@@ -44,6 +45,12 @@ export class HandsontableEditor extends TextEditor {
    * @type {object}
    */
   declare htOptions: Record<string, unknown>;
+  /**
+   * The single-line text input the editor edits in (the property keeps the name `TextEditor` gave it).
+   *
+   * @type {HTMLInputElement}
+   */
+  declare TEXTAREA: HTMLInputElement;
 
   // Mixin methods from hooksRefRegisterer (applied to BaseEditor at runtime).
   /**
@@ -107,6 +114,17 @@ export class HandsontableEditor extends TextEditor {
    * identical height twice per scroll event.
    */
   protected appliedDropdownHeight = 0;
+
+  /**
+   * The text the editor opened with when it was seeded from the cell, or `null` when it opened with
+   * text of its own (a fast edit, `beginEditing('x')`) or is closed. While the editor still holds it,
+   * the user has changed nothing, and confirming must not replace the cell's value
+   * (`isEditUnchanged()`). It is the text the input holds, not the stored value: a single-line input
+   * drops a line break the stored value has.
+   *
+   * @type {string | null}
+   */
+  #openedText: string | null = null;
 
   /**
    * The value the inner grid contributes to the commit, or `undefined` to leave the typed value
@@ -197,6 +215,7 @@ export class HandsontableEditor extends TextEditor {
       this.htEditor.rootElement.style.display = 'none';
     }
 
+    this.#openedText = null;
     this.removeHooksByKey('beforeKeyDown');
     super.close();
   }
@@ -321,14 +340,79 @@ export class HandsontableEditor extends TextEditor {
       return;
     }
 
+    // An editor already open is left as it is, as the base class leaves it: a double-click on the
+    // edited cell calls this again, and taking the typed text as the opening text would stop strict
+    // mode from completing it.
+    if (this.state !== EDITOR_STATE.VIRGIN) {
+      super.beginEditing(newInitialValue, event);
+
+      return;
+    }
+
+    const opensOnCellValue = typeof newInitialValue !== 'string' && this.isInFullEditMode();
+
+    this.#openedText = null;
     super.beginEditing(newInitialValue, event);
+
+    // Read after the seed, before the autocomplete editor's deferred first query: the query compares
+    // against it.
+    if (opensOnCellValue && this.isOpened()) {
+      this.#openedText = this.TEXTAREA.value;
+    }
   }
 
   /**
-   * Creates an editor's elements and adds necessary CSS classnames.
+   * Tells whether the editor still holds the non-empty text it was seeded with from the cell.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  protected holdsOpeningText(): boolean {
+    const openedWith = this.#openedText;
+
+    return openedWith !== null && openedWith !== '' && this.TEXTAREA.value === openedWith;
+  }
+
+  /**
+   * Tells whether the edit being confirmed leaves the cell as it was. Besides the base rule, an edit
+   * whose text the user never changed and whose list they never picked from is unchanged. Two cases need
+   * it. The input is single-line, so a stored value with a line break opens without it, and the base
+   * comparison with the seeded value fails although the user typed nothing. And the autocomplete
+   * editor's `getValue()` resolves a label into the FIRST entry that carries it, so the base comparison
+   * fails for a key/value cell, and writing would replace an entry with another one of the same label.
+   * Nothing is written then, the cell's value is validated as it is, and no `afterChange` fires.
+   *
+   * @private
+   * @param {*} held The editor value after `trimWhitespace`.
+   * @param {*} value The value that would be written, after `valueParser`.
+   * @returns {boolean}
+   */
+  protected isEditUnchanged(held: unknown, value: unknown): boolean {
+    return super.isEditUnchanged(held, value) || (this.innerSelectionOrigin !== 'user' && this.holdsOpeningText());
+  }
+
+  /**
+   * Re-seeds the unchanged-edit baseline after the open editor took the cell's value again
+   * (`TextEditor#refreshValue()`, after `setSourceDataAtCell()` on the edited cell), and the opening
+   * text with it.
+   */
+  protected resetValueBeforeEdit(): void {
+    super.resetValueBeforeEdit();
+
+    if (this.#openedText !== null) {
+      this.#openedText = this.TEXTAREA.value;
+    }
+  }
+
+  /**
+   * Creates an editor's elements and adds necessary CSS classnames. The editor edits in a single-line
+   * `<input type="text">`, not the `<textarea>` of `TextEditor`: the autocomplete and dropdown editors
+   * built on it expose the field as a combobox, a role ARIA in HTML does not allow on a textarea.
    */
   createElements(): void {
-    super.createElements();
+    super.createElements('input');
+
+    this.TEXTAREA.setAttribute('type', 'text');
 
     const DIV = this.hot.rootDocument.createElement('DIV');
 
