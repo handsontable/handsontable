@@ -66,60 +66,50 @@ In this tutorial, you will add a search input that hides every row without a mat
 
 Set `search` and `hiddenRows` to `true` in the grid settings:
 
-```typescript
+```javascript
 const hot = new Handsontable(container, {
   data,
   search: true,
   hiddenRows: true,
-  // licenseKey: 'your-license-key', get a key at https://handsontable.com/pricing/
 });
-
-const searchPlugin = hot.getPlugin('search');
-const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
 ```
 
 ## Step 2: Find the matching rows
 
-On every input event, call `query()` and collect the rows that contain at least one result:
+When the input changes, pass its value to `query()` and read the row of each result:
 
-```typescript
-searchInput.addEventListener('input', () => {
-  const query = searchInput.value;
-  const results = searchPlugin.query(query);
-  const matchingRows = new Set(results.map(({ row }) => row));
-});
+```javascript
+const results = hot.getPlugin('search').query(searchInput.value);
+const matchingRows = results.map(result => result.row);
 ```
 
-`query()` returns one `{ row, col, data }` object per matching cell. It also checks the cells of hidden rows, so a row that the previous query hid can match the next one.
+`query()` returns one `{ row, col, data }` object per matching cell. It checks hidden rows too, so a row that the previous query hid can match the next one.
 
 ## Step 3: Hide the other rows
 
-In the same listener, list every row that is not in the set. Then replace the hidden rows and render the grid:
+Show the rows that the previous query hid, hide the rows without a match, and render the grid:
 
-```typescript
-const rowsToHide = [];
+```javascript
+const hiddenRows = hot.getPlugin('hiddenRows');
+const rowsToHide = allRows.filter(row => !matchingRows.includes(row));
 
-if (query !== '') {
-  for (let row = 0; row < hot.countRows(); row += 1) {
-    if (!matchingRows.has(row)) {
-      rowsToHide.push(row);
-    }
-  }
+hiddenRows.showRows(hiddenRows.getHiddenRows());
+
+if (searchInput.value !== '') {
+  hiddenRows.hideRows(rowsToHide);
 }
 
-hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
-hiddenRowsPlugin.hideRows(rowsToHide);
 hot.render();
 ```
 
-An empty query matches nothing, so the `query !== ''` check keeps `rowsToHide` empty and every row is shown again.
+`allRows` holds every row index, from `0` to `hot.countRows() - 1`. An empty query matches nothing, so the `if` check skips `hideRows()` and every row stays visible.
 
 The `HiddenRows` plugin hides rows without removing them from the data. For details, see the [Row hiding](@/guides/rows/row-hiding/row-hiding.md) guide.
 
 ## What you learned
 
 - How to enable the `Search` and `HiddenRows` plugins together.
-- How to turn the results of `query()` into a set of matching rows.
+- How to turn the results of `query()` into a list of matching rows.
 - How to hide the other rows with `showRows()` and `hideRows()`, and show all rows when the query is empty.
 
 ## Next steps
