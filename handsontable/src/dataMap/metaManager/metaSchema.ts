@@ -1107,9 +1107,9 @@ export default (): Record<string, unknown> => {
      * By default, a data read applies such a `valueGetter` only to the cells the grid has rendered.
      * The grid keeps the cell meta of the rows around the viewport and drops it when they scroll away,
      * so without this option, [`getData()`](@/api/core.md#getdata) and the other `getDataAt*()` methods,
-     * copying, and column sorting return the raw value for the other rows.
+     * copying, column sorting, and filtering read the raw value for the other rows.
      *
-     * With this option on, those reads call `cells` once for every cell they return. A read runs no
+     * With this option on, those reads call `cells` once for every cell they read. A read runs no
      * `beforeGetCellMeta` or `afterGetCellMeta` hook and stores no cell meta. The cost grows with what
      * `cells` does: a `cells` function that reads grid data (for example, `this.instance.getDataAtRow(row)`)
      * pays that read for every cell, so a full `getData()` of a large grid can take seconds. Turn the
