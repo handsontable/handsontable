@@ -3675,9 +3675,10 @@ HTML doesn't allow `role="combobox"` on a `<textarea>`, so assistive technologie
 is the element the combobox pattern is defined for.
 
 The field keeps its class, `handsontableInput`, its `data-hot-input` and `tabindex="-1"` attributes, and its place in
-the `handsontableInputHolder` element. It covers the edited cell as before, and it grows with long text by the same
-rules. What changes:
+the `handsontableInputHolder` element. It covers the edited cell as before. What changes:
 
+- The field grows with long text in width only, up to the same limit as before. It stays as tall as the cell, and
+  text longer than that width scrolls on one line instead of wrapping into a taller box.
 - A `textarea.handsontableInput` selector no longer matches the field of these three editors.
 - The editor's `TEXTAREA` property keeps its name, and holds an `HTMLInputElement`.
 - The field holds one line of text. A stored value with a line break opens without the line break.
