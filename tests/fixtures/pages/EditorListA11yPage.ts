@@ -42,7 +42,13 @@ interface FixtureEditor {
   isOpened(): boolean;
   query: string | null;
   TEXTAREA: HTMLInputElement;
-  htEditor: { rootElement: HTMLElement };
+  htEditor: {
+    rootElement: HTMLElement;
+    getSelectedLast(): number[] | undefined;
+    selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean): boolean;
+    scrollViewportTo(options: { row: number, verticalSnap: 'top' }): boolean;
+    addHookOnce(name: string, callback: () => void): void;
+  };
 }
 
 interface FixtureWindow {
@@ -53,6 +59,7 @@ interface FixtureWindow {
     selectCell(row: number, col: number): boolean;
     getActiveEditor(): FixtureEditor | undefined;
     getCoords(element: Element): { row: number, col: number } | null;
+    getDataAtCell(row: number, col: number): unknown;
     rootElement: HTMLElement;
   };
 }
@@ -95,14 +102,19 @@ export class EditorListA11yPage {
    * @param {boolean} [options.passValidator] Give the column a validator that accepts every value.
    * @param {boolean} [options.contextMenu] Turn the context menu on.
    * @param {boolean} [options.outsideClickDeselects] The grid's `outsideClickDeselects` setting.
+   * @param {boolean} [options.twoListColumns] Give the `handsontable` list a second column (`Alpha code`).
+   * @param {boolean} [options.innerAriaTags] The `ariaTags` setting of the `handsontable` list's own
+   * settings; `true` leaves it out.
+   * @param {boolean} [options.rtl] Build a right-to-left grid in a right-to-left document.
    */
   async goto({
     longSource = false, asyncSource = false, strict = false, allowHtml = false, ariaTags = true, enterStays = false,
     heldValidator = false, passValidator = false, contextMenu = false, outsideClickDeselects = true,
+    twoListColumns = false, innerAriaTags = true, rtl = false,
   }: {
     longSource?: boolean, asyncSource?: boolean, strict?: boolean, allowHtml?: boolean, ariaTags?: boolean,
     enterStays?: boolean, heldValidator?: boolean, passValidator?: boolean, contextMenu?: boolean,
-    outsideClickDeselects?: boolean,
+    outsideClickDeselects?: boolean, twoListColumns?: boolean, innerAriaTags?: boolean, rtl?: boolean,
   } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
       + (longSource ? '&source=200' : '')
@@ -114,7 +126,10 @@ export class EditorListA11yPage {
       + (heldValidator ? '&validator=held' : '')
       + (passValidator ? '&validator=pass' : '')
       + (contextMenu ? '&contextMenu=true' : '')
-      + (outsideClickDeselects ? '' : '&outsideClickDeselects=false');
+      + (outsideClickDeselects ? '' : '&outsideClickDeselects=false')
+      + (twoListColumns ? '&columns=2' : '')
+      + (innerAriaTags ? '' : '&innerAria=false')
+      + (rtl ? '&dir=rtl' : '');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);
     await awaitBundle(this.page);
@@ -148,6 +163,13 @@ export class EditorListA11yPage {
    */
   listbox(name: string): Locator {
     return this.page.getByRole('listbox', { name, exact: true });
+  }
+
+  /**
+   * The `handsontable` editor's list, a grid, by its accessible name.
+   */
+  gridPopup(name: string): Locator {
+    return this.page.getByRole('grid', { name, exact: true });
   }
 
   /**
@@ -229,6 +251,15 @@ export class EditorListA11yPage {
     await this.page.evaluate(([r, c]) => {
       (window as unknown as FixtureWindow).hot.selectCell(r, c);
     }, [row, col]);
+    await expect(this.cell(row, col)).toHaveClass(/\bcurrent\b/);
+  }
+
+  /**
+   * Selects a cell with a press near its top-left corner, away from the dropdown arrow, which would open
+   * the editor.
+   */
+  async clickCell(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click({ position: { x: 4, y: 4 } });
     await expect(this.cell(row, col)).toHaveClass(/\bcurrent\b/);
   }
 
@@ -404,5 +435,78 @@ export class EditorListA11yPage {
 
       return editor.htEditor.rootElement.querySelectorAll('.ht_master td').length;
     });
+  }
+
+  /**
+   * The active cell of the list's selection, or `null` when the list highlights nothing.
+   */
+  async listSelection(): Promise<[number, number] | null> {
+    return this.page.evaluate(() => {
+      const selected = (window as unknown as FixtureWindow).hot.getActiveEditor()!.htEditor.getSelectedLast();
+
+      return selected === undefined ? null : [selected[0], selected[1]] as [number, number];
+    });
+  }
+
+  /**
+   * Selects a list row through the list's API. With `scrollToCell: false` the list does not scroll to
+   * the row, as when strict mode highlights the choice the typed text completes to.
+   */
+  async selectListRow(row: number, scrollToCell = true): Promise<void> {
+    await this.page.evaluate(([listRow, scroll]) => {
+      (window as unknown as FixtureWindow).hot.getActiveEditor()!.htEditor
+        .selectCell(listRow as number, 0, undefined, undefined, scroll as boolean);
+    }, [row, scrollToCell]);
+  }
+
+  /**
+   * Scrolls the list so the given row is at its top, as a wheel over the list would, and waits for the
+   * list to have answered the scroll.
+   */
+  async scrollListToRow(row: number): Promise<void> {
+    await this.page.evaluate(listRow => new Promise<void>((resolve) => {
+      const { htEditor } = (window as unknown as FixtureWindow).hot.getActiveEditor()!;
+
+      htEditor.addHookOnce('afterScrollVertically', () => resolve());
+      htEditor.scrollViewportTo({ row: listRow, verticalSnap: 'top' });
+    }), row);
+  }
+
+  /**
+   * The caret of the active editor's field: where its selection starts and ends.
+   */
+  async caret(): Promise<{ start: number | null, end: number | null }> {
+    return this.page.evaluate(() => {
+      const input = (window as unknown as FixtureWindow).hot.getActiveEditor()!.TEXTAREA;
+
+      return { start: input.selectionStart, end: input.selectionEnd };
+    });
+  }
+
+  /**
+   * Whether the browser focus is on an element inside the active editor's list.
+   */
+  async isFocusInList(): Promise<boolean> {
+    return this.page.evaluate(() => {
+      const active = document.activeElement;
+
+      return active !== null
+        && (window as unknown as FixtureWindow).hot.getActiveEditor()!.htEditor.rootElement.contains(active);
+    });
+  }
+
+  /**
+   * The number of the list's cells that carry a `tabindex`, and so could take the focus.
+   */
+  async focusableListCellCount(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getActiveEditor()!.htEditor.rootElement
+      .querySelectorAll('td[tabindex]').length);
+  }
+
+  /**
+   * The value a data cell holds.
+   */
+  async dataAtCell(row: number, col: number): Promise<unknown> {
+    return this.page.evaluate(([r, c]) => (window as unknown as FixtureWindow).hot.getDataAtCell(r, c), [row, col]);
   }
 }

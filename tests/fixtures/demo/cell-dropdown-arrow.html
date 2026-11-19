@@ -135,10 +135,35 @@
       throw new Error('Unknown ?contextMenu= value: ' + JSON.stringify(htParams.get('contextMenu')));
     }
 
+    // `?columns=2` gives the `handsontable` column's list a second column (`Alpha` | `Alpha code`), so a
+    // spec can move across the list's columns.
+    const listColumns = ({ 1: 1, 2: 2 })[htParams.get('columns') ?? '1'];
+    if (listColumns === undefined) {
+      throw new Error('Unknown ?columns= value: ' + JSON.stringify(htParams.get('columns')));
+    }
+    // `?innerAria=false` sets `ariaTags: false` in the `handsontable` column's own list settings, which
+    // win over the defaults the editor gives its list.
+    const innerAria = ({ true: true, false: false })[htParams.get('innerAria') ?? 'true'];
+    if (innerAria === undefined) {
+      throw new Error('Unknown ?innerAria= value: ' + JSON.stringify(htParams.get('innerAria')));
+    }
+    // `?dir=rtl` builds a right-to-left grid in a right-to-left document.
+    const layoutDirection = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'];
+    if (layoutDirection === undefined) {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
+    }
+    if (layoutDirection === 'rtl') {
+      document.documentElement.dir = 'rtl';
+    }
+    const handsontableList = {
+      data: CHOICES.map(choice => (listColumns === 2 ? [choice, `${choice} code`] : [choice])),
+      ...(innerAria ? {} : { ariaTags: false }),
+    };
+
     const columnByCellType = {
       autocomplete: { type: 'autocomplete', source: listSource, strict, allowHtml },
       dropdown: { type: 'dropdown', source: listSource, allowHtml },
-      handsontable: { type: 'handsontable', handsontable: { data: CHOICES.map(choice => [choice]) } },
+      handsontable: { type: 'handsontable', handsontable: handsontableList },
       multiselect: { type: 'multiselect', source: CHOICES },
       // `text` is the control the list editors' focus after a commit is compared with.
       text: { type: 'text' },
@@ -202,6 +227,7 @@
     window.hot = new Handsontable(container, {
       ...settings,
       ariaTags,
+      ...(layoutDirection === 'rtl' ? { layoutDirection } : {}),
       ...(enterMoves ? { enterMoves } : {}),
       ...(contextMenu ? { contextMenu: true } : {}),
       ...(outsideClickDeselects ? {} : { outsideClickDeselects: false }),

@@ -22,7 +22,6 @@ import { stripTags, localeLowerCase } from '../../helpers/string';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
 import { textRenderer } from '../../renderers/textRenderer';
 import {
-  A11Y_ACTIVEDESCENDANT,
   A11Y_AUTOCOMPLETE,
   A11Y_COMBOBOX,
   A11Y_CONTROLS,
@@ -31,7 +30,6 @@ import {
   A11Y_LISTBOX,
   A11Y_OPTION,
   A11Y_POSINSET,
-  A11Y_SELECTED,
   A11Y_SETSIZE,
 } from '../../helpers/a11y';
 import { markOwnTablesAsPresentational, markRowAsPresentational } from '../../utils/a11yNestedGrid';
@@ -176,6 +174,17 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     return this.TEXTAREA.value;
+  }
+
+  /**
+   * The field exposes the list as a `listbox` of options, not as a grid popup: the list keeps its own
+   * `ariaTags` off by default, and ArrowLeft and ArrowRight keep moving the caret.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  protected exposesGridPopup(): boolean {
+    return false;
   }
 
   /**
@@ -328,7 +337,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       },
       afterSelectionEnd: (startRow: number, startCol: number) => {
         if (rootInstanceAriaTagsEnabled) {
-          this.#pointFieldAtOption(startRow, startCol);
+          this.pointFieldAtListCell(startRow, startCol);
         }
       },
     });
@@ -627,49 +636,8 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, [
         A11Y_EXPANDED('false'),
       ]);
-      this.#removeListReferences();
+      this.removeListReferences();
     }
-  }
-
-  /**
-   * Marks the list option at the given coordinates as selected and points the field's
-   * `aria-activedescendant` at it. An option that is not rendered yet is marked once the list has
-   * scrolled to it, so the field never names an element that is not there.
-   *
-   * @param {number} row The visual row of the option in the list.
-   * @param {number} col The visual column of the option in the list.
-   */
-  #pointFieldAtOption(row: number, col: number): void {
-    const setA11yAttributes = (TD: HTMLTableCellElement) => {
-      setAttribute(TD, [
-        A11Y_SELECTED(),
-      ]);
-
-      setAttribute(this.TEXTAREA, ...A11Y_ACTIVEDESCENDANT(TD.id));
-    };
-    const TD = this.htEditor.getCell(row, col, true);
-
-    if (TD !== null) {
-      setA11yAttributes(TD);
-
-    } else {
-      // If TD is null, it means that the cell is not (yet) in the viewport.
-      // Moving the logic to after it's been scrolled to the requested cell.
-      this.htEditor.addHookOnce('afterScrollVertically', () => {
-        const renderedTD = this.htEditor.getCell(row, col, true);
-
-        if (renderedTD !== null) {
-          setA11yAttributes(renderedTD);
-        }
-      });
-    }
-  }
-
-  /**
-   * Removes the field's references to the list and its options, for a list that is no longer shown.
-   */
-  #removeListReferences(): void {
-    removeAttribute(this.TEXTAREA, ['aria-controls', 'aria-activedescendant']);
   }
 
   /**
@@ -706,7 +674,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       setAttribute(this.TEXTAREA, [
         A11Y_EXPANDED('false'),
       ]);
-      this.#removeListReferences();
+      this.removeListReferences();
     }
 
     return super.hideForScroll();
@@ -740,7 +708,7 @@ export class AutocompleteEditor extends HandsontableEditor {
         const highlighted = this.htEditor.getSelectedLast();
 
         if (highlighted) {
-          this.#pointFieldAtOption(highlighted[0], highlighted[1]);
+          this.pointFieldAtListCell(highlighted[0], highlighted[1]);
         }
       }
     }

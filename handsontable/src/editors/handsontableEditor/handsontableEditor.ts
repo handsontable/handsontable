@@ -2,7 +2,9 @@ import type { HotInstance } from '../../core/types';
 import type { CellProperties } from '../../settings';
 import { TextEditor } from '../textEditor';
 import { EDITOR_STATE } from '../baseEditor';
-import { setCaretPosition, getFixedContainingBlockRect, isHTMLElement } from '../../helpers/dom/element';
+import {
+  setCaretPosition, getFixedContainingBlockRect, isHTMLElement, setAttribute, removeAttribute,
+} from '../../helpers/dom/element';
 import { getWindowScrollInlineMetrics } from '../utils/windowScrollInlineMetrics';
 import { getVerticalRoom, getVisibleVerticalRange } from '../utils/visibleVerticalRange';
 import {
@@ -11,6 +13,15 @@ import {
 import { extend } from '../../helpers/object';
 import { stringify } from '../../helpers/mixed';
 import { EDITOR_EDIT_GROUP } from '../../shortcuts/contexts';
+import {
+  A11Y_ACTIVEDESCENDANT,
+  A11Y_COMBOBOX,
+  A11Y_CONTROLS,
+  A11Y_EXPANDED,
+  A11Y_GRID,
+  A11Y_HASPOPUP,
+} from '../../helpers/a11y';
+import { CELL_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
 
 const SHORTCUTS_GROUP = 'handsontableEditor';
 
@@ -139,6 +150,29 @@ export class HandsontableEditor extends TextEditor {
    * @type {boolean}
    */
   #lastValueIsLossy = false;
+  /**
+   * The wait for a list cell the field should name but the list has not drawn yet: the list grid it
+   * waits on and the `afterScrollVertically` listener. At most one wait is pending; a newer point at a
+   * cell, or the removal of the field's references, cancels it.
+   */
+  #pendingListCellPoint: { listGrid: HotInstance, callback: () => void } | null = null;
+  /**
+   * The number of ids this editor gave to list cells that had none, so every id it writes is unique:
+   * the list recycles its cells across rows, so an id built from the coordinates could be repeated.
+   */
+  #listCellIdCount = 0;
+
+  /**
+   * Whether the field exposes the list as a grid popup: `combobox` with `aria-haspopup="grid"`, the
+   * list a named `grid` of `gridcell`s, and ArrowLeft and ArrowRight moving across the list's columns.
+   * `AutocompleteEditor` exposes its list as a `listbox` instead, and answers `false`.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  protected exposesGridPopup(): boolean {
+    return true;
+  }
 
   /**
    * The value the inner grid contributes to the commit, or `undefined` to leave the typed value
@@ -174,6 +208,7 @@ export class HandsontableEditor extends TextEditor {
       containerStyle.width = '';
       containerStyle.height = '';
       containerStyle.overflow = '';
+      this.#clearGridPopupRoot();
     }
 
     if (containerStyle.display === 'none') {
@@ -214,6 +249,168 @@ export class HandsontableEditor extends TextEditor {
     // flags still holding the previously edited cell's answers.
     this.refreshDimensions();
     this.#bindScrollFollow();
+    this.#wireGridPopup();
+  }
+
+  /**
+   * Exposes the opened list as the field's grid popup: raises `aria-expanded`, gives the list the role
+   * `grid` and the field's name (`A, row 1`), points `aria-controls` at it, and names the highlighted
+   * cell through `aria-activedescendant` from now on. Written only while the grid's `ariaTags` is on;
+   * the list's own `ariaTags` (the cell's `handsontable` settings can turn it off) decides whether the
+   * list is exposed as a grid at all.
+   */
+  #wireGridPopup(): void {
+    if (!this.hot.getSettings().ariaTags || !this.exposesGridPopup()) {
+      return;
+    }
+
+    setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('true'));
+
+    if (!this.htEditor.getSettings().ariaTags) {
+      this.removeListReferences();
+
+      return;
+    }
+
+    const listRoot = this.htEditor.rootElement;
+
+    // The nested grid names its root `treegrid`, which is not a popup role a combobox can control. The
+    // list picks one cell at a time, so it is not multiselectable either.
+    setAttribute(listRoot, [A11Y_GRID()]);
+    removeAttribute(listRoot, 'aria-multiselectable');
+    // Not through `aria-labelledby` pointing at the field: a combobox referenced that way lends the grid
+    // its value (the typed text), not its name.
+    setCellInputName(this.hot, listRoot, CELL_EDITOR_PHRASES, this.row ?? -1, this.col ?? -1);
+    setAttribute(this.TEXTAREA, ...A11Y_CONTROLS(listRoot.id));
+
+    this.htEditor.addHook('afterSelectionEnd', (row: number, col: number) => this.pointFieldAtListCell(row, col));
+    this.htEditor.addHook('afterDeselect', () => this.#removeActiveDescendant());
+    // With its `ariaTags` on, the list's engine makes every drawn cell focusable (`tabindex="-1"`). The
+    // browser focus stays in the field, so the list's cells take none: the attribute is the only thing
+    // besides roles, names and ids the list's `ariaTags` changes, and it goes after every render.
+    this.htEditor.addHook('afterRender', this.#removeListCellTabIndex);
+    this.#removeListCellTabIndex();
+
+    const active = this.htEditor.getSelectedActive();
+
+    if (active) {
+      this.pointFieldAtListCell(active[0], active[1]);
+    } else {
+      this.#removeActiveDescendant();
+    }
+  }
+
+  /**
+   * Removes the `tabindex` the list's engine writes on its cells while the list's `ariaTags` is on.
+   */
+  #removeListCellTabIndex = (): void => {
+    this.htEditor.rootElement.querySelectorAll<HTMLTableCellElement>('td[tabindex]').forEach((TD) => {
+      removeAttribute(TD, 'tabindex');
+    });
+  };
+
+  /**
+   * Removes what the grid popup wiring and the destroyed list grid left on the list's root element,
+   * which outlives the grid: the next list may be built with its `ariaTags` off.
+   */
+  #clearGridPopupRoot(): void {
+    if (this.hot.getSettings().ariaTags && this.exposesGridPopup()) {
+      removeAttribute(this.htContainer, [
+        'role', 'aria-label', 'aria-rowcount', 'aria-colcount', 'aria-multiselectable',
+      ]);
+    }
+  }
+
+  /**
+   * Points the field's `aria-activedescendant` at the list cell at the given coordinates, giving the cell
+   * an id when it has none. A cell that is not drawn yet is named once the list has scrolled to it, and
+   * only if the list still highlights it then, so the field never names an element that is not there or
+   * a cell the list no longer highlights. The list's selection marks the cell `aria-selected` itself.
+   *
+   * @private
+   * @param {number} row The visual row of the cell in the list.
+   * @param {number} col The visual column of the cell in the list.
+   */
+  protected pointFieldAtListCell(row: number, col: number): void {
+    this.#cancelPendingListCellPoint();
+
+    const listGrid = this.htEditor;
+    const TD = listGrid.getCell(row, col, true);
+
+    if (TD !== null) {
+      this.#pointFieldAt(TD);
+
+      return;
+    }
+
+    const callback = () => {
+      this.#cancelPendingListCellPoint();
+
+      const active = listGrid.getSelectedActive();
+
+      if (listGrid !== this.htEditor || !active || active[0] !== row || active[1] !== col) {
+        return;
+      }
+
+      const renderedTD = listGrid.getCell(row, col, true);
+
+      if (renderedTD !== null) {
+        this.#pointFieldAt(renderedTD);
+      }
+    };
+
+    listGrid.addHook('afterScrollVertically', callback);
+    this.#pendingListCellPoint = { listGrid, callback };
+  }
+
+  /**
+   * Removes the field's references to the list and its cells, for a list that is no longer shown, and
+   * cancels a pending wait for a list cell.
+   *
+   * @private
+   */
+  protected removeListReferences(): void {
+    this.#cancelPendingListCellPoint();
+    removeAttribute(this.TEXTAREA, ['aria-controls', 'aria-activedescendant']);
+  }
+
+  /**
+   * Points the field's `aria-activedescendant` at a drawn list cell.
+   *
+   * @param {HTMLTableCellElement} TD The list cell.
+   */
+  #pointFieldAt(TD: HTMLTableCellElement): void {
+    if (!TD.id) {
+      this.#listCellIdCount += 1;
+      setAttribute(TD, [['id', `${this.htEditor.rootElement.id}-cell-${this.#listCellIdCount}`]]);
+    }
+
+    setAttribute(this.TEXTAREA, ...A11Y_ACTIVEDESCENDANT(TD.id));
+  }
+
+  /**
+   * Removes the field's reference to a list cell, for a list that highlights none.
+   */
+  #removeActiveDescendant(): void {
+    this.#cancelPendingListCellPoint();
+    removeAttribute(this.TEXTAREA, 'aria-activedescendant');
+  }
+
+  /**
+   * Cancels the pending wait for a list cell, if there is one.
+   */
+  #cancelPendingListCellPoint(): void {
+    const pending = this.#pendingListCellPoint;
+
+    if (pending === null) {
+      return;
+    }
+
+    this.#pendingListCellPoint = null;
+
+    if (!pending.listGrid.isDestroyed) {
+      pending.listGrid.removeHook('afterScrollVertically', pending.callback);
+    }
   }
 
   /**
@@ -233,6 +430,18 @@ export class HandsontableEditor extends TextEditor {
     this.#openedTextIsLossy = false;
     this.removeHooksByKey('beforeKeyDown');
     super.close();
+    this.#collapseGridPopup();
+  }
+
+  /**
+   * Lowers the field's `aria-expanded` and removes its references to the list, for a list that is no
+   * longer shown.
+   */
+  #collapseGridPopup(): void {
+    if (this.hot.getSettings().ariaTags && this.exposesGridPopup()) {
+      setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('false'));
+      this.removeListReferences();
+    }
   }
 
   /**
@@ -253,6 +462,8 @@ export class HandsontableEditor extends TextEditor {
       this.htEditor.rootElement.style.display = 'none';
     }
 
+    this.#collapseGridPopup();
+
     return true;
   }
 
@@ -267,6 +478,31 @@ export class HandsontableEditor extends TextEditor {
     if (this.htEditor) {
       this.htEditor.rootElement.style.display = '';
       this.reflowDropdown();
+      this.#restoreGridPopup();
+    }
+  }
+
+  /**
+   * Raises the field's `aria-expanded` again after a scroll round-trip, and restores the references
+   * `hideForScroll()` removed. The list kept its selection, so the field names its highlighted cell again.
+   */
+  #restoreGridPopup(): void {
+    if (!this.hot.getSettings().ariaTags || !this.exposesGridPopup()) {
+      return;
+    }
+
+    setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('true'));
+
+    if (!this.htEditor.getSettings().ariaTags) {
+      return;
+    }
+
+    setAttribute(this.TEXTAREA, ...A11Y_CONTROLS(this.htEditor.rootElement.id));
+
+    const active = this.htEditor.getSelectedActive();
+
+    if (active) {
+      this.pointFieldAtListCell(active[0], active[1]);
     }
   }
 
@@ -315,7 +551,9 @@ export class HandsontableEditor extends TextEditor {
       fillHandle: false,
       autoWrapCol: false,
       autoWrapRow: false,
-      ariaTags: false,
+      // The list follows the grid's ARIA when the field exposes it as a grid popup; the autocomplete
+      // listbox builds its own roles over a list without them.
+      ariaTags: this.exposesGridPopup() ? this.hot.getSettings().ariaTags : false,
       themeName: this.hot.getCurrentThemeName(),
       afterOnCellMouseDown(this: HotInstance, _: Event, coords: Record<string, number>) {
         if (coords.row < 0 || coords.col < 0) {
@@ -448,6 +686,14 @@ export class HandsontableEditor extends TextEditor {
     super.createElements('input');
 
     this.TEXTAREA.setAttribute('type', 'text');
+
+    if (this.hot.getSettings().ariaTags && this.exposesGridPopup()) {
+      setAttribute(this.TEXTAREA, [
+        A11Y_COMBOBOX(),
+        A11Y_HASPOPUP('grid'),
+        A11Y_EXPANDED('false'),
+      ]);
+    }
 
     const DIV = this.hot.rootDocument.createElement('DIV');
 
@@ -956,7 +1202,8 @@ export class HandsontableEditor extends TextEditor {
           innerHOT.deselectCell();
           this.innerSelectionOrigin = null;
         } else {
-          innerHOT.selectCell(rowToSelect, 0);
+          // A move between rows keeps the column the list highlights (ArrowLeft and ArrowRight move it).
+          innerHOT.selectCell(rowToSelect, innerHOT.getSelectedActive()?.[1] ?? 0);
           this.innerSelectionOrigin = 'user';
         }
         if (innerHOT.getData().length) {
@@ -1023,7 +1270,54 @@ export class HandsontableEditor extends TextEditor {
         return action(rowToSelect, event);
       },
       preventDefault: false, // Doesn't block default behavior (navigation) for a `textArea` HTMLElement.
+    }, {
+      keys: [['ArrowLeft']],
+      callback: (event: KeyboardEvent) => this.#moveListColumn(event, -this.hot.getDirectionFactor()),
+      runOnlyIf: () => this.#canMoveListColumn(),
+    }, {
+      keys: [['ArrowRight']],
+      callback: (event: KeyboardEvent) => this.#moveListColumn(event, this.hot.getDirectionFactor()),
+      runOnlyIf: () => this.#canMoveListColumn(),
     }], contextConfig);
+  }
+
+  /**
+   * Whether ArrowLeft and ArrowRight move across the list's columns: in a grid popup (not the
+   * autocomplete listbox) that highlights a row and has more than one column. Otherwise the keys move
+   * the caret, or close the editor, as they do in any text editor.
+   *
+   * @returns {boolean}
+   */
+  #canMoveListColumn(): boolean {
+    return this.exposesGridPopup() && !!this.htEditor && !!this.htEditor.getSelectedActive() &&
+      this.htEditor.countCols() > 1;
+  }
+
+  /**
+   * Moves the list's highlight one column, clamped at the first and last column, and keeps the caret
+   * and the focus in the field.
+   *
+   * @param {KeyboardEvent} event The key's event.
+   * @param {number} step `1` to the next column, `-1` to the previous one.
+   * @returns {boolean} `false`, so no later shortcut handles the key.
+   */
+  #moveListColumn(event: KeyboardEvent, step: number): boolean {
+    const innerHOT = this.htEditor;
+    const [row, col] = innerHOT.getSelectedActive()!;
+    const colToSelect = Math.min(Math.max(col + step, 0), innerHOT.countCols() - 1);
+
+    if (colToSelect !== col) {
+      innerHOT.selectCell(row, colToSelect);
+      this.innerSelectionOrigin = 'user';
+    }
+
+    event.preventDefault();
+    stopImmediatePropagation(event);
+
+    this.hot.listen();
+    this.TEXTAREA.focus();
+
+    return false;
   }
 
   /**
