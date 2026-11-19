@@ -239,6 +239,39 @@ export class DropdownScrollRoundTripPage {
   }
 
   /**
+   * The element the editor field's `aria-activedescendant` names, resolved in the page: its role, its
+   * `aria-selected`, its text, and whether it is the cell the inner list grid has selected. `null` without
+   * the attribute or when the id names no element.
+   */
+  async activeDescendant(): Promise<{ role: string | null, selected: string | null, text: string,
+    isSelectedCell: boolean } | null> {
+    return this.page.evaluate(() => {
+      const editor = (window as FixtureWindow).hot.getActiveEditor() as (EditorHandle & {
+        htEditor?: {
+          getSelectedLast(): number[] | undefined;
+          getCell(row: number, col: number, topmost?: boolean): HTMLElement | null;
+        };
+      }) | undefined;
+      const id = editor?.TEXTAREA?.getAttribute('aria-activedescendant') ?? null;
+      const element = id === null ? null : document.getElementById(id);
+
+      if (element === null) {
+        return null;
+      }
+
+      const selected = editor?.htEditor?.getSelectedLast();
+      const selectedCell = selected ? editor?.htEditor?.getCell(selected[0], selected[1], true) : null;
+
+      return {
+        role: element.getAttribute('role'),
+        selected: element.getAttribute('aria-selected'),
+        text: element.textContent ?? '',
+        isSelectedCell: element === selectedCell,
+      };
+    });
+  }
+
+  /**
    * The row selected inside the inner list grid, or null when nothing is selected. Proves the
    * editor's ArrowUp/ArrowDown shortcut group and the inner grid survived the round trip.
    */

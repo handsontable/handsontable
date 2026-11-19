@@ -289,29 +289,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       },
       afterSelectionEnd: (startRow: number, startCol: number) => {
         if (rootInstanceAriaTagsEnabled) {
-          const setA11yAttributes = (TD: HTMLTableCellElement) => {
-            setAttribute(TD, [
-              A11Y_SELECTED(),
-            ]);
-
-            setAttribute(this.TEXTAREA, ...A11Y_ACTIVEDESCENDANT(TD.id));
-          };
-          const TD = this.htEditor.getCell(startRow, startCol, true);
-
-          if (TD !== null) {
-            setA11yAttributes(TD);
-
-          } else {
-            // If TD is null, it means that the cell is not (yet) in the viewport.
-            // Moving the logic to after it's been scrolled to the requested cell.
-            this.htEditor.addHookOnce('afterScrollVertically', () => {
-              const renderedTD = this.htEditor.getCell(startRow, startCol, true);
-
-              if (renderedTD !== null) {
-                setA11yAttributes(renderedTD);
-              }
-            });
-          }
+          this.#pointFieldAtOption(startRow, startCol);
         }
       },
     });
@@ -615,6 +593,40 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
+   * Marks the list option at the given coordinates as selected and points the field's
+   * `aria-activedescendant` at it. An option that is not rendered yet is marked once the list has
+   * scrolled to it, so the field never names an element that is not there.
+   *
+   * @param {number} row The visual row of the option in the list.
+   * @param {number} col The visual column of the option in the list.
+   */
+  #pointFieldAtOption(row: number, col: number): void {
+    const setA11yAttributes = (TD: HTMLTableCellElement) => {
+      setAttribute(TD, [
+        A11Y_SELECTED(),
+      ]);
+
+      setAttribute(this.TEXTAREA, ...A11Y_ACTIVEDESCENDANT(TD.id));
+    };
+    const TD = this.htEditor.getCell(row, col, true);
+
+    if (TD !== null) {
+      setA11yAttributes(TD);
+
+    } else {
+      // If TD is null, it means that the cell is not (yet) in the viewport.
+      // Moving the logic to after it's been scrolled to the requested cell.
+      this.htEditor.addHookOnce('afterScrollVertically', () => {
+        const renderedTD = this.htEditor.getCell(row, col, true);
+
+        if (renderedTD !== null) {
+          setA11yAttributes(renderedTD);
+        }
+      });
+    }
+  }
+
+  /**
    * Removes the field's references to the list and its options, for a list that is no longer shown.
    */
   #removeListReferences(): void {
@@ -684,6 +696,13 @@ export class AutocompleteEditor extends HandsontableEditor {
           A11Y_EXPANDED('true'),
           A11Y_CONTROLS(this.htEditor.rootElement.id),
         ]);
+
+        // `hideForScroll()` removed the reference to the highlighted option, which the list kept.
+        const highlighted = this.htEditor.getSelectedLast();
+
+        if (highlighted) {
+          this.#pointFieldAtOption(highlighted[0], highlighted[1]);
+        }
       }
     }
   }
