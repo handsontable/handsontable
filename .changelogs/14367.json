@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved scroll performance: cells and headers now write their accessibility attributes only when they change. A custom cell renderer now starts from the cell's current `role`, `tabindex`, `aria-colindex`, and `aria-describedby`.",
+  "type": "changed",
+  "issueOrPR": 14367,
+  "breaking": false,
+  "framework": "none"
+}
