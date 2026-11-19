@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-18T21:34:41.728Z",
+  "generatedAt": "2026-11-19T02:15:57.927Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -11,7 +11,7 @@
     "tests": 452,
     "needsTicket": 8,
     "quarantined": 0,
-    "entries": 2317
+    "entries": 2318
   },
   "rows": [
     {
@@ -1603,6 +1603,41 @@
       "needsTicket": false
     },
     {
+      "key": "visual|visual-tests/tests/cross-browser/columns-filter.spec.ts|columns-filter-1",
+      "tier": "visual",
+      "file": "visual-tests/tests/cross-browser/columns-filter.spec.ts",
+      "line": null,
+      "title": "columns-filter-1",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 5,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 1,
+      "openBranches30": 1,
+      "legs": [
+        "cross-browser/chromium",
+        "cross-browser/firefox",
+        "cross-browser/webkit"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-19T02:15:11Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44441897436",
+        "branch": "develop",
+        "leg": "cross-browser/webkit",
+        "status": "failed",
+        "error": "differs from base/develop (full tier); render sha256 e6bc06fa9f3c",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
       "key": "playwright|e2e/manual-row-move-zoom-after-build.spec.ts|row move guideline after a zoom made while the grid was hidden › the grid is measured once it is shown, not while it renders no row",
       "tier": "playwright",
       "file": "e2e/manual-row-move-zoom-after-build.spec.ts",
@@ -2389,41 +2424,6 @@
         "leg": "js/chromium-theme-main",
         "status": "failed",
         "error": "differs from base/develop (pr tier); render sha256 18b3d30ad230",
-        "source": "ci"
-      },
-      "needsTicket": false
-    },
-    {
-      "key": "visual|visual-tests/tests/cross-browser/columns-filter.spec.ts|columns-filter-1",
-      "tier": "visual",
-      "file": "visual-tests/tests/cross-browser/columns-filter.spec.ts",
-      "line": null,
-      "title": "columns-filter-1",
-      "count7": 0,
-      "count30": 0,
-      "countAll": 4,
-      "runs30": 0,
-      "flakyRuns30": 0,
-      "branches30": 0,
-      "nightlyRuns30": 0,
-      "openBranches30": 0,
-      "legs": [
-        "cross-browser/chromium",
-        "cross-browser/firefox",
-        "cross-browser/webkit"
-      ],
-      "statuses": [
-        "failed"
-      ],
-      "isolation": [],
-      "quarantine": null,
-      "lastSeen": {
-        "seenAt": "2026-10-13T11:04:09Z",
-        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/38377891890",
-        "branch": "feature/DEV-3365_Column-0-header-seam-accent",
-        "leg": "cross-browser/webkit",
-        "status": "failed",
-        "error": "differs from base/develop (full tier); render sha256 ce84cbd1ce93",
         "source": "ci"
       },
       "needsTicket": false

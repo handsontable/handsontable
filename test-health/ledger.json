@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-18T14:55:33.626Z",
+  "updatedAt": "2026-11-19T02:15:57.927Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "visual",
+      "leg": "cross-browser/webkit",
+      "file": "visual-tests/tests/cross-browser/columns-filter.spec.ts",
+      "line": null,
+      "title": "columns-filter-1",
+      "status": "failed",
+      "attempts": 1,
+      "error": "differs from base/develop (full tier); render sha256 e6bc06fa9f3c",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "44441897436",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44441897436",
+      "workflow": "Visual nightly",
+      "branch": "develop",
+      "headSha": "66916daa83054c5b6a00a0085719fde99020f364",
+      "event": "schedule",
+      "seenAt": "2026-11-19T02:15:11Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-webkit",
