@@ -112,7 +112,7 @@ const hot = new Handsontable(container, {
   height: 320,
   width: '100%',
   autoWrapRow: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   // Runs once per draw, scroll draws included, after every cell renderer. Keep DOM writes like
   // this one out of the renderer.
   afterViewRender() {

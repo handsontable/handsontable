@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, UndoRedo } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerPlugin(UndoRedo);
 
@@ -34,7 +35,7 @@ describe('alter("insert_col_*") and an array `colHeaders` after a column move', 
       data: [['A1', 'B1', 'C1', 'D1']],
       colHeaders: ['A', 'B', 'C', 'D'],
       undo: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     core.columnIndexMapper.moveIndexes(from, to);
     core.render();

@@ -2,6 +2,7 @@ import { mapWorkbook, resolveImportOptions } from '../mapper';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { isLimitError } from '../../../utils/xlsxEngine/limits';
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
+import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
 
 // The real floor is a million cells; a test at that size would take seconds and gigabytes, so the
 // floor is lowered here and the budget's arithmetic is the same.
@@ -26,7 +27,11 @@ function mapRows(rows, sheetOverrides = {}, options = {}, context = {}) {
   workbook.sheets.push(sheet);
 
   return mapWorkbook(workbook, resolveImportOptions(options), {
-    formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false, ...context,
+    formulasEnabled: false,
+    commentsEnabled: false,
+    customBordersEnabled: false,
+    entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
+    ...context,
   }, new DroppedFeatures());
 }
 

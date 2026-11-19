@@ -227,7 +227,7 @@ function buildMarkdownTables(data) {
   lines.push('::: tip');
   lines.push('');
   // eslint-disable-next-line max-len
-  lines.push('The `Formulas` module requires the external [`hyperformula`](https://hyperformula.handsontable.com/) package. Its size is not included in the measurements above.');
+  lines.push('The `Formulas` module requires the external [`hyperformula`](https://handsontable.com/hyperformula/) package. Its size is not included in the measurements above.');
   lines.push('');
   lines.push(':::');
 

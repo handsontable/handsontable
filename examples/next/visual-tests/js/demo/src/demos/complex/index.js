@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 import { data } from './data';
 import { getThemeNameFromURL, getDirectionFromURL } from '../../utils';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   const root = document.getElementById('root');
@@ -171,7 +172,7 @@ export function init() {
     autoWrapRow: true,
     rowHeaders: true,
     navigableHeaders: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   console.log(

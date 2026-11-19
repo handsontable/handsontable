@@ -13,7 +13,7 @@ declare global {
   }
 }
 
-const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
+const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.7.0/papaparse.min.js';
 
 const scriptPromises = new Map<string, Promise<void>>();
 
@@ -191,7 +191,7 @@ async function parseXlsxFile(file: File): Promise<ParsedPayload> {
   const parser = new Handsontable(host, {
     data: [[]],
     importFile: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
   try {
@@ -403,13 +403,13 @@ const ExampleComponent = () => {
         </div>
       ) : (
         <HotTable
+          // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
           data={gridData}
           columns={gridColumns}
           colHeaders={gridColHeaders}
           rowHeaders={true}
           height="auto"
           width="100%"
-          licenseKey="non-commercial-and-evaluation"
         />
       )}
     </div>

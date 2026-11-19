@@ -89,7 +89,7 @@ const hot = new Handsontable(container, {
     content: 'This is a simple text message displayed in the dialog.',
     closable: true,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Show dialog after initialization

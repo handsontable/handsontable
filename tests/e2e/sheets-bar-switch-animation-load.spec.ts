@@ -175,7 +175,7 @@ test.describe('sheets bar switch animation – while the grid loads', { tag: [TH
       const target = window as never as SecondGridWindow;
 
       target.htSecond.hot = new target.Handsontable(target.htSecond.container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
         sheetsBar: { sheets: [{ name: 'One' }, { name: 'Two' }, { name: 'Three' }] },
       });
       requestAnimationFrame(() => {
@@ -206,7 +206,7 @@ test.describe('sheets bar switch animation – while the grid loads', { tag: [TH
       const target = window as never as SecondGridWindow;
 
       target.htSecond.hot = new target.Handsontable(target.htSecond.container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
         sheetsBar: { sheets: [{ name: 'One' }, { name: 'Two' }] },
       });
 

@@ -9,6 +9,7 @@ import { addClass, removeClass } from '../../helpers/dom/element';
 import { positionComparator, rootComparator } from './rootComparator';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'multiColumnSorting';
 export const PLUGIN_PRIORITY = 170;
@@ -86,6 +87,14 @@ export class MultiColumnSorting extends ColumnSorting {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the list of settings keys observed by the plugin for configuration changes.
    */
   static get SETTING_KEYS() {
@@ -149,7 +158,7 @@ export class MultiColumnSorting extends ColumnSorting {
             if ((highlight.row ?? 0) === -1 && (highlight.col ?? 0) >= 0) {
               const sortConfig = this.getNextSortConfig(highlight.col ?? 0, APPEND_COLUMN_CONFIG_STRATEGY);
 
-              this.sort(sortConfig as SortConfig[]);
+              this.sortByUser(sortConfig as SortConfig[], highlight.col ?? 0);
             }
           }
 
@@ -317,10 +326,12 @@ export class MultiColumnSorting extends ColumnSorting {
    */
   applyHeaderClickSort(press: HeaderSortPress) {
     if (press.isCtrlPressed) {
-      this.sort(this.getNextSortConfig(press.column, APPEND_COLUMN_CONFIG_STRATEGY) as SortConfig[]);
+      const sortConfig = this.getNextSortConfig(press.column, APPEND_COLUMN_CONFIG_STRATEGY);
+
+      this.sortByUser(sortConfig as SortConfig[], press.column);
 
     } else {
-      this.sort(this.getColumnNextConfig(press.column));
+      this.sortByUser(this.getColumnNextConfig(press.column), press.column);
     }
   }
 }

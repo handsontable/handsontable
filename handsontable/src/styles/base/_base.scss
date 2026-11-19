@@ -41,6 +41,9 @@
     flex-direction: column;
     height: 100%;
 
+    --ht-grid-inset-inline-start: 0px;
+    --ht-grid-inline-size: 100%;
+
     // The `ht-shadow-dom` class is stamped by the core when the grid renders inside a Shadow DOM
     // tree. The isolated stacking context keeps the internal z-indexes (overlay clones, editors)
     // from competing with the host page UI, which typically layers its own chrome above the
@@ -61,17 +64,68 @@
       min-height: auto;
     }
 
+    &.ht-slot-start-filled,
+    &.ht-slot-end-filled {
+      display: grid;
+      grid-template-areas:
+        "start top end"
+        "start grid end"
+        "start bottom end";
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+
+      > .ht-grid {
+        grid-area: grid;
+        min-width: 0;
+      }
+
+      > .ht-slot-top {
+        grid-area: top;
+        min-width: 0;
+      }
+
+      > .ht-slot-bottom {
+        grid-area: bottom;
+        min-width: 0;
+      }
+
+      > .ht-overlay {
+        grid-area: 1 / 1 / -1 / -1;
+        align-self: start;
+        height: 0;
+      }
+
+      &.ht-grid-follows-content {
+        grid-template-rows: auto 1fr auto;
+      }
+    }
+
     // The `ht-slot-*-filled` classes are kept in sync by the `LayoutManager` (they mean "the slot
     // has at least one `.ht-slot-element` child"). Selecting on `:has()` here instead makes every
     // grid DOM mutation trigger a style invalidation scaled to the whole host page.
+    &.ht-grid-fixed-width.ht-slot-start-filled,
+    &.ht-grid-fixed-width.ht-slot-end-filled,
+    &.ht-grid-width-follows-content.ht-slot-start-filled,
+    &.ht-grid-width-follows-content.ht-slot-end-filled {
+      grid-template-columns: auto max-content auto;
+      justify-content: start;
+    }
+
     &.ht-slot-bottom-filled,
-    &.ht-slot-top-filled {
+    &.ht-slot-top-filled,
+    &.ht-slot-start-filled,
+    &.ht-slot-end-filled {
       .ht-wrapper {
         &:not(.htHorizontallyScrollableByWindow),
         &:not(.htVerticallyScrollableByWindow) {
           .ht_master {
             .wtHolder {
               background-color: var(--ht-background-color);
+              box-shadow: inset 0 0 0 1px var(--ht-border-color);
+            }
+
+            // The same frame, over the scrollbar gutters (`overlay/scrollbarProxies.ts`).
+            .htScrollbarFrame {
               box-shadow: inset 0 0 0 1px var(--ht-border-color);
             }
           }
@@ -112,9 +166,39 @@
   }
 
   .ht-slot-element {
-    width: 100%;
     box-sizing: border-box;
     border: 1px solid var(--ht-border-color);
+  }
+
+  :where(.ht-slot-top, .ht-slot-bottom) > .ht-slot-element {
+    width: 100%;
+  }
+
+  .ht-slot-start {
+    grid-area: start;
+  }
+
+  .ht-slot-end {
+    grid-area: end;
+  }
+
+  .ht-slot-start, .ht-slot-end {
+    display: flex;
+    height: 0;
+    min-height: 100%;
+  }
+
+  :where(.ht-slot-start, .ht-slot-end) > :where(.ht-slot-element) {
+    flex: 0 0 auto;
+    min-height: 0;
+  }
+
+  .ht-slot-start > .ht-slot-element {
+    border-inline-end-width: 0;
+  }
+
+  .ht-slot-end > .ht-slot-element {
+    border-inline-start-width: 0;
   }
 
   .ht-slot-top > .ht-slot-element {
@@ -187,6 +271,80 @@
       }
     }
 
+    // The scrollbar proxies (`overlay/scrollbarProxies.ts`) show the master holder's classic scrollbar
+    // along the scrolling part of each edge only, and the fillers cover the gutter beside the headers and
+    // the frozen bands. Both sit in the holder's gutter, above its own scrollbar. The proxy takes the
+    // holder's scrollbar styles, so its bar fills the gutter it sits in; the engine also copies the
+    // holder's computed `scrollbar-width` and thumb color onto it inline, with a transparent track, so
+    // the background below shows the track. Firefox draws a line along a track it colors itself, which
+    // the fillers do not have. Mirrored in `src/3rdparty/walkontable/css/walkontable.scss`.
+    .htScrollbarProxy {
+      @include mixins.scrollbar-styles;
+
+      position: absolute;
+      z-index: 1;
+      // Its own bar fills the box, so this shows only where a host rule widened the holder's bar alone
+      // (`.wtHolder::-webkit-scrollbar`, which cannot be copied), and keeps that bar from showing through.
+      // The track color sits on the grid's background, as the holder's own track does, so a see-through
+      // track color in a custom theme still covers the holder's bar.
+      background:
+        linear-gradient(var(--ht-scrollbar-track-color), var(--ht-scrollbar-track-color)),
+        var(--ht-background-color);
+
+      > div {
+        width: 1px;
+        height: 1px;
+      }
+
+      &::-webkit-scrollbar {
+        width: 9px;
+        height: 9px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: var(--ht-scrollbar-track-color);
+        border-radius: var(--ht-scrollbar-border-radius);
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background-color: var(--ht-scrollbar-thumb-color);
+        border-radius: var(--ht-scrollbar-border-radius);
+      }
+    }
+
+    .htScrollbarProxy-vertical {
+      overflow-x: hidden;
+      overflow-y: scroll;
+    }
+
+    .htScrollbarProxy-horizontal {
+      overflow-x: scroll;
+      overflow-y: hidden;
+    }
+
+    // An empty rectangle in the track color over the gutter beside the headers and the frozen bands,
+    // where no scrollbar is shown, and over the square where the two gutters meet (Safari paints that
+    // corner white once `scrollbar-color` applies). Painted on the grid's background, like the proxy.
+    .htScrollbarProxyFiller,
+    .htScrollbarCorner {
+      position: absolute;
+      z-index: 1;
+      background:
+        linear-gradient(var(--ht-scrollbar-track-color), var(--ht-scrollbar-track-color)),
+        var(--ht-background-color);
+    }
+
+    // The grid's frame, redrawn over the gutters of its classic scrollbars. A browser paints a scroll
+    // container's scrollbars above its own `box-shadow`, so the holder's frame is hidden along the
+    // scrollbar edges. The shadow comes from the rules that frame the holder (they switch on with the
+    // root's `htHasScroll*` classes, which core sets after the draw); the engine sets the box, the
+    // holder's corner radius, and the clip to the gutters. It never takes a pointer event.
+    .htScrollbarFrame {
+      position: absolute;
+      z-index: 2;
+      pointer-events: none;
+    }
+
     // Wrapper
     &.ht-wrapper {
       height: 100%;
@@ -210,6 +368,14 @@
       &.htNestedHeaders table {
         border-spacing: 0;
         border-collapse: collapse;
+      }
+
+      // The NestedHeaders ghost table sizes the columns from the labels' max-content width, which
+      // is the one-line width of a label whatever its `white-space` says. `min-content` follows it
+      // instead: a `nowrap` label (the default) still counts at its full line, while a label an
+      // application lets wrap counts at its longest word and wraps inside the columns' own width.
+      &.htNestedHeaders .colHeader {
+        width: min-content;
       }
 
       table {
@@ -247,6 +413,11 @@
         .ht_master {
           .wtHolder {
             background-color: var(--ht-background-color);
+            box-shadow: inset 0 0 0 1px var(--ht-border-color);
+          }
+
+          // The same frame, over the scrollbar gutters (`overlay/scrollbarProxies.ts`).
+          .htScrollbarFrame {
             box-shadow: inset 0 0 0 1px var(--ht-border-color);
           }
         }
@@ -628,13 +799,13 @@
         border-inline-start-width: 1px;
       }
 
-      // The freeze line at an end clone's inline-start edge is one pixel in every scroll state, and which
-      // element draws it depends on the state. Mid-scroll the clone's edge cuts through a master column,
-      // so the clone's own first-cell inline-start border (inherited from the rules above) is the line.
-      // At the junction (scrolled to the end, or no horizontal scroll) the clone's first column stands on
-      // the boundary of the column before it, whose inline-end border is already the line, and a second
-      // border would make it 2px against the 1px of the start side. The engine sets `htFreezeLineShared`
-      // on the three end clone roots in exactly that state (`Overlays#syncInlineEndFreezeLine`).
+      // The freeze line at an end clone's inline-start edge is the clone's own first-cell inline-start
+      // border (inherited from the rules above), on the same pixel in every scroll state: the engine
+      // renders that column 1px wider, over the inline-end border of the column before the band
+      // (`TableRenderer#getFreezeLineOverlap`). Only when the band covers every column does the row
+      // header draw the line, and a second border would make it 2px against the 1px of the start side.
+      // The engine sets `htFreezeLineShared` on the three end clone roots in exactly that state
+      // (`Overlays#syncInlineEndFreezeLine`).
       &.htFreezeLineShared {
         &.ht_clone_inline_end,
         &.ht_clone_top_inline_end_corner,

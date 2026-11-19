@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The workbook under test, through the same fail-loud allowlist.
+    window.htWorkbook = ({
+      sortedReport: 'sortedReport',
+      summary: 'summary',
+      sortedSummary: 'sortedSummary',
+      ownRefFirst: 'ownRefFirst',
+      ownRefSecond: 'ownRefSecond',
+      relativeDesc: 'relativeDesc',
+      sortedData: 'sortedData',
+      movedColumns: 'movedColumns',
+      sortedFormulas: 'sortedFormulas',
+      sortedSum: 'sortedSum',
+      showFormulas: 'showFormulas',
+      quotedNames: 'quotedNames',
+      movedRows: 'movedRows',
+      movedColumnRefs: 'movedColumnRefs',
+      ownRefColumns: 'ownRefColumns',
+      ownRefRows: 'ownRefRows',
+      ownRefSorted: 'ownRefSorted',
+      clashingNames: 'clashingNames',
+      ownEngineColumns: 'ownEngineColumns',
+      ownEngineRows: 'ownEngineRows',
+    })[htParams.get('workbook') ?? 'sortedReport'];
+    if (!window.htWorkbook) {
+      throw new Error('Unknown ?workbook= value: ' + JSON.stringify(htParams.get('workbook')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Workbooks whose formulas sheets share one HyperFormula engine (`window.engine`), for the order the
+    engine holds a sorted or moved sheet in across a sheet switch. Each sheet's data array is the one the
+    fixture declares, reachable as `window.workbook.sheets[i].data`.
+    - sortedReport: 'Report' (`columnSorting`) with `=Prices!A1` in A1, and 'Prices' with 99.
+    - summary: 'Data' with 10..50 in A1:A5, and 'Summary' with `=Data!A5`.
+    - sortedSummary: 'Data' with 10..50 in A1:A5, and 'Summary' (`columnSorting`) with `=Data!$A$5` and
+      `=Data!$A$1` in A1:A2, labeled 'b' and 'a' in B1:B2.
+    - ownRefFirst: 'S' (`columnSorting`) first, with 3, 1, 2 in A and `=Main!$A$1+A{n}` beside each, and
+      'Main' with 10, 20, 30. ownRefSecond: the same sheets with 'Main' first.
+    - relativeDesc: 'Main' with 10..60 in A1:A6, and 'S' (`columnSorting`) with 1..6 in A, `=Main!A{n}`
+      beside each, and an empty seventh row.
+    - sortedData: 'Data' (`columnSorting`) with 30, 10, 20, and 'Summary' with `=Data!A1`.
+    - movedColumns: 'Sheet' (`manualColumnMove`) with `=A1+B1` in C1 and `=A2+B2` in C2, 'Plain' with
+      no formulas, and 'Other' bound to the engine.
+    - sortedFormulas: 'Sheet' (`columnSorting`, `manualRowMove`) with 3, 1, 2 and `=A{n}*10` next to
+      each, and 'Other'.
+    - sortedSum: 'Sheet' (`columnSorting`) with 1, 2, 3 and `=SUM(A1:A3)` in B2, and 'Other'.
+    - showFormulas: 'F1' and 'F2' with a formula, and 'Plain' with no formulas.
+    - quotedNames: 'Report' with `=Лист2!A1` and `=Prices!A1`, 'Лист2' with 7, and 'Prices' with 99.
+    - movedRows: 'S' (`manualRowMove`, `columnSorting`) with 1..4 in A and `=Main!A{n}` beside each, and
+      'Main' with 10..60 in A1:A6.
+    - movedColumnRefs: 'S' (`manualColumnMove`) with `=Main!A1`, `=Main!B1`, `=Main!C1` in A1:C1, and 'Main'
+      with 10, 20, 30, 40 in A1:D1.
+    - ownRefColumns: 'S' (`manualColumnMove`) with `=Main!A{n}+B{n}` in C and `=C{n}*2` in D, and 'Main' with
+      10..30 in A and 1..3 in B.
+    - ownRefRows: 'S' (`manualRowMove`) with 1..5 in A, `=SUM(Main!A{n}:A{n+1})` in B, and `=Main!B{n}*A{n}` in C,
+      and 'Main' with 10..60 in A and 1..6 in B.
+    - ownRefSorted: 'S' (`manualRowMove`, `columnSorting`) with 1..4 in A and `=Main!A{n}+A{n}` beside each, and
+      'Main' with 10..60 in A1:A6.
+    - clashingNames: 'Data' with 'big', 'Summary' with `=Data!A1`, and 'data' with 'small', whose engine
+      sheet name differs from the first sheet's only in case.
+    - ownEngineColumns: 'Sheet' (`manualColumnMove`) as in movedColumns, but passing the HyperFormula class,
+      so it gets an engine of its own on every visit, and 'Plain' with no formulas.
+    - ownEngineRows: 'Sheet' (`manualRowMove`, the HyperFormula class) with 50, 20, 40, 10, 30 and
+      `=A{n}+1000` next to each, and 'Plain'.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The closing tag is
+    // split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    window.consoleMessages = [];
+    ['error', 'warn'].forEach((level) => {
+      const original = console[level].bind(console);
+
+      console[level] = (...args) => {
+        window.consoleMessages.push(`${level}: ${args.map(String).join(' ')}`);
+        original(...args);
+      };
+    });
+
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+    const engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+    const own = (name, data, settings = {}) => ({ name, data, settings: { ...settings, formulas: { engine: HyperFormula } } });
+    const bound = (name, data, settings = {}) => ({ name, data, settings: { ...settings, formulas: { engine, sheetName: name } } });
+
+    const workbooks = {
+      sortedReport: [
+        bound('Report', [['=Prices!A1', 'Zeta'], ['plain text', 'Alpha']], { columnSorting: true }),
+        bound('Prices', [[99]]),
+      ],
+      summary: [
+        bound('Data', [[10], [20], [30], [40], [50]]),
+        bound('Summary', [['=Data!A5']]),
+      ],
+      sortedSummary: [
+        bound('Data', [[10], [20], [30], [40], [50]]),
+        bound('Summary', [['=Data!$A$5', 'b'], ['=Data!$A$1', 'a']], { columnSorting: true }),
+      ],
+      ownRefFirst: [
+        bound('S', [[3, '=Main!$A$1+A1'], [1, '=Main!$A$1+A2'], [2, '=Main!$A$1+A3']], { columnSorting: true }),
+        bound('Main', [[10], [20], [30]]),
+      ],
+      ownRefSecond: [
+        bound('Main', [[10], [20], [30]]),
+        bound('S', [[3, '=Main!$A$1+A1'], [1, '=Main!$A$1+A2'], [2, '=Main!$A$1+A3']], { columnSorting: true }),
+      ],
+      relativeDesc: [
+        bound('Main', [[10], [20], [30], [40], [50], [60]]),
+        bound('S', [
+          ...[1, 2, 3, 4, 5, 6].map(n => [n, `=Main!A${n}`]),
+          [null, null],
+        ], { columnSorting: true }),
+      ],
+      sortedData: [
+        bound('Data', [[30], [10], [20]], { columnSorting: true }),
+        bound('Summary', [['=Data!A1']]),
+      ],
+      movedColumns: [
+        bound('Sheet', [[1, 2, '=A1+B1'], [3, 4, '=A2+B2']], { manualColumnMove: true }),
+        { name: 'Plain', data: [['q']] },
+        bound('Other', [['x']]),
+      ],
+      sortedFormulas: [
+        bound('Sheet', [[3, '=A1*10'], [1, '=A2*10'], [2, '=A3*10']], { columnSorting: true, manualRowMove: true }),
+        bound('Other', [['x']]),
+      ],
+      sortedSum: [
+        bound('Sheet', [[1, null], [2, '=SUM(A1:A3)'], [3, null]], { columnSorting: true }),
+        bound('Other', [['x']]),
+      ],
+      quotedNames: [
+        bound('Report', [['=Лист2!A1', '=Prices!A1']]),
+        bound('Лист2', [[7]]),
+        bound('Prices', [[99]]),
+      ],
+      movedRows: [
+        bound('S', [1, 2, 3, 4].map(n => [n, `=Main!A${n}`]), { manualRowMove: true, columnSorting: true }),
+        bound('Main', [[10], [20], [30], [40], [50], [60]]),
+      ],
+      movedColumnRefs: [
+        bound('S', [['=Main!A1', '=Main!B1', '=Main!C1']], { manualColumnMove: true }),
+        bound('Main', [[10, 20, 30, 40]]),
+      ],
+      ownRefColumns: [
+        bound('S', [[1, 2, '=Main!A1+B1', '=C1*2'], [3, 4, '=Main!A2+B2', '=C2*2']], { manualColumnMove: true }),
+        bound('Main', [[10, 1], [20, 2], [30, 3]]),
+      ],
+      ownRefRows: [
+        bound('S', [1, 2, 3, 4, 5].map(n => [n, `=SUM(Main!A${n}:A${n + 1})`, `=Main!B${n}*A${n}`]), { manualRowMove: true }),
+        bound('Main', [1, 2, 3, 4, 5, 6].map(n => [n * 10, n])),
+      ],
+      ownRefSorted: [
+        bound('S', [1, 2, 3, 4].map(n => [n, `=Main!A${n}+A${n}`]), { manualRowMove: true, columnSorting: true }),
+        bound('Main', [[10], [20], [30], [40], [50], [60]]),
+      ],
+      clashingNames: [
+        bound('Data', [['big']]),
+        bound('Summary', [['=Data!A1']]),
+        bound('data', [['small']]),
+      ],
+      ownEngineColumns: [
+        own('Sheet', [[1, 2, '=A1+B1'], [3, 4, '=A2+B2']], { manualColumnMove: true }),
+        { name: 'Plain', data: [['q']] },
+      ],
+      ownEngineRows: [
+        own('Sheet', [[50, '=A1+1000'], [20, '=A2+1000'], [40, '=A3+1000'], [10, '=A4+1000'], [30, '=A5+1000']],
+          { manualRowMove: true }),
+        { name: 'Plain', data: [['q']] },
+      ],
+      showFormulas: [
+        bound('F1', [[1, '=A1+1']]),
+        bound('F2', [[2, '=A1+1']]),
+        { name: 'Plain', data: [['q']] },
+      ],
+    };
+
+    window.engine = engine;
+    window.workbook = { sheets: workbooks[window.htWorkbook] };
+
+    const hot = new Handsontable(container, {
+      rowHeaders: true,
+      colHeaders: true,
+      renderer: testIdRenderer,
+      width: 700,
+      height: 400,
+      sheetsBar: window.workbook,
+      licenseKey: window.htTestLicenseKey,
+    });
+
+    window.hot = hot;
+  </script>
+</body>
+</html>

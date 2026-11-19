@@ -73,11 +73,14 @@ async function run(buffer: ArrayBuffer, blob: Blob) {
   const direction: 'rtl' | 'ltr' | undefined = fromBuffer.layoutDirection;
   const nested: ImportedNestedHeader[][] | undefined = fromBuffer.nestedHeaders;
   const conditional: ImportedConditionalFormatting[] | undefined = fromBuffer.conditionalFormatting;
+  const named: Array<{ name: string; formula: string }> | undefined = fromBuffer.namedExpressions;
 
   void fromView;
   void fromDataView;
 
-  return { data, headers, dropped, kind, supported, settings, styles, borders, direction, nested, conditional };
+  return {
+    data, headers, dropped, kind, supported, settings, styles, borders, direction, nested, conditional, named,
+  };
 }
 
 hot.addHook('beforeImport', (result: ImportResult, format: string) => (result.data.length > 0 ? undefined : false));

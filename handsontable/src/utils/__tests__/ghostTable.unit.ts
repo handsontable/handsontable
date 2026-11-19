@@ -116,6 +116,50 @@ describe('GhostTable', () => {
     });
   });
 
+  describe('getHeights', () => {
+    /**
+     * Measures one row that the browser would lay out at the given height. jsdom has no layout, so
+     * the table's rect is what stands in for it.
+     *
+     * @param {number} laidOutHeight The height `getBoundingClientRect()` reports.
+     * @returns {number} The height `getHeights()` hands to its callback.
+     */
+    function measure(laidOutHeight: number): number {
+      const ghostTable = new GhostTable(createHotMock({}));
+
+      ghostTable.addRow(0, createSamples() as never);
+      ghostTable.injectTable();
+      (ghostTable.rows[0].table as HTMLTableElement).getBoundingClientRect =
+        () => ({ height: laidOutHeight }) as DOMRect;
+
+      let measured = NaN;
+
+      ghostTable.getHeights((_row: number, height: number) => {
+        measured = height;
+      });
+
+      return measured;
+    }
+
+    it('should keep the fraction of a row laid out at a height that is not a whole pixel', () => {
+      // 118.265625 is 118 + 17/64, a height Chromium lays a wrapped row out at. How it rounds is the
+      // caller's business: a default-height row and a taller one round differently.
+      expect(measure(118.265625)).toBe(118.265625);
+    });
+
+    it('should leave a whole-pixel height unchanged', () => {
+      expect(measure(29)).toBe(29);
+    });
+
+    it('should snap a measurement to the layout grid', () => {
+      expect(measure(28.8889)).toBe(28.890625);
+    });
+
+    it('should drop the float noise a measurement can carry', () => {
+      expect(measure(29.000000000001)).toBe(29);
+    });
+  });
+
   describe('sampled value rendering', () => {
     // The AutoRowSize and AutoColumnSize samplers run `valueFormatter` when building samples, so
     // the values GhostTable receives are ALREADY formatted. Re-formatting here double-formats:

@@ -2,6 +2,7 @@ import Handsontable from "handsontable";
 import { getDirectionFromURL, getThemeNameFromURL, getFromURL } from "../../utils";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
 import { data } from './data';
+import { TEST_LICENSE_KEY } from "../../test-license-key";
 
 export function init() {
   registerLanguageDictionary(arAR);
@@ -130,7 +131,7 @@ export function init() {
     dialog: dialogSettings,
     width: 400,
     height: 400,
-    licenseKey: "non-commercial-and-evaluation",
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   if (Boolean(focus)) {

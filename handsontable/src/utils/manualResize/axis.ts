@@ -2,6 +2,7 @@ import type { HotInstance } from '../../core/types';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { IndexMapper } from '../../translations';
 import { closest } from '../../helpers/dom/element';
+import { firstRowTopBorderOutsideHeight } from '../../3rdparty/walkontable/src/axisSizing/boxModel';
 
 /**
  * The direction a resize drag moves the header edge in. A row is resized vertically, a column
@@ -85,6 +86,19 @@ export interface ResizeAxis {
    */
   isAnchoredAtInlineEnd?(hot: HotInstance, header: HTMLElement): boolean;
   /**
+   * Returns how many pixels the header renders larger than its track, over a freeze line: the first header of the
+   * end band reaches over the border of the column before it, and the first row header of the frozen bottom rows is
+   * drawn one pixel above its height, which is the freeze line. `0` for every other header. Optional: an axis
+   * without such a header leaves it out.
+   */
+  getFreezeLineOverlap?(hot: HotInstance, header: HTMLElement): number;
+  /**
+   * Returns how many pixels the edge before the end band sits before the inline-end edge of the header that
+   * ends there: the band's first column covers that header's border, so the line a user sees is the band's.
+   * Optional, like {@link ResizeAxis#getFreezeLineOverlap}.
+   */
+  getEndBandEdgeShift?(hot: HotInstance): number;
+  /**
    * Returns the size reported to the resize hooks.
    */
   getHookSize(hot: HotInstance, index: number, newSize: number | null): number | null;
@@ -139,6 +153,21 @@ export const ROW_RESIZE_AXIS: ResizeAxis = {
       topInlineStartCornerOverlay.clone?.wtTable.TBODY,
       bottomInlineStartCornerOverlay.clone?.wtTable.TBODY,
     ].includes(tbody as HTMLTableSectionElement);
+  },
+
+  getFreezeLineOverlap(hot, header) {
+    // The first row of the bottom start corner is drawn one pixel above its height when the engine puts the freeze
+    // line outside that height (`firstRowTopBorderOutsideHeight()`). That pixel is not part of the size the plugin
+    // stores, so a drag of that header must not store it.
+    const cornerTable = hot.view._wt.wtOverlays.bottomInlineStartCornerOverlay.clone?.wtTable;
+    const row = header.parentElement;
+
+    if (!cornerTable || row === null || row !== cornerTable.TBODY?.firstElementChild) {
+      return 0;
+    }
+
+    return firstRowTopBorderOutsideHeight(cornerTable.name, cornerTable.THEAD, hot.stylesHandler.areCellsBorderBox()) ?
+      1 : 0;
   },
 
   canResizeHeader() {
@@ -226,6 +255,16 @@ export const COLUMN_RESIZE_AXIS: ResizeAxis = {
     // do not fill it, the end columns rest against the last column, the grid has no edge to anchor
     // to, and the header keeps its inline-start edge as every other header does.
     return isInTopInlineEndCorner(hot, header) && hot.view._wt.wtViewport.hasHorizontalScroll();
+  },
+
+  getFreezeLineOverlap(hot, header) {
+    // The first header of the band is the first cell of its row in the end corner, which renders no row header.
+    return isInTopInlineEndCorner(hot, header) && header.previousElementSibling === null ?
+      hot.view._wt.wtOverlays.inlineEndOverlay.getFreezeLineOverlap() : 0;
+  },
+
+  getEndBandEdgeShift(hot) {
+    return hot.view._wt.wtOverlays.inlineEndOverlay.getFreezeLineOverlap();
   },
 
   canResizeHeader(header) {

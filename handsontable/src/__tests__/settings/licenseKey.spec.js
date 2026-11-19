@@ -68,14 +68,16 @@ describe('settings', () => {
         expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
       });
 
-      it('should show no badge and no bar for the non-commercial key', async() => {
+      it('should block the non-commercial key as an invalid key (Handsontable 19.0)', async() => {
         handsontable({ licenseKey: 'non-commercial-and-evaluation' }, true);
 
         const overlays = hot().rootOverlaysElement;
+        const lock = overlays.querySelector('.ht-license-lock');
 
-        // The Non-Commercial and Evaluation License permits the usage - no badge, no bar, silent.
         expect(overlays.querySelector('.ht-license-badge')).toBe(null);
         expect(hot().rootElement.classList.contains('ht-license-badge-on')).toBe(false);
+        expect(lock).not.toBe(null);
+        expect(lock.innerText).toContain('The license key for Handsontable is invalid');
         expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
       });
 

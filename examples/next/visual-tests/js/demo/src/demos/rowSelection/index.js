@@ -3,6 +3,7 @@ import { registerPlugin, RowSelection, CheckboxHeader } from 'handsontable/plugi
 import { registerCellType, CheckboxCellType, NumericCellType } from 'handsontable/cellTypes';
 import { getThemeNameFromURL } from '../../utils';
 import { products, stock } from './data';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 /**
  * Appends one labeled grid container to the layout.
@@ -46,7 +47,7 @@ export function init() {
   const common = {
     themeName: getThemeNameFromURL(),
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   };
   const productColumns = [
     { data: 'sku', width: 110 },

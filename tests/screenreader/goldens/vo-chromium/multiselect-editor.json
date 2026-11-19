@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "multiselect-editor",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T14:46:08.894Z"
+  },
+  "steps": {
+    "open-editor": "search options search edit text select options group",
+    "arrow-down-first": "alpha checked checkbox list 3 items",
+    "arrow-down-second": "alfa unchecked checkbox list 3 items",
+    "space-check": "checked alfa checkbox",
+    "arrow-down-third": "alto unchecked checkbox list 3 items",
+    "commit-selection": "",
+    "back-to-committed": "a alpha alfa column 1 row alpha alfa alpha"
+  }
+}

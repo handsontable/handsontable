@@ -35,13 +35,13 @@ for (let row = 0; row < 50; row++) {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={colHeaders}
       width={500}
       height={220}
       rowHeaders={true}
       dragToScroll={true}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

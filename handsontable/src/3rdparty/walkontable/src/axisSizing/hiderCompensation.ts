@@ -8,6 +8,60 @@ import type { StylesHandler } from '../types';
 const DECLARED_UNCOUNTED_GRIDLINE_WIDTH = 1;
 
 /**
+ * The probe cell's rendered bottom border, in CSS pixels.
+ *
+ * The probe `td` is not the first row, so its top border is 0. Every themed cell's bottom
+ * border is the same width as the first head row's top gridline. An unreadable style falls
+ * back to the declared 1px.
+ *
+ * @param {StylesHandler | null | undefined} stylesHandler The handler that measured the probe.
+ * @returns {number}
+ */
+export function renderedBottomBorderWidth(
+  stylesHandler: StylesHandler | null | undefined
+): number {
+  const readStyle = stylesHandler?.getStyleForTD;
+  const rendered = Number.parseFloat(
+    typeof readStyle === 'function' ? `${readStyle.call(stylesHandler, 'border-bottom-width')}` : ''
+  );
+
+  return Number.isFinite(rendered) ? rendered : DECLARED_UNCOUNTED_GRIDLINE_WIDTH;
+}
+
+/**
+ * Whether the grid renders at least one column header row.
+ *
+ * Read defensively: a standalone Walkontable host may not declare `columnHeaders` at all, the same
+ * reason the styles-handler read in `getHiderHeightCompensation` is guarded.
+ *
+ * @param {Settings} wtSettings The Walkontable settings accessor.
+ * @returns {boolean}
+ */
+function rendersColumnHeaders(wtSettings: Settings): boolean {
+  const columnHeaders = wtSettings.getSetting<unknown[] | undefined>('columnHeaders');
+
+  return Array.isArray(columnHeaders) && columnHeaders.length > 0;
+}
+
+/**
+ * Whether the row heights themselves carry the pixel of the first rendered body row's own `border-top`.
+ *
+ * That pixel exists when no column header owns the top gridline. Row heights the engine sums leave it out,
+ * which `getHiderHeightCompensation` adds back. Row heights an external calculator supplies (AutoRowSize)
+ * put it into the height of whichever row is the first rendered one, so a sum over rows holds it only when
+ * the first rendered row lies in the summed range, and it moves to another row when the band does. This is
+ * the one place that asks which of the two a grid is. It is the third case of the compensation: the one
+ * where `getHiderHeightCompensation` answers `0` because the external calculator already counts the pixel,
+ * not because there is none.
+ *
+ * @param {Settings} wtSettings The Walkontable settings accessor.
+ * @returns {boolean}
+ */
+export function heightsCarryFirstRowPixel(wtSettings: Settings): boolean {
+  return wtSettings.getSetting<boolean>('externalRowCalculator') && !rendersColumnHeaders(wtSettings);
+}
+
+/**
  * The compensation added to the summed row heights to get the height the table actually renders at.
  *
  * The summed row heights fall one whole pixel short of the band the table renders, because the
@@ -59,27 +113,14 @@ export function getHiderHeightCompensation(wtSettings: Settings): number {
   //
   // The sub-pixel inflation is not carried over into this branch. The header's own fractional share
   // is accounted separately, by `Viewport#getColumnHeaderHeightFraction()` at both call sites.
-  //
-  // Read defensively: a standalone Walkontable host may not declare `columnHeaders` at all, the same
-  // reason the styles-handler read below is guarded.
-  const columnHeaders = wtSettings.getSetting<unknown[] | undefined>('columnHeaders');
-
-  if (Array.isArray(columnHeaders) && columnHeaders.length > 0) {
+  if (rendersColumnHeaders(wtSettings)) {
     return 0;
   }
 
   const stylesHandler = wtSettings.getSetting<StylesHandler | null>('stylesHandler');
   // A standalone Walkontable host may supply no styles handler at all, or one implementing only
   // part of the class Handsontable passes in — the engine's own test harness does exactly that.
-  const readStyle = stylesHandler?.getStyleForTD;
-  const renderedBorderWidth = Number.parseFloat(
-    typeof readStyle === 'function' ? `${readStyle.call(stylesHandler, 'border-bottom-width')}` : ''
-  );
-
-  if (!Number.isFinite(renderedBorderWidth)) {
-    return DECLARED_UNCOUNTED_GRIDLINE_WIDTH;
-  }
-
+  const renderedBorderWidth = renderedBottomBorderWidth(stylesHandler);
   const wholePixelWidth = Math.round(renderedBorderWidth);
   const inflation = renderedBorderWidth > wholePixelWidth
     ? renderedBorderWidth - wholePixelWidth : 0;

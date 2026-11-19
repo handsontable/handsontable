@@ -56,18 +56,18 @@ describe('Formulas: initial manualColumnMove configuration (issue #9952)', () =>
       },
     });
 
-    // HF rewrites the formula text after the column order is applied because the formula's relative
-    // references shift with the formula's new visual position. The original `=A1+10` at physical
-    // column 1 moves to visual column 2, so the relative reference shifts from A1 to B1. This
-    // matches HF behavior for runtime `moveColumns` calls.
+    // The initial order reaches the engine as moves (DEV-3972), the same way a drag does, so `=A1+10`
+    // keeps reading column A. It used to reach it as one `setColumnOrder`, which shifted the reference
+    // with the formula's new position to `=B1+10` and read 100 instead of 1. The `loadData()` case below,
+    // which re-applies the same array as a move, always showed 11.
     expect(getSourceData()).toEqual([
-      [1, '=B1+10', 100, 1000],
-      [2, '=B2+10', 200, 2000],
+      [1, '=A1+10', 100, 1000],
+      [2, '=A2+10', 200, 2000],
     ]);
 
     expect(getData()).toEqual([
-      [1, 100, 110, 1000],
-      [2, 200, 210, 2000],
+      [1, 100, 11, 1000],
+      [2, 200, 12, 2000],
     ]);
   });
 

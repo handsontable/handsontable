@@ -2,6 +2,7 @@ import type { HotInstance } from './core/types';
 import type { IndexMapper } from './translations';
 import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
+import type { RowHeightMode } from './3rdparty/walkontable/src/axisSizing/axisSizeSource';
 import {
   addClass,
   removeClass,
@@ -26,7 +27,9 @@ import {
 } from './helpers/dom/element';
 import EventManager from './eventManager';
 import { CellPainter } from './core/incrementalRender/cellPainter';
+import { isAutoRowSizeOn } from './core/rowHeightSetting';
 import { RenderSizeProbe } from './renderSizeProbe';
+import GhostTable from './utils/ghostTable';
 import { getRenderedRowHeight } from './core/viewportScroll/scrollStrategies/singleScroll';
 import {
   isImmediatePropagationStopped,
@@ -52,7 +55,18 @@ import {
 } from './helpers/a11y';
 import { parsePixelSize } from './utils/pixelSize';
 import { describeValue } from './utils/describeValue';
+import { isPageTextSelectionKept } from './utils/pageTextSelection';
 import { warnOnce } from './helpers/console';
+import { getSideSlotsWidth } from './core/rootSize';
+
+/**
+ * Class mirrored onto the root wrapper while the window scrolls the grid's columns, a side slot is
+ * filled, and the table is wider than the space the side panels leave. The stylesheet then sizes the
+ * grid track to the table, so the table never paints over an `end` panel and the panel follows the
+ * table's last column instead. A table that fits keeps the flexible track, so `stretchH` still fills
+ * the space between the panels and follows the container when it resizes.
+ */
+const GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME = 'ht-grid-width-follows-content';
 
 /**
  * The most redraws `TableView#onCellContentSettled` requests for one row inside one window.
@@ -195,6 +209,27 @@ function resolveHeaderSizeSetting(
 }
 
 /**
+ * Whether the winning `modifyColumnHeaderHeight` number is AutoRowSize's ghost height.
+ *
+ * That measurement omits the bottom gridline. Any other listener returns the border box the
+ * header row is given. The hook chain keeps only the winning return, so the ghost is recognized
+ * by equality with the enabled plugin's measured height.
+ *
+ * @param {Handsontable} hot The instance whose AutoRowSize plugin measured the header.
+ * @param {*} hookHeight The winning `modifyColumnHeaderHeight` return.
+ * @returns {boolean}
+ */
+function hookHeightOmitsBottomBorder(hot: HotInstance, hookHeight: unknown): boolean {
+  if (typeof hookHeight !== 'number') {
+    return false;
+  }
+
+  const autoRowSize = hot.getPlugin('autoRowSize');
+
+  return autoRowSize?.enabled === true && hookHeight === autoRowSize.getColumnHeaderHeight();
+}
+
+/**
  * @class TableView
  * @private
  */
@@ -284,6 +319,19 @@ class TableView {
    * @type {boolean}
    */
   #drawRenderedCells = false;
+  /**
+   * The content-header probe is not a displayed column. `appendColHeader` must not emit
+   * `afterGetColHeader` for those cells, or a listener sees an extra pass on the first render.
+   *
+   * @type {boolean}
+   */
+  #measuringContentColumnHeader = false;
+
+  /**
+   * Answers whether a header's label holds text a user typed (an `EditableHeaders` rename), which must be
+   * written as text and never parsed as HTML. `null` while no plugin registered one.
+   */
+  #plainTextHeaderResolver: ((axis: 'column' | 'row', visualIndex: number) => boolean) | null = null;
   /**
    * Whether a check of the frozen counts is queued after a column width change that did not render.
    *
@@ -434,9 +482,18 @@ class TableView {
 
       this.#discardSizesMeasuredWithoutStyles();
       this.#reservedSlotHeight = null;
+      // Before the frozen counts are measured: they sum row heights, and those depend on the mode.
+      this.syncRowHeightMode();
+      this.syncExternalRowCalculator();
       this.#refreshEffectiveFixed(isFullRender);
 
       this.#drawRenderedCells = false;
+
+      if (isFullRender) {
+        this.#dropRaisedColumnHeaderHeights();
+      }
+
+      this.#measureContentColumnHeader();
       this._wt.draw(!isFullRender);
       this.#redrawOnceWhenEffectiveFixedMoved(isFullRender);
       this.#updateScrollbarClassNames();
@@ -444,6 +501,178 @@ class TableView {
       this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
     }
+  }
+
+  /**
+   * Drops the column-header heights the render-size probe measured on the previous draw when one of them
+   * is taller than the default, so a full draw measures the headers it is about to paint. A full draw can
+   * change the header content (`colHeaders`, `nestedHeaders`, a sheet switch), and the stored height feeds
+   * the `columnHeaderHeight` funnel, which writes it on the header cells, where the probe then measured it
+   * back: a header row that once held multi-line labels stayed tall after they went back to one line. With
+   * the heights gone, the ghost-table pre-measure (`#measureContentColumnHeader`) takes the new content
+   * before the draw, and the probe measures the drawn headers after it. Grids whose headers are all at the
+   * default height keep their stored heights and pay nothing.
+   */
+  #dropRaisedColumnHeaderHeights(): void {
+    if (this.#hasRaisedColumnHeader()) {
+      this.renderSizeProbe.columnHeaderHeights.clear();
+    }
+  }
+
+  /**
+   * Tells whether the render-size probe measured a column header taller than one line. The probe reads a
+   * header as a border-box height, so a one-line header measures the default row height PLUS its own
+   * bottom gridline, and comparing against the default row height alone read every one-line header as
+   * raised: each full render then dropped and re-measured the heights and re-synced the overlays.
+   *
+   * @returns {boolean}
+   */
+  #hasRaisedColumnHeader(): boolean {
+    const defaultRowHeight = this.hot.stylesHandler.getDefaultRowHeight() ?? 0;
+    const borderBottomWidth = Number.parseFloat(String(this.hot.stylesHandler.getStyleForTD('border-bottom-width')));
+
+    return this.renderSizeProbe.hasColumnHeaderTallerThan(
+      defaultRowHeight + (Number.isFinite(borderBottomWidth) ? borderBottomWidth : 0)
+    );
+  }
+
+  /**
+   * Measures a content-sized column header before the head rows exist.
+   *
+   * The first layout read happens while the head section is empty, so a header taller than the
+   * default row is still unknown and the visible rows are chosen without it. AutoRowSize and an
+   * explicit `columnHeaderHeight` already supply that number, through the same callback the engine
+   * reads. Otherwise the ghost table renders the columns this draw will paint, and the probe keeps
+   * the border-box height, gridline included. The shared ghost stylesheet still drops that
+   * border, so the probe puts it back on its own cells.
+   */
+  #measureContentColumnHeader(): void {
+    if (this.renderSizeProbe.columnHeaderHeights.size > 0 || !this.hot.hasColHeaders()) {
+      return;
+    }
+
+    const provided: unknown = this._wt.wtSettings.getSetting<unknown>('columnHeaderHeight');
+
+    if (typeof provided === 'number' || (Array.isArray(provided) && provided.length > 0)) {
+      return;
+    }
+
+    const columns = this.#columnsRenderedOnFirstDraw();
+
+    if (columns.length === 0) {
+      return;
+    }
+
+    const strings: { col: number, value: string }[] = [];
+
+    for (let index = 0; index < columns.length; index++) {
+      strings.push({ col: columns[index], value: '' });
+    }
+
+    const ghostTable = new GhostTable(this.hot);
+
+    this.#measuringContentColumnHeader = true;
+
+    try {
+      ghostTable.addColumnHeadersRow(new Map([[0, { strings }]]));
+
+      if (!ghostTable.rows.length) {
+        return;
+      }
+
+      ghostTable.injectTable();
+      const table = ghostTable.rows[0].table as HTMLTableElement;
+      const cells = table.tHead?.rows[0]?.cells;
+      const readBorder = this.hot.stylesHandler.getStyleForTD('border-bottom-width');
+      const borderBottomWidth = typeof readBorder === 'number' ? `${readBorder}px` : (readBorder || '1px');
+      let measured = 0;
+
+      if (cells) {
+        const measurable: HTMLTableCellElement[] = [];
+
+        for (let index = 0; index < cells.length; index++) {
+          const cell = cells[index];
+
+          if (cell.rowSpan <= 1) {
+            cell.style.borderBottomWidth = borderBottomWidth;
+            measurable.push(cell);
+          }
+        }
+
+        for (let index = 0; index < measurable.length; index++) {
+          if (measurable[index].offsetHeight > measured) {
+            measured = measurable[index].offsetHeight;
+          }
+        }
+      }
+
+      if (measured > 0) {
+        this.renderSizeProbe.columnHeaderHeights.set(0, measured);
+      }
+    } finally {
+      this.#measuringContentColumnHeader = false;
+      ghostTable.clean();
+    }
+  }
+
+  /**
+   * Visual columns the first draw will paint: the rendered scroll band, plus the frozen columns
+   * the calculator leaves out of that band.
+   *
+   * The propose-only calculator still reads the header height, and that caches the pre-probe
+   * value. The memos are cleared before this returns.
+   *
+   * @returns {number[]}
+   */
+  #columnsRenderedOnFirstDraw(): number[] {
+    const viewport = this._wt.wtViewport;
+
+    viewport.columnWidthCache.ensureBuilt();
+
+    const rendered = viewport
+      .createColumnsCalculator(['rendered'], 'render', { proposeOnly: true })
+      .getResultsFor('rendered');
+
+    viewport.columnHeaderHeight = NaN;
+    viewport.columnHeaderHeightFraction = NaN;
+    viewport.invalidateLayout();
+
+    const total = this.countRenderableColumns();
+    const fixedStart = this._wt.wtSettings.getSetting<number>('fixedColumnsStart') || 0;
+    const fixedEnd = this._wt.wtSettings.getSetting<number>('fixedColumnsEnd') || 0;
+    const renderable = new Set<number>();
+    const addRange = (from: number, to: number) => {
+      for (let column = from; column <= to; column++) {
+        renderable.add(column);
+      }
+    };
+
+    if (fixedStart > 0) {
+      addRange(0, Math.min(fixedStart, total) - 1);
+    }
+
+    const start = rendered?.startColumn ?? null;
+    const end = rendered?.endColumn ?? null;
+
+    if (start !== null && end !== null && end >= start) {
+      addRange(Math.max(0, start), Math.min(total - 1, end));
+    }
+
+    if (fixedEnd > 0) {
+      addRange(Math.max(total - fixedEnd, 0), total - 1);
+    }
+
+    const visual: number[] = [];
+
+    renderable.forEach((column) => {
+      const visualIndex = this.hot.columnIndexMapper.getVisualFromRenderableIndex(column);
+
+      if (visualIndex !== null && visualIndex !== undefined) {
+        visual.push(visualIndex);
+      }
+    });
+
+    return visual;
   }
 
   /**
@@ -609,7 +838,12 @@ class TableView {
         : null;
 
       if (!this.isTextSelectionAllowed(mouseDownTarget)) {
-        clearTextSelection(rootWindow);
+        // A press marked by `keepPageTextSelection()` (the FormulaBuilder reference pick) keeps the page
+        // selection: WebKit ties a focused text field's caret to it, so clearing it moved the formula
+        // editor's caret. Other claimed presses (`isImmediatePropagationStopped()`) still clear it.
+        if (!isPageTextSelectionKept(event)) {
+          clearTextSelection(rootWindow);
+        }
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
       }
@@ -1522,8 +1756,10 @@ class TableView {
       // several grids on one page never cross-reference each other's headers.
       guid: this.hot.guid,
       rtlMode: this.hot.isRtl(),
-      externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
-        this.hot.getPlugin('autoRowSize').isEnabled(),
+      // `enabled`, not `isEnabled()`: a plugin the license key leaves out keeps its setting but measures nothing,
+      // and the engine must then measure the rows itself. Plugins are enabled before the view is built.
+      // `syncExternalRowCalculator()` keeps it in step when `updateSettings()` turns the plugin on or off.
+      externalRowCalculator: (this.#externalRowCalculator = this.#isAutoRowSizeMeasuring()),
       // Single-pass rendering is on by default; the `modifySinglePassLayout` hook lets a plugin or
       // user code force the legacy measure-then-render path by returning `false` (e.g. `mergeCells`,
       // whose virtualized row heights depend on the viewport the layout is computing). Evaluated per
@@ -1595,11 +1831,7 @@ class TableView {
         this.#rowHeadersCount = headerRenderers.length;
 
         if (this.hot.getSettings().ariaTags) {
-          // Update the aria-colcount attribute.
-          // Only needs to be done once after initialization/data update.
-          if (this.#getAriaColcount() === this.hot.countCols()) {
-            this.#updateAriaColcount(this.#rowHeadersCount);
-          }
+          this.#syncAriaColcount();
         }
 
         return headerRenderers;
@@ -1649,6 +1881,7 @@ class TableView {
         return isUniformSizeSetting(rowHeights) && isUniformSizeSetting(minRowHeights) &&
           !this.hot.hasHook('modifyRowHeight');
       },
+      rowHeightMode: (this.#resolvedRowHeightMode = this.#resolveRowHeightMode()),
       columnWidthsUniform: () => {
         return isUniformSizeSetting(this.hot.getSettings().colWidths) &&
           !this.hot.hasHook('modifyColWidth');
@@ -1701,6 +1934,11 @@ class TableView {
           controller,
           cellCoordsFactory: (row: number, column: number) => this.hot._createCellCoords(row, column),
         });
+
+        // The click closed the editor, and a listener of that save destroyed the grid.
+        if (this.hot.isDestroyed) {
+          return;
+        }
 
         this.hot.runHooks('afterOnCellMouseDown', event, visualCoords, TD);
         this.activeWt = this._wt;
@@ -2086,6 +2324,7 @@ class TableView {
         const configured = resolveHeaderSizeSetting(
           this.settings.columnHeaderHeight, this, 'columnHeaderHeight'
         );
+        const hookOmitsBottomBorder = hookHeightOmitsBottomBorder(this.hot, hookHeight);
         const probe = this.renderSizeProbe.columnHeaderHeights;
         // Merge the three provided-height sources per header level: the `columnHeaderHeight` option
         // (scalar or per-level array), the `modifyColumnHeaderHeight` hook (AutoRowSize), and the
@@ -2094,8 +2333,19 @@ class TableView {
           Array.isArray(configured) ? configured.length : 0,
           probe.size ? Math.max(...probe.keys()) + 1 : 0,
         );
+        // Only AutoRowSize's ghost height omits the bottom gridline. An explicit option, a winning
+        // probe, and any other `modifyColumnHeaderHeight` number already include it. Recorded for
+        // the band, not added to the value returned here.
+        let omitsBottomBorder = false;
 
         if (levels === 0) {
+          omitsBottomBorder = hookOmitsBottomBorder &&
+            !(typeof configured === 'number' && configured > 0);
+
+          if (this._wt) {
+            this._wt.wtViewport.columnHeaderHeightOmitsBottomBorder = omitsBottomBorder;
+          }
+
           return configured || hookHeight;
         }
 
@@ -2109,14 +2359,25 @@ class TableView {
           // still grow the header past that when the actual header content is taller, replacing the
           // old oversized-header DOM measurement.
           let base;
+          let fromHook = false;
 
           if (typeof configuredAtLevel === 'number') {
             base = configuredAtLevel;
           } else if (typeof hookHeight === 'number') {
             base = hookHeight;
+            fromHook = hookOmitsBottomBorder;
           }
 
           const probeAtLevel = probe.get(level);
+
+          if (typeof probeAtLevel === 'number' && !(typeof base === 'number' && base >= probeAtLevel)) {
+            fromHook = false;
+          }
+
+          if (level === 0) {
+            omitsBottomBorder = fromHook;
+          }
+
           const candidates: number[] = [];
 
           if (typeof base === 'number') {
@@ -2127,6 +2388,10 @@ class TableView {
           }
 
           perLevel[level] = candidates.length ? Math.max(...candidates) : undefined;
+        }
+
+        if (this._wt) {
+          this._wt.wtViewport.columnHeaderHeightOmitsBottomBorder = omitsBottomBorder;
         }
 
         return perLevel;
@@ -2706,6 +2971,39 @@ class TableView {
   }
 
   /**
+   * Drops the row heights that were measured before the browser zoom changed, when it did.
+   *
+   * Below 100% the cells' border renders wider than the 1px the theme declares, so every row renders taller, and
+   * the styles handler sizes rows from that only when the border it cached was already inflated. A grid built at
+   * 100% and zoomed out afterwards kept the declared height and every sum of row heights fell short per row: the
+   * guideline of `ManualRowMove`, the scroll range, the row-header clone (GitHub #14330). The handler re-reads the
+   * border and, when it moved, the row-height cache is dropped here, so the next render measures the rows again.
+   * The oversized-row records stay: without `AutoRowSize` nothing else knows the height of a tall row outside the
+   * rendered band, and a render measures the rows it draws. The column width cache is left alone too, because a
+   * measured width (`AutoColumnSize`) does not depend on the border.
+   *
+   * A grid nobody can see is skipped. The browser reports the inflated border of a hidden grid, but a row of
+   * it renders at no height, so the grid would measure the declared one against the new border and keep it once
+   * shown. The next `Core#refreshDimensions()` after the reveal then finds the border moved and refreshes. A grid
+   * with a `height` gets that call from the container observer. A grid the window scrolls gets it from the next
+   * window resize or from the application.
+   *
+   * `Core#refreshDimensions()` calls it after the `beforeRefreshDimensions` hook let the resize through and
+   * renders when it returns `true`, so a resize that a listener blocked stays blocked.
+   *
+   * @returns {boolean} `true` when the zoom changed what a row measures, and the caller has to render.
+   */
+  refreshZoomDependentSizes(): boolean {
+    if (!isVisible(this.hot.rootElement) || !this.hot.stylesHandler.refreshZoomDependentValues()) {
+      return false;
+    }
+
+    this.invalidateRowHeightCache();
+
+    return true;
+  }
+
+  /**
    * Renders when a resize of the window changed the counts that fit. A grid that the window scrolls keeps the size of
    * its root when the window is resized (its height follows its content), so `refreshDimensions()` finds no change
    * and does not render, while the room the frozen bands share is the size of the window.
@@ -2751,6 +3049,111 @@ class TableView {
     if (!isSameEffectiveFixed(this._effectiveFixed, next)) {
       this.#setEffectiveFixed(next);
       this._wt.draw(false);
+    }
+  }
+
+  /**
+   * The row-height mode the options last asked for, as handed to the engine. `syncRowHeightMode()`
+   * compares the options' answer with this, not with what the engine holds, so a caller that sets the
+   * engine's mode directly (the E2E fixtures do) keeps it until the options ask for a different one.
+   *
+   * @type {RowHeightMode|Function|null}
+   */
+  #resolvedRowHeightMode: RowHeightMode | ((renderedRowIndex: number) => RowHeightMode) | null = null;
+
+  /**
+   * The row-height mode of one row, by the rendered index the engine asks with. Used when the mode can
+   * differ per row, which is the `rowHeights` array and function forms.
+   *
+   * @param {number} renderedRowIndex The rendered row index.
+   * @returns {RowHeightMode}
+   */
+  #rowHeightModeOfRow = (renderedRowIndex: number): RowHeightMode => {
+    const visualIndex = this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderedRowIndex);
+
+    return this.hot._isRowHeightExact(visualIndex === null ? renderedRowIndex : visualIndex) ? 'exact' : 'min';
+  };
+
+  /**
+   * Resolves the engine's `rowHeightMode` setting from the grid's options. The engine takes a literal
+   * when every row shares one mode, which keeps its uniform fast paths (and costs a default grid
+   * nothing), and a function of the row only when the mode can differ per row.
+   *
+   * A row is exact when `rowHeights` gives it a positive height and the AutoRowSize plugin is off; see
+   * `Core#_isRowHeightExact`. `minRowHeights` alone is always the floor.
+   *
+   * @returns {RowHeightMode|Function}
+   */
+  #resolveRowHeightMode(): RowHeightMode | ((renderedRowIndex: number) => RowHeightMode) {
+    const { rowHeights, autoRowSize } = this.hot.getSettings();
+
+    if (isAutoRowSizeOn(autoRowSize) || rowHeights === undefined || rowHeights === null) {
+      return 'min';
+    }
+
+    // A number and a numeric string give every row the same height, so they give every row the same mode.
+    if (typeof rowHeights === 'number' || typeof rowHeights === 'string') {
+      return this.hot._isRowHeightExact(0) ? 'exact' : 'min';
+    }
+
+    return this.#rowHeightModeOfRow;
+  }
+
+  /**
+   * Hands the engine the row-height mode the current options ask for, before a draw. A mode that
+   * changed drops the row-height cache, because the heights it holds were summed under the old one.
+   *
+   * `render()` runs it, and so does `updateSettings()` right after the merge: with rendering suspended
+   * a scroll still draws, and that draw has to read the new mode next to the new heights.
+   */
+  syncRowHeightMode() {
+    const mode = this.#resolveRowHeightMode();
+
+    if (this.#resolvedRowHeightMode !== mode) {
+      this.#resolvedRowHeightMode = mode;
+      this._wt.wtSettings.update('rowHeightMode', mode);
+      this.invalidateRowHeightCache();
+    }
+  }
+
+  /**
+   * Whether the engine was last told that the AutoRowSize plugin measures the rows (its
+   * `externalRowCalculator` setting).
+   *
+   * @type {boolean}
+   */
+  #externalRowCalculator = false;
+
+  /**
+   * Whether the AutoRowSize plugin measures the rows, so the engine must not measure them itself.
+   *
+   * @returns {boolean}
+   */
+  #isAutoRowSizeMeasuring(): boolean {
+    const autoRowSize = this.hot.getPlugin('autoRowSize');
+
+    return Boolean(autoRowSize) && autoRowSize.enabled;
+  }
+
+  /**
+   * Tells the engine who measures the rows, before a draw. `updateSettings()` can turn the AutoRowSize
+   * plugin on or off, and the engine read the answer only when it was built: a plugin turned on later left
+   * the engine measuring next to it, and a plugin turned off later left nobody measuring, so a row taller
+   * than the default no longer grew the scroll range.
+   *
+   * A change drops every height the engine recorded. The plugin's heights replace them, or the engine
+   * starts measuring from nothing.
+   *
+   * `render()` runs it, and so does `updateSettings()` after its `afterUpdateSettings` hook: with rendering
+   * suspended a scroll still draws, and that draw has to know who measures the rows.
+   */
+  syncExternalRowCalculator() {
+    const isExternal = this.#isAutoRowSizeMeasuring();
+
+    if (this.#externalRowCalculator !== isExternal) {
+      this.#externalRowCalculator = isExternal;
+      this._wt.wtSettings.update('externalRowCalculator', isExternal);
+      this._wt.wtViewport.resetAllOversizedRows();
     }
   }
 
@@ -2814,12 +3217,10 @@ class TableView {
       this.renderSizeProbe.measure(this._wt);
 
       // Single-pass header reconcile: the probe has just measured content-driven column-header
-      // heights (which the engine no longer measures mid-draw). If a header is taller than the
-      // default, re-apply the heights so the overlays match the master. This is a synchronous,
+      // heights (which the engine no longer measures mid-draw). If a header is taller than one
+      // line, re-apply the heights so the overlays match the master. This is a synchronous,
       // hook-free reconcile - it never calls `hot.render()`, so the render-hook counts are unchanged.
-      const defaultRowHeight = this.hot.stylesHandler.getDefaultRowHeight() ?? 0;
-
-      if (this.renderSizeProbe.hasColumnHeaderTallerThan(defaultRowHeight)) {
+      if (this.#hasRaisedColumnHeader()) {
         this._wt.wtOverlays.refreshColumnHeaderHeights();
       }
 
@@ -2861,6 +3262,48 @@ class TableView {
     }
 
     this.hot.runHooks('afterGetRowHeader', visualRowIndex, TH);
+  }
+
+  /**
+   * Gets the position of a column header element among the corners of its table: the index of the row
+   * header column it sits in, or `-1` when it is not a corner. A corner is one of the row header columns
+   * its table draws first in every header row. The rendering engine offsets a corner's negative index by
+   * the first rendered column, so in a table scrolled horizontally `afterGetColHeader` gets the corner
+   * with the index of the column before the first rendered one. A hook that draws into column headers
+   * tells the corner by this position, not by a negative index alone.
+   *
+   * @private
+   * @param {HTMLTableCellElement} TH The table header element.
+   * @returns {number}
+   */
+  getColumnHeaderCornerIndex(TH: HTMLTableCellElement): number {
+    const headerRow = TH.parentNode;
+
+    if (!headerRow) {
+      return -1;
+    }
+
+    for (let index = 0; index < this.#rowHeadersCount; index++) {
+      if (headerRow.childNodes[index] === TH) {
+        const { wtTable } = this.#getOwningWt(TH);
+        const isCorner = headerRow.parentNode === wtTable.THEAD && index < (wtTable.columnFilter?.countTH ?? 0);
+
+        return isCorner ? index : -1;
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * Checks whether a column header element is a corner. See {@link TableView#getColumnHeaderCornerIndex}.
+   *
+   * @private
+   * @param {HTMLTableCellElement} TH The table header element.
+   * @returns {boolean}
+   */
+  isColumnHeaderCorner(TH: HTMLTableCellElement): boolean {
+    return this.getColumnHeaderCornerIndex(TH) >= 0;
   }
 
   /**
@@ -2931,7 +3374,34 @@ class TableView {
       TH.appendChild(div);
     }
 
-    this.hot.runHooks('afterGetColHeader', visualColumnIndex, TH, headerLevel);
+    if (!this.#measuringContentColumnHeader) {
+      this.hot.runHooks('afterGetColHeader', visualColumnIndex, TH, headerLevel);
+    }
+  }
+
+  /**
+   * Registers the function that answers whether a header's label must be written as text, or removes it
+   * with `null`. A label a user typed reaches the header through the value hooks, and the default write
+   * parses a label that looks like markup as HTML.
+   *
+   * @private
+   * @param {Function|null} resolver Called with the axis (`'column'` or `'row'`) and the visual index.
+   */
+  setPlainTextHeaderResolver(resolver: ((axis: 'column' | 'row', visualIndex: number) => boolean) | null) {
+    this.#plainTextHeaderResolver = resolver;
+  }
+
+  /**
+   * Checks whether a header's label must be written as text: a user typed it, so it is never parsed as HTML.
+   * Every place that writes a header label into the DOM asks it (the grid, the GhostTable, the copied HTML table).
+   *
+   * @private
+   * @param {string} axis `'column'` or `'row'`.
+   * @param {number} visualIndex The visual index of the column or row.
+   * @returns {boolean}
+   */
+  isPlainTextHeader(axis: 'column' | 'row', visualIndex: number): boolean {
+    return this.#plainTextHeaderResolver?.(axis, visualIndex) ?? false;
   }
 
   /**
@@ -2961,8 +3431,19 @@ class TableView {
     }
 
     if (renderedIndex > -1) {
-      fastInnerHTML(element, String(content(index, headerLevel)), getSanitizer(this.hot),
-        'header', this.hot.rootElement);
+      removeClass(element, 'cornerHeader');
+
+      const label = String(content(index, headerLevel));
+      const axis = hasClass(element, 'rowHeader') ? 'row' : 'column';
+      // Only the default label can hold a rename. A header row a plugin draws with a label function of its own
+      // keeps its markup.
+      const isDefaultLabel = content === this.hot.getColHeader || content === this.hot.getRowHeader;
+
+      if (isDefaultLabel && this.isPlainTextHeader(axis, index)) {
+        fastInnerText(element, label);
+      } else {
+        fastInnerHTML(element, label, getSanitizer(this.hot), 'header', this.hot.rootElement);
+      }
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946
@@ -3414,14 +3895,16 @@ class TableView {
   }
 
   /**
-   * Update the `aria-colcount` attribute by the provided value.
-   *
-   * @param {number} delta The number of columns to add or remove to the aria tag.
+   * Sets the `aria-colcount` attribute to the number of data columns plus the number of row-header
+   * columns. The attribute is written only when the value changed, because the row headers are
+   * resolved on every draw.
    */
-  #updateAriaColcount(delta: number) {
-    const colCount = this.#getAriaColcount() + delta;
+  #syncAriaColcount() {
+    const colCount = this.hot.countCols() + this.#rowHeadersCount;
 
-    setAttribute(this.hot.rootElement, [A11Y_COLCOUNT(colCount)]);
+    if (this.#getAriaColcount() !== colCount) {
+      setAttribute(this.hot.rootElement, [A11Y_COLCOUNT(colCount)]);
+    }
   }
 
   /**
@@ -3521,10 +4004,16 @@ class TableView {
       removeClass(rootElement, 'htHasScrollX');
     }
 
-    if (this.isHorizontallyScrollableByWindow()) {
+    const isHorizontallyScrollableByWindow = this.isHorizontallyScrollableByWindow();
+
+    if (isHorizontallyScrollableByWindow) {
       addClass(rootElement, 'htHorizontallyScrollableByWindow');
     } else {
       removeClass(rootElement, 'htHorizontallyScrollableByWindow');
+    }
+
+    if (rootWrapperElement) {
+      this.#updateGridWidthFollowsContent(rootWrapperElement, isHorizontallyScrollableByWindow);
     }
 
     if (getScrollbarWidth() === 0) {
@@ -3532,6 +4021,57 @@ class TableView {
     } else {
       removeClass(rootElement, 'htScrollbarHidden');
     }
+  }
+
+  /**
+   * Toggles `GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME` on the root wrapper. The class changes the grid
+   * track's width after the engine has measured it, so a change schedules one follow-up render.
+   *
+   * @param {HTMLElement} rootWrapperElement The root wrapper element.
+   * @param {boolean} isHorizontallyScrollableByWindow Whether the window scrolls the grid's columns.
+   */
+  #updateGridWidthFollowsContent(rootWrapperElement: HTMLElement, isHorizontallyScrollableByWindow: boolean) {
+    const isFollowingContent = hasClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME);
+    const followsContent = isHorizontallyScrollableByWindow &&
+      this.#isTableWiderThanSideSlotTrack(rootWrapperElement, isFollowingContent);
+
+    if (isFollowingContent === followsContent) {
+      return;
+    }
+
+    if (followsContent) {
+      addClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME);
+    } else {
+      removeClass(rootWrapperElement, GRID_WIDTH_FOLLOWS_CONTENT_CLASS_NAME);
+    }
+
+    this.hot._registerTimeout(() => {
+      if (!this.hot.isDestroyed) {
+        this.hot.render();
+      }
+    });
+  }
+
+  /**
+   * Checks whether a side slot is filled and the table is wider than the space the side panels
+   * leave in the root wrapper. The class itself changes that space in a shrink-to-fit host (an
+   * `inline-block` or `flex: 1` container sizes to the table while the class is on), so a grid that
+   * already follows its content keeps doing so while the table still fills the space exactly.
+   * Without that hysteresis the class would flip on every render.
+   *
+   * @param {HTMLElement} rootWrapperElement The root wrapper element.
+   * @param {boolean} isFollowingContent Whether the class is currently on.
+   * @returns {boolean}
+   */
+  #isTableWiderThanSideSlotTrack(rootWrapperElement: HTMLElement, isFollowingContent: boolean): boolean {
+    if (!hasClass(rootWrapperElement, 'ht-slot-start-filled') && !hasClass(rootWrapperElement, 'ht-slot-end-filled')) {
+      return false;
+    }
+
+    const tableWidth = this.getTotalTableWidth();
+    const trackWidth = rootWrapperElement.clientWidth - getSideSlotsWidth(this.hot);
+
+    return isFollowingContent ? tableWidth >= trackWidth - 1 : tableWidth > trackWidth;
   }
 
   /**

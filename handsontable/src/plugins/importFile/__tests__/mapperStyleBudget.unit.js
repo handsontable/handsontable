@@ -1,6 +1,7 @@
 import { mapWorkbook, resolveImportOptions } from '../mapper';
 import { DroppedFeatures } from '../../../utils/xlsxEngine/capabilities';
 import { createCellSnapshot, createSheetSnapshot, createWorkbookSnapshot } from '../../../utils/xlsxEngine/model';
+import { UNRESTRICTED_XLSX_ENTITLEMENT } from '../../../utils/xlsxEngine/xlsxEntitlement';
 
 // This file deliberately does NOT mock `limits`: it pins behavior on the real `MIN_CELL_META_BUDGET`,
 // which `mapperCellMetaBudget.unit.js` lowers for its own cases.
@@ -29,7 +30,10 @@ function mapRows(rows, options = {}) {
   workbook.sheets.push(sheet);
 
   return mapWorkbook(workbook, resolveImportOptions(options), {
-    formulasEnabled: false, commentsEnabled: false, customBordersEnabled: false,
+    formulasEnabled: false,
+    commentsEnabled: false,
+    customBordersEnabled: false,
+    entitlement: UNRESTRICTED_XLSX_ENTITLEMENT,
   }, new DroppedFeatures());
 }
 

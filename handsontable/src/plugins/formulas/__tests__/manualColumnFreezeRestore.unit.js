@@ -1,6 +1,7 @@
 import { HyperFormula } from 'hyperformula';
 import Handsontable from 'handsontable/base';
 import { Formulas, ManualColumnFreeze, registerPlugin } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(Formulas);
 registerPlugin(ManualColumnFreeze);
@@ -32,7 +33,7 @@ describe('Formulas – ManualColumnFreeze unfreeze', () => {
    */
   function createGrid(manualColumnFreeze) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[1, 2, 3, 4, 5, 6, '=A1*100']],
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       manualColumnFreeze,

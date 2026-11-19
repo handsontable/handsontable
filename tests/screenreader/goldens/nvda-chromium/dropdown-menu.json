@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "dropdown-menu",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T10:50:47.062Z"
+  },
+  "steps": {
+    "open-menu": "table insert column left",
+    "arrow-down-insert-right": "insert column right",
+    "arrow-down-remove": "remove column",
+    "arrow-down-clear": "clear column",
+    "arrow-down-read-only": "read only not checked",
+    "close-menu": "handsontable e 2e fixture filters value list document",
+    "arrow-down-in-grid": "table green color row 3 name column 3"
+  }
+}

@@ -18,6 +18,7 @@ vue:
   metaTitle: Row pre-populating | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Pre-populate new rows with default values when users add rows to the grid.
 
@@ -192,7 +193,7 @@ const hot = new Handsontable(container, {
       });
     }
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -211,7 +212,7 @@ const hot = new Handsontable(container, {
         hot.setDataAtRow(index, [defaults.name, defaults.quantity, defaults.status]);
       });
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "page": "text-editor",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "grid",
+        "role": "textbox",
+        "name": ""
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "C2",
+        "cell": [
+          1,
+          2
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ]
+  }
+}

@@ -459,7 +459,12 @@ describe('HotSettingsResolver', () => {
 
       service.applyCustomSettings(mergedSettings);
 
+      const payload = { afterChange: hookArray } as unknown as Parameters<typeof service.resolveAppliedSettings>[0];
+      const applied = service.resolveAppliedSettings(payload);
+
       expect((mergedSettings as any).afterChange).toBe(hookArray);
+      expect((applied as any).afterChange).toBe(hookArray);
+      expect(hookArray).toEqual([fn1, fn2]);
     });
 
     it('should wrap function hooks so they run inside NgZone', () => {

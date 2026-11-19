@@ -18,6 +18,7 @@ vue:
   metaTitle: TypeScript types | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 
 Handsontable DataGrid ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
@@ -71,6 +72,10 @@ These types describe the settings object you pass to `new Handsontable()` or `up
 | `Events` | All hook callback signatures, keyed by hook name. Use to type individual hook functions. |
 | `SanitizerContext` | The write surfaces the grid passes to the [`sanitizer`](@/api/options.md#sanitizer) option. Annotate the option's second parameter with it to get completion on those values. |
 | `TextExtractorContext` | The consumer surfaces the grid passes to the [`textExtractor`](@/api/options.md#textextractor) option. Annotate the option's second parameter with it to get completion on those values. |
+| `MenuItemConfig` | A custom item in the object form of the [`contextMenu`](@/api/options.md#contextmenu) and [`dropdownMenu`](@/api/options.md#dropdownmenu) options. |
+| `PredefinedMenuItemKey` | A built-in menu item key, such as `'row_above'` or `'hidden_columns_hide'`, for the array form of the same options. |
+
+`MenuItemConfig` and `PredefinedMenuItemKey` are also exported from `handsontable/plugins/contextMenu`, and that import keeps working.
 
 ```typescript
 import type { GridSettings, ColumnSettings } from 'handsontable';
@@ -83,7 +88,7 @@ const columns: ColumnSettings[] = [
 const settings: GridSettings = {
   data: myData,
   columns,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -94,7 +99,8 @@ These types describe the values that move in and out of the grid.
 | Type | Description |
 | --- | --- |
 | `CellValue` | A single cell value: `string \| number \| boolean \| null \| undefined`. |
-| `CellChange` | A single change tuple: `[row, column, oldValue, newValue]`. Passed to `afterChange` and `beforeChange`. |
+| `CellChange` | A single change tuple: `[row, column, oldValue, newValue]`. Passed to `beforeChange`. |
+| `AppliedCellChange` | A change tuple that was applied: `[row, column, oldValue, newValue]`. The row is `null` when a change that waited for its validator landed on a record that a filter or a trim took out of the visual space. Passed to `afterChange` and `beforeChangeRender`. |
 | `RowObject` | A data row as a plain object, used when `data` is an array of objects. |
 | `ChangeSource` | A string union of all built-in change source identifiers (e.g. `'edit'`, `'loadData'`, `'UndoRedo.undo'`). |
 | `SourceRowData` | A row from the original source data before any index translation. |
@@ -103,9 +109,9 @@ These types describe the values that move in and out of the grid.
 | `RangeType` | A cell range descriptor: `{ from: CellCoords, to: CellCoords }`. |
 
 ```typescript
-import type { CellChange, ChangeSource } from 'handsontable';
+import type { AppliedCellChange, ChangeSource } from 'handsontable';
 
-function onAfterChange(changes: CellChange[] | null, source: ChangeSource): void {
+function onAfterChange(changes: AppliedCellChange[] | null, source: ChangeSource): void {
   if (!changes || source === 'loadData') return;
 
   for (const [row, col, , newValue] of changes) {
@@ -128,7 +134,7 @@ let hot: HotInstance;
 
 hot = new Handsontable(document.querySelector('#grid')!, {
   data: myData,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -237,7 +243,9 @@ import { numericRenderer } from 'handsontable/renderers';
 // No type import needed -- the Handsontable class and its instance methods are already fully typed.
 import Handsontable from 'handsontable';
 
-const hot = new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation' });
+const hot = new Handsontable(container, {
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+});
 hot.loadData(myData); // IDE autocomplete and type checking work here.
 ```
 
@@ -260,7 +268,7 @@ const settings: GridSettings = {
     { data: 'department' },
     { data: 'hireDate', type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -269,9 +277,9 @@ const settings: GridSettings = {
 `Events` maps every hook name to its callback signature. Extract a specific callback type with `Events[hookName]`:
 
 ```typescript
-import type { Events, CellChange, ChangeSource } from 'handsontable';
+import type { Events, AppliedCellChange, ChangeSource } from 'handsontable';
 
-const onAfterChange: Events['afterChange'] = (changes: CellChange[] | null, source: ChangeSource) => {
+const onAfterChange: Events['afterChange'] = (changes: AppliedCellChange[] | null, source: ChangeSource) => {
   if (!changes) return;
   console.log(source, changes);
 };
@@ -323,7 +331,7 @@ class RatingEditor extends TextEditor {
 
 const settings: GridSettings = {
   columns: [{ editor: RatingEditor as unknown as string }],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -343,7 +351,7 @@ export function Grid() {
 
   const settings: HotTableProps = {
     data: myData,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   };
 
   const selectFirstCell = () => {
@@ -379,7 +387,7 @@ export class GridComponent {
 
   readonly gridSettings: GridSettings = {
     data: myData,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   };
 }
 ```
@@ -402,7 +410,7 @@ const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
 
 const settings: GridSettings = {
   data: myData,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 </script>
 

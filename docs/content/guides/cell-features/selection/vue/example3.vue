@@ -29,7 +29,7 @@ const hotSettings = ref<GridSettings>({
   selectionMode: 'multiple',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const buttonClickCallback = () => {

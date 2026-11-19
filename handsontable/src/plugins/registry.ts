@@ -31,6 +31,11 @@ const uniquePluginsQueue = createUniqueSet({
 const uniquePluginsList = createUniqueMap({
   errorIdExists: ERROR_PLUGIN_REGISTERED,
 });
+/**
+ * How many plugins are registered. A plugin is never unregistered, so the count also tells whether the
+ * registry changed since it was last read.
+ */
+let registeredPluginsCount = 0;
 
 /**
  * Gets registered plugins' names in the following order:
@@ -121,6 +126,17 @@ function _registerPlugin(pluginName: string, pluginClass?: Function, priority?: 
   }
 
   uniquePluginsList.addItem(unifiedPluginName, pluginClass);
+  registeredPluginsCount += 1;
+}
+
+/**
+ * Returns how many plugins are registered, without copying the registry as `getPluginsNames()` does.
+ *
+ * @private
+ * @returns {number}
+ */
+export function countRegisteredPlugins(): number {
+  return registeredPluginsCount;
 }
 
 /**

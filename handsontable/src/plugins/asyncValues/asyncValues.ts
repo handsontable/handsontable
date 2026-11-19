@@ -8,6 +8,7 @@ import { detachValue, recordCellChange } from '../../dataMap/dataJournal';
 import { Launch, LaunchQueue } from './launchQueue';
 import { getChangeKey, isArrayLike, isProp, toErrorMessage, type Change } from './utils';
 import { normalizeRanges } from '../../utils/copiedRanges';
+import { createIndexedLocator, isRowObject, type RowObjectLocator } from '../../core/waitingRecords';
 import { decorateCell, undecorateCell } from './decoration';
 import { LOADING_TITLE } from '../../i18n/constants';
 import type { CellChange, CellProperties } from '../../settings';
@@ -28,6 +29,7 @@ import type {
   AsyncValueStatus,
   AsyncValuesSettings,
 } from './types';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'asyncValues';
 export const PLUGIN_PRIORITY = 340;
@@ -194,11 +196,12 @@ interface Decisions {
 }
 
 /**
- * A row state captured before a data replacement, with its row id.
+ * A row state captured before a data replacement, with its row id and the source row object its row held.
  */
 interface ReplacedRow {
   state: RowState;
   rowId: unknown;
+  rowObject: unknown;
 }
 
 /**
@@ -350,6 +353,14 @@ export class AsyncValues extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -557,6 +568,7 @@ export class AsyncValues extends BasePlugin {
     this.addHook('afterSetDataAtRowProp', this.#onAfterSetDataAtRowProp);
     this.addHook('beforeValidate', this.#onBeforeValidate);
     this.addHook('postAfterValidate', this.#onPostAfterValidate);
+    this.hot._addDroppedChangesListener(this.#onChangesDropped);
     // Before the application's listeners, so a listener that cancels or writes a cell there already sees
     // every row state on its current physical row.
     this.addHook('afterCreateRow', this.#syncRows, -1);
@@ -627,6 +639,7 @@ export class AsyncValues extends BasePlugin {
     this.#replacedRows = [];
     this.hot.rowIndexMapper.removeLocalHook('init', this.#onRowIndexInit);
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    this.hot._removeDroppedChangesListener(this.#onChangesDropped);
     this.#releaseRender();
     this.#clearReportedMeta();
 
@@ -1048,6 +1061,7 @@ export class AsyncValues extends BasePlugin {
     // Local hooks are not tracked by `BasePlugin`, and core's own teardown updates the index cache.
     this.hot.rowIndexMapper.removeLocalHook('init', this.#onRowIndexInit);
     this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    this.hot._removeDroppedChangesListener(this.#onChangesDropped);
     this.#cancelFlush?.();
     this.#cancelFlush = null;
     this.#entries.clear();
@@ -2472,8 +2486,10 @@ export class AsyncValues extends BasePlugin {
       // One throwing listener must not cost the other cells their hooks.
       failure = this.#runEach(canceled, ([entry, reason]) => {
         const physicalRow = rowOf(entry);
+        // The state of a removed or replaced row keeps the id it had; the map holds another record there now.
+        const rowId = entry.state.dropped ? entry.state.rowId : this.#rowIdOf(physicalRow);
 
-        this.hot.runHooks('afterAsyncValueCancel', physicalRow, entry.prop, reason, this.#rowIdOf(physicalRow));
+        this.hot.runHooks('afterAsyncValueCancel', physicalRow, entry.prop, reason, rowId);
       });
 
     } finally {
@@ -3346,20 +3362,76 @@ export class AsyncValues extends BasePlugin {
    * `postAfterValidate` hook callback, which runs once the grid has applied the answer. Ends the flights of
    * the cell whose change the grid took out of its list: a validator rejected it under
    * `allowInvalid: false`, or a newer write overtook it. Such a change never lands, and `afterChange` does
-   * not report it. A validator's answer names no flight, so the list is what tells which one it was.
+   * not report it. A validator's answer names no flight, so the list is what tells which one it was. A tuple
+   * leaves its list only in the answer for its own cell (the rejection, or a newer write's answer to the same
+   * cell), and the grid reports that cell's current visual row. So a number row is looked up alone: its
+   * record's state is the one at that row's physical index, and a row with no state holds no flight to end.
+   * Only a `null` row (a filter or a trim took the record out of the visual space) walks the flights of every
+   * row, because a tuple that left its list never lands on any row.
    *
    * @param {boolean} isValid Whether the value is valid.
    * @param {*} value The validated value.
-   * @param {number} row Visual row index.
+   * @param {number|null} row Visual row index, or `null` for a record out of the visual space.
    * @param {string|number} prop The property of the cell.
    */
-  readonly #onPostAfterValidate = (isValid: boolean, value: unknown, row: number, prop: string | number): void => {
-    const physicalRow = this.#states.size === 0 ? null : this.hot.toPhysicalRow(row);
-    const state = physicalRow === null ? null : this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+  readonly #onPostAfterValidate = (
+    isValid: boolean, value: unknown, row: number | null, prop: string | number,
+  ): void => {
+    if (this.#states.size === 0) {
+      return;
+    }
 
-    state?.flights.get(prop)
-      ?.filter(flight => flight.change && !flight.changes?.includes(flight.change))
-      .forEach(flight => this.#endFlight(state, prop, flight, true));
+    const ended: Flight[] = [];
+    const collect = (state: RowState) => {
+      state.flights.get(prop)?.forEach((flight) => {
+        if (flight.change && !flight.changes?.includes(flight.change)) {
+          ended.push(flight);
+        }
+      });
+    };
+
+    if (row === null) {
+      this.#states.forEach(collect);
+
+    } else {
+      const physicalRow = this.hot.toPhysicalRow(row);
+      const state = physicalRow === null ? null : this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+
+      if (state) {
+        collect(state);
+      }
+    }
+
+    ended.forEach(flight => this.#endFlight(flight.state, flight.prop, flight, true));
+  };
+
+  /**
+   * Called by the Core for a change set it dropped: the set waited for its validators while `loadData()`
+   * replaced the data, so it never lands, and neither `afterChange` nor a spliced-out tuple tells the
+   * plugin so. Ends the flight of every tuple the plugin wrote as failed, like a rejected one, so its call
+   * can finalize and its row state is released. The last validator's answer drops the set before its own
+   * `postAfterValidate` runs, and a tuple that answer rejected was already spliced out of the array. So every
+   * flight that holds this array (`flight.changes`) is ended, not only the flights of the tuples still in it. A set
+   * whose record core removed or no longer finds comes as a new array of the tuples core took out of the set, so a
+   * flight whose own tuple (`flight.change`) is in it is ended too.
+   *
+   * @param {Array[]} changes The dropped change array.
+   */
+  readonly #onChangesDropped = (changes: CellChange[]): void => {
+    const dropped: Flight[] = [];
+    const droppedTuples = new Set<CellChange>(changes);
+
+    this.#states.forEach((state) => {
+      state.flights.forEach((flights) => {
+        flights.forEach((flight) => {
+          if (flight.changes === changes || (flight.change !== null && droppedTuples.has(flight.change))) {
+            dropped.push(flight);
+          }
+        });
+      });
+    });
+
+    dropped.forEach(flight => this.#endFlight(flight.state, flight.prop, flight, true));
   };
 
   /**
@@ -3411,6 +3483,19 @@ export class AsyncValues extends BasePlugin {
   }
 
   /**
+   * Re-reads the id a row's state keeps, for a row whose data changed.
+   *
+   * @param {number} physicalRow The physical row.
+   */
+  #refreshRowId(physicalRow: number): void {
+    const state = this.#rowsMap?.getValueAtIndex<RowState | null>(physicalRow);
+
+    if (state) {
+      state.rowId = this.#rowIdOf(physicalRow);
+    }
+  }
+
+  /**
    * Cancels the requests a list of changes affects, and renders when one was canceled.
    *
    * @param {Array} changes The changes, as `[physicalRow, prop, tuple]`. The tuple is the change the grid
@@ -3420,11 +3505,18 @@ export class AsyncValues extends BasePlugin {
   #onCellsChanged(changes: Array<[number | null, unknown, CellChange?]>, source: string | undefined): void {
     const cleared: Array<[AsyncValueEntry, AsyncValueCancelReason]> = [];
     const landedGroups = new Set<Flight[]>();
+    const refreshedRows = new Set<number>();
 
     // Every cell is detached before any hook runs, so a throwing cancel listener cannot leave a later cell
     // of the change with a stale request.
     changes.forEach(([physicalRow, prop, change]) => {
       if (physicalRow !== null && isProp(prop)) {
+        // An edit can change the row's id, which the row's state keeps for the cancel hook and `#followRows()`.
+        if (!refreshedRows.has(physicalRow)) {
+          refreshedRows.add(physicalRow);
+          this.#refreshRowId(physicalRow);
+        }
+
         this.#onCellChanged(physicalRow, prop, source, cleared, landedGroups, change);
       }
     });
@@ -3461,7 +3553,7 @@ export class AsyncValues extends BasePlugin {
       return;
     }
 
-    this.#onCellsChanged(changes.map(change => [this.hot.toPhysicalRow(change[0]), change[1], change]), source);
+    this.#onCellsChanged(changes.map(change => [this.hot.getPhysicalRowOfChange(change), change[1], change]), source);
   };
 
   /**
@@ -3568,15 +3660,19 @@ export class AsyncValues extends BasePlugin {
   };
 
   /**
-   * Captures every row state, with its row id, so `after*Data` can put it back on the row that holds the
-   * same record.
+   * Captures every row state, with its row id and its source row object, so `after*Data` can put it back on
+   * the row that holds the same record.
    *
    * @param {boolean} isLoad Whether the data is replaced with `loadData()`.
    */
   #onBeforeDataReplaced(isLoad: boolean): void {
     this.#replacingData = true;
     this.#replacingIsLoad = isLoad;
-    this.#replacedRows = [...this.#states].map(state => ({ state, rowId: this.#rowIdOf(state.physicalRow) }));
+    this.#replacedRows = [...this.#states].map(state => ({
+      state,
+      rowId: this.#rowIdOf(state.physicalRow),
+      rowObject: this.#readRowObject(state.physicalRow),
+    }));
 
     // A load that throws never reaches `after*Data`, so the flag is cleared and the states it orphaned
     // are dropped once the load's task ends.
@@ -3621,7 +3717,11 @@ export class AsyncValues extends BasePlugin {
     const length = rowsMap.getLength();
     const kept = new Set<RowState>();
     const lostReasons = new Map<RowState, AsyncValueCancelReason>();
-    const targets = replaced.map(row => this.#targetRowOf(row, isLoad));
+    const locate = createIndexedLocator({
+      countPhysicalRows: () => this.hot.rowIndexMapper.getNumberOfIndexes(),
+      readRowObject: physicalRow => this.#readRowObject(physicalRow),
+    });
+    const targets = replaced.map(row => this.#targetRowOf(row, isLoad, locate));
 
     // A state that stays on its row is left alone: the React wrapper runs `updateData()` on every commit,
     // and rewriting every state then cost tens of milliseconds per commit with many requests pending.
@@ -3647,6 +3747,8 @@ export class AsyncValues extends BasePlugin {
       }
 
       if (target === null || target >= length || rowsMap.getValueAtIndex(target) !== null) {
+        // The new data has replaced the row's record, so the id captured before is the one to report.
+        row.state.rowId = row.rowId;
         lostReasons.set(row.state, isLoad && !this.#hasId(row) ? 'dataReplaced' : 'rowRemoved');
 
         return;
@@ -3686,22 +3788,41 @@ export class AsyncValues extends BasePlugin {
   };
 
   /**
-   * Re-reads every row state's physical row from the map (dropping the states of removed rows) and, with
-   * row ids, moves a state whose id another row now holds, or drops one whose id no row holds: the data
-   * array was changed in place, so the index mapper only grew or shrank at its end.
+   * With row ids, puts every row state on the row that holds its id and drops one whose id no row holds,
+   * then re-reads the physical row of the states without an id from the map (dropping the states of
+   * removed rows): the data array was changed in place, so the index mapper only grew or shrank at its
+   * end. The ids go first: the map's own loss (the last index) says nothing about which record was
+   * removed, and reading it first dropped the request of a row that still exists.
    */
   readonly #followRows = (): void => {
     if (this.#isGone() || !this.#rowsMap || this.#states.size === 0 || this.#replacingData) {
       return;
     }
 
+    const changed = this.#followRowIds(this.#rowsMap);
+
     this.#syncRows();
 
-    const rowsMap = this.#rowsMap;
-    const lost = new Map<RowState, AsyncValueCancelReason>();
-    const moves: Array<{ state: RowState; target: number }> = [];
+    if (changed) {
+      this.hot.markAllCellsChanged();
+      this.hot.render();
+    }
+  };
 
-    [...this.#states].forEach((state) => {
+  /**
+   * Places each row state that has an id on the row that holds the id, wherever the map holds the state
+   * now (or does not hold it any more), and drops the states whose id no row holds or whose row another
+   * state took.
+   *
+   * @param {object} rowsMap The map of the row states.
+   * @returns {boolean} `true` when a state moved or was dropped.
+   */
+  #followRowIds(rowsMap: PhysicalIndexToValueMap): boolean {
+    const lost = new Map<RowState, AsyncValueCancelReason>();
+    const placements = new Map<RowState, number>();
+    let changed = false;
+
+    this.#states.forEach((state) => {
       if (state.rowId === null || state.rowId === undefined) {
         return;
       }
@@ -3712,22 +3833,44 @@ export class AsyncValues extends BasePlugin {
       if (target === null) {
         lost.set(state, 'rowRemoved');
 
-      } else if (target !== state.physicalRow) {
-        moves.push({ state, target });
+      } else {
+        placements.set(state, target);
+        changed = changed || target !== state.physicalRow;
       }
     });
 
-    if (lost.size === 0 && moves.length === 0) {
-      return;
+    if (!changed && lost.size === 0) {
+      return false;
     }
 
-    [...lost.keys(), ...moves.map(({ state }) => state)].forEach((state) => {
-      if (rowsMap.getValueAtIndex(state.physicalRow) === state) {
-        rowsMap.setValueAtIndex(state.physicalRow, null);
+    this.#placeRowStates(rowsMap, placements, lost);
+    this.#dropReplacedRowStates(new Set(), lost);
+
+    return true;
+  }
+
+  /**
+   * Moves the row states to their target rows. A slot is cleared first when it holds a state that moves,
+   * a state that is lost, or one the plugin no longer tracks (an empty state a stale row left in the map),
+   * so a swap works and a dead state never blocks a row. A state whose target a state without an id still
+   * holds is added to `lost`.
+   *
+   * @param {object} rowsMap The map of the row states.
+   * @param {Map} placements The target physical row of each state.
+   * @param {Map} lost Collects the states that could not be placed.
+   */
+  #placeRowStates(
+    rowsMap: PhysicalIndexToValueMap,
+    placements: Map<RowState, number>,
+    lost: Map<RowState, AsyncValueCancelReason>
+  ): void {
+    (rowsMap.getValues() as Array<RowState | null>).forEach((state, physicalRow) => {
+      if (state && (placements.has(state) || lost.has(state) || !this.#states.has(state))) {
+        rowsMap.setValueAtIndex(physicalRow, null);
       }
     });
-    moves.forEach(({ state, target }) => {
-      if (rowsMap.getValueAtIndex(target) !== null) {
+    placements.forEach((target, state) => {
+      if (target >= rowsMap.getLength() || rowsMap.getValueAtIndex(target) !== null) {
         lost.set(state, 'rowRemoved');
 
         return;
@@ -3736,11 +3879,7 @@ export class AsyncValues extends BasePlugin {
       rowsMap.setValueAtIndex(target, state);
       state.physicalRow = target;
     });
-
-    this.#dropReplacedRowStates(new Set(), lost);
-    this.hot.markAllCellsChanged();
-    this.hot.render();
-  };
+  }
 
   /**
    * Tells whether a captured row had an id.
@@ -3754,19 +3893,51 @@ export class AsyncValues extends BasePlugin {
 
   /**
    * Returns the physical row a captured row state belongs on after a data replacement: the row that holds
-   * the same id now, or, without ids, the same physical row for `updateData()` (as it keeps cell meta) and
-   * none for `loadData()` (a new dataset).
+   * the same id now, or, without ids, none for `loadData()` (a new dataset), and for `updateData()` the row
+   * that holds the same row object now, as core finds the record of a waiting change, or the same physical row
+   * when no row holds it (the data was replaced by copies, and `updateData()` keeps cell meta by physical row).
+   * A row object two rows hold names no row. Core is stricter for copies: it keeps a waiting change on its
+   * physical row only while that row still stores the cell meta its validator call used, and drops it
+   * otherwise. A state also stands for requests no change waits on yet, which core has no record of, so it
+   * keeps the row; a change core drops reaches `#onChangesDropped`, which ends its flight.
    *
    * @param {object} row The captured row.
    * @param {boolean} isLoad Whether the data was replaced with `loadData()`.
+   * @param {Function} locate Returns the physical row that holds a row object.
    * @returns {number|null}
    */
-  #targetRowOf(row: ReplacedRow, isLoad: boolean): number | null {
+  #targetRowOf(row: ReplacedRow, isLoad: boolean, locate: RowObjectLocator): number | null {
     if (this.#hasId(row)) {
       return this.hot.getPhysicalRowById(row.rowId);
     }
 
-    return isLoad ? null : row.state.physicalRow;
+    if (isLoad) {
+      return null;
+    }
+
+    const { rowObject, state } = row;
+
+    if (!isRowObject(rowObject) || this.#readRowObject(state.physicalRow) === rowObject) {
+      return state.physicalRow;
+    }
+
+    const located = locate(rowObject);
+
+    return located === undefined ? state.physicalRow : located;
+  }
+
+  /**
+   * Reads the source row object a physical row holds, or `undefined` past the last row.
+   *
+   * @param {number} physicalRow The physical row.
+   * @returns {*}
+   */
+  #readRowObject(physicalRow: number): unknown {
+    if (physicalRow >= this.hot.rowIndexMapper.getNumberOfIndexes()) {
+      return undefined;
+    }
+
+    return this.hot._getDataSource().modifyRowData(physicalRow);
   }
 
   /**

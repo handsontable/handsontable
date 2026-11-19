@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed how a hook callback registered more than once is counted: settings that pass a function first added with `addHook()` stop the hook's earlier settings function, a callback added with `addHookOnce()` and then registered again keeps running, and in the Angular wrapper a callback passed both in the `settings` input and to `addHook()` runs once, and `removeHook()` removes it.",
+  "type": "changed",
+  "issueOrPR": 14047,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Dialog plugin staying enabled after `loading: false` and ignoring a later `dialog: false`. The Loading plugin now requires the Dialog plugin instead of writing the `dialog` option, so the Dialog plugin is on while `dialog` is set or `loading` is on, and off when neither holds. If you use the Dialog plugin and set only `loading`, set `dialog: true`.",
+  "type": "fixed",
+  "issueOrPR": 14224,
+  "breaking": true,
+  "framework": "none"
+}

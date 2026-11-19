@@ -267,6 +267,42 @@ describe('UndoRedo – plugin state and cell meta', () => {
       expect(stateManager.exportCollapsedGroups()).toEqual([{ headerLevel: 0, authoredColumnIndex: 1 }]);
     });
 
+    it('should hide the columns of a collapse again on the undo of a move that split its group', () => {
+      const hot = grid.create({
+        data: spreadsheet(3, 5),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'G1', colspan: 3, collapsible: true }, { label: 'G2', colspan: 2 }],
+          ['a', 'b', 'c', 'd', 'e'],
+        ],
+        collapsibleColumns: true,
+        manualColumnMove: true,
+      });
+      const collapsibleColumns = hot.getPlugin('collapsibleColumns');
+      const stateManager = hot.getPlugin('nestedHeaders').getStateManager();
+
+      collapsibleColumns.collapseSection({ row: -2, col: 0 });
+      hot.getPlugin('manualColumnMove').moveColumn(3, 1);
+
+      expect(collapsibleColumns.getCollapsedColumns()).toEqual([]);
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(stateManager.exportCollapsedGroups()).toEqual([{ headerLevel: 0, authoredColumnIndex: 0 }]);
+      expect(collapsibleColumns.getCollapsedColumns()).toEqual([1, 2]);
+      expect([0, 1, 2, 3, 4].filter(column => hot.columnIndexMapper.isHidden(column))).toEqual([1, 2]);
+
+      hot.getPlugin('undoRedo').undo();
+
+      expect(stateManager.exportCollapsedGroups()).toEqual([]);
+      expect([0, 1, 2, 3, 4].filter(column => hot.columnIndexMapper.isHidden(column))).toEqual([]);
+
+      hot.getPlugin('undoRedo').redo();
+
+      expect(stateManager.exportCollapsedGroups()).toEqual([{ headerLevel: 0, authoredColumnIndex: 0 }]);
+      expect([0, 1, 2, 3, 4].filter(column => hot.columnIndexMapper.isHidden(column))).toEqual([1, 2]);
+    });
+
     it('should not put back groups recorded under another `nestedHeaders` configuration', () => {
       const hot = grid.create({
         data: spreadsheet(3, 4), colHeaders: true, nestedHeaders, collapsibleColumns: true,

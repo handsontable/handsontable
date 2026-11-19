@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "formula-suggestions",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T13:59:00.139Z"
+  },
+  "steps": {
+    "open-editor": "",
+    "select-all": "",
+    "type-su": "su",
+    "down-to-subtotal": "subtotal selected 2 of 14",
+    "down-to-sum": "sum selected 3 of 14",
+    "accept-sum": "sum collapsed sum",
+    "close-help": "",
+    "cancel-edit": "c 3"
+  }
+}

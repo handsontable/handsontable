@@ -51,6 +51,7 @@ const horizonTokens: ThemeTokensConfig = {
   cellAutofillBorderColor: 'tokens.backgroundColor',
   cellAutofillBackgroundColor: 'tokens.accentColor',
   cellAutofillFillBorderColor: 'tokens.foregroundColor',
+  customBordersDefaultColor: ['colors.black', 'colors.palette.200'],
   cellEditorBorderWidth: '2px',
   cellEditorBorderColor: 'tokens.accentColor',
   cellEditorForegroundColor: ['colors.palette.950', 'colors.white'],

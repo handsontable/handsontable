@@ -3,6 +3,7 @@ export const A11Y_MODE: 'warn' | 'block';
 export const A11Y_THEMES: readonly ['main', 'horizon', 'classic'];
 export const BASELINE_FILE: string;
 export const ACTION_SETS: readonly ['newViolations', 'grown', 'improved', 'stale'];
+export const VOLATILE_CLASSES: ReadonlySet<string>;
 
 export type A11yMode = 'warn' | 'block';
 export type A11yTheme = 'main' | 'horizon' | 'classic';
@@ -126,19 +127,20 @@ export interface ScanMark {
 
 export function representativeScans(entries: BaselineEntry[]): Map<string, Set<string>>;
 export function marksForScan(input: { findings: Finding[]; entries: BaselineEntry[]; pictured?: Set<string> }): ScanMark[];
-export function validateBaseline(document: unknown, known: { pages: string[] }): string[];
+export function validateBaseline(document: unknown, known: { pages: string[]; themes?: readonly string[]; pagesFile?: string }): string[];
 export function compareViolations(input: {
   baseline: BaselineEntry[];
   issues?: BaselineIssue[];
   violations: Finding[];
   scanned: Array<{ page: string; theme: string }>;
   mode: A11yMode;
+  baselineFile?: string;
 }): Verdict;
 export function verdictCounts(verdict: Verdict): VerdictCounts;
 export function engineVersionNote(input: { engines: string[]; baselineVersion: string }): string | null;
 export function headline(verdict: Verdict): string;
-export function renderSummary(verdict: Verdict, context?: { reportUrl?: string }): string;
-export function renderAnnotations(verdict: Verdict): string[];
+export function renderSummary(verdict: Verdict, context?: { reportUrl?: string; title?: string }): string;
+export function renderAnnotations(verdict: Verdict, context?: { label?: string }): string[];
 export interface RuleCount { rule: string; findings: number; nodes: number; impact: string | null; new: number; grown: number; improved: number }
 export function findingsByRule(verdict: Verdict): RuleCount[];
 export function workflowCommand(level: 'error' | 'warning' | 'notice', title: string, message: string): string;

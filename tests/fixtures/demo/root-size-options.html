@@ -78,6 +78,7 @@
     #container.fluid-inline-block-hidden { overflow: hidden; width: 60vw; }
     #container.fluid-inline-block-hidden > #grid { display: inline-block; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -155,7 +156,7 @@
         rowHeaders: true,
         colHeaders: true,
         renderer: testIdRenderer,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
         ...overrides,
       });
 

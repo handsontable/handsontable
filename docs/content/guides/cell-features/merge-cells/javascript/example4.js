@@ -21,7 +21,7 @@ const hot = new Handsontable(container, {
     mergeCells: true,
     autoWrapRow: true,
     autoWrapCol: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 mergeButton.addEventListener('click', () => {
     hot.getPlugin('mergeCells').merge(5, 0, 5, 3);

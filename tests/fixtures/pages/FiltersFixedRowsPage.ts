@@ -1,4 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
+import { openMenuWithKeyboard } from './filtersMenuKeyboard';
 import { awaitBundle, BUNDLE_POLLING_MS } from '../bundle';
 import { type CellValue } from './windowTypes';
 
@@ -227,10 +228,7 @@ export class FiltersFixedRowsPage {
    * @param {number} col Visual column index whose menu opens.
    */
   async openMenuWithKeyboard(row: number, col: number): Promise<void> {
-    await this.page.evaluate(([r, c]) => window.hot.selectCell(r, c), [row, col]);
-    await this.page.keyboard.press('Alt+Shift+ArrowDown');
-
-    await expect(this.menu).toBeVisible();
+    await openMenuWithKeyboard(this.page, this.menu, row, col);
   }
 
   /**
@@ -289,10 +287,10 @@ export class FiltersFixedRowsPage {
   }
 
   /**
-   * Click the "Clear" link, which unchecks every value the list holds.
+   * Click the "Select none" link, which unchecks every value the list holds.
    */
   async clearAllValues(): Promise<void> {
-    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
+    await this.menu.locator('.htUIMultipleSelect .htUIClearAll a').click();
 
     await expect(this.valueList.first().locator('input[type="checkbox"]')).not.toBeChecked();
   }

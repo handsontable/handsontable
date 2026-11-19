@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the grammar of the error messages thrown when a column can't be created or removed with object data, and when the Filters plugin gets fewer than three conditions in a disjunction with an extra condition.",
+  "type": "fixed",
+  "issueOrPR": 14213,
+  "breaking": false,
+  "framework": "none"
+}

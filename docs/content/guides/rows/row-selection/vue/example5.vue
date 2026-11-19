@@ -78,7 +78,7 @@ const data: CatalogRow[] = [
 const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 const hotSettings = ref<GridSettings>({
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data,
   height: 'auto',
   width: '100%',

@@ -48,6 +48,38 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 /**
+ * A column resolved for a cell read: what `get()` derives from the property on every call, and a bulk
+ * read derives once per column.
+ */
+interface ReadColumn {
+  /**
+   * The column property, a `columns[].data` accessor function, or `null`.
+   */
+  prop: string | number | DataAccessorFn | null;
+  /**
+   * The visual column the property resolves to (`propToCol()`), or the property itself when it names
+   * no column. It is not always the column the read was asked for: two columns bound to one property
+   * resolve to the same one.
+   */
+  visualColumn: string | number | DataAccessorFn | null;
+  /**
+   * The physical index of `visualColumn`, or `null` when it names no column.
+   */
+  physicalColumn: number | null;
+  /**
+   * Whether the column meta resolves a function `valueGetter` (set on the column, or inherited from the
+   * table and global layers), or `null` until a read of a cell without stored meta needs the answer.
+   *
+   * A read runs neither the `cells` function nor the `afterGetCellMeta` hook. It applies the stored meta,
+   * or for a cell without one, an object whose prototype is the column meta. So a `valueGetter` can only
+   * come from stored meta or the column layer, and when neither has one, a meta object created for the
+   * cell would be thrown away unused. `getAtColumnForRows()` gates its fast loop on the same two checks:
+   * a new source for a `valueGetter` must update both.
+   */
+  hasColumnValueGetter: boolean | null;
+}
+
+/**
  * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names.
  *
  * @todo Refactor arguments of methods getRange, getText to be numbers (not objects).
@@ -474,7 +506,9 @@ class DataMap {
       numberOfCreatedRows += 1;
     }
 
-    this.hot!.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows);
+    // The mode puts the new slots of every row index map at the physical index the rows take below (the ManualRowResize
+    // heights, the hidden and trimmed flags, the `rowHeights` origins), the way `createCol()` does for columns.
+    this.hot!.rowIndexMapper.insertIndexes(rowIndex, numberOfCreatedRows, mode === 'below' ? 'end' : 'start');
 
     if (mode === 'below') {
       physicalRowIndex = Math.min(physicalRowIndex + 1, sourceRowsCount);
@@ -540,15 +574,16 @@ class DataMap {
             { source, mode = 'start', fillsMinimumSize = false }:
             { source?: string; mode?: 'start' | 'end'; fillsMinimumSize?: boolean } = {}) {
     if (!this.hot!.isColumnModificationAllowed()) {
-      throwWithCause('Cannot create new column. When data source in an object, ' +
-        // eslint-disable-next-line max-len
-        'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
-        'If you want to be able to add new columns, you have to use array datasource.');
+      throwWithCause('Cannot create a new column when the data source holds objects or the "columns" option is set. ' +
+        'You can only have as many columns as defined in the first data row, the data schema, ' +
+        'or the "columns" setting. To add new columns, use an array data source without the "columns" option.');
     }
 
     const dataSource = this.dataSource ?? [];
     const maxCols = this.tableMeta.maxCols;
-    const numberOfSourceCols = this.hot!.countSourceCols();
+    // The index mapper holds the physical end of the grid. `countSourceCols()` is the first row's length, which is
+    // shorter than the grid when `dataSchema` or `minCols` made it wider, and 0 once every row was removed.
+    const numberOfSourceCols = this.hot!.columnIndexMapper.getNumberOfIndexes();
     const numberOfVisualCols = this.hot!.countCols();
     const numberOfSourceRows = this.hot!.countSourceRows();
     const visualColumnIndex = (typeof index === 'number' && index <= numberOfSourceCols) ? index : numberOfVisualCols;
@@ -612,13 +647,11 @@ class DataMap {
   }
 
   /**
-   * Inserts the given amount of null columns into the data source in at most two passes over
-   * the rows, instead of one full pass per created column. The previous per-column loop chose
-   * between an append and a middle splice per iteration, based on the visual index against the
-   * growing column count; the same sequence collapses into two batched phases: the first
-   * `appendCount` iterations (while the visual index is at or past the current count) are
-   * end-of-row pushes, and the remaining iterations are single splices at consecutive ascending
-   * positions - which is exactly one block insert at the first of those positions.
+   * Inserts the given amount of null columns into the data source, in one pass over the rows, as a block at
+   * the physical column the insertion is recorded at (the undo journal replays it by that index). The
+   * insertion index clamps to the row length inside `insertValuesInPlace`, so a row shorter than the
+   * insertion point gets the nulls at its end. A row longer than the grid keeps its values in order, and the
+   * nulls go in front of the values past the grid.
    *
    * @param {Array} dataSource The data source array.
    * @param {number} firstColumn The physical column index at which the first column is inserted.
@@ -639,39 +672,24 @@ class DataMap {
       return;
     }
 
-    let appendCount = amount;
+    if (numberOfSourceRows === 0) {
+      // A grid without rows gets one row per column created at its end, to hold the new columns.
+      const appendCount = typeof visualColumnIndex === 'number' ?
+        Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1)) : amount;
 
-    if (typeof visualColumnIndex === 'number') {
-      appendCount = Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1));
+      for (let i = 0; i < appendCount; i++) {
+        dataSource.push([null]);
+      }
+
+      return;
     }
 
-    const middleCount = amount - appendCount;
-
-    if (appendCount > 0) {
-      if (numberOfSourceRows > 0) {
-        for (let row = 0; row < numberOfSourceRows; row++) {
-          if (typeof dataSource[row] === 'undefined') {
-            dataSource[row] = [];
-          }
-
-          for (let i = 0; i < appendCount; i++) {
-            (dataSource[row] as unknown[]).push(null);
-          }
-        }
-      } else {
-        for (let i = 0; i < appendCount; i++) {
-          dataSource.push([null]);
-        }
+    for (let row = 0; row < numberOfSourceRows; row++) {
+      if (typeof dataSource[row] === 'undefined') {
+        dataSource[row] = [];
       }
-    }
 
-    if (middleCount > 0) {
-      // The insertion index clamps to the row length inside `insertValuesInPlace`, so rows
-      // shorter than the insertion point get the nulls appended at their end - matching what
-      // the previous repeated clamped `splice` calls did.
-      for (let row = 0; row < numberOfSourceRows; row++) {
-        insertValuesInPlace(dataSource[row] as unknown[], firstColumn + appendCount, middleCount, null);
-      }
+      insertValuesInPlace(dataSource[row] as unknown[], firstColumn, amount, null);
     }
   }
 
@@ -766,9 +784,12 @@ class DataMap {
    * @param {number} [index] Visual index of the row to be removed. If not provided, the last row will be removed.
    * @param {number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed.
    * @param {string} [source] Source of method call.
+   * @param {Function} [onRowsRemoved] Called with the physical rows really removed (the list after
+   * `beforeRemoveRow` widened it), before `afterRemoveRow` runs. `Core#alter()` uses it to follow the
+   * rows of the groups it removes next.
    * @returns {boolean} Returns `false` when action was canceled, otherwise `true`.
    */
-  removeRow(index: number, amount = 1, source: string) {
+  removeRow(index: number, amount = 1, source: string, onRowsRemoved?: (physicalRows: number[]) => void) {
     let rowIndex = Number.isInteger(index) ? index : -amount; // -amount = taking indexes from the end.
     const removedPhysicalIndexes = this.visualRowsToPhysical(rowIndex, amount);
     const visualRowsLength = this.hot!.countRows();
@@ -810,6 +831,8 @@ class DataMap {
       this.metaManager!.removeRow(start, runLength);
     });
 
+    onRowsRemoved?.(removedPhysicalIndexes.slice());
+
     this.hot!.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
 
     return true;
@@ -827,7 +850,7 @@ class DataMap {
    */
   removeCol(index: number, amount = 1, source: string) {
     if (this.hot!.dataType === 'object' || this.tableMeta.columns) {
-      throwWithCause('cannot remove column with object data source or columns option specified');
+      throwWithCause('Cannot remove a column when the data source holds objects or the "columns" option is set.');
     }
     let columnIndex = typeof index !== 'number' ? -amount : index;
 
@@ -1096,17 +1119,77 @@ class DataMap {
    * @param {number} row Visual row index.
    * @param {number|string|Function|null} prop The column property, a `columns[].data` accessor
    *   function, or `null` when the caller's column index named no column (see `colToProp()`).
+   * @param {object} [options] Read options.
+   * @param {boolean} [options.skipValueGetter=false] When `true`, returns the stored value without the
+   *   column's `valueGetter` (the `modifyRowData` and `modifyData` hooks still apply). Bulk validation
+   *   reads cells this way, because an edit validates the stored value too.
    * @returns {*}
    */
-  get(row: number, prop: string | number | DataAccessorFn | null) {
-    const physicalRow = this.hot!.toPhysicalRow(row);
+  get(row: number, prop: string | number | DataAccessorFn | null, options?: { skipValueGetter?: boolean }) {
+    // A single read resolves the column `getRange()` resolves once per call. The option is read
+    // without a default object, because this runs for every cell a render touches.
+    return this.#readCell(
+      row, this.hot!.toPhysicalRow(row), this.#resolveReadColumn(prop), options?.skipValueGetter === true
+    );
+  }
 
-    let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
+  /**
+   * Resolves the column a property reads through, the way every cell read needs it.
+   *
+   * @param {number|string|Function|null} prop The column property.
+   * @returns {object}
+   */
+  #resolveReadColumn(prop: string | number | DataAccessorFn | null): ReadColumn {
+    const visualColumn = this.propToCol(prop);
+    const physicalColumn = typeof visualColumn === 'number' ? this.hot!.toPhysicalColumn(visualColumn) : null;
+
+    return {
+      prop,
+      visualColumn,
+      physicalColumn,
+      hasColumnValueGetter: null,
+    };
+  }
+
+  /**
+   * Answers `ReadColumn#hasColumnValueGetter`, resolving it on the first call for that column.
+   *
+   * @param {object} column The resolved column.
+   * @param {number} physicalColumn The physical index of the column.
+   * @returns {boolean}
+   */
+  #hasColumnValueGetter(column: ReadColumn, physicalColumn: number): boolean {
+    if (column.hasColumnValueGetter === null) {
+      column.hasColumnValueGetter = isFunction(this.metaManager!.getColumnMeta(physicalColumn).valueGetter);
+    }
+
+    return column.hasColumnValueGetter;
+  }
+
+  /**
+   * Reads one cell. `get()` resolves the column for a single cell, and `getRange()` resolves each
+   * column once per call and reuses it for every cell of that column.
+   *
+   * The hooks and the `dataDotNotation` setting are checked per cell, so a listener added by user code
+   * running inside the read (a `valueGetter`, an accessor, a hook listener) runs from the next cell on.
+   * A column `valueGetter` counted absent in `column` is not looked for again during the call.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} physicalRow The physical index of `row`.
+   * @param {object} column The resolved column.
+   * @param {boolean} skipValueGetter When `true`, the column's `valueGetter` is not applied.
+   * @returns {*}
+   */
+  #readCell(row: number, physicalRow: number, column: ReadColumn, skipValueGetter: boolean) {
+    const { prop, visualColumn, physicalColumn } = column;
+    let dataRow = this.dataSource![physicalRow] as Record<string | number, unknown>;
+
     // TODO: To remove, use 'modifyData' hook instead (see below)
-    const modifiedRowData = this.hot!.runHooks('modifyRowData', physicalRow);
+    if (this.hot!.hasHook('modifyRowData')) {
+      const modifiedRowData = this.hot!.runHooks('modifyRowData', physicalRow);
 
-    dataRow = typeof modifiedRowData !== 'number' ? modifiedRowData as Record<string | number, unknown> : dataRow;
-    //
+      dataRow = typeof modifiedRowData !== 'number' ? modifiedRowData as Record<string | number, unknown> : dataRow;
+    }
 
     const { dataDotNotation } = this.hot!.getSettings();
     let value: unknown = null;
@@ -1147,28 +1230,30 @@ class DataMap {
       }
     }
 
-    const visualColumnIndex = this.propToCol(prop);
-    const physicalColumn = typeof visualColumnIndex === 'number'
-      ? this.hot!.toPhysicalColumn(visualColumnIndex)
-      : null;
+    if (!skipValueGetter && typeof visualColumn === 'number' &&
+        isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+      // One lookup per cell: stored meta inherits the column meta, so it answers for both layers. A cell
+      // without stored meta gets a transient object only when the column has a `valueGetter` - a plain
+      // data read must not permanently materialize one meta object per visited cell (a full-table scan
+      // such as sorting would retain O(rows) of them), nor allocate one it throws away unused.
+      let cellMeta = this.metaManager!.getCellMetaIfExists(physicalRow, physicalColumn);
 
-    if (typeof visualColumnIndex === 'number' && isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
-      // The uncached read returns the stored meta when the cell carries persisted overrides and a
-      // transient object otherwise - a plain data read must not permanently materialize one meta
-      // object per visited cell (a full-table scan such as sorting would retain O(rows) of them).
-      value = getValueGetterValue(
-        value,
-        this.metaManager!.getCellMetaUncached(physicalRow, physicalColumn, {
+      if (cellMeta === undefined && this.#hasColumnValueGetter(column, physicalColumn)) {
+        cellMeta = this.metaManager!.createTransientColumnMeta(physicalColumn);
+      }
+
+      if (cellMeta !== undefined) {
+        value = getValueGetterValue(value, this.metaManager!.stampCellMeta(cellMeta, physicalRow, physicalColumn, {
           visualRow: row,
-          visualColumn: visualColumnIndex,
-        })
-      );
+          visualColumn,
+        }));
+      }
     }
 
     if (this.hot!.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(value);
 
-      this.hot!.runHooks('modifyData', row, visualColumnIndex, valueHolder, 'get');
+      this.hot!.runHooks('modifyData', row, visualColumn, valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
@@ -1298,12 +1383,29 @@ class DataMap {
    * @param {string} value The value to set.
    */
   set(row: number, prop: string | number | DataAccessorFn | null, value: unknown) {
+    this.setAtPhysicalRow(this.hot!.toPhysicalRow(row), prop, value, row);
+  }
+
+  /**
+   * Saves single value to the data array, at a physical row. A change that waited for its validator is
+   * written this way, to the record it was made on, which a trimming map may have taken out of the visual
+   * space meanwhile.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {number|string|Function|null} prop The column property, a `columns[].data` accessor
+   *   function, or `null` when the caller's column index named no column (see `colToProp()`).
+   * @param {string} value The value to set.
+   * @param {number|null} row The visual row index the `modifyData` hook receives (`null` for a row the visual
+   *   space does not hold).
+   */
+  setAtPhysicalRow(
+    physicalRow: number, prop: string | number | DataAccessorFn | null, value: unknown, row: number | null,
+  ) {
     // No column, nothing to write. Falling through would add a literal `"null"` key to the row.
     if (this.#namesNoColumn(prop)) {
       return;
     }
 
-    const physicalRow = this.hot!.toPhysicalRow(row);
     let newValue = value;
     let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -1503,27 +1605,39 @@ class DataMap {
       return [];
     }
 
-    const getFn = destination === DataMap.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
+    const isCopy = destination === DataMap.DESTINATION_CLIPBOARD_GENERATOR;
 
     const rlen = Math.min(Math.max((maxRows ?? Infinity) - 1, 0), Math.max(start.row, end.row));
     const clen = Math.min(Math.max((maxCols ?? Infinity) - 1, 0), Math.max(start.col, end.col));
+    const firstColumn = Math.min(start.col, end.col);
+    // Everything a cell read derives from its column is resolved once here.
+    const columns: ReadColumn[] = [];
+
+    for (c = firstColumn; c <= clen; c++) {
+      // An index past the last column keeps its index, so it cannot resolve to an unbound column.
+      columns.push(this.#resolveReadColumn(colToPropOrIndex(this.hot!, c)));
+    }
 
     for (r = Math.min(start.row, end.row); r <= rlen; r++) {
-      row = [];
       // We just store indexes for rows without headers.
       const physicalRow = r >= 0 ? this.hot!.toPhysicalRow(r) : r;
 
-      for (c = Math.min(start.col, end.col); c <= clen; c++) {
+      if (physicalRow === null) {
+        continue;
+      }
 
-        if (physicalRow === null) {
-          break;
-        }
-        // An index past the last column keeps its index, so it cannot resolve to an unbound column.
-        row.push(getFn.call(this, r, colToPropOrIndex(this.hot!, c)));
+      // A header row is read through its own translation, as `get()` would read it.
+      const readPhysicalRow = r >= 0 ? physicalRow : this.hot!.toPhysicalRow(r);
+
+      row = [];
+
+      for (let i = 0; i < columns.length; i++) {
+        row.push(isCopy
+          ? this.getCopyable(r, columns[i].prop)
+          : this.#readCell(r, readPhysicalRow, columns[i], false));
       }
-      if (physicalRow !== null) {
-        output.push(row);
-      }
+
+      output.push(row);
     }
 
     return output;

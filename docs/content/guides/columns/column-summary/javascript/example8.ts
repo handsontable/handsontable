@@ -9,7 +9,7 @@ registerAllModules();
 const container = document.querySelector('#example8')!;
 
 new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     {
       value: null,

@@ -36,6 +36,7 @@
     body { font-family: sans-serif; margin: 1rem; }
     input { display: block; margin: 10px 0; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -79,7 +80,7 @@
               th.setAttribute('data-testid', `col-header-${column}`);
             }
           },
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
           ...settings,
         });
       } catch (error) {

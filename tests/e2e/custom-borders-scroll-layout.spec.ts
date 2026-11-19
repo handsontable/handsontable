@@ -1,6 +1,8 @@
 import { test, expect } from '../fixtures/test';
 import { CustomBordersLabPage } from '../fixtures/pages/CustomBordersLabPage';
 
+// leg-declarations: ignore computed-style -- the shared lab page object reads computed border and cell colors for the context-menu color spec; this spec counts layouts and border writes only, which no theme changes
+
 const ROWS = 30;
 const COLS = 70;
 const SCROLL_STEPS = 40;

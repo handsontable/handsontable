@@ -12,11 +12,14 @@
  * - `root` is the selector of the grid container the scan includes (the fixture's
  *   `data-testid="grid"` unless the page has several grids). That grid's own portal
  *   (`rootPortalElement`, where menus and the comment editor render) is always included
- *   too; the rest of the fixture page is not the product and is left out.
- * - `state` names what the spec does before it scans (`STATES` in the spec): a menu
+ *   too, and so is a popup portal the state marks (hyperformula-ui's, on the formula
+ *   states); the rest of the fixture page is not the product and is left out.
+ * - `state` names what the spec does before it scans (`STATES` in `harness.ts`): a menu
  *   or an editor opened from the keyboard on `cell`, the comment editor opened with
- *   Ctrl+Alt+M, a selection laid, a parked data-provider fetch released, or a cell left
- *   pending.
+ *   Ctrl+Alt+M, a selection laid, a parked data-provider fetch released, a cell left
+ *   pending, a range extended with Shift+arrows from a formula error cell, or the formula
+ *   editor opened and typed into to show its suggestions, a named expression among them,
+ *   or its function help.
  * - `device` names a Playwright device to emulate from the first load, for a surface that
  *   exists on a phone only.
  * - `surface` says what the page covers, for the reader of the baseline and of the
@@ -44,6 +47,8 @@ export const A11Y_PAGES = [
     surface: 'collapsible column groups: the collapse indicators and their expanded state' },
   { id: 'nested-rows', fixture: 'nested-rows-treegrid.html', state: 'none',
     surface: 'nested rows as a tree grid: row levels, the expand and collapse indicators' },
+  { id: 'exact-row-heights', fixture: 'row-heights-exact.html', query: 'scenario=thin', state: 'none',
+    surface: 'rows set to an exact height below the default: clipped cell content, checkbox and dropdown cells, row headers' },
   { id: 'merge-cells', fixture: 'merge-cells-init-renders.html', query: 'scenario=areas', state: 'none',
     surface: 'merged cells: the spanned cell and the cells it covers' },
   { id: 'column-summary', fixture: 'column-summary-read-only.html', state: 'none',
@@ -64,6 +69,15 @@ export const A11Y_PAGES = [
     surface: 'a notification toast with a close button and two actions' },
   { id: 'license-bar', fixture: 'license-bar.html', query: 'width=600', state: 'none',
     surface: 'the license notification bar under the grid and its text contrast' },
+  // `licensePreset` names a preset of `tests/fixtures/licenseTiers.ts`: the TypeScript side (`fixtureUrl()` in
+  // `harness.ts`) adds its made-up tiers and its key to the query, because this file cannot build a key.
+  { id: 'license-missing-features', fixture: 'license-capabilities.html', query: 'plugins=filters',
+    licensePreset: 'tier-base', state: 'none',
+    surface: 'the license bar naming the features a license key leaves out, and its sales link' },
+  { id: 'license-powered-by', fixture: 'license-branding.html', query: 'key=sponsored-badge', state: 'none',
+    surface: 'the "Powered by Handsontable DataGrid" bar of a key with the badge flag, its link and text contrast' },
+  { id: 'side-layout-slots', fixture: 'side-layout-slots.html', query: 'panels=both', state: 'none',
+    surface: 'panels docked in the start and end layout slots and a button in the top slot: the slot borders, corner radii and the frame around them' },
   // Menus, opened from the keyboard.
   { id: 'context-menu', fixture: 'context-menu-checked-items.html', state: 'context-menu',
     surface: 'the context menu opened with Shift+F10: items, checkable items, separators' },
@@ -75,6 +89,17 @@ export const A11Y_PAGES = [
     surface: 'the filters menu on a numeric column: the condition components and their inputs' },
   // Editors, opened with Enter on the selected cell.
   { id: 'text-editor', fixture: 'grid.html', state: 'editor', surface: 'the open text editor' },
+  { id: 'formula-builder', fixture: 'formula-builder.html', cell: [0, 2], state: 'editor',
+    surface: 'the formula bar (address box and formula input) and the open formula editor with a colored reference' },
+  { id: 'formula-builder-suggestions', fixture: 'formula-builder.html', cell: [0, 2], state: 'formula-suggestions',
+    surface: 'the formula editor\'s function suggestions list, which hyperformula-ui mounts in the document body' },
+  { id: 'formula-builder-function-help', fixture: 'formula-builder.html', cell: [0, 2], state: 'formula-function-help',
+    surface: 'the formula editor\'s function help popup, which hyperformula-ui mounts in the document body' },
+  { id: 'formula-builder-tokens', fixture: 'formula-builder.html', query: 'variant=design-colors', cell: [2, 2],
+    state: 'formula-error-range', surface: 'the formula bar showing an unknown function name and a comment, error values inside and '
+      + 'outside a selected range, and the error popup of the focused error cell' },
+  { id: 'formula-builder-named-expression', fixture: 'formula-builder.html', query: 'variant=design-colors', cell: [3, 1],
+    state: 'formula-named-suggestion', surface: 'the formula editor\'s suggestions list with a named expression on the active row' },
   { id: 'autocomplete-editor', fixture: 'cell-dropdown-arrow.html', query: 'cellType=autocomplete', cell: [0, 0], state: 'editor',
     surface: 'the open autocomplete editor and its choices list' },
   { id: 'dropdown-editor', fixture: 'cell-dropdown-arrow.html', query: 'cellType=dropdown', cell: [0, 0], state: 'editor',
@@ -105,6 +130,8 @@ export const A11Y_PAGES = [
     surface: 'the row selection checkboxes and their select-all checkbox' },
   { id: 'async-values', fixture: 'async-values.html', cell: [0, 1], state: 'async-pending',
     surface: 'a cell whose value is pending: the indicator, the message and aria-busy' },
+  { id: 'editable-headers', fixture: 'editable-headers.html', cell: [-1, 1], state: 'header-editor',
+    surface: 'the input that renames a column header (EditableHeaders), with the header menu buttons' },
   { id: 'time-editor', fixture: 'date-editor.html', cell: [0, 4], state: 'editor',
     surface: 'the open time editor' },
   { id: 'intl-date-editor', fixture: 'intl-date-editor-ime-fast-edit.html', cell: [0, 0], state: 'editor',
@@ -133,6 +160,11 @@ export const A11Y_PAGES = [
  * The fixture URL a page is scanned at, relative to the fixture server (`support/static-server.mjs`,
  * `http://localhost:8123` by default).
  *
+ * A page with a `licensePreset` also needs that preset's tiers and key, which only the TypeScript side
+ * can build: open it through `fixtureUrl()` in `harness.ts`. This one leaves them out, so the grid it opens
+ * has no license key. The reports link such a page to the URL its scan opened instead
+ * (`withScannedUrls()` in `lib/a11y-suites.mjs`).
+ *
  * @param {{fixture: string, query?: string}} page The page.
  * @param {string} theme The theme.
  * @returns {string} The path and query.
@@ -142,7 +174,7 @@ export function fixtureUrl(page, theme) {
 }
 
 /**
- * How to reach the state a page is scanned in, in words: the steps `STATES` in `axe.spec.ts`
+ * How to reach the state a page is scanned in, in words: the steps `STATES` in `harness.ts`
  * performs, for a person or an agent who opens the fixture by hand.
  *
  * @param {{state: string, cell?: [number, number]}} page The page.
@@ -163,6 +195,11 @@ export function stateSteps(page) {
     selection: select,
     'selection-hover': `select cells (${row}, ${col}) to (${row + 2}, ${col + 2}) (hot.selectCells([[${row}, ${col}, ${row + 2}, ${col + 2}]])), then move the pointer over cell (${row + 1}, ${col + 1})`,
     'async-pending': `start a request that never settles for cell (${row}, ${col}) (window.startRequest(${row}, ${col}))`,
+    'formula-suggestions': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SU"`,
+    'formula-function-help': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SUM("`,
+    'formula-error-range': `${select}, then press Shift+ArrowUp and Shift+ArrowLeft`,
+    'formula-named-suggestion': `${select}, press Enter, select the editor's text (Ctrl/Cmd+A), then type "=SUMM"`,
+    'header-editor': `select the column header of column ${col} (hot.selectCell(${row}, ${col}), with navigableHeaders on), then press F2`,
   }[page.state];
 
   return before && steps ? `${before}, then ${steps}` : steps;

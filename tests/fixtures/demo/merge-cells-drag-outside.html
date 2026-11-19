@@ -22,6 +22,7 @@
       throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
     }
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!-- The page object drags to a point just past the grid's box, so the box is the grid's own width, not the page's:
@@ -52,7 +53,7 @@
       afterRenderer(td, row, col) {
         td.setAttribute('data-testid', `cell-${row}-${col}`);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     };
 
     try {

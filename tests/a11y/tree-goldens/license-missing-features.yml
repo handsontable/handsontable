@@ -1,0 +1,36 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "Alpha 10":
+      - gridcell "Alpha"
+      - gridcell "10"
+    - row "Beta 20":
+      - gridcell "Beta"
+      - gridcell "20"
+    - row "Gamma 30":
+      - gridcell "Gamma"
+      - gridcell "30"
+  - rowgroup:
+    - row "Select whole grid Name Value":
+      - gridcell "Select whole grid"
+      - columnheader "Name"
+      - columnheader "Value"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+- text: "The license key for Handsontable does not include these features: Filters. They are turned off. To add them, contact"
+- link "sales@handsontable.com":
+  - /url: mailto:sales@handsontable.com
+- text: .
+# portal
+- status
+- status

@@ -74,6 +74,10 @@ export class OverflowController {
    */
   readonly #ariaTags: boolean;
   /**
+   * Runs after a resize-driven refresh, once the arrows have taken or given back their room.
+   */
+  readonly #onResize: () => void;
+  /**
    * Observes strip size changes.
    */
   #resizeObserver: ResizeObserver | null = null;
@@ -86,7 +90,7 @@ export class OverflowController {
   /**
    * Wires the controller to the strip and arrow elements.
    */
-  constructor({ strip, pagingSection, pagePrev, pageNext, pagingEnabled, isRtl, ariaTags }: {
+  constructor({ strip, pagingSection, pagePrev, pageNext, pagingEnabled, isRtl, ariaTags, onResize = () => {} }: {
     strip: HTMLElement,
     pagingSection: HTMLElement,
     pagePrev: HTMLButtonElement,
@@ -94,7 +98,9 @@ export class OverflowController {
     pagingEnabled: boolean,
     isRtl: boolean,
     ariaTags: boolean,
+    onResize?: () => void,
   }) {
+    this.#onResize = onResize;
     this.#strip = strip;
     this.#pagingSection = pagingSection;
     this.#pagePrev = pagePrev;
@@ -135,6 +141,7 @@ export class OverflowController {
       this.#refreshFrame = view.requestAnimationFrame(() => {
         this.#refreshFrame = null;
         this.refresh();
+        this.#onResize();
       });
     });
     this.#resizeObserver.observe(this.#strip);

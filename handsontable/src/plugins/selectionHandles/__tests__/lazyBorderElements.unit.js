@@ -3,6 +3,7 @@ import { registerPlugin } from '../../registry';
 import { DragToScroll } from '../../dragToScroll';
 import { MoveCells } from '../../moveCells';
 import { SelectionHandles } from '../selectionHandles';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * The `selectionHandles` and `moveCells` border elements are created lazily, on the first `appear()`
@@ -46,7 +47,7 @@ describe('lazily created selection border elements', () => {
   function buildAndSelect(options) {
     hot = new Handsontable(container, {
       data: Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => 'x')),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...options,
     });
 

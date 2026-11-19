@@ -10,6 +10,15 @@ export const SUPPORT_MAILTO = 'mailto:support@handsontable.com';
 export const LICENSE_KEY_DOCS_URL = 'https://handsontable.com/docs/tutorial-license-key.html';
 
 /**
+ * The copy of the "Powered by" bar: one link to the product site, with the logomark in front of the
+ * text. The text is the link's accessible name, so it stays visible and is never replaced by the logo.
+ */
+export const POWERED_BY_CONTENT = {
+  text: 'Powered by Handsontable DataGrid',
+  href: 'https://handsontable.com',
+};
+
+/**
  * The copy of one badge popover: its title, body (interpolated from the lifecycle facet), and the
  * action link. `dismissible` marks the auto-opening popovers (the stops) that carry a close (X)
  * button; the others are hover/focus tooltips.
@@ -40,8 +49,8 @@ export interface LockContent {
 /**
  * The badge popover copy per lifecycle state. Only a trial shows the corner badge and its popover;
  * every other state renders no badge - a subscription and a perpetual license are developer-facing
- * only, and the states outside the entitlement format (missing, invalid, expired legacy,
- * non-commercial) speak through the console message and the bottom bar of
+ * only, and the states outside the entitlement format (missing, invalid, expired legacy) speak
+ * through the console message and the bottom bar of
  * `initLicenseNotification`.
  *
  * The dates here carry no `(UTC)` marker: the specification puts it on the license text and the
@@ -100,9 +109,7 @@ export const LOCK_CONTENT: Partial<Record<LicenseStateKey, (lifecycle: LicenseLi
   }),
   missing: () => ({
     title: 'The license key for Handsontable is missing.',
-    description: 'Use your purchased key to activate the product. Alternatively, you can activate ' +
-      'Handsontable to use for non-commercial purposes by passing the key: ' +
-      '\'non-commercial-and-evaluation\'. ',
+    description: 'Use your purchased key to activate the product. ',
     action: { text: 'Contact Support', href: SUPPORT_MAILTO },
     docsLink: {
       text: 'Read more',

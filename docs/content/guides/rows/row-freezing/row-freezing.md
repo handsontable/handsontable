@@ -87,7 +87,7 @@ const hot = new Handsontable(container, {
   data: getData(),
   // freeze the last two rows as a footer
   fixedRowsBottom: 2,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -99,7 +99,18 @@ To let users change the number of frozen rows by dragging, enable the [`freezeBa
 
 The plugin changes the counts on the grid and doesn't write them back to the settings you passed in. To keep the counts in your own state, copy them in the [`afterFreezeChange`](@/api/hooks.md#afterfreezechange) hook.
 
+Some actions change the counts without `afterFreezeChange`, such as undo, `alter()`, and a sheets bar tab switch. See [Column freezing: Freeze columns by dragging](@/guides/columns/column-freezing/column-freezing.md#freeze-columns-by-dragging).
+
 The plugin hides the bars for rows when the [`Pagination`](@/api/pagination.md) plugin is on, because Pagination doesn't support frozen rows. For the full guide, see [Column freezing: Freeze columns by dragging](@/guides/columns/column-freezing/column-freezing.md#freeze-columns-by-dragging).
+
+## Hidden rows
+
+A row hidden with the [`HiddenRows`](@/api/hiddenRows.md) plugin keeps its slot in the frozen area. This applies to both [`fixedRowsTop`](@/api/options.md#fixedrowstop) and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom). Hiding a row inside the frozen area shrinks the frozen area by that row, and no other row moves in.
+
+- **Top rows.** The frozen area is always the first `fixedRowsTop` rows, hidden ones included. With `fixedRowsTop: 3` and row 1 hidden, the grid freezes 2 visible rows: rows 0 and 2. A trimmed or filtered row, unlike a hidden one, gives up its slot, so the next row moves in. With row 1 trimmed, the grid still freezes 3 rows: rows 0, 2, and 3.
+- **Bottom rows.** The frozen area is always the last `fixedRowsBottom` rows, hidden ones included. A trimmed or filtered row gives up its slot.
+
+To keep a set number of visible rows frozen, raise the option by the number of hidden rows inside the frozen area. Hidden columns work the same way. See [Column freezing: Hidden columns](@/guides/columns/column-freezing/column-freezing.md#hidden-columns).
 
 ## Result
 

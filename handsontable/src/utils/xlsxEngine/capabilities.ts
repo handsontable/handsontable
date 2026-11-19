@@ -101,6 +101,10 @@ export const DROPPED_FEATURES = {
   // Raised by the native reader only: a `t="s"` cell whose shared-string index resolves to nothing
   // (past the end of the table, no table at all, a table cut short). The cell imports empty.
   cellValueSharedString: 'cellValue:sharedString',
+  // Raised by the native reader only: an error cell whose value metadata resolves to a rich value it
+  // does not read - a linked data type (Stocks, Geography) or an error type it has no code for. The
+  // cell imports the `#VALUE!` the file caches for it.
+  cellValueRichValue: 'cellValue:richValue',
   // Raised by the native reader only: an Excel what-if data table (`<f t="dataTable"/>`). Its cells
   // keep their cached values; the table definition is lost, so nothing recalculates.
   formulaDataTable: 'formula:dataTable',
@@ -112,6 +116,16 @@ export const DROPPED_FEATURES = {
   // so a note stored as a plain `<text><t>` (no run) loads with no text. The comment is skipped
   // rather than imported empty; the native engine reads such a note.
   commentUnreadable: 'comment:unreadable',
+  // Raised by the ExcelJS writer only: it cannot write the `cm` attribute and the metadata part a
+  // dynamic array needs, so the formula is written as a legacy array formula. Raised for a
+  // multi-cell spill only: a one-cell legacy array computes the same value, so nothing is lost.
+  dynamicArrays: 'dynamicArrays',
+  // Raised by both adapters, `importFile` and `exportFile`: a defined name a reader, a writer or the
+  // Formulas engine cannot take.
+  definedNamesUnsupported: 'definedNames:unsupported',
+  // Raised on export: a spill range crosses an excluded row or column, so the array is written
+  // as plain formulas.
+  formulaArrayExcluded: 'formula:arrayExcluded',
   // Raised by the native writer only: ExcelJS honors a compression level.
   compressionLevel: 'compressionLevel',
   // Raised by BOTH writers: a conditional-formatting entry that is not a rule object with a string
@@ -134,10 +148,22 @@ export const DROPPED_FEATURES = {
   dataValidationUnresolvedList: 'dataValidation:unresolvedList',
   formulaOutOfRange: 'formula:outOfRange',
   formulaOtherSheet: 'formula:otherSheet',
+  // Raised by `importFile` (a formula over a name the engine cannot take imports its cached value)
+  // AND by `exportFile` (a formula over a name the file does not hold is written as its value).
   formulaDefinedName: 'formula:definedName',
   // A formula imported as a value (no live formulas) whose file carries no cached `<v>`: the cell
   // imports empty, and the formula is only in `result.formulas`.
   formulaNoCachedValue: 'formula:noCachedValue',
+  // An array formula HyperFormula cannot evaluate the way Excel did: it cannot spill where the
+  // file's `ref` says it does (`#SPILL!`, a `FILTER` it sizes by its input), or it shows an error
+  // Excel did not cache (`#VALUE!` for a lone range `=A1:A3`, a range name, `INDEX(A1:A3,0)`). The
+  // master and the cells it covers import their cached values, and the formula is only in
+  // `result.formulas`.
+  formulaArraySpill: 'formula:arraySpill',
+  // A formula using Excel's spill operator (`B1#`, stored as `_xlfn.ANCHORARRAY(B1)`) or implicit
+  // intersection (`@A1:A3`, stored as `_xlfn.SINGLE(A1:A3)`), which HyperFormula lacks: it imports
+  // its cached value, and the formula is only in `result.formulas`.
+  formulaSpillReference: 'formula:spillReference',
   // A note on a cell of the promoted header band: a column header cannot hold one.
   commentHeader: 'comment:header',
   layoutDirection: 'layoutDirection',
@@ -186,6 +212,12 @@ const MAX_UNSUPPORTED_NAMES = 32;
  * The value a file-driven name carries once the cap on distinct names is reached.
  */
 const OTHER_UNSUPPORTED_VALUE = 'other';
+
+/**
+ * The prefix of a dropped-feature name that records a license capability token the license does
+ * not unlock, such as `license:xlsx:styles`.
+ */
+const LICENSE_PREFIX = 'license:';
 
 /**
  * Whether a UTF-16 code unit is a control character a dropped-feature name must not carry: C0, DEL,
@@ -280,6 +312,26 @@ export class DroppedFeatures {
   }
 
   /**
+   * Records a feature the license does not unlock, as `license:<token>`. The token comes from the
+   * license capability dictionary, never from the file, so it is neither bounded nor counted
+   * against the budget the file-driven names share.
+   */
+  recordLicense(token: string): void {
+    const name = `${LICENSE_PREFIX}${token}`;
+
+    this.#counts.set(name, (this.#counts.get(name) ?? 0) + 1);
+  }
+
+  /**
+   * The tokens recorded through `recordLicense`, in recorded order, without the `license:` prefix.
+   */
+  licenseTokens(): string[] {
+    return this.list()
+      .filter(name => name.startsWith(LICENSE_PREFIX))
+      .map(name => name.slice(LICENSE_PREFIX.length));
+  }
+
+  /**
    * How many times a feature was dropped.
    */
   count(feature: string): number {
@@ -295,9 +347,11 @@ export class DroppedFeatures {
 
   /**
    * Emits one warning naming the engine and every dropped feature. Silent when nothing was dropped.
+   * The `license:<token>` entries are left out: the plugin's own missing-token warning already
+   * names them, and the engine did not drop them.
    */
   warn(kind: XlsxEngineKind): void {
-    const features = this.list();
+    const features = this.list().filter(name => !name.startsWith(LICENSE_PREFIX));
 
     if (features.length === 0) {
       return;

@@ -40,7 +40,6 @@ Template: `.github/PULL_REQUEST_TEMPLATE.md`.
 - **Context**: why the change is needed. Link the ClickUp task or GitHub issue.
 - **How has this been tested?**: the specific tests added or run, with copy-pasteable commands.
 - **Related issue(s)**: GitHub issues as `#xxx`. The only ClickUp ID allowed is the one task this PR closes (see **One task ID only**).
-- **Affected project(s)**: check every package the change touches.
 - **Checklist**: the CLA is checked by the required `cla/signed` status check; one signature covers Handsontable and HyperFormula. See [`CONTRIBUTING.md`](../../../CONTRIBUTING.md#contributor-license-agreement).
 
 ## 4. Target branch
@@ -110,13 +109,6 @@ The PR fixes/adds/changes <what>. <Why the change is needed; link the task and e
 
 1. DEV-xxx
 
-### Affected project(s):
-
-- [x] `handsontable`
-- [ ] `@handsontable/angular-wrapper`
-- [ ] `@handsontable/react-wrapper`
-- [ ] `@handsontable/vue3`
-
 ### Checklist:
 
 - [x] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
@@ -172,7 +164,7 @@ The changelog gate is path-aware: a PR confined to docs, tests, `.github/`, `.ai
 
 Leave the ClickUp task status to the GitHub integration: it moves the task to **"code review"** when the PR opens, and onward on merge.
 
-When the PR touches anything a user can see or operate, read the `A11y / axe report` check once CI has run: `neutral` means a finding needs action, and the sticky comment and `a11y-findings.json` say which (`handsontable-a11y` skill).
+When the PR touches anything a user can see or operate, read the `A11y / axe report` check once CI has run: red means a new or grown critical or serious finding, neutral a moderate or minor one (`tests/AGENTS.md`, "A11y: the verdict of a check run"), and the sticky comment and `a11y-findings.json` say which (`handsontable-a11y` skill).
 
 ## 8. Merge strategy
 

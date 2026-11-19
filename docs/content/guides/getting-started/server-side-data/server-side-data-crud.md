@@ -62,7 +62,7 @@ With [`pagination`](@/api/options.md#pagination) enabled, two things stay stale 
 
 If a `fetchRows` request is still running when the create finishes (for example, a sort or filter change made just before the insert), Handsontable refetches anyway, so the late response cannot remove the rows you applied.
 
-With the [sheets bar](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#server-backed-sheets), the user can switch sheets while the request runs, and `hot` then shows another sheet. Add the rows only while the sheet that made the request is active. A create that finishes while its sheet is hidden refetches that sheet anyway.
+With the sheets bar, add the rows only while the sheet that made the request is active. See [Server-backed sheets](@/guides/accessories-and-menus/sheets-bar/sheets-bar.md#server-backed-sheets).
 
 The example shows only the keys that change; the other keys stay as in [Configuration](@/guides/getting-started/server-side-data/server-side-data-configuration.md).
 

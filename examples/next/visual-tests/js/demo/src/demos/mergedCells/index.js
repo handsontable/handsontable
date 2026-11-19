@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 import { data } from './data';
 import { getThemeNameFromURL } from '../../utils';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   const root = document.getElementById('root');
@@ -76,7 +77,7 @@ export function init() {
     rowHeaders: true,
     manualRowMove: true,
     manualRowResize: true,
-    rowHeights(visualRowIndex) {
+    minRowHeights(visualRowIndex) {
       return visualRowIndex * 1;
     },
     autoWrapCol: true,
@@ -84,7 +85,7 @@ export function init() {
     headerClassName: 'htLeft',
     mergeCells: mergedCells,
 
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   hot.addHook('afterMergeCells', function (cellRange, mergeParent, auto) {

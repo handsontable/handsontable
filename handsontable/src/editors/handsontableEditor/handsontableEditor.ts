@@ -744,8 +744,9 @@ export class HandsontableEditor extends TextEditor {
    * so reading it keeps the list's geometry identical to what those rules produced and only
    * changes the coordinate space. That compensation is conditional
    * (`BaseEditor#getEditedCellRect()` cancels a 1px shift for a cell that draws its own
-   * inline-start border, which depends on row headers and on which columns are rendered), so a
-   * hardcoded 1px against the cell lands the list a pixel off on some columns and not others.
+   * inline-start border or stands behind a row header, which depends on which columns are
+   * rendered), so a hardcoded 1px against the cell lands the list a pixel off on some columns and
+   * not others.
    *
    * @returns {DOMRect}
    */

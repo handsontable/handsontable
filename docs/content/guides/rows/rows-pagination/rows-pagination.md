@@ -466,6 +466,7 @@ When pagination is enabled:
 - [`NestedRows`](@/api/nestedRows.md) and [`MergeCells`](@/api/mergeCells.md) plugins should be disabled.
 - The [`height`](@/api/options.md#height) option set as `auto` is not supported when the `pageSize: 'auto'` is set.
 - When the window scrolls the grid (no [`height`](@/api/options.md#height) option and no scrollable ancestor), the pagination bar follows the last row of the page. To keep it in view, give the grid an explicit `height`, or put it in a container with a fixed height and `overflow: auto`.
+- When no rows are left to show, for example after a filter removes every row, a grid with no [`height`](@/api/options.md#height) option or with `height: 'auto'` keeps 150 px of empty space, so the pagination bar does not touch the column headers. Like the rows, that space can extend past a container sized only by CSS. The [`emptyDataState`](@/api/emptyDataState.md) plugin keeps the same space on its own.
 - Pagination always displays a fixed number of rows per page (default is `10`), regardless of data changes such as hiding, trimming, filtering, removing, adding, or pasting rows - unless `pageSize: 'auto'` is set.
 
 Pagination also works on the main grid only. A grid nested in a cell, that is a cell of the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md), [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), or [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell type, has no layout slot to render the pagination bar into, so the [`pagination`](@/api/options.md#pagination) option has no effect there. A custom `uiContainer` does not change that.
@@ -526,7 +527,7 @@ Didn't find what you need? Try this:
 
 - [View related topics](https://github.com/handsontable/handsontable/labels/Pagination) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Start a discussion](https://forum.handsontable.com/c/questions/12) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>

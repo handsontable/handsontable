@@ -12,7 +12,7 @@ const stockStatuses = [
 const container = document.querySelector('#example9');
 new Handsontable(container, {
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     data: [
         [stockStatuses[0], stockStatuses[0]],
         [stockStatuses[1], stockStatuses[1]],

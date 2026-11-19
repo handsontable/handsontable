@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a numeric cell that kept the `htRight htNumeric` classes after its column or the grid `type` changed, when its `className` was set with `setCellMeta()` or the `cell` option.",
+  "type": "fixed",
+  "issueOrPR": 14199,
+  "breaking": false,
+  "framework": "none"
+}

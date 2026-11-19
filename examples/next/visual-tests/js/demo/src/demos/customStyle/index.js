@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import { data } from './data';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   const root = document.getElementById('root');
@@ -100,7 +101,7 @@ export function init() {
 
       return cellProperties;
     },
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   // Custom renderer function

@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * The narrowest width a column can be resized to is the room its header needs for the menu button:
@@ -37,7 +38,7 @@ describe('ManualColumnResize minimum column width', () => {
       colHeaders: true,
       dropdownMenu: true,
       manualColumnResize: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

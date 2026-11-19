@@ -2,6 +2,7 @@ import Handsontable from 'handsontable/base';
 import { registerPlugin } from 'handsontable/plugins';
 import { NestedRows } from 'handsontable/plugins/nestedRows';
 import { TrimRows } from 'handsontable/plugins/trimRows';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerPlugin(NestedRows);
 registerPlugin(TrimRows);
@@ -34,7 +35,7 @@ describe('Core#getDataAtCol() and Core#getDataAtProp() row count', () => {
    */
   function build(settings) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

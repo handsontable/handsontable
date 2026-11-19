@@ -2,9 +2,11 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { arrayReduce } from '../../helpers/array';
 import { addClass, removeClass, offset, getTrimmingContainer } from '../../helpers/dom/element';
+import { hasPointerTraveled, isImmediatePropagationStopped } from '../../helpers/dom/event';
 import { rangeEach } from '../../helpers/number';
 import BacklightUI from './ui/backlight';
 import GuidelineUI from './ui/guideline';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('beforeRowMove');
 Hooks.getSingleton().register('afterRowMove');
@@ -55,6 +57,14 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Returns the list of settings keys observed by the plugin for configuration changes.
    */
   static get SETTING_KEYS() {
@@ -81,6 +91,18 @@ export class ManualRowMove extends BasePlugin {
    * @type {boolean}
    */
   #pressed: boolean | undefined;
+  /**
+   * Whether the pointer has traveled beyond the drag tolerance since the header was pressed.
+   *
+   * @type {boolean}
+   */
+  #dragged = false;
+  /**
+   * The pointer position at the press, in client coordinates.
+   *
+   * @type {object}
+   */
+  #pressOrigin = { x: 0, y: 0 };
   /**
    * @type {object}
    */
@@ -200,11 +222,13 @@ export class ManualRowMove extends BasePlugin {
         return false;
       }
 
-      if (movePossible) {
+      const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
+
+      // A move that leaves the order as it is must not reach the mapper: `moveIndexes()` ignores
+      // trimmed indexes, so it would put the rows on the far side of any trimmed one next to them.
+      if (movePerformed) {
         this.hot.rowIndexMapper.moveIndexes(rows, finalIndex);
       }
-
-      const movePerformed = movePossible && this.isRowOrderChanged(rows, finalIndex);
 
       this.hot.runHooks('afterRowMove', rows, finalIndex, dropIndex, movePossible, movePerformed);
 
@@ -300,6 +324,59 @@ export class ManualRowMove extends BasePlugin {
     }, 0);
 
     return dropIndex - numberOfRowsLowerThanDropIndex;
+  }
+
+  /**
+   * Gets the drop index for a pointer in the lower half of a row.
+   *
+   * A gap between two visible rows has two drop indexes when hidden rows sit in it: the lower half of the row above
+   * (it points at the first hidden row) and the upper half of the row below (it points at the visible row). The first
+   * one would land the moved rows in front of the hidden block and the second one after it. Stepping over the hidden
+   * rows gives both the same drop index.
+   *
+   * The index stays right after the hovered row, in front of the hidden rows, when there is no visible row to step
+   * to (the hidden rows run to the end of the grid), and so the drop never leaves the place the guideline shows, in
+   * three more cases. A step that would cross into or out of a fixed-rows band. The NestedRows plugin, which reads the
+   * parent of the row at the drop index, so a step over hidden rows could make the moved row a child of a hidden row.
+   * A step that would put the moved rows inside a merged cell: the visible row after the hidden ones is not the
+   * first row of its merge, so the rows would land between the merged rows and split the merge.
+   *
+   * @private
+   * @param {number} hoveredRow Visual row index of the row the pointer is on.
+   * @returns {number} Visual row index of the first visible row after the hovered one, or `hoveredRow + 1` when the
+   * step is skipped (hidden rows at the end of the grid, a fixed-band edge, NestedRows, or a merged cell).
+   */
+  getLowerHalfDropIndex(hoveredRow: number) {
+    const dropIndex = hoveredRow + 1;
+    const rowIndexMapper = this.hot.rowIndexMapper;
+    // The hovered row is rendered, so the next visible row is the next renderable one: no walk over the hidden rows.
+    const hoveredRenderableRow = rowIndexMapper.getRenderableFromVisualIndex(hoveredRow);
+    const nextVisibleRow = hoveredRenderableRow === null ?
+      null : rowIndexMapper.getVisualFromRenderableIndex(hoveredRenderableRow + 1);
+
+    if (nextVisibleRow === null || nextVisibleRow === dropIndex || this.hot.getPlugin('nestedRows')?.enabled) {
+      return dropIndex;
+    }
+
+    const crossesFixedBand = this.isFixedRowTop(hoveredRow) !== this.isFixedRowTop(nextVisibleRow) ||
+      this.isFixedRowBottom(hoveredRow) !== this.isFixedRowBottom(nextVisibleRow);
+
+    return crossesFixedBand || this.isInsideMergedCell(nextVisibleRow) ? dropIndex : nextVisibleRow;
+  }
+
+  /**
+   * Checks if the provided row is a part of a merged cell, but not its first row.
+   *
+   * @private
+   * @param {number} row Visual row index to check.
+   * @returns {boolean}
+   */
+  isInsideMergedCell(row: number) {
+    const mergeCells = this.hot.getPlugin('mergeCells');
+
+    return mergeCells?.enabled === true &&
+      mergeCells.mergedCellsCollection.mergedCells.some(mergedCell => mergedCell.row < row &&
+        row < mergedCell.row + mergedCell.rowspan);
   }
 
   /**
@@ -463,7 +540,10 @@ export class ManualRowMove extends BasePlugin {
       // if hover on lower part of TD - the boundary moves to this row's bottom edge, which is its
       // RENDERED height away (no first-row special case: `tdStartPixel` above is already the real
       // top edge, and `tdHeight` is read from the DOM).
-      this.#target.row = coords.row + 1;
+      // A drop on the lower half of a moved row is the gesture of grabbing a row and releasing it in place:
+      // it stays where it is, so the drop index is not moved past the hidden rows that follow.
+      this.#target.row = this.#rowsToMove.includes(coords.row) ?
+        coords.row + 1 : this.getLowerHalfDropIndex(coords.row);
       tdStartPixel += tdHeight;
 
     } else {
@@ -534,8 +614,16 @@ export class ManualRowMove extends BasePlugin {
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
     const selection = this.hot.getSelectedRangeActive();
 
-    if (!selection || !isHeaderSelection || this.#pressed || event.button !== 0) {
+    // A press an earlier listener claimed (the FormulaBuilder reference pick, which runs first with
+    // order index `-1`) owns the gesture, so it arms no move. Neither does a selection of several
+    // ranges (Ctrl/Cmd+click): there is no one place to put separate rows, and moving the active
+    // range alone would ignore the others. The press then selects as any other press does.
+    if (
+      !selection || !isHeaderSelection || this.#pressed || event.button !== 0 ||
+      isImmediatePropagationStopped(event) || this.hot.selection.isNonContiguous()
+    ) {
       this.#pressed = false;
+      this.#dragged = false;
       this.#rowsToMove.length = 0;
       removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
 
@@ -557,6 +645,8 @@ export class ManualRowMove extends BasePlugin {
     if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
       controller.row = true;
       this.#pressed = true;
+      this.#dragged = false;
+      this.#pressOrigin = { x: event.clientX, y: event.clientY };
 
       this.#target.eventPageY = event.pageY;
       this.#target.coords = coords;
@@ -577,6 +667,7 @@ export class ManualRowMove extends BasePlugin {
     } else {
       removeClass(this.hot.rootElement, CSS_AFTER_SELECTION);
       this.#pressed = false;
+      this.#dragged = false;
       this.#rowsToMove.length = 0;
     }
   };
@@ -589,6 +680,11 @@ export class ManualRowMove extends BasePlugin {
   #onMouseMove(event: MouseEvent) {
     if (!this.#pressed) {
       return;
+    }
+
+    // A pointer that jitters a pixel or two during a click does not fire the move hooks.
+    if (hasPointerTraveled(this.#pressOrigin, event)) {
+      this.#dragged = true;
     }
 
     this.#target.eventPageY = event.pageY;
@@ -650,16 +746,23 @@ export class ManualRowMove extends BasePlugin {
   #onMouseUp() {
     const target = this.#target.row;
     const rowsLen = this.#rowsToMove.length;
+    const wasDragged = this.#dragged;
 
     this.#pressed = false;
+    this.#dragged = false;
 
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI, CSS_AFTER_SELECTION]);
 
-    if (this.hot.selection.isSelectedByRowHeader()) {
+    // The class draws the grab cursor on the selected headers, so it stays off while the selection
+    // holds several ranges, which arm no drag.
+    if (this.hot.selection.isSelectedByRowHeader() && !this.hot.selection.isNonContiguous()) {
       addClass(this.hot.rootElement, CSS_AFTER_SELECTION);
     }
 
-    if (rowsLen < 1 || target === undefined) {
+    // A press that never traveled is a click, not a move, so it fires no move hook.
+    if (!wasDragged || rowsLen < 1 || target === undefined) {
+      this.#rowsToMove.length = 0;
+
       return;
     }
 
@@ -713,6 +816,7 @@ export class ManualRowMove extends BasePlugin {
     }
 
     this.#pressed = false;
+    this.#dragged = false;
     this.#rowsToMove.length = 0;
     removeClass(this.hot.rootElement, [CSS_ON_MOVING, CSS_SHOW_UI]);
   };

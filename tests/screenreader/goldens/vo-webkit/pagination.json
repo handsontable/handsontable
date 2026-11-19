@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "pagination",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:59:17.791Z"
+  },
+  "steps": {
+    "tab-page-size": "",
+    "tab-next-page": "go to next page button pagination navigation",
+    "enter-next-page": "page 2 of 10",
+    "tab-last-page": "go to last page button",
+    "enter-last-page": "page 10 of 10",
+    "enter-previous-page": "page 9 of 10",
+    "shift-tab-first-page": "go to first page button",
+    "enter-first-page": "page 1 of 10",
+    "shift-tab-page-size": "10 page size collapsed pop up button",
+    "shift-tab-grid": "country united kingdom table 10 columns"
+  }
+}

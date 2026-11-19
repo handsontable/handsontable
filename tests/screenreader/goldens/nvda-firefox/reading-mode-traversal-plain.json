@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "scenario": "reading-mode-traversal-plain",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-03T19:25:55.344Z"
+  },
+  "steps": {
+    "to-grid": "table with minus 1 rows and 4 columns row 2 column 2 a 1",
+    "read-1": "column 3 b 1",
+    "read-2": "column 4 c 1",
+    "read-3": "row 3 column 2 a 2",
+    "read-4": "column 3 b 2",
+    "read-5": "column 4 c 2",
+    "read-6": "row 4 column 2 a 3",
+    "read-7": "column 3 b 3",
+    "read-8": "column 4 c 3",
+    "read-9": "row 1 column 1",
+    "read-10": "column 2 alpha",
+    "read-11": "column 3 bravo",
+    "read-12": "column 4 charlie",
+    "read-13": "",
+    "read-14": "row 2 column 1 1",
+    "read-15": "row 3 2",
+    "read-16": "row 4 3",
+    "read-17": "row 1",
+    "read-18": "",
+    "read-19": "out of table button after the grid",
+    "read-20": "button after the grid",
+    "read-21": "button after the grid",
+    "read-22": "button after the grid",
+    "read-23": "button after the grid",
+    "past-grid": "button after the grid"
+  }
+}

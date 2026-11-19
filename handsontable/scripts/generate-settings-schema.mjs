@@ -106,6 +106,7 @@ const CLOSED_OPTIONS = new Map([
   ['dragToScroll', undefined],
   ['fillHandle', undefined],
   ['filters', undefined],
+  ['formulaBuilder', undefined],
   ['manualColumnFreeze', undefined],
   ['rowSelection', undefined],
   ['sheetsBar', undefined],
@@ -137,6 +138,8 @@ const RUNTIME_OBJECT_TYPES = new Map([
   ['Function', 'function'],
   ['Map', 'Map'],
   ['Set', 'Set'],
+  // A class instance. Its `#private` fields would otherwise land in the schema as properties.
+  ['ThemeBuilder', 'object'],
 ]);
 
 /**
@@ -904,7 +907,7 @@ function isHookKey(key) {
  * Builds the schema object.
  *
  * @returns {{schema: object, internals: object}} The JSON Schema, and the lists `validateSettings()`
- * reads that are not part of it.
+ * reads that are not part of it, with the options whose type the settings types do not declare.
  */
 export function buildSettingsSchema() {
   // `@private` options (`preventWheel`) and the meta bookkeeping keys (`_userDefinedMetaProps`)
@@ -917,6 +920,7 @@ export function buildSettingsSchema() {
   const columnProperties = {};
   const cellProperties = {};
   const known = new Set([...options.map(option => option.name), ...internalOptions]);
+  const fromJsDoc = new Set();
   const optionsByName = new Map(options.map(option => [option.name, option]));
 
   assertOptionLevelsAgree(options);
@@ -931,6 +935,11 @@ export function buildSettingsSchema() {
    */
   const buildNode = (name, type, annotations) => {
     const option = optionsByName.get(name);
+
+    if (!type) {
+      fromJsDoc.add(name);
+    }
+
     const node = closeOptionNode(
       name,
       widenNode(name, type ? converter.convert(type) : fromJsDocType(name, option?.type)),
@@ -1052,7 +1061,7 @@ export function buildSettingsSchema() {
     },
   };
 
-  return { schema, internals: { internalOptions, builtInPlugins } };
+  return { schema, internals: { internalOptions, builtInPlugins, fromJsDoc: [...fromJsDoc] } };
 }
 
 /**

@@ -1,11 +1,20 @@
 import { throwWithCause } from '../../helpers/errors';
 import { escapeHtml } from '../../helpers/string';
 import { DROPPED_FEATURES, type DroppedFeatures } from '../../utils/xlsxEngine/capabilities';
-import type { CellSnapshot, MergeSnapshot, SheetSnapshot, WorkbookSnapshot } from '../../utils/xlsxEngine/model';
-import { parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
-import { rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
+import {
+  isOoxmlErrorCode, type CellSnapshot, type DefinedNameSnapshot, type MergeSnapshot, type SheetSnapshot,
+  type WorkbookSnapshot,
+} from '../../utils/xlsxEngine/model';
+import type { XlsxEntitlement } from '../../utils/xlsxEngine/xlsxEntitlement';
+import { colIndexToLetter, parseMultiRangeRef, parseRangeRef } from '../../utils/xlsxEngine/cellRef';
+import { closedReferenceArea, rebaseImportedFormula } from '../../utils/xlsxEngine/formulaRefs';
 import { stripFunctionPrefixes } from '../../utils/xlsxEngine/functionPrefixes';
-import { MAX_TRANSLATED_FORMULA_CHARS, MIN_CELL_META_BUDGET, throwLimitExceeded } from '../../utils/xlsxEngine/limits';
+import { isWholeArrayFunctionCall, unwrapArrayFormula } from '../../utils/xlsxEngine/dynamicArrays';
+import { isReferenceWord } from '../../utils/xlsxEngine/definedNames';
+import {
+  MAX_DEFINED_NAME_CELLS, MAX_DEFINED_NAME_CHARS, MAX_DEFINED_NAME_LENGTH, MAX_DEFINED_NAME_TOTAL_CELLS,
+  MAX_TRANSLATED_FORMULA_CHARS, MIN_CELL_META_BUDGET, throwLimitExceeded
+} from '../../utils/xlsxEngine/limits';
 import {
   MAX_COLUMN_WIDTH_UNITS as MAX_EXCEL_COLUMN_WIDTH,
   MAX_ROW_HEIGHT_POINTS as MAX_EXCEL_ROW_HEIGHT_POINTS,
@@ -61,6 +70,95 @@ export interface MapperContext {
    * cached value is imported instead. Absent means the engine defines none.
    */
   formulaNamedExpressions?: ReadonlySet<string>;
+  /**
+   * Whether the Formulas plugin's engine takes a workbook-scoped named expression of this name and
+   * expression (`=` included) - `isItPossibleToAddNamedExpression` of HyperFormula. With it, the
+   * workbook's defined names the engine does not define yet are handed over in
+   * `ImportResult.namedExpressions`, so the formulas using them import live. Absent means no name is
+   * handed over, and those formulas import their cached values.
+   */
+  canAddNamedExpression?: (name: string, expression: string) => boolean;
+  /**
+   * Whether the Formulas plugin's engine already defines this name with this expression (`=`
+   * included), at workbook scope or on the grid's own sheet, both compared in the engine's own
+   * normalized form. A workbook name the
+   * engine defines DIFFERENTLY - a re-import of a file whose name changed - is treated as unresolved:
+   * the formulas using it import their cached values instead of reading the old definition. Absent
+   * means a name the engine defines is trusted as it is.
+   */
+  definesNamedExpression?: (name: string, expression: string) => boolean;
+  /**
+   * The rows and columns an engine sheet holds now (`getSheetDimensions` of HyperFormula), by its
+   * lower-cased name, or `undefined` when the engine holds no such sheet. The import's names are
+   * added and evaluated before the imported data replaces the grid's sheet, so a whole column or row
+   * in a definition costs what the sheet it is on holds at that point. Absent means a span is sized
+   * by the imported sheet's window.
+   */
+  sheetExtent?: (sheetName: string) => { rows: number; cols: number } | undefined;
+  /**
+   * Whether the Formulas plugin's engine registers a function of this name (upper-cased, in the
+   * engine's language). A live array master calling a function the engine lacks shows `#NAME?` and
+   * spills nothing, so the cells its `ref` covers keep their cached values instead of importing
+   * empty. Absent means every function is trusted.
+   */
+  registersFunction?: (name: string) => boolean;
+  /**
+   * Whether the Formulas plugin's engine reads this error code as an error (the error table of the
+   * engine's language). A cached error the engine does not know and Excel caches as `#VALUE!` (a
+   * rich error such as `#CALC!` or `#FIELD!`) is imported as `#VALUE!`, so `IFERROR` and `ISERROR`
+   * over it still see an error. Absent means every code is trusted.
+   */
+  recognizesErrorCode?: (code: string) => boolean;
+  /**
+   * Whether the Formulas plugin's engine evaluates array arithmetic (`useArrayArithmetic` of
+   * HyperFormula). Without it, `=A1:A3*2` is one value, not a spill, so a dynamic array master is
+   * wrapped in `ARRAYFORMULA(...)` like a legacy CSE one. Absent means the engine does.
+   */
+  arrayArithmetic?: boolean;
+  /**
+   * Builds a scratch copy of the Formulas plugin's engine over the mapped sheet, so the mapper can
+   * ask where the live array masters really spill (`settleLiveArrays`). Called only when the sheet
+   * holds a live array master. `null` (or absent) means no probe, and every array's `ref` is
+   * trusted as written.
+   */
+  probeLiveArrays?: (
+    data: unknown[][], namedExpressions: NonNullable<ImportResult['namedExpressions']>
+  ) => LiveArrayProbe | null;
+  /**
+   * What the license unlocks of the XLSX engine. A feature it does not unlock is skipped and its
+   * token recorded as `license:<token>`; `xlsx:number_formats` never restricts the import.
+   */
+  entitlement: XlsxEntitlement;
+}
+
+/**
+ * A scratch engine holding the mapped sheet, as `MapperContext.probeLiveArrays` builds it. The
+ * coordinates are the window's own (the grid's).
+ */
+export interface LiveArrayProbe {
+  /**
+   * What the cell's formula evaluates to: the HyperFormula error type of an error (`'SPILL'`,
+   * `'VALUE'`, `'REF'`, ...), `null` for a value.
+   */
+  masterState(row: number, col: number): string | null;
+  /**
+   * Whether an array the engine placed covers the cell.
+   */
+  isPartOfArray(row: number, col: number): boolean;
+  /**
+   * Whether an array the engine placed gives the cell a value. The empty room HyperFormula reserves
+   * past a `FILTER` result is part of the array but holds no value. Absent means `isPartOfArray`.
+   */
+  spillsValueInto?(row: number, col: number): boolean;
+  /**
+   * Whether the scratch engine defines a named expression of this lower-cased name. Absent means it
+   * defines none.
+   */
+  definesName?(name: string): boolean;
+  /**
+   * Releases the scratch engine.
+   */
+  destroy(): void;
 }
 
 /**
@@ -350,6 +448,10 @@ interface CellPass {
    */
   comments: NonNullable<ImportResult['comments']>;
   /**
+   * The workbook's defined names handed to the Formulas engine.
+   */
+  namedExpressions: NonNullable<ImportResult['namedExpressions']>;
+  /**
    * The cells that must be marked `readOnly`, per column as runs of consecutive rows (`[start, end]`,
    * inclusive). Under sheet protection every blank is locked, so one entry per cell cost one object
    * per slot of the window: a protected sheet with cells in `A1:E1` and `A1000000:E1000000` grew the
@@ -360,6 +462,14 @@ interface CellPass {
    * Whether any visited cell carried a style, so `cellStyles` can be reported once as dropped.
    */
   sawStyle: boolean;
+  /**
+   * Whether any visited cell carried a comment, a list validation, or a formula. With `sawStyle`,
+   * these decide which `license:<token>` entries the import records: one only for a feature the
+   * file carried and the caller's options asked for.
+   */
+  sawComment: boolean;
+  sawValidation: boolean;
+  sawFormula: boolean;
   /**
    * Class names collected when `importStyles` is on, per column as runs of consecutive rows that
    * wear the same classes. One `"row:col"` entry per styled cell let a 101 KB file of 305 x 16 384
@@ -430,7 +540,7 @@ function resolveDropdownMeta(cell: CellSnapshot, scope: CollectContext): ImportC
 function resolveCellMeta(cell: CellSnapshot, inferredMeta: InferredMeta, scope: CollectContext): ImportColumn | null {
   const { meta } = inferredMeta;
 
-  if (cell.validation) {
+  if (cell.validation && scope.context.entitlement.dataValidation) {
     const dropdown = resolveDropdownMeta(cell, scope);
 
     if (dropdown) {
@@ -484,6 +594,31 @@ function escapeTextFormula(value: unknown, formulasEnabled: boolean): unknown {
 }
 
 /**
+ * The value Excel caches for an error it stores as a rich value.
+ */
+const RICH_ERROR_CACHED_VALUE = '#VALUE!';
+
+/**
+ * The cached value of a cell as the grid takes it, with a rich error the engine does not know put
+ * back to `#VALUE!`. The native reader writes the code of an error Excel stores as a rich value
+ * (`#CALC!`, `#FIELD!`, ...) over the `#VALUE!` the file caches for it; HyperFormula reads only the
+ * error codes of its language as errors, so such a code imported as TEXT, and `=IFERROR(E1,"none")`
+ * over it returned `#CALC!`. A code of `OOXML_ERROR_CODES` is left alone: the file caches it as it
+ * is, with or without the Formulas plugin.
+ */
+function cachedValueOf(cell: CellSnapshot, inferred: InferredType | null, context: MapperContext): unknown {
+  const value = escapeTextFormula(toGridValue(cell, inferred), context.formulasEnabled);
+  const isError = cell.formula === null ? cell.valueIsError === true : cell.formula.resultIsError === true;
+
+  if (!context.formulasEnabled || !isError || typeof value !== 'string' || isOoxmlErrorCode(value)
+      || context.recognizesErrorCode?.(value) !== false) {
+    return value;
+  }
+
+  return RICH_ERROR_CACHED_VALUE;
+}
+
+/**
  * Matches the start of a prefix Excel stores in a formula (`_xlfn.`, `_xlws.`, `_xlpm.`), the cheap
  * test that decides whether `stripFunctionPrefixes` has to walk the formula at all.
  */
@@ -506,29 +641,104 @@ function chargeFormulaWalk(length: number, scope: CollectContext): void {
 }
 
 /**
+ * A formula as `readFormulaText` hands it over.
+ */
+interface ReadFormula {
+  /**
+   * What the file holds, minus the stored prefixes: the text `ImportResult.formulas` records.
+   */
+  recorded: string;
+  /**
+   * The text the engine receives: `recorded` with a bare `TRUE`/`FALSE` rewritten to a call.
+   */
+  live: string;
+}
+
+/**
+ * Matches a bare boolean literal's spelling: the only formulas `rewriteBareBooleans` walks.
+ */
+const BOOLEAN_HINT = /true|false/i;
+
+/**
+ * Rewrites a bare `TRUE`/`FALSE` (any case) to `TRUE()`/`FALSE()`. HyperFormula reads a bare boolean
+ * literal as an unknown name (`=IF(TRUE,1,2)` is `#NAME?`), while Excel stores it that way.
+ *
+ * A string literal and a quoted sheet name are left alone, and so is a token followed by `(` (already
+ * a call) or `!` (a sheet named `TRUE`), preceded by `!` (a name on a sheet), `.`, `$` or a digit (the
+ * tail of something longer; a letter or `_` before it is part of the token already), or sitting in a
+ * structured reference (`Table[TRUE]`, `[@TRUE]`, `Table[ TRUE]`: `[`, `@` before it, `]` after it).
+ * Linear: one pass of `FORMULA_IDENTIFIER_REGEX`. `readFormulaText` has already charged the formula.
+ *
+ * @param {string} formula The formula, without its `=`.
+ * @returns {string}
+ */
+function rewriteBareBooleans(formula: string): string {
+  if (!BOOLEAN_HINT.test(formula)) {
+    return formula;
+  }
+
+  let out = '';
+  let last = 0;
+
+  for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
+    const [token] = match;
+    const start = match.index ?? 0;
+    const lowered = token.toLowerCase();
+
+    // An error literal (`#VALUE!`) lowers to neither.
+    if (lowered === 'true' || lowered === 'false') {
+      const prev = start > 0 ? formula[start - 1] : '';
+      const next = formula[start + token.length];
+
+      // A letter or `_` before it never gets here: `FORMULA_IDENTIFIER_REGEX` takes it into the token.
+      if (next !== '(' && next !== '!' && next !== ']' && !/[!.[@$\p{N}]/u.test(prev)) {
+        out += `${formula.slice(last, start)}${token.toUpperCase()}()`;
+        last = start + token.length;
+      }
+    }
+  }
+
+  return last === 0 ? formula : out + formula.slice(last);
+}
+
+/**
  * The formula as the grid takes it: the `_xlfn.`/`_xlws.`/`_xlpm.` prefixes Excel stores in front of
  * post-2007 functions and `LET`/`LAMBDA` parameters removed, so HyperFormula does not read them as
  * unknown names (`#NAME?`). Every engine hands the stored text over verbatim, so the mapper strips
- * it for both.
+ * it for both. `live`, the text for the engine, also has a bare `TRUE`/`FALSE` rewritten to a call
+ * (`rewriteBareBooleans`); `recorded` keeps what the file holds.
  *
  * A formula any walk will run over is charged against the budget ONCE, before the first walk: the
- * prefix strip, and - with live formulas on - the reference walk of `rebaseImportedFormula` (a
- * non-zero window origin, or a `!` to check) and the defined-name scan (a workbook that defines a
- * name the engine lacks). Each walk is linear in the formula's length, so one charge per formula is
- * what the budget's figures in `limits.ts` were measured against.
+ * prefix strip, the boolean rewrite (a formula that spells `true` or `false` in any case), and - with
+ * live formulas on - the reference walk of `rebaseImportedFormula` (a non-zero window origin, or a
+ * `!` to check), the defined-name scan (a workbook that defines a name the engine lacks), the
+ * spill-operator scan (a formula spelling `anchorarray` or `single`, `callsSpillOperator`) and the
+ * function and engine-name scans of an array master (`callsUnregisteredFunction`, `engineNamesIn`,
+ * asked by the caller through `scansFunctions`). Each walk is linear in the formula's length, so one charge per formula is what
+ * the budget's figures in `limits.ts` were measured against.
+ *
+ * @param {string} text The formula as the file stores it, without its `=`.
+ * @param {CollectContext} scope The pass context.
+ * @param {boolean} [scansFunctions] Whether the caller also runs the function or engine-name scan
+ * over the text.
+ * @returns {ReadFormula}
  */
-function readFormulaText(text: string, scope: CollectContext): string {
+function readFormulaText(text: string, scope: CollectContext, scansFunctions = false): ReadFormula {
   const { shift } = scope;
   const stripping = STORED_PREFIX_HINT.test(text);
+  const rewriting = shift !== null && BOOLEAN_HINT.test(text);
   const walking = shift !== null && (
     shift.rowDelta !== 0 || shift.colDelta !== 0 || text.includes('!') || scope.unresolvedNames.size > 0
+    || scansFunctions || SPILL_OPERATOR_HINT.test(text)
   );
 
-  if (stripping || walking) {
+  if (stripping || rewriting || walking) {
     chargeFormulaWalk(text.length, scope);
   }
 
-  return stripping ? stripFunctionPrefixes(text) : text;
+  const recorded = stripping ? stripFunctionPrefixes(text) : text;
+
+  return { recorded, live: rewriting ? rewriteBareBooleans(recorded) : recorded };
 }
 
 /**
@@ -551,11 +761,30 @@ function isSheetKnown(name: string, scope: CollectContext): boolean {
 }
 
 /**
- * An identifier in a formula: a name, a function name or a cell reference. A string literal and a
- * quoted sheet name (`'Sales Data'!A1`) are matched whole so their words are never read as names.
- * Linear: one greedy run per match, no backtracking.
+ * An identifier in a formula: a name, a function name or a cell reference. A string literal, a
+ * quoted sheet name (`'Sales Data'!A1`) and an error literal (`#N/A`, any case, also the newer ones
+ * such as `#FIELD!` and `#PYTHON!`) are matched whole so their words are never read as names (`#N/A`
+ * was the names `n` and `a`); `isLiteralToken` tells them apart. Linear: one greedy run per match,
+ * no backtracking.
  */
-const FORMULA_IDENTIFIER_REGEX = /"(?:[^"]|"")*"|'(?:[^']|'')*'|[\p{L}_\\][\p{L}\p{N}_.]*/gu;
+const FORMULA_IDENTIFIER_REGEX = new RegExp([
+  '"(?:[^"]|"")*"',
+  '\'(?:[^\']|\'\')*\'',
+  '#(?:NULL!|DIV\\/0!|VALUE!|REF!|NAME\\?|NUM!|N\\/A|SPILL!|CALC!|GETTING_DATA'
+    + '|FIELD!|BLOCKED!|UNKNOWN!|CONNECT!|BUSY!|EXTERNAL!|PYTHON!)',
+  '[\\p{L}_\\\\][\\p{L}\\p{N}_.]*',
+].join('|'), 'giu');
+
+/**
+ * Whether a `FORMULA_IDENTIFIER_REGEX` match is a literal that names nothing: a string, a quoted
+ * sheet name or an error.
+ *
+ * @param {string} token The match.
+ * @returns {boolean}
+ */
+function isLiteralToken(token: string): boolean {
+  return token[0] === '"' || token[0] === '\'' || token[0] === '#';
+}
 
 /**
  * Whether a formula uses a name the workbook defines and the Formulas engine does not. HyperFormula
@@ -565,19 +794,107 @@ const FORMULA_IDENTIFIER_REGEX = /"(?:[^"]|"")*"|'(?:[^']|'')*'|[\p{L}_\\][\p{L}
  * nothing.
  */
 function usesUnresolvedName(formula: string, scope: CollectContext): boolean {
-  const { unresolvedNames } = scope;
+  const { unresolvedNames, flaggedNames } = scope;
 
   if (unresolvedNames.size === 0) {
     return false;
   }
 
+  let uses = false;
+
+  for (const name of namesIn(formula)) {
+    if (flaggedNames.has(name)) {
+      // A flagged name is reported only once a formula uses it: the ExcelJS reader flags every name.
+      scope.dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+
+      return true;
+    }
+
+    uses ||= unresolvedNames.has(name);
+  }
+
+  return uses;
+}
+
+/**
+ * The identifiers of a formula that can be names, lower-cased: neither a string literal, a quoted
+ * sheet name, an error literal (`#N/A`), a function (followed by `(`), a sheet (followed by `!`) nor
+ * part of a reference (`isReferenceWord`: the `G` of `$G$2` or of `G:G`).
+ *
+ * @param {string} formula The formula, without its `=`.
+ * @returns {Generator<string>}
+ */
+function* namesIn(formula: string): Generator<string> {
   for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
     const [token] = match;
-    const next = formula[(match.index ?? 0) + token.length];
+    const start = match.index ?? 0;
+    const next = formula[start + token.length];
+    const isLiteral = isLiteralToken(token);
 
-    const isQuoted = token[0] === '"' || token[0] === '\'';
+    if (!isLiteral && next !== '(' && next !== '!' && !isReferenceWord(formula, start, start + token.length)) {
+      yield token.toLowerCase();
+    }
+  }
+}
 
-    if (!isQuoted && next !== '(' && next !== '!' && unresolvedNames.has(token.toLowerCase())) {
+/**
+ * The engine's names a formula reads (`CollectContext.engineNames`), lower-cased, each once. An
+ * engine and an import with no names cost no walk.
+ *
+ * @param {string} formula The formula, without its `=`.
+ * @param {CollectContext} scope The pass context.
+ * @returns {string[]}
+ */
+function engineNamesIn(formula: string, scope: CollectContext): string[] {
+  const { engineNames } = scope;
+
+  if (engineNames.size === 0) {
+    return [];
+  }
+
+  const used = new Set<string>();
+
+  for (const name of namesIn(formula)) {
+    if (engineNames.has(name)) {
+      used.add(name);
+    }
+  }
+
+  return [...used];
+}
+
+/**
+ * Matches the spelling of the functions Excel stores its spill operator and implicit intersection
+ * as: the only formulas `callsSpillOperator` walks.
+ */
+const SPILL_OPERATOR_HINT = /anchorarray|single/i;
+
+/**
+ * The functions Excel stores its spill operator (`B1#` is `_xlfn.ANCHORARRAY(B1)`) and implicit
+ * intersection (`@A1:A3` is `_xlfn.SINGLE(A1:A3)`) as, upper-cased.
+ */
+const SPILL_OPERATOR_FUNCTIONS: ReadonlySet<string> = new Set(['ANCHORARRAY', 'SINGLE']);
+
+/**
+ * Whether a formula calls `ANCHORARRAY` or `SINGLE`, Excel's stored form of the spill operator and
+ * of implicit intersection. HyperFormula has neither: such a formula shows `#NAME?`, or a wrong
+ * number with no error (`COUNTA(ANCHORARRAY(B1))` counts the error as one value), so it imports its
+ * cached value. `readFormulaText` has already charged the walk.
+ *
+ * @param {string} formula The formula, without its `=`.
+ * @returns {boolean}
+ */
+function callsSpillOperator(formula: string): boolean {
+  if (!SPILL_OPERATOR_HINT.test(formula)) {
+    return false;
+  }
+
+  for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
+    const [token] = match;
+    const isLiteral = isLiteralToken(token);
+
+    if (!isLiteral && formula[(match.index ?? 0) + token.length] === '('
+      && SPILL_OPERATOR_FUNCTIONS.has(token.toUpperCase())) {
       return true;
     }
   }
@@ -586,21 +903,688 @@ function usesUnresolvedName(formula: string, scope: CollectContext): boolean {
 }
 
 /**
- * The names a workbook defines that the Formulas engine does not, lower-cased.
+ * Whether a formula calls a function the Formulas engine does not register
+ * (`MapperContext.registersFunction`), asked upper-cased. HyperFormula shows `#NAME?` for such a
+ * formula and spills nothing, so an array master calling one must not empty the cells its `ref`
+ * covers. An engine that cannot answer is trusted. `readFormulaText` has already charged the walk.
+ *
+ * @param {string} formula The formula, without its `=`.
+ * @param {CollectContext} scope The pass context.
+ * @returns {boolean}
  */
-function unresolvedDefinedNames(workbook: WorkbookSnapshot, context: MapperContext): Set<string> {
-  const known = context.formulaNamedExpressions;
-  const names = new Set<string>();
+function callsUnregisteredFunction(formula: string, scope: CollectContext): boolean {
+  const registers = scope.context.registersFunction;
 
-  (workbook.definedNames ?? []).forEach((name) => {
+  if (registers === undefined) {
+    return false;
+  }
+
+  for (const match of formula.matchAll(FORMULA_IDENTIFIER_REGEX)) {
+    const [token] = match;
+    const isLiteral = isLiteralToken(token);
+
+    if (!isLiteral && formula[(match.index ?? 0) + token.length] === '(' && !registers(token.toUpperCase())) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * The names a workbook defines that the Formulas engine does not, lower-cased, and every name the
+ * reader flagged `unsupported` that no unflagged entry spells: the reader could not tell which
+ * definition the file means, so an engine name spelled like it proves nothing either.
+ */
+function unresolvedDefinedNames(
+  workbook: WorkbookSnapshot, context: MapperContext
+): { unresolved: Set<string>; flagged: Set<string> } {
+  const known = context.formulaNamedExpressions;
+  const definedNames = workbook.definedNames ?? [];
+  const valid = new Set(definedNames.filter(({ unsupported }) => !unsupported).map(({ name }) => name.toLowerCase()));
+  const unresolved = new Set<string>();
+  const flagged = new Set<string>();
+
+  definedNames.forEach(({ name }) => {
     const lowered = name.toLowerCase();
 
-    if (!known?.has(lowered)) {
-      names.add(lowered);
+    if (!valid.has(lowered)) {
+      flagged.add(lowered);
+      unresolved.add(lowered);
+    } else if (!known?.has(lowered)) {
+      unresolved.add(lowered);
     }
   });
 
-  return names;
+  return { unresolved, flagged };
+}
+
+/**
+ * Whether a defined name's definition, rebased, is one the import does not hand to the Formulas
+ * engine for its cost or its outcome: its ranges cover more than `MAX_DEFINED_NAME_CELLS`
+ * cells, or bring the import's names past `MAX_DEFINED_NAME_TOTAL_CELLS` (HyperFormula evaluates a
+ * definition once it is added), or it calls a function the engine does not register
+ * (`=UNIQUE(...)`: every formula over the name would show `#NAME?`).
+ *
+ * @param {string} formula The rebased definition, without its `=`.
+ * @param {number} cells The cells its ranges cover (`closedReferenceArea`, open spans sized by the engine sheet they are on).
+ * @param {number} spent The cells the names handed over so far cover.
+ * @param {CollectContext} scope The pass context.
+ * @returns {boolean}
+ */
+function isTooCostly(formula: string, cells: number, spent: number, scope: CollectContext): boolean {
+  return cells > MAX_DEFINED_NAME_CELLS || spent + cells > MAX_DEFINED_NAME_TOTAL_CELLS
+    || callsUnregisteredFunction(formula, scope);
+}
+
+/**
+ * Hands the workbook's defined names to the Formulas engine as workbook-scoped named expressions,
+ * and takes every name handed over out of `scope.unresolvedNames`, so the formulas using it import
+ * live. Runs only with live formulas on and `MapperContext.canAddNamedExpression` given.
+ *
+ * A name scoped to another sheet is ignored: the imported sheet's formulas never see it in Excel
+ * either. A name scoped to the imported sheet is handed over at workbook scope (the grid holds that
+ * one sheet), ahead of a workbook-scoped name spelled like it, which is what Excel resolves on that
+ * sheet. A workbook-scoped definition over such a name reads the workbook one in the file, but would
+ * read the sheet's one in the engine, so it is left out like an unresolved name. A name the engine already defines is left as the engine has it; when its definition is
+ * not this file's (`MapperContext.definesNamedExpression`), the name is added to
+ * `scope.unresolvedNames`, so the formulas over it import their cached values instead of reading the
+ * engine's old definition, and `definedNames:unsupported` is recorded.
+ *
+ * A definition is read like a cell formula: its stored prefixes stripped and the walk charged by
+ * `readFormulaText`, then moved into grid coordinates by `rebaseImportedFormula`, with a reference
+ * to the imported sheet written against the engine's name for the grid's sheet
+ * (`MapperContext.formulaSheetName`): HyperFormula reads an unqualified reference in a named
+ * expression as relative and refuses it. A definition that points into the dropped header band,
+ * names a sheet the engine does not hold, is refused by the engine (a relative reference such as
+ * `Data!A1`), or uses a name left out itself (followed through any chain of names) is left out, and
+ * `definedNames:unsupported` is recorded once; the formulas using it import their cached values.
+ * So is a definition past the import's caps, which bound what the engine would parse and evaluate
+ * (`MAX_DEFINED_NAME_LENGTH`, `MAX_DEFINED_NAME_CHARS`, `isTooCostly`), one calling a function
+ * the engine does not register, and one over the spill operator or implicit intersection
+ * (`callsSpillOperator`: `Sheet1!$B$1#` is stored as `_xlfn.ANCHORARRAY(Sheet1!$B$1)`), which the
+ * engine evaluates to `#NAME?` even when it cannot list its functions.
+ *
+ * @param {CollectContext} scope The pass context.
+ * @returns {Array<{ name: string, formula: string }>} The names to add, each formula without its `=`.
+ */
+function collectNamedExpressions(scope: CollectContext): NonNullable<ImportResult['namedExpressions']> {
+  const { shift, context, sheet, unresolvedNames } = scope;
+  const canAdd = context.canAddNamedExpression;
+
+  if (shift === null || canAdd === undefined) {
+    return [];
+  }
+
+  const own = sheet.name.toLowerCase();
+  const definitions = (scope.workbook.definedNames ?? [])
+    .filter(({ sheetName }) => sheetName === null || sheetName.toLowerCase() === own);
+  // Sheet-scoped first, so it wins over a workbook-scoped name spelled like it; within a scope a
+  // flagged entry comes last, so a scope that names no sheet never hides a valid name. Stable.
+  const rank = ({ sheetName, unsupported }: DefinedNameSnapshot) => (
+    (sheetName === null ? 2 : 0) + (unsupported ? 1 : 0)
+  );
+  const ordered = definitions.slice().sort((a, b) => rank(a) - rank(b));
+  // The names the imported sheet scopes that the workbook defines too. The sheet's one is handed over
+  // at workbook scope, so a workbook definition over such a name would read it, where the file's
+  // reads the workbook one: those definitions are left out.
+  const scopedNames = new Set(definitions.filter(({ sheetName }) => sheetName !== null)
+    .map(({ name }) => name.toLowerCase()));
+  const shadowed = new Set(definitions.filter(({ sheetName, name }) => (
+    sheetName === null && scopedNames.has(name.toLowerCase())
+  )).map(({ name }) => name.toLowerCase()));
+  const added = new Map<string, { name: string; formula: string }>();
+  const seen = new Set<string>();
+  let unsupported = false;
+  let definitionChars = 0;
+  let definitionCells = 0;
+  // A whole column or row in a definition is sized by the sheet it is on, as the engine holds it
+  // when the names are evaluated (before the imported data replaces the grid's sheet), and at least
+  // by the imported window on the grid's own sheet.
+  const windowExtent = {
+    rows: scope.window.lastRow - scope.window.firstRow + 1,
+    cols: scope.window.lastCol - scope.window.firstCol + 1,
+  };
+  const ownEngineSheet = (context.formulaSheetName ?? sheet.name).toLowerCase();
+  const extentCache = new Map<string, { rows: number; cols: number }>();
+  const extent = (qualifier: string | null) => {
+    const lowered = qualifier === null ? ownEngineSheet : qualifier.toLowerCase();
+    let sized = extentCache.get(lowered);
+
+    if (sized === undefined) {
+      const held = context.sheetExtent?.(lowered);
+
+      sized = lowered === ownEngineSheet || held === undefined
+        ? { rows: Math.max(windowExtent.rows, held?.rows ?? 0), cols: Math.max(windowExtent.cols, held?.cols ?? 0) }
+        : held;
+      extentCache.set(lowered, sized);
+    }
+
+    return sized;
+  };
+
+  ordered.forEach(({ name, formula, sheetName: definedFor, unsupported: flagged }) => {
+    const lowered = name.toLowerCase();
+    const defined = context.formulaNamedExpressions?.has(lowered) === true;
+
+    if (seen.has(lowered)) {
+      return;
+    }
+
+    seen.add(lowered);
+
+    // A flagged name is never registered and never counts as the engine's: the reader could not
+    // tell which definition is the file's (ExcelJS loses the scope), so the formulas over it import
+    // their cached values.
+    if (flagged) {
+      unresolvedNames.add(lowered);
+      scope.flaggedNames.add(lowered);
+
+      return;
+    }
+
+    if (defined && context.definesNamedExpression === undefined) {
+      return;
+    }
+
+    // Past a cap the definition is never read: the engine would parse it (twice, `canAdd`) and
+    // evaluate it once added, and those are what the caps bound. One over the per-definition cap is
+    // never parsed, so it spends none of the budget.
+    if (formula.length <= MAX_DEFINED_NAME_LENGTH) {
+      definitionChars += formula.length;
+    }
+
+    if (formula.length > MAX_DEFINED_NAME_LENGTH || definitionChars > MAX_DEFINED_NAME_CHARS) {
+      unresolvedNames.add(lowered);
+      unsupported = true;
+
+      return;
+    }
+
+    const rebased = rebaseImportedFormula(readFormulaText(formula, scope, true).live, shift.rowDelta, shift.colDelta, {
+      self: sheet.name,
+      selfAs: context.formulaSheetName,
+      isKnown: candidate => isSheetKnown(candidate, scope),
+    });
+
+    // A workbook definition over a name the sheet's one shadows in the engine reads another value.
+    if (definedFor === null && rebased.formula !== null && shadowed.size > 0
+      && [...namesIn(rebased.formula)].some(used => shadowed.has(used))) {
+      unresolvedNames.add(lowered);
+      unsupported = true;
+
+      return;
+    }
+
+    const cells = rebased.formula === null ? 0 : closedReferenceArea(rebased.formula, extent);
+    const expression = rebased.formula === null || rebased.unknownSheet || rebased.formula.trim() === ''
+      || isTooCostly(rebased.formula, cells, definitionCells, scope) || callsSpillOperator(rebased.formula)
+      ? null : `=${rebased.formula}`;
+
+    // The cells are charged only for a definition the engine evaluates: the comparison with its own
+    // definition does, and so does adding the name; a name `canAdd` refuses is only parsed.
+    if (defined) {
+      // The engine keeps its own definition. When it is not this file's, the formulas over the name
+      // would read the old one, so the name is treated as one the engine does not define.
+      if (expression !== null) {
+        definitionCells += cells;
+      }
+
+      if (expression === null || context.definesNamedExpression?.(name, expression) !== true) {
+        unresolvedNames.add(lowered);
+        unsupported = true;
+      }
+
+      return;
+    }
+
+    if (expression === null || !canAdd(name, expression)) {
+      unsupported = true;
+
+      return;
+    }
+
+    definitionCells += cells;
+    added.set(lowered, { name, formula: rebased.formula as string });
+  });
+
+  // A name over a name left out shows `#NAME?` like the left-out one. The uses are read once per
+  // definition (already charged above), and every name leaves `added` at most once.
+  const dependents = new Map<string, string[]>();
+  const leftOut: string[] = [];
+
+  added.forEach(({ formula }, lowered) => {
+    for (const used of namesIn(formula)) {
+      if (added.has(used)) {
+        const users = dependents.get(used);
+
+        if (users) {
+          users.push(lowered);
+        } else {
+          dependents.set(used, [lowered]);
+        }
+      } else if (unresolvedNames.has(used)) {
+        leftOut.push(lowered);
+      }
+    }
+  });
+
+  while (leftOut.length > 0) {
+    const lowered = leftOut.pop() as string;
+
+    if (added.delete(lowered)) {
+      unsupported = true;
+      leftOut.push(...(dependents.get(lowered) ?? []));
+    }
+  }
+
+  added.forEach((_, lowered) => unresolvedNames.delete(lowered));
+
+  if (unsupported) {
+    scope.dropped.record(DROPPED_FEATURES.definedNamesUnsupported);
+  }
+
+  return [...added.values()];
+}
+
+/**
+ * The window rectangle one live array master spills over, inclusive, in window coordinates.
+ */
+interface LiveArrayRect {
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+  /**
+   * The master's cached value, as `data` would hold it had the formula not gone live.
+   */
+  cached: unknown;
+  /**
+   * The master's formula as `ImportResult.formulas` records it (the file's text, prefixes stripped).
+   */
+  recorded: string;
+  /**
+   * Whether the file caches an error for the master (`t="e"`): Excel could not evaluate it either.
+   */
+  cachedIsError: boolean;
+  /**
+   * Whether the master reads another engine sheet, which the probe's scratch engine does not hold.
+   */
+  readsOtherSheet: boolean;
+  /**
+   * The engine's names the master reads (`CollectContext.engineNames`), lower-cased. The probe is
+   * asked which of them its scratch engine lacks.
+   */
+  names: string[];
+  /**
+   * The last row and column of the master's `ref` in window coordinates, not clipped to the window.
+   * Excel never resizes a CSE ref, so a CSE master the engine spills past them shows cells the file
+   * does not have. A dynamic array is resized by Excel on recalculation as the engine does, unless it
+   * evaluates to an error: Excel shows that in one cell, and HyperFormula fills the room it reserved.
+   */
+  refEnd: { row: number; col: number };
+  /**
+   * Whether the master is a dynamic array (`cm` in the file), not a legacy CSE one.
+   */
+  dynamic: boolean;
+}
+
+/**
+ * A cell `pushCellValue` imported empty because a live array covers it, with the cached value it
+ * held in the file and the rectangle that emptied it.
+ */
+interface EmptiedCell {
+  row: number;
+  col: number;
+  value: unknown;
+  rect: LiveArrayRect;
+}
+
+/**
+ * The live array rectangles of a pass, and a forward sweep over them that answers, for each cell in
+ * row-major order, whether a rectangle covers it.
+ */
+interface LiveArraySweep {
+  /**
+   * The rectangles still reaching the current row or below.
+   */
+  active: LiveArrayRect[];
+  /**
+   * The rectangles recorded on the current row, joined to `active` when the sweep moves on.
+   */
+  noted: LiveArrayRect[];
+  /**
+   * The rectangles that cover the current row, ordered by start column.
+   */
+  spans: LiveArrayRect[];
+  /**
+   * The first entry of `spans` the current row's column walk has not reached yet.
+   */
+  cursor: number;
+  /**
+   * The last column any span reached so far on the current row covers, or `-1`.
+   */
+  maxEndCol: number;
+  /**
+   * The span that reaches `maxEndCol`, or `null`.
+   */
+  maxEndRect: LiveArrayRect | null;
+  /**
+   * Every rectangle recorded in the pass, in the order its master was visited.
+   */
+  recorded: LiveArrayRect[];
+  /**
+   * The cells imported empty under a rectangle that held a cached value in the file, so
+   * `settleLiveArrays` can put it back where the engine does not spill.
+   */
+  emptied: EmptiedCell[];
+}
+
+/**
+ * Moves the live-array sweep to a new window row: drops the rectangles that ended above it, joins
+ * the ones recorded on the previous row and orders the row's spans by start column. Every rectangle
+ * looked at is charged against the formula budget, so the sweep is bounded by the same limit as the
+ * formula walks: W single-column arrays over N rows cost W x N, refused past
+ * `MAX_TRANSLATED_FORMULA_CHARS`.
+ *
+ * @param {number} row The window row the walk enters.
+ * @param {CollectContext} scope The pass context.
+ */
+function beginLiveArrayRow(row: number, scope: CollectContext): void {
+  const sweep = scope.liveArrays;
+
+  sweep.cursor = 0;
+  sweep.maxEndCol = -1;
+  sweep.maxEndRect = null;
+
+  if (sweep.active.length === 0 && sweep.noted.length === 0) {
+    sweep.spans = [];
+
+    return;
+  }
+
+  const candidates = sweep.active.concat(sweep.noted);
+
+  chargeFormulaWalk(candidates.length, scope);
+  sweep.noted = [];
+  sweep.active = candidates.filter(rect => rect.endRow >= row);
+  // Every rectangle starts on its master's row, which the walk has already passed, so all of the
+  // active ones cover this row.
+  sweep.spans = sweep.active.slice().sort((a, b) => a.startCol - b.startCol);
+}
+
+/**
+ * Records the rectangle a live array master spills over, so `pushCellValue` imports its cells empty.
+ *
+ * `row`/`col` are the master's window coordinates. Excel writes the master as the top-left corner of
+ * its `ref`, and the window is walked row by row, left to right, so every cell the array covers is
+ * visited AFTER its master: recording the rectangle when the master is visited is early enough. A
+ * `ref` that does not start at the master is not trusted to empty anything. The rectangle is clipped
+ * to the window and stored once, whatever its size; the rows it covers are charged one by one as the
+ * sweep crosses them (`beginLiveArrayRow`). The master's cached value and recorded text are kept with
+ * it, and the cached values of the cells it empties are kept as the walk reaches them, so
+ * `settleLiveArrays` can put them back where the engine does not spill.
+ *
+ * @param {string} ref The array's A1 range, in the file's 1-based sheet coordinates.
+ * @param {number} row The master's window row.
+ * @param {number} col The master's window column.
+ * @param {object} master The master's cached value, recorded text, what it reads outside the
+ * imported sheet, and whether the file flags it as a dynamic array.
+ * @param {CollectContext} scope The pass context.
+ */
+function recordLiveArray(
+  ref: string, row: number, col: number,
+  master: Pick<LiveArrayRect, 'cached' | 'recorded' | 'cachedIsError' | 'readsOtherSheet' | 'names'> & {
+    dynamic: boolean;
+  },
+  scope: CollectContext
+): void {
+  const range = parseRangeRef(ref);
+  const { window, liveArrays } = scope;
+
+  if (range === null || range.startRow - 1 - window.firstRow !== row || range.startCol - 1 - window.firstCol !== col) {
+    return;
+  }
+
+  const rect: LiveArrayRect = {
+    startRow: row,
+    startCol: col,
+    endRow: Math.min(range.endRow - 1, window.lastRow) - window.firstRow,
+    endCol: Math.min(range.endCol - 1, window.lastCol) - window.firstCol,
+    cached: master.cached,
+    recorded: master.recorded,
+    cachedIsError: master.cachedIsError,
+    readsOtherSheet: master.readsOtherSheet,
+    names: master.names,
+    refEnd: {
+      row: range.endRow - 1 - window.firstRow,
+      col: range.endCol - 1 - window.firstCol,
+    },
+    dynamic: master.dynamic,
+  };
+
+  chargeFormulaWalk(1, scope);
+  liveArrays.noted.push(rect);
+  liveArrays.recorded.push(rect);
+
+  // The rest of the master's own row lies right of `col`, so the rectangle covers every column the
+  // walk still visits on this row up to its end.
+  if (rect.endCol > liveArrays.maxEndCol) {
+    liveArrays.maxEndCol = rect.endCol;
+    liveArrays.maxEndRect = rect;
+  }
+}
+
+/**
+ * The live array recorded by `recordLiveArray` that spills over this cell of the current row, or
+ * `null`. The columns of a row are asked in ascending order, so the cursor only moves forward over
+ * the row's spans, and each cell costs O(1) amortized: the cell is covered when the furthest end of
+ * every span started at or before it reaches it, and the span that reaches furthest is the one
+ * answered (of two overlapping arrays, the engine places one at most).
+ *
+ * @param {number} col The cell's window column.
+ * @param {CollectContext} scope The pass context.
+ * @returns {LiveArrayRect|null}
+ */
+function liveArrayCovering(col: number, scope: CollectContext): LiveArrayRect | null {
+  const sweep = scope.liveArrays;
+
+  while (sweep.cursor < sweep.spans.length && sweep.spans[sweep.cursor].startCol <= col) {
+    const span = sweep.spans[sweep.cursor];
+
+    if (span.endCol > sweep.maxEndCol) {
+      sweep.maxEndCol = span.endCol;
+      sweep.maxEndRect = span;
+    }
+
+    sweep.cursor += 1;
+  }
+
+  return col <= sweep.maxEndCol ? sweep.maxEndRect : null;
+}
+
+/**
+ * How `settleLiveArrays` treats a master the probe evaluated: `'cached'` (it and its emptied cells
+ * import their cached values), `'written'` (left as written) or `'value'` (its emptied cells are
+ * judged one by one).
+ *
+ * A legacy CSE master the engine spills past its `ref`, or a dynamic one whose error it spills past
+ * the `ref` (`spillsPastRef`), settles like `#SPILL!`: Excel shows only the `ref`, so the extra cells
+ * would show values the file does not have, and a re-export would write the larger array. Not for a
+ * master that reads outside the probe, whose spill there is not the one the engine will place.
+ *
+ * `#SPILL!` settles only when the file caches a value that is not an error. Excel 365 saves a
+ * blocked spill as a cached `#VALUE!` (the real `#SPILL!` is a rich value): put back, the cell would
+ * hold that frozen error and lose its formula. Live, it shows `#SPILL!` as Excel does, and keeps the
+ * formula for the grid and a re-export. HyperFormula 3.3 spills it once the formula is entered
+ * again, not when the blocking cell is cleared.
+ *
+ * A master that reads outside the probe (`readsOutside`) settles only on `#SPILL!`: HyperFormula
+ * turns a sheet it does not hold into a `#REF!` inside the formula, which `IFERROR` or `ISNUMBER`
+ * turn into any other error or value. Any other error settles only when the file caches a value
+ * that is not an error, so the cached value has something to put back.
+ *
+ * @param {string|null} error The master's error type in the probe, `null` for a value.
+ * @param {LiveArrayRect} rect The master's rectangle.
+ * @param {boolean} readsOutside Whether the master reads a sheet or a name the probe lacks.
+ * @param {boolean} spillsPastRef Whether the engine spills a CSE master, or a dynamic master's
+ *   error, past its `ref`.
+ * @returns {string}
+ */
+function settledState(
+  error: string | null, rect: LiveArrayRect, readsOutside: boolean, spillsPastRef: boolean
+): 'cached' | 'written' | 'value' {
+  if (error === 'SPILL' && !rect.cachedIsError) {
+    return 'cached';
+  }
+
+  if (readsOutside) {
+    return 'written';
+  }
+
+  if (spillsPastRef) {
+    return 'cached';
+  }
+
+  if (error === null) {
+    return 'value';
+  }
+
+  const hasCachedValue = rect.cached !== null && rect.cached !== undefined && !rect.cachedIsError;
+
+  return error !== 'REF' && error !== 'NAME' && hasCachedValue ? 'cached' : 'written';
+}
+
+/**
+ * Whether a live array master reads what the probe's scratch engine lacks: another engine sheet,
+ * or an engine name the scratch engine does not define (one scoped to the grid's sheet).
+ *
+ * @param {LiveArrayRect} rect The master's rectangle.
+ * @param {LiveArrayProbe} probe The probe.
+ * @returns {boolean}
+ */
+function readsOutsideProbe(rect: LiveArrayRect, probe: LiveArrayProbe): boolean {
+  return rect.readsOtherSheet || rect.names.some(name => probe.definesName?.(name) !== true);
+}
+
+/**
+ * Whether the engine spills a legacy CSE master past its `ref` (`{=A1:A3*2}` with `ref="C1"`, which
+ * Excel shows as one cell), or a dynamic master that evaluates to an error: a `FILTER` that matches
+ * nothing is `#CALC!` in one cell in Excel, while HyperFormula fills the rows it reserved for the input
+ * with `#N/A`. A dynamic master with a value is never asked: Excel resizes it as the engine does.
+ * Neither is one that is `#REF!` or `#NAME?`, which `settledState` leaves as written.
+ * Arrays spill right and down from the master, so the spill reaches past
+ * the `ref` exactly when the engine spills a value into the empty cell right below the `ref`'s last
+ * row, or right of its last column. A cell holding data is not asked: an array the engine placed
+ * there would have shown `#SPILL!` instead, and a formula there is its own master. The empty room
+ * HyperFormula reserves past a `FILTER` result does not count (`spillsValueInto`): the ExcelJS reader
+ * reads every array as CSE, and a `FILTER` Excel saved over its result would otherwise settle.
+ *
+ * @param {LiveArrayRect} rect The master's rectangle.
+ * @param {LiveArrayProbe} probe The probe.
+ * @param {unknown[][]} data The pass's data, before any value is put back.
+ * @param {string|null} error The master's error type in the probe, `null` for a value.
+ * @returns {boolean}
+ */
+function spillsPastRef(rect: LiveArrayRect, probe: LiveArrayProbe, data: unknown[][], error: string | null): boolean {
+  const { refEnd } = rect;
+
+  if (rect.dynamic && (error === null || error === 'REF' || error === 'NAME')) {
+    return false;
+  }
+
+  const spillsInto = (row: number, col: number) => (data[row]?.[col] ?? null) === null
+    && (probe.spillsValueInto?.(row, col) ?? probe.isPartOfArray(row, col));
+
+  return spillsInto(refEnd.row + 1, rect.startCol) || spillsInto(rect.startRow, refEnd.col + 1);
+}
+
+/**
+ * Asks a scratch copy of the engine (`MapperContext.probeLiveArrays`) where the live array masters
+ * recorded in the pass really spill, and puts the file's cached values back where they do not.
+ * HyperFormula decides a spill's size, not the file's `ref`: it sizes `FILTER` by its input, and a
+ * legacy array with a one-value formula (`{=A1*2}` over `B1:B3`) is one cell to it. Some arrays it
+ * cannot evaluate at all: a lone range (`=A1:A3`), a range name and `INDEX(A1:A3,0)` are `#VALUE!`.
+ *
+ * - A master that evaluates to `#SPILL!`, a legacy CSE master the engine spills past its `ref` or a
+ *   dynamic one whose error it spills past the `ref` (`spillsPastRef`), or a master that evaluates to another error while the file caches a value (not an
+ *   error) for it, imports its cached value, and so does every cell it emptied; its formula moves to
+ *   `ImportResult.formulas`, and `formula:arraySpill` is recorded (with `formula:noCachedValue` when
+ *   the file caches no value for a `#SPILL!` master).
+ * - A master that evaluates to `#REF!` or `#NAME?`, to an error the file caches too or caches no
+ *   value for, or that reads another engine sheet or an engine name the probe lacks (and is not
+ *   `#SPILL!`), is left as written: its emptied cells are not judged (`settledState`).
+ * - Otherwise, an emptied cell that no array the engine placed covers gets its cached value back.
+ *
+ * The probe runs once, over the data before any value is put back. A probe that throws, built or
+ * asked, changes nothing, and the scratch engine is destroyed whatever happens.
+ *
+ * @param {CellPass} pass The pass, its `data` still holding the emptied cells.
+ * @param {CollectContext} scope The pass context.
+ */
+function settleLiveArrays(pass: CellPass, scope: CollectContext): void {
+  const { recorded, emptied } = scope.liveArrays;
+  let probe: LiveArrayProbe | null;
+
+  try {
+    probe = scope.context.probeLiveArrays?.(pass.data, pass.namedExpressions) ?? null;
+  } catch {
+    // A probe that cannot be built answers nothing: every array's `ref` is trusted as written.
+    return;
+  }
+
+  if (probe === null) {
+    return;
+  }
+
+  const states = new Map<LiveArrayRect, 'cached' | 'written' | 'value'>();
+  const restored: EmptiedCell[] = [];
+
+  try {
+    recorded.forEach((rect) => {
+      const error = probe.masterState(rect.startRow, rect.startCol);
+
+      states.set(rect, settledState(
+        error, rect, readsOutsideProbe(rect, probe), spillsPastRef(rect, probe, pass.data, error)
+      ));
+    });
+    emptied.forEach((cell) => {
+      const state = states.get(cell.rect);
+
+      if (state === 'cached' || (state === 'value' && !probe.isPartOfArray(cell.row, cell.col))) {
+        restored.push(cell);
+      }
+    });
+  } catch {
+    // A probe that throws answers nothing: every array's `ref` is trusted as written.
+    return;
+  } finally {
+    probe.destroy();
+  }
+
+  restored.forEach(({ row, col, value }) => {
+    pass.data[row][col] = value;
+  });
+
+  let spilled = false;
+
+  states.forEach((state, rect) => {
+    if (state === 'cached') {
+      pass.data[rect.startRow][rect.startCol] = rect.cached;
+      pass.formulas.push({ row: rect.startRow, col: rect.startCol, formula: rect.recorded });
+      spilled = true;
+
+      if (rect.cached === null || rect.cached === undefined) {
+        // The file carries no cached value (openpyxl writes none): the master imports empty.
+        scope.dropped.record(DROPPED_FEATURES.formulaNoCachedValue);
+      }
+    }
+  });
+
+  if (spilled) {
+    pass.formulas.sort((a, b) => a.row - b.row || a.col - b.col);
+    scope.dropped.record(DROPPED_FEATURES.formulaArraySpill);
+  }
 }
 
 /**
@@ -620,26 +1604,80 @@ function pushCellValue(
   row: number, col: number, scope: CollectContext
 ): void {
   const { shift, dropped } = scope;
-  const formula = cell.formula ? readFormulaText(cell.formula.text, scope) : null;
-  const rebased = formula !== null && shift !== null
-    ? rebaseImportedFormula(formula, shift.rowDelta, shift.colDelta, {
+  // Without `xlsx:formulas` no formula is read at all: the cell imports its cached value, nothing
+  // reaches `result.formulas`, and the `license:xlsx:formulas` entry names the loss.
+  const array = cell.formula?.array;
+  // An array master is also scanned for its functions and the engine's names; the one charge covers
+  // those walks.
+  const read = cell.formula && scope.context.entitlement.formulas
+    ? readFormulaText(cell.formula.text, scope, array !== undefined
+      && (scope.context.registersFunction !== undefined || scope.engineNames.size > 0))
+    : null;
+  const formula = read === null ? null : read.recorded;
+  // Asked for every qualifier other than the imported sheet's own.
+  let readsOtherSheet = false;
+  const rebased = read !== null && shift !== null
+    ? rebaseImportedFormula(read.live, shift.rowDelta, shift.colDelta, {
       self: scope.sheet.name,
-      isKnown: name => isSheetKnown(name, scope),
+      isKnown: (name) => {
+        readsOtherSheet = true;
+
+        return isSheetKnown(name, scope);
+      },
     })
     : null;
   const otherSheet = rebased !== null && rebased.unknownSheet;
-  const unknownName = rebased !== null && !otherSheet && usesUnresolvedName(formula ?? '', scope);
-  const live = rebased !== null && !otherSheet && !unknownName ? rebased.formula : null;
+  const unknownName = rebased !== null && !otherSheet && usesUnresolvedName(read?.live ?? '', scope);
+  const spillOperator = rebased !== null && !otherSheet && !unknownName && callsSpillOperator(read?.live ?? '');
+  const live = rebased !== null && !otherSheet && !unknownName && !spillOperator ? rebased.formula : null;
 
   if (live !== null) {
-    pass.data[pass.data.length - 1].push(`=${live}`);
+    // A legacy CSE array (`{=A1:A2*2}`) is an ordinary formula to HyperFormula unless it is
+    // wrapped; a dynamic array spills on its own, unless the engine has no array arithmetic.
+    // A master the file already wraps in `ARRAYFORMULA(...)` is not wrapped twice.
+    const wrap = array !== undefined && (!array.dynamic || scope.context.arrayArithmetic === false)
+      && unwrapArrayFormula(live) === null;
+
+    pass.data[pass.data.length - 1].push(wrap ? `=ARRAYFORMULA(${live})` : `=${live}`);
+
+    // A plain formula that is one whole call to an array function (`=SEQUENCE(3)` with no `t="array"`,
+    // the export's own `formula:arrayExcluded` fallback) is intersected by Excel to its own cell, as a
+    // one-cell legacy array is: the probe settles it on its cached value when the engine would spill it.
+    const ownRef = array === undefined && isWholeArrayFunctionCall(live)
+      ? `${colIndexToLetter(col + scope.window.firstCol + 1)}${row + scope.window.firstRow + 1}`
+      : null;
+    const ref = array?.ref ?? ownRef;
+
+    // A master calling a function the engine lacks shows `#NAME?` and spills nothing: its covered
+    // cells keep the values the file caches.
+    if (ref !== null && !callsUnregisteredFunction(live, scope)) {
+      recordLiveArray(ref, row, col, {
+        cached: cachedValueOf(cell, inferred, scope.context),
+        recorded: formula as string,
+        cachedIsError: cell.formula?.resultIsError === true,
+        readsOtherSheet,
+        names: engineNamesIn(live, scope),
+        dynamic: array?.dynamic === true,
+      }, scope);
+    }
 
     return;
   }
 
-  pass.data[pass.data.length - 1].push(
-    escapeTextFormula(toGridValue(cell, inferred), scope.context.formulasEnabled)
-  );
+  const cached = cachedValueOf(cell, inferred, scope.context);
+  const covering = cell.formula === null ? liveArrayCovering(col, scope) : null;
+
+  if (covering !== null) {
+    pass.data[pass.data.length - 1].push(null);
+
+    if (cached !== null) {
+      scope.liveArrays.emptied.push({ row, col, value: cached, rect: covering });
+    }
+
+    return;
+  }
+
+  pass.data[pass.data.length - 1].push(cached);
 
   if (formula !== null) {
     pass.formulas.push({ row, col, formula });
@@ -652,6 +1690,8 @@ function pushCellValue(
       dropped.record(DROPPED_FEATURES.formulaOtherSheet);
     } else if (unknownName) {
       dropped.record(DROPPED_FEATURES.formulaDefinedName);
+    } else if (spillOperator) {
+      dropped.record(DROPPED_FEATURES.formulaSpillReference);
     } else if (shift) {
       dropped.record(DROPPED_FEATURES.formulaOutOfRange);
     }
@@ -822,6 +1862,11 @@ interface CollectContext {
    */
   unresolvedNames: Set<string>;
   /**
+   * The names of `unresolvedNames` the reader flagged `unsupported`, lower-cased. A formula over one
+   * records `definedNames:unsupported`; an unused one records nothing.
+   */
+  flaggedNames: Set<string>;
+  /**
    * The inferred type and its meta object per distinct number format and value kind, so a sheet
    * with a handful of formats parses each once rather than once per cell, and every cell of a
    * homogeneous column shares one meta object that `columnMetaAgrees` settles by reference.
@@ -840,6 +1885,23 @@ interface CollectContext {
    * Every sheet name of the workbook, lower-cased.
    */
   workbookSheetNames: ReadonlySet<string>;
+  /**
+   * The window, in sheet coordinates, that a live array's `ref` is converted into and clipped to.
+   */
+  window: SheetWindow;
+  /**
+   * The rectangles LIVE array formulas spill over, and the sweep that looks a cell up in them.
+   * HyperFormula fills those cells itself, so they import empty: a cached value left in one makes the
+   * spill collide with it (`#SPILL!`).
+   */
+  liveArrays: LiveArraySweep;
+  /**
+   * The names a live array master can read from the engine, lower-cased: the ones the engine defines
+   * (`MapperContext.formulaNamedExpressions`) and the ones the import hands over. A master reading
+   * one the probe's scratch engine lacks is not judged by the probe (`LiveArrayRect.readsOutside`).
+   * Filled once the names are collected.
+   */
+  engineNames: Set<string>;
 }
 
 /**
@@ -916,6 +1978,14 @@ function recordReadOnly(readOnly: Map<number, Array<[number, number]>>, row: num
 }
 
 /**
+ * Whether the sheet's protection makes its locked cells read-only: the sheet is protected and the
+ * license unlocks `xlsx:protection`.
+ */
+function isProtected(sheet: SheetSnapshot, context: MapperContext): boolean {
+  return context.entitlement.protection && sheet.protection?.enabled === true;
+}
+
+/**
  * Collects one cell into the pass, in the window's own 0-based coordinates.
  */
 function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: number, scope: CollectContext): void {
@@ -932,17 +2002,23 @@ function collectCell(pass: CellPass, cell: CellSnapshot, row: number, col: numbe
     pass.dataCells += 1;
   }
 
+  pass.sawFormula = pass.sawFormula || cell.formula !== null;
+  pass.sawComment = pass.sawComment || cell.comment !== null;
+  pass.sawValidation = pass.sawValidation || cell.validation !== null;
+
   pushCellValue(pass, cell, inferred, row, col, scope);
 
   if (cell.comment !== null) {
-    if (context.commentsEnabled) {
-      pass.comments.push({ row, col, value: cell.comment });
-    } else {
+    // Without the Comments plugin the comment is lost whatever the license says, so the option entry
+    // names it; with the plugin, a missing `xlsx:comments` is named by its license entry instead.
+    if (!context.commentsEnabled) {
       pass.droppedComments = true;
+    } else if (context.entitlement.comments) {
+      pass.comments.push({ row, col, value: cell.comment });
     }
   }
 
-  const readOnly = sheet.protection?.enabled === true && cell.locked !== false;
+  const readOnly = isProtected(sheet, context) && cell.locked !== false;
 
   if (readOnly) {
     recordReadOnly(pass.readOnly, row, col);
@@ -968,8 +2044,12 @@ function collectCells(
     dataCells: 0,
     formulas: [],
     comments: [],
+    namedExpressions: [],
     readOnly: new Map(),
     sawStyle: false,
+    sawComment: false,
+    sawValidation: false,
+    sawFormula: false,
     classNames: new Map(),
     chargedClassRuns: 0,
     styles: new Map(),
@@ -977,6 +2057,9 @@ function collectCells(
     droppedBorders: false,
     droppedComments: false,
   };
+  const names = options.importFormulas && context.formulasEnabled
+    ? unresolvedDefinedNames(workbook, context)
+    : { unresolved: new Set<string>(), flagged: new Set<string>() };
   const scope: CollectContext = {
     sheet,
     workbook,
@@ -987,18 +2070,29 @@ function collectCells(
       : null,
     dropped,
     listMetaByFormula: new Map(),
-    unresolvedNames: options.importFormulas && context.formulasEnabled
-      ? unresolvedDefinedNames(workbook, context)
-      : new Set(),
+    unresolvedNames: names.unresolved,
+    flaggedNames: names.flagged,
     inferredByFormat: new Map(),
     // The reader's shared-formula translation already spent part of the same budget.
     walkedFormulaChars: workbook.translatedFormulaChars ?? 0,
     ownSheetName: context.formulaSheetName?.toLowerCase() ?? null,
     workbookSheetNames: new Set(workbook.sheets.map(candidate => candidate.name.toLowerCase())),
+    window,
+    liveArrays: {
+      active: [], noted: [], spans: [], cursor: 0, maxEndCol: -1, maxEndRect: null, recorded: [], emptied: [],
+    },
+    engineNames: new Set(),
   };
+
+  pass.namedExpressions = collectNamedExpressions(scope);
+  scope.engineNames = new Set([
+    ...context.formulaNamedExpressions ?? [],
+    ...pass.namedExpressions.map(({ name }) => name.toLowerCase()),
+  ]);
 
   for (let row = window.firstRow; row <= window.lastRow; row++) {
     pass.data.push([]);
+    beginLiveArrayRow(row - window.firstRow, scope);
 
     for (let col = window.firstCol; col <= window.lastCol; col++) {
       const cell = sheet.rows[row]?.[col] ?? null;
@@ -1008,13 +2102,17 @@ function collectCells(
 
         // OOXML treats a cell with no explicit `<protection>` as locked, and an empty cell has
         // none, so under sheet protection a blank imports read-only like its filled neighbours.
-        if (sheet.protection?.enabled === true) {
+        if (isProtected(sheet, context)) {
           recordReadOnly(pass.readOnly, row - window.firstRow, col - window.firstCol);
         }
       } else {
         collectCell(pass, cell, row - window.firstRow, col - window.firstCol, scope);
       }
     }
+  }
+
+  if (scope.liveArrays.recorded.length > 0) {
+    settleLiveArrays(pass, scope);
   }
 
   return pass;
@@ -1528,9 +2626,13 @@ function headerLabelAt(sheet: SheetSnapshot, row: number, col: number): string {
  * imported rectangle.
  *
  * Returns `undefined` for a single-row band, which keeps `colHeaders` the answer for the common case.
+ *
+ * Without `xlsx:layout` (`readsMerges` is `false`) the band's merges are not read, the way the export
+ * writes no nested-header merge without it: every header cell becomes its own label with no colspan,
+ * and a blank cell stays `''`.
  */
 function mapNestedHeaders(
-  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions
+  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions, readsMerges: boolean
 ): ImportedNestedHeader[][] | undefined {
   if (options.colHeaders !== 'firstRow' || options.headerRows < 2) {
     return undefined;
@@ -1538,7 +2640,9 @@ function mapNestedHeaders(
 
   const bandEnd = window.firstRow - 1;
   const bandStart = bandEnd - options.headerRows + 1;
-  const coverage = buildHeaderCoverage(sheet, bandStart, bandEnd, window);
+  const coverage = readsMerges
+    ? buildHeaderCoverage(sheet, bandStart, bandEnd, window)
+    : new Map<string, MergeSnapshot>();
   const layers: ImportedNestedHeader[][] = [];
 
   for (let row = bandStart; row <= bandEnd; row++) {
@@ -1562,6 +2666,78 @@ function mapNestedHeaders(
 }
 
 /**
+ * Whether the header band holds a merge `mapNestedHeaders` would turn into a group: a band of two or
+ * more rows under `colHeaders: 'firstRow'`, with a merge still wider than one column once clamped to
+ * the window. Bounded like `mapNestedHeaders`, by the band's merges.
+ */
+function hasHeaderBandGroup(sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions): boolean {
+  if (options.colHeaders !== 'firstRow' || options.headerRows < 2) {
+    return false;
+  }
+
+  const bandEnd = window.firstRow - 1;
+  const bandStart = bandEnd - options.headerRows + 1;
+  const coverage = buildHeaderCoverage(sheet, bandStart, bandEnd, window);
+
+  for (const merge of coverage.values()) {
+    if (Math.min(merge.col + merge.colspan - 1, window.lastCol) > Math.max(merge.col, window.firstCol)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Whether the sheet carries any layout the `xlsx:layout` token gates: a merge, a hidden row or
+ * column, a frozen pane, an explicit column width or row height, or a right-to-left direction.
+ */
+function hasLayout(sheet: SheetSnapshot): boolean {
+  return sheet.rtl
+    || sheet.merges.length > 0
+    || sheet.hiddenRows.length > 0
+    || sheet.hiddenCols.length > 0
+    || (sheet.freeze !== null && (sheet.freeze.rows > 0 || sheet.freeze.cols > 0))
+    || sheet.colWidths.some(width => width !== null && width !== undefined)
+    || sheet.rowHeights.some(height => height !== null && height !== undefined);
+}
+
+/**
+ * Records a `license:<token>` entry for each token the license leaves out, but only for a feature the
+ * file carried AND the caller asked the import to bring over, so a plain workbook, or a feature the
+ * caller's own options left out, reports nothing. `requestedOptions` are the caller's values, before
+ * a missing token forced any of them off. Recorded in the order of `entitlement.missing`, which is the
+ * order `XLSX_CAPABILITY_IDS` declares.
+ */
+function recordMissingLicenses(
+  sheet: SheetSnapshot, window: SheetWindow, options: ResolvedImportOptions,
+  requestedOptions: ResolvedImportOptions, pass: CellPass, context: MapperContext, dropped: DroppedFeatures
+): void {
+  const { entitlement } = context;
+  const carried: Record<string, () => boolean> = {
+    'xlsx:formulas': () => requestedOptions.importFormulas && pass.sawFormula,
+    // Header groups follow the license, not `importLayout`, so a group the license dropped counts
+    // whatever the caller's option says.
+    'xlsx:layout': () => (requestedOptions.importLayout && hasLayout(sheet))
+      || hasHeaderBandGroup(sheet, window, options),
+    // Without the Comments plugin the comments are reported as `comments`, as for any key. A note in
+    // the header band is lost on every key (`comment:header`), so it never counts toward the license.
+    'xlsx:comments': () => context.commentsEnabled && pass.sawComment,
+    'xlsx:styles': () => requestedOptions.importStyles && pass.sawStyle,
+    'xlsx:conditional_formatting': () => sheet.conditionalFormatting.length > 0,
+    // A list validation becomes a dropdown only through type inference.
+    'xlsx:data_validation': () => requestedOptions.inferCellTypes && pass.sawValidation,
+    'xlsx:protection': () => sheet.protection?.enabled === true,
+  };
+
+  entitlement.missing.forEach((id) => {
+    if (Object.prototype.hasOwnProperty.call(carried, id) && carried[id]()) {
+      dropped.recordLicense(id);
+    }
+  });
+}
+
+/**
  * Removes every key whose value is `undefined`, so applying the result never overrides a setting
  * the file said nothing about.
  */
@@ -1581,8 +2757,14 @@ function stripUndefined<T extends object>(result: T): T {
 export function mapWorkbook(
   workbook: WorkbookSnapshot, requestedOptions: ResolvedImportOptions, context: MapperContext, dropped: DroppedFeatures
 ): MappedResult {
+  const { entitlement } = context;
   const sheet = selectSheet(workbook, requestedOptions.sheet, dropped);
-  const options = clampToSheet(sheet, requestedOptions);
+  const options = clampToSheet(sheet, {
+    ...requestedOptions,
+    importFormulas: requestedOptions.importFormulas && entitlement.formulas,
+    importLayout: requestedOptions.importLayout && entitlement.layout,
+    importStyles: requestedOptions.importStyles && entitlement.styles,
+  });
   const window = computeWindow(sheet, options);
   const colCount = Math.max(window.lastCol - window.firstCol + 1, 0);
   const pass = collectCells(sheet, workbook, window, options, context, dropped);
@@ -1591,7 +2773,9 @@ export function mapWorkbook(
     if (pass.droppedBorders) {
       dropped.record(DROPPED_FEATURES.cellStylesBorders);
     }
-  } else if (pass.sawStyle) {
+  } else if (pass.sawStyle && !requestedOptions.importStyles) {
+    // The caller left styles out, whatever the license unlocks. When the caller asked for them and the
+    // license took them, the `license:xlsx:styles` entry names the loss instead.
     dropped.record(DROPPED_FEATURES.cellStyles);
   }
 
@@ -1599,20 +2783,28 @@ export function mapWorkbook(
     dropped.record(DROPPED_FEATURES.comments);
   }
 
+  // A header-band note is lost on every key, whatever the license or the Comments plugin.
   if (hasHeaderBandComment(sheet, window, options)) {
     dropped.record(DROPPED_FEATURES.commentHeader);
   }
 
+  const conditionalFormatting = entitlement.conditionalFormatting
+    ? mapConditionalFormatting(sheet, window, dropped)
+    : undefined;
+
+  recordMissingLicenses(sheet, window, options, requestedOptions, pass, context, dropped);
+
   const result: MappedResult = {
     data: pass.data,
     colHeaders: mapHeaders(sheet, window, options),
-    nestedHeaders: mapNestedHeaders(sheet, window, options),
+    nestedHeaders: mapNestedHeaders(sheet, window, options, entitlement.layout),
     rowHeaders: options.rowHeaders ? true : undefined,
     ...placeMeta(pass, pass.data.length, colCount, options.inferCellTypes),
     ...(options.importLayout ? mapLayout(sheet, window) : {}),
     formulas: pass.formulas.length > 0 ? pass.formulas : undefined,
     comments: pass.comments.length > 0 ? pass.comments : undefined,
-    conditionalFormatting: mapConditionalFormatting(sheet, window, dropped),
+    namedExpressions: pass.namedExpressions.length > 0 ? pass.namedExpressions : undefined,
+    conditionalFormatting,
     styles: pass.styles.size > 0 ? Object.fromEntries(pass.styles) : undefined,
     customBorders: pass.borders.length > 0 ? pass.borders : undefined,
     sheetNames: workbook.sheets.map(candidate => candidate.name),

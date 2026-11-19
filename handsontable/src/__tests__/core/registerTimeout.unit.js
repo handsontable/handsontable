@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable/base';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * Builds a grid.
@@ -9,7 +10,7 @@ function buildGrid() {
   return new Handsontable(document.createElement('div'), {
     startRows: 2,
     startCols: 2,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 }
 

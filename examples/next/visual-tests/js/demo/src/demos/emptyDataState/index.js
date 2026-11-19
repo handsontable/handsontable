@@ -1,6 +1,7 @@
 import Handsontable from "handsontable";
 import { getDirectionFromURL, getThemeNameFromURL, getFromURL } from "../../utils";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
+import { TEST_LICENSE_KEY } from "../../test-license-key";
 
 export function init() {
   registerLanguageDictionary(arAR);
@@ -56,7 +57,7 @@ export function init() {
     navigableHeaders: true,
     emptyDataState: true,
     ...settings,
-    licenseKey: "non-commercial-and-evaluation",
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);

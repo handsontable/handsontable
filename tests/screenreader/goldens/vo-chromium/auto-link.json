@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "auto-link",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-06T12:16:39.472Z"
+  },
+  "steps": {
+    "arrow-up-plain-url": "",
+    "arrow-left-link": "a https example com one link column 1 row https example com one https example com optout go https example com marked user anchor https example com memo hf label https example com whole google com",
+    "arrow-down-inline-link": "a visit https example com two link for details column 1 row visit https example com two for details b2 c2 d2 e2 https example com raw see https example com inline off www example org docs",
+    "arrow-down-mailto-link": "a someone example com link column 1 row someone example com b3 c3 d3 e3 mailto hf example com https example com padded ana garcia example com",
+    "select-formula-link": "f hf label link column 6 row https example com one https example com optout go https example com marked user anchor https example com memo hf label https example com whole google com",
+    "select-local-link": "a http localhost 8123 tests fixtures demo grid html link column 1 row http localhost 8123 tests fixtures demo grid html b7 c7 d7 e7 f7 g7 visit handsontable com today",
+    "open-link": "handsontable e2e fixture web content"
+  }
+}

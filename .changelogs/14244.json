@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where a new `data` array passed to `HotTable` in the Vue 3 wrapper did not reach the grid. An array built in the template (for example `rows.map(...)`) now reloads the grid on every render of the parent component, as in the React and Angular wrappers.",
+  "type": "fixed",
+  "issueOrPR": 14244,
+  "breaking": false,
+  "framework": "vue"
+}

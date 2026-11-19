@@ -44,6 +44,7 @@
     window.htStrict = strictParam;
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -88,7 +89,7 @@
       ],
       colHeaders: ['text', 'numeric', 'date', 'untyped'],
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     };
 
     if (window.htEmptyValue === 'null') {

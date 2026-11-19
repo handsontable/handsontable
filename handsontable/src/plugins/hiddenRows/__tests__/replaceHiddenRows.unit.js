@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { HiddenRows } from '..';
 import { TrimRows } from '../../trimRows';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('HiddenRows#_replaceHiddenRows', () => {
   let container;
@@ -19,7 +20,7 @@ describe('HiddenRows#_replaceHiddenRows', () => {
       data: Array.from({ length: 6 }, (_, row) => [`${row}`]),
       hiddenRows: true,
       trimRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 

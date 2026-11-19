@@ -1142,7 +1142,7 @@ If you only target modern browsers and runtimes, no action is needed.
 
 ## 7. Built-in HyperFormula (deprecation notice)
 
-The **Formulas** plugin uses [HyperFormula](https://hyperformula.handsontable.com/) as its calculation engine. Currently, HyperFormula is bundled with Handsontable. In **version 18.0**, it will be removed from `package.json`.
+The **Formulas** plugin uses [HyperFormula](https://handsontable.com/hyperformula/) as its calculation engine. Currently, HyperFormula is bundled with Handsontable. In **version 18.0**, it will be removed from `package.json`.
 
 ### What to expect
 

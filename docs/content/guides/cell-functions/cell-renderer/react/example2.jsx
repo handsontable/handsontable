@@ -42,12 +42,12 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data}
         rowHeaders={true}
         autoRowSize={false}
         autoColumnSize={false}
         height="auto"
-        licenseKey={'non-commercial-and-evaluation'}
       >
         <HotColumn renderer={CustomRenderer} />
       </HotTable>

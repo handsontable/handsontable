@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllModules();
 
@@ -22,7 +23,7 @@ function createGrid(settings: Record<string, unknown> = {}) {
     colHeaders: true,
     rowHeaders: true,
     rowSelection: { checkboxLocation: { column: 'selected' } },
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 

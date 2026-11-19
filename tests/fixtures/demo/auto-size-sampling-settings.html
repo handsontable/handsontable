@@ -25,6 +25,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -99,7 +100,7 @@
         // The last column is the narrow one, so it is the only column whose text wraps - and it is
         // also the one the default sampling drops.
         colWidths: [320, 320, 320, 70],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String((error && error.stack) || error);

@@ -53,6 +53,14 @@ export class LiveGeometryReader implements GeometryReader {
    * @param {HTMLElement} element The element to measure.
    * @returns {number}
    */
+  clientLeft(element: HTMLElement): number {
+    return element.clientLeft;
+  }
+
+  /**
+   * @param {HTMLElement} element The element to measure.
+   * @returns {number}
+   */
   offsetWidth(element: HTMLElement): number {
     return element.offsetWidth;
   }

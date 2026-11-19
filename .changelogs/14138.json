@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the message for a missing license key: the console warning and the lock screen no longer suggest the `non-commercial-and-evaluation` key.",
+  "type": "changed",
+  "issueOrPR": 14138,
+  "breaking": false,
+  "framework": "none"
+}

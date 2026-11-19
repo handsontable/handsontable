@@ -15,6 +15,7 @@ const data = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)']}
       rowHeaders={true}
@@ -23,7 +24,6 @@ const ExampleComponent = () => {
       height="auto"
       stretchH="all"
       headerClassName="htLeft"
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn headerClassName="italic-text" />
       <HotColumn headerClassName="bold-text italic-text" />

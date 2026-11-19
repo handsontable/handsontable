@@ -201,13 +201,15 @@ These keyboard shortcuts work when the [`CopyPaste`](@/api/copyPaste.md) plugin 
 | <kbd>**Ctrl**</kbd>+<kbd>**C**</kbd> | <kbd>⌘</kbd>+<kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**V**</kbd> | <kbd>⌘</kbd>+<kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |
 
+To turn off these keyboard shortcuts, see [Remove the copy, cut, and paste shortcuts](@/guides/navigation/custom-shortcuts/custom-shortcuts.md#remove-the-copy-cut-and-paste-shortcuts).
+
 ### Cell merging keyboard shortcuts
 
 These keyboard shortcuts work when the [`MergeCells`](@/api/mergeCells.md) plugin is enabled.
 
 | Windows                              | macOS                                | Action                              |  Excel  | Sheets  |
 | ------------------------------------ | ------------------------------------ | ----------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells (does nothing while several ranges are selected) | &cross; | &cross; |
 
 ### Undo and redo keyboard shortcuts
 
@@ -236,23 +238,26 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 
 These keyboard shortcuts work in [column groups](@/guides/columns/column-groups/column-groups.md), also known as "nested headers". To activate them, enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
 
-The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd> shortcut works from a data cell or a focused column header, with or without `navigableHeaders`. The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows              | macOS                | Action                              |  Excel  | Sheets  |
 | -------------------- | -------------------- | ----------------------------------- | :-----: | :-----: |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↑**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↑**</kbd> | Collapse or expand the collapsible column group closest to the data, over the current column. From a focused column header, toggle that header's group | &cross; | &cross; |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the column group | &cross; | &cross; |
 
 ### Row parent-child keyboard shortcuts
 
 These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child/row-parent-child.md), also known as "nested rows". To activate them, enable the [`NestedRows`](@/api/nestedRows.md) plugin.
 
-These shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> shortcuts work from any data cell of the row or from its row header, with or without `navigableHeaders`. The other shortcuts work only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows              | macOS                | Action                                                                                                 |
 | -------------------- | -------------------- | ------------------------------------------------------------------------------------------------------ |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group                                                                       |
 | <kbd>**Ctrl**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>**→**</kbd> | Expand a collapsed parent row                                                                 |
 | <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>**←**</kbd> | Collapse an expanded parent row. Otherwise, move the focus to the header of the parent row, if any |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**→**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**→**</kbd> | Expand the current row, if it is a collapsed parent row |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**←**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**←**</kbd> | Collapse the current row, if it is an expanded parent row. Otherwise, move the selection to the parent row, in the same column |
 
 In a right-to-left layout ([`layoutDirection: 'rtl'`](@/api/options.md#layoutdirection)), the <kbd>**←**</kbd> and <kbd>**→**</kbd> keys swap their actions. The arrow keys without a modifier move the selection, as they do in every grid. On a row header, <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**←**</kbd> and <kbd>**→**</kbd> don't jump to the first or last cell of the row. To move along the row from a row header, use <kbd>**→**</kbd> or <kbd>**End**</kbd>.
 
@@ -295,7 +300,7 @@ These keyboard shortcuts work with the [column filter](@/guides/columns/column-f
 | <kbd>**Tab**</kbd> | <kbd>**Tab**</kbd> | Move focus to the next filtering component in the open filter menu. | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Move focus to the previous filtering component in the open filter menu. | &cross; | &cross; |
 | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | When the filter search input is focused, move through the **Filter by value** list. | &cross; | &cross; |
-| <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | When **Select all** or **Clear all** is focused, run the action. | &cross; | &cross; |
+| <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | When **Select all** or **Select none** is focused, run the action. | &cross; | &cross; |
 
 ### Comments keyboard shortcuts
 
@@ -333,6 +338,21 @@ These shortcuts work only when a column header is focused. Enable [`navigableHea
 | -------------------- | -------------------- | ---------------------------------------------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Space**</kbd> | <kbd>**Space**</kbd> | Check every checkbox in the column, or uncheck them when all of them are already checked      | &cross; | &cross; |
 
+### Editable headers keyboard shortcuts
+
+These keyboard shortcuts work when you rename a column header or a row header in the grid. To activate them, enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin with the [`editableHeaders`](@/api/options.md#editableheaders) option.
+
+<kbd>**F2**</kbd> and <kbd>**Enter**</kbd> start renaming only when a header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. On a header whose <kbd>**Enter**</kbd> sorts the column, <kbd>**Enter**</kbd> keeps sorting it; use <kbd>**F2**</kbd> instead.
+
+| Windows              | macOS                | Action                                                          |  Excel  | Sheets  |
+| -------------------- | -------------------- | --------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**F2**</kbd>    | <kbd>**F2**</kbd>    | Start renaming the focused header                               | &cross; | &cross; |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Start renaming the focused header                               | &cross; | &cross; |
+| <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Save the new header name                                        | &cross; | &cross; |
+| <kbd>**Escape**</kbd> | <kbd>**Escape**</kbd> | Cancel renaming the header                                     | &cross; | &cross; |
+| <kbd>**Tab**</kbd>   | <kbd>**Tab**</kbd>   | Save the new header name, and move to the next header or cell   | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Save the new header name, and move to the previous header or cell | &cross; | &cross; |
+
 ### Formulas keyboard shortcuts
 
 These keyboard shortcuts work when the [`Formulas`](@/api/formulas.md) plugin is enabled.
@@ -340,6 +360,33 @@ These keyboard shortcuts work when the [`Formulas`](@/api/formulas.md) plugin is
 | Windows                              | macOS                          | Action                                              |  Excel  | Sheets  |
 | ------------------------------------- | ------------------------------ | ---------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**`**</kbd> | <kbd>⌃</kbd>+<kbd>**`**</kbd> | Toggle between showing formulas and showing values | &check; | &check; |
+
+### Formula builder keyboard shortcuts
+
+These keyboard shortcuts work in the formula editor of the [`FormulaBuilder`](@/api/formulaBuilder.md) plugin, while you edit a cell in place or in the formula bar. For details, see [Formula builder](@/guides/formulas/formula-builder/formula-builder.md#keyboard-shortcuts).
+
+| Windows                                                                    | macOS                                                                | Action                                                                                                                  |  Excel  | Sheets  |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
+| <kbd>**Enter**</kbd>                                                       | <kbd>**Enter**</kbd>                                                 | Commit the edit and move the selection down, or as set by [`enterMoves`](@/api/options.md#entermoves). With the autocomplete popup open, insert the highlighted suggestion. | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                                  | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>                                    | Commit the edit and move the selection up, or the opposite way of [`enterMoves`](@/api/options.md#entermoves)          | &check; | &check; |
+| <kbd>**Tab**</kbd>                                                         | <kbd>**Tab**</kbd>                                                   | Commit the edit and move the selection to the next cell (right by default, left in RTL), as set by [`tabMoves`](@/api/options.md#tabmoves). With the autocomplete popup open, insert the highlighted suggestion. | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>                                    | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>                                      | Commit the edit and move the selection to the previous cell (left by default, right in RTL)                             | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                   | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd>                       | Commit the edit to every selected cell, as in the grid's other editors                                                  | &check; | &check; |
+| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>                                    | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>                                    | Insert a line break in the formula                                                                                      | &check; | &check; |
+| <kbd>**Escape**</kbd>                                                      | <kbd>**Escape**</kbd>                                                | Close the open popup. With no popup open, leave point mode, or cancel the edit.                                        | &check; | &check; |
+| <kbd>**↑**</kbd> / <kbd>**↓**</kbd>                                        | <kbd>**↑**</kbd> / <kbd>**↓**</kbd>                                  | With the autocomplete popup open, move through the suggestions                                                          | &check; | &check; |
+| Arrow keys                                                                 | Arrow keys                                                           | In point mode, move the reference cursor one cell                                                                       | &check; | &check; |
+| <kbd>**Shift**</kbd>+Arrow keys                                            | <kbd>⇧</kbd>+Arrow keys                                              | In point mode, extend the reference into a range                                                                        | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+Arrow keys                                             | <kbd>⌃</kbd>/<kbd>⌘</kbd>+Arrow keys                                 | In point mode, jump the reference cursor to the edge of the data block                                                  | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+Arrow keys                        | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>⇧</kbd>+Arrow keys                    | In point mode, extend the reference to the edge of the data block                                                       | &check; | &check; |
+| <kbd>**F2**</kbd> or <kbd>**Ctrl**</kbd>+<kbd>**E**</kbd>                  | <kbd>**F2**</kbd> or <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**E**</kbd>      | Switch point mode on or off                                                                                             | &check; | &cross; |
+| <kbd>**F4**</kbd>                                                          | <kbd>**F4**</kbd>                                                    | Cycle the reference at the caret between relative and absolute forms                                                   | &check; | &check; |
+| <kbd>**F6**</kbd> / <kbd>**Shift**</kbd>+<kbd>**F6**</kbd>                 | <kbd>**F6**</kbd> / <kbd>⇧</kbd>+<kbd>**F6**</kbd>                   | While you edit a cell, move the editor between the formula bar and the cell. With the function help popup open, move the focus into it. | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>                                    | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>                                      | From the first column (from the first cell with `autoWrapRow` on), leave the grid through the formula bar (the formula area first, then the address box) | &cross; | &cross; |
+| <kbd>**Enter**</kbd>                                                       | <kbd>**Enter**</kbd>                                                 | In the formula bar's address box, go to the typed address or range                                                      | &check; | &check; |
+| <kbd>**Escape**</kbd>                                                      | <kbd>**Escape**</kbd>                                                | In the formula bar's address box, put back the address of the active cell or the selected range                        | &check; | &check; |
+
+Point mode is on in a formula when a reference is valid at the caret, for example right after `=`, an operator, an argument separator, or an opening parenthesis.
 
 
 ### Freeze bar keyboard shortcuts
@@ -419,7 +466,7 @@ Didn't find what you need? Try this:
 
 - [View related topics](https://github.com/handsontable/handsontable/issues) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Start a discussion](https://forum.handsontable.com/c/questions/12) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>

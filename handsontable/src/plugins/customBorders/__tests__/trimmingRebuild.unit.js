@@ -1,4 +1,5 @@
 import Handsontable from '../../../index';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('CustomBorders after trimRow, untrimRow and filter', () => {
   let container;
@@ -52,7 +53,7 @@ describe('CustomBorders after trimRow, untrimRow and filter', () => {
       data: rows(),
       trimRows: true,
       customBorders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -71,7 +72,7 @@ describe('CustomBorders after trimRow, untrimRow and filter', () => {
       customBorders: true,
       width: 400,
       height: 400,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('customBorders').setBorders([[8, 0, 8, 0]], { top: { width: 2, color: '#FF0000' } });
@@ -96,7 +97,7 @@ describe('CustomBorders after trimRow, untrimRow and filter', () => {
       customBorders: true,
       width: 400,
       height: 400,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -133,7 +134,7 @@ describe('CustomBorders after trimRow, untrimRow and filter', () => {
       customBorders: true,
       width: 400,
       height: 400,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -162,7 +163,7 @@ describe('CustomBorders after trimRow, untrimRow and filter', () => {
       data: rows(),
       trimRows: true,
       customBorders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -181,7 +182,7 @@ describe('CustomBorders after trimRow, untrimRow and filter', () => {
       data: rows(),
       trimRows: true,
       customBorders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');
@@ -200,7 +201,7 @@ describe('CustomBorders after trimRow, untrimRow and filter', () => {
       customBorders: true,
       width: 400,
       height: 400,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const borders = hot.getPlugin('customBorders');

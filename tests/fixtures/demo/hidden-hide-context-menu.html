@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -81,7 +82,7 @@
         // that pins the second clause of `hidden()`. (There is no built-in column-trimming plugin;
         // the column clause is pinned with an empty grid instead - see `loadEmpty`.)
         trimRows: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       container.setAttribute('data-init-error', String(error && error.message));

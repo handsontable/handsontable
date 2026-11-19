@@ -31,7 +31,7 @@ const hotSettings = ref<GridSettings>({
     columns: [2, 4, 6],
     indicators: true,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 

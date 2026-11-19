@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, StretchColumns } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(StretchColumns);
 
@@ -19,7 +20,7 @@ function buildGrid(settings: Record<string, unknown> = {}) {
     colWidths: 50,
     autoColumnSize: false,
     stretchH: 'all',
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 }

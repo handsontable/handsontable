@@ -53,7 +53,7 @@ test.describe('overlay scrollbar clearance', { tag: THEMES_TAG }, () => {
           colHeaders: true,
           fixedColumnsStart: 3,
           fixedRowsBottom: 2,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         });
     });
 
@@ -162,7 +162,7 @@ test.describe('overlay scrollbar clearance', { tag: THEMES_TAG }, () => {
         rowHeaders: true,
         colHeaders: true,
         // Nothing frozen, on purpose.
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     });
 
@@ -316,7 +316,7 @@ test.describe('overlay scrollbar clearance', { tag: THEMES_TAG }, () => {
         colHeaders: true,
         fixedColumnsStart: 3,
         // No frozen rows: the column header is the only overlay on the vertical scrollbar.
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     });
 
@@ -392,7 +392,7 @@ test.describe('overlay scrollbar clearance', { tag: THEMES_TAG }, () => {
           colHeaders: true,
           fixedColumnsStart: 3,
           fixedRowsBottom: 2,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         });
     });
 

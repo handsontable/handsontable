@@ -7,17 +7,18 @@ import {
   renderHotTableWithProps,
   sleep,
 } from './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // The freezeBar plugin writes the count of frozen columns on the grid, not on the settings the application
 // passed in. A wrapper re-sends every prop on each render, so an unchanged prop must not revert the count
 // the user dragged to, and a prop that really changes must still win.
 describe('freezeBar prop', () => {
   const props = {
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     data: createSpreadsheetData(5, 10),
     width: 300,
     height: 300,
-    rowHeights: 23,
+    minRowHeights: 23,
     colWidths: 50,
     autoRowSize: false,
     autoColumnSize: false,

@@ -83,6 +83,7 @@
       background: #ddd;
     }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -240,7 +241,7 @@
           window.htChanges.push(...changes.map(change => change.concat(source)));
         }
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

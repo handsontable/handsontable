@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Notification } from '../notification';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 // A grid inside an iframe builds its DOM from `hot.rootDocument`, so an element message built there
 // belongs to the iframe's realm. `instanceof HTMLElement` against the top window's constructor
@@ -23,7 +24,7 @@ describe('Notification message from another realm', () => {
     hot = new Handsontable(container, {
       data: [[1, 2], [3, 4]],
       notification: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 

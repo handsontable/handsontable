@@ -289,6 +289,7 @@ handsontable/src/
     ├── stylesHandler.ts         # Runtime CSS style handler
     ├── valueAccessors.ts        # Value getter/setter utilities
     ├── a11yAnnouncer.ts         # Accessibility announcer
+    ├── menu/                    # Menu library shared by ContextMenu and DropdownMenu (Menu, ItemsFactory, registerMenuEntries)
     ├── manualResize/            # Drag gesture shared by the two manual resize plugins
     │   ├── resizeGesture.ts     # ResizeGesture: handle, guide, drag state, resize hooks
     │   ├── axis.ts              # ROW_RESIZE_AXIS / COLUMN_RESIZE_AXIS descriptors

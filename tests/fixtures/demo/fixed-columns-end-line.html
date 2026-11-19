@@ -21,11 +21,13 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
     The `fixedColumnsEnd` freeze line at every scroll state. Query params: rtl=1, rows, cols, colWidth,
-    width, height, fixedColumnsStart, fixedColumnsEnd, fixedRowsBottom, rowHeaders=0 (no row headers).
+    width, height, fixedColumnsStart, fixedColumnsEnd, fixedRowsBottom, rowHeaders=0 (no row headers),
+    colHeaders=0 (no column headers), autoRowSize=1 (the AutoRowSize plugin on), minRowHeights.
   -->
   <div id="grid" data-testid="grid"></div>
 
@@ -68,10 +70,46 @@
       fixedColumnsEnd: number('fixedColumnsEnd', 0),
       rowHeaders: htParams.get('rowHeaders') !== '0',
       fixedRowsBottom: number('fixedRowsBottom', 0),
-      colHeaders: true,
+      colHeaders: htParams.get('colHeaders') !== '0',
       renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     };
+
+    if (htParams.get('autoRowSize') === '1') {
+      settings.autoRowSize = true;
+    }
+
+    if (htParams.has('minRowHeights')) {
+      settings.minRowHeights = number('minRowHeights', 0);
+    }
+
+    if (htParams.has('rowHeights')) {
+      settings.rowHeights = number('rowHeights', 0);
+    }
+
+    if (htParams.has('manualRowResizeLast')) {
+      const heights = [];
+
+      heights[rows - 1] = number('manualRowResizeLast', 0);
+      settings.manualRowResize = heights;
+    }
+
+    if (htParams.has('hiddenRow')) {
+      settings.hiddenRows = { rows: [number('hiddenRow', 0)], indicators: false };
+    }
+
+    if (htParams.has('bottomOverlayHeight')) {
+      // The height the hook gives the grid's last row in the `bottom` overlay only.
+      const bottomOverlayHeight = number('bottomOverlayHeight', 0);
+
+      settings.modifyRowHeightByOverlayName = (height, row, overlayName) => (
+        row === rows - 1 && overlayName === 'bottom' ? bottomOverlayHeight : height
+      );
+    }
+
+    if (htParams.get('wrapLastRow') === '1') {
+      data[rows - 1][1] = 'A long text that wraps over several lines';
+    }
 
     window.hot = new Handsontable(container, settings);
     } catch (error) {

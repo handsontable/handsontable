@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 
@@ -31,7 +32,7 @@ describe('data journal', () => {
    */
   function createJournalingGrid(settings) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
@@ -45,7 +46,7 @@ describe('data journal', () => {
 
   it('should journal nothing while journaling is off', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['A1']],
     });
     hot._getOperationScope().addSettleListener(transaction => settled.push(transaction));

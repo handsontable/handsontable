@@ -246,6 +246,8 @@ You can provide the `source` option as an array of values that will be used as t
 
 You can provide the `source` option as an array of objects with `key` and `value` properties. The `value` property will be used as the autocomplete suggestion, while the entire object will be used as the value of the cell.
 
+To show a label and keep a short code, put the label in `value` and the code in `key`. The cell shows `value` and stores the whole object, so [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell) returns that object, with the code in its `key` property.
+
 ::: only-for javascript
 ::: example #example5 .docs-height-small --js 1 --ts 2
 

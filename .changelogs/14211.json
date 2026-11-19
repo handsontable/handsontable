@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed row headers drifting away from the rows beside them when a row's content height is not a whole pixel, for example with a fractional line height. With AutoRowSize, such a row is now stored one pixel taller when its fraction is below one half (`getRowHeight()` returns 119 for a 118.27px row, not 118).",
+  "type": "fixed",
+  "issueOrPR": 14211,
+  "breaking": false,
+  "framework": "none"
+}

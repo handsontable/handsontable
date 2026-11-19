@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -83,7 +84,7 @@
 
     window.hot = new Handsontable(container, {
       data: [
-        ['https://example.com/one', 'https://example.com/optout', 'go https://example.com/marked', '<a href="https://example.com/user">user link</a>', 'https://example.com/memo', '=HYPERLINK("https://example.com/hf", "HF label")', 'https://example.com/whole', 'google.com'],
+        ['https://example.com/one', 'https://example.com/optout', 'go https://example.com/marked', '<a href="https://example.com/user">user anchor</a>', 'https://example.com/memo', '=HYPERLINK("https://example.com/hf", "HF label")', 'https://example.com/whole', 'google.com'],
         ['Visit https://example.com/two for details.', 'b2', 'c2', 'd2', 'e2', '=HYPERLINK("https://example.com/raw")', 'see https://example.com/inline-off', 'www.example.org/docs'],
         ['mailto:someone@example.com', 'b3', 'c3', 'd3', 'e3', '=HYPERLINK("mailto:hf@example.com")', ' https://example.com/padded ', 'ana.garcia@example.com'],
         ['tel:+48123456789', 'b4', 'c4', 'd4', 'e4', 'f4', 'g4', 'README.md'],
@@ -144,7 +145,7 @@
       afterRenderer(td, row, col) {
         td.setAttribute('data-testid', `cell-${row}-${col}`);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

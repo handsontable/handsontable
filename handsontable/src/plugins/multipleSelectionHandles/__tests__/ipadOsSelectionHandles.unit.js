@@ -3,6 +3,7 @@ import { registerPlugin } from '../../registry';
 import { MultipleSelectionHandles } from '../multipleSelectionHandles';
 import { setBrowserMeta, setPlatformMeta } from '../../../helpers/browser';
 import { patchConsoleErrors } from '../../../../test/__mocks__/cssPolyfill';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 const IPAD_DESKTOP_SAFARI_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) ' +
   'AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.1 Safari/605.1.15';
@@ -67,7 +68,7 @@ describe('MultipleSelectionHandles iPadOS detection', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 5 }, () => Array.from({ length: 5 }, () => 'x')),
       fillHandle: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectCell(0, 0);

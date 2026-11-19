@@ -15,6 +15,10 @@ const hot = Handsontable(elem, {});
   const pvMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-pv-map', 'linkedPhysicalIndexToValue');
   const lpvMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-lpv-map', 'physicalIndexToValue');
   const trimmingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-trimming-map', 'trimming');
+  const scopedTrimmingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-scoped-trimming-map', 'trimming', false, {
+    keepsRowsInFilterScope: true,
+  });
+  const keepsRowsInFilterScope: boolean = scopedTrimmingMap.keepsRowsInFilterScope;
 }
 
 hot.rowIndexMapper.suspendOperations();

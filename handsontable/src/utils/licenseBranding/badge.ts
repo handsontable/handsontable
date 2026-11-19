@@ -187,6 +187,12 @@ export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLi
   const hasCornerCell = () => hotInstance.hasRowHeaders() && hotInstance.hasColHeaders();
 
   const syncCornerPresence = () => {
+    // The `afterRender` run keeps walking its listeners after an earlier one (a listener from the
+    // settings, registered before this one) destroyed the grid, and every method then throws.
+    if (hotInstance.isDestroyed) {
+      return;
+    }
+
     const hasCorner = hasCornerCell();
 
     wrapper.classList.toggle(CORNERLESS_CLASS, !hasCorner);

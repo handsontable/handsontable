@@ -25,6 +25,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -92,7 +93,7 @@
         rowHeaders: true,
         renderer: testIdRenderer,
         fillHandle: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
         afterCreateRow(index, amount, source) {
           window.createdRowLog.push({ index, amount, source });
         },

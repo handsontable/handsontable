@@ -88,7 +88,7 @@ const hot = new Handsontable(document.getElementById('dts-hot')!, {
     interval: { min: intervalMin, max: intervalMax },
     rampDistance,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 function sync(): void {

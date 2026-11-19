@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the XLSX export writing wrong colors for custom borders and `headerStyle` colors given as named, `rgb()`, or `hsl()` CSS colors.",
+  "type": "fixed",
+  "issueOrPR": 14151,
+  "breaking": false,
+  "framework": "none"
+}

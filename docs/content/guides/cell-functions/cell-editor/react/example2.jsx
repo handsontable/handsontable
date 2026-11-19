@@ -20,6 +20,7 @@ class CustomEditor extends TextEditor {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       id="hot"
       startRows={5}
       columns={[
@@ -32,7 +33,6 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       height="auto"
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

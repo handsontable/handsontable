@@ -217,7 +217,7 @@ export function getPaginationContainerHeight() {
     height: 400,
     // Use a valid key so the license notification does not join the bottom slot. Otherwise the
     // pagination would not be the last slot item and would gain a divider border, skewing the height.
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   // The pagination is the only bottom-slot item here (valid license, no notification), so it is the

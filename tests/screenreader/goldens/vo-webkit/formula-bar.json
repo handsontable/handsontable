@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "formula-bar",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T13:55:52.586Z"
+  },
+  "steps": {
+    "arrow-to-formula-cell": "",
+    "open-editor": "a1 b1 formula editor list box pop up collapsed combo box",
+    "cancel-edit": "c 3",
+    "home-to-first-column": "a 1",
+    "shift-tab-to-bar": "1 formula editor list box pop up collapsed combo box",
+    "shift-tab-to-address": "a1 insertion on word a1 between characters and cell address edit text",
+    "tab-to-bar": "1 formula editor list box pop up collapsed combo box",
+    "tab-to-grid": "a 1 table 4 columns"
+  }
+}

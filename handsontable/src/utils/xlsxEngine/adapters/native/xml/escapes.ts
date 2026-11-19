@@ -4,11 +4,17 @@
  * than beside the writer because every reader of this adapter decodes what the writer encoded.
  */
 
-// C0 controls other than tab, newline and carriage return, plus DEL, plus the two non-characters
-// U+FFFE and U+FFFF: all outside XML 1.0's `Char` production, and Excel offers to "repair" a file
-// that carries one raw.
+/**
+ * Matches a character this adapter never writes raw: a C0 control other than tab, newline and
+ * carriage return, DEL, or one of the two non-characters U+FFFE and U+FFFF. All are outside XML
+ * 1.0's `Char` production, and Excel offers to "repair" a file that carries one raw. Not global, so
+ * `test()` keeps no state; the export reads it to refuse a value the writer would change.
+ */
 // eslint-disable-next-line no-control-regex -- the control characters ARE what this class selects.
-const ILLEGAL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFE\uFFFF]/g;
+export const ILLEGAL_XML_CHAR = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\uFFFE\uFFFF]/;
+
+// `ILLEGAL_XML_CHAR`, global, for the replace passes below.
+const ILLEGAL_CHARS = new RegExp(ILLEGAL_XML_CHAR.source, 'g');
 
 // The five markup characters `escapeMarkup` rewrites.
 const MARKUP_CHARS = /[&<>"']/;

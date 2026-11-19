@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "id": "filters-by-condition",
+  "surface": "The column menu's Filter by condition on a numeric column: the condition select and its option list, the value input, and OK applying the filter.",
+  "group": "menus",
+  "page": "filters-conditions",
+  "state": "dropdown-menu",
+  "criteria": ["1.3.1", "2.1.1", "3.3.2", "4.1.2"],
+  "setup": [{"selectCell": [1, 2]}],
+  "steps": [
+    {
+      "id": "open-menu",
+      "action": {"press": "Shift+Alt+ArrowDown"},
+      "after": {"visible": ".htDropdownMenu .ht_master .htCore tbody td"},
+      "expect": [["clear column"], ["menu"]],
+      "note": "The menu of the Price column opens. In this fixture `columns` is set, so Insert column left and right and Remove column are disabled and the keyboard skips them: the first highlighted item is `Clear column` (tree golden of this page). Every reader that speaks names it (the recording). Finding: VoiceOver with Chromium says nothing when the column menu opens, as dropdown-menu records; NVDA with Chromium names a table and no menu."
+    },
+    {
+      "id": "tab-to-condition",
+      "action": {"press": "Tab"},
+      "expect": [["none"]],
+      "note": "The first Tab moves from the menu to the Filter by condition select, a listbox showing its current option, `None`. It has no accessible name of its own in the tree golden, so only the option is required. Finding: the condition select is read as `list` (NVDA, both browsers) or `list box` (VoiceOver with Chromium), with neither its name nor its current option; only VoiceOver with WebKit reads the option."
+    },
+    {
+      "id": "open-conditions",
+      "action": {"press": "Enter"},
+      "after": {"visible": ".htFiltersConditionsMenu .ht_master .htCore tbody td"},
+      "expect": [["none"]],
+      "note": "Enter opens the select's own option list (a menu of its own) with the first option highlighted. The Price column's list is None, Is empty, Is not empty, Is equal to, Is not equal to, Greater than, Greater than or equal to, Less than, Less than or equal to, Is between (the grid-level rule drops Is not between; separators between groups)."
+    },
+    {
+      "id": "arrow-down-is-empty",
+      "action": {"press": "ArrowDown"},
+      "expect": [["is empty"]],
+      "note": "The separator after None is skipped."
+    },
+    {
+      "id": "arrow-down-is-not-empty",
+      "action": {"press": "ArrowDown"},
+      "expect": [["is not empty"]]
+    },
+    {
+      "id": "arrow-down-is-equal-to",
+      "action": {"press": "ArrowDown"},
+      "expect": [["is equal to"]],
+      "note": "The separator after Is not empty is skipped."
+    },
+    {
+      "id": "choose-condition",
+      "action": {"press": "Enter"},
+      "after": {"hidden": ".htFiltersConditionsMenu .ht_master .htCore tbody td"},
+      "expect": [["value"], ["edit", "edit text", "text field", "text entry", "textbox"]],
+      "note": "Enter chooses Is equal to, closes the option list and, on a 10 ms timer, moves the focus to the value input, whose name is its `Value` placeholder. Every reader reads the value input (the recording), so the capture outlasts the timer. VoiceOver with WebKit reads the field's name without its role."
+    },
+    {
+      "id": "type-value",
+      "action": {"type": "1890"},
+      "expect": [],
+      "note": "The value to compare (Mountain Frame's price). Nothing is required: a reader echoes the typed digits."
+    },
+    {
+      "id": "shift-tab-to-select",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["is equal to"]],
+      "note": "The way to OK goes backwards on purpose: the forward Tab walk from here is seven stops (And, Or, the second select, search, Select all, Select none, OK) and this scenario stays within its step budget. Shift+Tab returns to the select, which now shows its chosen option. Finding: the condition select is read as `list` (NVDA, both browsers) or `list box` (VoiceOver with Chromium), with neither its name nor its chosen option; only VoiceOver with WebKit reads the option."
+    },
+    {
+      "id": "shift-tab-to-menu",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["clear column"]],
+      "note": "Shift+Tab from the first component gives the focus back to the menu itself with the item the loop started from highlighted again (filters-menu-focus-order.spec.ts, #10603). Every reader names the item, `Clear column` (the recording)."
+    },
+    {
+      "id": "shift-tab-to-cancel",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["cancel"], ["button"]],
+      "note": "Shift+Tab from the menu wraps to the last component, the Cancel button."
+    },
+    {
+      "id": "shift-tab-to-ok",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["ok"], ["button"]]
+    },
+    {
+      "id": "apply-filter",
+      "action": {"press": "Enter"},
+      "after": {"hidden": ".htDropdownMenu .ht_master .htCore tbody td"},
+      "expect": [["1890"]],
+      "note": "Enter on OK applies Is equal to 1890 (only Mountain Frame stays) and closes the menu; the focus returns to the grid's focus cell, row 0 of the Price column, now 1890. Every reader reads the cell (the recording): applying a filter keeps the focus in the grid, where Escape in dropdown-menu does not."
+    }
+  ]
+}

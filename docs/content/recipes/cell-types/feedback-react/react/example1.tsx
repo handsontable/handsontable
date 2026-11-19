@@ -85,10 +85,10 @@ export const FeedbackEditor = () => {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       autoRowSize={true}
       rowHeaders={true}
       autoWrapRow={true}
-      licenseKey="non-commercial-and-evaluation"
       height="auto"
       width="100%"
       data={data}

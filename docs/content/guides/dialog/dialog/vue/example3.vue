@@ -81,7 +81,7 @@ const hotSettings = ref<GridSettings>({
   },
   // Required for the dialog's HTML content to be rendered safely
   sanitizer: sanitizeDialogContent,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 onMounted(() => {

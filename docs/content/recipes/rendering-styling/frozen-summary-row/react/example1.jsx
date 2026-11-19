@@ -49,7 +49,9 @@ function refreshSummary(hot) {
     });
 }
 const ExampleComponent = () => {
-    return (<HotTable data={data} licenseKey="non-commercial-and-evaluation" rowHeaders={true} colHeaders={['Item', 'Units', 'Price', 'Tax']} fixedRowsBottom={1} height="auto" width="100%" columns={[
+    return (<HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      data={data} rowHeaders={true} colHeaders={['Item', 'Units', 'Price', 'Tax']} fixedRowsBottom={1} height="auto" width="100%" columns={[
             { data: 'item', type: 'text', readOnly: false },
             { data: 'units', type: 'numeric', numericFormat: { maximumFractionDigits: 0 } },
             { data: 'price', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },

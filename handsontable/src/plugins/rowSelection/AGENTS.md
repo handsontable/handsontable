@@ -132,8 +132,9 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   label is empty, such as a column made only for the checkboxes in the `firstColumn` location). The CSS hides
   its label and centers the checkbox on both axes; an empty label would still take the room next to it.
 - **The corner gets its own class (`htRowSelectionCorner`).** Core adds `cornerHeader` to a header label
-  that renders a negative column and never removes it, so a header cell reused from the corner (switching
-  `checkboxLocation`) keeps it. A CSS rule keyed on `cornerHeader` hid the first column's label. Pinned by
+  that renders a negative column, and until `TableView#updateCellHeader` started removing it from a label
+  drawn for a column, a header cell reused from the corner (switching `checkboxLocation`) kept it. A CSS
+  rule keyed on `cornerHeader` hid the first column's label. Pinned by
   the "keeps the first column label after switching" case in `tests/e2e/row-selection.spec.ts`.
 - **Space on a data cell toggles its row (as in AG Grid), and must mark the event handled.** The editor
   manager opens an editor on any printable key in `afterDocumentKeyDown` unless
@@ -149,10 +150,21 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
   the checkbox rule's `margin-top: -2px` lifted it further. `_row-selection.scss` sets `height: 100%` on
   the corner container and `margin-block: 0` on header checkboxes. Pinned by the "centers the select all
   checkbox vertically" case in `tests/e2e/row-selection.spec.ts`, on all three themes.
+- **The row header cell keeps only a container this plugin built.** Walkontable reuses header cells and
+  resets only their class, ARIA and style, so the cell the plugin renders into can still hold core's row
+  header (a `.relative` container with the `.rowHeader` label). `#renderRowHeaderCell()` therefore keys on
+  its own marker class (`htRowSelectionRowHeaderContainer`), never on `.relative`, and empties anything
+  else. Adopting core's container showed a stale row number in the checkbox column (a grid turned on as
+  hidden rows came back), and the `.rowHeader` it kept made core's `appendRowHeader()` reuse the cell with
+  the checkbox in it once the plugin was off (it empties only a container without `.rowHeader`). Pinned
+  by `tests/e2e/plugin-ui-teardown.spec.ts`.
 - **The row header column is pushed last** in `afterGetRowHeaderRenderers`, next to the data, and its
   column coordinate is `#rowHeaderRendererIndex - view.getRowHeadersCount()` (`-1` unless a plugin
   enabled after this one adds a column). The corner above it gets the same coordinate in
-  `afterGetColHeader`. Do not hard-code `-1`.
+  `afterGetColHeader`, except in a grid scrolled horizontally, where the engine offsets every corner's
+  index. `#isCheckboxHeader()` therefore finds that corner by its position among the corners
+  (`TableView#getColumnHeaderCornerIndex()`), so with two row header columns the checkbox stays in the
+  second one. Do not hard-code `-1`.
 - **NestedRows: `groupSelects` decides the tree's rules** (`#resolveGroupSelects()`), and a wrong guess about
   it breaks the parent's state. With `'descendants'` (the default) **only the leaves store a selection**: a
   parent's checked / mixed / unchecked state and whether it can be selected are computed from the leaves
@@ -171,7 +183,11 @@ from a "select all" checkbox (PRO-87, modeled on AG Grid's `rowSelection`). Read
 
 `getBoundColumn()` resolves the column (a `data` prop through `propToCol()`, or a physical index through
 `toVisualColumn()`); a column that is not `type: 'checkbox'` warns once and falls back to the row header
-location. While bound, the selection IS the column's values:
+location. The warning is skipped once the grid settings no longer turn the plugin on: an
+`updateSettings()` that turns it off and drops the column renders the new columns before the plugin is
+disabled. For the same reason `#isServerMode()` asks DataProvider first and resolves the column last, so a
+grid without DataProvider never resolves it there (pinned by `__tests__/boundColumnWarning.unit.js`).
+While bound, the selection IS the column's values:
 
 - **Reads go to the data** (`#isPhysicalRowSelected()` → `isCheckedValue()` from
   `../../utils/checkboxColumn.ts`, the checkbox renderer's own test). The index map stays registered but
@@ -260,13 +276,28 @@ a projection of it for the loaded page:
 - **`disablePlugin()` resets the model and `totalRows`**, so re-enabling does not bring back a server
   selection the grid no longer shows; `updatePlugin()` carries both (and the anchor) over by hand.
 - `getServerSelection()`/`setServerSelection()` return `null`/`false` without a server-backed grid.
+- **The model and `totalRows` belong to the dataset, and the sheets bar swaps them per sheet**, through the
+  `@private` `_exportViewState()`/`_importViewState()` (the view state's `checkedRows` part). Server-backed sheets
+  each have their own DataProvider, and the ids of one are meaningless on another: with one model for the
+  grid, the ids checked on one sheet showed as checked on the next and `removeSelectedRows()` sent them to its
+  `onRowsRemove`. `_importViewState()` runs no selection hook and announces nothing, unlike
+  `setServerSelection()`. It also restores the checked physical rows of a grid that holds its own rows, which
+  `loadData()` clears, and leaves a bound checkbox column alone: the data holds that selection. **An import in
+  the `'singleRow'` mode keeps at most one row** (`#reduceImportedToSingleRow()`), by the same choice
+  `updatePlugin()` makes (`#getSingleRowToKeep()`, `#getSingleRowIdSelection()`), but written silently. The
+  sheets bar's `updateSheetSettings()` can switch a hidden sheet to that mode, and its stored checks come back
+  after the plugin already applied the mode, so without it the sheet returned with several rows selected in
+  the single-row mode.
 
 ## Known gaps
 
 - **The selected-row color is the `rowSelectionBackgroundColor` token** (`--ht-row-selection-background-color`),
   a semi-transparent accent per theme. In Figma it is `component/rows/row-selection-background-color` in
   the `themes` collection, aliasing `<theme>/custom/row-selection` in the `mode` collection (light/dark
-  RGBA). The key is in `scripts/themes/figma/tokensKeys.mjs`, so `generate:themes-static` keeps it.
+  RGBA literals, not aliases of the `colors` primitives, which are opaque). The key is in
+  `scripts/themes/figma/tokensKeys.mjs`, and the generator keeps it only because `processReference`
+  accepts a literal light or dark value in a `mode` reference: before that, a regeneration dropped
+  `--ht-row-selection-background-color` from every theme without a warning.
 - **The `:indeterminate` dash icon** (`collapseOff`) matches the Figma checkbox component (node 13:1313,
   "Selection=Indeterminate"). It lives in the generator (`scripts/themes/figma/utils/helpers/iconsMap.mjs`
   and `templates/iconsMap.ts`, which `__tests__/iconsMap.test.mjs` keeps identical) and in the generated

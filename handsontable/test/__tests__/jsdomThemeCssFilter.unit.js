@@ -1,5 +1,6 @@
 import { isThemeStylesheetParseError, withoutThemeStylesheetParseError } from '../jsdomThemeCssFilter';
 import Handsontable from '../../src/base';
+import { TEST_LICENSE_KEY } from '../helpers/licenseKey';
 
 /**
  * Pins the Jest-only filter for jsdom's parse error on the nested theme stylesheet
@@ -67,7 +68,7 @@ describe('jsdom theme stylesheet parse error filter', () => {
 
     document.body.appendChild(container);
 
-    const hot = new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation' });
+    const hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY });
     const parseErrors = spy.mock.calls.filter(([stack]) => typeof stack === 'string' &&
       stack.startsWith('Error: Could not parse CSS stylesheet'));
 

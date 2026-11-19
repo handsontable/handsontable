@@ -266,6 +266,12 @@ On print, Handsontable hides the selection outline, the fill handle, and the `.a
 
 Unfortunately, there is no easy way to change the border color of the selection.
 
+### Add a class name to selected cells
+
+Use the [`afterDrawSelection`](@/api/hooks.md#afterdrawselection) hook to give selected cells your own class name. Handsontable calls the hook for each cell of the selection area while it draws the selection. If the hook returns a string, Handsontable adds that string as a class name to the cell. If the hook returns anything else, the cell gets no extra class.
+
+The hook receives the visual row and column index of the cell, the corners of the current selection layer, and the number of the layer being drawn.
+
 ## Resize a selection with handles
 
 When you set [`selectionHandles`](@/api/options.md#selectionhandles) to `true`, hovering over a selected range shows a pill-shaped handle at the midpoint of each edge. Drag a handle to move that edge and resize the selection. The handles adjust the selected area only -- they do not move, fill, or change any cell data.

@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../../plugins/registry';
 import { DataProvider } from '../../../plugins/dataProvider/dataProvider';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(DataProvider);
 
@@ -57,7 +58,7 @@ describe('Row identity with a server-backed grid', () => {
 
   it('should read the ids with `dataProvider.rowId`, and report the ids the server removed', async() => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       dataProvider: createServer(),
       columns: [{ data: 'name' }],
     });
@@ -96,7 +97,7 @@ describe('Row identity with a server-backed grid', () => {
     };
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       dataProvider: server,
       columns: [{ data: 'sku.code' }, { data: 'name' }],
     });
@@ -141,7 +142,7 @@ describe('Row identity with a server-backed grid', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       dataProvider: server,
       columns: [{ data: 'sku.code' }, { data: 'name' }],
       afterRowsMutationError: mutationError,
@@ -169,7 +170,7 @@ describe('Row identity with a server-backed grid', () => {
     };
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       dataProvider: server,
       dataDotNotation: false,
       columns: [{ data: 'name' }],

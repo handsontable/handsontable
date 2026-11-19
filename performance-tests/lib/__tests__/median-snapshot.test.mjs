@@ -20,6 +20,7 @@ import {
   MEDIAN_REFUSAL,
   MEDIAN_WINDOW_SIZE,
   MIN_VALID_SNAPSHOTS,
+  newestMedianSource,
 } from '../median-snapshot.mjs';
 
 const DEFAULT_UPDATE_COUNTERS = {
@@ -555,5 +556,67 @@ describe('explainMedianRefusal', () => {
     const goldens = [keyed('2026-09-03T10:49:00Z', KEY.chromium), keyed('2026-09-03T10:31:00Z', KEY.chromium)];
 
     assert.equal(explainMedianRefusal(goldens, { compatibleWith: { key: KEY } }), null);
+  });
+});
+
+describe('newestMedianSource', () => {
+  // The gate reads this golden against the median to tell a level develop already shows from one a
+  // pull request introduced, so it must be a golden the median was actually built from.
+  const KEY = { chromium: '151.0.7922.34', platform: 'darwin arm64', harnessVersion: 2 };
+  const keyed = (timestamp, chromium = KEY.chromium, overrides = {}) => ({
+    ...snapshot(timestamp, overrides),
+    environment: { chromium, platform: KEY.platform },
+    harnessVersion: KEY.harnessVersion,
+    commit: `commit-${timestamp}`,
+  });
+
+  test('is the newest golden by timestamp, whatever the input order', () => {
+    const newest = newestMedianSource([
+      keyed('2026-10-01T00:00:00Z'),
+      keyed('2026-10-03T00:00:00Z'),
+      keyed('2026-10-02T00:00:00Z'),
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(newest.timestamp, '2026-10-03T00:00:00Z');
+    assert.equal(newest.commit, 'commit-2026-10-03T00:00:00Z');
+  });
+
+  test('skips a newer golden the median would not draw on', () => {
+    const otherBrowser = keyed('2026-10-04T00:00:00Z', '152.0.1');
+    const unmarked = keyed('2026-10-05T00:00:00Z');
+
+    delete unmarked.scenarios.sorting.windowSource;
+
+    const newest = newestMedianSource([
+      keyed('2026-10-01T00:00:00Z'), keyed('2026-10-02T00:00:00Z'), otherBrowser, unmarked,
+    ], { compatibleWith: { key: KEY } });
+
+    assert.equal(newest.timestamp, '2026-10-02T00:00:00Z');
+  });
+
+  test('drops a scenario recorded at another version than this run measures', () => {
+    const filtering = { categories: { scripting: 40, rendering: 5, painting: 1 }, windowSource: 'marks' };
+    const newest = newestMedianSource([
+      keyed('2026-10-01T00:00:00Z', KEY.chromium, { filtering }),
+      keyed('2026-10-02T00:00:00Z', KEY.chromium, { filtering }),
+    ], { compatibleWith: { key: KEY, scenarioVersions: { sorting: 2, filtering: 1 } } });
+
+    assert.deepEqual(Object.keys(newest.scenarios), ['filtering']);
+  });
+
+  test('is null whenever the median would have too few goldens', () => {
+    assert.equal(MIN_VALID_SNAPSHOTS, 2, 'test assumes the floor is 2');
+    assert.equal(newestMedianSource([keyed('2026-10-01T00:00:00Z')], { compatibleWith: { key: KEY } }), null);
+    assert.equal(newestMedianSource([], { compatibleWith: { key: KEY } }), null);
+  });
+
+  test('does not reorder the caller\'s array', () => {
+    const input = [keyed('2026-10-01T00:00:00Z'), keyed('2026-10-03T00:00:00Z'), keyed('2026-10-02T00:00:00Z')];
+    const order = input.map(s => s.timestamp);
+
+    newestMedianSource(input, { compatibleWith: { key: KEY } });
+    computeMedianSnapshot(input, { compatibleWith: { key: KEY } });
+
+    assert.deepEqual(input.map(s => s.timestamp), order);
   });
 });

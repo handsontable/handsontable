@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scenario": "nested-headers",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T11:05:45.112Z"
+  },
+  "steps": {
+    "arrow-up-to-header": "this is a very long header title menu pop up column 2 row select whole grid this is a very long header title b c d e f g h",
+    "arrow-up-to-group": "header title expanded column 2 row select whole grid header title i j",
+    "arrow-right-next-group": "i j expanded column 10 row select whole grid header title i j",
+    "arrow-down-into-group": "i2 menu pop up column 10 row select whole grid b2 c2 f2 g2 h2 i2 j2",
+    "arrow-left-lowest-level": "h2 menu pop up column 9 row select whole grid b2 c2 f2 g2 h2 i2 j2",
+    "arrow-up-middle-level": "h column 9 row select whole grid this is a very long header title b c d e f g h",
+    "arrow-down-lowest-again": "h2 menu pop up column 9 row select whole grid b2 c2 f2 g2 h2 i2 j2",
+    "arrow-down-to-cell": "h2 h1 column 8 row a1 b1 c1 d1 e1 f1 g1 h1 i1 j1"
+  }
+}

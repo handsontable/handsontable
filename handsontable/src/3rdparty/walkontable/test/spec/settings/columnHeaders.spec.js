@@ -68,7 +68,7 @@ describe('columnHeaders option', () => {
     expect(spec().$wrapper.find('.ht_clone_top tbody tr').length).toBe(0);
     expect(spec().$wrapper.find('.ht_master colgroup col').length).toBe(4);
     expect(spec().$wrapper.find('.ht_master thead tr').length).toBe(1);
-    expect(spec().$wrapper.find('.ht_master tbody tr').length).toBe(9);
+    expect(spec().$wrapper.find('.ht_master tbody tr').length).toBe(8);
   });
 
   it('should create column headers with correct height when th has css `white-space: normal`', async() => {

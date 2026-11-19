@@ -125,6 +125,49 @@ describe('applyRowHeight', () => {
       expect(TR.style.height).toBe('29px');
     });
 
+    it('should draw a first row whose top border is outside its height one pixel above that height', () => {
+      const TR = createRow(['a', 'b']);
+
+      applyRowHeight(TR, 40, false, true, undefined, undefined, true, true);
+
+      expect(cellsOf(TR)[0].style.height).toBe('41px');
+
+      // Another row of the same table keeps the height it was given.
+      const other = createRow(['a', 'b']);
+
+      applyRowHeight(other, 40, false, true, undefined, undefined, false, false);
+
+      expect(cellsOf(other)[0].style.height).toBe('40px');
+    });
+
+    it('should draw the pinned first row, whose first cell spans several rows, one pixel above its own height', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+
+      cellsOf(TR)[0].setAttribute('rowspan', '2');
+      applyRowHeight(TR, 99, false, true, { getHeight: () => 70, getDefaultHeight: () => 29 }, 0, true, true);
+
+      expect(TR.style.height).toBe('71px');
+    });
+
+    it('should count a border drawn outside the height as a border the row draws, whatever the other flag says', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+
+      cellsOf(TR)[0].setAttribute('rowspan', '2');
+      // A pinned row with no height of its own: the default height plus the border it draws.
+      applyRowHeight(TR, 59, false, true, { getHeight: () => undefined, getDefaultHeight: () => 29 }, 0, false, true);
+
+      expect(TR.style.height).toBe('30px');
+    });
+
+    it('should not add the pixel to a first row without a height, whose default already carries it', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+
+      cellsOf(TR)[0].setAttribute('rowspan', '2');
+      applyRowHeight(TR, 59, false, true, { getHeight: () => undefined, getDefaultHeight: () => 29 }, 0, true, true);
+
+      expect(TR.style.height).toBe('30px');
+    });
+
     it('should not touch a row element height set from outside while the first cell can carry the height', () => {
       const TR = createRow(['a', 'b'], { rowHeader: false });
       const ownHeights = { getHeight: () => 29, getDefaultHeight: () => 29 };
@@ -225,6 +268,33 @@ describe('applyRowHeight', () => {
       applyRowHeight(TR, 10, true, false);
 
       expect(cellsOf(TR)[0].style.height).toBe('9px');
+    });
+
+    it('should draw a first row whose top border is outside its height one pixel above that height', () => {
+      const TR = createRow(['a', 'b']);
+
+      applyRowHeight(TR, 10, true, true, undefined, undefined, true, true);
+
+      expect(cellsOf(TR)[0].style.height).toBe('11px');
+    });
+
+    it('should give the carrier of a first row with a spanning first cell its own height plus that pixel', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+
+      cellsOf(TR)[0].setAttribute('rowspan', '2');
+      applyRowHeight(TR, 99, true, true, { getHeight: () => 70, getDefaultHeight: () => 29 }, 0, true, true);
+
+      // The spanning cell carries nothing; the next cell holds the row's own height and the freeze line's pixel.
+      expect(cellsOf(TR)[0].style.height).toBe('');
+      expect(cellsOf(TR)[1].style.height).toBe('71px');
+    });
+
+    it('should not add the pixel to another row of the same table', () => {
+      const TR = createRow(['a', 'b']);
+
+      applyRowHeight(TR, 10, true, true, undefined, undefined, false, false);
+
+      expect(cellsOf(TR)[0].style.height).toBe('10px');
     });
 
     it('should move each data cell\'s content into a single clipping wrapper', () => {
@@ -406,6 +476,40 @@ describe('applyRowHeight', () => {
       expect(TD.childNodes.length).toBe(1);
       expect(TD.firstElementChild?.className).toBe(CELL_CLIP_CLASS);
       expect(TD.firstElementChild?.innerHTML).toBe('<b>fresh</b>');
+    });
+  });
+
+  describe('exact shape with a first cell that spans several rows', () => {
+    it('should write the row\'s own height, not the block\'s total the host handed the spanning cell', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [spanning, carrier] = cellsOf(TR);
+
+      spanning.setAttribute('rowspan', '6');
+      // The host answered 300 (six rows of 50) for the row the block starts on.
+      applyRowHeight(TR, 300, true, true, { getHeight: () => 50, getDefaultHeight: () => 29 }, 0);
+
+      expect(carrier.style.height).toBe('50px');
+      expect(spanning.style.height).toBe('');
+      expect(TR.classList.contains(EXACT_ROW_CLASS)).toBe(true);
+    });
+
+    it('should write the resolved height when the first cell can carry it', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [first] = cellsOf(TR);
+
+      applyRowHeight(TR, 50, true, true, { getHeight: () => 50, getDefaultHeight: () => 29 }, 0);
+
+      expect(first.style.height).toBe('50px');
+    });
+
+    it('should keep the resolved height when the row has no own height to answer', () => {
+      const TR = createRow(['a', 'b'], { rowHeader: false });
+      const [spanning, carrier] = cellsOf(TR);
+
+      spanning.setAttribute('rowspan', '2');
+      applyRowHeight(TR, 60, true, true, { getHeight: () => undefined, getDefaultHeight: () => 29 }, 0);
+
+      expect(carrier.style.height).toBe('60px');
     });
   });
 

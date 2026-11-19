@@ -7,6 +7,7 @@
 <script>
 import { defineComponent } from 'vue';
 import { HotTable } from '@handsontable/vue3';
+import { TEST_LICENSE_KEY } from './test-license-key';
 
 export default defineComponent({
   name: 'App',
@@ -21,7 +22,7 @@ export default defineComponent({
         ],
         colHeaders: true,
         rowHeaders: true,
-        licenseKey: "non-commercial-and-evaluation",
+        licenseKey: TEST_LICENSE_KEY,
         height: 'auto',
         width: '100%'
       },

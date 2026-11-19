@@ -44,7 +44,7 @@ const hotSettings = ref<GridSettings>({
   autoWrapRow: true,
   autoWrapCol: true,
   importFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 async function importWorkbook(blob: Blob, name: string): Promise<void> {

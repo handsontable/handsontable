@@ -1,13 +1,16 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   HttpCode,
+  ParseArrayPipe,
   Post,
   Patch,
   Query,
 } from '@nestjs/common';
+import { isUUID } from 'class-validator';
 import { FetchTicketsDto } from './fetch-tickets.dto';
 import { CreateTicketDto, TicketsService, UpdateTicketDto } from './tickets.service';
 
@@ -20,6 +23,10 @@ import { CreateTicketDto, TicketsService, UpdateTicketDto } from './tickets.serv
  *   POST   /tickets  -- create one or more tickets (onRowsCreate payload shape)
  *   PATCH  /tickets  -- batch update   (onRowsUpdate payload shape)
  *   DELETE /tickets  -- batch delete   (array of row IDs)
+ *
+ * Every mutation body is a JSON array. The global ValidationPipe skips array
+ * bodies, so each handler validates its items with ParseArrayPipe: `items`
+ * names the DTO class, and `whitelist: true` strips undeclared keys.
  */
 @Controller('tickets')
 export class TicketsController {
@@ -53,9 +60,9 @@ export class TicketsController {
    */
   @Post()
   @HttpCode(201)
-  async create(@Body() body: CreateTicketDto | CreateTicketDto[]) {
-    const rows = Array.isArray(body) ? body : [body];
-
+  async create(
+    @Body(new ParseArrayPipe({ items: CreateTicketDto, whitelist: true })) rows: CreateTicketDto[],
+  ) {
     return Promise.all(rows.map((dto) => this.ticketsService.create(dto)));
   }
 
@@ -69,8 +76,10 @@ export class TicketsController {
    * Example body: [{ id: 'uuid-3', status: 'resolved' }]
    */
   @Patch()
-  async updateMany(@Body() body: UpdateTicketDto[]) {
-    return this.ticketsService.updateMany(body);
+  async updateMany(
+    @Body(new ParseArrayPipe({ items: UpdateTicketDto, whitelist: true })) rows: UpdateTicketDto[],
+  ) {
+    return this.ticketsService.updateMany(rows);
   }
 
   /**
@@ -79,10 +88,17 @@ export class TicketsController {
    * Handsontable's onRowsRemove callback receives an array of row ID strings.
    *
    * Example body: ['uuid-3', 'uuid-7']
+   *
+   * ParseArrayPipe rejects a body that isn't an array; isUUID() rejects any
+   * item that isn't a row ID before it reaches the DELETE query.
    */
   @Delete()
   @HttpCode(204)
-  async removeMany(@Body() ids: string[]) {
+  async removeMany(@Body(new ParseArrayPipe({ items: String })) ids: string[]) {
+    if (!ids.every((id) => isUUID(id))) {
+      throw new BadRequestException('Each id must be a UUID');
+    }
+
     await this.ticketsService.removeMany(ids);
   }
 }

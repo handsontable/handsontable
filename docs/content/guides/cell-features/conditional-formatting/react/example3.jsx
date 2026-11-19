@@ -42,9 +42,9 @@ registerRenderer('heatmapRenderer', heatmapRenderer);
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Company', 'Q1', 'Q2', 'Q3', 'Q4']}
-      licenseKey="non-commercial-and-evaluation"
       height="auto"
       columns={[
         {},

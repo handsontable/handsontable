@@ -161,6 +161,17 @@ test.describe('SheetsBar switch with work still in flight', () => {
     expect(await grid.renderError()).toBeNull();
   });
 
+  test('skips the columns an update took away without spending idle tasks on them', async() => {
+    await grid.goto('wideSheet');
+
+    // The sweep measures 50 columns at once, then 51 more in the same task, and 51 per idle task after that,
+    // so 149 columns of the 250-column sheet wait for idle tasks when the data shrinks. A column the grid lost
+    // used to count against a task's 51, so the lost columns still took three idle tasks, which kept the sweep
+    // running and held back the queued width refreshes.
+    expect(await grid.shrinkDataAndWaitOneSweepChunk()).toEqual({ before: true, afterOneChunk: false });
+    expect(await grid.renderError()).toBeNull();
+  });
+
   test('gives the arriving sheet its own selection when the Loading overlay hides', async() => {
     await grid.goto('loading');
 
@@ -176,5 +187,36 @@ test.describe('SheetsBar switch with work still in flight', () => {
     await grid.setLoading(false);
 
     expect(await grid.selected()).toEqual([[0, 0, 0, 0]]);
+  });
+
+  [true, false].forEach((hideOnBeta) => {
+    test(`keeps each sheet's selection across a round trip under the Loading overlay, hidden on ${hideOnBeta ? 'Beta' : 'Alpha'}`, async() => {
+      await grid.goto('loading');
+
+      await grid.openSheet('Beta');
+      await grid.selectCell(0, 0);
+      await grid.openSheet('Alpha');
+      await grid.selectCell(2, 1);
+
+      await grid.setLoading(true);
+
+      expect(await grid.setActiveSheet('Beta')).toBe(true);
+
+      if (hideOnBeta) {
+        await grid.setLoading(false);
+
+        expect(await grid.selected()).toEqual([[0, 0, 0, 0]]);
+        expect(await grid.setActiveSheet('Alpha')).toBe(true);
+        expect(await grid.selected()).toEqual([[2, 1, 2, 1]]);
+      } else {
+        expect(await grid.setActiveSheet('Alpha')).toBe(true);
+
+        await grid.setLoading(false);
+
+        expect(await grid.selected()).toEqual([[2, 1, 2, 1]]);
+        expect(await grid.setActiveSheet('Beta')).toBe(true);
+        expect(await grid.selected()).toEqual([[0, 0, 0, 0]]);
+      }
+    });
   });
 });

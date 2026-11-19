@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where the callback passed to `scrollViewportTo()` stayed registered when the target row or column could not be resolved, which made it run on a later, unrelated scroll instead of once for its own call.",
+  "type": "fixed",
+  "issueOrPR": 14322,
+  "breaking": false,
+  "framework": "none"
+}

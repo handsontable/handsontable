@@ -53,7 +53,8 @@ stands in for the flow: it cannot see focus.
   gap means adding its page, baselining what the page finds that already existed under an issue,
   and lowering the limit.
 - **In CI**, the `A11y / axe` job runs the scan on every PR that touches core or `tests/`. Read the
-  `A11y / axe report` check run (`neutral` = something needs action; its annotations sit on the
+  `A11y / axe report` check run (red = a new or grown critical or serious finding, neutral = a
+  moderate or minor one, by `tests/AGENTS.md`, "A11y: the verdict of a check run"; its annotations sit on the
   line to change) or the sticky comment, and download `a11y-findings.json` from the
   `a11y-axe-results` artifact for the detail.
 
@@ -62,5 +63,6 @@ stands in for the flow: it cannot see focus.
 The scan checks that a name exists, not that it means anything; it never presses a key, follows
 focus, hears an announcement, drags, or zooms. The flow in section 1 covers keys, focus and
 announcements. A new widget pattern, or a change to how one is announced, also gets a pass with a
-real screen reader (VoiceOver with Safari, NVDA with Chrome or Firefox): say what to listen for on
+real screen reader from the tested matrix in `docs/content/data/accessibility.json` (VoiceOver on macOS
+or iOS, NVDA on Windows with Chrome or Firefox): say what to listen for on
 the PR template's `MANUAL QA NEEDED` line.

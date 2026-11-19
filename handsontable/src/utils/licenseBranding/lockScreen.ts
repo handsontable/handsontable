@@ -1,4 +1,5 @@
 import { buildTemplate } from '../../helpers/dom/template';
+import { getOverlayLayerWidth } from '../../core/layout/overlayWidth';
 import type { LockContent } from './content';
 import type { HotInstance } from '../../core/types';
 
@@ -139,14 +140,10 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
   const getFocusableControls = () => Array.from(lock.querySelectorAll<HTMLElement>('a[href], button'));
 
   // Match the dialog's sizing: the `.ht-dialog` box is `width: 100%` of the root wrapper, so it is
-  // pinned to the table's workspace width on every render (a minimal copy of the plugin's
-  // `#onAfterViewRender`); the height is the grid box via the CSS `height: 100%`.
+  // pinned on every render to the width the plugin's `#onAfterViewRender` uses (the table plus the
+  // side slots); the height is the grid box via the CSS `height: 100%`.
   const syncWidth = () => {
-    const { view } = hotInstance;
-    const width = view.isHorizontallyScrollableByWindow()
-      ? view.getTotalTableWidth() : view.getWorkspaceWidth();
-
-    lock.style.width = `${width}px`;
+    lock.style.width = `${getOverlayLayerWidth(hotInstance)}px`;
   };
 
   hotInstance.addHook('afterViewRender', syncWidth);

@@ -29,7 +29,7 @@ const config: Handsontable.GridSettings = {
   manualColumnMove: true,
   manualRowMove: true,
   moveCells: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const example1Events = document.getElementById('example1_events')!;

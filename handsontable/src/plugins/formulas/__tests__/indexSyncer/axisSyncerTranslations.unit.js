@@ -33,6 +33,7 @@ function createMockIndexSyncer() {
     getEngine: () => null,
     getSheetId: () => 0,
     getPostponeAction: () => () => {},
+    getOwnEngineWrite: () => (_, fn) => fn(),
   };
 }
 
@@ -154,6 +155,23 @@ describe('AxisSyncer index translations', () => {
       axisSyncer.getHfIndexFromVisualIndex(2);
 
       expect(indexMapper.calls.getIndexesSequence).toBe(1);
+    });
+
+    it('should rebuild the translation tables after the `cacheUpdated` hook reports a sequence change', () => {
+      const indexMapper = createMockIndexMapper([0, 1, 2, 3]);
+      const axisSyncer = new AxisSyncer('row', indexMapper, createMockIndexSyncer());
+
+      // The sequence changes inside a suspended execution: the sequence hook fires, but the mapper rebuilds its
+      // not-trimmed cache (the visual order) only later. A table built in between holds the previous visual order.
+      indexMapper.state.indexesSequence = [3, 2, 1, 0];
+      indexMapper.runLocalHooks('indexesSequenceChange');
+
+      expect(axisSyncer.getVisualIndexFromHfIndex(0)).toBe(3);
+
+      indexMapper.state.notTrimmedIndexes = [3, 2, 1, 0];
+      indexMapper.runLocalHooks('cacheUpdated', { trimmedIndexesChanged: false, indexesSequenceChanged: true });
+
+      expect(axisSyncer.getVisualIndexFromHfIndex(0)).toBe(0);
     });
   });
 

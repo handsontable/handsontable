@@ -55,6 +55,8 @@ from the last range and ignored the others. Both predicates now return `false` w
 `selectedRange.size() > 1`, as in spreadsheet applications. Do not "fix" this by teaching the fill to read
 every range: there is no defined way to extend several disjoint ranges at once. Pinned by
 `tests/e2e/fill-handle-non-contiguous.spec.ts` and `selection/__tests__/selection.unit.ts`.
+The test is `Selection#isNonContiguous()`, a regular method since DEV-538: MergeCells and both move
+plugins ask the same question, so keep one predicate rather than a copy per plugin.
 
 ## Copy-down extent (DEV-859)
 
@@ -312,8 +314,9 @@ The rules for the row insertion, each a DEV-140 defect:
 NestedRows recognizes the fill handle's rows by that source and adds them to the parent of the last
 visible row, so a drag from a child keeps adding children. Two shapes look equivalent and are not.
 Changing the source string silently brings back the new top-level parents. Passing the last row's index
-instead of `undefined` makes the Core move that row's index map values (a hidden flag, a manual row
-height) onto the new row, on every grid. Details in `../nestedRows/AGENTS.md`.
+instead of `undefined` made the Core move that row's index map values (a hidden flag, a manual row
+height) onto the new row, on every grid, until 19.0 (DEV-508 fixed the slot); keep `undefined` anyway,
+because the anchor rule below reads it. Details in `../nestedRows/AGENTS.md`.
 
 ## Read cell meta transiently
 

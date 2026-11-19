@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "page": "context-menu-submenu",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "portal",
+        "role": "menuitem",
+        "name": "Left"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "C2",
+        "cell": [
+          1,
+          2
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "D2",
+        "cell": [
+          1,
+          3
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "E2",
+        "cell": [
+          1,
+          4
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ]
+  }
+}

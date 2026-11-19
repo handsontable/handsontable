@@ -6,6 +6,7 @@ import {
   keepAnimatedMotion,
   resolveAnimationSetting,
 } from '../ui/animationSettings';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(SheetsBar);
 
@@ -146,7 +147,7 @@ describe('sheets bar animation settings', () => {
       document.body.appendChild(container);
 
       return new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         sheetsBar,
       });
     }

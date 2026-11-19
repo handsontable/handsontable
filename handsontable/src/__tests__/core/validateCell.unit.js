@@ -1,6 +1,7 @@
 import Core from 'handsontable/core';
 import { registerCellType, TextCellType } from 'handsontable/cellTypes';
 import { registerRenderer, baseRenderer, textRenderer } from 'handsontable/renderers';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 registerRenderer(baseRenderer);
@@ -14,7 +15,7 @@ registerRenderer(textRenderer);
 function createHot(container, settings) {
   const core = new Core(container, {
     theme: 'ht-theme-main',
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 

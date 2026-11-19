@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { ManualColumnMove, HiddenColumns, registerPlugin } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ManualColumnMove);
@@ -29,7 +30,7 @@ describe('ManualColumnMove – fixedColumnsEnd', () => {
    */
   function createGrid(settings = {}) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']],
       manualColumnMove: true,
       ...settings,

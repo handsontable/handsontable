@@ -4,9 +4,7 @@ import type {
   ExportOptions,
   SheetOptions,
   ConditionalFormattingDescriptor,
-  Settings as ExportFileLegacySettings,
 } from 'handsontable/plugins/exportFile';
-import { normalizeExportOptions } from 'handsontable/plugins/exportFile/utils';
 
 // Plugin configuration in GridSettings.
 new Handsontable(document.createElement('div'), {
@@ -136,7 +134,21 @@ const sheetWithoutName: SheetOptions = {
 exportPlugin.downloadFileAsync('xlsx', {
   headerStyle: { backgroundColor: '#f2f2f2', border: { style: 'thin' } },
 });
+exportPlugin.downloadFileAsync('xlsx', {
+  headerStyle: { backgroundColor: 'whitesmoke', border: { style: 'thin', color: 'rgb(68, 114, 196)' } },
+});
 exportPlugin.downloadFileAsync('xlsx', { headerStyle: null });
+
+// ─── ExportOptions: protection (XLSX) ─────────────────────────────────────
+exportPlugin.downloadFileAsync('xlsx', { protection: { password: 'x' } });
+exportPlugin.exportAsBlobAsync('xlsx', { protection: {} });
+exportPlugin.downloadFileAsync('xlsx', { protection: null });
+const passwordProtection: ExportOptions = { protection: { password: 'x' } };
+const noProtection: ExportOptions = { protection: null };
+const passwordlessProtection: ExportOptions = { protection: {} };
+// The methods also take a plain record, so the password type is pinned on `ExportOptions` itself.
+// @ts-expect-error a password is a string
+const numericPassword: ExportOptions = { protection: { password: 1 } };
 
 // ─── ExportOptions: engine (per-call override) ────────────────────────────
 exportPlugin.downloadFileAsync('xlsx', { engine: {} });
@@ -202,16 +214,3 @@ async function testExportAsBlobAsync(): Promise<void> {
   const _size: number = blob.size;
 }
 
-// Deprecated alias must stay assignable until 19.0.0.
-const legacySettings: ExportFileLegacySettings = { engines: { xlsx: {} } } as ExportFileSettings;
-
-void legacySettings;
-
-// `normalizeExportOptions` has two overloads: a definite object comes back definite, and a missing
-// options argument (`undefined`) comes back `undefined`. Nothing in `src/` exercises the second one,
-// so pin it here; the first is what makes `ExportDataProvider#setOptions` compile.
-const definiteOptions: { colHeaders?: boolean } = normalizeExportOptions({ colHeaders: true });
-const noOptions: Record<string, unknown> | undefined = normalizeExportOptions(undefined);
-
-void definiteOptions;
-void noOptions;

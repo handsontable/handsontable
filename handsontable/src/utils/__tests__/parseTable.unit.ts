@@ -4,12 +4,13 @@ import {
 import Handsontable from '../../index';
 import { stripTags } from '../../helpers/string';
 import { registerCellType, TextCellType } from '../../cellTypes';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerCellType(TextCellType);
 
 describe('instanceToHTML', () => {
   it('should convert clear instance into HTML table', () => {
-    const hot = new Handsontable(document.createElement('div'));
+    const hot = new Handsontable(document.createElement('div'), { licenseKey: TEST_LICENSE_KEY });
 
     expect(instanceToHTML(hot)).toBe([
       '<table><tbody>',
@@ -24,6 +25,7 @@ describe('instanceToHTML', () => {
 
   it('should convert column headers into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {
+      licenseKey: TEST_LICENSE_KEY,
       colHeaders: true,
       data: [
         ['A1', 'B1'],
@@ -43,6 +45,7 @@ describe('instanceToHTML', () => {
 
   it('should convert row headers into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {
+      licenseKey: TEST_LICENSE_KEY,
       rowHeaders: true,
       data: [
         ['A1', 'B1'],
@@ -60,6 +63,7 @@ describe('instanceToHTML', () => {
 
   it('should convert column and rows headers into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {
+      licenseKey: TEST_LICENSE_KEY,
       colHeaders: true,
       rowHeaders: true,
       data: [
@@ -80,6 +84,7 @@ describe('instanceToHTML', () => {
 
   it('should convert merged cells into HTML table', () => {
     const hot = new Handsontable(document.createElement('div'), {
+      licenseKey: TEST_LICENSE_KEY,
       colHeaders: true,
       rowHeaders: true,
       data: [
@@ -647,7 +652,7 @@ describe('instanceToTableElement', () => {
       data,
       colHeaders: true,
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const built = instanceToTableElement(hot, document);
@@ -667,7 +672,7 @@ describe('instanceToTableElement', () => {
       data: [['A1', 'B1']],
       colHeaders: ['<b>ID</b>', 'Plain'],
       rowHeaders: ['<i>1</i>'],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const built = instanceToTableElement(hot, document);
@@ -691,7 +696,7 @@ describe('instanceToTableElement', () => {
   it('should build a table without a thead when column headers are off', () => {
     const hot = new Handsontable(document.createElement('div'), {
       data: [['A1']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const built = instanceToTableElement(hot, document);
@@ -714,7 +719,7 @@ describe('header sanitizing parity between toHTML and toTableElement', () => {
     return new Handsontable(document.createElement('div'), {
       data: [['A1', 'B1']],
       colHeaders: ['<b>ID</b>', 'Name'],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...(sanitizer ? { sanitizer } : {}),
     });
   }

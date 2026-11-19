@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "collapsible-headers",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T11:01:56.705Z"
+  },
+  "steps": {
+    "arrow-up-to-lower-header": "b column header sub menu row 9 b column 2",
+    "arrow-up-to-group": "b column header selected expanded row 8 b column 2 through 5",
+    "enter-collapse": "collapsed",
+    "arrow-right-after-collapse": "f column header row 8 f column 3",
+    "arrow-left-back": "b column header collapsed row 8 b column 2",
+    "enter-expand": "expanded",
+    "arrow-down-to-lower": "b column header sub menu row 9 b column 2"
+  }
+}

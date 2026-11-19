@@ -25,6 +25,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       ref={hotRef}
       id="example1"
       data={data}
@@ -105,7 +106,6 @@ const ExampleComponent = () => {
           redo: { name: 'Redo' },
         },
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

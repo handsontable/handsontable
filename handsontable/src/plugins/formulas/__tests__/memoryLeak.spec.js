@@ -321,7 +321,7 @@ describe('Formulas memory leak check', () => {
     expect(internalEvents.namedExpressionRemoved.length).toBe(2);
     expect(internalEvents.sheetAdded.length).toBe(3);
     expect(internalEvents.sheetRemoved.length).toBe(3);
-    expect(internalEvents.sheetRenamed.length).toBe(2);
+    expect(internalEvents.sheetRenamed.length).toBe(3);
     expect(internalEvents.valuesUpdated.length).toBe(2);
 
     hot1.destroy();
@@ -331,16 +331,17 @@ describe('Formulas memory leak check', () => {
     expect(internalEvents.namedExpressionRemoved.length).toBe(1);
     expect(internalEvents.sheetAdded.length).toBe(2);
     expect(internalEvents.sheetRemoved.length).toBe(2);
-    expect(internalEvents.sheetRenamed.length).toBe(1);
+    expect(internalEvents.sheetRenamed.length).toBe(2);
     expect(internalEvents.valuesUpdated.length).toBe(1);
 
     hot2.destroy();
 
     // Within the last Handsontable destroy call, the engine is destroyed as well.
     // So even that the events are attached, they won't produce any side effects.
-    expect(Object.keys(internalEvents).length).toBe(2);
+    expect(Object.keys(internalEvents).length).toBe(3);
     expect(internalEvents.sheetAdded.length).toBe(1);
     expect(internalEvents.sheetRemoved.length).toBe(1);
+    expect(internalEvents.sheetRenamed.length).toBe(1);
   });
 
   it('should detach listeners from the engine after disabling the plugin (one shared HF instances)', async() => {
@@ -418,7 +419,7 @@ describe('Formulas memory leak check', () => {
     expect(internalEvents.namedExpressionRemoved.length).toBe(2);
     expect(internalEvents.sheetAdded.length).toBe(3);
     expect(internalEvents.sheetRemoved.length).toBe(3);
-    expect(internalEvents.sheetRenamed.length).toBe(2);
+    expect(internalEvents.sheetRenamed.length).toBe(3);
     expect(internalEvents.valuesUpdated.length).toBe(2);
 
     hot1.updateSettings({ formulas: false });
@@ -428,16 +429,17 @@ describe('Formulas memory leak check', () => {
     expect(internalEvents.namedExpressionRemoved.length).toBe(1);
     expect(internalEvents.sheetAdded.length).toBe(2);
     expect(internalEvents.sheetRemoved.length).toBe(2);
-    expect(internalEvents.sheetRenamed.length).toBe(1);
+    expect(internalEvents.sheetRenamed.length).toBe(2);
     expect(internalEvents.valuesUpdated.length).toBe(1);
 
     hot2.updateSettings({ formulas: false });
 
-    // There are always 2 additional events that recalculates the engine on
-    // sheetAdd and sheetRemove events.
-    expect(Object.keys(internalEvents).length).toBe(2);
+    // The engine keeps the listeners that recalculate it on sheetAdded,
+    // sheetRemoved, and sheetRenamed.
+    expect(Object.keys(internalEvents).length).toBe(3);
     expect(internalEvents.sheetAdded.length).toBe(1);
     expect(internalEvents.sheetRemoved.length).toBe(1);
+    expect(internalEvents.sheetRenamed.length).toBe(1);
 
     hot1.updateSettings({ formulas: { engine: HyperFormula } });
 
@@ -448,7 +450,7 @@ describe('Formulas memory leak check', () => {
     expect(internalEventsNew.namedExpressionRemoved.length).toBe(1);
     expect(internalEventsNew.sheetAdded.length).toBe(2);
     expect(internalEventsNew.sheetRemoved.length).toBe(2);
-    expect(internalEventsNew.sheetRenamed.length).toBe(1);
+    expect(internalEventsNew.sheetRenamed.length).toBe(2);
     expect(internalEventsNew.valuesUpdated.length).toBe(1);
 
     hot2.updateSettings({ formulas: { engine: hot1.getPlugin('formulas').engine } });
@@ -458,7 +460,7 @@ describe('Formulas memory leak check', () => {
     expect(internalEventsNew.namedExpressionRemoved.length).toBe(2);
     expect(internalEventsNew.sheetAdded.length).toBe(3);
     expect(internalEventsNew.sheetRemoved.length).toBe(3);
-    expect(internalEventsNew.sheetRenamed.length).toBe(2);
+    expect(internalEventsNew.sheetRenamed.length).toBe(3);
     expect(internalEventsNew.valuesUpdated.length).toBe(2);
   });
 });

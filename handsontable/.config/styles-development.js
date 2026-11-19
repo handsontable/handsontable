@@ -3,6 +3,7 @@ const rspack = require('@rspack/core');
 const configFactory = require('./base');
 const removeEmptyScripts = require('./plugin/rspack/remove-empty-scripts');
 const addCssToJsExport = require('./add-css-to-js-export');
+const { BROWSERS_LIST } = require('../../browser-targets.js');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -24,6 +25,10 @@ module.exports.create = function create(envArgs) {
           use: [
             { loader: rspack.CssExtractRspackPlugin.loader },
             { loader: 'css-loader' },
+            {
+              loader: 'builtin:lightningcss-loader',
+              options: { targets: BROWSERS_LIST.map(b => b.toLowerCase()) },
+            },
             { loader: 'sass-loader', options: { sassOptions: { silenceDeprecations: ['legacy-js-api'] } } },
           ]
         }

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the column dropdown menu opening past the left edge of a narrow viewport, which clipped its first controls.",
+  "type": "fixed",
+  "issueOrPR": 14048,
+  "breaking": false,
+  "framework": "none"
+}

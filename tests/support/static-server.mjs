@@ -25,6 +25,13 @@ if (!existsSync(path.join(ROOT, 'tests/node_modules/hyperformula/dist/hyperformu
     + 'Run `pnpm install` from the repo root (see tests/README.md).');
 }
 
+// The same for the module the formula-builder fixture imports as the plugin's `builder`.
+if (!existsSync(path.join(ROOT, 'tests/node_modules/hyperformula-ui/dist/index.js'))) {
+  // eslint-disable-next-line no-console
+  console.error('static-server: tests/node_modules/hyperformula-ui is missing — the formula-builder fixture will 404. '
+    + 'Run `pnpm install` from the repo root (see tests/README.md).');
+}
+
 const TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',

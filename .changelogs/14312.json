@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a double line between a row and the frozen bottom rows when the first frozen bottom row has its own height, set with `rowHeights`, `minRowHeights`, `manualRowResize`, or taller content. That row is now drawn 1px taller than its configured height.",
+  "type": "fixed",
+  "issueOrPR": 14312,
+  "breaking": false,
+  "framework": "none"
+}

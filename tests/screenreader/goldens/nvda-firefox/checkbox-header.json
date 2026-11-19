@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "checkbox-header",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T08:41:01.950Z"
+  },
+  "steps": {
+    "arrow-up-to-header": "check all 1 of 5 checked done column header selected row 1 column 3",
+    "space-check-all": "check all 5 of 5 checked done column header selected row 1 column 3",
+    "space-uncheck-all": "check all 0 of 5 checked done column header selected row 1 column 3",
+    "arrow-down-to-cell": "unchecked selected done row 2 column 3",
+    "space-check-one": "checked done row 2 column 3",
+    "arrow-up-header-mixed": "check all 1 of 5 checked done column header selected row 1 column 3"
+  }
+}

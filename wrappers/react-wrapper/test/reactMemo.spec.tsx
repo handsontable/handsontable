@@ -14,6 +14,7 @@ import {
   simulateMouseEvent
 } from './_helpers';
 import { HotTableRef } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 /**
  * Worth noting, that although it's possible to use React.memo on renderer components, it doesn't do much, as currently they're recreated on every
@@ -24,12 +25,12 @@ describe('React.memo', () => {
     const MemoizedRendererComponent = React.memo(RendererComponent);
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(1, 1)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}
@@ -52,12 +53,12 @@ describe('React.memo', () => {
     const MemoizedEditorComponent = React.memo(EditorComponent);
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(1, 1)}
         width={300}
         height={300}
-        rowHeights={23}
+        minRowHeights={23}
         colWidths={50}
         autoRowSize={false}
         autoColumnSize={false}

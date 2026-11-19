@@ -17,6 +17,7 @@ import {
 } from './utils';
 import type { DragDirection } from './utils';
 import { DIRECTIONS } from './constants';
+import { LICENSE } from './feature.generated';
 
 Hooks.getSingleton().register('modifyAutofillRange');
 Hooks.getSingleton().register('beforeAutofill');
@@ -77,6 +78,14 @@ export class Autofill extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

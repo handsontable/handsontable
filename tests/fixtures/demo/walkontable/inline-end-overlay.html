@@ -21,6 +21,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -71,7 +72,7 @@
       colHeaders: htParams.get('colHeaders') !== '0',
       selectionHandles: true,
       renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     };
 
     if (htParams.get('windowScroll') !== '1') {

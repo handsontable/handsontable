@@ -229,7 +229,7 @@ export class DropdownObjectValuesPage {
    * In the open menu, keeps only the given value checked and confirms with OK.
    */
   async filterByOnlyValue(label: string): Promise<void> {
-    await this.menu.locator('.htUIMultipleSelect a', { hasText: /^Clear$/ }).click();
+    await this.menu.locator('.htUIMultipleSelect .htUIClearAll a').click();
 
     const checkbox = this.valueList
       .filter({ has: this.page.locator('label').getByText(label, { exact: true }) })

@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "id": "virtualization-reading",
+  "surface": "A 200-row grid in a 120 px viewport, read in reading mode from its first cell: the reading cursor reads on past the rows on screen, and each row keeps its position.",
+  "group": "reading",
+  "page": "grid",
+  "start": "page",
+  "criteria": ["1.3.1", "1.3.2", "4.1.2"],
+  "setup": [{"spreadsheetData": [200, 3]}, {"updateSettings": {"height": 120, "colHeaders": ["Alpha", "Bravo", "Charlie"]}}, {"selectCell": [0, 0]}],
+  "traversal": {"from": "read-1", "to": "read-22", "items": [["A2", "A 2"], ["A3", "A 3"], ["A4", "A 4"], ["A5", "A 5"]]},
+  "steps": [
+    {
+      "id": "read-1",
+      "action": {"read": "next"},
+      "expect": [],
+      "note": "The reading cursor moves on from the focused first cell, cell by cell (VoiceOver) or line by line (NVDA), past the rows the 120 px viewport shows. The traversal asks for the first column of rows 2 to 5, each once: a row the grid did not render is missing from what a reader can read, the virtualization limit. The page's first item is its toolbar, not the grid, so the reader starts on the page and follows the focus the setup puts on A1 (`start: page`). Finding: the reading cursor skips rows once it reaches the edge of the rendered rows, because the grid scrolls to it and re-renders under it: NVDA with Firefox skipped A5 and B5 and spoke a focus move to A6, VoiceOver with WebKit jumped from C3 to A6, and VoiceOver with Chromium from A4 to B5. NVDA with Chromium read every row. Finding (the grid's): the grid's root says the row total is unknown (aria-rowcount -1), so VoiceOver with Chromium counts only the rendered rows and the total grows as it reads (`row 3 of 13`, later `row 7 of 22`), where the grid knows it has 201."
+    },
+    {
+      "id": "read-2",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-3",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-4",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-5",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-6",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-7",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-8",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-9",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-10",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-11",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-12",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-13",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-14",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-15",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-16",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-17",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-18",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-19",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-20",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-21",
+      "action": {"read": "next"},
+      "expect": []
+    },
+    {
+      "id": "read-22",
+      "action": {"read": "next"},
+      "expect": []
+    }
+  ]
+}

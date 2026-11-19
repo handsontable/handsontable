@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a console warning when a Handsontable function renderer is passed to the `renderer` prop of `HotTable` or `HotColumn`, pointing to the `hotRenderer` prop instead.",
+  "type": "added",
+  "issueOrPR": 14010,
+  "breaking": false,
+  "framework": "react"
+}

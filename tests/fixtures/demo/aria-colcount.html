@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>aria-colcount e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    The grid root's `aria-colcount` counts the data columns plus the row-header columns. The spec
+    rebuilds the grid with its own settings through `window.buildGrid()` and then changes the
+    row-header count or the column count at runtime.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    window.buildGrid = function(extraSettings) {
+      if (window.hot) {
+        window.hot.destroy();
+        window.hot = null;
+      }
+
+      container.removeAttribute('data-init-error');
+
+      try {
+        window.hot = new Handsontable(container, Object.assign({
+          data: Handsontable.helper.createSpreadsheetData(5, 4),
+          colHeaders: true,
+          rowHeaders: true,
+          width: 600,
+          height: 300,
+          licenseKey: window.htTestLicenseKey,
+        }, extraSettings));
+        window.hot.rootElement.setAttribute('data-testid', 'grid-root');
+      } catch (error) {
+        container.setAttribute('data-init-error', String(error && error.message));
+      }
+    };
+
+    window.buildGrid();
+  </script>
+</body>
+</html>

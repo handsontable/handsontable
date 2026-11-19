@@ -337,25 +337,34 @@ A paste that runs past the last column adds the columns it needs when the
 [`columns`](@/api/options.md#columns) option, and
 [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) is left on.
 
-In every other configuration the column count is fixed, and the values that reach past the last
-column never become a column:
+In every other configuration the column count is fixed. An object data source takes its columns
+from the first row or from [`dataSchema`](@/api/options.md#dataschema), and a `columns` option
+states them outright. What happens to the values that reach past the last column depends on the
+configuration:
 
-- With [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) set to `false`, the paste drops
-  them, whatever the data source.
-- With an array data source and a `columns` option, they are still written, to the matching array
-  index, so [`getSourceData()`](@/api/core.md#getsourcedata) returns them while the grid never
-  displays them.
-- An object data source takes its columns from the first row or from
-  [`dataSchema`](@/api/options.md#dataschema), and cannot grow. From Handsontable 20.0 on, the
-  paste drops them instead of writing them, and reports no
-  [`afterChange`](@/api/hooks.md#afterchange) entry for them. This keeps the paste from adding
-  properties your data schema does not declare, which no column could then display. Writing those
-  values was deprecated in 19.0.
+- With [`allowInsertColumn`](@/api/options.md#allowinsertcolumn) set to `false`, the paste stops at
+  the last column and drops them, whatever the data source.
+- On an array data source narrowed by a `columns` option, they are written to the matching array
+  indexes. No column displays them, and [`getSourceData()`](@/api/core.md#getsourcedata) returns
+  them.
+- On an object data source, they are written to properties named after the column indexes, so no
+  column displays them. [`getSourceData()`](@/api/core.md#getsourcedata) returns those properties,
+  and [`countSourceCols()`](@/api/core.md#countsourcecols) counts only the ones on the first row,
+  because that method reads the first row's keys.
 
-On an object data source, this also applies to existing values that a paste with the
-[`copyPaste`](@/api/options.md#copypaste) option's `pasteMode` set to `'shift_right'` pushes past the
-last column: they are dropped, not only the pasted values. To write a field the grid shows no column for, use
-[`setDataAtRowProp()`](@/api/core.md#setdataatrowprop).
+::: tip
+
+On an object data source this write is deprecated as of 19.0 and will be ignored from 20.0 on,
+because the value can never become a column there - it only adds a key your
+[`dataSchema`](@/api/options.md#dataschema) does not declare. Set
+[`allowInsertColumn`](@/api/options.md#allowinsertcolumn) to `false` to drop such pasted values
+today - that also removes **Insert column left** and **Insert column right** from the menus, which
+an object data source cannot use anyway. It does not stop a direct
+[`setDataAtCell()`](@/api/core.md#setdataatcell) call. To write a field the grid shows no column
+for, use [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead. See
+[Migrate from 18.1 to 19.0](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#writing-past-the-last-column-of-an-object-data-source-is-deprecated).
+
+:::
 
 ### Extending paste behavior
 
@@ -456,7 +465,7 @@ beforePasteParse(clipboardData, event) {
 
 **Related:** [`beforePasteParse`](@/api/hooks.md#beforepasteparse)
 
-### Hooks
+### Paste hooks
 
 The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to manipulate data during the pasting operation:
 
@@ -466,11 +475,28 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to mani
 
 The hooks run in this order: `beforePasteParse`, then `beforePaste`, then `afterPaste`.
 
+`afterPaste` doesn't wait for the values to be written. The order depends on whether any pasted cell has a [validator](@/guides/cell-functions/cell-validator/cell-validator.md):
+
+- **With a validator.** `afterPaste` runs before Handsontable writes any pasted value, including the cells without a validator. The validator runs after `afterPaste`, so a cell still holds its previous value and `valid` flag. If the paste adds rows, `afterPaste` also runs before those rows exist. The order is then `afterPaste`, [`afterCreateRow`](@/api/hooks.md#aftercreaterow), and [`afterChange`](@/api/hooks.md#afterchange).
+- **Without a validator.** [`afterChange`](@/api/hooks.md#afterchange) runs first and `afterPaste` follows. A paste that adds rows runs [`afterCreateRow`](@/api/hooks.md#aftercreaterow) before `afterChange`.
+
+A cell has a validator when you set one, when its cell type provides one (for example `numeric`, `date`, `dropdown`, or `autocomplete`), or when you set a [`maxLength`](@/api/options.md#maxlength) that is a finite number of 0 or more.
+
+To change or cancel the pasted values, use [`beforePaste`](@/api/hooks.md#beforepaste). To react once the cells hold the new values, use [`afterChange`](@/api/hooks.md#afterchange) and check for the `'CopyPaste.paste'` source. When the [`copyPaste`](@/api/options.md#copypaste) option sets `pasteMode` to `'shift_down'` or `'shift_right'`, the source is `'populateFromArray'`.
+
 Examples of how to use them are provided in their descriptions.
 
 ### Copy cell appearance on paste
 
 The [`CopyPaste`](@/api/copyPaste.md) plugin copies cell values by default. To copy cell appearance, save each copied or cut cell's `className` metadata in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and then apply it to the pasted range in [`afterPaste`](@/api/hooks.md#afterpaste).
+
+`className` doesn't depend on the pasted values, so `afterPaste` works here, also with validators and with pastes that add rows. Use [`afterChange`](@/api/hooks.md#afterchange) instead in these cases:
+
+- The grid trims or filters rows, and a paste with validators adds rows. `afterPaste` runs before those rows exist, so the metadata lands on another row.
+- [`allowInsertRow`](@/api/options.md#allowinsertrow) or [`maxRows`](@/api/options.md#maxrows) can cut a paste short. The metadata for the rows that never exist stays behind, and a row added later can inherit it.
+- Your code reads the pasted values or the row count.
+
+See [Paste hooks](#paste-hooks).
 
 Copy or cut a styled range from the grid, and paste it into another range to copy the cell values and appearance.
 
@@ -511,7 +537,7 @@ Copy or cut a styled range from the grid, and paste it into another range to cop
 
 ### Copy comments on paste
 
-To copy cell comments, enable the [`Comments`](@/api/comments.md) plugin. Then use [`getCommentAtCell()`](@/api/comments.md#getcommentatcell) in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) in [`afterPaste`](@/api/hooks.md#afterpaste).
+To copy cell comments, enable the [`Comments`](@/api/comments.md) plugin. Then use [`getCommentAtCell()`](@/api/comments.md#getcommentatcell) in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) in [`afterPaste`](@/api/hooks.md#afterpaste). Comments don't depend on the pasted values, so `afterPaste` works here, also with validators and with pastes that add rows. The same exceptions as for copying cell appearance apply: use [`afterChange`](@/api/hooks.md#afterchange) when the grid trims or filters rows, when [`allowInsertRow`](@/api/options.md#allowinsertrow) or [`maxRows`](@/api/options.md#maxrows) can cut a paste short, or when your code reads the pasted values or the row count. See [Copy cell appearance on paste](#copy-cell-appearance-on-paste) and [Paste hooks](#paste-hooks).
 
 Copy or cut a commented range from the grid, and paste it into another range to copy the cell values and comments.
 

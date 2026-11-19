@@ -10,13 +10,21 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { replaceTemplateVariables } from './src/plugins/template-variables.mjs';
 import { buildPageMarkdown } from './src/lib/added-in.mjs';
+import { buildFrameworkMarkdownRoutes } from './src/lib/markdown-routes.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
+import {
+  injectLicenseKey,
+  isExecutedExampleId,
+  previewLicenseKeyCheck,
+  resolvePreviewLicenseKey,
+} from './src/plugins/preview-license-key.mjs';
 import { buildAllSidebars, buildAllValidUrls, FRAMEWORK_PREFIXES } from './src/sidebar.mjs';
 import { AGENT_NOTE_MD } from './src/agent-note.mjs';
 import { buildLlmsFull, buildLlmsIndex, buildLlmsSections, SITE_URL } from './src/llms.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
+import { resolveSentryRelease } from './src/lib/sentry-release.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlinkSync } from 'fs';
@@ -54,6 +62,15 @@ if (!existsSync(symlinkTarget)) {
 const buildMode = process.env.BUILD_MODE;
 const isProduction = buildMode === 'production';
 
+// The internal test key for the executed examples of a staging or pull request
+// preview build (DOCS_TEST_LICENSE_KEY=true, never in production). Those builds run
+// off handsontable.com, where a grid without a key shows the lock screen. The code a
+// page shows keeps the placeholder: framework-loader.mjs reads the source from disk.
+const previewLicenseKey = resolvePreviewLicenseKey(process.env);
+// The example module ids the transform rewrote; the build check compares them
+// with every executed example that holds a placeholder.
+const licenseKeyRewrittenIds = new Set();
+
 // Absolute path to the handsontable package root (used to resolve styles and
 // other non-tmp/ files like `handsontable/styles/ht-theme-main.css`).
 const HOT_DIR = resolve(__dirname, '../handsontable');
@@ -63,6 +80,10 @@ const HOT_DIR = resolve(__dirname, '../handsontable');
 // than inside a component's own frontmatter, which Vite relocates during
 // the production build.
 const HOT_VERSION = resolveHotVersion(__dirname);
+
+// The Sentry release of this build (`null` outside a production build). Interpolated
+// into the inline `window.sentryOnLoad` script, which is static HTML at runtime.
+const sentryRelease = resolveSentryRelease({ buildMode, version: HOT_VERSION });
 
 // Absolute path to the local Handsontable ESM build (handsontable/tmp/).
 // Used to resolve `handsontable` and `handsontable/*` imports in example files
@@ -165,8 +186,20 @@ function resolveMonorepoPackages() {
     // .ts   → Angular multi-file sections flattened, skip-in-compilation blocks
     //         stripped, then compiled with experimentalDecorators so Angular
     //         Ivy JIT decorators are preserved for runtime compilation.
-    async transform(code, id) {
+    // A staging or preview build first writes the internal test key over the
+    // license placeholder of each executed example (preview-license-key.mjs).
+    async transform(source, id) {
       if (!id.includes('/content/')) return null;
+
+      // Runs first, on the source, before the JSX and Angular transpiles drop
+      // the placeholder comments.
+      const code = previewLicenseKey && isExecutedExampleId(id)
+        ? injectLicenseKey(source, previewLicenseKey)
+        : source;
+
+      if (code !== source) {
+        licenseKeyRewrittenIds.add(id);
+      }
 
       if (id.endsWith('.jsx')) {
         return transformWithEsbuild(code, id, {
@@ -182,7 +215,8 @@ function resolveMonorepoPackages() {
         return { code: preprocessAngularTs(code), map: null };
       }
 
-      return null;
+      // .js and .vue: the rewrite keeps the line count, so no source map.
+      return code === source ? null : { code, map: null };
     },
 
     resolveId(id) {
@@ -575,7 +609,8 @@ function commonJsonIntegration() {
  *
  * Scans docs/content/ for .md files, reads their `permalink` frontmatter,
  * and writes cleaned Markdown to public/ (dev) and dist/ (build) for every
- * framework prefix in FRAMEWORK_PREFIXES.
+ * framework prefix in FRAMEWORK_PREFIXES. Each framework's copy keeps only its
+ * own `::: only-for` blocks (src/lib/markdown-routes.mjs).
  *
  * Generated files live under public/ and are gitignored.
  *
@@ -586,7 +621,6 @@ function markdownRoutesIntegration(sidebars) {
   const matter = _require('gray-matter');
   const contentDir = resolve(__dirname, 'content');
   const publicMdDir = resolve(__dirname, 'public', '_md');
-  const PREFIXES = Object.values(FRAMEWORK_PREFIXES);
 
   // One output file = an H1 from the frontmatter title, the "Added in" sentence
   // when the page has `addedIn` (DEV-2877), then the body with its template
@@ -634,12 +668,16 @@ function markdownRoutesIntegration(sidebars) {
         if (!data.permalink) continue;
 
         const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
-        const md = buildMarkdown(data, content);
 
         pageMeta.set(slug, { title: data.title, description: data.description || '' });
 
-        for (const prefix of PREFIXES) {
-          routeMap.set(`${prefix}/${slug}.md`, md);
+        for (const [route, md] of buildFrameworkMarkdownRoutes(
+          slug,
+          content,
+          FRAMEWORK_PREFIXES,
+          (filtered) => buildMarkdown(data, filtered),
+        )) {
+          routeMap.set(route, md);
         }
       }
     }
@@ -808,6 +846,10 @@ export default defineConfig({
         // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
         // automatically, so adding `beforeSend` does not disturb the rest of the setup.
         //
+        // `release` (`handsontable-docs@<core version>`) is set on production builds only,
+        // from `src/lib/sentry-release.mjs`, and at runtime only on handsontable.com, so
+        // events can be tied to a docs version.
+        //
         // Seven classes of expected errors are dropped:
         //
         //   1. Failed requests from server-side data recipe examples.
@@ -905,7 +947,13 @@ export default defineConfig({
     }
   })();
 
+  // The build-time release also reaches RC staging, which builds in production mode
+  // but is served from *.pages.dev. Only the live site reports under a release.
+  var isLiveSite = /^(www\\.)?handsontable\\.com$/.test(window.location.hostname);
+  var release = isLiveSite ? ${JSON.stringify(sentryRelease)} : null;
+
   Sentry.init({
+    release: release || undefined,
     beforeSend: function (event, hint) {
       try {
         // Drop failed requests from server-side data recipe pages: the HTTP <status>
@@ -1134,6 +1182,15 @@ export default defineConfig({
 
     // Generate sitemap.xml during build.
     sitemap(),
+
+    // Checks where the internal test license key landed. Keep it last:
+    // astro:build:done hooks run in this order, and the check must see the
+    // files the integrations above write (_md twins, llms*.txt).
+    previewLicenseKeyCheck({
+      injected: Boolean(previewLicenseKey),
+      rewritten: licenseKeyRewrittenIds,
+      contentDir: resolve(__dirname, 'content'),
+    }),
   ],
 
   markdown: {
@@ -1194,16 +1251,16 @@ export default defineConfig({
     define: {
       'import.meta.env.PUBLIC_BUILD_MODE': JSON.stringify(buildMode || ''),
       'import.meta.env.PUBLIC_HOT_VERSION': JSON.stringify(HOT_VERSION),
-      // Docs-assistant backend base URL. The backend is migrating from Netlify
-      // to a Cloudflare Worker (SU-633). Dev soaks the new Worker first: non-
-      // production builds (develop apex staging, PR previews, local dev) default
-      // to the dev Worker, while production stays on Netlify until its own
-      // separate cutover. The PUBLIC_CHAT_API_URL env var (wired into the staging
-      // build in SU-589) still takes precedence over this default in either mode.
+      // Docs-assistant backend base URL, used only off the canonical hosts
+      // (handsontable.com and dev.handsontable.com reach the backend through the
+      // same-origin /docs-assistant proxy, see DocsAssistant/constants.ts).
+      // Production builds default to the production Worker's branded host and
+      // non-production builds (PR previews, local dev) to the dev Worker. The
+      // PUBLIC_CHAT_API_URL env var (SU-589) takes precedence in either mode.
       'import.meta.env.PUBLIC_CHAT_API_URL': JSON.stringify(
         process.env.PUBLIC_CHAT_API_URL ||
           (isProduction
-            ? 'https://hot-docs-assistant.netlify.app'
+            ? 'https://docs-assistant.handsontable.com'
             : 'https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev')
       ),
     },

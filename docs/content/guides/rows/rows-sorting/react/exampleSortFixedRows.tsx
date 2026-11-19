@@ -34,7 +34,7 @@ const sharedSettings: GridSettings = {
   fixedRowsBottom: 1,
   height: 'auto',
   stretchH: 'all',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 // Both grids start sorted by revenue, highest first.

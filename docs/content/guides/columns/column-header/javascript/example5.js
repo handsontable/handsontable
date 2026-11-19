@@ -26,5 +26,5 @@ const hot = new Handsontable(container, {
     { headerClassName: 'htRight bold-text italic-text', type: 'numeric' },
     { type: 'numeric', numericFormat: { minimumFractionDigits: 3, maximumFractionDigits: 3, useGrouping: false } },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });

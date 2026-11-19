@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "page": "time-editor",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "grid",
+        "role": "InputTime",
+        "name": ""
+      },
+      {
+        "region": "grid",
+        "role": "InputTime",
+        "name": ""
+      }
+    ]
+  }
+}

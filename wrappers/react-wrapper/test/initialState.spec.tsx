@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { HotTable } from '../src/hotTable';
 import { HotTableRef } from '../src/types';
 import { mountComponent } from './_helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 describe('Initial state', () => {
   it('should be possible to set the initial state for nested headers, columns, and collapsible columns', async() => {
@@ -136,7 +137,7 @@ describe('Initial state', () => {
           }}
           autoWrapRow={true}
           autoWrapCol={true}
-          licenseKey="non-commercial-and-evaluation"
+          licenseKey={TEST_LICENSE_KEY}
         />
       );
     }

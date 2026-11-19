@@ -6,7 +6,6 @@
 export type LicenseKeyFormat =
   | 'entitlement'
   | 'legacy'
-  | 'non-commercial-and-evaluation'
   | 'unknown';
 
 /**
@@ -89,8 +88,10 @@ export interface LicenseLifecycle {
  *
  * `ui` governs warnings only. The hard-stop lock screen is enforcement and is
  * mounted regardless - see `NO_UI_WARNS_FLAG` in `./constants` and the routing
- * note in `utils/licenseBranding/index.ts`. A new surface reading this field
- * has to decide which of the two it is before honoring it.
+ * note in `utils/licenseBranding/index.ts`. So is the "Powered by" bar a
+ * `badge` key asks for: it is branding, not a warning - see `BADGE_FLAG` in
+ * `./constants`. A new surface reading this field has to decide which of the
+ * three it is before honoring it.
  */
 export interface LicenseChannels {
   console: boolean;
@@ -102,6 +103,10 @@ export interface LicenseChannels {
  * every query answers "granted" for it, so the same API serves legacy keys
  * (unlock everything) and entitlement keys (unlock exactly the tokens the
  * payload lists) without the caller branching on the key family.
+ *
+ * The reader lists every token an entry carries. What they unlock is the
+ * product's decision: Handsontable gates on the `tier:<name>` tokens alone
+ * (`_getLicenseState` in `helpers/mixed.ts`) and does not read these grants.
  */
 export interface LicenseGrants {
   unrestricted: boolean;

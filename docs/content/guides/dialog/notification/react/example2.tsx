@@ -87,6 +87,7 @@ const ExampleComponent: React.FC = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotTableRef}
         data={data}
         columns={columns}
@@ -94,7 +95,6 @@ const ExampleComponent: React.FC = () => {
         rowHeaders
         width="100%"
         height={280}
-        licenseKey="non-commercial-and-evaluation"
         notification
       />
     </div>

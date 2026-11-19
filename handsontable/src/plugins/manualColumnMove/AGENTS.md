@@ -6,6 +6,12 @@ The `manualColumnMove` plugin reorders columns by dragging their header. Read th
 `../manualRowMove/` is the mirror plugin. The public API shape, the `move` vs `drag` distinction and
 `isMovePossible()` are identical; read that file's AGENTS.md for the row-specific parts.
 
+Formulas reloading the engine sheet a grid built without `data` is bound to reloads through `updateData()`, which
+keeps the index maps and fires no `afterLoadData`, so no replay runs. When anything but the grid changed the
+sheet it falls back to `loadData()` and puts the grid's previous order back after the load
+(`../formulas/AGENTS.md`, "A reload of the sheet the syncers are synced with keeps the grid's order"). It reads
+this plugin's state through nothing but the index mapper, as for ManualRowMove (`../manualRowMove/AGENTS.md`).
+
 ## `move*` and `drag*` take DIFFERENT indexes
 
 This is the single most common mistake with this plugin:
@@ -25,6 +31,29 @@ four cases: destination too high (`moved.length + finalIndex > length`), destina
 index negative, and any moved index at or past the length. "You can't move more than one element to the
 last position" is a consequence of the first.
 
+## A move that changes nothing never reaches the index mapper
+
+`moveColumns()` computes `movePerformed` (`isMovePossible()` and `isColumnOrderChanged()`) before it calls
+`columnIndexMapper.moveIndexes()`, and calls it only when that is true. `moveIndexes()` places the moved
+columns before the next NOT-trimmed column and does not see a trimmed one in between, so a drop onto the
+column's own position used to push it past the trimmed column. The hooks still fire, with `orderChanged:
+false`. The sequence change hooks (`afterColumnSequenceChange` and its cache update twin) no longer fire for
+such a drop either. The row mirror documents the same rule in `../manualRowMove/AGENTS.md`; keep both in step.
+Pinned by `__tests__/noopMoveTrimmedColumns.unit.js` and `tests/e2e/manual-move-trimmed.spec.ts`.
+
+## A move that changes the order lands next to a visible column
+
+`moveIndexes()` puts the moved columns right before the physical column of the visible column at `finalIndex`,
+after any trimmed columns in front of it. A move to the last visible position puts them right after the last
+visible column, before the trailing trimmed columns. The columns never split a run of neighboring trimmed
+columns. The rule is pinned by `__tests__/moveTrimmedPlacement.unit.js`, which mirrors the row plugin's test of
+the same name, and the column-moving guide documents it. Landing on the other side of a trimmed block would
+change the physical order users see after untrimming, so it is a breaking change. With HIDDEN columns the drop
+target steps over the zero-width hidden columns ("Hidden columns have zero width, and the drop target steps over them" below), so a pointer drop on either side of a hidden
+block between two visible columns gives one physical order, with the columns after the block. Hidden columns that
+end the grid are stepped past too, and there is no self-drop exemption, which the row plugin has. `tests/e2e/manual-row-move-hidden-gap.spec.ts`
+pins it for both axes, and the row plugin steps over hidden rows the same way (`getLowerHalfDropIndex()`).
+
 ## `isDragging()` is the shared click-versus-drag verdict
 
 ```js
@@ -35,14 +64,30 @@ ColumnSorting asks this **on release** to tell a click apart from a drag, so the
 about where that line is — it has no tolerance logic of its own, it just calls
 `manualColumnMove?.isDragging()`.
 
-**So `POINTER_DRAG_TOLERANCE = 3` in this file is the single source of truth for that threshold.** Do not go
-looking for a second copy in ColumnSorting and do not add one: the comments at `manualColumnMove.ts:19` and
-`:716` claim the value is duplicated there, and they are stale — `columnSorting/` contains no tolerance
-constant, no `Math.abs`, and no press-origin tracking.
+**So the threshold lives in one place: `POINTER_DRAG_TOLERANCE` (3 px) and `hasPointerTraveled()` in
+`helpers/dom/event.ts`.** ManualColumnMove and ManualRowMove both call them. Do not add a second copy in
+ColumnSorting or either plugin: `columnSorting/` contains no tolerance constant, no `Math.abs`, and no press-origin
+tracking. The comment at `manualColumnMove.ts:716` that claims the value is duplicated there is stale.
 
 A press that never traveled is a click, not a move, and bailing out on that also keeps
 `beforeColumnMove` / `afterColumnMove` from firing on every header click. The full protocol on the sorting
 side — the queued press, the two release signals, the two cancel checks — is in `../columnSorting/AGENTS.md`.
+
+## A selection of several ranges arms no move
+
+`#onBeforeOnCellMouseDown` returns through `#cancelDrag()` while `hot.selection.isNonContiguous()` is true
+(Ctrl/Cmd+click headers, or `selectCells()` with several ranges). The press used to arm a drag of the
+active range alone and leave the other ranges where they were (DEV-541). With the move not armed, the press
+falls through to the ordinary selection.
+`moveColumns()` and `dragColumns()` are untouched: the guard is about the gesture. `#onMouseUp` adds the
+`after-selection--columns` class (the grab cursor on the selected headers) only while the selection is a
+single range, so no header advertises a drag the guard refuses. `../manualRowMove/` has the same guard and
+the same class rule. Do not use `isMultiple()` here: it asks whether the ACTIVE range spans several cells.
+Pinned by `tests/e2e/non-contiguous-selection-interop.spec.ts`.
+
+## A press another listener claimed arms no move
+
+`#onBeforeOnCellMouseDown` skips a press whose `isImmediatePropagationStopped(event)` is set, the way DragToScroll does: that listener owns the gesture. The FormulaBuilder header pick is the case it was added for. A pick dragged across the headers of a header-selected column armed a move, drew the guideline, scrolled the viewport on each `mousemove` next to the pick's own auto-scroller, and moved the range on release, which closed the edit. A pick that ended without a `mouseup` (a window blur) also left the move pressed for the next release on the page. The check depends on the claiming listener running first in the same hook: FormulaBuilder registers with order index `-1`. The other in-tree claimers (CheckboxHeader, RowSelection, CollapsibleColumns) register after this plugin, so their presses arm as before, until an `updatePlugin()` of this plugin moves its hook to the tail of the list.
 
 ## Hidden columns have zero width, and the drop target steps over them
 
@@ -92,6 +137,27 @@ load-bearing, and the root has no clipping or scroll tracking of its own.
   with `document.elementFromPoint()` at a body row and assert that the guideline is the element hit
   (`tests/e2e/manual-column-freeze-boundary.spec.ts`, "the drop guideline"); the pointer-events-none backlight
   cannot be probed that way.
+
+## A drag ends when the column order starts over
+
+`afterColumnSequenceChange` with the `'init'` source cancels a held header drag (`#cancelDrag()`), so the release
+moves nothing. `initIndexMappers()` is the one place that source comes from: `loadData()`, `updateSettings()` with
+`columns`, and new data or a schema with another column layout. The columns a drag holds are visual indexes of the
+order it started on, so the release moved other columns. Hooking `beforeLoadData` alone missed the `columns` paths.
+A same-shape `updateData()` keeps the order (`fitToLength()`, no `'init'`) and the drag: the React wrapper sends
+`data` on every re-render, so a parent re-render must not cancel the gesture.
+
+- **ColumnSorting drops its queued header press on the same change.** A drag starts with a press on the header,
+  and the cancel makes `isDragging()` read `false`, so without that the release sorted a column of the new order.
+- **`disablePlugin()` cancels too, but not inside `updatePlugin()`.** A drag held while the plugin is turned off
+  otherwise kept its state, and the first `mouseup` after it was turned back on moved those columns. A restart
+  through `updatePlugin()` (`#restarting`) keeps the drag, because the wrappers send `manualColumnMove` with every
+  render.
+- `#cancelDrag()` is also the reset of both mousedown branches that start no drag, so the reset fields cannot drift
+  apart. It goes through `#endDrag()`, which `#onMouseUp()` shares and which moves the guideline back to the master
+  table.
+
+Pinned by `tests/e2e/manual-column-move-data-replace.spec.ts`.
 
 ## DataProvider blocks this plugin
 

@@ -3,6 +3,7 @@ import Handsontable from 'handsontable/base';
 import {
   Formulas, ManualColumnFreeze, ManualColumnMove, ManualRowMove, MoveCells, registerPlugin, UndoRedo,
 } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(Formulas);
 registerPlugin(UndoRedo);
@@ -32,7 +33,7 @@ describe('Formulas – undo', () => {
   // DEV-688: after the undo the formula column showed the formula text instead of the results.
   it('should show the calculated values again after undoing a paste that added columns', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[1, 2, '=A1*B1'], [3, 4, '=A2*B2'], [5, 6, '=A3*B3']],
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       undo: true,
@@ -56,7 +57,7 @@ describe('Formulas – undo', () => {
   // engine gets it the way an edit gives it: through the column's `valueGetter`.
   it('should send an object value to the engine through the column `valueGetter` on undo', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[{ key: 1, value: 'X' }, '=A1']],
       columns: [{ valueGetter: value => (value && typeof value === 'object' ? value.value : value) }, {}],
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
@@ -107,14 +108,14 @@ describe('Formulas – undo', () => {
       document.body.appendChild(otherContainer);
 
       const buildA = () => new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: dataA,
         formulas: { engine, sheetName: sheetA },
         undo: true,
         ...settingsA,
       });
       const buildB = () => new Handsontable(otherContainer, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: dataB,
         formulas: { engine, sheetName: 'S2' },
         undo: true,
@@ -464,7 +465,7 @@ describe('Formulas – undo', () => {
     it('should not read another sheet when the engine holds this grid\'s sheet alone', () => {
       engine = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [[1, '=A1*2'], [2, '=A2*2']],
         formulas: { engine, sheetName: 'S1' },
         undo: true,

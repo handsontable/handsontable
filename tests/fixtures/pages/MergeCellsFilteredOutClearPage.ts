@@ -77,7 +77,7 @@ export class MergeCellsFilteredOutClearPage {
   }
 
   /**
-   * Unchecks every value in the column's "Filter by value" list with the "Clear" link and confirms
+   * Unchecks every value in the column's "Filter by value" list with the "Select none" link and confirms
    * the menu with "OK", filtering out every row.
    *
    * @param {string} headerLabel The column header's visible label.

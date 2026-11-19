@@ -89,7 +89,7 @@ const hot = new Handsontable(gridContainer, {
   width: '100%',
   stretchH: 'all',
   autoWrapRow: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Step 2: A helper that keeps the toolbar consistent with the current request state.

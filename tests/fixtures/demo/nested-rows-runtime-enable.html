@@ -43,6 +43,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -153,7 +154,7 @@
         // does not touch - re-measures through a ResizeObserver, so that one case is asserted on the
         // model instead. The tall tree takes a fixed height, because it has to be scrollable.
         height: isTall ? 150 : 'auto',
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htFixtureError = error && error.message ? error.message : String(error);
@@ -172,7 +173,7 @@
           nestedRows: true,
           width: 200,
           height: 'auto',
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         });
       } catch (error) {
         window.htFixtureError = error && error.message ? error.message : String(error);

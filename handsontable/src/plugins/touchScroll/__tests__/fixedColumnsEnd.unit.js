@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { TouchScroll, registerPlugin } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(TouchScroll);
@@ -25,7 +26,7 @@ describe('TouchScroll – fixedColumnsEnd', () => {
 
   function createGrid(settings = {}) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: Array.from({ length: 10 }, (_, row) => Array.from({ length: 10 }, (__, col) => `${row}:${col}`)),
       colHeaders: true,
       rowHeaders: true,

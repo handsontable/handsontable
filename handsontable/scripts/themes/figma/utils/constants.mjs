@@ -21,6 +21,11 @@ export const TOKENS_PATH = resolve(__dirname, '..', 'tokens.json');
 // Generated theme files are written straight into the published source tree.
 export const OUTPUT_PATH = resolve(__dirname, '../../../../src/themes/static');
 
+// One SHA-256 per generated file, rewritten on every run and committed. It lives outside
+// OUTPUT_PATH so it never ships in the package. `src/themes/__tests__/staticThemesGenerated.unit.js`
+// fails when a file under OUTPUT_PATH no longer matches it, which is how a hand edit shows up.
+export const MANIFEST_PATH = resolve(__dirname, '..', 'static-manifest.json');
+
 export const VARIANTS = ['light', 'dark'];
 export const OTHER_VARIABLES = ['density'];
 export const EXCEPTION_KEYS = ['font-family'];

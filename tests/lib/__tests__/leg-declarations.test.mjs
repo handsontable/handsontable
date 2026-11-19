@@ -1348,6 +1348,9 @@ const THEMES_CANARIES = [
   'e2e/comments-editor-resize.spec.ts',
   'e2e/editor-hidden-cell.spec.ts',
   'e2e/fixed-columns-end.spec.ts',
+  // A short fixture: in 130 px the last row ends at the holder's bottom on `horizon` only, where its fill
+  // handle is lifted into the cell. No marker reads a row height.
+  'e2e/formulas-object-columns.spec.ts',
   'e2e/handsontable-editor-list-position.spec.ts',
   'e2e/iframe-cross-realm-scroll.spec.ts',
   // A band edge: it drags to row 6 of a 300 px grid, which only the row heights keep on screen. A text

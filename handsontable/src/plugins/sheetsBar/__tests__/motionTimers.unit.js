@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { SheetsBar } from '../sheetsBar';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(SheetsBar);
 
@@ -76,7 +77,7 @@ function createAnimatedGrid() {
   document.body.appendChild(container);
 
   const hot = new Handsontable(container, {
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     sheetsBar: { sheets: createSheets() },
   });
 
@@ -180,7 +181,29 @@ describe('SheetsBar motion timeouts', () => {
     expect(motion.filter(id => timeouts.ran.includes(id))).toEqual([]);
   });
 
-  it('hands the motion over on a workbook-preserving update and clears the old strip\'s timeouts', () => {
+  it('keeps the running motion\'s timeouts when the same settings are sent again', () => {
+    hot = createAnimatedGrid();
+
+    const timeouts = trackTimeouts();
+    const mark = timeouts.mark();
+
+    startEveryMotion(hot);
+
+    const motion = timeouts.startedSince(mark).filter(id => timeouts.pending.has(id));
+    const resentMark = timeouts.mark();
+
+    hot.updateSettings({ sheetsBar: { sheets: hot.getSettings().sheetsBar.sheets } });
+
+    expect(motion.filter(id => timeouts.pending.has(id))).toEqual(motion);
+    expect(timeouts.startedSince(resentMark)).toEqual([]);
+
+    hot.destroy();
+    jest.advanceTimersByTime(5000);
+
+    expect(timeouts.startedSince(mark).filter(id => timeouts.ran.includes(id))).toEqual([]);
+  });
+
+  it('hands the motion over on a workbook-preserving update that rebuilds the bar and clears the old strip\'s timeouts', () => {
     hot = createAnimatedGrid();
 
     const timeouts = trackTimeouts();
@@ -194,7 +217,12 @@ describe('SheetsBar motion timeouts', () => {
 
     const handedOverMark = timeouts.mark();
 
-    hot.updateSettings({ sheetsBar: { sheets: hot.getSettings().sheetsBar.sheets } });
+    hot.updateSettings({
+      sheetsBar: {
+        sheets: hot.getSettings().sheetsBar.sheets,
+        animation: { switch: true, add: true, remove: true, move: true },
+      },
+    });
 
     expect(motion.filter(id => timeouts.pending.has(id))).toEqual([]);
     expect(timeouts.startedSince(handedOverMark).filter(id => timeouts.pending.has(id)).length)

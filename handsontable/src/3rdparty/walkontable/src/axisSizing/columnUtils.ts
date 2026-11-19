@@ -1,5 +1,7 @@
 import type { TableDeps } from '../table/baseTable';
 import type { ColumnSizeSource } from './axisSizeSource';
+import { resolveRowHeaderWidths } from './rowHeaderWidths';
+
 /**
  * Column utils class contains all necessary information about sizes of the columns.
  *
@@ -98,29 +100,14 @@ export default class ColumnUtils {
   }
 
   /**
-   * Calculates column header widths that can be retrieved from the cache.
+   * Calculates the width of every row header level, which `getHeaderWidth()` then serves from the
+   * cache. The widths come from `resolveRowHeaderWidths()`, the one reader of the
+   * `onModifyRowHeaderWidth` setting, so the `col` elements always add up to the row header width the
+   * viewport works with.
    */
   calculateWidths() {
-    const { wtSettings } = this;
-    let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    rowHeaderWidthSetting = wtSettings.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
-
-    if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== undefined) {
-      const rowHeadersCount = wtSettings.getSetting<Function[]>('rowHeaders').length;
-      const defaultColumnWidth = wtSettings.getSetting('defaultColumnWidth');
-
-      for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        let width = Array.isArray(rowHeaderWidthSetting)
-          ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        width = (width === null || width === undefined) ? defaultColumnWidth : width;
-
-        this.headerWidths.set(visibleColumnIndex, width);
-      }
-    }
+    resolveRowHeaderWidths(this.wtSettings).forEach((width, level) => {
+      this.headerWidths.set(level, width);
+    });
   }
 }

@@ -93,7 +93,7 @@ const detailHot = new Handsontable(detailContainer, {
   width: '100%',
   autoWrapRow: true,
   stretchH: 'all',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const detailColumnMap: Record<keyof DetailRow, number> = {
@@ -138,9 +138,11 @@ const masterHot = new Handsontable(masterContainer, {
 
     const changedRows = new Set<number>();
 
-    changes.forEach(([row]) => {
-      if (typeof row === 'number') {
-        changedRows.add(row);
+    changes.forEach((change) => {
+      const physicalRow = masterHot.getPhysicalRowOfChange(change);
+
+      if (physicalRow !== null) {
+        changedRows.add(physicalRow);
       }
     });
 
@@ -150,7 +152,7 @@ const masterHot = new Handsontable(masterContainer, {
       syncDetailRow(rowIndex, rowData);
     });
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // eslint-disable-next-line no-unused-vars

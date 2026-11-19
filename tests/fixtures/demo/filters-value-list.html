@@ -28,6 +28,12 @@
     if (window.htScheme === undefined) {
       throw new Error('Unknown ?scheme= value: ' + JSON.stringify(htParams.get('scheme')));
     }
+    // `?aria=off` builds the grid with `ariaTags: false`, which can only be set at init. An unknown
+    // value throws, like the theme's.
+    window.htAriaTags = ({ on: true, off: false })[htParams.get('aria') ?? 'on'];
+    if (window.htAriaTags === undefined) {
+      throw new Error('Unknown ?aria= value: ' + JSON.stringify(htParams.get('aria')));
+    }
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
     // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
@@ -38,6 +44,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -78,7 +85,8 @@
       renderer: testIdRenderer,
       width: 600,
       height: 300,
-      licenseKey: 'non-commercial-and-evaluation',
+      ariaTags: window.htAriaTags,
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

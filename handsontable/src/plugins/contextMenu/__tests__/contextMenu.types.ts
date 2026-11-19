@@ -1,6 +1,12 @@
 import Handsontable from 'handsontable';
 import { ContextMenu } from 'handsontable/plugins/contextMenu';
-import type { MenuItemConfig } from 'handsontable/plugins/contextMenu';
+import type { MenuItemConfig, PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
+
+const pluginKeys: PredefinedMenuItemKey[] = ['export_file', 'row_selection_remove', 'row_selection_clear'];
+
+new Handsontable(document.createElement('div'), {
+  contextMenu: pluginKeys,
+});
 
 const hot = new Handsontable(document.createElement('div'), {
   contextMenu: true,

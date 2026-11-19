@@ -1,0 +1,560 @@
+# FormulaBuilder plugin – formula bar, formula editor, and reference picking on top of Formulas
+
+Covers `formulaBuilder.ts` (lifecycle, settings, the public API), `handsontableAdapter.ts` (the
+`hyperformula-ui` `IGridAdapter` contract: index translation, highlights, navigation),
+`cellPickController.ts` (mouse reference picking), `formulaCellEditor.ts` (the `formula` editor shim),
+`types.ts` (public types), `gridContract.ts` (the package's adapter contract, restated for the
+declarations) and `internalTypes.ts`. Read this before
+touching any of them, or the Formulas, NestedHeaders, or DragToScroll mouse paths.
+
+## What it owns and what it does not
+
+- **It owns** the glue: the editor shim registered as `editor: 'formula'`, the formula bar host in the top
+  layout slot, the adapter, the reference-pick gesture, the error marks it writes in `afterRenderer`, and
+  the reference highlights (custom selections on `hot.selection.highlight`).
+- **`hyperformula-ui` owns** the editor itself: tokenizing, colored references, autocomplete, function
+  help, the error popup, the live region, the keymap, and every accessible name of the bar and the editor.
+  The plugin never reaches into its DOM except through the classes it documents.
+- **The Formulas plugin owns** the engine, the sheet, and the visual-to-HyperFormula index translation (its
+  axis syncers). This plugin borrows all three per call and never caches an engine across an enable cycle.
+- **The application owns** the module: `builder` is the `hyperformula-ui` namespace the application
+  imports. The Handsontable bundles never import the package at runtime.
+
+## The traps
+
+- **Bar elements sit outside `.handsontable`, so a selector that styles them must be rooted at `.ht-formula-builder__formula-bar`.** The bar mounts in a root-wrapper slot, not inside the grid root. A `.handsontable .hfe-*` rule in `_formula-builder.scss` styles only the in-cell editor and never matches the bar (this is why the bar's editor had no focus ring).
+- **The package's point-mode toggle (F2, mod+E) emits no event; the shim watches the handled keydown and enters full edit mode so arrows stop committing.** The keyboard guard in `formulaCellEditor.ts` (`startKeyboardGuard`) calls `editor.enableFullEditMode?.()` for a handled `F2` or ctrl/meta+`e`. Without it the toggled arrows reach the grid and commit the quick edit.
+- **Every path that hands the keyboard back from the bar must `listen()` again.** Focusing the bar makes the focus scope manager `unlisten()` the grid, so commit, cancel, and teardown under an open bar edit all go through `#relistenAfterBarExit()`, or the keyboard is dead until a click. A bar commit (`#relistenAfterSavedBarEdit()`) relistens only after a save of a bar-hosted edit. A rejected save restores the bar-hosted mark, which core's `discardEditor()` reselect clears, and unlistens. While an async validator runs, `#watchMoveAway()` watches document `mousedown`/`pointerdown`/`touchstart`/`focusin` by `composedPath()`: a press or focus outside this grid and its bar keeps the keyboard where the user went. Do not read `document.activeElement` instead: inside a shadow root it names the host, so every bar commit there looked like a move away and the keyboard stayed dead. The teardown (`#cancelOpenEdit()`) relistens only when the edit was bar-hosted: an in-cell edit never took the keyboard, and listening there took it from another grid the user had moved to. A teardown inside `hot.destroy()` runs from the Formulas plugin's engine detach, before this plugin's own `destroy()`, so no plugin flag can see it: core's `listen()` is a no-op once `destroy()` has taken the grid out of its instance registry. A pick drag released outside the grid needs it too, but deferred: the focus scope manager's `click` handler runs after the `mouseup` and unlistens the grid, so `CellPickController` calls its `relisten` dep, which the plugin wires to a `_registerTimeout(..., 0)` around the helper. It calls it only for an in-cell edit. A pick of a bar-hosted edit leaves the grid unlistened wherever it was released (the bar itself sits outside the grid, so a drag dropped over it counts as outside), so the keys typed in the bar never reach the grid's shortcuts. Not relistening is not enough there: `TableView`'s cell `mousedown` handler calls `listen()` before `beforeOnCellMouseDown` runs, so the controller calls its `unlisten` dep, deferred the same way (pinned by the picking spec's bar-hosted test). Two states follow from that. From the press until the deferred `unlisten` runs, the grid listens, so a key pressed while the mouse button is still held reaches the grid's shortcuts (harmless today, because the package's editor guard stops the keys typed in the bar); closing that window needs a core change to the `listen()` call in `TableView`. And after the pick the focus scope manager keeps the grid scope active while the grid is unlistened, so do not read "the grid scope is active" as "the grid listens".
+- **No emitted declaration may name `hyperformula-ui`, internal ones included.** It is a devDependency,
+  and the `Emitted Types` check compiles EVERY `tmp/**/*.d.ts` with TypeScript 5.1 and no dependencies
+  installed, so one `import type ... from 'hyperformula-ui'` in any emitted file fails with TS2307 (it did,
+  on `cellPickController.d.ts`, `handsontableAdapter.d.ts` and `internalTypes.d.ts`). Checking only the
+  declarations reachable from `tmp/base.d.ts` is not enough: a deep import reaches the rest. So `types.ts`
+  mirrors the public shapes, `gridContract.ts` mirrors the adapter contract every internal signature uses,
+  and `__tests__/formulaBuilder.types.ts` pins both against the package in both directions plus the key
+  sets, and pins `HandsontableAdapter` against the package's `IGridAdapter`. The package's own types may
+  appear only on `#` fields (they emit as `#private`) and in non-exported aliases such as each module's
+  local `CoreModule`; an exported alias would be emitted. Settings and constructor options that carry the
+  module are typed `unknown` and cast once. Tests reach the adapter through `getFormulaBuilderAdapter(plugin)`.
+  To reproduce the check locally, hide `handsontable/node_modules/hyperformula-ui`, run the workflow's
+  `tsc -p tsconfig.verify-types.json` step with TypeScript 5.1.6 after `build:types` and `downlevel:types`,
+  then restore the link.
+- **A reference pick claims the whole mouse gesture, and it has to run first.** The three cell mouse
+  listeners are registered at order index `-1` (`CELL_MOUSE_HOOK_ORDER`). A pick sets every controller flag,
+  calls `preventDefault()` (the editor keeps the focus), and sets the event's `isImmediatePropagationEnabled`
+  flag to `false`, so `TableView` skips its selection handling and every `afterOnCell*` listener. Only the
+  flag, never the shared `stopImmediatePropagation()` helper: it also sets `cancelBubble`, so the press never
+  reached `document` and a context menu or dropdown menu open at that moment stayed open over the pick.
+  The press therefore still bubbles to every `rootElement` listener, and one that acts on it must check
+  `isImmediatePropagationStopped(event)`: the dropdown/autocomplete arrow (`autocompleteRenderer`) and the
+  multiSelect indicator (`multiSelectRenderer/utils/utils.ts`) do, or a pick on the arrow opened the
+  cell's own editor (`onCellDblClick`) and, with Cmd/Ctrl held, dropped the open formula edit.
+  `TableView`'s own `rootElement` `mousedown` listener skips `clearTextSelection()` for the pick's press,
+  which `#claim()` marks with `keepPageTextSelection()` (`utils/pageTextSelection.ts`). It is a mark of its
+  own, not the claim flag: CheckboxHeader, RowSelection, CollapsibleColumns, SheetsBar and NestedRows set
+  that flag on their presses too, and those still clear the page selection. WebKit ties a focused text field's caret to the page's selection, so the clear moved
+  the formula editor's caret to 0 and the pick inserted nothing, in an edit started from a range or a
+  header selection (Chromium and Firefox keep the two apart, so only the WebKit leg showed it). Pinned by
+  "formulaBuilder picking in an edit started from a range or a header selection".
+  That is what keeps NestedHeaders from selecting a group span under a header pick, and what DragToScroll
+  reads to stay out of a drag the pick's own edge auto-scroller drives. Plugin priority (265) is NOT enough: it orders only the
+  first `enablePlugin()`, and a later `updatePlugin()` (a theme switch used to trigger one) re-registers the
+  hooks at the tail of each list, behind NestedHeaders. Two shortcuts that were tried and are wrong:
+  teaching NestedHeaders to skip its span when `controller.column` was already set (ColumnSorting sets it
+  on every Ctrl+click of a sortable header, so a Ctrl+click on a sortable group header stopped selecting
+  the span), and disabling DragToScroll for the length of a pick (each re-enable re-registered its hooks at
+  the tail of every list).
+  The later `beforeOnCellMouseDown` listeners still run too: the hook runner does not stop on the flag.
+  ManualColumnMove and ManualRowMove arm a move from that hook on a press on a header of the selected
+  range, so a pick dragged across the headers of a header-selected column or row moved it on release,
+  which closed the edit and saved the text typed so far. They skip a press whose
+  `isImmediatePropagationStopped(event)` is set, as DragToScroll does, so they arm nothing for a pick: no
+  guideline, no move, and no stale pressed state after a pick that ended without a `mouseup` (a window
+  blur). A veto on `beforeColumnMove`/`beforeRowMove` was tried and is not enough: it lifts when the pick
+  ends, so that stale state moved the range on the next `mouseup`.
+  A plugin that acts on a press from that hook (CheckboxHeader's "check all", RowSelection's header and
+  checkbox cells, NestedRows' collapse button, CollapsibleColumns' indicator) would act AND the pick would
+  insert a reference, so a press on such a control is left to its plugin (`HEADER_CONTROL_SELECTOR` and
+  `CELL_CONTROL_SELECTOR` in `cellPickController.ts`): no pick starts. Add a new control there; teaching
+  the hook runner to skip later callbacks once the flag is set would change every event hook. A checkbox
+  cell is different: its renderer toggles the box on the native `click`, after the claimed `mousedown`,
+  so a pick that starts on the box or its label arms a one-shot click swallow and the pick wins.
+  A link (`a[href]`, from a `HYPERLINK` formula or AutoLink) is the same: the claim does not cancel its
+  navigation, so a pick that starts on one arms a click swallow for it (`#armAnchorClickSwallow`).
+  A drag held on a header clamps only the header's own axis to the first visible track (`firstVisibleRow()`/
+  `firstVisibleCol()`: the first index a hiding map leaves when that axis is frozen, else the first fully
+  visible one), not to index 0.
+  "Frozen" is the band the grid draws (`view.countFixedRowsTop()`/`countFixedColumnsStart()`), never the raw
+  option: under `limitFixedToViewport` the drawn band can be 0 while `fixedRowsTop` is set.
+  The handoff press (a click on the bar-selected cell, which moves the edit into the cell) is claimed
+  as well, not only suppressed: RowSelection's click selection runs from `afterOnCellMouseDown`.
+  A tap is the exception to "the claim keeps the focus": Walkontable runs the press from `touchend` and
+  passes the deferred `touchstart`, already dispatched, so its `preventDefault()` cancels nothing, and the
+  compatibility `mousedown` after the tap focused the cell (typed text lost, soft keyboard closed). A tap
+  pick therefore cancels the `touchend` that is still being dispatched (`#finishTouchPick`: a one-shot
+  document listener, removed a task later through `deferTask`), so the browser fires no compatibility
+  `mousedown`/`click` at all, and it disarms the click swallows, which have no click left to eat. Do not
+  cancel the compatibility `mousedown` instead: the click swallows disarm on any `mousedown`, so the
+  `click` after it still reached the header, link, or checkbox.
+- **Shift+press extends the last pick only while the editor holds exactly what that pick left.** The package
+  exposes no reference-at-caret API, so `CellPickController` remembers its own last cell or range pick
+  (`#lastPick`: anchor, editor text, caret, read right after the drop, which inserts synchronously) and a
+  Shift+press begins the tracker at that anchor and `extendTo()`s the pressed cell; the drop replaces the
+  reference at the caret. Any typing or caret move makes it a plain pick, Ctrl/Cmd wins over Shift
+  (append), and `reset()` forgets it. This needs `getValue()` and `getCaretOffset()` on `PickingEditor`.
+- **A range pick grows over the merged cells it touches; a cell pick does not.** The grid's own
+  selection grows in MergeCells' `beforeSelectionHighlightSet`, which a claimed pick never reaches, so a drag
+  from A3 onto a merged A1:B2 inserted `A1:A3`. `HandsontableAdapter#expandRangeOverMerges()` grows the
+  range (in visual space, repeated until stable) for both the preview and the drop; it reads
+  `mergedCellsCollection.mergedCells` through `getPlugin('mergeCells')`, the read ExportFile makes, since
+  MergeCells has no public lookup. A one-cell pick on a merge still inserts its first cell, as a spreadsheet does.
+- **A drag `reset()` cancels mid-gesture stays claimed until the button is released.** Escape during a pick
+  drag closes the edit, and `handleInlineEditClose()` resets the controller, but the grid saw the press as
+  its own (`TableView`'s `#mouseDown` is set before `beforeOnCellMouseDown` runs), so every later
+  `mouseover` extended a native range selection from the edited cell. `#holdCancelledDrag()` keeps
+  `onBeforeMouseOver` claiming until a `mouseup`, a buttonless `mousemove`, or a window `blur`.
+- **The `formula` alias is registered in the constructor, not in `enablePlugin()`.** A cell configured with
+  `editor: 'formula'` must resolve whether or not the plugin enabled (no `builder`, no Formulas yet).
+  Otherwise selecting the cell throws `No registered editor found under "formula" name`. With the plugin
+  off, the shim mounts a plain textarea. Not at module load either: importing the plugin registry must register plugins
+  only (the `registerAll*` registry tests). The static `EDITORS` list is what lets `validateSettings()` accept
+  `formula` before any grid exists (`../../settingsSchema/AGENTS.md`). The registration stays silent when
+  an application owns the alias: the warning about it comes from `enablePlugin()` (`warnOnce` per grid),
+  because with the full bundle every grid runs the constructor, and a grid that never sets `formulaBuilder`
+  has no conflict to report. `isFormulaEditor()` answers `false` for such an alias and its class (the shim
+  class carries `FORMULA_SHIM_MARK`), so the plugin neither marks those cells nor drives them from the bar,
+  as the warning says.
+- **The builder is bound to one engine sheet, and the sheet id is not known at enable time.** The plugin
+  enables before the first data load, while `Formulas#sheetId` is still `null`. The builder takes `sheetId`
+  only at construction and uses it to parse references, list named expressions, and test the own sheet. So
+  `afterLoadData`/`afterUpdateData` compare the Formulas sheet id with the one the builder was built with and
+  rebuild the builder when they differ: a shared engine, a `sheetName` on a populated engine, and
+  `Formulas#switchSheet()`, which reloads the data. **Except to an empty sheet**: `#loadSheet()` loads
+  nothing then, so no data hook fires. `#followSheetBinding()` therefore runs from the same check in
+  `afterSelection` and `handleInlineEditStart()` too (outside an edit), and `#isConfigUnchanged()` compares
+  the sheet id, so a later `updatePlugin()` rebuilds as well. Without it the builder suggested the previous
+  sheet's scoped named expressions. The two cases differ under an open edit: a data load rebuilds at once
+  (the load replaced the data the edit was made against, and the rebuild cancels the edit), while a
+  switch with no load leaves the edit on its sheet and `handleInlineEditClose()` defers the rebuild
+  through `#rebuildAfterEdit`. Skipping both under an edit left the builder on the old sheet for good.
+  `#rebuildBuilder()` clears `#rebuildAfterEdit` AFTER it built the new builder: its destroy cancels
+  the open edit, and that close runs before the new builder exists, so it still sees the old sheet id
+  and asks for a rebuild. Cleared before, that request queued a second rebuild a task later.
+  `#teardownPluginState()` has the same order for the same reason.
+- **`enablePlugin()` emits the bar selection once the setup succeeds.** The teardown of an `updatePlugin()`
+  rebuild clears `#barSelected` and the dedupe key, and no selection hook runs until the selection moves,
+  so a bar turned on with `updateSettings()` stayed empty over a selected formula cell. It resets the
+  dedupe key first: `resolvePlugin()` in the editor shim does not check `enabled`, so an edit closed in
+  the fallback textarea while the plugin was off still ran `handleInlineEditClose()` and wrote the key.
+- **The bar re-reads the selected cell on `afterChange`.** It hears about a cell through the selection
+  hooks only, deduped on the coordinates, so a write to the selected cell that moves no selection (Delete,
+  paste, undo, `setDataAtCell()`) left the old formula in the bar. A change on the active cell (or a change
+  list of `null`) resets the key and re-emits; an open edit is left alone, its close re-reads.
+  The same one helper (`#resyncBarCell`, no coordinate filter) is the listener of `afterSetSourceDataAtCell`
+  and `afterUpdateSettings` (order 2), and runs at the end of `#onAfterDataLoad` (`afterLoadData`/
+  `afterUpdateData`). Every INDEX change reaches it through the index mappers' `cacheUpdated` local hook,
+  which only marks the bar stale (`#barCellStale`); `#onBeforeViewRender` re-reads before the next draw,
+  the pattern the adapter's highlights use. One listener covers an insert or removal, a sort, a move,
+  hiding and every trim (Filters, TrimRows, a NestedRows collapse), where a hook list grew per plugin and
+  missed TrimRows. It also fixes the order: `afterCreateRow`/`afterRemoveRow` fire inside
+  `datamap.createRow()`/`removeRow()`, before `alter()` shifts the selection, so a re-read there showed
+  the new empty row for a moment. A sort, a data replace or a source write keeps the coordinates, so the
+  selection dedupe hid the new cell. The Formulas plugin enables first (priority
+  260 < 265) and its load listeners carry order -1, so the engine has resynced when the bar re-reads. The
+  exception is `updateSettings({ data })`: Formulas fills the engine from `afterUpdateSettings` (order 1),
+  after `afterUpdateData`, so the bar listens there with order 2. The dedupe key (`#lastBarCell`) also
+  holds whether the cell uses the formula editor: `updateSettings({ columns })` can move the selected cell
+  to or from the formula editor with the same text, and the bar kept offering a formula edit there.
+- **The bar's re-read waits while the Formulas plugin holds writes (`formulas.batchEvaluation`).** Reading the
+  active cell recalculates a held engine, so `#resyncBarCell()` asks `Formulas#isEngineHeld()` and, while it is
+  true and this grid's own execution is suspended, only sets `#barResyncDeferred`: ten `setSourceDataAtCell()` calls
+  in a `batch()` would otherwise recalculate ten times. The grid's own suspension is part of the test because
+  another grid can hold the engine while this one never resumes (`isEngineHeld()` alone left its bar stale). The deferred read runs from `beforeViewRender` once a draw recalculated the engine (a
+  draw reads it anyway), or from `afterResumeExecution`, a listener of the default order that runs after the
+  Formulas release (order -1). The flag is separate from `#barCellStale` (an index change): sharing it made
+  every resume re-read the bar mid-operation. Without the option nothing is held, so nothing waits; do not key
+  the deferral on `isExecutionSuspended()` (the bar then lags every host `suspendExecution()`). Pinned by
+  `__tests__/batchEvaluation.unit.ts`.
+- **A commit flushes the Formulas hold AFTER its write, never before.** The package's `announcingCommit` runs
+  `onCommit`, then `announceCommitErrors` reads the raw engine (`engine.getCellValue()`) to announce the dependent
+  errors. With `formulas.batchEvaluation` and a host `suspendExecution()` open, the commit's write takes the hold
+  lazily, so that read threw `EvaluationSuspendedError` (logged by the package's `EventScope`) and the announcement
+  was lost. A flush before the commit is undone by the write, so `commitInlineEdit()` and
+  `commitInlineEditToSelection()` call `#flushAfterCommitWrite()` right after `finishEditing()`. A synchronous
+  validator is what exposes it: without one the write releases the hold itself, and an asynchronous validator
+  needs no flush because the engine already holds the value when the package reads it (probed: the announcement
+  arrives with the setting on or off). The flush recalculates every write the host still holds, so the
+  announcement can count their dependent errors too. Pinned by `__tests__/batchEvaluation.unit.ts`.
+- **`updatePlugin()` keeps the built plugin when nothing it was built from changed.** `SETTING_KEYS` lists
+  `formulas`, and the React and Angular wrappers re-send every object prop with a new identity on each
+  render, so a full rebuild per render discarded the bar's focus and an open edit. `#isConfigUnchanged()`
+  compares the module and engine by identity, `showFormulaBar` and `direction` by value, and `popups` by
+  content (an element in `container` by identity). Under equal settings it still checks the popup hosts the builder was docked into
+  (`#dockedPopupHosts`): a host that left the document, or a selector that now finds another element
+  (React re-keying `#help`), rebuilds the BUILDER only, through `#rebuildOrDefer()`, so an open edit is
+  kept and the rebuild runs a task after it closes. Running the full plugin cycle there threw away the
+  formula being typed.
+- **A theme change rebuilds the builder, not the plugin.** The builder applies its theming class once, at
+  construction, and the body-mounted popup portal needs it to resolve `light-dark()` against the grid's
+  scheme rather than the OS one. String themes leave `themeManager` `null`, so the class comes from
+  `getCurrentThemeName()`. A theme or language change that arrives during an edit is held back
+  (`#rebuildAfterEdit`) and rebuilt a task after the edit closes: a rebuild cancels the edit, and an
+  application that follows `prefers-color-scheme` swaps the theme while the user types. Not inside
+  `handleInlineEditClose()` itself, which runs inside the old builder's commit handler. A language change rebuilds
+  only when the normalized code differs from `#builtLanguageCode`: `updateSettings({ language })` fires
+  `afterLanguageChange` even for the code in use, and never for an unregistered one.
+  A rebuild replaces the whole bar, so a theme or language change (`#rebuildBuilder()`) and a full
+  `updatePlugin()` cycle (a `direction` change) with the focus in the address box dropped the focus on
+  `body` and the address being typed. Both read the focused address box first
+  (`#captureFocusedAddressBox()`, through `getDeepActiveElement()`) and give the new one the focus, the
+  text and the caret back (`#restoreAddressBox()`).
+- **The theme class must never be written on `rootElement`.** The builder hands its theme class to the
+  adapter's `setOverlayClassName()`, so the overlay host is `rootWrapperElement` (`rootElement` only on a
+  nested grid, which has no wrapper), where core already keeps that class: the adapter adds a class only
+  when the host lacks it and removes only what it added. `rootElement` sits inside the wrapper, so a theme
+  class there matches the theme's own token block and beats the `colorScheme` and `density` overrides the
+  theme engine scopes to the wrapper (`.<theme>.<scope>`), and during an edit (the rebuild is held back) it
+  keeps the cells in the old theme. Pinned by the `colorScheme and density` and theme-switch specs in
+  `tests/e2e/formula-builder-layout.spec.ts`; the colorScheme ones need the `theme-engine` fixture
+  variant, since a container class skips the engine.
+- **Rebuilding or tearing down under an open edit cancels the edit first.** Destroying the builder while
+  Handsontable's editor is EDITING leaves it over a torn-down mount, and its later close commits the stale
+  original. `#cancelOpenEdit()` runs before every `destroy()` (`#destroyBuilder()`).
+- **The builder is destroyed before the Formulas plugin detaches its engine, never after.** Formulas
+  (priority 260) is destroyed and updated before this plugin, and when it built the engine itself it
+  destroys it, after which the builder's engine unsubscribe throws (`hot.destroy()` and
+  `updateSettings({ formulas: false })` threw, and the popup portal and live region leaked). The plugin
+  subscribes through `Formulas#addEngineDetachListener()` (`@private`), which runs right before the
+  engine is unregistered, and destroys the builder there. The plugin can then be enabled with no
+  builder until its next `updatePlugin()`, which rebuilds it (`#builder === null` forces the full
+  cycle); meanwhile the shim mounts the plain textarea (`handleInlineEditStart()` returns `false`).
+  The Formulas plugin disabled and re-enabled through its own API (`getPlugin('formulas').enablePlugin()`)
+  runs no `updatePlugin()` here and fires no hook, so the bar stayed empty for good. `#onEngineDetach`
+  sets `#engineDetached`, and `#followEngineReattach()` (from `afterSelection` and
+  `handleInlineEditStart()`, beside `#followSheetBinding()`) builds the builder again once an engine is
+  back. It clears the flag before building, so a failing build is not retried per selection. It also
+  writes the new engine into `#appliedConfig`: the re-enable built a new engine, and a stale record made
+  the next `updatePlugin()` (a wrapper re-render) fail `#isConfigUnchanged()` and run the full cycle,
+  which cancelled an open edit.
+  Pinned on a real grid by `__tests__/realGridTeardown.unit.ts`.
+- **A missing Formulas plugin throws; a disabled one warns.** `PLUGIN_DEPS` names `plugin:Formulas`
+  (`feature.json`, `enforceAtInit`), so `new Handsontable()` throws when FormulaBuilder is registered without
+  it (`__tests__/pluginDependencies.unit.ts`). The warning below covers Formulas registered but not enabled, or
+  without an engine, which `PLUGIN_DEPS` cannot express. Keep the `?? null` on the lookup anyway: a host that
+  is not a Handsontable instance (the stub tests) runs no dependency check.
+- **The "requires the Formulas plugin" warning waits for `afterInit` during the init.** A SheetsBar
+  workbook declares `formulas` per sheet, and those settings enable the Formulas plugin after this plugin's
+  first enable attempt, which then fails for a moment and succeeds later in the same init. The plugin
+  records that failure and warns from `afterInit` only if it is still off (`#formulasWarningPending`);
+  after the init it warns at once. Pinned by `__tests__/sheetsBar.unit.ts`, which also pins the builder
+  rebuild on each sheet switch. A stub grid never runs `afterInit`, so a stub test of a post-init enable
+  calls `finishInit()` first. This listener does not move to the ready step (`onGridReady()`,
+  `../base/AGENTS.md`), unlike the other plugins' init work: it answers for a plugin that FAILED to enable,
+  and a plugin that is not enabled owes no step. It is bound in the constructor for the same reason.
+- **A popup container element counts only while it is connected.** A framework can unmount the element
+  passed in `popups.*.container` while the settings still hold it, and a popup mounted there never shows,
+  so a detached element is dropped with the same warning as a selector that finds nothing. So is `null`
+  (a React `ref.current` read before mount): read `isConnected` only after ruling it out, or the plugin
+  setup throws where hyperformula-ui 0.3.6 used to warn and float the popup.
+- **A rebuild never throws from a hook.** A `popups.*.container` selector that matches nothing is dropped
+  with a warning before the package constructor sees it (hyperformula-ui 0.3.5 threw for one; 0.3.6 warns), and any other constructor
+  throw is caught and warned. Hosts set through `attach*Host()` are kept on the plugin and re-applied to
+  every rebuilt builder. `popups` is stored as a copy, so an object changed in place reads as a change.
+  A `null` popup entry (`popups.suggestions: null`, a framework clearing an option) is dropped as not
+  configured in `#resolvePopupContainers()`: reading its `container` threw a `TypeError` from the
+  constructor and from every `updateSettings()`.
+  `attachSuggestionsHost()` and `attachFnHelpHost()` check their host the same way (`#isPopupHostUsable()`):
+  the package throws for a selector that finds nothing or a detached element, so the call warns and
+  leaves the popup where it is, but it still KEEPS the host, and `#reattachPopupHosts()` docks it on the
+  next rebuild once it exists (a framework effect can call the method before the host mounts). Only
+  `null` and `undefined` are dropped and leave the kept host as it was.
+- **Commit, cancel and open go through the grid's own code, not a copy of it.** A commit with a
+  direction moves with `EditorManager#moveSelectionAfterEnter()` (`up`/`down`) or the grid's Tab
+  commands (`right`/`left`), so `enterMoves`, `tabMoves`, ranges and layers behave as in every other
+  editor, and only when the save succeeded (`dataSaved`). The package commits `right` on Tab in either
+  direction, and the grid binds Tab to the command named `moveCellSelectionInlineStart` (the names are
+  inverted). A Tab commit runs the grid context's own Tab shortcuts (`getContext('grid').getShortcuts()`),
+  the path the text editor forwards to, not the move command alone: the `GRID_TAB_NAVIGATION_GROUP` pair
+  around the move drops the selection when Tab has nowhere to go, so the next Tab leaves the grid. A cancel leaves the selection alone and only returns the
+  focus. The formula bar opens the editor through `EditorManager#openEditor()`, so `beforeBeginEditing`,
+  the read-only, header and hidden checks, and the re-prepare after `loadData()` apply. Pinned by
+  `__tests__/realGridEditing.unit.ts`.
+- **The bar reads the ACTIVE selection layer.** `getSelectedRangeActive()`, not `getSelectedRangeLast()`:
+  Tab and Enter wrap the focus between layers. Whether the bar edits a formula is decided by the
+  highlighted cell, and a header-anchored range is clamped to cells. The selection hooks are ignored
+  while an edit is open, so `handleInlineEditClose()` re-reads the selection (a validated edit closes a
+  microtask after the deselect that ended it). That re-read clears the dedupe key first: the package's
+  own `handleInlineEditClose()` resets the address box to `singleCellSelection(active)`, so a range
+  selected across the edit was deduped and the box showed only its active cell. One exception: a selection the grid moves under the `shift`
+  source (an application `alter()` during the edit) moves `#barSelected` with it, without emitting
+  (`#followStructuralShift()`). The pick controller compares every press with it, so a stale one turned a
+  pick on the cell that took the old coordinates into a switch to inline editing. Only the active cell
+  follows; the range is built from the grid's own `from`/`to` when it is emitted and is not stored. Under
+  a header selection the grid keeps `from` and moves only `to`, so a range moved by the highlight's
+  offset described one the grid did not hold.
+- **Highlights follow every index change, applied before the next draw.** The adapter listens to the
+  index mappers' `cacheUpdated` local hook (a sort, a move, hiding, trimming, an insert or removal, a
+  page change, a data load) and re-derives the custom selections in `beforeViewRender`, because the
+  cache update can run mid-batch. A range splits into one selection per visual run, capped at
+  `MAX_SELECTIONS_PER_HIGHLIGHT`, past which it draws its bounding box as a border only. A span over
+  every index of an axis (`A:A`) is the whole visual axis in any order. Any other span past
+  `MAX_HF_INDEX_SCAN` maps its two ends only. That band is exact because the Formulas plugin hands every
+  sort and move to the engine, so HyperFormula order follows the visual one. Ends that come back reversed
+  prove it does not (an engine order the grid could not express), so that run is drawn without a fill
+  (`VisualRun#approximate`).
+- **A highlight color reaches a generated stylesheet, so `#isSafeColor()` rejects `/*` as well as the
+  characters outside `SAFE_COLOR_PATTERN`.** `CSS.supports('color', 'red /* x')` is `true` (the comment is
+  dropped before parsing), and in the stylesheet text the open comment swallowed every later rule.
+- **Custom selections do not carry `aria-selected`.** The Walkontable scanner resolves custom-selection
+  cells so their class names land, and the selection manager stamps the grid's selection `cellAttributes`
+  only on cells of an area, fill or focus layer (`selectedCells` in `selection/manager.ts`). Otherwise a
+  screen reader reported every referenced cell as selected.
+- **An error cell carries its message as `aria-description`** (under `ariaTags`), written in
+  `afterRenderer` from the package's `data-hfe-error` mark. The plugin keeps the text it wrote per element
+  (a `WeakMap`) and removes the attribute only while it still holds that text: a recycled element can carry
+  the plugin's description from its last cell, but a renderer runs before `afterRenderer` and may already
+  have written the application's own, which a "did the plugin touch this element" check deleted.
+  The description and the `cellError` announcement carry a SHORT message (`toSpokenErrorMessage()`: first
+  line, first sentence after the `#CODE — ` prefix, 120 characters at a word boundary). A HyperFormula
+  parse error lists every token it expected over 14 lines, and a screen reader read all of it on each
+  focus of the cell. The `data-hfe-error` mark keeps the whole text, which the error popup shows. Start
+  the sentence search after the separator: the codes end in `!` themselves.
+- **`afterRenderer` runs for every rendered cell on every draw.** It reads the editor from the
+  `cellProperties` the hook passes, never from `getCellMetaTransient()`, which would resolve the cascade
+  (and a `cells` callback) a second time per cell. It also clears the error mark (`data-hfe-error`) from a
+  cell that is no longer a formula cell, because the grid recycles cell elements, and it removes the
+  `aria-invalid` that `markCell()` writes when `ariaTags` is `false`. Clearing a mark
+  (`markCell(cell, null)`) removes `aria-invalid` whoever wrote it, the base renderer's `valid: false`
+  included, so `#keepValidatorInvalid()` writes it back for a cell a validator rejected; without that a
+  rejected cell kept `htInvalid` while a screen reader heard it as valid. The teardown takes every mark
+  and the plugin's descriptions off the rendered cells (`#clearCellErrorMarks()`): the grid's render resets
+  classes and ARIA attributes but not `data-*`, so after `formulaBuilder: false` a mark moved with the
+  recycled elements. With no builder (the engine detached, or a rebuild failed) `#markCell()` removes the
+  attribute itself, because `#builder?.markCell()` would do nothing and the stale mark would be described
+  on the cell the element shows next; `#onEngineDetach` clears every mark at once.
+- **The adapter answers `false` for an address it cannot select.** `setActiveCell()` and `setSelection()`
+  return `false` when the grid shows no row or column to move to; the package reads that as
+  "unavailable" and announces it, while `undefined` left the address in the box with nothing selected.
+  That covers four more cases besides a missing index: a row or column a hiding map hides (HiddenRows,
+  HiddenColumns, and Pagination, which hides the rows of the other pages), an index at or past
+  `maxRows`/`maxCols`, a grid that selected something else (`selectionMode: 'single'` collapses a range),
+  and a select the grid refused. `selectFormulaCell(s)` returns `boolean` for that last two: the grid's
+  last selection must hold the requested range (a merged cell may widen it). A trimmed index is the
+  exception and is not refused: it still moves to the nearest shown index. A RANGE is refused only when
+  an axis has no shown index between its corners (`#hasShownIndexBetween()`): a corner on a hidden row
+  is kept, as `hot.selectCells()` keeps it, so `A1:B3` with row 1 hidden selects `[0, 0, 2, 1]`.
+- **The reference border width is cached on the adapter, which outlives a theme rebuild.** `afterSetTheme`
+  calls `resetBorderWidth()` before the theme class check (a stylesheet swapped in place keeps the class).
+  It is read from `hot.rootElement`, never from the overlay host: the host is the root wrapper, the root
+  element's parent, so the `.handsontable { --hfe-reference-border-width: 2px }` the guide shows never
+  reached it. The root element still inherits the theme's own value from the wrapper.
+- **Every engine read goes through `#readableSheetId()`.** An application on a shared engine can remove
+  the grid's sheet; the Formulas plugin keeps the old id, and the engine throws `NoSheetWithIdError` for
+  the package's `readCellText()` (the formula bar's selection sync threw on every select) and for
+  `getSheetDimensions()`. `getCellValue()` returns a `#REF!` there instead of throwing, but the
+  `afterRenderer` read takes the same guard. `#sheetId` (with its `?? 0`) is only what the builder is built
+  with.
+- **Two coordinate spaces, and the public API speaks only one.** Every public method takes and returns
+  VISUAL indexes (`getRawCellText` included). The adapter speaks HyperFormula space to the package and
+  translates at its boundary, guarding every `-1` (a trimmed or unresolvable index) before it reaches
+  `formatRef`. `getGridSize()` is the physical index count, not `getSheetDimensions()`: the engine reports
+  its occupied extent, and the formula bar refuses to navigate at or past that size. A span wider than
+  `MAX_HF_INDEX_SCAN` maps only its two ends and walks inward past trimmed ends.
+- **A bar edit whose text equals the cell's raw text opens the editor with a `null` seed.** `BaseEditor#beginEditing()` treats a string seed as typed text, so its unchanged-value guard never arms and an untouched commit would write `"5"` for `5`, `""` for `null`, and record an undo step. `HandsontableAdapter#editorSeed()` (private) makes that call; a changed or typed seed stays a string.
+- **The bar opens the editor with a synthetic `focus` event, never `undefined`.** `openEditor()` hands the event to `beforeBeginEditing`, and a listener reading `event.type` threw, so the bar stopped opening edits. `HandsontableAdapter#beginEdit()` builds a `FocusEvent` from `rootWindow`. Not a `MouseEvent`: `openEditor()` then applies its double-click default and refuses a range or a second layer, which the bar edits from the active cell.
+- **A drag past the viewport edge resolves through `getCellCoordsFromMousePosition()`.** The pick's edge
+  auto-scroller calls `getCellAddressAt()` with the pointer outside the grid, where `elementFromPoint()`
+  finds the scrollbar and the range would stop at the last rendered cell.
+- **`getScrollHolder()` asks both axis owners.** The package's edge auto-scroller gets one element and a
+  `null` turns it off. With no `height` and a pixel `width` the window scrolls the rows and the master
+  holder the columns, so asking only the vertical owner (`topOverlay`) returned `null` there and a drag
+  past the end edge stopped scrolling the columns. The vertical owner wins; `inlineStartOverlay` is the
+  fallback (`split-scroll` fixture variant, `formula-builder-layout.spec.ts`). It still returns `null` when
+  the window owns both axes (no element to follow on scroll), so the pick's auto-scroller does not use it:
+  `RangeDragTracker`'s `getScrollElement` reads `HandsontableAdapter#getAutoScrollTarget()`, which falls
+  back to a stand-in for the window's viewport. Not `document.scrollingElement` itself: the package
+  computes its edge zones from `getBoundingClientRect()`, and the root element's rectangle is the whole
+  page, so a pointer below the window sits inside it and nothing scrolls. The stand-in reports the
+  viewport's box and forwards `scrollTop`/`scrollLeft` to the scrolling element (`window-scroll` fixture
+  variant, `formula-builder-picking.spec.ts`). The target is built PER AXIS: when the two axes have
+  different owners (`split-scroll`: the window scrolls the rows, the holder the columns) it is a composite
+  whose vertical members come from the viewport stand-in and horizontal ones from the holder. Handing it
+  the holder alone left a drag below the window inside the holder's rectangle, which spans every row,
+  so the page never scrolled.
+- **The tracked column header level comes from `TableView#getColumnHeadersCount()`, not from the levels
+  seen.** A deepest-level-seen rule only grows, so `updateSettings({ nestedHeaders: false })` (which does
+  not rebuild the adapter) left level 0 untracked and the column headers untinted for good.
+- **Walkontable reuses its header elements in place on scroll.** A `<th>` tracked for column C shows
+  column K after a horizontal scroll, and the old set kept it, so `=SUM(C:C)` tinted K. `#trackHeader()`
+  remembers each element's last index (`#trackedHeaderIndex`) and moves it out of the old set; the
+  `isConnected` prune catches only detached elements.
+- **The editor's text field must carry `data-hot-input`.** After every selection change the focus
+  manager focuses the selected cell and blurs the focused element unless `isOutsideInput()` says it is a
+  grid input, which it reads from that attribute. The text editor sets it on its `TEXTAREA`; the
+  `hyperformula-ui` field (`.hfe-editor__input`) and the plain fallback textarea do not have it on their
+  own, so an `alter()` while a formula was edited took the focus out of the open editor and the package
+  hid the highlights. `handleInlineEditStart()` marks the field in the cell and in the formula bar, and
+  the fallback marks its textarea. jsdom never reaches that blur, so the guard is the Playwright test
+  "the edit keeps the focus and its highlight when the application inserts a row".
+- **The shim's keyboard guard stops only the keys the formula editor handled.** A `keydown` the package
+  handled has its default prevented; the guard stops it (and its `keypress`/`keyup`) at the wrapper so
+  the grid's shortcuts do not handle it again. Every other key reaches the grid, so `beforeKeyDown` fires
+  and an arrow key commits a quick edit, as in the grid's other editors.
+- **The shim's keyboard guard outlives the session by one task.** The keystroke that commits the edit is
+  still bubbling when `afterClose` runs, and a guard removed then lets the grid's document-level recorder
+  handle it again (Enter re-opened the editor one row below). A microtask is not enough, because trusted
+  event dispatch runs microtasks between listeners, so the guard is destroyed through `_registerTimeout`.
+  Each guard is an `EventManager` on a context object of its OWN: `EventManager` stores listeners on its
+  context and `destroy()` clears all of them, so a guard built on the editor instance would, one task after
+  its session closed, also strip the guard of a session that reopened in that task.
+- **The editor container stacks through the shared z-index map.** It carries the layer class
+  `getEditedCellsLayerClass()` returns, the way the text editor does. Do not probe the overlays' computed
+  z-indexes or measure `.wtBorder` elements: both are Walkontable internals.
+- **Keyboard path, measured (the foreign-focus fix of #13243 is what makes it work).** From a selected cell,
+  Shift+Tab moves to the bar's formula editor (an edit session opens), Shift+Tab again to the address box (the
+  session closes, the cell keeps its value), and Shift+Tab again out of the grid. Shift+Tab from the first column (`autoWrapRow: false`) drops the grid's
+  selection and the focus lands on the editor, where the package asks `selectFirstFormulaCell()` for a cell:
+  it tries `#lastFocusedCoords` (the cell the grid focused last, never cleared on deselect) first. It
+  follows the grid's selection: every selection write records it (`afterSelection`, `afterSelectionEnd`,
+  and `afterSelectionFocusSet`, since Tab inside a range moves the focus without ending a gesture), and
+  so does the draw after an index change (`#onBeforeViewRender`), because a sort, a move, a trim or a hide
+  keeps the selection on its visual cell while another record moves under it. It is kept in PHYSICAL
+  coordinates so it survives with no selection, and shifted when an insert or a removal renumbers
+  the physical indexes after it (forgotten when its own track is removed). The shift listens to the
+  index mappers' `indexesInserted`/`indexesRemoved` local hooks, as the Formulas axis syncers do. The
+  mapper runs them at the moment it renumbers, inside a `batch()` too, so the cell shifts exactly once
+  and before any hook or draw of the change can record it in the new numbering. Two placements that
+  look equivalent are wrong. On `afterCreateRow`/`afterRemoveRow`, a draw from a listener that runs
+  before the plugin's (the Formulas plugin's redraw of moved formulas) records the cell first, and the
+  shift then moved the focused cell of a range one row off. Skipping the shift while a cell is selected
+  is wrong too: with a sort, a row inserted under the focused one can take a lower physical index, so
+  the insert renumbers the focused record without moving the selection, and a deselect in the same
+  `batch()` left nothing to record it again. **A draw inside `alter()` reads the selection before
+  `alter()` repairs it:** `afterCreateRow`/`afterRemoveRow` fire after the index change and before the
+  selection shift, and a listener that writes or renders there (filling defaults into a new row) draws
+  the grid and records the record that slid into the old place. The `afterSelection` the shift fires
+  records the cell again, so do not drop it as redundant with `afterSelectionEnd`. Skipping the draw
+  after every insert or removal instead loses a sort batched with one. It is guarded by range, visibility and `#isFormulaCell`, and scans only otherwise -
+  so the bar edits the cell you left, not A1. A data load or a sheet switch (`afterLoadData`/`afterUpdateData`)
+  clears it, or the bar would open an edit on the same coordinates of a different record, and nothing records
+  it again until a new selection (`#dataReplaced`): a draw, a sort or a shift of the selection the load kept
+  does not count, and only an `afterSelectionEnd` or `afterSelectionFocusSet` whose source is not one the
+  grid marks when it lays a selection again (`shift`, `refresh`, `loadData`, `updateData`) ends it. Tab from the content before
+  the grid goes address box, formula editor (the same remembered cell), then back into the grid. There is no keyboard trap, so the bar
+  registers no focus scope; the package owns the keys inside it. Pinned by the keyboard spec under
+  `tests/e2e/`.
+- **The colors are the design's, contrast gaps included.** Every `--hfe-*` color the plugin sets equals
+  the FormulaBuilder design in its Handsontable mode. Where the design keeps the package's own value (the
+  unknown function and error token colors, the error color, the named expression and sheet color, the comment color, and the
+  highlight of the active suggestion row), `_formula-builder.scss` sets nothing, and the package's `:root`
+  `light-dark()` default applies, dark side included. Do not restate one of them on the theme block: a
+  `var(--hfe-color-foreground)` there would resolve to the cell editor's foreground, not the design's
+  `#1c1d20`. Mapped to theme tokens: the editor and menu surfaces, the accent text, the active argument
+  chip and the paren match (`--ht-accent-color`), the keyboard row's frame (`--ht-border-color`), and
+  the plain tokens (function names, numbers, strings, booleans, operators, parentheses, brackets,
+  separators and names)
+  on `--ht-foreground-color`, so a custom theme still recolors them.
+  The design's colors fail WCAG 1.4.3 in places, accepted for now: the error text `#fa4d56` measures
+  3.35:1 on white, an unknown function name `#ea580c` 3.56:1, a comment `#8a8f99` 3.25:1 (and `#6c7280`
+  4.23:1 on the main theme's dark background), and a named expression `#64748b` 4.45:1 on the active row
+  `#f7f7f9`. The accent's contrast is the theme's, baselined under the theme contrast issues (see the
+  next paragraph). The axe scan measures these under `formula-builder-design-contrast`: the
+  `formula-builder-tokens` page (the formula fixture's `design-colors` variant) shows an unknown function
+  and a comment in the formula bar and the error popup's title, and `formula-builder-named-expression` a
+  named expression on the active suggestion row. Axe cannot measure the error text in a cell: the cell's
+  corner marker and a selected range's tint are pseudo-elements, so it reports the cell as incomplete.
+  Pinned by "formulaBuilder design colors" in `tests/e2e/formula-builder-popups.spec.ts`. The reference palette is the design's, not the package's: the
+  package's light values are darker, so the plugin restates `--hfe-ref-1` to `--hfe-ref-8` (light and dark
+  from the design; an application can still override them on the theme class). The plugin does not
+  override the error cell's font or `color-scheme`: the package reads `--hfe-font-family`, which the plugin
+  sets, for the error value and the error popup title alike, and sets `color-scheme` only on its roots,
+  where the theme class wins.
+- **The phrases come from the grid's language and are taken at construction.** Every accessible name,
+  hint and announcement of the editor is a `FormulaBuilder:` key in `src/i18n/constants.ts`, passed to the
+  package as its `phrases` option (`#phrases()`). The package reads them once, so `afterLanguageChange`
+  rebuilds the builder. The dependent-error count has one key per form (`dependentCellError` for one,
+  `dependentCellErrors` for more): the dictionary's formatters cannot pick a plural form and fill in
+  `[count]` in one call, because the substitution blanks every variable it is not given. Languages with
+  more plural forms use a count-neutral wording for the second key. The hint phrases carry no surrounding spaces: the package adds
+  them.
+- **The builder is built in the grid's document.** `rootDocument` is `hot.rootDocument`, so a grid in an
+  iframe gets its selectors resolved and its styles injected there, and a grid in a shadow root passes the
+  shadow root as `portalParent`, so the popups and the live region stay in the same tree as the editor and
+  its ARIA references resolve. The adapter's generated highlight rules (the dashed border mask, the cell
+  tint) go in `hot.rootWrapperElement`, never the document head, which a shadow tree does not read; the
+  `shadow` fixture variant pins both (`formula-builder-layout.spec.ts`). They are written as text nodes,
+  not through `insertRule()`: CSSOM-only rules are lost when the element leaves the document and comes
+  back (a framework moving the grid between tabs or portals), while the class cache keeps the names.
+- **Unbalanced parens are closed on the commit path, never in `getValue()`.** `getValue()` is public through
+  `hot.getActiveEditor()`, and closing them there changed the buffer under a plain read. The shim's
+  `finishEditing()` closes them for an edit that is saved (state `EDITING`, no `restoreOriginalValue`), which
+  is what a native commit (an outside click) needs; the formula editor's own commit keys close them too.
+  An untouched edit is the exception on both paths, or opening `=SUM(A1` and pressing Enter wrote
+  `=SUM(A1)` and fired `afterChange`: `finishEditing()` skips the close when the buffer equals `_original`,
+  and the package closes them BEFORE it calls `onCommit`, so `commitInlineEdit()` saves through
+  `resolveCommitValue()`, which compares the text the shim recorded at the commit `keydown`
+  (`_textAtKeyDown`, a document capture listener added in `afterOpen` and removed in `afterClose`) with
+  `_original`. A closing parenthesis the user typed changes that text, so it is still written.
+  The Ctrl/Cmd+Enter fill (`commitInlineEditToSelection()`) saves through `resolveCommitValue()` too.
+  "Untouched" is either `_original` or `_seededText`, the formula editor's text read right after it was
+  seeded with the cell's own value (`afterOpen`): the package normalizes some formulas as it reads them
+  (`=1+N("note")` reads back as `=1+ N("note")`), so comparing with `_original` alone wrote the
+  normalized text on an untouched Enter. The shim's `getValue()` returns `_original` for an untouched
+  buffer, so a native commit writes nothing either. The `_textAtKeyDown` listener also goes away on
+  `afterDestroy`: a destroy while an async validator holds the commit never reaches `afterClose`
+  (`finishEditing()` returns early while the editor waits).
+- **Ctrl/Cmd+Enter fills the selection through the grid's editor.** The adapter's `commitFill()` calls
+  `commitInlineEditToSelection()`, which saves through `finishEditing(false, true)`: the `ctrlDown` path of
+  `BaseEditor#saveValue()`, shared with the grid's own fill (`selection/fillSelection.ts`). After a
+  successful save it moves the focus within the range with `EditorManager#moveSelectionAfterEnter()` and a
+  synthetic Ctrl/Cmd+Enter event, as `editorCloseAndSaveByEnter` does for the text editor. Alt+Enter inserts
+  a line break.
+
+## Known gaps
+
+The `hyperformula-ui` side of each is listed for the package maintainers (the review of PR #13172).
+
+- In a grid that is not in a shadow root, the popups and the live region mount in the document body. The
+  axe scan marks that portal on four pages (`formula-builder-suggestions`, `formula-builder-function-help`,
+  `formula-builder-named-expression`, and `formula-builder-tokens`, which shows the error popup); the live
+  region is not scanned.
+- The `formula` alias is registered by the first grid built with the plugin registered, so with the full
+  bundle every page that builds a grid has it (the constructor trap above explains why).
+- `imeFastEdit: true` has no effect on a formula cell: the selected cell keeps the focus, so an IME
+  composition cannot start there. Core's focus manager moves the focus to `activeEditor.TEXTAREA`, which the
+  editor shim does not have, and giving it a hidden one would not help: the composition would start in that
+  element and could not move into the package's input when the editor opens. It needs a `hyperformula-ui`
+  input that is mounted and focusable before the edit opens.
+- **The bar's focus rings and the accent colors map to theme tokens; the theme owns their contrast.** The
+  rings (`--hfe-formula-bar-input-focus-ring`) read `--ht-cell-selection-border-color`, so a focused bar
+  reads like the selected cell. The accent text (matched letters, the active parameter name), the active
+  argument chip and the paren match read `--ht-accent-color`, like every other grid surface that draws the
+  accent. Do not mix a darker plugin-local color to fix their contrast: that was tried, and the bar looked
+  like a different control next to the cell. Where the theme accent misses a contrast threshold (horizon,
+  classic), the fix belongs in the theme token, and it then reaches the formula builder with no change here.
+  The bar editor's ring is inset, so the bar's `.hfe-overlay` and `.hfe-editor__input` carry inline padding
+  of the ring width (the idle overlay too, so the text does not shift on focus); drawing the ring outward
+  instead is clipped by the top slot. Pinned by "the bar editor's focus ring", "the address box's focus
+  ring" and "the matched letters, the active argument chip and the paren match use the theme accent" in
+  `tests/e2e/formula-builder-popups.spec.ts`.
+- `hyperformula-ui` is MIT-licensed since 0.3.6 (0.3.5 and earlier were `GPL-3.0-only`). It is pinned to an
+  exact version because the 0.x line may break in a minor.
+
+## Where to look next
+
+- `../formulas/AGENTS.md` – the engine, the sheet binding, and the axis syncers this plugin borrows.
+- `../nestedHeaders/AGENTS.md` and `../dragToScroll/AGENTS.md` – the mouse paths a pick claims.
+- `../base/AGENTS.md` – the plugin contract and the `PLUGIN_PRIORITY` table.
+- `handsontable/AGENTS.md` – "Wrapper UI placement" for the layout slot, the outside-click paths.
+- The `handsontable-plugin-dev` and `handsontable-a11y` skills for the workflow.
+
+## Testing
+
+- Unit: `npm run test:unit --prefix handsontable -- --testPathPattern=formulaBuilder`. Jest transforms the
+  ESM-only `hyperformula-ui` through `transformIgnorePatterns` in `jest.config.js`; `helpers/pluginHotStub.ts`
+  is the shared Handsontable stub.
+- Types: `npm run test:types --prefix handsontable` runs `__tests__/formulaBuilder.types.ts`.
+- E2E: `cd tests && npx playwright test e2e/formula-builder` (the fixture imports the package from
+  `tests/node_modules/`, which the static server serves). A second checkout's server on port 8123 makes the
+  suite test that checkout's build: set `HOT_TEST_PORT`.
+- a11y: the `formula-builder` page in `tests/a11y/pages.mjs` scans the bar and the open editor.

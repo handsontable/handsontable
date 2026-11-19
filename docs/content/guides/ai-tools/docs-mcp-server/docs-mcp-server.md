@@ -12,7 +12,6 @@ vue:
   metaTitle: Docs MCP Server | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: AI Tools
-menuTag: new
 ---
 The Docs MCP Server is a public <a href="https://modelcontextprotocol.io/" target="_blank" rel="noopener noreferrer">Model Context Protocol</a> endpoint that gives any MCP-capable AI agent live semantic search over Handsontable DataGrid and HyperFormula knowledge base:
 
@@ -84,6 +83,6 @@ They combine well: skills give the agent working knowledge up front, and the MCP
 
 ::: tip
 
-The Docs MCP Server searches documentation. If you want your agent to run spreadsheet calculations through HyperFormula instead, that's the separate <a href="https://hyperformula.handsontable.com/docs/guide/mcp-server.html" target="_blank" rel="noopener noreferrer">HyperFormula MCP Server</a> (early access).
+The Docs MCP Server searches documentation. If you want your agent to run spreadsheet calculations through HyperFormula instead, that's the separate <a href="https://handsontable.com/docs/hyperformula/guide/mcp-server.html" target="_blank" rel="noopener noreferrer">HyperFormula MCP Server</a> (early access).
 
 :::

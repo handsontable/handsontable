@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `setManualSize()` of the `ManualColumnResize` and `ManualRowResize` plugins throwing an error when called before the plugin was enabled, and storing a size that isn't a finite number, such as `NaN`.",
+  "type": "fixed",
+  "issueOrPR": 14067,
+  "breaking": false,
+  "framework": "none"
+}

@@ -1,41 +1,24 @@
 import { buildTemplate, SVG_NS } from '../../helpers/dom/template';
 import { LOADING_CLASS_NAME } from '../../helpers/constants';
-import { deprecatedWarnOnce } from '../../helpers/console';
+import { removedWarnOnce } from '../../helpers/console';
 
-export function normalizeExportOptions<T extends Record<string, unknown>>(options: T): T;
-export function normalizeExportOptions<T extends Record<string, unknown>>(options: T | undefined): T | undefined;
 /**
- * Resolves the deprecated `columnHeaders` export option to its current name, `colHeaders`.
+ * Warns once per page when caller-supplied export options still carry `columnHeaders`, the name
+ * `colHeaders` replaced in 17.1 and 19.0 removed. The key is copied into the merged options like
+ * any other and nothing reads it, so without this the header row goes missing silently; the
+ * `REMOVED_OPTIONS` check in core cannot cover it, because that one scans grid settings only.
  *
- * Call this at every entry point that accepts caller-supplied export options. The promotion has to
- * happen before the options are merged with the defaults, because `BaseType.DEFAULT_OPTIONS`
- * carries `colHeaders`, and a merged object therefore always has the new key already.
+ * Call it at every site that merges caller-supplied options: the per-export merge in
+ * `BaseType#_mergeOptions()` and the per-sheet merge of an XLSX `sheets` entry.
  *
- * The warning prints once per page, so calling this on several code paths for one export is safe.
- *
- * The overloads keep the contract honest at both kinds of call site: a caller that passes a definite
- * object gets a definite object back, while a caller that may pass `undefined` (a missing options
- * argument) gets `undefined` back and has to handle it.
- *
- * @param {object|undefined} options Caller-supplied export options, or `undefined` when the caller
- *   passed none.
- * @returns {object|undefined} The input as-is when it is `undefined` or `columnHeaders` is absent,
- *   otherwise a copy with `colHeaders` filled in. An explicit `colHeaders` always wins.
+ * @param {object} options Caller-supplied export options.
  */
-export function normalizeExportOptions<T extends Record<string, unknown>>(options: T | undefined): T | undefined {
-  if (!options || !('columnHeaders' in options)) {
-    return options;
+export function warnRemovedColumnHeadersOption(options: Record<string, unknown>): void {
+  if ('columnHeaders' in options) {
+    removedWarnOnce('ExportFile.columnHeaders',
+      'The `columnHeaders` export option was removed in Handsontable 19.0.0 and is ignored. ' +
+      'Use `colHeaders` instead.');
   }
-
-  deprecatedWarnOnce('ExportFile.columnHeaders',
-    'The `columnHeaders` export option is deprecated and will be removed in Handsontable 19.0.0. ' +
-    'Use `colHeaders` instead.');
-
-  if ('colHeaders' in options) {
-    return options;
-  }
-
-  return { ...options, colHeaders: options.columnHeaders };
 }
 
 /**

@@ -40,6 +40,7 @@
     .e2e-tall-cell { padding-top: 40px !important; padding-bottom: 40px !important; }
     .e2e-wide-cell { padding-left: 40px !important; padding-right: 40px !important; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -112,7 +113,7 @@
 
         return {};
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.hot = hot;

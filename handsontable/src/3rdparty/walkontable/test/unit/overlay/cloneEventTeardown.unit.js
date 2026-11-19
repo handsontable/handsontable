@@ -1,4 +1,5 @@
 import Handsontable from '../../../../../base';
+import { TEST_LICENSE_KEY } from '../../../../../../test/helpers/licenseKey';
 
 describe('Overlay clone event teardown', () => {
   let container;
@@ -33,7 +34,7 @@ describe('Overlay clone event teardown', () => {
       fixedRowsTop: 1,
       fixedRowsBottom: 1,
       fixedColumnsStart: 1,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     return hot;

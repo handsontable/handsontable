@@ -56,5 +56,5 @@ async editCell(row: number, col: number, value: string) {
 ## Fixtures and the demo server
 
 - Demo pages live in `tests/fixtures/demo/` and mount a real grid from the built `handsontable/dist`. The static server (`tests/support/static-server.mjs`) serves the repo root.
-- Pass `licenseKey: 'non-commercial-and-evaluation'`.
+- Load the shared key with `<script src="/tests/fixtures/demo/test-license-key.js"></script>` in the fixture's `<head>`, and pass `licenseKey: window.htTestLicenseKey`, never a literal. A grid a spec builds inside `page.evaluate()` reads the same global from the fixture it opened. Only a test of the license behavior itself writes a key out (`license-branding.html`).
 - A wrapper functional test drives the wrapper example app; page-object and test-id rules are identical.

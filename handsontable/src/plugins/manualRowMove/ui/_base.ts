@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../../core/types';
+import { isNumeric } from '../../../helpers/number';
 const STATE_INITIALIZED = 0;
 const STATE_BUILT = 1;
 const STATE_APPENDED = 2;
@@ -122,10 +123,10 @@ class BaseUI {
    * @param {number} height New height of the element.
    */
   setSize(width?: number, height?: number) {
-    if (width) {
+    if (isNumeric(width)) {
       this._element!.style.width = width + UNIT;
     }
-    if (height) {
+    if (isNumeric(height)) {
       this._element!.style.height = height + UNIT;
     }
   }

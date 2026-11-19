@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "row-selection",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T08:43:44.184Z"
+  },
+  "steps": {
+    "arrow-up-unchecked": "",
+    "space-select-row": "row 1 selected",
+    "arrow-up-to-header": "select all rows 2 of 5 selected done",
+    "space-select-all": "5 of 5 rows selected",
+    "space-clear-all": "0 of 5 rows selected",
+    "arrow-down-cleared": "select all rows 0 of 5 selected done unchecked",
+    "arrow-down-cleared-next": "select all rows 0 of 5 selected done unchecked"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "validator:numeric",
+      "kind": "validator",
+      "module": "numeric",
+      "name": "Numeric validator",
+      "description": "The validator of the numeric cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "validator:date",
+      "kind": "validator",
+      "module": "date",
+      "name": "Date validator",
+      "description": "The validator of the date cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "validator:time",
+      "kind": "validator",
+      "module": "time",
+      "name": "Time validator",
+      "description": "The validator of the time cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "validator:intl_date",
+      "kind": "validator",
+      "module": "intl-date",
+      "name": "Date (Intl) validator",
+      "description": "The validator of the intl-date cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "validator:intl_time",
+      "kind": "validator",
+      "module": "intl-time",
+      "name": "Time (Intl) validator",
+      "description": "The validator of the intl-time cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "validator:intl_datetime",
+      "kind": "validator",
+      "module": "intl-datetime",
+      "name": "Date and time (Intl) validator",
+      "description": "The validator of the intl-datetime cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "validator:checkbox",
+      "kind": "validator",
+      "module": "checkbox",
+      "name": "Checkbox validator",
+      "description": "Checks that a value matches the checked or unchecked template. The checkbox cell type uses it only when the cell sets validator: \"checkbox\".",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "validator:dropdown",
+      "kind": "validator",
+      "module": "dropdown",
+      "name": "Dropdown validator",
+      "description": "The validator of the dropdown cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "validator:autocomplete",
+      "kind": "validator",
+      "module": "autocomplete",
+      "name": "Autocomplete validator",
+      "description": "The validator of the autocomplete cell type.",
+      "status": "stable",
+      "licensing": "none"
+    },
+    {
+      "id": "validator:multiselect",
+      "kind": "validator",
+      "module": "multiselect",
+      "name": "Multiselect validator",
+      "description": "The validator of the multiselect cell type.",
+      "status": "stable",
+      "licensing": "none"
+    }
+  ]
+}

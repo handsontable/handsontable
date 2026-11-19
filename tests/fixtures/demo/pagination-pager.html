@@ -38,6 +38,7 @@
     .handsontable .progressBar { background: #37bc6c !important; height: 10px; }
     .handsontable .star, .handsontable .htDimmed.star { color: #fcb515 !important; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -247,7 +248,7 @@
         rowHeaders: true,
         comments: true,
         cell: [{ row: 2, col: 1, comment: { value: 'Note: To be checked if the name is valid' } }],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
         ...settings,
       });
     } catch (error) {

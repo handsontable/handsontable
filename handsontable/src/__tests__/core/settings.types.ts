@@ -2,6 +2,7 @@ import type Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
 import type {
   CellProperties, CellCoords, RangeType, RemoveIndexSignature, OmitHooks, Events, HotInstance, CellChange, ChangeSource,
+  AppliedCellChange,
 } from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
@@ -92,7 +93,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   ],
   columnSorting: true,
   columnSummary: [],
-  colWidths: oneOf(100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100))),
+  colWidths: oneOf(
+    100, '100px', [100, '100px'], ((index: number) => oneOf('100px', 100)),
+    null, [120, null, undefined], ((index: number) => oneOf(100, null, undefined)),
+  ),
   commentedCellClassName: 'foo',
   comments: true,
   contextMenu: true,
@@ -135,11 +139,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
     'password', 'select', 'text', 'time', 'custom.editor'),
   emptyValue: oneOf('' as const, null),
   enterBeginsEditing: true,
+  enterCommits: true,
   enterMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({ row: 1, col: 1 })),
   exportFile: { engines: { xlsx: {} } },
   importFile: { engines: { xlsx: {} } },
   fillHandle: true,
   filter: true,
+  filterSelectedItems: true,
   filteringCaseSensitive: true,
   filters: false,
   filterValueComparator: (a: unknown, b: unknown) => String(a).localeCompare(String(b)),
@@ -148,6 +154,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   fixedColumnsStart: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
+  formulaBuilder: oneOf(false, {
+    builder: class {},
+    showFormulaBar: true,
+  }),
   formulas: {
     engine: HyperFormula,
   },
@@ -179,6 +189,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   invalidCellClassName: 'foo',
   imeFastEdit: true,
+  injectCoreCss: true,
   isEmptyCol: col => col === 0,
   isEmptyRow: row => row === 0,
   label: { property: 'name.last', position: 'after', value: oneOf('My label: ', () => 'My label') },
@@ -186,12 +197,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   layout: {
     top: ['toolbar'],
     bottom: ['pagination', 'summary'],
+    start: ['navigation', 'outline'],
+    end: ['details'],
   },
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
   limitFixedToViewport: true,
   locale: 'pl-PL',
   freezeBar: { rows: true, columns: false },
+  editableHeaders: { columnHeaders: true, rowHeaders: false },
   manualColumnFreeze: true,
   manualColumnMove: true,
   manualColumnResize: true,
@@ -200,6 +214,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   maxCols: 123,
   maxLength: 123,
   maxRows: 123,
+  maxSelections: 123,
   mergeCells: true,
   minCols: 123,
   minRowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
@@ -242,6 +257,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   readOnly: true,
   readOnlyCellClassName: 'foo',
   readOnlyStyling: true,
+  searchInput: true,
   renderAllColumns: true,
   renderAllRows: true,
   renderMode: 'onChange',
@@ -317,6 +333,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     (airport: SourceLabelAirport) => airport.name,
   ),
   sourceDataWarningMessage: oneOf('The source data is invalid.'),
+  sourceSortFunction: (entries: any[]) => entries,
   startCols: 123,
   startRows: 123,
   stretchH: 'none',
@@ -447,6 +464,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterCellMetaReset: () => {},
   afterChange: (changes, source) => {
     if (changes !== null) {
+      changes.forEach(change => change[0]?.toFixed());
+      // @ts-expect-error The row of an applied change is `null` for a record trimmed out of the visual space.
       changes.forEach(change => change[0].toFixed());
     }
 
@@ -538,6 +557,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterGetColHeader: (col, TH, headerLevel) => {},
   afterGetColumnHeaderRenderers: (array) => {},
   afterGetRowHeader: (row, TH) => {},
+  afterHeaderChange: (axis, visualIndex, newValue, oldValue) => {
+    const headerAxis: 'column' | 'row' = axis;
+    const name: string = newValue;
+  },
   afterGetRowHeaderRenderers: (array) => {},
   afterHideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterHideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
@@ -615,6 +638,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterRowsMutationError: (operation, error, payload) => {},
   afterRender: (isForced) => {},
   afterRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  afterResumeExecution: () => {},
   afterRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible,
                      successfullyCollapsed) => {},
   afterRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible,
@@ -658,16 +682,18 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterSetDataAtRowProp: (changes, source) => {},
   afterSetSourceDataAtCell: (changes, source) => {},
   afterSetTheme: (themeName, firstRun) => {},
+  afterFontsLoad: () => {},
   afterSheetAdded: (addedSheetDisplayName) => {},
   afterSheetRemoved: (removedSheetDisplayName, changes) => {},
   afterSheetRenamed: (oldDisplayName, newDisplayName) => {},
-  afterSheetTabAdd: (sheetId, name, source) => {},
+  afterSheetTabAdd: (sheetId, name, duplicateOfId, source) => {},
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
   afterSheetTabMove: (sheetId, finalIndex, source) => {},
   afterSheetTabRemove: (sheetId, source) => {},
   afterSheetTabRename: (sheetId, oldName, newName, source) => {},
   afterSheetTabStateCapture: (sheetId, viewState) => {},
   afterSheetTabStateRestore: (sheetId, viewState) => {},
+  afterSuspendExecution: () => {},
   afterTrimRow: (rows) => {},
   afterUndo: (action) => {},
   afterUndoStackChange: (doneActionsBefore, doneActionsAfter) => {},
@@ -705,7 +731,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return false;
   },
-  beforeChangeRender: (changes, source) => {},
+  beforeChangeRender: (changes, source) => {
+    const _row: number | null = changes[0][0];
+    // @ts-expect-error The row of an applied change is `null` for a record trimmed out of the visual space.
+    const _numberRow: number = changes[0][0];
+  },
   beforeAlter: (action, index, amount, source, keepEmptyRows) => true,
   beforeColumnCollapse: (currentCollapsedColumn, destinationCollapsedColumns, collapsePossible) => {},
   beforeColumnExpand: (currentCollapsedColumn, destinationCollapsedColumns, expandPossible) => {},
@@ -766,6 +796,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
+  beforeHeaderChange: (axis, visualIndex, newValue, oldValue) => axis === 'row' && newValue !== '',
   beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => {
     const _column: number = column;
     const _headerLevel: number = headerLevel;
@@ -836,6 +867,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   beforeRender: (isForced) => {},
   beforeRenderer: (TD, row, col, prop, value, cellProperties) => {},
+  beforeResumeExecution: () => {},
   beforeRowCollapse: (currentCollapsedRows, destinationCollapsedRows, collapsePossible) => {},
   beforeRowExpand: (currentCollapsedRows, destinationCollapsedRows, expandPossible) => {},
   beforeRowMove: (movedRows, finalIndex, dropIndex, movePossible) => {},
@@ -868,7 +900,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeSetRangeEnd: (coords) => {},
   beforeSetRangeStart: (coords) => {},
   beforeSetRangeStartOnly: (coords) => {},
-  beforeSheetTabAdd: (name, source) => {},
+  beforeSheetTabAdd: (name, duplicateOfId, source) => {},
   beforeSheetTabChange: (oldSheetId, newSheetId, source) => {},
   beforeSheetTabMove: (sheetId, finalIndex, source) => {},
   beforeSheetTabRemove: (sheetId, source) => {},
@@ -877,6 +909,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _stretchedWidth: number = stretchedWidth;
     const _column: number = column;
   },
+  beforeSuspendExecution: () => {},
   beforeTouchScroll: () => {},
   beforeTrimRow: (currentTrimConfig, destinationTrimConfig, actionPossible) => {},
   beforeUndo: (action) => {},
@@ -930,9 +963,18 @@ const allSettings: Required<Handsontable.GridSettings> = {
 
     return _copyableRanges;
   },
+  modifyFiltersMatchedRows: (matchedRows, blankMatchedRows) => {
+    const blank = new Set(blankMatchedRows);
+
+    return matchedRows.filter(row => !blank.has(row));
+  },
   modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
-  modifyData: () => {},
+  modifyData: (row) => {
+    const _row: number | null = row;
+    // @ts-expect-error A write to a record trimmed out of the visual space reports no visual row.
+    const _numberRow: number = row;
+  },
   modifyFocusOnTabNavigation: (tabActivationDir, visualCoords) => {},
   modifyGetCellCoords: (row, column, topmost, source) => {
     const _row: number = row;
@@ -950,6 +992,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   modifyRowData: (row) => {},
   modifyRowHeader: (row) => {},
+  modifyRowHeaderValue: (headerValue, visualRowIndex) => `${headerValue}`,
   modifyRowHeaderWidth: rowHeaderWidth => oneOf(80, [80, 40]),
   modifyRowHeight: (height, row, source) => {
     const _height: number = height;
@@ -1102,9 +1145,18 @@ const _sourceDataValidatorBadReturn: Handsontable.GridSettings = {
 // signature, so every hook callback typed through `Events[hookName]` inferred its parameters as `any`.
 const _onAfterChange: Events['afterChange'] = (changes, source) => {
   // These assignments only compile if the parameters keep their real, non-`any` types.
-  const _changes: CellChange[] | null = changes;
+  const _changes: AppliedCellChange[] | null = changes;
+  // @ts-expect-error An applied change's row can be `null`, so it is not a `CellChange`.
+  const _cellChanges: CellChange[] | null = changes;
   const _source: ChangeSource = source;
 };
+const _onAfterValidate: Events['afterValidate'] = (isValid, value, row) => {
+  const _row: number | null = row;
+  // @ts-expect-error The row of a record a filter took out of the visual rows while it was validated is `null`.
+  const _visualRow: number = row;
+};
+const _madeChange: CellChange = [0, 'name', 'a', 'b'];
+const _appliedFromMade: AppliedCellChange = _madeChange;
 // Newly-documented hooks (previously missing from `GridSettings`) resolve to real callback types too.
 const _onBeforeOnCellMouseOverOutside: Events['beforeOnCellMouseOverOutside'] = (event, coords, TD, controller) => {
   const _event: MouseEvent = event;
@@ -1122,7 +1174,7 @@ declare const hot: HotInstance;
 // Rung 1 of the `addHook` overload ladder: an unannotated arrow under a known hook name
 // gets full parameter inference from `Events[K]`.
 hot.addHook('afterChange', (changes, source) => {
-  const _changes: CellChange[] | null = changes;
+  const _changes: AppliedCellChange[] | null = changes;
   const _source: ChangeSource = source;
 });
 // Rung 2: an explicitly-annotated callback that doesn't exactly match the declared hook
@@ -1176,7 +1228,12 @@ hot.updateSettings({
   },
   beforeSheetTabChange: (oldSheetId, newSheetId, source) => false,
   afterSheetTabChange: (oldSheetId, newSheetId, source) => {},
-  afterSheetTabAdd: (sheetId, name, source) => {},
+  afterSheetTabAdd: (sheetId, name, duplicateOfId, source) => {},
+});
+hot.updateSettings({
+  sheetsBar: {
+    sheets: [{ name: 'Employees', data: [{ name: 'Ana García', department: 'Engineering' }] }],
+  },
 });
 
 // DEV-2723: `modifyData` receives `null` as its column for a numeric property that names no column,

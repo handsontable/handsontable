@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "checkbox-header",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T08:40:44.246Z"
+  },
+  "steps": {
+    "arrow-up-to-header": "check all 1 of 5 checked done column 3 row select whole grid task check all 1 of 5 checked done",
+    "space-check-all": "",
+    "space-uncheck-all": "",
+    "arrow-down-to-cell": "check all 0 of 5 checked done unchecked column 2 row task 0 unchecked",
+    "space-check-one": "",
+    "arrow-up-header-mixed": "check all 1 of 5 checked done column 3 row select whole grid task check all 1 of 5 checked done"
+  }
+}

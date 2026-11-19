@@ -4,6 +4,7 @@ import {
   UndoRedo,
 } from 'handsontable/plugins';
 import { registerCellType, CheckboxCellType } from 'handsontable/cellTypes';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(UndoRedo);
 registerPlugin(ColumnSorting);
@@ -59,7 +60,7 @@ describe('Row identity', () => {
    */
   function createGrid(settings) {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: createRecords(6),
       columns: [{ data: 'name' }, { data: 'value' }],
       undo: true,
@@ -1101,7 +1102,7 @@ describe('Row identity', () => {
       hot.updateData(createRecords(2));
       await flushReports();
 
-      expect(hot.microtasks.length).toBe(0);
+      expect(hot.microtasks.size).toBe(0);
     });
 
     it('should report nothing after the grid is destroyed', async() => {

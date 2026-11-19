@@ -217,7 +217,7 @@ const hotOptions = {
   height: 'auto',
   width: '100%',
   autoWrapRow: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 
   /**
    * afterDataProviderFetch fires after every successful fetchRows response.

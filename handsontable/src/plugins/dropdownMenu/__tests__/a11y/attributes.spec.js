@@ -50,15 +50,32 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     await dropdownMenu(0);
 
     const cMenu = getPlugin('dropdownMenu').menu;
+    const separators = cMenu.container.querySelectorAll('td.htSeparator');
 
+    expect(separators.length).toBeGreaterThan(0);
     expect(filterElementsByAttribute(
       cMenu.container,
       'td',
       'role',
       'menuitem'
-    ).length).toEqual(cMenu.hotMenu.countRows() - 1);
+    ).length).toEqual(cMenu.hotMenu.countRows() - 1 - separators.length);
 
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('role')).toEqual('menuitem');
+  });
+
+  it('should expose the separators of the dropdown menu as unnamed `role=separator` cells', async() => {
+    handsontable({
+      dropdownMenu: true,
+      colHeaders: true,
+    });
+
+    await dropdownMenu(0);
+
+    const separators = [...getPlugin('dropdownMenu').menu.container.querySelectorAll('td.htSeparator')];
+
+    expect(separators.length).toBeGreaterThan(0);
+    expect(separators.map(td => td.getAttribute('role'))).toEqual(separators.map(() => 'separator'));
+    expect(separators.filter(td => td.hasAttribute('aria-label') || td.hasAttribute('tabindex'))).toEqual([]);
   });
 
   it('should assign the `role=menuitemcheckbox` attribute to the `Read only` item', async() => {
@@ -92,10 +109,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     const cMenu = getPlugin('dropdownMenu').menu;
 
+    const separators = cMenu.container.querySelectorAll('td.htSeparator');
     const ariaLabelledCells = [...cMenu.container.querySelectorAll('td')]
-      .filter(el => el.ariaLabel !== undefined);
+      .filter(el => el.hasAttribute('aria-label'));
 
-    expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows());
+    expect(separators.length).toBeGreaterThan(0);
+    expect(ariaLabelledCells.length).toBe(cMenu.hotMenu.countRows() - separators.length);
 
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert column left');
   });

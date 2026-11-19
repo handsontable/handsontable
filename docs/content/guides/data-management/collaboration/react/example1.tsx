@@ -51,12 +51,12 @@ const ExampleComponent = () => {
         <p className="controls">{statusText}</p>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         colHeaders={['Task', 'Assignee', 'Status']}
         rowHeaders={true}
         height="auto"
-        licenseKey="non-commercial-and-evaluation"
         beforeChange={(changes, source) => {
           if (source === REMOTE_SOURCE || !changes) {
             return;

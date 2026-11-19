@@ -4369,11 +4369,11 @@ describe('Formulas general', () => {
         const shouldThrow = { current: false };
         const $other = $('<div id="otherGrid"></div>').appendTo('body');
 
-        // A second grid on the same engine, reading this grid's sheet. `renderDependentSheets`
+        // A second grid on the same engine, reading this grid's sheet. The plugin write scope
         // renders it from inside the span `#internalOperationPending` is open across.
         const otherHot = new Handsontable($other[0], {
           data: [['=Sheet1!A1']],
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
           formulas: { engine, sheetName: 'other' },
           afterRender() {
             if (shouldThrow.current) {
@@ -4393,7 +4393,7 @@ describe('Formulas general', () => {
 
         const writes = spyOn(engine, 'setSheetContent').and.callThrough();
 
-        // Changing the content is what gives `renderDependentSheets` something to render.
+        // Changing the content is what gives the write scope something to render.
         let thrown = null;
 
         try {

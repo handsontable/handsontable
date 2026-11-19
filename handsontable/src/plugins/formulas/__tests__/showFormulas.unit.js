@@ -5,6 +5,7 @@ import { Formulas } from '../formulas';
 import { ColumnSorting } from '../../columnSorting';
 import { AutoLink } from '../../autoLink';
 import { registerCellType, NumericCellType } from '../../../cellTypes';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * DEV-207: `showFormulas()`/`hideFormulas()`/`isShowingFormulas()`. Display-only, matching
@@ -42,7 +43,7 @@ describe('Formulas showFormulas() / hideFormulas() / isShowingFormulas()', () =>
     hot = new Handsontable(container, {
       data: [['1', '2', '=A1+B1']],
       formulas: { engine: HyperFormula },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       // jsdom has no real layout, so Walkontable's viewport-based column/row virtualization
       // computes against a 0 client size and renders only a couple of columns regardless of an
       // explicit `width` - rendering everything sidesteps that measurement entirely.

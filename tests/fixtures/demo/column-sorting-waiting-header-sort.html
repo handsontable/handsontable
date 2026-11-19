@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - a header sort waiting for an async validator</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the Playwright
+    // projects, mapped through fixed allowlists to LITERALS so a crafted param can never be
+    // reflected into the document. An ABSENT param keeps the default (main / plain UMD) so the
+    // fixture stays browsable by hand; an unknown value THROWS rather than falling back: a typo
+    // in the project config must be one red leg, never a silently mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    // `Object.hasOwn`, not a bare lookup: a plain object inherits `constructor`, `toString` and
+    // `__proto__`, so `?theme=constructor` would resolve to a truthy inherited value, sail past the
+    // guard below and be written into the document. Only the map's own keys are allowed.
+    const htPick = (map, value, fallback, label) => {
+      const key = value ?? fallback;
+
+      if (!Object.hasOwn(map, key)) {
+        throw new Error('Unknown ?' + label + '= value: ' + JSON.stringify(value));
+      }
+
+      return map[key];
+    };
+
+    window.htTheme = htPick(
+      { main: 'main', horizon: 'horizon', classic: 'classic' }, htParams.get('theme'), 'main', 'theme');
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+
+    window.htBundle = htPick(
+      { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Fixture for a header sort made while a cell editor waits for an async validator.
+
+    ?plugin=columnSorting (default) or ?plugin=multiColumnSorting picks the sorting plugin. Column A has
+    a validator that holds its callback in window.heldValidations until the spec answers it, so the
+    spec decides when the validation ends instead of racing a timer. Each held callback carries the visual
+    row it validates as `htRow`. window.postAfterValidateCount
+    counts the answers, and window.htAsyncErrors keeps every unhandled promise rejection.
+
+    Cells carry data-testid="cell-<row>-<col>" and headers data-testid="col-header-<col>".
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const sortPlugin = htPick(
+      { columnSorting: 'columnSorting', multiColumnSorting: 'multiColumnSorting' },
+      new URLSearchParams(location.search).get('plugin'), 'columnSorting', 'plugin');
+
+    window.htSortPlugin = sortPlugin;
+    window.heldValidations = [];
+    window.postAfterValidateCount = 0;
+    window.htAsyncErrors = [];
+
+    window.addEventListener('unhandledrejection', (event) => {
+      const reason = event.reason;
+
+      window.htAsyncErrors.push(String((reason && reason.stack) || reason));
+    });
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+    // Each held callback carries the visual row it validates (`htRow`), so a spec can answer one cell first.
+    const heldValidator = function(value, callback) {
+      callback.htRow = this.visualRow;
+      window.heldValidations.push(callback);
+    };
+
+    try {
+      window.hot = new Handsontable(container, {
+        data: Array.from({ length: 6 }, (_, row) => [`p${row}`, (row * 5) % 7]),
+        colHeaders: true,
+        rowHeaders: true,
+        [sortPlugin]: true,
+        renderer: testIdRenderer,
+        cells: (row, col) => (col === 0 ? { validator: heldValidator } : {}),
+        afterGetColHeader(col, TH) {
+          if (col >= 0) {
+            TH.setAttribute('data-testid', `col-header-${col}`);
+          }
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+
+      window.hot.addHook('postAfterValidate', () => {
+        window.postAfterValidateCount += 1;
+      });
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

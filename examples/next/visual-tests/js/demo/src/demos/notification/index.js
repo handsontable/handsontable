@@ -2,6 +2,7 @@ import Handsontable from 'handsontable';
 import { getDirectionFromURL, getThemeNameFromURL, getFromURL } from '../../utils';
 import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 import { data } from '../dialog/data';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 const POSITIONS = new Set(['top-start', 'top-end', 'bottom-start', 'bottom-end']);
 
@@ -75,7 +76,7 @@ export function init() {
     },
     width: 400,
     height: 400,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   hot.getPlugin('notification').showMessage({

@@ -16,7 +16,6 @@ vue:
   metaTitle: Icon pack | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Accessories and menus
-menuTag: updated
 ---
 The Handsontable DataGrid icon pack is a standalone set of 169 SVG icons for building your own toolbars, menu bars, and context menus around a data grid. Download the package and inline the icons you need in your own UI.
 

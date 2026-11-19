@@ -207,7 +207,7 @@ const hot = new Handsontable(container, {
   ],
   width: '100%',
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 export default hot;

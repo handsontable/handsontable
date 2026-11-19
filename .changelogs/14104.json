@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the license check of plugins: a plugin that the tier of a license key leaves out stays off, and the console and the bar under the grid name the missing features. A plugin turned off with `disablePlugin()` while its option is on now counts as off for exports, imports, row resizing, the Loading overlay, and the Undo, Redo, and \"Copy with group headers\" context menu items.",
+  "type": "added",
+  "issueOrPR": 14104,
+  "breaking": false,
+  "framework": "none"
+}

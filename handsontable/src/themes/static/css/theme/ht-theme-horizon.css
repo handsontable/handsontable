@@ -96,6 +96,7 @@
   --ht-cell-autofill-border-color: var(--ht-background-color);
   --ht-cell-autofill-background-color: var(--ht-accent-color);
   --ht-cell-autofill-fill-border-color: var(--ht-foreground-color);
+  --ht-custom-borders-default-color: light-dark(var(--ht-colors-black), var(--ht-colors-palette-200));
   --ht-cell-editor-border-width: 2px;
   --ht-cell-editor-border-color: var(--ht-accent-color);
   --ht-cell-editor-foreground-color: light-dark(var(--ht-colors-palette-950), var(--ht-colors-white));

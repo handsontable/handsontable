@@ -4,7 +4,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 const container = document.querySelector('#example4');
 new Handsontable(container, {
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     data: [
         ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods', 'Drinkware', 'Seattle', 142, 24.99, 40, 'In stock', '2026-03-12'],
         ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.', 'Electronics', 'Denver', 0, 29.5, 25, 'Backorder', '2026-01-08'],

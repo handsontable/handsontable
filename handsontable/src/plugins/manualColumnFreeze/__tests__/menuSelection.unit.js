@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { AutoColumnSize, ContextMenu, ManualColumnFreeze, registerPlugin } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(AutoColumnSize);
@@ -15,7 +16,7 @@ describe('ManualColumnFreeze – selection after a menu action', () => {
     container = document.createElement('div');
     document.body.appendChild(container);
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [
         ['A1', 'B1', 'C1', 'D1', 'E1', 'F1'],
         ['A2', 'B2', 'C2', 'D2', 'E2', 'F2'],

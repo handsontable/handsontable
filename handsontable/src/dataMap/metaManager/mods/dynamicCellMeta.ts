@@ -85,6 +85,11 @@ export class DynamicCellMetaMod {
       this.extendTransientCellMeta(cellMeta);
     });
 
+    // A render core held (the plugins' ready steps at init) would have cleared the memo at its start.
+    metaManager.addLocalHook('invalidateMetaExtensions', () => {
+      this.metaSyncMemo.clear();
+    });
+
     // These hooks are registered through `Hooks.getSingleton().add(..., hot)` rather than
     // `hot.addHook(...)` on purpose: this modifier is constructed from the `MetaManager`
     // constructor, which runs early in `Core` setup - before `hot.addHook` is defined. The

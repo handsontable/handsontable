@@ -25,6 +25,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -57,7 +58,7 @@
       data: Handsontable.helper.createSpreadsheetData(TOTAL_ROWS, 6),
       colHeaders: true,
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.lastRow = TOTAL_ROWS - 1;

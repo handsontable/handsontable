@@ -31,9 +31,9 @@ describe('Selection', () => {
       selection().setRangeEnd(cellCoords(3, 3));
 
       expect(afterSetRangeEnd).toHaveBeenCalledTimes(3);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(1, 1), false);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(2, 2), false);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(3, 3), true);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(1, 1), false, 0);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(2, 2), false, 1);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(3, 3), true, 2);
 
       selection().finish();
     });
@@ -56,9 +56,9 @@ describe('Selection', () => {
       selection().setRangeEnd(cellCoords(3, 3));
 
       expect(afterSetRangeEnd).toHaveBeenCalledTimes(3);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(1, 1), true);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(2, 2), true);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(3, 3), true);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(1, 1), true, 0);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(2, 2), true, 1);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(3, 3), true, 2);
     });
 
     it('should mark all selection layer as last one when after calling the `finish` method', async() => {
@@ -88,11 +88,11 @@ describe('Selection', () => {
       selection().setRangeEnd(cellCoords(5, 5));
 
       expect(afterSetRangeEnd).toHaveBeenCalledTimes(5);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(1, 1), false);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(2, 2), false);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(3, 3), true);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(4, 4), true);
-      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(5, 5), true);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(1, 1), false, 0);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(2, 2), false, 1);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(3, 3), true, 2);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(4, 4), true, 3);
+      expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(5, 5), true, 4);
     });
   });
 });

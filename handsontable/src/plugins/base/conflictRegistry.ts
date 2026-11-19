@@ -109,12 +109,18 @@ export function registerConflict(
  * @returns {HardConflictRegistration|null}
  */
 export function getHardConflict(
-  settings: Record<string, unknown>, blockedKey: string
+  settings: Record<string, unknown>,
+  blockedKey: string,
+  isIgnored: (incompatibleSettingKey: string) => boolean = () => false,
 ): HardConflictRegistration | null {
   for (let i = 0; i < hardConflicts.length; i += 1) {
     const entry = hardConflicts[i];
 
-    if (entry.blockedKey === blockedKey && isIncompatibleSettingActive(settings, entry.incompatibleSettingKey)) {
+    if (
+      entry.blockedKey === blockedKey &&
+      isIncompatibleSettingActive(settings, entry.incompatibleSettingKey) &&
+      !isIgnored(entry.incompatibleSettingKey)
+    ) {
       return entry;
     }
   }

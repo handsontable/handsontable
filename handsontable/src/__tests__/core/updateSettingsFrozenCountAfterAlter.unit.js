@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, ManualColumnFreeze } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerPlugin(ManualColumnFreeze);
 
@@ -13,7 +14,7 @@ function buildGrid(settings = {}) {
   return new Handsontable(document.createElement('div'), {
     startRows: 14,
     startCols: 14,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 }

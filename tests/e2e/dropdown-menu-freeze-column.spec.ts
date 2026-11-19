@@ -359,12 +359,12 @@ test.describe('freeze_column / unfreeze_column as dropdown menu keys', () => {
       // Dropping the row silently would trade a visible defect for an invisible one. The warning
       // is the replacement signal, and it names the key that could not be resolved.
       //
-      // `prepareMenuItems()` runs once from `enablePlugin`, so the warning is emitted while the
-      // grid is being built — the developer sees it without opening the menu at all. That is
-      // before the `beforeEach` navigation returns, hence the listener plus a second visit.
+      // The item list is built when the menu opens, so the warning is emitted by the open. Building
+      // it while the grid is built is too early for a plugin that enables after the dropdown menu
+      // (`menu-unresolved-key-warning.spec.ts`).
       const warnings = grid.collectUnresolvedKeyWarnings();
 
-      await grid.goto();
+      await grid.openColumnMenu(PLUGIN_OFF, 'Charlie');
 
       // Console events arrive over CDP independently of `goto()` resolving, so the wait has to be
       // a contract rather than luck — a late message would otherwise fail the run, and a spec

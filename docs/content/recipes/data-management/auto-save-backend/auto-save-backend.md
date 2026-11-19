@@ -185,11 +185,13 @@ afterChange(changes, source) {
     return;
   }
 
-  changes.forEach(([visualRow, _prop, oldValue, newValue]) => {
-    if (oldValue !== newValue) {
-      const physicalRow = hot.toPhysicalRow(visualRow as number);
+  changes.forEach((change) => {
+    const [, , oldValue, newValue] = change;
 
-      if (typeof physicalRow === 'number') {
+    if (oldValue !== newValue) {
+      const physicalRow = hot.getPhysicalRowOfChange(change);
+
+      if (physicalRow !== null) {
         dirtyRows.add(physicalRow);
       }
     }
@@ -267,17 +269,19 @@ if (container instanceof HTMLElement) {
     ],
     stretchH: 'all',
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     afterChange(changes, source) {
       if (!changes || source === 'loadData') {
         return;
       }
 
-      changes.forEach(([visualRow, _prop, oldValue, newValue]) => {
-        if (oldValue !== newValue) {
-          const physicalRow = hot.toPhysicalRow(visualRow as number);
+      changes.forEach((change) => {
+        const [, , oldValue, newValue] = change;
 
-          if (typeof physicalRow === 'number') {
+        if (oldValue !== newValue) {
+          const physicalRow = hot.getPhysicalRowOfChange(change);
+
+          if (physicalRow !== null) {
             dirtyRows.add(physicalRow);
           }
         }
@@ -328,7 +332,7 @@ if (container instanceof HTMLElement) {
 ## How It Works - Save lifecycle
 
 1. User edits one or more cells.
-2. `afterChange` captures changed visual rows, but skips `source === 'loadData'`.
+2. `afterChange` captures the physical rows of the changed records, but skips `source === 'loadData'`.
 3. The debounce timer resets on each new edit.
 4. After 800 ms without edits, only dirty rows are collected and sent.
 5. The UI status changes from **Saving...** to **Saved ✓** (or **Error** on failure).

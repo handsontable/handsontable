@@ -47,7 +47,7 @@ const ExampleComponent = () => {
   }
 
   function afterChange(
-    changes: Handsontable.CellChange[] | null,
+    changes: Handsontable.AppliedCellChange[] | null,
     source: Handsontable.ChangeSource
   ): void {
     const hot = hotRef.current?.hotInstance;
@@ -59,7 +59,7 @@ const ExampleComponent = () => {
     for (const change of changes) {
       const [row, prop, oldVal, newVal] = change;
 
-      if (prop !== CATEGORY_COL || oldVal === newVal) {
+      if (row === null || prop !== CATEGORY_COL || oldVal === newVal) {
         continue;
       }
 
@@ -75,6 +75,7 @@ const ExampleComponent = () => {
   return (
     <div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         colHeaders={['Category', 'Subcategory']}
@@ -87,7 +88,6 @@ const ExampleComponent = () => {
         width="100%"
         afterInit={afterInit}
         afterChange={afterChange}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

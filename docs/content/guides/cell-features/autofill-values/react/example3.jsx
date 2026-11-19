@@ -24,6 +24,7 @@ const ExampleComponent = () => {
         {output}
       </output>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data}
         rowHeaders={true}
         colHeaders={['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes']}
@@ -33,7 +34,6 @@ const ExampleComponent = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
         beforeAutofill={(selectionData) =>
           // Round every filled number up to the nearest multiple of 5.
           selectionData.map((row) => row.map((value) => (typeof value === 'number' ? Math.ceil(value / 5) * 5 : value)))

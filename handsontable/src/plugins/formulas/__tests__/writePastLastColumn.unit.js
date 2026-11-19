@@ -2,6 +2,7 @@ import { HyperFormula } from 'hyperformula';
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * DEV-2723: `afterSetDataAtCell` runs before the change is applied, so a write past the last
@@ -22,7 +23,7 @@ describe('Formulas – a write past the last column', () => {
     hot = new Handsontable(container, {
       data: [['1', '2', '3'], ['4', '5', '6']],
       formulas: { engine: HyperFormula },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       renderAllColumns: true,
       renderAllRows: true,
     });

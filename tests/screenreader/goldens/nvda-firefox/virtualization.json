@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "virtualization",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-04T10:53:59.887Z"
+  },
+  "steps": {
+    "page-down": "a 4 alpha row 5 column 2",
+    "page-down-again": "a 7 alpha row 8 column 2",
+    "to-last-row": "a 200 alpha row 201 column 2",
+    "arrow-up": "a 199 alpha row 200 column 2",
+    "to-first-row": "a 1 alpha row 2 column 2"
+  }
+}

@@ -17,9 +17,22 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
 
 ## The few CollapsibleColumns-specific facts to keep straight
 
-- `PLUGIN_PRIORITY = 290`, and `static PLUGIN_DEPS = ['plugin:NestedHeaders']`. NestedHeaders is 280, so
+- **The `collapsible` flags and the `visibleWhen` set are built in `onGridReady()`**, after NestedHeaders' own
+  step built the tree (280 before 290), and again from NestedHeaders' `afterHeaderStateRebuild` local hook
+  (below) whenever its step rebuilt the tree without this plugin owing a step (a `loadData()`). `updatePlugin()`
+  only owes the step, `enablePlugin()` no longer calls it, and the `init` and `afterLoadData` listeners are gone.
+  Details and the five rules: `../nestedHeaders/AGENTS.md`, "The header state is built in the ready step".
+
+- `PLUGIN_PRIORITY = 290`, and `PLUGIN_DEPS` is `['plugin:NestedHeaders']` (declared in `feature.json` and
+  generated into `feature.generated.ts`; see `../../featureManifest/AGENTS.md`). NestedHeaders is 280, so
   it rebuilds the tree (and applies move/reparent overrides) **before** this plugin re-derives its
   `visibleWhen` hidden set. This ordering is load-bearing — see the NestedHeaders doc.
+- **The `collapsible` flags are written from NestedHeaders' `afterHeaderStateRebuild` local hook, not from
+  this plugin's `afterLoadData`** (`#applyCollapsibleFlags()`, registered on the NestedHeaders plugin in
+  `enablePlugin()` and removed in `disablePlugin()`). Plugin order runs this plugin's `afterLoadData` before
+  NestedHeaders rebuilds its state from the setting, and that rebuild drops the flags, so the buttons
+  disappeared after a `loadData()` and never showed on a sheets bar sheet declaring `nestedHeaders`. Pinned by
+  `__tests__/headerStateRebuild.unit.js` and `tests/e2e/sheets-bar-collapsible-nested-headers.spec.ts`.
 - **Two separate hiding maps**, both type `'hiding'`:
   - `this.pluginName` (`'collapsibleColumns'`) — legacy first-visible-child collapse;
     `getCollapsedColumns()` reports this map (PHYSICAL indexes).
@@ -31,6 +44,19 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   rollbacks — including for declarative groups that flipped `isCollapsed` but reported no affected columns.
 - On a move that would split a *collapsed* group, this plugin **preemptively expands it** in
   `beforeColumnMove`, so `getCollapsedGroups()` read in/after that hook can return fewer groups.
+- **A column order written without a move (`setIndexesSequence()`, source `'update'`) never reaches
+  `beforeColumnMove`, so nothing expands a group it splits first.** NestedHeaders re-derives the tree in its
+  `cacheUpdated` handler and drops the split group's collapse, and the collapse hiding map kept its columns
+  hidden with no button left to show them. This plugin records the state manager's
+  `getCollapsedGroupsVersion()` in the mapper's `beforeCacheUpdate` local hook (a stack, since cache updates
+  nest) and, when the version moved by `afterCacheUpdate`, rebuilds the map from the collapsed groups
+  (`#collapseGroups()`). It runs in `afterCacheUpdate`, not `cacheUpdated`, so it does not depend on the
+  order the two plugins registered their local hooks and its own map write is a separate cache update.
+- **`#collapseGroups()` makes the groups the record and the map a derivative.** It re-collapses the given
+  groups through `importCollapsedGroups(groups, visibility)`, which returns the visual columns the collapses
+  hide, and writes the map only when that set differs. The visibility passed in leaves this plugin's own
+  map out: a column the map hid before would otherwise count as hidden by another source and move a group's
+  first visible column.
 - Hook-payload coordinate spaces are mixed under active moves/trim: `currentCollapsedColumns` is PHYSICAL,
   `destinationCollapsedColumns` mixes physical + visual with no conversion. Re-read `getCollapsedColumns()`
   after structural changes rather than caching a hook payload.
@@ -50,6 +76,24 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   clear that map (older behavior), so right after it the collapsed columns stay hidden with no group
   collapsed. The same config sent again (a wrapper re-render) is not another configuration: the version
   stays, so an undo and a redo across it put the group back with its hidden columns.
+- **`restoreState()` rebuilds the hiding map from the groups it imports (`#collapseGroups()`), not only the
+  tree.** UndoRedo restores the column index maps before the plugin states, and the order restore is a
+  cache update: NestedHeaders re-derives the tree, which still has the group the undone move split
+  expanded, so `#onAfterColumnCacheUpdate` rebuilds the map from no groups and clears the columns the
+  snapshot had just hidden. A tree-only import then left the group collapsed with every column showing.
+  For the same reason `#collapseGroups([])` skips its early return while the tree still has a collapsed
+  group: an undone collapse must expand the tree even when the map is already empty. Pinned in
+  `../undoRedo/__tests__/pluginState.unit.js` ("undo of a move that split its group").
+- **The sheets bar keeps the collapsed groups per sheet through `_exportViewState()` and
+  `_importViewState()`**, because a data load rebuilds the header state with every group expanded. Like
+  `restoreState()`, `_importViewState()` writes this plugin's hiding map too, since a load re-creates it
+  empty. The state holds the groups only, and the import
+  derives the hidden columns through `#collapseGroups()`: columns captured under the old column order and
+  membership could name a column that, after a return with the order reset (a `manualColumnMove` redeclared
+  through `updateSheetSettings()`, or an order of another length), sits in a group that is not collapsed, and
+  expanding the collapsed group never released it. It runs no collapse hook and does not check the
+  config version: a sheet that changed its `nestedHeaders` or `collapsibleColumns` while hidden has the part
+  reset by the bar instead.
 - **`getStateColumns()` answers `[]`.** A group is recorded by header position, and the columns a
   collapse hides are in this plugin's hiding maps, which the UndoRedo check of a `columns` settings
   update reads column by column. Without the method a collapse step - and every step older than it -
@@ -61,6 +105,82 @@ This plugin is **UI + hiding maps**; the structural logic is in NestedHeaders' `
   NestedHeaders (280) updates first, so the configured level count is already the new one while the
   table still shows the old rows, and the disable threw `Cannot read properties of undefined (reading
   'childNodes')`. Pinned by `__tests__/clearButtons.unit.ts`.
+
+- **`Enter` on a collapsible header collapses it and never sorts; the order is chosen when either plugin registers
+  its shortcut, not by plugin priority.** The newest shortcut next to a group runs first, so whichever of
+  CollapsibleColumns (290) and the sorting plugins (ColumnSorting 50, MultiColumnSorting 170) registers its `Enter`
+  header shortcut last would run first. Each therefore looks at the other's group on `Enter`. This plugin goes
+  `before` the `'columnSorting'` group when a shortcut of that group is already there (both sorting plugins register
+  it under that name, MultiColumnSorting through its parent class), and before the editor group otherwise.
+  ColumnSorting goes `after` the `'collapsibleColumns'` group when one is already there, and before the editor group
+  otherwise. Both names are literals, not imports: plugins do not import each other. A plugin registers again only on
+  a disabled-to-enabled flip (an `updateSettings()` that leaves it on does not), so a sorting plugin turned off and on,
+  or swapped for the other one, is how the order changes after init. Pinned by
+  `tests/e2e/collapsible-enter-vs-sorting.spec.ts`, which covers init, either plugin registering again, and this
+  plugin registering before any sorting shortcut exists.
+
+## Keyboard and announcements
+
+- **`aria-expanded` stays on the header `TH` and the indicator stays `aria-hidden`; do not turn the
+  indicator into a button.** With `navigableHeaders` the header is the focusable control that carries
+  the state, and a `button` inside it would nest one interactive element in another (two stops, two
+  names for one action). Without `navigableHeaders` (the default) no header takes the focus, so
+  <kbd>Enter</kbd> on a header was unreachable and the plugin was mouse-only; the key below is the way in.
+- **<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowUp</kbd> toggles a group from a data cell or from a header**,
+  with or without `navigableHeaders`. `#getKeyToggleTarget()` resolves the group:
+  from a data cell, the group CLOSEST TO THE DATA among the headers over the cell's column
+  (`findClosestToggleLevel()` in `toggleLevel.ts`, starting at the last header level and walking up);
+  from a column header, that header's own group, or the closest one above it. It never looks below the
+  focused header. With no such group `runOnlyIf` is `false`, so the key is not claimed (no
+  `preventDefault()`). It needs exactly one selection layer (`getSelectedRange().length === 1`), and from
+  a data cell a grid body nothing covers (`isGridBodyCovered()`); a header stays operable under a
+  covering overlay, as <kbd>Enter</kbd> on it does. The chord is the DropdownMenu family
+  (<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>ArrowDown</kbd> opens the column menu from a cell) and NestedRows
+  takes the left and right arrows of it, so the four never clash; pinned on one grid with all three.
+- **A collapse by the key keeps the selection inside the collapsed group, from a data cell and from a
+  header alike.** A collapse
+  hides every column of the group but the first shown one, and `#adjustSelectionAfterHide()` moves a
+  highlight that sat on a hidden column to the NEAREST shown column, which is the next group's first
+  column: with `H1` over columns 1 to 2 and `H2` over 3 to 4, the key pressed in column 2 collapsed `H1`,
+  the highlight went to column 3, and the next press toggled `H2`, so the group just collapsed could not
+  be expanded by the same key. A focused header BELOW the group sits over a hidden column the same way:
+  the key pressed on the bottom header of column 4 collapsed `H2`, the focus went to column 5 in the
+  same header row, and the next press toggled the group over column 5. The key callback therefore sets
+  `#keyToggleGroupColumns` (the group's visual range) for the length of the toggle, for a press on a
+  data cell and on a header, and `#getColumnAfterHide()` answers the first column of that range that is
+  still shown; the row is kept, so a header press stays at its header level. It is ONE
+  selection move, made where the move always was: selecting the target before the toggle would move the
+  selection even when `beforeColumnCollapse` vetoes, and selecting it after would be a second move and a
+  second round of selection hooks. The row stays, so NestedRows announces no level for it.
+  <kbd>Enter</kbd> and the indicator leave the field `null` and move the selection as before
+  (measured before and after this rule: <kbd>Enter</kbd> on `Group 1` focused over column 3 leaves the
+  focus on that header at column 1, and an indicator press with the highlight on a hidden data cell
+  moves it to the nearest shown column).
+- **The key honors the gate the indicator is drawn by, `#isGroupToggleable()`**: `collapsible`, more than
+  one column, and neither frozen band (see "`fixedColumnsEnd`" below). `#onAfterGetColHeader` calls the
+  same method, so a group without a visible toggle cannot be collapsed by the key either.
+  <kbd>Enter</kbd> on a header still checks `collapsible` alone, as before.
+- **Only user gestures announce.** `#toggleSectionByUser()` wraps `toggleCollapsibleSection()` for
+  <kbd>Enter</kbd>, a press on the indicator and the new key, and sends a polite
+  "Collapsed column group {label}" / "Expanded column group {label}"
+  (`COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_*`). The public methods stay silent: an application calling them
+  knows what it changed, and `collapseAll()` would queue one message per group. It announces only when
+  the group's `isCollapsed` actually flipped (read from the tree node before and after), so a
+  `beforeColumnCollapse`/`beforeColumnExpand` veto is silent, and never with `ariaTags: false`. The
+  announcement is also what a VoiceOver user on WebKit hears on an expand: that reader stays silent
+  when <kbd>Enter</kbd> expands a group although it reads the collapse. Measured in Playwright WebKit
+  (and Firefox) on three headers: the focused `TH` is the same connected node before and after both
+  directions, no `focusin`/`focusout` fires, and `aria-expanded` is removed and written back in the
+  same draw both ways. The one difference is that an expand ADDS a `TH` to every header row and gives
+  the focused header its `colspan` back, where a collapse removes them. No cause in the grid's focus or
+  DOM handling was found, so nothing was changed there.
+- **The label is read BEFORE the toggle, from the rendered header** (`getHeaderLabelText()` in
+  `src/utils/headerLabel.ts`, shared with ColumnSorting: the `.colHeader` text, `<br>` as a space,
+  markup never spoken), with the tree node's declared `label` as the fallback for a header scrolled out
+  of the viewport, and the spreadsheet letter of the group's first column for a group without a label.
+
+Pinned by `tests/e2e/collapsible-columns-a11y.spec.ts` (Chromium, Firefox, WebKit),
+`__tests__/toggleLevel.unit.ts` and `src/utils/__tests__/headerLabel.unit.ts`.
 
 ## The indicator is a real element, updated in place on every draw
 
@@ -136,6 +256,74 @@ group inside the band and one that crosses the master/end line.
   configuration change the application owns.
 - Pinned by `tests/e2e/fixed-columns-end-headers.spec.ts` and `tests/e2e/fixed-columns-end-review4.spec.ts` (LTR; the
   check compares logical column indexes, so RTL takes the same branch), and by `__tests__/fixedColumnsEnd.unit.ts`.
+
+## The missing-`nestedHeaders` warning runs in the ready step, not in `enablePlugin()`
+
+`enablePlugin()` used to read `getSettings().nestedHeaders` and warn "You need to configure the Nested Headers
+plugin" when it was missing. Under SheetsBar a grid-level `collapsibleColumns: true` is enabled before a sheet's
+own `nestedHeaders` is applied, so every such workbook warned at init although the headers were configured
+(the plugin is enabled once, at init; a sheet switch never re-enables it). The check is owed by `enablePlugin()`
+(`#nestedHeadersCheckOwed`) and paid in `onGridReady()`, which core runs once the opening sheet's settings are
+in force; `disablePlugin()` clears the debt. The ready step sees the opening sheet only, so the check also reads
+the `sheetsBar.sheets` entries of the grid settings (`#sheetsDeclareNestedHeaders()`, no SheetsBar plugin
+access): a workbook whose first sheet is plain and a later sheet declares `nestedHeaders` stays quiet, and only a
+workbook with no such sheet warns. A sheet added later through the SheetsBar API is not seen, and an update does
+not re-check, so a switch to a sheet without nested headers stays quiet while the plugin stays enabled. Pinned by
+`__tests__/nestedHeadersWarning.unit.js`.
+
+## The indicator and the dropdown menu button share their strip of hit area
+
+A group header in the LAST header row holds both the `.changeType` button and the `.collapsibleIndicator`
+(DOM order: label, `.changeType`, indicator, in LTR and RTL alike; the flex direction flips them). Each
+extends its 24px box past its slot by `(hit area - icon) / 2 - 1px` on both sides, which the 2px flex gap does
+not make up for, so the two hit areas overlap by `(hit area - icon) - 4px`: 4px on `main` and `horizon`, 8px on
+`classic` (smaller icon). `.changeType` is stacked above the indicator (`z-index: 1`), so it used to take the
+whole strip and the indicator lost part of its target. The visible icons never touch, so the overlap shows
+nowhere but in a pointer hit test.
+
+`_collapsible-columns.scss` fixes it on the indicator alone, with the sibling combinator
+`.relative:not(.has-sort-indicator) > .changeType ~ .collapsibleIndicator` (`:has()` is banned): the indicator goes
+above the button (`z-index: 1`, which wins because it comes later in the DOM) and clips half the overlap off its
+facing edge with `clip-path: inset()`, which clips what the pointer reaches as well as what paints. The clip is never
+wider than the padding around the icon, so no pixel changes.
+
+- **A sorted column turns the rule off.** The sort indicator adds `has-sort-indicator` to `.relative`, and
+  `_column-sorting.scss` then widens the flex gap (20px on `main`, 16px on `classic`): the hit areas no longer touch,
+  and a clip would only take an edge off the indicator. That gap is a `clamp()` over a percentage, which cannot be read
+  from here, so the rule is keyed on the class instead. Below the theme's minimum column width the gap falls back to
+  2px and the overlap returns for a sorted header; that width is the limit there.
+- **`z-index: 1`, not 2.** A header cell is `position: relative` with no z-index of its own, so a higher value would
+  also win over the next header cell's dropdown button when a too narrow column lets the group header overflow.
+  With `1`, that button, later in the DOM, stays on top.
+
+- **The right to left case is `&:dir(rtl)`, never a `[dir="rtl"]` ancestor selector.** `clip-path` has no
+  logical keywords, so the facing edge is spelled out per direction. `[dir="rtl"] .handsontable ...` also matches a
+  left to right grid inside a right to left page, because the grid root's own `dir="ltr"` does not stop an
+  ancestor from matching, and the clip then lands on the wrong edge (the original bug, mirrored). `:dir()` reads the
+  nearest direction.
+- **The 2px in the overlap is the base gap, not `--ht-header-gap`.** That property is a `clamp()` containing
+  `100%` in `_column-sorting.scss`, and a custom property substitutes that `100%` as text, so inside `inset()`
+  it would resolve against the indicator's own box instead of the header. A wider real gap only makes the clip a
+  little deeper than needed, and it stays inside the icon's padding.
+- **The split trades hit area for no overlap.** Effective target widths (the height stays 24px):
+
+  | Theme | Dropdown button before | after | Indicator before | after |
+  |---|---|---|---|---|
+  | `main`, `horizon` | 24px | 22px | 20px | 22px |
+  | `classic` | 24px | 20px | 16px | 20px |
+
+  The axe target size rule reads element boxes, and `clip-path` does not change them, so the scan cannot see this
+  change. Do not read the overlap as spare room to give back to one button. Keeping both at 24px would take moving the
+  icons 4px (`classic`: 8px) apart, which changes the layout and the narrow-header minimum width.
+- Do not change `--ht-icon-button-hit-area-size` (a theme token default), and do not widen the gap instead: that
+  moves the icons and the narrow-header minimum width.
+- Columns narrower than the theme's minimum width (a `colWidths` config below it, 20px in the check made) let
+  group header content overflow into the neighbouring cell. The minimum width is the limit there, not this rule.
+
+Pinned by `tests/e2e/collapsible-dropdown-hit-areas.spec.ts`, which finds where a press passes from one button to
+the other and requires it halfway between the two icons, for a left to right grid, a right to left grid, and a
+left to right grid inside a right to left page, in every theme. A sorted header must keep the indicator's whole hit
+area.
 
 ## Testing
 

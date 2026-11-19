@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { CustomBorders } from '../../customBorders/customBorders';
 import { MergeCells } from '../mergeCells';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Builds a square dataset.
@@ -44,7 +45,7 @@ describe('MergeCells after a shrinking loadData', () => {
     hot = new Handsontable(container, {
       data: square(8),
       mergeCells: [area],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.loadData(square(size));
@@ -106,7 +107,7 @@ describe('MergeCells after a shrinking loadData', () => {
         hot = new Handsontable(container, {
           data: square(8),
           mergeCells: [area],
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
         });
 
         hot.updateSettings({ data: square(size) });
@@ -121,7 +122,7 @@ describe('MergeCells after a shrinking loadData', () => {
         hot = new Handsontable(container, {
           data: square(8),
           mergeCells: [area],
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
         });
 
         hot.updateData(square(size));
@@ -146,7 +147,7 @@ describe('MergeCells after a shrinking loadData', () => {
     hot = new Handsontable(container, {
       data: square(8),
       mergeCells: [{ row: 6, col: 6, rowspan: 2, colspan: 2 }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.loadData(square(8));
@@ -169,7 +170,7 @@ describe('MergeCells after a shrinking loadData', () => {
       data: square(8),
       mergeCells: [{ row: 6, col: 6, rowspan: 2, colspan: 2 }],
       customBorders: [{ row: 7, col: 7, top: { width: 2, color: 'red' } }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.updateData(square(3));

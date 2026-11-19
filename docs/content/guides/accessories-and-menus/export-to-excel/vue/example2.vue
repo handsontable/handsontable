@@ -42,7 +42,7 @@ const sharedSettings: GridSettings = {
   autoWrapRow: true,
   autoWrapCol: true,
   exportFile: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const hotQ1Settings = ref<GridSettings>({ ...sharedSettings, data: q1Data });

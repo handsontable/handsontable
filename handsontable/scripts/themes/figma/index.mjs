@@ -1,8 +1,9 @@
 import { rmSync, existsSync, loadTokens } from './utils/helpers/fileSystem.mjs';
-import { generateAllVariables } from './utils/themeProcessing.mjs';
+import { findUnresolvedTokens, generateAllVariables } from './utils/themeProcessing.mjs';
 import { writeJsThemeFiles } from './utils/jsGeneration.mjs';
 import { writeCssThemeFiles } from './utils/cssGeneration.mjs';
-import { OUTPUT_PATH, TOKENS_KEY } from './utils/constants.mjs';
+import { writeManifest } from './utils/manifest.mjs';
+import { MANIFEST_PATH, OUTPUT_PATH, TOKENS_KEY } from './utils/constants.mjs';
 
 /**
  * Generates Handsontable theme files (typed TS variable modules + CSS) into src/themes/static.
@@ -19,12 +20,26 @@ function main() {
       throw new Error('No themes found in tokens.json. Aborting before wiping src/themes/static.');
     }
 
+    // A key in tokensKeys.mjs that the export cannot resolve would be dropped from the output.
+    // Abort instead: the export is stale, or the token is missing from Figma.
+    const unresolved = findUnresolvedTokens(themeVariables[TOKENS_KEY]);
+
+    if (unresolved.length > 0) {
+      const list = unresolved.map(({ theme, keys }) => `  ${theme}: ${keys.join(', ')}`).join('\n');
+
+      throw new Error('tokens.json does not resolve these tokensKeys entries:\n' +
+        `${list}\n` +
+        'Export a fresh tokens.json, or add the missing variables to the Handsontable Design System in ' +
+        'Figma first. Aborting before wiping src/themes/static.');
+    }
+
     if (existsSync(OUTPUT_PATH)) {
       rmSync(OUTPUT_PATH, { recursive: true });
     }
 
     writeJsThemeFiles(themeVariables);
     writeCssThemeFiles(themeVariables);
+    writeManifest(OUTPUT_PATH, MANIFEST_PATH);
 
     console.log('\nTheme files generated successfully.');
   } catch (error) {

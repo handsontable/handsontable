@@ -131,6 +131,7 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         id="example1"
         data={data}
         colHeaders={['Campaign', 'Q1 Budget ($)', 'Q1 Revenue ($)', 'Q2 Budget ($)', 'Q2 Revenue ($)']}
@@ -148,7 +149,6 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         afterSelectionEnd={updateChart}
         afterDeselect={updateChart}
-        licenseKey="non-commercial-and-evaluation"
       />
       <canvas ref={canvasRef} id="chart-canvas" />
     </>

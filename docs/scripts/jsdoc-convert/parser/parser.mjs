@@ -25,6 +25,8 @@ export const buildParser = ({ logger, parseJsdoc }) => async function* () {
     'eventManager.js',
     'editors/!(__tests__)/!(index).js',
     'plugins/!(__tests__)/!(index).js',
+    // Moved out of `plugins/mergeCells/` (DEV-161); its API page stays published.
+    'selection/focusOrder.js',
     'translations/maps/!(index).js',
     'translations/changesObservable/!(index).js',
     'translations/indexMapper.js',

@@ -169,8 +169,9 @@ describe('CustomBorders', () => {
       getPlugin('customBorders').disablePlugin();
       getPlugin('customBorders').enablePlugin();
 
-      expect(countVisibleCustomBorders()).toBe(0); // TODO this assertion checks current behavior that looks like a bug. I would expect 3
-      expect(countCustomBorders()).toBe(0);
+      // The ready step applies the declared borders again, as the `updateSettings` re-enable above does.
+      expect(countVisibleCustomBorders()).toBe(3);
+      expect(countCustomBorders()).toBe(5);
     });
 
     it('should throw an error while initialization if the mixed API is used ("start"/"end" and "left"/"right")', async() => {
@@ -907,10 +908,10 @@ describe('CustomBorders', () => {
 
     await deselectCell();
 
-    expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
-    expect(getCellMeta(0, 1).borders.top).toEqual(DEFAULT_BORDER);
-    expect(getCellMeta(0, 2).borders.top).toEqual(DEFAULT_BORDER);
-    expect(getCellMeta(0, 3).borders.top).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.top).toEqual(CONTEXT_MENU_BORDER);
+    expect(getCellMeta(0, 1).borders.top).toEqual(CONTEXT_MENU_BORDER);
+    expect(getCellMeta(0, 2).borders.top).toEqual(CONTEXT_MENU_BORDER);
+    expect(getCellMeta(0, 3).borders.top).toEqual(CONTEXT_MENU_BORDER);
     expect(getCellMeta(0, 0).borders.start).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.end).toEqual(EMPTY);
@@ -932,10 +933,10 @@ describe('CustomBorders', () => {
 
     await deselectCell();
 
-    expect(getCellMeta(0, 0).borders.end).toEqual(DEFAULT_BORDER);
-    expect(getCellMeta(1, 0).borders.end).toEqual(DEFAULT_BORDER);
-    expect(getCellMeta(2, 0).borders.end).toEqual(DEFAULT_BORDER);
-    expect(getCellMeta(3, 0).borders.end).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.end).toEqual(CONTEXT_MENU_BORDER);
+    expect(getCellMeta(1, 0).borders.end).toEqual(CONTEXT_MENU_BORDER);
+    expect(getCellMeta(2, 0).borders.end).toEqual(CONTEXT_MENU_BORDER);
+    expect(getCellMeta(3, 0).borders.end).toEqual(CONTEXT_MENU_BORDER);
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.start).toEqual(EMPTY);
@@ -967,7 +968,7 @@ describe('CustomBorders', () => {
     await selectContextSubmenuOption('Borders', 'Top');
     await deselectCell();
 
-    expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.top).toEqual(CONTEXT_MENU_BORDER);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.start).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.end).toEqual(EMPTY);
@@ -1015,7 +1016,7 @@ describe('CustomBorders', () => {
     await selectContextSubmenuOption('Borders', 'Top');
     await deselectCell();
 
-    expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.top).toEqual(CONTEXT_MENU_BORDER);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.start).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.end).toEqual(EMPTY);
@@ -1038,7 +1039,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.hasOwnProperty('left')).toBe(true);
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
-    expect(getCellMeta(0, 0).borders.start).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.start).toEqual(CONTEXT_MENU_BORDER);
     expect(getCellMeta(0, 0).borders.end).toEqual(EMPTY);
     expect(countVisibleCustomBorders()).toBe(1);
     expect(countCustomBorders()).toBe(5);
@@ -1059,7 +1060,7 @@ describe('CustomBorders', () => {
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.start).toEqual(EMPTY);
-    expect(getCellMeta(0, 0).borders.end).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.end).toEqual(CONTEXT_MENU_BORDER);
     expect(countVisibleCustomBorders()).toBe(1);
     expect(countCustomBorders()).toBe(5);
   });
@@ -1077,7 +1078,7 @@ describe('CustomBorders', () => {
     /* eslint-disable no-prototype-builtins */
     expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true);
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
-    expect(getCellMeta(0, 0).borders.bottom).toEqual(DEFAULT_BORDER);
+    expect(getCellMeta(0, 0).borders.bottom).toEqual(CONTEXT_MENU_BORDER);
     expect(getCellMeta(0, 0).borders.start).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.end).toEqual(EMPTY);
     expect(countVisibleCustomBorders()).toBe(1);

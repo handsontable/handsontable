@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "page": "nested-headers",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Select whole grid",
+        "cell": [
+          -3,
+          -1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Header title",
+        "cell": [
+          -3,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "I/J",
+        "cell": [
+          -3,
+          8
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "I/J",
+        "cell": [
+          -3,
+          8
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Header title",
+        "cell": [
+          -3,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Select whole grid",
+        "cell": [
+          -3,
+          -1
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

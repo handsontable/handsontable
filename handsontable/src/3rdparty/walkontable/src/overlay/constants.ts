@@ -32,6 +32,26 @@ export const INLINE_END_CLONE_TYPES = [
 ];
 
 /**
+ * The clones that render the first rows of the grid (`fixedRowsTop`). Their rendered rows count comes from
+ * the live `totalRows` and `fixedRowsTop` settings (`stickyRowsTop`), not from the last draw.
+ */
+export const TOP_CLONE_TYPES = [
+  CLONE_TOP,
+  CLONE_TOP_INLINE_START_CORNER,
+  CLONE_TOP_INLINE_END_CORNER,
+];
+
+/**
+ * The clones that render the last rows of the grid (`fixedRowsBottom`). Their rendered band comes from
+ * the live `totalRows` and `fixedRowsBottom` settings, not from the last draw (`stickyRowsBottom`).
+ */
+export const BOTTOM_CLONE_TYPES = [
+  CLONE_BOTTOM,
+  CLONE_BOTTOM_INLINE_START_CORNER,
+  CLONE_BOTTOM_INLINE_END_CORNER,
+];
+
+/**
  * Band, in CSS pixels, kept clear along an edge so an overlay ("floating") scrollbar stays visible and
  * grabbable instead of being covered by a frozen overlay (#10370). Such a scrollbar takes no layout
  * space, so it measures 0 and its real thickness cannot be read from the DOM - this has to be a
@@ -52,11 +72,25 @@ export const INLINE_END_CLONE_TYPES = [
 export const OVERLAY_SCROLLBAR_CLEARANCE = 16;
 
 /**
- * How close, in CSS pixels, the pointer has to come to the scrollport's edge before the clearance strip
- * opens. Roughly the reach at which a browser brings its own overlay scrollbar back on screen, plus
- * enough margin that the strip is already open by the time the pointer arrives at the thumb.
+ * How close, in CSS pixels, the pointer has to rest to the scrollport's edge to hold an open band open.
+ * It equals `OVERLAY_SCROLLBAR_CLEARANCE`, so only a pointer over the band holds it. On macOS, with
+ * Chromium's Fluent overlay scrollbars and in Gecko that is where the browser keeps a hovered thumb up
+ * (the 16px interactive reach measured for that constant). A plain literal, because the visual-tests
+ * fixture mirrors it (`visual-tests/src/test-runner.ts`).
+ *
+ * A wider reach (it was 26) pinned the band from the part of the last column that is still visible
+ * beside it. A pin has no timer, so the last 16px of a `fixedColumnsEnd` column – the cell text, the
+ * selection's outer edge, and the fill handle – stayed cut for as long as the pointer rested on the
+ * cell, with no thumb on screen (DEV-3975).
+ *
+ * Known limit: Chromium's other overlay scrollbars (ChromeOS, Linux with the overlay scrollbar flag) keep
+ * the thumb up from further away. `cc/input/single_scrollbar_animation_controller_thinning.cc` expands
+ * the thumb within 25px of it and fades it in within 30px of the scrollbar; both distances are 0 for
+ * Fluent. A pointer resting 17 to 30px from the edge there keeps a thumb on screen after the band closed,
+ * and a frozen overlay covers it again (#10370). That is the price of a whole last column. Read from the
+ * Chromium source, not measured on such a device.
  */
-export const OVERLAY_SCROLLBAR_PROXIMITY = 26;
+export const OVERLAY_SCROLLBAR_PROXIMITY = 16;
 
 /**
  * How long a band stays open, in milliseconds, after the last scroll - with the pointer away from the
@@ -85,6 +119,30 @@ export const OVERLAY_SCROLLBAR_FILLER_HOST_CLASS = 'htScrollbarClearanceFillers'
  * above the holder instead would hide the scrollbar thumb (measured: 0 thumb pixels).
  */
 export const OVERLAY_SCROLLBAR_FILLER_CLASS = 'htScrollbarClearanceFiller';
+
+/**
+ * An empty scroll container that shows the grid's classic scrollbar along the scrolling part of an edge
+ * only - below the column headers and frozen top rows, after the row headers and frozen start columns.
+ * It sits in the gutter the master holder reserves and covers the holder's own scrollbar there.
+ */
+export const SCROLLBAR_PROXY_CLASS = 'htScrollbarProxy';
+
+/**
+ * Covers the part of a gutter beside a frozen band (or the headers), where the scrollbar no longer runs.
+ */
+export const SCROLLBAR_PROXY_FILLER_CLASS = 'htScrollbarProxyFiller';
+
+/**
+ * The grid's frame, redrawn over the gutters of its classic scrollbars, which the browser paints above
+ * the frame the holder draws itself.
+ */
+export const SCROLLBAR_FRAME_CLASS = 'htScrollbarFrame';
+
+/**
+ * The square where the two classic gutters meet, in the track color. Safari paints that corner itself,
+ * in white, once `scrollbar-color` applies (it then ignores `::-webkit-scrollbar-corner`).
+ */
+export const SCROLLBAR_CORNER_CLASS = 'htScrollbarCorner';
 
 /**
  * How many `ResizeObserver` deliveries in direct succession make the callback a self-sustaining loop
@@ -134,8 +192,8 @@ export const OVERLAY_RAIL_CLASS_NAME = 'htOverlayRail';
 
 /**
  * The state class the three inline-end clone roots carry while the freeze line at their inline-start edge
- * is drawn by the master (the clone rests against the last scrolling column, or against the row header).
- * Without it the clone's own first cell draws the line. See `Overlays#syncInlineEndFreezeLine`.
+ * is drawn by the row header (the end band covers every column). Without it the clone's own first cell
+ * draws the line. See `Overlays#syncInlineEndFreezeLine`.
  */
 export const INLINE_END_FREEZE_LINE_SHARED_CLASS = 'htFreezeLineShared';
 

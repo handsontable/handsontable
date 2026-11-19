@@ -23,6 +23,7 @@ import {
 } from '../constants';
 import { throwWithCause } from '../../../../../helpers/errors';
 import { setSpreaderOffset } from '../spreaderOffset';
+import { getHiderHeightCompensation } from '../../axisSizing/hiderCompensation';
 
 /**
  * @class TopOverlay
@@ -417,9 +418,23 @@ export class TopOverlay extends Overlay {
       const totalRows = wtSettings.getSetting<number>('totalRows');
 
       newY += this.sumCellSizes(0, sourceRow + 1);
+      // The row after the scroll is laid out with the band moved, so its first rendered row lies above it. A sum
+      // taken now holds that row's top border only when the first rendered row of the CURRENT band is in range:
+      // add it when it is not, or the row ends a pixel low after a scroll that came from below the target.
+      newY += wot.wtViewport.getFirstRowPixelMissingFrom(0, sourceRow + 1);
       newY -= wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
-      // Fix 1 pixel offset when cell is selected
-      newY += 1;
+
+      // The summed row heights leave out the top border the first body row draws when no column header owns
+      // that gridline, so the row's real bottom edge is one pixel lower and the target moves with it. The
+      // heights are not short in two cases, the ones `getHiderHeightCompensation()` answers 0 for: a column
+      // header owns the gridline (DEV-2786), or AutoRowSize measures the rows and counts that border in the
+      // first rendered row's height. The extra pixel then put the row 1px above the bottom clone: its bottom
+      // border and the clone's top border, the freeze line, showed as a double line where the border belongs
+      // under the clone's first pixel row (DEV-3984). Without frozen bottom rows the extra pixel is kept as
+      // it was: nothing is drawn over the viewport's last pixel row there.
+      if (fixedRowsBottom === 0 || getHiderHeightCompensation(wtSettings) > 0) {
+        newY += 1;
+      }
 
     } else {
       newY += this.sumCellSizes(wtSettings.getSetting<number>('fixedRowsTop'), sourceRow);

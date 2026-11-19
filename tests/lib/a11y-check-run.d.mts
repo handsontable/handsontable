@@ -19,12 +19,32 @@ export interface CheckRunPayload {
 }
 
 export function pageLines(source: string): Map<string, number>;
+export function docsPageLines(source: string, ids: string[]): Map<string, number>;
 export function baselineLines(source: string): Map<string, number>;
+export interface ScanReport {
+  name: string;
+  title: string;
+  job: string;
+  comparison: string;
+  pagesFile: string;
+  baselineFile: string;
+  source: string;
+  check: string;
+}
+export const PRODUCT_SCAN: Readonly<ScanReport>;
+export const DOCS_SCAN: Readonly<ScanReport>;
+export const WEBSITE_SCAN: Readonly<ScanReport>;
+export function websitePageLines(source: string): Map<string, number>;
+export function pageLinesOf(list: 'product' | 'docs' | 'website', source: string, ids?: string[]): Map<string, number>;
 export function buildCheckRun(input: {
   comparison: object | null;
   pages: Map<string, number>;
   baseline: Map<string, number>;
   reportUrl?: string;
   runUrl?: string;
+  scope?: 'audit' | 'change';
+  tracked?: (source: string, check: string, finding: object) => boolean;
+  scan?: ScanReport;
+  drift?: (item: object) => boolean;
 }): CheckRunPayload;
 export function annotationBatches<T>(items: T[], size?: number): T[][];

@@ -102,7 +102,7 @@ export class AppComponent {
     width: '100%',
     autoWrapRow: true,
     stretchH: 'all',
-    afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
+    afterChange: (changes: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) => {
       if (!changes || (source as string) === SOURCE_SYNC_FROM_MASTER || source === 'loadData') {
         return;
       }
@@ -116,9 +116,11 @@ export class AppComponent {
 
       const changedRows = new Set<number>();
 
-      changes.forEach(([row]) => {
-        if (typeof row === 'number') {
-          changedRows.add(row);
+      changes.forEach((change) => {
+        const physicalRow = masterHot.getPhysicalRowOfChange(change);
+
+        if (physicalRow !== null) {
+          changedRows.add(physicalRow);
         }
       });
 
@@ -154,7 +156,7 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
@@ -163,7 +165,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

@@ -34,6 +34,16 @@ afterEach(() => {
   managers = [];
 });
 
+/**
+ * Dispatches a key on the document, the way the recorder receives it.
+ *
+ * @param {string} key - The `KeyboardEvent.key` value to send.
+ * @param {object} [init] - Extra `KeyboardEvent` init options (modifier flags).
+ */
+function pressKey(key: string, init: KeyboardEventInit = {}) {
+  document.documentElement.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...init }));
+}
+
 describe('Shortcut Manager', () => {
   describe('`setActiveContextName`', () => {
     it('should throw an error when the context has been not registered yet', () => {
@@ -49,15 +59,6 @@ describe('Shortcut Manager', () => {
   });
 
   describe('fallback context chain', () => {
-    /**
-     * Dispatches a key on the document, the way the recorder receives it.
-     *
-     * @param {string} key - The `KeyboardEvent.key` value to send.
-     */
-    function pressKey(key: string) {
-      document.documentElement.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
-    }
-
     it('should run the fallback context\'s shortcut when the active one does not define the keys', () => {
       const gridSpy = jasmine.createSpy('gridUndo');
       const manager = createTestManager();
@@ -294,6 +295,78 @@ describe('Shortcut Manager', () => {
       document.documentElement.dispatchEvent(event);
 
       expect(spy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('destroyed from a shortcut callback', () => {
+    it('should not run the later shortcuts registered for the same keys', () => {
+      const laterSpy = jasmine.createSpy('later');
+      const manager = createTestManager();
+      const grid = manager.getContext('grid');
+
+      grid.addShortcut({ keys: [['a']], callback: () => manager.destroy(), group: 'first' });
+      grid.addShortcut({ keys: [['a']], callback: laterSpy, group: 'second' });
+      manager.setActiveContextName('grid');
+
+      pressKey('a');
+
+      expect(laterSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not forward the keys to another context of the destroyed manager', () => {
+      const forwardedSpy = jasmine.createSpy('forwarded');
+      const manager = createTestManager();
+      const editor = manager.addContext('editor');
+
+      manager.getContext('grid').addShortcut({ keys: [['a']], callback: forwardedSpy, group: 'grid' });
+      editor.addShortcut({
+        keys: [['a']],
+        callback: () => manager.destroy(),
+        group: 'editor',
+        forwardToContext: manager.getContext('grid'),
+      });
+      manager.setActiveContextName('editor');
+
+      pressKey('a');
+
+      expect(forwardedSpy).not.toHaveBeenCalled();
+    });
+
+    it('should still forward the keys to a context of another manager', () => {
+      // A submenu's Tab shortcut closes the submenu, which destroys the submenu grid and its manager,
+      // and forwards the key to the main menu, whose manager lives on.
+      const forwardedSpy = jasmine.createSpy('forwarded');
+      const mainMenuManager = createTestManager();
+      const subMenuManager = createTestManager();
+      const mainMenuContext = mainMenuManager.addContext('menu');
+      const subMenuContext = subMenuManager.addContext('menu');
+
+      mainMenuContext.addShortcut({ keys: [['a']], callback: forwardedSpy, group: 'menu' });
+      subMenuContext.addShortcut({
+        keys: [['a']],
+        callback: () => subMenuManager.destroy(),
+        group: 'menu',
+        forwardToContext: mainMenuContext,
+      });
+      subMenuManager.setActiveContextName('menu');
+
+      pressKey('a');
+
+      expect(forwardedSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not run the "control/meta" pass of the same keydown', () => {
+      const controlMetaSpy = jasmine.createSpy('controlMeta');
+      const manager = createTestManager();
+      const grid = manager.getContext('grid');
+
+      grid.addShortcut({ keys: [['control', 'a']], callback: () => manager.destroy(), group: 'control' });
+      grid.addShortcut({ keys: [['control/meta', 'a']], callback: controlMetaSpy, group: 'controlMeta' });
+      manager.setActiveContextName('grid');
+
+      pressKey('a', { ctrlKey: true });
+
+      expect(controlMetaSpy).not.toHaveBeenCalled();
     });
   });
 });

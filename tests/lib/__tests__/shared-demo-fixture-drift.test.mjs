@@ -136,6 +136,10 @@ function comparable(options) {
 
 const stub = name => Object.defineProperty(() => {}, 'name', { value: name });
 
+// Both files read the internal test key from a constant of their own, which the test-key guard
+// (`scripts/__tests__/test-license-key.test.mjs`) keeps equal; one stand-in for both compares that they read it.
+const TEST_KEY = 'test-license-key';
+
 // The demo's helpers and imports, stubbed for the left-to-right `/` route the captures photographed.
 const DEMO_GLOBALS = {
   generateExampleData: () => [],
@@ -144,13 +148,18 @@ const DEMO_GLOBALS = {
   arAR: { languageCode: 'ar-AR' },
   progressBarRenderer: stub('progressBarRenderer'),
   starRenderer: stub('starRenderer'),
+  TEST_LICENSE_KEY: TEST_KEY,
+};
+
+// The fixture's own globals: its row builder, and the key `test-license-key.js` puts on `window`.
+const FIXTURE_GLOBALS = {
+  sourceRow: () => [],
+  window: { htTestLicenseKey: TEST_KEY },
 };
 
 test('the shared-demo fixture builds the grid the visual suite\'s / route builds', () => {
   const demo = evaluate(objectLiteralAfter(DEMO, 'new Handsontable(example, '), DEMO_GLOBALS, DEMO);
-  const fixture = evaluate(objectLiteralAfter(FIXTURE, 'window.hot = new Handsontable(container, '), {
-    sourceRow: () => [],
-  }, FIXTURE);
+  const fixture = evaluate(objectLiteralAfter(FIXTURE, 'window.hot = new Handsontable(container, '), FIXTURE_GLOBALS, FIXTURE);
 
   assert.deepEqual(comparable(fixture), comparable(demo),
     `${FIXTURE} no longer builds the grid ${DEMO} builds. Mirror the change in the fixture, or, when the `
@@ -188,7 +197,7 @@ test('the comparison catches a changed option, column or plugin on one side', ()
     literal.replace('customBorders: true,', ''),
   ].forEach((changed) => {
     assert.notEqual(changed, literal, 'The control must change the literal.');
-    assert.notDeepEqual(comparable(evaluate(changed, { sourceRow: () => [] }, FIXTURE)), demo);
+    assert.notDeepEqual(comparable(evaluate(changed, FIXTURE_GLOBALS, FIXTURE)), demo);
   });
 });
 
@@ -196,9 +205,7 @@ test('the comparison catches a hook the demo gains, inline or under a skipped ke
   // The guard's control for hooks: the shape the row-header checkbox had on the `/` grid, written inline
   // so no unstubbed import gives it away.
   const literal = objectLiteralAfter(DEMO, 'new Handsontable(example, ');
-  const fixture = comparable(evaluate(objectLiteralAfter(FIXTURE, 'window.hot = new Handsontable(container, '), {
-    sourceRow: () => [],
-  }, FIXTURE));
+  const fixture = comparable(evaluate(objectLiteralAfter(FIXTURE, 'window.hot = new Handsontable(container, '), FIXTURE_GLOBALS, FIXTURE));
   const withHook = hook => literal.replace('licenseKey:', `${hook}() {},\n    licenseKey:`);
 
   ['beforeRenderer', 'afterOnCellMouseDown'].forEach((hook) => {

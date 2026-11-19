@@ -9,6 +9,7 @@ describe('IntlDatetimeEditor', () => {
     addHookOnce: jest.fn(),
     toPhysicalRow: jest.fn(visualRow => visualRow + 10),
     getSourceDataAtCell: jest.fn(() => '2024-03-16T09:00:00'),
+    getSettings: jest.fn(() => ({ ariaTags: false })),
   });
 
   const makeEditor = (hotMock = makeHotMock()) => new IntlDatetimeEditor(hotMock);

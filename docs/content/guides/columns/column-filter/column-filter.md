@@ -538,10 +538,21 @@ The following table contains all available filter operators for each built-in da
 | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
 | All cell types                                                   | Default operators:<br><br>None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to                                                  |
 | text<br>time<br>checkbox<br>dropdown<br>autocomplete<br>password | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain                                                       |
+| checkbox                                                         | The text operators above plus:<br><br>Is checked<br>Is unchecked                                                                              |
 | numeric                                                          | Default operators plus:<br><br>Greater than<br>Greater than or equal to<br>Less than<br>Less than or equal to<br>Is between<br>Is not between |
 | date                                                             | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | intl-date                                                        | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | intl-time                                                        | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain<br>Before (exclusive -- boundary time excluded)<br>Before or equal to (boundary time included)<br>After (exclusive -- boundary time excluded)<br>After or equal to (boundary time included)<br>Is between                      |
+
+On a checkbox column, **Is checked** keeps the cells whose value matches the column's
+[`checkedTemplate`](@/api/options.md#checkedtemplate), and **Is unchecked** keeps the cells whose value
+matches its [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Letter case is ignored, as the
+checkbox does when it draws the value. An empty cell matches neither operator, even though the checkbox
+draws it unchecked, unless the template itself is empty. To find empty cells, use **Is empty**.
+
+When a [`dataProvider`](@/api/options.md#dataprovider) backs the grid, your server evaluates the
+conditions, so a checkbox column offers the text operators only, without **Is checked** and
+**Is unchecked**.
 
 To offer only some of these operators, or to change their order, see
 [Choose the conditions the filter menu offers](#choose-the-conditions-the-filter-menu-offers).
@@ -609,6 +620,10 @@ the levels above don't get a filter menu of their own.
 
 :::
 
+## Filtering with parent-child rows
+
+The [`Filters`](@/api/filters.md) plugin works together with the [`NestedRows`](@/api/nestedRows.md) plugin. A row that matches the filter stays visible with all its parent rows, and a parent row that matches stays visible with all its child rows. The **Filter by value** list shows the values of every row that the other columns' filters keep, including rows inside collapsed parents. For details, see [Filtering](@/guides/rows/row-parent-child/row-parent-child.md#filtering) in the parent-child rows guide.
+
 ## Choose the conditions the filter menu offers
 
 To change which operators the **Filter by condition** lists offer, use the `availableConditions`
@@ -632,8 +647,20 @@ availableConditions: {
 ```
 
 The data type keys are `text`, `numeric`, `date`, `intl-date`, `intl-time`, and `intl-datetime`. A
-column whose cell type has no list of its own, such as `dropdown` or `checkbox`, uses the `text`
-list.
+column whose cell type has no list of its own, such as `dropdown`, uses the `text` list. A
+`checkbox` column uses the `text` list with **Is checked** and **Is unchecked** added after
+**Is not empty**, and follows the `text` key.
+
+To offer only the operators that suit a checkbox column, give the column its own list:
+
+```js
+columns: [
+  {
+    type: 'checkbox',
+    filters: { availableConditions: ['empty', 'not_empty', 'checked', 'unchecked'] },
+  },
+],
+```
 
 A column's own `availableConditions` replaces the grid-level one for that column. The two are not
 merged:
@@ -658,6 +685,7 @@ The names are the ones [`addCondition()`](@/api/filters.md#addcondition) takes:
 | Name | Operator in the menu |
 | ---- | -------------------- |
 | `empty`, `not_empty` | Is empty, Is not empty |
+| `checked`, `unchecked` | Is checked, Is unchecked (`checkbox` columns) |
 | `eq`, `neq` | Is equal to, Is not equal to |
 | `begins_with`, `ends_with` | Begins with, Ends with |
 | `contains`, `not_contains` | Contains, Does not contain |
@@ -1203,7 +1231,10 @@ const settings = {
 The **Filter by value** list of a column only holds the values present in the rows that pass the
 *other* columns' filters, so a value can drop off the list while it's still selected. Those values
 stay selected: confirming the menu keeps them, and they apply again as soon as their rows come back
-into scope. **Select all** and **Clear** both act on them along with everything else.
+into scope. **Select all** and **Select none** both act on them along with everything else.
+
+While a search term narrows the list, **Select all** and **Select none** act on the values the list
+shows. The values the search hides keep their state.
 
 A value that leaves the data entirely is a different case. Once no row holds it, it drops out of the
 filter as well, so a column whose values you edit away stops filtering instead of holding on to a
@@ -1909,9 +1940,9 @@ At the moment, filtering comes with the following limitations:
 
 Use keyboard and pointer interactions together to control the filtering UI:
 
-- Press <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to move between filtering components, such as the search input, **Select all**, **Clear all**, condition controls, and action bar controls.
+- Press <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to move between filtering components, such as the search input, **Select all**, **Select none**, condition controls, and action bar controls.
 - When the search input is focused, press <kbd>**Arrow up**</kbd> and <kbd>**Arrow down**</kbd> to move through the **Filter by value** list.
-- When **Select all** or **Clear all** is focused, press <kbd>**Enter**</kbd> or <kbd>**Space**</kbd> to run the action.
+- When **Select all** or **Select none** is focused, press <kbd>**Enter**</kbd> or <kbd>**Space**</kbd> to run the action.
 - If you hover a non-filter menu item (for example, **Clear column**), the filter-components focus order resets. The next <kbd>**Tab**</kbd> focuses the first filter component.
 
 For a reference list of filter-related shortcuts, see [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#column-filter-keyboard-shortcuts).
@@ -1945,7 +1976,7 @@ Didn't find what you need? Try this:
 
 - [View related topics](https://github.com/handsontable/handsontable/labels/Filtering) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Start a discussion](https://forum.handsontable.com/c/questions/12) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>

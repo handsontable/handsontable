@@ -12,6 +12,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       ref={hotTableRef}
       data={data} // Empty data to trigger empty state
       height="auto"
@@ -41,7 +42,6 @@ const ExampleComponent = () => {
           ],
         },
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

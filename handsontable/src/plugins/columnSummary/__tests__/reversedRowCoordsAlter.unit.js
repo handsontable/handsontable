@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, ColumnSummary } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ColumnSummary);
@@ -59,7 +60,7 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     }
 
     return new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10, 1], [20, 2], [null, null]],
       columnSummary,
     });
@@ -118,7 +119,7 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     // Row 3 seeds real data so the assertions discriminate WHERE the summary lands, not just that a
     // null became a number.
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10], [20], [null], [99]],
       columnSummary: [{
         destinationColumn: 0,
@@ -150,7 +151,7 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     // the reversed anchor would re-derive onto row 1, which holds real data (20). Moving there would
     // overwrite it — the regression this guards against — so the endpoint stays parked instead.
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10], [20], [30], [40]],
       columnSummary: [{
         destinationColumn: 0,
@@ -177,7 +178,7 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     // Two reversed endpoints, one per column. Both must re-anchor; this also exercises the
     // `resetAllEndpoints` all-or-nothing bounds check across more than one endpoint.
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10, 1], [20, 2], [null, null]],
       columnSummary: [
         { destinationColumn: 0, destinationRow: 0, reversedRowCoords: true, ranges: [[0, 1]], type: 'sum' },
@@ -200,7 +201,7 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     // Offset 2 on four rows resolves to row 1. Removing three rows leaves one, where
     // `count - offset - 1` = 1 - 2 - 1 = -2, i.e. out of bounds.
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10], [20], [30], [40]],
       columnSummary: [{
         destinationColumn: 0,
@@ -232,7 +233,7 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     // all-or-nothing bounds check in `resetAllEndpoints`, it would skip clearing every endpoint —
     // including A's vacated cell when A re-anchors on the append below.
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[1, 10], [2, 20], [3, 30], [4, 40], [5, 50], [6, 60]],
       columnSummary: [
         { destinationColumn: 0, destinationRow: 0, reversedRowCoords: true, ranges: [[4, 4]], type: 'sum' },
@@ -267,7 +268,7 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
 
   it('moves a reversed summary onto the new last row when a row is removed', async() => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10], [20], [30], [null]],
       columnSummary: [{
         destinationColumn: 0,
@@ -296,7 +297,7 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     // row past `maxRows`, so an append that stays within the cap must land the summary on the new
     // last row rather than tripping the out-of-bounds guard.
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10], [20], [null]],
       maxRows: 4,
       columnSummary: [{
@@ -342,7 +343,7 @@ describe('ColumnSummary reversedRowCoords with alter()', () => {
     // option gives back the last row with the `auto` source, which the endpoints must follow like any
     // other removal - only an automatic insertion is skipped.
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[10], [20]],
       minRows: 5,
       columnSummary: [{

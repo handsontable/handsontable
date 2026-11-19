@@ -17,10 +17,10 @@ const ExampleComponent: FC = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
       width="auto"
       height="auto"
       rowHeaders={true}

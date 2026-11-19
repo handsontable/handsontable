@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error logged on every server request when the grid renders on the server, and an error logged on click after the page hydrates.",
+  "type": "fixed",
+  "issueOrPR": 14007,
+  "breaking": false,
+  "framework": "angular"
+}

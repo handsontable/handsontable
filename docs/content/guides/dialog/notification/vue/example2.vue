@@ -33,7 +33,7 @@ const hotSettings = ref<GridSettings>({
   width: '100%',
   height: 280,
   notification: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 function getPlugin() {

@@ -35,6 +35,7 @@
     window.htFocus = htPick('focus', { 0: false, 1: true }, '0');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } input { margin: 10px; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -46,6 +47,9 @@
     `animation: false` so every state is reached synchronously; the visual demo animates, which the
     visual fixture switches off with the transitions anyway. The grid's rows are synthetic (four columns
     rather than the route's seven): the dialog covers the grid's box whatever its cells hold.
+    `window.htShowDialog()` shows the configured dialog again, closable, so Escape closes it, and
+    `window.htHideDialog()` hides it, both from a top-level name for a screen reader scenario's `call` step
+    (the application opening a dialog while the user works in the grid).
   -->
   <input data-testid="input-before" placeholder="Input">
   <div data-testid="grid"></div>
@@ -111,7 +115,7 @@
           content,
           template,
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
 
       if (window.htFocus) {
@@ -123,6 +127,8 @@
       }
 
       window.hot.getPlugin('dialog').show();
+      window.htShowDialog = () => window.hot.getPlugin('dialog').show({ closable: true });
+      window.htHideDialog = () => window.hot.getPlugin('dialog').hide();
     } catch (error) {
       window.htBuildError = String(error && error.stack || error);
     }

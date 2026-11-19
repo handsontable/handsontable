@@ -37,7 +37,7 @@ function createApp(columnsTemplate: string, tableProps = '') {
       };
     },
     template: `
-      <HotTable :data="data" licenseKey="non-commercial-and-evaluation"
+      <HotTable :data="data" :licenseKey="testLicenseKey"
                 :autoRowSize="false" :autoColumnSize="false"
                 :width="300" :height="300" :rowHeights="23" :colWidths="50"
                 :init="init" ${tableProps}>

@@ -115,6 +115,7 @@ export class SelectionScanner {
       case 'area':
       case 'fill':
       case 'focus':
+      case 'custom-selection':
         this.scanCellsRange(add);
         break;
       case 'row':

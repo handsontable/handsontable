@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an uncaught error thrown when the grid was destroyed from a hook of a cell edit's save: `beforeChange`, `afterSetDataAtCell`, `afterSetDataAtRowProp`, `beforeChangeRender`, `afterRender`, or `afterChange` of `setDataAtCell()` or `setDataAtRowProp()`, or a hook of an editor saved with Enter, Tab, an arrow key, a click on another cell, or a selection method, or of cells emptied with Delete or Backspace.",
+  "type": "fixed",
+  "issueOrPR": 14167,
+  "breaking": false,
+  "framework": "none"
+}

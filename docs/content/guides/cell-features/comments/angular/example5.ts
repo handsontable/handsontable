@@ -35,11 +35,11 @@ export class AppComponent {
       },
     ],
     // Attach a comment when a cell fails validation, and remove it once the cell is valid.
-    afterValidate(this: Handsontable, isValid: boolean, value: any, row: number, prop: string | number) {
+    afterValidate(this: Handsontable, isValid: boolean, value: any, row: number | null, prop: string | number) {
       const column = this.propToCol(prop);
 
-      // Skip a property that names no column.
-      if (column === null) {
+      // Skip a record a filter hid while it was validated, and a property that names no column.
+      if (row === null || column === null) {
         return;
       }
 
@@ -66,7 +66,7 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -76,7 +76,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

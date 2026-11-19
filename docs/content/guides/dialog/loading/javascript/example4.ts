@@ -68,7 +68,7 @@ const hot = new Handsontable(container, {
   pagination: {
     uiContainer: paginationContainer,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Add hooks to show and hide the pagination container overlay

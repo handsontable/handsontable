@@ -11,15 +11,19 @@
 <script lang="ts">
 // eslint-disable-next-line  @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { defineComponent, VNode, markRaw } from 'vue';
+import { defineComponent, VNode, markRaw, toRaw } from 'vue';
 // TODO: The line above is ts-ignored because rollup-plugin-typescript2 throws an error otherwise.
 // It's most probably caused by outdated rollup-plugin-vue which is no longer maintained.
 
 import Handsontable from 'handsontable/base';
 import {
   HOT_DESTROYED_WARNING,
+  generateContainerId,
+  getPassedHookKeys,
   prepareSettings,
   propFactory,
+  recordSettingBaselines,
+  SettingBaselines,
 } from './helpers';
 import {
   HotTableProps,
@@ -36,15 +40,43 @@ const HotTable = defineComponent({
     };
   },
   watch: {
+    // Vue removes the attribute when `id` is cleared, so put the generated one back after the patch.
+    id: {
+      handler(id) {
+        if (!id) {
+          this.$el.id = this.getGeneratedId();
+        }
+      },
+      flush: 'post',
+    },
     $props: {
       handler(props) {
-        const settings = prepareSettings(props, this.hotInstance ? this.hotInstance.getSettings() : undefined);
+        const overriddenKeys: string[] = [];
+        const settings = prepareSettings(
+          props,
+          this.hotInstance ? this.hotInstance.getSettings() : undefined,
+          this.miscCache.hookKeys,
+          this.miscCache.baselines,
+          overriddenKeys
+        );
 
         if (!this.hotInstance || settings === undefined) {
           return;
         }
 
-        if (settings.data) {
+        this.miscCache.hookKeys = getPassedHookKeys(props);
+
+        const hasData = settings.data !== undefined;
+        const incomingData = hasData ? toRaw(settings.data) : undefined;
+        const isNewData = hasData && incomingData !== this.miscCache.lastData.value;
+
+        // A new array replaces the grid's data: `updateSettings()` runs core's `updateData()`, which fits the
+        // index mappers to the new length and keeps their state, unless the same payload changes the column layout.
+        if (hasData && !isNewData && incomingData === null) {
+          // The prop was already cleared: sending `null` again would reset the grid on every later change.
+          delete settings.data;
+
+        } else if (settings.data && !isNewData) {
           if (
             this.hotInstance.isColumnModificationAllowed() ||
             (
@@ -60,6 +92,12 @@ const HotTable = defineComponent({
           }
         }
 
+        // Recorded before the update: core holds the array as soon as `updateSettings()` starts, so a hook that
+        // throws must not leave the old one here, or every later in-place edit would reload the data.
+        if (hasData) {
+          this.miscCache.lastData.value = incomingData;
+        }
+
         // If there are another options changed, update the HOT settings, render the table otherwise.
         if (Object.keys(settings).length) {
           this.hotInstance.updateSettings(settings);
@@ -69,6 +107,8 @@ const HotTable = defineComponent({
         }
 
         this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
+
+        recordSettingBaselines(this.miscCache.baselines, props, this.hotInstance.getSettings(), overriddenKeys);
       },
       deep: true,
       immediate: true,
@@ -81,6 +121,13 @@ const HotTable = defineComponent({
       /* eslint-enable vue/no-reserved-keys */
       miscCache: {
         currentSourceColumns: null,
+        generatedId: '',
+        hookKeys: [] as string[],
+        // Holds the grid's own values, so it must not be wrapped in a proxy: the compare is by identity.
+        baselines: markRaw({}) as SettingBaselines,
+        // The `data` array the grid was last given by the props, compared by identity to tell a new array
+        // from an in-place edit. Wrapped in a raw holder so Vue does not proxy the app's array.
+        lastData: markRaw({ value: undefined as unknown }),
       },
       columnSettings: null as HotTableProps[] | null,
       columnsCache: new Map<VNode, HotTableProps>(),
@@ -105,6 +152,19 @@ const HotTable = defineComponent({
   },
   methods: {
     /**
+     * Get the id used when the `id` prop is not passed. It is created once per instance.
+     *
+     * @returns {string} The generated container id.
+     */
+    getGeneratedId(): string {
+      if (!this.miscCache.generatedId) {
+        this.miscCache.generatedId = generateContainerId();
+      }
+
+      return this.miscCache.generatedId;
+    },
+
+    /**
      * Initialize Handsontable.
      */
     hotInit() {
@@ -113,9 +173,15 @@ const HotTable = defineComponent({
       newSettings.columns = this.columnSettings ? this.columnSettings : newSettings.columns;
 
       this.hotInstance = markRaw<Handsontable>(new Handsontable.Core(this.$el, newSettings));
+
+      // Recorded before `init()`, so a value the app sets in `afterInit` counts as an override of the prop.
+      recordSettingBaselines(this.miscCache.baselines, this.$props, this.hotInstance.getSettings());
+
       this.hotInstance.init();
 
       this.miscCache.currentSourceColumns = this.hotInstance.countSourceCols();
+      this.miscCache.hookKeys = getPassedHookKeys(this.$props);
+      this.miscCache.lastData.value = toRaw(newSettings.data);
     },
 
     matchHotMappersSize(): void {
@@ -253,6 +319,13 @@ const HotTable = defineComponent({
     },
   },
   mounted() {
+    // The auto-generated id is set here, on the client only, and not through a prop default or reactive
+    // data: an id created on the server never matches the browser's, which breaks hydration, and a
+    // reactive id would re-render every `HotTable` right after mounting.
+    if (!this.id) {
+      this.$el.id = this.getGeneratedId();
+    }
+
     this.columnSettings = this.getColumnSettings();
     this.hotInit();
   },

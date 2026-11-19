@@ -52,7 +52,7 @@ const hotSettings = ref<GridSettings>({
   minSpareRows: 1,
   contextMenu: true,
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   cells() {
     return { renderer: defaultValueRenderer };
   },

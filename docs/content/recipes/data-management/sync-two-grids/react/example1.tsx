@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+import type { AppliedCellChange } from 'handsontable';
 import './example1.css';
 
 registerAllModules();
@@ -85,7 +86,7 @@ const ExampleComponent = () => {
     detailHot.setDataAtCell(detailChanges, SOURCE_SYNC_FROM_MASTER);
   };
 
-  const handleMasterAfterChange = (changes: [number, string | number, unknown, unknown][] | null, source: string): void => {
+  const handleMasterAfterChange = (changes: AppliedCellChange[] | null, source: string): void => {
     // Ignore init/sync writes to prevent re-entrant updates.
     if (!changes || source === SOURCE_SYNC_FROM_MASTER || source === 'loadData') {
       return;
@@ -99,9 +100,11 @@ const ExampleComponent = () => {
 
     const changedRows = new Set<number>();
 
-    changes.forEach(([row]) => {
-      if (typeof row === 'number') {
-        changedRows.add(row);
+    changes.forEach((change) => {
+      const physicalRow = masterHot.getPhysicalRowOfChange(change);
+
+      if (physicalRow !== null) {
+        changedRows.add(physicalRow);
       }
     });
 
@@ -117,6 +120,7 @@ const ExampleComponent = () => {
       <section className="sync-grids-card">
         <h4>Master grid (editable)</h4>
         <HotTable
+          // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
           ref={masterHotRef}
           data={masterData}
           colHeaders={['First name', 'Last name', 'Plan', 'Seats', 'Price / seat', 'Last active']}
@@ -134,12 +138,12 @@ const ExampleComponent = () => {
           autoWrapRow={true}
           stretchH="all"
           afterChange={handleMasterAfterChange}
-          licenseKey="non-commercial-and-evaluation"
         />
       </section>
       <section className="sync-grids-card">
         <h4>Detail grid (synced)</h4>
         <HotTable
+          // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
           ref={detailHotRef}
           data={masterData.map(toDetailRow)}
           colHeaders={['Customer', 'Plan', 'Seats', 'Monthly revenue', 'Last active']}
@@ -155,7 +159,6 @@ const ExampleComponent = () => {
           width="100%"
           autoWrapRow={true}
           stretchH="all"
-          licenseKey="non-commercial-and-evaluation"
         />
       </section>
     </div>

@@ -16,6 +16,7 @@ const data = new Array(100) // number of rows
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colWidths={100}
       height={320}
@@ -24,7 +25,6 @@ const ExampleComponent = () => {
       contextMenu={true}
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
       mergeCells={[
         { row: 1, col: 1, rowspan: 3, colspan: 3 },
         { row: 3, col: 4, rowspan: 2, colspan: 2 },

@@ -67,6 +67,7 @@
     /* A box the spec moves on purpose, to prove the observer sees a real layout move. */
     #cls-control { position: absolute; top: 400px; left: 700px; width: 120px; height: 120px; background: #ccc; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -111,7 +112,7 @@
       manualRowResize: true,
       manualColumnResize: true,
       renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

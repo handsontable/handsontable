@@ -1,6 +1,7 @@
 import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { MoveCells } from '../moveCells';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * The meta transfer of a move must be sparse: only cells that carry their own movable meta may
@@ -38,7 +39,7 @@ describe('MoveCells meta footprint', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 20 }, (_, row) => Array.from({ length: 10 }, (__, col) => `${row}-${col}`)),
       moveCells: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...options,
     });
 

@@ -48,6 +48,16 @@ export interface ColumnDataGetterSetterFunction {
 export type CellChange = [number, string | number | ColumnDataGetterSetterFunction, CellValue, CellValue];
 
 /**
+ * A cell change as the `afterChange` and `beforeChangeRender` hooks report it once it is applied:
+ * `[row, prop, oldValue, newValue]`. `row` is the visual row the changed record has when the value lands. It is
+ * `null` for a change that waited for its validator and landed on a record that a filter or another trimming
+ * feature took out of the visual space in the meantime.
+ */
+export type AppliedCellChange = [
+  number | null, string | number | ColumnDataGetterSetterFunction, CellValue, CellValue,
+];
+
+/**
  * The default sources for which the table triggers hooks.
  */
 export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'populateFromArray' | 'spliceCol' |
@@ -103,6 +113,18 @@ export type HookSettingKey = Extract<
  */
 export type OmitHooks<T> = {
   [K in keyof T as K extends HookSettingKey ? never : K]: T[K]
+};
+
+/**
+ * The settings {@link Core#updateSettings} takes: every option of `GridSettings`, optional, and every hook
+ * may also be `null`, which removes the callback that earlier settings passed for it. Only the hooks take
+ * the extra `null`: an option that is not a hook keeps its own type.
+ *
+ * A mapped type rather than an intersection with `Partial<GridSettings>`: an intersection narrows each
+ * hook back to the declared callback, and the `null` is lost.
+ */
+export type SettingsUpdate = {
+  [K in keyof GridSettings]?: K extends HookSettingKey ? GridSettings[K] | null : GridSettings[K];
 };
 
 /**

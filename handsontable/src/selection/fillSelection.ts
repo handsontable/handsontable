@@ -172,8 +172,8 @@ function walkLayerFill(
  * Resolves the area the fill must leave alone - the cell the value came from.
  *
  * For a merged cell that is the whole merged area, not one coordinate. A merged area is one cell to
- * the user, and `MergeCells` says so through `afterIsMultipleSelection`, which the layer walk cannot
- * consult. Without this, editing a merged cell and pressing `Ctrl`/`Cmd`+`Enter` read its own covered
+ * the user, and `Selection#isMultiple()` says so (through the cell block provider MergeCells
+ * registers), which the layer walk cannot consult. Without this, editing a merged cell and pressing `Ctrl`/`Cmd`+`Enter` read its own covered
  * cells as "other cells to fill": the editor committed a fill instead of inserting a line break, and
  * wrote the value into cells the merge hides.
  *

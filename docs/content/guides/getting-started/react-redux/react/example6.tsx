@@ -262,6 +262,7 @@ const ExampleComponent = () => {
   return (
     <Provider store={reduxStore}>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data}
         rowHeaders={true}
         rowHeights={30}
@@ -269,7 +270,6 @@ const ExampleComponent = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn width={100} type="numeric" renderer={StarRatingRenderer} />
         <HotColumn width={150} renderer={ColorPickerRenderer} editor={ColorPickerEditor} />

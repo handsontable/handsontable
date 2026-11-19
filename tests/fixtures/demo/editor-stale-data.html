@@ -18,6 +18,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -44,7 +45,7 @@
       rowHeaders: true,
       width: 400,
       height: 200,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
       cells(row, col) {
         if (row === 0 && col === 1 && this.instance.getDataAtCell(row, col) === 'locked') {
           return { readOnly: true };

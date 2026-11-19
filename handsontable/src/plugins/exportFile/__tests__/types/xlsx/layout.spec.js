@@ -116,6 +116,21 @@ import ExcelJS from 'exceljs';
         // 40px × 0.75 = 30pt
         expect(ws.getRow(2).height).toBe(30);
       });
+
+      it('should preserve the `minRowHeights` height for hidden rows when exportHiddenRows is "hide"', async() => {
+        handsontable({
+          data: createSpreadsheetData(3, 1),
+          minRowHeights: 50,
+          hiddenRows: { rows: [2] },
+          autoRowSize: false,
+          exportFile,
+        });
+
+        const ws = await parseXlsx({ exportHiddenRows: 'hide' });
+
+        // 50px × 0.75 = 37.5pt, not the 23px fallback.
+        expect(ws.getRow(3).height).toBe(37.5);
+      });
     });
 
     describe('hidden columns', () => {

@@ -7,7 +7,7 @@ registerAllModules();
 const container: Element = document.querySelector('#example3')!;
 
 new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     ['Hydrogen', 'H', 1, 1.008, 7],
     ['Helium', 'He', 2, 4.003, 9],

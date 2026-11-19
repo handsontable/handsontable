@@ -8,5 +8,6 @@ blob-report/
 
 # Built fixtures (copied from handsontable/dist and handsontable/styles)
 fixtures/*.js
+!fixtures/test-license-key.js
 fixtures/*.css
 fixtures/*.map

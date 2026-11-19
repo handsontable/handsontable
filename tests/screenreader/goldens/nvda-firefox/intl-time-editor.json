@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "intl-time-editor",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T12:10:48.730Z"
+  },
+  "steps": {
+    "arrive-on-time": "09 30 am row 1 column 3 hours spin button 09",
+    "open-editor": "",
+    "type-time": "01 am slash pm edit has auto complete am",
+    "commit-time": "",
+    "back-to-committed": "11 45 am row 1 column 3 hours spin button 11"
+  }
+}

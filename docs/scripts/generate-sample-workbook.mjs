@@ -15,6 +15,7 @@ import { chromium } from '@playwright/test';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { TEST_LICENSE_KEY } from '../src/test-license-key.mjs';
 
 const docsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const bundlePath = path.resolve(docsRoot, '../handsontable/dist/handsontable.full.js');
@@ -33,7 +34,9 @@ page.on('console', (message) => {
 await page.setContent('<!doctype html><html><body><div id="grid"></div><div id="target"></div></body></html>');
 await page.addScriptTag({ content: readFileSync(bundlePath, 'utf8') });
 
-const base64 = await page.evaluate(async() => {
+// The page runs on no handsontable.com host, so the grid needs a key that reads as valid: the internal
+// test key, which the docs builds use for the same reason.
+const base64 = await page.evaluate(async(licenseKey) => {
   const hot = new window.Handsontable(document.querySelector('#grid'), {
     data: [
       ['Ana García', 'Engineering', 'Senior Engineer', 98000, true, '2022-03-14', 'Leads the grid team.'],
@@ -69,7 +72,7 @@ const base64 = await page.evaluate(async() => {
       { row: 8, col: 3, readOnly: true },
     ],
     exportFile: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey,
   });
   const sheetOptions = { colHeaders: true, exportFormulas: true, exportHiddenColumns: 'hide' };
   const blob = await hot.getPlugin('exportFile').exportAsBlobAsync('xlsx', {
@@ -84,7 +87,7 @@ const base64 = await page.evaluate(async() => {
   });
 
   return btoa(binary);
-});
+}, TEST_LICENSE_KEY);
 
 const buffer = Buffer.from(base64, 'base64');
 
@@ -93,7 +96,7 @@ writeFileSync(outputPath, buffer);
 console.log(`Wrote ${path.relative(docsRoot, outputPath)} (${buffer.length} bytes)`);
 
 if (verify) {
-  const report = await page.evaluate(async(encoded) => {
+  const report = await page.evaluate(async({ encoded, licenseKey }) => {
     const bytes = Uint8Array.from(atob(encoded), (char) => char.charCodeAt(0));
     const hot = new window.Handsontable(document.querySelector('#target'), {
       data: [['']],
@@ -103,7 +106,7 @@ if (verify) {
       mergeCells: true,
       hiddenColumns: true,
       customBorders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey,
     });
     const result = await hot.getPlugin('importFile').importFromArrayBuffer('xlsx', bytes.buffer, {
       colHeaders: 'firstRow',
@@ -121,7 +124,7 @@ if (verify) {
       comment: hot.getCellMeta(0, 0).comment,
       customBorders: result.customBorders?.length ?? 0,
     };
-  }, base64);
+  }, { encoded: base64, licenseKey: TEST_LICENSE_KEY });
 
   console.log(JSON.stringify(report, null, 2));
 }

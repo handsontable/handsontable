@@ -28,6 +28,7 @@
     body { font-family: sans-serif; margin: 1rem; }
     .grid { margin-bottom: 1.5rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -69,7 +70,7 @@
       currentRowClassName: 'currentRow',
       currentColClassName: 'currentCol',
       renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     };
 
     /**

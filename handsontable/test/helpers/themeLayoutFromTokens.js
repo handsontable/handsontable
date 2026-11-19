@@ -296,9 +296,10 @@ function buildThemeLayoutE2eHelpers(core) {
     e2eMergeCellsOpenEditorWideMergeTextareaParentOffset() {
       return {
         top: 2 * defaultDataRowHeight,
-        // The editor starts one border before the cell, covering the gridline the row header draws
-        // on its inline-end side (#6673).
-        left: defaultRowHeaderWidth - cellBorderWidth,
+        // The merged cell sits flush against the row header after the scroll. The gridline in front of
+        // it is the row header's last pixel, painted over the editor, so the editor starts on the
+        // cell's own edge (#6673).
+        left: defaultRowHeaderWidth,
       };
     },
 

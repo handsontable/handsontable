@@ -28,11 +28,11 @@ const hotSettings = ref<GridSettings>({
     },
   ],
   // Attach a comment when a cell fails validation, and remove it once the cell is valid.
-  afterValidate(this: Handsontable, isValid: boolean, value: any, row: number, prop: string | number) {
+  afterValidate(this: Handsontable, isValid: boolean, value: any, row: number | null, prop: string | number) {
     const column = this.propToCol(prop);
 
-    // Skip a property that names no column.
-    if (column === null) {
+    // Skip a record a filter hid while it was validated, and a property that names no column.
+    if (row === null || column === null) {
       return;
     }
 
@@ -51,7 +51,7 @@ const hotSettings = ref<GridSettings>({
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 

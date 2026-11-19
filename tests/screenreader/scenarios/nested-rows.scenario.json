@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "nested-rows",
+  "surface": "The treegrid rows of the NestedRows plugin: a collapse and an expand from the row header, and the level a cell announces.",
+  "group": "keyboard",
+  "page": "nested-rows",
+  "criteria": ["1.3.1", "4.1.2", "4.1.3"],
+  "setup": [
+    { "selectCell": [0, -1] }
+  ],
+  "steps": [
+    {
+      "id": "collapse-parent",
+      "action": { "press": "Enter" },
+      "expect": [["collapsed"], ["row 1", "root a"]],
+      "note": "Enter on a parent's row header collapses it: the polite announcement names the row the way the plugin phrases it (\"row 1\"; a reader that names the row by its cell text says \"root a\"), and aria-expanded flips on the focused header."
+    },
+    {
+      "id": "expand-parent",
+      "action": { "press": "Enter" },
+      "expect": [["expanded"], ["row 1", "root a"]]
+    },
+    {
+      "id": "into-parent-cell",
+      "action": { "press": "ArrowRight" },
+      "expect": [["root a"], ["level 1", "1 of 2"], ["row 2"], ["column 2"]],
+      "note": "aria-level, aria-posinset and aria-setsize sit on the row, so the level or the set position is required beside the cell's place. Finding: NVDA and VoiceOver announce neither for a cell on every browser (the committed goldens), and VoiceOver no row index either; VoiceOver with Chromium says `column 1` for the second column."
+    },
+    {
+      "id": "down-to-child",
+      "action": { "press": "ArrowDown" },
+      "expect": [["a 1"], ["level 2", "1 of 3"], ["row 3"], ["column 2"]],
+      "note": "The parent's first child, one level down. Finding: NVDA and VoiceOver announce no level or set position for a cell on every browser (the committed goldens)."
+    }
+  ]
+}

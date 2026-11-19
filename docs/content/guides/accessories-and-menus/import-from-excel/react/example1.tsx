@@ -84,6 +84,7 @@ const ExampleComponent = () => {
     <>
       <ImportControls hotRef={hotRef} />
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={hotData}
         colHeaders={['Name', 'Department', 'Job title', 'Salary ($)', 'Active', 'Hire date']}
@@ -105,7 +106,6 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         autoWrapCol={true}
         importFile={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

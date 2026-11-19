@@ -31,7 +31,7 @@ const hotOptions = {
   rowHeaders: true,
   manualRowMove: true,
   headerClassName: "htLeft",
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
 };
 
 export interface ToggleableOptions {

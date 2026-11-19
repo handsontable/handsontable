@@ -12,7 +12,7 @@ const departments = [
 ];
 new Handsontable(container, {
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     data: [
         ['Ana García', departments[0], departments[0]],
         ['James Okafor', departments[1], departments[1]],

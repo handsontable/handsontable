@@ -35,8 +35,11 @@ test.describe('committing an autocomplete whose choice list is out of date', () 
 
     await expect.poll(() => grid.dropdownChoices()).toEqual(['Alpha', 'Alfa', 'Alto']);
 
-    // Off the derived match on row 0 and onto row 1. An arrow pick is the user's own choice, so it
-    // must win outright - the freshness test below must never be applied to it.
+    // Onto row 1, which no match derived from `'Al'` would give. The editor opened on `'Al'`, which no
+    // entry equals, so nothing is highlighted yet and the first ArrowDown lands on row 0. An arrow pick
+    // is the user's own choice, so it must win outright - the freshness test below must never be
+    // applied to it.
+    await page.keyboard.press('ArrowDown');
     await page.keyboard.press('ArrowDown');
     await commit(grid);
 

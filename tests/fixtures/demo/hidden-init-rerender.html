@@ -30,6 +30,7 @@
     // `revealGrid()` overrides it, which is exactly how the legacy spec revealed them.
     document.write('<style>[data-hidden-by-stylesheet] { display: none; }</style>');
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div data-testid="parent">
@@ -68,7 +69,7 @@
         afterRenderer(td, row, col) {
           td.setAttribute('data-testid', `cell-${row}-${col}`);
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String((error && error.stack) || error);

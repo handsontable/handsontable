@@ -2,6 +2,7 @@ import handsontableStyles from '../../src/styles/handsontableStyles';
 import coreStylesStub from '../__mocks__/coreStylesMock';
 import { injectRealCoreStyles, removeRealCoreStyles } from '../helpers/realCoreStyles';
 import Handsontable from '../../src/base';
+import { TEST_LICENSE_KEY } from '../helpers/licenseKey';
 
 /**
  * Pins the Jest-only stub for the generated core stylesheet. Without it every grid built in a
@@ -23,7 +24,7 @@ describe('Jest core styles stub', () => {
 
     document.body.appendChild(container);
 
-    const hot = new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation' });
+    const hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY });
 
     expect(document.getElementById('handsontable-core-styles').textContent).toBe(coreStylesStub);
 
@@ -38,7 +39,7 @@ describe('Jest core styles stub', () => {
 
     document.body.appendChild(container);
 
-    const hot = new Handsontable(container, { licenseKey: 'non-commercial-and-evaluation' });
+    const hot = new Handsontable(container, { licenseKey: TEST_LICENSE_KEY });
     const styles = document.querySelectorAll('#handsontable-core-styles');
 
     expect(styles.length).toBe(1);

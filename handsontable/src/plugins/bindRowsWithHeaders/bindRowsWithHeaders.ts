@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import LooseBindsMap from './maps/looseBindsMap';
 import StrictBindsMap from './maps/strictBindsMap';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'bindRowsWithHeaders';
 export const PLUGIN_PRIORITY = 210;
@@ -73,6 +74,14 @@ export class BindRowsWithHeaders extends BasePlugin {
   }
 
   /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
+  }
+
+  /**
    * Plugin indexes cache.
    *
    * @private
@@ -122,6 +131,43 @@ export class BindRowsWithHeaders extends BasePlugin {
     this.hot.rowIndexMapper.unregisterMap('bindRowsWithHeaders');
 
     super.disablePlugin();
+  }
+
+  /**
+   * Returns the header number of every physical row while the strict strategy keeps them, or `null`.
+   * The loose strategy's numbers always equal the physical indexes, so there is nothing to keep. A data load
+   * re-initializes the map to the identity order, so a caller that loads other data and comes back (a
+   * SheetsBar switch) keeps them through {@link BindRowsWithHeaders#_exportStrictHeaders} and
+   * {@link BindRowsWithHeaders#_importStrictHeaders}.
+   *
+   * @private
+   * @returns {number[]|null}
+   */
+  _exportStrictHeaders(): number[] | null {
+    if (!(this.headerIndexes instanceof StrictBindsMap)) {
+      return null;
+    }
+
+    return (this.headerIndexes.getValues() as number[]).slice();
+  }
+
+  /**
+   * Puts back the header numbers {@link BindRowsWithHeaders#_exportStrictHeaders} returned, one per physical
+   * row. Nothing is written while the strategy is not strict, or when the numbers do not cover every row the
+   * map holds (the data gained or lost rows since they were exported). Returns whether they were written.
+   *
+   * @private
+   * @param {number[]} headers The header number of every physical row.
+   * @returns {boolean}
+   */
+  _importStrictHeaders(headers: number[]): boolean {
+    if (!(this.headerIndexes instanceof StrictBindsMap) || headers.length !== this.headerIndexes.getLength()) {
+      return false;
+    }
+
+    this.headerIndexes.setValues(headers.slice());
+
+    return true;
   }
 
   /**

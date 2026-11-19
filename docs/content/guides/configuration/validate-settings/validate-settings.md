@@ -292,7 +292,8 @@ In a bundler, import `handsontable/settingsSchema` from the npm package instead.
   `cells` function returns.
 - `validateSettings()` reports a misspelled key, such as `filters: { serchMode: 'apply' }`, only inside the settings
   object of some options. Those options are `asyncValues`, `autoLink`, `dataProvider`, `dragToScroll`,
-  `dropdownMenu`, `fillHandle`, `filters`, `manualColumnFreeze`, `pagination`, `rowSelection`, and `sheetsBar`.
+  `dropdownMenu`, `fillHandle`, `filters`, `formulaBuilder`, `manualColumnFreeze`, `pagination`, `rowSelection`, and
+  `sheetsBar`.
   The `filters` object inside `columns` is checked too, and takes `availableConditions` only.
 - The keys of an object nested in one of these, such as `dragToScroll.interval` and `sheetsBar.animation`, are not
   checked.

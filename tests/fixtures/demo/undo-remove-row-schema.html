@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -76,7 +77,7 @@
     }
     function property(attr) { return function(row, value) { return row.attr(attr, value); }; }
 
-    var common = { rowHeaders: true, colHeaders: true, contextMenu: true, undo: true, licenseKey: 'non-commercial-and-evaluation' };
+    var common = { rowHeaders: true, colHeaders: true, contextMenu: true, undo: true, licenseKey: window.htTestLicenseKey };
 
     var getterContainer = document.querySelector('[data-testid="grid-getter"]');
     getterContainer.className = 'ht-theme-' + window.htTheme;

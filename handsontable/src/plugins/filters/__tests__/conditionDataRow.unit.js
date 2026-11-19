@@ -6,6 +6,7 @@ import { DropdownMenu } from 'handsontable/plugins/dropdownMenu';
 import { HiddenRows } from 'handsontable/plugins/hiddenRows';
 import { registerCondition } from 'handsontable/plugins/filters/conditionRegisterer';
 import { ColumnDataMap } from 'handsontable/plugins/filters/columnDataMap';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(CheckboxCellType);
 registerPlugin(AutoColumnSize);
@@ -70,7 +71,7 @@ describe('Filters -> the dataRow a condition receives', () => {
       rowHeights: 23,
       autoColumnSize: false,
       autoRowSize: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     return hot;

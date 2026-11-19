@@ -5,6 +5,7 @@
   <title>Sorting</title>
   <link rel="stylesheet" href="../../fixtures/handsontable.css">
   <script src="../../fixtures/handsontable.full.js"></script>
+  <script src="../../fixtures/test-license-key.js"></script>
 </head>
 <body>
   <div id="hot"></div>
@@ -18,7 +19,7 @@
       autoRowSize: false,
       autoColumnSize: false,
       columnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
     window.__hot = hot;
   </script>

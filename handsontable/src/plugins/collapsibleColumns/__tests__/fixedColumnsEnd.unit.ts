@@ -4,6 +4,7 @@ import {
   CollapsibleColumns,
   NestedHeaders,
 } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(CollapsibleColumns);
 registerPlugin(NestedHeaders);
@@ -24,7 +25,7 @@ function buildGrid(fixedColumnsEnd: number) {
     ],
     collapsibleColumns: true,
     fixedColumnsEnd,
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 }
 

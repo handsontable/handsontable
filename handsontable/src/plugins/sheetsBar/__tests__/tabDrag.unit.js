@@ -411,4 +411,116 @@ describe('TabDrag', () => {
 
     drag.destroy();
   });
+
+  describe('a touch press', () => {
+    const timers = {
+      setTimeout: (callback, delay) => setTimeout(callback, delay),
+      clearTimeout: handle => clearTimeout(handle),
+    };
+
+    /**
+     * Builds a pointer event of a finger.
+     *
+     * @param {string} type The event type.
+     * @param {number} x The horizontal position.
+     * @param {HTMLElement} target The element under the finger.
+     * @returns {Event} The event.
+     */
+    function finger(type, x, target) {
+      const event = pointer(type, x, target);
+
+      Object.defineProperty(event, 'pointerType', { value: 'touch' });
+
+      return event;
+    }
+
+    /**
+     * Builds a touch event with the fingers still on the screen.
+     *
+     * @param {string} type The event type.
+     * @param {number} fingersLeft How many fingers are still down.
+     * @returns {Event} The event.
+     */
+    function touch(type, fingersLeft) {
+      const event = new Event(type, { bubbles: true, cancelable: true });
+
+      Object.defineProperty(event, 'touches', { value: Array.from({ length: fingersLeft }, () => ({})) });
+
+      return event;
+    }
+
+    /**
+     * Holds the first tab of a fresh strip until it lifts.
+     *
+     * @returns {{ drag: TabDrag, tab: HTMLElement }} The controller and the lifted tab.
+     */
+    function holdUntilLifted() {
+      host = buildStrip(3);
+
+      const drag = new TabDrag({ host, dragRoot: host, eventManager: new EventManager({}), timers }, jest.fn());
+      const tab = host.children[0];
+
+      tab.setPointerCapture = jest.fn();
+      tab.releasePointerCapture = jest.fn();
+      drag.start(finger('pointerdown', 50, tab), tab, 1);
+      jest.advanceTimersByTime(500);
+
+      return { drag, tab };
+    }
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('stops blocking the pan once the browser cancels the touches', () => {
+      const { drag, tab } = holdUntilLifted();
+
+      expect(tab.classList.contains('ht-sheets-bar__tab--lifted')).toBe(true);
+
+      host.dispatchEvent(touch('touchcancel', 0));
+
+      const move = touch('touchmove', 1);
+
+      host.dispatchEvent(move);
+
+      expect(move.defaultPrevented).toBe(false);
+
+      drag.destroy();
+    });
+
+    it('removes its touch listeners when a press that never lifted ends', () => {
+      host = buildStrip(3);
+
+      const eventManager = new EventManager({});
+      const removeEventListener = jest.spyOn(eventManager, 'removeEventListener');
+      const drag = new TabDrag({ host, dragRoot: host, eventManager, timers }, jest.fn());
+      const tab = host.children[0];
+
+      drag.start(finger('pointerdown', 50, tab), tab, 1);
+      removeEventListener.mockClear();
+      host.ownerDocument.dispatchEvent(finger('pointerup', 50, tab));
+
+      expect(removeEventListener).toHaveBeenCalledWith(host, 'touchend', expect.any(Function));
+
+      drag.destroy();
+    });
+
+    it('keeps blocking the pan while the held finger stays after a second one lifts', () => {
+      const { drag, tab } = holdUntilLifted();
+
+      tab.dispatchEvent(touch('touchend', 1));
+
+      const move = touch('touchmove', 1);
+
+      tab.dispatchEvent(move);
+
+      expect(move.defaultPrevented).toBe(true);
+
+      drag.destroy();
+    });
+  });
 });

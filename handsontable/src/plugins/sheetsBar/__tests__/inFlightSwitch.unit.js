@@ -5,6 +5,7 @@ import { SheetsBarMenus } from '../ui/menus';
 import { HiddenRows } from '../../hiddenRows/hiddenRows';
 import { Comments } from '../../comments/comments';
 import { Dialog } from '../../dialog/dialog';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Lets queued microtasks run, so core's validator queue reaches a validator that answers later.
@@ -58,7 +59,7 @@ describe('SheetsBar switch with work still in flight', () => {
 
       hot = new Handsontable(container, {
         sheetsBar: { sheets },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       let fail = true;
@@ -109,7 +110,7 @@ describe('SheetsBar switch with work still in flight', () => {
         sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
         [hookName]: () => hot.destroy(),
         afterSheetTabChange: afterChange,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -117,6 +118,33 @@ describe('SheetsBar switch with work still in flight', () => {
 
       expect(() => {
         result = plugin.setActiveSheet('B');
+      }).not.toThrow();
+      expect(result).toBe(false);
+      expect(hot.isDestroyed).toBe(true);
+      expect(afterChange).not.toHaveBeenCalled();
+    });
+    it('stops the switch when afterSheetTabStateRestore destroys the grid', () => {
+      const afterChange = jasmine.createSpy('afterSheetTabChange');
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }, { name: 'Gamma', data: [['g']] }],
+        },
+        afterSheetTabChange: afterChange,
+        licenseKey: TEST_LICENSE_KEY,
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      plugin.setActiveSheet('Beta');
+      plugin.setActiveSheet('Alpha');
+      afterChange.calls.reset();
+      hot.addHook('afterSheetTabStateRestore', () => hot.destroy());
+
+      let result;
+
+      expect(() => {
+        result = plugin.setActiveSheet('Beta');
       }).not.toThrow();
       expect(result).toBe(false);
       expect(hot.isDestroyed).toBe(true);
@@ -141,7 +169,7 @@ describe('SheetsBar switch with work still in flight', () => {
             nested = hot.getPlugin('sheetsBar').setActiveSheet('C');
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -153,6 +181,32 @@ describe('SheetsBar switch with work still in flight', () => {
       expect(hot.getDataAtCell(0, 0)).toBe('b1');
       expect(plugin.setActiveSheet('A')).toBe(true);
       expect(hot.getSelectedLast()).toEqual([1, 0, 1, 0]);
+    });
+
+    it('refuses a switch asked for by a listener the arriving sheet\'s data load runs', () => {
+      const nested = [];
+
+      hot = new Handsontable(container, {
+        sheetsBar: {
+          sheets: [
+            { name: 'A', data: [['a1']] },
+            { name: 'B', data: [['b1']] },
+            { name: 'C', data: [['c1']] },
+          ],
+        },
+        licenseKey: TEST_LICENSE_KEY,
+      });
+
+      const plugin = hot.getPlugin('sheetsBar');
+
+      hot.addHook('afterLoadData', () => {
+        nested.push(plugin.setActiveSheet('C'));
+      });
+
+      expect(plugin.setActiveSheet('B')).toBe(true);
+      expect(nested).toEqual([false]);
+      expect(plugin.getSheets().find(sheet => sheet.isActive).name).toBe('B');
+      expect(hot.getDataAtCell(0, 0)).toBe('b1');
     });
 
     it('refuses to remove the arriving sheet', () => {
@@ -167,7 +221,7 @@ describe('SheetsBar switch with work still in flight', () => {
             removed = hot.getPlugin('sheetsBar').removeSheet(to);
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -191,7 +245,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets },
         validator: (value, callback) => answers.push(callback),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -231,7 +285,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
         validator,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.setDataAtCell(0, 0, 'typed');
@@ -248,7 +302,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets },
         validator: (value, callback) => answers.push(callback),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -276,7 +330,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
         validator: (value, callback) => answers.push(callback),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.setDataAtCell(0, 0, 'typed');
@@ -316,7 +370,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets, activeSheet: 0 },
         validator: (value, callback) => answers.push(callback),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.setDataAtCell(0, 0, 'typed');
@@ -350,7 +404,7 @@ describe('SheetsBar switch with work still in flight', () => {
             throw new Error('listener failed');
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -372,7 +426,7 @@ describe('SheetsBar switch with work still in flight', () => {
 
       hot = new Handsontable(container, {
         sheetsBar: { sheets },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.addHook('afterLoadData', () => {
@@ -412,7 +466,7 @@ describe('SheetsBar switch with work still in flight', () => {
             results.push(plugin.setActiveSheet('C'), plugin.removeSheet(plugin.getSheets()[1].id));
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -436,7 +490,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
         afterSheetTabChange: (from, to) => changes.push([from, to]),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -468,7 +522,7 @@ describe('SheetsBar switch with work still in flight', () => {
             hot.getPlugin('sheetsBar').setActiveSheet(from);
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -484,7 +538,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         dialog: true,
         sheetsBar: { sheets: [{ name: 'A', data: [['a1', 'a2']] }, { name: 'B', data: [['b1', 'b2']] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -505,7 +559,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         comments: true,
         sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -521,7 +575,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         comments: true,
         sheetsBar: { sheets: [{ name: 'A', data: [['a1', 'a2']] }, { name: 'B', data: [['b1', 'b2']] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -554,7 +608,7 @@ describe('SheetsBar switch with work still in flight', () => {
             hot.setDataAtCell(0, 0, 'left');
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -586,7 +640,7 @@ describe('SheetsBar switch with work still in flight', () => {
             editorOpenAfterNestedCall = hot.getActiveEditor().isOpened();
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.getPlugin('sheetsBar').setActiveSheet('B');
@@ -610,7 +664,7 @@ describe('SheetsBar switch with work still in flight', () => {
           }
         },
         beforeSheetTabChange: (from, to) => changes.push([from, to]),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -635,7 +689,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets, activeSheet: 0 },
         beforeSheetTabChange: listener,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.updateSettings({ sheetsBar: { sheets, activeSheet: 1 } });
@@ -655,7 +709,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets, activeSheet: 0 },
         validator: () => {},
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.setDataAtCell(0, 0, 'typed');
@@ -682,7 +736,7 @@ describe('SheetsBar switch with work still in flight', () => {
             hot.setDataAtCell(0, 0, 'left');
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.updateSettings({ sheetsBar: { sheets, activeSheet: 1 } });
@@ -716,7 +770,7 @@ describe('SheetsBar switch with work still in flight', () => {
             hot.updateSettings({ sheetsBar: { sheets, activeSheet: 2 } });
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -745,7 +799,7 @@ describe('SheetsBar switch with work still in flight', () => {
             hot.setDataAtCell(0, 1, 'nestedVal');
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -773,7 +827,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
         validator: (value, callback) => answers.push(callback),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.validateCells();
@@ -793,7 +847,7 @@ describe('SheetsBar switch with work still in flight', () => {
             switched = hot.getPlugin('sheetsBar').setActiveSheet('Beta');
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.setDataAtCell(0, 0, 'typed');
@@ -819,7 +873,7 @@ describe('SheetsBar switch with work still in flight', () => {
             answers.push(callback);
           }
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.setDataAtCell(0, 0, 'pending');
@@ -834,7 +888,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
         validator: () => {},
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -856,7 +910,7 @@ describe('SheetsBar switch with work still in flight', () => {
 
       hot = new Handsontable(container, {
         sheetsBar: { sheets: [{ name: 'Alpha', data: [['a']] }, { name: 'Beta', data: [['b']] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.addHook('afterUpdateSettings', () => {
@@ -877,7 +931,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         sheetsBar: { sheets },
         validator: (value, callback) => callback(true),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -901,7 +955,7 @@ describe('SheetsBar switch with work still in flight', () => {
       hot = new Handsontable(container, {
         dialog: true,
         sheetsBar: { sheets: [{ name: 'A', data: [['a1', 'a2']] }, { name: 'B', data: [['b1', 'b2']] }] },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       const plugin = hot.getPlugin('sheetsBar');
@@ -922,7 +976,7 @@ describe('SheetsBar switch with work still in flight', () => {
       let fail = false;
 
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
       hot.addHook('afterLoadData', () => {
         if (fail) {

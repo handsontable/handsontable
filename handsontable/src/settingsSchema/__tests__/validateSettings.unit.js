@@ -3,6 +3,7 @@ import { validateSettings, settingsSchema } from 'handsontable/settingsSchema';
 import { BasePlugin } from 'handsontable/plugins/base';
 import { registerPlugin } from 'handsontable/plugins/registry';
 import { Hooks } from 'handsontable/core/hooks';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 /**
  * Reduces the problems to their path and code, for the cases that do not pin the wording.
@@ -23,7 +24,7 @@ describe('validateSettings', () => {
       stretchH: 'all',
       height: 'auto',
       width: 400,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       columns: [
         { type: 'text' },
         { type: 'numeric', numericFormat: { pattern: '0,0.00' }, readOnly: true },
@@ -502,7 +503,7 @@ describe('validateSettings', () => {
 
   it('should accept the internal keys of a settings object and the license key', () => {
     expect(validateSettings({
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       preventWheel: false,
       _userDefinedMetaProps: new Set(),
     }).problems).toEqual([]);
@@ -534,6 +535,60 @@ describe('validateSettings', () => {
       .toEqual([]);
   });
 
+  it('should accept an editor a registered plugin lists in `EDITORS` before any grid registers it', () => {
+    // A module registry of its own: the registry has no way to unregister a plugin, and a registration
+    // made here would reach every later test of the file.
+    jest.isolateModules(() => {
+      /* eslint-disable global-require */
+      const { validateSettings: isolatedValidateSettings } = require('handsontable/settingsSchema');
+      const { BasePlugin: IsolatedBasePlugin } = require('handsontable/plugins/base');
+      const { registerPlugin: isolatedRegisterPlugin } = require('handsontable/plugins/registry');
+      /* eslint-enable global-require */
+
+      class EditorProvidingPlugin extends IsolatedBasePlugin {
+        static get PLUGIN_KEY() {
+          return 'editorProvidingPlugin';
+        }
+
+        static get EDITORS() {
+          return ['providedByPlugin'];
+        }
+      }
+
+      isolatedRegisterPlugin(EditorProvidingPlugin);
+
+      expect(isolatedValidateSettings({ editor: 'providedByPlugin' }).problems).toEqual([]);
+      expect(isolatedValidateSettings({ columns: [{ editor: 'notProvidedByAnyPlugin' }] }).problems).toEqual([{
+        path: 'columns[0].editor',
+        code: 'unknownEditor',
+        severity: 'error',
+        message: '\'notProvidedByAnyPlugin\' is not a registered editor.',
+      }]);
+    });
+  });
+
+  it('should accept the formula builder editor with the built-in plugins registered and no grid built', () => {
+    // A module registry of its own, so no grid built by another test has registered the alias.
+    jest.isolateModules(() => {
+      /* eslint-disable global-require */
+      require('handsontable');
+
+      const { validateSettings: isolatedValidateSettings } = require('handsontable/settingsSchema');
+      const { hasEditor } = require('handsontable/editors/registry');
+      /* eslint-enable global-require */
+
+      expect(hasEditor('formula')).toBe(false);
+      expect(isolatedValidateSettings({ editor: 'formula' }).problems).toEqual([]);
+    });
+  });
+
+  it('should report an unknown key of the formula builder settings', () => {
+    expect(brief(validateSettings({ formulaBuilder: { builder: {}, showFormulaBarr: true } }))).toEqual([
+      { path: 'formulaBuilder.showFormulaBarr', code: 'unknownOption' },
+    ]);
+    expect(validateSettings({ formulaBuilder: { builder: {}, showFormulaBar: true } }).problems).toEqual([]);
+  });
+
   it('should read the data rows and the plugin state of `hot` for a partial update', () => {
     const container = document.createElement('div');
 
@@ -542,7 +597,7 @@ describe('validateSettings', () => {
     const hot = new Handsontable(container, {
       data: [{ name: 'A', age: 1 }],
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(validateSettings({ columns: [{ data: 'name' }, { data: 'agee' }] }, { hot }).problems).toEqual([
@@ -569,7 +624,7 @@ describe('validateSettings', () => {
       colHeaders: true,
       rowHeaders: true,
       columns: [{}, { type: 'numeric' }, { type: 'checkbox' }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const settings = hot.getSettings();
     const ownSettings = {};
@@ -607,7 +662,7 @@ describe('validateSettings', () => {
       ...(option === 'sheetsBar' ? {} : { data: Handsontable.helper.createSpreadsheetData(30, 3) }),
       colHeaders: true,
       [option]: value,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     const ownSettings = {};
 
@@ -798,6 +853,13 @@ describe('validateSettings', () => {
     expect(brief(validateSettings({ theme: [] }))).toEqual([{ path: 'theme', code: 'invalidType' }]);
   });
 
+  it('should accept a plain theme config object and check the notification settings', () => {
+    expect(validateSettings({ theme: { name: 'custom', tokens: { someToken: '1px' } } }).problems).toEqual([]);
+    expect(validateSettings({ notification: { stackLimit: 3, animation: false } }).problems).toEqual([]);
+    expect(brief(validateSettings({ notification: { stackLimit: 'ten' } })).map(({ code }) => code))
+      .toEqual(['invalidType']);
+  });
+
   it('should report the key of a built-in plugin that is not one of its options', () => {
     expect(brief(validateSettings({ undoRedo: true, autofill: true, columns: [{ undoRedo: false }] }))).toEqual([
       { path: 'undoRedo', code: 'unknownOption' },
@@ -875,7 +937,7 @@ describe('validateSettings', () => {
 
     document.body.appendChild(container);
 
-    const hot = new Handsontable(container, { data: [{ name: 'A' }], licenseKey: 'non-commercial-and-evaluation' });
+    const hot = new Handsontable(container, { data: [{ name: 'A' }], licenseKey: TEST_LICENSE_KEY });
 
     hot.destroy();
     container.remove();

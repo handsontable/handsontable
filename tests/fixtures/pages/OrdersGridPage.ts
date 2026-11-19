@@ -39,7 +39,7 @@ type OrdersWindow = {
  * Page Object for the orders fixture: the shape of the js visual demo's shared grid and of its
  * pagination route, with filters, sorting, hidden columns and (optionally) pages.
  *
- * The filters dropdown helpers – the value list, its search box, "Select all" and "Clear", the
+ * The filters dropdown helpers – the value list, its search box, "Select all" and "Select none", the
  * condition select and the OK button – come from `FiltersValueListPage`, whose waits already handle
  * the condition input's 10 ms focus timer. What this adds is the column header context menu, the
  * sort indicator, the pagination bar, and reads of what the grid shows.
@@ -117,7 +117,7 @@ export class OrdersGridPage extends FiltersValueListPage {
   }
 
   /**
-   * Narrows a column's value list with its search box and keeps only what it lists: "Clear", the
+   * Narrows a column's value list with its search box and keeps only what it lists: "Select none", the
    * search, "Select all", OK – the visual suite's `filterByValue()` gesture.
    *
    * @param {string} headerLabel The column's header label.

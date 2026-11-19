@@ -142,6 +142,7 @@ const ExampleComponent = () => {
     <div>
       {status && <div id="status-label">{status}</div>}
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         dataProvider={dataProvider}
         pagination={{ pageSize: 5 }}
         columnSorting={true}
@@ -172,7 +173,6 @@ const ExampleComponent = () => {
         height="auto"
         width="100%"
         autoWrapRow={true}
-        licenseKey="non-commercial-and-evaluation"
         afterDataProviderFetch={(result) => {
           setStatus(`${result.totalRows} tickets total`);
         }}

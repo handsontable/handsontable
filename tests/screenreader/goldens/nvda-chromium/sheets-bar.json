@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "scenario": "sheets-bar",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T13:54:27.153Z"
+  },
+  "steps": {
+    "tab-add-sheet": "add sheet button",
+    "tab-all-sheets": "all sheets menu button collapsed sub menu",
+    "tab-active-sheet": "sheets grouping alpha menu button collapsed sub menu current",
+    "arrow-right-sheet": "beta button",
+    "enter-switch-sheet": "collapsed sub menu current sheet beta activated",
+    "enter-sheet-menu": "table rename",
+    "enter-rename": "sheets grouping sheet name edit selected beta",
+    "type-name": "selection removed",
+    "enter-commit-rename": "budget menu button collapsed sub menu current",
+    "shift-tab-all-sheets": "all sheets menu button collapsed sub menu",
+    "shift-tab-add-sheet": "add sheet button",
+    "shift-tab-grid": "budget table b 4 b row 3 a column 3"
+  }
+}

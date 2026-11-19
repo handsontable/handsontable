@@ -2,6 +2,7 @@ import { nextTick } from 'vue';
 import { mount, config } from '@vue/test-utils';
 import { registerAllModules } from 'handsontable/registry';
 import HotTable from '../src/HotTable.vue';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 config.renderStubDefaultSlot = true;
 
@@ -44,7 +45,7 @@ describe('`asyncValues` option', () => {
   it('should keep a pending request when the `settings` prop changes with the same column count', async() => {
     const testWrapper = mount(HotTable, {
       props: {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         settings: {
           data: createProducts(),
           columns: [{ data: 'sku' }, { data: 'name' }],
@@ -86,7 +87,7 @@ describe('`asyncValues` option', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="products"
           :columns="[{ data: 'sku' }, { data: 'name' }]"
           rowId="id"
@@ -127,7 +128,7 @@ describe('`asyncValues` option', () => {
       components: { HotTable },
       template: `
         <HotTable
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="products"
           :columns="[{ data: 'sku' }, { data: 'name' }]"
           rowId="id"

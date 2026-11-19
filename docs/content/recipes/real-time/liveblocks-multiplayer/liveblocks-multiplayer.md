@@ -18,7 +18,6 @@ react:
   metaTitle: Multiplayer editing with Liveblocks | Handsontable DataGrid for React
 searchCategory: Recipes
 category: Real-time & Integrations
-menuTag: new
 ---
 
 In this tutorial, you will turn Handsontable DataGrid into a multiplayer grid with [Liveblocks](https://liveblocks.io). You will learn how to sync cell values through Liveblocks Storage, share each user's selected cell through Presence, and draw live selection borders for other users with a custom cell renderer.
@@ -141,18 +140,21 @@ const updateCell = useMutation(
 
 ```typescript
 const afterChange = useCallback(
-  (changes: CellChange[] | null, source: ChangeSource) => {
+  (changes: AppliedCellChange[] | null, source: ChangeSource) => {
     if (!changes || source === "loadData") {
       return;
     }
 
-    for (const [row, prop, , newVal] of changes) {
-      if (typeof prop !== "number") {
+    for (const change of changes) {
+      const [, prop, , newVal] = change;
+      const physicalRow = hotRef.current?.hotInstance?.getPhysicalRowOfChange(change) ?? null;
+
+      if (physicalRow === null || typeof prop !== "number") {
         continue;
       }
 
       updateCell(
-        row,
+        physicalRow,
         prop,
         newVal === null || newVal === undefined ? "" : String(newVal)
       );
@@ -175,7 +177,7 @@ const clearSelectedCellPresence = useMutation(({ setMyPresence }) => {
 }, []);
 ```
 
-**What's happening:** `afterChange` runs on every local edit. It skips the initial `loadData` pass, then calls `updateCell` for each changed cell so the edit reaches storage. `afterSelection` is wired to `syncSelectedCellToPresence`, which writes the selected cell into the user's presence; the `< 0 ? 0` guards clamp Handsontable's header coordinates (`-1`) to a valid cell. `afterDeselect` clears presence so the border disappears when the user clicks away.
+**What's happening:** `afterChange` runs on every local edit. It skips the initial `loadData` pass, then finds the storage row of each changed cell with `getPhysicalRowOfChange()` and calls `updateCell` so the edit reaches storage. `afterSelection` is wired to `syncSelectedCellToPresence`, which writes the selected cell into the user's presence; the `< 0 ? 0` guards clamp Handsontable's header coordinates (`-1`) to a valid cell. `afterDeselect` clears presence so the border disappears when the user clicks away.
 
 ## Step 6: Render other users' selections
 

@@ -32,6 +32,7 @@
       throw new Error('Unknown ?headers= value: ' + JSON.stringify(htParams.get('headers')));
     }
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -121,7 +122,7 @@
       afterColumnSequenceCacheUpdate(state) {
         window.htCacheUpdates.column.push(state);
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     }, scenarioSettings));
   </script>
 </body>

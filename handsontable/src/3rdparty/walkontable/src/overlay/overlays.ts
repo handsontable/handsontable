@@ -24,6 +24,12 @@ import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategi
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
 import { ScrollbarVisibility, createScrollbarVisibilityDeps } from './scrollbarVisibility';
 import {
+  ScrollbarProxies,
+  createScrollbarProxiesDeps,
+  type ScrollbarProxyCandidates,
+  type ScrollbarProxyInput,
+} from './scrollbarProxies';
+import {
   BAND_SWALLOWED_EVENTS,
   canGrabScrollbar,
   isPointInScrollbarBand,
@@ -62,6 +68,10 @@ export function createOverlaysDeps(ctx: EngineContext) {
     makeStickyScrollDeps: (overlays: Overlays) => createStickyScrollStrategyDeps(ctx, overlays),
     makeResizeMonitorDeps: () => createResizeMonitorDeps(ctx),
     makeScrollbarVisibilityDeps: () => createScrollbarVisibilityDeps(ctx),
+    makeScrollbarProxiesDeps: (
+      getCandidates: () => ScrollbarProxyCandidates,
+      getInsets: () => ScrollbarProxyInput['insets'],
+    ) => createScrollbarProxiesDeps(ctx, getCandidates, getInsets),
     makeSpreaderSizeDeps: () => createSpreaderSizeDeps(ctx),
     makeScrollSyncDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy) =>
       createScrollSyncDeps(ctx, overlays, stickyScroll),
@@ -163,11 +173,14 @@ class Overlays {
    * and the clones render their selections before the master does, with a possible
    * `createVisibleCalculators()` in between. Reading the live range there would let the clones and the
    * master decide on different ranges, drawing a handle twice or not at all. `null` until the first
-   * snapshot.
+   * snapshot. `bottomCloneCoversLinedUpRow` belongs to the same draw, and is `null` until the first ask
+   * (see {@link Overlays#bottomCloneCoversLinedUpRow}).
    *
-   * @type {{row: AxisVisibleRange, column: AxisVisibleRange}|null}
+   * @type {{row: AxisVisibleRange, column: AxisVisibleRange, bottomCloneCoversLinedUpRow: boolean|null}|null}
    */
-  selectionVisibleRange: { row: AxisVisibleRange, column: AxisVisibleRange } | null = null;
+  selectionVisibleRange: {
+    row: AxisVisibleRange, column: AxisVisibleRange, bottomCloneCoversLinedUpRow: boolean | null,
+  } | null = null;
 
   /**
    * Binds the native DOM input listeners (scroll, wheel, key, resize) and translates them into the
@@ -377,9 +390,32 @@ class Overlays {
   #scrollbarVisibility!: ScrollbarVisibility;
 
   /**
+   * Shows the classic scrollbars along the scrolling part of each edge only, beside the headers and the
+   * frozen bands rather than across them.
+   */
+  #scrollbarProxies!: ScrollbarProxies;
+
+  /**
+   * Whether a master draw is between `beforeDraw` and `afterDraw`. A resize inside a draw only marks
+   * the scrollbar proxies stale, so they are measured once, after the clones have their final sizes.
+   */
+  #drawing = false;
+
+  /**
+   * Whether a resize inside the current draw changed what the scrollbar proxies are placed from.
+   */
+  #scrollbarProxiesStale = false;
+
+  /**
    * The band sizes currently drawn, so a press landing in one can be swallowed (#10370).
    */
   #bandSizes = { bottom: 0, inlineEnd: 0 };
+
+  /**
+   * The master's column band the `bottom` clone rendered last (`null` before its first render, or while it
+   * renders nothing), so a fast draw is taken only over the cells the clone holds.
+   */
+  #bottomColumnsBand: { start: number, count: number } | null = null;
 
   /**
    * Whether the press being handled started as a touch, so the compatibility `mousedown`/`click`/
@@ -416,6 +452,11 @@ class Overlays {
       () => this.#refreshScrollbarClearance()
     );
     this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps());
+    // Before NativeScrollInput, so its holder scroll listener runs ahead of the engine's.
+    this.#scrollbarProxies = new ScrollbarProxies(this.#deps.makeScrollbarProxiesDeps(
+      () => this.#scrollbarProxyCandidates(),
+      () => this.#scrollbarProxyInsets(),
+    ));
     this.#scrollSync = new ScrollSync(this.#deps.makeScrollSyncDeps(this, this.#stickyScroll));
     this.#nativeScrollInput = new NativeScrollInput(
       this.#deps.makeNativeScrollInputDeps(this, this.#stickyScroll, this.#resizeMonitor)
@@ -495,6 +536,8 @@ class Overlays {
    * Runs logic for the overlays before the table is drawn.
    */
   beforeDraw() {
+    this.#drawing = true;
+
     // Before anything measures: drops the sizes a previous draw took while the table had no settled
     // layout, so this draw re-measures them and resizes from the results. Not on a fast draw – it
     // re-renders nothing, so it cannot re-measure the row heights this drops, and taking the reset
@@ -590,6 +633,65 @@ class Overlays {
       // size drop that pass schedules.
       this.#scrollSync.resyncScrollableElementsWithOwners();
     }
+
+    this.#drawing = false;
+
+    // The clones have their final sizes now. A scroll draw changes none of the sizes the proxies read,
+    // unless it resized the overlays (the postponed resize after a scroll), which marks them stale.
+    if (!this.isScrollDrivenDraw || this.#scrollbarProxiesStale) {
+      this.#scrollbarProxiesStale = false;
+      this.#scrollbarProxies.update();
+    }
+  }
+
+  /**
+   * Whether the element is a scrollbar proxy, so a press on it counts as a press on the scrollbar.
+   *
+   * @param {EventTarget | null} element The element to test.
+   * @returns {boolean}
+   */
+  isScrollbarProxy(element: EventTarget | null): boolean {
+    return this.#scrollbarProxies.isProxy(element);
+  }
+
+  /**
+   * Which axes could take a scrollbar proxy: the master holder scrolls the axis and a header or a frozen
+   * band is rendered along it. Reads flags only, so a grid that needs no proxy pays no measurement.
+   *
+   * @returns {ScrollbarProxyCandidates}
+   */
+  #scrollbarProxyCandidates(): ScrollbarProxyCandidates {
+    const holder = this.wtTable.holder;
+    const renders = (overlay: Overlay) => !!overlay.clone && overlay.needFullRender;
+
+    const ownsVertical = this.topOverlay.mainTableScrollableElement === holder;
+    const ownsHorizontal = this.inlineStartOverlay.mainTableScrollableElement === holder;
+
+    return {
+      vertical: ownsVertical && (renders(this.topOverlay) || renders(this.bottomOverlay)),
+      horizontal: ownsHorizontal && (renders(this.inlineStartOverlay) || renders(this.inlineEndOverlay)),
+      framed: ownsVertical || ownsHorizontal,
+    };
+  }
+
+  /**
+   * The non-scrolling bands along each edge of the master holder, measured on the clone tables (not on
+   * their holders: the top clone's holder grows by half a fill handle when a frozen cell is selected).
+   *
+   * @returns {ScrollbarProxyInput['insets']}
+   */
+  #scrollbarProxyInsets(): ScrollbarProxyInput['insets'] {
+    const { geometryReader } = this.#deps;
+    const measure = (overlay: Overlay, size: 'outerHeight' | 'outerWidth') => (
+      overlay.clone && overlay.needFullRender ? geometryReader[size](overlay.clone.wtTable.TABLE) : 0
+    );
+
+    return {
+      top: measure(this.topOverlay, 'outerHeight'),
+      bottom: measure(this.bottomOverlay, 'outerHeight'),
+      start: measure(this.inlineStartOverlay, 'outerWidth'),
+      end: measure(this.inlineEndOverlay, 'outerWidth'),
+    };
   }
 
   /**
@@ -608,6 +710,14 @@ class Overlays {
     this.wot.draw(true);
 
     this.#scrollSync.fireScrollCallbacksAndReset();
+  }
+
+  /**
+   * Re-binds the listeners that depend on the scrollable elements, leaving the ones on the document
+   * and the window bound.
+   */
+  registerScrollableElementListeners() {
+    this.#nativeScrollInput.registerScrollableElementListeners();
   }
 
   /**
@@ -821,19 +931,19 @@ class Overlays {
    */
   syncScrollPositions() {
     this.#scrollSync.syncScrollPositions();
-    this.syncInlineEndFreezeLine();
   }
 
   /**
    * Whether each end clone root last got the freeze-line state class, so the DOM is written only when the
-   * state changes (this runs on every scroll event).
+   * state changes (this runs after every draw).
    */
   #freezeLineShared = new Map<Overlay, boolean>();
 
   /**
-   * Toggles `INLINE_END_FREEZE_LINE_SHARED_CLASS` on the three inline-end clone roots: set while the master
-   * draws the freeze line, cleared while the clones' own first-cell border does. Runs after every draw and
-   * on every scroll event; reads go through the geometry reader and a root is written only on a change.
+   * Toggles `INLINE_END_FREEZE_LINE_SHARED_CLASS` on the three inline-end clone roots: set while the row
+   * header draws the freeze line, cleared while the clones' own first-cell border does. The state depends
+   * on the settings only, never on the scroll position, so it runs after every draw; a root is written
+   * only on a change.
    */
   syncInlineEndFreezeLine() {
     const { inlineEndOverlay } = this;
@@ -900,6 +1010,7 @@ class Overlays {
     this.#postponedAdjustElementsSize.cancel();
     this.#resizeMonitor.destroy();
     this.#scrollbarVisibility.destroy();
+    this.#scrollbarProxies.destroy();
     this.#stickyScroll.destroy();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
@@ -926,6 +1037,59 @@ class Overlays {
   }
 
   /**
+   * Tells whether the bottom clone is taller than the height the row calculators count for the frozen bottom
+   * rows. Its first row draws its own top border, the freeze line, one pixel on top of the counted height, so
+   * the clone covers the bottom border of a row that scrolling lined up with it. With border-box cells that
+   * holds for every first row, whether it has a height of its own (`rowHeights`, `minRowHeights`, a resized
+   * row, a recorded content height) or not: such a row is drawn one pixel above its height
+   * (`firstRowTopBorderOutsideHeight()`). With content-box cells a first row with a height of its own holds
+   * the border inside that height: the clone is as tall as counted, and a lined-up row ends at its top edge
+   * with its own border in view.
+   *
+   * The answer is read once per draw and kept in the draw's snapshot, so every overlay decides on the same
+   * one. It is read on the first ask and not with the snapshot, because the snapshot is taken before
+   * `refresh()` and the clone's height is only current after the bottom overlay rendered. That overlay is
+   * the first one `refresh()` renders, and it asks while it draws its own selections, so no overlay reads a
+   * height from the previous draw (a `minRowHeights` or `fixedRowsBottom` change would otherwise be one
+   * draw late).
+   *
+   * @returns {boolean}
+   */
+  bottomCloneCoversLinedUpRow(): boolean {
+    const snapshot = this.selectionVisibleRange;
+
+    if (snapshot === null) {
+      return false;
+    }
+
+    if (snapshot.bottomCloneCoversLinedUpRow === null) {
+      snapshot.bottomCloneCoversLinedUpRow = this.#isBottomCloneTallerThanCountedRows();
+    }
+
+    return snapshot.bottomCloneCoversLinedUpRow;
+  }
+
+  /**
+   * Compares the bottom clone's drawn height with the summed heights of the frozen bottom rows.
+   *
+   * @returns {boolean}
+   */
+  #isBottomCloneTallerThanCountedRows(): boolean {
+    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
+    const cloneTable = this.bottomOverlay?.clone?.wtTable.TABLE;
+
+    if (fixedRowsBottom === 0 || !cloneTable) {
+      return false;
+    }
+
+    const totalRows = this.wtSettings.getSetting('totalRows') ?? 0;
+    const countedHeight = this.wot.wtViewport.sumRowHeights(totalRows - fixedRowsBottom, totalRows);
+
+    // Half a pixel, not zero: below 100% zoom the two heights differ by a fraction of a pixel anyway.
+    return this.#deps.geometryReader.outerHeight(cloneTable) - countedHeight > 0.5;
+  }
+
+  /**
    * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
    *                                   rendering anyway.
@@ -937,13 +1101,16 @@ class Overlays {
     // fully re-render and size the overlays rather than treat this as a scroll.
     const isScrollTriggered = this.isScrollDrivenDraw &&
       (this.verticalScrolling || this.horizontalScrolling);
-    // On a pure vertical scroll the bottom overlay (and its inline-start corner) render the same fixed
-    // rows over the same visible columns, so their DOM is unchanged - a full re-render is wasted work and
-    // forces an expensive style/layout/paint of the clone subtree on every scroll frame. Reposition them
-    // (fast draw) instead. Any horizontal scroll changes the visible columns, and a non-scroll redraw
-    // (data, settings, resize) is not scroll-driven, so those paths still trigger a full re-render.
-    const bottomFastDraw = fastDraw ||
+    // On a pure vertical scroll the bottom overlay (and its corners) render the same fixed rows, so a full
+    // re-render is wasted work and forces an expensive style/layout/paint of the clone subtree on every
+    // scroll frame. Reposition them (fast draw) instead. Any horizontal scroll changes the visible columns,
+    // and a non-scroll redraw (data, settings, resize) is not scroll-driven, so those paths still trigger a
+    // full re-render. The corners render the frozen columns only, which no scroll moves.
+    const bottomCornersFastDraw = fastDraw ||
       (this.isScrollDrivenDraw && this.verticalScrolling && !this.horizontalScrolling);
+    const columnsBand = this.#readMasterColumnsBand();
+    const bottomFastDraw = bottomCornersFastDraw && this.#bottomColumnsBand !== null &&
+      this.#bottomColumnsBand.start === columnsBand.start && this.#bottomColumnsBand.count === columnsBand.count;
 
     if (isScrollTriggered) {
       this.#postponedAdjustElementsSize();
@@ -953,6 +1120,7 @@ class Overlays {
 
     if (this.bottomOverlay.clone) {
       this.bottomOverlay.refresh(bottomFastDraw);
+      this.#bottomColumnsBand = this.bottomOverlay.needFullRender ? columnsBand : null;
     }
 
     this.inlineStartOverlay.refresh(fastDraw);
@@ -964,12 +1132,25 @@ class Overlays {
     }
 
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
-      this.bottomInlineStartCornerOverlay.refresh(bottomFastDraw);
+      this.bottomInlineStartCornerOverlay.refresh(bottomCornersFastDraw);
     }
 
     // The end corners render the same fixed rows over the same fixed end columns, like their start twins.
     this.topInlineEndCornerOverlay.refresh(fastDraw);
-    this.bottomInlineEndCornerOverlay.refresh(bottomFastDraw);
+    this.bottomInlineEndCornerOverlay.refresh(bottomCornersFastDraw);
+  }
+
+  /**
+   * Reads the column band the master renders in the current draw: its first rendered column and how many
+   * columns it renders.
+   *
+   * @returns {{ start: number, count: number }}
+   */
+  #readMasterColumnsBand(): { start: number, count: number } {
+    return {
+      start: this.wtTable.getFirstRenderedColumn(),
+      count: this.wtTable.getRenderedColumnsCount(),
+    };
   }
 
   /**
@@ -1026,6 +1207,15 @@ class Overlays {
     // is deliberate: refreshing it here would force a measurement inside every resize, and the terms
     // it would correct are re-resolved by `beginDrawLayout` on the next draw anyway.
     this.#lastAppliedSignature = this.#currentLayoutSignature(written);
+
+    // A resize can change the holder's scroll range outside a full draw (the postponed resize after a
+    // scroll), and the proxies' spacers must follow it. Several paths resize in the middle of a draw,
+    // before the clones have their final sizes, so there the proxies are placed once, in `afterDraw`.
+    if (this.#drawing) {
+      this.#scrollbarProxiesStale = true;
+    } else {
+      this.#scrollbarProxies.update();
+    }
   }
 
   /**
@@ -1281,7 +1471,8 @@ class Overlays {
       layout.workspaceHeight,
       layout.hasVerticalScroll,
       layout.hasHorizontalScroll,
-      layout.scrollbarSize,
+      layout.scrollbarWidth,
+      layout.scrollbarHeight,
       layout.rowHeaderWidth,
       layout.columnHeaderHeight,
       layout.scrollMode,

@@ -8,6 +8,7 @@ import { getData } from "../utils/constants";
 import { getThemeName } from "../utils/utils";
 import { progressBarRenderer } from "../renderers/progressBar";
 import { starsRenderer } from "../renderers/stars";
+import { TEST_LICENSE_KEY } from '../test-license-key';
 
 export default {
   name: 'DataGrid',
@@ -82,7 +83,7 @@ export default {
           { data: 5, type: "text" },
           { data: 2, type: "text" }
         ],
-        licenseKey: "non-commercial-and-evaluation",
+        licenseKey: TEST_LICENSE_KEY,
       },
       data: getData()
     }

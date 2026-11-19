@@ -60,6 +60,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotTableRef}
         data={data}
         width="100%"
@@ -75,7 +76,6 @@ const ExampleComponent = () => {
           content: 'This dialog can be controlled programmatically.',
           closable: true,
         }}
-        licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
         <HotColumn

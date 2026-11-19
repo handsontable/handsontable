@@ -66,13 +66,13 @@ const ExampleComponent = () => {
         <Slider label="rampDistance" unit="px" min={20}  max={300}  step={10} value={rampDistance}  onChange={setRampDistance} />
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data}
         colHeaders={colHeaders}
         width={500}
         height={220}
         rowHeaders={true}
         dragToScroll={{ interval: { min: intervalMin, max: intervalMax }, rampDistance }}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

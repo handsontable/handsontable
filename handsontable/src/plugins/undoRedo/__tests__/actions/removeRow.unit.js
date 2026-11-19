@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, UndoRedo, HiddenColumns } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(UndoRedo);
@@ -71,7 +72,7 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
   describe('constructor rows with a non-configurable getter', () => {
     beforeEach(() => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [new DataObj(1, 2, 4), new DataObj(7, 4, 1), new DataObj(4, 1, 1)],
         dataSchema: () => new DataObj(null, null, null),
         columns: [{ data: 'a' }, { data: 'b' }, { data: 'c' }, { data: 'sum' }],
@@ -118,7 +119,7 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
   describe('accessor rows with function column data', () => {
     beforeEach(() => {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: [
           model({ id: 1, name: 'Ted Right', address: 'A' }),
           model({ id: 2, name: 'Frank Honest', address: 'B' }),
@@ -167,7 +168,7 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
 
   it('should keep accessorValues empty for plain object rows', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [{ v: 'A1' }, { v: 'A2' }],
       undo: true,
     });
@@ -179,7 +180,7 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
 
   it('should restore an accessor column that is hidden at removal and undo time', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [
         model({ id: 1, name: 'Ted Right', address: 'A' }),
         model({ id: 2, name: 'Frank Honest', address: 'B' }),
@@ -206,7 +207,7 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
     const valueSetter = jest.fn(value => value);
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [
         model({ id: 1, name: 'Ted Right' }),
         model({ id: 2, name: 'Frank Honest' }),
@@ -238,7 +239,7 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
     const makeRow = id => ({ id, meta: { onSelect: () => id, label: `row ${id}` } });
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [makeRow(1), makeRow(2)],
       columns: [{ data: 'id' }, { data: 'meta.label' }],
       undo: true,
@@ -262,7 +263,7 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
     let throwOnWrite = false;
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [
         model({ id: 1, name: 'Ted Right' }),
         model({ id: 2, name: 'Frank Honest' }),
@@ -327,7 +328,7 @@ describe('UndoRedo -> RemoveRow action with a function dataSchema', () => {
         }
       };
       const settings = {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         data: rows,
         columns: source.map((column, columnIndex) => ({ data: accessor(columnIndex) })),
         dataSchema: () => ({ index: -1 }),
@@ -408,7 +409,7 @@ describe('UndoRedo -> RemoveRow action that removes nothing (#280 / DEV-45)', ()
 
   it('should not stack an undo action for a remove_row that took no rows', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [[5]],
       undo: true,
     });
@@ -428,7 +429,7 @@ describe('UndoRedo -> RemoveRow action that removes nothing (#280 / DEV-45)', ()
 
   it('should keep the redo stack intact when a remove_row takes no rows', () => {
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['A1'], ['A2']],
       undo: true,
     });
@@ -456,7 +457,7 @@ describe('UndoRedo -> RemoveRow action that removes nothing (#280 / DEV-45)', ()
     const afterRedoStackChange = jest.fn();
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [['A1'], ['A2']],
       undo: true,
       beforeUndoStackChange,

@@ -13,7 +13,7 @@ type ParsedPayload = {
 type ParsedCellValue = string | number | boolean | null;
 type ParsedRow = Record<string, ParsedCellValue>;
 
-const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
+const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.7.0/papaparse.min.js';
 
 declare global {
   interface Window {
@@ -198,7 +198,7 @@ async function parseXlsxFile(file: File): Promise<ParsedPayload> {
   const parser = new Handsontable(host, {
     data: [[]],
     importFile: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
   try {
@@ -307,7 +307,7 @@ function loadIntoGrid({ headers, rows }: ParsedPayload): void {
       rowHeaders: true,
       height: 'auto',
       width: '100%',
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     });
   } else {
     hot.updateSettings({ colHeaders: headers, columns });

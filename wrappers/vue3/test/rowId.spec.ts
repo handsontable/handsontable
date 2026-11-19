@@ -1,6 +1,7 @@
 import { mount, config } from '@vue/test-utils';
 import { registerAllModules } from 'handsontable/registry';
 import HotTable from '../src/HotTable.vue';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 config.renderStubDefaultSlot = true;
 
@@ -23,7 +24,7 @@ describe('`rowId` option', () => {
     ];
     const testWrapper = mount(HotTable, {
       props: {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         settings: {
           data,
           columns: [{ data: 'product' }, { data: 'price' }],

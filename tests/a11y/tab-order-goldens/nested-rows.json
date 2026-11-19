@@ -1,0 +1,77 @@
+{
+  "schema": 1,
+  "page": "nested-rows",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Select whole grid",
+        "cell": [
+          -1,
+          -1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Name",
+        "cell": [
+          -1,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Copy",
+        "cell": [
+          -1,
+          1
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Copy",
+        "cell": [
+          -1,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "columnheader",
+        "name": "Name",
+        "cell": [
+          -1,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Select whole grid",
+        "cell": [
+          -1,
+          -1
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

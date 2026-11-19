@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "id": "default-mode",
+  "surface": "The grid in its default navigation mode (headers not navigable, Tab moving between cells): Tab in from the page, arrows across cells with their headers, Tab out at both ends and back in.",
+  "group": "keyboard",
+  "page": "grid",
+  "start": "page",
+  "criteria": ["1.3.1", "2.1.1", "2.1.2", "2.4.3", "4.1.2"],
+  "setup": [{"updateSettings": {"colHeaders": ["Alpha", "Bravo", "Charlie"]}}, {"sentinels": true}, {"focus": "[data-sr-sentinel=\"before\"]"}],
+  "steps": [
+    {
+      "id": "tab-into-grid",
+      "action": {"press": "Tab"},
+      "expect": [["a1", "a 1"], ["alpha"], ["row 2"], ["column 2"]],
+      "note": "Tab from the page's control before the grid enters the grid on its first cell: its value, its column header and its place. The headers are named so a header is a fact of its own (the grid page's letters A, B and C would also match a cell reference NVDA spells A 1). VoiceOver names no row on a cell move: its behavior on a well-formed grid too. Finding (the grid's): VoiceOver with Chromium says column 1 here and counts 13 rows in this grid of five, because the overlay clones add rows of their own to Chromium's accessibility tree."
+    },
+    {
+      "id": "arrow-right",
+      "action": {"press": "ArrowRight"},
+      "expect": [["b1", "b 1"], ["bravo"], ["row 2"], ["column 3"]],
+      "note": "The cell to the right, which the column header names: with headers not navigable, a reader hears the header only through the cell. Finding (the grid's): NVDA with Chromium also names the previous column's header after the row (B 1, B, row 2, A, column 3 on the recording), the overlay clones' wrong header."
+    },
+    {
+      "id": "arrow-down",
+      "action": {"press": "ArrowDown"},
+      "expect": [["b2", "b 2"], ["bravo"], ["row 3"], ["column 3"]]
+    },
+    {
+      "id": "to-row-end",
+      "action": {"press": "End"},
+      "expect": [["c2", "c 2"], ["charlie"], ["row 3"], ["column 4"]],
+      "note": "End moves to the last cell of the row, where Tab leaves the grid."
+    },
+    {
+      "id": "tab-out-forward",
+      "action": {"press": "Tab"},
+      "expect": [["after the grid"], ["button"]],
+      "note": "Tab from a row's last cell leaves the grid for the page's next control: no trap at the grid's end."
+    },
+    {
+      "id": "shift-tab-back-in",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["c2", "c 2"], ["charlie"]],
+      "note": "Shift+Tab from the page returns into the grid on the cell it left."
+    },
+    {
+      "id": "to-row-start",
+      "action": {"press": "Home"},
+      "expect": [["a2", "a 2"], ["alpha"], ["row 3"], ["column 2"]],
+      "note": "Home moves to the first cell of the row, where Shift+Tab leaves the grid."
+    },
+    {
+      "id": "tab-out-backward",
+      "action": {"press": "Shift+Tab"},
+      "expect": [["before the grid"], ["button"]],
+      "note": "Shift+Tab from a row's first cell leaves the grid for the page's previous control: no trap at the grid's start."
+    },
+    {
+      "id": "tab-back-in",
+      "action": {"press": "Tab"},
+      "expect": [["a2", "a 2"], ["alpha"]],
+      "note": "Tab from the page returns into the grid on the cell it left."
+    }
+  ]
+}

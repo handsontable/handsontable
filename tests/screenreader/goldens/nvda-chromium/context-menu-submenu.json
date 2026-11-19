@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "context-menu-submenu",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-10T12:57:19.663Z"
+  },
+  "steps": {
+    "down-to-alignment": "alignment collapsed",
+    "open-submenu": "table left",
+    "down-to-center": "center",
+    "close-submenu": "context menu checked items e 2e fixture document blank",
+    "close-menu": ""
+  }
+}

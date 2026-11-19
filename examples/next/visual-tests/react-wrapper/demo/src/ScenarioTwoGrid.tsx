@@ -2,6 +2,7 @@ import "./styles.css";
 import { HotTable } from "@handsontable/react-wrapper";
 import { scenarioDataTop, scenarioDataBottom } from "./constants";
 import { getThemeName } from "./utils";
+import { TEST_LICENSE_KEY } from "./test-license-key";
 
 const ScenarioTwoGrid = () => {
   return (
@@ -65,7 +66,7 @@ const ScenarioTwoGrid = () => {
           mergeCells={true}
           multiColumnSorting={true}
           contextMenu={true}
-          licenseKey='non-commercial-and-evaluation'
+          licenseKey={TEST_LICENSE_KEY}
         />
       </div>
       <div id='tableBottom'>
@@ -127,7 +128,7 @@ const ScenarioTwoGrid = () => {
           multiColumnSorting={true}
           contextMenu={true}
           collapsibleColumns={true}
-          licenseKey='non-commercial-and-evaluation'
+          licenseKey={TEST_LICENSE_KEY}
         />
       </div>
     </div>

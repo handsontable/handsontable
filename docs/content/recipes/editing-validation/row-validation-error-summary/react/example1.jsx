@@ -21,9 +21,7 @@ const validationRules = {
 
     const n = Number(value);
 
-    return !Number.isNaN(n) && n > 0 && Number.isInteger(n)
-      ? null
-      : 'Quantity must be a positive whole number';
+    return !Number.isNaN(n) && n > 0 && Number.isInteger(n) ? null : 'Quantity must be a positive whole number';
   },
   2: (value) => {
     if (value === null || value === '') {
@@ -69,6 +67,11 @@ const ExampleComponent = () => {
 
     for (const change of changes) {
       const [row, prop] = change;
+
+      if (row === null) {
+        continue;
+      }
+
       const col = typeof prop === 'string' ? hot.propToCol(prop) : prop;
 
       // Skip a property that names no column.
@@ -89,9 +92,7 @@ const ExampleComponent = () => {
     }
 
     if (touched) {
-      setIssues((prev) =>
-        prev.filter((i) => invalidCellsRef.current.has(cellKey(i.row, i.col)))
-      );
+      setIssues((prev) => prev.filter((i) => invalidCellsRef.current.has(cellKey(i.row, i.col))));
       hot.render();
     }
   }
@@ -150,20 +151,25 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={initialData}
         colHeaders={COLUMN_LABELS}
         columns={[
           { data: 'item', type: 'text', width: 180 },
           { data: 'qty', type: 'numeric', width: 100 },
-          { data: 'price', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 110 },
+          {
+            data: 'price',
+            type: 'numeric',
+            numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+            width: 110,
+          },
         ]}
         rowHeaders={true}
         height="auto"
         width="100%"
         afterRenderer={afterRenderer}
         afterChange={afterChange}
-        licenseKey="non-commercial-and-evaluation"
       />
       <div className="example-controls-container validation-summary" aria-live="polite">
         <p className="validation-summary__title">Validation issues</p>

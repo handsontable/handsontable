@@ -25,6 +25,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } h2 { font-size: .9rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -70,7 +71,7 @@
         colHeaders: true,
         rowHeaders: true,
         renderer: stamp(id),
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       }, settings));
     };
 

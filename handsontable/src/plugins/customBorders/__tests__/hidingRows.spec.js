@@ -751,7 +751,7 @@ describe('CustomBorders', () => {
 
       expect(getCellMeta(2, 0).borders.start).toEqual(EMPTY);
       expect(getCellMeta(2, 0).borders.bottom).toEqual(EMPTY);
-      expect(getCellMeta(2, 0).borders.top).toEqual(DEFAULT_BORDER);
+      expect(getCellMeta(2, 0).borders.top).toEqual(CONTEXT_MENU_BORDER);
       expect(getCellMeta(2, 0).borders.end).toEqual(EMPTY);
 
       expect(countVisibleCustomBorders()).toBe(1);

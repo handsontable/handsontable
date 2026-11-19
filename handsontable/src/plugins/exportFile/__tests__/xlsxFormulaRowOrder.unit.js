@@ -1,6 +1,7 @@
 import { HyperFormula } from 'hyperformula';
 import Handsontable from '../../../index';
 import { nativeAdapter } from '../../../utils/xlsxEngine/adapters/native';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Review round 12 (PR #13634): with `exportFormulas`, every exported cell must carry the formula of
@@ -34,7 +35,7 @@ describe('Xlsx export: formulas of a reordered or trimmed grid', () => {
       data: createData(),
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
     act?.(hot);
@@ -115,7 +116,7 @@ describe('Xlsx export: formulas of a reordered or trimmed grid', () => {
       formulas: { engine: HyperFormula, sheetName: 'Sheet1' },
       columnSorting: true,
       exportFile: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
 

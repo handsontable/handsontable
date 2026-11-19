@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable';
 import { data } from './data';
 import { getThemeNameFromURL, getFromURL } from '../../utils';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   const root = document.getElementById('root');
@@ -74,7 +75,7 @@ export function init() {
     autoWrapRow: true,
     fixedRowsBottom: 2,
     cell: [{ row: 1, col: 1, comment: { value: 'Comments' } }],
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
   hot.selectColumns(2, 3);
 

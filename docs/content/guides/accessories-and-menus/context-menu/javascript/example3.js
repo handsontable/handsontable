@@ -140,7 +140,7 @@ new Handsontable(container, {
   ],
   rowHeaders: true,
   colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   height: 'auto',
   contextMenu: contextMenuSettings,
   // Required for the HTML in the `about` item's label to be rendered safely

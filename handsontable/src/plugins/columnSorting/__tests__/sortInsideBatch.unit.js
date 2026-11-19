@@ -4,6 +4,7 @@ import { ColumnSorting } from 'handsontable/plugins/columnSorting';
 import { MultiColumnSorting } from 'handsontable/plugins/multiColumnSorting';
 import { TrimRows } from 'handsontable/plugins/trimRows';
 import { ViewState } from 'handsontable/plugins/viewState';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(ColumnSorting);
 registerPlugin(MultiColumnSorting);
@@ -41,7 +42,7 @@ describe('ColumnSorting -> sort inside a batch on an already sorted grid', () =>
     hot = new Handsontable(container, {
       data: [[3, 'c', 'Z'], [1, 'a', 'Y'], [2, 'b', 'X']],
       columnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...overrides,
     });
 

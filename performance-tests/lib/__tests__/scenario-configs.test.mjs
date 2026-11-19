@@ -22,14 +22,19 @@ const FIVE_ITERATIONS = [
   'checkbox-column-set-data',
   'checkbox-header-toggle',
   'filtering',
+  'get-data',
   'initial-load',
+  'pagination-next-page',
+  'paste-extend-rows',
   'row-selection-deselect-all',
   'row-selection-select-all',
+  'sheetsbar-structural-ops',
   'sorting',
   'source-data-validator-load',
   'undo-edit',
   'undo-remove-rows',
   'undo-sort',
+  'validate-cells',
 ];
 
 /**

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a `type` set on `HotTable` getting the text editor and renderer instead of the type's own. Such grids now show that type's editor and formatting.",
+  "type": "fixed",
+  "issueOrPR": 14147,
+  "breaking": false,
+  "framework": "react"
+}

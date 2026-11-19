@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removed the APIs deprecated for removal in 19.0: `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, `loadManualRowHeights()`, `Handsontable.helper.sanitize()`, the `columnHeaders` export option (use `colHeaders`), and the `Settings` and `DataProviderOptions` type aliases (use `ExportFileSettings` and `DataProviderFetchOptions`). Also fixed the `CollapsibleColumns` plugin warning that nested headers were missing when a sheet of the SheetsBar plugin declares them.",
+  "type": "removed",
+  "issueOrPR": 14182,
+  "breaking": true,
+  "framework": "none"
+}

@@ -20,6 +20,7 @@
       throw new Error('Unknown ?outsideClickDeselects= value: ' + JSON.stringify(htParams.get('outsideClickDeselects')));
     }
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -56,7 +57,7 @@
       rowHeaders: true,
       outsideClickDeselects: window.outsideClickDeselects,
       renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     }, scenarioSettings));
   </script>
 </body>

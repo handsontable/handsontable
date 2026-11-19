@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, ColumnSummary, TrimRows, UndoRedo } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ColumnSummary);
@@ -49,7 +50,7 @@ describe('ColumnSummary default ranges with alter()', () => {
    */
   function buildGrid(columnSummary, data = [[null], [10], [20]], extraSettings = {}) {
     return new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data,
       columnSummary,
       ...extraSettings,

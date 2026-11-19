@@ -21,7 +21,7 @@ export default defineComponent({
         ],
         colHeaders: true,
         rowHeaders: true,
-        licenseKey: "non-commercial-and-evaluation",
+        // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
         height: 'auto',
         width: '100%'
       },

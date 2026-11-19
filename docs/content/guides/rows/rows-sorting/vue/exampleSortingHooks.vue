@@ -106,7 +106,7 @@ const hotSettings = ref<GridSettings>({
     // return `false` to cancel Handsontable's own front-end sort
     return false;
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 

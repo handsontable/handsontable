@@ -118,7 +118,7 @@ const initialReduxStoreState = {
   rowHeaders: true,
   readOnly: false,
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const updatesReducer = (

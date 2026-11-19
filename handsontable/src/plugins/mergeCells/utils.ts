@@ -3,6 +3,18 @@ import type { Overlay } from '../../3rdparty/walkontable/src/overlay/regions/_ba
 import type { MergeAreaGeometry } from '../../utils/mergeAreas';
 
 /**
+ * Tells whether two merge areas share a cell.
+ *
+ * @param {object} left One area.
+ * @param {object} right The other area.
+ * @returns {boolean}
+ */
+export function areMergesOverlapping(left: MergeAreaGeometry, right: MergeAreaGeometry): boolean {
+  return left.row < right.row + right.rowspan && right.row < left.row + left.rowspan &&
+    left.col < right.col + right.colspan && right.col < left.col + left.colspan;
+}
+
+/**
  * Builds a comparison key from a merge area's visual geometry. Two merge areas that cover exactly
  * the same cells produce the same key, which is how a re-applied merge is told apart from a newly
  * declared one.

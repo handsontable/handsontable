@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * A merge whose rows are all trimmed stays in the merge list at the visual coordinates it had
@@ -24,7 +25,7 @@ describe('MergeCells with trimmed or reordered rows', () => {
   function createGrid(settings) {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(6, 3),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

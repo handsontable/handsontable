@@ -31,6 +31,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data}
         colHeaders={['SKU', 'Product', 'Supplier', 'Stock']}
         rowHeaders={true}
@@ -38,7 +39,6 @@ const ExampleComponent = () => {
         beforeColumnMove={() => allowColumnMoving.current}
         stretchH="all"
         height="auto"
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

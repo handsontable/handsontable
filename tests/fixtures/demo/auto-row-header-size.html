@@ -25,6 +25,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -103,7 +104,7 @@
       },
       autoRowHeaderSize: true,
       height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.hot = hot;
@@ -124,7 +125,7 @@
       // one row before the first paint; every other label is found by the sweep
       autoRowHeaderSize: { syncLimit: 1 },
       height: 120,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // --- labels come from the data, so an edit changes one ---
@@ -139,7 +140,7 @@
       rowHeaders: i => (editData[i] ? editData[i][0] : ''),
       autoRowHeaderSize: true,
       height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
     window.editLongValue = 'ID-2-with-a-considerably-longer-value';
 
@@ -162,7 +163,7 @@
       },
       autoRowHeaderSize: true,
       height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.addExtraLevel = () => {

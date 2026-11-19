@@ -1,7 +1,10 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-export type TicketStatus = 'open' | 'in-progress' | 'resolved' | 'closed';
-export type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
+export const TICKET_STATUSES = ['open', 'in-progress', 'resolved', 'closed'] as const;
+export const TICKET_PRIORITIES = ['low', 'medium', 'high', 'critical'] as const;
+
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
+export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
 
 @Entity('tickets')
 export class TicketEntity {

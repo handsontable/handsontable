@@ -110,12 +110,12 @@ export class XmlWriter {
   }
 
   /**
-   * Writes an element holding formula text (`ST_Formula`) and no attributes. Formula text is
+   * Writes an element holding formula text (`ST_Formula`), with optional attributes. Formula text is
    * escaped for markup only: the `_xHHHH_` convention `leaf` applies belongs to `ST_Xstring`, and
    * no reader decodes it inside a formula.
    */
-  formulaLeaf(name: string, formula: string): this {
-    this.#push(`<${name}>${escapeXmlMarkup(formula)}</${name}>`);
+  formulaLeaf(name: string, formula: string, attrs?: XmlAttributeMap): this {
+    this.#push(`<${name}${this.#attributes(attrs)}>${escapeXmlMarkup(formula)}</${name}>`);
 
     return this;
   }

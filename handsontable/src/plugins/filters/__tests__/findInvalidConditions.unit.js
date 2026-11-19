@@ -8,6 +8,7 @@ import { HiddenRows } from '../../hiddenRows';
 import { HiddenColumns } from '../../hiddenColumns';
 import { TrimRows } from '../../trimRows';
 import { registerCellType, CheckboxCellType, DateCellType, NumericCellType } from '../../../cellTypes';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('Filters#_findInvalidConditions', () => {
   let container;
@@ -33,7 +34,7 @@ describe('Filters#_findInvalidConditions', () => {
     hot = new Handsontable(container, {
       data: [['a', 'b'], ['c', 'd']],
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
     filters = hot.getPlugin('filters');
   });
@@ -93,6 +94,32 @@ describe('Filters#_findInvalidConditions', () => {
       message: 'gt is not available on column 1, which can offer: empty, not_empty, eq, neq, begins_with, ' +
         'ends_with, contains, not_contains, so the filter of that column is not restored',
     }]);
+  });
+
+  it('accepts "checked" and "unchecked" on a checkbox column and reports them on a text column', () => {
+    hot.updateSettings({ columns: [{ type: 'checkbox' }, {}] });
+    filters = hot.getPlugin('filters');
+
+    expect(unavailablePaths([
+      entry({ conditions: [{ name: 'checked', args: [] }] }),
+      entry({ column: 1, conditions: [{ name: 'unchecked', args: [] }] }),
+    ])).toEqual(['[1].conditions[0].name']);
+  });
+
+  it('still accepts a text condition on a checkbox column', () => {
+    hot.updateSettings({ columns: [{ type: 'checkbox' }, {}] });
+    filters = hot.getPlugin('filters');
+
+    expect(unavailablePaths([entry({ conditions: [{ name: 'contains', args: ['tr'] }] })])).toEqual([]);
+  });
+
+  it('reports "checked" on a checkbox column while a data provider backs the grid', () => {
+    hot.updateSettings({ columns: [{ type: 'checkbox' }, {}] });
+    filters = hot.getPlugin('filters');
+    hot.addHook('hasExternalDataSource', () => true);
+
+    expect(unavailablePaths([entry({ conditions: [{ name: 'checked', args: [] }] })]))
+      .toEqual(['[0].conditions[0].name']);
   });
 
   it('reports every entry that names an unavailable condition', () => {

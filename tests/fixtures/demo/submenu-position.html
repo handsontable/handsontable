@@ -53,6 +53,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 0; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -107,7 +108,7 @@
         height: 700,
         contextMenu: ['copy', 'alignment', 'cut'],
         dropdownMenu: ['clear_column', 'alignment'],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       container.setAttribute('data-init-error', String(error && error.message));

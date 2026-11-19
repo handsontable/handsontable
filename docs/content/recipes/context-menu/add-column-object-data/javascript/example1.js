@@ -66,5 +66,5 @@ const hot = new Handsontable(container, {
       remove_row: { name: 'Remove row' },
     },
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });

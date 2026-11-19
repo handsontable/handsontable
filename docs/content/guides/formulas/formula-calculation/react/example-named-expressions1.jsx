@@ -35,7 +35,6 @@ const ExampleComponent = () => {
     }
 
     setErrorMessage('');
-    hotNamedExpressions?.render();
   };
 
   return (
@@ -55,6 +54,7 @@ const ExampleComponent = () => {
         <output className={errorMessage ? 'is-error' : undefined}>{errorMessage}</output>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotNamedExpressionsRef}
         data={data}
         colHeaders={true}
@@ -71,7 +71,6 @@ const ExampleComponent = () => {
         }}
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

@@ -1,10 +1,10 @@
 import type { HotInstance } from '../../../core/types';
-import { Menu } from '../../../plugins/contextMenu/menu';
+import { Menu } from '../../../utils/menu/menu';
 import { clone, extend } from '../../../helpers/object';
 import { arrayEach } from '../../../helpers/array';
 import { addClass, setAttribute } from '../../../helpers/dom/element';
 import * as C from '../../../i18n/constants';
-import { SEPARATOR } from '../../../plugins/contextMenu/predefinedItems';
+import { SEPARATOR } from '../../../utils/menu/predefinedItems';
 import { BaseUI } from './_base';
 import type { BaseUIOptions } from './_base';
 import { A11Y_HIDDEN, A11Y_LISTBOX } from '../../../helpers/a11y';
@@ -133,6 +133,9 @@ export class SelectUI extends BaseUI {
     this.#menu = new Menu(hot, {
       className: 'htSelectUI htFiltersConditionsMenu',
       keepInViewport: false,
+      // The list opens under its select and is placed by it, so it is moved up into the viewport and capped to it
+      // by this option: `keepInViewport: true` would also flip it above or beside the select.
+      scrollInViewport: true,
       standalone: true,
       container: this.options.menuContainer,
     });

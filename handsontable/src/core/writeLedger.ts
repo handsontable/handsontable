@@ -1,6 +1,17 @@
 import type { CellChange } from '../settings';
 
 /**
+ * Tells whether a change source marks a correction a validator writes through a nested `setDataAtCell()`. Such a
+ * correction belongs to the change it corrects, so it opens no ledger call of its own.
+ *
+ * @param {*} source The change source.
+ * @returns {boolean}
+ */
+export function isValidatorCorrection(source: unknown): boolean {
+  return typeof source === 'string' && source.endsWith('Validator');
+}
+
+/**
  * The cell meta of a validated cell, as far as the ledger reads it.
  */
 export interface LedgerCellMeta {
@@ -22,8 +33,9 @@ export interface WriteLedgerCall {
   answered: (change: CellChange, valid: boolean) => void;
   /**
    * Takes out the changes a newer write to the same cell has overtaken, and gives the cell the
-   * validity of the write that lands on it. `restoreValidity` receives that validity, because a
-   * validator that answered later wrote its own on the shared cell meta.
+   * validity of the write that lands on it. `restoreValidity` receives that validity for every registered
+   * change, because a validator that answered later wrote its own on the shared cell meta; it leaves a cell
+   * that already holds it alone.
    */
   claim: (
     changes: CellChange[],
@@ -49,17 +61,20 @@ const accessorIds = new WeakMap<object, number>();
 let accessorCount = 0;
 
 /**
- * Builds the key a write to a cell is ordered by. It names the cell the write lands on: the visual
- * row, which `applyChanges()` writes through, and the property. A data accessor function is the
- * property of its column, so the function itself names the column and survives a column move. An
- * unbound column has no property, so the visual column stands in for it.
+ * Builds the key a write to a cell is ordered by. It names the cell the write lands on: the record,
+ * which `applyChanges()` writes to (the id of the record core tracks for the change, or the visual row of a
+ * row the write creates), and the property. A data accessor function is the property of its column, so the
+ * function itself names the column and survives a column move. An unbound column has no property, so the
+ * visual column stands in for it.
  *
- * @param row The visual row of the change.
+ * @param row The key of the record the change writes to.
  * @param prop The property of the change.
  * @param visualColumn The visual column of the change.
  * @returns {string}
  */
-export function getCellWriteKey(row: number, prop: CellChange[1] | null, visualColumn: CellChange[1] | null): string {
+export function getCellWriteKey(
+  row: string | number, prop: CellChange[1] | null, visualColumn: CellChange[1] | null,
+): string {
   if (typeof prop === 'string' || typeof prop === 'number') {
     return `${row}:p${prop}`;
   }
@@ -143,7 +158,7 @@ export function createWriteLedger() {
             changes.splice(i, 1);
           }
 
-          if (typeof valid === 'boolean' && registered.cellMeta.valid !== valid) {
+          if (typeof valid === 'boolean') {
             restoreValidity(registered.cellMeta, valid, registered.structureVersion);
           }
         }

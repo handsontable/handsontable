@@ -307,6 +307,61 @@ If you want to style the header labels, you can pass any number of class names, 
 
 :::
 
+## Add a tooltip to a column header
+
+To show a description when users hover over a column header, set the HTML `title` attribute of the header cell. Do this in the [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader) hook, which receives the header's `<th>` element. The browser displays the attribute's value as a native tooltip. Browsers show a `title` tooltip only on mouse hover, so keyboard users who focus a header (with [`navigableHeaders`](@/api/options.md#navigableheaders)) and touch users never see it. Don't put information that users need only in the tooltip.
+
+The HTML `title` attribute is not the same as the [`title`](@/api/options.md#title) option, which sets the header label.
+
+Handsontable DataGrid reuses header cells as users scroll, so a cell can still hold the `title` of a column that was rendered in it earlier. To avoid showing the wrong tooltip, set the attribute when a column has a description and remove it when it doesn't, on every call of the hook.
+
+Look up each description by the header's label, not by the `column` argument. That argument is a visual column index, so a description keyed by it stops matching its column after users move columns. This assumes your header labels are unique.
+
+The example below adds a tooltip to four of the seven headers.
+
+::: only-for javascript
+
+::: example #example8 --js 1 --ts 2
+@[code](@/content/guides/columns/column-header/javascript/example8.js)
+@[code](@/content/guides/columns/column-header/javascript/example8.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #example8 :react --js 1 --ts 2
+@[code](@/content/guides/columns/column-header/react/example8.jsx)
+@[code](@/content/guides/columns/column-header/react/example8.tsx)
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example8 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example8.vue)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example8 :angular --ts 1 --html 2
+@[code](@/content/guides/columns/column-header/angular/example8.ts)
+@[code](@/content/guides/columns/column-header/angular/example8.html)
+:::
+
+:::
+
+::: tip
+
+This approach sets plain text, so it doesn't need a [`sanitizer`](@/api/options.md#sanitizer). If you build header labels from HTML instead, see [Render custom HTML in header](@/guides/cell-functions/cell-renderer/cell-renderer.md#render-custom-html-in-header) and [Security](@/guides/security/security/security.md).
+
+:::
+
 ## Column header height
 
 When column labels are longer, header text can wrap and require more vertical space. To control the header size, set [`columnHeaderHeight`](@/api/options.md#columnheaderheight).
@@ -320,7 +375,7 @@ You can set this option to one of the following:
 The height is a number of pixels. A string that states a pixel size works too, so a value coming from
 an attribute, a JSON config, or a framework template still applies. You can mix both forms inside the
 array. A value that states no pixel count, such as `'50%'` or `'20em'`, is ignored - the header keeps
-its default height, and Handsontable DataGrid reports the value once in the browser console.
+its default height, and Handsontable reports the value once in the browser console.
 
 A negative number is kept as it is, because numbers behave exactly as they did before this option
 read strings. A negative string is rejected, so a typo cannot collapse the header.
@@ -372,6 +427,115 @@ The example below uses longer labels together with `columnHeaderHeight: 50`.
 
 :::
 
+## Rename headers in the grid
+
+Let users rename column headers, row headers, or both, right in the grid. Enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin with the [`editableHeaders`](@/api/options.md#editableheaders) option. It is available since version 19.0.0.
+
+- Set `editableHeaders` to `true` to make column headers renamable.
+- Set it to an object to choose the axes: `columnHeaders` defaults to `true`, and `rowHeaders` defaults to `false`.
+
+Row headers need [`rowHeaders`](@/api/options.md#rowheaders) to be on, because the plugin renames headers that the grid shows.
+
+### How users rename a header
+
+Users can rename a header in three ways:
+
+- Double-click the header.
+- Focus the header with the keyboard and press <kbd>F2</kbd> or <kbd>Enter</kbd>. To focus a header with the keyboard, set [`navigableHeaders`](@/api/options.md#navigableheaders) to `true`.
+- Select **Rename header** in the context menu or the column menu ([`dropdownMenu`](@/api/options.md#dropdownmenu)).
+
+An input opens over the header. Press <kbd>Enter</kbd> or move the focus away to save the new name. Press <kbd>Esc</kbd> to cancel. An emptied input cancels too, so a header always keeps a name, and so does a scroll that moves the header out of view. The new name shows as plain text, even when it looks like HTML, also in copied data. Each rename is one step in the [undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md) history.
+
+The grid keeps the new names in the plugin. It doesn't write them to `colHeaders` or `rowHeaders`. A renamed header follows its column or row when users move, sort, insert, or remove columns and rows. [`getColHeader()`](@/api/core.md#getcolheader), [`getRowHeader()`](@/api/core.md#getrowheader), copying with headers, and exporting all return the new name.
+
+A name belongs to the position of a column or row in your data, not to the values in it. [`updateData()`](@/api/core.md#updatedata) keeps the names on the same positions in the new data. [`loadData()`](@/api/core.md#loaddata) drops every name.
+
+The example below makes both column and row headers renamable. The log under the grid shows the last rename.
+
+::: only-for javascript
+
+::: example #example9 --js 2 --ts 3 --html 1
+@[code](@/content/guides/columns/column-header/javascript/example9.html)
+@[code](@/content/guides/columns/column-header/javascript/example9.js)
+@[code](@/content/guides/columns/column-header/javascript/example9.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #example9 :react --js 1 --ts 2
+@[code](@/content/guides/columns/column-header/react/example9.jsx)
+@[code](@/content/guides/columns/column-header/react/example9.tsx)
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example9 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example9.vue)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example9 :angular --ts 1 --html 2
+@[code](@/content/guides/columns/column-header/angular/example9.ts)
+@[code](@/content/guides/columns/column-header/angular/example9.html)
+:::
+
+:::
+
+### Turn off renaming for one column
+
+To keep a column's header fixed, set `editableHeaders` to `false` in that column's configuration:
+
+```js
+editableHeaders: { columnHeaders: true, rowHeaders: true },
+columns: [
+  { editableHeaders: false }, // users can't rename this column's header
+  {},
+  {},
+  {},
+],
+```
+
+### Save the new names
+
+Handsontable doesn't store the new names outside the grid. To save them in your app, use the [`afterHeaderChange`](@/api/hooks.md#afterheaderchange) hook. It receives the axis (`'column'` or `'row'`), the visual index, the new name, and the old name.
+
+The index is visual, so it changes when users move or sort columns and rows. Save the name by the physical index, which stays with the column or row:
+
+```js
+afterHeaderChange(axis, visualIndex, newValue, oldValue) {
+  const physicalIndex = axis === 'column' ? this.toPhysicalColumn(visualIndex) : this.toPhysicalRow(visualIndex);
+
+  saveHeaderName(axis, physicalIndex, newValue);
+},
+```
+
+`afterHeaderChange` also runs for every header that an undo, a redo, or `clearHeaders()` changes, so your saved names stay in step. `beforeHeaderChange` runs only for a rename: it can't stop an undo or a reset. An undo or a redo that also adds or removes rows or columns runs no `afterHeaderChange` for that axis, because the positions it would report are renumbered. Read the names again in the [`afterUndo`](@/api/hooks.md#afterundo) and [`afterRedo`](@/api/hooks.md#afterredo) hooks in that case.
+
+To validate or reject a rename, return `false` from the [`beforeHeaderChange`](@/api/hooks.md#beforeheaderchange) hook. The header then keeps its old name, and `afterHeaderChange` doesn't run.
+
+To read or change names from your code, use the [`EditableHeaders`](@/api/editableHeaders.md) plugin methods, such as `setHeader()`, `getHeader()`, and `clearHeaders()`:
+
+```js
+const plugin = hot.getPlugin('editableHeaders');
+
+plugin.setHeader('column', 0, 'Item');
+plugin.getHeader('column', 0); // 'Item'
+```
+
+### Limits
+
+- While [`nestedHeaders`](@/api/options.md#nestedheaders) are on, users can't rename column headers. Row headers stay renamable.
+- When [`columnSorting`](@/api/options.md#columnsorting) is on, a click on a column header sorts the column. On such a header, <kbd>Enter</kbd> and a double-click sort the column and don't open the input. Press <kbd>F2</kbd> or use the **Rename header** menu item instead.
+
 ## Nested headers
 
 More complex data structures can be displayed with multiple headers, each representing a different category of data. To learn more about nested headers, see the [column groups](@/guides/columns/column-groups/column-groups.md) page.
@@ -402,6 +566,7 @@ More complex data structures can be displayed with multiple headers, each repres
 - [colHeaders](@/api/options.md#colheaders)
 - [columnHeaderHeight](@/api/options.md#columnheaderheight)
 - [currentHeaderClassName](@/api/options.md#currentheaderclassname)
+- [editableHeaders](@/api/options.md#editableheaders)
 - [nestedHeaders](@/api/options.md#nestedheaders)
 - [title](@/api/options.md#title)
 
@@ -412,6 +577,7 @@ More complex data structures can be displayed with multiple headers, each repres
 <div class="boxes-list">
 
 - [getColHeader()](@/api/core.md#getcolheader)
+- [getRowHeader()](@/api/core.md#getrowheader)
 - [hasColHeaders()](@/api/core.md#hascolheaders)
 
 </div>
@@ -422,6 +588,8 @@ More complex data structures can be displayed with multiple headers, each repres
 
 - [afterGetColHeader](@/api/hooks.md#aftergetcolheader)
 - [afterGetColumnHeaderRenderers](@/api/hooks.md#aftergetcolumnheaderrenderers)
+- [afterHeaderChange](@/api/hooks.md#afterheaderchange)
+- [beforeHeaderChange](@/api/hooks.md#beforeheaderchange)
 - [beforeHighlightingColumnHeader](@/api/hooks.md#beforehighlightingcolumnheader)
 - [modifyColHeader](@/api/hooks.md#modifycolheader)
 - [modifyColumnHeaderHeight](@/api/hooks.md#modifycolumnheaderheight)
@@ -432,6 +600,7 @@ More complex data structures can be displayed with multiple headers, each repres
 
 <div class="boxes-list">
 
+- [EditableHeaders](@/api/editableHeaders.md)
 - [NestedHeaders](@/api/nestedHeaders.md)
 
 </div>

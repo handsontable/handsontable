@@ -22,7 +22,7 @@ This is a collection of practical, production-ready recipes for common Handsonta
 - [Cell types](@/recipes/cell-types/cell-types.md) - Color pickers, date pickers, rating cells, and feedback editors.
 - [Column management](@/recipes/column-management/column-management.md) - Column visibility toggles and freeze-at-runtime patterns.
 - [Context menu](@/recipes/context-menu/context-menu.md) - Custom context menu actions and programmatic row operations.
-- [Data management](@/recipes/data-management/data-management.md) - Loading from REST and GraphQL APIs, server-side pagination, auto-save, and multi-grid sync.
+- [Data management](@/recipes/data-management/data-management.md) - Loading from REST, GraphQL, and OData APIs, server-side pagination, auto-save, and multi-grid sync.
 - [Editing and validation](@/recipes/editing-validation/editing-validation.md) - Dependent dropdowns, submit-time validation, and dynamic cell configuration.
 - [Filtering and search](@/recipes/filtering-and-search/filtering-and-search.md) - External search boxes, highlighted matches, and multi-column filter panels.
 - [Import and export](@/recipes/import-export/import-export.md) - CSV and Excel import, PDF export.

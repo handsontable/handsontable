@@ -1,4 +1,11 @@
-import { addClass, empty, isShadowRoot, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import {
+  addClass,
+  empty,
+  hasClass,
+  isShadowRoot,
+  observeVisibilityChangeOnce,
+  removeClass,
+} from './helpers/dom/element';
 import { RenderChangeTracker, markCellMetaChanged } from './core/incrementalRender/renderChangeTracker';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, isEmpty, stringify } from './helpers/mixed';
@@ -19,7 +26,7 @@ import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray,
 import { instanceToHTML, instanceToTableElement } from './utils/parseTable';
 import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
-import type { BasePlugin } from './plugins/base/base';
+import { initializePlugins, type BasePlugin } from './plugins/base/base';
 import { getRenderer } from './renderers/registry';
 import type { BaseRenderer } from './renderers/baseRenderer';
 import { getEditor } from './editors/registry';
@@ -61,8 +68,10 @@ import {
   isSizeLowered,
   type MinimumSizes,
 } from './core/minimumSizes';
-import { insertColWidths, removeColWidths } from './core/colWidthsSplice';
-import { isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
+import { ColumnSizeSettings } from './core/columnSizeSettings';
+import { RowSizeSettings, type RowSizeOption } from './core/rowSizeSettings';
+import { isAutoRowSizeOn, isExactRowHeight, resolveRowHeightSetting } from './core/rowHeightSetting';
+import { isColumnLayoutKept, isSameColumnLayout, type ColumnLayout } from './core/columnLayout';
 import type { HookCallback } from './core/hooks/bucket';
 import type { GridSettings } from './core/settings';
 import {
@@ -86,19 +95,20 @@ import {
 import { initLicenseNotification } from './utils/licenseNotification';
 import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { getCellType, hasCellType } from './cellTypes/registry';
 import { clipRemovalRange } from './utils/removalRange';
 import { createThemeManager, isThemeOverrideEmpty } from './themes/engine';
-import { LayoutManager, type LayoutConfig } from './core/layout';
+import { LayoutManager, LAYOUT_SLOTS, refreshSlotFilledState, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { ThemeOverridesInput } from './themes/engine/manager';
-import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
-import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
-import type { CellChange, CellProperties, ColumnDataGetterSetterFunction } from './settings';
+import CellCoords from './3rdparty/walkontable/src/cell/coords';
+import CellRange from './3rdparty/walkontable/src/cell/range';
+import type { CellChange, CellProperties, ColumnDataGetterSetterFunction, SettingsUpdate } from './settings';
 import type {
-  CellOptionMetaEntry, GridHelperInstance, HotInstance, SelectAllOptions, ViewportScrollerInstance,
+  CellOptionMetaEntry, GridHelperInstance, HotInstance, KeptCellMetas, SelectAllOptions, ViewportScrollerInstance,
 } from './core/types';
-import { applyRootSize, reapplyPixelRootHeight } from './core/rootSize';
+import { applyRootSize, getSideSlotsWidth, reapplyPixelRootHeight, reapplyRootWidth } from './core/rootSize';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
 import type { default as DataMapInstance } from './dataMap/dataMap';
@@ -107,6 +117,9 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import { OperationScope } from './core/operationScope';
+import { PluginRequirements } from './core/pluginRequirements';
+import { normalizeFixedColumnsAlias, withCallerFixedColumnsName } from './core/fixedColumnsAlias';
+import { watchFontLoads } from './core/fontLoad';
 import {
   detachValue,
   recordCellChange,
@@ -116,12 +129,111 @@ import {
 } from './dataMap/dataJournal';
 import DataMap from './dataMap/dataMap';
 import { RowIdentity } from './core/rowIdentity/rowIdentity';
-import { createWriteLedger, getCellWriteKey } from './core/writeLedger';
+import { createWriteLedger, getCellWriteKey, isValidatorCorrection } from './core/writeLedger';
 import type { LedgerCellMeta, WriteLedgerCall } from './core/writeLedger';
+import { createRecordTracker } from './core/recordTracker';
+import type { TrackedRecord } from './core/recordTracker';
+import {
+  captureRecord, createWaitingChangeRecords, followReplacedRecords, resolveRecord,
+} from './core/waitingRecords';
+import { createWaitingMetaStamps } from './core/waitingMetaStamps';
+import { createColumnTracker } from './core/columnTracker';
+import type { ColumnTracking, TrackedColumn } from './core/columnTracker';
+import type { StampedMeta } from './core/waitingMetaStamps';
+import type {
+  RecordAnchor, RecordReader, RowShiftObserver, TrackedRecordHandle, WaitingChangeRecords,
+} from './core/waitingRecords';
 import { TYPE_EDITOR_REQUESTED_KEY } from './dataMap/metaManager/utils';
 import { colToPropOrIndex } from './helpers/columnProp';
 
+/**
+ * The `TableView` getters behind the Core viewport getters that answer `null` while the view does not exist.
+ */
+type ViewportGetterName =
+  | 'getFirstRenderedVisibleRow' | 'getLastRenderedVisibleRow'
+  | 'getFirstRenderedVisibleColumn' | 'getLastRenderedVisibleColumn'
+  | 'getFirstFullyVisibleRow' | 'getLastFullyVisibleRow'
+  | 'getFirstFullyVisibleColumn' | 'getLastFullyVisibleColumn'
+  | 'getFirstPartiallyVisibleRow' | 'getLastPartiallyVisibleRow'
+  | 'getFirstPartiallyVisibleColumn' | 'getLastPartiallyVisibleColumn';
+
+/**
+ * The part of a sorting plugin that core reads and calls.
+ */
+interface SortingPluginLike {
+  isSorted(): boolean;
+  clearSort(): void;
+}
+
+/**
+ * The part of the Filters plugin that core reads and calls.
+ */
+interface FiltersPluginLike {
+  enabled: boolean;
+  exportConditions(): unknown[];
+  clearConditions(): void;
+  filter(): void;
+}
+
 let activeGuid: string | null = null;
+
+/**
+ * Renumbers physical rows after a removal: a removed row is dropped, and every other row moves up by
+ * the number of removed rows above it, the way the index mapper renumbers them.
+ *
+ * @param {number[]} rows The physical rows to renumber.
+ * @param {number[]} removedRows The physical rows the removal took, in the numbering before it.
+ * @returns {number[]} The rows that are left, in the numbering after the removal.
+ */
+function renumberAfterRemoval(rows: number[], removedRows: number[]): number[] {
+  if (removedRows.length === 0) {
+    return rows;
+  }
+
+  const sortedRemovedRows = removedRows.slice().sort((a, b) => a - b);
+  const removedRowsSet = new Set(sortedRemovedRows);
+  const renumberedRows: number[] = [];
+
+  rows.forEach((row) => {
+    if (removedRowsSet.has(row)) {
+      return;
+    }
+
+    let low = 0;
+    let high = sortedRemovedRows.length;
+
+    // Counts the removed rows above `row`.
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+
+      if (sortedRemovedRows[middle] < row) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+
+    renumberedRows.push(row - low);
+  });
+
+  return renumberedRows;
+}
+
+/**
+ * Returns the first run of consecutive indexes in a list sorted in ascending order.
+ *
+ * @param {number[]} sortedIndexes The indexes, sorted in ascending order. Must not be empty.
+ * @returns {number[]} The run as an `[index, amount]` pair.
+ */
+function getFirstConsecutiveRun(sortedIndexes: number[]): [number, number] {
+  let amount = 1;
+
+  while (amount < sortedIndexes.length && sortedIndexes[amount] === sortedIndexes[0] + amount) {
+    amount += 1;
+  }
+
+  return [sortedIndexes[0], amount];
+}
 
 /**
  * Normalizes an array of `[index, amount]` pairs by merging overlapping or adjacent groups
@@ -197,6 +309,20 @@ const ALTER_OPERATION_NAMES: Readonly<Record<string, string>> = Object.freeze({
   remove_row: 'remove_row',
   remove_col: 'remove_col',
 });
+
+/**
+ * The external data source a settings update starts from, read before the payload merges.
+ */
+interface PreviousDataSource {
+  /**
+   * The `dataProvider` value before the payload merged.
+   */
+  dataProvider: unknown;
+  /**
+   * Whether `hasExternalDataSource` answered `true` at the end of the last settings update. Always `false` at init.
+   */
+  isExternal: boolean;
+}
 
 /**
  * A configuration option removed from the public API.
@@ -312,7 +438,7 @@ interface CoreInternals {
   executionSuspendedCounter: number;
   isExecutionSuspended(): boolean;
   timeouts: ReturnType<typeof setTimeout>[];
-  microtasks: Array<{ cancelled: boolean }>;
+  microtasks: Set<{ cancelled: boolean }>;
   _validateCells(callback?: (valid: boolean) => void, rows?: number[], columns?: number[]): void;
   selectAll(
     includeRowHeaders?: boolean,
@@ -432,6 +558,96 @@ export default function Core(
 
   const eventManager = new EventManager(instance);
   const openWriteLedger = createWriteLedger();
+  /**
+   * Follows the records that something waits on (a change that waits for its validator, an editor that waits
+   * for the answer) by their physical rows, see `core/recordTracker.ts`.
+   */
+  const recordTracker = createRecordTracker(() => instance.rowIndexMapper);
+  /**
+   * Follows the physical columns a change that waits for its validator is made at, see `core/columnTracker.ts`.
+   */
+  const columnTracking: ColumnTracking = {
+    tracker: createColumnTracker(() => instance.columnIndexMapper),
+    toTrackedPhysicalColumn: prop => getTrackedPhysicalColumn(prop),
+    toProp: physicalColumn => physicalColumn,
+  };
+  /**
+   * Keeps the `row` and `visualRow` of the stored cell meta of every validator call made for a change on the
+   * rows its record has, so `this.visualRow` in a validator and the row of `afterValidate` name the record
+   * whatever moved it while the validator ran, see `core/waitingMetaStamps.ts`.
+   */
+  const waitingMetaStamps = createWaitingMetaStamps<Record<string, unknown> & StampedMeta>(
+    () => instance.rowIndexMapper,
+    physicalRow => instance.toVisualRow(physicalRow),
+    {
+      getIndexMapper: () => instance.columnIndexMapper,
+      toVisualColumn: physicalColumn => instance.toVisualColumn(physicalColumn),
+      toProp: physicalColumn => physicalColumn,
+    },
+  );
+  /**
+   * The stored cell metas of waiting validator calls whose record `updateData()` moved to another physical row
+   * while the meta stays stored at the row it was read from (`updateData()` keeps cell meta by physical row). The
+   * meta there belongs to the record now at that row, so the answer of such a call is written only to the meta at
+   * the record's row (`persistValidationResult()`), never on the call's own meta object. Each maps to the tracked
+   * record of its call. A meta leaves the map when the next validator call starts on it.
+   */
+  const displacedMetas = new WeakMap<object, TrackedRecord>();
+  /**
+   * What the record resolution reads from the grid, see `core/waitingRecords.ts`.
+   */
+  const recordReader: RecordReader = {
+    countPhysicalRows: () => instance.rowIndexMapper.getNumberOfIndexes(),
+    countVisualRows: () => instance.countRows(),
+    readRowObject: physicalRow => dataSource.modifyRowData(physicalRow),
+    getStoredMeta: (physicalRow, physicalColumn) => metaManager.getCellMetaIfExists(physicalRow, physicalColumn),
+    readKeyedRowId: physicalRow => rowIdentity.getKeyedRowIdAtPhysicalRow(physicalRow),
+    findPhysicalRowById: (id) => {
+      try {
+        return rowIdentity.getPhysicalRowById(id);
+
+      } catch {
+        return null;
+      }
+    },
+  };
+  /**
+   * Tells a waiting change of a row past the last one about the rows `alter()`, a write past the last row or
+   * a spare-row option inserts or removes, by their visual rows, and about a change of the number of trimmed rows
+   * (read on every `cacheUpdated` of the row index mapper), see `core/waitingRecords.ts`.
+   *
+   * @param {object} listener The listener.
+   * @returns {Function} Stops telling the listener.
+   */
+  const observeRowShifts: RowShiftObserver = (listener) => {
+    const rowIndexMapper = instance.rowIndexMapper;
+    const countTrimmedRows = () => rowIndexMapper.getNumberOfIndexes() - rowIndexMapper.getNotTrimmedIndexesLength();
+    let trimmedRows = countTrimmedRows();
+    const onAfterCreateRow = (visualRow: number, amount: number) => listener.rowsInserted(visualRow, amount);
+    const onAfterRemoveRow = (visualRow: number, amount: number) => listener.rowsRemoved(visualRow, amount);
+    const onCacheUpdated = () => {
+      const previousTrimmedRows = trimmedRows;
+
+      trimmedRows = countTrimmedRows();
+
+      if (trimmedRows !== previousTrimmedRows) {
+        listener.trimmedRowsChanged(trimmedRows - previousTrimmedRows);
+      }
+    };
+
+    instance.addHook('afterCreateRow', onAfterCreateRow);
+    instance.addHook('afterRemoveRow', onAfterRemoveRow);
+    rowIndexMapper.addLocalHook('cacheUpdated', onCacheUpdated);
+
+    return () => {
+      rowIndexMapper.removeLocalHook('cacheUpdated', onCacheUpdated);
+
+      if (instance) {
+        instance.removeHook('afterCreateRow', onAfterCreateRow);
+        instance.removeHook('afterRemoveRow', onAfterRemoveRow);
+      }
+    };
+  };
   let datamap: DataMapInstance;
   let dataSource: DataSourceInstance;
   let grid: GridHelperInstance;
@@ -451,10 +667,106 @@ export default function Core(
    */
   let heldMetaPhases: (() => void)[] = [];
   /**
+   * How many lifecycle passes are open: `updateSettings()` and `_applySettingsAndData()` calls, plugin
+   * lifecycle calls (`enablePlugin()`, `updatePlugin()`, `disablePlugin()`), and runs of the ready steps.
+   * The ready steps the plugins owe (`BasePlugin#onGridReady()`) wait while a pass is open, so a pass
+   * enables or updates every plugin before any of them runs its step.
+   */
+  let lifecyclePassDepth = 0;
+  /**
+   * Whether a plugin may owe a ready step: set by every plugin lifecycle call (the only way a plugin comes
+   * to owe one), cleared once a run of the steps leaves none owed. A pass that ran no plugin call then
+   * skips the steps without looking at any plugin.
+   */
+  let readyStepsMayBeOwed = false;
+  /**
+   * `true` while the grid's init pass runs the ready steps: before the `init` hook and the first render, with
+   * the renders they ask for held.
+   */
+  let initReadyStepsRunning = false;
+  /**
+   * The column layout a data replacement made by `updateSettings()` must compare with the one it builds: the layout
+   * read before the payload merged, and whether columns added after the existing ones leave it as it was. `null`
+   * outside such a replacement.
+   */
+  let pendingColumnLayoutCheck: { previousLayout: ColumnLayout, columnsPath: boolean } | null = null;
+
+  /**
+   * Set while an `updateData()` call starts the column state over beside a sort or a filter, so they are cleared once
+   * the call has finished. Both name columns and change the rows, so the rows would keep a result the column state no
+   * longer describes.
+   */
+  let rowStateToClearAfterDataUpdate: { sorting: SortingPluginLike | null, filters: FiltersPluginLike | null } | null =
+    null;
+  /**
+   * Set when `destroy()` starts, so no ready step runs against a grid being torn down.
+   */
+  let isBeingDestroyed = false;
+  /**
+   * Set while a `beforeSuspendExecution` or `beforeResumeExecution` listener runs. A suspend or resume the
+   * listener makes on this grid is part of the call that fired it, so it fires no execution hooks (see
+   * `suspendExecution()`).
+   */
+  let isRunningBeforeExecutionHook = false;
+  /**
    * The settings core's own init settings pass applies, while `beforeInit` runs, or `null` outside that
    * window (see `_replaceInitPassSettings()`).
    */
   let initPassSettings: Record<string, unknown> | null = null;
+  /**
+   * The functions that read every `updateSettings()` and `_applySettingsAndData()` payload, and the values
+   * `_replaceInitPassSettings()` hands the init pass, before they are applied, in the order they were added
+   * (see `_addSettingsFilter()`).
+   */
+  const settingsFilters: Array<(settings: SettingsUpdate) => SettingsUpdate> = [];
+  /**
+   * Runs a settings payload through every filter `_addSettingsFilter()` added, in order.
+   *
+   * @param {object} settings The payload.
+   * @returns {object} The payload to apply.
+   */
+  const filterSettings = (settings: SettingsUpdate) => settingsFilters
+    .reduce((payload, filter) => filter(payload), settings);
+  /**
+   * The plugins other plugins need running (see `_requirePlugin()`).
+   */
+  const pluginRequirements = new PluginRequirements();
+  /**
+   * The functions told about a change set that waited for its validators while `loadData()` replaced the
+   * data, and that is therefore never applied (see `_addDroppedChangesListener()`).
+   */
+  const droppedChangesListeners: Array<
+    (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
+  > = [];
+  /**
+   * The change sets made on the data the grid holds that wait for their validators, with their source (see
+   * `_getWaitingChangeSets()`). A set leaves when its validators have answered, written or dropped, and every
+   * set leaves on `loadData()`, which drops them all; a set whose validator never answers leaves then too.
+   */
+  /**
+   * The functions that can bring a row a hiding feature of their own keeps off screen into view (see
+   * `_addRowRevealer()`).
+   */
+  const rowRevealers: Array<() => (visualRow: number) => boolean> = [];
+  const waitingChangeSets: Map<CellChange[], { source: string | undefined, records: WaitingChangeRecords }> =
+    new Map();
+  /**
+   * The record bookkeeping of every change a waiting set captured a record for, read by `getPhysicalRowOfChange()`
+   * in O(1). An entry lives from the capture until the set has dispatched its `afterChange` (or was dropped), when
+   * `WaitingChangeRecords#release()` takes it out, so a listener of `beforeChangeRender` or `afterChange` can still
+   * find the record of a change whose row reads `null`. Weak, so it holds no change alive.
+   */
+  const waitingChangeRecords: WeakMap<object, WaitingChangeRecords> = new WeakMap();
+  /**
+   * How many validator answers run right now, nested: the microtask that calls a validator, and the callback the
+   * validator answers with (which runs inside that microtask when the validator answers synchronously).
+   */
+  let validatorAnswerDepth = 0;
+  /**
+   * The functions `_runAfterValidatorAnswer()` queued while a validator answer ran. They run when the outermost
+   * answer has released its hold on the transaction of the change it answers (see `leaveValidatorAnswer()`).
+   */
+  const afterValidatorAnswer: Array<() => void> = [];
   // Guards `init()` so it runs once per instance. Set at the very top of `init()`, before any work, so
   // that a second call is a no-op regardless of how the first one ended (see the `init` method).
   let initialized = false;
@@ -487,12 +799,143 @@ export default function Core(
    */
   let validationLoadGeneration = 0;
   /**
+   * Whether the `postAfterValidate` hook that runs now reports the answer of a validator call made before
+   * the last `loadData()`. Such an answer belongs to a change the load dropped, so a listener waiting for
+   * the answer to a later call (an editor's wait) must not take it (see `_isAnsweringStaleValidation()`).
+   */
+  let isAnsweringStaleValidation = false;
+  /**
+   * The `validationLoadGeneration` of the validator call whose validator runs now, or `null` outside one. A
+   * validator writes a correction through a nested `setDataAtCell(..., 'xValidator')`, and that correction
+   * belongs to the change the validator checks, so it takes this generation instead of the current one: when
+   * the change was dropped, its correction is dropped with it.
+   */
+  let runningValidatorLoadGeneration: number | null = null;
+  /**
+   * The cell meta of the validator call whose validator runs now, or `null` outside one. A correction the validator
+   * writes to a `null` row (its record has no visual row) belongs to the change this call validates first.
+   */
+  let runningValidatorMeta: (Record<string, unknown> & StampedMeta) | null = null;
+  /**
+   * The `validationLoadGeneration` of every validator call made for a change that has not answered yet, counted
+   * in `_hasPendingValidation()` or not (a call a `beforeValidate` load overtook is not counted, but its validator
+   * still runs and can still correct), by the cell it validates (property, then the tracked record of its row),
+   * oldest first. The record is tracked (`recordTracker`), so a sort, a move or an insert made while the call
+   * waits leaves the entry on the record the call validates. A validator that writes its correction later than
+   * its own synchronous run (after a timer or a request) is no longer inside `runningValidatorLoadGeneration`, so
+   * the correction finds the call it corrects here, by the record its row holds when it is written. An entry
+   * leaves when its call answers or throws; a load leaves the entries in place, because the calls they stand for
+   * are still out and their corrections still belong to the data they were made on.
+   */
+  const unansweredValidatorGenerations: Map<unknown, Map<TrackedRecord, number[]>> = new Map();
+
+  /**
+   * Records an unanswered validator call made for a change, until `releaseValidatorGeneration()`.
+   *
+   * @param {object} record The tracked record of the row the validator checks.
+   * @param {*} prop The property the validator checks.
+   * @param {number} generation The `validationLoadGeneration` of the call.
+   */
+  const recordValidatorGeneration = (record: TrackedRecord, prop: unknown, generation: number) => {
+    if (!unansweredValidatorGenerations.has(prop)) {
+      unansweredValidatorGenerations.set(prop, new Map());
+    }
+
+    const records = unansweredValidatorGenerations.get(prop)!;
+
+    records.set(record, [...(records.get(record) ?? []), generation]);
+  };
+
+  /**
+   * Forgets one unanswered validator call `recordValidatorGeneration()` recorded.
+   *
+   * @param {object} record The tracked record of the row the validator checks.
+   * @param {*} prop The property the validator checks.
+   * @param {number} generation The `validationLoadGeneration` of the call.
+   */
+  const releaseValidatorGeneration = (record: TrackedRecord, prop: unknown, generation: number) => {
+    const records = unansweredValidatorGenerations.get(prop);
+    const generations = records?.get(record);
+    const index = generations?.indexOf(generation) ?? -1;
+
+    if (!records || !generations || index === -1) {
+      return;
+    }
+
+    generations.splice(index, 1);
+
+    if (generations.length === 0) {
+      records.delete(record);
+    }
+
+    if (records.size === 0) {
+      unansweredValidatorGenerations.delete(prop);
+    }
+  };
+
+  /**
+   * Returns the `validationLoadGeneration` a change set made now addresses: the current one, or, for a
+   * validator's correction (`isValidatorCorrection()`), the one of the validator call that writes it. A
+   * correction written while its validator runs takes `runningValidatorLoadGeneration`. One written later takes
+   * the oldest unanswered call on the cells it writes, found by the record the correction's row holds now: when
+   * calls from before and after a load wait on one cell, the older one's correction must not land in the loaded
+   * rows, and a newer call's correction dropped by mistake loses a correction, which is the lesser harm. A
+   * correction for a cell no call waits on takes the current one.
+   *
+   * @param {string} [source] The change source.
+   * @param {Array} [changes] The changes, in the form `[row, prop, ...]`.
+   * @returns {number}
+   */
+  const getChangeLoadGeneration = (source: string | undefined, changes: CellChange[] = []) => {
+    if (!isValidatorCorrection(source)) {
+      return validationLoadGeneration;
+    }
+
+    if (runningValidatorLoadGeneration !== null) {
+      return runningValidatorLoadGeneration;
+    }
+
+    let generation = validationLoadGeneration;
+
+    changes.forEach(([row, prop]) => {
+      const physicalRow = Number.isInteger(row) ? getPhysicalRowOfExistingRow(row) : null;
+      const record = physicalRow === null ? undefined : recordTracker.find(physicalRow);
+      const oldest = record === undefined ? undefined : unansweredValidatorGenerations.get(prop)?.get(record)?.[0];
+
+      if (oldest !== undefined && oldest < generation) {
+        generation = oldest;
+      }
+    });
+
+    return generation;
+  };
+  /**
    * Watches the root wrapper's edge slots for a height change (a bar that mounts after init, wraps
    * after a locale switch, or grows a horizontal scrollbar once its width is clamped). A slot's
    * height feeds two things nothing else observes: the pixel `height` core writes on the root, and
    * the height the engine reserves inside a scrollable ancestor (`layoutReservedHeight`).
    */
   let slotsResizeObserver: ResizeObserver | null = null;
+  let reserveSlotsChangedAtInit: (() => boolean) | null = null;
+  /**
+   * Stops watching the document's web font loads (see `refreshAfterFontsLoad()`), or `null` before
+   * `init` started watching.
+   */
+  let stopWatchingFontLoads: (() => void) | null = null;
+  /**
+   * Waits for a grid that was hidden when a web font loaded to be shown, so the re-measure skipped then
+   * runs (see `refreshAfterFontsLoad()`), or `null` when no re-measure is owed.
+   */
+  let fontRefreshVisibilityObserver: IntersectionObserver | null = null;
+
+  /**
+   * Watches the elements registered in the `start`/`end` side slots (never the slots themselves:
+   * they span the full wrapper height at the same DOM depth as the top/bottom slots, so a render in
+   * `slotsResizeObserver`'s callback would resize them in the same frame and the browser would report
+   * a ResizeObserver loop). A panel that changes its width re-applies the `width` option, which
+   * includes the side panels.
+   */
+  let sideSlotsResizeObserver: ResizeObserver | null = null;
 
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
@@ -555,6 +998,27 @@ export default function Core(
   this.rootSlotBottomElement = null!;
 
   /**
+   * Reference to the start slot element. A wrapper slot rendered at the inline-start edge of the
+   * grid, spanning the full wrapper height (for example a side panel). Ordered through the layout
+   * manager. It is inserted into the root wrapper only while it holds an element, so a grid without
+   * side panels keeps the wrapper's original children.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootSlotStartElement = null!;
+
+  /**
+   * Reference to the end slot element. A wrapper slot rendered at the inline-end edge of the grid,
+   * spanning the full wrapper height. Ordered through the layout manager. Like the start slot, it is
+   * inserted into the root wrapper only while it holds an element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootSlotEndElement = null!;
+
+  /**
    * Reference to the overlays element (dialog). Note: the empty-data-state lives inside the grid
    * element (`ht-grid`), not here.
    *
@@ -604,6 +1068,8 @@ export default function Core(
     this.rootGridContentElement = this.rootDocument.createElement('div');
     this.rootOverlaysElement = this.rootDocument.createElement('div');
     this.rootSlotBottomElement = this.rootDocument.createElement('div');
+    this.rootSlotStartElement = this.rootDocument.createElement('div');
+    this.rootSlotEndElement = this.rootDocument.createElement('div');
     this.rootPortalElement = this.rootDocument.createElement('div');
 
     addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
@@ -617,6 +1083,8 @@ export default function Core(
     addClass(this.rootGridContentElement, 'ht-grid-content');
     addClass(this.rootOverlaysElement, 'ht-overlay');
     addClass(this.rootSlotBottomElement, 'ht-slot-bottom');
+    addClass(this.rootSlotStartElement, 'ht-slot-start');
+    addClass(this.rootSlotEndElement, 'ht-slot-end');
 
     this.rootGridContentElement.appendChild(this.rootElement);
     this.rootGridElement.appendChild(this.rootGridContentElement);
@@ -738,7 +1206,12 @@ export default function Core(
         this.view?._wt?.selectionManager?.refreshAllBorderHandleStyles();
       }
     },
-    injectCoreCss: typeof userSettings?.injectCoreCss === 'boolean' ? userSettings.injectCoreCss : true,
+    // A grid Handsontable builds internally (an editor list, a menu, the Filters value list) is never a root
+    // instance. It injects only when its builder asks for it explicitly: `Menu` does, with its host's value,
+    // because a `uiContainer` can put the menu in another document, which the host's injection never reached.
+    injectCoreCss: isRootInstance(this)
+      ? userSettings?.injectCoreCss !== false
+      : userSettings?.injectCoreCss === true,
   });
 
   /**
@@ -1186,11 +1659,16 @@ export default function Core(
 
     if (!this.selection.deselectIfHighlightStranded({ unresolvableOnly: hadOpenEditor })) {
       this.selection.recaptureHighlightRecord();
+      // A restore that followed records (a NestedRows collapse or expand, DEV-509) committed the
+      // moved ranges without the selection hooks, which must not run before the public hooks above.
+      this.selection.notifyFollowedRecords(axis);
       // The test above repairs a SHRINK only - it fires on a corner left past the last index. An
       // untrim leaves every corner in range, so a full-column selection or a select-all is grown
       // back to the whole axis here instead (DEV-152).
       this.selection.fitGridTrackingExtents(axis);
     }
+    // When the selection was dropped, a restore that followed records owes nothing: its debt entry
+    // is popped by `discardPhysicalSelectionSnapshot()` on the mapper's `afterCacheUpdate`.
   };
 
   this.columnIndexMapper.addLocalHook(
@@ -1291,12 +1769,13 @@ export default function Core(
   }
 
   this.selection.addLocalHook('afterSetRangeEnd', (
-    cellCoords: {row: number, col: number}, isLastSelectionLayer: boolean
+    cellCoords: {row: number, col: number}, isLastSelectionLayer: boolean, layerIndex: number
   ) => {
     const preventScrolling = createObjectPropListener(false);
-    const selectionRange = this.selection.getSelectedRange();
-    const { from, to } = selectionRange!.current()!;
-    const selectionLayerLevel = selectionRange.size() - 1;
+    // The layer that was just ended, which is not always the last one: `Selection#refresh()` ends the
+    // active layer last, so the hook reports the range and the level the focus is in (DEV-509).
+    const { from, to } = this.selection.getSelectedRange().peekByIndex(layerIndex)!;
+    const selectionLayerLevel = layerIndex;
 
     this.runHooks('afterSelection',
       from.row,
@@ -1349,6 +1828,11 @@ export default function Core(
 
     if (!['shift', 'refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
       editorManager.closeEditor();
+
+      // Closing the editor saves it, and a listener of the save can destroy the grid.
+      if (!instance) {
+        return;
+      }
     }
 
     // A `shift` re-lay (`alter()`'s shifts, the trim clamp and the DEV-152 grow) replays every layer
@@ -1357,6 +1841,12 @@ export default function Core(
 
     if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource) && !isIntermediateShiftLayer) {
       instance.view.render();
+
+      // An `afterRender` listener can destroy the grid.
+      if (!instance) {
+        return;
+      }
+
       editorManager.prepareEditor();
     }
   });
@@ -1375,12 +1865,29 @@ export default function Core(
     }
 
     editorManager.closeEditor();
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     editorManager.prepareEditor();
   });
 
   this.selection.addLocalHook('afterSelectionFinished',
     (cellRanges: Array<{from: {row: number, col: number}, to: {row: number, col: number}}>) => {
+      // A listener of the save the selection made (it closed the editor) destroyed the grid.
+      if (!instance) {
+        return;
+      }
+
       const selectionLayerLevel = cellRanges.length - 1;
       const { from, to } = cellRanges[selectionLayerLevel];
 
@@ -1406,7 +1913,18 @@ export default function Core(
 
   this.selection.addLocalHook('afterDeselect', () => {
     editorManager.closeEditor();
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
 
     removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
 
@@ -1594,7 +2112,8 @@ export default function Core(
       //
       // The action itself is split out so this closes on every exit, the action's own early returns
       // and a throwing hook included. A scope left open stops the selection repairing at all.
-      runInShiftScope(() => grid.runAlter(action, index, amount, source, keepEmptyRows));
+      // It is also a lifecycle pass, so a ready step one of its hooks makes a plugin owe runs after it.
+      runInLifecyclePass(() => runInShiftScope(() => grid.runAlter(action, index, amount, source, keepEmptyRows)));
     },
 
     /**
@@ -1683,8 +2202,8 @@ export default function Core(
 
             if (colDelta) {
               // `getColHeader()` reads the array by the physical index, so the empty entries go in at the
-              // physical index the created column takes, the same as `colWidths` below. The array is changed
-              // in place, because the user holds it and UndoRedo refills it in place.
+              // physical index the created column takes. The array is changed in place, because the user holds
+              // it and UndoRedo refills it in place.
               if (Array.isArray(tableMeta.colHeaders)) {
                 const spliceArray = [startColumnPhysicalIndex!, 0];
 
@@ -1692,18 +2211,15 @@ export default function Core(
                 Array.prototype.splice.apply(tableMeta.colHeaders, spliceArray as [number, number]); // inserts empty (undefined) elements into the colHeader array
               }
 
-              // `colWidths` is addressed by the physical index, which a created column takes in the middle of
-              // the physical order after any column move, so the widths after it shift with their columns.
-              if (Array.isArray(tableMeta.colWidths)) {
-                tableMeta.colWidths =
-                  insertColWidths(tableMeta.colWidths, startColumnPhysicalIndex!, colDelta as number);
-              }
-
               selection.shiftColumns(instance.toVisualColumn(startColumnPhysicalIndex!), colDelta as number);
             }
             break;
 
           case 'remove_row':
+
+            // The physical rows the last `datamap.removeRow()` of this call took. Written by its
+            // callback, so a nested `alter()` from a hook does not overwrite it.
+            let lastRemovedPhysicalRows: number[] = [];
 
             const removeRow = (indexes: number[][]) => {
               let offset = 0;
@@ -1738,7 +2254,9 @@ export default function Core(
 
                 // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeRow breaks the removing functionality.
-                const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
+                const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source, (physicalRows) => {
+                  lastRemovedPhysicalRows = physicalRows;
+                });
 
                 if (!wasRemoved) {
                   return;
@@ -1811,8 +2329,68 @@ export default function Core(
               });
             };
 
+            // Several groups are resolved to their physical rows before any of them is removed, and each
+            // removal renumbers the rows still to go from the list it really took. Counting by the amounts
+            // the groups name breaks as soon as a removal takes more rows than it was asked for, or shows
+            // rows it did not take: NestedRows widens a parent to its whole subtree and expands the
+            // collapsed parents while it removes, so the next group's index pointed at other rows, or past
+            // the last one, and a row the caller never named was removed or a named one survived. On a grid
+            // where a removal takes exactly what it names, this removes the same rows as counting does.
+            const removeRowsByRecord = (groups: number[][]) => {
+              const countRowsBefore = instance.countRows();
+              let pendingGroups = groups.map(([groupIndex, groupAmount]) => {
+                const clippedRange = clipRemovalRange(groupIndex, groupAmount, countRowsBefore);
+
+                return clippedRange === null ?
+                  [] : datamap.visualRowsToPhysical(clippedRange.start, clippedRange.amount);
+              });
+
+              // Removes the first run of visually consecutive rows left in the group, and answers whether
+              // anything is left to try.
+              const removeNextRun = (groupPosition: number): boolean => {
+                const visualRows = pendingGroups[groupPosition]
+                  .map(physicalRow => instance.toVisualRow(physicalRow))
+                  .filter((visualRow): visualRow is number => visualRow !== null)
+                  .sort((a, b) => a - b);
+
+                // A row another plugin trimmed meanwhile has no visual index and cannot be removed.
+                if (visualRows.length === 0) {
+                  return false;
+                }
+
+                const [runIndex, runAmount] = getFirstConsecutiveRun(visualRows);
+                const runPhysicalRows = new Set(datamap.visualRowsToPhysical(runIndex, runAmount));
+
+                lastRemovedPhysicalRows = [];
+                removeRow([[runIndex, runAmount]]);
+
+                // The run is done whatever the removal took (a veto takes nothing), so the loop always moves on.
+                pendingGroups[groupPosition] = pendingGroups[groupPosition].filter(row => !runPhysicalRows.has(row));
+
+                const removedRows = lastRemovedPhysicalRows;
+
+                pendingGroups = pendingGroups.map(rows => renumberAfterRemoval(rows, removedRows));
+
+                return pendingGroups[groupPosition].length > 0;
+              };
+
+              for (let groupPosition = 0; groupPosition < pendingGroups.length; groupPosition++) {
+                let hasRowsLeft = pendingGroups[groupPosition].length > 0;
+
+                while (hasRowsLeft) {
+                  hasRowsLeft = removeNextRun(groupPosition);
+                }
+              }
+            };
+
             if (Array.isArray(index)) {
-              removeRow(normalizeIndexesGroup(index));
+              const groups = normalizeIndexesGroup(index);
+
+              if (groups.length > 1) {
+                removeRowsByRecord(groups);
+              } else {
+                removeRow(groups);
+              }
             } else {
               removeRow([[index as number, amount]]);
             }
@@ -1854,7 +2432,7 @@ export default function Core(
                 // The physical indexes of the columns the removal takes, read before it renumbers them.
                 const removedPhysicalColumns: number[] = [];
 
-                if (Array.isArray(tableMeta.colWidths) || Array.isArray(tableMeta.colHeaders)) {
+                if (Array.isArray(tableMeta.colHeaders)) {
                   const firstRemovedVisualColumn = isEmpty(groupIndex) ?
                     Math.max(totalColumnsBefore - groupAmount, 0) : calcIndex;
 
@@ -1911,10 +2489,6 @@ export default function Core(
                 // `calcIndex` is -1 on a grid with no columns left: the removal took nothing, and a
                 // frozen count of 0 must not drop to -1.
                 if (calcIndex >= 0 && fixedColumnsStart >= calcIndex + 1) {
-                  // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
-                  // However, keeping the old name still in effect. When both option names are used together,
-                  // the error is thrown. To prevent that, the engine needs to modify the original option key
-                  // to bypass the validation.
                   (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
                     Math.min(groupAmount, fixedColumnsStart - calcIndex);
                 }
@@ -1954,10 +2528,6 @@ export default function Core(
                   });
                 }
 
-                if (Array.isArray(tableMeta.colWidths)) {
-                  tableMeta.colWidths = removeColWidths(tableMeta.colWidths, removedPhysicalColumns);
-                }
-
                 offset += groupAmount;
               });
             };
@@ -1983,8 +2553,18 @@ export default function Core(
         // `alter('remove_row', ...)` and then `Filters#filter()` - discard the stranded edit
         // instead of committing through it and appending records (DEV-2739).
         editorManager.resumeStrandDiscards();
+
+        // The index mapper update already asked for a full render and dropped the size caches, but a
+        // `hot.render()` a hook made from inside this call consumed that request and rebuilt the caches from
+        // state this call had not finished writing, such as the `colHeaders` array and the fixed counts. The
+        // closing render must repaint the headers and re-measure the widths. It sits in the `finally`, so a
+        // hook that throws after the state was written does not leave the next fast draw with that paint.
+        instance.forceFullRender = true;
+        instance.view.invalidateColumnWidthCache();
       }
 
+      // The ready steps a hook of this call made the plugins owe, run before its render. The call holds one pass.
+      runOwedReadySteps(1);
       instance.view.render();
     },
 
@@ -2500,16 +3080,23 @@ export default function Core(
    *
    * The callback is also written to the table meta, so that `getSettings()` returns it back.
    *
+   * `null` removes every callback settings objects registered for the hook (the callback the latest one
+   * passed, and the callbacks of every array passed before it, which run beside it) and writes `null` to the
+   * table meta. Without it a settings hook could only be replaced, never
+   * removed, so a sheets bar sheet's own hook kept running on every other sheet. `undefined` still means
+   * "not passed" and changes nothing. The bucket marks the entries the settings registered, and the removal
+   * takes only those: a listener added with `addHook()` stays, even when it is the same function.
+   *
    * @private
    * @param {string} key A hook name.
-   * @param {Function|Function[]} hook A callback, or an array of callbacks, to register.
+   * @param {Function|Function[]|null} hook A callback, or an array of callbacks, to register, or `null`.
    */
-  function registerSettingsHook(key: string, hook: HookCallback | HookCallback[] | undefined) {
-    if (isFunction(hook)) {
-      Hooks.getSingleton().addAsFixed(key, hook, instance);
+  function registerSettingsHook(key: string, hook: HookCallback | HookCallback[] | null | undefined) {
+    if (isFunction(hook) || Array.isArray(hook)) {
+      Hooks.getSingleton()._addFromSettings(key, hook, instance);
 
-    } else if (Array.isArray(hook)) {
-      Hooks.getSingleton().add(key, hook, instance);
+    } else if (hook === null) {
+      Hooks.getSingleton()._removeFromSettings(key, instance);
 
     } else {
       return;
@@ -2521,6 +3108,90 @@ export default function Core(
   this.init = function() {
     // Loading the grid is not a user action: nothing it does may open an operation or be journaled.
     operationScope.suppress(() => applyInit());
+  };
+
+  /**
+   * Runs a callback as one lifecycle pass (see `lifecyclePassDepth`), then the ready steps the plugins
+   * owe, when it closed the outermost pass. A pass that throws leaves the steps owed: each step reads the
+   * grid as it is when it runs, so the next pass runs it.
+   *
+   * @private
+   * @param {Function} callback The pass.
+   * @returns {*} What the callback returns.
+   */
+  function runInLifecyclePass<T>(callback: () => T): T {
+    lifecyclePassDepth += 1;
+
+    let result: T;
+
+    try {
+      result = callback();
+    } finally {
+      lifecyclePassDepth -= 1;
+    }
+
+    runOwedReadySteps();
+
+    return result;
+  }
+
+  /**
+   * Runs the ready step (`BasePlugin#onGridReady()`) of every plugin that owes one, in `PLUGIN_PRIORITY`
+   * order. It runs only once the data is loaded and the view exists, and only when no pass is open other
+   * than the ones the caller holds itself. A step that makes a plugin owe another one (it enables or
+   * updates a plugin) gets a further round, up to one round per plugin. Applying settings is not a user
+   * action, so nothing a step does is journaled.
+   *
+   * @private
+   * @param {number} [ownPasses=0] The passes the caller holds itself.
+   */
+  function runOwedReadySteps(ownPasses = 0): void {
+    if (
+      !readyStepsMayBeOwed || isBeingDestroyed || lifecyclePassDepth > ownPasses || dataWorkPhase !== null ||
+      !instance.view
+    ) {
+      return;
+    }
+
+    const plugins = pluginsRegistry.getItems().map(([, plugin]) => plugin as BasePlugin);
+    const runRound = () => plugins.reduce((ranAny, plugin) => plugin.runOwedReadyStep() || ranAny, false);
+
+    lifecyclePassDepth += 1;
+
+    try {
+      operationScope.suppress(() => {
+        let round = 0;
+
+        // Each round runs the steps the previous one made the plugins owe.
+        while (round < plugins.length && runRound()) {
+          round += 1;
+        }
+      });
+    } finally {
+      lifecyclePassDepth -= 1;
+    }
+
+    readyStepsMayBeOwed = plugins.some(plugin => plugin.isReadyStepOwed());
+
+    if (readyStepsMayBeOwed) {
+      warn('A plugin ready step (`onGridReady()`) kept enabling or updating plugins. The steps still owed ' +
+        'run when the next settings update, data load, or plugin call ends.');
+    }
+  }
+
+  /**
+   * Runs a plugin lifecycle call (`enablePlugin()`, `updatePlugin()`, `disablePlugin()`) as a lifecycle
+   * pass, so the ready steps it makes the plugins owe run once it returns, after every plugin call it made.
+   * BasePlugin routes its lifecycle methods through it.
+   *
+   * @private
+   * @param {Function} callback The lifecycle call.
+   * @returns {*} What the callback returns.
+   */
+  this._runInPluginLifecyclePass = function<T>(callback: () => T): T {
+    readyStepsMayBeOwed = true;
+
+    return runInLifecyclePass(callback);
   };
 
   /**
@@ -2595,15 +3266,29 @@ export default function Core(
     focusGridManager.init();
 
     if (isRootInstance(instance)) {
+      const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
+      const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
+      const slotsHeightBeforeLicense = measureSlotsHeight();
+
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
       initLicenseBranding(instance);
+
+      // The license bars (the warning bar, the "Powered by" bar) mount after `updateSettings()` wrote a
+      // pixel height, which reserved only the slots filled then. The slot observer below is seeded with
+      // the height they leave, so it would never count them: re-apply the height once, before the first
+      // render, or the grid grows past its declared height by the bars.
+      if (measureSlotsHeight() !== slotsHeightBeforeLicense) {
+        reapplyPixelRootHeight(instance, tableMeta.height);
+      }
 
       // Keep the edge slots (top, bottom) as wide as the table so their content
       // (toolbars, pagination, license notification) aligns with the grid.
       const lastEdgeWidths = { top: -1, bottom: -1 };
       const syncEdgeSlotsWidth = () => {
-        if (instance.isDestroyed) {
+        // A listener from the settings runs before this one, and the hook run keeps walking its
+        // listeners after such a listener destroyed the grid, which nulls `instance`.
+        if (!instance || instance.isDestroyed) {
           return;
         }
 
@@ -2616,7 +3301,10 @@ export default function Core(
         const isWindowAxis = view.isHorizontallyScrollableByWindow();
         let width = isWindowAxis ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-        if ((width === 0 || (isWindowAxis && instance.countRenderedCols() <= 0)) && instance.rootWrapperElement) {
+        const isZeroWithoutSidePanels = width === 0 && getSideSlotsWidth(instance) === 0;
+        const hasNoRenderedColumns = isWindowAxis && instance.countRenderedCols() <= 0;
+
+        if ((isZeroWithoutSidePanels || hasNoRenderedColumns) && instance.rootWrapperElement) {
           width = instance.rootWrapperElement.offsetWidth;
         }
 
@@ -2631,9 +3319,10 @@ export default function Core(
         // item) the wrapper sizes to its widest child, but the table is one of those children and
         // the slot was written no wider than the table, so `min(table, wrapper)` still tracks the
         // table downwards – pinned by the `inline-block-host` case of `bottom-slot-sizing.spec.ts`.
-        const wrapperWidth = instance.rootWrapperElement?.clientWidth ?? 0;
+        const wrapper = instance.rootWrapperElement;
+        const wrapperWidth = wrapper ? wrapper.clientWidth - getSideSlotsWidth(instance) : 0;
 
-        if (isWindowAxis && wrapperWidth > 0) {
+        if (isWindowAxis && wrapperWidth > 0 && !hasClass(wrapper, 'ht-grid-width-follows-content')) {
           width = Math.min(width, wrapperWidth);
         }
 
@@ -2652,11 +3341,58 @@ export default function Core(
 
       instance.addHook('afterRender', syncEdgeSlotsWidth);
 
-      const slots = [instance.rootSlotTopElement, instance.rootSlotBottomElement];
-      const measureSlotsHeight = () => slots.reduce((sum, slot) => sum + slot.offsetHeight, 0);
+      const gridArea = { start: '', size: '' };
+
+      /**
+       * Writes where the grid area sits inside the root wrapper as two custom properties: the
+       * distance from the wrapper's inline-start edge to the grid, and the grid's inline size.
+       * Neither depends on the free space past the `end` panel of a fixed-width component, which
+       * changes with the container without a render; the stylesheet derives the inline-end inset
+       * from them.
+       */
+      const syncGridInsets = () => {
+        if (!instance || instance.isDestroyed) {
+          return;
+        }
+
+        const { rootWrapperElement: wrapper, rootGridElement: grid } = instance;
+        const hasSideSlots = getSideSlotsWidth(instance) > 0;
+        const startOffset = instance.isRtl()
+          ? wrapper.clientWidth - grid.offsetLeft - grid.offsetWidth
+          : grid.offsetLeft;
+        const start = hasSideSlots ? `${Math.max(0, startOffset)}px` : '';
+        const size = hasSideSlots ? `${grid.offsetWidth}px` : '';
+
+        if (start !== gridArea.start) {
+          gridArea.start = start;
+          wrapper.style.setProperty('--ht-grid-inset-inline-start', start);
+        }
+
+        if (size !== gridArea.size) {
+          gridArea.size = size;
+          wrapper.style.setProperty('--ht-grid-inline-size', size);
+        }
+      };
+
+      instance.addHook('afterRender', syncGridInsets);
+
       // Seeded with the current value: an observer delivers once on `observe()`, and that first
       // delivery must not cost a render.
       let lastSlotsHeight = measureSlotsHeight();
+      const reserveChangedSlots = () => {
+        const slotsHeight = measureSlotsHeight();
+
+        if (slotsHeight === lastSlotsHeight) {
+          return false;
+        }
+
+        lastSlotsHeight = slotsHeight;
+        reapplyPixelRootHeight(instance, tableMeta.height);
+
+        return true;
+      };
+
+      reserveSlotsChangedAtInit = reserveChangedSlots;
 
       // Neither engine observer (the trimming container, the hider) resizes when a slot does, so a
       // bar that mounts late or changes height would keep a stale reservation until an unrelated
@@ -2669,24 +3405,53 @@ export default function Core(
           return;
         }
 
-        const slotsHeight = measureSlotsHeight();
-
-        if (slotsHeight === lastSlotsHeight) {
-          return;
+        if (reserveChangedSlots()) {
+          instance.render();
         }
-
-        lastSlotsHeight = slotsHeight;
-
-        reapplyPixelRootHeight(instance, tableMeta.height);
-
-        instance.render();
       });
       slots.forEach(slot => slotsResizeObserver?.observe(slot));
     }
 
+    // The data is loaded and the view, the editor manager and the focus manager exist: the plugins enabled
+    // while the grid was built run their ready steps before the `init` hook and the first render. Rendering
+    // is held while they run, so a step that renders (a sort, a cell write) cannot draw the grid before a
+    // later step builds its state; the counter is put back without a render, because the first one follows.
+    initReadyStepsRunning = true;
+
+    try {
+      holdRenderWhile(runOwedReadySteps, true);
+    } finally {
+      initReadyStepsRunning = false;
+    }
+
+    // A held render also skipped the start of a full render, which makes each stored cell meta run its
+    // dynamic extension again. Without it the `init` listeners (the AutoColumnSize sweep) read the meta of
+    // a cell as it was before a step changed it: a merge's first cell without its `colspan`. Only here, not
+    // on every held `render()`: inside `batch()` that doubled the cost of reading meta after each `render()`.
+    metaManager.invalidateMetaExtensions();
+
     instance.runHooks('init');
 
+    // An `init` listener can fill a slot: the license notification writes the missing-features bar there,
+    // once every plugin's ready step has reported what the key leaves out. The slot observer would reserve
+    // its height a frame later, so the first render would size the grid as if the bar took no room. Reserve
+    // it now, and once more after the first render, which sets the slot's width to the table's and can wrap
+    // the bar onto more lines. Both run before `afterInit`, so its listeners read the final viewport.
+    const reserveSlots = reserveSlotsChangedAtInit;
+
+    reserveSlotsChangedAtInit = null;
+    reserveSlots?.();
+
     instance.render();
+
+    // A listener of the first render can destroy the grid, which sets `instance` to `null`.
+    if (reserveSlots !== null && instance && !instance.isDestroyed && reserveSlots()) {
+      instance.render();
+    }
+
+    if (stopWatchingFontLoads === null) {
+      stopWatchingFontLoads = watchFontLoads(instance.rootDocument, refreshAfterFontsLoad);
+    }
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
@@ -2708,6 +3473,86 @@ export default function Core(
     }
 
     instance.runHooks('afterInit');
+
+    // From here on an init-only option can no longer be written. The grid's own initialization steps above
+    // (the column meta pass, the `cell` option, a `beforeInit` listener) still could.
+    metaManager.finishInitialization();
+  }
+
+  /**
+   * Re-measures the grid after the document finished loading a web font (DEV-199). The rows and columns
+   * were measured with the fallback font, and the new font changes the size of the text without changing
+   * the size of the container, so no resize observer sees it. Without this, the cells that grew stay out
+   * of line with their row headers and frozen columns, the grid keeps its old height, and columns sized
+   * from their content clip the wider text.
+   *
+   * The handler fires `afterFontsLoad`, on which the sizing plugins re-measure, then drops the engine's
+   * size caches and renders. `refreshDimensions()` is not enough: it skips the render when the container
+   * keeps its size, which is the case for a grid with a fixed `height`. On a hidden grid the re-measure
+   * waits until the grid is shown, and so does the render after a listener that hid the grid.
+   */
+  function refreshAfterFontsLoad() {
+    if (!instance || instance.isDestroyed || !instance.view) {
+      return;
+    }
+
+    // The auto-size plugins skip measuring a hidden grid, and a scroll draw after the grid is shown
+    // measures only the columns that have no width yet. So the re-measure waits until the grid is shown.
+    if (!instance.view.isVisible()) {
+      refreshAfterFontsLoadOnceShown();
+
+      return;
+    }
+
+    fontRefreshVisibilityObserver?.disconnect();
+    fontRefreshVisibilityObserver = null;
+
+    // The sizing plugins re-measure what they measured from text (AutoColumnSize, AutoRowSize,
+    // AutoRowHeaderSize, NestedHeaders). Core does not name them, so a plugin added later only needs a hook.
+    instance.runHooks('afterFontsLoad');
+
+    // A listener can destroy the grid (a framework teardown), and `destroy()` drops the instance. This runs
+    // from a promise, so a throw here surfaced only as an unhandled rejection.
+    if (!instance || instance.isDestroyed || !instance.view) {
+      return;
+    }
+
+    // A listener can hide the grid too (a tab switch). The forced render would then measure the columns on
+    // screen inside the hidden root and write the minimum width for each, and a draw after the grid is shown
+    // measures only the columns that have no width. The whole re-measure runs again once it is shown.
+    if (!instance.view.isVisible()) {
+      refreshAfterFontsLoadOnceShown();
+
+      return;
+    }
+
+    // Walkontable's records of rows taller than the default stay: without AutoRowSize nothing else knows
+    // the height of a row outside the rendered band, and dropping them would draw every such row above the
+    // viewport at the default height, which moves a grid scrolled far down to other rows. The band is
+    // measured again on this render, and every other row when it is drawn.
+    instance.view.invalidateIndexSizesCache();
+    // `render()` is not a full repaint under `renderMode: 'onChange'`, and a cell whose renderer reads a
+    // size (a merged block's height) would keep the stale one.
+    instance.renderChangeTracker.markAllChanged();
+    instance.render();
+  }
+
+  /**
+   * Runs `refreshAfterFontsLoad()` again once the hidden grid is shown.
+   */
+  function refreshAfterFontsLoadOnceShown() {
+    if (fontRefreshVisibilityObserver !== null) {
+      return;
+    }
+
+    // The observer watches the table `isVisible()` reads, not the root element. The two can disagree:
+    // a root element with `content-visibility: hidden` has a box and intersects the viewport, while
+    // the table inside it has no box. An observer on the root would then fire at once, see the grid
+    // still hidden, and arm again on every frame for as long as the grid stays hidden.
+    fontRefreshVisibilityObserver = observeVisibilityChangeOnce(instance.view._wt.wtTable.TABLE, () => {
+      fontRefreshVisibilityObserver = null;
+      refreshAfterFontsLoad();
+    });
   }
 
   /**
@@ -2761,7 +3606,7 @@ export default function Core(
    * injected by the ThemeManager constructor, so nothing has to be refreshed in that case.
    * @returns {boolean} `true` when the overrides changed and `afterSetTheme` still has to run.
    */
-  function applyThemeOverrides(settings: GridSettings, init: boolean): boolean {
+  function applyThemeOverrides(settings: SettingsUpdate, init: boolean): boolean {
     const overrides = readThemeOverrides(settings);
 
     if (!hasOwnProperty(overrides, 'colorScheme') && !hasOwnProperty(overrides, 'density')) {
@@ -2921,21 +3766,33 @@ export default function Core(
    * @returns {object} The cell properties object.
    */
   function getCellMetaOfChange(row: number, column: number, stored = false) {
-    let physicalRow = instance.toPhysicalRow(row);
+    const physicalRow = getPhysicalRowOfChange(row);
     const physicalColumn = instance.toPhysicalColumn(column) ?? column;
-
-    if (physicalRow === null) {
-      const visibleRowsCount = instance.rowIndexMapper.getNotTrimmedIndexesLength();
-
-      physicalRow = row >= visibleRowsCount ?
-        instance.rowIndexMapper.getNumberOfIndexes() + row - visibleRowsCount : row;
-    }
-
     const options = { visualRow: row, visualColumn: column };
 
     return stored ?
       metaManager.getCellMeta(physicalRow, physicalColumn, options) :
       metaManager.getCellMetaTransient(physicalRow, physicalColumn, options);
+  }
+
+  /**
+   * Returns the physical row a change's visual row addresses: the row's own, or, for a row past the last one,
+   * the physical index the row WILL take when the write creates it (see `getCellMetaOfChange()`).
+   *
+   * @private
+   * @param {number} row The visual row index of the change.
+   * @returns {number}
+   */
+  function getPhysicalRowOfChange(row: number): number {
+    const physicalRow = instance.toPhysicalRow(row);
+
+    if (physicalRow !== null) {
+      return physicalRow;
+    }
+
+    const visibleRowsCount = instance.rowIndexMapper.getNotTrimmedIndexesLength();
+
+    return row >= visibleRowsCount ? instance.rowIndexMapper.getNumberOfIndexes() + row - visibleRowsCount : row;
   }
 
   /**
@@ -2948,7 +3805,8 @@ export default function Core(
    * @param {Array<object>} pendingRowMetas The cell meta of the cells validated in not-yet-existing rows.
    */
   function discardResultsOfUncreatedRows(pendingRowMetas: Array<{ row?: number, valid?: boolean }>) {
-    if (pendingRowMetas.length === 0) {
+    // An `afterChange` listener of the applied set can destroy the grid, and its meta is gone with it.
+    if (pendingRowMetas.length === 0 || !instance) {
       return;
     }
 
@@ -2962,17 +3820,6 @@ export default function Core(
   }
 
   /**
-   * Tells whether a change source marks a correction a validator writes through a nested `setDataAtCell()`.
-   *
-   * @private
-   * @param {*} source The change source.
-   * @returns {boolean}
-   */
-  function isValidatorCorrection(source: unknown) {
-    return typeof source === 'string' && source.endsWith('Validator');
-  }
-
-  /**
    * Gives a cell the validity of the write that lands on it, after a validator that answered later
    * wrote its own on the shared cell meta.
    *
@@ -2982,19 +3829,160 @@ export default function Core(
    * @param {number} structureVersion The structure version captured when validation started.
    */
   function restoreValidity(cellMeta: LedgerCellMeta, valid: boolean, structureVersion: number) {
-    cellMeta.valid = valid;
-    persistValidationResult(cellMeta as Parameters<typeof persistValidationResult>[0], valid, structureVersion);
+    const answerMeta = readAnswerMeta(
+      cellMeta as Parameters<typeof persistValidationResult>[0], displacedMetas.get(cellMeta) ?? null,
+    );
+
+    if (answerMeta === cellMeta) {
+      if (cellMeta.valid === valid) {
+        return;
+      }
+
+      cellMeta.valid = valid;
+    }
+
+    persistValidationResult(answerMeta, valid, structureVersion);
+  }
+
+  /**
+   * Returns the physical column a change property names when the property is that column's physical index, which
+   * is what an array data source without a `columns` option addresses its columns by. A column inserted or removed
+   * before it while the change waits for its validator moves it, so such a change follows its column. Any other
+   * property (a field name, a `columns[].data` entry, an accessor) names its column on its own, and a property of a
+   * column that does not exist yet has nothing to follow.
+   *
+   * @private
+   * @param {*} prop The property of a change.
+   * @returns {number|null} The physical column, or `null` for a property that is not followed.
+   */
+  function getTrackedPhysicalColumn(prop: unknown): number | null {
+    if (
+      !Number.isInteger(prop) ||
+      instance.dataType !== 'array' ||
+      (tableMeta.columns && (tableMeta.columns as unknown[]).length !== 0)
+    ) {
+      return null;
+    }
+
+    const visualColumn = datamap.propToCol(prop as number);
+
+    if (typeof visualColumn !== 'number') {
+      return null;
+    }
+
+    return instance.toPhysicalColumn(visualColumn) === prop ? prop as number : null;
+  }
+
+  /**
+   * Writes a validator's correction into the change of a waiting set it corrects: the change of the same property
+   * whose record holds the corrected physical row, or, for a change no record was captured for, the change made at
+   * the corrected visual row.
+   *
+   * @param {Array} changes The changes of the waiting set.
+   * @param {object} records The records of the set's changes.
+   * @param {string|number|Function} prop The property of the corrected cell.
+   * @param {number|null} physicalRow The physical row of the corrected cell, or `null` when it has none.
+   * @param {number|null} visualRow The visual row of the corrected cell, or `null` when it has none.
+   * @param {*} value The corrected value.
+   */
+  function foldValidatorCorrection(
+    changes: CellChange[],
+    records: WaitingChangeRecords,
+    prop: CellChange[1],
+    physicalRow: number | null,
+    visualRow: number | null,
+    value: unknown,
+  ) {
+    const idx = changes.findIndex((change) => {
+      if (records.getProp(change) !== prop) {
+        return false;
+      }
+
+      const record = records.getRecord(change);
+
+      return record === undefined ? visualRow !== null && (records.getPastEndRow(change) ?? change[0]) === visualRow :
+        record.physicalRow !== null && record.physicalRow === physicalRow;
+    });
+
+    if (idx !== -1) {
+      changes[idx][3] = value;
+    }
+  }
+
+  /**
+   * Tells whether a write of a change to a `null` row is a validator's correction for a record a filter or a trim
+   * took out of the visual space while its validator call waits. The validator writes it through `this.visualRow`,
+   * which is `null` then. It does not depend on a waiting validator call: a correction written after its own call
+   * answered has no change left to fold into, and is dropped the same way.
+   *
+   * @param {number|null} visualRow The visual row of the change.
+   * @param {string} [source] The change source.
+   * @returns {boolean}
+   */
+  function isUnplacedCorrection(visualRow: number | null, source: string | undefined) {
+    return visualRow === null && isValidatorCorrection(source);
+  }
+
+  /**
+   * Tells whether a write of a change to a `null` property is a validator's correction for a column a removal took
+   * while its validator call waits. The validator writes it through `this.prop`, which is `null` then. A grid with a
+   * column declared `{ data: null }` writes through that property, so it never counts there.
+   *
+   * @param {*} prop The property of the change.
+   * @param {string} [source] The change source.
+   * @returns {boolean}
+   */
+  function isRemovedColumnCorrection(prop: unknown, source: string | undefined) {
+    return prop === null && isValidatorCorrection(source) && !(datamap.colToPropCache as unknown[]).includes(null);
+  }
+
+  /**
+   * Folds a validator's correction written to a `null` row into the waiting change of the record it corrects, which
+   * has no visual row to write it through. The record is the one of the validator call that runs now, or, for a
+   * correction written later (after a timer or a request), the only record whose waiting validator call has a `null`
+   * row for the property. A correction no record can be told for is dropped, and the change it corrects lands as it
+   * was.
+   *
+   * @param {string|number} prop The property of the corrected cell.
+   * @param {*} value The corrected value.
+   * @param {string} [source] The change source.
+   */
+  function foldUnplacedCorrection(prop: string | number, value: unknown, source: string | undefined) {
+    const target = waitingMetaStamps.findUnplaced(prop, runningValidatorMeta);
+    const physicalRow = target?.record.physicalRow ?? null;
+
+    if (target === null || physicalRow === null) {
+      return;
+    }
+
+    const correctedValue = getValueSetterValue(value, target.meta, source);
+
+    waitingChangeSets.forEach(({ records }, changes) => {
+      foldValidatorCorrection(changes, records, prop, physicalRow, null, correctedValue);
+    });
   }
 
   /**
    * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
-   * @param {Function} callback The callback function fot async validation.
+   * @param {number} loadGeneration The `validationLoadGeneration` the changes were made against. A set a
+   *   later `loadData()` dropped does not cancel the active editor: editors are reused, so the editor open
+   *   now can be one the user opened on the loaded data.
+   * @param {object} records The records of the set's changes, captured before the first validator is called
+   *   and resolved when the queue drains (`core/waitingRecords.ts`).
+   * @param {Function} callback The callback function fot async validation. It receives the changes a validator
+   *   rejected under `allowInvalid: false` and the changes whose record was removed while the set waited.
    */
-  function validateChanges(changes: CellChange[], source: string | undefined, callback: Function) {
+  function validateChanges(
+    changes: CellChange[],
+    source: string | undefined,
+    loadGeneration: number,
+    records: WaitingChangeRecords,
+    callback: (rejectedChanges: CellChange[], removedChanges: CellChange[]) => void,
+  ) {
     if (!changes.length) {
-      callback();
+      callback([], []);
 
       return;
     }
@@ -3002,6 +3990,7 @@ export default function Core(
     const activeEditor = instance.getActiveEditor();
     const waitingForValidator = ValidatorsQueue();
     const pendingRowMetas: Array<{ row?: number, valid?: boolean }> = [];
+    const rejectedChanges: CellChange[] = [];
     // A correction a validator writes through a nested `setDataAtCell()` is part of the write it
     // corrects, so it takes no place in the order of the writes to the cell.
     const ledger = isValidatorCorrection(source) ? null : openWriteLedger();
@@ -3019,11 +4008,9 @@ export default function Core(
     // values applied by applyChanges(). Custom validators that correct values must follow this
     // convention by passing a source ending in 'Validator' to their setDataAtCell call.
     const applyValidatorCorrection = ([changedRow, changedProp, , correctedValue]: CellChange) => {
-      const idx = changes.findIndex(([row, prop]) => row === changedRow && prop === changedProp);
+      const changedPhysicalRow = changedRow === null ? null : instance.toPhysicalRow(changedRow);
 
-      if (idx !== -1) {
-        changes[idx][3] = correctedValue;
-      }
+      foldValidatorCorrection(changes, records, changedProp, changedPhysicalRow, changedRow, correctedValue);
     };
     const onAfterChange = (afterChanges: CellChange[] | null | undefined, afterSource: unknown) => {
       if (!isValidatorCorrection(afterSource)) {
@@ -3038,19 +4025,26 @@ export default function Core(
     waitingForValidator.onQueueEmpty = () => {
       instance.removeHook('afterChange', onAfterChange);
 
+      let removedChanges: CellChange[] = [];
+
       try {
+        if (loadGeneration === validationLoadGeneration) {
+          removedChanges = records.settle(changes, physicalRow => instance.toVisualRow(physicalRow));
+        }
+
         ledger?.claim(changes, restoreValidity);
 
         if (
           activeEditor &&
           shouldBeCanceled &&
+          loadGeneration === validationLoadGeneration &&
           activeEditor._closeAfterDataChange &&
           doesChangeAffectOpenedEditor(changes, activeEditor)
         ) {
           activeEditor.cancelChanges();
         }
 
-        callback(); // called when async validators are resolved and beforeChange was not async
+        callback(rejectedChanges, removedChanges);
         ledger?.settle(changes);
       } finally {
         ledger?.release();
@@ -3059,8 +4053,11 @@ export default function Core(
     };
 
     try {
-      queueValidators(changes, source, waitingForValidator, pendingRowMetas, ledger, () => {
+      queueValidators(changes, source, loadGeneration, waitingForValidator, pendingRowMetas, ledger, records, (
+        change,
+      ) => {
         shouldBeCanceled = false;
+        rejectedChanges.push(change);
       });
     } catch (error) {
       // A cell that threw before its validator answered never leaves the queue, so the queue never
@@ -3076,27 +4073,36 @@ export default function Core(
 
   /**
    * Starts the validator of every change that has one, and queues each until it answers. A change the
-   * validator rejects under `allowInvalid: false` is taken out of the list.
+   * validator rejects under `allowInvalid: false` is taken out of the list. Nothing is validated once the
+   * set's load generation is not the current one: a `loadData()` landed in the loop (a `beforeValidate`
+   * listener can run one), or the set is a validator's correction made after a load overtook the change it
+   * corrects. The set is dropped then, and validating it would read the loaded records' meta, mark them
+   * for values never written, and count the call in `_hasPendingValidation()` under the new load.
    *
    * @param {Array} changes The changes, in the form `[row, prop, oldValue, newValue]`.
    * @param {string} [source] The change source.
+   * @param {number} loadGeneration The load generation the set was made on.
    * @param {object} waitingForValidator The queue.
    * @param {Array<object>} pendingRowMetas Collects the cell meta of the cells validated in rows that do
    *   not exist yet.
    * @param {object|null} ledger Orders the writes to one cell, or `null` for a validator's correction.
-   * @param {Function} onRejected Called for each rejected change.
+   * @param {object} records The records of the set's changes. Captured right before the first validator is
+   *   called, so a set no validator waits on captures nothing.
+   * @param {Function} onRejected Called with each rejected change, before it is taken out of the list.
    */
   function queueValidators(
     changes: CellChange[],
     source: string | undefined,
+    loadGeneration: number,
     waitingForValidator: ReturnType<typeof ValidatorsQueue>,
     pendingRowMetas: Array<{ row?: number, valid?: boolean }>,
     ledger: WriteLedgerCall | null,
-    onRejected: () => void,
+    records: WaitingChangeRecords,
+    onRejected: (change: CellChange) => void,
   ) {
     const visibleRowsCount = instance.countRows();
 
-    for (let i = changes.length - 1; i >= 0; i--) {
+    for (let i = changes.length - 1; i >= 0 && loadGeneration === validationLoadGeneration; i--) {
       const [row, prop,, newValue] = changes[i];
       // A change can address a column that auto column growth is about to create, and `propToCol()`
       // answers `null` for one that does not exist yet. Falling back to the prop keeps such a cell
@@ -3124,16 +4130,27 @@ export default function Core(
       if (instance.getCellValidator(cellProperties)) {
         /* eslint-disable no-loop-func */
         waitingForValidator.addValidatorToQueue();
+        records.capture(changes);
 
         if (row >= visibleRowsCount) {
           pendingRowMetas.push(cellProperties as { row?: number, valid?: boolean });
+          records.notePastEndMeta(changes[i], cellProperties);
+
+        } else if (Number.isInteger(cellProperties.col)) {
+          records.noteMeta(changes[i], cellProperties, cellProperties.col as number);
         }
 
         const structureVersion = metaManager.getStructureVersion();
+        const record = records.getRecord(changes[i]);
+        const trackedColumn = records.getColumn(changes[i]);
 
         ledger?.register(
           changes[i],
-          getCellWriteKey(row, prop, visualCol),
+          getCellWriteKey(
+            record === undefined ? `v${row}` : `r${record.id}`,
+            trackedColumn === undefined ? prop : `t${trackedColumn.id}`,
+            visualCol,
+          ),
           cellProperties as LedgerCellMeta,
           structureVersion,
         );
@@ -3148,7 +4165,7 @@ export default function Core(
               }
 
               if (result === false && cellPropertiesReference.allowInvalid === false) {
-                onRejected();
+                onRejected(change);
                 // cancel the change, found by identity because a rejection at a lower index shifts the list.
                 // The change only moves left, so the search runs backwards from where it was registered
                 const position = changes.lastIndexOf(change, index);
@@ -3158,10 +4175,17 @@ export default function Core(
                 }
 
                 // we canceled the change, so cell value is still valid
-                cellPropertiesReference.valid = true;
+                if (!displacedMetas.has(cellPropertiesReference)) {
+                  cellPropertiesReference.valid = true;
+                }
+
                 // ...and the stored meta has to hear about it too, or a cache clear that landed while
                 // the validator was running leaves the kept value wearing the rejected edit's mark.
-                persistValidationResult(cellPropertiesReference, true, structureVersion);
+                persistValidationResult(
+                  readAnswerMeta(cellPropertiesReference, displacedMetas.get(cellPropertiesReference) ?? null),
+                  true,
+                  structureVersion,
+                );
               }
 
               ledger?.answered(change, result);
@@ -3170,6 +4194,11 @@ export default function Core(
           }(i, cellProperties, changes[i])), source);
         } finally {
           isValidatingChange = false;
+        }
+
+        // A `beforeValidate` listener destroyed the grid, so no other change is validated.
+        if (!instance) {
+          return;
         }
       }
     }
@@ -3182,13 +4211,20 @@ export default function Core(
    * @param {string|number} prop The column property.
    * @param {*} value The value to write.
    * @param {ReversedCellRun} run The `writeChangesToData()` call the write belongs to.
+   * @param {number} [recordRow] The physical row of the record a change that waited for its validator was
+   *   resolved to. The write goes to that row, whatever visual row (or none, for a trimmed record) it has.
    */
-  function writeChange(visualRow: number, prop: string | number, value: unknown, run: ReversedCellRun) {
-    const physicalRow: number | null =
-      operationScope.getRecordingTransaction() === null ? null : instance.toPhysicalRow(visualRow);
+  function writeChange(
+    visualRow: number, prop: string | number, value: unknown, run: ReversedCellRun, recordRow?: number,
+  ) {
+    let physicalRow: number | null = null;
+
+    if (operationScope.getRecordingTransaction() !== null) {
+      physicalRow = recordRow ?? instance.toPhysicalRow(visualRow);
+    }
 
     if (physicalRow === null || !Number.isInteger(physicalRow)) {
-      datamap.set(visualRow, prop, value);
+      writeValue(visualRow, prop, value, recordRow);
 
       return;
     }
@@ -3197,7 +4233,7 @@ export default function Core(
     // `CellDelta` for why neither the change tuple nor a hooked read would do.
     const oldValue = detachValue(dataSource.getRawAtCellByProp(physicalRow, prop));
 
-    datamap.set(visualRow, prop, value);
+    writeValue(visualRow, prop, value, recordRow);
 
     // `writeChangesToData()` writes its changes from the last one to the first. A write of the value
     // the cell already held is journaled too: an edit is a step even when it changed nothing, as it
@@ -3208,6 +4244,24 @@ export default function Core(
       oldValue,
       newValue: detachValue(dataSource.getRawAtCellByProp(physicalRow, prop)),
     }, run);
+  }
+
+  /**
+   * Writes one value into the data set: by the visual row, or by the physical row of the record a change that
+   * waited for its validator was resolved to.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {string|number} prop The column property.
+   * @param {*} value The value to write.
+   * @param {number} [recordRow] The physical row of the record, for a change that waited for its validator.
+   */
+  function writeValue(visualRow: number, prop: string | number, value: unknown, recordRow?: number) {
+    if (recordRow === undefined) {
+      datamap.set(visualRow, prop, value);
+
+    } else {
+      datamap.setAtPhysicalRow(recordRow, prop, value, visualRow);
+    }
   }
 
   /**
@@ -3241,8 +4295,13 @@ export default function Core(
    *
    * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
+   * @param {Function} [getRecordRow] Returns the physical row of the record a change that waited for its
+   *   validator was resolved to, or `undefined` for a change that is written by its visual row. Left out for a
+   *   set that captured no record, so a set no validator waited on pays no lookup per change.
    */
-  function writeChangesToData(changes: CellChange[]) {
+  function writeChangesToData(
+    changes: CellChange[], getRecordRow?: (change: CellChange) => number | undefined,
+  ) {
     const run: ReversedCellRun = { op: null };
 
     for (let i = changes.length - 1; i >= 0; i--) {
@@ -3259,7 +4318,9 @@ export default function Core(
         continue;
       }
 
-      if (tableMeta.allowInsertRow) {
+      const recordRow = getRecordRow === undefined ? undefined : getRecordRow(changes[i]);
+
+      if (tableMeta.allowInsertRow && recordRow === undefined) {
         // Create the whole missing range in one call - one index-mapper insert and one hook
         // round instead of one per row. Creating row by row made a paste reaching far below
         // the last row quadratic in the gap size. The loop re-checks the count so a partial
@@ -3305,7 +4366,7 @@ export default function Core(
         continue;
       }
 
-      writeChange(changes[i][0], changes[i][1] as string | number, changes[i][3], run);
+      writeChange(changes[i][0], changes[i][1] as string | number, changes[i][3], run, recordRow);
     }
   }
 
@@ -3315,16 +4376,20 @@ export default function Core(
    * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
    * @param {string} source String that identifies how this change will be described in changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks).
+   * @param {Function} [getRecordRow] Returns the physical row of the record a waiting change was resolved to.
    * @fires Hooks#beforeChangeRender
    * @fires Hooks#afterChange
    */
-  function applyChanges(changes: CellChange[], source: string | undefined) {
+  function applyChanges(
+    changes: CellChange[], source: string | undefined, getRecordRow?: (change: CellChange) => number | undefined,
+  ) {
     // The rows and columns created to fit the changes are not an `alter()`'s own change - see
     // `runInShiftScope()`.
-    runInShiftScope(() => writeChangesToData(changes), false);
+    runInShiftScope(() => writeChangesToData(changes, getRecordRow), false);
 
     const hasChanges = changes.length > 0;
-    const activeEditor = editorManager.getActiveEditor();
+    // The editor manager does not exist yet inside a hook that fires while the grid is being built.
+    const activeEditor = editorManager?.getActiveEditor();
     const closeEditorAfterDataChange = activeEditor?._closeAfterDataChange;
     const isOpenedEditorAffectedByChanges = doesChangeAffectOpenedEditor(changes, activeEditor);
 
@@ -3332,20 +4397,34 @@ export default function Core(
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
 
+      // A listener of `beforeChangeRender`, of the render (`afterRender`), or of `afterChange` can
+      // destroy the grid, and nothing after it may read the destroyed instance or its editor.
+      if (!instance) {
+        return;
+      }
+
       if (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) {
         editorManager.closeEditor();
       }
 
       instance.render();
 
+      if (!instance) {
+        return;
+      }
+
       if (
         (activeEditor?.isOpened() && closeEditorAfterDataChange && isOpenedEditorAffectedByChanges) ||
         !activeEditor?.isOpened()
       ) {
-        editorManager.prepareEditor();
+        editorManager?.prepareEditor();
       }
 
       instance.runHooks('afterChange', changes, source || 'edit');
+
+      if (!instance) {
+        return;
+      }
 
       if (
         activeEditor &&
@@ -3371,7 +4450,13 @@ export default function Core(
    * @returns {CellCoords}
    */
   this._createCellCoords = function(row: number, column: number): CellCoords {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
+
+    // A hook that fires during initialization (`afterLoadData`, `afterHideColumns`) runs before the view
+    // exists. The object is the same one the engine builds, so no view is needed to create it.
+    if (!view) {
+      return new CellCoords(row, column, instance.isRtl());
+    }
 
     return view._wt.createCellCoords(row, column) as CellCoords;
   };
@@ -3391,13 +4476,20 @@ export default function Core(
   this._createCellRange = function(
     highlight: {row: number, col: number}, from: {row: number, col: number}, to: {row: number, col: number}
   ): CellRange {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.createCellRange(
+    const coords = [
       highlight as unknown as CellCoords,
       from as unknown as CellCoords,
-      to as unknown as CellCoords
-    ) as CellRange;
+      to as unknown as CellCoords,
+    ] as const;
+
+    // Same as `_createCellCoords`: no view exists yet inside a hook fired during initialization.
+    if (!view) {
+      return new CellRange(...coords, instance.isRtl());
+    }
+
+    return view._wt.createCellRange(...coords) as CellRange;
   };
 
   /**
@@ -3471,6 +4563,36 @@ export default function Core(
   }
 
   /**
+   * Returns the coordinates the answer of a validator call is written and reported at: the call's own cell meta,
+   * or, for a meta displaced by `updateData()` (`displacedMetas`), the cell of the call's record, whose row the
+   * meta no longer names.
+   *
+   * @private
+   * @param {object} cellProperties The cell meta the validator was handed.
+   * @param {object|null} record The tracked record of the call, or `null`.
+   * @returns {object}
+   */
+  function readAnswerMeta<M extends Record<string, unknown> & { visualRow?: number, visualCol?: number }>(
+    cellProperties: M,
+    record: TrackedRecord | null,
+  ): M {
+    if (record === null || !displacedMetas.has(cellProperties)) {
+      return cellProperties;
+    }
+
+    const { physicalRow } = record;
+
+    return {
+      ...cellProperties,
+      row: physicalRow ?? undefined,
+      col: cellProperties.col,
+      visualRow: physicalRow === null ? null : instance.toVisualRow(physicalRow),
+      visualCol: cellProperties.visualCol,
+      hidden: cellProperties.hidden,
+    };
+  }
+
+  /**
    * Validate a single cell.
    *
    * @memberof Core#
@@ -3500,8 +4622,9 @@ export default function Core(
      * @function done
      * @param {boolean} valid Indicates if the validation was successful.
      * @param {boolean} [canBeValidated=true] Flag which controls the validation process.
+     * @param {object} [answerMeta] The coordinates of the cell the answer is for.
      */
-    function done(valid: boolean, canBeValidated = true) {
+    function done(valid: boolean, canBeValidated = true, answerMeta: typeof cellProperties = cellProperties) {
       // Fixes GH#3903
       if (!canBeValidated || cellProperties.hidden === true) {
         callback(valid);
@@ -3509,8 +4632,8 @@ export default function Core(
         return;
       }
 
-      const col = cellProperties.visualCol as number;
-      const row = cellProperties.visualRow as number;
+      const col = answerMeta.visualCol as number;
+      const row = answerMeta.visualRow as number;
       const td = instance.getCell(row, col, true);
 
       if (td && td.nodeName !== 'TH') {
@@ -3531,20 +4654,57 @@ export default function Core(
       // When the column data accessor is a function, cellProperties.prop holds the accessor
       // function itself — not a usable column reference. Fall back to the visual column index
       // so hook listeners always receive a number or a property string, never a function.
-      const colArg = isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop;
+      const getColArg = () => (isFunction(cellProperties.prop) ? cellProperties.visualCol : cellProperties.prop);
+      const colArg = getColArg();
+      // All captured before `beforeValidate`: a listener of that hook can load other data, and then the
+      // answer must neither mark a loaded record nor be taken for the answer to a later call; and it can sort,
+      // move or insert rows, and the call then follows the record it was made for, not the one on its row.
+      const structureVersion = metaManager.getStructureVersion();
+      const loadGeneration = validationLoadGeneration;
+      const validatedPhysicalRow = isChangeCall ?
+        getPhysicalRowOfExistingRow(cellProperties.visualRow as number) : null;
+      const validatedRecord = validatedPhysicalRow === null ? null : recordTracker.track(validatedPhysicalRow);
+      const validatedPhysicalColumn = validatedRecord === null ? null : getTrackedPhysicalColumn(cellProperties.prop);
+      const validatedColumn: TrackedColumn | null = validatedPhysicalColumn === null ? null :
+        columnTracking.tracker.track(validatedPhysicalColumn);
+
+      displacedMetas.delete(cellProperties);
+
+      const releaseMetaStamp = validatedRecord === null ? () => {} :
+        waitingMetaStamps.add(validatedRecord, cellProperties, validatedColumn ?? undefined);
 
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, colArg, source);
 
-      // Captured before the validator runs, so the callback can tell whether the cell's coordinates
-      // still mean what they meant when it started.
-      const structureVersion = metaManager.getStructureVersion();
+      // A `beforeValidate` listener destroyed the grid. Nothing is recorded yet, so validation ends here.
+      if (!instance) {
+        return;
+      }
+
       // The validator answers after the call that asked for it has returned. What it and the
       // `afterValidate` listeners write belongs to that call's undo step – or to none, when the call
       // was not recorded – so the answer runs inside the call's operation.
       const hold = operationScope.hold();
-      let answered = !isChangeCall;
-      const loadGeneration = validationLoadGeneration;
+      // A call a load already overtook is not counted: the load reset the count, and it would block the
+      // sheets bar until a validator of the dropped set answers.
+      const isCountedCall = isChangeCall && loadGeneration === validationLoadGeneration;
+      let answered = !isCountedCall;
+      let isGenerationReleased = !isChangeCall;
+      const validatedProp = cellProperties.prop;
       const countAnswer = () => {
+        if (!isGenerationReleased) {
+          isGenerationReleased = true;
+
+          if (validatedRecord !== null) {
+            releaseMetaStamp();
+            releaseValidatorGeneration(validatedRecord, validatedProp, loadGeneration);
+            recordTracker.release(validatedRecord);
+
+            if (validatedColumn !== null) {
+              columnTracking.tracker.release(validatedColumn);
+            }
+          }
+        }
+
         if (!answered) {
           answered = true;
 
@@ -3554,12 +4714,23 @@ export default function Core(
         }
       };
 
-      if (isChangeCall) {
+      if (validatedRecord !== null) {
+        recordValidatorGeneration(validatedRecord, validatedProp, loadGeneration);
+      }
+
+      if (isCountedCall) {
         pendingValidatorAnswers += 1;
       }
 
       // To provide consistent behavior, validation should be always asynchronous
       instance._registerMicrotask(() => {
+        const previousRunningGeneration = runningValidatorLoadGeneration;
+        const previousRunningMeta = runningValidatorMeta;
+
+        runningValidatorLoadGeneration = loadGeneration;
+        runningValidatorMeta = cellProperties;
+        validatorAnswerDepth += 1;
+
         try {
           hold.resume(() => validator.call(cellProperties, value, (valid: boolean) => {
             if (!instance) {
@@ -3569,30 +4740,61 @@ export default function Core(
               return;
             }
 
+            validatorAnswerDepth += 1;
+
             try {
               hold.resume(() => {
-                valid = instance
-                  .runHooks('afterValidate', valid, value, cellProperties.visualRow, colArg, source);
-                cellProperties.valid = valid;
-                markCellMetaChanged(cellProperties);
+                const answerMeta = readAnswerMeta(cellProperties, validatedRecord);
 
-                persistValidationResult(cellProperties, valid, structureVersion);
+                valid = instance
+                  .runHooks('afterValidate', valid, value, answerMeta.visualRow, getColArg(), source);
+
+                // Every call into user code can destroy the grid (an `afterValidate` listener here, the
+                // callback in `done()` below), and nothing after it may read the destroyed instance.
+                if (!instance) {
+                  return;
+                }
+
+                if (answerMeta === cellProperties) {
+                  cellProperties.valid = valid;
+                  markCellMetaChanged(cellProperties);
+                }
+
+                persistValidationResult(answerMeta, valid, structureVersion);
                 countAnswer();
 
-                done(valid);
-                instance.runHooks(
-                  'postAfterValidate', valid, value, cellProperties.visualRow, colArg, source
-                );
+                done(valid, true, answerMeta);
+
+                if (!instance) {
+                  return;
+                }
+
+                const wasAnsweringStaleValidation = isAnsweringStaleValidation;
+
+                isAnsweringStaleValidation = loadGeneration !== validationLoadGeneration;
+
+                try {
+                  instance.runHooks(
+                    'postAfterValidate', valid, value, answerMeta.visualRow, getColArg(), source
+                  );
+                } finally {
+                  isAnsweringStaleValidation = wasAnsweringStaleValidation;
+                }
               });
             } finally {
               countAnswer();
               hold.release();
+              leaveValidatorAnswer();
             }
           }));
         } catch (error) {
           countAnswer();
           hold.release();
           throw error;
+        } finally {
+          runningValidatorLoadGeneration = previousRunningGeneration;
+          runningValidatorMeta = previousRunningMeta;
+          leaveValidatorAnswer();
         }
       });
 
@@ -3664,6 +4866,12 @@ export default function Core(
         openedEditor.prop!)
       : true;
     const beforeChangeResult = instance.runHooks('beforeChange', changes, source || 'edit');
+
+    // A `beforeChange` listener destroyed the grid, so nothing is left to apply the changes to.
+    if (!instance) {
+      return [];
+    }
+
     // The `beforeChange` hook could add a `null` for purpose of canceling some dataset's change.
     const filteredChanges = changes.filter((change): change is CellChange => change !== null);
 
@@ -3712,11 +4920,9 @@ export default function Core(
    * [`getSourceData()`](@/api/core.md#getsourcedata) returns it while the grid never displays it.
    *
    * On an **object** data source – including one whose [`dataSchema`](@/api/options.md#dataschema) is a function –
-   * the change is **skipped** from 20.0.0 on, after its deprecation in 19.0.0: the value cannot become a column
-   * there, so it would only add a property the schema never declared. No value is written, and no
-   * {@link Hooks#beforeChange} or {@link Hooks#afterChange} entry is reported for it. A one-time console warning
-   * says so. {@link Hooks#afterSetDataAtCell} still fires, with the changes that were not skipped – an empty array
-   * when every change was. To write a field the grid shows no column for, address it by property name with
+   * that write is **deprecated as of 19.0.0** and will be ignored from 20.0.0 on: the value cannot become a column
+   * there, so it only adds a property the schema never declared. A one-time console warning says so. To write a
+   * field the grid shows no column for, address it by property name with
    * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) instead. A grid that declares no columns at all is
    * exempt – there every index is past the last column, and writing is how an empty dataset gets bootstrapped.
    *
@@ -3744,6 +4950,26 @@ export default function Core(
   };
 
   /**
+   * Tells whether a write by visual coordinates has no row to land on yet, and warns when it has not.
+   *
+   * Inside `afterHideColumns` and `afterHideRows` at init the source data is loaded but the grid has no
+   * visual row yet, so a write would see every row as past the end and append a record.
+   *
+   * @param {string} methodName The public method that was called.
+   * @returns {boolean} `true` when the write must be skipped.
+   */
+  const isWriteBeforeRowsExist = (methodName: string): boolean => {
+    if (instance.view || instance.countRows() > 0 || instance.countSourceRows() === 0) {
+      return false;
+    }
+
+    warn(`\`${methodName}()\` writes nothing while Handsontable initializes and the grid has no rows yet, ` +
+      'as inside `afterHideColumns`. Write in `afterInit`, or use `setSourceDataAtCell()`.');
+
+    return true;
+  };
+
+  /**
    * The body of `setDataAtCell`, run inside its operation.
    *
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
@@ -3755,15 +4981,25 @@ export default function Core(
     this: HotInstance,
     row: number | Array<[number, string | number, unknown]>, column: number | string, value: string, source?: string
   ) {
+    if (isWriteBeforeRowsExist('setDataAtCell')) {
+      return;
+    }
+
     const input = setDataInputToArray(row, column, value);
     const changes: CellChange[] = [];
-    let changeSource = source;
+    const changeSource = !source && typeof row === 'object' ? column as string : source;
     let i;
     let ilen;
     let prop;
+    let writesPastLastColumn = false;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, visualColumn, newValue] = input[i];
+
+      if (visualColumn === null && isValidatorCorrection(changeSource)) {
+        continue;
+      }
+
       const visualColumnIndex = getSetDataAtCellColumn(input[i]);
 
       if (visualColumnIndex >= this.countCols()) {
@@ -3774,17 +5010,10 @@ export default function Core(
         // function `dataSchema`.) The index then travels on as the property name, so
         // `dataMap.set()` mints a positional key on a row whose other fields are named:
         // `{ 2: 'x', id: 1 }` (#5409). No column renders it, yet it reaches every consumer that
-        // serializes the row. Deprecated in 19.0.0, skipped from 20.0.0 on. The rule, and why it
+        // serializes the row. Deprecated in 19.0.0; the write is skipped from 20.0.0 on. The rule, and why it
         // reads `!== 'array'` and exempts a grid with no columns, is in `utils/pastLastColumn.ts`.
-        if (isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex)) {
-          removedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
-            'Writing past the last column of an object data source was removed in Handsontable 20.0.0. ' +
-            'The value is not written, and no change is reported for it. Use `setDataAtRowProp()` to ' +
-            'write a field the grid shows no column for.');
-
-          continue;
-        }
-
+        // The warning waits for `beforeChange`, see below.
+        writesPastLastColumn ||= isSkippedPastLastColumn(instance.dataType, this.countCols(), visualColumnIndex);
         prop = visualColumnIndex;
 
       } else {
@@ -3794,16 +5023,18 @@ export default function Core(
         prop = colToPropOrIndex(instance, visualColumnIndex) as string | number;
       }
 
+      if (isUnplacedCorrection(visualRow, changeSource)) {
+        foldUnplacedCorrection(prop, newValue, changeSource);
+
+        continue;
+      }
+
       changes.push([
         visualRow,
         prop,
         dataSource.getAtCell(this.toPhysicalRow(visualRow), visualColumn),
         newValue,
       ]);
-    }
-
-    if (!changeSource && typeof row === 'object') {
-      changeSource = column as string;
     }
 
     // Every requested change was skipped above, so there is nothing left to report or apply.
@@ -3817,11 +5048,37 @@ export default function Core(
       return;
     }
 
+    const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
+
+    // The deprecation warning says the value lands on a property named after the column index, so it
+    // is decided by what `beforeChange` left: a listener that drops such a change, vetoes the call
+    // or redirects it to a named field (the #5409 workarounds) is told nothing, and one that
+    // replaces the entry with another past the last column still is. A numeric property that a
+    // column declares (`columns: [{ data: 5 }]`) resolves to that column and does not count.
+    if (writesPastLastColumn && processedChanges.some(([, changeProp]) => Number.isInteger(changeProp) &&
+        isSkippedPastLastColumn(instance.dataType, this.countCols(), changeProp as number) &&
+        datamap.propToCol(changeProp as number) === null)) {
+      deprecatedWarnOnce('Core.setDataAtCell.pastLastColumnOnObjectData',
+        'Writing past the last column of an object data source is deprecated and will be ' +
+        'ignored in Handsontable 20.0.0. The value currently lands on a property named after ' +
+        'the column index, which no column can display. Use `setDataAtRowProp()` to write a ' +
+        'field the grid shows no column for.');
+    }
+
+    // `beforeChange` and `afterSetDataAtCell` listeners can destroy the grid, and nothing after them
+    // may read the destroyed instance.
+    if (!instance) {
+      return;
+    }
 
     instance.runHooks('afterSetDataAtCell', processedChanges, changeSource);
 
-    validateAndApplyChanges(processedChanges, changeSource);
+    if (!instance) {
+      return;
+    }
+
+    validateAndApplyChanges(processedChanges, changeSource, loadGeneration);
   }
 
   /**
@@ -3831,24 +5088,71 @@ export default function Core(
    * validator has answered, including when every change is rejected; when it throws before that (a
    * `beforeValidate` listener that throws), it never calls back and the hold is released here.
    *
+   * The changes address the data the grid held when they were made. When a `loadData()` replaces that
+   * data before the last validator answers, the changes are dropped: written now, they would land in
+   * the loaded rows at the same coordinates, which usually hold other records. The generation is read
+   * by the caller before `beforeChange`, so a load from a listener of the write's own hooks drops the
+   * set too, and a validator's correction carries the generation of the validation that wrote it
+   * (`getChangeLoadGeneration()`). The validation hooks still fire for them, `afterChange` does not. `updateData()` does not count as a replacement,
+   * because the wrappers call it with the same records in a new array, often while an edit is waiting.
+   * The functions `_addDroppedChangesListener()` added are told about a dropped set, in the order they
+   * were added, with the same array the other change hooks received and the changes a validator rejected
+   * under `allowInvalid: false`, which were taken out of that array.
+   *
    * @param {Array} changes The processed changes.
    * @param {string} [source] The change source.
+   * @param {number} loadGeneration The `validationLoadGeneration` the changes were made against.
    */
-  function validateAndApplyChanges(changes: CellChange[], source: string | undefined) {
+  function validateAndApplyChanges(changes: CellChange[], source: string | undefined, loadGeneration: number) {
     const hold = operationScope.hold();
+    const records = createWaitingChangeRecords(
+      recordTracker, recordReader, getPhysicalRowOfExistingRow, waitingChangeRecords, observeRowShifts,
+      columnTracking,
+    );
+
+    if (loadGeneration === validationLoadGeneration) {
+      waitingChangeSets.set(changes, { source, records });
+    }
 
     try {
-      validateChanges(changes, source, () => {
+      validateChanges(changes, source, loadGeneration, records, (rejectedChanges, removedChanges) => {
+        waitingChangeSets.delete(changes);
+
         try {
-          hold.resume(() => applyChanges(changes, source));
+          if (loadGeneration === validationLoadGeneration) {
+            const getRecordRow = records.hasRecords() ?
+              (change: CellChange) => records.getSettledPhysicalRow(change) : undefined;
+
+            hold.resume(() => applyChanges(changes, source, getRecordRow));
+
+            if (removedChanges.length > 0 && instance) {
+              droppedChangesListeners.slice().forEach(listener => listener(removedChanges, source, []));
+            }
+          } else {
+            droppedChangesListeners.slice().forEach(listener => listener(changes, source, rejectedChanges));
+          }
         } finally {
+          records.release();
           hold.release();
         }
       });
     } catch (error) {
+      waitingChangeSets.delete(changes);
+      records.release();
       hold.release();
       throw error;
     }
+  }
+
+  /**
+   * Returns the physical row of a visual row that exists, or `null` for a row past the last one, which a write
+   * creates and which therefore has no record to follow.
+   *
+   * @param {number} visualRow The visual row index.
+   * @returns {number|null}
+   */
+  function getPhysicalRowOfExistingRow(visualRow: number): number | null {
+    return visualRow >= 0 && visualRow < instance.countRows() ? instance.toPhysicalRow(visualRow) : null;
   }
 
   /**
@@ -3885,14 +5189,30 @@ export default function Core(
     this: HotInstance,
     row: number | Array<[number, string | number, unknown]>, prop: string | number, value: string, source?: string
   ) {
+    if (isWriteBeforeRowsExist('setDataAtRowProp')) {
+      return;
+    }
+
     const input = setDataInputToArray(row, prop, value);
     const changes: CellChange[] = [];
-    let changeSource = source;
+    // TODO: I don't think `prop` should be used as `changeSource` here, but removing it would be a breaking change.
+    // We should remove it with the next major release.
+    const changeSource = !source && typeof row === 'object' ? prop as string : source;
     let i;
     let ilen;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       const [visualRow, inputProp, newValue] = input[i];
+
+      if (isRemovedColumnCorrection(inputProp, changeSource)) {
+        continue;
+      }
+
+      if (isUnplacedCorrection(visualRow, changeSource)) {
+        foldUnplacedCorrection(inputProp, newValue, changeSource);
+
+        continue;
+      }
 
       changes.push([
         visualRow,
@@ -3904,17 +5224,30 @@ export default function Core(
       ]);
     }
 
-    // TODO: I don't think `prop` should be used as `changeSource` here, but removing it would be a breaking change.
-    // We should remove it with the next major release.
-    if (!changeSource && typeof row === 'object') {
-      changeSource = prop as string;
+    // Every requested change was a correction folded above, so there is nothing left to report or apply, the same
+    // as for `setDataAtCell()`.
+    if (input.length > 0 && changes.length === 0) {
+      instance.runHooks('afterSetDataAtRowProp', [], changeSource);
+
+      return;
     }
 
+    const loadGeneration = getChangeLoadGeneration(changeSource, changes);
     const processedChanges = processChanges(changes, changeSource);
+
+    // `beforeChange` and `afterSetDataAtRowProp` listeners can destroy the grid, and nothing after
+    // them may read the destroyed instance.
+    if (!instance) {
+      return;
+    }
 
     instance.runHooks('afterSetDataAtRowProp', processedChanges, changeSource);
 
-    validateAndApplyChanges(processedChanges, changeSource);
+    if (!instance) {
+      return;
+    }
+
+    validateAndApplyChanges(processedChanges, changeSource, loadGeneration);
   }
 
   /**
@@ -3926,7 +5259,9 @@ export default function Core(
    * @fires Hooks#afterListen
    */
   this.listen = function() {
-    if (instance && !instance.isListening()) {
+    // `destroy()` takes the instance out of the registry before it destroys the plugins, and a plugin
+    // that hands the keyboard back while it tears down must not take it from another grid.
+    if (instance && !instance.isListening() && foreignHotInstances.has(instance.guid)) {
       foreignHotInstances.forEach((foreignHot) => {
         if (instance !== foreignHot) {
           foreignHot.unlisten();
@@ -3973,7 +5308,18 @@ export default function Core(
    */
   this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     editorManager.closeEditor(revertOriginal);
+
+    // Closing the editor saves it, and a listener of the save can destroy the grid.
+    if (!instance) {
+      return;
+    }
+
     instance.view.render();
+
+    // An `afterRender` listener can destroy the grid.
+    if (!instance) {
+      return;
+    }
 
     if (prepareEditorIfNeeded && selection.isSelected()) {
       editorManager.prepareEditor();
@@ -4528,9 +5874,22 @@ export default function Core(
    * The method is intended to be used by advanced users. Suspending the execution
    * process could cause visual glitches caused by not updated the internal table cache.
    *
+   * Calls nest. Only the outermost call suspends the execution and fires the
+   * [`beforeSuspendExecution`](@/api/hooks.md#beforesuspendexecution) and
+   * [`afterSuspendExecution`](@/api/hooks.md#aftersuspendexecution) hooks. When an `afterSuspendExecution`
+   * listener throws, the method resumes the execution (firing the resume hooks) and rethrows the error.
+   * A call a `beforeSuspendExecution` or `beforeResumeExecution` listener makes on the same instance fires no
+   * hooks.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, but a render in between
+   * still recalculates.
+   *
    * @memberof Core#
    * @function suspendExecution
    * @since 8.3.0
+   * @fires Hooks#beforeSuspendExecution
+   * @fires Hooks#afterSuspendExecution
    * @example
    * ```js
    * hot.suspendExecution();
@@ -4543,9 +5902,42 @@ export default function Core(
    * ```
    */
   this.suspendExecution = function(this: HotInstance & CoreInternals) {
+    // The hooks report the state change, so a nested call fires nothing. A grid being destroyed fires
+    // nothing either: its teardown runs in a `batchExecution()` whose resume comes after `afterDestroy`.
+    // A call a `before*` listener makes fires nothing: the counter is still 0 while that listener runs, so
+    // it would fire the hook again and recurse.
+    const changesState = this.executionSuspendedCounter === 0 && !isBeingDestroyed && !isRunningBeforeExecutionHook;
+
+    if (changesState) {
+      isRunningBeforeExecutionHook = true;
+
+      try {
+        this.runHooks('beforeSuspendExecution');
+      } finally {
+        isRunningBeforeExecutionHook = false;
+      }
+    }
+
     this.executionSuspendedCounter += 1;
     this.columnIndexMapper.suspendOperations();
     this.rowIndexMapper.suspendOperations();
+
+    if (changesState) {
+      try {
+        this.runHooks('afterSuspendExecution');
+      } catch (error) {
+        // The caller gets no suspension to resume, so take it back here, through the resume hooks: a
+        // listener that ran before the throw may hold something it releases on resume. The listener's
+        // error is the one the caller gets, also when a resume listener throws as well.
+        try {
+          this.resumeExecution();
+        } catch {
+          // The rollback's own error would replace the cause.
+        }
+
+        throw error;
+      }
+    }
   };
 
   /**
@@ -4556,6 +5948,19 @@ export default function Core(
    * The method is intended to be used by advanced users. Suspending the execution
    * process could cause visual glitches caused by not updated the internal table cache.
    *
+   * Only the call that ends the outermost {@link Core#suspendExecution} call resumes the execution and fires
+   * the [`beforeResumeExecution`](@/api/hooks.md#beforeresumeexecution) and
+   * [`afterResumeExecution`](@/api/hooks.md#afterresumeexecution) hooks. A forced nested call
+   * (`forceFlushChanges`) updates the index cache too, and the execution stays suspended. A nested call, a
+   * forced nested call, and a call while the execution is not suspended fire nothing. The execution resumes,
+   * and `afterResumeExecution` fires, even when a `beforeResumeExecution` listener throws. A
+   * `beforeResumeExecution` listener that leaves the execution suspended keeps it suspended: the hook fires again,
+   * with `afterResumeExecution`, on the call that ends it.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, until the execution
+   * resumes.
+   *
    * @memberof Core#
    * @function resumeExecution
    * @param {boolean} [forceFlushChanges=false] If `true`, the table internal data cache
@@ -4563,6 +5968,8 @@ export default function Core(
    * {@link Core#batchExecution} calls, it can be desire to recalculate the table
    * after each batch.
    * @since 8.3.0
+   * @fires Hooks#beforeResumeExecution
+   * @fires Hooks#afterResumeExecution
    * @example
    * ```js
    * hot.suspendExecution();
@@ -4576,12 +5983,41 @@ export default function Core(
    */
   this.resumeExecution = function(this: HotInstance & CoreInternals, forceFlushChanges = false) {
     const nextValue = this.executionSuspendedCounter - 1;
+    // Only the resume that brings the counter back to 0 changes the state (see `suspendExecution`).
+    const changesState = nextValue === 0 && !isBeingDestroyed && !isRunningBeforeExecutionHook;
 
-    this.executionSuspendedCounter = Math.max(nextValue, 0);
+    // Each step runs in a `finally`, so a throwing listener (of these hooks or of a cache update) cannot
+    // keep the grid or a mapper suspended, and `afterResumeExecution` (where a plugin releases what it held
+    // on the suspension) still fires.
+    try {
+      if (changesState) {
+        isRunningBeforeExecutionHook = true;
 
-    if ((!this.isExecutionSuspended() && nextValue === this.executionSuspendedCounter) || forceFlushChanges) {
-      this.columnIndexMapper.resumeOperations();
-      this.rowIndexMapper.resumeOperations();
+        try {
+          this.runHooks('beforeResumeExecution');
+        } finally {
+          isRunningBeforeExecutionHook = false;
+        }
+      }
+    } finally {
+      // The counter is read again: a balanced suspend and resume the `beforeResumeExecution` listener made
+      // leaves it where it was, and one it left open keeps the execution suspended (the hook then fires
+      // with the call that ends it).
+      this.executionSuspendedCounter = Math.max(this.executionSuspendedCounter - 1, 0);
+
+      try {
+        if ((!this.isExecutionSuspended() && nextValue >= 0) || forceFlushChanges) {
+          try {
+            this.columnIndexMapper.resumeOperations();
+          } finally {
+            this.rowIndexMapper.resumeOperations();
+          }
+        }
+      } finally {
+        if (changesState && !this.isExecutionSuspended()) {
+          this.runHooks('afterResumeExecution');
+        }
+      }
     }
   };
 
@@ -4597,6 +6033,14 @@ export default function Core(
    * Like [`batch()`](@/api/core.md#batch), the callback is one operation: every change it makes is one
    * undo step of the [`UndoRedo`](@/api/undoRedo.md) plugin, with the `'batch'` action type.
    *
+   * The method suspends and resumes the execution through {@link Core#suspendExecution} and
+   * {@link Core#resumeExecution}, so the outermost call fires the four execution hooks around the callback.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too, but `batchExecution()`
+   * does not suspend rendering, so each render inside the callback still recalculates. For fewer
+   * recalculations, use [`batch()`](@/api/core.md#batch).
+   *
    * @memberof Core#
    * @function batchExecution
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
@@ -4605,6 +6049,10 @@ export default function Core(
    * it can be a desire to recalculate the table after each batch.
    * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
+   * @fires Hooks#beforeSuspendExecution
+   * @fires Hooks#afterSuspendExecution
+   * @fires Hooks#beforeResumeExecution
+   * @fires Hooks#afterResumeExecution
    * @example
    * ```js
    * hot.batchExecution(() => {
@@ -4620,6 +6068,8 @@ export default function Core(
   this.batchExecution = function<T>(wrappedOperations: () => T, forceFlushChanges = false): T {
     // The operation wraps the resume too: the cache rebuild it triggers belongs to this batch.
     return operationScope.run('batch', undefined, () => {
+      // Outside the `try`: a throw from `suspendExecution` leaves nothing suspended, because a throwing
+      // `afterSuspendExecution` listener makes the method resume on its own.
       instance.suspendExecution();
 
       let completed = false;
@@ -4647,11 +6097,21 @@ export default function Core(
    * performance of wrapped operations. Rendering and execution resume even when the
    * callback throws; the error is rethrown.
    *
+   * The method suspends and resumes the execution through {@link Core#suspendExecution} and
+   * {@link Core#resumeExecution}, so the outermost call fires the four execution hooks around the callback.
+   *
+   * With the `batchEvaluation` setting of the [`formulas`](@/api/options.md#formulas) option, the
+   * [`Formulas`](@/api/formulas.md) plugin can batch HyperFormula's recalculation too.
+   *
    * @memberof Core#
    * @function batch
    * @param {Function} wrappedOperations Batched operations wrapped in a function.
    * @returns {*} Returns result from the wrappedOperations callback.
    * @since 8.3.0
+   * @fires Hooks#beforeSuspendExecution
+   * @fires Hooks#afterSuspendExecution
+   * @fires Hooks#beforeResumeExecution
+   * @fires Hooks#afterResumeExecution
    * @example
    * ```js
    * hot.batch(() => {
@@ -4678,20 +6138,21 @@ export default function Core(
     // this batch, so the transaction settles only after them.
     return operationScope.run('batch', undefined, () => {
       instance.suspendRender();
-      instance.suspendExecution();
 
       // Resume in `finally`: the callback runs host hooks, and a throw there used to leave the
-      // instance suspended for the rest of its life, so it never painted again. The two resumes are
-      // nested so that a throw from `resumeExecution` (an `afterUpdateSettings`-style hook firing on
-      // the flush) still lets `resumeRender` run.
+      // instance suspended for the rest of its life, so it never painted again. The calls are
+      // nested so that a throw from `suspendExecution` or `resumeExecution` (a listener of the execution
+      // hooks, or an `afterUpdateSettings`-style hook firing on the flush) still lets `resumeRender` run.
       try {
-        return wrappedOperations();
-      } finally {
+        instance.suspendExecution();
+
         try {
-          instance.resumeExecution();
+          return wrappedOperations();
         } finally {
-          instance.resumeRender();
+          instance.resumeExecution();
         }
+      } finally {
+        instance.resumeRender();
       }
     });
   };
@@ -4742,9 +6203,10 @@ export default function Core(
 
   /**
    * Tells whether a validator call made for a change is still waiting for its answer. A change made through
-   * {@link Core#setDataAtCell} or an editor is applied to the data the grid holds when its last validator
-   * answers, so anything that replaces the grid's data must not run in the meantime. A validator that
-   * throws counts as answered. A `loadData()` call starts a new count, so a validator that never answers
+   * {@link Core#setDataAtCell} or an editor is dropped when a `loadData()` replaces the data before its last
+   * validator answers, so code that must keep the edit (the sheets bar) asks first and does not replace the
+   * data in the meantime. `updateData()` drops nothing: the change is written at its coordinates in the
+   * updated data. A validator that throws counts as answered. A `loadData()` call starts a new count, so a validator that never answers
    * stops counting once the grid loads other data. `validateCells()` and its siblings hold no change, so
    * their calls are not counted. The answer is counted out before its change is written, so an
    * `afterChange` listener of the last answer already reads `false`.
@@ -4759,16 +6221,89 @@ export default function Core(
   };
 
   /**
+   * Returns the value validation outside an edit checks for a cell.
+   *
+   * A cell type that brings its own `valueGetter` pairs it with a validator that checks the stored form:
+   * the choice types store a key/value entry or a multiselect array, which their getter turns into a
+   * label or a joined string, and an edit validates the stored form too. Such a cell is validated on its
+   * stored value. A `valueGetter` the cell configures itself only changes what the cell shows, and the
+   * validator was written against that, so the cell is validated on its {@link Core#getDataAtCell} value,
+   * the getter's output included. The `modifyRowData` and `modifyData` hooks apply either way.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {object} [cellMeta] The cell meta, when the caller already holds it.
+   * @returns {*}
+   */
+  const getValueToValidate = (row: number, column: number, cellMeta?: CellProperties): unknown => {
+    const meta = cellMeta ?? instance.getCellMetaTransient(row, column);
+    const { type, valueGetter } = meta;
+    // `type` is a registered name or the cell type object itself, as `extendByMetaType()` reads it.
+    let cellType: unknown = isObject(type) ? type : null;
+
+    if (typeof type === 'string' && hasCellType(type)) {
+      cellType = getCellType(type);
+    }
+
+    const isCellTypeGetter = typeof valueGetter === 'function' && isObject(cellType) &&
+      (cellType as { valueGetter?: unknown }).valueGetter === valueGetter;
+
+    return datamap.get(row, colToPropOrIndex(instance, column), { skipValueGetter: isCellTypeGetter });
+  };
+
+  /**
+   * Returns the value validation outside an edit checks for a cell (bulk validation, UndoRedo's
+   * re-validation of restored cells): the stored value when the cell's `valueGetter` is its cell type's
+   * own, otherwise the value {@link Core#getDataAtCell} returns.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it is
+   * not exposed in the published `.d.ts`. UndoRedo reaches it through a local internal type.
+   *
+   * @private
+   * @memberof Core#
+   * @function _getValueToValidate
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {*}
+   */
+  this._getValueToValidate = function(row: number, column: number) {
+    return getValueToValidate(row, column);
+  };
+
+  /**
+   * Tells a `postAfterValidate` listener whether the answer it receives comes from a validator call made
+   * before the last `loadData()`. The change that call validated was dropped, so a listener waiting for the
+   * answer to a later call (an editor waiting for its own value) must not take it as its own.
+   *
+   * @private
+   * @memberof Core#
+   * @function _isAnsweringStaleValidation
+   * @returns {boolean}
+   */
+  this._isAnsweringStaleValidation = function() {
+    return isAnsweringStaleValidation;
+  };
+
+  /**
    * Updates dimensions of the table. The method compares previous dimensions with the current ones and updates accordingly.
    *
    * You rarely need to call this method. Handsontable already calls it for you on a window resize and through a
    * `ResizeObserver` on the container. The case it does not cover is a container resized while the grid is
    * hidden (for example inside a `display: none` tab or accordion): the observer callback is skipped, so call
-   * this method yourself once the grid becomes visible again.
+   * this method yourself once the grid becomes visible again. A web font that loads after the grid renders needs no
+   * call: Handsontable re-measures its rows and columns when the document finishes loading a font.
    *
    * The method renders when the measured size changed. It also renders unconditionally when the grid scrolls
-   * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. To repaint
-   * the cells without re-measuring the container, use [render()](@/api/core.md#render) instead.
+   * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. And it
+   * renders when a change of the browser zoom moved the border of the cells, which changes the height of every
+   * row even though the container kept its size: the [afterRefreshDimensions](@/api/hooks.md#afterrefreshdimensions)
+   * hook then receives `false` for its `stateChanged` argument. To repaint the cells without re-measuring the
+   * container, use [render()](@/api/core.md#render) instead.
+   *
+   * When the size changed while a cell editor is open, the editor moves onto its cell. If the cell was not fully
+   * in view, the grid first scrolls it into view and renders once more, which fires
+   * [afterScroll](@/api/hooks.md#afterscroll). An editor that waits for an asynchronous validator moves after the
+   * validator answers, and with rendering suspended it moves after the next render.
    *
    * @memberof Core#
    * @function refreshDimensions
@@ -4799,7 +6334,11 @@ export default function Core(
       return;
     }
 
-    if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
+    // A browser zoom change fires the window `resize` this runs on, and it moves what a row measures even
+    // when the root keeps its size (a pixel `width` and `height`), so it renders on its own.
+    const isZoomChanged = view.refreshZoomDependentSizes();
+
+    if (isZoomChanged || isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
       instance.render();
     } else {
@@ -4823,8 +6362,19 @@ export default function Core(
    * - Keeps cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Keeps rows' states (e.g. row order)
    * - Keeps columns' states (e.g. column order)
+   *   (`updateSettings({ data, columns })` is the exception: it resets them when the columns changed, see {@link Core#updateSettings})
+   * - Keeps the sorted row order and the trimmed rows. It does not sort or filter the new values again. To apply them, call `sort(getSortConfig())` of the `ColumnSorting` or `MultiColumnSorting` plugin, or `filter()` of the `Filters` plugin.
+   * - Clears the undo and redo history of the `UndoRedo` plugin, unless `data` is what the grid shows
+   *   already: the same array, a copy of it, or rows that hold the same values. Cells are compared with `===`, so a
+   *   nested object that was copied counts as another value, and a copy of the array clears the history when the
+   *   `NestedRows` plugin is on.
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) and reset states, use the [`loadData()`](#loaddata) method.
+   *
+   * A change that still waits for its cell's [`validator`](@/api/options.md#validator) is written at its row and
+   * column of the new data when the validator answers, so pass the same records the grid shows. A `data` update
+   * through [`updateSettings()`](#updatesettings) runs `updateData()` too. To replace the records and drop such a
+   * change, use `loadData()`.
    *
    * Read more:
    * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
@@ -4841,7 +6391,8 @@ export default function Core(
    */
   this.updateData = function(data: unknown[][][] | object[], source: string) {
     // Replacing the data is not a user action: nothing it does may open an operation or be journaled.
-    operationScope.suppress(() => applyUpdateData(data, source));
+    // It is a lifecycle pass, so a ready step a load hook makes a plugin owe reads the new rows.
+    runInLifecyclePass(() => operationScope.suppress(() => applyUpdateData(data, source)));
   };
 
   /**
@@ -4870,15 +6421,33 @@ export default function Core(
         // below is this operation's re-prepare chance - so the same structural-change scope
         // applies, or a trimming change in the same task commits through the stranded editor
         // and appends records (DEV-2739 review).
-        editorManager.suspendStrandDiscards();
+        editorManager?.suspendStrandDiscards();
 
         // `finally`, for the same reason `alter()` uses one: `adjustRowsAndCols()` runs the row
         // creation hooks and `selection.refresh()` the selection hooks, so a hook that throws
         // would otherwise leave the scope open for the rest of the task (DEV-2831).
         try {
-          instance.columnIndexMapper.fitToLength(instance.getInitialColumnCount());
-          instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+          const layoutCheck = pendingColumnLayoutCheck;
 
+          if (layoutCheck && hasColumnLayoutChanged(layoutCheck.previousLayout, layoutCheck.columnsPath)) {
+            // The index state would now apply to the columns of a new schema or `columns` option. Starting it over
+            // here replaces `fitToLength()`, so each mapper updates its cache once.
+            if (layoutCheck.columnsPath) {
+              // A `columns` change speaks of columns, so the rows keep their order, hiding and trimming, and
+              // their generated ids. A sort lives in both axes: it names columns and orders rows, so it is cleared
+              // after this call, once the grid is consistent again.
+              rowStateToClearAfterDataUpdate = readRowStateOfColumns();
+              instance.columnIndexMapper.initToLength(instance.getInitialColumnCount());
+              instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+            } else {
+              instance.initIndexMappers();
+            }
+          } else {
+            instance.columnIndexMapper.fitToLength(instance.getInitialColumnCount());
+            instance.rowIndexMapper.fitToLength(instance.countSourceRows());
+          }
+
+          followWaitingRecordsAfterUpdate();
           grid.adjustRowsAndCols();
           selection.markSource('updateData');
 
@@ -4892,7 +6461,7 @@ export default function Core(
             selection.markEndSource();
           }
         } finally {
-          editorManager.resumeStrandDiscards();
+          editorManager?.resumeStrandDiscards();
         }
       }, {
         hotInstance: instance,
@@ -4901,8 +6470,34 @@ export default function Core(
         internalSource: 'updateData',
         source,
         metaManager,
-        firstRun
+        firstRun,
+        beforeRender: () => runOwedReadySteps(1),
       }));
+  }
+
+  /**
+   * Moves the records of the waiting change sets to the rows that hold them after `updateData()` replaced the data
+   * (`followReplacedRecords()`), so the stamps of their validator calls (`this.visualRow`, the row of
+   * `afterValidate`) and the answers follow them, and marks a call's meta that stays stored at the row it was read
+   * from as displaced (`displacedMetas`).
+   *
+   * @private
+   */
+  function followWaitingRecordsAfterUpdate() {
+    if (waitingChangeSets.size === 0) {
+      return;
+    }
+
+    const sets = Array.from(waitingChangeSets.values(), ({ records }) => records);
+    const moved = followReplacedRecords(recordTracker, recordReader, sets);
+
+    if (moved.size === 0) {
+      return;
+    }
+
+    waitingMetaStamps.followRelocated(moved, (meta, physicalRow) => (
+      !Number.isInteger(meta.col) || metaManager.getCellMetaIfExists(physicalRow, meta.col as number) === meta
+    )).forEach(({ record, meta }) => displacedMetas.set(meta, record));
   }
 
   /**
@@ -4935,8 +6530,21 @@ export default function Core(
    * - Resets cells' states (e.g. cells' [formatting](@/guides/cell-features/formatting-cells/formatting-cells.md) and cells' [`readOnly`](@/api/options.md#readonly) states)
    * - Resets rows' states (e.g. row order)
    * - Resets columns' states (e.g. column order)
+   * - Resets sorting, filters, the rows you trimmed, and the rows and columns you moved, hid, or resized at runtime.
+   * - Applies again the state that these options declare: `hiddenRows`, `hiddenColumns`, `trimRows`, `manualRowMove`, `manualColumnMove`, `manualRowResize`, and `manualColumnResize` (for example `hiddenRows: { rows: [2] }`). Sorting that `initialConfig` of `columnSorting` or `multiColumnSorting` declares is not applied again.
+   * - Drops the cell metadata from the `cell` option, although `getSettings().cell` still lists it. Metadata from `columns` stays.
+   * - Clears the undo and redo history of the `UndoRedo` plugin.
+   * - Keeps the settings, the selection (limited to the size of the new data), and merged cells.
    *
    * To replace Handsontable's [`data`](@/api/options.md#data) without resetting states, use the [`updateData()`](#updatedata) method.
+   *
+   * A change that still waits for its cell's [`validator`](@/api/options.md#validator) when you call `loadData()` is dropped:
+   * it isn't written into the new data, also when the new data holds the same records, and
+   * [`afterChange`](@/api/hooks.md#afterchange) never fires for it. A correction the validator writes for it is dropped too.
+   * Validators always answer after the call that made the change returns, so this includes a synchronous validator and a
+   * change made in the same function right before `loadData()`. An open editor that waits for that validator closes without
+   * saving.
+   * [`updateData()`](#updatedata) drops nothing.
    *
    * Read more:
    * - [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
@@ -4952,12 +6560,19 @@ export default function Core(
    */
   this.loadData = function(data: unknown[][][] | object[], source: string) {
     // Loading data is not a user action: nothing it does may open an operation or be journaled.
-    operationScope.suppress(() => applyLoadData(data, source));
+    // It is a lifecycle pass, so a ready step a load hook makes a plugin owe reads the new rows.
+    runInLifecyclePass(() => operationScope.suppress(() => applyLoadData(data, source)));
   };
 
   /**
    * The body of `loadData()`, run with recording suppressed. It is called directly, not through
    * the instance, so code that wraps or spies on `loadData()` sees each call once.
+   *
+   * A load drops every change still waiting for its validator (`validateAndApplyChanges()`), so an
+   * editor waiting for one is closed here: the value it saved will not be written, and its validator's
+   * answer must not reopen it on a record of the loaded data. The editor's close callbacks run with
+   * `false` (nothing saved) after the load, so one that prepares the editor again reads the loaded data.
+   * The first load runs before the editor manager exists.
    *
    * @private
    * @param {Array} data The new data.
@@ -4966,6 +6581,10 @@ export default function Core(
   function applyLoadData(data: unknown[][][] | object[], source: string) {
     pendingValidatorAnswers = 0;
     validationLoadGeneration += 1;
+    waitingChangeSets.forEach(({ records }) => records.release());
+    waitingChangeSets.clear();
+
+    const finishEndedValidationWait = editorManager?.getActiveEditor()?._endValidationWait() ?? null;
 
     runWithGridTrackingFitsSuspended(() => replaceData(
       data,
@@ -4996,8 +6615,11 @@ export default function Core(
         internalSource: 'loadData',
         source,
         metaManager,
-        firstRun
+        firstRun,
+        beforeRender: () => runOwedReadySteps(1),
       }));
+
+    finishEndedValidationWait?.();
   }
 
   /**
@@ -5197,7 +6819,7 @@ export default function Core(
    * the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
    *
    * Passing `columns` inside the `settings` object resets the states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.). Passing `data` does not reset these states.
+   * (for example, row/column sequence, column width, row height, frozen columns etc.). Passing `data` does not reset these states, with one exception: when the same call changes the column layout through `columns`, the column states (width, hiding, order, sort) start over. Adding columns to the end, or removing them from the end, keeps the states of the other columns. Rows keep theirs.
    *
    * After initialization, passing `data` calls [`updateData()`](@/api/core.md#updatedata) internally.
    * The resulting [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and
@@ -5218,13 +6840,42 @@ export default function Core(
    * A failed validation result is preserved as well, so a cell marked invalid keeps its `htInvalid` class across
    * `updateSettings`. To reset the validation state, use [loadData()](@/api/core.md#loaddata) or validate the cells again.
    *
+   * A hook function passed in `settings` replaces the function that earlier settings passed for the same hook. An
+   * array of callbacks is added beside the callbacks earlier settings passed. A hook set to `null` removes every
+   * callback that settings passed for it and leaves `null` in {@link Core#getSettings}. A hook set to `undefined` is
+   * left as it is. Listeners added with {@link Core#addHook} are not affected by either.
+   *
+   * The legacy [`fixedColumnsLeft`](@/api/options.md#fixedcolumnsleft) option is applied as
+   * [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart), while the settings object that
+   * [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) receives keeps the name you passed. Passing both
+   * names in one call throws an error. When you pass them in separate calls, the later value applies.
+   *
+   * Four options can only be set at initialization: [`ariaTags`](@/api/options.md#ariatags),
+   * [`layoutDirection`](@/api/options.md#layoutdirection), [`renderAllColumns`](@/api/options.md#renderallcolumns),
+   * and [`renderAllRows`](@/api/options.md#renderallrows). A call whose `settings` names any of them throws an
+   * error, even when you didn't set the option at initialization. The call is refused as a whole: it applies
+   * none of its other options. The check looks at the top-level keys only, so one of these options inside
+   * [`columns`](@/api/options.md#columns) or [`cell`](@/api/options.md#cell) throws only once it is written,
+   * after the options in front of it were applied.
+   *
    * This method reinitializes the affected plugins and then renders, so it does more work than a plain
    * [render()](@/api/core.md#render). When only cell metadata changed, call [render()](@/api/core.md#render)
    * instead. See the [Understanding rendering](@/guides/optimization/rendering/rendering.md) guide.
    *
+   * When `settings` includes [`data`](@/api/options.md#data), loading the data does not paint the grid on its own.
+   * Rendering is held while the data loads, so [`afterUpdateData`](@/api/hooks.md#afterupdatedata) and
+   * [`afterChange`](@/api/hooks.md#afterchange) run with [`isRenderSuspended()`](@/api/core.md#isrendersuspended)
+   * returning `true`. The grid paints after the settings are applied, so
+   * [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings) also runs before that paint. Use
+   * [`afterRender`](@/api/hooks.md#afterrender) to read the new cells.
+   *
    * When {@link Hooks#hasExternalDataSource} is true, Handsontable clears and rebinds the placeholder dataset only during
-   * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
-   * If only `columns` changes, the column map is rebuilt without clearing rows.
+   * initialization or when `settings` replaces `dataProvider` with another value. A `data` value is ignored with a
+   * warning and keeps the loaded rows, and so does the same `dataProvider` object passed again; to reload the rows,
+   * call [`fetchData()`](@/api/dataProvider.md#fetchdata). Other keys alone (for example `height`) keep the loaded
+   * rows and send no request. `pagination`, `columnSorting`, `filters`, or `columns`, with or without
+   * `dataProvider`, reset the page, sort, or filters they hold, so the rows are fetched again; a `columns` value
+   * sent without `dataProvider` also clears the sort.
    *
    * @memberof Core#
    * @function updateSettings
@@ -5241,10 +6892,19 @@ export default function Core(
    * @fires Hooks#afterCellMetaReset
    * @fires Hooks#afterUpdateSettings
    */
-  this.updateSettings = function(settings: Partial<GridSettings>, init = false) {
+  this.updateSettings = function(settings: SettingsUpdate, init = false) {
+    const normalized = normalizeFixedColumnsAlias(settings, instance.isRtl());
+    const applied = init ? normalized : filterSettings(normalized);
+
+    if (applied !== normalized && Object.keys(applied).length === 0) {
+      return;
+    }
+
+    const notified = withCallerFixedColumnsName(applied, settings);
+
     // Applying settings is not a user action: a plugin that updates its state from the new
     // settings, or the `cell` option writing meta, must not open an operation or be journaled.
-    operationScope.suppress(() => {
+    runInLifecyclePass(() => operationScope.suppress(() => {
       if (dataWorkPhase !== 'configure' || init) {
         const outerPhase = dataWorkPhase;
 
@@ -5253,7 +6913,11 @@ export default function Core(
         }
 
         try {
-          applySettings(settings, init);
+          applySettings(applied, init, false, null, null, notified);
+        } catch (error) {
+          repaintAfterFailedDataCall(applied, init);
+
+          throw error;
         } finally {
           dataWorkPhase = outerPhase;
         }
@@ -5261,17 +6925,17 @@ export default function Core(
         return;
       }
 
-      if (hasOwnProperty(settings, 'data')) {
+      if (hasOwnProperty(applied, 'data')) {
         warn('The "data" setting passed to updateSettings() while another settings and data change is being ' +
           'applied is ignored: the data that change loads replaces it. Call loadData() once it has finished.');
       }
 
-      const metaPhase = applySettings(settings, init, true);
+      const metaPhase = applySettings(applied, init, true, null, null, notified);
 
       if (metaPhase) {
         heldMetaPhases.push(metaPhase);
       }
-    });
+    }));
   };
 
   /**
@@ -5325,13 +6989,22 @@ export default function Core(
    * it took them away: the meta follows its records through inserts, removals and moves, while the entries
    * of the setting name visual positions, which a reordering or trimming plugin of the new settings (a
    * `manualRowMove` or `trimRows` array) changes during the load.
+   * @param {object} [keptCellMetas] The meta set through `setCellMeta()` and the invalid marks the rows carried
+   * when the caller took them away, by physical indexes, to put back in the meta phase. They are written
+   * before the cell types expand, before the `cell` option (which wins on a key both set) and before
+   * `afterCellMetaReset`, so a `type` comes back with its renderer and validator, and they go into core's
+   * cell meta, so undo, row and column changes and a later data load treat them as they treat any other
+   * meta. An entry past the loaded data, or on a row or column the load appended for a `min*` setting, is
+   * dropped.
    */
   this._applySettingsAndData = function(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     data: unknown[],
     source: string,
     cellOptionMetas: CellOptionMetaEntry[] | null = null,
+    keptCellMetas: KeptCellMetas | null = null,
   ) {
+    const normalized = normalizeFixedColumnsAlias(settings, instance.isRtl());
     const suspendsRender = !!instance.view;
 
     if (suspendsRender) {
@@ -5339,7 +7012,7 @@ export default function Core(
     }
 
     try {
-      operationScope.suppress(() => {
+      runInLifecyclePass(() => operationScope.suppress(() => {
         const outerPhase = dataWorkPhase;
         const outerHeldMetaPhases = heldMetaPhases;
         const isNested = outerPhase !== null;
@@ -5349,7 +7022,15 @@ export default function Core(
 
         try {
           try {
-            const metaPhase = applySettings(settings, false, true, cellOptionMetas);
+            const filtered = filterSettings(normalized);
+            const metaPhase = applySettings(
+              filtered, false, true, cellOptionMetas, keptCellMetas, withCallerFixedColumnsName(filtered, settings)
+            );
+
+            if (!instance || instance.isDestroyed) {
+              return;
+            }
+
             const nestedMetaPhases = heldMetaPhases;
 
             dataWorkPhase = 'data';
@@ -5375,6 +7056,9 @@ export default function Core(
               }
             });
           }
+
+          // The ready steps the call made the plugins owe, run before its render. The call holds one pass.
+          runOwedReadySteps(1);
         } catch (error) {
           if (!isNested) {
             pluginsRegistry.getItems().forEach(([, plugin]) => {
@@ -5384,9 +7068,9 @@ export default function Core(
 
           throw error;
         }
-      });
+      }));
     } finally {
-      if (suspendsRender) {
+      if (suspendsRender && instance && !instance.isDestroyed) {
         instance.resumeRender();
       }
     }
@@ -5410,7 +7094,9 @@ export default function Core(
    * hook callback of the settings and applies their `cell` option after the first load, so a plugin that
    * applied settings of its own in `beforeInit` (the SheetsBar plugin, its opening sheet) would see the pass
    * replace its hook callbacks and its `cell` entries with the grid-level ones. Replaced here, they are
-   * applied once, by the pass itself, with no settings update of their own.
+   * applied once, by the pass itself, with no settings update of their own. The values go through the
+   * settings filters (`_addSettingsFilter()`) first: unlike the rest of the pass, they are not the settings
+   * the grid was created with.
    *
    * @private
    * @param {object} settings The values to apply in the init settings pass instead.
@@ -5422,14 +7108,356 @@ export default function Core(
     }
 
     const passSettings = initPassSettings;
+    const filtered: Record<string, unknown> = filterSettings(settings);
     const replaced: Record<string, unknown> = {};
 
-    Object.keys(settings).forEach((key) => {
+    Object.keys(filtered).forEach((key) => {
       replaced[key] = passSettings[key];
-      passSettings[key] = settings[key];
+      passSettings[key] = filtered[key];
     });
 
     return replaced;
+  };
+
+  /**
+   * Adds a function that reads every later `updateSettings()` and `_applySettingsAndData()` payload, and
+   * the values `_replaceInitPassSettings()` hands the init settings pass, before core applies them, and
+   * returns the payload to apply instead. The filters run in the order they were added, each one reading
+   * what the one before returned. The SheetsBar plugin uses one to keep the visible sheet's own settings
+   * when a grid-level value for the same key arrives (a framework wrapper sends every prop again on each
+   * render), and the Angular wrapper one to turn the components a sheet's settings declare into what core
+   * reads and to run in Angular's zone the hook functions its `settings` input declares. A filter returns the payload it was given when it has nothing to change, or a new object; it never
+   * changes the one it was given, which belongs to the caller. A payload a filter empties is not applied at
+   * all by `updateSettings()`: no settings cycle runs and `afterUpdateSettings` does not fire, so the Vue
+   * wrapper, which sends a key again whenever it differs from the grid's live value, does not pay one empty
+   * cycle per edit. `afterUpdateSettings` listeners receive the filtered payload. The settings the grid is
+   * created with are never filtered. Adding a filter that is already there changes nothing.
+   *
+   * @private
+   * @param {Function} filter The function to add.
+   */
+  this._addSettingsFilter = function(filter: (settings: SettingsUpdate) => SettingsUpdate) {
+    if (!settingsFilters.includes(filter)) {
+      settingsFilters.push(filter);
+    }
+  };
+
+  /**
+   * Marks a plugin as needed by another object, usually another plugin, so the required plugin's
+   * `isEnabled()` answers `true` while its own option is off. The rules are in `PluginRequirements`
+   * (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
+   * @param {object} requirer The object that needs the plugin running.
+   */
+  this._requirePlugin = function(pluginKey: string, requirer: object) {
+    pluginRequirements.require(pluginKey, requirer);
+  };
+
+  /**
+   * Drops the requirement `_requirePlugin()` recorded for a plugin. The rules are in `PluginRequirements`
+   * (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the required plugin, as in its `PLUGIN_KEY`.
+   * @param {object} requirer The object that no longer needs the plugin running.
+   */
+  this._releasePlugin = function(pluginKey: string, requirer: object) {
+    pluginRequirements.release(pluginKey, requirer);
+  };
+
+  /**
+   * Checks whether any object requires the plugin through `_requirePlugin()`. The rules are in
+   * `PluginRequirements` (`core/pluginRequirements.ts`).
+   *
+   * @private
+   * @param {string} pluginKey The key of the plugin, as in its `PLUGIN_KEY`.
+   * @returns {boolean}
+   */
+  this._isPluginRequired = function(pluginKey: string): boolean {
+    return pluginRequirements.isRequired(pluginKey);
+  };
+
+  /**
+   * Removes a function `_addSettingsFilter()` added. Removing one that is not there changes nothing.
+   *
+   * @private
+   * @param {Function} filter The function to remove.
+   */
+  this._removeSettingsFilter = function(filter: (settings: SettingsUpdate) => SettingsUpdate) {
+    const index = settingsFilters.indexOf(filter);
+
+    if (index !== -1) {
+      settingsFilters.splice(index, 1);
+    }
+  };
+
+  /**
+   * Returns the change sets made on the data the grid holds that still wait for their validators, each with its
+   * source, as the arrays the change hooks received. A `loadData()` made now would drop every one of them. A set
+   * whose changes all got rejected, or were all overtaken by a newer write, is not listed once its validators have
+   * answered, even though it fired no `afterChange`. It is for a plugin that replaces the data and writes the
+   * dropped sets again: DataProvider reads them right before the refetch that follows a save loads its rows.
+   *
+   * @private
+   * @returns {Array<{ changes: Array, source: string|undefined }>}
+   */
+  this._getWaitingChangeSets = function() {
+    return [...waitingChangeSets].map(([changes, { source }]) => ({ changes, source }));
+  };
+
+  /**
+   * Returns the physical index of the row a change was written to.
+   *
+   * Use it in the [`afterChange`](@/api/hooks.md#afterchange) and
+   * [`beforeChangeRender`](@/api/hooks.md#beforechangerender) hooks to find the record of a change whose `row` is
+   * `null`. A change to a cell with a [`validator`](@/api/options.md#validator) is written to the record it was
+   * made on when the validator answers. When a filter or another trimming feature took that record out of the
+   * visual space in the meantime, the record has no visual index, so the hooks report `row` as `null`, and only
+   * the physical index still names the record. Pass the physical index to
+   * [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow) to read the record, or to
+   * [`getRowIdAtPhysicalRow()`](@/api/core.md#getrowidatphysicalrow) to read its id.
+   *
+   * The method answers for a change that waited for its validator until the `afterChange` hook that reports it
+   * has run: while the change waits, it returns the physical row of its record now (`null` once the record was
+   * removed), and in `beforeChangeRender` and `afterChange` it returns the physical row the change was written
+   * to. After the `afterChange` hook, the grid no longer follows the record, so read the physical index (or the
+   * row's id) inside the hook, and keep it if you need it later. For any other change, and for a change after its
+   * `afterChange` hook, the method returns the physical index of the change's visual `row` now, or `null` when
+   * `row` is `null`.
+   *
+   * @memberof Core#
+   * @function getPhysicalRowOfChange
+   * @since 19.0.0
+   * @param {Array} change A change, as the [`afterChange`](@/api/hooks.md#afterchange) or
+   * [`beforeChangeRender`](@/api/hooks.md#beforechangerender) hook passes it: `[row, prop, oldValue, newValue]`.
+   * Pass the array the hook passes, not a copy.
+   * @returns {number|null} The physical row index, or `null` when the change addresses no row.
+   * @example
+   * ```js
+   * hot.addHook('afterChange', (changes, source) => {
+   *   changes?.forEach((change) => {
+   *     const physicalRow = hot.getPhysicalRowOfChange(change);
+   *
+   *     if (physicalRow !== null) {
+   *       save(hot.getSourceDataAtRow(physicalRow));
+   *     }
+   *   });
+   * });
+   * ```
+   */
+  this.getPhysicalRowOfChange = function(change: readonly unknown[]): number | null {
+    const recordRow = waitingChangeRecords.get(change)?.getPhysicalRow(change);
+
+    if (recordRow !== undefined) {
+      return recordRow;
+    }
+
+    return typeof change[0] === 'number' ? instance.toPhysicalRow(change[0]) : null;
+  };
+
+  /**
+   * Leaves a validator answer. When the outermost one ends, its hold on the transaction of the change it answers
+   * is released, so the functions `_runAfterValidatorAnswer()` queued run as operations of their own. A grid a
+   * listener destroyed meanwhile runs none of them.
+   */
+  function leaveValidatorAnswer(): void {
+    validatorAnswerDepth -= 1;
+
+    if (validatorAnswerDepth > 0) {
+      return;
+    }
+
+    while (afterValidatorAnswer.length > 0) {
+      const callback = afterValidatorAnswer.shift()!;
+
+      if (instance) {
+        callback();
+      }
+    }
+  }
+
+  /**
+   * Runs a function once the validator answer that runs now has released its hold on the transaction of the
+   * change it answers, in the same task, or at once when no answer runs. An answer runs inside that transaction
+   * (`operationScope.hold()`), so an operation started there (a Pagination page change) joins the change's undo
+   * step. The editor uses it to show the page of a record a rejected value reopens it on.
+   *
+   * @private
+   * @param {Function} callback The function to run.
+   */
+  this._runAfterValidatorAnswer = function(callback: () => void): void {
+    if (validatorAnswerDepth === 0) {
+      callback();
+
+      return;
+    }
+
+    afterValidatorAnswer.push(callback);
+  };
+
+  /**
+   * Starts to follow the record at a visual row while something waits on it, the way core follows a change that
+   * waits for its validator: by its physical row, kept current on row inserts and removals, verified by its stored
+   * cell meta or its source row object, and found again by its row id or its row object when that fails. The
+   * editor uses it to reopen on the record a rejected value was typed into.
+   *
+   * @private
+   * @param {number} visualRow The visual row of the record.
+   * @returns {object|null} The handle, or `null` for a visual row that holds no record.
+   */
+  this._trackRecord = function(visualRow: number, visualColumn?: number): TrackedRecordHandle | null {
+    const physicalRow = getPhysicalRowOfExistingRow(visualRow);
+
+    if (physicalRow === null) {
+      return null;
+    }
+
+    let anchor: RecordAnchor | null = captureRecord(recordTracker, recordReader, physicalRow);
+    const prop = visualColumn === undefined ? null : datamap.colToProp(visualColumn);
+    const physicalColumn = prop === null ? null : getTrackedPhysicalColumn(prop);
+    let column: TrackedColumn | null = physicalColumn === null ? null : columnTracking.tracker.track(physicalColumn);
+    const getPhysicalRow = () => (anchor === null ? null : resolveRecord(recordReader, anchor));
+
+    return {
+      getPhysicalRow,
+      getVisualRow() {
+        const row = getPhysicalRow();
+
+        return row === null ? null : instance.toVisualRow(row);
+      },
+      getVisualColumn() {
+        if (visualColumn === undefined) {
+          return undefined;
+        }
+
+        if (prop === null) {
+          return visualColumn;
+        }
+
+        if (column !== null) {
+          return column.physicalColumn === null ? null : instance.toVisualColumn(column.physicalColumn);
+        }
+
+        const followedColumn = datamap.propToCol(prop as string | number);
+
+        if (typeof followedColumn === 'number') {
+          return followedColumn;
+        }
+
+        return followedColumn === null ? null : visualColumn;
+      },
+      release() {
+        if (anchor !== null) {
+          recordTracker.release(anchor.record);
+          anchor = null;
+        }
+
+        if (column !== null) {
+          columnTracking.tracker.release(column);
+          column = null;
+        }
+      },
+    };
+  };
+
+  /**
+   * Adds a function that is told when a change set is dropped: the set waited for its validators while
+   * `loadData()` replaced the data, so it is never applied and fires no `beforeChangeRender` and no
+   * `afterChange` (see `validateAndApplyChanges()`). The function receives the change array the other
+   * change hooks received, the change source, and the changes of the set a validator rejected under
+   * `allowInvalid: false` (taken out of that array before the drop, so a listener that writes the set again
+   * can still tell what the user asked for). It is for a plugin that acted on a change before
+   * validation and has to take that back: the Formulas plugin writes a change into the engine from
+   * `afterSetDataAtCell`. Adding a function that is already there changes nothing.
+   *
+   * @private
+   * @param {Function} listener The function to add.
+   */
+  this._addDroppedChangesListener = function(
+    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
+  ) {
+    if (!droppedChangesListeners.includes(listener)) {
+      droppedChangesListeners.push(listener);
+    }
+  };
+
+  /**
+   * Removes a function `_addDroppedChangesListener()` added. Removing one that is not there changes
+   * nothing.
+   *
+   * @private
+   * @param {Function} listener The function to remove.
+   */
+  this._removeDroppedChangesListener = function(
+    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
+  ) {
+    const index = droppedChangesListeners.indexOf(listener);
+
+    if (index !== -1) {
+      droppedChangesListeners.splice(index, 1);
+    }
+  };
+
+  /**
+   * Adds a function that can bring a row a hiding feature of its own keeps off screen back into view, the
+   * Pagination plugin's page change. Core calls it when a reveal is prepared (`_prepareRowReveal()`), and it
+   * returns the function that does the reveal later: that one receives a visual row and returns `true` when it
+   * changed what is shown so the row can be rendered. The feature decides there whether the reveal still applies
+   * to what it showed when the reveal was prepared. Adding a function that is already there changes nothing.
+   *
+   * @private
+   * @param {Function} revealer The function to add.
+   */
+  this._addRowRevealer = function(revealer: () => (visualRow: number) => boolean) {
+    if (!rowRevealers.includes(revealer)) {
+      rowRevealers.push(revealer);
+    }
+  };
+
+  /**
+   * Removes a function `_addRowRevealer()` added. Removing one that is not there changes nothing.
+   *
+   * @private
+   * @param {Function} revealer The function to remove.
+   */
+  this._removeRowRevealer = function(revealer: () => (visualRow: number) => boolean) {
+    const index = rowRevealers.indexOf(revealer);
+
+    if (index !== -1) {
+      rowRevealers.splice(index, 1);
+    }
+  };
+
+  /**
+   * Prepares a reveal of a row with the functions `_addRowRevealer()` added, each told what is shown now. The
+   * returned function asks them, in the order they were added, to bring a visual row into view until the row can
+   * be rendered. Only an editor that waits for its validator prepares one (`BaseEditor`), when the wait starts, and
+   * uses it when a rejected value reopens the editor on its record: a plain `selectCell()` on a row off screen keeps
+   * doing what it did.
+   *
+   * @private
+   * @returns {Function} Takes a visual row and returns whether that row can be rendered now.
+   */
+  this._prepareRowReveal = function(): (visualRow: number) => boolean {
+    const reveals = rowRevealers.map(revealer => revealer());
+
+    return (visualRow: number): boolean => {
+      const isRenderable = () => instance.rowIndexMapper.getRenderableFromVisualIndex(visualRow) !== null;
+
+      if (isRenderable()) {
+        return true;
+      }
+
+      for (const reveal of reveals) {
+        if (reveal(visualRow) && isRenderable()) {
+          return true;
+        }
+      }
+
+      return false;
+    };
   };
 
   /**
@@ -5459,30 +7487,111 @@ export default function Core(
   };
 
   /**
-   * Reads what decides the columns of a grid without a `columns` option: the number of columns the schema or the
-   * data resolves to, and the property each one reads.
+   * Tells a plugin whether its ready step runs in the grid's init pass: before the `init` hook and the first
+   * render, with the renders the steps ask for held. A step that needs a drawn grid leaves that work to the
+   * first render then.
    *
    * @private
+   * @returns {boolean}
+   */
+  this._isRunningInitReadySteps = function() {
+    return initReadyStepsRunning;
+  };
+
+  /**
+   * Reads what decides the columns of a grid: the number of columns the `columns` option, the schema, or the data
+   * resolves to, and the property each one reads.
+   *
+   * @private
+   * @param {boolean} [cappedByMapper] `true` to read the layout the index mappers were built for: the count never
+   * exceeds their length. A wrapper may append to the array it passed as `columns` before it calls
+   * `updateSettings()`, so the grid already counts the new column while its mappers and property cache do not. The
+   * mappers can only be longer than the layout (the `min*` options append columns), never shorter, so the cap
+   * leaves every other read as it was.
+   * @param {boolean} [fillIndexHoles] `true` to name a column without `data` by its own index when the rows are
+   * arrays, as the `columns` path compares layouts.
    * @returns {ColumnLayout}
    */
-  function readColumnLayout(): ColumnLayout {
+  function readColumnLayout(cappedByMapper = false, fillIndexHoles = false): ColumnLayout {
+    const initialCount = instance.getInitialColumnCount();
+    const count = cappedByMapper ?
+      Math.min(initialCount, instance.columnIndexMapper.getNumberOfIndexes()) :
+      initialCount;
+    const props = datamap.colToPropCache.slice();
+
+    if (fillIndexHoles && instance.dataType === 'array') {
+      // On rows that are arrays, a column without `data` reads the source column at its own index, so it names the
+      // same property as `data: <index>` does.
+      for (let index = 0; index < count; index += 1) {
+        if (props[index] === undefined) {
+          props[index] = index;
+        }
+      }
+    }
+
+    return { count, props };
+  }
+
+  /**
+   * Reads the sort and the filter conditions the grid holds, as they stand before the column state starts over.
+   *
+   * @private
+   * @returns {object} The sorting plugin that holds a sort and the Filters plugin that holds conditions, `null` for
+   * each one that does not.
+   */
+  function readRowStateOfColumns() {
+    const sortingPlugins = [instance.getPlugin('columnSorting'), instance.getPlugin('multiColumnSorting')];
+    const filters = instance.getPlugin('filters') as FiltersPluginLike | undefined;
+
     return {
-      count: instance.getInitialColumnCount(),
-      props: datamap.colToPropCache.slice(),
+      sorting: (sortingPlugins as (SortingPluginLike | undefined)[])
+        .find(plugin => plugin?.isSorted() === true) ?? null,
+      filters: filters?.enabled === true && filters.exportConditions().length > 0 ? filters : null,
     };
   }
 
   /**
+   * Clears the sort and the filter conditions that the column state restart of the last data update left behind. The
+   * column states are gone by now, so a sort returns the rows to their unsorted order and the cleared filter shows the
+   * rows it trimmed, and the indicators match the rows.
+   *
+   * @private
+   */
+  function clearRowStateAfterDataUpdate(): void {
+    const rowState = rowStateToClearAfterDataUpdate;
+
+    rowStateToClearAfterDataUpdate = null;
+    rowState?.sorting?.clearSort();
+
+    if (rowState?.filters) {
+      rowState.filters.clearConditions();
+      rowState.filters.filter();
+    }
+  }
+
+  /**
    * Checks whether a settings update changed the columns the grid resolves, comparing them with the layout read
-   * before the update. A grid with a `columns` option has its columns decided by that option, not by the schema.
+   * before the update.
    *
    * @private
    * @param {ColumnLayout|null} previousLayout The layout read before the update, `null` when the update could not
    * change it.
+   * @param {boolean} [tolerateAppend] `true` for the `columns` path: columns added after the existing ones, or
+   * dropped from the end, leave the layout as it was, because the `columns` option names every column and the
+   * ones that remain keep their place.
    * @returns {boolean}
    */
-  function hasColumnLayoutChanged(previousLayout: ColumnLayout | null): boolean {
-    return previousLayout !== null && !tableMeta.columns && !isSameColumnLayout(previousLayout, readColumnLayout());
+  function hasColumnLayoutChanged(previousLayout: ColumnLayout | null, tolerateAppend = false): boolean {
+    if (previousLayout === null) {
+      return false;
+    }
+
+    const layout = readColumnLayout(false, tolerateAppend);
+    const isUnchanged = tolerateAppend ?
+      isColumnLayoutKept(previousLayout, layout) :
+      isSameColumnLayout(previousLayout, layout);
+
+    return !isUnchanged;
   }
 
   /**
@@ -5491,7 +7600,7 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    */
-  function assertSupportedSettings(settings: Partial<GridSettings>): void {
+  function assertSupportedSettings(settings: SettingsUpdate): void {
     if (isDefined(settings.rows)) {
       throwWithCause('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
     }
@@ -5506,27 +7615,13 @@ export default function Core(
   }
 
   /**
-   * Warns when `rowHeights` and its alias `minRowHeights` are both configured.
-   *
-   * @private
-   * @param {object} settings A settings object (see {@link Options}).
-   */
-  function warnAboutRowHeightsAlias(settings: Partial<GridSettings>): void {
-    if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
-      warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
-        'As one is the alias of the other, only one of them can be used at a time. ' +
-        '`rowHeights` will be used as the row height configuration.');
-    }
-  }
-
-  /**
    * Writes one option of an `updateSettings()` payload onto the global meta.
    *
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {string} key The name of the option to write.
    */
-  function applyUpdatedSetting(settings: Partial<GridSettings>, key: string): void {
+  function applyUpdatedSetting(settings: SettingsUpdate, key: string): void {
     // An `editor` of `true` names no editor, so it reads as "the setting was not passed" — and a
     // setting that is not passed leaves the previous value alone. Writing the boolean here would
     // bypass `normalizeEditorSetting()`, which only runs on the layer `updateMeta` calls, and
@@ -5549,8 +7644,8 @@ export default function Core(
     // That creates an own property which shadows the global value written above, so a later
     // `updateSettings()` would be ignored. Drop the shadow when the value really changes. A wrapper
     // re-sends every prop on each commit, and an unchanged value must not undo the state kept there.
-    // Only the frozen counts are handled: other own table-meta values (the Loading plugin's `dialog`,
-    // the theme options) are shadows kept on purpose.
+    // Only the frozen counts are handled: other own table-meta values (the theme options) are shadows
+    // kept on purpose.
     if (FROZEN_COUNT_OPTIONS.has(key) && settings[key] !== previousValue) {
       Reflect.deleteProperty(tableMeta, key);
 
@@ -5569,9 +7664,16 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
+   * @returns {boolean} `true` when the payload changed the grid-level `type` to another one.
    */
-  function mergeSettingsIntoMeta(settings: Partial<GridSettings>, init: boolean): void {
+  function mergeSettingsIntoMeta(settings: SettingsUpdate, init: boolean): boolean {
     let i;
+
+    // An init-only option refuses an update, so a payload that names one is refused as a whole, before
+    // the options in front of it are written.
+    if (!init) {
+      metaManager.assertNoInitOnlyUpdates(settings as Record<string, unknown>);
+    }
 
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
@@ -5587,12 +7689,20 @@ export default function Core(
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
-        registerSettingsHook(i, settings[i] as HookCallback | HookCallback[] | undefined);
+        registerSettingsHook(i, settings[i] as HookCallback | HookCallback[] | null | undefined);
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
         applyUpdatedSetting(settings, i);
       }
     }
+
+    // The loop above writes the options one by one, and `type` is only a name there. Expand it once all of
+    // them are in, so an `editor`, `renderer` or `validator` of the same payload wins over the type.
+    if (init) {
+      return false;
+    }
+
+    return metaManager.updateGlobalTypeFromSettings(settings as Record<string, unknown>);
   }
 
   /**
@@ -5606,7 +7716,7 @@ export default function Core(
    * @param {boolean} themeNameOptionExists Whether the payload names `themeName`.
    */
   function initializeTheme(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     rootContainerThemeClassName: string | undefined,
     themeOptionExists: boolean,
     themeNameOptionExists: boolean
@@ -5653,7 +7763,7 @@ export default function Core(
       let themeObject;
 
       if (typeof (theme as { getThemeConfig?: () => unknown }).getThemeConfig !== 'function') {
-        themeObject = registerTheme(theme);
+        themeObject = registerTheme(theme as Parameters<typeof registerTheme>[0]);
       } else {
         themeObject = theme as ThemeBuilder;
       }
@@ -5674,7 +7784,7 @@ export default function Core(
    * @param {boolean} themeNameOptionExists Whether the payload names `themeName`.
    */
   function updateTheme(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     rootContainerThemeClassName: string | undefined,
     themeOptionExists: boolean,
     themeNameOptionExists: boolean
@@ -5716,7 +7826,7 @@ export default function Core(
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
    */
-  function applyThemeSettings(settings: Partial<GridSettings>, init: boolean): void {
+  function applyThemeSettings(settings: SettingsUpdate, init: boolean): void {
     const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
     const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
     const themeOptionExists = hasOwnProperty(settings, 'theme');
@@ -5749,7 +7859,7 @@ export default function Core(
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} isCellOptionRestated Whether the payload restates `cell` as an array.
    */
-  function warnAboutInvalidCellOption(settings: Partial<GridSettings>, isCellOptionRestated: boolean): void {
+  function warnAboutInvalidCellOption(settings: SettingsUpdate, isCellOptionRestated: boolean): void {
     if (settings.cell !== undefined && settings.cell !== null && !isCellOptionRestated) {
       warnOnce(instance.rootElement, 'Core.invalidCellOption',
         'The "cell" option must be an array of objects. The passed value was ignored, and the previously ' +
@@ -5767,6 +7877,36 @@ export default function Core(
     entries.forEach(({ physicalRow, physicalColumn, key, value }) => {
       metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
     });
+  }
+
+  /**
+   * Writes back the cell meta a caller kept with a set of rows (see `_applySettingsAndData()`). An entry is
+   * dropped when its row or column is not part of the loaded data: past the end, or one the load appended to
+   * reach `minRows`, `minSpareRows`, `minCols` or `minSpareCols`. The caller's data can be shorter than when
+   * the meta was kept, and meta written there would land on a filler row, or on a row an `auto` append adds
+   * later, since an `auto` insert shifts no meta. A row that was a filler when the meta was set is part of
+   * the caller's data by the time it comes back, so it keeps its meta.
+   *
+   * The fillers are the last ones inside the source data (`DataMap#isTrailingFillerRow`/`Column` past the
+   * source size answers `true` with no filler at all), so a column a `columns` entry adds past the width of
+   * the data is not taken for one.
+   *
+   * @private
+   * @param {object} keptCellMetas The user-set meta and the invalid marks to write back.
+   */
+  function replayKeptCellMetas(keptCellMetas: KeptCellMetas): void {
+    const rowCount = instance.rowIndexMapper.getNumberOfIndexes();
+    const columnCount = instance.columnIndexMapper.getNumberOfIndexes();
+    const sourceRowCount = instance.countSourceRows();
+    const sourceColumnCount = instance.countSourceCols();
+    const isFiller = ({ physicalRow, physicalColumn }: { physicalRow: number, physicalColumn: number }) =>
+      (physicalRow < sourceRowCount && datamap.isTrailingFillerRow(physicalRow)) ||
+      (physicalColumn < sourceColumnCount && datamap.isTrailingFillerColumn(physicalColumn));
+    const isLoaded = (entry: { physicalRow: number, physicalColumn: number }) =>
+      entry.physicalRow < rowCount && entry.physicalColumn < columnCount && !isFiller(entry);
+
+    replayCellMetas(keptCellMetas.userDefined.filter(isLoaded));
+    metaManager.restoreInvalidCellMetas(keptCellMetas.invalid.filter(isLoaded));
   }
 
   /**
@@ -5878,7 +8018,7 @@ export default function Core(
    * early (`null` when none was), and whether the column meta was reset for a form that cannot be.
    */
   function applyColumnMetaBeforeLoad(
-    settings: Partial<GridSettings>, isCellOptionRestated: boolean, defersDataWork: boolean
+    settings: SettingsUpdate, isCellOptionRestated: boolean, defersDataWork: boolean
   ): { earlyColumnsSetting: unknown[] | null, resetsColumnMetaBeforeLoad: boolean } {
     const earlyColumnsSetting = settings.columns !== undefined && Array.isArray(tableMeta.columns)
       ? tableMeta.columns
@@ -5910,22 +8050,32 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
+   * @param {object} previousDataSource The `dataProvider` value before the payload merged, and whether the grid
+   * was server-backed then.
    * @param {Function} dataUpdateFunction `loadData()` on the first run, `updateData()` after it.
    */
   function applyExternalDataPhase(
-    settings: Partial<GridSettings>, init: boolean, dataUpdateFunction: (data: unknown[], source: string) => void
+    settings: SettingsUpdate,
+    init: boolean,
+    previousDataSource: PreviousDataSource,
+    dataUpdateFunction: (data: unknown[], source: string) => void
   ): void {
     // When dataProvider is a complete server-backed config, ignore static data, the plugin loads rows.
     if (settings.data) {
       warn('The "data" setting is ignored when "hasExternalDataSource" returns `true`.');
     }
 
-    // Replace the in-memory placeholder only when the update touches init, `data`, or `dataProvider`. Otherwise
-    // `updateData([], …)` would empty the grid without a refetch, because DataProvider runs `updatePlugin` only when
-    // `dataProvider` is present in this payload.
-    const shouldSyncExternalPlaceholderData = init ||
-      hasOwnProperty(settings, 'data') ||
-      hasOwnProperty(settings, 'dataProvider');
+    // Replace the in-memory placeholder only when DataProvider fetches the rows again: at init, or when the update
+    // sends `dataProvider` and replaces it, turns the grid server-backed (an object completed in place and sent
+    // again), or sends the same object beside `columns`. A payload without `dataProvider` does not re-apply the
+    // plugin, and a `data` payload or the same object sent alone does not refetch, so either would empty the grid
+    // with nothing to refill it. With `columns`, the placeholder also keeps the index maps, and so the sort the
+    // refetch reads, which the `columns` branch below would re-initialize.
+    const shouldSyncExternalPlaceholderData = init || (hasOwnProperty(settings, 'dataProvider') && (
+      !previousDataSource.isExternal ||
+      settings.dataProvider !== previousDataSource.dataProvider ||
+      settings.columns !== undefined
+    ));
 
     if (shouldSyncExternalPlaceholderData) {
       dataUpdateFunction([], 'updateSettings');
@@ -5944,28 +8094,40 @@ export default function Core(
    * @param {boolean} init `true` while the grid initializes.
    * @param {ColumnLayout|null} previousColumnLayout The column layout read before the payload merged, `null`
    * when the payload could not change it.
+   * @param {object} previousDataSource The `dataProvider` value before the payload merged, and whether the grid
+   * was server-backed then.
    * @param {Function} dataUpdateFunction `loadData()` on the first run, `updateData()` after it.
    */
   function applyDataPhase(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     init: boolean,
     previousColumnLayout: ColumnLayout | null,
+    previousDataSource: PreviousDataSource,
     dataUpdateFunction: (data: unknown[], source: string) => void
   ): void {
     // Load data or create data map
     if (instance.runHooks('hasExternalDataSource') === true) {
-      applyExternalDataPhase(settings, init, dataUpdateFunction);
+      applyExternalDataPhase(settings, init, previousDataSource, dataUpdateFunction);
 
     } else if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null as unknown as unknown[], 'updateSettings'); // data source created just now
 
     } else if (settings.data !== undefined) {
-      dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
+      // `updateData()` keeps the index state, which would now apply to the properties of a new schema or to the
+      // columns of a new `columns` option. A wrapper sends `data` with every call, so `columns` reaches this branch
+      // beside it. The replacement compares the layouts and starts the state over when they differ. Columns added
+      // after the existing ones keep their place, and with them the state.
+      pendingColumnLayoutCheck = previousColumnLayout === null ?
+        null :
+        { previousLayout: previousColumnLayout, columnsPath: settings.columns !== undefined };
 
-      // `updateData()` keeps the index state, which would now apply to the properties of a new schema.
-      if (hasColumnLayoutChanged(previousColumnLayout)) {
-        instance.initIndexMappers();
+      try {
+        dataUpdateFunction(settings.data, 'updateSettings'); // data source given as option
+      } finally {
+        pendingColumnLayoutCheck = null;
       }
+
+      clearRowStateAfterDataUpdate();
 
     } else if (settings.columns !== undefined) {
       datamap.createMap();
@@ -6021,12 +8183,18 @@ export default function Core(
    * @param {boolean} isCellOptionRestated Whether the call restates the `cell` option.
    * @param {Array|null} restoredCellOptionMetas `cell`-option meta, by physical indexes, to put back instead of
    * applying `settings.cell` (see `_applySettingsAndData()`).
+   * @param {object|null} keptCellMetas The user-set meta and invalid marks to put back (see `_applySettingsAndData()`).
+   * @param {boolean} gridTypeChanged Whether the call changed the grid-level `type` to another one. The cells already
+   * drawn keep what the previous type's renderer wrote onto their meta (the numeric alignment class, the checkbox
+   * templates), so they are reset the way a `columns` change resets them.
    */
   function applyMetaPhase(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     columnPhase: { earlyColumnsSetting: unknown[] | null, resetsColumnMetaBeforeLoad: boolean },
     isCellOptionRestated: boolean,
-    restoredCellOptionMetas: CellOptionMetaEntry[] | null
+    restoredCellOptionMetas: CellOptionMetaEntry[] | null,
+    keptCellMetas: KeptCellMetas | null,
+    gridTypeChanged: boolean
   ): void {
     const { earlyColumnsSetting, resetsColumnMetaBeforeLoad } = columnPhase;
     const clen = instance.countCols();
@@ -6034,7 +8202,8 @@ export default function Core(
     // Clear the meta caches, unless the early column pass (`applyColumnMetaBeforeLoad()`) already did it for this
     // call.
     if (earlyColumnsSetting === null && !resetsColumnMetaBeforeLoad &&
-        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined)) {
+        (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined ||
+          gridTypeChanged)) {
       resetMetaCaches(isCellOptionRestated);
     }
 
@@ -6048,6 +8217,12 @@ export default function Core(
       applyColumnMeta(clen);
     }
 
+    // Before the `cell` option, for the reason `resetMetaCaches()` gives: a restated `cell` entry wins
+    // over a value the user set on the same key.
+    if (keptCellMetas !== null) {
+      replayKeptCellMetas(keptCellMetas);
+    }
+
     if (restoredCellOptionMetas !== null) {
       recordCellOptionMeta(() => replayCellMetas(restoredCellOptionMetas));
 
@@ -6059,15 +8234,29 @@ export default function Core(
   }
 
   /**
+   * Checks whether a payload sends `columns` beside `data`, as a wrapper does with every change of its columns.
+   * The function form is left out: counting its columns calls the user's function once per source column, and a
+   * wrapper that writes it inline would pay that twice on every render.
+   *
+   * @private
+   * @param {object} settings A settings object (see {@link Options}).
+   * @returns {boolean}
+   */
+  function isColumnsPayloadWithData(settings: SettingsUpdate): boolean {
+    return settings.data !== undefined && settings.columns !== undefined &&
+      !isFunction(settings.columns) && !isFunction(tableMeta.columns);
+  }
+
+  /**
    * Reads the state an `updateSettings()` call must compare against, before the payload merges into the table meta.
    *
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    * @param {boolean} init `true` while the grid initializes.
-   * @returns {object} The `min*` sizes, the column layout (`null` when the payload cannot change it) and the root
-   * `height` and `width` as they stand.
+   * @returns {object} The `min*` sizes, the column layout (`null` when the payload cannot change it), the root
+   * `height` and `width`, and the `dataProvider` value and whether the grid is server-backed, as they stand.
    */
-  function readSettingsBaseline(settings: Partial<GridSettings>, init: boolean) {
+  function readSettingsBaseline(settings: SettingsUpdate, init: boolean) {
     return {
       // A lowered minimum is compared with the value that sized the grid.
       previousMinimumSizes: {
@@ -6076,18 +8265,26 @@ export default function Core(
         minCols: tableMeta.minCols,
         minSpareCols: tableMeta.minSpareCols,
       },
-      // A call that carries `dataSchema` may change the columns the grid resolves, and the data phase can only tell
-      // by comparing them with the ones the grid has now. Without `columns`, the schema decides both the number of
-      // columns and the property each one reads. The key counts even when its value is `undefined`, which falls back
-      // to the schema read off the data.
-      previousColumnLayout: !firstRun && !tableMeta.columns &&
-        hasOwnProperty(settings, 'dataSchema') ? readColumnLayout() : null,
+      // A call that carries `dataSchema`, or `columns` beside `data`, may change the columns the grid resolves, and
+      // the data phase can only tell by comparing them with the ones the grid has now. Without `columns`, the schema
+      // decides both the number of columns and the property each one reads. The key counts even when its value is
+      // `undefined`, which falls back to the schema read off the data. A call with `columns` and no `data` starts
+      // the index state over on its own branch, so it needs no baseline. A `columns` function is never compared (see
+      // `isColumnsPayloadWithData()`), also beside a `dataSchema` on a grid that had no `columns`.
+      previousColumnLayout: !firstRun && (
+        (!tableMeta.columns && hasOwnProperty(settings, 'dataSchema') && !isFunction(settings.columns)) ||
+        isColumnsPayloadWithData(settings)
+      ) ? readColumnLayout(true, isColumnsPayloadWithData(settings)) : null,
       // The stored `height` and `width` before this call. An unreadable value is ignored by
       // `applyRootSize()`, and the stored setting must stay on the size the grid uses. On init the
       // meta already holds the user's value, so the fallback is the schema default, `undefined` for both.
       previousRootSize: {
         height: init ? undefined : tableMeta.height,
         width: init ? undefined : tableMeta.width,
+      },
+      previousDataSource: {
+        dataProvider: tableMeta.dataProvider,
+        isExternal: !init && hadExternalDataSource,
       },
     };
   }
@@ -6128,7 +8325,7 @@ export default function Core(
    * @returns {object} The outcome of `applyRootSize()`.
    */
   function applyRootSizeSettings(
-    settings: Partial<GridSettings>,
+    settings: SettingsUpdate,
     init: boolean,
     previousRootSize: { height: unknown, width: unknown }
   ): ReturnType<typeof applyRootSize> {
@@ -6148,16 +8345,109 @@ export default function Core(
    * @private
    * @param {object} settings A settings object (see {@link Options}).
    */
-  function notifySettingsUpdated(settings: Partial<GridSettings>): void {
+  function notifySettingsUpdated(settings: SettingsUpdate): void {
     if (instance.view) {
       instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
       instance.view._wt.exportSettingsAsClassNames();
       instance.view.invalidateIndexSizesCache();
+      // `_getRowHeightFromSettings` answers from the new settings at once, so the engine has to follow
+      // before a scroll draw that a suspended render does not stop.
+      instance.view.syncRowHeightMode();
     }
 
     selection.updateHighlightClassNames();
     instance.renderChangeTracker.markAllChanged();
     instance.runHooks('afterUpdateSettings', settings);
+
+    // After the hook, so a plugin a listener turned on or off is picked up too. A scroll draw that a suspended
+    // render does not stop must already know who measures the rows. A listener may have destroyed the grid.
+    if (instance && !instance.isDestroyed && instance.view) {
+      instance.view.syncExternalRowCalculator();
+    }
+  }
+
+  /**
+   * Runs a callback with rendering held and puts the hold back without a render. A step that renders
+   * (a sort, a cell write, a data load) only marks the next render as full, so a caller whose own render
+   * follows draws once. The counter is restored directly, never through `resumeRender()`, which would paint
+   * once more.
+   *
+   * @private
+   * @param {Function} callback The work to run while rendering is held.
+   * @param {boolean} keepsEntryHold `true` to never restore the counter below the value it had on entry, so a
+   * step that resumes once too often cannot release a suspension made before the call (the plugins' ready
+   * steps at init). `false` to floor it at zero, so a listener that resumes the caller's own suspension takes
+   * it away, as it would outside this call, and the render that follows is free to paint.
+   */
+  function holdRenderWhile(callback: () => void, keepsEntryHold: boolean): void {
+    const renderState = instance as HotInstance & CoreInternals;
+    const suspendedBefore = renderState.renderSuspendedCounter;
+
+    renderState.renderSuspendedCounter = suspendedBefore + 1;
+
+    try {
+      callback();
+    } finally {
+      // Never below the floor: the counter must not go negative, because the next `suspendRender()` would not
+      // hold. A suspension a step or listener made on its own is kept for its own `resumeRender()`.
+      renderState.renderSuspendedCounter = Math.max(
+        renderState.renderSuspendedCounter - 1,
+        keepsEntryHold ? suspendedBefore : 0
+      );
+    }
+  }
+
+  /**
+   * Paints the new rows when a settings call that carries `data` throws after its data phase. The data load no
+   * longer paints on its own, so a listener that throws before `fitGridToSettings()` would leave the old rows on
+   * screen over the new data. A failure of the paint itself is not reported: the error that ended the call is.
+   * Only a `data` payload painted in the middle of a call before, so a `columns`, `dataSchema` or `dataProvider`
+   * payload needs no repaint here.
+   *
+   * @private
+   * @param {object} settings The settings of the call that threw.
+   * @param {boolean} init `true` while the grid initializes.
+   */
+  function repaintAfterFailedDataCall(settings: SettingsUpdate, init: boolean): void {
+    if (init || firstRun || settings.data === undefined || !instance.view || instance.isDestroyed) {
+      return;
+    }
+
+    try {
+      instance.render();
+    } catch {
+      // The error that ended the call is the one to report.
+    }
+  }
+
+  /**
+   * Runs the data phase of a settings call without painting. The data load renders on its own, and
+   * `fitGridToSettings()` renders after the meta phase, so a call that carries `data` would paint the grid
+   * twice. The grid being built renders at the end of its init pass, so it is left alone, and so is a payload
+   * without `data`, `columns`, `dataSchema` or `dataProvider`: it paints nothing in the middle of the call, and
+   * clearing the cell meta memo for it would make every meta read inside a `batch()` or `suspendRender()` run
+   * the `cells` function and the meta hooks again.
+   *
+   * @private
+   * @param {object} settings The settings of the call.
+   * @param {Function} dataPhase The data phase.
+   */
+  function runDataPhaseWithoutRender(settings: SettingsUpdate, dataPhase: () => void): void {
+    const canChangeData = ['data', 'columns', 'dataSchema', 'dataProvider']
+      .some(key => hasOwnProperty(settings, key));
+
+    if (firstRun || !canChangeData) {
+      dataPhase();
+
+      return;
+    }
+
+    holdRenderWhile(dataPhase, false);
+
+    // The held render also skipped the start of a full render, which makes each stored cell meta run its
+    // dynamic extension again. Without it a `cells()` function or an `afterGetCellMeta` listener that reads
+    // values keeps its result for the old data until the call's own render.
+    metaManager.invalidateMetaExtensions();
   }
 
   /**
@@ -6175,6 +8465,9 @@ export default function Core(
     }
 
     grid.adjustRowsAndCols();
+    // The ready steps this call made the plugins owe, run before its render. The call itself holds one pass,
+    // so a call nested in another pass leaves them to the outermost one.
+    runOwedReadySteps(1);
 
     if (instance.view && !firstRun) {
       instance.render();
@@ -6198,11 +8491,17 @@ export default function Core(
    * @param {boolean} [defersDataWork=false] Whether the data the settings describe is loaded after this call.
    * @param {Array|null} [restoredCellOptionMetas=null] `cell`-option meta, by physical indexes, to put back in
    * the meta phase instead of applying `settings.cell` (see `_applySettingsAndData()`).
+   * @param {object|null} [keptCellMetas=null] The user-set meta and invalid marks to put back in the meta phase
+   * (see `_applySettingsAndData()`).
+   * @param {object} [notifiedSettings] The settings `afterUpdateSettings` receives, `settings` by default: the
+   * caller's key names where core applies a normalized payload (`withCallerFixedColumnsName()`).
    * @returns {Function|null} The held-back meta phase, or `null` when it ran.
    */
   function applySettings(
-    settings: Partial<GridSettings>, init: boolean, defersDataWork = false,
-    restoredCellOptionMetas: CellOptionMetaEntry[] | null = null
+    settings: SettingsUpdate, init: boolean, defersDataWork = false,
+    restoredCellOptionMetas: CellOptionMetaEntry[] | null = null,
+    keptCellMetas: KeptCellMetas | null = null,
+    notifiedSettings: SettingsUpdate = settings,
   ): (() => void) | null {
     const dataUpdateFunction = (firstRun ? instance.loadData : instance.updateData).bind(instance);
 
@@ -6213,11 +8512,12 @@ export default function Core(
     columnsSettingIndexes = null;
 
     // Read before the payload merges into the table meta.
-    const { previousMinimumSizes, previousColumnLayout, previousRootSize } = readSettingsBaseline(settings, init);
+    const {
+      previousMinimumSizes, previousColumnLayout, previousRootSize, previousDataSource,
+    } = readSettingsBaseline(settings, init);
 
-    warnAboutRowHeightsAlias(settings);
+    const gridTypeChanged = mergeSettingsIntoMeta(settings, init);
 
-    mergeSettingsIntoMeta(settings, init);
     applyThemeSettings(settings, init);
 
     const themeOverridesChanged = applyThemeOverrides(settings, init);
@@ -6237,14 +8537,19 @@ export default function Core(
     const columnPhase = applyColumnMetaBeforeLoad(settings, isCellOptionRestated, defersDataWork);
 
     if (!defersDataWork) {
-      applyDataPhase(settings, init, previousColumnLayout, dataUpdateFunction);
+      runDataPhaseWithoutRender(
+        settings,
+        () => applyDataPhase(settings, init, previousColumnLayout, previousDataSource, dataUpdateFunction)
+      );
     }
 
     if (!firstRun && settings.language) {
       setLanguage(settings.language);
     }
 
-    const metaPhase = () => applyMetaPhase(settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas);
+    const metaPhase = () => applyMetaPhase(
+      settings, columnPhase, isCellOptionRestated, restoredCellOptionMetas, keptCellMetas, gridTypeChanged
+    );
 
     if (!defersDataWork) {
       metaPhase();
@@ -6259,7 +8564,11 @@ export default function Core(
     const rootSize = applyRootSizeSettings(settings, init, previousRootSize);
 
     if (!init) {
-      notifySettingsUpdated(settings);
+      notifySettingsUpdated(notifiedSettings);
+
+      if (!instance || instance.isDestroyed) {
+        return null;
+      }
     }
 
     if (!defersDataWork) {
@@ -6267,6 +8576,10 @@ export default function Core(
     }
 
     finishSettingsUpdate(init, themeOverridesChanged, rootSize.scrollOwnerChanged);
+
+    if (init || hasOwnProperty(settings, 'dataProvider')) {
+      hadExternalDataSource = instance.runHooks('hasExternalDataSource') === true;
+    }
 
     return defersDataWork ? metaPhase : null;
   }
@@ -6313,6 +8626,9 @@ export default function Core(
    * grid to column to cell (see
    * [Cascading configuration](@/guides/configuration/configuration-options/configuration-options.md#cascading-configuration)).
    * To read the effective value for a specific cell, use {@link Core#getCellMeta}. To read column-level meta, use {@link Core#getColumnMeta}.
+   *
+   * A hook removed through `updateSettings({ <hook>: null })` reads back as `null`, so check a hook callback
+   * read from the returned object before you call it.
    *
    * @memberof Core#
    * @function getSettings
@@ -6467,7 +8783,8 @@ export default function Core(
 
   /**
    * Returns a TD element for the given `row` and `column` arguments, if it is rendered on screen.
-   * Returns `null` if the TD is not rendered on screen (probably because that part of the table is not visible).
+   * Returns `null` if the TD is not rendered on screen (probably because that part of the table is not visible),
+   * or if the grid has no view yet, as inside a hook that fires during initialization.
    *
    * @memberof Core#
    * @function getCell
@@ -6478,6 +8795,10 @@ export default function Core(
    * @returns {HTMLTableCellElement|null} The cell's TD element.
    */
   this.getCell = function(row: number, column: number, topmost = false) {
+    if (!instance.view) {
+      return null;
+    }
+
     let renderableColumnIndex: number | null = column; // Handling also column headers.
     let renderableRowIndex: number | null = row; // Handling also row headers.
 
@@ -6527,6 +8848,11 @@ export default function Core(
    * ```
    */
   this.getCoords = function(element: HTMLElement) {
+    // No element is rendered before the view exists (a hook fired during initialization).
+    if (!instance.view) {
+      return null;
+    }
+
     const renderableCoords = instance.view._wt.wtTable.getCoords(element) as CellCoords | null;
 
     if (renderableCoords === null) {
@@ -7040,12 +9366,19 @@ export default function Core(
   /**
    * Returns an array of column values from the data source.
    *
+   * The `column` argument is a visual index, so it follows moved and trimmed columns. A hidden column keeps
+   * its index. To read a column by its physical index, translate it first with {@link Core#toVisualColumn}.
+   * A trimmed column has no visual index, so this method cannot read it. For an array of arrays, read it
+   * with {@link Core#getSourceData} and a physical range.
+   *
+   * __Note__: {@link Core#setSourceDataAtCell} takes a physical column index, so a read and a write at the
+   * same number can address different columns.
+   *
    * @memberof Core#
    * @function getSourceDataAtCol
    * @param {number} column Visual column index.
    * @returns {Array} Array of the column's cell values.
    */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCol = function(column: number) {
     return dataSource.getAtColumn(column);
   };
@@ -7053,8 +9386,24 @@ export default function Core(
   /**
    * Set the provided value in the source data set at the provided coordinates.
    *
+   * This method fires [`afterSetSourceDataAtCell`](@/api/hooks.md#aftersetsourcedataatcell). It doesn't fire
+   * [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange), so a custom
+   * `source` never reaches those two hooks. To pass a custom `source` to `afterChange`, use
+   * [`setDataAtCell()`](@/api/core.md#setdataatcell) or
+   * [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop).
+   *
+   * The hook also lists a change that the [`sourceDataValidator`](@/api/options.md#sourcedatavalidator)
+   * rejects. When [`allowInvalid`](@/api/options.md#allowinvalid) is `false`, the grid doesn't store that
+   * value, but the `changes` array of the hook still lists it.
+   *
    * An open editor keeps what the user typed, unless the call writes the edited cell itself: then the
    * editor shows the new value.
+   *
+   * __Note__: this method takes physical row and column indexes. {@link Core#setDataAtCell} takes a visual
+   * row and a visual column, and {@link Core#setDataAtRowProp} takes a visual row. Swapping one call for the
+   * other with the same numbers can write to a different row when the grid is sorted or filtered. To
+   * translate an index, use {@link Core#toVisualRow} or {@link Core#toVisualColumn}. A trimmed row has no
+   * visual index, so neither of those two methods can write it.
    *
    * @memberof Core#
    * @function setSourceDataAtCell
@@ -7062,7 +9411,11 @@ export default function Core(
    * @param {number|string|Function} column Physical column index, prop name, or a `columns[].data`
    *   accessor function (called as `accessor(rowObject, value)`).
    * @param {*} value The value to be set at the provided coordinates.
-   * @param {string} [source] Source of the change as a string.
+   * @param {string} [source] Source of the change as a string. The method passes it to the
+   *   `afterSetSourceDataAtCell` hook. In the array form, pass it as the fourth argument
+   *   (`setSourceDataAtCell(changes, undefined, undefined, source)`): a source in the second
+   *   argument only reaches the undo step, and the hook gets `undefined`.
+   * @fires Hooks#afterSetSourceDataAtCell
    */
 
   this.setSourceDataAtCell = function(
@@ -7255,6 +9608,16 @@ export default function Core(
   /**
    * Returns a single value from the data source.
    *
+   * The `row` argument is a physical index. A numeric `column` is a visual index, so it follows moved and
+   * trimmed columns. A hidden column keeps its index. To read a column by its physical index, translate it
+   * first with {@link Core#toVisualColumn}, or, with an array of objects, pass the column's prop name. A
+   * trimmed column has no visual index: read it by its prop name with an array of objects, or with
+   * {@link Core#getSourceData} and a physical range with an array of arrays. An index past the last visible
+   * column is read as a physical index.
+   *
+   * __Note__: {@link Core#setSourceDataAtCell} takes a physical column index, so a read and a write at the
+   * same number can address different columns.
+   *
    * @memberof Core#
    * @function getSourceDataAtCell
    * @param {number} row Physical row index.
@@ -7262,7 +9625,6 @@ export default function Core(
    *   accessor function (called as `column(dataRow)`).
    * @returns {*} Cell data.
    */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCell = function(row: number, column: number | string | ColumnDataGetterSetterFunction) {
     return dataSource.getAtCell(row, column);
   };
@@ -7582,6 +9944,34 @@ export default function Core(
   };
 
   /**
+   * Writes a cell meta key by the PHYSICAL coordinates it is stored under, journaled for undo like
+   * {@link Core#setCellMeta}, and fires no `beforeSetCellMeta`/`afterSetCellMeta` hook, so it cannot be
+   * vetoed. It exists for a plugin that puts back meta it already owns, where the write is not an edit
+   * the application made: the plugin writes the same record the model already describes, and a listener
+   * that marks a document dirty or blocks edits on locked cells has nothing to act on.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type, the same way
+   * `_removeCellMetaByPhysicalIndex` is not.
+   *
+   * @private
+   * @memberof Core#
+   * @function _setCellMetaByPhysicalIndex
+   * @param {number} physicalRow Physical row index.
+   * @param {number} physicalColumn Physical column index.
+   * @param {string} key The property name to set.
+   * @param {*} value The value to write.
+   */
+  this._setCellMetaByPhysicalIndex = function(
+    physicalRow: number, physicalColumn: number, key: string, value: unknown
+  ) {
+    operationScope.run('set_cell_meta', undefined, () => {
+      writeCellMetaChange(physicalRow, physicalColumn, key, () => {
+        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+      });
+    });
+  };
+
+  /**
    * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
    *
    * This method updates internal cell metadata only. It does not repaint the grid. To reflect visual changes (such as
@@ -7867,9 +10257,16 @@ export default function Core(
    * Validates every cell in the data set,
    * using a [validator function](@/guides/cell-functions/cell-validator/cell-validator.md) configured for each cell.
    *
-   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md),
-   * [hidden](@/guides/rows/row-hiding/row-hiding.md), or [filtered](@/guides/columns/column-filter/column-filter.md),
+   * Doesn't validate cells that are currently [trimmed](@/guides/rows/row-trimming/row-trimming.md)
+   * or [filtered](@/guides/columns/column-filter/column-filter.md),
    * as such cells are not included in the data set until you bring them back again.
+   *
+   * Does validate rows hidden with [`HiddenRows`](@/api/hiddenRows.md) and columns hidden with
+   * [`HiddenColumns`](@/api/hiddenColumns.md). Those cells stay in the data set.
+   *
+   * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
+   * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
+   * applied first, as before.
    *
    * After the validation, the `callback` function is fired, with the `valid` argument set to:
    * - `true` for valid cells
@@ -7897,6 +10294,10 @@ export default function Core(
    * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
    *  would equal `true`.
    *
+   * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
+   * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
+   * applied first, as before.
+   *
    * @memberof Core#
    * @function validateRows
    * @param {Array} [rows] Array of validation target visual row indexes.
@@ -7922,6 +10323,10 @@ export default function Core(
    *
    * If one of the cells is invalid, the callback will be fired with `'valid'` arguments as `false` - otherwise it
    *  would equal `true`.
+   *
+   * An `autocomplete`, `dropdown`, or `multiselect` cell is validated on the value it stores, the same
+   * value an edit validates. A [`valueGetter`](@/api/options.md#valuegetter) you configure yourself is
+   * applied first, as before.
    *
    * @memberof Core#
    * @function validateColumns
@@ -7989,7 +10394,8 @@ export default function Core(
         const column = j;
         const cellMeta = instance.getCellMetaTransient(row, column);
 
-        instance.validateCell(instance.getDataAtCell(row, column), cellMeta, (result: boolean) => {
+        // The value an edit of the cell would validate (`getValueToValidate()`).
+        instance.validateCell(getValueToValidate(row, column, cellMeta), cellMeta, (result: boolean) => {
           if (typeof result !== 'boolean') {
             throwWithCause('Validation error: result is not boolean');
           }
@@ -8011,6 +10417,12 @@ export default function Core(
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
+
+        // A `beforeValidate` listener destroyed the grid, so no other cell is validated.
+        if (!instance) {
+          return;
+        }
+
         j -= 1;
       }
       i -= 1;
@@ -8026,6 +10438,7 @@ export default function Core(
    * @function getRowHeader
    * @param {number} [row] Visual row index.
    * @fires Hooks#modifyRowHeader
+   * @fires Hooks#modifyRowHeaderValue
    * @returns {Array|string|number} Array of header values / single header value.
    */
   this.getRowHeader = function(row: number) {
@@ -8052,6 +10465,10 @@ export default function Core(
 
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
       rowHeader = physicalRow + 1;
+    }
+
+    if (row !== undefined) {
+      rowHeader = instance.runHooks('modifyRowHeaderValue', rowHeader, row);
     }
 
     return rowHeader as string | string[];
@@ -8087,6 +10504,16 @@ export default function Core(
 
     return false;
   };
+
+  /**
+   * What `hasExternalDataSource` answered at the end of the last settings update that sent `dataProvider` (or
+   * at init). A payload without `dataProvider` does not re-apply the plugin, so an object completed in place
+   * and followed by such an update has not been fetched yet, and recording that answer would skip the
+   * placeholder when the object is sent again. A settings update compares it with the answer
+   * for its own payload, because a `dataProvider` object completed in place answers `true` even before the payload
+   * merges, and only the earlier answer shows that the grid was not server-backed yet.
+   */
+  let hadExternalDataSource = false;
 
   /**
    * Caches the index translation that `getColHeader` derives from the `columns` option when that
@@ -8207,24 +10634,19 @@ export default function Core(
   };
 
   /**
-   * Translates a visual column index to the index that the `colWidths` array and function use.
-   * Headers (negative indexes) and columns outside the index mapper have no physical index,
-   * so they keep the index they were given.
-   *
-   * @param {number} col Visual col index.
-   * @returns {number}
-   */
-  const toPhysicalWidthIndex = (col: number): number => (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
-
-  /**
    * Return column width from settings (no guessing). Private use intended.
+   *
+   * A `null` width names no width and is returned as `undefined`, the way `AutoColumnSize#isEnabled()`
+   * reads `colWidths: null`. Returned as a width, it skipped the AutoColumnSize sizes in `getColWidth()`,
+   * and every column fell back to the default width.
    *
    * @private
    * @memberof Core#
    * @function _getColWidthFromSettings
-   * @param {number} col Visual col index. The `colWidths` array and function are read by the
-   * matching physical index.
-   * @returns {number}
+   * @param {number} col Visual col index. The `colWidths` function is called with the matching physical index,
+   * and the `colWidths` array is read at the entry that column was declared at, which it keeps when columns are
+   * inserted or removed (`ColumnSizeSettings`). A column outside the grid gets no width from either.
+   * @returns {number|undefined}
    */
   this._getColWidthFromSettings = function(col: number) {
     let width;
@@ -8240,13 +10662,30 @@ export default function Core(
 
     if (width !== undefined && width !== null) {
       switch (typeof width) {
-        case 'object': // array, addressed by the physical column index
-          width = (width as Record<number, unknown>)[toPhysicalWidthIndex(col)];
-          break;
+        case 'object': { // array, addressed by the physical column index
+          if (col < 0) {
+            width = (width as Record<number, unknown>)[col];
+            break;
+          }
 
-        case 'function': // called with the physical column index
-          width = (width as (col: number) => unknown)(toPhysicalWidthIndex(col));
+          const physicalColumn = instance.toPhysicalColumn(col);
+          // The grid-level array is read through the entry each column was declared at, which the column keeps
+          // when columns are inserted or removed. A column inserted between others has none. A column outside
+          // the index mapper has no physical index and keeps the index it was given.
+          const entry = physicalColumn === null ?
+            col : columnSizeSettings.getDeclaredIndex(physicalColumn, width as unknown[]);
+
+          width = entry === null ? undefined : (width as Record<number, unknown>)[entry];
           break;
+        }
+
+        case 'function': { // called with the physical column index
+          // A header, and a column outside the index mapper, keep the index they were given.
+          const physicalColumn = (col >= 0 ? instance.toPhysicalColumn(col) : null) ?? col;
+
+          width = (width as (col: number) => unknown)(physicalColumn);
+          break;
+        }
         default:
           break;
       }
@@ -8255,7 +10694,7 @@ export default function Core(
       }
     }
 
-    return width as number | undefined;
+    return (width ?? undefined) as number | undefined;
   };
 
   /**
@@ -8286,38 +10725,97 @@ export default function Core(
   };
 
   /**
+   * Resolves one row's value out of the `rowHeights` or `minRowHeights` setting. The function is called
+   * with the physical row index, and the array is read at the entry the row was declared at (the physical
+   * index at the time of the declaration, kept by `RowSizeSettings` across row inserts and removals), so a
+   * height stays with its row when rows are moved, sorted, trimmed, filtered, collapsed, inserted, or
+   * removed. Headers (negative indexes) have no physical index, so they keep the index they were given, and a row
+   * outside the index mapper gets no value. A number and a string apply to every row, so they skip the translation.
+   *
+   * @param {string} option `rowHeights` or `minRowHeights`.
+   * @param {number} row Visual row index.
+   * @returns {number|undefined|null}
+   */
+  const resolveRowHeightByPhysicalIndex = (option: RowSizeOption, row: number) => {
+    const setting: unknown = tableMeta[option];
+
+    if (typeof setting !== 'object' && typeof setting !== 'function') {
+      return resolveRowHeightSetting(setting, row);
+    }
+
+    if (row < 0) {
+      return resolveRowHeightSetting(setting, row);
+    }
+
+    const physicalRow = instance.toPhysicalRow(row);
+
+    // A row outside the index mapper has no physical index, so no entry of the array or the function applies.
+    if (physicalRow === null) {
+      return undefined;
+    }
+
+    if (!Array.isArray(setting)) {
+      return resolveRowHeightSetting(setting, physicalRow);
+    }
+
+    const declaredIndex = rowSizeSettings.getDeclaredIndex(option, physicalRow);
+
+    // A row created after the declaration has no entry of its own.
+    return declaredIndex === null ? undefined : resolveRowHeightSetting(setting, declaredIndex);
+  };
+
+  /**
+   * Tells whether the row renders at exactly the height the `rowHeights` option gives it, with
+   * taller content clipped, instead of at a minimum the content can grow past. Private use intended.
+   *
+   * A row is exact when `rowHeights` resolves to a positive number for it and the AutoRowSize plugin is
+   * off. The `minRowHeights` option is never exact.
+   *
+   * The one exception to "exactly" is the first row of the frozen bottom rows: it is drawn one pixel taller,
+   * because that pixel is the freeze line above it, which is not part of the height the grid counts for the row.
+   *
+   * @private
+   * @memberof Core#
+   * @function _isRowHeightExact
+   * @param {number} row Visual row index. The `rowHeights` array and function are read by the matching
+   * physical index.
+   * @returns {boolean}
+   */
+  this._isRowHeightExact = function(row: number) {
+    if (isAutoRowSizeOn(tableMeta.autoRowSize)) {
+      return false;
+    }
+
+    return isExactRowHeight(resolveRowHeightByPhysicalIndex('rowHeights', row));
+  };
+
+  /**
    * Return row height from settings (no guessing). Private use intended.
    *
    * @private
    * @memberof Core#
    * @function _getRowHeightFromSettings
-   * @param {number} row Visual row index.
+   * @param {number} row Visual row index. The `rowHeights` and `minRowHeights` array and function are
+   * read by the matching physical index.
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row: number) {
-    const defaultRowHeight = (instance.stylesHandler as StylesHandler).getDefaultRowHeight(row);
-    let height: unknown = tableMeta.rowHeights ?? tableMeta.minRowHeights;
+    const rowHeights = resolveRowHeightByPhysicalIndex('rowHeights', row);
+    const hasOwnHeight = isExactRowHeight(rowHeights);
 
-    if (height !== undefined && height !== null) {
-      switch (typeof height) {
-        case 'object': // array
-          height = (height as Record<number, unknown>)[row];
-          break;
-
-        case 'function':
-          height = (height as (row: number) => unknown)(row);
-          break;
-
-        default:
-          break;
-      }
-
-      if (typeof height === 'string') {
-        height = Number.parseInt(height, 10);
-      }
+    // Resolved once: a `rowHeights` function runs for every rendered row on every draw.
+    if (hasOwnHeight && !isAutoRowSizeOn(tableMeta.autoRowSize)) {
+      return rowHeights;
     }
 
-    const numHeight = height as number | undefined | null;
+    const defaultRowHeight = (instance.stylesHandler as StylesHandler).getDefaultRowHeight(row);
+    // `minRowHeights` covers the rows `rowHeights` gives no height of their own.
+    const hasRowHeightsOption = tableMeta.rowHeights !== undefined && tableMeta.rowHeights !== null;
+    const fallbackHeight = hasRowHeightsOption ? rowHeights : undefined;
+    const height = hasOwnHeight ?
+      rowHeights : (resolveRowHeightByPhysicalIndex('minRowHeights', row) ?? fallbackHeight);
+
+    const numHeight = height;
     const numDefaultRowHeight = defaultRowHeight as number | null;
 
     return ((numHeight !== undefined && numHeight !== null &&
@@ -8340,9 +10838,17 @@ export default function Core(
    *     nor [`rowHeights`](@/api/options.md#rowheights),
    *     nor [`AutoRowSize`](@/api/autoRowSize.md) is used.
    *
+   * The [`rowHeights`](@/api/options.md#rowheights) array and function are read by the physical index
+   * of `row`, so a height stays with its row when rows are moved, sorted, filtered, trimmed, or collapsed.
+   *
    * Passing [`rowHeights`](@/api/options.md#rowheights) to
    * [`updateSettings()`](@/api/core.md#updatesettings) discards the heights stored by
    * [`ManualRowResize`](@/api/manualRowResize.md), so the option applies again from that point on.
+   *
+   * A height set through [`rowHeights`](@/api/options.md#rowheights) is returned as set, even when it is
+   * smaller than the default row height. A height set through
+   * [`minRowHeights`](@/api/options.md#minrowheights), or through `rowHeights` while
+   * [`AutoRowSize`](@/api/autoRowSize.md) is enabled, is never smaller than the default row height.
    *
    * The height returned includes 1 px of the row's bottom border.
    *
@@ -8612,7 +11118,7 @@ export default function Core(
    * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
    * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
    * focus, it remains focused after the call.
-   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
+   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed, or the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.selectCell = function(
     row: number, column: number, endRow: number, endColumn: number, scrollToCell = true, changeListener = true
@@ -8694,11 +11200,15 @@ export default function Core(
    * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
    * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
    * focus, it remains focused after the call.
-   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
+   * @returns {boolean} `true`: the selection was successful, `false`: the selection failed, or the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.selectCells = function(
     coords: Array<Array<number | undefined>> = [[]], scrollToCell = true, changeListener = true
   ) {
+    if (!instance.view) {
+      return false;
+    }
+
     if (scrollToCell === false) {
       viewportScroller.suspend();
     }
@@ -8720,6 +11230,11 @@ export default function Core(
       if (changeListener === false) {
         focusGridManager.resume();
       }
+    }
+
+    // The selection closed the editor, and a listener of that save destroyed the grid.
+    if (!instance) {
+      return wasSelected;
     }
 
     if (wasSelected && changeListener) {
@@ -8782,14 +11297,18 @@ export default function Core(
    * cell, as before. Unlike `selectCells()`, the grid does not start listening. If `false`, the browser focus stays
    * on an outside input, textarea, select, or contenteditable. A focused button, the document body, or an iframe
    * still loses focus to the highlighted cell.
-   * @returns {boolean} `true` if selection was successful, `false` otherwise.
+   * @returns {boolean} `true` if selection was successful, `false` otherwise, including when the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.selectColumns = function(
     startColumn: number,
     endColumn = startColumn,
-    focusPosition: number | {row?: number, col?: number},
+    focusPosition?: number | {row?: number, col?: number},
     changeListener = true
   ) {
+    if (!instance.view) {
+      return false;
+    }
+
     return selectWithChangeListener(
       changeListener,
       () => selection.selectColumns(startColumn, endColumn, focusPosition)
@@ -8829,14 +11348,18 @@ export default function Core(
    * cell, as before. Unlike `selectCells()`, the grid does not start listening. If `false`, the browser focus stays
    * on an outside input, textarea, select, or contenteditable. A focused button, the document body, or an iframe
    * still loses focus to the highlighted cell.
-   * @returns {boolean} `true` if selection was successful, `false` otherwise.
+   * @returns {boolean} `true` if selection was successful, `false` otherwise, including when the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.selectRows = function(
     startRow: number,
     endRow = startRow,
-    focusPosition: number | {row?: number, col?: number},
+    focusPosition?: number | {row?: number, col?: number},
     changeListener = true
   ) {
+    if (!instance.view) {
+      return false;
+    }
+
     return selectWithChangeListener(
       changeListener,
       () => selection.selectRows(startRow, endRow, focusPosition)
@@ -8912,6 +11435,10 @@ export default function Core(
     options?: SelectAllOptions,
     changeListener = true
   ) {
+    if (!instance.view) {
+      return;
+    }
+
     viewportScroller.skipNextScrollCycle();
     selectWithChangeListener(changeListener, () => {
       selection.selectAll(includeRowHeaders, includeColumnHeaders, options);
@@ -8995,13 +11522,20 @@ export default function Core(
    * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
    * @param {Function} [callback] The callback function to call after the viewport is scrolled.
-   * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
+   * The callback runs once per call, unless the grid has no view yet. When nothing is scrolled, including when the `row` or `col` index
+   * cannot be resolved (it is out of range, or every row or column on that axis is hidden or trimmed),
+   * it runs in a microtask right after the call instead of after a scroll.
+   * @returns {boolean} `true` if viewport was scrolled, `false` otherwise, including when the grid has no view yet (as inside a hook that fires during initialization).
    */
   this.scrollViewportTo = function(
     options: {row?: number, col?: number, horizontalSnap?: string, verticalSnap?: string,
       considerHiddenIndexes?: boolean},
     callback: Function
   ) {
+    if (!instance.view) {
+      return false;
+    }
+
     // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
     if (typeof options === 'number') {
       /* eslint-disable prefer-rest-params, @typescript-eslint/no-unsafe-assignment */
@@ -9032,6 +11566,11 @@ export default function Core(
       const resolved = resolveRenderableScrollTarget(row, col);
 
       if (resolved === false) {
+        if (isFunction(callback)) {
+          this.removeHook('afterScroll', callback);
+          this._registerMicrotask(() => callback());
+        }
+
         return false;
       }
 
@@ -9114,6 +11653,7 @@ export default function Core(
    * @fires Hooks#afterDestroy
    */
   this.destroy = function() {
+    isBeingDestroyed = true;
     // Never resumed: nothing may render a grid that is being torn down. A plugin whose `destroy()`
     // re-renders to reflect its own removal at runtime (Autofill hides the fill handle) would
     // otherwise render the view destroyed below (DEV-775).
@@ -9133,6 +11673,12 @@ export default function Core(
     visibilityObserver = null;
     slotsResizeObserver?.disconnect();
     slotsResizeObserver = null;
+    sideSlotsResizeObserver?.disconnect();
+    sideSlotsResizeObserver = null;
+    stopWatchingFontLoads?.();
+    stopWatchingFontLoads = null;
+    fontRefreshVisibilityObserver?.disconnect();
+    fontRefreshVisibilityObserver = null;
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();
@@ -9214,6 +11760,8 @@ export default function Core(
 
     datamap = null!;
     grid = null!;
+    // A selection method can still be running (it closed an editor whose save destroyed the grid).
+    selection?.destroy();
     selection = null!;
     editorManager = null!;
     instance = null as unknown as HotInstance;
@@ -9251,6 +11799,24 @@ export default function Core(
   };
 
   /**
+   * Reads a viewport index through the view. Answers `null` while the view does not exist yet, which is
+   * the case inside a hook that fires during initialization (`afterHideColumns` with `hiddenColumns`
+   * enabled), the same value the view gives before its first render. It takes the getter's name, not a
+   * callback, so a call on the render path allocates nothing.
+   *
+   * @private
+   * @param {string} getterName The name of the `TableView` getter to call.
+   * @returns {number | null} The index, or `null` when there is no view.
+   */
+  const readViewportIndex = (getterName: ViewportGetterName): number => {
+    const view = instance.view as TableView | undefined;
+
+    // The public signature stays `number` so that strict-null consumers keep compiling, but these getters
+    // already answer `null` before the first render (see their `@returns`).
+    return (view ? view[getterName]() : null) as number;
+  };
+
+  /**
    * Returns the first rendered row in the DOM (usually, it is not visible in the table's viewport).
    *
    * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
@@ -9261,10 +11827,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstRenderedVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstRenderedVisibleRow = function(): number {
-    return (instance.view as TableView).getFirstRenderedVisibleRow() as number;
+    return readViewportIndex('getFirstRenderedVisibleRow');
   };
 
   /**
@@ -9278,10 +11844,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastRenderedVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastRenderedVisibleRow = function(): number {
-    return (instance.view as TableView).getLastRenderedVisibleRow() as number;
+    return readViewportIndex('getLastRenderedVisibleRow');
   };
 
   /**
@@ -9295,10 +11861,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstRenderedVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstRenderedVisibleColumn = function(): number {
-    return (instance.view as TableView).getFirstRenderedVisibleColumn() as number;
+    return readViewportIndex('getFirstRenderedVisibleColumn');
   };
 
   /**
@@ -9312,10 +11878,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastRenderedVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastRenderedVisibleColumn = function(): number {
-    return (instance.view as TableView).getLastRenderedVisibleColumn() as number;
+    return readViewportIndex('getLastRenderedVisibleColumn');
   };
 
   /**
@@ -9325,10 +11891,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstFullyVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstFullyVisibleRow = function(): number {
-    return (instance.view as TableView).getFirstFullyVisibleRow() as number;
+    return readViewportIndex('getFirstFullyVisibleRow');
   };
 
   /**
@@ -9338,10 +11904,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastFullyVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastFullyVisibleRow = function(): number {
-    return (instance.view as TableView).getLastFullyVisibleRow() as number;
+    return readViewportIndex('getLastFullyVisibleRow');
   };
 
   /**
@@ -9351,10 +11917,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstFullyVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstFullyVisibleColumn = function(): number {
-    return (instance.view as TableView).getFirstFullyVisibleColumn() as number;
+    return readViewportIndex('getFirstFullyVisibleColumn');
   };
 
   /**
@@ -9364,10 +11930,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastFullyVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastFullyVisibleColumn = function(): number {
-    return (instance.view as TableView).getLastFullyVisibleColumn() as number;
+    return readViewportIndex('getLastFullyVisibleColumn');
   };
 
   /**
@@ -9377,10 +11943,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstPartiallyVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstPartiallyVisibleRow = function(): number {
-    return (instance.view as TableView).getFirstPartiallyVisibleRow() as number;
+    return readViewportIndex('getFirstPartiallyVisibleRow');
   };
 
   /**
@@ -9390,10 +11956,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastPartiallyVisibleRow
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastPartiallyVisibleRow = function(): number {
-    return (instance.view as TableView).getLastPartiallyVisibleRow() as number;
+    return readViewportIndex('getLastPartiallyVisibleRow');
   };
 
   /**
@@ -9403,10 +11969,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstPartiallyVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getFirstPartiallyVisibleColumn = function(): number {
-    return (instance.view as TableView).getFirstPartiallyVisibleColumn() as number;
+    return readViewportIndex('getFirstPartiallyVisibleColumn');
   };
 
   /**
@@ -9416,10 +11982,10 @@ export default function Core(
    * @since 14.6.0
    * @memberof Core#
    * @function getLastPartiallyVisibleColumn
-   * @returns {number | null}
+   * @returns {number | null} The index, or `null` when the grid has no view yet or has not been rendered.
    */
   this.getLastPartiallyVisibleColumn = function(): number {
-    return (instance.view as TableView).getLastPartiallyVisibleColumn() as number;
+    return readViewportIndex('getLastPartiallyVisibleColumn');
   };
 
   /**
@@ -9738,7 +12304,9 @@ export default function Core(
     });
   };
 
-  this.microtasks = [];
+  // A Set, not an array: microtasks run in the order they were queued, so dropping the oldest entry
+  // from an array would shift every entry after it, making a bulk validation over n cells O(n²).
+  this.microtasks = new Set();
 
   /**
    * Registers a microtask callback.
@@ -9749,19 +12317,15 @@ export default function Core(
   this._registerMicrotask = function(this: HotInstance & CoreInternals, callback: Function) {
     const entry = { cancelled: false };
 
-    this.microtasks.push(entry);
+    this.microtasks.add(entry);
     this.rootWindow.queueMicrotask(() => {
       // A cancelled entry was dropped by `_clearMicrotasks()`, which `destroy()` calls before it clears the instance.
       if (entry.cancelled) {
         return;
       }
 
-      const index = this.microtasks.indexOf(entry);
-
       // Drop the entry once it ran, or every validated edit and every data load keeps one until `destroy()`.
-      if (index !== -1) {
-        this.microtasks.splice(index, 1);
-      }
+      this.microtasks.delete(entry);
 
       callback();
     });
@@ -9773,10 +12337,10 @@ export default function Core(
    * @private
    */
   this._clearMicrotasks = function(this: HotInstance & CoreInternals) {
-    arrayEach(this.microtasks, (entry: { cancelled: boolean }) => {
+    this.microtasks.forEach((entry) => {
       entry.cancelled = true;
     });
-    this.microtasks.length = 0;
+    this.microtasks.clear();
   };
 
   /**
@@ -9797,6 +12361,43 @@ export default function Core(
    */
   this._getDataSource = function() {
     return dataSource;
+  };
+
+  /**
+   * Moves the slots of rows a plugin just inserted through `rowIndexMapper.insertIndexes()` to the physical
+   * index the rows really took in the data, in the maps that keep the `rowHeights` and `minRowHeights`
+   * arrays on their rows. For a hand-built insert whose index-mapper index differs from the data's (the
+   * NestedRows plugin's). Private use intended.
+   *
+   * @private
+   * @param {number} physicalRow The physical index of the first inserted row.
+   * @param {number} amount The number of inserted rows.
+   */
+  this._alignInsertedRowSizes = function(physicalRow: number, amount: number) {
+    rowSizeSettings.alignInsertedRows(physicalRow, amount);
+  };
+
+  /**
+   * Returns a copy of the maps that keep the `rowHeights` and `minRowHeights` arrays on their rows, for a
+   * plugin that moves rows by rewriting the data rather than through the index mapper (NestedRows), or
+   * `null` when neither option is an array. Private use intended.
+   *
+   * @private
+   * @returns {Map<string, Array>|null} For each option, the array entry index each physical row was declared at.
+   */
+  this._readRowSizeOrigins = function() {
+    return rowSizeSettings.readOrigins();
+  };
+
+  /**
+   * Writes back the maps `_readRowSizeOrigins()` returned, after the caller rearranged them to the rows'
+   * new physical indexes. Private use intended.
+   *
+   * @private
+   * @param {Map<string, Array>} origins For each option, the array entry index of each physical row.
+   */
+  this._writeRowSizeOrigins = function(origins: Map<RowSizeOption, unknown[]>) {
+    rowSizeSettings.writeOrigins(origins);
   };
 
   /**
@@ -9832,6 +12433,8 @@ export default function Core(
   });
 
   const rowIdentity = new RowIdentity(instance, physicalRow => dataSource.modifyRowData(physicalRow));
+  const columnSizeSettings = new ColumnSizeSettings(instance);
+  const rowSizeSettings = new RowSizeSettings(instance);
 
   this.addHook('beforeOnCellMouseDown', (event: MouseEvent) => {
     // Releasing keys as some browser/system shortcuts break events sequence (thus the `keyup` event isn't triggered).
@@ -9857,10 +12460,98 @@ export default function Core(
 
   const focusScopeManager = isRootInstance(this) ? createFocusScopeManager(instance) : null;
 
+  let sideSlotsSyncScheduled = false;
+  let lastSideSlotsWidth = 0;
+  let lastSideSlotsLayout = '';
+
+  /**
+   * Describes where the side panels leave the grid: the combined side slot width and the `start`
+   * slot's own width. Two panels that trade widths keep the combined width but move the grid.
+   *
+   * @returns {string}
+   */
+  const measureSideSlotsLayout = () => {
+    const startSlot = instance.rootSlotStartElement;
+    const startWidth = startSlot.childElementCount ? startSlot.offsetWidth : 0;
+
+    return `${getSideSlotsWidth(instance)}:${startWidth}`;
+  };
+
+  const scheduleSideSlotsSync = () => {
+    if (sideSlotsSyncScheduled) {
+      return;
+    }
+
+    sideSlotsSyncScheduled = true;
+    instance._registerTimeout(() => {
+      sideSlotsSyncScheduled = false;
+
+      if (!instance || instance.isDestroyed || !instance.view) {
+        return;
+      }
+
+      if (getSideSlotsWidth(instance) !== lastSideSlotsWidth) {
+        syncSideSlotsWidth();
+      }
+
+      lastSideSlotsLayout = measureSideSlotsLayout();
+      instance.render();
+    });
+  };
+
+  const syncSideSlotsWidth = () => {
+    lastSideSlotsWidth = getSideSlotsWidth(instance);
+    reapplyRootWidth(instance, tableMeta.width);
+  };
+
+  const mountSideSlot = (name: typeof LAYOUT_SLOTS.START | typeof LAYOUT_SLOTS.END) => {
+    const slot = name === LAYOUT_SLOTS.START ? instance.rootSlotStartElement : instance.rootSlotEndElement;
+    const { rootWrapperElement } = instance;
+
+    if (slot.childElementCount > 0 && !slot.parentElement) {
+      const anchor = name === LAYOUT_SLOTS.START ? rootWrapperElement.firstChild : instance.rootOverlaysElement;
+
+      rootWrapperElement.insertBefore(slot, anchor);
+      refreshSlotFilledState(name, slot);
+    } else if (slot.childElementCount === 0 && slot.parentElement) {
+      slot.remove();
+    }
+  };
+
+  const observeSideSlotElements = () => {
+    if (!sideSlotsResizeObserver && instance.rootWindow.ResizeObserver) {
+      sideSlotsResizeObserver = new instance.rootWindow.ResizeObserver(() => {
+        if (instance && !instance.isDestroyed && measureSideSlotsLayout() !== lastSideSlotsLayout) {
+          scheduleSideSlotsSync();
+        }
+      });
+    }
+
+    sideSlotsResizeObserver?.disconnect();
+    [instance.rootSlotStartElement, instance.rootSlotEndElement].forEach((slot) => {
+      Array.from(slot.children).forEach(child => sideSlotsResizeObserver?.observe(child));
+    });
+  };
+
   const layoutManager = isRootInstance(this)
     ? new LayoutManager({
       top: instance.rootSlotTopElement,
       bottom: instance.rootSlotBottomElement,
+      start: instance.rootSlotStartElement,
+      end: instance.rootSlotEndElement,
+    }, {
+      onSlotContentChange: (name) => {
+        if (!isBeingDestroyed && (name === LAYOUT_SLOTS.START || name === LAYOUT_SLOTS.END)) {
+          mountSideSlot(name);
+          observeSideSlotElements();
+
+          if (instance.view) {
+            syncSideSlotsWidth();
+          }
+
+          scheduleSideSlotsSync();
+        }
+      },
     })
     : null;
 
@@ -9906,7 +12597,7 @@ export default function Core(
 
   /**
    * Returns the Layout Manager. The module manages the order of plugin UI elements within the
-   * user-orderable wrapper slots (`top`, `bottom`). Use it to add or remove custom UI and
+   * user-orderable wrapper slots (`top`, `bottom`, `start`, `end`). Use it to add or remove custom UI and
    * order it via weights or the `layout` setting. Only available for the main instance.
    *
    * @memberof Core#
@@ -9917,6 +12608,8 @@ export default function Core(
    * @example
    * ```js
    * hot.getLayoutManager().register('myToolbar', toolbarElement, { side: 'top', weight: 100 });
+   * // Dock a side panel at the grid's inline-start edge (the right edge under RTL).
+   * hot.getLayoutManager().register('myPanel', panelElement, { side: 'start' });
    * ```
    */
   this.getLayoutManager = function() {
@@ -9938,6 +12631,12 @@ export default function Core(
   ) {
     initializeThemeManager(theme as ThemeBuilder | undefined, readThemeOverrides(mergedUserSettings));
   }
+
+  // Registered ahead of the plugins, so a `beforeInit` listener a plugin adds in its constructor, and every
+  // listener added later, still runs after the plugins are initialized and enabled.
+  instance.addHook('beforeInit', () => {
+    initializePlugins(instance, pluginsRegistry.getItems().map(([, plugin]) => plugin as BasePlugin));
+  });
 
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);

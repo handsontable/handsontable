@@ -225,6 +225,27 @@ export function createDefaultCustomBorder(): BorderSettings {
 }
 
 /**
+ * The color of a border added from the context menu. It reads the theme's
+ * `--ht-custom-borders-default-color` token, so the border follows the theme and its color
+ * scheme (black in light schemes, a light color in dark ones), and falls back to black when no
+ * theme defines the token. Walkontable paints the border with an inline `background-color`, so a
+ * stylesheet rule cannot recolor it: the token has to travel inside the color value.
+ */
+export const CONTEXT_MENU_BORDER_COLOR = 'var(--ht-custom-borders-default-color, #000)';
+
+/**
+ * Create a single border for a side added from the context menu.
+ *
+ * @returns {object} `{{width: number, color: string}}`.
+ */
+export function createContextMenuCustomBorder(): BorderSettings {
+  return {
+    width: 1,
+    color: CONTEXT_MENU_BORDER_COLOR,
+  };
+}
+
+/**
  * Create default object for empty border.
  *
  * @returns {object} `{{hide: boolean}}`.

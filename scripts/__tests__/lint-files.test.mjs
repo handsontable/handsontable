@@ -13,6 +13,9 @@ test('lintable keeps files inside a CI lint scope', () => {
       'wrappers/react-wrapper/test/hotTable.spec.tsx',
       'tests/e2e/x.spec.ts',
       'tests/fixtures/pages/GridPage.ts',
+      'tests/screenreader/screenreader.spec.ts',
+      'tests/lib/screenreader-report.mjs',
+      'tests/lib/__tests__/screenreader-report.test.mjs',
       'visual-tests/tests/multi-frameworks/filters/accepting-by-enter.spec.ts',
       'visual-tests/src/test-runner.ts',
       'scripts/pre-push.mjs',
@@ -26,6 +29,9 @@ test('lintable keeps files inside a CI lint scope', () => {
       'wrappers/react-wrapper/test/hotTable.spec.tsx',
       'tests/e2e/x.spec.ts',
       'tests/fixtures/pages/GridPage.ts',
+      'tests/screenreader/screenreader.spec.ts',
+      'tests/lib/screenreader-report.mjs',
+      'tests/lib/__tests__/screenreader-report.test.mjs',
       'visual-tests/tests/multi-frameworks/filters/accepting-by-enter.spec.ts',
       'visual-tests/src/test-runner.ts',
       'scripts/pre-push.mjs',
@@ -42,6 +48,7 @@ test('lintable drops files outside every CI lint scope (package roots, angular/d
       'handsontable/hot.config.js', // package root — not in src/test/scripts
       'visual-tests/regconfig.json', // package root — only src/ and tests/ are linted
       'visual-tests/scripts/run-tests.mjs', // CI lints scripts/ through the package script, not the hook
+      'tests/playwright.screenreader.config.ts', // package root — outside the tests package's lint script
       'README.md',
     ]),
     [],

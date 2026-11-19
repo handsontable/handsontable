@@ -45,9 +45,8 @@ describe('manualResize/utils', () => {
       expect(redeclaresManualSizes({ colWidths: () => 100 }, COLUMN_SIZE_OPTIONS, true)).toBe(false);
     });
 
-    it('should report a re-declaration when only the minRowHeights alias is given', () => {
-      // `minRowHeights` is documented as an alias for `rowHeights`, and
-      // `Core#_getRowHeightFromSettings` reads `rowHeights ?? minRowHeights`.
+    it('should report a re-declaration when only the minRowHeights option is given', () => {
+      // `minRowHeights` states the row heights too, as a floor instead of an exact height.
       expect(redeclaresManualSizes({ minRowHeights: 50 }, ROW_SIZE_OPTIONS, true)).toBe(true);
     });
 

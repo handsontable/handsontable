@@ -45,7 +45,7 @@ const container = document.querySelector('#example2')!;
 new Handsontable(container, {
   data,
   colHeaders: ['Company', 'Q1', 'Q2', 'Q3', 'Q4'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   height: 'auto',
   columns: [
     {},

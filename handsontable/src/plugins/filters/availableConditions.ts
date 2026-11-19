@@ -126,15 +126,17 @@ export function resolveAvailableConditionsRule(
  * @param {*} setting A valid `availableConditions` setting.
  * @param {object} lists The stock condition names per data type.
  * @param {string} separator The separator entry, which is not a name.
+ * @param {string[]} [extraNames] The names a column offers that are in none of the lists.
  * @returns {object[]}
  */
 export function findAvailableConditionsProblems(
   setting: unknown,
   lists: Record<string, string[]>,
   separator: string,
+  extraNames: string[] = [],
 ): AvailableConditionsProblem[] {
   const problems: AvailableConditionsProblem[] = [];
-  const knownNames = new Set(Object.values(lists).flat());
+  const knownNames = new Set([...Object.values(lists).flat(), ...extraNames]);
   const reportNames = (rule: AvailableConditionsRule) => {
     (isAllowList(rule) ? rule : rule.exclude).forEach((name) => {
       if (name !== separator && !knownNames.has(name)) {

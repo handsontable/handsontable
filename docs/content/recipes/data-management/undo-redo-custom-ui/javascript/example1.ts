@@ -62,7 +62,7 @@ if (rootContainer instanceof HTMLElement) {
     afterRedo: () => {
       updateButtonsState();
     },
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
   const undoRedoPlugin = hot.getPlugin('undoRedo');
 

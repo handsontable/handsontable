@@ -43,7 +43,7 @@ const hotSettings = ref<GridSettings>({
   autoWrapCol: true,
   autoRowSize: true,
   dialog: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 onMounted(() => {

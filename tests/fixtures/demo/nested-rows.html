@@ -28,6 +28,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -114,7 +115,7 @@
       navigableHeaders: true,
       renderer: testIdRenderer,
       height: 'auto',
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
       beforeRowCollapse: record('beforeRowCollapse'),
       afterRowCollapse: record('afterRowCollapse'),
       beforeRowExpand: record('beforeRowExpand'),

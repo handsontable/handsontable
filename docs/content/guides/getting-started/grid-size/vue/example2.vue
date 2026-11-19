@@ -47,7 +47,7 @@ const hotSettings = ref<GridSettings>({
   rowHeaders: true,
   width: UNIT_SIZES['px'].width,
   height: UNIT_SIZES['px'].height,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const changeUnit = (event: Event) => {

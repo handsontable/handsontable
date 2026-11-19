@@ -60,7 +60,7 @@ const hot = new Handsontable(container, {
   ],
   rowId: 'sku',
   columnSorting: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -70,13 +70,13 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   data={[
     { sku: 'SKU-4821', product: 'Wireless Mouse', price: 25 },
     { sku: 'SKU-0093', product: 'Stainless Steel Water Bottle', price: 18 },
   ]}
   rowId="sku"
   columnSorting={true}
-  licenseKey="non-commercial-and-evaluation"
 />
 ```
 
@@ -92,7 +92,7 @@ gridSettings: GridSettings = {
   ],
   rowId: 'sku',
   columnSorting: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -108,7 +108,7 @@ gridSettings: GridSettings = {
   ],
   rowId: 'sku',
   columnSorting: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 }" />
 ```
 
@@ -229,7 +229,13 @@ An inline arrow function in the `rowId` prop is a new function on every render, 
 const getRowId = (row) => row.sku;
 
 function InventoryGrid({ data }) {
-  return <HotTable data={data} rowId={getRowId} licenseKey="non-commercial-and-evaluation" />;
+  return (
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      data={data}
+      rowId={getRowId}
+    />
+  );
 }
 ```
 

@@ -1,4 +1,8 @@
-import { getRowBorderCompensation, getBoxAdjustedRowHeight } from '../../../src/axisSizing/boxModel';
+import {
+  getRowBorderCompensation,
+  getBoxAdjustedRowHeight,
+  firstRowTopBorderOutsideHeight,
+} from '../../../src/axisSizing/boxModel';
 
 // `isBorderBox` is the theme axis: the classic theme uses content-box cells (compensation 1), the new
 // themes use border-box cells (compensation 0). Both values are exercised here.
@@ -35,6 +39,36 @@ describe('boxModel', () => {
       const borderBoxWritten = getBoxAdjustedRowHeight(logical, true);
 
       expect(borderBoxWritten + getRowBorderCompensation(true)).toBe(logical);
+    });
+  });
+
+  describe('firstRowTopBorderOutsideHeight', () => {
+    const emptyHead = document.createElement('thead');
+    const filledHead = document.createElement('thead');
+
+    filledHead.appendChild(document.createElement('tr'));
+
+    it.each(['bottom', 'bottom_inline_start_corner', 'bottom_inline_end_corner'])(
+      'should draw the line outside the first row of the %s table when it has no head row',
+      (name) => {
+        expect(firstRowTopBorderOutsideHeight(name, emptyHead, true)).toBe(true);
+        expect(firstRowTopBorderOutsideHeight(name, null, true)).toBe(true);
+      }
+    );
+
+    it.each(['master', 'top', 'inline_start', 'inline_end', 'top_inline_start_corner'])(
+      'should leave the %s table alone',
+      (name) => {
+        expect(firstRowTopBorderOutsideHeight(name, emptyHead, true)).toBe(false);
+      }
+    );
+
+    it('should leave a table that renders a head row alone', () => {
+      expect(firstRowTopBorderOutsideHeight('bottom', filledHead, true)).toBe(false);
+    });
+
+    it('should leave content-box cells alone, whose row height already leaves the border out', () => {
+      expect(firstRowTopBorderOutsideHeight('bottom', emptyHead, false)).toBe(false);
     });
   });
 });

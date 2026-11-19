@@ -13,7 +13,7 @@ new Handsontable(container, {
     ],
     colHeaders: ['SKU', 'Category code', 'Quantity', 'Unit price ($)'],
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     columns: [
         { data: 'sku', type: 'text' },
         { data: 'category', type: 'text' },

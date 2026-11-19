@@ -21,7 +21,7 @@ const jobTitles = [
 ];
 new Handsontable(container, {
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     data: [
         ['Ana García', 'Senior Software Engineer', 'Senior Software Engineer'],
         ['James Okafor', 'Product Manager', 'Product Manager'],

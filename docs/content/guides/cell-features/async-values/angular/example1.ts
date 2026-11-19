@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { CellChange } from 'handsontable';
+import { AppliedCellChange } from 'handsontable';
 
 const products: Record<string, string> = {
   'A-100': 'Desk lamp',
@@ -62,9 +62,9 @@ export class AppComponent {
     height: 'auto',
     asyncValues: true,
     // Look the product up again when its SKU changes.
-    afterChange: (changes: CellChange[] | null) => {
+    afterChange: (changes: AppliedCellChange[] | null) => {
       changes?.forEach(([row, prop]) => {
-        if (prop === 'sku') {
+        if (row !== null && prop === 'sku') {
           this.lookUpRows(row, row);
         }
       });
@@ -90,7 +90,7 @@ export class AppComponent {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
@@ -100,7 +100,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

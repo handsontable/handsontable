@@ -17,13 +17,13 @@ const data = [
 const ExampleComponent: FC = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       rowHeaders={true}
       colHeaders={['SKU', 'Product', 'Supplier', 'Category', 'Warehouse']}
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation" // for non-commercial use only
     />
   );
 };

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "scenario": "data-provider-sheets-bar",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:52:29.767Z"
+  },
+  "steps": {
+    "tab-loading-overlay": "loading data please wait website group busy group",
+    "tab-add-sheet": "add sheet button",
+    "tab-all-sheets": "all sheets menu pop up collapsed button",
+    "tab-active-sheet": "orders menu pop up collapsed current item button sheets group",
+    "end-last-sheet": "customers button group",
+    "enter-switch-sheet": "sheet customers activated",
+    "server-fails": "could not load data cus failed refetch close",
+    "f6-refetch": "could not load data and 3 more items alert refetch button",
+    "enter-refetch": "customers menu pop up collapsed current item button sheets group",
+    "server-answers": "id cus 01 column 1 row cus 01 2 customers tree grid 3 columns 13 rows page 1 of 5"
+  }
+}

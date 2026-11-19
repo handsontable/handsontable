@@ -21,7 +21,7 @@ const ExampleComponent = () => {
 
   const afterChange = useCallback(function (
     this: Handsontable,
-    changes: Handsontable.CellChange[] | null,
+    changes: Handsontable.AppliedCellChange[] | null,
     source: Handsontable.ChangeSource
   ) {
     if (source === 'loadData' || !changes) {
@@ -29,6 +29,11 @@ const ExampleComponent = () => {
     }
 
     const [row, prop] = changes[changes.length - 1];
+
+    if (row === null) {
+      return;
+    }
+
     const column = prop as number;
     const value = this.getDataAtCell(row, column);
     const label = column === 1 ? 'Default' : 'preserveNumericLiteral';
@@ -39,13 +44,13 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data}
         colHeaders={colHeaders}
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
         afterChange={afterChange}
-        licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn type="text" readOnly={true} width={240} />
         <HotColumn type="numeric" />

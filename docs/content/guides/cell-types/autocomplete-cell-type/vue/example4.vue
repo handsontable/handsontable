@@ -58,7 +58,7 @@ const hotSettings = ref<GridSettings>({
       title: 'Airport',
     },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 

@@ -1,0 +1,257 @@
+name: Screen reader nightly
+
+# The screen reader lanes on develop, once a week on a schedule and on a dispatch (screenreader.yml:
+# NVDA on Windows and VoiceOver on macOS over the scenarios of tests/screenreader/scenarios/;
+# tests/AGENTS.md, "Screen readers: the NVDA and VoiceOver lanes"). The schedule is the weekly audit:
+# while the accessibility debt is being fixed, the findings ledger needs an audit a week to show what
+# each fix cleared, and when; a run every night would spend a headed Windows and macOS runner per
+# browser seven times as often (tests/AGENTS.md, "A11y: the audit and the proof runs"). The weekly
+# schedule ends when the debt epic closes, and the tiers then decide the cadence: axe on a pull
+# request, a semi-lite set on a nightly, the full set on a release candidate and a stable release. The
+# name stays: the ledger, the Slack text and the docs know this workflow as the Screen reader nightly.
+# Report-only: nothing here gates a pull request, the called jobs carry `continue-on-error`, and the
+# verdict is each job's `Screen reader / <project> <group> report` check run and summary, by the
+# severity rule (tests/AGENTS.md, "A11y: the verdict of a check run"): a step missing a token group is
+# serious unless its scenario declares a lower severity for the group, and a golden difference is
+# advisory. Every lane runs to the end; then the `verdict` job fails the run when any lane's check run is
+# red. The transcripts this run leaves are the evidence a future version of the Accessibility
+# Conformance Report can cite for what a screen reader announces. It runs on a workflow of its own
+# rather than inside the pull-request pipeline because a real screen reader on a headed Windows or
+# macOS runner is minutes per browser, and the answer changes with the core, the browser and the screen
+# reader, not with one pull request.
+#
+# Triage. A missing token group is a finding about the grid (the announcement lacks the cell text, a
+# position or a role) or a token list that is too strict: read the transcript, then fix the core or
+# widen the synonyms, or declare the group's severity in the step when its fact matters less. A golden
+# difference is a wording change: re-record with the `update-goldens` input once the new wording is
+# right. A red step inside a lane job is tooling (the screen reader did not start, a fixture did not
+# load), never a finding, and it shows on that job's `failure` check run, titled as a tooling failure, and summary:
+# the jobs carry `continue-on-error`, so they report success to this run and nothing here reaches
+# Slack for them. Slack hears only of a run that never reached the lanes (the `notify` job below). A
+# run that ends red on its `verdict` job alone is the audit's answer, never a broken build: it stays
+# red while a critical or serious finding is open, on the schedule as on a dispatch. The
+# VoiceOver setup recovers from its known flake on the same runner (screenreader.yml); a VoiceOver job
+# still red in its setup step is the runner, not the lane: re-run that job from its page.
+on:
+  # The weekly audit: Monday 01:07 UTC, on develop (a schedule runs on the default branch, at its
+  # latest commit). Early Monday, because nothing merges at the weekend, so the run reads the week's
+  # merges; no proof run is likely to be in flight at that hour; and the lanes are free again before
+  # the working day, when the proof runs start. It is the first of the four audit workflows:
+  # a11y-nightly.yml, docs-a11y.yml and website-a11y.yml follow five minutes apart, so the four read one
+  # commit. Off the hour, where GitHub delays scheduled runs and may drop them. `inputs` holds nothing
+  # on a schedule, so the run is a dispatch on develop with no inputs: every lane, and
+  # test-health.yml collects it into the findings ledger.
+  schedule:
+    - cron: '7 1 * * 1'
+  # From any ref, deliberately: a dispatch on develop with no inputs is the audit too (the ledger
+  # collects it the same way); a dispatch from a feature branch is how a change to the
+  # scenarios, the runner or the workflow is proven before it merges, kept to the changed group on one
+  # project by the `groups` and `projects` inputs (a subset on develop, and an entry that is not a whole
+  # known name, are refused by the check-inputs job before the build); and the `update-goldens` input
+  # records the goldens and uploads them as an artifact to commit. Slack fires on develop only. One
+  # screen reader run at a time: two on different refs share the five macOS slots and slow every
+  # VoiceOver step 1.7 to 2 times. Check for a run in flight before a dispatch; the scheduled run
+  # cannot, so it waits (the check-inputs job).
+  workflow_dispatch:
+    inputs:
+      update-goldens:
+        description: Record the goldens on the runner and upload them as an artifact instead of comparing.
+        type: boolean
+        default: false
+      groups:
+        description: "The scenario groups to run, comma-separated, no spaces (keyboard,reading,menus,editors,selection,structure,status,formulas). Empty runs every group."
+        type: string
+        default: ''
+      projects:
+        description: "The reader projects to run, comma-separated, no spaces (nvda-chromium,nvda-firefox,vo-webkit,vo-chromium). Empty runs every project."
+        type: string
+        default: ''
+  # Self-validation, as e2e-nightly.yml does it: this file never runs on an ordinary pull request, so a
+  # broken workflow_call graph would first execute AFTER merging, on the next dispatch. With
+  # this trigger a pull request that touches the file gets a startup-validated run whose jobs skip
+  # themselves.
+  pull_request:
+    paths: [ '.github/workflows/screenreader-nightly.yml' ]
+
+# NO permissions block — the parity rule of e2e-nightly.yml and visual-nightly.yml: the called workflow
+# validates its job-level grants against the default token this caller hands down.
+
+concurrency:
+  # Static prefix (never the workflow-name expression, which a called workflow resolves to the
+  # caller's name). A dispatch during another run on the same ref queues behind it rather than
+  # cancelling a lane that is minutes from its transcript.
+  group: screenreader-nightly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # The dispatch's inputs, checked before the build spends a runner (tests/scripts/a11y-dispatch-inputs.mjs):
+  # on develop the dispatch is the audit and runs every lane, so a subset there is refused (test-health.yml
+  # would collect it as the latest night, with the lanes it skipped drawn as gone), and an entry of
+  # `projects` or `groups` that is not a whole known name (a space, a typo) is refused, because the lane's
+  # `contains()` match cannot trim it while the verdict would still expect the lane. The verdict job reads
+  # the inputs through the same function, so both ends of the run read them one way.
+  #
+  # On the schedule the job then waits for the lanes to be free (tests/scripts/screenreader-wait.mjs).
+  # One screen reader run at a time, on any ref: two share the organization's five macOS slots, every
+  # VoiceOver step slows down, and the transcripts carry the timings. A person checks for a run in
+  # flight before a dispatch. A cron cannot see a proof run on a branch, so the scheduled run waits for
+  # every earlier run of this workflow to finish, for three hours at most (a full run takes less), and
+  # then fails instead of starting a second run: Slack hears of it (the notify job), and re-running the
+  # failed job once the lanes are free starts the audit on the commit the schedule read. A concurrency
+  # group shared by every ref would not do: GitHub keeps one pending run per group and cancels the
+  # others, so a third dispatch would drop the waiting audit. A dispatch does not wait: its dispatcher
+  # has checked, and a run that waited for a later one would wait for itself.
+  check-inputs:
+    name: Check the inputs
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-26.04
+    # Above the wait step's own timeout. On a dispatch the job is over in seconds.
+    timeout-minutes: 200
+    permissions:
+      contents: read
+      # The wait step lists the runs of this workflow.
+      actions: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tests/lib
+            tests/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Refuse a subset on develop and an entry that names nothing
+        env:
+          SCREENREADER_PROJECTS: ${{ inputs.projects }}
+          SCREENREADER_GROUPS: ${{ inputs.groups }}
+        run: node tests/scripts/a11y-dispatch-inputs.mjs --ref "$GITHUB_REF" --projects "$SCREENREADER_PROJECTS" --groups "$SCREENREADER_GROUPS"
+      # The script gives up at its bound with an error annotation; the step timeout is the backstop above it.
+      - name: Wait for the earlier screen reader runs to finish
+        if: github.event_name == 'schedule'
+        timeout-minutes: 190
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node tests/scripts/screenreader-wait.mjs --workflow screenreader-nightly.yml --bound-minutes 180 --interval-seconds 60
+
+  build:
+    name: Build
+    needs: [ check-inputs ]
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/build.yml
+    with:
+      run-umd: true
+    secrets: inherit
+
+  screenreader:
+    name: Screen reader
+    needs: [ build ]
+    if: github.event_name != 'pull_request'
+    uses: ./.github/workflows/screenreader.yml
+    with:
+      update-goldens: ${{ github.event_name == 'workflow_dispatch' && inputs.update-goldens || false }}
+      # The subset inputs as they are (check-inputs refused anything that is not a whole known name).
+      # `inputs` holds nothing on the schedule and on the pull_request trigger (where this job skips
+      # itself), so `|| ''` hands the lane a string on every event, and an empty subset runs every one.
+      groups: ${{ inputs.groups || '' }}
+      projects: ${{ inputs.projects || '' }}
+    # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
+
+  # The run's verdict: the worst of the lanes' check runs (tests/scripts/a11y-run-verdict.mjs), one per
+  # project and scenario group, red when any is red or a job posted none. It runs after every lane has
+  # finished (`!cancelled()`, so a red job before it never skips it), reads the check runs by the run id
+  # their poster stamps as `external_id`, and fails this job, which fails the run. It stops nothing: by the
+  # time it runs, every lane has run and reported. The names follow screenreader.yml's matrices: every
+  # browser of each lane times every group of SCENARIO_GROUPS, which the workflow test checks; on a
+  # subset dispatch it expects the named projects and groups only, read as check-inputs read them.
+  verdict:
+    name: Verdict
+    needs: [ screenreader ]
+    if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      # The script and the modules it imports, nothing else: no package to install, no build.
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tests/lib
+            tests/scripts
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+      - name: Follow the worst check run of this run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.sha }}
+          # A subset dispatch names its projects and groups (the same inputs the lane reads); the verdict then
+          # expects those lanes only. An entry that names nothing never gets here: check-inputs refused it.
+          SCREENREADER_PROJECTS: ${{ inputs.projects }}
+          SCREENREADER_GROUPS: ${{ inputs.groups }}
+        run: >-
+          node tests/scripts/a11y-run-verdict.mjs --prefix "Screen reader / "
+          --ref "$GITHUB_REF" --projects "$SCREENREADER_PROJECTS" --groups "$SCREENREADER_GROUPS"
+          --expect "Screen reader / nvda-chromium keyboard report"
+          --expect "Screen reader / nvda-chromium reading report"
+          --expect "Screen reader / nvda-chromium menus report"
+          --expect "Screen reader / nvda-chromium editors report"
+          --expect "Screen reader / nvda-chromium selection report"
+          --expect "Screen reader / nvda-chromium structure report"
+          --expect "Screen reader / nvda-chromium status report"
+          --expect "Screen reader / nvda-chromium formulas report"
+          --expect "Screen reader / nvda-firefox keyboard report"
+          --expect "Screen reader / nvda-firefox reading report"
+          --expect "Screen reader / nvda-firefox menus report"
+          --expect "Screen reader / nvda-firefox editors report"
+          --expect "Screen reader / nvda-firefox selection report"
+          --expect "Screen reader / nvda-firefox structure report"
+          --expect "Screen reader / nvda-firefox status report"
+          --expect "Screen reader / nvda-firefox formulas report"
+          --expect "Screen reader / vo-webkit keyboard report"
+          --expect "Screen reader / vo-webkit reading report"
+          --expect "Screen reader / vo-webkit menus report"
+          --expect "Screen reader / vo-webkit editors report"
+          --expect "Screen reader / vo-webkit selection report"
+          --expect "Screen reader / vo-webkit structure report"
+          --expect "Screen reader / vo-webkit status report"
+          --expect "Screen reader / vo-webkit formulas report"
+          --expect "Screen reader / vo-chromium keyboard report"
+          --expect "Screen reader / vo-chromium reading report"
+          --expect "Screen reader / vo-chromium menus report"
+          --expect "Screen reader / vo-chromium editors report"
+          --expect "Screen reader / vo-chromium selection report"
+          --expect "Screen reader / vo-chromium structure report"
+          --expect "Screen reader / vo-chromium status report"
+          --expect "Screen reader / vo-chromium formulas report"
+
+  # Optional Slack ping, develop only; fires only when the webhook secret exists (an absent secret is
+  # an empty string, so the step skips itself). The same webhook as the visual and E2E nightlies, on
+  # purpose: the channel that triages one nightly triages the other. The lane's jobs carry job-level
+  # `continue-on-error`, so they report success to this caller whatever happened inside them, and
+  # `failure()` here fires only when the UMD build failed, the called workflow could not start, or the
+  # check-inputs job ended red (a refused input, a scheduled run that waited out its bound). A red lane
+  # job never reaches Slack, and neither does the `verdict` job's red, on the schedule as on a dispatch:
+  # their verdict is the `Screen reader / <project> <group> report` check runs, and an audit with an
+  # open critical or serious finding is red by design, not a broken build.
+  notify:
+    name: Notify Slack
+    needs: [ screenreader ]
+    if: ${{ failure() && github.event_name != 'pull_request' && github.ref_name == 'develop' }}
+    runs-on: ubuntu-26.04
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_VISUAL_WEBHOOK_URL }}
+    steps:
+      - name: Send the failure to Slack
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": ":red_circle: Screen reader nightly on ${{ github.ref_name }} never reached the screen reader lanes: the UMD build failed, the called workflow could not start, the check-inputs job refused a dispatch input (a subset on develop, an entry that names nothing), or the scheduled audit waited three hours for an earlier screen reader run and did not start (re-run its failed job once the lanes are free). A red lane job is not reported here (its jobs carry continue-on-error); its verdict is each project's Screen reader report check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, Screen readers: the NVDA and VoiceOver lanes."
+            }

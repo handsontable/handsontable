@@ -14,6 +14,7 @@
         Express API at <code>/api/stock-lines</code>.
       </p>
       <div id="stock-grid">
+        <!-- license-key="your-license-key" (get a key at https://handsontable.com/pricing/) -->
         <HotTable
           :data-provider="warehouseDataProvider"
           :columns="warehouseColumns"
@@ -21,7 +22,6 @@
           :col-headers="true"
           width="100%"
           :height="420"
-          license-key="non-commercial-and-evaluation"
           :column-sorting="true"
           :pagination="{ pageSize: 15 }"
           :dropdown-menu="true"
@@ -38,6 +38,7 @@
         <code>POST /graphql</code>
       </p>
       <div id="tickets-grid">
+        <!-- license-key="your-license-key" (get a key at https://handsontable.com/pricing/) -->
         <HotTable
           :data-provider="ticketsDataProvider"
           :columns="ticketsColumns"
@@ -45,7 +46,6 @@
           :col-headers="true"
           width="100%"
           :height="420"
-          license-key="non-commercial-and-evaluation"
           :column-sorting="true"
           :pagination="{ pageSize: 12 }"
           :dropdown-menu="true"

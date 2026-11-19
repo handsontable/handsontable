@@ -31,7 +31,7 @@ describe('createColumnSettings', () => {
         };
       },
       template: `
-        <HotTable :data="data" licenseKey="non-commercial-and-evaluation" :autoRowSize="false" :autoColumnSize="false"
+        <HotTable :data="data" :licenseKey="testLicenseKey" :autoRowSize="false" :autoColumnSize="false"
                   :init="init">
           <HotColumn :title="'test-title'"></HotColumn>
           <HotColumn :readOnly="true" :type="'numeric'" :renderer="() => 'test-value2'"></HotColumn>
@@ -80,7 +80,7 @@ describe('Dynamic HotColumn add/remove', () => {
         };
       },
       template: `
-        <HotTable :data="data" licenseKey="non-commercial-and-evaluation"
+        <HotTable :data="data" :licenseKey="testLicenseKey"
                   :autoRowSize="false" :autoColumnSize="false"
                   :width="300" :height="300" :rowHeights="23" :colWidths="50">
           <HotColumn v-for="title in columns" :key="title" :title="title"></HotColumn>
@@ -115,7 +115,7 @@ describe('Dynamic HotColumn add/remove', () => {
         };
       },
       template: `
-        <HotTable :data="data" licenseKey="non-commercial-and-evaluation"
+        <HotTable :data="data" :licenseKey="testLicenseKey"
                   :autoRowSize="false" :autoColumnSize="false"
                   :width="300" :height="300" :rowHeights="23" :colWidths="50">
           <HotColumn v-for="title in columns" :key="title" :title="title"></HotColumn>
@@ -149,7 +149,7 @@ describe('Dynamic HotColumn add/remove', () => {
         };
       },
       template: `
-        <HotTable :data="data" licenseKey="non-commercial-and-evaluation"
+        <HotTable :data="data" :licenseKey="testLicenseKey"
                   :autoRowSize="false" :autoColumnSize="false"
                   :width="300" :height="300" :rowHeights="23" :colWidths="50">
           <HotColumn v-for="title in columns" :key="title" :title="title"></HotColumn>
@@ -183,7 +183,7 @@ describe('Dynamic HotColumn add/remove', () => {
         };
       },
       template: `
-        <HotTable :data="data" licenseKey="non-commercial-and-evaluation"
+        <HotTable :data="data" :licenseKey="testLicenseKey"
                   :autoRowSize="false" :autoColumnSize="false"
                   :width="300" :height="300" :rowHeights="23" :colWidths="50">
           <HotColumn v-for="title in columns" :key="title" :title="title"></HotColumn>
@@ -217,7 +217,7 @@ describe('Dynamic HotColumn add/remove', () => {
         };
       },
       template: `
-        <HotTable :data="data" licenseKey="non-commercial-and-evaluation"
+        <HotTable :data="data" :licenseKey="testLicenseKey"
                   :autoRowSize="false" :autoColumnSize="false"
                   :width="300" :height="300" :rowHeights="23" :colWidths="50">
           <HotColumn v-for="title in columns" :key="title" :title="title"></HotColumn>
@@ -270,7 +270,7 @@ describe('Dynamic HotColumn add/remove', () => {
         };
       },
       template: `
-        <HotTable :data="data" licenseKey="non-commercial-and-evaluation"
+        <HotTable :data="data" :licenseKey="testLicenseKey"
                   :autoRowSize="false" :autoColumnSize="false"
                   :width="300" :height="300" :rowHeights="23" :colWidths="50">
           <HotColumn v-for="column in columns" :key="column.title"
@@ -309,7 +309,7 @@ describe('Dynamic HotColumn add/remove', () => {
         };
       },
       template: `
-        <HotTable :data="data" licenseKey="non-commercial-and-evaluation"
+        <HotTable :data="data" :licenseKey="testLicenseKey"
                   :autoRowSize="false" :autoColumnSize="false"
                   :width="400" :height="300" :rowHeights="23" :colWidths="50">
           <HotColumn v-for="title in columns" :key="title" :title="title"></HotColumn>
@@ -358,7 +358,7 @@ describe('Dynamic HotColumn add/remove', () => {
         };
       },
       template: `
-        <HotTable :data="data" licenseKey="non-commercial-and-evaluation"
+        <HotTable :data="data" :licenseKey="testLicenseKey"
                   :autoRowSize="false" :autoColumnSize="false"
                   :width="300" :height="300" :rowHeights="23" :colWidths="50">
           <MyHotColumn v-for="title in columns" :key="title" :title="title"></MyHotColumn>

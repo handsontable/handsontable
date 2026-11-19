@@ -134,6 +134,13 @@ export const IconRetry = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const IconReply = (props: SVGProps<SVGSVGElement>) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <polyline points="9 14 4 9 9 4" />
+    <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+  </svg>
+);
+
 export const IllustrationWelcome = (props: SVGProps<SVGSVGElement>) => (
   <svg width="75" height="86" viewBox="0 0 75 86" fill="none" aria-hidden="true" {...props}>
     <path opacity="0.5" fillRule="evenodd" clipRule="evenodd" d="M32.1668 78.3137L51.9024 72.2744L69.4126 79.7387L50.0318 85.7779L32.1668 78.3137Z" fill="black"/>

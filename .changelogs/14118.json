@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a pending comment opening over new data after `loadData()`, and the pagination bar in a custom `uiContainer` ignoring the grid's `colorScheme` and `density`, and NestedRows staying off after it got data that isn't an array of objects, even once valid data or `nestedRows: true` came back. The Angular wrapper's `data` input now passes `'dataBinding'` as the `source` of `beforeUpdateData`, `afterUpdateData`, and `afterRowIdsRemoved`.",
+  "type": "fixed",
+  "issueOrPR": 14118,
+  "breaking": false,
+  "framework": "none"
+}

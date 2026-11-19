@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "scenario": "merge-cells",
+  "project": "nvda-firefox",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "firefox 153.0",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-05T11:02:43.638Z"
+  },
+  "steps": {
+    "arrow-down-into-merge": "1 1 row 2 column 2",
+    "arrow-down-out-below": "3 1 row 4 column 2",
+    "arrow-up-back-in": "1 1 row 2 column 2",
+    "arrow-right-out-right": "1 3 row 2 column 4",
+    "arrow-left-back-in": "1 1 row 2 column 2",
+    "arrow-left-out-left": "1 0 row 2 column 1"
+  }
+}

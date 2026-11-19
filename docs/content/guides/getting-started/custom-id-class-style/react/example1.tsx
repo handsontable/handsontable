@@ -15,6 +15,7 @@ const data = [
 
 const ExampleComponent: FC = () => (
   <HotTable
+    // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
     id="inventory-grid"
     className="inventory-grid"
     style={{ border: '1px solid #4caf50' }}
@@ -23,7 +24,6 @@ const ExampleComponent: FC = () => (
     height="auto"
     autoWrapRow={true}
     autoWrapCol={true}
-    licenseKey="non-commercial-and-evaluation"
   />
 );
 

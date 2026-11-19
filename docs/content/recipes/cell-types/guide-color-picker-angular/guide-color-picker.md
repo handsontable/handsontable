@@ -200,7 +200,7 @@ Configure Handsontable globally in `app.config.ts`. With standalone components, 
 ```typescript
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 // Register Handsontable's modules
 registerAllModules();
@@ -211,7 +211,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        license: NON_COMMERCIAL_LICENSE,
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
       } as HotGlobalConfig,
     },
   ],
@@ -222,7 +222,7 @@ export const appConfig: ApplicationConfig = {
 
 - Call `registerAllModules()` to enable all Handsontable features
 - Configure global Handsontable settings via `HOT_GLOBAL_CONFIG`
-- Set license (e.g. `NON_COMMERCIAL_LICENSE`)
+- Leave the `license` placeholder in `HOT_GLOBAL_CONFIG` commented out until you add your license key
 - `provideZoneChangeDetection` improves Angular change detection performance
 
 **Key points:**

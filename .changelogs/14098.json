@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added license gating to the XLSX engine: with a license key that names a tier, `importFile` and `exportFile` skip the XLSX features the tier leaves out; a key that names no tier keeps every feature. `supportsExportFormat('xlsx')` and `supportsImportFormat('xlsx')` answer `false` when the tier leaves out the XLSX export or import. The console warning and the `license:*` entries in the import report name only the features the file or grid actually had and the caller asked to bring over, and without number formats a date or time exports as the text the grid shows. Added the `protection` option to the XLSX export, so a sheet can be protected with a password of up to 255 characters.",
+  "type": "added",
+  "issueOrPR": 14098,
+  "breaking": false,
+  "framework": "none"
+}

@@ -40,16 +40,6 @@ export const DATE_FIELDS = ['usage_until', 'release_until'];
 export const HANDSONTABLE_PRODUCT = 'handsontable';
 
 /**
- * The capability tokens this build understands. The key asserts an entitlement;
- * what a token unlocks is defined here, never in the key. Unknown tokens are
- * ignored, so a token added on the issuing side cannot break a build already in
- * the field.
- *
- * @type {string[]}
- */
-export const KNOWN_CAPABILITIES = ['core'];
-
-/**
  * Marks a license as an evaluation one. A flag is present or absent - there is
  * no `false` value - and an unrecognized flag is ignored, for the same reason
  * an unrecognized capability token is.
@@ -66,9 +56,10 @@ export const TRIAL_FLAG = 'trial';
 export const NO_CONSOLE_WARNS_FLAG = 'no-console-warns';
 
 /**
- * Closes the UI WARNING surfaces: no badge, no popover, no bottom bar. Both
- * this flag and the one above are the default for a key issued for external,
- * end-user-facing use.
+ * Closes the UI WARNING surfaces: no corner badge, no popover, no bottom bar.
+ * Both this flag and the one above are the default for a key issued for
+ * external, end-user-facing use. It does not close the "Powered by" bar a
+ * `badge` key asks for - see `BADGE_FLAG`.
  *
  * It does NOT close the hard-stop lock screen. The lock is enforcement rather
  * than a warning, so `mountBrandingSurface` (`utils/licenseBranding/index.ts`)
@@ -79,6 +70,20 @@ export const NO_CONSOLE_WARNS_FLAG = 'no-console-warns';
  * @type {string}
  */
 export const NO_UI_WARNS_FLAG = 'no-ui-warns';
+
+/**
+ * Says the licensee agreed to show the product's "Powered by" bar - usually
+ * the term of a sponsored license. The issuer sets it per product entry; no
+ * contract type or mode implies it.
+ *
+ * It is not a channel, and no channel closes it: the bar is branding, not a
+ * warning, so a product renders it outside the `ui` channel gate, with or
+ * without `no-ui-warns`. The reader does not act on it - the product checks
+ * the entry's flags. A product with no bar ignores it.
+ *
+ * @type {string}
+ */
+export const BADGE_FLAG = 'badge';
 
 /**
  * The number of milliseconds in a day, used to walk from one UTC midnight to

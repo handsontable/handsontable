@@ -25,6 +25,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -54,7 +55,7 @@
       contextMenu: true,
       comments: true,
       cell: [{ row: 3, col: 0, comment: { value: '' } }],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

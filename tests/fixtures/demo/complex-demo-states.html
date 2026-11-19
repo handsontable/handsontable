@@ -28,6 +28,7 @@
     window.htBundle = htPick('bundle', { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, 'umd');
     window.htDirection = htPick('dir', { ltr: 'ltr', rtl: 'rtl' }, 'ltr');
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -258,7 +259,7 @@
         autoWrapRow: true,
         rowHeaders: true,
         navigableHeaders: true,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htBuildError = String(error && error.stack || error);

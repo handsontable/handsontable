@@ -14,7 +14,7 @@ new Handsontable(container, {
   ],
   colHeaders: ['ID', 'First name', 'Last name', 'Password'],
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   columns: [
     { data: 'id' },
     { data: 'name.first' },

@@ -13,6 +13,7 @@ vue:
   metaTitle: Custom cell definitions | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 addedIn: "17.0.0"
 ---
 
@@ -81,7 +82,10 @@ const MyCustomEditor = () => {
 
 const App = () => {
   return (
-    <HotTable data={data} licenseKey="non-commercial-and-evaluation">
+    <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+      data={data}
+    >
       <HotColumn editor={MyCustomEditor} />
     </HotTable>
   );

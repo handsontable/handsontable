@@ -3,6 +3,7 @@ import { registerPlugin } from '../../registry';
 import { NestedRows } from '../nestedRows';
 import { TrimRows } from '../../trimRows/trimRows';
 import { HiddenRows } from '../../hiddenRows/hiddenRows';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * DEV-139: a row inserted below the last row of the tree joins the parent of the row it continues,
@@ -23,7 +24,7 @@ describe('NestedRows – inserting below the last row', () => {
       data: createData(),
       columns: [{ data: 'item' }],
       nestedRows: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 

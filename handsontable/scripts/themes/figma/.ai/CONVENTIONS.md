@@ -18,6 +18,7 @@
 ## Token value conventions
 
 - Every value that is a reference to another token looks like `{path.to.value}` in `tokens.json` and becomes a dotted string (`"tokens.background-color"`, `"colors.main-100"`) in `themeVariables`.
+- A `{mode.…}` reference becomes a `[light, dark]` pair. Each side is a `colors.*` reference, or the literal itself when the mode variable holds a raw value (`['#1a42e81a', '#4669f633']`, emitted as `light-dark(#1a42e81a, #4669f633)`).
 - Numeric values are unitless in `tokens.json`. `formatValue` adds the unit based on the key name:
   - Key contains `opacity` → `%`
   - Key contains `transition` → `s`
@@ -26,10 +27,11 @@
 
 ## Adding a new token
 
+0. **Add the variable to the Handsontable Design System in Figma first, in the same PR** (`themes` collection, every theme mode, aliasing an existing variable, with scopes, `codeSyntax.WEB` and a description; `component/async-values/*` is the precedent). Its last name segment must be the hyphen-case key and unique in the collection, because `findValueRecursively` takes the first match. Then export a fresh `tokens.json`. Never add the key to `src/themes/static` by hand and "add it to Figma later": the next regeneration drops it.
 1. Add the hyphen-case key to `tokensKeys.mjs` in the appropriate section (the file is grouped by feature area — keep groupings intact).
 2. If the token needs a non-standard unit (not `px`/`%`/`s`), extend `formatValue` in `utils/themeProcessing.mjs` rather than hard-coding a unit in the token value.
 3. If the token's *value* must pass through verbatim (e.g., a string like a font stack), add the key to `EXCEPTION_KEYS`.
-4. Run `npm run generate:themes` and diff `src/themes/static` — both the TS (`src/themes/static/variables/tokens/<theme>.ts`) and CSS (`src/themes/static/css/theme/ht-theme-<theme>.css`) should pick up the new key automatically.
+4. Run `npm run generate:themes` and diff `src/themes/static` — both the TS (`src/themes/static/variables/tokens/<theme>.ts`) and CSS (`src/themes/static/css/theme/ht-theme-<theme>.css`) should pick up the new key automatically. Commit the diff with the rewritten `static-manifest.json`.
 
 ## Adding a new theme
 

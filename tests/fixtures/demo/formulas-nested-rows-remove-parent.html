@@ -28,6 +28,7 @@
   <style>
     body { font-family: sans-serif; margin: 1rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -116,7 +117,7 @@
           td.setAttribute('data-testid', `cell-${row}-${col}`);
         },
         height: 'auto',
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     } catch (error) {
       window.htFixtureError = error && error.message ? error.message : String(error);

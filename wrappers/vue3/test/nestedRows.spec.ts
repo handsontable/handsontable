@@ -16,7 +16,7 @@ describe('cooperation with NestedRows plugin', () => {
       template: `
         <HotTable
           ref="grid"
-          licenseKey="non-commercial-and-evaluation"
+          :licenseKey="testLicenseKey"
           :data="data"
           :nestedRows="true"
           ></HotTable>`,

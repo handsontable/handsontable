@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "default-mode",
+  "project": "nvda-chromium",
+  "recorded": {
+    "screenReader": "NVDA 0.2.1-2026.2",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "win32 10.0.26100",
+    "at": "2026-11-03T19:26:11.169Z"
+  },
+  "steps": {
+    "tab-into-grid": "table a 1 alpha row 2 column 2",
+    "arrow-right": "b 1 bravo row 2 alpha column 3",
+    "arrow-down": "b 2 bravo row 3 alpha column 3",
+    "to-row-end": "c 2 charlie row 3 bravo column 4",
+    "tab-out-forward": "after the grid button",
+    "shift-tab-back-in": "table c 2 charlie row 3 bravo column 4",
+    "to-row-start": "a 2 alpha row 3 column 2",
+    "tab-out-backward": "before the grid button",
+    "tab-back-in": "table a 2 alpha row 3 column 2"
+  }
+}

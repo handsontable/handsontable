@@ -65,7 +65,7 @@ const hotSettings = ref<GridSettings>({
     this.setCellMeta(0, 4, 'comment', { value: 'Top sales rep - review for promotion.' });
     this.render();
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 async function exportFile(): Promise<void> {

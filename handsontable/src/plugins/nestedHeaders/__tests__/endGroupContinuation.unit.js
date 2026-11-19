@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { NestedHeaders, HiddenColumns, registerPlugin } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(NestedHeaders);
@@ -32,7 +33,7 @@ describe('NestedHeaders – continuation of a group on the fixedColumnsEnd clone
     const rowspan = group.rowspan ?? 1;
 
     hot = new Handsontable(container, {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       data: [Array.from({ length: 12 }, (_, c) => `R1C${c}`)],
       width: 500,
       height: 200,

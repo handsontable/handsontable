@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable';
 import { command as editorOpenCommand } from '../shortcuts/contexts/commands/editor/open';
+import { TEST_LICENSE_KEY } from '../../test/helpers/licenseKey';
 
 describe('EditorManager', () => {
   let container;
@@ -19,7 +20,7 @@ describe('EditorManager', () => {
       rowHeaders: true,
       width: 400,
       height: 200,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   });
 

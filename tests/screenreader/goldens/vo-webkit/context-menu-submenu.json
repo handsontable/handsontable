@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "scenario": "context-menu-submenu",
+  "project": "vo-webkit",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.7.2)",
+    "browser": "webkit 26.5",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-10T12:58:29.081Z"
+  },
+  "steps": {
+    "down-to-alignment": "alignment collapsed menu item group table 1 column 26 rows",
+    "open-submenu": "alignment expanded menu item group 1 of 1",
+    "down-to-center": "center menu item group table 1 column 8 rows",
+    "close-submenu": "context menu checked items e2e fixture web content",
+    "close-menu": ""
+  }
+}

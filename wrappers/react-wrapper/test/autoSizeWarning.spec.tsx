@@ -9,6 +9,7 @@ import {
   RendererComponent
 } from './_helpers';
 import { AUTOSIZE_WARNING } from '../src/helpers';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 registerAllModules();
 
@@ -18,7 +19,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     console.warn = jest.fn();
 
     mountComponent((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -37,7 +38,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     console.warn = jest.fn();
 
     mountComponent((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 2)}
         width={300}
@@ -59,7 +60,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     console.warn = jest.fn();
 
     mountComponent((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -81,7 +82,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     console.warn = jest.fn();
 
     mountComponent((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -104,7 +105,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     console.warn = jest.fn();
 
     mountComponent((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -132,7 +133,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     console.warn = jest.fn();
 
     mountComponent((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -156,7 +157,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     console.warn = jest.fn();
 
     mountComponent((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}
@@ -181,7 +182,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
     console.warn = jest.fn();
 
     mountComponent((
-      <HotTable licenseKey="non-commercial-and-evaluation"
+      <HotTable licenseKey={TEST_LICENSE_KEY}
         id="test-hot"
         data={createSpreadsheetData(3, 3)}
         width={300}

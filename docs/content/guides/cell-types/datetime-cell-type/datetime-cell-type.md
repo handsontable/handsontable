@@ -13,7 +13,7 @@ vue:
   metaTitle: Date-time cell type | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Cell types
-menuTag: new
+menuTag: updated
 addedIn: "18.1.0"
 ---
 Display, format, sort, and filter combined date and time values by using the datetime cell type. Edit values via a native date-time picker.
@@ -217,7 +217,7 @@ const hotSettings = ref<GridSettings>({
       }
     }
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 
@@ -269,6 +269,10 @@ The `dateTimeFormat` option accepts properties of [`Intl.DateTimeFormat` options
 | `hourCycle`       | `'h11'`, `'h12'`, `'h23'`, `'h24'`                  | Hour cycle                     |
 
 For a complete reference, see the [`dateTimeFormat` API documentation](@/api/options.md#datetimeformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
+
+**Year 0000**
+
+ISO 8601 uses year `0000` for 1 BC. A value in year `0000` is valid, and it sorts before `0001-01-01T00:00:00`. `Intl.DateTimeFormat` prints that year as `1`, the same as year `0001`. To tell them apart, Handsontable adds the era to the display of year `0000`. It does so when the format prints a year and sets no `era` of its own. For example, `0000-01-01T00:00:00` shows as `01/01/1 BC, 00:00:00` and `0001-01-01T00:00:00` shows as `01/01/1, 00:00:00`. The era text follows the locale. A format that uses `dateStyle` or `timeStyle` cannot carry an era, so it still prints year `0000` as `1`.
 
 ### Editor behavior
 

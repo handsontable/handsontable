@@ -12,7 +12,7 @@ const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 const hotSettings = ref<GridSettings>({
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [[0, 1, 2], ['3c', '4b', 5], [], []],
   colHeaders: true,
   rowHeaders: true,

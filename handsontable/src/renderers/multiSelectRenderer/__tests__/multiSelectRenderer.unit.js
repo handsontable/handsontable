@@ -12,6 +12,9 @@ import {
   MultiSelectCellType,
 } from '../../../cellTypes';
 import {
+  createChipElement,
+  hasChipRemoveButton,
+  isChipRemovable,
   removeValueByKey,
 } from '../utils/utils';
 
@@ -73,6 +76,59 @@ describe('multiSelectRenderer', () => {
         { key: 'r', value: 'Red' },
         { key: 'b', value: 'Blue' },
       ]);
+    });
+  });
+
+  describe('isChipRemovable', () => {
+    it('should allow removing chips from a cell that accepts edits', () => {
+      expect(isChipRemovable({})).toBe(true);
+      expect(isChipRemovable({ readOnly: false, editor: 'multiselect' })).toBe(true);
+      expect(isChipRemovable({ editor: undefined })).toBe(true);
+    });
+
+    it('should refuse removing chips from a read-only cell', () => {
+      expect(isChipRemovable({ readOnly: true })).toBe(false);
+    });
+
+    it('should refuse removing chips from a cell with no editor', () => {
+      expect(isChipRemovable({ editor: false })).toBe(false);
+      expect(isChipRemovable({ editor: null })).toBe(false);
+    });
+  });
+
+  describe('hasChipRemoveButton', () => {
+    it('should draw the button on a cell that accepts edits', () => {
+      expect(hasChipRemoveButton({})).toBe(true);
+    });
+
+    it('should not draw the button on a cell that refuses edits', () => {
+      expect(hasChipRemoveButton({ readOnly: true })).toBe(false);
+      expect(hasChipRemoveButton({ editor: false })).toBe(false);
+      expect(hasChipRemoveButton({ readOnly: true, readOnlyStyling: true })).toBe(false);
+    });
+
+    it('should keep the button when `readOnlyStyling` is `false`, so the cell looks editable', () => {
+      expect(hasChipRemoveButton({ readOnly: true, readOnlyStyling: false })).toBe(true);
+      expect(hasChipRemoveButton({ editor: false, readOnlyStyling: false })).toBe(true);
+    });
+  });
+
+  describe('createChipElement', () => {
+    const hotInstance = { rootDocument: document, getSettings: () => ({}) };
+
+    it('should draw a remove button on a removable chip', () => {
+      const chip = createChipElement(document, 'Red', false, 0, 0, 0, hotInstance, true);
+
+      expect(chip.querySelectorAll('.ht-multi-select-chip-remove').length).toBe(1);
+      expect(chip.dataset.key).toBe('Red');
+    });
+
+    it('should draw no remove button on a chip of a cell that refuses edits', () => {
+      const chip = createChipElement(document, { key: 'r', value: 'Red' }, false, 0, 0, 0, hotInstance, false);
+
+      expect(chip.querySelectorAll('.ht-multi-select-chip-remove').length).toBe(0);
+      expect(chip.textContent).toBe('Red');
+      expect(chip.dataset.key).toBe('r');
     });
   });
 
@@ -187,6 +243,51 @@ describe('multiSelectRenderer', () => {
       );
 
       expect(TD.querySelector(ARROW_SELECTOR).hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    describe('a press on the indicator', () => {
+      /**
+       * Renders a cell into a grid stub that records the `onCellDblClick` calls.
+       *
+       * @returns {{ arrow: HTMLElement, getSetting: jest.Mock }}
+       */
+      function renderIntoGrid() {
+        const getSetting = jest.fn();
+        const hot = {
+          ...createHotStub({ values: ['Red'] }),
+          view: { _wt: { getSetting } },
+          _createCellCoords: (row, col) => ({ row, col }),
+        };
+        const TD = document.createElement('td');
+
+        hot.rootElement.appendChild(TD);
+        document.body.appendChild(hot.rootElement);
+        multiSelectRenderer(hot, TD, 1, 2, 2, ['Red'], {});
+
+        return { arrow: TD.querySelector(ARROW_SELECTOR), getSetting, root: hot.rootElement };
+      }
+
+      it('should open the editor', () => {
+        const { arrow, getSetting, root } = renderIntoGrid();
+
+        arrow.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, button: 0 }));
+
+        expect(getSetting).toHaveBeenCalledWith('onCellDblClick', null, { row: 1, col: 2 }, expect.anything());
+        root.remove();
+      });
+
+      it('should not open the editor when an earlier listener claimed the press', () => {
+        // The FormulaBuilder plugin picks the cell as a formula reference and sets only the grid's
+        // flag, so the press still bubbles to this listener.
+        const { arrow, getSetting, root } = renderIntoGrid();
+        const event = new MouseEvent('mousedown', { bubbles: true, button: 0 });
+
+        event.isImmediatePropagationEnabled = false;
+        arrow.dispatchEvent(event);
+
+        expect(getSetting).not.toHaveBeenCalled();
+        root.remove();
+      });
     });
   });
 });

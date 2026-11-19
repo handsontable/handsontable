@@ -100,6 +100,10 @@ type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'ed
    *
    * A component passed here wins over `hotEditor`. A bare `editor={false}` does not: an editor named
    * in `hotEditor` still applies.
+   *
+   * A Handsontable editor class or editor name belongs in `hotEditor`. When one is passed here, it
+   * is used as `hotEditor`, and the console shows a one-time warning. A name with no registered
+   * editor is ignored after the warning.
    */
   editor?: ComponentType | boolean,
 } & { [key: string]: any }
@@ -122,8 +126,11 @@ type ColumnGridSettings = Omit<OmitHooks<RemoveIndexSignature<Handsontable.GridS
 /**
  * Interface for the `prop` of the HotTable component - extending the default Handsontable settings with additional,
  * component-related properties.
+ *
+ * The props are built from `SettingsUpdate`, the settings `updateSettings()` takes, so a hook prop may be
+ * `null`, which removes its callback (`afterChange={isTracking ? logChange : null}`).
  */
-export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.GridSettings> {
+export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.SettingsUpdate> {
   id?: string,
   className?: string,
   style?: CSSProperties,

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the `rowHeights` and `minRowHeights` arrays and functions to address rows by their physical index, so a row keeps its height when rows are collapsed with nested rows, filtered, trimmed, sorted, or moved, and aligned the nested rows collapse button with the row header label in rows with an exact height. Switching either option to or from an array, or passing a new array, clears the undo history. Also fixed a row inserted below another taking over that row's hidden state and manually resized height. See the 18.1 to 19.0 migration guide to keep the old behavior.",
+  "type": "changed",
+  "issueOrPR": 14221,
+  "breaking": true,
+  "framework": "none"
+}

@@ -67,7 +67,7 @@ const data = [
 const container = document.querySelector('#example5');
 
 const hot = new Handsontable(container, {
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data,
   height: 'auto',
   width: '100%',

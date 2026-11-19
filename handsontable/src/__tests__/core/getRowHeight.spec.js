@@ -81,7 +81,7 @@ describe('Core.getRowHeight', () => {
       expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(50);
     });
 
-    it('should be synced with the cell row height when the `rowHeights` value is smaller than the cell default row height', async() => {
+    it('should be exact when the `rowHeights` value is smaller than the cell default row height', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeights: 10,
@@ -89,10 +89,11 @@ describe('Core.getRowHeight', () => {
         colHeaders: false,
       });
 
-      expect(getRowHeight(0)).toBe(getFirstRenderedRowDefaultHeight());
-      expect(getRowHeight(1)).toBe(getDefaultRowHeight());
-      expect(getRowHeight(2)).toBe(getDefaultRowHeight());
-      expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(getDefaultRowHeight());
+      expect(getRowHeight(0)).toBe(10);
+      expect(getRowHeight(1)).toBe(10);
+      expect(getRowHeight(2)).toBe(10);
+      expect(getMaster().find('table tr:first-child td:eq(0)').outerHeight()).toBe(10);
+      expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(10);
     });
 
     it('should be synced with the cell row height when the `rowHeights` value is `0`', async() => {
@@ -121,7 +122,8 @@ describe('Core.getRowHeight', () => {
 
       expect(getRowHeight(0)).toBe(0);
       expect(getRowHeight(1)).toBe(0);
-      expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight()); // first rendered row
+      // An exact height is the height you set, so the first rendered row takes no extra pixel for its top border
+      expect(getRowHeight(2)).toBe(getDefaultRowHeight());
       expect(getRowHeight(3)).toBe(getDefaultRowHeight());
       expect(getRowHeight(4)).toBe(getDefaultRowHeight());
       expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(getDefaultRowHeight());

@@ -34,6 +34,7 @@ import type {
   CellProperties as CellPropertiesType,
   CellMeta as CellMetaType,
   CellChange as CellChangeType,
+  AppliedCellChange as AppliedCellChangeType,
   ChangeSource as ChangeSourceType,
   RowObject as RowObjectType,
 } from './settings';
@@ -203,6 +204,7 @@ interface HandsontableFactory {
     EmptyDataState: typeof import('./plugins/emptyDataState').EmptyDataState;
     ExportFile: typeof import('./plugins/exportFile').ExportFile;
     Filters: typeof import('./plugins/filters').Filters;
+    FormulaBuilder: typeof import('./plugins/formulaBuilder').FormulaBuilder;
     Formulas: typeof import('./plugins/formulas').Formulas;
     HiddenColumns: typeof import('./plugins/hiddenColumns').HiddenColumns;
     HiddenRows: typeof import('./plugins/hiddenRows').HiddenRows;
@@ -223,6 +225,7 @@ interface HandsontableFactory {
     Pagination: typeof import('./plugins/pagination').Pagination;
     RowSelection: typeof import('./plugins/rowSelection').RowSelection;
     CheckboxHeader: typeof import('./plugins/checkboxHeader').CheckboxHeader;
+    EditableHeaders: typeof import('./plugins/editableHeaders').EditableHeaders;
     Search: typeof import('./plugins/search').Search;
     SelectionHandles: typeof import('./plugins/selectionHandles').SelectionHandles;
     StretchColumns: typeof import('./plugins/stretchColumns').StretchColumns;
@@ -329,6 +332,7 @@ declare namespace Handsontable {
   /** Alias of the top-level `CellMeta` export. */
   export type CellMeta = CellMetaType;
   export type CellChange = CellChangeType;
+  export type AppliedCellChange = AppliedCellChangeType;
   export type ChangeSource = ChangeSourceType;
   export type RowObject = RowObjectType;
   export type Events = import('./core/settings').Events;
@@ -343,10 +347,13 @@ declare namespace Handsontable {
   export type SourceRowData = import('./settings').SourceRowData;
   export type RowIdSetting = import('./core/rowIdentity/rowIdentity').RowIdSetting;
   export type RowIdKey = import('./utils/rowId').RowIdKey;
+  export type MenuItemConfig = import('./utils/menu/types').MenuItemConfig;
+  export type PredefinedMenuItemKey = import('./utils/menu/types').PredefinedMenuItemKey;
   export type ColumnDataGetterSetterFunction = import('./settings').ColumnDataGetterSetterFunction;
   export type SelectOptionsObject = import('./settings').SelectOptionsObject;
   export type RemoveIndexSignature<T> = import('./settings').RemoveIndexSignature<T>;
   export type OmitHooks<T> = import('./settings').OmitHooks<T>;
+  export type SettingsUpdate = import('./settings').SettingsUpdate;
   export type CellType = import('./cellTypes/registry').CellType;
   export type EditorType = import('./editors/registry').EditorType;
   export type RendererType = import('./renderers/registry').RendererType;
@@ -474,6 +481,7 @@ declare namespace Handsontable {
       export type AvailableConditionsDataType = import('./plugins/filters').AvailableConditionsDataType;
       export type AvailableCondition = import('./plugins/filters').AvailableCondition;
     }
+    export type FormulaBuilder = import('./plugins/formulaBuilder').FormulaBuilder;
     export type Formulas = import('./plugins/formulas').Formulas;
     export type HiddenColumns = import('./plugins/hiddenColumns').HiddenColumns;
     export type HiddenRows = import('./plugins/hiddenRows').HiddenRows;
@@ -500,6 +508,7 @@ declare namespace Handsontable {
       export type ServerSelection = import('./plugins/rowSelection').ServerRowSelection;
     }
     export type CheckboxHeader = import('./plugins/checkboxHeader').CheckboxHeader;
+    export type EditableHeaders = import('./plugins/editableHeaders').EditableHeaders;
     export type Search = import('./plugins/search').Search;
     export type SelectionHandles = import('./plugins/selectionHandles').SelectionHandles;
     export type StretchColumns = import('./plugins/stretchColumns').StretchColumns;
@@ -535,12 +544,13 @@ export {
 // Note: CellCoords and CellRange are already exported as runtime values above.
 export type { GridSettings, Events, SanitizerContext, TextExtractorContext, PasteClipboardData } from './core/settings';
 export type {
-  CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, SourceRowData, ChangeSource,
-  CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks
+  CellValue, CellChange, AppliedCellChange, ColumnDataGetterSetterFunction, RowObject, SourceRowData, ChangeSource,
+  CellMeta, CellProperties, ColumnSettings, RemoveIndexSignature, OmitHooks, SettingsUpdate
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
 export type { RowIdSetting } from './core/rowIdentity/rowIdentity';
 export type { RowIdKey } from './utils/rowId';
+export type { MenuItemConfig, PredefinedMenuItemKey } from './utils/menu/types';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export { IndexMapper } from './translations';

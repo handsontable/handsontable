@@ -9,9 +9,9 @@ const data = [[0, 1, 2], ['3c', '4b', 5], [], []];
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
       data={data}
       colHeaders={true}
       rowHeaders={true}

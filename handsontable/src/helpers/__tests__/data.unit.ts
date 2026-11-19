@@ -1,5 +1,7 @@
 import {
   cloneRow,
+  createSpreadsheetData,
+  createSpreadsheetObjectData,
   dataRowToChangesArray,
   hasChangeForCell,
   spreadsheetColumnLabel,
@@ -32,6 +34,85 @@ describe('Data helper', () => {
       expect(spreadsheetColumnIndex('L')).toBe(11);
       expect(spreadsheetColumnIndex('DJ')).toBe(113);
       expect(spreadsheetColumnIndex('BUDNIX')).toBe(33439273);
+    });
+  });
+
+  //
+  // Handsontable.helper.createSpreadsheetData
+  //
+  describe('createSpreadsheetData', () => {
+    it('should label every cell with its own column letters and row number across multi-letter columns', () => {
+      const data = createSpreadsheetData(2, 28);
+
+      expect(data.length).toBe(2);
+      expect(data[0].length).toBe(28);
+      expect(data[1].length).toBe(28);
+      expect(data[0][0]).toBe('A1');
+      expect(data[0][1]).toBe('B1');
+      expect(data[0][25]).toBe('Z1');
+      expect(data[0][26]).toBe('AA1');
+      expect(data[0][27]).toBe('AB1');
+      expect(data[1]).toEqual(data[0].map(value => value.replace('1', '2')));
+      expect(data[1][27]).toBe('AB2');
+    });
+
+    it('should label a three-letter column', () => {
+      expect(createSpreadsheetData(1, 703)[0][702]).toBe('AAA1');
+    });
+
+    it('should return empty rows when no columns are requested', () => {
+      expect(createSpreadsheetData(2, 0)).toEqual([[], []]);
+    });
+
+    it('should round a fractional column count up, as the column loop does', () => {
+      expect(createSpreadsheetData(1, 2.5)).toEqual([['A1', 'B1', 'C1']]);
+    });
+
+    it('should not walk the columns when no rows are requested', () => {
+      expect(createSpreadsheetData(0, Infinity)).toEqual([]);
+    });
+
+    it('should return 100 rows of 4 columns by default', () => {
+      const data = createSpreadsheetData();
+
+      expect(data.length).toBe(100);
+      expect(data[0]).toEqual(['A1', 'B1', 'C1', 'D1']);
+      expect(data[99]).toEqual(['A100', 'B100', 'C100', 'D100']);
+    });
+  });
+
+  //
+  // Handsontable.helper.createSpreadsheetObjectData
+  //
+  describe('createSpreadsheetObjectData', () => {
+    it('should key every cell by its column index and label it with its column letters and row number', () => {
+      const data = createSpreadsheetObjectData(2, 28);
+      const expectedKeys = Array.from({ length: 28 }, (_, index) => `prop${index}`);
+
+      expect(data.length).toBe(2);
+      expect(Object.keys(data[0])).toEqual(expectedKeys);
+      expect(Object.keys(data[1])).toEqual(expectedKeys);
+      expect(data[0].prop0).toBe('A1');
+      expect(data[0].prop25).toBe('Z1');
+      expect(data[0].prop26).toBe('AA1');
+      expect(data[1].prop0).toBe('A2');
+      expect(data[1].prop27).toBe('AB2');
+    });
+
+    it('should return empty objects when no columns are requested', () => {
+      expect(createSpreadsheetObjectData(1, 0)).toEqual([{}]);
+    });
+
+    it('should return 100 rows of 4 props by default', () => {
+      const data = createSpreadsheetObjectData();
+
+      expect(data.length).toBe(100);
+      expect(data[0]).toEqual({ prop0: 'A1', prop1: 'B1', prop2: 'C1', prop3: 'D1' });
+      expect(data[99]).toEqual({ prop0: 'A100', prop1: 'B100', prop2: 'C100', prop3: 'D100' });
+    });
+
+    it('should not walk the columns when no rows are requested', () => {
+      expect(createSpreadsheetObjectData(0, Infinity)).toEqual([]);
     });
   });
 

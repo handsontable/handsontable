@@ -29,13 +29,18 @@ const hotSettings: GridSettings = {
     }
 
     const [row, prop] = changes[changes.length - 1];
+
+    if (row === null) {
+      return;
+    }
+
     const column = prop as number;
     const value = this.getDataAtCell(row, column);
     const label = column === 1 ? 'Default' : 'preserveNumericLiteral';
 
     readout.value = `${label} stores: ${JSON.stringify(value)} (${typeof value})`;
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 </script>
 

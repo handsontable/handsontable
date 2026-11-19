@@ -1,8 +1,8 @@
 import { stringify } from './mixed';
-import { deprecatedWarnOnce } from './console';
 
 // Re-exported to keep `substitute` reachable from its documented `helpers/string` path. The
-// implementation lives in a leaf module so that `helpers/console` can use it without a cycle.
+// implementation lives in a leaf module so that `helpers/console` can use it, and this module can
+// import `helpers/console`, without a cycle.
 export { substitute } from './templateString';
 
 /**
@@ -250,23 +250,6 @@ const HTML_ESCAPE_CHARS: Record<string, string> = {
  */
 export function escapeHtml(string: string): string {
   return String(string).replace(/[&<>"']/g, char => HTML_ESCAPE_CHARS[char]);
-}
-
-/**
- * Returns the string unchanged.
- *
- * @deprecated Since 18.0.0. Handsontable no longer bundles an HTML sanitizer; this helper is a
- * pass-through and will be removed in 19.0.0. Supply your own sanitizer through the
- * `sanitizer` configuration option instead.
- * @param {string} string String to return.
- * @returns {string}
- */
-export function sanitize(string: string): string {
-  deprecatedWarnOnce('helper.sanitize',
-    '`sanitize()` is deprecated and will be removed in Handsontable 19.0.0. ' +
-    'It returns its input unchanged. Use the `sanitizer` option to supply your own sanitizer.');
-
-  return string;
 }
 
 /**

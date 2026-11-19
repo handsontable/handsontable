@@ -18,6 +18,7 @@ import {
   type NotificationPosition,
   type NotificationVariant,
 } from './constants';
+import { LICENSE } from './feature.generated';
 
 export type { NotificationPosition, NotificationVariant } from './constants';
 
@@ -100,7 +101,7 @@ const TICK_MS = 200;
  * const hot = new Handsontable(container, {
  *   data: data,
  *   notification: true,
- *   licenseKey: 'non-commercial-and-evaluation',
+ *   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
  * });
  * const notification = hot.getPlugin('notification');
  * notification.showMessage({ message: 'Saved.' });
@@ -119,6 +120,14 @@ export class Notification extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

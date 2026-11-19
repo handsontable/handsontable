@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a false console warning that a `dropdownMenu` item key does not match any available menu item, which a list naming Filters items logged although the Filters plugin was on.",
+  "type": "fixed",
+  "issueOrPR": 14039,
+  "breaking": false,
+  "framework": "none"
+}

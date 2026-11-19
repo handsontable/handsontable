@@ -34,6 +34,7 @@
     .flex-column { display: flex; flex-direction: column; height: 200px; }
     .flex-column > .flex-item { flex: 1 1 0%; min-height: 0; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -107,7 +108,7 @@
         { type: 'autocomplete', source: COUNTRIES, strict: true },
       ],
       afterRender: stampTestIds,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     };
 
     const squeezed = document.querySelector('[data-testid="grid"]');

@@ -36,6 +36,8 @@ The content inside a cell will be wrapped if it doesn't fit the cell's width.
 
 An auto-sized column grows to fit its widest value, even when that value is wider than the grid. The text stays on one line, and the grid scrolls horizontally. The size of the container doesn't change the measured width. To limit how wide a column can grow, see [Set a dynamic maximum column width](#set-a-dynamic-maximum-column-width).
 
+Auto-sizing also measures the content of merged cells. To see how a merged cell that spans several columns affects their widths, see [Merge cells: Column widths](@/guides/cell-features/merge-cells/merge-cells.md#column-widths).
+
 ## Set the column width as a constant
 
 In this example we set the same width of `100px` for all columns across the entire grid.

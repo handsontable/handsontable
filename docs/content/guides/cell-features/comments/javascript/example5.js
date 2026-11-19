@@ -26,8 +26,8 @@ new Handsontable(container, {
     // Attach a comment when a cell fails validation, and remove it once the cell is valid.
     afterValidate(isValid, value, row, prop) {
         const column = this.propToCol(prop);
-        // Skip a property that names no column.
-        if (column === null) {
+        // Skip a record a filter hid while it was validated, and a property that names no column.
+        if (row === null || column === null) {
             return;
         }
         const comments = this.getPlugin('comments');
@@ -45,5 +45,5 @@ new Handsontable(container, {
     height: 'auto',
     autoWrapRow: true,
     autoWrapCol: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });

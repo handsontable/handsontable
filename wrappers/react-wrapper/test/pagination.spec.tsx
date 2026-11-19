@@ -5,6 +5,7 @@ import {
   renderHotTableWithProps,
 } from './_helpers';
 import { HotTableProps } from '../src/types';
+import { TEST_LICENSE_KEY } from './licenseKey';
 
 // register Handsontable's modules
 registerAllModules();
@@ -12,7 +13,7 @@ registerAllModules();
 describe('HotTable pagination `initialPage`', () => {
   it('should not snap the current page back to `initialPage` on re-render (DEV-1140)', async() => {
     const hotSettings: HotTableProps = {
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       id: 'hot',
       data: createSpreadsheetData(45, 5),
       pagination: {

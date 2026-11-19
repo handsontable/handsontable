@@ -17,7 +17,7 @@ vue:
   metaTitle: Handling collaboration and simultaneous editing | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Data management
-menuTag: new
+menuTag: updated
 ---
 
 Coordinate edits between multiple users by detecting active edit state, intercepting local changes, and syncing structural and non-data changes across clients.

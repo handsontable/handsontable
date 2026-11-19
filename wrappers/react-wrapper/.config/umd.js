@@ -19,6 +19,7 @@ const umdConfig = {
       'handsontable/base': 'Handsontable',
       'handsontable/renderers/registry': 'Handsontable.renderers',
       'handsontable/editors/registry': 'Handsontable.editors',
+      'handsontable/cellTypes/registry': 'Handsontable.cellTypes',
     }
   },
   plugins: baseConfig.plugins.concat([

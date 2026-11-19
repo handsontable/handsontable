@@ -3,6 +3,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { Formulas } from '../formulas';
 import { NestedRows } from '../../nestedRows';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * DEV-3006: `updateSettings()` used to rebuild the HyperFormula sheet twice when a setting moved
@@ -57,7 +58,7 @@ describe('Formulas deferred resync', () => {
       columns: [{ data: 'name' }, { data: 'calc' }],
       nestedRows: false,
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
@@ -80,7 +81,7 @@ describe('Formulas deferred resync', () => {
         [2, '=A2+10'],
       ],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...settings,
     });
 
@@ -138,10 +139,22 @@ describe('Formulas deferred resync', () => {
   it('rebuilds the sheet once on a settings update that leaves the row count alone', () => {
     const { engine, writes } = buildFlat();
 
+    // Changed in place, so the resync has data to write (an unchanged sheet is not written, DEV-3972).
+    hot.getSettings().data[0][0] = 3;
     writes.mockClear();
     hot.updateSettings({ readOnly: true });
 
     expect(writes).toHaveBeenCalledTimes(1);
+    expect(sheetContent(engine)).toEqual([[3, '=A1+10'], [2, '=A2+10']]);
+  });
+
+  it('does not rewrite the sheet on a settings update that leaves the data unchanged (DEV-3972)', () => {
+    const { engine, writes } = buildFlat();
+
+    writes.mockClear();
+    hot.updateSettings({ readOnly: true });
+
+    expect(writes).not.toHaveBeenCalled();
     expect(sheetContent(engine)).toEqual([[1, '=A1+10'], [2, '=A2+10']]);
   });
 
@@ -205,9 +218,11 @@ describe('Formulas deferred resync', () => {
     writes.mockClear();
 
     expect(() => hot.updateSettings({ data: [[5, '=A1*2']] })).toThrow('listener failure');
-    expect(writes).not.toHaveBeenCalled();
 
-    // The read drains the owed resync against the layout the grid now holds.
+    // The call paints the new rows before it rethrows, and that draw drains the owed resync.
+    expect(writes).toHaveBeenCalledTimes(1);
+
+    // Nothing is owed any more, so the read scans again for nothing and serves the synced sheet.
     expect(hot.getDataAtCell(0, 1)).toBe(10);
     expect(writes).toHaveBeenCalledTimes(1);
     expect(sheetContent(engine)).toEqual([[5, '=A1*2']]);
@@ -264,7 +279,7 @@ describe('Formulas deferred resync', () => {
     hot = new Handsontable(container, {
       data: [[1, '=A1+10'], [2, '=A2+10']],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     writes.mockClear();
@@ -287,6 +302,7 @@ describe('Formulas deferred resync', () => {
       seen.push(writes.mock.calls.length);
     }, 2);
 
+    hot.getSettings().data[0][0] = 3;
     writes.mockClear();
     hot.updateSettings({ readOnly: true });
 
@@ -330,7 +346,9 @@ describe('Formulas deferred resync', () => {
     writes.mockClear();
     hot.updateSettings({ nestedRows: true });
 
-    expect(writes).toHaveBeenCalledTimes(2);
+    // The early drain reads the tree the sheet already holds, so it writes nothing (DEV-3972); the late
+    // listener sees the row count moved and rescans.
+    expect(writes).toHaveBeenCalledTimes(1);
     expect(sheetContent(engine)).toEqual([
       ['Root A', ''],
       ['A-1', '=UPPER(A2)'],
@@ -362,7 +380,7 @@ describe('Formulas deferred resync', () => {
     hot = new Handsontable(container, {
       data: [[1, '=A1+10']],
       formulas: { engine },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       beforeViewRender() {
         if (seen.length === 0) {
           seen.push(engine.getSheetSerialized(this.getPlugin('formulas').sheetId));
@@ -410,12 +428,12 @@ describe('Formulas deferred resync', () => {
 
     document.body.appendChild(otherContainer);
 
-    // A second grid on the same engine, reading this grid's sheet. `renderDependentSheets` redraws
+    // A second grid on the same engine, reading this grid's sheet. The plugin write scope redraws
     // it from inside the span `#internalOperationPending` is open across.
     const otherHot = new Handsontable(otherContainer, {
       data: [['=Sheet1!A1']],
       formulas: { engine, sheetName: 'other' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       afterRender() {
         if (shouldThrow.current) {
           throw new Error('dependent grid render failed');
@@ -426,7 +444,7 @@ describe('Formulas deferred resync', () => {
     hot = new Handsontable(container, {
       data: [[1, '=A1+10']],
       formulas: { engine, sheetName: 'Sheet1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     shouldThrow.current = true;
@@ -443,14 +461,11 @@ describe('Formulas deferred resync', () => {
     otherContainer.remove();
   });
 
-  it('drops the owed resync when a listener disables and re-enables the plugin mid-update', () => {
+  it('writes the new data when a listener disables and re-enables the plugin mid-update', () => {
     const { engine, writes } = buildFlat();
     const plugin = hot.getPlugin('formulas');
     let toggled = false;
 
-    // Pins the documented gap: `disablePlugin()` clears the flag and `enablePlugin()` finds the
-    // sheet still in the user-supplied engine, so nothing writes the new data until the next
-    // update. Formulas' own `updatePlugin()` does not take this path.
     hot.addHook('afterUpdateSettings', () => {
       if (toggled) {
         return;
@@ -463,14 +478,11 @@ describe('Formulas deferred resync', () => {
 
     writes.mockClear();
     hot.updateSettings({ data: [[5, '=A1*2']] });
-
-    expect(writes).not.toHaveBeenCalled();
-    expect(sheetContent(engine)).toEqual([[1, '=A1+10'], [2, '=A2+10']]);
-
-    hot.updateSettings({ readOnly: true });
+    hot.render();
 
     expect(writes).toHaveBeenCalledTimes(1);
     expect(sheetContent(engine)).toEqual([[5, '=A1*2']]);
+    expect(hot.getDataAtCell(0, 1)).toBe(10);
   });
 
   it('does not write the grid into a sheet the update switched to', () => {
@@ -489,7 +501,7 @@ describe('Formulas deferred resync', () => {
       data: [['q1-a', 'q1-b', 'q1-c'], ['q1-d', 'q1-e', 'q1-f']],
       columns: [{ data: 0 }],
       formulas: { engine, sheetName: 'Q1' },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.updateSettings({ formulas: { engine, sheetName: 'Q2' } });

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Plugin ready step first-draw fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    const htParams = new URLSearchParams(location.search);
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // `sorted`: a `columnSorting` `initialConfig` over unsorted rows. `borders`: declared custom borders.
+    window.htScenario = ({ sorted: 'sorted', borders: 'borders' })[htParams.get('scenario') ?? 'sorted'];
+    if (!window.htScenario) {
+      throw new Error('Unknown ?scenario= value: ' + JSON.stringify(htParams.get('scenario')));
+    }
+  </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    /**
+     * Reads the first column as the master table shows it, top to bottom.
+     */
+    const drawnFirstColumn = () => Array.from(document.querySelectorAll('.ht_master tbody tr'))
+      .map(tr => tr.querySelector('td[data-testid$="-0"]'))
+      .filter(Boolean)
+      .map(td => td.textContent);
+
+    window.htDraws = { count: 0, firstColumnOfFirstDraw: null };
+
+    const settings = {
+      data: [
+        ['Mia Chen', 'Engineering'],
+        ['Ana García', 'Marketing'],
+        ['Li Wei', 'Finance'],
+        ['James Okafor', 'Sales'],
+        ['Beatriz Costa', 'Support'],
+      ],
+      // A fixed box with no headers, so every cell is rendered and the master table is the only one.
+      width: 500,
+      height: 300,
+      colWidths: 150,
+      rowHeaders: false,
+      colHeaders: false,
+      afterRender() {
+        window.htDraws.count += 1;
+
+        if (window.htDraws.count === 1) {
+          window.htDraws.firstColumnOfFirstDraw = drawnFirstColumn();
+        }
+      },
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: window.htTestLicenseKey,
+    };
+
+    if (window.htScenario === 'sorted') {
+      settings.columnSorting = { initialConfig: { column: 0, sortOrder: 'asc' } };
+    } else {
+      settings.customBorders = [{
+        row: 2,
+        col: 1,
+        start: { width: 2, color: 'red' },
+        end: { width: 2, color: 'red' },
+        top: { width: 2, color: 'green' },
+      }];
+    }
+
+    // Built loudly: a constructor throw is captured where the page object can read and rethrow it.
+    try {
+      window.hot = new Handsontable(container, settings);
+    } catch (error) {
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+
+    // Snapshotted the instant the constructor returns, before any later work can add a draw.
+    window.htAfterConstruct = {
+      draws: window.htDraws.count,
+      firstColumnOfFirstDraw: window.htDraws.firstColumnOfFirstDraw,
+    };
+  </script>
+</body>
+</html>

@@ -29,7 +29,7 @@ const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 const output = ref('0 selected');
 
 const hotSettings = ref<GridSettings>({
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   dataProvider: {
     // the row selection keeps rows by this id, so it survives page changes
     rowId: 'id',

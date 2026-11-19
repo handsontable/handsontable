@@ -57,6 +57,7 @@
     #wrap { width: 960px; }
     .grid { margin-bottom: 2rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -135,7 +136,7 @@
           afterViewRender() {
             window.renderCounts[testId] += 1;
           },
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         }, settings));
       } catch (error) {
         container.setAttribute('data-init-error', String(error && error.message));

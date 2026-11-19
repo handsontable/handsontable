@@ -18,6 +18,23 @@ A `'hiding'` map affects the **renderable** tier, so paginated-away rows keep th
 (The DeepWiki page groups filtering with hiding and pagination; it is wrong. See
 `../../../.ai/INDEX-MAPPING.md`.)
 
+## A page change writes the hiding map once
+
+`#computeAndApplyState()` builds the map's values in `#buildPagedRowsValues()` and writes them with one
+`setValues()` call. Do not go back to a `setValueAtIndex()` per hidden row. Each write fires a `change`
+hook through the hiding collection and the index mapper, even inside a batch. At 100,000 rows that was
+about 99,950 hooks per page change, plus the `clear()` one, and doubled its cost (about 22 ms against 11 ms per page change,
+measured on a 100,000 x 20 grid with `pageSize: 50`). `performance-tests/scenarios/pagination-next-page/`
+guards it. Size the array from the map's own `getLength()`:
+`BooleanMap#setValues()` resizes the map to the array it gets. Two traps come with it:
+
+- **The `clear()` at the top is load-bearing.** Outside a batch, its `change` rebuilds the index mapper's
+  cache. That rebuild is why the `getRenderableIndexes()` read that follows includes the rows this
+  plugin hid for the previous page. Without the clear, the next page is cut out of the previous page's
+  rows.
+- **`getRenderableIndexes()` returns the mapper's cache array by reference.** Read it, never modify it.
+  The old code `splice()`d the page out of it, which changed the mapper's own cache until the next rebuild.
+
 ## Hard conflicts, declared at module scope in this file
 
 ```js
@@ -48,30 +65,59 @@ or `resetPage()`.
 
 Copy `#currentPage` from the raw `hot.getSettings().pagination.initialPage`, not
 from `getSetting('initialPage')`. `onUpdateSettings` branch 2 (disabled →
-enabled) calls `enablePlugin()` before `updatePluginSettings()`, so
-`#pluginSettings` still holds the previous value. Stamping the tracker from the
-new declared number while applying the stale `getSetting()` result would skip
-the later `updatePlugin()` pass and leave the wrong page. The grid settings
-object is already merged when `enablePlugin()` runs.
+enabled) used to call `enablePlugin()` before `updatePluginSettings()`, so
+`#pluginSettings` held the previous value; it now refreshes the settings first
+(`../base/AGENTS.md`), but the raw value keeps this plugin independent of that
+order. Stamping the tracker from the new declared number while applying a stale
+`getSetting()` result would skip the later `updatePlugin()` pass and leave the
+wrong page. The grid settings object is already merged when `enablePlugin()` runs.
 
-## `PLUGIN_PRIORITY = 900`, and the `init` hook is pinned early
+## `PLUGIN_PRIORITY = 900`, and the first page is applied in the ready step
 
-Priority 900 puts it after every ordinary plugin. Separately, **the `init` hook callback is placed before
-the others**, so the pagination state is computed and applied to the index mapper *before* AutoColumnSize
-starts calculating column sizes. Those are two different mechanisms — see the priority-versus-hook-order
-note in `../base/AGENTS.md`.
+Priority 900 puts it after every ordinary plugin. The first page state is computed in the ready step
+(`onGridReady()`, `../base/AGENTS.md`), which core runs before the `init` hook, so the page is applied to
+the index mapper *before* AutoColumnSize and AutoRowSize measure from their `init` listeners. That used to
+take an `init` listener at order index `-1`; the step keeps the same order without one. The two auto-size
+plugins stay on `init` on purpose: a ready step of theirs would run at priority 10 and 40, before this one
+and before NestedHeaders builds its labels.
+
+The step computes the state only when nothing else did (`#stateOwed`): `updatePlugin()` and `onDataReady()`
+compute it themselves, so after them it does nothing. At init it does not render and leaves an `'auto'`
+page size to the first render, as the listener did. On a grid already drawn (a direct `enablePlugin()`
+call) it computes and renders; before, that enable showed every row until the next index cache update.
+Pinned by `__tests__/readyStep.unit.js`.
 
 ## The layout manager owns the pager's placement, unless `uiContainer` is set
 
 - **Default**: the UI registers its container with `hot.getLayoutManager()` and the manager appends it into
   the **bottom slot**. **The element stays detached until then** — do not `appendChild` it yourself.
 - **With a custom `uiContainer`**: the UI installs itself there and the slot registration is skipped.
+  Outside the root wrapper it takes the theme from `applyUiContainerTheme()` (`src/utils/uiContainerTheme.ts`,
+  shared with the sheets bar): the theme class plus the theme engine's scope class. The engine writes
+  `colorScheme` and `density` under `.<theme>.<scope>` and stamps the scope class on the wrapper and portal
+  only, so with the theme class alone the pager stayed light under a dark grid.
 - **This plugin no longer reserves its own height.** Its `beforeHeightChange` `calc(height - bar)` hook
   moved into core (`reserveEdgeSlotsHeight` in `core/rootSize.ts`), which subtracts EVERY bottom- and top-slot
   bar from a pixel `height` — the sheets bar and the license notification too, so both bars behave
   the same. Inside a scrollable ancestor or a CSS-sized container the engine reserves the slots'
   height instead (`layoutReservedHeight`). Do not add a reservation back here: it would stack on
   core's and shrink the grid twice (DEV-2848).
+
+- **An empty grid with a free height keeps its body open itself (DEV-1103).** With no renderable rows and a root
+  height that is unset or `'auto'`, the holder has no content, so the root collapsed to its column headers and the
+  pager touched them. `#onAfterRender` keeps one `ht-pagination-placeholder` block (150 px, the same as the
+  `emptyDataState` placeholder) in `wtTable.holder` through `PaginationUI#syncEmptyBodyReserve()`; the UI keeps
+  the request and re-applies it from `#updateContainerVisibility()`, so `hide*Section()`/`show*Section()` (which do not
+  render) move the block at once; `destroy()` removes it. "Free" means the table HOLDER has no inline pixel height (`''` or `'auto'`), which is what the engine leaves for a free
+  root height and for a root sized by CSS in a window-scrolled layout. Inside a sized scroll parent the engine gives the
+  holder a pixel height, so the block would only add a scrollbar and is skipped. "No rows" is `view.countRenderableRows()`,
+  not `getRenderableIndexesLength()`: `maxRows: 0` draws nothing while the mapper still holds rows. It stays off
+  with a sized holder (a pixel, percentage or viewport `height`, or a sized scroll parent), with a custom `uiContainer`
+  (the pager is not under the grid), while every pager section is hidden, and while `emptyDataState` is enabled,
+  which holds the same space open, so the two never stack to 300 px. The 150 is a copy of `MIN_HEIGHT` in
+  `../emptyDataState/ui.ts`: change both together, or the pager jumps when that plugin is toggled. Pinned by `tests/e2e/pagination-all-filtered-gap.spec.ts`. The
+  `auto-height` variant of the bottom-slot fixture fixes the grid's CSS box at 400 px, so its pager never
+  collapses: use `inline-block-host` to reproduce it.
 
 The manager exists only on the root instance. `isEnabled()` is already gated on `isRootInstance`, so by
 the time `enablePlugin()` reaches that guard **the `isRootInstance` half is always true and its else-branch
@@ -80,6 +126,13 @@ source comment at `pagination.ts:312` says "always false in practice", meaning t
 arises — read it that way, it is easy to take backwards.) A direct `enablePlugin()` call on a non-root
 instance dies earlier, in the UI, which reads `rootGridElement`. The same guard is mirrored later in the
 file with a comment pointing back — keep both, and keep the comments.
+
+## `PaginationUI#destroy()` takes `htPagination` off the root wrapper
+
+Without a custom `uiContainer`, the UI marks the root wrapper with `htPagination` while a section is
+visible (the bar's corner styling). `destroy()`, which `disablePlugin()` runs, removes it, or the class
+stayed after `pagination: false` and on a later sheet without pagination. Pinned by `__tests__/ui.unit.js`
+and `tests/e2e/plugin-ui-teardown.spec.ts`.
 
 ## Two page-size strategies
 
@@ -128,6 +181,32 @@ current page and `clear()` left every other page filled. It now empties the data
 rule to carry over: a method that changes *data* must not borrow the selection to decide its range,
 because every selection constraint — this plugin's page window, and `selectionMode: 'single'`, which
 collapses any range to the highlighted cell — then silently becomes a data constraint.
+
+**A row on another page is shown only on request, through core's row revealer seam.** `enablePlugin()`
+registers `#prepareRowReveal` with the `@private` `Core#_addRowRevealer()` (`disablePlugin()` removes it).
+Core calls it from `_prepareRowReveal()`, which an editor runs when it starts to wait for its validator; it
+records the current page and returns the function that reveals a row later. Today one caller uses it: an
+editor that reopens on the record a rejected value was typed into, after a sort moved that record to another
+page (`BaseEditor#discardEditor()`). **The reveal refuses when a page was chosen after the start of the wait.**
+The user changed the page during the wait, and switching back would undo their navigation, so the editor closes
+with nothing written. The plugin counts the choices (`#pageNavigations`, raised by `#setCurrentPage()` when the
+page changes: `setPage()`, `resetPage()`, an undo, a DataProvider fetch) and the reveal compares the count, not
+the page: the clamp in `#computeAndApplyState()` also moves `#currentPage` when a filter leaves fewer pages, and a
+page compare refused the reveal then, closing the editor and losing the typed text. A choice that comes back to
+the same page (3 → 4 → 3) still counts. A check made only when the validator answers cannot
+tell the two apart: the record is off the current page either way. The refusal is pinned by
+`src/__tests__/core/validateChangesRecordTracking.unit.js`, the reveal itself by
+`tests/e2e/pending-edit-follows-record.spec.ts`. **The editor runs a reveal of a row that is not rendered through
+core's `@private` `_runAfterValidatorAnswer()`, in the same task, right after the validator's answer released its
+hold on the change's transaction** (`operationScope.hold()`):
+run inside it, `setPage()`'s `runOperation('set_page')` joined the change, and UndoRedo recorded an empty
+`change` step instead of `set_page` (pinned by the `undo step of its own` case of the same unit file).
+`#getPageOfRow()` counts the row's position among the rows no other hiding map hides (one pass over the
+visual rows) and finds the page whose `getState()` window holds it; a row another feature hides, a
+`dataProvider` grid (the rows are one page), or a row already on the current page answers `false`, and
+nothing changes. `setPage()` then announces the new page as any page change does, and the editor takes the
+focus right after. Do not make a plain `selectCell()` or a scroll call it: a selection of a row on another
+page keeps doing what it did.
 
 It also reacts to `afterSetTheme` (a theme changes row heights, and `useTheme()` does not go through
 `updateSettings`), `afterLanguageChange` (the pager's labels) and `afterDataProviderFetch`.
@@ -184,15 +263,19 @@ compares the button's paint after a page change with a fresh paint of it.
 
 `ht-page-size-section__label` and `ht-page-navigation-section__label` are `<span>`s. They declare
 `font-size`, `line-height`, `font-weight`, `letter-spacing`, and `font-family` as `inherit` in
-`_pagination.scss` (DEV-75). Without a declaration of their own they only inherit from `.ht-pagination`,
+`_pagination.scss`, through `@include mixins.inherit-text-metrics` (`src/styles/utils/_mixins.scss`).
+Without a declaration of their own they only inherit from `.ht-pagination`,
 and a host page rule as plain as `span { font-size: 20px }` beats inheritance – the labels grew while the
 rest of the bar kept the theme token (the buttons and the select are not spans, and they declare
 `font-size: inherit` for a different reason: resetting native control fonts). `inherit` rather than the
 token keeps a user's own override on the bar working – one that beats the bar's
 `.handsontable.ht-pagination` (0,2,0), for example `div.handsontable.ht-pagination`. The trade: the guard
 sits at (0,3,0), so a user rule on the label class itself (`.ht-page-navigation-section__label` or
-`.handsontable .ht-page-navigation-section__label`) that used to apply now loses. Any new text-bearing span
-added to the bar needs the same five lines; `tests/e2e/host-span-styles.spec.ts` pins the existing ones.
+`.handsontable .ht-page-navigation-section__label`) that used to apply now loses. Their box (padding,
+margin, border, height) is guarded separately, at element level (0,0,4), in
+`src/styles/base/_host-guards.scss`, so a host `span { padding: 12px }` cannot make the bar taller while a
+user's `.ht-page-size-section__label { padding: 2px }` still applies. Any new text-bearing span added to the bar needs the
+mixin and an entry in that guard list; `tests/e2e/host-span-styles.spec.ts` pins the existing ones.
 
 ## Server-backed paging is read live, not updated
 
@@ -203,6 +286,8 @@ For the same reason, `#computeAndApplyState()` drops `#serverSideTotalCount` whe
 ## The server total belongs to the view it came from
 
 DataProvider calls the internal `_resetDataProviderTotal()` (`@private`, not API; a no-op while this plugin is disabled) before its owner changes the view the grid shows, which drops `#serverSideTotalCount`. It has to happen before the change, not after: the change itself renders, and the pager must not show the previous view's total for that frame. A view shown again replays its own total through `afterDataProviderFetch`; one fetching for the first time, or showing a failed first fetch, has no response yet and would otherwise page by the previous view's total. This plugin never listens to an owner plugin's hooks; `test/__tests__/releasedPluginsViewAgnostic.unit.js` fails if its source names the owner plugin or its hooks.
+
+The page and page size describe a view too. After a view change to a view that has no response yet, DataProvider calls the internal `_resetDataProviderPage()` (`@private`, a no-op while disabled), which puts `#currentPage` and `#pageSize` back on the configured `initialPage` and `pageSize` so the view's first fetch asks for those. It fires no page hook (`afterPageChange`/`afterPageSizeChange` would make DataProvider fetch at once with the query of the view that was left), and it recomputes the pages: `#setPageSizeValue()` replaces the strategy, and an uncalculated one reports 0 pages. The recompute clamps the page against the rows the grid holds before the response (none, so page 1 of 1), which is why it returns the configured `initialPage` and DataProvider puts that page into the query itself, the same split a plain grid's first fetch has (its query is derived before Pagination's `init` recompute clamps the pager). The response then brings the page, page size, and total in through `afterDataProviderFetch`.
 
 ## Where to look next
 

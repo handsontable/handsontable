@@ -169,6 +169,26 @@ describe('loadSnapshots (history-median path)', () => {
     assert.equal(golden.medianWindowSize, 2);
   });
 
+  test('returns the newest golden behind a median, for the gate', async() => {
+    await mkdir(historyDir, { recursive: true });
+    await writeFile(join(historyDir, 'a.json'), JSON.stringify(validSnapshot('2026-08-27T00:00:00Z')), 'utf8');
+    await writeFile(join(historyDir, 'b.json'), JSON.stringify(validSnapshot('2026-08-28T00:00:00Z')), 'utf8');
+
+    const { snapshot, newest } = await loadBaseline(baseDir);
+
+    assert.equal(snapshot.isMedian, true);
+    assert.equal(newest.timestamp, '2026-08-28T00:00:00Z');
+  });
+
+  test('returns no newest golden for a single-file baseline, which is itself the newest', async() => {
+    await writeFile(goldenPath, JSON.stringify(validSnapshot('2026-08-29T00:00:00Z')), 'utf8');
+
+    const { snapshot, newest } = await loadBaseline(baseDir);
+
+    assert.equal(snapshot.timestamp, '2026-08-29T00:00:00Z');
+    assert.equal(newest ?? null, null);
+  });
+
   test('with a compatibility key, medians only the goldens that share it', async() => {
     await mkdir(historyDir, { recursive: true });
 

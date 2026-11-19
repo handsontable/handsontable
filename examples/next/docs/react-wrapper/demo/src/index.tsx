@@ -8,6 +8,7 @@ import { data } from "./constants";
 const App = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       height={450}
       colWidths={[170, 222, 130, 120, 120, 130, 156]}
@@ -33,7 +34,6 @@ const App = () => {
       manualRowMove={true}
       autoWrapRow={true}
       navigableHeaders={true}
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
       <HotColumn data={3} />

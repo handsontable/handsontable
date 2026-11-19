@@ -174,6 +174,8 @@ From the `/handsontable` directory, you can also run individual JavaScript `buil
 
 :::
 
+:::: only-for javascript react
+
 ### Build the React package
 
 To build the React package:
@@ -218,6 +220,10 @@ From the React wrapper directory, you can also run individual React `build` task
 
 :::
 
+::::
+
+:::: only-for javascript angular
+
 ### Build the Angular package
 
 To build the Angular package:
@@ -244,6 +250,10 @@ From the `/wrappers/angular-wrapper` directory, You can also run individual Angu
 - Places the output in the `/wrappers/angular-wrapper/dist/hot-table/` directory.
 
 :::
+
+::::
+
+:::: only-for javascript vue
 
 ### Build the Vue package
 
@@ -289,9 +299,33 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
 
 :::
 
+::::
+
 ## Result
 
+:::: only-for javascript
+
 You now have a local build of Handsontable. The output files in `handsontable/dist/` and `handsontable/tmp/` reflect your source changes.
+
+::::
+
+:::: only-for react
+
+You now have a local build of the React wrapper. The output files in `wrappers/react-wrapper/commonjs/`, `wrappers/react-wrapper/es/`, and `wrappers/react-wrapper/dist/` reflect your source changes.
+
+::::
+
+:::: only-for angular
+
+You now have a local build of the Angular wrapper. The output files in `wrappers/angular-wrapper/dist/hot-table/` reflect your source changes.
+
+::::
+
+:::: only-for vue
+
+You now have a local build of the Vue wrapper. The output files in `wrappers/vue3/commonjs/`, `wrappers/vue3/es/`, and `wrappers/vue3/dist/` reflect your source changes.
+
+::::
 
 ## Related guides
 

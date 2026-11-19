@@ -43,6 +43,7 @@
     .handsontable td.bold-red { font-weight: bold; color: #ff0000; }
     .handsontable td.green-bg { background-color: #00ff00; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -60,6 +61,7 @@
   </div>
   <div id="source" data-testid="source"></div>
   <div id="source2" data-testid="source2"></div>
+  <div id="source3" data-testid="source3"></div>
   <div id="target" data-testid="target"></div>
 
   <script>
@@ -87,6 +89,7 @@
     sourceEl.className = `ht-theme-${window.htTheme}`;
     targetEl.className = `ht-theme-${window.htTheme}`;
     document.getElementById('source2').className = `ht-theme-${window.htTheme}`;
+    document.getElementById('source3').className = `ht-theme-${window.htTheme}`;
 
     const stamp = prefix => function(td, row, col) {
       td.setAttribute('data-testid', `${prefix}-${row}-${col}`);
@@ -132,7 +135,7 @@
       ],
       exportFile: engineSetting,
       afterRenderer: stamp('source'),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // A second, small source grid, so the nested-header round trip does not change what the first
@@ -151,10 +154,30 @@
       ],
       exportFile: engineSetting,
       afterRenderer: stamp('source2'),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.__source2 = source2;
+
+    // A third source grid of array formulas and error cells, so a real browser runs the array and
+    // error paths of both engines on the dist bundle: `SEQUENCE` spills down column B, `FILTER` on
+    // row 2 spills down to the last row (the engine reserves a row more than it fills), `=1/0`
+    // computes an error, and `#N/A` is typed. Its own engine and sheet, so the first grid's tests
+    // see nothing of it.
+    const source3 = new Handsontable(document.getElementById('source3'), {
+      data: [
+        [3, '=SEQUENCE(3)', null, '=1/0', '#N/A'],
+        [1, null, '=FILTER(A1:A4,A1:A4>1)', null, null],
+        [2, null, null, null, null],
+        [5, null, null, null, null],
+      ],
+      formulas: { engine: HyperFormula, sheetName: 'Arrays' },
+      exportFile: engineSetting,
+      afterRenderer: stamp('source3'),
+      licenseKey: window.htTestLicenseKey,
+    });
+
+    window.__source3 = source3;
 
     const target = new Handsontable(targetEl, {
       data: [[]],
@@ -167,7 +190,7 @@
       // Used only by the styles round trip, to re-export the target and read the styling back.
       exportFile: engineSetting,
       afterRenderer: stamp('target'),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.__source = source;

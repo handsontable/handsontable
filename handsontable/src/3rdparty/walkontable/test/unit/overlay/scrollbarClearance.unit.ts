@@ -7,6 +7,7 @@ import {
   isPointInScrollbarBand,
   overlayExtentBesideScrollbar,
   reservedScrollbarSpace,
+  scrollbarAxisThickness,
   syncScrollbarTrackBands,
 } from '../../../src/overlay/scrollbarClearance';
 import {
@@ -57,6 +58,48 @@ describe('overlay scrollbar clearance', () => {
     it('should report nothing when there is no holder yet', () => {
       expect(reservedScrollbarSpace(reader({ ow: 700, cw: 685, oh: 340, ch: 340 }), null as never, 'vertical'))
         .toBe(0);
+    });
+  });
+
+  describe('scrollbarAxisThickness', () => {
+    const reader = (box: { ow: number; cw: number; oh: number; ch: number }) => ({
+      offsetWidth: () => box.ow,
+      clientWidth: () => box.cw,
+      offsetHeight: () => box.oh,
+      clientHeight: () => box.ch,
+    }) as never;
+    const holder = {} as HTMLElement;
+
+    it('should use the probe when there is no holder', () => {
+      const unread = {
+        offsetWidth: () => {
+          throw new Error('offsetWidth');
+        },
+        clientWidth: () => {
+          throw new Error('clientWidth');
+        },
+        offsetHeight: () => {
+          throw new Error('offsetHeight');
+        },
+        clientHeight: () => {
+          throw new Error('clientHeight');
+        },
+      } as never;
+
+      expect(scrollbarAxisThickness(unread, null, 'vertical', 17)).toBe(17);
+    });
+
+    it('should use the probe when the holder gutter is 0', () => {
+      expect(scrollbarAxisThickness(
+        reader({ ow: 700, cw: 700, oh: 340, ch: 340 }), holder, 'vertical', 17
+      )).toBe(17);
+    });
+
+    it('should use the holder gutter when it is above 0', () => {
+      // Vertical gutter is 15, horizontal gutter is 10. The probe is 17. The wrong axis returns 10.
+      expect(scrollbarAxisThickness(
+        reader({ ow: 700, cw: 685, oh: 340, ch: 330 }), holder, 'vertical', 17
+      )).toBe(15);
     });
   });
 

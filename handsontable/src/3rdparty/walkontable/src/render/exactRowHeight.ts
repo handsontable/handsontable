@@ -236,6 +236,41 @@ function releaseExactShape(TR: HTMLElement): void {
 }
 
 /**
+ * Returns the height the exact shape writes on the row, as a CSS length.
+ *
+ * Normally that is the resolved height the caller passed. A row whose first cell spans several rows
+ * (or is covered by a merge) is the exception: the host hands that cell the height of every row it
+ * spans (MergeCells does, through `modifyRowHeightByOverlayName`), and a spanning cell never carries
+ * the height in the exact shape. The cell that does carry it is another one in the same row, and the
+ * block's total on it would stretch this row by every row the block spans. The row gets its own
+ * height instead, as the floor shape pins it, and the span sizes itself from the rows it covers.
+ *
+ * @param {HTMLElement} firstChild The row's first cell.
+ * @param {string} pixelHeight The resolved height, as a CSS length.
+ * @param {boolean} isBorderBox Whether the cells use `box-sizing: border-box`.
+ * @param {object} [ownHeights] Answers a row's own height by its source index.
+ * @param {number} [sourceIndex] The row's source index, for `ownHeights`.
+ * @returns {string}
+ */
+function getExactCarrierHeight(
+  firstChild: HTMLElement,
+  pixelHeight: string,
+  isBorderBox: boolean,
+  ownHeights?: OwnRowHeights,
+  sourceIndex?: number,
+  extraHeight = 0,
+): string {
+  if (canCarryHeight(firstChild) || ownHeights === undefined || sourceIndex === undefined) {
+    return pixelHeight;
+  }
+
+  const ownHeight = ownHeights.getHeight(sourceIndex);
+
+  return ownHeight !== undefined && ownHeight > 0 ?
+    toRowElementHeight(ownHeight + extraHeight, isBorderBox) : pixelHeight;
+}
+
+/**
  * Applies the resolved height of one rendered row to its DOM. Runs after the cells rendered, on
  * every draw, and again whenever the engine re-applies heights out of a render (the frozen-column
  * row sync).
@@ -251,6 +286,9 @@ function releaseExactShape(TR: HTMLElement): void {
  * @param {number} [sourceIndex] The row's source index, for `ownHeights`.
  * @param {boolean} [drawsTopBorder] Whether this row is the first row of a table that draws its own 1px top
  *   border (see `firstRowDrawsTopBorder`). The caller knows the row's position and the table's head row.
+ * @param {boolean} [topBorderOutsideHeight] Whether that border is drawn on top of the row's height instead of
+ *   inside it (the first row of the bottom tables, see `firstRowTopBorderOutsideHeight`): the row is written one
+ *   pixel above its logical height.
  */
 export function applyRowHeight(
   TR: HTMLElement,
@@ -260,6 +298,7 @@ export function applyRowHeight(
   ownHeights?: OwnRowHeights,
   sourceIndex?: number,
   drawsTopBorder = false,
+  topBorderOutsideHeight = false,
 ): void {
   const firstChild = TR.firstChild;
 
@@ -270,10 +309,17 @@ export function applyRowHeight(
   // Convert the logical row height to the pixel height written to the DOM. In content-box mode
   // 1px is "replaced" by the row's 1px top border; the shared helper keeps that constant in one
   // place (see axisSizing/boxModel.ts).
-  const pixelHeight = rowHeight ? `${getBoxAdjustedRowHeight(rowHeight, isBorderBox)}px` : '';
+  const extraHeight = topBorderOutsideHeight ? 1 : 0;
+
+  // A border drawn outside the height is a border the row draws: a caller cannot name the first without the second.
+  const rowDrawsTopBorder = drawsTopBorder || topBorderOutsideHeight;
+  const pixelHeight = rowHeight ? `${getBoxAdjustedRowHeight(rowHeight + extraHeight, isBorderBox)}px` : '';
 
   if (isExact && rowHeight) {
-    applyExactShape(TR, pixelHeight);
+    applyExactShape(
+      TR,
+      getExactCarrierHeight(firstChild, pixelHeight, isBorderBox, ownHeights, sourceIndex, extraHeight)
+    );
 
     return;
   }
@@ -295,7 +341,7 @@ export function applyRowHeight(
   if (!canCarryHeight(firstChild) && ownHeights !== undefined && sourceIndex !== undefined) {
     const providedHeight = ownHeights.getHeight(sourceIndex);
     const ownHeight = providedHeight !== undefined && providedHeight > 0 ?
-      providedHeight : (ownHeights.getDefaultHeight() ?? 0) + (drawsTopBorder ? 1 : 0);
+      providedHeight + extraHeight : (ownHeights.getDefaultHeight() ?? 0) + (rowDrawsTopBorder ? 1 : 0);
     const rowElementHeight = toRowElementHeight(ownHeight, isBorderBox);
 
     if (pinnedRows.get(TR) !== rowElementHeight) {

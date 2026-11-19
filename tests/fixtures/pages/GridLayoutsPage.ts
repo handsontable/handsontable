@@ -233,9 +233,9 @@ export class GridLayoutsPage {
    *
    * The redraw is the render-state probe, not the scroll offset: the band is opened by the same
    * `scroll` handler that redraws, so once the redraw is seen the band is up if it is going to be.
-   * The pointer is parked off the grid first, because a pointer resting within 26 px of a scrollbar
+   * The pointer is parked off the grid first, because a pointer resting within 16 px of a scrollbar
    * keeps that scrollbar's band open by design (`OVERLAY_SCROLLBAR_PROXIMITY`) – which is where it
-   * rests after a click on the far corner.
+   * may rest after a click on the far corner.
    *
    * @param {'start' | 'end'} edge Which end to scroll to.
    */
@@ -464,6 +464,23 @@ export class GridLayoutsPage {
     await this.page.evaluate(s => (window as unknown as {
       hot: { updateSettings(settings: Record<string, unknown>): void },
     }).hot.updateSettings(s), settings);
+  }
+
+  /**
+   * Passes the grid the rows it already holds again, the way a wrapper does on a re-render: through
+   * `updateSettings({ data })`, with the same array or with a shallow copy of it.
+   *
+   * @param {'same-array' | 'copy'} how Whether to pass the grid's own array or a copy of it.
+   */
+  async passRowsAgain(how: 'same-array' | 'copy'): Promise<void> {
+    await this.page.evaluate((mode) => {
+      const { hot } = window as unknown as {
+        hot: { getSettings(): { data: unknown[] }, updateSettings(settings: { data: unknown[] }): void },
+      };
+      const { data } = hot.getSettings();
+
+      hot.updateSettings({ data: mode === 'copy' ? data.slice() : data });
+    }, how);
   }
 
   /**

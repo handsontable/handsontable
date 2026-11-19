@@ -25,7 +25,7 @@ const hot = new Handsontable(example, {
   colWidths: 100,
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 triggerBtn.addEventListener('click', () => {

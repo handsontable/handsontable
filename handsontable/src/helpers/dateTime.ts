@@ -271,3 +271,38 @@ export function getDateTimeFormat(
 
   return formatter;
 }
+
+/**
+ * Formats a local date with a cached `Intl.DateTimeFormat`, and shows the era of a year before 1.
+ *
+ * `Intl` counts years within their era, so year 0 (1 BC in ISO 8601) prints as `1`, the same as year 1.
+ * The two values still sort apart. For such a date the era is added when the format prints a year in
+ * the Gregorian calendar and sets no `era` of its own. Whether it prints a year is read from the
+ * formatter, so a format that sets no date field (`{}`, `{ timeZone: 'UTC' }`) counts, as it falls back
+ * to a numeric year. A format with `dateStyle` or `timeStyle` prints no year field and is left as it is,
+ * because `Intl` throws when those are combined with `era`.
+ *
+ * @param {string|string[]|undefined} locale The locale or locales, `undefined` for the default locale.
+ * @param {Intl.DateTimeFormatOptions} options The format options.
+ * @param {Date} date The date to format.
+ * @returns {string}
+ */
+export function formatLocalDate(
+  locale: string | readonly string[] | undefined,
+  options: Intl.DateTimeFormatOptions,
+  date: Date,
+): string {
+  const formatter = getDateTimeFormat(locale, options);
+
+  if (date.getFullYear() >= 1 || options.era !== undefined) {
+    return formatter.format(date);
+  }
+
+  const { year, calendar } = formatter.resolvedOptions();
+
+  if (year === undefined || calendar !== 'gregory') {
+    return formatter.format(date);
+  }
+
+  return getDateTimeFormat(locale, { ...options, era: 'short' }).format(date);
+}

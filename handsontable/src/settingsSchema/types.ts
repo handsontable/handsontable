@@ -56,6 +56,11 @@ export interface GeneratedSchemaInternals {
    * third-party one, and its keys are accepted at every level.
    */
   builtInPlugins: string[];
+  /**
+   * The documented options whose type the settings types do not declare, so the schema took them from
+   * their JSDoc `@type`. Empty while every option is declared. A test reads it.
+   */
+  fromJsDoc: string[];
 }
 
 /**

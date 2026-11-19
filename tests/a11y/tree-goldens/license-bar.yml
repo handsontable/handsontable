@@ -1,0 +1,39 @@
+# grid
+- treegrid:
+  - rowgroup:
+    - row "A1 B1":
+      - gridcell "A1"
+      - gridcell "B1"
+    - row "A2 B2":
+      - gridcell "A2"
+      - gridcell "B2"
+    - row "A3 B3":
+      - gridcell "A3"
+      - gridcell "B3"
+  - rowgroup:
+    - row "Select whole grid A B":
+      - gridcell "Select whole grid"
+      - columnheader "A"
+      - columnheader "B"
+  - rowgroup
+  - rowgroup:
+    - row "1":
+      - rowheader "1"
+    - row "2":
+      - rowheader "2"
+    - row "3":
+      - rowheader "3"
+  - rowgroup:
+    - row "Select whole grid":
+      - gridcell "Select whole grid"
+  - rowgroup
+- text: The license key for Handsontable expired on May 24, 2011, and is not valid for the installed version <version>.
+- link "Renew":
+  - /url: https://handsontable.com/pricing
+- text: your license key or downgrade to a version released prior to May 24, 2011. If you need any help, contact us at
+- link "sales@handsontable.com":
+  - /url: mailto:sales@handsontable.com
+- text: .
+# portal
+- status
+- status

@@ -21,7 +21,6 @@ vue:
 searchCategory: Recipes
 category: Data Management
 type: how-to
-menuTag: new
 ---
 
 This tutorial shows how to wire Handsontable DataGrid's `dataProvider` plugin to an [ASP.NET Core](https://dotnet.microsoft.com/apps/aspnet) Web API backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends every edit back to the API.

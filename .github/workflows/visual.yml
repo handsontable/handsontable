@@ -166,11 +166,13 @@ jobs:
             # package; the demos load a theme as a STYLESHEET from `styles/`
             # (`examples/next/visual-tests/js/demo/src/index.js`), which
             # `postbuild:partial` composes either way, so they change no pixel here.
-            # This is the only difference between the two lists, and the seed takes
-            # THIS one on every develop push — so a task that does affect rendering
-            # must be added to both, or the baseline drifts from every pull
-            # request's render with nothing to blame. `visual-seed.test.mjs` pins
-            # the delta to exactly these two names.
+            # Nor `build:feature-manifest`, which writes `dist/manifest.json` (data,
+            # never loaded by a demo). These three are the only difference between
+            # the two lists, and the seed takes THIS one on every develop push — so
+            # a task that does affect rendering must be added to both, or the
+            # baseline drifts from every pull request's render with nothing to
+            # blame. `visual-seed.test.mjs` pins the delta to exactly these three
+            # names (`KNOWN_OMISSIONS`).
           fi
           # Composes a tree for the screenshot runs, not for publishing (no theme UMD
           # bundles on the fallback path), so it skips the packaging checks.

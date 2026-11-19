@@ -3,7 +3,7 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
-const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.5.3/papaparse.min.js';
+const CDN_PAPAPARSE = 'https://cdn.jsdelivr.net/npm/papaparse@5.7.0/papaparse.min.js';
 
 const scriptPromises = new Map();
 
@@ -178,7 +178,7 @@ async function parseXlsxFile(file) {
   const parser = new Handsontable(host, {
     data: [[]],
     importFile: true,
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
   try {
@@ -285,7 +285,7 @@ function loadIntoGrid({ headers, rows }) {
       rowHeaders: true,
       height: 'auto',
       width: '100%',
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     });
   } else {
     hot.updateSettings({ colHeaders: headers, columns });

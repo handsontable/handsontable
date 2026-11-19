@@ -56,9 +56,9 @@ const ExampleComponent = () => {
       },
     });
 
-    // Ctrl+Enter: submit the grid data
+    // Ctrl+Shift+Enter: submit the grid data
     gridContext.addShortcut({
-      keys: [['Control', 'Enter']],
+      keys: [['Control', 'Shift', 'Enter']],
       group: 'customActions',
       runOnlyIf: () => true,
       callback: (event: KeyboardEvent) => {
@@ -69,7 +69,7 @@ const ExampleComponent = () => {
         const rowCount = data.length;
         const timestamp = new Date().toLocaleTimeString();
 
-        setLastShortcut('Ctrl+Enter -- data submitted');
+        setLastShortcut('Ctrl+Shift+Enter -- data submitted');
         setLastSubmission(`[${timestamp}] Submitted ${rowCount} rows -- columns: ${headers.join(', ')}`);
       },
     });
@@ -82,6 +82,7 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={employees}
         colHeaders={['Name', 'Department', 'Role', 'Salary', 'Start Date']}
@@ -96,7 +97,6 @@ const ExampleComponent = () => {
         height="auto"
         width="100%"
         autoWrapRow={true}
-        licenseKey="non-commercial-and-evaluation"
       />
       <strong>Shortcut log:</strong>
       <table className="debug-table">

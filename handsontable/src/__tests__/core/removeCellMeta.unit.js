@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerPlugin, TrimRows } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../test/helpers/licenseKey';
 
 registerPlugin(TrimRows);
 
@@ -40,7 +41,7 @@ describe('Core#removeCellMeta', () => {
   function writeThenShrink(row, column, size, shrinkWith) {
     hot = new Handsontable(container, {
       data: square(8),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.setCellMeta(row, column, 'marker', 'written');
@@ -186,7 +187,7 @@ describe('Core#removeCellMeta', () => {
       hot = new Handsontable(container, {
         data: square(10),
         trimRows: [0, 1, 2, 3, 4],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       expect(hot.countRows()).toBe(5);
@@ -208,7 +209,7 @@ describe('Core#removeCellMeta', () => {
       hot = new Handsontable(container, {
         data: square(10),
         trimRows: [0, 1, 2, 3, 4],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
       });
 
       hot.setCellMeta(7, 0, 'marker', 'written');
@@ -225,7 +226,7 @@ describe('Core#removeCellMeta', () => {
     // The control: nothing went out of range, so the visual index must still be translated.
     hot = new Handsontable(container, {
       data: square(4),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.rowIndexMapper.setIndexesSequence([3, 2, 1, 0]);

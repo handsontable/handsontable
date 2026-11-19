@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 /**
  * JPA entity for a product in the catalog.
  *
- * Spring Data JPA maps each field to a column in the H2 `products` table.
+ * Spring Data JPA maps each field to a column in the PostgreSQL `products` table.
  * The `id` field is auto-generated and acts as the row identifier that
  * Handsontable references via `dataProvider.rowId: 'id'`.
  */

@@ -241,12 +241,13 @@ export { IndexMapper } from './translations';
 // Named type exports for user-facing API — direct from canonical sources
 export type { GridSettings, Events, SanitizerContext, TextExtractorContext, PasteClipboardData } from './core/settings';
 export type {
-  CellValue, CellChange, ColumnDataGetterSetterFunction, RowObject, ChangeSource,
-  CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature, OmitHooks
+  CellValue, CellChange, AppliedCellChange, ColumnDataGetterSetterFunction, RowObject, ChangeSource,
+  CellMeta, CellProperties, ColumnSettings, SourceRowData, RemoveIndexSignature, OmitHooks, SettingsUpdate
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
 export type { RowIdSetting } from './core/rowIdentity/rowIdentity';
 export type { RowIdKey } from './utils/rowId';
+export type { MenuItemConfig, PredefinedMenuItemKey } from './utils/menu/types';
 export type { OverlayType } from './3rdparty/walkontable/src/types';
 export type { BaseEditor as BaseEditorInstance } from './editors/baseEditor/baseEditor';
 export type { SelectOptionsObject } from './settings';

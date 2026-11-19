@@ -461,3 +461,54 @@ describe('nativeAdapter.read: XML parts encoded as UTF-16', () => {
     });
   });
 });
+
+describe('nativeAdapter.read arrays and errors', () => {
+  async function readInjected(sheetData) {
+    const snapshot = createWorkbookSnapshot();
+    const sheet = new SheetBuilder('Sheet1');
+
+    sheet.cell(1, 1).value = 1;
+    snapshot.sheets.push(sheet.toSnapshot());
+
+    const written = await nativeAdapter.write(snapshot, undefined, new DroppedFeatures());
+    const bytes = await rewriteArchive(written, (part, text) => {
+      return part === 'xl/worksheets/sheet1.xml' ?
+        text.replace(/<sheetData>[\s\S]*<\/sheetData>|<sheetData\/>/, `<sheetData>${sheetData}</sheetData>`) : text;
+    });
+
+    return (await nativeAdapter.read(bytes, undefined, new DroppedFeatures())).sheets[0];
+  }
+
+  it('should read the array ref, the dynamic flag and the error kind of a cell', async() => {
+    const sheet = await readInjected(
+      '<row r="1">' +
+      '<c r="D1" cm="1"><f t="array" ref="D1:D3">_xlfn.SEQUENCE(3)</f><v>1</v></c>' +
+      '<c r="E1"><f t="array" ref="E1:E2">A1:A2*2</f><v>2</v></c>' +
+      '<c r="F1" t="e"><v>#N/A</v></c>' +
+      '<c r="G1" t="e"><f>1/0</f><v>#DIV/0!</v></c>' +
+      '<c r="H1" t="e"><v>#SPILL!</v></c>' +
+      '</row>' +
+      '<row r="2"><c r="D2"><v>2</v></c></row>' +
+      '<row r="3"><c r="D3"><v>3</v></c></row>'
+    );
+
+    expect(sheet.rows[0][3].formula)
+      .toEqual({ text: '_xlfn.SEQUENCE(3)', result: 1, array: { ref: 'D1:D3', dynamic: true } });
+    expect(sheet.rows[0][4].formula).toEqual({ text: 'A1:A2*2', result: 2, array: { ref: 'E1:E2', dynamic: false } });
+    expect(sheet.rows[1][3]).toMatchObject({ value: 2, formula: null });
+    expect(sheet.rows[2][3]).toMatchObject({ value: 3, formula: null });
+    expect(sheet.rows[0][5]).toMatchObject({ value: '#N/A', valueIsError: true });
+    expect(sheet.rows[0][6].formula).toEqual({ text: '1/0', result: '#DIV/0!', resultIsError: true });
+    expect(sheet.rows[0][7]).toMatchObject({ value: '#SPILL!', valueIsError: true });
+  });
+
+  it('should not add the new keys to cells that are not arrays or errors', async() => {
+    const sheet = await readInjected(
+      '<row r="1"><c r="A1"><f>1+1</f><v>2</v></c><c r="B1" t="str"><v>#N/A</v></c><c r="C1"><v>5</v></c></row>'
+    );
+
+    expect(sheet.rows[0][0].formula).toEqual({ text: '1+1', result: 2 });
+    expect(sheet.rows[0][1]).not.toHaveProperty('valueIsError');
+    expect(sheet.rows[0][2]).not.toHaveProperty('valueIsError');
+  });
+});

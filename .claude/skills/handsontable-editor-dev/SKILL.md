@@ -20,6 +20,8 @@ src/editors/{editorName}/
 
 Registry: `src/editors/registry.ts`. Factory: `src/editors/factory.ts`.
 
+A new registered editor also needs its entry in `src/editors/features.json` (`editor:<name_in_snake_case>`, `licensing: "none"`; copy a neighbor), and a cell type that uses it lists it in its `requires.allOf`. The unit suite fails until both exist. Run `npm run generate:feature-manifest --prefix handsontable` and commit what it writes. Rules: `src/featureManifest/AGENTS.md`.
+
 ## Lifecycle methods (required overrides)
 
 | Method | Purpose |
@@ -46,7 +48,7 @@ Registry: `src/editors/registry.ts`. Factory: `src/editors/factory.ts`.
 - Call `super` in lifecycle overrides (`super.init()`, `super.close()`, etc.).
 - Release DOM elements and listeners in `close()`; restore focus so keyboard navigation works after closing.
 - Support LTR and RTL: logical CSS properties or `this.hot.isRtl()`.
-- Give the editor's input an accessible name that says which cell it edits, from an i18n phrase, and add the editor to `tests/a11y/coverage.mjs` with a scan page (`handsontable-a11y` skill; the baseline's `editor-input-names` issue is what a missing name looks like).
+- Give the editor's input an accessible name that says which cell it edits, from an i18n phrase, and add the editor to `tests/a11y/coverage.mjs` with a scan page (`handsontable-a11y` skill). Set it in `prepare()` with `setCellInputName()` (`src/utils/cellInputName.ts`), as the built-in editors do.
 
 Reference implementations: `src/editors/textEditor/textEditor.ts` (textarea), `src/editors/selectEditor/selectEditor.ts` (dropdown), `src/editors/baseEditor/baseEditor.ts` (lifecycle and state transitions).
 

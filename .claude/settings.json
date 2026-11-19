@@ -1,5 +1,10 @@
 {
   "skillListingBudgetFraction": 0.05,
+  "permissions": {
+    "deny": [
+      "mcp__github"
+    ]
+  },
   "attribution": {
     "commit": "",
     "pr": ""

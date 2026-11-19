@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the focus manager moving the browser focus back into the grid after a later scroll when the selected cell was not rendered.",
+  "type": "fixed",
+  "issueOrPR": 14319,
+  "breaking": false,
+  "framework": "none"
+}

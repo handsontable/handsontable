@@ -16,7 +16,7 @@ new Handsontable(container, {
   ],
   height: 'auto',
   colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass'],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   // make the entire grid read-only
   readOnly: true,
   autoWrapRow: true,

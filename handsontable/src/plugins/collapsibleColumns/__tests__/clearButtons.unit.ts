@@ -4,6 +4,7 @@ import {
   CollapsibleColumns,
   NestedHeaders,
 } from 'handsontable/plugins';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerPlugin(CollapsibleColumns);
 registerPlugin(NestedHeaders);
@@ -29,7 +30,7 @@ describe('CollapsibleColumns clearButtons', () => {
       colHeaders: true,
       nestedHeaders: [['A', { label: 'G', colspan: 2 }]],
       collapsibleColumns: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(container.querySelectorAll('.collapsibleIndicator').length).toBeGreaterThan(0);

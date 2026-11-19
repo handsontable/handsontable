@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the CopyPaste plugin resetting its paste mode and header copy options to their defaults on an update of the fragmentSelection option.",
+  "type": "fixed",
+  "issueOrPR": 14089,
+  "breaking": false,
+  "framework": "none"
+}

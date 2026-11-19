@@ -13,6 +13,7 @@ import { createSpreadsheetData } from '../../../helpers/data';
 import { registerCellType, CheckboxCellType } from '../../../cellTypes';
 import { SheetsBar } from '../../../plugins/sheetsBar/sheetsBar';
 import { captureViewState, keepSelectionOnPage, restoreViewState, restoreViewport } from '../viewState';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 describe('SheetsBar view state', () => {
   let container;
@@ -47,7 +48,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: [['a', 'b'], ['c', 'd']],
       manualColumnResize: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('manualColumnResize').setManualSize(0, 260);
@@ -67,7 +68,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: [[3], [1], [2]],
       columnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
@@ -84,7 +85,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: [['b', 3], ['a', 1], ['c', 2]],
       columnSorting: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.columnIndexMapper.setIndexesSequence([1, 0]);
@@ -105,7 +106,7 @@ describe('SheetsBar view state', () => {
   it('captures row/column sequences defensively, unaffected by later mapper mutation', () => {
     hot = new Handsontable(container, {
       data: [['a'], ['b'], ['c']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const state = captureViewState(hot, []);
@@ -123,7 +124,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       manualColumnResize: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('manualColumnResize').setManualSize(0, 260);
@@ -139,7 +140,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: [['a', 'b', 'c']],
       manualColumnResize: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('manualColumnResize').setManualSize(1, 260);
@@ -154,7 +155,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: [['a'], ['b']],
       manualRowResize: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const state = captureViewState(hot, []);
@@ -166,7 +167,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
       manualColumnResize: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const plugin = hot.getPlugin('sheetsBar');
@@ -189,7 +190,7 @@ describe('SheetsBar view state', () => {
         ],
       },
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const filters = hot.getPlugin('filters');
@@ -214,7 +215,7 @@ describe('SheetsBar view state', () => {
         ],
       },
       hiddenColumns: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('hiddenColumns').hideColumn(0);
@@ -228,7 +229,7 @@ describe('SheetsBar view state', () => {
   it('replays tracked cell meta after a switch round-trip', () => {
     hot = new Handsontable(container, {
       sheetsBar: { sheets: [{ name: 'A', data: [['a']] }, { name: 'B', data: [['b']] }] },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.setCellMeta(0, 0, 'readOnly', true);
@@ -246,7 +247,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('pagination').setPageSize(20);
@@ -258,7 +259,7 @@ describe('SheetsBar view state', () => {
   it('captures no pagination state when Pagination is disabled', () => {
     hot = new Handsontable(container, {
       data: [['a'], ['b']],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(captureViewState(hot, []).pagination).toBeNull();
@@ -268,7 +269,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -295,7 +296,7 @@ describe('SheetsBar view state', () => {
       data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
       rowHeaders: true,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectRows(4);
@@ -314,7 +315,7 @@ describe('SheetsBar view state', () => {
       data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
       rowHeaders: true,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectRows(2);
@@ -345,7 +346,7 @@ describe('SheetsBar view state', () => {
       data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
       rowHeaders: true,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectRows(15);
@@ -368,7 +369,7 @@ describe('SheetsBar view state', () => {
         ],
       },
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -398,7 +399,7 @@ describe('SheetsBar view state', () => {
         ],
       },
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -417,7 +418,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -444,7 +445,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -474,7 +475,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -503,7 +504,7 @@ describe('SheetsBar view state', () => {
         ],
       },
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -523,7 +524,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -542,7 +543,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -564,7 +565,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 195 }, (_, row) => [`r${row + 1}`]),
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -589,7 +590,7 @@ describe('SheetsBar view state', () => {
       data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
       hiddenRows: { rows: Array.from({ length: 50 }, (_, index) => 100 + index) },
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -615,7 +616,7 @@ describe('SheetsBar view state', () => {
         ],
       },
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -637,7 +638,7 @@ describe('SheetsBar view state', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 200 }, (_, row) => [`r${row + 1}`]),
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     const pagination = hot.getPlugin('pagination');
@@ -658,7 +659,7 @@ describe('SheetsBar view state', () => {
       rowHeaders: true,
       colHeaders: true,
       pagination: { pageSize: 10 },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.getPlugin('pagination').setPage(7);
@@ -679,7 +680,7 @@ describe('SheetsBar view state', () => {
       data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
       rowHeaders: true,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectAll();
@@ -706,7 +707,7 @@ describe('SheetsBar view state', () => {
       data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
       rowHeaders: true,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectRows(4);
@@ -727,7 +728,7 @@ describe('SheetsBar view state', () => {
       data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
       rowHeaders: true,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectRows(2);
@@ -763,7 +764,7 @@ describe('SheetsBar view state', () => {
       data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
       rowHeaders: true,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectRows(2);
@@ -800,7 +801,7 @@ describe('SheetsBar view state', () => {
       data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row]),
       rowHeaders: true,
       colHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectRows(4);
@@ -822,7 +823,7 @@ describe('SheetsBar view state', () => {
   it('puts the focus back where it was inside a cell range', () => {
     hot = new Handsontable(container, {
       data: Array.from({ length: 20 }, (_, row) => [`r${row + 1}`, row, row]),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.selectCell(2, 0, 5, 2);
@@ -865,7 +866,7 @@ describe('SheetsBar view state', () => {
           { name: 'Plain', data: createSpreadsheetData(5, 4) },
         ],
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...extraSettings,
     });
 

@@ -30,7 +30,7 @@ const columns = ref([...allColumns.slice(0, 2)]);
 
 const settings = ref<GridSettings>({
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const addColumn = () => {

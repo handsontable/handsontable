@@ -336,6 +336,10 @@ A value written to a row hidden by a filter fires no `afterChange` (see [Validat
 import { ASYNC_VALUE_CANCEL_REASONS } from 'handsontable/plugins/asyncValues';
 ```
 
+When a row is removed or replaced (the `'rowRemoved'` and `'dataReplaced'` reasons), `rowId` is the id the row held, not the id of the row that now sits at its index. Without row ids it is `null`.
+
+When you remove several non-contiguous groups of rows, the grid removes the groups one at a time. `physicalRow` is then the row's index just before its own group is removed. Key your handling on `rowId`.
+
 ## Undo
 
 By default (`undo: 'skip'`), a resolved value is not added to the undo history. Undo of an earlier edit of the same cell restores the value that edit replaced, over the async value.
@@ -371,7 +375,7 @@ An undo or redo that changes a pending cell cancels its request, and redo does n
 The React wrapper calls [`updateData()`](@/api/core.md#updatedata) whenever it receives a `data` prop, which is on every render, and the Angular wrapper calls it whenever `data` changes. Pending requests survive those updates:
 
 - With [row ids](@/guides/rows/row-identity/row-identity.md) (the `rowId` option, or `dataProvider.rowId`), each request moves to the row that holds the same id in the new data. A request whose row id is gone is canceled with the `'rowRemoved'` reason.
-- Without row ids, `updateData()` keeps each request on the same physical row, the way it keeps cell meta. If your app reorders the rows it passes in, set `rowId`, or the results land on whatever record moved into that position.
+- Without row ids, `updateData()` moves each request with its row object when the new array holds the same objects. With copies, it keeps each request on the same physical row, the way it keeps cell meta. If your app passes reordered copies, set `rowId`, or the results land on whatever record moved into that position.
 
 [`loadData()`](@/api/core.md#loaddata) starts a new dataset: with row ids, requests follow their ids as above; without them, every request is canceled with the `'dataReplaced'` reason.
 

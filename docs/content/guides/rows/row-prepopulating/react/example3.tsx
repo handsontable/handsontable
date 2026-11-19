@@ -54,6 +54,7 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         startRows={8}
@@ -64,7 +65,6 @@ const ExampleComponent = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
         cells={function (row, col, prop) {
           const cellProperties: Handsontable.CellMeta = {};
 

@@ -25,8 +25,8 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
-        licenseKey="non-commercial-and-evaluation"
         data={data}
         height="auto"
         colHeaders={['SKU', 'Product', 'Supplier', 'Category', 'Status']}

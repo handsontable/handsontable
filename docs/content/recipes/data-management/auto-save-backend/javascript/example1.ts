@@ -72,17 +72,19 @@ if (rootContainer instanceof HTMLElement) {
     ],
     stretchH: 'all',
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
     afterChange(changes, source) {
       if (!changes || source === 'loadData') {
         return;
       }
 
-      changes.forEach(([visualRow, _prop, oldValue, newValue]) => {
-        if (oldValue !== newValue) {
-          const physicalRow = hot.toPhysicalRow(visualRow as number);
+      changes.forEach((change) => {
+        const [, , oldValue, newValue] = change;
 
-          if (physicalRow !== null && physicalRow >= 0) {
+        if (oldValue !== newValue) {
+          const physicalRow = hot.getPhysicalRowOfChange(change);
+
+          if (physicalRow !== null) {
             dirtyRows.add(physicalRow);
           }
         }

@@ -30,6 +30,10 @@
  * guide. That statement is about which browsers we *test* on, and it is a lower bound on freshness —
  * whatever is current must work. It does not cap how far back this floor may reach, and the floor
  * here is deliberately many majors below it.
+ *
+ * The same guide's "Minimum versions" table does state this floor: its last column mirrors
+ * `BROWSERS_LIST`, and `scripts/__tests__/supported-browsers-floor.test.mjs` fails until a change
+ * here updates it. Name the new floor in that major's migration guide too.
  */
 exports.BROWSERS_LIST = [
   'Chrome >= 130',

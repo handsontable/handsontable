@@ -16,6 +16,7 @@
       throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
     }
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -129,7 +130,7 @@
         afterRenderer(td, row, col) {
           td.setAttribute('data-testid', `cell-${row}-${col}`);
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       }, buildHooks(blockRefresh)));
     };
 
@@ -157,7 +158,7 @@
 
       window.hot = new Handsontable(container, Object.assign({
         data: [[1, 2], [3, 4]],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       }, buildHooks(false)));
     };
 
@@ -199,7 +200,7 @@
           data: columns === 2
             ? DATA
             : DATA.map((row, rowIndex) => Array.from({ length: columns }, (unused, col) => `R${rowIndex}C${col}`)),
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: window.htTestLicenseKey,
         }, buildHooks(blockRefresh));
 
         if (width !== undefined) {

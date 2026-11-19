@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "page": "license-bar",
+  "theme": "main",
+  "walks": {
+    "forward": [
+      {
+        "region": "start"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "A1",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "B1",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "link",
+        "name": "Renew"
+      },
+      {
+        "region": "grid",
+        "role": "link",
+        "name": "sales@handsontable.com"
+      },
+      {
+        "region": "end"
+      }
+    ],
+    "backward": [
+      {
+        "region": "end"
+      },
+      {
+        "region": "grid",
+        "role": "link",
+        "name": "sales@handsontable.com"
+      },
+      {
+        "region": "grid",
+        "role": "link",
+        "name": "Renew"
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "B1",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "A1",
+        "cell": [
+          0,
+          0
+        ]
+      },
+      {
+        "region": "start"
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+services:
+  kafka:
+    # Official Apache Kafka image: a single-node KRaft cluster, reachable at localhost:9092.
+    image: apache/kafka:4.3.1
+    ports:
+      - "9092:9092"

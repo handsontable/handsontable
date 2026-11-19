@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "id": "nested-headers",
+  "group": "structure",
+  "surface": "Nested column headers with rowspans and colspans: the arrows across and through the header levels, each header's name, and back to the cells.",
+  "page": "nested-headers",
+  "criteria": ["1.3.1", "2.1.1", "4.1.2"],
+  "setup": [{"selectCell": [0, 0]}],
+  "steps": [
+    {
+      "id": "arrow-up-to-header",
+      "action": {"press": "ArrowUp"},
+      "expect": [["this is a very long header title"], ["column header"]],
+      "note": "Navigable headers: ArrowUp from A1 reaches the header over column A, `This is a very long header title`, which spans the two lower header levels. VoiceOver says no header role on a well-formed ARIA grid, as in grid-core: VoiceOver's behavior."
+    },
+    {
+      "id": "arrow-up-to-group",
+      "action": {"press": "ArrowUp"},
+      "expect": [["header title"]],
+      "note": "ArrowUp again reaches the group header over columns A to H, `Header title`."
+    },
+    {
+      "id": "arrow-right-next-group",
+      "action": {"press": "ArrowRight"},
+      "expect": [["i j", "i slash j"]],
+      "note": "ArrowRight from a group moves to the next group on its level, `I/J`, over columns I and J. NVDA reads the slash, VoiceOver drops it."
+    },
+    {
+      "id": "arrow-down-into-group",
+      "action": {"press": "ArrowDown"},
+      "expect": [["i2", "i 2"]],
+      "note": "`I/J` spans two levels, so ArrowDown reaches the lowest header of column I, `I2`. NVDA spells it `I 2`."
+    },
+    {
+      "id": "arrow-left-lowest-level",
+      "action": {"press": "ArrowLeft"},
+      "expect": [["h2", "h 2"]],
+      "note": "ArrowLeft on the lowest level moves one column: `H2`."
+    },
+    {
+      "id": "arrow-up-middle-level",
+      "action": {"press": "ArrowUp"},
+      "expect": [["h"]],
+      "note": "ArrowUp to the middle level: `H`."
+    },
+    {
+      "id": "arrow-down-lowest-again",
+      "action": {"press": "ArrowDown"},
+      "expect": [["h2", "h 2"]]
+    },
+    {
+      "id": "arrow-down-to-cell",
+      "action": {"press": "ArrowDown"},
+      "expect": [["h1", "h 1"]],
+      "note": "ArrowDown leaves the headers for the first cell of column H, `H1`."
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import type { CellProperties } from '../../settings';
 import { LINK_SCHEMES, normalizeSchemes, type LinkScheme, type LinkTarget } from '../../utils/cellLinks';
 import { linkifyCell, unlinkifyCell, type LinkifyOptions } from './linkifyCell';
 import { resolveAutoLinkSettingsCached, type ResolvedAutoLinkSettings } from './resolveSettings';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'autoLink';
 export const PLUGIN_PRIORITY = 270;
@@ -79,6 +80,14 @@ export class AutoLink extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

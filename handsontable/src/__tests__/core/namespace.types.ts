@@ -26,6 +26,9 @@ import type {
   SourceRowData,
   RowIdKey,
   RowIdSetting,
+  MenuItemConfig,
+  PredefinedMenuItemKey,
+  SettingsUpdate,
   ThemeBuilder,
   ThemeColorScheme,
   ThemeColorsConfig,
@@ -41,6 +44,10 @@ import type {
   ValidatorType,
   HotInstance,
 } from 'handsontable';
+import type {
+  MenuItemConfig as PluginMenuItemConfig,
+  PredefinedMenuItemKey as PluginPredefinedMenuItemKey,
+} from 'handsontable/plugins/contextMenu';
 import {
   AutocompleteEditor,
   BaseEditor,
@@ -73,6 +80,7 @@ import {
   EmptyDataState,
   ExportFile,
   Filters,
+  FormulaBuilder,
   Formulas,
   HiddenColumns,
   HiddenRows,
@@ -172,6 +180,7 @@ const _dropdownMenu: Handsontable.plugins.DropdownMenu = new DropdownMenu(hot);
 const _emptyDataState: Handsontable.plugins.EmptyDataState = new EmptyDataState(hot);
 const _exportFile: Handsontable.plugins.ExportFile = new ExportFile(hot);
 const _filters: Handsontable.plugins.Filters = new Filters(hot);
+const _formulaBuilder: Handsontable.plugins.FormulaBuilder = new FormulaBuilder(hot);
 const _formulas: Handsontable.plugins.Formulas = new Formulas(hot);
 const _hiddenColumns: Handsontable.plugins.HiddenColumns = new HiddenColumns(hot);
 const _hiddenRows: Handsontable.plugins.HiddenRows = new HiddenRows(hot);
@@ -303,6 +312,12 @@ const _sameIndexMapper: Same<Handsontable.IndexMapper, IndexMapper> = true;
 const _sameSourceRowData: Same<Handsontable.SourceRowData, SourceRowData> = true;
 const _sameRowIdSetting: Same<Handsontable.RowIdSetting, RowIdSetting> = true;
 const _sameRowIdKey: Same<Handsontable.RowIdKey, RowIdKey> = true;
+const _sameMenuItemConfig: Same<Handsontable.MenuItemConfig, MenuItemConfig> = true;
+const _samePredefinedMenuItemKey: Same<Handsontable.PredefinedMenuItemKey, PredefinedMenuItemKey> = true;
+const _sameLegacyMenuItemConfig: Same<PluginMenuItemConfig, MenuItemConfig> = true;
+const _sameLegacyPredefinedMenuItemKey: Same<PluginPredefinedMenuItemKey, PredefinedMenuItemKey> = true;
+const _sameLegacyNamespaceMenuItemConfig: Same<Handsontable.plugins.ContextMenu.MenuItemConfig, MenuItemConfig> = true;
+const _sameSettingsUpdate: Same<Handsontable.SettingsUpdate, SettingsUpdate> = true;
 const _sameColumnDataGetterSetterFunction: Same<
   Handsontable.ColumnDataGetterSetterFunction, ColumnDataGetterSetterFunction
 > = true;

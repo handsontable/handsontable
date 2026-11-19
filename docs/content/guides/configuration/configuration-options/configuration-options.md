@@ -35,7 +35,7 @@ import Handsontable from "handsontable";
 const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   // configuration options, in the object literal notation
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   data: [
     ['A1', 'B1', 'C1', 'D1'],
     ['A2', 'B2', 'C2', 'D2'],
@@ -61,9 +61,9 @@ To apply configuration options, pass them as individual props of the [`HotTable`
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   autoWrapRow={true}
   autoWrapCol={true}
-  licenseKey="non-commercial-and-evaluation"
   data={[
     ['A1', 'B1', 'C1', 'D1'],
     ['A2', 'B2', 'C2', 'D2'],
@@ -129,7 +129,7 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const hotSettings = ref({
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     ['A1', 'B1', 'C1', 'D1'],
     ['A2', 'B2', 'C2', 'D2'],
@@ -194,7 +194,7 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
 
 :::
 
-For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/index.js).
+For how a cell inherits values from the levels above it, and where each value comes from, see [Understanding metadata and inheritance](@/guides/configuration/understanding-metadata/understanding-metadata.md). For the implementation, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/{{$currentMinorVersion}}/handsontable/src/dataMap/metaManager/index.ts).
 
 To read configuration at runtime, use the method that matches the level you need:
 
@@ -844,7 +844,7 @@ const hot = new Handsontable(container, {
     ['A2', 'B2', 'C2', 'D2'],
     ['A3', 'B3', 'C3', 'D3'],
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   width: 'auto',
   height: 'auto',
   rowHeaders: true,
@@ -967,7 +967,7 @@ const hot = new Handsontable(container, {
     ['A2', 'B2', 'C2', 'D2'],
     ['A3', 'B3', 'C3', 'D3'],
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   width: 'auto',
   height: 'auto',
   rowHeaders: true,
@@ -1047,6 +1047,21 @@ hot?.getCellMeta(1, 1).readOnly;
 You can apply configuration options to individual grid elements (columns, rows, cells), based on any logic you implement, using the [`cells`](@/api/options.md#cells) option.
 
 The [`cells`](@/api/options.md#cells) option overwrites all other options.
+
+Handsontable merges the object that `cells` returns into the cell's meta. It doesn't replace the meta. A key that the function returned before and doesn't return now keeps its last value. For example, a cell stays `readOnly: true` after `cells` returns `{}`.
+
+To avoid this, do one of the following:
+
+- Return the value for every key on every call. For example, return `readOnly: false` in the branch where the cell is editable.
+- Outside the `cells` function, call [`removeCellMeta()`](@/api/core.md#removecellmeta) with the cell's visual coordinates to remove the key. The key comes back if `cells` returns it again.
+
+The meta resets in three cases:
+
+- Any [`updateSettings()`](@/api/core.md#updatesettings) call that carries `cells`, `cell`, or `columns` resets it. In React, that happens when you pass `cells` as a new function.
+- A [`loadData()`](@/api/core.md#loaddata) call resets it. [`updateData()`](@/api/core.md#updatedata) and `updateSettings({ data })` don't.
+- A row that scrolls more than one viewport out of view and back resets it, unless it is the row of the selected cell. Cells with meta you set with [`setCellMeta()`](@/api/core.md#setcellmeta) or the [`cell`](@/api/options.md#cell) option, and cells marked invalid, keep their meta. Horizontal scrolling doesn't reset it.
+
+For how `cells` merges its result, see [The `cells` function](@/guides/configuration/understanding-metadata/understanding-metadata.md#the-cells-function).
 
 ::: only-for javascript
 
@@ -1285,9 +1300,9 @@ const ExampleComponent = () => {
     <>
       <button onClick={() => setState(state + 1)}>{state}</button>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         manualColumnMove={[1, 0]}  // Columns keep swapping!
         data={[['A', 'B'], [0, 1]]}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );
@@ -1300,13 +1315,13 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 ```jsx
 <HotTable
+  // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
   initialState={{
     manualColumnMove: [1, 0]  // Applied only once
   }}
   data={[['A', 'B'], [0, 1]]}
   rowHeaders={true}
   colHeaders={true}
-  licenseKey="non-commercial-and-evaluation"
 />
 ```
 

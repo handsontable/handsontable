@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `getCellMeta()` reporting `spanned`, `rowspan` and `colspan` on a cell no merge is drawn from after a row move, a column move, or a column freeze.",
+  "type": "fixed",
+  "issueOrPR": 14253,
+  "breaking": false,
+  "framework": "none"
+}

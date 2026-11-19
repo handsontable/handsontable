@@ -138,6 +138,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotTableRef}
         data={data}
         width="100%"
@@ -150,7 +151,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         autoRowSize={true}
         dialog={true}
-        licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
         <HotColumn

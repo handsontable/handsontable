@@ -29,7 +29,7 @@ const container = document.querySelector('#example6')!;
 
 new Handsontable(container, {
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   data: [
     ['Apple', 'Apple'],
     ['Banana', 'Banana'],

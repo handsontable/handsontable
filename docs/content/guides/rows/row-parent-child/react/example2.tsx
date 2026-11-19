@@ -107,6 +107,7 @@ const ExampleComponent = () => {
         <output className="console">{output}</output>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={projectPlan}
         columns={[{ data: 'task' }, { data: 'owner' }, { data: 'status' }]}
@@ -115,7 +116,6 @@ const ExampleComponent = () => {
         nestedRows={true}
         contextMenu={true}
         height="auto"
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

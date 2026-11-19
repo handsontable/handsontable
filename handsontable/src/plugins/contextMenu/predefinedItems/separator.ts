@@ -1,10 +1,5 @@
-export const KEY = '---------';
-
 /**
- * @returns {object}
+ * Legacy path. The module lives in `src/utils/menu/predefinedItems/separator.ts`.
  */
-export default function separatorItem() {
-  return {
-    name: KEY
-  };
-}
+export * from '../../../utils/menu/predefinedItems/separator';
+export { default } from '../../../utils/menu/predefinedItems/separator';

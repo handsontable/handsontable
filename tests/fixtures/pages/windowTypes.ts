@@ -259,6 +259,7 @@ export interface FixtureHotInstance {
   scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string, horizontalSnap?: string }): boolean;
   selectCells(ranges: number[][], scrollToCell?: boolean, changeListener?: boolean): boolean;
   batch<T>(operations: () => T): T;
+  batchExecution<T>(operations: () => T): T;
   selectRows(fromRow: number, toRow?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
   selectColumns(fromCol: number, toCol?: number, focusPosition?: unknown, changeListener?: boolean): boolean;
   selectAll(
@@ -342,11 +343,21 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** The license key every fixture grid is built with (`fixtures/demo/test-license-key.js`). */
+    htTestLicenseKey: string;
     /**
      * DEV-775: a reference to the Autofill plugin kept after `destroy()`, the way an application that
      * cached `getPlugin('autofill')` still holds it.
      */
     destroyedAutofill?: { enablePlugin(): void, disablePlugin(): void, updatePlugin(): void };
+    /**
+     * `formulas-batch-evaluation` fixture: the recalculations the grid reported (`afterFormulasValuesUpdate`).
+     */
+    valuesUpdates: number;
+    /**
+     * `formulas-batch-evaluation` fixture: the text of the first formula cell and whether it fits, per draw.
+     */
+    renderLog: Array<{ text: string | null, fits: boolean }>;
     /** Undo fixture: how many vetoed meta writes the listener `UndoGridPage#vetoMetaWrites()` adds saw. */
     metaWriteAttempts: number;
     /**
@@ -371,6 +382,10 @@ declare global {
       getSheetSerialized(sheetId: number): unknown[][],
       /** DEV-2905 fixture: removes a sheet behind the Formulas plugin's back. */
       removeSheet(sheetId: number): unknown,
+      /**
+       * Formulas external engine fixture: writes a cell on the engine the grid is bound to.
+       */
+      setCellContents?(address: { sheet: number, row: number, col: number }, value: number | string): unknown,
     };
     /** DEV-2905 fixture: how many columns AutoColumnSize measured since the last reset, across every sweep. */
     measuredColumns?: number;
@@ -407,10 +422,16 @@ declare global {
     };
     /**
      * Rebuilds the formulas fixture grid with the given dataset, or – the width-window-scroll
-     * fixture's overload – rebuilds its grid with setting overrides and an optional parent width.
+     * fixture's overload – rebuilds its grid with setting overrides, an optional parent width and an
+     * optional height and `overflow-y` for the element the grid is built in.
      */
     initGrid(data: CellValue[][], overrides?: Record<string, unknown>): boolean;
-    initGrid(overrides?: Record<string, unknown>, containerWidth?: string): boolean;
+    initGrid(
+      overrides?: Record<string, unknown>,
+      containerWidth?: string,
+      containerHeight?: string,
+      containerOverflowY?: string,
+    ): boolean;
     /** `afterScrollVertically` calls since the last rebuild (width-window-scroll fixture). */
     verticalScrollCount: number;
     /** `afterScroll` calls since `SelectionViewportScrollPage#countAfterScroll()` started counting. */
@@ -428,6 +449,63 @@ declare global {
      * options applied last.
      */
     initSlotGrid(variant?: string, plugin?: string, overrides?: Record<string, unknown>): boolean;
+    /**
+     * Rebuilds the side layout slots fixture grid with `cols` columns, grid option overrides, and
+     * an optional `'auto'` container height.
+     */
+    initSideSlotGrid(options?: {
+      cols?: number,
+      overrides?: Record<string, unknown>,
+      containerHeight?: 'fixed' | 'auto',
+      sizeOptions?: 'fill' | 'unset',
+      documentDir?: 'ltr' | 'rtl',
+      hostLayout?: 'fixed' | 'inline-block' | 'flex',
+      widthFunction?: number,
+    }): boolean;
+    /**
+     * Side layout slots fixture: registers a panel and returns the root's inline width read in the same task.
+     */
+    addSidePanelAndReadRootWidth(side: 'start' | 'end', key: string, width: number): string;
+    /**
+     * Side layout slots fixture: shows a notification toast that stays until closed.
+     */
+    showToast(): boolean;
+    /**
+     * Side layout slots fixture: draws since the last rebuild.
+     */
+    htRenderCount: number;
+    /**
+     * Side layout slots fixture: calls of the `width` function since the last rebuild.
+     */
+    htWidthCalls: number;
+    /**
+     * Side layout slots fixture: registers a fixed-width panel into the `start` or `end` slot.
+     */
+    addSidePanel(side: 'start' | 'end', key: string, width: number, contentHeight?: number, weight?: number): boolean;
+    /**
+     * Side layout slots fixture: registers a panel sized by a CSS class only.
+     */
+    addClassPanel(side: 'start' | 'end', key: string, className: string): boolean;
+    /**
+     * Side layout slots fixture: sets the grid container's inline width.
+     */
+    resizeSideSlotContainer(width: number): boolean;
+    /**
+     * Side layout slots fixture: registers a click-counting button into the `top` slot.
+     */
+    addTopButton(key: string): boolean;
+    /**
+     * Side layout slots fixture: appends a click-counting button into a registered side panel.
+     */
+    addPanelButton(panelKey: string, key: string): boolean;
+    /**
+     * Side layout slots fixture: clicks per button key.
+     */
+    slotButtonClicks: Record<string, number>;
+    /**
+     * Side layout slots fixture: unregisters a panel from its slot.
+     */
+    removeSidePanel(side: 'start' | 'end', key: string): boolean;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the undo and redo fixture grid (`undo-grid.html`) with the given setting overrides. */

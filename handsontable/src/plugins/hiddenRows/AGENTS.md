@@ -35,6 +35,11 @@ Two real differences worth knowing:
 The marker class is applied for `this.isHidden(row - 1)` — the class describes the **neighbor**
 relationship, so an off-by-one there is a real bug.
 
+**`afterHideRows` fires during `new Handsontable()` too, before `hot.view` exists**, once, for `hiddenRows: true`
+(empty configuration) as well as for `{ rows: [1] }`. Same cause and same rules as
+`afterHideColumns`: see "The `init` local hook has to be replayed by hand" in `../hiddenColumns/AGENTS.md`.
+Pinned by `src/__tests__/core/viewGettersBeforeView.unit.js`.
+
 ## The indicator's BOX stops at the header edge; its GLYPH does not move
 
 `../../styles/components/plugins/_hidden-rows.scss` used to lay the arrow's box out at `bottom: -2px` on
@@ -84,6 +89,12 @@ and not something to slip into a Phase-2 migration without its own design ticket
 `super.disablePlugin()` removes the tracked `#onAfterGetRowHeader` hook, so without an untracked,
 one-shot `afterGetRowHeader` cleanup hook (registered in `disablePlugin()`, self-removing on the next
 `afterViewRender`) a caret rendered before the disable is orphaned in the DOM forever.
+
+## Hide row covers every header range of a Ctrl/Cmd+click selection
+
+`hideRow.ts` collects its rows with `collectHeaderSelectedIndexes(hot, 'row')`, the helper the column item
+shares, so a Ctrl/Cmd+click selection of several row headers hides all of them and a cell range beside
+them is left out (DEV-538). Full rule: `../hiddenColumns/AGENTS.md`, "Hide column covers every header range".
 
 ## Hide row suppresses itself when no row is rendered
 

@@ -12,7 +12,8 @@
 
 ## Accessibility (WCAG 2.2 AA)
 
-The bar is WCAG 2.2 Level A and AA, the level the published conformance report claims. The
+The bar is WCAG 2.2 Level A and AA, the target level; the published conformance report states
+conformance per criterion. The
 `handsontable-a11y` skill holds the patterns and the build rules; check the diff against them.
 
 1. **Keyboard navigation, both modes:**

@@ -85,10 +85,10 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}
-      licenseKey="non-commercial-and-evaluation"
       sanitizer={sanitizeHeader}
       data={data}
       colHeaders={['Supplier<br>(allowInvalid false)', 'SKU', 'Warehouse', 'Product<br>(allowInvalid true)']}

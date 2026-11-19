@@ -59,5 +59,6 @@ export const baseConfig = {
     'handsontable/base',
     'handsontable/renderers/registry',
     'handsontable/editors/registry',
+    'handsontable/cellTypes/registry',
   ],
 };

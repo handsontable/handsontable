@@ -60,5 +60,5 @@ new Handsontable(container, {
   cells(row) {
     return products[row]?.featured ? { className: 'featured-product' } : {};
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });

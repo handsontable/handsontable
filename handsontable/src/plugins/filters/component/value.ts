@@ -1,5 +1,6 @@
 import type { HotInstance } from '../../../core/types';
-import { addClass, isHTMLElement } from '../../../helpers/dom/element';
+import { addClass, isHTMLElement, removeAttribute, setAttribute } from '../../../helpers/dom/element';
+import { A11Y_GROUP, A11Y_LABELED_BY } from '../../../helpers/a11y';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { arrayEach, arrayFilter, arrayMap } from '../../../helpers/array';
 import { isKey } from '../../../helpers/unicode';
@@ -64,6 +65,11 @@ export class ValueComponent extends BaseComponent {
   searchMode: unknown;
 
   /**
+   * The id of the element that shows the component's name. It names the menu item group and the search input.
+   */
+  #labelId: string;
+
+  /**
    * Initializes the value component with the given ID, display name, search mode, and optional visibility predicate.
    */
   constructor(hotInstance: HotInstance, options: {
@@ -77,8 +83,10 @@ export class ValueComponent extends BaseComponent {
 
     this.name = options.name;
     this.searchMode = options.searchMode;
+    this.#labelId = `${hotInstance.guid}-filters-by-value-label`;
     this.elements.push(new MultipleSelectUI(hotInstance, {
-      searchMode: this.searchMode
+      searchMode: this.searchMode,
+      searchLabelledBy: this.#labelId,
     }));
 
     this.registerHooks();
@@ -144,7 +152,7 @@ export class ValueComponent extends BaseComponent {
 
       select.setItems(value.itemsSnapshot);
       select.setValue(value.args[0]);
-      // A restored `by_value` state with nothing selected is the record of a deliberate "Clear" -
+      // A restored `by_value` state with nothing selected is the record of a deliberate "Select none" -
       // the condition exists, it just excludes every value. This is the only place that knows it:
       // `reset()` runs for a column carrying no condition, where an empty list means the opposite
       // and must not turn a column the user never filtered into one that hides every row.
@@ -355,10 +363,7 @@ export class ValueComponent extends BaseComponent {
       hidden: () => this.isHiddenInMenu(),
       renderer: (hot: HotInstance, wrapper: HTMLTableCellElement, row: number, col: number,
                  prop: string | number, value: string) => {
-        if (isHTMLElement(wrapper.parentNode)) {
-          addClass(wrapper.parentNode, 'htFiltersMenuValue');
-        }
-
+        const isGhostTable = !!wrapper.parentElement?.hasAttribute('ghost-table');
         const label = this.hot?.rootDocument.createElement('div') ?? wrapper.ownerDocument.createElement('div');
 
         addClass(label, 'htFiltersMenuLabel');
@@ -366,9 +371,19 @@ export class ValueComponent extends BaseComponent {
 
         wrapper.appendChild(label);
 
+        if (isHTMLElement(wrapper.parentNode)) {
+          addClass(wrapper.parentNode, 'htFiltersMenuValue');
+
+          if (!isGhostTable && this.hot?.getSettings().ariaTags) {
+            label.id = this.#labelId;
+            removeAttribute(wrapper.parentNode, 'aria-label');
+            setAttribute(wrapper.parentNode, [A11Y_GROUP(), A11Y_LABELED_BY(this.#labelId)]);
+          }
+        }
+
         // The MultipleSelectUI should not extend the menu width (it should adjust to the menu item width only).
         // That's why it's skipped from rendering when the GhostTable tries to render it.
-        if (!wrapper.parentElement?.hasAttribute('ghost-table')) {
+        if (!isGhostTable) {
           arrayEach(this.elements, (ui) => {
             const el = ui.element;
 

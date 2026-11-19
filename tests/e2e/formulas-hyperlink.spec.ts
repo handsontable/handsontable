@@ -365,7 +365,7 @@ test.describe('formulas: HYPERLINK rendering', { tag: [THEMES_TAG, BUNDLES_TAG] 
           // resolve fine under the plugin's full default allowlist.
           hyperlinks: { schemes: ['mailto', 'tel'] },
         },
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     });
 

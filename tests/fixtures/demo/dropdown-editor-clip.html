@@ -87,6 +87,7 @@
        assertion measures the clamp instead. */
     #container.pushed-down { margin-top: 300px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -160,7 +161,7 @@
         colWidths: [90, 110],
         renderer: testIdRenderer,
         columns: [{}, editorColumn],
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
         ...settings,
       });
 

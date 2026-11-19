@@ -55,7 +55,7 @@ const hotSettings = ref<GridSettings>({
   columns: [{ data: property('id') }, { data: property('name') }, { data: property('address') }],
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 

@@ -132,6 +132,7 @@ export function addClassesToRows(TD, row, column, _prop, _value, cellProperties)
 const App = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       height={450}
       colWidths={[180, 220, 140, 120, 120, 120, 140]}
@@ -165,7 +166,6 @@ const App = () => {
       manualColumnResize={true}
       navigableHeaders={true}
       imeFastEdit={true}
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data={1} />
       <HotColumn data={3} />

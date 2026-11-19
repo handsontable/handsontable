@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "scenario": "dialog",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-05T13:53:45.059Z"
+  },
+  "steps": {
+    "dialog-opens": "cancel button confirm this is a confirm alert dialog",
+    "tab-ok": "ok button",
+    "tab-past-ok": "input 2 edit text blank",
+    "shift-tab-ok": "ok button confirm this is a confirm alert dialog",
+    "escape-closes": "country country 1 column 2 row company 1 country 1 name 1 1 tree grid 5 columns 31 rows",
+    "arrow-down-after-close": "country country 2 column 2 row company 2 country 2 name 2 2",
+    "dialog-opens-again": "cancel button confirm this is a confirm alert dialog",
+    "tab-ok-again": "ok button",
+    "enter-ok": "country country 2 column 2 row company 2 country 2 name 2 2 tree grid 5 columns 31 rows"
+  }
+}

@@ -66,7 +66,7 @@ const ExampleComponent = () => {
   }
 
   function afterChange(
-    changes: Handsontable.CellChange[] | null,
+    changes: Handsontable.AppliedCellChange[] | null,
     source: Handsontable.ChangeSource
   ): void {
     const hot = hotRef.current?.hotInstance;
@@ -79,6 +79,11 @@ const ExampleComponent = () => {
 
     for (const change of changes) {
       const [row, prop] = change;
+
+      if (row === null) {
+        continue;
+      }
+
       const col = typeof prop === 'string' ? hot.propToCol(prop) : (prop as number);
 
       // Skip a property that names no column.
@@ -160,6 +165,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={initialData}
         colHeaders={COLUMN_LABELS}
@@ -173,7 +179,6 @@ const ExampleComponent = () => {
         width="100%"
         afterRenderer={afterRenderer}
         afterChange={afterChange}
-        licenseKey="non-commercial-and-evaluation"
       />
       <div className="example-controls-container validation-summary" aria-live="polite">
         <p className="validation-summary__title">Validation issues</p>

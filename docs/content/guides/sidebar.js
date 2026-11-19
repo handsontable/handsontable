@@ -18,6 +18,7 @@ const gettingStartedItems = [
 const configurationItems = [
   { path: 'guides/configuration/configuration-options/configuration-options' },
   { path: 'guides/configuration/configuration-option-levels/configuration-option-levels' },
+  { path: 'guides/configuration/understanding-metadata/understanding-metadata' },
   { path: 'guides/configuration/validate-settings/validate-settings' },
 ];
 
@@ -135,6 +136,7 @@ const cellTypesItems = [
 const formulasItems = [
   { path: 'guides/formulas/installation/installation' },
   { path: 'guides/formulas/formula-calculation/formula-calculation' },
+  { path: 'guides/formulas/formula-builder/formula-builder' },
 ];
 
 const navigationAndAccessibilityItems = [
@@ -183,6 +185,7 @@ const optimizationItems = [
   { path: 'guides/optimization/batch-operations/batch-operations' },
   // TODO { path: 'guides/optimization/touch-events/touch-events' },
   { path: 'guides/optimization/performance/performance' },
+  { path: 'guides/optimization/many-grids/many-grids' },
   // TODO { path: 'guides/optimization/key-concepts/key-concepts' },
   { path: 'guides/optimization/bundle-size/bundle-size' },
 ];
@@ -221,7 +224,6 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
-  { path: 'guides/upgrade-and-migration/migrating-from-19.0-to-20.0/migrating-from-19.0-to-20.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-18.0-to-18.1/migrating-from-18.0-to-18.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0' },

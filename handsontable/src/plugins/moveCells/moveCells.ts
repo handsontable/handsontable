@@ -6,8 +6,9 @@ import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { isRightClick } from '../../helpers/dom/event';
 import { warn } from '../../helpers/console';
 import { hasOwnProperty } from '../../helpers/object';
-import { clampMoveTarget } from './helpers';
+import { clampMoveTarget, clampToDrawnBands } from './helpers';
 import { collectMovableMeta, MOVABLE_META_KEYS } from '../../utils/movableMeta';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'moveCells';
 export const PLUGIN_PRIORITY = 25;
@@ -49,6 +50,14 @@ export class MoveCells extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**
@@ -565,22 +574,32 @@ export class MoveCells extends BasePlugin {
       return;
     }
 
-    const firstRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(
-      Math.max(fromRow, this.hot.getFirstRenderedVisibleRow()),
-      1,
-    );
-    const lastRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(
-      Math.min(toRow, this.hot.getLastRenderedVisibleRow()),
-      -1,
-    );
-    const firstCol = this.hot.columnIndexMapper.getNearestNotHiddenIndex(
-      Math.max(fromCol, this.hot.getFirstRenderedVisibleColumn()),
-      1,
-    );
-    const lastCol = this.hot.columnIndexMapper.getNearestNotHiddenIndex(
-      Math.min(toCol, this.hot.getLastRenderedVisibleColumn()),
-      -1,
-    );
+    // The frozen bands are drawn at every scroll position, outside the band the scrolled table renders, so a
+    // range over a frozen row or column has cells to draw the preview on.
+    const { view } = this.hot;
+    const totalRows = this.hot.countRows();
+    const totalCols = this.hot.countCols();
+    const rows = clampToDrawnBands(fromRow, toRow, [
+      [0, view.countFixedRowsTop() - 1],
+      [this.hot.getFirstRenderedVisibleRow() ?? 0, this.hot.getLastRenderedVisibleRow() ?? -1],
+      [totalRows - view.countFixedRowsBottom(), totalRows - 1],
+    ]);
+    const cols = clampToDrawnBands(fromCol, toCol, [
+      [0, view.countFixedColumnsStart() - 1],
+      [this.hot.getFirstRenderedVisibleColumn() ?? 0, this.hot.getLastRenderedVisibleColumn() ?? -1],
+      [totalCols - view.countFixedColumnsEnd(), totalCols - 1],
+    ]);
+
+    if (rows === null || cols === null) {
+      this.#ghost.style.display = 'none';
+
+      return;
+    }
+
+    const firstRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(rows.first, 1);
+    const lastRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(rows.last, -1);
+    const firstCol = this.hot.columnIndexMapper.getNearestNotHiddenIndex(cols.first, 1);
+    const lastCol = this.hot.columnIndexMapper.getNearestNotHiddenIndex(cols.last, -1);
 
     if (firstRow === null || lastRow === null || firstCol === null || lastCol === null ||
       firstRow > lastRow || firstCol > lastCol || firstRow > toRow || lastRow < fromRow ||
@@ -650,7 +669,7 @@ export class MoveCells extends BasePlugin {
     const targetBottom = targetRow + (toRow - fromRow);
     const targetRight = targetCol + (toCol - fromCol);
     const sourceMeta = collectMovableMeta(this.hot, fromRow, fromCol, toRow, toCol);
-    const targetMeta = collectMovableMeta(this.hot, targetRow, targetCol, targetBottom, targetRight);
+    const targetMeta = collectMovableMeta(this.hot, targetRow, targetCol, targetBottom, targetRight, true);
     const sourceByCoord = new Map(sourceMeta.map(({ row, col, meta }) => [`${row}:${col}`, meta]));
 
     sourceMeta.forEach(({ row, col, meta }) => {

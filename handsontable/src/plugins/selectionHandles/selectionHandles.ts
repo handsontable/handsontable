@@ -4,6 +4,7 @@ import { addClass, removeClass } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { isRightClick } from '../../helpers/dom/event';
 import { clampEdge, type HandleEdge } from './helpers';
+import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'selectionHandles';
 export const PLUGIN_PRIORITY = 24;
@@ -24,6 +25,14 @@ export class SelectionHandles extends BasePlugin {
    */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
+  }
+
+  /**
+   * Returns the license token of the plugin, its display name, where it is checked, and the tokens it
+   * requires.
+   */
+  static get LICENSE() {
+    return LICENSE;
   }
 
   /**

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of `createSpreadsheetData()` and `createSpreadsheetObjectData()` by computing each column label once per call instead of once per cell.",
+  "type": "changed",
+  "issueOrPR": 14343,
+  "breaking": false,
+  "framework": "none"
+}

@@ -32,7 +32,7 @@ const container = document.querySelector("#example1")!;
 
 const hotOptions: Handsontable.GridSettings = {
   data,
-  licenseKey: "non-commercial-and-evaluation",
+  // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
   rowHeaders: true,
   colHeaders: ["Task", "Owner", "Status"],
   height: "auto",
@@ -75,7 +75,7 @@ const hotOptions: Handsontable.GridSettings = {
     this: Handsontable,
     isValid: boolean,
     _value: Handsontable.CellValue,
-    row: number,
+    row: number | null,
     prop: string | number,
   ): void {
     if (isValid) {
@@ -84,8 +84,8 @@ const hotOptions: Handsontable.GridSettings = {
 
     const col = this.propToCol(prop);
 
-    // Skip a property that names no column.
-    if (col === null) {
+    // Skip a record a filter hid while it was validated, and a property that names no column.
+    if (row === null || col === null) {
       return;
     }
 

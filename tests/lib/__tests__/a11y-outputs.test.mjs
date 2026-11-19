@@ -42,9 +42,36 @@ test('agentFindings lists what needs action with where to open it and the elemen
   assert.deepEqual(document.needsAction[1].elements.map(item => item.selector), ['#ht_1', '#ht_2']);
   assert.deepEqual(document.issues.map(issue => [issue.id, issue.tracker, issue.findings, issue.nodes, issue.wcag]), [['grid-roles', 'DEV-2964', 2, 3, ['1.3.1']]]);
   assert.deepEqual(document.issues[0].locations[0], { page: 'grid', theme: 'main', rule: 'aria-required-children',
-    target: 'div.ht-wrapper[role="treegrid"]', nodes: 1, selector: '#ht_1', domPath: 'html > body > div' });
+    target: 'div.ht-wrapper[role="treegrid"]', impact: 'critical', nodes: 1, selector: '#ht_1', domPath: 'html > body > div' });
   assert.deepEqual(document.pages['context-menu'], { fixture: '/tests/fixtures/demo/context-menu-checked-items.html', query: null,
     steps: 'select cell (2, 1) (hot.selectCell(2, 1)), then press Shift+F10', surface: null });
+});
+
+test('agentFindings links a page with a license preset to the URL its scan opened, and any other page to the catalog URL', () => {
+  const pages = [...PAGES, { id: 'license', fixture: 'license-capabilities.html', query: 'plugins=filters', licensePreset: 'tier-base', state: 'none' }];
+  const scannedUrl = '/tests/fixtures/demo/license-capabilities.html?theme=main&plugins=filters&presets=%7B%7D&licenseKey=abc';
+  const verdict = compareViolations({
+    baseline: [],
+    issues: [],
+    violations: [finding({ page: 'license', rule: 'label' }), finding({ rule: 'label' })],
+    scanned: [{ page: 'license', theme: 'main' }, { page: 'grid', theme: 'main' }],
+    mode: 'warn',
+  });
+  const scans = [
+    { page: 'license', theme: 'main', url: scannedUrl },
+    { page: 'grid', theme: 'main', url: '/tests/fixtures/demo/grid.html?theme=main&other=1' },
+  ];
+  const urlOf = document => Object.fromEntries(document.needsAction.map(item => [item.page, item.url]));
+
+  assert.deepEqual(urlOf(agentFindings({ verdict, pages, scans })), {
+    grid: '/tests/fixtures/demo/grid.html?theme=main',
+    license: scannedUrl,
+  });
+  // Without the scans, or with a URL that is not a fixture's, the catalog URL stays: it has no license key.
+  assert.equal(urlOf(agentFindings({ verdict, pages })).license,
+    '/tests/fixtures/demo/license-capabilities.html?theme=main&plugins=filters');
+  assert.equal(urlOf(agentFindings({ verdict, pages, scans: [{ page: 'license', theme: 'main', url: 'https://example.com/x' }] })).license,
+    '/tests/fixtures/demo/license-capabilities.html?theme=main&plugins=filters');
 });
 
 test('agentFindings stays concise: at most ten elements per finding, one locator per known location', () => {

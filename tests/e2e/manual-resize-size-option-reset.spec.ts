@@ -134,9 +134,9 @@ test.describe('Manual resize versus the size option', () => {
     expect(await grid.rowHeights('rows-empty-array')).toEqual(new Array(5).fill(SHORT));
   });
 
-  test('applies minRowHeights, the documented alias, to a dragged row', async () => {
-    // `Core#_getRowHeightFromSettings` reads `rowHeights ?? minRowHeights`, so the alias states the
-    // heights just as `rowHeights` does.
+  test('applies minRowHeights to a dragged row', async () => {
+    // `minRowHeights` states the heights too, as a floor instead of an exact height, so passing it
+    // re-declares them just as `rowHeights` does.
     await grid.dragRowHandle(0, 70);
 
     expect((await grid.rowHeights())[0]).toBeGreaterThan(SHORT);

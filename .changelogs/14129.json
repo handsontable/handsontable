@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed borders added from the context menu being invisible in dark color schemes: they now use the new `--ht-custom-borders-default-color` theme variable (black in light schemes). Their `color` in `getBorders()` and `getCellMeta().borders` is now the CSS value `var(--ht-custom-borders-default-color, #000)` instead of `#000`, so read it as a CSS value, not a hex string.",
+  "type": "fixed",
+  "issueOrPR": 14129,
+  "breaking": true,
+  "framework": "none"
+}

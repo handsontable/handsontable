@@ -132,7 +132,7 @@ const hotSettings = ref<GridSettings>({
   contextMenu: contextMenuSettings,
   // Required for the HTML in the `about` item's label to be rendered safely
   sanitizer: sanitizeMenuLabel,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 </script>
 

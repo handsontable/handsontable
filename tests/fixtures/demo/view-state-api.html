@@ -34,6 +34,7 @@
       { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' }, htParams.get('bundle'), 'umd', 'bundle');
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } .grid-box { margin-bottom: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -69,7 +70,7 @@
         rowHeaders: true,
         pagination: paginated ? { pageSize: 10 } : false,
         renderer: testIdRenderer,
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: window.htTestLicenseKey,
       });
     };
 

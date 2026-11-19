@@ -11,7 +11,9 @@ export function toSingleLine(strings: TemplateStringsArray | string[], ...expres
   const result = arrayReduce(Array.from(strings), (previousValue, currentValue, index) => {
 
     const valueWithoutWhiteSpaces = currentValue.replace(/\r?\n\s*/g, '');
-    const expressionForIndex = expressions[index] ? expressions[index] : '';
+    const expression = expressions[index];
+    // A row or column index of 0 is a value to print; `null`, `undefined` and `false` print nothing.
+    const expressionForIndex = expression || expression === 0 ? expression : '';
 
     return previousValue + valueWithoutWhiteSpaces + expressionForIndex;
   }, '');

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture - nested grids and injectCoreCss</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document - no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back - a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // One nested-grid surface per page. The core stylesheet is injected once per document, so a
+    // second surface on the same page could hide the first one's injection.
+    window.htSurface = ({
+      editor: 'editor',
+      contextMenu: 'contextMenu',
+      dropdownMenu: 'dropdownMenu',
+      contextMenuInFrame: 'contextMenuInFrame',
+    })[htParams.get('surface') ?? 'editor'];
+    if (!window.htSurface) {
+      throw new Error('Unknown ?surface= value: ' + JSON.stringify(htParams.get('surface')));
+    }
+    // `off` sets `injectCoreCss: false` (the page loads the core CSS itself, above); `default` leaves
+    // the option out, so the grid injects the stylesheet as it always did.
+    window.htInject = ({ off: 'off', default: 'default' })[htParams.get('inject') ?? 'off'];
+    if (!window.htInject) {
+      throw new Error('Unknown ?inject= value: ' + JSON.stringify(htParams.get('inject')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    E2E fixture: the grids Handsontable builds inside the autocomplete, dropdown and handsontable
+    editors, the context and dropdown menus, and the Filters value list must use the parent grid's
+    `injectCoreCss` value, so a page that loads the core CSS itself gets no injected copy.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const choices = ['Apple', 'Banana', 'Cherry', 'Date'];
+    const settings = {
+      data: [
+        ['Apple', 'Banana', 'Cherry', 'x'],
+        ['Banana', 'Cherry', 'Date', 'y'],
+        ['Cherry', 'Date', 'Apple', 'z'],
+      ],
+      colHeaders: true,
+      columns: [
+        { type: 'dropdown', source: choices },
+        { type: 'autocomplete', source: choices, strict: false },
+        {
+          type: 'handsontable',
+          handsontable: {
+            data: choices.map(choice => [choice]),
+            colHeaders: false,
+          },
+        },
+        {},
+      ],
+      licenseKey: window.htTestLicenseKey,
+    };
+
+    if (window.htSurface === 'contextMenu') {
+      settings.contextMenu = true;
+    }
+    let gridContainer = container;
+
+    if (window.htSurface === 'contextMenuInFrame') {
+      // The grid lives in a same-origin frame and its menu renders into this page through `uiContainer`, so the
+      // menu sits in a document the grid's own injection (into the frame) never reaches. The menu's grid has to
+      // inject here itself when the grid injects.
+      const frame = document.createElement('iframe');
+
+      frame.id = 'grid-frame';
+      frame.style.cssText = 'width: 600px; height: 300px; border: 0;';
+      container.appendChild(frame);
+
+      const frameDocument = frame.contentDocument;
+      const uiContainer = document.createElement('div');
+
+      document.body.appendChild(uiContainer);
+      gridContainer = frameDocument.createElement('div');
+      frameDocument.body.appendChild(gridContainer);
+      settings.contextMenu = { uiContainer };
+    }
+    if (window.htSurface === 'dropdownMenu') {
+      settings.dropdownMenu = true;
+      settings.filters = true;
+    }
+    if (window.htInject === 'off') {
+      settings.injectCoreCss = false;
+    }
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    try {
+      window.hot = new Handsontable(gridContainer, settings);
+    } catch (error) {
+      // The shared fixture contract: `awaitFixtureBuilt()` rethrows this with the constructor's stack.
+      window.htBuildError = String((error && error.stack) || error);
+      throw error;
+    }
+  </script>
+</body>
+</html>

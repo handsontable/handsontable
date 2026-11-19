@@ -11,7 +11,7 @@ import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';
 import type { RenderChangeTracker } from './incrementalRender/renderChangeTracker';
-import type { CellProperties, ColumnDataGetterSetterFunction } from '../settings';
+import type { CellChange, CellProperties, ColumnDataGetterSetterFunction, SettingsUpdate } from '../settings';
 import type { default as SelectionManager } from '../selection/selection';
 import type { default as ViewInstance } from '../tableView';
 import type { ShortcutManager } from '../shortcuts/manager';
@@ -19,6 +19,7 @@ import type { FocusGridManager as FocusManagerInstance } from '../focusManager/g
 import type { FocusScopeManager as FocusScopeManagerInstance } from '../focusManager/scopeManager';
 import type { LayoutManager } from './layout';
 import type { MinimumSizes } from './minimumSizes';
+import type { TrackedRecordHandle } from './waitingRecords';
 import type { default as EditorManagerInstance } from '../editorManager';
 import type { default as DataSourceInstance } from '../dataMap/dataSource';
 import type { default as MetaManagerInstance } from '../dataMap/metaManager';
@@ -39,6 +40,16 @@ export interface CellOptionMetaEntry {
   physicalColumn: number;
   key: string;
   value: unknown;
+}
+
+/**
+ * The cell meta a caller took away with a set of rows and brings back with them, addressed by physical
+ * indexes: the keys set through `setCellMeta()` (or an undo of one), and the cells whose meta holds
+ * `valid: false`, which the validation flow writes without `setCellMeta()`.
+ */
+export interface KeptCellMetas {
+  userDefined: CellOptionMetaEntry[];
+  invalid: Array<{ physicalRow: number, physicalColumn: number }>;
 }
 
 export interface RangeType {
@@ -118,7 +129,7 @@ export interface HotInstance {
 
   // Settings
   getSettings(): GridSettings;
-  updateSettings(settings: Partial<GridSettings>, init?: boolean): void;
+  updateSettings(settings: SettingsUpdate, init?: boolean): void;
 
   // Selection
   selection: SelectionManager;
@@ -170,6 +181,7 @@ export interface HotInstance {
   getVisualRowById(id: unknown): number | null;
   getPhysicalRowById(id: unknown): number | null;
   getRowIdAtPhysicalRow(physicalRow: number): unknown;
+  getPhysicalRowOfChange(change: readonly unknown[]): number | null;
   getRowIds(rows?: number[]): unknown[];
   getVisualRowsByIds(ids: unknown[]): Array<number | null>;
   getPhysicalRowsByIds(ids: unknown[]): Array<number | null>;
@@ -238,6 +250,7 @@ export interface HotInstance {
   getRowHeight(row: number, source?: string): number;
   _getColWidthFromSettings(col: number): number | undefined;
   _getRowHeightFromSettings(row: number): number | undefined;
+  _isRowHeightExact(row: number): boolean;
   getColHeader(column?: number, headerLevel?: number): string | string[];
   getRowHeader(row?: number): string | string[];
   hasColHeaders(): boolean;
@@ -319,15 +332,39 @@ export interface HotInstance {
   _getEditorManager(): EditorManagerInstance;
   _getDataSource(): DataSourceInstance;
   _getMetaManager(): MetaManagerInstance;
+  _alignInsertedRowSizes(physicalRow: number, amount: number): void;
+  _readRowSizeOrigins(): Map<'rowHeights' | 'minRowHeights', unknown[]> | null;
+  _writeRowSizeOrigins(origins: Map<'rowHeights' | 'minRowHeights', unknown[]>): void;
   _getOperationScope(): OperationScope;
   _hasPendingValidation(): boolean;
+  _isAnsweringStaleValidation(): boolean;
   _applySettingsAndData(
-    settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null
+    settings: Partial<GridSettings>, data: unknown[], source: string, cellOptionMetas?: CellOptionMetaEntry[] | null,
+    keptCellMetas?: KeptCellMetas | null
   ): void;
   _isDataWorkDeferred(): boolean;
   _isDataLoadPending(): boolean;
+  _runInPluginLifecyclePass<T>(callback: () => T): T;
   _isHeldMetaPhaseRunning(): boolean;
+  _isRunningInitReadySteps(): boolean;
   _replaceInitPassSettings(settings: Record<string, unknown>): Record<string, unknown> | null;
+  _addSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
+  _removeSettingsFilter(filter: (settings: SettingsUpdate) => SettingsUpdate): void;
+  _requirePlugin(pluginKey: string, requirer: object): void;
+  _releasePlugin(pluginKey: string, requirer: object): void;
+  _isPluginRequired(pluginKey: string): boolean;
+  _getWaitingChangeSets(): Array<{ changes: CellChange[], source: string | undefined }>;
+  _trackRecord(visualRow: number, visualColumn?: number): TrackedRecordHandle | null;
+  _runAfterValidatorAnswer(callback: () => void): void;
+  _addDroppedChangesListener(
+    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
+  ): void;
+  _addRowRevealer(revealer: () => (visualRow: number) => boolean): void;
+  _removeRowRevealer(revealer: () => (visualRow: number) => boolean): void;
+  _prepareRowReveal(): (visualRow: number) => boolean;
+  _removeDroppedChangesListener(
+    listener: (changes: CellChange[], source: string | undefined, rejectedChanges: CellChange[]) => void
+  ): void;
 
   // DOM references
   rootElement: HTMLElement;
@@ -338,6 +375,8 @@ export interface HotInstance {
   rootGridElement: HTMLElement;
   rootGridContentElement: HTMLElement;
   rootSlotBottomElement: HTMLElement;
+  rootSlotStartElement: HTMLElement;
+  rootSlotEndElement: HTMLElement;
   rootOverlaysElement: HTMLElement;
   rootWrapperElement: HTMLElement;
   rootContainer: HTMLElement;
@@ -374,6 +413,7 @@ export interface HotInstance {
   // Execution control
   suspendExecution(): void;
   resumeExecution(forceFlushChanges?: boolean): void;
+  isExecutionSuspended(): boolean;
 
   // Index mapper initialization
   initIndexMappers(): void;

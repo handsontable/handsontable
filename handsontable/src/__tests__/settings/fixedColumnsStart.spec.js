@@ -498,32 +498,32 @@ describe('settings', () => {
       $('body').find('.ht-portal').remove();
     });
 
-    it('defined `fixedColumnsLeft` in constructor, `fixedColumnsStart` in updateSettings should thrown an error', async() => {
+    it('defined `fixedColumnsLeft` in constructor, `fixedColumnsStart` in updateSettings should apply the later value', async() => {
       handsontable({
         fixedColumnsLeft: 2
       });
 
-      expect(() => {
-        // eslint-disable-next-line handsontable/require-await
-        updateSettings({
-          fixedColumnsStart: 4
-        });
-      }).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.'
-        + ' Please use only the option `fixedColumnsStart`.');
+      await updateSettings({
+        fixedColumnsStart: 4
+      });
+
+      expect(getSettings().fixedColumnsStart).toBe(4);
+      expect(getSettings().fixedColumnsLeft).toBe(4);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(4);
     });
 
-    it('defined `fixedColumnsStart` in constructor, `fixedColumnsLeft` in updateSettings should thrown an error', async() => {
+    it('defined `fixedColumnsStart` in constructor, `fixedColumnsLeft` in updateSettings should apply the later value', async() => {
       handsontable({
         fixedColumnsStart: 2
       });
 
-      expect(() => {
-        // eslint-disable-next-line handsontable/require-await
-        updateSettings({
-          fixedColumnsLeft: 4
-        });
-      }).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.'
-        + ' Please use only the option `fixedColumnsStart`.');
+      await updateSettings({
+        fixedColumnsLeft: 4
+      });
+
+      expect(getSettings().fixedColumnsStart).toBe(4);
+      expect(getSettings().fixedColumnsLeft).toBe(4);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(4);
     });
 
     it('defined both in updateSettings should thrown an error ', async() => {

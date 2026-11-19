@@ -45,11 +45,13 @@ const ExampleComponent = () => {
       return;
     }
 
-    changes.forEach(([visualRow, _prop, oldValue, newValue]) => {
-      if (oldValue !== newValue) {
-        const physicalRow = hot.toPhysicalRow(visualRow);
+    changes.forEach((change) => {
+      const [, , oldValue, newValue] = change;
 
-        if (physicalRow !== null && physicalRow >= 0) {
+      if (oldValue !== newValue) {
+        const physicalRow = hot.getPhysicalRowOfChange(change);
+
+        if (physicalRow !== null) {
           dirtyRowsRef.current.add(physicalRow);
         }
       }
@@ -67,9 +69,7 @@ const ExampleComponent = () => {
       }
 
       const requestId = ++saveRequestCounterRef.current;
-      const visualRows = physicalRows
-        .map((physicalRow) => hot.toVisualRow(physicalRow))
-        .filter((row) => row !== null);
+      const visualRows = physicalRows.map((physicalRow) => hot.toVisualRow(physicalRow)).filter((row) => row !== null);
 
       hot.validateRows(visualRows, (valid) => {
         if (!valid) {
@@ -114,6 +114,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         colHeaders={['ID', 'Product', 'Stock', 'Price', 'Status']}
@@ -121,13 +122,17 @@ const ExampleComponent = () => {
           { data: 'id', type: 'numeric', readOnly: true, width: 70 },
           { data: 'product', type: 'text', width: 180 },
           { data: 'stock', type: 'numeric', width: 90 },
-          { data: 'price', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 110 },
+          {
+            data: 'price',
+            type: 'numeric',
+            numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 },
+            width: 110,
+          },
           { data: 'status', type: 'text', width: 120 },
         ]}
         stretchH="all"
         height="auto"
         afterChange={handleAfterChange}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

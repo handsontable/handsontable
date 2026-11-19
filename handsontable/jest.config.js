@@ -15,6 +15,12 @@ module.exports = {
     // Jest only, for the same reason as above.
     '<rootDir>/test/jsdomThemeCssFilter.js',
     '<rootDir>/test/jsdomWindowScroll.js',
+    '<rootDir>/test/jsdomWindowFocus.js',
+    // Jest only: frees each file's garbage so a worker exits within jest-worker's grace. The flag
+    // it needs comes from the test:unit.jest task; see the file's own comment.
+    '<rootDir>/test/jestCollectGarbage.js',
+    // Jest only: swallows the console output the specs provoke on purpose, through one allowlist.
+    '<rootDir>/test/jestExpectedConsole.js',
     // Jest only, for the same reason as above.
     '<rootDir>/test/jsdomComputedStyleSpeed.js'
   ],
@@ -23,6 +29,8 @@ module.exports = {
     '<rootDir>/node_modules/'
   ],
   testRunner: 'jest-jasmine2',
+  // hyperformula-ui ships ES modules only; babel-jest must transform it like our own source.
+  transformIgnorePatterns: ['/node_modules/(?!(\\.pnpm/)?hyperformula-ui[@/])'],
   moduleNameMapper: {
     // The generated core stylesheet makes jsdom's `getComputedStyle` about 10x slower per grid.
     // See the mock's own comment, and `test/helpers/realCoreStyles.js` for specs that need it.

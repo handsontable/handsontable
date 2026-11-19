@@ -7,6 +7,7 @@ import { HiddenRows } from 'handsontable/plugins/hiddenRows';
 import { TrimRows } from 'handsontable/plugins/trimRows';
 import { ColumnSorting } from 'handsontable/plugins/columnSorting';
 import { NestedRows } from 'handsontable/plugins/nestedRows';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerCellType(CheckboxCellType);
 registerPlugin(AutoColumnSize);
@@ -64,7 +65,7 @@ describe('Filters -> filterFixedRows', () => {
       filters: true,
       fixedRowsTop: 1,
       fixedRowsBottom: 1,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       ...overrides,
     });
 
@@ -486,7 +487,7 @@ describe('Filters -> filterFixedRows', () => {
           filters: { filterFixedRows: false },
           fixedRowsTop: 1,
           fixedRowsBottom: 1,
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
         });
 
         const filters = hot.getPlugin('filters');

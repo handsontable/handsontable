@@ -49,7 +49,7 @@ const hot = new Handsontable(hotContainer, {
   autoWrapRow: true,
   autoWrapCol: true,
   search: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const debounce = (callback, delay = 120) => {

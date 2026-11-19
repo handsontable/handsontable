@@ -13,7 +13,6 @@ tags:
   - encapsulation
 searchCategory: Recipes
 category: Platforms and embedding
-menuTag: new
 ---
 
 In this tutorial, you will wrap Handsontable DataGrid in a custom element that owns its own shadow root. It covers only the glue between the grid and the element: getting the stylesheets to both sides of the shadow boundary, passing data and settings in through methods, emitting cell edits out as DOM events, and destroying the instance when the element leaves the page. It assumes you already write custom elements.
@@ -130,7 +129,7 @@ gridStyles.replaceSync(`
 `);
 
 interface HotGridCellChange {
-  row: number;
+  row: number | null;
   physicalRow: number;
   prop: Handsontable.CellChange[1];
   oldValue: Handsontable.CellValue;
@@ -158,17 +157,24 @@ class HotGridElement extends HTMLElement {
     const instance = new Handsontable(this.#container, {
       themeName: 'ht-theme-main',
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
       afterChange: (changes, source) => {
         if (!changes || source === 'loadData') {
           return;
         }
 
-        changes.forEach(([row, prop, oldValue, newValue]) => {
+        changes.forEach((change) => {
+          const [row, prop, oldValue, newValue] = change;
+          const physicalRow = instance.getPhysicalRowOfChange(change);
+
+          if (physicalRow === null) {
+            return;
+          }
+
           this.dispatchEvent(new CustomEvent<HotGridCellChange>('cell-change', {
             detail: {
               row,
-              physicalRow: instance.toPhysicalRow(row),
+              physicalRow,
               prop,
               oldValue,
               newValue,
@@ -206,7 +212,7 @@ declare global {
 
 `composed: true` is what lets the event leave the shadow root - without it a listener on the host page never fires. Skipping the `loadData` source keeps the first data load from reporting every cell as an edit.
 
-`cell-change` carries both indexes, because `row` is visual and moves when the user sorts - index your store with `physicalRow`. See [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
+`cell-change` carries both indexes, because `row` is visual and moves when the user sorts - index your store with `physicalRow`. `row` is `null` when a filter hid the record before its validator answered, and `getPhysicalRowOfChange()` still finds the record. See [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
 
 Replace `licenseKey` with your commercial key before production use. See [License key](@/guides/getting-started/license-key/license-key.md).
 
@@ -234,7 +240,7 @@ gridStyles.replaceSync(`
 type HotGridRow = Handsontable.RowObject | Handsontable.CellValue[];
 
 interface HotGridCellChange {
-  row: number;
+  row: number | null;
   physicalRow: number;
   prop: Handsontable.CellChange[1];
   oldValue: Handsontable.CellValue;
@@ -274,17 +280,24 @@ class HotGridElement extends HTMLElement {
     const instance = new Handsontable(this.#container, {
       themeName: 'ht-theme-main',
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
       afterChange: (changes, source) => {
         if (!changes || source === 'loadData') {
           return;
         }
 
-        changes.forEach(([row, prop, oldValue, newValue]) => {
+        changes.forEach((change) => {
+          const [row, prop, oldValue, newValue] = change;
+          const physicalRow = instance.getPhysicalRowOfChange(change);
+
+          if (physicalRow === null) {
+            return;
+          }
+
           this.dispatchEvent(new CustomEvent<HotGridCellChange>('cell-change', {
             detail: {
               row,
-              physicalRow: instance.toPhysicalRow(row),
+              physicalRow,
               prop,
               oldValue,
               newValue,

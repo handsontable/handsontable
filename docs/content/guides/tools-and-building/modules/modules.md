@@ -15,6 +15,7 @@ vue:
   metaTitle: Modules | Handsontable DataGrid for Vue
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
 
@@ -846,7 +847,7 @@ Measurements were made with esbuild using minification, against **Handsontable 1
 
 ::: tip
 
-The `Formulas` module requires the external [`hyperformula`](https://hyperformula.handsontable.com/) package. Its size is not included in the measurements above.
+The `Formulas` module requires the external [`hyperformula`](https://handsontable.com/hyperformula/) package. Its size is not included in the measurements above.
 
 :::
 <!-- module-sizes:end -->

@@ -47,11 +47,15 @@ function processReference(value, themes, refType) {
         if (tokenValue?.value) {
           const colorPath = getReferencePath(tokenValue.value);
 
-          // A light/dark node may hold a plain literal instead of a `{…}` reference; getReferencePath
-          // then returns null. Skip it (the mode value ends up dropped) rather than passing null to
-          // transformReferencePath, which would throw and abort the whole generation.
           if (colorPath) {
             result.push(transformReferencePath(colorPath, [1, 2]));
+
+          // A light/dark node may hold a plain literal instead of a `{…}` reference: the Figma `mode`
+          // collection stores semi-transparent colors (`<theme>/custom/row-selection`) as raw RGBA,
+          // because the `colors` primitives are opaque. Keep the literal so the token is emitted as
+          // `light-dark(#…, #…)`; dropping it deleted `--ht-row-selection-background-color`.
+          } else if (typeof tokenValue.value === 'string' && !tokenValue.value.startsWith('{')) {
+            result.push(tokenValue.value);
           }
         }
       });
@@ -278,4 +282,18 @@ function generateAllVariables(themes) {
   return { themeVariables };
 }
 
-export { generateAllVariables, processTokenValue };
+/**
+ * Lists the `tokensKeys` entries a theme did not resolve. `processThemeTokens` drops such a key
+ * silently, so a stale or incomplete `tokens.json` would otherwise delete public CSS variables from
+ * the committed themes and still report success.
+ *
+ * @param {Record<string, object>} themeTokens The processed tokens per theme (`themeVariables.tokens`).
+ * @returns {Array<{ theme: string, keys: string[] }>} One entry per theme with unresolved keys.
+ */
+function findUnresolvedTokens(themeTokens) {
+  return Object.entries(themeTokens)
+    .map(([theme, tokens]) => ({ theme, keys: tokensKeys.filter(key => !(key in tokens)) }))
+    .filter(({ keys }) => keys.length > 0);
+}
+
+export { findUnresolvedTokens, generateAllVariables, processTokenValue };

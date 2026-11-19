@@ -16,6 +16,7 @@ import type { EngineContext } from '../../wire';
 import type { LayoutInput, OverflowMode } from './layoutSnapshot';
 import { measureWorkspaceWidth, measureWorkspaceHeight } from '../workspaceSize';
 import { getHiderHeightCompensation } from '../../axisSizing/hiderCompensation';
+import { scrollbarAxisThickness } from '../../overlay/scrollbarClearance';
 
 /**
  * Narrows the engine context to the dependencies the layout slice reads.
@@ -71,7 +72,10 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
   const trimmingContainer = deps.getTopOverlay().trimmingContainer;
   const isWindow = trimmingContainer === rootWindow;
   const isRtl = wtSettings.getSetting<boolean>('rtlMode');
-  const scrollbarSize = geometryReader.getScrollbarWidth(rootDocument);
+  const probe = geometryReader.getScrollbarWidth(rootDocument);
+  const holder = isWindow ? null : wtTable.holder;
+  const scrollbarWidth = scrollbarAxisThickness(geometryReader, holder, 'vertical', probe);
+  const scrollbarHeight = scrollbarAxisThickness(geometryReader, holder, 'horizontal', probe);
 
   // The prefix-sum caches are the source of the content totals below. Build them here so a lazy
   // `getLayout()` after a cache invalidation (which also drops the snapshot, see
@@ -142,7 +146,8 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
       workspaceHeight: documentClientHeight,
       totalContentWidth,
       totalContentHeight,
-      scrollbarSize,
+      scrollbarWidth,
+      scrollbarHeight,
       overflowX,
       overflowY,
       rowHeaderWidth,
@@ -169,7 +174,8 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
     workspaceHeight: measureWorkspaceHeight(viewport),
     totalContentWidth,
     totalContentHeight,
-    scrollbarSize,
+    scrollbarWidth,
+    scrollbarHeight,
     overflowX,
     overflowY,
     rowHeaderWidth,

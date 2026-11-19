@@ -67,6 +67,25 @@ function getSchemaDefault(
 }
 
 /**
+ * Tells whether a non-empty cell value is the default its column has in the data schema.
+ *
+ * An object value is compared structurally. Any other value counts only when a `dataSchema` was
+ * configured, because the duck-typed schema holds no defaults to compare against.
+ *
+ * @param {*} value The cell value.
+ * @param {*} schemaDefault The schema default of the column.
+ * @param {boolean} hasExplicitSchema Whether a `dataSchema` was configured.
+ * @returns {boolean}
+ */
+function isSchemaDefault(value: unknown, schemaDefault: unknown, hasExplicitSchema: boolean): boolean {
+  if (typeof value === 'object') {
+    return isObjectEqual(schemaDefault, value);
+  }
+
+  return hasExplicitSchema && schemaDefault === value;
+}
+
+/**
  * Reads the schema that a row was created from. A `dataSchema` function builds each new row from
  * the row's index, so the defaults of one row can differ from another's and from the no-argument
  * call `getSchema()` makes. A row that moved since it was created reads as holding no defaults.
@@ -114,7 +133,7 @@ function getRowSchema(
  *
  * const hot = new Handsontable(container, {
  *   // configuration options, in the object literal notation
- *   licenseKey: 'non-commercial-and-evaluation',
+ *   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
  *   data: [
  *     ['A1', 'B1', 'C1', 'D1', 'E1'],
  *     ['A2', 'B2', 'C2', 'D2', 'E2'],
@@ -146,7 +165,7 @@ function getRowSchema(
  * ```jsx
  * <HotTable
  *   // configuration options, in the object literal notation
- *   licenseKey='non-commercial-and-evaluation'
+ *   // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
  *   data={[
  *     ['A1', 'B1', 'C1', 'D1', 'E1'],
  *     ['A2', 'B2', 'C2', 'D2', 'E2'],
@@ -416,10 +435,10 @@ export default (): Record<string, unknown> => {
      * This option does not decide whether the value reaches the source data – the write path does. A paste or an
      * autofill stops at the last column, so nothing is written there at all. A direct
      * [`setDataAtCell()`](@/api/core.md#setdataatcell) or [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) call
-     * writes the value whatever this option is set to, except on an object [`data`](#data) source, where
-     * [`setDataAtCell()`](@/api/core.md#setdataatcell) skips the change outright from 20.0.0 on (it was deprecated in
-     * 19.0.0). See that method, which owns the rule; `setDataAtRowProp()` is not affected, because the property you
-     * pass names the field to write.
+     * writes the value whatever this option is set to. On an object [`data`](#data) source that direct write is
+     * deprecated as of 19.0.0 and will be ignored from 20.0.0 on. See [`setDataAtCell()`](@/api/core.md#setdataatcell),
+     * which owns that rule; `setDataAtRowProp()` is not affected, because the property you pass names the field to
+     * write.
      *
      * The option does not stop these ways of adding columns:
      * - The [`alter()`](@/api/core.md#alter) method, including its `insert_col_start` and `insert_col_end` actions.
@@ -596,9 +615,19 @@ export default (): Record<string, unknown> => {
     allowRemoveRow: true,
 
     /**
-     * If set to `true`, the accessibility-related ARIA tags will be added to the table. If set to `false`, they
-     * will be omitted.
-     * Defaults to `true`.
+     * The `ariaTags` option decides whether Handsontable adds the ARIA roles and attributes that describe
+     * the grid to assistive technologies: `role="treegrid"` on the grid, `role="row"` on each row,
+     * `role="gridcell"` on each cell, the header roles, `aria-sort`, `aria-expanded`, and the rest.
+     * It defaults to `true`. Set it to `false` only when you add your own ARIA markup. The option also
+     * removes the `tabindex` the grid puts on cells, headers, and menu items, so browser focus no longer
+     * moves onto them. The menu styles read `aria-expanded` too, so a menu item keeps its focus outline
+     * while its submenu is open.
+     *
+     * You can set the `ariaTags` option only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of it after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) throws an error, even when you didn't set the option at initialization.
+     *
+     * Read more:
+     * - [Accessibility](@/guides/accessibility/accessibility/accessibility.md)
+     * - [Accessibility conformance report](@/guides/accessibility/accessibility-conformance-report/accessibility-conformance-report.md)
      *
      * @memberof Options#
      * @type {boolean}
@@ -606,6 +635,12 @@ export default (): Record<string, unknown> => {
      * @category Core
      * @configScope grid columns cells cell
      * @since 14.0.0
+     *
+     * @example
+     * ```js
+     * // turn the ARIA roles and attributes off (default: true)
+     * ariaTags: false,
+     * ```
      */
     ariaTags: true,
 
@@ -1002,7 +1037,23 @@ export default (): Record<string, unknown> => {
      * individual grid elements (columns, rows, cells), based on any logic you implement.
      *
      * The `cells` option overwrites all other options (including options set by [`columns`](#columns) and [`cell`](#cell)).
-     * It takes the following parameters:
+     *
+     * Handsontable merges the object that `cells` returns into the cell's meta. It doesn't replace the meta.
+     * A key that the function returned before and doesn't return now keeps its last value.
+     * For example, a cell stays `readOnly: true` after `cells` returns `{}`.
+     * To avoid this, return the value for every key on every call (for example, `readOnly: false`).
+     * Or, outside the `cells` function, call [`removeCellMeta()`](@/api/core.md#removecellmeta)
+     * with the cell's visual coordinates to remove the key. The key comes back if `cells` returns it again.
+     * The meta resets in three cases:
+     * - Any [`updateSettings()`](@/api/core.md#updatesettings) call that carries `cells`, `cell`, or `columns`.
+     * In React, that happens when you pass `cells` as a new function.
+     * - A [`loadData()`](@/api/core.md#loaddata) call. [`updateData()`](@/api/core.md#updatedata) and
+     * `updateSettings({ data })` don't reset it.
+     * - A row that scrolls more than one viewport out of view and back, unless it is the row of the selected cell.
+     * Cells with meta you set with `setCellMeta()` or the `cell` option, and cells marked invalid, keep their meta.
+     * Horizontal scrolling doesn't reset it.
+     *
+     * `cells` takes the following parameters:
      *
      * | Parameter | Required | Type             | Description                                                                                                                                                                                                                                                                                                                             |
      * | --------- | -------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1486,6 +1537,7 @@ export default (): Record<string, unknown> => {
      * | `suppressDataTypeErrors` | `true`  \| `false`                                                      | [Suppress data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors)                                    |
      * | `readOnly`               | `true`  \| `false`                                                      | Make summary cell [read-only](@/api/options.md#readonly)                                                                                           |
      * | `roundFloat`             | `true`  \| `false`  \| A number                                         | [Round summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result)                                  |
+     * | `includeSummaryResults`  | `true`  \| `false`                                                      | [Include other summary results](@/guides/columns/column-summary/column-summary.md#include-nested-summary-results)                        |
      * | `customFunction`         | A function                                                              | [Custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function)                         |
      *
      * Read more:
@@ -1538,13 +1590,24 @@ export default (): Record<string, unknown> => {
      * | An array    | Set widths separately for each column,<br>by physical column index                                   | `colWidths: [100, 120, undefined]`                                |
      * | A function  | Set column widths dynamically,<br>on each render, by physical column index                           | `colWidths(physicalColumnIndex) { return physicalColumnIndex * 10; }` |
      * | `undefined` | Used by the [modifyColWidth](@/api/hooks.md#modifyColWidth) hook,<br>to detect column width changes. | `colWidths: undefined`                                            |
+     * | `null`      | Same as `undefined`: no width is set,<br>so the {@link AutoColumnSize} plugin sizes the columns        | `colWidths: null`                                                 |
+     *
+     * A `null` entry in the array and a `null` returned by the function also set no width: the
+     * [modifyColWidth](@/api/hooks.md#modifyColWidth) hook receives `undefined` for that column. The
+     * {@link AutoColumnSize} plugin stays off there, because any other `colWidths` value turns it off, so such a
+     * column gets the default 50px width. A column `width: null` behaves like `undefined` and falls back to
+     * `colWidths`.
      *
      * The array and the function address a column by its physical index, so a width stays with its column
      * when the user moves the column. The physical index doesn't change when columns are moved
-     * or hidden. When you insert or remove a column with [`alter()`](@/api/core.md#alter), an array
-     * `colWidths` is updated to match, so the other widths stay with their columns.
-     * The [`rowHeights`](#rowHeights) option still uses the visual index, so with {@link ManualRowMove}
-     * a row height stays at its screen position.
+     * or hidden. When you insert or remove a column with [`alter()`](@/api/core.md#alter), each width of an array
+     * `colWidths` stays with its column. A column added after the last one takes the next width in the array.
+     * A column inserted between others has no width of its own, and neither has a column inserted after a column
+     * the user moved to the end. The array itself is never changed:
+     * [`getSettings()`](@/api/core.md#getsettings) returns the array you passed. A function is called with the
+     * physical index the column has now. Switching `colWidths` to or from an array, or passing a new array to
+     * [`updateSettings()`](@/api/core.md#updatesettings), clears the undo history, the way enabling a plugin does.
+     * The [`rowHeights`](#rowHeights) option addresses rows by their physical index in the same way.
      *
      * Setting `colWidths` even for a single column disables the {@link AutoColumnSize} plugin
      * for all columns. For this reason, if you use `colWidths`, we recommend you set a width for each one
@@ -2081,10 +2144,10 @@ export default (): Record<string, unknown> => {
      *       color: 'green',
      *       style: 'dashed'
      *     },
-     *     // set the top border's width and color
-     *     top: '',
-     *     // set the bottom border's width and color
-     *     bottom: ''
+     *     // add the default top border (1px solid black)
+     *     top: true,
+     *     // hide the bottom border
+     *     bottom: false
      *   }
      * ],
      *
@@ -2250,13 +2313,20 @@ export default (): Record<string, unknown> => {
      * Set it to `null` to turn server-backed loading off again, for example through
      * [`updateSettings()`](@/api/core.md#updatesettings).
      *
+     * Passing another `dataProvider` object through [`updateSettings()`](@/api/core.md#updatesettings) reloads the
+     * rows. Passing the same object again keeps the rows and sends no request, unless the same call also passes
+     * [`pagination`](#pagination), [`columnSorting`](#columnsorting), [`filters`](#filters), or
+     * [`columns`](#columns): those reset the page, sort, or filters, so the rows are fetched again. The React and
+     * Angular wrappers pass only the settings that changed, so in React keep the object stable (create it with
+     * `useMemo`). A change made inside the same object is used by the next request; to load the rows right away,
+     * call [`fetchData()`](@/api/dataProvider.md#fetchdata).
+     *
      * While the [`sheetsBar`](#sheetsbar) option is enabled, a grid-level `dataProvider` is ignored (with one console
      * warning), and the grid gets it back when you turn the sheets bar off. Declare `dataProvider` in the `settings` of
-     * each sheet that loads from a server instead. While a sheet that declares its own `dataProvider` is shown, a
-     * `dataProvider` passed through [`updateSettings()`](@/api/core.md#updatesettings) replaces that sheet's own one.
-     * The only exception is the same object as the ignored grid-level value, which the sheet ignores too. So if you
-     * keep a grid-level `dataProvider` anyway, pass the same object every time: a framework wrapper that builds a new
-     * object on every render re-configures the sheet you see.
+     * each sheet that loads from a server instead, and change it with
+     * [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings). If you keep a grid-level `dataProvider`
+     * anyway, pass the same object every time: a framework wrapper that builds a new object on every render
+     * re-configures the sheet you see.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -3043,6 +3113,7 @@ export default (): Record<string, unknown> => {
      * | `'date'`            | `DateEditor`                                                               |
      * | `'intl-date'`       | `IntlDateEditor`                                                           |
      * | `'dropdown'`        | `DropdownEditor`                                                           |
+     * | `'formula'`         | The [`FormulaBuilder`](@/api/formulaBuilder.md) formula editor (a bare textarea while that plugin is off) |
      * | `'handsontable'`    | `HandsontableEditor`                                                       |
      * | `'numeric'`         | `NumericEditor`                                                            |
      * | `'password'`        | `PasswordEditor`                                                           |
@@ -3163,6 +3234,59 @@ export default (): Record<string, unknown> => {
      * ```
      */
     editor: undefined,
+
+    /**
+     * The `editableHeaders` option configures the [`EditableHeaders`](@/api/editableHeaders.md) plugin, which lets
+     * users rename column headers, and optionally row headers, the way they edit cells.
+     *
+     * You can set the `editableHeaders` option to one of the following:
+     *
+     * | Setting   | Description                                                                                      |
+     * | --------- | ------------------------------------------------------------------------------------------------ |
+     * | `true`    | Enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin for column headers               |
+     * | `false`   | Disable the [`EditableHeaders`](@/api/editableHeaders.md) plugin                                 |
+     * | An object | Enable the [`EditableHeaders`](@/api/editableHeaders.md) plugin and choose the header axes      |
+     *
+     * The object form accepts the following properties:
+     *
+     * | Property        | Type      | Default | Description                          |
+     * | --------------- | --------- | ------- | ------------------------------------ |
+     * | `columnHeaders` | `boolean` | `true`  | Whether users can rename column headers |
+     * | `rowHeaders`    | `boolean` | `false` | Whether users can rename row headers    |
+     *
+     * To keep one column's header from being renamed, set `editableHeaders: false` for that column in the
+     * [`columns`](#columns) option.
+     *
+     * Read more:
+     * - [Column header](@/guides/columns/column-header/column-header.md#rename-headers-in-the-grid)
+     * - [Plugins: `EditableHeaders`](@/api/editableHeaders.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default undefined
+     * @category EditableHeaders
+     * @configScope grid columns
+     * @since 19.0.0
+     *
+     * @example
+     * ```js
+     * // let users rename column headers
+     * editableHeaders: true,
+     *
+     * // let users rename column headers and row headers
+     * editableHeaders: {
+     *   columnHeaders: true,
+     *   rowHeaders: true,
+     * },
+     *
+     * // keep the first column's header from being renamed
+     * columns: [
+     *   { editableHeaders: false },
+     *   {},
+     * ],
+     * ```
+     */
+    editableHeaders: undefined,
 
     /**
      * @description
@@ -3714,9 +3838,12 @@ export default (): Record<string, unknown> => {
      *
      * The condition names are the ones [`addCondition()`](@/api/filters.md#addcondition) takes, for
      * example `'eq'`, `'gt'`, `'between'`, or `'not_between'`. A column whose type has no list of its
-     * own (for example `dropdown`) uses the `text` list. **None** always stays first. A name the
-     * column's data type does not offer is left out. The setting changes the lists only: a condition
-     * added through [`addCondition()`](@/api/filters.md#addcondition) still filters, and its select
+     * own (for example `dropdown`) uses the `text` list. A `checkbox` column uses the `text` list with
+     * `'checked'` and `'unchecked'` added (unless a data provider backs the grid), and follows the
+     * `text` key of a per-type object. There is no `checkbox` key: to offer a checkbox column only
+     * `'empty'`, `'not_empty'`, `'checked'`, and `'unchecked'`, set `availableConditions` on that column.
+     * **None** always stays first. A name the column's data type does not offer is left out. The
+     * setting changes the lists only: a condition added through [`addCondition()`](@/api/filters.md#addcondition) still filters, and its select
      * still shows it.
      *
      * When the grid is created, and when the setting changes, a console warning names each condition
@@ -3853,6 +3980,11 @@ export default (): Record<string, unknown> => {
      * If your layout direction is RTL, the end edge is the left-hand edge.
      *
      * The frozen columns are the last columns of the grid. They stay in place while the rest of the grid scrolls horizontally.
+     *
+     * Hidden columns count toward `fixedColumnsEnd`. The frozen area is always the last `fixedColumnsEnd` columns,
+     * hidden ones included. A trimmed column gives up its slot.
+     * See [Hidden columns](@/guides/columns/column-freezing/column-freezing.md#hidden-columns).
+     *
      * Use `fixedColumnsEnd` together with [`fixedColumnsStart`](#fixedcolumnsstart), [`fixedRowsTop`](#fixedrowstop),
      * and [`fixedRowsBottom`](#fixedrowsbottom) to freeze all four edges.
      *
@@ -3906,6 +4038,8 @@ export default (): Record<string, unknown> => {
      *
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, using `fixedColumnsLeft` throws an error.
      *
+     * Don't set `fixedColumnsLeft` and [`fixedColumnsStart`](#fixedColumnsStart) in one settings object: that throws an error. When you set them in separate [`updateSettings()`](@/api/core.md#updatesettings) calls, the later value applies.
+     *
      * Use [`fixedColumnsStart`](#fixedColumnsStart), which works in any layout direction.
      *
      * Read more:
@@ -3932,6 +4066,10 @@ export default (): Record<string, unknown> => {
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default), the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the left-hand edge of the grid.
      *
      * If your grid's [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL, the `fixedColumnsStart` option sets the number of [frozen columns](@/guides/columns/column-freezing/column-freezing.md) at the right-hand edge of the grid.
+     *
+     * Hidden columns count toward `fixedColumnsStart`. With `fixedColumnsStart: 3` and column 1 hidden by
+     * [`HiddenColumns`](@/api/hiddenColumns.md), the grid freezes 2 visible columns.
+     * See [Hidden columns](@/guides/columns/column-freezing/column-freezing.md#hidden-columns).
      *
      * ::: tip
      * Freeze only as many columns as fit within the grid's width. By default, Handsontable draws frozen columns in full. To draw only the ones that fit, use [`limitFixedToViewport`](#limitfixedtoviewport).
@@ -3982,6 +4120,10 @@ export default (): Record<string, unknown> => {
      * The `fixedRowsBottom` option sets the number of [frozen rows](@/guides/rows/row-freezing/row-freezing.md)
      * at the bottom of the grid.
      *
+     * Rows hidden with [`HiddenRows`](@/api/hiddenRows.md) count toward `fixedRowsBottom`. The frozen area is
+     * always the last `fixedRowsBottom` rows, hidden ones included. A trimmed or filtered row gives up its slot.
+     * See [Hidden rows](@/guides/rows/row-freezing/row-freezing.md#hidden-rows).
+     *
      * ::: tip
      * For the bottom frozen rows area to appear with a scroll separator, you must also set the [`height`](#height) option
      * in Handsontable's configuration. If the grid expands to fill its parent container without a defined height,
@@ -4018,6 +4160,10 @@ export default (): Record<string, unknown> => {
     /**
      * The `fixedRowsTop` option sets the number of [frozen rows](@/guides/rows/row-freezing/row-freezing.md) at the top of the grid.
      *
+     * Hidden rows count toward `fixedRowsTop`. With `fixedRowsTop: 3` and row 1 hidden by
+     * [`HiddenRows`](@/api/hiddenRows.md), the grid freezes 2 visible rows.
+     * See [Hidden rows](@/guides/rows/row-freezing/row-freezing.md#hidden-rows).
+     *
      * ::: tip
      * For the top frozen rows area to be visually separated from the scrollable body, you must also set the [`height`](#height) option
      * in Handsontable's configuration. If the grid expands to fill its parent container without a defined height,
@@ -4052,6 +4198,61 @@ export default (): Record<string, unknown> => {
     fixedRowsTop: 0,
 
     /**
+     * The `formulaBuilder` option configures the [`FormulaBuilder`](@/api/formulaBuilder.md) plugin.
+     *
+     * The [`FormulaBuilder`](@/api/formulaBuilder.md) plugin adds spreadsheet-style formula
+     * editing (a formula bar, an inline formula editor with colored references, reference
+     * picking, and formula error indicators) on top of the [`Formulas`](@/api/formulas.md) plugin,
+     * which must be enabled with a configured engine.
+     *
+     * You can set the `formulaBuilder` option to `false` (the plugin is off) or to an object with the
+     * following properties. There is no `true`: the plugin needs the `builder` module to run. The plugin
+     * logs a warning and stays disabled for `true`, for `{}`, and for an object without `builder`,
+     * although `validateSettings()` accepts all three.
+     *
+     * | Property         | Possible values                                                 |
+     * | ---------------- | --------------------------------------------------------------- |
+     * | `builder`        | The `hyperformula-ui` module namespace (`import * as FormulaBuilderModule from 'hyperformula-ui'`). Required. |
+     * | `showFormulaBar` | A boolean. Renders the formula bar above the grid when `true`. Default: `false`. |
+     * | `popups`         | An object with the popup options: `showClose`, `suggestions`, `fnHelp`, and `error`. |
+     * | `direction`      | `'ltr'` or `'rtl'`. The layout direction of the editor and its popups. Default: the grid's layout direction. |
+     *
+     * Formula editing is opt-in per cell: set [`editor`](#editor) to `'formula'` on the cells,
+     * columns, or grid that use the formula editor.
+     *
+     * Read more:
+     * - [Formula builder](@/guides/formulas/formula-builder/formula-builder.md)
+     * - [Plugins: `Formulas`](@/api/formulas.md)
+     *
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
+     * @since 19.0.0
+     * @memberof Options#
+     * @type {object|boolean}
+     * @default undefined
+     * @category FormulaBuilder
+     * @configScope grid
+     *
+     * @example
+     * ```js
+     * import * as FormulaBuilderModule from 'hyperformula-ui';
+     * import { HyperFormula } from 'hyperformula';
+     *
+     * // the formula editor on every cell
+     * editor: 'formula',
+     * formulas: {
+     *   engine: HyperFormula,
+     * },
+     * formulaBuilder: {
+     *   builder: FormulaBuilderModule,
+     *   showFormulaBar: true,
+     * },
+     * ```
+     */
+    formulaBuilder: undefined,
+
+    /**
      * The `formulas` option configures the [`Formulas`](@/api/formulas.md) plugin.
      *
      * The [`Formulas`](@/api/formulas.md) plugin uses the [HyperFormula](https://handsontable.github.io/hyperformula/) calculation engine.
@@ -4067,6 +4268,21 @@ export default (): Record<string, unknown> => {
      * | `sheetName` | A string                                                                                                                                                                                                               |
      * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
      * | `hyperlinks` | `true` \|<br>`false` (default) \|<br>An object with `target` and `schemes`                                                                                                                                                   |
+     * | `batchEvaluation` | `true` \|<br>`false` (default)                                                                                                                                                                                  |
+     *
+     * Set `batchEvaluation` to `true` to make HyperFormula recalculate once for the writes the grid makes while
+     * its execution is suspended. [`batch()`](@/api/core.md#batch) is the way to get that saving, because it
+     * suspends rendering too. Without the setting, every write recalculates.
+     *
+     * A read of a formula cell through the grid, such as `getDataAtCell()`, recalculates first, so it never
+     * returns a stale value. Each render recalculates too. For that reason
+     * [`batchExecution()`](@/api/core.md#batchexecution), or a
+     * [`suspendExecution()`](@/api/core.md#suspendexecution) and
+     * [`resumeExecution()`](@/api/core.md#resumeexecution) pair, saves nothing when each write renders.
+     *
+     * After a write, and until the next grid read or the end of the batch, a direct HyperFormula read
+     * (`engine.getCellValue()`) throws "Computations are suspended". That includes another grid that shares the
+     * engine. Read through the grid inside the batch, or read the engine after it.
      *
      * Set `hyperlinks` to `true` to render a cell whose formula is `HYPERLINK()` as a link. The cell
      * keeps its own renderer, and the link label is the value the formula returns. Only a cell whose
@@ -4112,6 +4328,12 @@ export default (): Record<string, unknown> => {
      * formulas: {
      *   engine: HyperFormula,
      *   hyperlinks: true
+     * }
+     *
+     * // or, recalculate once for all writes made inside `batch()`
+     * formulas: {
+     *   engine: HyperFormula,
+     *   batchEvaluation: true
      * }
      *
      * // or, open `HYPERLINK()` links in the same tab and link only web URLs
@@ -4677,19 +4899,9 @@ export default (): Record<string, unknown> => {
               getRowSchema(this, dataSchema, row)!, prop, dataDotNotation, hasExplicitSchema);
           }
 
-          if (typeof value === 'object') {
-            if (isObjectEqual(schemaDefault, value) === false) {
-              return false;
-            }
-
-            continue;
+          if (!isSchemaDefault(value, schemaDefault, hasExplicitSchema)) {
+            return false;
           }
-
-          if (hasExplicitSchema && schemaDefault === value) {
-            continue;
-          }
-
-          return false;
         }
       }
 
@@ -4739,19 +4951,9 @@ export default (): Record<string, unknown> => {
           const schemaDefault = prop === null ?
             undefined : getSchemaDefault(schema, prop, dataDotNotation, hasExplicitSchema);
 
-          if (typeof value === 'object') {
-            if (isObjectEqual(schemaDefault, value) === false) {
-              return false;
-            }
-
-            continue;
+          if (!isSchemaDefault(value, schemaDefault, hasExplicitSchema)) {
+            return false;
           }
-
-          if (hasExplicitSchema && schemaDefault === value) {
-            continue;
-          }
-
-          return false;
         }
       }
 
@@ -4850,7 +5052,7 @@ export default (): Record<string, unknown> => {
     /**
      * The `layoutDirection` option configures whether Handsontable renders from the left to the right, or from the right to the left.
      *
-     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) is ignored.
+     * You can set the layout direction only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of the `layoutDirection` option after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) throws an error, even when you didn't set the option at initialization.
      *
      * You can set the `layoutDirection` option only [for the entire grid](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * You can't set it for individual columns, rows, or cells.
@@ -4900,11 +5102,15 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `layout` option configures the order of plugin UI elements within the user-orderable
-     * wrapper slots rendered around the grid: `top` and `bottom`. Each slot takes an ordered array
-     * of element keys (for example `'pagination'`). Keys you list are placed first in that order;
-     * any remaining elements follow by their default weight. The grid and the overlays layer (the
+     * wrapper slots rendered around the grid: `top`, `bottom`, `start`, and `end`. The `top` and
+     * `bottom` slots sit above and below the grid. The `start` and `end` slots sit at the grid's
+     * inline-start and inline-end edges (with [`layoutDirection: 'rtl'`](#layoutdirection), `start`
+     * is on the right). Each slot takes an ordered array of element keys (for example
+     * `'pagination'`). Keys you list are placed first in that order; any remaining elements follow
+     * by their default weight. The grid and the overlays layer (the
      * modal layer, such as the dialog) are not orderable through this option. The license
      * notification is not orderable either; it always renders last in the `bottom` slot.
+     * The `start` and `end` slots are available since 19.0.0.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -4922,6 +5128,11 @@ export default (): Record<string, unknown> => {
      * layout: {
      *   bottom: ['pagination', 'summary'],
      * },
+     *
+     * // in the start side slot, render a custom 'filters' panel at the outer edge, before a custom 'notes' panel
+     * layout: {
+     *   start: ['filters', 'notes'],
+     * },
      * ```
      */
     layout: undefined,
@@ -4935,7 +5146,16 @@ export default (): Record<string, unknown> => {
      * | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
      * | A string with your [commercial license key](@/guides/getting-started/license-key/license-key.md#commercial-license) | For [commercial use](@/guides/technical-specification/software-license/software-license.md#commercial-use)         |
      * | A string with your [entitlement license key](@/guides/getting-started/license-key/license-key.md#entitlement-license-keys) (plain-English text ending with a `[...]` block) | For trial, subscription, or perpetual use |
-     * | `'non-commercial-and-evaluation'`                                                                       | For [non-commercial use](@/guides/technical-specification/software-license/software-license.md#non-commercial-use) |
+     *
+     * Since Handsontable 19.0, the `'non-commercial-and-evaluation'` key, and its second form
+     * `'ht68e-1f2b7-47158-70b05-0842f'`, are not valid keys: they lock the grid, as any invalid key does.
+     * See [Get a license key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
+     *
+     * An entitlement license key can name one or more tiers. The grid turns on the features of those
+     * tiers, and a plugin they do not include stays off: the console and the bar under the grid name it.
+     * The plugin's option keeps the value you set, so passing a key whose tier includes the feature
+     * through `updateSettings()` turns the plugin on. A key that names no tier turns on every feature. See
+     * [Keys that name a tier](@/guides/getting-started/license-key/license-key.md#keys-that-name-a-tier).
      *
      * Read more:
      * - [License key](@/guides/getting-started/license-key/license-key.md)
@@ -4959,9 +5179,6 @@ export default (): Record<string, unknown> => {
      * // protects its text too, so the `[...]` block on its own is not a valid key;
      * // the text contains quotes, so use a template literal
      * licenseKey: `This is a Handsontable license key for Acme Corp, ... for the "Acme Portal" project. ... [eyJwcm9kdWN0cyI6...3a4f8361]`,
-     *
-     * // for non-commercial use
-     * licenseKey: 'non-commercial-and-evaluation',
      * ```
      */
     licenseKey: undefined,
@@ -5055,7 +5272,10 @@ export default (): Record<string, unknown> => {
      * @description
      * The `loading` option configures the [`Loading`](@/api/loading.md) plugin.
      *
-     * Loading plugin, automatically loads [`Dialog`](@/api/dialog.md) plugin.
+     * The [`Loading`](@/api/loading.md) plugin depends on the [`Dialog`](@/api/dialog.md) plugin and turns it
+     * on while `loading` is enabled, so you don't need to set [`dialog: true`](#dialog). The `dialog`
+     * option itself keeps its value. When you turn `loading` off, the Dialog plugin turns off too, unless
+     * the `dialog` option is set.
      *
      * You can set the `loading` option to one of the following:
      *
@@ -5677,9 +5897,16 @@ export default (): Record<string, unknown> => {
     minCols: 0,
 
     /**
-     * Alias for the [`rowHeights`](#rowHeights) option.
+     * The `minRowHeights` option sets the minimum height of rows, in pixels.
      *
-     * See the [`rowHeights`](#rowHeights) option description for more information.
+     * A row is never shorter than this value, but it grows to fit taller content. A value smaller than
+     * the default row height has no effect, because a row is never shorter than the default. To set a row
+     * to an exact height and clip content that does not fit, use [`rowHeights`](#rowHeights) instead.
+     * You can set both options: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others.
+     *
+     * Take the accepted forms (a number, a string, an array, or a function) from the
+     * [`rowHeights`](#rowHeights) option description. Like `rowHeights`, the array and the function
+     * address a row by its physical index, so a minimum height stays with its row.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -5699,14 +5926,14 @@ export default (): Record<string, unknown> => {
      * // set every row's minimum height to 100px
      * minRowHeights: '100px',
      *
-     * // set the first (by visual index) row's minimum height to 100
-     * // set the second (by visual index) row's minimum height to 120
+     * // set the first (by physical index) row's minimum height to 100
+     * // set the second (by physical index) row's minimum height to 120
      * // set any other row's minimum height to the default height value
      * minRowHeights: [100, 120],
      *
      * // set each row's minimum height individually, using a function
-     * minRowHeights(visualRowIndex) {
-     *   return visualRowIndex * 10;
+     * minRowHeights(physicalRowIndex) {
+     *   return physicalRowIndex * 10;
      * },
      * ```
      */
@@ -5930,10 +6157,16 @@ export default (): Record<string, unknown> => {
     navigableHeaders: false,
 
     /**
-     * When set to `false`, the `tabNavigation` option changes the behavior of the
-     * <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts. The Handsontable
-     * no more captures that shortcuts to make the grid navigation available (`tabNavigation: true`)
-     * but returns control to the browser so the native page navigation is possible.
+     * The `tabNavigation` option decides what the <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd>
+     * keys do while the grid has the focus.
+     *
+     * | Setting          | Description                                                                                                                                                     |
+     * | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `true` (default) | The grid captures <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> and moves the selection between cells, so the grid is a set of tab stops (the spreadsheet mode). |
+     * | `false`          | The grid returns both keys to the browser, so <kbd>Tab</kbd> leaves the grid and the grid is one tab stop in the page's tab sequence (the data grid mode).          |
+     *
+     * Pair `tabNavigation: false` with [`navigableHeaders: true`](#navigableHeaders) for the data grid mode
+     * described in the [Accessibility](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation) guide.
      *
      * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -5947,10 +6180,10 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // you can't navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
+     * // Tab leaves the grid: one tab stop, the arrow keys move between cells
      * tabNavigation: false,
      *
-     * // default behavior: you can navigate row and column headers using <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts
+     * // default behavior: Tab and Shift+Tab move between cells
      * tabNavigation: true,
      * ```
      */
@@ -6668,6 +6901,11 @@ export default (): Record<string, unknown> => {
      * cell with no [`editor`](#editor): when `readOnlyStyling` is `false`, its checkbox is not rendered
      * disabled, but a click still doesn't change its value.
      *
+     * A [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) cell
+     * works the same way: a read-only cell, or one with no [`editor`](#editor), normally draws its
+     * chips without the remove button, but when `readOnlyStyling` is `false` the button stays, and a
+     * click on it doesn't change the value.
+     *
      * Read more:
      * - [`readOnly`](#readOnly)
      * - [`readOnlyCellClassName`](#readOnlyCellClassName)
@@ -6707,6 +6945,8 @@ export default (): Record<string, unknown> => {
      * | `true`            | Disable [row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)<br>(render all rows of the grid), rendering all rows in the dataset for consistent rendering and screen reader accessibility. |
      *
      * Setting `renderAllRows` to `true` overwrites the [`viewportRowRenderingOffset`](#viewportRowRenderingOffset) setting.
+     *
+     * You can set the `renderAllRows` option only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of it after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) throws an error, even when you didn't set the option at initialization.
      *
      * Read more:
      * - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
@@ -6803,6 +7043,8 @@ export default (): Record<string, unknown> => {
      * | `true`            | Disable [column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)<br>(render all columns of the grid), rendering all columns in the dataset, and ensuring all columns are available regardless of horizontal scrolling. |
      *
      * Setting `renderAllColumns` to `true` overwrites the [`viewportColumnRenderingOffset`](#viewportColumnRenderingOffset) setting.
+     *
+     * You can set the `renderAllColumns` option only at Handsontable's [initialization](@/guides/getting-started/installation/installation.md#initialize-handsontable). Any change of it after the initialization (e.g. using the [`updateSettings()`](@/api/core.md#updatesettings) method) throws an error, even when you didn't set the option at initialization.
      *
      * Read more:
      * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
@@ -7228,22 +7470,42 @@ export default (): Record<string, unknown> => {
     /**
      * The `rowHeights` option sets rows' heights, in pixels.
      *
-     * In the rendering process, the default row height is `classic: 26px`, `main: 29px`, `horizon: 37px` or whatever is defined in the used theme (based on the line height, vertical padding and cell borders).
-     * You can change it to equal or greater than the default value, by setting the `rowHeights` option to one of the following:
+     * A row renders at exactly the height you set. Content taller than the row is clipped, as in Excel,
+     * instead of stretching the row. A row can be shorter than the default row height, which is
+     * `classic: 26px`, `main: 29px`, `horizon: 37px` or whatever the used theme defines (based on the line
+     * height, vertical padding and cell borders). A row with no height of its own, or with a height of `0`,
+     * keeps the default.
+     *
+     * To set a minimum that content can grow past, use [`minRowHeights`](#minRowHeights) instead.
+     * You can set both options: `rowHeights` sets the rows it gives a height, and `minRowHeights` applies to the others.
+     *
+     * You can set the `rowHeights` option to one of the following:
      *
      * | Setting     | Description                                                                                         | Example                                                      |
      * | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
      * | A number    | Set the same height for every row                                                                   | `rowHeights: 100`                                            |
      * | A string    | Set the same height for every row                                                                   | `rowHeights: '100px'`                                        |
-     * | An array    | Set heights separately for each row,<br>by visual row index                                         | `rowHeights: [100, 120, undefined]`                          |
-     * | A function  | Set row heights dynamically,<br>on each render                                                      | `rowHeights(visualRowIndex) { return visualRowIndex * 10; }` |
+     * | An array    | Set heights separately for each row,<br>by physical row index                                       | `rowHeights: [100, 120, undefined]`                              |
+     * | A function  | Set row heights dynamically,<br>on each render, by physical row index                               | `rowHeights(physicalRowIndex) { return physicalRowIndex * 10; }` |
      * | `undefined` | Used by the [modifyRowHeight](@/api/hooks.md#modifyRowHeight) hook,<br>to detect row height changes | `rowHeights: undefined`                                      |
      *
-     * Unlike [`colWidths`](#colWidths), which uses the physical column index, `rowHeights` uses the
-     * visual row index, so with {@link ManualRowMove} a height stays at its screen position.
+     * The array and the function address a row by its physical index, so a height stays with its row
+     * when rows are moved with the {@link ManualRowMove} plugin, sorted, filtered, trimmed, or collapsed
+     * (for example, by the {@link NestedRows} plugin). The physical index doesn't change in any of those
+     * cases. A row that the {@link NestedRows} plugin moves by dragging or detaching takes a new physical
+     * index: an array entry follows the row, but a function is called with the new index. An array entry
+     * also stays with the row it was declared for when you insert or remove rows: a row inserted between
+     * others has no height of its own, a row added after the last one takes the next entry, and the array
+     * you passed is never changed. A function is called with the physical index the row has now. To declare
+     * the heights again, pass a new array to [`updateSettings()`](@/api/core.md#updatesettings). Switching the
+     * option to or from an array, or passing a new array, clears the undo history, the way enabling a plugin does. [`colWidths`](#colWidths) addresses columns by
+     * the physical index too.
      *
      * When the {@link AutoRowSize} plugin is enabled, `rowHeights` sets the minimum row height, so a
-     * row still grows to fit its content.
+     * row still grows to fit its content, and the clipping described above does not apply. The
+     * [`autoRowSize`](#autoRowSize) option alone decides this, not the state of the plugin: with
+     * `autoRowSize` set, `rowHeights` stays a minimum even when the plugin is not registered, or after
+     * you call `disablePlugin()` on it.
      *
      * When {@link AutoRowSize} is disabled, a row resized by dragging keeps its height until the
      * height is re-declared. Passing `rowHeights` or [`minRowHeights`](#minRowHeights) to
@@ -7286,15 +7548,15 @@ export default (): Record<string, unknown> => {
      * // set every row's height to 100px
      * rowHeights: '100px',
      *
-     * // set the first (by visual index) row's height to 100
-     * // set the second (by visual index) row's height to 120
-     * // set the third (by visual index) row's height to `undefined`
+     * // set the first (by physical index) row's height to 100
+     * // set the second (by physical index) row's height to 120
+     * // set the third (by physical index) row's height to `undefined`
      * // set any other row's height to the default height value
      * rowHeights: [100, 120, undefined],
      *
      * // set each row's height individually, using a function
-     * rowHeights(visualRowIndex) {
-     *   return visualRowIndex * 10;
+     * rowHeights(physicalRowIndex) {
+     *   return physicalRowIndex * 10;
      * },
      * ```
      */
@@ -7559,18 +7821,18 @@ export default (): Record<string, unknown> => {
      *
      * | Option        | Possible settings                                  | Description                                                                                 |
      * | ------------- | --------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-     * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the initial workbook. When omitted, the grid's own data becomes a single `Sheet1`     |
-     * | `activeSheet` | A number (default: `0`)                              | The index (within `sheets`) of the sheet to activate on initialization. Passed later through [`updateSettings()`](@/api/core.md#updatesettings) with a changed value, it switches the active sheet without rebuilding the workbook; a re-passed identical value is ignored |
-     * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and sheet-menu controls                                  |
+     * | `sheets`      | An array of `{ name, data, settings }` objects, or `null` | Defines the workbook. When omitted, the grid's own data becomes a single `Sheet1`. When omitted and the [`formulas`](#formulas) option's `engine` is a HyperFormula instance that holds sheets, the bar shows one tab per engine sheet instead, plus one tab for the grid's `data` when it is set. Like the [`data`](#data) option, the plugin writes into the array: renames, added and duplicated sheets, and removals. Tab order and [`updateSheetSettings()`](@/api/sheetsBar.md#updatesheetsettings) changes aren't written. Keep the array, its entries, and their `data` mutable and stable: the same array passed again keeps the workbook, while an array that describes other sheets rebuilds it. On a frozen array or entry, those changes are refused with a console warning |
+     * | `activeSheet` | A number (default: `0`)                              | The position, within `sheets` (not in the tab order), of the sheet to activate on initialization. To switch sheets later, call [`setActiveSheet()`](@/api/sheetsBar.md#setactivesheet). With `sheetsBar: true`, which declares no `sheets`, it counts in the tab order |
+     * | `controls`    | Boolean (default: `true`)                            | Controls visibility of the add-sheet and all-sheets menu controls                             |
      * | `paging`      | Boolean (default: `true`)                            | Controls visibility of the tab-scrolling controls, shown when tabs overflow the bar's width    |
      * | `position`    | `'top'` \| `'bottom'` (default: `'bottom'`)          | The edge of the grid the bar renders on                                                        |
-     * | `uiContainer` | An HTML element (default: `null`)                    | The container element where the sheets bar UI will be installed. If not provided, the bar is injected below the root table element |
+     * | `uiContainer` | An HTML element (default: `null`)                    | An element of your page to render the bar in, instead of the grid's edge. `position` and the [`layout`](#layout) option then don't apply to the bar. If not provided, the bar renders on the edge of the grid that `position` names |
      * | `animation`   | Boolean, or an object of booleans (default: `true`) | Turns the tab animations on or off. `false` makes every tab change instant. An object turns single animations off: `switch` (the active tab marker's slide), `add` (a new or duplicated tab's entrance), `remove` (a removed tab's exit and the tabs closing the gap), and `move` (the tabs sliding to new places after a move, and the tabs a drag pushes aside). A key you leave out stays on. Reduced motion and a theme with `--ht-table-transition: 0s` make every tab change instant whatever this option says. The hover color fade is CSS only and is not affected. An invalid value is ignored with a console warning, and the previous value stays in force |
      *
      * Read more:
      * - [Plugins: `SheetsBar`](@/api/sheetsBar.md)
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * This option can only be set at the [grid level](@/guides/configuration/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 19.0.0
@@ -8271,7 +8533,7 @@ export default (): Record<string, unknown> => {
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
-     * @type {ThemeBuilder|string|undefined}
+     * @type {ThemeBuilder|object|string|undefined}
      * @default undefined
      * @category Core
      * @configScope grid
@@ -8432,6 +8694,14 @@ export default (): Record<string, unknown> => {
      * | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
      * | `true` (default)   | Inject core styles into the document head                                                                        |
      * | `false`            | Do not inject core styles (use when you load CSS yourself, e.g. `import 'handsontable/styles/handsontable.css'`) |
+     *
+     * Handsontable reads this option once, when it creates the grid. Changing it with
+     * [`updateSettings()`](@/api/core.md#updatesettings) has no effect.
+     *
+     * Grids that Handsontable builds inside a grid follow the grid's setting. These include the lists of the
+     * `autocomplete`, `dropdown`, and `handsontable` editors, the context menu, the dropdown menu, and the
+     * [`Filters`](@/api/filters.md) menus. With `false`, none of them injects the core styles. A menu that renders
+     * into another document through the `uiContainer` option injects them there only when the grid injects them.
      *
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
@@ -8670,6 +8940,10 @@ export default (): Record<string, unknown> => {
      * | [`'time`'](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `TimeRenderer`<br>Editor: `TimeEditor`<br>Validator: `TimeValidator`                                                                                                 |
      * | [`'intl-time'`](@/guides/cell-types/time-cell-type/time-cell-type.md)                 | Renderer: `IntlTimeRenderer`<br>Editor: `IntlTimeEditor`<br>Validator: `IntlTimeValidator`                                                                                                 |
      * | [`'intl-datetime'`](@/guides/cell-types/datetime-cell-type/datetime-cell-type.md)                 | Renderer: `IntlDatetimeRenderer`<br>Editor: `IntlDatetimeEditor`<br>Validator: `IntlDatetimeValidator`                                                                                                 |
+     *
+     * A grid-level `type` changed with `updateSettings()` applies the new type's editor, renderer,
+     * and validator. A grid-level `editor`, `renderer`, or `validator` set earlier, or in the same call,
+     * keeps winning over the type.
      *
      * Read more:
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
@@ -9341,6 +9615,11 @@ export default (): Record<string, unknown> => {
      * fixed size. An ignored value leaves the grid's width as it was, and a warning is printed once
      * per grid and value.
      *
+     * With side panels docked in the
+     * [`start` and `end` layout slots](@/guides/accessories-and-menus/layout-slots/layout-slots.md),
+     * the width includes them, and the grid fills the rest. When `width` is set, a function `width`
+     * runs again whenever a side panel mounts, unmounts, or changes its width.
+     *
      * With `width: 'auto'`, Handsontable writes `width: auto` as an inline style on the root
      * element. The grid then follows the width of its parent container, like a plain block
      * element. Use this value when you want the grid to stay flexible horizontally while still
@@ -9568,8 +9847,11 @@ export default (): Record<string, unknown> => {
      * (see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md))
      * to get editor completion on the values below.
      *
-     * The surfaces that pass a context today are `'ExportFile.columnHeader'`, `'ExportFile.rowHeader'`
-     * and `'CopyPaste.columnHeader'`. A plugin may pass a surface of its own, so treat the list as open.
+     * The surfaces that pass a context today are `'ExportFile.columnHeader'`, `'ExportFile.rowHeader'`,
+     * `'CopyPaste.columnHeader'`, `'A11y.columnLabel'` (a column header read for a cell editor's accessible
+     * name or a sort announcement, when the header is not rendered), and `'A11y.rowLabel'` (a custom row
+     * header read for a cell editor's accessible name). A plugin may pass a surface of its own, so treat the
+     * list as open.
      *
      * The built-in extraction runs a configured [`sanitizer`](#sanitizer) first, under the `'header'`
      * surface, then reduces the result to text. That order matters: a sanitizer may remove content

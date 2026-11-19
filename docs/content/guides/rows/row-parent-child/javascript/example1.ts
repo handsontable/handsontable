@@ -167,7 +167,7 @@ new Handsontable(container, {
   autoWrapRow: true,
   autoWrapCol: true,
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   // Collapse "Best Metal Performance" on load to demonstrate expand/collapse controls.
   afterInit() {
     this.getPlugin('nestedRows').collapseParent(8);

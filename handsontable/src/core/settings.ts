@@ -8,15 +8,20 @@ import type {
   CellRange as WalkontableCellRange,
 } from '../3rdparty/walkontable/src';
 import type {
-  CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings,
+  CellChange, AppliedCellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings,
   ColumnDataGetterSetterFunction, RemoveIndexSignature,
 } from '../settings';
 import type { ColumnConditions, FiltersSettings } from '../plugins/filters';
+import type { FormulaBuilderPluginSettings } from '../plugins/formulaBuilder';
 import type { LayoutConfig } from './layout';
-import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
+import type { PredefinedMenuItemKey, MenuItemConfig } from '../utils/menu/types';
+import type { ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
+import type { NotificationConfig } from '../plugins/notification';
+import type { ThemeBuilder } from '../themes/engine/builder';
 import type { RowSelectionSettings, RowSelectionSource } from '../plugins/rowSelection';
 import type { HeaderCheckboxSettings } from '../plugins/checkboxHeader';
+import type { EditableHeadersSettings, HeaderAxis } from '../plugins/editableHeaders';
 import type { SheetsBarSettings, SheetsBarViewState } from '../plugins/sheetsBar';
 import type { ManualColumnFreezeSettings } from '../plugins/manualColumnFreeze';
 import type { FreezeBarSettings, FreezeEdge, FreezeSource } from '../plugins/freezeBar';
@@ -136,6 +141,8 @@ export type TextExtractorContext =
   | 'ExportFile.columnHeader'
   | 'ExportFile.rowHeader'
   | 'CopyPaste.columnHeader'
+  | 'A11y.columnLabel'
+  | 'A11y.rowLabel'
   | (string & {});
 
 /**
@@ -157,6 +164,11 @@ export interface GridSettings {
   readOnlyCellClassName?: string;
   readOnlyStyling?: boolean;
   tableClassName?: string | string[];
+  // `object` is the plain theme config the option's table documents (`horizonTheme`). The closed
+  // `ThemeParams` type would reject a config with a token of your own, which compiled as `any`. The
+  // cost is that an array or a function also compiles; `validateSettings()` rejects the array and the
+  // grid ignores both, and `Record<string, unknown>` would reject `horizonTheme`, an interface type.
+  theme?: ThemeBuilder | object | string;
   themeName?: string;
   colorScheme?: ThemeColorScheme;
   density?: DensityType;
@@ -164,11 +176,12 @@ export interface GridSettings {
   // Dimensions
   width?: number | 'auto' | (string & {}) | null | (() => number | string | null);
   height?: number | 'auto' | (string & {}) | null | (() => number | string | null);
-  colWidths?: number | number[] | string | ((physicalColumn: number) => number | string) | Array<number | string>;
-  rowHeights?: number | number[] | string | ((row: number) => number | string) | Array<number | string>;
+  colWidths?: number | number[] | string | ((physicalColumn: number) => number | string | null | undefined)
+    | Array<number | string | null | undefined> | null;
+  rowHeights?: number | number[] | string | ((physicalRow: number) => number | string) | Array<number | string>;
   rowHeaderWidth?: number | number[] | string | Array<number | string>;
   columnHeaderHeight?: number | number[] | string | Array<number | string>;
-  minRowHeights?: number | string | number[] | ((index: number) => number);
+  minRowHeights?: number | number[] | string | ((physicalRow: number) => number | string) | Array<number | string>;
   maxRows?: number;
   maxCols?: number;
   minRows?: number;
@@ -222,19 +235,33 @@ export interface GridSettings {
   editor?: string | (new (...args: unknown[]) => unknown) | boolean;
   emptyValue?: CellValue;
   enterBeginsEditing?: boolean;
+  enterCommits?: boolean;
   enterMoves?: { col: number; row: number } | ((event: KeyboardEvent) => { col: number; row: number });
   fillHandle?: boolean | string | { autoInsertRow?: boolean; direction?: string };
+  filterSelectedItems?: boolean;
   imeFastEdit?: boolean;
   maxLength?: number;
+  maxSelections?: number;
+  parsePastedValue?: boolean;
   readOnly?: boolean;
+  searchInput?: boolean;
   skipColumnOnPaste?: boolean;
   skipRowOnPaste?: boolean;
   sourceDataValidator?: SourceDataValidatorFn;
   sourceDataWarningMessage?: string;
+  // Method syntax and an `any` parameter on purpose, as for `sanitizer` below: both options were `any`,
+  // so a consumer callback that annotates its parameter more narrowly, or leaves it to be inferred and
+  // calls `value.trim()` or `b.localeCompare(a)`, compiles today. A function property would reject the
+  // first form and an `unknown` or union parameter the second - see `.ai/BREAKING-CHANGES.md`. The
+  // breaking part of declaring these options is the read side (they are optional now) and the arity.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  sourceSortFunction?(entries: any[]): any[];
   tabMoves?: { row: number; col: number } | ((event: KeyboardEvent) => { row: number; col: number });
   trimWhitespace?: boolean;
   undo?: boolean | UndoRedoSettings;
   validator?: string | RegExp | ((value: unknown, callback: (valid: boolean) => void) => void);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  valueParser?(value: any, cellProperties: CellProperties): CellValue;
   wordWrap?: boolean;
 
   // Rendering
@@ -310,18 +337,22 @@ export interface GridSettings {
   dataProvider?: DataProviderConfig | null;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
   dropdownMenu?: boolean | object | string[];
+  editableHeaders?: boolean | EditableHeadersSettings;
   emptyDataState?: boolean | object;
   filters?: boolean | FiltersSettings;
   filterValueComparator?: (a: unknown, b: unknown) => number;
+  formulaBuilder?: false | FormulaBuilderPluginSettings;
   formulas?: boolean | {
     engine: unknown;
     sheetName?: string;
     hyperlinks?: boolean | { target?: '_blank' | '_self'; schemes?: Array<'http' | 'https' | 'mailto' | 'tel'> };
+    batchEvaluation?: boolean;
     [key: string]: unknown;
   };
   hiddenColumns?: boolean | object;
   hiddenRows?: boolean | object;
   loading?: boolean | object;
+  notification?: boolean | NotificationConfig;
   freezeBar?: boolean | FreezeBarSettings;
   manualColumnFreeze?: boolean | ManualColumnFreezeSettings;
   manualColumnMove?: boolean | number[];
@@ -377,6 +408,7 @@ export interface GridSettings {
 
   // Layout
   ariaTags?: boolean;
+  injectCoreCss?: boolean;
   layout?: LayoutConfig;
   layoutDirection?: 'inherit' | 'ltr' | 'rtl';
   licenseKey?: string;
@@ -423,7 +455,7 @@ export interface GridSettings {
     direction: 'up' | 'down' | 'left' | 'right') => void;
   afterBeginEditing?: (row: number, column: number) => void;
   afterCellMetaReset?: () => void;
-  afterChange?: (changes: CellChange[] | null, source: ChangeSource) => void;
+  afterChange?: (changes: AppliedCellChange[] | null, source: ChangeSource) => void;
   afterChangesObserved?: () => void;
   afterColumnCollapse?: (currentCollapsedColumns: number[], destinationCollapsedColumns: number[],
     collapsePossible: boolean, successfullyCollapsed: boolean) => void;
@@ -472,11 +504,13 @@ export interface GridSettings {
   afterEmptyDataStateHide?: () => void;
   afterEmptyDataStateShow?: () => void;
   afterFilter?: (conditionsStack: ColumnConditions[]) => void;
+  afterFontsLoad?: () => void;
   afterFormulasValuesUpdate?: (changes: unknown[]) => void;
   afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;
   afterGetColumnHeaderRenderers?: (renderers: Array<(...args: unknown[]) => unknown>) => void;
   afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
+  afterHeaderChange?: (axis: HeaderAxis, visualIndex: number, newValue: string, oldValue: unknown) => void;
   afterGetRowHeaderRenderers?: (renderers: Array<(...args: unknown[]) => unknown>) => void;
   afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[],
     actionPossible: boolean, stateChanged: boolean) => void;
@@ -546,6 +580,7 @@ export interface GridSettings {
   afterRender?: (isForced: boolean) => void;
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  afterResumeExecution?: () => void;
   afterRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
     collapsePossible: boolean, successfullyCollapsed: boolean) => void;
   afterRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
@@ -587,13 +622,14 @@ export interface GridSettings {
   afterSheetAdded?: (addedSheetDisplayName: string) => void;
   afterSheetRemoved?: (removedSheetDisplayName: string, changes: unknown[]) => void;
   afterSheetRenamed?: (oldDisplayName: string, newDisplayName: string) => void;
-  afterSheetTabAdd?: (sheetId: number, name: string, source: string) => void;
+  afterSheetTabAdd?: (sheetId: number, name: string, duplicateOfId: number | null, source: string) => void;
   afterSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void;
   afterSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void;
   afterSheetTabRemove?: (sheetId: number, source: string) => void;
   afterSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void;
   afterSheetTabStateCapture?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
   afterSheetTabStateRestore?: (sheetId: number, viewState: SheetsBarViewState, source: string) => void;
+  afterSuspendExecution?: () => void;
   afterTrimRow?: (currentTrimConfig: number[], destinationTrimConfig?: number[],
     actionPossible?: boolean, stateChanged?: boolean) => void;
   afterUndo?: (action: UndoRedoAction) => void;
@@ -609,7 +645,7 @@ export interface GridSettings {
     actionPossible: boolean, stateChanged: boolean) => void;
   afterUpdateData?: (sourceData: unknown[], initialLoad: boolean, source: ChangeSource | undefined) => void;
   afterUpdateSettings?: (newSettings: Partial<GridSettings>) => void;
-  afterValidate?: (isValid: boolean, value: CellValue, row: number, prop: string | number,
+  afterValidate?: (isValid: boolean, value: CellValue, row: number | null, prop: string | number,
     source: ChangeSource) => void | boolean;
   afterDataProviderFetch?: (result: DataProviderFetchResult & { isRestored?: boolean }) => void;
   afterDataProviderFetchAbort?: (queryParameters: DataProviderQueryParameters, reason?: Error) => void;
@@ -637,7 +673,7 @@ export interface GridSettings {
   beforeReadOnlyToggle?: (stateBefore: Record<number, boolean[]>, ranges: WalkontableCellRange[],
     readOnly: boolean) => void;
   beforeChange?: (changes: (CellChange | null)[], source: ChangeSource) => void | boolean;
-  beforeChangeRender?: (changes: CellChange[], source: ChangeSource) => void;
+  beforeChangeRender?: (changes: AppliedCellChange[], source: ChangeSource) => void;
   beforeColumnCollapse?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
     collapsePossible: boolean) => void | boolean;
   beforeColumnExpand?: (currentCollapsedColumn: number[], destinationCollapsedColumns: number[],
@@ -678,6 +714,8 @@ export interface GridSettings {
     actionPossible: boolean) => void | boolean;
   beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[],
     actionPossible: boolean) => void | boolean;
+  beforeHeaderChange?: (axis: HeaderAxis, visualIndex: number, newValue: string, oldValue: unknown) =>
+    void | boolean;
   beforeHighlightingColumnHeader?: (column: number, headerLevel: number,
     highlightMeta: { selectionType: string; columnCursor: number; selectionWidth: number }) => number | void;
   beforeHighlightingRowHeader?: (row: number, headerLevel: number,
@@ -738,6 +776,7 @@ export interface GridSettings {
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
     value: CellValue, cellProperties: CellProperties) => void;
+  beforeResumeExecution?: () => void;
   beforeRowCollapse?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
     collapsePossible: boolean) => void | boolean;
   beforeRowExpand?: (currentCollapsedRows: number[], destinationCollapsedRows: number[],
@@ -762,12 +801,13 @@ export interface GridSettings {
   beforeSetRangeEnd?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStart?: (coords: WalkontableCellCoords) => void;
   beforeSetRangeStartOnly?: (coords: WalkontableCellCoords) => void;
-  beforeSheetTabAdd?: (name: string | null, source: string) => void | boolean;
+  beforeSheetTabAdd?: (name: string | null, duplicateOfId: number | null, source: string) => void | boolean;
   beforeSheetTabChange?: (oldSheetId: number, newSheetId: number, source: string) => void | boolean;
   beforeSheetTabMove?: (sheetId: number, finalIndex: number, source: string) => void | boolean;
   beforeSheetTabRemove?: (sheetId: number, source: string) => void | boolean;
   beforeSheetTabRename?: (sheetId: number, oldName: string, newName: string, source: string) => void | boolean;
   beforeStretchingColumnWidth?: (stretchedWidth: number, column: number) => void | number;
+  beforeSuspendExecution?: () => void;
   beforeTouchScroll?: () => void;
   beforeTrimRow?: (currentTrimConfig: number[], destinationTrimConfig: number[],
     actionPossible: boolean) => void | boolean;
@@ -808,7 +848,10 @@ export interface GridSettings {
   modifyColumnHeaderValue?: (headerValue: string, visualColumnIndex: number, headerLevel: number) => void | string;
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => RangeType[] | void;
-  modifyData?: (row: number, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
+  modifyData?: (
+    row: number | null, column: number | null, valueHolder: { value: CellValue }, ioMode: 'get' | 'set',
+  ) => void;
+  modifyFiltersMatchedRows?: (matchedRows: number[], blankMatchedRows: number[]) => number[] | void;
   modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyFocusOnTabNavigation?: (tabActivationDir: string, visualCoords: WalkontableCellCoords) => void;
@@ -817,6 +860,7 @@ export interface GridSettings {
   modifyGetCoordsElement?: (row: number, column: number) => void | [number, number];
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
+  modifyRowHeaderValue?: (headerValue: string | number, visualRowIndex: number) => void | string | number;
   modifyRowHeaderWidth?: (rowHeaderWidth: number | number[]) => void | number | number[];
   modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: string) => void | number;

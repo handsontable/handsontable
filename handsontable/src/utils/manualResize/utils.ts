@@ -75,9 +75,9 @@ export function shouldRefreshHandleAfterAutoResize(
 }
 
 /**
- * The size options the row resize plugin answers to. `minRowHeights` is documented as an alias for
- * `rowHeights`, and `Core#_getRowHeightFromSettings` reads `rowHeights ?? minRowHeights`, so the two
- * state the row heights equally.
+ * The size options the row resize plugin answers to. Both state the row heights, so passing either one
+ * re-declares them. They differ at render time (`rowHeights` is exact, `minRowHeights` is a floor), which
+ * does not matter here.
  */
 export const ROW_SIZE_OPTIONS = ['rowHeights', 'minRowHeights'];
 
@@ -124,5 +124,41 @@ export function redeclaresManualSizes(
 
     // Matches how `BasePlugin` itself tests a config key for relevance.
     return sizeOption !== undefined;
+  });
+}
+
+/**
+ * Tells whether a size can be stored: a finite number. `NaN`, `Infinity` and a numeric string are refused,
+ * because the size maps store what they are given and the renderer reads it back as a length.
+ *
+ * @param {*} size The width or height.
+ * @returns {boolean}
+ */
+export function isStorableSize(size: unknown): size is number {
+  return typeof size === 'number' && Number.isFinite(size);
+}
+
+/**
+ * Picks the `[physicalIndex, size]` pairs of a bulk write that can be stored: the index an integer from
+ * `0` to `count - 1`, and the size a finite number (`isStorableSize()`). Anything else, including a value
+ * that is not an array, is skipped.
+ *
+ * @param {*} sizes The pairs as the caller passed them.
+ * @param {number} count The number of indexes on the axis.
+ * @returns {Array<Array<number>>}
+ */
+export function pickStorableSizes(sizes: unknown, count: number): Array<[number, number]> {
+  if (!Array.isArray(sizes)) {
+    return [];
+  }
+
+  return (sizes as unknown[]).filter((pair: unknown): pair is [number, number] => {
+    if (!Array.isArray(pair)) {
+      return false;
+    }
+
+    const index: unknown = pair[0];
+
+    return Number.isInteger(index) && (index as number) >= 0 && (index as number) < count && isStorableSize(pair[1]);
   });
 }

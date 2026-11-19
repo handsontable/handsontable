@@ -4,7 +4,7 @@ import { htmlRenderer } from '../htmlRenderer';
 import { textRenderer } from '../textRenderer';
 import EventManager from '../../eventManager';
 import { addClass, eventTargetEl, hasClass, getCellContentRoot } from '../../helpers/dom/element';
-import { isLeftClick } from '../../helpers/dom/event';
+import { isImmediatePropagationStopped, isLeftClick } from '../../helpers/dom/event';
 import { A11Y_HIDDEN } from '../../helpers/a11y';
 import { createIcon } from '../../themes/engine/icons';
 
@@ -75,6 +75,13 @@ export function autocompleteRenderer(
       // and a theme `icons` renderer may put its own markup inside it (an inline SVG, a span). The
       // base `.ht-icon` is `pointer-events: none`, which such a child inherits, so today the hit
       // still lands on the arrow div - but a gate that depends on a CSS property is a trap.
+      // A press an earlier listener claimed (the FormulaBuilder plugin picks the cell as a formula
+      // reference) must not open the cell's own editor. Such a listener sets only the flag, without
+      // `cancelBubble`, so the press still reaches `document` and closes an open menu.
+      if (isImmediatePropagationStopped(event)) {
+        return;
+      }
+
       if (isLeftClick(event) && eventTargetEl(event)!.closest('.htAutocompleteArrow') !== null) {
         // The `null` event is load-bearing, not laziness: `EditorManager#openEditor` only applies
         // its "no editor for a multi-cell selection" default when the event is a `MouseEvent`, so

@@ -22,7 +22,7 @@ const hot = new Handsontable(container, {
     rowHeaders: true,
     height: 320,
     width: "100%",
-    licenseKey: "non-commercial-and-evaluation",
+    // licenseKey: "your-license-key", // get a key at https://handsontable.com/pricing/
 });
 function exportGridToPdf() {
     const body = hot.getData();

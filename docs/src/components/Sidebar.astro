@@ -154,9 +154,11 @@ const algoliaInfo = findCurrentPage(
   The legacy VuePress selectors `p.sidebar-heading.open` (lvl0) and
   `.sidebar-links .active` (lvl1) are satisfied here using server-rendered
   HTML derived from the sidebar data -- no JavaScript required.
+  `inert` keeps the link out of the tab order and away from scripted focus;
+  `aria-hidden` alone leaves it focusable. The crawler reads the same text.
 */}
 {algoliaInfo && (
-  <div aria-hidden="true" style="position:absolute;left:-9999px;width:0;height:0;overflow:hidden;">
+  <div aria-hidden="true" inert style="position:absolute;left:-9999px;width:0;height:0;overflow:hidden;">
     {algoliaInfo.groupLabel && (
       <p class="sidebar-heading open">{algoliaInfo.groupLabel}</p>
     )}

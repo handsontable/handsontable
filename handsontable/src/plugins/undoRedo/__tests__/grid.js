@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable/base';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 /**
  * Builds a grid of `A1`-style values, so a value that lands on another record after an undo shows
@@ -42,7 +43,7 @@ export function setUpUndoGrid() {
   return {
     create(settings) {
       hot = new Handsontable(container, {
-        licenseKey: 'non-commercial-and-evaluation',
+        licenseKey: TEST_LICENSE_KEY,
         undo: true,
         ...settings,
       });

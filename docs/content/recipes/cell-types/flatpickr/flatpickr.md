@@ -17,6 +17,7 @@ vue:
   metaTitle: Flatpickr cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
+menuTag: updated
 ---
 
 This tutorial shows you how to integrate the Flatpickr date picker as a custom Handsontable DataGrid cell editor, with per-column locale and format configuration.
@@ -520,7 +521,7 @@ const hotOptions = {
     },
     { data: 'status', type: 'text', width: 130 },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const hot = new Handsontable(container, hotOptions);

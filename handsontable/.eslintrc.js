@@ -346,6 +346,22 @@ module.exports = {
         }],
       }
     },
+    // The shared menu library lives in `src/utils/menu/`. A plugin that builds a menu imports it from
+    // there, never from the ContextMenu plugin's folder, which only holds that plugin. The plugin's
+    // public entry (`../contextMenu`) stays importable for its types.
+    {
+      files: ['src/plugins/**/*.ts'],
+      excludedFiles: ['src/plugins/contextMenu/**'],
+      rules: {
+        'no-restricted-imports': ['error', {
+          patterns: [{
+            group: ['**/contextMenu/*'],
+            message: 'Import the menu library from `utils/menu/` instead of reaching into the ContextMenu '
+              + 'plugin\'s folder.',
+          }],
+        }],
+      }
+    },
     // TypeScript type-test files — intentionally use `document`, `new X()`, and
     // expression-only statements to verify type inference without side effects.
     {

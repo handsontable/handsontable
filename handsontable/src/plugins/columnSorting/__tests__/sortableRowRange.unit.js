@@ -2,6 +2,7 @@ import Handsontable from '../../../base';
 import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../columnSorting';
 import { MultiColumnSorting } from '../../multiColumnSorting/multiColumnSorting';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 // The pinned rows hold MIDDLE values (25 at the top, 35 at the bottom, against 10/20/30/40). With
 // extreme values a sort can leave a pinned row where it already sat, and a case would pass whether or
@@ -48,7 +49,7 @@ describe.each([
 
   const build = settings => new Handsontable(container, {
     data: SEED.map(row => [...row]),
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
     ...settings,
   });
 

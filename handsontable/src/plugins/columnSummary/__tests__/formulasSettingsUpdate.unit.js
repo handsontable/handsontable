@@ -6,6 +6,7 @@ import {
   Formulas,
 } from 'handsontable/plugins';
 import { registerAllCellTypes } from 'handsontable/registry';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 registerAllCellTypes();
 registerPlugin(ColumnSummary);
@@ -59,7 +60,7 @@ describe('ColumnSummary turned on next to Formulas', () => {
     hot = new Handsontable(container, {
       data: numbers(20, 6),
       formulas: { engine: HyperFormula },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     expect(() => hot.updateSettings({
@@ -73,7 +74,7 @@ describe('ColumnSummary turned on next to Formulas', () => {
     hot = new Handsontable(container, {
       data: numbers(20, 6),
       formulas: { engine: HyperFormula },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
 
     hot.updateSettings({

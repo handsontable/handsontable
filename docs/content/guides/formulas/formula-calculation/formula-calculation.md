@@ -2,7 +2,7 @@
 type: how-to
 title: Formula calculation
 metaTitle: Formula calculation | Handsontable DataGrid for JavaScript
-description: Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.
+description: Perform calculations on cells' values, using a powerful calculation engine that handles about 400 functions, custom functions, named expressions, and more.
 permalink: /formula-calculation
 canonicalUrl: /formula-calculation
 tags:
@@ -25,9 +25,13 @@ searchCategory: Guides
 category: Formulas
 menuTag: updated
 ---
-The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+The `Formulas` plugin adds spreadsheet-style calculation to Handsontable DataGrid, powered by [HyperFormula](https://handsontable.com/hyperformula/). It supports about 400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
+
+HyperFormula is a separate package that you install and license on its own. For steps, see [Formulas: Installation](@/guides/formulas/installation/installation.md).
 
 Filling formula cells with [autofill](@/guides/cell-features/autofill-values/autofill-values.md) adjusts relative references per target cell, the same way a spreadsheet application does. See [Autofill and formulas](@/guides/cell-features/autofill-values/autofill-values.md#autofill-and-formulas).
+
+For a spreadsheet-style formula editing UI - a formula bar, colored references, reference picking, and autocomplete - see the [Formula builder](@/guides/formulas/formula-builder/formula-builder.md) guide.
 
 [[toc]]
 
@@ -224,7 +228,7 @@ const hotSettings = ref({
 
 :::
 
-Pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
+Pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://handsontable.com/docs/hyperformula/api/interfaces/configparams.html).
 
 ::: only-for javascript
 
@@ -633,6 +637,64 @@ const hotSettings2 = ref({
 
 :::
 
+### Write to an external HyperFormula instance
+
+When you write to an external engine directly, for example with `setCellContents()`, the grids
+that read the changed cells repaint right away. A grid repaints once for each write, and the write
+is not copied into the grid's source data.
+
+To repaint once after several writes, wrap them in `engine.batch()`:
+
+```js
+hyperformulaInstance.batch(() => {
+  hyperformulaInstance.setCellContents({ sheet: 0, row: 0, col: 0 }, 10);
+  hyperformulaInstance.setCellContents({ sheet: 0, row: 1, col: 0 }, 20);
+});
+```
+
+Don't write to the engine unconditionally from an `afterRender` hook. Each write repaints the grid,
+which runs the hook again. Check that the value differs first.
+
+#### Validation and the engine's undo history
+
+Handsontable also writes to your engine when it validates a change that it can reject. That is a
+cell with a validator and [`allowInvalid`](@/api/options.md#allowinvalid) set to `false`. The
+validator needs the formula's result, so Handsontable writes the formulas into your engine, reads
+the results, and takes the write back in the same task. Nothing paints the result, and no
+[`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook fires for it. The
+exception is a volatile function (`RAND()`, `NOW()`, or `TODAY()`) in your engine: the values it
+recalculated during the write are reported once to every grid on the engine, and those grids repaint.
+This happens whether the validator accepts the change or not.
+
+HyperFormula records each write as an undo entry, and the probe adds up to two entries to the stack
+and takes them back. When your engine's `undoLimit` is reached, HyperFormula drops its oldest
+entries, so the probe can remove up to two of your own undo entries. The grid's own undo and redo
+don't use your engine's stack. If `undoLimit` is lower than 2, Handsontable doesn't write a probe,
+and the validator gets each formula's result calculated on its own.
+
+#### A grid built from an engine sheet
+
+When you build a grid from a sheet your engine already holds, and you don't pass `data`, the grid reads
+its data from that sheet. Each [`updateSettings()`](@/api/core.md#updatesettings) call reloads the sheet
+into the grid. The React and Vue wrappers call `updateSettings()` on every re-render, so a re-render
+reloads it too.
+
+A reload of a sheet that only the grid changed updates the data in place:
+
+- It fires [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and
+  [`afterUpdateData`](@/api/hooks.md#afterupdatedata), not `beforeLoadData` and `afterLoadData`.
+- It fires [`afterChange`](@/api/hooks.md#afterchange) with the `'updateData'` source, not `'loadData'`.
+- The grid keeps its cell meta, its sort state, and its moved, hidden, and trimmed rows and columns.
+- An edit that waits for an async validator stays open, and its value is written when the validator
+  accepts it.
+
+If anything else changed the sheet since the grid loaded it - your code through the engine API, or
+another grid bound to the same sheet - the reload replaces the data instead. It fires the load hooks, and
+it drops the cell meta, the sort state, and the waiting edits, because the rows can hold other records.
+
+If you rebuild your own state in `afterLoadData`, or check for the `'loadData'` source in `afterChange`,
+listen to `afterUpdateData` or the `'updateData'` source as well.
+
 ## Available options and methods
 
 For the full list of configuration options and plugin methods, see the
@@ -677,7 +739,7 @@ exist, or is a range whose `start` and `end` are on different sheets. Always set
 ## Available functions
 
 The plugin inherits all calculation capabilities from HyperFormula. The complete function reference
-(386 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
+(about 400 functions across Math, Engineering, Statistical, Financial, Logical, and other categories) is
 in the
 [HyperFormula built-in functions docs](https://handsontable.github.io/hyperformula/guide/built-in-functions.html).
 
@@ -827,6 +889,11 @@ This hook fires whenever the calculation engine recomputes cell values - includi
 changed directly and all dependent formula cells. Use it to react to recalculations outside of the
 normal `afterChange` flow.
 
+The hook fires when the engine recomputes the values. For a cell that has a validator and
+[`allowInvalid: false`](@/api/options.md#allowinvalid), that is after validation: Handsontable
+writes the change to the engine only when it applies the change, and a rejected value never reaches
+the engine. For any other cell, the write and the hook happen at once.
+
 ::: only-for javascript
 
 ```js
@@ -916,6 +983,150 @@ const hotSettings = ref({
 
 :::
 
+## Batch formula recalculation
+
+By default, HyperFormula recalculates the formulas after each change you make through the grid's API.
+Ten `setDataAtCell()` calls mean ten recalculations, even inside [`batch()`](@/api/core.md#batch).
+
+To recalculate once for the whole batch, set the `batchEvaluation` setting of the
+[`formulas`](@/api/options.md#formulas) option to `true`. The setting is off by default.
+
+::: only-for javascript
+
+```js
+new Handsontable(element, {
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  formulas={{
+    engine: HyperFormula,
+    batchEvaluation: true,
+  }}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+const configurationOptions: GridSettings = {
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  formulas: {
+    engine: HyperFormula,
+    batchEvaluation: true,
+  },
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+Then wrap your changes in [`batch()`](@/api/core.md#batch), called on the Handsontable instance (`hot`).
+
+::: only-for react
+
+In React, get the instance from the `hotInstance` property of the `HotTable` ref.
+
+:::
+
+::: only-for angular
+
+In Angular, get the instance from the `hotInstance` property of the `HotTable` component.
+
+:::
+
+::: only-for vue
+
+In Vue, get the instance from the `hotInstance` property of the `HotTable` ref.
+
+:::
+
+```js
+// Update the stock of five products. HyperFormula recalculates once, after the callback.
+const updatedStock = [142, 0, 67, 25, 310];
+
+hot.batch(() => {
+  updatedStock.forEach((quantity, row) => {
+    hot.setDataAtCell(row, 1, quantity);
+  });
+});
+```
+
+With `batchEvaluation` on, Handsontable pauses HyperFormula's recalculation at the first change inside
+the batch. When the batch ends, HyperFormula recalculates once, the
+[`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) hook fires once, and Handsontable
+validates the dependent formula cells once.
+
+One `setDataAtCell()` call with an array of changes already recalculates once. The setting helps when
+your code makes many separate calls.
+
+Reads through the grid stay correct inside the batch. For example, `getDataAtCell()` returns the current
+value of a formula cell. To return it, Handsontable recalculates the changes made so far, so each such
+read after a change adds a recalculation.
+
+The setting has these limits:
+
+- Inside the batch, after a change through the grid, a direct HyperFormula read such as
+  `engine.getCellValue()` throws a "Computations are suspended" error. Read through the grid, for example
+  with `getDataAtCell()`, or read from the engine after the batch.
+- The pause covers the whole engine. When several grids share one HyperFormula instance, a grid that
+  doesn't use `batchEvaluation` gets the same error on its direct engine reads during another grid's
+  batch. Its reads through the grid still work. It also gets one
+  [`afterFormulasValuesUpdate`](@/api/hooks.md#afterformulasvaluesupdate) call for the whole batch, and
+  Handsontable validates its dependent cells when the other grid's batch ends.
+- The saving needs changes with no render in between. [`batch()`](@/api/core.md#batch) suspends
+  rendering, so it gets the full saving.
+  [`batchExecution()`](@/api/core.md#batchexecution) and a
+  [`suspendExecution()`](@/api/core.md#suspendexecution) and
+  [`resumeExecution()`](@/api/core.md#resumeexecution) pair don't suspend rendering. Each render inside
+  them recalculates the formulas.
+- Writing formulas into a validated column (for example, a `numeric`, `date`, or `dropdown` column) saves
+  nothing. The validator checks each formula's result, so Handsontable reads it right after the change, and
+  that read recalculates the changes made before it.
+- Inserting, removing, moving, or sorting rows or columns inside the batch recalculates the changes made
+  before it. Handsontable validates their dependent cells before the structure changes, as it does without
+  the setting. A removal also recalculates before the next change.
+- A sort inside the batch takes effect when the batch ends. Handsontable validates a change made after the
+  sort, in the same batch, at the end of the batch, on the sorted rows, so it validates the cells that hold
+  the change. Without the setting, it validates them at the change, before the sort takes effect.
+- A direct `engine.undo()` after an array `setDataAtCell()` call inside the batch reverts only the last
+  change of the array, because the changes are separate engine writes. The grid's own undo is not affected.
+- Loading data with [`loadData()`](@/api/core.md#loaddata) or [`updateData()`](@/api/core.md#updatedata)
+  inside the batch replaces the data. Handsontable doesn't validate the cells of that grid that depend on the
+  changes made before the load. It still validates the dependent cells on other sheets.
+
+For more on batching, see [Batch operations](@/guides/optimization/batch-operations/batch-operations.md).
+
 ## Named expressions
 
 A named expression assigns a human-friendly label to a value or formula. Once defined, the name can
@@ -965,7 +1176,7 @@ new Handsontable(container, {
 References inside named expressions must use **absolute notation** (`$A$1`). The sheet name (e.g.
 `Sheet1!`) must match the `sheetName` passed to both `addSheet` and the Handsontable `formulas`
 config. See the
-[HyperFormula named expressions guide](https://hyperformula.handsontable.com/guide/named-expressions.html)
+[HyperFormula named expressions guide](https://handsontable.com/docs/hyperformula/guide/named-expressions.html)
 for the full naming rules and supported expression types.
 
 :::
@@ -1074,7 +1285,7 @@ HyperFormula instance. The "Totals" row references those names directly as `=Q1_
 :::
 
 For more information about named expressions, refer to the
-[HyperFormula named expressions docs](https://hyperformula.handsontable.com/guide/named-expressions.html).
+[HyperFormula named expressions docs](https://handsontable.com/docs/hyperformula/guide/named-expressions.html).
 
 ## Custom functions
 
@@ -1171,7 +1382,48 @@ each sales representative's commission amount.
 
 For the full argument type reference, error handling patterns, and advanced options such as
 function aliases and async functions, see the
-[HyperFormula custom functions guide](https://hyperformula.handsontable.com/guide/custom-functions.html).
+[HyperFormula custom functions guide](https://handsontable.com/docs/hyperformula/guide/custom-functions.html).
+
+### Keep legacy function names
+
+Handsontable versions before 9.0 used a different formula engine. Some of its function names, such as `ADD` and `MULTIPLY`, don't exist in HyperFormula, so a formula that uses them returns `#NAME?`. For the full list and the replacements, see the [8.4 to 9.0 migration guide](@/guides/upgrade-and-migration/migrating-from-8.4-to-9.0/migrating-from-8.4-to-9.0.md#available-functions).
+
+Rewriting the formulas is the cleanest fix. To keep stored formulas working without rewriting them, register a custom function with the legacy name. A plugin can alias only its own functions, so the custom function implements the calculation itself:
+
+```javascript
+import { FunctionPlugin, FunctionArgumentType, HyperFormula } from 'hyperformula';
+
+class LegacyMathPlugin extends FunctionPlugin {
+  add(ast, state) {
+    return this.runFunction(ast.args, state, this.metadata('ADD'), (a, b) => a + b);
+  }
+
+  multiply(ast, state) {
+    return this.runFunction(ast.args, state, this.metadata('MULTIPLY'), (a, b) => a * b);
+  }
+}
+
+const twoNumbers = [
+  { argumentType: FunctionArgumentType.NUMBER },
+  { argumentType: FunctionArgumentType.NUMBER },
+];
+
+LegacyMathPlugin.implementedFunctions = {
+  ADD: { method: 'add', parameters: twoNumbers },
+  MULTIPLY: { method: 'multiply', parameters: twoNumbers },
+};
+
+// Call this before new Handsontable(...) or HyperFormula.buildEmpty().
+HyperFormula.registerFunctionPlugin(LegacyMathPlugin, {
+  enGB: { ADD: 'ADD', MULTIPLY: 'MULTIPLY' },
+});
+```
+
+With this plugin registered, `=ADD(1,2)` returns `3` and `=MULTIPLY(3,4)` returns `12`.
+
+The translation object has one entry per language pack. If the grid uses a language other than `enGB`, add the name to that language too, or the formula still returns `#NAME?`.
+
+For a function that HyperFormula renames, for example `PERCENTILEINC` (now `PERCENTILE.INC`), you can instead rewrite the stored formula text before you pass the data to the grid. The migration guide lists the new name of each function.
 
 ## Change the formula language
 
@@ -1196,7 +1448,7 @@ const hot = new Handsontable(container, {
     sheetName: 'Sheet1',
     language: plPL,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1211,7 +1463,7 @@ hot.updateSettings({
 ```
 
 For the full list of available language packs, see the
-[HyperFormula localizing functions guide](https://hyperformula.handsontable.com/guide/localizing-functions.html).
+[HyperFormula localizing functions guide](https://handsontable.com/docs/hyperformula/guide/localizing-functions.html).
 
 ## Preserve text values
 
@@ -1240,7 +1492,7 @@ const hot = new Handsontable(container, {
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1252,6 +1504,7 @@ const hot = new Handsontable(container, {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={[
         ['0123456'],
         ['=LEN(A1)'],
@@ -1265,7 +1518,6 @@ const ExampleComponent = () => {
       formulas={{
         engine: HyperFormula,
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };
@@ -1293,7 +1545,7 @@ const configurationOptions: GridSettings = {
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 ```
 
@@ -1320,7 +1572,7 @@ const hotSettings = ref({
   formulas: {
     engine: HyperFormula,
   },
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 
@@ -1343,6 +1595,10 @@ const hotSettings = ref({
 - Formulas don't support nested data, i.e., when Handsontable's [`data`](@/api/options.md#data) is set to an [array of nested objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects).
 - [`preserveTextValue`](@/api/options.md#preservetextvalue) works only with the built-in [`text`](@/guides/cell-types/cell-type/cell-type.md) cell type. Custom cell types are not supported, even when they reuse the text editor or renderer.
 - Sorting a column that contains formulas can produce `#REF!`. Handsontable does not rewrite formula references to follow sorted rows. See [Sorting formula cells](#sorting-formula-cells).
+- With HyperFormula older than 3.1.1, adding or removing a sheet in an engine that the [`Formulas`](@/api/formulas.md) plugin created turns spilled arrays into `#SPILL!`. This also happens when a second Handsontable instance connects to that engine. Use HyperFormula 3.1.1 or later.
+- `SHEET()` returns the sheet's number in the engine, not its position. After you remove a sheet from the middle, the sheets after it keep their numbers, so `SHEET()` can be greater than `SHEETS()`.
+- When you add, remove, or rename a sheet, Handsontable recalculates `SHEET()` and `SHEETS()` only in an engine that the [`Formulas`](@/api/formulas.md) plugin created. In an engine instance that you create and pass to the plugin, they keep their old values until the formula changes.
+- A formula that calls `SHEET()` or `SHEETS()` and also references a sheet that doesn't exist, for example inside `IFERROR()`, keeps its old value after you add, remove, or rename a sheet.
 
 ### Sorting formula cells
 

@@ -15,7 +15,6 @@ tags:
   - recipes
 searchCategory: Recipes
 category: Real-time & Integrations
-menuTag: new
 ---
 
 In this tutorial, you will add three AI-generated columns to a grid of product reviews with one click: a sentiment level, an issue category, and the probability that the review needs a reply. You will learn how to define the columns in code, send one request per row to a decision model, write each answer into the grid as it lands, and show the model's confidence next to every value.
@@ -76,7 +75,7 @@ const hot = new Handsontable(gridContainer, {
   height: 'auto',
   width: '100%',
   autoWrapRow: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```
 

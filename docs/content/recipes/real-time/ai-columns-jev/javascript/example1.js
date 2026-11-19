@@ -274,7 +274,7 @@ const hot = new Handsontable(rootContainer.querySelector('.ai-columns-grid'), {
   height: 'auto',
   width: '100%',
   autoWrapRow: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 // Runs `worker` over `items` with at most `limit` in flight.

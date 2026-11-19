@@ -18,7 +18,7 @@ const hot = new Handsontable(container, {
   colHeaders: ['Name', 'Symbol', 'Atomic Number', 'Atomic Mass (u)', 'Known Isotopes'],
   minSpareRows: 1,
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   autoWrapRow: true,
   autoWrapCol: true,
 });

@@ -71,6 +71,7 @@ const data: Partial<Person>[] = [
 
 const ExampleComponent: FC = () => (
   <HotTable
+    // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
     data={data}
     dataSchema={model}
     height="auto"
@@ -79,7 +80,6 @@ const ExampleComponent: FC = () => (
     columns={[{ data: property('id') }, { data: property('name') }, { data: property('address') }]}
     autoWrapRow={true}
     autoWrapCol={true}
-    licenseKey="non-commercial-and-evaluation"
   />
 );
 

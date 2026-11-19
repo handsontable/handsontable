@@ -1,6 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { getDirectionFromURL, getThemeNameFromURL } from '../../utils';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   registerAllModules();
@@ -20,7 +21,7 @@ export function init() {
     height: 300,
     selectionHandles: true,
     selectionMode: 'multiple',
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   // Pre-select an interior range so handles are immediately available on hover.

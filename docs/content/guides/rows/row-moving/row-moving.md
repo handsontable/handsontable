@@ -25,6 +25,8 @@ To enable row moving, set the [`manualRowMove`](@/api/options.md#manualrowmove) 
 
 A draggable move handle appears above the selected row header. You can click and drag it to any location in the row header body.
 
+You can drag one range of rows at a time. When the selection holds several ranges (made with <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+click), a drag on a header moves nothing.
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2
@@ -193,6 +195,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={rows}
       manualRowMove={true}
       beforeRowMove={(movedRows, finalIndex, dropIndex, movePossible) => {
@@ -205,7 +208,6 @@ const ExampleComponent = () => {
         // cancel the grid's own move -- the state update above already applied it
         return false;
       }}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };
@@ -301,6 +303,8 @@ There are significant differences between the plugin's [`dragRows`](@/api/manual
 
 Both of these methods trigger the [`beforeRowMove`](@/api/hooks.md#beforerowmove) and [`afterRowMove`](@/api/hooks.md#afterrowmove) hooks, but only [`dragRows`](@/api/manualRowMove.md#dragrows) passes the `dropIndex` argument to them.
 
+Pressing a row header with the mouse and releasing it without moving the pointer more than a few pixels is the exception. That click moves nothing, and neither hook fires. Calling [`moveRows`](@/api/manualRowMove.md#moverows) or [`dragRows`](@/api/manualRowMove.md#dragrows) from your code always fires both hooks.
+
 The [`dragRows`](@/api/manualRowMove.md#dragrows) method has a `dropIndex` parameter, which points to where the elements are being dropped.
 
 <span class="img-invert">
@@ -319,6 +323,17 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) method has a `finalIndex` para
 </span>
 
 The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be canceled. The Plugin's [`isMovePossible`](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
+
+The `beforeRowMove` and `afterRowMove` hooks also fire when a move leaves the order unchanged, for example when you grab a row header and drop the row back where it was. In that case, `movePossible` is `true` and the `orderChanged` parameter of `afterRowMove` is `false`. Check `orderChanged` to ignore such moves. The order of the rows stays as it was, even when some rows are trimmed.
+
+When some rows are trimmed, a moved row lands next to the visible row at the drop position. It never splits a run of neighboring trimmed rows:
+
+- Moved to a position before a visible row, it lands right before that row, after any trimmed rows that sit in front of it.
+- Moved to the last visible position, it lands right after the last visible row, before any trimmed rows at the end.
+
+You see where the row landed when you untrim the rows. For example, in a grid of six rows where the last two rows are trimmed, moving the first row to the last visible position leaves it in front of the two trimmed rows.
+
+When some rows are hidden, a row that a user drags into the gap between the visible rows around them lands after the hidden rows, right before the next visible row. The gap has two drop positions, the lower half of the row above the hidden rows and the upper half of the row below them, and both give the same order of all rows. A row dropped on its own lower half stays where it is, so for the row right above the hidden rows the two halves of the gap differ: its own lower half changes nothing, and the upper half of the row below moves it after the hidden rows. If the hidden rows are the last rows of the grid, the row lands in front of them. The row also stays in front of the hidden rows when landing after them would cross the edge of the fixed rows at the top or at the bottom, when it would split a merged cell, and when the [`NestedRows`](@/api/nestedRows.md) plugin is enabled. The `dragRows()` and `dragRow()` methods use the drop index you pass: a drop index that points at the first hidden row of a block puts the row in front of the block, and one that points at another hidden row of the block puts the row between the hidden rows.
 
 The [`moveRows`](@/api/manualRowMove.md#moverows) method is also inactive when the [`NestedRows`](@/api/nestedRows.md) plugin is enabled - see [Row parent-child known limitations](@/guides/rows/row-parent-child/row-parent-child.md#known-limitations).
 

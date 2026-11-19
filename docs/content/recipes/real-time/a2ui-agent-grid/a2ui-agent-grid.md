@@ -19,7 +19,6 @@ react:
   metaTitle: Agent-driven grid with A2UI | Handsontable DataGrid for React
 searchCategory: Recipes
 category: Real-time & Integrations
-menuTag: new
 ---
 
 In this tutorial, you will let an AI agent describe a grid in [A2UI](https://a2ui.org/) JSON and have Handsontable DataGrid render it. You will build a custom A2UI component, `HotGrid`, that evaluates agent-authored formulas with HyperFormula in the browser, applies the agent's follow-up updates in place, and sends the user's edits back to the agent.
@@ -281,6 +280,7 @@ An A2UI catalog is meant to reflect the host application's own components, so an
 
 <div class="boxes-list">
 
+- [Agent-driven grid with CopilotKit](@/recipes/real-time/copilotkit-agent-grid/copilotkit-agent-grid.md)
 - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
 - [Theme customization](@/guides/styling/theme-customization/theme-customization.md)
 - [Real-time updates via WebSocket](@/recipes/real-time/websocket-updates/websocket-updates.md)

@@ -21,7 +21,11 @@ import {
   MIXED_KEY,
   SUBSCRIPTION_UNTIL,
   TRIAL_UNTIL,
+  SPONSORED_BADGE_KEY,
+  SPONSORED_BADGE_EXTERNAL_KEY,
+  SPONSORED_NO_BADGE_KEY,
 } from './fixtures';
+import { BADGE_FLAG } from '../index';
 
 /**
  * A well-formed Handsontable product entry, with the fields a test does not care about filled in.
@@ -69,8 +73,11 @@ describe('entitlementLicenseKey/detectFormat', () => {
   it('should tell the other key formats apart without validating them', () => {
     expect(detectLicenseKeyFormat('852a2-94216-cca54-21009-14a44')).toBe('legacy');
     expect(detectLicenseKeyFormat('00000-00000-00000-00000-00000')).toBe('legacy');
-    expect(detectLicenseKeyFormat('non-commercial-and-evaluation')).toBe('non-commercial-and-evaluation');
-    expect(detectLicenseKeyFormat('NON-COMMERCIAL-AND-EVALUATION')).toBe('non-commercial-and-evaluation');
+    // Handsontable 19.0 recognizes no literal key: the non-commercial key reads as an unknown string,
+    // which the legacy path rejects as invalid (PRO-1356).
+    expect(detectLicenseKeyFormat('non-commercial-and-evaluation')).toBe('unknown');
+    expect(detectLicenseKeyFormat('NON-COMMERCIAL-AND-EVALUATION')).toBe('unknown');
+    expect(detectLicenseKeyFormat('ht68e-1f2b7-47158-70b05-0842f')).toBe('unknown');
     // `gpl-v3` is NOT a Handsontable format - the specification's legacy list covers HyperFormula
     // too, and the frozen validator has never recognized it. It reads as an unknown string.
     expect(detectLicenseKeyFormat('gpl-v3')).toBe('unknown');
@@ -121,6 +128,35 @@ describe('entitlementLicenseKey/extractKeyData', () => {
       const entitlement = getProductEntitlement(extractEntitlementKeyData(SUBSCRIPTION_EXTERNAL_KEY), 'handsontable');
 
       expect(entitlement.flags).toEqual(['no-console-warns', 'no-ui-warns']);
+    });
+
+    it('should read a sponsored key and keep its badge flag', () => {
+      const entitlement = getProductEntitlement(extractEntitlementKeyData(SPONSORED_BADGE_KEY), 'handsontable');
+
+      expect(BADGE_FLAG).toBe('badge');
+      expect(entitlement).toEqual({
+        capabilities: ['core'],
+        usage_until: '2027-11-04',
+        notice: 60,
+        grace: 90,
+        flags: [BADGE_FLAG],
+      });
+    });
+
+    it('should keep the badge flag next to both silencing flags', () => {
+      const entitlement = getProductEntitlement(
+        extractEntitlementKeyData(SPONSORED_BADGE_EXTERNAL_KEY),
+        'handsontable',
+      );
+
+      expect(entitlement.flags).toEqual(['no-console-warns', 'no-ui-warns', BADGE_FLAG]);
+    });
+
+    it('should read a sponsored key without the badge flag as a plain usage entry', () => {
+      const entitlement = getProductEntitlement(extractEntitlementKeyData(SPONSORED_NO_BADGE_KEY), 'handsontable');
+
+      expect(entitlement.usage_until).toBe('2027-11-04');
+      expect(entitlement.flags).toEqual([]);
     });
 
     it('should read every product of a key granting two, each on its own terms', () => {

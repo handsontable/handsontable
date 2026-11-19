@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { awaitBundle } from '../bundle';
 
-export type DataBoundWorkbook = 'nestedRows' | 'nestedRowsPadded' | 'nestedSummary' | 'columnSummary' | 'formulasSummary' | 'mergeCells';
+export type DataBoundWorkbook = 'nestedRows' | 'nestedRowsPadded' | 'gridNestedRows' | 'nestedSummary' | 'columnSummary' | 'formulasSummary' | 'mergeCells';
 
 /**
  * Page object for the sheets-bar-data-bound-settings fixture
@@ -35,6 +35,22 @@ export class SheetsBarDataBoundSettingsPage {
       this.cell(0, 0),
       this.pageErrors.length > 0 ? `the fixture page threw: ${this.pageErrors.join(' | ')}` : undefined,
     ).toBeVisible();
+  }
+
+  /**
+   * The first row of a sheet's data, read through `getSheetData()` without switching to it.
+   */
+  sheetDataFirstRow(name: string): Promise<unknown> {
+    return this.page.evaluate(sheetName => (
+      window.hot.getPlugin('sheetsBar').getSheetData(sheetName)?.[0] ?? null
+    ), name);
+  }
+
+  /**
+   * The sheets bar's add button.
+   */
+  get addButton(): Locator {
+    return this.page.locator('.ht-sheets-bar__add');
   }
 
   /**

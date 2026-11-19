@@ -48,5 +48,5 @@ new Handsontable(container, {
   dropdownMenu: true,
   width: '100%',
   height: 'auto',
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });

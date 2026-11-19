@@ -42,6 +42,7 @@ function pinFeaturedRows(this: Handsontable) {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={products}
       columns={[
         { data: 'name', type: 'text' },
@@ -61,7 +62,6 @@ const ExampleComponent = () => {
       afterColumnSort={pinFeaturedRows}
       // `cells()` receives a physical row index, so it reads the source array directly.
       cells={(row: number) => (products[row]?.featured ? { className: 'featured-product' } : {})}
-      licenseKey="non-commercial-and-evaluation"
     />
   );
 };

@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+import type { AppliedCellChange } from 'handsontable';
 
 registerAllModules();
 
@@ -37,7 +38,7 @@ const ExampleComponent = () => {
   const saveRequestCounterRef = useRef(0);
 
   const handleAfterChange = (
-    changes: [number, string | number, unknown, unknown][] | null,
+    changes: AppliedCellChange[] | null,
     source: string
   ): void => {
     if (!changes || source === 'loadData') {
@@ -50,11 +51,13 @@ const ExampleComponent = () => {
       return;
     }
 
-    changes.forEach(([visualRow, _prop, oldValue, newValue]) => {
-      if (oldValue !== newValue) {
-        const physicalRow = hot.toPhysicalRow(visualRow);
+    changes.forEach((change) => {
+      const [, , oldValue, newValue] = change;
 
-        if (physicalRow !== null && physicalRow >= 0) {
+      if (oldValue !== newValue) {
+        const physicalRow = hot.getPhysicalRowOfChange(change);
+
+        if (physicalRow !== null) {
           dirtyRowsRef.current.add(physicalRow);
         }
       }
@@ -119,6 +122,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         colHeaders={['ID', 'Product', 'Stock', 'Price', 'Status']}
@@ -132,7 +136,6 @@ const ExampleComponent = () => {
         stretchH="all"
         height="auto"
         afterChange={handleAfterChange}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

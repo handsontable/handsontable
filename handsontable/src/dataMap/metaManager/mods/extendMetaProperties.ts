@@ -1,5 +1,15 @@
 import type { default as MetaManagerInstance } from '..';
 import { throwWithCause } from '../../../helpers/errors';
+import { FIXED_COLUMNS_LEFT_RTL_ERROR } from '../../../core/fixedColumnsAlias';
+
+/**
+ * Refuses an update of an init-only option.
+ *
+ * @param {string} propName The name of the init-only option.
+ */
+export function throwInitOnlyUpdateError(propName: string): never {
+  throwWithCause(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+}
 
 /**
  * @class ExtendMetaPropertiesMod
@@ -32,12 +42,7 @@ export class ExtendMetaPropertiesMod {
         const isRtl: boolean = this.metaManager.hot.isRtl();
 
         if (isRtl && propName === 'fixedColumnsLeft') {
-          throwWithCause('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
-        }
-
-        if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
-          throwWithCause('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
-            'Please use only the option `fixedColumnsStart`.');
+          throwWithCause(FIXED_COLUMNS_LEFT_RTL_ERROR);
         }
       }
     }],
@@ -74,7 +79,7 @@ export class ExtendMetaPropertiesMod {
    */
   #initOnlyCallback = (propName: string, value: unknown, isInitialChange: boolean) => {
     if (!isInitialChange) {
-      throwWithCause(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
+      throwInitOnlyUpdateError(propName);
     }
   };
 
@@ -128,13 +133,14 @@ export class ExtendMetaPropertiesMod {
                                 value: unknown, isInitialChange: boolean) => void) {
     const { usageTracker } = this;
     const boundOnChange = onChange.bind(this);
+    const isInitialized = () => this.metaManager.isInitialized();
 
     Object.defineProperty(this.metaManager.globalMeta.meta, propName as string, {
       get(): unknown {
         return this[origProp as string];
       },
       set(value: unknown) {
-        const isInitialChange = !usageTracker.has(propName);
+        const isInitialChange = !isInitialized() && !usageTracker.has(propName);
 
         usageTracker.add(propName);
 

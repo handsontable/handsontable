@@ -6,6 +6,12 @@ export const command = {
     const editorManager = hot._getEditorManager();
 
     editorManager.closeEditorAndSaveChanges(event.ctrlKey || event.metaKey);
+
+    // A listener of the save (`beforeChange`, `beforeValidate`, ...) destroyed the grid.
+    if (hot.isDestroyed) {
+      return;
+    }
+
     editorManager.moveSelectionAfterEnter(event);
   },
 };

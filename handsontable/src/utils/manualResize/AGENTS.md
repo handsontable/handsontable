@@ -16,7 +16,7 @@ note in each file to keep them in sync by hand; there is now one copy, here.
 
 ## The handle on a frozen edge
 
-`#markFrozenEdge` toggles `ht-resize-handle--freeze-before` on the handle when the edge it sits on is where the first frozen rows or columns end, and `ht-resize-handle--freeze-after` when it is where the last ones start. All four counts are the DRAWN ones (`TableView#countFixedRowsTop()`, `countFixedColumnsStart()`, `countFixedRowsBottom()`, `countFixedColumnsEnd()`), never the settings: with `limitFixedToViewport` the grid can draw fewer tracks than are configured, and the freeze bar sits on the drawn line, so a mark from the configured count would offset the handle at a column with no bar and leave the one on the bar overlapped. The edge is counted in visual tracks before it: the index plus one, or the index itself for a header anchored at the inline end. The marks only describe the grid and draw nothing: the FreezeBar stylesheet uses them to keep the pills clear of its bar (`../../plugins/freezeBar/AGENTS.md`). Keep them free of any plugin check, so the gesture never has to know which plugin draws on the edge.
+`#getFrozenEdge` decides, and `#setupHandlePosition` toggles, `ht-resize-handle--freeze-before` on the handle when the edge it sits on is where the first frozen rows or columns end, and `ht-resize-handle--freeze-after` when it is where the last ones start. All four counts are the DRAWN ones (`TableView#countFixedRowsTop()`, `countFixedColumnsStart()`, `countFixedRowsBottom()`, `countFixedColumnsEnd()`), never the settings: with `limitFixedToViewport` the grid can draw fewer tracks than are configured, and the freeze bar sits on the drawn line, so a mark from the configured count would offset the handle at a column with no bar and leave the one on the bar overlapped. The edge is counted in visual tracks before it: the index plus one, or the index itself for a header anchored at the inline end. The marks only describe the grid and draw nothing: the FreezeBar stylesheet uses them to keep the pills clear of its bar (`../../plugins/freezeBar/AGENTS.md`). Keep them free of any plugin check, so the gesture never has to know which plugin draws on the edge.
 
 ## What the gesture owns, and what the plugins own
 
@@ -233,9 +233,10 @@ ROW_SIZE_OPTIONS    = ['rowHeights', 'minRowHeights']
 COLUMN_SIZE_OPTIONS = ['colWidths']
 ```
 
-`minRowHeights` is a documented alias of `rowHeights` — `Core#_getRowHeightFromSettings` reads
-`rowHeights ?? minRowHeights`, so both state the row heights equally. There is **no** `minColWidths` alias,
-which is why the column list has one entry and the row list two. Do not "symmetrize" them.
+Both row options state the row heights, so passing either one re-declares them. They differ at render time:
+`rowHeights` is exact and `minRowHeights` is a floor (`Core#_isRowHeightExact`), and `minRowHeights` is no longer
+an alias of `rowHeights`. There is **no** `minColWidths` option, which is why the column list has one entry and
+the row list two. Do not "symmetrize" them.
 
 ## Listing a foreign option in `SETTING_KEYS` changes three things
 
@@ -243,9 +244,10 @@ Both plugins put their size option in `SETTING_KEYS` next to their own key, so t
 `updateSettings({ rowHeights })` reaches them at all (issue [#4371](https://github.com/handsontable/handsontable/issues/4371)).
 Each consequence below has already shipped as a bug:
 
-1. **The stored setting gets wiped.** `BasePlugin#onUpdateSettings` feeds `updatePluginSettings()` with
-   `newSettings[PLUGIN_KEY]`, and a `{ rowHeights }` call does not carry that key — it is `undefined`.
-   Restore it from the merged settings, or `getSetting()` starts lying for the rest of the session.
+1. **The stored setting used to get wiped.** A `{ rowHeights }` call does not carry the plugin's own key.
+   `BasePlugin#onUpdateSettings` now refreshes the plugin settings from the merged settings when the payload
+   omits that key, so `getSetting()` keeps reporting the declared value. The plugins no longer restore it
+   themselves; do not add a restore back.
 2. **Do not run the usual `disablePlugin(); enablePlugin();` cycle on such an update.** `#onMapInit` replays
    the declared `manualRowResize` array, so a grid configured with an array reverts a row the user had since
    dragged — to neither the dragged height nor the requested one. Re-initialize only when the plugin's own
@@ -352,3 +354,21 @@ drag). When it is anchored:
 overlay's `getRelativeCellPosition` already adds the clone's own inline start). The row axis has no end headers
 and leaves the hook out. Pinned by `__tests__/axis.unit.js`, `__tests__/resizeGesture.unit.js` and
 `tests/e2e/fixed-columns-end-plugins.spec.ts`.
+
+**The band's first column reaches 1px over the freeze line** (walkontable `AGENTS.md`, the end freeze line), so two
+optional axis hooks keep the gesture on the line a user sees. `getFreezeLineOverlap(hot, header)` is the pixel the
+band's first header renders wider than its column; the gesture adds it to `#startOverhead`, so a drag of that header
+stores the dragged width, not one pixel more. `getEndBandEdgeShift(hot)` moves the handle on the edge before the band
+(`--freeze-after`, a header that is not anchored) onto the line, one pixel before that header's own inline-end edge,
+where the freeze bar sits. Both are 0 when nothing precedes the band. Pinned by
+`tests/e2e/fixed-columns-end-plugins.spec.ts`, `tests/e2e/fixed-columns-end-review3.spec.ts` and
+`tests/e2e/freeze-bar.spec.ts` (the pills around the end bar).
+
+**The row axis has the same hook, for the frozen bottom rows.** The first row of the bottom tables is drawn one
+pixel above its height, and that pixel is the freeze line (walkontable `AGENTS.md`, the bottom freeze line paragraph in "Border ownership").
+`ROW_RESIZE_AXIS.getFreezeLineOverlap()` answers 1 for that row's header in the bottom start corner, on the same
+rule the engine uses (`firstRowTopBorderOutsideHeight()`), and the gesture subtracts it from the start size like the
+column's. Without it every drag of that row stored one pixel more than the pointer moved
+(`tests/e2e/fixed-rows-bottom-line.spec.ts`, the drag cases, pins the stored height;
+`tests/e2e/manual-resize-guide-geometry.spec.ts` pins the handle and guide geometry against the row boundary). The hook reads `wtTable.name` of the corner clone, so a
+new bottom table needs it added to the list in `axisSizing/boxModel.ts`.

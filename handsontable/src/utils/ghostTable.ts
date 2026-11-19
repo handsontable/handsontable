@@ -3,6 +3,7 @@ import type { CellProperties } from '../settings';
 import type { BaseRenderer } from '../renderers/baseRenderer';
 import { renderCell } from '../renderers/renderCell';
 import { addClass } from './../helpers/dom/element';
+import { snapToLayoutUnit } from './../helpers/dom/layoutUnit';
 import { arrayEach } from './../helpers/array';
 import { throwWithCause } from '../helpers/errors';
 import { colToPropOrIndex } from '../helpers/columnProp';
@@ -35,6 +36,10 @@ interface SampleString {
   col?: number;
   row?: number;
   value: unknown;
+  /**
+   * The merged block the value belongs to, when it is sampled on a covered cell that the block is drawn on.
+   */
+  block?: { row: number; col: number; colspan: number };
 }
 
 /**
@@ -153,8 +158,7 @@ class GhostTable {
       this.samples = samples;
       this.table = this.createTable(this.hot!.table.className);
 
-      this.table.colGroup.appendChild(this.createColGroupsCol());
-
+      // `appendColumnHeadersRow()` builds the column group itself, from the cells it renders.
       this.appendColumnHeadersRow();
 
       this.container.container.appendChild(this.table.fragment);
@@ -254,15 +258,12 @@ class GhostTable {
     }
 
     arrayEach(this.rows, (row: Record<string, unknown>) => {
-      // Use getBoundingClientRect() instead of offsetHeight for sub-pixel precision.
-      // Math.round is used instead of Math.ceil to avoid over-rounding at non-100% browser zoom
-      // levels (e.g. 90%), where fractional BCR values like 28.88 would ceil to 29 but
-      // a default-height row should remain at 29, not be inflated to 30.
-      // For genuinely taller rows the fractional part is typically >= 0.5, so round still
-      // produces the correct ceiling.
+      // Use getBoundingClientRect() instead of offsetHeight for sub-pixel precision. The height is
+      // handed over snapped to the layout grid and NOT rounded: how a fraction rounds depends on the
+      // row (a default-height row and a taller one need different rounding), which the caller knows.
       const { height } = (row.table as HTMLTableElement).getBoundingClientRect();
 
-      callback(row.row, Math.round(height));
+      callback(row.row, snapToLayoutUnit(height));
     });
   }
 
@@ -347,7 +348,7 @@ class GhostTable {
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        fragment.appendChild(this.createColElement(string.col!, row!));
+        fragment.appendChild(this.createColElement(string.col!, row!, string.block?.colspan));
       });
     });
 
@@ -373,14 +374,16 @@ class GhostTable {
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        const column = string.col!;
-        const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(row, column);
+        // The grid paints a block drawn on a covered cell with the top-left cell's own coordinates and meta
+        // (`modifyGetCellCoords`), so the ghost cell is rendered the way the grid renders it.
+        const source = string.block ?? { row, col: string.col! };
+        const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(source.row, source.col);
         const td = rootDocument.createElement('td');
 
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
         td.setAttribute('ghost-table', '1');
-        this.#renderCell(td, row, column, string.value, cellProperties);
+        this.#renderCell(td, source.row, source.col, string.value, cellProperties);
         fragment.appendChild(td);
       });
     });
@@ -389,7 +392,9 @@ class GhostTable {
   }
 
   /**
-   * Creates DOM elements for headers and appends them to the THEAD element of the table.
+   * Creates DOM elements for headers and appends them to the THEAD element of the table, fills
+   * them with the grid's first-level column header renderer, and builds the column group that
+   * sizes them.
    */
   appendColumnHeadersRow() {
     const rootDocument = this.hot!.rootDocument;
@@ -397,34 +402,95 @@ class GhostTable {
     // DOM — the cell styling is scoped with child combinators (#4363), so a `<th>` appended
     // straight into `<thead>` would miss it and measure without padding/borders.
     const headersRow = rootDocument.createElement('tr');
-    const columnHeaders: [number, HTMLTableCellElement][] = [];
-
-    if (this.hot!.hasRowHeaders()) {
-      const th = rootDocument.createElement('th');
-
-      columnHeaders.push([-1, th]);
-      headersRow.appendChild(th);
-    }
+    const columnGroup = rootDocument.createDocumentFragment();
+    const sampledColumns = new Set<number>();
 
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
-        const column = string.col!;
-        const th = rootDocument.createElement('th');
-
-        columnHeaders.push([column, th]);
-        headersRow.appendChild(th);
+        sampledColumns.add(string.col!);
       });
     });
 
-    // Appending DOM elements for headers
-    this.table!.tHead.appendChild(headersRow);
+    // The row is filled by the renderer the grid draws its first header level with, not by
+    // `appendColHeader()` alone: a plugin's renderer can do more than write the label. The
+    // NestedHeaders one spans a group header over its columns (`colspan`) and hides the cells the
+    // group covers. Filled with the label alone, a group label was measured inside its first column
+    // and a label allowed to wrap made the header row several times taller than the drawn label.
+    // For a grid without such a plugin the renderer is `appendColHeader()` itself.
+    const [firstLevelRenderer] = this.hot!.view._wt.getSetting('columnHeaders') as
+      ((renderedColumnIndex: number, TH: HTMLTableCellElement) => void)[];
+    const appendHeader = (column: number) => {
+      const th = rootDocument.createElement('th');
 
-    arrayEach(columnHeaders, (columnHeader: [number, HTMLTableCellElement]) => {
-      const [column, th] = columnHeader;
+      headersRow.appendChild(th);
+      columnGroup.appendChild(this.createColElement(column, -1));
 
-      // Using source method for filling a header with value.
-      this.hot!.view.appendColHeader(column, th);
+      return this.#renderColumnHeader(column, th, firstLevelRenderer);
+    };
+
+    if (this.hot!.hasRowHeaders()) {
+      appendHeader(-1);
+    }
+
+    // The samples can hold a few scattered columns only (AutoRowSize samples the header row by value
+    // and skips repeated labels), in the order of their buckets, while a spanned header covers the
+    // cells and the `<col>`s that follow it. So the columns go in their visual order, and the columns
+    // a header spans are added right after it, as the placeholders the grid draws there, so the header
+    // is measured over the width it is drawn at.
+    const coveredColumns = new Set<number>();
+
+    Array.from(sampledColumns).sort((a, b) => a - b).forEach((column) => {
+      if (coveredColumns.has(column)) {
+        return;
+      }
+
+      appendHeader(column).forEach((spannedColumn) => {
+        coveredColumns.add(spannedColumn);
+        appendHeader(spannedColumn);
+      });
     });
+
+    this.table!.colGroup.appendChild(columnGroup);
+    this.table!.tHead.appendChild(headersRow);
+  }
+
+  /**
+   * Fills one header cell of the ghost header row and returns the visual indexes of the other
+   * columns the renderer spanned it over (an empty array for a header of one column).
+   *
+   * @param {number} column Visual column index, or `-1` for the corner above the row headers.
+   * @param {HTMLTableCellElement} th The header cell to fill.
+   * @param {Function} [renderer] The grid's first-level column header renderer.
+   * @returns {number[]}
+   */
+  #renderColumnHeader(
+    column: number,
+    th: HTMLTableCellElement,
+    renderer?: (renderedColumnIndex: number, TH: HTMLTableCellElement) => void
+  ): number[] {
+    const { columnIndexMapper } = this.hot!;
+    const renderedColumn = column >= 0 ? columnIndexMapper.getRenderableFromVisualIndex(column) : null;
+
+    if (!renderer || renderedColumn === null) {
+      // The corner above the row headers, and a column that is not rendered (hidden).
+      this.hot!.view.appendColHeader(column, th);
+
+      return [];
+    }
+
+    renderer(renderedColumn, th);
+
+    const spannedColumns: number[] = [];
+
+    for (let offset = 1; offset < th.colSpan; offset++) {
+      const spannedColumn = columnIndexMapper.getVisualFromRenderableIndex(renderedColumn + offset);
+
+      if (spannedColumn !== null) {
+        spannedColumns.push(spannedColumn);
+      }
+    }
+
+    return spannedColumns;
   }
 
   /**
@@ -535,13 +601,19 @@ class GhostTable {
    *
    * @param {number} column Visual column index.
    * @param {number} row Visual row index.
+   * @param {number} [sampledColspan] The number of columns the sampled value spans, when the cell's own
+   * meta cannot say it. A merged block drawn from a cell it covers (its first row or column is hidden) is
+   * sampled on that cell, which carries no `colspan` of its own.
    * @returns {HTMLElement}
    */
-  createColElement(column: number, row: number) {
+  createColElement(column: number, row: number, sampledColspan?: number) {
     const col = this.hot!.rootDocument.createElement('col');
     let colspan = 0;
 
-    if (row >= 0 && column >= 0) {
+    if (sampledColspan !== undefined) {
+      colspan = sampledColspan;
+
+    } else if (row >= 0 && column >= 0) {
       colspan = Number(this.hot!.getCellMetaTransient(row, column).colspan);
     }
 

@@ -753,7 +753,7 @@ const hotOptions: Handsontable.GridSettings = {
       },
     },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const hot = new Handsontable(container, hotOptions);
@@ -894,8 +894,8 @@ Pikaday has good keyboard support out of the box:
 - **Page Up/Down**: Navigate months
 - **Home/End**: Navigate to first/last day of month
 
-**ARIA attributes:**
-Pikaday automatically adds ARIA attributes for screen readers.
+**Screen readers:**
+Pikaday carries some ARIA attributes of its own, but the last audit found that the built-in date cell type's picker, which used the same library at the time, was not announced properly by screen readers. Expect the same gap in a custom Pikaday editor until you verify it. The {{$a11y.report.link}} lists it under [Known open issues](@/guides/accessibility/accessibility-conformance-report/accessibility-conformance-report.md#known-open-issues) (WCAG 4.1.2). Test the picker with {{$a11y.matrix.sentence}} before you rely on it.
 
 ## Performance Considerations
 

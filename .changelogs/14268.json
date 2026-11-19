@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `batchEvaluation` setting of the `formulas` option, which makes HyperFormula recalculate once for all changes made inside `batch()`, and the `beforeSuspendExecution`, `afterSuspendExecution`, `beforeResumeExecution`, and `afterResumeExecution` hooks.",
+  "type": "added",
+  "issueOrPR": 14268,
+  "breaking": false,
+  "framework": "none"
+}

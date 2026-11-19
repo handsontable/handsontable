@@ -18,6 +18,7 @@ This is on-demand codegen — run it when the design tokens change, then commit 
     - Find the "Design Tokens" plugin (Plugins & Widgets in Figma).
     - Open it and select Export → Export Design Token File.
     - In export options, deselect every "Include" type except Figma Variables.
+    - Keep the plugin's standard token format. Do not switch on the W3C (DTCG) format: the generator reads `value` and `type`, not `$value` and `$type`.
     - Export to save the JSON file.
 
     See the "Design System in Figma" community file, "Create Custom Theme" tab, for the full instructions.
@@ -32,7 +33,9 @@ This is on-demand codegen — run it when the design tokens change, then commit 
 
     The whole `src/themes/static/` directory is wiped and regenerated.
 
-4. Review and commit the regenerated files under `src/themes/static/`.
+4. Review and commit the regenerated files under `src/themes/static/` together with `scripts/themes/figma/static-manifest.json`, which the run rewrites. `src/themes/__tests__/staticThemesGenerated.unit.js` fails when the two disagree, so a hand edit of a static file, or a commit without the manifest, turns the unit suite red.
+
+A new or changed token is added to Figma first, in the same PR, and only then generated. Never type it into `src/themes/static/` by hand.
 
 ## Output
 

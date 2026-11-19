@@ -29,6 +29,8 @@ To enable column moving, set the [`manualColumnMove`](@/api/options.md#manualcol
 
 A draggable move handle appears above the selected column header. You can click and drag it to any location in the grid.
 
+You can drag one range of columns at a time. When the selection holds several ranges (made with <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+click), a drag on a header moves nothing.
+
 A column has to be selected before you can drag it. You can start the drag anywhere on the selected column's
 header, including on the sorting label when [column sorting](@/guides/rows/rows-sorting/rows-sorting.md) is
 enabled. Handsontable tells a click from a drag by whether the pointer moves: press and release without moving
@@ -305,6 +307,15 @@ The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) method has a `finalIn
 </span>
 
 The [`moveColumns`](@/api/manualColumnMove.md#movecolumns) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be canceled. The Plugin's [`isMovePossible`](@/api/manualColumnMove.md#ismovepossible) API method and the `movePossible` parameters [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks help in determine such situations.
+
+The [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) and [`afterColumnMove`](@/api/hooks.md#aftercolumnmove) hooks also fire when a move leaves the order unchanged, for example when you grab a column header and drop the column back where it was. In that case, `movePossible` is `true` and the `orderChanged` parameter of `afterColumnMove` is `false`. Check `orderChanged` to ignore such moves. The order of the columns stays as it was, even when some columns are trimmed.
+
+When some columns are trimmed, a moved column lands next to the visible column at the drop position. It never splits a run of neighboring trimmed columns:
+
+- Moved to a position before a visible column, it lands right before that column, after any trimmed columns that sit in front of it.
+- Moved to the last visible position, it lands right after the last visible column, before any trimmed columns at the end.
+
+You see where the column landed when you untrim the columns. For example, in a grid of six columns where the last two columns are trimmed, moving the first column to the last visible position leaves it in front of the two trimmed columns.
 
 ## Related API reference
 

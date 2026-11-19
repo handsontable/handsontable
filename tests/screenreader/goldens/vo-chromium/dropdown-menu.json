@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scenario": "dropdown-menu",
+  "project": "vo-chromium",
+  "recorded": {
+    "screenReader": "VoiceOver (macOS 26.6.2)",
+    "browser": "chromium 151.0.7922.34",
+    "platform": "darwin 25.6.0",
+    "at": "2026-11-04T11:19:17.622Z"
+  },
+  "steps": {
+    "open-menu": "",
+    "arrow-down-insert-right": "insert column right menu item group table",
+    "arrow-down-remove": "remove column menu item group table",
+    "arrow-down-clear": "clear column menu item group table",
+    "arrow-down-read-only": "read only menu item group table",
+    "close-menu": "handsontable e2e fixture filters value list web content",
+    "arrow-down-in-grid": "color green column 2 row bob green tree grid 3 columns 13 rows"
+  }
+}

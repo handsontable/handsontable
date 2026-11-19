@@ -76,8 +76,8 @@ function refreshSummary(hot: Handsontable): void {
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
-      licenseKey="non-commercial-and-evaluation"
       rowHeaders={true}
       colHeaders={['Item', 'Units', 'Price', 'Tax']}
       fixedRowsBottom={1}
@@ -117,7 +117,7 @@ const ExampleComponent = () => {
       }}
       afterChange={function (
         this: Handsontable,
-        changes: Handsontable.CellChange[] | null,
+        changes: Handsontable.AppliedCellChange[] | null,
         source: Handsontable.ChangeSource,
       ): void {
         if (!changes || source === SUMMARY_SOURCE) {

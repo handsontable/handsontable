@@ -138,6 +138,27 @@ describe('StretchColumns', () => {
     expect(getColWidth(2)).toBe(availableNoScroll - (2 * Math.round(availableNoScroll / 3)));
   });
 
+  it(`should stretch columns beside a vertical scrollbar that only the column header causes,
+ on the first render`, async() => {
+    // The 5 data rows fit the height exactly, so the column header alone causes the scrollbar.
+    const rowHeaderWidth = getDefaultRowHeaderWidth();
+    const scrollbarWidth = Handsontable.dom.getScrollbarWidth(document);
+    const availableWithScroll = 320 - rowHeaderWidth - scrollbarWidth;
+
+    handsontable({
+      data: createSpreadsheetData(5, 3),
+      colHeaders: true,
+      rowHeaders: true,
+      width: 320,
+      height: containerHeightForRows(5, 0),
+      stretchH: 'all',
+    });
+
+    expect(getColWidth(0)).toBe(Math.round(availableWithScroll / 3));
+    expect(getColWidth(1)).toBe(Math.round(availableWithScroll / 3));
+    expect(getColWidth(2)).toBe(availableWithScroll - (2 * Math.round(availableWithScroll / 3)));
+  });
+
   it.flaky('should correctly stretch columns after vertical scroll appears (window as scrollable element)', async() => {
     document.body.style.overflowY = 'hidden';
 

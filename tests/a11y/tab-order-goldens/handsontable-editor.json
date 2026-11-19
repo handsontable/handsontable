@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "page": "handsontable-editor",
+  "theme": "main",
+  "walks": {
+    "popup": [
+      {
+        "region": "grid",
+        "role": "textbox",
+        "name": ""
+      },
+      {
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Al",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "end"
+      }
+    ]
+  }
+}

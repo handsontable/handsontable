@@ -79,7 +79,8 @@ function listFiles(dir) {
  * the cache, or the hook skips formulas specs against an engine they never
  * ran on), the theme stylesheets (the fixtures pull `handsontable.min.css` +
  * `ht-theme-<theme>.min.css` per the ?theme= project), every file under
- * tests/fixtures (page objects, demo pages), and the Playwright config.
+ * tests/fixtures (page objects, demo pages), the hyperformula-ui module the formula-builder
+ * fixture imports, and the Playwright config.
  * Hashing only part of that set lets a rebuild or reinstall of the rest slip
  * through as "environment unchanged". '' when any required input is absent
  * (never skip then).
@@ -93,6 +94,8 @@ export function envHash(root) {
     'handsontable/dist/handsontable.full.min.js',
     'tests/package.json',
     'tests/node_modules/hyperformula/dist/hyperformula.full.min.js',
+    // The formula-builder fixture imports this module as the plugin's `builder`.
+    'tests/node_modules/hyperformula-ui/dist/index.js',
   ].map(rel => fileHash(path.join(root, rel)));
 
   if (inputs.some(input => !input)) {

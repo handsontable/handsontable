@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    {
+      "id": "feat:touch_scroll",
+      "kind": "plugin",
+      "module": "TouchScroll",
+      "name": "Touch scrolling",
+      "description": "Fades the frozen panes out while the grid scrolls on a touch device.",
+      "status": "stable",
+      "licensing": "none"
+    }
+  ]
+}

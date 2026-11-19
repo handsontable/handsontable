@@ -81,8 +81,15 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   or overtaken one is found by the grid's own list instead: `#onAfterSetDataAtRowProp` keeps, on each flight,
   the change tuple and the list core validates and applies (the list after `beforeChange` and the
   `valueSetter`), the grid splices a rejected or overtaken tuple out of that list, and `#onPostAfterValidate`
-  (it runs after the answer is applied) ends every flight of the cell whose tuple is gone. Source and value
-  cannot do it: two calls can write the same value with the same source. A call's kept write that has not
+  (it runs after the answer is applied) ends every flight on the answer's prop whose tuple is gone. For a
+  number row it checks only that row's state: a tuple leaves its list only in its own cell's answer, and core
+  reports that cell's current visual row, so walking every state there made a run of N answers O(N²) (pinned
+  by "should check only the answered row's flights when the answer reports a row"). The reported row is `null`
+  once a filter or a trim took the record out during the wait, and then every row is walked: a tuple that left
+  the list never lands anywhere. Skipping a `null` row, the rejected flight stayed queued, the call never
+  finalized and its row state was never released (pinned by "should finalize a call whose value a validator
+  rejected after a trim took its record out"). Source and value cannot do it: two calls can write the same
+  value with the same source. A call's kept write that has not
   landed stays under the next call's write to the cell (`PendingWrite#supersedes`): the grid applies the
   last write made, so the older write lands only when the newer one does not, a rejection for one
   (`#removeWrite` reveals it again), and the newer one landing drops it (`#dropSuperseded`). A change of
@@ -217,9 +224,22 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
 - **A data replacement keeps the requests whose rows survive.** The React wrapper sends `data` on every commit,
   so core runs `updateData()` on every re-render, and Angular on every data change; cancelling there killed every
   run on the first re-render. `before*Data` captures every `RowState` with its row id, and `after*Data` (order
-  `-1`) puts each back: on the row that holds the same id now, or, without ids, on the same physical row for
-  `updateData()` (core's convention for cell meta and generated ids) and nowhere for `loadData()` (a new dataset,
-  `'dataReplaced'`). A row not found cancels its requests with `'rowRemoved'`. Settled requests waiting for the
+  `-1`) puts each back: on the row that holds the same id now, or, without ids, nowhere for `loadData()` (a new
+  dataset, `'dataReplaced'`) and, for `updateData()`, on the row that holds the source row object its row held
+  (`#readRowObject()`, the raw row through `_getDataSource().modifyRowData()`, never the `getSourceDataAtRow()`
+  copy), else on the same physical row (copies; core's convention for cell meta and generated ids). The row
+  object step is how core finds the record of a change waiting for its validator (`resolveUnkeyedRecord()` in
+  `core/waitingRecords.ts`, whose `createIndexedLocator()` the plugin reuses): kept on its physical row while core
+  followed the moved object, a state never saw the landing or the overtaking of its write, so the call never
+  finalized and the state was never released. The copies step is not core's: core keeps a waiting change on its
+  physical row only while the row still stores the cell meta its validator call used, so it drops a change of a
+  cell no validator checked (no meta was noted for its record). The plugin cannot follow that rule, because a
+  state also stands for requests no change waits on yet, which core holds no record of. A change core drops there
+  reaches `#onChangesDropped` in a new array of the removed tuples, and the flight whose `flight.change` is in it
+  ends (pinned by "should record a call whose write core dropped for a record updateData() replaced with
+  copies"). A row object two rows hold names no row. A state whose row still
+  holds its object reads no other row, so the wrapper's per-commit `updateData()` builds no index. A row not found
+  cancels its requests with `'rowRemoved'`. Settled requests waiting for the
   flush keep their place, so a result that lands after the replacement still reaches its record. With
   `dataProvider.rowId`, requests survive a DataProvider refetch too. The capture must happen in `before*Data`:
   `updateData()`'s `fitToLength` has already truncated the map, and `loadData()` re-initialized it, by `after*`.
@@ -227,11 +247,31 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   wrapper runs this on every commit, and rewriting every state cost about 60 ms per commit with 100k pending.
 - **The index mapper can change the row count with no row hook.** The Vue wrapper keeps the data array by
   reference and only resizes the mapper at its end (`matchHotMappersSize`). The `cacheUpdated` local hook
-  notices the count change, and a microtask later (after an `alter()` has synced itself) `#followRows` re-reads
-  every state's row from the map, dropping the ones the map lost, moves a state whose `rowId` hint (kept on
-  the `RowState`) another row now holds, and cancels (`'rowRemoved'`) one whose id no row holds: a row spliced
-  out of the middle leaves its index to the next record, which the map cannot tell. Without ids the states keep
-  their physical rows.
+  notices the count change, and a microtask later (after an `alter()` has synced itself) `#followRows` first
+  puts every state that has a `rowId` hint (kept on the `RowState`) on the row that holds the id, wherever the
+  map holds it, and cancels (`'rowRemoved'`) one whose id no row holds: a row spliced out of the middle leaves
+  its index to the next record, which the map cannot tell. Only then does `#syncRows()` re-read the states
+  without an id from the map and drop the ones it lost. The order matters: the map loses its LAST index, so
+  `#syncRows()` first dropped the state of the last row, which still exists one index lower after a splice
+  (the Vue wrapper's `matchHotMappersSize`). Without ids the states keep their physical rows, so the fix
+  covers only the rows that have an id: a `rowId` function that returns `null` for a row leaves that row's
+  state on its index. That state then points at another record: after `splice(1, 1)` its request stays on
+  the old index, its value lands in the record that moved there, and that record's own request is canceled
+  as `'rowRemoved'` (the state also blocks any id'd state that has to move to its index). Known limit, the
+  same as before the fix. Pinned by the "with row ids and an in-place splice" block in `__tests__/writes.unit.ts`.
+- **A change set the Core drops ends its flights as failed.** When `loadData()` replaces the data while a
+  written value waits for its validator, the Core drops the whole set: no `afterChange`, and no tuple is
+  spliced out of the list, so neither `#onFlightLanded` nor `#onPostAfterValidate` ends the flight. On a
+  row whose id survives the load the flight stayed queued, its kept write stayed unlanded, and an
+  `undo: 'record'` call never finalized: no step, even for the cells that landed. `#onChangesDropped`,
+  added through the Core's `@private` `_addDroppedChangesListener()` in `enablePlugin()` and removed in
+  `disablePlugin()` and `destroy()`, ends every queued flight whose `flight.changes` is the dropped array, or
+  whose own tuple is in it (a set core resolved without a record comes as a new array), the way a rejection does. Walking the tuples still in the array is not enough: the last answer drops the
+  set before its own `postAfterValidate` runs, and a tuple that answer rejected under `allowInvalid: false`
+  was already spliced out.
+  The call's promise still reports `resolved` (the value was passed to the grid), as for a rejected value.
+  Pinned by "should record a call whose earlier write a data load dropped while its validator ran" and
+  "should record a call whose dropped write lost a rejected tuple after a load reordered the rows".
 - **A load is guarded by `#replacingData`.** A load's spare rows fire `afterCreateRow` before `afterLoadData`,
   and the requests belong to the replacement, not to a row removal. A load that throws never reaches
   `after*Data`, so a microtask queued in `before*Data` clears the flag and runs the replacement as a load.
@@ -241,6 +281,16 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   next one, a nested `alter()` from a `beforeRemoveRow` listener overwrote it, and a listener that widened
   `physicalRows` after the plugin's own ran was never in it. Each left an entry with a stale `physicalRow`
   whose result then landed on another record. Pinned by the veto and nested-removal cases.
+- **The cancel hook reports a dropped row's id from its `RowState`, never from the map.** By the time
+  `#notifyCleared()` runs for a removed or replaced row, the index map and the data hold another record (or
+  none) at that physical index, so `#rowIdOf(physicalRow)` named the neighbor, or `null` for the last row.
+  `RowState#rowId` is read when the state is created. `#onCellsChanged()` re-reads it for every changed row
+  that holds a state (`#refreshRowId()`), because an edit can change the id (`rowId: 'id'`, or a function
+  over other cells), and `#followRows()` looks a state up by that hint: a stale id there cancels a live row
+  as `'rowRemoved'`. `#onDataReplaced()` refreshes it from the id captured before the replacement. A write
+  that bypasses both hooks leaves the hint stale. A state that is not `dropped` (a `'dependency'`, `'edit'`
+  or `'columnsChanged'` cancel) still reads the live id. Pinned by the "`afterAsyncValueCancel` payload"
+  block in `__tests__/rows.unit.ts`.
 - **A `RowState`'s `physicalRow` goes stale on a row insert or removal.** The map shifts the values, not the
   states, so `#syncRows()` re-reads every state's row from the map after `afterCreateRow` and `afterRemoveRow`
   (one pass over the rows, only while a state exists), before any cancel hook runs. Both are registered at
@@ -283,11 +333,14 @@ shows a pending and an error state per cell. Read this before touching `asyncVal
   hidden text is part of `TD.textContent` (E2E text assertions include it). Known leaks of that text: AutoLink reads
   `TD.textContent`, so when it is enabled AFTER this plugin its `afterRenderer` runs later and links a URL in
   the message; Formulas `showFormulas` repaints the content and drops the span (the `title` stays).
-- **The three theme tokens are not in Figma yet.** `asyncIndicatorColor`, `asyncErrorBackgroundColor` and
-  `asyncErrorMarkerColor` alias `accentColor`, `cellErrorBackgroundColor` and `notificationErrorAccent` in `themes/static/variables/tokens/{main,classic,horizon}.ts` and
-  in the six static theme CSS files, which are edited by hand, with a "not in Figma yet" note in
-  `scripts/themes/figma/tokensKeys.mjs` (the freezeBar tokens are the precedent). Once the design file defines
-  them, a `generate:themes` run must keep the same alias. The stylesheet falls back to the aliased variables
+- **The three theme tokens come from Figma.** `asyncIndicatorColor`, `asyncErrorBackgroundColor` and
+  `asyncErrorMarkerColor` alias `accentColor`, `cellErrorBackgroundColor` and `notificationErrorAccent`. In the
+  design file they are `component/async-values/*` in the `themes` collection, aliasing
+  `common/colors/accent-color`, `component/cell/states/cell-error-background-color` and
+  `component/notification/notification-error-accent` in every theme, and they reach
+  `themes/static/variables/tokens/{main,classic,horizon}.ts` and the six static theme CSS files through
+  `npm run generate:themes`. Change them in Figma first, never in the static files
+  (`src/themes/__tests__/asyncValuesTokens.unit.js` pins the aliases). The stylesheet falls back to the aliased variables
   (`var(--ht-async-indicator-color, var(--ht-accent-color))`), so a custom theme built from an older token set
   still paints both states. The E2E spec sets both variables to values no theme uses, which is what proves the
   rules read them.

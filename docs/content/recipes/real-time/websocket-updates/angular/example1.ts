@@ -50,7 +50,7 @@ export class AppComponent implements OnInit, OnDestroy {
     height: 'auto',
     width: '100%',
     stretchH: 'all',
-    afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
+    afterChange: (changes: Handsontable.AppliedCellChange[] | null, source: Handsontable.ChangeSource) => {
       if ((source as string) !== 'external' || !changes) {
         return;
       }
@@ -62,8 +62,12 @@ export class AppComponent implements OnInit, OnDestroy {
       }
 
       changes.forEach(([row]) => {
+        if (row === null) {
+          return;
+        }
+
         [2, 3].forEach((col) => {
-          const td = hot.getCell(row as number, col);
+          const td = hot.getCell(row, col);
 
           if (td) {
             td.classList.remove('ht-cell-flash');
@@ -105,7 +109,7 @@ export class AppComponent implements OnInit, OnDestroy {
 /* file: app.config.ts */
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 
 registerAllModules();
 
@@ -114,7 +118,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+      useValue: {
+        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+      } as HotGlobalConfig,
     },
   ],
 };

@@ -99,6 +99,7 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data}
         beforeChange={function (changes, _source) {
           const cellChanges = changes as CellChange;
@@ -129,7 +130,6 @@ const ExampleComponent = () => {
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
         columns={[
           { data: 'id', type: 'numeric' },
           { data: 'name.first' },

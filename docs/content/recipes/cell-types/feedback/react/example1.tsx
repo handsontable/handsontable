@@ -86,6 +86,7 @@ registerCellType('feedback', feedbackCellDefinition);
 const ExampleComponent = () => {
   return (
     <HotTable
+      // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
       data={data}
       colHeaders={['Feature', 'Category', 'Priority', 'Feedback', 'Votes', 'Status']}
       autoRowSize={true}
@@ -94,7 +95,6 @@ const ExampleComponent = () => {
       height="auto"
       width="100%"
       headerClassName="htLeft"
-      licenseKey="non-commercial-and-evaluation"
     >
       <HotColumn data="feature" type="text" width={200} />
       <HotColumn data="category" type="text" width={90} />

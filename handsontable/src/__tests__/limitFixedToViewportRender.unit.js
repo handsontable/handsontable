@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../test/helpers/licenseKey';
 
 /**
  * How `TableView` decides when to measure and draw again with `limitFixedToViewport`. jsdom has no layout, so the
@@ -31,7 +32,7 @@ describe('limitFixedToViewport rendering', () => {
     hot = new Handsontable(container, {
       data: Handsontable.helper.createSpreadsheetData(3, 10),
       colWidths: 50,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
       fixedColumnsStart: 5,
       limitFixedToViewport: true,
     });

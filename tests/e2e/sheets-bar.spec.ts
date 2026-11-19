@@ -335,9 +335,9 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
 
     await bar.goto();
 
-    // One stop per tab: the tab is the control, and Tab walks the strip a sheet at a time.
+    // The strip is one Tab stop, and the arrow keys walk it a sheet at a time.
     await bar.tab(0).focus();
-    await page.keyboard.press('Tab');
+    await page.keyboard.press('ArrowRight');
     await page.keyboard.press('Enter');
 
     await bar.expectActiveTab(1);
@@ -566,6 +566,35 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
     await bar.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
     await expect(bar.renameInput).toBeFocused();
     await page.keyboard.type('Quarterly');
+    await page.keyboard.press('Enter');
+
+    await expect(bar.tabByName('Quarterly')).toBeVisible();
+    expect(await bar.isEditorOpened()).toBe(false);
+    expect(await bar.dataAtCell(1, 1)).toBe('A4');
+  });
+
+  test('a rename keeps its input when the same `sheetsBar` value is sent again mid-typing', async ({
+    page, theme, bundle,
+  }) => {
+    const bar = new SheetsBarPage(page, theme, bundle);
+
+    await bar.goto();
+
+    await bar.cell(1, 1).click();
+    await expect.poll(() => bar.selected()).toEqual([[1, 1, 1, 1]]);
+
+    await bar.tab(0).locator('.ht-sheets-bar__tab-label').dblclick();
+    await expect(bar.renameInput).toBeFocused();
+    await page.keyboard.type('Quar');
+
+    await page.evaluate(() => {
+      const { hot, htSheets } = window as never as { hot: any, htSheets: object[] };
+
+      hot.updateSettings({ sheetsBar: { sheets: htSheets.map(sheet => ({ ...sheet })) } });
+    });
+
+    await expect(bar.renameInput).toBeFocused();
+    await page.keyboard.type('terly');
     await page.keyboard.press('Enter');
 
     await expect(bar.tabByName('Quarterly')).toBeVisible();
@@ -1310,7 +1339,9 @@ test.describe('sheets bar', { tag: THEMES_TAG }, () => {
     expect(surfaces[2]).not.toEqual(surfaces[0]);
 
     // The active tab's bottom-edge marker must survive the drag, alongside the drop shadow.
-    await expect(bar.tab(2)).toHaveCSS('box-shadow', /inset/);
+    expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').content)).not.toBe('none');
+    expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').borderBottomStyle)).toBe('solid');
+    expect(await bar.tab(2).evaluate(tab => getComputedStyle(tab, '::after').borderBottomWidth)).not.toBe('0px');
 
     await page.mouse.up();
 

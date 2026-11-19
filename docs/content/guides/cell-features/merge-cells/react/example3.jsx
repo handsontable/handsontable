@@ -27,6 +27,7 @@ const ExampleComponent = () => {
           'Select cells, then press Ctrl+M (or use the context menu) to merge or unmerge them. Hook activity appears here.'}
       </output>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={data}
         colHeaders={['Region', 'Jan 2025', 'Feb 2025', 'Mar 2025']}
         rowHeaders={true}
@@ -53,7 +54,6 @@ const ExampleComponent = () => {
             `afterUnmergeCells: rows ${cellRange.from.row}-${cellRange.to.row}, columns ${cellRange.from.col}-${cellRange.to.col}.`,
           );
         }}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

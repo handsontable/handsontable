@@ -1,5 +1,6 @@
 import { type Locator, type Page, expect } from '@playwright/test';
 import { FiltersValueListPage, escapeRegExp } from './FiltersValueListPage';
+import { chooseConditionWithKeyboard } from './filtersMenuKeyboard';
 
 /**
  * Page Object for keyboard navigation inside the filters dropdown menu: the Tab and Shift+Tab order
@@ -25,6 +26,9 @@ export class FiltersMenuKeyboardPage extends FiltersValueListPage {
   readonly selectAllLink: Locator;
   readonly clearLink: Locator;
   readonly activeFilterHeaders: Locator;
+  readonly separatorRows: Locator;
+  /** The uncaught errors the page raised since the page object was built. */
+  readonly pageErrors: string[] = [];
 
   /**
    * Builds the page object for one fixture, theme and bundle.
@@ -46,6 +50,25 @@ export class FiltersMenuKeyboardPage extends FiltersValueListPage {
     this.clearLink = this.menu.locator('.htUIClearAll a');
     // The class the plugin puts on the header cell of a filtered column.
     this.activeFilterHeaders = page.locator('.ht_clone_top th.htFiltersActive');
+    this.separatorRows = this.menu.locator(':scope > .ht_master .htCore tbody td.htSeparator');
+    page.on('pageerror', (error) => { this.pageErrors.push(error.message); });
+  }
+
+  /**
+   * Taps the center of a separator row with a finger. The row is 1px tall, so a mouse click lands on
+   * a neighboring row, while a touch tap resolves to the separator; that is the only gesture that
+   * selects it. The page needs `hasTouch`.
+   *
+   * @param {number} [index] Which separator of the menu, top to bottom.
+   */
+  async tapSeparator(index = 0): Promise<void> {
+    const box = await this.separatorRows.nth(index).boundingBox();
+
+    if (!box) {
+      throw new Error(`Separator ${index} of the menu is not rendered.`);
+    }
+
+    await this.page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
   }
 
   /**
@@ -144,24 +167,7 @@ export class FiltersMenuKeyboardPage extends FiltersValueListPage {
    * @param {string} label The condition's visible label, e.g. `Contains`.
    */
   async chooseConditionWithKeyboard(label: string): Promise<void> {
-    const wanted = new RegExp(`^${escapeRegExp(label)}$`);
-    const highlighted = this.conditionsMenu.locator('td.current');
-
-    await this.page.keyboard.press('Enter');
-    await expect(this.conditionsMenu).toBeVisible();
-
-    for (let i = 0; i < 20; i++) {
-      if ((await highlighted.count()) === 1 && wanted.test((await highlighted.innerText()).trim())) {
-        await this.page.keyboard.press('Enter');
-        await expect(this.conditionsMenu).toBeHidden();
-
-        return;
-      }
-
-      await this.page.keyboard.press('ArrowDown');
-    }
-
-    throw new Error(`ArrowDown never reached the ${JSON.stringify(label)} condition`);
+    await chooseConditionWithKeyboard(this.page, this.conditionsMenu, label);
   }
 
   /**

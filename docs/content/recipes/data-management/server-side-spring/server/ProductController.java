@@ -1,5 +1,6 @@
 package com.example.products;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public class ProductController {
      * - pageSize   rows per page (default: 10)
      * - sortProp   column to sort by (optional)
      * - sortOrder  "asc" or "desc" (optional)
-     * - filters    JSON array of { column, value } objects (optional)
+     * - filters    JSON array of { prop, operation, conditions } objects (optional)
      *
      * Response shape:
      * { "rows": [...], "totalRows": 55 }
@@ -55,11 +56,13 @@ public class ProductController {
      *
      * The request body matches CreateRowsPayload:
      * { "position": "below", "referenceRowId": 7, "rowsAmount": 1 }
+     *
+     * Responds 201 Created with the new rows, including their database ids.
+     * Handsontable reads the ids from this response.
      */
     @PostMapping("/create-rows")
-    public ResponseEntity<Void> createRows(@RequestBody CreateRowsPayload payload) {
-        productService.createRows(payload);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<List<Product>> createRows(@RequestBody CreateRowsPayload payload) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createRows(payload));
     }
 
     /**

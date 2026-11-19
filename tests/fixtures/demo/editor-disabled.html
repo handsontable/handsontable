@@ -25,6 +25,7 @@
     }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } h2 { font-size: .9rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -99,7 +100,7 @@
           cellProperties.editor = false;
         }
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     window.hotGlobal = new Handsontable(global, {
@@ -108,7 +109,7 @@
       rowHeaders: true,
       renderer: stamp('global'),
       editor: false,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // A grid-level `editor: false` under columns that declare a `type`. The type supplies an
@@ -134,7 +135,7 @@
         // editor it must be non-toggleable, and must say so rather than ignoring clicks.
         { data: 'done', type: 'checkbox' },
       ],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // Starts fully editable: specs switch editing off at runtime with `updateSettings()`. One
@@ -155,7 +156,7 @@
         { data: 'label' },
         { data: 'amount', type: 'numeric' },
       ],
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

@@ -33,6 +33,7 @@
     .spacer-bottom { height: 800px; }
     .page-spacer { height: 1500px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -84,7 +85,7 @@
       width: 600,
       height: 200,
       renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

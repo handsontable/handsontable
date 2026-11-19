@@ -37,6 +37,7 @@
     #toolbar { margin-bottom: .8rem; }
     .grid-slot { margin-bottom: 1.5rem; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <!--
@@ -131,7 +132,7 @@
       rowHeaders: true,
       contextMenu: true,
       renderer: makeRenderer(suffix),
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
 
     // Grid A takes the overrides at runtime. Grid B is the untouched control.

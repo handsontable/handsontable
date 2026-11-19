@@ -60,6 +60,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         data={gridData}
         columns={[
           { title: 'Brand', type: 'text', data: 'brand' },
@@ -117,7 +118,6 @@ const ExampleComponent = () => {
         stretchH="all"
         autoWrapRow={true}
         autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
       />
     </>
   );

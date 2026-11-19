@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the React, Vue, and Angular wrappers so that a hook callback stops running after you remove its prop or set it to a value that is not a callback, such as `null`, `undefined`, or `false`.",
+  "type": "fixed",
+  "issueOrPR": 14105,
+  "breaking": true,
+  "framework": "none"
+}

@@ -34,6 +34,7 @@
       throw new Error('Unknown ?strict= value: ' + JSON.stringify(htParams.get('strict')));
     }
   </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -303,7 +304,7 @@
       afterListen() {
         window.htListenCount += 1;
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     }, scenarioSettings));
 
   </script>

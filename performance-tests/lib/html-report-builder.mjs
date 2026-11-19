@@ -11,6 +11,7 @@ import {
   calcCv,
   classifyChange,
   heapThresholdFor,
+  isOverTimingLine,
   pctChange,
   relativeToShift,
   runShift,
@@ -118,12 +119,19 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
     const heap = buildHeapChartData(current, golden, isCrossWindow);
     // Per scenario: the horizontal-scroll scenarios carry a wider heap band (thresholds.mjs).
     const heapThreshold = heapThresholdFor(name);
-    const timingRegressed = totalChange != null && totalChange > REGRESSION_CALLOUT_THRESHOLD_TIMING;
+    // The gate's fail line, floor included (lib/gate.mjs), so the report counts what the gate fails.
+    const timingRegressed = totalChange != null && isOverTimingLine(goldenTotal, currentTotal);
     const heapRegressed = heap?.change != null && heap.change > heapThreshold;
     const isRegression = timingRegressed || heapRegressed;
     let { status } = classifyChange(totalChange);
 
-    // A JS-heap regression counts even when trace timing is flat, matching the markdown callouts.
+    // Over the line in percent but under the ms floor is timer rounding, which the gate does not
+    // fail, so it is not painted as a regression either.
+    if (status === 'regression' && !timingRegressed) {
+      status = 'neutral-up';
+    }
+
+    // A JS-heap regression counts even when trace timing is flat, matching the markdown comment.
     if (heapRegressed) {
       status = 'regression';
     }
@@ -178,9 +186,10 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
 
   // The common factor this run differs from the baseline by -- the CI runner's speed, which every
   // scenario shares. Reported, never gated on: see runShift(). Not on a self-comparison, where every
-  // delta is 0 and a 0.0% shift would read as a measurement of the runner.
+  // delta is 0 and a 0.0% shift would read as a measurement of the runner. `meta.runShift` is the
+  // first pass's after a confirm re-run, whose rows mix two runs (confirmVerdict).
   const shift = hasGolden && !goldenSnapshots?.isSelfCompare
-    ? runShift(scenarios.map(s => s.totalChange))
+    ? (meta.runShift ?? runShift(scenarios.map(s => s.totalChange)))
     : null;
 
   for (const scenario of scenarios) {
@@ -229,8 +238,8 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta, goldenS
       }
       : null,
     runShift: shift,
-    // Serialized rather than restated in the client script, so the colour bands and the callout
-    // thresholds cannot drift apart. No heap entry: the heap band is per scenario (`heapThreshold`
+    // Serialized rather than restated in the client script, so the colour bands and the gate's
+    // lines cannot drift apart. No heap entry: the heap band is per scenario (`heapThreshold`
     // on each scenario below), and a shared number here would be reached for and get the wrong
     // band on the two scroll scenarios that carry a wider one.
     thresholds: {
@@ -306,7 +315,7 @@ function buildDetailedMetrics(current, golden, verdict) {
     // would put the exact number the badge refuses to show one click away, painted red.
     change: baselineIncomplete ? null : pctChange(gTotal, cTotal),
     incomplete: baselineIncomplete,
-    // Recombined per iteration rather than left null: the summed total is what the callout acts on,
+    // Recombined per iteration rather than left null: the summed total is what the gate acts on,
     // so its spread is the one a reader most needs beside it.
     cv: calcCv(activeTotalsPerIteration(current._iterationValues?.categories)),
     isBold: true,
@@ -847,13 +856,13 @@ function buildScript() {
     }
 
     // How far the whole run sits from the baseline. Named so a reader can tell a row that moved
-    // with the runner from one that moved on its own; the callouts still fire on the raw delta.
+    // with the runner from one that moved on its own; the gate still judges the raw delta.
     if (data.runShift != null) {
       header.appendChild(elText(
         'div',
         'Run shift: ' + fmtPct(data.runShift) + ' \\u2014 the median delta across scenarios, i.e. how much'
           + ' faster or slower this runner ran than the baseline\\'s. "vs shift" figures remove it;'
-          + ' callouts use the raw delta.',
+          + ' the regression gate judges the raw delta.',
         'meta'
       ));
     }
@@ -1242,7 +1251,7 @@ function buildScript() {
       }
     }
     if (hookTiming.cv != null) {
-      text += ' \\u00B7 CV ' + fmtCvValue(hookTiming.cv);
+      text += ' \\u00B7 CV ' + fmtCvValue(hookTiming.cv, false);
     }
     div.textContent = text;
     return div;
@@ -1287,9 +1296,8 @@ function buildScript() {
         tr.appendChild(elText('td', Math.round(row.current) + ' ms', 'num'));
       }
 
-      const cvTd = elText('td', fmtCvValue(row.cv), 'num');
-      if (row.cv != null && row.cv > data.thresholds.cvWarning) cvTd.classList.add('cv-warn');
-      tr.appendChild(cvTd);
+      // The run's own spread: shown, never flagged.
+      tr.appendChild(elText('td', fmtCvValue(row.cv, false), 'num'));
 
       tbody.appendChild(tr);
     }
@@ -1436,10 +1444,11 @@ function buildScript() {
     return t;
   }
 
+  // Mirrors fmtPct() in thresholds.mjs: a tiny negative reads "+0.0%", never "-0.0%".
   function fmtPct(pct) {
     if (pct == null) return '--';
-    const sign = pct >= 0 ? '+' : '';
-    return sign + pct.toFixed(1) + '%';
+    const rounded = Number(pct.toFixed(1)) + 0;
+    return (rounded >= 0 ? '+' : '') + rounded.toFixed(1) + '%';
   }
 
   // Mirrors classifyChange() in thresholds.mjs. The band edge is not restated here: it comes from
@@ -1455,11 +1464,11 @@ function buildScript() {
     return 'neutral';
   }
 
-  // Mirrors fmtCvValue() in thresholds.mjs, warning glyph included, so the markdown comment and
-  // this report flag an unreliable spread the same way.
-  function fmtCvValue(cv) {
+  // Mirrors fmtCvValue() in thresholds.mjs, warning glyph and \`flag\` included, so the markdown comment
+  // and this report flag the same spreads: a wide baseline, never the run's own.
+  function fmtCvValue(cv, flag) {
     if (cv == null) return 'n/a';
-    return cv.toFixed(1) + '%' + (cv > data.thresholds.cvWarning ? ' \\u26A0\\uFE0F' : '');
+    return cv.toFixed(1) + '%' + (flag !== false && cv > data.thresholds.cvWarning ? ' \\u26A0\\uFE0F' : '');
   }
 
   function statusColor(cls) {

@@ -123,6 +123,21 @@ export class InlineEndOverlayPage {
   }
 
   /**
+   * Scroll a cell into the rendered band through the public API.
+   *
+   * The end overlay only paints the rows the viewport holds. `scrollViewportTo` is what brings a
+   * row in that the first layout left outside that band.
+   *
+   * @param {number} row Visual row.
+   * @param {number} col Visual column.
+   */
+  async scrollCellIntoView(row: number, col: number): Promise<void> {
+    await this.page.evaluate(({ row: targetRow, col: targetCol }) => {
+      (window as any).hot.scrollViewportTo({ row: targetRow, col: targetCol });
+    }, { row, col });
+  }
+
+  /**
    * Scroll the master holder by an absolute offset and let the overlays sync.
    *
    * @param {{ top?: number, left?: number }} offset The offsets to set. `left` is the magnitude: it

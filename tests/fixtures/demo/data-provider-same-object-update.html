@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — dataProvider sent again as the same object</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    E2E fixture for a settings update that sends the grid's own `dataProvider` object again.
+
+    A paginated, sortable, server-backed grid. The in-page "server" serves 50 records sorted by the
+    query's `sort`, and records each `fetchRows` call in `htServer.calls`. The `dataProvider` object
+    the grid runs on is `window.htProvider`, so the spec can send that same object again.
+
+    Column headers carry `data-testid="col-header-<col>"`.
+  -->
+  <div data-testid="status">idle</div>
+  <div data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+    const status = document.querySelector('[data-testid="status"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    /**
+     * The in-page server.
+     */
+    const server = {
+      rows: Array.from({ length: 50 }, (_, i) => ({ id: i + 1, name: `Record ${i + 1}` })),
+      calls: [],
+    };
+
+    window.htServer = server;
+
+    /**
+     * Sort a copy of the server rows by the query's sort.
+     */
+    function queryRows({ sort }) {
+      const rows = server.rows.slice();
+
+      if (sort) {
+        const direction = sort.order === 'desc' ? -1 : 1;
+
+        rows.sort((a, b) => (a[sort.prop] > b[sort.prop] ? 1 : -1) * direction);
+      }
+
+      return rows;
+    }
+
+    window.htProvider = {
+      rowId: 'id',
+      fetchRows: async({ page, pageSize, sort }) => {
+        server.calls.push({ page, pageSize, sort });
+
+        const rows = queryRows({ sort });
+
+        return {
+          rows: rows.slice((page - 1) * pageSize, page * pageSize),
+          totalRows: rows.length,
+        };
+      },
+      onRowsCreate: async() => {},
+      onRowsUpdate: async() => {},
+      onRowsRemove: async() => {},
+    };
+
+    try {
+      window.hot = new Handsontable(container, {
+        columns: [{ data: 'id' }, { data: 'name' }],
+        colHeaders: ['ID', 'Name'],
+        rowHeaders: true,
+        columnSorting: true,
+        pagination: { pageSize: 10, pageSizeList: [10, 20] },
+        width: 500,
+        height: 'auto',
+        dataProvider: window.htProvider,
+        afterGetColHeader(col, TH) {
+          TH.setAttribute('data-testid', `col-header-${col}`);
+        },
+        licenseKey: window.htTestLicenseKey,
+      });
+    } catch (error) {
+      container.setAttribute('data-init-error', String(error && error.message));
+    }
+
+    status.textContent = 'ready';
+  </script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Columns layout update e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document, which rules out XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    A grid over object data whose columns come from the `columns` option, with the plugins that keep
+    their state in column index maps (ManualColumnResize for width, HiddenColumns, ColumnSorting) and Filters, whose
+    conditions name a column while its trimming map holds rows.
+
+    A wrapper (React) sends `data` with every `updateSettings()` call, so a change of its `columns` prop reaches the
+    core as `{ data, columns }`. `updateColumns()` sends that same payload, with a new `data` array and a new
+    `columns` array each time.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const ranks = [3, 1, 2];
+
+    window.hot = null;
+
+    /**
+     * Builds the rows of the grid for the given property names, in a new array of new objects.
+     *
+     * @param {string[]} props The property names.
+     * @returns {object[]}
+     */
+    function buildData(props) {
+      return ranks.map(rank => Object.fromEntries(props.map(prop => [prop, `${prop}${rank}`])));
+    }
+
+    /**
+     * Builds the grid, replacing the previous one. Built loudly: a constructor throw is captured
+     * where the page object can read and rethrow it, instead of surfacing as a timeout on an
+     * overlay locator that says nothing about the real cause.
+     *
+     * @param {string[]} props The property names, one column each.
+     */
+    window.buildGrid = function(props) {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      try {
+        window.hot = new Handsontable(container, {
+          data: buildData(props),
+          columns: props.map(data => ({ data, title: data.toUpperCase() })),
+          width: 600,
+          height: 300,
+          rowHeaders: true,
+          colHeaders: true,
+          manualColumnResize: true,
+          hiddenColumns: true,
+          columnSorting: true,
+          filters: true,
+          dropdownMenu: true,
+          licenseKey: window.htTestLicenseKey,
+        });
+      } catch (error) {
+        window.htBuildError = String((error && error.stack) || error);
+        throw error;
+      }
+    };
+
+    /**
+     * Sends `{ data, columns }` for the given property names, a new array of new objects each time, the way a
+     * wrapper does on every render.
+     *
+     * @param {string[]} props The property names, one column each.
+     */
+    window.updateColumns = function(props) {
+      window.hot.updateSettings({
+        data: buildData(props),
+        columns: props.map(data => ({ data, title: data.toUpperCase() })),
+      });
+    };
+
+    window.buildGrid(['a', 'b', 'c', 'd']);
+  </script>
+</body>
+</html>

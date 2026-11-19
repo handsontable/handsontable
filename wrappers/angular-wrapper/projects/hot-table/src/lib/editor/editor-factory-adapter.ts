@@ -81,6 +81,7 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdv
     },
     onFocus: (editor) => editor._componentRef.instance.onFocus?.(editor),
     afterClose: (editor: EditorInstance) => {
+      cleanupSubscriptions(editor);
       resetEditorState(editor);
       editor._editorPlaceHolderRef?.changeDetectorRef.detectChanges();
       editor._editorPlaceHolderRef?.instance.detachEditor();

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed spilled arrays turning into #SPILL! when a sheet is added to or removed from a HyperFormula engine that the Formulas plugin created, for example when a second grid connects to it (HyperFormula 3.1.1 or later). SHEET() and SHEETS() now also update after a sheet is renamed. After a middle sheet is removed, SHEET() returns the sheet's engine number instead of its position.",
+  "type": "fixed",
+  "issueOrPR": 14123,
+  "breaking": true,
+  "framework": "none"
+}

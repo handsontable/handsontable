@@ -40,7 +40,7 @@ const createGrid = (container: HTMLElement, sortFixedRows: boolean) =>
     },
     height: 'auto',
     stretchH: 'all',
-    licenseKey: 'non-commercial-and-evaluation',
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   });
 
 createGrid(document.querySelector('#exampleSortFixedRows1')!, false);

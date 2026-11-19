@@ -2,6 +2,8 @@ import { warn } from '../../helpers/console';
 import { isPlainObject } from '../../helpers/object';
 import type { HotInstance } from '../../core/types';
 import type { ImportResult } from './importFile';
+import type { HyperFormulaEngine } from '../formulas/engine/types';
+import { DROPPED_FEATURES } from '../../utils/xlsxEngine/capabilities';
 
 /**
  * What the applier needs to know about how the result was produced.
@@ -12,6 +14,15 @@ export interface ApplyOptions {
    * left on the grid and this result does not carry is cleared.
    */
   importLayout: boolean;
+  /**
+   * Applies one settings payload of the result. Defaults to the grid's `updateSettings()`; the plugin
+   * passes its own, so it can tell its payloads from a listener's.
+   */
+  updateSettings?: (settings: Record<string, unknown>) => void;
+  /**
+   * Called with the style rules right after they are installed, before any later step can throw.
+   */
+  onStylesInstalled?: (styles: Record<string, string>) => void;
 }
 
 /**
@@ -125,6 +136,16 @@ function toSettings(hot: HotInstance, result: ImportResult, options: ApplyOption
     }
   });
 
+  if (result.rowHeights !== undefined) {
+    // A workbook's row heights go to `minRowHeights`, not to `rowHeights`: the reader keeps every row's
+    // `ht`, also the height the producing app measured (LibreOffice and Google Sheets write one on every
+    // row, 20 px for the default 15 pt), and exact `rowHeights` would clip those rows below the theme's
+    // row height. The import describes the whole sheet, so it also drops the exact heights the grid held,
+    // which would otherwise win over the imported ones row by row.
+    settings.minRowHeights = result.rowHeights;
+    settings.rowHeights = undefined;
+  }
+
   if (result.colHeaders !== undefined && result.nestedHeaders === undefined && current.nestedHeaders) {
     settings.nestedHeaders = false;
   }
@@ -185,6 +206,18 @@ function importedWidth(result: ImportResult): number {
 }
 
 /**
+ * Whether the grid holds a value for a resettable layout key. The row heights live in two settings,
+ * because an import writes `minRowHeights` and the app may have set either.
+ *
+ * @param {object} current The grid's settings.
+ * @param {string} key A resettable layout key.
+ * @returns {boolean}
+ */
+function hasLayoutSetting(current: Record<string, unknown>, key: ResettableLayoutKey): boolean {
+  return Boolean(current[key]) || (key === 'rowHeights' && Boolean(current.minRowHeights));
+}
+
+/**
  * Clears every resettable layout key the result omits and the grid currently carries. A list
  * setting keeps its options object and empties the list; a count goes to `0`.
  */
@@ -192,7 +225,7 @@ function resetOmittedLayout(
   result: ImportResult, current: Record<string, unknown>, settings: Record<string, unknown>
 ): void {
   RESETTABLE_LAYOUT_KEYS.forEach((key) => {
-    if (result[key] !== undefined || !current[key]) {
+    if (result[key] !== undefined || !hasLayoutSetting(current, key)) {
       return;
     }
 
@@ -210,8 +243,11 @@ function resetOmittedLayout(
         settings.customBorders = [];
         break;
       case 'colWidths':
+        settings.colWidths = undefined;
+        break;
       case 'rowHeights':
-        settings[key] = undefined;
+        settings.rowHeights = undefined;
+        settings.minRowHeights = undefined;
         break;
       default:
         settings[key] = 0;
@@ -235,6 +271,9 @@ function resetOmittedLayout(
  * An empty (or fully rejected) rule set REMOVES the element rather than leaving an empty one, which
  * is also what clears the previous import's rules when the next workbook carries no styles at all.
  *
+ * Returns the rules it installed, by class name, without the rejected ones, so installing what it
+ * returned again warns about nothing.
+ *
  * Rules use the `.handsontable tbody > tr > td.<class>` selector, not the shorter
  * `.handsontable td.<class>`, so the generated rule beats the theme's own row-banding CSS
  * (`.handsontable :where(table.htCore > tbody, …) > tr.ht__row_even/odd > td`, main/horizon/classic
@@ -248,11 +287,14 @@ function resetOmittedLayout(
  * selector shape is what a real grid and the probe both share; raising priority through
  * `!important` would also outrank a user's own CSS with no way back.
  */
-export function installImportedStyles(hot: HotInstance, styles: Record<string, string>): void {
+export function installImportedStyles(
+  hot: HotInstance, styles: Record<string, string>
+): Record<string, string> {
   const doc = hot.rootDocument;
   const mount = hot.rootWrapperElement;
   const rules: string[] = [];
   const rejected: string[] = [];
+  const installed: Record<string, string> = {};
 
   Object.entries(styles).forEach(([className, declarations]) => {
     if (!IMPORTED_CLASS_PATTERN.test(className) || !isAllowedDeclarationBlock(declarations)) {
@@ -262,6 +304,7 @@ export function installImportedStyles(hot: HotInstance, styles: Record<string, s
     }
 
     rules.push(`.handsontable tbody > tr > td.${className}{${declarations}}`);
+    installed[className] = declarations;
   });
 
   if (rejected.length > 0) {
@@ -271,7 +314,7 @@ export function installImportedStyles(hot: HotInstance, styles: Record<string, s
   if (rules.length === 0) {
     removeImportedStyles(hot);
 
-    return;
+    return installed;
   }
 
   // Mounted inside the instance's own wrapper, where the theme engine keeps its per-instance
@@ -286,6 +329,8 @@ export function installImportedStyles(hot: HotInstance, styles: Record<string, s
   }
 
   styleEl.textContent = rules.join('\n');
+
+  return installed;
 }
 
 /**
@@ -293,6 +338,186 @@ export function installImportedStyles(hot: HotInstance, styles: Record<string, s
  */
 export function removeImportedStyles(hot: HotInstance): void {
   hot.rootWrapperElement?.querySelector(`style[${STYLE_ATTRIBUTE}="${hot.guid}"]`)?.remove();
+}
+
+/**
+ * A definition that is one string literal (`="a""b"`, `""` escaping a quote). The two alternatives
+ * never match the same text, so the match is linear.
+ */
+const STRING_LITERAL_DEFINITION = /^="(?:[^"]|"")*"$/;
+
+/**
+ * The input HyperFormula takes for a defined name's definition (`=` included). HyperFormula's
+ * parser refuses an escaped quote inside a string (`validateFormula('="a""b"')` is `false`), so a
+ * definition that is one such string literal is handed over as the text it spells, behind an
+ * apostrophe (`'a"b`), which HyperFormula reads as a string constant whatever follows it (an
+ * unescaped `=1` or `12` would otherwise read as a formula or a number). Every other definition is
+ * returned as it is.
+ *
+ * @param {string} expression The definition, `=` included.
+ * @returns {string}
+ */
+export function toNamedExpressionInput(expression: string): string {
+  const text = expression.slice(2, -1);
+
+  if (!STRING_LITERAL_DEFINITION.test(expression) || !text.includes('""')) {
+    return expression;
+  }
+
+  return `'${text.replace(/""/g, '"')}`;
+}
+
+/**
+ * Adds the result's named expressions to the Formulas plugin's engine, at workbook scope, skipping
+ * one the engine refuses by now (a name defined since the mapper asked). Nothing is added when the
+ * plugin is off. Adding a name is not undoable: the `loadData` that follows resets the
+ * grid's history anyway.
+ *
+ * The names go in between `suspendEvaluation()` and `resumeEvaluation()`. Each `addNamedExpression`
+ * on a running engine recalculates it and fires `valuesUpdated`, so a workbook with hundreds of
+ * names over volatile formulas (`RAND()`) took seconds; suspended, the engine recalculates once,
+ * when it resumes. Not `engine.batch()`: in HyperFormula 3.3 every add inside a batch walks the
+ * undo entry the batch has built so far (`clearRedoStack`), which made 54,650 names take 18-25 s
+ * where suspending takes about a second, and the import resets the grid's history anyway. The check
+ * between the adds still sees the names added before it. The engine evaluates the names when it
+ * resumes, and a throw there leaves `resumeEvaluation()`: every name this call added is removed
+ * again and `definedNames:unsupported` is reported, and the import goes on. Nothing is suspended
+ * when the engine refuses every name. A name the engine refuses here is reported as
+ * `definedNames:unsupported` too, the same as one whose add throws: the mapper kept the formulas
+ * over it live, so they show `#NAME?` or read the engine's other definition.
+ *
+ * An engine the caller suspended (`suspendEvaluation()` before the import) gets the names without a
+ * suspension of its own, whose end would resume the caller's too; the engine evaluates them when the
+ * caller resumes. `Formulas` skips its own batch the same way.
+ */
+function addNamedExpressions(hot: HotInstance, result: ImportResult): void {
+  const formulas = hot.getPlugin('formulas');
+
+  if (!result.namedExpressions?.length || formulas?.enabled !== true || !formulas.engine) {
+    return;
+  }
+
+  const { engine } = formulas;
+  // The mapper asked the engine already, but a `beforeImport` handler, or another grid sharing the
+  // engine, may have defined the name since; `addNamedExpression` would then throw mid-batch.
+  const canAdd = (name: string, expression: string) =>
+    engine.isItPossibleToAddNamedExpression?.(name, expression) === true;
+  const namedExpressions = result.namedExpressions
+    .map(({ name, formula }) => ({ name, expression: toNamedExpressionInput(`=${formula}`) }));
+  const first = namedExpressions.findIndex(({ name, expression }) => canAdd(name, expression));
+
+  if (first !== 0) {
+    reportUnsupported(result);
+  }
+
+  if (first === -1) {
+    return;
+  }
+
+  const added: string[] = [];
+  const addAll = () => {
+    namedExpressions.slice(first).forEach(({ name, expression }, index) => {
+      // The first name passed the check above; the rest are checked here, where the check sees the
+      // names added before them.
+      if (index > 0 && !canAdd(name, expression)) {
+        reportUnsupported(result);
+      } else if (addOrReport(engine, name, expression, result)) {
+        added.push(name);
+      }
+    });
+  };
+
+  if (engine.isEvaluationSuspended?.() === true) {
+    addAll();
+
+    return;
+  }
+
+  try {
+    engine.suspendEvaluation();
+
+    try {
+      addAll();
+    } finally {
+      engine.resumeEvaluation();
+    }
+  } catch {
+    // The engine evaluates the names only when it resumes, and HyperFormula can throw there
+    // (`RangeError: Invalid array length` over a huge range). Which name threw is not
+    // known, so every name this call added goes, each on its own: a removal recalculates, and may
+    // throw again while a name it has not reached yet stays.
+    if (engine.isEvaluationSuspended?.() === true) {
+      ignoreThrow(() => engine.resumeEvaluation());
+    }
+
+    added.forEach(name => ignoreThrow(() => removeListed(engine, name)));
+    reportUnsupported(result);
+  }
+}
+
+/**
+ * Runs `operation`, swallowing what it throws: the import goes on whatever the engine does.
+ */
+function ignoreThrow(operation: () => unknown): void {
+  try {
+    operation();
+  } catch {
+    // The engine keeps what it could not undo; the caller reports the name anyway.
+  }
+}
+
+/**
+ * Removes a workbook-scoped name when the engine lists it.
+ */
+function removeListed(engine: HyperFormulaEngine, name: string): void {
+  const lowered = name.toLowerCase();
+
+  if (engine.listNamedExpressions().some(listed => listed.toLowerCase() === lowered)) {
+    engine.removeNamedExpression(name);
+  }
+}
+
+/**
+ * Records `definedNames:unsupported` once on the result being applied.
+ */
+function reportUnsupported(result: ImportResult): void {
+  if (Array.isArray(result.dropped) && !result.dropped.includes(DROPPED_FEATURES.definedNamesUnsupported)) {
+    result.dropped.push(DROPPED_FEATURES.definedNamesUnsupported);
+  }
+}
+
+/**
+ * Adds one named expression the engine said it takes. On a running engine
+ * `addNamedExpression` evaluates the definition at once; on a suspended one (the only way the applier
+ * calls it) evaluation waits for the resume, which `addNamedExpressions` guards. The add itself can still throw on an
+ * engine that evaluates eagerly or refuses the name late, which failed the whole import with an
+ * internal error and left the name half-added. A throw removes the name again when the engine lists
+ * it (it did not before: the check passed) and reports `definedNames:unsupported` on the result;
+ * the import goes on.
+ *
+ * @param {object} engine The Formulas plugin's engine.
+ * @param {string} name The name.
+ * @param {string} expression The definition, `=` included.
+ * @param {ImportResult} result The result being applied, whose `dropped` list takes the report.
+ * @returns {boolean} Whether the name was added.
+ */
+function addOrReport(
+  engine: HyperFormulaEngine,
+  name: string,
+  expression: string,
+  result: ImportResult,
+): boolean {
+  try {
+    engine.addNamedExpression(name, expression, undefined, undefined);
+
+    return true;
+  } catch {
+    // An engine that cannot list or remove the name keeps it; the report below still names it.
+    ignoreThrow(() => removeListed(engine, name));
+    reportUnsupported(result);
+
+    return false;
+  }
 }
 
 /**
@@ -313,7 +538,14 @@ export function removeImportedStyles(hot: HotInstance): void {
 export function applyImportResult(
   hot: HotInstance, result: ImportResult, options: ApplyOptions = { importLayout: true }
 ): void {
+  const update = options.updateSettings ?? ((settings: Record<string, unknown>) => hot.updateSettings(settings));
+
   hot.batch(() => {
+    // First, ahead of every grid change: a name the engine refuses is skipped rather than thrown
+    // mid-batch, and the imported formulas over the names are evaluated as `loadData` writes them,
+    // so a name the engine lacks at that moment makes them `#NAME?`.
+    addNamedExpressions(hot, result);
+
     const settings = toSettings(hot, result, options);
 
     // The column types go in BEFORE the data, unlike the layout below: `loadData` runs the source-data
@@ -323,7 +555,7 @@ export function applyImportResult(
     if (settings.columns !== undefined) {
       const columnTypes: Record<string, unknown> = { columns: settings.columns };
 
-      hot.updateSettings(columnTypes);
+      update(columnTypes);
       // Applied once: `loadData` keeps the `columns` option, so passing it again below rebuilt every
       // column's meta a second time on each import (review round 12).
       delete settings.columns;
@@ -331,10 +563,12 @@ export function applyImportResult(
 
     hot.loadData(result.data);
 
-    installImportedStyles(hot, result.styles ?? {});
+    const installed = installImportedStyles(hot, result.styles ?? {});
+
+    options.onStylesInstalled?.(installed);
 
     if (Object.keys(settings).length > 0) {
-      hot.updateSettings(settings);
+      update(settings);
     }
 
     // The result is in sheet (physical) coordinates; `setCellMetaObject` and `setCommentAtCell`
@@ -360,7 +594,7 @@ export function applyImportResult(
 
     const comments = hot.getPlugin('comments');
 
-    if (result.comments && comments?.isEnabled()) {
+    if (result.comments && comments?.enabled) {
       result.comments.forEach(({ row, col, value }) => {
         const target = visual(row, col);
 

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added dynamic-array formulas, error cells, and defined names to the XLSX export and import. With `exportFormulas`, the export writes the Formulas plugin's named expressions as defined names, the sheet-scoped ones included. The import keeps an array formula's spilled cells empty so it spills without `#SPILL!`, keeps the file's cached values where HyperFormula spills less, and registers the workbook's defined names in HyperFormula (built-in engine). The XLSX export now changes existing output too: with the Formulas plugin on, it writes each value with the type HyperFormula computed, even without `exportFormulas`, so a computed number or `TRUE`/`FALSE` is no longer written as text, and an error Excel has a code for is written as an Excel error instead of text. It also writes a formula entered with a decimal comma (`decimalSeparator: ','`) with a dot, so Excel reads `1,5` as 1.5. Fixed exported cell formulas being written one column off when columns were moved with `manualColumnMove` and hidden columns were left out with `exportHiddenColumns: false`.",
+  "type": "added",
+  "issueOrPR": 14096,
+  "breaking": false,
+  "framework": "none"
+}

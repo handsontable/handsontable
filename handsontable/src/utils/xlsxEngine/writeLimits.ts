@@ -8,6 +8,15 @@ import { MAX_COLUMN_WIDTH_UNITS, MAX_ROW_HEIGHT_POINTS } from './units';
 export const MAX_CELL_TEXT_LENGTH = 32767;
 
 /**
+ * The most cells the ExcelJS writer lets the defined names of one workbook cover together. ExcelJS
+ * stores a name as one object per covered cell and walks them all again when it writes, so a
+ * whole-sheet name (`Sheet1!$A$1:$XFD$1048576`, 17 billion cells) never returns. 100 000 cells is
+ * about 100 columns of 1 000 rows – far above what a named range covers in practice – and costs
+ * a few tens of MB at most. A name past the budget is left out and reported as unsupported.
+ */
+export const MAX_EXCELJS_DEFINED_NAME_CELLS = 100000;
+
+/**
  * Cuts a cell string down to `MAX_CELL_TEXT_LENGTH` and records the cut. The cut never splits a
  * surrogate pair: an astral character straddling the limit is dropped whole, so no lone surrogate
  * (which `TextEncoder` turns into U+FFFD) reaches the file.

@@ -133,3 +133,47 @@ describe('PaginationUI', () => {
     expect(select.disabled).toBe(false);
   });
 });
+
+describe('PaginationUI without a custom container', () => {
+  let rootElement;
+  let wrapperElement;
+  let ui;
+
+  beforeEach(() => {
+    rootElement = document.createElement('div');
+    wrapperElement = document.createElement('div');
+    wrapperElement.className = 'ht-wrapper';
+    rootElement.appendChild(wrapperElement);
+    document.body.appendChild(rootElement);
+
+    ui = new PaginationUI({
+      rootElement,
+      uiContainer: null,
+      isRtl: false,
+      themeName: 'ht-theme-main',
+      phraseTranslator: key => String(key),
+      a11yAnnouncer: () => {},
+      syncIcon: stubSyncIcon,
+    });
+  });
+
+  afterEach(() => {
+    ui.destroy();
+    rootElement.remove();
+  });
+
+  it('should mark the root wrapper while a section is visible', () => {
+    expect(wrapperElement.classList.contains('htPagination')).toBe(false);
+
+    ui.setNavigationSectionVisibility(true);
+
+    expect(wrapperElement.classList.contains('htPagination')).toBe(true);
+  });
+
+  it('should take the marker off the root wrapper when the UI is destroyed', () => {
+    ui.setNavigationSectionVisibility(true);
+    ui.destroy();
+
+    expect(wrapperElement.classList.contains('htPagination')).toBe(false);
+  });
+});

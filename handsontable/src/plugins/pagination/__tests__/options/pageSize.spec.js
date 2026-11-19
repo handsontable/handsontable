@@ -45,7 +45,7 @@ describe('Pagination `pageSize` option', () => {
 
       resolve({
         hotInstance: container.handsontable({
-          licenseKey: 'non-commercial-and-evaluation',
+          licenseKey: TEST_LICENSE_KEY,
           ...options,
         }).handsontable('getInstance'),
         iframe,

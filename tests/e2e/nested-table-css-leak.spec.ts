@@ -86,6 +86,7 @@ function fixtureHtml(theme: string, bundle: string): string {
     .nested-user-table { border-collapse: collapse; }
     .nested-user-table td { border: 2px solid #008000; padding: 6px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -144,7 +145,7 @@ function fixtureHtml(theme: string, bundle: string): string {
 
         return {};
       },
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>
@@ -296,6 +297,7 @@ function menuFixtureHtml(theme: string, bundle: string): string {
   <style id="host-input-rule">
     input { min-height: 40px; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -315,7 +317,7 @@ function menuFixtureHtml(theme: string, bundle: string): string {
       rowHeaders: true,
       dropdownMenu: true,
       filters: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>
@@ -409,6 +411,7 @@ function ghostFixtureHtml(theme: string, bundle: string): string {
        friends ship exactly this. */
     * { box-sizing: border-box; }
   </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
 </head>
 <body>
   <div id="grid" data-testid="grid"></div>
@@ -444,7 +447,7 @@ function ghostFixtureHtml(theme: string, bundle: string): string {
         ['A sub', 'B sub', 'C sub'],
       ],
       rowHeaders: true,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: window.htTestLicenseKey,
     });
   </script>
 </body>

@@ -36,9 +36,9 @@ export class CustomBordersLabPage {
    * bundle travel as query params so the fixture loads the matching stylesheet and Handsontable
    * build — miss either and the leg silently tests something other than what its name says.
    */
-  async goto(): Promise<void> {
+  async goto(scheme: 'light' | 'dark' = 'light'): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/custom-borders-lab.html?theme=${this.theme}&bundle=${this.bundle}`);
+      `/tests/fixtures/demo/custom-borders-lab.html?theme=${this.theme}&bundle=${this.bundle}&scheme=${scheme}`);
     await expect(this.grid).toBeAttached();
   }
 
@@ -270,6 +270,56 @@ export class CustomBordersLabPage {
     }, [row, col] as const);
   }
 
+  /**
+   * How many pixels of `color` are on screen in an 8px strip across a cell's `start` (inline-start) or
+   * `top` boundary, read from a screenshot of the topmost copy of the cell. A hit test cannot tell: the
+   * inline-start clone's holder answers `elementFromPoint` over the cell it covers, and a border's
+   * element is in the DOM whether or not it is painted. A 1px edge counts 1 and a 3px edge 3, so an edge
+   * the freeze line's overlay covers part of reads short, and one that is not drawn reads 0.
+   */
+  async edgePixelCount(
+    row: number, col: number, edge: 'start' | 'top', color: string, isRtl = false,
+  ): Promise<number> {
+    const cell = await this.page.evaluate(([r, c]) => {
+      const rect = (window as any).hot.getCell(r, c, true).getBoundingClientRect();
+
+      return { left: rect.left, right: rect.right, top: rect.top, middleX: rect.left + rect.width / 2, middleY: rect.top + rect.height / 2 };
+    }, [row, col] as const);
+    const isStart = edge === 'start';
+    const boundary = Math.round(isStart ? (isRtl ? cell.right : cell.left) : cell.top);
+    const clip = isStart ?
+      { x: boundary - 4, y: Math.floor(cell.middleY), width: 8, height: 1 } :
+      { x: Math.floor(cell.middleX), y: boundary - 4, width: 1, height: 8 };
+    const shot = await this.page.screenshot({ clip, scale: 'css' });
+
+    return this.page.evaluate(async([base64, wanted]) => {
+      const image = new Image();
+
+      image.src = `data:image/png;base64,${base64}`;
+      await image.decode();
+
+      const canvas = document.createElement('canvas');
+
+      canvas.width = image.width;
+      canvas.height = image.height;
+
+      const context = canvas.getContext('2d')!;
+
+      context.drawImage(image, 0, 0);
+
+      const { data } = context.getImageData(0, 0, image.width, image.height);
+      let count = 0;
+
+      for (let i = 0; i < data.length; i += 4) {
+        if (`rgb(${data[i]}, ${data[i + 1]}, ${data[i + 2]})` === wanted) {
+          count += 1;
+        }
+      }
+
+      return count;
+    }, [shot.toString('base64'), color]);
+  }
+
   /** How many times `afterCustomBordersUpdate` has fired since the grid was created. */
   async bordersUpdateCount(): Promise<number> {
     return this.page.evaluate(() => (window as any).bordersUpdateCount);
@@ -284,20 +334,48 @@ export class CustomBordersLabPage {
   }
 
   /**
+   * Add one border side to a cell through the context menu's Borders submenu (`Top`, `Bottom`,
+   * `Left`, or `Right`), then deselect so the built-in selection borders cannot mask the result.
+   */
+  async addBorderViaContextMenu(row: number, col: number, side: 'Top' | 'Bottom' | 'Left' | 'Right'): Promise<void> {
+    await this.#pickBordersSubmenuItem(row, col, side);
+  }
+
+  /**
+   * The painted (computed) background colors of all visible custom-border edges. Unlike
+   * `visibleBorderColors()`, which reads the inline value, this resolves CSS variables and
+   * `light-dark()` to the color the user sees.
+   */
+  async visibleBorderComputedColors(): Promise<string[]> {
+    return this.page.evaluate(() => (window as any).borderUtils.visibleBorderComputedColors());
+  }
+
+  /**
+   * The computed background color of a cell.
+   */
+  async cellBackgroundColor(row: number, col: number): Promise<string> {
+    return this.cellInMaster(row, col).evaluate(td => getComputedStyle(td).backgroundColor);
+  }
+
+  /**
    * Remove the border of a cell through the real context menu ("Borders" → "Remove
    * border(s)") — the user path that regressed with orphaned border ids.
    */
   async removeBorderViaContextMenu(row: number, col: number): Promise<void> {
+    await this.#pickBordersSubmenuItem(row, col, 'Remove border(s)');
+  }
+
+  /**
+   * Right-click a cell, open the context menu's Borders submenu, and click `label` in it. Then
+   * deselect so the built-in selection borders cannot mask the caller's border assertions.
+   */
+  async #pickBordersSubmenuItem(row: number, col: number, label: string): Promise<void> {
     await this.cellInMaster(row, col).click({ button: 'right' });
 
     const menu = this.page.locator('.htContextMenu:visible').last();
 
     await menu.getByText('Borders', { exact: true }).hover();
-
-    const submenu = this.page.locator('.htContextMenuSub_Borders');
-
-    await submenu.getByText('Remove border(s)', { exact: true }).click();
-    // Deselect so the built-in selection borders cannot mask the caller's border assertions.
+    await this.page.locator('.htContextMenuSub_Borders').getByText(label, { exact: true }).click();
     await this.page.evaluate(() => (window as any).hot.deselectCell());
   }
 }

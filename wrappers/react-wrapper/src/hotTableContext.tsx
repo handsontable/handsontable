@@ -11,7 +11,7 @@ import React, {
   useContext,
 } from 'react';
 import { ScopeIdentifier, HotRendererProps } from './types';
-import { createPortal } from './helpers';
+import { createPortal, getCellContentRoot, warnAboutClassicFunctionRenderer } from './helpers';
 import { RenderersPortalManagerRef } from './renderersPortalManager';
 
 export interface HotTableContextImpl {
@@ -52,14 +52,16 @@ export interface HotTableContextImpl {
     (Renderer: ComponentType<HotRendererProps>) => typeof Handsontable.renderers.BaseRenderer;
 
   /**
-   * Clears portals cache.
+   * Starts a view-render pass: forgets which portal containers the previous pass rendered.
    */
-  readonly clearPortalCache: () => void;
+  readonly resetRenderedPortals: () => void;
 
   /**
-   * Clears rendered cells cache.
+   * Records a cell element the grid painted in the current view-render pass, whatever its renderer.
+   *
+   * @param {HTMLTableCellElement} TD The painted cell element.
    */
-  readonly clearRenderedCellCache: () => void;
+  readonly markCellPainted: (TD: HTMLTableCellElement) => void;
 
   /**
    * Returns the number of portal containers currently retained by the cache.
@@ -78,7 +80,7 @@ export interface HotTableContextImpl {
   readonly setRenderersPortalManagerRef: (pm: RenderersPortalManagerRef) => void;
 
   /**
-   * Puts cell portals into portal manager and purges portals cache.
+   * Evicts the portals of the cells that left the grid and puts the rest into the portal manager.
    */
   readonly pushCellPortalsIntoPortalManager: () => void;
 }
@@ -97,19 +99,40 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   }, []);
 
   const componentRendererColumns = useRef<Map<number | 'global', boolean>>(new Map());
-  const renderedCellCache = useRef<Map<string, HTMLTableCellElement>>(new Map());
-  const clearRenderedCellCache = useCallback(() => renderedCellCache.current.clear(), []);
-  const portalCache = useRef<Map<string, ReactPortal>>(new Map());
-  const portalContainerCache = useRef<Map<string, HTMLElement>>(new Map());
+  // One entry per cell the grid shows with a component renderer: the cell element, the container in
+  // it, and the portal that renders the component into the container. Keyed by the portal container key.
+  const cellPortals = useRef<Map<string, {
+    TD: HTMLTableCellElement,
+    container: HTMLElement,
+    portal: ReactPortal,
+  }>>(new Map());
+
+  /**
+   * The renderer function made for each renderer component. It reads everything else through refs, so
+   * one function serves every render, and an update that passes the same `<HotColumn>` settings again
+   * finds them unchanged and leaves `columns` out.
+   */
+  const rendererWrappers = useRef<WeakMap<ComponentType<HotRendererProps>, typeof Handsontable.renderers.BaseRenderer>>(
+    new WeakMap()
+  );
   // Keys of the portal containers rendered in the current view-render pass.
-  // Reset every `beforeViewRender` and used after the render to evict
-  // containers whose cells left the viewport (see pushCellPortalsIntoPortalManager).
+  // Reset every `beforeViewRender` and used after the render to tell the cells
+  // the pass painted from the ones it did not (see pushCellPortalsIntoPortalManager).
   const renderedPortalContainerKeys = useRef<Set<string>>(new Set());
-  const clearPortalCache = useCallback(() => {
-    portalCache.current.clear();
+  // Cell elements the grid painted in the current view-render pass, with any renderer. A cell element
+  // the grid reuses for another cell keeps a component container when the new renderer does not clear
+  // the element, so a connected container alone does not prove its cell is still shown.
+  const paintedCells = useRef<Set<HTMLTableCellElement>>(new Set());
+  const resetRenderedPortals = useCallback(() => {
     renderedPortalContainerKeys.current.clear();
+    paintedCells.current.clear();
   }, []);
-  const getPortalContainerCacheSize = useCallback(() => portalContainerCache.current.size, []);
+  const markCellPainted = useCallback((TD: HTMLTableCellElement) => {
+    if (cellPortals.current.size > 0) {
+      paintedCells.current.add(TD);
+    }
+  }, []);
+  const getPortalContainerCacheSize = useCallback(() => cellPortals.current.size, []);
 
   // Stable id per table element the grid draws into. Handsontable renders the
   // same cell once per table it appears in — the master table plus an overlay
@@ -148,7 +171,15 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const getRendererWrapper = useCallback((
     Renderer: ComponentType<HotRendererProps>
   ): typeof Handsontable.renderers.BaseRenderer => {
-    return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
+    const cachedWrapper = rendererWrappers.current.get(Renderer);
+
+    if (cachedWrapper) {
+      return cachedWrapper;
+    }
+
+    warnAboutClassicFunctionRenderer(Renderer);
+
+    const wrapper = function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
       const key = `${row}-${col}`;
 
       // Handsontable.Core type is missing guid
@@ -164,13 +195,17 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
         const tableId = getTableId(TD);
         const portalContainerKey = `${instanceGuid}-${tableId}-${key}`;
         const portalKey = `${key}-${tableId}-${instanceGuid}`;
-        const cachedPortalContainer = portalContainerCache.current.get(portalContainerKey);
+        const cachedPortalContainer = cellPortals.current.get(portalContainerKey)?.container;
         // When the cached portal container is still attached to the same
         // TD as the previous render, the DOM is already correct and must
         // not be wiped. Wiping detaches the React-managed children, which
         // forces a full remount of the renderer component on every grid
         // render (see issue #10800).
-        const containerInPlace = !!cachedPortalContainer && cachedPortalContainer.parentNode === TD;
+        // A row rendered at an exact height (the `rowHeights` option) keeps the cell's content inside a
+        // `div.htCellClip` wrapper that the grid adds after this renderer ran. The container then sits in
+        // the wrapper, and wiping the cell on the next render would detach it all over again.
+        const contentRoot = getCellContentRoot(TD);
+        const containerInPlace = !!cachedPortalContainer && cachedPortalContainer.parentNode === contentRoot;
 
         const rendererElement = (
           <Renderer instance={instance}
@@ -187,21 +222,22 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
         );
 
         if (!containerInPlace) {
-          while (TD.firstChild) {
-            TD.removeChild(TD.firstChild);
+          while (contentRoot.firstChild) {
+            contentRoot.removeChild(contentRoot.firstChild);
           }
-          TD.appendChild(portalContainer);
+          contentRoot.appendChild(portalContainer);
         }
 
-        portalContainerCache.current.set(portalContainerKey, portalContainer);
+        cellPortals.current.set(portalContainerKey, { TD, container: portalContainer, portal });
         renderedPortalContainerKeys.current.add(portalContainerKey);
-        portalCache.current.set(portalKey, portal);
       }
-
-      renderedCellCache.current.set(key, TD);
 
       return TD;
     };
+
+    rendererWrappers.current.set(Renderer, wrapper);
+
+    return wrapper;
   }, [getTableId]);
 
   const renderersPortalManager = useRef<RenderersPortalManagerRef>(() => undefined);
@@ -211,21 +247,30 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   }, []);
 
   const pushCellPortalsIntoPortalManager = useCallback(() => {
-    // Evict portal containers whose cells were not rendered in this pass (e.g.
-    // scrolled out of the viewport). Their container DIVs are already detached
-    // from the DOM, so without this they would be retained forever, leaking
-    // O(rows × cols) detached nodes for component-based renderers. Containers
-    // still in the viewport stay cached, preserving the in-place reuse that
-    // avoids remounting renderer components on every grid render (#10800).
-    const liveKeys = renderedPortalContainerKeys.current;
+    // A cell this pass did not paint with its component either left the grid or
+    // was skipped. The grid skips a cell that did not change (`renderMode:
+    // 'onChange'`) and leaves its element as it is, so the portal must stay or
+    // React unmounts the component and the cell goes blank. A cell that left the
+    // grid had its element removed (the container is detached), or its element
+    // was painted for another cell this pass (with a renderer that may not clear
+    // the element): evict those, or the cache leaks O(rows × cols) nodes and a
+    // stale component stays visible. Kept entries also preserve the in-place
+    // reuse that avoids remounting renderer components on every grid render
+    // (#10800).
+    const paintedKeys = renderedPortalContainerKeys.current;
+    const portals: ReactPortal[] = [];
 
-    portalContainerCache.current.forEach((_, cacheKey) => {
-      if (!liveKeys.has(cacheKey)) {
-        portalContainerCache.current.delete(cacheKey);
+    cellPortals.current.forEach(({ TD, container, portal }, cacheKey) => {
+      if (!paintedKeys.has(cacheKey) && (!container.isConnected || paintedCells.current.has(TD))) {
+        cellPortals.current.delete(cacheKey);
+
+        return;
       }
+
+      portals.push(portal);
     });
 
-    renderersPortalManager.current!([...portalCache.current.values()]);
+    renderersPortalManager.current!(portals);
   }, []);
 
   const contextImpl: HotTableContextImpl = useMemo(() => ({
@@ -234,8 +279,8 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
     emitColumnSettings: setHotColumnSettings,
     trimColumnSettings,
     getRendererWrapper,
-    clearPortalCache,
-    clearRenderedCellCache,
+    resetRenderedPortals,
+    markCellPainted,
     getPortalContainerCacheSize,
     setRenderersPortalManagerRef,
     pushCellPortalsIntoPortalManager
@@ -243,7 +288,8 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
     setHotColumnSettings,
     trimColumnSettings,
     getRendererWrapper,
-    clearRenderedCellCache,
+    resetRenderedPortals,
+    markCellPainted,
     getPortalContainerCacheSize,
     setRenderersPortalManagerRef,
     pushCellPortalsIntoPortalManager,

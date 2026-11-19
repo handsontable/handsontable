@@ -96,6 +96,7 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
+        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
         dataProvider={dataProvider}
         colHeaders={['ID', 'Name', 'Username', 'Email', 'City', 'Company']}
         columns={[
@@ -117,7 +118,6 @@ const ExampleComponent = () => {
         beforeDataProviderFetch={beforeDataProviderFetch}
         afterDataProviderFetch={afterDataProviderFetch}
         afterDataProviderFetchError={afterDataProviderFetchError}
-        licenseKey="non-commercial-and-evaluation"
       />
     </div>
   );

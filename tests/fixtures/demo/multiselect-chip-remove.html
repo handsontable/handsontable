@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multiselect chip remove fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from fixed allowlists, the same fail-loud block as `grid.html`: an
+    // unknown value throws instead of silently falling back to a default leg.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const SOURCE = ['a', 'b', 'c'];
+
+    // One column per way a cell can refuse edits, plus an editable control in column 0:
+    //   0 - editable,
+    //   1 - `readOnly` on the column,
+    //   2 - `readOnly` from `cells()`,
+    //   3 - `editor: false` on the column,
+    //   4 - `readOnly` on the column with `readOnlyStyling: false`, which must look editable.
+    // `?tableReadOnly=1` sets `readOnly` on the whole table instead, which reaches column 0 as well.
+    const tableReadOnly = htParams.get('tableReadOnly') === '1';
+
+    window.hot = new Handsontable(container, {
+      // A fresh array per cell: a shared one would let a removal in one cell show up in the others.
+      data: [0, 1].map(() => [0, 1, 2, 3, 4].map(() => SOURCE.slice())),
+      columns: [
+        { type: 'multiselect', source: SOURCE },
+        { type: 'multiselect', source: SOURCE, readOnly: true },
+        { type: 'multiselect', source: SOURCE },
+        { type: 'multiselect', source: SOURCE, editor: false },
+        { type: 'multiselect', source: SOURCE, readOnly: true, readOnlyStyling: false },
+      ],
+      cells(row, col) {
+        return col === 2 ? { readOnly: true } : {};
+      },
+      readOnly: tableReadOnly,
+      // Wide enough for all three chips, so none hides behind the `+N` badge.
+      colWidths: 200,
+      colHeaders: true,
+      rowHeaders: true,
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: window.htTestLicenseKey,
+    });
+  </script>
+</body>
+</html>

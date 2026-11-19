@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import { TEST_LICENSE_KEY } from '../../test-license-key';
 
 export function init() {
   const root = document.getElementById('root');
@@ -32,13 +33,13 @@ export function init() {
   new Handsontable(example1, {
     data: Handsontable.helper.createSpreadsheetData(5, 5),
     height: 'auto',
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   new Handsontable(example2, {
     data: Handsontable.helper.createSpreadsheetData(30, 5),
     height: '200px',
-    licenseKey: 'non-commercial-and-evaluation',
+    licenseKey: TEST_LICENSE_KEY,
   });
 
   console.log(

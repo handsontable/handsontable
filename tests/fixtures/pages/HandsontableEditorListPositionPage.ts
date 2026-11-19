@@ -76,10 +76,13 @@ export interface Box {
 }
 
 /**
- * The edited cell, the editor's list, and the viewport, read in one evaluation.
+ * The edited cell, the editor's holder, the editor's list, and the viewport, read in one evaluation.
+ * The list is anchored to the holder, not to the cell: the two differ by the 1px the editor reaches
+ * past a cell whose gridline it covers, and by 0 where that pixel is covered by an overlay.
  */
 export interface ListGeometry {
   cell: Box;
+  holder: Box;
   list: Box;
   viewport: { width: number; height: number };
 }
@@ -99,8 +102,9 @@ export interface ListPlacement {
  * How far an edge may be from where it should be. The offsets are whole pixels, measured the same
  * on all three themes and in both layouts, so a 1 px shift fails on every leg:
  *
- * - opened toward the inline end (the default), the list starts 1 px before the cell's inline start
- *   (the editor border compensation in `BaseEditor#getEditedCellRect`);
+ * - opened toward the inline end (the default), the list starts where the editor's holder starts (the
+ *   editor border compensation in `BaseEditor#getEditedCellRect` moves that 1 px before the cell's inline
+ *   start, except where an inline-start overlay covers the pixel);
  * - flipped toward the inline start, its inline end is flush with the cell's;
  * - below the cell, its top is the cell's bottom; flipped above, its bottom is 1 px above the cell's
  *   top.
@@ -129,12 +133,13 @@ export const TRIMMED_SHORTFALL_PX = 2;
  * @returns {ListPlacement} The placement.
  */
 export function placementOf(geometry: ListGeometry, dir: 'ltr' | 'rtl'): ListPlacement {
-  const { cell, list, viewport } = geometry;
+  const { cell, holder, list, viewport } = geometry;
   const round = (value: number) => Math.round(value * 10) / 10;
   const meets = (a: number, b: number) => Math.abs(a - b) <= EDGE_TOLERANCE_PX;
-  // The border compensation sits on the cell's inline start: its left in LTR, its right in RTL.
-  const leftEdge = dir === 'rtl' ? cell.left : cell.left - 1;
-  const rightEdge = dir === 'rtl' ? cell.right + 1 : cell.right;
+  // The list is anchored to the editor's box, which carries the border compensation on the cell's
+  // inline start: its left in LTR, its right in RTL.
+  const leftEdge = holder.left;
+  const rightEdge = holder.right;
   let aligned: string;
   let side: string;
 
@@ -430,15 +435,40 @@ export class HandsontableEditorListPositionPage {
         return { left, right, top, bottom };
       };
       const { hot } = window as unknown as {
-        hot: { getCell(row: number, col: number): HTMLElement | null;
-          getActiveEditor(): { htContainer?: HTMLElement } | undefined; };
+        hot: { getCell(row: number, col: number): HTMLElement | null; rootElement: HTMLElement; isRtl(): boolean;
+          getActiveEditor(): { htContainer?: HTMLElement, TEXTAREA_PARENT?: HTMLElement,
+            getEditedCellRect(): { start: number, width: number } | undefined } | undefined; };
       };
       // The nested grid's container is read off the active editor, so a list left over from another
       // cell can never be the one measured; the multiselect exposes no such field.
       const list = nestedGrid ? hot.getActiveEditor()?.htContainer : document.querySelector(listSelector);
 
+      // The editor's box, as the list is anchored to it. Read from the editor's holder in the DOM, so the
+      // expectation does not move with the code under test. The multiselect editor has no holder element
+      // and positions its list from `getEditedCellRect()`, so its box is derived from that rect: the root's
+      // box plus the offset and width it returns, measured from the root's inline-start edge.
+      const editor = hot.getActiveEditor();
+      let holder;
+
+      if (editor?.TEXTAREA_PARENT) {
+        holder = box(editor.TEXTAREA_PARENT);
+      } else {
+        const editorRect = editor?.getEditedCellRect();
+
+        if (!editorRect) {
+          throw new Error('An element the list geometry needs is not in the DOM');
+        }
+
+        const rootBox = box(hot.rootElement);
+        const holderLeft = hot.isRtl() ?
+          rootBox.right - editorRect.start - editorRect.width : rootBox.left + editorRect.start;
+
+        holder = { ...box(hot.getCell(row, col)), left: holderLeft, right: holderLeft + editorRect.width };
+      }
+
       return {
         cell: box(hot.getCell(row, col)),
+        holder,
         list: box(list),
         viewport: { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight },
       };

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue where changing the grid-level `type` with `updateSettings()` did not apply the editor, renderer, and validator of the new type. Passing `undefined` for `editor`, `renderer`, or `validator` now gives the option back to the type, so `updateSettings({ validator: undefined })` on a numeric grid keeps the numeric validator instead of leaving none.",
+  "type": "fixed",
+  "issueOrPR": 14172,
+  "breaking": false,
+  "framework": "none"
+}

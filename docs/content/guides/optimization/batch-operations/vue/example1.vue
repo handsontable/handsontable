@@ -37,7 +37,7 @@ const hotSettings = ref<GridSettings>({
   colHeaders: ['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return'],
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 function logOutput(msg: string) {

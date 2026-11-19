@@ -56,7 +56,7 @@ const ExampleComponent = () => {
     autoWrapRow: true,
     autoWrapCol: true,
     exportFile: true,
-    licenseKey: 'non-commercial-and-evaluation' as const,
+    // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
   };
 
   return (

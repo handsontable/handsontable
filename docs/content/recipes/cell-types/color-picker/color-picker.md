@@ -17,6 +17,7 @@ vue:
   metaTitle: Color picker cell type | Handsontable DataGrid for Vue
 searchCategory: Recipes
 category: Cell Types
+menuTag: updated
 ---
 
 This tutorial shows you how to integrate the Pickr color picker library as a custom Handsontable DataGrid cell editor, with a swatch renderer and hex validation.
@@ -477,7 +478,7 @@ const hotOptions: Handsontable.GridSettings = {
     { data: 'cost', type: 'numeric', width: 70, headerClassName: 'htLeft' },
     { data: 'valueStock', type: 'numeric', width: 130, headerClassName: 'htRight' },
   ],
-  licenseKey: 'non-commercial-and-evaluation',
+  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 };
 
 const hot = new Handsontable(container, hotOptions);

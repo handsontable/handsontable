@@ -3,6 +3,7 @@ import { registerPlugin } from '../../registry';
 import { ColumnSorting } from '../columnSorting';
 import { rootComparator } from '../rootComparator';
 import { registerRootComparator } from '../sortService';
+import { TEST_LICENSE_KEY } from '../../../../test/helpers/licenseKey';
 
 // A subclass may widen the sortable band past `countRows()`, and `toPhysicalRow()` then answers `null`
 // for every visual row past the end. Both sort paths gather those rows into a plain array - never an
@@ -48,7 +49,7 @@ describe('a subclass that widens `getNumberOfRowsToSort()`', () => {
     return new Handsontable(container, {
       data: [['a', 30], ['b', 10], ['c', 20]],
       columnSorting,
-      licenseKey: 'non-commercial-and-evaluation',
+      licenseKey: TEST_LICENSE_KEY,
     });
   }
 
