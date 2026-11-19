@@ -68,15 +68,15 @@ interface ReadColumn {
   physicalColumn: number | null;
   /**
    * Whether the column meta resolves a function `valueGetter` (set on the column, or inherited from the
-   * table and global layers).
+   * table and global layers), or `null` until a read of a cell without stored meta needs the answer.
    *
-   * `getCellMetaUncached()` runs neither the `cells` function nor the `afterGetCellMeta` hook. It returns
-   * the stored meta, or a new object whose prototype is the column meta. So a `valueGetter` can only come
-   * from stored meta or the column layer, and when neither has one, the meta object a read would create
-   * per cell is thrown away unused. `getAtColumnForRows()` gates its fast loop on the same two checks: a
-   * new source for a `valueGetter` must update both.
+   * A read runs neither the `cells` function nor the `afterGetCellMeta` hook. It applies the stored meta,
+   * or for a cell without one, an object whose prototype is the column meta. So a `valueGetter` can only
+   * come from stored meta or the column layer, and when neither has one, a meta object created for the
+   * cell would be thrown away unused. `getAtColumnForRows()` gates its fast loop on the same two checks:
+   * a new source for a `valueGetter` must update both.
    */
-  hasColumnValueGetter: boolean;
+  hasColumnValueGetter: boolean | null;
 }
 
 /**
@@ -1147,9 +1147,23 @@ class DataMap {
       prop,
       visualColumn,
       physicalColumn,
-      hasColumnValueGetter: isUnsignedNumber(physicalColumn) &&
-        isFunction(this.metaManager!.getColumnMeta(physicalColumn).valueGetter),
+      hasColumnValueGetter: null,
     };
+  }
+
+  /**
+   * Answers `ReadColumn#hasColumnValueGetter`, resolving it on the first call for that column.
+   *
+   * @param {object} column The resolved column.
+   * @param {number} physicalColumn The physical index of the column.
+   * @returns {boolean}
+   */
+  #hasColumnValueGetter(column: ReadColumn, physicalColumn: number): boolean {
+    if (column.hasColumnValueGetter === null) {
+      column.hasColumnValueGetter = isFunction(this.metaManager!.getColumnMeta(physicalColumn).valueGetter);
+    }
+
+    return column.hasColumnValueGetter;
   }
 
   /**
@@ -1217,22 +1231,23 @@ class DataMap {
     }
 
     if (!skipValueGetter && typeof visualColumn === 'number' &&
-        isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn) &&
-        (column.hasColumnValueGetter ||
-          isFunction(this.metaManager!.getCellMetaIfExists(physicalRow, physicalColumn)?.valueGetter))) {
-      // The uncached read returns the stored meta when the cell carries persisted overrides and a
-      // transient object otherwise - a plain data read must not permanently materialize one meta
-      // object per visited cell (a full-table scan such as sorting would retain O(rows) of them).
-      // When neither the column nor the cell's stored meta has a `valueGetter`, the read is skipped
-      // (see `ReadColumn#hasColumnValueGetter`), so a cell with stored meta and no `valueGetter`
-      // costs one lookup, and only a cell with its own `valueGetter` is looked up twice.
-      value = getValueGetterValue(
-        value,
-        this.metaManager!.getCellMetaUncached(physicalRow, physicalColumn, {
+        isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+      // One lookup per cell: stored meta inherits the column meta, so it answers for both layers. A cell
+      // without stored meta gets a transient object only when the column has a `valueGetter` - a plain
+      // data read must not permanently materialize one meta object per visited cell (a full-table scan
+      // such as sorting would retain O(rows) of them), nor allocate one it throws away unused.
+      let cellMeta = this.metaManager!.getCellMetaIfExists(physicalRow, physicalColumn);
+
+      if (cellMeta === undefined && this.#hasColumnValueGetter(column, physicalColumn)) {
+        cellMeta = this.metaManager!.createTransientColumnMeta(physicalColumn);
+      }
+
+      if (cellMeta !== undefined) {
+        value = getValueGetterValue(value, this.metaManager!.stampCellMeta(cellMeta, physicalRow, physicalColumn, {
           visualRow: row,
           visualColumn,
-        })
-      );
+        }));
+      }
     }
 
     if (this.hot!.hasHook('modifyData')) {

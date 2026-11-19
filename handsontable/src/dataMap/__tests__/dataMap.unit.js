@@ -683,7 +683,7 @@ describe('DataMap bulk reads through `getRange()`', () => {
     expect(createTransientMeta).not.toHaveBeenCalled();
   });
 
-  it('should look a cell with stored meta and no `valueGetter` up once, without the uncached read', () => {
+  it('should look a cell with stored meta up once, its own `valueGetter` included', () => {
     hot = createUnrenderedGrid({ data: [['A1', 'B1'], ['A2', 'B2']] });
     hot.setCellMeta(0, 0, 'className', 'marked');
     hot.setCellMeta(1, 1, 'valueGetter', value => value.toLowerCase());
@@ -694,7 +694,22 @@ describe('DataMap bulk reads through `getRange()`', () => {
 
     expect(hot.getData()).toEqual([['A1', 'B1'], ['A2', 'b2']]);
     expect(getCellMetaIfExists).toHaveBeenCalledTimes(4);
-    expect(getCellMetaUncached.mock.calls.map(([row, column]) => [row, column])).toEqual([[1, 1]]);
+    expect(getCellMetaUncached).not.toHaveBeenCalled();
+  });
+
+  it('should stamp the current coordinates on stored meta it reads, after the rows moved', () => {
+    hot = createUnrenderedGrid({ data: [['A1'], ['A2'], ['A3']] });
+
+    for (let row = 0; row < 3; row++) {
+      hot.setCellMeta(row, 0, 'className', 'marked');
+    }
+
+    hot.rowIndexMapper.setIndexesSequence([2, 0, 1]);
+    hot.getData();
+
+    const visualRowOf = physicalRow => hot.getCellsMeta().find(meta => meta.row === physicalRow).visualRow;
+
+    expect([visualRowOf(0), visualRowOf(1), visualRowOf(2)]).toEqual([1, 2, 0]);
   });
 
   it('should resolve each column\'s property once per read, not once per cell', () => {
