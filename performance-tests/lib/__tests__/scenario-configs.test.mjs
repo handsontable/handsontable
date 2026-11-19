@@ -24,6 +24,7 @@ const FIVE_ITERATIONS = [
   'filtering',
   'get-data',
   'initial-load',
+  'pagination-next-page',
   'paste-extend-rows',
   'row-selection-deselect-all',
   'row-selection-select-all',
