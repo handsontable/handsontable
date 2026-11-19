@@ -83,6 +83,68 @@ test.describe('handsontable editor grid popup', { tag: [THEMES_TAG, CROSS_BROWSE
     });
   });
 
+  test('names no cell while a theme change keeps the list closed', async() => {
+    await grid.goto({ twoListColumns: true });
+    await grid.openEditorAt(0, 0);
+    await grid.page.keyboard.press('ArrowDown');
+    await expect.poll(() => grid.referencedElements()).toMatchObject({ activeDescendant: { text: 'Alpha' } });
+
+    await grid.switchToAnotherTheme();
+
+    const field = grid.field('A, row 1');
+
+    await expect(field).toHaveAttribute('aria-expanded', 'false');
+    // The closed list keeps its selection; a render of it must not name a cell again.
+    await grid.renderList();
+    await expect(field).not.toHaveAttribute('aria-activedescendant');
+    await expect(field).not.toHaveAttribute('aria-controls');
+  });
+
+  test('names the list only while it is shown over a scroll round-trip', async() => {
+    await grid.goto({ frozen: true, twoListColumns: true });
+    await grid.openEditorAt(0, 1);
+    await grid.page.keyboard.press('ArrowDown');
+    await expect.poll(() => grid.referencedElements()).toMatchObject({ activeDescendant: { text: 'Alpha' } });
+
+    const field = grid.field('B, row 1');
+
+    await grid.scrollGridToInlineEnd();
+    await expect(field).toHaveAttribute('aria-expanded', 'false');
+    await grid.renderList();
+    await expect(field).not.toHaveAttribute('aria-activedescendant');
+    await expect(field).not.toHaveAttribute('aria-controls');
+
+    await grid.scrollGridToInlineStart();
+    await expect(field).toHaveAttribute('aria-expanded', 'true');
+    await expect.poll(() => grid.referencedElements()).toEqual({
+      controls: { role: 'grid', isListRoot: true },
+      activeDescendant: { role: 'gridcell', selected: 'true', text: 'Alpha', inList: true },
+    });
+  });
+
+  test('keeps the focus out of a list that scrolls on Tab and Shift+Tab', async() => {
+    await grid.goto({ twoListColumns: true, longSource: true });
+
+    // Tab from the field, with a row highlighted.
+    await grid.openEditorAt(0, 0);
+    await grid.page.keyboard.press('ArrowDown');
+    await grid.page.keyboard.press('Tab');
+    await expect.poll(() => grid.focusTarget()).toEqual({ cell: [0, 1] });
+
+    // Shift+Tab from the field, with nothing highlighted.
+    await grid.openEditorAt(0, 1);
+    await grid.page.keyboard.press('Shift+Tab');
+    await expect.poll(() => grid.focusTarget()).toEqual({ cell: [0, 0] });
+
+    // Tab after the wheel scrolled the list.
+    await grid.openEditorAt(1, 0);
+    await grid.wheelOverList(400);
+    await expect(grid.gridPopup('B, row 2').getByRole('gridcell', { name: 'Al 001', exact: true })).toHaveCount(0);
+    expect(await grid.isFocusInList()).toBe(false);
+    await grid.page.keyboard.press('Tab');
+    await expect.poll(() => grid.focusTarget()).toEqual({ cell: [1, 1] });
+  });
+
   test('moves across the list columns with ArrowLeft and ArrowRight while a row is highlighted', async() => {
     await grid.goto({ twoListColumns: true });
     await grid.openEditorAt(0, 0);

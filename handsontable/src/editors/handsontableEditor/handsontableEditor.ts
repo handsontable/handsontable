@@ -283,7 +283,13 @@ export class HandsontableEditor extends TextEditor {
     setCellInputName(this.hot, listRoot, CELL_EDITOR_PHRASES, this.row ?? -1, this.col ?? -1);
     setAttribute(this.TEXTAREA, ...A11Y_CONTROLS(listRoot.id));
 
-    this.htEditor.addHook('afterSelectionEnd', (row: number, col: number) => this.pointFieldAtListCell(row, col));
+    // A closed list (`afterSetTheme` closes the editor without ending the edit) and a list hidden for a scroll keep
+    // their selection and take keys; the field names their cells only while the list is shown.
+    this.htEditor.addHook('afterSelectionEnd', (row: number, col: number) => {
+      if (this.isOpened()) {
+        this.pointFieldAtListCell(row, col);
+      }
+    });
     this.htEditor.addHook('afterDeselect', () => this.#removeActiveDescendant());
     // A scroll draws the list without `afterRender`, so the scroll hooks run the same pass.
     this.htEditor.addHook('afterRender', this.#onListRender);
@@ -302,15 +308,15 @@ export class HandsontableEditor extends TextEditor {
 
   /**
    * After every render and scroll of the list: removes the `tabindex` its engine wrote, and points the field at the
-   * highlighted cell again. The list draws the rows it scrolls to in the cells it already has, so the cell
-   * the field named may now show another row.
+   * highlighted cell again while the list is shown. The list draws the rows it scrolls to in the cells it
+   * already has, so the cell the field named may now show another row.
    */
   #onListRender = (): void => {
     this.#removeListTabIndex();
 
     const active = this.htEditor.getSelectedActive();
 
-    if (active) {
+    if (active && this.isOpened()) {
       this.pointFieldAtListCell(active[0], active[1]);
     }
   };
@@ -374,7 +380,7 @@ export class HandsontableEditor extends TextEditor {
 
       const active = listGrid.getSelectedActive();
 
-      if (listGrid !== this.htEditor || !active || active[0] !== row || active[1] !== col) {
+      if (listGrid !== this.htEditor || !this.isOpened() || !active || active[0] !== row || active[1] !== col) {
         return;
       }
 

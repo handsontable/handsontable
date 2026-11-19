@@ -42,12 +42,14 @@ interface FixtureEditor {
   isOpened(): boolean;
   query: string | null;
   TEXTAREA: HTMLInputElement;
+  getEditedCell(): HTMLTableCellElement | null;
   htEditor: {
     rootElement: HTMLElement;
     getSelectedLast(): number[] | undefined;
     selectCell(row: number, col: number, endRow?: number, endCol?: number, scrollToCell?: boolean): boolean;
     scrollViewportTo(options: { row: number, verticalSnap: 'top' }): boolean;
     addHookOnce(name: string, callback: () => void): void;
+    render(): void;
   };
 }
 
@@ -60,6 +62,8 @@ interface FixtureWindow {
     getActiveEditor(): FixtureEditor | undefined;
     getCoords(element: Element): { row: number, col: number } | null;
     getDataAtCell(row: number, col: number): unknown;
+    getCurrentThemeName(): string | undefined;
+    useTheme(themeName: string): void;
     rootElement: HTMLElement;
   };
 }
@@ -106,15 +110,18 @@ export class EditorListA11yPage {
    * @param {boolean} [options.innerAriaTags] The `ariaTags` setting of the `handsontable` list's own
    * settings; `true` leaves it out.
    * @param {boolean} [options.rtl] Build a right-to-left grid in a right-to-left document.
+   * @param {boolean} [options.frozen] Freeze the first column of a narrow grid with eight plain columns more, so
+   * the grid scrolls sideways.
    */
   async goto({
     longSource = false, asyncSource = false, strict = false, allowHtml = false, ariaTags = true, enterStays = false,
     heldValidator = false, passValidator = false, contextMenu = false, outsideClickDeselects = true,
-    twoListColumns = false, innerAriaTags = true, rtl = false,
+    twoListColumns = false, innerAriaTags = true, rtl = false, frozen = false,
   }: {
     longSource?: boolean, asyncSource?: boolean, strict?: boolean, allowHtml?: boolean, ariaTags?: boolean,
     enterStays?: boolean, heldValidator?: boolean, passValidator?: boolean, contextMenu?: boolean,
     outsideClickDeselects?: boolean, twoListColumns?: boolean, innerAriaTags?: boolean, rtl?: boolean,
+    frozen?: boolean,
   } = {}): Promise<void> {
     const query = `theme=${this.theme}&bundle=${this.bundle}&cellType=${this.cellType}`
       + (longSource ? '&source=200' : '')
@@ -129,7 +136,8 @@ export class EditorListA11yPage {
       + (outsideClickDeselects ? '' : '&outsideClickDeselects=false')
       + (twoListColumns ? '&columns=2' : '')
       + (innerAriaTags ? '' : '&innerAria=false')
-      + (rtl ? '&dir=rtl' : '');
+      + (rtl ? '&dir=rtl' : '')
+      + (frozen ? '&frozen=1' : '');
 
     await this.page.goto(`/tests/fixtures/demo/cell-dropdown-arrow.html?${query}`);
     await awaitBundle(this.page);
@@ -508,5 +516,72 @@ export class EditorListA11yPage {
    */
   async dataAtCell(row: number, col: number): Promise<unknown> {
     return this.page.evaluate(([r, c]) => (window as unknown as FixtureWindow).hot.getDataAtCell(r, c), [row, col]);
+  }
+
+  /**
+   * Renders the active editor's list, as a theme change or a size update would.
+   */
+  async renderList(): Promise<void> {
+    await this.page.evaluate(() => {
+      (window as unknown as FixtureWindow).hot.getActiveEditor()!.htEditor.render();
+    });
+  }
+
+  /**
+   * Switches the grid to a theme other than the one it runs on, through `hot.useTheme()`, after the target
+   * theme's stylesheet has loaded.
+   */
+  async switchToAnotherTheme(): Promise<void> {
+    await this.page.evaluate(async() => {
+      const { hot } = window as unknown as FixtureWindow;
+      const current = hot.getCurrentThemeName();
+      const target = ['ht-theme-main', 'ht-theme-horizon', 'ht-theme-classic'].find(name => name !== current)!;
+      const link = document.createElement('link');
+
+      link.rel = 'stylesheet';
+      link.href = `/handsontable/styles/${target}.min.css`;
+      await new Promise<void>((resolve, reject) => {
+        link.onload = () => resolve();
+        link.onerror = () => reject(new Error(`The stylesheet of ${target} did not load`));
+        document.head.appendChild(link);
+      });
+      hot.useTheme(target);
+    });
+  }
+
+  /**
+   * Whether the active editor's edited cell is rendered.
+   */
+  async isEditedCellRendered(): Promise<boolean> {
+    return this.page.evaluate(() => (window as unknown as FixtureWindow).hot.getActiveEditor()?.getEditedCell() != null);
+  }
+
+  /**
+   * Scrolls the grid's master holder sideways to its end, as a scrollbar drag does, and waits until the
+   * edited cell is no longer rendered.
+   */
+  async scrollGridToInlineEnd(): Promise<void> {
+    await this.page.locator('[data-testid="grid"] .ht_master .wtHolder').first().evaluate((holder: HTMLElement) => {
+      holder.scrollLeft = holder.scrollWidth;
+    });
+    await expect.poll(() => this.isEditedCellRendered()).toBe(false);
+  }
+
+  /**
+   * Scrolls the grid's master holder back to its start, and waits until the edited cell is rendered again.
+   */
+  async scrollGridToInlineStart(): Promise<void> {
+    await this.page.locator('[data-testid="grid"] .ht_master .wtHolder').first().evaluate((holder: HTMLElement) => {
+      holder.scrollLeft = 0;
+    });
+    await expect.poll(() => this.isEditedCellRendered()).toBe(true);
+  }
+
+  /**
+   * Turns the mouse wheel over the active editor's list, as a user scrolling it does.
+   */
+  async wheelOverList(deltaY: number): Promise<void> {
+    await this.page.locator('.handsontableInputHolder:not(.ht_editor_hidden) .handsontableEditor').hover();
+    await this.page.mouse.wheel(0, deltaY);
   }
 }
