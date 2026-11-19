@@ -50,7 +50,7 @@
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
   </script>
   <script>
-    function buildGrid(testId, layoutDirection, data) {
+    function buildGrid(testId, layoutDirection, data, extraSettings) {
       const container = document.querySelector(`[data-testid="${testId}"]`);
 
       container.className = `ht-theme-${window.htTheme}`;
@@ -63,7 +63,7 @@
           sheetName: 'Sheet1',
         },
         colWidths: 120,
-        width: 560,
+        width: 720,
         height: 120,
         rowHeaders: true,
         colHeaders: true,
@@ -71,11 +71,14 @@
           td.setAttribute('data-testid', `${testId}-cell-${row}-${col}`);
         },
         licenseKey: window.htTestLicenseKey,
+        ...extraSettings,
       });
     }
 
     try {
-      window.hot = buildGrid('grid-rtl', 'rtl', [['=1/0', '=NOPE()', '#tag!', '1']]);
+      window.hot = buildGrid('grid-rtl', 'rtl', [['=1/0', '=NOPE()', '#tag!', '1', '=1/0']], {
+        cell: [{ row: 0, col: 4, type: 'dropdown', source: ['a', 'b'] }],
+      });
       window.hotLtr = buildGrid('grid-ltr', 'ltr', [['=1/0', '1']]);
     } catch (error) {
       window.htBuildError = String(error && error.stack || error);

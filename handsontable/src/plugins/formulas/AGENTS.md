@@ -2056,20 +2056,26 @@ listener set lives on the plugin instance across enable cycles and is cleared in
 
 An error value (`#DIV/0!`, `#NAME?`) is left-to-right text that starts and ends with punctuation, and the bidi
 algorithm places such punctuation by the cell's direction, so in a right-to-left grid `#DIV/0!` painted as
-`!DIV/0#`. `#onIsolateErrorValue` (`afterRenderer`) wraps the rendered content of a cell whose engine value is an
-error in `span.ht-formula-error[dir="ltr"]`. Three rules:
+`!DIV/0#`. `#onIsolateErrorValue` (`afterRenderer`) wraps the text of a cell whose engine value is an error in
+`span.ht-formula-error[dir="ltr"]`. Five rules:
 
-- **Wrap the content, never set `TD.dir`.** `numericRenderer` and `timeRenderer` set `TD.dir = 'ltr'`, which also
+- **Wrap the text, never set `TD.dir`.** `numericRenderer` and `timeRenderer` set `TD.dir = 'ltr'`, which also
   moves a cell's start alignment to the left and switches the right-to-left border rules in `_base.scss`
   (`td[dir="ltr"]`). On a text cell that moved the error from the right edge to the left. A `[dir]` element is
   `unicode-bidi: isolate` by the browser's own stylesheet, so the span fixes the order and the cell keeps its
   alignment and borders. The text content is unchanged, so copy and screen readers read the same value.
+- **Only the text nodes go into the span.** A renderer's own elements stay where they are, in the cell's
+  direction: the dropdown arrow is positioned by `inset-inline-end`, and moved into the span it jumped to the
+  right edge of an RTL cell, over the text. So `wrapCellContent()` (which moves every child) is not used here.
 - **Ask the engine, not the text.** The cheap gate is a rendered string starting with `#`; the wrap happens only
   when `getCellValue()` returns an error object. A string that only looks like an error (`'#tag!'`, or Hebrew text
   after a `#`) keeps the cell's direction.
-- **Unwrap first, on every render, in either direction.** Walkontable recycles TD elements, so a cell that held
-  an error and now holds a number would keep the span. The unwrap is the same `unwrapLinks()` the HYPERLINK
-  anchor uses, which skips a TD with no element child, so a plain text cell pays one property read.
+- **Unwrap first on every render of an RTL grid.** Walkontable recycles TD elements, so a cell that held an error
+  and now holds a number would keep the span. The unwrap is the same `unwrapLinks()` the HYPERLINK anchor uses,
+  which skips a TD with no element child. An LTR grid returns before it: `layoutDirection` is read once at init,
+  so the span never exists there.
+- **`disablePlugin()` unwraps every span in the grid** (`#unwrapRenderedErrorValues()`, next to the HYPERLINK
+  anchors), because with the hook gone a cell left as rendered would keep a wrapper the plugin no longer owns.
 
 Not covered: the formula bar and the inline formula editor (hyperformula-ui renders their textarea with
 `direction: ltr; unicode-bidi: isolate`, so they were already right), and an error shown while formulas are shown

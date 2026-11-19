@@ -47,7 +47,7 @@ import {
   type LinkScheme,
   type LinkTarget,
 } from '../../utils/cellLinks';
-import { fastInnerText } from '../../helpers/dom/element';
+import { fastInnerText, getCellContentRoot } from '../../helpers/dom/element';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import {
   beginHeldEngineWrite,
@@ -649,9 +649,9 @@ const REF_ERROR_PATTERN = /#REF!/;
 // It is also the marker that keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
 const HYPERLINK_CLASS_NAME = 'ht-hyperlink';
 
-// Class name of the left-to-right span that wraps a formula error value (`#DIV/0!`) in a right-to-left grid.
-// It is also the marker that keeps the wrapping idempotent when a renderer leaves the previous DOM in place.
 const ERROR_VALUE_CLASS_NAME = 'ht-formula-error';
+
+const TEXT_NODE_TYPE = 3;
 
 // `warnOnce` key for a `HYPERLINK` URL refused by the protocol allowlist. Warning per cell would
 // flood the console on every render pass.
@@ -1997,6 +1997,7 @@ export class Formulas extends BasePlugin {
     this.#unregisterToggleFormulasShortcut();
     this.#showFormulasFlag = false;
     this.#unwrapRenderedHyperlinks();
+    this.#unwrapRenderedErrorValues();
     this.#hyperlinkCells.clear();
 
     // The recorded layout belongs to the engine session being torn down. Nothing reads it before
@@ -4002,6 +4003,17 @@ export class Formulas extends BasePlugin {
   #unwrapRenderedHyperlinks() {
     if (this.hot.rootElement) {
       unwrapLinks(this.hot.rootElement, `a.${HYPERLINK_CLASS_NAME}`);
+    }
+  }
+
+  /**
+   * Unwraps every left-to-right error value span currently in the grid, including the overlay
+   * clones. Disabling the plugin removes the `afterRenderer` hook that would take them out, so a
+   * cell left as it was rendered would keep a wrapper the plugin no longer owns.
+   */
+  #unwrapRenderedErrorValues() {
+    if (this.hot.rootElement) {
+      unwrapLinks(this.hot.rootElement, `span.${ERROR_VALUE_CLASS_NAME}`);
     }
   }
 
@@ -6632,12 +6644,18 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * `afterRenderer` hook callback. In a right-to-left grid, wraps the rendered content of a cell whose
-   * engine value is an error in a `span` with `dir="ltr"`. An error value is left-to-right text that
-   * starts and ends with punctuation, and the bidi algorithm places such punctuation by the cell's
+   * `afterRenderer` hook callback. In a right-to-left grid, wraps the text of a cell whose engine
+   * value is an error in a `span` with `dir="ltr"`. An error value is left-to-right text that starts
+   * and ends with punctuation, and the bidi algorithm places such punctuation by the cell's
    * direction, so `#DIV/0!` showed as `!DIV/0#`. The span isolates the text and keeps the cell's own
-   * direction, so its alignment and borders stay those of a right-to-left cell. The text content is
-   * unchanged, so copy and assistive technology read the same value.
+   * direction, so its alignment and borders stay those of a right-to-left cell. Only the text nodes
+   * move into the span: an element a renderer adds (the dropdown arrow, positioned by
+   * `inset-inline-end`) keeps the cell's direction. The text content is unchanged, so copy and
+   * assistive technology read the same value.
+   *
+   * `layoutDirection` is read once at init, so an LTR grid never holds the span and returns first.
+   * Walkontable recycles TD elements, so in an RTL grid a span from a previous render is taken out
+   * before anything else; `ht-formula-error` is the marker that keeps this idempotent.
    *
    * @param {HTMLTableCellElement} TD The rendered cell element.
    * @param {number} row Visual row index.
@@ -6652,11 +6670,13 @@ export class Formulas extends BasePlugin {
     prop: string | number,
     value: unknown,
   ) => {
-    // Walkontable recycles TD elements, so a span from a previous render is taken out first.
+    if (!this.hot.isRtl()) {
+      return;
+    }
+
     unwrapLinks(TD, `span.${ERROR_VALUE_CLASS_NAME}`);
 
     if (
-      !this.hot.isRtl() ||
       this.#internalOperationPending ||
       this.#showFormulasFlag ||
       typeof value !== 'string' ||
@@ -6666,12 +6686,19 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    const contentRoot = getCellContentRoot(TD);
+    const textNodes = Array.from(contentRoot.childNodes).filter(node => node.nodeType === TEXT_NODE_TYPE);
+
+    if (textNodes.length === 0) {
+      return;
+    }
+
     const span = this.hot.rootDocument.createElement('span');
 
     span.className = ERROR_VALUE_CLASS_NAME;
     span.dir = 'ltr';
-
-    wrapCellContent(TD, span);
+    contentRoot.insertBefore(span, textNodes[0]);
+    textNodes.forEach(node => span.appendChild(node));
   };
 
   /**

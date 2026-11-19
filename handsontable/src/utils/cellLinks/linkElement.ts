@@ -66,17 +66,17 @@ export function createLinkElement(
 }
 
 /**
- * Moves a cell's whole rendered content into a wrapper element, then appends the wrapper as the sole
- * child of the cell's content root: the engine's `.htCellClip` wrapper when the row has an exact
- * height, otherwise `TD` itself (`getCellContentRoot`). Three call sites share this - `linkifyCell`'s
- * whole-cell mode, the Formulas plugin's `HYPERLINK` wrap, and its left-to-right error value span -
- * because wrapping `TD` directly would rebuild an exact-height row's clipping wrapper on every render
- * pass, and any node left outside it would grow the row back to its content height.
+ * Moves a cell's whole rendered content into an anchor, then appends the anchor as the sole child of
+ * the cell's content root: the engine's `.htCellClip` wrapper when the row has an exact height,
+ * otherwise `TD` itself (`getCellContentRoot`). Two call sites share this - `linkifyCell`'s
+ * whole-cell mode and the Formulas plugin's `HYPERLINK` wrap - because wrapping `TD` directly would
+ * rebuild an exact-height row's clipping wrapper on every render pass, and any node left outside it
+ * would grow the row back to its content height.
  *
  * @param {HTMLTableCellElement} TD The rendered cell element.
- * @param {HTMLElement} link The element to wrap the content in. Not yet attached anywhere.
+ * @param {HTMLAnchorElement} link The anchor to wrap the content in. Not yet attached anywhere.
  */
-export function wrapCellContent(TD: HTMLTableCellElement, link: HTMLElement): void {
+export function wrapCellContent(TD: HTMLTableCellElement, link: HTMLAnchorElement): void {
   const contentRoot = getCellContentRoot(TD);
 
   // The nodes are moved, never re-serialized, so a renderer's elements survive inside the anchor.

@@ -51,6 +51,21 @@ test.describe('Formulas: error values in an RTL grid', { tag: [THEMES_TAG, BUNDL
     await expect(grid.errorSpan('rtl', 0, 0)).toHaveCount(0);
   });
 
+  test('keeps a dropdown arrow at the inline end of an RTL error cell', async() => {
+    const gaps = await grid.arrowGaps('rtl', 0, 4);
+
+    expect(gaps.left).toBeLessThan(gaps.right);
+    await expect(grid.errorSpan('rtl', 0, 4)).toHaveText('#DIV/0!');
+  });
+
+  test('takes the wrapper out when the Formulas plugin is turned off', async() => {
+    await expect(grid.errorSpan('rtl', 0, 0)).toHaveCount(1);
+
+    await grid.disableRtlFormulas();
+
+    await expect(grid.errorSpan('rtl', 0, 0)).toHaveCount(0);
+  });
+
   test('measures the reversed order once the wrapper is taken out', async() => {
     const order = await grid.glyphOrder('rtl', 0, 0, true);
 

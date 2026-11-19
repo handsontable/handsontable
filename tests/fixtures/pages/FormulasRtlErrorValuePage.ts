@@ -66,6 +66,33 @@ export class FormulasRtlErrorValuePage {
   }
 
   /**
+   * Turns the Formulas plugin off on the RTL grid, without a render in between.
+   */
+  async disableRtlFormulas(): Promise<void> {
+    await this.page.evaluate(() => window.hot.getPlugin('formulas').disablePlugin());
+  }
+
+  /**
+   * Reads, in one evaluation, how far the dropdown arrow of a cell sits from the cell's left and
+   * right edges. In an RTL grid the arrow belongs at the inline end, the left edge.
+   */
+  async arrowGaps(grid: GridDirection, row: number, col: number): Promise<{ left: number, right: number }> {
+    return this.page.evaluate((testId) => {
+      const td = document.querySelector(`[data-testid="${testId}"]`);
+      const arrow = td?.querySelector('.htAutocompleteArrow');
+
+      if (!td || !arrow) {
+        throw new Error(`No dropdown arrow in ${testId}`);
+      }
+
+      const cellBox = td.getBoundingClientRect();
+      const arrowBox = arrow.getBoundingClientRect();
+
+      return { left: arrowBox.left - cellBox.left, right: cellBox.right - arrowBox.right };
+    }, `grid-${grid}-cell-${row}-${col}`);
+  }
+
+  /**
    * Reads how a cell's text paints, in one evaluation: the left edge of the first and the last
    * glyph, measured with a DOM `Range` over the cell's text nodes. With `unwrap`, the error wrapper
    * is first taken out (its children moved up), with no re-render in between, which is how the cell
