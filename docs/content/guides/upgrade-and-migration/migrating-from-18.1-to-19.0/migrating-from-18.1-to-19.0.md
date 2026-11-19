@@ -3725,3 +3725,52 @@ the `handsontableInputHolder` element. It covers the edited cell as before. What
    unchanged.
 3. Keep `source` labels and the values of these cells on one line. A value that needs line breaks belongs in a
    [`text`](@/guides/cell-types/text-cell-type/text-cell-type.md) cell, whose editor keeps them.
+
+## 64. Left and right arrow keys move across the columns of the `handsontable` editor list
+
+In the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) cell editor,
+<kbd>**←**</kbd> and <kbd>**→**</kbd> used to move the caret in the editor's input, or close the editor when you
+opened it by typing. In 19.0, while a row of the list is highlighted and the list has more than one column, they move
+the highlight to the previous or next column. The highlight stops at the first and the last column. In a right-to-left
+layout, <kbd>**←**</kbd> moves to the next column and <kbd>**→**</kbd> to the previous one. The focus and the caret stay
+in the input.
+
+Nothing else changes:
+
+- With no row highlighted, or in a list of one column, <kbd>**←**</kbd> and <kbd>**→**</kbd> work as before.
+- The [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) and
+  [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) editors keep the caret keys.
+- <kbd>**↑**</kbd> and <kbd>**↓**</kbd> keep the highlighted column instead of going back to the first one.
+- <kbd>**Enter**</kbd> and <kbd>**Tab**</kbd> write the value of the highlighted cell, as a click on that cell always
+  did. With a cell of the first column highlighted, they write what they wrote before.
+
+With [`ariaTags`](@/api/options.md#ariatags) on, the editor's input is also a combobox with a grid popup now: the
+list is a `grid` named after the edited cell, and the input names the highlighted cell through
+`aria-activedescendant`. The list follows the main grid's `ariaTags` setting, where it used to be built with
+`ariaTags: false`.
+
+### Who is affected
+
+- Your users press <kbd>**←**</kbd> or <kbd>**→**</kbd> in a `handsontable` editor whose list has more than one column,
+  after highlighting a row, to move the caret or to leave the cell.
+- Your `beforeKeyDown` hook or custom shortcut expects <kbd>**←**</kbd> or <kbd>**→**</kbd> to reach the grid in that
+  state.
+- Your code or CSS relies on the nested grid of a `handsontable` editor having no ARIA roles.
+
+### How to migrate
+
+1. To move the caret or leave the cell with <kbd>**←**</kbd> and <kbd>**→**</kbd>, press <kbd>**↑**</kbd> above the
+   first row to clear the highlight first, or use a list of one column.
+2. To build the nested grid without ARIA roles, as before, set `ariaTags: false` in the cell's `handsontable` option:
+
+   ```js
+   columns: [{
+     type: 'handsontable',
+     handsontable: {
+       data: products,
+       ariaTags: false,
+     },
+   }],
+   ```
+
+   The input stays a combobox, and it no longer points at the list.

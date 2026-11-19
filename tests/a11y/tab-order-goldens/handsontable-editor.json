@@ -6,8 +6,8 @@
     "popup": [
       {
         "region": "grid",
-        "role": "textbox",
-        "name": ""
+        "role": "combobox",
+        "name": "A, row 1"
       },
       {
         "region": "grid",
