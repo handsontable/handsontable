@@ -129,7 +129,7 @@ An empty query matches nothing, so the `if` check keeps `rowsToHide` empty and e
 
 The `HiddenRows` plugin hides rows without removing them from the data. For details, see the [Row hiding](@/guides/rows/row-hiding/row-hiding.md) guide.
 
-## Step 4 (optional): Debounce the input
+## Step 4: Debounce the input (optional)
 
 Each input event checks every cell and renders the grid. For a large dataset, wait until the typing stops before you filter:
 
