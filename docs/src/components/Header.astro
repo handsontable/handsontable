@@ -425,6 +425,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     }
 
     function setOverlay(open: boolean) {
+      const wasOpen = overlayOpen;
       overlayOpen = open;
       if (overlay) overlay.hidden = !open;
       if (menuBtn) {
@@ -446,11 +447,12 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       } else {
         overlayTrapCleanup?.();
         overlayTrapCleanup = null;
-        menuBtn?.focus();
+        if (wasOpen) menuBtn?.focus();
       }
     }
 
     function setToc(open: boolean) {
+      const wasOpen = tocOpen;
       tocOpen = open;
       if (tocPanel) tocPanel.hidden = !open;
       if (tocToggle) tocToggle.setAttribute('aria-expanded', String(open));
@@ -469,7 +471,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       } else {
         tocTrapCleanup?.();
         tocTrapCleanup = null;
-        tocToggle?.focus();
+        if (wasOpen) tocToggle?.focus();
       }
     }
 
@@ -494,6 +496,14 @@ function getMobileFrameworkHref(fw: { id: string }): string {
         sidebarToggle?.focus();
       }
       sidebarPane.inert = hidden;
+    }
+
+    function updateSidebarToggleExpanded() {
+      if (!sidebarToggle) return;
+      const open = tabletQuery.matches
+        ? !document.body.hasAttribute('data-sidebar-collapsed')
+        : isSidebarOpen();
+      sidebarToggle.setAttribute('aria-expanded', String(open));
     }
 
     // --- Populate ToC from desktop starlight-toc ---
@@ -555,31 +565,29 @@ function getMobileFrameworkHref(fw: { id: string }): string {
       if (isTablet()) {
         // Tablet: collapse/expand sidebar via data attribute
         document.body.toggleAttribute('data-sidebar-collapsed');
-        const collapsed = document.body.hasAttribute('data-sidebar-collapsed');
-        sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+        updateSidebarToggleExpanded();
         updateSidebarHidden();
       } else {
         // Mobile: delegate to Starlight's mobile menu
         if (starlightBtn) starlightBtn.click();
-        requestAnimationFrame(() => {
-          sidebarToggle.setAttribute('aria-expanded', String(isSidebarOpen()));
-        });
+        requestAnimationFrame(updateSidebarToggleExpanded);
       }
     }, { signal });
 
     // Observe body attribute to sync sidebar toggle state (e.g. Escape key)
-    const observer = new MutationObserver(() => {
-      const open = isSidebarOpen();
-      sidebarToggle?.setAttribute('aria-expanded', String(open));
-    });
+    const observer = new MutationObserver(updateSidebarToggleExpanded);
     observer.observe(document.body, { attributes: true, attributeFilter: ['data-mobile-menu-expanded'] });
 
-    // Also observe data-sidebar-collapsed, and the tablet range, for the hidden state
+    // Also observe data-sidebar-collapsed, and the tablet range, for the hidden and expanded state
     const collapseObserver = new MutationObserver(() => {
       updateSidebarHidden();
+      updateSidebarToggleExpanded();
     });
     collapseObserver.observe(document.body, { attributes: true, attributeFilter: ['data-sidebar-collapsed'] });
-    tabletQuery.addEventListener('change', updateSidebarHidden, { signal });
+    tabletQuery.addEventListener('change', () => {
+      updateSidebarHidden();
+      updateSidebarToggleExpanded();
+    }, { signal });
 
     // --- ToC toggle ---
     tocToggle?.addEventListener('click', () => {
@@ -616,6 +624,7 @@ function getMobileFrameworkHref(fw: { id: string }): string {
     setInertBehind(false);
     updateBreadcrumbs();
     updateSidebarHidden();
+    updateSidebarToggleExpanded();
 
     // Store cleanup for view transitions
     cleanupPrevious = () => {
