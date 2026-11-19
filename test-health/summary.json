@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-19T14:41:44.149Z",
+  "generatedAt": "2026-11-19T14:54:43.590Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -841,7 +841,7 @@
       "file": "e2e/editor-hidden-cell.spec.ts",
       "line": 199,
       "title": "editor whose commit is rejected while its cell is hidden › closes when an async validator is still in flight as the cell is hidden",
-      "count7": 3,
+      "count7": 0,
       "count30": 3,
       "countAll": 3,
       "runs30": 1,
