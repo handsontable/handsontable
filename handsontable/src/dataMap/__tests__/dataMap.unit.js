@@ -1059,18 +1059,84 @@ describe('DataMap reads of a `valueGetter` set through the `cells` function', ()
   it('should not recurse when an `afterGetCellMeta` listener reads the data of the cell', () => {
     const readValues = [];
 
+    // A column `valueGetter` makes the read run the full extension, meta hooks included.
     hot = createUnrenderedGrid({
       data: [['A1'], ['A2']],
-      cells: prefixFirstColumn,
+      columns: [{ valueGetter: value => `Y${value}` }],
+      cells: () => ({}),
       afterGetCellMeta(row, column) {
         readValues.push(this.getDataAtCell(row, column));
       },
     });
     readValues.length = 0;
 
-    expect(hot.getDataAtCell(1, 0)).toBe('XA2');
-    expect(readValues).toEqual(['A2']);
+    expect(hot.getDataAtCell(1, 0)).toBe('YA2');
+    expect(readValues).toEqual(['YA2']);
     expect(() => hot.render()).not.toThrow();
+  });
+
+  it('should create one cell meta object per column for a full read when the `cells` function writes nothing', () => {
+    hot = createUnrenderedGrid({ data: [['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']], cells: () => ({}) });
+
+    const createTransientMeta = jest.spyOn(hot._getMetaManager().cellMeta, 'createTransientMeta');
+
+    hot.getData();
+
+    expect(createTransientMeta).toHaveBeenCalledTimes(3);
+  });
+
+  it('should not let a cell see what the `cells` function wrote to `this` for another cell', () => {
+    const seenFlags = [];
+
+    hot = createUnrenderedGrid({
+      data: [['A1'], ['A2'], ['A3']],
+      cells(row) {
+        seenFlags.push(this.flag);
+
+        if (row === 0) {
+          this.flag = 'set for row 0';
+        }
+
+        return {};
+      },
+    });
+    seenFlags.length = 0;
+
+    hot.getData();
+
+    expect(seenFlags).toEqual([undefined, undefined, undefined]);
+  });
+
+  it('should apply a `valueGetter` the `cells` function writes to `this`', () => {
+    hot = createUnrenderedGrid({
+      data: [['A1'], ['A2']],
+      cells() {
+        this.valueGetter = value => `T${value}`;
+      },
+    });
+
+    expect(hot.getDataAtCol(0)).toEqual(['TA1', 'TA2']);
+  });
+
+  it('should leave values alone when the `cells` function returns settings that set no `valueGetter`', () => {
+    hot = createUnrenderedGrid({
+      data: [[1], [2]],
+      cells: () => ({ readOnly: true, type: 'numeric' }),
+    });
+
+    expect(hot.getDataAtCol(0)).toEqual([1, 2]);
+  });
+
+  it('should hand a column `valueGetter` the settings the `cells` function returns for the row', () => {
+    const source = [{ key: 'kg', value: { name: 'Kilogram', short: 'kg' } }];
+
+    hot = createUnrenderedGrid({
+      data: [[source[0]], [source[0]]],
+      columns: [{ type: 'dropdown', source, sourceLabel: 'name' }],
+      cells: row => (row === 1 ? { sourceLabel: 'short' } : {}),
+    });
+
+    expect(hot.getDataAtCol(0)).toEqual(['Kilogram', 'kg']);
   });
 
   it('should extend the cells of a read again after a `cells` function call threw', () => {

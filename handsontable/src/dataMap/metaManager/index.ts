@@ -292,6 +292,32 @@ export default class MetaManager {
   }
 
   /**
+   * Calls the `cells` function a cell meta object resolves, with the object as `this`, the way the
+   * dynamic extension calls it, and returns its result without applying it. No meta hook runs. The call
+   * counts in `isExtendingCellMeta()`, so a data read the function makes does not call it again.
+   *
+   * A data read uses this to learn whether a cell can have a `valueGetter` at all before it pays for
+   * the full extension (`getCellMetaTransient()`).
+   *
+   * @param {object} cellMeta A cell meta object with stamped coordinates whose `cells` is a function.
+   * @param {number|string|Function|null} prop The column property, as the extension resolves it
+   *   (`colToPropOrIndex()`). It is also written to `cellMeta.prop`, as the extension does.
+   * @returns {*} What the `cells` function returned.
+   */
+  callCellsFunction(cellMeta: CellProperties, prop: unknown): unknown {
+    // `Reflect` keeps the extension's untyped `prop` (an accessor function or `null` for some columns)
+    // without narrowing the public `CellProperties#prop` type or casting it.
+    Reflect.set(cellMeta, 'prop', prop);
+    this.#extensionDepth += 1;
+
+    try {
+      return Reflect.apply(cellMeta.cells!, cellMeta, [cellMeta.row, cellMeta.col, prop]);
+    } finally {
+      this.#extensionDepth -= 1;
+    }
+  }
+
+  /**
    * Runs the local hook that extends a cell meta object, counting it in `isExtendingCellMeta()`.
    *
    * @param {string} hookName The local hook that extends the object.
