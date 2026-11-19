@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
@@ -28,53 +28,34 @@ const data = [
 type SearchResult = { row: number; col: number; data: unknown };
 
 const colHeaders = ['Name', 'Role', 'Team', 'Location'];
-const hiddenRowsSettings = { indicators: false };
 
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [status, setStatus] = useState(`Showing ${data.length} of ${data.length} rows`);
 
-  useEffect(() => () => clearTimeout(timeoutRef.current), []);
-
-  const filterRows = (value: string) => {
+  const filterRows = (event: React.FormEvent<HTMLInputElement>) => {
     const hot = hotRef.current?.hotInstance;
 
     if (!hot) {
       return;
     }
 
-    const query = value.trim();
+    const query = event.currentTarget.value;
     const results = hot.getPlugin('search').query(query) as SearchResult[];
     const matchingRows = new Set(results.map(({ row }) => row));
     const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
-    const totalRows = hot.countRows();
     const rowsToHide: number[] = [];
 
     if (query !== '') {
-      for (let row = 0; row < totalRows; row += 1) {
+      for (let row = 0; row < hot.countRows(); row += 1) {
         if (!matchingRows.has(row)) {
           rowsToHide.push(row);
         }
       }
     }
 
-    hot.batch(() => {
-      hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
-      hiddenRowsPlugin.hideRows(rowsToHide);
-      hot.render();
-    });
-
-    const visibleRows = totalRows - rowsToHide.length;
-
-    setStatus(visibleRows === 0 ? `No rows match "${query}"` : `Showing ${visibleRows} of ${totalRows} rows`);
-  };
-
-  const handleSearchInput = (event: React.FormEvent<HTMLInputElement>) => {
-    const { value } = event.currentTarget;
-
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => filterRows(value), 120);
+    hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
+    hiddenRowsPlugin.hideRows(rowsToHide);
+    hot.render();
   };
 
   return (
@@ -82,15 +63,7 @@ const ExampleComponent = () => {
       <div className="example-controls-container">
         <div className="controls">
           <label htmlFor="search-filter-input">Filter rows</label>
-          <input
-            id="search-filter-input"
-            type="search"
-            placeholder="Type to filter rows..."
-            onInput={handleSearchInput}
-          />
-          <span id="search-filter-status" aria-live="polite">
-            {status}
-          </span>
+          <input id="search-filter-input" type="search" onInput={filterRows} />
         </div>
       </div>
       <HotTable
@@ -100,11 +73,8 @@ const ExampleComponent = () => {
         rowHeaders={true}
         colHeaders={colHeaders}
         height="auto"
-        width="100%"
-        autoWrapRow={true}
-        autoWrapCol={true}
         search={true}
-        hiddenRows={hiddenRowsSettings}
+        hiddenRows={true}
       />
     </div>
   );

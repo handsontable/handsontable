@@ -42,18 +42,11 @@ const searchInput = document.createElement('input');
 
 searchInput.id = 'search-filter-input';
 searchInput.type = 'search';
-searchInput.placeholder = 'Type to filter rows...';
-
-const searchStatus = document.createElement('span');
-
-searchStatus.id = 'search-filter-status';
-searchStatus.setAttribute('aria-live', 'polite');
 
 const hotContainer = document.createElement('div');
 
 controlsDiv.appendChild(searchLabel);
 controlsDiv.appendChild(searchInput);
-controlsDiv.appendChild(searchStatus);
 searchWrapper.appendChild(controlsDiv);
 exampleContainer.appendChild(searchWrapper);
 exampleContainer.appendChild(hotContainer);
@@ -63,59 +56,29 @@ const hot = new Handsontable(hotContainer, {
   rowHeaders: true,
   colHeaders: ['Name', 'Role', 'Team', 'Location'],
   height: 'auto',
-  width: '100%',
-  autoWrapRow: true,
-  autoWrapCol: true,
   search: true,
-  hiddenRows: {
-    indicators: false,
-  },
+  hiddenRows: true,
   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 
 const searchPlugin = hot.getPlugin('search');
 const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
 
-const filterRows = (value) => {
-  const query = value.trim();
+searchInput.addEventListener('input', () => {
+  const query = searchInput.value;
   const results = searchPlugin.query(query);
   const matchingRows = new Set(results.map(({ row }) => row));
-  const totalRows = hot.countRows();
   const rowsToHide = [];
 
   if (query !== '') {
-    for (let row = 0; row < totalRows; row += 1) {
+    for (let row = 0; row < hot.countRows(); row += 1) {
       if (!matchingRows.has(row)) {
         rowsToHide.push(row);
       }
     }
   }
 
-  hot.batch(() => {
-    hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
-    hiddenRowsPlugin.hideRows(rowsToHide);
-    hot.render();
-  });
-
-  const visibleRows = totalRows - rowsToHide.length;
-
-  searchStatus.textContent =
-    visibleRows === 0 ? `No rows match "${query}"` : `Showing ${visibleRows} of ${totalRows} rows`;
-};
-
-const debounce = (callback, delay = 120) => {
-  let timeoutId;
-
-  return (value) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => callback(value), delay);
-  };
-};
-
-const runSearch = debounce(filterRows);
-
-searchInput.addEventListener('input', () => {
-  runSearch(searchInput.value);
+  hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
+  hiddenRowsPlugin.hideRows(rowsToHide);
+  hot.render();
 });
-
-filterRows('');

@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { ChangeDetectorRef, Component, OnDestroy, ViewChild, inject } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 /* start:skip-in-preview */
@@ -33,23 +33,14 @@ type SearchResult = { row: number; col: number; data: unknown };
     <div class="example-controls-container">
       <div class="controls">
         <label for="search-filter-input">Filter rows</label>
-        <input
-          id="search-filter-input"
-          type="search"
-          placeholder="Type to filter rows..."
-          style="min-width: 16rem"
-          (input)="onSearch($event)"
-        />
-        <span id="search-filter-status" aria-live="polite" style="font-size: 0.875rem">{{ status }}</span>
+        <input id="search-filter-input" type="search" (input)="filterRows($event)" />
       </div>
     </div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   `,
 })
-export class AppComponent implements OnDestroy {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
-
-  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly data = data;
 
@@ -57,62 +48,34 @@ export class AppComponent implements OnDestroy {
     rowHeaders: true,
     colHeaders: ['Name', 'Role', 'Team', 'Location'],
     height: 'auto',
-    width: '100%',
-    autoWrapRow: true,
-    autoWrapCol: true,
     search: true,
-    hiddenRows: {
-      indicators: false,
-    },
+    hiddenRows: true,
   };
 
-  status = `Showing ${data.length} of ${data.length} rows`;
-
-  private debounceTimer: ReturnType<typeof setTimeout> | undefined;
-
-  onSearch(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-
-    clearTimeout(this.debounceTimer);
-    this.debounceTimer = setTimeout(() => this.filterRows(value), 120);
-  }
-
-  ngOnDestroy(): void {
-    clearTimeout(this.debounceTimer);
-  }
-
-  private filterRows(value: string): void {
+  filterRows(event: Event): void {
     const hot = this.hotTable.hotInstance;
 
     if (!hot) {
       return;
     }
 
-    const query = value.trim();
+    const query = (event.target as HTMLInputElement).value;
     const results = hot.getPlugin('search').query(query) as SearchResult[];
     const matchingRows = new Set(results.map(({ row }) => row));
     const hiddenRowsPlugin = hot.getPlugin('hiddenRows');
-    const totalRows = hot.countRows();
     const rowsToHide: number[] = [];
 
     if (query !== '') {
-      for (let row = 0; row < totalRows; row += 1) {
+      for (let row = 0; row < hot.countRows(); row += 1) {
         if (!matchingRows.has(row)) {
           rowsToHide.push(row);
         }
       }
     }
 
-    hot.batch(() => {
-      hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
-      hiddenRowsPlugin.hideRows(rowsToHide);
-      hot.render();
-    });
-
-    const visibleRows = totalRows - rowsToHide.length;
-
-    this.status = visibleRows === 0 ? `No rows match "${query}"` : `Showing ${visibleRows} of ${totalRows} rows`;
-    this.cdr.markForCheck();
+    hiddenRowsPlugin.showRows(hiddenRowsPlugin.getHiddenRows());
+    hiddenRowsPlugin.hideRows(rowsToHide);
+    hot.render();
   }
 }
 /* end-file */
