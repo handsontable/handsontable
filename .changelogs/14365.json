@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the context menu, the column menu, and their submenus exposing menu items without a menu parent to assistive technologies.",
+  "type": "fixed",
+  "issueOrPR": 14365,
+  "breaking": false,
+  "framework": "none"
+}
