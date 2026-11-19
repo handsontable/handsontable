@@ -78,9 +78,17 @@ const hot = new Handsontable(container, {
 
 When the input changes, pass its value to `query()` and read the row of each result:
 
-```javascript
-const results = hot.getPlugin('search').query(searchInput.value);
-const matchingRows = results.map(result => result.row);
+```javascript ins={7-10}
+const hot = new Handsontable(container, {
+  data,
+  search: true,
+  hiddenRows: true,
+});
+
+searchInput.addEventListener('input', () => {
+  const results = hot.getPlugin('search').query(searchInput.value);
+  const matchingRows = results.map(result => result.row);
+});
 ```
 
 `query()` returns one `{ row, col, data }` object per matching cell. It checks hidden rows too, so a row that the previous query hid can match the next one.
@@ -89,20 +97,32 @@ const matchingRows = results.map(result => result.row);
 
 Show the rows that the previous query hid, hide the rows without a match, and render the grid:
 
-```javascript
-const hiddenRows = hot.getPlugin('hiddenRows');
-const rowsToHide = allRows.filter(row => !matchingRows.includes(row));
+```javascript ins={11-21}
+const hot = new Handsontable(container, {
+  data,
+  search: true,
+  hiddenRows: true,
+});
 
-hiddenRows.showRows(hiddenRows.getHiddenRows());
+searchInput.addEventListener('input', () => {
+  const results = hot.getPlugin('search').query(searchInput.value);
+  const matchingRows = results.map(result => result.row);
 
-if (searchInput.value !== '') {
-  hiddenRows.hideRows(rowsToHide);
-}
+  const hiddenRows = hot.getPlugin('hiddenRows');
+  const allRows = hot.getData().map((rowData, row) => row);
+  const rowsToHide = allRows.filter(row => !matchingRows.includes(row));
 
-hot.render();
+  hiddenRows.showRows(hiddenRows.getHiddenRows());
+
+  if (searchInput.value !== '') {
+    hiddenRows.hideRows(rowsToHide);
+  }
+
+  hot.render();
+});
 ```
 
-`allRows` holds every row index, from `0` to `hot.countRows() - 1`. An empty query matches nothing, so the `if` check skips `hideRows()` and every row stays visible.
+An empty query matches nothing, so the `if` check skips `hideRows()` and every row stays visible.
 
 The `HiddenRows` plugin hides rows without removing them from the data. For details, see the [Row hiding](@/guides/rows/row-hiding/row-hiding.md) guide.
 
