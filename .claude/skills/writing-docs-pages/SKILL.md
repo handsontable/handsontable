@@ -35,6 +35,7 @@ addedIn: "17.0.0"          # Optional; version that introduced the feature
 2. Overview: 1-2 sentences right after the frontmatter.
 3. `[[toc]]`.
 4. `##` and below only, basic to advanced: Enable the feature, Basic usage, Configuration options, Advanced usage, Keyboard shortcuts, Known limitations, API reference links.
+5. Accessible by construction: a title unique per framework, no skipped heading level, link text that names its target (`docs/AGENTS.md`, "Accessible pages").
 
 ## 3. Framework-specific content
 

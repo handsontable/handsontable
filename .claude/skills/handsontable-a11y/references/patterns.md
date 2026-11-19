@@ -3,9 +3,9 @@
 Each Handsontable surface follows one pattern from the WAI-ARIA Authoring Practices Guide (APG,
 <https://www.w3.org/WAI/ARIA/apg/patterns/>). Pick the pattern before writing the markup, and keep
 every role's required parents and children. The "Known issue" column names the
-`tests/a11y/axe-baseline.json` issue where the code does not meet the pattern yet, or the task that
-tracks a gap the scan cannot see: do not copy that code as a model, and do not add to the issue's
-node count. "None known" means nobody has filed one, not that the code was audited.
+`tests/a11y/axe-baseline.json` issue where the code does not meet the pattern yet, the cluster of
+`tests/a11y/issues.json` for a gap the weekly checks found, or the task that tracks a gap no check
+sees: do not copy that code as a model, and do not add to the issue's node count. "None known" means nobody has filed one, not that the code was audited.
 
 | Surface | Pattern | Structure and states | Known issue |
 |---|---|---|---|
@@ -15,12 +15,13 @@ node count. "None known" means nobody has filed one, not that the code was audit
 | Cell editors: text, numeric, password, date, time, select | Native field | an `<input>`, `<textarea>` or `<select>` with an accessible name that says which cell it edits (column header plus row); the hidden editor input stays in the DOM, so it needs the name while hidden too. Name it with `setCellInputName()` (`src/utils/cellInputName.ts`) in `prepare()`, which runs on every selection change: it reads the column and row labels with `getColumnLabel()` and `getRowLabel()` (`src/utils/headerLabel.ts`), uses `EDITOR_INPUT_LABEL` for a numbered row and `EDITOR_INPUT_LABEL_ROW_HEADER` for a custom row header, and leaves a name the editor wrote itself | none known |
 | Comment editor | Native field | a named `<textarea>`; Ctrl+Alt+M opens and focuses it, Escape closes it and returns focus to the cell; named by `setCellInputName()` with `COMMENTS_EDITOR_LABEL` when it opens | none known |
 | Filters "Filter by value" list | Group of checkboxes | a named group (`role="group"` with `aria-labelledby` on the "Filter by value" heading) of native checkboxes, each named by its value; "Select all" and "Select none" are one button each, never a button inside a button: the role sits on the focusable link, and its wrapper has none | `filter-by-value-name` |
-| Checkbox cells, the header checkbox, row selection | Checkbox | a native checkbox named by its column header and row; the header checkbox shows a partial selection with the native `indeterminate` state, never `aria-checked` on an `<input>` | not in the scan, tracked by DEV-2947: the cell checkbox is named by its state ("Checked"/"Unchecked") and puts `role="checkbox"` and `aria-checked` on the native input, while the header and row-selection checkboxes put only `aria-checked` on it |
+| Checkbox cells, the header checkbox, row selection | Checkbox | a native checkbox named by its column header and row; the header checkbox shows a partial selection with the native `indeterminate` state, never `aria-checked` on an `<input>`; a row selection change is announced politely (row selection announces assertively today, through `announce()`'s default) | not in the scan, tracked by DEV-2947: the cell checkbox is named by its state ("Checked"/"Unchecked") and puts `role="checkbox"` and `aria-checked` on the native input, while the header and row-selection checkboxes put only `aria-checked` on it |
 | Dialog | Dialog (modal) | `dialog`, or `alertdialog` for a confirmation, with `aria-modal="true"` and `aria-labelledby` on its title; focus moves inside on open, stays inside (a focus scope with focus catchers), and returns to where it came from on close | `classic-contrast`, `horizon-contrast` (its primary button) |
 | Notification toast | Status message | `status` with `aria-live="polite"`, or `alert` with `assertive` for an error, as `notification/ui.ts` does; its actions are `<button>`s a keyboard reaches | contrast, as above |
 | Pagination, sheets bar | Bars of buttons | named `<button>`s (`aria-label` from i18n for icon-only ones), `aria-disabled` on a disabled one, a page or sheet change announced politely (both announce assertively today, through `announce()`'s default); each sheet tab is a button with one Tab stop and Arrow, Home and End inside the strip, by design (`plugins/sheetsBar/AGENTS.md`), so moving it to the APG tabs pattern is a design change, not a fix | `classic-target-size` |
 | Loading | Alert dialog | the loading screen is an `alertdialog` (built on the dialog plugin) that takes focus while data loads, named by its title and described by its message; a decorative spinner is `aria-hidden="true"` | not in the scan, tracked by DEV-2949 (the spinner SVG is exposed) |
 | Empty data state | Busy region and status | `aria-busy="true"` on the region while a fetch is in flight; the message reaches screen readers through a live region | none known |
+| Freeze bars | Window splitter | the drawn bar is `aria-hidden`; a visually hidden, focusable `separator` beside the grid (never inside the `treegrid`, which may own only rows) carries `aria-orientation`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax`, a name per edge from i18n, and the keys; F6 reaches it; the count reads through `aria-valuetext` in words, from an i18n phrase (`plugins/freezeBar/AGENTS.md`) | `freeze-bar-count-not-read` (no `aria-valuetext` yet) |
 
 ## Traps the scan has found
 
@@ -39,6 +40,16 @@ node count. "None known" means nobody has filed one, not that the code was audit
   themes, and add the theme to the PR's proof.
 - **Positional selectors in a name.** Never build a name from DOM position or a random id; build
   it from the column header and the row, the way the cell itself is announced.
+- **A combobox on a `textarea`.** ARIA in HTML does not allow `role="combobox"` on a `textarea`,
+  and the autocomplete editors and then the formula editor both shipped it: a screen reader reads
+  the typed text and nothing of the suggestions. Use an `<input>`, or keep the `textarea` a textbox
+  that points at its `listbox` with `aria-controls` and `aria-activedescendant`, which a textbox allows.
+- **A focus stop with no role.** The empty data state and the formula help panel took the focus as a
+  bare `div`, so a screen reader read `section`, or a title alone. A surface that takes focus gets a
+  role and a name; one that only tells something is a live region and never takes the focus.
+- **A state drawn by a class alone.** A commented cell, a summary cell, a merged span and a link in a
+  cell read as plain cells, because only a class and a color said what they are. Write the state as
+  an attribute or hidden text in the renderer that draws the class.
 
 ## Core building blocks
 

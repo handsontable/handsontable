@@ -1,0 +1,200 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { repoRoot } from '../../.github/scripts/lib/repo-root.mjs';
+import {
+  BUDGET, CLASSES_FILE, HOME_FILES, SKILL_FILE, classRow, classTags, collectSkillProblems, knownChecks, lineCount,
+  readSkillInputs, sectionBullets,
+} from '../a11y-skill-rules.mjs';
+
+// The accessibility skill binds its rules to defect classes (`.claude/skills/handsontable-a11y/rules.json`), and every
+// cluster of the findings catalog names one (`defectClass` in tests/a11y/issues.json). This test keeps the five places
+// that name a class in step, and keeps SKILL.md within its budget, so the learning routine and a person editing by hand
+// meet the same gate: the committed tree first, then one planted failure per rule on a copy of the real inputs, so a
+// check that stops firing fails here rather than passing everything.
+
+const committed = () => structuredClone(readSkillInputs(repoRoot()));
+const classOf = (inputs, id) => inputs.rules.classes.find(entry => entry.id === id);
+
+/**
+ * Runs the checks on a copy of the committed inputs after a change, and asserts that a problem names what was planted.
+ *
+ * @param {(inputs: object) => void} plant Changes the copy.
+ * @param {RegExp} expected What one of the problems must say.
+ */
+function assertPlanted(plant, expected) {
+  const inputs = committed();
+
+  plant(inputs);
+
+  const problems = collectSkillProblems(inputs);
+
+  assert.ok(problems.some(problem => expected.test(problem)),
+    `expected a problem matching ${expected}; got:\n${problems.join('\n')}`);
+}
+
+test('the committed skill, its class table, rules.json, the home files and the catalog agree', () => {
+  const inputs = committed();
+
+  assert.ok(inputs.rules.classes.length > 10 && inputs.catalog.clusters.length > 50,
+    'read the classes and the clusters');
+  assert.deepEqual(collectSkillProblems(inputs), []);
+});
+
+test('SKILL.md stays within its line budget and its build-rule budget, and rules.json cannot raise either', () => {
+  const { skill } = committed();
+  const rules = sectionBullets(skill, '## Build rules');
+
+  assert.ok(lineCount(skill) <= BUDGET.skillLines && rules.length > 0 && rules.length <= BUDGET.buildRules,
+    `the committed SKILL.md: ${lineCount(skill)} lines, ${rules.length} build rules`);
+  assert.equal(lineCount('a\nb\n'), 2, 'lines are counted as wc -l counts them');
+
+  // Lines added after the build rules leave the rule count alone and break the line budget only.
+  assertPlanted((inputs) => {
+    inputs.skill += 'filler\n'.repeat(BUDGET.skillLines);
+  }, /SKILL\.md has \d+ lines, over the budget of 120/);
+  // One more tagged rule than the budget, at the end of the section.
+  assertPlanted((inputs) => {
+    const extra = Array.from({ length: BUDGET.buildRules }, (_, index) => `- **Rule ${index}.** Planted. [C03]`)
+      .join('\n');
+
+    inputs.skill = inputs.skill.replace('\n## Fixing a finding', `${extra}\n\n## Fixing a finding`);
+  }, /SKILL\.md has \d+ build rules, over the budget of 20/);
+  // The routine may edit rules.json, never this test's module: a raised budget there is refused.
+  assertPlanted((inputs) => {
+    inputs.rules.budget.skillLines = 200;
+  }, /"budget" must be \{"skillLines":120,"buildRules":20\}/);
+});
+
+test('a class has a rule unless it is record-only, and a record-only class has none', () => {
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').rule = null;
+  }, /class C09 has no rule and is not record-only/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').rule = '  ';
+  }, /class C09 has no rule and is not record-only/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C16').rule = 'A screen reader reads everything.';
+  }, /class C16 is record-only, so its "rule" is null/);
+});
+
+test('every enforcing check is a known check id, and runs where the class says it does', () => {
+  const checks = knownChecks();
+
+  assert.ok(checks.has('keyboard-walker') && checks.has('docs-structure') && checks.has('axe') && checks.has('none'),
+    'the known checks hold the evidence checks, the site checks, the scans and the tiers');
+
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').enforcedBy[0].check = 'pointr';
+  }, /class C09, enforcedBy 1 names "pointr", which is not a known check/);
+  // The checks beyond axe run in the weekly audit only: a class that says one runs on the pull request misleads a fix.
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').enforcedBy[0].runs = 'pull-request';
+  }, /class C09, enforcedBy 1: "pointer" runs weekly or none, not "pull-request"/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').enforcedBy.push({ check: 'none', runs: 'none' });
+  }, /class C09: "none" says no check enforces the rule, so it stands alone/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').enforcedBy = [];
+  }, /class C09: "enforcedBy" must list at least one check/);
+});
+
+test('classes.md and rules.json list the same classes, row for row', () => {
+  const { rules, classesDoc } = committed();
+
+  assert.ok(classesDoc.includes(classRow(classOf({ rules }, 'C09'))), 'a class reads as its row');
+
+  assertPlanted((inputs) => {
+    inputs.classesDoc = inputs.classesDoc.split('\n').filter(line => !line.startsWith('| C09 |')).join('\n');
+  }, /classes\.md has no row for C09, which .*rules\.json lists/);
+  assertPlanted((inputs) => {
+    inputs.classesDoc += '| C99 | Planted | none | skill | A rule. | none | 0 |\n';
+  }, /classes\.md has a row for C99, which .*rules\.json does not list/);
+  // A rule edited in rules.json alone: the table shows the old text, and the message prints the row to copy.
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').rule = 'A control acts on release.';
+  }, /the row of C09 differs from .*rules\.json; it reads\n\| C09 \|.*A control acts on release\. \|/);
+});
+
+test('every catalog cluster names a class rules.json lists, and a record-only one only when it is not a defect', () => {
+  const cluster = (inputs, id) => inputs.catalog.clusters.find(entry => entry.id === id);
+
+  assertPlanted((inputs) => {
+    delete cluster(inputs, 'menu-semantics').defectClass;
+  }, /cluster "menu-semantics" has no "defectClass"/);
+  assertPlanted((inputs) => {
+    cluster(inputs, 'menu-semantics').defectClass = 'C99';
+  }, /cluster "menu-semantics" names the class "C99", which .*rules\.json does not list/);
+  assertPlanted((inputs) => {
+    cluster(inputs, 'reader-golden-drift').defectClass = 'C02';
+  }, /cluster "reader-golden-drift" is not a defect \(notDefect\), so its class is a record-only one, not C02/);
+  assertPlanted((inputs) => {
+    cluster(inputs, 'menu-semantics').defectClass = 'C16';
+  }, /cluster "menu-semantics" names the record-only class C16, which is for a cluster with notDefect/);
+});
+
+test('every build rule names its classes, and every class names the file that holds its rule', () => {
+  const { skill } = committed();
+
+  assert.deepEqual(classTags('Acts on release. [C06, C09] and [C03]'), ['C06', 'C09', 'C03']);
+  assert.ok(sectionBullets(skill, '## Build rules').every(rule => classTags(rule).length > 0));
+  assert.deepEqual(Object.keys(HOME_FILES), ['skill', 'renderer', 'docs']);
+
+  assertPlanted((inputs) => {
+    inputs.skill = inputs.skill.replace('`aria-hidden="true"`. [C03]', '`aria-hidden="true"`.');
+  }, /the build rule "\*\*Native element first.*names no class/);
+  assertPlanted((inputs) => {
+    inputs.skill = inputs.skill.replace('the exception. [C09]', 'the exception. [C14]');
+  }, /the build rule "\*\*A control acts on release.*names C14, which is not a class whose home is the skill/);
+  // C11 is tagged by one rule only: untagging it leaves the class without a rule in the skill.
+  assertPlanted((inputs) => {
+    inputs.skill = inputs.skill.replace('keeps. [C11]', 'keeps. [C08]');
+  }, /no build rule names C11, a class whose home is the skill/);
+  assertPlanted((inputs) => {
+    inputs.homes.renderer = inputs.homes.renderer.replace('[C01]', '');
+  }, /walkontable-dev\/SKILL\.md does not name C01, a class whose home is "renderer"/);
+  assertPlanted((inputs) => {
+    inputs.homes.docs = inputs.homes.docs.replace('[C14]', '');
+  }, /docs\/AGENTS\.md does not name C14, a class whose home is "docs"/);
+});
+
+test('the skill and its class table hold rules, not records: no task id and no date', () => {
+  assertPlanted((inputs) => {
+    inputs.skill += 'Fixed in DEV-1234.\n';
+  }, new RegExp(`${SKILL_FILE.replace(/[.]/g, '\\.')}:\\d+ names a task id \\(DEV-1234\\)`));
+  assertPlanted((inputs) => {
+    inputs.classesDoc += 'Seen on 2026-11-17.\n';
+  }, new RegExp(`${CLASSES_FILE.replace(/[.]/g, '\\.')}:\\d+ holds a date \\(2026-11-17\\)`));
+});
+
+test('rules.json keeps its shape: ids, homes, criteria, strikes and the not-preventable list', () => {
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').home = 'grid';
+  }, /class C09: "home" must be one of skill, renderer, docs, website, record-only/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').wcag.push('4.1.1');
+  }, /class C09: "wcag" must list WCAG 2\.2 criteria/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C10').id = 'C09';
+  }, /class C09: the id is used twice/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').name = 'Press | release';
+  }, /class C09: "name" must say what the class is, with no pipe/);
+  assertPlanted((inputs) => {
+    classOf(inputs, 'C09').strikes.push({ cluster: 'drag-and-press-activation', audit: '17 November', pullRequest: 1 });
+  }, /class C09, strike 1: "audit" must be the date of the audit that found it/);
+  assertPlanted((inputs) => {
+    inputs.rules.notPreventable.push({ cluster: 'reader-silent-step' });
+  }, /notPreventable 1: "reason" must be why no rule can prevent it/);
+  assertPlanted((inputs) => {
+    inputs.rules.classes.push({
+      id: 'C18',
+      name: 'Planted',
+      wcag: [],
+      home: 'skill',
+      rule: 'A rule.',
+      enforcedBy: [{ check: 'none', runs: 'none' }],
+      strikes: [],
+      extra: true,
+    });
+  }, /class C18 has an unknown field "extra"/);
+});

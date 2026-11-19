@@ -12,6 +12,8 @@ Visual tests live in `visual-tests/` (Playwright + TypeScript); reg-suit compare
 
 A screenshot proves pixels only. Capture one screenshot per distinct visual state, assert that state first, and keep the DOM and API facts (focus, selection, data, "the menu opened") as Playwright assertions in `tests/e2e` – a visual spec is in addition to, never instead of them. The canonical paragraph, the measured numbers, and why a new feature gets its own demo route (and its wrapper-coverage cost) are `visual-tests/AGENTS.md` → Decision rule. Read it before writing the spec.
 
+A screenshot never proves a name, a key or a focus path either: a visual change to something a user can see or operate also follows the `handsontable-a11y` skill (contrast and target size in all three themes, a focus ring that stays visible).
+
 ## Custom fixture: `tablePage`
 
 Import the custom runner. `visualTest` registers a spec; a bare `test(` is a lint error:

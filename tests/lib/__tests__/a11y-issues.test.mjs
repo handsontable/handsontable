@@ -203,6 +203,43 @@ test('a cluster is a defect a task may own, or not a defect for a class of reaso
     'a cluster that is not a defect has no tracker, so a change run counts its finding at its severity as before');
 });
 
+test('a cluster names its defect class as C and two digits, and the compiled cluster carries it', () => {
+  const rule = [{ source: 'checks', kinds: ['x'] }];
+
+  assert.deepEqual(validateIssuesCatalog(catalogOf(
+    ['classed', rule, { defectClass: 'C09' }],
+    ['unclassed', rule],
+    ['reader-own', rule, { defectClass: 'C16', notDefect: 'reader-behavior' }],
+  )), []);
+  assert.deepEqual(compileIssuesCatalog(catalogOf(['classed', rule, { defectClass: 'C09' }], ['unclassed', rule]))
+    .clusters.map(cluster => [cluster.id, cluster.defectClass]), [['classed', 'C09'], ['unclassed', null]],
+  'the compiled cluster carries the class, and null for a catalog that gives none (the ledger\'s fixtures)');
+
+  const problems = validateIssuesCatalog(catalogOf(
+    ['one-digit', rule, { defectClass: 'C9' }],
+    ['lower-case', rule, { defectClass: 'c09' }],
+    ['a-number', rule, { defectClass: 9 }],
+    ['empty', rule, { defectClass: '' }],
+    ['the-old-name', rule, { class: 'C09' }],
+  ));
+  const expect = (pattern) => assert.ok(problems.some(problem => pattern.test(problem)),
+    `expected a problem matching ${pattern}; got:\n${problems.join('\n')}`);
+
+  expect(/"one-digit".*defectClass.*C and two digits/);
+  expect(/"lower-case".*defectClass/);
+  expect(/"a-number".*defectClass/);
+  expect(/"empty".*defectClass/);
+  // "class" already names the reason of `notDefect`, so the defect class has a name of its own and the short one is refused.
+  expect(/"the-old-name".*unknown field "class"/);
+  assert.equal(problems.length, 5, problems.join('\n'));
+
+  // The class sorts nothing: the cluster a finding lands in and its tracker are the same with or without one.
+  const catalog = compileIssuesCatalog(catalogOf(['classed', [{ source: 'checks', kinds: ['focus-not-returned'] }],
+    { defectClass: 'C04', tracker: 'DEV-1' }]));
+
+  assert.deepEqual(clusterOf(finding({}), catalog), { id: 'classed', tracker: 'DEV-1', ambiguous: [] });
+});
+
 test('a renamed cluster names the ids it had, each once in the catalog and none still in use', () => {
   const rule = [{ source: 'checks', kinds: ['x'] }];
 
@@ -506,6 +543,9 @@ test('the committed catalog validates against the live baseline issues and scree
   assert.deepEqual(notDefect.filter(cluster => cluster.tracker !== null).map(cluster => cluster.id), []);
   assert.equal(catalog.clusters.find(cluster => cluster.id === 'reader-golden-drift').notDefect, 'reader-behavior');
   assert.equal(catalog.clusters.find(cluster => cluster.id === 'menu-semantics').notDefect, null, 'a defect cluster carries no class');
+  // The defect class reaches the compiled catalog, where the learning routine reads it; which ids exist is checked
+  // against the skill's rules.json by scripts/__tests__/a11y-skill-rules.test.mjs, outside this folder.
+  assert.equal(catalog.clusters.find(cluster => cluster.id === 'menu-semantics').defectClass, 'C02');
   // The clusters the task started with, by id: a rename here is a rename for the skill lessons and the debt triage.
   for (const id of ['overlay-clones-split-tree', 'focus-not-returned-after-escape', 'unnamed-controls', 'menu-semantics',
     'contrast-and-focus-visibility', 'drag-and-press-activation', 'reflow-and-motion', 'status-messages', 'dialogs-leak-tab',

@@ -50,4 +50,5 @@ Eliminate config that naming, location, or type conventions already express. Use
 - **Unit** (`*.unit.js`): extracted helpers, strategies, pure logic.
 - **E2E** (Playwright `tests/e2e/*.spec.ts`): feature still works in the browser. Edit an existing Jasmine `*.spec.js` only to keep it passing; never add a new one. A pure refactor with no behavior change can use a `Refactor-only: <reason>` commit trailer instead of a new test.
 - **Backward compatibility:** legacy API names, CSS classes, and option names still work.
+- **Accessibility:** a refactor of DOM-building code keeps its roles, names, focus scopes and announcements, and the proof is an unchanged tree golden and keyboard-walker result (the `handsontable-a11y` skill, `references/proving.md`); a `Refactor-only` trailer waives new tests, not this.
 - **Performance:** for data-heavy paths, unit tests with 50k+ rows.
