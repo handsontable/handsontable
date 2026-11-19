@@ -64,7 +64,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
-        // licenseKey="your-license-key" // get a key at https://handsontable.com/pricing/
+        // licenseKey="your-license-key" get a key at https://handsontable.com/pricing/
         ref={hotRef}
         data={data}
         rowHeaders={true}

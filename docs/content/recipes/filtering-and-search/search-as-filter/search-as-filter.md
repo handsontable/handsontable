@@ -71,7 +71,7 @@ const hot = new Handsontable(container, {
   data,
   search: true,
   hiddenRows: true,
-  // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
+  // licenseKey: 'your-license-key', get a key at https://handsontable.com/pricing/
 });
 
 const searchPlugin = hot.getPlugin('search');

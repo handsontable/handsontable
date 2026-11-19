@@ -93,7 +93,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        // license: 'your-license-key', // get a key at https://handsontable.com/pricing/
+        // license: 'your-license-key', get a key at https://handsontable.com/pricing/
       } as HotGlobalConfig,
     },
   ],
