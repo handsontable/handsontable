@@ -107,6 +107,31 @@ export class CellsValueGetterUnrenderedRowsPage {
   }
 
   /**
+   * Filters a column to the rows whose value equals the given one, through the Filters API.
+   * `filter()` renders synchronously, so the grid shows the result when this resolves.
+   *
+   * @param {number} col The visual column index.
+   * @param {string} value The value to keep.
+   */
+  async filterColumnEquals(col: number, value: string): Promise<void> {
+    await this.page.evaluate(([c, v]) => {
+      const filters = (window as unknown as HotWindow).hot.getPlugin('filters');
+
+      filters.addCondition(c, 'eq', [v]);
+      filters.filter();
+    }, [col, value] as const);
+  }
+
+  /**
+   * Reads how many rows the grid shows.
+   *
+   * @returns {Promise<number>}
+   */
+  async countRows(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as HotWindow).hot.countRows());
+  }
+
+  /**
    * Reads which physical row each of the first visual rows shows.
    *
    * @param {number} count How many visual rows to read.
