@@ -240,23 +240,28 @@ test.describe('AutoColumnSize sync cell budget', { tag: THEMES_TAG }, () => {
     expect(await grid.recalculateAllColumnsWidth()).toHaveLength(GRID.cols);
   });
 
-  test('keeps a cell selected right after the constructor in view through the sweep', async() => {
-    // The scroll offset is the sum of the widths of the columns before the cell, so they are measured before
-    // the scroll, and the cell stays in view when the sweep measures the rest.
-    const reference = await grid.build({ ...GRID, settings: EXACT });
+  for (const after of ['selectCell0x25', 'selectCell0x25InBatch', 'selectCell0x25WhileSuspended'] as const) {
+    test(`keeps a cell selected right after the constructor in view through the sweep (${after})`, async() => {
+      // The scroll offset is the sum of the widths of the columns before the cell, so they are measured before
+      // the scroll, and the cell stays in view when the sweep measures the rest. A render held by `batch()` or
+      // `suspendRender()` draws them only on resume, so the scroll runs again after that render.
+      const reference = await grid.build({ ...GRID, settings: EXACT });
 
-    await grid.build(GRID, BUDGET, 'selectCell0x25');
+      await grid.build(GRID, BUDGET, after);
 
-    const isInView = ([first, last]: Array<number | null>) => first !== null && last !== null && first <= 25 && last >= 25;
+      const isInView = ([first, last]: Array<number | null>) => (
+        first !== null && last !== null && first <= 25 && last >= 25
+      );
 
-    expect(isInView(await grid.fullyVisibleColumns())).toBe(true);
+      await expect.poll(async() => isInView(await grid.fullyVisibleColumns())).toBe(true);
 
-    await grid.waitForSweepEnd();
+      await grid.waitForSweepEnd();
 
-    expect(isInView(await grid.fullyVisibleColumns())).toBe(true);
-    expect(await grid.widths()).toEqual(reference.widths);
-    await expect.poll(() => grid.staleDrawnColumns()).toEqual([]);
-  });
+      expect(isInView(await grid.fullyVisibleColumns())).toBe(true);
+      expect(await grid.widths()).toEqual(reference.widths);
+      await expect.poll(() => grid.staleDrawnColumns()).toEqual([]);
+    });
+  }
 
   for (const settings of [{ stretchH: 'all' }, { layoutDirection: 'rtl' }]) {
     test(`ends the sweep with the exact widths with ${JSON.stringify(settings)}`, async() => {

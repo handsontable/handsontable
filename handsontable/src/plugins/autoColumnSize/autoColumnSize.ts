@@ -518,6 +518,13 @@ export class AutoColumnSize extends BasePlugin {
    */
   #mayDeferOffScreenColumns = false;
   /**
+   * The horizontal scroll made while rendering was suspended and the widths it needs had not been drawn yet,
+   * run again after the render that `resumeRender()` runs, or `null`.
+   *
+   * @type {{ column: number, snapping: string | undefined } | null}
+   */
+  #scrollAfterResumedRender: { column: number, snapping: string | undefined } | null = null;
+  /**
    * The `useHeaders` option value as this plugin last applied it.
    *
    * Kept separately from the ghost table's own copy of the setting, which `#measureCellsWidth()`
@@ -1920,7 +1927,7 @@ export class AutoColumnSize extends BasePlugin {
    * @param {number} visualColumn The visual column the viewport scrolls to.
    * @returns {number} The same column.
    */
-  #onBeforeViewportScrollHorizontally = (visualColumn: number) => {
+  #onBeforeViewportScrollHorizontally = (visualColumn: number, snapping?: string | { value?: string }) => {
     if (!this.#viewportSweepPending || visualColumn < 0 || this.hot.countRows() === 0) {
       return visualColumn;
     }
@@ -1939,7 +1946,37 @@ export class AutoColumnSize extends BasePlugin {
       this.hot.render();
     }
 
+    // A render held by `suspendRender()` (a `batch()` included) runs only at `resumeRender()`, so this scroll is
+    // still computed from the widths of the last draw. It runs again after that render.
+    if (this.hot.isRenderSuspended() && (hasMissingWidth || this.#scrollAfterResumedRender !== null)) {
+      if (this.#scrollAfterResumedRender === null) {
+        this.hot.addHookOnce('afterRender', this.#onAfterResumedRender);
+      }
+
+      this.#scrollAfterResumedRender = {
+        column: visualColumn,
+        snapping: typeof snapping === 'object' ? snapping.value : snapping,
+      };
+    }
+
     return visualColumn;
+  };
+
+  /**
+   * Runs again the horizontal scroll made while rendering was suspended, now that the render drew the widths it
+   * needs (see `#onBeforeViewportScrollHorizontally`).
+   */
+  #onAfterResumedRender = () => {
+    const target = this.#scrollAfterResumedRender;
+
+    this.#scrollAfterResumedRender = null;
+
+    if (target !== null && target.column < this.hot.countCols()) {
+      this.hot.scrollViewportTo({
+        col: target.column,
+        horizontalSnap: target.snapping === 'auto' ? undefined : target.snapping,
+      });
+    }
   };
 
   /**

@@ -18,7 +18,8 @@ export interface SyncBudgetGrid {
  * chunk of the sweep.
  */
 export type AfterBuild =
-  'toggleAutoColumnSize' | 'insertTwoColumnsAtStart' | 'selectCell0x25' | 'suspendRender';
+  'toggleAutoColumnSize' | 'insertTwoColumnsAtStart' | 'selectCell0x25' | 'selectCell0x25InBatch' |
+  'selectCell0x25WhileSuspended' | 'suspendRender';
 
 /**
  * What the constructor did: the visual columns it read cell meta for (the columns measured before the
@@ -44,6 +45,7 @@ interface FixtureHot {
   alter(action: string, index: number, amount: number): void;
   selectCell(row: number, column: number): void;
   render(): void;
+  batch(wrappedOperations: () => void): void;
   suspendRender(): void;
   getFirstFullyVisibleColumn(): number | null;
   getLastFullyVisibleColumn(): number | null;
@@ -130,6 +132,14 @@ export class AutoColumnSizeSyncBudgetPage {
           break;
         case 'selectCell0x25':
           win.hot.selectCell(0, 25);
+          break;
+        case 'selectCell0x25InBatch':
+          win.hot.batch(() => win.hot.selectCell(0, 25));
+          break;
+        case 'selectCell0x25WhileSuspended':
+          win.hot.suspendRender();
+          win.hot.selectCell(0, 25);
+          win.hot.resumeRender();
           break;
         case 'suspendRender':
           win.hot.suspendRender();

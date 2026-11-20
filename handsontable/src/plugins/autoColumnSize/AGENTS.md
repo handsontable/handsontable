@@ -227,7 +227,9 @@ hold it together:
   `#onBeforeViewportScrollHorizontally` measures every one of them that lacks a width and then renders
   (fill-only) before the scroll goes on: Walkontable reads the widths from its last draw, so measuring alone
   left the scroll on fallback widths, and the selected cell left the view when the sweep ended. That costs the
-  columns up to the target over every row, which is what the path without a budget paid in the constructor. An edit made while the sweep runs is
+  columns up to the target over every row, which is what the path without a budget paid in the constructor. A
+  render held by `suspendRender()` (a `batch()` included) runs only at `resumeRender()`, so a scroll made then is
+  stored (`#scrollAfterResumedRender`) and run again from the next `afterRender`. An edit made while the sweep runs is
   refreshed when it ends (`#refreshQueuedColumnsWidth()` waits for `inProgress`), and a column scrolled into
   view before the sweep reached it is measured by that render, synchronously, over every row (the visible
   pass fills every missing width), as for any grid wider than `syncLimit` before. Grids under the budget and
