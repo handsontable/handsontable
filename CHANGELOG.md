@@ -327,7 +327,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed a crash when double-clicking a row selection checkbox while a header was selected. [#13897](https://github.com/handsontable/handsontable/pull/13897)
 - Fixed an issue where the pagination bar shrank to the width of the row headers when the grid had no columns to render. [#13901](https://github.com/handsontable/handsontable/pull/13901)
 - Fixed swapping the ColumnSorting and MultiColumnSorting plugins in one updateSettings() call, which turned both plugins off. [#13904](https://github.com/handsontable/handsontable/pull/13904)
-- Fixed slow scrolling of grids with many custom borders. [#13908](https://github.com/handsontable/handsontable/pull/13908)
 - Fixed checkbox cells storing a pasted or written value that matches a template only by letter case (such as `"False"`) as text instead of the template value, and storing a written `"true"` or `"false"` as text in a row that was never rendered, and added an opt-in `checkbox` validator that marks or rejects values matching neither template. [#13910](https://github.com/handsontable/handsontable/pull/13910)
 - Fixed a flicker of the custom borders on `updateSettings()` with `customBordersProgressive` enabled. The previous borders now stay visible until the new ones are applied. [#13913](https://github.com/handsontable/handsontable/pull/13913)
 - Fixed a duplicated mobile selection handle on cells of a frozen column or row. [#13915](https://github.com/handsontable/handsontable/pull/13915)
@@ -493,6 +492,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Angular: Fixed a bug where the grid rendered at zero height when the `height` option was relative (for example `'100%'`) and the `<hot-table>` sat in a parent with a fixed height, which also showed up as the grid disappearing inside a CSS-transformed ancestor. [#13690](https://github.com/handsontable/handsontable/pull/13690)
 - Angular: Fixed an error logged on every server request when the grid renders on the server, and an error logged on click after the page hydrates. [#14007](https://github.com/handsontable/handsontable/pull/14007)
 - Fixed `customBorders` edges that were not drawn on the first column and the first row after the frozen ones. [#14294](https://github.com/handsontable/handsontable/pull/14294)
+
+## [18.1.3] - 2026-11-20
+
+### Fixed
+- Fixed slow scrolling of grids with many custom borders. [#13908](https://github.com/handsontable/handsontable/pull/13908)
 
 ## [18.1.2] - 2026-10-07
 
