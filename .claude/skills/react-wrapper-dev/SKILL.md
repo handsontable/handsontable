@@ -55,4 +55,5 @@ StrictMode double-mounts (mount, unmount, mount), so Handsontable initializes tw
 ## Rules
 
 - Keep business logic (data transformation, validation, grid behavior) in `handsontable/src/`.
+- A prop or settings update never moves the focus, and a component renderer or editor gets the names and the focus return a core one has (the `handsontable-a11y` skill, "Only the user moves focus").
 - Use Node.js `.mjs` helpers for npm scripts (reference: `scripts/prepare-types.mjs`).

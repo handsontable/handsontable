@@ -1239,3 +1239,33 @@ unchecked.
 `src/lib/` and `src/components/` are tooling, not content, so the docs sync does not port this to `prod-docs/*`: it reaches the live site at the next prod-docs cut or through a hand cherry-pick.
 
 Unit tests: `src/lib/__tests__/headway-bell.test.mjs` (`npm run docs:test:plugins`), against a fake that defers callbacks the way the widget does. The real widget: `tests/headwayBell.spec.ts` (the `functional` project, run by the `functional` job in `.github/workflows/docs.yml` on a hosted runner against the PR preview). It skips when Headway is unreachable, which the job summary's skipped count shows, and the job runs only after the earlier gates are green.
+
+## 2.23 Accessible pages
+
+A docs page is a page of the product, but the weekly docs audit (`docs-a11y.yml`) scans only part of
+the site, with axe and the site checks (`tests/a11y/docs/pages.mjs`). It scans one variant of each
+guide page the docs visual suite lists (`docs/tests/paths.js`): the JavaScript one where the page has
+one. Every framework's variant is scanned only for the accessibility guide and the conformance report.
+The API reference and the recipes are scanned as one template each, through a few sample pages, and
+the site chrome in the states a reader opens. The React, Angular and Vue variants of the other guide
+pages and the other recipe pages are never scanned. The ledger files what the audit finds under the
+clusters of `tests/a11y/issues.json`. A pull request that changes only page content is not scanned, so
+these rules are its only gate before that audit, and the only gate at all for a page the audit skips.
+The rule of page structure is class C14 of the accessibility skill's `references/classes.md` [C14]; the
+others are the grid's rules (the `handsontable-a11y` skill) as a page meets them.
+
+- **One title per page and framework.** The JavaScript, React, Angular and Vue variants of a page each
+  get a title of their own, and a title holds the page's main heading.
+- **Headings in order.** Start the content at `##` under the page title and never skip a level for the
+  look of it: a callout or a card that needs a smaller heading uses a smaller style, not a deeper level.
+- **Link text names its target.** Never "here", "read more" or "learn more": the link's own words say
+  where it goes, read out of context in a screen reader's list of links.
+- **Landmarks with unique names, help in one place.** Two navigations or asides on one page carry
+  different names, and help links sit where they sit on every other page.
+- **An example is a page too.** Its fields have labels, its images a text alternative, its frame a
+  title, and its grid lets Tab leave (Ctrl+End, then Tab, is the documented way out).
+- **Focus stays visible and returns.** A hidden copy of the navigation holds no focusable link, a
+  closed popup no tab stop, and closing a popup gives the focus back to the control that opened it.
+- **Reflow and contrast.** Content that does not wrap (inline code, keys, a link in a callout) must not
+  widen the page past 320 CSS px, and a color pair clears 4.5:1 for text and 3:1 for a field's edge,
+  in the light and the dark theme.

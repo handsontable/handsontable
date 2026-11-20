@@ -6,7 +6,11 @@
  * root-cause clusters: one entry per known problem, with a stable id local to this repository, a title
  * that says what the problem is, optionally the ids it had before a rename (`formerIds`, so its history follows
  * it), optionally the tracker task (or tasks) that own the fix, or the class that says why its findings are not a
- * defect (`notDefect`), and the rules that say which findings belong to it. It extends the axe baseline's issue catalog
+ * defect (`notDefect`), optionally its defect class (`defectClass`, `C01` to `C17`: the build rule of the accessibility
+ * skill its findings break, `.claude/skills/handsontable-a11y/rules.json`), and the rules that say which findings
+ * belong to it. This module checks a `defectClass`'s shape only: the class list lives with the skill, which this
+ * folder never reads (the verdict jobs check out `tests/lib` alone), and the root tooling test
+ * `scripts/__tests__/a11y-skill-rules.test.mjs` requires one on every committed cluster and checks it against the list. It extends the axe baseline's issue catalog
  * (`a11y/axe-baseline.json`, `lib/a11y-baseline.mjs`): the same id, title and tracker fields, plus
  * `match`. A finding that matches no cluster lands in `needs-triage`; one that matches two is a
  * catalog error, which `lib/__tests__/a11y-issues.test.mjs` refuses before it can reach the ledger.
@@ -100,10 +104,12 @@ const NEVER_CARRIED = Object.freeze({
 
 const LIST_FIELDS = MATCH_FIELDS.slice(1);
 const PATTERN_FIELDS = new Set(['pages', 'where']);
-const CLUSTER_FIELDS = new Set(['id', 'title', 'formerIds', 'tracker', 'notDefect', 'match']);
+const CLUSTER_FIELDS = new Set(['id', 'title', 'defectClass', 'formerIds', 'tracker', 'notDefect', 'match']);
 const CLUSTER_ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 // The class of a cluster whose findings are not a defect (`reader-behavior`, `tool-hidden-content`): a slug, like an id.
 const NOT_DEFECT_CLASS = CLUSTER_ID;
+// A defect class of the accessibility skill (`C09`): `C` and two digits. Which ids exist is the skill's to say.
+const DEFECT_CLASS = /^C\d{2}$/;
 const TRACKER_ID = /^[A-Z][A-Z0-9]*-\d+$/;
 const TASK_ID_IN_TEXT = /\b[A-Z][A-Z0-9]*-\d+\b/;
 // A generated instance id (`ht_<hex>`, `wt_<hex>`), on its own or inside a class name.
@@ -237,7 +243,8 @@ export function validateIssuesCatalog(doc, known = {}) {
     const label = typeof cluster.id === 'string' ? `cluster "${cluster.id}"` : where;
 
     for (const field of Object.keys(cluster).filter(name => !CLUSTER_FIELDS.has(name))) {
-      problems.push(`${label}: unknown field "${field}"; a cluster has id, title, optional formerIds, an optional tracker or notDefect, and match`);
+      problems.push(`${label}: unknown field "${field}"; a cluster has id, title, an optional defectClass, optional formerIds, an optional `
+        + 'tracker or notDefect, and match');
     }
     if (typeof cluster.id !== 'string' || !CLUSTER_ID.test(cluster.id)) {
       problems.push(`${where}: "id" must be a kebab-case slug (menu-semantics), got ${JSON.stringify(cluster.id)}`);
@@ -253,6 +260,10 @@ export function validateIssuesCatalog(doc, known = {}) {
     } else if (TASK_ID_IN_TEXT.test(cluster.title)) {
       problems.push(`${label}: the title names a task id; it goes in "tracker". The test-health page and the pull request `
         + 'text print titles, and the ClickUp integration attaches every task id it finds in a pull request');
+    }
+    if (cluster.defectClass !== undefined && (typeof cluster.defectClass !== 'string' || !DEFECT_CLASS.test(cluster.defectClass))) {
+      problems.push(`${label}: "defectClass" is optional, and when present it is a class id of the accessibility skill, C and two `
+        + `digits (C09), got ${JSON.stringify(cluster.defectClass)}`);
     }
     if (cluster.tracker !== undefined) {
       const trackers = Array.isArray(cluster.tracker) ? cluster.tracker : [cluster.tracker];
@@ -452,10 +463,10 @@ function valuesProblem(field, values, source, known) {
  * @param {unknown} doc The parsed `issues.json`.
  * @returns {{schema: number, triageLimit: number, triage: Array<{shape: string, reason: string}>, clusters: object[]}}
  * The compiled catalog: the triage limit (the length of `triage`, or the `triageLimit` of a catalog that gives the
- * number alone), the triage entries, and each cluster with its `id`, `title`, `formerIds` (the ids it had before a
- * rename, or none), `tracker` (a task id, a list of them, or `null`), `notDefect` (the class that says why its findings
- * are not a defect, or `null`) and `match` rules, whose `pages` and `where` are regular expressions (`pages` anchored
- * to the whole id).
+ * number alone), the triage entries, and each cluster with its `id`, `title`, `defectClass` (the skill's defect class,
+ * or `null`), `formerIds` (the ids it had before a rename, or none), `tracker` (a task id, a list of them, or `null`),
+ * `notDefect` (the class that says why its findings are not a defect, or `null`) and `match` rules, whose `pages` and
+ * `where` are regular expressions (`pages` anchored to the whole id).
  */
 export function compileIssuesCatalog(doc) {
   const problems = validateIssuesCatalog(doc);
@@ -471,6 +482,7 @@ export function compileIssuesCatalog(doc) {
     clusters: doc.clusters.map(cluster => ({
       id: cluster.id,
       title: cluster.title,
+      defectClass: cluster.defectClass ?? null,
       formerIds: cluster.formerIds ?? [],
       tracker: cluster.tracker ?? null,
       notDefect: cluster.notDefect ?? null,
