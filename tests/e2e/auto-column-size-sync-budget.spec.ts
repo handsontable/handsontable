@@ -211,6 +211,38 @@ test.describe('AutoColumnSize sync cell budget', { tag: THEMES_TAG }, () => {
     await expect.poll(() => grid.widths()).toEqual(reference.widths);
   });
 
+  test('measures every column after the plugin is turned off and on during the sweep with no render', async() => {
+    const reference = await grid.build({ ...GRID, settings: EXACT });
+
+    await grid.build(GRID, BUDGET, 'toggleAutoColumnSizeWithoutRender');
+    await grid.waitForSweepEnd();
+
+    expect(await grid.widths()).toEqual(reference.widths);
+  });
+
+  test('measures the rows against exact widths when AutoRowSize is turned on during the sweep', async() => {
+    // A long text in an off-screen column, in rows in view: measured against the column's fallback width it
+    // wraps onto many lines.
+    const wrapped: SyncBudgetGrid = {
+      ...GRID,
+      values: Array.from({ length: Math.ceil(GRID.rows / 7) }, (_, index) => ({
+        row: index * 7,
+        col: 25,
+        value: 'word '.repeat(150),
+      })),
+    };
+
+    await grid.build({ ...wrapped, settings: EXACT }, undefined, 'enableAutoRowSize');
+    await grid.waitForSweepEnd();
+
+    const reference = await grid.rowHeights(10);
+
+    await grid.build(wrapped, BUDGET, 'enableAutoRowSize');
+    await grid.waitForSweepEnd();
+
+    expect(await grid.rowHeights(10)).toEqual(reference);
+  });
+
   test('measures every column after columns are inserted during the sweep', async() => {
     await grid.build({ ...GRID, settings: EXACT }, undefined, 'insertTwoColumnsAtStart');
 

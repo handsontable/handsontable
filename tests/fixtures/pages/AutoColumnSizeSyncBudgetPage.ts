@@ -18,7 +18,7 @@ export interface SyncBudgetGrid {
  * chunk of the sweep.
  */
 export type AfterBuild =
-  'toggleAutoColumnSize' | 'insertTwoColumnsAtStart' | 'selectCell0x25' | 'selectCell0x25InBatch' |
+  'toggleAutoColumnSize' | 'toggleAutoColumnSizeWithoutRender' | 'enableAutoRowSize' | 'insertTwoColumnsAtStart' | 'selectCell0x25' | 'selectCell0x25InBatch' |
   'selectCell0x25WhileSuspended' | 'suspendRender';
 
 /**
@@ -45,7 +45,7 @@ interface FixtureHot {
   alter(action: string, index: number, amount: number): void;
   selectCell(row: number, column: number): void;
   render(): void;
-  selectCell(row: number, column: number): void;
+  updateSettings(settings: Record<string, unknown>): void;
   batch(wrappedOperations: () => void): void;
   suspendRender(): void;
   getFirstFullyVisibleColumn(): number | null;
@@ -128,6 +128,13 @@ export class AutoColumnSizeSyncBudgetPage {
           plugin.enablePlugin();
           win.hot.render();
           break;
+        case 'toggleAutoColumnSizeWithoutRender':
+          plugin.disablePlugin();
+          plugin.enablePlugin();
+          break;
+        case 'enableAutoRowSize':
+          win.hot.updateSettings({ autoRowSize: true });
+          break;
         case 'insertTwoColumnsAtStart':
           win.hot.alter('insert_col_start', 0, 2);
           break;
@@ -171,6 +178,17 @@ export class AutoColumnSizeSyncBudgetPage {
 
       return Array.from({ length: hot.countCols() }, (_, column) => hot.getColWidth(column));
     });
+  }
+
+  /**
+   * The heights of the first `count` rows, as the grid reads them now.
+   */
+  async rowHeights(count: number): Promise<Array<number | undefined>> {
+    return this.page.evaluate((rows) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      return Array.from({ length: rows }, (_, row) => hot.getRowHeight(row));
+    }, count);
   }
 
   /**

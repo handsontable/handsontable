@@ -191,7 +191,12 @@ hold it together:
   plugin's `init` and `afterLoadData` listeners, against these widths, so a row in view with a long text in an
   off-screen column was measured at the fallback width (189 px against 29 px in the probe) and shrank once the
   sweep ended: a row on screen that moved. That grid opted into an exact init, so it keeps it ("keeps every
-  column synchronous while AutoRowSize measures the rows").
+  column synchronous while AutoRowSize measures the rows"). AutoRowSize turned on while
+  the sweep still has columns left for idle tasks measures the rows on screen in its `beforeRender` listener,
+  which runs after this plugin's, so this plugin's `#onBeforeRender` ends the sweep there and measures every
+  `syncLimit` column it did not reach (`#measureDeferredColumnsNow()`) before AutoRowSize reads them. Without it
+  a row in view measured 3009 px against 29 px and kept that height ("measures the rows against exact widths
+  when AutoRowSize is turned on during the sweep").
 - **The columns a merge on screen spans are measured with it** (`measureMergeSpans()` in `#sweepColumns()`). A
   multi-column merge needs from its first column the text's width less the other spanned columns, so with
   those at the fallback width the first column was drawn too wide (1076 px against 417 px in the probe) and
@@ -204,7 +209,9 @@ hold it together:
   it has no `#sweepPendingColumns`, so `#cancelSweep()` and `#invalidateReMeasureSweep()` read the flag too: a
   disable and enable, a column insert, or a meta change before it ended left every column it had not reached
   without a width (scroll width 1979 px against 7697 px). A cancel owes a re-measure, as a re-measure sweep's
-  does.
+  does. A disable and enable with no render in between pays it in the ready step of the enable
+  (`onGridReady()`, outside the init pass), which starts the re-measure sweep; the next render paid it before,
+  so a grid nobody rendered kept those columns without a width.
 - **On a drawn grid the columns before the viewport are measured too** (`#countDrawnLeadingColumns()`). The
   scroll offset is their sum, so a `loadData()` on a grid scrolled sideways left them at the fallback width,
   the scroll range shrank, the browser clamped the offset, and the viewport moved to other columns. They follow

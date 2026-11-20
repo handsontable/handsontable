@@ -518,6 +518,13 @@ export class AutoColumnSize extends BasePlugin {
    */
   #mayDeferOffScreenColumns = false;
   /**
+   * `true` from an `enablePlugin()` until the ready step that follows it, which pays a re-measure the plugin
+   * owes (`onGridReady()`).
+   *
+   * @type {boolean}
+   */
+  #reMeasureOnReadyStep = false;
+  /**
    * The horizontal scroll made while rendering was suspended and the widths it needs had not been drawn yet,
    * run again after the render that `resumeRender()` runs, or `null`.
    *
@@ -630,7 +637,29 @@ export class AutoColumnSize extends BasePlugin {
         this.hot.view?.invalidateColumnWidthCache();
       });
 
+    this.#reMeasureOnReadyStep = true;
     super.enablePlugin();
+  }
+
+  /**
+   * Starts the re-measure the plugin owes when it is turned on again on a built grid. A disable cuts a sweep
+   * short and owes one (`#cancelSweep()`), and only the next render paid it, so a grid turned off and on with
+   * no render kept the columns the sweep had not reached at the fallback width. The `init` hook measures a
+   * grid that is being built.
+   *
+   * @private
+   */
+  onGridReady(): void {
+    const isAfterEnable = this.#reMeasureOnReadyStep;
+
+    this.#reMeasureOnReadyStep = false;
+
+    if (
+      isAfterEnable && this.#reMeasureOwed && !this.isInitReadyStep() && this.hot.view.isVisible() &&
+      this.hot.countRows() > 0 && this.hot.countCols() > 0
+    ) {
+      this.#startReMeasureSweep();
+    }
   }
 
   /**
@@ -2005,6 +2034,13 @@ export class AutoColumnSize extends BasePlugin {
   #onBeforeRender = () => {
     this.#scannedColumns.clear();
 
+    // AutoRowSize measures the rows on screen in its own `beforeRender` listener, after this one, against these
+    // widths. Turned on while a budget sweep has columns left for idle tasks, it measured a row against the
+    // fallback width of a column not reached yet and kept that height once the sweep ended.
+    if (this.#viewportSweepPending && this.hot.getPlugin('autoRowSize')?.enabled && this.hot.view.isVisible()) {
+      this.#measureDeferredColumnsNow();
+    }
+
     if (this.#reMeasureOwed && this.hot.view.isVisible() && this.hot.countRows() > 0 && this.hot.countCols() > 0) {
       this.#startReMeasureSweep();
     }
@@ -2055,6 +2091,21 @@ export class AutoColumnSize extends BasePlugin {
     this.#mergedCellsWidths.markStylesChanged();
     this.#startReMeasureSweep();
   };
+
+  /**
+   * Ends a budget sweep that still has columns left for idle tasks and measures every `syncLimit` column it
+   * did not reach before it returns, as the path without a budget does. The columns past `syncLimit` go on in
+   * idle tasks.
+   */
+  #measureDeferredColumnsNow() {
+    const wasOwed = this.#reMeasureOwed;
+
+    // The sweep that follows fills in every `syncLimit` column the cancelled one left before it returns, so the
+    // cancel owes nothing.
+    this.#cancelSweep();
+    this.#reMeasureOwed = wasOwed;
+    this.calculateAllColumnsWidth();
+  }
 
   /**
    * Starts the sweep that re-measures every column from its cached samples, on-screen columns first, with
