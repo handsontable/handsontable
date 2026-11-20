@@ -1,3 +1,7 @@
+import { A11Y_ROWGROUP } from '../../../../helpers/a11y';
+
+const [ROLE, ROWGROUP] = A11Y_ROWGROUP();
+
 /**
  * The attributes the renderers write on a cell or header, by name, with the value the current draw
  * gives them. A name that is not a key is not kept.
@@ -85,5 +89,23 @@ export function setAttributeIfChanged(element: HTMLElement, name: string, value:
 export function setAttributeIfMissing(element: HTMLElement, name: string, value: string): void {
   if (!element.hasAttribute(name)) {
     element.setAttribute(name, value);
+  }
+}
+
+/**
+ * Gives a table section (THEAD or TBODY) the `rowgroup` role only while it holds rows. A `rowgroup` with no
+ * `row` is an invalid structure, and the section elements are reused across draws, so the role is taken off a
+ * section drawn with no rows: a clone that renders no frozen rows, a corner, a grid whose rows were all removed.
+ * Only a `rowgroup` role is taken off, so a role another module wrote on the section stays.
+ *
+ * @param {HTMLElement} section The THEAD or TBODY element.
+ * @param {boolean} hasRows Whether this draw renders at least one row into the section.
+ */
+export function syncRowGroupRole(section: HTMLElement, hasRows: boolean): void {
+  if (hasRows) {
+    setAttributeIfChanged(section, ROLE, ROWGROUP);
+
+  } else if (section.getAttribute(ROLE) === ROWGROUP) {
+    section.removeAttribute(ROLE);
   }
 }

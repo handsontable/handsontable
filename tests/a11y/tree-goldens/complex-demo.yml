@@ -318,7 +318,6 @@
       - gridcell "New York"
       - gridcell "08/25/2023"
       - gridcell "08:30 AM"
-  - rowgroup
   - rowgroup:
     - row "42 Unchecked false Liam Chen ******* 26 Travel & Adventure Travel Backpack Canada Vancouver 08/31/2023 06:40 PM" [level=1]:
       - rowheader "42"
@@ -459,7 +458,6 @@
       - gridcell "Checked true":
         - checkbox "Checked" [checked]
         - text: "true"
-  - rowgroup
   - rowgroup:
     - row "42 Unchecked false" [level=1]:
       - rowheader "42"

@@ -12,7 +12,6 @@
       - gridcell "Select whole grid"
       - columnheader "A"
       - columnheader "B"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -21,7 +20,6 @@
   - rowgroup:
     - row "Select whole grid":
       - gridcell "Select whole grid"
-  - rowgroup
 - button "Add sheet"
 - button "All sheets"
 - group "Sheets":

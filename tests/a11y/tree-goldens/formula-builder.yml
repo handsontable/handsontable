@@ -29,7 +29,6 @@
       - columnheader "A"
       - columnheader "B"
       - columnheader "C"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -44,7 +43,6 @@
   - rowgroup:
     - row "Select whole grid":
       - gridcell "Select whole grid"
-  - rowgroup
   - combobox "Formula editor": =A1+B1
 # portal
 - status
