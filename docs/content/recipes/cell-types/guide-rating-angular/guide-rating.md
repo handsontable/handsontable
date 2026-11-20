@@ -47,7 +47,7 @@ This guide shows how to create an interactive star rating cell using inline SVG 
 A cell that:
 
 - Displays 5 SVG stars both when editing and viewing
-- Shows filled stars (gold) and unfilled stars (gray)
+- Shows filled stars (amber in the light theme, gold in the dark theme) and unfilled stars (gray)
 - Uses Handsontable DataGrid CSS tokens for theme-aware editor styling
 - Supports mouse hover for preview
 - Allows keyboard input (1-5 keys, arrow keys)
@@ -262,7 +262,7 @@ export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> 
 **What's happening:**
 
 - **Container** - `class="rating-editor"` uses the same theme-aware styling as the [Star Rating recipe](@/javascript/recipes/cell-types/rating/rating.md) (blue border, padding, background via CSS tokens)
-- **Stars** - Same SVG as the renderer (via sanitized `starSvgMarkup`); `.active` for filled (gold), `.current` for the selected star (accent color)
+- **Stars** - Same SVG as the renderer (via sanitized `starSvgMarkup`); `.active` for filled (amber), `.current` for the selected star (accent color)
 - **isCurrentStar(index)** - Template expressions can't call global `parseInt`, so a component method compares the current value with the star index
 - **getValue()** - Method from base class returns current editor value
 - **Event bindings** - `(mouseover)` for hover preview, `(mousedown)` for selection

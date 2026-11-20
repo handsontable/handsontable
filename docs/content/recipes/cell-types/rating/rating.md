@@ -68,7 +68,7 @@ This guide shows how to create an interactive star rating cell using inline SVG 
 
 A cell that:
 - Displays 5 SVG stars both when editing and viewing
-- Shows filled stars (gold) and unfilled stars (gray)
+- Shows filled stars (amber in the light theme, gold in the dark theme) and unfilled stars (gray)
 - Uses Handsontable DataGrid CSS tokens for theme-aware editor styling
 - Supports mouse hover for preview
 - Allows keyboard input (1-5 keys, arrow keys)
@@ -180,7 +180,7 @@ Create a separate CSS file for the rating styles. This uses Handsontable CSS cus
 
 **Current star indicator:**
 - `.rating-editor .rating-star.current` highlights the last active star (the one matching the rating value) using `--ht-accent-color`
-- Makes it clear which star is selected while editing — the current star turns blue (accent color) instead of gold
+- Makes it clear which star is selected while editing — the current star turns blue (accent color) instead of amber
 
 **Handsontable tokens used:**
 - `--ht-accent-color` - Current star highlight in editor (blue)
@@ -206,7 +206,7 @@ renderer: rendererFactory(({ td, value }) => {
 **What's happening:**
 - Stars are wrapped in a `<div class="rating-cell">` flex container to match the editor's flex layout
 - `Array.from({ length: 5 })` - Creates an array with 5 elements (indices 0-4)
-- `index < value` - Stars up to the rating value get the `active` class (gold color)
+- `index < value` - Stars up to the rating value get the `active` class (amber color)
 - `index >= value` - Stars beyond the rating stay gray via CSS
 - Each span contains the inline SVG star
 - `join('')` - Concatenates all star spans into a single string
@@ -312,7 +312,7 @@ render(editor) {
 1. Create 5 star spans (indices 0-4, values 1-5)
 2. Each span has `data-value` attribute with rating (1-5)
 3. Stars use the `rating-star` class for base styling (gray color)
-4. Active stars get the `active` class (gold color)
+4. Active stars get the `active` class (amber color)
 5. The star matching the current value gets the `current` class (accent color) — this highlights the selected rating in the editor
 6. Each span contains the inline SVG star
 7. Join all spans into a single HTML string
@@ -453,7 +453,7 @@ const cellDefinition = {
 
 **What's happening:**
 - **starSvg**: Inline SVG star with `fill="currentColor"` for CSS color control
-- **renderer**: Displays 5 SVG stars wrapped in a `.rating-cell` flex container with CSS class-based coloring (gold/gray)
+- **renderer**: Displays 5 SVG stars wrapped in a `.rating-cell` flex container with CSS class-based coloring (amber/gray)
 - **validator**: Ensures rating is within valid range
 - **editor**: Uses `editorFactory` helper with:
   - Keyboard shortcuts for 1-5 keys and arrow keys
@@ -495,7 +495,7 @@ const hot = new Handsontable(container, hotOptions);
 
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell displays 5 SVG stars — gold for filled, gray for unfilled
+1. **Initial Render**: Cell displays 5 SVG stars — amber for filled, gray for unfilled
 2. **User Double-Clicks or Enter**: Editor opens over cell showing interactive stars with Handsontable blue border
 3. **Current Star Indicator**: The last active star turns blue (accent color) to clearly show the selected rating
 4. **Mouse Hover**: User hovers over stars → preview rating updates in real-time (detected via `closest()`)

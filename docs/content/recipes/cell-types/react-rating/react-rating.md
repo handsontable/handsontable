@@ -369,11 +369,11 @@ Customize the appearance:
 
 ```css
 .star-rating .star {
-  color: #e0e0e0;
+  color: light-dark(#8c8c8c, #6b6b6b);
 }
 
 .star-rating .star.filled {
-  color: #ffd700;
+  color: light-dark(#b45309, #ffb400);
 }
 ```
 
