@@ -93,3 +93,18 @@ export async function dragFillHandle(page: Page, handle: Locator, target: Locato
   await page.mouse.move(targetBox.x + (targetBox.width / 2), targetBox.y + (targetBox.height / 2), { steps: 8 });
   await page.mouse.up();
 }
+
+/**
+ * Sends the `mouseleave` the page body reports when the pointer ends outside its box, as it does after
+ * a menu item or a menu's button is clicked on a page whose body is as short as the grid. In Safari the
+ * CopyPaste plugin answers it by making the highlighted cell editable and selecting its content. A real
+ * one lands on a frame the layout and the engine decide, so a test sends it at a point of its own
+ * choosing. The handlers run before this returns, so what they did is done when the next assertion reads it.
+ *
+ * @param {Page} page The page whose body the pointer leaves.
+ */
+export async function pointerLeavesBody(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    document.body.dispatchEvent(new MouseEvent('mouseleave'));
+  });
+}
