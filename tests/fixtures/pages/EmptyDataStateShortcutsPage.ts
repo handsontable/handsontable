@@ -185,6 +185,11 @@ export class EmptyDataStateShortcutsPage {
     }, [row, col]);
   }
 
+  /** Whether the grid's active editor is open. */
+  async isEditorOpened(): Promise<boolean> {
+    return this.page.evaluate(() => !!window.hot.getActiveEditor()?.isOpened());
+  }
+
   /** The grid's current selection, as `getSelected()` returns it. */
   async selection(): Promise<number[][] | null> {
     return this.page.evaluate(() => window.hot.getSelected() ?? null);
