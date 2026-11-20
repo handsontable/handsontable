@@ -152,11 +152,16 @@ jobs:
   # mode: a finding outside the baseline is an annotation and a summary row, never a red
   # job. Gated like the Playwright legs, on the UMD build it consumes (the build-umd scope
   # includes tests/**). See a11y.yml and tests/AGENTS.md, "A11y: the axe scan and its baseline".
+  # A pull request also runs the short suite of the checks beyond axe, report-only, beside the
+  # scan: the findings ledger tells its new findings from the known ones (tests/AGENTS.md, "A11y:
+  # the checks beyond axe"). A master push and the rc/stable path run the scan alone.
   a11y:
     name: A11y
     needs: [ checks, build ]
     if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.build-handsontable-umd == 'true') }}
     uses: ./.github/workflows/a11y.yml
+    with:
+      checks: ${{ github.event_name == 'pull_request' }}
     secrets: inherit
 
   integration:
