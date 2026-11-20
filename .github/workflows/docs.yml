@@ -101,7 +101,7 @@ jobs:
 
   visual:
     name: visual
-    runs-on: ubuntu-24.04 # Playwright 1.61.1 (18.1 line) cannot install browsers on ubuntu-latest (26.04)
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     needs: [ visual-label, preview ]
     if: |

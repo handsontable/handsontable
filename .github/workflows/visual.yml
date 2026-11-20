@@ -16,7 +16,7 @@ env:
 jobs:
   render:
     name: ${{ matrix.config.name }}
-    runs-on: ubuntu-24.04 # Playwright 1.61.1 (18.1 line) cannot install browsers on ubuntu-latest (26.04)
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
