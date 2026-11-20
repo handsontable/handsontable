@@ -10,7 +10,6 @@ class PasswordEditor extends TextEditor {
     this.TEXTAREA = this.hot.rootDocument.createElement('input');
     this.TEXTAREA.setAttribute('type', 'password');
     this.TEXTAREA.setAttribute('data-hot-input', 'true');
-    this.TEXTAREA.setAttribute('aria-label', 'Password');
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = '0';
     this.textareaStyle.height = '0';
