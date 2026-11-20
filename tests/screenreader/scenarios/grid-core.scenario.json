@@ -297,13 +297,10 @@
       },
       "expect": [
         [
-          "selection from"
-        ],
-        [
-          "column city, row 1"
+          "row 1 selected"
         ]
       ],
-      "note": "The next Shift+ArrowRight announces the grown range once more, now ending in column City."
+      "note": "The next Shift+ArrowRight reaches column City, the last of the three columns, so the range covers the whole row and the grid announces \"Row 1 selected\"."
     },
     {
       "id": "up-to-header-for-sort",
