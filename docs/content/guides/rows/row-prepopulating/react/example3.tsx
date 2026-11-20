@@ -43,7 +43,7 @@ const ExampleComponent = () => {
 
     if (args[5] === null && isEmptyRow(instance, row)) {
       args[5] = templateValues[col];
-      td.style.color = '#999';
+      td.style.color = 'light-dark(#6b6b6b, #949494)';
     } else {
       td.style.color = '';
     }

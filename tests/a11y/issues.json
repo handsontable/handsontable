@@ -609,7 +609,9 @@
       "title": "Docs embeds have no frame title, custom renderer images have no text alternative, and some example fields have no label",
       "tracker": ["DEV-4020", "DEV-3492"],
       "match": [
-        { "source": "docs", "axeIssues": ["embed-frame-title", "example-image-alt", "example-unlabeled-fields"] }
+        { "source": "docs", "axeIssues": ["example-unlabeled-fields"] },
+        { "source": "docs", "rules": ["frame-title"], "where": ["^iframe"] },
+        { "source": "docs", "rules": ["image-alt"], "where": ["^img"] }
       ]
     },
     {

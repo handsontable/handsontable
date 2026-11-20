@@ -11,12 +11,15 @@ const colors: string[] = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'b
 const yellowRenderer: BaseRenderer = (instance, td, ...rest) => {
   textRenderer(instance, td, ...rest);
   td.style.backgroundColor = 'yellow';
+  td.style.color = '#1f2937';
 };
 
 const greenRenderer: BaseRenderer = (instance, td, ...rest) => {
   textRenderer(instance, td, ...rest);
 
   td.style.backgroundColor = 'green';
+
+  td.style.color = '#ffffff';
 };
 
 const container = document.querySelector('#example1')!;

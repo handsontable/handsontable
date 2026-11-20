@@ -12,11 +12,11 @@ import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 })
 export class AppComponent {
   readonly stockStatuses = [
-    '<span style="color: #1a7f37">In stock</span>',
-    '<span style="color: #b35900">Low stock</span>',
-    '<span style="color: #c92a2a">Out of stock</span>',
-    '<span style="color: #495057">Backordered</span>',
-    '<span style="color: #495057">Discontinued</span>',
+    '<span style="color: light-dark(#1a7f37, #4ade80)">In stock</span>',
+    '<span style="color: light-dark(#b35900, #fbbf24)">Low stock</span>',
+    '<span style="color: light-dark(#c92a2a, #f87171)">Out of stock</span>',
+    '<span style="color: light-dark(#495057, #adb5bd)">Backordered</span>',
+    '<span style="color: light-dark(#495057, #adb5bd)">Discontinued</span>',
   ];
 
   readonly data = [

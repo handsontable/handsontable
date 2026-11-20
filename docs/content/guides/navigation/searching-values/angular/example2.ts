@@ -12,6 +12,7 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
           id="search_field2"
           type="search"
           placeholder="Search"
+          aria-label="Search"
           (keyup)="searchFieldKeyup($event)"
         />
       </div>
@@ -21,7 +22,7 @@ import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/an
     </div>`,
   styles: `.ht-theme-main .handsontable .my-class {
       background: pink;
-      color: red;
+      color: #a00000;
     }`,
   encapsulation: ViewEncapsulation.None,
 })
