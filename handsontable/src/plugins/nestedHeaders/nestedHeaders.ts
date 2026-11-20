@@ -78,6 +78,35 @@ export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
 
 /**
+ * The attributes that give an element inside a header label an accessible name.
+ */
+const NAMING_ATTRIBUTES = ['alt', 'aria-label', 'aria-labelledby', 'title'];
+const NAMING_ATTRIBUTES_SELECTOR = NAMING_ATTRIBUTES.map(name => `[${name}]`).join(', ');
+
+/**
+ * Checks whether a rendered header label names its header: it has text, or an element in it that is
+ * not hidden from assistive technology carries a non-empty naming attribute (an `<img alt="Q1">`, an
+ * icon with an `aria-label`). A label of markup with no name (an `aria-hidden` icon, an `<img>` with no
+ * `alt`) names nothing.
+ *
+ * @param {Element} label The header's `.colHeader` element.
+ * @returns {boolean}
+ */
+function hasLabelName(label: Element): boolean {
+  if ((label.textContent ?? '').trim() !== '') {
+    return true;
+  }
+
+  if (label.childElementCount === 0) {
+    return false;
+  }
+
+  return Array.from(label.querySelectorAll(NAMING_ATTRIBUTES_SELECTOR)).some(element =>
+    !element.closest('[aria-hidden="true"]') &&
+    NAMING_ATTRIBUTES.some(name => (element.getAttribute(name) ?? '').trim() !== ''));
+}
+
+/**
  * The header group membership a column move left behind, as `NestedHeaders#captureState()` records it.
  */
 interface MembershipState {
@@ -970,7 +999,7 @@ export class NestedHeaders extends BasePlugin {
 
     const label = TH.querySelector('.colHeader');
 
-    if (!label || label.childElementCount > 0 || (label.textContent ?? '').trim() !== '') {
+    if (!label || hasLabelName(label)) {
       return;
     }
 

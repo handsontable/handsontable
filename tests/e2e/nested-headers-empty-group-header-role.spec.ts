@@ -96,6 +96,7 @@ test.describe('nested headers: a group cell with no label', () => {
         { label: `<img src="${PIXEL}" alt="Q1">`, colspan: 3 },
         'Extra',
         { label: '', rowspan: 2 },
+        { label: '<i aria-hidden="true" class="icon"></i>', colspan: 2 },
       ],
       ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', '', 'L7', 'L8', 'L9'],
     ]);
@@ -114,9 +115,11 @@ test.describe('nested headers: a group cell with no label', () => {
     await expect(grid.header(0, 6)).toHaveAttribute('role', 'columnheader');
     await expect(grid.header(0, 6)).toHaveAttribute('scope', 'col');
 
-    for (const column of [7, 8, 9]) {
-      await expect(grid.header(0, column)).toHaveAttribute('role', 'gridcell');
-    }
+    await expect(grid.header(0, 7)).toHaveAttribute('colspan', '2');
+    await expect(grid.header(0, 7).locator('i.icon')).toBeAttached();
+    await expect(grid.header(0, 7)).toHaveAttribute('role', 'gridcell');
+    await expect(grid.header(0, 7)).not.toHaveAttribute('scope');
+    await expect(grid.header(0, 9)).toHaveAttribute('role', 'gridcell');
   });
 
   test('gets no role when ariaTags is off', async({ page, theme, bundle }) => {

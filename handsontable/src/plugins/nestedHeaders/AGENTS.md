@@ -352,10 +352,12 @@ author's own `''` label over a group is the same state and gets the same treatme
   group cell per draw, scroll draws included: walkontable sets `role` and `scope` back, and the renderer sets
   `role` and removes `scope` again.
 - **Read the rendered label, not the settings.** The label can come from `modifyColHeader`, so the check reads
-  `.colHeader`. A header is unlabeled only when `.colHeader` has no text AND no element child: labels are
-  written with `fastInnerHTML`, so a label that is markup only (`<img alt="Q1">`, an icon with an
-  `aria-label`) has an empty `textContent` and still names its columns. A label hidden by `hiddenHeaderText`
-  still has text and stays a column header.
+  `.colHeader` through `hasLabelName()`. Labels are written with `fastInnerHTML`, so a label that is markup
+  only (`<img alt="Q1">`, an icon with an `aria-label`) has an empty `textContent` and still names its
+  columns: an element not under `aria-hidden="true"` with a non-empty `alt`, `aria-label`,
+  `aria-labelledby` or `title` counts as a name. Counting any element child as a name is wrong the other
+  way: an `aria-hidden` icon or an `<img>` with no `alt` names nothing and left a nameless column header.
+  A label hidden by `hiddenHeaderText` still has text and stays a column header.
 
 Pinned by `tests/e2e/nested-headers-empty-group-header-role.spec.ts` and the `rtl-grid` tree golden.
 
