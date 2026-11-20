@@ -1,5 +1,7 @@
 import {
   DESCRIPTION_ATTRIBUTE,
+  MAX_FORMULA_TEXT_LENGTH,
+  limitFormulaText,
   describeFormulaCell,
   undescribeFormulaCell,
   undescribeFormulaCells,
@@ -78,5 +80,27 @@ describe('formulaCellDescription', () => {
 
     expect(table.querySelectorAll(`[${DESCRIPTION_ATTRIBUTE}]`)).toHaveLength(0);
     expect(table.textContent).toBe('012');
+  });
+
+  describe('limitFormulaText()', () => {
+    it('should keep a formula that fits', () => {
+      const formula = `=${'A'.repeat(MAX_FORMULA_TEXT_LENGTH - 1)}`;
+
+      expect(limitFormulaText(formula)).toBe(formula);
+    });
+
+    it('should cut a longer formula and mark the cut', () => {
+      const result = limitFormulaText(`=${'A'.repeat(MAX_FORMULA_TEXT_LENGTH)}`);
+
+      expect(result).toBe(`=${'A'.repeat(MAX_FORMULA_TEXT_LENGTH - 1)}…`);
+    });
+
+    it('should not leave half of a surrogate pair at the cut', () => {
+      const formula = `=${'A'.repeat(MAX_FORMULA_TEXT_LENGTH - 2)}😀😀`;
+      const result = limitFormulaText(formula);
+
+      expect(result.endsWith('…')).toBe(true);
+      expect(result).not.toMatch(/[\uD800-\uDBFF]…$/);
+    });
   });
 });

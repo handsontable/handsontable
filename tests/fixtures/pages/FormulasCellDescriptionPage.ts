@@ -30,17 +30,22 @@ export class FormulasCellDescriptionPage {
     render?: 'default' | 'onChange',
     comment?: 'on' | 'off',
     first?: 'default' | 'empty',
+    dir?: 'ltr' | 'rtl',
   } = {}): Promise<void> {
-    const { ariaTags = 'on', rows = 'default', render = 'default', comment = 'off', first = 'default' } = options;
+    const { ariaTags = 'on', rows = 'default', render = 'default', comment = 'off', first = 'default', dir = 'ltr' } = options;
 
     await this.page.goto(
       `/tests/fixtures/demo/formulas-cell-description.html?theme=${this.theme}&bundle=${this.bundle}` +
-      `&ariaTags=${ariaTags}&rows=${rows}&render=${render}&comment=${comment}&first=${first}`);
+      `&ariaTags=${ariaTags}&rows=${rows}&render=${render}&comment=${comment}&first=${first}&dir=${dir}`);
     await awaitBundle(this.page);
     await expect(this.cell(0, 2)).toHaveText(/^\d$/);
   }
 
-  /** A single data cell, by visual row/column, via its stable test id. */
+  /**
+
+   * A single data cell, by visual row/column, via its stable test id.
+
+   */
   cell(row: number, col: number): Locator {
     return this.page.getByTestId(`cell-${row}-${col}`);
   }
@@ -69,14 +74,22 @@ export class FormulasCellDescriptionPage {
     }
   }
 
-  /** Write a raw value, or a formula, into a cell. */
+  /**
+
+   * Write a raw value, or a formula, into a cell.
+
+   */
   async setCellValue(row: number, col: number, value: string): Promise<void> {
     await this.page.evaluate(([r, c, v]) => {
       window.hot.setDataAtCell(r, c, v);
     }, [row, col, value] as [number, number, string]);
   }
 
-  /** Call a method of the Formulas plugin. */
+  /**
+
+   * Call a method of the Formulas plugin.
+
+   */
   async callFormulas(method: 'showFormulas' | 'hideFormulas' | 'disablePlugin' | 'enablePlugin'): Promise<void> {
     await this.page.evaluate((name) => {
       window.hot.getPlugin('formulas')[name]();
@@ -84,14 +97,22 @@ export class FormulasCellDescriptionPage {
     }, method);
   }
 
-  /** Sort the first column descending through the public API. */
+  /**
+
+   * Sort the first column descending through the public API.
+
+   */
   async sortColumnDescending(column: number): Promise<void> {
     await this.page.evaluate((c) => {
       window.hot.getPlugin('columnSorting').sort({ column: c, sortOrder: 'desc' });
     }, column);
   }
 
-  /** Switch the grid to another language pack. */
+  /**
+
+   * Switch the grid to another language pack.
+
+   */
   async setLanguage(languageCode: string, phrases: Record<string, string>): Promise<void> {
     await this.page.evaluate(([code, dictionary]) => {
       const hotClass = (window as any).Handsontable;

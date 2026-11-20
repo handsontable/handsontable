@@ -199,4 +199,35 @@ test.describe('formulas: the accessible description of a formula cell', { tag: [
     await expect(grid.cell(0, 2)).toHaveAttribute('data-ht-formula', 'Formula: =SUM(A1:B1)');
     await expect(grid.cell(0, 2)).toHaveText('3');
   });
+
+  test('the name keeps its order in a right-to-left grid', async({ page, theme, bundle }) => {
+    const grid = new FormulasCellDescriptionPage(page, theme, bundle);
+
+    await grid.goto({ dir: 'rtl' });
+
+    await expect.poll(() => grid.chromiumAccessibleName(0, 2)).toBe('3 Formula: =SUM(A1:B1)');
+
+    await grid.setLanguage('ar-XX', { 'Formulas:cellDescription': 'الصيغة: [formula]' });
+
+    await expect.poll(() => grid.chromiumAccessibleName(0, 2)).toBe('3 الصيغة: =SUM(A1:B1)');
+  });
+
+  test('a formula with quotes keeps its order in a right-to-left grid', async({ page, theme, bundle }) => {
+    const grid = new FormulasCellDescriptionPage(page, theme, bundle);
+
+    await grid.goto({ dir: 'rtl', first: 'empty' });
+
+    await expect.poll(() => grid.chromiumAccessibleName(0, 0)).toBe('Formula: =IF(1=1,"","x")');
+  });
+
+  test('a long formula is cut and the cut is marked', async({ page, theme, bundle }) => {
+    const grid = new FormulasCellDescriptionPage(page, theme, bundle);
+    const formula = `=${'A1+'.repeat(80)}A1`;
+
+    await grid.goto();
+    await grid.setCellValue(0, 2, formula);
+
+    await expect(grid.cell(0, 2)).toHaveAttribute('data-ht-formula', `Formula: ${formula.slice(0, 120)}…`);
+    await expect(grid.cell(0, 2)).toHaveText('81');
+  });
 });

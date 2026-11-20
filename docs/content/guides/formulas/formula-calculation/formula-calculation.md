@@ -898,6 +898,13 @@ feed the result.
   default.
 - The text is left out while you [show formulas](#show-formulas-instead-of-values), because the cell
   then displays the formula itself.
+- A formula longer than 120 characters is cut there and ends with an ellipsis, because the text is laid out on
+  every render and read aloud on every move onto the cell. On a grid of 620 cells with 300-character formulas, a
+  full render took about 6 ms without the text and about 16 ms with it.
+- A frozen cell is in the DOM twice, in the grid and in its overlay, so a screen reader can read it twice, the
+  way it reads the value.
+- The text is the `::after` of `td[data-ht-formula]`, so that selector is reserved. A rule of your own that sets
+  `content` on the `::after` of a formula cell loses to it, or wins and replaces the text.
 - The `Formula: [formula]` phrase is translated with the grid [language](@/guides/internationalization/language/language.md).
   To change it, register a dictionary with the `Formulas:cellDescription` key. The `[formula]`
   placeholder stands for the formula text.

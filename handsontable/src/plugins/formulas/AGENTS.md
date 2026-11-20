@@ -1337,7 +1337,14 @@ measured reason:
 - **It reads the formula without ending a held evaluation** (`getCellFormula()`, no `#flushEvaluation()`), the same as
   the source-data read. `__tests__/undoRedo.unit.js` and the sheets bar's `formulaSheets.unit.js` therefore allow
   `getCellFormula` calls on the grid's own sheet and still forbid any on another one.
-- **A formula text longer than a sentence is read in full on every move onto the cell.** There is no length cap.
+- **The text is cut at `MAX_FORMULA_TEXT_LENGTH` (120) with an ellipsis** (`limitFormulaText()`). The pseudo-element is
+  laid out on every paint, and that, not the listener, is most of the added render cost: 620 cells with 300-character
+  formulas rendered in about 6 ms without the text and about 16 ms with it, where short formulas add about 1 ms. The
+  engine's own text is used as it is, without `#readableFormula()`: the text is read aloud, never parsed again, and the
+  quoting scan ran on every paint of every formula cell with a sheet reference.
+- **The generated box is its own left-to-right run** (`direction: ltr; unicode-bidi: isolate`). Chromium builds the
+  name from the text boxes in visual order, so an Arabic phrase in an RTL grid read `3 SUM(A1:B1)الصيغة: =` (pinned by the
+  two right-to-left cases of the spec).
 
 Pinned by `__tests__/formulaCellDescription.unit.ts` and `tests/e2e/formulas-cell-description.spec.ts`, which also
 asks Chromium's own accessibility tree for the name.

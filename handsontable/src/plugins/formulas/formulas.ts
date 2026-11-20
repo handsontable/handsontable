@@ -49,7 +49,12 @@ import {
 } from '../../utils/cellLinks';
 import { fastInnerText, getCellContentRoot } from '../../helpers/dom/element';
 import { FORMULAS_CELL_DESCRIPTION } from '../../i18n/constants';
-import { describeFormulaCell, undescribeFormulaCell, undescribeFormulaCells } from './formulaCellDescription';
+import {
+  describeFormulaCell,
+  limitFormulaText,
+  undescribeFormulaCell,
+  undescribeFormulaCells,
+} from './formulaCellDescription';
 import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import {
   beginHeldEngineWrite,
@@ -6861,8 +6866,8 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * Returns the formula text of a cell for its description, or `undefined` when the cell holds no formula
-   * of its own. The text needs no recalculation, so it is read without ending a held one.
+   * Returns the formula text of a cell for its description, cut at `MAX_FORMULA_TEXT_LENGTH`, or `undefined` when
+   * the cell holds no formula of its own. The text needs no recalculation, so it is read without ending a held one.
    *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
@@ -6875,9 +6880,11 @@ export class Formulas extends BasePlugin {
       return undefined;
     }
 
+    // The text is read aloud, never parsed again, so a sheet name the engine writes without quotes needs none
+    // here, and the quoting scan of `#readableFormula()` is not paid on every paint.
     const formula = this.engine!.getCellFormula(engineCell.address);
 
-    return formula === undefined ? undefined : this.#readableFormula(formula);
+    return formula === undefined ? undefined : limitFormulaText(formula);
   }
 
   /**

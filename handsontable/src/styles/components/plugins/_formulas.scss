@@ -17,6 +17,10 @@
       clip-path: inset(50%);
       white-space: nowrap;
       user-select: none;
+      // Chromium builds the name from the text boxes in visual order, so a right-to-left grid, or a phrase in
+      // a right-to-left language, would put the formula before its label. The text is its own left-to-right run.
+      direction: ltr;
+      unicode-bidi: isolate;
     }
 
     // The Comments indicator is a triangle made of a zero-size box with borders. The text goes inside that
@@ -28,6 +32,8 @@
       height: 0;
       overflow: hidden;
       white-space: nowrap;
+      direction: ltr;
+      unicode-bidi: isolate;
     }
 
     // Wins over the first-row guard, which sets `content: ""` on an empty cell (a formula that returns "").

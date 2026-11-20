@@ -78,6 +78,14 @@
     // Two cells other styles also draw into: a commented formula cell (the Comments indicator is the cell's
     // `::after`) and a formula in the first cell that returns an empty string (the empty-cell guard of the
     // base stylesheet is the cell's `::after` too).
+    const directionParam = htParams.get('dir') ?? 'ltr';
+
+    if (directionParam !== 'ltr' && directionParam !== 'rtl') {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(directionParam));
+    }
+
+    document.documentElement.dir = directionParam;
+
     const withComment = htParams.get('comment') === 'on';
     const emptyFirstCell = htParams.get('first') === 'empty';
     const rowHeights = rowsByParam[rowsParam];
@@ -101,6 +109,7 @@
       colHeaders: true,
       columnSorting: true,
       ariaTags,
+      layoutDirection: directionParam,
       comments: withComment,
       cell: withComment ? [{ row: 0, col: 2, comment: { value: 'A note' } }] : [],
       rowHeights,
