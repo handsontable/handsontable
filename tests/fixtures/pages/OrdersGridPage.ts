@@ -28,6 +28,8 @@ type OrdersWindow = {
     getSourceData(): unknown[][],
     getSelected(): number[][] | undefined,
     render(): void,
+    setCellMeta(row: number, column: number, key: string, value: unknown): void,
+    setDataAtCell(row: number, column: number, value: unknown): void,
     getPlugin(name: 'hiddenColumns'): { getHiddenColumns(): number[] },
     getPlugin(name: 'multiColumnSorting'): { getSortConfig(): Array<{ column: number, sortOrder: string }> },
     getPlugin(name: 'pagination'): {
@@ -255,6 +257,61 @@ export class OrdersGridPage extends FiltersValueListPage {
    */
   async nativeSelectionText(): Promise<string> {
     return this.page.evaluate(() => window.getSelection()?.toString() ?? '');
+  }
+
+  /**
+   * Renders one cell's value with the `html` renderer, so that part of its text sits in nested elements.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} column The visual column index.
+   * @param {string} html The markup the cell holds.
+   */
+  async renderCellAsHtml(row: number, column: number, html: string): Promise<void> {
+    await this.page.evaluate(({ r, c, value }) => {
+      const { hot } = window as unknown as OrdersWindow;
+
+      hot.setCellMeta(r, c, 'renderer', 'html');
+      hot.setDataAtCell(r, c, value);
+    }, { r: row, c: column, value: html });
+  }
+
+  /**
+   * Gives one cell a renderer that makes it editable in place, the way an application's inline editing does:
+   * the text renderer, then `contenteditable="true"` on the cell.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} column The visual column index.
+   */
+  async makeCellEditableInPlace(row: number, column: number): Promise<void> {
+    await this.page.evaluate(({ r, c }) => {
+      type Renderer = (this: unknown, ...args: unknown[]) => void;
+      const { hot } = window as unknown as OrdersWindow;
+      const { Handsontable } = window as unknown as { Handsontable: { renderers: { TextRenderer: Renderer } } };
+
+      hot.setCellMeta(r, c, 'renderer', function(this: unknown, ...args: unknown[]) {
+        Handsontable.renderers.TextRenderer.apply(this, args);
+        (args[1] as HTMLElement).setAttribute('contenteditable', 'true');
+      });
+      hot.render();
+    }, { r: row, c: column });
+  }
+
+  /**
+   * Selects one cell's text with the browser's own selection, as a user dragging across the text of a cell
+   * the application made editable does.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} column The visual column index.
+   */
+  async selectCellText(row: number, column: number): Promise<void> {
+    await this.cell(row, column).evaluate((cell) => {
+      const range = document.createRange();
+      const selection = window.getSelection();
+
+      range.selectNodeContents(cell);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    });
   }
 
   /**

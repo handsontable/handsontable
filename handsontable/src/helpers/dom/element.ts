@@ -1935,11 +1935,19 @@ export function observeVisibilityChangeOnce(
 }
 
 /**
- * Add a `contenteditable` attribute, select the contents and optionally add the `invisibleSelection`
- * class to the provided element.
+ * The attribute that marks an element whose selection the stylesheet paints transparent, set and removed with
+ * the `invisibleSelection` class. A cell's renderer rewrites its `className` on every render, which drops the
+ * class while the selection stays, and it leaves other attributes alone. The stylesheet does not key on
+ * `contenteditable` instead, because a user's renderer can make a cell editable, and its selection must show.
+ */
+const INVISIBLE_SELECTION_ATTRIBUTE = 'data-ht-invisible-selection';
+
+/**
+ * Add a `contenteditable` attribute, select the contents and optionally make that selection invisible
+ * (the `invisibleSelection` class and the `data-ht-invisible-selection` attribute) on the provided element.
  *
  * @param {HTMLElement} element Element to be processed.
- * @param {boolean} [invisibleSelection=true] `true` if the class should be added to the element.
+ * @param {boolean} [invisibleSelection=true] `true` if the class and the attribute should be added to the element.
  * @param {boolean} [ariaHidden=true] `true` if the `aria-hidden` attribute should be added to the processed element.
  */
 export function makeElementContentEditableAndSelectItsContent(
@@ -1958,6 +1966,7 @@ export function makeElementContentEditableAndSelectItsContent(
 
   if (invisibleSelection) {
     addClass(element, 'invisibleSelection');
+    setAttribute(element, INVISIBLE_SELECTION_ATTRIBUTE);
   }
 
   range.selectNodeContents(element);
@@ -1969,10 +1978,11 @@ export function makeElementContentEditableAndSelectItsContent(
 
 /**
  * Remove the `contenteditable` attribute, deselect the contents and optionally remove the `invisibleSelection`
- * class from the provided element.
+ * class and the `data-ht-invisible-selection` attribute from the provided element.
  *
  * @param {HTMLElement} selectedElement The element to be deselected.
- * @param {boolean} [removeInvisibleSelectionClass=true] `true` if the class should be removed from the element.
+ * @param {boolean} [removeInvisibleSelectionClass=true] `true` if the class and the attribute should be removed
+ * from the element.
  */
 export function removeContentEditableFromElementAndDeselect(
   selectedElement: HTMLElement, removeInvisibleSelectionClass = true) {
@@ -1986,6 +1996,7 @@ export function removeContentEditableFromElementAndDeselect(
 
   if (removeInvisibleSelectionClass) {
     removeClass(selectedElement, 'invisibleSelection');
+    selectedElement.removeAttribute(INVISIBLE_SELECTION_ATTRIBUTE);
   }
 
   selectedElement.removeAttribute('contenteditable');

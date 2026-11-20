@@ -128,21 +128,25 @@ test, so the `mouseleave` no longer takes the focus from the editor the user is 
   a real one lands on a frame the layout decides, which is why the old test passed on a race).
 
 **The selection the `mouseleave` workaround makes must never show, and the cell's class cannot hide it
-alone.** `makeElementContentEditableAndSelectItsContent()` adds `invisibleSelection`, and `_base.scss` paints
-that selection transparent. Two things defeat a rule keyed on the class and the cell's own text:
+alone.** `makeElementContentEditableAndSelectItsContent()` adds the `invisibleSelection` class and the
+`data-ht-invisible-selection` attribute, and `_base.scss` paints that selection transparent through either.
+Two things defeat a rule keyed on the class and the cell's own text:
 
-- **A render rewrites the cell's `className`** and drops the class, while `contenteditable` and the selection
-  stay. The pointer can stay outside the body for any length of time, so a render lands in between (the
-  container's `ResizeObserver` after a filter shrank the grid is one). The same render also drops the
+- **A render rewrites the cell's `className`** and drops the class, while the cell's other attributes and the
+  selection stay. The pointer can stay outside the body for any length of time, so a render lands in between
+  (the container's `ResizeObserver` after a filter shrank the grid is one). The same render also drops the
   `aria-hidden` the helper set, which nothing puts back.
-- **A header's label is a nested `span.colHeader`**, and WebKit does not apply an ancestor's `::selection` to
-  its descendants. The highlighted cell is a header after a header click with `navigableHeaders`, and after a
-  column's dropdown menu closes.
+- **Text in a nested element is not covered by the cell's own `::selection`**: WebKit does not apply an
+  ancestor's `::selection` to descendants. Every header label is a nested `span.colHeader` (the highlighted
+  cell is a header after a header click with `navigableHeaders`, and after a column's dropdown menu closes),
+  and so is any markup a renderer writes into a cell.
 
-So the rule matches `[contenteditable]` as well as the class, and every descendant of the cell as well as the
-cell. Keep the selection itself: Safari's Edit → Copy needs it. Pinned by
-`tests/e2e/clipboard-safari-header-selection.spec.ts` (WebKit leg; it renders once after the `mouseleave`, so
-each half of the rule has a case that fails without it).
+So the rule matches the marker attribute as well as the class, and every descendant of the cell as well as the
+cell. **Never key it on `[contenteditable]`**, which survives a render too: a user's renderer can make a cell
+editable for inline editing, and a selection the user makes there must show. Keep the selection itself:
+Safari's Edit → Copy needs it. Pinned by `tests/e2e/clipboard-safari-invisible-selection.spec.ts` (the header
+and nested-markup cases on the WebKit leg, the editable cell on every engine; a mutant of each part of the
+rule fails one of them) and the helper's unit tests in `helpers/dom/__tests__/element.unit.ts`.
 
 ## Ragged clipboard payloads (DEV-2615, #7389)
 
