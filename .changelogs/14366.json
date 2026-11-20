@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the Search plugin storing cell metadata for every cell a query scans, which kept memory in proportion to the grid size. A query now stores metadata for matching cells only, and a non-matching cell without stored metadata reads `isSearchResult` as `undefined`.",
+  "type": "fixed",
+  "issueOrPR": 14366,
+  "breaking": false,
+  "framework": "none"
+}

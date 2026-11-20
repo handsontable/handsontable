@@ -28,6 +28,7 @@ const FIVE_ITERATIONS = [
   'paste-extend-rows',
   'row-selection-deselect-all',
   'row-selection-select-all',
+  'search-query',
   'sheetsbar-structural-ops',
   'sorting',
   'source-data-validator-load',
