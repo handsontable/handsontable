@@ -16,7 +16,7 @@ env:
 jobs:
   render:
     name: ${{ matrix.config.name }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -135,7 +135,7 @@ jobs:
 
   compare:
     name: Compare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [ render ]
     # Tags reach here through publish.yml -> test.yml. They are not base
     # branches: publishing would leave a full tree under `base/<tag>/` that
