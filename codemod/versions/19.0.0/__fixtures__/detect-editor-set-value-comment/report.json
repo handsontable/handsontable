@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/editor-set-value",
+      "severity": "manual",
+      "line": 4
+    }
+  ]
+}

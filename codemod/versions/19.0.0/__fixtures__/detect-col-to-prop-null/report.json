@@ -1,0 +1,25 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/col-to-prop-null",
+      "severity": "manual",
+      "line": 5
+    },
+    {
+      "ruleId": "19.0.0/col-to-prop-null",
+      "severity": "manual",
+      "line": 8
+    },
+    {
+      "ruleId": "19.0.0/col-to-prop-null",
+      "severity": "manual",
+      "line": 9
+    },
+    {
+      "ruleId": "19.0.0/col-to-prop-null",
+      "severity": "manual",
+      "line": 10
+    }
+  ]
+}

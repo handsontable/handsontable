@@ -1,0 +1,16 @@
+/* Border drawn by the old variables */
+.ht-theme-main {
+  /* TODO(handsontable-codemod 18.0.0/css-wrapper-border-width): Draw the outer border with a box-shadow on the root wrapper, because 18.0 removed this variable. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables */
+  --ht-wrapper-border-width: 1px;
+  /* TODO(handsontable-codemod 18.0.0/css-wrapper-border-color): Draw the outer border with a box-shadow on the root wrapper, because 18.0 removed this variable. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables */
+  --ht-wrapper-border-color: #a0aec0;
+  --ht-wrapper-border-width-extra: 2px;
+}
+
+.card .handsontable {
+  /* TODO(handsontable-codemod 18.0.0/css-wrapper-border-width): Draw the outer border with a box-shadow on the root wrapper, because 18.0 removed this variable. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables */
+  /* TODO(handsontable-codemod 18.0.0/css-wrapper-border-color): Draw the outer border with a box-shadow on the root wrapper, because 18.0 removed this variable. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables */
+  box-shadow: 0 0 0 var(--ht-wrapper-border-width) var(--ht-wrapper-border-color);
+  /* TODO(handsontable-codemod 18.0.0/css-wrapper-border-color): Draw the outer border with a box-shadow on the root wrapper, because 18.0 removed this variable. See https://handsontable.com/docs/javascript-data-grid/migration-from-17.1-to-18.0#update-theme-wrapper-border-variables */
+  border-color: var(--ht-wrapper-border-color, red);
+}

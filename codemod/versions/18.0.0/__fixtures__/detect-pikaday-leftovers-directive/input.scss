@@ -1,0 +1,13 @@
+// A note about the next rule.
+// stylelint-disable-next-line selector-class-pattern
+.pika-single {
+  border-radius: 4px;
+}
+
+/* prettier-ignore */
+.pika-prev, .pika-next { opacity: 0.5; }
+
+// stylelint-disable-next-line
+.picker-pika-single {
+  color: red;
+}

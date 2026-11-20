@@ -1,0 +1,20 @@
+/* Valid under the 18.0 wrapper structure: nothing here depends on the old nesting. */
+.ht-grid-content > .handsontable {
+  border: 0;
+}
+
+.ht-root-wrapper > .ht-grid {
+  margin: 0;
+}
+
+.ht-wrapper.handsontable td {
+  padding: 4px;
+}
+
+.my-ht-grid > .row {
+  margin: 0;
+}
+
+.ht-grid-extra:first-child {
+  margin: 0;
+}

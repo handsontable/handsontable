@@ -1,0 +1,96 @@
+{
+  "rules": [
+    {
+      "id": "18.0.0/dependencies",
+      "kind": "dependency",
+      "safe": true,
+      "bump": {
+        "handsontable": "18.0.0",
+        "@handsontable/react-wrapper": "18.0.0",
+        "@handsontable/angular-wrapper": "18.0.0",
+        "@handsontable/vue3": "18.0.0"
+      },
+      "replaced": {
+        "@handsontable/react": "has no 18.x release. Use @handsontable/react-wrapper and update your imports: https://handsontable.com/docs/javascript-data-grid/migration-from-14.6-to-15.0",
+        "@handsontable/angular": "has no 18.x release. Use @handsontable/angular-wrapper and update your imports: https://handsontable.com/docs/javascript-data-grid/migration-from-15.3-to-16.0",
+        "@handsontable/vue": "has no 18.x release. It is the deprecated Vue wrapper. For Vue 3, use @handsontable/vue3."
+      }
+    },
+    {
+      "id": "18.0.0/dependency-hyperformula",
+      "kind": "dependency",
+      "safe": true,
+      "guide": "install-hyperformula-separately",
+      "add": [
+        {
+          "name": "hyperformula",
+          "range": "^3.0.0",
+          "whenFact": "uses-formulas",
+          "onlyIfDependsOn": ["handsontable", "@handsontable/react-wrapper", "@handsontable/angular-wrapper", "@handsontable/vue3"]
+        }
+      ],
+      "facts": [
+        { "name": "uses-formulas", "when": { "import": "hyperformula" } },
+        { "name": "uses-formulas", "when": { "property": "formulas", "withKey": "engine" } }
+      ]
+    },
+    {
+      "id": "18.0.0/dependency-numbro",
+      "kind": "dependency",
+      "safe": false,
+      "guide": "migrate-numeric-format-from-numbrojs-pattern-and-culture-to-intlnumberformat",
+      "reportMissing": [
+        {
+          "name": "numbro",
+          "range": "2.5.0",
+          "whenFact": "imports-numbro",
+          "onlyIfDependsOn": ["handsontable", "@handsontable/react-wrapper", "@handsontable/angular-wrapper", "@handsontable/vue3"]
+        }
+      ],
+      "facts": [
+        { "name": "imports-numbro", "when": { "import": "numbro" } }
+      ]
+    },
+    {
+      "id": "18.0.0/dependency-date-libraries",
+      "kind": "dependency",
+      "safe": false,
+      "guide": "migrate-date-and-time-cells-to-iso-8601-format",
+      "reportMissing": [
+        {
+          "name": "moment",
+          "range": "2.30.1",
+          "whenFact": "imports-moment",
+          "onlyIfDependsOn": ["handsontable", "@handsontable/react-wrapper", "@handsontable/angular-wrapper", "@handsontable/vue3"]
+        },
+        {
+          "name": "@handsontable/pikaday",
+          "range": "^1.0.0",
+          "whenFact": "imports-pikaday",
+          "onlyIfDependsOn": ["handsontable", "@handsontable/react-wrapper", "@handsontable/angular-wrapper", "@handsontable/vue3"]
+        }
+      ],
+      "facts": [
+        { "name": "imports-moment", "when": { "import": "moment" } },
+        { "name": "imports-pikaday", "when": { "import": "@handsontable/pikaday" } }
+      ]
+    },
+    {
+      "id": "18.0.0/dependency-dompurify",
+      "kind": "dependency",
+      "safe": false,
+      "guide": "replace-built-in-dompurify-with-a-custom-sanitizer",
+      "reportMissing": [
+        {
+          "name": "dompurify",
+          "range": "^3.1.7",
+          "whenFact": "imports-dompurify",
+          "onlyIfDependsOn": ["handsontable", "@handsontable/react-wrapper", "@handsontable/angular-wrapper", "@handsontable/vue3"]
+        }
+      ],
+      "facts": [
+        { "name": "imports-dompurify", "when": { "import": "dompurify" } }
+      ]
+    }
+  ]
+}

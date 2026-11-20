@@ -1,0 +1,15 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/row-heights-exact",
+      "severity": "manual",
+      "line": 3
+    },
+    {
+      "ruleId": "19.0.0/row-heights-exact",
+      "severity": "manual",
+      "line": 4
+    }
+  ]
+}

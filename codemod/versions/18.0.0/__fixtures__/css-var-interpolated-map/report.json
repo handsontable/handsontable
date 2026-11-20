@@ -1,0 +1,9 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/css-wrapper-border-radius", "severity": "manual", "line": 7 },
+    { "ruleId": "18.0.0/css-wrapper-border-color", "severity": "manual", "line": 8 },
+    { "ruleId": "18.0.0/css-wrapper-border-width", "severity": "manual", "line": 9 },
+    { "ruleId": "18.0.0/css-wrapper-border-color", "severity": "manual", "line": 13 }
+  ]
+}

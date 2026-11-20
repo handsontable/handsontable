@@ -1,0 +1,13 @@
+[
+  { "ruleId": "18.0.0/type-plugins-map", "severity": "manual", "line": 1 },
+  { "ruleId": "18.0.0/type-registry-maps", "severity": "manual", "line": 2 },
+  { "ruleId": "18.0.0/type-registry-maps", "severity": "manual", "line": 3 },
+  { "ruleId": "18.0.0/type-registry-maps", "severity": "manual", "line": 4 },
+  { "ruleId": "18.0.0/type-registry-maps", "severity": "manual", "line": 5 },
+  { "ruleId": "18.0.0/type-validators-basevalidator", "severity": "manual", "line": 5 },
+  { "ruleId": "18.0.0/type-editorfactory-shortcut", "severity": "manual", "line": 6 },
+  { "ruleId": "18.0.0/type-i18n-languagedictionary", "severity": "manual", "line": 7 },
+  { "ruleId": "18.0.0/type-i18n-languagedictionary", "severity": "manual", "line": 8 },
+  { "ruleId": "18.0.0/type-settings-cellsettings", "severity": "manual", "line": 9 },
+  { "ruleId": "18.0.0/type-settings-omit", "severity": "manual", "line": 9 }
+]

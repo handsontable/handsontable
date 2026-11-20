@@ -1,0 +1,8 @@
+{
+  "name": "grid-app",
+  "dependencies": {
+    "handsontable": "^18.0.0",
+    "numbro": "^2.5.0",
+    "dompurify": "^3.2.0"
+  }
+}

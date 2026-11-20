@@ -1,0 +1,8 @@
+{
+  "name": "grid-app",
+  "dependencies": {
+    "handsontable": "^18.2.0",
+    "@handsontable/vue3": "workspace:*",
+    "hyperformula": "^3.4.0"
+  }
+}

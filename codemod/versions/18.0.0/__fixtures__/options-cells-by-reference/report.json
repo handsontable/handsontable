@@ -1,0 +1,9 @@
+[
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 15 },
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "changed", "line": 10 },
+  { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 5 },
+  { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 7 },
+  { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 23 },
+  { "ruleId": "18.0.0/correct-format-removed", "severity": "changed", "line": 24 },
+  { "ruleId": "18.0.0/moment-date-format", "severity": "manual", "line": 13 }
+]

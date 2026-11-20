@@ -1,0 +1,560 @@
+{
+  "generatedBy": "codemod/tools/derive-type-map.mjs (typescript 6.0.3)",
+  "old": {
+    "name": "handsontable",
+    "version": "18.0.0",
+    "entryPointCount": 146
+  },
+  "new": {
+    "name": "handsontable",
+    "version": "18.1.2",
+    "entryPointCount": 152
+  },
+  "rules": [],
+  "entryPoints": {
+    "removed": [],
+    "added": [
+      {
+        "specifier": "handsontable/cellTypes/intlDatetimeType",
+        "exports": [
+          {
+            "name": "CELL_TYPE",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "IntlDatetimeCellType",
+            "kind": "namespace",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/editors/intlDatetimeEditor",
+        "exports": [
+          {
+            "name": "EDITOR_TYPE",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "IntlDatetimeEditor",
+            "kind": "class",
+            "space": "both"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/moveCells",
+        "exports": [
+          {
+            "name": "MoveCells",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/plugins/selectionHandles",
+        "exports": [
+          {
+            "name": "PLUGIN_KEY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "PLUGIN_PRIORITY",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "SelectionHandles",
+            "kind": "class",
+            "space": "both"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/renderers/intlDatetimeRenderer",
+        "exports": [
+          {
+            "name": "RENDERER_TYPE",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "intlDatetimeRenderer",
+            "kind": "function",
+            "space": "value"
+          },
+          {
+            "name": "valueFormatter",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      {
+        "specifier": "handsontable/validators/intlDatetimeValidator",
+        "exports": [
+          {
+            "name": "SOURCE_DATA_WARNING_MESSAGE",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "VALIDATOR_TYPE",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "intlDatetimeValidator",
+            "kind": "function",
+            "space": "value"
+          },
+          {
+            "name": "sourceDataValidator",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      }
+    ],
+    "changed": {
+      "handsontable": {
+        "removed": [],
+        "added": [
+          {
+            "name": "DensityType",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "RemoveIndexSignature",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SanitizerContext",
+            "kind": "type",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/base": {
+        "removed": [],
+        "added": [
+          {
+            "name": "DensityType",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "RemoveIndexSignature",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SanitizerContext",
+            "kind": "type",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/cellTypes": {
+        "removed": [],
+        "added": [
+          {
+            "name": "INTL_DATETIME_TYPE",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "IntlDatetimeCellType",
+            "kind": "namespace",
+            "space": "value"
+          }
+        ]
+      },
+      "handsontable/cellTypes/multiSelectType": {
+        "removed": [],
+        "added": [
+          {
+            "name": "LEGACY_CELL_TYPE",
+            "kind": "const",
+            "space": "value"
+          }
+        ]
+      },
+      "handsontable/editors": {
+        "removed": [],
+        "added": [
+          {
+            "name": "INTL_DATETIME_EDITOR",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "IntlDatetimeEditor",
+            "kind": "class",
+            "space": "both"
+          }
+        ]
+      },
+      "handsontable/plugins": {
+        "removed": [],
+        "added": [
+          {
+            "name": "MoveCells",
+            "kind": "class",
+            "space": "both"
+          },
+          {
+            "name": "SelectionHandles",
+            "kind": "class",
+            "space": "both"
+          }
+        ]
+      },
+      "handsontable/plugins/contextMenu": {
+        "removed": [],
+        "added": [
+          {
+            "name": "MenuAnchorRectProvider",
+            "kind": "type",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/plugins/dropdownMenu": {
+        "removed": [],
+        "added": [
+          {
+            "name": "MenuAnchorRectProvider",
+            "kind": "type",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/renderers": {
+        "removed": [],
+        "added": [
+          {
+            "name": "INTL_DATETIME_RENDERER",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "intlDatetimeRenderer",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      },
+      "handsontable/settings": {
+        "removed": [],
+        "added": [
+          {
+            "name": "RemoveIndexSignature",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SanitizerContext",
+            "kind": "type",
+            "space": "type"
+          },
+          {
+            "name": "SourceDataValidatorFn",
+            "kind": "type",
+            "space": "type"
+          }
+        ]
+      },
+      "handsontable/validators": {
+        "removed": [],
+        "added": [
+          {
+            "name": "INTL_DATETIME_VALIDATOR",
+            "kind": "const",
+            "space": "value"
+          },
+          {
+            "name": "intlDatetimeValidator",
+            "kind": "function",
+            "space": "value"
+          }
+        ]
+      }
+    }
+  },
+  "namespace": {
+    "removed": [],
+    "added": [
+      {
+        "path": "Handsontable.SanitizerContext",
+        "kind": "type",
+        "space": "type"
+      },
+      {
+        "path": "Handsontable.cellTypes.intlDatetime",
+        "kind": "namespace",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.intlDatetime.CELL_TYPE",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.intlDatetime.editor",
+        "kind": "class",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.intlDatetime.renderer",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.intlDatetime.sourceDataValidator",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.intlDatetime.sourceDataValidator.rowIndependent",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.intlDatetime.sourceDataWarningMessage",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.intlDatetime.validator",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.intlDatetime.validator.VALIDATOR_TYPE",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.cellTypes.intlDatetime.valueFormatter",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.getDeepActiveElement",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.getFirstChangedTouch",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.getShadowHostChain",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.getTouchPointById",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.hasTouchList",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.dom.missingSanitizerMessage",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.editors.IntlDatetimeEditor",
+        "kind": "class",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.ISO_DATETIME_REGEX",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper._BLOCKING_MODAL_STATES",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper._LICENSE_EXPIRED_TITLE",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper._PURCHASE_LICENSE_TEXT",
+        "kind": "const",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper._formatExpiryClause",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper._formatIsoDate",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper._getLicenseState",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.cancelIdleTask",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.escapeHtml",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.insertValuesInPlace",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.isLossyNumericConversion",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.isValidISODateTime",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.parseToLocalDateTime",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.removeIndexesInPlace",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.helper.requestIdleTask",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.plugins.MoveCells",
+        "kind": "class",
+        "space": "both"
+      },
+      {
+        "path": "Handsontable.plugins.SelectionHandles",
+        "kind": "class",
+        "space": "both"
+      },
+      {
+        "path": "Handsontable.renderers.IntlDatetimeRenderer",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.validators.IntlDatetimeValidator",
+        "kind": "function",
+        "space": "value"
+      },
+      {
+        "path": "Handsontable.validators.IntlDatetimeValidator.VALIDATOR_TYPE",
+        "kind": "const",
+        "space": "value"
+      }
+    ],
+    "spaceChanged": []
+  },
+  "candidates": [],
+  "wrappers": {
+    "@handsontable/react-wrapper": {
+      "old": {
+        "name": "@handsontable/react-wrapper",
+        "version": "18.0.0",
+        "entryPointCount": 1
+      },
+      "new": {
+        "name": "@handsontable/react-wrapper",
+        "version": "18.1.2",
+        "entryPointCount": 1
+      },
+      "entryPoints": {
+        "removed": [],
+        "added": [],
+        "changed": {}
+      },
+      "candidates": []
+    },
+    "@handsontable/angular-wrapper": {
+      "old": {
+        "name": "@handsontable/angular-wrapper",
+        "version": "18.0.0",
+        "entryPointCount": 1
+      },
+      "new": {
+        "name": "@handsontable/angular-wrapper",
+        "version": "18.1.2",
+        "entryPointCount": 1
+      },
+      "entryPoints": {
+        "removed": [],
+        "added": [],
+        "changed": {}
+      },
+      "candidates": []
+    },
+    "@handsontable/vue3": {
+      "old": {
+        "name": "@handsontable/vue3",
+        "version": "18.0.0",
+        "entryPointCount": 0,
+        "typesDeclaredButMissing": [
+          "@handsontable/vue3 -> ./index.d.ts"
+        ]
+      },
+      "new": {
+        "name": "@handsontable/vue3",
+        "version": "18.1.2",
+        "entryPointCount": 0,
+        "typesDeclaredButMissing": [
+          "@handsontable/vue3 -> ./index.d.ts"
+        ]
+      },
+      "entryPoints": {
+        "removed": [],
+        "added": [],
+        "changed": {}
+      },
+      "candidates": []
+    }
+  }
+}

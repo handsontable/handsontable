@@ -1,0 +1,5 @@
+[
+  { "ruleId": "18.0.0/common-imports", "severity": "changed", "line": 1 },
+  { "ruleId": "18.0.0/common-imports", "severity": "changed", "line": 2 },
+  { "ruleId": "18.0.0/common-imports", "severity": "manual", "line": 1 }
+]

@@ -1,0 +1,7 @@
+[
+  { "ruleId": "18.0.0/css-wrapper-border-width", "severity": "manual", "line": 3 },
+  { "ruleId": "18.0.0/css-wrapper-border-width", "severity": "manual", "line": 9 },
+  { "ruleId": "18.0.0/css-wrapper-border-color", "severity": "manual", "line": 4 },
+  { "ruleId": "18.0.0/css-wrapper-border-color", "severity": "manual", "line": 9 },
+  { "ruleId": "18.0.0/css-wrapper-border-color", "severity": "manual", "line": 10 }
+]

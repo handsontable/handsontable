@@ -1,0 +1,7 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/theme-token-wrapper-border-radius", "severity": "changed", "line": 8 },
+    { "ruleId": "18.0.0/theme-token-wrapper-border-color", "severity": "manual", "line": 8 }
+  ]
+}

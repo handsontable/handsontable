@@ -1,0 +1,43 @@
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+.changeType::before {
+  background-color: blue;
+}
+
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+.ht-page-navigation-section .ht-page-next::before {
+  content: none;
+}
+
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+th.beforeHiddenColumn::after,
+th.afterHiddenRow::before {
+  display: none;
+}
+
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+.htCheckboxRendererInput::after {
+  color: red;
+}
+
+/* TODO(handsontable-codemod 19.0.0/icon-pseudo-element-selectors): Replace this pseudo-element selector with the matching .ht-icon-<name> class. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.1-to-19.0#icons-are-rendered-as-i-elements */
+.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after {
+  content: '';
+}
+
+/* The same hosts without a pseudo-element are not reported. */
+.changeType {
+  color: blue;
+}
+
+.ht-page-next:hover {
+  color: red;
+}
+
+/* Another stylesheet's pseudo-element is not reported. */
+.my-card::before {
+  content: '';
+}
+
+.ht-icon-menu {
+  color: blue;
+}

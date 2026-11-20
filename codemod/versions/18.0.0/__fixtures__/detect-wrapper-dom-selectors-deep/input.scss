@@ -1,0 +1,35 @@
+.risk-matrix :deep(.ht-grid) > :first-child {
+  border-top: 0;
+}
+
+.risk-matrix ::v-deep .ht-grid > div {
+  margin: 0;
+}
+
+:global(.ht-grid) > .overlay {
+  top: 0;
+}
+
+:host ::ng-deep .ht-root-wrapper > :last-child {
+  display: none;
+}
+
+.panel ::v-deep(.ht-grid):first-child {
+  color: red;
+}
+
+.legacy .ht-grid >>> span {
+  color: blue;
+}
+
+.risk-matrix :deep(.ht-grid-content) > .handsontable {
+  padding: 0;
+}
+
+.risk-matrix :deep(.ht-grid) .cell {
+  padding: 0;
+}
+
+.risk-matrix .ht-grid-content > .ht-grid-box {
+  padding: 0;
+}

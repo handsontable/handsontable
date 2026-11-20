@@ -1,0 +1,7 @@
+[
+  {
+    "ruleId": "18.0.0/common-imports",
+    "severity": "changed",
+    "line": 2
+  }
+]

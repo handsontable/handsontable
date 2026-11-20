@@ -1,0 +1,65 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "18.0.0/type-columnsorting-config",
+      "severity": "manual",
+      "line": 2
+    },
+    {
+      "ruleId": "18.0.0/type-plugin-detailedsettings",
+      "severity": "manual",
+      "line": 2
+    },
+    {
+      "ruleId": "18.0.0/type-plugin-settings",
+      "severity": "manual",
+      "line": 2
+    },
+    {
+      "ruleId": "18.0.0/type-sortordertype",
+      "severity": "manual",
+      "line": 2
+    },
+    {
+      "ruleId": "18.0.0/type-nestedheaders-detailedsettings",
+      "severity": "manual",
+      "line": 3
+    },
+    {
+      "ruleId": "18.0.0/type-nestedheaders-settings",
+      "severity": "manual",
+      "line": 3
+    },
+    {
+      "ruleId": "18.0.0/type-filters-conditionname",
+      "severity": "manual",
+      "line": 4
+    },
+    {
+      "ruleId": "18.0.0/type-filters-config",
+      "severity": "manual",
+      "line": 4
+    },
+    {
+      "ruleId": "18.0.0/type-filters-operationtype",
+      "severity": "manual",
+      "line": 4
+    },
+    {
+      "ruleId": "18.0.0/type-plugin-settings",
+      "severity": "manual",
+      "line": 4
+    },
+    {
+      "ruleId": "18.0.0/type-registry-maps",
+      "severity": "manual",
+      "line": 5
+    },
+    {
+      "ruleId": "18.0.0/theme-registry-imports-main",
+      "severity": "manual",
+      "line": 6
+    }
+  ]
+}

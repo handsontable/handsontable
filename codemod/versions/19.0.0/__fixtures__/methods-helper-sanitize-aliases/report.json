@@ -1,0 +1,20 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/helper-sanitize",
+      "severity": "manual",
+      "line": 7
+    },
+    {
+      "ruleId": "19.0.0/helper-sanitize",
+      "severity": "manual",
+      "line": 8
+    },
+    {
+      "ruleId": "19.0.0/helper-sanitize",
+      "severity": "manual",
+      "line": 9
+    }
+  ]
+}

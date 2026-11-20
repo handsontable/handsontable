@@ -1,0 +1,5 @@
+[
+  { "ruleId": "18.0.0/core-undo-methods", "severity": "changed", "line": 16 },
+  { "ruleId": "18.0.0/resize-state-methods", "severity": "changed", "line": 21 },
+  { "ruleId": "18.0.0/core-undo-methods", "severity": "changed", "line": 34 }
+]

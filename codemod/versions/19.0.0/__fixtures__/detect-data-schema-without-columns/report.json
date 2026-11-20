@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/data-schema-without-columns",
+      "severity": "manual",
+      "line": 3
+    }
+  ]
+}

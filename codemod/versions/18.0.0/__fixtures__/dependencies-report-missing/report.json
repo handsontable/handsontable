@@ -1,0 +1,5 @@
+[
+  { "ruleId": "18.0.0/dependencies", "severity": "changed" },
+  { "ruleId": "18.0.0/dependency-numbro", "severity": "manual" },
+  { "ruleId": "18.0.0/dependency-dompurify", "severity": "manual" }
+]

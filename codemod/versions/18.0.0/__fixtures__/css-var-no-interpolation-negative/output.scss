@@ -1,0 +1,11 @@
+@use 'sass:map';
+
+// The same keys, but no --ht-#{...} interpolation builds a variable name from them.
+$tokens: (
+  'wrapper-border-radius': 6px,
+  wrapper-border-width: 1px,
+);
+
+.card {
+  border-width: map.get($tokens, 'wrapper-border-width');
+}

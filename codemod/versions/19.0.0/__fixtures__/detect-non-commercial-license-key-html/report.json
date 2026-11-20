@@ -1,0 +1,15 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "skipped-file",
+      "severity": "warning",
+      "line": 6
+    },
+    {
+      "ruleId": "19.0.0/non-commercial-license-key",
+      "severity": "manual",
+      "line": 7
+    }
+  ]
+}

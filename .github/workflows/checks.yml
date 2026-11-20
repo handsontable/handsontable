@@ -43,6 +43,10 @@ on:
       # determinism ratchet (lint.yml) reads. Same trees as RATCHETED_FILES in
       # .github/scripts/lib/lint-ratchet.mjs.
       lint-ratchet: { value: '${{ jobs.scope.outputs.lint-ratchet }}' }
+      # True when the migration codemod package, the lockfile, or a migration guide changed.
+      # lint.yml then also runs its suite on the other Node versions it supports and on
+      # Windows, and develop.yml runs the same matrix after the merge.
+      test-codemod: { value: '${{ jobs.scope.outputs.test-codemod }}' }
       # Precomputed here so the Integration wrapper matrix fans out with NO
       # per-module setup job (matrix context is illegal in a job-level if).
       wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
@@ -82,6 +86,7 @@ jobs:
       docs: ${{ steps.path-filter.outputs.docs }}
       outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
       lint-ratchet: ${{ steps.path-filter.outputs.lint-ratchet }}
+      test-codemod: ${{ steps.path-filter.outputs.test-codemod }}
       wrapper-matrix: ${{ steps.wrappers.outputs.list }}
       visual-full: ${{ steps.path-filter.outputs.visual-full }}
       visual-wrappers: ${{ steps.visual-wrappers.outputs.list }}
@@ -315,6 +320,25 @@ jobs:
             lint-ratchet:
               - './handsontable/src/**'
               - './handsontable/test/**'
+            # The codemod is a CLI that runs on customer machines, so its suite also
+            # runs on Windows and on the Node versions its `engines` allows. The
+            # lockfile is in scope: a bump of jscodeshift, recast, or postcss changes
+            # what the codemod runs on, and a Dependabot PR touches nothing else. The
+            # migration guides are in scope too: every rule of a released manifest
+            # anchors to a heading of its guide, and the anchor tests read the guide, so
+            # a pull request that renames a heading must run them. The `develop.yml`
+            # codemod job reads this flag as well, so the same edit is checked after the merge.
+            # The core sources its tests read are in scope for the same reason: a core PR that changes the
+            # hook list, the option schema, the numeric renderer, or the ExportFile methods must run them.
+            test-codemod:
+              - './codemod/**'
+              - './pnpm-lock.yaml'
+              - './LICENSE.txt'
+              - './docs/content/guides/upgrade-and-migration/**'
+              - './handsontable/src/core/hooks/constants.ts'
+              - './handsontable/src/dataMap/metaManager/metaSchema.ts'
+              - './handsontable/src/renderers/numericRenderer/utils.ts'
+              - './handsontable/src/plugins/exportFile/exportFile.ts'
 
       # Build the Integration wrapper matrix from the scope flags (run-all → all
       # three). Emitting it here means the wrapper job fans out with no extra

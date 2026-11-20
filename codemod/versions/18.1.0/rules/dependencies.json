@@ -1,0 +1,15 @@
+{
+  "rules": [
+    {
+      "id": "18.1.0/dependencies",
+      "kind": "dependency",
+      "safe": true,
+      "bump": {
+        "handsontable": "18.1.0",
+        "@handsontable/react-wrapper": "18.1.0",
+        "@handsontable/angular-wrapper": "18.1.0",
+        "@handsontable/vue3": "18.1.0"
+      }
+    }
+  ]
+}

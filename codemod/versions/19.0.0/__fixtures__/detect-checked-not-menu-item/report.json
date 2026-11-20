@@ -1,0 +1,10 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/checked-menu-item-property",
+      "severity": "manual",
+      "line": 8
+    }
+  ]
+}

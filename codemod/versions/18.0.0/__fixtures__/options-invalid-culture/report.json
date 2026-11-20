@@ -1,0 +1,5 @@
+[
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 5 },
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 6 },
+  { "ruleId": "18.0.0/numeric-format-culture", "severity": "manual", "line": 7 }
+]

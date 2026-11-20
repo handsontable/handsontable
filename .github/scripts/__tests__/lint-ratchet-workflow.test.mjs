@@ -40,7 +40,7 @@ test('the ratchet is a step of the core lint job, not a job of its own', () => {
   // to lint a handful of files, and sat on the critical path (`build` needs
   // `lint`). The step reuses the install `core` already has.
   assert.ok(core, 'lint.yml has no `core` job');
-  assert.deepEqual(jobsOf(source).map(job => job.name), ['core', 'visual-tests']);
+  assert.deepEqual(jobsOf(source).map(job => job.name), ['core', 'visual-tests', 'codemod']);
   assert.ok(core.body.includes('node .github/scripts/lint-ratchet.mjs'), 'the ratchet does not run in `core`');
 });
 

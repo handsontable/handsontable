@@ -76,6 +76,7 @@ jobs:
     with:
       run-visual: ${{ needs.checks.outputs.run-all == 'true' || needs.checks.outputs.test-visual == 'true' }}
       run-ratchet: ${{ needs.checks.outputs.run-all == 'true' || needs.checks.outputs.lint-ratchet == 'true' }}
+      run-codemod: ${{ needs.checks.outputs.run-all == 'true' || needs.checks.outputs.test-codemod == 'true' }}
     secrets: inherit
 
   code-quality:

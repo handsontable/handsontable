@@ -1,0 +1,4 @@
+[
+  { "ruleId": "18.0.0/theme-registry-imports-main", "severity": "changed", "line": 4 },
+  { "ruleId": "18.0.0/theme-registry-imports-base", "severity": "changed", "line": 5 }
+]

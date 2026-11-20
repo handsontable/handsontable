@@ -1,0 +1,12 @@
+/* The Handsontable theme override */
+.ht-theme-main {
+  --ht-wrapper-border-radius: 8px;
+  --ht-wrapper-border-radius-extra: 2px;
+  --my-ht-wrapper-border-radius: 1px;
+}
+
+.wrapper .handsontable {
+  border-radius: var(--ht-wrapper-border-radius, 4px);
+  box-shadow: 0 0 0 1px var(--ht-border-color);
+  margin: calc(var(--ht-wrapper-border-radius) * 2) var(--ht-wrapper-border-radius-extra);
+}

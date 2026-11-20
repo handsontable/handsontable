@@ -1,0 +1,3 @@
+/* Loaded through <style src> in App.vue; see </style> handling */
+.grid::before { content: "<style>"; }
+.grid { --ht-wrapper-border-radius: 4px; }

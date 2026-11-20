@@ -1,0 +1,16 @@
+{
+  "exact": true,
+  "entries": [
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 8 },
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 9 },
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 14 },
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 18 },
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 22 },
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 22 },
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 26 },
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 26 },
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "manual", "line": 30 },
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "changed", "line": 35 },
+    { "ruleId": "18.0.0/core-undo-methods", "severity": "changed", "line": 36 }
+  ]
+}

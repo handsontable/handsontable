@@ -1,0 +1,25 @@
+{
+  "exact": true,
+  "entries": [
+    {
+      "ruleId": "19.0.0/resize-state-methods",
+      "severity": "changed",
+      "line": 8
+    },
+    {
+      "ruleId": "19.0.0/resize-state-methods",
+      "severity": "changed",
+      "line": 9
+    },
+    {
+      "ruleId": "19.0.0/resize-state-methods",
+      "severity": "changed",
+      "line": 12
+    },
+    {
+      "ruleId": "19.0.0/resize-state-methods",
+      "severity": "manual",
+      "line": 14
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+import Handsontable from 'handsontable';
+
+const hot = new Handsontable(document.querySelector<HTMLElement>('#grid')!, { licenseKey: 'your-license-key' });
+const loading = hot.getPlugin('loading');
+
+// TODO(handsontable-codemod 18.1.0/loading-markup): Drop the markup and style .ht-loading__title and .ht-loading__description with CSS. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.0-to-18.1#expect-markup-in-the-loading-plugins-title-and-description-to-render-as-text
+loading.show({ title: 'Loading <strong>sales data</strong>' });
+// TODO(handsontable-codemod 18.1.0/loading-markup): Drop the markup and style .ht-loading__title and .ht-loading__description with CSS. See https://handsontable.com/docs/javascript-data-grid/migration-from-18.0-to-18.1#expect-markup-in-the-loading-plugins-title-and-description-to-render-as-text
+hot.getPlugin('loading').update({ description: `Step 1 of 3<br>This can take a minute` });
+
+// Plain text is the supported form.
+loading.show({ title: 'Loading sales data', description: 'Step 1 of 3. This can take a minute.' });
