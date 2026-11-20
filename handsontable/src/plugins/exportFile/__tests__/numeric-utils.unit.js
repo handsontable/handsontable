@@ -116,6 +116,12 @@ describe('intlNumFormatToExcelNumFmt', () => {
       expect(intlNumFormatToExcelNumFmt({ ...options, currency: 'INR' }, 'en-IN')).toBe('"\u20B9"#,##0.00');
     });
 
+    it('should keep the optional fraction digits of a zero-padded format that names none', () => {
+      // A ZIP code column: `Intl` still resolves up to three fraction digits for it.
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 5, useGrouping: false })).toBe('00000.###');
+      expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 2 })).toBe('#,#00.###');
+    });
+
     it('should write minimumIntegerDigits back as zeros in the integer part', () => {
       expect(intlNumFormatToExcelNumFmt({ minimumIntegerDigits: 5, useGrouping: false, maximumFractionDigits: 0 }))
         .toBe('00000');
@@ -167,6 +173,99 @@ describe('intlNumFormatToExcelNumFmt', () => {
 
     it('should ignore style: currency when no currency code is provided', () => {
       expect(intlNumFormatToExcelNumFmt({ style: 'currency' })).toBe('#,##0');
+    });
+  });
+
+  describe('the format of a value that shows no fraction digit', () => {
+    it('should drop the decimal part when every fraction digit is optional', () => {
+      // Excel keeps the decimal point of `#,##0.###`, so 1234 showed as `1,234.` where the grid
+      // shows `1,234`.
+      expect(intlNumFormatToExcelNumFmt({}, undefined, 1234)).toBe('#,##0');
+      expect(intlNumFormatToExcelNumFmt({}, undefined, 1234.5)).toBe('#,##0.###');
+      expect(intlNumFormatToExcelNumFmt({}, undefined, 0)).toBe('#,##0');
+      expect(intlNumFormatToExcelNumFmt({}, undefined, -7)).toBe('#,##0');
+      expect(intlNumFormatToExcelNumFmt({ useGrouping: false }, undefined, 1234)).toBe('0');
+      expect(intlNumFormatToExcelNumFmt({ maximumFractionDigits: 1 }, undefined, 2)).toBe('#,##0');
+    });
+
+    it('should keep the leading zeros of a ZIP code', () => {
+      const zipCode = { minimumIntegerDigits: 5, useGrouping: false };
+
+      expect(intlNumFormatToExcelNumFmt(zipCode, undefined, 2134)).toBe('00000');
+      expect(intlNumFormatToExcelNumFmt(zipCode, undefined, 2134.5)).toBe('00000.###');
+    });
+
+    it('should judge the value at the digits the format rounds to', () => {
+      // 1.0004 rounds to 1 at three digits, and 1.0006 to 1.001.
+      expect(intlNumFormatToExcelNumFmt({}, undefined, 1.0004)).toBe('#,##0');
+      expect(intlNumFormatToExcelNumFmt({}, undefined, 1.0006)).toBe('#,##0.###');
+      expect(intlNumFormatToExcelNumFmt({ maximumFractionDigits: 1 }, undefined, 2.04)).toBe('#,##0');
+      expect(intlNumFormatToExcelNumFmt({ maximumFractionDigits: 1 }, undefined, 2.06)).toBe('#,##0.#');
+    });
+
+    it('should judge a percent on the value times 100', () => {
+      const percent = { style: 'percent', maximumFractionDigits: 1 };
+
+      expect(intlNumFormatToExcelNumFmt(percent, undefined, 0.12)).toBe('#,##0%');
+      expect(intlNumFormatToExcelNumFmt(percent, undefined, 0.07)).toBe('#,##0%');
+      expect(intlNumFormatToExcelNumFmt(percent, undefined, 0.125)).toBe('#,##0.#%');
+    });
+
+    it('should keep the symbol of a currency whose fraction digits are all optional', () => {
+      const dollars = { style: 'currency', currency: 'USD', minimumFractionDigits: 0 };
+
+      expect(intlNumFormatToExcelNumFmt(dollars, 'en-US', 5)).toBe('$#,##0');
+      expect(intlNumFormatToExcelNumFmt(dollars, 'en-US', 5.5)).toBe('$#,##0.##');
+    });
+
+    it('should keep the decimal part of a format that always shows a fraction digit', () => {
+      expect(intlNumFormatToExcelNumFmt({ minimumFractionDigits: 2 }, undefined, 1234)).toBe('#,##0.00#');
+      expect(intlNumFormatToExcelNumFmt({ style: 'currency', currency: 'USD' }, 'en-US', 5)).toBe('$#,##0.00');
+    });
+
+    it('should keep the decimal part when the cell holds no number', () => {
+      // A formula cell passes no value: its result can change in the file.
+      expect(intlNumFormatToExcelNumFmt({})).toBe('#,##0.###');
+      expect(intlNumFormatToExcelNumFmt({}, undefined, null)).toBe('#,##0.###');
+      expect(intlNumFormatToExcelNumFmt({}, undefined, '1234')).toBe('#,##0.###');
+      expect(intlNumFormatToExcelNumFmt({}, undefined, NaN)).toBe('#,##0.###');
+    });
+  });
+
+  describe('the cache of resolved formats', () => {
+    it('should build the Intl formatter once for a format and locale', () => {
+      // The export resolves a format per numeric cell. Building a formatter per cell cost about
+      // 4 seconds per 100,000 cells.
+      const NumberFormat = jest.spyOn(Intl, 'NumberFormat');
+      const options = { style: 'currency', currency: 'SEK', minimumFractionDigits: 0 };
+
+      try {
+        expect(intlNumFormatToExcelNumFmt(options, 'sv-SE', 1)).toBe('#,##0[$kr-41D]');
+
+        const built = NumberFormat.mock.calls.length;
+
+        expect(built).toBeGreaterThan(0);
+        expect(intlNumFormatToExcelNumFmt(options, 'sv-SE', 2.5)).toBe('#,##0.##[$kr-41D]');
+        expect(intlNumFormatToExcelNumFmt({ ...options }, 'sv-SE', 3)).toBe('#,##0[$kr-41D]');
+        expect(NumberFormat.mock.calls.length).toBe(built);
+
+        // Another locale is another entry.
+        intlNumFormatToExcelNumFmt(options, 'nb-NO', 1);
+
+        expect(NumberFormat.mock.calls.length).toBeGreaterThan(built);
+      } finally {
+        NumberFormat.mockRestore();
+      }
+    });
+
+    it('should follow a format object changed in place', () => {
+      const options = { maximumFractionDigits: 1 };
+
+      expect(intlNumFormatToExcelNumFmt(options)).toBe('#,##0.#');
+
+      options.maximumFractionDigits = 2;
+
+      expect(intlNumFormatToExcelNumFmt(options)).toBe('#,##0.##');
     });
   });
 });

@@ -158,6 +158,20 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   inverse of the export's `resolveFractionDigits` (`../exportFile/types/xlsx/numeric-utils.ts`), which
   now writes `#,##0.###` for a format that names no digits; change one and the "invert the export's own
   number format" cases of `inference.unit.js` fail. The 100-digit `Intl` cap is checked on the maximum.
+- **A whole number under a format with no decimal part is read back as its column's format with
+  optional fraction digits** (`foldWholeNumberRuns` in `mapper.ts`, called by `placeMeta` before
+  `dominantMeta`). The export writes 1234 under `#,##0` in a `#,##0.###` column, because Excel shows
+  `1,234.` under the second format (`../exportFile/AGENTS.md`). Read cell by cell, such a column came
+  back with one format on the column and a `cellsMeta` entry on every cell of the other. A run whose
+  `numericFormat` has no fraction digits takes the meta of the ONE format in its column that differs
+  only by `maximumFractionDigits` (minimum 0), when every cell of the run is empty or a number that
+  shows no fraction digit at that maximum (`showsAsWholeNumber` in `utils/xlsxEngine/numFmtCode.ts`, the
+  test the export uses). Three limits. A run that holds a fraction keeps its own format: Excel rounds it
+  there, so the file did not come from this export. Two candidate formats (`#,##0.#` and `#,##0.###` in
+  one column) fold nothing. And a column that holds only whole numbers has no second format to fold
+  into, so it imports with `maximumFractionDigits: 0` where the exported grid had 3; the values show the
+  same. The scan reads `pass.data` for the rows of the runs with no fraction digits, and only in a
+  column that holds both kinds of format.
 - **Capture the currency BEFORE classifying a number format as temporal.** `CHF#,##0.00`, `SEK#,##0` and
   `HK$#,##0` carry an `h` or an `s` that `classifyTemporal` reads as a format code, so the export's own
   output for those currencies came back as `time` columns with `1234.5` turned into `12:00:00`.
