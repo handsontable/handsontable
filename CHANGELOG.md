@@ -9,6 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [18.1.3-rc0] - 2026-11-20
+
 ## [18.1.2] - 2026-10-07
 
 ### Changed
