@@ -13,11 +13,19 @@
  * new or grown finding on the page's entry in `tests/a11y/pages.mjs`, a known, improved or fixed one on its
  * entry in the baseline. It never blocks a merge: only `CI Gate` is required.
  *
+ * On a pull request the check run also judges what the pull request adds to the baseline
+ * (`lib/a11y-baseline-guard.mjs`): an entry that is neither inherited (a page this pull request adds, showing a
+ * finding the base baseline has on another page) nor an approved exception (its issue names a tracker, and the
+ * `a11y-exception-approved` label a person added covers it) is the pull request's own finding, and the check run is
+ * red, whatever its severity. Growth that could not be judged is a tooling failure.
+ *
  * `tests/scripts/a11y-check-run.mjs` reads the reporter's `comparison.json`,
  * builds the payload here, and posts it. No I/O in here.
  */
-import { BASELINE_FILE, entryKey, headline, renderSummary, verdictCounts } from './a11y-baseline.mjs';
+import { BASELINE_FILE, entryKey, escapeMarkdownText, headline, renderSummary, verdictCounts } from './a11y-baseline.mjs';
 import { annotationLevel, capAnnotations, renderVerdict, severityOfImpact, verdictOf, verdictTitle } from './a11y-verdict.mjs';
+import { kindCounts } from './a11y-baseline-guard.mjs';
+import { KIND_LABELS, neutralizeTaskIds } from './a11y-pr-comment.mjs';
 import { pageIdOf } from './website-pages.mjs';
 
 export const CHECK_RUN_NAME = 'A11y / axe report';
@@ -168,10 +176,12 @@ export function baselineLines(source) {
  * source are their own.
  * @param {(item: object) => boolean} [input.drift] Whether a counted finding is baseline drift: on a change run it
  * counts as a warning at most, like a tracked one (`driftOf()` of `lib/a11y-docs-drift.mjs`; the site scans only).
+ * @param {object} [input.guard] What the pull request adds to the baseline, judged (`baselineGuard()` of
+ * `lib/a11y-baseline-guard.mjs`); left out on a run without a pull request.
  * @returns {{name: string, conclusion: string, title: string, summary: string, annotations: object[]}} The payload.
  */
 export function buildCheckRun({
-  comparison, pages, baseline, reportUrl, runUrl, scope = 'change', tracked = () => false, scan = PRODUCT_SCAN, drift = () => false,
+  comparison, pages, baseline, reportUrl, runUrl, scope = 'change', tracked = () => false, scan = PRODUCT_SCAN, drift = () => false, guard,
 }) {
   if (!comparison) {
     return {
@@ -184,15 +194,19 @@ export function buildCheckRun({
   }
 
   const counts = verdictCounts(comparison);
-  const problems = comparison.problems ?? [];
+  const problems = [...(comparison.problems ?? []), ...(guard?.error ? [`the baseline growth was not judged: ${guard.error}`] : [])];
   const blocking = comparison.mode === 'block' && problems.length === 0 && counts.action > 0;
   const findings = countedFindings(comparison, scope, tracked, scan, drift);
   const verdict = verdictOf({ findings: findings.map(({ severity, warningOnly }) => ({ severity, warningOnly })), tooling: problems });
-  const conclusion = blocking ? 'failure' : verdict.conclusion;
-  const title = blocking ? `✖ ${headline(comparison)}` : verdictTitle(verdict, headline(comparison));
+  const own = (guard?.judged ?? []).filter(item => item.kind === 'own');
+  const ownRed = own.length > 0 && verdict.reason !== 'tooling';
+  const conclusion = blocking || ownRed ? 'failure' : verdict.conclusion;
+  const scanTitle = blocking ? `✖ ${headline(comparison)}` : verdictTitle(verdict, headline(comparison));
+  const title = ownRed ? `✖ Baseline growth: ${own.length} ${own.length === 1 ? 'entry is' : 'entries are'} this pull request's own · ${scanTitle}` : scanTitle;
   const notes = [...(comparison.notes ?? []), ...problems.map(problem => `Tooling problem: ${problem}`)];
-  const { annotations, omitted } = capAnnotations(annotationsOf(findings, comparison, pages, baseline, scan));
+  const { annotations, omitted } = capAnnotations([...annotationsOf(findings, comparison, pages, baseline, scan), ...guardAnnotations(guard, baseline, scan)]);
   const lead = [
+    ownRed ? GUARD_RED : '',
     blocking
       ? '**Verdict: red, block mode.** A finding that needs action fails this check and the job, whatever its severity.'
       : renderVerdict(verdict, { scope, counting: 'only a finding that is new or grown against the baseline counts', listTooling: false }),
@@ -202,6 +216,7 @@ export function buildCheckRun({
     runLink(runUrl),
     omitted > 0 ? `The check run carries the ${annotations.length} worst annotations; ${omitted} more are in the job summary and the HTML report.` : '',
     ...notes.map(note => `> ${note}`),
+    ...renderGuard(guard, comparison.issues ?? [], scan),
   ].filter(Boolean).join('\n\n');
   let summary = `${lead}\n\n${renderSummary(comparison, { reportUrl, title: scan.title })}`;
 
@@ -277,6 +292,92 @@ function annotationsOf(findings, comparison, pages, baseline, scan) {
       message: `${where(item)}. ${item.remedy}`,
     };
   }).sort((a, b) => a.path.localeCompare(b.path) || a.start_line - b.start_line);
+}
+
+const GUARD_RED = '**Baseline growth: red.** This pull request adds an entry to the baseline that is neither inherited nor an '
+  + 'approved exception, so the scan reads its own finding as known. Whatever its severity, that turns this check run red.';
+// How many judged entries the summary spells out; the rest are counted.
+const GUARD_ROWS = 30;
+
+/**
+ * The summary's section on what the pull request adds to the baseline: the rule, the label, and every entry with
+ * its kind and why. Nothing without a pull request, or when the growth was not judged (a tooling problem says so).
+ *
+ * @param {object} [guard] The judged growth (`baselineGuard()`).
+ * @param {object[]} issues The comparison's issues, for their titles.
+ * @param {object} scan The scan.
+ * @returns {string[]} Markdown paragraphs.
+ */
+function renderGuard(guard, issues, scan) {
+  if (!guard || guard.error) {
+    return [];
+  }
+  if (guard.judged.length === 0) {
+    return [`**Baseline growth:** this pull request adds nothing to \`${scan.baselineFile}\`.`];
+  }
+
+  const titles = new Map(issues.map(issue => [issue.id, issue.title]));
+  const counts = kindCounts(guard.judged);
+  const text = value => escapeMarkdownText(neutralizeTaskIds(value));
+  const rows = guard.judged.slice(0, GUARD_ROWS).map(item => `| ${KIND_LABELS[item.kind]} | ${text(item.page)} | ${text(item.theme)} | ${text(item.rule)} `
+    + `| <code>${text(item.target)}</code> | ${item.change === 'raised' ? `${item.nodes} (was ${item.baseNodes})` : item.nodes} `
+    + `| ${text(titles.get(item.issue) ?? item.issue)}${item.tracker ? ` (${text(item.tracker)})` : ''} | ${text(item.reason)} |`);
+
+  return [
+    `#### What this pull request adds to the baseline\n\n${counts.own} own, ${counts.exception} approved ${counts.exception === 1 ? 'exception' : 'exceptions'}, `
+      + `${counts.inherited} inherited. An entry this pull request adds to \`${scan.baselineFile}\`, or a count it raises, is allowed when it is `
+      + '**inherited** (a page this pull request adds shows a finding the base baseline has on another page: same issue, rule, element and theme) or an '
+      + `**approved exception** (its issue names the task that owns the fix in \`tracker\`, and the \`${guard.label}\` label covers it). Anything `
+      + 'else is this pull request\'s **own** finding: fix it here and delete the entry.',
+    `An exception is approved by a person, never by an agent: the accessibility lead adds the \`${guard.label}\` label by hand, then re-runs the `
+      + `\`A11y / axe\` job. The label covers the entries the baseline held, at those counts, at the head the pull request had when it went on. `
+      + approvalLine(guard),
+    ['| Kind | Page | Theme | Rule | Element | Elements | Known issue | Why |', '|---|---|---|---|---|--:|---|---|', ...rows].join('\n'),
+    guard.judged.length > GUARD_ROWS ? `…and ${guard.judged.length - GUARD_ROWS} more in this pull request's diff of \`${scan.baselineFile}\`.` : '',
+  ];
+}
+
+/**
+ * The sentence on the label as the pull request carries it.
+ *
+ * @param {object} guard The judged growth.
+ * @returns {string} Markdown.
+ */
+function approvalLine(guard) {
+  const text = value => escapeMarkdownText(value);
+
+  if (!guard.approval) {
+    return `This pull request has no \`${guard.label}\` label.`;
+  }
+  if (guard.approval.problem) {
+    return `The label is on, added by <code>${text(guard.approval.by)}</code> on ${text(guard.approval.at)}, and covers nothing: ${text(guard.approval.problem)}.`;
+  }
+
+  return `The label is on, added by <code>${text(guard.approval.by)}</code> on ${text(guard.approval.at)}.`;
+}
+
+/**
+ * One annotation per own entry (a failure) and per approved exception (a notice), on the entry's line in the
+ * baseline. An inherited entry needs nothing.
+ *
+ * @param {object} [guard] The judged growth.
+ * @param {Map<string, number>} baseline The baseline lines.
+ * @param {object} scan The scan.
+ * @returns {object[]} The annotations.
+ */
+function guardAnnotations(guard, baseline, scan) {
+  return (guard?.judged ?? []).filter(item => item.kind !== 'inherited').map((item) => {
+    const line = baseline.get(entryKey(item)) ?? 1;
+
+    return {
+      path: scan.baselineFile,
+      start_line: line,
+      end_line: line,
+      annotation_level: item.kind === 'own' ? 'failure' : 'notice',
+      title: item.kind === 'own' ? 'Own finding added to the baseline: fix it, or have the exception approved' : 'Approved baseline exception',
+      message: neutralizeTaskIds(`${item.page} on ${item.theme}: ${item.rule} on ${item.target}. ${item.reason}.`),
+    };
+  });
 }
 
 /**

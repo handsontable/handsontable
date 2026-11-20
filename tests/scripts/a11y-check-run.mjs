@@ -27,19 +27,31 @@
  * older than the deploy the run read. `--suite website` reports the website scan the same way
  * (`.github/workflows/website-a11y.yml`): `A11y / website-axe report`, from `test-results/a11y-website/comparison.json`,
  * with the same drift rule against the latest website audit, which reads production as a change run does.
+ *
+ * On a pull request (`A11Y_PR_NUMBER`) the product scan's check run also judges what the pull request adds to the
+ * baseline (`lib/a11y-baseline-guard.mjs`): it reads the base commit's baseline and page list at the checked-out merge
+ * commit's first parent (`A11Y_CHECKOUT_SHA`, `A11Y_BASE_SHA` as the fallback), and, when the baseline grew, the
+ * `a11y-exception-approved` label from the pull request's events and the baseline at the head the label approved (the
+ * latest pull request run of `A11Y_HEAD_REF` created before the label). `A11Y_EXCEPTION_APPROVERS` (comma-separated
+ * logins) limits who may approve; empty, anyone who can label the pull request may. A dry run judges from files:
+ * `--base <file>` (the baseline at the merge base), `--base-pages <file>` (`tests/a11y/pages.mjs` there) and
+ * `--approval <file>` (`{"by", "at", "baseline"}`, standing in for the label; `guardFromFiles()`).
  */
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { DOCS_SCAN, PRODUCT_SCAN, WEBSITE_SCAN, baselineLines, buildCheckRun, pageLinesOf } from '../lib/a11y-check-run.mjs';
+import { approverList, baselineGuard, guardFromFiles } from '../lib/a11y-baseline-guard.mjs';
+import { DOCS_SCAN, PRODUCT_SCAN, WEBSITE_SCAN, baselineLines, buildCheckRun, pageLines, pageLinesOf } from '../lib/a11y-check-run.mjs';
 import { LEDGER_URL, auditStaleness, driftNotes, driftOf, siteAudit } from '../lib/a11y-docs-drift.mjs';
 import { verdictInputs } from '../lib/a11y-verdict-inputs.mjs';
 import { postCheckRun } from '../lib/github-check-run.mjs';
+import { restClient } from '../lib/github-rest.mjs';
 
 const TESTS_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const env = process.env;
 const dryRun = process.argv.includes('--dry-run');
-const suite = process.argv.includes('--suite') ? process.argv[process.argv.indexOf('--suite') + 1] : 'product';
+const argument = name => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : undefined);
+const suite = argument('--suite') ?? 'product';
 
 const SCANS = { product: PRODUCT_SCAN, docs: DOCS_SCAN, website: WEBSITE_SCAN };
 
@@ -92,6 +104,12 @@ if (scan !== PRODUCT_SCAN && scope === 'change' && comparison) {
     grown: grownCounted.length, grownItems: grownCounted, deployedAt, site: suite }));
 }
 
+const guard = scan === PRODUCT_SCAN ? await judgeBaselineGrowth() : undefined;
+
+if (guard?.error) {
+  process.stderr.write(`a11y-check-run: the baseline growth was not judged: ${guard.error}\n`);
+}
+
 const payload = buildCheckRun({
   comparison: comparison && { ...comparison, notes: [...(comparison.notes ?? []), ...notes, ...driftLines] },
   pages,
@@ -102,6 +120,7 @@ const payload = buildCheckRun({
   tracked,
   scan,
   drift,
+  guard,
 });
 
 if (dryRun) {
@@ -130,6 +149,47 @@ process.stdout.write(`a11y-check-run: posted "${payload.name}" (${payload.conclu
 // The pull request comment links the check run.
 if (env.GITHUB_OUTPUT) {
   appendFileSync(env.GITHUB_OUTPUT, `check-url=${created.html_url}\n`);
+}
+
+/**
+ * What the pull request adds to the baseline, judged: from files on a dry run with `--base`, through the API on a pull
+ * request, and nothing on any other run (an audit or a push has no base to compare with).
+ *
+ * @returns {Promise<object|undefined>} What `guardOf()` returns, or nothing.
+ */
+async function judgeBaselineGrowth() {
+  const baselinePath = fromTests(PRODUCT_SCAN.baselineFile);
+  let head = null;
+
+  try {
+    head = JSON.parse(readFileSync(baselinePath, 'utf8'));
+  } catch {
+    // The reporter has reported an unreadable baseline as a tooling problem already; the growth says it was not read.
+  }
+
+  const pageIds = source => pageLines(source).keys();
+  const approvers = approverList(env.A11Y_EXCEPTION_APPROVERS);
+
+  if (argument('--base')) {
+    return guardFromFiles({ basePath: argument('--base'), basePagesPath: argument('--base-pages'), approvalPath: argument('--approval'),
+      head, pageIds, approvers, readText: file => readFileSync(file, 'utf8') });
+  }
+  if (dryRun || !env.A11Y_PR_NUMBER) {
+    return undefined;
+  }
+
+  return baselineGuard({
+    request: restClient({ token: env.GITHUB_TOKEN }),
+    repoApi: `${env.GITHUB_API_URL || 'https://api.github.com'}/repos/${env.GITHUB_REPOSITORY}`,
+    repository: env.GITHUB_REPOSITORY,
+    prNumber: env.A11Y_PR_NUMBER,
+    checkedOut: env.A11Y_CHECKOUT_SHA,
+    payloadBase: env.A11Y_BASE_SHA,
+    headRef: env.A11Y_HEAD_REF,
+    approvers,
+    head,
+    pageIds,
+  });
 }
 
 /**

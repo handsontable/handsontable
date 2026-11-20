@@ -278,7 +278,7 @@ test('a pull request that grows the baseline says so in the headline and lists w
   assert.ok(body.startsWith(`${COMMENT_MARKER}\n### ♿ A11y / axe: ⚠️ No new accessibility findings: 14 known, in 2 known issues · `
     + 'this pull request grows the baseline: 12 added, 1 raised\n'), body.slice(0, 200));
   assert.ok(body.indexOf('#### Added to the baseline') < body.indexOf('#### Findings by rule'), 'what was accepted comes before the chart');
-  assert.match(section, /Approving this pull request accepts them as known debt\./);
+  assert.doesNotMatch(section, /accepts them as known debt/, 'approving the pull request no longer accepts its own findings: the baseline guard judges each entry');
   assert.match(section, /\| Known issue \| Added \| Raised \|\n\|---\|--:\|--:\|\n\| Menu items have no accessible name, unlike DEV‑77 said \| 12 \| 0 \|\n\| The grid root holds children its role does not allow \| 0 \| 1 \|/);
   assert.match(section, /\| context-menu \| main \| label \| <code>td\.item-0<\/code> \| 1 \| Menu items have no accessible name, unlike DEV‑77 said \|/);
   assert.match(section, /\| grid \| horizon \| aria-required-children \| <code>div\.ht-wrapper\\\[role="treegrid"\\\]<\/code> \| 3 \(was 1\) \| The grid root holds children its role does not allow \|/);
@@ -361,12 +361,17 @@ test('readBaseBaseline reads the base commit\'s file raw, and reports a missing 
   assert.deepEqual(found.calls, [`GET ${REPO_API}/contents/tests/a11y/axe-baseline.json?ref=${sha} (raw)`]);
 
   assert.deepEqual(await readBaseBaseline({ request: stubApi([]).request, repoApi: REPO_API, sha }),
-    { error: 'the base commit 0123456789ab has no tests/a11y/axe-baseline.json' });
+    { error: 'the commit 0123456789ab has no tests/a11y/axe-baseline.json' });
 
   const broken = stubApi([[/./, () => { throw Object.assign(new Error('GET … answered 500: {"message":"boom"}'), { status: 500 }); }]]);
 
   assert.deepEqual(await readBaseBaseline({ request: broken.request, repoApi: REPO_API, sha }),
-    { error: 'reading the base commit\'s tests/a11y/axe-baseline.json answered 500' });
+    { error: 'reading tests/a11y/axe-baseline.json at 0123456789ab answered 500' });
+
+  // The baseline guard reads the base commit's page list the same way.
+  const pages = stubApi([[/^GET .*\/contents\/tests\/a11y\/pages\.mjs\?ref=0123456789abcdef/, () => "{ id: 'grid' }"]]);
+
+  assert.deepEqual(await readBaseBaseline({ request: pages.request, repoApi: REPO_API, sha, file: 'tests/a11y/pages.mjs' }), { text: "{ id: 'grid' }" });
   assert.deepEqual(await readBaseBaseline({ request: found.request, repoApi: REPO_API, sha: '' }),
     { error: 'no base commit was given (A11Y_BASE_SHA)' });
 });
