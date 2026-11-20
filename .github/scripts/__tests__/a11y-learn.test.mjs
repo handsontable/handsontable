@@ -502,23 +502,56 @@ test('the packet reads as one page: the result, the audits, where the rows went,
   const text = renderPacket(packetOfCut(fixture('audit-2026-11-17.json'), { dryRun: true }));
 
   assert.match(text, /^# Accessibility learning packet\n\nResult: \*\*refused\*\*\. Refused\. Nothing here may become a pull request\.\n\nA dry run: /);
-  assert.match(text, /\| a11y \| 2026-11-17, run 44077688383 \| 2026-11-10, run 42763025203 \| `8b36d60903\.\.6db6aee014` \| 85 \| 70 \|/);
+  assert.match(text, /\| a11y \| 2026-11-17, run 44077688383 \| 2026-11-10, run 42763025203 \| <code>8b36d60903\.\.6db6aee014<\/code> \| 85 \| 70 \|/);
   assert.match(text, /\| website \| 2026-11-17, run 44077699783 \| none \| none \| not read \| 6 \|/);
   assert.match(text, /- Dropped, inherited \(an old defect read in a new place\): 29\n- Dropped, newly measured: 30\n- Both drops by what was new: first-audit 6, page 53\n/);
   assert.match(text, /- \*\*Attributable, to sort: 26 in 4 groups\*\*/);
-  assert.match(text, /### contrast-and-focus-visibility on `formula-builder-suggestions` \(a11y\)/);
+  assert.match(text, /### contrast-and-focus-visibility on <code>formula-builder-suggestions<\/code> \(a11y\)/);
   assert.match(text, /- Class C08, Theme tokens: contrast and target size \(rule lives in: skill\)\n- Rule: Every color pair clears 4\.5:1/);
   assert.match(text, /- Enforced by: axe \(pull-request\), focus-contrast \(weekly\)\n- Strikes so far: 0 \(0 pull requests, 0 audits\)/);
-  assert.match(text, / {2}- #14270 Use the design's colors in the formula builder: `handsontable\/src\/styles\/components\/plugins\/_formula-builder\.scss`/);
-  assert.match(text, /- What is measured changed too, so check the finding is the code's: #14270 \(`tests\/fixtures\/demo\/formula-builder\.html`\)/);
+  // An underscore is one of the characters Markdown reads, so the path's own is escaped inside the code element.
+  assert.ok(text.includes('  - #14270 Use the design\'s colors in the formula builder: '
+    + '<code>handsontable/src/styles/components/plugins/\\_formula-builder.scss</code>'));
+  assert.ok(text.includes('- Elements: <code>span.hfe-fn-help\\_\\_arg.hfe-fn-help\\_\\_arg--active</code>, '
+    + '<code>span.hfe-fn-help\\_\\_param-name.hfe-fn-help\\_\\_param-name--active</code>'));
+  assert.ok(text.includes('- What is measured changed too, so check the finding is the code\'s: #14270 (<code>tests/fixtures/demo/formula-builder.html</code>)'));
   assert.match(text, /- The same finding was already open on 1 other page before this audit/);
-  assert.match(text, /## Dropped: newly measured\n\n- 13 · `formula-builder-tokens` \(a11y\) · contrast-and-focus-visibility · page 13; its source changed in the range: #14270, #14280, #14206, #14268/);
+  assert.ok(text.includes('## Dropped: newly measured\n\n- 13 · <code>formula-builder-tokens</code> (a11y) · contrast-and-focus-visibility · page 13; '
+    + 'its source changed in the range: #14270, #14280, #14206, #14268'));
+  assert.ok(!text.replace('`handsontable/src` or `wrappers`', '').includes('`'), 'no backtick span holds a value: a span cannot escape one');
   assert.ok(text.endsWith('\n') && !text.includes('\n\n\n'));
 
   const quiet = renderPacket(packetOf(twoAudits({ extra: [] })));
 
   assert.match(quiet, /Result: \*\*nothing-attributable\*\*\. Nothing attributable: no new finding sits on code changed since the previous audit\./);
   assert.match(quiet, /## Attributable groups\n\nNone\./);
+});
+
+test('every value the page writes is escaped for where it lands: the backslash with the rest, a selector in a code element', () => {
+  // What an audit or a commit can carry: a pipe that is already escaped, markup, a code fence, a line break, a heading.
+  const where = 'td.x\\|y`z`<img src=x>';
+  const reason = 'a | b \\| c\n# Heading <script>alert(1)</script>\r# Lone\t**bold** [link](https://example.com)';
+  const audits = twoAudits({ extra: [walker('focus-lost', 'b', { where, reason })] });
+  const hostile = { ...commit(11, ['handsontable/src/co`re|.ts']), title: 'Fix `x` | y \\| z <b>bold</b>' };
+  const text = renderPacket(packetOf(audits, { commits: { ...NO_COMMITS, a11y: [hostile] } }));
+  const line = start => text.split('\n').find(item => item.startsWith(start));
+
+  assert.equal(line('- Elements: '), '- Elements: <code>td.x\\\\\\|y\\`z\\`\\<img src=x\\></code>');
+  assert.equal(line('- Says: '),
+    '- Says: a \\| b \\\\\\| c # Heading \\<script\\>alert(1)\\</script\\> # Lone \\*\\*bold\\*\\* \\[link\\](https://example.com)');
+  assert.equal(line('  - #11 '), '  - #11 Fix \\`x\\` \\| y \\\\\\| z \\<b\\>bold\\</b\\>: <code>handsontable/src/co\\`re\\|.ts</code>');
+
+  // The values alone, without the page's own words and code elements around them. With every escaped pair taken out,
+  // nothing is left that Markdown or HTML reads.
+  const [title, file] = line('  - #11 ').slice('  - #11 '.length, -'</code>'.length).split(': <code>');
+  const values = [line('- Elements: ').slice('- Elements: <code>'.length, -'</code>'.length), line('- Says: ').slice('- Says: '.length), title, file];
+
+  for (const written of values) {
+    assert.doesNotMatch(written.replace(/\\[\s\S]/g, ''), /[`|<>*[\]]/, written);
+  }
+
+  assert.ok(!text.includes('\n# Heading') && !/[\r\t]/.test(text), 'a line break in a value starts no line of its own, a lone carriage return included');
+  assert.equal(text.split('\n').filter(item => item.startsWith('#') && !item.startsWith('# Accessibility') && !item.startsWith('## ') && !item.startsWith('### ')).length, 0);
 });
 
 test('the rate reads attributable findings against the pull requests that changed the grid\'s own code', () => {

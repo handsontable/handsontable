@@ -2712,6 +2712,10 @@ runs `node .github/scripts/a11y-learn.mjs` after the weekly audit, then follows
 - **No task id is in the packet.** A cluster is tracked or not, and a pull request title loses the ids it
   carries, because the routine's pull request text comes from the packet and the ClickUp integration
   attaches every id it finds.
+- **The packet's page escapes every value it writes,** like every report here ("Every value a report
+  writes is escaped for where it lands", above): a selector, a reason, a title and a path go through
+  `escapeMarkdownText()`, and code font is a `<code>` element, never a backtick span. The values come from
+  audits and commit subjects, and the page's lines reach a pull request body.
 - **The routine's pull request may touch `.claude/skills/handsontable-a11y/` and the `defectClass` and
   `notDefect` fields of clusters that exist in `tests/a11y/issues.json`, nothing else.**
   `node .github/scripts/a11y-learn.mjs --guard` reads the whole change against `origin/develop`, untracked

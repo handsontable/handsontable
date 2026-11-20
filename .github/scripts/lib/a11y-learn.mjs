@@ -39,6 +39,7 @@
  */
 
 import { NIGHT_SOURCES, SOURCES_OF_WORKFLOW, migrateA11yLedger, nightMeasured, nightSourceOf } from './a11y-ledger.mjs';
+import { escapeMarkdownText } from '../../../tests/lib/a11y-baseline.mjs';
 import { TRIAGE_ID, clusterOf } from '../../../tests/lib/a11y-issues.mjs';
 
 /**
@@ -889,17 +890,32 @@ function plural(count, one, many) {
  * @returns {string} The reference.
  */
 function reference(pullRequest) {
-  return typeof pullRequest === 'number' ? `#${pullRequest}` : `commit ${pullRequest}`;
+  return typeof pullRequest === 'number' ? `#${pullRequest}` : `commit ${escaped(pullRequest)}`;
 }
 
 /**
- * A text made safe for a Markdown table cell or a list line.
+ * A value as the packet's page writes it, displayed as written: on one line, with every character Markdown or HTML
+ * reads backslash-escaped by the reports' own `escapeMarkdownText()`, the backslash among them in the same pass.
+ * The values come from the audits' findings, the catalog and commit subjects, and the page is rendered by GitHub
+ * when its lines reach a pull request, so none of them may turn into markup or end a table cell there. Escaping the
+ * pipe alone would let a backslash in the value pair with the added one.
  *
  * @param {unknown} value The value.
- * @returns {string} The text on one line, with no pipe.
+ * @returns {string} The text.
  */
-function cell(value) {
-  return String(value ?? '').replace(/\s+/g, ' ').replace(/\|/g, '\\|').trim();
+function escaped(value) {
+  return escapeMarkdownText(String(value ?? '').replace(/\s+/g, ' ').trim());
+}
+
+/**
+ * A value in code font: a selector, a path, a page id, a commit range. A `<code>` element, never a backtick span,
+ * which cannot escape a backslash or a backtick of the value.
+ *
+ * @param {unknown} value The value.
+ * @returns {string} The element.
+ */
+function code(value) {
+  return `<code>${escaped(value)}</code>`;
 }
 
 /**
@@ -912,10 +928,10 @@ function droppedLines(groups) {
   const shown = groups.slice(0, LEARN_LISTED.dropped);
   const rest = groups.slice(LEARN_LISTED.dropped);
   const lines = shown.map((group) => {
-    const reasons = Object.entries(group.reasons).filter(([reason]) => reason !== 'none').map(([reason, count]) => `${reason} ${count}`).join(', ');
+    const reasons = Object.entries(group.reasons).filter(([reason]) => reason !== 'none').map(([reason, count]) => `${escaped(reason)} ${count}`).join(', ');
     const changed = group.sourceChangedBy.length > 0 ? `; its source changed in the range: ${group.sourceChangedBy.map(reference).join(', ')}` : '';
 
-    return `- ${group.findings} · \`${cell(group.page)}\` (${group.source}) · ${cell(group.cluster)}${reasons ? ` · ${reasons}` : ''}${changed}`;
+    return `- ${group.findings} · ${code(group.page)} (${group.source}) · ${escaped(group.cluster)}${reasons ? ` · ${reasons}` : ''}${changed}`;
   });
 
   if (rest.length > 0) {
@@ -946,14 +962,14 @@ export function renderPacket(packet) {
     lines.push('', 'A dry run: it reports, and no pull request follows from it.');
   }
   if (packet.refusals.length > 0) {
-    lines.push('', '## Why it is refused', '', ...packet.refusals.map(reason => `- ${cell(reason)}`));
+    lines.push('', '## Why it is refused', '', ...packet.refusals.map(reason => `- ${escaped(reason)}`));
   }
 
   lines.push('', '## The audits compared', '', '| Source | Latest audit | Previous audit | Range | Pull requests | New findings |', '|---|---|---|---|---|---|');
 
   for (const audit of packet.audits) {
-    const night = value => (value ? `${value.seenAt.slice(0, 10)}, run ${value.runId}` : 'none');
-    const range = audit.range?.from && audit.range?.to ? `\`${audit.range.from.slice(0, 10)}..${audit.range.to.slice(0, 10)}\`` : 'none';
+    const night = value => (value ? `${escaped(String(value.seenAt).slice(0, 10))}, run ${escaped(value.runId)}` : 'none');
+    const range = audit.range?.from && audit.range?.to ? code(`${audit.range.from.slice(0, 10)}..${audit.range.to.slice(0, 10)}`) : 'none';
 
     lines.push(`| ${audit.source} | ${night(audit.latest)} | ${night(audit.previous)} | ${range} | ${audit.range?.pullRequests ?? 'not read'} | ${audit.newFindings} |`);
   }
@@ -984,38 +1000,38 @@ export function renderPacket(packet) {
   for (const group of packet.attributable) {
     const rule = group.class;
 
-    lines.push(`### ${cell(group.cluster)} on \`${cell(group.page)}\` (${group.source})`, '',
-      `- Cluster: ${cell(group.title)}${group.tracked ? ' (tracked)' : ''}`,
-      `- Findings: ${group.findings}, worst ${group.severity ?? 'unknown'}; criteria ${group.criteria.join(', ') || 'none named'}`,
-      `- Checks: ${group.checks.join(', ')}; rules or kinds: ${group.rules.join(', ')}; themes: ${group.themes.join(', ') || 'none'}`,
-      `- Elements: ${group.elements.map(element => `\`${cell(element)}\``).join(', ')}${group.moreElements > 0 ? `, and ${group.moreElements} more` : ''}`,
-      ...(group.reasons.length > 0 ? [`- Says: ${group.reasons.map(cell).join(' / ')}`] : []));
+    lines.push(`### ${escaped(group.cluster)} on ${code(group.page)} (${group.source})`, '',
+      `- Cluster: ${escaped(group.title)}${group.tracked ? ' (tracked)' : ''}`,
+      `- Findings: ${group.findings}, worst ${escaped(group.severity ?? 'unknown')}; criteria ${group.criteria.map(escaped).join(', ') || 'none named'}`,
+      `- Checks: ${group.checks.map(escaped).join(', ')}; rules or kinds: ${group.rules.map(escaped).join(', ')}; themes: ${group.themes.map(escaped).join(', ') || 'none'}`,
+      `- Elements: ${group.elements.map(code).join(', ')}${group.moreElements > 0 ? `, and ${group.moreElements} more` : ''}`,
+      ...(group.reasons.length > 0 ? [`- Says: ${group.reasons.map(escaped).join(' / ')}`] : []));
 
     if (rule) {
-      const checks = rule.enforcedBy.map(item => `${item.check} (${item.runs})`).join(', ');
+      const checks = rule.enforcedBy.map(item => `${escaped(item.check)} (${escaped(item.runs)})`).join(', ');
 
-      lines.push(`- Class ${rule.id}, ${cell(rule.name)} (rule lives in: ${rule.home})`,
-        `- Rule: ${rule.rule === null ? 'none: record only' : cell(rule.rule)}`,
+      lines.push(`- Class ${escaped(rule.id)}, ${escaped(rule.name)} (rule lives in: ${escaped(rule.home)})`,
+        `- Rule: ${rule.rule === null ? 'none: record only' : escaped(rule.rule)}`,
         `- Enforced by: ${checks || 'nothing'}`,
         `- Strikes so far: ${rule.strikes.length} (${plural(rule.pullRequests, 'pull request', 'pull requests')}, ${plural(rule.audits, 'audit', 'audits')})`
           + `${rule.becomesCheck ? ': already at its second strike' : ''}`);
     } else {
-      lines.push(`- Class: ${group.defectClass ?? 'none in the catalog'}${group.defectClass ? ', which rules.json does not list' : ''}`);
+      lines.push(`- Class: ${escaped(group.defectClass ?? 'none in the catalog')}${group.defectClass ? ', which rules.json does not list' : ''}`);
     }
     if (group.knownNotPreventable) {
-      lines.push(`- Already recorded as not preventable: ${cell(group.knownNotPreventable)}`);
+      lines.push(`- Already recorded as not preventable: ${escaped(group.knownNotPreventable)}`);
     }
     if (group.openOnOtherPages > 0) {
       lines.push(`- The same finding was already open on ${plural(group.openOnOtherPages, 'other page', 'other pages')} before this audit`);
     }
 
     lines.push(`- Tie: ${group.tier === 'page' ? 'the page\'s own source changed' : 'only code every page shares changed'} `
-      + `(${group.surface.map(path => `\`${path}\``).join(', ')})`, '- Candidates:');
+      + `(${group.surface.map(code).join(', ')})`, '- Candidates:');
 
     for (const candidate of group.candidates) {
       const more = candidate.fileCount > candidate.files.length ? `, and ${candidate.fileCount - candidate.files.length} more` : '';
 
-      lines.push(`  - ${reference(candidate.pullRequest ?? candidate.sha)} ${cell(candidate.title)}: ${candidate.files.map(path => `\`${path}\``).join(', ')}${more}`);
+      lines.push(`  - ${reference(candidate.pullRequest ?? candidate.sha)} ${escaped(candidate.title)}: ${candidate.files.map(code).join(', ')}${more}`);
     }
     if (group.moreCandidates > 0) {
       lines.push(`  - and ${plural(group.moreCandidates, 'more pull request', 'more pull requests')} (the JSON lists every key, not every candidate)`);
@@ -1025,7 +1041,7 @@ export function renderPacket(packet) {
     }
     if (group.measurementChanges.length > 0) {
       lines.push(`- What is measured changed too, so check the finding is the code's: ${group.measurementChanges
-        .map(change => `${reference(change.pullRequest ?? change.sha)} (${change.files.map(path => `\`${path}\``).join(', ')})`).join('; ')}`);
+        .map(change => `${reference(change.pullRequest ?? change.sha)} (${change.files.map(code).join(', ')})`).join('; ')}`);
     }
 
     lines.push('');

@@ -36,7 +36,7 @@ Never run anything else that writes: no audit or `test-health.yml` dispatch, no 
    - `result: refused` (exit status 3): stop, and report each `refused:` line. Do not pass `--dry-run`, `--now` or `--max-age-hours` to get around it. A person may; a dry-run packet never becomes a pull request.
    - `result: nothing-attributable`: stop, and report the counts line.
    - `result: packet`: read `.claude/a11y-learn/learn-packet.md`, then sort.
-4. **Sort every attributable group** (next section). Use `learn-packet.json` for the row keys when the page is not enough.
+4. **Sort every attributable group** (next section). The page escapes every value for Markdown (a path reads `\_file.scss`), so copy a path, a selector or a row key from `learn-packet.json`, where it is as written.
 5. **Edit**, only what the sorting calls for, only in the files listed under "What you may change".
 6. **Check.** Write the pull request body to `.claude/a11y-learn/body.md` (git-ignored: an untracked file anywhere else fails the guard). Run the two test files above, then `node .github/scripts/a11y-learn.mjs --guard --body .claude/a11y-learn/body.md`. Both must pass. Fix your change, never the guard or a test.
 7. **Deliver** (last section). With no group sorted into a file change, there is no pull request: the result is `nothing attributable`, and you list the groups you set aside with the reasons.
@@ -48,7 +48,7 @@ The script already dropped what teaches nothing: findings on a page, check, scen
 For each attributable group, find the cause before you judge:
 
 1. Read the group: the cluster, the elements, the class and its rule, the checks that enforce it, the strikes so far.
-2. Read each candidate's change to the listed files: `git show <sha> -- <path>`. Read `gh pr view <n>` for what its author said, for example that a finding was baselined on purpose. With the `shared` tie, every candidate changed code all pages share: read until one explains the finding.
+2. Read each candidate's change to the listed files: `git show <sha> -- <path>`, with the path as the JSON has it. Read `gh pr view <n>` for what its author said, for example that a finding was baselined on purpose. With the `shared` tie, every candidate changed code all pages share: read until one explains the finding.
 3. Name the line that causes the finding. If no candidate's diff explains it, do not guess: the group is **not sorted**, with that reason.
 
 Then sort it into one outcome:
