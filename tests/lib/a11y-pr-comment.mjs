@@ -36,8 +36,9 @@ const GROWTH_SHOWN = 10;
 const RULES_SHOWN = 12;
 const BAR_WIDTH = 20;
 const LABELS = { new: '✖ New', grown: '▲ Grown', improved: '▼ Improved', fixed: '✔ Fixed' };
-// The baseline guard's kinds (`lib/a11y-baseline-guard.mjs`), as the check run labels them.
-const KIND_LABELS = { own: '✖ Own finding', exception: '⚠ Approved exception', inherited: '✔ Inherited' };
+// The baseline guard's kinds (`lib/a11y-baseline-guard.mjs`), as the comment and the check run label them. Kept here,
+// not in the guard module, because that module imports this one.
+export const KIND_LABELS = { own: '✖ Own finding', exception: '⚠ Approved exception', inherited: '✔ Inherited' };
 // The partial blocks of a text bar, one eighth of a character each.
 const EIGHTHS = ['', '▏', '▎', '▍', '▌', '▋', '▊', '▉'];
 

@@ -24,7 +24,8 @@
  */
 import { BASELINE_FILE, entryKey, escapeMarkdownText, headline, renderSummary, verdictCounts } from './a11y-baseline.mjs';
 import { annotationLevel, capAnnotations, renderVerdict, severityOfImpact, verdictOf, verdictTitle } from './a11y-verdict.mjs';
-import { neutralizeTaskIds } from './a11y-pr-comment.mjs';
+import { kindCounts } from './a11y-baseline-guard.mjs';
+import { KIND_LABELS, neutralizeTaskIds } from './a11y-pr-comment.mjs';
 import { pageIdOf } from './website-pages.mjs';
 
 export const CHECK_RUN_NAME = 'A11y / axe report';
@@ -295,7 +296,6 @@ function annotationsOf(findings, comparison, pages, baseline, scan) {
 
 const GUARD_RED = '**Baseline growth: red.** This pull request adds an entry to the baseline that is neither inherited nor an '
   + 'approved exception, so the scan reads its own finding as known. Whatever its severity, that turns this check run red.';
-const KIND_LABELS = { own: '✖ Own finding', exception: '⚠ Approved exception', inherited: '✔ Inherited' };
 // How many judged entries the summary spells out; the rest are counted.
 const GUARD_ROWS = 30;
 
@@ -317,7 +317,7 @@ function renderGuard(guard, issues, scan) {
   }
 
   const titles = new Map(issues.map(issue => [issue.id, issue.title]));
-  const counts = Object.fromEntries(['own', 'exception', 'inherited'].map(kind => [kind, guard.judged.filter(item => item.kind === kind).length]));
+  const counts = kindCounts(guard.judged);
   const text = value => escapeMarkdownText(neutralizeTaskIds(value));
   const rows = guard.judged.slice(0, GUARD_ROWS).map(item => `| ${KIND_LABELS[item.kind]} | ${text(item.page)} | ${text(item.theme)} | ${text(item.rule)} `
     + `| <code>${text(item.target)}</code> | ${item.change === 'raised' ? `${item.nodes} (was ${item.baseNodes})` : item.nodes} `
