@@ -4,6 +4,7 @@ import { arrayEach } from '../../helpers/array';
 import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../../utils/menu/commandExecutor';
 import { getDocumentOffsetByElement } from '../../utils/menu/utils';
+import { returnFocusToGrid } from '../../utils/menu/menu/utils';
 import {
   addClass, eventTargetEl, hasClass, isBottomMostColumnHeader, isHTMLElement, removeClass, setAttribute
 } from '../../helpers/dom/element';
@@ -853,6 +854,8 @@ export class DropdownMenu extends BasePlugin {
    */
   #onMenuAfterClose() {
     this.hot.listen();
+    // Before the hook, so a listener that moves the focus elsewhere keeps it.
+    returnFocusToGrid(this.hot);
     this.hot.runHooks('afterDropdownMenuHide', this);
   }
 

@@ -13,6 +13,7 @@ import {
   isItemSubMenu,
   isItemDisabled,
   isItemSeparator,
+  returnFocusToGrid,
 } from './utils';
 import EventManager from '../../../eventManager';
 import { arrayEach, arrayFilter, arrayReduce } from '../../../helpers/array';
@@ -888,8 +889,8 @@ export class Menu {
   }
 
   /**
-   * After a sub-menu closes, marks its anchor row collapsed and hands the keyboard back to the
-   * parent menu. Does nothing for a top-level menu.
+   * After a sub-menu closes, marks its anchor row collapsed and hands the keyboard and the browser
+   * focus back to the parent menu. Does nothing for a top-level menu.
    */
   #returnToParentMenu() {
     if (!this.isSubMenu()) {
@@ -910,7 +911,11 @@ export class Menu {
       }
     }
 
-    this.parentMenu!.hotMenu!.listen();
+    const parentGrid = this.parentMenu!.hotMenu!;
+
+    parentGrid.listen();
+    // The sub-menu's grid took the focused cell with it; the anchor row's cell gets it back.
+    returnFocusToGrid(parentGrid);
   }
 
   /**

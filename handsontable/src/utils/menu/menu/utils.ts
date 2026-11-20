@@ -1,6 +1,7 @@
 import { arrayEach, arrayMap } from '../../../helpers/array';
 import { hasOwnProperty } from '../../../helpers/object';
-import { hasClass } from '../../../helpers/dom/element';
+import type { HotInstance } from '../../../core/types';
+import { getDeepActiveElement, hasClass } from '../../../helpers/dom/element';
 import { SEPARATOR } from './../predefinedItems';
 import { MENU_ITEM_MIXED, type MenuItemCheckedState } from '../utils';
 
@@ -259,4 +260,32 @@ export function getItemCheckedState(
   }
 
   return state === true;
+}
+
+/**
+ * Gives the browser focus to the highlighted cell of a grid once a menu opened from it has closed.
+ *
+ * Closing a menu destroys the menu's own grid together with the element that held the focus, so the
+ * browser drops the focus to the document. A keyboard or screen reader user then loses their place
+ * until the next key press. The focus moves only when it did fall to the document: a command that put
+ * it on a real element (a comment editor, an outside field) keeps it. It does nothing for a grid that is
+ * being destroyed or is detached from the page.
+ *
+ * @param {Core} hot The grid whose highlighted cell receives the focus.
+ */
+export function returnFocusToGrid(hot: HotInstance) {
+  // `isDestroyed` turns true at the very end of `destroy()`, after the grid emptied its root. A menu
+  // closed by that teardown reaches here with no cell left to focus, and the root is already detached.
+  if (hot.isDestroyed || !hot.rootElement.isConnected) {
+    return;
+  }
+
+  const { rootDocument } = hot;
+  const activeElement = getDeepActiveElement(rootDocument);
+
+  if (activeElement && activeElement !== rootDocument.body) {
+    return;
+  }
+
+  hot.getFocusManager().focusOnHighlightedCell();
 }
