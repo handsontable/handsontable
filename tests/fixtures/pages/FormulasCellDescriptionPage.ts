@@ -68,7 +68,8 @@ export class FormulasCellDescriptionPage {
         fetchRelatives: false,
       });
 
-      return String(nodes[0]?.name?.value ?? '');
+      // The no-break space and the space Chromium adds around the generated block read as one gap.
+      return String(nodes[0]?.name?.value ?? '').replace(/\s+/g, ' ');
     } finally {
       await client.detach();
     }

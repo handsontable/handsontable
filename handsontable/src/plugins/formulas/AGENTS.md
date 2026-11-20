@@ -1342,10 +1342,12 @@ measured reason:
   formulas rendered in about 6 ms without the text and about 16 ms with it, where short formulas add about 1 ms. The
   engine's own text is used as it is, without `#readableFormula()`: the text is read aloud, never parsed again, and the
   quoting scan ran on every paint of every formula cell with a sheet reference.
-- **The content starts with a space and the box keeps it (`white-space: pre`).** Chromium joins the value and the absolutely
-  positioned block with a space on its own, so its name reads `3 Formula: =SUM(A1:B1)` either way. Safari with VoiceOver
-  read `3Formula: =SUM(A1:B1)` without the space (seen on a demo build by a reviewer, not re-run after this change). A cell
-  whose value is empty gets a name with that leading space.
+- **The content starts with a no-break space** (`"\00a0"`, kept by `white-space: pre`). Chromium joins the value and the absolutely
+  positioned block with a space on its own, so its name reads `3 Formula: =SUM(A1:B1)` without any separator. Safari with
+  VoiceOver read `3Formula: =SUM(A1:B1)` (a reviewer, on a demo build). A plain leading space did not change that in Safari: its
+  computed content had the space and the name still dropped it. The no-break space is the next attempt, not confirmed in Safari
+  (Chromium: the name gets a space and the no-break space, which the spec's helper reads as one gap). A visible separator such as
+  `, ` is the fallback if it fails. A cell whose value is empty gets a name that starts with the gap.
 - **The formula cell is `position: relative` and the box sits at `top: 0; inset-inline-start: 0`.** Left at its static
   position, the box follows the cell's text, and a result wider than its cell (`wordWrap: false`) grew the holder's
   scroll width from 500 to 3096 in Chromium (pinned by the overflow case of the spec).
