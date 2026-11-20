@@ -115,12 +115,13 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd> + Arrow keys | <kbd>⌘</kbd>+<kbd>⇧</kbd> + Arrow keys        | Extend the selection to the beginning or to the end of the text    | &check; | &check; |
 | <kbd>**Page Up**</kbd>                                | <kbd>**Page Up**</kbd>                                      | Complete the cell entry and move one screen up                     | &check; | &check; |
 | <kbd>**Page Down**</kbd>                              | <kbd>**Page Down**</kbd>                                    | Complete the cell entry and move one screen down                   | &check; | &check; |
-| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>               | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>                  | Insert a line break                                                | &cross; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break<sup>\*\*</sup>                                 | &cross; | &check; |
+| <kbd>**Alt**</kbd>+<kbd>**Enter**</kbd>               | <kbd>⌥</kbd>+<kbd>**Enter**</kbd>                  | Insert a line break<sup>\*\*\*</sup>                             | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>              | <kbd>⌃</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> | Insert a line break<sup>\*\*, \*\*\*</sup>                        | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                 | <kbd>**Escape**</kbd>                                       | Cancel the cell entry and exit the editing mode                    | &check; | &check; |
 
 <sup>\*</sup> This action depends on your layout direction.<br>
-<sup>\*\*</sup> This action inserts a line break only when the shortcut has no other cell to write to. If your selection holds any other cell you can edit, across any selection layer, this shortcut saves the edited value into all of those cells instead.
+<sup>\*\*</sup> This action inserts a line break only when the shortcut has no other cell to write to. If your selection holds any other cell you can edit, across any selection layer, this shortcut saves the edited value into all of those cells instead.<br>
+<sup>\*\*\*</sup> The [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) editors hold a single line of text, so this shortcut inserts no line break there. The editor stays open.
 
 ### Checkbox editor keyboard shortcuts
 
@@ -137,10 +138,14 @@ These keyboard shortcuts work in the [`checkbox`](@/guides/cell-types/checkbox-c
 
 These keyboard shortcuts work in the [`handsontable`](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) cell editor.
 
-| Windows          | macOS            | Action                                 |  Excel  | Sheets  |
-| ---------------- | ---------------- | -------------------------------------- | :-----: | :-----: |
-| <kbd>**↑**</kbd> | <kbd>**↑**</kbd> | Move to the cell above the active cell | &cross; | &cross; |
-| <kbd>**↓**</kbd> | <kbd>**↓**</kbd> | Move to the cell below the active cell | &cross; | &cross; |
+| Windows          | macOS            | Action                                                                                                                         |  Excel  | Sheets  |
+| ---------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
+| <kbd>**↑**</kbd> | <kbd>**↑**</kbd> | Move to the cell above the active cell                                                                                         | &cross; | &cross; |
+| <kbd>**↓**</kbd> | <kbd>**↓**</kbd> | Move to the cell below the active cell                                                                                         | &cross; | &cross; |
+| <kbd>**←**</kbd> | <kbd>**←**</kbd> | With a row highlighted in a list of more than one column, move to the previous column (the next column in RTL)<sup>\*</sup> | &cross; | &cross; |
+| <kbd>**→**</kbd> | <kbd>**→**</kbd> | With a row highlighted in a list of more than one column, move to the next column (the previous column in RTL)<sup>\*</sup> | &cross; | &cross; |
+
+<sup>\*</sup> With no row highlighted, or in a list of one column, <kbd>**←**</kbd> and <kbd>**→**</kbd> move the caret in the editor, as in a [`text`](@/guides/cell-types/text-cell-type/text-cell-type.md) cell. The focus stays in the editor's input while you move through the list.
 
 ### Select editor keyboard shortcuts
 
@@ -153,7 +158,7 @@ These keyboard shortcuts work in the [`select`](@/guides/cell-types/select-cell-
 
 ### Autocomplete editor keyboard shortcuts
 
-The [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) cell editor uses the same keyboard shortcuts as the [`handsontable` editor](#handsontable-editor-keyboard-shortcuts). In strict mode, a few of these shortcuts behave differently -- see [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode).
+The [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) cell editor uses the same keyboard shortcuts as the [`handsontable` editor](#handsontable-editor-keyboard-shortcuts), except <kbd>**←**</kbd> and <kbd>**→**</kbd>, which always move the caret: its list has one column. In strict mode, a few of these shortcuts behave differently -- see [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode).
 
 ### Dropdown editor keyboard shortcuts
 

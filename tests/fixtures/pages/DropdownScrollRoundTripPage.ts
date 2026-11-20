@@ -150,7 +150,7 @@ export class DropdownScrollRoundTripPage {
   }
 
   /**
-   * The value currently held by the editor (its textarea), whether or not it is shown.
+   * The value currently held by the editor (its input), whether or not it is shown.
    */
   async editorValue(): Promise<string | null> {
     return this.page.evaluate(() => (
@@ -196,15 +196,17 @@ export class DropdownScrollRoundTripPage {
   }
 
   /**
-   * Focuses the editor textarea, so a subsequent `type()` reaches it. The autocomplete requery is
-   * driven by the textarea's own `input` event.
+   * Focuses the open editor's field (the text editor's textarea, or the input of the dropdown and
+   * autocomplete editors), so a subsequent `type()` reaches it. The autocomplete requery is driven by
+   * the field's own `input` event. Every editor keeps its holder in the DOM and only hides it when it
+   * closes, so the open editor's field is the one in a visible holder.
    */
   async focusEditor(): Promise<void> {
-    await this.page.getByTestId('grid').locator('.handsontableInputHolder textarea.handsontableInput').focus();
+    await this.page.getByTestId('grid').locator('.handsontableInputHolder:not(.ht_editor_hidden) .handsontableInput').focus();
   }
 
   /**
-   * Types into the focused editor textarea.
+   * Types into the focused editor field.
    */
   async type(text: string): Promise<void> {
     await this.page.keyboard.type(text);
@@ -215,6 +217,58 @@ export class DropdownScrollRoundTripPage {
    */
   async pressArrowDown(): Promise<void> {
     await this.page.keyboard.press('ArrowDown');
+  }
+
+  /**
+   * What the editor field's `aria-controls` names, read in one evaluation: `'list'` when it names the
+   * open editor's list root, `'missing'` when it names an element that is not there or another one, and
+   * `null` without the attribute.
+   */
+  async controlsReference(): Promise<'list' | 'missing' | null> {
+    return this.page.evaluate(() => {
+      const editor = (window as FixtureWindow).hot.getActiveEditor() as
+        (EditorHandle & { htEditor?: { rootElement: HTMLElement } }) | undefined;
+      const id = editor?.TEXTAREA?.getAttribute('aria-controls') ?? null;
+
+      if (id === null) {
+        return null;
+      }
+
+      return document.getElementById(id) === editor?.htEditor?.rootElement ? 'list' : 'missing';
+    });
+  }
+
+  /**
+   * The element the editor field's `aria-activedescendant` names, resolved in the page: its role, its
+   * `aria-selected`, its text, and whether it is the cell the inner list grid has selected. `null` without
+   * the attribute or when the id names no element.
+   */
+  async activeDescendant(): Promise<{ role: string | null, selected: string | null, text: string,
+    isSelectedCell: boolean } | null> {
+    return this.page.evaluate(() => {
+      const editor = (window as FixtureWindow).hot.getActiveEditor() as (EditorHandle & {
+        htEditor?: {
+          getSelectedLast(): number[] | undefined;
+          getCell(row: number, col: number, topmost?: boolean): HTMLElement | null;
+        };
+      }) | undefined;
+      const id = editor?.TEXTAREA?.getAttribute('aria-activedescendant') ?? null;
+      const element = id === null ? null : document.getElementById(id);
+
+      if (element === null) {
+        return null;
+      }
+
+      const selected = editor?.htEditor?.getSelectedLast();
+      const selectedCell = selected ? editor?.htEditor?.getCell(selected[0], selected[1], true) : null;
+
+      return {
+        role: element.getAttribute('role'),
+        selected: element.getAttribute('aria-selected'),
+        text: element.textContent ?? '',
+        isSelectedCell: element === selectedCell,
+      };
+    });
   }
 
   /**

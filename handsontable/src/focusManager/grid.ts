@@ -51,7 +51,10 @@ interface PendingScroll {
 interface ActiveEditorInstance {
   TEXTAREA?: HTMLTextAreaElement;
   isOpened?: () => boolean;
+  isWaiting?: () => boolean;
   refreshValue?: () => void;
+  _addFinishListener?: (listener: () => void) => void;
+  _removeFinishListener?: (listener: () => void) => void;
   [key: string]: unknown;
 }
 
@@ -144,6 +147,21 @@ export class FocusGridManager {
    * @type {Set<HTMLElement>}
    */
   #outsideClickExemptElements = new Set<HTMLElement>();
+  /**
+   * The editor whose commit waits for a validator's answer while the focus was asked to move to the
+   * highlighted cell (see `#focusAfterEditorWait()`). `null` means nothing is waiting.
+   *
+   * @type {ActiveEditorInstance | null}
+   */
+  #waitingEditor: ActiveEditorInstance | null = null;
+  /**
+   * The element that held the browser focus when the wait in `#waitingEditor` began: the editor's own
+   * element (its field, a `<select>`, a custom editor's control) on every commit path. Cleared when the wait
+   * finishes and when a new edit begins, so a later edit never compares with it.
+   *
+   * @type {Element | null}
+   */
+  #waitingFocus: Element | null = null;
 
   /**
    * Initializes the manager with a reference to the Handsontable instance.
@@ -167,6 +185,7 @@ export class FocusGridManager {
     this.#hot.addHook('afterDeselect', () => this.#cancelPendingScroll());
     this.#hot.addHook('afterSelectionEnd', (...args: unknown[]) => this.#focusEditorElement());
     this.#hot.addHook('afterRender', (...args: unknown[]) => this.#onAfterRender());
+    this.#hot.addHook('afterBeginEditing', this.#onAfterBeginEditing);
 
     this.#eventManager = new EventManager(this.#hot);
 
@@ -387,7 +406,8 @@ export class FocusGridManager {
   }
 
   /**
-   * Set the browser's focus to the highlighted cell of the last selection.
+   * Set the browser's focus to the highlighted cell of the last selection. An open editor keeps the focus,
+   * and an editor that waits for a validator's answer gives it to the cell once it closes.
    *
    * @param {HTMLTableCellElement} [selectedCell] The highlighted cell/header element.
    */
@@ -407,11 +427,17 @@ export class FocusGridManager {
         elementToBeFocused = element;
       }
 
-      if (
-        elementToBeFocused &&
-        !(this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined)?.isOpened?.()
-      ) {
+      if (!elementToBeFocused) {
+        return;
+      }
+
+      const activeEditor = this.#hot.getActiveEditor() as unknown as ActiveEditorInstance | undefined;
+
+      if (!activeEditor?.isOpened?.()) {
         this.focusElement(elementToBeFocused as HTMLElement, { preventScroll: true });
+
+      } else if (activeEditor.isWaiting?.()) {
+        this.#focusAfterEditorWait(activeEditor);
       }
     };
 
@@ -454,6 +480,91 @@ export class FocusGridManager {
       this.#debouncedSelect.get(delay)();
     }
   }
+
+  /**
+   * Moves the focus to the highlighted cell once the editor's commit is over. A commit that waits for a
+   * validator (any cell with a `validator`, which the autocomplete and dropdown cell types have) keeps the
+   * editor open until the answer comes, a microtask or more after the key that committed it, and by
+   * then the selection has already moved and its focus was skipped because the editor was open. Without
+   * this the browser focus stayed on the closed editor's field. The editor's finish listener runs when the
+   * editor closes or reopens on a rejected value; a reopened editor keeps the focus, and the focus moves
+   * only while it is still where the wait began (see `#isFocusWhereWaitBegan()`).
+   *
+   * @param {ActiveEditorInstance} editor The editor waiting for its validator.
+   */
+  #focusAfterEditorWait(editor: ActiveEditorInstance): void {
+    if (typeof editor._addFinishListener !== 'function' || this.#waitingEditor === editor) {
+      // A second ask during the same wait keeps the element the wait began on: by then a menu opened by the
+      // press that asked again can hold the focus.
+      return;
+    }
+
+    if (this.#waitingEditor !== null) {
+      this.#waitingEditor._removeFinishListener?.(this.#onWaitingEditorFinish);
+    }
+
+    this.#waitingEditor = editor;
+    this.#waitingFocus = getDeepActiveElement(this.#hot.rootDocument);
+    editor._addFinishListener(this.#onWaitingEditorFinish);
+  }
+
+  /**
+   * Checks whether the browser focus is still on the element that held it when the editor's wait began. On
+   * every commit path that element is the editor's own (its field, a select editor's `<select>`, a custom
+   * editor's control), and it still holds the focus when the finish listeners run, even after `close()` hid
+   * it: the browser drops the focus of a hidden element only at the next rendering update. A focus anywhere
+   * else (a menu, a dialog, a side-slot input, another element of the grid, a page outside it, or the body
+   * after a press on the page) was moved there. `getDeepActiveElement()` looks into a shadow root the grid
+   * renders in. A sandboxed host that collapses the active element to its outermost shadow host (Salesforce
+   * Lightning Web Security) reads that same host when the wait begins and when it ends, so the comparison is
+   * equal and the focus moves, also when the user moved it to another control inside the same host during the
+   * wait. That needs `outsideClickDeselects: false` and a slow validator, and is a known limit.
+   *
+   * @param {Element | null} waitingFocus The element focused when the wait began.
+   * @returns {boolean}
+   */
+  #isFocusWhereWaitBegan(waitingFocus: Element | null): boolean {
+    return isHTMLElement(waitingFocus) && getDeepActiveElement(this.#hot.rootDocument) === waitingFocus;
+  }
+
+  /**
+   * Forgets the editor's wait without running anything. A new edit begins only after the previous wait ended,
+   * so a wait still recorded then ended without running the finish listeners, and its element must not be
+   * compared with the next wait's.
+   */
+  #onAfterBeginEditing = (): void => {
+    if (this.#waitingEditor === null) {
+      return;
+    }
+
+    this.#waitingEditor._removeFinishListener?.(this.#onWaitingEditorFinish);
+    this.#waitingEditor = null;
+    this.#waitingFocus = null;
+  };
+
+  /**
+   * Runs once the editor that waited for its validator finished the edit, see `#focusAfterEditorWait()`.
+   */
+  #onWaitingEditorFinish = (): void => {
+    const editor = this.#waitingEditor;
+    const waitingFocus = this.#waitingFocus;
+
+    this.#waitingEditor = null;
+    this.#waitingFocus = null;
+    editor?._removeFinishListener?.(this.#onWaitingEditorFinish);
+
+    if (this.#hot.isDestroyed || !this.#isFocusWhereWaitBegan(waitingFocus)) {
+      return;
+    }
+
+    // An editor that reopened on a rejected value is open again, and `focusOnHighlightedCell()` leaves
+    // the focus on it.
+    this.focusOnHighlightedCell();
+    // With `imeFastEdit` the field takes the focus back, as after a commit without a validator: the
+    // `afterSelectionEnd` refocus skipped it, because the editor was still open then. A reopened editor
+    // keeps the focus, since `refocusToEditorTextarea()` does nothing while the editor is open.
+    this.#focusEditorElement();
+  };
 
   /**
    * Get and return the currently selected and highlighted cell/header element. When the cell is not

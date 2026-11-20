@@ -12,7 +12,6 @@ import {
   getScrollbarWidth,
   getSelectionEndPosition,
   outerWidth,
-  removeAttribute,
   setAttribute,
   setCaretPosition,
   empty,
@@ -22,28 +21,47 @@ import { stripTags, localeLowerCase } from '../../helpers/string';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
 import { textRenderer } from '../../renderers/textRenderer';
 import {
-  A11Y_ACTIVEDESCENDANT,
   A11Y_AUTOCOMPLETE,
   A11Y_COMBOBOX,
-  A11Y_CONTROLS,
   A11Y_EXPANDED,
   A11Y_HASPOPUP,
   A11Y_LISTBOX,
-  A11Y_LIVE,
   A11Y_OPTION,
   A11Y_POSINSET,
-  A11Y_PRESENTATION,
-  A11Y_RELEVANT,
-  A11Y_SELECTED,
   A11Y_SETSIZE,
-  A11Y_TEXT,
 } from '../../helpers/a11y';
+import { markOwnTablesAsPresentational, markRowAsPresentational } from '../../utils/a11yNestedGrid';
+import { CELL_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
 import { debounce } from '../../helpers/function';
 import { isPlainObject } from '../../helpers/object';
+import { announce } from '../../utils/a11yAnnouncer';
+import { EDITOR_CHOICE_AVAILABLE, EDITOR_CHOICES_AVAILABLE } from '../../i18n/constants';
 
 export const EDITOR_TYPE = 'autocomplete';
 
 type ChoiceArray = unknown[];
+
+/**
+ * Returns the text the list shows for an already stripped choice: a key/value entry's `value` half
+ * (its label), anything else as a string.
+ *
+ * @param {*} choice The stripped choice.
+ * @returns {string}
+ */
+function getListedText(choice: unknown): string {
+  return stringify(isKeyValueEntry(choice) ? choice.value : choice);
+}
+
+/**
+ * Returns the text a reader sees for an already stripped choice: its listed text without tags, which
+ * an `allowHtml` choice keeps and the list renders as markup.
+ *
+ * @param {*} choice The stripped choice.
+ * @returns {string}
+ */
+function getVisibleText(choice: unknown): string {
+  return stripTags(getListedText(choice));
+}
 
 /**
  * @private
@@ -108,14 +126,20 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   #queryTimeouts: Set<ReturnType<typeof setTimeout>> = new Set();
   /**
-   * The text the editor opened with when it was seeded from the cell, or `null` when it opened with
-   * text of its own (a fast edit, `beginEditing('x')`) or is closed. While the editor still holds it,
-   * the user has changed nothing, and the strict commit must not replace the cell's value
-   * (`#firstPartialMatch()`).
+   * Whether the next `queryChoices()` call answers a keystroke. Set by the deferred query a keystroke
+   * scheduled, and read and cleared at the start of `queryChoices()`, so a direct call of that public
+   * method never counts as typed.
    *
-   * @type {string | null}
+   * @type {boolean}
    */
-  #openedText: string | null = null;
+  #nextQueryTyped = false;
+  /**
+   * Raised while `updateChoicesList()` loads the response to a typed query. Only such a list is
+   * announced: the list an open shows, and one a caller loads through the public method, are not.
+   *
+   * @type {boolean}
+   */
+  #loadingTypedList = false;
 
   /**
    * Gets current value from editable element.
@@ -151,6 +175,17 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
+   * The field exposes the list as a `listbox` of options, not as a grid popup: the list keeps its own
+   * `ariaTags` off by default, and ArrowLeft and ArrowRight keep moving the caret.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  protected exposesGridPopup(): boolean {
+    return false;
+  }
+
+  /**
    * Creates an editor's elements and adds necessary CSS classnames.
    */
   createElements(): void {
@@ -170,7 +205,6 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     if (this.hot.getSettings().ariaTags) {
       setAttribute(this.TEXTAREA, [
-        A11Y_TEXT(),
         A11Y_COMBOBOX(),
         A11Y_HASPOPUP('listbox'),
         A11Y_AUTOCOMPLETE(),
@@ -193,11 +227,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
+    // `aria-controls` is written in `open()`, once the list it names exists, and removed when the list
+    // goes away: a closed editor would otherwise point at an element that is not there.
     if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TEXTAREA, [
-        A11Y_EXPANDED('false'),
-        A11Y_CONTROLS(`${this.#idPrefix}-listbox-${row}-${col}`),
-      ]);
+      setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('false'));
     }
 
     this.htOptions = {
@@ -205,34 +238,6 @@ export class AutocompleteEditor extends HandsontableEditor {
       valueGetter: (cellValue: unknown) => (isKeyValueEntry(cellValue)
         ? cellValue.value : cellValue),
     };
-  }
-
-  /**
-   * Begins editing and remembers the text the editor was seeded with from the cell.
-   *
-   * @param {*} [newInitialValue] The initial editor value. A string is text the user brought (a fast
-   *   edit), anything else opens the editor on the cell's value.
-   * @param {Event} [event] The event that started the edit.
-   */
-  beginEditing(newInitialValue?: unknown, event?: Event): void {
-    // An editor already open is left as it is, as the base class leaves it: a double-click on the
-    // edited cell calls this again, and taking the typed text as the opening text would stop strict
-    // mode from completing it.
-    if (this.state !== EDITOR_STATE.VIRGIN) {
-      super.beginEditing(newInitialValue, event);
-
-      return;
-    }
-
-    const opensOnCellValue = typeof newInitialValue !== 'string' && this.isInFullEditMode();
-
-    this.#openedText = null;
-    super.beginEditing(newInitialValue, event);
-
-    // Read after the seed, before the deferred first query: the query compares against it.
-    if (opensOnCellValue && this.isOpened()) {
-      this.#openedText = this.TEXTAREA.value;
-    }
   }
 
   /**
@@ -317,6 +322,8 @@ export class AutocompleteEditor extends HandsontableEditor {
         }
 
         if (rootInstanceAriaTagsEnabled) {
+          // The row sits between the option and the listbox, so it must not be exposed as a table row.
+          markRowAsPresentational(TD);
           setAttribute(TD, [
             A11Y_OPTION(),
             // Add `setsize` and `posinset` only if the source is an array.
@@ -326,49 +333,30 @@ export class AutocompleteEditor extends HandsontableEditor {
           ]);
         }
       },
-      afterSelectionEnd: (startRow: number, startCol: number) => {
-        if (rootInstanceAriaTagsEnabled) {
-          const setA11yAttributes = (TD: HTMLTableCellElement) => {
-            setAttribute(TD, [
-              A11Y_SELECTED(),
-            ]);
-
-            setAttribute(this.TEXTAREA, ...A11Y_ACTIVEDESCENDANT(TD.id));
-          };
-          const TD = this.htEditor.getCell(startRow, startCol, true);
-
-          if (TD !== null) {
-            setA11yAttributes(TD);
-
-          } else {
-            // If TD is null, it means that the cell is not (yet) in the viewport.
-            // Moving the logic to after it's been scrolled to the requested cell.
-            this.htEditor.addHookOnce('afterScrollVertically', () => {
-              const renderedTD = this.htEditor.getCell(startRow, startCol, true);
-
-              if (renderedTD !== null) {
-                setA11yAttributes(renderedTD);
-              }
-            });
-          }
-        }
-      },
     });
 
     if (rootInstanceAriaTagsEnabled) {
-      // Add `role=presentation` to the main table to prevent the readers from treating the option list as a table.
-      const a11yPres = A11Y_PRESENTATION();
+      // The list is a nested grid: hide the table markup of its master table and of every overlay clone
+      // from assistive technology, so the listbox owns options only. The nested grid is built anew on
+      // every open, and its clones with it, so this runs on every open.
+      markOwnTablesAsPresentational(this.htEditor);
 
-      setAttribute(this.htEditor.view._wt.wtOverlays.wtTable.TABLE, a11yPres[0], a11yPres[1]);
+      // The editor type keeps the ids of the autocomplete and dropdown lists apart: each editor keeps its
+      // container, and the id it last wrote, while another edits a cell at the same coordinates.
+      const editorType = (this.constructor as typeof AutocompleteEditor).EDITOR_TYPE;
 
       setAttribute(this.htEditor.rootElement, [
         A11Y_LISTBOX(),
-        A11Y_LIVE('polite'),
-        A11Y_RELEVANT('text'),
-        ['id', `${this.#idPrefix}-listbox-${rowIndex}-${colIndex}`],
+        ['id', `${this.#idPrefix}-${editorType}-listbox-${rowIndex}-${colIndex}`],
       ]);
 
-      setAttribute(this.TEXTAREA, ...A11Y_EXPANDED('true'));
+      // The list carries the field's name ("A, row 1"). Not through `aria-labelledby` pointing at the
+      // field: a combobox referenced that way is an embedded control, so it lends the list its VALUE
+      // (the typed text), not its name. `open()` runs after `prepare()`, so both coordinates are set.
+      setCellInputName(this.hot, this.htEditor.rootElement, CELL_EDITOR_PHRASES, rowIndex ?? -1, colIndex ?? -1);
+      // `aria-expanded` and `aria-controls` follow the choices: the list is empty until the first query
+      // answers, and `updateChoicesList()` expands the field once it holds one (`HandsontableEditor` wires the
+      // references to the list and its options).
     }
 
     this.#deferQuery();
@@ -462,7 +450,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     for (let i = 0; i < choices.length; i++) {
       const choice = choices[i];
-      const currentItem = stripTags(stringify(isKeyValueEntry(choice) ? choice.value : choice));
+      const currentItem = getVisibleText(choice);
       const itemToMatch = toComparable(currentItem);
 
       if (itemToMatch.indexOf(valueToMatch) === -1) {
@@ -504,26 +492,16 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {number | null}
    */
   #firstPartialMatch(): number | null {
-    return this.#holdsOpeningText() ? null : 0;
+    return this.holdsOpeningText() ? null : 0;
   }
 
   /**
-   * Tells whether the editor still holds the non-empty text it was seeded with from the cell.
-   *
-   * @returns {boolean}
-   */
-  #holdsOpeningText(): boolean {
-    const openedWith = this.#openedText;
-
-    return openedWith !== null && openedWith !== '' && this.TEXTAREA.value === openedWith;
-  }
-
-  /**
-   * Tells whether the edit being confirmed leaves the cell as it was. Besides the base rule, an edit
-   * whose text the user never changed and whose list they never picked from is unchanged: `getValue()`
-   * resolves a label into the FIRST entry that carries it, so the base comparison with the seeded label
-   * fails for a key/value cell, and writing would replace an entry with another one of the same label.
-   * Nothing is written then, the cell's value is validated as it is, and no `afterChange` fires.
+   * Tells whether the edit being confirmed leaves the cell as it was. Besides the rules of
+   * `HandsontableEditor`, an edit whose text the user never changed and whose list they never picked
+   * from is unchanged: `getValue()` resolves a label into the FIRST entry that carries it, so the base
+   * comparison with the seeded label fails for a key/value cell, and writing would replace an entry
+   * with another one of the same label. Nothing is written then, the cell's value is validated as it
+   * is, and no `afterChange` fires.
    *
    * @private
    * @param {*} held The editor value after `trimWhitespace`.
@@ -531,20 +509,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @returns {boolean}
    */
   protected isEditUnchanged(held: unknown, value: unknown): boolean {
-    return super.isEditUnchanged(held, value) || (this.innerSelectionOrigin !== 'user' && this.#holdsOpeningText());
-  }
-
-  /**
-   * Re-seeds the unchanged-edit baseline after the open editor took the cell's value again
-   * (`TextEditor#refreshValue()`, after `setSourceDataAtCell()` on the edited cell), and the opening
-   * text with it.
-   */
-  protected resetValueBeforeEdit(): void {
-    super.resetValueBeforeEdit();
-
-    if (this.#openedText !== null) {
-      this.#openedText = this.TEXTAREA.value;
-    }
+    return super.isEditUnchanged(held, value) || (this.innerSelectionOrigin !== 'user' && this.holdsOpeningText());
   }
 
   /**
@@ -565,9 +530,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       return (a, b) => stringify(a).localeCompare(stringify(b));
     }
 
-    const toText = (choice: unknown): string => stringify(isKeyValueEntry(choice) ? choice.value : choice);
-
-    return (a, b) => toText(a).localeCompare(toText(b));
+    return (a, b) => getListedText(a).localeCompare(getListedText(b));
   }
 
   /**
@@ -579,10 +542,12 @@ export class AutocompleteEditor extends HandsontableEditor {
    * editor closed, and starts a fresh request against a cell nobody is editing.
    *
    * @param {number} [delay] Delay in milliseconds.
+   * @param {boolean} [typed] Whether a keystroke scheduled the query, which makes its list announced.
    */
-  #deferQuery(delay: number = 0): void {
+  #deferQuery(delay: number = 0, typed: boolean = false): void {
     const timeoutId = this.hot._registerTimeout(() => {
       this.#queryTimeouts.delete(timeoutId);
+      this.#nextQueryTyped = typed;
       this.queryChoices(this.TEXTAREA.value);
     }, delay);
 
@@ -622,7 +587,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     // something here: short-circuiting on `strict` would hand back a pick the typing superseded.
     // Strict mode completes text the user typed. Text they never changed is the cell's own value, which
     // the confirm keeps as it is (`isEditUnchanged()`), even where an entry equals it only without case.
-    if (this.cellProperties.strict !== true || this.#holdsOpeningText()) {
+    if (this.cellProperties.strict !== true || this.holdsOpeningText()) {
       return undefined;
     }
 
@@ -646,8 +611,8 @@ export class AutocompleteEditor extends HandsontableEditor {
     // Ends the edit session. Closing means "no response is wanted any more", and so does a scroll-out
     // of the rendered range (see `hideForScroll()` below, which shares this in-flight cleanup); a late
     // response must not re-show the list or steal focus in either case (DEV-2653/DEV-2676). `afterSetTheme`
-    // also closes the editor (`assignHooks`). `_opened` stays false while the cell is scroll-hidden and
-    // after it scrolls back, so the guards elsewhere key on `state`, not `_opened`.
+    // also closes the editor (`assignHooks`). `_opened` stays false while the cell is scroll-hidden, and
+    // `TextEditor` restores it when the cell scrolls back.
     //
     // Queries this editor deferred are canceled outright; the token below is for the ones already
     // handed to user code, which cannot be.
@@ -658,16 +623,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     // on scroll-back), while `close()` here is the genuine edit-end teardown that also unhooks and tears
     // down the inner grid.
     this.#dropInFlightQueries();
-    this.#openedText = null;
 
     this.removeHooksByKey('beforeKeyDown');
+    // `HandsontableEditor#close()` lowers `aria-expanded` and removes the references to the list.
     super.close();
-
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TEXTAREA, [
-        A11Y_EXPANDED('false'),
-      ]);
-    }
   }
 
   /**
@@ -689,8 +648,8 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Hides the dropdown because the edited cell scrolled out of the rendered range, without ending the
    * edit. Drops in-flight responses exactly as `close()` does (a late one must not re-show the list or
-   * steal focus), and lowers the combobox `aria-expanded` so a screen reader does not keep announcing
-   * an open listbox while the list is hidden. The inherited `HandsontableEditor#hideForScroll` keeps
+   * steal focus). The inherited `HandsontableEditor#hideForScroll` lowers the combobox `aria-expanded`, so a
+   * screen reader does not keep announcing an open listbox while the list is hidden, and `HandsontableEditor#hideForScroll` keeps
    * `beforeKeyDown` and the already-loaded choices, so the list re-shows populated and typing
    * re-queries once the cell scrolls back.
    *
@@ -700,12 +659,6 @@ export class AutocompleteEditor extends HandsontableEditor {
   hideForScroll(): boolean {
     this.#dropInFlightQueries();
 
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(this.TEXTAREA, [
-        A11Y_EXPANDED('false'),
-      ]);
-    }
-
     return super.hideForScroll();
   }
 
@@ -714,7 +667,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * choices already loaded into the nested grid. Guarded on there being choices to show, so an empty
    * list stays hidden, matching the empty branch of {@link AutocompleteEditor#updateChoicesList}. The
    * re-measure is added to the base flip pass through {@link AutocompleteEditor#reflowDropdown}, and the
-   * combobox `aria-expanded` is raised again.
+   * base re-show raises the combobox `aria-expanded` again and names the highlighted option.
    *
    * Known limitation: a `function` `source` whose response was still in flight when the cell scrolled
    * out was dropped by `hideForScroll()` and is not requested again, so for that one case the list stays
@@ -726,13 +679,18 @@ export class AutocompleteEditor extends HandsontableEditor {
   showAfterScroll(): void {
     if (this.htEditor && this.strippedChoices.length > 0) {
       super.showAfterScroll();
-
-      if (this.hot.getSettings().ariaTags) {
-        setAttribute(this.TEXTAREA, [
-          A11Y_EXPANDED('true'),
-        ]);
-      }
     }
+  }
+
+  /**
+   * Tells whether the list is on screen: the editor is open and the list holds a choice. A list with none (the
+   * typed text matches nothing, or a function `source` has not answered yet) is hidden or empty.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  protected isListShown(): boolean {
+    return super.isListShown() && this.strippedChoices.length > 0;
   }
 
   /**
@@ -769,6 +727,10 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @param {string} query The query.
    */
   queryChoices(query: string): void {
+    const typed = this.#nextQueryTyped;
+
+    this.#nextQueryTyped = false;
+
     // `close()` cancels the queries this editor deferred, so no internal caller reaches here once
     // an edit has ended. This guard is for the public method: `queryChoices()` ships in the type
     // declarations, and calling it while no edit is in progress must not invoke the user's
@@ -817,12 +779,12 @@ export class AutocompleteEditor extends HandsontableEditor {
         }
 
         this.rawChoices = choices;
-        this.updateChoicesList(this.stripValuesIfNeeded(this.#listableChoices(choices)));
+        this.#loadChoices(this.stripValuesIfNeeded(this.#listableChoices(choices)), typed);
       });
 
     } else if (Array.isArray(source)) {
       this.rawChoices = source;
-      this.updateChoicesList(this.stripValuesIfNeeded(this.#listableChoices(source)));
+      this.#loadChoices(this.stripValuesIfNeeded(this.#listableChoices(source)), typed);
 
     } else {
       this.updateChoicesList([]);
@@ -830,7 +792,28 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
+   * Loads a query's response into the list through `updateChoicesList()`, telling it whether the query
+   * answers a keystroke.
+   *
+   * @param {Array} choicesList The stripped choices.
+   * @param {boolean} typed Whether a keystroke scheduled the query.
+   */
+  #loadChoices(choicesList: ChoiceArray, typed: boolean): void {
+    this.#loadingTypedList = typed;
+
+    try {
+      this.updateChoicesList(choicesList);
+    } finally {
+      this.#loadingTypedList = false;
+    }
+  }
+
+  /**
    * Updates list of the possible completions to choose.
+   *
+   * After a keystroke that changed the list without highlighting a choice, says how many choices are
+   * left, and the first of them, through the polite live region: the field names a highlighted choice
+   * through `aria-activedescendant`, so with nothing highlighted a screen reader would hear nothing.
    *
    * @param {Array} choicesList The choices list to process.
    */
@@ -838,6 +821,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const pos = getCaretPosition(this.TEXTAREA);
     const endPos = getSelectionEndPosition(this.TEXTAREA);
     const { choices, highlightIndex } = this.#deriveHighlight(choicesList, this.#editorValue());
+    const previousChoices = this.strippedChoices;
 
     this.strippedChoices = choices;
 
@@ -850,6 +834,10 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.loadData(pivot([choices]));
 
     if (choices.length > 0) {
+      if (this.isListShown()) {
+        this.expandListPopup();
+      }
+
       this.updateDropdownDimensions();
       this.flipDropdownVerticallyIfNeeded();
       this.flipDropdownHorizontallyIfNeeded();
@@ -867,12 +855,43 @@ export class AutocompleteEditor extends HandsontableEditor {
       // The list is empty and hidden, so there is nothing left on screen that a pick could refer
       // to. Without this an arrow pick made against an earlier list stays authoritative.
       this.innerSelectionOrigin = null;
-      removeAttribute(this.TEXTAREA, 'aria-activedescendant');
+      this.collapseListPopup();
+    }
+
+    if (this.#loadingTypedList) {
+      this.#announceNarrowedList(previousChoices, choices);
     }
 
     this.hot.listen();
 
     setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? undefined : endPos));
+  }
+
+  /**
+   * Announces, through the polite live region, how many choices the list holds and the first of them.
+   * Silent with `ariaTags: false`, for an empty list (it is hidden), while a choice is highlighted
+   * (the field names it), and when the keystroke left the list as it was.
+   *
+   * Called for the response to a typed query only, and a response that arrives after the editor closed
+   * or after a newer query never reaches `updateChoicesList()` (the edit-session and generation tokens
+   * in `queryChoices()`), so a keystroke is announced at most once.
+   *
+   * @param {Array} previousChoices The choices the list held before.
+   * @param {Array} choices The choices the list holds now.
+   */
+  #announceNarrowedList(previousChoices: ChoiceArray, choices: ChoiceArray): void {
+    if (!this.hot.getSettings().ariaTags || choices.length === 0 || this.htEditor.getSelectedLast() ||
+        (previousChoices.length === choices.length &&
+          choices.every((choice, index) => getListedText(choice) === getListedText(previousChoices[index])))) {
+      return;
+    }
+
+    const phrase = choices.length === 1 ? EDITOR_CHOICE_AVAILABLE : EDITOR_CHOICES_AVAILABLE;
+
+    announce(String(this.hot.getTranslatedPhrase(phrase, {
+      count: choices.length,
+      first: getVisibleText(choices[0]),
+    }) ?? ''), 'polite');
   }
 
   /**
@@ -999,12 +1018,8 @@ export class AutocompleteEditor extends HandsontableEditor {
     if (typeof index === 'number') {
       this.htEditor.selectCell(index, 0, undefined, undefined, undefined, false);
     } else {
+      // The list's `afterDeselect` removes the field's reference to the option it highlighted.
       this.htEditor.deselectCell();
-
-      // The input names the highlighted option only through `afterSelectionEnd`, which a deselect
-      // does not fire, so without this it keeps pointing a screen reader at an option nothing
-      // highlights any more.
-      removeAttribute(this.TEXTAREA, 'aria-activedescendant');
     }
   }
 
@@ -1195,7 +1210,7 @@ export class AutocompleteEditor extends HandsontableEditor {
         timeOffset += 10;
       }
 
-      this.#deferQuery(timeOffset);
+      this.#deferQuery(timeOffset, true);
     }
   }
 }

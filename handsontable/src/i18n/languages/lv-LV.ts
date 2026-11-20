@@ -207,6 +207,8 @@ const dictionary = {
   [C.EDITOR_INPUT_LABEL]: '[column], [row]. rinda',
   [C.COMMENTS_EDITOR_LABEL]: 'Komentārs: [column], [row]. rinda',
   [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.EDITOR_CHOICE_AVAILABLE]: 'Pieejama izvēle: [first]',
+  [C.EDITOR_CHOICES_AVAILABLE]: 'Pieejamo izvēļu skaits: [count]. Pirmā: [first]',
   [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Komentārs: [column], [row]',
 };
 

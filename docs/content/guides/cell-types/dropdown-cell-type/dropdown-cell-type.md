@@ -30,6 +30,8 @@ The dropdown cell type lets users select a value from a predefined list. It is a
 
 The dropdown cell type is based on an autocomplete cell type and can also be searchable.
 
+The editor's text field is a single-line `<input type="text">`, so it holds one line of text. A stored value with a line break opens without it. If you confirm such a value without typing, the cell keeps it, line break included. If you edit the text, the saved value has no line break. Keep the `source` labels on one line, and use the [`text`](@/guides/cell-types/text-cell-type/text-cell-type.md) cell type for values that need line breaks. Before 19.0 the field was a `<textarea>`; see the [migration guide](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#the-list-editors-edit-in-a-single-line-input).
+
 ## Usage
 
 This example shows the usage of the dropdown feature. Dropdown is based on [Autocomplete](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) cell type. All options used by `autocomplete` cell type apply to `dropdown` as well.
@@ -442,6 +444,8 @@ After configuring the dropdown cell type, cells display a button that opens a dr
 ## Keyboard shortcuts
 
 The dropdown cell editor is an [autocomplete](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) editor with strict mode always on, so it uses the same keyboard shortcuts as [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode). See the [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#dropdown-editor-keyboard-shortcuts) reference for details.
+
+When <kbd>**Enter**</kbd> confirms a choice, the selection moves to the next cell, as it does after any edit. [`enterMoves`](@/api/options.md#entermoves) decides where it moves, for every cell of the grid: set it to `{ row: 0, col: 0 }` to keep the selection on the edited cell after any edit, a choice included.
 
 ## Related articles
 

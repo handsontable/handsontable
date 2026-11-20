@@ -818,13 +818,13 @@ describe('AutocompleteEditor', () => {
 
       await waitForNextAnimationFrames(2);
 
-      autocompleteEditor.siblings('textarea').first().val('ab');
+      autocompleteEditor.siblings('.handsontableInput').first().val('ab');
 
       await keyDownUp('a');
       await keyDownUp('b');
       await waitForNextAnimationFrames(2);
 
-      autocompleteEditor.siblings('textarea').first().val('a');
+      autocompleteEditor.siblings('.handsontableInput').first().val('a');
 
       await keyDownUp('backspace');
       await waitForNextAnimationFrames(2);
