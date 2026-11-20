@@ -45,7 +45,7 @@ jobs:
   # triggerable from inside the pipeline).
   gate:
     name: "[CHECK] Docs visual label"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       run: ${{ steps.check.outputs.run }}
     steps:
