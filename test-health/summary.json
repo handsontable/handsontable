@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-20T16:09:55.851Z",
+  "generatedAt": "2026-11-20T16:30:22.712Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -53,7 +53,7 @@
       "file": "e2e/formula-builder-picking.spec.ts",
       "line": 701,
       "title": "formulaBuilder picking in a window-scrolled grid › a reference drag held below the viewport scrolls the page when the holder scrolls only the columns",
-      "count7": 3,
+      "count7": 2,
       "count30": 12,
       "countAll": 12,
       "runs30": 7,
