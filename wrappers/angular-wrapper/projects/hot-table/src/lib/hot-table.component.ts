@@ -407,8 +407,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     if (changes.data && !changes.data.firstChange) {
-      // A data load queues microtasks in core. Inside the zone, each one starts another change-detection
-      // pass, so a binding that gives a new array on every pass would load it again without end.
+      // A data load queues microtasks in core. Inside the zone, they end in another change-detection pass
+      // once they drain, so a binding that gives a new array on every pass would load it again without end.
       this.ngZone.runOutsideAngular(() => {
         this.hotInstance?.updateData(changes.data.currentValue, DATA_BINDING_SOURCE);
       });
