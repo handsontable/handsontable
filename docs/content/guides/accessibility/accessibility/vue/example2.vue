@@ -741,7 +741,7 @@ const handleCheckboxChange = (checkboxName: string) => {
       </div>
     </div>
 
-    <input class="placeholder-input" type="text" placeholder="Focusable text input" />
+    <input class="placeholder-input" type="text" placeholder="Focusable text input" aria-label="Focusable text input" />
 
     <HotTable
       :key="String(toggleableOptions.renderAllRows)"
@@ -761,6 +761,6 @@ const handleCheckboxChange = (checkboxName: string) => {
       <HotColumn data="country" type="dropdown" :source="countries" />
     </HotTable>
 
-    <input class="placeholder-input" type="text" placeholder="Focusable text input" />
+    <input class="placeholder-input" type="text" placeholder="Focusable text input" aria-label="Focusable text input" />
   </div>
 </template>

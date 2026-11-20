@@ -25,8 +25,7 @@ import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
 import { recordRemovedColumns, recordRemovedRows } from './dataJournal';
 import { colToPropOrIndex } from '../helpers/columnProp';
-import { getCellType, hasCellType } from '../cellTypes/registry';
-import { applyTransientCellSettings } from './metaManager/utils';
+import { CellsFunctionReader, readsThroughCellsFunction } from './metaManager/cellsFunctionRead';
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -82,17 +81,12 @@ interface ReadColumn {
    */
   appliesCellsFunction: boolean | null;
   /**
-   * The column property the `cells` function receives, resolved the way the dynamic extension resolves
-   * it (`colToPropOrIndex()`), or `undefined` until a read of a cell without stored meta needs it.
+   * The reader that calls the column's `cells` function for each cell a read resolves
+   * (`#readCellsFunctionMeta()`), or `undefined` until a read of the column needs it. It keeps one
+   * scratch meta object per column for the cells the function writes nothing to, so it lives as long
+   * as the read. The Filters column read uses the same reader, so both apply a `cells()` value alike.
    */
-  cellsProp: string | number | DataAccessorFn | null | undefined;
-  /**
-   * The object a read of this column hands the `cells` function as `this`, reused from cell to cell
-   * while the function writes nothing to it (`#readCellsFunctionMeta()`), or `undefined`. One object
-   * per column instead of one per cell is most of what a read of a `cells` column costs: each column
-   * has its own meta constructor, so a new object per cell makes every property access polymorphic.
-   */
-  scratchMeta: CellProperties | undefined;
+  cellsReader: CellsFunctionReader | undefined;
   /**
    * Whether the column meta resolves a function `valueGetter` (set on the column, or inherited from the
    * table and global layers), or `null` until a read of a cell without stored meta needs the answer.
@@ -121,62 +115,6 @@ function canColumnMetaGetValues(
   columnMeta: { valueGetter?: unknown; cells?: unknown; applyCellsToDataReads?: unknown }
 ): boolean {
   return isFunction(columnMeta.valueGetter) || readsThroughCellsFunction(columnMeta);
-}
-
-/**
- * Tells whether a data read calls the `cells` function a meta object resolves: only when the
- * `applyCellsToDataReads` option is on for it. Without the option a read applies a `valueGetter` from
- * stored meta and the column layer only, as it has since 18.1.0.
- *
- * @param {object} meta A column or cell meta object.
- * @returns {boolean}
- */
-function readsThroughCellsFunction(meta: { cells?: unknown; applyCellsToDataReads?: unknown }): boolean {
-  return meta.applyCellsToDataReads === true && isFunction(meta.cells);
-}
-
-/**
- * How many own enumerable keys a new cell meta object has once a read stamped it and called the `cells`
- * function: `visualRow`, `visualCol`, `row`, `col` (`MetaManager#stampCellMeta()`) and `prop`
- * (`MetaManager#callCellsFunction()`). A cell meta object starts with none of its own.
- */
-const STAMPED_CELL_META_KEYS = 5;
-
-/**
- * Tells whether a value is an object whose own keys can be read.
- *
- * @param {*} value The value to check.
- * @returns {boolean}
- */
-function isKeyedObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-/**
- * Tells whether cell settings, as the `cells` function returns them or writes them to `this`, can give
- * the cell a `valueGetter`: an own `valueGetter` key, or an own `type` key that names a cell type
- * shipping a `valueGetter`. A `type` object, or a name no cell type is registered under, counts as
- * able to, so the full extension resolves it (and reports an unknown name) as it always did.
- *
- * @param {*} settings The settings to check.
- * @returns {boolean}
- */
-function canCellSettingsGetValues(settings: unknown): boolean {
-  if (!isKeyedObject(settings)) {
-    return false;
-  }
-
-  if (hasOwnProperty(settings, 'valueGetter')) {
-    return true;
-  }
-
-  if (!hasOwnProperty(settings, 'type')) {
-    return false;
-  }
-
-  const { type } = settings;
-
-  return typeof type !== 'string' || !hasCellType(type) || isFunction(getCellType(type).valueGetter);
 }
 
 /**
@@ -1248,8 +1186,7 @@ class DataMap {
       visualColumn,
       physicalColumn,
       appliesCellsFunction: null,
-      cellsProp: undefined,
-      scratchMeta: undefined,
+      cellsReader: undefined,
       hasColumnValueGetter: null,
     };
   }
@@ -1419,20 +1356,9 @@ class DataMap {
   }
 
   /**
-   * Resolves the `valueGetter` meta of a cell in a column that has a `cells` function.
-   *
-   * `cells()` runs once for the cell, with no meta hook, so a data read never fires `beforeGetCellMeta`
-   * or `afterGetCellMeta`, and never writes to stored meta. Its `this` is an object that inherits the
-   * cell's stored meta, or the column meta for a cell without one; whatever the call writes lands on
-   * that object. The object of a cell without stored meta is reused for the next cell of the read
-   * (`ReadColumn#scratchMeta`) while no `valueGetter` was handed it and the call wrote nothing to it,
-   * so no cell sees what the function wrote for another.
-   *
-   * The returned settings are applied the way the transient extension applies them when they can
-   * change the value: when they carry a `valueGetter` or a `type` that ships one, or when the cell
-   * already has a `valueGetter`, which can read any key `cells()` sets per row (a dropdown's reads
-   * `sourceLabel`). A `valueGetter` that only a meta hook adds is seen on stored meta the render
-   * extended, as in a column without `cells()`.
+   * Resolves the `valueGetter` meta of a cell in a column that has a `cells` function, through the
+   * column's `CellsFunctionReader` (`metaManager/cellsFunctionRead.ts`): `cells()` runs once for the
+   * cell, with no meta hook and no write to stored meta.
    *
    * @param {object} column The resolved column.
    * @param {object|undefined} storedMeta The cell's stored meta, or `undefined`.
@@ -1446,37 +1372,16 @@ class DataMap {
     column: ReadColumn, storedMeta: CellProperties | undefined,
     row: number, visualColumn: number, physicalRow: number, physicalColumn: number
   ): CellProperties | undefined {
-    const metaManager = this.metaManager!;
-    const isStored = storedMeta !== undefined;
-    const cellMeta: CellProperties = metaManager.stampCellMeta(
-      isStored
-        ? Object.create(storedMeta)
-        : column.scratchMeta ?? metaManager.createTransientColumnMeta(physicalColumn),
-      physicalRow, physicalColumn, { visualRow: row, visualColumn }
-    );
-
-    if (column.cellsProp === undefined) {
-      column.cellsProp = colToPropOrIndex(this.hot!, visualColumn);
+    if (column.cellsReader === undefined) {
+      column.cellsReader = new CellsFunctionReader(this.metaManager!, {
+        physicalColumn,
+        stampedVisualColumn: visualColumn,
+        prop: colToPropOrIndex(this.hot!, visualColumn),
+        hasColumnValueGetter: column.hasColumnValueGetter,
+      });
     }
 
-    const cellSettings = metaManager.callCellsFunction(cellMeta, column.cellsProp);
-    const hasValueGetter = isStored
-      ? isFunction(storedMeta.valueGetter)
-      : column.hasColumnValueGetter ?? this.#hasColumnValueGetter(column, physicalColumn);
-
-    if (isKeyedObject(cellSettings) && (hasValueGetter || canCellSettingsGetValues(cellSettings))) {
-      applyTransientCellSettings(cellMeta, cellSettings);
-    }
-
-    const resolvedMeta = isFunction(cellMeta.valueGetter) ? cellMeta : undefined;
-
-    if (!isStored) {
-      column.scratchMeta = resolvedMeta === undefined && Object.keys(cellMeta).length === STAMPED_CELL_META_KEYS
-        ? cellMeta
-        : undefined;
-    }
-
-    return resolvedMeta;
+    return column.cellsReader.read(storedMeta, physicalRow, row);
   }
 
   /**

@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Annuleren',
 
+  [C.CONTEXTMENU_LABEL]: 'Contextmenu',
+  [C.DROPDOWNMENU_LABEL]: 'Kolommenu',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Rij boven invoegen',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Rij onder invoegen',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Kolom links invoegen',

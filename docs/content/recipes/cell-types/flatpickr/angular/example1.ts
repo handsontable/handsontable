@@ -16,7 +16,7 @@ const DATE_FORMAT_EU = 'dd/MM/yyyy';
 @Component({
   standalone: true,
   selector: 'example1-flatpickr-editor',
-  template: `<input #pickerInput class="flatpickr-editor" type="text" />`,
+  template: `<input #pickerInput class="flatpickr-editor" type="text" aria-label="Date" />`,
   styles: [
     `
     :host {

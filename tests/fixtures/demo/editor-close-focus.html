@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable editor close focus e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } h2 { font-size: .9rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Editor close fixture. Closing an editor must hand the browser focus back to the edited cell,
+    so a screen reader reads the cell again. The first grid has one column per editor type, the
+    second one runs with `imeFastEdit`, where the hidden textarea is meant to keep the focus.
+
+      col 0  text      (type: 'text')
+      col 1  select    (type: 'select')
+      col 2  date      (type: 'date')
+      col 3  time      (type: 'time')
+      col 4  multiselect (type: 'multiselect')
+      col 5  text      (the cell a Tab from the multiselect editor lands on)
+  -->
+  <h2>Default focus mode</h2>
+  <div id="plain" data-testid="plain"></div>
+
+  <h2>imeFastEdit</h2>
+  <div id="ime" data-testid="ime"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const plain = document.querySelector('[data-testid="plain"]');
+    const ime = document.querySelector('[data-testid="ime"]');
+
+    plain.className = `ht-theme-${window.htTheme}`;
+    ime.className = `ht-theme-${window.htTheme}`;
+
+    window.hotPlain = new Handsontable(plain, {
+      data: [
+        ['Alice', 'red', '2024-01-15', '09:30', ['red'], 'x1'],
+        ['Bob', 'green', '2024-02-20', '10:45', ['green'], 'x2'],
+        ['Carol', 'blue', '2024-03-25', '12:00', ['blue'], 'x3'],
+      ],
+      colHeaders: ['Name', 'Color', 'Date', 'Time', 'Tags', 'Tail'],
+      rowHeaders: true,
+      columns: [
+        { type: 'text' },
+        { type: 'select', selectOptions: ['red', 'green', 'blue'] },
+        { type: 'date', dateFormat: 'YYYY-MM-DD' },
+        { type: 'time' },
+        { type: 'multiselect', source: ['red', 'green', 'blue'] },
+        { type: 'text' },
+      ],
+      licenseKey: window.htTestLicenseKey,
+    });
+
+    window.hotIme = new Handsontable(ime, {
+      data: [['Alice', 'x'], ['Bob', 'y']],
+      colHeaders: true,
+      rowHeaders: true,
+      imeFastEdit: true,
+      licenseKey: window.htTestLicenseKey,
+    });
+  </script>
+</body>
+</html>

@@ -103,7 +103,6 @@ const trendRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellPr
     .render-stats {
       margin: 8px 0 0;
       font-size: 13px;
-      color: #666;
     }
   `],
   template: `

@@ -131,6 +131,11 @@ whole dataset under the loading overlay. Without it, the `Ctrl`+`A` above hands 
 a destructive shortcut to the grid context, from anywhere, guard it with that helper; every inheriting
 overlay depends on it. `Tab` carries the same guard for the opposite reason: the grid's tab-navigation pair
 calls `preventDefault()` whenever a selection survives, which used to trap the user inside the overlay.
+**A typed character is not a shortcut, and `EditorManager#onAfterDocumentKeyDown` checks `isGridBodyCovered()`
+itself.** A printable key opens the editor from that document listener, which no shortcut guard reaches, so
+before the check a key pressed under the loading overlay (cells drawn, selection laid by the API) opened an
+editor on a covered cell. Pinned by `tests/e2e/empty-data-state-shortcuts.spec.ts` ("does not let a typed
+character open an editor under the loading overlay").
 
 ## The shortcut context rolls back in the scope manager, not here
 

@@ -14,6 +14,8 @@ const dictionary = {
   [C.CANCEL]: 'Atcelt',
 
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nav pieejamu opciju',
+  [C.CONTEXTMENU_LABEL]: 'Konteksta izvēlne',
+  [C.DROPDOWNMENU_LABEL]: 'Kolonnas izvēlne',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Ievietot rindu augšā',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Ievietot rindu apakšā',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Ievietot kolonnu pa kreisi',

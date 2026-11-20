@@ -219,16 +219,21 @@ function countIntegerDigits(pattern: string): number {
 }
 
 /**
- * Counts the zeros that follow the decimal point, which is how many fraction digits the format pins.
+ * Counts the fraction digits a format shows: `minimum` is how many it always shows (every
+ * placeholder up to the last `0` after the decimal point), `maximum` how many it rounds to (every
+ * placeholder, the optional `#` ones included). `0.00` gives 2 and 2, `0.0##` gives 1 and 3, and
+ * `0.###` gives 0 and 3.
  */
-function countFractionDigits(pattern: string): number {
+function countFractionDigits(pattern: string): { minimum: number; maximum: number } {
   const separator = pattern.indexOf('.');
 
   if (separator === -1) {
-    return 0;
+    return { minimum: 0, maximum: 0 };
   }
 
-  return pattern.slice(separator + 1).split('').filter(char => char === '0').length;
+  const placeholders = pattern.slice(separator + 1).split('').filter(char => char === '0' || char === '#');
+
+  return { minimum: placeholders.lastIndexOf('0') + 1, maximum: placeholders.length };
 }
 
 /**
@@ -238,7 +243,9 @@ function countFractionDigits(pattern: string): number {
  * that change the reading, a trailing comma that scales the number by a thousand, sections split
  * by a condition such as `[>=1000]`), or pins more than the 100 fraction digits or the 21 integer
  * digits `Intl` accepts, so the caller can report it as dropped. Two or more `0`s before the
- * decimal point become `minimumIntegerDigits`.
+ * decimal point become `minimumIntegerDigits`. After the decimal point, a `0` is a digit the format
+ * always shows and a `#` one it shows only when the value has it, so `0.0##` becomes
+ * `minimumFractionDigits: 1` with `maximumFractionDigits: 3`.
  */
 export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptions | null {
   // A first section that applies only where its condition holds cannot stand for every value.
@@ -263,7 +270,7 @@ export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptio
   const fractionDigits = countFractionDigits(bare);
   const integerDigits = countIntegerDigits(bare);
 
-  if (fractionDigits > MAX_INTL_FRACTION_DIGITS || integerDigits > MAX_INTL_INTEGER_DIGITS) {
+  if (fractionDigits.maximum > MAX_INTL_FRACTION_DIGITS || integerDigits > MAX_INTL_INTEGER_DIGITS) {
     return null;
   }
 
@@ -281,8 +288,8 @@ export function excelNumFmtToIntlOptions(numFmt: string): Intl.NumberFormatOptio
     options.minimumIntegerDigits = integerDigits;
   }
 
-  options.minimumFractionDigits = fractionDigits;
-  options.maximumFractionDigits = fractionDigits;
+  options.minimumFractionDigits = fractionDigits.minimum;
+  options.maximumFractionDigits = fractionDigits.maximum;
   // Any comma left in the integer part groups thousands (`#,##0`, and the zero-padded `00,000`).
   options.useGrouping = bare.split('.')[0].includes(',');
 

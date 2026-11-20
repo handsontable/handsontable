@@ -1135,7 +1135,7 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
 ### The baseline: known issues and their findings
 
 The baseline has two lists, and the split is the point. **`issues`** is the catalog of known
-accessibility problems: a stable id local to this repository (`menu-roles`), a title that says
+accessibility problems: a stable id local to this repository (`grid-roles`), a title that says
 what the problem is, and optionally the `tracker` task that owns the fix. **`entries`** is where
 each issue shows: one entry per page, theme, rule and target, with the number of nodes that carry
 it. An entry names its issue, never a tracker task, so the gate does not follow a task's

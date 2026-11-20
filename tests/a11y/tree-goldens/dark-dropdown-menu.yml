@@ -39,59 +39,44 @@
   - rowgroup
   - textbox "Color, row 1"
 # portal
-- menu:
-  - table:
-    - rowgroup:
-      - row "Insert column left":
-        - menuitem "Insert column left"
-      - row "Insert column right":
-        - menuitem "Insert column right"
-      - row:
-        - separator
-      - row "Remove column":
-        - menuitem "Remove column"
-      - row:
-        - separator
-      - row "Clear column":
-        - menuitem "Clear column"
-      - row:
-        - separator
-      - row "Read only":
-        - menuitemcheckbox "Read only"
-      - row:
-        - separator
-      - row "Alignment":
-        - menuitem "Alignment"
-      - row:
-        - separator
-      - row "Filter by condition:":
-        - menuitem "Filter by condition:":
-          - text: "Filter by condition:"
-          - listbox: None
-      - row "Filter by value:":
-        - group "Filter by value:":
-          - text: "Filter by value:"
-          - textbox "Filter by value:":
-            - /placeholder: Search
-          - button "Select all"
-          - button "Select none"
-          - treegrid:
-            - rowgroup:
-              - row "Checked Blue":
-                - gridcell "Checked Blue":
-                  - checkbox "Checked" [checked]
-                  - text: Blue
-              - row "Checked Green":
-                - gridcell "Checked Green":
-                  - checkbox "Checked" [checked]
-                  - text: Green
-              - row "Checked Red":
-                - gridcell "Checked Red":
-                  - checkbox "Checked" [checked]
-                  - text: Red
-      - row "Action bar":
-        - menuitem "Action bar":
-          - button "OK"
-          - button "Cancel"
+- menu "Column menu":
+  - menuitem "Insert column left"
+  - menuitem "Insert column right"
+  - separator
+  - menuitem "Remove column"
+  - separator
+  - menuitem "Clear column"
+  - separator
+  - menuitemcheckbox "Read only"
+  - separator
+  - menuitem "Alignment"
+  - separator
+  - menuitem "Filter by condition:":
+    - text: "Filter by condition:"
+    - listbox: None
+  - menuitem "Filter by value:":
+    - group "Filter by value:":
+      - text: "Filter by value:"
+      - textbox "Filter by value:":
+        - /placeholder: Search
+      - button "Select all"
+      - button "Select none"
+      - treegrid:
+        - rowgroup:
+          - row "Checked Blue":
+            - gridcell "Checked Blue":
+              - checkbox "Checked" [checked]
+              - text: Blue
+          - row "Checked Green":
+            - gridcell "Checked Green":
+              - checkbox "Checked" [checked]
+              - text: Green
+          - row "Checked Red":
+            - gridcell "Checked Red":
+              - checkbox "Checked" [checked]
+              - text: Red
+  - menuitem "Action bar":
+    - button "OK"
+    - button "Cancel"
 - status
 - status

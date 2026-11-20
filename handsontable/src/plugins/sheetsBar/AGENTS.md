@@ -73,6 +73,14 @@ sheet's settings and data, so every other plugin must already be enabled. Root i
 
 ## Traps
 
+- **The Add, All sheets and page arrow buttons have a 24 px floor, and the strip's reserved padding must
+  follow it.** `.ht-sheets-bar__button` sets `min-width` and `min-height` to
+  `--ht-icon-button-hit-area-size` (WCAG 2.2 2.5.8), because the classic theme's 12 px icon alone gives
+  22 px. `--ht-private-sheets-bar-button-width` in `_sheets-bar.scss` is a `max()` of the old
+  icon-plus-padding-plus-border sum and that token, and the sizer's `padding-inline` reserves two of
+  them for the arrows. Drop the `max()` and the reserved width falls 2 px short of the real buttons in
+  classic, so the tab labels run under the arrows. Main and horizon are unaffected (26 px).
+
 - **The tab strip hides its scrollbar with `scrollbar-width: none !important`** (DEV-3191). Keep
   the `!important`. The selector compiles to `.handsontable.ht-sheets-bar .ht-sheets-bar__tabs`
   (specificity 0,3,0: the bar root carries both classes), so a page-wide rule such as

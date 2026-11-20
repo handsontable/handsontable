@@ -9,8 +9,9 @@ const HEADING = 'Filter by value:';
  * The search box had only a "Search" placeholder, which screen readers do not announce reliably and
  * which disappears once the user types. Its menu row was a `menuitem` whose content also holds the
  * search box, the two links and the value list, so its name did not contain its visible text (axe
- * `label-content-name-mismatch`, WCAG 2.5.3). The row is now a group named by the heading, and the
- * search box is named by the same heading.
+ * `label-content-name-mismatch`, WCAG 2.5.3). The row stays a `menuitem`, the role a `menu` may own,
+ * with no name of its own; a group inside it is named by the heading, and the search box is named by
+ * the same heading.
  */
 test.describe('Filters — "Filter by value" accessible names', () => {
   let grid: FiltersValueListPage;
@@ -27,7 +28,13 @@ test.describe('Filters — "Filter by value" accessible names', () => {
 
     await expect(section).toBeVisible();
     await expect(section.getByText(HEADING, { exact: true })).toBeVisible();
-    await expect(grid.menu.getByRole('menuitem', { name: HEADING })).toHaveCount(0);
+
+    const row = grid.menu.locator('td.htFiltersMenuValue');
+
+    await expect(row).toHaveAttribute('role', 'menuitem');
+    await expect(row).not.toHaveAttribute('aria-label');
+    await expect(row).not.toHaveAttribute('aria-labelledby');
+    await expect(row.getByRole('group', { name: HEADING, exact: true })).toHaveCount(1);
 
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
@@ -59,8 +66,8 @@ test.describe('Filters — "Filter by value" accessible names', () => {
 
     await expect(row).toBeVisible();
     await expect(row).not.toHaveAttribute('role');
-    await expect(row).not.toHaveAttribute('aria-labelledby');
-    await expect(grid.searchInput).not.toHaveAttribute('aria-labelledby');
+    await expect(row.locator('[role="group"]')).toHaveCount(0);
+    await expect(row.locator('[aria-labelledby]')).toHaveCount(0);
     await expect(row.locator('.htFiltersMenuLabel')).not.toHaveAttribute('id');
   });
 });

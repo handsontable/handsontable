@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the speed of measuring column widths with AutoColumnSize on large data sets.",
+  "type": "changed",
+  "issueOrPR": 14393,
+  "breaking": false,
+  "framework": "none"
+}

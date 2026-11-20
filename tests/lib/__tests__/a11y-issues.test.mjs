@@ -515,7 +515,7 @@ test('every docs cluster of the committed catalog has a tracker, so a change run
 test('the committed catalog validates against the live baseline issues and screen reader projects, and keeps its cluster ids', () => {
   const doc = readCatalog();
 
-  assert.ok(AXE_ISSUES.includes('menu-roles') && READER_PROJECTS.includes('nvda-chromium') && READER_PROJECTS.includes('vo-webkit'),
+  assert.ok(AXE_ISSUES.includes('grid-roles') && READER_PROJECTS.includes('nvda-chromium') && READER_PROJECTS.includes('vo-webkit'),
     'read the baseline issues and the screen reader projects');
   assert.deepEqual(validateIssuesCatalog(doc, { axeIssues: AXE_ISSUES, docsIssues: DOCS_ISSUES, websiteIssues: WEBSITE_ISSUES,
     readerProjects: READER_PROJECTS }), []);
