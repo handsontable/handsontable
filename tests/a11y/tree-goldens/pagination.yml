@@ -112,8 +112,8 @@
       - gridcell "37-1531629"
       - gridcell "China"
   - rowgroup:
-    - row "Select whole grid Company name Name Sell date In stock Qty Progress Rating Order ID Country":
-      - gridcell "Select whole grid"
+    - row "Company name Name Sell date In stock Qty Progress Rating Order ID Country":
+      - gridcell
       - columnheader "Company name"
       - columnheader "Name"
       - columnheader "Sell date"
@@ -146,8 +146,8 @@
     - row "10":
       - rowheader "10"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - rowgroup
 - text: "Page size:"
 - combobox "Page size":

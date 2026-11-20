@@ -192,7 +192,7 @@ describe('header-related a11y config', () => {
       describe('corner headers', () => {
         // handsontable/dev-handsontable#1602
         // handsontable/dev-handsontable#1574
-        it('should add the `role=row` aria tag to the corner headers', async() => {
+        it('should add `role=gridcell` and no `aria-label` to the corner headers', async() => {
           handsontable({
             data: createSpreadsheetData(50, 15),
             rowHeaders: true,
@@ -206,19 +206,31 @@ describe('header-related a11y config', () => {
 
           expect(
             getTopInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('gridcell button');
+          ).toBe('gridcell');
+          expect(
+            getTopInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('aria-label')
+          ).toBeNull();
 
           expect(
             getMaster().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('gridcell button');
+          ).toBe('gridcell');
+          expect(
+            getMaster().get(0).querySelector('thead th:first-of-type').getAttribute('aria-label')
+          ).toBeNull();
 
           expect(
             getInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('gridcell button');
+          ).toBe('gridcell');
+          expect(
+            getInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('aria-label')
+          ).toBeNull();
 
           expect(
             getTopClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('gridcell button');
+          ).toBe('gridcell');
+          expect(
+            getTopClone().get(0).querySelector('thead th:first-of-type').getAttribute('aria-label')
+          ).toBeNull();
         });
       });
     });
@@ -251,7 +263,7 @@ describe('header-related a11y config', () => {
       });
     });
 
-    it('should not stamp an id on the corner ("select whole grid") header', async() => {
+    it('should not stamp an id on the corner header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -260,7 +272,8 @@ describe('header-related a11y config', () => {
 
       const corner = getMaster().get(0).querySelector('thead th:first-of-type');
 
-      expect(corner.getAttribute('role')).toBe('gridcell button');
+      expect(corner.getAttribute('role')).toBe('gridcell');
+      expect(corner.hasAttribute('aria-label')).toBe(false);
       expect(corner.hasAttribute('id')).toBe(false);
     });
   });

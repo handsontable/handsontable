@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the top-left corner header announcing \"Select whole grid\" to screen readers. The corner is now role=\"gridcell\" with no aria-label, so the row selection checkbox inside it names it.",
+  "type": "fixed",
+  "issueOrPR": 14401,
+  "breaking": false,
+  "framework": "none"
+}
