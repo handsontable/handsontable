@@ -1311,12 +1311,14 @@ describe('AutoFill', () => {
       ];
 
       $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: getData(),
         fillHandle: true,
         themeName: `ht-theme-${getLoadedTheme()}`
       });
 
       $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
+        licenseKey: TEST_LICENSE_KEY,
         data: getData(),
         fillHandle: 'horizontal',
         themeName: `ht-theme-${getLoadedTheme()}`

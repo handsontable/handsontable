@@ -56,6 +56,7 @@ spec-side `test.skip(` are both lint errors. The axes, the default, and the two 
 - Screenshots: Always use `helpers.screenshotPath()` for consistent naming
 - Organization: `tests/js-only/`, `tests/multi-frameworks/`, `tests/cross-browser/`
 - Examples for testing live in `examples/next/visual-tests/<framework>/demo/` (the docs tree `examples/next/docs/` is the documentation examples; nothing here serves it)
+- Every demo grid reads `TEST_LICENSE_KEY` from its app's `src/test-license-key` file, never a written-out key: without a valid key the grid renders behind the license lock, and the golden photographs the lock. The root `test:tooling` fails on a literal key or a grid constructor without `licenseKey` (`handsontable/.ai/TESTING.md`, "The license key every test grid takes")
 
 ## Decision rule
 

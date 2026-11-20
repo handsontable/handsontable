@@ -60,6 +60,7 @@ describe('ContextMenu', () => {
         const container = $('<div/>').css({ marginTop: '500px', marginLeft: '500px' }).appendTo(docInside.body);
 
         const hot = container.handsontable({
+          licenseKey: TEST_LICENSE_KEY,
           layoutDirection,
           contextMenu: {
             uiContainer: uiContainer[0],

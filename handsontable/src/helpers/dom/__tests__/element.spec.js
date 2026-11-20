@@ -18,6 +18,7 @@ describe('DOM helpers', () => {
       document.body.appendChild(hotContainer);
 
       const hot = new Handsontable(hotContainer, {
+        licenseKey: TEST_LICENSE_KEY,
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         rowHeaders: true,
