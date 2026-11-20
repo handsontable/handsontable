@@ -31,20 +31,20 @@ export class FormulasCellDescriptionPage {
     comment?: 'on' | 'off',
     first?: 'default' | 'empty',
     dir?: 'ltr' | 'rtl',
+    overflow?: 'on' | 'off',
   } = {}): Promise<void> {
-    const { ariaTags = 'on', rows = 'default', render = 'default', comment = 'off', first = 'default', dir = 'ltr' } = options;
+    const { ariaTags = 'on', rows = 'default', render = 'default', comment = 'off', first = 'default', dir = 'ltr',
+      overflow = 'off' } = options;
 
     await this.page.goto(
       `/tests/fixtures/demo/formulas-cell-description.html?theme=${this.theme}&bundle=${this.bundle}` +
-      `&ariaTags=${ariaTags}&rows=${rows}&render=${render}&comment=${comment}&first=${first}&dir=${dir}`);
+      `&ariaTags=${ariaTags}&rows=${rows}&render=${render}&comment=${comment}&first=${first}&dir=${dir}&overflow=${overflow}`);
     await awaitBundle(this.page);
-    await expect(this.cell(0, 2)).toHaveText(/^\d$/);
+    await expect(this.cell(0, 2)).toHaveText(overflow === 'on' ? /^x+$/ : /^\d$/);
   }
 
   /**
-
    * A single data cell, by visual row/column, via its stable test id.
-
    */
   cell(row: number, col: number): Locator {
     return this.page.getByTestId(`cell-${row}-${col}`);
@@ -75,9 +75,7 @@ export class FormulasCellDescriptionPage {
   }
 
   /**
-
    * Write a raw value, or a formula, into a cell.
-
    */
   async setCellValue(row: number, col: number, value: string): Promise<void> {
     await this.page.evaluate(([r, c, v]) => {
@@ -86,9 +84,7 @@ export class FormulasCellDescriptionPage {
   }
 
   /**
-
    * Call a method of the Formulas plugin.
-
    */
   async callFormulas(method: 'showFormulas' | 'hideFormulas' | 'disablePlugin' | 'enablePlugin'): Promise<void> {
     await this.page.evaluate((name) => {
@@ -98,9 +94,7 @@ export class FormulasCellDescriptionPage {
   }
 
   /**
-
    * Sort the first column descending through the public API.
-
    */
   async sortColumnDescending(column: number): Promise<void> {
     await this.page.evaluate((c) => {
@@ -109,9 +103,7 @@ export class FormulasCellDescriptionPage {
   }
 
   /**
-
    * Switch the grid to another language pack.
-
    */
   async setLanguage(languageCode: string, phrases: Record<string, string>): Promise<void> {
     await this.page.evaluate(([code, dictionary]) => {
@@ -120,5 +112,12 @@ export class FormulasCellDescriptionPage {
       hotClass.languages.registerLanguageDictionary({ languageCode: code, ...dictionary });
       window.hot.updateSettings({ language: code });
     }, [languageCode, phrases] as [string, Record<string, string>]);
+  }
+
+  /**
+   * The width of what the master holder can scroll, which a cell's content wider than the cell grows.
+   */
+  async scrollWidth(): Promise<number> {
+    return this.page.evaluate(() => document.querySelector('.ht_master .wtHolder')!.scrollWidth);
   }
 }

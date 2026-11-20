@@ -1307,7 +1307,7 @@ and must keep reading the engine sheet as its data, and a grid built without dat
 attribute `data-ht-formula` on the TD of a cell the engine reports a formula for (`getCellFormula()` is `undefined`
 for a value and for the spilled cells of an array formula, so the origin alone is described). The value is the
 `Formulas:cellDescription` phrase (`Formula: [formula]`, translated in every language pack) with the engine's own
-text substituted, read through `#readableFormula()`. `_formulas.scss` draws it as `td[data-ht-formula]::after
+text substituted (the engine's text as it is, cut at 120 characters). `_formulas.scss` draws it as `td[data-ht-formula]::after
 { content: attr(data-ht-formula) }`, absolutely positioned, 1px and clipped, so it is never seen. Rules, each from a
 measured reason:
 

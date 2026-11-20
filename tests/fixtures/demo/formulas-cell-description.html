@@ -86,6 +86,9 @@
 
     document.documentElement.dir = directionParam;
 
+    // A result wider than its cell, in a grid that does not wrap: the description sits after that text, and has
+    // to add nothing to the width of what scrolls.
+    const overflowing = htParams.get('overflow') === 'on';
     const withComment = htParams.get('comment') === 'on';
     const emptyFirstCell = htParams.get('first') === 'empty';
     const rowHeights = rowsByParam[rowsParam];
@@ -95,7 +98,7 @@
 
     window.hot = new Handsontable(container, {
       data: [
-        [emptyFirstCell ? '=IF(1=1,"","x")' : '1', '2', '=SUM(A1:B1)'],
+        [emptyFirstCell ? '=IF(1=1,"","x")' : '1', '2', overflowing ? '=REPT("x",400)' : '=SUM(A1:B1)'],
         ['3', '4', '5'],
         ['=TRANSPOSE(A1:A2)', null, '6'],
       ],
@@ -109,6 +112,8 @@
       colHeaders: true,
       columnSorting: true,
       ariaTags,
+      wordWrap: !overflowing,
+      colWidths: overflowing ? 80 : undefined,
       layoutDirection: directionParam,
       comments: withComment,
       cell: withComment ? [{ row: 0, col: 2, comment: { value: 'A note' } }] : [],

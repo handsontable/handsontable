@@ -230,4 +230,17 @@ test.describe('formulas: the accessible description of a formula cell', { tag: [
     await expect(grid.cell(0, 2)).toHaveAttribute('data-ht-formula', `Formula: ${formula.slice(0, 120)}…`);
     await expect(grid.cell(0, 2)).toHaveText('81');
   });
+
+  test('the description adds nothing to what scrolls when the result is wider than its cell', async({ page, theme, bundle }) => {
+    const grid = new FormulasCellDescriptionPage(page, theme, bundle);
+
+    await grid.goto({ overflow: 'on', ariaTags: 'off' });
+
+    const without = await grid.scrollWidth();
+
+    await grid.goto({ overflow: 'on', ariaTags: 'on' });
+
+    await expect(grid.cell(0, 2)).toHaveAttribute('data-ht-formula', 'Formula: =REPT("x",400)');
+    expect(await grid.scrollWidth()).toBe(without);
+  });
 });
