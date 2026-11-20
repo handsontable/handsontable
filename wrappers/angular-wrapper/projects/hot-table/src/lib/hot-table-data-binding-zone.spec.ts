@@ -50,7 +50,8 @@ describe('HotTableComponent [data] binding that gives a new array on each change
   });
 
   /**
-   * Renders the host, then records the Angular zone state of every `updateData()` call the grid gets.
+   * Renders the host, then records the Angular zone state and the array of every `updateData()` call the
+   * grid gets.
    */
   function render(settings: GridSettings = {}) {
     fixture = TestBed.createComponent(NewArrayPerPassHostComponent);
@@ -60,34 +61,35 @@ describe('HotTableComponent [data] binding that gives a new array on each change
     const hot = fixture.componentInstance.hotTable.hotInstance;
     const updateData = hot.updateData.bind(hot);
     const updateDataZones: boolean[] = [];
+    const loadedArrays: unknown[] = [];
 
     jest.spyOn(hot, 'updateData').mockImplementation((...args: Parameters<typeof hot.updateData>) => {
       updateDataZones.push(NgZone.isInAngularZone());
+      loadedArrays.push(args[0]);
 
       return updateData(...args);
     });
 
-    return { updateDataZones };
+    return { updateDataZones, loadedArrays };
   }
 
   it('should run with zone change detection', () => {
-    expect(TestBed.inject(NgZone)).toBeInstanceOf(NgZone);
-    expect(TestBed.inject(NgZone).constructor.name).not.toBe('NoopNgZone');
+    expect(TestBed.inject(NgZone).run(() => NgZone.isInAngularZone())).toBe(true);
   });
 
   it('should load the new array once per pass and let the page settle', async() => {
-    const { updateDataZones } = render();
+    const { updateDataZones, loadedArrays } = render();
 
     fixture.autoDetectChanges();
     fixture.detectChanges();
     await fixture.whenStable();
 
     expect(fixture.componentInstance.passes).toBeLessThan(PASS_LIMIT);
-    // The first pass created the grid; each pass after it loads its new array once.
     expect(updateDataZones.length).toBeGreaterThanOrEqual(1);
+    // The first pass created the grid; each pass after it loads its new array once.
     expect(updateDataZones.length).toBe(fixture.componentInstance.passes - 1);
     expect(updateDataZones.every(inZone => !inZone)).toBe(true);
-    expect(fixture.componentInstance.hotTable.hotInstance.getData()).toEqual([[1, 2], [3, 4]]);
+    expect(loadedArrays[loadedArrays.length - 1]).toBe(fixture.componentInstance.rows);
   });
 
   it('should keep running a hook the settings input declares inside the Angular zone', async() => {
@@ -103,6 +105,7 @@ describe('HotTableComponent [data] binding that gives a new array on each change
     await fixture.whenStable();
 
     expect(fixture.componentInstance.passes).toBeLessThan(PASS_LIMIT);
+    expect(updateDataZones.length).toBeGreaterThanOrEqual(1);
     expect(updateDataZones.length).toBe(fixture.componentInstance.passes - 1);
     expect(hookZones.length).toBe(updateDataZones.length);
     expect(hookZones.every(inZone => inZone)).toBe(true);
