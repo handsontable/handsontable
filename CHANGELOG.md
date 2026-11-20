@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [18.1.3-rc1] - 2026-11-20
+## [18.1.3] - 2026-11-20
 
 ### Fixed
 - Fixed slow scrolling of grids with many custom borders. [#13908](https://github.com/handsontable/handsontable/pull/13908)
