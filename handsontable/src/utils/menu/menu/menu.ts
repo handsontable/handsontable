@@ -915,7 +915,7 @@ export class Menu {
 
     parentGrid.listen();
     // The sub-menu's grid took the focused cell with it; the anchor row's cell gets it back.
-    returnFocusToGrid(parentGrid);
+    returnFocusToGrid(parentGrid, this.container);
   }
 
   /**

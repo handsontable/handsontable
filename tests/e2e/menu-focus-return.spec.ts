@@ -77,6 +77,22 @@ test.describe('focus after a menu closes', () => {
     await expect(menu.cell(1, 1)).toBeFocused();
   });
 
+  test('Escape on a context menu opened with the mouse returns the focus to the cell', async() => {
+    await menu.openContextMenuByMouse(2, 2);
+    await menu.page.keyboard.press('Escape');
+
+    await expect(menu.menu(CONTEXT_MENU)).toBeHidden();
+    await expect(menu.cell(2, 2)).toBeFocused();
+  });
+
+  test('Escape on a column menu opened with the mouse returns the focus to the highlighted cell', async() => {
+    await menu.openDropdownMenuByMouse(1);
+    await menu.page.keyboard.press('Escape');
+
+    await expect(menu.menu(DROPDOWN_MENU)).toBeHidden();
+    await expect(menu.highlightedCell).toBeFocused();
+  });
+
   test('Escape in a submenu returns the focus to its row in the parent menu', async() => {
     await menu.openContextMenuAt(1, 1);
     await menu.openAlignmentSubmenuByKeyboard();

@@ -267,13 +267,15 @@ export function getItemCheckedState(
  *
  * Closing a menu destroys the menu's own grid together with the element that held the focus, so the
  * browser drops the focus to the document. A keyboard or screen reader user then loses their place
- * until the next key press. The focus moves only when it did fall to the document: a command that put
- * it on a real element (a comment editor, an outside field) keeps it. It does nothing for a grid that is
+ * until the next key press. The focus moves only when it fell to the document or sits on the closed menu's
+ * container: a command that put it on a real element (a comment editor, an outside field) keeps it. It does nothing for a grid that is
  * being destroyed or is detached from the page, and for a highlighted cell that is not rendered.
  *
  * @param {Core} hot The grid whose highlighted cell receives the focus.
+ * @param {HTMLElement} [menuContainer] The closed menu's container. A focus left on it counts as fallen to
+ * the document.
  */
-export function returnFocusToGrid(hot: HotInstance) {
+export function returnFocusToGrid(hot: HotInstance, menuContainer?: HTMLElement | null) {
   // `isDestroyed` turns true at the very end of `destroy()`, after the grid emptied its root. A menu
   // closed by that teardown reaches here with no cell left to focus, and the root is already detached.
   if (hot.isDestroyed || !hot.rootElement.isConnected) {
@@ -283,7 +285,12 @@ export function returnFocusToGrid(hot: HotInstance) {
   const { rootDocument } = hot;
   const activeElement = getDeepActiveElement(rootDocument);
 
-  if (activeElement && activeElement !== rootDocument.body) {
+  // A menu opened with the mouse leaves the focus on its container. The container is hidden and emptied
+  // on close but stays in the document, so the focus is still on it here: count that as fallen.
+  const fellToDocument = !activeElement || activeElement === rootDocument.body ||
+    (menuContainer?.contains(activeElement) ?? false);
+
+  if (!fellToDocument) {
     return;
   }
 

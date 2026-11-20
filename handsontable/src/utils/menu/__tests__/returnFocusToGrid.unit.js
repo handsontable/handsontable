@@ -58,6 +58,34 @@ describe('returnFocusToGrid', () => {
     expect(focusOnHighlightedCell).not.toHaveBeenCalled();
   });
 
+  it('should take the focus from the closed menu container', () => {
+    const { hot, cell, focusOnHighlightedCell } = createGrid();
+    const container = document.createElement('div');
+
+    container.tabIndex = -1;
+    document.body.appendChild(container);
+    container.focus();
+
+    expect(document.activeElement).toBe(container);
+
+    returnFocusToGrid(hot, container);
+
+    expect(focusOnHighlightedCell).toHaveBeenCalledWith(cell);
+  });
+
+  it('should leave the focus on an element outside the closed menu container', () => {
+    const { hot, focusOnHighlightedCell } = createGrid();
+    const container = document.createElement('div');
+    const input = document.createElement('input');
+
+    document.body.append(container, input);
+    input.focus();
+
+    returnFocusToGrid(hot, container);
+
+    expect(focusOnHighlightedCell).not.toHaveBeenCalled();
+  });
+
   it('should leave the focus on an element that holds it', () => {
     const { hot, focusOnHighlightedCell } = createGrid();
     const input = document.createElement('input');

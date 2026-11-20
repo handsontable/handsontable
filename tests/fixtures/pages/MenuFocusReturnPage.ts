@@ -90,6 +90,28 @@ export class MenuFocusReturnPage extends MenuSeparatorRolePage {
   }
 
   /**
+   * Open the context menu with a right click on a cell. The menu container takes the focus, not a menu
+   * cell, until a key moves the menu selection.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   */
+  async openContextMenuByMouse(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click({ button: 'right' });
+    await expect(this.menu(CONTEXT_MENU)).toBeVisible();
+  }
+
+  /**
+   * Open the column menu with a click on the dropdown button of a column header.
+   *
+   * @param {number} col The visual column index.
+   */
+  async openDropdownMenuByMouse(col: number): Promise<void> {
+    await this.grid.locator('.ht_clone_top .changeType').nth(col).click();
+    await expect(this.menu(DROPDOWN_MENU)).toBeVisible();
+  }
+
+  /**
    * Run a listener after the context menu hides that moves the focus to the outside field, the way
    * an application would.
    */

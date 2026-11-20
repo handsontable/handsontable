@@ -501,7 +501,7 @@ export class ContextMenu extends BasePlugin {
   #onMenuAfterClose = () => {
     this.hot.listen();
     // Before the hook, so a listener of `afterContextMenuHide` finds the focus on the cell, not on the body.
-    returnFocusToGrid(this.hot);
+    returnFocusToGrid(this.hot, this.menu?.container);
     this.hot.runHooks('afterContextMenuHide', this);
   };
 
