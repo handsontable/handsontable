@@ -39,6 +39,24 @@ test.describe('handsontable editor grid popup', { tag: [THEMES_TAG, CROSS_BROWSE
     await expect(field).not.toHaveAttribute('aria-activedescendant');
   });
 
+  test('tells how many rows the grid popup holds, its header row included', async() => {
+    await grid.goto();
+    await grid.openEditorAt(0, 0);
+
+    const popup = grid.gridPopup('A, row 1');
+    // The list is short enough to be drawn whole, so the last drawn row index is the row count.
+    const lastRowIndex = () => popup.getByRole('row').evaluateAll(
+      rows => Math.max(...rows.map(row => Number(row.getAttribute('aria-rowindex'))))
+    );
+
+    await expect(popup).toHaveAttribute('aria-rowcount', String(await lastRowIndex()));
+    expect(await lastRowIndex()).toBeGreaterThan(1);
+
+    // A draw after the open (the highlight moves) keeps the count.
+    await grid.page.keyboard.press('ArrowDown');
+    await expect(popup).toHaveAttribute('aria-rowcount', String(await lastRowIndex()));
+  });
+
   test('renames the grid for the next edited cell', async() => {
     await grid.goto();
     await grid.openEditorAt(0, 0);

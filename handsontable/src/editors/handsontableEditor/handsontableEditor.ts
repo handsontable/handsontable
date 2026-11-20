@@ -20,6 +20,7 @@ import {
   A11Y_EXPANDED,
   A11Y_GRID,
   A11Y_HASPOPUP,
+  A11Y_ROWCOUNT,
 } from '../../helpers/a11y';
 import { CELL_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
 
@@ -300,6 +301,7 @@ export class HandsontableEditor extends TextEditor {
       // Not through `aria-labelledby` pointing at the field: a combobox referenced that way lends the grid
       // its value (the typed text), not its name.
       setCellInputName(this.hot, listRoot, CELL_EDITOR_PHRASES, this.row ?? -1, this.col ?? -1);
+      this.#writeGridPopupRowCount();
     }
 
     this.htEditor.addHook('afterSelectionEnd', this.#onListSelectionEnd);
@@ -416,12 +418,28 @@ export class HandsontableEditor extends TextEditor {
    * may now show another row, or carry another id.
    */
   #onListRender = (): void => {
+    if (this.hot.getSettings().ariaTags && this.exposesGridPopup() && this.htEditor.getSettings().ariaTags) {
+      this.#writeGridPopupRowCount();
+    }
+
     const active = this.htEditor.getSelectedActive();
 
     if (active && this.#namesListItems()) {
       this.pointFieldAtListCell(active[0], active[1]);
     }
   };
+
+  /**
+   * Writes the number of rows the grid popup holds, its column header rows included, as `aria-rowcount`.
+   * The nested grid writes `-1` (unknown), as every grid does, and writes it again after a data load, so
+   * the count is written when the popup is wired and on every draw. A popup list is loaded whole, so its
+   * size is known, and a reader can say "row 2 of 6".
+   */
+  #writeGridPopupRowCount(): void {
+    const rowCount = this.htEditor.countRows() + this.htEditor.view.getColumnHeadersCount();
+
+    setAttribute(this.htEditor.rootElement, [A11Y_ROWCOUNT(rowCount)]);
+  }
 
   /**
    * Removes the `tabindex="-1"` the list's engine puts on its drawn cells (with its `ariaTags` on) and on
