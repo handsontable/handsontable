@@ -269,6 +269,16 @@ covering only one leaves the contract true on some grid sizes and false on other
 queue is held back, overlapping `clearCache` calls would otherwise pile the same row up and measure it once
 per copy.
 
+## The sweep reaches the last row
+
+`calculateAllRowsHeight()`'s `length` is the index of the LAST row, not the row count, so both checks that
+decide whether another chunk runs are `current <= length`. With `<`, a last row that a chunk would start on
+(`(countRows() - 1) % (CALCULATION_STEP + 1) === 0` from row 0, or the row right after `syncLimit`) was never
+measured by the sweep. That stayed hidden while the sweep only filled in empty heights, which a render fills
+too, and showed once a sweep had to overwrite a stale one (the measure owed to AutoColumnSize's sweep, below):
+the last of 256 rows kept 149 px against 49 px. Pinned by "measures the last row again when it starts a chunk
+of the row sweep" in `tests/e2e/auto-row-size-column-sweep.spec.ts`.
+
 ## One sweep at a time
 
 `calculateAllRowsHeight()` cancels any sweep still in flight before starting its own, through the

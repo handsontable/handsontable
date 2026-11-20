@@ -720,7 +720,8 @@ export class AutoRowSize extends BasePlugin {
 
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
-      if (current < length) {
+      // `length` is the index of the last row, so a chunk that would start on it still runs.
+      if (current <= length) {
         this.#idleSweepTimer = requestIdleTask(loop);
       } else {
         cancelIdleTask(this.#idleSweepTimer);
@@ -749,8 +750,8 @@ export class AutoRowSize extends BasePlugin {
 
       current = syncLimit + 1;
     }
-    // async
-    if (current < length) {
+    // async: `length` is the index of the last row, which the synchronous part may have stopped just before
+    if (current <= length) {
       if (idleTasksOnly) {
         this.#idleSweepTimer = requestIdleTask(loop);
       } else {

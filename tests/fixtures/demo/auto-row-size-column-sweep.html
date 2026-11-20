@@ -63,10 +63,11 @@
      * Builds a data set of short values with the long text in the given cells.
      *
      * @param {Array<[number, number]>} longCells The `[row, column]` pairs that hold the long text.
+     * @param {number} [rows] The number of rows.
      * @returns {string[][]}
      */
-    function buildData(longCells) {
-      const data = Array.from({ length: ROWS }, (_, row) => (
+    function buildData(longCells, rows = ROWS) {
+      const data = Array.from({ length: rows }, (_, row) => (
         Array.from({ length: COLUMNS }, (__, column) => `${row}-${column}`)
       ));
 
@@ -105,6 +106,15 @@
     window.loadLongTextInAnotherColumn = function() {
       hot.loadData(buildData([[250, 125]]));
       referenceHot.loadData(buildData([[250, 125]]));
+    };
+
+    /**
+     * Loads 256 rows with the long text in column 125 of the last one. AutoRowSize measures rows in chunks
+     * of 51, and 255 is a multiple of it, so the last row is the first of a chunk.
+     */
+    window.loadLongTextInLastRow = function() {
+      hot.loadData(buildData([[255, 125]], 256));
+      referenceHot.loadData(buildData([[255, 125]], 256));
     };
   </script>
 </body>

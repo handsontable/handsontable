@@ -12,6 +12,7 @@ type GridWindow = {
   hot: GridInstance,
   referenceHot: GridInstance,
   loadLongTextInAnotherColumn(): void,
+  loadLongTextInLastRow(): void,
 };
 
 /**
@@ -115,5 +116,12 @@ export class AutoRowSizeColumnSweepPage {
    */
   async loadLongTextInAnotherColumn(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as GridWindow).loadLongTextInAnotherColumn());
+  }
+
+  /**
+   * Loads 256 rows into both grids, with the long text in column 125 of the last row.
+   */
+  async loadLongTextInLastRow(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as GridWindow).loadLongTextInLastRow());
   }
 }

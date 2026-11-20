@@ -65,4 +65,16 @@ test.describe('AutoRowSize after the AutoColumnSize idle sweep', { tag: THEMES_T
     expect(await grid.columnWidth(125)).toBeGreaterThan(widthBefore);
     await expectRowHeightOfReference(ROW_BELOW_FOLD);
   });
+
+  test('measures the last row again when it starts a chunk of the row sweep', async() => {
+    // 256 rows: the sweep measures rows in chunks of 51 from row 0, so row 255 starts the sixth chunk.
+    const lastRow = 255;
+    const widthBefore = await grid.columnWidth(125);
+
+    await grid.loadLongTextInLastRow();
+    await grid.waitForSweepsToEnd();
+
+    expect(await grid.columnWidth(125)).toBeGreaterThan(widthBefore);
+    await expectRowHeightOfReference(lastRow);
+  });
 });
