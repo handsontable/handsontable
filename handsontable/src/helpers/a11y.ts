@@ -3,7 +3,6 @@ export const A11Y_TABINDEX = (val: number | string): [string, string | number] =
 export const A11Y_TREEGRID = (): [string, string] => ['role', 'treegrid'];
 export const A11Y_PRESENTATION = (): [string, string] => ['role', 'presentation'];
 export const A11Y_GRIDCELL = (): [string, string] => ['role', 'gridcell'];
-export const A11Y_GRIDCELL_BUTTON = (): [string, string] => ['role', 'gridcell button'];
 export const A11Y_ROWHEADER = (): [string, string] => ['role', 'rowheader'];
 export const A11Y_ROWGROUP = (): [string, string] => ['role', 'rowgroup'];
 export const A11Y_COLUMNHEADER = (): [string, string] => ['role', 'columnheader'];

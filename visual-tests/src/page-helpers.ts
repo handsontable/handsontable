@@ -341,8 +341,8 @@ export async function selectColumnHeaderByNameAndOpenMenu(
  * the capture, so the settle in `test-runner.ts` has nothing left to settle.
  *
  * The last header row is the one that always has exactly one cell per RENDERED column, whatever the
- * nesting above it. The corner cell is excluded by role — it carries `gridcell button` ("Select whole
- * grid"), not `columnheader`. Rendered, not total: the grid virtualizes, so this list starts at the
+ * nesting above it. The corner cell is excluded by role — it carries a plain `gridcell`, not
+ * `columnheader`. Rendered, not total: the grid virtualizes, so this list starts at the
  * first column in the viewport rather than at column 0, and {@link columnPositionOf} is what turns a
  * source column into a position inside it.
  */

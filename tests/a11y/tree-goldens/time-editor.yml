@@ -23,8 +23,8 @@
       - gridcell
       - gridcell
   - rowgroup:
-    - row "Select whole grid Event Start Required Required lenient Time Datetime":
-      - gridcell "Select whole grid"
+    - row "Event Start Required Required lenient Time Datetime":
+      - gridcell
       - columnheader "Event"
       - columnheader "Start"
       - columnheader "Required"
@@ -40,8 +40,8 @@
     - row "3":
       - rowheader "3"
   - rowgroup:
-    - row "Select whole grid":
-      - gridcell "Select whole grid"
+    - row:
+      - gridcell
   - rowgroup
   - textbox "Time, row 1": 09:30
 # portal
