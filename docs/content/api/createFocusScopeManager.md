@@ -25,7 +25,7 @@ angular:
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L133
+::: source-code-link https://github.com/handsontable/handsontable/blob/205a58e68133feae957490a509ec834b0c529443/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L133
 
 :::
 
@@ -47,7 +47,7 @@ Activates a specific scope.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L148
+::: source-code-link https://github.com/handsontable/handsontable/blob/205a58e68133feae957490a509ec834b0c529443/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L148
 
 :::
 
@@ -68,7 +68,7 @@ Deactivates a scope by its ID.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L187
+::: source-code-link https://github.com/handsontable/handsontable/blob/205a58e68133feae957490a509ec834b0c529443/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L187
 
 :::
 
@@ -91,7 +91,7 @@ triggered by the focus or click event.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L159
+::: source-code-link https://github.com/handsontable/handsontable/blob/205a58e68133feae957490a509ec834b0c529443/handsontable/handsontable/tmp/focusManager/scopeManager.ts#L159
 
 :::
 

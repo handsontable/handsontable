@@ -34,7 +34,7 @@ The map stores flags coerced to booleans, so a write of an unchanged flag is pro
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/translations/maps/hidingMap.ts#L20
+::: source-code-link https://github.com/handsontable/handsontable/blob/205a58e68133feae957490a509ec834b0c529443/handsontable/handsontable/tmp/translations/maps/hidingMap.ts#L20
 
 :::
 

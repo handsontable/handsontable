@@ -17,7 +17,7 @@ editLink: false
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/editorResizeObserver.ts#L111
+::: source-code-link https://github.com/handsontable/handsontable/blob/205a58e68133feae957490a509ec834b0c529443/handsontable/handsontable/tmp/plugins/comments/editorResizeObserver.ts#L111
 
 :::
 
@@ -33,7 +33,7 @@ Destroys the observer.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/editorResizeObserver.ts#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/205a58e68133feae957490a509ec834b0c529443/handsontable/handsontable/tmp/plugins/comments/editorResizeObserver.ts#L103
 
 :::
 
@@ -49,7 +49,7 @@ Starts observing the element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/editorResizeObserver.ts#L91
+::: source-code-link https://github.com/handsontable/handsontable/blob/205a58e68133feae957490a509ec834b0c529443/handsontable/handsontable/tmp/plugins/comments/editorResizeObserver.ts#L91
 
 :::
 
@@ -70,7 +70,7 @@ Sets the observed element.
 
 :::
 
-::: source-code-link https://github.com/handsontable/handsontable/blob/9d8a613501c474a23b771ad27343f76dd54df9d5/handsontable/handsontable/tmp/plugins/comments/editorResizeObserver.ts#L96
+::: source-code-link https://github.com/handsontable/handsontable/blob/205a58e68133feae957490a509ec834b0c529443/handsontable/handsontable/tmp/plugins/comments/editorResizeObserver.ts#L96
 
 :::
 
