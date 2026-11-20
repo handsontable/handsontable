@@ -17,7 +17,7 @@ interface StarRatingProps {
   emptyStarColor?: string;
 }
 
-function StarRating({ name, value = 0, starCount = 5, starColor = '#ffb400', emptyStarColor = '#d3d3d3' }: StarRatingProps) {
+function StarRating({ name, value = 0, starCount = 5, starColor = 'light-dark(#b45309, #ffb400)', emptyStarColor = 'light-dark(#8c8c8c, #6b6b6b)' }: StarRatingProps) {
   return (
     <div style={{ display: 'inline-flex', gap: '1px' }}>
       {Array.from({ length: starCount }, (_, i) => (

@@ -207,12 +207,9 @@
     },
     {
       "id": "menu-semantics",
-      "title": "Menu items have no menu parent, the highlighted item carries aria-selected, and a screen reader hears the context and column menus as a table, NVDA without the word menu, and VoiceOver's next item (VO+Right) moves along the table's row and out of the menu",
+      "title": "A screen reader hears the context and column menus as a table, NVDA without the word menu, and VoiceOver's next item (VO+Right) moves along the table's row and out of the menu",
       "tracker": "DEV-3491",
       "match": [
-        { "source": "axe", "axeIssues": ["menu-roles"] },
-        { "source": "checks", "checks": ["axe-discovery"], "rules": ["aria-required-parent", "aria-allowed-attr"] },
-        { "source": "checks", "checks": ["axe-discovery"], "kinds": ["axe-violation"], "rules": ["aria-required-children"], "where": ["^div\\.htMenu\\[role=\"menu\"\\]$"] },
         { "source": "reader", "kinds": ["token-missing"], "where": ["^open-context-menu$"] },
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["dropdown-menu", "filters-by-value", "filters-by-condition"], "where": ["^open-menu$"] },
         { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["context-menu-checkable", "rtl-dropdown-menu"], "where": ["^open-menu$"] },
@@ -389,10 +386,9 @@
     },
     {
       "id": "target-size",
-      "title": "Pagination and sheets bar buttons, links and checkboxes are smaller than 24 by 24 px, or sit closer than that to their neighbors",
+      "title": "Links and checkboxes are smaller than 24 by 24 px, or sit closer than that to their neighbors",
       "tracker": "DEV-3495",
       "match": [
-        { "source": "axe", "axeIssues": ["classic-target-size"] },
         { "source": "axe", "rules": ["target-size"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["target-size"] }
       ]
@@ -610,7 +606,9 @@
       "title": "Docs embeds have no frame title, custom renderer images have no text alternative, and some example fields have no label",
       "tracker": ["DEV-4020", "DEV-3492"],
       "match": [
-        { "source": "docs", "axeIssues": ["embed-frame-title", "example-image-alt", "example-unlabeled-fields"] }
+        { "source": "docs", "axeIssues": ["example-unlabeled-fields"] },
+        { "source": "docs", "rules": ["frame-title"], "where": ["^iframe"] },
+        { "source": "docs", "rules": ["image-alt"], "where": ["^img"] }
       ]
     },
     {

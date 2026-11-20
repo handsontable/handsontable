@@ -73,6 +73,6 @@ const buttonClickCallback = () => {
 
 <style>
 .c-red {
-  color: red;
+  color: light-dark(#c92a2a, #f87171);
 }
 </style>

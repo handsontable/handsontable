@@ -46,7 +46,7 @@ registerRenderer('profitRenderer', profitRenderer);
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
   styles: `example2-conditional-formatting .handsontable td.loss-cell {
-    color: #d81e2c;
+    color: #b0141f;
     font-weight: 600;
 }
 html[data-theme="dark"] example2-conditional-formatting .handsontable td.loss-cell {

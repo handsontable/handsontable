@@ -185,7 +185,7 @@ import { GridSettings, HotTableComponent, HotTableModule } from "@handsontable/a
             </ul>
           }
         </div>
-        <input id="filterField" type="text" placeholder="Filter" (keyup)="handleFilter($event)" />
+        <input id="filterField" type="text" placeholder="Filter" aria-label="Filter" (keyup)="handleFilter($event)" />
       </div>
     </div>
 

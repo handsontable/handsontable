@@ -47,6 +47,12 @@
 
   <div id="grid" data-testid="grid"></div>
 
+  <!--
+    Stands in for the rest of the host page after the grid. A keyboard user must be able to Tab out of
+    a locked grid and land here.
+  -->
+  <input id="after-field" data-testid="after-field" type="text" />
+
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
     // closing tag is split so the HTML parser does not end THIS script block.

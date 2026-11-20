@@ -51,26 +51,14 @@
   - rowgroup
   - textbox "Longer header text, row 1"
 # portal
-- menu:
-  - table:
-    - rowgroup:
-      - row "Insert column left":
-        - menuitem "Insert column left"
-      - row "Insert column right":
-        - menuitem "Insert column right"
-      - row:
-        - separator
-      - row "Remove column":
-        - menuitem "Remove column"
-      - row:
-        - separator
-      - row "Clear column":
-        - menuitem "Clear column"
-      - row:
-        - separator
-      - row "Read only":
-        - menuitemcheckbox "Read only"
-      - row:
-        - separator
-      - row "Alignment":
-        - menuitem "Alignment"
+- menu "Column menu":
+  - menuitem "Insert column left"
+  - menuitem "Insert column right"
+  - separator
+  - menuitem "Remove column"
+  - separator
+  - menuitem "Clear column"
+  - separator
+  - menuitemcheckbox "Read only"
+  - separator
+  - menuitem "Alignment"

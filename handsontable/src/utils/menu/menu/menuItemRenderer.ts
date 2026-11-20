@@ -23,6 +23,7 @@ import {
   A11Y_EXPANDED,
   A11Y_LABEL,
   A11Y_MENU_ITEM,
+  A11Y_PRESENTATION,
   A11Y_TABINDEX,
   A11Y_CHECKED,
   A11Y_SEPARATOR,
@@ -91,6 +92,13 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
 
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
+
+    // The menu is drawn with table markup, so the row between the menu and its items is taken out of
+    // the accessibility tree. Written on every render: the menu grid creates its rows lazily and
+    // reuses them. A cell rendered outside a row has no parent to mark.
+    if (mainTableHot.getSettings().ariaTags && TD.parentElement) {
+      setAttribute(TD.parentElement, [A11Y_PRESENTATION()]);
+    }
 
     if (mainTableHot.getSettings().ariaTags && isItemSeparator(item)) {
       removeAttribute(TD, SEPARATOR_DROPPED_ATTRIBUTES);

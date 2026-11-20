@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a column header label showing as selected text in Safari after the pointer left the page.",
+  "type": "fixed",
+  "issueOrPR": 14369,
+  "breaking": false,
+  "framework": "none"
+}

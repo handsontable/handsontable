@@ -1,7 +1,7 @@
 # Search plugin — finding values and marking the matches
 
 The `search` plugin runs a query over the data and marks matching cells. Read this before touching
-`search.ts` — it is one file, ~360 lines.
+`search.ts` — it is one file, ~500 lines.
 
 It **finds and marks; it does not filter, hide or scroll**. Everything the plugin does is: set
 `isSearchResult` on matching cell meta, and add a class in `beforeRenderer`.
@@ -39,7 +39,42 @@ The fix is `_persistedMetaProps`:
   `type`, all reset the cache. The plugin keeps no last query, so it cannot re-apply the results itself: the guide
   tells the user to call `query()` again, and `__tests__/typeChangeReset.unit.js` pins it.
 
-The set is created lazily — only matched cells pay for it.
+The set is created lazily — only matched cells pay for it. It is read as an **own** property only: an
+inherited set belongs to the column or grid layer, and a `delete` through the prototype chain would edit it.
+
+## `query()` stores meta for the matches only
+
+One `query()` used to call `getCellMeta()` twice per cell (once in `query()`, once in the default callback),
+which stored a meta object for every cell of the grid: +170 MB and about twice the time on 100k x 20, never
+released, because a meta object far from the viewport is not evicted. Three rules keep it bounded:
+
+- **`query()` reads meta through `getCellMetaTransient()`.** It resolves the same cascade, `cells()` and meta
+  hooks, so per-cell `search` overrides and the `cellProperties` handed to `queryMethod` are unchanged, but a
+  cell with no stored meta gets a temporary object. A `queryMethod` that writes to `cellProperties` loses the
+  write there; the option's JSDoc says so.
+- **`markSearchResult()` stores meta on a match only.** A non-match writes `false` to the meta it is given: a
+  stored meta keeps the flag, a temporary one drops it. So a non-matching cell with no stored meta reads
+  `isSearchResult` as `undefined`, not `false`, the same value a non-match reads after eviction; both are
+  falsy, which is all the renderer and the documented recipe test. `__tests__/queryMetaRetention.unit.js`
+  pins the exact values.
+- **The default callback is matched by identity.** When a cell resolves to `DEFAULT_CALLBACK`, `query()` calls
+  `markSearchResult()` with the meta it already read, so the cell is not read twice. `DEFAULT_CALLBACK` itself
+  still works when a user callback wraps it (`getCallback()`), reading the meta again through the same
+  no-store paths. A user callback that calls `getCellMeta()` on every cell still stores one per cell; the
+  JSDoc and the guide show the match-only form.
+
+Values are read per block of `QUERY_ROW_BLOCK_SIZE` rows, one column at a time, through the internal
+`_getDataAtColumnForRows()` (the bulk form of `getDataAtCell()`, same values). The cells are still tested and
+the callbacks called in row order, but a callback that writes data mid-query sees the values read at the start
+of its block. `performance-tests/scenarios/search-query` guards the time and fails a run that stores more than
+20000 meta objects.
+
+The value read follows `getDataAtCell()`, so it carries the data-read rule from `../../dataMap/metaManager/AGENTS.md`:
+unless `applyCellsToDataReads` is on, a `valueGetter` (or key/value cell type) supplied through `cells()` applies only
+to cells with stored meta. A query over a grid like that tests the raw value of an unstored cell and the getter's
+value of a stored one (rendered, or a match of an earlier query). Before, the first query stored meta for every cell,
+so later queries read every cell through the getter. Turn the option on for a consistent read; do not store meta here
+to get one.
 
 ## `queryMethod` is locale-aware, and must stay so
 
@@ -80,6 +115,7 @@ There is a standing `// TODO: #4972` on this handler.
 ## Testing
 
 - `npm run test:e2e --prefix handsontable -- --testPathPattern='search'`
+- `npm run test:unit --prefix handsontable -- --testPathPattern='plugins/search'`
 
 A change to the eviction interaction needs a spec that **scrolls away and back**, not just one that queries.
 

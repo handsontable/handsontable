@@ -17,26 +17,28 @@ const ExampleComponent = () => {
     ['Boron', 'B', 5, 10.81],
   ];
 
-  //  define your custom callback function
-  function searchResultCounter(_instance, _row, _col, _value, result) {
-    const DEFAULT_CALLBACK = function (instance, row, col, _data, testResult) {
-      instance.getCellMeta(row, col).isSearchResult = testResult;
-    };
-
-    DEFAULT_CALLBACK.apply(this, arguments);
-
-    if (result) {
-      setResultCounter((count) => count + 1);
-    }
-  }
-
   const handleKeyUp = (event) => {
-    setResultCounter(0);
-
     const search = hot4Ref.current?.hotInstance?.getPlugin('search');
-    const queryResult = search?.query(event.currentTarget.value);
+
+    if (!search) {
+      return;
+    }
+
+    // the default callback marks the matching cells, so they stay highlighted
+    const defaultCallback = search.getCallback();
+    let count = 0;
+
+    // pass your custom callback function: it calls the default callback and counts the matches
+    const queryResult = search.query(event.currentTarget.value, (instance, row, col, value, result) => {
+      defaultCallback(instance, row, col, value, result);
+
+      if (result) {
+        count++;
+      }
+    });
 
     console.log(queryResult);
+    setResultCounter(count);
 
     hot4Ref.current?.hotInstance?.render();
   };
@@ -45,7 +47,7 @@ const ExampleComponent = () => {
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <input id="search_field4" type="search" placeholder="Search" onKeyUp={handleKeyUp} />
+          <input id="search_field4" type="search" placeholder="Search" aria-label="Search" onKeyUp={handleKeyUp} />
         </div>
         <output className="console" id="output">
           {resultCount} results
@@ -57,10 +59,7 @@ const ExampleComponent = () => {
         data={data}
         colHeaders={['Name', 'Symbol', 'Atomic number', 'Atomic mass']}
         // enable the `Search` plugin
-        search={{
-          // add your custom callback function
-          callback: searchResultCounter,
-        }}
+        search={true}
         height="auto"
         autoWrapRow={true}
         autoWrapCol={true}

@@ -244,6 +244,7 @@ const ExampleComponent = () => {
         type="text"
         name="focusable-text-input"
         placeholder="Focusable top text input"
+        aria-label="Focusable top text input"
       />
 
       <Table hotTableRef={hotRef} data={data} />
@@ -253,6 +254,7 @@ const ExampleComponent = () => {
         type="text"
         name="focusable-text-input"
         placeholder="Focusable bottom text input"
+        aria-label="Focusable bottom text input"
       />
 
       <DebugInfo debugInfo={debugInfo} />

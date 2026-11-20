@@ -16,6 +16,9 @@ import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/a
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
+  styles: `example3-selection .handsontable td.c-red {
+    color: light-dark(#c92a2a, #f87171);
+}`,
   encapsulation: ViewEncapsulation.None
 })
 export class AppComponent {

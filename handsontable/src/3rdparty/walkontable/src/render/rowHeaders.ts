@@ -1,6 +1,6 @@
 import { SharedOrderView } from '../utils/orderView';
 import { BaseRenderer } from './_base';
-import { setAttribute, removeAttribute, removeInlineStyle } from '../../../../helpers/dom/element';
+import { removeInlineStyle } from '../../../../helpers/dom/element';
 import { clearAppliedSelection } from '../selection/appliedSelection';
 import {
   A11Y_COLINDEX,
@@ -8,6 +8,28 @@ import {
   A11Y_SCOPE_ROW,
   A11Y_TABINDEX
 } from '../../../../helpers/a11y';
+import { NO_KEPT_ARIA_ATTRIBUTES, syncAriaAttributes } from './ariaAttributes';
+import type { KeptAriaAttributes } from './ariaAttributes';
+
+const [ROLE, ROWHEADER] = A11Y_ROWHEADER();
+const [SCOPE, SCOPE_ROW] = A11Y_SCOPE_ROW();
+const COLINDEX = A11Y_COLINDEX(0)[0];
+const [TABINDEX, TABINDEX_VALUE] = A11Y_TABINDEX(-1);
+
+/**
+ * Lists the accessibility attributes of a row header, in the order a new element gets them.
+ *
+ * @param {number} visibleColumnIndex The row header level, counted from 0.
+ * @returns {KeptAriaAttributes}
+ */
+function getRowHeaderAriaAttributes(visibleColumnIndex: number): KeptAriaAttributes {
+  return {
+    [ROLE]: ROWHEADER,
+    [SCOPE]: SCOPE_ROW,
+    [COLINDEX]: String(visibleColumnIndex + 1),
+    [TABINDEX]: String(TABINDEX_VALUE),
+  };
+}
 
 /**
  * Row headers renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to TR.
@@ -67,6 +89,7 @@ export class RowHeadersRenderer extends BaseRenderer {
     // Same window as `CellsRenderer#render`, and it has to be: the two renderers share one order
     // view size set per TR, so a row skipped by one must be skipped by the other.
     const { paintFromRow } = this.table;
+    const ariaEnabled = this.table.isAriaEnabled();
 
     for (let visibleRowIndex = paintFromRow; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
@@ -100,20 +123,11 @@ export class RowHeadersRenderer extends BaseRenderer {
         clearAppliedSelection(TH);
         removeInlineStyle(TH);
 
-        // Remove all accessibility-related attributes for the header to start fresh.
-        removeAttribute(TH, [
-          /aria-(.*)/,
-          /role/
-        ]);
-
-        if (this.table.isAriaEnabled()) {
-          setAttribute(TH, [
-            A11Y_ROWHEADER(),
-            A11Y_SCOPE_ROW(),
-            A11Y_COLINDEX(visibleColumnIndex + 1),
-            A11Y_TABINDEX(-1)
-          ]);
-        }
+        // Clear the accessibility attributes the previous paint of this (recycled) header left and write
+        // the ones this draw gives it, each only when its value differs.
+        syncAriaAttributes(TH, ariaEnabled
+          ? getRowHeaderAriaAttributes(visibleColumnIndex)
+          : NO_KEPT_ARIA_ATTRIBUTES);
 
         rowHeaderFunctions[visibleColumnIndex](sourceRowIndex, TH, visibleColumnIndex);
       }

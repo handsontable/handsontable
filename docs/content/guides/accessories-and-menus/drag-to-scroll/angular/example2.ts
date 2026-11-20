@@ -37,7 +37,7 @@ for (let row = 0; row < 50; row++) {
   imports: [HotTableModule],
   template: `
     <div>
-      <div style="display:flex;gap:28px;flex-wrap:wrap;margin-bottom:16px;font:13px/1.4 sans-serif;color:#334155;">
+      <div style="display:flex;gap:28px;flex-wrap:wrap;margin-bottom:16px;font:13px/1.4 sans-serif;">
         <label style="display:flex;flex-direction:column;gap:4px;">
           <b style="font-family:monospace">interval.min: {{ intervalMin }} ms</b>
           <input type="range" min="10" max="200" step="10" [value]="intervalMin"

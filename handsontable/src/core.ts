@@ -9171,7 +9171,7 @@ export default function Core(
    *
    * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
    * is not exposed to third-party code or the published `.d.ts`. Built-in consumers reach it through a
-   * local internal type (see `HotInstanceInternal` in the ColumnSorting plugin). Do not add it to
+   * local internal type (see `HotInstanceInternal` in the ColumnSorting and Search plugins). Do not add it to
    * `HotInstance` - that would turn an implementation detail into a supported public API.
    *
    * @private

@@ -150,6 +150,16 @@ You can configure the value of the [`autoRowSize`](@/api/options.md#autorowsize)
 
 For more information, see our documentation for [rows](@/api/options.md#autorowsize) and [columns](@/api/options.md#autocolumnsize).
 
+### Size columns on large data sets
+
+[`autoColumnSize`](@/api/options.md#autocolumnsize) is on by default, and it reads every row of a column to find the widest value. On a large data set, that work grows with the number of rows.
+
+- By default, the grid measures 51 columns before the first paint. When those columns hold more than 1,000,000 cells (from 19,608 rows), it measures only the columns on screen before the first paint, at initialization and on [`loadData()`](@/api/core.md#loaddata). It measures the other columns in the background, so their widths are final shortly after the grid appears.
+- Until then, [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for those columns. A [`selectCell()`](@/api/core.md#selectcell) or [`scrollViewportTo()`](@/api/core.md#scrollviewportto) call made in that time measures the columns up to its target first.
+- A grid with [`autoRowSize`](@/api/options.md#autorowsize) on still measures all 51 columns first, so its rows never change height after the first paint.
+- To keep a set number of columns measured before the first paint, set `syncLimit`, for example `autoColumnSize: { syncLimit: 10 }`. The grid then measures those columns before the first paint, whatever the number of rows.
+- To skip the measurement entirely, set `autoColumnSize: false` and give the columns fixed widths with [`colWidths`](@/api/options.md#colwidths).
+
 ## Define the number of pre-rendered rows and columns
 
 You can explicitly specify the number of rows and columns to be rendered outside of the visible part of the table. Better results can be achieved by setting a lower number, as fewer elements get rendered in some cases. However, sometimes setting a larger number may also work well as fewer operations are being made on each scroll event. Fine-tuning these settings and finding the sweet spot may improve the feeling of your Handsontable implementation.

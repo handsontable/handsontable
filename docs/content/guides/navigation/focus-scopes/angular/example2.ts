@@ -14,6 +14,7 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
         type="text"
         name="focusable-text-input"
         placeholder="Focusable top text input"
+        aria-label="Focusable top text input"
       />
 
       <hot-table
@@ -26,6 +27,7 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
         type="text"
         name="focusable-text-input"
         placeholder="Focusable bottom text input"
+        aria-label="Focusable bottom text input"
       />
 
       <div class="debug-info">

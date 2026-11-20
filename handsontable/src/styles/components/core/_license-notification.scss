@@ -18,12 +18,16 @@
     // minimum width keeps the message readable; the slot container scrolls the excess.
     min-width: 300px;
 
+    // A link takes the bar's own text color and an underline. The theme's link color is 2.29:1 on horizon
+    // and 3.48:1 on classic against this background, under the 4.5:1 text needs (1.4.3), and the
+    // underline keeps it a link without relying on color (1.4.1).
     a {
       font-size: var(--ht-license-font-size);
-      color: var(--ht-link-color);
+      color: inherit;
+      text-decoration: underline;
 
       &:hover {
-        color: var(--ht-link-hover-color);
+        color: inherit;
       }
     }
   }

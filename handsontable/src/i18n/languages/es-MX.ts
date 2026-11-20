@@ -13,6 +13,8 @@ const dictionary = {
   [C.OK]: 'OK',
   [C.CANCEL]: 'Cancelar',
 
+  [C.CONTEXTMENU_LABEL]: 'Menú contextual',
+  [C.DROPDOWNMENU_LABEL]: 'Menú de columna',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insertar fila arriba',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Insertar fila abajo',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Insertar columna izquierda',
