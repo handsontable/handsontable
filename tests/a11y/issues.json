@@ -389,10 +389,9 @@
     },
     {
       "id": "target-size",
-      "title": "Pagination and sheets bar buttons, links and checkboxes are smaller than 24 by 24 px, or sit closer than that to their neighbors",
+      "title": "Links and checkboxes are smaller than 24 by 24 px, or sit closer than that to their neighbors",
       "tracker": "DEV-3495",
       "match": [
-        { "source": "axe", "axeIssues": ["classic-target-size"] },
         { "source": "axe", "rules": ["target-size"] },
         { "source": "checks", "checks": ["axe-discovery"], "rules": ["target-size"] }
       ]
