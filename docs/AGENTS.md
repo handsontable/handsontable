@@ -1242,11 +1242,17 @@ Unit tests: `src/lib/__tests__/headway-bell.test.mjs` (`npm run docs:test:plugin
 
 ## 2.23 Accessible pages
 
-A docs page is a page of the product: the weekly docs audit (`docs-a11y.yml`) scans every one with axe
-and the site checks, and the ledger files what it finds under the clusters of `tests/a11y/issues.json`.
-A content pull request is never scanned, so these rules are its only gate before that audit. The rule
-of page structure is class C14 of the accessibility skill's `references/classes.md` [C14]; the others
-are the grid's rules (the `handsontable-a11y` skill) as a page meets them.
+A docs page is a page of the product, but the weekly docs audit (`docs-a11y.yml`) scans only part of
+the site, with axe and the site checks (`tests/a11y/docs/pages.mjs`). It scans one variant of each
+guide page the docs visual suite lists (`docs/tests/paths.js`): the JavaScript one where the page has
+one. Every framework's variant is scanned only for the accessibility guide and the conformance report.
+The API reference and the recipes are scanned as one template each, through a few sample pages, and
+the site chrome in the states a reader opens. The React, Angular and Vue variants of the other guide
+pages and the other recipe pages are never scanned. The ledger files what the audit finds under the
+clusters of `tests/a11y/issues.json`. A pull request that changes only page content is not scanned, so
+these rules are its only gate before that audit, and the only gate at all for a page the audit skips.
+The rule of page structure is class C14 of the accessibility skill's `references/classes.md` [C14]; the
+others are the grid's rules (the `handsontable-a11y` skill) as a page meets them.
 
 - **One title per page and framework.** The JavaScript, React, Angular and Vue variants of a page each
   get a title of their own, and a title holds the page's main heading.

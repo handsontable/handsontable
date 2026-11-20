@@ -14,6 +14,9 @@ import {
 
 const committed = () => structuredClone(readSkillInputs(repoRoot()));
 const classOf = (inputs, id) => inputs.rules.classes.find(entry => entry.id === id);
+// A file path goes into a RegExp as literal text: every metacharacter is escaped, the backslash included, so a
+// Windows separator or a dot in a name cannot widen what the pattern matches.
+const escapeRegExp = text => text.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&');
 
 /**
  * Runs the checks on a copy of the committed inputs after a change, and asserts that a problem names what was planted.
@@ -160,10 +163,10 @@ test('every build rule names its classes, and every class names the file that ho
 test('the skill and its class table hold rules, not records: no task id and no date', () => {
   assertPlanted((inputs) => {
     inputs.skill += 'Fixed in DEV-1234.\n';
-  }, new RegExp(`${SKILL_FILE.replace(/[.]/g, '\\.')}:\\d+ names a task id \\(DEV-1234\\)`));
+  }, new RegExp(`${escapeRegExp(SKILL_FILE)}:\\d+ names a task id \\(DEV-1234\\)`));
   assertPlanted((inputs) => {
     inputs.classesDoc += 'Seen on 2026-11-17.\n';
-  }, new RegExp(`${CLASSES_FILE.replace(/[.]/g, '\\.')}:\\d+ holds a date \\(2026-11-17\\)`));
+  }, new RegExp(`${escapeRegExp(CLASSES_FILE)}:\\d+ holds a date \\(2026-11-17\\)`));
 });
 
 test('rules.json keeps its shape: ids, homes, criteria, strikes and the not-preventable list', () => {
