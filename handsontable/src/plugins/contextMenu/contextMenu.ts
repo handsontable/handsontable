@@ -9,6 +9,7 @@ import {
 } from '../../utils/menu/menu';
 import type { MenuAnchorRectProvider } from '../../utils/menu/menu';
 import { getDocumentOffsetByElement } from '../../utils/menu/utils';
+import { returnFocusToGrid } from '../../utils/menu/menu/utils';
 import type { PredefinedMenuItemKey, MenuItemConfig } from '../../utils/menu/types';
 import { eventTargetEl, hasClass, isHTMLElement } from '../../helpers/dom/element';
 import {
@@ -499,6 +500,8 @@ export class ContextMenu extends BasePlugin {
    */
   #onMenuAfterClose = () => {
     this.hot.listen();
+    // Before the hook, so a listener of `afterContextMenuHide` finds the focus on the cell, not on the body.
+    returnFocusToGrid(this.hot, this.menu?.container);
     this.hot.runHooks('afterContextMenuHide', this);
   };
 
