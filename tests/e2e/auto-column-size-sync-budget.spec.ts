@@ -213,11 +213,13 @@ test.describe('AutoColumnSize sync cell budget', { tag: THEMES_TAG }, () => {
 
   test('measures every column after the plugin is turned off and on during the sweep with no render', async() => {
     const reference = await grid.build({ ...GRID, settings: EXACT });
+    const referenceScrollWidth = await grid.scrollWidth();
 
     await grid.build(GRID, BUDGET, 'toggleAutoColumnSizeWithoutRender');
-    await grid.waitForSweepEnd();
 
-    expect(await grid.widths()).toEqual(reference.widths);
+    // Nothing here renders the grid, so the scroll range shows whether the plugin drew the widths it measured.
+    await expect.poll(() => grid.widths()).toEqual(reference.widths);
+    await expect.poll(() => grid.scrollWidth()).toBe(referenceScrollWidth);
   });
 
   test('measures the rows against exact widths when AutoRowSize is turned on during the sweep', async() => {

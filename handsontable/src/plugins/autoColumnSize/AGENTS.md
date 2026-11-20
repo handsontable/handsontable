@@ -209,9 +209,11 @@ hold it together:
   it has no `#sweepPendingColumns`, so `#cancelSweep()` and `#invalidateReMeasureSweep()` read the flag too: a
   disable and enable, a column insert, or a meta change before it ended left every column it had not reached
   without a width (scroll width 1979 px against 7697 px). A cancel owes a re-measure, as a re-measure sweep's
-  does. A disable and enable with no render in between pays it in the ready step of the enable
-  (`onGridReady()`, outside the init pass), which starts the re-measure sweep; the next render paid it before,
-  so a grid nobody rendered kept those columns without a width.
+  does. A disable and enable with no render in between pays it from an idle task the enable's ready step
+  schedules (`onGridReady()`, outside the init pass): it starts the re-measure sweep and renders. Only the next
+  render paid it before, so a grid nobody rendered kept those columns without a width; and a sweep started in
+  the step itself ended in its first chunk, which never draws, so the scroll range kept 1880 px against
+  7697 px. A render that comes first (an `updateSettings()`) pays the debt, and the task finds nothing owed.
 - **On a drawn grid the columns before the viewport are measured too** (`#countDrawnLeadingColumns()`). The
   scroll offset is their sum, so a `loadData()` on a grid scrolled sideways left them at the fallback width,
   the scroll range shrank, the browser clamped the offset, and the viewport moved to other columns. They follow

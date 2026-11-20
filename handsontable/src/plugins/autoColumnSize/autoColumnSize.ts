@@ -642,10 +642,13 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Starts the re-measure the plugin owes when it is turned on again on a built grid. A disable cuts a sweep
+   * Schedules the re-measure the plugin owes when it is turned on again on a built grid. A disable cuts a sweep
    * short and owes one (`#cancelSweep()`), and only the next render paid it, so a grid turned off and on with
-   * no render kept the columns the sweep had not reached at the fallback width. The `init` hook measures a
-   * grid that is being built.
+   * no render kept the columns the sweep had not reached at the fallback width. The re-measure starts from an
+   * idle task and renders, as the web-font re-measure is followed by a render: started here, a sweep that ends
+   * in its first chunk drew nothing, so the scroll range kept the fallback widths. A render that comes first
+   * (an `updateSettings()` renders after this step) pays the debt itself, and the task then finds nothing
+   * owed. The `init` hook measures a grid that is being built.
    *
    * @private
    */
@@ -654,11 +657,8 @@ export class AutoColumnSize extends BasePlugin {
 
     this.#reMeasureOnReadyStep = false;
 
-    if (
-      isAfterEnable && this.#reMeasureOwed && !this.isInitReadyStep() && this.hot.view.isVisible() &&
-      this.hot.countRows() > 0 && this.hot.countCols() > 0
-    ) {
-      this.#startReMeasureSweep();
+    if (isAfterEnable && this.#reMeasureOwed && !this.isInitReadyStep() && this.#sweepTask === null) {
+      this.#sweepTask = requestIdleTask(this.#payOwedReMeasure);
     }
   }
 
@@ -2063,6 +2063,24 @@ export class AutoColumnSize extends BasePlugin {
 
     // This render draws every width written so far.
     this.#widthsChangedSinceDraw = false;
+  };
+
+  /**
+   * Starts the re-measure owed since the plugin was turned on again (`onGridReady()`) and renders, so the scroll
+   * range takes the widths of a sweep that ends in its first chunk. The debt stays for the next render while the
+   * grid cannot be measured.
+   */
+  #payOwedReMeasure = () => {
+    this.#sweepTask = null;
+
+    if (
+      !this.#reMeasureOwed || !this.hot.view.isVisible() || this.hot.countRows() === 0 || this.hot.countCols() === 0
+    ) {
+      return;
+    }
+
+    this.#startReMeasureSweep();
+    this.hot.render();
   };
 
   /**
