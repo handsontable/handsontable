@@ -26,9 +26,9 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 19.0.0-rc3
+## 19.0.0-rc4
 
-Released on November 18th, 2026
+Released on November 20th, 2026
 
 For more information about this release, see:
 - [Documentation (19.0)](https://handsontable.com/docs/19.0)
@@ -129,6 +129,7 @@ For more information about this release, see:
 - React: Changed `useHotEditor` so `value` updates in the same render as `setValue`, and mounted React editors inherit the grid theme `color-scheme`. [#13376](https://github.com/handsontable/handsontable/pull/13376)
 - React: Changed `@handsontable/react-wrapper` to declare `react` and `react-dom` 18.0.0 or later as peer dependencies, matching the documented React 18 minimum. [#14009](https://github.com/handsontable/handsontable/pull/14009)
 - Angular: Changed the wrapper to build with Angular 22, which replaces the per-file type declarations with a single bundled types file, while the supported range stays Angular 16 to 22. [#13835](https://github.com/handsontable/handsontable/pull/13835)
+- Angular: Changed the `[data]` input to update the grid outside Angular's zone, like the `[settings]` input. A callback added with `addHook()` now runs outside the zone on a `[data]` change too, so async work it starts no longer triggers change detection by itself. [#14388](https://github.com/handsontable/handsontable/pull/14388)
 
 #### Deprecated
 - Deprecated writing past the last column of an object data source. A paste, `populateFromArray()`, or `setDataAtCell()` still adds a property named after the column index, which no column can display, and prints a one-time console warning; the write will be ignored in Handsontable 20.0.0. Use `setDataAtRowProp()` to write a field the grid shows no column for. [#13343](https://github.com/handsontable/handsontable/pull/13343)
