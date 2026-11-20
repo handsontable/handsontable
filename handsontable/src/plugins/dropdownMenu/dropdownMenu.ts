@@ -854,7 +854,7 @@ export class DropdownMenu extends BasePlugin {
    */
   #onMenuAfterClose() {
     this.hot.listen();
-    // Before the hook, so a listener that moves the focus elsewhere keeps it.
+    // Before the hook, so a listener of `afterDropdownMenuHide` finds the focus on the cell, not on the body.
     returnFocusToGrid(this.hot);
     this.hot.runHooks('afterDropdownMenuHide', this);
   }

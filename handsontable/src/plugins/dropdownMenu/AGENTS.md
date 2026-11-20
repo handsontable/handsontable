@@ -37,7 +37,7 @@ Pinned by `tests/e2e/menu-unresolved-key-warning.spec.ts` and `utils/menu/__test
 
 ## After the menu closes, `#onMenuAfterClose` refocuses the highlighted cell
 
-Opening the column menu selects the whole column, so the focus returns to the first cell of that column, not to the cell the shortcut was pressed on. The refocus runs before `afterDropdownMenuHide`. Rule and limits: `../../utils/menu/AGENTS.md`, "Closing a menu returns the browser focus to the grid".
+Opening the column menu selects the whole column, so the focus returns to the first cell of that column, not to the cell the shortcut was pressed on. The refocus runs before `afterDropdownMenuHide`, so a hook listener finds the focus on that cell. Rule and limits: `../../utils/menu/AGENTS.md`, "Closing a menu returns the browser focus to the grid".
 
 ## Where to look next
 

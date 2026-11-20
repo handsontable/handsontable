@@ -34,7 +34,7 @@ same from any spec that right-clicks a cell that is not fully visible in every a
 
 ## After the menu closes, `#onMenuAfterClose` refocuses the grid before the hide hook
 
-The browser focus falls to `document.body` when the menu's own grid is destroyed. `#onMenuAfterClose` calls `returnFocusToGrid()` right after `hot.listen()` and before `afterContextMenuHide`, so a hook listener that moves the focus still wins. The rule and its limits: `../../utils/menu/AGENTS.md`, "Closing a menu returns the browser focus to the grid".
+The browser focus falls to `document.body` when the menu's own grid is destroyed. `#onMenuAfterClose` calls `returnFocusToGrid()` right after `hot.listen()` and before `afterContextMenuHide`, so a hook listener finds the focus on the cell. The rule and its limits: `../../utils/menu/AGENTS.md`, "Closing a menu returns the browser focus to the grid".
 
 ## Where to look next
 

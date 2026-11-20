@@ -104,6 +104,29 @@ export class MenuFocusReturnPage extends MenuSeparatorRolePage {
   }
 
   /**
+   * Record, inside the `afterContextMenuHide` hook, the test id of the element that holds the focus.
+   */
+  async recordFocusAtContextMenuHide(): Promise<void> {
+    await this.page.evaluate(() => {
+      const win = window as unknown as {
+        hot: { addHook: (name: string, callback: () => void) => void };
+        focusAtHide?: string | null;
+      };
+
+      win.hot.addHook('afterContextMenuHide', () => {
+        win.focusAtHide = document.activeElement?.getAttribute('data-testid') ?? document.activeElement?.tagName;
+      });
+    });
+  }
+
+  /**
+   * What `recordFocusAtContextMenuHide()` recorded: the test id (or tag) of the focused element.
+   */
+  async focusAtContextMenuHide(): Promise<string | undefined> {
+    return this.page.evaluate(() => (window as unknown as { focusAtHide?: string }).focusAtHide);
+  }
+
+  /**
    * The grid's last selection range as `[row, col, row2, col2]`.
    */
   async selection(): Promise<number[] | undefined> {

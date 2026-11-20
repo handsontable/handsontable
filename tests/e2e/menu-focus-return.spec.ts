@@ -7,7 +7,9 @@ import { MenuFocusReturnPage, CONTEXT_MENU, DROPDOWN_MENU } from '../fixtures/pa
  * that grid together with the element that held the focus, so the browser drops the focus to the
  * document. A screen reader then announces the page, and a keyboard user loses their place until
  * the next key press. The cases open the menu and close it with keys, the way a screen reader user
- * does, and assert the focused element with `toBeFocused()`. The last three prove what the return
+ * does, and assert the focused element with `toBeFocused()`. Enter and Space run an item that leaves
+ * the focus on the document without the fix ("Insert row below", "Insert column right"): items such as
+ * "Insert row above" re-render the cell and focus it anyway. The last cases prove what the return
  * must leave alone: a focus the browser, a menu command or an application puts elsewhere.
  */
 test.describe('focus after a menu closes', () => {
@@ -31,8 +33,9 @@ test.describe('focus after a menu closes', () => {
     expect(await menu.editorOpened()).toBe(false);
   });
 
-  test('Enter on a context menu item returns the focus to the selected cell', async() => {
+  test('Enter on a context menu item that re-renders nothing returns the focus to the selected cell', async() => {
     await menu.openContextMenuAt(5, 5);
+    await menu.moveTo(CONTEXT_MENU, 'Insert row below');
     await menu.page.keyboard.press('Enter');
 
     await expect(menu.menu(CONTEXT_MENU)).toBeHidden();
@@ -44,14 +47,14 @@ test.describe('focus after a menu closes', () => {
     await menu.page.keyboard.press('Escape');
 
     await expect(menu.menu(DROPDOWN_MENU)).toBeHidden();
-    // Opening the column menu selects the whole column, so the highlighted cell is its first one.
-    await expect(menu.highlightedCell).toHaveText('B1');
+    // Opening the column menu selects the whole column, so the focus follows the highlighted cell.
     await expect(menu.highlightedCell).toBeFocused();
   });
 
   for (const key of ['Enter', 'Space']) {
     test(`${key} on a column menu item returns the focus to the selected cell`, async() => {
       await menu.openDropdownMenuAt(5, 5);
+      await menu.moveTo(DROPDOWN_MENU, 'Insert column right');
       await menu.page.keyboard.press(key);
 
       await expect(menu.menu(DROPDOWN_MENU)).toBeHidden();
@@ -100,6 +103,15 @@ test.describe('focus after a menu closes', () => {
 
     await expect(menu.menu(CONTEXT_MENU)).toBeHidden();
     await expect(menu.outside).toBeFocused();
+  });
+
+  test('a listener of the hide hook finds the focus on the cell', async() => {
+    await menu.recordFocusAtContextMenuHide();
+    await menu.openContextMenuAt(1, 1);
+    await menu.page.keyboard.press('Escape');
+
+    await expect(menu.menu(CONTEXT_MENU)).toBeHidden();
+    await expect.poll(() => menu.focusAtContextMenuHide()).toBe('cell-1-1');
   });
 
   test('a listener of the hide hook that moves the focus keeps it', async() => {

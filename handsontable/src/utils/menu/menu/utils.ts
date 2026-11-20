@@ -269,7 +269,7 @@ export function getItemCheckedState(
  * browser drops the focus to the document. A keyboard or screen reader user then loses their place
  * until the next key press. The focus moves only when it did fall to the document: a command that put
  * it on a real element (a comment editor, an outside field) keeps it. It does nothing for a grid that is
- * being destroyed or is detached from the page.
+ * being destroyed or is detached from the page, and for a highlighted cell that is not rendered.
  *
  * @param {Core} hot The grid whose highlighted cell receives the focus.
  */
@@ -287,5 +287,19 @@ export function returnFocusToGrid(hot: HotInstance) {
     return;
   }
 
-  hot.getFocusManager().focusOnHighlightedCell();
+  const highlight = hot.getSelectedRangeActive()?.highlight;
+
+  if (!highlight || highlight.row === null || highlight.col === null) {
+    return;
+  }
+
+  const cell = hot.getCell(highlight.row, highlight.col, true);
+
+  // A cell that is not rendered would make the focus manager wait for the next scroll and then take
+  // the focus, even from a field the user clicked in the meantime. The focus stays on the document.
+  if (!cell) {
+    return;
+  }
+
+  hot.getFocusManager().focusOnHighlightedCell(cell);
 }
