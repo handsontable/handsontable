@@ -56,8 +56,10 @@
 
     const COLUMNS = 130;
     const ROWS = 300;
-    // Wraps onto several lines at the default column width, and onto fewer once its column is measured.
-    const LONG_TEXT = 'A long text that wraps in a narrow column';
+    // Two lines once its column is measured, on every platform: the line break decides, not the font metrics,
+    // which leave a single line of this length one line on Linux and two on macOS. At the default column
+    // width each line wraps onto several.
+    const LONG_TEXT = 'A long text that wraps\nin a narrow column';
 
     /**
      * Builds a data set of short values with the long text in the given cells.

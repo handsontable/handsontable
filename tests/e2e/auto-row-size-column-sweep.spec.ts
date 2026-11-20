@@ -52,14 +52,10 @@ test.describe('AutoRowSize after the AutoColumnSize idle sweep', { tag: THEMES_T
   });
 
   test('draws a row in view at its measured height once the columns are measured', async() => {
-    // The long text fits on one line in its measured column here, so the reference is the one-line height.
     const { reference } = await grid.drawnRowHeaderHeights(ROW_IN_VIEW);
 
     await expect.poll(async() => (await grid.drawnRowHeaderHeights(ROW_IN_VIEW)).grid).toBe(reference);
-
-    const heights = await grid.rowHeights(ROW_IN_VIEW);
-
-    expect(heights.grid).toBe(heights.reference);
+    await expectRowHeightOfReference(ROW_IN_VIEW);
   });
 
   test('sizes the scroll range from the heights measured after the columns are measured', async() => {
