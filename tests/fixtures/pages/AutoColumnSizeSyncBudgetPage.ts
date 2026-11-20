@@ -45,6 +45,7 @@ interface FixtureHot {
   alter(action: string, index: number, amount: number): void;
   selectCell(row: number, column: number): void;
   render(): void;
+  selectCell(row: number, column: number): void;
   batch(wrappedOperations: () => void): void;
   suspendRender(): void;
   getFirstFullyVisibleColumn(): number | null;
@@ -224,6 +225,18 @@ export class AutoColumnSizeSyncBudgetPage {
 
       return probes;
     });
+  }
+
+  /**
+   * Selects a cell and then resumes the rendering a case held with `build(…, 'suspendRender')`.
+   */
+  async selectCellAndResumeRender(row: number, column: number): Promise<void> {
+    await this.page.evaluate(([visualRow, visualColumn]) => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      hot.selectCell(visualRow, visualColumn);
+      hot.resumeRender();
+    }, [row, column]);
   }
 
   /**

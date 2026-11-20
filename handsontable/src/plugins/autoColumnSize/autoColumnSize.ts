@@ -525,6 +525,14 @@ export class AutoColumnSize extends BasePlugin {
    */
   #scrollAfterResumedRender: { column: number, snapping: string | undefined } | null = null;
   /**
+   * `true` when a `syncViewport` sweep's idle chunk, or a measure before a scroll, wrote widths after the last
+   * render, so the engine still lays the columns out with the widths of an earlier draw: an idle chunk draws
+   * only at the end of the sweep, and a render held by `suspendRender()` waits for `resumeRender()`.
+   *
+   * @type {boolean}
+   */
+  #widthsChangedSinceDraw = false;
+  /**
    * The `useHeaders` option value as this plugin last applied it.
    *
    * Kept separately from the ghost table's own copy of the setting, which `#measureCellsWidth()`
@@ -1100,6 +1108,7 @@ export class AutoColumnSize extends BasePlugin {
           AutoColumnSize.CALCULATION_CELLS_BUDGET,
         );
         changedOnScreen = flushGhostTable();
+        this.#widthsChangedSinceDraw ||= syncViewport;
       } finally {
         this.#deferMergedCellsFit = false;
       }
@@ -1928,7 +1937,9 @@ export class AutoColumnSize extends BasePlugin {
    * @returns {number} The same column.
    */
   #onBeforeViewportScrollHorizontally = (visualColumn: number, snapping?: string | { value?: string }) => {
-    if (!this.#viewportSweepPending || visualColumn < 0 || this.hot.countRows() === 0) {
+    const mayLackDrawnWidths = this.#viewportSweepPending || this.#widthsChangedSinceDraw;
+
+    if (!mayLackDrawnWidths || visualColumn < 0 || this.hot.countRows() === 0) {
       return visualColumn;
     }
 
@@ -1942,13 +1953,20 @@ export class AutoColumnSize extends BasePlugin {
 
     if (hasMissingWidth) {
       this.#calculateColumnsWidth({ from: 0, to: lastColumn }, { from: 0, to: this.hot.countRows() - 1 }, () => false);
-      this.#fillOnlyRender = true;
-      this.hot.render();
+      this.#widthsChangedSinceDraw = true;
     }
 
-    // A render held by `suspendRender()` (a `batch()` included) runs only at `resumeRender()`, so this scroll is
-    // still computed from the widths of the last draw. It runs again after that render.
-    if (this.hot.isRenderSuspended() && (hasMissingWidth || this.#scrollAfterResumedRender !== null)) {
+    // Widths written since the last draw (measured here, or by an idle chunk) reach the scroll only through a
+    // render. A render held by `suspendRender()` (a `batch()` included) runs only at `resumeRender()`, so this
+    // scroll is still computed from the widths of the last draw, and it runs again after that render.
+    if (!this.#widthsChangedSinceDraw) {
+      return visualColumn;
+    }
+
+    this.#fillOnlyRender = true;
+    this.hot.render();
+
+    if (this.hot.isRenderSuspended()) {
       if (this.#scrollAfterResumedRender === null) {
         this.hot.addHookOnce('afterRender', this.#onAfterResumedRender);
       }
@@ -2006,6 +2024,9 @@ export class AutoColumnSize extends BasePlugin {
     if (!this.inProgress && this.#columnWidthsToRefresh.size > 0) {
       this.#refreshQueuedColumnsWidth();
     }
+
+    // This render draws every width written so far.
+    this.#widthsChangedSinceDraw = false;
   };
 
   /**

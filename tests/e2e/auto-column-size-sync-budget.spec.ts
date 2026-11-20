@@ -263,6 +263,20 @@ test.describe('AutoColumnSize sync cell budget', { tag: THEMES_TAG }, () => {
     });
   }
 
+  test('keeps a cell selected after a sweep that ended while the rendering was held in view', async() => {
+    // The sweep measured every column, but its closing render waits for `resumeRender()`, so the engine still
+    // lays the columns out with the widths of the first paint when the cell is selected.
+    await grid.build(GRID, BUDGET, 'suspendRender');
+    await grid.waitForSweepEnd();
+    await grid.selectCellAndResumeRender(0, 25);
+
+    await expect.poll(async() => {
+      const [first, last] = await grid.fullyVisibleColumns();
+
+      return first !== null && last !== null && first <= 25 && last >= 25;
+    }).toBe(true);
+  });
+
   for (const settings of [{ stretchH: 'all' }, { layoutDirection: 'rtl' }]) {
     test(`ends the sweep with the exact widths with ${JSON.stringify(settings)}`, async() => {
       const reference = await grid.build({ ...GRID, settings: { ...settings, ...EXACT } });

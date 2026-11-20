@@ -229,7 +229,12 @@ hold it together:
   left the scroll on fallback widths, and the selected cell left the view when the sweep ended. That costs the
   columns up to the target over every row, which is what the path without a budget paid in the constructor. A
   render held by `suspendRender()` (a `batch()` included) runs only at `resumeRender()`, so a scroll made then is
-  stored (`#scrollAfterResumedRender`) and run again from the next `afterRender`. An edit made while the sweep runs is
+  stored (`#scrollAfterResumedRender`) and run again from the next `afterRender`. Measured is not drawn: an idle
+  chunk writes widths and draws only at the end of the sweep, and a sweep that ends while the rendering is held
+  draws at `resumeRender()`. So the hook also renders, and stores the scroll when held, whenever
+  `#widthsChangedSinceDraw` is set (by a `syncViewport` idle chunk or the hook's own measure, cleared at the end of
+  `#onBeforeRender`), not only when it measured something itself. The flag is scoped to that sweep on purpose, so
+  the hook stays inert on every other grid. An edit made while the sweep runs is
   refreshed when it ends (`#refreshQueuedColumnsWidth()` waits for `inProgress`), and a column scrolled into
   view before the sweep reached it is measured by that render, synchronously, over every row (the visible
   pass fills every missing width), as for any grid wider than `syncLimit` before. Grids under the budget and
