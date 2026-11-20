@@ -101,6 +101,11 @@ const filteringAndSearchItems = [
     title: 'Highlight search matches',
     onlyFor: ['javascript', 'angular', 'react'],
   },
+  {
+    path: 'filtering-and-search/search-as-filter/search-as-filter',
+    title: 'Filter rows with a search box',
+    onlyFor: ['javascript', 'angular', 'react'],
+  },
 ];
 
 const themesItems = [
