@@ -13,7 +13,7 @@
     "arrow-down": "age 28 column 2 row bruno 28 lima",
     "arrow-left": "name bruno column 1 row bruno 28 lima",
     "arrow-up": "name alice column 1 row alice 34 oslo",
-    "into-column-header": "name column 2 row select whole grid name age city",
+    "into-column-header": "name column 2 row name age city",
     "back-to-cell": "name alice column 1 row alice 34 oslo",
     "into-row-header": "1 column 1 row 1",
     "back-from-row-header": "name alice column 1 row alice 34 oslo",
@@ -26,7 +26,7 @@
     "reselect-cell": "alice name alice column 1 row alice 34 oslo tree grid 4 columns 13 rows",
     "extend-range": "",
     "extend-range-again": "",
-    "up-to-header-for-sort": "name column 2 row select whole grid name age city",
+    "up-to-header-for-sort": "name column 2 row name age city",
     "sort-ascending": "sorted by name ascending",
     "sort-descending": "sorted by name descending"
   }
