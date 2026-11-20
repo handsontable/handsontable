@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Changed the `[data]` input to update the grid outside Angular's zone, like the `[settings]` input. This stops a page freeze when the binding gives a new array on every change-detection pass.",
+  "title": "Changed the `[data]` input to update the grid outside Angular's zone, like the `[settings]` input. A callback added with `addHook()` now runs outside the zone on a `[data]` change too, so async work it starts no longer triggers change detection by itself.",
   "type": "changed",
   "issueOrPR": 14388,
   "breaking": false,
