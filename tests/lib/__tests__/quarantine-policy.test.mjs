@@ -226,7 +226,7 @@ test('a run that saw no test fails, shard or not: Playwright would pass an empty
 
 // The specs that quarantine a test today, by file. A new quarantine adds its file here, so the whole-tree
 // count is reviewed with the quarantine itself; the ledger shows the entries.
-const QUARANTINED_SPECS = [];
+const QUARANTINED_SPECS = ['e2e/side-layout-slots.spec.ts'];
 
 test('the tree quarantines at most QUARANTINE_CAP tests, one test at a time: a sharded leg counts the cap per shard', () => {
   // The reporter counts the quarantined tests of the run it sees, and a leg that runs in shards
