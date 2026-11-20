@@ -15,6 +15,7 @@ import { AutoRowSizeColumnSweepPage } from '../fixtures/pages/AutoRowSizeColumnS
  * itself.
  */
 test.describe('AutoRowSize after the AutoColumnSize idle sweep', { tag: THEMES_TAG }, () => {
+  const ONE_LINE_ROW = 3;
   const ROW_IN_VIEW = 5;
   const ROW_BELOW_FOLD = 250;
   // The default column width the long text wraps in before its column is measured.
@@ -24,14 +25,16 @@ test.describe('AutoRowSize after the AutoColumnSize idle sweep', { tag: THEMES_T
 
   /**
    * Waits for the grid under test to store the row height the reference grid stores for the row. The
-   * reference must be a measured height, or two unmeasured rows would compare equal.
+   * reference row must be taller than a one-line row, so the comparison is about the wrapped text and not
+   * two default heights.
    *
-   * @param {number} row Visual row index.
+   * @param {number} row Visual row index of a row with the long text.
    */
   async function expectRowHeightOfReference(row: number): Promise<void> {
     const { reference } = await grid.rowHeights(row);
+    const { reference: oneLine } = await grid.rowHeights(ONE_LINE_ROW);
 
-    expect(reference).toEqual(expect.any(Number));
+    expect(reference).toBeGreaterThan(oneLine ?? Infinity);
     await expect.poll(async() => (await grid.rowHeights(row)).grid).toBe(reference);
   }
 
@@ -49,10 +52,42 @@ test.describe('AutoRowSize after the AutoColumnSize idle sweep', { tag: THEMES_T
   });
 
   test('draws a row in view at its measured height once the columns are measured', async() => {
+    // The long text fits on one line in its measured column here, so the reference is the one-line height.
     const { reference } = await grid.drawnRowHeaderHeights(ROW_IN_VIEW);
 
     await expect.poll(async() => (await grid.drawnRowHeaderHeights(ROW_IN_VIEW)).grid).toBe(reference);
-    await expectRowHeightOfReference(ROW_IN_VIEW);
+
+    const heights = await grid.rowHeights(ROW_IN_VIEW);
+
+    expect(heights.grid).toBe(heights.reference);
+  });
+
+  test('sizes the scroll range from the heights measured after the columns are measured', async() => {
+    await expectRowHeightOfReference(ROW_BELOW_FOLD);
+
+    // The rows are measured again in idle tasks, which overwrite heights the engine had drawn: without a
+    // render when they end, the scroll range keeps the old heights.
+    await expect.poll(async() => {
+      const heights = await grid.scrollHeights();
+
+      return heights.grid - heights.reference;
+    }).toBe(0);
+  });
+
+  test('measures the rows again once shown when the grid is hidden during the owed row measure', async() => {
+    const widthBefore = await grid.columnWidth(125);
+
+    await grid.hideGridWhenOwedRowMeasureStarts();
+    await grid.loadLongTextInAnotherColumn();
+    // The precondition: the grid was hidden while the measure ran, and the measure is over.
+    await expect.poll(() => grid.gridHidden()).toBe(true);
+    await grid.waitForSweepsToEnd();
+
+    await grid.showGrid();
+    await grid.waitForSweepsToEnd();
+
+    expect(await grid.columnWidth(125)).toBeGreaterThan(widthBefore);
+    await expectRowHeightOfReference(ROW_BELOW_FOLD);
   });
 
   test('measures a row below the fold again after loadData() once the columns are measured', async() => {

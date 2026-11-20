@@ -112,6 +112,30 @@
      * Loads 256 rows with the long text in column 125 of the last one. AutoRowSize measures rows in chunks
      * of 51, and 255 is a multiple of it, so the last row is the first of a chunk.
      */
+    /**
+     * Hides the grid under test from the render that starts AutoRowSize's measure owed to the column
+     * sweep, so that measure's idle tasks run on a hidden grid.
+     */
+    window.hideGridWhenOwedRowMeasureStarts = function() {
+      const autoRowSize = hot.getPlugin('autoRowSize');
+      const hide = function() {
+        if (autoRowSize.inProgress) {
+          hot.removeHook('afterRender', hide);
+          container.style.display = 'none';
+        }
+      };
+
+      hot.addHook('afterRender', hide);
+    };
+
+    /**
+     * Shows the grid under test again and renders it.
+     */
+    window.showGrid = function() {
+      container.style.display = '';
+      hot.render();
+    };
+
     window.loadLongTextInLastRow = function() {
       hot.loadData(buildData([[255, 125]], 256));
       referenceHot.loadData(buildData([[255, 125]], 256));

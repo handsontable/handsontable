@@ -704,6 +704,15 @@ export class AutoRowSize extends BasePlugin {
         return;
       }
 
+      // The grid was hidden after the sweep started (a tab switch): the ghost table measures inside the
+      // root element, so every row would be stored with a height of 0. The full recalculation is owed to
+      // the first render of the visible grid instead.
+      if (!this.hot.view.isVisible()) {
+        this.#abandonSweep();
+
+        return;
+      }
+
       try {
         this.calculateRowsHeight({
           from: current,
@@ -732,6 +741,12 @@ export class AutoRowSize extends BasePlugin {
         // table. The sweep ends without a render of its own, so nothing else would pick them up
         // until the next full render - which never comes on a grid the user only scrolls.
         this.#drainRowRefreshQueue();
+
+        // The measure owed to AutoColumnSize's sweep overwrote heights the engine had already drawn and
+        // sized the scroll range from, so it draws once when it ends.
+        if (idleTasksOnly) {
+          this.hot.render();
+        }
       }
     };
 
@@ -768,7 +783,7 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Puts the plugin back into a state the next render can recover from, after a measurement threw
-   * part way through a sweep.
+   * or the grid was hidden part way through a sweep.
    *
    * Without it `inProgress` stays `true` for the instance's life, which does more than leave the
    * heights half measured: `#drainRowRefreshQueue()` refuses to run while a sweep is in flight, so

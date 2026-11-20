@@ -13,6 +13,8 @@ type GridWindow = {
   referenceHot: GridInstance,
   loadLongTextInAnotherColumn(): void,
   loadLongTextInLastRow(): void,
+  hideGridWhenOwedRowMeasureStarts(): void,
+  showGrid(): void,
 };
 
 /**
@@ -116,6 +118,50 @@ export class AutoRowSizeColumnSweepPage {
    */
   async loadLongTextInAnotherColumn(): Promise<void> {
     await this.page.evaluate(() => (window as unknown as GridWindow).loadLongTextInAnotherColumn());
+  }
+
+  /**
+   * The scroll height of each grid's master holder, read in one evaluation.
+   *
+   * @returns {Promise<{ grid: number, reference: number }>}
+   */
+  async scrollHeights(): Promise<{ grid: number, reference: number }> {
+    return this.page.evaluate(() => {
+      const read = (testId: string) => {
+        const holder = document.querySelector(`[data-testid="${testId}"] .ht_master .wtHolder`);
+
+        if (!holder) {
+          throw new Error(`The master holder of "${testId}" is not rendered.`);
+        }
+
+        return holder.scrollHeight;
+      };
+
+      return { grid: read('grid'), reference: read('reference-grid') };
+    });
+  }
+
+  /**
+   * Hides the grid under test from the render that starts AutoRowSize's owed row measure.
+   */
+  async hideGridWhenOwedRowMeasureStarts(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as GridWindow).hideGridWhenOwedRowMeasureStarts());
+  }
+
+  /**
+   * Shows the grid under test again and renders it.
+   */
+  async showGrid(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as GridWindow).showGrid());
+  }
+
+  /**
+   * Whether the grid under test is hidden.
+   *
+   * @returns {Promise<boolean>}
+   */
+  async gridHidden(): Promise<boolean> {
+    return this.grid.evaluate(element => element.style.display === 'none');
   }
 
   /**
