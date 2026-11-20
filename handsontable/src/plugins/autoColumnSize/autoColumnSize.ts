@@ -69,10 +69,10 @@ type ColumnSamples = ReturnType<SamplesGenerator['generateSample']>;
  * autoColumnSize: {syncLimit: '40%'},
  * ```
  *
- * When `syncLimit` is not set, AutoRowSize is off, and the columns `syncLimit` covers by default hold more than
- * 1,000,000 cells (`AutoColumnSize.SYNC_CELLS_BUDGET`), only the columns on screen, and the columns their merged
- * cells span, are measured before the first paint, and the other columns are measured asynchronously. An explicit
- * `syncLimit` always measures its columns synchronously.
+ * At initialization and on `loadData()`, when `syncLimit` is not set, AutoRowSize is off, and the `syncLimit`
+ * columns (51 by default) times the rows exceed 1,000,000 cells (`AutoColumnSize.SYNC_CELLS_BUDGET`), only the
+ * columns on screen, and the columns their merged cells span, are measured before the first paint, and the other
+ * columns are measured asynchronously. An explicit `syncLimit` always measures its columns synchronously.
  *
  * The plugin uses {@link GhostTable} and {@link SamplesGenerator} for calculations.
  * First, {@link SamplesGenerator} prepares samples of data with its coordinates.
@@ -504,6 +504,20 @@ export class AutoColumnSize extends BasePlugin {
    */
   #fillOnlyRender = false;
   /**
+   * `true` while a sweep run with `syncViewport` has columns left for idle tasks. Its queue is fixed when it
+   * starts, so a cancel or a renumbering before it ends owes a re-measure, as a re-measure sweep's does.
+   *
+   * @type {boolean}
+   */
+  #viewportSweepPending = false;
+  /**
+   * `true` while the sweep of `init` or of `loadData()` starts: only those may leave the columns off screen
+   * to idle tasks. A call of the public methods measures every `syncLimit` column before it returns.
+   *
+   * @type {boolean}
+   */
+  #mayDeferOffScreenColumns = false;
+  /**
    * The `useHeaders` option value as this plugin last applied it.
    *
    * Kept separately from the ghost table's own copy of the setting, which `#measureCellsWidth()`
@@ -700,6 +714,12 @@ export class AutoColumnSize extends BasePlugin {
    * Calculates widths for visible columns in the viewport only.
    */
   calculateVisibleColumnsWidth(): void {
+    // One-shot: the render that ends a `syncViewport` sweep fills in widths. A render held by `suspendRender()`
+    // runs later, so the flag waits for it rather than for `render()` to return.
+    const fillOnly = this.#fillOnlyRender;
+
+    this.#fillOnlyRender = false;
+
     // Keep last column widths unchanged for situation when all rows was deleted or trimmed (pro #6)
     if (!this.hot.countRows()) {
       return;
@@ -714,7 +734,7 @@ export class AutoColumnSize extends BasePlugin {
 
     const pendingColumns = this.#sweepPendingColumns;
 
-    const overwriteCache = this.hot.forceFullRender && !this.#fillOnlyRender;
+    const overwriteCache = this.hot.forceFullRender && !fillOnly;
 
     const columnsRange = { from: firstVisibleColumn, to: lastVisibleColumn };
     const rowsRange = { from: 0, to: this.hot.countRows() - 1 };
@@ -827,8 +847,8 @@ export class AutoColumnSize extends BasePlugin {
       // A `syncLimit` the application set keeps its meaning: those columns are measured before this returns.
       // So does a grid that measures its rows: AutoRowSize measures them next, against these widths, and a
       // row in view measured against a fallback width would change its height when the sweep ends.
-      syncViewport: !this.#hasExplicitSyncLimit() && !this.hot.getPlugin('autoRowSize')?.enabled &&
-        syncCells > AutoColumnSize.SYNC_CELLS_BUDGET,
+      syncViewport: this.#mayDeferOffScreenColumns && !this.#hasExplicitSyncLimit() &&
+        !this.hot.getPlugin('autoRowSize')?.enabled && syncCells > AutoColumnSize.SYNC_CELLS_BUDGET,
     });
   }
 
@@ -1101,45 +1121,46 @@ export class AutoColumnSize extends BasePlugin {
         // missing widths: overwriting them would sample every column on screen again over the whole row
         // range, because the synchronous part's samples are dropped (see `recalculateAllColumnsWidth()`).
         this.#fillOnlyRender = true;
-
-        try {
-          this.hot.render();
-        } finally {
-          this.#fillOnlyRender = false;
-        }
+        this.hot.render();
       }
     };
 
     /**
      * Moves the queued columns that a merge spans, when the merge also spans a column measured already, to
-     * the head of what is left of the queue, and measures them. The width a merge needs from its first column
-     * subtracts the other spanned columns, so a fallback width there made a merge on screen too wide before
-     * the first paint, and the sweep then moved it.
+     * the head of what is left of the queue, and measures them, until no merge reaches another column or the
+     * synchronous part holds `lastSyncIndex` columns. The width a merge needs from its first column subtracts
+     * the other spanned columns, so a fallback width there made a merge on screen too wide before the first
+     * paint, and the sweep then moved it. The cap keeps a merge across the whole grid (a title row) from
+     * measuring more columns than the path without a budget does.
+     *
+     * @param {number} lastSyncIndex The number of columns the synchronous part may measure.
      */
-    const measureMergeSpans = () => {
-      const measured = new Set(columnQueue.slice(0, queueIndex));
-      const spanned = new Set<number>();
+    const measureMergeSpans = (lastSyncIndex: number) => {
+      const areas = this.#getMergedAreas().filter(({ colspan }) => colspan > 1);
+      let spannedCount = Infinity;
 
-      this.#getMergedAreas().forEach(({ col, colspan }) => {
-        if (colspan < 2) {
-          return;
-        }
+      while (areas.length > 0 && spannedCount > 0 && queueIndex < lastSyncIndex) {
+        const measured = new Set(columnQueue.slice(0, queueIndex));
+        const spanned = new Set<number>();
 
-        const columns = Array.from({ length: colspan }, (_, offset) => col + offset);
+        areas.forEach(({ col, colspan }) => {
+          const columns = Array.from({ length: colspan }, (_, offset) => col + offset);
 
-        if (columns.some(column => measured.has(column))) {
-          columns.forEach(column => !measured.has(column) && spanned.add(column));
-        }
-      });
+          if (columns.some(column => measured.has(column))) {
+            columns.forEach(column => !measured.has(column) && spanned.add(column));
+          }
+        });
 
-      const pending = columnQueue.slice(queueIndex);
-      const ordered = [
-        ...pending.filter(column => spanned.has(column)),
-        ...pending.filter(column => !spanned.has(column)),
-      ];
+        const pending = columnQueue.slice(queueIndex);
+        const ordered = [
+          ...pending.filter(column => spanned.has(column)),
+          ...pending.filter(column => !spanned.has(column)),
+        ];
 
-      columnQueue.splice(queueIndex, pending.length, ...ordered);
-      processChunk(spanned.size, Infinity);
+        columnQueue.splice(queueIndex, pending.length, ...ordered);
+        spannedCount = spanned.size;
+        processChunk(Math.min(spannedCount, lastSyncIndex - queueIndex), Infinity);
+      }
     };
 
     /**
@@ -1175,7 +1196,7 @@ export class AutoColumnSize extends BasePlugin {
           filledWidth += widthBeforeStretch(visualColumn);
         }
 
-        measureMergeSpans();
+        measureMergeSpans(lastSyncIndex);
         flushGhostTable();
       } finally {
         this.#deferMergedCellsFit = false;
@@ -1197,6 +1218,7 @@ export class AutoColumnSize extends BasePlugin {
       this.#finishSweep();
     } else if (syncViewport) {
       // No chunk runs now: on a grid this tall one chunk is about one column over every row.
+      this.#viewportSweepPending = true;
       this.#sweepTask = requestIdleTask(() => loop(true));
     } else {
       loop(false);
@@ -2011,7 +2033,7 @@ export class AutoColumnSize extends BasePlugin {
    * `updateSettings()` call made no progress.
    */
   #invalidateReMeasureSweep() {
-    if (this.#sweepPendingColumns === null) {
+    if (this.#sweepPendingColumns === null && !this.#viewportSweepPending) {
       return;
     }
 
@@ -2060,7 +2082,7 @@ export class AutoColumnSize extends BasePlugin {
       this.#sweepTask = null;
     }
 
-    if (this.#sweepPendingColumns !== null) {
+    if (this.#sweepPendingColumns !== null || this.#viewportSweepPending) {
       this.#reMeasureOwed = true;
     }
 
@@ -2074,6 +2096,7 @@ export class AutoColumnSize extends BasePlugin {
   #finishSweep() {
     this.inProgress = false;
     this.#sweepPendingColumns = null;
+    this.#viewportSweepPending = false;
     this.#sweepDrawPending = false;
     this.#sweepStaleColumns.clear();
   }
@@ -2097,7 +2120,7 @@ export class AutoColumnSize extends BasePlugin {
     this.#mergedCellsWidths.markRenumbered();
 
     if (!isFirstLoad) {
-      this.recalculateAllColumnsWidth();
+      this.#recalculateDeferringOffScreenColumns();
     }
   };
 
@@ -2350,9 +2373,23 @@ export class AutoColumnSize extends BasePlugin {
    */
   #onInit = () => {
     this.#cachedColumnHeaders = this.hot.getColHeader() as unknown[];
-    this.recalculateAllColumnsWidth();
+    this.#recalculateDeferringOffScreenColumns();
     this.#isInitialized = true;
   };
+
+  /**
+   * Runs `recalculateAllColumnsWidth()` for `init` and `loadData()`, the two sweeps that may leave the columns
+   * off screen of a grid past `SYNC_CELLS_BUDGET` to idle tasks.
+   */
+  #recalculateDeferringOffScreenColumns() {
+    this.#mayDeferOffScreenColumns = true;
+
+    try {
+      this.recalculateAllColumnsWidth();
+    } finally {
+      this.#mayDeferOffScreenColumns = false;
+    }
+  }
 
   /**
    * Queues cells whose formula results changed so their columns' widths are refreshed before

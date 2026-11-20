@@ -14,6 +14,13 @@ export interface SyncBudgetGrid {
 }
 
 /**
+ * Something a case does right after the constructor, in the same task, so it lands before the first idle
+ * chunk of the sweep.
+ */
+export type AfterBuild =
+  'toggleAutoColumnSize' | 'insertTwoColumnsAtStart' | 'selectCell0x25' | 'suspendRender';
+
+/**
  * What the constructor did: the visual columns it read cell meta for (the columns measured before the
  * first paint), every column's width, and the heights of the first ten rows, right after it returned.
  */
@@ -28,7 +35,17 @@ interface FixtureHot {
   getColWidth(column: number): number;
   loadData(data: unknown[][]): void;
   scrollViewportTo(options: { col: number; horizontalSnap?: 'start' | 'end' }): boolean;
-  getPlugin(name: string): { inProgress: boolean };
+  getPlugin(name: string): {
+    inProgress: boolean;
+    enablePlugin(): void;
+    disablePlugin(): void;
+    recalculateAllColumnsWidth(): void;
+  };
+  alter(action: string, index: number, amount: number): void;
+  selectCell(row: number, column: number): void;
+  render(): void;
+  suspendRender(): void;
+  resumeRender(): void;
   getRowHeight(row: number): number | undefined;
   getCellMetaTransient(row: number, column: number): unknown;
   rootElement: HTMLElement;
@@ -70,8 +87,8 @@ export class AutoColumnSizeSyncBudgetPage {
    * Builds the grid and reports what its constructor measured. `budget` replaces the plugin's synchronous
    * cell budget for this grid; leave it out to build with the plugin's own.
    */
-  async build(grid: SyncBudgetGrid, budget?: number): Promise<BuildResult> {
-    const result = await this.page.evaluate(({ spec, cellsBudget }) => {
+  async build(grid: SyncBudgetGrid, budget?: number, after?: AfterBuild): Promise<BuildResult> {
+    const result = await this.page.evaluate(({ spec, cellsBudget, then }) => {
       const win = window as unknown as FixtureWindow;
       const numeric = new Set(spec.numericColumns ?? []);
       const data = Array.from({ length: spec.rows }, (_, row) => Array.from({ length: spec.cols }, (__, col) => {
@@ -96,13 +113,36 @@ export class AutoColumnSizeSyncBudgetPage {
 
       win.buildGrid({ data, ...(columns ? { columns } : {}), ...spec.settings }, cellsBudget);
 
+      const widths = Array.from({ length: win.hot.countCols() }, (_, column) => win.hot.getColWidth(column));
+      const rowHeights = Array.from({ length: 10 }, (_, row) => win.hot.getRowHeight(row));
+      const plugin = win.hot.getPlugin('autoColumnSize');
+
+      switch (then) {
+        case 'toggleAutoColumnSize':
+          plugin.disablePlugin();
+          plugin.enablePlugin();
+          win.hot.render();
+          break;
+        case 'insertTwoColumnsAtStart':
+          win.hot.alter('insert_col_start', 0, 2);
+          break;
+        case 'selectCell0x25':
+          win.hot.selectCell(0, 25);
+          break;
+        case 'suspendRender':
+          win.hot.suspendRender();
+          break;
+        default:
+          break;
+      }
+
       return {
         constructorColumns: win.constructorColumns,
-        widths: Array.from({ length: win.hot.countCols() }, (_, column) => win.hot.getColWidth(column)),
+        widths,
         // The rows in view, read before anything after the constructor can measure them again.
-        rowHeights: Array.from({ length: 10 }, (_, row) => win.hot.getRowHeight(row)),
+        rowHeights,
       };
-    }, { spec: grid, cellsBudget: budget });
+    }, { spec: grid, cellsBudget: budget, then: after });
 
     await expect(this.page.getByTestId('grid').locator('.ht_master td').first()).toBeVisible();
 
@@ -117,6 +157,60 @@ export class AutoColumnSizeSyncBudgetPage {
       const { hot } = window as unknown as FixtureWindow;
 
       return Array.from({ length: hot.countCols() }, (_, column) => hot.getColWidth(column));
+    });
+  }
+
+  /**
+   * Calls the public `recalculateAllColumnsWidth()` and reports the visual columns it read cell meta for
+   * before it returned.
+   */
+  async recalculateAllColumnsWidth(): Promise<number[]> {
+    return this.page.evaluate(() => {
+      const { hot } = window as unknown as FixtureWindow;
+      const read = hot.getCellMetaTransient;
+      const readColumns = new Set<number>();
+
+      hot.getCellMetaTransient = (row: number, column: number) => {
+        readColumns.add(column);
+
+        return read(row, column);
+      };
+
+      try {
+        hot.getPlugin('autoColumnSize').recalculateAllColumnsWidth();
+      } finally {
+        hot.getCellMetaTransient = read;
+      }
+
+      return Array.from(readColumns).sort((a, b) => a - b);
+    });
+  }
+
+  /**
+   * Waits for the sweep to end, resumes the rendering a case held with `build(…, 'suspendRender')`, and
+   * reports how many cells the grid read cell meta for while the resumed render ran.
+   */
+  async resumeRenderAfterSweep(): Promise<number> {
+    await this.waitForSweepEnd();
+
+    return this.page.evaluate(() => {
+      const { hot } = window as unknown as FixtureWindow;
+      const read = hot.getCellMetaTransient;
+      let probes = 0;
+
+      hot.getCellMetaTransient = (row: number, column: number) => {
+        probes += 1;
+
+        return read(row, column);
+      };
+
+      try {
+        hot.resumeRender();
+      } finally {
+        hot.getCellMetaTransient = read;
+      }
+
+      return probes;
     });
   }
 

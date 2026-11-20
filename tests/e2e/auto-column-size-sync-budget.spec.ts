@@ -152,4 +152,123 @@ test.describe('AutoColumnSize sync cell budget', { tag: THEMES_TAG }, () => {
 
     expect(constructorColumns).toHaveLength(GRID.cols);
   });
+  test('measures no more columns for a merge than the path without a budget', async() => {
+    // A title row merged across the whole grid spans every column: measuring them all would make the budget
+    // useless, so the merge's columns stop at the `syncLimit` columns (51 with the default setting).
+    const titled: SyncBudgetGrid = {
+      ...GRID,
+      cols: 80,
+      values: [{ row: 0, col: 0, value: 'A title merged across every column of the grid' }],
+      settings: { mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 80 }] },
+    };
+    const reference = await grid.build({ ...titled, settings: { ...titled.settings, autoColumnSize: { syncLimit: 80 } } });
+    const { widths } = await grid.build(titled, BUDGET);
+
+    // MergeCells reads the meta of every merged cell itself, so the widths, not the columns read, show
+    // what was measured.
+    expect(widths.filter(width => typeof width === 'number').length).toBeLessThanOrEqual(51);
+
+    await grid.waitForSweepEnd();
+
+    expect(await grid.widths()).toEqual(reference.widths);
+  });
+
+  test('measures the columns of a merge that overlaps a merge on screen', async() => {
+    const overlapping: SyncBudgetGrid = {
+      ...GRID,
+      values: [
+        { row: 1, col: 4, value: 'x'.repeat(60) },
+        { row: 2, col: 8, value: 'y'.repeat(120) },
+      ],
+      settings: {
+        mergeCells: [
+          { row: 1, col: 4, rowspan: 1, colspan: 5 },
+          { row: 2, col: 8, rowspan: 1, colspan: 6 },
+        ],
+      },
+    };
+    const reference = await grid.build({ ...overlapping, settings: { ...overlapping.settings, ...EXACT } });
+    const { widths } = await grid.build(overlapping, BUDGET);
+    const onScreen = await grid.onScreenColumns();
+
+    // The second merge reaches the screen only through the first one's last column, which is off screen, and
+    // every column of both merges has its width before the first paint. (MergeCells reads the meta of the
+    // merged cells itself, so the columns read are no sign of a measure here.)
+    expect(onScreen).not.toContain(8);
+    expect(widths.slice(4, 14).filter(width => typeof width !== 'number')).toEqual([]);
+    expect(onScreen.map(column => widths[column])).toEqual(onScreen.map(column => reference.widths[column]));
+  });
+
+  test('measures every column after the plugin is turned off and on during the sweep', async() => {
+    const reference = await grid.build({ ...GRID, settings: EXACT });
+
+    await grid.build(GRID, BUDGET, 'toggleAutoColumnSize');
+
+    await expect.poll(() => grid.widths()).toEqual(reference.widths);
+  });
+
+  test('measures every column after columns are inserted during the sweep', async() => {
+    await grid.build({ ...GRID, settings: EXACT }, undefined, 'insertTwoColumnsAtStart');
+
+    const reference = await grid.widths();
+
+    await grid.build(GRID, BUDGET, 'insertTwoColumnsAtStart');
+
+    await expect.poll(() => grid.widths()).toEqual(reference);
+  });
+
+  test('does not sample the columns on screen again in a render resumed after the sweep', async() => {
+    await grid.build(GRID, BUDGET, 'suspendRender');
+
+    const probes = await grid.resumeRenderAfterSweep();
+
+    // The render that ends the sweep only fills in missing widths. Overwriting them would sample every
+    // column on screen over all 1000 rows.
+    expect(probes).toBeLessThan(GRID.rows);
+    await expect.poll(() => grid.staleDrawnColumns()).toEqual([]);
+  });
+
+  test('keeps recalculateAllColumnsWidth() synchronous for every column', async() => {
+    await grid.build(GRID, BUDGET);
+    await grid.waitForSweepEnd();
+
+    // Only `init` and `loadData()` may leave columns to idle tasks; the public method measures them all.
+    expect(await grid.recalculateAllColumnsWidth()).toHaveLength(GRID.cols);
+  });
+
+  test('draws a column selected during the sweep at its exact width once the sweep ends', async() => {
+    // The scroll to the column is computed from the widths the grid holds when it is made, so it can land
+    // short of the column; that is a documented trade of the budget. What must hold is that every column,
+    // the selected one included, ends with its exact width and is drawn with it.
+    const reference = await grid.build({ ...GRID, settings: EXACT });
+
+    await grid.build(GRID, BUDGET, 'selectCell0x25');
+    await grid.waitForSweepEnd();
+
+    expect(await grid.widths()).toEqual(reference.widths);
+    await expect.poll(() => grid.staleDrawnColumns()).toEqual([]);
+  });
+
+  for (const settings of [{ stretchH: 'all' }, { layoutDirection: 'rtl' }]) {
+    test(`ends the sweep with the exact widths with ${JSON.stringify(settings)}`, async() => {
+      const reference = await grid.build({ ...GRID, settings: { ...settings, ...EXACT } });
+      const { widths } = await grid.build({ ...GRID, settings }, BUDGET);
+      const onScreen = await grid.onScreenColumns();
+
+      expect(onScreen.map(column => widths[column])).toEqual(onScreen.map(column => reference.widths[column]));
+
+      await grid.waitForSweepEnd();
+
+      expect(await grid.widths()).toEqual(reference.widths);
+    });
+  }
+
+  test('takes the budget path from 19,608 rows of 51 columns, with the real budget', async() => {
+    // `(syncLimit + 1) × rows` over 1,000,000: 51 × 19,607 = 999,957 stays exact, 51 × 19,608 = 1,000,008 does not.
+    const exact = await grid.build({ rows: 19607, cols: 51 });
+    const budgeted = await grid.build({ rows: 19608, cols: 51 });
+
+    expect(exact.constructorColumns).toHaveLength(51);
+    expect(budgeted.constructorColumns.length).toBeLessThan(51);
+  });
 });

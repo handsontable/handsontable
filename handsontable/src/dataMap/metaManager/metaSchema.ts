@@ -807,12 +807,17 @@ export default (): Record<string, unknown> => {
      *
      * Using the [`colWidths`](#colWidths) option forcibly disables the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin.
      *
-     * When you don't set `syncLimit`, [`autoRowSize`](#autorowsize) is off, and the columns `syncLimit` covers by
-     * default hold more than 1,000,000 cells together (for example, 100,000 rows by 50 columns), the plugin measures only the columns on screen, and
-     * the columns their merged cells span, before the first paint. It measures the other columns in the
-     * background, and their widths are final when that work ends: until then,
-     * [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for them. Set `syncLimit` to keep
-     * its columns measured before the first paint, whatever the number of rows.
+     * On a tall grid, the first measure measures only the columns on screen (and the columns their merged cells
+     * span) before the first paint, and the other columns in the background. That happens at initialization and
+     * on [`loadData()`](@/api/core.md#loaddata), when all of these are true:
+     * - You don't set `syncLimit` in an object (with `autoColumnSize: true`, or unset, the plugin measures 51 columns).
+     * - [`autoRowSize`](#autorowsize) is off.
+     * - The measured columns times the rows exceed 1,000,000 cells (with 51 columns, from 19,608 rows).
+     *
+     * Until the background work ends, [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for
+     * an off-screen column, and a [`selectCell()`](@/api/core.md#selectcell) or
+     * [`scrollViewportTo()`](@/api/core.md#scrollviewportto) call made then scrolls by those widths. Set
+     * `syncLimit` to keep its columns measured before the first paint, whatever the number of rows.
      *
      * Read more:
      * - [Plugins: `AutoColumnSize`](@/api/autoColumnSize.md)

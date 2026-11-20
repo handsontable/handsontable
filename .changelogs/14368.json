@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Changed AutoColumnSize to measure only the columns on screen before the first paint when `syncLimit` is not set, AutoRowSize is off, and the default `syncLimit` columns hold more than 1,000,000 cells, which makes a 100,000 x 50 grid initialize about 2.8 times faster. The other columns are measured in the background, and until then `getColWidth()` returns the default width for them. Set `syncLimit` to keep the previous behavior.",
+  "title": "Changed AutoColumnSize to measure only the columns on screen before the first paint of a grid with more than 1,000,000 cells in its default `syncLimit` columns, no `syncLimit` set, and AutoRowSize off, so until the other columns are measured in the background, `getColWidth()`, `selectCell()`, and `scrollViewportTo()` use the default width for them.",
   "type": "changed",
   "issueOrPR": 14368,
   "breaking": false,

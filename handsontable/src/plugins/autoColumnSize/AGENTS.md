@@ -169,10 +169,13 @@ user sees, and an explicit `syncLimit` keeps its literal meaning.
 
 **The default split has a cell budget (`SYNC_CELLS_BUDGET`, 1,000,000 cells).** The synchronous part used to
 have a column cap and no cell cap, so a 100k × 50 grid sampled 5M cells, about 2.2 s, before the first paint.
-`calculateAllColumnsWidth()` now passes `syncViewport` to `#sweepColumns()` when `syncLimit` is NOT set
-(`#hasExplicitSyncLimit()`), AutoRowSize is not enabled, and `(syncLimit + 1) × rows` exceeds the budget. That sweep measures only the
+`calculateAllColumnsWidth()` now passes `syncViewport` to `#sweepColumns()` when the sweep is the one of `init`
+or `loadData()` (`#recalculateDeferringOffScreenColumns()` sets `#mayDeferOffScreenColumns`; the public
+`calculateAllColumnsWidth()`/`recalculateAllColumnsWidth()` keep measuring every `syncLimit` column before they
+return), `syncLimit` is NOT set (`#hasExplicitSyncLimit()`; an object without it resolves the limit to 0, so one
+column), AutoRowSize is not enabled, and `(syncLimit + 1) × rows` exceeds the budget. That sweep measures only the
 columns on screen before it returns (about 0.8 s on the same grid) and leaves every other column to idle tasks.
-The final widths are the same, because every column, early or late, samples the whole row range. Seven rules
+The final widths are the same, because every column, early or late, samples the whole row range. These rules
 hold it together:
 
 - **Before the first draw nothing is "on screen" yet.** `getFirstVisibleColumn()` is -1 inside the `init`
@@ -192,7 +195,16 @@ hold it together:
 - **The columns a merge on screen spans are measured with it** (`measureMergeSpans()` in `#sweepColumns()`). A
   multi-column merge needs from its first column the text's width less the other spanned columns, so with
   those at the fallback width the first column was drawn too wide (1076 px against 417 px in the probe) and
-  shrank when the sweep ended: an on-screen column that moved.
+  shrank when the sweep ended: an on-screen column that moved. The spans are followed to a fixed point (a merge
+  reaching the screen only through another merge's off-screen column counts), and capped at the `syncLimit`
+  columns: a title row merged across 100 columns would otherwise measure all 100 over every row before the first
+  paint. Past the cap the merge is drawn from fallback widths, as it was without a budget for columns past
+  `syncLimit`.
+- **The idle part of such a sweep is tracked (`#viewportSweepPending`).** Its queue is fixed when it starts and
+  it has no `#sweepPendingColumns`, so `#cancelSweep()` and `#invalidateReMeasureSweep()` read the flag too: a
+  disable and enable, a column insert, or a meta change before it ended left every column it had not reached
+  without a width (scroll width 1979 px against 7697 px). A cancel owes a re-measure, as a re-measure sweep's
+  does.
 - **No chunk runs in the caller.** The default sweep runs one `CALCULATION_CELLS_BUDGET` chunk synchronously
   after the exact part; on a grid this tall that is one more off-screen column over every row, so a
   `syncViewport` sweep goes straight to an idle task.
@@ -203,10 +215,13 @@ hold it together:
   `<col>`, so the rendered columns past the viewport's edge kept the fallback width the first paint gave
   them. A plain forced render is too much: it overwrites every on-screen width, and the synchronous part's
   samples were dropped (`recalculateAllColumnsWidth()`), so it re-walked every on-screen column over every row
-  from inside an idle task.
+  from inside an idle task. The flag is one-shot, consumed by `calculateVisibleColumnsWidth()`: a render the
+  application holds with `suspendRender()` runs at `resumeRender()`, after `render()` returned.
 - **Behavior a tall default grid gets now:** right after the constructor, `getColWidth()` of an off-screen
   column returns the fallback width until the idle sweep reaches it, so a `scrollViewportTo()` or
-  `selectCell()` to such a column computes its offset from that width. An edit made while the sweep runs is
+  `selectCell()` to such a column computes its offset from that width and can land short of it. Measuring the
+  missing widths in `beforeViewportScrollHorizontally` does not help: Walkontable reads column widths from
+  `ColumnUtils`, which a draw fills, so the scroll already under way uses the old ones. An edit made while the sweep runs is
   refreshed when it ends (`#refreshQueuedColumnsWidth()` waits for `inProgress`), and a column scrolled into
   view before the sweep reached it is measured by that render, synchronously, over every row (the visible
   pass fills every missing width), as for any grid wider than `syncLimit` before. Grids under the budget and
