@@ -1,4 +1,4 @@
-import { test, expect, BUNDLES_TAG } from '../fixtures/test';
+import { test, expect, BUNDLES_TAG, THEMES_TAG } from '../fixtures/test';
 import { FormulasCellDescriptionPage } from '../fixtures/pages/FormulasCellDescriptionPage';
 
 /**
@@ -8,7 +8,7 @@ import { FormulasCellDescriptionPage } from '../fixtures/pages/FormulasCellDescr
  * axe cannot see this, so each case reads the accessible name, and the first one asks Chromium's own
  * accessibility tree through the protocol.
  */
-test.describe('formulas: the accessible description of a formula cell', { tag: BUNDLES_TAG }, () => {
+test.describe('formulas: the accessible description of a formula cell', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => {
   test('a formula cell reads its value, then its formula, and its text stays the value', async({ page, theme, bundle }) => {
     const grid = new FormulasCellDescriptionPage(page, theme, bundle);
 
