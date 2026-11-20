@@ -191,7 +191,7 @@
           "alice"
         ]
       ],
-      "note": "Escape leaves the editor and the focus returns to the cell. Finding: NVDA and VoiceOver say nothing here on every browser (the committed goldens are empty)."
+      "note": "Escape leaves the editor and the focus returns to the cell, so the reader is expected to say the cell again. The committed goldens are empty until the screen reader run re-records them."
     },
     {
       "id": "open-context-menu",
