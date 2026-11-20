@@ -15,11 +15,10 @@ const MEASURED_TEXT_OVERFLOW: Record<string, number> = { main: 0, horizon: 4, cl
  * lists, so a label too long for the box gets a horizontal scroll, and when every label fits it is as
  * wide as the box.
  *
- * The list used to get that width from AutoColumnSize, which visited every listed value (reading its
- * cell meta and running `modifyAutoColumnSizeSeed`) each time the list got data, only to pick the
- * few labels it then measured. On a column with 100k distinct values that walk cost about 100 ms of
- * every menu opening. The list now picks the same labels from its own items, and measures again only
- * when its rows change.
+ * The list used to get that width from AutoColumnSize, which read every listed value's cell meta and
+ * data and ran `modifyAutoColumnSizeSeed` for it each time the list got data, only to pick the few
+ * labels it then measured. The list now picks the same labels from its own items, and measures again
+ * only when its rows change. The ghost tables inserted into the list count the measurements.
  *
  * The width is theme-dependent (the checkbox, the label gap and the cell padding), so the spec runs on
  * every theme and compares the column with the box and the label with its cell, never with a number.
@@ -27,7 +26,7 @@ const MEASURED_TEXT_OVERFLOW: Record<string, number> = { main: 0, horizon: 4, cl
  * the cell that clips it: a column too narrow clips the text without moving the label's edge.
  */
 test.describe('Filters — "filter by value" list width', { tag: THEMES_TAG }, () => {
-  test('sizes the list without visiting every listed value', async({ page, theme, bundle }) => {
+  test('sizes the list without the per-cell AutoColumnSize walk', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle, WIDTH_FIXTURE);
 
     await grid.goto('rows=2000');
@@ -112,6 +111,111 @@ test.describe('Filters — "filter by value" list width', { tag: THEMES_TAG }, (
         }).toBe(true);
       });
   }
+
+  for (const searchMode of ['show', 'apply']) {
+    test(`narrows back to the box when a search matches nothing (searchMode: ${searchMode})`,
+      async({ page, theme, bundle }) => {
+        const grid = new FiltersValueListPage(page, theme, bundle, WIDTH_FIXTURE);
+
+        await grid.goto(`long=last&searchMode=${searchMode}`);
+        await grid.openMenu('Name');
+
+        const opened = await grid.listWidth();
+
+        expect(opened.column).toBeGreaterThan(opened.box);
+
+        await grid.searchValues('nothing matches this');
+
+        await expect.poll(async() => {
+          const { scroll, box } = await grid.listWidth();
+
+          return scroll - box;
+        }).toBe(0);
+      });
+  }
+
+  test('does not measure again while a search keeps every row listed (searchMode: apply)',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle, WIDTH_FIXTURE);
+
+      await grid.goto('long=last&searchMode=apply');
+      await grid.openMenu('Name');
+
+      const measurements = await grid.listGhostTables();
+
+      // Every listed value contains an "a", so each keystroke hides and shows no row.
+      await grid.searchValues('a');
+      await grid.searchValues('');
+
+      expect(await grid.listGhostTables()).toBe(measurements);
+    });
+
+  test('measures the long label again when a column searched in apply mode is reopened',
+    async({ page, theme, bundle }) => {
+      const grid = new FiltersValueListPage(page, theme, bundle, WIDTH_FIXTURE);
+
+      await grid.goto('long=last&searchMode=apply');
+      await grid.openMenu('Name');
+      await grid.searchValues('Value 0');
+      await expect.poll(async() => {
+        const { column, box } = await grid.listWidth();
+
+        return column - box;
+      }).toBe(0);
+      await grid.confirmMenu();
+
+      // The reopened list holds every value again, the long one included.
+      await grid.openMenuWithKeyboard(0, 0);
+      await expect.poll(async() => {
+        const { column, box } = await grid.listWidth();
+
+        return column > box;
+      }).toBe(true);
+      expect(await grid.labelTextOverflow('Zz', { scrollTo: 'end', dir: 'ltr' }))
+        .toBeLessThanOrEqual(MEASURED_TEXT_OVERFLOW[theme]);
+    });
+
+  test('measures a value added while the menu was closed, once it opens again', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle, WIDTH_FIXTURE);
+
+    await grid.goto();
+    await grid.openMenuWithKeyboard(0, 0);
+    await grid.escapeMenu();
+
+    const measurements = await grid.listGhostTables();
+
+    // The keyboard path keeps the list alive while the menu is closed.
+    await grid.setCellValue(1, 0, 'Zz a value written while the menu was closed, too long for the list');
+
+    // A closed menu measures nothing: the list gets the new value, and measures it, when it opens again.
+    expect(await grid.listGhostTables()).toBe(measurements);
+
+    await grid.openMenuWithKeyboard(0, 0);
+    await expect.poll(async() => {
+      const { column, box } = await grid.listWidth();
+
+      return column > box;
+    }).toBe(true);
+  });
+
+  test('sizes each column\'s list on its own when the menus are opened by click', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle, WIDTH_FIXTURE);
+
+    await grid.goto('long=last');
+    await grid.openMenu('Name');
+
+    const wide = await grid.listWidth();
+
+    expect(wide.column).toBeGreaterThan(wide.box);
+
+    await grid.escapeMenu();
+    await grid.openMenu('City');
+
+    const narrow = await grid.listWidth();
+
+    expect(narrow.column).toBe(narrow.box);
+    expect(narrow.scroll).toBe(narrow.box);
+  });
 
   test('measures again when a web font loads while the menu is open', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle, WIDTH_FIXTURE);

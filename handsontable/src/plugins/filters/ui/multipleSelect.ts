@@ -389,10 +389,10 @@ export class MultipleSelectUI extends BaseUI {
 
         return Math.max(this.#contentWidth ?? 0, DEFAULT_COLUMN_WIDTH, minWidth);
       },
-      afterLoadData: this.#onListDataChange,
-      afterUpdateData: this.#onListDataChange,
-      afterHideRows: this.#markContentWidthStale,
-      afterUnhideRows: this.#markContentWidthStale,
+      afterLoadData: this.#onListDataLoad,
+      afterUpdateData: this.#onListDataUpdate,
+      afterHideRows: this.#onListRowsVisibilityChange,
+      afterUnhideRows: this.#onListRowsVisibilityChange,
       afterFontsLoad: this.#markContentWidthStale,
       beforeRender: this.#onListBeforeRender,
       // AutoColumnSize would visit every listed value to pick the labels it measures, on every data
@@ -519,8 +519,7 @@ export class MultipleSelectUI extends BaseUI {
   #measureContentWidth() {
     const itemsBox = this.#itemsBox;
 
-    // A hidden list measures nothing, so the width waits for a render of the visible list.
-    if (!itemsBox?.view.isVisible()) {
+    if (!itemsBox) {
       return;
     }
 
@@ -541,9 +540,10 @@ export class MultipleSelectUI extends BaseUI {
     });
     const samples = samplesGenerator.generateSample('col', { from: 0, to: itemsBox.countRows() - 1 }, 0);
 
-    // Nothing listed (or the search hides every row): keep the width, as AutoColumnSize does.
+    // Nothing listed (or the search hides every row): the column goes back to the box.
     if (samples.size === 0) {
       this.#contentWidthStale = false;
+      this.#setContentWidth(null);
 
       return;
     }
@@ -567,22 +567,41 @@ export class MultipleSelectUI extends BaseUI {
     }
 
     this.#contentWidthStale = false;
+    this.#setContentWidth(measuredWidth);
+  }
 
-    if (measuredWidth !== this.#contentWidth) {
-      this.#contentWidth = measuredWidth;
-      // The engine's column width cache only checks the column count, so a new width needs a drop.
-      itemsBox.view.invalidateColumnWidthCache();
+  /**
+   * Stores the width the list's labels need and drops the engine's column width cache when it changed:
+   * the cache only checks the column count, so a new width is invisible to it.
+   *
+   * @param {number|null} width The width in pixels, or `null` for "as wide as the box".
+   */
+  #setContentWidth(width: number | null) {
+    if (width !== this.#contentWidth) {
+      this.#contentWidth = width;
+      this.#itemsBox?.view.invalidateColumnWidthCache();
     }
   }
 
   /**
-   * Keeps the array the list was loaded with, and marks the width for a new measurement when it lists
-   * other rows. `update()` reloads the same items on every menu render, so only a change of length or
-   * of an item counts: comparing the references costs far less than measuring.
+   * Keeps the array the list was loaded with and marks the width for a new measurement. A data load
+   * also resets the rows the search hid, without a hide hook that reports a change.
    *
    * @param {Array} sourceData The array the list grid reads its rows from.
    */
-  #onListDataChange = (sourceData: unknown[]) => {
+  #onListDataLoad = (sourceData: unknown[]) => {
+    this.#listedItems = sourceData;
+    this.#contentWidthStale = true;
+  };
+
+  /**
+   * Keeps the array the list was updated with, and marks the width for a new measurement when it lists
+   * other rows. `update()` hands the same items over on every menu render, so only a change of length
+   * or of an item counts: comparing the references costs far less than measuring.
+   *
+   * @param {Array} sourceData The array the list grid reads its rows from.
+   */
+  #onListDataUpdate = (sourceData: unknown[]) => {
     const previousItems = this.#listedItems;
 
     this.#listedItems = sourceData;
@@ -594,7 +613,24 @@ export class MultipleSelectUI extends BaseUI {
   };
 
   /**
-   * Marks the width for a new measurement: the search hid or showed rows, or a web font loaded.
+   * Marks the width for a new measurement when the search really hid or showed rows. A call that hid
+   * or showed nothing (every keystroke of a search that matches every row) leaves it alone.
+   *
+   * @param {number[]} currentHideConfig The rows hidden before the call.
+   * @param {number[]} destinationHideConfig The rows hidden after the call.
+   * @param {boolean} actionPossible Whether the call was valid.
+   * @param {boolean} stateChanged Whether the set of hidden rows changed.
+   */
+  #onListRowsVisibilityChange = (
+    currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean
+  ) => {
+    if (stateChanged) {
+      this.#contentWidthStale = true;
+    }
+  };
+
+  /**
+   * Marks the width for a new measurement after a web font loaded.
    */
   #markContentWidthStale = () => {
     this.#contentWidthStale = true;
