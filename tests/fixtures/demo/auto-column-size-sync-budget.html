@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AutoColumnSize sync cell budget e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back.
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    One auto-sized grid that each case rebuilds. `buildGrid()` can lower the plugin's synchronous cell
+    budget, so a small grid takes the path a tall one takes by default, and it records which visual
+    columns the constructor read cell meta for: those are the columns measured before the first paint.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const AutoColumnSize = Handsontable.plugins.AutoColumnSize;
+    const defaultBudget = Object.getOwnPropertyDescriptor(AutoColumnSize, 'SYNC_CELLS_BUDGET');
+    let recording = false;
+    let readColumns = new Set();
+
+    window.constructorColumns = [];
+
+    // Records the columns the grid reads cell meta for while `new Handsontable()` runs, and only then.
+    Handsontable.hooks.add('beforeInit', function() {
+      const read = this.getCellMetaTransient;
+
+      this.getCellMetaTransient = (row, column) => {
+        if (recording) {
+          readColumns.add(column);
+        }
+
+        return read(row, column);
+      };
+    });
+
+    /**
+     * Builds a grid with the given settings. A `budget` replaces `AutoColumnSize.SYNC_CELLS_BUDGET` for this
+     * grid; leaving it out restores the plugin's own value.
+     */
+    window.buildGrid = (settings, budget) => {
+      const container = document.querySelector('#grid');
+
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      if (budget !== undefined) {
+        Object.defineProperty(AutoColumnSize, 'SYNC_CELLS_BUDGET', { configurable: true, get: () => budget });
+      } else if (defaultBudget) {
+        Object.defineProperty(AutoColumnSize, 'SYNC_CELLS_BUDGET', defaultBudget);
+      }
+
+      container.className = `ht-theme-${window.htTheme}`;
+      readColumns = new Set();
+      recording = true;
+
+      try {
+        window.hot = new Handsontable(container, {
+          colHeaders: true,
+          rowHeaders: true,
+          width: 600,
+          height: 300,
+          licenseKey: window.htTestLicenseKey,
+          ...settings,
+        });
+      } finally {
+        recording = false;
+      }
+
+      window.constructorColumns = Array.from(readColumns).sort((a, b) => a - b);
+    };
+
+    try {
+      window.buildGrid({ data: [['', '']] });
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>
