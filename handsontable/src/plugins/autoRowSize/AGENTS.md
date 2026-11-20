@@ -279,18 +279,33 @@ to decide whether the refresh queue is safe to drain. Entry points that can over
 `#onAfterLoadData`, the column-resize gesture, an explicit `recalculateAllRowsHeight()`, and now a
 `clearCache()` that schedules one.
 
-## A web font re-measures the rows twice when the columns are still widening (DEV-199)
+## The rows are measured again when AutoColumnSize's idle sweep ends
 
-`#onAfterFontsLoad` runs `recalculateAllRowsHeight()` right away, after AutoColumnSize's listener (both register
-`afterFontsLoad` with the same order index, and AutoColumnSize enables first). That listener measures one chunk of
-columns and leaves the rest to idle tasks, so the rows are measured against columns still at their fallback-font
-widths: text wraps more in them, and the rows outside the rendered band keep the extra height, since a render
-measures only the band. When AutoColumnSize's sweep is still running, `#rowsOwedToColumnSweep` is set, and the first
-`#onBeforeRender` of a visible grid that finds the sweep over schedules a full recalculation. AutoColumnSize draws
-once when its sweep ends, so that render comes by itself. The check reads `getPlugin('autoColumnSize').inProgress`,
-the plugin's public field, and a sweep AutoColumnSize restarts in the same render reads as still running, because
-its `beforeRender` listener runs first. Pinned by "measures the rows again once the column re-measure ends" in
-`tests/e2e/web-font-load.spec.ts`.
+AutoColumnSize measures some columns before its listener returns and leaves the rest to idle tasks, and this
+plugin measures every row right after, against the widths those columns have then. Text wraps more in a
+column that has not been measured yet, so a row is stored taller than it is, and the rows outside the rendered
+band keep the extra height for good, since a render measures only the band. Three entry points hit it, and all
+three go through `#recalculateAllRowsOwingColumnSweep()`:
+
+- **`init` and `loadData()`** (`#onInit`, `#onAfterLoadData`). On a grid with this plugin, AutoColumnSize keeps
+  its exact path, which still measures only `syncLimit` columns and one chunk (about 102 columns by default) and
+  sends the rest to idle tasks at the default width. A row with a long text in column 120 stayed 149 px tall
+  against 49 px on the exact path, after both sweeps ended and after any later render.
+- **A web font** (`#onAfterFontsLoad`, DEV-199), after AutoColumnSize's listener (both register `afterFontsLoad`
+  with the same order index, and AutoColumnSize enables first). That listener measures one chunk of columns and
+  leaves the rest at their fallback-font widths.
+
+The helper measures the rows at once and sets `#rowsOwedToColumnSweep` while AutoColumnSize's sweep is still
+running; the first `#onBeforeRender` of a visible grid that finds the sweep over schedules a full
+recalculation. The render comes by itself: AutoColumnSize draws when a re-measure sweep ends (the font path),
+and when any other sweep ends on a grid with this plugin enabled (a fill-only render, see "A grid with
+AutoRowSize enabled keeps the exact path" in `../autoColumnSize/AGENTS.md`). Both halves are needed: without
+the flag the render measures only the band, and without the render the flag waits for one that may never
+come. The check reads `isReMeasurePending()` (the public `inProgress` field, or a re-measure AutoColumnSize owes
+its next render), and a sweep AutoColumnSize restarts in the same render reads as still running, because its
+`beforeRender` listener runs first. Pinned by `tests/e2e/auto-row-size-column-sweep.spec.ts`, which compares
+the heights with a grid that measures every column before `init` returns, and by "measures the rows again once
+the column re-measure ends" in `tests/e2e/web-font-load.spec.ts`.
 
 ## Listeners stay bound while disabled — deliberately
 

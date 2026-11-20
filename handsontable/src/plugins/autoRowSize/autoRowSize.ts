@@ -387,10 +387,11 @@ export class AutoRowSize extends BasePlugin {
    */
   #fullRecalculationScheduled = false;
   /**
-   * `true` when a font re-measure measured the rows while AutoColumnSize was still re-measuring the columns
-   * in idle tasks. The columns it had not reached kept their fallback-font widths, so the text wrapped more
-   * in them, and the rows outside the rendered band kept the extra height. The first render of a visible
-   * grid after that sweep ends schedules a full recalculation.
+   * `true` when the rows were measured (at init, after `loadData()`, or after a web font loaded) while
+   * AutoColumnSize was still measuring columns in idle tasks. The columns it had not reached kept their
+   * default or fallback-font widths, so the text wrapped more in them, and the rows outside the rendered
+   * band kept the extra height. The first render of a visible grid after that sweep ends schedules a full
+   * recalculation; AutoColumnSize renders once its sweep ends on a grid with this plugin enabled.
    *
    * @type {boolean}
    */
@@ -1374,8 +1375,7 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    this.recalculateAllRowsHeight();
-    this.#rowsOwedToColumnSweep = this.#isColumnSweepRunning();
+    this.#recalculateAllRowsOwingColumnSweep();
   };
 
   /**
@@ -1391,12 +1391,23 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
+   * Measures every row, and owes a second measure to the first render after AutoColumnSize's sweep ends
+   * when that sweep is still measuring columns in idle tasks. The rows are measured against the widths
+   * those columns have now (the default width, or the fallback-font width), so a text that wraps there
+   * stores a row taller than it is once the sweep widens its column.
+   */
+  #recalculateAllRowsOwingColumnSweep(): void {
+    this.recalculateAllRowsHeight();
+    this.#rowsOwedToColumnSweep = this.#isColumnSweepRunning();
+  }
+
+  /**
    * Triggers a full row height recalculation after new data is loaded, skipping the initial
    * load since `#onInit` already handles it.
    */
   #onAfterLoadData = (_sourceData: unknown[], isFirstLoad: boolean) => {
     if (!isFirstLoad) {
-      this.recalculateAllRowsHeight();
+      this.#recalculateAllRowsOwingColumnSweep();
     }
   };
 
@@ -1482,7 +1493,7 @@ export class AutoRowSize extends BasePlugin {
    * Triggers the first full row height recalculation after Handsontable has finished initializing.
    */
   #onInit = () => {
-    this.recalculateAllRowsHeight();
+    this.#recalculateAllRowsOwingColumnSweep();
     this.#isInitialized = true;
   };
 

@@ -196,7 +196,16 @@ hold it together:
   which runs after this plugin's, so this plugin's `#onBeforeRender` ends the sweep there and measures every
   `syncLimit` column it did not reach (`#measureDeferredColumnsNow()`) before AutoRowSize reads them. Without it
   a row in view measured 3009 px against 29 px and kept that height ("measures the rows against exact widths
-  when AutoRowSize is turned on during the sweep").
+  when AutoRowSize is turned on during the sweep"). The exact path still measures only the `syncLimit` columns
+  and one chunk before it returns (about 102 columns by default) and leaves the rest to idle tasks, so the rows
+  are measured against the default width of those columns. AutoRowSize owes the rows a second measure when the
+  sweep ends (`#rowsOwedToColumnSweep` in its `AGENTS.md`), and pays it in `beforeRender`, so the idle chunk that
+  ends any sweep on a grid with AutoRowSize enabled renders, with the same fill-only visible pass as the budget
+  path (`loop()`, the `syncViewport` branch). Without that render the owed measure waits for an unrelated full
+  render, which a grid the user only scrolls never gets, so a row below the fold kept the height of its text
+  wrapped at 50 px (149 px against 49 px in the probe) (`tests/e2e/auto-row-size-column-sweep.spec.ts`). On a
+  10k × 150 grid that render, the owed row measure included, took 6 to 7 ms. `enabled` is read when the sweep ends, so a disable made
+  meanwhile costs no render. A grid without AutoRowSize gets no render there.
 - **The columns a merge on screen spans are measured with it** (`measureMergeSpans()` in `#sweepColumns()`). A
   multi-column merge needs from its first column the text's width less the other spanned columns, so with
   those at the fallback width the first column was drawn too wide (1076 px against 417 px in the probe) and
