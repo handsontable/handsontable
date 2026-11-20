@@ -34,6 +34,8 @@
     evicts that meta once the row scrolls out of view, so the read must run the `cells` function
     itself. jsdom renders every row and never evicts, so the scroll part can only be checked here.
 
+    The same holds for the Filters column read: a condition compares the value the getter shows.
+
     Column 0 shows each value with an `X` prefix. Column 1 holds the numbers 0-999 and shows 999
     minus each one, so sorting it by the displayed value reverses the rows.
   -->
@@ -58,6 +60,7 @@
         height: 300,
         colHeaders: true,
         columnSorting: true,
+        filters: true,
         applyCellsToDataReads: true,
         cells(row, column) {
           if (column === 0) {
