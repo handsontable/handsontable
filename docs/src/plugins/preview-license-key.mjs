@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs';
-import { extname, join, relative } from 'node:path';
+import { dirname, extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TEST_LICENSE_KEY } from '../test-license-key.mjs';
 
@@ -38,6 +38,37 @@ const PLACEHOLDER_LINE = /^([ \t]*)\/\/ ?(licenseKey|license)(: ?|=)(['"])your-l
  */
 export function isExecutedExampleId(id) {
   return !id.includes('?') && EXECUTED_EXAMPLE_ID.test(toPosix(id));
+}
+
+/**
+ * The site's own scripts that build a grid, outside `content/`, by their path under `docs/`. A staging or
+ * preview build writes the key into them as it does into the examples: the 404 page's minesweeper grid
+ * showed the lock screen on every preview, and a scan of that page measured the lock.
+ */
+export const KEYED_SITE_SCRIPTS = ['src/scripts/minesweeper-404.ts'];
+
+/**
+ * Returns `true` when a Vite module id is one of the site scripts in `KEYED_SITE_SCRIPTS`.
+ *
+ * @param {string} id The Vite module id.
+ * @returns {boolean}
+ */
+export function isKeyedSiteScriptId(id) {
+  const path = toPosix(id);
+
+  return !id.includes('?') && KEYED_SITE_SCRIPTS.some(script => path.endsWith(`/docs/${script}`));
+}
+
+/**
+ * Lists the site scripts of `KEYED_SITE_SCRIPTS` that hold a placeholder: the scripts a build with the key
+ * must rewrite.
+ *
+ * @param {string} docsDir The absolute path of `docs`.
+ * @returns {string[]} Absolute file paths, with forward slashes.
+ */
+export function listSiteScriptsWithPlaceholder(docsDir) {
+  return KEYED_SITE_SCRIPTS.map(script => toPosix(join(docsDir, script)))
+    .filter(path => new RegExp(PLACEHOLDER_LINE.source, 'm').test(readFileSync(path, 'utf8')));
 }
 
 /**
@@ -188,7 +219,10 @@ export function previewLicenseKeyCheck({ injected, rewritten, contentDir }) {
     hooks: {
       'astro:build:done': ({ dir }) => {
         if (injected) {
-          checkEveryExampleRewritten(listExamplesWithPlaceholder(contentDir), rewritten);
+          checkEveryExampleRewritten([
+            ...listExamplesWithPlaceholder(contentDir),
+            ...listSiteScriptsWithPlaceholder(dirname(contentDir)),
+          ], rewritten);
         }
 
         checkKeyInOutput(fileURLToPath(dir), { injected });
