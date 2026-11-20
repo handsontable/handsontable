@@ -270,19 +270,47 @@ export function walkFindings({ walk, stops, direction, modalExit = null, opened 
 }
 
 /**
+ * The states whose popup selects the opener's whole column as it opens (the column menu), so the
+ * highlight moves to the column's first visible cell and the grid focuses that cell when the menu closes.
+ */
+const SELECTS_COLUMN_ON_OPEN = new Set(['dropdown-menu']);
+
+/**
+ * The cell the focus must come back to after Escape closes a popup: the opener, or, on a state whose popup
+ * selects the opener's column as it opens (`SELECTS_COLUMN_ON_OPEN`), the cell of that column the
+ * selection highlighted while the popup was open. A highlight on a header, in another column, or on any
+ * other state keeps the opener, so a popup that moves the selection somewhere else is still caught.
+ *
+ * @param {object} input What the test read.
+ * @param {string} input.state The catalog state.
+ * @param {[number, number]} input.opener The cell the popup opened on.
+ * @param {[number, number]|null} input.openHighlight The selection's highlight while the popup was open.
+ * @returns {[number, number]} The cell the focus must come back to.
+ */
+export function escapeExpectedCell({ state, opener, openHighlight }) {
+  if (SELECTS_COLUMN_ON_OPEN.has(state) && openHighlight && openHighlight[0] >= 0 && openHighlight[1] === opener[1]) {
+    return openHighlight;
+  }
+
+  return opener;
+}
+
+/**
  * The findings of the Escape test on a popup state (a menu, an editor, the comment editor): Escape
  * must close it, pressed as many times as the popup has levels (a submenu takes two), and the focus
- * must come back to the grid, where it was when the popup opened.
+ * must come back to the grid, on the opener or the cell the column menu moved the selection to
+ * (`escapeExpectedCell()`).
  *
  * @param {object} input What the test saw.
  * @param {string} input.state The catalog state.
  * @param {number|null} input.closedAfter The press that closed the popup, or `null` when none did.
  * @param {number} [input.presses] How many presses were tried.
- * @param {boolean} input.focusReturned Whether the focus is back in the grid on the opener.
+ * @param {boolean} input.focusReturned Whether the focus is back in the grid on the expected cell.
  * @param {string} [input.focus] Where the focus is instead.
+ * @param {[number, number]} [input.expected] The cell the focus was expected on.
  * @returns {object[]} The findings.
  */
-export function escapeFindings({ state, closedAfter, presses = 3, focusReturned, focus = 'unknown' }) {
+export function escapeFindings({ state, closedAfter, presses = 3, focusReturned, focus = 'unknown', expected }) {
   if (closedAfter === null) {
     return [{
       kind: 'escape-does-not-close',
@@ -299,8 +327,8 @@ export function escapeFindings({ state, closedAfter, presses = 3, focusReturned,
       criteria: ['2.4.3'],
       severity: 'serious',
       step: `Escape on the ${state} state`,
-      measured: { focus, presses: closedAfter },
-      reason: 'After Escape closed the popup, the focus did not come back to the cell it was opened from',
+      measured: { focus, presses: closedAfter, ...(expected ? { expected: `cell|${expected.join(',')}` } : {}) },
+      reason: 'After Escape closed the popup, the focus did not come back to the cell it was opened from (or, for the column menu, the cell of its column it selected)',
     }];
   }
 

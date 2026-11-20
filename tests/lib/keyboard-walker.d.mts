@@ -50,12 +50,14 @@ export function walkFindings(input: {
   opened?: boolean;
   reported?: Set<string>;
 }): Array<{ kind: string; criteria: string[]; severity: 'critical' | 'serious' | 'moderate' | 'minor' | 'advisory'; reason: string; selector?: string; step?: string; measured?: Record<string, unknown> }>;
+export function escapeExpectedCell(input: { state: string; opener: [number, number]; openHighlight: [number, number] | null }): [number, number];
 export function escapeFindings(input: {
   state: string;
   closedAfter: number | null;
   presses?: number;
   focusReturned: boolean;
   focus?: string;
+  expected?: [number, number];
 }): Array<{ kind: string; criteria: string[]; severity: 'critical' | 'serious' | 'moderate' | 'minor' | 'advisory'; reason: string; step?: string; measured?: Record<string, unknown> }>;
 export function goldenStops(stops: WalkStop[]): object[];
 export function diffTabOrder(expected: object[], actual: object[]): { index: number; expected: object | null; actual: object | null; expectedLength: number; actualLength: number } | null;

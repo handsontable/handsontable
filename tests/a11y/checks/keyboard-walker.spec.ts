@@ -5,6 +5,7 @@ import { fixtureUrl, PORTAL_MARK, STATES, emulate, expectEditorOpen, openTarget,
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import {
   diffTabOrder,
+  escapeExpectedCell,
   escapeFindings,
   goldenStops,
   inventoryLines,
@@ -182,16 +183,17 @@ async function resetGrid(page: Page, root: string): Promise<void> {
 }
 
 /**
- * Whether the focused element (followed through shadow roots) is the opener of a popup: the opener cell's
- * own element, or, on a grid in mixed focus mode (`imeFastEdit`), the element that mode keeps the focus on
- * by design (`getRefocusElement()`, the editor's input).
+ * Whether the focused element (followed through shadow roots) is where a closed popup gives the focus back:
+ * the expected cell's own element (`escapeExpectedCell()`), or, on a grid in mixed focus mode
+ * (`imeFastEdit`), the element that mode keeps the focus on by design (`getRefocusElement()`, the editor's
+ * input).
  *
  * @param page The page.
  * @param root The root container selector.
- * @param cell The cell the popup opened on.
- * @returns Whether the focus is on the opener.
+ * @param cell The cell the focus must come back to.
+ * @returns Whether the focus is on it.
  */
-async function focusOnOpener(page: Page, root: string, cell: [number, number]): Promise<boolean> {
+async function focusOnCell(page: Page, root: string, cell: [number, number]): Promise<boolean> {
   return page.evaluate(([selector, [row, col]]) => {
     const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as (HTMLElement & { __hotInstance?: any }) | null)?.__hotInstance;
     let el = document.activeElement as HTMLElement | null;
@@ -216,31 +218,38 @@ async function focusOnOpener(page: Page, root: string, cell: [number, number]): 
 
 /**
  * Presses Escape until a popup state is closed (up to three times), then reads where the focus is: back
- * means on the opener, with the selection still on its cell (`focusOnOpener()`): the cell's own element,
- * or the element mixed focus mode parks the focus on by design. Another element of the grid (a header, a
- * button in a cell, the hidden editor input on a grid in cell focus mode) is not back, though the cell
- * stays highlighted.
+ * means on the expected cell (`escapeExpectedCell()`), with the selection still on it (`focusOnCell()`):
+ * the cell's own element, or the element mixed focus mode parks the focus on by design. The expected cell
+ * is the opener, except on the column menu, which selects its column as it opens: there it is the cell of
+ * that column the selection highlighted while the menu was open, read before the first Escape. Another
+ * element of the grid (a header, a button in a cell, the hidden editor input on a grid in cell focus mode)
+ * is not back, though the cell stays highlighted.
  *
  * @param page The page.
  * @param root The root container selector.
  * @param cell The cell the popup opened on.
+ * @param popupState The catalog state that opened the popup.
  * @returns What the Escape test saw.
  */
-async function escapeTest(page: Page, root: string, cell: [number, number]) {
+async function escapeTest(page: Page, root: string, cell: [number, number], popupState: string) {
+  const expected = escapeExpectedCell({ state: popupState, opener: cell, openHighlight: (await snapshot(page, root)).highlight });
+
   for (let press = 1; press <= 3; press++) {
     await page.keyboard.press('Escape');
 
     const state = await snapshot(page, root);
 
     if (state.menus === 0 && !state.editorOpen && !state.comment) {
-      const returned = state.active.region === 'grid' && JSON.stringify(state.highlight) === JSON.stringify(cell)
-        && await focusOnOpener(page, root, cell);
+      const returned = state.active.region === 'grid' && JSON.stringify(state.highlight) === JSON.stringify(expected)
+        && await focusOnCell(page, root, expected);
 
-      return { closedAfter: press, focusReturned: returned, focus: `${state.active.region} ${state.active.key}`.slice(0, 120), highlight: state.highlight };
+      return {
+        closedAfter: press, focusReturned: returned, focus: `${state.active.region} ${state.active.key}`.slice(0, 120), highlight: state.highlight, expected,
+      };
     }
   }
 
-  return { closedAfter: null, focusReturned: false, focus: 'unknown', highlight: null, presses: 3 };
+  return { closedAfter: null, focusReturned: false, focus: 'unknown', highlight: null, presses: 3, expected };
 }
 
 /**
@@ -529,7 +538,7 @@ async function walkPage(page: Page, testInfo: TestInfo, entry: A11yPage): Promis
   await installSentinels(page, root);
 
   if (POPUP_STATES.has(entry.state)) {
-    const escape = await escapeTest(page, root, cell);
+    const escape = await escapeTest(page, root, cell, entry.state);
 
     findings.push(...escapeFindings({ state: entry.state, ...escape }));
     // Open the popup again for the Tab walk inside it.

@@ -1526,9 +1526,13 @@ judges (`lib/keyboard-walker.mjs`, tested in `lib/__tests__/keyboard-walker.test
   `focus-leaves-modal` finding.
 - **A popup is judged by Escape.** On a menu, an editor, the comment editor or the formula editor's popups
   (`POPUP_STATES`), Escape (pressed up to three times: a submenu takes two, and so does a formula popup,
-  which closes before the edit does) must close it and give the focus back to the cell it opened on: to
-  that cell's own element, or, on a grid in mixed focus mode (`imeFastEdit`), to the editor input that
-  mode keeps the focus on by design. Another element of the grid (a header, a button, the hidden editor
+  which closes before the edit does) must close it and give the focus back to the expected cell
+  (`escapeExpectedCell()`): to that cell's own element, or, on a grid in mixed focus mode (`imeFastEdit`),
+  to the editor input that mode keeps the focus on by design. The expected cell is the one the popup opened
+  on, except on the column menu, which selects its column as it opens: there it is the cell of that column
+  the selection highlighted while the menu was open (the column's first visible cell). A popup that moves
+  the selection anywhere else as it opens (another column, a header, any other state) is still judged
+  against its opener. Another element of the grid (a header, a button, the hidden editor
   input of a grid in cell focus mode) is not back, though the cell stays highlighted. A
   popup state walked like a grid at rest reads a Tab the editor keeps (the formula editor accepts a
   suggestion with it) as a trap, so a state that opens a popup belongs on that list. Then the
