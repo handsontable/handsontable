@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — filters value list, column width</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    // Null-prototype maps, so an inherited key ('constructor', 'toString', ...) cannot pass as a value.
+    const htThemes = Object.assign(Object.create(null), { main: 'main', horizon: 'horizon', classic: 'classic' });
+    const htBundles = Object.assign(Object.create(null), { umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' });
+
+    window.htTheme = htThemes[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    window.htBundle = htBundles[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+    // The grid's own options, read through allowlists too.
+    window.htDirection = ({ ltr: 'ltr', rtl: 'rtl' })[htParams.get('dir') ?? 'ltr'];
+    if (!window.htDirection) {
+      throw new Error('Unknown ?dir= value: ' + JSON.stringify(htParams.get('dir')));
+    }
+    window.htSearchMode = ({ show: 'show', apply: 'apply' })[htParams.get('searchMode') ?? 'show'];
+    if (!window.htSearchMode) {
+      throw new Error('Unknown ?searchMode= value: ' + JSON.stringify(htParams.get('searchMode')));
+    }
+    window.htLongValue = ({ none: false, last: true })[htParams.get('long') ?? 'none'];
+    if (window.htLongValue === undefined) {
+      throw new Error('Unknown ?long= value: ' + JSON.stringify(htParams.get('long')));
+    }
+    window.htRows = ({ 20: 20, 2000: 2000 })[htParams.get('rows') ?? '20'];
+    if (!window.htRows) {
+      throw new Error('Unknown ?rows= value: ' + JSON.stringify(htParams.get('rows')));
+    }
+    window.htLateFont = ({ none: false, late: true })[htParams.get('font') ?? 'none'];
+    if (window.htLateFont === undefined) {
+      throw new Error('Unknown ?font= value: ' + JSON.stringify(htParams.get('font')));
+    }
+    window.htRelabel = ({ none: false, long: true })[htParams.get('relabel') ?? 'none'];
+    if (window.htRelabel === undefined) {
+      throw new Error('Unknown ?relabel= value: ' + JSON.stringify(htParams.get('relabel')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    /* With ?font=late the list's labels ask for a face the page loads only when the test says so. */
+    .ht-late-font .htUIMultipleSelectHot label { font-family: 'HtLateFont', sans-serif !important; }
+  </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    E2E fixture for the width of the "filter by value" list. The list is a
+    nested one-column grid, and its column is as wide as its widest label, or
+    the box when every label fits.
+
+    ?rows= sets the number of distinct values ("Value 0000" ...).
+    ?long=last adds one value too long for the box, which sorts after every
+    other one, so it is not rendered when the menu opens.
+    ?relabel=long gives one short value ("Value 0003") a long label through
+    `modifyFiltersMultiSelectValue`, so its label and its value differ in length.
+    ?font=late makes the list's labels ask for the "HtLateFont" face, which
+    the test adds to the document after the menu is open.
+    ?dir=rtl and ?searchMode=apply set the grid options of the same names.
+    The "City" column holds short values only.
+
+    `window.listSeedCalls` counts the `modifyAutoColumnSizeSeed` calls made for
+    the nested list's cells: one per row while a full column sweep measures it.
+    `window.gridSeedCalls` counts the same calls for any other grid, the outer
+    one included, so a count of 0 above cannot come from a listener that never ran.
+    `window.listGhostTables` counts the ghost tables inserted into the list,
+    one per measurement of its column.
+
+    Cells are stamped with data-testid via a renderer
+    (data-testid="cell-<row>-<col>").
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+    if (window.htLateFont) {
+      document.body.classList.add('ht-late-font');
+    }
+
+    window.listSeedCalls = 0;
+    window.gridSeedCalls = 0;
+    Handsontable.hooks.add('modifyAutoColumnSizeSeed', function() {
+      if (this.rootElement.classList.contains('htUIMultipleSelectHot')) {
+        window.listSeedCalls += 1;
+      } else {
+        window.gridSeedCalls += 1;
+      }
+    });
+
+    window.listGhostTables = 0;
+    new MutationObserver((records) => {
+      records.forEach(({ target, addedNodes }) => {
+        addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains('htGhostTable') &&
+              target.closest('.htUIMultipleSelectHot')) {
+            window.listGhostTables += 1;
+          }
+        });
+      });
+    }).observe(document.body, { childList: true, subtree: true });
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const data = [];
+
+    for (let i = 0; i < window.htRows; i++) {
+      data.push([`Value ${String(i).padStart(4, '0')}`, `City ${i % 5}`]);
+    }
+    if (window.htLongValue) {
+      data.push(['Zz a value far too long to fit in the box of the filter by value list', 'City 0']);
+    }
+
+    window.hot = new Handsontable(container, {
+      data,
+      colHeaders: ['Name', 'City'],
+      rowHeaders: true,
+      dropdownMenu: true,
+      filters: { searchMode: window.htSearchMode },
+      layoutDirection: window.htDirection,
+      renderer: testIdRenderer,
+      width: 600,
+      height: 300,
+      licenseKey: window.htTestLicenseKey,
+      modifyFiltersMultiSelectValue(label) {
+        return window.htRelabel && label === 'Value 0003' ?
+          'Rr a label far longer than the value it stands for in the list' : label;
+      },
+    });
+  </script>
+</body>
+</html>

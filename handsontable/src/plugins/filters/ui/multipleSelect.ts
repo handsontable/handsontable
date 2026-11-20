@@ -7,6 +7,10 @@ import * as C from '../../../i18n/constants';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
 import { localeLowerCase } from '../../../helpers/string';
 import { linkIconSource } from '../../../themes/engine/icons';
+import GhostTable from '../../../utils/ghostTable';
+import SamplesGenerator from '../../../utils/samplesGenerator';
+import { DEFAULT_COLUMN_WIDTH } from '../../../3rdparty/walkontable/src';
+import { getCheckboxLabelPropertySeed } from '../../../renderers/checkboxRenderer/checkboxRenderer';
 import type { BaseUIOptions } from './_base';
 import { BaseUI } from './_base';
 import { InputUI } from './input';
@@ -80,6 +84,21 @@ export class MultipleSelectUI extends BaseUI {
    * column filters nothing or excludes everything, so the answer is recorded when it is given.
    */
   #cleared = false;
+  /**
+   * The rows the list grid holds, as the array it was last loaded with. The column width is derived
+   * from it, so the list's own cells are never read one by one through the grid's API.
+   */
+  #listedItems: unknown[] = [];
+  /**
+   * The width the widest sampled label needs, measured off-DOM, or `null` before the first usable
+   * measurement.
+   */
+  #contentWidth: number | null = null;
+  /**
+   * Whether the listed rows (or the rows the search hides) changed since the width was measured. The
+   * next render of the list measures it again.
+   */
+  #contentWidthStale = true;
 
   /**
    * Initializes the multiple select UI component, creates child input and link components, and registers event hooks.
@@ -332,6 +351,10 @@ export class MultipleSelectUI extends BaseUI {
     rootElement.appendChild(itemsBoxWrapper);
 
     this.#itemsBox?.destroy();
+    // A rebuilt list sizes itself from its own rows, never from the previous list's.
+    this.#listedItems = [];
+    this.#contentWidth = null;
+    this.#contentWidthStale = true;
     addClass(itemsBoxWrapper, 'htUIMultipleSelectHot');
 
     // Constructs and initializes a new Handsontable instance
@@ -361,16 +384,20 @@ export class MultipleSelectUI extends BaseUI {
       beforeOnCellMouseUp: () => {
         this.#itemsBox?.listen();
       },
-      modifyColWidth: (width: number | undefined) => {
+      modifyColWidth: () => {
         const minWidth = (this.#itemsBox?.container.scrollWidth ?? 0) - getScrollbarWidth(rootDocument);
 
-        if (width !== undefined && width < minWidth) {
-          return minWidth;
-        }
-
-        return width;
+        return Math.max(this.#contentWidth ?? 0, DEFAULT_COLUMN_WIDTH, minWidth);
       },
-      autoColumnSize: true,
+      afterLoadData: this.#onListDataChange,
+      afterUpdateData: this.#onListDataChange,
+      afterHideRows: this.#markContentWidthStale,
+      afterUnhideRows: this.#markContentWidthStale,
+      afterFontsLoad: this.#markContentWidthStale,
+      beforeRender: this.#onListBeforeRender,
+      // AutoColumnSize would visit every listed value to pick the labels it measures, on every data
+      // change. The list picks the same labels from its own items instead (`#measureContentWidth()`).
+      autoColumnSize: false,
       autoRowSize: false,
       hiddenRows: true,
       maxCols: 1,
@@ -474,9 +501,113 @@ export class MultipleSelectUI extends BaseUI {
     this.#selectAllUI = null;
     this.#itemsBox = null;
     this.#items.length = 0;
+    this.#listedItems = [];
+    this.#contentWidth = null;
+    this.#contentWidthStale = true;
     this.#lowerCaseItemValues = null;
     super.destroy();
   }
+
+  /**
+   * Measures the width the list's widest label needs, the way AutoColumnSize measured it, without
+   * reading the list's cells through the grid's API. The labels are picked by the rule the sampler
+   * applies to a labeled checkbox column (the checkbox renderer's `modifyAutoColumnSizeSeed` listener):
+   * rows are grouped by the length of their label, and the first `SamplesGenerator.SAMPLE_COUNT` rows
+   * of each length are rendered in a ghost table. The rows the search hides are skipped, as they are by
+   * AutoColumnSize. A list that cannot be measured (hidden) keeps its width and stays stale.
+   */
+  #measureContentWidth() {
+    const itemsBox = this.#itemsBox;
+
+    // A hidden list measures nothing, so the width waits for a render of the visible list.
+    if (!itemsBox?.view.isVisible()) {
+      return;
+    }
+
+    const listedItems = this.#listedItems;
+    const samplesGenerator = new SamplesGenerator((row: number) => {
+      const physicalRow = itemsBox.toPhysicalRow(row);
+
+      if (physicalRow === null || itemsBox.rowIndexMapper.isHidden(physicalRow)) {
+        return false;
+      }
+
+      const item = (listedItems[physicalRow] ?? {}) as Partial<SelectItem>;
+
+      return {
+        value: item.checked,
+        bundleSeed: getCheckboxLabelPropertySeed(item.visualValue, item.checked),
+      };
+    });
+    const samples = samplesGenerator.generateSample('col', { from: 0, to: itemsBox.countRows() - 1 }, 0);
+
+    // Nothing listed (or the search hides every row): keep the width, as AutoColumnSize does.
+    if (samples.size === 0) {
+      this.#contentWidthStale = false;
+
+      return;
+    }
+
+    const ghostTable = new GhostTable(itemsBox);
+    let measuredWidth = 0;
+
+    ghostTable.setSetting('useHeaders', false);
+
+    try {
+      ghostTable.addColumn(0, samples);
+      ghostTable.getWidths((column: number, width: number) => {
+        measuredWidth = width;
+      });
+    } finally {
+      ghostTable.clean();
+    }
+
+    if (measuredWidth <= 0) {
+      return;
+    }
+
+    this.#contentWidthStale = false;
+
+    if (measuredWidth !== this.#contentWidth) {
+      this.#contentWidth = measuredWidth;
+      // The engine's column width cache only checks the column count, so a new width needs a drop.
+      itemsBox.view.invalidateColumnWidthCache();
+    }
+  }
+
+  /**
+   * Keeps the array the list was loaded with, and marks the width for a new measurement when it lists
+   * other rows. `update()` reloads the same items on every menu render, so only a change of length or
+   * of an item counts: comparing the references costs far less than measuring.
+   *
+   * @param {Array} sourceData The array the list grid reads its rows from.
+   */
+  #onListDataChange = (sourceData: unknown[]) => {
+    const previousItems = this.#listedItems;
+
+    this.#listedItems = sourceData;
+
+    if (sourceData.length !== previousItems.length ||
+        sourceData.some((item, index) => item !== previousItems[index])) {
+      this.#contentWidthStale = true;
+    }
+  };
+
+  /**
+   * Marks the width for a new measurement: the search hid or showed rows, or a web font loaded.
+   */
+  #markContentWidthStale = () => {
+    this.#contentWidthStale = true;
+  };
+
+  /**
+   * Measures the width before the list draws, when its rows changed since the last measurement.
+   */
+  #onListBeforeRender = () => {
+    if (this.#contentWidthStale) {
+      this.#measureContentWidth();
+    }
+  };
 
   /**
    * 'input' event listener for input element.
