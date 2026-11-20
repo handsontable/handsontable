@@ -169,7 +169,7 @@ test.describe('formulas: the accessible description of a formula cell', { tag: [
     });
 
     // The triangle is its border, so it needs a visible color, a size and no clipping.
-    expect(after.content).toBe('"Formula: =SUM(A1:B1)"');
+    expect(after.content).toBe('" Formula: =SUM(A1:B1)"');
     expect(after.borderTopWidth).not.toBe('0px');
     expect(after.borderTopColor).not.toBe('rgba(0, 0, 0, 0)');
     expect(after.clipPath).toBe('none');
@@ -186,8 +186,8 @@ test.describe('formulas: the accessible description of a formula cell', { tag: [
 
     const content = await grid.cell(0, 0).evaluate(td => getComputedStyle(td, '::after').content);
 
-    expect(content).toBe('"Formula: =IF(1=1,\\"\\",\\"x\\")"');
-    expect(await grid.chromiumAccessibleName(0, 0)).toBe('Formula: =IF(1=1,"","x")');
+    expect(content).toBe('" Formula: =IF(1=1,\\"\\",\\"x\\")"');
+    expect((await grid.chromiumAccessibleName(0, 0)).trim()).toBe('Formula: =IF(1=1,"","x")');
   });
 
   test('a language that lacks the phrase falls back to the English one', async({ page, theme, bundle }) => {
@@ -217,7 +217,7 @@ test.describe('formulas: the accessible description of a formula cell', { tag: [
 
     await grid.goto({ dir: 'rtl', first: 'empty' });
 
-    await expect.poll(() => grid.chromiumAccessibleName(0, 0)).toBe('Formula: =IF(1=1,"","x")');
+    await expect.poll(async() => (await grid.chromiumAccessibleName(0, 0)).trim()).toBe('Formula: =IF(1=1,"","x")');
   });
 
   test('a long formula is cut and the cut is marked', async({ page, theme, bundle }) => {

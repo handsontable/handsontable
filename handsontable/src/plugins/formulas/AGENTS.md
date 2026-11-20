@@ -1342,6 +1342,13 @@ measured reason:
   formulas rendered in about 6 ms without the text and about 16 ms with it, where short formulas add about 1 ms. The
   engine's own text is used as it is, without `#readableFormula()`: the text is read aloud, never parsed again, and the
   quoting scan ran on every paint of every formula cell with a sheet reference.
+- **The content starts with a space and the box keeps it (`white-space: pre`).** Chromium joins the value and the absolutely
+  positioned block with a space on its own, so its name reads `3 Formula: =SUM(A1:B1)` either way. Safari with VoiceOver
+  read `3Formula: =SUM(A1:B1)` without the space (seen on a demo build by a reviewer, not re-run after this change). A cell
+  whose value is empty gets a name with that leading space.
+- **The formula cell is `position: relative` and the box sits at `top: 0; inset-inline-start: 0`.** Left at its static
+  position, the box follows the cell's text, and a result wider than its cell (`wordWrap: false`) grew the holder's
+  scroll width from 500 to 3096 in Chromium (pinned by the overflow case of the spec).
 - **The generated box is its own left-to-right run** (`direction: ltr; unicode-bidi: isolate`). Chromium builds the
   name from the text boxes in visual order, so an Arabic phrase in an RTL grid read `3 SUM(A1:B1)الصيغة: =` (pinned by the
   two right-to-left cases of the spec).
