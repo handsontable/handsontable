@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the `[data]` input to update the grid outside Angular's zone, like the `[settings]` input. This stops a page freeze when the binding gives a new array on every change-detection pass.",
+  "type": "changed",
+  "issueOrPR": 14388,
+  "breaking": false,
+  "framework": "angular"
+}
