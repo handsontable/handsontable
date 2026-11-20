@@ -1101,7 +1101,10 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
   reporter resolves the baseline from its own location, not from `config.rootDir`, which is the
   config's `testDir` (`a11y/`), one level below the package. It reads screenshots from the spec's
   `scans/` folder, never from beside an attachment: Playwright copies an attached file into its
-  own attachments folder.
+  own attachments folder. The config collects one more spec, `a11y/discovery-targets.spec.ts`, the
+  pull request's guard for the axe discovery run ("The axe discovery run" below). Its tests attach no
+  scan, and the reporter fails a run that completed none, so run the guard alone with
+  `npm --prefix tests run test:a11y-targets`, which leaves that reporter out.
 - **Every opener drives the keyboard.** Shift+F10 for the context menu, Shift+Alt+ArrowDown for
   the dropdown menu, Enter for an editor, Ctrl+Alt+M for the comment editor (which also focuses
   it; `showAtCell()` would only show it), ArrowDown and ArrowRight to reach a submenu, after
@@ -1132,7 +1135,7 @@ deletes its entry. Locally: `npm --prefix tests run test:a11y`, after `build:umd
 ### The baseline: known issues and their findings
 
 The baseline has two lists, and the split is the point. **`issues`** is the catalog of known
-accessibility problems: a stable id local to this repository (`menu-roles`), a title that says
+accessibility problems: a stable id local to this repository (`grid-roles`), a title that says
 what the problem is, and optionally the `tracker` task that owns the fix. **`entries`** is where
 each issue shows: one entry per page, theme, rule and target, with the number of nodes that carry
 it. An entry names its issue, never a tracker task, so the gate does not follow a task's
@@ -1216,7 +1219,10 @@ fixture contract above: the `?theme=`/`?bundle=` block, `window.htBuildError` or
 every finding the new page reproduces is new, and the report says which known issue each one
 belongs to. The tooling test refuses an entry whose page is not in the list, so removing a page
 means deleting its entries (and an issue left without any) in the same change. List the new page
-under the plugin or editor it scans in `a11y/coverage.mjs`.
+under the plugin or editor it scans in `a11y/coverage.mjs`. The same run opens the new page in the
+dark scheme and right to left (`a11y/discovery-targets.spec.ts`), as the axe discovery run will: a
+fixture or an opener that does not build a variant fails there ("The axe discovery run" below has
+the two rules that make one build).
 
 ### Coverage: every plugin and editor is accounted for
 
@@ -1413,8 +1419,9 @@ criterion.
   the keyboard (`STATES`) and marks the grid's own portal (`PORTAL`). A check therefore measures the DOM
   a keyboard user reaches, the one the axe scan reads. A state a check needs and the catalog lacks gets
   an opener in `STATES`, keyboard first. The axe discovery run's extra states are the one exception: no
-  other check scans their pages, so their openers sit beside them in its spec (`DISCOVERY_STATES`), and
-  one moves to `STATES` when a catalog page needs it. A state whose popups mount in a portal of their own
+  other check scans their pages, so their openers sit with its targets (`DISCOVERY_STATES` in
+  `a11y/checks/discovery-targets.ts`), and one moves to `STATES` when a catalog page needs it. A state
+  whose popups mount in a portal of their own
   marks that one too (see the scan's own rule above), and it comes after the grid's in `body`, so a check
   reads the marked portals with `querySelectorAll()`: a `querySelector()` sees the grid's portal only and
   measures the page without the popup the state opened. The `test()` calls stay in the spec, never in a
@@ -1460,8 +1467,8 @@ left no document gets a red tooling check run instead of none.
   failure turns the job red, as it does the axe job, and never the Tests pipeline), and one
   `A11y / <check> report` check run per check on the run's head commit (behind the canonical fork
   guard). The job runs only when the caller sets the `checks` input: the `A11y nightly`
-  (`a11y-nightly.yml`: a dispatch on develop is the audit, a dispatch from any branch is a proof run,
-  and there is no schedule; "A11y: the audit and the proof runs" below) does, and the pull-request
+  (`a11y-nightly.yml`: its weekly schedule and a dispatch on develop are the audit, and a dispatch from
+  any branch is a proof run; "A11y: the audit and the proof runs" below) does, and the pull-request
   Tests pipeline (`test.yml`) does not, so a pull request runs the axe scan, its baseline ratchet and
   the sticky comment alone. The reason is what a pull request gets out of them: the checks are
   report-only and the accessibility program is still building its picture, so a pull request learned
@@ -1680,7 +1687,8 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
   and a column move and a column resize mid-drag, scanned with the pointer still held because their
   guides exist only then. A page added there never reaches the gating scan's baseline, and its records
   name its entry there (`file`, `line`), so the check run annotates them on it rather than on
-  `a11y/pages.mjs`. The openers are `DISCOVERY_STATES` in the spec; the catalog's come from the harness.
+  `a11y/pages.mjs`. The openers are `DISCOVERY_STATES` in `a11y/checks/discovery-targets.ts`; the
+  catalog's come from the harness.
   They press keys where a key reaches the state, and use the API or the pointer where the surface, not
   the path to it, is what the scan needs: a hover, a drag, a second range, a renamed sheet tab, a dialog
   holding the focus.
@@ -1692,6 +1700,25 @@ best-practice, AAA and experimental rules beside the WCAG 2.2 A and AA ones (`DI
   `rightToLeftQuery()`). The phone page runs on a Pixel 7 beside the iPhone 13. A variant that did not
   apply (no dark class on the grid, or a grid still left to right) fails its test before axe runs, a
   tooling error the document lists as a target not measured, so it never reads as a clean pass.
+- **A pull request opens the run's targets, so a page that does not build a variant fails there.** The
+  run is the audit's alone (its weekly schedule or a dispatch, never a pull request): without a guard, a
+  page added to the catalog meets its dark and right-to-left variants first in the next audit, as a
+  target not measured. `a11y/discovery-targets.spec.ts` runs in
+  the axe scan's job (`playwright.a11y.config.ts` collects it) and opens, on the main theme, every target
+  no pull request builds otherwise: each page in each variant, and the pages of `discovery-pages.mjs` as
+  they load. It scans nothing. It calls `openDiscoveryTarget()` (`a11y/checks/discovery-targets.ts`),
+  the function the run itself opens a target with, so the two cannot drift: the targets, the variants
+  and the openers are in that one module, and the `test()` calls stay in the two specs. A failed test
+  there is a tooling failure of the scan's job, which the CI gate reads. One theme is enough, because a
+  theme is a stylesheet and decides neither what a fixture reads nor which key reaches a state.
+- **Two rules make a page build right to left.** A fixture that sets the document's direction itself
+  takes it from a `?dir=` query through the fail-loud allowlist (`side-layout-slots.html`): the run
+  serves the page with `dir="rtl"` on `<html>`, and a fixture that writes `ltr` over it builds a
+  left-to-right grid. And an opener that presses ArrowLeft or ArrowRight to mean a column or a submenu,
+  not a side of the screen, picks the key with `isRightToLeft()` (the harness): the arrow keys act in
+  the direction they point on the screen, so the previous column is ArrowRight in a right-to-left grid,
+  and from a cell in the last column Shift+ArrowLeft extends nothing (the `formula-error-range` opener;
+  `context-menu-submenu` is the same rule for a submenu).
 
 ### Focus appearance and non-text contrast
 
@@ -1990,11 +2017,12 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   wrong status, sits behind the deploy's password wall, never finishes loading its examples or does not
   take the color scheme fails its test; a page error is recorded with the scan and annotated, because it is
   the site's bug, not the scan's.
-- **On demand.** A full run is 350 scans and takes five minutes or more, longer than a docs pull request
-  should wait, so `docs-a11y.yml` runs on a dispatch (`gh workflow run docs-a11y.yml --ref develop`, or
+- **Weekly, and on demand.** A full run is 350 scans and takes five minutes or more, longer than a docs pull request
+  should wait, so `docs-a11y.yml` runs once a week on a schedule (the audit, "A11y: the audit and the proof
+  runs"), on a dispatch (`gh workflow run docs-a11y.yml --ref develop`, or
   `-f base-url=<deploy>`), from a workflow that calls it (`workflow_call`), and on a pull request that
-  changes the scan itself (its workflow, `a11y/docs/`, its config). It never runs on a schedule or on a
-  change to the docs. A dispatch on develop is a night of the findings ledger's `docs` source; a dispatch
+  changes the scan itself (its workflow, `a11y/docs/`, its config). It never runs on a
+  change to the docs. The scheduled run and a dispatch on develop are a night of the findings ledger's `docs` source; a dispatch
   from a branch and a pull request's run are proof runs. A page that answers with a 5xx was caught in a
   staging deploy: run again once it is done. The findings land in `docs-a11y-axe-results` (`a11y-findings.json` at its root), and the HTML
   report is `docs-a11y-report.html`, uploaded unzipped: an unzipped artifact is named after its file, and a
@@ -2068,9 +2096,9 @@ findings" apply as written. Locally: `npm --prefix tests run test:a11y-docs`; CI
   when a scan read another deploy than staging, or when a new finding's rule and target belong to no issue
   yet: name that issue, add the listed entries under it, and run it again. The file stays in the order and
   form the script writes (`lib/__tests__/a11y-docs-baseline.test.mjs`), so a refresh diff holds the changed
-  lines only. Refresh from a develop dispatch with no staging deploy in flight
-  (`gh run list --workflow docs-staging.yml`): a deploy between that run and the pull request's own scan
-  reads as new findings again.
+  lines only. Refresh from an audit run on develop (the weekly schedule or a dispatch) with no staging
+  deploy in flight (`gh run list --workflow docs-staging.yml`): a deploy between that run and the pull
+  request's own scan reads as new findings again.
 - **The checks beyond axe of the docs are their own tier.** The keyboard, the structure, focus and contrast,
   reflow, forced colors and motion of the docs site are "A11y: the site checks beyond axe" below; they open a
   page the way this scan does (`a11y/docs/docs-site.ts`: the blocked hosts, the color scheme, `settle()`, the
@@ -2120,9 +2148,10 @@ comparator, the reports and the baseline holds; this section says what differs. 
   many nodes for, is a warning at most, and the remedy is to refresh the baseline from that audit. The check run is
   `A11y / website-axe report` (`scripts/a11y-check-run.mjs --suite website`), annotated on each page's `page(…)`
   line.
-- **On demand, like the docs scan.** A dispatch on develop is the audit, a night of the findings ledger's `website`
+- **Weekly and on demand, like the docs scan.** The scheduled run and a dispatch on develop are the audit, a night of the findings ledger's `website`
   source, recorded from production only (`run.baseUrl`, `baseUrl` of the findings); a dispatch from a branch and a
-  pull request's run are proof runs. The findings land in `website-a11y-axe-results` and the report is
+  pull request's run are proof runs. A scheduled run reads production behind the same guard: `guardSite()` decides
+  from the request alone and reads nothing of the environment, so no trigger sends a form or books a call. The findings land in `website-a11y-axe-results` and the report is
   `website-a11y-report.html`. Take or refresh the baseline with `WEBSITE_A11Y_SCREENSHOTS=0`. Findings on the
   website are recorded here and fixed in the website's repository.
 
@@ -2261,7 +2290,7 @@ and of `.github/workflows/website-a11y.yml`.
   and a region inserted together with its text counts only as an alert. The guard answers only the filled-in submit,
   and the test asserts it was answered once; a form that posts with its errors is a finding (`submitted-with-errors`),
   its write aborted.
-- **Where they run: a dispatch or a call of `Docs a11y`, never a pull request.** The `checks` job runs beside the
+- **Where they run: the weekly schedule, a dispatch or a call of `Docs a11y`, never a pull request.** The `checks` job runs beside the
   scan, against the same deploy (`DOCS_A11Y_BASE_URL`), and uploads `docs-a11y-checks-evidence` (30 days from a
   run of every check, 7 from a subset); `scripts/a11y-evidence-report.mjs` with `HOT_A11Y_SITE=docs` writes the
   summary and posts one `A11y / docs-<check> report` per check, and the scan posts `A11y / docs-axe report`
@@ -2342,7 +2371,8 @@ follows its worst check run.
   read with the ref the way the `check-inputs` job read them, so what that job refused is one line here;
   "A11y: the audit and the proof runs"), when the run posted none, or when one ended a way no poster writes. So the run's
   conclusion says what its checks found, and a nightly stays red while its open critical and serious
-  findings stand. Slack still hears only of a run that never reached its checks.
+  findings stand, on the weekly schedule as on a dispatch: a red scheduled audit is the audit's answer,
+  never a broken build. Slack still hears only of a run that never reached its checks.
 
 Locally, every poster prints its payload with `--dry-run` (set `GITHUB_EVENT_NAME=schedule` to count as an
 audit), and `node scripts/a11y-run-verdict.mjs --prefix "A11y / " --dry-run <check-runs.json>` (with
@@ -2357,8 +2387,8 @@ A raw night leaves thousands of records (the discovery run alone about 3,900), m
 defects on many pages, and a check's artifact says nothing about the night before. The findings ledger
 accumulates them: `test-health.yml` chains on `A11y nightly`, `Screen reader nightly`, `Docs a11y` and
 `Website a11y`, and the collector reads every check document, the axe findings, every transcript and the docs
-site's and the website's findings of those runs on develop, by dispatch (the audit; "A11y: the audit and the proof runs" below) or
-by a schedule, which the two nightlies do not have today, into `test-health/a11y.json` on `gh-pages`, one row per finding across
+site's and the website's findings of those runs on develop, by their weekly schedule or a dispatch (the audit; "A11y: the audit and the
+proof runs" below), into `test-health/a11y.json` on `gh-pages`, one row per finding across
 nights, which the "Accessibility" section of <https://handsontable.github.io/handsontable/test-health/>
 draws. The pure half is `.github/scripts/lib/a11y-ledger.mjs`; the catalog that sorts the rows is
 `a11y/issues.json`, read through `lib/a11y-issues.mjs`. The CI mechanics (the trigger, the download filter,
@@ -2427,12 +2457,14 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   latest night of its source ("Re-run failed jobs", which keeps the run id and replaces the artifacts) fills
   in what the recorded attempt did not measure, against the coverage that night keeps in its record, and
   leaves what the recorded attempt measured as it was: undoing a recorded night would need every row's state
-  from before it. The two sources keep their own latest night, because the reader nightly completes an hour
-  before the A11y nightly, and a cluster's trend on the page has one series per nightly for the same reason.
+  from before it. Each source keeps its own latest night, because the workflows of one audit complete at
+  different times and in no fixed order, and a cluster's trend on the page has one series per nightly for the same reason.
 - **The catalog sorts every row into one root-cause cluster, and every merge re-sorts.** `a11y/issues.json`
   extends the axe baseline's issue catalog: a cluster has a stable kebab-case `id`, a `title` that says what
   the problem is, an optional `tracker` (a task id, or a list when several tasks own parts of the fix; code,
-  never printed on the page, which says only that a cluster is tracked) and `match` rules. A rule names its
+  never printed on the page, which says only that a cluster is tracked), or instead an optional `notDefect`
+  (the class that says why its findings are not a defect), optional `formerIds` (the ids it had before a
+  rename, so its history follows it: "A11y: fix progress over time" below), and `match` rules. A rule names its
   `source` (`checks`, `axe` or `reader`) and any of `checks` (check ids, or reader projects), `kinds`,
   `rules` (axe rule ids), `causes` (the discovery run's needs-review causes), `criteria`, `pages` (patterns
   anchored to the page id, or the scenario), `themes`, `where` (patterns searched in the finding's `where`)
@@ -2502,37 +2534,214 @@ the nightly rule, the caps) are in `.ai/CI.md`; this section is the policy.
   `a11y.json` and the page into the scratch directory and prints the night's counts and clusters. Never
   dispatch `test-health.yml` with a run id to try a change: that publishes to the live site.
 
+## A11y: fix progress over time
+
+The ledger's rows say what is open today. They count places, not issues, and they leave 90 days after their
+last sighting, so they cannot say how the findings are dealt with: what is fixed, in what time, and what is
+outstanding. The "Fix progress" block of the page says that, from `fixProgress()` in
+`.github/scripts/lib/a11y-ledger.mjs`, and the ledger keeps a history for it.
+
+- **A row is a finding at one place, and the fix task is the issue.** One defect shows as many rows (a page, a
+  theme, an element each), so the table has one row per tracker, the task a cluster names, with the rows of
+  every cluster that names it: open now, the most it had, resolved (resolutions less the findings that came
+  back, so a finding resolved twice is one), first seen, and the night that cleared it. A cluster with
+  several trackers counts in the row of each, because the catalog does not say which task owns which
+  finding; the headline numbers count each finding once. When the tasks own different findings, split the
+  cluster by its match rules.
+- **Three kinds of rows stand apart from the fix tasks:** the defect clusters no tracker owns, so a missing
+  tracker shows; the triage queue; and the clusters the catalog marks as not a defect, one row per class.
+  The headline numbers leave the last kind out. `notDefect` is a kebab-case class on the cluster
+  (`reader-behavior`, `tool-hidden-content`) and excludes `tracker`: a cluster is wholly a defect or wholly
+  not. When only some of a cluster's findings are not a defect, split it by its match rules; a flag on part
+  of a cluster would count the same row under a fix task and outside the fix count.
+- **Open is counted twice: every open row, and the rows at the target level** (`countsAtTarget()`). The
+  line is the check runs' own ("A11y: the verdict of a check run"): an advisory row (a result axe could not
+  decide, a golden that moved) and a row that names no WCAG 2.2 A or AA criterion are for review, and a
+  screen reader row, which carries no criterion by design, counts at its severity. Without the second count
+  a task whose cluster holds mostly review rows reads as that much work to fix. A task is still cleared only
+  when nothing of it is open.
+- **The history outlives the rows.** `history` in `a11y.json` holds one entry per night: per cluster, the
+  rows of the night's source that are open after it, new on it, resolved by it and back on it after having
+  been resolved (`[open, new, resolved, back]`), for `A11Y_HISTORY_DAYS`. Past the size cap it goes last,
+  after the resolved rows and the nights: it is the smallest part and the only one nothing can rebuild. An
+  entry holds its own source's rows, so a cluster's total at a point in time is the latest entry of each
+  source up to it.
+- **An entry is counted from the rows after the merge, never kept as a running total.** A later attempt of
+  a night recounts its entry, and the history resolves nothing a row does not: a target that was not
+  measured leaves its findings open in both ("A row is resolved by evidence of absence" above).
+- **The history is keyed by cluster and read with today's catalog.** The catalog names a cluster's
+  trackers when the page is drawn, so a tracker written into the catalog later owns its cluster's whole
+  past, with no migration. And a row the catalog moves to another cluster takes its counts along, in the
+  entry of every night the row counted in (`rekeyHistory()`): a split, a rename and a triage shape sorted
+  into a cluster would otherwise read as that many findings fixed in one cluster and new in another. A
+  catalog change is never a fix.
+- **A renamed cluster names its former ids.** A row moves only its own counts, and a resolved row leaves
+  the ledger after 90 days, so a rename later than that would strand every older resolution, and the
+  cluster's peak, under an id the catalog no longer has: listed as a cluster no tracker owns, and missing
+  from the fix task it belongs to. So the cluster that takes over lists the old id in `formerIds`, and
+  whatever an entry still counts under a former id, after the rows moved theirs, goes to that cluster. A
+  former id is one no cluster uses any more, and one cluster names it: the validator refuses an id still
+  in use and an id two clusters claim. Add `formerIds` in the change that renames a cluster. A split names
+  the old id on the cluster that should keep the unattributable past, or leaves it unnamed.
+- **A row keeps its latest return.** A row that comes back after being resolved keeps the resolution the
+  sighting undid and when it came back (`lastResolvedAt`, `backAt`), because its other fields then say
+  neither. The history of the nights in between is counted from the pair, so a moved row takes its
+  resolution along with its return and the old cluster keeps no fix it did not make. One pair per row: an
+  earlier return of the same row is gone, and a row that came back before it kept the pair reads as open
+  since its first sighting.
+- **An audit is the nights that complete within `A11Y_AUDIT_WINDOW_HOURS` of its first one, and a full
+  audit holds a night of every source** (`a11yAudits()`). The ledger records nights, one per workflow run
+  and source; an audit is one dispatch of each workflow, and its nights complete minutes to hours apart.
+  Audits come at uneven gaps, and nothing assumes a rhythm. "Open then" is counted at the first full audit,
+  and the chain to today names what came new since, because new coverage (a check, a scenario) adds
+  findings that are not regressions.
+- **A fix time is only as fine as the gap between audits, and the page says so.** A task is cleared by the
+  first night after the last one that left a finding of it open, so a finding fixed the day after an audit
+  reads as fixed at the next one. Never present the days as the time the fix took.
+- **Only a night that measured a finding gone clears a task.** A finding nothing measures for the rows'
+  retention leaves the ledger unresolved, and the task's open count then drops to zero with nothing fixed.
+  The night it left on is no clearing night: the task reads as having no open finding and no clearing
+  night on record, never as fixed after that many days.
+- **The page names no task.** The page is public, and a tracker is code in the catalog, so no task id
+  reaches what the page inlines (`fixView()`), in the fix progress table as in the cluster table. A fix
+  task's row is named by its clusters, and the tasks that own the same clusters, whose rows would read
+  alike, are one row that says how many tasks it stands for; the headline still counts tasks.
+  `fixProgress()` itself returns the ids, for a reader that is not public. The page links only to a run's
+  page, built from the run's number (`runPage`), never to a string from a night's data.
+- **A version bump ships its migration.** `a11y.json` is version `A11Y_VERSION`; `migrateA11yLedger()` is
+  the only reader of an older file and rebuilds what the new version adds from what the old one holds (the
+  history, from the rows and nights). The collector migrates in memory on every collection and writes the
+  file with the next recorded night, never by itself: a collection that records nothing must leave the
+  published file byte-identical, because every push to `gh-pages` starts a Pages build. Test a migration
+  on a cut of the published file (`.github/scripts/__tests__/fixtures/a11y-ledger-v1.json`), and dry-run
+  it on the whole file: download `test-health/a11y.json` into a scratch `test-health/` directory, then run
+  the collector over it with the payload of a run it does not record (a `Tests` pull request run) and an
+  empty artifacts directory. It draws the page from the migrated document and leaves the file as it was.
+
+## A11y: the weekly digest
+
+The page says how the findings fared; nothing told anyone when that changed. `A11y digest`
+(`.github/workflows/a11y-digest.yml`) posts it to Slack once a week: what improved, what declined, the triage
+queue, what is outstanding per surface, and the page's headline numbers. The pure half is
+`.github/scripts/lib/a11y-digest.mjs`, the CLI `.github/scripts/a11y-digest.mjs`; the CI mechanics are in
+`.ai/CI.md`.
+
+- **The digest compares two published states of the ledger:** `test-health/a11y.json` as it is now, and as
+  it was at the last `gh-pages` commit before the window began. Two files, so a row is compared with itself
+  by its key, and the digest needs no state of its own. No file that old is a first digest: it says where
+  things stand. Either file may be of an older ledger version; the lib reads it through
+  `migrateA11yLedger()`.
+- **A scheduled digest's window begins where the previous one started,** never a fixed number of days ago:
+  the earlier state is the last commit before the previous successful scheduled run started. The windows of
+  two digests then meet, and a night that lands after one digest is in the next one's: a screen reader
+  night can come hours late, and a scheduled run can start late too. A fixed "7 days ago" opens a gap
+  whenever one Monday's run starts later than the last, and a night landing in it is in neither digest. A
+  night that lands in the seconds between a run's start and its read is named twice, which is the safe
+  side. A dispatch, and the first scheduled run, take `days`. The cron sits after the audit: later than the
+  screen reader run's start plus its wait for an earlier run, its run time and its collection, which
+  `a11y-digest.test.mjs` pins against every audit workflow that has a cron.
+- **It names what it compared, and never assumes the audit ran.** The first line names the latest night of
+  each workflow in both states, by run and date. A workflow with no new night was not audited in the window:
+  it is named so, and its rows are left out of improved and declined, because nothing measured them. With no
+  new night at all, the digest says no audit was collected, in place of lists of zeros that would read as a
+  quiet week.
+- **A new finding is a decline only when the earlier audit had measured its target and found nothing
+  there.** The earlier state's latest night of each workflow keeps its coverage (`nightMeasured()`), and a
+  finding on a target it had not measured (a workflow's first night, a new check, scenario or page, a target
+  with a tooling problem then) is newly measured: a baseline, listed apart. Without this, the week a check
+  lands reads as hundreds of regressions. Where the earlier state does not say what it measured, the
+  finding counts as a decline, so nothing is hidden. An axe scan covers every page or none, so a page added
+  to a scan reads as measured: its first findings count as new.
+- **Improved is what the window resolved; declined is what is new or back.** A finding resolved and seen
+  again within the window is open in both states and counts as neither. A fix task is cleared when it had
+  an open finding then and has none now, and has findings again only through a finding that declined.
+- **Both states are read under today's catalog** (`clusterOf()` on every row of both), so a cluster renamed
+  or split between the two is the same cluster in both, and the task the catalog names today is the one the
+  digest speaks of. Findings in clusters marked `notDefect` are counted apart, like on the page.
+- **Every text that reaches Slack is escaped for it** (`slackText()`), a title is cut to `DIGEST_TITLE`, a
+  list names `DIGEST_LISTED` clusters and sums up the rest, and a task is linked only with an https address
+  (`trackerAddress()`). The workflow sends the message from a payload file, never through a YAML string.
+- **The digest names the fix tasks; the page does not.** The message goes to the team's Slack, so it names
+  each task by the id the catalog gives it and links it (`TRACKER_URL` in the workflow). The test-health
+  page is public and names none ("A11y: fix progress over time").
+- **No tracker token.** The digest links the fix tasks by the ids the catalog names. A task's status, owner
+  and closed date are not read: CI holds no ClickUp secret, and none is to be added for this.
+- **Locally:** `gh api -H 'Accept: application/vnd.github.raw'
+  'repos/handsontable/handsontable/contents/test-health/a11y.json?ref=gh-pages' > after.json`, the same
+  with an older commit's SHA for `before.json`, then `node .github/scripts/a11y-digest.mjs --before
+  before.json --after after.json --catalog tests/a11y/issues.json` prints the message. To see a regression
+  in it, merge one more night into a copy of `after.json` (`mergeA11yLedger()`), as
+  `a11y-digest.test.mjs` does.
+
 ## A11y: the audit and the proof runs
 
-The two accessibility workflows, `A11y nightly` (`.github/workflows/a11y-nightly.yml`) and
-`Screen reader nightly` (`screenreader-nightly.yml`), have no schedule: they run on `workflow_dispatch`
-only, from any ref, and the `pull_request` trigger that validates each file still runs a startup-only
-check. The accessibility program runs one audit, fixes what it finds, and re-audits, so a cron would
-spend the compute (a headed Windows and macOS runner per browser for the screen reader lanes) on
-nights nobody reads. The names stay: the ledger, the Slack text and this file know the workflows as
-nightlies, and the tiers come back with the schedule, not before: a pull request runs the axe scan
+The audit is four workflows: `Screen reader nightly` (`.github/workflows/screenreader-nightly.yml`),
+`A11y nightly` (`a11y-nightly.yml`), `Docs a11y` (`docs-a11y.yml`) and `Website a11y`
+(`website-a11y.yml`). Each runs once a week on a schedule, on develop, and on `workflow_dispatch` from any
+ref; the `pull_request` trigger of each still validates the file or proves a change to a scan. The rule:
+the weekly schedule and a dispatch on develop with no inputs are the audit, a proof run on a branch is a
+subset dispatch, and a subset on develop is refused. The schedule is there because the findings ledger
+shows what each fix cleared, and when, only as finely as the audits are spaced. It is weekly because a
+week is fine enough while the accessibility debt is being fixed, and a run every night would spend a
+headed Windows and macOS runner per browser seven times as often. The schedule ends when the
+accessibility debt epic closes. The tiers then decide the cadence: a pull request runs the axe scan
 (today's `test.yml`), a nightly runs a semi-lite set chosen then, and a release candidate and a stable
-release run the full set. The CI mechanics are in `.ai/CI.md`; this section is the procedure.
+release run the full set. The names stay: the ledger, the Slack text and this file know the two product
+workflows as nightlies. The CI mechanics are in `.ai/CI.md`; this section is the procedure.
 
-- **An audit is a dispatch on develop with no inputs, and only on develop.** Dispatch the screen reader
+- **The weekly audit starts itself: early on Monday, UTC, the screen reader run first.** The four crons
+  are five minutes apart, in the order above, so the four read one develop commit: a schedule runs on the
+  default branch's latest commit, and nothing merges at the weekend. The hour is early Monday so that no
+  proof run is likely to be in flight and the screen reader lanes are free again before the working day.
+  The minutes are off the hour, where GitHub delays scheduled runs and may drop them. A scheduled run has
+  no inputs, so every job reads it as a dispatch on develop with no inputs: the `check-inputs` guard
+  passes, every lane and check runs, the check runs count as an audit (`countingScope()`), and the
+  `workflow_run` chain collects the run into the ledger with no dispatch (`isA11yRun()`). A cron fires
+  from the default branch only, so no run from a branch can prove a change to the schedule:
+  `.github/scripts/__tests__/a11y-audit-schedule.test.mjs` is the proof. It pins the crons and their
+  order, runs the guard with each workflow's own command line as a schedule fills it, and holds a table
+  of what every expression that reads `inputs` gives on a schedule. A new expression joins the table, and
+  a string forwarded to a called workflow carries `|| ''`, so the callee gets a string on every event.
+- **The scheduled screen reader run waits for the lanes; a dispatch never does.** One screen reader run
+  at a time, on any refs: two share the organization's five macOS slots and slow every VoiceOver step, and
+  the transcripts carry the timings. A person checks for a run in flight before a dispatch; a cron cannot
+  see a proof run on a branch. So on the schedule the `check-inputs` job waits before the build
+  (`scripts/screenreader-wait.mjs`, `lib/screenreader-queue.mjs`) for every earlier run of the workflow
+  that has not completed, under a bound longer than a full run. At the bound it fails instead of starting
+  a second run, and Slack hears of it. Re-run the failed job once the lanes are free: it starts the audit
+  on the commit the schedule read, and the ledger records the later attempt. The run waits for earlier
+  runs only. A later run on develop is queued behind it by the concurrency group, so waiting for it would
+  be waiting for itself, and a later run on a branch is its dispatcher's to hold back. A concurrency
+  group shared by every ref is not the answer: GitHub keeps one pending run per group and cancels the
+  others, so a third dispatch would drop the waiting audit. The other three workflows have no such limit
+  and wait for nothing.
+- **A red scheduled audit is not a broken build.** Each run ends on its `verdict` job, red while a
+  critical or serious finding is open ("A11y: the verdict of a check run"), on the schedule as on a
+  dispatch. Slack hears only of a nightly that never reached its lanes or checks (a failed build, a
+  refused input, a wait that ran out), and the site workflows post to no channel. GitHub's own email for a
+  failed scheduled run goes to whoever last changed the cron line, and no workflow setting stops it: read
+  the `verdict` job before treating one as a failure.
+- **An audit between two schedules is a dispatch on develop with no inputs, and only on develop.** Dispatch the screen reader
   workflow, then the checks (`gh workflow run screenreader-nightly.yml --ref develop`, then
   `gh workflow run a11y-nightly.yml --ref develop`), and the docs site scan when the audit covers the docs
   (`gh workflow run docs-a11y.yml --ref develop`, with no `base-url` and no `checks`, so the ledger records it
   and it runs the docs site checks beside the scan; "A11y: the docs site scan" and "A11y: the site checks beyond
-  axe"), wait for all, then dispatch `test-health.yml` with
+  axe") and the website scan when it covers the website (`gh workflow run website-a11y.yml --ref develop`, the
+  same way), wait for all, then dispatch `test-health.yml` with
   each run id in the order the runs completed (`gh workflow run test-health.yml -f run-id=<id>`). The
-  `workflow_run` chain collects a develop dispatch on its own; the dispatch is the backfill, and it is
+  `workflow_run` chain collects a scheduled run and a develop dispatch on its own; the dispatch is the backfill, and it is
   idempotent (a night collected twice changes nothing, "Nights are read once per attempt, in order"
   above). It publishes to the live site, which is why no run from a branch goes through it, and why a
   branch's proof run is never an audit. The audit takes no input: each nightly starts with a
   `check-inputs` job (`scripts/a11y-dispatch-inputs.mjs`) that refuses `suite=pull-request`, `checks`,
-  `projects` and `groups` on develop before the build (`Docs a11y` refuses its own `checks` the same way), because the test-health page draws the latest
+  `projects` and `groups` on develop before the build (`Docs a11y` and `Website a11y` refuse their own `checks` the same way), because the test-health page draws the latest
   night of each source and its trends from per-night counts, so a subset night would show the checks or
-  lanes it skipped as gone and draw a drop to zero in every cluster. Nothing schedules the audit, so
-  nothing keeps the evidence the conformance report cites inside the `a11y-checks-evidence` artifact's
-  30 days: dispatch the audit before a release candidate and at least every 30 days, or the report
-  cites an expired artifact. Never dispatch two screen reader runs at once, on any refs: two share the
+  lanes it skipped as gone and draw a drop to zero in every cluster. The weekly schedule keeps the
+  evidence the conformance report cites inside the `a11y-checks-evidence` artifact's 30 days. Once the
+  schedule ends, nothing does: dispatch the audit before a release candidate and at least every 30 days,
+  or the report cites an expired artifact. Never dispatch two screen reader runs at once, on any refs: two share the
   organization's five macOS slots and slow every VoiceOver step, and the transcripts carry the timings.
+  Check for one in flight first, the weekly audit included: it holds the lanes early on Monday, longer when it waited.
 - **A proof run on a branch dispatches the subset that changed.** `gh workflow run a11y-nightly.yml
   --ref <branch> -f checks=<id>[,<id>]` runs the named checks beyond axe (the `checks` input; the job
   summary names the subset, the check runs keep their `A11y / <check> report` names, and the `verdict`
@@ -2562,8 +2771,8 @@ reader and browser (`playwright.screenreader.config.ts`: `nvda-chromium`, `nvda-
 transcripts into the job summary, the evidence document and the `Screen reader / <project> <group> report`
 check run. CI runs it on its own workflow, the `Screen reader nightly`
 (`.github/workflows/screenreader-nightly.yml` calling `screenreader.yml`: NVDA on `windows-2025` and
-VoiceOver on `macos-26`, one job per screen reader, browser and scenario group; a dispatch, never a
-schedule, "A11y: the audit and the proof runs" above), never in the
+VoiceOver on `macos-26`, one job per screen reader, browser and scenario group; once a week on a
+schedule and on a dispatch, "A11y: the audit and the proof runs" above), never in the
 pull-request Tests pipeline. It is the evidence a future version of the Accessibility
 Conformance Report can cite for what a cell, a header, a state and a status message announce (WCAG 1.3.1,
 4.1.2, 4.1.3): the axe scan reads the accessibility tree, this lane reads what a screen reader makes of

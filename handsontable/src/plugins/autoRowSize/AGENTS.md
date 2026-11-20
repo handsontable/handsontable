@@ -59,9 +59,11 @@ when every height is already cached.
   `DEFAULT_HEIGHT_TOLERANCE` (0.05px) is what counts as "at the default": both numbers come off the same
   layout, so they differ by a layout step (1/64px) at most. On top of it goes
   `StylesHandler#getMaxDefaultRowOvergrowth()`, what the border inflation adds at the zoom of NOW (`1 / ratio
-  - 1`, `0` at 100% and above): the default height keeps the value read when the grid was built, so a grid
-  built at 100% and zoomed to 90% declares `29px` while its default rows measure `29.097px`, more than the
-  tolerance, and every one of them would round up to `30`. Do not use a bare `Math.ceil()` (a default row
+  - 1`, `0` at 100% and above): the default height keeps the value read when the grid was built until the next `refreshDimensions()`
+  re-reads the border (a zoom fires one, a hidden grid waits for its reveal), so a grid built at 100% and zoomed to 90%
+  declares `29px` while its default rows measure `29.097px`, more than the tolerance, and every one of them would
+  round up to `30`. Rows this plugin stored before the zoom keep their whole-pixel heights until it measures them
+  again; the refresh does not trigger that. Do not use a bare `Math.ceil()` (a default row
   measured a fraction above a whole pixel jumps a whole pixel) or a bare `Math.round()` (drops the fraction of
   a taller row, which is the drift).
 - **The default is the uncompensated one** (`getDefaultRowHeight()` with no row). The first rendered body row

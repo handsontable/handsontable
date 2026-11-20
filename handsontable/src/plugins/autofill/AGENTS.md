@@ -55,6 +55,8 @@ from the last range and ignored the others. Both predicates now return `false` w
 `selectedRange.size() > 1`, as in spreadsheet applications. Do not "fix" this by teaching the fill to read
 every range: there is no defined way to extend several disjoint ranges at once. Pinned by
 `tests/e2e/fill-handle-non-contiguous.spec.ts` and `selection/__tests__/selection.unit.ts`.
+The test is `Selection#isNonContiguous()`, a regular method since DEV-538: MergeCells and both move
+plugins ask the same question, so keep one predicate rather than a copy per plugin.
 
 ## Copy-down extent (DEV-859)
 

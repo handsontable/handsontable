@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulas error value in an RTL grid e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+  <script src="/tests/fixtures/demo/test-license-key.js"></script>
+</head>
+<body>
+  <!--
+    Two HyperFormula-backed grids. `window.hot` is a `layoutDirection: 'rtl'` grid holding two
+    error formulas (`=1/0` -> `#DIV/0!`, `=NOPE()` -> `#NAME?`), a plain string that only looks
+    like an error (`#tag!`), and a number. `window.hotLtr` is an LTR grid with the same `=1/0`
+    formula. Every leg runs exactly ONE engine: the `umd` legs load HyperFormula as an external
+    script (the base bundle ships none); the `full-min` legs use the engine baked into the bundle.
+  -->
+  <div id="grid-rtl" data-testid="grid-rtl"></div>
+  <div id="grid-ltr" data-testid="grid-ltr"></div>
+
+  <script>
+    if (window.htBundle === 'handsontable.js') {
+      document.write('<scr' + 'ipt src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></scr' + 'ipt>');
+    }
+  </script>
+  <script>
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    function buildGrid(testId, layoutDirection, data, extraSettings) {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = `ht-theme-${window.htTheme}`;
+
+      return new Handsontable(container, {
+        data,
+        layoutDirection,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1',
+        },
+        colWidths: 120,
+        width: 720,
+        height: 120,
+        rowHeaders: true,
+        colHeaders: true,
+        afterRenderer(td, row, col) {
+          td.setAttribute('data-testid', `${testId}-cell-${row}-${col}`);
+        },
+        licenseKey: window.htTestLicenseKey,
+        ...extraSettings,
+      });
+    }
+
+    try {
+      window.hot = buildGrid('grid-rtl', 'rtl', [['=1/0', '=NOPE()', '#tag!', '1', '=1/0']], {
+        cell: [{ row: 0, col: 4, type: 'dropdown', source: ['a', 'b'] }],
+      });
+      window.hotLtr = buildGrid('grid-ltr', 'ltr', [['=1/0', '1']]);
+    } catch (error) {
+      window.htBuildError = String(error && error.stack || error);
+    }
+  </script>
+</body>
+</html>

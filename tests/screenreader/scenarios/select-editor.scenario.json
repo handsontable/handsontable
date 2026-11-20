@@ -12,7 +12,7 @@
       "id": "open-editor",
       "action": {"press": "Enter"},
       "expect": [["combo box"]],
-      "note": "Enter opens the editor on the cell holding `D1`, a native select with Option A and Option B. `D1` is not an option, so nothing is chosen yet and only the role is required. NVDA reads `combo box, collapsed` with no name: the select has none (the axe baseline's `editor-input-names`). Finding: VoiceOver says nothing when the select editor opens, on both browsers."
+      "note": "Enter opens the editor on the cell holding `D1`, a native select with Option A and Option B. `D1` is not an option, so nothing is chosen yet and only the role is required. The select is named after its cell (`<column>, row <n>`); before it had a name, NVDA read `combo box, collapsed` with no name. Finding: VoiceOver says nothing when the select editor opens, on both browsers."
     },
     {
       "id": "arrow-down-first",

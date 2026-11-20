@@ -147,6 +147,8 @@ const everyKnownContext: Record<KnownContext<TextExtractorContext>, true> = {
   'ExportFile.columnHeader': true,
   'ExportFile.rowHeader': true,
   'CopyPaste.columnHeader': true,
+  'A11y.columnLabel': true,
+  'A11y.rowLabel': true,
 };
 
 const namespaced: Handsontable.TextExtractorContext = 'ExportFile.rowHeader';

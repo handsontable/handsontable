@@ -2,27 +2,29 @@
 import { ref, h, render } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type Handsontable from 'handsontable/base';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-type ImageCellProps = { src: string };
+type ImageCellProps = { src: string; alt: string };
 
 const ImageCell = (props: ImageCellProps) =>
   h('img', {
     src: props.src,
+    alt: props.alt,
     onMousedown: (event: MouseEvent) => event.preventDefault(),
   });
 
 function imageComponentRenderer(
-  _instance: unknown,
+  instance: Handsontable,
   td: HTMLTableCellElement,
-  _row: number,
+  row: number,
   _col: number,
   _prop: string | number,
   value: unknown
 ): HTMLTableCellElement {
-  const vnode = h(ImageCell, { src: String(value ?? '') });
+  const vnode = h(ImageCell, { src: String(value ?? ''), alt: String(instance.getDataAtCell(row, 0) ?? '') });
 
   render(vnode, td);
 

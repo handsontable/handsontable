@@ -36,7 +36,7 @@ The Handsontable Design System is a complete toolkit for building, prototyping, 
 
 ## Live preview
 
-<iframe style="width:100%;height:360px;border:0" src="https://embed.figma.com/file/1487445656371116081/hf_embed?community_viewer=true&embed_host=fastma&fuid=644302446942094315&kind=file&page-selector=0&viewer=1" allowfullscreen></iframe>
+<iframe title="Handsontable Design System in Figma" style="width:100%;height:360px;border:0" src="https://embed.figma.com/file/1487445656371116081/hf_embed?community_viewer=true&embed_host=fastma&fuid=644302446942094315&kind=file&page-selector=0&viewer=1" allowfullscreen></iframe>
 
 <a href="https://www.figma.com/community/file/1487445656371116081" target="_blank" rel="noopener noreferrer">Open the Design System in Figma <svg aria-hidden="true" style="display:inline;vertical-align:middle;margin-left:2px" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg></a>
 
@@ -91,7 +91,7 @@ Didn't find what you need? Try this:
 
 - [View related topics](https://github.com/handsontable/handsontable/issues/) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Start a discussion](https://forum.handsontable.com/c/questions/12) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>

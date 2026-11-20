@@ -331,3 +331,34 @@ describe('DataManager#getRowSetPosition', () => {
     });
   });
 });
+
+describe('DataManager#getRowTreePosition', () => {
+  it('should report the 1-based level of each row beside its position and set size', () => {
+    const dataManager = dataManagerWith(sampleTree());
+    const positions = [0, 1, 2, 3, 4, 5, 6].map(row => dataManager.getRowTreePosition(row));
+
+    expect(positions).toEqual([
+      { level: 1, position: 1, setSize: 2 },
+      { level: 2, position: 1, setSize: 2 },
+      { level: 2, position: 2, setSize: 2 },
+      { level: 3, position: 1, setSize: 2 },
+      { level: 3, position: 2, setSize: 2 },
+      { level: 1, position: 2, setSize: 2 },
+      { level: 2, position: 1, setSize: 1 },
+    ]);
+  });
+
+  it('should count only the siblings that are not trimmed', () => {
+    const dataManager = dataManagerWith(sampleTree(), [1, 4]);
+
+    expect(dataManager.getRowTreePosition(2)).toEqual({ level: 2, position: 1, setSize: 1 });
+    expect(dataManager.getRowTreePosition(3)).toEqual({ level: 3, position: 1, setSize: 1 });
+  });
+
+  it('should return null for a row the tree does not hold', () => {
+    const dataManager = dataManagerWith(sampleTree());
+
+    expect(dataManager.getRowTreePosition(7)).toBeNull();
+    expect(dataManager.getRowTreePosition(-1)).toBeNull();
+  });
+});

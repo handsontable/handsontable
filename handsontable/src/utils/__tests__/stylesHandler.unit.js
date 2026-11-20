@@ -1097,4 +1097,116 @@ describe('StylesHandler', () => {
       rootElement.remove();
     });
   });
+
+  describe('refreshZoomDependentValues', () => {
+    let createdNodes = [];
+
+    afterEach(() => {
+      createdNodes.forEach(node => node.remove());
+      createdNodes = [];
+    });
+
+    const setUpHandler = (cellStyles) => {
+      const rootElement = document.createElement('div');
+
+      rootElement.style.setProperty('--ht-line-height', '20px');
+      rootElement.style.setProperty('--ht-cell-vertical-padding', '5px');
+      document.body.appendChild(rootElement);
+
+      const style = document.createElement('style');
+
+      style.textContent = `td { ${cellStyles} }`;
+      document.head.appendChild(style);
+      createdNodes.push(rootElement, style);
+
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement,
+        rootDocument: document,
+      });
+
+      handler.clearCache();
+
+      return { handler, style };
+    };
+
+    it('should report a change and re-read the border when the browser zoom moved the cell border', () => {
+      const { handler, style } = setUpHandler('border-bottom-width: 1px;');
+
+      expect(handler.getStyleForTD('border-bottom-width')).toBe('1px');
+
+      // Zooming out to 80% after the grid was built: the border cannot be painted thinner than a device
+      // pixel, so the cells now report 1.25px while the snapshot still holds the 100% value.
+      style.textContent = 'td { border-bottom-width: 1.25px; }';
+
+      expect(handler.refreshZoomDependentValues()).toBe(true);
+      expect(handler.getStyleForTD('border-bottom-width')).toBe('1.25px');
+    });
+
+    it('should size rows from the rendered height after a zoom made once the grid was built', () => {
+      const { handler, style } = setUpHandler('border-bottom-width: 1px; height: 31px;');
+
+      // 20 (line height) + 2 * 5 (padding) + 1 (border): the declared height at 100%.
+      expect(handler.getDefaultRowHeight()).toBe(31);
+
+      style.textContent = 'td { border-bottom-width: 1.25px; height: 31.25px; }';
+      handler.refreshZoomDependentValues();
+
+      expect(handler.getDefaultRowHeight()).toBeCloseTo(31.25, 3);
+    });
+
+    it('should report a change when the zoom returns to 100%', () => {
+      const { handler, style } = setUpHandler('border-bottom-width: 1.25px; height: 31.25px;');
+
+      style.textContent = 'td { border-bottom-width: 1px; height: 31px; }';
+
+      expect(handler.refreshZoomDependentValues()).toBe(true);
+      expect(handler.getDefaultRowHeight()).toBe(31);
+    });
+
+    it('should report no change and keep the cached values while the border is the same', () => {
+      const { handler } = setUpHandler('border-bottom-width: 1.25px;');
+
+      expect(handler.refreshZoomDependentValues()).toBe(false);
+      expect(handler.getStyleForTD('border-bottom-width')).toBe('1.25px');
+    });
+
+    it('should report no change when the probe reads no border now, and keep the cached one', () => {
+      const { handler, style } = setUpHandler('border-bottom-width: 1px;');
+
+      // A stylesheet that is gone, or an element outside the flat tree: the probe cell reports no
+      // border, which says nothing about the zoom. Wiping the snapshot on it would churn the caches on
+      // every resize.
+      style.textContent = '';
+
+      expect(handler.refreshZoomDependentValues()).toBe(false);
+      expect(handler.getStyleForTD('border-bottom-width')).toBe('1px');
+    });
+
+    it('should report no change when the cache holds no border, though the probe reads one now', () => {
+      const { handler, style } = setUpHandler('border-bottom-width: 1px;');
+
+      // Cached while the cells resolved no border (a stylesheet that had not applied yet).
+      style.textContent = '';
+      handler.clearCache();
+      style.textContent = 'td { border-bottom-width: 1.25px; }';
+
+      expect(handler.getStyleForTD('border-bottom-width')).toBe('');
+      // The values read against unresolved styles are `recacheValuesMeasuredWithoutStyles()`'s to
+      // re-read; a zoom check that also cleared them would drop sizes on the first resize.
+      expect(handler.refreshZoomDependentValues()).toBe(false);
+      expect(handler.getStyleForTD('border-bottom-width')).toBe('');
+    });
+
+    it('should report no change and not throw for a root element outside the document', () => {
+      const handler = new StylesHandler({
+        hot: createMockHot(),
+        rootElement: createMockRootElement(),
+        rootDocument: document,
+      });
+
+      expect(() => handler.refreshZoomDependentValues()).not.toThrow();
+      expect(handler.refreshZoomDependentValues()).toBe(false);
+    });
+  });
 });

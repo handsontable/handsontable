@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the selection moving to other rows when nested rows are collapsed, expanded, inserted, removed, or detached, the focus of a selection of several ranges jumping to the last range when the selection is laid again (for example, after rows are hidden or shifted), and `alter('remove_row')` with several row groups removing the wrong nested rows.",
+  "type": "fixed",
+  "issueOrPR": 14341,
+  "breaking": false,
+  "framework": "none"
+}

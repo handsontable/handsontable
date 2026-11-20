@@ -12,7 +12,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     }
   });
 
-  it('should assign the `role=button` to the `Select All` and `Select none` links', async() => {
+  it('should assign the `role=button` to the `Select All` and `Select none` links only, not to their wrappers', async() => {
     handsontable({
       colHeaders: true,
       filters: true,
@@ -21,7 +21,9 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await dropdownMenu(0);
 
-    expect(document.querySelector('.htUISelectAll').getAttribute('role')).toEqual('button');
-    expect(document.querySelector('.htUIClearAll').getAttribute('role')).toEqual('button');
+    expect(document.querySelector('.htUISelectAll a').getAttribute('role')).toEqual('button');
+    expect(document.querySelector('.htUIClearAll a').getAttribute('role')).toEqual('button');
+    expect(document.querySelector('.htUISelectAll').hasAttribute('role')).toBe(false);
+    expect(document.querySelector('.htUIClearAll').hasAttribute('role')).toBe(false);
   });
 });

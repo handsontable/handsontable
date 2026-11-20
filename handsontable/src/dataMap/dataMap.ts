@@ -1,6 +1,7 @@
 import type { HotInstance } from '../core/types';
 import type { default as MetaManager } from './metaManager';
 import type { DataAccessorFn } from './dataSource';
+import type { CellProperties } from '../settings';
 import { stringify } from '../3rdparty/SheetClip';
 import {
   countFirstRowKeys
@@ -24,6 +25,7 @@ import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
 import { recordRemovedColumns, recordRemovedRows } from './dataJournal';
 import { colToPropOrIndex } from '../helpers/columnProp';
+import { CellsFunctionReader, readsThroughCellsFunction } from './metaManager/cellsFunctionRead';
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -46,6 +48,74 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
+/**
+ * A column resolved for a cell read: what `get()` derives from the property on every call, and a bulk
+ * read derives once per column.
+ */
+interface ReadColumn {
+  /**
+   * The column property, a `columns[].data` accessor function, or `null`.
+   */
+  prop: string | number | DataAccessorFn | null;
+  /**
+   * The visual column the property resolves to (`propToCol()`), or the property itself when it names
+   * no column. It is not always the column the read was asked for: two columns bound to one property
+   * resolve to the same one.
+   */
+  visualColumn: string | number | DataAccessorFn | null;
+  /**
+   * The physical index of `visualColumn`, or `null` when it names no column.
+   */
+  physicalColumn: number | null;
+  /**
+   * Whether a read of the column calls its `cells` function: the column meta resolves a function
+   * `cells` and the `applyCellsToDataReads` option is on (both set on the column, or inherited from the
+   * table and global layers), or `null` until a read needs the answer.
+   *
+   * The `cells` function can give any cell of the column a `valueGetter`, directly or through a `type`,
+   * so with the option on a read calls it for every cell (`#readCellsFunctionMeta()`), with no meta hook
+   * and without writing to stored meta. Nothing is stored, so the read keeps no meta per cell. A read
+   * made while an extension runs (from a `cells` function or a meta hook) skips it, as it would
+   * otherwise run the same code again.
+   */
+  appliesCellsFunction: boolean | null;
+  /**
+   * The reader that calls the column's `cells` function for each cell a read resolves
+   * (`#readCellsFunctionMeta()`), or `undefined` until a read of the column needs it. It keeps one
+   * scratch meta object per column for the cells the function writes nothing to, so it lives as long
+   * as the read. The Filters column read uses the same reader, so both apply a `cells()` value alike.
+   */
+  cellsReader: CellsFunctionReader | undefined;
+  /**
+   * Whether the column meta resolves a function `valueGetter` (set on the column, or inherited from the
+   * table and global layers), or `null` until a read of a cell without stored meta needs the answer.
+   *
+   * In a column without a `cells` function, a read runs neither the meta hooks nor the extension. It
+   * applies the stored meta, or for a cell without one, an object whose prototype is the column meta.
+   * So a `valueGetter` can only come from stored meta or the column layer, and when neither has one, a
+   * meta object created for the cell would be thrown away unused. A `valueGetter` that only a
+   * `beforeGetCellMeta` or `afterGetCellMeta` listener adds is therefore seen on stored meta only:
+   * running the hooks for every read cell would slow every grid with MergeCells, HiddenRows,
+   * HiddenColumns, or AsyncValues, which listen on them. `getAtColumnForRows()` gates its fast loop on
+   * the same checks (stored meta, and the column's `valueGetter` and `cells`): a new source for a
+   * `valueGetter` must update this read and that loop alike.
+   */
+  hasColumnValueGetter: boolean | null;
+}
+
+/**
+ * Tells whether a column meta object can give a cell of its column a `valueGetter`: through a function
+ * `valueGetter` of its own, or through a function `cells` that can set one per cell.
+ *
+ * @param {object} columnMeta The column meta object.
+ * @returns {boolean}
+ */
+function canColumnMetaGetValues(
+  columnMeta: { valueGetter?: unknown; cells?: unknown; applyCellsToDataReads?: unknown }
+): boolean {
+  return isFunction(columnMeta.valueGetter) || readsThroughCellsFunction(columnMeta);
+}
 
 /**
  * Utility class that gets and saves data from/to the data source using mapping of columns numbers to object property names.
@@ -752,9 +822,12 @@ class DataMap {
    * @param {number} [index] Visual index of the row to be removed. If not provided, the last row will be removed.
    * @param {number} [amount=1] Amount of the rows to be removed. If not provided, one row will be removed.
    * @param {string} [source] Source of method call.
+   * @param {Function} [onRowsRemoved] Called with the physical rows really removed (the list after
+   * `beforeRemoveRow` widened it), before `afterRemoveRow` runs. `Core#alter()` uses it to follow the
+   * rows of the groups it removes next.
    * @returns {boolean} Returns `false` when action was canceled, otherwise `true`.
    */
-  removeRow(index: number, amount = 1, source: string) {
+  removeRow(index: number, amount = 1, source: string, onRowsRemoved?: (physicalRows: number[]) => void) {
     let rowIndex = Number.isInteger(index) ? index : -amount; // -amount = taking indexes from the end.
     const removedPhysicalIndexes = this.visualRowsToPhysical(rowIndex, amount);
     const visualRowsLength = this.hot!.countRows();
@@ -795,6 +868,8 @@ class DataMap {
     this.#eachDescendingRun(descendingPhysicalRows, (start, runLength) => {
       this.metaManager!.removeRow(start, runLength);
     });
+
+    onRowsRemoved?.(removedPhysicalIndexes.slice());
 
     this.hot!.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
 
@@ -1089,16 +1164,87 @@ class DataMap {
    * @returns {*}
    */
   get(row: number, prop: string | number | DataAccessorFn | null, options?: { skipValueGetter?: boolean }) {
-    // Read without a default object: this runs for every cell a render or a data read touches.
-    const skipValueGetter = options?.skipValueGetter === true;
-    const physicalRow = this.hot!.toPhysicalRow(row);
+    // A single read resolves the column `getRange()` resolves once per call. The option is read
+    // without a default object, because this runs for every cell a render touches.
+    return this.#readCell(
+      row, this.hot!.toPhysicalRow(row), this.#resolveReadColumn(prop), options?.skipValueGetter === true
+    );
+  }
 
-    let dataRow: Record<string | number, unknown> = this.dataSource![physicalRow] as Record<string | number, unknown>;
+  /**
+   * Resolves the column a property reads through, the way every cell read needs it.
+   *
+   * @param {number|string|Function|null} prop The column property.
+   * @returns {object}
+   */
+  #resolveReadColumn(prop: string | number | DataAccessorFn | null): ReadColumn {
+    const visualColumn = this.propToCol(prop);
+    const physicalColumn = typeof visualColumn === 'number' ? this.hot!.toPhysicalColumn(visualColumn) : null;
+
+    return {
+      prop,
+      visualColumn,
+      physicalColumn,
+      appliesCellsFunction: null,
+      cellsReader: undefined,
+      hasColumnValueGetter: null,
+    };
+  }
+
+  /**
+   * Answers `ReadColumn#appliesCellsFunction`, resolving it on the first call for that column.
+   *
+   * @param {object} column The resolved column.
+   * @param {number} physicalColumn The physical index of the column.
+   * @returns {boolean}
+   */
+  #appliesCellsFunction(column: ReadColumn, physicalColumn: number): boolean {
+    if (column.appliesCellsFunction === null) {
+      column.appliesCellsFunction = readsThroughCellsFunction(this.metaManager!.getColumnMeta(physicalColumn));
+    }
+
+    return column.appliesCellsFunction;
+  }
+
+  /**
+   * Answers `ReadColumn#hasColumnValueGetter`, resolving it on the first call for that column.
+   *
+   * @param {object} column The resolved column.
+   * @param {number} physicalColumn The physical index of the column.
+   * @returns {boolean}
+   */
+  #hasColumnValueGetter(column: ReadColumn, physicalColumn: number): boolean {
+    if (column.hasColumnValueGetter === null) {
+      column.hasColumnValueGetter = isFunction(this.metaManager!.getColumnMeta(physicalColumn).valueGetter);
+    }
+
+    return column.hasColumnValueGetter;
+  }
+
+  /**
+   * Reads one cell. `get()` resolves the column for a single cell, and `getRange()` resolves each
+   * column once per call and reuses it for every cell of that column.
+   *
+   * The hooks and the `dataDotNotation` setting are checked per cell, so a listener added by user code
+   * running inside the read (a `valueGetter`, an accessor, a hook listener) runs from the next cell on.
+   * A column `valueGetter` counted absent in `column` is not looked for again during the call.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} physicalRow The physical index of `row`.
+   * @param {object} column The resolved column.
+   * @param {boolean} skipValueGetter When `true`, the column's `valueGetter` is not applied.
+   * @returns {*}
+   */
+  #readCell(row: number, physicalRow: number, column: ReadColumn, skipValueGetter: boolean) {
+    const { prop, visualColumn, physicalColumn } = column;
+    let dataRow = this.dataSource![physicalRow] as Record<string | number, unknown>;
+
     // TODO: To remove, use 'modifyData' hook instead (see below)
-    const modifiedRowData = this.hot!.runHooks('modifyRowData', physicalRow);
+    if (this.hot!.hasHook('modifyRowData')) {
+      const modifiedRowData = this.hot!.runHooks('modifyRowData', physicalRow);
 
-    dataRow = typeof modifiedRowData !== 'number' ? modifiedRowData as Record<string | number, unknown> : dataRow;
-    //
+      dataRow = typeof modifiedRowData !== 'number' ? modifiedRowData as Record<string | number, unknown> : dataRow;
+    }
 
     const { dataDotNotation } = this.hot!.getSettings();
     let value: unknown = null;
@@ -1139,29 +1285,19 @@ class DataMap {
       }
     }
 
-    const visualColumnIndex = this.propToCol(prop);
-    const physicalColumn = typeof visualColumnIndex === 'number'
-      ? this.hot!.toPhysicalColumn(visualColumnIndex)
-      : null;
-
-    if (!skipValueGetter && typeof visualColumnIndex === 'number' &&
+    if (!skipValueGetter && typeof visualColumn === 'number' &&
         isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
-      // The uncached read returns the stored meta when the cell carries persisted overrides and a
-      // transient object otherwise - a plain data read must not permanently materialize one meta
-      // object per visited cell (a full-table scan such as sorting would retain O(rows) of them).
-      value = getValueGetterValue(
-        value,
-        this.metaManager!.getCellMetaUncached(physicalRow, physicalColumn, {
-          visualRow: row,
-          visualColumn: visualColumnIndex,
-        })
-      );
+      const cellMeta = this.#readValueGetterMeta(column, row, visualColumn, physicalRow, physicalColumn);
+
+      if (cellMeta !== undefined) {
+        value = getValueGetterValue(value, cellMeta);
+      }
     }
 
     if (this.hot!.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(value);
 
-      this.hot!.runHooks('modifyData', row, visualColumnIndex, valueHolder, 'get');
+      this.hot!.runHooks('modifyData', row, visualColumn, valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
@@ -1169,6 +1305,83 @@ class DataMap {
     }
 
     return value;
+  }
+
+  /**
+   * Resolves the meta object a cell read takes its `valueGetter` from, or `undefined` when no
+   * `valueGetter` can apply to the cell.
+   *
+   * A column with a `cells` function and `applyCellsToDataReads` on calls it for the cell
+   * (`#readCellsFunctionMeta()`). Any other
+   * column takes one lookup per cell: stored meta inherits the column meta, so it answers for
+   * both layers, the `cells` check included, and a read of a rendered cell asks the column layer
+   * nothing. A cell without stored meta gets a transient object only when the column has a
+   * `valueGetter` - a plain data read must not permanently materialize one meta object per visited cell
+   * (a full-table scan such as sorting would retain O(rows) of them), nor allocate one it throws away
+   * unused.
+   *
+   * @param {object} column The resolved column.
+   * @param {number} row Visual row index.
+   * @param {number} visualColumn Visual column index.
+   * @param {number} physicalRow The physical index of `row`.
+   * @param {number} physicalColumn The physical index of `visualColumn`.
+   * @returns {object|undefined}
+   */
+  #readValueGetterMeta(
+    column: ReadColumn, row: number, visualColumn: number, physicalRow: number, physicalColumn: number
+  ): CellProperties | undefined {
+    const metaManager = this.metaManager!;
+    let cellMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+    // Both column answers are cached on `column` and read inline, because this runs for every cell of a
+    // bulk read.
+    const runsCellsFunction = cellMeta === undefined
+      ? column.appliesCellsFunction ?? this.#appliesCellsFunction(column, physicalColumn)
+      : readsThroughCellsFunction(cellMeta);
+
+    if (runsCellsFunction && !metaManager.isExtendingCellMeta()) {
+      return this.#readCellsFunctionMeta(column, cellMeta, row, visualColumn, physicalRow, physicalColumn);
+    }
+
+    // The coordinates object is built only for a cell that gets a meta object: a bulk read of a column
+    // with neither a `cells` function nor a `valueGetter` would otherwise allocate one per cell.
+    if (cellMeta === undefined) {
+      if (!(column.hasColumnValueGetter ?? this.#hasColumnValueGetter(column, physicalColumn))) {
+        return undefined;
+      }
+
+      cellMeta = metaManager.createTransientColumnMeta(physicalColumn);
+    }
+
+    return metaManager.stampCellMeta(cellMeta, physicalRow, physicalColumn, { visualRow: row, visualColumn });
+  }
+
+  /**
+   * Resolves the `valueGetter` meta of a cell in a column that has a `cells` function, through the
+   * column's `CellsFunctionReader` (`metaManager/cellsFunctionRead.ts`): `cells()` runs once for the
+   * cell, with no meta hook and no write to stored meta.
+   *
+   * @param {object} column The resolved column.
+   * @param {object|undefined} storedMeta The cell's stored meta, or `undefined`.
+   * @param {number} row Visual row index.
+   * @param {number} visualColumn Visual column index.
+   * @param {number} physicalRow The physical index of `row`.
+   * @param {number} physicalColumn The physical index of `visualColumn`.
+   * @returns {object|undefined}
+   */
+  #readCellsFunctionMeta(
+    column: ReadColumn, storedMeta: CellProperties | undefined,
+    row: number, visualColumn: number, physicalRow: number, physicalColumn: number
+  ): CellProperties | undefined {
+    if (column.cellsReader === undefined) {
+      column.cellsReader = new CellsFunctionReader(this.metaManager!, {
+        physicalColumn,
+        stampedVisualColumn: visualColumn,
+        prop: colToPropOrIndex(this.hot!, visualColumn),
+        hasColumnValueGetter: column.hasColumnValueGetter,
+      });
+    }
+
+    return column.cellsReader.read(storedMeta, physicalRow, row);
   }
 
   /**
@@ -1182,14 +1395,15 @@ class DataMap {
    * The fast loop runs no user code, so it is entered only when nothing that can transform a value
    * is in play: no `columns[].data` accessor function, no `dataDotNotation` property path, no
    * listener on `modifyRowData`, `modifyData` or `modifySourceData`, and no `valueGetter` resolved
-   * through the column meta layer (`autocomplete`, `dropdown` and `multiSelect` each ship one). Every
-   * probe is re-read per call - a host app can register a listener or retype a column at any time,
-   * so caching the answers across calls would read stale values.
+   * through the column meta layer (`autocomplete`, `dropdown` and `multiSelect` each ship one), and no
+   * `cells` function resolved there with `applyCellsToDataReads` on, since it can give any row a
+   * `valueGetter`. Every probe is re-read
+   * per call - a host app can register a listener or retype a column at any time, so caching the answers
+   * across calls would read stale values.
    *
-   * Stored cell meta is the one thing a column-layer probe cannot see: a `cells()` function and a
-   * `cell: [{ row, col, type }]` entry both land a `valueGetter` on a single cell, and a rendered
-   * grid stores meta for its viewport rows. Any row that carries stored meta therefore falls back to
-   * `get()`, so what the caller receives is what `getDataAtCell()` returns today.
+   * Stored cell meta is the one thing a column-layer probe cannot see: a `cell: [{ row, col, type }]`
+   * entry and `setCellMeta()` both land a `valueGetter` on a single cell. Any row that carries stored
+   * meta therefore falls back to `get()`, so what the caller receives is what `getDataAtCell()` returns.
    *
    * `physicalRows` is the only row source both paths read. `get()` takes a visual row, so a fallback
    * translates the physical row back rather than assuming the block is a contiguous visual band -
@@ -1226,7 +1440,7 @@ class DataMap {
       && !this.hot!.hasHook('modifyRowData')
       && !this.hot!.hasHook('modifyData')
       && !this.hot!.hasHook('modifySourceData')
-      && !(isValueGetterReachable && isFunction(this.metaManager!.getColumnMeta(physicalColumn!).valueGetter));
+      && !(isValueGetterReachable && canColumnMetaGetValues(this.metaManager!.getColumnMeta(physicalColumn!)));
 
     if (!isBulkReadable) {
       for (let i = 0; i < rowsLength; i++) {
@@ -1274,7 +1488,8 @@ class DataMap {
 
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
     // runs) without permanently materializing one meta object per copied cell - the copy path
-    // walks the whole copied range through this method.
+    // walks the whole copied range through this method. The value is read as `get()` reads it, so a
+    // copy and `getData()` agree, at the cost of a second `cells()` call per copied cell.
     if (typeof colIndex === 'number' && this.hot!.getCellMetaTransient(row, colIndex).copyable) {
       return this.get(row, prop);
     }
@@ -1513,27 +1728,39 @@ class DataMap {
       return [];
     }
 
-    const getFn = destination === DataMap.DESTINATION_CLIPBOARD_GENERATOR ? this.getCopyable : this.get;
+    const isCopy = destination === DataMap.DESTINATION_CLIPBOARD_GENERATOR;
 
     const rlen = Math.min(Math.max((maxRows ?? Infinity) - 1, 0), Math.max(start.row, end.row));
     const clen = Math.min(Math.max((maxCols ?? Infinity) - 1, 0), Math.max(start.col, end.col));
+    const firstColumn = Math.min(start.col, end.col);
+    // Everything a cell read derives from its column is resolved once here.
+    const columns: ReadColumn[] = [];
+
+    for (c = firstColumn; c <= clen; c++) {
+      // An index past the last column keeps its index, so it cannot resolve to an unbound column.
+      columns.push(this.#resolveReadColumn(colToPropOrIndex(this.hot!, c)));
+    }
 
     for (r = Math.min(start.row, end.row); r <= rlen; r++) {
-      row = [];
       // We just store indexes for rows without headers.
       const physicalRow = r >= 0 ? this.hot!.toPhysicalRow(r) : r;
 
-      for (c = Math.min(start.col, end.col); c <= clen; c++) {
+      if (physicalRow === null) {
+        continue;
+      }
 
-        if (physicalRow === null) {
-          break;
-        }
-        // An index past the last column keeps its index, so it cannot resolve to an unbound column.
-        row.push(getFn.call(this, r, colToPropOrIndex(this.hot!, c)));
+      // A header row is read through its own translation, as `get()` would read it.
+      const readPhysicalRow = r >= 0 ? physicalRow : this.hot!.toPhysicalRow(r);
+
+      row = [];
+
+      for (let i = 0; i < columns.length; i++) {
+        row.push(isCopy
+          ? this.getCopyable(r, columns[i].prop)
+          : this.#readCell(r, readPhysicalRow, columns[i], false));
       }
-      if (physicalRow !== null) {
-        output.push(row);
-      }
+
+      output.push(row);
     }
 
     return output;

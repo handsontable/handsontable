@@ -5,14 +5,14 @@
 }
 
 .rating-star {
-  color: var(--ht-background-secondary-color, #e0e0e0 );
+  color: light-dark(#8c8c8c, #6b6b6b);
   cursor: default;
   display: inline-flex;
   align-items: center;
 }
 
 .rating-star.active {
-  color: #facc15;
+  color: light-dark(#b45309, #facc15);
 }
 
 .rating-editor {

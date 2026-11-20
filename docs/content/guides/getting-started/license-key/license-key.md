@@ -363,6 +363,7 @@ The table lists the tiers that include each feature. For prices, see the
 | Data provider | Yes | Yes |
 | Dialog | Yes | Yes |
 | Drag to scroll | Yes | Yes |
+| Editable headers | Yes | Yes |
 | Empty data state | Yes | Yes |
 | Export to file | Yes | Yes |
 | Filters | Yes | Yes |

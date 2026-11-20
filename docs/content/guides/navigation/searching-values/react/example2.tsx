@@ -36,6 +36,7 @@ const ExampleComponent = () => {
             id="search_field2"
             type="search"
             placeholder="Search"
+            aria-label="Search"
             onKeyUp={(...args) => searchFieldKeyupCallback(...args)}
           />
         </div>

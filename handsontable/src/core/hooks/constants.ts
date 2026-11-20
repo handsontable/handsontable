@@ -2865,11 +2865,27 @@ export const REGISTERED_HOOKS = [
    *
    * This hook is fired when {@link Options#columnSorting} or {@link Options#multiColumnSorting} option is enabled.
    *
+   * Each sort configuration is an array with one `{ column, sortOrder }` object for each sorted column, where
+   * `column` is a visual column index and `sortOrder` is `'asc'` or `'desc'`. An empty array means that no
+   * column is sorted. With {@link Options#multiColumnSorting}, the objects follow the sort priority.
+   *
    * @event Hooks#beforeColumnSort
-   * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
-   * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
+   * @param {Array} currentSortConfig Sort configuration from before the sort (for all sorted columns).
+   * @param {Array} destinationSortConfigs Sort configuration that the sort is about to apply
+   *                                       (for all sorted columns).
    * @param {boolean} sortPossible Indicates if it's possible to sort the table with the provided configuration.
    * @returns {boolean | undefined} If `false` the column will not be sorted, `true` otherwise.
+   * @example
+   * ```js
+   * // the grid is sorted by the first column, and the user clicks the header of the third column
+   * new Handsontable(element, {
+   *   columnSorting: true,
+   *   beforeColumnSort: (currentSortConfig, destinationSortConfigs) => {
+   *     // currentSortConfig: [{ column: 0, sortOrder: 'asc' }]
+   *     // destinationSortConfigs: [{ column: 2, sortOrder: 'asc' }]
+   *   }
+   * });
+   * ```
    */
   'beforeColumnSort',
 
@@ -2877,9 +2893,12 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link ColumnSorting} and {@link MultiColumnSorting} plugins after sorting the column. This hook is fired when {@link Options#columnSorting}
    * or {@link Options#multiColumnSorting} option is enabled.
    *
+   * The hook receives the same arguments as {@link Hooks#beforeColumnSort}, in the same format.
+   *
    * @event Hooks#afterColumnSort
-   * @param {Array} currentSortConfig Current sort configuration (for all sorted columns).
-   * @param {Array} destinationSortConfigs Destination sort configuration (for all sorted columns).
+   * @param {Array} currentSortConfig Sort configuration from before the sort (for all sorted columns),
+   *                                  not the one the grid is sorted by now.
+   * @param {Array} destinationSortConfigs Sort configuration that the sort applied (for all sorted columns).
    *                                       It repeats `currentSortConfig` when `sortPossible` is `false`.
    * @param {boolean} sortPossible Indicates if it was possible to sort the table with the provided configuration.
    */
@@ -3385,6 +3404,32 @@ export const REGISTERED_HOOKS = [
   'afterPaste',
 
   /**
+   * Fired by the {@link EditableHeaders} plugin before a column or row header is renamed.
+   *
+   * @event Hooks#beforeHeaderChange
+   * @since 19.0.0
+   * @param {string} axis `'column'` for a column header, `'row'` for a row header.
+   * @param {number} visualIndex The visual index of the column or row.
+   * @param {string} newValue The header value about to be set.
+   * @param {*} oldValue The header value shown before the change.
+   * @returns {boolean|undefined} If `false`: the header is not renamed, and the `afterHeaderChange` hook won't fire.
+   */
+  'beforeHeaderChange',
+
+  /**
+   * Fired by the {@link EditableHeaders} plugin after a column or row header is renamed, and for every header an
+   * undo, a redo or {@link EditableHeaders#clearHeaders} changes. Use it to save the new value in your application.
+   *
+   * @event Hooks#afterHeaderChange
+   * @since 19.0.0
+   * @param {string} axis `'column'` for a column header, `'row'` for a row header.
+   * @param {number} visualIndex The visual index of the column or row.
+   * @param {string} newValue The new header value.
+   * @param {*} oldValue The header value shown before the change.
+   */
+  'afterHeaderChange',
+
+  /**
    * Fired by the {@link ManualColumnFreeze} plugin, before freezing a column.
    *
    * @event Hooks#beforeColumnFreeze
@@ -3682,6 +3727,9 @@ export const REGISTERED_HOOKS = [
    * | ---------------------- | ----------------------- | ------------------------------------------ |
    * | `renderedColumnIndex`  | `number`                | The renderable index of the column.        |
    * | `TH`                   | `HTMLTableCellElement`  | The `<th>` element to modify.              |
+   *
+   * Handsontable also calls the first renderer in the array on the `<th>` elements of an off-screen table,
+   * to measure the height of the column headers. Such a `<th>` is not in the grid's overlays.
    *
    * ```js
    * new Handsontable(container, {
@@ -4262,6 +4310,17 @@ export const REGISTERED_HOOKS = [
    * @returns {string} The column header value to be updated.
    */
   'modifyColumnHeaderValue',
+
+  /**
+   * Fired while retrieving a row header's value.
+   *
+   * @since 19.0.0
+   * @event Hooks#modifyRowHeaderValue
+   * @param {string|number} value A row header value.
+   * @param {number} visualRowIndex A visual row index.
+   * @returns {string|number} The row header value to be used.
+   */
+  'modifyRowHeaderValue',
 
   /**
    * Fired by {@link UndoRedo} plugin before the undo action. Contains information about the action that is being undone.

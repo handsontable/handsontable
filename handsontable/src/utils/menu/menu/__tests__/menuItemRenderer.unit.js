@@ -1,5 +1,6 @@
 import { createMenuItemRenderer } from 'handsontable/utils/menu/menu/menuItemRenderer';
 import { isItemChecked, isItemCheckable } from 'handsontable/utils/menu/menu/utils';
+import { SEPARATOR } from 'handsontable/utils/menu/predefinedItems';
 
 const CHECK_MARK = String.fromCharCode(10003);
 const MIXED_MARK = String.fromCharCode(8211);
@@ -307,6 +308,112 @@ describe('menuItemRenderer', () => {
       expect(TD.getAttribute('aria-disabled')).toBe(null);
       expect(TD.getAttribute('tabindex')).toBe('-1');
       expect(TD.classList.contains('htDisabled')).toBe(false);
+    });
+  });
+
+  describe('a separator', () => {
+    it('should be exposed as a separator with no name and no tab stop', () => {
+      const { TD } = renderItem({ name: SEPARATOR }, { ariaTags: true });
+
+      expect(TD.getAttribute('role')).toBe('separator');
+      expect(TD.hasAttribute('aria-label')).toBe(false);
+      expect(TD.hasAttribute('tabindex')).toBe(false);
+      expect(TD.classList.contains('htSeparator')).toBe(true);
+    });
+
+    it('should drop the item attributes a reused cell carried from an earlier item', () => {
+      const separator = { name: SEPARATOR };
+      const item = { key: 'a', name: 'Top', checked: true, disabled: true, submenu: { items: [] } };
+      const TD = document.createElement('td');
+      let current = item;
+      const { mainTableHot, menuHot } = createInstances(item, { ariaTags: true });
+      const render = createMenuItemRenderer(mainTableHot);
+
+      menuHot.getSourceDataAtRow = () => current;
+      render(menuHot, TD, 0, 0, '0', item.name, {});
+      current = separator;
+      render(menuHot, TD, 0, 0, '0', separator.name, {});
+
+      expect(TD.getAttribute('role')).toBe('separator');
+      expect(TD.hasAttribute('aria-label')).toBe(false);
+      expect(TD.hasAttribute('aria-checked')).toBe(false);
+      expect(TD.hasAttribute('aria-disabled')).toBe(false);
+      expect(TD.hasAttribute('aria-expanded')).toBe(false);
+    });
+
+    it('should drop the tab stop a reused cell carried from an enabled item', () => {
+      const separator = { name: SEPARATOR };
+      const item = { key: 'b', name: 'Enabled' };
+      const TD = document.createElement('td');
+      let current = item;
+      const { mainTableHot, menuHot } = createInstances(item, { ariaTags: true });
+      const render = createMenuItemRenderer(mainTableHot);
+
+      menuHot.getSourceDataAtRow = () => current;
+      render(menuHot, TD, 0, 0, '0', item.name, {});
+
+      expect(TD.getAttribute('tabindex')).toBe('-1');
+
+      current = separator;
+      render(menuHot, TD, 0, 0, '0', separator.name, {});
+
+      expect(TD.getAttribute('role')).toBe('separator');
+      expect(TD.hasAttribute('tabindex')).toBe(false);
+    });
+
+    it('should write no ARIA when `ariaTags` is off', () => {
+      const { TD } = renderItem({ name: SEPARATOR }, { ariaTags: false });
+
+      expect(TD.hasAttribute('role')).toBe(false);
+      expect(TD.hasAttribute('aria-label')).toBe(false);
+      expect(TD.classList.contains('htSeparator')).toBe(true);
+    });
+  });
+  describe('the row of an item', () => {
+    /**
+     * Renders one item into a cell that sits in a table row, the way the menu grid renders it.
+     *
+     * @param {object} item The menu item definition under test.
+     * @param {object} [settings] Settings the main instance should report.
+     * @returns {{ TD: HTMLTableCellElement, TR: HTMLTableRowElement }}
+     */
+    function renderItemInRow(item, settings) {
+      const { mainTableHot, menuHot } = createInstances(item, settings);
+      const TR = document.createElement('tr');
+      const TD = document.createElement('td');
+
+      TR.appendChild(TD);
+      createMenuItemRenderer(mainTableHot)(menuHot, TD, 0, 0, '0', item.name, {});
+
+      return { TD, TR };
+    }
+
+    it('should take the row out of the accessibility tree, so the item is a child of the menu', () => {
+      const { TD, TR } = renderItemInRow({ name: 'Insert row above' }, { ariaTags: true });
+
+      expect(TR.getAttribute('role')).toBe('presentation');
+      expect(TD.getAttribute('role')).toBe('menuitem');
+    });
+
+    it('should mark the row of a separator as well', () => {
+      const { TD, TR } = renderItemInRow({ name: SEPARATOR }, { ariaTags: true });
+
+      expect(TR.getAttribute('role')).toBe('presentation');
+      expect(TD.getAttribute('role')).toBe('separator');
+    });
+
+    it('should write no role on the row when `ariaTags` is off', () => {
+      const { TD, TR } = renderItemInRow({ name: 'Insert row above' }, { ariaTags: false });
+
+      expect(TR.hasAttribute('role')).toBe(false);
+      expect(TD.hasAttribute('role')).toBe(false);
+    });
+
+    it('should render a cell that sits in no row', () => {
+      const { TD } = renderItem({ name: 'Insert row above' }, { ariaTags: true });
+
+      expect(TD.parentElement).toBe(null);
+      expect(TD.getAttribute('role')).toBe('menuitem');
     });
   });
 });

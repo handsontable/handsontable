@@ -63,6 +63,12 @@ export default class MetaManager {
   #isInitialized = false;
 
   /**
+   * How many dynamic extensions (the `beforeGetCellMeta` hook, the `cells` function and its `type`, the
+   * `afterGetCellMeta` hook) are running now. Read through `isExtendingCellMeta()`.
+   */
+  #extensionDepth = 0;
+
+  /**
    * The Handsontable instance passed to this manager on construction.
    */
   declare hot: unknown;
@@ -267,10 +273,64 @@ export default class MetaManager {
     cellMeta.col = physicalColumn;
 
     if (!options.skipMetaExtension) {
-      this.runLocalHooks('afterGetCellMeta', cellMeta);
+      this.#runExtensionHook('afterGetCellMeta', cellMeta);
     }
 
     return cellMeta;
+  }
+
+  /**
+   * Tells whether a dynamic extension of some cell meta object is running now: the `beforeGetCellMeta`
+   * hook, the `cells` function, or the `afterGetCellMeta` hook. A data read made from one of them skips
+   * the extension of the cell it reads, because that extension would run the same user code again and,
+   * for the cell being extended, never end.
+   *
+   * @returns {boolean}
+   */
+  isExtendingCellMeta(): boolean {
+    return this.#extensionDepth > 0;
+  }
+
+  /**
+   * Calls the `cells` function a cell meta object resolves, with the object as `this`, the way the
+   * dynamic extension calls it, and returns its result without applying it. No meta hook runs. The call
+   * counts in `isExtendingCellMeta()`, so a data read the function makes does not call it again.
+   *
+   * A data read uses this to learn whether a cell can have a `valueGetter` at all before it pays for
+   * the full extension (`getCellMetaTransient()`).
+   *
+   * @param {object} cellMeta A cell meta object with stamped coordinates whose `cells` is a function.
+   * @param {number|string|Function|null} prop The column property, as the extension resolves it
+   *   (`colToPropOrIndex()`). It is also written to `cellMeta.prop`, as the extension does.
+   * @returns {*} What the `cells` function returned.
+   */
+  callCellsFunction(cellMeta: CellProperties, prop: unknown): unknown {
+    // `Reflect` keeps the extension's untyped `prop` (an accessor function or `null` for some columns)
+    // without narrowing the public `CellProperties#prop` type or casting it.
+    Reflect.set(cellMeta, 'prop', prop);
+    this.#extensionDepth += 1;
+
+    try {
+      return Reflect.apply(cellMeta.cells!, cellMeta, [cellMeta.row, cellMeta.col, prop]);
+    } finally {
+      this.#extensionDepth -= 1;
+    }
+  }
+
+  /**
+   * Runs the local hook that extends a cell meta object, counting it in `isExtendingCellMeta()`.
+   *
+   * @param {string} hookName The local hook that extends the object.
+   * @param {object} cellMeta The cell meta object to extend.
+   */
+  #runExtensionHook(hookName: 'afterGetCellMeta' | 'extendTransientCellMeta', cellMeta: CellProperties) {
+    this.#extensionDepth += 1;
+
+    try {
+      this.runLocalHooks(hookName, cellMeta);
+    } finally {
+      this.#extensionDepth -= 1;
+    }
   }
 
   /**
@@ -298,6 +358,31 @@ export default class MetaManager {
     const cellMeta = this.cellMeta.getMetaIfExists(physicalRow, physicalColumn) ??
       this.cellMeta.createTransientMeta(physicalColumn);
 
+    cellMeta.visualRow = options.visualRow;
+    cellMeta.visualCol = options.visualColumn;
+    cellMeta.row = physicalRow;
+    cellMeta.col = physicalColumn;
+
+    return cellMeta;
+  }
+
+  /**
+   * Stamps the coordinates on a cell meta object the way `getCellMetaUncached` does, for a caller that
+   * already holds the object (found with `getCellMetaIfExists`, or created with
+   * `createTransientColumnMeta`) and must not look it up again.
+   *
+   * @param {object} cellMeta The cell meta object.
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {object} options Options for the method.
+   * @param {number} options.visualRow The visual row index of the cell.
+   * @param {number} options.visualColumn The visual column index of the cell.
+   * @returns {object}
+   */
+  stampCellMeta(
+    cellMeta: CellProperties, physicalRow: number, physicalColumn: number,
+    options: { visualRow: number; visualColumn: number }
+  ): CellProperties {
     cellMeta.visualRow = options.visualRow;
     cellMeta.visualCol = options.visualColumn;
     cellMeta.row = physicalRow;
@@ -355,7 +440,7 @@ export default class MetaManager {
       storedMeta.row = physicalRow;
       storedMeta.col = physicalColumn;
 
-      this.runLocalHooks('afterGetCellMeta', storedMeta);
+      this.#runExtensionHook('afterGetCellMeta', storedMeta);
 
       return storedMeta;
     }
@@ -367,7 +452,7 @@ export default class MetaManager {
     cellMeta.row = physicalRow;
     cellMeta.col = physicalColumn;
 
-    this.runLocalHooks('extendTransientCellMeta', cellMeta);
+    this.#runExtensionHook('extendTransientCellMeta', cellMeta);
 
     return cellMeta;
   }

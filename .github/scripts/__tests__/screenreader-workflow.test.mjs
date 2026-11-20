@@ -26,6 +26,7 @@ const NIGHTLY = '.github/workflows/screenreader-nightly.yml';
 const TESTS = '.github/workflows/test.yml';
 const CONFIG = 'tests/playwright.screenreader.config.ts';
 const DOC = 'See tests/AGENTS.md, "Screen readers: the NVDA and VoiceOver lanes".';
+const AUDIT_DOC = 'See tests/AGENTS.md, "A11y: the audit and the proof runs".';
 
 /**
  * The grants of a job's `permissions` block, one `key: value` per line, in order.
@@ -282,22 +283,21 @@ test('the run step fits every group\'s scenario budgets plus one retry of its la
   });
 });
 
-test('screenreader-nightly.yml calls the lane after the UMD build, on a dispatch from any ref and never a cron, and the Tests pipeline never calls it', () => {
+test('screenreader-nightly.yml calls the lane after the UMD build, on its weekly schedule and on a dispatch from any ref, and the Tests pipeline never calls it', () => {
   const nightly = stripYamlComments(read(NIGHTLY));
 
   assert.deepEqual(jobIds(nightly), ['check-inputs', 'build', 'screenreader', 'verdict', 'notify'],
     `${NIGHTLY}: the input guard, build, the lane, the run verdict, the Slack ping. ${DOC}`);
-  assert.doesNotMatch(nightly, /^ {2}schedule:$/m,
-    `${NIGHTLY}: manual trigger only. The accessibility program runs one audit, fixes, and re-audits; a cron would spend a headed Windows and macOS runner per browser on nights nobody reads. The tiers (axe on a pull request, a semi-lite set on a nightly, the full set on a release candidate and a stable release) come back with the schedule, not before. ${DOC}`);
-  assert.doesNotMatch(nightly, /cron/, `${NIGHTLY}: no cron, under any key. ${DOC}`);
-  assert.match(nightly, /^ {2}workflow_dispatch:$/m, `${NIGHTLY}: a dispatch from a feature branch is the proof run and the golden recorder.`);
+  assert.match(nightly, /^ {2}schedule:\n {4}- cron: '7 1 \* \* 1'$/m,
+    `${NIGHTLY}: the weekly audit, Monday 01:07 UTC on develop, the first of the four audit workflows (a11y-audit-schedule.test.mjs pins their order and what a schedule's empty inputs give). While the accessibility debt is being fixed the ledger needs an audit a week to show what each fix cleared; a run every night would spend a headed Windows and macOS runner per browser seven times as often. The schedule ends when the debt epic closes, and the tiers (axe on a pull request, a semi-lite set on a nightly, the full set on a release candidate and a stable release) then decide the cadence. ${AUDIT_DOC}`);
+  assert.match(nightly, /^ {2}workflow_dispatch:$/m, `${NIGHTLY}: a dispatch on develop is the audit too, and a dispatch from a feature branch is the proof run and the golden recorder.`);
   assert.match(nightly, /^ {2}pull_request:\n {4}paths: \[ '\.github\/workflows\/screenreader-nightly\.yml' \]$/m,
     `${NIGHTLY}: the self-validating trigger stays; without it a broken workflow_call graph first runs after merging. ${DOC}`);
   ['groups', 'projects'].forEach((input) => {
     assert.match(nightly, new RegExp(`^ {6}${input}:\\n(?: {8}.*\\n)*? {8}type: string\\n(?: {8}.*\\n)*? {8}default: ''$`, 'm'),
       `${NIGHTLY}: the ${input} input is a comma-separated subset, and its default, empty, runs every one: a proof run on a branch dispatches the changed group on one project instead of every lane. ${DOC}`);
-    assert.match(job(nightly, 'screenreader'), new RegExp(`^ {6}${input}: \\$\\{\\{ inputs\\.${input} \\}\\}$`, 'm'),
-      `${NIGHTLY}: the ${input} input is forwarded to the lane as it is; the inputs context is empty on the pull_request trigger, where the job skips itself anyway. ${DOC}`);
+    assert.match(job(nightly, 'screenreader'), new RegExp(`^ {6}${input}: \\$\\{\\{ inputs\\.${input} \\|\\| '' \\}\\}$`, 'm'),
+      `${NIGHTLY}: the ${input} input is forwarded to the lane as it is. The inputs hold nothing on the schedule (and on the pull_request trigger, where the job skips itself anyway), so \`|| ''\` hands the lane a string on every event, and an empty subset runs every one. ${AUDIT_DOC}`);
   });
   assert.match(job(nightly, 'build'), /^ {6}run-umd: true$/m, `${NIGHTLY}: the lane needs the UMD artifact.`);
   assert.match(job(nightly, 'build'), /^ {4}needs: \[ check-inputs \]$/m,
@@ -308,10 +308,11 @@ test('screenreader-nightly.yml calls the lane after the UMD build, on a dispatch
 
   assert.match(guard, /^ {4}if: github\.event_name != 'pull_request'$/m, `${NIGHTLY}: the guard skips itself on the validation run, like the jobs after it. ${DOC}`);
   assert.match(guard, /^ {4}runs-on: ubuntu-26\.04$/m);
-  assert.deepEqual(permissions(guard), ['contents: read'], `${NIGHTLY}: the guard reads the checkout and nothing else. ${DOC}`);
+  assert.deepEqual(permissions(guard), ['contents: read', 'actions: read'],
+    `${NIGHTLY}: the guard reads the checkout, and on the schedule the runs of this workflow, nothing else. ${DOC}`);
   assert.match(guard, /^ {10}persist-credentials: false$/m);
   assert.match(guard, /^ {10}sparse-checkout: \|\n {12}tests\/lib\n {12}tests\/scripts$/m,
-    `${NIGHTLY}: the guard reads the dispatch lists from tests/lib (screenreader-matrix.mjs, dependency-free) and the script from tests/scripts, nothing else. ${DOC}`);
+    `${NIGHTLY}: the guard reads the dispatch lists from tests/lib (screenreader-matrix.mjs, dependency-free) and the scripts from tests/scripts, nothing else. ${DOC}`);
   assert.match(guardRun, /SCREENREADER_PROJECTS: \$\{\{ inputs\.projects \}\}/);
   assert.match(guardRun, /SCREENREADER_GROUPS: \$\{\{ inputs\.groups \}\}/);
   assert.match(guardRun, /^ {8}run: node tests\/scripts\/a11y-dispatch-inputs\.mjs --ref "\$GITHUB_REF" --projects "\$SCREENREADER_PROJECTS" --groups "\$SCREENREADER_GROUPS"$/m,
@@ -328,8 +329,33 @@ test('screenreader-nightly.yml calls the lane after the UMD build, on a dispatch
     `${NIGHTLY}: Slack hears of a run that never reached the lane (failure()), on develop only. ${DOC}`);
   assert.match(job(nightly, 'screenreader'), /^ {6}update-goldens: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.update-goldens \|\| false \}\}$/m,
     `${NIGHTLY}: only a dispatch that asks records goldens; a plain dispatch compares. ${DOC}`);
-  assert.match(nightly, /^ {2}group: screenreader-nightly-\$\{\{ github\.ref \}\}$/m, `${NIGHTLY}: a static concurrency prefix, never the workflow-name expression.`);
+  assert.match(nightly, /^ {2}group: screenreader-nightly-\$\{\{ github\.ref \}\}$/m,
+    `${NIGHTLY}: a static concurrency prefix, never the workflow-name expression, and one group per ref: a group shared by every ref would keep one pending run and cancel the others, so a third dispatch would drop a waiting audit. The scheduled run waits in its check-inputs job instead. ${AUDIT_DOC}`);
   assert.doesNotMatch(stripYamlComments(read(TESTS)), /screenreader/, `${TESTS}: the lane is report-only and nightly; it is not a pull-request job. ${DOC}`);
+});
+
+test('the scheduled screen reader run waits for the earlier runs before its build, under a bound, and a dispatch does not', () => {
+  const nightly = stripYamlComments(read(NIGHTLY));
+  const guard = job(nightly, 'check-inputs');
+  const names = steps(guard).map(entry => /^- name: (.*)$/m.exec(entry)?.[1]).filter(Boolean);
+  const wait = steps(guard).find(entry => /^- name: Wait for the earlier screen reader runs to finish$/m.test(entry)) ?? '';
+  const [, bound] = /--bound-minutes (\d+)/.exec(wait) ?? [];
+  const [, stepTimeout] = /^ {8}timeout-minutes: (\d+)$/m.exec(wait) ?? [];
+  const [, jobTimeout] = /^ {4}timeout-minutes: (\d+)$/m.exec(guard) ?? [];
+
+  assert.deepEqual(names, ['Refuse a subset on develop and an entry that names nothing', 'Wait for the earlier screen reader runs to finish'],
+    `${NIGHTLY}: the wait is the last step before the build, after the inputs were read. ${AUDIT_DOC}`);
+  assert.match(wait, /^ {8}if: github\.event_name == 'schedule'$/m,
+    `${NIGHTLY}: only the scheduled run waits. One screen reader run at a time, on any ref: two share the organization's five macOS slots and slow every VoiceOver step. A person checks for a run in flight before a dispatch; a cron cannot see a proof run on a branch. A dispatch that waited for a later run would wait for itself. ${AUDIT_DOC}`);
+  assert.match(wait, /^ {8}run: node tests\/scripts\/screenreader-wait\.mjs --workflow screenreader-nightly\.yml --bound-minutes 180 --interval-seconds 60$/m,
+    `${NIGHTLY}: the wait reads the runs of this workflow (${path.basename(NIGHTLY)}) once a minute, for three hours at most, longer than a full run takes; then it fails instead of starting a second run, and the notify job tells Slack. ${AUDIT_DOC}`);
+  assert.match(wait, /^ {10}GITHUB_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}$/m, `${NIGHTLY}: the wait lists the runs with the job's token (actions: read).`);
+  assert.ok(Number(stepTimeout) > Number(bound),
+    `${NIGHTLY}: the step's timeout (${stepTimeout}) sits above the script's own bound (${bound}), so the script ends the wait with its reason, never a bare timeout.`);
+  assert.ok(Number(jobTimeout) > Number(stepTimeout), `${NIGHTLY}: the job's timeout (${jobTimeout}) is the backstop above the step's (${stepTimeout}).`);
+  assert.match(job(nightly, 'build'), /^ {4}needs: \[ check-inputs \]$/m, `${NIGHTLY}: no build and no lane before the wait is over. ${AUDIT_DOC}`);
+  assert.match(job(nightly, 'notify'), /scheduled audit waited three hours/,
+    `${NIGHTLY}: the Slack text says a scheduled run that waited out its bound never reached the lanes. ${AUDIT_DOC}`);
 });
 
 test('the screen reader nightly ends on a verdict job that expects one check run per lane and group of the matrices', () => {

@@ -326,6 +326,12 @@ class TableView {
    * @type {boolean}
    */
   #measuringContentColumnHeader = false;
+
+  /**
+   * Answers whether a header's label holds text a user typed (an `EditableHeaders` rename), which must be
+   * written as text and never parsed as HTML. `null` while no plugin registered one.
+   */
+  #plainTextHeaderResolver: ((axis: 'column' | 'row', visualIndex: number) => boolean) | null = null;
   /**
    * Whether a check of the frozen counts is queued after a column width change that did not render.
    *
@@ -2965,6 +2971,39 @@ class TableView {
   }
 
   /**
+   * Drops the row heights that were measured before the browser zoom changed, when it did.
+   *
+   * Below 100% the cells' border renders wider than the 1px the theme declares, so every row renders taller, and
+   * the styles handler sizes rows from that only when the border it cached was already inflated. A grid built at
+   * 100% and zoomed out afterwards kept the declared height and every sum of row heights fell short per row: the
+   * guideline of `ManualRowMove`, the scroll range, the row-header clone (GitHub #14330). The handler re-reads the
+   * border and, when it moved, the row-height cache is dropped here, so the next render measures the rows again.
+   * The oversized-row records stay: without `AutoRowSize` nothing else knows the height of a tall row outside the
+   * rendered band, and a render measures the rows it draws. The column width cache is left alone too, because a
+   * measured width (`AutoColumnSize`) does not depend on the border.
+   *
+   * A grid nobody can see is skipped. The browser reports the inflated border of a hidden grid, but a row of
+   * it renders at no height, so the grid would measure the declared one against the new border and keep it once
+   * shown. The next `Core#refreshDimensions()` after the reveal then finds the border moved and refreshes. A grid
+   * with a `height` gets that call from the container observer. A grid the window scrolls gets it from the next
+   * window resize or from the application.
+   *
+   * `Core#refreshDimensions()` calls it after the `beforeRefreshDimensions` hook let the resize through and
+   * renders when it returns `true`, so a resize that a listener blocked stays blocked.
+   *
+   * @returns {boolean} `true` when the zoom changed what a row measures, and the caller has to render.
+   */
+  refreshZoomDependentSizes(): boolean {
+    if (!isVisible(this.hot.rootElement) || !this.hot.stylesHandler.refreshZoomDependentValues()) {
+      return false;
+    }
+
+    this.invalidateRowHeightCache();
+
+    return true;
+  }
+
+  /**
    * Renders when a resize of the window changed the counts that fit. A grid that the window scrolls keeps the size of
    * its root when the window is resized (its height follows its content), so `refreshDimensions()` finds no change
    * and does not render, while the room the frozen bands share is the size of the window.
@@ -3341,6 +3380,31 @@ class TableView {
   }
 
   /**
+   * Registers the function that answers whether a header's label must be written as text, or removes it
+   * with `null`. A label a user typed reaches the header through the value hooks, and the default write
+   * parses a label that looks like markup as HTML.
+   *
+   * @private
+   * @param {Function|null} resolver Called with the axis (`'column'` or `'row'`) and the visual index.
+   */
+  setPlainTextHeaderResolver(resolver: ((axis: 'column' | 'row', visualIndex: number) => boolean) | null) {
+    this.#plainTextHeaderResolver = resolver;
+  }
+
+  /**
+   * Checks whether a header's label must be written as text: a user typed it, so it is never parsed as HTML.
+   * Every place that writes a header label into the DOM asks it (the grid, the GhostTable, the copied HTML table).
+   *
+   * @private
+   * @param {string} axis `'column'` or `'row'`.
+   * @param {number} visualIndex The visual index of the column or row.
+   * @returns {boolean}
+   */
+  isPlainTextHeader(axis: 'column' | 'row', visualIndex: number): boolean {
+    return this.#plainTextHeaderResolver?.(axis, visualIndex) ?? false;
+  }
+
+  /**
    * Updates header cell content.
    *
    * @private
@@ -3368,8 +3432,18 @@ class TableView {
 
     if (renderedIndex > -1) {
       removeClass(element, 'cornerHeader');
-      fastInnerHTML(element, String(content(index, headerLevel)), getSanitizer(this.hot),
-        'header', this.hot.rootElement);
+
+      const label = String(content(index, headerLevel));
+      const axis = hasClass(element, 'rowHeader') ? 'row' : 'column';
+      // Only the default label can hold a rename. A header row a plugin draws with a label function of its own
+      // keeps its markup.
+      const isDefaultLabel = content === this.hot.getColHeader || content === this.hot.getRowHeader;
+
+      if (isDefaultLabel && this.isPlainTextHeader(axis, index)) {
+        fastInnerText(element, label);
+      } else {
+        fastInnerHTML(element, label, getSanitizer(this.hot), 'header', this.hot.rootElement);
+      }
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946

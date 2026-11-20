@@ -1,4 +1,5 @@
 import { test, expect, THEMES_TAG, CROSS_BROWSER_TAG } from '../fixtures/test';
+import { quarantined } from '../fixtures/quarantine';
 import {
   SideLayoutSlotsPage, type Box, type PanelSeam, type SideSlotGeometry,
 } from '../fixtures/pages/SideLayoutSlotsPage';
@@ -515,7 +516,9 @@ test.describe('side layout slots', { tag: [THEMES_TAG, CROSS_BROWSER_TAG] }, () 
       expect(overlaps(scrolledPanel, scrolled.table)).toBe(false);
     });
 
-    test('docks the end panel after the table\'s last column under RTL', async () => {
+    // Parked until the read waits for the window scroll to settle: on WebKit the first attempt fails and
+    // the retry passes, which `failOnFlakyTests` turns into a red leg for every pull request.
+    test('docks the end panel after the table\'s last column under RTL', quarantined('DEV-4110', '2026-12-18', 'read before the scroll settles'), async () => {
       await grid.rebuild({ ...windowScroll, documentDir: 'rtl', overrides: { layoutDirection: 'rtl' } });
       await grid.addPanel('end', 'details', END_WIDTH);
 

@@ -10,7 +10,16 @@
         "name": "Search options"
       },
       {
-        "region": "body"
+        "region": "grid",
+        "role": "gridcell",
+        "name": "Alpha",
+        "cell": [
+          0,
+          1
+        ]
+      },
+      {
+        "region": "end"
       }
     ]
   }

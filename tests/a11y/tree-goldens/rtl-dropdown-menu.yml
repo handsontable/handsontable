@@ -49,28 +49,16 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox
+  - textbox "Longer header text, row 1"
 # portal
-- menu:
-  - table:
-    - rowgroup:
-      - row "Insert column left":
-        - menuitem "Insert column left"
-      - row "Insert column right":
-        - menuitem "Insert column right"
-      - row "---------":
-        - menuitem "---------"
-      - row "Remove column":
-        - menuitem "Remove column"
-      - row "---------":
-        - menuitem "---------"
-      - row "Clear column":
-        - menuitem "Clear column"
-      - row "---------":
-        - menuitem "---------"
-      - row "Read only":
-        - menuitemcheckbox "Read only"
-      - row "---------":
-        - menuitem "---------"
-      - row "Alignment":
-        - menuitem "Alignment"
+- menu "Column menu":
+  - menuitem "Insert column left"
+  - menuitem "Insert column right"
+  - separator
+  - menuitem "Remove column"
+  - separator
+  - menuitem "Clear column"
+  - separator
+  - menuitemcheckbox "Read only"
+  - separator
+  - menuitem "Alignment"

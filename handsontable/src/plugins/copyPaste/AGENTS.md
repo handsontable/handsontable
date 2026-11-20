@@ -127,6 +127,27 @@ test, so the `mouseleave` no longer takes the focus from the editor the user is 
   class turns it red) and `tests/e2e/undo-gestures.spec.ts` (WebKit leg, sends the `mouseleave` itself because
   a real one lands on a frame the layout decides, which is why the old test passed on a race).
 
+**The selection the `mouseleave` workaround makes must never show, and the cell's class cannot hide it
+alone.** `makeElementContentEditableAndSelectItsContent()` adds the `invisibleSelection` class and the
+`data-ht-invisible-selection` attribute, and `_base.scss` paints that selection transparent through either.
+Two things defeat a rule keyed on the class and the cell's own text:
+
+- **A render rewrites the cell's `className`** and drops the class, while the cell's other attributes and the
+  selection stay. The pointer can stay outside the body for any length of time, so a render lands in between
+  (the container's `ResizeObserver` after a filter shrank the grid is one). The same render also drops the
+  `aria-hidden` the helper set, which nothing puts back.
+- **Text in a nested element is not covered by the cell's own `::selection`**: WebKit does not apply an
+  ancestor's `::selection` to descendants. Every header label is a nested `span.colHeader` (the highlighted
+  cell is a header after a header click with `navigableHeaders`, and after a column's dropdown menu closes),
+  and so is any markup a renderer writes into a cell.
+
+So the rule matches the marker attribute as well as the class, and every descendant of the cell as well as the
+cell. **Never key it on `[contenteditable]`**, which survives a render too: a user's renderer can make a cell
+editable for inline editing, and a selection the user makes there must show. Keep the selection itself:
+Safari's Edit → Copy needs it. Pinned by `tests/e2e/clipboard-safari-invisible-selection.spec.ts` (the header
+and nested-markup cases on the WebKit leg, the editable cell on every engine; a mutant of each part of the
+rule fails one of them) and the helper's unit tests in `helpers/dom/__tests__/element.unit.ts`.
+
 ## Ragged clipboard payloads (DEV-2615, #7389)
 
 A clipboard whose rows have unequal length must **not** be narrowed to the first row's width, or cells past
@@ -252,6 +273,12 @@ rows are copied. Cell values and row headers are **not** projected, and that is 
 `a<b` is data rather than a display string, and parsing it as HTML would destroy it. So a user's
 `textExtractor` not running on copied cell values is the designed behavior, not a missing call — do not
 "complete" it.
+
+**A header a user renamed (`EditableHeaders`) is not projected either.** It is text already, and the
+extraction parsed `a<b>c` into `ac`. `#readPlainTextHeaders()` records, before `beforeCopy`, which header cells
+`TableView#isPlainTextHeader()` reports and the value each holds; `#extractHeaderText()` leaves such a cell
+alone only while it still holds that value at that position, so a listener that reshaped the row gets the usual
+projection. Pinned in `../editableHeaders/__tests__/editableHeaders.unit.ts`.
 
 ## Hook ordering details
 

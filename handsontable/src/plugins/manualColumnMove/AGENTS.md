@@ -73,6 +73,18 @@ A press that never traveled is a click, not a move, and bailing out on that also
 `beforeColumnMove` / `afterColumnMove` from firing on every header click. The full protocol on the sorting
 side — the queued press, the two release signals, the two cancel checks — is in `../columnSorting/AGENTS.md`.
 
+## A selection of several ranges arms no move
+
+`#onBeforeOnCellMouseDown` returns through `#cancelDrag()` while `hot.selection.isNonContiguous()` is true
+(Ctrl/Cmd+click headers, or `selectCells()` with several ranges). The press used to arm a drag of the
+active range alone and leave the other ranges where they were (DEV-541). With the move not armed, the press
+falls through to the ordinary selection.
+`moveColumns()` and `dragColumns()` are untouched: the guard is about the gesture. `#onMouseUp` adds the
+`after-selection--columns` class (the grab cursor on the selected headers) only while the selection is a
+single range, so no header advertises a drag the guard refuses. `../manualRowMove/` has the same guard and
+the same class rule. Do not use `isMultiple()` here: it asks whether the ACTIVE range spans several cells.
+Pinned by `tests/e2e/non-contiguous-selection-interop.spec.ts`.
+
 ## A press another listener claimed arms no move
 
 `#onBeforeOnCellMouseDown` skips a press whose `isImmediatePropagationStopped(event)` is set, the way DragToScroll does: that listener owns the gesture. The FormulaBuilder header pick is the case it was added for. A pick dragged across the headers of a header-selected column armed a move, drew the guideline, scrolled the viewport on each `mousemove` next to the pick's own auto-scroller, and moved the range on release, which closed the edit. A pick that ended without a `mouseup` (a window blur) also left the move pressed for the next release on the page. The check depends on the claiming listener running first in the same hook: FormulaBuilder registers with order index `-1`. The other in-tree claimers (CheckboxHeader, RowSelection, CollapsibleColumns) register after this plugin, so their presses arm as before, until an `updatePlugin()` of this plugin moves its hook to the tail of the list.

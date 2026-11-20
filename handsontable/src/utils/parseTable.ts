@@ -1,7 +1,7 @@
 import type { HotInstance } from '../core/types';
 import { isEmpty } from './../helpers/mixed';
 import { decodeHtmlEntities } from '../helpers/string';
-import { fastInnerHTML, HTML_CHARACTERS } from '../helpers/dom/element';
+import { fastInnerHTML, fastInnerText, HTML_CHARACTERS } from '../helpers/dom/element';
 import { getSanitizer, sanitizeHTML } from './sanitizer';
 
 const ESCAPED_HTML_CHARS: Record<string, string> = {
@@ -199,12 +199,21 @@ export function instanceToTableElement(instance: HotInstance, rootDocument: Docu
   const tbody = rootDocument.createElement('tbody');
 
   /**
-   * Writes a header value, preserving any markup it carries.
+   * Writes a header value, preserving any markup it carries. A header a user renamed (`EditableHeaders`) is written
+   * as text, as the grid draws it: its markup is what the user typed, not markup to render.
    *
    * @param {HTMLElement} cell The header cell to fill.
    * @param {*} headerValue The header value.
+   * @param {string} axis `'column'` or `'row'`.
+   * @param {number} visualIndex The visual index of the column or row.
    */
-  const appendHeader = (cell: HTMLElement, headerValue: unknown) => {
+  const appendHeader = (cell: HTMLElement, headerValue: unknown, axis: 'column' | 'row', visualIndex: number) => {
+    if (instance.view?.isPlainTextHeader(axis, visualIndex)) {
+      fastInnerText(cell, String(headerValue));
+
+      return;
+    }
+
     fastInnerHTML(cell, String(headerValue), getSanitizer(instance, false), 'header', instance.rootElement);
   };
 
@@ -242,13 +251,13 @@ export function instanceToTableElement(instance: HotInstance, rootDocument: Docu
         // elements. Writing `textContent` here would render the tags as literal text instead.
         // `fastInnerHTML` keeps that markup and routes it through the configured sanitizer under
         // the `'header'` context, the same way the grid renders the header itself.
-        appendHeader(th, instance.getColHeader(column - rowModifier));
+        appendHeader(th, instance.getColHeader(column - rowModifier), 'column', column - rowModifier);
         tr.appendChild(th);
 
       } else if (isRowHeadersColumn) {
         const th = rootDocument.createElement('th');
 
-        appendHeader(th, instance.getRowHeader(row - columnModifier));
+        appendHeader(th, instance.getRowHeader(row - columnModifier), 'row', row - columnModifier);
         tr.appendChild(th);
 
       } else {

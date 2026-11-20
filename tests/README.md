@@ -13,7 +13,7 @@ tests/
 ├── playwright.a11y-checks.config.ts # the accessibility checks beyond axe: one project per check of EVIDENCE_CHECKS
 ├── playwright.screenreader.config.ts # the screen reader lanes' config: one project per screen reader and browser, through Guidepup
 ├── e2e/                    # functional specs (*.spec.ts)
-├── a11y/                   # the axe scan: axe.spec.ts, pages.mjs (the curated pages), axe-baseline.json; harness.ts (openers and guards shared with the checks beyond axe), evidence.ts; checks/ (the checks beyond axe, one spec each, and discovery-pages.mjs), tab-order-goldens/, tree-goldens/
+├── a11y/                   # the axe scan: axe.spec.ts, pages.mjs (the curated pages), axe-baseline.json; discovery-targets.spec.ts (opens the axe discovery run's targets on every pull request); harness.ts (openers and guards shared with the checks beyond axe), evidence.ts; checks/ (the checks beyond axe, one spec each, and discovery-pages.mjs), tab-order-goldens/, tree-goldens/
 ├── screenreader/           # the screen reader lanes: screenreader.spec.ts (the runner), scenarios/*.scenario.json, goldens/<project>/
 ├── visual/                 # visual regression — destination for the current visual-tests/ suite
 ├── fixtures/
@@ -40,7 +40,8 @@ npx playwright install  # browsers, once per version (CI runs inside the pinned 
 cd tests
 npm test                # all projects (package scripts work as usual once installed)
 npm run test:e2e        # the e2e-main leg (plain UMD, main theme) — the same leg the local hooks run
-npm run test:a11y       # the axe scan over the curated fixture pages, three themes (AGENTS.md, "A11y")
+npm run test:a11y       # the axe scan over the curated fixture pages, three themes (AGENTS.md, "A11y"), and the guard below
+npm run test:a11y-targets # the guard alone: every page built in the dark scheme and right to left, as the axe discovery run opens it
 npm run test:screenreader # the scenarios through a real screen reader (NVDA on Windows, VoiceOver on macOS); HOT_SR_LANE=dom-echo runs them without one (AGENTS.md, "Screen readers")
 npm run lint            # determinism + parse checks on the specs
 ```

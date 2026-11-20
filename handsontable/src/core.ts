@@ -178,6 +178,64 @@ interface FiltersPluginLike {
 let activeGuid: string | null = null;
 
 /**
+ * Renumbers physical rows after a removal: a removed row is dropped, and every other row moves up by
+ * the number of removed rows above it, the way the index mapper renumbers them.
+ *
+ * @param {number[]} rows The physical rows to renumber.
+ * @param {number[]} removedRows The physical rows the removal took, in the numbering before it.
+ * @returns {number[]} The rows that are left, in the numbering after the removal.
+ */
+function renumberAfterRemoval(rows: number[], removedRows: number[]): number[] {
+  if (removedRows.length === 0) {
+    return rows;
+  }
+
+  const sortedRemovedRows = removedRows.slice().sort((a, b) => a - b);
+  const removedRowsSet = new Set(sortedRemovedRows);
+  const renumberedRows: number[] = [];
+
+  rows.forEach((row) => {
+    if (removedRowsSet.has(row)) {
+      return;
+    }
+
+    let low = 0;
+    let high = sortedRemovedRows.length;
+
+    // Counts the removed rows above `row`.
+    while (low < high) {
+      const middle = Math.floor((low + high) / 2);
+
+      if (sortedRemovedRows[middle] < row) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+
+    renumberedRows.push(row - low);
+  });
+
+  return renumberedRows;
+}
+
+/**
+ * Returns the first run of consecutive indexes in a list sorted in ascending order.
+ *
+ * @param {number[]} sortedIndexes The indexes, sorted in ascending order. Must not be empty.
+ * @returns {number[]} The run as an `[index, amount]` pair.
+ */
+function getFirstConsecutiveRun(sortedIndexes: number[]): [number, number] {
+  let amount = 1;
+
+  while (amount < sortedIndexes.length && sortedIndexes[amount] === sortedIndexes[0] + amount) {
+    amount += 1;
+  }
+
+  return [sortedIndexes[0], amount];
+}
+
+/**
  * Normalizes an array of `[index, amount]` pairs by merging overlapping or adjacent groups
  * into the smallest set of non-overlapping groups, sorted in ascending order.
  *
@@ -380,7 +438,7 @@ interface CoreInternals {
   executionSuspendedCounter: number;
   isExecutionSuspended(): boolean;
   timeouts: ReturnType<typeof setTimeout>[];
-  microtasks: Array<{ cancelled: boolean }>;
+  microtasks: Set<{ cancelled: boolean }>;
   _validateCells(callback?: (valid: boolean) => void, rows?: number[], columns?: number[]): void;
   selectAll(
     includeRowHeaders?: boolean,
@@ -1601,11 +1659,16 @@ export default function Core(
 
     if (!this.selection.deselectIfHighlightStranded({ unresolvableOnly: hadOpenEditor })) {
       this.selection.recaptureHighlightRecord();
+      // A restore that followed records (a NestedRows collapse or expand, DEV-509) committed the
+      // moved ranges without the selection hooks, which must not run before the public hooks above.
+      this.selection.notifyFollowedRecords(axis);
       // The test above repairs a SHRINK only - it fires on a corner left past the last index. An
       // untrim leaves every corner in range, so a full-column selection or a select-all is grown
       // back to the whole axis here instead (DEV-152).
       this.selection.fitGridTrackingExtents(axis);
     }
+    // When the selection was dropped, a restore that followed records owes nothing: its debt entry
+    // is popped by `discardPhysicalSelectionSnapshot()` on the mapper's `afterCacheUpdate`.
   };
 
   this.columnIndexMapper.addLocalHook(
@@ -1706,12 +1769,13 @@ export default function Core(
   }
 
   this.selection.addLocalHook('afterSetRangeEnd', (
-    cellCoords: {row: number, col: number}, isLastSelectionLayer: boolean
+    cellCoords: {row: number, col: number}, isLastSelectionLayer: boolean, layerIndex: number
   ) => {
     const preventScrolling = createObjectPropListener(false);
-    const selectionRange = this.selection.getSelectedRange();
-    const { from, to } = selectionRange!.current()!;
-    const selectionLayerLevel = selectionRange.size() - 1;
+    // The layer that was just ended, which is not always the last one: `Selection#refresh()` ends the
+    // active layer last, so the hook reports the range and the level the focus is in (DEV-509).
+    const { from, to } = this.selection.getSelectedRange().peekByIndex(layerIndex)!;
+    const selectionLayerLevel = layerIndex;
 
     this.runHooks('afterSelection',
       from.row,
@@ -2153,6 +2217,10 @@ export default function Core(
 
           case 'remove_row':
 
+            // The physical rows the last `datamap.removeRow()` of this call took. Written by its
+            // callback, so a nested `alter()` from a hook does not overwrite it.
+            let lastRemovedPhysicalRows: number[] = [];
+
             const removeRow = (indexes: number[][]) => {
               let offset = 0;
 
@@ -2186,7 +2254,9 @@ export default function Core(
 
                 // TODO: for datamap.removeRow index should be passed as it is (with undefined and null values). If not, the logic
                 // inside the datamap.removeRow breaks the removing functionality.
-                const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source);
+                const wasRemoved = datamap.removeRow(groupIndex, groupAmount, source, (physicalRows) => {
+                  lastRemovedPhysicalRows = physicalRows;
+                });
 
                 if (!wasRemoved) {
                   return;
@@ -2259,8 +2329,68 @@ export default function Core(
               });
             };
 
+            // Several groups are resolved to their physical rows before any of them is removed, and each
+            // removal renumbers the rows still to go from the list it really took. Counting by the amounts
+            // the groups name breaks as soon as a removal takes more rows than it was asked for, or shows
+            // rows it did not take: NestedRows widens a parent to its whole subtree and expands the
+            // collapsed parents while it removes, so the next group's index pointed at other rows, or past
+            // the last one, and a row the caller never named was removed or a named one survived. On a grid
+            // where a removal takes exactly what it names, this removes the same rows as counting does.
+            const removeRowsByRecord = (groups: number[][]) => {
+              const countRowsBefore = instance.countRows();
+              let pendingGroups = groups.map(([groupIndex, groupAmount]) => {
+                const clippedRange = clipRemovalRange(groupIndex, groupAmount, countRowsBefore);
+
+                return clippedRange === null ?
+                  [] : datamap.visualRowsToPhysical(clippedRange.start, clippedRange.amount);
+              });
+
+              // Removes the first run of visually consecutive rows left in the group, and answers whether
+              // anything is left to try.
+              const removeNextRun = (groupPosition: number): boolean => {
+                const visualRows = pendingGroups[groupPosition]
+                  .map(physicalRow => instance.toVisualRow(physicalRow))
+                  .filter((visualRow): visualRow is number => visualRow !== null)
+                  .sort((a, b) => a - b);
+
+                // A row another plugin trimmed meanwhile has no visual index and cannot be removed.
+                if (visualRows.length === 0) {
+                  return false;
+                }
+
+                const [runIndex, runAmount] = getFirstConsecutiveRun(visualRows);
+                const runPhysicalRows = new Set(datamap.visualRowsToPhysical(runIndex, runAmount));
+
+                lastRemovedPhysicalRows = [];
+                removeRow([[runIndex, runAmount]]);
+
+                // The run is done whatever the removal took (a veto takes nothing), so the loop always moves on.
+                pendingGroups[groupPosition] = pendingGroups[groupPosition].filter(row => !runPhysicalRows.has(row));
+
+                const removedRows = lastRemovedPhysicalRows;
+
+                pendingGroups = pendingGroups.map(rows => renumberAfterRemoval(rows, removedRows));
+
+                return pendingGroups[groupPosition].length > 0;
+              };
+
+              for (let groupPosition = 0; groupPosition < pendingGroups.length; groupPosition++) {
+                let hasRowsLeft = pendingGroups[groupPosition].length > 0;
+
+                while (hasRowsLeft) {
+                  hasRowsLeft = removeNextRun(groupPosition);
+                }
+              }
+            };
+
             if (Array.isArray(index)) {
-              removeRow(normalizeIndexesGroup(index));
+              const groups = normalizeIndexesGroup(index);
+
+              if (groups.length > 1) {
+                removeRowsByRecord(groups);
+              } else {
+                removeRow(groups);
+              }
             } else {
               removeRow([[index as number, amount]]);
             }
@@ -6164,8 +6294,11 @@ export default function Core(
    * call: Handsontable re-measures its rows and columns when the document finishes loading a font.
    *
    * The method renders when the measured size changed. It also renders unconditionally when the grid scrolls
-   * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. To repaint
-   * the cells without re-measuring the container, use [render()](@/api/core.md#render) instead.
+   * with the window (no fixed `height`), so on such a grid it is not free even at an unchanged size. And it
+   * renders when a change of the browser zoom moved the border of the cells, which changes the height of every
+   * row even though the container kept its size: the [afterRefreshDimensions](@/api/hooks.md#afterrefreshdimensions)
+   * hook then receives `false` for its `stateChanged` argument. To repaint the cells without re-measuring the
+   * container, use [render()](@/api/core.md#render) instead.
    *
    * When the size changed while a cell editor is open, the editor moves onto its cell. If the cell was not fully
    * in view, the grid first scrolls it into view and renders once more, which fires
@@ -6201,7 +6334,11 @@ export default function Core(
       return;
     }
 
-    if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
+    // A browser zoom change fires the window `resize` this runs on, and it moves what a row measures even
+    // when the root keeps its size (a pixel `width` and `height`), so it renders on its own.
+    const isZoomChanged = view.refreshZoomDependentSizes();
+
+    if (isZoomChanged || isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
       instance.render();
     } else {
@@ -9034,7 +9171,7 @@ export default function Core(
    *
    * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
    * is not exposed to third-party code or the published `.d.ts`. Built-in consumers reach it through a
-   * local internal type (see `HotInstanceInternal` in the ColumnSorting plugin). Do not add it to
+   * local internal type (see `HotInstanceInternal` in the ColumnSorting and Search plugins). Do not add it to
    * `HotInstance` - that would turn an implementation detail into a supported public API.
    *
    * @private
@@ -10301,6 +10438,7 @@ export default function Core(
    * @function getRowHeader
    * @param {number} [row] Visual row index.
    * @fires Hooks#modifyRowHeader
+   * @fires Hooks#modifyRowHeaderValue
    * @returns {Array|string|number} Array of header values / single header value.
    */
   this.getRowHeader = function(row: number) {
@@ -10327,6 +10465,10 @@ export default function Core(
 
     } else if (rowHeader && typeof rowHeader !== 'string' && typeof rowHeader !== 'number') {
       rowHeader = physicalRow + 1;
+    }
+
+    if (row !== undefined) {
+      rowHeader = instance.runHooks('modifyRowHeaderValue', rowHeader, row);
     }
 
     return rowHeader as string | string[];
@@ -12162,7 +12304,9 @@ export default function Core(
     });
   };
 
-  this.microtasks = [];
+  // A Set, not an array: microtasks run in the order they were queued, so dropping the oldest entry
+  // from an array would shift every entry after it, making a bulk validation over n cells O(n²).
+  this.microtasks = new Set();
 
   /**
    * Registers a microtask callback.
@@ -12173,19 +12317,15 @@ export default function Core(
   this._registerMicrotask = function(this: HotInstance & CoreInternals, callback: Function) {
     const entry = { cancelled: false };
 
-    this.microtasks.push(entry);
+    this.microtasks.add(entry);
     this.rootWindow.queueMicrotask(() => {
       // A cancelled entry was dropped by `_clearMicrotasks()`, which `destroy()` calls before it clears the instance.
       if (entry.cancelled) {
         return;
       }
 
-      const index = this.microtasks.indexOf(entry);
-
       // Drop the entry once it ran, or every validated edit and every data load keeps one until `destroy()`.
-      if (index !== -1) {
-        this.microtasks.splice(index, 1);
-      }
+      this.microtasks.delete(entry);
 
       callback();
     });
@@ -12197,10 +12337,10 @@ export default function Core(
    * @private
    */
   this._clearMicrotasks = function(this: HotInstance & CoreInternals) {
-    arrayEach(this.microtasks, (entry: { cancelled: boolean }) => {
+    this.microtasks.forEach((entry) => {
       entry.cancelled = true;
     });
-    this.microtasks.length = 0;
+    this.microtasks.clear();
   };
 
   /**

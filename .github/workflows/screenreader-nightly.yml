@@ -1,10 +1,12 @@
 name: Screen reader nightly
 
-# The screen reader lanes on develop, on a dispatch (screenreader.yml: NVDA on Windows and VoiceOver
-# on macOS over the scenarios of tests/screenreader/scenarios/; tests/AGENTS.md, "Screen readers: the
-# NVDA and VoiceOver lanes"). Manual trigger only, no schedule: the accessibility program runs one
-# audit, fixes, and re-audits (.ai/CI.md), so a cron would spend a headed Windows and macOS runner per
-# browser on nights nobody reads. The tiers come back with the schedule, not before: axe on a pull
+# The screen reader lanes on develop, once a week on a schedule and on a dispatch (screenreader.yml:
+# NVDA on Windows and VoiceOver on macOS over the scenarios of tests/screenreader/scenarios/;
+# tests/AGENTS.md, "Screen readers: the NVDA and VoiceOver lanes"). The schedule is the weekly audit:
+# while the accessibility debt is being fixed, the findings ledger needs an audit a week to show what
+# each fix cleared, and when; a run every night would spend a headed Windows and macOS runner per
+# browser seven times as often (tests/AGENTS.md, "A11y: the audit and the proof runs"). The weekly
+# schedule ends when the debt epic closes, and the tiers then decide the cadence: axe on a pull
 # request, a semi-lite set on a nightly, the full set on a release candidate and a stable release. The
 # name stays: the ledger, the Slack text and the docs know this workflow as the Screen reader nightly.
 # Report-only: nothing here gates a pull request, the called jobs carry `continue-on-error`, and the
@@ -25,18 +27,31 @@ name: Screen reader nightly
 # right. A red step inside a lane job is tooling (the screen reader did not start, a fixture did not
 # load), never a finding, and it shows on that job's `failure` check run, titled as a tooling failure, and summary:
 # the jobs carry `continue-on-error`, so they report success to this run and nothing here reaches
-# Slack for them. Slack hears only of a run that never reached the lanes (the `notify` job below). The
+# Slack for them. Slack hears only of a run that never reached the lanes (the `notify` job below). A
+# run that ends red on its `verdict` job alone is the audit's answer, never a broken build: it stays
+# red while a critical or serious finding is open, on the schedule as on a dispatch. The
 # VoiceOver setup recovers from its known flake on the same runner (screenreader.yml); a VoiceOver job
 # still red in its setup step is the runner, not the lane: re-run that job from its page.
 on:
-  # From any ref, deliberately: a dispatch on develop with no inputs is the audit (test-health.yml
-  # collects it into the findings ledger); a dispatch from a feature branch is how a change to the
+  # The weekly audit: Monday 01:07 UTC, on develop (a schedule runs on the default branch, at its
+  # latest commit). Early Monday, because nothing merges at the weekend, so the run reads the week's
+  # merges; no proof run is likely to be in flight at that hour; and the lanes are free again before
+  # the working day, when the proof runs start. It is the first of the four audit workflows:
+  # a11y-nightly.yml, docs-a11y.yml and website-a11y.yml follow five minutes apart, so the four read one
+  # commit. Off the hour, where GitHub delays scheduled runs and may drop them. `inputs` holds nothing
+  # on a schedule, so the run is a dispatch on develop with no inputs: every lane, and
+  # test-health.yml collects it into the findings ledger.
+  schedule:
+    - cron: '7 1 * * 1'
+  # From any ref, deliberately: a dispatch on develop with no inputs is the audit too (the ledger
+  # collects it the same way); a dispatch from a feature branch is how a change to the
   # scenarios, the runner or the workflow is proven before it merges, kept to the changed group on one
   # project by the `groups` and `projects` inputs (a subset on develop, and an entry that is not a whole
   # known name, are refused by the check-inputs job before the build); and the `update-goldens` input
   # records the goldens and uploads them as an artifact to commit. Slack fires on develop only. One
   # screen reader run at a time: two on different refs share the five macOS slots and slow every
-  # VoiceOver step 1.7 to 2 times.
+  # VoiceOver step 1.7 to 2 times. Check for a run in flight before a dispatch; the scheduled run
+  # cannot, so it waits (the check-inputs job).
   workflow_dispatch:
     inputs:
       update-goldens:
@@ -75,13 +90,27 @@ jobs:
   # `projects` or `groups` that is not a whole known name (a space, a typo) is refused, because the lane's
   # `contains()` match cannot trim it while the verdict would still expect the lane. The verdict job reads
   # the inputs through the same function, so both ends of the run read them one way.
+  #
+  # On the schedule the job then waits for the lanes to be free (tests/scripts/screenreader-wait.mjs).
+  # One screen reader run at a time, on any ref: two share the organization's five macOS slots, every
+  # VoiceOver step slows down, and the transcripts carry the timings. A person checks for a run in
+  # flight before a dispatch. A cron cannot see a proof run on a branch, so the scheduled run waits for
+  # every earlier run of this workflow to finish, for three hours at most (a full run takes less), and
+  # then fails instead of starting a second run: Slack hears of it (the notify job), and re-running the
+  # failed job once the lanes are free starts the audit on the commit the schedule read. A concurrency
+  # group shared by every ref would not do: GitHub keeps one pending run per group and cancels the
+  # others, so a third dispatch would drop the waiting audit. A dispatch does not wait: its dispatcher
+  # has checked, and a run that waited for a later one would wait for itself.
   check-inputs:
     name: Check the inputs
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-26.04
-    timeout-minutes: 5
+    # Above the wait step's own timeout. On a dispatch the job is over in seconds.
+    timeout-minutes: 200
     permissions:
       contents: read
+      # The wait step lists the runs of this workflow.
+      actions: read
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
@@ -97,6 +126,13 @@ jobs:
           SCREENREADER_PROJECTS: ${{ inputs.projects }}
           SCREENREADER_GROUPS: ${{ inputs.groups }}
         run: node tests/scripts/a11y-dispatch-inputs.mjs --ref "$GITHUB_REF" --projects "$SCREENREADER_PROJECTS" --groups "$SCREENREADER_GROUPS"
+      # The script gives up at its bound with an error annotation; the step timeout is the backstop above it.
+      - name: Wait for the earlier screen reader runs to finish
+        if: github.event_name == 'schedule'
+        timeout-minutes: 190
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node tests/scripts/screenreader-wait.mjs --workflow screenreader-nightly.yml --bound-minutes 180 --interval-seconds 60
 
   build:
     name: Build
@@ -114,11 +150,11 @@ jobs:
     uses: ./.github/workflows/screenreader.yml
     with:
       update-goldens: ${{ github.event_name == 'workflow_dispatch' && inputs.update-goldens || false }}
-      # The subset inputs as they are (check-inputs refused anything that is not a whole known name): a
-      # string input is empty on the audit and on the pull_request trigger (where this job skips itself),
-      # and an empty subset runs every one.
-      groups: ${{ inputs.groups }}
-      projects: ${{ inputs.projects }}
+      # The subset inputs as they are (check-inputs refused anything that is not a whole known name).
+      # `inputs` holds nothing on the schedule and on the pull_request trigger (where this job skips
+      # itself), so `|| ''` hands the lane a string on every event, and an empty subset runs every one.
+      groups: ${{ inputs.groups || '' }}
+      projects: ${{ inputs.projects || '' }}
     # No `secrets: inherit`: the called workflow reads only secrets.GITHUB_TOKEN, which every job has.
 
   # The run's verdict: the worst of the lanes' check runs (tests/scripts/a11y-run-verdict.mjs), one per
@@ -196,9 +232,11 @@ jobs:
   # an empty string, so the step skips itself). The same webhook as the visual and E2E nightlies, on
   # purpose: the channel that triages one nightly triages the other. The lane's jobs carry job-level
   # `continue-on-error`, so they report success to this caller whatever happened inside them, and
-  # `failure()` here fires only when the UMD build failed or the called workflow could not start. A red
-  # lane job never reaches Slack, and neither does the `verdict` job's red: their verdict is the
-  # `Screen reader / <project> <group> report` check runs.
+  # `failure()` here fires only when the UMD build failed, the called workflow could not start, or the
+  # check-inputs job ended red (a refused input, a scheduled run that waited out its bound). A red lane
+  # job never reaches Slack, and neither does the `verdict` job's red, on the schedule as on a dispatch:
+  # their verdict is the `Screen reader / <project> <group> report` check runs, and an audit with an
+  # open critical or serious finding is red by design, not a broken build.
   notify:
     name: Notify Slack
     needs: [ screenreader ]
@@ -215,5 +253,5 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": ":red_circle: Screen reader nightly on ${{ github.ref_name }} never reached the screen reader lanes: the UMD build failed, the called workflow could not start, or the check-inputs job refused a dispatch input (a subset on develop, an entry that names nothing). A red lane job is not reported here (its jobs carry continue-on-error); its verdict is each project's Screen reader report check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, Screen readers: the NVDA and VoiceOver lanes."
+              "text": ":red_circle: Screen reader nightly on ${{ github.ref_name }} never reached the screen reader lanes: the UMD build failed, the called workflow could not start, the check-inputs job refused a dispatch input (a subset on develop, an entry that names nothing), or the scheduled audit waited three hours for an earlier screen reader run and did not start (re-run its failed job once the lanes are free). A red lane job is not reported here (its jobs carry continue-on-error); its verdict is each project's Screen reader report check run.\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTriage: tests/AGENTS.md, Screen readers: the NVDA and VoiceOver lanes."
             }

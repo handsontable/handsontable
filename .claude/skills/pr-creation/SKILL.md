@@ -40,7 +40,6 @@ Template: `.github/PULL_REQUEST_TEMPLATE.md`.
 - **Context**: why the change is needed. Link the ClickUp task or GitHub issue.
 - **How has this been tested?**: the specific tests added or run, with copy-pasteable commands.
 - **Related issue(s)**: GitHub issues as `#xxx`. The only ClickUp ID allowed is the one task this PR closes (see **One task ID only**).
-- **Affected project(s)**: check every package the change touches.
 - **Checklist**: the CLA is checked by the required `cla/signed` status check; one signature covers Handsontable and HyperFormula. See [`CONTRIBUTING.md`](../../../CONTRIBUTING.md#contributor-license-agreement).
 
 ## 4. Target branch
@@ -109,13 +108,6 @@ The PR fixes/adds/changes <what>. <Why the change is needed; link the task and e
 ### Related issue(s):
 
 1. DEV-xxx
-
-### Affected project(s):
-
-- [x] `handsontable`
-- [ ] `@handsontable/angular-wrapper`
-- [ ] `@handsontable/react-wrapper`
-- [ ] `@handsontable/vue3`
 
 ### Checklist:
 

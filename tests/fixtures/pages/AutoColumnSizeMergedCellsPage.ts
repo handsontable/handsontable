@@ -13,7 +13,7 @@ export interface GridSettings {
   hiddenRows?: { rows: number[] };
   autoColumnSize?: { syncLimit: number };
   stretchH?: 'all' | 'last' | 'none';
-  width?: number;
+  width?: number | string;
   manualColumnResize?: boolean;
   manualColumnMove?: boolean;
   columnSorting?: boolean;
@@ -56,8 +56,9 @@ interface FixtureWindow extends Window {
 }
 
 /**
- * Page Object for the fixture with one auto-sized grid that each case rebuilds with its own data and
- * merges. AutoColumnSize measures every column, because no case sets `colWidths`.
+ * Page Object for the fixture with one auto-sized grid that each case rebuilds with its own settings.
+ * No case sets `colWidths`, so AutoColumnSize measures every column that has no `width` of its own.
+ * Specs with and without merged cells use it.
  */
 export class AutoColumnSizeMergedCellsPage {
   readonly page: Page;

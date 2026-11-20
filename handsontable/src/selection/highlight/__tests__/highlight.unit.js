@@ -193,4 +193,40 @@ describe('Highlight', () => {
       expect(cachedRowHighlight.settings.className).toBe('newRowClass');
     });
   });
+  describe('setCellAttributes()', () => {
+    it('should replace the attributes on the options object the selection manager reads', () => {
+      const options = { cellAttributes: [['aria-selected', 'true']] };
+      const highlight = createHighlightInstance(options);
+      // Walkontable's selection manager holds the Highlight instance and reads
+      // `options.cellAttributes` from it on every draw.
+      const optionsReadOnDraw = highlight.options;
+
+      expect(optionsReadOnDraw.cellAttributes).toEqual([['aria-selected', 'true']]);
+
+      highlight.setCellAttributes([]);
+
+      expect(highlight.options).toBe(optionsReadOnDraw);
+      expect(optionsReadOnDraw.cellAttributes).toEqual([]);
+    });
+
+    it('should leave the cell attributes of another highlight untouched', () => {
+      const highlight = createHighlightInstance({ cellAttributes: [['aria-selected', 'true']] });
+      const otherHighlight = createHighlightInstance({ cellAttributes: [['aria-selected', 'true']] });
+
+      highlight.setCellAttributes([]);
+
+      expect(highlight.options.cellAttributes).toEqual([]);
+      expect(otherHighlight.options.cellAttributes).toEqual([['aria-selected', 'true']]);
+    });
+
+    it('should leave the other options of the highlight untouched', () => {
+      const highlight = createHighlightInstance({ cellAttributes: [['aria-selected', 'true']] });
+
+      highlight.setCellAttributes([['data-marked', 'true']]);
+
+      expect(highlight.options.cellAttributes).toEqual([['data-marked', 'true']]);
+      expect(highlight.options.rowClassName).toBe('rowClass');
+      expect(highlight.options.headerClassName).toBe('headerClass');
+    });
+  });
 });
