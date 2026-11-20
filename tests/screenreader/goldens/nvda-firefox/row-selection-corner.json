@@ -16,7 +16,7 @@
     "space-clear-all": "select whole grid selected row 1 column 2 0 of 5 rows selected",
     "arrow-down-row-header": "select row 1 row header selected 1 row 2 column 2",
     "arrow-right-cell": "a 1 selected a row 2 column 3",
-    "select-all-cells": "",
+    "select-all-cells": "all cells selected",
     "arrow-down-after-select-all": "a 2 not selected a row 3 column 3"
   }
 }
