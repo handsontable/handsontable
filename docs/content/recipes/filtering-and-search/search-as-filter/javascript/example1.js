@@ -22,6 +22,7 @@ const data = [
   ['Mei Lin Chen', 'Product designer', 'Design', 'Singapore'],
   ['Jonas Meyer', 'Account manager', 'Sales', 'Vienna'],
 ];
+/* end:skip-in-preview */
 
 const exampleContainer = document.querySelector('#example1');
 
@@ -57,7 +58,9 @@ const hot = new Handsontable(hotContainer, {
   colHeaders: ['Name', 'Role', 'Team', 'Location'],
   height: 'auto',
   search: true,
-  hiddenRows: true,
+  hiddenRows: {
+    copyPasteEnabled: false,
+  },
   // licenseKey: 'your-license-key', get a key at https://handsontable.com/pricing/
 });
 
@@ -87,8 +90,10 @@ searchInput.addEventListener(
       }
     }
 
-    hiddenRows.showRows(hiddenRows.getHiddenRows());
-    hiddenRows.hideRows(rowsToHide);
-    hot.render();
+    hot.batch(() => {
+      hiddenRows.showRows(hiddenRows.getHiddenRows().filter((row) => row !== null));
+      hiddenRows.hideRows(rowsToHide);
+      hot.render();
+    });
   }),
 );

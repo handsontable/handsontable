@@ -64,13 +64,15 @@ In this tutorial, you will add a search input that hides every row without a mat
 
 ## Step 1: Enable the Search and HiddenRows plugins
 
-Set `search` and `hiddenRows` to `true` in the grid settings:
+Set `search` to `true`, and turn on `hiddenRows` with `copyPasteEnabled: false`, so that copied data leaves out the hidden rows:
 
 ```typescript
 const hot = new Handsontable(container, {
   data,
   search: true,
-  hiddenRows: true,
+  hiddenRows: {
+    copyPasteEnabled: false,
+  },
 });
 ```
 
@@ -78,11 +80,13 @@ const hot = new Handsontable(container, {
 
 When the input changes, pass its value to `query()` and collect the row of each result:
 
-```typescript ins={7-12}
+```typescript ins={9-14}
 const hot = new Handsontable(container, {
   data,
   search: true,
-  hiddenRows: true,
+  hiddenRows: {
+    copyPasteEnabled: false,
+  },
 });
 
 type SearchResult = { row: number; col: number; data: unknown };
@@ -97,13 +101,15 @@ searchInput.addEventListener('input', () => {
 
 ## Step 3: Hide the other rows
 
-List the rows without a match. Then show the rows that the previous query hid, hide the listed rows, and render the grid:
+List the rows without a match. Then, in one `batch()` call, show the rows that the previous query hid, hide the listed rows, and render the grid:
 
-```typescript ins={13-26}
+```typescript ins={15-30}
 const hot = new Handsontable(container, {
   data,
   search: true,
-  hiddenRows: true,
+  hiddenRows: {
+    copyPasteEnabled: false,
+  },
 });
 
 type SearchResult = { row: number; col: number; data: unknown };
@@ -123,13 +129,17 @@ searchInput.addEventListener('input', () => {
     }
   }
 
-  hiddenRows.showRows(hiddenRows.getHiddenRows());
-  hiddenRows.hideRows(rowsToHide);
-  hot.render();
+  hot.batch(() => {
+    hiddenRows.showRows(hiddenRows.getHiddenRows().filter(row => row !== null));
+    hiddenRows.hideRows(rowsToHide);
+    hot.render();
+  });
 });
 ```
 
 An empty query matches nothing, so the `if` check keeps `rowsToHide` empty and every row stays visible.
+
+The `batch()` call makes the two changes one undo step. `getHiddenRows()` returns `null` for a hidden row that a column filter also removes, so the code drops those entries. Such a row stays hidden until you clear the filter and the search runs again.
 
 The `HiddenRows` plugin hides rows without removing them from the data. For details, see the [Row hiding](@/guides/rows/row-hiding/row-hiding.md) guide.
 
@@ -137,11 +147,13 @@ The `HiddenRows` plugin hides rows without removing them from the data. For deta
 
 Each input event checks every cell and renders the grid. For a large dataset, wait until the typing stops before you filter:
 
-```typescript ins={9-16,18,36}
+```typescript ins={11-18,20,40}
 const hot = new Handsontable(container, {
   data,
   search: true,
-  hiddenRows: true,
+  hiddenRows: {
+    copyPasteEnabled: false,
+  },
 });
 
 type SearchResult = { row: number; col: number; data: unknown };
@@ -170,9 +182,11 @@ searchInput.addEventListener('input', debounce(() => {
     }
   }
 
-  hiddenRows.showRows(hiddenRows.getHiddenRows());
-  hiddenRows.hideRows(rowsToHide);
-  hot.render();
+  hot.batch(() => {
+    hiddenRows.showRows(hiddenRows.getHiddenRows().filter(row => row !== null));
+    hiddenRows.hideRows(rowsToHide);
+    hot.render();
+  });
 }));
 ```
 

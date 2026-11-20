@@ -23,8 +23,10 @@ const data = [
   ['Mei Lin Chen', 'Product designer', 'Design', 'Singapore'],
   ['Jonas Meyer', 'Account manager', 'Sales', 'Vienna'],
 ];
+/* end:skip-in-preview */
 
 const colHeaders = ['Name', 'Role', 'Team', 'Location'];
+const hiddenRowsSettings = { copyPasteEnabled: false };
 
 const debounce = (callback, delay = 120) => {
   let timeoutId;
@@ -63,9 +65,11 @@ const ExampleComponent = () => {
           }
         }
 
-        hiddenRows.showRows(hiddenRows.getHiddenRows());
-        hiddenRows.hideRows(rowsToHide);
-        hot.render();
+        hot.batch(() => {
+          hiddenRows.showRows(hiddenRows.getHiddenRows().filter((row) => row !== null));
+          hiddenRows.hideRows(rowsToHide);
+          hot.render();
+        });
       }),
     [],
   );
@@ -86,7 +90,7 @@ const ExampleComponent = () => {
         colHeaders={colHeaders}
         height="auto"
         search={true}
-        hiddenRows={true}
+        hiddenRows={hiddenRowsSettings}
       />
     </div>
   );

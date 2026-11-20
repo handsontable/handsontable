@@ -3,6 +3,8 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
+type SearchResult = { row: number; col: number; data: unknown };
+
 /* start:skip-in-preview */
 const data = [
   ['Hannah Schmidt', 'Product manager', 'Platform', 'Berlin'],
@@ -23,8 +25,6 @@ const data = [
   ['Jonas Meyer', 'Account manager', 'Sales', 'Vienna'],
 ];
 /* end:skip-in-preview */
-
-type SearchResult = { row: number; col: number; data: unknown };
 
 const exampleContainer = document.querySelector<HTMLElement>('#example1')!;
 
@@ -60,7 +60,9 @@ const hot = new Handsontable(hotContainer, {
   colHeaders: ['Name', 'Role', 'Team', 'Location'],
   height: 'auto',
   search: true,
-  hiddenRows: true,
+  hiddenRows: {
+    copyPasteEnabled: false,
+  },
   // licenseKey: 'your-license-key', get a key at https://handsontable.com/pricing/
 });
 
@@ -88,7 +90,9 @@ searchInput.addEventListener('input', debounce(() => {
     }
   }
 
-  hiddenRows.showRows(hiddenRows.getHiddenRows());
-  hiddenRows.hideRows(rowsToHide);
-  hot.render();
+  hot.batch(() => {
+    hiddenRows.showRows(hiddenRows.getHiddenRows().filter(row => row !== null));
+    hiddenRows.hideRows(rowsToHide);
+    hot.render();
+  });
 }));

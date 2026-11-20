@@ -4,6 +4,8 @@ import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
+type SearchResult = { row: number; col: number; data: unknown };
+
 /* start:skip-in-preview */
 const data = [
   ['Hannah Schmidt', 'Product manager', 'Platform', 'Berlin'],
@@ -25,9 +27,8 @@ const data = [
 ];
 /* end:skip-in-preview */
 
-type SearchResult = { row: number; col: number; data: unknown };
-
 const colHeaders = ['Name', 'Role', 'Team', 'Location'];
+const hiddenRowsSettings = { copyPasteEnabled: false };
 
 const debounce = (callback: () => void, delay = 120) => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -64,9 +65,11 @@ const ExampleComponent = () => {
       }
     }
 
-    hiddenRows.showRows(hiddenRows.getHiddenRows());
-    hiddenRows.hideRows(rowsToHide);
-    hot.render();
+    hot.batch(() => {
+      hiddenRows.showRows(hiddenRows.getHiddenRows().filter(row => row !== null));
+      hiddenRows.hideRows(rowsToHide);
+      hot.render();
+    });
   }), []);
 
   return (
@@ -85,7 +88,7 @@ const ExampleComponent = () => {
         colHeaders={colHeaders}
         height="auto"
         search={true}
-        hiddenRows={true}
+        hiddenRows={hiddenRowsSettings}
       />
     </div>
   );

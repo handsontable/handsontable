@@ -2,6 +2,8 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
+type SearchResult = { row: number; col: number; data: unknown };
+
 /* start:skip-in-preview */
 const data = [
   ['Hannah Schmidt', 'Product manager', 'Platform', 'Berlin'],
@@ -22,8 +24,6 @@ const data = [
   ['Jonas Meyer', 'Account manager', 'Sales', 'Vienna'],
 ];
 /* end:skip-in-preview */
-
-type SearchResult = { row: number; col: number; data: unknown };
 
 const debounce = (callback: () => void, delay = 120) => {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -60,7 +60,9 @@ export class AppComponent {
     colHeaders: ['Name', 'Role', 'Team', 'Location'],
     height: 'auto',
     search: true,
-    hiddenRows: true,
+    hiddenRows: {
+      copyPasteEnabled: false,
+    },
   };
 
   readonly filterRows = debounce(() => {
@@ -85,9 +87,11 @@ export class AppComponent {
       }
     }
 
-    hiddenRows.showRows(hiddenRows.getHiddenRows());
-    hiddenRows.hideRows(rowsToHide);
-    hot.render();
+    hot.batch(() => {
+      hiddenRows.showRows(hiddenRows.getHiddenRows().filter(row => row !== null));
+      hiddenRows.hideRows(rowsToHide);
+      hot.render();
+    });
   });
 }
 /* end-file */
