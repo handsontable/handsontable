@@ -296,8 +296,13 @@ three go through `#recalculateAllRowsOwingColumnSweep()`:
   leaves the rest at their fallback-font widths.
 
 The helper measures the rows at once and sets `#rowsOwedToColumnSweep` while AutoColumnSize's sweep is still
-running; the first `#onBeforeRender` of a visible grid that finds the sweep over schedules a full
-recalculation. The render comes by itself: AutoColumnSize draws when a re-measure sweep ends (the font path),
+running; the first `#onBeforeRender` of a visible grid (with rows and columns) that finds the sweep over measures
+every row again from idle tasks only (`#recalculateAllRowsInIdleTasks()`, `#measureRowsInIdleTasksOnly`). The
+band on screen is measured just before, by `calculateVisibleRowsHeight()`, against the final widths, so only the
+rows off screen are left. Do not route it through `#fullRecalculationScheduled`: that sweep measures `syncLimit`
+rows and one chunk synchronously, and on a 10k × 150 grid of varied text that was an 860 ms task inside the
+render that ends AutoColumnSize's sweep. A sweep that throws in an idle task is abandoned as any other
+(`#abandonSweep()` owes a full recalculation). The render comes by itself: AutoColumnSize draws when a re-measure sweep ends (the font path),
 and when any other sweep ends on a grid with this plugin enabled (a fill-only render, see "A grid with
 AutoRowSize enabled keeps the exact path" in `../autoColumnSize/AGENTS.md`). Both halves are needed: without
 the flag the render measures only the band, and without the render the flag waits for one that may never

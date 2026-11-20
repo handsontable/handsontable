@@ -390,12 +390,19 @@ export class AutoRowSize extends BasePlugin {
    * `true` when the rows were measured (at init, after `loadData()`, or after a web font loaded) while
    * AutoColumnSize was still measuring columns in idle tasks. The columns it had not reached kept their
    * default or fallback-font widths, so the text wrapped more in them, and the rows outside the rendered
-   * band kept the extra height. The first render of a visible grid after that sweep ends schedules a full
-   * recalculation; AutoColumnSize renders once its sweep ends on a grid with this plugin enabled.
+   * band kept the extra height. The first render of a visible grid after that sweep ends measures every row
+   * again from idle tasks; AutoColumnSize renders once its sweep ends on a grid with this plugin enabled.
    *
    * @type {boolean}
    */
   #rowsOwedToColumnSweep = false;
+  /**
+   * `true` while `calculateAllRowsHeight()` runs for the measure owed to AutoColumnSize's sweep. The sweep
+   * then measures no row synchronously and starts with an idle task.
+   *
+   * @type {boolean}
+   */
+  #measureRowsInIdleTasksOnly = false;
   /**
    * Handle of the idle task driving the in-flight full sweep, or `0` when none is running.
    *
@@ -727,7 +734,8 @@ export class AutoRowSize extends BasePlugin {
       }
     };
 
-    const syncLimit = this.getSyncCalculationLimit();
+    const idleTasksOnly = this.#measureRowsInIdleTasksOnly;
+    const syncLimit = idleTasksOnly ? -1 : this.getSyncCalculationLimit();
 
     // sync
     if (syncLimit >= 0) {
@@ -743,7 +751,11 @@ export class AutoRowSize extends BasePlugin {
     }
     // async
     if (current < length) {
-      loop();
+      if (idleTasksOnly) {
+        this.#idleSweepTimer = requestIdleTask(loop);
+      } else {
+        loop();
+      }
     } else {
       this.inProgress = false;
 
@@ -1287,9 +1299,16 @@ export class AutoRowSize extends BasePlugin {
 
     // A column re-measure owed to this render counts as running, whichever of the two listeners runs
     // first, and the last chunk of the sweep renders once it ends.
-    if (this.#rowsOwedToColumnSweep && this.hot.view.isVisible() && !this.#isColumnSweepRunning()) {
+    // The band on screen was measured above, against the final widths, so the rest goes to idle tasks: on a
+    // wide grid the synchronous part of a full sweep is a task as long as the init measure. It waits for
+    // columns and rows for the reasons `#fullRecalculationScheduled` does.
+    if (this.#rowsOwedToColumnSweep &&
+        this.hot.view.isVisible() &&
+        this.hot.countCols() > 0 &&
+        this.hot.countRows() > 0 &&
+        !this.#isColumnSweepRunning()) {
       this.#rowsOwedToColumnSweep = false;
-      this.#fullRecalculationScheduled = true;
+      this.#recalculateAllRowsInIdleTasks();
     }
 
     // A wiped cache is restored in full, so the rows below the fold are measured too and not just
@@ -1399,6 +1418,20 @@ export class AutoRowSize extends BasePlugin {
   #recalculateAllRowsOwingColumnSweep(): void {
     this.recalculateAllRowsHeight();
     this.#rowsOwedToColumnSweep = this.#isColumnSweepRunning();
+  }
+
+  /**
+   * Measures every row again from idle tasks only, overwriting the stored heights. A sweep that throws
+   * schedules a full recalculation through `#abandonSweep()`.
+   */
+  #recalculateAllRowsInIdleTasks(): void {
+    this.#measureRowsInIdleTasksOnly = true;
+
+    try {
+      this.calculateAllRowsHeight({ from: 0, to: this.hot.countCols() - 1 }, true);
+    } finally {
+      this.#measureRowsInIdleTasksOnly = false;
+    }
   }
 
   /**
