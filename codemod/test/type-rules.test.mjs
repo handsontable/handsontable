@@ -202,6 +202,8 @@ describe('type rule helpers', () => {
     assert.equal(expandAdvice(rule, { plugin: 'autofill' }), 'Use GridSettings[\'fillHandle\'] for autofill.');
     assert.equal(expandAdvice(rule, { plugin: 'touchScroll' }), 'touchScroll has no option.');
     assert.equal(expandAdvice({ advice: '{name} from {source}' }, { name: 'A', source: 'b' }), 'A from b');
+    assert.equal(expandAdvice({ ...rule, noKeyAdvice: undefined }, { plugin: 'touchScroll' }),
+      'Use GridSettings[\'\'] for touchScroll.', 'a plugin with no option never gets an invented key');
   });
 });
 
@@ -953,6 +955,16 @@ describe('type rule transforms', () => {
         `const { Other } = require('${RENAMED}');\nexport { Other };\n`, false],
       ['a destructured require of a renamed name',
         `const { Config: Mine } = require('${RENAMED}');\nexport { Mine };\n`, true],
+      ['a require destructured by a string-literal key',
+        `const { 'Config': Mine } = require('${RENAMED}');\nexport { Mine };\n`, true],
+      ['a require destructured by a computed string key',
+        `const { ['Config']: Mine } = require('${RENAMED}');\nexport { Mine };\n`, true],
+      ['a require destructured by a computed variable key',
+        `const { [key]: Mine } = require('${RENAMED}');\nexport { Mine };\n`, false],
+      ['a require with a template-literal specifier',
+        `const { Config } = require(\`${RENAMED}\`);\nexport { Config };\n`, true],
+      ['a dynamic import with a template-literal specifier',
+        `export const load = import(\`${RENAMED}\`).then(({ Config }) => Config);\n`, true],
     ]) {
       it(`${reported ? 'reports' : 'stays quiet for'} ${label}, and edits nothing`, async() => {
         const result = await run('a.ts', source);

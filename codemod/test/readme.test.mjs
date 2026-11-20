@@ -119,7 +119,8 @@ describe('README documents the command line', () => {
     assert.doesNotMatch(readme, /—/);
 
     for (const [, heading] of readme.matchAll(/^#{2,3} (.+)$/gm)) {
-      assert.doesNotMatch(heading.replace(/`[^`]*`/g, '').slice(1), /\b[A-Z][a-z]+ [A-Z][a-z]+/, heading);
+      // Every word after the first is lower case, so a two-word Title Case heading fails too.
+      assert.doesNotMatch(heading.replace(/`[^`]*`/g, '').split(/\s+/).slice(1).join(' '), /\b[A-Z][a-z]+\b/, heading);
     }
   });
 });

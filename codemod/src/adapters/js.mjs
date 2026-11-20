@@ -28,14 +28,15 @@ export function parserFor(filePath) {
 
 /**
  * Pick the quote style recast uses for nodes it creates, by counting what the file already uses in the module
- * position: `import 'x'`, `from 'x'`, `require('x')`, and `import('x')`.
+ * position: `import 'x'`, `from 'x'`, `require('x')`, and `import('x')`. A member call such as `Array.from('x')` is not
+ * a module position.
  *
  * @param {string} source File text.
  * @returns {'single'|'double'} Quote style.
  */
 export function detectQuote(source) {
-  const single = (source.match(/(?:from|import|require)\s*\(?\s*'/g) ?? []).length;
-  const double = (source.match(/(?:from|import|require)\s*\(?\s*"/g) ?? []).length;
+  const single = (source.match(/(?<![\w$.])(?:from|import|require)\s*\(?\s*'/g) ?? []).length;
+  const double = (source.match(/(?<![\w$.])(?:from|import|require)\s*\(?\s*"/g) ?? []).length;
 
   return double > single ? 'double' : 'single';
 }

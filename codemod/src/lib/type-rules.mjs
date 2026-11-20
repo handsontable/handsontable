@@ -148,7 +148,7 @@ export function expandAdvice(rule, { plugin = null, name = '', source = '' }) {
 
   return template
     .replaceAll('{plugin}', plugin ?? '')
-    .replaceAll('{optionKey}', optionKey ?? (plugin === null ? '' : lowerFirst(plugin)))
+    .replaceAll('{optionKey}', optionKey ?? '')
     .replaceAll('{name}', name)
     .replaceAll('{source}', source);
 }
@@ -506,8 +506,8 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
 
   findDynamicImports(j, root, matches).forEach((path) => {
     const { node } = path;
-    const value = node.arguments?.[0]?.value ?? node.source?.value ?? node.argument?.literal?.value
-      ?? node.argument?.value;
+    const argument = node.arguments?.[0] ?? node.source ?? node.argument;
+    const value = stringValue(argument?.type === 'TSLiteralType' ? argument.literal : argument);
 
     if (runtimeAdvice && all && node.type !== 'TSImportType') {
       ctx.report({ ruleId, severity: 'manual', line: node.loc?.start?.line, message: runtimeAdvice });
@@ -519,13 +519,12 @@ export function reportOpaqueReferences(ctx, { ruleId, sources, hint, names, all 
 
   findRequires(j, root, matches).forEach((path) => {
     const pattern = path.parent.node.type === 'VariableDeclarator' ? path.parent.node.id : null;
-    const destructured = pattern?.type === 'ObjectPattern'
-      && pattern.properties.some(property => wanted.has(property.key?.name));
+    const destructured = destructuresWanted(pattern, wanted);
 
     if (runtimeAdvice && all) {
       ctx.report({ ruleId, severity: 'manual', line: path.node.loc?.start?.line, message: runtimeAdvice });
     } else if (all || destructured) {
-      report(path.node, 'This code loads', String(path.node.arguments[0].value));
+      report(path.node, 'This code loads', stringValue(path.node.arguments[0]));
     }
   });
 }

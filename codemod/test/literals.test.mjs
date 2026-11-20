@@ -573,6 +573,44 @@ describe('linesInsideLiterals', () => {
   });
 });
 
+/**
+ * Match the literals of a fixture input against those of its output.
+ *
+ * @param {string[]} before The literals of the input.
+ * @param {string[]} after The literals of the output.
+ * @returns {{added: string[], gone: string[]}} The output literals no input literal accounts for, and the input
+ * literals no output literal accounts for. A renamed `--ht-` variable counts as the same literal.
+ */
+function matchLiterals(before, after) {
+  const remaining = [...after];
+  const gone = [];
+
+  for (const text of before) {
+    const renamed = text.replaceAll('--ht-wrapper-border-radius', '--ht-border-radius');
+    const at = [text, renamed].map(candidate => remaining.indexOf(candidate)).find(index => index !== -1);
+
+    if (at === undefined) {
+      gone.push(text);
+    } else {
+      remaining.splice(at, 1);
+    }
+  }
+
+  return { added: remaining, gone };
+}
+
+// Fixtures (`<version>/<name>`) whose rules delete the node that holds a literal, so the literal may be gone.
+const FIXTURES_THAT_REMOVE_LITERALS = new Set();
+
+describe('matchLiterals', () => {
+  it('reports a literal that is gone, one that was added, and treats the variable rename as the same literal', () => {
+    assert.deepEqual(matchLiterals(['a', 'b'], ['a']), { added: [], gone: ['b'] });
+    assert.deepEqual(matchLiterals(['a'], ['a', 'c']), { added: ['c'], gone: [] });
+    assert.deepEqual(matchLiterals(['x --ht-wrapper-border-radius'], ['x --ht-border-radius']),
+      { added: [], gone: [] });
+  });
+});
+
 describe('every fixture keeps the literals no rule edited', () => {
   it('compares the template literals and the multi-line strings of each fixture input and output', async() => {
     let compared = 0;
@@ -594,21 +632,17 @@ describe('every fixture keeps the literals no rule edited', () => {
 
       for (const [read, what] of kinds) {
         const before = read(input, parser);
-        const after = read(output, parser);
-        // The only rule that edits a literal renames a `--ht-` variable, and a rule may remove a literal with the
-        // node that holds it, so a literal that is gone must be one a rule could have edited or removed.
-        const remaining = [...after];
+        const { added, gone } = matchLiterals(before, read(output, parser));
+        const name = `${fixture.version}/${fixture.name}`;
 
-        for (const text of before) {
-          const renamed = text.replaceAll('--ht-wrapper-border-radius', '--ht-border-radius');
-          const at = [text, renamed].map(candidate => remaining.indexOf(candidate)).find(index => index !== -1);
+        assert.deepEqual(added, [], `${name}: ${what} appeared or changed`);
 
-          if (at !== undefined) {
-            remaining.splice(at, 1);
-          }
+        // The only rule that edits a literal renames a `--ht-` variable. A literal may vanish only with the node
+        // a rule removes, and such a fixture is listed above, so a reprint cannot drop one unnoticed.
+        if (!FIXTURES_THAT_REMOVE_LITERALS.has(name)) {
+          assert.deepEqual(gone, [], `${name}: ${what} was lost`);
         }
 
-        assert.deepEqual(remaining, [], `${fixture.version}/${fixture.name}: ${what} appeared or changed`);
         compared += before.length;
       }
     }

@@ -115,6 +115,13 @@ describe('js adapter', () => {
     assert.equal(detectQuote('const x = 1;'), 'single');
   });
 
+  it('does not count a member call named from, import, or require as a module position', () => {
+    assert.equal(detectQuote('import a from "a";\nconst x = Array.from(\'q\'), y = Buffer.from(\'z\');'), 'double');
+    assert.equal(detectQuote('import a from "a";\nwindow.require(\'q\');\nobj?.import(\'z\');\nreimport(\'y\');'),
+      'double');
+    assert.equal(detectQuote('import a from \'a\';export * from \'b\';import{c}from\'c\';'), 'single');
+  });
+
   it('reads the quotes of require() in a CommonJS file, and of a dynamic import', () => {
     assert.equal(detectQuote('const a = require("a");\nconst b = require("b");'), 'double');
     assert.equal(detectQuote('const a = require( "a" );\nconst b = require(\'b\');\nconst c = require("c");'),

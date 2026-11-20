@@ -1084,7 +1084,7 @@ when it has lines of its own, else on the enclosing statement (`anchorForPropert
   `exportRemoved`: `source` (module, list, or `handsontable/plugins/*`), optional `except`, `name` (or list), `advice`.
   Advice placeholders: `{plugin}`, `{optionKey}`, `{name}`, `{source}`. `optionKeys` maps a plugin to its option key
   (default: the plugin name with a lower-case first letter, `null` for a plugin with no option, which then uses
-  `noKeyAdvice`). Within one run the first matching rule wins for `exportRemoved` and `namespaceType`, so a specific
+  `noKeyAdvice`, which `validateRule()` requires when the advice uses `{optionKey}`). Within one run the first matching rule wins for `exportRemoved` and `namespaceType`, so a specific
   rule goes before the wildcard, or the wildcard lists it in `except`.
 - `reportOpaqueReferences()` (without `all`) also reads a runtime `import()` of a module that survives: a member read of
   it (`import('m').Name`, `(await import('m')).Name`), a destructuring of the awaited module, a name that holds it and is

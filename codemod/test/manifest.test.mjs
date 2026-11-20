@@ -194,6 +194,22 @@ describe('validateRule', () => {
     assert.deepEqual(validateRule('text', '18.0.0'), ['the rule is not an object']);
   });
 
+  it('requires a noKeyAdvice when a plugin maps to no option key and the advice uses {optionKey}', () => {
+    const rule = {
+      id: '18.0.0/x',
+      kind: 'exportRemoved',
+      source: 'handsontable/plugins/*',
+      name: 'Settings',
+      advice: 'Use GridSettings[\'{optionKey}\'].',
+      optionKeys: { touchScroll: null },
+    };
+
+    assert.match(validateRule(rule, '18.0.0')[0], /noKeyAdvice/);
+    assert.deepEqual(validateRule({ ...rule, noKeyAdvice: 'Use boolean.' }, '18.0.0'), []);
+    assert.deepEqual(validateRule({ ...rule, advice: 'Use boolean.' }, '18.0.0'), []);
+    assert.deepEqual(validateRule({ ...rule, optionKeys: { autofill: 'fillHandle' } }, '18.0.0'), []);
+  });
+
   it('requires safe on every kind except detect and exportRemoved, which only report', () => {
     const problems = rule => validateRule({ id: '18.0.0/x', ...rule }, '18.0.0');
 
