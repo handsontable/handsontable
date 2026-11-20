@@ -16,6 +16,7 @@ import { NestedHeadersEmptyGroupHeaderRolePage } from '../fixtures/pages/NestedH
 const LABELED_TOP_COLUMNS = [0, 1, 5];
 const UNLABELED_TOP_COLUMNS = [6, 7, 8, 9];
 const ALL_COLUMNS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+const PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 test.describe('nested headers: a group cell with no label', () => {
   test('is a plain cell, while every labeled header stays a column header', async({ page, theme, bundle }) => {
@@ -81,6 +82,41 @@ test.describe('nested headers: a group cell with no label', () => {
     }
 
     await expect(grid.namelessColumnHeaders()).toHaveCount(0);
+  });
+
+  test('stays a column header when its label is markup only or it reaches the cells, and an authored empty group is a plain cell', async({
+    page, theme, bundle,
+  }) => {
+    const grid = new NestedHeadersEmptyGroupHeaderRolePage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.setHeaderRows([
+      [
+        { label: '', colspan: 2 },
+        { label: `<img src="${PIXEL}" alt="Q1">`, colspan: 3 },
+        'Extra',
+        { label: '', rowspan: 2 },
+      ],
+      ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', '', 'L7', 'L8', 'L9'],
+    ]);
+
+    await expect(grid.header(0, 0)).toHaveAttribute('colspan', '2');
+    await expect(grid.header(0, 0)).toHaveAttribute('role', 'gridcell');
+    await expect(grid.header(0, 0)).not.toHaveAttribute('scope');
+
+    await expect(grid.header(0, 2)).toHaveText('');
+    await expect(grid.header(0, 2)).toHaveAttribute('role', 'columnheader');
+    await expect(grid.header(0, 2)).toHaveAttribute('scope', 'col');
+    await expect(grid.headerOverlay().getByRole('columnheader', { name: 'Q1', exact: true })).toHaveCount(1);
+
+    await expect(grid.header(0, 6)).toHaveAttribute('rowspan', '2');
+    await expect(grid.header(0, 6)).toHaveText('');
+    await expect(grid.header(0, 6)).toHaveAttribute('role', 'columnheader');
+    await expect(grid.header(0, 6)).toHaveAttribute('scope', 'col');
+
+    for (const column of [7, 8, 9]) {
+      await expect(grid.header(0, column)).toHaveAttribute('role', 'gridcell');
+    }
   });
 
   test('gets no role when ariaTags is off', async({ page, theme, bundle }) => {

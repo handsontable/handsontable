@@ -4,7 +4,7 @@ import { awaitBundle, type Bundle } from '../bundle';
 /**
  * A header row of `nestedHeaders`, one entry per header cell: a label or a group object.
  */
-export type NestedHeaderRow = Array<string | { label: string, colspan: number }>;
+export type NestedHeaderRow = Array<string | { label: string, colspan?: number, rowspan?: number }>;
 
 /**
  * Page Object for the nested headers fixture whose group row is shorter than the column count
@@ -84,9 +84,15 @@ export class NestedHeadersEmptyGroupHeaderRolePage {
    * @param topRow The new top header row; the bottom row stays `LEAF_ROW`.
    */
   async setTopHeaderRow(topRow: NestedHeaderRow): Promise<void> {
-    await this.page.evaluate(
-      (rows) => window.hot.updateSettings({ nestedHeaders: rows }),
-      [topRow, NestedHeadersEmptyGroupHeaderRolePage.LEAF_ROW],
-    );
+    await this.setHeaderRows([topRow, NestedHeadersEmptyGroupHeaderRolePage.LEAF_ROW]);
+  }
+
+  /**
+   * Replace every header row through `updateSettings()`, which redraws the headers before it returns.
+   *
+   * @param rows The new `nestedHeaders` rows, top first.
+   */
+  async setHeaderRows(rows: NestedHeaderRow[]): Promise<void> {
+    await this.page.evaluate(nestedHeaders => window.hot.updateSettings({ nestedHeaders }), rows);
   }
 }

@@ -348,10 +348,14 @@ author's own `''` label over a group is the same state and gets the same treatme
   bottom included) names its column for every cell below, so it stays a `columnheader` even without text.
 - **No clearing pass is needed.** `writeColumnHeaderAriaAttributes()` in walkontable's `columnHeaders.ts`
   syncs `role` and `scope` back to `columnheader`/`col` on every draw, before the header renderers run, so a
-  recycled `<th>` that gets a label is a column header again. The cost is two attribute writes per unlabeled
-  group cell per draw.
-- **Read the rendered text, not the settings.** The label can come from `modifyColHeader`, so the check reads
-  `.colHeader`'s `textContent`. A label hidden by `hiddenHeaderText` still has text and stays a column header.
+  recycled `<th>` that gets a label is a column header again. The cost is four attribute writes per unlabeled
+  group cell per draw, scroll draws included: walkontable sets `role` and `scope` back, and the renderer sets
+  `role` and removes `scope` again.
+- **Read the rendered label, not the settings.** The label can come from `modifyColHeader`, so the check reads
+  `.colHeader`. A header is unlabeled only when `.colHeader` has no text AND no element child: labels are
+  written with `fastInnerHTML`, so a label that is markup only (`<img alt="Q1">`, an icon with an
+  `aria-label`) has an empty `textContent` and still names its columns. A label hidden by `hiddenHeaderText`
+  still has text and stays a column header.
 
 Pinned by `tests/e2e/nested-headers-empty-group-header-role.spec.ts` and the `rtl-grid` tree golden.
 

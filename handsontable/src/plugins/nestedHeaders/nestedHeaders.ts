@@ -970,7 +970,7 @@ export class NestedHeaders extends BasePlugin {
 
     const label = TH.querySelector('.colHeader');
 
-    if (!label || (label.textContent ?? '').trim() !== '') {
+    if (!label || label.childElementCount > 0 || (label.textContent ?? '').trim() !== '') {
       return;
     }
 
