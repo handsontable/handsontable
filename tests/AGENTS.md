@@ -1439,7 +1439,8 @@ criterion.
   load throws. An empty `findings` list is evidence too: the target was measured and nothing was found.
 - **Findings on the product are recorded, never fixed in the check's change.** A check lands with what
   it finds listed in its pull request's description, read from a nightly dispatch from its branch (a
-  pull request's own pipeline runs the axe scan alone); the product tasks are filed apart, and a fix
+  pull request's own pipeline runs the short suite alone, and a new check has no ledger rows yet); the
+  product tasks are filed apart, and a fix
   later clears the finding. A finding the check gets wrong is fixed in the check.
 - **Every report value is escaped.** The summary and the check run render values from the fixture DOM
   (selectors, accessible names), so `renderEvidenceSummary()` escapes them with the scan's own
@@ -1462,23 +1463,21 @@ or posts one check run per check with `--check-run` (`--dry-run` prints the payl
 suite the job ran (`HOT_A11Y_CHECKS_SUITE`, or the comma-separated `A11Y_CHECKS` when it is set) that
 left no document gets a red tooling check run instead of none.
 
-- **Where they run: the nightly, never a pull request.** `a11y.yml` has a second job, `checks`, beside
-  `axe`: the same Playwright container and UMD artifact, `continue-on-error` on the job only (a tooling
-  failure turns the job red, as it does the axe job, and never the Tests pipeline), and one
-  `A11y / <check> report` check run per check on the run's head commit (behind the canonical fork
-  guard). The job runs only when the caller sets the `checks` input: the `A11y nightly`
-  (`a11y-nightly.yml`: its weekly schedule and a dispatch on develop are the audit, and a dispatch from
-  any branch is a proof run; "A11y: the audit and the proof runs" below) does, and the pull-request
-  Tests pipeline (`test.yml`) does not, so a pull request runs the axe scan, its baseline ratchet and
-  the sticky comment alone. The reason is what a pull request gets out of them: the checks are
-  report-only and the accessibility program is still building its picture, so a pull request learned
-  nothing from them it could act on, and paid a job for it. A skipped job runs no step, so it posts no
-  check run, stale or otherwise. `HOT_A11Y_CHECKS_SUITE` picks the checks, from the `nightly` input:
-  `nightly` runs every one, and the short suite, `pull-request`, keeps the ones with
-  `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two minutes), for a
-  developer to run locally or through a dispatch of the nightly that asks for it
-  (`gh workflow run a11y-nightly.yml --ref <branch> -f suite=pull-request`; a plain dispatch runs every
-  check). The `checks` input runs the named checks instead of the suite
+- **Where they run: the short suite on a pull request, every check on the nightly.** `a11y.yml` has a
+  second job, `checks`, beside `axe`: the same Playwright container and UMD artifact,
+  `continue-on-error` on the job only (a tooling failure turns the job red, as it does the axe job, and
+  never the Tests pipeline), and one `A11y / <check> report` check run per check on the run's head
+  commit (behind the canonical fork guard). The job runs only when the caller sets the `checks` input:
+  the `A11y nightly` (`a11y-nightly.yml`: its weekly schedule and a dispatch on develop are the audit,
+  and a dispatch from any branch is a proof run; "A11y: the audit and the proof runs" below) does, and
+  the pull-request Tests pipeline (`test.yml`) does on a pull request (`checks: github.event_name ==
+  'pull_request'`), so a master push and the release candidate path run the axe scan alone. A skipped
+  job runs no step, so it posts no check run, stale or otherwise. `HOT_A11Y_CHECKS_SUITE` picks the
+  checks, from the `nightly` input: `nightly` runs every one, and the short suite, `pull-request`, keeps
+  the ones with `pullRequest: true` in `EVIDENCE_CHECKS` (a check earns it by finishing in under two
+  minutes), which a pull request runs, and a developer locally or through a dispatch of the nightly that
+  asks for it (`gh workflow run a11y-nightly.yml --ref <branch> -f suite=pull-request`; a plain dispatch
+  runs every check). The `checks` input runs the named checks instead of the suite
   (`-f checks=<id>[,<id>]`, comma-separated, no spaces, the proof run of a change to one check): it
   reaches the job as `A11Y_CHECKS`, the config builds the named projects only (`checksForRun()`, which
   refuses an entry that is no check id before a test runs, as the nightly's `check-inputs` job did
@@ -1493,6 +1492,30 @@ left no document gets a red tooling check run instead of none.
   `HOT_A11Y_CHECKS_SUITE=pull-request npm --prefix tests run test:a11y-checks` the short suite, and
   `-- --project=<check>` or `A11Y_CHECKS=<check>` one check; the reporter writes the documents only when
   the config's reporters run, so do not pass `--reporter` on the command line.
+- **On a pull request the findings ledger is the baseline, and the checks only report.** Every page
+  carries findings the weekly audit already knows, so counted as they stand they would turn every pull
+  request's check runs red. The report script (`scripts/a11y-evidence-report.mjs`) reads the ledger
+  (`test-health/a11y.json` on `gh-pages`, "A11y: the findings ledger and the cluster catalog") on a
+  `pull_request` event and looks each finding up by the key the ledger gives its row (`ledgerKey()` in
+  `lib/a11y-pr-ledger.mjs`): **known** when the row is open (new, persisting or flapping), which does
+  not count; **regression** when the row is resolved; **new** when there is none. A regression and a
+  new finding count by the severity rule ("A11y: the verdict of a check run"), so a check run can still
+  turn red, and the job never does. The title carries the three counts, and the summary and the job
+  summary list the regressions and new findings, so a fork's pull request, which posts no check run,
+  still sees them. Two limits, stated in the report: the ledger is as old as the latest audit, so a
+  defect merged to develop since then reads as new on the next pull request; and a row is keyed by the
+  element's selector, so a renamed class makes a known finding read as new. A new finding on a page
+  whose sources the pull request does not touch (`pagesTouched()`: the page's fixture and the plugin and
+  editor folders `a11y/coverage.mjs` lists it under; any other `handsontable/src/` file, `tests/a11y/`
+  or `tests/lib/` touches every page) is marked *on a page you did not change* and counts as a warning
+  at most. That is a hint, not a scope: the run measures every page. A ledger that does not load leaves
+  every finding counted, with a note, never a green run. `ledgerKey()` lives in `tests/lib` because the
+  ledger's own module reaches `tests/a11y` and the verdict jobs check out `tests/lib` alone, and
+  `a11y-evidence.mjs` takes the classifier as an input (`prLedgerOf()`) for the same reason: it is
+  loaded by those jobs too. `.github/scripts/__tests__/a11y-pr-ledger.test.mjs` holds `ledgerKey()` to
+  the ledger's `findingKey()`. Gating on a pull request waits for two clean weeks of report-only runs.
+  Locally: `A11Y_LEDGER_FILE=<saved a11y.json> A11Y_CHANGED_FILES=<paths file>
+  node scripts/a11y-evidence-report.mjs --dry-run`.
 
 ### The keyboard walker
 
@@ -1976,8 +1999,8 @@ twice. Then add its spec to `a11y/checks/`. Write the measurer or matcher as a p
 before the function exists. Prove the check on the product with a planted defect (a fixture hook that
 removes a focus ring or a name), shown in the check run of a dispatch from its branch
 (`gh workflow run a11y-nightly.yml --ref <branch> -f checks=<id>`, which runs that check alone and posts
-on the branch's head commit, so the check run shows on the pull request, whose own pipeline runs the
-axe scan alone), then reverted. Document
+on the branch's head commit, so the check run shows on the pull request; a check outside the short suite
+never runs in the pull request's own pipeline), then reverted. Document
 its rules here, its line in `handsontable/.ai/TESTING.md` and its job in `.ai/CI.md`.
 
 ## A11y: the docs site scan
@@ -2345,7 +2368,9 @@ follows its worst check run.
   run) counts what the change can act on. The axe scan counts only a finding new or grown against the
   baseline, and every check counts a finding whose cluster in `a11y/issues.json` (`clusterOf()`) has a
   tracker as a warning at most (`trackedBy()`, which reads a finding the way the ledger does, through
-  `catalogFinding()`), so owned debt never turns a pull request's check red. A finding in `needs-triage`, or
+  `catalogFinding()`), so owned debt never turns a pull request's check red. On a pull request a check
+  also leaves out a finding the findings ledger holds as open ("A11y: the checks beyond axe", the ledger
+  as the baseline), so the pages' standing debt does not count either. A finding in `needs-triage`, or
   in a cluster without a tracker, counts at its severity. A catalog that does not load tracks nothing and
   says so (`lib/a11y-verdict-inputs.mjs`): it can make a check red, never green.
 - **Below the target level is a warning at most.** A finding of a check beyond axe that names no WCAG 2.2
@@ -2691,7 +2716,7 @@ shows what each fix cleared, and when, only as finely as the audits are spaced. 
 week is fine enough while the accessibility debt is being fixed, and a run every night would spend a
 headed Windows and macOS runner per browser seven times as often. The schedule ends when the
 accessibility debt epic closes. The tiers then decide the cadence: a pull request runs the axe scan
-(today's `test.yml`), a nightly runs a semi-lite set chosen then, and a release candidate and a stable
+and the short suite (today's `test.yml`), a nightly runs a semi-lite set chosen then, and a release candidate and a stable
 release run the full set. The names stay: the ledger, the Slack text and this file know the two product
 workflows as nightlies. The CI mechanics are in `.ai/CI.md`; this section is the procedure.
 

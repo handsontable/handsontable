@@ -175,8 +175,8 @@ test('the checks job is report-only: continue-on-error on the job, a red job on 
   assert.match(checks, /^ {4}name: checks$/m, `${A11Y}: the job is named checks, so the check reads "A11y / checks". ${CHECKS_DOC}`);
   assert.match(checks, /^ {4}continue-on-error: true$/m, `${A11Y}: the checks are report-only; a red one never turns the Tests pipeline red. ${CHECKS_DOC}`);
   assert.match(checks, /^ {4}timeout-minutes: 30$/m, `${A11Y}: a hung run is bounded, after the run step's own timeout. ${CHECKS_DOC}`);
-  assert.deepEqual(permissions(checks), ['contents: read', 'checks: write'],
-    `${A11Y}: the checks job reads the checkout and writes its check runs, nothing else. ${CHECKS_DOC}`);
+  assert.deepEqual(permissions(checks), ['contents: read', 'checks: write', 'pull-requests: read'],
+    `${A11Y}: the checks job reads the checkout and a pull request's changed files, and writes its check runs, nothing else. ${CHECKS_DOC}`);
   assert.match(checks, /^ {6}A11Y_HEAD_SHA: \$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}$/m,
     `${A11Y}: the evidence and its check runs name the pull request's head, never the merge commit. ${CHECKS_DOC}`);
   assert.match(checks, /^ {6}HOT_A11Y_CHECKS_SUITE: \$\{\{ inputs\.nightly && 'nightly' \|\| 'pull-request' \}\}$/m,
@@ -210,6 +210,15 @@ test('the checks job is report-only: continue-on-error on the job, a red job on 
 
   assert.match(summary, /^ {8}run: node tests\/scripts\/a11y-evidence-report\.mjs$/m);
   assert.match(summary, /^ {8}if: \$\{\{ !cancelled\(\) \}\}$/m, `${A11Y}: the summary is written after a red run step too. ${CHECKS_DOC}`);
+  // A fork's pull request posts no check run, so its job summary carries the ledger's verdict: the step reads the
+  // pull request's files with the read-only token, unguarded.
+  for (const block of [summary, step('Post the evidence check runs')]) {
+    assert.match(block, /^ {10}A11Y_PR_NUMBER: \$\{\{ github\.event\.pull_request\.number \}\}$/m,
+      `${A11Y}: the report reads the pull request's changed files, to mark a new finding on a page it did not change. ${CHECKS_DOC}`);
+    assert.match(block, /^ {10}GITHUB_TOKEN: \$\{\{ secrets\.GITHUB_TOKEN \}\}$/m, `${A11Y}: the files are listed through the API. ${CHECKS_DOC}`);
+  }
+  assert.doesNotMatch(summary, /^ {8}if: .*github\.event\.pull_request\.head\.repo/m,
+    `${A11Y}: the summary carries no fork guard: on a fork's pull request it is the only place the result shows. ${CHECKS_DOC}`);
 
   const post = step('Post the evidence check runs');
 
@@ -316,7 +325,7 @@ test('the A11y nightly ends on a verdict job that follows its worst check run, a
 });
 
 
-test('the checks beyond axe run only when the caller asks for them: the A11y nightly does, test.yml does not', () => {
+test('the checks beyond axe run only when the caller asks for them: the A11y nightly does, and test.yml on a pull request', () => {
   const workflow = stripYamlComments(read(A11Y));
   const [header] = workflow.split(/^jobs:$/m);
   const input = header.split(/^ {6}(?=[A-Za-z0-9_-]+:$)/m).find(block => block.startsWith('checks:')) ?? '';
@@ -336,8 +345,10 @@ test('the checks beyond axe run only when the caller asks for them: the A11y nig
 
   const tests = job(stripYamlComments(read(TESTS)), 'a11y');
 
-  assert.doesNotMatch(tests, /^ {6}checks:/m,
-    `${TESTS}: the pull-request pipeline passes nothing, so a pull request runs the axe scan only: the checks are report-only, and a pull request learned nothing from them it could act on. ${CHECKS_DOC}`);
+  assert.match(tests, /^ {4}with:\n {6}checks: \$\{\{ github\.event_name == 'pull_request' \}\}$/m,
+    `${TESTS}: a pull request runs the short suite beside the axe scan, report-only, its new findings told from the known ones by the findings ledger; `
+      + `a master push and the rc/stable path (publish.yml's call) run the scan alone. ${CHECKS_DOC}`);
+  assert.doesNotMatch(tests, /^ {6}nightly:/m, `${TESTS}: a pull request runs the short suite, never every check. ${CHECKS_DOC}`);
 
   const nightly = job(stripYamlComments(read(NIGHTLY)), 'a11y');
 
