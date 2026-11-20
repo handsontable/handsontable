@@ -235,6 +235,21 @@ test.describe('Filters — "filter by value" list width', { tag: THEMES_TAG }, (
       .toBeLessThanOrEqual(MEASURED_TEXT_OVERFLOW[theme]);
   });
 
+  test('measures once per opening', async({ page, theme, bundle }) => {
+    const grid = new FiltersValueListPage(page, theme, bundle, WIDTH_FIXTURE);
+
+    await grid.goto('long=last');
+
+    // Every menu render hands the list the same items again (`update()`), which must not measure.
+    await grid.openMenu('Name');
+    expect(await grid.listGhostTables()).toBe(1);
+    await grid.escapeMenu();
+
+    // A reopen loads the list's items anew, so it measures once more.
+    await grid.openMenuWithKeyboard(0, 0);
+    expect(await grid.listGhostTables()).toBe(2);
+  });
+
   test('does not measure again when only the checkboxes change', async({ page, theme, bundle }) => {
     const grid = new FiltersValueListPage(page, theme, bundle, WIDTH_FIXTURE);
 
