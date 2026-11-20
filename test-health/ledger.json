@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-20T07:43:25.331Z",
+  "updatedAt": "2026-11-20T09:38:21.402Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "playwright",
+      "leg": "e2e-webkit",
+      "file": "e2e/side-layout-slots.spec.ts",
+      "line": 263,
+      "title": "side layout slots › the `width` option sizes the whole component, side panels included › hugs the start edge with an end panel only under RTL",
+      "status": "flaky",
+      "attempts": 2,
+      "error": "Error: expect(received).toBeGreaterThanOrEqual(expected)",
+      "isolation": null,
+      "quarantine": null,
+      "source": "ci",
+      "runId": "44709514134",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44709514134",
+      "workflow": "Tests",
+      "branch": "feature/DEV-4130_License-tests-on-built-bundles",
+      "headSha": "2abeb498e2ba31cb5167664c8e82830db5c5b6f5",
+      "event": "pull_request",
+      "seenAt": "2026-11-20T09:37:33Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-webkit",
