@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed empty table sections of the grid being exposed to screen readers as row groups with no rows.",
+  "type": "fixed",
+  "issueOrPR": 14396,
+  "breaking": false,
+  "framework": "none"
+}
