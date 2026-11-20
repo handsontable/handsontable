@@ -479,6 +479,7 @@ describe('Formulas – undo', () => {
 
       expect(getSheetFormulas.mock.calls.every(([sheet]) => sheet === ownSheet)).toBe(true);
       // The grid reads the formulas of its own cells when it paints them; the scan reads no other sheet.
+      expect(getCellFormula).toHaveBeenCalled();
       expect(getCellFormula.mock.calls.every(([address]) => address.sheet === ownSheet)).toBe(true);
     });
   });

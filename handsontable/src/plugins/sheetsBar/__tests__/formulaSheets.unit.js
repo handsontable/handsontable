@@ -940,6 +940,7 @@ describe('SheetsBar formula sheets', () => {
       // The grid reads the formulas of the cells it paints; the sync reads no other sheet.
       const ownSheet = engine.getSheetId('Data');
 
+      expect(read).toHaveBeenCalled();
       expect(read.mock.calls.every(([address]) => address.sheet === ownSheet)).toBe(true);
     });
   });
