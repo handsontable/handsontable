@@ -37,6 +37,8 @@
       col 1  select    (type: 'select')
       col 2  date      (type: 'date')
       col 3  time      (type: 'time')
+      col 4  multiselect (type: 'multiselect')
+      col 5  text      (the cell a Tab from the multiselect editor lands on)
   -->
   <h2>Default focus mode</h2>
   <div id="plain" data-testid="plain"></div>
@@ -56,17 +58,19 @@
 
     window.hotPlain = new Handsontable(plain, {
       data: [
-        ['Alice', 'red', '2024-01-15', '09:30'],
-        ['Bob', 'green', '2024-02-20', '10:45'],
-        ['Carol', 'blue', '2024-03-25', '12:00'],
+        ['Alice', 'red', '2024-01-15', '09:30', ['red'], 'x1'],
+        ['Bob', 'green', '2024-02-20', '10:45', ['green'], 'x2'],
+        ['Carol', 'blue', '2024-03-25', '12:00', ['blue'], 'x3'],
       ],
-      colHeaders: ['Name', 'Color', 'Date', 'Time'],
+      colHeaders: ['Name', 'Color', 'Date', 'Time', 'Tags', 'Tail'],
       rowHeaders: true,
       columns: [
         { type: 'text' },
         { type: 'select', selectOptions: ['red', 'green', 'blue'] },
         { type: 'date', dateFormat: 'YYYY-MM-DD' },
         { type: 'time' },
+        { type: 'multiselect', source: ['red', 'green', 'blue'] },
+        { type: 'text' },
       ],
       licenseKey: window.htTestLicenseKey,
     });

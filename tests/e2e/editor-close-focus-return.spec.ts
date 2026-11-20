@@ -14,6 +14,7 @@ const EDITORS = [
   { type: 'select', col: 1 },
   { type: 'date', col: 2 },
   { type: 'time', col: 3 },
+  { type: 'multiselect', col: 4 },
 ] as const;
 
 test.describe('Closing an editor hands the focus back to its cell', () => {
@@ -62,6 +63,36 @@ test.describe('Closing an editor hands the focus back to its cell', () => {
     await expect.poll(() => grid.dataAtCell('plain', 1, 0)).toBe('Zed');
     await expect.poll(() => grid.focus('plain', 1, 0)).toMatchObject({ isCell: true });
     expect(await grid.selection('plain')).toEqual([1, 0]);
+  });
+
+  // The multiselect editor holds the focus in a search input that is not the grid's own hidden field, so
+  // hiding it dropped the focus to the document body: nothing was focused for a screen reader to read.
+  test('Tab out of the multiselect editor focuses the next cell, with no stop on another element', async({ page, theme, bundle }) => {
+    const grid = new EditorCloseFocusPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.selectCell('plain', 1, 4);
+    await grid.openEditor('plain');
+    await grid.startFocusLog('plain');
+    await page.keyboard.press('Tab');
+
+    await expect.poll(() => grid.isEditorOpen('plain')).toBe(false);
+    await expect.poll(() => grid.focus('plain', 1, 5)).toMatchObject({ isCell: true });
+    expect(await grid.focusLog()).toEqual([[1, 5]]);
+  });
+
+  test('Enter out of the multiselect editor focuses the next row, with no stop on another element', async({ page, theme, bundle }) => {
+    const grid = new EditorCloseFocusPage(page, theme, bundle);
+
+    await grid.goto();
+    await grid.selectCell('plain', 1, 4);
+    await grid.openEditor('plain');
+    await grid.startFocusLog('plain');
+    await page.keyboard.press('Enter');
+
+    await expect.poll(() => grid.isEditorOpen('plain')).toBe(false);
+    await expect.poll(() => grid.focus('plain', 2, 4)).toMatchObject({ isCell: true });
+    expect(await grid.focusLog()).toEqual([[2, 4]]);
   });
 
   test('Enter, which commits and moves the selection down, focuses the next cell', async({ page, theme, bundle }) => {
