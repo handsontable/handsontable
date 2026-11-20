@@ -78,7 +78,6 @@
       - columnheader "Country"
       - columnheader "Name"
       - columnheader "Qty"
-  - rowgroup
   - rowgroup:
     - row "1":
       - rowheader "1"
@@ -111,7 +110,6 @@
   - rowgroup:
     - row "Select whole grid":
       - gridcell "Select whole grid"
-  - rowgroup
 - alertdialog "Loading...":
   - img
   - heading "Loading..." [level=2]

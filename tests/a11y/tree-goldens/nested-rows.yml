@@ -33,7 +33,6 @@
       - gridcell "Select whole grid"
       - columnheader "Name"
       - columnheader "Copy"
-  - rowgroup
   - rowgroup:
     - row "1" [level=1]:
       - rowheader "1" [expanded]
@@ -56,7 +55,6 @@
   - rowgroup:
     - row "Select whole grid":
       - gridcell "Select whole grid"
-  - rowgroup
 # portal
 - status
 - status

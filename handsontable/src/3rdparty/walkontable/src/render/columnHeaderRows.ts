@@ -3,9 +3,9 @@ import { OrderView } from '../utils/orderView';
 import { setAttribute } from '../../../../helpers/dom/element';
 import {
   A11Y_ROW,
-  A11Y_ROWGROUP,
   A11Y_ROWINDEX,
 } from '../../../../helpers/a11y';
+import { syncRowGroupRole } from './ariaAttributes';
 
 /**
  * Column header rows renderer responsible for managing (inserting, tracking, rendering) TR elements belongs to THEAD.
@@ -59,9 +59,7 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
     const { columnHeadersCount } = this.table;
 
     if (this.table.isAriaEnabled()) {
-      setAttribute(this.rootNode, [
-        A11Y_ROWGROUP()
-      ]);
+      syncRowGroupRole(this.rootNode, columnHeadersCount > 0);
     }
 
     this.orderView

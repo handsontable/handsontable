@@ -1627,9 +1627,12 @@ half judges it (`lib/aria-tree.mjs`, tested in `lib/__tests__/aria-tree.test.mjs
 - **Structure** (`structureFindings()`): the column headers read after the data rows
   (`headers-after-data`, 1.3.2), data rows without their row header while the row headers sit in rows of
   their own (`row-headers-apart`, 1.3.1), one row index exposed by several rows (`row-exposed-twice`,
-  1.3.1), cells or rows read out of their index order (1.3.2), a grid role with no row (1.3.1). Today the
-  first three show on every grid with headers: the overlay clones put the header row after the master
-  table and repeat each row in the row-header clone. They are one root cause, reported per page and
+  1.3.1), one row and column index exposed by several cells (`cell-exposed-twice`, 1.3.1, with the number of
+  such cells and the most copies of one), cells or rows read out of their index order (1.3.2), a grid role
+  with no row (1.3.1). Today the first three show on every grid with headers: the overlay clones put the
+  header row after the master table and repeat each row in the row-header clone. `cell-exposed-twice` shows
+  there too (the corner cell is drawn by the top clone and by the corner), and counts every cell a frozen
+  pane repeats; it is the number that stays meaningful once rows are joined and no row index repeats. They are one root cause, reported per page and
   theme, because the evidence is per page. Each grid is judged on its own rows (a row belongs to its
   nearest grid, treegrid or table ancestor). A list inside the page (the handsontable editor's list, the
   filters' value list) therefore neither adds rows without a header to the grid nor shares its row

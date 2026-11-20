@@ -12,9 +12,9 @@ import {
 } from '../../../../helpers/dom/element';
 import {
   A11Y_ROW,
-  A11Y_ROWGROUP,
   A11Y_ROWINDEX
 } from '../../../../helpers/a11y';
+import { syncRowGroupRole } from './ariaAttributes';
 
 const ROW_CLASSNAMES = {
   rowEven: 'ht__row_even',
@@ -99,9 +99,7 @@ export class RowsRenderer extends BaseRenderer {
     }
 
     if (this.table.isAriaEnabled()) {
-      setAttribute(this.rootNode as HTMLElement, [
-        A11Y_ROWGROUP()
-      ]);
+      syncRowGroupRole(this.rootNode as HTMLElement, rowsToRender > 0);
     }
 
     const nextOffset = rowsToRender > 0 ? this.table.renderedRowToSource(0) : 0;

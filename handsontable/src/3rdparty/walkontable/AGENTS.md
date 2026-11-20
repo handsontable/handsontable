@@ -2134,6 +2134,14 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
   before.
 - Do not reintroduce an unconditional strip-and-rewrite, and do not move the clearing pass after the
   renderer: an attribute the previous cell's renderer set must be gone before this cell's renderer runs.
+- **A table section is a `rowgroup` only while it holds rows** (`syncRowGroupRole` in
+  `render/ariaAttributes.ts`, called by `render/rows.ts` for the TBODY and `render/columnHeaderRows.ts` for
+  the THEAD). Every clone has both sections and most leave one empty: the top clone's body without frozen top
+  rows, a corner's body, a bottom clone's head. A `rowgroup` with no `row` is an invalid structure, read as an
+  empty group and reported by axe as "needs review" (DEV-3652). The sections are reused across draws, so the
+  role is removed when a section is drawn with no rows, and only a `rowgroup` role is removed: a role another
+  module wrote on the section stays. Pinned by `test/unit/renderer/rowGroupRole.unit.ts` and
+  `tests/e2e/rowgroup-roles.spec.ts`.
 
 Pinned by `test/unit/renderer/ariaAttributes.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
 showed a custom-rendered row and then a plain one ends with the default attributes only, a renderer starts
