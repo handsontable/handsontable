@@ -1,5 +1,6 @@
 import Handsontable from 'handsontable/base';
-import { AutoColumnSize, ContextMenu, DropdownMenu, registerPlugin } from 'handsontable/plugins';
+import { AutoColumnSize, ContextMenu, DropdownMenu, Filters, HiddenRows, registerPlugin } from 'handsontable/plugins';
+import { CheckboxCellType, registerCellType } from 'handsontable/cellTypes';
 import { registerLanguageDictionary, plPL } from 'handsontable/i18n';
 import { Menu } from 'handsontable/utils/menu/menu';
 import { TEST_LICENSE_KEY } from '../../../../../test/helpers/licenseKey';
@@ -7,6 +8,9 @@ import { TEST_LICENSE_KEY } from '../../../../../test/helpers/licenseKey';
 registerPlugin(AutoColumnSize);
 registerPlugin(ContextMenu);
 registerPlugin(DropdownMenu);
+registerPlugin(Filters);
+registerPlugin(HiddenRows);
+registerCellType(CheckboxCellType);
 registerLanguageDictionary(plPL);
 
 describe('Menu: roles and names', () => {
@@ -120,6 +124,27 @@ describe('Menu: roles and names', () => {
     expect(subMenu.hotMenu.rootElement.getAttribute('aria-label')).toBe('Alignment');
   });
 
+  it('should name a submenu by the text of its item when the item name holds markup', () => {
+    createGrid({
+      contextMenu: {
+        items: {
+          more: {
+            name: '<b>More</b> &amp; less',
+            submenu: {
+              items: [{ key: 'more:one', name: 'One' }],
+            },
+          },
+        },
+      },
+    });
+
+    const menu = openMenu('contextMenu');
+    const subMenu = menu.openSubMenu(0);
+
+    expect(subMenu).not.toBe(false);
+    expect(subMenu.hotMenu.rootElement.getAttribute('aria-label')).toBe('More & less');
+  });
+
   it('should write no name on a menu that was given none, and keep a name its owner wrote', () => {
     createGrid();
 
@@ -165,6 +190,29 @@ describe('Menu: roles and names', () => {
 
     expect(rows.length).toBeGreaterThan(0);
     rows.forEach(row => expect(row.getAttribute('role')).toBe('presentation'));
+  });
+
+  it('should leave the roles of a grid nested in a menu cell (the Filters value list) untouched', () => {
+    createGrid({ filters: true });
+
+    const menu = openMenu('dropdownMenu');
+    const valueList = menu.container.querySelector('.htUIMultipleSelectHot');
+    const nestedTables = Array.from(valueList.querySelectorAll(':scope > .ht_master table'));
+    const nestedRows = Array.from(valueList.querySelectorAll(':scope > .ht_master tbody tr'));
+
+    expect(nestedTables.length).toBeGreaterThan(0);
+    expect(nestedRows.length).toBeGreaterThan(0);
+
+    // Walkontable marks every `table` presentational itself, so the body and the holder tell the two apart.
+    nestedTables.forEach(table => expect(table.tBodies[0].getAttribute('role')).toBe('rowgroup'));
+    nestedRows.forEach((row) => {
+      expect(row.getAttribute('role')).toBe('row');
+      expect(row.cells[0].getAttribute('role')).toBe('gridcell');
+    });
+    expect(valueList.querySelector(':scope > .ht_master > .wtHolder').getAttribute('tabindex')).toBe('-1');
+
+    // The menu's own tables are still presentational around it.
+    getOwnTables(menu).forEach(wtTable => expect(wtTable.TABLE.getAttribute('role')).toBe('presentation'));
   });
 
   it('should leave the table markup untouched when the host grid has `ariaTags` off', () => {

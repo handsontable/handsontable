@@ -1017,8 +1017,9 @@ export class Menu {
     const subMenu = new Menu(this.hot, {
       parent: this,
       name: itemName,
-      // A submenu is named by the item that opens it.
-      ariaLabel: itemName,
+      // A submenu is named by the item that opens it: by the text the item shows, because an item
+      // name may hold markup.
+      ariaLabel: cell.textContent?.trim() || itemName,
       className: this.options.className,
       keepInViewport: true,
       container: this.options.container,
