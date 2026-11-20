@@ -34,6 +34,11 @@
     if (window.htHeaders === undefined) {
       throw new Error('Unknown ?headers= value: ' + JSON.stringify(htParams.get('headers')));
     }
+    // `?aria=off` builds the grid with `ariaTags: false`. An unknown value throws.
+    window.htAria = ({ on: true, off: false })[htParams.get('aria') ?? 'on'];
+    if (window.htAria === undefined) {
+      throw new Error('Unknown ?aria= value: ' + JSON.stringify(htParams.get('aria')));
+    }
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
   <script src="/tests/fixtures/demo/test-license-key.js"></script>
@@ -60,6 +65,7 @@
         data: Handsontable.helper.createSpreadsheetData(6, 5),
         colHeaders: window.htHeaders,
         rowHeaders: window.htHeaders,
+        ariaTags: window.htAria,
         ...window.htEdges,
         licenseKey: window.htTestLicenseKey,
       });

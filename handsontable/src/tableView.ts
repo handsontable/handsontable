@@ -49,10 +49,13 @@ import { resolveWithInstance } from './utils/staticRegister';
 import {
   A11Y_COLCOUNT,
   A11Y_MULTISELECTABLE,
+  A11Y_OWNS,
   A11Y_PRESENTATION,
   A11Y_ROWCOUNT,
   A11Y_TREEGRID
 } from './helpers/a11y';
+import { stampRowGroupsInReadingOrder } from './3rdparty/walkontable/src/overlay/ariaTree';
+import type { AriaTreeTable } from './3rdparty/walkontable/src/overlay/ariaTree';
 import { parsePixelSize } from './utils/pixelSize';
 import { describeValue } from './utils/describeValue';
 import { isPageTextSelectionKept } from './utils/pageTextSelection';
@@ -3197,6 +3200,46 @@ class TableView {
   }
 
   /**
+   * Lists the grid's row groups on its root in reading order (`aria-owns`): the column headers first, then
+   * the frozen top rows, the rows between, and the frozen bottom rows. The headers and the frozen rows are
+   * drawn by overlay clones that follow the master table in the DOM, so without the list a screen reader
+   * reads the data before the headers that label it.
+   *
+   * The list is rebuilt after each draw that rendered cells, because a section is a row group only while it
+   * holds rows, and written only when it changed. A root that is not a `treegrid` (a menu takes the grid's
+   * root for its own role) gets no list.
+   */
+  #syncAriaRowGroupOrder() {
+    const { rootElement, guid } = this.hot;
+    const [ownsAttribute] = A11Y_OWNS('');
+    const isGrid = this.settings.ariaTags && rootElement.getAttribute('role') === A11Y_TREEGRID()[1];
+    let owned = '';
+
+    if (isGrid && guid) {
+      const tables: AriaTreeTable[] = [];
+
+      this._wt.wtOverlays.getOverlays(true).forEach((overlay) => {
+        const wtTable = 'clone' in overlay ? overlay.clone?.wtTable : overlay;
+
+        if (wtTable) {
+          tables.push(wtTable);
+        }
+      });
+
+      owned = stampRowGroupsInReadingOrder(tables, guid).join(' ');
+    }
+
+    if (owned === '') {
+      if (rootElement.hasAttribute(ownsAttribute)) {
+        rootElement.removeAttribute(ownsAttribute);
+      }
+
+    } else if (rootElement.getAttribute(ownsAttribute) !== owned) {
+      rootElement.setAttribute(ownsAttribute, owned);
+    }
+  }
+
+  /**
    * `afterRender` callback.
    *
    * The engine fires `onDraw` only from a draw that rendered the cell band, which is what spends the
@@ -3210,6 +3253,7 @@ class TableView {
   afterRender(force: boolean) {
     this.#sizesMeasuredWithoutStylesPending = false;
     this.#drawRenderedCells = true;
+    this.#syncAriaRowGroupOrder();
 
     if (force) {
       // Measure the rendered grid while the DOM is final, before external `afterViewRender` listeners

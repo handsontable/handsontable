@@ -1,5 +1,7 @@
 import { type Page, type Locator } from '@playwright/test';
 import { awaitBundle, awaitFixtureBuilt, type Bundle } from '../bundle';
+import { flattenAxTree } from '../../a11y/checks/ax-tree';
+import { gridRows, structureFindings } from '../../lib/aria-tree.mjs';
 
 /**
  * Which edges of the grid are frozen, as the fixture's `?edges=` allowlist spells them.
@@ -58,10 +60,12 @@ export class FrozenEdgesPage {
    *
    * @param edges The frozen edges.
    * @param headers Whether the grid has row and column headers.
+   * @param aria Whether the grid writes accessibility attributes (`ariaTags`).
    */
-  async goto(edges: FrozenEdges = 'none', headers: 'on' | 'off' = 'on'): Promise<void> {
+  async goto(edges: FrozenEdges = 'none', headers: 'on' | 'off' = 'on', aria: 'on' | 'off' = 'on'): Promise<void> {
     await this.page.goto(
-      `/tests/fixtures/demo/frozen-edges.html?theme=${this.theme}&bundle=${this.bundle}&edges=${edges}&headers=${headers}`
+      `/tests/fixtures/demo/frozen-edges.html?theme=${this.theme}&bundle=${this.bundle}`
+      + `&edges=${edges}&headers=${headers}&aria=${aria}`
     );
     await awaitBundle(this.page);
     await awaitFixtureBuilt(this.page);
@@ -120,6 +124,66 @@ export class FrozenEdgesPage {
     await this.page.evaluate((value) => {
       (window as unknown as { hot: { loadData(data: unknown[][]): void } }).hot.loadData(value);
     }, data);
+  }
+
+  /**
+   * The row groups the grid's root lists in `aria-owns`, in the listed order, each as `table section`
+   * (`top head`, `master body`) with the section's role and row count. An id that names no element reads
+   * as `missing`.
+   *
+   * @returns The listed row groups.
+   */
+  async ownedRowGroups(): Promise<Array<{ name: string, role: string | null, rows: number }>> {
+    return this.page.evaluate(() => {
+      const root = (window as unknown as { hot: { rootElement: HTMLElement } }).hot.rootElement;
+      const ids = (root.getAttribute('aria-owns') ?? '').split(' ').filter(Boolean);
+
+      return ids.map((id) => {
+        const section = root.ownerDocument.getElementById(id);
+        const holder = section?.closest('.ht_master, [class*="ht_clone_"]');
+        const table = Array.from(holder?.classList ?? []).find(item => item === 'ht_master' || item.startsWith('ht_clone_'));
+
+        return {
+          name: section && table ? `${table.replace(/^ht_(clone_)?/, '')} ${section.tagName === 'THEAD' ? 'head' : 'body'}` : 'missing',
+          role: section?.getAttribute('role') ?? null,
+          rows: section?.querySelectorAll(':scope > tr').length ?? 0,
+        };
+      });
+    });
+  }
+
+  /**
+   * The `aria-owns` attribute of the grid's root element (the element that carries the grid role).
+   *
+   * @returns The attribute, or `null` when the root has none.
+   */
+  async rootOwns(): Promise<string | null> {
+    return this.page.evaluate(
+      () => (window as unknown as { hot: { rootElement: HTMLElement } }).hot.rootElement.getAttribute('aria-owns')
+    );
+  }
+
+  /**
+   * The grid as Chromium's accessibility tree holds it, which is what a screen reader gets: the cell
+   * roles of each row in reading order, and the kinds of the structural findings of the tree check.
+   *
+   * @returns The rows and the finding kinds.
+   */
+  async accessibilityTree(): Promise<{ rows: string[][], findings: string[] }> {
+    const cdp = await this.page.context().newCDPSession(this.page);
+
+    try {
+      await cdp.send('Accessibility.enable');
+
+      const nodes = await flattenAxTree(this.page, cdp, '[data-testid="grid"]');
+
+      return {
+        rows: gridRows(nodes).filter(row => row.cells.length > 0).map(row => row.cells.map(cell => cell.role)),
+        findings: structureFindings(nodes).map(item => item.kind),
+      };
+    } finally {
+      await cdp.detach();
+    }
   }
 
   /**

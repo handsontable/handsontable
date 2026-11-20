@@ -2146,6 +2146,20 @@ of the `scroll-down` performance scenario by about 13% (DEV-4105):
   nothing in them; both renderers therefore key the section's role and each row's `row` role and
   `aria-rowindex` (`dropRowRole`) on `columnsToRender + rowHeadersCount > 0`. Pinned by `test/unit/renderer/rowGroupRole.unit.ts` and
   `tests/e2e/rowgroup-roles.spec.ts`.
+- **The grid's root lists its row groups in reading order** (`aria-owns`, DEV-3652). The clones follow the
+  master table in the DOM, so a screen reader met the data before the column headers. After each draw that
+  rendered cells, `TableView#syncAriaRowGroupOrder` asks `stampRowGroupsInReadingOrder`
+  (`overlay/ariaTree.ts`) for the ids of the sections that are row groups in that draw, in the order headers,
+  frozen top rows, rows between, frozen bottom rows, and writes the list on the root when it changed. The
+  order is a fixed list of table and section, so the pass reads no row index and no layout. Three rules. The
+  head sections of the master and of the two side clones are left out, because the stylesheet hides them. A
+  root that is not a `treegrid` gets no list: a menu takes the grid's root for its own role. And Playwright's
+  `ariaSnapshot()` does not apply `aria-owns`, so the tree goldens do not show the order; read it from
+  Chromium's tree (`FrozenEdgesPage#accessibilityTree`, the tree check's `headers-after-data` finding).
+  axe keeps reporting `aria-required-children` on the root: its reason is the holders' `tabindex`, which the
+  list does not change. A long `aria-owns` makes axe shorten the root's markup, so the scan keys the Filters
+  value list's root as `div[role="treegrid"]`. Pinned by `test/unit/overlay/ariaTree.unit.ts` and
+  `tests/e2e/grid-tree-reading-order.spec.ts`.
 
 Pinned by `test/unit/renderer/ariaAttributes.unit.ts` and `tests/e2e/cell-aria-recycle.spec.ts`: a TD that
 showed a custom-rendered row and then a plain one ends with the default attributes only, a renderer starts

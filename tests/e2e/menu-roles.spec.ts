@@ -63,6 +63,8 @@ test.describe('menu roles', { tag: THEMES_TAG }, () => {
     await expect(contextMenu.getByRole('table')).toHaveCount(0);
     await expect(contextMenu.getByRole('rowgroup')).toHaveCount(0);
     await expect(contextMenu.getByRole('row')).toHaveCount(0);
+    // A grid lists its row groups on its root (`aria-owns`); a menu has none to list.
+    await expect(contextMenu).not.toHaveAttribute('aria-owns');
     expectPresentationalTable(await menu.ownTableAria(CONTEXT_MENU));
   });
 

@@ -8,6 +8,7 @@ export const A11Y_ROWHEADER = (): [string, string] => ['role', 'rowheader'];
 export const A11Y_ROWGROUP = (): [string, string] => ['role', 'rowgroup'];
 export const A11Y_COLUMNHEADER = (): [string, string] => ['role', 'columnheader'];
 export const A11Y_ROW = (): [string, string] => ['role', 'row'];
+export const A11Y_OWNS = (val: string): [string, string] => ['aria-owns', val];
 export const A11Y_MENU = (): [string, string] => ['role', 'menu'];
 export const A11Y_MENU_ITEM = (): [string, string] => ['role', 'menuitem'];
 export const A11Y_MENU_ITEM_CHECKBOX = (): [string, string] => ['role', 'menuitemcheckbox'];
