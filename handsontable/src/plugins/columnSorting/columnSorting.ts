@@ -53,8 +53,7 @@ import type { HotInstance } from '../../core/types';
 import type { CellChange } from '../../settings';
 import { getWaitingEditorSaveChangeSets } from '../../editors/baseEditor/editorSaveChangeSets';
 import { A11Y_SORT } from '../../helpers/a11y';
-import { spreadsheetColumnLabel } from '../../helpers/data';
-import { getHeaderLabelText } from '../../utils/headerLabel';
+import { getColumnLabel } from '../../utils/headerLabel';
 import { announce } from '../../utils/a11yAnnouncer';
 import {
   COLUMN_SORTING_ANNOUNCEMENT_ASCENDING,
@@ -621,23 +620,7 @@ export class ColumnSorting extends BasePlugin {
       phrase = COLUMN_SORTING_ANNOUNCEMENT_DESCENDING;
     }
 
-    announce(String(this.hot.getTranslatedPhrase(phrase, { label: this.#getColumnLabel(column) }) ?? ''), 'polite');
-  }
-
-  /**
-   * Reads the name of a column the way a user sees it: the text of the rendered header, so markup and character
-   * references in a header label never reach the announcement. A line break (`<br>`) reads as a space and runs of
-   * whitespace collapse to one. A header that is not rendered (virtualized out) is read from `getColHeader()` and
-   * reduced the same way: tags stripped, character references decoded, `<br>` read as a space. A column without
-   * a label is named by its spreadsheet letter.
-   *
-   * @param {number} column Visual column index.
-   * @returns {string}
-   */
-  #getColumnLabel(column: number): string {
-    const label = getHeaderLabelText(this.hot.getCell(-1, column, true), this.hot.getColHeader(column));
-
-    return label !== '' ? label : spreadsheetColumnLabel(column);
+    announce(String(this.hot.getTranslatedPhrase(phrase, { label: getColumnLabel(this.hot, column) }) ?? ''), 'polite');
   }
 
   /**

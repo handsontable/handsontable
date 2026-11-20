@@ -33,6 +33,7 @@ import readOnlyCommentItem from './contextMenuItem/readOnlyComment';
 import { registerMenuEntries } from '../../utils/menu/menuEntries';
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import { LICENSE } from './feature.generated';
+import { COMMENT_EDITOR_PHRASES, setCellInputName } from '../../utils/cellInputName';
 
 export const PLUGIN_KEY = 'comments';
 export const PLUGIN_PRIORITY = 60;
@@ -749,6 +750,13 @@ export class Comments extends BasePlugin {
     const commentMeta = meta[META_COMMENT];
 
     this.#editor?.setValue((commentMeta ? commentMeta[META_COMMENT_VALUE] : null) ?? '');
+
+    const input = this.#editor?.getInputElement();
+
+    if (input) {
+      setCellInputName(this.hot, input, COMMENT_EDITOR_PHRASES, row, col);
+    }
+
     this.#editor?.show();
     this.refreshEditor(true);
 

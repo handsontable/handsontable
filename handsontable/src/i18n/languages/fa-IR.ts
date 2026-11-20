@@ -208,6 +208,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'خطا در [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '[count] سلول دیگر اکنون خطا دارد.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '[count] سلول دیگر اکنون خطا دارند.',
+  [C.EDITOR_INPUT_LABEL]: '[column]، ردیف [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'کامنت [column]، ردیف [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column]، [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'کامنت [column]، [row]',
 };
 
 export default dictionary;

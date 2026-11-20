@@ -43,7 +43,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox: 09:30
+  - textbox "Time, row 1": 09:30
 # portal
 - status
 - status

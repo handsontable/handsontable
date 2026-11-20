@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { default as MetaManager } from '../../dataMap/metaManager';
 import type { IndexesChangeSource } from '../../translations/indexMapper';
 import { BasePlugin } from '../base';
 import { arrayEach, arrayFilter } from '../../helpers/array';
@@ -61,6 +62,8 @@ import type { TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
 import type { BaseUI } from './ui/_base';
 import { ColumnDataMap, stampPhysicalCoordinates } from './columnDataMap';
+import { CellsFunctionReader, readsThroughCellsFunction } from '../../dataMap/metaManager/cellsFunctionRead';
+import { colToPropOrIndex } from '../../helpers/columnProp';
 import type { CellProperties } from '../../settings';
 import { LICENSE, PLUGIN_DEPS } from './feature.generated';
 
@@ -2340,6 +2343,7 @@ export class Filters extends BasePlugin {
     // every row that carries no per-cell meta. Probing it once keeps the whole meta destructure out
     // of the loop for every column that has none.
     const columnHasValueGetter = isFunction(metaManager.getColumnMeta(physicalColumn).valueGetter);
+    const cellsReader = this.#createCellsReader(physicalColumn, visualColumn, columnHasValueGetter);
     const hasModifyDataHook = this.hot.hasHook('modifyData');
     const rows: number[] = [];
     const values: unknown[] = [];
@@ -2355,22 +2359,15 @@ export class Filters extends BasePlugin {
         continue; // eslint-disable-line no-continue
       }
 
-      const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
       let value = this.hot.getSourceDataAtCell(physicalRow, visualColumn);
+      const readMeta = this.#resolveReadMeta(
+        metaManager, physicalRow, physicalColumn, cellsReader, columnHasValueGetter
+      );
 
-      if (storedMeta !== undefined) {
-        stampPhysicalCoordinates(storedMeta, physicalRow, physicalColumn);
-        resolvedMetas[rows.length] = storedMeta;
+      if (readMeta !== undefined) {
+        resolvedMetas[rows.length] = readMeta;
 
-        value = getValueGetterValue(value, storedMeta);
-
-      } else if (columnHasValueGetter) {
-        const cellMeta = metaManager.createTransientColumnMeta(physicalColumn);
-
-        stampPhysicalCoordinates(cellMeta, physicalRow, physicalColumn);
-        resolvedMetas[rows.length] = cellMeta;
-
-        value = getValueGetterValue(value, cellMeta);
+        value = getValueGetterValue(value, readMeta);
       }
 
       if (hasModifyDataHook) {
@@ -2397,6 +2394,90 @@ export class Filters extends BasePlugin {
 
     return new ColumnDataMap(rows, values, physicalColumn,
       (index: number) => resolvedMetas[index] ?? resolveUnstoredMeta(rows[index]));
+  }
+
+  /**
+   * Resolves the meta object `_readColumn()` reads one row's value through and hands that row's
+   * conditions, or `undefined` for a row whose meta the scan resolves later (`ColumnDataMap`):
+   * - the meta the `cells` function gave a `valueGetter`, when the read calls it (`cellsReader`);
+   * - otherwise the row's stored meta, so per-cell overrides stay exact;
+   * - otherwise, in a column whose meta has a `valueGetter`, a transient column meta, so the getter
+   *   and the conditions get the same object.
+   *
+   * @param {MetaManager} metaManager The meta manager of the grid.
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {CellsFunctionReader|undefined} cellsReader The column's `cells` reader, or `undefined`.
+   * @param {boolean} columnHasValueGetter Whether the column meta resolves a function `valueGetter`.
+   * @returns {CellProperties|undefined}
+   */
+  #resolveReadMeta(
+    metaManager: MetaManager,
+    physicalRow: number,
+    physicalColumn: number,
+    cellsReader: CellsFunctionReader | undefined,
+    columnHasValueGetter: boolean,
+  ): CellProperties | undefined {
+    const storedMeta = metaManager.getCellMetaIfExists(physicalRow, physicalColumn);
+
+    // A stored row can turn the option off for itself; the column decided it is on.
+    if (cellsReader !== undefined && (storedMeta === undefined || readsThroughCellsFunction(storedMeta))) {
+      const cellsMeta = cellsReader.read(storedMeta, physicalRow, physicalRow);
+
+      if (cellsMeta !== undefined) {
+        return cellsMeta;
+      }
+    }
+
+    let cellMeta = storedMeta;
+
+    if (cellMeta === undefined) {
+      if (!columnHasValueGetter) {
+        return undefined;
+      }
+
+      cellMeta = metaManager.createTransientColumnMeta(physicalColumn);
+    }
+
+    stampPhysicalCoordinates(cellMeta, physicalRow, physicalColumn);
+
+    return cellMeta;
+  }
+
+  /**
+   * Creates the reader that calls a column's `cells` function for each row `_readColumn()` reads, or
+   * returns `undefined` when the read must not call it: the `applyCellsToDataReads` option is off for
+   * the column (the default, so the read stays as it has been since 18.1.0), the column has no visual
+   * index, or the read runs from inside a `cells` function or a meta hook, where calling it again would
+   * not end. The reader is the one `DataMap` reads through, so a value the filter sees is the value
+   * `getDataAtCell()` returns, with one exception: the read stamps PHYSICAL indexes as `visualRow` and
+   * `visualCol` (`stampPhysicalCoordinates()`), and so does the reader here, so a `cells` function or a
+   * `valueGetter` that reads those stamps gets other input than in `getDataAtCell()` once the rows or
+   * columns are reordered. The arguments `cells` receives are physical in both reads.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @param {number|null} visualColumn The visual index of the column, or `null`.
+   * @param {boolean} columnHasValueGetter Whether the column meta resolves a function `valueGetter`.
+   * @returns {CellsFunctionReader|undefined}
+   */
+  #createCellsReader(
+    physicalColumn: number, visualColumn: number | null, columnHasValueGetter: boolean
+  ): CellsFunctionReader | undefined {
+    const metaManager = this.hot._getMetaManager();
+
+    if (visualColumn === null || metaManager.isExtendingCellMeta() ||
+        !readsThroughCellsFunction(metaManager.getColumnMeta(physicalColumn))) {
+      return undefined;
+    }
+
+    // The read stamps PHYSICAL indexes as the visual ones (`stampPhysicalCoordinates()`), so the
+    // reader stamps the physical column as `visualCol`, and each read passes the physical row.
+    return new CellsFunctionReader(metaManager, {
+      physicalColumn,
+      stampedVisualColumn: physicalColumn,
+      prop: colToPropOrIndex(this.hot, visualColumn),
+      hasColumnValueGetter: columnHasValueGetter,
+    });
   }
 
   /**

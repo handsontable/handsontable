@@ -158,12 +158,6 @@
       "reportRef": null
     },
     {
-      "id": "editor-input-names",
-      "text": "The inputs of the cell editors and the comment editor have no accessible name.",
-      "criteria": ["4.1.2"],
-      "reportRef": null
-    },
-    {
       "id": "focus-not-returned",
       "text": "When Escape closes a cell editor, a menu, or the comment editor, the focus does not return to the cell, so a screen reader does not announce where the focus is.",
       "criteria": ["2.4.3"],

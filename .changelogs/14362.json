@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `applyCellsToDataReads` option. When it is on, `getData()`, the `getDataAt*()` methods, copying, and column sorting call the `cells` function for every cell they read, so a `valueGetter` or a key/value cell type it sets applies to rows that were not rendered.",
+  "type": "added",
+  "issueOrPR": 14362,
+  "breaking": false,
+  "framework": "none"
+}

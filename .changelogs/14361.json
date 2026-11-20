@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the speed of changing pages in the Pagination plugin on large grids.",
+  "type": "changed",
+  "issueOrPR": 14361,
+  "breaking": false,
+  "framework": "none"
+}
