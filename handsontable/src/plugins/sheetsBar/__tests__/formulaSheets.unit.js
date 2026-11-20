@@ -937,7 +937,11 @@ describe('SheetsBar formula sheets', () => {
       hot.getPlugin('undoRedo').undo();
       hot.getPlugin('undoRedo').redo();
 
-      expect(read).not.toHaveBeenCalled();
+      // The grid reads the formulas of the cells it paints; the sync reads no other sheet.
+      const ownSheet = engine.getSheetId('Data');
+
+      expect(read).toHaveBeenCalled();
+      expect(read.mock.calls.every(([address]) => address.sheet === ownSheet)).toBe(true);
     });
   });
 
