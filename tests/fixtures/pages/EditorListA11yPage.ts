@@ -96,7 +96,7 @@ export class EditorListA11yPage {
    * @param {boolean} [options.longSource] Give the list 200 choices, `Al 001` to `Al 200`.
    * @param {boolean} [options.asyncSource] Give the list its three choices through a function `source`
    * that answers only on {@link EditorListA11yPage#resolveQueries}.
-   * @param {boolean} [options.strict] Make the `autocomplete` column strict.
+   * @param {boolean} [options.strict] Make the `autocomplete` or `handsontable` column strict.
    * @param {boolean} [options.allowHtml] Turn `allowHtml` on and wrap each choice in `<b>`.
    * @param {boolean} [options.ariaTags] The grid's `ariaTags` setting.
    * @param {boolean} [options.enterStays] Set `enterMoves: { row: 0, col: 0 }`, so Enter keeps the selection
@@ -697,6 +697,43 @@ export class EditorListA11yPage {
       });
       hot.useTheme(target);
     });
+  }
+
+  /**
+   * Adds a text input to the page, after the grid, and returns it: an element outside the grid a user can
+   * move the focus to.
+   */
+  async addOutsideInput(): Promise<Locator> {
+    await this.page.evaluate(() => {
+      const input = document.createElement('input');
+
+      input.type = 'text';
+      input.setAttribute('data-testid', 'outside-input');
+      input.setAttribute('aria-label', 'Outside input');
+      document.body.appendChild(input);
+    });
+
+    return this.page.getByTestId('outside-input');
+  }
+
+  /**
+   * Whether a cell is rendered, in the master table or in an overlay.
+   */
+  async isCellRendered(row: number, col: number): Promise<boolean> {
+    return this.page.evaluate(([r, c]) => (window as unknown as {
+      hot: { getCell(row: number, col: number, topmost: boolean): HTMLElement | null },
+    }).hot.getCell(r, c, true) !== null, [row, col]);
+  }
+
+  /**
+   * Scrolls the grid's master holder sideways to its end or back to its start, as a scrollbar drag does.
+   * The caller waits for the render state it needs.
+   */
+  async scrollGridSideways(to: 'start' | 'end'): Promise<void> {
+    await this.page.locator('[data-testid="grid"] .ht_master .wtHolder').first()
+      .evaluate((holder: HTMLElement, target) => {
+        holder.scrollLeft = target === 'end' ? holder.scrollWidth : 0;
+      }, to);
   }
 
   /**

@@ -557,9 +557,22 @@ export class FocusGridManager {
       return;
     }
 
+    let isDeferred = false;
+
     // An editor that reopened on a rejected value is open again, and `focusOnHighlightedCell()` leaves
-    // the focus on it.
-    this.focusOnHighlightedCell();
+    // the focus on it. A highlighted cell that is not rendered gets the focus on the scroll that renders
+    // it, unless the user moved the focus out of the grid in the meantime (a press on a page input with
+    // `outsideClickDeselects: false` keeps the highlight, so the highlight alone cannot tell).
+    this.#getSelectedCell('focusOnHighlightedCell', (cell) => {
+      const activeElement = getDeepActiveElement(this.#hot.rootDocument);
+
+      if (isDeferred && this.isForeignFocusTarget(isHTMLElement(activeElement) ? activeElement : null)) {
+        return;
+      }
+
+      this.focusOnHighlightedCell(cell);
+    });
+    isDeferred = true;
     // With `imeFastEdit` the field takes the focus back, as after a commit without a validator: the
     // `afterSelectionEnd` refocus skipped it, because the editor was still open then. A reopened editor
     // keeps the focus, since `refocusToEditorTextarea()` does nothing while the editor is open.

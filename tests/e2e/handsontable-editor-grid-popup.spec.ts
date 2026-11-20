@@ -197,6 +197,60 @@ test.describe('handsontable editor grid popup', { tag: [THEMES_TAG, CROSS_BROWSE
     expect(await grid.isEditorOpened()).toBe(true);
   });
 
+  test('keeps the caret keys while strict mode highlights the first row by itself', async() => {
+    await grid.goto({ twoListColumns: true, strict: true });
+    await grid.openEditorAt(0, 0);
+    // The precondition: the list opened with a highlight the user did not make.
+    await expect.poll(() => grid.listSelection()).toEqual([0, 0]);
+    await grid.page.keyboard.press('End');
+    await expect.poll(() => grid.caret()).toEqual({ start: 2, end: 2 });
+
+    await grid.page.keyboard.press('ArrowLeft');
+    await expect.poll(() => grid.caret()).toEqual({ start: 1, end: 1 });
+
+    await grid.page.keyboard.press('ArrowRight');
+    await expect.poll(() => grid.caret()).toEqual({ start: 2, end: 2 });
+    expect(await grid.listSelection()).toEqual([0, 0]);
+    expect(await grid.isEditorOpened()).toBe(true);
+
+    // Once the user picks a row, the keys move across the list's columns.
+    await grid.page.keyboard.press('ArrowDown');
+    await expect.poll(() => grid.listSelection()).toEqual([1, 0]);
+    await grid.page.keyboard.press('ArrowRight');
+    await expect.poll(() => grid.listSelection()).toEqual([1, 1]);
+  });
+
+  test('closes a strict editor opened by typing and moves the selection on ArrowRight', async() => {
+    await grid.goto({ twoListColumns: true, strict: true });
+    await grid.selectCell(0, 0);
+    await grid.page.keyboard.press('A');
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    await expect.poll(() => grid.listSelection()).toEqual([0, 0]);
+
+    await grid.page.keyboard.press('ArrowRight');
+
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+    await expect.poll(() => grid.selectedCell()).toEqual([0, 1]);
+  });
+
+  test('keeps the caret keys while the list is hidden for a scroll', async() => {
+    await grid.goto({ frozen: true, twoListColumns: true });
+    await grid.openEditorAt(0, 1);
+    await grid.page.keyboard.press('ArrowDown');
+    await expect.poll(() => grid.listSelection()).toEqual([0, 0]);
+
+    await grid.scrollGridToInlineEnd();
+    await expect.poll(() => grid.displayedListCount()).toBe(0);
+    await grid.page.keyboard.press('Home');
+    await expect.poll(() => grid.caret()).toEqual({ start: 0, end: 0 });
+
+    await grid.page.keyboard.press('ArrowRight');
+
+    // The caret moving is the positive control for the highlight staying where it was.
+    await expect.poll(() => grid.caret()).toEqual({ start: 1, end: 1 });
+    expect(await grid.listSelection()).toEqual([0, 0]);
+  });
+
   for (const key of ['Enter', 'Tab'] as const) {
     test(`writes the highlighted cell of the second column on ${key}`, async() => {
       await grid.goto({ twoListColumns: true });

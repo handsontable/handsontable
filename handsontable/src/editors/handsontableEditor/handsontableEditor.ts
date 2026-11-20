@@ -225,6 +225,9 @@ export class HandsontableEditor extends TextEditor {
 
     if (this.cellProperties.strict) {
       this.htEditor.selectCell(0, 0);
+      // `selectCell()` makes the list the listening grid, and the list would then run the keys itself:
+      // its arrow keys, Home and End would move its highlight and block the caret in the field.
+      this.hot.listen();
       this.innerSelectionOrigin = 'auto';
     } else {
       this.htEditor.deselectCell();
@@ -775,8 +778,11 @@ export class HandsontableEditor extends TextEditor {
    * @returns {boolean}
    */
   protected isEditUnchanged(held: unknown, value: unknown): boolean {
+    // Not `holdsOpeningText()`: a value made of line breaks only opens as an empty field, and an
+    // empty opening text counts here.
     return super.isEditUnchanged(held, value) ||
-      (this.#openedTextIsLossy && this.innerSelectionOrigin !== 'user' && this.holdsOpeningText());
+      (this.#openedTextIsLossy && this.innerSelectionOrigin !== 'user' &&
+        this.#openedText !== null && this.TEXTAREA.value === this.#openedText);
   }
 
   /**
@@ -1402,14 +1408,17 @@ export class HandsontableEditor extends TextEditor {
 
   /**
    * Whether ArrowLeft and ArrowRight move across the list's columns: in a grid popup (not the
-   * autocomplete listbox) that highlights a row and has more than one column. Otherwise the keys move
-   * the caret, or close the editor, as they do in any text editor.
+   * autocomplete listbox) that is on screen, has more than one column, and highlights a row the user
+   * picked (with the arrow keys or a click). A row the editor highlighted itself (strict mode
+   * highlights the first one when the list opens) does not count, and neither does a list hidden for
+   * a scroll, which keeps its highlight. Otherwise the keys move the caret, or close the editor, as
+   * they do in any text editor.
    *
    * @returns {boolean}
    */
   #canMoveListColumn(): boolean {
-    return this.exposesGridPopup() && !!this.htEditor && !!this.htEditor.getSelectedActive() &&
-      this.htEditor.countCols() > 1;
+    return this.exposesGridPopup() && this.isListShown() && this.innerSelectionOrigin === 'user' &&
+      !!this.htEditor && !!this.htEditor.getSelectedActive() && this.htEditor.countCols() > 1;
   }
 
   /**

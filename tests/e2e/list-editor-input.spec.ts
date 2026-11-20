@@ -43,6 +43,22 @@ for (const cellType of CELL_TYPES) {
       await expect(grid.editorField).toHaveCount(1);
     });
 
+    test('opens and commits in a class that extends the editor and overrides nothing', async({ page }) => {
+      await grid.build({}, { subclassedEditor: true });
+      await grid.selectCell(0, 0);
+      await page.keyboard.press('Enter');
+      await grid.expectEditorOpened();
+
+      expect(await grid.editorFieldState()).toMatchObject({ tagName: 'input', type: 'text', value: 'Al' });
+
+      await page.keyboard.press('End');
+      await page.keyboard.type('fa');
+      await page.keyboard.press('Enter');
+      await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+      expect(await grid.sourceDataAtCell(0, 0)).toBe('Alfa');
+    });
+
     test('covers the edited cell', async({ page }) => {
       await grid.build();
       await grid.selectCell(0, 0);
@@ -111,6 +127,24 @@ for (const cellType of CELL_TYPES) {
       expect(await grid.sourceDataAtCell(1, 0)).toBe(MULTI_LINE_TEXT);
       expect(await grid.isUndoAvailable()).toBe(false);
     });
+
+    for (const [label, lineBreaks] of [['a line feed', '\n'], ['a carriage return and a line feed', '\r\n']]) {
+      // The input drops the line break and opens empty, and an empty opening text is still the cell's own.
+      test(`confirms an untouched value of ${label} alone without writing`, async({ page }) => {
+        await grid.build({ data: [[lineBreaks, null, null, null], ['Al', null, null, null]] });
+        await grid.selectCell(0, 0);
+        await page.keyboard.press('Enter');
+        await grid.expectEditorOpened();
+        expect((await grid.editorFieldState()).value).toBe('');
+        await page.keyboard.press('Enter');
+        // The positive control: the confirm ended the edit and moved the selection down.
+        await expect(grid.cell(1, 0)).toHaveClass(/\bcurrent\b/);
+        await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+        expect(await grid.sourceDataAtCell(0, 0)).toBe(lineBreaks);
+        expect(await grid.isUndoAvailable()).toBe(false);
+      });
+    }
 
     test('saves an edited multi-line value without its line break', async({ page }) => {
       await grid.build();

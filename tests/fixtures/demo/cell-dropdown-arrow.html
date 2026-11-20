@@ -94,7 +94,8 @@
     // `.ht-multi-select-arrow`, built by `multiSelectRenderer`. It is covered here anyway so the
     // affordance shared by every list cell type has one home (#13316).
     // `?strict=true` makes the `autocomplete` column strict, so the list highlights the choice the typed
-    // text completes to while it still narrows the list.
+    // text completes to while it still narrows the list. It makes the `handsontable` column strict too,
+    // whose list then opens with its first row highlighted.
     const strict = ({ true: true, false: false })[htParams.get('strict') ?? 'false'];
     if (strict === undefined) {
       throw new Error('Unknown ?strict= value: ' + JSON.stringify(htParams.get('strict')));
@@ -171,7 +172,7 @@
     const columnByCellType = {
       autocomplete: { type: 'autocomplete', source: listSource, strict, allowHtml },
       dropdown: { type: 'dropdown', source: listSource, allowHtml },
-      handsontable: { type: 'handsontable', handsontable: handsontableList },
+      handsontable: { type: 'handsontable', handsontable: handsontableList, ...(strict ? { strict } : {}) },
       multiselect: { type: 'multiselect', source: CHOICES },
       // `text` is the control the list editors' focus after a commit is compared with.
       text: { type: 'text' },

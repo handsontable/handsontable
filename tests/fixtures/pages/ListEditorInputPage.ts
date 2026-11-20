@@ -97,13 +97,23 @@ export class ListEditorInputPage {
    * Builds the grid and waits for its first cell.
    *
    * @param {object} [settings] Settings added to the fixture's grid.
+   * @param {object} [options] Fixture options.
+   * @param {boolean} [options.subclassedEditor] Edit the list columns in a class that extends the cell
+   * type's editor and overrides nothing, as a custom editor built on it starts out.
    */
-  async build(settings: Record<string, unknown> = {}): Promise<void> {
-    await this.page.evaluate(({ cellType, choices, longText, multiLineText, extra }) => {
+  async build(
+    settings: Record<string, unknown> = {}, { subclassedEditor = false }: { subclassedEditor?: boolean } = {}
+  ): Promise<void> {
+    await this.page.evaluate(({ cellType, choices, longText, multiLineText, extra, subclassed }) => {
       const win = window as unknown as FixtureWindow;
-      const listColumn = cellType === 'handsontable'
+      const editorName = `${cellType.charAt(0).toUpperCase()}${cellType.slice(1)}Editor`;
+      const BuiltInEditor = (win.Handsontable as unknown as {
+        editors: Record<string, new(...args: unknown[]) => object>,
+      }).editors[editorName];
+      const typeColumn = cellType === 'handsontable'
         ? { type: 'handsontable', handsontable: { data: choices.map(choice => [choice]) } }
         : { type: cellType, source: choices };
+      const listColumn = subclassed ? { ...typeColumn, editor: class extends BuiltInEditor {} } : typeColumn;
       const container = document.querySelector('[data-testid="grid"]') as Element;
 
       win.hot = new win.Handsontable(container, {
@@ -129,6 +139,7 @@ export class ListEditorInputPage {
       longText: LONG_TEXT,
       multiLineText: MULTI_LINE_TEXT,
       extra: settings,
+      subclassed: subclassedEditor,
     });
     await expect(this.cell(0, 0)).toBeVisible();
   }

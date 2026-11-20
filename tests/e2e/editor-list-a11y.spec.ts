@@ -620,6 +620,47 @@ test.describe('focus after a commit (text with a validator)', { tag: [THEMES_TAG
     });
   }
 
+  for (const leavesGrid of [false, true]) {
+    const outcome = leavesGrid ? 'leaves the focus on a page input the user moved to' : 'moves the focus to the next cell';
+
+    test(`${outcome} when the cell is rendered after the answer`, async({ page, theme, bundle }) => {
+      const grid = new EditorListA11yPage(page, theme, bundle, 'text');
+
+      await grid.goto({ heldValidator: true, frozen: true, outsideClickDeselects: false });
+
+      const outsideInput = await grid.addOutsideInput();
+
+      await grid.openEditorAt(0, 1);
+      await page.keyboard.type('x');
+      await page.keyboard.press('Enter');
+      await expect.poll(() => grid.heldValidationCount()).toBe(1);
+
+      // The answer arrives while the cell the selection moved to is scrolled out of the rendered range.
+      await grid.scrollGridSideways('end');
+      await expect.poll(() => grid.isCellRendered(1, 1)).toBe(false);
+      expect(await grid.releaseValidations()).toBe(1);
+      await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+      if (leavesGrid) {
+        await outsideInput.click();
+        await expect(outsideInput).toBeFocused();
+      }
+
+      // `outsideClickDeselects: false` keeps the highlight, so only the focus says the user left.
+      expect(await grid.selectedCell()).toEqual([1, 1]);
+      await grid.scrollGridSideways('start');
+      await expect.poll(() => grid.isCellRendered(1, 1)).toBe(true);
+
+      if (leavesGrid) {
+        // The positive control is the sibling case: the same scroll gives the focus to the cell there.
+        expect(await grid.focusTargetAfterFrames(SETTLE_FRAMES)).toEqual({ other: 'input' });
+        await expect(outsideInput).toBeFocused();
+      } else {
+        await expect.poll(() => grid.focusTarget()).toEqual({ cell: [1, 1] });
+      }
+    });
+  }
+
   test('leaves the focus on the reopened editor when the validator rejects the value', async({
     page, theme, bundle,
   }) => {
