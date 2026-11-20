@@ -1,7 +1,10 @@
 import {
   addClass,
+  hasClass,
   removeClass,
+  setAttribute,
 } from '../../helpers/dom/element';
+import { A11Y_GRIDCELL } from '../../helpers/a11y';
 import { isNumeric, clamp } from '../../helpers/number';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isLeftClick, isRightClick, isTouchEvent } from '../../helpers/dom/event';
@@ -935,6 +938,7 @@ export class NestedHeaders extends BasePlugin {
 
       if (!reachesCells) {
         removeClass(TH, ['beforeHiddenColumn', 'afterHiddenColumn']);
+        this.#markUnlabeledGroupHeader(TH);
       }
 
       if ((!isPlaceholder && !isHidden && !isRowspanPlaceholder) || isEndContinuation) {
@@ -948,6 +952,30 @@ export class NestedHeaders extends BasePlugin {
         }
       }
     };
+  }
+
+  /**
+   * Turns a header above the bottom header row that shows no label into a plain cell: `role="gridcell"`
+   * with no `scope`. Such a header (a group row shorter than the column count leaves one over each column
+   * it does not cover) names no column, so as a column header it gives a screen reader an empty name to
+   * read for every cell below it. Walkontable writes `role="columnheader"` and `scope` again on every draw
+   * before this renderer runs, so a recycled header that gets a label is a column header again.
+   *
+   * @param {HTMLTableCellElement} TH The header element.
+   */
+  #markUnlabeledGroupHeader(TH: HTMLTableCellElement) {
+    if (!this.hot.getSettings().ariaTags || hasClass(TH, 'hiddenHeader')) {
+      return;
+    }
+
+    const label = TH.querySelector('.colHeader');
+
+    if (!label || (label.textContent ?? '').trim() !== '') {
+      return;
+    }
+
+    setAttribute(TH, [A11Y_GRIDCELL()]);
+    TH.removeAttribute('scope');
   }
 
   /**
