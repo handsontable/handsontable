@@ -205,6 +205,10 @@ hold it together:
   disable and enable, a column insert, or a meta change before it ended left every column it had not reached
   without a width (scroll width 1979 px against 7697 px). A cancel owes a re-measure, as a re-measure sweep's
   does.
+- **On a drawn grid the columns before the viewport are measured too** (`#countDrawnLeadingColumns()`). The
+  scroll offset is their sum, so a `loadData()` on a grid scrolled sideways left them at the fallback width,
+  the scroll range shrank, the browser clamped the offset, and the viewport moved to other columns. They follow
+  the columns on screen in the queue, within the `syncLimit` cap, as without a budget.
 - **No chunk runs in the caller.** The default sweep runs one `CALCULATION_CELLS_BUDGET` chunk synchronously
   after the exact part; on a grid this tall that is one more off-screen column over every row, so a
   `syncViewport` sweep goes straight to an idle task.
@@ -218,10 +222,12 @@ hold it together:
   from inside an idle task. The flag is one-shot, consumed by `calculateVisibleColumnsWidth()`: a render the
   application holds with `suspendRender()` runs at `resumeRender()`, after `render()` returned.
 - **Behavior a tall default grid gets now:** right after the constructor, `getColWidth()` of an off-screen
-  column returns the fallback width until the idle sweep reaches it, so a `scrollViewportTo()` or
-  `selectCell()` to such a column computes its offset from that width and can land short of it. Measuring the
-  missing widths in `beforeViewportScrollHorizontally` does not help: Walkontable reads column widths from
-  `ColumnUtils`, which a draw fills, so the scroll already under way uses the old ones. An edit made while the sweep runs is
+  column returns the fallback width until the idle sweep reaches it. A `scrollViewportTo()` or `selectCell()`
+  made meanwhile is computed from the widths of the columns before its target, so
+  `#onBeforeViewportScrollHorizontally` measures every one of them that lacks a width and then renders
+  (fill-only) before the scroll goes on: Walkontable reads the widths from its last draw, so measuring alone
+  left the scroll on fallback widths, and the selected cell left the view when the sweep ended. That costs the
+  columns up to the target over every row, which is what the path without a budget paid in the constructor. An edit made while the sweep runs is
   refreshed when it ends (`#refreshQueuedColumnsWidth()` waits for `inProgress`), and a column scrolled into
   view before the sweep reached it is measured by that render, synchronously, over every row (the visible
   pass fills every missing width), as for any grid wider than `syncLimit` before. Grids under the budget and

@@ -87,13 +87,17 @@ test.describe('AutoColumnSize sync cell budget', { tag: THEMES_TAG }, () => {
     const loaded = await grid.loadLongerData(GRID);
 
     expect(onScreen[0]).toBeGreaterThan(5);
-    // The columns before the viewport are left to idle tasks.
-    expect(loaded.readColumns).not.toContain(5);
+    // The columns before the viewport set its offset, so they are measured with the columns on screen: the
+    // viewport stays on the same columns through the load and the sweep. The columns after it wait.
+    expect(loaded.readColumns).toEqual(expect.arrayContaining([5, ...onScreen]));
+    expect(loaded.readColumns).not.toContain(GRID.cols - 2);
     expect(onScreen.map(column => loaded.widths[column])).toEqual(onScreen.map(column => reference.widths[column]));
+    expect(loaded.firstVisibleColumn).toBe(reference.firstVisibleColumn);
 
     await grid.waitForSweepEnd();
 
     expect(await grid.widths()).toEqual(reference.widths);
+    expect((await grid.fullyVisibleColumns())[0]).toBe(reference.firstVisibleColumn);
   });
 
   test('draws every rendered column at the width it holds once the sweep ends', async() => {
@@ -236,15 +240,20 @@ test.describe('AutoColumnSize sync cell budget', { tag: THEMES_TAG }, () => {
     expect(await grid.recalculateAllColumnsWidth()).toHaveLength(GRID.cols);
   });
 
-  test('draws a column selected during the sweep at its exact width once the sweep ends', async() => {
-    // The scroll to the column is computed from the widths the grid holds when it is made, so it can land
-    // short of the column; that is a documented trade of the budget. What must hold is that every column,
-    // the selected one included, ends with its exact width and is drawn with it.
+  test('keeps a cell selected right after the constructor in view through the sweep', async() => {
+    // The scroll offset is the sum of the widths of the columns before the cell, so they are measured before
+    // the scroll, and the cell stays in view when the sweep measures the rest.
     const reference = await grid.build({ ...GRID, settings: EXACT });
 
     await grid.build(GRID, BUDGET, 'selectCell0x25');
+
+    const isInView = ([first, last]: Array<number | null>) => first !== null && last !== null && first <= 25 && last >= 25;
+
+    expect(isInView(await grid.fullyVisibleColumns())).toBe(true);
+
     await grid.waitForSweepEnd();
 
+    expect(isInView(await grid.fullyVisibleColumns())).toBe(true);
     expect(await grid.widths()).toEqual(reference.widths);
     await expect.poll(() => grid.staleDrawnColumns()).toEqual([]);
   });

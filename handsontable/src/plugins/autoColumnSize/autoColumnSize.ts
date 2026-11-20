@@ -599,6 +599,7 @@ export class AutoColumnSize extends BasePlugin {
     this.addHook('beforeUndo', this.#onBeforeUndoRedo);
     this.addHook('beforeRedo', this.#onBeforeUndoRedo);
     this.addHook('beforeRender', this.#onBeforeRender);
+    this.addHook('beforeViewportScrollHorizontally', this.#onBeforeViewportScrollHorizontally);
     this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width), -10);
     this.addHook('init', this.#onInit);
 
@@ -1174,7 +1175,8 @@ export class AutoColumnSize extends BasePlugin {
       const viewportWidth = isDrawn ? 0 : this.hot.view.getFrozenViewportSize(true);
       // A width the view cannot measure leaves every `syncColumns` column to the synchronous part, as without a budget.
       const widthToFill = Number.isFinite(viewportWidth) && viewportWidth > 0 ? viewportWidth : Infinity;
-      const leadingColumns = isDrawn ? this.#onScreenColumns().size : this.hot.view.countFixedColumnsEnd();
+      const leadingColumns = isDrawn ?
+        this.#countDrawnLeadingColumns(columnQueue) : this.hot.view.countFixedColumnsEnd();
       const columnsBefore = Math.min(leadingColumns, lastSyncIndex);
       // The width before the stretch, which is what fills the viewport and what decides the stretch.
       const widthBeforeStretch = (visualColumn: number) => this.hot.getColWidth(visualColumn, 'StretchColumns');
@@ -1223,6 +1225,23 @@ export class AutoColumnSize extends BasePlugin {
     } else {
       loop(false);
     }
+  }
+
+  /**
+   * Counts the columns a `syncViewport` sweep of a drawn grid (a `loadData()`) measures before it returns: the
+   * columns on screen, which lead its queue, and the columns before the viewport, which follow them. The
+   * scroll offset is the sum of the columns before the viewport, so with those at the fallback width the load
+   * shrank the scroll range, the browser clamped the offset, and the viewport moved to other columns.
+   *
+   * @param {number[]} columnQueue The sweep's queue, in `#columnSweepOrder(true)` order.
+   * @returns {number}
+   */
+  #countDrawnLeadingColumns(columnQueue: number[]): number {
+    const onScreenCount = this.#onScreenColumns().size;
+    const firstRenderedColumn = this.getFirstVisibleColumn();
+    const columnsBefore = columnQueue.slice(onScreenCount).filter(column => column < firstRenderedColumn).length;
+
+    return onScreenCount + columnsBefore;
   }
 
   /**
@@ -1889,6 +1908,39 @@ export class AutoColumnSize extends BasePlugin {
     return !!this.columnWidthsMap.getValues()
       .slice(0, this.measuredColumns).filter(item => (item === null)).length;
   }
+
+  /**
+   * Measures the column a scroll goes to and every column before it that has no width yet, while a sweep run
+   * with `syncViewport` still has columns left for idle tasks, and renders before the scroll is computed. The
+   * scroll offset is the sum of those widths, so a `selectCell()` or `scrollViewportTo()` made right after the
+   * constructor landed on fallback widths, and the selected cell was out of view once the sweep measured the
+   * columns before it. Walkontable reads the widths from its last draw, so measuring alone does not reach the
+   * scroll: the render does, and it only fills in widths, like the render that ends the sweep.
+   *
+   * @param {number} visualColumn The visual column the viewport scrolls to.
+   * @returns {number} The same column.
+   */
+  #onBeforeViewportScrollHorizontally = (visualColumn: number) => {
+    if (!this.#viewportSweepPending || visualColumn < 0 || this.hot.countRows() === 0) {
+      return visualColumn;
+    }
+
+    const lastColumn = Math.min(visualColumn, this.hot.countCols() - 1);
+    let hasMissingWidth = false;
+
+    rangeEach(0, lastColumn, (column) => {
+      hasMissingWidth ||= this.columnWidthsMap.getValueAtIndex(this.#toPhysicalColumn(column)) === null &&
+        !this.hot._getColWidthFromSettings(column);
+    });
+
+    if (hasMissingWidth) {
+      this.#calculateColumnsWidth({ from: 0, to: lastColumn }, { from: 0, to: this.hot.countRows() - 1 }, () => false);
+      this.#fillOnlyRender = true;
+      this.hot.render();
+    }
+
+    return visualColumn;
+  };
 
   /**
    * Recalculates widths for currently visible columns (cache misses only) and consumes the

@@ -45,6 +45,8 @@ interface FixtureHot {
   selectCell(row: number, column: number): void;
   render(): void;
   suspendRender(): void;
+  getFirstFullyVisibleColumn(): number | null;
+  getLastFullyVisibleColumn(): number | null;
   resumeRender(): void;
   getRowHeight(row: number): number | undefined;
   getCellMetaTransient(row: number, column: number): unknown;
@@ -215,6 +217,17 @@ export class AutoColumnSizeSyncBudgetPage {
   }
 
   /**
+   * The first and the last fully visible column, read in one evaluation.
+   */
+  async fullyVisibleColumns(): Promise<Array<number | null>> {
+    return this.page.evaluate(() => {
+      const { hot } = window as unknown as FixtureWindow;
+
+      return [hot.getFirstFullyVisibleColumn(), hot.getLastFullyVisibleColumn()];
+    });
+  }
+
+  /**
    * The rendered master columns whose drawn `<col>` width differs from the width the grid holds, read in one
    * evaluation as `column: drawn vs held`.
    */
@@ -300,7 +313,9 @@ export class AutoColumnSizeSyncBudgetPage {
    * Loads data of the same shape with every value made longer, and reports the widths `loadData()` left
    * behind before anything else ran, and the visual columns it read cell meta for.
    */
-  async loadLongerData(grid: SyncBudgetGrid): Promise<{ widths: number[]; readColumns: number[] }> {
+  async loadLongerData(grid: SyncBudgetGrid): Promise<{
+    widths: number[]; readColumns: number[]; firstVisibleColumn: number | null;
+  }> {
     return this.page.evaluate((spec) => {
       const { hot } = window as unknown as FixtureWindow;
       const read = hot.getCellMetaTransient;
@@ -326,6 +341,7 @@ export class AutoColumnSizeSyncBudgetPage {
       return {
         widths: Array.from({ length: hot.countCols() }, (_, column) => hot.getColWidth(column)),
         readColumns: Array.from(readColumns).sort((a, b) => a - b),
+        firstVisibleColumn: hot.getFirstFullyVisibleColumn(),
       };
     }, grid);
   }

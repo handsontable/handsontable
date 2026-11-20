@@ -815,9 +815,10 @@ export default (): Record<string, unknown> => {
      * - The measured columns times the rows exceed 1,000,000 cells (with 51 columns, from 19,608 rows).
      *
      * Until the background work ends, [`getColWidth()`](@/api/core.md#getcolwidth) returns the default width for
-     * an off-screen column, and a [`selectCell()`](@/api/core.md#selectcell) or
-     * [`scrollViewportTo()`](@/api/core.md#scrollviewportto) call made then scrolls by those widths. Set
-     * `syncLimit` to keep its columns measured before the first paint, whatever the number of rows.
+     * an off-screen column. A [`selectCell()`](@/api/core.md#selectcell) or
+     * [`scrollViewportTo()`](@/api/core.md#scrollviewportto) call made then measures the columns up to its
+     * target first, so it scrolls by the real widths. Set `syncLimit` to keep its columns measured before the
+     * first paint, whatever the number of rows.
      *
      * Read more:
      * - [Plugins: `AutoColumnSize`](@/api/autoColumnSize.md)
