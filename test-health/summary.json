@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-20T10:13:20.514Z",
+  "generatedAt": "2026-11-20T10:21:30.171Z",
   "windows": {
     "shortDays": 7,
     "longDays": 30
@@ -8,10 +8,10 @@
   "ticketThresholdRuns": 2,
   "retentionDays": 90,
   "totals": {
-    "tests": 461,
+    "tests": 462,
     "needsTicket": 8,
     "quarantined": 0,
-    "entries": 2334
+    "entries": 2335
   },
   "rows": [
     {
@@ -1627,6 +1627,41 @@
         "leg": "UMD.min (theme: classic)",
         "status": "failed",
         "error": "Expected <td class=\"current\" role=\"gridcell\" tabindex=\"-1\" aria-colindex=\"1\" aria-selected=\"true\">...</td> to equal <textarea data-hot-input tabindex=\"-1\" class=\"handsontableInput\" style=\"width: 50px; height: 27px; overflow-y: visible; font-size: 13px; font-family: sans-serif; resize: none; min-w...",
+        "source": "ci"
+      },
+      "needsTicket": false
+    },
+    {
+      "key": "jasmine|handsontable/src/editors/handsontableEditor/__tests__/themes/themes.spec.js|Handsontable editor theme handling should have the same theme as the parent Handsontable instance (if originally passed as a container class)",
+      "tier": "jasmine",
+      "file": "handsontable/src/editors/handsontableEditor/__tests__/themes/themes.spec.js",
+      "line": null,
+      "title": "Handsontable editor theme handling should have the same theme as the parent Handsontable instance (if originally passed as a container class)",
+      "count7": 1,
+      "count30": 1,
+      "countAll": 1,
+      "runs30": 1,
+      "flakyRuns30": 0,
+      "branches30": 1,
+      "nightlyRuns30": 0,
+      "openBranches30": 1,
+      "legs": [
+        "UMD (theme: main)"
+      ],
+      "statuses": [
+        "failed"
+      ],
+      "isolation": [
+        "fails alone (1 failed)"
+      ],
+      "quarantine": null,
+      "lastSeen": {
+        "seenAt": "2026-11-20T10:20:30Z",
+        "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44714007049",
+        "branch": "feature/DEV-4127_License-lock-screen-a11y",
+        "leg": "UMD (theme: main)",
+        "status": "failed",
+        "error": "Failed: Cannot read properties of undefined (reading 'getCurrentThemeName')",
         "source": "ci"
       },
       "needsTicket": false

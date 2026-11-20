@@ -1,8 +1,29 @@
 {
   "version": 1,
-  "updatedAt": "2026-11-20T10:13:20.514Z",
+  "updatedAt": "2026-11-20T10:21:30.171Z",
   "retentionDays": 90,
   "entries": [
+    {
+      "tier": "jasmine",
+      "leg": "UMD (theme: main)",
+      "file": "handsontable/src/editors/handsontableEditor/__tests__/themes/themes.spec.js",
+      "line": null,
+      "title": "Handsontable editor theme handling should have the same theme as the parent Handsontable instance (if originally passed as a container class)",
+      "status": "failed",
+      "attempts": 1,
+      "error": "Failed: Cannot read properties of undefined (reading 'getCurrentThemeName')",
+      "isolation": "fails alone (1 failed)",
+      "quarantine": null,
+      "source": "ci",
+      "runId": "44714007049",
+      "runAttempt": 1,
+      "runUrl": "https://github.com/handsontable/handsontable/actions/runs/44714007049",
+      "workflow": "Tests",
+      "branch": "feature/DEV-4127_License-lock-screen-a11y",
+      "headSha": "29013766a36461581d182b76dd3066a7d1ba7776",
+      "event": "pull_request",
+      "seenAt": "2026-11-20T10:20:30Z"
+    },
     {
       "tier": "playwright",
       "leg": "e2e-webkit",
