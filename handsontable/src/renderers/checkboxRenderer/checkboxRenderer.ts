@@ -13,6 +13,7 @@ import { isEmpty, stringify } from '../../helpers/mixed';
 import { matchCheckboxTemplate } from '../../utils/checkboxColumn';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { Hooks } from '../../core/hooks';
+import { markReadOnlyMetaListener } from '../../utils/readOnlyMetaListeners';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
 import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
@@ -46,7 +47,8 @@ const SHORTCUTS_GROUP = 'checkboxRenderer';
 
 export const RENDERER_TYPE: 'checkbox' = 'checkbox';
 
-Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
+// The listener only reads the meta, so AutoColumnSize may hand it one meta object it reuses for a column.
+Hooks.getSingleton().add('modifyAutoColumnSizeSeed', markReadOnlyMetaListener(
   function(this: HotInstance, _bundleSeed: unknown, cellMeta: unknown, cellValue: unknown) {
     const { label, type, row, column, prop } = cellMeta as Record<string, unknown>;
 
@@ -69,7 +71,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
     }
 
     return `${stringify(labelText).length}`;
-  });
+  }));
 /**
  * Checkbox renderer.
  *

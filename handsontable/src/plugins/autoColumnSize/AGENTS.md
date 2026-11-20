@@ -28,6 +28,32 @@ Rules that hold this together:
   column; the eager read permanently materializes one meta object per visited cell, which is O(rows × columns)
   retention on init. The transient read still resolves the full dynamic meta — hooks plus the `cells`
   function — so MergeCells' `hidden`/`spanned` flags work.
+- **A uniform column reads its meta once and its values in bulk** (`columnSampleReader.ts`, built per
+  `#sampleColumn()` call). With no `beforeGetCellMeta`/`afterGetCellMeta` listener (`hasHook()` counts
+  global ones) and no function `cells` on the column meta, a cell without stored meta resolves the same
+  meta as every other such cell of the column apart from its coordinates, so the reader resolves it and
+  its renderer once and reads the values with `_getDataAtColumnForRows()`, which falls back to `get()` per
+  row for `modifyData` and the other cases it lists. That took the 100k × 50 constructor from about 1.7 s
+  to 0.75 s with `syncLimit: 50`. A slice shorter than `MIN_READER_ROWS` (16) is read per cell: below it the
+  reader's setup costs what it saves. Grids with MergeCells, HiddenRows, HiddenColumns or AsyncValues add an
+  `afterGetCellMeta` listener and keep the per-cell path. Three rules. (1) **A cell with stored meta and a
+  hidden row stay on the per-cell path**, and the stored-meta check runs again per row, because a formatter
+  run for an earlier row can `setCellMeta()` a later one. The bulk read covers only the rows the per-cell
+  path would read when the slice starts; a row that gains stored meta during the walk is read twice. (2) **One meta object serves the whole column only when nothing outside
+  this plugin can keep or write to it**: no function `valueFormatter` on the column meta, no `valueFormatter`
+  static on the renderer, and no `modifyAutoColumnSizeSeed` listener that is not marked read-only
+  (`markReadOnlyMetaListener()`, `utils/readOnlyMetaListeners.ts`). Otherwise each row gets a new
+  `createTransientColumnMeta()` object, as a per-cell read would give it. The checkbox renderer's global
+  seed listener is marked; without the mark it is registered in every build that includes the checkbox
+  renderer and the shared object never applies (0.75 s against 1.3 s above). Mark a new built-in listener
+  only when it neither writes to the meta nor keeps it. (3) **Known limits:** the values are read before the
+  walk, so `modifyData`, a `valueGetter` and a `data` accessor run for the whole slice before any formatter
+  or seed listener, not interleaved per cell, and a formatter that writes into the data during the walk is
+  not seen for the rows after it. The gate is read when the slice starts, so a meta listener added during
+  the walk applies from the next slice. Pinned by `__tests__/uniformColumnSampling.unit.ts` (the read
+  counts, every gate, the meta objects, a meta stored during the walk) and
+  `tests/e2e/auto-column-size-uniform-column.spec.ts` (each case's widths against a build that a no-op
+  `afterGetCellMeta` listener sends down the per-cell read).
 - **Format the value through `formatCellValue()`**, so the measured string is what the renderer will
   actually produce (cell-level `valueFormatter`, then the renderer's static). See the `renderCell.ts`
   bullet in `../../../AGENTS.md`.
