@@ -176,6 +176,8 @@ const dictionary = {
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL]: 'Niveau [level], [position] sur [setSize]',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED]: 'Niveau [level], [position] sur [setSize], développé',
   [C.NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED]: 'Niveau [level], [position] sur [setSize], réduit',
+
+  [C.FORMULAS_CELL_DESCRIPTION]: 'Formule : [formula]',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_EXPANDED]: 'Groupe de colonnes [label] développé',
   [C.COLLAPSIBLE_COLUMNS_ANNOUNCEMENT_COLLAPSED]: 'Groupe de colonnes [label] réduit',
   [C.COLUMN_SORTING_ANNOUNCEMENT_ASCENDING]: 'Trié par [label], ordre croissant',

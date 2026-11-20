@@ -1,0 +1,39 @@
+// Handsontable Formulas
+
+@mixin output {
+  .handsontable {
+    // The text that tells assistive technology a cell holds a formula. Generated content joins the cell's
+    // accessible name and stays out of its text, so `textContent`, `innerText` and a copy do not change.
+    // It is absolutely positioned, so it reads as a block after the value, and clipped to nothing, so it is
+    // never drawn. A cell has one `::after`, and two other rules draw into it: the Comments indicator
+    // (`.htCommentCell::after`, below) and the guard that keeps an empty first-row cell open (`_base.scss`).
+    td[data-ht-formula]:not(.htCommentCell)::after {
+      content: attr(data-ht-formula);
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      min-height: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    // The Comments indicator is a triangle made of a zero-size box with borders. The text goes inside that
+    // box and is clipped away, so the triangle keeps its shape and its place.
+    td.htCommentCell[data-ht-formula]::after {
+      content: attr(data-ht-formula);
+      box-sizing: content-box;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    // Wins over the first-row guard, which sets `content: ""` on an empty cell (a formula that returns "").
+    tr:first-of-type > td:first-child:empty[data-ht-formula]::after {
+      content: attr(data-ht-formula);
+      min-height: 0;
+    }
+  }
+}

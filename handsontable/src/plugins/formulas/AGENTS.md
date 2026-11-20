@@ -1301,6 +1301,47 @@ update reloaded the grid from the engine sheet. The array check is scoped to tha
 (`isDataWorkDeferred()`): a grid built with a `dataProvider` and no `data` loads a `[]` placeholder first
 and must keep reading the engine sheet as its data, and a grid built without data loads `null`.
 
+## A formula cell tells a screen reader it holds a formula (`formulaCellDescription.ts`)
+
+`#onDescribeFormulaCell` (an `afterRenderer` listener at `orderIndex` 2, after `#onPaintFormulaText`) writes the
+attribute `data-ht-formula` on the TD of a cell the engine reports a formula for (`getCellFormula()` is `undefined`
+for a value and for the spilled cells of an array formula, so the origin alone is described). The value is the
+`Formulas:cellDescription` phrase (`Formula: [formula]`, translated in every language pack) with the engine's own
+text substituted, read through `#readableFormula()`. `_formulas.scss` draws it as `td[data-ht-formula]::after
+{ content: attr(data-ht-formula) }`, absolutely positioned, 1px and clipped, so it is never seen. Rules, each from a
+measured reason:
+
+- **Generated content, not text in the cell, not `aria-label`, not `title`.** The first version appended a hidden
+  `span` to the TD, as `asyncValues` does for its messages. It worked for screen readers and changed `textContent`
+  and `innerText` of every formula cell: 89 Jest tests and 166 Playwright tests failed on it, and so would a
+  customer's tests. `::after` content is part of the accessible name (the multi-column sort order number is exposed
+  the same way) and is not part of `textContent` or `innerText`, and copy reads the data, not the DOM. A `span` also
+  forced the text renderer's slow write on every paint and, in an exact-height row, ended inside `div.htCellClip`.
+  A screen reader drops `title` from a cell that has `aria-describedby`, and `aria-label` on a gridcell replaces the
+  value instead of adding to it. `aria-description` loses to the `aria-describedby` Walkontable writes (the column
+  header), so it cannot carry this. Chromium's tree names the cell `3 Formula: =SUM(A1:B1)`, value first, with a
+  space between them because the absolutely positioned pseudo-element is a block. `td::after` is free: the
+  selection area uses only `td.area::before`. Do not give a theme or plugin rule an `::after` on `td[data-ht-formula]`.
+- **The attribute is written only when it changes** (`describeFormulaCell()` compares first), like the ARIA
+  attributes of the cell. A paint that changes nothing writes nothing.
+- **Skipped while `showFormulas()` is on**, because the cell already displays the formula. Skipped when the cell's
+  `ariaTags` is off (an init-only option, so a test that needs it builds the grid that way: `?ariaTags=off` in the
+  fixture). While `#internalOperationPending` or the sheet is missing, the listener leaves the cell as it is.
+- **`disablePlugin()` removes the attribute directly** (`#removeRenderedFormulaDescriptions()`, the overlay clones
+  included), because the hook that would clear it is gone by the next paint.
+- **Under `renderMode: 'onChange'` the engine update marks the formula cells it reports**
+  (`#markFormulaCellsOfUpdate()`, only for that mode with `ariaTags` on). A formula rewritten to another text with the
+  same value changes nothing the paint compares, so the old description stayed. The engine reports a cell whose
+  content was set, which covers an edit. **Not covered:** a formula the engine rewrote without setting the cell (a
+  reference moved by an insert, a renamed sheet) is not reported, so its description follows on the cell's next paint.
+- **It reads the formula without ending a held evaluation** (`getCellFormula()`, no `#flushEvaluation()`), the same as
+  the source-data read. `__tests__/undoRedo.unit.js` and the sheets bar's `formulaSheets.unit.js` therefore allow
+  `getCellFormula` calls on the grid's own sheet and still forbid any on another one.
+- **A formula text longer than a sentence is read in full on every move onto the cell.** There is no length cap.
+
+Pinned by `__tests__/formulaCellDescription.unit.ts` and `tests/e2e/formulas-cell-description.spec.ts`, which also
+asks Chromium's own accessibility tree for the name.
+
 ## Sheet names the engine reads only in quotes
 
 HyperFormula's unparser writes a sheet name without quotes whenever it can (`=2026!A1` for a sheet
