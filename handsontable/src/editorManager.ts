@@ -6,6 +6,7 @@ import type { IndexesChangeSource } from './translations/indexMapper';
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
+import { isGridBodyCovered } from './shortcuts/guards';
 import { EDITOR_STATE } from './editors/baseEditor';
 import type { BaseEditor } from './editors/baseEditor';
 import EventManager from './eventManager';
@@ -966,8 +967,10 @@ class EditorManager {
   #onAfterDocumentKeyDown(event: KeyboardEvent) {
     const selection = this.hot.getSelectedRangeActive();
 
+    // A key that would start an edit writes cell content, so it waits for whatever covers the grid body
+    // (the license lock, the empty data state) to go: the cells under it are out of the user's reach.
     if (!this.hot.isListening() || !selection || selection.highlight.isHeader() ||
-        isImmediatePropagationStopped(event)) {
+        isImmediatePropagationStopped(event) || isGridBodyCovered(this.hot)) {
       return;
     }
 
