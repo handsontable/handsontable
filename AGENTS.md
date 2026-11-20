@@ -29,6 +29,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Vue 3 wrapper | `wrappers/vue3/AGENTS.md` |
 | Visual regression tests | `visual-tests/AGENTS.md` |
 | Anything a user can see or operate: DOM, ARIA, keyboard, focus, announcements, theme colors and sizes | the `handsontable-a11y` skill; `tests/AGENTS.md` → "A11y: the axe scan and its baseline" |
+| The accessibility learning routine (the packet after a weekly audit, a strike against a rule, the path guard) | the `handsontable-a11y-learn` skill; `tests/AGENTS.md` → "A11y: the learning routine" |
 | Playwright functional E2E tier (`tests/`) | `tests/AGENTS.md` |
 | CI workflows and actions, release cuts, lockfiles, Dependabot remediation | `.ai/CI.md` |
 | Performance suite (`performance-tests/`, the PR perf comment, gh-pages goldens) | the `performance-testing` skill; `performance-tests/README.md` |
