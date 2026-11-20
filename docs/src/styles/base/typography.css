@@ -102,11 +102,11 @@ kbd:not(.handsontable kbd, .example-controls-container kbd, .hot-example-preview
   text-underline-offset: 0.2em;
 }
 
-.sl-markdown-content a:not(.source-code-link):not(.ht-link-card a):not(:where(.not-content *)):hover:not(:has(> code)) {
+.sl-markdown-content a:not(.source-code-link):not(.ht-link-card a):not(:where(.not-content *)):hover {
   text-decoration-color: currentColor;
 }
 
-/* Links wrapping inline code — chip bg change on hover, no underline */
+/* Links wrapping inline code — chip bg change on hover, on top of the underline */
 .sl-markdown-content a:has(> code):hover > code {
   background-color: var(--sl-color-gray-5);
 }

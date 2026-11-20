@@ -88,6 +88,28 @@ for (const theme of THEMES) {
     expect(hovered.color).not.toBe(atRest.color);
   });
 
+  test(`turns the underline of a link wrapping inline code to the text color on hover in the ${theme} theme`, async ({ page, baseURL }) => {
+    await openIn(page, baseURL, theme);
+    await page.evaluate(() => {
+      const paragraph = document.createElement('p');
+
+      paragraph.innerHTML = 'Set the <a href="#" id="code-link"><code>columnSorting</code></a> option.';
+      document.querySelector('.sl-markdown-content')!.prepend(paragraph);
+    });
+
+    const codeLink = page.locator('#code-link');
+    const atRest = await decorationOf(page, '#code-link');
+
+    expect(atRest.line).toBe('underline');
+
+    await codeLink.hover();
+
+    const hovered = await decorationOf(page, '#code-link');
+
+    expect(hovered.line).toBe('underline');
+    expect(hovered.color).toBe(hovered.text);
+  });
+
   test(`underlines docs assistant answer links at rest in the ${theme} theme`, async ({ page, baseURL }) => {
     await openIn(page, baseURL, theme);
     await page.evaluate(() => {
