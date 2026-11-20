@@ -198,7 +198,7 @@ describe('Xlsx formula cell number format', () => {
       840.1
     );
 
-    expect(cells.get('1:1').numFmt).toBe('#,##0.00');
+    expect(cells.get('1:1').numFmt).toBe('#,##0.00#');
   });
 
   it('should cache the pre-calculated value as the formula result for non-Excel readers', async() => {

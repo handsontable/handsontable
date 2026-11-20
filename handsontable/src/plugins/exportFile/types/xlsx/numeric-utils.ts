@@ -30,6 +30,63 @@ function integerPart(minimumIntegerDigits: number, useGrouping: boolean): string
 }
 
 /**
+ * The `numericFormat` options the export reads.
+ */
+type NumericFormatOptions = {
+  style?: string; currency?: string; minimumIntegerDigits?: number;
+  minimumFractionDigits?: number; maximumFractionDigits?: number; useGrouping?: boolean;
+};
+
+/**
+ * Resolves how many fraction digits the grid shows for a `numericFormat`: the minimum it always
+ * shows and the maximum it rounds to. The numeric renderer formats with
+ * `new Intl.NumberFormat(locale, numericFormat)`, so the counts come from that formatter's resolved
+ * options and follow the `Intl` defaults for the style and the currency (0 to 3 for a plain number,
+ * 2 for the US dollar, 0 for the yen and for a percent). Reading the raw options wrote `#,##0` for a
+ * format that names no digits, and Excel rounded 1234.567 to 1,235 (GitHub issue #14372).
+ *
+ * Falls back to the digits the options name when `Intl` rejects the options or the locale, or
+ * resolves no fraction digits (rounding to significant digits).
+ *
+ * @param {object} numericFormat The `numericFormat` cell meta value.
+ * @param {string|undefined} locale BCP 47 locale tag from the `locale` cell property.
+ * @returns {{ minimum: number, maximum: number }}
+ */
+function resolveFractionDigits(
+  numericFormat: NumericFormatOptions, locale: string | undefined
+): { minimum: number; maximum: number } {
+  try {
+    const { minimumFractionDigits, maximumFractionDigits } = new Intl.NumberFormat(
+      locale, numericFormat as Intl.NumberFormatOptions
+    ).resolvedOptions();
+
+    if (Number.isInteger(minimumFractionDigits) && Number.isInteger(maximumFractionDigits)) {
+      return { minimum: minimumFractionDigits as number, maximum: maximumFractionDigits as number };
+    }
+  } catch {
+    // The named digits below are the best reading left.
+  }
+
+  const { minimumFractionDigits = 0, maximumFractionDigits } = numericFormat;
+  const digits = maximumFractionDigits ?? minimumFractionDigits;
+
+  return { minimum: digits, maximum: digits };
+}
+
+/**
+ * Builds the decimal part of a number format: a `0` for every digit the grid always shows and a `#`
+ * for every digit it shows only when the value has it (`.00`, `.0##`, `.###`), or an empty string
+ * for a format with no fraction digits.
+ *
+ * @param {number} minimum The fraction digits the format always shows.
+ * @param {number} maximum The fraction digits the format rounds to.
+ * @returns {string}
+ */
+function decimalPartOf(minimum: number, maximum: number): string {
+  return maximum > 0 ? `.${'0'.repeat(minimum)}${'#'.repeat(Math.max(0, maximum - minimum))}` : '';
+}
+
+/**
  * Resolves the currency symbol and its position (prefix or suffix) for a given
  * ISO 4217 currency code and locale using the `Intl.NumberFormat` API.
  *
@@ -72,10 +129,7 @@ function getCurrencyInfo(currency: string, locale: string | undefined): { symbol
  * @returns {string|null}
  */
 export function intlNumFormatToExcelNumFmt(
-  numericFormat: {
-    style?: string; currency?: string; minimumIntegerDigits?: number;
-    minimumFractionDigits?: number; maximumFractionDigits?: number; useGrouping?: boolean;
-  } | null | undefined,
+  numericFormat: NumericFormatOptions | null | undefined,
   locale?: string | undefined
 ): string | null {
   if (!numericFormat) {
@@ -86,13 +140,11 @@ export function intlNumFormatToExcelNumFmt(
     style,
     currency,
     minimumIntegerDigits,
-    minimumFractionDigits = 0,
-    maximumFractionDigits,
     useGrouping = true,
   } = numericFormat;
 
-  const fractionDigits = maximumFractionDigits ?? minimumFractionDigits;
-  const decimalPart = fractionDigits > 0 ? `.${('0').repeat(fractionDigits)}` : '';
+  const { minimum, maximum } = resolveFractionDigits(numericFormat, locale);
+  const decimalPart = decimalPartOf(minimum, maximum);
   // `Intl` throws for a `minimumIntegerDigits` outside 1-21 or not a whole number, so such a value
   // never reached the grid and is not written either.
   const integerDigits = Number.isInteger(minimumIntegerDigits)

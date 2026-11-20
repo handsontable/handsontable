@@ -150,6 +150,14 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   `cell.value` directly, so a `colHeaders: 'firstRow'` import turned a formula header into `''` and a
   date header into `44927`, and a dropdown pointing at formula cells lost those options (Bugbot round
   3 on #13551). `cellDisplayValue` is the one place the formula/value choice is made.
+- **A `#` after the decimal point is an OPTIONAL fraction digit, and `countFractionDigits` returns a
+  minimum and a maximum** (GitHub issue #14372). The minimum is every placeholder up to the last `0`
+  after the point (Excel shows them all, so `0.#0` pins two), the maximum every placeholder, `#`
+  included: `0.0##` gives `minimumFractionDigits: 1` with `maximumFractionDigits: 3`. Counting only the
+  zeros read `0.##` as no fraction digits, so a column Excel shows as `1.5` rendered `2`. It is the
+  inverse of the export's `resolveFractionDigits` (`../exportFile/types/xlsx/numeric-utils.ts`), which
+  now writes `#,##0.###` for a format that names no digits; change one and the "invert the export's own
+  number format" cases of `inference.unit.js` fail. The 100-digit `Intl` cap is checked on the maximum.
 - **Capture the currency BEFORE classifying a number format as temporal.** `CHF#,##0.00`, `SEK#,##0` and
   `HK$#,##0` carry an `h` or an `s` that `classifyTemporal` reads as a format code, so the export's own
   output for those currencies came back as `time` columns with `1234.5` turned into `12:00:00`.

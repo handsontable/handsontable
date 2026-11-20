@@ -89,7 +89,7 @@ describe('Xlsx export: the type of a value the Formulas engine computed', () => 
     const [, scaled, checked] = rows[0];
 
     expect(scaled.value).toBe(150);
-    expect(scaled.numFmt).toBe('#,##0.00');
+    expect(scaled.numFmt).toBe('#,##0.00#');
     expect(checked.value).toBe(true);
   });
 

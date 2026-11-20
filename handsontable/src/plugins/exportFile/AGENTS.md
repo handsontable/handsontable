@@ -585,6 +585,25 @@ Other rules:
   **DKK keeps Excel's `[$kr.-406]`, period included**, although macOS Quick Look renders that token as
   `PLN` (`[$kr-406]` renders correctly there): Quick Look is the outlier, not Excel. Do not "fix" it
   without checking Numbers and Excel; the reader maps both spellings.
+- **The fraction digits of a numeric `numFmt` come from `Intl`'s RESOLVED options, never from the raw
+  `numericFormat` keys** (GitHub issue #14372, `resolveFractionDigits` in `types/xlsx/numeric-utils.ts`).
+  The grid formats with `new Intl.NumberFormat(locale, numericFormat)`, whose defaults depend on the
+  style and the currency: 0 to 3 for a plain number, 2 for USD, 3 for KWD, 0 for JPY and for a percent.
+  Reading `minimumFractionDigits = 0` off the options wrote `$#,##0` for
+  `{ style: 'currency', currency: 'USD' }`, so Excel showed `$1,235` where the grid showed `$1,234.57`.
+  The decimal part is a `0` per digit up to the resolved minimum and a `#` per digit up to the maximum
+  (`.00`, `.0##`, `.###`). Four traps. (1) **`{ minimumFractionDigits: 2 }` alone resolves to 2 and 3**
+  (`Intl` keeps its default maximum of 3), so it writes `.00#`, which is what the grid shows; a test that
+  wants exactly two digits sets both. (2) **Excel has no optional decimal point**: `#,##0.###` shows the
+  whole number 1234 as `1,234.`. That is the accepted cost of matching the grid for fractions; padding
+  to the maximum (`.000`) shows precision the grid never does, and the export guide names
+  `maximumFractionDigits: 0` as the way out for a column of whole numbers. Do not "fix" the trailing
+  point by choosing the format per cell value: a cell edited in Excel would then round, and the import
+  would get mixed formats in one column. (3) **The raw keys are the fallback, not dead code**: `Intl`
+  resolves no fraction digits for significant-digit rounding, and throws for a malformed locale,
+  `style: 'currency'` with no `currency`, or an out-of-range `minimumIntegerDigits`. (4)
+  `getCurrencyInfo()` keeps its own `0`/`0` probe: it reads the symbol and its side only. The import's
+  `countFractionDigits` (`../importFile/inference.ts`) is the inverse and must change with this.
 - **`minimumIntegerDigits: n` is written as n zeros** in the integer part (`00000`, `000.00`, `#,#00`),
   and the import sets it from a zero-padded code, so a ZIP-code column keeps its zeros both ways.
 - **The exported sheet direction follows the RENDERED direction** (`hot.isRtl()`), not the raw
