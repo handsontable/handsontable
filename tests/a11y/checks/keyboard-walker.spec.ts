@@ -5,8 +5,8 @@ import { fixtureUrl, PORTAL_MARK, STATES, emulate, expectEditorOpen, openTarget,
 import { attachEvidence, declareTarget, readEnvironment, type EvidenceFinding } from '../evidence';
 import {
   diffTabOrder,
-  escapeExpectedCell,
   escapeFindings,
+  escapeVerdict,
   goldenStops,
   inventoryLines,
   isProductStop,
@@ -47,7 +47,8 @@ import {
  *   press that opened something is a change of context on focus (3.2.1). The forward walk is compared
  *   with its golden under `../tab-order-goldens/`, advisory (2.4.3).
  * - **Popups.** On a menu, an editor or the comment editor, Escape must close the popup and give the
- *   focus back to the cell it opened on (2.1.2, 2.4.3), and the stops Tab reaches inside it are
+ *   focus back to the cell it opened on, or, on the column menu, to the cell of its column the menu
+ *   selected (`escapeVerdict()`) (2.1.2, 2.4.3), and the stops Tab reaches inside it are
  *   recorded and judged the same way.
  * - **The APG grid keys** on every grid at rest: arrows, Home, End, Page Up, Page Down, Ctrl+Home, Enter,
  *   F2, Escape. Where each landed is recorded; a key that moves the focus out of the grid is a finding,
@@ -183,18 +184,16 @@ async function resetGrid(page: Page, root: string): Promise<void> {
 }
 
 /**
- * Whether the focused element (followed through shadow roots) is where a closed popup gives the focus back:
- * the expected cell's own element (`escapeExpectedCell()`), or, on a grid in mixed focus mode
- * (`imeFastEdit`), the element that mode keeps the focus on by design (`getRefocusElement()`, the editor's
- * input).
+ * What the focused element (followed through shadow roots) is, for the Escape verdict (`escapeVerdict()`):
+ * the cell or header it is, when it is one, and whether it is the element a grid in mixed focus mode
+ * (`imeFastEdit`) keeps the focus on by design (`getRefocusElement()`, the editor's input).
  *
  * @param page The page.
  * @param root The root container selector.
- * @param cell The cell the focus must come back to.
- * @returns Whether the focus is on it.
+ * @returns The focused cell or header, or `null`, and whether the focus is on the refocus element.
  */
-async function focusOnCell(page: Page, root: string, cell: [number, number]): Promise<boolean> {
-  return page.evaluate(([selector, [row, col]]) => {
+async function focusedElement(page: Page, root: string): Promise<{ focusedCell: [number, number] | null; onRefocusElement: boolean }> {
+  return page.evaluate((selector) => {
     const hot = (document.querySelector(selector)?.querySelector('.ht-root-wrapper') as (HTMLElement & { __hotInstance?: any }) | null)?.__hotInstance;
     let el = document.activeElement as HTMLElement | null;
 
@@ -202,28 +201,27 @@ async function focusOnCell(page: Page, root: string, cell: [number, number]): Pr
       el = el.shadowRoot.activeElement as HTMLElement;
     }
     if (!hot || !el) {
-      return false;
+      return { focusedCell: null, onRefocusElement: false };
     }
     if (el.tagName === 'TD' || el.tagName === 'TH') {
       const coords = hot.getCoords(el);
 
-      return coords?.row === row && coords?.col === col;
+      // A cell or header the grid cannot place reads as no cell, and is not the refocus element either.
+      return { focusedCell: coords ? [coords.row, coords.col] as [number, number] : null, onRefocusElement: false };
     }
 
     const manager = hot.getFocusManager?.();
 
-    return manager?.getFocusMode?.() === 'mixed' && el === manager.getRefocusElement?.();
-  }, [root, cell] as const);
+    return { focusedCell: null, onRefocusElement: manager?.getFocusMode?.() === 'mixed' && el === manager.getRefocusElement?.() };
+  }, root);
 }
 
 /**
- * Presses Escape until a popup state is closed (up to three times), then reads where the focus is: back
- * means on the expected cell (`escapeExpectedCell()`), with the selection still on it (`focusOnCell()`):
- * the cell's own element, or the element mixed focus mode parks the focus on by design. The expected cell
- * is the opener, except on the column menu, which selects its column as it opens: there it is the cell of
- * that column the selection highlighted while the menu was open, read before the first Escape. Another
- * element of the grid (a header, a button in a cell, the hidden editor input on a grid in cell focus mode)
- * is not back, though the cell stays highlighted.
+ * Presses Escape until a popup state is closed (up to three times), then reads where the focus is and
+ * judges it with `escapeVerdict()`: back means on the expected cell, with the selection still on it. The
+ * expected cell is the opener, except on the column menu, which selects its column as it opens: there it
+ * is the cell of that column the selection highlighted while the menu was open, read before the first
+ * Escape (the column's first cell, or its header on a grid with `navigableHeaders`).
  *
  * @param page The page.
  * @param root The root container selector.
@@ -232,7 +230,7 @@ async function focusOnCell(page: Page, root: string, cell: [number, number]): Pr
  * @returns What the Escape test saw.
  */
 async function escapeTest(page: Page, root: string, cell: [number, number], popupState: string) {
-  const expected = escapeExpectedCell({ state: popupState, opener: cell, openHighlight: (await snapshot(page, root)).highlight });
+  const openHighlight = (await snapshot(page, root)).highlight;
 
   for (let press = 1; press <= 3; press++) {
     await page.keyboard.press('Escape');
@@ -240,16 +238,18 @@ async function escapeTest(page: Page, root: string, cell: [number, number], popu
     const state = await snapshot(page, root);
 
     if (state.menus === 0 && !state.editorOpen && !state.comment) {
-      const returned = state.active.region === 'grid' && JSON.stringify(state.highlight) === JSON.stringify(expected)
-        && await focusOnCell(page, root, expected);
+      const { expected, focusReturned } = escapeVerdict({
+        state: popupState, opener: cell, openHighlight,
+        closed: { region: state.active.region, highlight: state.highlight, ...await focusedElement(page, root) },
+      });
 
       return {
-        closedAfter: press, focusReturned: returned, focus: `${state.active.region} ${state.active.key}`.slice(0, 120), highlight: state.highlight, expected,
+        closedAfter: press, focusReturned, focus: `${state.active.region} ${state.active.key}`.slice(0, 120), highlight: state.highlight, opener: cell, expected,
       };
     }
   }
 
-  return { closedAfter: null, focusReturned: false, focus: 'unknown', highlight: null, presses: 3, expected };
+  return { closedAfter: null, focusReturned: false, focus: 'unknown', highlight: null, presses: 3, opener: cell };
 }
 
 /**

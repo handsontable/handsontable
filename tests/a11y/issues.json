@@ -72,7 +72,7 @@
     {
       "id": "focus-not-returned-after-escape",
       "title": "The focus is not returned to the cell after Escape, Enter, Tab or a shortcut closes an editor, a menu or the comment editor, or an arrow key closes a submenu: it stays on the closed editor's field or falls to the document, and a screen reader does not announce the cell or the parent item",
-      "tracker": ["DEV-3603", "DEV-3604", "DEV-4008", "DEV-4136"],
+      "tracker": ["DEV-3603", "DEV-3604", "DEV-4008"],
       "match": [
         { "source": "checks", "checks": ["keyboard-walker"], "kinds": ["focus-not-returned", "focus-lost", "shortcut-moves-focus-out"] },
         { "source": "reader", "kinds": ["token-missing"], "where": ["^(close-editor|close-context-menu)$"] },
