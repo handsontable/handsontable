@@ -118,6 +118,7 @@ Search for an option by name, or filter the list down to a single level.
 | <span data-option="allowInvalid" data-levels="grid columns cells cell"></span>[`allowInvalid`](@/api/options.md#allowinvalid) | Yes | Yes | Yes | Yes | Core |  |
 | <span data-option="allowRemoveColumn" data-levels="grid"></span>[`allowRemoveColumn`](@/api/options.md#allowremovecolumn) | Yes | No | No | No | Core |  |
 | <span data-option="allowRemoveRow" data-levels="grid"></span>[`allowRemoveRow`](@/api/options.md#allowremoverow) | Yes | No | No | No | Core |  |
+| <span data-option="applyCellsToDataReads" data-levels="grid columns"></span>[`applyCellsToDataReads`](@/api/options.md#applycellstodatareads) | Yes | Yes | No | No | Core |  |
 | <span data-option="ariaTags" data-levels="grid columns cells cell"></span>[`ariaTags`](@/api/options.md#ariatags) | Yes | Yes | Yes | Yes | Core | The switch is grid level. A per-cell value only changes that cell's ARIA attributes. |
 | <span data-option="asyncValues" data-levels="grid"></span>[`asyncValues`](@/api/options.md#asyncvalues) | Yes | No | No | No | AsyncValues |  |
 | <span data-option="autoColumnSize" data-levels="grid"></span>[`autoColumnSize`](@/api/options.md#autocolumnsize) | Yes | No | No | No | AutoColumnSize |  |
