@@ -13,6 +13,7 @@ import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translati
 import type { CellChange } from '../../settings';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { MergedCellsWidths, isMultiColumnMerge, type MergedCellArea } from './mergedCellsWidths';
+import { createColumnSampleReader, type ColumnSampleReader } from './columnSampleReader';
 import { FONT_REMEASURE_ORDER_INDEX } from '../../core/fontLoad';
 import { LICENSE } from './feature.generated';
 
@@ -303,7 +304,9 @@ export class AutoColumnSize extends BasePlugin {
     // from merged cells work) without storing anything - this sampler sweeps the whole row range
     // per column, and the eager `getCellMeta` would permanently materialize one meta per visited
     // cell (O(rows x columns) retention on init).
-    const cellMeta = this.hot.getCellMetaTransient(row, column);
+    // A uniform column hands out its shared meta, bulk-read value, and renderer (`columnSampleReader.ts`).
+    const sample = this.#columnSampleReader?.read(row, physicalRow, column) ?? null;
+    const cellMeta = sample === null ? this.hot.getCellMetaTransient(row, column) : sample.cellMeta;
     let cellValue: unknown = '';
     let seedValue: unknown = '';
 
@@ -318,9 +321,9 @@ export class AutoColumnSize extends BasePlugin {
     if (!cellMeta.spanned || !isMultiColumnMerge(cellMeta.colspan)) {
       // Format through the same precedence as the render path (cell-level `valueFormatter`, then
       // the renderer's own static), so the measured string matches what the renderer produces.
-      cellValue = formatCellValue(
-        this.hot.getDataAtCell(row, column), cellMeta, this.hot.getCellRenderer(cellMeta)
-      );
+      cellValue = sample === null ?
+        formatCellValue(this.hot.getDataAtCell(row, column), cellMeta, this.hot.getCellRenderer(cellMeta)) :
+        formatCellValue(sample.value, cellMeta, sample.renderer);
       seedValue = cellValue;
     }
 
@@ -334,6 +337,12 @@ export class AutoColumnSize extends BasePlugin {
 
     return { value: cellValue, bundleSeed };
   });
+  /**
+   * The reader of the column being sampled, while one is (`#sampleColumn()`), or `null`.
+   *
+   * @type {ColumnSampleReader|null}
+   */
+  #columnSampleReader: ColumnSampleReader | null = null;
   /**
    * `true` if the size calculation is in progress.
    *
@@ -1042,8 +1051,7 @@ export class AutoColumnSize extends BasePlugin {
 
           const sliceTo = Math.min(lastLiveRow, currentRowCursor + remainingCells - 1);
 
-          this.samplesGenerator
-            .generateSample('col', { from: currentRowCursor, to: sliceTo }, currentColumn, columnSamples);
+          this.#sampleColumn(currentColumn, { from: currentRowCursor, to: sliceTo }, columnSamples);
 
           remainingCells -= sliceTo - currentRowCursor + 1;
           currentRowCursor = sliceTo + 1;
@@ -1642,15 +1650,31 @@ export class AutoColumnSize extends BasePlugin {
    * samples cache.
    */
   #fillGhostTableWithSamples(visualColumn: number, rowsRange: { from: number, to: number }) {
-    const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
+    const samples = this.#sampleColumn(visualColumn, rowsRange);
+    const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-    samples.forEach((sample, column) => {
-      const physicalColumn = this.hot.toPhysicalColumn(column);
+    this.#scannedColumns.add(visualColumn);
+    this.#addGhostTableColumn(visualColumn, samples);
+    this.#columnSamplesCache.set(physicalColumn === null ? visualColumn : physicalColumn, samples);
+  }
 
-      this.#scannedColumns.add(column);
-      this.#addGhostTableColumn(column, sample);
-      this.#columnSamplesCache.set(physicalColumn === null ? column : physicalColumn, sample);
-    });
+  /**
+   * Samples one column over a range of rows. A uniform column is read through a {@link ColumnSampleReader}
+   * built for this call only, so no reader outlives the state it was built from.
+   *
+   * @param {number} visualColumn Visual column index.
+   * @param {object} rowsRange The visual rows to sample, with `from` and `to` indexes.
+   * @param {Map} [existingSamples] The samples collected so far, which the new ones are added to.
+   * @returns {Map} The column's samples.
+   */
+  #sampleColumn(visualColumn: number, rowsRange: { from: number, to: number }, existingSamples?: ColumnSamples) {
+    this.#columnSampleReader = createColumnSampleReader(this.hot, visualColumn, rowsRange);
+
+    try {
+      return this.samplesGenerator.generateSample('col', rowsRange, visualColumn, existingSamples);
+    } finally {
+      this.#columnSampleReader = null;
+    }
   }
 
   /**
