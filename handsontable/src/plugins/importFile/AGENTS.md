@@ -168,7 +168,11 @@ The `importFile` plugin reads a workbook into the grid. Read this before touchin
   shows no fraction digit at that maximum (`showsAsWholeNumber` in `utils/xlsxEngine/numFmtCode.ts`, the
   test the export uses). Three limits. A run that holds a fraction keeps its own format: Excel rounds it
   there, so the file did not come from this export. Two candidate formats (`#,##0.#` and `#,##0.###` in
-  one column) fold nothing. And a column that holds only whole numbers has no second format to fold
+  one column) fold nothing; "two" is judged by the meta's CONTENT, never by reference, because
+  `inferForCell` keeps one meta object per format AND kind of value, so an empty cell or a text under
+  `#,##0.###` (the export writes the column format on both) carries an equal object that is not the
+  number's, and read as a second candidate it stopped the fold for every column with an empty cell.
+  And a column that holds only whole numbers has no second format to fold
   into, so it imports with `maximumFractionDigits: 0` where the exported grid had 3; the values show the
   same. The scan reads `pass.data` for the rows of the runs with no fraction digits, and only in a
   column that holds both kinds of format.

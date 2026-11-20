@@ -2257,6 +2257,21 @@ function isWholeNumberRun(
 function foldWholeNumberRuns(runs: MetaRun[], column: number, data: unknown[][]): MetaRun[] {
   const optionalByKey = new Map<string, ImportColumn | null>();
   const keyOf = (format: Record<string, unknown>) => JSON.stringify({ ...format, maximumFractionDigits: 0 });
+  // The cells of one format share one meta object per kind of value, so an empty cell or a text
+  // under the format carries an equal object that is not the number's. Serialized once per object.
+  const serialized = new Map<ImportColumn, string>();
+  const serialize = (meta: ImportColumn) => {
+    let text = serialized.get(meta);
+
+    if (text === undefined) {
+      text = JSON.stringify(meta);
+      serialized.set(meta, text);
+    }
+
+    return text;
+  };
+  const isSameMeta = (first: ImportColumn, second: ImportColumn) => first === second
+    || serialize(first) === serialize(second);
   let hasWhole = false;
 
   runs.forEach(({ meta }) => {
@@ -2276,7 +2291,11 @@ function foldWholeNumberRuns(runs: MetaRun[], column: number, data: unknown[][])
     const seen = optionalByKey.get(key);
 
     // `null` marks two formats that differ only by how many optional digits they show.
-    optionalByKey.set(key, seen === undefined || seen === meta ? meta : null);
+    if (seen === undefined) {
+      optionalByKey.set(key, meta);
+    } else if (seen !== null && !isSameMeta(seen, meta)) {
+      optionalByKey.set(key, null);
+    }
   });
 
   if (!hasWhole || optionalByKey.size === 0) {

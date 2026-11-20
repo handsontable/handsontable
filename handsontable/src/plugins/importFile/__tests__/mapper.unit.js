@@ -218,6 +218,23 @@ describe('mapWorkbook', () => {
       expect(result.columns).toEqual([{ type: 'numeric', numericFormat: whole }]);
       expect(result.cellsMeta).toHaveLength(2);
     });
+
+    it('should fold when the format with optional digits also sits on an empty cell and on a text', () => {
+      // The export writes the column format on an empty cell and on a text too. Their meta is an
+      // equal object, not the same one as a number's, and read as a second candidate it stopped the
+      // fold: every whole number came back with a `cellsMeta` entry of its own.
+      const result = mapColumn(
+        cell({ value: 1234, numFmt: '#,##0' }),
+        cell({ value: null, numFmt: '#,##0.###' }),
+        cell({ value: 1234.5, numFmt: '#,##0.###' }),
+        cell({ value: 'n/a', numFmt: '#,##0.###' }),
+        cell({ value: 7, numFmt: '#,##0' })
+      );
+
+      expect(result.columns).toEqual([{ type: 'numeric', numericFormat: optional }]);
+      expect(result.cellsMeta).toBeUndefined();
+      expect(result.data).toEqual([[1234], [null], [1234.5], ['n/a'], [7]]);
+    });
   });
 
   it('should lift the dominant meta and keep per-cell meta only for the cells that differ', () => {
