@@ -209,6 +209,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Error in [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '[count] more cell now contains an error.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '[count] more cells now contain errors.',
+  [C.EDITOR_INPUT_LABEL]: '[column], row [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Comment for [column], row [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Comment for [column], [row]',
 };
 
 export default dictionary;

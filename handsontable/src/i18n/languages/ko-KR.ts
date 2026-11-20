@@ -202,6 +202,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: '[cell]의 오류: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: '다른 셀 [count]개에 이제 오류가 있습니다.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: '다른 셀 [count]개에 이제 오류가 있습니다.',
+  [C.EDITOR_INPUT_LABEL]: '[column], [row]행',
+  [C.COMMENTS_EDITOR_LABEL]: '[column], [row]행 댓글',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: '[column], [row] 댓글',
 };
 
 export default dictionary;

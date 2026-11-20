@@ -54,7 +54,7 @@ const hotSettings = computed<GridSettings>(() => ({
 <template>
   <div id="example2">
     <div style="display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 16px">
-      <label style="display: flex; flex-direction: column; gap: 4px; font: 13px/1.4 sans-serif; color: #334155">
+      <label style="display: flex; flex-direction: column; gap: 4px; font: 13px/1.4 sans-serif">
         <b style="font-family: monospace">interval.min: {{ intervalMin }} ms</b>
         <input
           v-model.number="intervalMin"
@@ -65,7 +65,7 @@ const hotSettings = computed<GridSettings>(() => ({
           style="width: 200px; cursor: pointer"
         >
       </label>
-      <label style="display: flex; flex-direction: column; gap: 4px; font: 13px/1.4 sans-serif; color: #334155">
+      <label style="display: flex; flex-direction: column; gap: 4px; font: 13px/1.4 sans-serif">
         <b style="font-family: monospace">interval.max: {{ intervalMax }} ms</b>
         <input
           v-model.number="intervalMax"
@@ -76,7 +76,7 @@ const hotSettings = computed<GridSettings>(() => ({
           style="width: 200px; cursor: pointer"
         >
       </label>
-      <label style="display: flex; flex-direction: column; gap: 4px; font: 13px/1.4 sans-serif; color: #334155">
+      <label style="display: flex; flex-direction: column; gap: 4px; font: 13px/1.4 sans-serif">
         <b style="font-family: monospace">rampDistance: {{ rampDistance }} px</b>
         <input
           v-model.number="rampDistance"

@@ -233,6 +233,14 @@ export const FORMULA_BUILDER_CELL_ERROR = `${FORMULA_BUILDER_NAMESPACE}announce.
 export const FORMULA_BUILDER_DEPENDENT_ERROR = `${FORMULA_BUILDER_NAMESPACE}announce.dependentCellError`;
 export const FORMULA_BUILDER_DEPENDENT_ERRORS = `${FORMULA_BUILDER_NAMESPACE}announce.dependentCellErrors`;
 
+export const EDITOR_NAMESPACE = 'Editor:';
+export const EDITOR_INPUT_LABEL = `${EDITOR_NAMESPACE}labels.cellInput`;
+export const EDITOR_INPUT_LABEL_ROW_HEADER = `${EDITOR_NAMESPACE}labels.cellInputWithRowHeader`;
+
+export const COMMENTS_NAMESPACE = 'Comments:';
+export const COMMENTS_EDITOR_LABEL = `${COMMENTS_NAMESPACE}labels.editor`;
+export const COMMENTS_EDITOR_LABEL_ROW_HEADER = `${COMMENTS_NAMESPACE}labels.editorWithRowHeader`;
+
 export const EDITABLE_HEADERS_NAMESPACE = 'EditableHeaders:';
 export const EDITABLE_HEADERS_INPUT_LABEL = `${EDITABLE_HEADERS_NAMESPACE}inputLabel`;
 export const EDITABLE_HEADERS_RENAMED = `${EDITABLE_HEADERS_NAMESPACE}announcement.renamed`;

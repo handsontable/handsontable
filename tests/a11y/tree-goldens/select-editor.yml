@@ -30,7 +30,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - combobox:
+  - combobox "D, row 1":
     - option "Option A"
     - option "Option B"
 - text: "Page size:"

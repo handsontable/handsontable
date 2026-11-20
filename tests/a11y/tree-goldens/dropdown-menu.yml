@@ -37,7 +37,7 @@
     - row "Select whole grid":
       - gridcell "Select whole grid"
   - rowgroup
-  - textbox
+  - textbox "Color, row 1"
 # portal
 - menu "Column menu":
   - menuitem "Insert column left"

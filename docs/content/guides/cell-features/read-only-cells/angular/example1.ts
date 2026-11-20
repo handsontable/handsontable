@@ -1,14 +1,6 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import { BaseRenderer } from 'handsontable/renderers';
-import { textRenderer } from 'handsontable/renderers/textRenderer';
-
-const dimmedTextRenderer: BaseRenderer = (instance, td, ...rest) => {
-  textRenderer(instance, td, ...rest);
-
-  td.style.opacity = '0.6';
-};
 
 @Component({
   selector: 'example1-read-only-cells',
@@ -37,7 +29,6 @@ export class AppComponent {
       {
         data: 'name',
         readOnly: true,
-        renderer: dimmedTextRenderer,
       },
       {
         data: 'symbol',

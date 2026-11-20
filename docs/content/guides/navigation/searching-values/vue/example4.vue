@@ -3,7 +3,6 @@ import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
-import type Handsontable from 'handsontable/base';
 
 registerAllModules();
 
@@ -18,26 +17,10 @@ const data = [
   ['Boron', 'B', 5, 10.81],
 ];
 
-function searchResultCounter(
-  instance: Handsontable,
-  row: number,
-  col: number,
-  _value: string | number | null,
-  testResult: boolean
-): void {
-  instance.getCellMeta(row, col).isSearchResult = testResult;
-
-  if (testResult) {
-    resultCount.value += 1;
-  }
-}
-
 const hotSettings = ref<GridSettings>({
   data,
   colHeaders: ['Name', 'Symbol', 'Atomic number', 'Atomic mass'],
-  search: {
-    callback: searchResultCounter,
-  },
+  search: true,
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
@@ -47,13 +30,27 @@ const hotSettings = ref<GridSettings>({
 function onSearchKeyUp(event: KeyboardEvent): void {
   const target = event.currentTarget as HTMLInputElement;
   const hot = hotRef.value?.hotInstance;
-
-  resultCount.value = 0;
-
   const search = hot?.getPlugin('search');
-  const queryResult = search?.query(target.value);
+
+  if (!search) {
+    return;
+  }
+
+  // the default callback marks the matching cells, so they stay highlighted
+  const defaultCallback = search.getCallback();
+  let count = 0;
+
+  // pass your custom callback function: it calls the default callback and counts the matches
+  const queryResult = search.query(target.value, (instance, row, col, value, result) => {
+    defaultCallback(instance, row, col, value, result);
+
+    if (result) {
+      count += 1;
+    }
+  });
 
   console.log(queryResult);
+  resultCount.value = count;
 
   hot?.render();
 }
@@ -67,6 +64,7 @@ function onSearchKeyUp(event: KeyboardEvent): void {
           id="search_field4"
           type="search"
           placeholder="Search"
+          aria-label="Search"
           @keyup="onSearchKeyUp"
         >
       </div>

@@ -16,7 +16,7 @@ const CellDisplay = defineComponent({
   },
   render() {
     return h('span', [
-      h('i', { style: 'color:#a9a9a9' }, `Row: ${this.row}, column: ${this.col},`),
+      h('i', { style: 'color:light-dark(#6b6b6b, #a9a9a9)' }, `Row: ${this.row}, column: ${this.col},`),
       ' value: ',
       h('strong', this.value),
     ]);

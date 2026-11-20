@@ -5,7 +5,7 @@ import Handsontable from 'handsontable/base';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 const ALLOWED_TAGS = ['B', 'EM', 'INPUT', 'BR', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH'];
-const ALLOWED_ATTRIBUTES = ['type', 'class', 'checked', 'colspan', 'rowspan'];
+const ALLOWED_ATTRIBUTES = ['type', 'class', 'checked', 'aria-label', 'colspan', 'rowspan'];
 const DROPPED_TAGS = ['SCRIPT', 'STYLE', 'TEXTAREA', 'TITLE'];
 
 // Handsontable has no built-in sanitizer since v18.0, and `sanitizer` is grid-level:
@@ -78,7 +78,7 @@ export class AppComponent implements OnInit {
       colHeaders(col: number) {
         return col === 0
           ? '<b>Bold</b> and <em>Beautiful</em>'
-          : `Some <input type="checkbox" class="checker" ${
+          : `Some <input type="checkbox" class="checker" aria-label="Some checkbox" ${
             componentThis.isChecked ? 'checked="checked"' : ''
           }> checkbox`;
       },

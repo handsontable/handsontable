@@ -206,6 +206,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Kļūda šūnā [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Vēl [count] šūnā tagad ir kļūda.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Citu šūnu ar kļūdām skaits: [count].',
+  [C.EDITOR_INPUT_LABEL]: '[column], [row]. rinda',
+  [C.COMMENTS_EDITOR_LABEL]: 'Komentārs: [column], [row]. rinda',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Komentārs: [column], [row]',
 };
 
 export default dictionary;

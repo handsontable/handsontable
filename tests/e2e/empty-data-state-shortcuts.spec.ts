@@ -361,6 +361,33 @@ test.describe('emptyDataState keyboard shortcuts', () => {
     expect(await grid.allValues()).toEqual(before);
   });
 
+  test('does not let a typed character open an editor under the loading overlay', async() => {
+    // Typing starts an edit through the editor manager's own document listener, not through a shortcut,
+    // so the shortcut guards never saw it.
+    await grid.cell(0, 0).click();
+    await grid.selectCell(1, 2);
+
+    // Positive control: with the overlay down, the same key opens the editor.
+    await grid.page.keyboard.press('x');
+    await expect.poll(() => grid.isEditorOpened()).toBe(true);
+    await grid.page.keyboard.press('Escape');
+    await expect.poll(() => grid.isEditorOpened()).toBe(false);
+
+    await grid.selectCell(1, 2);
+    await grid.startDataProviderFetch();
+
+    // The cells are still drawn, only covered.
+    expect(await grid.renderedCounts()).toEqual({ rows: 8, cols: 6 });
+
+    await grid.page.keyboard.press('x');
+
+    // A later key press is the bounded settle: the first would have opened the editor by now.
+    await grid.page.keyboard.press('y');
+    expect(await grid.isEditorOpened()).toBe(false);
+
+    await grid.finishDataProviderFetch();
+  });
+
   test('does not move a selection hidden under the loading overlay with Home, End or Ctrl+Shift+arrows', async() => {
     // These keys declare their own `runOnlyIf`, which REPLACES the navigation group's guard instead of
     // adding to it - so they kept moving a selection the overlay hides, and `Home`/`End` consumed the key.

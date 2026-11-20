@@ -57,7 +57,7 @@ describe('Handsontable editor theme handling', () => {
           }
         }
       ],
-    }, true);
+    });
 
     await selectCell(0, 0);
     await keyDown('enter');

@@ -37,7 +37,7 @@ const root = document.querySelector('#example2') as HTMLElement;
 
 root.innerHTML = `
   <div id="dts-sliders" style="display:flex;gap:28px;flex-wrap:wrap;margin-bottom:16px;
-       font:13px/1.4 sans-serif;color:#334155;"></div>
+       font:13px/1.4 sans-serif;"></div>
   <div id="dts-hot"></div>
 `;
 

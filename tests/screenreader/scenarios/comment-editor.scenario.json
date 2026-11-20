@@ -25,7 +25,7 @@
       "action": {"press": "Control+Alt+M"},
       "after": {"visible": ".htComments .htCommentTextArea"},
       "expect": [["check the totals before friday"], ["edit", "editable", "text area", "multi line", "text entry area"], ["comment"]],
-      "note": "Ctrl+Alt+M opens the comment editor on the selected cell and focuses its text field: the comment's text, the field's editable role (NVDA `edit, multi line`, VoiceOver `text entry area`) and its name, which says the field is a comment. Finding: no reader names the field; it has no accessible name (the axe baseline's `editor-input-names`), so a user hears an unnamed text field holding the comment."
+      "note": "Ctrl+Alt+M opens the comment editor on the selected cell and focuses its text field: the comment's text, the field's editable role (NVDA `edit, multi line`, VoiceOver `text entry area`) and its name, which says the field is a comment. The field is named `Comment for <column>, row <n>`. Finding, recorded before it had a name: no reader named the field, so a user heard an unnamed text field holding the comment."
     },
     {
       "id": "type-in-comment",

@@ -7,9 +7,14 @@ import {GridSettings, HotCellRendererComponent, HotTableComponent, HotTableModul
   imports: [HotTableModule],
   selector: 'app-cover-renderer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<img [src]="value" (mousedown)="$event.preventDefault()"/>`,
+  template: `<img [src]="value" [alt]="altText" (mousedown)="$event.preventDefault()"/>`,
 })
 export class CoverRendererComponent extends HotCellRendererComponent<string> {
+  get altText(): string {
+    const html = String(this.instance.getDataAtRowProp(this.row, 'title'));
+
+    return new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '';
+  }
 }
 
 

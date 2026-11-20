@@ -203,6 +203,10 @@ const dictionary = {
   [C.FORMULA_BUILDER_CELL_ERROR]: 'Chyba v [cell]: [message].',
   [C.FORMULA_BUILDER_DEPENDENT_ERROR]: 'Další [count] buňka nyní obsahuje chybu.',
   [C.FORMULA_BUILDER_DEPENDENT_ERRORS]: 'Počet dalších buněk s chybou: [count].',
+  [C.EDITOR_INPUT_LABEL]: '[column], řádek [row]',
+  [C.COMMENTS_EDITOR_LABEL]: 'Komentář k [column], řádek [row]',
+  [C.EDITOR_INPUT_LABEL_ROW_HEADER]: '[column], [row]',
+  [C.COMMENTS_EDITOR_LABEL_ROW_HEADER]: 'Komentář k [column], [row]',
 };
 
 export default dictionary;
