@@ -1705,11 +1705,8 @@ export function frameworkLoader({ contentDir }) {
         });
       }
 
-      // Initial full load of every content file.
-      for (const absPath of listMdFiles(contentDir)) {
-        await syncContentFile(absPath);
-        await yieldToEventLoop();
-      }
+      let initialLoadDone = false;
+      let flushChangesQueuedDuringLoad = null;
 
       // ── Dev hot reload ──────────────────────────────────────────────────
       // In `astro dev`, Astro provides a filesystem watcher. This loader reads
@@ -1796,7 +1793,13 @@ export function frameworkLoader({ contentDir }) {
           // Latest event for a path wins (e.g. change-then-unlink → unlink).
           pending.set(changedPath, type);
 
-          if (!flushTimer) {
+          if (initialLoadDone && !flushTimer) {
+            flushTimer = setTimeout(flush, 100);
+          }
+        };
+
+        flushChangesQueuedDuringLoad = () => {
+          if (pending.size > 0 && !flushTimer) {
             flushTimer = setTimeout(flush, 100);
           }
         };
@@ -1805,6 +1808,15 @@ export function frameworkLoader({ contentDir }) {
         watcher.on('change', queueChange('change'));
         watcher.on('unlink', queueChange('unlink'));
       }
+
+      // Initial full load of every content file.
+      for (const absPath of listMdFiles(contentDir)) {
+        await syncContentFile(absPath);
+        await yieldToEventLoop();
+      }
+
+      initialLoadDone = true;
+      flushChangesQueuedDuringLoad?.();
     },
   };
 }

@@ -1010,3 +1010,64 @@ test('the initial load gives the event loop a turn after each content file', asy
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('a file edited during the initial load is reloaded after the load', async () => {
+  const { contentDir, root, introMd } = createFixture();
+
+  for (let index = 0; index < 20; index += 1) {
+    const pageDir = join(contentDir, 'guides', `page-${index}`);
+
+    mkdirSync(pageDir, { recursive: true });
+    writeFileSync(
+      join(pageDir, `page-${index}.md`),
+      `---\ntitle: Page ${index}\npermalink: /page-${index}\n---\n\nBody ${index}.\n`
+    );
+  }
+
+  let loading = true;
+  let editedDuringLoad = false;
+
+  try {
+    const { ctx, store, watcher } = createContext();
+
+    const editIntroOnceLoaded = () => {
+      if (!loading) {
+        return;
+      }
+
+      if (!store.has('javascript-data-grid/intro')) {
+        setImmediate(editIntroOnceLoaded);
+
+        return;
+      }
+
+      writeFileSync(
+        introMd,
+        [
+          '---',
+          'title: Introduction',
+          'permalink: /intro',
+          '---',
+          '',
+          'Intro body v2 EDITED.',
+          '',
+        ].join('\n')
+      );
+      watcher.emit('change', introMd);
+      editedDuringLoad = true;
+    };
+
+    setImmediate(editIntroOnceLoaded);
+    await frameworkLoader({ contentDir }).load(ctx);
+    loading = false;
+
+    assert.equal(editedDuringLoad, true, 'the edit has to land while the load is still running');
+
+    await sleep(300);
+
+    assert.match(renderedHtmlOf(store, 'javascript-data-grid/intro'), /Intro body v2 EDITED\./);
+  } finally {
+    loading = false;
+    rmSync(root, { recursive: true, force: true });
+  }
+});
