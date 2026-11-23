@@ -2069,7 +2069,7 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * Reads the snapping of a horizontal scroll as the hook gets it: a string, or an object holding one.
    *
-   * @param {string|{ value?: string }|undefined} snapping The snapping the hook received.
+   * @param {string|{ value: (string|undefined) }|undefined} snapping The snapping the hook received.
    * @returns {string|undefined}
    */
   #snappingValue(snapping?: string | { value?: string }): string | undefined {
