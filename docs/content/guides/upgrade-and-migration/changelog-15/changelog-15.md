@@ -30,18 +30,18 @@ For more information about this release see:
 
 </div>
 
-#### Added
+### Added
 - Added a missing boolean type to the editor in the React wrapper. [#11514](https://github.com/handsontable/handsontable/pull/11514)
 - Fixed the Comments plugin for IME editing and added a new [`beforeCompositionStart`](@/api/hooks.md#beforecompositionstart) hook. [#11521](https://github.com/handsontable/handsontable/pull/11521)
 - Added horizontal scroll to the Filter's "by value" component. [#11561](https://github.com/handsontable/handsontable/pull/11561)
 - Added optional formula sanitization for CSV export to prevent CSV Injection attacks. [#11592](https://github.com/handsontable/handsontable/pull/11592)
 
-#### Changed
+### Changed
 - Improved the initialization time of Handsontable with Formulas enabled. [#11474](https://github.com/handsontable/handsontable/pull/11474)
 - Changed the size of the Manual Row Resize and Manual Column Resize guide lines. [#11507](https://github.com/handsontable/handsontable/pull/11507)
 - Improved the viewport scrolling behavior. [#11577](https://github.com/handsontable/handsontable/pull/11577)
 
-#### Fixed
+### Fixed
 - Fixed an issue with the NestedRows plugin duplicating rows when moving child rows. [#11362](https://github.com/handsontable/handsontable/pull/11362)
 - Fixed an issue with row resize line alignment and resize handle flickering. [#11500](https://github.com/handsontable/handsontable/pull/11500)
 - Fixed an issue with the Autocomplete caret position after using scroll on a list of choices and a problem with the dropdown width. [#11503](https://github.com/handsontable/handsontable/pull/11503)
@@ -85,7 +85,7 @@ For more information about this release see:
 
 </div>
 
-#### Added
+### Added
 - Added the Farsi translation. [#11388](https://github.com/handsontable/handsontable/pull/11388)
 - Added support for class names passed as an array for the numeric cell renderer. [#11420](https://github.com/handsontable/handsontable/pull/11420)
 - Updated the Italian translation for the new Context Menu labels. [#11436](https://github.com/handsontable/handsontable/pull/11436)
@@ -93,15 +93,15 @@ For more information about this release see:
 - Added the mobile cell handle CSS variables to the themes. [#11479](https://github.com/handsontable/handsontable/pull/11479)
 - Improved the execution flow of the [`Filters`](@/api/filters.md) plugin and added two new methods ([`importConditions()`](@/api/filters.md#importconditions) and [`exportConditions()`](@/api/filters.md#exportconditions)). [#11488](https://github.com/handsontable/handsontable/pull/11488)
 
-#### Changed
+### Changed
 - Sped up the rendering performance for themes. [#11443](https://github.com/handsontable/handsontable/pull/11443)
 - Improved the table UI behavior after removing all rows and/or columns. [#11477](https://github.com/handsontable/handsontable/pull/11477)
 - Reverted the removal of `actionType` class field for UndoRedo actions. [#11495](https://github.com/handsontable/handsontable/pull/11495)
 
-#### Removed
+### Removed
 - Removed the broken, unsupported and undocumented `rendererTemplate` Text Renderer option. [#11424](https://github.com/handsontable/handsontable/pull/11424)
 
-#### Fixed
+### Fixed
 - Fixed the default (fallback) date format for the Date editor. [#11419](https://github.com/handsontable/handsontable/pull/11419)
 - Fixed the Context Menu's items' state rendering. [#11422](https://github.com/handsontable/handsontable/pull/11422)
 - Corrected the checkbox visibility in the no-theme variant. [#11427](https://github.com/handsontable/handsontable/pull/11427)
@@ -135,18 +135,18 @@ For more information about this release see:
 
 </div>
 
-#### Added
+### Added
 - Added the `TAB` and `SHIFT + TAB` functionality to the Comments editor. [#11345](https://github.com/handsontable/handsontable/pull/11345)
 
-#### Changed
+### Changed
 - Changed the approach to how the table is rendered by reusing the cell nodes. [#11264](https://github.com/handsontable/handsontable/pull/11264)
 - Updated Hyperformula to v3. [#11373](https://github.com/handsontable/handsontable/pull/11373)
 - Improved the performance of horizontal scrolling. [#11412](https://github.com/handsontable/handsontable/pull/11412)
 
-#### Removed
+### Removed
 - Removed the `getComputedStyle` function from the type declaration file. [#11421](https://github.com/handsontable/handsontable/pull/11421)
 
-#### Fixed
+### Fixed
 - Fixed a bug where values passed to data-modifying hooks were not normalized. [#11346](https://github.com/handsontable/handsontable/pull/11346)
 - Fixed a problem where data population via autofill handler was broken for merged cells. [#11291](https://github.com/handsontable/handsontable/pull/11291)
 - Fixed a problem with a missing render call for the `minSpareRows` and `minSpareCols` options. [#11292](https://github.com/handsontable/handsontable/pull/11292)
@@ -200,22 +200,22 @@ For more information about this release see:
 
 </div>
 
-#### Added
+### Added
 - Added support for row and column virtualization of merged cells. [#11162](https://github.com/handsontable/handsontable/pull/11162)
 - Added missing typings for the language files. [#11236](https://github.com/handsontable/handsontable/pull/11236)
 - Added support for the new themes, including "main" and "horizon".  [#11144](https://github.com/handsontable/handsontable/pull/11144)
 - React: Added `@handsontable/react-wrapper` to the monorepo. [#11212](https://github.com/handsontable/handsontable/pull/11212)
 
-#### Changed
+### Changed
 - **Breaking change**: Updated the production dependencies (replaced `pikaday` with `@handsontable/pikaday`, updated `numbro` and `dompurify`) [#10929](https://github.com/handsontable/handsontable/pull/10929)
 - Refactored the column stretching logic, moved it to a separate plugin and fixed bugs related to the columns widths misalignment. [#11210](https://github.com/handsontable/handsontable/pull/11210)
 - Updated the typing for dropdown and context menu options. [#11237](https://github.com/handsontable/handsontable/pull/11237)
 - Updated the monorepo to utilize Node 22. [#11265](https://github.com/handsontable/handsontable/pull/11265)
 
-#### Removed
+### Removed
 - **Breaking change**: Removed check marks from the Context Menu's alignment submenu. [#11278](https://github.com/handsontable/handsontable/pull/11278)
 
-#### Fixed
+### Fixed
 - Fixed the Autocomplete and Dropdown editors' container size calculations. [#11201](https://github.com/handsontable/handsontable/pull/11201)
 - Fixed the focus management for the Dropdown Menu after `updateSettings` calls. [#11205](https://github.com/handsontable/handsontable/pull/11205)
 - Fixed the broken column selection when the column was being moved with the Nested Headers plugin enabled. [#11206](https://github.com/handsontable/handsontable/pull/11206)

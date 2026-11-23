@@ -63,6 +63,52 @@ test('extracts entries grouped by Added/Changed/Deprecated/Removed/Fixed', () =>
   }
 });
 
+test('reads category headings at level 3, the level the changelog pages use', () => {
+  const md = [
+    '## 17.0.0',
+    'Released on March 9th, 2026',
+    '',
+    '### Added',
+    '- Added the Theme API.',
+    '',
+    '### Breaking changes',
+    '- Removed core-js.',
+    '',
+    '### Fixed',
+    '- Fixed errors triggered by keyboard shortcuts.',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.deepEqual(
+    result.map(e => [e.category, e.breaking, e.title]),
+    [
+      ['added', false, 'Added the Theme API.'],
+      ['changed', true, 'Removed core-js.'],
+      ['fixed', false, 'Fixed errors triggered by keyboard shortcuts.'],
+    ],
+  );
+});
+
+test('reads a level 4 category heading the same as a level 3 one', () => {
+  const page = ['## 17.0.0', 'Released on March 9th, 2026', '', '### Added', '- Added the Theme API.', '', '### Fixed', '- Fixed a crash.'];
+  const level3 = parseChangelogContent(page.join('\n'));
+  const level4 = parseChangelogContent(page.map(line => line.replace(/^### /, '#### ')).join('\n'));
+
+  assert.equal(level3.length, 2);
+  assert.deepEqual(level4, level3);
+});
+
+test('finds entries in every category heading of the changelog pages', () => {
+  const entries = parseAllChangelogs();
+
+  assert.ok(entries.length > 500, `expected the changelog pages to yield entries, got ${entries.length}`);
+  assert.deepEqual(
+    [...new Set(entries.map(entry => entry.category))].sort(),
+    ['added', 'changed', 'deprecated', 'fixed', 'removed'],
+  );
+});
+
 test('marks bullets starting with **Breaking change**: as breaking', () => {
   const md = [
     '## 17.0.0',

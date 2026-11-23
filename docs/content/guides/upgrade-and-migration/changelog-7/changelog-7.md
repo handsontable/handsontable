@@ -31,7 +31,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changes
+### Changes
 
 - Fixed an issue where the cell value could not be edited on mobile devices.
   ([#6707](https://github.com/handsontable/handsontable/issues/6707))
@@ -63,7 +63,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changes
+### Changes
 
 - Fixed the problem, where the `onCellMouseUp` hook was fired for all mouse buttons except `RMB`,
   which was not consistent with the `onCellMouseDown` hook. To make the changes more consistent with
@@ -96,12 +96,12 @@ For more information on this release, see:
 
 </div>
 
-#### New features
+### New features
 
 - Added a new `uiContainer` option to the Context Menu plugin. It lets you declare a DOM container for all Context Menu elements - useful when using Handsontable inside an `iframe` or another content-trimming context. ([#6283](https://github.com/handsontable/handsontable/issues/6283), [#6417](https://github.com/handsontable/handsontable/issues/6417))
 - Added a `uiContainer` option to the Copy/Paste plugin. ([#6343](https://github.com/handsontable/handsontable/issues/6343))
 
-#### Changes
+### Changes
 
 - Fixed a problem with table resizing on every scroll event on Firefox when no table height was defined. ([#6344](https://github.com/handsontable/handsontable/issues/6344))
 - Updated the `puppeteer` package in `devDependencies` to address an `npm audit` security error. ([#6393](https://github.com/handsontable/handsontable/issues/6393))
@@ -127,7 +127,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changes
+### Changes
 
 - Rolled back backward-incompatible changes in the TypeScript definition file introduced in `7.2.0`. ([#6351](https://github.com/handsontable/handsontable/issues/6351))
 - Fixed a problem where `Handsontable.helper.htmlToGridSettings` threw an error on IE11 when the target table was part of an `iframe`. ([#6350](https://github.com/handsontable/handsontable/issues/6350))
@@ -144,7 +144,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changes
+### Changes
 
 - Fixed a problem caused by [#6269](https://github.com/handsontable/handsontable/issues/6269) which made the move/resize handles hidden under the headers. ([#6341](https://github.com/handsontable/handsontable/issues/6341))
 
@@ -160,7 +160,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changes
+### Changes
 
 - Added `cellProperties` to the arguments of search's `queryMethod` so it is possible to identify what kind of data is being queried. ([#4944](https://github.com/handsontable/handsontable/issues/4944))
 - Fixed a bug with a disappearing column header when the `height` option was set to `auto`. ([#6302](https://github.com/handsontable/handsontable/issues/6302))
@@ -193,7 +193,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changes
+### Changes
 
 - Refactored the Walkontable table renderers. ([#6089](https://github.com/handsontable/handsontable/issues/6089))
 - Changed the underlying format for empty cells. From now on, all empty cells are stored internally as `null`. The only exceptions are empty cells that have been edited and saved as an empty string, and empty cells that have been copied and pasted - in both of these cases they are stored as an empty string (`''`). ([#4106](https://github.com/handsontable/handsontable/issues/4106))
@@ -230,11 +230,11 @@ For more information on this release, see:
 
 </div>
 
-#### New features
+### New features
 
 - Added a feature that allows parsing HTML tables into Handsontable settings and Handsontable instances into plain HTML tables. New API methods: `Handsontable.helper.instanceToHTML`, `Handsontable.helper.htmlToGridSettings`, `hotInstance.toTableElement`, and `hotInstance.toHTML`. ([#5684](https://github.com/handsontable/handsontable/issues/5684))
 
-#### Changes
+### Changes
 
 - Fixed a bug where it was not possible to block `Undo/Redo` plugin keyboard shortcuts. ([#6028](https://github.com/handsontable/handsontable/issues/6028))
 - Corrected the `ManualColumnMove` type definitions. ([#6011](https://github.com/handsontable/handsontable/issues/6011))
@@ -260,7 +260,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changes
+### Changes
 
 - Fixed the `skipRowOnPaste` option to work similarly to `skipColumnOnPaste` and added it to the documentation. ([#5845](https://github.com/handsontable/handsontable/issues/5845))
 - Fixed the font inconsistency in the dropdown menu. ([#5948](https://github.com/handsontable/handsontable/issues/5948))
@@ -281,7 +281,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changes
+### Changes
 
 - Fixed a bug from `7.0.1` which made scrolling on overlays (fixed rows/columns, headers) work improperly. ([#5938](https://github.com/handsontable/handsontable/issues/5938))
 
@@ -297,7 +297,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changes
+### Changes
 
 - Fixed the `LICENSE.txt` file link in `README.md`. ([#5914](https://github.com/handsontable/handsontable/issues/5914))
 - Replaced `fixed` positioning of the row/column resize handles with `absolute` to prevent misalignment issues in implementations based on CSS `transform`. ([#5050](https://github.com/handsontable/handsontable/issues/5050))
@@ -320,7 +320,7 @@ For more information on this release, see:
 
 </div>
 
-#### Breaking changes
+### Breaking changes
 
 - Starting with version 7.0.0, there is only one Handsontable, as Handsontable Pro has been merged with Handsontable Community Edition.
 - Handsontable is now source-available instead of open source. The MIT license has been replaced with a custom, free for non-commercial license.
@@ -329,7 +329,7 @@ For more information on this release, see:
 - Added hooks for the Hidden Rows and Hidden Columns plugins and added validation of the provided rows. Before this change, passing an invalid set of indexes (for example, `[-1, 0, 1]`) still hid the valid elements from the set. After this change, an invalid set of indexes passed to the plugin results in the termination of the performed action. ([#5651](https://github.com/handsontable/handsontable/issues/5651), [#5522](https://github.com/handsontable/handsontable/issues/5522))
 - Removed Bower support. To install Handsontable, use npm or CDN instead.
 
-#### Changes
+### Changes
 
 - Refactored the following classes to ES6: `BaseEditor`, `AutocompleteEditor`, `HandsontableEditor`, `SelectEditor`, `TextEditor`, `Walkontable Event`, `EditorManager`, `MultiMap` (removed), `TableView`, `DataMap`. ([#5403](https://github.com/handsontable/handsontable/issues/5403))
 - Fixed a problem where inserting a new row did not update the Trim Rows plugin properly. ([#5761](https://github.com/handsontable/handsontable/issues/5761))

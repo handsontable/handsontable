@@ -31,7 +31,7 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Introduced a `separated` attribute for the label options (the `label` DOM element may wrap `input`
   or be placed next to it). ([#3172](https://github.com/handsontable/handsontable/issues/3172))
@@ -59,7 +59,7 @@ For more information on this release, see:
   it to create and register a new index map.
   ([#7528](https://github.com/handsontable/handsontable/pull/7528))
 
-#### Fixed
+### Fixed
 
 - Fixed a problem with sorting the `checkbox`-typed cells and an issue with empty cells not being
   displayed properly. ([#4047](https://github.com/handsontable/handsontable/issues/4047))
@@ -97,7 +97,7 @@ For more information on this release, see:
 - React: Fixed an incompatibility in the property type definitions for the HotColumn component.
   ([#7612](https://github.com/handsontable/handsontable/issues/7612))
 
-#### Changed
+### Changed
 
 - Enhanced the ESLint config file by adding a rule that checks if there are new lines missing before
   some keywords or statements. ([#7691](https://github.com/handsontable/handsontable/issues/7691))
@@ -116,7 +116,7 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Introduced the monorepo to this repository. From now
   on, `handsontable`, `@handsontable/angular`, `@handsontable/react`, and `@handsontable/vue` will
@@ -125,7 +125,7 @@ For more information on this release, see:
 - Added a custom ESLint rule which allows restricting specified modules from loading by `import` or
   re-exporting. ([#7473](https://github.com/handsontable/handsontable/issues/7473))
 
-#### Fixed
+### Fixed
 
 - Fixed a bug where it was impossible to enable `disableVisualSelection` for cells/columns.
   ([#5082](https://github.com/handsontable/handsontable/issues/5082))
@@ -174,7 +174,7 @@ For more information on this release, see:
 
 </div>
 
-#### Fixed
+### Fixed
 
 - Fixed an issue where the CSS files could be eliminated during tree-shaking.
   ([#7516](https://github.com/handsontable/handsontable/issues/7516))
@@ -193,7 +193,7 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Introduced a new feature that allows postponing the table render and internal data cache update.
   The table rendering time can be reduced several-fold times by batching (using the `batch` method),
@@ -211,7 +211,7 @@ For more information on this release, see:
 - Added a new workflow for managing and generating changelogs.
   ([#7405](https://github.com/handsontable/handsontable/issues/7405))
 
-#### Fixed
+### Fixed
 
 - Fixed a bug with auto-execution of the first item in the `ContextMenu` plugin.
   ([#7364](https://github.com/handsontable/handsontable/issues/7364))
@@ -228,7 +228,7 @@ For more information on this release, see:
 - Updated the dependencies causing potential security issues, as well as Babel configuration needed
   after the update. ([#7463](https://github.com/handsontable/handsontable/issues/7463))
 
-#### Changed
+### Changed
 
 - Corrected a typo in a helper method from the `ColumnSorting` plugin.
   ([#7375](https://github.com/handsontable/handsontable/issues/7375))
@@ -250,7 +250,7 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Added a new type of an Index Map named `LinkedPhysicalIndexToValueMap`.
   ([#7276](https://github.com/handsontable/handsontable/issues/7276))
@@ -258,7 +258,7 @@ For more information on this release, see:
   of inserting insecure code using Handsontable built-in functionalities.
   ([#7292](https://github.com/handsontable/handsontable/issues/7292))
 
-#### Fixed
+### Fixed
 
 - Fixed an issue where the container was not updated after trimming rows.
   ([#7241](https://github.com/handsontable/handsontable/issues/7241))
@@ -296,14 +296,14 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Added support for resizing non-adjacent selected rows and columns.
   ([#7162](https://github.com/handsontable/handsontable/issues/7162))
 - Added e2e tests and reorganized already existing ones.
   ([#6491](https://github.com/handsontable/handsontable/issues/6491))
 
-#### Changed
+### Changed
 
 - Updated dependencies to meet security requirements.
   ([#7222](https://github.com/handsontable/handsontable/issues/7222))
@@ -311,7 +311,7 @@ For more information on this release, see:
   with many trimmed/hidden indexes.
   ([#7223](https://github.com/handsontable/handsontable/issues/7223))
 
-#### Fixed
+### Fixed
 
 - Fixed an issue where the value did not show if the first part of the merged area was hidden.
   ([#6871](https://github.com/handsontable/handsontable/issues/6871))
@@ -361,7 +361,7 @@ For more information on this release, see:
 
 </div>
 
-#### Major changes
+### Major changes
 
 This version introduces a completely new architecture for row and column management - index mapper,
 which is responsible for the storage and management of index values. In prior versions, the
@@ -374,7 +374,7 @@ in one place so getting and managing information is easier and less prone to bug
 The existing features were adapted to benefit from the new architecture. Apart from that, extra
 methods and hooks were added and there are few depreciations and removals, too.
 
-#### Breaking changes
+### Breaking changes
 
 - Modifying the table's data by reference and calling `render()` will not work properly anymore.
   From this point onward, all the data-related operations need to be performed using the API
@@ -464,7 +464,7 @@ methods and hooks were added and there are few depreciations and removals, too.
   such cases, it is assumed that a new dataset is introduced upon calling `updateSettings` or
   `loadData` .[#6547](https://github.com/handsontable/handsontable/pull/6547).
 
-#### New features
+### New features
 
 - Added the Index Mapper architecture and its API.
   [#5112](https://github.com/handsontable/handsontable/issues/5112) (more information available in
@@ -473,7 +473,7 @@ methods and hooks were added and there are few depreciations and removals, too.
 - Added a new `batch` method. [#5945](https://github.com/handsontable/handsontable/pull/5945) along
   with other adjustments ([#7068](https://github.com/handsontable/handsontable/pull/7068))
 
-#### Deprecations
+### Deprecations
 
 - The `ObserveChanges` plugin is no longer enabled by `columnSorting` and became deprecated.
   [#5945](https://github.com/handsontable/handsontable/pull/5945)
@@ -482,7 +482,7 @@ methods and hooks were added and there are few depreciations and removals, too.
 - IE support is deprecated and will be removed by the end of the year.
   [#7026](https://github.com/handsontable/handsontable/issues/7026)
 
-#### Changelog
+### Changelog
 
 - Added `modifySourceData` hook and `setSourceDataAtCell` method.
   [#6664](https://github.com/handsontable/handsontable/issues/6664)

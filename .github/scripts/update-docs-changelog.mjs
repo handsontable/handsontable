@@ -52,7 +52,7 @@ function buildEntry(ver, content, majorMinor) {
     'For more information about this release, see:',
     `- [Documentation (${majorMinor})](https://handsontable.com/docs/${majorMinor})`,
     '',
-    content.trim().replace(/^### /gm, '#### '),
+    content.trim(),
     '',
   ].join('\n');
 }

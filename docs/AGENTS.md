@@ -508,7 +508,7 @@ would be a frozen unmaintained snapshot.
 
 `content/guides/upgrade-and-migration/changelog-<N>/changelog-<N>.md` is hand-written: the release
 workflow writes the root `CHANGELOG.md` and the rolling `changelog/changelog.md`, and someone copies
-the version's section into the per-major page by hand, demoting `###` to `####`.
+the version's section into the per-major page by hand. The category headings stay `###` (`### Added`), one level under the `## <version>` heading: a `####` skips a level in the page outline (WCAG 1.3.1). `changelog-parser.mjs` still reads a `####` one the same way.
 
 **When you create the page for a new major, move the design system date with it.** The newest
 `changelog-<N>` page carries a hidden `data-design-system-updated` block under its intro line, filled

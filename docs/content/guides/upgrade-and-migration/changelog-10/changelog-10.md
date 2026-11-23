@@ -32,7 +32,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changed
+### Changed
 
 - **Breaking change**: Unified the naming and description of the fourth argument, `controller`, for
   selection manipulation in the [`beforeOnCellMouseDown`](@/api/hooks.md#beforeoncellmousedown) and
@@ -66,7 +66,7 @@ For more information on this release, see:
 - Added a Github Actions workflow covering the testing of Handsontable and all of the wrappers.
   [#8652](https://github.com/handsontable/handsontable/issues/8652)
 
-#### Fixed
+### Fixed
 
 - Fixed an issue of not resetting the date picker's configuration
   [#6636](https://github.com/handsontable/handsontable/issues/6636)

@@ -31,7 +31,7 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Added [`updateData()`](@/api/core.md#updatedata), a new method that lets you replace
   Handsontable's [`data`](@/api/options.md#data) without resetting the states of cells, rows and
@@ -40,7 +40,7 @@ For more information on this release, see:
   introducing a [new wrapper](@/vue/guides/getting-started/installation/installation.md).
   [#7545](https://github.com/handsontable/handsontable/issues/7545)
 
-#### Changed
+### Changed
 
 - Updated the TypeScript definition of the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
   [#8601](https://github.com/handsontable/handsontable/issues/8601)
@@ -49,7 +49,7 @@ For more information on this release, see:
   to allow for deploying code examples to [GitHub Pages](https://pages.github.com/)).
   [#9058](https://github.com/handsontable/handsontable/issues/9058)
 
-#### Fixed
+### Fixed
 
 - Fixed an issue where the [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) editor's
   suggestion list didn't update properly.
@@ -96,7 +96,7 @@ For more information on this release, see:
 
 </div>
 
-#### Fixed
+### Fixed
 
 - Fixed the UMD build of `@handsontable/angular`, which was not working properly in `11.0.0`.
   [#8946](https://github.com/handsontable/handsontable/pull/8946)
@@ -116,7 +116,7 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - **Breaking change**: Added TypeScript definition files for Handsontable's modularized version.
   [#7489](https://github.com/handsontable/handsontable/issues/7489)
@@ -136,7 +136,7 @@ For more information on this release, see:
 - Added new direction helpers (internal API) that lay ground for future RTL support.
   [#8868](https://github.com/handsontable/handsontable/issues/8868)
 
-#### Changed
+### Changed
 
 - **Breaking change**: Changed how the `populateFromArray()` method works with its `method` argument
   set to `shift_down` or `shift_right`.
@@ -146,7 +146,7 @@ For more information on this release, see:
 - Replaced the license files with updated versions.
   [#8877](https://github.com/handsontable/handsontable/issues/8877)
 
-#### Fixed
+### Fixed
 
 - Fixed an issue with incorrect filtering of locale-based data while using search input from a
   dropdown menu. [#6095](https://github.com/handsontable/handsontable/issues/6095)

@@ -44,7 +44,7 @@ For more information about this release, see:
 
 </div>
 
-#### Fixed
+### Fixed
 - Fixed slow scrolling of grids with many custom borders. [#13908](https://github.com/handsontable/handsontable/pull/13908)
 
 ## 18.1.2
@@ -59,10 +59,10 @@ For more information about this release, see:
 
 </div>
 
-#### Changed
+### Changed
 - Changed entitlement license keys to protect their human-readable text as well as their bracketed block, so the block alone, edited text, or text after the block makes a current key invalid, while a rewrapped, one-line, or `\n`-escaped key still works. [#13743](https://github.com/handsontable/handsontable/pull/13743)
 
-#### Fixed
+### Fixed
 - Fixed entitlement license keys whose bracketed block was broken across lines, for example by an email client, reading as invalid and locking the grid. [#13760](https://github.com/handsontable/handsontable/pull/13760)
 
 ## 18.1.1
@@ -77,7 +77,7 @@ For more information about this release, see:
 
 </div>
 
-#### Fixed
+### Fixed
 - Fixed copying, cutting, and pasting doing nothing in a grid embedded in a Salesforce Lightning Web Component. [#13388](https://github.com/handsontable/handsontable/issues/13388)
 - Fixed a `filters` plugin crash thrown when a cell in a filtered column was edited, or the data was replaced with a filter active, after `updateSettings()` was called with the `filters` option (as the React and Angular wrappers do on every update). [#13480](https://github.com/handsontable/handsontable/pull/13480)
 
@@ -95,7 +95,7 @@ For more information about this release, see:
 
 </div>
 
-#### Added
+### Added
 - Added the [`modifySinglePassLayout`](@/api/hooks.md#modifysinglepasslayout) hook, which forces the previous measure-then-render layout path for a table. [#12951](https://github.com/handsontable/handsontable/pull/12951)
 - Added the [`selectionHandles`](@/api/options.md#selectionhandles) option, which shows draggable handles at each edge midpoint of a selected range for resizing the selection, and the [`moveCells`](@/api/options.md#movecells) option for moving a cell selection to a new location by dragging its border. [#13076](https://github.com/handsontable/handsontable/pull/13076)
 - Added Persian language RTL direction support. [#13101](https://github.com/handsontable/handsontable/issues/13101)
@@ -107,7 +107,7 @@ For more information about this release, see:
 - Added the [`formulas.hyperlinks`](@/api/options.md#formulas) option, which renders cells holding a `HYPERLINK` formula as clickable links. [#13223](https://github.com/handsontable/handsontable/pull/13223)
 - Added the `SanitizerContext` type, which lists the write surfaces the [`sanitizer`](@/api/options.md#sanitizer) option receives. [#13240](https://github.com/handsontable/handsontable/pull/13240)
 
-#### Changed
+### Changed
 - Reduced memory usage when scrolling large datasets by releasing cell metadata for rows scrolled out of the viewport. [#12854](https://github.com/handsontable/handsontable/pull/12854)
 - Improved the performance of sorting, filtering, and row/column hiding on large datasets by speeding up internal index translation. [#12880](https://github.com/handsontable/handsontable/pull/12880)
 - Improved initialization time for large date-typed datasets by validating ISO dates arithmetically instead of constructing a `Date` object for every cell. [#12881](https://github.com/handsontable/handsontable/pull/12881)
@@ -136,10 +136,10 @@ For more information about this release, see:
 - Improved sizing plugins performance: AutoColumnSize measures only the changed cells on edits instead of rescanning whole columns, its background width sweep is budgeted and runs on browser idle time, AutoRowSize reuses the cached header height on selection-driven renders, and a multi-column resize triggers one height recalculation instead of one per column. [#13097](https://github.com/handsontable/handsontable/issues/13097)
 - Changed how touch opens the cell editor on devices that report both touch and mouse input, such as iPad: a double-tap opens it (taps up to 1 second apart), and a single tap on an already selected cell no longer opens it as it did in 18.0.0, where duplicated mouse events after the tap triggered the double-click. [#13306](https://github.com/handsontable/handsontable/pull/13306)
 
-#### Removed
+### Removed
 - Removed leftover Pikaday styles from the themes. [#13156](https://github.com/handsontable/handsontable/pull/13156)
 
-#### Fixed
+### Fixed
 - Fixed a `Sheet size limit exceeded` error thrown when grids sharing one HyperFormula instance used different `maxRows` values. The grid's `maxRows` and `maxCols` no longer limit the engine, so an oversized insert is now capped at the limit instead of being rejected. [#10672](https://github.com/handsontable/handsontable/issues/10672)
 - Fixed a bug where dragging a selection handle to the edge of the grid on a mobile device did not scroll the viewport, so the selection stopped growing at the last visible cell. [#11658](https://github.com/handsontable/handsontable/issues/11658)
 - Fixed the `columnSummary` plugin misbehaving when another plugin trimmed rows (for example a collapsed `nestedRows` group): false out-of-bounds warnings, results written into the wrong row, a crash when the destination row was hidden, and hidden summary rows being counted as data by other summaries. [#11674](https://github.com/handsontable/handsontable/issues/11674)
@@ -209,7 +209,7 @@ For more information about this release, see:
 - Fixed an open cell editor staying visible over an unrelated row, and committing to a row you could no longer see, when the edited cell was hidden - for example by turning a Pagination page or hiding its row or column. [#13245](https://github.com/handsontable/handsontable/pull/13245)
 - Fixed an expired trial license key not blocking the grid when the key carried the `no-ui-warns` flag. [#13312](https://github.com/handsontable/handsontable/pull/13312)
 
-#### Security
+### Security
 - Fixed pasted HTML being able to run scripts, and applied the `sanitizer` option to the surfaces that previously skipped it. [#13236](https://github.com/handsontable/handsontable/pull/13236)
 - Fixed the `dialog` plugin interpolating an unvalidated `template.id` into the dialog's `id` attribute, and the `loading` plugin rendering its `title` and `description` options as HTML. Those two `loading` options now render as text, so markup passed in them shows up literally instead of being interpreted; use `icon` for markup. The button `type` option of the `dialog`, `emptyDataState`, and `notification` plugins is now resolved where the markup is built. [#13242](https://github.com/handsontable/handsontable/pull/13242)
 
@@ -227,13 +227,13 @@ For more information about this release, see:
 
 </div>
 
-#### Added
+### Added
 - **Breaking change**: Added wrapper layout slots and a [`layout`](@/api/options.md#layout) option to control the order of UI elements rendered around the grid (pagination, dialog). The license notification always renders last in the bottom area and is not orderable. Built-in UI now mounts into dedicated wrapper containers, which changes the root DOM structure. [#12094](https://github.com/handsontable/handsontable/issues/12094)
 - Re-exported `CellMeta`, `CellProperties`, `ColumnSettings`, `GridSettings` and other public types as named top-level imports from `handsontable` and `handsontable/base`. [#11240](https://github.com/handsontable/handsontable/issues/11240)
 - Added [`hashRevealDelay`](@/api/options.md#hashrevealdelay) option to the password cell type, which briefly shows each typed character before masking it. [#12491](https://github.com/handsontable/handsontable/issues/12491)
 - Added the `visibleWhen` nested-header option (`'collapsed'`, `'expanded'`, `'always'`) that lets you choose which columns of a collapsible group stay visible when the group is collapsed or expanded. [#12776](https://github.com/handsontable/handsontable/issues/12776)
 
-#### Changed
+### Changed
 - **Breaking change**: Migrated Handsontable core source from JavaScript to TypeScript [#12011](https://github.com/handsontable/handsontable/issues/12011)
 - **Breaking change**: Renamed the `--ht-wrapper-border-radius` theme variable to `--ht-border-radius` (token `wrapperBorderRadius` to `borderRadius`) and removed the `--ht-wrapper-border-width` and `--ht-wrapper-border-color` variables (tokens `wrapperBorderWidth` and `wrapperBorderColor`). [#12775](https://github.com/handsontable/handsontable/issues/12775)
 - Dragging a selection past the viewport edge now scrolls the viewport and extends the selection to the newly-scrolled cells. [#12344](https://github.com/handsontable/handsontable/issues/12344)
@@ -248,13 +248,13 @@ For more information about this release, see:
 - Angular: Added support for installing Angular 16 through 22, without the --force flag [#12752](https://github.com/handsontable/handsontable/issues/12752)
 - Reduced memory usage and improved initialization time for large datasets by no longer materializing cell metadata for every cell during source data validation. [#12847](https://github.com/handsontable/handsontable/pull/12847)
 
-#### Deprecated
+### Deprecated
 - Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()`. The methods do nothing, log a deprecation warning, and will be removed in the next major release. Registering the `persistentStateSave`, `persistentStateLoad`, or `persistentStateReset` hook now logs a warning that 17.0 removed it. [#12727](https://github.com/handsontable/handsontable/pull/12727)
 
-#### Removed
+### Removed
 - **Breaking change**: Removed the numbro, moment.js, DOMPurify, and @handsontable/pikaday dependencies. [#12689](https://github.com/handsontable/handsontable/issues/12689)
 
-#### Fixed
+### Fixed
 - Fixed the React and Vue 3 wrappers hiding the table when `height: '100%'` was set inside a fixed-height parent. [#12445](https://github.com/handsontable/handsontable/issues/12445)
 - Fixed cell selection re-triggering on every scroll gesture on mobile devices. [#12450](https://github.com/handsontable/handsontable/issues/12450)
 - Fixed a bug where placing Handsontable inside a container with `overflow-y: hidden` and no explicit height caused the container to expand to the browser's CSS height limit (~2²⁵ px). [#12453](https://github.com/handsontable/handsontable/issues/12453)

@@ -31,11 +31,11 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Added two new Handsontable hooks, [`afterColumnSequenceChange`](@/api/hooks.md#aftercolumnsequencechange) and [`afterRowSequenceChange`](@/api/hooks.md#afterrowsequencechange), which are fired after changing the order of columns or rows, respectively. [#10215](https://github.com/handsontable/handsontable/pull/10215)
 
-#### Fixed
+### Fixed
 
 - Fixed numerous issues related to syncing Handsontable with HyperFormula. Now, formulas work properly with all the Handsontable features. [#10215](https://github.com/handsontable/handsontable/pull/10215)
 - Fixed na issue where formulas didn't recalculate after rows or columns were moved. [#4668](https://github.com/handsontable/handsontable/issues/4668)
@@ -62,14 +62,14 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Added a Chinese (zh-CN) translation of the "Copy with headers" feature.
   [#10273](https://github.com/handsontable/handsontable/pull/10273)
 - Added a new guide: [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md).
   [#10183](https://github.com/handsontable/handsontable/pull/10183)
 
-#### Fixed
+### Fixed
 
 - Fixed an issue where column-filter checkboxes got reset when the table was scrolled out of view.
   We solved this by preventing the table from triggering a complete render each time it leaves the
@@ -107,17 +107,17 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Added a Japanese translation of the "Copy with headers" feature.
   [#10201](https://github.com/handsontable/handsontable/pull/10201)
 
-#### Removed
+### Removed
 
 - Removed the two-week delay in showing the console warning about license expiration.
   [#10175](https://github.com/handsontable/handsontable/pull/10175)
 
-#### Fixed
+### Fixed
 
 - Fixed an issue where [`updateData()`](@/api/core.md#updatedata) didn't work with nested data
   structures ([`NestedRows`](@/api/nestedRows.md)).
@@ -144,7 +144,7 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Added a new feature that lets you copy the contents of column headers by using 3 new context menu
   options: "Copy with headers", "Copy with group headers", and "Copy headers only".
@@ -165,7 +165,7 @@ For more information on this release, see:
   [`afterColumnUnfreeze`](@/api/hooks.md#aftercolumnunfreeze).
   [#9859](https://github.com/handsontable/handsontable/issues/9859)
 
-#### Fixed
+### Fixed
 
 - Fixed an issue where the [`UndoRedo`](@/api/undoRedo.md) plugin didn't work properly with
   preconfigured columns. [#10108](https://github.com/handsontable/handsontable/pull/10108)
@@ -206,7 +206,7 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Added a new feature that lets you add rows and columns at a specified position. Now, the
   [`alter()`](@/api/core.md#alter) method takes 4 new parameter values: `insert_row_above`,
@@ -214,19 +214,19 @@ For more information on this release, see:
   parameters are marked as deprecated.
   [#9471](https://github.com/handsontable/handsontable/issues/9471)
 
-#### Deprecated
+### Deprecated
 
 - Deprecated the `insert_row` parameter of the `alter()` method. Instead, use `insert_row_above` or
   `insert_row_below`. [#9471](https://github.com/handsontable/handsontable/issues/9471)
 - Deprecated the `insert_col` parameter of the `alter()` method. Instead, use `insert_col_start` or
   `insert_col_end`. [#9471](https://github.com/handsontable/handsontable/issues/9471)
 
-#### Removed
+### Removed
 
 - Removed a type definition for a non-existing method, `translateRowsToColumns()`.
   [#9919](https://github.com/handsontable/handsontable/issues/9919)
 
-#### Fixed
+### Fixed
 
 - Fixed an issue where the width of the cell editor was calculated incorrectly.
   [#3815](https://github.com/handsontable/handsontable/issues/3815)
@@ -255,7 +255,7 @@ For more information on this release, see:
 
 </div>
 
-#### Removed
+### Removed
 
 - Removed a custom stable sorting implementation in favor of the stable sorting algorithm guaranteed
   by ECMAScript 2019. [#6091](https://github.com/handsontable/handsontable/issues/6091)
@@ -263,7 +263,7 @@ For more information on this release, see:
   hook `modifyRowSourceData`. [#8659](https://github.com/handsontable/handsontable/issues/8659),
   [#7317](https://github.com/handsontable/handsontable/issues/7317)
 
-#### Fixed
+### Fixed
 
 - Fixed incorrect date format conversion on input in the date editor.
   [#9681](https://github.com/handsontable/handsontable/issues/9681)
@@ -299,7 +299,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changed
+### Changed
 
 - Changed the version of the Moment.js dependency from 2.29.3 to 2.29.4, in reaction to a
   recently-found Moment.js security vulnerability. The vulnerability did not affect a correct
@@ -321,7 +321,7 @@ For more information on this release, see:
 
 </div>
 
-#### Fixed
+### Fixed
 
 - Angular: Fixed an issue where the installation of `@handsontable/angular` package failed for
   versions of Angular other than 9 [#9622](https://github.com/handsontable/handsontable/issues/9622)
@@ -340,7 +340,7 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Added smoother row and column moving when some row or columns are hidden.
   [#7613](https://github.com/handsontable/handsontable/issues/7613)
@@ -357,7 +357,7 @@ For more information on this release, see:
   [`afterColumnUnfreeze`](@/api/hooks.md#aftercolumnunfreeze).
   [#9248](https://github.com/handsontable/handsontable/issues/9248)
 
-#### Changed
+### Changed
 
 - Replaced HTML entities appearing in Handsontable's license texts with canonical counterparts.
   [#9487](https://github.com/handsontable/handsontable/issues/9487)
@@ -368,12 +368,12 @@ For more information on this release, see:
 - Angular: Moved the `@angular/core` dependency to peer dependencies.
   [#9574](https://github.com/handsontable/handsontable/issues/9574)
 
-#### Deprecated
+### Deprecated
 
 - Deprecated the `getFirstNotHiddenIndex()` method. Use `getNearestNotHiddenIndex()` instead.
   [#9064](https://github.com/handsontable/handsontable/issues/9064)
 
-#### Fixed
+### Fixed
 
 - Fixed an issue where dropdown and autocomplete cell editors rendered incorrectly if the
   [`preventOverflow`](@/api/options.md#preventoverflow) option was set to `'horizontal'`.
@@ -412,7 +412,7 @@ For more information on this release, see:
 
 </div>
 
-#### Fixed
+### Fixed
 
 - Fixed an issue where checking or unchecking a checkbox in a row with
   [`autoRowSize: true`](@/api/options.md#autorowsize) and multi-line cell values caused rows to
@@ -441,7 +441,7 @@ For more information on this release, see:
 
 </div>
 
-#### Added
+### Added
 
 - Added [`ShortcutManager`](@/api/shortcutManager.md), a new API for customizing keyboard shortcuts.
   [#8942](https://github.com/handsontable/handsontable/issues/8942)
@@ -460,7 +460,7 @@ For more information on this release, see:
 - Added support for the latest Node LTS version.
   [#9149](https://github.com/handsontable/handsontable/issues/9149)
 
-#### Changed
+### Changed
 
 - **Breaking change**: Changed how [`updateSettings()`](@/api/core.md#updatesettings) handles data
   updates, to improve performance and the consistency of user experience. Now, when provided with a
@@ -530,7 +530,7 @@ For more information on this release, see:
   engine) is not a part of Handsontable's public API.
   [#8760](https://github.com/handsontable/handsontable/issues/8760)
 
-#### Removed
+### Removed
 
 - **Breaking change**: Removed the <kbd>**Cmd**</kbd>+<kbd>**M**</kbd> keyboard shortcut (used for
   cell merging), as it conflicted with window minimizing on macOS. The <kbd>**Ctrl**</kbd> +
@@ -547,7 +547,7 @@ For more information on this release, see:
 - React: Removed the `enzyme` dependency from the React wrapper.
   [#9151](https://github.com/handsontable/handsontable/issues/9151)
 
-#### Fixed
+### Fixed
 
 - React, Angular, Vue 2, Vue 3: Fixed an issue where using
   [`updateSettings()`](@/api/core.md#updatesettings) caused problems for state managers.

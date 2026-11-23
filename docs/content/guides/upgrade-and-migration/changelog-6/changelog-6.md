@@ -25,7 +25,7 @@ For more information on this release, see:
 
 </div>
 
-#### Changes
+### Changes
 
 - Fixed a bug, where it was impossible to use mouse selection on a device which supported both mouse and touch events. ([#5669](https://github.com/handsontable/handsontable/issues/5669))
 - Fixed a bug, where the per-cell validation information was not shifted after removing rows. ([#5674](https://github.com/handsontable/handsontable/issues/5674))
