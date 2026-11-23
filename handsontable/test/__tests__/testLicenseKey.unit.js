@@ -47,7 +47,7 @@ describe('The internal test license key', () => {
     expect(state.lifecycle.state).toBe('release_valid');
     expect(state.lifecycle.isTrial).toBe(false);
     expect(state.tiers).toBeNull();
-    expect(state.badge).toBe(false);
+    expect(state.attributionBar).toBe(false);
     expect(state.channels).toEqual({ console: true, ui: true });
   });
 

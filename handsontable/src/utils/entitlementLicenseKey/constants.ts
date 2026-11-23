@@ -59,7 +59,7 @@ export const NO_CONSOLE_WARNS_FLAG = 'no-console-warns';
  * Closes the UI WARNING surfaces: no corner badge, no popover, no bottom bar.
  * Both this flag and the one above are the default for a key issued for
  * external, end-user-facing use. It does not close the "Powered by" bar a
- * `badge` key asks for - see `BADGE_FLAG`.
+ * `attribution-bar` key asks for - see `ATTRIBUTION_BAR_FLAG`.
  *
  * It does NOT close the hard-stop lock screen. The lock is enforcement rather
  * than a warning, so `mountBrandingSurface` (`utils/licenseBranding/index.ts`)
@@ -83,7 +83,7 @@ export const NO_UI_WARNS_FLAG = 'no-ui-warns';
  *
  * @type {string}
  */
-export const BADGE_FLAG = 'badge';
+export const ATTRIBUTION_BAR_FLAG = 'attribution-bar';
 
 /**
  * The number of milliseconds in a day, used to walk from one UTC midnight to

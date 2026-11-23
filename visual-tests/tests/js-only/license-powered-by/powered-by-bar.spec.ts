@@ -1,11 +1,11 @@
 import { visualTest, expect, JS_VARIANTS } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 
-type DemoKey = 'badge' | 'trial';
+type DemoKey = 'attribution-bar' | 'trial';
 
 /**
  * The instant both keys are judged at: inside the fixture trial, which runs to 2026-09-26, and before the
- * badge key's renewal notice, which starts in 2027. It is `INSTANT.duringTrial` of
+ * attribution-bar key's renewal notice, which starts in 2027. It is `INSTANT.duringTrial` of
  * `tests/fixtures/pages/LicenseBrandingPage.ts`. The clock is fixed before the page loads, so what the
  * grid shows never depends on the day the suite runs.
  */
@@ -19,7 +19,7 @@ const DURING_TRIAL = new Date('2026-09-16T00:00:00Z');
  * with no second declaration. On every other run the param stays `HOT_THEME`'s.
  */
 const BARE_RUN_THEME: Record<DemoKey, string> = {
-  badge: 'classic',
+  'attribution-bar': 'classic',
   trial: 'classic-dark',
 };
 
@@ -37,7 +37,7 @@ function demoUrl(key: DemoKey): string {
 
 /**
  * Checks how the "Powered by Handsontable DataGrid" bar looks under the grid in every theme, light and
- * dark: its padding, type, colors and logomark (Figma 1424:19574). Capture 1 is a key with the `badge`
+ * dark: its padding, type, colors and logomark (Figma 1424:19574). Capture 1 is a key with the `attribution-bar`
  * flag, which shows the bar alone; capture 2 is a running trial, which shows the bar beside the corner
  * badge in the corner header cell. On the bare run they show the classic theme, light and dark (see
  * `BARE_RUN_THEME`). When the bar shows, its link, its place last in the bottom slot, its geometry per
@@ -55,8 +55,8 @@ visualTest(__filename, {
 
   await tablePage.clock.setFixedTime(DURING_TRIAL);
 
-  // State 1: a `badge` key. The bar shows, and nothing else of the license UI does.
-  await goto(demoUrl('badge'));
+  // State 1: an `attribution-bar` key. The bar shows, and nothing else of the license UI does.
+  await goto(demoUrl('attribution-bar'));
 
   await expect(poweredBy).toBeVisible();
   await expect(badge).toHaveCount(0);

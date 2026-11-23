@@ -9,7 +9,7 @@ jest.mock('../../helpers/mixed', () => ({
     lifecycle: { state: 'trial_valid', isTrial: true, daysRemaining: 5, licensedUntil: null },
     channels: { console: false, ui: true },
     tiers: null,
-    badge: false,
+    attributionBar: false,
   })),
 }));
 
