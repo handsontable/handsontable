@@ -4,6 +4,11 @@
 let announcerElement: HTMLElement | null = null;
 let politeAnnouncerElement: HTMLElement | null = null;
 const installedPortals: HTMLElement[] = [];
+/**
+ * The pending write of each live region. A later announcement cancels it, so the region never
+ * shows an earlier message after a newer one was announced.
+ */
+const pendingWrites = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
 
 /**
  * How urgently an announcement interrupts the screen reader. `assertive` interrupts the current
@@ -115,9 +120,13 @@ export function announce(message: string, politeness: AnnouncementPoliteness = '
   // The value needs to be cleared first to ensure that screen readers announce the new message.
   liveRegion.textContent = '';
 
-  setTimeout(() => {
+  clearTimeout(pendingWrites.get(liveRegion));
+
+  pendingWrites.set(liveRegion, setTimeout(() => {
+    pendingWrites.delete(liveRegion);
+
     if (liveRegion === announcerElement || liveRegion === politeAnnouncerElement) {
       liveRegion.textContent = message;
     }
-  }, 100);
+  }, 100));
 }

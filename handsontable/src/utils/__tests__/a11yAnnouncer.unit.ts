@@ -66,6 +66,48 @@ describe('a11yAnnouncer', () => {
     portalElement.remove();
   });
 
+  it('should never write an earlier message once a later one was announced within the timeout', () => {
+    const portalElement = document.createElement('div');
+
+    install(portalElement);
+
+    const assertiveRegion = portalElement.querySelector('[aria-live="assertive"]');
+
+    announce('First message');
+    jest.advanceTimersByTime(50);
+    announce('Second message');
+    jest.advanceTimersByTime(50);
+
+    expect(assertiveRegion.textContent).toBe('');
+
+    jest.advanceTimersByTime(50);
+
+    expect(assertiveRegion.textContent).toBe('Second message');
+
+    uninstall();
+    portalElement.remove();
+  });
+
+  it('should keep a pending message in one region when the other region announces', () => {
+    const portalElement = document.createElement('div');
+
+    install(portalElement);
+
+    const assertiveRegion = portalElement.querySelector('[aria-live="assertive"]');
+    const politeRegion = portalElement.querySelector('[aria-live="polite"]');
+
+    announce('Assertive message');
+    jest.advanceTimersByTime(50);
+    announce('Polite message', 'polite');
+    jest.runAllTimers();
+
+    expect(assertiveRegion.textContent).toBe('Assertive message');
+    expect(politeRegion.textContent).toBe('Polite message');
+
+    uninstall();
+    portalElement.remove();
+  });
+
   it('should announce politely through the polite live region and leave the assertive one empty', () => {
     const portalElement = document.createElement('div');
 
