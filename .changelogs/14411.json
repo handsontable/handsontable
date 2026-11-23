@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed screen readers reading a freeze bar's value as a percentage: the bar now exposes the frozen count as its value text.",
-  "type": "fixed",
-  "issueOrPR": 14411,
-  "breaking": false,
-  "framework": "none"
-}
