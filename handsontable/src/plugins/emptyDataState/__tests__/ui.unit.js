@@ -95,6 +95,25 @@ describe('EmptyDataStateUI', () => {
       expect(inner().hasAttribute('aria-labelledby')).toBe(false);
     });
 
+    it.each([
+      ['markup with no text', '<b></b>'],
+      ['spaces', '   '],
+    ])('should not name the group by a title of %s', (_, title) => {
+      ui.updateContent({ title, description: 'Description' });
+
+      const description = ui.getElement().querySelector('.ht-empty-data-state__description');
+
+      expect(ui.getElement().querySelector('.ht-empty-data-state__title')).toBeNull();
+      expect(inner().getAttribute('aria-labelledby')).toBe(description.id);
+    });
+
+    it('should be plain content when neither part shows text', () => {
+      ui.updateContent({ title: '<i></i>', description: ' ' });
+
+      expect(inner().hasAttribute('role')).toBe(false);
+      expect(inner().hasAttribute('aria-labelledby')).toBe(false);
+    });
+
     it('should give two grids ids of their own', () => {
       const otherContainer = document.createElement('div');
 

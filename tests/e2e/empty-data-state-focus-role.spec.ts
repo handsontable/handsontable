@@ -53,4 +53,48 @@ test.describe('the empty data state message that takes the focus', { tag: CROSS_
     expect(titleId).not.toBe(descriptionId);
     await expect(grid.messageTarget).toHaveAttribute('aria-labelledby', `${titleId} ${descriptionId}`);
   });
+
+  test('gives two grids on a page ids of their own', async() => {
+    await grid.loadEmptyDataAndLeaveFocus();
+
+    const second = await grid.buildSecondGrid();
+    const firstMessage = grid.page.getByTestId('grid').locator('.ht-empty-data-state__content-wrapper-inner');
+    const first = await firstMessage.getAttribute('aria-labelledby');
+
+    expect(first).toBeTruthy();
+    await expect(second).toHaveAttribute('aria-labelledby', /\S/);
+    expect(await second.getAttribute('aria-labelledby')).not.toBe(first);
+    await expect(second).toHaveAccessibleName('No data available There\u2019s nothing to display yet.');
+    await expect(firstMessage).toHaveAccessibleName('No data available There\u2019s nothing to display yet.');
+  });
+
+  test('writes no role and no name when the grid has `ariaTags: false`', async() => {
+    const second = await grid.buildSecondGrid({ ariaTags: false });
+
+    await expect(second).not.toHaveAttribute('role', /./);
+    await expect(second).not.toHaveAttribute('aria-labelledby', /./);
+  });
+
+  test('is plain content while buttons take the focus, and a group again without them', async({ page }) => {
+    const message = await grid.buildSecondGrid({
+      emptyDataState: {
+        message: { title: 'Nothing here', description: 'Add a row to start.', buttons: [{ text: 'Add row', type: 'primary', callback: 'noop' }] },
+      },
+    });
+
+    await expect(message).not.toHaveAttribute('role', /./);
+    await expect(message.getByRole('button', { name: 'Add row' })).toBeVisible();
+
+    await page.evaluate(() => {
+      const { secondHot } = window as any;
+
+      secondHot.updateSettings({
+        emptyDataState: { message: { title: 'Nothing here', description: 'Add a row to start.' } },
+      });
+      secondHot.loadData([]);
+    });
+
+    await expect(message).toHaveAttribute('role', 'group');
+    await expect(message).toHaveAccessibleName('Nothing here Add a row to start.');
+  });
 });

@@ -70,6 +70,54 @@ export class EmptyDataStateShortcutsPage {
     return this.page.locator('.ht-empty-data-state').locator('visible=true');
   }
 
+  /**
+   * Builds a second grid with an empty data state on the page, with its own settings, and returns the
+   * element of its message that takes the focus.
+   *
+   * @param {object} settings Setting overrides of the second grid, `ariaTags` for one.
+   * @returns {Locator} The second grid's message element.
+   */
+  async buildSecondGrid(settings: Record<string, unknown> = {}): Promise<Locator> {
+    await this.page.evaluate((overrides) => {
+      const host = document.createElement('div');
+
+      host.setAttribute('data-testid', 'second-grid');
+      document.body.appendChild(host);
+      const win = window as any;
+
+      // A function cannot cross the evaluate boundary, so a `callback` key arrives as a placeholder and
+      // becomes a no-op here, which the buttons of the message require.
+      const revive = (value: unknown): unknown => {
+        if (Array.isArray(value)) {
+          return value.map(revive);
+        }
+
+        if (value !== null && typeof value === 'object') {
+          return Object.fromEntries(Object.entries(value).map(
+            ([key, item]) => [key, key === 'callback' ? () => {} : revive(item)]));
+        }
+
+        return value;
+      };
+
+      win.secondHot = new win.Handsontable(host, {
+        data: [],
+        colHeaders: ['A', 'B'],
+        width: 300,
+        height: 200,
+        emptyDataState: true,
+        licenseKey: win.htTestLicenseKey,
+        ...(revive(overrides) as Record<string, unknown>),
+      });
+    }, settings);
+
+    const message = this.page.getByTestId('second-grid').locator('.ht-empty-data-state__content-wrapper-inner');
+
+    await expect(message).toBeVisible();
+
+    return message;
+  }
+
   /** The element of the message that takes the focus when the message has no buttons. */
   get messageTarget(): Locator {
     return this.overlay.locator('.ht-empty-data-state__content-wrapper-inner');

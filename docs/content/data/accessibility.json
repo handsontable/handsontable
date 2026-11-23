@@ -122,12 +122,6 @@
       "reportRef": null
     },
     {
-      "id": "loading-icon-not-hidden",
-      "text": "The loading icon (an SVG) is not hidden from screen readers.",
-      "criteria": ["1.1.1"],
-      "reportRef": null
-    },
-    {
       "id": "dialog-default-name",
       "text": "The dialog's default accessible name is the word \"Dialog\"; pass `a11y.ariaLabel` in the dialog settings to name it after its content.",
       "criteria": ["4.1.2"],

@@ -53,6 +53,16 @@ const messageIds = (idPrefix: string) => ({
   description: `${idPrefix}-${EMPTY_DATA_STATE_CLASS_NAME}-description`,
 });
 
+/**
+ * Whether a title or a description shows any text once its markup is stripped and its spaces trimmed.
+ * The message renders a title or a description only when it does, and names the focus target by the
+ * ones it rendered, so a value like `'<b></b>'` or `' '` leaves no empty heading behind a name.
+ *
+ * @param {string|undefined} value The title or the description.
+ * @returns {boolean} `true` when the value shows text.
+ */
+const showsText = (value: string | undefined): value is string => !!value && htmlToPlainText(value).trim() !== '';
+
 const templateContent = (
   { title, description, buttons }: MessageContent, idPrefix: string, isLoading = false
 ): TemplateSpec[] => {
@@ -69,13 +79,13 @@ const templateContent = (
       tag: 'div',
       className: `${EMPTY_DATA_STATE_CLASS_NAME}__content`,
       children: [
-        title ? {
+        showsText(title) ? {
           tag: 'h2',
           className: `${EMPTY_DATA_STATE_CLASS_NAME}__title`,
           attrs: { id: ids.title },
           text: htmlToPlainText(title),
         } : null,
-        description ? {
+        showsText(description) ? {
           tag: 'p',
           className: `${EMPTY_DATA_STATE_CLASS_NAME}__description`,
           attrs: { id: ids.description },
@@ -408,7 +418,9 @@ export class EmptyDataStateUI {
     }
 
     const ids = messageIds(this.#idPrefix);
-    const labelIds = [content.title ? ids.title : '', content.description ? ids.description : ''].filter(Boolean);
+    const labelIds = [
+      showsText(content.title) ? ids.title : '', showsText(content.description) ? ids.description : ''
+    ].filter(Boolean);
 
     if (labelIds.length === 0) {
       // A message with neither a title nor a description has nothing to name the group by.

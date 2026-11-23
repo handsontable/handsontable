@@ -45,4 +45,27 @@ test.describe('the tab stop of a sheet tab being renamed', { tag: CROSS_BROWSER_
     await expect(fixture.tab(0)).toHaveAttribute('role', 'button');
     await expect(fixture.tab(0)).toHaveAttribute('tabindex', '0');
   });
+
+  test('gives the Tab stop back when Enter ends the rename', async({ page }) => {
+    await page.keyboard.press('Enter');
+
+    await expect(fixture.renameInput).toBeHidden();
+    await expect(fixture.tab(0)).toHaveAttribute('role', 'button');
+    await expect(fixture.tab(0)).toHaveAttribute('tabindex', '0');
+  });
+
+  test('gives the Tab stop back when the field loses the focus', async({ page }) => {
+    await fixture.addButton.focus();
+
+    await expect(fixture.renameInput).toBeHidden();
+    await expect(fixture.tab(0)).toHaveAttribute('role', 'button');
+    await expect(fixture.tab(0)).toHaveAttribute('tabindex', '0');
+  });
+
+  test('Shift+Tab from the name field does not put the focus on the tab around it', async({ page }) => {
+    await page.keyboard.press('Shift+Tab');
+
+    await expect(fixture.renameInput).toBeHidden();
+    expect(await page.evaluate(() => document.activeElement?.closest('.ht-sheets-bar__tab--renaming') ?? null)).toBeNull();
+  });
 });

@@ -1,4 +1,4 @@
-import { createFocusScopeManager } from '../scopeManager';
+import { createFocusScopeManager, refreshFocusCatchers } from '../scopeManager';
 import type { FocusScopeManager } from '../scopeManager';
 import type { HotInstance } from '../../core/types';
 
@@ -13,8 +13,11 @@ function makeManager() {
   const wrapper = document.createElement('div');
   const container = document.createElement('div');
 
+  const portal = document.createElement('div');
+
   wrapper.appendChild(container);
   document.body.appendChild(wrapper);
+  document.body.appendChild(portal);
 
   let activeContextName = 'grid';
   const context = { setFallbackContext: jest.fn() };
@@ -22,6 +25,7 @@ function makeManager() {
     rootDocument: document,
     rootWindow: window,
     rootWrapperElement: wrapper,
+    rootPortalElement: portal,
     getShortcutManager: () => ({
       getOrCreateContext: () => context,
       getContext: () => context,
@@ -35,6 +39,8 @@ function makeManager() {
   } as unknown as HotInstance;
 
   return {
+    hot,
+    portal,
     manager: createFocusScopeManager(hot),
     container,
     getActiveContextName: () => activeContextName,
@@ -149,15 +155,26 @@ describe('FocusScopeManager#activateScope', () => {
 describe('FocusScopeManager focus catchers', () => {
   let manager: FocusScopeManager;
   let container: HTMLElement;
+  let portal: HTMLElement;
+  let hot: HotInstance;
 
   const catchers = () => Array.from(document.querySelectorAll<HTMLElement>('.htFocusCatcher'));
-  const focusIn = (parent: HTMLElement) => {
+  const focusIn = (parent: HTMLElement, host: HTMLElement) => {
     const target = document.createElement('div');
 
     target.tabIndex = -1;
     parent.appendChild(target);
-    document.body.appendChild(parent);
+    host.appendChild(parent);
     target.focus();
+
+    return target;
+  };
+  const makeMenu = () => {
+    const menu = document.createElement('div');
+
+    menu.className = 'htMenu';
+
+    return menu;
   };
 
   beforeEach(() => {
@@ -165,6 +182,8 @@ describe('FocusScopeManager focus catchers', () => {
 
     manager = made.manager;
     container = made.container;
+    portal = made.portal;
+    hot = made.hot;
     manager.registerScope('grid', container);
     manager.activateScope('grid');
   });
@@ -175,20 +194,40 @@ describe('FocusScopeManager focus catchers', () => {
   });
 
   it('should arm the catchers while the focus is outside the active scope (control)', () => {
-    focusIn(document.createElement('div'));
+    focusIn(document.createElement('div'), document.body);
     manager.deactivateScope('grid');
 
     expect(catchers()).toHaveLength(2);
     expect(catchers().map(catcher => catcher.tabIndex)).toEqual([0, 0]);
   });
 
-  it('should keep the catchers out of the Tab order while a menu holds the focus', () => {
-    const menu = document.createElement('div');
-
-    menu.className = 'htMenu';
-    focusIn(menu);
+  it('should keep the catchers out of the Tab order while a menu of the instance holds the focus', () => {
+    focusIn(makeMenu(), portal);
     manager.deactivateScope('grid');
 
     expect(catchers().map(catcher => catcher.tabIndex)).toEqual([-1, -1]);
+  });
+
+  it('should keep them armed while a menu of another instance holds the focus', () => {
+    focusIn(makeMenu(), document.body);
+    manager.deactivateScope('grid');
+
+    expect(catchers().map(catcher => catcher.tabIndex)).toEqual([0, 0]);
+  });
+
+  it('should arm them again when the menu is gone and the focus fell outside every scope', () => {
+    const target = focusIn(makeMenu(), portal);
+
+    manager.deactivateScope('grid');
+    expect(catchers().map(catcher => catcher.tabIndex)).toEqual([-1, -1]);
+
+    target.parentElement!.remove();
+    refreshFocusCatchers(hot);
+
+    expect(catchers().map(catcher => catcher.tabIndex)).toEqual([0, 0]);
+  });
+
+  it('should leave an instance with no scope manager alone', () => {
+    expect(() => refreshFocusCatchers({} as HotInstance)).not.toThrow();
   });
 });
