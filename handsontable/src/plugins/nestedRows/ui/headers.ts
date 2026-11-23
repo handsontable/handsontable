@@ -13,6 +13,12 @@ import {
 } from '../../../helpers/a11y';
 import { createIcon } from '../../../themes/engine/icons';
 import type { RowTreePosition } from '../data/dataManager';
+import {
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED,
+  NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED,
+} from '../../../i18n/constants';
+import { getCellDescriptionElementId } from '../../../utils/cellDescription/cellDescription';
 
 /**
  * The treegrid attributes this plugin writes on a row's `TR`. Walkontable recycles `TR` elements
@@ -60,6 +66,7 @@ interface NestedRowsDataManager {
   getRowLevel(rowIndex: number): number;
   getRowTreePosition(rowIndex: number): RowTreePosition | null;
   hasChildren(rowObject: Record<string, unknown>): boolean;
+  isParent(rowIndex: number): boolean;
   cache: { levelCount: number };
 }
 
@@ -162,6 +169,8 @@ class HeadersUI extends BaseUI {
       return;
     }
 
+    this.updateHeaderDescription(TH, rowIndex);
+
     const rowLevel = this.dataManager!.getRowLevel(rowIndex);
     const innerDiv = TH.getElementsByTagName('DIV')[0];
     const innerSpan = innerDiv.querySelector('span.rowHeader');
@@ -256,6 +265,65 @@ class HeadersUI extends BaseUI {
       A11Y_POSINSET(treePosition.position),
       A11Y_SETSIZE(treePosition.setSize),
     ]);
+  }
+
+  /**
+   * Builds the text that describes where a row sits in the tree: "Level 2, 1 of 3", with ", expanded" or
+   * ", collapsed" for a parent. Three whole phrases, never a concatenation, so a translation can order them.
+   * The numbers come from `getRowTreePosition()`, the call the row attributes are written from, so the
+   * description and the attributes cannot disagree. Read through `getTranslatedPhrase()` on every call, so
+   * a dictionary registered later takes effect on the next render.
+   *
+   * @private
+   * @param {number} physicalRow Physical row index.
+   * @returns {string|null} `null` for a row the tree does not know.
+   */
+  getRowLevelDescription(physicalRow: number): string | null {
+    const treePosition = this.dataManager!.getRowTreePosition(physicalRow);
+
+    if (!treePosition) {
+      return null;
+    }
+
+    let phrase = NESTED_ROWS_ANNOUNCEMENT_LEVEL;
+
+    if (this.dataManager!.isParent(physicalRow)) {
+      phrase = this.collapsingUI!.areChildrenCollapsed(physicalRow) ?
+        NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED : NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED;
+    }
+
+    return this.hot.getTranslatedPhrase(phrase, { ...treePosition });
+  }
+
+  /**
+   * Points a row header that takes the focus (`navigableHeaders`) at the hidden element that describes the
+   * row's cells, so the header is described by the same level and position as the cells of its row. The
+   * element is the one the cell description keeps for that text, never a second copy. Walkontable strips
+   * every `aria-*` from a `TH` on each paint, so this runs on every header paint and writes only when the
+   * value differs.
+   *
+   * @private
+   * @param {HTMLTableCellElement} TH Row header element.
+   * @param {number} physicalRow Physical row index.
+   */
+  updateHeaderDescription(TH: HTMLTableCellElement, physicalRow: number) {
+    const { ariaTags, navigableHeaders } = this.hot.getSettings();
+
+    if (!ariaTags || !navigableHeaders) {
+      return;
+    }
+
+    const text = this.getRowLevelDescription(physicalRow);
+
+    if (typeof text !== 'string' || text === '') {
+      return;
+    }
+
+    const id = getCellDescriptionElementId(this.hot, text);
+
+    if (TH.getAttribute('aria-describedby') !== id) {
+      TH.setAttribute('aria-describedby', id);
+    }
   }
 
   /**

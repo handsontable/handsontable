@@ -16,7 +16,7 @@ function collapsingUIWithChildren(childCount) {
     children[index] = { a: `child ${index}` };
   }
 
-  const dataManager = new DataManager(null, null);
+  const dataManager = new DataManager(null, { markAllCellsChanged: () => {} });
   const trimmedRows = new Map();
 
   dataManager.updateWithData([{ a: 'parent', __children: children }]);

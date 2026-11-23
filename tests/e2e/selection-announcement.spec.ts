@@ -225,7 +225,7 @@ test.describe('Selection announcements', () => {
     expect((await grid.announcements()).at(-1)).toBe('Columns A to C selected');
   });
 
-  test('a row header click on a nested row announces its level only', { tag: CROSS_BROWSER_TAG }, async() => {
+  test('a row header click on a nested row announces the row once, and no level', { tag: CROSS_BROWSER_TAG }, async() => {
     await open({ plugin: 'nestedRows' });
 
     await grid.rowHeader(2).click();
@@ -233,8 +233,8 @@ test.describe('Selection announcements', () => {
 
     const log = await grid.announcements();
 
-    expect(log).toEqual(['Level 2, 2 of 2']);
-    expect(log.filter(text => text.endsWith('selected'))).toEqual([]);
+    expect(log).toEqual(['Row 3 selected']);
+    expect(log.filter(text => text.startsWith('Level '))).toEqual([]);
   });
 
   test('an announcement of another grid in the middle of a key sequence does not silence the range',

@@ -448,4 +448,212 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
       dataManager.detachFromParent(dataManager.getDataObject(row));
     }, physicalRow);
   }
+
+  /**
+   * Navigate to the fixture with frozen columns, or with a second grid on the page, on top of the
+   * options {@link NestedRowsTreegridPage#goto} takes.
+   *
+   * @param options.fixedColumnsStart `1` freezes the first column.
+   * @param options.secondGrid `on` builds a second, identical grid (`window.hot2`) below the first.
+   * @param options.navigableHeaders `off` builds the grid with `navigableHeaders: false`.
+   * @param options.aria `off` builds the grid with `ariaTags: false`.
+   */
+  async gotoWith(options: {
+    fixedColumnsStart?: 0 | 1;
+    secondGrid?: 'on' | 'off';
+    navigableHeaders?: 'on' | 'off';
+    aria?: 'on' | 'off';
+  }): Promise<void> {
+    const query = `theme=${this.theme}&bundle=${this.bundle}&dir=ltr&aria=${options.aria ?? 'on'}` +
+      `&navigableHeaders=${options.navigableHeaders ?? 'on'}` +
+      `&fixedColumnsStart=${options.fixedColumnsStart ?? 0}&secondGrid=${options.secondGrid ?? 'off'}`;
+
+    await this.page.goto(`/tests/fixtures/demo/nested-rows-treegrid.html?${query}`);
+    await awaitBundle(this.page);
+    await expect(this.page.locator('[data-testid="grid"] .ht_master').getByTestId('cell-0-0')).toBeVisible();
+  }
+
+  /**
+   * The accessible description of every copy of a data cell, read the way the accessible name
+   * computation reads `aria-describedby`: each referenced element's text, joined with spaces, in the
+   * order of the ids. The copies are the master's and, with frozen columns, the frozen clone's, and the
+   * read throws when they disagree or when an id references nothing.
+   *
+   * @param row Visual row index.
+   * @param column Visual column index.
+   */
+  cellDescription(row: number, column: number): Promise<string> {
+    return this.page.evaluate(([visualRow, visualColumn]) => {
+      const describe = (element: Element) => (element.getAttribute('aria-describedby') ?? '')
+        .split(' ')
+        .filter(Boolean)
+        .map((id) => {
+          const target = document.getElementById(id);
+
+          if (!target) {
+            throw new Error(`aria-describedby references a missing id: ${id}`);
+          }
+
+          return target.textContent ?? '';
+        })
+        .join(' ');
+      const copies = Array.from(document.querySelectorAll(
+        `[data-testid="grid"] [data-testid="cell-${visualRow}-${visualColumn}"]`
+      )).map(describe);
+
+      if (copies.length === 0) {
+        throw new Error(`Cell ${visualRow}, ${visualColumn} is not rendered`);
+      }
+
+      if (new Set(copies).size !== 1) {
+        throw new Error(`Cell copies disagree: ${JSON.stringify(copies)}`);
+      }
+
+      return copies[0];
+    }, [row, column]);
+  }
+
+  /**
+   * The description of every rendered row, by the row's name, read off the first column's cells.
+   */
+  descriptionsByName(): Promise<Record<string, string>> {
+    return this.page.evaluate(() => {
+      const result: Record<string, string> = {};
+
+      document.querySelectorAll('[data-testid="grid"] .ht_master tbody td[data-testid$="-0"]')
+        .forEach((TD) => {
+          const ids = (TD.getAttribute('aria-describedby') ?? '').split(' ').filter(Boolean);
+
+          result[TD.textContent ?? ''] = ids.map(id => document.getElementById(id)?.textContent ?? '?')
+            .join(' ');
+        });
+
+      return result;
+    });
+  }
+
+  /**
+   * The text the row header of a row is described by, read through its `aria-describedby`, or `null`
+   * when it has none. Read from the inline-start clone, the copy a user focuses.
+   *
+   * @param row Visual row index.
+   */
+  rowHeaderDescription(row: number): Promise<string | null> {
+    return this.page.evaluate((visualRow) => {
+      const TH = document
+        .querySelectorAll('[data-testid="grid"] .ht_clone_inline_start tbody tr')[visualRow]
+        ?.querySelector('th');
+      const id = TH?.getAttribute('aria-describedby');
+
+      return id ? document.getElementById(id)?.textContent ?? null : null;
+    }, row);
+  }
+
+  /**
+   * Every id that any cell or header on the page references through `aria-describedby`: how many of them
+   * name an element that holds a row level ("Level …"), which ids more than one element carries, and
+   * which ids name no element.
+   */
+  idHealth(): Promise<{ rowDescriptionIds: number; duplicateIds: string[]; danglingIds: string[] }> {
+    return this.page.evaluate(() => {
+      const counts = new Map<string, number>();
+
+      document.querySelectorAll('[id]').forEach((element) => {
+        counts.set(element.id, (counts.get(element.id) ?? 0) + 1);
+      });
+
+      const referenced = new Set<string>();
+
+      document.querySelectorAll('[aria-describedby]').forEach((element) => {
+        (element.getAttribute('aria-describedby') ?? '').split(' ').filter(Boolean)
+          .forEach(id => referenced.add(id));
+      });
+
+      return {
+        rowDescriptionIds: Array.from(referenced)
+          .filter(id => (document.getElementById(id)?.textContent ?? '').startsWith('Level ')).length,
+        duplicateIds: Array.from(counts).filter(([, count]) => count > 1).map(([id]) => id),
+        danglingIds: Array.from(referenced).filter(id => !counts.has(id)),
+      };
+    });
+  }
+
+  /**
+   * How many cells of the first grid are described by a text that holds a row level, and how many
+   * row headers of it are.
+   */
+  rowDescriptionTraces(): Promise<{ describedCells: number; describedHeaders: number }> {
+    return this.page.evaluate(() => {
+      const hasLevel = (element: Element) => (element.getAttribute('aria-describedby') ?? '')
+        .split(' ')
+        .filter(Boolean)
+        .some(id => (document.getElementById(id)?.textContent ?? '').includes('Level '));
+
+      return {
+        describedCells: Array.from(document.querySelectorAll('[data-testid="grid"] td')).filter(hasLevel).length,
+        describedHeaders: Array.from(document.querySelectorAll('[data-testid="grid"] tbody th')).filter(hasLevel)
+          .length,
+      };
+    });
+  }
+
+  /**
+   * The `aria-describedby` of a master data cell, as written.
+   *
+   * @param row Visual row index.
+   * @param column Visual column index.
+   */
+  cellDescribedBy(row: number, column: number): Promise<string | null> {
+    return this.page.locator('[data-testid="grid"] .ht_master')
+      .getByTestId(`cell-${row}-${column}`).getAttribute('aria-describedby');
+  }
+
+  /**
+   * The id of a column header of the first grid, by its index.
+   *
+   * @param column Visual column index.
+   */
+  columnHeaderId(column: number): Promise<string | null> {
+    return this.page.evaluate((visualColumn) => {
+      const id = `${window.hot.guid}-colheader-${visualColumn}`;
+
+      return document.getElementById(id) ? id : null;
+    }, column);
+  }
+
+  /**
+   * Press ArrowDown several times from one task, so the presses land before the grid renders the
+   * moves between them, the way fast repeated presses can.
+   *
+   * @param count How many presses.
+   */
+  async pressArrowDownInOneTask(count: number): Promise<void> {
+    await this.page.evaluate((presses) => {
+      for (let i = 0; i < presses; i++) {
+        document.activeElement?.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'ArrowDown', code: 'ArrowDown', keyCode: 40, bubbles: true, cancelable: true,
+        }));
+      }
+    }, count);
+  }
+
+  /**
+   * Make every cell of a row read-only through the `cells` option.
+   *
+   * @param physicalRow Physical row index, which the `cells` callback receives.
+   */
+  async makeRowReadOnly(physicalRow: number): Promise<void> {
+    await this.page.evaluate((row) => {
+      window.hot.updateSettings({
+        cells: (cellRow: number) => (cellRow === row ? { readOnly: true } : {}),
+      });
+    }, physicalRow);
+  }
+
+  /**
+   * Render the grid, as any later change would.
+   */
+  async render(): Promise<void> {
+    await this.page.evaluate(() => window.hot.render());
+  }
 }

@@ -12,6 +12,7 @@ export { CELL_DESCRIPTION_ID_PREFIX };
  * The position of each part in the description. A part with a lower rank is read first.
  */
 export const CELL_DESCRIPTION_RANK = {
+  TREE_POSITION: 5,
   READ_ONLY: 10,
   LINK: 20,
   MERGED: 30,
@@ -148,11 +149,14 @@ const elementsOfRoot = new WeakMap<HTMLElement, DescriptionElements>();
  * resolve in the tree the cell is in (a grid inside a shadow root). The element is remembered, so a paint that finds
  * it still in the root searches nothing; one that a host's own markup removed is made again under a new id.
  *
+ * Exported for an element that is not a data cell but has to be described by the same text as the cells (a row
+ * header that takes the focus), so both point at one element and no second store of elements exists.
+ *
  * @param {CellDescriptionHost} hot The Handsontable instance.
  * @param {string} text The description.
  * @returns {string}
  */
-function getDescriptionElementId(hot: CellDescriptionHost, text: string): string {
+export function getCellDescriptionElementId(hot: CellDescriptionHost, text: string): string {
   let elements = elementsOfRoot.get(hot.rootElement);
 
   if (elements === undefined) {
@@ -203,7 +207,7 @@ export function applyCellDescription(hot: CellDescriptionHost, TD: HTMLTableCell
   const tokens = current.split(' ').filter(token => token !== '' && !token.startsWith(CELL_DESCRIPTION_ID_PREFIX));
 
   if (text !== '') {
-    tokens.push(getDescriptionElementId(hot, text));
+    tokens.push(getCellDescriptionElementId(hot, text));
   }
 
   const next = tokens.join(' ');

@@ -505,9 +505,9 @@ The position and the number of siblings come from your data. Rows that the [`Hid
 
 When you collapse or expand a row with the keyboard or with the row header button, Handsontable announces the change through a polite live region: for example, "Expanded row 1, expanded rows shown: 5" or "Collapsed row 1". The row is named after the text its row header shows, the same label sighted users see next to the row, or after its row number when the header is empty. Changes made through the API methods are not announced, so your application can describe them in its own words. With `ariaTags` set to `false`, nothing is announced.
 
-When the selection moves to another row, Handsontable also announces the row's level and position, for example "Level 2, 1 of 3". A parent row adds ", expanded" or ", collapsed".
+Each cell of a row also has an accessible description with the row's level and position, for example "Level 2, 1 of 3". A parent row adds ", expanded" or ", collapsed". A screen reader reads the description together with the cell, so the level you hear belongs to the cell you hear, even when you move fast. With [`navigableHeaders`](@/api/options.md#navigableheaders) turned on, a row header that takes the focus has the same description. With `ariaTags` set to `false`, cells get no description.
 
-The announcement text is translated. To change it, override the `NestedRows:announcement.expanded`, `NestedRows:announcement.collapsed`, `NestedRows:announcement.level`, `NestedRows:announcement.level.expanded`, and `NestedRows:announcement.level.collapsed` keys in your [language dictionary](@/guides/internationalization/language/language.md).
+The announcement and description text is translated. To change it, override the `NestedRows:announcement.expanded`, `NestedRows:announcement.collapsed`, `NestedRows:announcement.level`, `NestedRows:announcement.level.expanded`, and `NestedRows:announcement.level.collapsed` keys in your [language dictionary](@/guides/internationalization/language/language.md).
 
 ### Keyboard shortcuts
 

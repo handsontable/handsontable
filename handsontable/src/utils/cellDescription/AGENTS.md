@@ -16,7 +16,7 @@ and `#describeCell()` after the last `afterRenderer` listener. In between, a plu
   (`CELL_DESCRIPTION_ID_PREFIX`), kept in a `WeakMap` keyed by the root element, with the element itself, so a paint that finds it
   still in the root searches nothing. `n` only grows: an element a host's own markup removed is made again under a new id, and
   an id is never used twice in a root. A grid has a handful of them (read only,
-  link, read only with link, one per distinct merged phrase), never one per cell. They sit in the root, not in the page's
+  link, read only with link, one per distinct merged phrase, one per distinct tree position), never one per cell. They sit in the root, not in the page's
   portal, because an id has to resolve in the tree the cell is in (a grid inside a shadow root). They are `hidden` and never
   in a cell, so `textContent`, `innerText`, the copied text, the cell's box and its accessible **name** do not change.
 - **The cell's `aria-describedby` keeps the column header first.** Walkontable writes `aria-describedby = <column header id>`
@@ -27,6 +27,7 @@ and `#describeCell()` after the last `afterRenderer` listener. In between, a plu
 
 | Rank | Part | Fed by |
 |---|---|---|
+| `TREE_POSITION` (5) | `NestedRows:announcement.level`, `.level.expanded`, `.level.collapsed` with `[level]`/`[position]`/`[setSize]` | NestedRows' `afterRenderer`, on every data cell of a row the tree knows (`HeadersUI#getRowLevelDescription()`). First, because it describes the row, not the cell. One element per distinct level, position, set size and state: a few per parent, but a flat top level of N rows makes up to N over a scroll |
 | `READ_ONLY` (10) | `CellDescription:readOnly` | the painter itself, from `cellProperties.readOnly` |
 | `LINK` (20) | `CellDescription:link` | `describeLink()` (`utils/cellLinks/describeLink.ts`), called by AutoLink when `linkifyCell()` made an anchor and by the Formulas `HYPERLINK` pass right after it wraps the cell |
 | `MERGED` (30) | `CellDescription:merged` with `[row]`/`[column]` | `mergeCells/renderer.ts`, for the origin of a block: the block's last cell by its `aria-rowindex` and `aria-colindex` (header rows and row header columns counted, hidden lines skipped), so the numbers agree with what the screen reader says for that cell |
@@ -41,6 +42,10 @@ Rules, each from a measured reason:
   of them. Do not move a part to `::after` or `aria-label` without that argument: `aria-label` on a gridcell replaces the
   value, `title` is dropped from a cell that has `aria-describedby`, and `aria-description` loses to the
   `aria-describedby` Walkontable writes.
+- **An element that is not a data cell can share a description through `getCellDescriptionElementId(hot, text)`.**
+  It returns the id of the element for that text, making it the first time, from the same store the cells use, so a
+  focusable row header (NestedRows with `navigableHeaders`) points at the element its row's cells point at. Never build
+  a second store of hidden elements. The caller writes its own `aria-describedby`: the painter only touches data cells.
 - **A part with free text per cell does not belong here.** One element per distinct text is only cheap for a short list of
   phrases. A formula's text is different for every cell, so it stays on the name channel (`::after`) in the Formulas plugin.
   A read-only formula cell therefore reads `3 Formula: =SUM(A1:B1)` and is described as `read only`.

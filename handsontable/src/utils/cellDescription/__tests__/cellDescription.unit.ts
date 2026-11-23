@@ -4,6 +4,7 @@ import {
   addCellDescriptionPart,
   applyCellDescription,
   beginCellDescription,
+  getCellDescriptionElementId,
   removeCellDescriptionPart,
 } from '../cellDescription';
 
@@ -319,5 +320,45 @@ describe('cellDescription', () => {
 
     expect(descriptionOf(hot, inner)).toBe('link');
     expect(descriptionOf(hot, outer)).toBe('read only, merged through row 4 column 3');
+  });
+
+  it('should read the tree position first, before read only, a link and a merged block', () => {
+    const hot = createHot();
+    const cell = createCell();
+
+    describe_(hot, cell, [
+      [CELL_DESCRIPTION_RANK.MERGED, 'merged through row 4 column 3'],
+      [CELL_DESCRIPTION_RANK.READ_ONLY, 'read only'],
+      [CELL_DESCRIPTION_RANK.TREE_POSITION, 'Level 2, 1 of 3'],
+      [CELL_DESCRIPTION_RANK.LINK, 'link'],
+    ]);
+
+    expect(descriptionOf(hot, cell)).toBe('Level 2, 1 of 3, read only, link, merged through row 4 column 3');
+    expect(CELL_DESCRIPTION_RANK.TREE_POSITION).toBeLessThan(CELL_DESCRIPTION_RANK.READ_ONLY);
+  });
+
+  it('should give an element outside the cells the id of the element a cell with the same text points at', () => {
+    const hot = createHot();
+    const cell = createCell();
+
+    describe_(hot, cell, [[CELL_DESCRIPTION_RANK.TREE_POSITION, 'Level 2, 1 of 3']]);
+
+    const id = getCellDescriptionElementId(hot, 'Level 2, 1 of 3');
+
+    expect(cell.getAttribute('aria-describedby')).toBe(id);
+    expect(hot.rootElement.querySelectorAll(`[id^="${CELL_DESCRIPTION_ID_PREFIX}"]`)).toHaveLength(1);
+  });
+
+  it('should make a hidden element in the root for a text no cell holds yet, and give its id again', () => {
+    const hot = createHot();
+
+    const id = getCellDescriptionElementId(hot, 'Level 1, 2 of 2, collapsed');
+    const element = hot.rootElement.querySelector(`#${id}`);
+
+    expect(id.startsWith(`${CELL_DESCRIPTION_ID_PREFIX}${hot.guid}-`)).toBe(true);
+    expect(element?.textContent).toBe('Level 1, 2 of 2, collapsed');
+    expect(element?.hasAttribute('hidden')).toBe(true);
+    expect(getCellDescriptionElementId(hot, 'Level 1, 2 of 2, collapsed')).toBe(id);
+    expect(hot.rootElement.querySelectorAll(`[id^="${CELL_DESCRIPTION_ID_PREFIX}"]`)).toHaveLength(1);
   });
 });

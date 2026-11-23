@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "id": "nested-rows",
-  "surface": "The treegrid rows of the NestedRows plugin: a collapse and an expand from the row header, and the level a cell announces.",
+  "surface": "The treegrid rows of the NestedRows plugin: a collapse and an expand from the row header, and the level a cell is described by.",
   "group": "keyboard",
   "page": "nested-rows",
   "criteria": ["1.3.1", "4.1.2", "4.1.3"],
@@ -24,13 +24,13 @@
       "id": "into-parent-cell",
       "action": { "press": "ArrowRight" },
       "expect": [["root a"], ["level 1", "1 of 2"], ["row 2"], ["column 2"]],
-      "note": "aria-level, aria-posinset and aria-setsize sit on the row, and no reader announces them for a cell, so the plugin announces the level and the set position politely when the focus reaches another row (`Level 1, 1 of 2, expanded`); the level or the set position is required beside the cell's place. NVDA reads the cell and then the message on both browsers, and so does VoiceOver with Chromium. Finding: on VoiceOver with WebKit the message replaces the cell's own announcement, so it reads the message alone. VoiceOver names no row index on a cell move, and with Chromium says `column 1` for the second column."
+      "note": "aria-level, aria-posinset and aria-setsize sit on the row, and no reader announces them for a cell, so every cell of the row is described by the level and the set position (`Level 1, 1 of 2, expanded`, through aria-describedby); the level or the set position is required beside the cell's place. Earlier runs heard a polite live message instead, which VoiceOver with WebKit read in place of the cell; the description replaces that message, and the next recording run shows what each reader says now. VoiceOver names no row index on a cell move, and with Chromium says `column 1` for the second column."
     },
     {
       "id": "down-to-child",
       "action": { "press": "ArrowDown" },
       "expect": [["a 1"], ["level 2", "1 of 3"], ["row 3"], ["column 2"]],
-      "note": "The parent's first child, one level down, with its level announced as on the parent (`Level 2, 1 of 3`). Finding: as on the parent, VoiceOver with WebKit reads the message alone."
+      "note": "The parent's first child, one level down, described with its level as the parent is (`Level 2, 1 of 3`)."
     }
   ]
 }

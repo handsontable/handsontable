@@ -16,10 +16,9 @@ import { isGridBodyCovered } from '../../shortcuts/guards';
 import {
   NESTED_ROWS_ANNOUNCEMENT_COLLAPSED,
   NESTED_ROWS_ANNOUNCEMENT_EXPANDED,
-  NESTED_ROWS_ANNOUNCEMENT_LEVEL,
-  NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED,
-  NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED,
 } from '../../i18n/constants';
+import { CELL_DESCRIPTION_RANK, addCellDescriptionPart } from '../../utils/cellDescription/cellDescription';
+import type { CellProperties } from '../../settings';
 import { LICENSE } from './feature.generated';
 
 export const PLUGIN_KEY = 'nestedRows';
@@ -29,12 +28,6 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * The source the fill handle inserts its rows with (`Autofill#addRow()`).
  */
 const AUTOFILL_INSERT_SOURCE = 'Autofill.fill';
-
-/**
- * The selection sources that re-lay a selection the user already has (a structural shift, a clamp, a
- * data load). The highlight they report is not a move the user made, so it announces no row level.
- */
-const SILENT_SELECTION_SOURCES = ['shift', 'refresh', 'loadData', 'updateData', 'deselect'];
 
 /**
  * Error message for the wrong data type error.
@@ -55,15 +48,6 @@ interface CollapsedRowCell {
  */
 interface CollapsedParentsState {
   readonly collapsedRows: readonly number[];
-}
-
-/**
- * Where the active highlight sat when the plugin last looked: the record under it, and whether it was
- * on a header of that row.
- */
-interface HighlightPosition {
-  physicalRow: number | null;
-  isHeader: boolean;
 }
 
 /**
@@ -223,23 +207,6 @@ export class NestedRows extends BasePlugin {
   #waitsForObjectData = false;
 
   /**
-   * Where the active highlight sat after the last selection change, or `null` while nothing is
-   * selected. The level announcement compares the next highlight with it, by record and not by visual
-   * row, so a collapse above the highlight does not read as a move.
-   *
-   * @type {HighlightPosition|null}
-   */
-  #lastHighlight: HighlightPosition | null = null;
-
-  /**
-   * `true` while `toggleParentByUser()` changes the tree. A collapse can move the selection onto the
-   * collapsed parent, and that move must not add a level announcement to the one the toggle makes.
-   *
-   * @type {boolean}
-   */
-  #isUserToggleRunning = false;
-
-  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link NestedRows#enablePlugin} method is called.
    *
@@ -308,12 +275,11 @@ export class NestedRows extends BasePlugin {
     this.addHook('beforeUpdateData', this.#onBeforeUpdateData);
     this.addHook('afterUpdateData', this.#onAfterUpdateData);
     this.addHook('afterUpdateSettings', this.#onAfterUpdateSettings);
-    this.addHook('afterSelection', this.#onHighlightChange);
-    this.addHook('afterSelectionFocusSet', this.#onHighlightChange);
-    this.addHook('afterDeselect', this.#onHighlightDeselect);
+    this.addHook('afterRenderer', this.#onAfterRenderer);
 
     this.registerShortcuts();
     super.enablePlugin();
+    this.hot.markAllCellsChanged();
   }
 
   /**
@@ -333,6 +299,7 @@ export class NestedRows extends BasePlugin {
 
     this.unregisterShortcuts();
     super.disablePlugin();
+    this.hot.markAllCellsChanged();
 
     // A stash still open here is never applied: a fresh CollapsingUI replaces this one, and the expand
     // it made stays in place. The grow it held is applied now, so a whole-column selection covers the
@@ -545,9 +512,6 @@ export class NestedRows extends BasePlugin {
    * pattern's cell-focus mode: there the arrows only move the focus. The number of rows shown counts
    * rendered rows, so rows the `HiddenRows` plugin hides are left out.
    *
-   * A collapse can move the selection onto the collapsed parent. The level announcement of that move
-   * is held back, so one gesture is confirmed by one message.
-   *
    * @private
    * @param {number} physicalRow Physical index of the parent row.
    * @param {'collapse'|'expand'} action The change to make.
@@ -556,15 +520,7 @@ export class NestedRows extends BasePlugin {
   toggleParentByUser(physicalRow: number, action: 'collapse' | 'expand'): boolean {
     const { rowIndexMapper } = this.hot;
     const rowsBefore = rowIndexMapper.getRenderableIndexesLength();
-    let performed = false;
-
-    this.#isUserToggleRunning = true;
-
-    try {
-      performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
-    } finally {
-      this.#isUserToggleRunning = false;
-    }
+    const performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
 
     if (performed && this.hot.getSettings().ariaTags) {
       const label = this.#getRowLabel(physicalRow);
@@ -1568,85 +1524,41 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Reads where a highlight sits, in the terms the level announcement compares.
+   * `afterRenderer` hook callback. Adds the level of the cell's row, its position among its siblings and a
+   * parent's state to the cell's accessible description, so a screen reader reads the level of the cell it
+   * speaks, wherever the focus went in the meantime. A grid that writes no ARIA (`ariaTags: false`) adds
+   * nothing.
    *
-   * @param {CellCoords} highlight The active highlight.
-   * @returns {HighlightPosition}
+   * @param {HTMLTableCellElement} TD The cell element being painted.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string|number} prop The column property.
+   * @param {*} value The cell value.
+   * @param {object} cellProperties The cell meta.
    */
-  #readHighlightPosition(highlight: CellCoords): HighlightPosition {
-    const { row, col } = highlight;
-    const physicalRow = row === null || row < 0 ? null : this.hot.toPhysicalRow(row);
-
-    return { physicalRow, isHeader: col === null || col < 0 };
-  }
-
-  /**
-   * Tells whether a highlight that just changed should announce the level of its row: the grid has
-   * ARIA on and listens to the keyboard, the change is not a re-lay of an existing selection, no
-   * toggle gesture is announcing already, no collapse is putting a stranded selection back on a
-   * parent, and the highlight reached another row or stepped from the
-   * row's header into one of its cells. A move between the cells of one row stays silent.
-   *
-   * @param {HighlightPosition|null} previous Where the highlight sat before.
-   * @param {HighlightPosition} current Where it sits now.
-   * @returns {boolean}
-   */
-  #shouldAnnounceRowLevel(previous: HighlightPosition | null, current: HighlightPosition): boolean {
-    if (this.#isUserToggleRunning || this.collapsingUI!.isRestoringSelection() ||
-        !this.hot.getSettings().ariaTags || !this.hot.isListening() ||
-        SILENT_SELECTION_SOURCES.includes(this.hot.selection.getSelectionSource())) {
-      return false;
-    }
-
-    return previous === null || previous.physicalRow !== current.physicalRow ||
-      (previous.isHeader && !current.isHeader);
-  }
-
-  /**
-   * Announces the level of a row, its position among its siblings, and a parent's state, through the
-   * polite live region. Screen readers do not read `aria-level`, `aria-posinset` and `aria-setsize`
-   * off the row while the focus is on one of its cells, so the same values are spoken here.
-   *
-   * @param {number} physicalRow Physical row index.
-   */
-  #announceRowLevel(physicalRow: number): void {
-    const treePosition = this.dataManager!.getRowTreePosition(physicalRow);
-
-    if (!treePosition) {
+  #onAfterRenderer = (
+    TD: HTMLTableCellElement,
+    row: number,
+    column: number,
+    prop: string | number,
+    value: unknown,
+    cellProperties: CellProperties,
+  ) => {
+    if (!cellProperties.ariaTags) {
       return;
     }
 
-    let phrase = NESTED_ROWS_ANNOUNCEMENT_LEVEL;
+    const physicalRow = this.hot.toPhysicalRow(row);
 
-    if (this.dataManager!.isParent(physicalRow)) {
-      phrase = this.collapsingUI!.areChildrenCollapsed(physicalRow) ?
-        NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED : NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED;
+    if (physicalRow === null) {
+      return;
     }
 
-    announce(String(this.hot.getTranslatedPhrase(phrase, { ...treePosition }) ?? ''), 'polite');
-  }
-
-  /**
-   * `afterSelection` and `afterSelectionFocusSet` hook callback. Records where the highlight sits and
-   * announces the level of its row when it reached another row.
-   */
-  #onHighlightChange = () => {
-    const highlight = this.hot.getSelectedRangeActive()?.highlight;
-    const previous = this.#lastHighlight;
-    const current = highlight ? this.#readHighlightPosition(highlight) : null;
-
-    this.#lastHighlight = current;
-
-    if (current && current.physicalRow !== null && this.#shouldAnnounceRowLevel(previous, current)) {
-      this.#announceRowLevel(current.physicalRow);
-    }
-  };
-
-  /**
-   * `afterDeselect` hook callback. Forgets the highlight, so the next selection announces its row.
-   */
-  #onHighlightDeselect = () => {
-    this.#lastHighlight = null;
+    addCellDescriptionPart(
+      TD,
+      CELL_DESCRIPTION_RANK.TREE_POSITION,
+      this.headersUI!.getRowLevelDescription(physicalRow),
+    );
   };
 
   /**

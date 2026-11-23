@@ -28,6 +28,14 @@
     if (window.htNavigableHeaders === undefined) {
       throw new Error('Unknown ?navigableHeaders= value: ' + JSON.stringify(htParams.get('navigableHeaders')));
     }
+    window.htFixedColumnsStart = ({ 0: 0, 1: 1 })[htParams.get('fixedColumnsStart') ?? '0'];
+    if (window.htFixedColumnsStart === undefined) {
+      throw new Error('Unknown ?fixedColumnsStart= value: ' + JSON.stringify(htParams.get('fixedColumnsStart')));
+    }
+    window.htSecondGrid = ({ on: true, off: false })[htParams.get('secondGrid') ?? 'off'];
+    if (window.htSecondGrid === undefined) {
+      throw new Error('Unknown ?secondGrid= value: ' + JSON.stringify(htParams.get('secondGrid')));
+    }
     document.documentElement.dir = window.htDir;
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
@@ -41,6 +49,9 @@
     allowlists to literals; an unknown value throws. `ariaTags` can only be set at construction,
     which is why it is a param. An RTL grid sits on an RTL page, as in a real RTL application.
     `navigableHeaders=off` builds the grid with the option's default, where no header takes the focus.
+    `fixedColumnsStart=1` freezes the first column, so each row is also painted in the frozen clone.
+    `secondGrid=on` builds a second, identical grid below the first (`window.hot2`), to check that ids
+    stay unique on a page with two grids.
 
     Three levels deep, so a row can be a parent and a child at once (A-2) and the Ctrl/Cmd+arrow walk to a
     parent has more than one step to take. Physical layout:
@@ -55,6 +66,7 @@
       8    B-2             (leaf,   level 2, 2 of 2)
   -->
   <div id="grid" data-testid="grid"></div>
+  <div id="grid-2" data-testid="grid-2"></div>
 
   <script>
     document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
@@ -69,8 +81,7 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    window.hot = new Handsontable(container, {
-      data: [
+    const createData = () => [
         {
           name: 'Root A',
           __children: [
@@ -86,18 +97,30 @@
           name: 'Root B',
           __children: [{ name: 'B-1' }, { name: 'B-2' }],
         },
-      ],
+      ];
+    const createSettings = () => ({
+      data: createData(),
       columns: [{ data: 'name' }, { data: 'name' }],
       colHeaders: ['Name', 'Copy'],
       rowHeaders: true,
       nestedRows: true,
       navigableHeaders: window.htNavigableHeaders,
+      fixedColumnsStart: window.htFixedColumnsStart,
       layoutDirection: window.htDir,
       ariaTags: window.htAriaTags,
       renderer: testIdRenderer,
       height: 'auto',
       licenseKey: window.htTestLicenseKey,
     });
+
+    window.hot = new Handsontable(container, createSettings());
+
+    if (window.htSecondGrid) {
+      const secondContainer = document.querySelector('[data-testid="grid-2"]');
+
+      secondContainer.className = `ht-theme-${window.htTheme}`;
+      window.hot2 = new Handsontable(secondContainer, createSettings());
+    }
   </script>
 </body>
 </html>
