@@ -122,7 +122,7 @@
 
 /* Copy button in code blocks — match the "Copy Markdown" action button style */
 .expressive-code .copy button {
-  background-color: transparent;
+  background-color: var(--sl-color-gray-5);
   border: 1px solid transparent;
   border-radius: 0;
   opacity: 0;

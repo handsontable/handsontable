@@ -69,6 +69,22 @@ test.describe('keyboard focus on the docs theme', () => {
       await expect(focused).toHaveCSS('opacity', '1');
       await expect(focused).toHaveCSS('outline-style', 'solid');
       await expect(focused).toHaveCSS('border-top-color', 'rgba(0, 0, 0, 0)');
+      await expect(focused).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    });
+
+    test(`an example control button draws one focus ring (${theme})`, async({ page, baseURL }) => {
+      await page.goto(`${baseURL}/javascript-data-grid/rows-sorting/`);
+      await page.evaluate(value => document.documentElement.setAttribute('data-theme', value), theme);
+      await page.mouse.move(0, 0);
+
+      const sortButton = page.locator('button#sort').first();
+
+      await sortButton.scrollIntoViewIfNeeded();
+      await sortButton.focus();
+
+      await expect(page.locator('button#sort:focus-visible')).toHaveCount(1);
+      await expect(sortButton).toHaveCSS('outline-style', 'none');
+      await expect(sortButton).toHaveCSS('box-shadow', /inset/);
     });
   }
 
