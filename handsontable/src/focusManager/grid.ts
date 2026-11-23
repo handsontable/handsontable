@@ -10,6 +10,7 @@ import {
   isOutsideInput,
 } from '../helpers/dom/element';
 import { debounce } from '../helpers/function';
+import { isRootInstance } from '../utils/rootInstance';
 
 /**
  * Possible focus modes.
@@ -392,25 +393,39 @@ export class FocusGridManager {
    * column and row. The cell is drawn into an element the grid recycles, and the draw leaves the element's
    * attributes as they were when they hold the same values, so the browser would keep the accessibility object
    * of the cell the element showed before, and a reader hears a name change or nothing. A cell that has the
-   * focus already is left alone: nothing moved.
+   * focus already is left alone: nothing moved. The state of the cell or header is recorded, so that the draw
+   * after a change made while it holds the focus can tell it from a repeated paint.
+   *
+   * Only the grid the application created is handled: the lists and menus the editors build are grids of their
+   * own, and a screen reader reaches their options through the editor, which keeps the focus.
    *
    * @param {HTMLElement} elementToBeFocused The element that is about to take the focus.
-   * @param {HTMLElement | null} cell The highlighted cell, which the `modifyFocusedElement` hook may have replaced.
+   * @param {HTMLElement | null} cell The highlighted cell or header, which the `modifyFocusedElement` hook may have
+   * replaced.
    */
   #announceCellFocus(elementToBeFocused: HTMLElement, cell: HTMLElement | null): void {
-    if (elementToBeFocused !== cell || elementToBeFocused.nodeName !== 'TD') {
+    const isDataCell = elementToBeFocused.nodeName === 'TD';
+
+    if (
+      !isRootInstance(this.#hot) ||
+      elementToBeFocused !== cell ||
+      (!isDataCell && elementToBeFocused.nodeName !== 'TH')
+    ) {
       return;
     }
 
     if (getDeepActiveElement(this.#hot.rootDocument) === elementToBeFocused) {
-      // The browser focused a cell that was pressed before the grid selected it. Nothing moved, but the draw that
-      // follows needs a record of what the cell showed, to tell a change from a repeated paint.
+      // The browser focused an element that was pressed before the grid selected it. Nothing moved, but the draw that
+      // follows needs a record of what it showed, to tell a change from a repeated paint.
       rememberAnnouncedCell(elementToBeFocused, true);
 
       return;
     }
 
-    rebuildAccessibilityObject(elementToBeFocused);
+    if (isDataCell) {
+      rebuildAccessibilityObject(elementToBeFocused);
+    }
+
     rememberAnnouncedCell(elementToBeFocused);
   }
 

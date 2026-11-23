@@ -1,5 +1,5 @@
 import { test, expect } from '../fixtures/test';
-import { CellAriaRecyclePage } from '../fixtures/pages/CellAriaRecyclePage';
+import { CellAriaRecyclePage, type RoleMutation } from '../fixtures/pages/CellAriaRecyclePage';
 
 const DEFAULT_COLUMN_B = {
   role: 'gridcell',
@@ -239,11 +239,15 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
     // which is what makes a screen reader read the focused cell again, with its column and row. A cell whose
     // attributes keep their values is not read again, so a change of what the focused cell shows has to ask
     // for it. The reader's speech is checked by the screen reader lanes; this pins the mechanism.
-    const rebuilds = (mutations: { focused: boolean; removed: boolean }[]) => ({
-      removals: mutations.filter(mutation => mutation.focused && mutation.removed).length,
-      writes: mutations.filter(mutation => mutation.focused && !mutation.removed).length,
-      others: mutations.filter(mutation => !mutation.focused).length,
-    });
+    const rebuilds = (mutations: RoleMutation[], tag: 'TD' | 'TH' = 'TD') => {
+      const own = mutations.filter(mutation => mutation.tag === tag);
+
+      return {
+        removals: own.filter(mutation => mutation.focused && mutation.removed).length,
+        writes: own.filter(mutation => mutation.focused && !mutation.removed).length,
+        others: own.filter(mutation => !mutation.focused).length,
+      };
+    };
 
     test('the cell takes a new value', async() => {
       await grid.goto();
@@ -328,8 +332,8 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
       const cells = await grid.countPlainMasterCells();
 
       expect(cells).toBeGreaterThan(0);
-      expect(mutations.filter(mutation => mutation.removed).length).toBe(cells);
-      expect(mutations.filter(mutation => !mutation.removed).length).toBe(cells);
+      expect(mutations.filter(mutation => mutation.tag === 'TD' && mutation.removed).length).toBe(cells);
+      expect(mutations.filter(mutation => mutation.tag === 'TD' && !mutation.removed).length).toBe(cells);
 
       // The next draws, with the same headers, rebuild nothing.
       await grid.startRoleRecorder();
@@ -347,8 +351,8 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
       const cells = await grid.countPlainMasterCells();
 
       expect(cells).toBeGreaterThan(0);
-      expect(mutations.filter(mutation => mutation.removed).length).toBe(cells);
-      expect(mutations.filter(mutation => !mutation.removed).length).toBe(cells);
+      expect(mutations.filter(mutation => mutation.tag === 'TD' && mutation.removed).length).toBe(cells);
+      expect(mutations.filter(mutation => mutation.tag === 'TD' && !mutation.removed).length).toBe(cells);
     });
 
     test('a header level added to a grid that paints only changed cells rebuilds every rendered cell', async() => {
@@ -359,7 +363,16 @@ test.describe('accessibility attributes on recycled cells and headers', () => {
       const mutations = await grid.takeRoleMutations();
       const cells = await grid.countPlainMasterCells();
 
-      expect(mutations.filter(mutation => mutation.removed).length).toBe(cells);
+      expect(mutations.filter(mutation => mutation.tag === 'TD' && mutation.removed).length).toBe(cells);
+    });
+
+    test('a focused column header that shows something else is announced again', async() => {
+      await grid.goto({ navigableHeaders: true });
+      expect(await grid.selectCell(-1, 4)).toBe(true);
+      await grid.startRoleRecorder();
+      await grid.updateSettings({ colHeaders: ['A', 'B', 'C', 'D', 'Renamed'] });
+
+      expect(rebuilds(await grid.takeRoleMutations(), 'TH')).toEqual({ removals: 1, writes: 1, others: 0 });
     });
 
     test('a grid without ARIA tags writes no role when the cell takes a value or the headers change', async() => {

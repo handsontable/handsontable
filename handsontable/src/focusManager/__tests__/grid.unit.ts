@@ -1,6 +1,7 @@
 import { FocusGridManager } from '../grid';
 import type { HotInstance } from '../../core/types';
 import { Hooks } from '../../core/hooks';
+import { registerAsRootInstance } from '../../utils/rootInstance';
 
 /**
  * Builds the DOM shape the grid renders: a root wrapper hosting layout slots and
@@ -127,7 +128,7 @@ type HookCallback = (...args: unknown[]) => unknown;
  *
  * @returns {object} The manager, the fake instance's controls and a `td` standing for the rendered cell.
  */
-function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
+function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean, root?: boolean } = {}) {
   const root = document.createElement('div');
   const td = document.createElement('td');
   const hooks = Hooks.getSingleton();
@@ -179,6 +180,11 @@ function makeDeferredFocusGrid(settings: { imeFastEdit?: boolean } = {}) {
       return hooks.remove(key, callback, hot as never);
     },
   } as unknown as HotInstance;
+
+  if (settings.root !== false) {
+    registerAsRootInstance(hot);
+  }
+
   const manager = new FocusGridManager(hot);
 
   manager.init();
@@ -450,5 +456,19 @@ describe('FocusGridManager focus on a cell that a reader reads', () => {
 
     expect(log).toEqual([]);
     expect(document.activeElement).toBe(replacement);
+  });
+
+  it('leaves a cell of a grid an editor built alone, whose options a reader reaches through the editor', () => {
+    const grid = makeDeferredFocusGrid({ root: false });
+
+    grid.td.setAttribute('role', 'gridcell');
+    grid.td.tabIndex = -1;
+    grid.state.rendered = true;
+
+    const log = logRoleAndFocus(grid.td);
+
+    grid.manager.focusOnHighlightedCell();
+
+    expect(log).toEqual(['focus']);
   });
 });

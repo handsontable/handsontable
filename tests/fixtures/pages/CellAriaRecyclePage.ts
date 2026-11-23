@@ -62,7 +62,7 @@ type FixtureWindow = Window & {
  * One write of a master cell's `role`. `removed` is `true` for the removal and `false` for the write that
  * follows; `focused` says whether the cell held the focus when the observer delivered it.
  */
-export type RoleMutation = { focused: boolean; removed: boolean };
+export type RoleMutation = { tag: 'TD' | 'TH'; focused: boolean; removed: boolean };
 
 /**
  * Page Object for the cell ARIA recycle fixture.
@@ -404,7 +404,7 @@ export class CellAriaRecyclePage {
 
       const active = document.activeElement;
 
-      return active?.tagName === 'TD' && hot.rootElement.querySelector('.ht_master')!.contains(active);
+      return ['TD', 'TH'].includes(active?.tagName ?? '') && hot.rootElement.contains(active);
     }, [row, column]);
   }
 
@@ -445,7 +445,7 @@ export class CellAriaRecyclePage {
   async startRoleRecorder(): Promise<void> {
     await this.page.evaluate(() => {
       const fixtureWindow = window as unknown as FixtureWindow;
-      const master = fixtureWindow.hot.rootElement.querySelector('.ht_master')!;
+      const { rootElement } = fixtureWindow.hot;
 
       fixtureWindow.roleObserver?.disconnect();
       fixtureWindow.roleMutations = [];
@@ -454,8 +454,9 @@ export class CellAriaRecyclePage {
           const target = record.target as Element;
 
           // Column B's custom renderer writes its own role on every paint of the rows it takes.
-          if (target.tagName === 'TD' && !fixtureWindow.customPainted.has(target)) {
+          if (['TD', 'TH'].includes(target.tagName) && !fixtureWindow.customPainted.has(target)) {
             fixtureWindow.roleMutations!.push({
+              tag: target.tagName as 'TD' | 'TH',
               focused: target === document.activeElement,
               removed: record.oldValue !== null,
             });
@@ -463,7 +464,7 @@ export class CellAriaRecyclePage {
         });
       };
       fixtureWindow.roleObserver = new MutationObserver(records => fixtureWindow.collectRoleRecords!(records));
-      fixtureWindow.roleObserver.observe(master, {
+      fixtureWindow.roleObserver.observe(rootElement, {
         attributes: true,
         attributeFilter: ['role'],
         attributeOldValue: true,
