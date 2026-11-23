@@ -21,7 +21,20 @@
     { "shape": "reader|vo-webkit|golden-differs|||grid-core-horizon|sort-ascending", "reason": "The golden predates #14296, which announces a sort: the reader now reads the new order, so the golden is recorded again and the shape leaves with the next audit after that." },
     { "shape": "reader|vo-webkit|golden-differs|||grid-core-horizon|sort-descending", "reason": "The golden predates #14296, which announces a sort: the reader now reads the new order, so the golden is recorded again and the shape leaves with the next audit after that." },
     { "shape": "reader|vo-webkit|token-missing|||pagination|enter-first-page", "reason": "Enter moves the focus to the next or previous page button as the page status message lands, and VoiceOver with WebKit then reads the message alone, without the button; it flaps between runs, and NVDA and VoiceOver with Chromium read both: not told apart from the reader's timing yet." },
-    { "shape": "reader|vo-webkit|token-missing|||pagination|enter-last-page", "reason": "Enter moves the focus to the next or previous page button as the page status message lands, and VoiceOver with WebKit then reads the message alone, without the button; it flaps between runs, and NVDA and VoiceOver with Chromium read both: not told apart from the reader's timing yet." }
+    { "shape": "reader|vo-webkit|token-missing|||pagination|enter-last-page", "reason": "Enter moves the focus to the next or previous page button as the page status message lands, and VoiceOver with WebKit then reads the message alone, without the button; it flaps between runs, and NVDA and VoiceOver with Chromium read both: not told apart from the reader's timing yet." },
+    {"shape": "reader|nvda-firefox|token-missing|||row-selection|arrow-up-unchecked", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|token-missing|||row-selection|space-select-row", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|token-missing|||row-selection|space-select-all", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|token-missing|||row-selection|space-clear-all", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|token-missing|||row-selection|arrow-down-cleared", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|token-missing|||row-selection|arrow-down-cleared-next", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|golden-differs|||row-selection|arrow-up-unchecked", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|golden-differs|||row-selection|arrow-up-to-header", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|golden-differs|||row-selection|space-select-row", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|golden-differs|||row-selection|space-select-all", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|golden-differs|||row-selection|space-clear-all", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|golden-differs|||row-selection|arrow-down-cleared", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"},
+    {"shape": "reader|nvda-firefox|golden-differs|||row-selection|arrow-down-cleared-next", "reason": "NVDA with Firefox started the row selection steps on the Task column in the audit of 2026-11-23 and read nothing or the wrong cell, while the recording run after it read every step from Done: one run each way, so the next audit decides whether it is the runner's start state or a defect"}
   ],
   "clusters": [
     {
@@ -320,12 +333,13 @@
     },
     {
       "id": "status-messages",
-      "title": "A range extension, Ctrl+A selecting every cell and the place in the order of a column added to a multi-column sort are not announced: no status message reaches the screen reader",
-      "tracker": ["DEV-2957", "DEV-4013"],
+      "title": "A range extension, Ctrl+A selecting every cell, the place in the order of a column added to a multi-column sort, and a nested row's level are not announced: no status message reaches the screen reader. The level is announced since #14355, and NVDA reads it; the VoiceOver rows of those steps have a cluster of their own",
+      "tracker": ["DEV-2957", "DEV-2954", "DEV-4013"],
       "match": [
         { "source": "reader", "kinds": ["token-missing"], "where": ["^(extend-range|extend-range-again)$"] },
         { "source": "reader", "kinds": ["token-missing"], "pages": ["row-selection-corner"], "where": ["^select-all-cells$"] },
-        { "source": "reader", "kinds": ["token-missing"], "pages": ["shared-demo"], "where": ["^add-to-sort$"] }
+        { "source": "reader", "kinds": ["token-missing"], "pages": ["shared-demo"], "where": ["^add-to-sort$"] },
+        { "source": "reader", "checks": ["nvda-chromium", "nvda-firefox"], "kinds": ["token-missing"], "pages": ["nested-rows"], "where": ["^(into-parent-cell|down-to-child)$"] }
       ]
     },
     {
@@ -336,7 +350,7 @@
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["complex-demo"], "where": ["^(down-past-hidden-row|up-past-hidden-row|up-to-frozen-row)$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["nested-rows"], "where": ["^(into-parent-cell|down-to-child)$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["complex-demo"], "where": ["^up-to-frozen-row$"] },
-        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["complex-demo"], "where": ["^(up-past-hidden-row|up-to-frozen-row)$"] }
+        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["complex-demo"], "where": ["^(down-past-hidden-row|up-past-hidden-row|up-to-frozen-row)$"] }
       ]
     },
     {
@@ -355,7 +369,7 @@
       "match": [
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["checkbox-cell", "checkbox-header", "filters-by-value"], "where": ["^(space-check|space-uncheck|space-check-all|space-uncheck-all)$"] },
         { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["async-values"], "where": ["^value-resolves$"] },
-        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["token-missing"], "pages": ["virtualization"], "where": ["^to-last-row$"] }
+        { "source": "reader", "checks": ["nvda-firefox", "vo-webkit"], "kinds": ["token-missing"], "pages": ["virtualization"], "where": ["^to-last-row$"] }
       ]
     },
     {
@@ -424,7 +438,6 @@
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "where": ["^(arrow-right|arrow-down|arrow-left|arrow-up|reselect-cell)$"] },
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["default-mode", "handsontable-editor", "select-editor", "virtualization", "nested-headers"], "where": ["^(tab-into-grid|to-row-end|to-row-start|commit-row|commit-option|page-down-again|to-first-row|arrow-up-to-header)$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["password-editor"], "where": ["^commit-secret$"] },
-        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["token-missing"], "pages": ["virtualization"], "where": ["^to-last-row$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["complex-demo"], "where": ["^(down-past-hidden-row|up-past-hidden-row)$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["nested-rows"], "where": ["^(into-parent-cell|down-to-child)$"] }
       ]
@@ -496,18 +509,8 @@
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["rtl-dropdown-menu"], "where": ["^(open-menu|end-to-alignment|open-submenu)$"] },
         { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["token-missing"], "pages": ["formula-function-help"], "where": ["^commit-formula$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing"], "pages": ["formula-suggestions", "formula-function-help"], "where": ["^open-editor$"] },
-        { "source": "reader", "checks": ["vo-webkit"], "kinds": ["golden-differs"], "pages": ["complex-demo"], "where": ["^down-past-hidden-row$"] },
         { "source": "reader", "checks": ["vo-chromium", "vo-webkit"], "kinds": ["token-missing"], "pages": ["formula-builder"], "where": ["^tab-address-box$"] },
         { "source": "reader", "checks": ["vo-chromium"], "kinds": ["token-missing", "golden-differs"], "pages": ["license-bar"], "where": ["^(tab-to-renew|read-notice)$"] }
-      ]
-    },
-    {
-      "id": "reader-run-wrong-start",
-      "title": "A screen reader run whose steps start from another cell than the setup selects, so each step reads the cell beside the one the scenario means, or nothing, while another run of the same steps reads them all: NVDA with Firefox on the row selection page began on the Task column instead of Done in the audit of 2026-11-23, and the recording run after it read every step from Done",
-      "notDefect": "reader-runner-state",
-      "match": [
-        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["token-missing"], "pages": ["row-selection"], "where": ["^(arrow-up-unchecked|space-select-row|space-select-all|space-clear-all|arrow-down-cleared|arrow-down-cleared-next)$"] },
-        { "source": "reader", "checks": ["nvda-firefox"], "kinds": ["golden-differs"], "pages": ["row-selection"], "where": ["^(arrow-up-unchecked|arrow-up-to-header|space-select-row|space-select-all|space-clear-all|arrow-down-cleared|arrow-down-cleared-next)$"] }
       ]
     },
     {
