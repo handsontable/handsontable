@@ -231,12 +231,18 @@ test('a re-run reads the rows its own earlier attempt left as they were before t
       auditRowOf(finding({ page: 'grid' }), 'persisting', { lastRun: '200', seenSinceGap: 4 }),
       auditRowOf(finding({ page: 'pagination' }), 'new', { firstRun: '200', lastRun: '200', seenSinceGap: 1 }),
       auditRowOf(finding({ page: 'dialog' }), 'flapping', { lastRun: '200', gaps: 1, seenSinceGap: 1 }),
+      auditRowOf(finding({ page: 'complex-demo' }), 'resolved', { gaps: 1, seenSinceGap: 0, resolvedAt: '2026-11-23T01:33:51Z' }),
+      auditRowOf(finding({ page: 'nested-headers' }), 'resolved', { gaps: 1, seenSinceGap: 0, resolvedAt: '2026-11-17T12:09:26Z' }),
     ],
   };
 
   assert.equal(auditClassOf('pagination', ledger), 'new', 'a row this run first saw was no row before it');
   assert.equal(auditClassOf('dialog', ledger), 'regression', 'a row that came back on this run was resolved before it');
   assert.equal(auditClassOf('grid', ledger), 'known', 'a row open before this run stays known');
+  assert.equal(auditClassOf('complex-demo', ledger), 'known',
+    'a row this run\'s earlier attempt resolved (a flaky finding it missed) was open before the run: known debt');
+  assert.equal(auditClassOf('nested-headers', ledger), 'regression', 'a row resolved before this run that came back is a regression');
+  assert.equal(auditClassOf('complex-demo', ledger, '300'), 'regression', 'the next audit reads it as resolved, so back');
   assert.equal(auditClassOf('editable-headers', ledger), 'new', 'the latest night is this run\'s own, so its coverage says nothing about the audit before');
   assert.equal(auditClassOf('pagination', ledger, null), 'known', 'without the run id the rows read as they stand');
 });

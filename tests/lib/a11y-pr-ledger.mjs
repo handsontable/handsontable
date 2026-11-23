@@ -43,7 +43,8 @@ export { LEDGER_URL } from './a11y-docs-drift.mjs';
 const WHERE_LIMIT = 300;
 /**
  * The night each row source is recorded in (`SOURCE_OF_NIGHT` of `.github/scripts/lib/a11y-ledger.mjs`): the A11y
- * nightly's checks and axe scan, the screen reader nightly's lanes, and each site's scan and checks.
+ * nightly's checks and axe scan, the screen reader nightly's lanes, and each site's scan and checks. A copy, because
+ * tests/lib cannot import that module; `.github/scripts/__tests__/a11y-pr-ledger.test.mjs` holds the two equal.
  */
 export const NIGHT_OF_SOURCE = Object.freeze({
   checks: 'a11y', axe: 'a11y', reader: 'reader', docs: 'docs', 'docs-checks': 'docs', website: 'website', 'website-checks': 'website',
@@ -120,7 +121,7 @@ export function ledgerIndex(ledger, source = 'checks') {
     if (row?.source === source && typeof row.key === 'string') {
       statuses.set(row.key, row.status);
       rows.set(row.key, { status: row.status, firstRun: row.firstRun ?? null, lastRun: row.lastRun ?? null, gaps: row.gaps ?? 0,
-        seenSinceGap: row.seenSinceGap ?? 0 });
+        seenSinceGap: row.seenSinceGap ?? 0, resolvedAt: row.resolvedAt ?? null });
     }
   }
 
@@ -202,10 +203,13 @@ export function ledgerMeasured(index, source, check, finding) {
  *
  * A row this run itself left (an earlier attempt of the run, recorded before a re-run of its failed jobs) is read as it
  * was before the run: one it first saw is new, one that came back on it a regression (the ledger's own test for a row
- * that returned on a night), any other known. A finding with no row on such a re-run is new, because the latest
- * night's coverage is then the run's own and says nothing about the audit before.
+ * that returned on a night), one it resolved known (the ledger resolves only an open row, and gives it the night's time
+ * as `resolvedAt`, so an attempt that missed a flaky finding does not make it a regression on the re-run), any other
+ * known. A finding with no row on such a re-run is new, because the latest night's coverage is then the run's own and
+ * says nothing about the audit before.
  *
- * @param {{rows: Map<string, object>, auditRun: string|null, coverage: object|null}} index The index (`ledgerIndex()`).
+ * @param {{rows: Map<string, object>, auditAt: string|null, auditRun: string|null, coverage: object|null}} index The index
+ * (`ledgerIndex()`).
  * @param {string} source The finding source.
  * @param {string} check The check id, or the reader project.
  * @param {object} finding The finding, as `ledgerKey()` takes it.
@@ -223,10 +227,15 @@ export function auditClass(index, source, check, finding, runId = null) {
 
     return row.gaps > 0 && row.seenSinceGap === 1 ? 'regression' : 'known';
   }
+
+  const ownNight = thisRun !== null && String(index.auditRun) === thisRun;
+
   if (row !== undefined) {
-    return row.status === 'resolved' ? 'regression' : 'known';
+    const resolvedByThisRun = ownNight && row.status === 'resolved' && row.resolvedAt !== null && row.resolvedAt === index.auditAt;
+
+    return row.status === 'resolved' && !resolvedByThisRun ? 'regression' : 'known';
   }
-  if (thisRun !== null && String(index.auditRun) === thisRun) {
+  if (ownNight) {
     return 'new';
   }
 

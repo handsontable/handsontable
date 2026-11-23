@@ -221,7 +221,9 @@ const PROJECT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const ROOT_JSON = /^([a-z0-9]+(?:-[a-z0-9]+)*)\.json$/;
 const TRANSCRIPT_PATH = new RegExp(`^${READER_TRANSCRIPTS_DIR}/[^/]+\\.json$`);
 const RUN_ID = /^\d{1,20}$/;
-const SOURCE_OF_NIGHT = Object.freeze({
+// The night each row source is recorded in. `NIGHT_OF_SOURCE` in tests/lib/a11y-pr-ledger.mjs copies it (tests/lib cannot
+// import this module), and .github/scripts/__tests__/a11y-pr-ledger.test.mjs holds the two equal.
+export const SOURCE_OF_NIGHT = Object.freeze({
   checks: 'a11y', axe: 'a11y', reader: 'reader', docs: 'docs', 'docs-checks': 'docs', website: 'website', 'website-checks': 'website',
 });
 /**

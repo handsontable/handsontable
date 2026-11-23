@@ -245,6 +245,10 @@ export function ledgerLine(counts) {
   return `ledger: ${counts.new} new, ${counts.regression} ${counts.regression === 1 ? 'regression' : 'regressions'}${unmeasured}, ${counts.known} known`;
 }
 
+// The ledger line in a check run's title (`ledgerLine()`): an audit's check run that read the findings ledger carries
+// it, and one that could not (or a tooling failure) does not, which is all the run verdict sees of the ledger.
+const LEDGER_LINE = /\bledger: \d+ new, \d+ regressions?\b/;
+
 /**
  * The section of an audit's check run that says how its findings read against the findings ledger as the audit before
  * left it: the rule, the counts, the two limits of the ledger as a baseline, and the findings that are not known debt
@@ -377,6 +381,34 @@ export function runVerdict({ checkRuns, runId, prefixes, expected = [] }) {
 }
 
 /**
+ * What an audit's check runs counted, said from their titles: one that read the findings ledger carries its counts
+ * (`ledgerLine()`) and treats known debt as a warning at most; one that carries none counted every open finding, or is a
+ * tooling failure, so the summary never says the debt was a warning when a check run could not tell it apart.
+ *
+ * @param {Array<{title: string}>} rows The check runs.
+ * @returns {string} The sentences, each with a leading space.
+ */
+function auditSentence(rows) {
+  const unread = rows.filter(row => !LEDGER_LINE.test(String(row.title ?? ''))).length;
+  const read = ' On an audit a check run that read the findings ledger (its title carries the ledger counts) counts what the ledger does '
+    + 'not hold as open (a new finding, or a regression) and a tooling failure: known debt is a warning at most, so it turns red on what '
+    + 'changed since the audit before, not on the debt that stands.';
+
+  if (unread === 0) {
+    return read;
+  }
+
+  let which = `${unread} of the ${rows.length} check runs ${unread === 1 ? 'carries' : 'carry'} no ledger counts`;
+
+  if (unread === rows.length) {
+    which = rows.length === 1 ? 'The check run carries no ledger counts' : `None of the ${rows.length} check runs carries ledger counts`;
+  }
+
+  return `${read} ${which}: such a check run could not read the ledger and counted every open finding, debt included, or is a `
+    + 'tooling failure, and its summary says which.';
+}
+
+/**
  * The run verdict as a job summary: a table of the check runs, red first in the reader's eye by its icon.
  *
  * @param {object} result What `runVerdict()` returned.
@@ -391,10 +423,7 @@ export function renderRunVerdict(result, { scope = 'change' } = {}) {
     '',
     'The run follows its worst check run: red when any is red, a warning when the worst is one, green otherwise. '
       + `Each check run follows the severity rule ${VERDICT_RULE}; every scan and lane ran to the end before this was decided.`
-      + (scope === 'audit'
-        ? ' On an audit a check run counts what the findings ledger does not hold as open (a new finding, or a regression) and a tooling failure: '
-          + 'known debt is a warning at most, so the run turns red on what changed since the audit before, not on the debt that stands.'
-        : ''),
+      + (scope === 'audit' ? auditSentence(result.rows) : ''),
     '',
   ];
 

@@ -2,12 +2,16 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  A11Y_AXE_ARTIFACT, A11Y_AXE_FILE, A11Y_AXE_SCHEMA, A11Y_EVIDENCE_ARTIFACT, DOCS_AXE_ARTIFACT, DOCS_CHECKS_ARTIFACT, READER_ARTIFACT_PREFIX,
-  READER_TRANSCRIPTS_DIR, READER_TRANSCRIPT_SCHEMA, WEBSITE_AXE_ARTIFACT, WEBSITE_CHECKS_ARTIFACT, findingKey, nightMeasured, readA11yArtifacts,
+  A11Y_AXE_ARTIFACT, A11Y_AXE_FILE, A11Y_AXE_SCHEMA, A11Y_EVIDENCE_ARTIFACT, A11Y_NIGHTLY_WORKFLOW, DOCS_AXE_ARTIFACT, DOCS_CHECKS_ARTIFACT,
+  READER_ARTIFACT_PREFIX, READER_TRANSCRIPTS_DIR, READER_TRANSCRIPT_SCHEMA, SOURCE_OF_NIGHT, WEBSITE_AXE_ARTIFACT, WEBSITE_CHECKS_ARTIFACT,
+  findingKey, mergeA11yLedger, nightMeasured, readA11yArtifacts,
 } from '../lib/a11y-ledger.mjs';
+import { runContextFromRun } from '../lib/test-health.mjs';
 import { EVIDENCE_CHECKS, EVIDENCE_SCHEMA } from '../../../tests/lib/a11y-evidence.mjs';
-import { READER_GOLDEN_DIFFERS, READER_TOKEN_MISSING, READER_TRAVERSAL_OFF, READER_TRAVERSAL_WHERE } from '../../../tests/lib/a11y-issues.mjs';
-import { NIGHT_OF_SOURCE, ledgerIndex, ledgerKey, ledgerMeasured } from '../../../tests/lib/a11y-pr-ledger.mjs';
+import {
+  ISSUES_SCHEMA, READER_GOLDEN_DIFFERS, READER_TOKEN_MISSING, READER_TRAVERSAL_OFF, READER_TRAVERSAL_WHERE, compileIssuesCatalog,
+} from '../../../tests/lib/a11y-issues.mjs';
+import { NIGHT_OF_SOURCE, auditClass, ledgerIndex, ledgerKey, ledgerMeasured } from '../../../tests/lib/a11y-pr-ledger.mjs';
 import { siteChecks } from '../../../tests/lib/a11y-site-checks.mjs';
 import { DEFAULT_DOCS_BASE_URL } from '../../../tests/a11y/docs/constants.mjs';
 import { DEFAULT_WEBSITE_BASE_URL } from '../../../tests/a11y/website/constants.mjs';
@@ -207,6 +211,51 @@ test('ledgerMeasured reads a night\'s coverage as the ledger\'s nightMeasured() 
   assert.equal(nightMeasured({}, rows[0]), null);
 });
 
+test('a re-run reads a row its own earlier attempt resolved as known, and a later audit reads it as a regression', () => {
+  // Run 150 sees F and G. Attempt 1 of run 200 measures F's target and misses F (a flaky finding), so the ledger
+  // resolves F on run 200's night; a re-run of run 200 then finds F again. F was open before run 200: known debt.
+  const catalog = compileIssuesCatalog({
+    schema: ISSUES_SCHEMA,
+    triageLimit: 0,
+    clusters: [{ id: 'focus-lost', title: 'The focus is lost', match: [{ source: 'checks', checks: ['keyboard-walker'], kinds: ['focus-lost'] }] }],
+  });
+  const lost = page => ({ kind: 'focus-lost', criteria: ['2.4.3'], severity: 'serious', step: 'Tab 1', page, theme: 'main', state: 'none', reason: 'r' });
+  const [f, g] = [lost('grid'), lost('dialog')];
+  const nightOf = (findings, pages) => {
+    const doc = evidenceDoc('keyboard-walker', EVIDENCE_CHECKS, findings);
+
+    doc.targets = pages.map(page => ({ page, theme: 'main', state: 'none', variant: null, status: 'measured', criteria: ['2.4.3'] }));
+    doc.summary.targets = doc.targets.length;
+    doc.summary.measured = doc.targets.length;
+    const read = readA11yArtifacts([{ artifact: A11Y_EVIDENCE_ARTIFACT, path: 'keyboard-walker.json', text: JSON.stringify(doc) }]);
+
+    assert.deepEqual(read.notes, []);
+
+    return read.nights[0];
+  };
+  const runOf = (id, updatedAt) => runContextFromRun({ id, run_attempt: 1, html_url: `https://github.com/o/r/actions/runs/${id}`,
+    name: A11Y_NIGHTLY_WORKFLOW, head_branch: 'develop', head_sha: '4813c183892bbbadd52b3c0d79b811bd6aacd7f1', event: 'schedule',
+    updated_at: updatedAt, conclusion: 'success' });
+  const first = mergeA11yLedger(null, nightOf([f, g], ['grid', 'dialog']), runOf(150, '2026-11-16T05:00:00Z'), catalog,
+    { now: new Date('2026-11-16T06:00:00Z') }).doc;
+  const flaky = mergeA11yLedger(first, nightOf([g], ['grid', 'dialog']), runOf(200, '2026-11-23T05:00:00Z'), catalog,
+    { now: new Date('2026-11-23T06:00:00Z') }).doc;
+  const key = ledgerKey('checks', 'keyboard-walker', f);
+
+  assert.deepEqual(flaky.rows.filter(row => row.key === key).map(row => [row.status, row.lastRun]), [['resolved', '150']],
+    'the precondition: attempt 1 of run 200 resolved F and left its last run at 150');
+  assert.equal(auditClass(ledgerIndex(flaky, 'checks'), 'checks', 'keyboard-walker', f, '200'), 'known',
+    'the re-run of run 200 reads F as run 200 found it: open, known debt');
+  assert.equal(auditClass(ledgerIndex(flaky, 'checks'), 'checks', 'keyboard-walker', g, '200'), 'known');
+  assert.equal(auditClass(ledgerIndex(flaky, 'checks'), 'checks', 'keyboard-walker', f, '300'), 'regression',
+    'the next audit reads F as the audit before left it: resolved, so back');
+});
+
+test('NIGHT_OF_SOURCE is the ledger\'s own map of row sources to nights, key for key and value for value', () => {
+  // A wrong night would read a source's rows against another workflow's run id and coverage.
+  assert.deepEqual(NIGHT_OF_SOURCE, SOURCE_OF_NIGHT);
+});
+
 test('ledgerIndex reads the latest night of the source\'s own audit: its time, its run and its coverage', () => {
   const coverage = { checks: {}, axe: true, reader: ['nvda-chromium|grid-core'], golden: [] };
   const ledger = {
@@ -217,7 +266,7 @@ test('ledgerIndex reads the latest night of the source\'s own audit: its time, i
   const index = ledgerIndex(ledger, 'reader');
 
   assert.deepEqual([index.auditAt, index.auditRun, index.coverage], ['2026-11-17T13:35:31Z', '2', coverage]);
-  assert.deepEqual(index.rows.get('k'), { status: 'resolved', firstRun: '0', lastRun: '0', gaps: 1, seenSinceGap: 0 });
+  assert.deepEqual(index.rows.get('k'), { status: 'resolved', firstRun: '0', lastRun: '0', gaps: 1, seenSinceGap: 0, resolvedAt: null });
   assert.deepEqual([ledgerIndex(ledger, 'axe').auditRun, ledgerIndex(ledger, 'axe').coverage], ['1', { axe: false }]);
   assert.deepEqual([ledgerIndex(ledger, 'docs').auditRun, ledgerIndex(ledger, 'docs').coverage], [null, null], 'a source with no night has no audit');
 });

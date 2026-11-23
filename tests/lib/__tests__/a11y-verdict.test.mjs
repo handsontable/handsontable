@@ -252,8 +252,20 @@ test('an audit\'s ledger section lists what is not known debt, regressions first
 });
 
 test('an audit\'s run verdict says the run turns red on what changed since the audit before; a change run\'s says nothing of it', () => {
-  const result = runVerdict({ checkRuns: [], runId: '1', prefixes: ['A11y / '] });
+  const titled = (name, conclusion, title, id) => ({ ...posted(name, conclusion, { id }), output: { title } });
+  const read = titled('A11y / axe report', 'neutral', `⚠ Warning: 0 critical · ${ledgerLine({ new: 0, regression: 0, known: 4 })} · 4 known`, 1);
+  const unread = titled('A11y / reflow report', 'failure', '✖ Red: 0 critical, 3 serious, 0 moderate, 0 minor · 3 findings', 2);
+  const regressed = titled('A11y / pointer report', 'failure', `✖ Red: 1 serious · ${ledgerLine({ new: 0, regression: 1, known: 2 })}`, 3);
+  const all = runVerdict({ checkRuns: [read, regressed], runId: RUN, prefixes: ['A11y / '] });
+  const some = runVerdict({ checkRuns: [read, unread, regressed], runId: RUN, prefixes: ['A11y / '] });
+  const none = runVerdict({ checkRuns: [unread], runId: RUN, prefixes: ['A11y / '] });
 
-  assert.match(renderRunVerdict(result, { scope: 'audit' }), /On an audit a check run counts what the findings ledger does not hold as open/);
-  assert.doesNotMatch(renderRunVerdict(result), /findings ledger/);
+  assert.match(renderRunVerdict(all, { scope: 'audit' }), /On an audit a check run that read the findings ledger \(its title carries the ledger counts\) counts what the ledger does not hold as open/);
+  assert.doesNotMatch(renderRunVerdict(all, { scope: 'audit' }), /no ledger counts|carries ledger counts/, 'every check run read the ledger');
+  assert.match(renderRunVerdict(some, { scope: 'audit' }),
+    /1 of the 3 check runs carries no ledger counts: such a check run could not read the ledger and counted every open finding, debt included, or is a tooling failure/);
+  assert.match(renderRunVerdict(none, { scope: 'audit' }), /The check run carries no ledger counts: such a check run could not read the ledger/);
+  assert.match(renderRunVerdict(runVerdict({ checkRuns: [unread, { ...unread, id: 4, name: 'A11y / pointer report' }], runId: RUN, prefixes: ['A11y / '] }),
+    { scope: 'audit' }), /None of the 2 check runs carries ledger counts/);
+  assert.doesNotMatch(renderRunVerdict(some), /findings ledger/);
 });

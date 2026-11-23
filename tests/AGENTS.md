@@ -2479,10 +2479,13 @@ follows its worst check run.
   an advisory row never counts. The title keeps the counted findings per severity and adds
   `ledger: <n> new, <n> regressions, [<n> not measured before, ]<n> known` before the check's own headline,
   which counts every finding; the summary lists the regressions, then the new findings, then those not
-  measured before. A ledger that does not load leaves every open finding counted, with a note: a broken
-  ledger can make an audit red, never green. A re-run of an audit whose earlier attempt the ledger already
-  recorded reads that attempt's rows as they were before the run (a row the run first saw is new, one that
-  came back on it a regression), so a re-run never reads its own findings as known. Two limits, stated in
+  measured before. A ledger that does not load leaves every open finding counted, with a note, and the
+  title without the ledger counts, which is how the run verdict tells such a check run apart and says so: a
+  broken ledger can make an audit red, never green. A re-run of an audit whose earlier attempt the ledger
+  already recorded reads that attempt's rows as they were before the run (a row the run first saw is new, one
+  that came back on it a regression, one it resolved known, since the ledger resolves only an open row and an
+  attempt can miss a flaky finding), so a re-run never reads its own findings as known, nor known debt as
+  back. Two limits, stated in
   the summary: a row is keyed by the element's selector or the step, so a class or step renamed since reads
   as new; and an axe scan's coverage is one flag per night, not a list of pages, so a page added to a scan
   since reads as new, not as not measured before. The rule lives in each check run's conclusion, not in the
