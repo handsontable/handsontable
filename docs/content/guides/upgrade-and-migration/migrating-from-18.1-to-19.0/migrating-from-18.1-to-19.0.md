@@ -3661,3 +3661,39 @@ hot.addHook('afterChange', (changes: AppliedCellChange[] | null, source: ChangeS
 ```
 
 A change without a validator, or one that nothing moved while it waited, reports the same row as before.
+
+## 63. Tab stays inside an open dialog
+
+In 18.1, **Tab** from the last focusable element of an open [`Dialog`](@/api/dialog.md) moved the focus to
+the page, and **Shift+Tab** from the first element did the same.
+
+In 19.0, a dialog that offers a keyboard exit keeps **Tab** and **Shift+Tab** inside it while it holds the
+focus. A dialog offers a keyboard exit when it has at least one focusable element, or its `closable` setting
+is `true`. From the last focusable element, **Tab** goes to the first one. From the first one, **Shift+Tab**
+goes to the last one. With no focusable element and `closable` set to `true`, the focus stays on the dialog
+box. A dialog with no focusable element and `closable` set to `false`, such as the
+[`Loading`](@/api/loading.md) screen, behaves as in 18.1: **Tab** moves on to the page.
+
+The [`dialogFocusNextElement`](@/api/hooks.md#dialogfocusnextelement) and
+[`dialogFocusPreviousElement`](@/api/hooks.md#dialogfocuspreviouselement) hooks still run once per press,
+after the focus moved. On a wrap, the focus they see is the element at the other end of the dialog.
+
+### Who is affected
+
+- Your app or your tests press **Tab** to leave an open dialog and reach controls on the page.
+- Your `dialogFocusNextElement` or `dialogFocusPreviousElement` listener expects `document.activeElement`
+  to be outside the dialog after the last **Tab** or the first **Shift+Tab** press.
+
+### How to migrate
+
+Close the dialog before you move to the page, by one of these ways:
+
+- Add a button to the dialog that closes it.
+- Set `closable` to `true`, so the user can press **Escape**.
+- Call [`hide()`](@/api/dialog.md#hide) from your code.
+
+A dialog with no focusable element and `closable` set to `false` does not hold **Tab**, so **Tab** reaches the
+page as it did in 18.1.
+
+In a listener, check whether `document.activeElement` is inside the dialog instead of assuming it left the
+dialog after the last press.

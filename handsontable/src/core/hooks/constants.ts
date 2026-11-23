@@ -4838,8 +4838,12 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Dialog} plugin when the user presses <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> while focus is
    * inside the open dialog. This hook is fired when {@link Options#dialog} option is enabled.
    *
-   * The hook runs once per key press, after the browser handled the key. It receives no arguments.
+   * The hook runs once per key press, after the focus moved. It receives no arguments.
    * To find out which element has the focus, read `document.activeElement` in the callback.
+   *
+   * While the dialog offers a keyboard exit (it has a focusable element, or its `closable` setting is `true`),
+   * the focus stays inside it. A press on the first element moves the focus to the last element,
+   * and the hook sees the focus at that other end.
    *
    * @since 16.1.0
    * @event Hooks#dialogFocusPreviousElement
@@ -4850,8 +4854,12 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Dialog} plugin when the user presses <kbd>**Tab**</kbd> while focus is inside the open dialog.
    * This hook is fired when {@link Options#dialog} option is enabled.
    *
-   * The hook runs once per key press, after the browser handled the key. It receives no arguments.
+   * The hook runs once per key press, after the focus moved. It receives no arguments.
    * To find out which element has the focus, read `document.activeElement` in the callback.
+   *
+   * While the dialog offers a keyboard exit (it has a focusable element, or its `closable` setting is `true`),
+   * the focus stays inside it. A press on the last element moves the focus to the first element,
+   * and the hook sees the focus at that other end.
    *
    * @since 16.1.0
    * @event Hooks#dialogFocusNextElement

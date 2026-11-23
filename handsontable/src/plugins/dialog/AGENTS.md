@@ -219,10 +219,32 @@ moves focus into a modal in all circumstances; re-deciding it is a product call,
 ### `dialogFocusNextElement` / `dialogFocusPreviousElement` fire AFTER the native Tab move
 
 The Tab shortcut is registered with `preventDefault: false` and runs the hook inside `_registerTimeout`, so the
-browser has already moved the focus when the hook runs, and the hook gets no arguments. A handler reads
+focus has already moved when the hook runs, and the hook gets no arguments. A handler reads
 `document.activeElement`. It fires for a Tab pressed while the focus is inside the dialog, including the press
-that leaves it, and not for a press that brings the focus in from the page. The hook JSDoc once said "before focusing", which is wrong; do not restore that
-wording, and do not pass an element or move the timing without a product call (public hooks).
+that wraps, and not for a press that brings the focus in from the page. The hook JSDoc once said "before
+focusing", which is wrong; do not restore that wording, and do not pass an element or move the timing without
+a product call (public hooks).
+
+**Tab stays inside the dialog only when it offers a keyboard exit** (DEV-4009, WCAG 2.4.3 with 2.1.2).
+`#offersKeyboardExit` is `closable` or at least one tab stop. The Loading screen, a text-only `content`
+dialog, and a `confirm` with no buttons have neither, so their Tab keeps the old behavior and moves on to the
+page; holding the focus there would trap the keyboard. Do not drop that check. The pieces:
+
+- `focusCycle.ts` holds `getTabStops` (the dialog's focusable elements in Tab order) and `resolveWrapTarget`
+  (the element a press at an edge goes to, or `null` when the press stays native).
+- The shortcut pre-wraps only at the edges: it calls `preventDefault()` and focuses the other end. Every press
+  between the first and last stop stays the browser's own move, which is why `preventDefault` stays `false`.
+  With no tab stop and `closable: true`, the focus stays on the dialog box.
+- `#getFocusWithin` resolves the active element through shadow hosts once per press. A focus inside a shadow
+  tree the content hosts stays native, because its host says nothing about where the press goes.
+- A safety net in the existing `_registerTimeout` (`#keepFocusInside`) pulls the focus back when a native move
+  left the dialog. It covers Safari, which skips buttons by default and so can step past a trailing button the
+  dialog counts as a stop.
+- Containment applies only to a press made while the focus is inside the dialog. After a click outside, Tab
+  follows the page.
+- On a wrap, the hooks see the focus at the other end of the dialog.
+- The license lock screen (`## The license lock screen is NOT this plugin`) does not share any of this. It keeps
+  its non-trapping Tab order (DEV-4127), so a change here must not be ported to it.
 
 A report of "Safari does not Tab to the buttons" (DEV-1118) is the browser's default: Safari skips buttons on
 Tab unless "Press Tab to highlight each item" is on (or Option+Tab). Playwright's WebKit does the same, so a
