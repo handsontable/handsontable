@@ -233,6 +233,105 @@ export class NestedRowsTreegridPage extends NestedRowsPage {
   }
 
   /**
+   * The description of a data cell: the text of the hidden elements it points at through
+   * `aria-describedby`, past the reference to its column header, joined with a comma and a space. It
+   * reads `''` for a cell that carries none. The level of a row reaches a screen reader this way, with
+   * the cell, because a message in a live region can replace the announcement of the cell.
+   */
+  async cellDescription(row: number, col: number): Promise<string> {
+    return this.cell(row, col).evaluate((td: HTMLElement) => (td.getAttribute('aria-describedby') ?? '')
+      .split(/\s+/)
+      .filter(id => id.startsWith('ht-description-'))
+      .map(id => td.ownerDocument.getElementById(id)?.textContent ?? '')
+      .join(', '));
+  }
+
+  /**
+   * Start recording the description each data cell has at the moment the browser focus lands on it. A
+   * screen reader reads a description when the focus arrives, so a description added a moment later is
+   * not read, which polling the cell afterwards cannot tell.
+   */
+  async recordFocusDescriptions(): Promise<void> {
+    await this.page.evaluate(() => {
+      const log: string[] = [];
+
+      (window as unknown as { focusDescriptionLog: string[] }).focusDescriptionLog = log;
+      document.addEventListener('focusin', (event) => {
+        const td = event.target as HTMLElement;
+
+        if (td.tagName !== 'TD') {
+          return;
+        }
+
+        const descriptions = (td.getAttribute('aria-describedby') ?? '')
+          .split(/\s+/)
+          .filter(id => id.startsWith('ht-description-'))
+          .map(id => td.ownerDocument.getElementById(id)?.textContent ?? '');
+
+        log.push(`${td.getAttribute('data-testid')}: ${descriptions.join(', ')}`);
+      }, true);
+    });
+  }
+
+  /**
+   * The descriptions recorded since {@link NestedRowsTreegridPage#recordFocusDescriptions}, one entry
+   * per focus on a data cell, as `cell-<row>-<column>: <description>`.
+   */
+  focusDescriptions(): Promise<string[]> {
+    return this.page.evaluate(() => (window as unknown as { focusDescriptionLog: string[] }).focusDescriptionLog);
+  }
+
+  /**
+   * Start counting the renders the grid forces (`beforeRender` with `isForced`). Moving the selection is
+   * not one: the hook documents it as `false` there, and a forced render re-measures the visible rows and
+   * columns, so a plugin that turned every move into one would cost every key press.
+   */
+  async recordForcedRenders(): Promise<void> {
+    await this.page.evaluate(() => {
+      const state = window as unknown as { forcedRenderCount: number };
+
+      state.forcedRenderCount = 0;
+      window.hot.addHook('beforeRender', (isForced: boolean) => {
+        if (isForced) {
+          state.forcedRenderCount += 1;
+        }
+      });
+    });
+  }
+
+  /**
+   * The number of forced renders since {@link NestedRowsTreegridPage#recordForcedRenders}.
+   */
+  forcedRenders(): Promise<number> {
+    return this.page.evaluate(() => (window as unknown as { forcedRenderCount: number }).forcedRenderCount);
+  }
+
+  /**
+   * The name and the description Chromium's own accessibility tree gives a data cell, which is what a
+   * screen reader on Chromium reads from it.
+   */
+  async chromiumAccessibility(row: number, col: number): Promise<{ name: string; description: string }> {
+    const client = await this.page.context().newCDPSession(this.page);
+
+    try {
+      await client.send('Accessibility.enable');
+
+      const { result } = await client.send('Runtime.evaluate', {
+        expression: `document.querySelector('[data-testid="cell-${row}-${col}"]')`,
+      });
+      const { nodes } = await client.send('Accessibility.getPartialAXTree', {
+        objectId: result.objectId,
+        fetchRelatives: false,
+      });
+      const clean = (value: unknown) => String(value ?? '').replace(/\s+/g, ' ').trim();
+
+      return { name: clean(nodes[0]?.name?.value), description: clean(nodes[0]?.description?.value) };
+    } finally {
+      await client.detach();
+    }
+  }
+
+  /**
    * Start counting `afterSelection` calls, which fire whenever a key moves the selection, even when
    * the selection is put back right after.
    */

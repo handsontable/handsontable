@@ -937,15 +937,46 @@ row semantics. Six things look simpler than they are.
   state, and a `button` inside it would nest one interactive element in another (two stops, two names
   for one action). Without `navigableHeaders` nothing in the header takes the focus, which is what the
   <kbd>Shift</kbd>+<kbd>Alt</kbd> chords are for.
-- **The level of a row is announced, because no screen reader reads it from a cell.** `aria-level`,
-  `aria-posinset` and `aria-setsize` sit on the `TR`, and the tested readers speak none of them while
-  the focus is on a cell of the row. `#onHighlightChange` (`afterSelection` and
-  `afterSelectionFocusSet`, one arrow-function field for both) therefore sends ONE polite message when
-  the active highlight reaches a row: "Level 2, 1 of 3", with ", expanded" or ", collapsed" for a parent
-  (three whole phrases, `NESTED_ROWS_ANNOUNCEMENT_LEVEL*`, never a concatenation, so a translation can
-  order them). The numbers come from `DataManager#getRowTreePosition()`, the same call
-  `HeadersUI#updateRowAttributes()` writes the attributes from, so the spoken position and the
-  attributes cannot disagree (a filter recounts both). Six rules:
+- **The level of a row is described on the highlighted cell, because no screen reader reads it from a
+  cell, and a live message replaces the cell on VoiceOver.** `aria-level`, `aria-posinset` and
+  `aria-setsize` sit on the `TR`, and the tested readers speak none of them while the focus is on a
+  cell of the row. `#onHighlightChange` (`afterSelection` and `afterSelectionFocusSet`, one
+  arrow-function field for both) therefore adds "Level 2, 1 of 3", with ", expanded" or ", collapsed"
+  for a parent (three whole phrases, `NESTED_ROWS_ANNOUNCEMENT_LEVEL*`, never a concatenation, so a
+  translation can order them), to the description of the cell the active highlight reached
+  (`CELL_DESCRIPTION_RANK.ROW_LEVEL`, `utils/cellDescription/AGENTS.md`). The first version sent a
+  polite live message instead, and on VoiceOver it replaced the cell's own announcement in 4 of 6 audit
+  steps of the first weekly audit (the user heard the level and not the cell; a second run lost 2 of 6,
+  a race), where NVDA read both. A delay would keep the race. The numbers come from
+  `DataManager#getRowTreePosition()`, the same call `HeadersUI#updateRowAttributes()` writes the
+  attributes from, so the spoken position and the attributes cannot disagree (a filter recounts both).
+  Rules:
+  - **Only the highlighted cell carries it (`#levelCell`, physical coordinates), and the text is read
+    when it is written** (`#getRowLevelText()`), so a toggle or a filter that changed the numbers is
+    spoken as they are on the next paint. A part on every cell of a nested row was rejected: it re-reads
+    the level on every column move, and `posinset` changes without the cell's value changing.
+  - **The level is a description of its own, in ONE hidden element per grid whose text is rewritten in
+    place** (`getLevelElementId()` in `utils/cellDescription/cellDescription.ts`), never an element per
+    text: walking a long sibling list would leave one hidden element per row visited in the grid root.
+  - **A selection change draws with a fast draw, which runs no cell renderer, so the description is
+    written onto the rendered elements directly** (`#writeLevelDescription()`, which calls
+    `redescribeRenderedCell()` on the master cell and on the overlay copy, from the hook that runs
+    BEFORE the render and the focus move). `#onAfterRenderer` adds the same part when a cell is painted,
+    which covers a cell that is not drawn yet (the selection scrolls to it) and every later repaint.
+    **Do not ask for a full render instead** (`forceFullRender`, or `hot.render()`): it re-measures the
+    visible rows and columns (AutoRowSize, AutoColumnSize) on every row move, clears the cell meta memo,
+    and makes `beforeRender` and `afterRender` report `isForced: true`, which their documentation says
+    is `false` when the selection moves. `tests/e2e/nested-rows-tree-keys-a11y.spec.ts` counts forced
+    renders, and reads the description at the `focusin` event, so a description added after the focus
+    fails it.
+  - **A row header has no description, so a highlight on one still gets the live message**
+    (`#announceRowLevel()`). The row header focus and the toggle messages are the remaining uses of
+    `announce()` for a level. The header case was not part of the audit's VoiceOver finding, and the
+    recording run of this change decides whether it needs a fix of its own.
+  - `toggleParentByUser()` takes the description off after a toggle that changed something, because the
+    row's state changed. A toggle that did nothing, or that a hook vetoed, leaves it. A public
+    `collapseParent()` or `expandParent()` repaints the cell through the row mapper, and the paint reads
+    the text again.
   - It fires when the highlight's **record** changed, or when it stepped from the row's header into one
     of its cells. A move between the cells of one row, and a step from a cell back onto its header, are
     silent. A move onto another row's header announces too.
@@ -973,7 +1004,8 @@ row semantics. Six things look simpler than they are.
     `selectCell()`, and `#shouldAnnounceRowLevel()` reads it. It is a flag, not a selection source:
     marking the restore `shift` would also stop the viewport from scrolling to the parent
     (`ignoreScrollSources` in `core.ts`) and skip the editor close that every selection move makes.
-  - `afterDeselect` forgets the position, so selecting the same row again announces it.
+  - `afterDeselect` forgets the position and takes the description off the cell, so selecting the same
+    row again describes it.
   - `ariaTags: false` announces nothing, and `updatePlugin()` keeps `#lastHighlight` (a plugin field,
     not a `HeadersUI` one), so a React re-render does not repeat the level of the row the user is on.
 

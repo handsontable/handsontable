@@ -12,6 +12,11 @@ import type { TrimmingMap } from '../../translations';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR, GRID_GROUP } from '../../shortcuts/contexts';
 import RowMoveController from './utils/rowMoveController';
 import { announce } from '../../utils/a11yAnnouncer';
+import {
+  addCellDescriptionPart,
+  CELL_DESCRIPTION_RANK,
+  redescribeRenderedCell,
+} from '../../utils/cellDescription/cellDescription';
 import { isGridBodyCovered } from '../../shortcuts/guards';
 import {
   NESTED_ROWS_ANNOUNCEMENT_COLLAPSED,
@@ -64,6 +69,15 @@ interface CollapsedParentsState {
 interface HighlightPosition {
   physicalRow: number | null;
   isHeader: boolean;
+}
+
+/**
+ * The data cell that carries the level description of its row, by its physical coordinates, which a
+ * collapse, a sort or a column move does not change.
+ */
+interface LevelCell {
+  physicalRow: number;
+  physicalColumn: number;
 }
 
 /**
@@ -232,6 +246,14 @@ export class NestedRows extends BasePlugin {
   #lastHighlight: HighlightPosition | null = null;
 
   /**
+   * The data cell the level of its row is described on, or `null`. Only the cell the highlight reached
+   * on a move to another row carries it, so a move between the cells of one row stays silent.
+   *
+   * @type {LevelCell|null}
+   */
+  #levelCell: LevelCell | null = null;
+
+  /**
    * `true` while `toggleParentByUser()` changes the tree. A collapse can move the selection onto the
    * collapsed parent, and that move must not add a level announcement to the one the toggle makes.
    *
@@ -311,6 +333,7 @@ export class NestedRows extends BasePlugin {
     this.addHook('afterSelection', this.#onHighlightChange);
     this.addHook('afterSelectionFocusSet', this.#onHighlightChange);
     this.addHook('afterDeselect', this.#onHighlightDeselect);
+    this.addHook('afterRenderer', this.#onAfterRenderer);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -346,6 +369,7 @@ export class NestedRows extends BasePlugin {
 
     if (!this.#isRebuilding) {
       this.headersUI!.removeRenderedRowAttributes();
+      this.#levelCell = null;
     }
   }
 
@@ -564,6 +588,12 @@ export class NestedRows extends BasePlugin {
       performed = this.collapsingUI!.toggleCollapsedRows([physicalRow], action);
     } finally {
       this.#isUserToggleRunning = false;
+    }
+
+    if (performed) {
+      // The description names the state the row had when the highlight reached it, and the toggle changed
+      // it. A toggle that did nothing leaves it as it was.
+      this.#clearLevelDescription();
     }
 
     if (performed && this.hot.getSettings().ariaTags) {
@@ -1603,17 +1633,18 @@ export class NestedRows extends BasePlugin {
   }
 
   /**
-   * Announces the level of a row, its position among its siblings, and a parent's state, through the
-   * polite live region. Screen readers do not read `aria-level`, `aria-posinset` and `aria-setsize`
-   * off the row while the focus is on one of its cells, so the same values are spoken here.
+   * Returns the level of a row, its position among its siblings, and a parent's state as one phrase
+   * ("Level 2, 1 of 3"). It is read when it is used, so a filter or a toggle that changed the numbers
+   * is spoken as they are now.
    *
    * @param {number} physicalRow Physical row index.
+   * @returns {string|null} The phrase, or `null` when the row is not in the tree.
    */
-  #announceRowLevel(physicalRow: number): void {
+  #getRowLevelText(physicalRow: number): string | null {
     const treePosition = this.dataManager!.getRowTreePosition(physicalRow);
 
     if (!treePosition) {
-      return;
+      return null;
     }
 
     let phrase = NESTED_ROWS_ANNOUNCEMENT_LEVEL;
@@ -1623,12 +1654,120 @@ export class NestedRows extends BasePlugin {
         NESTED_ROWS_ANNOUNCEMENT_LEVEL_COLLAPSED : NESTED_ROWS_ANNOUNCEMENT_LEVEL_EXPANDED;
     }
 
-    announce(String(this.hot.getTranslatedPhrase(phrase, { ...treePosition }) ?? ''), 'polite');
+    return String(this.hot.getTranslatedPhrase(phrase, { ...treePosition }) ?? '');
   }
 
   /**
+   * Tells a screen reader the level of a row, its position among its siblings, and a parent's state.
+   * Screen readers do not read `aria-level`, `aria-posinset` and `aria-setsize` off the row while the
+   * focus is on one of its cells, so the same values are given to the cell the highlight reached, as
+   * part of its description. A polite live region message made the same moment replaced the
+   * announcement of the cell on VoiceOver, and the user heard the level and not the cell. A row
+   * header has no description, so a highlight on one still gets the message.
+   *
+   * @param {number} physicalRow Physical row index.
+   * @param {CellCoords} highlight The active highlight, which sits on a cell or on a row header.
+   */
+  #announceRowLevel(physicalRow: number, highlight: CellCoords): void {
+    const text = this.#getRowLevelText(physicalRow);
+
+    if (!text) {
+      return;
+    }
+
+    if (highlight.col === null || highlight.col < 0) {
+      announce(text, 'polite');
+
+      return;
+    }
+
+    const physicalColumn = this.hot.toPhysicalColumn(highlight.col);
+
+    if (physicalColumn !== null) {
+      this.#levelCell = { physicalRow, physicalColumn };
+      this.#writeLevelDescription(this.#levelCell, text);
+    }
+  }
+
+  /**
+   * Writes the level description onto the elements that show a cell now, or takes it off them. A
+   * selection change draws with a fast draw, which runs no cell renderer, so the description cannot wait
+   * for a paint: the render the selection makes right after this is the one the focus follows, and the
+   * description has to be on the cell before that. A cell that is not drawn yet is painted later with
+   * the description, by `#onAfterRenderer`. The master table and the overlay that holds the cell, when
+   * it has one, are two elements.
+   *
+   * @param {LevelCell} cell The cell, by its physical coordinates.
+   * @param {string|null} text The description, or `null` to take it off.
+   */
+  #writeLevelDescription(cell: LevelCell, text: string | null): void {
+    const visualRow = this.hot.toVisualRow(cell.physicalRow);
+    const visualColumn = this.hot.toVisualColumn(cell.physicalColumn);
+
+    if (visualRow === null || visualColumn === null) {
+      return;
+    }
+
+    const master = this.hot.getCell(visualRow, visualColumn);
+    const topmost = this.hot.getCell(visualRow, visualColumn, true);
+
+    [master, topmost === master ? null : topmost].forEach((TD) => {
+      if (TD) {
+        redescribeRenderedCell(
+          this.hot, TD, CELL_DESCRIPTION_RANK.ROW_LEVEL, text, !!this.hot.getSettings().ariaTags,
+        );
+      }
+    });
+  }
+
+  /**
+   * Takes the level description off the cell it was given to.
+   */
+  #clearLevelDescription(): void {
+    const cell = this.#levelCell;
+
+    this.#levelCell = null;
+
+    if (cell !== null) {
+      this.#writeLevelDescription(cell, null);
+    }
+  }
+
+  /**
+   * Tells whether a highlight sits on the cell that carries the level description.
+   *
+   * @param {CellCoords|undefined} highlight The active highlight.
+   * @returns {boolean}
+   */
+  #isLevelCell(highlight: CellCoords | undefined): boolean {
+    const cell = this.#levelCell;
+
+    return cell !== null && !!highlight && highlight.row !== null && highlight.col !== null &&
+      this.hot.toPhysicalRow(highlight.row) === cell.physicalRow &&
+      this.hot.toPhysicalColumn(highlight.col) === cell.physicalColumn;
+  }
+
+  /**
+   * `afterRenderer` hook callback. Adds the level description to the one cell that carries it. It is
+   * added while the cell is painted, so the description is part of the cell when the focus lands on it.
+   *
+   * @param {HTMLTableCellElement} TD The rendered cell element.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   */
+  #onAfterRenderer = (TD: HTMLTableCellElement, row: number, column: number) => {
+    const cell = this.#levelCell;
+
+    if (cell !== null && this.hot.toPhysicalRow(row) === cell.physicalRow &&
+        this.hot.toPhysicalColumn(column) === cell.physicalColumn) {
+      addCellDescriptionPart(TD, CELL_DESCRIPTION_RANK.ROW_LEVEL, this.#getRowLevelText(cell.physicalRow));
+    }
+  };
+
+  /**
    * `afterSelection` and `afterSelectionFocusSet` hook callback. Records where the highlight sits and
-   * announces the level of its row when it reached another row.
+   * describes its cell with the level of its row when it reached another row. A highlight that left the
+   * described cell takes the description off it.
    */
   #onHighlightChange = () => {
     const highlight = this.hot.getSelectedRangeActive()?.highlight;
@@ -1637,16 +1776,22 @@ export class NestedRows extends BasePlugin {
 
     this.#lastHighlight = current;
 
-    if (current && current.physicalRow !== null && this.#shouldAnnounceRowLevel(previous, current)) {
-      this.#announceRowLevel(current.physicalRow);
+    if (!this.#isLevelCell(highlight)) {
+      this.#clearLevelDescription();
+    }
+
+    if (highlight && current && current.physicalRow !== null && this.#shouldAnnounceRowLevel(previous, current)) {
+      this.#announceRowLevel(current.physicalRow, highlight);
     }
   };
 
   /**
-   * `afterDeselect` hook callback. Forgets the highlight, so the next selection announces its row.
+   * `afterDeselect` hook callback. Forgets the highlight, so the next selection announces its row, and
+   * takes the description off the cell that carried it.
    */
   #onHighlightDeselect = () => {
     this.#lastHighlight = null;
+    this.#clearLevelDescription();
   };
 
   /**

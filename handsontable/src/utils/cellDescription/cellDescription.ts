@@ -15,6 +15,7 @@ export const CELL_DESCRIPTION_RANK = {
   READ_ONLY: 10,
   LINK: 20,
   MERGED: 30,
+  ROW_LEVEL: 40,
 } as const;
 
 /**
@@ -35,6 +36,12 @@ interface DescriptionPart {
  * cell's parts, and a paint that threw leaves nothing but an entry the garbage collector takes with the element.
  */
 const partsOfCell = new WeakMap<HTMLTableCellElement, DescriptionPart[]>();
+
+/**
+ * The parts a cell was last painted with, so that one part of a painted cell can be changed without a paint
+ * ({@link redescribeRenderedCell}). A paint with no part leaves no entry.
+ */
+const lastPartsOfCell = new WeakMap<HTMLTableCellElement, DescriptionPart[]>();
 
 /**
  * Starts collecting the parts of the description of a cell. Called by the cell painter before the cell's
@@ -115,7 +122,10 @@ function composeParts(parts: DescriptionPart[]): string {
     parts.sort((a, b) => a.rank - b.rank);
   }
 
-  return parts.map(part => part.text).join(PARTS_SEPARATOR);
+  return parts
+    .filter(part => part.rank !== CELL_DESCRIPTION_RANK.ROW_LEVEL)
+    .map(part => part.text)
+    .join(PARTS_SEPARATOR);
 }
 
 /**
@@ -134,6 +144,7 @@ export interface CellDescriptionHost {
 interface DescriptionElements {
   byText: Map<string, HTMLElement>;
   next: number;
+  level: HTMLElement | null;
 }
 
 /**
@@ -141,6 +152,51 @@ interface DescriptionElements {
  * they go with it.
  */
 const elementsOfRoot = new WeakMap<HTMLElement, DescriptionElements>();
+
+/**
+ * Returns the description elements of a grid, making the record the first time.
+ *
+ * @param {CellDescriptionHost} hot The Handsontable instance.
+ * @returns {DescriptionElements}
+ */
+function getDescriptionElements(hot: CellDescriptionHost): DescriptionElements {
+  let elements = elementsOfRoot.get(hot.rootElement);
+
+  if (elements === undefined) {
+    elements = { byText: new Map(), next: 0, level: null };
+    elementsOfRoot.set(hot.rootElement, elements);
+  }
+
+  return elements;
+}
+
+/**
+ * Returns the id of the one hidden element that holds the level of a row, and sets its text. Only the
+ * highlighted cell of a nested row carries the level, so one element serves the whole walk: the text is
+ * written in place, where an element per text would stay in the root for every row the user visited.
+ *
+ * @param {CellDescriptionHost} hot The Handsontable instance.
+ * @param {string} text The level of the row.
+ * @returns {string}
+ */
+function getLevelElementId(hot: CellDescriptionHost, text: string): string {
+  const elements = getDescriptionElements(hot);
+  let element = elements.level;
+
+  if (element === null || element.parentNode !== hot.rootElement) {
+    element = hot.rootDocument.createElement('span');
+    element.id = `${CELL_DESCRIPTION_ID_PREFIX}${hot.guid}-level`;
+    element.hidden = true;
+    hot.rootElement.appendChild(element);
+    elements.level = element;
+  }
+
+  if (element.textContent !== text) {
+    element.textContent = text;
+  }
+
+  return element.id;
+}
 
 /**
  * Returns the id of the hidden element that holds a text in the grid's root, making it the first time. One element
@@ -153,13 +209,7 @@ const elementsOfRoot = new WeakMap<HTMLElement, DescriptionElements>();
  * @returns {string}
  */
 function getDescriptionElementId(hot: CellDescriptionHost, text: string): string {
-  let elements = elementsOfRoot.get(hot.rootElement);
-
-  if (elements === undefined) {
-    elements = { byText: new Map(), next: 0 };
-    elementsOfRoot.set(hot.rootElement, elements);
-  }
-
+  const elements = getDescriptionElements(hot);
   const known = elements.byText.get(text);
 
   if (known !== undefined && known.parentNode === hot.rootElement) {
@@ -191,12 +241,20 @@ function getDescriptionElementId(hot: CellDescriptionHost, text: string): string
 export function applyCellDescription(hot: CellDescriptionHost, TD: HTMLTableCellElement, enabled: boolean): void {
   const parts = partsOfCell.get(TD);
   const text = enabled && parts !== undefined ? composeParts(parts) : '';
+  const level = enabled && parts !== undefined ?
+    (parts.find(part => part.rank === CELL_DESCRIPTION_RANK.ROW_LEVEL)?.text ?? '') : '';
   const current = TD.getAttribute(DESCRIBED_BY) ?? '';
 
   partsOfCell.delete(TD);
 
+  if (parts !== undefined && parts.length > 0) {
+    lastPartsOfCell.set(TD, parts);
+  } else {
+    lastPartsOfCell.delete(TD);
+  }
+
   // The commonest cell has neither a description nor a reference of ours from an earlier paint.
-  if (text === '' && !current.includes(CELL_DESCRIPTION_ID_PREFIX)) {
+  if (text === '' && level === '' && !current.includes(CELL_DESCRIPTION_ID_PREFIX)) {
     return;
   }
 
@@ -204,6 +262,10 @@ export function applyCellDescription(hot: CellDescriptionHost, TD: HTMLTableCell
 
   if (text !== '') {
     tokens.push(getDescriptionElementId(hot, text));
+  }
+
+  if (level !== '') {
+    tokens.push(getLevelElementId(hot, level));
   }
 
   const next = tokens.join(' ');
@@ -217,4 +279,33 @@ export function applyCellDescription(hot: CellDescriptionHost, TD: HTMLTableCell
   } else {
     TD.setAttribute(DESCRIBED_BY, next);
   }
+}
+
+/**
+ * Sets or takes away one part of the description of a cell that is already painted, without a paint. The other
+ * parts are the ones the cell was last painted with. A selection change draws with a fast draw, which runs no
+ * cell renderer, so a part that follows the selection is written here, on the elements the grid shows now; the
+ * part is also added by the plugin in `afterRenderer`, so the next paint keeps it.
+ *
+ * @param {CellDescriptionHost} hot The Handsontable instance.
+ * @param {HTMLTableCellElement} TD The cell element that is painted.
+ * @param {number} rank The part's place in the description, one of {@link CELL_DESCRIPTION_RANK}.
+ * @param {string|null|undefined} text The translated phrase, or an empty value to take the part away.
+ * @param {boolean} enabled `false` when the grid writes no ARIA (`ariaTags: false`).
+ */
+export function redescribeRenderedCell(
+  hot: CellDescriptionHost,
+  TD: HTMLTableCellElement,
+  rank: number,
+  text: string | null | undefined,
+  enabled: boolean,
+): void {
+  const parts = (lastPartsOfCell.get(TD) ?? []).filter(part => part.rank !== rank);
+
+  if (typeof text === 'string' && text !== '') {
+    parts.push({ rank, text });
+  }
+
+  partsOfCell.set(TD, parts);
+  applyCellDescription(hot, TD, enabled);
 }
