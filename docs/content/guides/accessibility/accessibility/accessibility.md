@@ -130,6 +130,25 @@ Browsers in the last audit: {{$a11y.browsers.sentence}}.
 
 {{$a11y.notes.automation}}
 
+## Cell descriptions for screen readers
+
+A screen reader reads the value of the cell it moves onto. Some cells hold more than a value, and the focus stays on the cell, so Handsontable gives the cell an accessible description that a screen reader reads together with the value and the column header. Where the description falls in the announcement depends on the screen reader:
+
+| The cell is | Its description reads |
+| --- | --- |
+| [Read-only](@/guides/cell-features/read-only-cells/read-only-cells.md) | `read only` |
+| A [link](@/guides/cell-features/clickable-links/clickable-links.md), made by `autoLink` or a `HYPERLINK` formula | `link` |
+| A [merged](@/guides/cell-features/merge-cells/merge-cells.md) block | `merged through row 4 column 3` |
+
+A cell that has several of these reads them in the order of the table, separated by commas. A [formula cell](@/guides/formulas/formula-calculation/formula-calculation.md#formula-cells-and-screen-readers) adds its formula to its name, so a read-only formula reads `3 Formula: =SUM(A1:B1)` and is described as `read only`.
+
+- The description appears only while the [`ariaTags`](@/api/options.md#ariatags) option is `true`, which is its default.
+- The description is not part of the cell's accessible name, its text, or its box. `textContent`, `innerText`, the copied text, and the cell's styles do not change. Handsontable adds a hidden element for each distinct description to the grid's root element, and the cell points at it with `aria-describedby`, after the reference to its column header.
+- A merged block names the row and column of its last cell the way the grid numbers them for a screen reader (`aria-rowindex` and `aria-colindex`): the header rows and the row header columns count, and hidden rows and columns do not. The example above is for a grid with one header row and one row header column.
+- A frozen cell is in the DOM twice, in the grid and in its overlay, so a screen reader can read it twice, the way it reads the value.
+- A screen reader that already says `link` for an anchor in the cell says it twice.
+- Each phrase is translated with the grid [language](@/guides/internationalization/language/language.md). To change one, register a dictionary with the `CellDescription:readOnly`, `CellDescription:link`, or `CellDescription:merged` key. The `CellDescription:merged` phrase uses the `[row]` and `[column]` placeholders.
+
 ## Accessible data grid demo
 
 Check out the interactive demo below to see how various Handsontable settings impact its accessibility level and affect the user experience.
@@ -301,7 +320,7 @@ The {{$a11y.report.link}} lists the ones that carry a reference and a success cr
 
 ## Result
 
-Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell and a sort that a user makes. A range selection is not announced yet, and some screen readers announce the menus as a table (see [Known limitations](#known-limitations)).
+Your grid now supports keyboard navigation and carries ARIA attributes on its interactive elements. Screen readers announce the focused cell, a sort that a user makes, and a range, whole columns or rows, or every cell that a user selects. Some screen readers announce the menus as a table (see [Known limitations](#known-limitations)).
 
 ## API reference
 

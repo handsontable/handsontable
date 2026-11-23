@@ -1,0 +1,220 @@
+import { CELL_DESCRIPTION_ID_PREFIX } from '../../helpers/a11y';
+
+/**
+ * A cell points at the hidden element that holds its description through `aria-describedby`, after the reference
+ * Walkontable writes to its column header, so a screen reader reads the description with the cell and the header.
+ * The text is never inside the cell and never drawn, so the cell's own text, its accessible name, `textContent`,
+ * `innerText`, the copied text and its box stay as they were. The ids start with {@link CELL_DESCRIPTION_ID_PREFIX}.
+ */
+export { CELL_DESCRIPTION_ID_PREFIX };
+
+/**
+ * The position of each part in the description. A part with a lower rank is read first.
+ */
+export const CELL_DESCRIPTION_RANK = {
+  READ_ONLY: 10,
+  LINK: 20,
+  MERGED: 30,
+} as const;
+
+/**
+ * The separator between the parts of a description.
+ */
+const PARTS_SEPARATOR = ', ';
+
+const DESCRIBED_BY = 'aria-describedby';
+
+interface DescriptionPart {
+  rank: number;
+  text: string;
+}
+
+/**
+ * The parts collected for each cell being painted. Keyed by the element, not held in one slot, so a cell
+ * painted inside another cell's paint (a renderer that builds a grid in its cell) cannot take the outer
+ * cell's parts, and a paint that threw leaves nothing but an entry the garbage collector takes with the element.
+ */
+const partsOfCell = new WeakMap<HTMLTableCellElement, DescriptionPart[]>();
+
+/**
+ * Starts collecting the parts of the description of a cell. Called by the cell painter before the cell's
+ * renderers run, so a part left over from a paint that never finished cannot reach this one.
+ *
+ * @param {HTMLTableCellElement} TD The cell element being painted.
+ */
+export function beginCellDescription(TD: HTMLTableCellElement): void {
+  const parts = partsOfCell.get(TD);
+
+  if (parts) {
+    parts.length = 0;
+  } else {
+    partsOfCell.set(TD, []);
+  }
+}
+
+/**
+ * Adds a part to the description of the cell being painted. A rank holds one part, so a second call with the
+ * same rank replaces the first: two plugins that both find a link in a cell describe it once. A call for an
+ * element that is not being painted (a cell painted outside the grid, such as a measuring table) is ignored.
+ *
+ * @param {HTMLTableCellElement} TD The cell element being painted.
+ * @param {number} rank The part's place in the description, one of {@link CELL_DESCRIPTION_RANK}.
+ * @param {string|null|undefined} text The translated phrase. An empty value adds nothing: a phrase that no
+ *   dictionary holds answers `null`.
+ */
+export function addCellDescriptionPart(
+  TD: HTMLTableCellElement,
+  rank: number,
+  text: string | null | undefined,
+): void {
+  const parts = partsOfCell.get(TD);
+
+  if (parts === undefined || typeof text !== 'string' || text === '') {
+    return;
+  }
+
+  const existing = parts.find(part => part.rank === rank);
+
+  if (existing) {
+    existing.text = text;
+
+    return;
+  }
+
+  parts.push({ rank, text });
+}
+
+/**
+ * Takes a part back out of the description of the cell being painted. A listener that rewrites the cell after
+ * the one that described it (the Formulas plugin showing formulas as text, which removes the link) calls it.
+ *
+ * @param {HTMLTableCellElement} TD The cell element being painted.
+ * @param {number} rank The part's place in the description, one of {@link CELL_DESCRIPTION_RANK}.
+ */
+export function removeCellDescriptionPart(TD: HTMLTableCellElement, rank: number): void {
+  const parts = partsOfCell.get(TD);
+  const index = parts === undefined ? -1 : parts.findIndex(part => part.rank === rank);
+
+  if (parts !== undefined && index !== -1) {
+    parts.splice(index, 1);
+  }
+}
+
+/**
+ * Joins the collected parts in the order of their rank.
+ *
+ * @param {DescriptionPart[]} parts The parts of one cell.
+ * @returns {string}
+ */
+function composeParts(parts: DescriptionPart[]): string {
+  if (parts.length === 0) {
+    return '';
+  }
+
+  if (parts.length > 1) {
+    parts.sort((a, b) => a.rank - b.rank);
+  }
+
+  return parts.map(part => part.text).join(PARTS_SEPARATOR);
+}
+
+/**
+ * The part of a grid that the description elements need: where they live and a name that tells grids apart.
+ */
+export interface CellDescriptionHost {
+  guid: string;
+  rootElement: HTMLElement;
+  rootDocument: Document;
+}
+
+/**
+ * The description elements of one grid: by text, and the number the next id takes. The number only grows, so an id is
+ * never used twice in a root, whatever was removed from it.
+ */
+interface DescriptionElements {
+  byText: Map<string, HTMLElement>;
+  next: number;
+}
+
+/**
+ * The description elements of each grid. Keyed by the grid's root element, which the elements are children of, so
+ * they go with it.
+ */
+const elementsOfRoot = new WeakMap<HTMLElement, DescriptionElements>();
+
+/**
+ * Returns the id of the hidden element that holds a text in the grid's root, making it the first time. One element
+ * serves every cell with the same description. It sits in the root, not in the page's portal, because an id has to
+ * resolve in the tree the cell is in (a grid inside a shadow root). The element is remembered, so a paint that finds
+ * it still in the root searches nothing; one that a host's own markup removed is made again under a new id.
+ *
+ * @param {CellDescriptionHost} hot The Handsontable instance.
+ * @param {string} text The description.
+ * @returns {string}
+ */
+function getDescriptionElementId(hot: CellDescriptionHost, text: string): string {
+  let elements = elementsOfRoot.get(hot.rootElement);
+
+  if (elements === undefined) {
+    elements = { byText: new Map(), next: 0 };
+    elementsOfRoot.set(hot.rootElement, elements);
+  }
+
+  const known = elements.byText.get(text);
+
+  if (known !== undefined && known.parentNode === hot.rootElement) {
+    return known.id;
+  }
+
+  const element = hot.rootDocument.createElement('span');
+
+  element.id = `${CELL_DESCRIPTION_ID_PREFIX}${hot.guid}-${elements.next}`;
+  elements.next += 1;
+  element.hidden = true;
+  element.textContent = text;
+  hot.rootElement.appendChild(element);
+  elements.byText.set(text, element);
+
+  return element.id;
+}
+
+/**
+ * Ends the description of the cell being painted: points the cell at the element that holds the text, or takes
+ * the reference off when there is none. The reference joins the one Walkontable wrote to the column header and
+ * never replaces it. The attribute is written only when it changes, so a paint that changes nothing writes nothing.
+ *
+ * @param {CellDescriptionHost} hot The Handsontable instance.
+ * @param {HTMLTableCellElement} TD The cell element being painted.
+ * @param {boolean} enabled `false` when the grid writes no ARIA (`ariaTags: false`): the cell then carries
+ *   no description, whatever the parts said.
+ */
+export function applyCellDescription(hot: CellDescriptionHost, TD: HTMLTableCellElement, enabled: boolean): void {
+  const parts = partsOfCell.get(TD);
+  const text = enabled && parts !== undefined ? composeParts(parts) : '';
+  const current = TD.getAttribute(DESCRIBED_BY) ?? '';
+
+  partsOfCell.delete(TD);
+
+  // The commonest cell has neither a description nor a reference of ours from an earlier paint.
+  if (text === '' && !current.includes(CELL_DESCRIPTION_ID_PREFIX)) {
+    return;
+  }
+
+  const tokens = current.split(' ').filter(token => token !== '' && !token.startsWith(CELL_DESCRIPTION_ID_PREFIX));
+
+  if (text !== '') {
+    tokens.push(getDescriptionElementId(hot, text));
+  }
+
+  const next = tokens.join(' ');
+
+  if (next === current) {
+    return;
+  }
+
+  if (next === '') {
+    TD.removeAttribute(DESCRIBED_BY);
+  } else {
+    TD.setAttribute(DESCRIBED_BY, next);
+  }
+}
