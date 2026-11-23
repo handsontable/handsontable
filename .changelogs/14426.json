@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a focused cell that VoiceOver with WebKit and NVDA with Firefox did not read again when it changed in place or the focus moved to it.",
+  "type": "fixed",
+  "issueOrPR": 14426,
+  "breaking": false,
+  "framework": "none"
+}
