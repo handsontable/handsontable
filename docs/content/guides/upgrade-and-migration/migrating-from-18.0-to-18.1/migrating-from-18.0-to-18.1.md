@@ -135,7 +135,7 @@ const hot = new Handsontable(container, {
 
 ::: warning
 
-Handsontable 19.0 removes this key. It reads as invalid, and a lock screen covers the grid. If you
+Handsontable 19.0 removes this key and its second form, `'ht68e-1f2b7-47158-70b05-0842f'`. Both read as invalid, and a lock screen covers the grid. If you
 plan to upgrade to 19.0, get a trial key or a sponsored license instead. See
 [The `non-commercial-and-evaluation` license key no longer works](@/guides/upgrade-and-migration/migrating-from-18.1-to-19.0/migrating-from-18.1-to-19.0.md#the-non-commercial-and-evaluation-license-key-no-longer-works)
 in the 18.1 to 19.0 migration guide.

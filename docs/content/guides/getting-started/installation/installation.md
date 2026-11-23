@@ -435,7 +435,7 @@ To set Handsontable's [configuration options](@/guides/configuration/configurati
 
 ::: tip
 
-Handsontable needs a license key. The `licenseKey` attribute is commented out, and a grid without a valid key opens locked. Uncomment it and add your key. To get a trial key, see [License key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
+Handsontable needs a license key. The `licenseKey` prop is commented out, and a grid without a valid key opens locked. Uncomment it and add your key. To get a trial key, see [License key](@/guides/getting-started/license-key/license-key.md#get-a-license-key).
 
 :::
 
