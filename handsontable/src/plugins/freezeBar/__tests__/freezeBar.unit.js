@@ -179,8 +179,29 @@ describe('FreezeBar', () => {
     expect(bar.getAttribute('role')).toBe('separator');
     expect(bar.getAttribute('aria-orientation')).toBe('vertical');
     expect(bar.getAttribute('aria-valuenow')).toBe('2');
+    expect(bar.getAttribute('aria-valuetext')).toBe('2');
     expect(bar.getAttribute('aria-valuemin')).toBe('0');
     expect(bar.getAttribute('aria-label')).toBe('Frozen columns at the start');
+  });
+
+  it('should keep the value text equal to the count when the count changes', () => {
+    createGrid({ fixedColumnsStart: 2 });
+    hot.render();
+
+    const bar = container.querySelector('[data-ht-freeze-separator="start"]');
+    const press = key => bar.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+
+    press('ArrowRight');
+    hot.render();
+
+    expect(bar.getAttribute('aria-valuenow')).toBe('3');
+    expect(bar.getAttribute('aria-valuetext')).toBe('3');
+
+    press('Home');
+    hot.render();
+
+    expect(bar.getAttribute('aria-valuenow')).toBe('0');
+    expect(bar.getAttribute('aria-valuetext')).toBe('0');
   });
 
   it('should change the count with the arrow keys and Home', () => {

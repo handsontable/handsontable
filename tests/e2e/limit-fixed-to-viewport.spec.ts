@@ -587,6 +587,7 @@ test.describe('limitFixedToViewport', { tag: [THEMES_TAG, BUNDLES_TAG] }, () => 
       expect(await grid.freezeBarCount('start')).toBe(20);
       expect(await grid.setting('fixedColumnsStart')).toBe(20);
       await expect(grid.separator('start')).toHaveAttribute('aria-valuenow', String(drawn));
+      await expect(grid.separator('start')).toHaveAttribute('aria-valuetext', String(drawn));
     });
 
     test('puts the bar on the line where the drawn band ends', async() => {
