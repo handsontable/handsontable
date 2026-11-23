@@ -1231,6 +1231,7 @@ describe('MultiSelectEditor', () => {
 
         const $container2 = $('<div style="width: 300px; height: 300px;"></div>').appendTo('body');
         const hot2 = new Handsontable($container2[0], {
+          licenseKey: TEST_LICENSE_KEY,
           data: [[[]]],
           columns: [{ type: 'multiselect', source: choices }],
         });

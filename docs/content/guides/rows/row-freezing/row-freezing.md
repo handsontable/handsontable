@@ -84,9 +84,18 @@ To pin rows to the bottom edge of the grid -- sometimes called footer rows -- us
 
 ```js
 const hot = new Handsontable(container, {
-  data: getData(),
+  data: [
+    ['SKU-4821', 'Stainless Steel Water Bottle', 'Harbor Goods'],
+    ['SKU-0093', 'Wireless Mouse', 'Alpine Supply Co.'],
+    ['SKU-1170', 'Ergonomic Office Chair', 'Cascade Distributors'],
+    ['SKU-2208', 'USB-C Charging Cable', 'Summit Trading'],
+    ['SKU-3341', 'Aluminum Water Filter', 'Northgate Wholesale'],
+    ['SKU-4412', 'Canvas Tote Bag', 'Nordic Traders'],
+  ],
   // freeze the last two rows as a footer
   fixedRowsBottom: 2,
+  // the grid must be shorter than its data for anything to scroll
+  height: 100,
   // licenseKey: 'your-license-key', // get a key at https://handsontable.com/pricing/
 });
 ```

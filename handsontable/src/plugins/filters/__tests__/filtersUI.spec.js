@@ -138,6 +138,7 @@ describe('Filters UI', () => {
 
     document.body.appendChild(hot2Container);
     const hot2 = new Handsontable(hot2Container, {
+      licenseKey: TEST_LICENSE_KEY,
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       filters: true,
